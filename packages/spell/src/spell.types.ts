@@ -225,6 +225,96 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
   nested_expression: { nestedAs: "expression" }
 }
 
+/**
+ * A property `set the X of Y to ...` declared at its first set, as `Y`'s type never did.
+ * - Noted on that `set`'s match as `data.autoDeclared` (see `assignment_statement`), for its FILE to compile once:
+ *   `Card.declareProp('pile', { type: 'Pile' })` + `Object.defineProperty(Card.prototype, 'pile', ...)`.
+ * - See `SP.Block.autoDeclarations()`.
+ */
+export type AutoDeclaredProperty = {
+  /** Its type's name, e.g. `Card`. */
+  typeName: string
+  /** Its name as it compiles, e.g. `pile`. */
+  property: string
+  /** What its setter checks values against, e.g. `Pile` -- see `SC.PropCheck.type`.  None if unknown. */
+  checkType?: string
+  /** Statement declaring its type:  if that's in the same file, the property goes right after it. */
+  typeDeclaredBy: P.Match
+}
+
+// ## Built-in types
+
+/**
+ * One built-in type in `SP.BUILT_IN_TYPE_TABLE`:  what it is, and its members.
+ * - DATA, read by the parser, editors and the Type Explorer's pack.  See `builtinTypes.ts`.
+ * - Why data, not a `.spell` file or statics on runtime classes:  nothing to parse at startup,
+ *   and the parser never imports runtime code (plan doc D25).
+ */
+export type BuiltInType = {
+  /** Its datatype, in spell's words, e.g. `text`, `list` -- one of `P.BUILT_IN_TYPES`. */
+  name: P.Datatype
+  /** Its super-type, if any, e.g. `thing` for `app` -- MUST be what `P.BUILT_IN_TYPES` says. */
+  superType?: P.Datatype
+  /** What it holds, if it's a sort of list, e.g. `character` for `text` -- see `P.TypeScope.itemType`. */
+  itemType?: P.Datatype
+  /** One-line summary, for the Type Explorer, e.g. `counts from 1`. */
+  detail?: string
+  /** Its docs, as markdown. */
+  docstring?: string
+  /** Built-in rules which make or declare one, e.g. `create_type`, by name. */
+  rules?: string[]
+  /** What it has, in the order the Type Explorer lists them. */
+  members: BuiltInMember[]
+}
+
+/**
+ * One member of a `BuiltInType` -- read through its `readAs` template, or written with its own built-in `rules`.
+ * - With `readAs`:  a property READ, resolved by the type of what it's read from:
+ *   - `the length of the name` => `name.length`
+ *   - `the length of the deck` => `spellCore.itemCountOf(deck)`
+ *   - loaded into its type's `TypeScope` as a `P.ScopeVariable`, so `TypeScope.getMember()` finds it
+ * - With `rules` (and no `readAs`):  docs for what built-in rules already say, e.g. `shuffle (a list)`.
+ *   - Their rules compile them;  NOT loaded into scope -- see `loadBuiltInTypes()`.
+ */
+export type BuiltInMember = {
+  /**
+   * Its words, e.g. `length`, `first character`.
+   * - A method's with its arguments, e.g. `add (a thing) to (a list)`.
+   */
+  words: string
+  /** What the Type Explorer files it under. */
+  kind: "property" | "method"
+  /** What it is, or returns, in spell's words, e.g. `number`. */
+  datatype?: P.Datatype
+  /** A method's parameters, if it takes any, e.g. `[{ name: "thing" }]`. */
+  params?: P.ScopeParam[]
+  /**
+   * How a read of it compiles:  a template, `{it}` standing for what it's read from.  One of:
+   * - `{it}.length`:  a javascript property
+   * - `{it}.getFullYear()`:  a javascript method, no arguments
+   * - `spellCore.itemCountOf({it})`:  a `spellCore` helper, `{it}` its one argument
+   * - Pinned to a real property or method by `builtinTypes.test.ts`.  See `parseReadAsTemplate()`.
+   */
+  readAs?: string
+  /** Built-in rules which spell it, by name, e.g. `list_shuffle` -- their syntax shows in the Type Explorer. */
+  rules?: string[]
+  /** Its docs, as markdown. */
+  docstring?: string
+}
+
+/** A `BuiltInMember.readAs` template, taken apart -- see `parseReadAsTemplate()`. */
+export type ReadAsTemplate = {
+  /**
+   * Which form it is:
+   * - `property`:  `{it}.name`
+   * - `method`:  `{it}.name()`
+   * - `spellCore`:  `spellCore.name({it})`
+   */
+  form: "property" | "method" | "spellCore"
+  /** Property or method name, e.g. `length`, `itemCountOf`. */
+  name: string
+}
+
 // ## Declarations
 
 /**
@@ -259,7 +349,7 @@ export type SpellDeclarationsData = {
 
 /**
  * What ONE statement declared, flat -- a `/*! SPELL: DECLARES {...} *\/` comment, e.g.
- * `{ property: "suit", of: "Card", classVariable: "Suits", rule: "enumeration", enumeration: [...] }`.
+ * `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`.
  * - Only what can't be worked out from the rest, e.g. `constants` are left out when they're just
  *   `enumeration`'s strings.
  * - Keys are shared by what it declared:  `of` is both a property's type and its rules' owner.
@@ -269,8 +359,24 @@ export type SpellDeclaration = {
   type?: string
   /** `type`'s supertype, e.g. `Thing`. */
   superType?: string
+  /**
+   * What `type` holds, if it's a list type, e.g. `Card` for `a deck is a list of cards`.
+   * - See `P.TypeScope.itemType`.
+   */
+  itemType?: string
+  /**
+   * `true` if `property` names the ONE list of a family holding its item,
+   * e.g. `pile` on `Card` for `a card belongs to one pile` -- its `datatype` is the list type.
+   * - Read-only:  see `P.ScopeVariable.exclusive`.
+   */
+  exclusive?: boolean
   /** Instance property it declares, e.g. `suit`. */
   property?: string
+  /**
+   * `property`'s words as written, when not its name, e.g. `short rank` for `short_rank`.
+   * - So an importer's editors show what the author typed.  See `P.ScopeVariable.asWritten`.
+   */
+  asWritten?: string
   /**
    * Class variable holding an enumerated property's values, e.g. `Suits` -- instances see it too.
    * - Its values are `enumeration`.
@@ -280,6 +386,15 @@ export type SpellDeclaration = {
   of?: string
   /** `property`'s datatype, e.g. `text`. */
   datatype?: string
+  /**
+   * `property` was declared by its first `set`, as its type never declared it.
+   * - See `P.ScopeVariable.autoDeclared`.
+   */
+  autoDeclared?: boolean
+  /** A method's parameters, with their datatypes where known -- see `P.ScopeMethod.params`. */
+  params?: P.ScopeParam[]
+  /** What a method returns, if known -- see `P.ScopeMethod.returns`. */
+  returns?: string
   /** `property`'s compiled initial value. */
   initializer?: string
   /** `classVariable`'s values as parsed, e.g. `["'clubs'", "'diamonds'"]`. */
@@ -294,7 +409,10 @@ export type SpellDeclaration = {
    * - Its OTHER keys here are what that class's `specialize()` takes, e.g. `output` + `alias`.
    */
   rule?: string
-  /** Its rule's syntax -- none for `"enumeration"`, which matches its `literals`. */
+  /**
+   * Its rule's syntax.
+   * - None in an OLD `rule: "enumeration"` declaration, from before `class_member`:  loading skips those.
+   */
   syntax?: string
   /** Name of the generated method its rule calls, in compiled JS, e.g. `play_fizzbuzz`. */
   output?: string

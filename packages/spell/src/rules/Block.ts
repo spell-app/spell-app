@@ -92,47 +92,131 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
    * - A heading at a FILE's top level also says so as the program runs, just above its own lines:
    *   `spellCore.heading("set up all piles")` -- so the Thing Explorer knows which heading's code made each
    *   thing.  See `P.ASTHeadingInvocation`.
+   * - A FILE also declares each property a `set` in it declared, as its type never did:
+   *   once, at its top -- or right after its type's declaration, if that's in this file.
+   *   - Never moved into a class:  it mustn't change another file's output.
+   *   - See `SP.AutoDeclaredProperty` and `autoDeclarations()`.
    */
   getAST(match: P.MatchFor<this>): P.ASTStatementBlock | P.ASTStatementGroup {
     const docs = this.getDocComments(match)
     const docComments = new Set([...docs.values()].flatMap((doc) => doc.comments))
     const statements: SP.HoistableStatement[] = []
-    const isFileTop = !match.data.enclose && match.scope instanceof P.FileScope
+    const isFileTopLevel = !match.data.enclose && match.scope instanceof P.FileScope
+    // each `set`'s auto-declared property, by the statement declaring its type -- see `autoDeclarations()`
+    const autoDeclared = new Map<P.Match | undefined, SP.HoistableStatement[]>()
+    if (isFileTopLevel) {
+      const declaringItems = new Set(match.matched.map((item) => item instanceof P.Match && this.statementOf(item)))
+      for (const { statement, declared } of Block.autoDeclarations(match)) {
+        const after = declaringItems.has(declared.typeDeclaredBy) ? declared.typeDeclaredBy : undefined
+        autoDeclared.set(after, [...(autoDeclared.get(after) ?? []), Block.autoDeclarationAST(statement, declared)])
+      }
+    }
+    const context = { block: match, docs, docComments, isFileTopLevel }
     match.matched.forEach((item, index) => {
       // `Block.parse()` only ever pushes `Match`es onto `matched`, each a `line` / nested `block` whose rule
       // returns a statement-shaped node -- not statically representable.
       if (!(item instanceof P.Match)) return
-      const heading = isFileTop ? this.headingText(item) : undefined
-      if (heading) statements.push(new P.ASTHeadingInvocation(item, { heading }))
-      if (this.isBannerHeading(item, match.matched[index + 1])) {
-        statements.push(new P.ASTBannerComment(item, { value: this.commentText(this.commentOnlyLine(item)!) }))
-        return
-      }
+      statements.push(...this.statementsFor(item, index, context))
       const statement = this.statementOf(item)
-      const declarations = statement && SP.SpellDeclarations.commentFor(statement)
-      const doc = statement && docs.get(statement)
-      if (!doc) {
-        // a comment-only line that's part of a docstring compiles with its statement, below
-        const comment = this.commentOnlyLine(item)
-        if (comment && docComments.has(comment)) return
-        if (!declarations) statements.push(item.AST as P.ASTStatement)
-        else if (item.AST) statements.push(new P.ASTStatementGroup(item, { statements: [declarations, item.AST] }))
-        else statements.push(declarations)
-        return
-      }
-      // docstring first, then what it declares right on top of its code
-      const declaring: SP.HoistableStatement[] = [new P.ASTDocComment(item, { lines: doc.lines })]
-      if (declarations) declaring.push(declarations)
-      // the line, without a docstring comment at its end
-      for (const it of item.matched) {
-        if (!(it instanceof P.Match) || docComments.has(it)) continue
-        if (it.AST) declaring.push(it.AST as P.ASTStatement)
-      }
-      statements.push(new P.ASTStatementGroup(item, { statements: declaring }))
+      if (statement && autoDeclared.has(statement)) statements.push(...autoDeclared.get(statement)!)
     })
+    statements.unshift(...(autoDeclared.get(undefined) ?? []))
     const [hoisted] = SP.hoistClassMembers([statements])
     if (match.data.enclose) return new P.ASTStatementBlock(match, { statements: hoisted })
     return new P.ASTStatementGroup(match, { statements: hoisted })
+  }
+
+  /**
+   * What line or nested block `item` -- the `index`th of `block` -- compiles to, for `getAST()`:
+   * - its heading's call
+   * - its docstring
+   * - its `SPELL: DECLARES` comment
+   * - its code
+   */
+  private statementsFor(
+    item: P.Match,
+    index: number,
+    { block, docs, docComments, isFileTopLevel }: StatementsContext
+  ): SP.HoistableStatement[] {
+    const statements: SP.HoistableStatement[] = []
+    const heading = isFileTopLevel ? this.headingText(item) : undefined
+    if (heading) statements.push(new P.ASTHeadingInvocation(item, { heading }))
+    if (this.isBannerHeading(item, block.matched[index + 1])) {
+      statements.push(new P.ASTBannerComment(item, { value: this.commentText(this.commentOnlyLine(item)!) }))
+      return statements
+    }
+    const statement = this.statementOf(item)
+    // an auto-declaring `set` says what it declared where its file declares it -- see `autoDeclarationAST()`
+    const declarations =
+      statement && !Block.isAutoDeclaring(statement) ? SP.SpellDeclarations.commentFor(statement) : undefined
+    const doc = statement && docs.get(statement)
+    if (!doc) {
+      // a comment-only line that's part of a docstring compiles with its statement, below
+      const comment = this.commentOnlyLine(item)
+      if (comment && docComments.has(comment)) return statements
+      if (!declarations) statements.push(item.AST as P.ASTStatement)
+      else if (item.AST) statements.push(new P.ASTStatementGroup(item, { statements: [declarations, item.AST] }))
+      else statements.push(declarations)
+      return statements
+    }
+    // docstring first, then what it declares right on top of its code
+    const declaring: SP.HoistableStatement[] = [new P.ASTDocComment(item, { lines: doc.lines })]
+    if (declarations) declaring.push(declarations)
+    // the line, without a docstring comment at its end
+    for (const it of item.matched) {
+      if (!(it instanceof P.Match) || docComments.has(it)) continue
+      if (it.AST) declaring.push(it.AST as P.ASTStatement)
+    }
+    statements.push(new P.ASTStatementGroup(item, { statements: declaring }))
+    return statements
+  }
+
+  ////////////////
+  // ## Auto-declared properties
+  ////////////////
+
+  /**
+   * Each property a `set` in `file` declared, as its type never did, with that `set`.
+   * - In source order, nested bodies included.  See `SP.AutoDeclaredProperty`.
+   * - Reads only matches and their `data`, as noted while parsing:  `getAST()` may call it.
+   */
+  static autoDeclarations(file: P.Match): Array<{ statement: P.Match; declared: SP.AutoDeclaredProperty }> {
+    const found: Array<{ statement: P.Match; declared: SP.AutoDeclaredProperty }> = []
+    const seen = new Set<P.Match>()
+    visit(file)
+    return found
+
+    /** Note `match`'s auto-declared property, if any, then visit what's inside it -- its body too. */
+    function visit(match: P.Match) {
+      if (seen.has(match)) return
+      seen.add(match)
+      const { autoDeclared, body } = match.data as { autoDeclared?: SP.AutoDeclaredProperty; body?: unknown }
+      if (autoDeclared) found.push({ statement: match, declared: autoDeclared })
+      for (const child of match.matched) if (child instanceof P.Match) visit(child)
+      if (body instanceof P.Match) visit(body)
+    }
+  }
+
+  /**
+   * `declared`, as its file compiles it, for `set` statement `statement`:
+   *   `Card.declareProp('pile', { type: 'Pile' })` + the accessor, as `P.ASTReactiveProperty` patches one on.
+   * - Under `statement`'s `SPELL: DECLARES` comment:  HERE, not on the `set` line, which may be in a method's body.
+   * - Why:  a body's AST is memoized, and kept when an edit above it only moves it,
+   *   so a comment there would keep its old `defined` offsets.  A file's AST is built afresh.
+   */
+  static autoDeclarationAST(statement: P.Match, declared: SP.AutoDeclaredProperty): P.ASTStatementGroup {
+    const { typeName, property, checkType } = declared
+    const check = checkType ? new P.ASTObjectLiteral(statement) : undefined
+    check?.addProp("type", `'${checkType}'`)
+    const member = new P.ASTReactiveProperty(statement, { type: typeName, property, check })
+    const comment = SP.SpellDeclarations.commentFor(statement)
+    const patched = new P.ASTPatchedMember(statement, { member })
+    return new P.ASTStatementGroup(statement, { statements: comment ? [comment, patched] : [patched] })
+  }
+
+  /** Did `statement` declare a property at its first `set` -- see `autoDeclarations()`? */
+  static isAutoDeclaring(statement: P.Match): boolean {
+    return !!(statement.data as { autoDeclared?: unknown }).autoDeclared
   }
 
   ////////////////
@@ -216,6 +300,18 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
   }
 }
 
+/** What `Block.statementsFor()` needs to know about the block it's compiling. */
+type StatementsContext = {
+  /** The block's match. */
+  block: P.Match
+  /** Its statements' docstrings -- see `getDocComments()`. */
+  docs: Map<P.Match, DocComment>
+  /** Every comment in `docs`. */
+  docComments: Set<P.Match>
+  /** Is it a file's top level? */
+  isFileTopLevel: boolean
+}
+
 /** A statement's docstring -- see `Block.getDocComments()`. */
 export type DocComment = {
   /** Its lines of text, without comment symbols. */
@@ -239,4 +335,6 @@ export type BlockMatchData = {
   bodyErrorsAt?: number
   /** On a `line` match with a nested body:  journal mark just before the body was parsed, if journaled. */
   bodyMark?: P.JournalMark
+  /** On a `line` match:  what its statement's `mutateScopeFromBody()` recorded, if anything. */
+  fromBody?: string
 }

@@ -18,7 +18,7 @@ import type { AbstractClass } from "./util.types"
  * - Field name MUST be something instances already declare, e.g. `declare alias: ...` on `Rule` --
  *   so a typo like `@proto static alais` is a compile error rather than a silently-ignored static.
  * - SIDE EFFECT: then calls the class's `static protoDefined(name, value)`, if it has one, so a base class can
- *   react as each subclass is defined, e.g. `P.Rule` registering `@proto static importableAs = "enumeration"`.
+ *   react as each subclass is defined, e.g. `P.Rule` registering `@proto static importableAs = "quoted_property"`.
  */
 export function proto<This extends AbstractClass<object>, Value>(
   _target: undefined,

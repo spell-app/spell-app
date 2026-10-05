@@ -113,13 +113,19 @@ describe("SpellDeclarations.importScope()", () => {
   test("the app compiles the same against the library's declarations as against its sources", () => {
     const fromSources = summarize(parseSpellProject(all)).filter(({ path }) => path === "/Solitaire.spell")
     const fromDeclarations = summarize(parseSpellProject(app, { parentScope: importLibrary() }))
-    expect(fromDeclarations).toEqual(fromSources)
+    // bar ONE thing:  `set the name of cards-to-move to ...` declares a pile's `name`
+    // only on a type the project declares itself -- see `assignment_statement.declareProperty()`
+    const autoDeclared =
+      /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", autoDeclared: true,\n.*\n\} \*\/\n(.*\n){5}/
+    expect(fromSources[0]!.compiled).toMatch(autoDeclared)
+    const withoutIt = fromSources.map((it) => ({ ...it, compiled: it.compiled?.replace(autoDeclared, "") }))
+    expect(fromDeclarations).toEqual(withoutIt)
   })
 
   test("records where each name came from", () => {
     const { origins } = importLibrary()
     expect(origins.get("Card")).toBe(from)
-    expect(origins.get("Card_Suits")).toBe(from)
+    expect(origins.get("turn_face_up")).toBe(from)
   })
 
   describe("records keep what editors need, with no `declaredBy` -- for a library shipped without sources", () => {
@@ -145,10 +151,11 @@ describe("SpellDeclarations.importScope()", () => {
         detail: "turn_face_up()"
       })
       expect(sourceAt(declared?.declaredAt)).toMatch(/^to turn \(a card\) face up/)
-      // a property's rule says it declared the property
-      expect(imports.rules.get("Card_Suits", "LOCAL_ONLY")?.declared?.declaration).toEqual({
-        kind: "property",
-        name: "suit",
+      // a quoted alias's rule says it declared the method it calls
+      expect(imports.rules.get("is_a_$suit", "LOCAL_ONLY")?.declared?.declaration).toEqual({
+        kind: "method",
+        name: '"is a (suit)"',
+        detail: "is_a_$suit()",
         of: "Card"
       })
     })
@@ -170,13 +177,56 @@ describe("SpellDeclarations.importScope()", () => {
     }
   })
 
+  test("a method's parameters and a list type's item type load with their types -- renamed with them", () => {
+    const imports = importLibrary()
+    const move = imports.types.get("Card", "LOCAL_ONLY")?.methods.get("move_to_$pile", "LOCAL_ONLY")
+    expect(move?.params).toEqual([{ name: "pile", datatype: "Pile" }])
+    expect(move?.asWritten).toBe("move (a card) to (a pile)")
+    expect(imports.types.get("Pile", "LOCAL_ONLY")?.itemType).toBe("Card")
+    const renamed = importLibrary({ import: ["Card:Playingcard", "*"] })
+    expect(renamed.types.get("Pile", "LOCAL_ONLY")?.itemType).toBe("Playingcard")
+  })
+
+  test("an imported call rule checks its arguments' types -- a deck falls to the built-in `move` -- and is an operand", () => {
+    const contents = [
+      "set card to a new card",
+      "set deck to a new deck",
+      "set pile to a new pile",
+      "move card to pile",
+      "move card to deck",
+      "set moved to move card to pile"
+    ].join("\n")
+    const { files } = parseSpellProject([{ path: "/A.spell", contents }], { parentScope: importLibrary() })
+    expect([files[0]!.compiled, ...files[0]!.errors].join("\n")).toMatchInlineSnapshot(`
+      "export let card = new Card()
+      export let deck = new Deck()
+      export let pile = new Pile()
+      card.move_to_$pile(pile)
+      spellCore.move(card, deck)
+      export let moved = card.move_to_$pile(pile)"
+    `)
+  })
+
+  test("declarations from before P4 load:  no `params` or `itemType` is unknown", () => {
+    const old = {
+      ...declarations,
+      statements: declarations.statements.map(({ params, itemType, ...statement }) => statement)
+    }
+    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from, declarations: old }])
+    expect(imports.types.get("Card", "LOCAL_ONLY")?.methods.get("move_to_$pile", "LOCAL_ONLY")?.params).toEqual([])
+    expect(imports.types.get("Pile", "LOCAL_ONLY")?.itemType).toBeUndefined()
+  })
+
   // NOTE: pins TODAY's partial-import behaviour:  a type brings only the rules it OWNS -- see the plan's open
   // question 1, whether a rule owned by a type left out could still change how the importer parses.
   test("`import` loads just the names picked, with what they own", () => {
     const { scope } = parseSpellProject([], { parentScope: importLibrary({ import: ["Card"] }) })
     expect(scope.types.get("Card")).toBeDefined()
     expect(scope.parse("card suits", "expression")?.compile()).toBe("Card.Suits")
-    expect(scope.types.get("Pile")).toBeUndefined()
+    expect(scope.types.get("Deck")).toBeUndefined()
+    // ...but what a card's properties hold comes along:
+    // `set the pile of the card to the pile` declared one
+    expect(scope.types.get("Pile")).toBeDefined()
   })
 
   test("a picked type brings the types it depends on", () => {
@@ -246,5 +296,79 @@ describe("SpellDeclarations.importScope()", () => {
         /more-cards.*type 'Card' was already imported from '@library\/cards'/
       )
     })
+  })
+})
+
+/**
+ * `a card belongs to one pile` is saved as the member it gives cards:  `pile`, `exclusive`, a `Pile`.
+ * - Loading it gives `Card` that read-only member again -- see `P.TypeScope.declareOwnerMember()`.
+ * - The list types' own declarations say nothing about it:  `a pile is a list of cards` is plain.
+ */
+describe("SpellDeclarations of `a card belongs to one pile`", () => {
+  const library = [
+    { path: "/Card.spell", contents: "a card is a thing" },
+    { path: "/Pile.spell", contents: "a pile is a list of cards\na card belongs to one pile\na tableau is a pile" }
+  ]
+  const declarations = SP.SpellDeclarations.read(compiledProject(library))!
+  const from = "@library/piles"
+
+  test("says the member it gives cards -- its list types stay plain", () => {
+    expect(declarations.statements.find(({ property }) => property === "pile")).toEqual({
+      property: "pile",
+      of: "Card",
+      datatype: "Pile",
+      exclusive: true,
+      defined: "/Pile.spell:26-52"
+    })
+    expect(declarations.statements.find(({ type }) => type === "Pile")).toEqual({
+      type: "Pile",
+      superType: "List",
+      itemType: "Card",
+      defined: "/Pile.spell:0-25"
+    })
+  })
+
+  test("loads it again:  `the pile of a card` is a `Pile`, read-only, declared on its own line", () => {
+    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from, declarations }])
+    const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("pile", "LOCAL_ONLY")
+    expect(member).toMatchObject({ name: "pile", datatype: "Pile", exclusive: true })
+    expect(member?.declaredAt).toMatchObject({ path: `${from}/Pile.spell`, start: 26, end: 52 })
+    const contents = ["set card to a new card", "print the pile of the card", "set the pile of the card to 1"]
+    const { files } = parseSpellProject([{ path: "/A.spell", contents: contents.join("\n") }], {
+      parentScope: imports
+    })
+    expect([files[0]!.compiled, ...files[0]!.errors].join("\n")).toMatchInlineSnapshot(`
+      "export let card = new Card()
+      spellCore.console.log(card.pile)
+      /* PARSE ERROR: Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead */
+      3:0 Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead"
+    `)
+  })
+
+  test("picking `Card` brings `Pile`, the type its member holds", () => {
+    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [
+      { from, declarations, import: ["Card"] }
+    ])
+    expect(imports.types.get("Pile", "LOCAL_ONLY")).toBeDefined()
+    expect(imports.types.get("Tableau", "LOCAL_ONLY")).toBeUndefined()
+  })
+})
+
+/** A multi-word member keeps its words as written through an import, so an importer's editors show `short rank`. */
+describe("SpellDeclarations of a multi-word member", () => {
+  const library = [
+    { path: "/Card.spell", contents: "a card is a thing\na card has short rank as text\na card has a suit" }
+  ]
+  const declarations = SP.SpellDeclarations.read(compiledProject(library))!
+
+  test("says its `asWritten` when it isn't its name -- not for a one-word member", () => {
+    expect(declarations.statements.find(({ property }) => property === "short_rank")?.asWritten).toBe("short rank")
+    expect(declarations.statements.find(({ property }) => property === "suit")?.asWritten).toBeUndefined()
+  })
+
+  test("loads them again", () => {
+    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from: "@library/c", declarations }])
+    const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("short_rank", "LOCAL_ONLY")
+    expect(member?.asWritten).toBe("short rank")
   })
 })

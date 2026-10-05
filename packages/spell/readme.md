@@ -40,10 +40,10 @@ errors as you type, hover, completion, go to definition, find references, rename
 **Install it in your VS Code:**
 
 - `yarn` in the repo, if you haven't already -- the extension runs the repo's own language server.
-- `yarn vscode` (at the repo root) -- builds the extension and installs it in VS Code.  It's the two steps below.
-  - `yarn vscode:build` -- installs the extension's packages, bundles it, and packages
+- `spell dev vscode` (at the repo root) -- builds the extension and installs it in VS Code.  It's the two steps below.
+  - `spell dev vscode build` -- installs the extension's packages, bundles it, and packages
     `packages/vscode/spell-language.vsix`.
-  - `yarn vscode:install` -- installs that file with `code --install-extension`.  Or in VS Code:
+  - `spell dev vscode install` -- installs that file with `code --install-extension`.  Or in VS Code:
     Extensions view => `...` menu => `Install from VSIX...`.
     (No `code` command?  In VS Code:  `Shell Command: Install 'code' command in PATH`.)
 - Reload VS Code, and open a `.spell` file.

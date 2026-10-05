@@ -386,30 +386,30 @@ describe("P.Subrule", () => {
 
 describe("P.Choice tie-breaking", () => {
   /** Two interchangeable single-token rules registered under one `alias`, so both match the same input. */
-  function tieParser(secondPrecedence?: number) {
+  function tieParser(secondPriority?: number) {
     class first_rule extends P.Keyword {}
     class second_rule extends P.Keyword {}
     const parser = new Parser()
     parser.addRule(first_rule, { alias: "either", literal: "x" })
-    parser.addRule(second_rule, { alias: "either", literal: "x", precedence: secondPrecedence })
+    parser.addRule(second_rule, { alias: "either", literal: "x", priority: secondPriority })
     return parser
   }
 
-  test("same precedence and length -- EARLIEST-registered rule wins", () => {
+  test("same priority and length -- EARLIEST-registered rule wins", () => {
     // NOTE: `getBestMatch()` long claimed the opposite in its comments -- see agents/SUSPECTED-BUGS.md.
     expect(tieParser().parse("x", "either")?.rule.name).toBe("first_rule")
   })
 
-  test("higher precedence beats earlier registration", () => {
+  test("higher priority beats earlier registration", () => {
     expect(tieParser(1).parse("x", "either")?.rule.name).toBe("second_rule")
   })
 
-  test("precedence beats a LONGER match -- it filters first, length only breaks ties within the top band", () => {
+  test("priority beats a LONGER match -- it filters first, length only breaks ties within the top band", () => {
     class long_rule extends P.Keywords {}
     class short_rule extends P.Keyword {}
     const parser = new Parser()
     parser.addRule(long_rule, { alias: "either", literals: ["x", "y"] })
-    parser.addRule(short_rule, { alias: "either", literal: "x", precedence: 1 })
+    parser.addRule(short_rule, { alias: "either", literal: "x", priority: 1 })
     // `long_rule` matches both tokens, but `short_rule` outranks it and wins with just one.
     const match = parser.parse("x y", "either")
     expect(match?.rule.name).toBe("short_rule")
@@ -647,6 +647,31 @@ describe("P.Sequence", () => {
         const match = rule.parse(scope, tokenize("something this that the other"))
         expect(match).toBeUndefined()
       })
+    })
+  })
+
+  describe("give-back:  a slot which took the word after it gives it back", () => {
+    // `phrase` is greedy:  every word to the end
+    parser.addRule(new P.Pattern({ name: "word", pattern: /^[a-z]+$/ }))
+    parser.addRule(new P.Repeat({ name: "phrase", rule: new P.Subrule("word") }))
+    class remove_of extends P.Sequence {
+      @proto static syntax = "remove {thing:phrase} of {list:phrase}"
+    }
+    parser.addRule(remove_of)
+    const groupsOf = (input: string) => {
+      const match = parser.rules.remove_of!.parse(scope, tokenize(input))
+      const { thing, list } = (match?.groups ?? {}) as { thing?: Match; list?: Match }
+      return match && [thing?.inputText.trim(), list?.inputText.trim()]
+    }
+
+    test("re-parses the slot just before the word", () => {
+      expect(groupsOf("remove a b of c")).toEqual(["a b", "c"])
+    })
+    test("the LAST place the word is comes first", () => {
+      expect(groupsOf("remove a of b of c")).toEqual(["a of b", "c"])
+    })
+    test("still fails when no place works", () => {
+      expect(groupsOf("remove a b c")).toBeUndefined()
     })
   })
 })

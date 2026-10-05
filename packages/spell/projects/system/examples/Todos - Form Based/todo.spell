@@ -14,7 +14,7 @@ set app to a new todos-app
 set the filter of the app to "all"
 set the newTaskName of the app to ""
 
-to create a task (with title as text, completed as a choice)
+to create a new task (with title as text, completed as a choice)
 	if the title is undefined
 		if the newTaskName of the app is "" return
 		set the title to the newTaskName of the app
@@ -22,9 +22,9 @@ to create a task (with title as text, completed as a choice)
 	get a new task with title = the title, completed = the completed or no
 	add it to the tasks of the app
 
-create a task with title = "Create todos app", completed = yes
-create a task with title = "Teach it to draw"
-create a task with title = "Test app"
+create a new task with title = "Create todos app", completed = yes
+create a new task with title = "Teach it to draw"
+create a new task with title = "Test app"
 
 to draw (a todos-app)
 	return 
@@ -45,13 +45,13 @@ to draw (a todos-app)
 						<UI.Input name="title" width={10}/>
 					</UI.FormRepeat>
 					<UI.Input name="newTaskName" placeholder="New task name" label="New task:" width={11}/>
-					<UI.Button disabled={the newTaskName of the app is ""} onClick={create a task} content="Add Task"/>
+					<UI.Button disabled={the newTaskName of the app is ""} onClick={create a new task} content="Add Task"/>
 				</UI.Form>
 				<br/>
 				<br/>
 				<SUI.Menu inverted color="grey">
 					<SUI.Menu.Item header content="Test:" />
-					<SUI.Menu.Item onClick={create a task with title = "Moar"} content="Add Item" />
+					<SUI.Menu.Item onClick={create a new task with title = "Moar"} content="Add Item" />
 					<SUI.Menu.Item onClick={remove the first item of the tasks of the app} content="Remove Item" />
 					<SUI.Menu.Item onClick={set the title of the first item of the tasks of the app to "New title"} content="Change name" />
 					<SUI.Menu.Item onClick={remove items in (the tasks of the app) where it is complete} content="Remove Completed" />

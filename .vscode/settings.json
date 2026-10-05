@@ -31,6 +31,11 @@
   "[less]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
   "[yaml]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
 
+  // Autocomplete and hover docs for every `<ui-*>` tag, attribute and value in `.html` files:  Spell UI's vocabularies
+  // as VS Code HTML custom data, written by `yarn site:data` (packages/ui, `tools/ElementManifests.ts`).  Every package
+  // window's FIRST folder is this repo root, so this file reaches them all.
+  "html.customData": ["./packages/ui/site/_data/html-custom-data.json"],
+
   // requires only if you use vetur plugin
   "vetur.validation.script": false,
   "js/ts.experimental.useTsgo": false

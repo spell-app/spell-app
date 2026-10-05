@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/ui`.
 
-Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
-Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -24,10 +24,11 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `../util/` -- `@spell-app/util` (`$/util`), shared with `spell`:  `@proto` (`decorators.ts`), `class.ts`, `string.ts`
     (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`.  `src/util/index.ts`
     (`$/ui/util`) re-exports it, so source keeps saying `from "$/ui/util"`;  its declarations ship in `dist/_util/`.
-    `src/util/index.ts` imports util's GENERIC files one by one (`$/util/class` ...), never `$/util`'s barrel, which also
-    holds spell's utilities (lodash, `chalk` ...):  an allowed exception to the barrel-only rule.
-    A helper only `ui` uses goes in `src/util/`, one `spell` also needs moves to `$/util`.  Everything in `$/ui/util`
-    lands in the `core` bundle (`core.ts` re-exports it), so keep it small
+    `src/util/index.ts` imports util's GENERIC files one by one (`$/util/class` ...), never `$/util`'s barrel, which
+    also holds spell's utilities (lodash, `chalk` ...):  one of the deep-import exceptions (WWOD §4 › "Package
+    aliases, never `../`"), so spell's utilities never reach `ui`'s bundles.
+    Where a helper goes:  SEE:  WWOD §8 › "Promotion path".  Everything in `$/ui/util` lands in the `core` bundle
+    (`core.ts` re-exports it), so keep it small
   - `src/vocabulary/` (`V`) -- the naming layer:  vocabulary schema, value sets, `Vocabulary` (registry, translated
     names, `replace()` for hot reload), `Converters`
   - `src/runtime/` (`UI`) -- the shared `UI` runtime, ONE instance per page (`globalThis.UI ??= new UIRuntime()`).
@@ -180,13 +181,16 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `yarn site:sections [--check] [page...]` -- `scripts/site-sections.ts`:  nests every page's flat level 2 / 3
     headers and headed examples into `<ui-section>`s and writes (or fixes) their ids, `<tab>-<section>-<example>`;
     idempotent.  `site:index`, `site:kitchen` and `site:new` run it on what they write
+  - `yarn design:build [--out <dir>]` (`spell dev design build`) -- `tools/DesignExport.ts`:  the claude.ai design
+    system's files (epic `claude-design`) in `<dir>/project/`, default `build/design-system/` (git-ignored), from
+    `site/_data/components.json`, the element examples and the Spell theme;  `yarn site:data` first after a
+    vocabulary change.  `yarn site:data` also writes `site/_data/custom-elements.json` and `html-custom-data.json`
+    (VS Code autocomplete for `<ui-*>`, `tools/ElementManifests.ts`);  `tools/DesignExport.test.ts` fails while stale
   - `yarn site:check <page...> | --all` -- `tools/SiteCheck.ts`:  loads pages from the page server (Playwright),
     fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an empty toc, phone-width overflow,
     a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK at them
-  - Use `yarn tsc`, not `npx tsc`:  yarn picks the workspace's TypeScript 7.  (The `@typescript/typescript6` that
-    `vite-plugin-dts` needs once linked `.bin/tsc` as TypeScript 6;  with hoisting the root `.bin/tsc` is 7 today,
-    but that's luck of the hoister -- see the root's `agents/PAPERCUTS.md`, `## ui`.)
-  - NEVER hardcode `<package>/node_modules/<dep>`:  yarn hoists to the root.  Node code asks `tools/NodePackage.ts`.
+  - `yarn tsc`, not `npx tsc`, and no hard-coded `node_modules` paths:  SEE:  root `AGENTS.md` "Toolchain:  Vite+".
+    Here, node code finds a dependency through `tools/NodePackage.ts`.
 
 ## UI rules
 
@@ -195,9 +199,6 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - Inside shadow roots, keep Fomantic's class grammar on those elements:  `<button class="ui small primary button">`.
   Why:  it's a mechanical port of the `.less`, and the app stylesheet / `::part` override language is the known
   vocabulary.  Translated names never touch CSS.
-- Units:  NEVER `rem` -- the page stylesheet can redefine it.  Sizes derive from px-valued `--ui-font-size`
-  (default `16px`) and `em` inside components.
-- Sizes are ratios of 16.  `medium` is a real size meaning "default" -- a no-op that emits no class.
 - Booleans:  presence / `""` / `"true"` / `"yes"` ~== true;  `"false"` / `"no"` ~== false.
 - Widths:  attribute is `width`, NEVER `wide`;  accepts columns (`4` of 16), fractions (`1/4`), percentages (`25%`).
   Exception:  `<ui-sidebar>` and `<ui-flyout>` also take Fomantic's width words (`very thin`, `thin`, `wide`,
@@ -206,34 +207,47 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   `checked` is accepted as an alias on checkbox / radio only.
 - Generic content parts (`<ui-content>`, `<ui-header>`, `<ui-meta>`, `<ui-description>`, `<ui-extra>`,
   `<ui-actions>` ...) style themselves by OWNER CONTEXT (`:state(in-card)` via `ContentPart`).
-  NEVER `ui-card-header`, NEVER `:host-context`.
+  NEVER `ui-card-header` (and no `:host-context`:  WWOD §18 › "Reach into `ui-*` elements through `::part()` and
+  tokens").
 - Events:  `CustomEvent`s, `bubbles: true, composed: true`, lowercase kebab `ui-*` names (`ui-change`, `ui-open`);
   `detail` carries computed state (`{ value }`, `{ open }` ...) plus `originalEvent`.
 - Rich data (`options`, `rows`) as JS PROPERTIES -- real accessors on the class, so frameworks find them with `key in el`.
   Primitives as REFLECTED attributes.  First paint MUST NOT need a rich property (SSR drops them).
 - Vocabulary files own every name:  NEVER a string literal for an attribute / event / slot / part name in a
   template or `ClassBuilder` -- read it through the component's vocabulary.
-- Class defaults (vocabulary, default settings, part names) are `@proto static` (from `$/ui/util`), so instances
-  carry no per-instance copies.
-- Prefer classes over loose functions for anything that coordinates:  runtime services are classes
-  (`Keyboard`, `Overlays`, `Styles`), builders are classes (`ClassBuilder`).  A helper that earns a name
-  becomes a private method or a small class.
-- CSS layers:  `@layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;`
+- Class defaults:  as WWOD §12 › "`@proto static` defaults", plus:  vocabulary, default settings and part names are
+  `@proto static` (from `$/ui/util`), so instances carry no per-instance copies.
+- Libraries:  `lodash-es` only (tree-shakes).  Any other runtime dependency:  WWOD §2 › "Ask before adding a
+  dependency".
+- Platform:  what's assumed (anchor positioning, no JS fallback ...) and what's flagged through
+  `UI.browser.supports` (Safari's gaps):  WWOD §18 › "Modern CSS".
+
+## CSS
+
+As WWOD §18, plus:
+
+- Units:  sizes derive from px-valued `--ui-font-size` (default `16px`) and `em` inside components (no `rem`:
+  WWOD §18 › "No `rem`").
+- Sizes are ratios of 16.  `medium` is a real size meaning "default" -- a no-op that emits no class.
+- Layers:  `@layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;`
   - inside `ui.components` each component declares sublayers `types, content, variations, states`,
     so states beat variations without `!important`
-  - NEVER `!important` unless documented with a comment saying why
-  - colours / sizes by token REMAP (`--ui-color`, `--ui-scale`) and one generic rule set, not per-hue rules
-  - NEVER declare a public component token (`--ui-<tag>-*`) in a component sheet:  declare its private alias
-    (`--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`) and read the alias, so values set on the
-    page, an ancestor, the host or `::part()` reach the box.  Owner switches are private (`--_ui-card-layout`).
-    See `docs/theming.md` "Component tokens";  `test/component-tokens.test.ts` enforces it
-- Libraries:  `lodash-es` only (tree-shakes).  Ask before adding any other runtime dependency.
-- Platform:  ASSUME anchor positioning (no JS fallback), style container queries, popover, `<dialog>`.
-  Safari gaps (`closedby`, `popover=hint`, `CloseWatcher`, customizable `<select>`) are feature-flagged through
-  `UI.browser.supports`, NEVER user-agent checks at the call site.
+- Global sheets:  `src/styles/`, one file per axis (tokens, colours, sizes, typography, utilities), in `@layer`
+  order, `layers.css` FIRST (`layers.css`'s header).
+- ONE generic rule set for every hue and size, switched by token remap (`--ui-color`, `--ui-scale`;  WWOD §18 ›
+  "Keep CSS DRY"), not per-hue rules.
+- NEVER declare a public component token (`--ui-<tag>-*`) in a component sheet:  declare its private alias
+  (`--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`) and read the alias, so values set on the
+  page, an ancestor, the host or `::part()` reach the box.  Owner switches are private (`--_ui-card-layout`).
+  See `docs/theming.md` "Component tokens";  `test/component-tokens.test.ts` enforces it.
+- Utilities (`src/styles/utilities.css`, `docs/theming.md` "Utilities"):  named in the grammar
+  `ui-<property>-<modifier>` (`ui-text-truncate`, `ui-gap-m`), `:` for variants (`ui-split:column`).
+  - `-ish` suffix ~== "looks like X but isn't one":  `ui-button-ish`, `ui-link-ish`.
 
 ## Solid authoring
 
+- Solid's own rules (no writes in an owned scope, staged writes, two-function effects, eager memos):  SEE:
+  `packages/docs/content/solid/solid-2.md`.  Below:  only what's `ui`'s own.
 - An element is a CONTROLLER class `UI<Name> extends UIElement<typeof nameVocabulary>` (or `FormElement`,
   `ContentPart`):  `@proto static vocabulary` / `styles` / `Fallback` (/ `formAssociated`, `delegatesFocus`),
   signals and memos as FIELDS, `render()` returning JSX.  The fork creates one per element on first connect and
@@ -245,22 +259,22 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   splits into a hashed third chunk.  For the same reason `core.ts` / `forms.ts` re-export `$/ui/elements` LEAVES, and
   `FormHost` / `FormElement` import the core through `$/ui/core` (`yarn measure`'s checks catch a violation).
   Shared constants and types come as `UIT.<NAME>` from `$/ui/core` (`import { UIT } from "$/ui/core"`), never bare.
-- **Memos compute EAGERLY** on creation.  Base-class memos that call overridable methods take `{ lazy: true }`;
+- **Eager memos and overridables:**  base-class memos that call overridable methods take `{ lazy: true }`;
   effects that call overridables are created in `mount()`, after every subclass field exists.
 - **`Cell` field order:**  class fields initialize in declaration order, before the subclass constructor body.
   Declare every signal as a `Cell` field ABOVE the memos that read it;  compute a starting value into the initial
   value (`new Cell(untrack(() => ...))`), never by writing during setup.
-- **No signal writes in an owned scope** (component body, `render()`, memo, effect COMPUTE):  dev throws
-  `REACTIVE_WRITE_IN_OWNED_SCOPE`, and `untrack` does not exempt it.  Write from event handlers, `onSettled`,
-  promise callbacks, the effect's APPLY function, or the fork's hooks;  hooks that can run inside a Solid render
-  (`onConnect`, the `onFormDisabled` replay) defer with `queueMicrotask`.  Element PROPERTY writes are always legal.
-- **Writes land on a microtask:**  a read right after a write sees the old value;  keep the new value in a local.
-  Tests `await ElementFixture.settle()` / `tick()` (which `flush()`), never sleep.
-- **Effects take two functions:**  `createEffect(compute, apply)`.
+- **Where writes go:**  `render()` is an owned scope (no signal writes there).  Write from event handlers,
+  `onSettled`, promise callbacks, the effect's APPLY function or the fork's hooks;  hooks that can run inside a
+  Solid render (`onConnect`, the `onFormDisabled` replay) defer with `queueMicrotask`.  Element PROPERTY writes are
+  always legal.
+  - A read right after a write sees the old value:  keep the new value in a local.  Tests
+    `await ElementFixture.settle()` / `tick()` (which `flush()`), never sleep.
 - **Events:**  dispatch through `this.emit("ui-change", detail)` (vocabulary-checked, localized on translated
-  tags).  Solid 2 has no `on:` namespace:  inside a component, `onClick={...}` for native events;  a Solid APP
-  listening for `ui-*` events uses a `ref` callback + `addEventListener` (see `tools/frameworks/solid/app.tsx`),
-  and binds rich data with `prop:options`.
+  tags).  Inside a component, `onClick={...}` for native events (no `on:` namespace;  rich data as
+  `prop:options`:  `solid-2.md` "DOM and `@spell-app/ui` elements").
+  - A THIRD-PARTY Solid app listening for `ui-*` events uses a `ref` callback + `addEventListener`
+    (`tools/frameworks/solid/app.tsx`);  our app:  WWOD §17 › "Events:  `onClick`, or `on()` for `ui-*`".
   - Listeners OUTSIDE a component see `event.target === host` (`composedPath()[0]` is the inner element), and an
     app's delegated `onClick` on a `ui-*` tag runs once.  The fork's `events.ts` guarantees it by undoing what
     Solid's shadow-root delegation leaves on the event (`target`, `currentTarget`, its handled marker);  NEVER
@@ -282,14 +296,15 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - **One Solid per page:**  every Vite config dedupes `solid-js` / `@solidjs/web` (`SOLID_DEDUPE`);  NEVER
   `import * as` a Solid package in shipped code (it pins every export into bundles and vendored copies).
 - SSR:  anything that reads the DOM in a constructor needs an `isServer` guard (`test/ssr.ssr.test.tsx`).
-  - Static render (`$/ui/server`):  hosts are linkedom elements, so NEVER `instanceof Element` / `Node` /
-    `ShadowRoot` / `HTMLSlotElement` in shared code (node has no such globals):  `nodeType`, `localName`.
+  - Static render (`$/ui/server`):  as WWOD §12 › "Brand checks only where `instanceof` can't work", plus:  hosts
+    are linkedom elements, so NEVER `instanceof Element` / `Node` / `ShadowRoot` / `HTMLSlotElement` in shared code
+    (node has no such globals):  `nodeType`, `localName`.
   - An effect whose APPLY writes the host (`internals.role`, ARIA, states) is `this.hostEffect(compute, apply)`:  the
     server build never runs an apply, so a plain `createEffect` leaves the static output without it.
 
 ## Decorators
 
-As the root's, plus:
+As WWOD §12, plus:
 
 - `vite.decorators.ts` (repo root) is used by `vite.config.ts` (`baseConfig()`, shared with `vitest.config.ts` and
   the site bundle's `vite.site.config.ts`).
@@ -298,26 +313,27 @@ As the root's, plus:
 
 ## Types / Exports
 
-As the root's, plus our self-namespaces:
+As WWOD §8, plus our self-namespaces:
 
 - `UI` ~== the runtime singleton from `$/ui/runtime`
 - `E` ~== `$/ui/elements`
+- `V` ~== `$/ui/vocabulary`, namespaced through `vocabulary.api.ts` from the `api` entry only (why:  that file's
+  header)
 - `SSR` ~== `$/ui/server` (node only)
 - `UIT` ~== `$/ui/components/components.types` -- the constants, types and `ToggleCommands` several families share:
   `UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
-  never flat;  inside the folder itself, plain named imports
+  never flat
 - the components barrel exports classes by name (`UIButton`, `UIDropdown`), no namespace
 
 ## Imports
 
-As the root's, with `$/ui` / `$/ui/*` as our alias, plus:
+As WWOD §4, with `$/ui` / `$/ui/*` as our alias (`$/ui/test/*`, the test helpers, is longer than `$/ui/*`, so it
+wins), plus these deliberate EXCEPTIONS:
 
-- Test helpers come from `$/ui/test/...` (`$/ui/test/fixture`, `$/ui/test/a11y`, `$/ui/test/ElementFixture`), the only other
-  entry point (`$/ui/test/*` is longer than `$/ui/*`, so it wins).
-- Exceptions:  component files import shared code from `$/ui/core` / `$/ui/forms` ("Solid authoring");  `tools/` are
-  node scripts:  relative imports with `.ts` extensions, no aliases.
-- The root's examples, in `ui`:
-  - `import { E } from "$/ui/elements"` => `E.UIElement`, `new E.ClassBuilder(...)`
-  - tests may mix:  `import { E, UIElement } from "$/ui/elements"`
-  - side-effect imports:  `import "$/ui/components/ui-button"`
-  - css files:  `./ui-button.css` if in same folder, else `$/ui/styles/tokens.css`
+- Component files import shared code from `$/ui/core` / `$/ui/forms` only ("Solid authoring").
+- `UIT`, two ways that aren't WWOD §4's:
+  - inside `src/components/` itself, plain named imports from `components.types`
+  - vocabularies and types files value-import it as `import * as UIT from "$/ui/components/components.types"`, not
+    through `$/ui/core`.  Why:  they're PURE DATA that node imports (`yarn site:data`, `yarn gen:root`), and `core`
+    loads the element layer, which node can't ("Overview", `ui-<name>.types.ts`)
+- `tools/` are node scripts:  relative imports with `.ts` extensions, no aliases.

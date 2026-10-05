@@ -1,8 +1,8 @@
 /**
  * Lets a Claude Code session (or any script it runs) talk to ITS OWN VS Code window:  add or remove a folder
  * (a worktree), show a doc in a side bar doc view, close the session's tab;  or to a worktree's window
- * (`yarn window open`):  open the session there, close the window.  The client is the repo root's
- * `scripts/window.mjs` (`yarn window`).
+ * (`spell dev window open`):  open the session there, close the window.  The client is the repo root's
+ * `scripts/window.mjs` (`spell dev window`).
  * - Why not a `vscode://` URI:  macOS hands it to whichever window is FOCUSED, often not the session's.
  * - How a session finds its window:  by PID.  A session's process tree is `claude` -> `Code Helper (Plugin)` (the
  *   window's EXTENSION HOST, one per window) -> `Code`, and this code runs in that extension host.  So

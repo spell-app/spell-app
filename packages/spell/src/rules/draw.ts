@@ -6,6 +6,7 @@ import { proto } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
+import { Priority } from "./rules.types"
 import { SpellStatement } from "./Statement"
 
 /**
@@ -20,14 +21,17 @@ export const draw = new SpellParser({ module: "draw" })
 ////////////////
 
 /**
- * Draw a single thing, e.g. `draw the card`.
- * - `precedence: 100` is far higher than any other rule's precedence in this codebase (elsewhere
- *   the range used is roughly 1-20) -- TODO: unclear what specific ambiguous match this needs to beat;
- *   figure out if it can be lowered to be consistent with the rest of the precedence scale.
+ * Draw a single thing, e.g. `draw the card` => `spellCore.drawThing(card)`.
+ * - `drawThing()` draws it as its reactive `Component`, which re-renders when what its `draw()` read changes.
  */
 class draw_thing extends SpellStatement<"expression"> {
-  @proto static alias = "expression"
-  @proto static precedence = 100
+  /** An expression (JSX `{draw …}`) AND a statement:  as a statement, a project's own `draw` method would win. */
+  @proto static alias = ["statement", "expression"]
+  /**
+   * Beats a call to the project's own `to draw (a card)` (`Priority.normal`):
+   * `card.draw()` would skip the re-rendering.
+   */
+  @proto static priority = Priority.preferred
 
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {
@@ -52,7 +56,13 @@ draw.addRule(draw_thing, {
  *   `draw each card in the deck` => `spellCore.drawItems(deck)`.
  */
 class draw_items extends SpellStatement<"variable?|plural_identifier?|expression"> {
-  @proto static alias = "expression"
+  /** An expression (JSX `{draw …}`) AND a statement:  as a statement, a project's own `draw` method would win. */
+  @proto static alias = ["statement", "expression"]
+  /**
+   * Beats `draw_thing` (`Priority.preferred`), which also matches `draw the cards of the deck`:
+   * that's each card, not one thing.
+   */
+  @proto static priority = Priority.specific
 
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {
@@ -72,9 +82,7 @@ draw.addRule(draw_items, {
       tests: [
         { input: "draw each card in the deck", output: "spellCore.drawItems(deck)" },
         { input: "draw cards of the deck", output: "spellCore.drawItems(deck)" },
-        // SKIPPED: fails, and always did -- `draw.ts` had no `.test.ts`, so these never ran.
-        // `draw_thing` (precedence 100) wins, giving `spellCore.drawThing(deck.cards)`.  See agents/SUSPECTED-BUGS.md.
-        { input: "draw the cards of the deck", output: "spellCore.drawItems(deck)", skip: true },
+        { input: "draw the cards of the deck", output: "spellCore.drawItems(deck)" },
         { input: "draw all cards of the deck", output: "spellCore.drawItems(deck)" }
       ]
     }

@@ -390,3 +390,126 @@ export type StaticCoverage = {
   /** adoption orders seen (`StaticRender.sheetUsage.orders`) */
   orders: string[][]
 }
+
+////////////////
+// ## Design system export (`DesignExport`, `yarn design:build`)
+////////////////
+
+/**
+ * `tokens.json` of a claude.ai design system, in the format's LIST shape (`DesignTokens`).
+ * - Every family but `type` shares ONE name space;  names match `^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$`.
+ * - Families after `shadow` are the format's "any other `{ tokens }` key":  a section each, titled from the key.
+ */
+export type DesignTokensFile = {
+  name: string
+  version: number
+  /** provenance (the format's from-code step 8):  a note the page keeps, never an input */
+  meta: Record<string, unknown>
+  color: { themes: { id: string; name: string }[]; tokens: DesignTokenRow[] }
+  type: {
+    fonts: { family: string; file: string; weight: string; style: string }[]
+    /** family key => CSS font stack */
+    families: Record<string, string>
+    groups: { name: string; family: string; styles: DesignTypeStyle[] }[]
+  }
+  spacing: DesignTokenFamily
+  radius: DesignTokenFamily
+  shadow: DesignTokenFamily
+  size: DesignTokenFamily
+  motion: DesignTokenFamily
+  zIndex: DesignTokenFamily
+  breakpoint: DesignTokenFamily
+}
+
+/** One `{ note, tokens }` family of `tokens.json`. */
+export type DesignTokenFamily = { note: string; tokens: DesignTokenRow[] }
+
+/** One token row:  its name, value (per theme for colours and shadows) and what it's for. */
+export type DesignTokenRow = { name: string; value: ThemedValue; usage?: string }
+
+/**
+ * A token value:  one string for every theme, or one per theme id.
+ * - A colour may be an alias, `{other-token}`.
+ */
+export type ThemedValue = string | Record<string, string>
+
+/** One text style of a `type.groups` entry;  lengths as CSS (`40px`), line heights unitless. */
+export type DesignTypeStyle = {
+  name: string
+  /** family key, when not the group's */
+  family?: string
+  fontSize: string
+  lineHeight?: number
+  fontWeight?: number
+  fontStyle?: "normal" | "italic"
+  letterSpacing?: string
+  sample?: string
+  usage?: string
+}
+
+/** A custom property the export left out, and why:  the README's "Not synced" note. */
+export type DesignSkip = {
+  /** e.g. `--ui-text-light` */
+  name: string
+  /** the family it would have gone in:  `color`, `shadow`, `length` ... */
+  family: string
+  reason: string
+}
+
+/** One file of the export:  its path under `project/`, and its text. */
+export type DesignFile = { path: string; text: string }
+
+/** One component card of the export:  a family, by its main tag. */
+export type DesignFamily = {
+  /** card / folder name, e.g. `Button` (`components/Button/`) */
+  comp: string
+  /** e.g. `ui-button` */
+  mainTag: string
+  /** card group, e.g. `Actions` */
+  group: string
+  /** every tag of the family, main first */
+  tags: string[]
+  /** where its preview's markup came from, `src/`-relative, e.g. `components/ui-button/examples/elements/types.html` */
+  example: string
+}
+
+/** One example section a card shows:  its heading, its markup (dedented), and the file it came from. */
+export type DesignExample = {
+  /** the section's `<h4>`, else the file's name, e.g. `Emphasis` */
+  title: string
+  markup: string
+  /** `src/`-relative, e.g. `components/ui-button/examples/elements/types.html` */
+  source: string
+}
+
+/** What `DesignExport.build()` made, for the run's summary and the tests. */
+export type DesignExportResult = {
+  /** every file, `project/`-relative */
+  files: DesignFile[]
+  /** the component cards, in card order */
+  families: DesignFamily[]
+  /** token count per `tokens.json` family */
+  tokenCounts: Record<string, number>
+  skipped: DesignSkip[]
+}
+
+////////////////
+// ## Element manifests (`ElementManifests`, `yarn site:data`)
+////////////////
+
+/** A Custom Elements Manifest (schema 2.1):  only the fields we write. */
+export type CustomElementsManifest = {
+  schemaVersion: string
+  readme: string
+  modules: { kind: string; path: string; declarations: Record<string, unknown>[]; exports: Record<string, unknown>[] }[]
+}
+
+/** VS Code's HTML custom data, version 1.1:  only the fields we write. */
+export type HtmlCustomData = {
+  version: number
+  tags: {
+    name: string
+    description: { kind: "markdown"; value: string }
+    attributes: { name: string; description: { kind: "markdown"; value: string }; values?: { name: string }[] }[]
+  }[]
+}

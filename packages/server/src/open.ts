@@ -97,7 +97,7 @@ end tell`
 }
 
 /**
- * Show a page in VS Code's Simple Browser, beside the editor, through the spell extension (`yarn vscode`).
+ * Show a page in VS Code's Simple Browser, beside the editor, through the spell extension (`spell dev vscode`).
  * - `url`:  a page a local server serves (preferred:  it live-reloads);  `file`:  a file the extension serves itself
  * - returns whether `open` handed the URI over;  without the extension, VS Code says it can't handle it
  */

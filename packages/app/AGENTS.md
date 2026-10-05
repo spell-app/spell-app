@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/app`.
 
-**Root conventions apply:  READ the repo root's `AGENTS.md` FIRST** -- its Solid 2, Documentation, Functions,
-Types / Exports and Imports sections all apply here.  Only what DIFFERS is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -33,7 +33,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 - Scripts run HERE (`cd packages/app`):
   - The editor (vite, port 3000 if free, else any) is the PAGE SERVER's child:  `src/server/appRoutes.ts` (a route
     module;  see `packages/server`) starts it with `EditorServer` once the page server listens, and stops it with
-    the page server.  So `yarn server` (repo root) runs the API AND the editor;  its URL is in
+    the page server.  So `spell dev server` (repo root) runs the API AND the editor;  its URL is in
     `<root>/.spell-server.editor.json`, its output in `.spell-server.editor.log`;  `SPELL_NO_EDITOR=1` skips it.
   - `yarn start` -- restarts the page server, then `spell serve --headless` (waits for the editor, prints its URL).
     `yarn stop` stops vite (an orphan, or the page server's:  then restart the page server).
@@ -44,10 +44,10 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
     (Solid + `@spell-app/solid-element`) and `spell-ui.js` (`$/ui`, lazy;  its chunks in `ui/`, icon packs beside
     it);  the element / editor / runner builds import them through `sharedSolid()` (`vite.shared.ts`), never
     bundling their own.  `spell-runtime.js` never loads them.  Pinned by `element.build.test.ts`.
-  - `yarn vscode` is NOT here:  it's the repo root's.  `yarn start:lsp` and `yarn scopes` are in `../lsp`.
+  - `spell dev vscode` is NOT here:  it's the repo root's.  `yarn start:lsp` and `yarn scopes` are in `../lsp`.
 - `src/ui/monaco/` is the app's Monaco plumbing (no UI), whose language features call the SAME
-  `LSP.SpellLanguageService` in-process.  `$/lsp` MUST stay browser-safe for it.  The editors on it are Solid,
-  `src/solid/monaco/` (`MonacoEditor`, `FileEditor`), whose barrel re-exports the plumbing.
+  `LSP.SpellLanguageService` in-process (so `$/lsp` stays browser-safe:  `../lsp/AGENTS.md`).  The editors on it
+  are Solid, `src/solid/monaco/` (`MonacoEditor`, `FileEditor`), whose barrel re-exports the plumbing.
   - Loaded LAZILY, through `$/app/solid`'s `LazyMonaco` (and `<spell-editor>`'s `loadMonaco()`):  NEVER import
     `$/app/ui/monaco` or `$/app/solid/monaco` statically outside those folders -- types aside -- or Monaco (~4.4 MB)
     lands in the main bundle again.
@@ -73,13 +73,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   - Programs run on `spell-runtime.js` (`spellRuntime.ts`), NEVER the page's own `core`:  the app loads it
     once (`editor.loadRuntime()`), the VS Code runner once, and each `<spell-app>` its OWN copy (`loadRuntime()`),
     so apps on a page don't share a `spellCore`.  No import map:  `runCompiled()` links each program's imports.
-  - So ONLY `spellRuntime.ts` may value-import `$/core`, in every bundle:  anything else -- the app, the
-    parser, the forms -- puts it in a shared chunk, or loads a second one.  They read
-    `$/core/spellCore.types` (runtime-light), or the runtime's, e.g. `runtimeConsole()`.  Mind barrels:
+  - So ONLY `spellRuntime.ts` may value-import `$/core`, and the program finds its elements through
+    `spellCore.domRoot()`, never `document`:  SEE `../core/AGENTS.md` "Who may value-import it".  Mind barrels:
     `$/app/runner` holds `runCompiled()`, so a bundle's entry imports its runner's file directly.
-    Pinned by `element.build.test.ts` and `build.test.ts`.  See `../core/AGENTS.md`.
-  - It runs in a shadow root:  `spellCore.appRoot` is where an app mounts, and `spellCore.domRoot()` where to look
-    elements up and add styles -- NEVER `document`.
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`) -- no parser in the page.
   - Its Thing Explorer reads the runtime copy's `spellCore.things` (`ThingRegistry`):  each `Thing`, and each
     instance of a `List` sub-class, registers itself as it's made;  the program's exports are its top-level things.
@@ -92,25 +88,24 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
     the parser compiles, and apps run, before it loads.  Pinned by `element.build.test.ts`.
   - Several on a page edit several projects:  each `SpellModels.use()`s its own, and listens with
     `SpellMonaco.onEdit()` / `onOpen()` -- NOT the app's `editor`.  NEVER import `UI` or `LazyMonaco` there.
-- Styles are plain `.css`:  native nesting, custom properties (`spell.css`, `syntax.css`) -- no Less.
-- Prod build MUST keep `output.keepNames` (`vite.config.ts`, and `vite.editor.config.ts`):  a rule's class name IS
-  its rule name.  Pinned by `build.test.ts`.
+- Styles:  WWOD §18 › "Plain `.css` beside its component" (no Less);  app-wide sheets:  `spell.css`, `syntax.css`.
+- Prod builds keep class names (`output.keepNames`, here):  SEE `../parser/AGENTS.md`, `keepNames`.
 
 ## Imports
 
-- As the root's, with our own `src/` as `$/app` / `$/app/*`, e.g. `import { UI } from "$/app/ui"`.
+- As WWOD §4, with our own `src/` as `$/app` / `$/app/*`, e.g. `import { UI } from "$/app/ui"`.
 - Nothing imports THIS package except `cli` (and the `<script>` entries in `index.html` / `demo/`).
 
 ## Decorators
 
-As the root's, plus:
+As WWOD §12, plus:
 
 - `vite.decorators.ts` (repo root) is used by every `vite*.config.ts` and `vitest.config.ts` here.
   The server is fine as `tsx` is esbuild already.
 
 ## Types / Exports
 
-As the root's, plus our self-namespaces:
+As WWOD §8, plus our self-namespaces:
 
 - `UI` ~== `$/app/ui`
 - `F` ~== `$/app/ui/forms`

@@ -1,5 +1,5 @@
 /**
- * `yarn docs:link <page> [--hash <id>] [--text "..."] [--review] [--show]`:  the markdown link Claude gives Owen for a
+ * `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]`:  the markdown link Claude gives Owen for a
  * page:  a SIDE BAR link, then a `(_browser_)` one.
  *
  *     [Details Pages](http://127.0.0.1:4747/api/docs/show?path=...&window=123) (_[browser](http://127.0.0.1:4747/...)_)
@@ -27,7 +27,7 @@ const { positional, flags } = parseArgs(process.argv.slice(2))
 // `yarn workspace` sets `INIT_CWD` to `packages/docs`, not where `yarn` was run:  so try the docs, then the root
 const file = [DOCS, ROOT].map((base) => resolve(base, positional[0] ?? "")).find((each) => existsSync(each)) ?? ""
 if (!positional[0] || !file.endsWith(".html") || !existsSync(file)) {
-  console.error('usage:  yarn docs:link <page.html> [--hash <id>] [--text "..."] [--review] [--show]')
+  console.error('usage:  spell dev docs link <page.html> [--hash <id>] [--text "..."] [--review] [--show]')
   process.exit(1)
 }
 const hash = typeof flags.hash === "string" ? flags.hash : undefined
@@ -69,7 +69,7 @@ export async function markdownLink(
     return `[${title}](${url.origin}/api/docs/show?${query}) (_[browser](${url.origin}/api/docs/show?${browser})_)`
   }
   console.error(
-    "no page server here can show pages in the side bar yet (restart it:  yarn server stop && yarn server ensure)"
+    "no page server here can show pages in the side bar yet (restart it:  spell dev server stop && spell dev server ensure)"
   )
   return `[${title}](${pages[0] ?? `file://${file}`}${anchor})`
 }

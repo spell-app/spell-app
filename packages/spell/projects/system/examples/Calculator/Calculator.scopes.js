@@ -47,6 +47,9 @@
         { name: "draw", syntax: "draw {thisArg:expression}" }
       ]
     },
-    { path: "project:Calculator/file:Calculator.spell/variable:calculator", line: 108 }
+    {
+      path: "project:Calculator/file:Calculator.spell/variable:calculator", line: 108,
+      detail: "Calculator"
+    }
   ]
 }
