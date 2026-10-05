@@ -16,19 +16,19 @@
     {
       name: "Spell App",
       kind: "mockup",
-      built: false,
+      built: true,
       about: "The builder:  Build with the spell composer and build checklist, Your Apps, Templates, Settings."
     },
     {
       name: "Spell Docs",
       kind: "mockup",
-      built: false,
+      built: true,
       about: "A docs site:  three columns, tip callout, numbered steps, Spell / Compiled example tabs."
     },
     {
       name: "Spell Marketing",
       kind: "mockup",
-      built: false,
+      built: true,
       about: "The public site:  hero with “try a spell”, how it works, Spell vs Compiled, call to action."
     },
     {

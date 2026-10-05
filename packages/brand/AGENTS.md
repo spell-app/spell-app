@@ -76,6 +76,12 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 - `<ui-brand-field>` (`components/ui-brand-field/`) -- a label row (label, actions, value, info tip), the control,
   help and error;  `:state(field)` + `showErrors()`, so `<ui-form>` validates it as a `<ui-field>`.  Names an unnamed
   slotted control after its `label` (`aria-label`).
+- `<ui-brand-composer>` (`components/ui-brand-composer/`) -- write a spell and cast it:  a form element (the text under
+  `name`), `ui-cast` (cancelable) from the button or Cmd / Ctrl+Enter, `casting` set by the page, `size="large"` for a
+  hero.
+- `<ui-brand-checklist>` + `<ui-brand-check>` (`components/ui-brand-checklist/`) -- round-marked lines:  `step` drives
+  build progress (done / active / pending, announced);  `checkable` makes each a checkbox.
+- `<ui-brand-phone>` (`components/ui-brand-phone/`) -- a phone frame (status bar, `dimmed`) around a live preview.
 - Page art, brand-only (never moves into Spell UI):
   - `<ui-brand-logo>` -- the logo outlined from P052 (`logoPaths.ts`, copied from Claude Design's `components/brand/lockupPaths.js`,
     `import()`ed on first use), so it needs no font.  Use it, never an `<img>` of the SVGs.

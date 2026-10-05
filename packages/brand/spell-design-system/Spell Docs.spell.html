@@ -1,0 +1,756 @@
+<!doctype html>
+<!--
+  Spell Docs, on Spell UI:  the copy of `Spell Docs.dc.html`, a mockup of the docs site.
+  - Three columns:  the nav (`<ui-menu vertical secondary>`), the article, and "On this page" (`<ui-list bulleted>`)
+    with what you'll need (`<ui-brand-checklist>`) and a quote;  a `<ui-brand-blob>` in the bottom-right corner.
+  - Three of the nav's pages have content (Getting started, Understanding spells, Plain language):  clicking one, or
+    Previous / Next, swaps the article and goes back to the example's Spell tab, as the original's.  The other six
+    items do nothing, as the original's.
+  - The example:  `<ui-tabs>`, a Spell pane (the plain-language request, serif, as the mockup shows it:  prose, not
+    spell source) and a Compiled pane (`<ui-code language="text">`).
+  - The moon / sun button flips the page's scheme:  `ui-dark` / `ui-light` on `<html>`.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spell Docs</title>
+    <meta name="description" content="A docs-site mockup:  nav, article, tip, numbered steps and a Spell / Compiled example." />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <style>
+      /* page layout only:  every colour, font, radius and shadow comes from the theme's tokens */
+      body {
+        margin: 0;
+        background: var(--ui-background);
+        color: var(--spell-text-body);
+        font: var(--spell-type-body);
+      }
+      .docs {
+        position: relative;
+        overflow: hidden;
+        min-height: calc(100vh - var(--spell-site-header-height, 0px));
+      }
+      .eyebrow {
+        font: 500 11px/1 var(--spell-font-mono);
+        letter-spacing: var(--spell-tracking-eyebrow);
+        text-transform: uppercase;
+        color: var(--spell-text-muted);
+      }
+
+      /* ## The docs bar:  logo, search, scheme, Open app */
+      .bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 16px 28px;
+        border-bottom: 1px solid var(--spell-border-subtle);
+        background: var(--ui-surface);
+      }
+      .bar > .brand {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        --ui-brand-logo-height: 46px;
+      }
+      .bar > .brand > .eyebrow {
+        color: var(--spell-text-accent);
+      }
+      .bar > .tools {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        justify-content: flex-end;
+      }
+      .bar ui-input {
+        width: 100%;
+        max-width: 330px;
+        --ui-font-size: 14px;
+        --ui-input-radius: var(--ui-radius-pill);
+        --ui-input-background: var(--ui-background);
+        --ui-input-border-color: var(--spell-border-default);
+        --ui-input-placeholder-color: var(--spell-text-subtle);
+        --ui-input-padding-block: 10px;
+        --ui-input-line-height: 14px;
+        font: 400 14px/1 var(--spell-font-sans);
+      }
+      .bar ui-button {
+        --ui-font-size: 14px;
+        --ui-button-margin-inline: 0;
+        --ui-button-padding-block: 11px;
+        --ui-button-padding-inline: 16px;
+        font: 500 14px/1 var(--spell-font-sans);
+      }
+      .bar ui-button[circular] {
+        --ui-button-padding-block: 10px;
+        --ui-button-circular-min-width: 36px;
+        --ui-button-basic-border-width: 1px;
+        font-size: 16px;
+      }
+      .bar ui-button.soft {
+        --ui-button-background: var(--spell-accent-soft);
+        --ui-button-background-hover: var(--spell-accent-soft-hover);
+        --ui-button-background-down: var(--spell-accent-soft-hover);
+        --ui-button-color: var(--spell-text-accent);
+        --ui-button-color-hover: var(--spell-text-accent);
+        --ui-button-color-down: var(--spell-text-accent);
+      }
+
+      /* ## The three columns */
+      .cols {
+        position: relative;
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr) 240px;
+        min-height: calc(100vh - var(--spell-site-header-height, 0px) - 79px);
+      }
+
+      /*
+       * The nav:  a group header, then its items, icon first, the chosen one tinted.
+       * - HACK:  a `vertical` / `secondary` menu sets its item look as PRIVATE tokens, so the public `--ui-menu-*`
+       *   ones can't reach it (plan-doc issue I21):  the documented `item` / `icon` parts instead, until it does.
+       */
+      .cols > .nav {
+        background: light-dark(var(--spell-brand-50), var(--spell-violet-975));
+        border-right: 1px solid var(--spell-border-subtle);
+        /* 12px, plus the 5px a `secondary` menu hangs past each side */
+        padding: 20px 17px;
+      }
+      .nav > ui-menu {
+        width: 100%;
+        font: 500 14px/1 var(--spell-font-sans);
+        --ui-font-size: 14px;
+      }
+      .nav ui-item::part(item) {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 34px;
+        box-sizing: border-box;
+        margin: 0 0 2px;
+        padding: 0 12px;
+        border-radius: 10px;
+        color: var(--spell-text-body);
+      }
+      .nav ui-item[link]:hover::part(item) {
+        background: transparent;
+        color: var(--spell-text-strong);
+      }
+      .nav ui-item[selected]::part(item),
+      .nav ui-item[selected]:hover::part(item) {
+        background: var(--spell-surface-selected);
+        color: var(--spell-text-accent);
+      }
+      .nav ui-item::part(icon) {
+        order: -1;
+        float: none;
+        width: 16px;
+        margin: 0 11px 0 0;
+        font-size: 16px;
+        opacity: 1;
+      }
+      .nav ui-item[type="header"]::part(item) {
+        height: auto;
+        margin: 0;
+        padding: 0 12px 6px;
+        font: 500 11px/1 var(--spell-font-mono);
+        letter-spacing: var(--spell-tracking-eyebrow);
+        text-transform: uppercase;
+        color: var(--spell-text-muted);
+      }
+      .nav ui-item[type="header"]:not(:first-child)::part(item) {
+        margin-top: 16px;
+      }
+
+      /* ## The article */
+      article {
+        padding: 36px 44px 56px;
+        max-width: 720px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        min-width: 0;
+      }
+      article > .eyebrow {
+        font-size: 12px;
+        color: var(--spell-text-accent);
+      }
+      article h1 {
+        margin: 0;
+        font: 600 46px/1.06 var(--spell-font-serif);
+        letter-spacing: var(--spell-tracking-display);
+        color: var(--spell-text-strong);
+        text-wrap: balance;
+      }
+      article h2 {
+        margin: 0;
+        font: 600 30px/1.2 var(--spell-font-serif);
+        letter-spacing: var(--spell-tracking-heading);
+        color: var(--spell-text-strong);
+      }
+      .titled {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .titled.h2 {
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .lede {
+        margin: 0;
+        font: italic 400 22px/1.3 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+      .titled.h2 .lede {
+        font-size: 18px;
+        line-height: 1.35;
+      }
+      .intro {
+        margin: 0;
+        font: 400 16px/1.62 var(--spell-font-sans);
+        text-wrap: pretty;
+      }
+
+      /* the tip:  a warm `<ui-message>`, the hat mark as its icon */
+      article > ui-message {
+        --ui-message-background: var(--spell-surface-warm);
+        --ui-message-border-color: transparent;
+        --ui-message-shadow: none;
+        --ui-message-radius: 16px;
+        --ui-message-padding: 20px 22px;
+        --ui-message-margin: 6px 0;
+        --ui-message-icon-distance: 18px;
+        --ui-message-icon-size: 35px;
+        --ui-brand-logo-height: 35px;
+      }
+      /* HACK:  an icon message centres its icon, with no token to top-align it (plan-doc issue):  the `icon` part */
+      article > ui-message::part(icon) {
+        align-self: flex-start;
+      }
+      .tip {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .tip > .eyebrow {
+        color: var(--spell-text-accent);
+      }
+      .tip > strong {
+        font: 500 20px/1.25 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+      .tip > p {
+        margin: 0;
+        font: 400 14px/1.55 var(--spell-font-sans);
+        color: var(--spell-text-body);
+      }
+
+      /* numbered steps */
+      .steps {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .steps > li {
+        display: grid;
+        grid-template-columns: 28px 1fr;
+        gap: 4px 14px;
+      }
+      .steps ui-label {
+        --ui-label-circular-size: 28px;
+        --ui-label-background: var(--spell-accent-soft);
+        --ui-label-color: var(--spell-text-accent);
+        --ui-label-font-weight: 600;
+        --ui-label-font-ratio: 1;
+        --ui-font-family: var(--spell-font-serif);
+        --ui-font-size: 14px;
+      }
+      .steps strong {
+        font: 500 19px/1.3 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+        padding-top: 2px;
+      }
+      .steps p {
+        grid-column: 2;
+        margin: 0;
+        font: 400 15px/1.55 var(--spell-font-sans);
+      }
+
+      article > hr {
+        width: 100%;
+        height: 1px;
+        margin: 16px 0 4px;
+        border: 0;
+        background: var(--spell-border-default);
+      }
+
+      /*
+       * the example:  file tabs on a code-coloured strip, the chosen one and the pane on the card colour.
+       * - a plain (boxless) tab menu, which reads every public `--ui-menu-*` token;  the strip's padding and the
+       *   set's rounded border on the documented `menu` / `tabs` parts
+       */
+      article > ui-tabs {
+        --ui-tabs-pane-margin: 0;
+        --ui-menu-background: var(--spell-surface-code);
+        --ui-menu-border: 0;
+        --ui-menu-radius: 0;
+        --ui-menu-divider-display: none;
+        --ui-menu-divider-first-display: none;
+        --ui-menu-divider-last-display: none;
+        --ui-menu-item-padding: 9px 12px;
+        --ui-menu-item-radius: 8px 8px 0 0;
+        --ui-menu-item-color: var(--spell-text-muted);
+        --ui-menu-item-weight: 500;
+        --ui-menu-hover-background: transparent;
+        --ui-menu-hover-color: var(--spell-text-strong);
+        --ui-menu-pressed-background: transparent;
+        --ui-menu-active-background: var(--ui-surface);
+        --ui-menu-active-hover-background: var(--ui-surface);
+        --ui-menu-active-color: var(--spell-text-accent);
+        --ui-menu-active-hover-color: var(--spell-text-accent);
+        --ui-menu-active-radius: 8px 8px 0 0;
+        --ui-menu-active-weight: 500;
+        --ui-segment-background: var(--ui-surface);
+        --ui-segment-border-width: 0;
+        --ui-segment-radius: 0;
+        --ui-segment-shadow: none;
+        --ui-segment-padding: 16px 18px;
+      }
+      /* HACK:  a menu item sets its own font family, with no token for it (plan-doc issue):  the `tab` part */
+      article > ui-tabs::part(tab) {
+        font: 500 12px/1 var(--spell-font-mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      article > ui-tabs::part(tabs) {
+        overflow: hidden;
+        border: 1px solid var(--spell-border-subtle);
+        border-radius: 14px;
+      }
+      /* HACK:  the tab menu keeps a menu's 1em margins and ~46px min-height, with no token (plan-doc issue) */
+      article > ui-tabs::part(menu) {
+        gap: 2px;
+        min-height: 0;
+        margin: 0;
+        padding: 6px 6px 0;
+      }
+      article > ui-tabs ui-code {
+        --ui-code-background: transparent;
+        --ui-code-border: 0;
+        --ui-code-padding: 0;
+        --ui-code-radius: 0;
+        --ui-code-font-size: 13px;
+        --ui-code-line-height: 1.65;
+        --ui-code-color: var(--spell-text-body);
+      }
+      .spell {
+        font: var(--spell-type-spell);
+        color: var(--spell-text-body);
+      }
+      .note {
+        margin: 0;
+        font: 400 14px/1.5 var(--spell-font-sans);
+        color: var(--spell-text-muted);
+      }
+
+      /* Previous / Next */
+      .pager {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+      }
+      /* `fluid` cards share the row;  the hover border is the hover "shadow" (a link card keeps its border colour) */
+      .pager > ui-card {
+        --ui-card-margin-block: 0;
+        --ui-card-radius: 14px;
+        --ui-card-shadow: 0 0 transparent;
+        --ui-card-border-color: var(--spell-border-default);
+        --ui-card-hover-shadow: 0 0 0 1px var(--spell-border-accent);
+        --ui-card-link-raise: 0;
+      }
+      .pager .page {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 14px 16px;
+      }
+      .pager #next .page {
+        align-items: flex-end;
+      }
+      .pager .eyebrow {
+        letter-spacing: 0.12em;
+      }
+      .pager strong {
+        font: 500 17px/1.2 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+
+      /* ## On this page, what you'll need, the quote */
+      .cols > .side {
+        padding: 36px 24px 24px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .toc {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      /* a bulleted list, the current entry (`selected`) in the accent with an accent dot */
+      .toc > ui-list {
+        --ui-list-item-font-size: 13px;
+        --ui-list-item-line-height: 1.3;
+        --ui-list-item-padding-block: 0;
+        --ui-list-item-first-padding-top: 0;
+        --ui-list-item-last-padding-bottom: 0;
+        --ui-list-item-margin: 0 0 10px;
+        --ui-list-marker-color: var(--spell-border-strong);
+        font: 400 13px/1.3 var(--spell-font-sans);
+        color: var(--spell-text-muted);
+      }
+      .toc > ui-list::part(list) {
+        margin: 0 0 0 16px;
+      }
+      .toc ui-item[selected] {
+        color: var(--spell-text-accent);
+      }
+      /*
+       * HACK:  `bulleted` fixes the bullet's glyph and hang (ignoring `--ui-list-marker-content` / `-margin`), and its
+       * colour is the LIST's (a private alias on its root), so the bullet can't be the original's 6px dot, nor one
+       * item's differ (plan-doc issue):  the documented `item` part's marker
+       */
+      .toc ui-item::part(item)::before {
+        margin-left: -15px;
+        font-size: 20px;
+        line-height: calc(13px * 1.3);
+      }
+      .toc ui-item[selected]::part(item)::before {
+        color: var(--spell-accent);
+      }
+      .side > ui-segment {
+        --ui-segment-margin: 0;
+        --ui-segment-radius: 16px;
+        --ui-segment-padding: 18px;
+        --ui-segment-shadow: none;
+        --ui-segment-border-color: transparent;
+      }
+      .side > ui-segment.needs {
+        --ui-segment-background: var(--spell-surface-tint);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .needs h3 {
+        margin: 0 0 12px;
+        font: 500 19px/1.2 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+      /* done checks:  a lilac mark with an aubergine check, as the original's */
+      .needs ui-brand-checklist {
+        --ui-brand-checklist-marker-size: 18px;
+        --ui-brand-checklist-gap: 12px;
+        --ui-brand-checklist-font-size: 13px;
+        --ui-brand-checklist-accent: var(--spell-violet-300);
+        --ui-brand-checklist-on-accent: var(--spell-violet-900);
+        --ui-brand-checklist-text: var(--spell-text-strong);
+      }
+      /* HACK:  a check centres its mark on the text, with no token to top-align it (plan-doc issue):  the `marker` part */
+      .needs ui-brand-check::part(marker) {
+        align-self: flex-start;
+        margin-top: 1px;
+      }
+      .needs b {
+        display: block;
+        font: 500 13px/1.3 var(--spell-font-sans);
+        color: var(--spell-text-strong);
+      }
+      .needs small {
+        display: block;
+        margin-top: 2px;
+        font: 400 12px/1.4 var(--spell-font-sans);
+        color: var(--spell-text-muted);
+      }
+      .side > ui-segment.quote {
+        --ui-segment-background: var(--spell-surface-warm);
+        --ui-segment-padding: 16px 18px;
+        font: italic 400 17px/1.35 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+    </style>
+  </head>
+  <body>
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="docs">
+      <ui-brand-blob corner="bottom-right"></ui-brand-blob>
+
+      <header class="bar">
+        <div class="brand">
+          <ui-brand-logo variant="tagline" label="Spell — All magic, no fuss."></ui-brand-logo>
+          <span class="eyebrow">Docs</span>
+        </div>
+        <div class="tools">
+          <ui-input icon="magnifying glass" icon-position="left" placeholder="Search documentation…" aria-label="Search documentation"></ui-input>
+          <ui-button id="scheme" circular basic icon="moon outline" aria-label="Toggle theme"></ui-button>
+          <ui-button class="soft">Open app <ui-icon name="arrow right"></ui-icon></ui-button>
+        </div>
+      </header>
+
+      <div class="cols">
+        <aside class="nav">
+          <ui-menu id="nav" vertical secondary fluid aria-label="Docs">
+            <ui-item type="header">Get started</ui-item>
+            <ui-item link value="start" icon="wand magic sparkles">Getting started</ui-item>
+            <ui-item link value="understand" icon="book open">Understanding spells</ui-item>
+            <ui-item link icon="table cells large">Templates</ui-item>
+            <ui-item type="header">Guides</ui-item>
+            <ui-item link value="plain" icon="pen" selected>Plain language</ui-item>
+            <ui-item link icon="list">Data &amp; lists</ui-item>
+            <ui-item link icon="share nodes">Sharing your app</ui-item>
+            <ui-item type="header">Reference</ui-item>
+            <ui-item link icon="spell check">Spell vocabulary</ui-item>
+            <ui-item link icon="language">Languages</ui-item>
+            <ui-item link icon="circle question outline">Troubleshooting</ui-item>
+          </ui-menu>
+        </aside>
+
+        <article>
+          <div class="eyebrow" data-key="eyebrow">Guides</div>
+          <div class="titled">
+            <h1 data-key="title">Write in plain language.</h1>
+            <p class="lede" data-key="lede">Clear words. Better results.</p>
+          </div>
+          <p class="intro" data-key="intro">
+            Spell understands natural language, not technical jargon. Writing in plain language helps you get more
+            accurate results, save time, and make your apps easier to change — for everyone.
+          </p>
+
+          <ui-message>
+            <ui-brand-logo slot="icon" variant="mark" label=""></ui-brand-logo>
+            <div class="tip">
+              <span class="eyebrow">Tip</span>
+              <strong data-key="tipTitle">Be specific, not complicated.</strong>
+              <p data-key="tip">
+                Use everyday words and short, direct sentences. The clearer your instructions, the better Spell can
+                understand and act on them.
+              </p>
+            </div>
+          </ui-message>
+
+          <div class="titled h2">
+            <h2 data-key="h2">How to write in plain language</h2>
+            <p class="lede" data-key="h2lede">Keep it simple. Be specific. Use everyday words.</p>
+          </div>
+          <ol class="steps" id="steps"></ol>
+
+          <hr />
+          <h2>Example</h2>
+          <ui-tabs id="example" value="spell" aria-label="Example">
+            <ui-tab value="spell" label="Spell"><div class="spell" data-key="example"></div></ui-tab>
+            <ui-tab value="code" label="Compiled"><ui-code language="text" wrap id="code"></ui-code></ui-tab>
+          </ui-tabs>
+          <p class="note" data-key="note">This tells Spell exactly what to build — no technical terms required.</p>
+
+          <div class="pager">
+            <ui-card id="prev" link fluid>
+              <div class="page">
+                <span class="eyebrow">← Previous</span>
+                <strong data-key="prev">Getting started</strong>
+              </div>
+            </ui-card>
+            <ui-card id="next" link fluid>
+              <div class="page">
+                <span class="eyebrow">Next →</span>
+                <strong data-key="next">Understanding your spell</strong>
+              </div>
+            </ui-card>
+          </div>
+        </article>
+
+        <aside class="side">
+          <nav class="toc" aria-labelledby="toc">
+            <div class="eyebrow" id="toc">On this page</div>
+            <ui-list bulleted id="toc-list"></ui-list>
+          </nav>
+          <ui-segment class="needs">
+            <h3>What you’ll need</h3>
+            <ui-brand-checklist>
+              <ui-brand-check state="done"><b>A Spell account</b><small>Sign up in seconds.</small></ui-brand-check>
+              <ui-brand-check state="done"><b>An idea</b><small>Try a small one first.</small></ui-brand-check>
+              <ui-brand-check state="done"
+                ><b>Optional: your data</b><small>A spreadsheet or list to start from.</small></ui-brand-check
+              >
+            </ui-brand-checklist>
+          </ui-segment>
+          <ui-segment class="quote">“You don’t need to know how to code. You just need an idea.”</ui-segment>
+        </aside>
+      </div>
+    </div>
+    <script type="module" src="../_assets/ui/brand-ui.js"></script>
+    <script type="module">
+      /*
+       * Behaviour only:
+       * - the nav, Previous and Next swap the article between the three written pages, and reset the example's tab
+       * - the moon / sun button flips the scheme on `<html>`, and follows the site header's flip
+       */
+
+      /** The three written pages, as the original's. */
+      const PAGES = {
+        start: {
+          label: "Getting started",
+          eyebrow: "Getting started",
+          title: "Getting started with your first spell.",
+          lede: "From idea to magic in three simple steps.",
+          intro:
+            "Spell makes it easy to turn your ideas into working apps. In a few minutes you’ll write your first spell — a small app that does something useful, and is entirely yours.",
+          tipTitle: "Start small.",
+          tip: "Your first spell can be one sentence. You can always add more later — Spell keeps everything you’ve written.",
+          h2: "Create your first spell",
+          h2lede: "Start with a blank spell or use a template.",
+          steps: [
+            ["Open a new spell", "From Build, click “New spell” and give your app a name. Start from scratch or choose a template."],
+            ["Describe your app", "Write what your app should do, in your own words. Mention the things it keeps track of and what people can do."],
+            ["Cast it", "Press the arrow. Spell builds a live preview you can click through, edit and share."]
+          ],
+          example:
+            "Make a plant care app. Each plant has a name and how often it needs water. Remind me when a plant is thirsty.",
+          code: "plants: list of { name: text, waterEvery: days, lastWatered: date }\nreminder when today - lastWatered >= waterEvery",
+          note: "Three sentences, one working app."
+        },
+        plain: {
+          label: "Write in plain language",
+          eyebrow: "Guides",
+          title: "Write in plain language.",
+          lede: "Clear words. Better results.",
+          intro:
+            "Spell understands natural language, not technical jargon. Writing in plain language helps you get more accurate results, save time, and make your apps easier to change — for everyone.",
+          tipTitle: "Be specific, not complicated.",
+          tip: "Use everyday words and short, direct sentences. The clearer your instructions, the better Spell can understand and act on them.",
+          h2: "How to write in plain language",
+          h2lede: "Keep it simple. Be specific. Use everyday words.",
+          steps: [
+            ["Describe what you want", "Use natural language — not code or jargon."],
+            ["Include the key details", "Who, what, when, or where, if they matter."],
+            ["Keep it short and focused", "One clear request is often enough."]
+          ],
+          example: "Create a habit tracker app with add, done and streaks.",
+          code: "habits: list of { name: text, doneToday: yes/no }\naction add(name)\naction toggle(habit)\nstreak = consecutive days where all habits done",
+          note: "This tells Spell exactly what to build — no technical terms required."
+        },
+        understand: {
+          label: "Understanding your spell",
+          eyebrow: "Concepts",
+          title: "Understanding your spell.",
+          lede: "Readable by you. Runnable everywhere.",
+          intro:
+            "A spell is the plain-language description of your app. AI can help write it, you can always read it, and Spell compiles it into code that runs in a browser.",
+          tipTitle: "The spell is the source of truth.",
+          tip: "Edit the words, and the app follows. You never have to touch the generated code.",
+          h2: "What happens when you cast",
+          h2lede: "Words in, working app out.",
+          steps: [
+            ["Spell reads your sentences", "It finds the things your app keeps (habits, plants, guests) and the actions people take."],
+            ["It plans the structure", "Screens, lists and buttons are arranged from what you described."],
+            ["It compiles to code", "The result runs in any modern browser, and updates whenever you change the spell."]
+          ],
+          example: "Guests can reply yes, no or maybe. If yes, ask what dish they’re bringing.",
+          code: "guests: list of { name: text, reply: yes | no | maybe, dish?: text }\nwhen reply = yes → ask dish",
+          note: "Highlighted nouns become data; verbs become actions."
+        }
+      }
+      const ORDER = ["start", "plain", "understand"]
+
+      const root = document.documentElement
+      const nav = document.getElementById("nav")
+      const example = document.getElementById("example")
+      const code = document.getElementById("code")
+      const scheme = document.getElementById("scheme")
+      let shown = "plain"
+
+      nav.addEventListener("ui-select", ({ detail }) => {
+        if (PAGES[detail.item.getAttribute("value")]) show(detail.item.getAttribute("value"))
+      })
+      document.getElementById("prev").addEventListener("click", () => show(neighbour(-1)))
+      document.getElementById("next").addEventListener("click", () => show(neighbour(1)))
+      scheme.addEventListener("click", flipScheme)
+      new MutationObserver(showScheme).observe(root, { attributes: true, attributeFilter: ["class", "style"] })
+      showScheme()
+      await customElements.whenDefined("ui-code")
+      show(shown)
+
+      /** Page `key` in the article, the nav and the side column;  the example back on its Spell tab. */
+      function show(key) {
+        const page = PAGES[key]
+        shown = key
+        for (const el of document.querySelectorAll("article [data-key]")) {
+          if (el.dataset.key in page) el.textContent = page[el.dataset.key]
+        }
+        document.querySelector('[data-key="example"]').textContent = `“${page.example}”`
+        document.querySelector('[data-key="prev"]').textContent = PAGES[neighbour(-1)].label
+        document.querySelector('[data-key="next"]').textContent = PAGES[neighbour(1)].label
+        code.content = page.code
+        example.setAttribute("value", "spell")
+        document.getElementById("steps").replaceChildren(...page.steps.map(step))
+        document
+          .getElementById("toc-list")
+          .replaceChildren(...[page.h2, ...page.steps.slice(0, 2).map(([title]) => title), "Example"].map(tocItem))
+        for (const item of nav.querySelectorAll("ui-item[link]")) {
+          item.toggleAttribute("selected", item.getAttribute("value") === key)
+        }
+      }
+
+      /** The page `by` steps from the shown one, round the three. */
+      function neighbour(by) {
+        return ORDER[(ORDER.indexOf(shown) + by + ORDER.length) % ORDER.length]
+      }
+
+      /** Step `[title, body]`, numbered `i + 1`. */
+      function step([title, body], i) {
+        const li = document.createElement("li")
+        const n = document.createElement("ui-label")
+        n.setAttribute("circular", "")
+        n.textContent = String(i + 1)
+        const strong = document.createElement("strong")
+        strong.textContent = title
+        const p = document.createElement("p")
+        p.textContent = body
+        li.append(n, strong, p)
+        return li
+      }
+
+      /** An "On this page" entry;  the first is the current one. */
+      function tocItem(text, i) {
+        const item = document.createElement("ui-item")
+        item.textContent = text
+        if (i === 0) item.setAttribute("selected", "")
+        return item
+      }
+
+      /** The scheme the page shows now. */
+      function shownScheme() {
+        if (root.classList.contains("ui-dark")) return "dark"
+        if (root.classList.contains("ui-light")) return "light"
+        return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      }
+
+      /** Light <-> dark, on `<html>`, as Spell UI's `color-scheme` does it. */
+      function flipScheme() {
+        const next = shownScheme() === "dark" ? "light" : "dark"
+        root.classList.remove("ui-light", "ui-dark")
+        root.classList.add(`ui-${next}`)
+        root.style.colorScheme = next
+      }
+
+      /** The button offers the other scheme, as the original's (moon in light, sun in dark). */
+      function showScheme() {
+        scheme.setAttribute("icon", shownScheme() === "dark" ? "sun outline" : "moon outline")
+      }
+    </script>
+  </body>
+</html>

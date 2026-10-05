@@ -221,6 +221,199 @@
       "href": "components/ui-brand-blob.html"
     },
     {
+      "tag": "ui-brand-check",
+      "name": "Brand check",
+      "folder": "ui-brand-checklist",
+      "topics": [
+        "lists",
+        "progress",
+        "selection",
+        "controls"
+      ],
+      "aka": [
+        "check item",
+        "to-do",
+        "todo",
+        "task",
+        "habit",
+        "progress step",
+        "check mark"
+      ],
+      "description": "A brand check is one line of a checklist:  a round mark, filled with a check once done, and its text.",
+      "noun": "check",
+      "attributes": [
+        {
+          "name": "state",
+          "kind": "enum",
+          "values": [
+            "done",
+            "active",
+            "pending"
+          ],
+          "default": "pending",
+          "description": "Progress:  `done` (filled, a check), `active` (soft, pulsing) or `pending` (an empty ring, subtle text).  A checklist's `step` overrides it."
+        },
+        {
+          "name": "selected",
+          "kind": "boolean",
+          "description": "Ticked:  done.  What a `checkable` check toggles;  `ui-change` first.  Alias:  `checked` (attribute and property)."
+        },
+        {
+          "name": "checkable",
+          "kind": "boolean",
+          "description": "A checkbox the user ticks (click, Space, Enter):  done once ticked, the text struck through.  Inherited from a `checkable` checklist."
+        },
+        {
+          "name": "font",
+          "kind": "enum",
+          "values": [
+            "sans",
+            "serif"
+          ],
+          "description": "Text:  `sans` (14px) or `serif` (15px);  default the checklist's, else `sans`."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "The text."
+        }
+      ],
+      "events": [
+        {
+          "name": "ui-change",
+          "detail": "{ selected: boolean, checked: boolean, originalEvent?: Event }",
+          "description": "The user ticked or unticked a `checkable` check (`checked` ~== `selected`)."
+        }
+      ],
+      "parts": [
+        {
+          "name": "check",
+          "description": "The line:  a `<button role=checkbox>` when `checkable`, else a box."
+        },
+        {
+          "name": "marker",
+          "description": "The round mark."
+        },
+        {
+          "name": "label",
+          "description": "The text's box."
+        }
+      ],
+      "states": [
+        {
+          "name": "done",
+          "description": "Done (or ticked)."
+        },
+        {
+          "name": "active",
+          "description": "The step in progress."
+        },
+        {
+          "name": "pending",
+          "description": "Not started (or not ticked)."
+        },
+        {
+          "name": "checkable",
+          "description": "A checkbox the user ticks."
+        }
+      ],
+      "texts": [
+        {
+          "key": "done",
+          "text": "done",
+          "description": "Visually hidden after a done step's text:  the mark alone says nothing."
+        },
+        {
+          "key": "active",
+          "text": "in progress",
+          "description": "Visually hidden after the active step's text."
+        }
+      ],
+      "mainTag": "ui-brand-checklist",
+      "main": false,
+      "page": false,
+      "href": "components/ui-brand-checklist.html#ui-brand-check"
+    },
+    {
+      "tag": "ui-brand-checklist",
+      "name": "Brand checklist",
+      "folder": "ui-brand-checklist",
+      "topics": [
+        "lists",
+        "progress",
+        "status",
+        "selection"
+      ],
+      "aka": [
+        "checklist",
+        "to-do list",
+        "todo list",
+        "task list",
+        "progress list",
+        "habit list",
+        "stepper"
+      ],
+      "description": "A brand checklist shows a build's progress step by step, or a list of things to tick off, each with a round mark.",
+      "noun": "checklist",
+      "attributes": [
+        {
+          "name": "step",
+          "kind": "number",
+          "description": "Progress:  checks before index `step` (from 0) are done, the one at `step` is active, the rest pending;  `step` at or past the last check marks them all done.  Unset:  each check's own `state`."
+        },
+        {
+          "name": "checkable",
+          "kind": "boolean",
+          "description": "Every check is a checkbox the user ticks (click, Space, Enter);  `step` is ignored."
+        },
+        {
+          "name": "font",
+          "kind": "enum",
+          "values": [
+            "sans",
+            "serif"
+          ],
+          "default": "sans",
+          "description": "Text:  `sans` (14px, 20px marks, the build progress) or `serif` (15px, 19px marks, the phone's habits)."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "`<ui-brand-check>`s."
+        }
+      ],
+      "events": [],
+      "parts": [
+        {
+          "name": "list",
+          "description": "The list box (`role=list`)."
+        },
+        {
+          "name": "status",
+          "description": "The visually hidden live region announcing progress."
+        }
+      ],
+      "states": [],
+      "texts": [
+        {
+          "key": "stepDone",
+          "text": "{label} done",
+          "description": "Announced when `step` moves past a check;  `{label}` is its text."
+        },
+        {
+          "key": "allDone",
+          "text": "All done",
+          "description": "Announced when `step` reaches the end."
+        }
+      ],
+      "mainTag": "ui-brand-checklist",
+      "main": true,
+      "page": true,
+      "href": "components/ui-brand-checklist.html"
+    },
+    {
       "tag": "ui-brand-color",
       "name": "Brand color",
       "folder": "ui-brand-color",
@@ -884,6 +1077,194 @@
       "href": "components/ui-brand-color-set.html"
     },
     {
+      "tag": "ui-brand-composer",
+      "name": "Brand composer",
+      "folder": "ui-brand-composer",
+      "topics": [
+        "forms",
+        "inputs",
+        "text"
+      ],
+      "aka": [
+        "composer",
+        "prompt box",
+        "prompt input",
+        "chat input",
+        "message box",
+        "spell box",
+        "command box"
+      ],
+      "description": "A brand composer is the box where you describe an app in plain words and cast it:  a serif text box, tool chips, a keyboard hint and a round Cast button.",
+      "noun": "composer",
+      "attributes": [
+        {
+          "name": "value",
+          "kind": "string",
+          "reflect": false,
+          "description": "The text.  Attribute:  the starting (and reset) value;  property:  the live value, as `<ui-textarea>`'s."
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "description": "Form field name:  the form gets `value`."
+        },
+        {
+          "name": "placeholder",
+          "kind": "string",
+          "description": "Hint shown while empty;  default `Describe what you want to build…`, `placeholder=\"\"` none."
+        },
+        {
+          "name": "rows",
+          "kind": "number",
+          "default": 3,
+          "description": "Lines tall when empty;  the box grows as you write."
+        },
+        {
+          "name": "label",
+          "kind": "string",
+          "description": "Name of the text box for screen readers;  default:  what names the host (`aria-label`, `<label for>`), else `eyebrow`, else `Your spell`."
+        },
+        {
+          "name": "eyebrow",
+          "kind": "string",
+          "description": "Small mono caps line above the text box (`Try a spell`);  or `slot=\"eyebrow\"`."
+        },
+        {
+          "name": "hint",
+          "kind": "string",
+          "description": "Keyboard hint beside the tools;  default `⌘↵ to cast` (`Ctrl+↵ to cast` off Apple devices), `hint=\"\"` none."
+        },
+        {
+          "name": "size",
+          "kind": "enum",
+          "values": [
+            "medium",
+            "large"
+          ],
+          "default": "medium",
+          "description": "`medium` (the app's Build box:  17px text, small shadow) or `large` (the marketing hero's:  19px text, larger shadow and radius)."
+        },
+        {
+          "name": "casting",
+          "kind": "keyOnly",
+          "description": "Busy:  the Cast button spins and casting is paused (the text stays editable).  The page sets it while it builds, and clears it."
+        },
+        {
+          "name": "disabled",
+          "kind": "keyOnly",
+          "description": "Faded;  can't be typed in or cast, left out of the form."
+        }
+      ],
+      "slots": [
+        {
+          "name": "eyebrow",
+          "description": "Rich version of `eyebrow`, above the text box."
+        },
+        {
+          "name": "tools",
+          "description": "Chips in the row under the text box, before the hint (`<ui-label icon=\"language\">English</ui-label>`, idea buttons);  they wrap."
+        }
+      ],
+      "events": [
+        {
+          "name": "ui-input",
+          "detail": "{ value: string, originalEvent?: Event }",
+          "description": "The text changed (every keystroke).  A handler that re-sets `value` wins."
+        },
+        {
+          "name": "ui-change",
+          "detail": "{ value: string, originalEvent?: Event }",
+          "description": "The user committed an edit (left the text box changed)."
+        },
+        {
+          "name": "ui-cast",
+          "detail": "{ value: string, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "Cast:  the button, Cmd / Ctrl+Enter, or `cast()` -- never with empty (or only blank) text, while `casting`, or `disabled`.  In a `<form>`, the form is then submitted;  `preventDefault()` stops that."
+        }
+      ],
+      "parts": [
+        {
+          "name": "composer",
+          "description": "The card."
+        },
+        {
+          "name": "eyebrow",
+          "description": "The line above the text box."
+        },
+        {
+          "name": "textarea",
+          "description": "The native `<textarea>`."
+        },
+        {
+          "name": "bar",
+          "description": "The row under the text box:  tools, hint, Cast button."
+        },
+        {
+          "name": "tools",
+          "description": "The box around the `tools` slot."
+        },
+        {
+          "name": "hint",
+          "description": "The keyboard hint."
+        },
+        {
+          "name": "cast",
+          "description": "The round Cast button."
+        }
+      ],
+      "states": [
+        {
+          "name": "empty",
+          "description": "Nothing (or only blank) written:  the Cast button is dimmed."
+        },
+        {
+          "name": "casting",
+          "description": "Busy:  `casting` is set."
+        },
+        {
+          "name": "disabled",
+          "description": "Can't be used."
+        }
+      ],
+      "texts": [
+        {
+          "key": "label",
+          "text": "Your spell",
+          "description": "The text box's name, when nothing else names it."
+        },
+        {
+          "key": "placeholder",
+          "text": "Describe what you want to build…",
+          "description": "Default placeholder."
+        },
+        {
+          "key": "hintApple",
+          "text": "⌘↵ to cast",
+          "description": "Default hint on Apple devices."
+        },
+        {
+          "key": "hintOther",
+          "text": "Ctrl+↵ to cast",
+          "description": "Default hint elsewhere."
+        },
+        {
+          "key": "cast",
+          "text": "Cast spell",
+          "description": "The Cast button's name."
+        },
+        {
+          "key": "casting",
+          "text": "Casting your spell…",
+          "description": "Announced when `casting` turns on."
+        }
+      ],
+      "mainTag": "ui-brand-composer",
+      "main": true,
+      "page": true,
+      "href": "components/ui-brand-composer.html"
+    },
+    {
       "tag": "ui-brand-field",
       "name": "Brand field",
       "folder": "ui-brand-field",
@@ -1541,6 +1922,80 @@
       "main": true,
       "page": true,
       "href": "components/ui-brand-panel.html"
+    },
+    {
+      "tag": "ui-brand-phone",
+      "name": "Brand phone",
+      "folder": "ui-brand-phone",
+      "topics": [
+        "containers",
+        "media"
+      ],
+      "aka": [
+        "phone frame",
+        "device frame",
+        "phone mockup",
+        "device mockup",
+        "app preview",
+        "mobile preview"
+      ],
+      "description": "A brand phone frames live app content as a phone:  a status bar on top, the app below.",
+      "noun": "phone",
+      "attributes": [
+        {
+          "name": "time",
+          "kind": "string",
+          "default": "9:41",
+          "description": "The status bar's clock:  any text, default `9:41`."
+        },
+        {
+          "name": "dimmed",
+          "kind": "keyOnly",
+          "description": "Fades the phone (to 45%) while its app is being built, and marks it busy (`aria-busy`)."
+        },
+        {
+          "name": "label",
+          "kind": "string",
+          "description": "Accessible name of the region around the app;  default `App preview`.  `\"\"`:  no region, just a frame."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "The app:  its title, cards, controls.  Each child is spaced 12px apart."
+        }
+      ],
+      "events": [],
+      "parts": [
+        {
+          "name": "phone",
+          "description": "The frame:  a `<section>`, the region named `label`."
+        },
+        {
+          "name": "status",
+          "description": "The status bar (hidden from screen readers)."
+        },
+        {
+          "name": "time",
+          "description": "The status bar's clock."
+        },
+        {
+          "name": "icons",
+          "description": "The status bar's signal, wifi and battery icons."
+        }
+      ],
+      "states": [],
+      "texts": [
+        {
+          "key": "appPreview",
+          "text": "App preview",
+          "description": "Default name of the region around the app."
+        }
+      ],
+      "mainTag": "ui-brand-phone",
+      "main": true,
+      "page": true,
+      "href": "components/ui-brand-phone.html"
     }
   ],
   "docs": [],
@@ -1579,6 +2034,80 @@
         {
           "name": "--ui-brand-blob-color",
           "default": "currentColor",
+          "type": "color"
+        }
+      ]
+    },
+    "ui-brand-checklist": {
+      "folder": "ui-brand-checklist",
+      "mainTag": "ui-brand-checklist",
+      "title": "Brand checklist",
+      "summary": "A brand checklist shows a build's progress step by step, or a list of things to tick off, each with a round mark.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "ui-brand-checklist",
+        "ui-brand-check"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-brand-checklist-spacing",
+          "default": "var(--_ui-brand-checklist-spacing)",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-checklist-font-family",
+          "default": "var(--_ui-brand-checklist-font-family, var(--spell-font-sans, var(--ui-font-family, system-ui, sans-serif)))",
+          "type": "other"
+        },
+        {
+          "name": "--ui-brand-checklist-font-size",
+          "default": "var(--_ui-brand-checklist-font-size, 14px)",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-checklist-marker-size",
+          "default": "var(--_ui-brand-checklist-marker-size, 20px)",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-checklist-gap",
+          "default": "var(--_ui-brand-checklist-gap, 12px)",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-checklist-accent",
+          "default": "var(--spell-accent, var(--ui-primary, #6550ca))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-checklist-accent-soft",
+          "default": "var(--spell-accent-soft-hover, var(--ui-primary-background, #e3e1ff))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-checklist-on-accent",
+          "default": "var(--spell-text-on-accent, var(--ui-primary-on, #fff))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-checklist-text",
+          "default": "var(--spell-text-body, var(--ui-text-color, CanvasText))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-checklist-text-subtle",
+          "default": "var(--spell-text-subtle, var(--ui-text-light, GrayText))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-checklist-ring",
+          "default": "var(--spell-border-default, var(--ui-border-color, #ccc))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-checklist-ring-checkable",
+          "default": "var(--spell-border-strong, var(--ui-border-color-strong, #999))",
           "type": "color"
         }
       ]
@@ -1737,6 +2266,69 @@
           "name": "--ui-brand-color-set-gap",
           "default": "0.5em",
           "type": "length"
+        }
+      ]
+    },
+    "ui-brand-composer": {
+      "folder": "ui-brand-composer",
+      "mainTag": "ui-brand-composer",
+      "title": "Brand composer",
+      "summary": "A brand composer is the box where you describe an app in plain words and cast it:  a serif text box, tool chips, a keyboard hint and a round Cast button.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "ui-brand-composer"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-brand-composer-background",
+          "default": "var(--ui-surface, Canvas)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-composer-border-color",
+          "default": "var(--spell-border-subtle, var(--ui-border-color, GrayText))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-composer-radius",
+          "default": "var(--ui-radius-l, 1em)",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-composer-shadow",
+          "default": "var(--spell-shadow-sm, var(--ui-shadow-raised, none))",
+          "type": "other"
+        },
+        {
+          "name": "--ui-brand-composer-padding",
+          "default": "1em 1.125em 0.75em",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-composer-font",
+          "default": "400 calc(var(--ui-font-size, 16px) * 17 / 16) / 1.5 var(--spell-font-serif, var(--ui-font-family-heading, serif))",
+          "type": "other"
+        },
+        {
+          "name": "--ui-brand-composer-max-height",
+          "default": "12lh",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-composer-button-size",
+          "default": "calc(var(--ui-font-size, 16px) * 36 / 16)",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-composer-button-background",
+          "default": "var(--spell-accent, var(--ui-primary, AccentColor))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-composer-button-color",
+          "default": "var(--spell-text-on-accent, var(--ui-primary-on, AccentColorText))",
+          "type": "color"
         }
       ]
     },
@@ -1904,6 +2496,59 @@
           "name": "--ui-brand-panel-shadow",
           "default": "var(--spell-shadow-sm, var(--ui-shadow-raised))",
           "type": "other"
+        }
+      ]
+    },
+    "ui-brand-phone": {
+      "folder": "ui-brand-phone",
+      "mainTag": "ui-brand-phone",
+      "title": "Brand phone",
+      "summary": "A brand phone frames live app content as a phone:  a status bar on top, the app below.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "ui-brand-phone"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-brand-phone-width",
+          "default": "300px",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-phone-background",
+          "default": "light-dark(var(--spell-surface-warm, var(--ui-surface-muted)), var(--ui-surface-muted))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-phone-border-color",
+          "default": "var(--spell-border-subtle, var(--ui-border-color))",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-phone-radius",
+          "default": "32px",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-phone-shadow",
+          "default": "var(--spell-shadow-md, var(--ui-shadow-floating))",
+          "type": "other"
+        },
+        {
+          "name": "--ui-brand-phone-padding",
+          "default": "14px 14px 18px",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-phone-gap",
+          "default": "12px",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-phone-dimmed-opacity",
+          "default": "0.45",
+          "type": "number"
         }
       ]
     }

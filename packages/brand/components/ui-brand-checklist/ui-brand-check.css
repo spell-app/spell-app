@@ -1,0 +1,170 @@
+/*
+ * `<ui-brand-check>`:  one line of a checklist, `.check.<state>` (`done` / `active` / `pending`, `checkable`) >
+ * `.marker` (the round mark, a check `<svg>` inside) + `.label` (the slot).
+ * - Public tokens (`--ui-brand-checklist-*`) are never declared here:  read through private aliases.  Set them on the
+ *   list (they inherit) or on one check:
+ *   - `-font-family`, `-font-size`, `-marker-size`, `-gap` (mark to text):  defaults sans 14px / 20px / 12px,
+ *     serif 15px / 19px / 10px
+ *   - `-accent` (done fill), `-accent-soft` (active fill), `-on-accent` (the check)
+ *   - `-text` (done / active / unticked text), `-text-subtle` (pending, ticked), `-ring` (pending),
+ *     `-ring-checkable` (unticked)
+ * - `font`:  the list sets the serif defaults as private `--_ui-brand-checklist-*` values on its host, which reach its
+ *   checks by inheritance;  a check's own `font` sets them on itself.
+ * - Colours from the `spell-brand` theme's roles (`--spell-*`), else Spell UI's (`--ui-*`), so the check works, plainer,
+ *   without the theme, and follows dark mode.
+ * - Motion:  the active mark pulses (`sp-pulse`'s 1.4s:  scale .8, fade to .55) only with
+ *   `prefers-reduced-motion: no-preference`;  the fill eases between states the same way.
+ */
+
+@layer ui.components.brand-check.types, ui.components.brand-check.states;
+
+@layer ui.components.brand-check.types {
+  :host {
+    --_ui-brand-check-family: var(
+      --ui-brand-checklist-font-family,
+      var(--_ui-brand-checklist-font-family, var(--spell-font-sans, var(--ui-font-family, system-ui, sans-serif)))
+    );
+    --_ui-brand-check-size: var(--ui-brand-checklist-font-size, var(--_ui-brand-checklist-font-size, 14px));
+    --_ui-brand-check-marker: var(--ui-brand-checklist-marker-size, var(--_ui-brand-checklist-marker-size, 20px));
+    --_ui-brand-check-gap: var(--ui-brand-checklist-gap, var(--_ui-brand-checklist-gap, 12px));
+    --_ui-brand-check-accent: var(--ui-brand-checklist-accent, var(--spell-accent, var(--ui-primary, #6550ca)));
+    --_ui-brand-check-accent-soft: var(
+      --ui-brand-checklist-accent-soft,
+      var(--spell-accent-soft-hover, var(--ui-primary-background, #e3e1ff))
+    );
+    --_ui-brand-check-on-accent: var(
+      --ui-brand-checklist-on-accent,
+      var(--spell-text-on-accent, var(--ui-primary-on, #fff))
+    );
+    --_ui-brand-check-text: var(--ui-brand-checklist-text, var(--spell-text-body, var(--ui-text-color, CanvasText)));
+    --_ui-brand-check-subtle: var(
+      --ui-brand-checklist-text-subtle,
+      var(--spell-text-subtle, var(--ui-text-light, GrayText))
+    );
+    --_ui-brand-check-ring: var(--ui-brand-checklist-ring, var(--spell-border-default, var(--ui-border-color, #ccc)));
+    --_ui-brand-check-ring-checkable: var(
+      --ui-brand-checklist-ring-checkable,
+      var(--spell-border-strong, var(--ui-border-color-strong, #999))
+    );
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  :host([font="sans"]) {
+    --_ui-brand-checklist-font-family: var(--spell-font-sans, var(--ui-font-family, system-ui, sans-serif));
+    --_ui-brand-checklist-font-size: 14px;
+    --_ui-brand-checklist-marker-size: 20px;
+    --_ui-brand-checklist-gap: 12px;
+  }
+  :host([font="serif"]) {
+    --_ui-brand-checklist-font-family: var(--spell-font-serif, var(--ui-font-family-heading, Georgia, serif));
+    --_ui-brand-checklist-font-size: 15px;
+    --_ui-brand-checklist-marker-size: 19px;
+    --_ui-brand-checklist-gap: 10px;
+  }
+
+  .check {
+    display: flex;
+    align-items: center;
+    gap: var(--_ui-brand-check-gap);
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: 400 var(--_ui-brand-check-size) / 1.3 var(--_ui-brand-check-family);
+    color: var(--_ui-brand-check-text);
+    text-align: start;
+  }
+  button.check {
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  button.check:focus-visible {
+    outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color, Highlight);
+    outline-offset: 2px;
+  }
+
+  .marker {
+    display: grid;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    width: var(--_ui-brand-check-marker);
+    height: var(--_ui-brand-check-marker);
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--_ui-brand-check-ring);
+    color: var(--_ui-brand-check-on-accent);
+  }
+  .marker > svg {
+    width: 62%;
+    height: 62%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    visibility: hidden;
+  }
+
+  .label {
+    min-width: 0;
+  }
+}
+
+@layer ui.components.brand-check.states {
+  .check.pending {
+    color: var(--_ui-brand-check-subtle);
+  }
+  .check.active > .marker {
+    background: var(--_ui-brand-check-accent-soft);
+    box-shadow: none;
+  }
+  .check.done > .marker {
+    background: var(--_ui-brand-check-accent);
+    box-shadow: none;
+  }
+  .check.done > .marker > svg {
+    visibility: visible;
+  }
+
+  /* a checkbox:  unticked reads as body text on a stronger ring;  ticked goes subtle and struck through */
+  .check.checkable.pending {
+    color: var(--_ui-brand-check-text);
+  }
+  .check.checkable.pending > .marker {
+    box-shadow: inset 0 0 0 1.5px var(--_ui-brand-check-ring-checkable);
+  }
+  .check.checkable.done {
+    color: var(--_ui-brand-check-subtle);
+  }
+  .check.checkable.done > .label {
+    text-decoration: line-through;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .marker {
+      transition:
+        background-color var(--ui-duration-fast, 150ms) var(--ui-ease, ease),
+        box-shadow var(--ui-duration-fast, 150ms) var(--ui-ease, ease);
+    }
+    .check.active > .marker {
+      animation: ui-brand-check-pulse 1.4s ease-in-out infinite;
+    }
+  }
+}
+
+/* the brand's `sp-pulse` */
+@keyframes ui-brand-check-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.8);
+    opacity: 0.55;
+  }
+}

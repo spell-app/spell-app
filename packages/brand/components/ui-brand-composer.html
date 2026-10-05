@@ -1,0 +1,310 @@
+<!doctype html>
+<!--
+  A brand element's docs page, in Spell UI's docs format (`packages/docs/content/templates/spell-ui-docs.html`):  masthead, then
+  Examples / Usage / API / Theming tabs.  Without the Spell UI site's shell:  the site header on top, one page.
+  - Loads `brand-docs.js` (`src/brand-docs.ts`):  the brand bundle + Spell UI's docs widgets;  API and tokens come
+    from `_data/components.json` (`yarn site:data` here).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - The script at the bottom wires the live examples:  idea chips (`data-prompt`) fill their box and cast;  a box marked
+    `data-casting` stays `casting` 2 seconds after each cast;  `data-log` lines show the events;  the form example shows
+    what it submitted.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Composer</title>
+    <meta
+      name="description"
+      content="<ui-brand-composer>:  the box where you describe an app in plain words and cast it."
+    />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <link rel="stylesheet" href="../_assets/brand-docs.css" />
+    <script type="module" src="../_assets/ui/brand-docs.js"></script>
+    <style>
+      /* the boxes at a sensible width;  the idea chips as the marketing page's;  the event lines */
+      .composer-demo {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 560px;
+      }
+      .composer-demo ui-button[data-prompt] {
+        --ui-font-size: 12px;
+        --ui-button-padding-block: 7px;
+        --ui-button-padding-inline: 10px;
+        --ui-button-margin-inline: 0;
+        --ui-button-font-weight: 500;
+      }
+      .composer-log {
+        margin: 0;
+        color: var(--spell-text-muted, var(--ui-text-muted));
+        font: var(--spell-type-code, 400 13px / 1.6 var(--ui-font-family-mono));
+      }
+    </style>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../.."></spell-site-header>
+    <main id="main" class="brand-docs-main">
+      <ui-segment vertical basic class="brand-docs-masthead">
+        <ui-container>
+          <div class="brand-docs-eyebrow"><a href="../index.html">Brand</a> · Components</div>
+          <ui-header level="1" class="brand-docs-title">
+            Brand Composer
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header>Describe an app in plain words, then cast it.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="brand-docs-body">
+        <ui-tabs
+          id="brand-docs-tabs"
+          class="brand-docs-tabs"
+          history
+          basic
+          appearance="segmented"
+          alignment="fluid"
+          equal
+        >
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" collapsible dividing>
+              <ui-section id="examples-types-composer" header="Composer" collapsible dividing>
+                <ui-docs-example
+                  description="The Spell App's Build box:  a card with a serif text box, a row of tools (here the spell's language, a `<ui-label>` in `slot=&quot;tools&quot;`), the keyboard hint and the round Cast button.  Cast with the button or Cmd / Ctrl+Enter;  plain Enter types a new line."
+                >
+                  <div class="composer-demo">
+                    <ui-brand-composer name="spell" value="Create a habit tracker app with add, done and streaks.">
+                      <ui-label slot="tools" icon="language">English</ui-label>
+                    </ui-brand-composer>
+                    <p class="composer-log" data-log>Cast it: the event shows here.</p>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" collapsible dividing>
+              <ui-section id="examples-content-eyebrow" header="Eyebrow" collapsible dividing>
+                <ui-docs-example
+                  description='`eyebrow`:  a small mono caps line above the text box;  it also names the box for screen readers.  `slot="eyebrow"` takes richer content.'
+                >
+                  <div class="composer-demo">
+                    <ui-brand-composer
+                      eyebrow="Try a spell"
+                      value="A reading list where members vote."
+                    ></ui-brand-composer>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-content-placeholder-hint" header="Placeholder and hint" collapsible dividing>
+                <ui-docs-example
+                  description='`placeholder`:  shown while the box is empty (the Cast button dims:  nothing to cast).  `hint`:  your own keyboard hint;  `hint=""` hides it.  `rows`:  how many lines tall the box starts;  it grows as you write.'
+                >
+                  <div class="composer-demo">
+                    <ui-brand-composer placeholder="A to-do list for the garden…" rows="2"></ui-brand-composer>
+                    <ui-brand-composer hint="Press ⌘↵ when you're ready" rows="1" value="A tip jar"></ui-brand-composer>
+                    <ui-brand-composer hint="" rows="1" value="No hint at all"></ui-brand-composer>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" collapsible dividing>
+              <ui-section id="examples-states-casting" header="Casting" collapsible dividing>
+                <ui-docs-example
+                  description='`casting`:  the page sets it while it builds, and clears it;  the element never does.  The Cast button spins and won&apos;t cast again, the text stays editable, and screen readers hear "Casting your spell…".  Here each cast sets `casting` for 2 seconds.'
+                >
+                  <div class="composer-demo">
+                    <ui-brand-composer data-casting value="Guests reply yes, no or maybe."></ui-brand-composer>
+                    <p class="composer-log" data-log>Cast it: the event shows here.</p>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section id="examples-states-disabled" header="Disabled" collapsible dividing>
+                <ui-docs-example
+                  description="`disabled`:  faded;  can't be typed in or cast, and left out of its form."
+                >
+                  <div class="composer-demo">
+                    <ui-brand-composer disabled value="Create a habit tracker app.">
+                      <ui-label slot="tools" icon="language">English</ui-label>
+                    </ui-brand-composer>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" collapsible dividing>
+              <ui-section id="examples-variations-large" header="Large" collapsible dividing>
+                <ui-docs-example
+                  description='`size="large"`:  the marketing hero&apos;s box, 19px text, a larger radius and shadow.  Here with an eyebrow, two rows, no hint, and idea chips in `slot="tools"`:  a chip sets the box&apos;s `value` and calls `cast()`.'
+                >
+                  <div class="composer-demo">
+                    <ui-brand-composer
+                      size="large"
+                      eyebrow="Try a spell"
+                      rows="2"
+                      hint=""
+                      value="Create a habit tracker app with add, done and streaks."
+                      data-casting
+                    >
+                      <ui-button
+                        slot="tools"
+                        basic
+                        circular
+                        data-prompt="Create a habit tracker app with add, done and streaks."
+                        >Habit tracker</ui-button
+                      >
+                      <ui-button
+                        slot="tools"
+                        basic
+                        circular
+                        data-prompt="A reading list where members vote on next month’s book."
+                        >Book club</ui-button
+                      >
+                      <ui-button
+                        slot="tools"
+                        basic
+                        circular
+                        data-prompt="Guests reply yes, no or maybe, and say what dish they’re bringing."
+                        >Dinner RSVP</ui-button
+                      >
+                    </ui-brand-composer>
+                    <p class="composer-log" data-log>Pick an idea: the event shows here.</p>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-usage" header="Usage" collapsible dividing>
+              <ui-section id="examples-usage-form" header="In a form" collapsible dividing>
+                <ui-docs-example
+                  description="A form element:  its text goes to the form under `name`.  Casting submits the form (`requestSubmit()`), unless a `ui-cast` handler calls `preventDefault()`:  handle the form's `submit` OR veto the cast, not both.  Here the form's `submit` shows what it got."
+                >
+                  <div class="composer-demo">
+                    <ui-form>
+                      <form method="dialog" data-submit-log>
+                        <ui-brand-composer name="spell" value="A tip jar for the band." hint="">
+                          <ui-label slot="tools" icon="language">English</ui-label>
+                        </ui-brand-composer>
+                      </form>
+                    </ui-form>
+                    <p class="composer-log" data-log>Cast it: the submitted value shows here.</p>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Where someone writes a spell: a sentence or two describing the app they want. Listen for `ui-cast`,
+                  set `casting` while you build, and clear it when you're done.
+
+                  - `value`: the ATTRIBUTE is the starting (and reset) text; the PROPERTY is the live text.
+                  - Cast: the button, Cmd / Ctrl+Enter, or `el.cast()`. Never with blank text, while `casting`, or
+                    `disabled`; `cast()` returns false then.
+                  - `ui-cast` is cancelable: inside a `<form>`, the form is submitted unless you `preventDefault()`.
+                  - Tools go in `slot="tools"`: a language label, idea chips (`el.value = prompt; el.cast()`).
+                  - `size="large"` for a hero; the default is the app's Build box.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-brand-composer id="spell" size="large" eyebrow="Try a spell" rows="2" hint="">
+                    <ui-button slot="tools" basic circular>Habit tracker</ui-button>
+                  </ui-brand-composer>
+                </script>
+              </ui-code>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const box = document.getElementById("spell")
+                  box.addEventListener("ui-cast", async (event) => {
+                    box.casting = true
+                    await build(event.detail.value)
+                    box.casting = false
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The text box is named by `label`, else whatever names the host (`aria-label`, `<label for>`), else
+                    `eyebrow`, else "Your spell".
+                  - The hint describes the box (`aria-describedby`), and the cast shortcut is its
+                    `aria-keyshortcuts`.
+                  - The Cast button stays focusable while it can't cast (`aria-disabled`), so it never drops out of the
+                    Tab order under the reader.
+                  - `casting` marks the card `aria-busy` and announces "Casting your spell…". Announce the result
+                    yourself (e.g. a toast).
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="ui-brand-composer"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--ui-brand-composer-*` token on the composer, any ancestor or `:root`. The defaults come from
+                  the `spell-brand` theme's roles (`--spell-font-serif`, `--spell-accent`, `--spell-shadow-sm`), and
+                  plain Spell UI tokens without it. Edit a value below to try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="ui-brand-composer" playground>
+                <ui-brand-composer value="Create a habit tracker app with add, done and streaks.">
+                  <ui-label slot="tools" icon="language">English</ui-label>
+                </ui-brand-composer>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+    <script type="module">
+      // an idea chip:  its prompt into its box, then cast (stopping a running cast first)
+      document.addEventListener("click", (event) => {
+        const chip = event.target.closest?.("[data-prompt]")
+        const box = chip?.closest("ui-brand-composer")
+        if (!box) return
+        box.value = chip.dataset.prompt
+        box.casting = false
+        box.cast()
+      })
+
+      // every cast:  logged under its box;  a `data-casting` box stays `casting` for 2 seconds
+      document.addEventListener("ui-cast", (event) => {
+        const box = event.target
+        if (box.closest("[data-submit-log]")) return
+        log(box, `ui-cast:  "${event.detail.value}"`)
+        if (!box.hasAttribute("data-casting")) return
+        box.casting = true
+        setTimeout(() => {
+          box.casting = false
+          log(box, `ui-cast:  "${event.detail.value}" -- done`)
+        }, 2000)
+      })
+
+      // the form example:  what the form got, under `spell`
+      document.addEventListener("submit", (event) => {
+        const form = event.target
+        if (!form.matches?.("[data-submit-log]")) return
+        event.preventDefault()
+        log(form, `submit:  spell = "${new FormData(form).get("spell")}"`)
+      })
+
+      /** Writes `text` into the `data-log` line beside `element`. */
+      function log(element, text) {
+        const line = element.closest(".composer-demo")?.querySelector("[data-log]")
+        if (line) line.textContent = text
+      }
+    </script>
+  </body>
+</html>
