@@ -30,7 +30,7 @@ describe("ParseJournal", () => {
     // Make sure there's something to take back.
     expect(parsed.types.length).toBeGreaterThan(before.types.length)
     expect(parsed.rules.length).toBeGreaterThan(before.rules.length)
-    // ...method records and item types too
+    // ...and method records and item types
     expect(parsed.types.find(({ name }) => name === "Card")?.methods).toContain("turn_face_up")
     expect(parsed.types.find(({ name }) => name === "Deck")?.itemType).toBe("Card")
 
@@ -64,8 +64,8 @@ describe("ParseJournal", () => {
 
 /**
  * Everything parsing can change in shared state, as plain data to compare:
- * - project types (and each type's variables with their datatypes, methods, item type), constants, recorded
- *   rules, method records
+ * - project types, each with its variables (and their datatypes), methods and item type
+ * - project constants, recorded rules and method records
  * - each file's variables, with their datatypes
  * - the parser's rules, with how many alternatives each has
  */

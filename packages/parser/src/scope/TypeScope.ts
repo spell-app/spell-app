@@ -11,8 +11,8 @@ import { BlockScope } from "./BlockScope"
  *  - `variables` (from BlockScope) are instance fields
  *  - `classMethods` and `classVariables` are static to the class.
  *  - `itemType`:  what a list type holds, e.g. `Card` for `a deck is a list of cards`.
- *  - `exclusive`:  an item is in at most ONE list of our family at a time, e.g. `a pile is an exclusive list of
- *    cards` -- see `exclusiveRoot()`, `declareOwnerMember()`.
+ *  - `exclusive`:  an item is in at most ONE list of our family at a time,
+ *    e.g. `a pile is an exclusive list of cards` -- see `exclusiveRoot()`, `declareOwnerMember()`.
  *  - Member lookup walks the super-type chain:  `chain()`, `isA()`, `getMember()`.
  */
 export class TypeScope extends BlockScope {
@@ -24,15 +24,16 @@ export class TypeScope extends BlockScope {
   declare stub?: boolean
   /**
    * What a list type holds, e.g. `Card` for `a deck is a list of cards` -- `undefined` for any other type.
-   * - Set when declared (`claim()` for a stub), so journaled with it.  Read through `scope.getItemType()`,
-   *   which walks the super-type chain:  a sub-type of `Deck` holds cards too.
+   * - Set when declared (`claim()` for a stub), so journaled with it.
+   * - Read through `scope.getItemType()`, which walks the super-type chain:  a sub-type of `Deck` holds cards too.
    */
   declare itemType?: P.Datatype
   /**
-   * `true` for an EXCLUSIVE list type, e.g. `a pile is an exclusive list of cards`:  an item is in at most ONE list
-   * of our FAMILY -- us and our sub-types, e.g. tableaus and foundations -- at a time (plan doc D7).
-   * - Set when declared (`claim()` for a stub), so journaled with it.  Only the family's root says so:  a sub-type
-   *   finds it with `exclusiveRoot()`.
+   * `true` for an EXCLUSIVE list type, e.g. `a pile is an exclusive list of cards`.
+   * - An item is in at most ONE list of our FAMILY at a time (plan doc D7):
+   *   us and our sub-types, e.g. tableaus and foundations.
+   * - Set when declared (`claim()` for a stub), so journaled with it.
+   * - Only the family's root says so:  a sub-type finds it with `exclusiveRoot()`.
    * - Our item type gains a read-only member naming us -- see `declareOwnerMember()`.
    */
   declare exclusive?: boolean
@@ -83,8 +84,8 @@ export class TypeScope extends BlockScope {
   /**
    * `declaredBy` really declares us, with `superType`:  we were stubbed by an earlier mention (see `getOrStub()`),
    * or left by an earlier parse of the same statement (see `sameStatement()`).
-   * - Clears `stub`, takes `declaredBy`, `superType` and -- for a list type -- `itemType` and `exclusive`, journaled
-   *   so incremental parsing can take that back.
+   * - Clears `stub`, takes `declaredBy`, `superType` and -- for a list type -- `itemType` and `exclusive`.
+   *   Journaled, so incremental parsing can take that back.
    * - Changes THIS object, NOT `types.replace()`:  matches parsed so far point at it (`data.scopeType`),
    *   and it may already hold property `classVariables`.
    * - `superType` MUST be right:  a project's declarations read it -- see `SP.SpellDeclarations`.
@@ -109,21 +110,27 @@ export class TypeScope extends BlockScope {
 
   /**
    * Record property `name` as one of our instance `variables`, declared by `declaredBy`.
-   * - `name` is how it compiles, e.g. `short_rank`;  `words` how it's written, if different, e.g. `short rank` --
-   *   either finds it (`getMember()`):  `variables` normalize their keys.
-   * - Its `datatype` if the statement gives one, e.g. `number`:  a later `the X of Y` reads it (`getMember()`), as
-   *   do editors.  Compiled output still comes from each statement's own AST.
-   * - `auto`:  declared by its first `set`, as its type never declared it -- see `P.ScopeVariable.auto`.
+   * - `name`:  how it compiles, e.g. `short_rank`.
+   * - `asWritten`:  how it's written, if different, e.g. `short rank`.
+   * - Either finds it (`getMember()`):  `variables` normalize their keys.
+   * - Its `datatype`, if the statement gives one, e.g. `number`:
+   *   a later `the X of Y` reads it (`getMember()`), as do editors.
+   * - Compiled output still comes from each statement's own AST.
+   * - `autoDeclared`:  its type never declared it, so its first `set` did -- see `P.ScopeVariable.autoDeclared`.
    * - The FIRST declaration of a name wins, as for types:  a later getter for the same property adds nothing.
-   * - A getter's `datatype` comes once its body has parsed -- what it returns, see spell's `property_value_getter`.
+   * - A getter's `datatype` comes once its body has parsed:  what it returns -- see spell's `property_value_getter`.
    */
-  declareProperty(name: string, declaredBy: P.Match, { words, datatype, auto }: DeclarePropertyOptions = {}): void {
+  declareProperty(
+    name: string,
+    declaredBy: P.Match,
+    { asWritten, datatype, autoDeclared }: DeclarePropertyOptions = {}
+  ): void {
     const existing = this.variables.get(name, "LOCAL_ONLY")
     if (!existing) {
       // only what's there:  a declaration writes out what a record holds -- see spell's `SpellDeclarations`
       const props: P.ScopeVariableProps = { name, datatype, declaredBy }
-      if (words && words !== name) props.words = words
-      if (auto) props.auto = true
+      if (asWritten && asWritten !== name) props.asWritten = asWritten
+      if (autoDeclared) props.autoDeclared = true
       this.variables.add(props)
     }
     // an earlier parse of THIS statement left it:  it's ours again -- see `sameStatement()`
@@ -139,13 +146,15 @@ export class TypeScope extends BlockScope {
   }
 
   /**
-   * SIDE EFFECT:  `itemType` gains the read-only member naming us, an exclusive list type's family root, e.g. `pile`
-   * on `Card` for `a pile is an exclusive list of cards` -- the pile holding a card, or nothing.
-   * - Declared by OUR statement (`declaredBy`, so go-to-definition lands there), or loaded from our declaration
-   *   (`declaredAt`).  `datatype` us, `exclusive`, so a `set` of it is refused:  adding the item to a list moves it.
+   * SIDE EFFECT:  `itemType` gains the read-only member naming us, an exclusive list type's family root,
+   * e.g. `pile` on `Card` for `a pile is an exclusive list of cards`:  the pile holding a card, or nothing.
+   * - Declared by OUR statement (`declaredBy`, so go-to-definition lands there),
+   *   or loaded from our declaration (`declaredAt`).
+   * - Its `datatype` is us, and it's `exclusive`, so a `set` of it is refused:  adding the item to a list moves it.
    * - Its name is our class's when the code runs (`runtimeName`):  that's the getter compiled spell defines.
-   * - REPLACES a property of that name another statement declared, e.g. one auto-declared by `set the pile of the
-   *   card to ...` -- journaled.  Ours from an earlier parse of the same statement:  ours again, as `declareProperty()`.
+   * - REPLACES a property of that name another statement declared, journaled,
+   *   e.g. one auto-declared by `set the pile of the card to ...`
+   * - Ours from an earlier parse of the same statement:  ours again, as `declareProperty()`.
    */
   declareOwnerMember(itemType: TypeScope, { declaredBy, declaredAt }: DeclaredByOrAt): void {
     const name = instanceCase(this.runtimeName ?? this.name)
@@ -210,8 +219,8 @@ export class TypeScope extends BlockScope {
   }
 
   /**
-   * Root of our exclusive-list FAMILY, e.g. `Pile` for a `Tableau` -- the type up our chain that's `exclusive`.
-   * `undefined` if none:  we're not an exclusive list.
+   * Root of our exclusive-list FAMILY, e.g. `Pile` for a `Tableau`:  the type up our chain that's `exclusive`.
+   * - `undefined` if none:  we're not an exclusive list.
    */
   exclusiveRoot(): TypeScope | undefined {
     return this.chain().find((type) => type.exclusive)
@@ -224,8 +233,8 @@ export class TypeScope extends BlockScope {
   }
 
   /**
-   * Our member `words` -- a property (`ScopeVariable`) or a method (`ScopeMethod`) -- ours, or the nearest
-   * super-type's.  `undefined` if none says.
+   * Our member `words`, or the nearest super-type's -- `undefined` if none says.
+   * - A property (`ScopeVariable`) or a method (`ScopeMethod`).
    * - A property first, then a method, at each step.
    * - `LOCAL_ONLY` at each step:  a type's lists fall back to its parent SCOPE's, not its super-type's.
    */
@@ -233,6 +242,19 @@ export class TypeScope extends BlockScope {
     for (const type of this.chain()) {
       const member = type.variables.get(words, "LOCAL_ONLY") ?? type.methods.get(words, "LOCAL_ONLY")
       if (member) return member
+    }
+    return undefined
+  }
+
+  /**
+   * Our class variable `words`, or the nearest super-type's -- `undefined` if none declares it.
+   * - e.g. `Suits` for a joker's `suits`, when `Joker` is a `Card`
+   * - `LOCAL_ONLY` at each step, as for `getMember()`.
+   */
+  getClassVariable(words: string): P.ScopeVariable | undefined {
+    for (const type of this.chain()) {
+      const found = type.classVariables.get(words, "LOCAL_ONLY")
+      if (found) return found
     }
     return undefined
   }
@@ -304,12 +326,12 @@ export type DeclaredByOrAt = {
 
 /** What `TypeScope.declareProperty()` takes besides a name -- each optional. */
 export type DeclarePropertyOptions = {
-  /** Its words as written, e.g. `short rank` -- see `P.ScopeVariable.words`. */
-  words?: string
+  /** Its words as written, e.g. `short rank` -- see `P.ScopeVariable.asWritten`. */
+  asWritten?: string
   /** What it holds, e.g. `number`. */
   datatype?: P.Datatype
-  /** Declared by its first `set` -- see `P.ScopeVariable.auto`. */
-  auto?: boolean
+  /** Declared by its first `set` -- see `P.ScopeVariable.autoDeclared`. */
+  autoDeclared?: boolean
 }
 
 /** Constructor props for `TypeScope`. */

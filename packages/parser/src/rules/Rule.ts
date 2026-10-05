@@ -49,9 +49,9 @@ import { P } from "$/parser"
  * - Why only `syntax` + `tests` at registration:  the class can then be reused by another language's parser.
  * - `@proto static` values are inherited by subclasses;  `@proto` rejects a prop the rule doesn't declare.
  * - Class name IS the rule name;  plain `static ruleName = "if"` for reserved words (`class _if`).
- * - `priority` picks between rules matching the SAME words:  a `Choice` takes the highest priority, then the
- *   longest match, then the earliest rule (`Choice.getBestMatch()`).  It is NOT how tightly an operator binds --
- *   that's spell's operator `precedence`, read only by its expression loop.
+ * - `priority` picks between rules matching the SAME words -- see `Choice.getBestMatch()`:
+ *   a `Choice` takes the highest priority, then the longest match, then the earliest rule.
+ *   - NOT how tightly an operator binds:  that's spell's operator `precedence`, read only by its expression loop.
  * - Several syntaxes => register the class once per syntax, each with its own `tests`.  Instances merge into
  *   a `P.Group` under the rule's name.
  * - A `Sequence` tests its own words / symbols before parsing any subrule, e.g. `remove {thing} from {list}`
@@ -486,8 +486,9 @@ export abstract class Rule<
    * - Read it as `match.datatype`, which memoizes this.
    * - Default:  our `datatype`, e.g. `@proto static datatype = "number"`.
    * - Override for a datatype which depends on the match, e.g. a variable's, from its scope record.
-   * - Reads ONLY `match` and its `data`, like `getAST()`:  NEVER look up scope here.  A lookup it needs happens
-   *   WHILE PARSING, into `match.data` -- e.g. the item type of the list a `the first card of ...` reads.
+   * - Reads ONLY `match` and its `data`, like `getAST()`:  NEVER look up scope here.
+   * - A lookup it needs happens WHILE PARSING, into `match.data`,
+   *   e.g. the item type of the list a `the first card of ...` reads.
    * - Unknown (`undefined`) is compatible with everything:  nothing stops parsing for want of a type.
    */
   getDatatype(match: P.MatchFor<this>): P.Datatype | undefined {
@@ -574,9 +575,10 @@ export abstract class Rule<
    * a match could affect anything outside it.
    * - `changesScope` if set, e.g. `changesScope: "internal"` in a definition.
    * - Else `undefined` if we don't override `mutateScope()`, or `"global"` if we do -- assume the worst.
-   * - `match`, if given, is the committed match:  override to say per match, e.g. spell's `set the X of Y to ...`
-   *   is `"global"` only when it declared `X` -- else `"internal"`, so a plain `set x to 1` stays cheap to re-parse.
-   *   Read ONLY `match.data`, as `getAST()` does.
+   * - `match`, if given, is the committed match:  override to say per match,
+   *   e.g. spell's `set the X of Y to ...` is `"global"` only when it declared `X`,
+   *   else `"internal"`, so a plain `set x to 1` stays cheap to re-parse.
+   * - Read ONLY `match.data`, as `getAST()` does.
    */
   getScopeChanges(_match?: P.MatchFor<this>): P.ScopeChanges | undefined {
     if (this.changesScope) return this.changesScope

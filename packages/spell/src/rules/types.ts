@@ -4,6 +4,7 @@
  */
 import { NONE, proto, typeCase, singularize, pluralize } from "$/util"
 import { P } from "$/parser"
+import { SP } from "$/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
@@ -43,17 +44,17 @@ export class SpellType extends P.Pattern<never, TypeMatchData> {
    * - So a method on one can't be an instance method -- see `P.isValueType()`.
    */
   static isSimpleType(typeName: string): boolean {
-    return P.isValueType(P.typeName(typeName))
+    return P.isValueType(SP.typeName(typeName))
   }
 
   /**
-   * Name compiled code uses for the type written as `value` -- its datatype (`P.typeName()`), but a class in
-   * Type_Case:
+   * Name compiled code uses for the type written as `value`:
+   *   its datatype (`SP.typeName()`), but a class in Type_Case.
    * - a value type in spell's words, e.g. `string` => `text`, `boolean` => `choice`, `numbers` => `number`
    * - a class, singular, e.g. `Thing`, `List` for `array`, `Bank_Account`
    */
   mapValue<T = string>(value: string): T {
-    const datatype = P.typeName(value)
+    const datatype = SP.typeName(value)
     return (P.isValueType(datatype) ? datatype : typeCase(datatype)) as T
   }
 

@@ -104,8 +104,8 @@ export const coreMethods = defineSpellCoreModule({
   /**
    * New SCRATCH `constructor`, e.g. `map()`'s result, or `a copy of the pile as a pile`:
    * - NOT one of the program's things -- see `ThingRegistry.quietly()`
-   * - a list owns nothing, even an exclusive one (plan doc D8):  filtering a pile mustn't take its cards --
-   *   see `List.asScratch()`
+   * - a list owns nothing, even an exclusive one (plan doc D8):
+   *   filtering a pile mustn't take its cards -- see `List.asScratch()`
    */
   newScratch(constructor: new () => unknown): unknown {
     const made = spellCore.things.quietly(() => new constructor())

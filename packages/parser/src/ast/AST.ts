@@ -90,7 +90,7 @@ export class ASTNode<Props extends object = object> extends Assertable {
   }
 
   /**
-   * Datatype which this node represents, in spell's words -- see `P.Datatype` -- e.g. `text`, `number`, `Card`.
+   * Datatype this node represents, in spell's words, e.g. `text`, `number`, `Card` -- see `P.Datatype`.
    * - Many subclasses override just `get datatype()` to return a fixed/derived value.
    * - Some subclasses also override `set datatype()` to allow overriding via `this.override()`.
    */
@@ -2282,9 +2282,9 @@ export class ASTStaticDefinition extends ASTClassMember {
  * PatchedMember -- a class member ALWAYS patched onto its class from outside, wherever that class is compiled,
  * e.g. `Card.declareProp('pile', ...)` + `Object.defineProperty(Card.prototype, 'pile', ...)`.
  * - `member` (required) is the ClassMember, compiled with its `compile()`.
- * - NOT a ClassMember itself, so `SP.hoistClassMembers()` leaves it where it is.  Why:  spell declares a property
- *   at its first `set` in the file which sets it (see spell's `assignment_statement`), and that must never change
- *   another file's output.
+ * - NOT a ClassMember itself, so `SP.hoistClassMembers()` leaves it where it is.
+ *   - Why:  spell declares a property at its first `set` in the file which sets it,
+ *     and that must never change another file's output -- see spell's `assignment_statement`.
  */
 export type ASTPatchedMemberProps = Prettify<{ member: ASTClassMember }>
 

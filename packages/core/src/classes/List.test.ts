@@ -4,10 +4,13 @@ import { observe } from "$/util"
 import { spellCore, Thing, List } from "$/core"
 
 /**
- * Exclusive lists:  an item is in at most ONE list of a family at a time -- see `List`'s class docs, and plan doc
- * D7 / D8 of precedence-and-types.
- * - The classes below are what spell compiles from `a pile is an exclusive list of cards`, `a tableau is a pile`,
- *   `a deck is a list of cards`, `a hand is an exclusive list of cards`.
+ * Exclusive lists:  an item is in at most ONE list of a family at a time.
+ * - See `List`'s class docs, and plan doc D7 / D8 of precedence-and-types.
+ * - The classes below are what spell compiles from:
+ *   - `a pile is an exclusive list of cards`
+ *   - `a tableau is a pile`
+ *   - `a deck is a list of cards`
+ *   - `a hand is an exclusive list of cards`
  */
 
 ////////////////

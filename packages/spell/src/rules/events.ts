@@ -77,8 +77,8 @@ class on extends SpellStatement<"eventName|props?|body?"> {
   @proto static declares: P.DeclaresSpec = { kind: "event", name: "eventName" }
 
   /**
-   * Nested scope for the handler body -- named for `eventName`, args are `event` plus any `props`, each with its
-   * type if it says, e.g. `Card` for `with a card`.
+   * Nested scope for the handler body, named for `eventName`.
+   * - Its args are `event` plus any `props`, each with its type if it says, e.g. `Card` for `with a card`.
    */
   getNestedScopeForMatch(match: P.MatchFor<this>) {
     const { eventName, props } = match.groups

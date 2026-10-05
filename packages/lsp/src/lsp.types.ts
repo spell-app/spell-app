@@ -265,7 +265,7 @@ export type ScopeEntry = ScopeDetails & {
   /** Type:  `path` of its super-type -- it inherits that one's members.  See `buildScopeTree()`. */
   super?: string
   /**
-   * Its name as written, if not the name `path` ends in -- e.g. `short rank` for `.../property:short_rank`.
+   * Its name as written, if not the name `path` ends in, e.g. `short rank` for `.../property:short_rank`.
    * - Why not in `path`:  a property's path is by its name as it compiles, which the runner matches code by.
    */
   name?: string

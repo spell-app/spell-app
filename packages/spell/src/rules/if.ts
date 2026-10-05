@@ -4,6 +4,7 @@ import { proto } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
+import { Priority } from "./rules.types"
 import { SpellStatement } from "./Statement"
 import { InfixOperatorSuffix, Precedence } from "./expressions"
 
@@ -113,7 +114,7 @@ _if_.addRule(_if, {
 /**
  * `(else|otherwise) if {condition} (then|:)?` -- else-if branch, chained after `if`.
  * - NOTE: this MUST be before `else` or that will eat `else if` statements... :-(
- * - `priority: 1` (default 0) also biases resolution toward this rule over `else` when ambiguous.
+ * - `Priority.preferred` also biases resolution toward this rule over `else` when ambiguous.
  *   TODO: is `priority` load-bearing here, or does rule-definition order (see NOTE above) suffice?
  * - Compiles body in a nested `BlockScope` (named `"elseif"`) via `getNestedScopeForMatch()`.
  * - Prefers nested block over inline statement when (invalidly) given both -- see `getBody()`.
@@ -121,7 +122,7 @@ _if_.addRule(_if, {
  */
 class else_if extends SpellStatement<"condition|body?"> {
   @proto static alias = "statement"
-  @proto static priority = 1
+  @proto static priority = Priority.preferred
 
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "elseif", parentScope: match.scope })

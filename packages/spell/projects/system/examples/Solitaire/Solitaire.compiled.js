@@ -138,7 +138,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_suit", words: "short suit", of: "Card", datatype: "text",
+    property: "short_suit", asWritten: "short suit", of: "Card", datatype: "text",
     defined: "/Card.spell:1139-1300",
   } */
   get short_suit() {
@@ -150,7 +150,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_rank", words: "short rank", of: "Card", datatype: "text",
+    property: "short_rank", asWritten: "short rank", of: "Card", datatype: "text",
     defined: "/Card.spell:1302-1464",
   } */
   get short_rank() {
@@ -160,7 +160,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_direction", words: "short direction", of: "Card", datatype: "text",
+    property: "short_direction", asWritten: "short direction", of: "Card", datatype: "text",
     defined: "/Card.spell:1466-1546",
   } */
   get short_direction() {
@@ -170,7 +170,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_name", words: "short name", of: "Card", datatype: "text",
+    property: "short_name", asWritten: "short name", of: "Card", datatype: "text",
     defined: "/Card.spell:1549-1609",
   } */
   get short_name() {
@@ -411,7 +411,7 @@ export class Deck extends List {
   }
 }
 /*! SPELL: DECLARES {
-  property: "is_set_up", words: "is-set-up", of: "Deck", datatype: "choice", auto: true,
+  property: "is_set_up", asWritten: "is-set-up", of: "Deck", datatype: "choice", autoDeclared: true,
   defined: "/Deck.spell:275-311",
 } */
 Deck.declareProp('is_set_up', { type: 'choice' })
@@ -501,7 +501,7 @@ Object.defineProperty(Card.prototype, 'pile', {
 })
 // -----------
 /*! SPELL: DECLARES {
-  property: "name", of: "Pile", auto: true,
+  property: "name", of: "Pile", autoDeclared: true,
   defined: "/Solitaire.spell:3735-3794",
 } */
 Object.defineProperty(Pile.prototype, 'name', {

@@ -60,7 +60,10 @@ export { Negatable }
 export { type DocComment }
 /** Export so anything which parses a statement on its own can lock it in, e.g. `SpellParser.commit()`. */
 export { commitStatement }
-/** Export so editors can map a call's expression twin to its statement rule -- see `SpellStatement.statementRuleOf()`. */
+/**
+ * Export so editors can map a call's expression twin to its statement rule
+ * -- see `SpellStatement.statementRuleOf()`.
+ */
 export { SpellStatement }
 /** Export so `SpellParser`'s incremental parsing hooks can narrow to them. */
 export { Block, BlockLine }

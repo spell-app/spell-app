@@ -138,7 +138,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_suit", words: "short-suit", of: "Card", datatype: "text",
+    property: "short_suit", asWritten: "short-suit", of: "Card", datatype: "text",
     defined: "/Card.spell:1139-1300",
   } */
   get short_suit() {
@@ -150,7 +150,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_rank", words: "short-rank", of: "Card", datatype: "text",
+    property: "short_rank", asWritten: "short-rank", of: "Card", datatype: "text",
     defined: "/Card.spell:1302-1466",
   } */
   get short_rank() {
@@ -160,7 +160,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_direction", words: "short-direction", of: "Card", datatype: "text",
+    property: "short_direction", asWritten: "short-direction", of: "Card", datatype: "text",
     defined: "/Card.spell:1468-1548",
   } */
   get short_direction() {
@@ -170,7 +170,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_name", words: "short-name", of: "Card", datatype: "text",
+    property: "short_name", asWritten: "short-name", of: "Card", datatype: "text",
     defined: "/Card.spell:1551-1611",
   } */
   get short_name() {
@@ -414,7 +414,7 @@ export class Deck extends List {
   }
 }
 /*! SPELL: DECLARES {
-  property: "is_set_up", words: "is-set-up", of: "Deck", datatype: "choice", auto: true,
+  property: "is_set_up", asWritten: "is-set-up", of: "Deck", datatype: "choice", autoDeclared: true,
   defined: "/Deck.spell:277-313",
 } */
 Deck.declareProp('is_set_up', { type: 'choice' })
@@ -458,7 +458,7 @@ export function test_deck_creation() {
 test_deck_creation()
 // -----------
 /*! SPELL: DECLARES {
-  property: "pile", of: "Card", datatype: "Pile", auto: true,
+  property: "pile", of: "Card", datatype: "Pile", autoDeclared: true,
   defined: "/Pile.spell:500-536",
 } */
 Card.declareProp('pile', { type: 'Pile' })
@@ -509,7 +509,7 @@ export class Pile extends List {
 }
 // -----------
 /*! SPELL: DECLARES {
-  property: "name", of: "Pile", auto: true,
+  property: "name", of: "Pile", autoDeclared: true,
   defined: "/Solitaire.spell:3765-3824",
 } */
 Object.defineProperty(Pile.prototype, 'name', {

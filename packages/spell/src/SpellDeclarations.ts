@@ -267,8 +267,8 @@ export class SpellDeclarations {
   /**
    * Type `type`, if picked -- throws if another import already declared it.
    * - `runtimeName`:  its class's name when the code runs, if it was renamed -- see `P.TypeScope.runtimeName`.
-   * - `exclusive`:  its item type gains the member naming it, e.g. `pile` on `Card` -- see
-   *   `P.TypeScope.declareOwnerMember()`.  Not if the item type wasn't picked, or is built in.
+   * - `exclusive`:  its item type gains the member naming it, e.g. `pile` on `Card`.
+   *   - Not if the item type wasn't picked, or is built in.  See `P.TypeScope.declareOwnerMember()`.
    */
   private static loadType(scope: P.ImportScope, from: string, names: Set<string>, type: P.TypeScopeProps) {
     const { name, itemType, exclusive, declaredAt } = type
@@ -278,7 +278,7 @@ export class SpellDeclarations {
     }
     const [loaded] = scope.types.add(definedOnly(type))
     scope.origins.set(name, from)
-    // an exclusive list's owner member, e.g. `pile` on `Card` -- if its item type was loaded, which it was first
+    // an exclusive list's owner member, e.g. `pile` on `Card`:  if its item type was loaded, which it was first
     const items = exclusive && itemType ? scope.types.get(itemType, "LOCAL_ONLY") : undefined
     if (items) loaded!.declareOwnerMember(items, { declaredAt })
   }
@@ -294,11 +294,13 @@ export class SpellDeclarations {
     declaration: SP.SpellDeclaration,
     declaredAt: P.DeclaredAt | undefined
   ) {
-    const { property, words, classVariable, of, datatype, initializer, enumeration, auto } = declaration
+    const { property, asWritten, classVariable, of, datatype, initializer, enumeration, autoDeclared } = declaration
     const typeScope = of && names.has(of) ? scope.types.get(of, "LOCAL_ONLY") : undefined
     if (!typeScope) return
     if (property) {
-      typeScope.variables.add(definedOnly({ name: property, words, datatype, initializer, auto, declaredAt }))
+      typeScope.variables.add(
+        definedOnly({ name: property, asWritten, datatype, initializer, autoDeclared, declaredAt })
+      )
     }
     if (classVariable) {
       const variable = definedOnly({
@@ -359,10 +361,10 @@ export class SpellDeclarations {
   }
 
   /**
-   * `declaration`'s method record, if it declared a method or function and its owner was picked -- see
-   * `P.ScopeMethod`.
+   * `declaration`'s method record, if it declared a method or function and its owner was picked.
+   * - See `P.ScopeMethod`.
    * - On its type `of`, else the import layer's own `methods`, for a free function.
-   * - Keys a compiler of before P4 didn't write -- `params`, `returns` -- load as unknown.
+   * - Keys a compiler from before P4 didn't write -- `params`, `returns` -- load as unknown.
    */
   private static loadMethod(
     scope: P.ImportScope,
@@ -375,8 +377,8 @@ export class SpellDeclarations {
     const owner = of ?? output
     if (!names.has(owner)) return
     const methods = of ? scope.types.get(of, "LOCAL_ONLY")?.methods : scope.methods
-    const words = declaration.name ?? syntax
-    methods?.add(definedOnly({ name: output, words, params, returns, of, declaredAt }))
+    const asWritten = declaration.name ?? syntax
+    methods?.add(definedOnly({ name: output, asWritten, params, returns, of, declaredAt }))
   }
 
   /**
@@ -469,8 +471,8 @@ export class SpellDeclarations {
 
   /**
    * `declaration` with each type it names renamed by `renames`, e.g. `of: "Card"` => `of: "Playingcard"`.
-   * - Its `type`, `superType`, `of`, `datatype`, `itemType`, `returns` and its `params`' datatypes -- a rule built
-   *   from it takes the new name from `of`, e.g. a quoted alias `playingcard is a queen`.
+   * - Its `type`, `superType`, `of`, `datatype`, `itemType`, `returns` and its `params`' datatypes.
+   * - A rule built from it takes the new name from `of`, e.g. a quoted alias `playingcard is a queen`.
    * - NOT method names, syntax or constants:  those don't hold type names.
    */
   private static renamed(declaration: SP.SpellDeclaration, renames: Map<string, string>): SP.SpellDeclaration {
@@ -514,7 +516,7 @@ export class SpellDeclarations {
     typeScope: P.TypeScope,
     declared: unknown[]
   ): SP.SpellDeclaration {
-    const { name, words, datatype, enumeration, initializer, auto } = variable
+    const { name, asWritten, datatype, enumeration, initializer, autoDeclared } = variable
     const of = typeScope.name
     const derived = enumerationInitializer(enumeration)
     const ownInitializer = initializer === derived ? undefined : initializer
@@ -522,7 +524,7 @@ export class SpellDeclarations {
     const isTwin = declared.some(
       (it) => it instanceof P.ScopeVariable && it !== variable && it.kind === "static" && it.name === name
     )
-    return isTwin ? {} : { property: name, words, of, datatype, auto, initializer: ownInitializer }
+    return isTwin ? {} : { property: name, asWritten, of, datatype, autoDeclared, initializer: ownInitializer }
   }
 
   /**
@@ -587,8 +589,9 @@ export class SpellDeclarations {
 const PROJECT_MARKER = "SPELL: PROJECT"
 
 /**
- * `rule` of an enumerated property's declaration from before `class_member`, which compiled `card suits` with a rule
- * per enumeration.  Loading skips it:  `class_member` reads any type's class variables.
+ * `rule` of an enumerated property's declaration from before `class_member`,
+ * which compiled `card suits` with a rule per enumeration.
+ * - Loading skips it:  `class_member` reads any type's class variables.
  * - Plan doc D37:  no version bump, so an old compiled library still loads.
  */
 const LEGACY_ENUMERATION_RULE = "enumeration"
@@ -613,7 +616,7 @@ const PROP_ORDER = [
   "type",
   "superType",
   "property",
-  "words",
+  "asWritten",
   "classVariable",
   "syntax",
   "output",
@@ -623,7 +626,7 @@ const PROP_ORDER = [
   "kind",
   "name",
   "datatype",
-  "auto",
+  "autoDeclared",
   "itemType",
   "exclusive",
   "params",

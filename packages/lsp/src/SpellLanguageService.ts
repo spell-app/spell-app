@@ -574,9 +574,9 @@ export class SpellLanguageService {
   }
 
   /**
-   * Markdown for `match`'s rule:  its name, syntax, and the first example from its tests -- then, for a built-in
-   * rule which spells a built-in type's member, e.g. `list_shuffle`, that member and its docs.  See
-   * `SP.BUILT_IN_TYPE_TABLE`.
+   * Markdown for `match`'s rule:  its name, syntax, and the first example from its tests.
+   * - Then, for a built-in rule which spells a built-in type's member, e.g. `list_shuffle`:
+   *   that member and its docs -- see `SP.BUILT_IN_TYPE_TABLE`.
    */
   private describeRule(match: P.Match): string {
     const { rule } = match
@@ -586,7 +586,7 @@ export class SpellLanguageService {
     if (example) lines.push(`e.g. \`${example}\``)
     const members = rule.name ? SP.builtInMembersOfRule(rule.name) : []
     const builtIn = members.map(({ type, member }) =>
-      [`built in:  **${member.words}** of ${type.name}`, member.doc].filter(Boolean).join("\n\n")
+      [`built in:  **${member.words}** of ${type.name}`, member.docstring].filter(Boolean).join("\n\n")
     )
     return [lines.join("  \n"), ...builtIn].join("\n\n")
   }
@@ -626,7 +626,7 @@ export class SpellLanguageService {
       const words = SpellLanguageService.memberWords(subject.name, record)
       const bits = [`property **${words}**${type ? ` of ${type.name}` : ""}`]
       if (record?.datatype) bits.push(`a ${record.datatype}`)
-      if (record?.auto) bits.push("declared where it's first set")
+      if (record?.autoDeclared) bits.push("declared where it's first set")
       // `the pile of a card`:  from `a pile is an exclusive list of cards`, which "declared in" links to
       if (record?.exclusive)
         bits.push(`the ${record.datatype} holding it, read-only:  ${record.datatype}s are exclusive`)
@@ -821,12 +821,12 @@ export class SpellLanguageService {
   }
 
   /**
-   * Docs of a built-in type's member, e.g. a list's `length` -- from its record, as `SP.BUILT_IN_TYPE_TABLE` gave
-   * them:  there's no statement to read them from.
+   * Docs of a built-in type's member, e.g. a list's `length`.
+   * - From its record, as `SP.BUILT_IN_TYPE_TABLE` gave them:  there's no statement to read them from.
    */
   private static builtInDoc(subject: LSP.SpellSubject): string | undefined {
     const { record } = subject
-    return record instanceof P.ScopeVariable && !record.declaredBy ? record.doc : undefined
+    return record instanceof P.ScopeVariable && !record.declaredBy ? record.docstring : undefined
   }
 
   /** Docstring of scope record `record`, if its declaration names it -- or always for a method's rule. */
@@ -1069,8 +1069,8 @@ export class SpellLanguageService {
   }
 
   /**
-   * Type of `variable`, looked up in `scope` -- see `P.Scope.getType()`:  its `datatype`, else the type a method's
-   * `it` / `this` stands for, e.g. `card` in `to turn (a card) over`.
+   * Type of `variable`, looked up in `scope` -- see `P.Scope.getType()`.
+   * - Its `datatype`, else the type a method's `it` / `this` stands for, e.g. `card` in `to turn (a card) over`.
    */
   private typeOfVariable(variable: P.ScopeVariable, scope: P.Scope): P.TypeScope | undefined {
     const { datatype, output } = variable
@@ -1355,8 +1355,8 @@ export class SpellLanguageService {
    * the argument being typed -- or next -- as `activeParameter`.  `null` if not in one.
    * - Parses the line up to the cursor in expecting mode, as `expectedNext()` does, then takes the INNERMOST
    *   method call rule anything was waiting in:  what comes next in it, or what we're partway `within`.
-   * - Its arguments are the call rule's `{subrules}`, in order:  the signature's arguments, `(a card)` or paren-free
-   *   `a card`, where its `method_signature` found them -- see `argRanges()`.
+   * - Its arguments are the call rule's `{subrules}`, in order:  the signature's arguments,
+   *   `(a card)` or paren-free `a card`, where its `method_signature` found them -- see `argRanges()`.
    */
   signatureHelp(file: SP.SpellFile, position: Position): SignatureHelp | null {
     if (!file.match) return null
@@ -1391,9 +1391,10 @@ export class SpellLanguageService {
   }
 
   /**
-   * Where each argument is in `label`, a method's signature as written, e.g. `[5, 11]` for `a card` in
-   * `move a card to a pile` -- in order, as its `method_signature` match (`signature`) found them:  `(a card)` or
-   * `a card`.  NOT a `(with ...)` clause:  its call takes it as an optional extra.
+   * Where each argument is in `label`, a method's signature as written,
+   * e.g. `[5, 11]` for `a card` in `move a card to a pile`.
+   * - In order, as its `method_signature` match (`signature`) found them:  `(a card)` or `a card`.
+   * - NOT a `(with ...)` clause:  its call takes it as an optional extra.
    */
   static argRanges(label: string, signature: P.Match | undefined): Array<[number, number]> {
     const args = (signature?.data as { argMatches?: P.Match[] } | undefined)?.argMatches ?? []
@@ -1463,8 +1464,9 @@ export class SpellLanguageService {
   /**
    * Quick fixes for `range` of `file`:  for each WHOLE line in it that didn't parse, "Define `to <phrase>`" --
    * a method whose signature is the line's words, so the line becomes a call to it.
-   * - The phrase is the whole line -- or, for words left over after a statement that parsed, that statement AND
-   *   its leftovers:  `shuffle the deck 3 times`, where `shuffle the deck` parsed, => `to shuffle a deck (number) times`.
+   * - The phrase is the whole line -- or, for words left over after a statement that parsed,
+   *   that statement AND its leftovers,
+   *   e.g. `shuffle the deck 3 times`, where `shuffle the deck` parsed => `to shuffle a deck (number) times`.
    *   Once defined, the line parses as the new method:  it matches every word, and the longest match wins.
    * - NOT for a line that's just unfinished, e.g. `set x to` -- see `isUnfinished()`.
    * - Goes just above the top-level statement the line is in, as a method is only visible to lines AFTER it.
@@ -1508,8 +1510,8 @@ export class SpellLanguageService {
    * Method signature a line of `words` would call, e.g. `shuffle the deck twice` => `to shuffle a deck twice`.
    * - The first word stays a word:  it's the method's name.
    * - After that, the LONGEST run of words that parses as a whole expression in `scope` becomes a parameter:
-   *   - a type's name, e.g. `the deck` if there's a type `deck` => `a deck`, paren-free:  a known type after `a`
-   *     is a parameter -- see spell's `bare_type_arg`
+   *   - a type's name, e.g. `the deck` if there's a type `deck` => `a deck`,
+   *     paren-free:  a known type after `a` is a parameter -- see spell's `bare_type_arg`
    *   - a number => `(number)`, text => `(text)`
    *   - otherwise its last word => `(deck)`, numbered if it's already taken -- a type's name too, the second time
    * - `undefined` if there are no words, or `scope` has no parser.
@@ -1605,8 +1607,8 @@ export class SpellLanguageService {
   }
 
   /**
-   * Properties of every type visible in `scope`, as written, e.g. `short rank` -- once each, with the types
-   * declaring it.
+   * Properties of every type visible in `scope`, as written, e.g. `short rank`.
+   * - Once each, with the types declaring it.
    * - Every type's:  what's being typed, e.g. `the short`, doesn't know yet what it'll be read from.
    * - NOT an enumeration's values, e.g. `suits`:  `card suits` reads those.
    */
@@ -1615,7 +1617,7 @@ export class SpellLanguageService {
     for (const type of SpellLanguageService.visible(scope.types)) {
       for (const property of SpellLanguageService.propertiesOf(type)) {
         const words = SpellLanguageService.memberWords(property.name, property)
-        const doc = property.declaredBy ? undefined : property.doc
+        const doc = property.declaredBy ? undefined : property.docstring
         owners.set(words, [...(owners.get(words) ?? []), { type: type.name, doc }])
       }
     }
@@ -1781,8 +1783,8 @@ export class SpellLanguageService {
   }
 
   /**
-   * Record of the method `scopeRule`'s call rule calls -- its `P.ScopeMethod`, which its declaring statement noted --
-   * or `undefined` if it has none, e.g. it was imported, or it's a property's rule.
+   * Record of the method `scopeRule`'s call rule calls:  its `P.ScopeMethod`, which its declaring statement noted.
+   * - `undefined` if it has none, e.g. it was imported, or it's a property's rule.
    */
   static methodOf(scopeRule: P.ScopeRule): P.ScopeMethod | undefined {
     const declared = (scopeRule.declaredBy?.data as { declared?: unknown[] } | undefined)?.declared ?? []
@@ -1790,8 +1792,8 @@ export class SpellLanguageService {
   }
 
   /**
-   * Name of each argument slot of `method`'s call rule `sequence`, in order -- `move a card to a pile` =>
-   * `card`, `pile`:
+   * Name of each argument slot of `method`'s call rule `sequence`, in order,
+   * e.g. `move a card to a pile` => `card`, `pile`:
    * - its receiver (`{thisArg}`) by its type, e.g. `card`
    * - each other by its parameter's name, from the method's record (`P.ScopeMethod.params`), e.g. `pile`
    * - else the slot's own group or rule name
@@ -2145,20 +2147,20 @@ export class SpellLanguageService {
   }
 
   /**
-   * `name` normalized for comparing:  lower case, dashes and spaces as underscores, e.g. `short-suit` or
-   * `short suit` => `short_suit`.
+   * `name` normalized for comparing:  lower case, dashes and spaces as underscores,
+   * e.g. `short-suit` or `short suit` => `short_suit`.
    */
   static propertyKey(name: string): string {
     return name.toLowerCase().replace(/[-\s]+/g, "_")
   }
 
   /**
-   * Member `name` as it's written in spell, e.g. `short rank` for `short_rank` -- its record's `words`, if it has
-   * some, else its name with spaces.
+   * Member `name` as it's written in spell, e.g. `short rank` for `short_rank`.
+   * - Its record's `asWritten`, if it has one, else its name with spaces.
    * - Hover AND the Type Explorer show this, so a member reads the same in both.
    */
   static memberWords(name: string, record?: P.ScopeVariable): string {
-    return record?.words ?? (record?.name ?? name).replace(/_/g, " ")
+    return record?.asWritten ?? (record?.name ?? name).replace(/_/g, " ")
   }
 }
 

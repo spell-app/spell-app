@@ -17,8 +17,8 @@ export class ScopeVariable {
   /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
   declare kind: "argument" | "static" | undefined
   /**
-   * What it holds, in spell's words -- see `P.Datatype` -- e.g. `Card` for an argument `(a card)`, or what
-   * the value it was declared with was.  `undefined` if unknown.
+   * What it holds, in spell's words -- `undefined` if unknown.  See `P.Datatype`.
+   * - e.g. `Card` for an argument `(a card)`, or the datatype of the value it was declared with
    * - Set when it's declared, and never changed after:  the first datatype wins.
    */
   declare datatype: P.Datatype | undefined
@@ -39,33 +39,39 @@ export class ScopeVariable {
   /** Where it was declared, if IMPORTED -- so there's no `declaredBy`.  See `P.DeclaredAt`. */
   declare declaredAt: P.DeclaredAt | undefined
   /**
-   * A member's words as written, if not its `name` -- e.g. `short rank` for property `short_rank`.
-   * - For editors:  `name` is how it compiles, and how scope finds it (either spelling normalizes to it).
+   * A member's words as the user wrote them, if not its `name`,
+   * e.g. `short rank` for property `short_rank`.
+   * - For editors:  `name` is how it compiles, and how scope finds it
+   *   (either spelling normalizes to it).
    */
-  declare words: string | undefined
+  declare asWritten: string | undefined
   /**
-   * `true` for a property its type never declared, which a `set the X of Y to ...` declared at its first set --
-   * see spell's `assignment_statement`.
+   * `true` for a property its type never declared:  a `set the X of Y to ...` declared it at its first set.
+   * - See spell's `assignment_statement`.
    */
-  declare auto: boolean | undefined
+  declare autoDeclared: boolean | undefined
   /**
-   * `true` for the member an EXCLUSIVE list type gives its item type, naming it, e.g. `pile` on `Card` for `a pile is
-   * an exclusive list of cards`:  the pile holding the card, or nothing.  READ-ONLY -- see `P.TypeScope.exclusive`.
-   * - Declared by the list type's statement, NOT a property statement of the item type's.
+   * `true` for the member an EXCLUSIVE list type gives its item type, naming the list holding it,
+   * e.g. `pile` on `Card` for `a pile is an exclusive list of cards`.
+   * - Its value:  the pile holding the card, or nothing.
+   * - READ-ONLY -- see `P.TypeScope.exclusive`.
+   * - Declared by the list type's statement, NOT by a property statement of the item type.
    */
   declare exclusive: boolean | undefined
   /**
-   * How a READ of it compiles, if not `<object>.<name>` -- a template, `{it}` standing for what it's read from:
-   * `{it}.length`, `{it}.getFullYear()` or `spellCore.itemCountOf({it})`.
-   * - A built-in type's member, from spell's table of them -- see spell's `BUILT_IN_TYPE_TABLE`.
+   * A built-in member's READ template:  javascript which reads it,
+   * `{it}` standing for the value it's read from.
+   * - e.g. `{it}.length`, `{it}.getFullYear()` or `spellCore.itemCountOf({it})`
+   * - `undefined`:  a read compiles as plain `<object>.<name>`.
+   * - From spell's table of built-in types -- see spell's `BUILT_IN_TYPE_TABLE`.
    * - NEVER set by a statement:  what a project declares compiles as its own statements say.
    */
-  declare compile: string | undefined
+  declare readAs: string | undefined
   /**
-   * Its docs, as markdown, for a member with no source to read them from:  a built-in type's.
+   * Its docs as markdown, for a member with no source to read them from:  a built-in type's.
    * - Anything a project declares has its docstring above its declaring statement instead.
    */
-  declare doc: string | undefined
+  declare docstring: string | undefined
 
   /** Create with a string name or `ScopeVariableProps` object. */
   constructor(input: string | ScopeVariableProps) {
@@ -100,14 +106,14 @@ export type ScopeVariableProps = {
   declaredBy?: P.Match
   /** See `ScopeVariable.declaredAt`. */
   declaredAt?: P.DeclaredAt
-  /** See `ScopeVariable.words`. */
-  words?: string
-  /** See `ScopeVariable.auto`. */
-  auto?: boolean
+  /** See `ScopeVariable.asWritten`. */
+  asWritten?: string
+  /** See `ScopeVariable.autoDeclared`. */
+  autoDeclared?: boolean
   /** See `ScopeVariable.exclusive`. */
   exclusive?: boolean
-  /** See `ScopeVariable.compile`. */
-  compile?: string
-  /** See `ScopeVariable.doc`. */
-  doc?: string
+  /** See `ScopeVariable.readAs`. */
+  readAs?: string
+  /** See `ScopeVariable.docstring`. */
+  docstring?: string
 }

@@ -1,3 +1,4 @@
+import { itemsWithHighest } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { Rule } from "./Rule"
@@ -142,24 +143,14 @@ export class Choice<
   getBestMatch(matches: P.Match[]) {
     if (matches.length === 1) return matches[0]
 
-    // Filter to rules with highest priority.
-    // NOTE: forwards, so `highPriority` keeps `matches` order (earliest first)
-    let match
-    let highPriority: P.Match[] = []
-    for (let max = -Infinity, i = 0; (match = matches[i++]);) {
-      const { priority } = match.rule
-      if (priority > max) {
-        max = priority
-        highPriority = [match]
-      } else if (priority === max) {
-        highPriority.push(match)
-      }
-    }
+    // rules with the highest priority, in `matches` order (earliest first)
+    const highPriority = itemsWithHighest(matches, (it) => it.rule.priority)
 
     if (highPriority.length === 1) return highPriority[0]
 
     // Longest wins;  scanning backwards with `>=` means an equally-long EARLIER match replaces a later one,
     // so ties end up on the earliest.
+    let match
     let longest
     for (let i = highPriority.length; (match = highPriority[--i]);) {
       if (!longest || match.length >= longest.length) longest = match

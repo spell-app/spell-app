@@ -6,16 +6,17 @@ import { P } from "$/parser"
  * - Every file shares the project scope's parser, and so its `journal` (`P.ParseJournal`):  what file 1 declares,
  *   file 2 can use, and rewinding file 1 takes back file 2 as well.
  * - Each file gets its own `P.FileScope` under `scope`.
- * - Before any file parses, every type the files declare is stubbed (`parser.stubDeclaredTypes()`), so a line
- *   can name a type declared further down.  An edit which changes WHICH types a file declares re-parses
- *   everything:  rare, and the only way a line above it learns of the change.
+ * - Before any file parses, every type the files declare is stubbed (`parser.stubDeclaredTypes()`),
+ *   so a line can name a type declared further down.
+ * - An edit which changes WHICH types a file declares re-parses everything:
+ *   rare, and the only way a line above it learns of the change.
  */
 export class IncrementalProject {
   /** Project scope every file's scope is under. */
   declare scope: P.Scope
   /**
    * Our files, in parse order.
-   * - `types`:  names of the types it declares, joined -- see `parser.typesDeclaredIn()`, `update()`.
+   * - `types`:  names of the types it declares, joined -- see `parser.declaredTypes()`, `update()`.
    */
   declare files: Array<{ path: string; parse: P.IncrementalParse; types: string }>
   /** Journal mark before the types we stub -- rewinding to it takes back the whole project. */
@@ -41,7 +42,7 @@ export class IncrementalProject {
     )
     this.files = files.map(({ path, name = path, text }) => {
       const fileScope = new P.FileScope({ name, path, parentScope: scope })
-      const types = parser.typesDeclaredIn(text).join()
+      const types = parser.declaredTypes(text).join()
       return { path, types, parse: new P.IncrementalParse({ parser, scope: fileScope, text, keepLastGood }) }
     })
   }
@@ -63,8 +64,8 @@ export class IncrementalProject {
       throw new P.ParserError({ message: `IncrementalProject.update(): unknown file '${path}'`, context: this })
 
     try {
-      // which types it declares changed:  every line above may read differently -- see `stubDeclaredTypes()`
-      const types = this.scope.parser!.typesDeclaredIn(text).join()
+      // changed which types it declares:  every line above may read differently -- see `stubDeclaredTypes()`
+      const types = this.scope.parser!.declaredTypes(text).join()
       if (this.isBroken || types !== this.files[index]!.types) return this.parseAll(path, text)
       const result = file.update(text)
       if (result === "same") return []
@@ -81,8 +82,8 @@ export class IncrementalProject {
   }
 
   /**
-   * Re-parse every file from scratch, with file `path` now `text` -- after an `update()` threw, or changed which
-   * types a file declares.
+   * Re-parse every file from scratch, with file `path` now `text`.
+   * - When:  an `update()` threw, or changed which types a file declares.
    * - Rewinds to our `startMark`, taking back everything, then stubs the types the files declare NOW.
    */
   private parseAll(path: string, text: string): P.IncrementalParse[] {
@@ -91,7 +92,7 @@ export class IncrementalProject {
     const texts = this.files.map((file) => (file.path === path ? text : file.parse.text))
     parser.stubDeclaredTypes(this.scope, texts)
     this.files.forEach((file, index) => {
-      file.types = parser.typesDeclaredIn(texts[index]!).join()
+      file.types = parser.declaredTypes(texts[index]!).join()
       file.parse.parseAll(texts[index]!)
     })
     this.isBroken = false

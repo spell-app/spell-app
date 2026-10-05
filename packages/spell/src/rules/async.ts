@@ -26,8 +26,8 @@ export const _async = new SpellParser({ module: "async" })
  *   discarded -- NOT the `name:rule` named-group colon.  The `(await|wait for)` keyword itself
  *   stays required.
  * - Bare `await` (no expression) compiles to `await undefined`.
- * - As a statement it waits for a whole expression;  inside an expression, an operand -- see
- *   `operandInExpressions`.
+ * - As a statement it waits for a whole expression;  inside an expression, an operand.
+ *   See `operandInExpressions`.
  * - `await` is a reserved word, so the class is named `_await` -- see `ruleName`.
  * - TODO: add test to make sure parents are made async properly, especially for `await` inside an
  *   if block, etc.
