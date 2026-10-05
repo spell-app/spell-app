@@ -2,7 +2,9 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { Palette } from "$/brand"
 
-import palette from "../spell-design-system/lib/palette.json"
+// Claude Design's own output (`brand/spell-design-system/lib/palette.json`, shared), copied:  a test can't read the
+// shared folder, which only this machine's checkouts link (claude-design P11).  Copy again if Claude Design re-exports.
+import palette from "./Palette.fixture.json"
 
 describe("Palette", () => {
   it("rebuilds the brand's 20 sets exactly as Claude Design's palette.mjs did (lib/palette.json)", () => {

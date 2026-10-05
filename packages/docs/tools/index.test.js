@@ -27,7 +27,11 @@ describe("the docs home's cards", () => {
       page("guides/x.html"),
       page("guides/y/y.html"),
       page("templates/durable.html"),
-      page("brand/pony.html")
+      page("brand/pony.html"),
+      page("brand/compare.html"),
+      page("brand/spell-design-system/Logo.spell.html"),
+      page("brand/spell-design-system/Logo.dc.html"),
+      page("brand/components/ui-brand-logo.html")
     ])
     expect(cards.map((card) => card.title)).toEqual([
       "Epics",
@@ -41,7 +45,7 @@ describe("the docs home's cards", () => {
     const count = Object.fromEntries(cards.map((card) => [card.id, card.count]))
     expect(count.epics).toBe("2 running · 1 done")
     expect(count.guides).toBe("2 guides")
-    expect(count.brand).toBe("1 page")
+    expect(count.brand).toBe("1 copy · 1 element · 1 page")
     expect(count.templates).toBe("1 template")
     // the App is only on the page server:  no link from disk
     expect(cards.at(-1).href).toBeUndefined()
@@ -60,6 +64,15 @@ describe("the list pages", () => {
       /<ui-cards class="spell-grid spell-epics" stackable>\n<!-- running-epics -->\n<ui-card data-epic="b"/
     )
     expect(html).toContain(`<a href="b/b.plan.html">b</a>`)
+  })
+
+  it("leave the Brand index's own pages to it, in a section of their own (claude-design P11)", () => {
+    const brand = LISTS.find((list) => list.id === "brand")
+    const paths = ["brand/pony.html", "brand/compare.html", "brand/spell-design-system/Logo.spell.html"]
+    expect(paths.filter((path) => brand.has(path))).toEqual(["brand/pony.html"])
+    const html = listSection(brand, [page("brand/pony.html")])
+    expect(html).toMatch(/^<ui-section id="pulled" header="6\. From Claude Design"/)
+    expect(html).toContain(`<a href="pony.html">brand/pony.html</a>`)
   })
 
   it("say so when an area has no pages", () => {

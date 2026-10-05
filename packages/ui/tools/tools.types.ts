@@ -6,6 +6,7 @@
  * - The perf shapes (`PerfRecord` ...) live beside the benchmark, in `test/PerfRun.ts` (it runs in the browser).
  */
 
+import type { SiteDataFile } from "../src/docs-components/docs-components.types.ts"
 import type { PerfResult } from "../test/PerfRun.ts"
 
 ////////////////
@@ -478,8 +479,27 @@ export type DesignExample = {
   /** the section's `<h4>`, else the file's name, e.g. `Emphasis` */
   title: string
   markup: string
-  /** `src/`-relative, e.g. `components/ui-button/examples/elements/types.html` */
+  /** `src/`-relative, e.g. `components/ui-button/examples/elements/types.html`;  a source's own path otherwise */
   source: string
+}
+
+/**
+ * Cards from outside Spell UI's own families:  the brand's `<ui-brand-*>` elements (epic `claude-design`, P11,
+ * `DesignBrand`).  Read as DATA (site data, docs pages, a sheet):  `ui` imports no code of theirs.
+ */
+export type DesignSource = {
+  /** the card group every family of it goes in, after Spell UI's own, e.g. `Brand` */
+  group: string
+  /** its site data, as its `yarn site:data` wrote it */
+  data: SiteDataFile
+  /** where its family folders are, relative to `packages/ui` (for `tokens.json`'s `meta`), e.g. `../brand/components` */
+  componentsPath: string
+  /** what the README says about the group, under its heading */
+  intro: string
+  /** a family folder's example sections, in page order */
+  examples: (folder: string) => DesignExample[]
+  /** CSS a family's examples need (its docs page's own styles), or `""` */
+  style: (folder: string) => string
 }
 
 /** What `DesignExport.build()` made, for the run's summary and the tests. */

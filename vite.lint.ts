@@ -217,6 +217,7 @@ export const fmtConfig = {
     "**/src/components/ui-markdown/md.bundle.js",
     "**/ui/site/_assets/**",
     "**/ui/site/_data/**",
+    "**/brand/_data/**",
     "**/ui/site/**/*.html",
     "**/vendor/**",
     "**/packages/*/dist/**",

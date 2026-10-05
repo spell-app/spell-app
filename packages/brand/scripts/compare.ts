@@ -13,7 +13,7 @@
  *   and `diff.png` (changed pixels in magenta over a faded original);  then `.compare/report.md`, a table of every
  *   page's DIFF:  the share of pixels whose colour differs by more than `THRESHOLD` (0-255 per channel, summed).
  * - The diff is a rough guide, not a verdict:  one line of text wrapping differently moves everything below it.  LOOK
- *   at `side.png`, or the Compare view (`compare.html`).
+ *   at `side.png`, or the Compare view (`brand/compare.html`).
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
@@ -56,8 +56,8 @@ const results: Result[] = []
 for (const each of pages) {
   const folder = path.join(OUT, each.name)
   mkdirSync(folder, { recursive: true })
-  const dc = await shoot(page, `${base}/packages/brand/${href(each.name, "dc")}`, path.join(folder, "dc.png"))
-  const spell = await shoot(page, `${base}/packages/brand/${href(each.name, "spell")}`, path.join(folder, "spell.png"))
+  const dc = await shoot(page, `${base}/brand/${href(each.name, "dc")}`, path.join(folder, "dc.png"))
+  const spell = await shoot(page, `${base}/brand/${href(each.name, "spell")}`, path.join(folder, "spell.png"))
   const result = await measure(page, dc, spell, folder)
   results.push({ name: each.name, ...result })
   console.log(`  ${each.name.padEnd(20)} ${(result.diff * 100).toFixed(1).padStart(5)}% differ  (${folder})`)
@@ -103,7 +103,7 @@ function choosePages(names: string[]): BrandPage[] {
   })
 }
 
-/** URL of a page's original (`dc`) or copy (`spell`), relative to `packages/brand/`. */
+/** URL of a page's original (`dc`) or copy (`spell`), relative to the shared `brand/` (served at `/brand/`). */
 function href(name: string, version: "dc" | "spell"): string {
   return `spell-design-system/${encodeURIComponent(name)}.${version}.html`
 }
