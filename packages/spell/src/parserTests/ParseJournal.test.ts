@@ -30,6 +30,9 @@ describe("ParseJournal", () => {
     // Make sure there's something to take back.
     expect(parsed.types.length).toBeGreaterThan(before.types.length)
     expect(parsed.rules.length).toBeGreaterThan(before.rules.length)
+    // ...and method records and item types
+    expect(parsed.types.find(({ name }) => name === "Card")?.methods).toContain("turn_face_up")
+    expect(parsed.types.find(({ name }) => name === "Deck")?.itemType).toBe("Card")
 
     const undone = parser.journal.rewindTo(mark)
     expect(describeState(parser, projectScope, fileScopes)).toEqual(before)
@@ -61,21 +64,27 @@ describe("ParseJournal", () => {
 
 /**
  * Everything parsing can change in shared state, as plain data to compare:
- * - project types (and each type's variables), constants, recorded rules
- * - each file's variables
+ * - project types, each with its variables (and their datatypes), methods and item type
+ * - project constants, recorded rules and method records
+ * - each file's variables, with their datatypes
  * - the parser's rules, with how many alternatives each has
  */
 function describeState(parser: P.Parser, projectScope: P.ProjectScope, fileScopes: P.FileScope[]) {
   const names = (list: { get(): readonly { name: string }[] } | undefined) => list?.get().map(({ name }) => name)
+  const typed = (list: P.ScopeList<P.ScopeVariable> | undefined) =>
+    list?.get().map(({ name, datatype }) => `${name}: ${datatype ?? "?"}`)
   return {
     types: projectScope.types.get().map((type) => ({
       name: type.name,
-      variables: names(type.variables),
-      classVariables: names(type.classVariables)
+      variables: typed(type.variables),
+      classVariables: names(type.classVariables),
+      methods: names(type.methods),
+      itemType: type.itemType
     })),
     constants: names(projectScope.constants),
     scopeRules: names(projectScope.rules),
-    fileVariables: fileScopes.map((scope) => names(scope.variables)),
+    methods: names(projectScope.methods),
+    fileVariables: fileScopes.map((scope) => typed(scope.variables)),
     rules: Object.entries(parser.rules).map(
       ([name, rule]) => `${name}:${rule instanceof P.Group ? rule.rules.length : 1}`
     )

@@ -17,7 +17,7 @@ class word extends P.TokenType {
 }
 
 class give_statement extends TestStatement<"thing|recipient?"> {
-  @proto static precedence = 10
+  @proto static priority = 10
   @proto static syntax = "give {thing:word} (to {recipient:word})?"
   static tests: P.RuleTests = [{ tests: [] }]
   compile(match: P.MatchFor<this>) {
@@ -146,19 +146,19 @@ describe("rules defined as classes", () => {
       const rule = makeParser().rules.give_statement!
       expect(rule.name).toBe("give_statement")
       expect(rule.alias).toBe("statement")
-      expect(rule.precedence).toBe(10)
+      expect(rule.priority).toBe(10)
       expect(rule.names).toEqual(["give_statement", "statement"])
       expect(Object.keys(rule).sort()).toEqual(["name", "rules", "syntax", "tests"])
     })
     test("prefer instance props", () => {
-      const rule = new give_statement({ rules: [], alias: "other", precedence: 3 })
+      const rule = new give_statement({ rules: [], alias: "other", priority: 3 })
       expect(rule.alias).toBe("other")
-      expect(rule.precedence).toBe(3)
+      expect(rule.priority).toBe(3)
     })
-    test("anonymous rules stay nameless, with default precedence", () => {
+    test("anonymous rules stay nameless, with default priority", () => {
       const rule = new P.Keyword("a")
       expect(rule.name).toBeUndefined()
-      expect(rule.precedence).toBe(0)
+      expect(rule.priority).toBe(0)
     })
   })
 
@@ -172,7 +172,7 @@ describe("rules defined as classes", () => {
     test("mutating a registered rule throws", () => {
       const rule = makeParser().rules.give_statement as give_statement
       expect(() => (rule.optional = true)).toThrow(TypeError)
-      expect(() => (rule.precedence = 99)).toThrow(TypeError)
+      expect(() => (rule.priority = 99)).toThrow(TypeError)
       expect(() => rule.rules.push(new P.Keyword("x"))).toThrow(TypeError)
       expect(() => (rule.alias = "other")).toThrow(TypeError)
     })
@@ -269,17 +269,17 @@ describe("rules defined as classes", () => {
     }
 
     test("puts `ruleName` on the subclass, everything else on its prototype, and leaves the base alone", () => {
-      const hello = greeting.specialize({ ruleName: "hello", literal: "hello", precedence: 5 })
+      const hello = greeting.specialize({ ruleName: "hello", literal: "hello", priority: 5 })
       const parser = makeParser()
       parser.addRule(hello)
       const rule = parser.rules.hello!
 
       expect(hello.ruleName).toBe("hello")
       expect(rule).toBeInstanceOf(greeting)
-      expect(rule.precedence).toBe(5)
+      expect(rule.priority).toBe(5)
       // inherited from the base, as usual
       expect(rule.alias).toBe("expression")
-      expect(greeting.prototype.precedence).toBe(0)
+      expect(greeting.prototype.priority).toBe(0)
       expect(parser.getScope().parse("hello", "hello")?.value).toBe("hello")
     })
 
