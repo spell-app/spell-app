@@ -81,7 +81,12 @@ export class TypeScope extends BlockScope {
    * - `superType` MUST be right:  a project's declarations read it -- see `SP.SpellDeclarations`.
    */
   claim(declaredBy: P.Match, superType?: string, { itemType }: ClaimListOptions = {}): void {
-    const previous = { stub: this.stub, declaredBy: this.declaredBy, superType: this.superType, itemType: this.itemType }
+    const previous = {
+      stub: this.stub,
+      declaredBy: this.declaredBy,
+      superType: this.superType,
+      itemType: this.itemType
+    }
     const next = { stub: false, declaredBy, superType: superType && typeCase(superType), itemType }
     Object.assign(this, next)
     // now IT declares us -- see `ScopeList.noteDeclared()`

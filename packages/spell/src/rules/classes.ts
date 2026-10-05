@@ -436,7 +436,11 @@ classes.addRule(list_guard, {
         ],
         {
           title: "an indented body, `the pile` and `the card`",
-          input: ["a pile can add a card if:", "\tif the pile is empty return yes", "\treturn the card is not the last card of the pile"],
+          input: [
+            "a pile can add a card if:",
+            "\tif the pile is empty return yes",
+            "\treturn the card is not the last card of the pile"
+          ],
           output: [
             "Pile.prototype.canTake = function (card) {",
             "  if (spellCore.isEmpty(this)) { return true }",
@@ -462,10 +466,7 @@ classes.addRule(list_guard, {
           "a pile can give up a card if: the card is its last card",
           ["Pile.prototype.canGiveUp = function (card) {", "  return (card == spellCore.getItemOf(this, -1))", "}"]
         ],
-        [
-          "a pile can let go of a card if: yes",
-          ["Pile.prototype.canGiveUp = function (card) {", "  return true", "}"]
-        ]
+        ["a pile can let go of a card if: yes", ["Pile.prototype.canGiveUp = function (card) {", "  return true", "}"]]
       ]
     }
   ]
@@ -479,10 +480,7 @@ classes.addRule(list_guard, {
         scope.parse(["a card is a thing", "a pile is a list of cards"].join("\n"), "block")
       },
       tests: [
-        [
-          "a pile can never let go of a card",
-          ["Pile.prototype.canGiveUp = function (card) {", "  return false", "}"]
-        ]
+        ["a pile can never let go of a card", ["Pile.prototype.canGiveUp = function (card) {", "  return false", "}"]]
       ]
     }
   ]

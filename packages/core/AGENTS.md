@@ -30,9 +30,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 - It runs in a shadow root:  `spellCore.appRoot` is where an app mounts, and `spellCore.domRoot()` where to look
   elements up and add styles -- NEVER `document`.
 
-## Exclusive lists
+## Membership and guards
 
-- A `List` class with `static exclusive = true` (compiled from `a pile is an exclusive list of cards`)
+- A `List` class with `exclusive = true` (compiled from `a card belongs to one pile` as `Pile.exclusive = true`)
   roots a FAMILY:  it and its sub-classes, e.g. `Pile`, `Tableau`.
 - An item is in at most ONE list of a family (plan doc D7, D8 of precedence-and-types):
   - adding it takes it out of the list that held it, and adding one a list holds moves it
@@ -48,7 +48,13 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   or filtering a pile would steal its cards:
   - `map()`, `filter()`, ranges, `a copy of`, `merge ... into a new pile`
   - build a new helper's result with `newThingLike()` / `newScratch()`, never `new constructor()`
-- Tests:  `src/classes/List.test.ts`;  end to end, spell's `src/parserTests/exclusiveLists.test.ts`.
+- Guards (plan doc Q23 - Q25):  `canTake(item)` / `canGiveUp(item)`, yes by default --
+  compiled spell overrides them, e.g. `a tableau can take a card if: ...` => `canTake(card) {...}` in `Tableau`.
+  - ONLY a move asks:  `spellCore.move(item, list)` => `list.moveHere(item)`:  the list of its family holding it
+    gives it up, then `list` takes it, else nothing changes.  Returns whether it moved.
+  - `add`, `remove`, `clear` never ask:  dealing, gathering cards back.
+  - `spellCore.canTake()` / `canGiveUp()` ask without moving;  a plain array has no guards.
+- Tests:  `src/classes/List.test.ts`;  end to end, spell's `src/parserTests/membership.test.ts`.
 
 ## Imports
 

@@ -111,9 +111,9 @@ describe("incremental parsing ~== full parse", () => {
     }
   })
 
-  test("editing an exclusive list's line:  its owner member follows -- `the pile of a card` comes and goes", () => {
+  test("editing a `belongs to one` line:  its owner member follows -- `the pile of a card` comes and goes", () => {
     const cards = files.filter((it) => it.path === "/Card.spell" || it.path === "/Deck.spell")
-    const exclusive = "a pile is an exclusive list of cards\na tableau is a pile"
+    const membership = "a pile is a list of cards\na card belongs to one pile\na tableau is a pile"
     const reader = [
       "set card to a new card",
       "to stack a card on a tableau: add the card to the tableau",
@@ -122,21 +122,22 @@ describe("incremental parsing ~== full parse", () => {
     ].join("\n")
     const pileFiles: SpellSourceFile[] = [
       ...cards,
-      { path: "/Pile.spell", contents: exclusive },
+      { path: "/Pile.spell", contents: membership },
       { path: "/Reader.spell", contents: reader }
     ]
     const project = newProject(pileFiles)
     const errorsOf = () => summarizeIncremental(project).flatMap((file) => file.errors)
     expect(errorsOf()).toEqual([
-      "4:0 Can't set the pile of a Card:  it's the Pile holding it -- add it to a Pile instead"
+      "4:0 Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead"
     ])
     const edits = [
       "a pile is a list of cards\na tableau is a pile",
-      exclusive,
-      "a heap is an exclusive list of cards\na pile is an exclusive list of cards\na tableau is a pile",
-      "a pile is an exclusive list of cards\na tableau is a pile\n// a comment",
+      membership,
+      "a heap is a list of cards\na card belongs to one heap\na pile is a list of cards\na card belongs to one pile",
+      `${membership}\n// a comment`,
+      "a card belongs to one pile\na pile is a list of cards",
       "a tableau is a pile",
-      exclusive
+      membership
     ]
     for (const contents of edits) {
       pileFiles.splice(2, 1, { path: "/Pile.spell", contents })

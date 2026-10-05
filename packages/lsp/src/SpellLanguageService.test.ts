@@ -379,11 +379,10 @@ describe("SpellLanguageService", () => {
         await typed("set y t", (items) => expect(labels(items)).toContain("to"))
       })
 
-      test("`a thingy is a ` => types, and ONLY types -- or the words of a list type", async () => {
+      test("`a thingy is a ` => types, and ONLY types", async () => {
         await typed("a thingy is a ", (items) => {
           expect(labels(items)).toEqual(expect.arrayContaining(["card", "deck", "pile"]))
-          const others = items.filter(({ kind }) => kind !== CompletionItemKind.Class)
-          expect(labels(others)).toEqual(["exclusive", "list"])
+          expect(items.every(({ kind }) => kind === CompletionItemKind.Class)).toBe(true)
         })
       })
 
@@ -757,30 +756,59 @@ describe("SpellLanguageService", () => {
     expect(service.diagnostics(card)).toEqual([])
   })
 
-  describe("exclusive lists", () => {
-    // the fixture's piles made exclusive, the way the live examples are:  `the pile of a card` comes from that line
+  describe("membership and guards", () => {
+    // the fixture's cards made to belong to one pile, as the live examples are -- plus a guard
     const pileUri = pathToFileURL(resolve(dir, "Solitaire/Pile.spell")).href
     const pileText = readFileSync(resolve(dir, "Solitaire/Pile.spell"), "utf8")
-    const exclusive = pileText
-      .replace("a pile is a list of cards", "a pile is an exclusive list of cards")
+    const membership = pileText
+      .replace("a pile is a list of cards", "a pile is a list of cards\na card belongs to one pile")
       .replace(/\n\tif the pile of the card is defined: .*\n\tset the pile of the card to the pile/, "")
+      .replace("the color of a pile is:", "a pile can take a card if: it is empty\nthe color of a pile is:")
     const readLine = solitaireLineOf("\t\tset start-pile to the pile of the card")
+    /** Hover's markdown at `word` on 1-based `line` of `file`. */
+    const hoverAt = (file: SP.SpellFile, line: number, word: string, nth = 0) =>
+      (service.hover(file, at(file, line, word, nth))!.contents as { value: string }).value
 
-    test("hover on `the pile of the card`:  the pile holding it, from the exclusive list's line", async () => {
-      await withText(pileUri, pileText, exclusive, () => {
+    test("hover on `the pile of the card`:  the pile holding it, from the `belongs to one` line", async () => {
+      await withText(pileUri, pileText, membership, () => {
         for (const file of card.project.spellFiles) expect(service.diagnostics(file), file.path).toEqual([])
-        const markdown = (service.hover(solitaire, at(solitaire, readLine, "pile", 1))!.contents as { value: string })
-          .value
-        expect(markdown).toContain("property **pile** of Card · a Pile · the Pile holding it, read-only")
-        expect(markdown).toMatch(/declared in \[Pile\.spell:2\]/)
+        expect(hoverAt(solitaire, readLine, "pile", 1)).toContain(
+          "property **pile** of Card · a Pile · the Pile holding it, read-only:  it belongs to one at a time"
+        )
+        expect(hoverAt(solitaire, readLine, "pile", 1)).toMatch(/declared in \[Pile\.spell:3\]/)
       })
     })
 
-    test("go to definition:  the exclusive list's line", async () => {
-      await withText(pileUri, pileText, exclusive, () => {
+    test("go to definition:  the `belongs to one` line", async () => {
+      await withText(pileUri, pileText, membership, () => {
         const [location] = service.definition(solitaire, at(solitaire, readLine, "pile", 1))
         expect(location?.uri).toBe(pileUri)
-        expect(location?.range.start.line).toBe(1)
+        expect(location?.range.start.line).toBe(2)
+      })
+    })
+
+    test("hover on `belongs to one`, and on a guard:  their rules and what they mean", async () => {
+      await withText(pileUri, pileText, membership, () => {
+        const pile = card.project.spellFiles.find((it) => it.path.endsWith("/Pile.spell"))!
+        const belongs = hoverAt(pile, 3, "belongs")
+        expect(belongs).toContain("**belongs_to_one**")
+        expect(belongs).toContain("built in:  **(a thing) belongs to one (list)** of thing")
+        const guard = hoverAt(pile, 5, "take")
+        expect(guard).toContain("**list_guard**")
+        expect(guard).toContain("built in:  **(a list) can take (a thing)** of list")
+        expect(guard).toContain("Pile.prototype.canTake = function (card) {")
+      })
+    })
+
+    test("completion offers the phrases:  `belongs` after an item type, `take` and `never` after `can`", async () => {
+      const labels = (items: CompletionItem[]) => items.map(({ label }) => label)
+      await typedAtEnd("a card ", (position) => {
+        expect(labels(service.completion(solitaire, position))).toEqual(expect.arrayContaining(["belongs", "can"]))
+      })
+      await typedAtEnd("a pile can ", (position) => {
+        expect(labels(service.completion(solitaire, position))).toEqual(
+          expect.arrayContaining(["add", "take", "give", "release", "remove", "let", "never"])
+        )
       })
     })
 
