@@ -1,5 +1,5 @@
 /**
- * GENERATED from Claude Design's outlined logo (`spell-design-system/components/brand/lockupPaths.js` and
+ * GENERATED from Claude Design's outlined logo (`brand/spell-design-system/components/brand/lockupPaths.js` and
  * `LogoMark.jsx`:  P052, the Palatino metric clone, plus the hat mark):  copy again if those change, never edit.
  * - Its own module, `import()`ed by `<ui-brand-logo>` on first use:  ~58 KB that pages without a logo never load.
  * - Each lockup:  `vb` (its viewBox) and `body` (SVG markup, `fill` left to `currentColor`).

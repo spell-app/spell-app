@@ -1,9 +1,9 @@
 /*
- * Spell Brand theme:  the Spell brand as Claude Design drew it (`packages/brand/spell-design-system/`), converging
+ * Spell Brand theme:  the Spell brand as Claude Design drew it (`brand/spell-design-system/`), converging
  * on its pages, `@layer ui.theme`.  Epic `design-system` (`packages/docs/content/epics/design-system/design-system.plan.html`).
  * - Started 2026-10-04 as a FULL COPY of `spell.css` (decision D1):  the two may drift;  whether this one replaces
  *   `spell` is a later call.  Everything below "Brand roles" is `spell.css`'s, then changed only where a brand page
- *   (`packages/brand/compare.html`) shows the copy differs from the original.
+ *   (`brand/compare.html`) shows the copy differs from the original.
  * - OUR OWN theme (`ThemeSheets.OWN`), applied like `spell`:  on top of `classic.css`.
  * - What it adds to `spell`:  "Brand roles", the brand's own semantic tokens (`tokens/theme.css`) that no `--ui-*`
  *   token covers, as `--spell-*`, each a `light-dark()` pair:
@@ -20,7 +20,7 @@
  * `spell.css`'s own notes, kept as they were:
  */
 /*
- * Spell theme:  the Spell brand (`packages/brand/spell-design-system/`) as a `@spell-app/ui` theme, `@layer ui.theme`.
+ * Spell theme:  the Spell brand (`brand/spell-design-system/`) as a `@spell-app/ui` theme, `@layer ui.theme`.
  * - OUR OWN theme, not a Fomantic port:  `ThemeSheets.OWN`, listed apart from `ThemeSheets.names`.  Applied like
  *   one, ON TOP of `classic.css`, so every classic token a brand value replaces is restated here:  type, the size
  *   ladder, radii, ink, borders, shadows, the whole palette, the message colours, links, focus, highlight.

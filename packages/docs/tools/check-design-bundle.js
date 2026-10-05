@@ -13,6 +13,8 @@
  *   - icons OUTSIDE the docs' ~90 (`ICONS`) draw an `<svg>`:  a solid, a regular (`… outline`), a brand, an FA alias
  *   - `<ui-code>` gets highlight.js tokens for `ts`, and for `spell` (spell's own highlighter)
  *   - `<ui-markdown>` renders a heading
+ *   - the brand (P11):  `<ui-brand-logo>` draws its outlined `<svg>`, `<ui-brand-color-picker>` its picker, and the
+ *     `spell-brand` theme is on (its brand role `--spell-surface-warm` resolves on the page)
  * - 2. a Design artboard:  a board (`BOARD`) under Claude Design's own runtime (`vendor/claude-design/dc-runtime.js`,
  *   React plus `dc-runtime`, copied from a Design on claude.ai, 2026-10-05), loading the bundle with
  *   `<script src>`, over http.  Fails unless a click on `<ui-button onClick="{{bump}}">` counts.
@@ -45,7 +47,9 @@ a pile is a list of cards</script></ui-code>
 <ui-markdown><script type="text/markdown"># Hello
 
 Some *markdown*.</script></ui-markdown>
-<ui-emoji name="smile"></ui-emoji>`
+<ui-emoji name="smile"></ui-emoji>
+<ui-brand-logo id="logo" variant="lockup"></ui-brand-logo>
+<ui-brand-color-picker id="picker" value="#6550CA"></ui-brand-color-picker>`
 
 /**
  * A Design artboard, as `Control.dc.html` in the P1 spike:  `<x-dc>` template holes, a `DCLogic` component, React
@@ -126,6 +130,9 @@ async function checkCard() {
     if (!count) problems.push(`card:  <ui-code language="${language}"> has no highlight tokens`)
   }
   if (!state.markdownHeading) problems.push("card:  <ui-markdown> rendered no heading")
+  if (!state.brand.logo) problems.push("card:  <ui-brand-logo> drew no <svg>")
+  if (!state.brand.picker) problems.push("card:  <ui-brand-color-picker> drew no picker")
+  if (!state.brand.theme) problems.push("card:  the spell-brand theme isn't on (no --spell-surface-warm)")
   return { ...state, errors }
 }
 
@@ -178,13 +185,23 @@ function inspectCard() {
   const icons = Object.fromEntries(["solid", "outline", "brand", "fa-alias"].map((id) => [id, drawn(`#${id}`)]))
   const codeTokens = { ts: tokens("#ts"), spell: tokens("#spell") }
   const markdownHeading = markdown?.querySelector("h1, h2, h3")?.textContent ?? null
+  const brand = {
+    logo: drawn("#logo"),
+    picker: Boolean(document.querySelector("#picker")?.shadowRoot?.querySelector("[part~=picker]")),
+    theme: getComputedStyle(document.documentElement).getPropertyValue("--spell-surface-warm").trim() !== ""
+  }
   return {
-    ready: Object.values(icons).every(Boolean) && Object.values(codeTokens).every(Boolean) && Boolean(markdownHeading),
+    ready:
+      Object.values(icons).every(Boolean) &&
+      Object.values(codeTokens).every(Boolean) &&
+      Boolean(markdownHeading) &&
+      Object.values(brand).every(Boolean),
     spellUI: typeof window.SpellUI,
     buttonDefined: Boolean(customElements.get("ui-button")),
     icons,
     codeTokens,
-    markdownHeading
+    markdownHeading,
+    brand
   }
 
   /** Does `selector`'s shadow tree hold a `<svg>`? */

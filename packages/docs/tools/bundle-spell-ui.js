@@ -43,6 +43,10 @@
  *   FAILS if one survives, if any `import()` / `import.meta` does, or if it's over `DESIGN_MAX_BYTES`.
  * - No `bundle.css`:  every element adopts its own sheets and the theme its page sheet;  page typography is UI's
  *   opt-in `class="ui-typography"` on `<body>`.
+ * - The brand's `<ui-brand-*>` elements too (P11):  `@spell-app/brand/design` is the brand's own build of them,
+ *   `packages/brand/dist/brand-design.js` (`vite.design.config.ts`:  Solid JSX needs the Solid compiler, which esbuild
+ *   isn't), run first unless `--skip-ui-build`.  Its `$/ui/core` / `$/ui/forms` imports resolve to UI's `dist/`, the
+ *   modules UI's own elements use, so there's one `UIElement` and one `ValueSets`.
  */
 
 import { build } from "esbuild"
@@ -57,6 +61,10 @@ import { gzipSync } from "node:zlib"
 const DOCS = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 /** `packages/ui`, unless `SPELL_UI_DIR` says otherwise. */
 const UI_DIR = resolve(process.env.SPELL_UI_DIR ?? join(DOCS, "../ui"))
+/** `packages/brand`:  its elements join the design bundle (P11). */
+const BRAND_DIR = join(DOCS, "../brand")
+/** The brand's build of its elements for the design bundle (`vite.design.config.ts` there). */
+const BRAND_DESIGN = join(BRAND_DIR, "dist/brand-design.js")
 const ASSETS = join(DOCS, "tools/_assets")
 
 const args = process.argv.slice(2)
@@ -241,7 +249,10 @@ const LAZY = [
   }
 ]
 
-if (!args.includes("--skip-ui-build")) buildUI()
+if (!args.includes("--skip-ui-build")) {
+  buildUI()
+  if (DESIGN) buildBrand()
+}
 if (!DESIGN) {
   writeEmojiChunks()
   await writeLazyScripts()
@@ -265,17 +276,24 @@ function buildUI() {
   run("yarn", ["vite", "build"], "build @spell-app/ui (vite only)")
 }
 
+/** Builds the brand's elements for the design bundle, `BRAND_DESIGN`, from its working tree (P11). */
+function buildBrand() {
+  run("yarn", ["vp", "build", "--config", "vite.design.config.ts"], "build the brand elements (@spell-app/brand)", {
+    cwd: BRAND_DIR
+  })
+}
+
 /**
- * Runs `command` in UI's folder, quietly;  prints its output only if it fails.
+ * Runs `command` in UI's folder (or `cwd`), quietly;  prints its output only if it fails.
  * - Returns whether it succeeded;  exits unless `allowFailure`.
  */
-function run(command, commandArgs, label, { allowFailure = false } = {}) {
+function run(command, commandArgs, label, { allowFailure = false, cwd = UI_DIR } = {}) {
   console.log(`-- ${label}`)
-  const result = spawnSync(command, commandArgs, { cwd: UI_DIR, encoding: "utf8", shell: false })
+  const result = spawnSync(command, commandArgs, { cwd, encoding: "utf8", shell: false })
   if (result.status === 0) return true
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}${result.error ?? ""}`.trim()
   console.error(output.split("\n").slice(-40).join("\n"))
-  if (!allowFailure) fail(`${command} ${commandArgs.join(" ")} failed in ${UI_DIR}`)
+  if (!allowFailure) fail(`${command} ${commandArgs.join(" ")} failed in ${cwd}`)
   return false
 }
 
@@ -324,6 +342,8 @@ async function bundle() {
  * - Solid / fork imports resolve from UI's root (`SOLID`), whoever imports them
  * - `spell-ui:icons`:  the generated icon registrations (`iconsModule()`)
  * - the page runtime:  an empty module until its file exists
+ * - design target:  `@spell-app/brand/design` ~== `BRAND_DESIGN`, and the `$/ui/<entry>` it imports ~== UI's
+ *   `dist/<entry>.js`
  */
 function spellUiResolver() {
   return {
@@ -350,6 +370,15 @@ function spellUiResolver() {
         return { contents: "", loader: "js" }
       })
       pluginBuild.onResolve({ filter: /^@spell-app\/ui(\/.*)?$/ }, ({ path }) => ({ path: uiDistPath(path) }))
+      pluginBuild.onResolve({ filter: /^@spell-app\/brand\/design$/ }, () => {
+        if (!existsSync(BRAND_DESIGN)) fail(`${relative(DOCS, BRAND_DESIGN)} is missing:  run without --skip-ui-build`)
+        return { path: BRAND_DESIGN }
+      })
+      pluginBuild.onResolve({ filter: /^\$\/ui(\/.*)?$/ }, ({ path }) => {
+        const file = uiDistPath(`@spell-app/ui${path.slice("$/ui".length)}`)
+        if (!existsSync(file)) fail(`${path} (a brand element's import) has no ${relative(DOCS, file)}`)
+        return { path: file }
+      })
       pluginBuild.onResolve({ filter: SOLID }, async ({ path, kind, pluginData }) => {
         if (pluginData?.fromUiRoot) return undefined
         const resolved = await pluginBuild.resolve(path, { kind, resolveDir: UI_DIR, pluginData: { fromUiRoot: true } })

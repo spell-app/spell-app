@@ -3,9 +3,9 @@
  * page loads.
  * - Built by `yarn build` here (`scripts/build.ts`, config `vite.config.ts`) into `_assets/ui/`, COMMITTED:  viewing
  *   a page needs no build step.  Edit THIS (and the sources), never `_assets/ui/`.
- * - A page in `spell-design-system/` loads it as:
- *     <link rel="stylesheet" href="../_assets/ui/brand-ui.css">
- *     <script type="module" src="../_assets/ui/brand-ui.js"></script>
+ * - A page in the shared `brand/spell-design-system/` loads it as:
+ *     <link rel="stylesheet" href="../../packages/brand/_assets/ui/brand-ui.css">
+ *     <script type="module" src="../../packages/brand/_assets/ui/brand-ui.js"></script>
  *   An ES module:  from the page server, not `file://` (judgement J4).
  * - What it holds, in import order (ES modules evaluate top to bottom):
  *   0. `./hues`:  the brand's `accent` hue, added to Spell UI's `hues` before any element is defined

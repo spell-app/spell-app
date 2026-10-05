@@ -1,12 +1,12 @@
 /**
  * Entry of the brand DOCS pages' bundle, `_assets/ui/brand-docs.js`:  `brand-ui.js` plus Spell UI's docs widgets, for
- * the `<ui-brand-*>` elements' pages (`components/<tag>.html`), written in Spell UI's docs format
- * (`packages/docs/content/templates/spell-ui-docs.html`).
+ * the `<ui-brand-*>` elements' pages (`brand/components/<tag>.html`, shared), written in Spell UI's docs format
+ * (`templates/spell-ui-docs.html`).
  * - Built with `brand-ui.js` (`vite.config.ts`, two entries):  they share their chunks, so a page loads ONE of them.
- * - A page loads it as (from `components/`):
- *     <link rel="stylesheet" href="../_assets/ui/brand-ui.css">
- *     <link rel="stylesheet" href="../_assets/brand-docs.css">
- *     <script type="module" src="../_assets/ui/brand-docs.js"></script>
+ * - A page loads it as (from `brand/components/`):
+ *     <link rel="stylesheet" href="../../packages/brand/_assets/ui/brand-ui.css">
+ *     <link rel="stylesheet" href="../../packages/brand/_assets/brand-docs.css">
+ *     <script type="module" src="../../packages/brand/_assets/ui/brand-docs.js"></script>
  * - In order, each step AFTER the one before (dynamic imports:  a chunked build may move a static import's code, and
  *   with it, when it runs):
  *   1. snapshot every `<ui-docs-example>`'s markup, before anything upgrades (`ExampleSource.snapshot()`, as Spell UI's

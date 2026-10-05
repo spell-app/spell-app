@@ -1,5 +1,5 @@
 /*
- * `<ui-docs-search>`:  the docs site's search, the Spell brand's look (`packages/brand/spell-design-system/`):  the
+ * `<ui-docs-search>`:  the docs site's search, the Spell brand's look (`brand/spell-design-system/`):  the
  * docs header's search pill (`Spell Docs.dc.html`:  36px, the canvas fill, the default hairline, a magnifying glass)
  * and a results card under it (a soft floating card, mono eyebrows, the nav's lavender current row).
  * - Shadow markup contract:  `<div class="ui [size] finder" part="search">` holding

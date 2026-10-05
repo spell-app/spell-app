@@ -11,12 +11,17 @@
  * - `spell-ui:icons` FIRST, as in the docs entry:  for this target it registers EVERY Font Awesome Free icon (solid,
  *   regular, brands) under the names `fa7-free` / `fa7-brands` give them, then the docs' `ICONS` names on top, so
  *   widgets' own names (`close`, `search` ...) work as in the docs.
- * - Exports become `window.SpellUI` (`UI`);  the `spell` theme applies as soon as the bundle runs, like every doc page.
+ * - Then the brand's elements (P11, `@spell-app/brand/design`:  `packages/brand/src/brand-design.ts`, built by the
+ *   brand):  its `accent` hue first, then every `<ui-brand-*>`.  BEFORE Spell UI's families, so `color="accent"` is a
+ *   hue when they define (issue I17).
+ * - Exports become `window.SpellUI` (`UI`);  the `spell-brand` theme applies as soon as the bundle runs, as on every
+ *   doc page:  the design system IS the brand (P11;  `tokens.json` is that theme's).
  */
 
 import "spell-ui:icons"
+import "@spell-app/brand/design"
 import { ThemeSheets } from "@spell-app/ui"
 
 export { UI } from "@spell-app/ui"
 
-void ThemeSheets.apply("spell")
+void ThemeSheets.apply("spell-brand")

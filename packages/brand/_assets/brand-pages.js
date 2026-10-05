@@ -78,7 +78,7 @@
     }
   ]
 
-  /** Folder of the pages, relative to this package's root (`index.html`, `compare.html`). */
+  /** Folder of the pages, relative to the shared `brand/` (`index.html`, `compare.html`). */
   const FOLDER = "spell-design-system/"
 
   window.BrandPages = { PAGES, href }
@@ -91,7 +91,7 @@
   ////////////////
 
   /**
-   * URL of one page's original (`dc`) or copy (`spell`), relative to the package root.
+   * URL of one page's original (`dc`) or copy (`spell`), relative to `brand/`.
    * - spaces encoded:  `Brand%20Montage.spell.html`
    */
   function href(name, version) {

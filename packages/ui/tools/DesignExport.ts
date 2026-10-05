@@ -3,23 +3,32 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { DesignBrand } from "./DesignBrand.ts"
 import { DesignComponents } from "./DesignComponents.ts"
 import { DesignTokens } from "./DesignTokens.ts"
 import type { SiteDataFile } from "../src/docs-components/docs-components.types.ts"
-import type { DesignExportResult, DesignFamily, DesignFile, DesignSkip, DesignTokensFile } from "./tools.types.ts"
+import type {
+  DesignExportResult,
+  DesignFamily,
+  DesignFile,
+  DesignSkip,
+  DesignSource,
+  DesignTokensFile
+} from "./tools.types.ts"
 
 /**
  * The claude.ai Design System's files, from what Spell UI already knows about itself (epic `claude-design`, P7):
  * `yarn design:build` (`spell dev design build`) writes them to `<out>/project/`, laid out as the format says.
  * - `README.md` -- the brand book:  how to consume the elements (plain markup, one script), the brand's content and
  *   visual rules in `ui` terms, and an index of components by group
- * - `tokens.json` -- the Spell theme's tokens, light and dark (`DesignTokens`)
+ * - `tokens.json` -- the `spell-brand` theme's tokens, light and dark (`DesignTokens`)
  * - `components/index.d.ts`, `components/<Comp>/README.md` + `preview.html` per family (`DesignComponents`)
  * - `components/Cover/preview.html` -- the cover;  `design-system.json` -- the system's index
  * - NOT `components/bundle.js` / `bundle.css`:  the design bundle's build (P8) writes those into the same folder,
  *   and `write()` leaves them there.
  * - Sources:  `site/_data/components.json` (`yarn site:data`:  every vocabulary), the element examples, the theme
- *   sheets, and the brand book's "CONTENT FUNDAMENTALS" (`packages/brand/spell-design-system/readme.md`).
+ *   sheets, and the brand book's "CONTENT FUNDAMENTALS" (`brand/spell-design-system/readme.md`, shared).
+ * - Plus the brand's `<ui-brand-*>` cards, a "Brand" group (`DesignBrand`, epic `claude-design` P11):  read as data.
  */
 export class DesignExport {
   /** `packages/ui`, absolute */
@@ -30,6 +39,10 @@ export class DesignExport {
   readonly git: DesignGit
   /** when this export was made:  `lastChange.at`, `meta.synced` */
   readonly now: Date
+  /** cards from outside Spell UI:  the brand's, unless this checkout has none */
+  readonly sources: readonly DesignSource[]
+  /** Spell UI's site data with the sources' merged in:  every card's facts */
+  readonly allData: SiteDataFile
 
   constructor(options: DesignExportOptions = {}) {
     this.uiFolder = options.uiFolder ?? UI_FOLDER
@@ -38,11 +51,19 @@ export class DesignExport {
       (JSON.parse(readFileSync(join(this.uiFolder, "site/_data/components.json"), "utf8")) as SiteDataFile)
     this.git = options.git ?? DesignExport.readGit(this.uiFolder)
     this.now = options.now ?? new Date()
+    this.sources = options.sources ?? DesignExport.defaultSources(this.uiFolder)
+    this.allData = DesignComponents.merge(this.data, this.sources)
+  }
+
+  /** The sources a checkout has:  the brand's (`DesignBrand`), when its site data is there. */
+  static defaultSources(uiFolder: string): DesignSource[] {
+    const brand = DesignBrand.read(join(uiFolder, "../.."))
+    return brand ? [brand] : []
   }
 
   /** Every file of the export, in memory, with what went in and what was left out. */
   build(): DesignExportResult {
-    const components = new DesignComponents(this.data, this.uiFolder)
+    const components = new DesignComponents(this.data, this.uiFolder, this.sources)
     const tokens = new DesignTokens(join(this.uiFolder, "src/styles"), this.data.foundation)
     const tokensFile = tokens.build(this.meta())
     const families = components.families()
@@ -107,8 +128,10 @@ export class DesignExport {
     ]
     for (const group of [...new Set(families.map((family) => family.group))]) {
       lines.push(`### ${group}`, "")
+      const intro = this.sources.find((source) => source.group === group)?.intro
+      if (intro) lines.push(intro, "")
       for (const family of families.filter((entry) => entry.group === group)) {
-        const summary = this.data.families[this.folderOf(family)]?.summary ?? ""
+        const summary = this.allData.families[this.folderOf(family)]?.summary ?? ""
         const tags = family.tags.map((tag) => `\`<${tag}>\``).join(", ")
         lines.push(`- [${family.comp}](components/${family.comp}/README.md) (${tags}):  ${summary}`)
       }
@@ -123,7 +146,7 @@ export class DesignExport {
    * when that file isn't in this checkout.
    */
   private contentFundamentals(): string[] {
-    const file = join(this.uiFolder, "../brand/spell-design-system/readme.md")
+    const file = join(this.uiFolder, "../..", BRAND_BOOK)
     if (!existsSync(file)) return []
     const text = readFileSync(file, "utf8")
     const match = /^## CONTENT FUNDAMENTALS\s*\n([\s\S]*?)(?=^---\s*$|^## )/m.exec(text)
@@ -136,7 +159,11 @@ export class DesignExport {
     const lines = ["---", "", "## Not synced", ""]
     lines.push(
       `- Made by \`yarn design:build\` (packages/ui) from ${tokens.meta.repo}@${this.git.sha}:  the vocabularies ` +
-        "(`site/_data/components.json`), the element examples and the Spell theme's sheets.  Edits made here are overwritten by the next build."
+        "(`site/_data/components.json`), the element examples and the `spell-brand` theme's sheets" +
+        (this.sources.length
+          ? ";  the Brand cards from the brand's (`packages/brand/_data/components.json`, its docs pages' examples)"
+          : "") +
+        ".  Edits made here are overwritten by the next build."
     )
     lines.push(
       "- Fonts:  none shipped.  The serif is `'Spell Serif'`, the INSTALLED Palatino family only (macOS / iOS " +
@@ -147,7 +174,8 @@ export class DesignExport {
         "Only the ones the Spell theme sets (`--ui-button-background` ...) are, as colours."
     )
     lines.push("- Emoji names (`<ui-emoji>`):  their data loads lazily, which a design frame blocks.")
-    lines.push("- The brand's own elements (`<ui-brand-*>`) and its spell-brand tokens:  not in this system yet.")
+    if (!this.sources.length)
+      lines.push("- The brand's own elements (`<ui-brand-*>`):  not in this build (no brand data).")
     if (skipped.length) {
       lines.push(`- Tokens left out (${skipped.length}):`)
       for (const entry of skipped) lines.push(`  - \`${entry.name}\` (${entry.family}):  ${entry.reason}`)
@@ -164,7 +192,7 @@ export class DesignExport {
 
   /** `tokens.json`'s `meta`:  where it came from (the format's from-code step 8);  a note, never an input. */
   private meta(): Record<string, unknown> {
-    const folders = [...new Set(this.data.components.map((tag) => tag.folder))].sort()
+    const folders = [...new Set(this.allData.components.map((tag) => tag.folder))].sort()
     return {
       source: "github",
       repo: "spell-app/spell-app",
@@ -176,18 +204,20 @@ export class DesignExport {
           "src/styles/sizes.css",
           "src/styles/colors.css",
           "src/styles/themes/classic.css",
-          "src/styles/themes/spell.css"
+          "src/styles/themes/spell-brand.css"
         ],
         docs: [
           "site/_data/components.json",
           "src/components/*/examples/elements/*.html",
-          "../brand/spell-design-system/readme.md"
+          `../../${BRAND_BOOK}`,
+          ...(this.sources.length ? ["../brand/_data/components.json", "../../brand/components/*.html"] : [])
         ]
       },
       components: Object.fromEntries(
         folders.map((folder) => {
-          const main = this.data.families[folder]?.mainTag ?? folder
-          return [main, `src/components/${folder}/`]
+          const main = this.allData.families[folder]?.mainTag ?? folder
+          const path = this.sources.find((source) => folder in source.data.families)?.componentsPath
+          return [main, `${path ?? "src/components"}/${folder}/`]
         })
       ),
       synced: this.now.toISOString().slice(0, 10)
@@ -264,7 +294,7 @@ export class DesignExport {
 
   /** A family's folder, from its main tag. */
   private folderOf(family: DesignFamily): string {
-    return this.data.components.find((tag) => tag.tag === family.mainTag)?.folder ?? family.mainTag
+    return this.allData.components.find((tag) => tag.tag === family.mainTag)?.folder ?? family.mainTag
   }
 
   /** Branch, short sha and author of the checkout `folder` is in;  `unknown` for any git can't answer. */
@@ -307,6 +337,8 @@ export type DesignExportOptions = {
   git?: DesignGit
   /** default:  now */
   now?: Date
+  /** cards from outside Spell UI;  default:  the brand's (`DesignBrand.read()`), when there */
+  sources?: DesignSource[]
 }
 
 /** The commit an export came from, and who made it. */
@@ -314,6 +346,9 @@ export type DesignGit = { branch: string; sha: string; user: string }
 
 /** `packages/ui`, absolute. */
 const UI_FOLDER = fileURLToPath(new URL("../", import.meta.url))
+
+/** The brand book (Claude Design's export), repo-relative:  SHARED, the root's `brand/` link (epic `claude-design`, P11). */
+const BRAND_BOOK = "brand/spell-design-system/readme.md"
 
 /** The design system's title on claude.ai (Owen, 2026-10-05). */
 const SYSTEM_TITLE = "Spell"
@@ -330,8 +365,8 @@ const CONSUMING = [
   "",
   "Spell UI is a library of **custom elements**, not React components.  Use them as plain HTML.",
   "",
-  "1. **Load ONE classic script, `components/bundle.js`.**  It defines every `<ui-*>` element and applies the Spell " +
-    "theme to the page:  nothing to import, no other file.  In a Design, load it once, before the markup:  " +
+  "1. **Load ONE classic script, `components/bundle.js`.**  It defines every `<ui-*>` element (the brand's " +
+    "`<ui-brand-*>` too) and applies the Spell brand theme (`spell-brand`) to the page:  nothing to import, no other file.  In a Design, load it once, before the markup:  " +
     "`<script src=\"ds/<this system's folder>/components/bundle.js\"></script>`.  This system's own previews already have it.",
   '2. **Write markup:**  `<ui-button primary icon="check">Save</ui-button>`.  Never `x-import`, never ' +
     "`window.SpellUI.Button`, never a React wrapper:  there are none.  (`window.SpellUI` exists for scripting only:  " +
@@ -360,8 +395,9 @@ const CONSUMING = [
 ]
 
 /**
- * The README's visual rules:  the brand book's "VISUAL FOUNDATIONS" (`packages/brand/spell-design-system/readme.md`),
- * restated in `ui` terms (tokens and elements, not its React mock-ups' `sp-*` classes).
+ * The README's visual rules:  the brand book's "VISUAL FOUNDATIONS" (`brand/spell-design-system/readme.md`),
+ * restated in `ui` terms (tokens and elements, not its React mock-ups' `sp-*` classes), as the `spell-brand` theme
+ * draws them.
  */
 const VISUAL_FOUNDATIONS = [
   "## Visual foundations",
