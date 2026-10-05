@@ -133,8 +133,9 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - Folders, never single-file links:  Claude's Edit refuses to write through a link to a file.
   - Claude edits shared files at their REAL path:  `/Users/owen/www/spell-app/spell-app-dev/<path>` (e.g.
     `.../spell-app-dev/agents/PAPERCUTS.md`), from main or any worktree.  A worktree session's Edit / Write refuses a
-    path through the links, so the `PreToolUse` hook `.claude/hooks/shared-path.mjs` denies one, naming the real
-    path to use.  Reading and tools (`yarn plan-doc`, the page server) use the links as usual.
+    path through the links ("Edit the worktree copy of this file instead of the shared-checkout path":  there is no
+    worktree copy), before any hook could step in.  Reading and tools (`yarn plan-doc`, the page server) use the
+    links as usual.
   - The manifest:  the root `package.json`'s `"shared": { "dir", "links" }`, and `.gitignore`'s
     `# shared:start` ... `# shared:end` block.
 - Commits:  the shared repo is committed by itself after every Claude turn (`Stop` hook
