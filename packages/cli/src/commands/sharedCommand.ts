@@ -1,6 +1,7 @@
 import { spawnSync } from "child_process"
 import { existsSync } from "fs"
 import { join } from "path"
+import { fileURLToPath } from "url"
 
 import { CLI } from "$/cli"
 
@@ -11,13 +12,18 @@ import { CLI } from "$/cli"
  * - `init [--import]`:  create the shared repo;  `--import` copies THIS checkout's folders in (the cutover, once)
  * - `link [--all]`:  link this checkout's folders (`--all`:  every checkout);  a real folder is replaced only when it
  *   matches the shared one exactly
- * - `commit [--session <id>]`:  commit whatever changed in the shared repo (the `Stop` hook, every turn)
+ * - `commit [--session <id>]`:  commit whatever changed in the shared repo (the `Stop` hook, every turn);  first the
+ *   reorg's repair, for pages older checkouts still write the old way (`relocate.js reorg`)
  * - `migrate <worktree> [--dry-run]`:  move a worktree cut before the cutover onto the shared content
  *   (`migrateWorktree()`):  its changes to the shared folders go into the shared repo, its branch stops tracking
  *   them, its folders become links;  stops, writing nothing, on a conflict
- * - `repair [--dry-run] [--json]`:  after a branch from before the docs move merges `main`:  pages it left at
- *   `packages/docs/<x>` go into `content/`, and links written for the old layout are fixed
- *   (`packages/docs/tools/relocate.js` `repairCheckout()`)
+ * - `repair [--dry-run] [--json]`:  the docs tools' own logic (`packages/docs/tools/relocate.js`), in two steps:
+ *   - after a branch from before the content move merges `main`:  pages it left at `packages/docs/<x>` go into
+ *     `content/`, and links written for that layout are fixed (`repairCheckout()`)
+ *   - the reorg (claude-design P4), in the shared repo:  anything older code wrote at the old paths
+ *     (`packages/docs/content/<x>`, a real file or folder there, not an old-path link) moves to its root folder
+ *     (`epics/`, `guides/`, `pages/`, `templates/`), and links older code wrote the old way are fixed
+ *     (`reorgShared()`);  then `link` gives this checkout the root folders
  * - NOTE:  `SPELL_SHARED_DIR` points every verb at another shared repo (a scratch one, in tests)
  */
 export async function sharedCommand(
@@ -48,6 +54,15 @@ export async function sharedCommand(
       return reports.some((report) => report.action === "diverged") ? CLI.EXIT.ERRORS : CLI.EXIT.OK
     }
     case "commit": {
+      // first the reorg's repair (claude-design P4):  anything older code wrote at `packages/docs/content/...` since
+      // goes to its root folder, old-style links are fixed;  THIS code's copy of the tool, whatever the session's
+      // checkout runs.  Until every checkout has merged the reorg:  claude-design T1 removes this with the old-path links
+      if (existsSync(config.dir)) {
+        const run = spawnSync(process.execPath, [REORG_TOOL, "reorg", "--shared", config.dir, "--root", OWN_ROOT], {
+          encoding: "utf8"
+        })
+        if (!options.quiet && run.stdout) session.out(run.stdout.trimEnd())
+      }
       const sha = CLI.commitShared(config, { session: options.session, checkout })
       if (!options.quiet) session.out(sha ? `committed ${sha}` : "nothing to commit")
       return CLI.EXIT.OK
@@ -67,13 +82,22 @@ export async function sharedCommand(
       // the docs tools' own logic (`packages/docs/tools/relocate.js`):  run, never imported (nothing imports docs)
       const tool = join(checkout, "packages", "docs", "tools", "relocate.js")
       const flags = [...(options.dryRun ? ["--dry-run"] : []), ...(options.json ? ["--json"] : [])]
-      const run = spawnSync(process.execPath, [tool, "repair", "--root", checkout, ...flags], { stdio: "inherit" })
+      const run = spawnSync(process.execPath, [tool, "repair", "--root", checkout, "--shared", config.dir, ...flags], {
+        stdio: "inherit"
+      })
+      if (!options.dryRun && !options.json) linkAll(session, config, [checkout])
       return run.status ?? CLI.EXIT.ERRORS
     }
     default:
       throw new CLI.CliError(`unknown verb '${verb}':  status, init, link, commit, migrate or repair`)
   }
 }
+
+/** The docs tools' `relocate.js`, beside this package:  the reorg's repair (`commit`). */
+const REORG_TOOL = fileURLToPath(new URL("../../../docs/tools/relocate.js", import.meta.url))
+
+/** The checkout this code is in:  where the reorg looks up repo paths outside the shared folders. */
+const OWN_ROOT = fileURLToPath(new URL("../../../..", import.meta.url))
 
 /** `migrate`'s lines:  each file that isn't skipped, then the verdict. */
 function migrateLines(report: CLI.MigrateReport, dryRun = false): string[] {
@@ -92,7 +116,8 @@ function migrateLines(report: CLI.MigrateReport, dryRun = false): string[] {
 function linkAll(session: CLI.CliSession, config: CLI.SharedConfig, checkouts: string[]): CLI.LinkReport[] {
   const all: CLI.LinkReport[] = []
   for (const checkout of checkouts) {
-    for (const report of CLI.linkCheckout(checkout, config)) {
+    // each checkout's OWN links:  a branch from before the reorg (claude-design P4) still links `packages/docs/content`
+    for (const report of CLI.linkCheckout(checkout, { ...config, links: CLI.sharedConfig(checkout).links })) {
       all.push(report)
       if (report.action !== "ok") session.out(`${checkout}/${report.path}:  ${report.action}`)
     }

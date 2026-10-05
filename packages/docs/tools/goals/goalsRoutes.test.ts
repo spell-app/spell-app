@@ -36,7 +36,7 @@ test("goals pages say the buttons work here;  docs pages don't", async () => {
   const goals = await ask(port, "GET", "/goals/index.html")
   assert.match(goals.text, /window\.GOALS_SERVER = \{"api":"\/api\/goals"\}/)
   assert.match(goals.text, /window\.SPELL_SERVER = /)
-  const docs = await ask(port, "GET", "/packages/docs/content/index.html")
+  const docs = await ask(port, "GET", "/pages/index.html")
   assert.equal(docs.status, 200)
   assert.doesNotMatch(docs.text, /GOALS_SERVER/)
 })

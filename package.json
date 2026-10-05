@@ -70,14 +70,20 @@
       "packages/app/src/server/appRoutes.ts"
     ],
     "watch": [
-      "packages/docs/content",
+      "epics",
+      "guides",
+      "pages",
+      "templates",
       "packages/docs/tools/_assets"
     ]
   },
   "shared": {
     "dir": "../spell-app-dev",
     "links": [
-      "packages/docs/content",
+      "epics",
+      "guides",
+      "pages",
+      "templates",
       "goals",
       "agents"
     ]

@@ -4,9 +4,10 @@
  * - A DETAILS PAGE:  a page Claude writes to explain a question (`/details`, `spell dev details`), shown in VS Code's
  *   side bar;  Owen answers ON it, and `_assets/details.js` posts the answer here.
  * - `POST /api/details/answer` `{ page, answers, notes }` -- write `<slug>.answer.json` beside the page `<slug>.html`
- *   - `page`:  the page's URL path, as it was served:  `/packages/docs/content/details/x.html`, or a worktree's
- *     `/worktrees/<w>/packages/docs/...` on the main checkout's server
- *   - ONLY a page in a `details/` folder of `packages/docs` (scratch, or an epic's):  anything else is a 403
+ *   - `page`:  the page's URL path, as it was served:  `/pages/details/x.html`, or a worktree's `/worktrees/<w>/...`
+ *     on the main checkout's server
+ *   - ONLY a details page (scratch `pages/details/`, or an epic's `epics/<name>/details/`;  either under the old
+ *     `packages/docs/content/` too):  anything else is a 403
  *   - sent again (Owen changed his answer):  replaces the file, `changes` counts up
  * - `GET /api/details/answer?page=<path>` -- the answer sent, or `{ answer: null }`:  the page shows it on load (a
  *   plain fetch of the missing `.answer.json` would log a 404 in every fresh page's console)
@@ -24,8 +25,12 @@ const API = "/api/details"
 /** Biggest body accepted:  answers and notes are short. */
 const MAX_BODY = 64 * 1024
 
-/** A details page's file:  `packages/docs/content/details/<slug>.html` or `packages/docs/content/epics/<name>/details/<slug>.html`. */
-const DETAILS_PAGE = /\/packages\/docs\/content\/(?:epics\/[^/]+\/)?details\/[^/]+\.html$/
+/**
+ * A details page's file:  `pages/details/<slug>.html` or `epics/<name>/details/<slug>.html`;  before 2026-10-05
+ * (claude-design P4) `packages/docs/content/details/...` or `packages/docs/content/epics/<name>/details/...`.
+ */
+const DETAILS_PAGE =
+  /\/(?:pages\/details|epics\/[^/]+\/details|packages\/docs\/content\/(?:epics\/[^/]+\/)?details)\/[^/]+\.html$/
 
 const detailsRoutes: RouteModule = {
   name: "details",

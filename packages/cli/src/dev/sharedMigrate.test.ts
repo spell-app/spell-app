@@ -19,7 +19,12 @@ afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
 // main, tracking everything in the new layout (P2:  `relocate.js` marks it)
 mkdirSync(MAIN)
 git(MAIN, "init", "-q", "-b", "main")
-put(MAIN, "package.json", JSON.stringify({ shared: { dir: "../spell-app-dev" } }))
+// the cutover's manifest (before the reorg, claude-design P4):  one docs link, `packages/docs/content`
+put(
+  MAIN,
+  "package.json",
+  JSON.stringify({ shared: { dir: "../spell-app-dev", links: ["packages/docs/content", "goals", "agents"] } })
+)
 put(MAIN, ".gitignore", "/.claude/worktrees\n")
 put(MAIN, "packages/docs/tools/relocate.js", "// the move\n")
 put(MAIN, "packages/docs/content/index.html", "<h1>Docs</h1>\n")

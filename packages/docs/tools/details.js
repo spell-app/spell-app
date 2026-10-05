@@ -4,8 +4,8 @@
  * - `new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]` -- a page from
  *   `templates/details.html`;  prints its path.  `--from`:  the whole page from a JSON list of questions
  *   (`DetailsSpec`, below), so a skill with many questions to ask (`/worktrees`, `/bedtime`) needn't hand-write it
- *   - scratch:  `packages/docs/content/details/<slug>.html`, ignored by version control, swept after 14 days
- *   - `--epic <name>`:  `packages/docs/content/epics/<name>/details/<slug>.html`, committed with the plan doc
+ *   - scratch:  `pages/details/<slug>.html`, ignored by version control, swept after 14 days
+ *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, committed with the plan doc
  * - `show <page> [--wait]` -- start the page server if needed, show the page in THIS session's VS Code window (the
  *   right side bar's "Spell Docs" view;  Chrome outside VS Code);  `--wait`:  then `wait`
  * - `wait <page> [--timeout 8h]` -- block until Owen sends an answer NEWER than the wait's start, print it as plain
@@ -14,7 +14,7 @@
  * - `list` -- every details page, answered or waiting
  * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's.  `new` sweeps
  *   first, by itself
- * - `<page>`:  a slug (`pick-layout`), `<epic>/<slug>`, or a path (absolute, or from `packages/docs` or the root)
+ * - `<page>`:  a slug (`pick-layout`), `<epic>/<slug>`, or a path (absolute, or from the root, `pages/` or `packages/docs`)
  * - paths print absolute:  they mean the same in whichever checkout Claude reads them
  * - The answer itself is written by the page server's route module (`scripts/detailsRoutes.ts`) into
  *   `<slug>.answer.json` beside the page.
@@ -25,7 +25,7 @@ import { fileURLToPath } from "node:url"
 
 import { parseHTML } from "linkedom"
 
-import { DOCS, ROOT, atDepth, openInVSCode, serialize } from "./pages.js"
+import { ROOT, atDepth, openInVSCode, serialize } from "./pages.js"
 
 /** How long `wait` waits by default:  8 hours (decision D9). */
 const DEFAULT_TIMEOUT = "8h"
@@ -46,31 +46,31 @@ async function main(argv) {
   try {
     if (command === "new") {
       // scratch pages sweep themselves:  nobody has to remember to
-      for (const file of sweep(DOCS, SWEEP_DAYS)) console.error(`swept ${relative(DOCS, file)}`)
+      for (const file of sweep(ROOT, SWEEP_DAYS)) console.error(`swept ${relative(ROOT, file)}`)
       const spec = flags.from ? JSON.parse(readFileSync(findFile(flags.from), "utf8")) : undefined
-      console.log(shown(createPage(DOCS, target, { ...flags, spec })))
+      console.log(shown(createPage(ROOT, target, { ...flags, spec })))
       return 0
     }
     if (command === "show") {
-      const file = findPage(DOCS, target)
+      const file = findPage(ROOT, target)
       await openInVSCode(file)
       return flags.wait ? await waitAndPrint(file, flags) : 0
     }
-    if (command === "wait") return await waitAndPrint(findPage(DOCS, target), flags)
+    if (command === "wait") return await waitAndPrint(findPage(ROOT, target), flags)
     if (command === "answer") {
-      const file = findPage(DOCS, target)
+      const file = findPage(ROOT, target)
       const answer = readAnswer(file)
       console.log(answer ? formatAnswer(file, answer) : `no answer yet:  ${shown(file)}`)
       return answer ? 0 : 1
     }
     if (command === "list") {
-      for (const file of listPages(DOCS))
-        console.log(`${readAnswer(file) ? "answered" : "waiting "}  ${relative(DOCS, file)}`)
+      for (const file of listPages(ROOT))
+        console.log(`${readAnswer(file) ? "answered" : "waiting "}  ${relative(ROOT, file)}`)
       return 0
     }
     if (command === "sweep") {
-      const gone = sweep(DOCS, Number(flags.days ?? SWEEP_DAYS))
-      console.log(gone.length ? gone.map((file) => `deleted ${relative(DOCS, file)}`).join("\n") : "nothing to sweep")
+      const gone = sweep(ROOT, Number(flags.days ?? SWEEP_DAYS))
+      console.log(gone.length ? gone.map((file) => `deleted ${relative(ROOT, file)}`).join("\n") : "nothing to sweep")
       return 0
     }
     console.error(USAGE)
@@ -94,7 +94,8 @@ const USAGE = `usage:  spell dev details new <slug> [--title "..."] [--epic <nam
 ////////////////
 
 /**
- * Write a new details page `slug` under `docs` from the template;  its absolute path.
+ * Write a new details page `slug` in checkout `docs` (its root:  `pages/details/`, `epics/`, `templates/`) from the
+ * template;  its absolute path.
  * - `--epic <name>`:  in that epic's `details/` (the epic must exist);  else the scratch `details/`
  * - sets `<title>`, the h1, the breadcrumb, the description and the "Asked" date;  refuses to overwrite
  */
@@ -102,7 +103,7 @@ export function createPage(docs, slug, { title, epic, description, spec } = {}) 
   title ??= spec?.title ?? "Details"
   if (!slug || !SLUG.test(slug)) throw new Error(`a slug is lower-kebab-case:  '${slug ?? ""}'`)
   if (epic && !existsSync(join(docs, "epics", epic))) throw new Error(`no epic '${epic}' (epics/${epic}/)`)
-  const folder = epic ? join(docs, "epics", epic, "details") : join(docs, "details")
+  const folder = epic ? join(docs, "epics", epic, "details") : join(docs, "pages", "details")
   const file = join(folder, `${slug}.html`)
   if (existsSync(file)) throw new Error(`${relative(docs, file)} already exists`)
   const depth = relative(docs, folder).split("/").length
@@ -179,9 +180,11 @@ function questionHtml(question, i) {
   return `<ui-section id="${attr(id)}" class="spell-question" header="${header}" sticky collapsible dividing${multiple}${tools}><ui-icon slot="icon" name="circle question"></ui-icon>${text}${options.join("")}</ui-section>`
 }
 
-/** `path` as given:  absolute, else from `packages/docs/content` or the repo root (`yarn workspace` hides where yarn ran). */
+/** `path` as given:  absolute, else from the checkout's root or `packages/docs` (`yarn workspace` hides where yarn ran). */
 function findFile(path) {
-  const found = [DOCS, ROOT].map((base) => resolve(base, path)).find((each) => existsSync(each))
+  const found = [ROOT, join(ROOT, "packages", "docs")]
+    .map((base) => resolve(base, path))
+    .find((each) => existsSync(each))
   if (!found) throw new Error(`no file ${path}`)
   return found
 }
@@ -217,11 +220,14 @@ function attr(text) {
  */
 export function findPage(docs, target) {
   if (!target) throw new Error("which page?  a slug, a path or <epic>/<slug>")
-  // `yarn workspace` sets `INIT_CWD` to `packages/docs`, not where `yarn` was run:  so a path is from the docs or the root
-  const path = [docs, resolve(docs, "../..")].map((base) => resolve(base, target)).find((each) => existsSync(each))
+  // `yarn workspace` sets `INIT_CWD` to `packages/docs`, not where `yarn` was run:  so a path is from the root, `pages/`
+  // or the docs package
+  const path = [docs, join(docs, "pages"), join(docs, "packages", "docs")]
+    .map((base) => resolve(base, target))
+    .find((each) => existsSync(each))
   if (target.endsWith(".html") && path) return path
   const slug = target.replace(/\.html$/, "")
-  const candidates = [join(docs, "details", `${slug}.html`)]
+  const candidates = [join(docs, "pages", "details", `${slug}.html`)]
   if (slug.includes("/")) {
     const [epic, name] = slug.split("/")
     candidates.push(join(docs, "epics", epic, "details", `${name}.html`))
@@ -234,7 +240,7 @@ export function findPage(docs, target) {
 
 /** Every details page under `docs`:  the scratch ones, then each epic's. */
 export function listPages(docs) {
-  const folders = [join(docs, "details")]
+  const folders = [join(docs, "pages", "details")]
   const epics = join(docs, "epics")
   if (existsSync(epics)) for (const epic of readdirSync(epics).sort()) folders.push(join(epics, epic, "details"))
   return folders.flatMap((folder) =>
@@ -249,11 +255,11 @@ export function listPages(docs) {
 
 /**
  * Delete the scratch pages under `docs` last changed more than `days` ago, with their answers;  what went.
- * - only `details/`:  an epic's pages are its record
+ * - only `pages/details/`:  an epic's pages are its record
  * - SIDE EFFECT:  deletes files
  */
 export function sweep(docs, days, now = Date.now()) {
-  const folder = join(docs, "details")
+  const folder = join(docs, "pages", "details")
   if (!existsSync(folder)) return []
   const gone = []
   for (const name of readdirSync(folder)) {

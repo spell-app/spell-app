@@ -24,7 +24,7 @@ const CITERS = [
   "packages/*/AGENTS.md",
   "packages/*/CLAUDE.md",
   "goals/AGENTS.md",
-  "packages/docs/content/solid/solid-2.md"
+  "guides/solid/solid-2.md"
 ]
 
 /** Files checked for citations ONLY:  a skill's paths are relative to its own folder, or the skill it calls. */

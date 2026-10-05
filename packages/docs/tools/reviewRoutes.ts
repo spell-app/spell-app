@@ -4,8 +4,8 @@
  * - Owen marks a plan doc's items ON the page (`_assets/spell-doc-runtime.js`:  approve, todo, details, revisit,
  *   pick an option card);  the marks wait in the doc's INBOX FILE, `<name>.inbox.json` beside `<name>.plan.html`
  *   (`inbox.js`), until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
- * - `page`:  the plan doc's URL path, as it was served:  `/packages/docs/content/epics/x/x.plan.html`, or a worktree's
- *   `/worktrees/<w>/packages/docs/...` on the main checkout's server.  ONLY a plan doc:  anything else is a 403
+ * - `page`:  the plan doc's URL path, as it was served:  `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...`
+ *   on the main checkout's server.  ONLY a plan doc:  anything else is a 403
  * - every answer is the whole inbox, as `inbox.js` keeps it (an empty one when there's no file), except a
  *   `listening` whose heartbeat stopped:  `null` (`inbox.js` `forPage()`), so the page warns nobody is reviewing
  * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
@@ -42,8 +42,8 @@ const API = "/api/review"
 /** Biggest body accepted:  a revisit note is a few lines. */
 const MAX_BODY = 64 * 1024
 
-/** A plan doc's file:  `packages/docs/content/epics/<name>/<name>.plan.html`. */
-const PLAN_DOC = /\/packages\/docs\/content\/epics\/([^/]+)\/\1\.plan\.html$/
+/** A plan doc's file:  `epics/<name>/<name>.plan.html` (before 2026-10-05 under `packages/docs/content/`). */
+const PLAN_DOC = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html$/
 
 const reviewRoutes: RouteModule = {
   name: "review",

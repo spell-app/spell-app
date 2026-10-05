@@ -1,13 +1,23 @@
 import { execFileSync } from "node:child_process"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readlinkSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync
+} from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
 import { afterAll, describe, expect, it } from "vite-plus/test"
 
-import { DOCS, findPages } from "./pages.js"
+import { TEMPLATES, findPages } from "./pages.js"
 import { PlanDoc, sharedDocLog } from "./plan-doc.js"
-import { repairCheckout } from "./relocate.js"
+import { reorgShared, repairCheckout } from "./relocate.js"
 
 /**
  * The docs tools with SHARED content (epic `shared-content`):  `packages/docs/content` a link to a folder in the
@@ -57,7 +67,7 @@ describe("sharedDocLog", () => {
     ])
       git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", subject)
 
-    const plan = PlanDoc.parse(readFileSync(join(DOCS, "templates/epics/plan.html"), "utf8"))
+    const plan = PlanDoc.parse(readFileSync(join(TEMPLATES, "epics/plan.html"), "utf8"))
     plan.addPhase("Spike")
     plan.addPhase("Move Logic Out")
     const file = put("repo/packages/docs/content/epics/demo/demo.plan.html", plan.toString())
@@ -114,5 +124,65 @@ describe("repairCheckout", () => {
       encoding: "utf8"
     })
     expect(tracked).toBe("")
+  })
+})
+
+describe("reorgShared", () => {
+  it("splits the old content folder into root folders, leaves old-path links, fixes links;  re-runs move only what's new", () => {
+    const dir = join(temp, "reorg/dev")
+    const checkout = join(temp, "reorg/checkout")
+    put("reorg/checkout/packages/ui/src/a.ts", "export {}\n")
+    put("reorg/checkout/packages/docs/tools/_assets/spell-doc.css", "")
+    put(
+      "reorg/dev/packages/docs/content/index.html",
+      '<link href="../tools/_assets/spell-doc.css"><spell-site-header root="../../.."></spell-site-header>' +
+        '<a href="solid/solid-2.html" target="src-packages-docs-content-solid-solid-2-html">s</a> ' +
+        '<a href="epics/x/x.plan.html" target="x">x</a>\n'
+    )
+    put(
+      "reorg/dev/packages/docs/content/solid/solid-2.html",
+      '<a href="../../../ui/src/a.ts" target="src-packages-ui-src-a-ts">a</a> <a href="../index.html">home</a> ' +
+        "<code>packages/docs/content/solid/solid-2.md</code>\n"
+    )
+    put("reorg/dev/packages/docs/content/epics/x/x.plan.html", '<a href="../../solid/solid-2.html">s</a>\n')
+    put("reorg/dev/packages/docs/content/details/d.html", "<p>d</p>\n")
+    put("reorg/dev/goals/g.html", '<a href="../packages/docs/content/templates/t.html">t</a>\n')
+    put("reorg/dev/packages/docs/content/templates/t.html", "<p>t</p>\n")
+
+    const report = reorgShared(dir, checkout)
+    expect(report.moved).toEqual([
+      "packages/docs/content/details -> pages/details",
+      "packages/docs/content/epics -> epics",
+      "packages/docs/content/index.html -> pages/index.html",
+      "packages/docs/content/solid -> guides/solid",
+      "packages/docs/content/templates -> templates"
+    ])
+    expect(readlinkSync(join(dir, "packages/docs/content/epics"))).toBe("../../../epics")
+    expect(readlinkSync(join(dir, "packages/docs/content/index.html"))).toBe("../../../pages/index.html")
+    expect(readFileSync(join(dir, "pages/index.html"), "utf8")).toBe(
+      '<link href="../packages/docs/tools/_assets/spell-doc.css"><spell-site-header root=".."></spell-site-header>' +
+        '<a href="../guides/solid/solid-2.html" target="src-guides-solid-solid-2-html">s</a> ' +
+        '<a href="../epics/x/x.plan.html" target="x">x</a>\n'
+    )
+    expect(readFileSync(join(dir, "guides/solid/solid-2.html"), "utf8")).toBe(
+      '<a href="../../packages/ui/src/a.ts" target="src-packages-ui-src-a-ts">a</a> <a href="../../pages/index.html">home</a> ' +
+        "<code>guides/solid/solid-2.md</code>\n"
+    )
+    expect(readFileSync(join(dir, "epics/x/x.plan.html"), "utf8")).toBe(
+      '<a href="../../guides/solid/solid-2.html">s</a>\n'
+    )
+    expect(readFileSync(join(dir, "goals/g.html"), "utf8")).toBe('<a href="../templates/t.html">t</a>\n')
+    expect(readFileSync(join(dir, ".gitignore"), "utf8")).toContain("pages/details/")
+    expect(reorgShared(dir, checkout)).toEqual({ moved: [], merged: [], conflicts: [], links: [], rewritten: [] })
+
+    // older code, through the old-path links:  a new guide at the old place, an old-depth link in a plan doc
+    put("reorg/dev/packages/docs/content/new.html", '<a href="../../ui/src/a.ts">a</a>\n')
+    writeFileSync(join(dir, "epics/x/x.plan.html"), '<a href="../../../../ui/src/a.ts">a</a>\n')
+    const again = reorgShared(dir, checkout)
+    expect(again.moved).toEqual(["packages/docs/content/new.html -> guides/new.html"])
+    expect(lstatSync(join(dir, "packages/docs/content/new.html")).isSymbolicLink()).toBe(true)
+    expect(readFileSync(join(dir, "guides/new.html"), "utf8")).toBe('<a href="../packages/ui/src/a.ts">a</a>\n')
+    expect(readFileSync(join(dir, "epics/x/x.plan.html"), "utf8")).toBe('<a href="../../packages/ui/src/a.ts">a</a>\n')
+    expect(existsSync(join(dir, "epics/x/x.plan.html.lock"))).toBe(false)
   })
 })

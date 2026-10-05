@@ -15,17 +15,69 @@ export const TOOLS = dirname(fileURLToPath(import.meta.url))
 /** `packages/docs`:  the package (`package.json`, where `yarn` runs the docs' own scripts). */
 export const PACKAGE = dirname(TOOLS)
 
-/**
- * `packages/docs/content`:  every page, plan doc and template.  Page paths are relative to it.
- * - becomes a link into the shared content repo, `../spell-app-dev` (epic `shared-content`)
- */
-export const DOCS = join(PACKAGE, "content")
-
 /** `packages/docs/tools/_assets`:  what every page loads. */
 export const ASSETS = join(TOOLS, "_assets")
 
-/** The checkout this file is in:  the repo, or a worktree of it. */
+/** The checkout this file is in:  the repo, or a worktree of it.  Page paths are relative to it. */
 export const ROOT = resolve(PACKAGE, "../..")
+
+/*
+ * The content folders, one per area, each a link at the checkout's root into the shared content repo,
+ * `../spell-app-dev` (epics `shared-content` and `claude-design` P4;  before 2026-10-05 all of them were
+ * `packages/docs/content/`, where old-path links stay for older checkouts:  `relocate.js` `reorgShared()`).
+ */
+
+/** `epics/`:  plan docs, `epics/<name>/<name>.plan.html`, their inboxes and details pages. */
+export const EPICS = join(ROOT, "epics")
+
+/** `templates/`:  one starting point per kind of page. */
+export const TEMPLATES = join(ROOT, "templates")
+
+/** `guides/`:  every other docs page, with its `.md`, `.json`, `experiments/` and `examples/` beside it. */
+export const GUIDES = join(ROOT, "guides")
+
+/** `pages/`:  the docs home (`HOME`) and the scratch details pages (`DETAILS`). */
+export const PAGES = join(ROOT, "pages")
+
+/** `pages/index.html`:  the docs home. */
+export const HOME = join(PAGES, "index.html")
+
+/** `pages/details/`:  scratch details pages (`spell dev details new`, no `--epic`). */
+export const DETAILS = join(PAGES, "details")
+
+/** Every folder `findPages()` walks:  the home first, then the areas. */
+export const AREAS = [PAGES, GUIDES, EPICS, TEMPLATES]
+
+/** The old content folder (a link in checkouts cut before 2026-10-05, into the old-path links):  never walked. */
+export const OLD_CONTENT = join(PACKAGE, "content")
+
+/**
+ * The file a page argument means:  absolute as is, else the first that exists of
+ * - from the checkout's root (`guides/solid/solid-2.html`, `epics/seo/seo.plan.html`)
+ * - from each area (`solid/solid-2.html` is a guide, `index.html` the home)
+ * - an old path (`packages/docs/content/solid/solid-2.html`, `content/...`) moved by the reorg
+ * - from `cwd`
+ * - none:  from the root
+ */
+export function pageFile(page, cwd = process.env.INIT_CWD ?? process.cwd()) {
+  if (isAbsolute(page)) return page
+  const old = page.replace(/^(?:packages\/docs\/)?content\//, "")
+  const candidates = [
+    resolve(ROOT, page),
+    ...AREAS.map((area) => resolve(area, page)),
+    ...(old !== page ? [resolve(ROOT, reorgEntry(old.split("/")[0]), ...old.split("/").slice(1))] : []),
+    resolve(cwd, page)
+  ]
+  return candidates.find((each) => existsSync(each)) ?? resolve(ROOT, page)
+}
+
+/** Where top-level entry `name` of the old content folder went (`relocate.js` `reorgEntry()`, kept in step). */
+function reorgEntry(name) {
+  return (
+    { epics: "epics", templates: "templates", details: "pages/details", "index.html": "pages/index.html" }[name] ??
+    `guides/${name}`
+  )
+}
 
 /**
  * Folders that hold no pages.
@@ -51,10 +103,14 @@ export function planDocIn(dir, name) {
 }
 
 /**
- * Every `.html` page under `dir` (default:  all of them), sorted, skipping tooling folders.
- * - follows a link to a folder (`DOCS` itself is one once content is shared):  the page keeps the link's path
+ * Every `.html` page under `dir` (a folder, or several;  default:  every area, `AREAS`), sorted, skipping tooling
+ * folders.
+ * - follows a link to a folder (each area is one, into the shared content repo):  the page keeps the link's path
+ * - a missing folder has no pages
  */
-export function findPages(dir = DOCS) {
+export function findPages(dir = AREAS) {
+  if (Array.isArray(dir)) return dir.flatMap((each) => findPages(each))
+  if (!existsSync(dir)) return []
   const found = []
   for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     const path = join(dir, entry.name)
@@ -68,19 +124,16 @@ export function findPages(dir = DOCS) {
 }
 
 /**
- * Tidy `files` (paths relative to `DOCS`) the way a page must be committed:  link targets, then oxfmt (`vp fmt`).
+ * Tidy `files` (absolute, or relative to the checkout's root) the way a page must be committed:  link targets, then
+ * oxfmt (`vp fmt`).
  * - `doc-links.js` first:  it may add attributes oxfmt then wraps
  * - returns whether both succeeded;  their output is echoed
- * - run from `PACKAGE`, never `DOCS`:  once `content` is a link, a process started in it is in the shared repo,
+ * - run from `PACKAGE`, never a content folder:  each is a link, and a process started in one is in the shared repo,
  *   outside this yarn workspace
- * - a path that would leave `PACKAGE` (`../../.claude/worktrees/...`) goes as an absolute one:  oxfmt refuses `..`
+ * - every path goes ABSOLUTE:  from `PACKAGE` a page is `../../guides/...`, and oxfmt refuses `..`
  */
 export function tidy(files) {
-  const paths = files.map((file) => {
-    if (isAbsolute(file)) return file
-    const path = join("content", file)
-    return path.startsWith("..") ? resolve(PACKAGE, path) : path
-  })
+  const paths = files.map((file) => resolve(ROOT, file))
   for (const [command, args] of [
     [process.execPath, [join(TOOLS, "doc-links.js"), ...paths]],
     ["yarn", ["vp", "fmt", ...paths]]
@@ -127,22 +180,26 @@ export function ensurePageServer() {
 }
 
 /**
- * A template's `html` fixed for a page `depth` folders below `DOCS` (`glossary.html` is 0, `a/a.html` 1).
- * - rewrites whatever depth the template assumed:  `_assets` paths (`<up>../tools/_assets/`), `index.html` paths,
- *   and the site header's `root` (the path up to the repo root:  `packages/docs/content` is three more)
+ * A template's `html` fixed for a page `depth` folders below the checkout's root (`guides/glossary.html` is 1,
+ * `epics/a/a.plan.html` 2).
+ * - rewrites whatever depth the template assumed:  `_assets` paths (`<up>packages/docs/tools/_assets/`), the docs
+ *   home's paths (`<up>pages/index.html`), and the site header's `root` (`<up>`:  the path up to the root)
  * - drops the template's `TEMPLATE:` how-to comment
- * - `docs:new`, `details new`
+ * - `docs:new`, `details new`, `plan-doc new`
  */
 export function atDepth(html, depth) {
   const up = "../".repeat(depth)
   return html
-    .replace(/((?:href|src)=")(?:\.\.\/)*(?:tools\/)?_assets\//g, `$1${up}../tools/_assets/`)
-    .replace(/((?:href|src)=")(?:\.\.\/)*index\.html/g, `$1${up}index.html`)
-    .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up}../../.."`)
+    .replace(
+      /((?:href|src)=")(?:\.\.\/)*(?:packages\/docs\/)?(?:tools\/)?_assets\//g,
+      `$1${up}packages/docs/tools/_assets/`
+    )
+    .replace(/((?:href|src)=")(?:\.\.\/)*(?:pages\/)?index\.html/g, `$1${up}pages/index.html`)
+    .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up.replace(/\/$/, "") || "."}"`)
     .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
 }
 
-/** URL of `file` on the page server at `base`, e.g. `http://127.0.0.1:4747/packages/docs/index.html`. */
+/** URL of `file` on the page server at `base`, e.g. `http://127.0.0.1:4747/pages/index.html`. */
 export function serverUrl(base, file) {
   return `${base}/${relative(ROOT, resolve(file)).split(sep).map(encodeURIComponent).join("/")}`
 }
@@ -189,7 +246,7 @@ export async function openInVSCode(file, { hash, view = "docs" } = {}) {
 /**
  * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `spell dev docs open <page>`;  `openInVSCode()`'s fallback.
  * - from this checkout's page server (live reload), started if need be;  `file://` if it can't start
- * - The tab is keyed by the page's path inside `packages/docs` (`epics/<name>/<name>.html`), not its full URL, so
+ * - The tab is keyed by the page's path from the root (`/epics/<name>/<name>.plan.html`), not its full URL, so
  *   the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded.
  *   The page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`).
  * - Never brings Chrome or its window forward:  the tab is made active in ITS window only;  a new tab goes in the

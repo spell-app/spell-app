@@ -9,7 +9,7 @@ import { PageEditor, RunningEpics, UI_SITE, type PageServerSettings, type RouteM
 /**
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
  * - docs, plan docs, goals, Spell UI docs and (once `app` is in) the editor, all live-reloading
- * - `/` -> the docs index;  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`;  `/ui/` -> Spell UI's
+ * - `/` -> the docs home (`pages/index.html`);  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`;  `/ui/` -> Spell UI's
  *   docs:  the static folder `packages/ui/site/` (`UI_SITE`), live-reloading like every page
  * - `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. goals' buttons
@@ -68,16 +68,16 @@ export class PageServer {
       })
     })
     const router = this.web.router
-    router.get("/", (_request, reply) => reply.redirect("/packages/docs/content/index.html"))
-    // plan docs moved from `plans/` to `epics/` (2026-10-02), then into `content/`:  old links and open tabs still
-    // land.  302:  a 301 would be cached for good
+    router.get("/", (_request, reply) => reply.redirect(DOCS_HOME))
+    // plan docs moved from `plans/` to `epics/` (2026-10-02), then into `content/`, then to the root `epics/`:  old
+    // links and open tabs still land.  302:  a 301 would be cached for good
     router.get("/packages/docs/plans/*", (request, reply) =>
-      reply.redirect(request.originalUrl.replace("/packages/docs/plans/", "/packages/docs/content/epics/"))
+      reply.redirect(request.originalUrl.replace("/packages/docs/plans/", "/epics/"))
     )
-    // docs pages moved into `packages/docs/content/`, and plan docs renamed `epics/<n>/<n>.html` -> `<n>.plan.html`
-    // (both 2026-10-04):  old links and open tabs still land, here and in a worktree served from here
-    // (`/worktrees/<w>/`).  302, and only while the old file is gone:  a worktree cut before the move still has it
-    for (const prefix of ["/packages/docs/*", "/worktrees/*"])
+    // docs pages moved into `packages/docs/content/`, plan docs renamed `epics/<n>/<n>.html` -> `<n>.plan.html`
+    // (both 2026-10-04), then the content split into root folders (2026-10-05, claude-design P4):  old links and
+    // open tabs still land, here and in a worktree served from here (`/worktrees/<w>/`).  302
+    for (const prefix of ["/packages/docs/*", "/worktrees/*", "/epics/*"])
       router.get(prefix, (request, reply, next) => {
         const url = request.originalUrl
         const moved = movedDocsPage(url, this.root) ?? renamedPlanDoc(url, this.root)
@@ -204,43 +204,71 @@ function worktreeOf(file: string, root: string): { branch?: string; worktree?: s
 /** `worktreeOf()`'s cache, by worktree name. */
 const WORKTREES = new Map<string, { branch?: string; worktree?: string }>()
 
-/** Folders the page server live-reloads when the root `package.json` names none:  the docs pages and their bundle. */
-const DEFAULT_WATCH = ["packages/docs/content", "packages/docs/tools/_assets"]
+/** The docs home's URL. */
+export const DOCS_HOME = "/pages/index.html"
+
+/** Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle. */
+const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "packages/docs/tools/_assets"]
 
 /**
- * The new URL of an old docs page's URL `url` (`/packages/docs/<x>`, or the same under `/worktrees/<w>/`):
- * `/packages/docs/content/<x>`, query kept, when the old page is gone and the new one is there;  else `undefined`.
- * - pages and folders only (`.html`, `.md`, no extension):  the package's own files (`package.json` ...) stay put,
- *   and so do its `.md`s (`README.md` ...), which are still there
- * - `<x>` under `content/` or `tools/` is already new
+ * Where top-level entry `name` of the old `packages/docs/content/` went (claude-design P4, 2026-10-05):  `epics` and
+ * `templates` to the root, `details` and `index.html` into `pages/`, anything else into `guides/`.
+ * - SAME as `packages/docs/tools/relocate.js` `reorgEntry()`:  the server is a leaf, so a copy
+ */
+export function reorgEntry(name: string): string {
+  return REORG[name] ?? `guides/${name}`
+}
+
+/** `reorgEntry()`'s exceptions. */
+const REORG: Record<string, string> = {
+  epics: "epics",
+  templates: "templates",
+  details: "pages/details",
+  "index.html": "pages/index.html"
+}
+
+/**
+ * The new URL of an old docs URL `url` (or the same under `/worktrees/<w>/`), query kept;  else `undefined`:
+ * - `/packages/docs/content/<x>` (2026-10-04 .. 10-05):  where the reorg put `<x>` (`reorgEntry()`), when that's
+ *   there;  `/packages/docs/content/` itself:  the docs home.  Even while the old path still resolves (the old-path
+ *   links in the shared repo, a checkout's old content link):  ONE address per page
+ * - `/packages/docs/<x>` (before 2026-10-04):  the same, but pages and folders only (`.html`, `.md`, no extension),
+ *   and only while the old one is gone:  the package's own files (`package.json`, `README.md` ...) stay put
  * - an old plan doc name (`epics/<n>/<n>.html`) lands on its new name in ONE hop (`renamedPlanDoc()`)
  * - `root`:  the checkout served;  `/worktrees/<w>/...` is its `.claude/worktrees/<w>/...` (`RunningEpics`)
  */
 export function movedDocsPage(url: string, root: string): string | undefined {
   const [path = "", query] = url.split("?")
-  const match = /^(\/(?:worktrees\/[^/]+\/)?packages\/docs)(?:\/(.*))?$/.exec(path)
+  const match = /^((?:\/worktrees\/[^/]+)?)\/packages\/docs(?:\/(.*))?$/.exec(path)
   if (!match) return undefined
-  const [, base = "", rest = ""] = match
-  if (/^(content|tools)(\/|$)/.test(rest) || !/(^|\/)([^/.]*|[^/]*\.(html|md))$/.test(rest)) return undefined
-  const moved = `${base}/content/${rest}`
-  const [before, after] = [decode(path), decode(moved)]
-  if (!before || !after || existsSync(servedFile(pageOf(before), root))) return undefined
+  const [, base = "", whole = ""] = match
+  const content = /^content(\/|$)/.test(whole)
+  const rest = content ? whole.replace(/^content\/?/, "") : whole
+  if (!content) {
+    if (/^tools(\/|$)/.test(rest) || !/(^|\/)([^/.]*|[^/]*\.(html|md))$/.test(rest)) return undefined
+    const before = decode(path)
+    if (!before || existsSync(servedFile(pageOf(before), root))) return undefined
+  }
+  const [entry = "", ...more] = rest.split("/")
+  const moved = `${base}/${entry ? [reorgEntry(entry), ...more].join("/") : DOCS_HOME.slice(1)}`
+  const after = decode(moved)
+  if (!after) return undefined
   const tail = query === undefined ? "" : `?${query}`
-  if (existsSync(servedFile(pageOf(after), root))) return `${moved}${tail}`
+  if (existsSync(servedFile(content ? after : pageOf(after), root))) return `${moved}${tail}`
   return renamedPlanDoc(`${moved}${tail}`, root)
 }
 
 /**
- * The new URL of an old plan doc's URL `url` (`/packages/docs/content/epics/<n>/<n>.html`, or the same under
- * `/worktrees/<w>/`, or without `content/`):  `<n>.plan.html`, query kept, when the old file is gone and the new one
- * is there;  else `undefined`.
+ * The new URL of an old plan doc's URL `url` (`/epics/<n>/<n>.html`, or the same under `/worktrees/<w>/`, or under
+ * an old place:  `packages/docs/content/`, `packages/docs/`):  `<n>.plan.html`, query kept, when the old file is gone
+ * and the new one is there;  else `undefined`.
  * - `root`:  the checkout served;  `/worktrees/<w>/...` is its `.claude/worktrees/<w>/...` (`RunningEpics`)
  */
 export function renamedPlanDoc(url: string, root: string): string | undefined {
   const [path = "", query] = url.split("?")
   const decoded = decode(path)
   if (!decoded) return undefined
-  if (!/^\/(?:worktrees\/[^/]+\/)?packages\/docs\/(?:content\/)?epics\/([^/]+)\/\1\.html$/.test(decoded))
+  if (!/^\/(?:worktrees\/[^/]+\/)?(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1\.html$/.test(decoded))
     return undefined
   const renamed = decoded.replace(/\.html$/, ".plan.html")
   if (existsSync(servedFile(decoded, root)) || !existsSync(servedFile(renamed, root))) return undefined

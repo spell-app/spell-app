@@ -19,9 +19,9 @@ let port: number
 
 /** pages in the scratch checkout, relative to it */
 const PAGES = {
-  plan: "packages/docs/content/epics/big/big.plan.html",
-  far: ".claude/worktrees/w/packages/docs/content/epics/far/far.plan.html",
-  other: "packages/docs/content/epics/big/notes.html",
+  plan: "epics/big/big.plan.html",
+  far: ".claude/worktrees/w/epics/far/far.plan.html",
+  other: "epics/big/notes.html",
   details: "packages/docs/details/pick.html"
 }
 
@@ -166,7 +166,7 @@ test("send:  dates the marks so far", async () => {
 
 test("a worktree's plan doc, through /worktrees/", async () => {
   const far = await post("mark", {
-    page: `/worktrees/w/packages/docs/content/epics/far/far.plan.html`,
+    page: `/worktrees/w/epics/far/far.plan.html`,
     id: "j3",
     mark: { action: "todo" }
   })
@@ -178,8 +178,8 @@ test("only plan docs:  403;  missing:  404;  not a path:  400", async () => {
   const mark = { action: "approve" }
   expect((await post("mark", { page: `/${PAGES.other}`, id: "j3", mark })).status).toBe(403)
   expect((await post("mark", { page: `/${PAGES.details}`, id: "j3", mark })).status).toBe(403)
-  expect((await post("mark", { page: "/packages/docs/content/epics/gone/gone.plan.html", id: "j3", mark })).status).toBe(404)
-  expect((await post("send", { page: "/packages/docs/content/epics/big/../big/notes.html" })).status).toBe(403)
+  expect((await post("mark", { page: "/epics/gone/gone.plan.html", id: "j3", mark })).status).toBe(404)
+  expect((await post("send", { page: "/epics/big/../big/notes.html" })).status).toBe(403)
   expect((await post("send", { page: "nope" })).status).toBe(400)
   const get = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(`/${PAGES.other}`)}`)
   expect(get.status).toBe(403)

@@ -15,13 +15,13 @@ import { spawnSync } from "node:child_process"
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join, relative, sep } from "node:path"
 
-import { DOCS, ROOT, planDocIn } from "./pages.js"
+import { EPICS, ROOT, planDocIn } from "./pages.js"
 
 /** Tracked files never rewritten:  generated bundles, test fixtures, the knowledge graph's cache. */
 const SKIP = [/^packages\/docs\/_assets\//, /\/fixtures\//, /^graphify-out\//, /\/node_modules\//, /\.answer\.json$/]
 
 const dryRun = process.argv.includes("--dry-run")
-const epics = join(DOCS, "epics")
+const epics = EPICS
 
 ////////////////
 // ## Rename
@@ -92,8 +92,8 @@ function escape(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-/** `command args` in `cwd` (default `DOCS`);  its stdout;  exits on failure. */
-function run(command, args, cwd = DOCS) {
+/** `command args` in `cwd` (default `ROOT`);  its stdout;  exits on failure. */
+function run(command, args, cwd = ROOT) {
   const result = spawnSync(command, args, { cwd, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 })
   if (result.status !== 0) {
     process.stderr.write(result.stderr ?? "")
