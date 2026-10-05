@@ -78,6 +78,12 @@
                   <ui-input type="number" placeholder="Quantity" aria-label="Quantity"></ui-input>
                   <ui-input type="date" aria-label="Date"></ui-input>
                 </ui-docs-example>
+                <ui-docs-example
+                  description="Numbers sit right-aligned against their unit, in tabular figures:  `type=&quot;number&quot;`, or a text field with `inputmode=&quot;decimal&quot;` / `&quot;numeric&quot;`.  `--ui-input-numeric-align: start` sets them back."
+                >
+                  <ui-input type="number" value="250" labeled="right" label="°" aria-label="Hue"></ui-input>
+                  <ui-input inputmode="decimal" value="55.5" labeled="right" label="%" aria-label="Lightness"></ui-input>
+                </ui-docs-example>
               </ui-section>
 
               <ui-section id="examples-types-file-input" header="File Input" sticky collapsible dividing>

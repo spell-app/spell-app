@@ -1,40 +1,33 @@
 /*
  * `<ui-brand-checklist>`:  `.checklist` (`part="list"`), a column of its slotted `<ui-brand-check>`s, then the hidden
  * live region.
- * - Public tokens (`--ui-brand-checklist-*`) are never declared here:  read through private aliases.
- *   - `-spacing`:  between lines (default sans 12px, serif 10px)
- *   - the checks' own (`-font-family`, `-font-size`, `-marker-size`, `-gap`, colours):  see `ui-brand-check.css`;
- *     set on the list, they inherit
- * - `font`:  sets the private `--_ui-brand-checklist-*` defaults on the HOST, so they inherit into the light-DOM
- *   checks, whose sheet reads them.
+ * - Public tokens (`--ui-brand-checklist-*`) are never declared here:  read where they paint, each with its SANS
+ *   default as the fallback (what the docs' Theming table shows);  `font="serif"` reads them again with its own.
+ *   - `-spacing`:  between lines (sans 12px, serif 10px)
+ *   - the checks' own (`-font-family`, `-font-size`, `-marker-size`, `-gap`, `-align`, colours):  see
+ *     `ui-brand-check.css`;  set on the list, they inherit
+ * - `font`:  each check without its own `font` asks the list's (`checkState()`) and switches to the serif defaults
+ *   itself (`.check.serif`).
  */
 
 @layer ui.components.brand-checklist.types;
 
 @layer ui.components.brand-checklist.types {
   :host {
-    --_ui-brand-checklist-font-family: var(--spell-font-sans, var(--ui-font-family, system-ui, sans-serif));
-    --_ui-brand-checklist-font-size: 14px;
-    --_ui-brand-checklist-marker-size: 20px;
-    --_ui-brand-checklist-gap: 12px;
-    --_ui-brand-checklist-spacing: 12px;
     display: block;
   }
   :host([hidden]) {
     display: none;
-  }
-  :host([font="serif"]) {
-    --_ui-brand-checklist-font-family: var(--spell-font-serif, var(--ui-font-family-heading, Georgia, serif));
-    --_ui-brand-checklist-font-size: 15px;
-    --_ui-brand-checklist-marker-size: 19px;
-    --_ui-brand-checklist-gap: 10px;
-    --_ui-brand-checklist-spacing: 10px;
   }
 
   .checklist {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--ui-brand-checklist-spacing, var(--_ui-brand-checklist-spacing));
+    /* space between lines */
+    gap: var(--ui-brand-checklist-spacing, 12px);
+  }
+  :host([font="serif"]) > .checklist {
+    gap: var(--ui-brand-checklist-spacing, 10px);
   }
 }

@@ -165,6 +165,21 @@ describe("<ui-message> tokens from outside", () => {
     const inner = above.querySelector("ui-header")!.shadowRoot!.querySelector("[part~=header]")!
     expect(getComputedStyle(inner).fontSize).toBe("30px")
   })
+
+  it("`--ui-message-icon-align` moves an icon message's icon:  centred by default, `start` at the top", async () => {
+    const body = `<ui-header>Tip</ui-header><p>One</p><p>Two</p><p>Three</p>`
+    const { root } = await message(`<ui-message icon="envelope">${body}</ui-message>`)
+    const icon = root.querySelector<HTMLElement>("[part~=icon]")!
+    const content = root.querySelector<HTMLElement>("[part~=content]")!
+    expect(getComputedStyle(icon).alignSelf).toBe("center")
+    const middle = (box: DOMRect) => box.top + box.height / 2
+    expect(middle(icon.getBoundingClientRect())).toBeCloseTo(middle(content.getBoundingClientRect()), 0)
+    const top = await message(`<ui-message icon="envelope" style="--ui-message-icon-align: start">${body}</ui-message>`)
+    const topIcon = top.root.querySelector<HTMLElement>("[part~=icon]")!
+    const topContent = top.root.querySelector<HTMLElement>("[part~=content]")!
+    expect(getComputedStyle(topIcon).alignSelf).toBe("start")
+    expect(topIcon.getBoundingClientRect().top).toBeCloseTo(topContent.getBoundingClientRect().top, 0)
+  })
 })
 
 describe("<ui-message> owner context", () => {

@@ -103,6 +103,8 @@
     --_ui-button-padding-inline: var(--ui-button-padding-inline, var(--ui-space-l));
     --_ui-button-margin-inline: var(--ui-button-margin-inline, var(--ui-space-2xs));
     --_ui-button-radius: var(--ui-button-radius, var(--ui-radius));
+    --_ui-button-font-family: var(--ui-button-font-family, var(--ui-font-family));
+    --_ui-button-font-size: var(--ui-button-font-size, var(--ui-font-size));
     --_ui-button-font-weight: var(--ui-button-font-weight, var(--ui-font-weight-semibold));
     --_ui-button-line-height: var(--ui-button-line-height, 1);
     --_ui-button-background: var(--ui-button-background, oklch(from var(--ui-ink) l c h / 0.08));
@@ -181,8 +183,8 @@
     background-image: none;
     color: var(--_button-fg, var(--ui-color-on, var(--_ui-button-color)));
     box-shadow: var(--_button-edge, 0 0 #0000), var(--_ui-buttons-divider, 0 0 #0000);
-    font-family: var(--ui-font-family);
-    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    font-family: var(--_ui-button-font-family);
+    font-size: calc(var(--_ui-button-font-size) * var(--ui-scale, 1));
     font-style: normal;
     font-weight: var(--_button-weight, var(--_ui-button-font-weight));
     line-height: var(--_ui-button-line-height);

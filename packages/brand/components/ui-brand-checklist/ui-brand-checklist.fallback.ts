@@ -9,6 +9,7 @@ import {
   CHECKABLE,
   DONE,
   PENDING,
+  SERIF,
   SVG_NS,
   type CheckState
 } from "./ui-brand-checklist.types"
@@ -18,8 +19,9 @@ import {
  * The list's or a check's markup without Solid, keyed by the host's tag -- the same markup as the elements, so
  * their sheets style it unchanged:
  * - `<ui-brand-checklist>`:  `<div class="checklist" part="list" role="list"><slot>`
- * - `<ui-brand-check>`:  `<div class="check <state>" part="check">`, the mark and the slotted text;  its state from
- *   the parent list's `step` (read from the DOM), else `selected` / `checked`, else `state`
+ * - `<ui-brand-check>`:  `<div class="check <state> [serif]" part="check">`, the mark and the slotted text;  its
+ *   state from the parent list's `step` (read from the DOM), else `selected` / `checked`, else `state`;  `serif` from
+ *   its own `font`, else the list's
  ****************/
 export class BrandChecklistFallback extends NativeFallback {
   @proto static degraded = [
@@ -49,7 +51,9 @@ export class BrandChecklistFallback extends NativeFallback {
     }
     const state = this.state()
     const checkable = this.flag("checkable") || this.parentFlag("checkable")
-    const check = this.create("div", { class: this.classes([state, checkable ? CHECKABLE : ""].join(" ").trim()) })
+    const serif = (this.attr("font") ?? this.parentAttr("font")) === SERIF
+    const words = [state, checkable ? CHECKABLE : "", serif ? SERIF : ""].filter(Boolean).join(" ")
+    const check = this.create("div", { class: this.classes(words) })
     check.append(this.marker(), this.decorate(this.create("span", { class: "label" }, this.slot()), "label"))
     if (state !== PENDING && !checkable) {
       check.append(this.create("span", { class: UIT.VISUALLY_HIDDEN }, ` ${BrandChecklistFallback.TEXTS[state]}`))
@@ -73,8 +77,13 @@ export class BrandChecklistFallback extends NativeFallback {
 
   /** Boolean attribute `name` on the parent list, if the parent is one. */
   private parentFlag(name: string): boolean {
+    return this.parentAttr(name) !== null
+  }
+
+  /** Attribute `name` of the parent list, if the parent is one, else `null`. */
+  private parentAttr(name: string): string | null {
     const parent = this.host.parentElement
-    return parent?.localName === brandChecklistVocabulary.tag && parent.hasAttribute(name)
+    return parent?.localName === brandChecklistVocabulary.tag ? parent.getAttribute(name) : null
   }
 
   /** The round mark, a check inside (`ui-brand-check.css` shows it once done). */

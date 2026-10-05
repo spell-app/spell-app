@@ -100,6 +100,89 @@
   </section>
 
   <section>
+    <h4>End chevron</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <button type="button" class="toggle" aria-expanded="true" aria-controls="section-end-open-content">
+            <span class="header">Variants</span>
+          </button>
+        </h2>
+        <span class="actions"><button type="button" class="ui mini basic button">Copy</button></span>
+        <span class="fold icon" aria-hidden="true"
+          ><svg viewBox="0 0 448 512" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+            /></svg
+        ></span>
+      </header>
+      <div id="section-end-open-content" class="content">
+        <p>The fold chevron at the far end of the title bar, after the actions.</p>
+      </div>
+    </section>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <button type="button" class="toggle" aria-expanded="false" aria-controls="section-end-folded-content">
+            <span class="header">Samples</span>
+          </button>
+        </h2>
+        <span class="fold icon" aria-hidden="true"
+          ><svg viewBox="0 0 448 512" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+            /></svg
+        ></span>
+      </header>
+      <div id="section-end-folded-content" class="content" hidden="until-found">
+        <p>Folded, it turns as the start one does.</p>
+      </div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Info tip</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <button
+            type="button"
+            class="toggle"
+            aria-expanded="true"
+            aria-controls="section-info-content"
+            aria-describedby="section-info-tip"
+          >
+            <span class="fold icon"
+              ><svg viewBox="0 0 448 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                /></svg></span
+            ><span class="header">Theme</span>
+          </button>
+        </h2>
+        <span id="section-info-tip" class="tip" role="tooltip">The look of an app: its colours, fonts and shapes.</span>
+      </header>
+      <div id="section-info-content" class="content">
+        <p>A tip about the section, shown on hover of the title or keyboard focus on its fold button.</p>
+      </div>
+    </section>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading" aria-describedby="section-info-rich-tip">
+          <span class="toggle"><span class="header">Color</span></span>
+        </h2>
+        <span id="section-info-rich-tip" class="tip" role="tooltip"
+          >Pick a <b>colour set</b> for each job in the app.</span
+        >
+      </header>
+      <div class="content"><p>A rich tip, slotted.</p></div>
+    </section>
+  </section>
+
+  <section>
     <h4>Subhead</h4>
     <section class="ui dividing section">
       <header class="title">

@@ -70,14 +70,8 @@
   font-style: normal;
   font-display: swap;
   src:
-    local("Palatino"),
-    local("Palatino-Roman"),
-    local("Palatino Linotype"),
-    local("PalatinoLinotype-Roman"),
-    local("Book Antiqua"),
-    local("P052 Roman"),
-    local("P052-Roman"),
-    local("TeX Gyre Pagella");
+    local("Palatino"), local("Palatino-Roman"), local("Palatino Linotype"), local("PalatinoLinotype-Roman"),
+    local("Book Antiqua"), local("P052 Roman"), local("P052-Roman"), local("TeX Gyre Pagella");
 }
 @font-face {
   font-family: "Spell Serif";
@@ -85,14 +79,8 @@
   font-style: normal;
   font-display: swap;
   src:
-    local("Palatino Bold"),
-    local("Palatino-Bold"),
-    local("Palatino Linotype Bold"),
-    local("PalatinoLinotype-Bold"),
-    local("Book Antiqua Bold"),
-    local("P052 Bold"),
-    local("P052-Bold"),
-    local("TeX Gyre Pagella Bold");
+    local("Palatino Bold"), local("Palatino-Bold"), local("Palatino Linotype Bold"), local("PalatinoLinotype-Bold"),
+    local("Book Antiqua Bold"), local("P052 Bold"), local("P052-Bold"), local("TeX Gyre Pagella Bold");
 }
 @font-face {
   font-family: "Spell Serif";
@@ -100,13 +88,8 @@
   font-style: italic;
   font-display: swap;
   src:
-    local("Palatino Italic"),
-    local("Palatino-Italic"),
-    local("Palatino Linotype Italic"),
-    local("PalatinoLinotype-Italic"),
-    local("Book Antiqua Italic"),
-    local("P052 Italic"),
-    local("P052-Italic"),
+    local("Palatino Italic"), local("Palatino-Italic"), local("Palatino Linotype Italic"),
+    local("PalatinoLinotype-Italic"), local("Book Antiqua Italic"), local("P052 Italic"), local("P052-Italic"),
     local("TeX Gyre Pagella Italic");
 }
 @font-face {
@@ -115,14 +98,9 @@
   font-style: italic;
   font-display: swap;
   src:
-    local("Palatino Bold Italic"),
-    local("Palatino-BoldItalic"),
-    local("Palatino Linotype Bold Italic"),
-    local("PalatinoLinotype-BoldItalic"),
-    local("Book Antiqua Bold Italic"),
-    local("P052 Bold Italic"),
-    local("P052-BoldItalic"),
-    local("TeX Gyre Pagella Bold Italic");
+    local("Palatino Bold Italic"), local("Palatino-BoldItalic"), local("Palatino Linotype Bold Italic"),
+    local("PalatinoLinotype-BoldItalic"), local("Book Antiqua Bold Italic"), local("P052 Bold Italic"),
+    local("P052-BoldItalic"), local("TeX Gyre Pagella Bold Italic");
 }
 
 @layer ui.theme {
@@ -326,6 +304,10 @@
     --ui-toast-radius: var(--ui-radius-l);
     --ui-modal-radius: 22px;
     --ui-popup-radius: var(--ui-radius-s);
+    /* `<ui-section info>` (and so `<ui-brand-panel>`'s bands):  the brand's tooltip, an aubergine bubble, as
+       `<ui-brand-field>`'s */
+    --ui-section-tip-background: var(--spell-surface-inverse);
+    --ui-section-tip-color: var(--spell-text-inverse);
 
     /*******************************
             Ink, text, surfaces
@@ -542,6 +524,28 @@
     --ui-menu-hover-background: light-dark(var(--spell-brand-50), rgb(200 206 231 / 0.07));
     --ui-menu-active-background: light-dark(var(--spell-violet-100), var(--spell-lilac-soft));
     --ui-menu-active-color: light-dark(var(--spell-violet-700), var(--spell-violet-200));
+    /* the same in a `secondary` menu (the brand's side nav), whose own tokens a `:root` generic one never reaches */
+    --ui-menu-secondary-hover-background: light-dark(var(--spell-brand-50), rgb(200 206 231 / 0.07));
+    --ui-menu-secondary-active-background: light-dark(var(--spell-violet-100), var(--spell-lilac-soft));
+    --ui-menu-secondary-active-color: light-dark(var(--spell-violet-700), var(--spell-violet-200));
+    /*
+     * Segmented controls (`appearance="segmented"`, menus and tab sets):  the brand's `.sp-seg`, a pill track in
+     * the lavender tint with an inset hairline, 3px around and 2px between the options;  the chosen one a raised
+     * card-coloured thumb, strong text, `--shadow-sm`;  the others muted.  28px options at 13px:  `0.58em` padding.
+     */
+    --ui-menu-segmented-background: var(--spell-surface-tint);
+    --ui-menu-segmented-border: 1px solid var(--spell-border-subtle);
+    --ui-menu-segmented-radius: var(--ui-radius-pill);
+    --ui-menu-segmented-padding: 2px;
+    --ui-menu-segmented-gap: 2px;
+    --ui-menu-segmented-divider: transparent;
+    --ui-menu-segmented-item-padding: 0.58em 1.08em;
+    --ui-menu-segmented-item-color: var(--spell-text-muted);
+    --ui-menu-segmented-item-radius: var(--ui-radius-pill);
+    --ui-menu-segmented-active-background: var(--ui-surface);
+    --ui-menu-segmented-active-hover-background: var(--ui-surface);
+    --ui-menu-segmented-active-color: var(--spell-text-strong);
+    --ui-menu-segmented-active-shadow: var(--spell-shadow-sm);
 
     /* Headers:  regular serif by default (h1 / h2 bold, below);  the brand's display sizes;  aubergine ledes */
     --ui-header-font-weight: var(--ui-font-weight-normal);
@@ -550,6 +554,26 @@
     --ui-header-h3: 1.375;
     --ui-header-h4: 1.0625;
     --ui-header-sub-color: light-dark(var(--spell-violet-800), var(--spell-violet-200));
+
+    /*
+     * Markdown:  the Design Guide's prose (`Design Guide.dc.html`):  bold serif headings in the strong ink, no rule
+     * under them (`##` 28px, `###` 19px of its 15px text), a hairline `hr`, bold text and inline code in the strong ink
+     */
+    --ui-markdown-heading-color: var(--spell-text-strong);
+    --ui-markdown-heading-font-family: var(--ui-font-family-heading);
+    --ui-markdown-heading-weight: var(--ui-font-weight-bold);
+    --ui-markdown-heading-line-height: 1.2;
+    --ui-markdown-heading-margin: 1.1em 0.43em;
+    --ui-markdown-heading-rule: none;
+    --ui-markdown-heading-rule-gap: 0;
+    --ui-markdown-heading-scroll-margin: 24px; /* below the site header, which `scroll-padding-top` already clears */
+    --ui-markdown-h2-size: calc(28em / 15);
+    --ui-markdown-h3-size: calc(19em / 15);
+    --ui-markdown-hr-height: 1px;
+    --ui-markdown-rule-color: var(--spell-border-subtle);
+    --ui-markdown-strong-color: var(--spell-text-strong);
+    --ui-markdown-code-color: var(--spell-text-strong);
+    --ui-markdown-code-background: var(--spell-surface-code);
 
     /* Motion:  the brand's ease-out */
     --ui-ease-out: cubic-bezier(0.22, 1, 0.36, 1);

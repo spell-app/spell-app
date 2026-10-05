@@ -1,0 +1,1 @@
+import{t as e}from"./ui-rating-BGi33WSI.js";export{e as UIRating};

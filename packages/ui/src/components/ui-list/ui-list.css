@@ -27,6 +27,10 @@
  *   value, and the item rules only read them.  Where a variation changes STRUCTURE the items style-query a private
  *   switch instead:  `--_ui-list-marker: number` (an item's `value` replaces its number) and
  *   `--_ui-list-animated: 1` (hover indent).
+ *   - EXCEPT the look-only variations `link`, `selection` and `bulleted`'s marker:  they set their DEFAULTS through
+ *     the public tokens (`--_ui-list-link-color: var(--ui-list-link-color, var(--ui-text-unselected))`), so a
+ *     page's colour, padding or bullet still reaches a link / selection / bulleted list.  The structural ones
+ *     (`horizontal`, `relaxed`, `divided`, `celled` ...) keep winning.
  * - The root declares EVERY alias below, default included, so a list nested as a new top-level list never
  *   inherits an outer list's look.  The sub-list writes the item geometry aliases from the `--ui-list-child-*`
  *   tokens' aliases (Fomantic's child items are tighter, never bordered, never horizontal);  it never re-declares
@@ -44,7 +48,9 @@
  * | --------------------------------------- | -------------------------------- | ------------------------------------------ |
  * | `--_ui-list-layout`                      | `vertical`                       | `horizontal`;  also read by `ui-parts.css`    |
  * | `--_ui-list-align`                       | `top`                            | `horizontal` (`middle`), `vertical-align`  |
- * | `--ui-list-font-size`                   | the list's size                  | sizes;  horizontal items read it           |
+ * | `--ui-list-font-size`                   | the list's size                  | sizes;  the root and horizontal items      |
+ * | `--ui-list-margin`                      | `1em`:  above and below;  none   | --                                         |
+ * |                                         | before the first / after the last|                                            |
  * | `--ui-list-item-display`                | `list-item`                      | `horizontal` (`inline-block`)              |
  * | `--ui-list-item-width`                  | `stretch`                        | `horizontal` (`auto`)                      |
  * | `--ui-list-item-font-size`              | `initial` (inherit)              | `horizontal` (the root has `font-size: 0`) |
@@ -85,6 +91,10 @@
  * | `--ui-list-marker-position`             | `absolute`                       | horizontal `ordered` (`static`)            |
  * | `--ui-list-marker-margin`               | `0`                              | `bulleted`, `ordered`, horizontal ordered  |
  * | `--ui-list-marker-color`                | `initial` (inherit)              | `ordered`, `inverted`, horizontal bullets  |
+ * | `--ui-list-marker-active-color`         | `initial` (the marker colour)    | --:  a `selected` item's bullet / number   |
+ * | `--ui-list-marker-size`                 | `1em`:  the marker's font size   | --:  the hang (`-margin`) is in ITS em;  it |
+ * |                                         | (a bigger dot)                   | stays on the item's line while the item's  |
+ * |                                         |                                  | `line-height` is a length (`1.3em`)        |
  * | `--ui-list-marker-opacity` / `-align`   | `1` / `top`                      | `ordered`                                  |
  * | `--ui-list-counter-increment`           | `none`                           | `ordered`                                  |
  * | `--ui-list-counter-reset`               | `none`                           | `ordered`:  every sub-list resets          |
@@ -143,6 +153,7 @@
     --_ui-list-layout: vertical;
     --_ui-list-align: top;
     --_ui-list-font-size: var(--ui-list-font-size, calc(var(--ui-font-size) * var(--ui-scale, 1)));
+    --_ui-list-margin: var(--ui-list-margin, 1em);
     --_ui-list-item-display: var(--ui-list-item-display, list-item);
     --_ui-list-stretch: stretch;
     --_ui-list-item-width: var(--ui-list-item-width, var(--_ui-list-stretch));
@@ -194,6 +205,8 @@
     --_ui-list-marker-position: var(--ui-list-marker-position, absolute);
     --_ui-list-marker-margin: var(--ui-list-marker-margin, 0);
     --_ui-list-marker-color: var(--ui-list-marker-color, initial);
+    --_ui-list-marker-active-color: var(--ui-list-marker-active-color, initial);
+    --_ui-list-marker-size: var(--ui-list-marker-size, 1em);
     --_ui-list-marker-opacity: var(--ui-list-marker-opacity, 1);
     --_ui-list-marker-align: var(--ui-list-marker-align, top);
     --_ui-list-counter-increment: var(--ui-list-counter-increment, none);
@@ -211,9 +224,9 @@
     --_ui-list-child-item-margin-inline: var(--ui-list-child-item-margin-inline, 0);
     --_ui-list-child-marker-margin: var(--ui-list-child-marker-margin, 0);
     box-sizing: border-box;
-    margin: var(--_list-margin-top, 1em) 0 var(--_list-margin-bottom, 1em);
+    margin: var(--_list-margin-top, var(--_ui-list-margin)) 0 var(--_list-margin-bottom, var(--_ui-list-margin));
     padding: 0;
-    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    font-size: var(--_ui-list-font-size);
     list-style: none;
   }
   /* Spacing between neighbours:  none before the first, none after the last. */
@@ -380,6 +393,7 @@
     left: auto;
     margin: var(--_ui-list-marker-margin);
     color: var(--_ui-list-marker-color, inherit);
+    font-size: var(--_ui-list-marker-size);
     font-weight: var(--ui-font-weight-normal);
     text-align: right;
     vertical-align: var(--_ui-list-marker-align);
@@ -550,8 +564,8 @@
   /* Bulleted:  a bullet hung before each item. */
   .ui.bulleted.list {
     --_ui-list-marker: bullet;
-    --_ui-list-marker-content: "\2022";
-    --_ui-list-marker-margin: 0 0 0 -1.25em;
+    --_ui-list-marker-content: var(--ui-list-marker-content, "\2022");
+    --_ui-list-marker-margin: var(--ui-list-marker-margin, 0 0 0 -1.25em);
     --_ui-list-child-marker-margin: 0 0 0 -1.25em;
     --_ui-list-sublist-padding: 0.75em 0 0.25em 1.25em;
     --_ui-list-sublist-content-padding-left: 1.25em;
@@ -597,42 +611,45 @@
     }
   }
 
-  /* Link:  items are links, muted until hovered;  the selected one strongest. */
+  /* Link:  items are links, muted until hovered;  the selected one strongest.  Defaults THROUGH the public tokens. */
   .ui.link.list {
-    --_ui-list-item-color: var(--ui-text-unselected);
-    --_ui-list-item-active-color: var(--ui-text-selected);
-    --_ui-list-item-transition: color var(--ui-duration-fast) var(--ui-ease);
-    --_ui-list-link-color: var(--ui-text-unselected);
-    --_ui-list-link-hover-color: var(--ui-text-hovered);
-    --_ui-list-link-down-color: var(--ui-text-pressed);
-    --_ui-list-link-active-color: var(--ui-text-selected);
-    --_ui-list-anchor-color: var(--ui-text-unselected);
-    --_ui-list-anchor-hover-color: var(--ui-text-hovered);
+    --_ui-list-item-color: var(--ui-list-item-color, var(--ui-text-unselected));
+    --_ui-list-item-active-color: var(--ui-list-item-active-color, var(--ui-text-selected));
+    --_ui-list-item-transition: var(--ui-list-item-transition, color var(--ui-duration-fast) var(--ui-ease));
+    --_ui-list-link-color: var(--ui-list-link-color, var(--ui-text-unselected));
+    --_ui-list-link-hover-color: var(--ui-list-link-hover-color, var(--ui-text-hovered));
+    --_ui-list-link-down-color: var(--ui-list-link-down-color, var(--ui-text-pressed));
+    --_ui-list-link-active-color: var(--ui-list-link-active-color, var(--ui-text-selected));
+    --_ui-list-anchor-color: var(--ui-list-anchor-color, var(--ui-text-unselected));
+    --_ui-list-anchor-hover-color: var(--ui-list-anchor-hover-color, var(--ui-text-hovered));
   }
 
-  /* Selection:  items are choices with a hover background. */
+  /* Selection:  items are choices with a hover background.  Defaults THROUGH the public tokens. */
   .ui.selection.list {
-    --_ui-list-item-padding-block: 0.5em;
-    --_ui-list-item-padding-left: 0.5em;
-    --_ui-list-item-padding-right: 0.5em;
-    --_ui-list-item-first-padding-top: 0.5em;
-    --_ui-list-item-first-padding-left: 0.5em;
-    --_ui-list-item-last-padding-bottom: 0.5em;
-    --_ui-list-item-last-padding-right: 0.5em;
-    --_ui-list-item-radius: 0.5em;
-    --_ui-list-item-transition:
-      color var(--ui-duration-fast) var(--ui-ease), padding-left var(--ui-duration-fast) var(--ui-ease),
-      background-color var(--ui-duration-fast) var(--ui-ease);
-    --_ui-list-item-color: var(--ui-text-unselected);
-    --_ui-list-item-active-color: var(--ui-text-selected);
-    --_ui-list-item-hover-background: oklch(from var(--ui-ink) l c h / 0.05);
-    --_ui-list-item-down-background: oklch(from var(--ui-ink) l c h / 0.1);
-    --_ui-list-item-active-background: oklch(from var(--ui-ink) l c h / 0.1);
-    --_ui-list-link-color: var(--ui-text-unselected);
-    --_ui-list-link-hover-color: var(--ui-text-hovered);
-    --_ui-list-link-down-color: var(--ui-text-pressed);
-    --_ui-list-link-active-color: var(--ui-text-selected);
-    --_ui-list-link-icon-color: initial;
+    --_ui-list-item-padding-block: var(--ui-list-item-padding-block, 0.5em);
+    --_ui-list-item-padding-left: var(--ui-list-item-padding-left, 0.5em);
+    --_ui-list-item-padding-right: var(--ui-list-item-padding-right, 0.5em);
+    --_ui-list-item-first-padding-top: var(--ui-list-item-first-padding-top, 0.5em);
+    --_ui-list-item-first-padding-left: var(--ui-list-item-first-padding-left, 0.5em);
+    --_ui-list-item-last-padding-bottom: var(--ui-list-item-last-padding-bottom, 0.5em);
+    --_ui-list-item-last-padding-right: var(--ui-list-item-last-padding-right, 0.5em);
+    --_ui-list-item-radius: var(--ui-list-item-radius, 0.5em);
+    --_ui-list-item-transition: var(
+      --ui-list-item-transition,
+      color var(--ui-duration-fast) var(--ui-ease),
+      padding-left var(--ui-duration-fast) var(--ui-ease),
+      background-color var(--ui-duration-fast) var(--ui-ease)
+    );
+    --_ui-list-item-color: var(--ui-list-item-color, var(--ui-text-unselected));
+    --_ui-list-item-active-color: var(--ui-list-item-active-color, var(--ui-text-selected));
+    --_ui-list-item-hover-background: var(--ui-list-item-hover-background, oklch(from var(--ui-ink) l c h / 0.05));
+    --_ui-list-item-down-background: var(--ui-list-item-down-background, oklch(from var(--ui-ink) l c h / 0.1));
+    --_ui-list-item-active-background: var(--ui-list-item-active-background, oklch(from var(--ui-ink) l c h / 0.1));
+    --_ui-list-link-color: var(--ui-list-link-color, var(--ui-text-unselected));
+    --_ui-list-link-hover-color: var(--ui-list-link-hover-color, var(--ui-text-hovered));
+    --_ui-list-link-down-color: var(--ui-list-link-down-color, var(--ui-text-pressed));
+    --_ui-list-link-active-color: var(--ui-list-link-active-color, var(--ui-text-selected));
+    --_ui-list-link-icon-color: var(--ui-list-link-icon-color, initial);
     --_ui-list-child-item-padding-block: 0.5em;
     --_ui-list-child-item-padding-left: 0.5em;
     --_ui-list-child-item-padding-right: 0.5em;
@@ -831,6 +848,16 @@
   :is(.ui.list, .ui.list .list) > a.active.item,
   :is(.ui.selection.list, .ui.selection.list .list) > .active.item {
     color: var(--_ui-list-link-active-color);
+  }
+
+  /* A selected item's marker:  `--ui-list-marker-active-color` (the "you are here" dot), else the marker colour. */
+  :host(:state(in-list)) > .active.item::before,
+  :is(.ui.list, .ui.list .list) > .active.item::before {
+    color: var(--_ui-list-marker-active-color, var(--_ui-list-marker-color, inherit));
+  }
+  :host(:state(in-list)) > :is(a, button).active.item::before,
+  :is(.ui.list, .ui.list .list) > a.active.item::before {
+    color: var(--_ui-list-marker-active-color, var(--_ui-list-marker-color, var(--ui-text-color)));
   }
 
   /* Hovered link item:  its icon brightens. */

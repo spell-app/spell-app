@@ -3,7 +3,10 @@
  * - Markup:  `div.brand.field` > `.row` (`.label`, `.actions`, `.value`, `.info` > `.tip`), `.control`, `.help`,
  *   `.error.message`.
  * - Label row:  13px medium label at the start;  actions, the value (12px mono, muted) and the info icon (faded,
- *   its tip a dark bubble under it) at the end.  The control sits right under the row.
+ *   its tip a dark bubble under it) at the end.  Actions never grow the row (a taller pill overhangs it).  The
+ *   control sits right under the row;  a slotted `<ui-menu>` gets a block host, so it stretches too.
+ * - A slotted input, select or dropdown is COMPACT, the inspector's 30px field:  set through ITS public tokens (see
+ *   "Compact controls").
  * - Public tokens (`--ui-brand-field-*`) are never declared here:  read through private aliases.  Defaults:  the
  *   `spell-brand` roles, else plain `--ui-*` tokens.
  */
@@ -61,10 +64,13 @@
     content: " *";
     color: var(--_ui-brand-field-error-color);
   }
+  /* Actions keep the row's height:  a taller pill (a mini `<ui-button>`) overhangs it evenly, so the row never grows
+     when one appears (a Reset shown once the value changes) and the control under it never moves */
   .brand.field > .row > .actions {
     display: inline-flex;
     align-items: center;
     gap: 0.25em;
+    height: 1.25em;
   }
   .brand.field > .row > .value {
     color: var(--_ui-brand-field-value-color);
@@ -147,6 +153,37 @@
     )) {
     flex: 1 1 auto;
     min-width: 0;
+  }
+  /* `<ui-menu>`'s host is `display: contents` (its root is the box), so the rule above would reach no box:  a block
+     host, which the row stretches;  a `segmented` menu then fills it with `alignment="fluid"`.
+     - Beats the menu's own `:host` rule:  a `::slotted()` rule comes from the outer tree, which wins */
+  .brand.field > .control > ::slotted(ui-menu:not([hidden])) {
+    display: block;
+  }
+
+  /*
+   * ## Compact controls:  the inspector's fields are 30px tall (Claude Design's:  14px, weight 500, 6px corners)
+   * - A DIRECTLY slotted input, select or dropdown, through their public tokens, as a page would set them:  so this
+   *   overrides values set above the field, on purpose (issue I16).  A value set on the control itself (its `style`, a
+   *   page rule) still wins, being the outer tree's;  its own `size` sets its scale back.
+   * - Not a control nested deeper (a row of inputs in a slotted `<div>`):  the page sizes those.
+   * - Height = line-height + 2 x padding + 2 x border:  at 14px, 17 + 2 x 5.5 + 2 (input), 16.8 + 2 x 5.6 + 2 (select);
+   *   a selection dropdown's `min-height`, 16.8 + 2 x 6.6, holds its border.  Each value in the control's own `em`.
+   */
+  .brand.field > .control > ::slotted(:is(ui-input, ui-select, ui-dropdown)) {
+    --ui-scale: var(--ui-size-small);
+    --ui-font-weight-normal: 500;
+    --ui-input-padding-block: calc(5.5em / 14);
+    --ui-input-padding-inline: calc(12em / 14);
+    --ui-input-radius: calc(6em / 14);
+    --ui-select-padding-block: calc(5.6em / 14);
+    --ui-select-padding-inline: calc(12em / 14);
+    --ui-select-radius: calc(6em / 14);
+    --ui-dropdown-padding-block: calc(6.6em / 14);
+    --ui-dropdown-padding-inline: calc(12em / 14);
+    --ui-dropdown-radius: calc(6em / 14);
+    /* the dropdown sets no weight of its own:  it inherits this */
+    font-weight: 500;
   }
 
   /* ## Help and error text */

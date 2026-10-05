@@ -223,6 +223,22 @@ describe("<ui-label> colour (Fomantic:  only its own, or its `labels` group's)",
     const plainGroup = await roots(`<ui-segment color="red"><ui-labels><ui-label>A</ui-label></ui-labels></ui-segment>`)
     expect(getComputedStyle(plainGroup.inner).backgroundColor).toBe(getComputedStyle(plainGroup.plain).backgroundColor)
   })
+
+  it("`tinted`:  the colour's soft fill (`--ui-color-background`) and text colour (`--ui-color-text`)", async () => {
+    const { root } = await label(`<ui-label tinted color="red">Live</ui-label>`)
+    expect(root.className).toBe("ui red tinted label")
+    const probe = await ElementFixture.render(
+      `<span class="ui-red" style="background: var(--ui-color-background); color: var(--ui-color-text)"></span>`
+    )
+    expect(getComputedStyle(root).backgroundColor).toBe(getComputedStyle(probe).backgroundColor)
+    expect(getComputedStyle(root).color).toBe(getComputedStyle(probe).color)
+    const solid = await label(`<ui-label color="red">Live</ui-label>`)
+    expect(getComputedStyle(root).backgroundColor).not.toBe(getComputedStyle(solid.root).backgroundColor)
+    const uncoloured = await roots(`<div><ui-label tinted>Plain</ui-label></div>`)
+    expect(getComputedStyle(uncoloured.inner).backgroundColor).toBe(getComputedStyle(uncoloured.plain).backgroundColor)
+    const group = await roots(`<ui-labels tinted color="red"><ui-label>A</ui-label></ui-labels>`)
+    expect(getComputedStyle(group.inner).backgroundColor).toBe(getComputedStyle(root).backgroundColor)
+  })
 })
 
 describe("<ui-label> tokens from outside", () => {

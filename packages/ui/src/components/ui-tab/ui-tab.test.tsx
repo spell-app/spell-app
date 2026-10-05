@@ -555,6 +555,30 @@ describe("<ui-tabs> tokens from outside", () => {
     const { host } = await tabs(`tabular attached style="--ui-tabs-pane-margin: 2em 0 0"`)
     expect(margin(host)).toBe("0px")
   })
+
+  it("gives the tab list no block margins of a menu's:  the pane margin alone spaces it (design-system I29)", async () => {
+    for (const attributes of ["", "pointing secondary", "text"]) {
+      const { menu, panes } = await tabs(attributes)
+      const style = getComputedStyle(menu)
+      expect([style.marginTop, style.marginBottom], attributes).toEqual(["0px", "0px"])
+      expect(boxOf(panes[0]!).getBoundingClientRect().top - menu.getBoundingClientRect().bottom).toBeCloseTo(16, 0)
+    }
+    const { menu } = await tabs(`style="--ui-tabs-menu-margin: 6px"`)
+    expect([getComputedStyle(menu).marginTop, getComputedStyle(menu).marginBottom]).toEqual(["6px", "6px"])
+  })
+
+  it("takes the tab list's height and its labels' font, case and tracking from `--ui-menu-*` (design-system I29)", async () => {
+    const { menu, buttons } = await tabs(
+      `style="--ui-menu-min-height: 0px; --ui-menu-font-family: monospace; --ui-menu-item-transform: uppercase; ` +
+        `--ui-menu-item-letter-spacing: 2px; --ui-menu-item-padding: 4px 8px"`
+    )
+    expect(getComputedStyle(menu).minHeight).toBe("0px")
+    expect(Math.round(menu.getBoundingClientRect().height)).toBeLessThan(30)
+    const label = getComputedStyle(buttons[0]!)
+    expect(label.fontFamily).toBe("monospace")
+    expect(label.textTransform).toBe("uppercase")
+    expect(label.letterSpacing).toBe("2px")
+  })
 })
 
 describe("<ui-tabs> accessibility", () => {

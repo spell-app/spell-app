@@ -32,7 +32,11 @@ export const brandFieldVocabulary = {
       kind: "string",
       description: 'Readout at the end of the label row (`100%`, `+8°`);  or `slot="value"`.'
     },
-    { name: "info", kind: "string", description: "Tip shown from an info icon at the end of the label row." },
+    {
+      name: "info",
+      kind: "string",
+      description: 'Tip shown from an info icon at the end of the label row;  `slot="info"` is the rich version.'
+    },
     { name: "help", kind: "string", description: 'Help text under the control;  or `slot="help"`.' },
     {
       name: "error",
@@ -54,8 +58,12 @@ export const brandFieldVocabulary = {
   slots: [
     { name: "", description: "The control:  `<ui-input>`, `<ui-slider>`, `<ui-select>`, a native input ..." },
     { name: "label", description: "Rich label (instead of `label`)." },
-    { name: "actions", description: "Small buttons at the end of the label row (`Reset`, `Auto`)." },
+    {
+      name: "actions",
+      description: "Small buttons at the end of the label row (`Reset`, `Auto`);  a taller one never grows the row."
+    },
     { name: "value", description: "Rich value readout (instead of `value`)." },
+    { name: "info", description: "Rich info tip (instead of `info`):  bold words, line breaks." },
     { name: "help", description: "Rich help text (instead of `help`)." }
   ],
   parts: [

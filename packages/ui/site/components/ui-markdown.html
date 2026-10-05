@@ -192,6 +192,12 @@
                     heading (property `headingLevelOffset`: `headingOffset` is WebKit's native `headingoffset`).
                   - `headings` lists the headings (`{ level, text, id }`), e.g. for a table of contents; `ui-render` fires with
                     them after each render.
+                  - Scrolling to a heading from outside: `reveal(id)` scrolls to it and puts `#id` in the address. A plain
+                    `<a href="#id">` elsewhere on the page works too: the element follows `hashchange`, and a page opened
+                    with `#id` in its address lands there after the first render. `--ui-markdown-heading-scroll-margin`
+                    leaves room for a sticky header.
+                  - `skip-title` drops the text's leading `#` title (the page shows its own headline above a README); the
+                    text itself keeps it.
                   - `editable`: Write / Preview tabs. The preview uses spell's own markdown engine (`@spell-app/markdown`,
                     on spell's parser), in a lazy chunk of its own, and draws with `ui-*` elements: headers, lists, tables,
                     messages for alerts, checkboxes for tasks. Each keystroke is a `ui-change` and makes the element dirty;
@@ -273,6 +279,14 @@
                   ui-markdown.readme {
                     --ui-markdown-heading-color: var(--ui-grey);
                   }
+                  /* serif headings, no rule under them, a hairline `hr` */
+                  ui-markdown.guide {
+                    --ui-markdown-heading-font-family: var(--ui-font-family-heading);
+                    --ui-markdown-heading-weight: 700;
+                    --ui-markdown-heading-rule: none;
+                    --ui-markdown-heading-rule-gap: 0;
+                    --ui-markdown-hr-height: 1px;
+                  }
                 </script>
               </ui-code>
               <ui-markdown>Edit a value below to try it.</ui-markdown>
@@ -283,7 +297,9 @@
               <ui-markdown>
                 <script type="text/markdown">
                   Markdown is ours, not Fomantic's, so no Fomantic theme restyles it: the theme picker in the header changes only
-                  the page around it. Its colours follow the light or dark scheme.
+                  the page around it. Its colours follow the light or dark scheme. The Spell Brand theme (`spell-brand`) gives it
+                  the brand's Design Guide look: bold serif headings without a rule, a hairline `hr`, bold text and inline code in
+                  the strong ink.
                 </script>
               </ui-markdown>
             </ui-section>

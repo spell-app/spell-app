@@ -88,6 +88,15 @@ export const brandColorRangeVocabulary = {
     },
     { name: "details", kind: "keyOnly", description: "Each chip's details tip, on hover and focus." },
     {
+      name: "numbers",
+      kind: "enum",
+      values: ["shown", "none"],
+      default: "shown",
+      description:
+        "Step numbers under the chips:  `shown`, or `none` (no numbers, nor their row:  a page numbering many " +
+        "ladders once, in a header row)."
+    },
+    {
       name: "strip",
       kind: "keyOnly",
       description: "A small strip of 17 dots instead of chips (the Chooser's folded Variants header)."

@@ -92,31 +92,21 @@
         padding-block: 20px;
         --ui-brand-logo-height: 36px;
       }
-      /*
-       * the links:  a `text` menu, no padding, body-coloured, the current one strong.
-       * - HACK:  a `text` menu sets its item padding and colour as PRIVATE tokens, so the public `--ui-menu-*` ones
-       *   can't reach it (as I21's vertical / secondary menus):  the documented `menu` / `item` parts instead.
-       */
+      /* the links:  a `text` menu, no padding, body-coloured, the current one strong */
       .nav > ui-menu,
       footer ui-menu {
+        --ui-menu-text-margin: 0;
+        --ui-menu-text-item-padding: 0;
+      }
+      .nav > ui-menu {
         font: 500 14px/1 var(--spell-font-sans);
         --ui-font-size: 14px;
-      }
-      .nav > ui-menu::part(menu),
-      footer ui-menu::part(menu) {
-        margin: 0;
-      }
-      .nav > ui-menu ui-item::part(item),
-      footer ui-menu ui-item::part(item) {
-        padding: 0;
-        color: var(--spell-text-body);
-      }
-      .nav > ui-menu ui-item:not(:first-child)::part(item) {
-        margin-inline-start: 26px;
-      }
-      .nav > ui-menu ui-item[selected]::part(item),
-      .nav > ui-menu ui-item::part(item):hover {
-        color: var(--spell-text-strong);
+        --ui-menu-gap: 26px;
+        --ui-menu-item-weight: 500;
+        --ui-menu-text-active-weight: 500;
+        --ui-menu-text-item-color: var(--spell-text-body);
+        --ui-menu-text-hover-color: var(--spell-text-strong);
+        --ui-menu-active-color: var(--spell-text-strong);
       }
       .nav > .actions {
         margin-left: auto;
@@ -131,6 +121,7 @@
       }
       .nav > .actions > ui-button.lavender {
         --ui-button-padding-inline: 18px;
+        --ui-button-icon-spacing: 6px;
       }
 
       /* ## Hero */
@@ -212,6 +203,7 @@
         --ui-segment-radius: 18px;
         --ui-segment-padding: 16px 18px;
       }
+      /* HACK:  a segment has no token to stack its content (display / gap;  plan-doc issue I43):  the `segment` part */
       .demo .cards > ui-segment::part(segment) {
         display: flex;
         flex-direction: column;
@@ -238,7 +230,11 @@
         --ui-segment-border-color: transparent;
         --ui-segment-shadow: none;
       }
-      /* the host is `display: contents`:  the segment box itself fades */
+      /*
+       * the host is `display: contents`:  the segment box itself fades.
+       * - HACK:  a segment has no dimmed state but `disabled` (which also greys its text and drops clicks), nor a
+       *   token for its opacity (plan-doc issue I43):  the `segment` part
+       */
       .preview::part(segment) {
         transition: opacity 0.4s;
       }
@@ -332,20 +328,11 @@
         --ui-label-font-ratio: 1;
         --ui-font-family: var(--spell-font-serif);
         --ui-font-size: 22px;
-        --ui-label-padding-block: 0;
-        --ui-label-padding-inline: 0;
+        /* a 44px disc:  the 22px numeral and 11px around it */
+        --ui-label-circular-size: 44px;
+        --ui-label-circular-padding: 11px;
         flex: none;
         margin: 0;
-      }
-      .how h3 > ui-label::part(label) {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        min-height: 44px;
-        box-sizing: border-box;
-        display: grid;
-        place-items: center;
-        line-height: 1;
       }
       .how .sub {
         font: italic 400 18px/1.3 var(--spell-font-serif);
@@ -394,6 +381,7 @@
       .readable ui-segment {
         --ui-segment-background: var(--ui-surface);
       }
+      /* HACK:  as .cards' segments, no token to stack the content (plan-doc issue I43) */
       .readable ui-segment::part(segment) {
         display: flex;
         flex-direction: column;
@@ -494,16 +482,9 @@
       footer ui-menu {
         font: 400 13px/1 var(--spell-font-sans);
         --ui-font-size: 13px;
-      }
-      footer ui-menu ui-item:not(:first-child)::part(item) {
-        margin-inline-start: 22px;
-      }
-      footer ui-menu ui-item::part(item) {
-        font-weight: 400;
-        color: var(--spell-text-muted);
-      }
-      footer ui-menu ui-item::part(item):hover {
-        color: var(--spell-text-strong);
+        --ui-menu-gap: 22px;
+        --ui-menu-text-item-color: var(--spell-text-muted);
+        --ui-menu-text-hover-color: var(--spell-text-strong);
       }
 
       /* ## Narrow screens:  one column */
@@ -541,9 +522,7 @@
         </ui-menu>
         <div class="actions">
           <ui-button class="plain">Sign in</ui-button>
-          <ui-button class="lavender" href="Spell%20App.spell.html"
-            >Open app <ui-icon name="arrow right"></ui-icon
-          ></ui-button>
+          <ui-button class="lavender" href="Spell%20App.spell.html" icon="arrow right" icon-position="right">Open app</ui-button>
         </div>
       </nav>
 

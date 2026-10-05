@@ -117,10 +117,6 @@
       .palette > .apart {
         margin-top: 14px;
       }
-      /* the steps are numbered once, in the header row (issue:  no attribute hides a range's numbers) */
-      .palette ui-brand-color-range::part(number) {
-        display: none;
-      }
       .note {
         margin: 0;
         font: 400 13px/1.5 var(--spell-font-sans);
@@ -202,6 +198,8 @@
         range.setAttribute("value", set.seed)
         range.setAttribute("anchor", String(set.anchor))
         range.setAttribute("name", set.name)
+        // the steps are numbered once, in the header row
+        range.setAttribute("numbers", "none")
         range.setAttribute("label", label)
         range.setAttribute("copy", copyFormat())
         if (apart) {
@@ -214,7 +212,6 @@
       /** Show `value` (`hex`, `oklch`, `none`) in every chip. */
       function chooseFormat(value) {
         label = value
-        for (const item of format.querySelectorAll("ui-item")) item.toggleAttribute("selected", item.value === value)
         for (const range of palette.querySelectorAll("ui-brand-color-range")) {
           range.setAttribute("label", label)
           range.setAttribute("copy", copyFormat())

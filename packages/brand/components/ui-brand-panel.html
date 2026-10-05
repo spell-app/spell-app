@@ -122,6 +122,40 @@
                   </ui-brand-panel>
                 </ui-docs-example>
               </ui-section>
+
+              <ui-section id="examples-content-info" header="Info tip" collapsible dividing>
+                <ui-docs-example
+                  description='`info` (or `slot="info"`, for bold words and paragraphs):  a tip about the band, shown under it while the pointer is on its title or its fold button has focus.  The Theme Creator&apos;s bands explain each one this way.'
+                >
+                  <ui-brand-panel header="Theme" color="accent" collapsible class="brand-docs-panel">
+                    <span slot="info"
+                      >A <b>theme</b> is the look of an app made with Spell: its colours, fonts and shapes.</span
+                    >
+                    <ui-brand-panel header="Shape" collapsible info="Corners and shadows, for every card and button.">
+                      <ui-brand-field label="Corners" value="Round">
+                        <ui-slider min="0" max="3" value="2"></ui-slider>
+                      </ui-brand-field>
+                    </ui-brand-panel>
+                  </ui-brand-panel>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-fold-icon" header="Fold icon" collapsible dividing>
+                <ui-docs-example
+                  description="`fold-icon`:  where a band's chevron sits.  `end` (the panel's default) at the far end of the band, after any actions;  `start` before the title, as a plain `<ui-section>`'s."
+                >
+                  <div class="brand-docs-row">
+                    <ui-brand-panel header="Preview" collapsible class="brand-docs-panel">
+                      <ui-button slot="actions" size="mini" circular basic icon="moon outline">Dark</ui-button>
+                      <p>fold-icon="end"</p>
+                    </ui-brand-panel>
+                    <ui-brand-panel header="Preview" collapsible fold-icon="start" class="brand-docs-panel">
+                      <ui-button slot="actions" size="mini" circular basic icon="moon outline">Dark</ui-button>
+                      <p>fold-icon="start"</p>
+                    </ui-brand-panel>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
             </ui-section>
 
             <ui-section id="examples-variations" header="Variations" collapsible dividing>

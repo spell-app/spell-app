@@ -56,6 +56,7 @@
     --_ui-toast-mobile-width: var(--ui-toast-mobile-width, 280px);
     --_ui-toast-radius: var(--ui-toast-radius, var(--ui-radius));
     --_ui-toast-padding: var(--ui-toast-padding, 0.78571429em 1em);
+    --_ui-toast-font-size: var(--ui-toast-font-size, var(--ui-font-size));
     --_ui-toast-box-margin: var(--ui-toast-box-margin, 0.5em);
     --_ui-toast-background: var(--ui-toast-background, var(--ui-surface));
     --_ui-toast-color: var(--ui-toast-color, var(--ui-text-color));
@@ -92,7 +93,7 @@
     max-width: 100%;
     margin: 0 0 var(--_ui-toast-box-margin);
     border-radius: var(--_ui-toast-radius);
-    font-size: var(--ui-font-size);
+    font-size: var(--_ui-toast-font-size);
     line-height: var(--ui-line-height);
     cursor: default;
     will-change: transform, opacity;

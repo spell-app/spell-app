@@ -41,6 +41,24 @@ function changes(host: Element) {
   return details
 }
 
+describe("<ui-brand-color-range> numbers", () => {
+  it('`numbers="none"` leaves the step numbers out, and their row', async () => {
+    const shown = await render(`<ui-brand-color-range value="#8E96B5" style="width: 680px"></ui-brand-color-range>`)
+    const bare = await render(
+      `<ui-brand-color-range value="#8E96B5" numbers="none" style="width: 680px"></ui-brand-color-range>`
+    )
+    expect(bare.host.shadowRoot!.querySelectorAll("[part~=number]")).toHaveLength(0)
+    expect(bare.chips).toHaveLength(17)
+    const height = (host: Element) => host.shadowRoot!.querySelector("ol")!.getBoundingClientRect().height
+    const chip = bare.chips[0]!.getBoundingClientRect().height
+    expect(height(bare.host)).toBeCloseTo(chip, 0)
+    expect(height(shown.host)).toBeGreaterThan(height(bare.host))
+    bare.host.setAttribute("numbers", "shown")
+    await ElementFixture.tick()
+    expect(bare.host.shadowRoot!.querySelectorAll("[part~=number]")).toHaveLength(17)
+  })
+})
+
 describe("<ui-brand-color-range>", () => {
   it("draws the 17 steps of `Palette.generateScale()`, named, numbered, the base colour's ringed", async () => {
     const { host, chips } = await render(`<ui-brand-color-range value="#8E96B5" name="brand"></ui-brand-color-range>`)

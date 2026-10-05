@@ -95,6 +95,33 @@
                     <ui-slider min="-40" max="40" step="8" value="8"></ui-slider>
                   </ui-brand-field>
                 </ui-docs-example>
+                <ui-docs-example
+                  description='`slot="info"`:  the rich tip, for bold words and line breaks (the Color Set Chooser&apos;s tips).'
+                >
+                  <ui-brand-field label="Vibrancy" value="100%" class="brand-docs-panel">
+                    <span slot="info"
+                      ><b>How colourful the middle steps are.</b><br />100% keeps the base colour's own chroma; lower
+                      greys the ladder, higher pushes it.</span
+                    >
+                    <ui-slider min="0" max="200" step="20" value="100"></ui-slider>
+                  </ui-brand-field>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-menu" header="Menu" collapsible dividing>
+                <ui-docs-example
+                  description='A slotted `<ui-menu>` stretches across the field like any control:  here a segmented one, `alignment="fluid"` (the Theme Creator&apos;s choices).'
+                >
+                  <ui-brand-field label="Corners" class="brand-docs-panel">
+                    <span slot="info">How <b>rounded</b> buttons, cards and fields are.</span>
+                    <ui-menu appearance="segmented" alignment="fluid" equal link size="small">
+                      <ui-item value="s">Sharp</ui-item>
+                      <ui-item value="m">Soft</ui-item>
+                      <ui-item value="l" selected>Round</ui-item>
+                      <ui-item value="pill">Pill</ui-item>
+                    </ui-menu>
+                  </ui-brand-field>
+                </ui-docs-example>
               </ui-section>
 
               <ui-section id="examples-content-rich-label" header="Rich label and value" collapsible dividing>

@@ -8,7 +8,7 @@ import { brandColorRangeVocabulary } from "./ui-brand-color-range.vocabulary.en"
 import { BrandColorRangeFallback } from "./ui-brand-color-range.fallback"
 import { BrandColorRangeHost } from "./BrandColorRangeHost"
 import { ColorLadder } from "./ColorLadder"
-import { BRAND_COLOR, CLASSES, type BrandColorRangeVocabulary } from "./ui-brand-color-range.types"
+import { BRAND_COLOR, CLASSES, NO_NUMBERS, type BrandColorRangeVocabulary } from "./ui-brand-color-range.types"
 
 import "$/brand/components/ui-brand-color"
 
@@ -18,7 +18,8 @@ import rangeCSS from "./ui-brand-color-range.css?inline"
  * ### `<ui-brand-color-range>`
  * A 17-step ladder from ONE base colour (`Palette.generateScale()`), as the Color Set Chooser's Variants row:
  * `<ol class="range color brand" part="range">`, one `<li part="step">` per step holding a `<ui-brand-color>` (named
- * `<name>-<step>`) and the step's number under it.  The base colour's chip is `selected` (the double ring).
+ * `<name>-<step>`) and the step's number under it (`numbers="none"`:  no numbers, nor their row).  The base colour's
+ * chip is `selected` (the double ring).
  * - `label`, `contrast`, `copy` and `details` are handed to every chip;  chips fill their cells
  *   (`--_ui-brand-color-fit`).
  * - `strip`:  17 small dots instead (the Chooser's folded Variants header), one image named for the ladder.
@@ -110,9 +111,11 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
                 details={UIBrandColorRange.flag(this.attrs.details)}
                 selected={UIBrandColorRange.flag(this.ladder()?.anchor === step)}
               />
-              <span class={CLASSES.number} part={this.part("number")} aria-hidden="true">
-                {step}
-              </span>
+              <Show when={this.attrs.numbers !== NO_NUMBERS}>
+                <span class={CLASSES.number} part={this.part("number")} aria-hidden="true">
+                  {step}
+                </span>
+              </Show>
             </li>
           )}
         </For>

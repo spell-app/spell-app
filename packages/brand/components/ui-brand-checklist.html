@@ -56,6 +56,18 @@
       .checklist-row > .checklist-card {
         flex: 1 1 220px;
       }
+      /* a check's title over its description line (the Align example, the Theming playground) */
+      .checklist-title {
+        display: block;
+        font-weight: 500;
+        color: var(--spell-text-strong, var(--ui-text-color));
+      }
+      .checklist-note {
+        display: block;
+        margin-top: 2px;
+        font-size: 12px;
+        color: var(--spell-text-muted, var(--ui-text-muted));
+      }
       .checklist-log {
         margin: 0;
         color: var(--spell-text-muted, var(--ui-text-muted));
@@ -229,6 +241,42 @@
                   </div>
                 </ui-docs-example>
               </ui-section>
+              <ui-section id="examples-variations-align" header="Align" collapsible dividing>
+                <ui-docs-example
+                  description="`--ui-brand-checklist-align`:  `center` (the default) puts the mark beside the middle of a check's text;  `start` beside its FIRST line, for a title over a description (the Spell Docs page's “What you'll need”)."
+                >
+                  <div class="checklist-row">
+                    <div class="checklist-card">
+                      <ui-brand-checklist step="3" aria-label="Centred marks">
+                        <ui-brand-check
+                          ><b class="checklist-title">A Spell account</b
+                          ><small class="checklist-note">Sign up in seconds.</small></ui-brand-check
+                        >
+                        <ui-brand-check
+                          ><b class="checklist-title">An idea</b
+                          ><small class="checklist-note">Try a small one first.</small></ui-brand-check
+                        >
+                      </ui-brand-checklist>
+                    </div>
+                    <div class="checklist-card">
+                      <ui-brand-checklist
+                        step="3"
+                        aria-label="Marks on the first line"
+                        style="--ui-brand-checklist-align: start"
+                      >
+                        <ui-brand-check
+                          ><b class="checklist-title">A Spell account</b
+                          ><small class="checklist-note">Sign up in seconds.</small></ui-brand-check
+                        >
+                        <ui-brand-check
+                          ><b class="checklist-title">An idea</b
+                          ><small class="checklist-note">Try a small one first.</small></ui-brand-check
+                        >
+                      </ui-brand-checklist>
+                    </div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
             </ui-section>
           </ui-tab>
 
@@ -304,6 +352,10 @@
                   ancestor or `:root`. The colours come from the `spell-brand` theme's roles (`--spell-accent`,
                   `--spell-accent-soft-hover`, `--spell-text-subtle`, `--spell-border-default` ...), and plain Spell
                   UI tokens without it. Edit a value below to try it.
+
+                  - The defaults shown are the `sans` font's; `font="serif"` reads the same tokens with its own (15px
+                    text, 19px marks, 10px to the text and between lines), so a value you set wins over either.
+                  - `--ui-brand-checklist-align`: try `start` on the third card, a title over a description.
                 </script>
               </ui-markdown>
               <ui-docs-tokens family="ui-brand-checklist" playground>
@@ -321,6 +373,18 @@
                       <ui-brand-check checked>Drink water</ui-brand-check>
                       <ui-brand-check>Read</ui-brand-check>
                       <ui-brand-check>Move body</ui-brand-check>
+                    </ui-brand-checklist>
+                  </div>
+                  <div class="checklist-card">
+                    <ui-brand-checklist step="3" aria-label="What you'll need">
+                      <ui-brand-check
+                        ><b class="checklist-title">A Spell account</b
+                        ><small class="checklist-note">Sign up in seconds.</small></ui-brand-check
+                      >
+                      <ui-brand-check
+                        ><b class="checklist-title">An idea</b
+                        ><small class="checklist-note">Try a small one first.</small></ui-brand-check
+                      >
                     </ui-brand-checklist>
                   </div>
                 </div>

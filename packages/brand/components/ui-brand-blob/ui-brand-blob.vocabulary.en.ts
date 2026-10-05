@@ -29,9 +29,11 @@ export const brandBlobVocabulary = {
     {
       name: "shape",
       kind: "enum",
-      values: ["organic", "mound"],
+      values: ["organic", "mound", "wave"],
       default: "organic",
-      description: "`organic` (a soft egg) or `mound` (a hill rising from the edge, flat side out)."
+      description:
+        "`organic` (a soft egg), `mound` (a hill rising from the edge, flat side out) or `wave` (a corner wash with an " +
+        "S-curved edge, as the Brand Montage poster's;  flush in its corner, no overhang by default)."
     },
     {
       name: "tone",

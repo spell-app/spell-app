@@ -59,11 +59,18 @@
         --ui-brand-color-radius: 3px;
       }
 
-      /* a block the field's control row stretches, so a segmented menu fills it:  `<ui-menu>`'s host is
-         `display: contents`, so the field's `flex: 1` on the slotted host reaches no box (issue) */
-      .seg {
-        flex: 1 1 auto;
-        min-width: 0;
+      /* the band and field tips:  the original's rich text, 14px, a short gap between paragraphs */
+      .tip {
+        font: var(--spell-type-ui);
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.35;
+      }
+      .tip p {
+        margin: 0;
+      }
+      .tip p + p {
+        margin-top: 8px;
       }
 
       /* ## Right column:  an eyebrow title over a hairline */
@@ -159,15 +166,6 @@
       .tc-app > ui-message ui-icon {
         color: var(--ui-accent-text);
       }
-      /* the badges:  tinted, as the original's (a coloured `<ui-label>` is a solid fill) */
-      .tc-live {
-        --ui-label-background: var(--ui-primary-background);
-        --ui-label-color: var(--ui-primary-text);
-      }
-      .tc-tint {
-        --ui-label-background: var(--ui-accent-background);
-        --ui-label-color: var(--ui-accent-text);
-      }
     </style>
   </head>
   <body>
@@ -181,70 +179,81 @@
       <div class="layout">
         <!-- ## The inspector -->
         <ui-brand-panel header="Theme" color="accent" collapsible>
-          <ui-input
-            id="name"
-            size="small"
-            value="Spell"
-            placeholder="Name, e.g. Spell"
-            aria-label="Theme name"
-            title="Used for the file name, e.g. themes/spell.css"
-          ></ui-input>
+          <div slot="info" class="tip">
+            <p>A <b>theme</b> is the look of an app made with Spell:  its colours, fonts and shapes.</p>
+            <p>Give it a <b>name</b>, then adjust the sections below.</p>
+          </div>
+          <!-- a field with no label:  only for its compact control -->
+          <ui-brand-field>
+            <ui-input
+              id="name"
+              value="Spell"
+              placeholder="Name, e.g. Spell"
+              aria-label="Theme name"
+              title="Used for the file name, e.g. themes/spell.css"
+            ></ui-input>
+          </ui-brand-field>
 
           <ui-brand-panel header="Color" collapsible>
-            <ui-brand-field
-              label="Primary"
-              data-key="primary"
-              info="The main action colour:  buttons, checkmarks, progress."
-            >
+            <div slot="info" class="tip">
+              <p>Pick a <b>colour set</b> for each job in the app.</p>
+              <p>Spell chooses the right <b>shade</b> of each set for light and dark mode.</p>
+            </div>
+            <ui-brand-field label="Primary" data-key="primary">
+              <span slot="info">The <b>main action</b> colour:  buttons, checkmarks, progress.</span>
               <ui-brand-color-set class="chips" columns="20" selectable aria-label="Primary"></ui-brand-color-set>
             </ui-brand-field>
-            <ui-brand-field
-              label="Secondary"
-              data-key="secondary"
-              info="For second-choice buttons and quieter highlights."
-            >
+            <ui-brand-field label="Secondary" data-key="secondary">
+              <span slot="info">For <b>second-choice</b> buttons and quieter highlights.</span>
               <ui-brand-color-set class="chips" columns="20" selectable aria-label="Secondary"></ui-brand-color-set>
             </ui-brand-field>
-            <ui-brand-field label="Accent" data-key="accent" info="A warm touch for tips, streaks and badges.">
+            <ui-brand-field label="Accent" data-key="accent">
+              <span slot="info">A <b>warm touch</b> for tips, streaks and badges.</span>
               <ui-brand-color-set class="chips" columns="20" selectable aria-label="Accent"></ui-brand-color-set>
             </ui-brand-field>
-            <ui-brand-field label="Neutral" data-key="neutral" info="Tints the backgrounds, borders and text.">
+            <ui-brand-field label="Neutral" data-key="neutral">
+              <span slot="info">Tints the <b>backgrounds, borders and text</b>.</span>
               <ui-brand-color-set class="chips" columns="20" selectable aria-label="Neutral"></ui-brand-color-set>
             </ui-brand-field>
-            <ui-brand-field
-              label="Dark mode surfaces"
-              info="Which colour the dark backgrounds are made from.  Primary feels richer, Neutral calmer."
-            >
-              <div class="seg">
-                <ui-menu data-key="darkFrom" appearance="segmented" alignment="fluid" equal link size="small">
-                  <ui-item value="primary" selected>Primary</ui-item>
-                  <ui-item value="neutral">Neutral</ui-item>
-                </ui-menu>
-              </div>
+            <ui-brand-field label="Dark mode surfaces">
+              <span slot="info">
+                Which colour the <b>dark backgrounds</b> are made from.<br /><br />
+                <b>Primary</b> feels richer.<br />
+                <b>Neutral</b> feels calmer.
+              </span>
+              <ui-menu data-key="darkFrom" appearance="segmented" alignment="fluid" equal link size="small">
+                <ui-item value="primary" selected>Primary</ui-item>
+                <ui-item value="neutral">Neutral</ui-item>
+              </ui-menu>
             </ui-brand-field>
           </ui-brand-panel>
 
           <ui-brand-panel header="Type" collapsible>
-            <ui-brand-field label="Headings" info="The font for titles and headings.  Palatino is Spell's signature.">
-              <ui-select data-key="head" value="palatino" fluid size="small">
+            <div slot="info" class="tip">
+              <p>The <b>fonts</b> and <b>text size</b> the app uses.</p>
+              <p>All choices are already installed on people’s computers, so nothing downloads.</p>
+            </div>
+            <ui-brand-field label="Headings">
+              <span slot="info">The font for <b>titles and headings</b>.<br /><br />Palatino is Spell’s signature.</span>
+              <ui-select data-key="head" value="palatino" fluid>
                 <ui-item value="palatino">Palatino (Spell)</ui-item>
                 <ui-item value="system">System UI</ui-item>
                 <ui-item value="georgia">Georgia</ui-item>
               </ui-select>
             </ui-brand-field>
-            <ui-brand-field label="Body" info="The font for everything else:  labels, buttons, paragraphs.">
-              <ui-select data-key="body" value="system" fluid size="small">
+            <ui-brand-field label="Body">
+              <span slot="info">The font for <b>everything else</b>:  labels, buttons, paragraphs.</span>
+              <ui-select data-key="body" value="system" fluid>
                 <ui-item value="system">System UI (recommended)</ui-item>
                 <ui-item value="optima">Optima · Candara</ui-item>
                 <ui-item value="verdana">Verdana · DejaVu Sans</ui-item>
               </ui-select>
             </ui-brand-field>
-            <ui-brand-field
-              id="size-field"
-              label="Text size"
-              value="16px"
-              info="The size of everyday text.  Everything else, headings and buttons included, grows and shrinks with it."
-            >
+            <ui-brand-field id="size-field" label="Text size" value="16px">
+              <span slot="info"
+                >The size of <b>everyday text</b>.<br /><br />Everything else, headings and buttons included, grows and
+                shrinks with it.</span
+              >
               <ui-button id="size-reset" slot="actions" size="mini" circular basic icon="rotate left" hidden
                 >Reset</ui-button
               >
@@ -253,31 +262,34 @@
           </ui-brand-panel>
 
           <ui-brand-panel header="Shape" collapsible>
-            <ui-brand-field label="Corners" info="How rounded buttons, cards and fields are.">
-              <div class="seg">
-                <ui-menu data-key="radius" appearance="segmented" alignment="fluid" equal link size="small">
-                  <ui-item value="s">Sharp</ui-item>
-                  <ui-item value="m">Soft</ui-item>
-                  <ui-item value="l" selected>Round</ui-item>
-                  <ui-item value="pill">Pill</ui-item>
-                </ui-menu>
-              </div>
+            <div slot="info" class="tip">
+              <p>How <b>rounded</b> things are, and how much they <b>lift</b> off the page.</p>
+            </div>
+            <ui-brand-field label="Corners">
+              <span slot="info">How <b>rounded</b> buttons, cards and fields are.</span>
+              <ui-menu data-key="radius" appearance="segmented" alignment="fluid" equal link size="small">
+                <ui-item value="s">Sharp</ui-item>
+                <ui-item value="m">Soft</ui-item>
+                <ui-item value="l" selected>Round</ui-item>
+                <ui-item value="pill">Pill</ui-item>
+              </ui-menu>
             </ui-brand-field>
-            <ui-brand-field label="Depth" info="How much cards lift off the page.  Glow adds a soft halo in dark mode.">
-              <div class="seg">
-                <ui-menu data-key="shadow" appearance="segmented" alignment="fluid" equal link size="small">
-                  <ui-item value="flat">Flat</ui-item>
-                  <ui-item value="soft" selected>Soft</ui-item>
-                  <ui-item value="glow">Glow</ui-item>
-                </ui-menu>
-              </div>
+            <ui-brand-field label="Depth">
+              <span slot="info"
+                >How much cards <b>lift off</b> the page.<br /><br /><b>Glow</b> adds a soft halo in dark mode.</span
+              >
+              <ui-menu data-key="shadow" appearance="segmented" alignment="fluid" equal link size="small">
+                <ui-item value="flat">Flat</ui-item>
+                <ui-item value="soft" selected>Soft</ui-item>
+                <ui-item value="glow">Glow</ui-item>
+              </ui-menu>
             </ui-brand-field>
           </ui-brand-panel>
         </ui-brand-panel>
 
         <div class="right">
           <!-- ## The preview:  real elements in the theme being made -->
-          <ui-section class="tool" collapsible basic>
+          <ui-section class="tool" collapsible basic fold-icon="end">
             <span slot="header" class="eyebrow">Preview</span>
             <ui-menu
               slot="actions"
@@ -318,8 +330,8 @@
                 <div class="tc-row">
                   <ui-button secondary size="small">Secondary</ui-button>
                   <ui-button basic size="small">Basic</ui-button>
-                  <ui-label size="small" class="tc-live">Live</ui-label>
-                  <ui-label size="small" class="tc-tint">Accent</ui-label>
+                  <ui-label size="small" tinted color="primary">Live</ui-label>
+                  <ui-label size="small" tinted color="accent">Accent</ui-label>
                 </div>
                 <ui-message color="accent"
                   ><ui-icon name="bolt"></ui-icon> <b>7-day streak.</b> Keep it going — one habit left
@@ -352,8 +364,8 @@
                 <div class="tc-row">
                   <ui-button secondary size="small">Secondary</ui-button>
                   <ui-button basic size="small">Basic</ui-button>
-                  <ui-label size="small" class="tc-live">Live</ui-label>
-                  <ui-label size="small" class="tc-tint">Accent</ui-label>
+                  <ui-label size="small" tinted color="primary">Live</ui-label>
+                  <ui-label size="small" tinted color="accent">Accent</ui-label>
                 </div>
                 <ui-message color="accent"
                   ><ui-icon name="bolt"></ui-icon> <b>7-day streak.</b> Keep it going — one habit left
@@ -365,7 +377,7 @@
           </ui-section>
 
           <!-- ## The sheet -->
-          <ui-section class="tool" collapsible basic>
+          <ui-section class="tool" collapsible basic fold-icon="end">
             <span slot="header" class="eyebrow">CSS</span>
             <span slot="actions" class="file" id="file">themes/spell.css</span>
             <ui-button
@@ -507,14 +519,9 @@
         chips.addEventListener("ui-change", (event) => update({ [key]: event.detail.value }))
       }
 
-      // the segmented controls:  the menu doesn't move `selected` itself
-      for (const menu of document.querySelectorAll("ui-menu[data-key]")) {
-        menu.addEventListener("ui-select", (event) => {
-          for (const item of menu.querySelectorAll("ui-item"))
-            item.toggleAttribute("selected", item.getAttribute("value") === event.detail.value)
-          update({ [menu.dataset.key]: event.detail.value })
-        })
-      }
+      // the segmented controls (each moves `selected` itself)
+      for (const menu of document.querySelectorAll("ui-menu[data-key]"))
+        menu.addEventListener("ui-select", (event) => update({ [menu.dataset.key]: event.detail.value }))
 
       for (const select of document.querySelectorAll("ui-select[data-key]"))
         select.addEventListener("ui-change", (event) => update({ [select.dataset.key]: event.detail.value }))

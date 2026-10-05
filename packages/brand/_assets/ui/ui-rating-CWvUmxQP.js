@@ -1,1 +1,0 @@
-import{t as e}from"./ui-rating-Che0lS2m.js";export{e as UIRating};

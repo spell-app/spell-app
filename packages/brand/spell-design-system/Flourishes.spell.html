@@ -119,13 +119,14 @@
         --ui-card-header-font-size: 30px;
         --ui-card-header-color: var(--ink);
         --ui-line-height-heading: 1.08;
+        /* a card header pulls itself up by half the BODY line's leading;  the original's headline sits 8px below the badge */
+        --ui-line-height: 1;
+        --ui-header-sub-color: var(--ink);
+        --ui-header-sub-font-size: 17px;
+        --ui-header-sub-margin: 8px 0 0;
       }
       .text > ui-header > ui-header {
-        margin-top: 8px;
-        font-size: 17px;
         letter-spacing: 0;
-        line-height: 1.3;
-        --ui-text-muted: var(--ink);
       }
       .use {
         position: absolute;

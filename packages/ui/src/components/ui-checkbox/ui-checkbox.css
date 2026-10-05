@@ -73,7 +73,10 @@
     --_ui-checkbox-mark-color: var(--ui-checkbox-mark-color, var(--ui-text-selected));
     --_ui-checkbox-mark-size: var(--ui-checkbox-mark-size, 0.8em);
     --_ui-checkbox-checked-background: var(--ui-checkbox-checked-background, var(--_ui-checkbox-background));
-    --_ui-checkbox-checked-border-color: var(--ui-checkbox-checked-border-color, var(--_ui-checkbox-border-color-hover));
+    --_ui-checkbox-checked-border-color: var(
+      --ui-checkbox-checked-border-color,
+      var(--_ui-checkbox-border-color-hover)
+    );
     --_ui-checkbox-checked-mark-color: var(--ui-checkbox-checked-mark-color, var(--_ui-checkbox-mark-color));
     --_ui-checkbox-label-color: var(--ui-checkbox-label-color, var(--ui-text-color));
     --_ui-checkbox-label-color-hover: var(--ui-checkbox-label-color-hover, var(--ui-text-hovered));

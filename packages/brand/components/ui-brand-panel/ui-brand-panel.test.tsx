@@ -55,6 +55,42 @@ describe("<ui-brand-panel>", () => {
     expect(part(host, "content").getAttribute("hidden")).toBe("until-found")
   })
 
+  it('puts each band\'s chevron at its far end, after the actions;  `fold-icon="start"` puts it back', async () => {
+    const host = await ElementFixture.render(`<ui-brand-panel header="Theme" collapsible style="width: 320px">
+      <button slot="actions">Copy</button>
+      <ui-brand-panel header="Color" collapsible><p>fields</p></ui-brand-panel>
+    </ui-brand-panel>`)
+    const inner = host.querySelector("ui-brand-panel")!
+    await ElementFixture.settle()
+    for (const panel of [host, inner]) {
+      const title = part(panel, "title")
+      const icon = part(panel, "fold-icon")
+      expect(icon.parentElement).toBe(title)
+      expect(title.lastElementChild).toBe(icon)
+      expect(getComputedStyle(icon).width).toBe("11px")
+    }
+    const actions = part(host, "actions").getBoundingClientRect()
+    expect(part(host, "fold-icon").getBoundingClientRect().left).toBeGreaterThanOrEqual(actions.right)
+    part(host, "fold-icon").click()
+    await ElementFixture.tick()
+    expect(host.matches(":state(collapsed)")).toBe(true)
+    const start = await ElementFixture.render(
+      `<ui-brand-panel header="Shape" collapsible fold-icon="start"><p>fields</p></ui-brand-panel>`
+    )
+    expect(part(start, "fold-icon").parentElement).toBe(part(start, "toggle"))
+  })
+
+  it("`info` shows the section's tip under a band", async () => {
+    const host = await ElementFixture.render(`<ui-brand-panel header="Theme" collapsible>
+      <span slot="info">A <b>theme</b> is the look of an app.</span><p>fields</p>
+    </ui-brand-panel>`)
+    await ElementFixture.settle()
+    const tip = part(host, "tip")
+    expect(tip.getAttribute("role")).toBe("tooltip")
+    expect(part(host, "toggle").getAttribute("aria-describedby")).toBe(tip.id)
+    expect(getComputedStyle(tip).visibility).toBe("hidden")
+  })
+
   it("draws the box and the bands from its tokens", async () => {
     const host = await ElementFixture.render(`<ui-brand-panel header="Theme"
       style="--ui-brand-panel-background: rgb(1, 2, 3); --ui-brand-panel-header-background: rgb(4, 5, 6);

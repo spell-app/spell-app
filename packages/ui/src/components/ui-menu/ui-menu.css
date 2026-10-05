@@ -29,12 +29,26 @@
  *   above, not on an item.  A variation that swaps a value wins over the page's.
  * - The rows marked (switch) are private:  the menu's classes decide them, so the page never sets them.  The first
  *   / last / only item corners derive from `--ui-menu-radius`.
+ * - VARIATION TOKENS:  what `vertical`, `secondary`, `text` and `segmented` swap is a public token of its own,
+ *   `--ui-menu-<variation>-<token>` (Fomantic's `@secondaryItemPadding`, `@textMenuItemColor` ...), read through its
+ *   alias in the variation's block, which writes the generic alias from it:
+ *   `--_ui-menu-item-padding: var(--_ui-menu-secondary-item-padding)`.  So a page restyles a secondary menu with
+ *   `--ui-menu-secondary-item-padding`, while a theme's `:root` `--ui-menu-item-padding` (the BASE menu's) never
+ *   leaks into a secondary, text or tabular one.  The generic tokens still reach whatever a variation leaves alone
+ *   (a text menu's `--ui-menu-active-color`, a secondary menu's `--ui-menu-active-weight`).  Listed at each block.
+ *   `pointing`, `tabular`, `inverted` still swap privately.
  *
  * | Token                               | What                                  | Changed by                           |
  * | ----------------------------------- | ------------------------------------- | ------------------------------------ |
  * | `--_ui-menu-layout` (switch)        | `horizontal` / `vertical` (queried)   | `vertical`                           |
  * | `--_ui-menu-stackable` (switch)     | `0` / `1` (queried, on mobile)        | `stackable`                          |
+ * | `--ui-menu-margin`                  | block margin beside siblings (`1em`)  | text (`--ui-menu-text-margin`)       |
+ * | `--ui-menu-min-height`              | the bar's min height                  | segmented (`0`)                      |
+ * | `--ui-menu-gap`                     | gap between items (`0`)               | segmented                            |
+ * | `--ui-menu-font-family`             | the menu's (and tab labels') font     | --                                   |
  * | `--ui-menu-item-display`            | item box display                      | vertical (`block`)                   |
+ * | `--ui-menu-item-min-height`         | item min height (`0`;  `display: flex` centres in it) | --                   |
+ * | `--ui-menu-item-transform` / `-letter-spacing` | item text case / tracking (inherited) | --                       |
  * | `--ui-menu-item-padding`            | item padding                          | secondary, pointing, tabular, text,  |
  * |                                     |                                       | fitted, equal width, sub-menus       |
  * | `--ui-menu-item-margin`             | item margin                           | secondary, text, pointing, tabular   |
@@ -53,12 +67,15 @@
  * | `--ui-menu-hover-background` / `-color`   | link / button item hover        | secondary, pointing, tabular, text, inverted |
  * | `--ui-menu-pressed-background` / `-color` | pressed item                    | same                                 |
  * | `--ui-menu-active-background` / `-color` / `-weight` / `-border-color` / `-border-width` / `-margin` / `-radius` | active item | every type |
+ * | `--ui-menu-active-first-radius` / `-last-radius` | the active first / last item's corners | secondary (its active radius) |
+ * | `--ui-menu-active-shadow`           | active item shadow (`none`)           | segmented (the raised thumb)         |
  * | `--ui-menu-active-hover-background` / `-color` | active item hovered        | same                                 |
  * | `--ui-menu-active-accent`           | active colour ignoring `--ui-color`   | inverted (white text), segmented     |
  * | `--ui-menu-active-focus-color`      | focus ring on the active item         | segmented (its on-colour)            |
  * | `--ui-menu-arrow`                   | pointing arrow `display`              | pointing (not secondary / text)      |
  * | `--ui-menu-arrow-color`             | arrow fill                            | inverted, coloured                   |
  * | `--ui-menu-header-*`                | header item colour / size / case / margin | text, secondary pointing, inverted |
+ * | `--ui-menu-header-padding` / `-font-family` / `-weight` / `-letter-spacing` | header item box and type (the item's padding, inherited family, bold) | -- |
  * | `--ui-menu-disabled-color`          | disabled item text                    | inverted                             |
  * | `--ui-menu-icon-*`                  | an item's icon margin / opacity / size / display | vertical, icon, labeled icon |
  *
@@ -126,6 +143,9 @@
     --ui-inverted: 0;
     --_ui-menu-layout: horizontal;
     --_ui-menu-stackable: 0;
+    --_ui-menu-margin: var(--ui-menu-margin, 1em);
+    --_ui-menu-min-height: var(--ui-menu-min-height, calc(0.92857em * 2 + 1em));
+    --_ui-menu-gap: var(--ui-menu-gap, 0px);
     --_ui-menu-radius: var(--ui-menu-radius, var(--ui-radius));
     --_ui-menu-background: var(--ui-menu-background, var(--ui-surface));
     --_ui-menu-border: var(--ui-menu-border, var(--ui-border-width) solid var(--ui-border-color));
@@ -171,6 +191,9 @@
     --_ui-menu-active-border-width: var(--ui-menu-active-border-width, var(--_ui-menu-item-border-width));
     --_ui-menu-active-margin: var(--ui-menu-active-margin, var(--_ui-menu-item-margin));
     --_ui-menu-active-radius: var(--ui-menu-active-radius, var(--_ui-menu-item-radius));
+    --_ui-menu-active-first-radius: var(--ui-menu-active-first-radius, var(--_ui-menu-first-radius));
+    --_ui-menu-active-last-radius: var(--ui-menu-active-last-radius, var(--_ui-menu-last-radius));
+    --_ui-menu-active-shadow: var(--ui-menu-active-shadow, none);
     --_ui-menu-active-hover-background: var(--ui-menu-active-hover-background, var(--_ui-menu-active-background));
     --_ui-menu-active-hover-color: var(--ui-menu-active-hover-color, var(--_ui-menu-active-color));
     --_ui-menu-active-accent: var(--ui-menu-active-accent, initial);
@@ -190,10 +213,11 @@
 
     box-sizing: border-box;
     display: flex;
-    min-height: calc(0.92857em * 2 + 1em);
-    margin: var(--_menu-margin-top, 1em) 0 var(--_menu-margin-bottom, 1em);
+    gap: var(--_ui-menu-gap);
+    min-height: var(--_ui-menu-min-height);
+    margin: var(--_menu-margin-top, var(--_ui-menu-margin)) 0 var(--_menu-margin-bottom, var(--_ui-menu-margin));
     padding: 0;
-    font-family: var(--ui-font-family);
+    font-family: var(--ui-menu-font-family, var(--ui-font-family));
     font-size: calc(var(--ui-font-size) * sqrt(var(--ui-scale, 1)));
     font-weight: var(--ui-font-weight-normal);
     line-height: normal;
@@ -221,6 +245,10 @@
     clear: both;
     visibility: hidden;
   }
+  /* A flex bar has nothing to clear:  its clearfix would be one more flex item, a trailing `gap` after the last. */
+  .ui.menu:not(.vertical)::after {
+    display: none;
+  }
   .ui.menu:first-child {
     --_menu-margin-top: 0;
   }
@@ -245,6 +273,9 @@
     --_ui-menu-first-radius: 0;
     --_ui-menu-last-radius: 0;
     --_ui-menu-only-radius: 0;
+    /* the root resolved these from ITS corners:  a sub-menu's inherit no outer corner */
+    --_ui-menu-active-first-radius: 0;
+    --_ui-menu-active-last-radius: 0;
     display: flex;
     margin: 0;
   }
@@ -262,6 +293,7 @@
     box-sizing: border-box;
     width: var(--_ui-menu-item-width);
     min-width: var(--_ui-menu-item-min-width);
+    min-height: var(--ui-menu-item-min-height, 0);
     margin: var(--_ui-menu-item-margin);
     padding: var(--_ui-menu-item-padding);
     font-size: var(--_ui-menu-item-font-size);
@@ -270,7 +302,9 @@
     color: var(--_ui-menu-item-color);
     text-align: var(--_ui-menu-item-text-align);
     text-decoration: none;
-    text-transform: none;
+    text-transform: var(--ui-menu-item-transform, none);
+    /* no fallback:  unset, the item inherits its tracking as before */
+    letter-spacing: var(--ui-menu-item-letter-spacing);
     vertical-align: middle;
     background: var(--_ui-menu-item-background);
     border-style: solid;
@@ -370,8 +404,12 @@
   :host(:state(in-menu)) > .header.item,
   .ui.menu .header.item {
     margin: var(--_ui-menu-header-margin);
+    padding: var(--ui-menu-header-padding, var(--_ui-menu-item-padding));
+    /* no fallback:  unset, the header inherits the menu's family / the items' tracking, as before */
+    font-family: var(--ui-menu-header-font-family);
+    letter-spacing: var(--ui-menu-header-letter-spacing, var(--ui-menu-item-letter-spacing));
     font-size: var(--_ui-menu-header-size);
-    font-weight: var(--ui-font-weight-bold);
+    font-weight: var(--ui-menu-header-weight, var(--ui-font-weight-bold));
     color: var(--_ui-menu-header-color);
     text-transform: var(--_ui-menu-header-transform);
     background: none;
@@ -441,21 +479,41 @@
     --_ui-menu-divider-last-display: none;
   }
 
-  /* ## Vertical */
+  /*
+   * ## Vertical
+   * - Variation tokens:  `--ui-menu-vertical-item-display` (`block`;  `flex` puts the icon first and centres the
+   *   item in `--ui-menu-item-min-height`), `-active-radius`, `-icon-float` (`right`;  `none` keeps the icon before
+   *   the text), `-icon-margin`.
+   */
   .ui.vertical.menu {
+    --_ui-menu-vertical-item-display: var(--ui-menu-vertical-item-display, block);
+    --_ui-menu-vertical-active-radius: var(--ui-menu-vertical-active-radius, 0);
+    --_ui-menu-vertical-icon-float: var(--ui-menu-vertical-icon-float, right);
+    --_ui-menu-vertical-icon-margin: var(--ui-menu-vertical-icon-margin, 0 0 0 0.5em);
     --_ui-menu-layout: vertical;
-    --_ui-menu-item-display: block;
+    --_ui-menu-item-display: var(--_ui-menu-vertical-item-display);
     --_ui-menu-first-radius: var(--_ui-menu-radius) var(--_ui-menu-radius) 0 0;
     --_ui-menu-last-radius: 0 0 var(--_ui-menu-radius) var(--_ui-menu-radius);
     --_ui-menu-only-radius: var(--_ui-menu-radius);
     --_ui-menu-divider-first-display: none;
-    --_ui-menu-active-radius: 0;
-    --_ui-menu-icon-float: right;
-    --_ui-menu-icon-margin: 0 0 0 0.5em;
+    --_ui-menu-active-radius: var(--_ui-menu-vertical-active-radius);
+    --_ui-menu-icon-float: var(--_ui-menu-vertical-icon-float);
+    --_ui-menu-icon-margin: var(--_ui-menu-vertical-icon-margin);
     display: block;
     width: calc(15em * sqrt(var(--ui-scale, 1)));
   }
   @container style(--_ui-menu-layout: vertical) {
+    /*
+     * A `<button>` item (a `link` menu's) shrinks to its text even as a block, where an `<a>` / `<div>` fills the
+     * column:  `stretch` fills it (margins kept), so the hover / selected fill spans the menu.  Later values win
+     * where the browser knows them.
+     */
+    :host(:state(in-menu)) > button.item,
+    .ui.menu button.item {
+      width: -webkit-fill-available;
+      width: -moz-available;
+      width: stretch;
+    }
     :host(:state(in-menu)) > .item::before,
     .ui.menu .item::before {
       top: 0;
@@ -487,32 +545,62 @@
     }
   }
 
-  /* ## Secondary:  no box;  rounded, spaced items. */
+  /*
+   * ## Secondary:  no box;  rounded, spaced items.
+   * - Variation tokens:  `--ui-menu-secondary-item-padding`, `-item-margin` (`-vertical-item-margin` when
+   *   vertical), `-item-radius` (every item's corners, the active one's too), `-item-color`, `-hover-background`,
+   *   `-active-background`, `-active-color`, `-inline-margin` (`-0.35714em`:  the side hang that undoes the items'
+   *   side margin, so their pills line up with the text beside the menu;  `0` keeps the menu inside its box).  The
+   *   active weight stays the generic `--ui-menu-active-weight`.
+   * - NOTE: `secondary` is a hue word too (`colors.css` remaps `--ui-color*` on `.ui.secondary`), so its active
+   *   text is the secondary hue's `--ui-color-text`, never the generic `--ui-menu-active-color`;
+   *   `--ui-menu-secondary-active-color` (unset by default) overrides it, and the menu's `color` with it.
+   */
   .ui.secondary.menu {
+    --_ui-menu-secondary-item-padding: var(--ui-menu-secondary-item-padding, 0.78571em 0.92857em);
+    --_ui-menu-secondary-item-margin: var(--ui-menu-secondary-item-margin, 0 0.35714em);
+    --_ui-menu-secondary-item-radius: var(--ui-menu-secondary-item-radius, var(--ui-radius));
+    --_ui-menu-secondary-item-color: var(--ui-menu-secondary-item-color, var(--ui-text-unselected));
+    --_ui-menu-secondary-hover-background: var(
+      --ui-menu-secondary-hover-background,
+      oklch(from var(--ui-ink) l c h / 0.05)
+    );
+    --_ui-menu-secondary-active-background: var(
+      --ui-menu-secondary-active-background,
+      oklch(from var(--ui-ink) l c h / 0.05)
+    );
+    /* `initial`:  unset, the active item keeps the colour chain (the menu's `color`, else the secondary hue) */
+    --_ui-menu-secondary-active-color: var(--ui-menu-secondary-active-color, initial);
+    --_ui-menu-secondary-inline-margin: var(--ui-menu-secondary-inline-margin, -0.35714em);
     --_ui-menu-background: none;
     --_ui-menu-border: none;
-    --_ui-menu-item-padding: 0.78571em 0.92857em;
-    --_ui-menu-item-margin: 0 0.35714em;
-    --_ui-menu-item-radius: var(--ui-radius);
+    --_ui-menu-item-padding: var(--_ui-menu-secondary-item-padding);
+    --_ui-menu-item-margin: var(--_ui-menu-secondary-item-margin);
+    --_ui-menu-item-radius: var(--_ui-menu-secondary-item-radius);
     --_ui-menu-item-align: center;
-    --_ui-menu-item-color: var(--ui-text-unselected);
+    --_ui-menu-item-color: var(--_ui-menu-secondary-item-color);
     --_ui-menu-item-transition: color var(--ui-duration-fast) var(--ui-ease);
-    --_ui-menu-first-radius: var(--ui-radius);
-    --_ui-menu-last-radius: var(--ui-radius);
+    /* separate pills:  every corner is the item's, first / last / only and active alike */
+    --_ui-menu-first-radius: var(--_ui-menu-item-radius);
+    --_ui-menu-last-radius: var(--_ui-menu-item-radius);
+    --_ui-menu-only-radius: var(--_ui-menu-item-radius);
     --_ui-menu-divider-display: none;
     --_ui-menu-divider-first-display: none;
     --_ui-menu-divider-last-display: none;
-    --_ui-menu-hover-background: oklch(from var(--ui-ink) l c h / 0.05);
-    --_ui-menu-active-background: oklch(from var(--ui-ink) l c h / 0.05);
-    --_ui-menu-active-radius: var(--ui-radius);
-    margin-right: -0.35714em;
-    margin-left: -0.35714em;
+    --_ui-menu-hover-background: var(--_ui-menu-secondary-hover-background);
+    --_ui-menu-active-background: var(--_ui-menu-secondary-active-background);
+    --_ui-menu-active-accent: var(--_ui-menu-secondary-active-color);
+    --_ui-menu-active-radius: var(--_ui-menu-item-radius);
+    --_ui-menu-active-first-radius: var(--_ui-menu-active-radius);
+    --_ui-menu-active-last-radius: var(--_ui-menu-active-radius);
+    margin-right: var(--_ui-menu-secondary-inline-margin);
+    margin-left: var(--_ui-menu-secondary-inline-margin);
     border-radius: 0;
     box-shadow: none;
   }
   .ui.secondary.vertical.menu {
-    --_ui-menu-item-margin: 0 0 0.35714em;
-    --_ui-menu-active-radius: var(--ui-radius);
+    --_ui-menu-secondary-vertical-item-margin: var(--ui-menu-secondary-vertical-item-margin, 0 0 0.35714em);
+    --_ui-menu-item-margin: var(--_ui-menu-secondary-vertical-item-margin);
   }
 
   /* ## Pointing:  an arrow under the active item (beside it when vertical). */
@@ -613,14 +701,25 @@
     border-left: 1px solid var(--ui-border-color-strong);
   }
 
-  /* ## Text:  plain words, no box. */
+  /*
+   * ## Text:  plain words, no box.
+   * - Variation tokens:  `--ui-menu-text-margin` (`1em -0.5em`:  the block margin, `--ui-menu-margin`, and a hang
+   *   that lines the first word up with the text beside it;  set `0` with `-item-padding: 0`), `-item-padding`,
+   *   `-item-color`, `-hover-color` (the item colour:  no change), `-active-weight` (normal, as Fomantic's:  a
+   *   page whose links are heavier sets it to match).  The active colour stays the generic `--ui-menu-active-color`;
+   *   spacing between items:  `--ui-menu-gap`.
+   */
   .ui.text.menu {
+    --_ui-menu-text-margin: var(--ui-menu-text-margin, var(--_ui-menu-margin) -0.5em);
+    --_ui-menu-text-item-padding: var(--ui-menu-text-item-padding, 0.35714em 0.5em);
+    --_ui-menu-text-item-color: var(--ui-menu-text-item-color, var(--ui-text-muted));
+    --_ui-menu-text-hover-color: var(--ui-menu-text-hover-color, var(--_ui-menu-item-color));
     --_ui-menu-background: none transparent;
     --_ui-menu-border: none;
-    --_ui-menu-item-padding: 0.35714em 0.5em;
+    --_ui-menu-item-padding: var(--_ui-menu-text-item-padding);
     --_ui-menu-item-radius: 0;
     --_ui-menu-item-align: center;
-    --_ui-menu-item-color: var(--ui-text-muted);
+    --_ui-menu-item-color: var(--_ui-menu-text-item-color);
     --_ui-menu-item-transition: opacity var(--ui-duration-fast) var(--ui-ease);
     --_ui-menu-first-radius: 0;
     --_ui-menu-last-radius: 0;
@@ -629,15 +728,16 @@
     --_ui-menu-divider-last-display: none;
     --_ui-menu-arrow: none;
     --_ui-menu-hover-background: transparent;
-    --_ui-menu-hover-color: var(--_ui-menu-item-color);
+    --_ui-menu-hover-color: var(--_ui-menu-text-hover-color);
     --_ui-menu-pressed-background: transparent;
     --_ui-menu-active-background: transparent;
     --_ui-menu-active-hover-background: transparent;
-    --_ui-menu-active-weight: var(--ui-font-weight-normal);
+    --_ui-menu-text-active-weight: var(--ui-menu-text-active-weight, var(--ui-font-weight-normal));
+    --_ui-menu-active-weight: var(--_ui-menu-text-active-weight);
     --_ui-menu-header-color: var(--ui-text-dark);
     --_ui-menu-header-size: 0.92857em;
     --_ui-menu-header-transform: uppercase;
-    margin: 1em -0.5em;
+    margin: var(--_ui-menu-text-margin);
     border-radius: 0;
     box-shadow: none;
   }
@@ -647,7 +747,7 @@
     --_ui-menu-icon-float: none;
     --_ui-menu-icon-margin: 0 0.35714em 0 0;
     --_ui-menu-header-margin: 0.57143em 0 0.71429em;
-    margin: 1em 0;
+    margin: var(--_ui-menu-margin) 0;
   }
   .ui.fluid.text.menu {
     margin-right: 0;
@@ -806,40 +906,79 @@
   }
 
   /*
-   * ## Segmented (`appearance="segmented"`):  a bordered group of joined items -- a segmented control.  The selected
-   * item is filled with the menu's colour (`color`, else the primary colour) and takes its on-colour text;  the group
-   * hugs its items (`alignment` moves it, `fluid` spreads it).
+   * ## Segmented (`appearance="segmented"`):  a segmented control -- a TRACK holding the options, the selected one a
+   * THUMB.  Default:  a bordered group of joined items, the thumb filled with the menu's colour (`color`, else the
+   * primary colour) with its on-colour text;  the group hugs its items (`alignment` moves it, `fluid` spreads it).
+   * - Variation tokens, enough for a theme to draw a pill track with a raised thumb (`spell-brand`'s):
+   *   - track:  `--ui-menu-segmented-background`, `-border`, `-radius` (the menu's), `-padding` (an inset around
+   *     the options, `0`), `-gap` (between them, `0`;  a horizontal track), `-divider` (hairlines between them;  `transparent` hides)
+   *   - options:  `--ui-menu-segmented-item-padding`, `-item-color`, `-item-radius` (a middle option's corners,
+   *     `0`;  the end ones fit the track's, inside its border and padding)
+   *   - thumb:  `--ui-menu-segmented-active-background`, `-active-hover-background`, `-active-color` (also its
+   *     focus ring), `-active-shadow` (`none`)
    */
   .ui.segmented.menu {
-    --_ui-menu-background: var(--ui-surface);
-    --_ui-menu-border: var(--ui-border-width) solid var(--ui-border-color-strong);
-    --_ui-menu-item-padding: 0.78571em 1.14286em;
+    --_ui-menu-segmented-background: var(--ui-menu-segmented-background, var(--ui-surface));
+    --_ui-menu-segmented-border: var(
+      --ui-menu-segmented-border,
+      var(--ui-border-width) solid var(--ui-border-color-strong)
+    );
+    --_ui-menu-segmented-radius: var(--ui-menu-segmented-radius, var(--_ui-menu-radius));
+    --_ui-menu-segmented-padding: var(--ui-menu-segmented-padding, 0px);
+    --_ui-menu-segmented-gap: var(--ui-menu-segmented-gap, 0px);
+    --_ui-menu-segmented-divider: var(--ui-menu-segmented-divider, var(--ui-border-color-strong));
+    --_ui-menu-segmented-item-padding: var(--ui-menu-segmented-item-padding, 0.78571em 1.14286em);
+    --_ui-menu-segmented-item-color: var(--ui-menu-segmented-item-color, var(--ui-text-color));
+    --_ui-menu-segmented-item-radius: var(--ui-menu-segmented-item-radius, 0px);
+    --_ui-menu-segmented-active-background: var(
+      --ui-menu-segmented-active-background,
+      var(--ui-color, var(--ui-primary))
+    );
+    --_ui-menu-segmented-active-hover-background: var(
+      --ui-menu-segmented-active-hover-background,
+      var(--ui-color-hover, var(--ui-primary-hover))
+    );
+    --_ui-menu-segmented-active-color: var(--ui-menu-segmented-active-color, var(--ui-color-on, var(--ui-primary-on)));
+    --_ui-menu-segmented-active-shadow: var(--ui-menu-segmented-active-shadow, none);
+    /* an end option's outer corners:  the track's, inside its border and padding */
+    --_menu-segmented-inner-radius: max(
+      0px,
+      var(--_ui-menu-segmented-radius) - var(--ui-border-width) - var(--_ui-menu-segmented-padding)
+    );
+    --_ui-menu-background: var(--_ui-menu-segmented-background);
+    --_ui-menu-border: var(--_ui-menu-segmented-border);
+    --_ui-menu-min-height: 0;
+    --_ui-menu-gap: var(--_ui-menu-segmented-gap);
+    --_ui-menu-item-padding: var(--_ui-menu-segmented-item-padding);
+    --_ui-menu-item-color: var(--_ui-menu-segmented-item-color);
+    --_ui-menu-item-radius: var(--_ui-menu-segmented-item-radius);
     --_ui-menu-item-justify: center;
     --_ui-menu-item-text-align: center;
-    /* inside the border:  the fill meets the group's rounded corners */
-    --_ui-menu-first-radius: calc(var(--_ui-menu-radius) - var(--ui-border-width)) 0 0
-      calc(var(--_ui-menu-radius) - var(--ui-border-width));
-    --_ui-menu-last-radius: 0 calc(var(--_ui-menu-radius) - var(--ui-border-width))
-      calc(var(--_ui-menu-radius) - var(--ui-border-width)) 0;
-    --_ui-menu-only-radius: calc(var(--_ui-menu-radius) - var(--ui-border-width));
-    --_ui-menu-divider: var(--ui-border-color-strong);
+    --_ui-menu-first-radius: var(--_menu-segmented-inner-radius) var(--_ui-menu-item-radius) var(--_ui-menu-item-radius)
+      var(--_menu-segmented-inner-radius);
+    --_ui-menu-last-radius: var(--_ui-menu-item-radius) var(--_menu-segmented-inner-radius)
+      var(--_menu-segmented-inner-radius) var(--_ui-menu-item-radius);
+    --_ui-menu-only-radius: var(--_menu-segmented-inner-radius);
+    --_ui-menu-divider: var(--_ui-menu-segmented-divider);
     --_ui-menu-divider-last-display: none;
     --_ui-menu-arrow: none;
-    --_ui-menu-active-background: var(--ui-color, var(--ui-primary));
-    --_ui-menu-active-hover-background: var(--ui-color-hover, var(--ui-primary-hover));
-    --_ui-menu-active-accent: var(--ui-color-on, var(--ui-primary-on));
-    --_ui-menu-active-focus-color: var(--ui-color-on, var(--ui-primary-on));
+    --_ui-menu-active-background: var(--_ui-menu-segmented-active-background);
+    --_ui-menu-active-hover-background: var(--_ui-menu-segmented-active-hover-background);
+    --_ui-menu-active-accent: var(--_ui-menu-segmented-active-color);
+    --_ui-menu-active-focus-color: var(--_ui-menu-segmented-active-color);
+    --_ui-menu-active-shadow: var(--_ui-menu-segmented-active-shadow);
     display: flex;
     width: fit-content;
     max-width: 100%;
-    min-height: 0;
+    padding: var(--_ui-menu-segmented-padding);
+    border-radius: var(--_ui-menu-segmented-radius);
     box-shadow: none;
   }
   .ui.segmented.vertical.menu {
-    --_ui-menu-first-radius: calc(var(--_ui-menu-radius) - var(--ui-border-width))
-      calc(var(--_ui-menu-radius) - var(--ui-border-width)) 0 0;
-    --_ui-menu-last-radius: 0 0 calc(var(--_ui-menu-radius) - var(--ui-border-width))
-      calc(var(--_ui-menu-radius) - var(--ui-border-width));
+    --_ui-menu-first-radius: var(--_menu-segmented-inner-radius) var(--_menu-segmented-inner-radius)
+      var(--_ui-menu-item-radius) var(--_ui-menu-item-radius);
+    --_ui-menu-last-radius: var(--_ui-menu-item-radius) var(--_ui-menu-item-radius) var(--_menu-segmented-inner-radius)
+      var(--_menu-segmented-inner-radius);
     --_ui-menu-divider-last-display: block;
     display: block;
   }
@@ -1168,15 +1307,15 @@
     border-width: var(--_ui-menu-active-border-width);
     border-color: var(--ui-color, var(--_ui-menu-active-border-color));
     border-radius: var(--_ui-menu-active-radius);
-    box-shadow: none;
+    box-shadow: var(--_ui-menu-active-shadow);
   }
   :host(:state(in-menu):first-child) > .active.item,
   .ui.menu .active.item:first-child {
-    border-radius: var(--ui-menu-active-first-radius, var(--_ui-menu-first-radius));
+    border-radius: var(--_ui-menu-active-first-radius);
   }
   :host(:state(in-menu):last-child) > .active.item,
   .ui.menu .active.item:last-child {
-    border-radius: var(--ui-menu-active-last-radius, var(--_ui-menu-last-radius));
+    border-radius: var(--_ui-menu-active-last-radius);
   }
   :host(:state(in-menu)) > .active.item:hover,
   .ui.menu .active.item:hover {

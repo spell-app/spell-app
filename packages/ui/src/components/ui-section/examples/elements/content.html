@@ -31,6 +31,28 @@
   </section>
 
   <section>
+    <h4>End chevron</h4>
+    <ui-section header="Variants" collapsible fold-icon="end" dividing>
+      <ui-button slot="actions" size="mini" basic icon="copy">Copy</ui-button>
+      <p>The fold chevron at the far end of the title bar, after the actions.</p>
+    </ui-section>
+    <ui-section header="Samples" collapsible collapsed fold-icon="end" dividing>
+      <p>Folded, it turns as the start one does.</p>
+    </ui-section>
+  </section>
+
+  <section>
+    <h4>Info tip</h4>
+    <ui-section header="Theme" info="The look of an app:  its colours, fonts and shapes." collapsible dividing>
+      <p>A tip about the section, shown on hover of the title or keyboard focus on its fold button.</p>
+    </ui-section>
+    <ui-section header="Color" dividing>
+      <span slot="info">Pick a <b>colour set</b> for each job in the app.</span>
+      <p>A rich tip, slotted.</p>
+    </ui-section>
+  </section>
+
+  <section>
     <h4>Subhead</h4>
     <ui-section header="Decisions" icon="gavel" subhead="What we chose, and why" dividing>
       <p>Smaller text under the title; it scrolls away with the content.</p>

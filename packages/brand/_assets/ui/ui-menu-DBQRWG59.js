@@ -1,0 +1,1 @@
+import{t as e}from"./ui-menu-FAcToSlS.js";export{e as UIMenu};

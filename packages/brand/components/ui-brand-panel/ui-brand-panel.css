@@ -3,7 +3,8 @@
  * - Markup (the section's):  `section.ui.section.brand.panel` > `.title` > `hN.heading` > `.toggle` (fold icon, icon,
  *   header), then `.subhead`, then `.content`.
  * - Top-level panel:  a tinted box (16px padding, 16px radius, hairline, soft shadow);  its title is a full-width
- *   HEADER BAND across the top (bold sans 17px, chevron at the far end).
+ *   HEADER BAND across the top (bold sans 17px, chevron at the far end:  the section's `fold-icon="end"`, the panel's
+ *   default).  `info`:  the section's tip, under the band.
  * - `.sub` (a panel inside a panel):  no box;  its title is a full-width SUB-HEAD BAND (bold 12px capitals, a hairline
  *   above), its content the fields under it.
  * - Layers:  `ui.components.brand-panel.*` are declared after the section's, so these rules win without
@@ -189,10 +190,10 @@
     font-size: 0.75em;
   }
 
-  /* ## The chevron:  small, quiet, at the far end of the band */
+  /* ## The chevron:  small, quiet, at the far end of the band (the panel's default `fold-icon="end"`, after any
+     actions);  `fold-icon="start"` puts it back in the toggle, same size */
+  .ui.section.brand.panel > .title > .fold.icon,
   .ui.section.brand.panel > .title > .heading > .toggle > .fold.icon {
-    order: 2;
-    margin-inline-start: auto;
     width: 0.6875em;
     height: 0.6875em;
     opacity: 0.55;
@@ -200,10 +201,12 @@
       rotate var(--_ui-section-duration) var(--ui-ease),
       opacity var(--ui-duration-fast) var(--ui-ease);
   }
+  .ui.section.brand.panel > .title:has(> .heading:hover) > .fold.icon,
+  .ui.section.brand.panel > .title > .fold.icon:hover,
   .ui.section.brand.panel > .title > .heading > .toggle:hover > .fold.icon {
     opacity: 1;
   }
-  /* the sub-head band's text is 12px:  keep its chevron the header band's size */
+  /* the sub-head band's heading text is 12px:  its start chevron (in the toggle) stays the header band's size */
   .ui.section.brand.panel.sub > .title > .heading > .toggle > .fold.icon {
     width: 0.9166em;
     height: 0.9166em;

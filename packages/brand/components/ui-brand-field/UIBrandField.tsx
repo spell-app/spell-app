@@ -29,6 +29,9 @@ import fieldCSS from "./ui-brand-field.css?inline"
  * - Errors:  `error`, or what `<ui-form>` asked for through `showErrors()` (the host's), which wins;  either shows the
  *   `error` state.  `<ui-form>` finds the field by `:state(field)`, as a `<ui-field>`.
  * - The info tip:  a CSS tooltip under the icon, shown on hover and keyboard focus;  the icon is described by it.
+ *   `info` is the short form, `slot="info"` the rich one (bold words, line breaks).
+ * - Actions keep the label row's height:  a pill taller than the row overhangs it, so showing a Reset button never
+ *   moves the control.
  * - `disabled` makes the box `inert`.
  * - SIDE EFFECT:  writes `aria-label` on slotted controls (only ones that had no name).
  ****************/
@@ -49,8 +52,11 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
   /** Light-DOM slot occupancy:  label, actions, value, help. */
   readonly slots = new SlotContent(this.host)
 
-  /** Glyph of the info icon, while `info` is set. */
-  readonly infoGlyph = new IconGlyph(this, () => (this.attrs.info ? INFO_ICON : undefined))
+  /** Has an info tip:  `info`, or `slot="info"`. */
+  readonly hasInfo = createMemo(() => !!this.attrs.info || this.slots.has(this.slot("info")))
+
+  /** Glyph of the info icon, while there's a tip. */
+  readonly infoGlyph = new IconGlyph(this, () => (this.hasInfo() ? INFO_ICON : undefined))
 
   /** Controls this field named (`aria-label`), so a new `label` renames them and nothing else. */
   private readonly named = new WeakSet<Element>()
@@ -119,9 +125,7 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
     this.effects()
     return (
       <div class={this.classes()} part={this.part("field")} inert={this.attrs.disabled}>
-        <Show when={this.hasLabel() || this.hasActions() || this.hasValue() || this.attrs.info}>
-          {this.renderRow()}
-        </Show>
+        <Show when={this.hasLabel() || this.hasActions() || this.hasValue() || this.hasInfo()}>{this.renderRow()}</Show>
         <div class={CLASSES.control} part={this.part("control")}>
           <slot ref={(element) => (this.controlSlot = element)} onSlotChange={this.onControlChange} />
         </div>
@@ -156,7 +160,7 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
             <slot name={this.slot("value")}>{this.attrs.value}</slot>
           </span>
         </Show>
-        <Show when={this.attrs.info}>
+        <Show when={this.hasInfo()}>
           <span
             class={CLASSES.info}
             part={this.part("info")}
@@ -167,7 +171,7 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
           >
             {this.infoGlyph.svg()}
             <span id={TIP_ID} class={CLASSES.tip} part={this.part("tip")} role="tooltip">
-              {this.attrs.info}
+              <slot name={this.slot("info")}>{this.attrs.info}</slot>
             </span>
           </span>
         </Show>

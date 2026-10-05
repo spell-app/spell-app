@@ -43,6 +43,23 @@ describe("<ui-brand-blob>", () => {
     expect(getComputedStyle(shape(element)).scale).toBe("-1")
   })
 
+  it("a `wave` sits flush in its corner, masked by the montage's path, mirrored to face the corner", async () => {
+    const size = "--ui-brand-blob-width: 640px; --ui-brand-blob-height: 424px"
+    const topLeft = await place(`<ui-brand-blob shape="wave" corner="top-left" style="${size}"></ui-brand-blob>`)
+    expect([topLeft.left, topLeft.top]).toEqual([0, 0])
+    const mask = getComputedStyle(shape(topLeft.element)).maskImage
+    expect(mask).toMatch(/^url\("data:image\/svg\+xml/)
+    expect(getComputedStyle(shape(topLeft.element)).scale).toBe("none")
+    const corner = await place(`<ui-brand-blob shape="wave" style="${size}"></ui-brand-blob>`)
+    expect([corner.left + corner.width, corner.top + corner.height]).toEqual([800, 400])
+    expect(getComputedStyle(shape(corner.element)).scale).toBe("-1")
+    const hung = await place(
+      `<ui-brand-blob shape="wave" corner="top-right" style="${size}; --ui-brand-blob-x: 40px"></ui-brand-blob>`
+    )
+    expect([hung.left + hung.width, hung.top]).toEqual([840, 0])
+    expect(getComputedStyle(shape(hung.element)).scale).toBe("-1 1")
+  })
+
   it("`tone` sets the colour;  `--ui-brand-blob-color` overrides it", async () => {
     const { element } = await place(`<ui-brand-blob style="--spell-blob: rgb(1, 2, 3)"></ui-brand-blob>`)
     expect(getComputedStyle(shape(element)).backgroundColor).toBe("rgb(1, 2, 3)")

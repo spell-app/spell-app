@@ -49,14 +49,8 @@
   font-style: normal;
   font-display: swap;
   src:
-    local("Palatino"),
-    local("Palatino-Roman"),
-    local("Palatino Linotype"),
-    local("PalatinoLinotype-Roman"),
-    local("Book Antiqua"),
-    local("P052 Roman"),
-    local("P052-Roman"),
-    local("TeX Gyre Pagella");
+    local("Palatino"), local("Palatino-Roman"), local("Palatino Linotype"), local("PalatinoLinotype-Roman"),
+    local("Book Antiqua"), local("P052 Roman"), local("P052-Roman"), local("TeX Gyre Pagella");
 }
 @font-face {
   font-family: "Spell Serif";
@@ -64,14 +58,8 @@
   font-style: normal;
   font-display: swap;
   src:
-    local("Palatino Bold"),
-    local("Palatino-Bold"),
-    local("Palatino Linotype Bold"),
-    local("PalatinoLinotype-Bold"),
-    local("Book Antiqua Bold"),
-    local("P052 Bold"),
-    local("P052-Bold"),
-    local("TeX Gyre Pagella Bold");
+    local("Palatino Bold"), local("Palatino-Bold"), local("Palatino Linotype Bold"), local("PalatinoLinotype-Bold"),
+    local("Book Antiqua Bold"), local("P052 Bold"), local("P052-Bold"), local("TeX Gyre Pagella Bold");
 }
 @font-face {
   font-family: "Spell Serif";
@@ -79,13 +67,8 @@
   font-style: italic;
   font-display: swap;
   src:
-    local("Palatino Italic"),
-    local("Palatino-Italic"),
-    local("Palatino Linotype Italic"),
-    local("PalatinoLinotype-Italic"),
-    local("Book Antiqua Italic"),
-    local("P052 Italic"),
-    local("P052-Italic"),
+    local("Palatino Italic"), local("Palatino-Italic"), local("Palatino Linotype Italic"),
+    local("PalatinoLinotype-Italic"), local("Book Antiqua Italic"), local("P052 Italic"), local("P052-Italic"),
     local("TeX Gyre Pagella Italic");
 }
 @font-face {
@@ -94,14 +77,9 @@
   font-style: italic;
   font-display: swap;
   src:
-    local("Palatino Bold Italic"),
-    local("Palatino-BoldItalic"),
-    local("Palatino Linotype Bold Italic"),
-    local("PalatinoLinotype-BoldItalic"),
-    local("Book Antiqua Bold Italic"),
-    local("P052 Bold Italic"),
-    local("P052-BoldItalic"),
-    local("TeX Gyre Pagella Bold Italic");
+    local("Palatino Bold Italic"), local("Palatino-BoldItalic"), local("Palatino Linotype Bold Italic"),
+    local("PalatinoLinotype-BoldItalic"), local("Book Antiqua Bold Italic"), local("P052 Bold Italic"),
+    local("P052-BoldItalic"), local("TeX Gyre Pagella Bold Italic");
 }
 
 @layer ui.theme {

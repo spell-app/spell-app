@@ -1,0 +1,1 @@
+import{t as e}from"./ui-loader-DLF8RKt0.js";export{e as UILoader};
