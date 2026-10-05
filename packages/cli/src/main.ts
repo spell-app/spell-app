@@ -305,6 +305,27 @@ dev
   .option("--json", "print the report as JSON, with each action's shell lines")
   .action((_options, command) => run(CLI.stockCommand, [], command.optsWithGlobals()))
 
+dev
+  .command("shared")
+  .description("shared content:  docs pages, goal sets and logs in one repo beside the checkout, linked into every one")
+  .argument(
+    "[verb]",
+    "status (default) | init [--import] | link [--all] | commit [--session <id>] | migrate <worktree> [--dry-run] | repair [--dry-run]"
+  )
+  .argument("[name]", "migrate:  the worktree")
+  .option("--json", "status, migrate, repair:  print the data as JSON")
+  .option("--import", "init:  copy this checkout's folders into the new shared repo")
+  .option("--session <id>", "commit:  the Claude Code session, for the commit's trailer")
+  .option("--quiet", "commit:  print nothing")
+  .option("--dry-run", "migrate, repair:  say what it would do, change nothing")
+  .action((verb: string | undefined, name: string | undefined, _options, command) =>
+    run(
+      CLI.sharedCommand,
+      [verb, name].filter((it) => it !== undefined),
+      command.optsWithGlobals()
+    )
+  )
+
 await program.parseAsync()
 
 /**

@@ -2852,11 +2852,16 @@ function hereDoc(name) {
 /**
  * `findDoc()`'s file for `name`, or `undefined`.
  * - either name, in each checkout (`planDocIn()`):  `<name>.plan.html`, else an old `<name>.html` plan doc
+ * - shared content:  when THIS checkout reaches the same file, its own path is returned, so `tidy()` and the URLs
+ *   stay inside this checkout (another worktree's path, made relative here, starts `../../.claude/...`, which
+ *   oxfmt refuses)
  */
 function epicFile(name) {
-  return checkouts(name)
+  const found = checkouts(name)
     .map((root) => planDocIn(join(epicsDirOf(root), name), name))
     .find(Boolean)
+  const here = planDocIn(join(DOCS, "epics", name), name)
+  return found && here && realOrSelf(found) === realOrSelf(here) ? here : found
 }
 
 /**
@@ -3118,7 +3123,8 @@ export function sharedDocLog(file, checkout) {
   const name = basename(file).replace(/(\.plan)?\.html$/, "")
   const since = /\bid="plan-started"[^>]*>\s*(\d{4}-\d\d-\d\d)/.exec(html)?.[1]
   const phases = PlanDoc.parse(html).phases
-  const raw = gitIn(checkout, "log", "--format=%H%x09%s", ...(since ? [`--since=${since}`] : []))
+  // a bare date means that day at the CURRENT time to git:  midnight, so the start day's commits count
+  const raw = gitIn(checkout, "log", "--format=%H%x09%s", ...(since ? [`--since=${since} 00:00`] : []))
   return parseLog(raw).filter(({ subject }) => {
     if (subject.startsWith(`${name} `)) return true
     const parsed = parseCommitSubject(subject)

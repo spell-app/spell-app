@@ -4,11 +4,12 @@ This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this repository.
 
 **If working with Solid (2.0) -- components, JSX, effects / signals / stores, `core` rendering, `$/util`
-reactivity, `@spell-app/ui` elements, or any React-to-Solid step:  READ `packages/docs/content/solid/solid-2.md` IN FULL
-FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produces wrong code.
+reactivity, `@spell-app/ui` elements, or any React-to-Solid step:  READ `packages/docs/content/solid/solid-2.md`
+IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produces wrong code.
 
 **If asked for a new skill or `spell` command, or about to add, rename or remove a yarn script:  READ
-`packages/docs/content/dev/commands/commands.md` FIRST,** and suggest where it belongs before building it (see "Commands").
+`packages/docs/content/dev/commands/commands.md` FIRST,** and suggest where it belongs before building it
+(see "Commands").
 
 ## Overview
 
@@ -42,9 +43,12 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
     `README.md`, and `UPSTREAM.md` for the upstream PR each fix maps to.
   - `packages/cli/` (`@spell-app/cli`, `$/cli`, `CLI`) -- the `spell` command-line tool, running the spell-family
     packages' SOURCE through `tsx`.  See `packages/cli/AGENTS.md` and its `README.md`.
-  - `packages/docs/` (`@spell-app/docs`) -- every package's docs:  hand-authored `.html` pages on `@spell-app/ui`,
-    their templates, the plan docs `/epic` keeps, the experiments behind them and the tooling.
-    Index:  `packages/docs/content/index.html`.  See `packages/docs/AGENTS.md`.
+  - `packages/docs/` (`@spell-app/docs`) -- every package's docs, in two folders:
+    - `content/` -- hand-authored `.html` pages on `@spell-app/ui`, their templates, the plan docs `/epic` keeps,
+      details pages and the experiments behind them.  SHARED, not tracked here (see "Shared content").
+      Index:  `packages/docs/content/index.html`.
+    - `tools/` -- the tooling and `_assets`:  tracked, versioned per branch.
+    - See `packages/docs/AGENTS.md`.
   - `packages/server/` (`@spell-app/server`, `$/server`, `SRV`) -- serving pages locally:  static folders, an
     Express-shaped router, live reload, ports, openers, a file lock, and the ONE page server per checkout
     (`yarn server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
@@ -105,9 +109,9 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
   - A doc shown while the move is pending (`yarn plan-doc open`, `window.mjs show`) waits, then shows beside the
     session in the window it moved to.
-  - A running epic's plan doc is on the MAIN checkout's page server too (`/worktrees/<w>/...`), listed in the docs
-    index's Epics section, with the merged ones;  `yarn server url` gives that URL (`packages/docs/content/server.html`,
-    "Running epics").
+  - A running epic's plan doc is shared (see "Shared content"):  ONE file, the same in every checkout, so the MAIN
+    checkout's page server shows it too, listed in the docs index's Epics section with the merged ones;
+    `yarn server url` gives that URL (`packages/docs/content/server.html`, "Running epics").
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
   included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `window.mjs open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
@@ -117,33 +121,71 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>", or
   "..., staying in this window").
 
+## Shared content
+
+- Three folders are NOT tracked by spell-app (epic `shared-content`, live since 2026-10-04):
+  - `packages/docs/content/` -- docs pages, plan docs, templates, details pages (URLs `/packages/docs/content/...`)
+  - `goals/` -- the goal sets (their tooling:  `packages/docs/tools/goals/`, tracked)
+  - `agents/` -- the three logs:  `agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md`
+- In EVERY checkout (main and each worktree) they're folder SYMLINKS into one shared content repo beside the main
+  checkout, `../spell-app-dev`:  an ordinary git repo, local only.
+  - So every worktree sees every edit at once:  no per-branch copy, and these files never conflict on merge.
+  - Folders, never single-file links:  Claude's Edit refuses to write through a link to a file.
+  - Claude edits shared files at their REAL path:  `/Users/owen/www/spell-app/spell-app-dev/<path>` (e.g.
+    `.../spell-app-dev/agents/PAPERCUTS.md`), from main or any worktree.  A worktree session's Edit / Write refuses a
+    path through the links ("Edit the worktree copy of this file instead of the shared-checkout path":  there is no
+    worktree copy), before any hook could step in.  Reading and tools (`yarn plan-doc`, the page server) use the
+    links as usual.
+  - The manifest:  the root `package.json`'s `"shared": { "dir", "links" }`, and `.gitignore`'s
+    `# shared:start` ... `# shared:end` block.
+- Commits:  the shared repo is committed by itself after every Claude turn (`Stop` hook
+  `.claude/hooks/shared-commit.mjs` -> `spell dev shared commit`), as `auto: <checkout>` with `Session:` /
+  `Checkout:` trailers.  Nobody commits those files by hand.
+  - NEVER `git add` / `git checkout --` / `git restore` the three paths in spell-app.
+  - NEVER run git inside `packages/docs/content` (it's the shared repo there):  run it in the spell-app checkout.
+- `spell dev shared status | init | link | commit | migrate <worktree> | repair` (`--dry-run` on the last two).
+  - A new worktree is linked by the `WorktreeCreate` hook.
+  - A worktree cut before the cutover runs `spell dev shared migrate <name>` before it merges `main`;  first
+    merging `0fc52e02` (main just before the cutover) if it predates the docs move.
+  - After merging a branch from before the docs move:  `spell dev shared repair` moves pages it left at
+    `packages/docs/<x>` into `content/`, and fixes links (and their tab names) written for the old layout.
+- Shared docs may link code another branch has and this one doesn't yet:  `doc-links.js --check` reports those as
+  missing in this checkout.
+- Package windows show `spell-app-dev` as a folder, with its own Source Control:  the auto commits.
+- Searching:  the links are git-ignored.
+  - `grep -R` follows them (`grep -r` doesn't);  `rg` needs `-L --no-ignore-vcs`;  or search `../spell-app-dev`.
+- Plan-doc item fixes carry the epic's name:  `<epic> I3:  ...`;  phase commits stay `P3:  <phase name> -- ...`.
+
 ## Changelog
 
-- `packages/docs/content/changelog.html` -- what the repo shipped, newest first.  MUST be kept up to date by every `/isolate`
-  and `/epic`:
+- `packages/docs/content/changelog.html` -- what the repo shipped, newest first.  MUST be kept up to date by every
+  `/isolate` and `/epic`:
   - `/epic`:  at its Doc Review, add the entry to "2. In worktrees";  when it merges into `main`, move it under
     its month in "3. Merged into main"
   - `/isolate done`:  before merging into `main`, add an entry for what the branch shipped (skip a branch with
     nothing worth a reader's time:  typo fixes, a papercut)
+- It's shared (see "Shared content"):  write an entry straight into it, from any checkout.  No branch commit, no
+  merge conflicts:  the `Stop` hook commits it.
 - An entry:  one nested `<ui-section id="<epic or worktree name>" header="YYYY-MM-DD · Title">` under its month,
   newest first (the page's header comment has the markup):
   - a `spell-meta` list with LINKS:  the plan doc (`epics/<name>/<name>.plan.html`, `target="<name>"`), the durable
     doc, the branch
   - EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary
-- Then finish the page as `packages/docs/AGENTS.md` says ("Finishing a page"), and bump its footer's date and
-  commit.
+- Then finish the page as `packages/docs/AGENTS.md` says ("Finishing a page"), and bump its footer's date.
 
 ## Commands
 
 - Three ways to make the repo do something:  the `spell` CLI, Claude skills, yarn scripts.  Their map, one row
-  per operation:  `packages/docs/content/dev/commands/commands.html` (data:  `commands.json` beside it;  shown by the page
-  server:  `yarn docs:open dev/commands/commands.html`).
+  per operation:  `packages/docs/content/dev/commands/commands.html` (data:  `commands.json` beside it;  shown by
+  the page server:  `yarn docs:open dev/commands/commands.html`).
 - Target:  the CLI drives everything.  Repo tools are `spell dev <noun> <verb>`;  skills keep judgement and dialog
   and call it;  yarn keeps each package's own scripts and aliases the rest.
 - Owen asks for a new skill or `spell` command, or you add a yarn script to solve a problem:  READ
-  `packages/docs/content/dev/commands/commands.md`, then SUGGEST, before building:  where it belongs, its name, what it
-  replaces, which roadmap move it advances.
+  `packages/docs/content/dev/commands/commands.md`, then SUGGEST, before building:  where it belongs, its name,
+  what it replaces, which roadmap move it advances.
 - MUST keep the page true in the same change:  `commands.json`, then `yarn commands:check`.
+  - `commands.json` / `commands.md` are shared, but the check reads each branch's CLI:  a branch adding a command
+    can make main's check fail until it merges (`agents/CODE-DEBT.md`, "docs").
 - Tools are TypeScript (or node JS in `packages/docs/tools`), never python:  one language.  Skills reach them as
   `spell dev ...`:  `spell` is `yarn cli:install`'s link, made once per machine;  without it,
   `node packages/cli/bin/spell.mjs dev ...` from a checkout's root.
@@ -184,8 +226,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 ## Long-term debt
 
 - `agents/CODE-DEBT.md` tracks structural debt we have knowingly chosen NOT to fix yet.
-- It, `agents/SUSPECTED-BUGS.md` and `agents/PAPERCUTS.md` live at the REPO ROOT:  one file each for every package, with a
-  `## <package>` section per package.  Add to your package's section.
+- It, `agents/SUSPECTED-BUGS.md` and `agents/PAPERCUTS.md` live in `agents/`, shared (see "Shared content"):  one
+  file each for every package, with a `## <package>` section per package.  Add to your package's section.
 - Add an entry when a problem is structural, too big to fix in passing, and being tolerated
   deliberately -- especially when a test or lint rule is pinned, skipped or widened to
   accommodate it.  Record the mechanism, not a guess, so nobody rediscovers it.
