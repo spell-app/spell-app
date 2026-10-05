@@ -1,4 +1,4 @@
-import { getDerived } from "$/util"
+import { getDerived, typeCase } from "$/util"
 import { P } from "$/parser"
 // Import directly, NOT through the `$/core` barrel:  the parser MUST NOT load `spellCore` itself -- each
 // runner runs its own copy.  See `spellRuntime.ts`.
@@ -59,32 +59,105 @@ export class SpellParser extends P.Parser {
     rule: P.Rule | P.RuleConstructor,
     namesOrDefinition?: string | string[] | P.RuleDefinitionProps
   ): P.Rule | undefined {
+    const definition =
+      typeof namesOrDefinition === "object" && !Array.isArray(namesOrDefinition) ? namesOrDefinition : undefined
+    // NOTE:  duck-typed, not `instanceof SP.SpellStatement`:  rule modules register while the `SP` barrel loads
+    if (typeof rule === "function" && definition && (rule.prototype as OperandTwinned).operandInExpressions) {
+      const statement = this.addStatementAndOperand(rule as unknown as typeof P.Rule, definition)
+      if (statement) return statement
+    }
     // Overloads hide `super`'s implementation signature -- it takes either shape, so any overload will do.
     return super.addRule(rule as Class<P.Rule>, namesOrDefinition as P.DefinitionFor<P.Rule>)
   }
+
+  /**
+   * Register statement class `ruleClass` as TWO rules -- see `SP.SpellStatement.operandInExpressions`.
+   * - `ruleClass` says `operandInExpressions`, and is aliased both `statement` and `expression`.
+   * - The statement:  its `definition` as is.
+   * - The expression (so an `operand`):  a twin whose LAST slot is an operand,
+   *   its `statementRule` pointing back at the statement.
+   * - e.g. `to notify (message)` declares a call rule with syntax `notify {message:expression}`, which we make:
+   *   - the statement `notify {message:expression}`:  a LINE takes the whole expression after it,
+   *     `notify "hi " + name` => `notify_$message("hi " + name)`
+   *   - the twin `notify {message:operand}`:  INSIDE an expression it takes one operand,
+   *     so the rest stays the outer expression's:  `if notify x is 4` => `if (notify_$message(x) == 4)`
+   * - Returns the statement, which is what `scope.addRule()` records:
+   *   so a project's declarations write ONE rule, and loading it here makes both again.
+   * - `undefined` (nothing registered) if `ruleClass` isn't all that,
+   *   or its syntax doesn't end in an `{expression}` slot.
+   */
+  private addStatementAndOperand(ruleClass: typeof P.Rule, definition: P.RuleDefinitionProps): P.Rule | undefined {
+    const syntax = definition.syntax ?? (ruleClass.prototype as { syntax?: string }).syntax
+    const operandSyntax =
+      typeof syntax === "string"
+        ? syntax.replace(SpellParser.LAST_EXPRESSION_SLOT, (_slot, name = "expression", optional) => {
+            return `{${name}:operand}${optional}`
+          })
+        : undefined
+    if (!operandSyntax || operandSyntax === syntax) return undefined
+    // as `P.Parser.addRule()` instantiates a class
+    const registered: P.RuleDefinitionProps = this.module ? { ...definition, module: this.module } : { ...definition }
+    const statement = ruleClass.instantiate(registered)
+    const names = statement?.names ?? []
+    if (!statement || !names.includes("statement") || !names.includes("expression")) return undefined
+    const operand = ruleClass.instantiate({
+      ...registered,
+      syntax: operandSyntax,
+      tests: undefined,
+      statementRule: statement
+    } as P.RuleDefinitionProps)!
+    const statementNames = names.filter((name) => name !== "expression")
+    super.addRule(statement, statement.tests ? [...statementNames, "_testable_"] : statementNames)
+    super.addRule(operand, ["expression"])
+    return statement
+  }
+
+  /**
+   * A syntax's LAST slot, if it's an `{expression}` -- its group name and any `?` captured.
+   * - See `addStatementAndOperand()`.
+   */
+  static LAST_EXPRESSION_SLOT = /\{(?:(\w+):)?expression\}(\??)\s*$/
 
   /** Without the `/*! SPELL: DECLARES` comments -- a rule's tests are about its code.  See `SpellDeclarations`. */
   normalizeTestOutput(compiled: unknown): unknown {
     return typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : compiled
   }
 
+  /** Names a `{subrule}` parses an expression by -- see `getNamesForRule()`. */
+  static EXPRESSION_RULES = ["expression", "operand"]
+
   /**
-   * Also register expressions / statements as `simple_expression` / `simple_statement`.
-   * - Skips this for left-recursive rules (`rule.isLeftRecursive`): those already reference
-   *   `simple_expression`/`simple_statement` in their own `syntax` to chain onto a prior expression, so
-   *   adding them under those names too would let them recurse into themselves.
+   * Every rule aliased `expression` is registered as an `operand` instead -- except `expression` itself,
+   * `compound_expression`, which is an operand plus any operators after it.
+   * - So `{expression}` is a whole expression, operators and all.
+   * - `{operand}` is what an operator acts on:  one expression with no operator at its top,
+   *   e.g. `5`, `the first card of the deck`, `(x + 1)`.
+   * - Throws for an operand which STARTS with an expression:  it would recurse forever.
+   *   Something after an expression is an `expression_suffix` instead, e.g. `list_membership_test`.
    */
   protected getNamesForRule(rule: P.Rule, names: string[]): string[] {
-    if (rule.isLeftRecursive) return names
-    const extras: string[] = []
-    if (names.includes("expression")) extras.push("simple_expression")
-    if (names.includes("statement")) extras.push("simple_statement")
-    return [...names, ...extras]
+    const isOperand = rule.name !== "expression" && names.includes("expression")
+    const result = isOperand ? names.map((name) => (name === "expression" ? "operand" : name)) : names
+    const first = rule instanceof P.Sequence ? rule.rules[0] : undefined
+    if (isOperand && first instanceof P.Subrule && SpellParser.EXPRESSION_RULES.includes(first.rule)) {
+      throw new P.ParserError({
+        message: `Rule '${rule.name}' starts with an expression, so it would recurse forever.  Make it an expression_suffix.`,
+        context: this,
+        activity: "getNamesForRule",
+        params: { rule, names }
+      })
+    }
+    return result
   }
 
   /**
    * `rootScope` for all spellParsers -- contains base rules, types, constants.
    * - All project scopes point back to this.
+   * - Its types:
+   *   - spell's runtime classes (`SPELL_BASE_TYPES`:  `Object`, `Thing`, `List`, `App`)
+   *   - then every other built-in type's NAME (`P.BUILT_IN_TYPES`:  `text`, `number` ...), each with its super-type,
+   *     so `is a number` names a known type, and `integer` is a `number`
+   * - Their members -- `the length of the name` -- from `SP.BUILT_IN_TYPE_TABLE`, see `loadBuiltInTypes()`.
    */
   /*@memoize*/
   static get rootScope(): P.RootScope {
@@ -92,6 +165,13 @@ export class SpellParser extends P.Parser {
       const scope = new P.RootScope({ name: "spellRoot", parser: SP.spellParser })
       // spell's built-in types -- `spellCore.BASE_TYPES`
       SPELL_BASE_TYPES.forEach((type) => scope.types.add(type))
+      for (const [name, superType] of Object.entries(P.BUILT_IN_TYPES)) {
+        const existing = scope.types.get(name, "LOCAL_ONLY")
+        if (!existing) scope.types.add({ name, superType })
+        else if (superType) existing.superType = typeCase(superType)
+      }
+      // their members, docs and item types -- see `BUILT_IN_TYPE_TABLE`
+      SP.loadBuiltInTypes(scope)
       return scope
     })
   }
@@ -119,6 +199,23 @@ export class SpellParser extends P.Parser {
     if (typeof input === "string" && ruleName === "block") return this.tokenizer.breakIntoIndentedBlocks(tokens)
     return tokens
   }
+
+  /**
+   * Types `text` declares, by a scan of its lines, so a line ABOVE one knows the type:
+   * - e.g. `a card is a thing`, `a deck is a list of cards`, `create a type called hand as a list of cards`
+   * - See `P.Parser.stubDeclaredTypes()`.
+   * - Only a line STARTING that way, as `create_type` / `create_list_type` would read it:  a comment never does.
+   * - `a card is` is enough:  a declaration being typed, e.g. `a card is a`, still declares `card`,
+   *   so the editor keeps its last good version rather than re-parsing everything.
+   *   See `P.IncrementalProject.update()`.
+   */
+  declaredTypes(text: string): string[] {
+    return [...text.matchAll(SpellParser.TYPE_DECLARATION)].map(([, type, created]) => (type ?? created)!)
+  }
+
+  /** A line declaring a type, its name captured -- see `declaredTypes()`. */
+  static TYPE_DECLARATION =
+    /^[ \t]*(?:an?[ \t]+([\w-]+)[ \t]+is\b|create[ \t]+a[ \t]+type[ \t]+(?:named|called)[ \t]+([\w-]+))/gim
 
   /** Commit a spell statement parsed on its own -- see `SP.commitStatement()`. */
   commit(match: P.Match) {
@@ -188,3 +285,9 @@ export class SpellParser extends P.Parser {
     return result
   }
 }
+
+/**
+ * A rule class's prototype, as `SpellParser.addRule()` reads it.
+ * - See `SP.SpellStatement.operandInExpressions`.
+ */
+type OperandTwinned = { operandInExpressions?: boolean }

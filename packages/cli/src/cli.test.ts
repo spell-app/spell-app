@@ -592,7 +592,7 @@ describe("spell parse", () => {
     expect(status).toBe(0)
     expect(stdout).toBe(
       'statement › print  print "hi"\n  Keyword  print\n  expressions: Repeat  "hi"\n' +
-        '    expression › text  "hi"\n\nspellCore.console.log("hi")\n'
+        '    expression: operand › text  "hi"\n\nspellCore.console.log("hi")\n'
     )
   })
 
@@ -618,7 +618,7 @@ describe("spell repl", () => {
     })
     expect(status).toBe(0)
     expect(stdout).toContain("=> export let x = 3\n")
-    expect(stdout).toContain("lhs: simple_expression › known_variable  x\n")
+    expect(stdout).toContain("lhs: operand › known_variable  x\n")
     expect(stdout).toMatch(/=> spellCore\.console\.log\(x \+ 1\)\n$/)
   })
 })

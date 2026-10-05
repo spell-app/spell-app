@@ -12,13 +12,13 @@ a todos-app has a filter as one of all, active or completed
 set app to a new todos-app
 set the filter of the app to "all"
 
-to create a task (with title as text)
+to create a new task (with title as text)
 	get a new task with title = the title, completed = false
 	add it to the tasks of the app
 
-create a task with title = "Create todos app"
-create a task with title = "Teach it to draw"
-create a task with title = "Test app"
+create a new task with title = "Create todos app"
+create a new task with title = "Teach it to draw"
+create a new task with title = "Test app"
 
 to draw (a task)
 	if it is complete and the filter of the app is "active" return no
@@ -39,7 +39,7 @@ to draw (a todos-app)
 		<div>
 			<h2>To Do:</h2>
 			<div>
-				<input type="text" onBlur={create a task with title = the value of the target of the event}/>
+				<input type="text" onBlur={create a new task with title = the value of the target of the event}/>
 			</div>
 			<br/>
 			<table width="50%"><tbody>
@@ -54,7 +54,7 @@ to draw (a todos-app)
 			</div>
 			<br/>
 			<div>
-				<button onClick={create a task with title = "Moar"}>+ Add</button>
+				<button onClick={create a new task with title = "Moar"}>+ Add</button>
 				<button onClick={remove the first item of the tasks of the app}>- Remove</button>
 				<button onClick={set the title of the first item of the tasks of the app to "New title"}>Change name</button>
 				<button onClick={remove items in (the tasks of the app) where it is complete}>Remove Completed</button>
