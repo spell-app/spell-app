@@ -45,8 +45,10 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
      instead:  title, lede, "Where we are", context, questions and their options (`DetailsSpec` in
      `packages/docs/tools/details.js`).  `/worktrees` and `/bedtime` use it.
    - in an epic (a plan doc this session keeps):  add `--epic <name>`.  The page goes in
-     `epics/<name>/details/`, is committed with the plan doc, and the decision it leads to links it.
-   - else scratch:  `packages/docs/content/details/`, ignored by version control, swept after 14 days (`new` sweeps).
+     `epics/<name>/details/`, beside the plan doc (shared content, committed for you at the turn's end),
+     and the decision it leads to links it.
+   - else scratch:  `packages/docs/content/details/`, ignored by the shared repo too, swept after 14 days (`new`
+     sweeps).
    - `<slug>`:  lower-kebab-case, about the decision (`answer-path`, `card-layout`), unique.
 2. Edit the page (the template's placeholders show where):
    - lede:  what's being decided, and why now;  meta:  "Asked by:  session `<name>`, while <doing what>"
@@ -74,7 +76,7 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
      - pick several:  `data-multiple` on the section (checkboxes);  else pick one (radios)
      - every question gets an "Other" box, and the page a notes box and Send:  `_assets/details.js` adds them
    - a picture page:  delete the question sections;  nothing to send
-3. Epic page:  `yarn vp fmt <page>` before committing it.
+3. Epic page:  `yarn vp fmt <page>` once it's written.
 
 ## 3. Show it, and wait
 
