@@ -19,6 +19,7 @@
     "types": ["node"]
   },
   "include": ["tools", "vitest.config.ts"],
-  // the page assets are browser code (`spell-ui.entry.js` pulls in UI source);  the goals tools aren't type-checked
-  "exclude": ["tools/_assets", "tools/goals"]
+  // the page assets are browser code (`spell-ui.entry.js` pulls in UI source);  the goals tools aren't type-checked;
+  // `tools/vendor` is minified third-party code (Claude Design's runtime, for `check-design-bundle.js`)
+  "exclude": ["tools/_assets", "tools/goals", "tools/vendor"]
 }

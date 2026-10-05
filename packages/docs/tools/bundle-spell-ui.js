@@ -26,13 +26,31 @@
  *   of the bundle, and
  *   `spell-ui:lazy` points UI's loader hooks (`CodeHighlighter.engineLoader` ...) at the scripts.  A page that shows
  *   no code loads none.
+ *
+ * The DESIGN target (epic `claude-design`, P8):  a claude.ai Design System's `components/bundle.js`.
+ *
+ *   node tools/bundle-spell-ui.js --design [--out <dir>] [--skip-ui-build]     (yarn design:bundle)
+ *
+ * - Entry `_assets/spell-ui.design.entry.js`, written to `<dir>/bundle.js`;  `--out` is relative to the working
+ *   folder, default `DESIGN_OUT`:  `project/components/` in what `spell dev design build` writes (UI's
+ *   `build/design-system/`, ignored by git), which that command leaves in place.
+ * - Same esbuild config and resolver as the docs bundle (`bundle()`), but:
+ *   - the engines are INLINED, not lazy (Claude Design refuses a relative `<script src>`):  their `dist/` chunks
+ *     aren't stubbed, so esbuild inlines them like every other string-literal `import()`;  no `_assets/lazy/` or
+ *     `_assets/emoji/` is written, and emoji chunks stay empty stand-ins (emoji names draw nothing)
+ *   - `spell-ui:icons` registers EVERY Font Awesome Free icon (`designIconsModule()`)
+ * - Readers INLINE the file, so `escapeForInlining()` rewrites each `<!--` / `</script` as `\x3C...`, and the build
+ *   FAILS if one survives, if any `import()` / `import.meta` does, or if it's over `DESIGN_MAX_BYTES`.
+ * - No `bundle.css`:  every element adopts its own sheets and the theme its page sheet;  page typography is UI's
+ *   opt-in `class="ui-typography"` on `<body>`.
  */
 
 import { build } from "esbuild"
 import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join, relative, resolve } from "node:path"
-import { fileURLToPath } from "node:url"
+import { fileURLToPath, pathToFileURL } from "node:url"
+import { Script } from "node:vm"
 import { gzipSync } from "node:zlib"
 
 /** `packages/docs`. */
@@ -40,13 +58,29 @@ const DOCS = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 /** `packages/ui`, unless `SPELL_UI_DIR` says otherwise. */
 const UI_DIR = resolve(process.env.SPELL_UI_DIR ?? join(DOCS, "../ui"))
 const ASSETS = join(DOCS, "tools/_assets")
-const ENTRY = join(ASSETS, "spell-ui.entry.js")
-const OUTFILE = join(ASSETS, "spell-ui.js")
+
+const args = process.argv.slice(2)
+/** Building the design bundle (`--design`), not the docs one. */
+const DESIGN = args.includes("--design")
+/** Where the design bundle goes by default:  in the design-system folder `spell dev design build` writes. */
+const DESIGN_OUT = join(UI_DIR, "build/design-system/project/components")
+/** Claude Design's cap on a design system's `bundle.js` (6 MB, counted in decimal to be safe). */
+const DESIGN_MAX_BYTES = 6_000_000
+
+const ENTRY = join(ASSETS, DESIGN ? "spell-ui.design.entry.js" : "spell-ui.entry.js")
+const OUTFILE = DESIGN ? join(resolve(argValue("--out") ?? DESIGN_OUT), "bundle.js") : join(ASSETS, "spell-ui.js")
 /** Page behaviour, the RUNTIME's file;  bundled as an empty module while it doesn't exist yet. */
 const PAGE_RUNTIME = join(ASSETS, "spell-doc-runtime.js")
 
 /** UI's Font Awesome pack, where `ICONS`' files are read from. */
 const ICON_PACK = join(UI_DIR, "src/icons/icon-packs/fa7-free")
+
+/**
+ * Packs the design bundle inlines WHOLE, in order:  the first to give a name keeps it (`designIconsModule()`).
+ * - `fa7-free`:  solid + regular (`… outline`) + its few brand extras, UI's default pack
+ * - `fa7-brands`:  every brand;  only fills names `fa7-free` doesn't give, so a name means what it means on any page
+ */
+const DESIGN_PACKS = ["fa7-free", "fa7-brands"].map((id) => join(UI_DIR, "src/icons/icon-packs", id))
 
 /**
  * Icons bundled into the script, as `<style>/<file name>` => the names to register it under.
@@ -204,10 +238,11 @@ const LAZY = [
   }
 ]
 
-const args = process.argv.slice(2)
 if (!args.includes("--skip-ui-build")) buildUI()
-writeEmojiChunks()
-await writeLazyScripts()
+if (!DESIGN) {
+  writeEmojiChunks()
+  await writeLazyScripts()
+}
 const warnings = await bundle()
 report(warnings)
 
@@ -247,11 +282,13 @@ function run(command, commandArgs, label, { allowFailure = false } = {}) {
 
 /**
  * Bundles the entry into `OUTFILE`, then checks the output is safe for a classic script on `file://`.
+ * - Design target:  also escaped for inlining, and checked for that and for size (`checkDesignBundle()`).
  * - Returns esbuild's warnings, as text.
  */
 async function bundle() {
   const dist = join(UI_DIR, "dist/index.js")
   if (!existsSync(dist)) fail(`${relative(DOCS, dist)} is missing:  run without --skip-ui-build`)
+  mkdirSync(dirname(OUTFILE), { recursive: true })
   const result = await build({
     entryPoints: [ENTRY],
     outfile: OUTFILE,
@@ -271,7 +308,9 @@ async function bundle() {
     plugins: [spellUiResolver()]
   })
   checkOneSolid(result.metafile)
+  if (DESIGN) escapeForInlining()
   checkClassicScript()
+  if (DESIGN) checkDesignBundle()
   return result.warnings.map((warning) => `${warning.location?.file ?? ""}: ${warning.text}`)
 }
 
@@ -290,14 +329,17 @@ function spellUiResolver() {
       pluginBuild.onResolve({ filter: /^spell-ui:icons$/ }, () => ({ path: "icons", namespace: "spell-ui" }))
       pluginBuild.onResolve({ filter: /^spell-ui:emoji$/ }, () => ({ path: "emoji", namespace: "spell-ui" }))
       pluginBuild.onResolve({ filter: /^spell-ui:lazy$/ }, () => ({ path: "lazy", namespace: "spell-ui" }))
-      // the engines' `dist/` chunks:  never inlined (`spell-ui:lazy` loads them as scripts);  an empty stand-in
-      for (const { chunk } of LAZY) {
+      // the engines' `dist/` chunks:  never inlined (`spell-ui:lazy` loads them as scripts);  an empty stand-in.
+      // The design bundle inlines them instead:  it can't load a script of its own.
+      for (const { chunk } of DESIGN ? [] : LAZY) {
         pluginBuild.onResolve({ filter: chunk }, () => ({ path: "lazy-chunk", namespace: "spell-ui" }))
       }
       // UI's emoji data chunks:  never inlined (`EmojiData.chunkLoader` loads them as scripts);  an empty stand-in
       pluginBuild.onResolve({ filter: EMOJI_CHUNK }, () => ({ path: "emoji-chunk", namespace: "spell-ui" }))
-      pluginBuild.onLoad({ filter: /.*/, namespace: "spell-ui" }, (loaded) => {
-        if (loaded.path === "icons") return { contents: iconsModule(), resolveDir: ASSETS, loader: "js" }
+      pluginBuild.onLoad({ filter: /.*/, namespace: "spell-ui" }, async (loaded) => {
+        if (loaded.path === "icons") {
+          return { contents: DESIGN ? await designIconsModule() : iconsModule(), resolveDir: ASSETS, loader: "js" }
+        }
         if (loaded.path === "emoji") return { contents: emojiModule(), resolveDir: ASSETS, loader: "js" }
         if (loaded.path === "emoji-chunk") return { contents: "export default {}", loader: "js" }
         if (loaded.path === "lazy") return { contents: lazyModule(), resolveDir: ASSETS, loader: "js" }
@@ -349,6 +391,59 @@ function iconsModule() {
     `UI.load().then((ui) => {`,
     `  ui.icons.reset()`,
     `  for (const [names, svg] of ICONS) for (const name of names) ui.icons.register(name, svg)`,
+    `})`
+  ].join("\n")
+}
+
+/**
+ * Source of `spell-ui:icons` for the DESIGN bundle:  every icon of `DESIGN_PACKS`, so any Font Awesome Free name
+ * draws, with no pack to load.
+ * - Names as UI's packs give them (`IconName.claim()` on each index:  file name, `… outline`, FA's aliases);  across
+ *   packs the FIRST to give a name keeps it;  then `ICONS`' names on top, so widgets' own names (`close`,
+ *   `search`) mean what they mean in the docs bundle.
+ * - The SVGs travel as ONE string, an `<svg>` holding each icon's `<svg>` in order, parsed once (one `DOMParser`
+ *   call, not ~2,200);  `NAMES[i]` are the names of its `i`th child.  Each is `register()`ed under each name in
+ *   the first `UI.load()` callback, after `reset()`, like `iconsModule()`.
+ * - Each file's licence comment is stripped (they're all one text, and `<!--` can't be in the bundle anyway):  the
+ *   text goes ONCE into a `/*!` legal comment, which esbuild keeps at the end.  Their `xmlns` too:  the outer
+ *   `<svg>` gives it.
+ * - NOTE:  `register()`ed icons answer plain names only:  `fa7-free:bell` (a `prefix:` name) draws nothing here.
+ */
+async function designIconsModule() {
+  const { IconName } = await import(pathToFileURL(join(UI_DIR, "src/icons/IconName.ts")).href)
+  /** normalized name -> SVG file */
+  const files = new Map()
+  for (const folder of DESIGN_PACKS) {
+    const index = (await import(pathToFileURL(join(folder, "pack.js")).href)).default
+    const claimed = IconName.claim(Object.entries(index.icons).map(([key, entry]) => [key, entry.alias]))
+    for (const [name, key] of claimed) if (!files.has(name)) files.set(name, join(folder, `${key}.svg`))
+  }
+  for (const [file, names] of Object.entries(ICONS)) {
+    for (const name of names) files.set(IconName.normalize(name), join(ICON_PACK, `${file}.svg`))
+  }
+  /** SVG file -> its names, in first-claimed order */
+  const namesOf = new Map()
+  for (const [name, file] of files) namesOf.set(file, [...(namesOf.get(file) ?? []), name])
+  const licenses = new Set()
+  const svgs = [...namesOf.keys()].map((file) => {
+    if (!existsSync(file)) fail(`no icon ${relative(DOCS, file)}`)
+    const svg = readFileSync(file, "utf8")
+      .trim()
+      .replace(/<!--!?\s*([\s\S]*?)\s*-->/g, (_comment, text) => (licenses.add(text), ""))
+      .replace(/^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/, "<svg")
+    if (!svg.startsWith("<svg") || svg.includes("<!--")) fail(`${relative(DOCS, file)}:  not one plain <svg>`)
+    return svg
+  })
+  console.log(`-- icons:  ${svgs.length} SVGs, ${files.size} names`)
+  return [
+    ...[...licenses].map((text) => `/*! ${text.replaceAll("*/", "* /")} */`),
+    `import { UI } from "@spell-app/ui/core"`,
+    `const SHEET = ${JSON.stringify(`<svg xmlns="http://www.w3.org/2000/svg">${svgs.join("")}</svg>`)}`,
+    `const NAMES = ${JSON.stringify([...namesOf.values()])}`,
+    `UI.load().then((ui) => {`,
+    `  ui.icons.reset()`,
+    `  const icons = new DOMParser().parseFromString(SHEET, "image/svg+xml").documentElement.children`,
+    `  NAMES.forEach((names, at) => { for (const name of names) ui.icons.register(name, icons[at]) })`,
     `})`
   ].join("\n")
 }
@@ -453,6 +548,39 @@ function checkClassicScript(file = OUTFILE) {
   if (problems.length) fail(`${relative(DOCS, file)} still has ${problems.map(([, what]) => what).join(", ")}`)
 }
 
+/**
+ * Rewrites every `<!--` and `</script` in the design bundle as `\x3C!--` / `\x3C/script`:  readers INLINE a design
+ * system's `bundle.js` into a `<script>`, where either would end it or change how it parses (caveat C5).
+ * - Same meaning wherever minified code has them:  in a string, a template or a regex `\x3C` IS `<`;  in a comment
+ *   it's just text.  An odd run of backslashes before the `<` already escaped it (`\<`):  one is dropped.
+ * - SIDE EFFECT:  rewrites `OUTFILE`;  `checkDesignBundle()` then proves none survive and it still parses.
+ */
+function escapeForInlining() {
+  let count = 0
+  const code = readFileSync(OUTFILE, "utf8").replace(/(\\*)<(?=!--|\/script)/gi, (_match, slashes) => {
+    count++
+    return `${slashes.length % 2 ? slashes.slice(1) : slashes}\\x3C`
+  })
+  writeFileSync(OUTFILE, code)
+  console.log(`-- escaped ${count} <!-- / </script for inlining`)
+}
+
+/**
+ * Fails unless the design bundle is fit for a claude.ai design system:  no `<!--` or `</script` left, still a
+ * script that parses, at most `DESIGN_MAX_BYTES`.
+ */
+function checkDesignBundle() {
+  const code = readFileSync(OUTFILE, "utf8")
+  if (/<!--|<\/script/i.test(code)) fail(`${OUTFILE} still has a <!-- or </script`)
+  try {
+    new Script(code, { filename: OUTFILE })
+  } catch (error) {
+    fail(`${OUTFILE} no longer parses after escaping:  ${error}`)
+  }
+  const bytes = Buffer.byteLength(code)
+  if (bytes > DESIGN_MAX_BYTES) fail(`${OUTFILE} is ${bytes} bytes:  over Claude Design's ${DESIGN_MAX_BYTES}`)
+}
+
 ////////////////
 // ## Lazy engines
 ////////////////
@@ -527,8 +655,19 @@ function lazyModule() {
 function report(warnings) {
   const code = readFileSync(OUTFILE)
   const kb = (bytes) => `${(bytes / 1024).toFixed(1)} KB`
-  console.log(`-- ${relative(DOCS, OUTFILE)}  ${kb(code.length)}  (gzip ${kb(gzipSync(code).length)})`)
+  // relative inside the checkout, else (an `--out` elsewhere) absolute
+  const shown = relative(resolve(DOCS, "../.."), OUTFILE).startsWith("..") ? OUTFILE : relative(DOCS, OUTFILE)
+  console.log(`-- ${shown}  ${kb(code.length)}  (gzip ${kb(gzipSync(code).length)})`)
   for (const warning of warnings) console.warn(`!! ${warning}`)
+}
+
+/** Value after flag `name` (`--out <dir>`), or `undefined`;  exits if the flag has none. */
+function argValue(name) {
+  const at = args.indexOf(name)
+  if (at < 0) return undefined
+  const value = args[at + 1]
+  if (!value || value.startsWith("--")) fail(`${name} needs a value`)
+  return value
 }
 
 /** Prints `message` and exits with an error. */
