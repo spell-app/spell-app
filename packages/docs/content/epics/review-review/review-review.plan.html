@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../../tools/_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../../tools/_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T17:25:24-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
+  <body data-recent-since="2026-10-04T19:14:44-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
     <spell-site-header root="../../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -3772,6 +3772,42 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item data-state="attention" data-changed="2026-10-04T20:21:47-04:00" id="i6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i6">I6</a>
+                  <span class="plan-title"
+                    >commits --backfill lists another epic's commit when it touched this doc</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Running <code>yarn plan-doc commits review-review --backfill</code> after main was merged in listed
+                    shared-content's commit <code>567a0bc</code> ("WIP P2: Move Logic Out -- docs tools to
+                    packages/docs/tools ...") under this epic's P2 (Fuller Writing).
+                  </p>
+                  <ul>
+                    <li>
+                      Why: that commit rewrote paths in EVERY plan doc, so it is in this doc's
+                      <code>git log --follow</code>, and <code>parseCommitSubject()</code> reads any
+                      <code>P2:</code> subject as phase 2, whatever epic it came from.
+                    </li>
+                    <li>
+                      Same trap for item fixes: another epic's <code>Fix I3:</code> that touched this doc would land on
+                      this doc's I3.
+                    </li>
+                    <li>Removed the stray entry by hand (2026-10-04).</li>
+                    <li>
+                      A likely fix: for a phase commit, accept it only when its name after <code>P2:</code> matches the
+                      doc's phase name ("Fuller Writing"); for an item fix, only when the commit changed little besides
+                      this doc and its code, or name the epic in the subject.
+                    </li>
+                  </ul>
+                  <p><b>Net effect</b></p>
+                  <ul>
+                    <li>Until fixed: check what a backfill added after merging main.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -4734,6 +4770,14 @@
                   ><ui-date><time datetime="2026-10-04T19:30-04:00">2026-10-04 19:30</time></ui-date> I4 reviewed:
                   fixed: wait stamps listening.seen every 30s (the session's other inbox commands too); silent 90s, the
                   routes answer listening null, so the page and inbox summary say nobody is reviewing</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:36-04:00">2026-10-04 19:36</time></ui-date> P5, P6 and the I3
+                  / I4 fix merged into main (dd19f76b, with main's docs reorganisation); main's page server restarted:
+                  the review routes answer</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
