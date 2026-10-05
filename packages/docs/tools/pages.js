@@ -73,9 +73,14 @@ export function findPages(dir = DOCS) {
  * - returns whether both succeeded;  their output is echoed
  * - run from `PACKAGE`, never `DOCS`:  once `content` is a link, a process started in it is in the shared repo,
  *   outside this yarn workspace
+ * - a path that would leave `PACKAGE` (`../../.claude/worktrees/...`) goes as an absolute one:  oxfmt refuses `..`
  */
 export function tidy(files) {
-  const paths = files.map((file) => (isAbsolute(file) ? file : join("content", file)))
+  const paths = files.map((file) => {
+    if (isAbsolute(file)) return file
+    const path = join("content", file)
+    return path.startsWith("..") ? resolve(PACKAGE, path) : path
+  })
   for (const [command, args] of [
     [process.execPath, [join(TOOLS, "doc-links.js"), ...paths]],
     ["yarn", ["vp", "fmt", ...paths]]
