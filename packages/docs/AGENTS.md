@@ -1,7 +1,8 @@
 # packages/docs (`@spell-app/docs`)
 
 Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/ui`, their templates, the plan docs
-`/epic` keeps, the experiments behind the claims, and the tooling.  As the root's `AGENTS.md`, plus:
+`/epic` keeps, the experiments behind the claims, and the tooling.  As the root's `AGENTS.md` and WWOD
+(`agents/wwod/WWOD.md`), plus:
 
 ## Layout
 
@@ -140,9 +141,7 @@ In `tools/`:
   - a nested `<ui-section>` for EVERY distinct sub-item, `h4` for sub-sub-items:  a list item with a bold title and
     several lines of body becomes a section, and long lists of such items are grouped under themed sections
   - titles are short labels (they're the contents entries);  the claim goes in the body
-- Text:  bullets, not dense prose.
-  - 3+ sentences => a short lead plus bullets, one idea each, nested for sub-points
-  - keep every fact, number and caveat when you condense
+- Text:  SEE:  WWOD §6 › "Writing for people".
 - Widgets (see the templates for exact markup):
   - recommendations / warnings:  `<ui-message state="positive|negative|warning|info" header="...">`
   - comparisons:  `<ui-table celled compact striped unstackable>` around a native `<table>`;  number cells
@@ -182,7 +181,7 @@ In `tools/`:
     `yarn vp fmt <file>`
   - valid code only:  no bare JSX statements after other statements -- assign them to a `const`
   - prefer excerpts pasted from a real, runnable file over hand-typed examples
-- Colors only from the `spell-doc.css` / UI tokens, so dark mode keeps working.
+- Colors:  WWOD §18 › "Colours and themes through `ui`'s tokens", plus `spell-doc.css`'s own.
 
 ## Templates
 
@@ -334,3 +333,5 @@ In this order, from `packages/docs`:
 - When agents need a doc's rules, also write a distilled `.md` beside it (bullets, `ts` code blocks), and point to it
   from the top of an `AGENTS.md` with an "if working with X, READ file" line -- the package's, or the root's when
   other packages need it too.  See `solid/solid-2.md`, pointed to from the root's.
+- A doc's rules are about ITS topic (Solid's mechanics, a tool's flags).  House style -- how we write any code --
+  goes in WWOD (`agents/wwod/`), not in a distilled doc.

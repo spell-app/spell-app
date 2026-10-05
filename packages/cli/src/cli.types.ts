@@ -412,3 +412,11 @@ export type SharedOptions = GlobalOptions & {
   quiet?: boolean
   dryRun?: boolean
 }
+
+/**
+ * `spell dev agents` flags.
+ * - `json`:  `check` prints the report as JSON
+ */
+export type AgentsOptions = GlobalOptions & {
+  json?: boolean
+}

@@ -92,7 +92,7 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
    the spell extension (`spell dev vscode`).
    - MUST print "... shows in ... once this session moves there".  Why:  only a PENDING move defers it;  before
      the handoff it shows in THIS window's side bar, the one being left.
-6. Isolate "Start", step 6:  END THE TURN.  Last line:  "moving to `<pkg> ⎇ <name>`:  press enter on `continue`
+6. Isolate "Start", step 6:  END THE TURN.  Last line:  "moving to `⎇ <name>`:  press enter on `continue`
    there" (no plan yet:  "send the plan there").
 7. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
 
