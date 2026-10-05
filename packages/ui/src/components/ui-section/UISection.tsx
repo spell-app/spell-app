@@ -1,5 +1,5 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
-import { Dynamic, type JSX } from "@solidjs/web"
+import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
@@ -9,6 +9,9 @@ import {
   PartContext,
   proto,
   SlotContent,
+  SOURCE_FAILURE_KEYS,
+  SourceBody,
+  SourceBodyHost,
   StickyWatch,
   UI,
   UIElement,
@@ -32,9 +35,11 @@ import {
   HEADING,
   HEADING_TAG,
   HEIGHT_PROPERTY,
+  LOADING,
   MAX_LEVEL,
   SCROLLING,
   SENTINEL,
+  SOURCE_ERROR,
   STATIC_TOGGLE_TAG,
   TOGGLE_BUTTON,
   CONTROLS,
@@ -72,13 +77,22 @@ import sectionCSS from "./ui-section.css?inline"
  *   the bottom of the enclosing sticky titles (enclosing section's `stackBottom()`), so nested titles stack.  A
  *   `scrolling` / `height` section's content starts a fresh stack (its own scroll box).  `StickyWatch` reports
  *   `:state(stuck)` and reserves the title's room for Page Down, exactly as `<ui-sticky>` does.
+ * - Source (`source`, `select`):  the content comes from a file the first time the section unfolds -- by any route:
+ *   a click, `collapsed` removed by the page (a `#id` link's unfold), or starting unfolded (then at once).
+ *   `SourceBody` fetches it (`UI.sources`), and puts its `<body>` in the LIGHT DOM in place of the placeholder
+ *   (children without a `slot`).  While it's on its way the content box stays hidden (`veiled()`, at most
+ *   `SOURCE_BODY_HOLD_MS`, then the `loading` look over the placeholder), so the unfold shows the body.
+ *   `load()` / `reload()` on the host (`SourceBodyHost`);  `:state(loaded)`, `:state(error)`.  Lives in the CLASS,
+ *   so subclasses (`<ui-panel>`) get it with the vocabulary they reuse.
  * - SIDE EFFECT:  with `sticky`, a `ResizeObserver` keeps the title's height (`titleHeight`) for the stack, and the
  *   `StickyWatch` writes the scroll container's inline `scroll-padding-top` while stuck.
+ * - SIDE EFFECT:  with `source`, replaces its own light children (the placeholder) with the file's body.
  ****************/
 export class UISection extends UIElement<SectionVocabulary> {
   @proto static vocabulary = sectionVocabulary
   @proto static styles = { section: sectionCSS }
   @proto static Fallback = SectionFallback
+  @proto static Host = SourceBodyHost
   // a container:  a click on its text must not jump to the fold button or a link inside
   @proto static delegatesFocus = false
 
@@ -110,6 +124,15 @@ export class UISection extends UIElement<SectionVocabulary> {
 
   /** Title bar is stuck. */
   readonly stuck = new Cell(false)
+
+  /** The content from `source`, loaded on first unfold;  into the host's light DOM. */
+  readonly body = new SourceBody({
+    host: this.host,
+    source: () => untrack(() => this.attrs.source) || undefined,
+    select: () => untrack(() => this.attrs.select) || undefined,
+    target: () => this.host,
+    emit: (name, detail) => this.emit(name as never, detail)
+  })
 
   /** The title bar. */
   private title?: HTMLElement
@@ -186,6 +209,20 @@ export class UISection extends UIElement<SectionVocabulary> {
   /** Folded:  `collapsible` and `collapsed`. */
   readonly folded = createMemo(() => this.collapsible() && !!this.collapsedState.get())
 
+  /** Content box held closed while the `source` body is on its way (never in a server render:  nothing loads). */
+  readonly veiled = createMemo(() => !isServer && !!this.attrs.source && this.body.veiled())
+
+  /** Busy:  `loading`, or a `source` body slow to arrive. */
+  readonly busy = createMemo(() => !!this.attrs.loading || this.body.busy())
+
+  /** The error line's text, when the `source` body failed;  else `undefined`. */
+  readonly bodyFailureText = createMemo(() => {
+    const failure = this.body.failure.get()
+    if (!failure) return undefined
+    const key = SOURCE_FAILURE_KEYS[failure.kind] ?? SOURCE_FAILURE_KEYS.load
+    return this.text(key as never, { source: this.attrs.source ?? "" })
+  })
+
   /** Has an icon (shorthand or `icon` slot)? */
   readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))
 
@@ -211,20 +248,28 @@ export class UISection extends UIElement<SectionVocabulary> {
   // ## Element hooks
   ////////////////
 
-  /** `height` without `scrolling`:  `scrolling` after the noun (`height` implies it). */
+  /**
+   * Words after the noun:  `scrolling` for `height` without it (`height` implies it);  `loading` while a `source`
+   * body is slow to arrive (the `loading` look, over the placeholder).
+   */
   protected extraClasses(): string | undefined {
-    return this.attrs.height && !this.attrs.scrolling ? SCROLLING : undefined
+    const scrolling = this.attrs.height && !this.attrs.scrolling ? SCROLLING : undefined
+    const loading = !this.attrs.loading && this.body.busy() ? LOADING : undefined
+    return [scrolling, loading].filter(Boolean).join(" ") || undefined
   }
 
   protected hostStates() {
-    const { inverted, loading, disabled } = this.attrs
+    const { inverted, disabled } = this.attrs
+    const status = this.body.status.get()
     return {
       collapsed: this.folded(),
       stuck: !!this.attrs.sticky && this.stuck.get(),
       animated: this.loaded() && UI.browser.supports.interpolateSize,
       inverted,
-      loading,
-      disabled
+      loading: this.busy(),
+      disabled,
+      loaded: status === "loaded",
+      error: status === "error"
     }
   }
 
@@ -232,10 +277,32 @@ export class UISection extends UIElement<SectionVocabulary> {
   // ## Rendering
   ////////////////
 
+  /**
+   * Load the `source` body whenever the section is open, connected and has one (`SourceBody.load()` is once per
+   * `source` + `select`), then render.
+   * - In `mount()`, not `render()`:  a subclass drawing its own markup still loads its body.
+   */
+  mount(): JSX.Element {
+    if (!isServer) {
+      createEffect(
+        () => ({
+          source: this.attrs.source,
+          select: this.attrs.select,
+          open: !this.folded(),
+          connected: this.connected.get()
+        }),
+        ({ source, open, connected }) => {
+          if (source && open && connected) this.body.load().catch(() => undefined)
+        }
+      )
+    }
+    return super.mount()
+  }
+
   render(): JSX.Element {
     this.effects()
     return (
-      <section class={this.classes()} part={this.part("section")} aria-busy={this.attrs.loading ? UIT.TRUE : undefined}>
+      <section class={this.classes()} part={this.part("section")} aria-busy={this.busy() ? UIT.TRUE : undefined}>
         <div ref={(element) => (this.sentinel = element)} class={SENTINEL} aria-hidden={UIT.TRUE} />
         {this.renderTitle()}
         <Show when={this.hasSubhead()}>
@@ -248,13 +315,18 @@ export class UISection extends UIElement<SectionVocabulary> {
           id={CONTENT_ID}
           class={CONTENT}
           part={this.part("content")}
-          hidden={this.folded() ? UNTIL_FOUND : undefined}
+          hidden={this.folded() || this.veiled() ? UNTIL_FOUND : undefined}
           tabindex={this.scrolls() ? 0 : undefined}
           style={this.attrs.height ? { [HEIGHT_PROPERTY]: this.attrs.height } : undefined}
         >
+          <Show when={this.bodyFailureText()}>
+            <p class={SOURCE_ERROR} part={this.part("error")} role={UIT.ALERT}>
+              {this.bodyFailureText()}
+            </p>
+          </Show>
           <slot />
         </div>
-        <Show when={this.attrs.loading}>
+        <Show when={this.busy()}>
           <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
             {this.text("loading")}
           </span>
@@ -344,6 +416,20 @@ export class UISection extends UIElement<SectionVocabulary> {
         }
       }
     )
+  }
+
+  ////////////////
+  // ## Source (`SourceBodyHost`)
+  ////////////////
+
+  /** Fetch and insert the `source` body now, folded or not;  once per `source` + `select`. */
+  loadBody(): Promise<void> {
+    return this.body.load()
+  }
+
+  /** Fetch the `source` body again past the cache, and replace it. */
+  reloadBody(): Promise<void> {
+    return this.body.reload()
   }
 
   ////////////////

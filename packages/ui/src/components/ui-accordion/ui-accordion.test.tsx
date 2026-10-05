@@ -1,6 +1,7 @@
 import { userEvent } from "vite-plus/test/browser"
-import { describe, expect, it, onTestFinished } from "vite-plus/test"
+import { afterEach, beforeAll, describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
+import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/a11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -383,6 +384,92 @@ describe("<ui-accordion> look", () => {
   it("animates panels when the browser can grow to `auto`", async () => {
     const { host } = await accordion()
     expect(host.matches(":state(animated)")).toBe(CSS.supports("interpolate-size: allow-keywords"))
+  })
+})
+
+describe("<ui-accordion source>", () => {
+  /** Fixture bodies the test server serves. */
+  const DIR = "/test/fixtures/sources/bodies"
+
+  /** An accordion host with its source API. */
+  type SourceAccordion = UIHost & { open: string | undefined; load(): Promise<void>; reload(): Promise<void> }
+
+  /** One title, no content:  a plan doc's item line. */
+  const ITEM = `<ui-title>Q2 <span>A question</span></ui-title>`
+
+  beforeAll(async () => {
+    await UI.load()
+  })
+
+  afterEach(() => {
+    UI.sources.forget()
+    vi.restoreAllMocks()
+  })
+
+  /** Count the fetches of `file` from now on. */
+  function fetches(file: string) {
+    const spy = vi.spyOn(globalThis, "fetch")
+    return () => spy.mock.calls.filter(([url]) => typeof url === "string" && url.endsWith(file)).length
+  }
+
+  /** Render a source accordion. */
+  async function sourced(attributes: string, panels = ITEM) {
+    const host = await ElementFixture.render<SourceAccordion>(`<ui-accordion ${attributes}>${panels}</ui-accordion>`)
+    return { host, ...parts(host) }
+  }
+
+  it("fetches nothing while closed;  opening the panel loads the body into a new <ui-content>", async () => {
+    const count = fetches("body.html")
+    const { host, titles } = await sourced(`source="${DIR}/body.html"`)
+    await ElementFixture.tick()
+    expect(count()).toBe(0)
+    titles[0]!.click()
+    await host.load()
+    await ElementFixture.settle(host)
+    expect(count()).toBe(1)
+    const content = host.querySelector(":scope > ui-title + ui-content")!
+    expect(content.querySelector("p.body")).not.toBeNull()
+    expect(host.matches(":state(loaded)")).toBe(true)
+    const after = parts(host)
+    expect(openPanels(after.details)).toEqual([0])
+    expect(after.contents[0]!.querySelector("slot")!.assignedElements()).toEqual([content])
+  })
+
+  it("replaces a <ui-content> placeholder's children, keeping the element", async () => {
+    const { host } = await sourced(
+      `source="${DIR}/body.html" open="0"`,
+      `${ITEM}<ui-content class="kept"><p>Loading the details…</p></ui-content>`
+    )
+    await host.load()
+    await ElementFixture.tick()
+    const content = host.querySelector("ui-content.kept")!
+    expect(content.textContent).not.toContain("Loading the details")
+    expect(content.querySelector("p.body")).not.toBeNull()
+    expect(host.querySelectorAll("ui-content")).toHaveLength(1)
+  })
+
+  it("starts open:  loads at once;  `reload()` fetches again and replaces the body", async () => {
+    const count = fetches("body.html")
+    const { host } = await sourced(`source="${DIR}/body.html" open="0"`)
+    await host.load()
+    expect(count()).toBe(1)
+    await host.reload()
+    expect(count()).toBe(2)
+    expect(host.querySelectorAll("p.body")).toHaveLength(1)
+  })
+
+  it("a missing file:  ui-error, :state(error) and an error line in the panel", async () => {
+    const errors: string[] = []
+    const { host, titles } = await sourced(`source="${DIR}/missing.html"`)
+    host.addEventListener("ui-error", (event) => errors.push((event as CustomEvent).detail.kind))
+    titles[0]!.click()
+    await host.load().catch(() => undefined)
+    await ElementFixture.settle(host)
+    expect(errors).toEqual(["load"])
+    expect(host.matches(":state(error)")).toBe(true)
+    const { details, contents } = parts(host)
+    expect(openPanels(details)).toEqual([0])
+    expect(contents[0]!.querySelector("[part~=error]")!.textContent).toBe(`Couldn't load ${DIR}/missing.html.`)
   })
 })
 

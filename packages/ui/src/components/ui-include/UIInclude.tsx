@@ -1,7 +1,7 @@
 import { Show, createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, SourceElement, SourceError } from "$/ui/core"
+import { Cell, proto, SourceElement, SourceError, SourceMarkup } from "$/ui/core"
 import { RootLoader } from "$/ui/components/ui-root"
 
 import { includeVocabulary } from "./ui-include.vocabulary.en"
@@ -10,12 +10,8 @@ import { UIIncludeHost } from "./UIIncludeHost"
 import {
   BODY_CLOSE,
   BODY_OPEN,
-  MAX_DEPTH,
   EAGER,
   LOADING_CLASS,
-  ORIGINAL_PREFIX,
-  URL_ATTRIBUTES,
-  URL_SELECTOR,
   type IncludeInsertDetail,
   type Vocabulary
 } from "./ui-include.types"
@@ -148,46 +144,7 @@ export class UIInclude extends SourceElement<Vocabulary> {
 
   /** `text` as a fragment of this document:  `<body>`'s content or the `select` match, URLs rewritten. */
   private parse(text: string, select: string | undefined): DocumentFragment | SourceError {
-    const parsed = new DOMParser().parseFromString(text, "text/html")
-    let nodes: Node[]
-    if (select) {
-      let match: Element | null
-      try {
-        match = parsed.querySelector(select)
-      } catch {
-        return new SourceError("render", `"${select}" isn't a CSS selector`)
-      }
-      if (!match)
-        return new SourceError("render", `Nothing in ${this.sourceAttribute() ?? "the content"} matches "${select}"`)
-      nodes = [match]
-    } else nodes = [...parsed.body.childNodes]
-    const page = this.host.ownerDocument
-    const fragment = page.createDocumentFragment()
-    for (const node of nodes) fragment.append(page.importNode(node, true))
-    this.rewriteUrls(fragment)
-    return fragment
-  }
-
-  /** Point relative URLs in `fragment` where they pointed in `source`, keeping each original beside it. */
-  private rewriteUrls(fragment: DocumentFragment) {
-    const source = this.sourceAttribute()
-    if (!source) return
-    const base = new URL(source, this.host.ownerDocument.baseURI)
-    for (const element of fragment.querySelectorAll(URL_SELECTOR)) {
-      for (const name of URL_ATTRIBUTES) {
-        const value = element.getAttribute(name)
-        if (value === null || value.startsWith("#")) continue
-        let absolute: string
-        try {
-          absolute = new URL(value, base).href
-        } catch {
-          continue
-        }
-        if (absolute === new URL(value, this.host.ownerDocument.baseURI).href) continue
-        element.setAttribute(ORIGINAL_PREFIX + name, value)
-        element.setAttribute(name, absolute)
-      }
-    }
+    return SourceMarkup.parse(text, { page: this.host.ownerDocument, source: this.sourceAttribute(), select })
   }
 
   /** The live markup (or the `select`ed element's), with every rewritten URL back as written;  none before insert. */
@@ -196,14 +153,7 @@ export class UIInclude extends SourceElement<Vocabulary> {
     const holder = this.host.ownerDocument.createElement("template")
     const nodes = this.selected ? [this.selected] : [...this.root.childNodes]
     for (const node of nodes) holder.content.append(node.cloneNode(true))
-    for (const element of holder.content.querySelectorAll("*")) {
-      for (const name of URL_ATTRIBUTES) {
-        const original = element.getAttribute(ORIGINAL_PREFIX + name)
-        if (original === null) continue
-        element.setAttribute(name, original)
-        element.removeAttribute(ORIGINAL_PREFIX + name)
-      }
-    }
+    SourceMarkup.restoreUrls(holder.content)
     return holder.innerHTML
   }
 
@@ -233,29 +183,12 @@ export class UIInclude extends SourceElement<Vocabulary> {
 
   /** A cycle (inside an include of the same file) or nesting deeper than `MAX_DEPTH`. */
   protected refuseSource(source: string): SourceError | undefined {
-    const base = this.host.ownerDocument.baseURI
-    const url = new URL(source, base).href
-    let depth = 0
-    for (let node = UIInclude.parentOf(this.host); node; node = UIInclude.parentOf(node)) {
-      if (node.localName !== this.host.localName) continue
-      depth++
-      const outer = node.getAttribute("source")
-      if (outer && new URL(outer, base).href === url) return new SourceError("render", `${source} includes itself`)
-    }
-    if (depth >= MAX_DEPTH) return new SourceError("render", `${source}:  includes nested more than ${MAX_DEPTH} deep`)
-    return undefined
+    return SourceMarkup.refusal(this.host, source, (node) => node.localName === this.host.localName)
   }
 
   ////////////////
   // ## Helpers
   ////////////////
-
-  /** `element`'s parent, stepping out of shadow roots. */
-  private static parentOf(element: Element): Element | undefined {
-    const parent = element.parentNode
-    if (parent instanceof ShadowRoot) return parent.host
-    return parent instanceof Element ? parent : undefined
-  }
 
   /** Load the family of every undefined `ui-*` tag under `root`, as `<ui-root>` would. */
   private static loadFamilies(root: ParentNode) {

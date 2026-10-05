@@ -222,6 +222,16 @@
           "name": "open",
           "kind": "string",
           "description": "Indexes of the open panels (0-based), space-separated:  `open=\"0\"`, `open=\"0 2\"`.  Controlled:  set it to open / close panels;  `ui-open` / `ui-close` can veto the user's changes.  When `exclusive`, only the first index counts."
+        },
+        {
+          "name": "source",
+          "kind": "string",
+          "description": "URL of an HTML file whose `<body>` is the content, fetched the first time it opens (at once when it starts open);  same origin only.  Any content already there is a placeholder the file replaces.  `load()` fetches it now, `reload()` again."
+        },
+        {
+          "name": "select",
+          "kind": "string",
+          "description": "With `source`:  a CSS selector;  only its first match in the file becomes the content."
         }
       ],
       "slots": [
@@ -242,6 +252,17 @@
           "detail": "{ index: number, open: false, title: Element, content?: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "A panel is about to close -- its title was activated, or another panel is opening in an `exclusive` accordion;  `preventDefault()` keeps it open (and then the other one closed)."
+        },
+        {
+          "name": "ui-load",
+          "detail": "{ source: string, content: string }",
+          "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
+        },
+        {
+          "name": "ui-error",
+          "detail": "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }",
+          "cancelable": true,
+          "description": "The `source` file couldn't be loaded or shown;  `kind` says why.  An error line shows in the content unless cancelled;  opening it again tries again."
         }
       ],
       "parts": [
@@ -264,6 +285,10 @@
         {
           "name": "content",
           "description": "A panel's content box."
+        },
+        {
+          "name": "error",
+          "description": "With `source`:  the line saying the file couldn't be loaded."
         }
       ],
       "states": [
@@ -278,9 +303,42 @@
         {
           "name": "in-accordion",
           "description": "Nested in another accordion:  it takes that one's look."
+        },
+        {
+          "name": "loading",
+          "description": "With `source`:  fetching the file."
+        },
+        {
+          "name": "loaded",
+          "description": "With `source`:  the file's body is in place."
+        },
+        {
+          "name": "error",
+          "description": "With `source`:  the file couldn't be loaded or shown."
         }
       ],
-      "texts": [],
+      "texts": [
+        {
+          "key": "sourceLoadError",
+          "text": "Couldn't load {source}.",
+          "description": "The fetch failed."
+        },
+        {
+          "key": "sourceCrossOrigin",
+          "text": "Can't show {source}:  only files from this site can be shown.",
+          "description": "`source` is on another origin."
+        },
+        {
+          "key": "sourceFileProtocol",
+          "text": "Can't load {source}:  this page was opened from disk.  Open it from a web server to see it.",
+          "description": "The page is a `file://` page."
+        },
+        {
+          "key": "sourceRenderError",
+          "text": "Couldn't show {source}.",
+          "description": "The text arrived, but couldn't be shown."
+        }
+      ],
       "mainTag": "ui-accordion",
       "main": true,
       "page": true,
@@ -10813,6 +10871,16 @@
           "name": "disabled",
           "kind": "keyOnly",
           "description": "Dimmed and inert;  can't be folded."
+        },
+        {
+          "name": "source",
+          "kind": "string",
+          "description": "URL of an HTML file whose `<body>` is the content, fetched the first time it opens (at once when it starts open);  same origin only.  Any content already there is a placeholder the file replaces.  `load()` fetches it now, `reload()` again."
+        },
+        {
+          "name": "select",
+          "kind": "string",
+          "description": "With `source`:  a CSS selector;  only its first match in the file becomes the content."
         }
       ],
       "slots": [
@@ -10853,6 +10921,17 @@
           "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
           "cancelable": true,
           "description": "About to fold:  the title was activated.  Cancel to stay open."
+        },
+        {
+          "name": "ui-load",
+          "detail": "{ source: string, content: string }",
+          "description": "The `source` file arrived and its body is in place (`content` is the file's text)."
+        },
+        {
+          "name": "ui-error",
+          "detail": "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }",
+          "cancelable": true,
+          "description": "The `source` file couldn't be loaded or shown;  `kind` says why.  An error line shows in the content unless cancelled;  opening it again tries again."
         }
       ],
       "parts": [
@@ -10899,6 +10978,10 @@
         {
           "name": "content",
           "description": "The content box:  `size`, `scrolling` and `height` apply here."
+        },
+        {
+          "name": "error",
+          "description": "With `source`:  the line saying the file couldn't be loaded."
         }
       ],
       "states": [
@@ -10928,11 +11011,19 @@
         },
         {
           "name": "loading",
-          "description": "Busy."
+          "description": "Busy:  `loading`, or a `source` body that is slow to arrive."
         },
         {
           "name": "disabled",
           "description": "Dimmed and inert."
+        },
+        {
+          "name": "loaded",
+          "description": "With `source`:  the file's body is in place."
+        },
+        {
+          "name": "error",
+          "description": "With `source`:  the file couldn't be loaded or shown."
         }
       ],
       "texts": [
@@ -10950,6 +11041,26 @@
           "key": "unfold",
           "text": "Unfold",
           "description": "Tooltip of the fold button while folded."
+        },
+        {
+          "key": "sourceLoadError",
+          "text": "Couldn't load {source}.",
+          "description": "The fetch failed."
+        },
+        {
+          "key": "sourceCrossOrigin",
+          "text": "Can't show {source}:  only files from this site can be shown.",
+          "description": "`source` is on another origin."
+        },
+        {
+          "key": "sourceFileProtocol",
+          "text": "Can't load {source}:  this page was opened from disk.  Open it from a web server to see it.",
+          "description": "The page is a `file://` page."
+        },
+        {
+          "key": "sourceRenderError",
+          "text": "Couldn't show {source}.",
+          "description": "The text arrived, but couldn't be shown."
         }
       ],
       "mainTag": "ui-section",

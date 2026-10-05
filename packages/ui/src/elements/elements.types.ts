@@ -2,7 +2,8 @@
  * Shared types for `$/ui/elements` -- the element core:  class building, validation, menu options, owner context,
  * shorthand, native fallbacks (library-neutral), and the Solid layer:  how a `ComponentVocabulary` becomes typed,
  * converted property values, and what the pieces of `UIElement` hand each other.
- * - Runtime-light:  types, plus a few constants (`ERROR_EVENT`, `ERRORED_STATE`, `StickyWatch`'s thresholds).
+ * - Runtime-light:  types, plus a few constants (`ERROR_EVENT`, `ERRORED_STATE`, `StickyWatch`'s thresholds, the
+ *   source URL attributes).
  */
 
 import type { PropDefinition } from "@spell-app/solid-element"
@@ -538,6 +539,66 @@ export type SourceController = {
 /** Element names a `SourceElement` builds with the DOM (Solid's JSX has no types for our tags). */
 export const SOURCE_LOADER_TAG = "ui-loader"
 export const SOURCE_MESSAGE_TAG = "ui-message"
+
+/**
+ * Attributes holding a URL, rewritten against `source` (`SourceMarkup.rewriteUrls()`), so fetched links, images
+ * and nested sources point where they did there.
+ */
+export const URL_ATTRIBUTES = ["href", "src", "action", "poster", "source"] as const
+
+/** Elements carrying one of `URL_ATTRIBUTES`. */
+export const URL_SELECTOR = URL_ATTRIBUTES.map((name) => `[${name}]`).join(",")
+
+/**
+ * Prefix of the attribute keeping a rewritten URL's ORIGINAL value (`data-ui-include-href`), so the markup can be
+ * given back as it was written (`<ui-include>`'s `content`, a docs example's source).
+ * - Named for `<ui-include>`, which came first;  `<ui-section source>` / `<ui-accordion source>` write it too.
+ */
+export const ORIGINAL_PREFIX = "data-ui-include-"
+
+/** Sources nested deeper than this refuse to load:  a cycle through different URLs, or a runaway. */
+export const MAX_DEPTH = 8
+
+/**
+ * Text key (`UIT.SOURCE_FAILURE_TEXTS`) of the message per failure kind;  save kinds never show one.
+ * - `SourceElement` and the owners of a `SourceBody` show it.
+ */
+export const SOURCE_FAILURE_KEYS: Partial<Record<SourceErrorKind, string>> & { load: string } = {
+  load: "sourceLoadError",
+  "cross-origin": "sourceCrossOrigin",
+  "file-protocol": "sourceFileProtocol",
+  render: "sourceRenderError"
+}
+
+/**
+ * Milliseconds an opening section / panel waits for its source body before it opens on the placeholder instead
+ * (`SourceBody.veiled()`).
+ * - Why wait at all:  the body arrives in one piece, so the fold animates once, to the real height;  a same-origin
+ *   fetch usually takes a few milliseconds.
+ */
+export const SOURCE_BODY_HOLD_MS = 300
+
+/** What `SourceBody` asks of the element whose body it loads (`<ui-section source>`, `<ui-accordion source>`). */
+export type SourceBodyOwner = {
+  /** the host:  its `source` / `select` attributes, its events */
+  host: HTMLElement
+  /** `source`, as written;  `undefined` when absent or empty */
+  source(): string | undefined
+  /** `select`, as written;  `undefined` when absent or empty */
+  select(): string | undefined
+  /** where the body goes:  the host (a section), or a panel's `<ui-content>` (an accordion) */
+  target(): Element
+  /** dispatch vocabulary event `name` (`ui-load`, `ui-error`);  false when a cancelable one was vetoed */
+  emit(name: string, detail: object): boolean
+}
+
+/** What `SourceBodyHost` asks of its controller (`<ui-section>`, `<ui-accordion>`). */
+export type SourceBodyController = {
+  /** fetch and insert the body now, once */
+  loadBody(): Promise<void>
+  /** fetch the body again past the cache, and replace it */
+  reloadBody(): Promise<void>
+}
 
 ////////////////
 // ## Dropdown
