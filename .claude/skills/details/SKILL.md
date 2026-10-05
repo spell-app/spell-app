@@ -8,7 +8,7 @@ argument-hint: "[topic]"
 
 A DETAILS PAGE:  a small page that explains one decision, shown in the "Spell Docs" view (VS Code's right side
 bar).  Owen picks on the page and clicks Send;  the page server writes his answer beside the page, and a waiter
-running in the background exits with it, which wakes this session.  Docs:  `packages/docs/content/details.html`.
+running in the background exits with it, which wakes this session.  Docs:  `guides/details.html`.
 
 - Explain as `templates/epics/plan-doc.md` "Explaining a question or issue" says:  plain words, coined words
   defined, the real code, tables, options side by side, one recommended.
@@ -47,7 +47,7 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
    - in an epic (a plan doc this session keeps):  add `--epic <name>`.  The page goes in
      `epics/<name>/details/`, beside the plan doc (shared content, committed for you at the turn's end),
      and the decision it leads to links it.
-   - else scratch:  `packages/docs/content/details/`, ignored by the shared repo too, swept after 14 days (`new`
+   - else scratch:  `pages/details/`, ignored by the shared repo too, swept after 14 days (`new`
      sweeps).
    - `<slug>`:  lower-kebab-case, about the decision (`answer-path`, `card-layout`), unique.
 2. Edit the page (the template's placeholders show where):

@@ -27,15 +27,15 @@ describe("RunningEpics", () => {
   let port: number
 
   beforeAll(async () => {
-    writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["packages/docs/content"] } }))
-    put(root, "packages/docs/content/index.html", `<html><head></head><body><h1>Docs</h1>${MARKER}</body></html>\n`)
+    writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["pages", "epics"] } }))
+    put(root, "pages/index.html", `<html><head></head><body><h1>Docs</h1>${MARKER}</body></html>\n`)
     // merged into the main checkout:  a worktree's copy of it is stale, never listed
-    put(root, "packages/docs/content/epics/old/old.html", planDoc("Old"))
-    put(root, ".claude/worktrees/seo/packages/docs/content/epics/old/old.html", planDoc("Old, stale"))
+    put(root, "epics/old/old.html", planDoc("Old"))
+    put(root, ".claude/worktrees/seo/epics/old/old.html", planDoc("Old, stale"))
     // the worktree's own epic, mid-way;  and one planning, in another worktree
     put(
       root,
-      ".claude/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html",
+      ".claude/worktrees/seo/epics/seo/seo.plan.html",
       planDoc("SEO &amp; co", [
         ["done", "P1 · Meta Tags"],
         ["active", "P2 · Site Map"],
@@ -60,7 +60,7 @@ describe("RunningEpics", () => {
       {
         name: "seo",
         worktree: "seo",
-        url: "/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html",
+        url: "/worktrees/seo/epics/seo/seo.plan.html",
         title: "SEO & co",
         done: 1,
         total: 3,
@@ -79,7 +79,7 @@ describe("RunningEpics", () => {
   })
 
   it("serves them under `/worktrees/`, and the list as JSON", async () => {
-    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html")
+    const doc = await ask(port, "GET", "/worktrees/seo/epics/seo/seo.plan.html")
     expect(doc.status).toBe(200)
     expect(doc.text).toContain("SEO &amp; co")
     const list = JSON.parse((await ask(port, "GET", "/_server/epics")).text) as RunningEpic[]
@@ -87,7 +87,7 @@ describe("RunningEpics", () => {
   })
 
   it("gives a worktree's page that worktree's badge", async () => {
-    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html")
+    const doc = await ask(port, "GET", "/worktrees/seo/epics/seo/seo.plan.html")
     const config = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(doc.text)![1]!) as { worktree?: string }
     expect(config.worktree).toBe("seo")
   })
@@ -98,9 +98,9 @@ describe("RunningEpics", () => {
   })
 
   it("puts the running epics' cards at the marker in the Epics list, each title after its state", async () => {
-    const index = (await ask(port, "GET", "/packages/docs/content/index.html")).text
+    const index = (await ask(port, "GET", "/pages/index.html")).text
     expect(index).not.toContain(MARKER)
-    expect(index).toContain(`href="/worktrees/seo/packages/docs/content/epics/seo/seo.plan.html"`)
+    expect(index).toContain(`href="/worktrees/seo/epics/seo/seo.plan.html"`)
     // in progress:  [done/all], the active phase in the meta line
     expect(index).toContain(`<ui-label class="spell-epic-state" size="mini" basic>1/3</ui-label> <a`)
     expect(index).toContain("<ui-meta>P2 · Site Map · .claude/worktrees/seo</ui-meta>")
@@ -145,22 +145,29 @@ describe("RunningEpics", () => {
   })
 })
 
-// shared content (epic `shared-content`):  every checkout's `packages/docs/content` is a link to the same folder
+// shared content (epics `shared-content`, `claude-design` P4):  every checkout's `epics` is a link to the same
+// folder;  a checkout on older code reaches it through its `packages/docs/content` link and the old-path links
 describe("RunningEpics, shared content", () => {
   const temp = mkdtempSync(join(tmpdir(), "srv-epics-shared-"))
   afterAll(() => rmSync(temp, { recursive: true, force: true }))
 
-  it("links a worktree's epic through the main checkout's own URL", () => {
+  it("links a worktree's epic through the main checkout's own URL, whichever layout the worktree has", () => {
     const root = join(temp, "spell-app")
-    put(temp, "spell-app-dev/packages/docs/content/epics/wt/wt.plan.html", planDoc("Shared", [["active", "P1 · Go"]]))
-    put(temp, "spell-app-dev/packages/docs/content/epics/done/done.plan.html", planDoc("Done"))
-    for (const checkout of [root, join(root, ".claude/worktrees/wt")]) {
+    put(temp, "spell-app-dev/epics/wt/wt.plan.html", planDoc("Shared", [["active", "P1 · Go"]]))
+    put(temp, "spell-app-dev/epics/done/done.plan.html", planDoc("Done"))
+    mkdirSync(join(temp, "spell-app-dev/packages/docs/content"), { recursive: true })
+    symlinkSync("../../../epics", join(temp, "spell-app-dev/packages/docs/content/epics"))
+    mkdirSync(root, { recursive: true })
+    symlinkSync(join(temp, "spell-app-dev/epics"), join(root, "epics"))
+    for (const worktree of ["wt", "older"]) {
+      const checkout = join(root, ".claude/worktrees", worktree)
       mkdirSync(join(checkout, "packages/docs"), { recursive: true })
-      symlinkSync(join(temp, "spell-app-dev/packages/docs/content"), join(checkout, "packages/docs/content"))
+      if (worktree === "wt") symlinkSync(join(temp, "spell-app-dev/epics"), join(checkout, "epics"))
+      else symlinkSync(join(temp, "spell-app-dev/packages/docs/content"), join(checkout, "packages/docs/content"))
     }
     const epics = new RunningEpics(root).list()
     expect(epics.map(({ name, worktree, url }) => ({ name, worktree, url }))).toEqual([
-      { name: "wt", worktree: "wt", url: "/packages/docs/content/epics/wt/wt.plan.html" }
+      { name: "wt", worktree: "wt", url: "/epics/wt/wt.plan.html" }
     ])
   })
 })

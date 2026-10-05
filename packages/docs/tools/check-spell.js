@@ -25,13 +25,16 @@ import { pathToFileURL } from "node:url"
 
 import { chromium } from "playwright"
 
-import { ensurePageServer, serverUrl } from "./pages.js"
+import { ensurePageServer, pageFile, serverUrl } from "./pages.js"
 
-const [docPath, outArg] = process.argv.slice(2)
-if (!docPath) {
-  console.error("usage:  node tools/check-spell.js content/<folder>/<doc>.html [outDir]")
+const [docArg, outArg] = process.argv.slice(2)
+if (!docArg) {
+  console.error(
+    "usage:  node tools/check-spell.js <page> [outDir]   (e.g. guides/solid/solid-2.html:  `pages.js` `pageFile()`)"
+  )
   process.exit(2)
 }
+const docPath = pageFile(docArg, process.cwd())
 const out = outArg ?? mkdtempSync(join(tmpdir(), "check-spell-"))
 mkdirSync(out, { recursive: true })
 const seen = new Map()

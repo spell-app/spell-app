@@ -6,7 +6,7 @@
  * - `@thing` -- runs `create()` after every field initializer
  * - Here, not beside `@proto` in `../decorators.ts`:  `ui` re-exports that whole file, and these are spell-only.
  * - Compiled spell can't use decorators (it runs from a `blob:` URL, no transpile step), so whatever these do,
- *   compiled classes MUST get the same runtime shape without them.  See `packages/docs/content/solid/solid-2.md`.
+ *   compiled classes MUST get the same runtime shape without them.  See `guides/solid/solid-2.md`.
  * - NOTE: lowered by esbuild via `vite.decorators.ts`;  a decorator MUST start its line.
  */
 

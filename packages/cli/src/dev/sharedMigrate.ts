@@ -18,7 +18,7 @@ import { CLI, type FoldReport, type MigrateReport, type SharedConfig } from "$/c
 /**
  * Move a worktree cut before the cutover (epic `shared-content`, P5) onto the shared content:  `spell dev shared
  * migrate <worktree> [--dry-run]`.  Returns what it did, or would do.
- * 1. Refuses when the branch lacks the new layout (it must have merged `main` after P2:  `packages/docs/content`,
+ * 1. Refuses when the branch lacks the content layout (it must have merged `main` after P2:  `packages/docs/content`,
  *    `packages/docs/tools/relocate.js`), a merge or rebase is under way, or a session is busy in the worktree.
  * 2. Folds the worktree's shared files into the shared repo, file by file, 3-way:  base = the branch's merge base
  *    with the cutover's import commit, ours = the shared repo, theirs = the worktree's file (committed, staged,
@@ -28,12 +28,17 @@ import { CLI, type FoldReport, type MigrateReport, type SharedConfig } from "$/c
  *    folders and adds main's `.gitignore` block, without touching the index's or the working tree's other changes
  *    (a temp index, `commit-tree`, `update-ref`).  So the branch merges `main` later without conflicts in them.
  * 4. Swaps the worktree's real folders for links (`linkCheckout()`), and checks its other changes are as before.
+ * - always in the CUTOVER's layout (`CUTOVER_LINKS`), whatever the manifest says now:  a branch that old tracks
+ *   `packages/docs/content/`, and its code looks there.  Since the reorg (claude-design P4) that folder of the shared
+ *   repo is old-path links into the root folders, so its files still land in the right place;  a new top-level page
+ *   lands in it as a real file, and the next `spell dev shared commit` moves it on (`relocate.js reorg`)
  */
 export function migrateWorktree(
   worktree: string,
-  config: SharedConfig,
+  current: SharedConfig,
   { dryRun = false }: { dryRun?: boolean } = {}
 ): MigrateReport {
+  const config = { ...current, links: CUTOVER_LINKS }
   const branch = git(worktree, "branch", "--show-current")
   const report: MigrateReport = { worktree, branch, folds: [], conflicts: [], done: false }
   refuseUnless(worktree, branch, config)
@@ -73,6 +78,9 @@ export function migrateWorktree(
   return report
 }
 
+/** The shared folders at the cutover (epic `shared-content`, 2026-10-04):  what a branch from before it tracks. */
+const CUTOVER_LINKS = ["packages/docs/content", "goals", "agents"]
+
 /** Main's `.gitignore` shared block (`# shared:start` ... `# shared:end`), else one made from the manifest. */
 export function sharedBlock(config: SharedConfig): string {
   const main = readOrNull(join(config.main, ".gitignore")) ?? ""
@@ -110,7 +118,7 @@ function fold(worktree: string, base: string, file: string, config: SharedConfig
  */
 const BUILT = new Set(["packages/docs/content/index.html"])
 
-/** `yarn docs:index`, from the main checkout:  the docs index lists every epic now in the shared repo. */
+/** `yarn docs:index`, from the main checkout:  the docs home lists every epic now in the shared repo. */
 function rebuildDocsIndex(config: SharedConfig): void {
   const run = spawnSync(process.execPath, [join(config.main, "packages/docs/tools/index.js")], {
     cwd: join(config.main, "packages/docs"),

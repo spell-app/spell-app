@@ -1,17 +1,18 @@
 /**
  * `spell dev docs open [page] [--vs | --review]`:  show a page in Chrome, reusing its tab (`pages.js` `openInChrome()`).
- * - `<page>` relative to `packages/docs` (or absolute), e.g. `index.html`;  default:  the docs index
- *   - `.html` and a folder's own page may be left off:  `solid/solid-2` ~== `solid/solid-2.html`,
- *     `server` ~== `server/server.html`
+ * - `<page>` from the checkout's root, an area, or absolute (`pages.js` `pageFile()`), e.g. `guides/solid/solid-2.html`
+ *   or just `solid/solid-2.html`;  default:  the docs home, `pages/index.html`
+ *   - `.html` and a folder's own page may be left off:  `solid/solid-2` ~== `guides/solid/solid-2.html`,
+ *     `server` ~== `guides/server.html`
  * - `--vs`:  in VS Code's doc preview instead (the right side bar's "Spell Docs" tab, `openInVSCode()`):
  *   `/spell-docs`.  Not run from VS Code:  Chrome anyway.
  * - `--review`:  in the side bar's "Review" tab (`/epic review`), keeping the "Spell Docs" tab's page.  Implies
  *   `--vs`.
  */
 import { existsSync, statSync } from "node:fs"
-import { basename, isAbsolute, join } from "node:path"
+import { basename, join } from "node:path"
 
-import { DOCS, openInChrome, openInVSCode } from "./pages.js"
+import { openInChrome, openInVSCode, pageFile } from "./pages.js"
 
 const args = process.argv.slice(2)
 const review = args.includes("--review")
@@ -27,9 +28,9 @@ else openInChrome(file)
 
 /** The file `page` names:  as is, plus `.html`, or a folder's own page (`<dir>/<dir>.html`);  `null` if none. */
 function findPage(page) {
-  const path = isAbsolute(page) ? page : join(DOCS, page)
-  for (const each of [path, `${path}.html`, join(path, `${basename(path)}.html`), join(path, "index.html")]) {
-    if (existsSync(each) && statSync(each).isFile()) return each
+  for (const each of [page, `${page}.html`, join(page, `${basename(page)}.html`), join(page, "index.html")]) {
+    const path = pageFile(each)
+    if (existsSync(path) && statSync(path).isFile()) return path
   }
   return null
 }

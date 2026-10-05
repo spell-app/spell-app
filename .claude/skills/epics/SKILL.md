@@ -1,6 +1,6 @@
 ---
 name: epics
-description: List the open epics -- every `/epic` plan doc (`packages/docs/content/epics/<name>/`, shared by `main` and every worktree) with phases left, still planning, or done but not merged -- with each one's phase, worktree, session, what's waiting on Owen, and links to its plan doc.  List only:  changes nothing.  Use for `/epics` (open ones), `/epics all` (finished ones too), or when Owen asks "what epics are open?", "which plans are running?", "where are my epics at?".  Everything else open (sessions, worktrees, clean-up):  `/worktrees`.
+description: List the open epics -- every `/epic` plan doc (`epics/<name>/`, shared by `main` and every worktree) with phases left, still planning, or done but not merged -- with each one's phase, worktree, session, what's waiting on Owen, and links to its plan doc.  List only:  changes nothing.  Use for `/epics` (open ones), `/epics all` (finished ones too), or when Owen asks "what epics are open?", "which plans are running?", "where are my epics at?".  Everything else open (sessions, worktrees, clean-up):  `/worktrees`.
 argument-hint: "[all]"
 ---
 
@@ -9,8 +9,9 @@ argument-hint: "[all]"
 Owen runs several epics at once:  one screen saying where each stands.  Read-only:  it lists, Owen acts
 (`/wtf <name>`, `/epic <name>`, `/unpark <name>`, `/worktrees` to clean up).
 
-- Every plan doc is shared content:  ONE copy, in `../spell-app-dev`, linked into every checkout as
-  `packages/docs/content`.  So any checkout lists every epic, and there's no "worktree copy" to prefer.
+- Every plan doc is shared content:  ONE copy, in `../spell-app-dev`, linked into every checkout as `epics`
+  (`packages/docs/content/epics` on code from before 2026-10-05).  So any checkout lists every epic, and there's
+  no "worktree copy" to prefer.
 - An epic's worktree and branch are both `<name>` (`.claude/worktrees/<name>`);  it may have none (planned on
   `main`, or merged and removed).
 - A worktree cut before 2026-10-04 that hasn't run `spell dev shared migrate <name>` still has its own old copy

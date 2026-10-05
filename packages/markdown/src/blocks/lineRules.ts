@@ -2,7 +2,7 @@
  * Line kinds, in rulex:  what a line (after its container prefixes) IS -- a thematic break, an ATX heading ...
  * - The block scanner (`MD.BlockScanner`) asks with `lineRules.matchWhole(tokens, "<rule>")`;  it reads the details
  *   it needs (columns, levels, info strings) from the raw text, since those are about characters, not tokens.
- * - Spacing is as written (`packages/docs/content/rulex/rulex.html`):  `#{1,6}{spaces}` needs a space after the run,
+ * - Spacing is as written (`guides/rulex/rulex.html`):  `#{1,6}{spaces}` needs a space after the run,
  *   `- {3,}` lets the dashes space.
  * - Leaf rules rulex can't say (`any`, `digits`) are built in code, at the top.
  */

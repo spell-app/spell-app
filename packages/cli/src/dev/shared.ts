@@ -19,16 +19,19 @@ import { CLI, type LinkReport, type SharedConfig, type SharedStatus } from "$/cl
 
 /**
  * Shared content (epic `shared-content`):  docs pages, goal sets and the agents' logs live ONCE, in a content repo
- * beside the main checkout (`../spell-app-dev`), and every checkout links to them:  `packages/docs/content`,
- * `goals`, `agents`.  So every worktree sees every edit at once, and none of it is merged.
+ * beside the main checkout (`../spell-app-dev`), and every checkout links to them at its root:  `epics`, `guides`,
+ * `pages`, `templates`, `brand`, `goals`, `agents` (`DEFAULT_LINKS`).  So every worktree sees every edit at once, and none of
+ * it is merged.
+ * - before 2026-10-05 (epic `claude-design` P4) the docs were ONE link, `packages/docs/content`:  the shared repo keeps
+ *   old-path links there for checkouts on older code (`packages/docs/tools/relocate.js` `reorgShared()`)
  * - the manifest:  the root `package.json`'s `"shared"` (`sharedConfig()`)
  * - only FOLDERS are linked:  Claude's Edit refuses to write through a link to a file
  * - the shared repo is committed by itself, after every turn (`commitShared()`, the `Stop` hook
  *   `.claude/hooks/shared-commit.mjs`)
  */
 
-/** The links when the manifest names none. */
-const DEFAULT_LINKS = ["packages/docs/content", "goals", "agents"]
+/** The links when the manifest names none:  the docs' areas, then the goal sets and the logs. */
+const DEFAULT_LINKS = ["epics", "guides", "pages", "templates", "brand", "goals", "agents"]
 
 /** Never compared or copied:  OS litter. */
 const LITTER = new Set([".DS_Store"])
@@ -40,21 +43,27 @@ const LOCK_WAIT = 30_000
 const STALE = 120_000
 
 /**
- * The shared-content manifest of checkout `root` (any checkout:  `dir` is resolved from the MAIN one).
- * - `dir`:  `"shared": { "dir" }` in the root `package.json`, relative to the main checkout;  `SPELL_SHARED_DIR`
+ * The shared-content manifest of checkout `root` (any checkout).
+ * - `dir`:  `"shared": { "dir" }` in the MAIN checkout's `package.json`, relative to it;  `SPELL_SHARED_DIR`
  *   overrides it (tests, a scratch repo)
- * - `links`:  `"shared": { "links" }`, else `DEFAULT_LINKS`
+ * - `links`:  `"shared": { "links" }` in `root`'s OWN `package.json` (else the main one's), else `DEFAULT_LINKS`:
+ *   which folders a checkout links is its branch's business (the reorg changed them, claude-design P4)
  */
 export function sharedConfig(root = CLI.mainRoot()): SharedConfig {
   const main = CLI.mainRoot(root)
-  let shared: Partial<{ dir: string; links: string[] }> = {}
+  const mine = manifest(root)
+  const theirs = manifest(main)
+  const dir = process.env.SPELL_SHARED_DIR ?? resolve(main, theirs.dir ?? mine.dir ?? "../spell-app-dev")
+  return { main, dir: resolve(dir), links: mine.links ?? theirs.links ?? DEFAULT_LINKS }
+}
+
+/** The `"shared"` field of checkout `root`'s `package.json`;  `{}` without one. */
+function manifest(root: string): Partial<{ dir: string; links: string[] }> {
   try {
-    shared = JSON.parse(readFileSync(join(main, "package.json"), "utf8")).shared ?? {}
+    return JSON.parse(readFileSync(join(root, "package.json"), "utf8")).shared ?? {}
   } catch {
-    // no manifest:  the defaults
+    return {}
   }
-  const dir = process.env.SPELL_SHARED_DIR ?? resolve(main, shared.dir ?? "../spell-app-dev")
-  return { main, dir: resolve(dir), links: shared.links ?? DEFAULT_LINKS }
 }
 
 /** The main checkout, then every worktree under `.claude/worktrees` (a folder with a `.git` file). */
@@ -88,6 +97,8 @@ export function linkState(checkout: string, path: string, config: SharedConfig):
 
 /**
  * Every checkout's links and the shared repo's state:  `spell dev shared status`.
+ * - each checkout's links from its OWN manifest (`sharedConfig()`):  a branch from before the reorg links
+ *   `packages/docs/content`, a newer one the root folders
  * - `peer.dirty`:  changed files not committed yet;  `peer.last`:  `<sha> <when> <subject>`
  */
 export function sharedStatus(config = sharedConfig()): SharedStatus {
@@ -100,9 +111,14 @@ export function sharedStatus(config = sharedConfig()): SharedStatus {
     last: isRepo ? CLI.git(["log", "-1", "--format=%h %cr %s"], config.dir).out : "",
     checkouts: sharedCheckouts(config.main).map((checkout) => ({
       checkout: relative(config.main, checkout) || ".",
-      links: config.links.map((path) => ({ path, state: linkState(checkout, path, config) }))
+      links: linksOf(checkout, config).map((path) => ({ path, state: linkState(checkout, path, config) }))
     }))
   }
+}
+
+/** The links checkout `checkout` should have:  its own manifest's, `config`'s when it can't be read. */
+function linksOf(checkout: string, config: SharedConfig): string[] {
+  return manifest(checkout).links ?? config.links
 }
 
 /**
@@ -193,9 +209,9 @@ const GITIGNORE = `# written by \`spell dev shared init\`
 .server.json
 .server.log
 # /details scratch pages and their answers:  never committed
-packages/docs/content/details/
+pages/details/
 # /epic review inboxes:  a review's pending marks, never committed
-packages/docs/content/epics/*/*.inbox.json*
+epics/*/*.inbox.json*
 `
 
 /** The shared repo's `README.md`. */

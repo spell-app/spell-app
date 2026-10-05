@@ -313,11 +313,17 @@ export class DocView implements vscode.WebviewViewProvider {
 /** Which doc view:  the "Spell Docs" tab, or the "Review" tab. */
 export type DocViewName = "docs" | "review"
 
-/** The docs index of the window's first folder (the repo root), `undefined` when it has none. */
+/**
+ * The docs home of the window's first folder (the repo root), `undefined` when it has none.
+ * - `pages/index.html`;  a checkout from before the reorg (claude-design P4, 2026-10-05):  its old
+ *   `pages/index.html`
+ */
 export function docsIndex(): string | undefined {
   const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
-  const file = root && join(root, "packages", "docs", "content", "index.html")
-  return file && existsSync(file) ? file : undefined
+  if (!root) return undefined
+  return [join(root, "pages", "index.html"), join(root, "packages", "docs", "content", "index.html")].find((file) =>
+    existsSync(file)
+  )
 }
 
 /** `url` with a fresh `?t=` stamp:  a URL no frame or browser has cached, so loading it is a reload. */

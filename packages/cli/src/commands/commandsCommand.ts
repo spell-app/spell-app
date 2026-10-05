@@ -6,11 +6,11 @@ import { join } from "path"
 import { CLI } from "$/cli"
 
 /** The commands page's data, relative to a checkout's root. */
-export const COMMANDS_JSON = join("packages", "docs", "content", "dev", "commands", "commands.json")
+export const COMMANDS_JSON = join("guides", "dev", "commands", "commands.json")
 
 /**
  * `spell dev commands [list|check]`:  every command the repo has -- yarn scripts, `spell` commands, skills -- against
- * the commands page's `commands.json` (`packages/docs/content/dev/commands/`), which maps each to the operations it does.
+ * the commands page's `commands.json` (`guides/dev/commands/`), which maps each to the operations it does.
  * - `list` (default):  every command, with whether the page names it (`✓` / `✗`)
  * - `check`:  just the problems:  commands the page never names, and names on the page no command has;  exits 1
  *   if there are any.  Run it after adding, renaming or removing a command (root `yarn commands:check`).

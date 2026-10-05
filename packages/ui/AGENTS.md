@@ -90,7 +90,7 @@ house style every package shares.  Only what's local is below;  a section named 
     `ui-*` markup into plain light-DOM HTML (no shadow DOM, no JS) in node, for SEO.  Stand-in hosts are linkedom
     elements (`ServerHost`), controllers render with `renderToString`, `StaticFlattener` swaps each host for its
     root, `StaticInteractions` wires what works without JS.  Node only:  NEVER imported by a component or `$/ui`.
-    Plan:  `packages/docs/content/epics/seo/seo.plan.html`
+    Plan:  `epics/seo/seo.plan.html`
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
     (`FormElement`, `FormHost`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
@@ -175,9 +175,9 @@ house style every package shares.  Only what's local is below;  a section named 
     reloads the open pages.  Not watched:  `site:data` / `site:index` / `site:kitchen`.  A watch rebuild leaves stale
     hashed chunks:  `yarn site:build` before committing
   - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
-    (`packages/docs/content/templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a
+    (`templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a
     tag (`<tag>.html` for a sub-tag its family's `pages` lists:  `ui-radio`), else `site/<page>.html`;  title /
-    summary / status from `site/_data/pages.json`.  How to write one:  `packages/docs/content/epics/spell-ui-pages/PAGES.md`
+    summary / status from `site/_data/pages.json`.  How to write one:  `epics/spell-ui-pages/PAGES.md`
   - `yarn site:sections [--check] [page...]` -- `scripts/site-sections.ts`:  nests every page's flat level 2 / 3
     headers and headed examples into `<ui-section>`s and writes (or fixes) their ids, `<tab>-<section>-<example>`;
     idempotent.  `site:index`, `site:kitchen` and `site:new` run it on what they write
@@ -247,7 +247,7 @@ As WWOD §18, plus:
 ## Solid authoring
 
 - Solid's own rules (no writes in an owned scope, staged writes, two-function effects, eager memos):  SEE:
-  `packages/docs/content/solid/solid-2.md`.  Below:  only what's `ui`'s own.
+  `guides/solid/solid-2.md`.  Below:  only what's `ui`'s own.
 - An element is a CONTROLLER class `UI<Name> extends UIElement<typeof nameVocabulary>` (or `FormElement`,
   `ContentPart`):  `@proto static vocabulary` / `styles` / `Fallback` (/ `formAssociated`, `delegatesFocus`),
   signals and memos as FIELDS, `render()` returning JSX.  The fork creates one per element on first connect and

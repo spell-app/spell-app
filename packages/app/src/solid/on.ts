@@ -1,7 +1,7 @@
 /**
  * A `ref` that listens for `type` on its element:  how Solid JSX hears `@spell-app/ui`'s `ui-*` events.
  * - Why:  Solid 2 dropped `on:`, and its `onUiChange` would listen for `uichange`, not `ui-change` -- a hyphenated
- *   event needs a real `addEventListener` (`packages/docs/content/solid/solid-2.md`, "DOM and `@spell-app/ui` elements").
+ *   event needs a real `addEventListener` (`guides/solid/solid-2.md`, "DOM and `@spell-app/ui` elements").
  * - `handler` gets the event as a `CustomEvent<Detail>`:  `ui-*` events carry their state in `detail`.
  * - Use `onClick` etc. for native events:  they're delegated and cheaper.  `on()` is also how to pass native
  *   listener `options` (capture, passive).

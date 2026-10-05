@@ -9,7 +9,7 @@
  *   `details` writes an agent's details or reply into one item
  * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion (`ORIGINAL`);
  *   `original` puts text recovered from git there
- * - the doc is THIS checkout's `packages/docs/content/epics/<name>/`:  a link to the one shared copy every checkout
+ * - the doc is THIS checkout's `epics/<name>/`:  a link to the one shared copy every checkout
  *   edits (`findDoc()`)
  * - a doc is FOUND under either name (`pages.js` `planDocIn()`):  `<name>.plan.html` since 2026-10-04, else the old
  *   `<name>.html`, which worktrees cut before then still have
@@ -53,12 +53,24 @@ import {
   unsentMarks,
   updateInbox
 } from "./inbox.js"
-import { DOCS, PACKAGE, ROOT, TOOLS, openInVSCode, planDocIn, serialize, tidy } from "./pages.js"
+import {
+  DETAILS,
+  EPICS,
+  PACKAGE,
+  ROOT,
+  TEMPLATES,
+  TOOLS,
+  atDepth,
+  openInVSCode,
+  planDocIn,
+  serialize,
+  tidy
+} from "./pages.js"
 import { findEvidence, sessionsOf } from "./review-backfill.js"
 import { convertSections, createElement } from "./to-ui-section.js"
 
-/** The template `new` copies, relative to `DOCS`. */
-const TEMPLATE = "templates/epics/plan.html"
+/** The template `new` copies:  `templates/epics/plan.html`. */
+const TEMPLATE = join(TEMPLATES, "epics", "plan.html")
 
 /** What a plan doc's h1 and `<title>` start with, before its title:  `Epic: Review Review`. */
 export const TITLE_PREFIX = "Epic: "
@@ -2898,7 +2910,7 @@ export function isoDate(date = new Date()) {
 ////////////////
 
 /** Usage, printed with no command or a bad one. */
-const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/content/epics/<name>/<name>.plan.html)
+const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
   new <name> [--title "Title"] [--prompt "text" | --prompt-file path]
                                                    copy the template, fill it in, update the docs index
   add-phase <name> "Short Name" [--goal html] [--files html] [--verify html] [--estimate 2h]
@@ -2969,7 +2981,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
                                                    put earlier text (from git) into an item's Original
                                                    Discussion:  as first written, or dated --as-of (when it was
                                                    replaced);  prints added / unchanged / empty
-Every checkout shares ONE copy of each doc (packages/docs/content links it):  any checkout edits the same file.
+Every checkout shares ONE copy of each doc (the epics link):  any checkout edits the same file.
 --here is no longer needed:  accepted and ignored.`
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
@@ -3189,21 +3201,21 @@ function usage() {
  */
 function docPath(name) {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) throw new PlanDocError(`name "${name}" must be lower-kebab-case`)
-  return join(DOCS, "epics", name, `${name}.plan.html`)
+  return join(EPICS, name, `${name}.plan.html`)
 }
 
 /**
  * The doc of epic `name`:  THIS checkout's `epics/<name>/`, either name (`planDocIn()`);  throws when there's none.
- * - ONE path since epic `shared-content` (2026-10-04):  every checkout's `packages/docs/content` is a link to the
- *   one shared copy, so the old search (the epic's worktree, else main, else any worktree) and `--here` always
+ * - ONE path since epic `shared-content` (2026-10-04):  every checkout's `epics` is a link to the one shared copy
+ *   (`epics` before claude-design P4), so the old search (the epic's worktree, else main, else any worktree) and `--here` always
  *   reached this same file (T3 of `review-review`)
  * - this checkout's path, not another's:  `tidy()` and the URLs stay inside it (a path through another worktree,
  *   made relative here, starts `../../.claude/...`, which oxfmt refuses)
  */
 function findDoc(name) {
   docPath(name)
-  const found = planDocIn(join(DOCS, "epics", name), name)
-  if (!found) throw new PlanDocError(`no plan doc for "${name}" (${relative(ROOT, join(DOCS, "epics", name))}/)`)
+  const found = planDocIn(join(EPICS, name), name)
+  if (!found) throw new PlanDocError(`no plan doc for "${name}" (${relative(ROOT, join(EPICS, name))}/)`)
   return found
 }
 
@@ -3231,7 +3243,7 @@ function epicCheckout(name, main = mainRoot()) {
  */
 function listEpics() {
   const main = mainRoot()
-  const dir = join(DOCS, "epics")
+  const dir = EPICS
   const names = existsSync(dir)
     ? readdirSync(dir, { withFileTypes: true })
         .filter((entry) => entry.isDirectory() && planDocIn(join(dir, entry.name), entry.name))
@@ -3260,7 +3272,7 @@ function listEpics() {
 
 /** The plan doc at `file`, parsed;  `options` as `PlanDoc`'s constructor's. */
 function read(file, options) {
-  if (!existsSync(file)) throw new PlanDocError(`no plan doc ${relative(DOCS, file)}:  \`yarn plan-doc new\` first`)
+  if (!existsSync(file)) throw new PlanDocError(`no plan doc ${relative(ROOT, file)}:  \`yarn plan-doc new\` first`)
   return PlanDoc.parse(readFileSync(file, "utf8"), undefined, options)
 }
 
@@ -3277,7 +3289,7 @@ function edit(file, change) {
     plan.updateStates()
     plan.touch()
     writeFileSync(file, plan.toString())
-    if (!tidy([relative(DOCS, file)])) throw new PlanDocError("tidy failed (see above)")
+    if (!tidy([file])) throw new PlanDocError("tidy failed (see above)")
     return result
   })
 }
@@ -3289,7 +3301,7 @@ function edit(file, change) {
  */
 function create(name, file, { title = titleCase(name), prompt, promptFile }) {
   const found = planDocIn(dirname(file), name)
-  if (found) throw new PlanDocError(`${relative(DOCS, found)} already exists`)
+  if (found) throw new PlanDocError(`${relative(ROOT, found)} already exists`)
   const now = new Date()
   const today = isoDate(now)
   const fill = {
@@ -3298,9 +3310,10 @@ function create(name, file, { title = titleCase(name), prompt, promptFile }) {
     date: today,
     timestamp: timeTag(now),
     branch: git("branch", "--show-current") || "(detached)",
-    worktree: git("rev-parse", "--show-toplevel") || DOCS
+    worktree: git("rev-parse", "--show-toplevel") || ROOT
   }
-  const html = readFileSync(join(DOCS, TEMPLATE), "utf8")
+  // `atDepth()`:  the template's asset paths and site header for the doc's own depth (`epics/<name>/`:  2)
+  const html = atDepth(readFileSync(TEMPLATE, "utf8"), relative(ROOT, file).split(sep).length - 1)
     .replace(/\{\{(\w+)\}\}/g, (whole, key) =>
       key === "timestamp" ? fill.timestamp : key in fill ? escapeAll(fill[key]) : key === "prompt" ? "" : whole
     )
@@ -3312,7 +3325,7 @@ function create(name, file, { title = titleCase(name), prompt, promptFile }) {
   plan.setPrompt(promptFile ? readFileSync(promptFile, "utf8") : (prompt ?? ""))
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, plan.toString())
-  if (!tidy([relative(DOCS, file)])) throw new PlanDocError("tidy failed (see above)")
+  if (!tidy([file])) throw new PlanDocError("tidy failed (see above)")
   reindex()
   console.log(relative(process.cwd(), file))
 }
@@ -3329,7 +3342,7 @@ function escapeAll(value) {
 
 /**
  * `git <args>` in this checkout, trimmed stdout ("" on failure).
- * - NEVER in `DOCS`:  once `packages/docs/content` is a link into the shared content repo, git run there sees
+ * - NEVER in a content folder (`epics/` ...):  each is a link into the shared content repo, and git run there sees
  *   THAT repo, not spell-app
  */
 function git(...args) {
@@ -3337,12 +3350,12 @@ function git(...args) {
 }
 
 /**
- * The spell-app checkout a doc belongs to:  its path up to `/packages/docs/` (another worktree's, maybe), else
- * `ROOT`.  Git for a doc runs there, never in the doc's folder (`git()`).
+ * The spell-app checkout a doc belongs to:  its path up to `/epics/<name>/` (another worktree's, maybe;  or an old
+ * one's `/epics/`), else `ROOT`.  Git for a doc runs there, never in the doc's folder (`git()`).
  */
 function checkoutOf(file) {
-  const at = file.lastIndexOf(`${sep}packages${sep}docs${sep}`)
-  return at > 0 ? file.slice(0, at) : ROOT
+  const m = /^(.+?)[\\/](?:packages[\\/]docs[\\/](?:content[\\/])?)?epics[\\/][^\\/]+[\\/][^\\/]+$/.exec(file)
+  return m ? m[1] : ROOT
 }
 
 /** `git <args>` in folder `cwd` (a checkout:  the doc's own, which may be another worktree), trimmed stdout ("" on failure). */
@@ -3386,7 +3399,7 @@ function commit(file, [sha, sentence], { phase, item }) {
  * `commits <name> --backfill`:  the doc's phase and item commits into its phases' and items' commit lists
  * (`PlanDoc.backfillCommits()`);  prints what it added.
  * - a doc spell-app tracks:  its git history (`git log --follow`:  every phase commit touches the plan doc)
- * - a SHARED doc (`packages/docs/content` a link into the shared content repo):  spell-app has no history of it, so
+ * - a SHARED doc (`epics` a link into the shared content repo):  spell-app has no history of it, so
  *   `sharedDocLog()`
  */
 function backfillCommits(file) {
@@ -3450,15 +3463,16 @@ export function sharedDocLog(file, checkout) {
 
 /**
  * Rewrite the docs index:  a plan's status badge follows its phases.
- * - shared content (`packages/docs/content` a link):  ONE `index.html` for every checkout, not tracked by
- *   spell-app, so a worktree rewrites it too:  nothing to conflict on merge
- * - a checkout WITHOUT the link (its own tracked `index.html`) in a worktree:  left alone, or two epics' worktrees
- *   would conflict on merge
+ * - shared content (`pages` a link):  ONE `pages/index.html` for every checkout, not tracked by spell-app, so a
+ *   worktree rewrites it too:  nothing to conflict on merge
+ * - a checkout WITHOUT the link (its own tracked home) in a worktree:  left alone, or two epics' worktrees would
+ *   conflict on merge
  */
 function reindex() {
-  const shared = lstatSync(DOCS, { throwIfNoEntry: false })?.isSymbolicLink()
-  if (!shared && /[\\/]\.claude[\\/]worktrees[\\/]/.test(DOCS)) return
-  const run = spawnSync("node", [join(TOOLS, "index.js")], { cwd: DOCS, encoding: "utf8" })
+  const pages = join(ROOT, "pages")
+  const shared = lstatSync(pages, { throwIfNoEntry: false })?.isSymbolicLink()
+  if (!shared && /[\\/]\.claude[\\/]worktrees[\\/]/.test(pages)) return
+  const run = spawnSync("node", [join(TOOLS, "index.js")], { cwd: PACKAGE, encoding: "utf8" })
   if (run.status !== 0) process.stderr.write(`plan-doc:  docs index not updated\n${run.stdout}${run.stderr}`)
 }
 
@@ -3651,7 +3665,7 @@ function printInbox(plan, file, json) {
     listening: inbox.listening && { ...inbox.listening, live: !!liveListener(inbox) }
   }
   if (json) return console.log(JSON.stringify(report, null, 2))
-  const lines = [`inbox:  ${relative(DOCS, path)}${existsSync(path) ? "" : "  (none:  no marks)"}`]
+  const lines = [`inbox:  ${relative(ROOT, path)}${existsSync(path) ? "" : "  (none:  no marks)"}`]
   const { listening } = inbox
   lines.push(
     !listening
@@ -3927,7 +3941,7 @@ function applyInbox(name, file, ids) {
  * - the page:  no site header (`bare`), "Select all / none", "Open | All" (Open:  only the not-reviewed)
  * - `pageDir`:  where the page will live (the scratch `details/`), so the item's links still work from there
  */
-export function pickerSpec(plan, file, section, status, pageDir = join(DOCS, "details")) {
+export function pickerSpec(plan, file, section, status, pageDir = DETAILS) {
   // `seo.plan.html` (an old doc:  `seo.html`) -> `seo`
   const name = basename(file).replace(/(?:\.plan)?\.html$/, "")
   const title = docTitle(plan.document) ?? name
@@ -4005,7 +4019,7 @@ function rehome(html, file, pageDir) {
 function check(file, { noBrowser }) {
   const problems = read(file).check()
   for (const problem of problems) console.error(`PROBLEM:  ${problem}`)
-  if (!problems.length) console.log(`${relative(DOCS, file)}:  structure ok`)
+  if (!problems.length) console.log(`${relative(ROOT, file)}:  structure ok`)
   let browserOk = true
   if (!noBrowser) {
     const run = spawnSync("node", [join(TOOLS, "check-spell.js"), relative(PACKAGE, file)], {

@@ -60,9 +60,9 @@ Every command takes one or more targets:
 |---|---|
 | `spell help [command]` | Lists the commands, or shows one's options:  `spell help compile` ~== `spell compile --help`. |
 | `spell serve [target]` | Runs everything -- the spell app's editor (vite, hot reload) and this checkout's page server (`spell dev server`:  the app's `/api`, which saves files to disk, plus docs, epics, goals and Spell UI) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (the editor's;  default 3000), `--headless`. |
-| `spell dev commands [list\|check]` | Every yarn script, `spell` command and skill, against the commands page (`packages/docs/content/dev/commands/commands.json`):  `list` marks each ✓ / ✗, `check` prints only the gaps and exits 1 on any.  `--json`.  The first of the repo-tool commands, `spell dev <noun> <verb>`:  the plan for the rest is that page's Roadmap. |
+| `spell dev commands [list\|check]` | Every yarn script, `spell` command and skill, against the commands page (`guides/dev/commands/commands.json`):  `list` marks each ✓ / ✗, `check` prints only the gaps and exits 1 on any.  `--json`.  The first of the repo-tool commands, `spell dev <noun> <verb>`:  the plan for the rest is that page's Roadmap. |
 | `spell dev agents [check] [files...]` | The agents' rules:  every `WWOD §N › "title"` citation names a real section and rule, and every backticked repo path exists, in WWOD (`agents/wwod/`), the `AGENTS.md` / `CLAUDE.md` files, `goals/AGENTS.md` and `solid-2.md`;  skills for citations only.  Exits 1 on a broken one.  `--json`.  Run it after editing WWOD or an `AGENTS.md`. |
-| `spell dev plan-doc <command> <name> ...` | Edits a plan doc (`packages/docs/content/epics/<name>/<name>.plan.html`) as the `/epic` skill does, from anywhere, in the nearest checkout (a worktree's, when run in one).  Alone, lists its commands, e.g. `summary <name>`, `phase <name> 2 done`.  Root `yarn plan-doc`;  `spell plan-doc` still works (deprecated). |
+| `spell dev plan-doc <command> <name> ...` | Edits a plan doc (`epics/<name>/<name>.plan.html`) as the `/epic` skill does, from anywhere, in the nearest checkout (a worktree's, when run in one).  Alone, lists its commands, e.g. `summary <name>`, `phase <name> 2 done`.  Root `yarn plan-doc`;  `spell plan-doc` still works (deprecated). |
 | `spell dev goals <command> ...` | The goals tool (`packages/docs/tools/goals/`) of the nearest goals folder:  `help` lists its commands.  Root `yarn goals`;  `spell goals` still works (deprecated). |
 | `spell dev docs <verb> ...` | The docs tools:  `update`, `index`, `new`, `open`, `link` -- each as root `yarn docs:<verb>` ran it, in `packages/docs`, arguments passed as they are, e.g. `spell dev docs open solid/solid-2 --vs`. |
 | `spell dev details <command> ...` | The `/details` skill's tool, `packages/docs/tools/details.js`.  Root `yarn details`. |
@@ -146,7 +146,7 @@ Every command takes one or more targets:
 
 ### `static`
 
-- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `packages/docs/content/epics/seo/seo.plan.html`)
+- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `epics/seo/seo.plan.html`)
   in a child process, `src/runner/renderStatic.ts`, on an SSR-only Vite server (`ui/tools/StaticRenderer.ts`):  `ui`'s
   Solid JSX must compile for the server, which `tsx` can't.  Each run starts Vite and compiles every family, so a page
   takes about 3 seconds;  several pages share one run.

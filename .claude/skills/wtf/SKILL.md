@@ -15,7 +15,7 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
 - `?`, or Owen typed `wtf?` without the slash:  ASK mode (step 4).
 - No `<name>`:  THIS session.
 - `<name>`:  the plan or isolate session of that name -- worktree `.claude/worktrees/<name>`, branch `<name>`, plan
-  doc `packages/docs/content/epics/<name>/`, a session renamed `<name>`.  Nothing by that name:  say so in one line, list
+  doc `epics/<name>/`, a session renamed `<name>`.  Nothing by that name:  say so in one line, list
   the names that do exist (worktrees, plan docs), stop.
 
 ## 2. Gather (in parallel where possible)
@@ -31,7 +31,7 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
 - Where:  in the session's checkout (`git -C .claude/worktrees/<name>` for `<name>`):  `git branch --show-current`,
   `git status --short`, `git log --oneline main..HEAD` (a worktree) or the session's own commits (`main`).
 - Plan doc, if any:  the session's `/epic <name>`, else the worktree's name if `spell dev plan-doc list` has it, else
-  one the session wrote to.  ONE shared doc, in `packages/docs/content/epics/<name>/` of every checkout (a link into
+  one the session wrote to.  ONE shared doc, in `epics/<name>/` of every checkout (a link into
   `../spell-app-dev`).  A branch from before 2026-10-02 still has it under `plans/<name>/`.
   - `spell dev plan-doc summary <name> --json`:  phases with status, next phase, open questions / issues / caveats / todos
   - its links:  `spell dev docs link <ABSOLUTE path> --hash <id>`:  the side bar link, then `(_browser_)`

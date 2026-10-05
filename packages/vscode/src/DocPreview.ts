@@ -150,5 +150,5 @@ async function start(root: string): Promise<SRV.WebServer> {
   return server
 }
 
-/** Folders our own server live-reloads, relative to the root:  docs pages, their bundle, goals. */
-const DOC_FOLDERS = ["packages/docs/content", "packages/docs/tools/_assets", "goals"]
+/** Folders our own server live-reloads, relative to the root:  docs areas, their bundle, goals. */
+const DOC_FOLDERS = ["epics", "guides", "pages", "templates", "packages/docs/tools/_assets", "goals"]

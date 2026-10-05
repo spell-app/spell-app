@@ -3,7 +3,8 @@
  * - `<template>`:  `durable`, `cheatsheet` or `commands` (or a path under `templates/`);  plan docs come from
  *   `spell dev plan-doc new`
  * - SIDE EFFECT:  a template with a JSON beside it (`commands.json`) copies that too, as `<page>.json`
- * - `<page>`:  where it goes, relative to `packages/docs`, e.g. `parser/parser.html` or `glossary.html`
+ * - `<page>`:  where it goes, a guide by default:  `parser/parser.html` is `guides/parser/parser.html`;  a path starting
+ *   with an area (`guides/`, `pages/`) is from the checkout's root
  * - Fixes the `_assets` and `index.html` paths, and the site header's `root`, for the page's depth (`atDepth()`).
  * - Sets `<title>`, the `h1`, the breadcrumb's last section and the description;  drops the template's how-to
  *   comment;  refuses to overwrite.
@@ -15,7 +16,7 @@ import { basename, dirname, join, relative } from "node:path"
 
 import { parseHTML } from "linkedom"
 
-import { DOCS, TOOLS, atDepth, serialize, tidy } from "./pages.js"
+import { GUIDES, PACKAGE, ROOT, TOOLS, atDepth, serialize, tidy } from "./pages.js"
 
 const { positional, flags } = parseArgs(process.argv.slice(2))
 const [templateArg, page] = positional
@@ -26,12 +27,12 @@ if (!templateArg || !page?.endsWith(".html")) {
 }
 if (/^templates\/epics\/|^plan$/.test(templateArg)) fail("plan docs:  `spell dev plan-doc new <name>`")
 const template = templateArg.includes("/") ? templateArg : `templates/${templateArg}.html`
-if (!existsSync(join(DOCS, template))) fail(`no template ${template}`)
-const file = join(DOCS, page)
-if (existsSync(file)) fail(`${page} already exists`)
+if (!existsSync(join(ROOT, template))) fail(`no template ${template}`)
+const file = /^(guides|pages)\//.test(page) ? join(ROOT, page) : join(GUIDES, page)
+if (existsSync(file)) fail(`${relative(ROOT, file)} already exists`)
 
 const title = flags.title ?? "Short Title"
-const html = atDepth(readFileSync(join(DOCS, template), "utf8"), page.split("/").length - 1)
+const html = atDepth(readFileSync(join(ROOT, template), "utf8"), relative(ROOT, file).split("/").length - 1)
 const { document } = parseHTML(html)
 document.querySelector("title").textContent = title
 document.querySelector("h1").textContent = title
@@ -39,7 +40,7 @@ const crumb = document.querySelector("ui-breadcrumb-section[active]")
 if (crumb) crumb.textContent = title
 document.querySelector('meta[name="description"]').setAttribute("content", flags.description ?? "One sentence.")
 // a data-driven template (`commands`) has its JSON beside it:  the page gets a copy, named after the page
-const data = join(DOCS, template.replace(/\.html$/, ".json"))
+const data = join(ROOT, template.replace(/\.html$/, ".json"))
 const pageData = file.replace(/\.html$/, ".json")
 for (const code of document.querySelectorAll("ui-list.spell-meta code")) {
   if (code.textContent === "short-title.json") code.textContent = basename(pageData)
@@ -47,8 +48,8 @@ for (const code of document.querySelectorAll("ui-list.spell-meta code")) {
 mkdirSync(dirname(file), { recursive: true })
 writeFileSync(file, serialize(document))
 if (existsSync(data)) copyFileSync(data, pageData)
-if (!tidy([page])) process.exit(1)
-const run = spawnSync("node", [join(TOOLS, "index.js")], { cwd: DOCS, encoding: "utf8" })
+if (!tidy([file])) process.exit(1)
+const run = spawnSync("node", [join(TOOLS, "index.js")], { cwd: PACKAGE, encoding: "utf8" })
 if (run.status !== 0) process.stderr.write(run.stderr)
 console.log(relative(process.cwd(), file))
 
