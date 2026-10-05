@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-icon-B-nlwg2V.js";export{e as UIIcon,t as UIIcons};

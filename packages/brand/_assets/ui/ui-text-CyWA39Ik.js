@@ -1,1 +1,0 @@
-import{t as e}from"./ui-text-Dw7rAl0h.js";export{e as UIText};

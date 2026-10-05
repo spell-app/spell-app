@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-breadcrumb-BIBgF5RR.js";export{e as UIBreadcrumb,t as UIBreadcrumbSection};

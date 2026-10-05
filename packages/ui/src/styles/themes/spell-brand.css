@@ -308,6 +308,9 @@
        `<ui-brand-field>`'s */
     --ui-section-tip-background: var(--spell-surface-inverse);
     --ui-section-tip-color: var(--spell-text-inverse);
+    /* the brand's fold chevron (Theme Creator, Color Set Chooser):  UP while open, DOWN while folded */
+    --ui-section-fold-icon-rotate: 180deg;
+    --ui-section-fold-icon-folded-rotate: 0deg;
 
     /*******************************
             Ink, text, surfaces

@@ -1,0 +1,1 @@
+import{t as e}from"./ui-rating-Dpl7up_h.js";export{e as UIRating};

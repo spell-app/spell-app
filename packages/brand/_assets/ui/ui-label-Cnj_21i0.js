@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-label-Bv1cVYTK.js";export{e as UILabel,t as UILabels};
