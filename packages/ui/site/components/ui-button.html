@@ -299,6 +299,12 @@
                   <ui-button primary icon="download">Download</ui-button>
                   <ui-button content="Next"><ui-icon slot="icon" name="arrow right"></ui-icon></ui-button>
                 </ui-docs-example>
+                <ui-docs-example
+                  description="`icon-position=&quot;right&quot;` puts the icon after the text (Fomantic's `right` icon), `--ui-button-icon-spacing` from it."
+                >
+                  <ui-button icon="arrow right" icon-position="right">Next</ui-button>
+                  <ui-button primary circular icon="arrow right" icon-position="right">Open app</ui-button>
+                </ui-docs-example>
               </ui-section>
 
               <ui-section id="examples-content-link" header="Link" sticky collapsible dividing>
@@ -306,6 +312,11 @@
                   description="With `href` the button renders a real link, so it navigates and opens in a new tab."
                 >
                   <ui-button href="#link">A link styled as a button</ui-button>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="`download` saves the file instead of opening it, as `&lt;a download&gt;`;  a value names the saved file."
+                >
+                  <ui-button href="../images/wireframe/image.png" download="wireframe.png" icon="download">PNG</ui-button>
                 </ui-docs-example>
               </ui-section>
             </ui-section>
@@ -899,6 +910,8 @@
                   - `type="submit"` submits the enclosing form (`form.requestSubmit()`, so validation and the `submit`
                     event run); `type="reset"` resets it.
                   - `name` / `value` are submitted with the form when this button submits it.
+                  - `button.click()` from script presses it as a click would (submits, toggles, follows its link), so
+                    Enter in a `<ui-input>` submits through the form's `<ui-button type="submit">`.
                   - A disabled `<fieldset>` disables the buttons inside it.
                   - `<ui-form>` (or a plain `<form>`) needs a light-DOM `<form>` for the buttons to submit.
                 </script>

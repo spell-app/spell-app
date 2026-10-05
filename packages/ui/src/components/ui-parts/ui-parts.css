@@ -90,7 +90,8 @@
  *
  * - The standalone header's own tokens (`--ui-header-*`) are public and NEVER declared:  its root declares the
  *   private aliases (`--_ui-header-color: var(--ui-header-color, var(--ui-text-dark))`) and rules read those, as
- *   in every component sheet;  its sub header (`in-header`) reads the owner's `--_ui-header-sub-*` aliases.
+ *   in every component sheet;  its sub header (`in-header`) reads the owner's `--_ui-header-sub-*` aliases
+ *   (`-color`, `-font-size`, `-margin`), else the public tokens:  an OWNED header (a card's) declares no aliases.
  * - NOTE: left out, on purpose:
  *   - rules for other components' markup inside parts (card star / like icons, `.ui.card .dimmer`, modal
  *     `.image` columns, feed / summary images, list sub-lists, statistic images):  those owners port them
@@ -194,6 +195,8 @@
       --ui-header-sub-font-size,
       clamp(calc(var(--ui-font-size) * 0.92857), 0.78em, calc(var(--ui-font-size) * 1.42857))
     );
+    /* the sub header's margin, e.g. `0.5em 0 0` for a gap below the headline */
+    --_ui-header-sub-margin: var(--ui-header-sub-margin, 0);
     --_ui-header-sub-heading-ratio: var(--ui-header-sub-heading-ratio, 0.85714);
     --_ui-header-sub-heading-color: var(--ui-header-sub-heading-color, inherit);
     --_ui-header-icon-header-size: var(--ui-header-icon-header-size, 3em);
@@ -368,13 +371,17 @@
   .in-header.content:not(:first-child) {
     vertical-align: middle;
   }
+  /*
+   * The aliases come from a STANDALONE header's root;  a header an owner styles (a card's, `.in-card.header`) declares
+   * none, so each falls back to its public token:  a card's lede is themed like any sub header.
+   */
   :host(:state(in-header)) > .header,
   .in-header.header {
     display: block;
-    margin: 0;
+    margin: var(--_ui-header-sub-margin, var(--ui-header-sub-margin, 0));
     padding: 0;
-    color: var(--_ui-header-sub-color, var(--ui-text-muted));
-    font-size: var(--_ui-header-sub-font-size, 1em);
+    color: var(--_ui-header-sub-color, var(--ui-header-sub-color, var(--ui-text-muted)));
+    font-size: var(--_ui-header-sub-font-size, var(--ui-header-sub-font-size, 1em));
     font-weight: var(--ui-font-weight-normal);
     line-height: 1.2em;
   }

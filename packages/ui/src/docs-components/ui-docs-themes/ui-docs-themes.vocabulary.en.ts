@@ -95,6 +95,11 @@ export const docsThemesVocabulary = {
     { key: "default", text: "Plain", description: "Our own look, no theme." },
     { key: "defaultDescription", text: "Spell UI, unthemed", description: "Under `Plain` in the list." },
     { key: "spellDescription", text: "The Spell brand", description: "Under `Spell` in the list:  the default." },
+    {
+      key: "spellBrandDescription",
+      text: "The brand as Claude Design drew it",
+      description: "Under `Spell Brand` in the list:  the theme the brand pages converge on."
+    },
     { key: "classicDescription", text: "Fomantic's look", description: "Under `Classic` in the list." },
     { key: "fomanticThemes", text: "Fomantic themes", description: "List header above Fomantic's themes." },
     { key: "toDark", text: "Switch to dark", description: "The light / dark button's name, while the page is light." },

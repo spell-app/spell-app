@@ -203,6 +203,8 @@ house style every package shares.  Only what's local is below;  a section named 
 - Widths:  attribute is `width`, NEVER `wide`;  accepts columns (`4` of 16), fractions (`1/4`), percentages (`25%`).
   Exception:  `<ui-sidebar>` and `<ui-flyout>` also take Fomantic's width words (`very thin`, `thin`, `wide`,
   `very wide`), which the element adds after the noun (`ui left sidebar thin`).
+- Numeric fields:  RIGHT-aligned (`text-align: end`, `tabular-nums`), the number set against its trailing unit
+  (`250°`, `55%`, `16px`);  text fields (a hex, a name) stay start-aligned.  Owen's standing rule (2026-10-04).
 - Chosen state:  `selected` is canonical (checkbox, radio, toggle, items, tabs, options);
   `checked` is accepted as an alias on checkbox / radio only.
 - Generic content parts (`<ui-content>`, `<ui-header>`, `<ui-meta>`, `<ui-description>`, `<ui-extra>`,

@@ -388,6 +388,30 @@ describe("owner tokens", () => {
     expect(getComputedStyle(root(sub)).color).toBe(red)
   })
 
+  it("a card header's sub header (no alias above it) reads the public `--ui-header-sub-*` tokens", async () => {
+    const red = "rgb(255, 0, 0)"
+    const lede = `<ui-header>Title<ui-header>The lede</ui-header></ui-header>`
+    const plain = await ElementFixture.render(`<ui-card><ui-content>${lede}</ui-content></ui-card>`)
+    const before = getComputedStyle(root(plain.querySelector("ui-header ui-header")!))
+    expect([before.marginTop, before.fontSize]).toEqual([
+      "0px",
+      getComputedStyle(root(plain.querySelector("ui-header")!)).fontSize
+    ])
+    const card = await ElementFixture.render(
+      `<ui-card style="--ui-header-sub-color: ${red}; --ui-header-sub-font-size: 17px; --ui-header-sub-margin: 8px 0 0">` +
+        `<ui-content>${lede}</ui-content></ui-card>`
+    )
+    const sub = getComputedStyle(root(card.querySelector("ui-header ui-header")!))
+    expect([sub.color, sub.fontSize, sub.marginTop]).toEqual([red, "17px", "8px"])
+  })
+
+  it("a standalone header's sub header takes `--ui-header-sub-margin`", async () => {
+    const owner = await ElementFixture.render(
+      `<ui-header style="--ui-header-sub-margin: 8px 0 0">Account<ui-header>Manage</ui-header></ui-header>`
+    )
+    expect(getComputedStyle(root(owner.querySelector("ui-header ui-header")!)).marginTop).toBe("8px")
+  })
+
   it("an owner look token reaches the part through the owner's alias", async () => {
     // `ui-parts.css` reads `var(--_ui-statistic-value-size, ...)`;  a `large` statistic's size (80px) only arrives
     // through the owner's alias, which its size variation writes

@@ -62,6 +62,12 @@ export const labelVocabulary = {
     },
     { name: "basic", kind: "keyOnly", description: "Less pronounced:  an outline on the surface colour." },
     {
+      name: "tinted",
+      kind: "keyOnly",
+      description:
+        "Soft:  the colour's tint as the fill and its text colour as the text, as a pill or badge.  Not Fomantic's."
+    },
+    {
       name: "attached",
       kind: "keyOrValueAndKey",
       values: ["top", "bottom", "top left", "top right", "bottom left", "bottom right"],

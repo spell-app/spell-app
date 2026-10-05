@@ -48,6 +48,12 @@ export const cardVocabulary = {
     { name: "fluid", kind: "keyOnly", description: "Takes the width of its container." },
     { name: "centered", kind: "keyOnly", description: "Centred in its container." },
     { name: "basic", kind: "keyOnly", description: "No border or shadow." },
+    {
+      name: "dashed",
+      kind: "keyOnly",
+      description:
+        "A placeholder:  a dashed border (`--ui-card-border-color`) and no drop shadow, unless `raised`.  Not Fomantic's."
+    },
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds:  the dark scheme." },
     { name: "disabled", kind: "keyOnly", description: "Faded and inert;  a link card loses its `href`." },
     { name: "loading", kind: "keyOnly", description: "Dimmed under a spinner, announced as busy." },

@@ -10,6 +10,7 @@
   // - From ANOTHER package, import the barrel only, except these entry points:  `$/parser/rulex` (opt-in),
   //   `$/parser/test` / `$/spell/test` (test helpers), `$/spell/node/...` (node-only:  environment, files on disk),
   //   `$/ui/tools/IconPackBuilder` (node-only:  `ui`'s icon pack builder, for the `spell` CLI),
+  //   `$/ui/tools/SiteDataBuilder` (node-only:  the docs data builder, for `brand`'s `yarn site:data`),
   //   `$/ui/tools/StaticRenderer` + `$/ui/tools/tools.types` (node-only:  `spell static`'s Vite server for `ui`'s
   //   static render, and its types),
   //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` only:  the
@@ -47,7 +48,14 @@
       "$/ui": ["./packages/ui/src/index.ts"],
       "$/ui/*": ["./packages/ui/src/*"],
       "$/ui/test/*": ["./packages/ui/test/*"],
-      "$/ui/tools/*": ["./packages/ui/tools/*"]
+      "$/ui/tools/*": ["./packages/ui/tools/*"],
+
+      // ## `brand`:  barrel and files;  its `<ui-brand-*>` elements live in `packages/brand/components/` (Owen,
+      // 2026-10-04), outside `src/`, so `$/brand/components` is longer than `$/brand/*` and wins
+      "$/brand": ["./packages/brand/src/index.ts"],
+      "$/brand/*": ["./packages/brand/src/*"],
+      "$/brand/components": ["./packages/brand/components/index.ts"],
+      "$/brand/components/*": ["./packages/brand/components/*"]
     }
   }
 }

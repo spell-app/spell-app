@@ -260,6 +260,45 @@ describe("<ui-card> variations", () => {
     await userEvent.unhover(rootOf(host))
   })
 
+  it("a link card's hover ring takes `--ui-card-hover-border-color`", async () => {
+    const red = "rgb(255, 0, 0)"
+    const host = await render(`<ui-card link header="Hover me" style="--ui-card-hover-border-color: ${red}"></ui-card>`)
+    expect(style(rootOf(host)).boxShadow).not.toContain(`${red} 0px 0px 0px 1px`)
+    await userEvent.hover(rootOf(host))
+    await expect.poll(() => style(rootOf(host)).boxShadow).toContain(`${red} 0px 0px 0px 1px`)
+    await userEvent.unhover(rootOf(host))
+  })
+
+  it("`--ui-card-shadow: none` drops the drop shadow only:  the ring stays", async () => {
+    const red = "rgb(255, 0, 0)"
+    const ring = `${red} 0px 0px 0px 1px`
+    const onHost = await render(
+      `<ui-card header="Flat" style="--ui-card-shadow: none; --ui-card-border-color: ${red}"></ui-card>`
+    )
+    expect(style(rootOf(onHost)).boxShadow).toContain(ring)
+    expect(style(rootOf(onHost)).boxShadow).not.toContain("3px")
+    const above = await ElementFixture.render(
+      `<div style="--ui-card-shadow: none; --ui-card-border-color: ${red}"><ui-card header="Flat"></ui-card></div>`
+    )
+    expect(style(rootOf(above.querySelector("ui-card")!)).boxShadow).toContain(ring)
+    const noRing = await render(`<ui-card header="Bare" style="--ui-card-border-shadow: none"></ui-card>`)
+    expect(style(rootOf(noRing)).boxShadow).toContain("3px")
+  })
+
+  it("`dashed`:  a dashed outline in the border colour instead of the ring, no drop shadow", async () => {
+    const red = "rgb(255, 0, 0)"
+    const host = await render(`<ui-card dashed header="Placeholder" style="--ui-card-border-color: ${red}"></ui-card>`)
+    expect(rootOf(host).className).toBe("ui dashed card")
+    const root = style(rootOf(host))
+    expect([root.outlineStyle, root.outlineColor, root.outlineWidth]).toEqual(["dashed", red, "1px"])
+    expect(root.boxShadow).not.toContain(red)
+    expect(root.boxShadow).not.toContain("3px")
+    const plain = await render(`<ui-card header="Plain"></ui-card>`)
+    expect(style(rootOf(plain)).outlineStyle).toBe("none")
+    const raised = await render(`<ui-card dashed raised header="Raised"></ui-card>`)
+    expect(style(rootOf(raised)).boxShadow).not.toBe(root.boxShadow)
+  })
+
   it("takes its public tokens from the host, an ancestor or `::part(card)`", async () => {
     const onHost = await render(`<ui-card style="--ui-card-radius: 20px" header="Host"></ui-card>`)
     expect(style(rootOf(onHost)).borderTopLeftRadius).toBe("20px")

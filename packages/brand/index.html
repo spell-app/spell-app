@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brand</title>
+    <meta
+      name="description"
+      content="Spell's brand:  Claude Design's pages beside their Spell UI copies, with a side-by-side compare view."
+    />
+    <link rel="stylesheet" href="../docs/tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="_assets/brand-pages.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <h1>Brand</h1>
+        <p class="lede">
+          Claude Design's brand pages, each beside its copy built with Spell UI. Compare shows the two side by side.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="palette"
+            >Originals: <a href="spell-design-system/" target="brand-folder"><code>spell-design-system/</code></a
+            >, as Claude Design exported them; the brand rules are its
+            <a href="spell-design-system/readme.md" target="brand-readme"><code>readme.md</code></a></ui-item
+          >
+          <ui-item icon="layer group"
+            >Copies: <code>&lt;Name&gt;.spell.html</code> beside each original, on Spell UI and the
+            <code>spell-brand</code> theme</ui-item
+          >
+          <ui-item icon="book"
+            >Read more:
+            <a href="../docs/content/design-system/design-system.html" target="design-system-doc">Design System</a>, the
+            durable doc: the theme, every element, how to make a copy, and what the theme still can't do</ui-item
+          >
+          <ui-item icon="map"
+            >Plan: epic
+            <a href="../docs/content/epics/design-system/design-system.plan.html" target="design-system"
+              ><code>design-system</code></a
+            ></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="components" header="1. Components" sticky collapsible dividing>
+          <ui-icon slot="icon" name="puzzle piece"></ui-icon>
+          <p>
+            The <code>&lt;ui-brand-*&gt;</code> elements the copies are built from, each with a page in Spell UI's docs
+            format: examples, usage, API and tokens.
+          </p>
+          <ui-table celled compact striped unstackable
+            ><table>
+              <thead>
+                <tr>
+                  <th>Element</th>
+                  <th>What it is</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <a href="/ui/components/ui-panel.html"><code>&lt;ui-panel&gt;</code></a>
+                  </td>
+                  <td>
+                    An inspector: a tinted box of fields under a header band, with sub-head bands that fold. Moved into
+                    Spell UI (was <code>&lt;ui-brand-panel&gt;</code>): its page is in Spell UI's docs.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-field.html"><code>&lt;ui-brand-field&gt;</code></a>
+                  </td>
+                  <td>One control with its label, a value readout, actions, an info tip, help and errors.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-color.html"><code>&lt;ui-brand-color&gt;</code></a>
+                  </td>
+                  <td>A square colour chip: its hex, OKLCH or name, a contrast mark, click to copy, a details tip.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-color-set.html"><code>&lt;ui-brand-color-set&gt;</code></a>
+                  </td>
+                  <td>A row or grid of chips, to show or to pick one from (keyboard included).</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-color-range.html"><code>&lt;ui-brand-color-range&gt;</code></a>
+                  </td>
+                  <td>A 17-step ladder of shades from one base colour, as the Color Set Chooser makes it.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-color-picker.html"><code>&lt;ui-brand-color-picker&gt;</code></a>
+                  </td>
+                  <td>Choose a colour by lightness and colourfulness for a hue, or type its hex or OKLCH.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-logo.html"><code>&lt;ui-brand-logo&gt;</code></a>
+                  </td>
+                  <td>The Spell logo, outlined: the hat mark or a lockup, in one colour.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-flourish.html"><code>&lt;ui-brand-flourish&gt;</code></a>
+                  </td>
+                  <td>Page art: a generated swoop, blobs, curls, sparkle trail or rising wave behind the content.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-blob.html"><code>&lt;ui-brand-blob&gt;</code></a>
+                  </td>
+                  <td>Page art: one soft lavender shape tucked into a corner.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-composer.html"><code>&lt;ui-brand-composer&gt;</code></a>
+                  </td>
+                  <td>Write a spell and cast it: a serif text box, chips and a round cast button.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-checklist.html"><code>&lt;ui-brand-checklist&gt;</code></a>
+                  </td>
+                  <td>Round-marked lines: build progress (done, active, pending), or things to tick off.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="components/ui-brand-phone.html"><code>&lt;ui-brand-phone&gt;</code></a>
+                  </td>
+                  <td>A phone frame with a status bar, around a live app preview.</td>
+                </tr>
+                <tr>
+                  <td><a href="components/components.spell.html">Specimen</a></td>
+                  <td>Spell UI and the brand elements together in the <code>spell-brand</code> theme.</td>
+                </tr>
+              </tbody>
+            </table></ui-table
+          >
+        </ui-section>
+
+        <ui-section id="mockups" header="2. Product mockups" sticky collapsible dividing>
+          <ui-icon slot="icon" name="desktop"></ui-icon>
+          <p>Screens of Spell itself: the app, its docs, its public site.</p>
+          <ui-table celled compact striped unstackable
+            ><table>
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th>What it is</th>
+                  <th>Open</th>
+                </tr>
+              </thead>
+              <tbody data-brand-pages="mockup"></tbody></table
+          ></ui-table>
+        </ui-section>
+
+        <ui-section id="tools" header="3. Tools" sticky collapsible dividing>
+          <ui-icon slot="icon" name="wand magic sparkles"></ui-icon>
+          <p>Pages that work on colours and themes.</p>
+          <ui-table celled compact striped unstackable
+            ><table>
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th>What it is</th>
+                  <th>Open</th>
+                </tr>
+              </thead>
+              <tbody data-brand-pages="tool"></tbody></table
+          ></ui-table>
+        </ui-section>
+
+        <ui-section id="brand" header="4. Brand" sticky collapsible dividing>
+          <ui-icon slot="icon" name="hat wizard"></ui-icon>
+          <p>The marks, the art, and Claude Design's own index.</p>
+          <ui-table celled compact striped unstackable
+            ><table>
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th>What it is</th>
+                  <th>Open</th>
+                </tr>
+              </thead>
+              <tbody data-brand-pages="brand"></tbody></table
+          ></ui-table>
+        </ui-section>
+
+        <ui-section id="sources" header="5. Sources" sticky collapsible dividing>
+          <ui-icon slot="icon" name="folder"></ui-icon>
+          <ul>
+            <li>
+              <a href="spell-design-system/SKILL.md" target="brand-skill"><code>spell-design-system/SKILL.md</code></a
+              >: Claude Design's skill file, for using the brand in other tools.
+            </li>
+            <li>
+              <a href="spell-design-system/tokens/" target="brand-tokens"><code>spell-design-system/tokens/</code></a
+              >: the brand's colours, type, spacing and shadows as CSS variables.
+            </li>
+            <li>
+              <a href="leonardo/" target="brand-leonardo"><code>leonardo/</code></a
+              >: the reference images and brief from before Claude Design.
+            </li>
+          </ul>
+        </ui-section>
+      </main>
+    </div>
+    <script src="../docs/tools/_assets/spell-ui.js"></script>
+    <script src="_assets/brand-pages.js"></script>
+  </body>
+</html>

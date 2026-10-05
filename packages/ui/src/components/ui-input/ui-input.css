@@ -89,6 +89,7 @@
     --_ui-input-line-height: var(--ui-input-line-height, 1.21428em);
     --_ui-input-background: var(--ui-input-background, var(--ui-surface));
     --_ui-input-color: var(--ui-input-color, var(--ui-text-color));
+    --_ui-input-numeric-align: var(--ui-input-numeric-align, end);
     --_ui-input-border-width: var(--ui-input-border-width, var(--ui-border-width));
     --_ui-input-border-color: var(--ui-input-border-color, var(--ui-border-color));
     --_ui-input-border-color-hover: var(--ui-input-border-color-hover, var(--ui-border-color-selected));
@@ -174,6 +175,15 @@
     transition:
       box-shadow var(--_ui-input-duration) var(--ui-ease),
       border-color var(--_ui-input-duration) var(--ui-ease);
+  }
+  /*
+   * Numbers:  right-aligned against their unit (a `right labeled` `%`), in tabular figures, so a column of them lines
+   * up (Spell UI's "UI rules");  `type="number"` or a numeric keyboard (`inputmode`).  `--ui-input-numeric-align`
+   * sets them back to `start`.
+   */
+  .ui.input > input:is([type="number"], [inputmode="decimal"], [inputmode="numeric"]) {
+    font-variant-numeric: tabular-nums;
+    text-align: var(--_ui-input-numeric-align);
   }
   .ui.input > input[type="color"] {
     padding: 0;

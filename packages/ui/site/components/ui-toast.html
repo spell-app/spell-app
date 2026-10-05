@@ -661,6 +661,10 @@
                   `UI.toast()` returns `{ id, closed, element }`: `closed` resolves when the toast is gone, and
                   `UI.toasts.dismiss(id)` closes it early. It exists once the toast family has loaded: import
                   `@spell-app/ui/ui-toast`, or use a `<ui-toast>` somewhere under `<ui-root>`.
+
+                  Every `class` word also stays on the `<ui-toast>`, so one toast can be themed on its own:
+                  `UI.toast({ class: "ready", ... })` with `ui-toast.ready { --ui-toast-background: ...;
+                  --ui-toast-font-size: 14px }`.
                 </script>
               </ui-markdown>
               <ui-code language="js">

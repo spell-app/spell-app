@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
 // the leaf, not the barrel:  `SiteHeader` extends `HTMLElement`, which node lacks
-import { PROPERTIES, SITE_HOME, docsArea } from "$/server/site/site.types"
+import { PROPERTIES, SCHEME_CLASSES, SITE_HOME, docsArea, forcedScheme } from "$/server/site/site.types"
 
 /** The tab the site header lights for page path `path`:  the first property that matches (`SiteHeader.render()`). */
 function litTab(path: string): string | undefined {
@@ -22,7 +22,7 @@ describe("the site header's tabs", () => {
     expect(PROPERTIES.map((property) => property.path)).toEqual([
       "epics/index.html",
       "guides/index.html",
-      "brand/index.html",
+      "packages/brand/index.html",
       "/ui/",
       "templates/index.html",
       "goals/index.html",
@@ -40,6 +40,8 @@ describe("the site header's tabs", () => {
     ["/guides/solid/solid-2.html", "Guides"],
     ["/brand/index.html", "Brand"],
     ["/brand/pony.html", "Brand"],
+    ["/packages/brand/index.html", "Brand"],
+    ["/packages/brand/spell-design-system/Logo.spell.html", "Brand"],
     ["/ui/", "Spell UI"],
     ["/ui/components/ui-card.html", "Spell UI"],
     ["/packages/ui/site/index.html", "Spell UI"],
@@ -77,5 +79,26 @@ describe("the site header's tabs", () => {
   it("docsArea():  the first area folder in the path wins", () => {
     expect(docsArea("/templates/epics/plan.html")).toBe("templates")
     expect(docsArea("/epics/templates/x.html")).toBe("epics")
+  })
+})
+
+/** A class list holding `names`, as `<html>`'s `classList` answers `contains()`. */
+function classes(...names: string[]) {
+  return { contains: (token: string) => names.includes(token) }
+}
+
+describe("forcedScheme()", () => {
+  it("reads the scheme `<html>`'s classes force:  what the site header's icon shows", () => {
+    expect(forcedScheme(classes(SCHEME_CLASSES.dark))).toBe("dark")
+    expect(forcedScheme(classes("ui-typography", SCHEME_CLASSES.light))).toBe("light")
+  })
+
+  it("is `undefined` with neither class:  the page follows the OS", () => {
+    expect(forcedScheme(classes())).toBeUndefined()
+    expect(forcedScheme(classes("ui-typography"))).toBeUndefined()
+  })
+
+  it("keeps Spell UI's class names, which pages switch themselves", () => {
+    expect(SCHEME_CLASSES).toEqual({ light: "ui-light", dark: "ui-dark" })
   })
 })

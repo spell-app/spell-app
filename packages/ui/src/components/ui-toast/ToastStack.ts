@@ -57,7 +57,8 @@ import {
  *   (re-shown, to be lifted above anything opened since) for each new toast, unless focus is inside it;  removed
  *   when its last toast goes.
  * - Options map onto attributes (`title` => `header`, `showProgress` => `progress` ...);  `displayTime` defaults to
- *   Fomantic's `3000`.  `class` words sort themselves:  a `type` word, a hue (`color`) or `inverted`.
+ *   Fomantic's `3000`.  `class` words sort themselves:  a `type` word, a hue (`color`) or `inverted`;  every word
+ *   also stays on the `<ui-toast>` host, so a page can theme one toast by its own class (`--ui-toast-*` tokens).
  * - Actions become `<ui-button slot="actions">`s (Fomantic's `class` on the host, so `.positive` / `.deny` ... still
  *   approve / deny, and its button words and hue as attributes);  `attached` layouts wrap them in a
  *   `<ui-buttons>`.  An action's `click()` returning `false` prevents the click's default, which keeps the toast.
@@ -114,12 +115,15 @@ export class ToastStack implements ToastProvider {
       actions: options.actions?.length ? options.classActions : undefined,
       type: options.type
     }
-    for (const word of (options.class ?? "").split(/\s+/).filter(Boolean)) {
+    const words = (options.class ?? "").split(/\s+/).filter(Boolean)
+    for (const word of words) {
       if (TYPES.includes(word)) attributes.type = word
       else if (ValueSets.has(HUES, word)) attributes.color = word
       else if (word === INVERTED) attributes.inverted = ""
     }
     for (const [name, value] of Object.entries(attributes)) if (value !== undefined) toast.setAttribute(name, value)
+    // every word stays on the host too (Fomantic's `class`):  the page themes this one toast by it
+    if (words.length) toast.className = words.join(" ")
     if (options.actions?.length) toast.append(ToastStack.actions(options.actions, options.classActions ?? ""))
     return toast
   }

@@ -101,6 +101,15 @@ describe("SliderScale", () => {
       scale.gap(100, 100)
     ]).toEqual([20, 1, 1, 5, 20])
   })
+
+  it("`tickStep`:  labels every tick step from `min`;  snapping keeps to `step`", () => {
+    const scale = new SliderScale({ min: -40, max: 40, step: 1, tickStep: 8 })
+    expect(scale.intervals).toBe(10)
+    expect([0, 1, 5, 10].map((index) => scale.labelValue(index))).toEqual([-40, -32, 0, 40])
+    expect(scale.snap(3.4)).toBe(3)
+    const fallback = new SliderScale({ min: 0, max: 10, step: 2, tickStep: 0 })
+    expect(fallback.intervals).toBe(5)
+  })
 })
 
 describe("<ui-slider> markup", () => {
@@ -186,6 +195,26 @@ describe("<ui-slider> markup", () => {
     expect(labels.filter((label) => label.className === "halftick label").every((label) => !label.textContent)).toBe(
       true
     )
+  })
+
+  it("`tick-step`:  labels every tick step, not every step", async () => {
+    const { labels } = await slider(`labeled min="0" max="200" tick-step="50" aria-label="Chroma"`, 600)
+    expect(labels.map((label) => label.textContent)).toEqual(["0", "50", "100", "150", "200"])
+    expect(labels[1]!.style.getPropertyValue("--_slider-at")).toBe("0.25")
+  })
+
+  it("`ticked` alone:  a full tick per tick step, no numbers, drawn under the track", async () => {
+    const { labels, root, inner } = await slider(`ticked min="0" max="200" tick-step="20" aria-label="Chroma"`, 600)
+    expect(root.className).toBe("ui ticked slider")
+    expect(labels).toHaveLength(11)
+    expect(labels.every((label) => label.className === "label" && label.textContent === "")).toBe(true)
+    const tick = labels[5]!.getBoundingClientRect()
+    const track = inner.querySelector(".track")!.getBoundingClientRect()
+    expect(tick.width).toBeGreaterThan(0)
+    expect(tick.bottom).toBeGreaterThan(track.bottom)
+    expect(tick.left + tick.width / 2).toBeCloseTo(track.left + track.width / 2, 0)
+    const { labels: none } = await slider(`min="0" max="200" aria-label="Plain"`)
+    expect(none).toHaveLength(0)
   })
 })
 

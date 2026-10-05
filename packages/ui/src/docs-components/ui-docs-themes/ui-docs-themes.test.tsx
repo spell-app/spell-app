@@ -19,7 +19,7 @@ import {
 import { LEGACY_SCHEME_KEYS, SCHEME_KEY } from "$/server/site/site.types"
 
 import { ThemeMenu } from "./ThemeMenu"
-import { DEFAULT_VALUE, SPELL, type DocsThemesChange } from "./ui-docs-themes.types"
+import { DEFAULT_VALUE, SPELL, SPELL_BRAND, type DocsThemesChange } from "./ui-docs-themes.types"
 
 import "$/ui/docs-components/ui-docs-themes"
 import "$/ui/components/ui-button"
@@ -203,17 +203,18 @@ describe("<ui-docs-themes> markup", () => {
 })
 
 describe("<ui-docs-themes> overlay", () => {
-  it("lists Spell (checked), Plain, Classic, then every Fomantic theme titled from the site data", async () => {
+  it("lists Spell (checked), Spell Brand, Plain, Classic, then every Fomantic theme titled from the site data", async () => {
     const host = await render(`<ui-docs-themes></ui-docs-themes>`)
     const list = rows(host)
-    expect(list.slice(0, 3)).toEqual([
+    expect(list.slice(0, 4)).toEqual([
       [SPELL, "Spell"],
+      [SPELL_BRAND, "Spell Brand"],
       [DEFAULT_VALUE, "Plain"],
       ["classic", "Classic"]
     ])
     expect(
       list
-        .slice(3)
+        .slice(4)
         .map(([value]) => value)
         .sort()
     ).toEqual([...ThemeSheets.names].sort())
@@ -239,7 +240,7 @@ describe("<ui-docs-themes> overlay", () => {
     expect(host.shadowRoot!.querySelectorAll("[part~=tip]")[0]!.hasAttribute("hidden")).toBe(true)
 
     await userEvent.keyboard("{ArrowDown}")
-    expect(focused()).toBe(row(host, DEFAULT_VALUE))
+    expect(focused()).toBe(row(host, SPELL_BRAND))
     await userEvent.keyboard("{ArrowUp}{ArrowUp}")
     expect(focused()).toBe(row(host, rows(host).at(-1)![0]))
     await userEvent.keyboard("{Home}")
@@ -360,7 +361,7 @@ describe("<ui-docs-themes> dropdown (show=theme)", () => {
     const buttons = data.themes.filter((theme) => theme.families.includes("ui-button")).map((theme) => theme.name)
     const host = await render(`<ui-docs-themes for="ui-button" show="theme"></ui-docs-themes>`)
     const listed = dropdownRows(host)
-      .slice(3)
+      .slice(4)
       .map(([value]) => value)
     expect(listed.sort()).toEqual(buttons.filter((name) => ThemeSheets.names.includes(name)).sort())
     expect(listed).toContain("github")

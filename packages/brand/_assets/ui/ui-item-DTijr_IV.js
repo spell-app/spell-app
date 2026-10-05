@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-item-ENXSzh-L.js";export{t as UIItem,e as itemVocabulary};

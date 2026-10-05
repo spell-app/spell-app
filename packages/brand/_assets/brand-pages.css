@@ -1,0 +1,161 @@
+/*
+ * Brand pages:  the Brand index's link column and the Compare view's layout.
+ * - On top of the docs' `spell-doc.css`;  colours only from `--ui-*` tokens, so dark mode keeps working.
+ */
+
+/* ## Index */
+
+.brand-links {
+  white-space: nowrap;
+}
+
+.brand-links > * + * {
+  margin-left: 0.75em;
+}
+
+/* ## Compare:  a toolbar, then two panes filling the rest of the window */
+
+.brand-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  height: calc(100dvh - var(--spell-site-header-height, 3rem));
+  padding: 0.75rem 1rem 1rem;
+}
+
+.brand-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-bar .brand-page-menu {
+  min-width: 14em;
+}
+
+.brand-mix-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  white-space: nowrap;
+}
+
+.brand-bar .brand-mix {
+  width: 10em;
+}
+
+.brand-compare:not([data-mode="overlay"]) .brand-mix-field {
+  display: none;
+}
+
+.brand-bar .brand-open {
+  margin-left: auto;
+}
+
+.brand-panes {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.brand-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+}
+
+.brand-pane figcaption {
+  font-size: 0.8rem;
+  color: var(--ui-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+}
+
+.brand-frame-box {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--ui-border-color);
+  border-radius: var(--ui-radius-m, 0.5rem);
+  background: var(--ui-surface, Canvas);
+}
+
+/* the page at its design width, scaled down to fit the box */
+.brand-frame-box iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--brand-width, 1280px);
+  height: var(--brand-height, 100%);
+  border: 0;
+  transform: scale(var(--brand-scale, 1));
+  transform-origin: 0 0;
+}
+
+.brand-missing {
+  display: none;
+  position: absolute;
+  inset: 0;
+  place-content: center;
+  text-align: center;
+  color: var(--ui-text-muted);
+}
+
+.brand-pane[data-missing] .brand-missing {
+  display: grid;
+}
+
+.brand-pane[data-missing] iframe {
+  visibility: hidden;
+}
+
+/* one pane only */
+.brand-compare[data-mode="dc"] .brand-panes,
+.brand-compare[data-mode="spell"] .brand-panes {
+  grid-template-columns: 1fr;
+}
+
+.brand-compare[data-mode="dc"] .brand-pane[data-version="spell"],
+.brand-compare[data-mode="spell"] .brand-pane[data-version="dc"] {
+  display: none;
+}
+
+/* overlay:  the copy over the original, at `--brand-mix` opacity */
+.brand-compare[data-mode="overlay"] .brand-panes {
+  grid-template-columns: 1fr;
+}
+
+.brand-compare[data-mode="overlay"] .brand-pane {
+  grid-area: 1 / 1;
+}
+
+.brand-compare[data-mode="overlay"] .brand-pane[data-version="spell"] {
+  opacity: var(--brand-mix, 0.5);
+  pointer-events: none;
+}
+
+.brand-compare[data-mode="overlay"] .brand-pane[data-version="spell"] figcaption {
+  visibility: hidden;
+}
+
+/* the copy's box itself is see-through:  only its page covers the original */
+.brand-compare[data-mode="overlay"] .brand-pane[data-version="spell"] .brand-frame-box {
+  background: transparent;
+  border-color: transparent;
+}
+
+@media (max-width: 700px) {
+  .brand-panes {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 1fr;
+  }
+}

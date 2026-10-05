@@ -1,0 +1,1 @@
+var e=`@layer ui.theme{@media (width>=992px){.ui.modal{--_modal-width:calc(700px * var(--_modal-ratio))}}@media (width>=1200px){.ui.modal{--_modal-width:calc(800px * var(--_modal-ratio))}}@media (width>=1920px){.ui.modal{--_modal-width:calc(850px * var(--_modal-ratio))}}.ui.small.modal{--_modal-ratio:.6}.ui.large.modal{--_ui-modal-header-size:1.3em}}`;export{e as default};

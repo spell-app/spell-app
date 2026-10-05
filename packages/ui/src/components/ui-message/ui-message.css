@@ -90,6 +90,8 @@
     --_ui-message-icon-size: var(--ui-message-icon-size, 3em);
     --_ui-message-icon-opacity: var(--ui-message-icon-opacity, 0.8);
     --_ui-message-icon-distance: var(--ui-message-icon-distance, 0.6em);
+    /* where an icon message's icon sits beside its content:  `center`, or `start` (top) / `end` (an `align-self`) */
+    --_ui-message-icon-align: var(--ui-message-icon-align, center);
     --_ui-message-close-top: var(--ui-message-close-top, calc(1em - (var(--ui-line-height) - 1) * 0.5em));
     --_ui-message-close-right: var(--ui-message-close-right, 0.5em);
     --_ui-message-close-opacity: var(--ui-message-close-opacity, 0.7);
@@ -294,6 +296,7 @@
     --_ui-icon-owner-display: block;
     display: block;
     flex: 0 0 auto;
+    align-self: var(--_ui-message-icon-align);
     width: auto;
     margin-right: var(--_ui-message-icon-distance);
     font-size: var(--_ui-message-icon-size);

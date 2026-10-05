@@ -303,7 +303,7 @@
 
               <ui-section id="examples-types-segmented" header="Segmented" sticky collapsible dividing>
                 <ui-docs-example
-                  description='A menu can be a segmented control, a bordered group of joined items:  `appearance="segmented"`.  The selected item is filled with the primary colour, or the menu&apos;s `color`.'
+                  description='A menu can be a segmented control, a bordered group of joined items:  `appearance="segmented"`.  The selected item is filled with the primary colour, or the menu&apos;s `color`.  It moves `selected` to the item chosen itself (cancel `ui-select` to keep the old one).'
                 >
                   <ui-menu appearance="segmented" aria-label="View, segmented">
                     <ui-item href="#list" selected>List</ui-item>
@@ -315,6 +315,33 @@
                     <ui-item href="#day">Day</ui-item>
                     <ui-item href="#week" selected>Week</ui-item>
                     <ui-item href="#month">Month</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example
+                  description='Its `--ui-menu-segmented-*` tokens draw it as a pill track with a raised thumb instead:  the track&apos;s background, border, radius, padding and gap, the options&apos; colour and corners, the thumb&apos;s fill, colour and shadow (the `spell-brand` theme sets them).'
+                >
+                  <ui-menu
+                    appearance="segmented"
+                    link
+                    aria-label="Scheme, pill"
+                    style="
+                      --ui-menu-segmented-background: oklch(from var(--ui-ink) l c h / 0.05);
+                      --ui-menu-segmented-border: 1px solid var(--ui-border-color);
+                      --ui-menu-segmented-radius: var(--ui-radius-pill);
+                      --ui-menu-segmented-padding: 2px;
+                      --ui-menu-segmented-gap: 2px;
+                      --ui-menu-segmented-divider: transparent;
+                      --ui-menu-segmented-item-padding: 0.58em 1.08em;
+                      --ui-menu-segmented-item-color: var(--ui-text-muted);
+                      --ui-menu-segmented-item-radius: var(--ui-radius-pill);
+                      --ui-menu-segmented-active-background: var(--ui-surface);
+                      --ui-menu-segmented-active-hover-background: var(--ui-surface);
+                      --ui-menu-segmented-active-color: var(--ui-text-color);
+                      --ui-menu-segmented-active-shadow: var(--ui-shadow-raised);
+                    "
+                  >
+                    <ui-item value="light" icon="sun outline" selected>Light</ui-item>
+                    <ui-item value="dark" icon="moon outline">Dark</ui-item>
                   </ui-menu>
                 </ui-docs-example>
               </ui-section>
@@ -1571,10 +1598,13 @@
               <ui-message state="info" size="small">
                 <ui-markdown>
                   <script type="text/markdown">
-                    A variation (`secondary`, `tabular`, `text` ...) swaps its own values in over yours, so set a token for one
-                    variation on a selector that names it: `ui-menu[secondary] { ... }`. `--ui-menu-active-first-radius` /
-                    `--ui-menu-active-last-radius` default to the menu's own corners on that side, by layout. Never set the
-                    `--_ui-*` names: they're the sheet's private plumbing.
+                    A variation swaps its own values in over the generic tokens, so a theme's `:root` look for the plain menu
+                    never leaks into a secondary or text one. What `vertical`, `secondary`, `text` and `segmented` swap has a
+                    token of its own, `--ui-menu-<variation>-*`: `--ui-menu-secondary-item-padding`,
+                    `--ui-menu-vertical-icon-float`, `--ui-menu-text-item-color`, `--ui-menu-segmented-active-shadow` ... (all
+                    in the table below). `--ui-menu-active-first-radius` / `--ui-menu-active-last-radius` default to the
+                    menu's own corners on that side, by layout. Never set the `--_ui-*` names: they're the sheet's private
+                    plumbing.
                   </script>
                 </ui-markdown>
               </ui-message>

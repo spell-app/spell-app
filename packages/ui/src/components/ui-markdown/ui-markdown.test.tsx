@@ -157,6 +157,100 @@ describe("<ui-markdown>", () => {
   })
 })
 
+describe("<ui-markdown skip-title>", () => {
+  it("drops the leading `#` title, keeping the text and every other heading", async () => {
+    const text = "\n# Spell Design System\n\nIntro.\n\n## Voice\n\n# Second title"
+    const host = await markdown(md(text, "skip-title"))
+    expect([...body(host).querySelectorAll("h1, h2")].map((heading) => heading.textContent)).toEqual([
+      "Voice",
+      "Second title"
+    ])
+    expect(body(host).firstElementChild!.textContent).toBe("Intro.")
+    expect(host.headings.map(({ id }) => id)).toEqual(["voice", "second-title"])
+    expect(host.content).toContain("# Spell Design System")
+    expect(host.dirty).toBe(false)
+  })
+
+  it("drops a setext title too, but never a `##` heading or a leading paragraph", async () => {
+    const setext = await markdown(md("Title\n=====\n\nBody", "skip-title"))
+    expect(body(setext).querySelector("h1")).toBeNull()
+    const second = await markdown(md("## Not a title\n\nBody", "skip-title"))
+    expect(body(second).querySelector("h2")!.textContent).toBe("Not a title")
+    const paragraph = await markdown(md("Body first\n\n# Title", "skip-title"))
+    expect(body(paragraph).querySelector("h1")!.textContent).toBe("Title")
+  })
+
+  it("follows the attribute:  removing it shows the title again", async () => {
+    const host = await markdown(md("# Title\n\nBody", "skip-title"))
+    expect(body(host).querySelector("h1")).toBeNull()
+    const rendered = nextRender(host)
+    host.removeAttribute("skip-title")
+    await rendered
+    expect(body(host).querySelector("h1")!.textContent).toBe("Title")
+  })
+})
+
+describe("<ui-markdown> revealing a heading", () => {
+  /** Spy on `id`'s `scrollIntoView`. */
+  function scrollSpy(host: UIMarkdownHost, id: string) {
+    return vi.spyOn(body(host).querySelector(`#${id}`)!, "scrollIntoView").mockImplementation(() => {})
+  }
+
+  /** Clear the address's hash. */
+  function clearHash() {
+    history.replaceState(history.state, "", location.pathname + location.search)
+  }
+
+  it("`reveal(id)` scrolls to the heading and puts it in the address;  `false` for an unknown id", async () => {
+    const host = await markdown(md("# One\n\n## Two"))
+    const scroll = scrollSpy(host, "two")
+    try {
+      expect(host.reveal("two")).toBe(true)
+      expect(scroll).toHaveBeenCalled()
+      expect(location.hash).toBe("#two")
+      expect(host.reveal("missing")).toBe(false)
+      expect(location.hash).toBe("#two")
+    } finally {
+      clearHash()
+    }
+  })
+
+  it("honours the address's `#id` after its FIRST render", async () => {
+    history.replaceState(history.state, "", "#later-heading")
+    const scroll = vi.spyOn(Element.prototype, "scrollIntoView").mockImplementation(() => {})
+    try {
+      const host = await markdown(md("# One\n\n## Later heading"))
+      expect(scroll.mock.contexts).toContain(body(host).querySelector("#later-heading"))
+      scroll.mockClear()
+      const rendered = nextRender(host)
+      host.content = "# One\n\n## Later heading\n\nMore."
+      await rendered
+      expect(scroll).not.toHaveBeenCalled()
+    } finally {
+      scroll.mockRestore()
+      clearHash()
+    }
+  })
+
+  it("follows a `hashchange` naming one of its headings, but not one the page itself has", async () => {
+    const host = await markdown(md("# One\n\n## Two"))
+    const scroll = scrollSpy(host, "two")
+    const page = document.createElement("div")
+    page.id = "page-own"
+    document.body.append(page)
+    try {
+      location.hash = "#two"
+      await expect.poll(() => scroll.mock.calls.length).toBe(1)
+      location.hash = "#page-own"
+      await new Promise((resolve) => window.addEventListener("hashchange", resolve, { once: true }))
+      expect(scroll).toHaveBeenCalledTimes(1)
+    } finally {
+      page.remove()
+      clearHash()
+    }
+  })
+})
+
 describe("<ui-markdown editable>", () => {
   /** An editable `<ui-markdown>` holding `text`, on its Write tab (nothing rendered yet). */
   async function editable(text: string, attributes = ""): Promise<UIMarkdownHost> {

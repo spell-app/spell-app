@@ -803,6 +803,14 @@
               "fieldName": "icon"
             },
             {
+              "name": "icon-position",
+              "description": "Which side of the text the icon goes:  `left` (default) or `right` (Fomantic's `right` icon, e.g. `Next →`), spaced by `--ui-button-icon-spacing`.  A `labeled` icon block takes its side from `labeled`.",
+              "type": {
+                "text": "\"left\" | \"right\""
+              },
+              "fieldName": "iconPosition"
+            },
+            {
               "name": "content",
               "description": "Shorthand for the button's text, instead of the default slot;  slotted children win.",
               "type": {
@@ -858,6 +866,14 @@
                 "text": "string"
               },
               "fieldName": "target"
+            },
+            {
+              "name": "download",
+              "description": "With `href`:  downloads the file instead of opening it, as the native `<a download>`;  a value names the saved file.",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "download"
             },
             {
               "name": "name",
@@ -956,6 +972,14 @@
             {
               "name": "--ui-button-radius",
               "default": "var(--ui-radius)"
+            },
+            {
+              "name": "--ui-button-font-family",
+              "default": "var(--ui-font-family)"
+            },
+            {
+              "name": "--ui-button-font-size",
+              "default": "var(--ui-font-size)"
             },
             {
               "name": "--ui-button-font-weight",
@@ -1997,6 +2021,14 @@
               "fieldName": "basic"
             },
             {
+              "name": "dashed",
+              "description": "A placeholder:  a dashed border (`--ui-card-border-color`) and no drop shadow, unless `raised`.  Not Fomantic's.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "dashed"
+            },
+            {
               "name": "inverted",
               "description": "For dark backgrounds:  the dark scheme.",
               "type": {
@@ -2652,6 +2684,18 @@
             {
               "name": "--ui-checkbox-mark-size",
               "default": "0.8em"
+            },
+            {
+              "name": "--ui-checkbox-checked-background",
+              "default": "var(--ui-checkbox-background)"
+            },
+            {
+              "name": "--ui-checkbox-checked-border-color",
+              "default": "var(--ui-checkbox-border-color-hover)"
+            },
+            {
+              "name": "--ui-checkbox-checked-mark-color",
+              "default": "var(--ui-checkbox-mark-color)"
             },
             {
               "name": "--ui-checkbox-label-color",
@@ -8052,6 +8096,14 @@
                 "text": "string"
               },
               "fieldName": "autocomplete"
+            },
+            {
+              "name": "inputmode",
+              "description": "Virtual keyboard hint, forwarded to the native input.  `decimal` / `numeric` also give the number look (right-aligned, tabular figures), as `type=\"number\"` does.",
+              "type": {
+                "text": "\"none\" | \"text\" | \"decimal\" | \"numeric\" | \"tel\" | \"search\" | \"email\" | \"url\""
+              },
+              "fieldName": "inputmode"
             }
           ],
           "members": [
@@ -8150,6 +8202,10 @@
             {
               "name": "--ui-input-color",
               "default": "var(--ui-text-color)"
+            },
+            {
+              "name": "--ui-input-numeric-align",
+              "default": "end"
             },
             {
               "name": "--ui-input-border-width",
@@ -8980,6 +9036,14 @@
               "fieldName": "basic"
             },
             {
+              "name": "tinted",
+              "description": "Soft:  the colour's tint as the fill and its text colour as the text, as a pill or badge.  Not Fomantic's.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "tinted"
+            },
+            {
               "name": "attached",
               "description": "Attached across (or on a corner of) the owner's top or bottom edge;  bare `attached` is `top`.",
               "type": {
@@ -9430,6 +9494,14 @@
               "fieldName": "basic"
             },
             {
+              "name": "tinted",
+              "description": "Every label tinted (the colour's soft fill and text).",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "tinted"
+            },
+            {
               "name": "circular",
               "description": "Every label a round badge.",
               "type": {
@@ -9706,6 +9778,10 @@
               "default": "calc(var(--ui-font-size) * var(--ui-scale, 1))"
             },
             {
+              "name": "--ui-list-margin",
+              "default": "1em"
+            },
+            {
               "name": "--ui-list-item-display",
               "default": "list-item"
             },
@@ -9900,6 +9976,14 @@
             {
               "name": "--ui-list-marker-color",
               "default": "initial"
+            },
+            {
+              "name": "--ui-list-marker-active-color",
+              "default": "initial"
+            },
+            {
+              "name": "--ui-list-marker-size",
+              "default": "1em"
             },
             {
               "name": "--ui-list-marker-opacity",
@@ -10270,6 +10354,14 @@
               "fieldName": "headingLevelOffset"
             },
             {
+              "name": "skip-title",
+              "description": "Drop the text's leading `#` title (an `h1` first thing in the text), e.g. when the page shows its own headline above a README.  The text itself is unchanged:  `content`, `save()` and the editor keep it.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "skipTitle"
+            },
+            {
               "name": "editable",
               "description": "Write / Preview tabs:  a text box for the markdown, and its preview, drawn with `ui-*` elements by spell's markdown engine (`@spell-app/markdown`, its own lazy chunk).  Each edit is a `ui-change`;  `save()` writes it.",
               "type": {
@@ -10406,12 +10498,70 @@
               "default": "var(--ui-text-color)"
             },
             {
+              "name": "--ui-markdown-heading-font-family",
+              "default": "initial",
+              "description": "headings' font family: the article's unless set (`initial` => `inherit`)"
+            },
+            {
+              "name": "--ui-markdown-heading-weight",
+              "default": "600"
+            },
+            {
+              "name": "--ui-markdown-heading-line-height",
+              "default": "1.25"
+            },
+            {
+              "name": "--ui-markdown-heading-margin",
+              "default": "1.5em 1em",
+              "description": "above and below each heading (`margin-block`), in ITS em"
+            },
+            {
+              "name": "--ui-markdown-heading-rule",
+              "default": "1px solid var(--ui-markdown-rule-color)",
+              "description": "the rule under `h1` / `h2` (a `border`; `none` drops it), and the gap between it and the text"
+            },
+            {
+              "name": "--ui-markdown-heading-rule-gap",
+              "default": "0.3em"
+            },
+            {
+              "name": "--ui-markdown-heading-scroll-margin",
+              "default": "0",
+              "description": "where a revealed heading lands below the top (`reveal()`, `#id`): room for a page's sticky header"
+            },
+            {
+              "name": "--ui-markdown-h1-size",
+              "default": "2em"
+            },
+            {
+              "name": "--ui-markdown-h2-size",
+              "default": "1.5em"
+            },
+            {
+              "name": "--ui-markdown-h3-size",
+              "default": "1.25em"
+            },
+            {
+              "name": "--ui-markdown-strong-color",
+              "default": "initial",
+              "description": "bold text and inline code: the text colour unless set (`initial` => `inherit`)"
+            },
+            {
+              "name": "--ui-markdown-code-color",
+              "default": "initial"
+            },
+            {
               "name": "--ui-markdown-link-color",
               "default": "var(--ui-link)"
             },
             {
               "name": "--ui-markdown-rule-color",
               "default": "var(--ui-border-color)"
+            },
+            {
+              "name": "--ui-markdown-hr-height",
+              "default": "0.25em",
+              "description": "a thematic break's (`---`) thickness"
             },
             {
               "name": "--ui-markdown-table-border",
@@ -10485,7 +10635,7 @@
             },
             {
               "name": "appearance",
-              "description": "The look:  `tabular` (tabs on a rule), `pointing` (the active item points at the content), `secondary` (no box, rounded items), `text` (plain words), `segmented` (a bordered group of joined items, the selected one filled with `color`, else the primary colour).  The booleans `tabular`, `pointing`, `secondary`, `text` are aliases:  `appearance=\"pointing\" secondary` ~== `secondary pointing`.",
+              "description": "The look:  `tabular` (tabs on a rule), `pointing` (the active item points at the content), `secondary` (no box, rounded items), `text` (plain words), `segmented` (a segmented control:  a bordered group of joined items, the selected one filled with `color`, else the primary colour;  it moves `selected` to the item chosen itself;  `--ui-menu-segmented-*` restyle it as a pill track with a raised thumb).  The booleans `tabular`, `pointing`, `secondary`, `text` are aliases:  `appearance=\"pointing\" secondary` ~== `secondary pointing`.",
               "type": {
                 "text": "\"tabular\" | \"pointing\" | \"secondary\" | \"text\" | \"segmented\""
               },
@@ -10704,7 +10854,7 @@
           "events": [
             {
               "name": "ui-select",
-              "description": "An interactive item (a link or button) was activated.  `value` is the item's `value`, else its text.  The menu doesn't move `selected` itself.",
+              "description": "An interactive item (a link or button) was activated.  `value` is the item's `value`, else its text.  The menu doesn't move `selected` itself, except a `segmented` one (a single-choice control), which selects the item and unselects the rest:  `preventDefault()` keeps the old choice.  Cancelable:  `preventDefault()` vetoes it.",
               "type": {
                 "text": "CustomEvent<{ value: string, item: Element, originalEvent?: Event }>"
               }
@@ -10733,6 +10883,18 @@
             }
           ],
           "cssProperties": [
+            {
+              "name": "--ui-menu-margin",
+              "default": "1em"
+            },
+            {
+              "name": "--ui-menu-min-height",
+              "default": "calc(0.92857em * 2 + 1em)"
+            },
+            {
+              "name": "--ui-menu-gap",
+              "default": "0px"
+            },
             {
               "name": "--ui-menu-radius",
               "default": "var(--ui-radius)"
@@ -10878,6 +11040,18 @@
               "default": "var(--ui-menu-item-radius)"
             },
             {
+              "name": "--ui-menu-active-first-radius",
+              "default": "the menu's own corners on that side (by layout)"
+            },
+            {
+              "name": "--ui-menu-active-last-radius",
+              "default": "the menu's own corners on that side (by layout)"
+            },
+            {
+              "name": "--ui-menu-active-shadow",
+              "default": "none"
+            },
+            {
               "name": "--ui-menu-active-hover-background",
               "default": "var(--ui-menu-active-background)"
             },
@@ -10942,12 +11116,153 @@
               "default": "none"
             },
             {
-              "name": "--ui-menu-active-first-radius",
-              "default": "the menu's own corners on that side (by layout)"
+              "name": "--ui-menu-vertical-item-display",
+              "default": "block"
             },
             {
-              "name": "--ui-menu-active-last-radius",
-              "default": "the menu's own corners on that side (by layout)"
+              "name": "--ui-menu-vertical-active-radius",
+              "default": "0"
+            },
+            {
+              "name": "--ui-menu-vertical-icon-float",
+              "default": "right"
+            },
+            {
+              "name": "--ui-menu-vertical-icon-margin",
+              "default": "0 0 0 0.5em"
+            },
+            {
+              "name": "--ui-menu-secondary-item-padding",
+              "default": "0.78571em 0.92857em"
+            },
+            {
+              "name": "--ui-menu-secondary-item-margin",
+              "default": "0 0.35714em"
+            },
+            {
+              "name": "--ui-menu-secondary-item-radius",
+              "default": "var(--ui-radius)"
+            },
+            {
+              "name": "--ui-menu-secondary-item-color",
+              "default": "var(--ui-text-unselected)"
+            },
+            {
+              "name": "--ui-menu-secondary-hover-background",
+              "default": "oklch(from var(--ui-ink) l c h / 0.05)"
+            },
+            {
+              "name": "--ui-menu-secondary-active-background",
+              "default": "oklch(from var(--ui-ink) l c h / 0.05)"
+            },
+            {
+              "name": "--ui-menu-secondary-active-color",
+              "default": "initial",
+              "description": "`initial`: unset, the active item keeps the colour chain (the menu's `color`, else the secondary hue)"
+            },
+            {
+              "name": "--ui-menu-secondary-inline-margin",
+              "default": "-0.35714em"
+            },
+            {
+              "name": "--ui-menu-secondary-vertical-item-margin",
+              "default": "0 0 0.35714em"
+            },
+            {
+              "name": "--ui-menu-text-margin",
+              "default": "var(--ui-menu-margin) -0.5em"
+            },
+            {
+              "name": "--ui-menu-text-item-padding",
+              "default": "0.35714em 0.5em"
+            },
+            {
+              "name": "--ui-menu-text-item-color",
+              "default": "var(--ui-text-muted)"
+            },
+            {
+              "name": "--ui-menu-text-hover-color",
+              "default": "var(--ui-menu-item-color)"
+            },
+            {
+              "name": "--ui-menu-text-active-weight",
+              "default": "var(--ui-font-weight-normal)"
+            },
+            {
+              "name": "--ui-menu-segmented-background",
+              "default": "var(--ui-surface)"
+            },
+            {
+              "name": "--ui-menu-segmented-border",
+              "default": "var(--ui-border-width) solid var(--ui-border-color-strong)"
+            },
+            {
+              "name": "--ui-menu-segmented-radius",
+              "default": "var(--ui-menu-radius)"
+            },
+            {
+              "name": "--ui-menu-segmented-padding",
+              "default": "0px"
+            },
+            {
+              "name": "--ui-menu-segmented-gap",
+              "default": "0px"
+            },
+            {
+              "name": "--ui-menu-segmented-divider",
+              "default": "var(--ui-border-color-strong)"
+            },
+            {
+              "name": "--ui-menu-segmented-item-padding",
+              "default": "0.78571em 1.14286em"
+            },
+            {
+              "name": "--ui-menu-segmented-item-color",
+              "default": "var(--ui-text-color)"
+            },
+            {
+              "name": "--ui-menu-segmented-item-radius",
+              "default": "0px"
+            },
+            {
+              "name": "--ui-menu-segmented-active-background",
+              "default": "var(--ui-color, var(--ui-primary))"
+            },
+            {
+              "name": "--ui-menu-segmented-active-hover-background",
+              "default": "var(--ui-color-hover, var(--ui-primary-hover))"
+            },
+            {
+              "name": "--ui-menu-segmented-active-color",
+              "default": "var(--ui-color-on, var(--ui-primary-on))"
+            },
+            {
+              "name": "--ui-menu-segmented-active-shadow",
+              "default": "none"
+            },
+            {
+              "name": "--ui-menu-font-family",
+              "default": "var(--ui-font-family)"
+            },
+            {
+              "name": "--ui-menu-item-min-height",
+              "default": "0"
+            },
+            {
+              "name": "--ui-menu-item-transform",
+              "default": "none"
+            },
+            {
+              "name": "--ui-menu-header-padding",
+              "default": "var(--ui-menu-item-padding)"
+            },
+            {
+              "name": "--ui-menu-header-letter-spacing",
+              "default": "var(--ui-menu-item-letter-spacing)"
+            },
+            {
+              "name": "--ui-menu-header-weight",
+              "default": "var(--ui-font-weight-bold)"
             }
           ]
         }
@@ -11221,6 +11536,11 @@
             {
               "name": "--ui-message-icon-distance",
               "default": "0.6em"
+            },
+            {
+              "name": "--ui-message-icon-align",
+              "default": "center",
+              "description": "where an icon message's icon sits beside its content: `center`, or `start` (top) / `end` (an `align-self`)"
             },
             {
               "name": "--ui-message-close-top",
@@ -11850,6 +12170,495 @@
           "declaration": {
             "name": "UINag",
             "module": "src/components/ui-nag/index.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/ui-panel/index.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "UIPanel",
+          "tagName": "ui-panel",
+          "customElement": true,
+          "summary": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.  It takes every `<ui-section>` attribute.",
+          "description": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.  It takes every `<ui-section>` attribute.\n\nAlso known as:  inspector, property panel, properties, settings panel, fieldset, property sheet.",
+          "attributes": [
+            {
+              "name": "header",
+              "description": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links).",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "header"
+            },
+            {
+              "name": "subhead",
+              "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`.",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "subhead"
+            },
+            {
+              "name": "level",
+              "description": "Heading level of the title (`<h1>` ... `<h6>`);  default:  the enclosing section's level + 1, else 2 (under the page's `h1`).",
+              "type": {
+                "text": "\"1\" | \"2\" | \"3\" | \"4\" | \"5\" | \"6\""
+              },
+              "fieldName": "level"
+            },
+            {
+              "name": "icon",
+              "description": "Icon name, before the title;  a slotted `slot=\"icon\"` (a `<ui-icon>`, anything) replaces it.",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "icon"
+            },
+            {
+              "name": "badge",
+              "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version.",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "badge"
+            },
+            {
+              "name": "info",
+              "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "info"
+            },
+            {
+              "name": "collapsible",
+              "description": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "collapsible"
+            },
+            {
+              "name": "collapsed",
+              "description": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "collapsed"
+            },
+            {
+              "name": "fold-icon",
+              "description": "Where each band's fold chevron sits:  `end`, at the far end of the band after any actions (the panel's default), or `start`, before the title.",
+              "type": {
+                "text": "\"start\" | \"end\""
+              },
+              "fieldName": "foldIcon"
+            },
+            {
+              "name": "sticky",
+              "description": "The title bar sticks while the section is on screen;  a sticky section inside another sticks just below its title.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "sticky"
+            },
+            {
+              "name": "offset",
+              "description": "With `sticky`:  pixels between the top edge and a TOP-LEVEL section's stuck title (e.g. a page header's height);  nested sections work theirs out.",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "fieldName": "offset"
+            },
+            {
+              "name": "color",
+              "description": "Hue of the whole panel:  the header band, the box, the border and the sub-head bands (sub-panels follow it).  None:  `primary`.  Any hue, including one a theme adds (`spell-brand`'s `accent`, Polished Ivory).",
+              "type": {
+                "text": "\"primary\" | \"secondary\" | \"red\" | \"orange\" | \"yellow\" | \"olive\" | \"green\" | \"teal\" | \"blue\" | \"violet\" | \"purple\" | \"pink\" | \"brown\" | \"grey\" | \"black\""
+              },
+              "fieldName": "color"
+            },
+            {
+              "name": "size",
+              "description": "Text size of the CONTENT, `mini` ... `massive`;  the title keeps its level's size.",
+              "type": {
+                "text": "\"mini\" | \"tiny\" | \"small\" | \"medium\" | \"large\" | \"big\" | \"huge\" | \"massive\""
+              },
+              "fieldName": "size"
+            },
+            {
+              "name": "dividing",
+              "description": "A rule under the title.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "dividing"
+            },
+            {
+              "name": "block",
+              "description": "The title bar in a tinted box.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "block"
+            },
+            {
+              "name": "bordered",
+              "description": "A box around the section, as a segment.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "bordered"
+            },
+            {
+              "name": "styled",
+              "description": "Boxed as a styled accordion:  a tinted title bar over padded content.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "styled"
+            },
+            {
+              "name": "raised",
+              "description": "With a box:  lifted with a shadow.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "raised"
+            },
+            {
+              "name": "basic",
+              "description": "No box, rule or tint, whatever else is set.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "basic"
+            },
+            {
+              "name": "compact",
+              "description": "Less padding and space around the title.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "compact"
+            },
+            {
+              "name": "padded",
+              "description": "More padding in the content;  `padded=\"very\"` for even more.",
+              "type": {
+                "text": "boolean | \"very\""
+              },
+              "fieldName": "padded"
+            },
+            {
+              "name": "attached",
+              "description": "With a box:  joined edge to edge with the box above / below;  bare `attached` sits between two.",
+              "type": {
+                "text": "boolean | \"top\" | \"bottom\""
+              },
+              "fieldName": "attached"
+            },
+            {
+              "name": "scrolling",
+              "description": "The content has a capped height and scrolls;  `short` ... `very long` scale the cap.",
+              "type": {
+                "text": "boolean | \"short\" | \"very short\" | \"long\" | \"very long\""
+              },
+              "fieldName": "scrolling"
+            },
+            {
+              "name": "height",
+              "description": "The content's cap, any CSS length (`20em`, `300px`):  above it the content scrolls (implies `scrolling`).",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "height"
+            },
+            {
+              "name": "text-align",
+              "description": "Aligns the TITLE `left`, `center` or `right`.",
+              "type": {
+                "text": "\"left\" | \"center\" | \"right\""
+              },
+              "fieldName": "textAlign"
+            },
+            {
+              "name": "inverted",
+              "description": "For dark backgrounds:  the dark scheme.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "inverted"
+            },
+            {
+              "name": "loading",
+              "description": "Dims the content under a spinner;  `aria-busy`.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "loading"
+            },
+            {
+              "name": "disabled",
+              "description": "Dimmed and inert;  can't be folded.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "disabled"
+            },
+            {
+              "name": "source",
+              "description": "URL of an HTML file whose `<body>` is the content, fetched the first time it opens (at once when it starts open);  same origin only.  Any content already there is a placeholder the file replaces.  `load()` fetches it now, `reload()` again.",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "source"
+            },
+            {
+              "name": "select",
+              "description": "With `source`:  a CSS selector;  only its first match in the file becomes the content.",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "select"
+            }
+          ],
+          "members": [],
+          "events": [
+            {
+              "name": "ui-open",
+              "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded.  Cancelable:  `preventDefault()` vetoes it.",
+              "type": {
+                "text": "CustomEvent<{ open: boolean, section: Element, originalEvent?: Event }>"
+              }
+            },
+            {
+              "name": "ui-close",
+              "description": "About to fold:  the title was activated.  Cancel to stay open.  Cancelable:  `preventDefault()` vetoes it.",
+              "type": {
+                "text": "CustomEvent<{ open: boolean, section: Element, originalEvent?: Event }>"
+              }
+            },
+            {
+              "name": "ui-load",
+              "description": "The `source` file arrived and its body is in place (`content` is the file's text).",
+              "type": {
+                "text": "CustomEvent<{ source: string, content: string }>"
+              }
+            },
+            {
+              "name": "ui-error",
+              "description": "The `source` file couldn't be loaded or shown;  `kind` says why.  An error line shows in the content unless cancelled;  opening it again tries again.  Cancelable:  `preventDefault()` vetoes it.",
+              "type": {
+                "text": "CustomEvent<{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }>"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "",
+              "description": "The content:  anything, nested `<ui-section>`s included."
+            },
+            {
+              "name": "header",
+              "description": "Rich title, instead of the `header` attribute."
+            },
+            {
+              "name": "subhead",
+              "description": "Rich subhead, instead of the `subhead` attribute."
+            },
+            {
+              "name": "icon",
+              "description": "Icon before the title, instead of the `icon` attribute (a `<ui-icon>`, an image)."
+            },
+            {
+              "name": "badge",
+              "description": "Rich badge, instead of the `badge` attribute (e.g. a `<ui-label>`)."
+            },
+            {
+              "name": "actions",
+              "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
+            },
+            {
+              "name": "info",
+              "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
+            }
+          ],
+          "cssParts": [
+            {
+              "name": "section",
+              "description": "The section box."
+            },
+            {
+              "name": "title",
+              "description": "The title bar:  sticks with `sticky`."
+            },
+            {
+              "name": "heading",
+              "description": "The `<h1>` ... `<h6>`."
+            },
+            {
+              "name": "toggle",
+              "description": "With `collapsible`:  the `<button>` inside the heading that folds the section."
+            },
+            {
+              "name": "fold-icon",
+              "description": "With `collapsible`:  the chevron, in the toggle;  with `fold-icon=\"end\"`, at the end of the title bar."
+            },
+            {
+              "name": "icon",
+              "description": "The icon box."
+            },
+            {
+              "name": "header",
+              "description": "The title text box."
+            },
+            {
+              "name": "badge",
+              "description": "The badge pill."
+            },
+            {
+              "name": "actions",
+              "description": "The actions box, at the right of the title bar."
+            },
+            {
+              "name": "tip",
+              "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
+            },
+            {
+              "name": "subhead",
+              "description": "The subhead under the title."
+            },
+            {
+              "name": "content",
+              "description": "The content box:  `size`, `scrolling` and `height` apply here."
+            },
+            {
+              "name": "error",
+              "description": "With `source`:  the line saying the file couldn't be loaded."
+            }
+          ],
+          "cssStates": [
+            {
+              "name": "collapsed",
+              "description": "Folded."
+            },
+            {
+              "name": "stuck",
+              "description": "With `sticky`:  the title bar is stuck to the top."
+            },
+            {
+              "name": "animated",
+              "description": "Folds with a height transition (`interpolate-size`)."
+            },
+            {
+              "name": "in-section",
+              "description": "Nested in another section."
+            },
+            {
+              "name": "in-sections",
+              "description": "Directly in a `<ui-sections>` group (no section between)."
+            },
+            {
+              "name": "inverted",
+              "description": "In the dark scheme."
+            },
+            {
+              "name": "loading",
+              "description": "Busy:  `loading`, or a `source` body that is slow to arrive."
+            },
+            {
+              "name": "disabled",
+              "description": "Dimmed and inert."
+            },
+            {
+              "name": "loaded",
+              "description": "With `source`:  the file's body is in place."
+            },
+            {
+              "name": "error",
+              "description": "With `source`:  the file couldn't be loaded or shown."
+            }
+          ],
+          "cssProperties": [
+            {
+              "name": "--ui-panel-background",
+              "default": "var(--_ui-panel-hue-box, light-dark(var(--spell-accent-25, var(--ui-surface)), var(--ui-surface)))",
+              "description": "the box (default: a light mix of the hue with the surface)"
+            },
+            {
+              "name": "--ui-panel-border-color",
+              "default": "var(--_ui-panel-hue-border, light-dark(var(--spell-accent-150, var(--ui-border-color)), var(--ui-border-color)))",
+              "description": "the box edge and the hairline above each sub-head band"
+            },
+            {
+              "name": "--ui-panel-header-background",
+              "default": "var( --_ui-panel-hue-header, light-dark(var(--spell-accent-100, var(--ui-surface-strong)), var(--ui-surface-strong)) )",
+              "description": "the header band (default: the hue tint)"
+            },
+            {
+              "name": "--ui-panel-header-color",
+              "default": "var(--_ui-panel-hue-header-color, var(--spell-text-strong, var(--ui-text-dark)))",
+              "description": "the header band's text"
+            },
+            {
+              "name": "--ui-panel-subhead-background",
+              "default": "var(--_ui-panel-hue-subhead, light-dark(var(--spell-accent-75, var(--ui-surface-muted)), var(--ui-surface-muted)))",
+              "description": "each sub-head band (default: a mix of the hue tint with the surface)"
+            },
+            {
+              "name": "--ui-panel-subhead-color",
+              "default": "var( --_ui-panel-hue-subhead-color, light-dark(var(--spell-accent-800, var(--ui-text-muted)), var(--ui-text-muted)) )",
+              "description": "each sub-head band's text"
+            },
+            {
+              "name": "--ui-panel-radius",
+              "default": "var(--ui-radius-l, 16px)",
+              "description": "the box corners"
+            },
+            {
+              "name": "--ui-panel-padding",
+              "default": "var(--ui-font-size, 16px)",
+              "description": "the box padding, also the bands' side padding: the page's base size, never `1em` (a sub-panel's 14px content would shrink it; design-system I46)"
+            },
+            {
+              "name": "--ui-panel-gap",
+              "default": "8px",
+              "description": "space between the fields: px, as `0.5em` was 7px at the content's 14px and 8px in a sub-panel"
+            },
+            {
+              "name": "--ui-panel-band-space",
+              "default": "20px",
+              "description": "space above each sub-head band (none under a folded one)"
+            },
+            {
+              "name": "--ui-panel-shadow",
+              "default": "var(--spell-shadow-sm, var(--ui-shadow-raised))",
+              "description": "the box shadow"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "UIPanel",
+          "declaration": {
+            "name": "UIPanel",
+            "module": "src/components/ui-panel/index.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ui-panel",
+          "declaration": {
+            "name": "UIPanel",
+            "module": "src/components/ui-panel/index.ts"
           }
         }
       ]
@@ -12545,6 +13354,11 @@
             {
               "name": "--ui-header-sub-font-size",
               "default": "clamp(calc(var(--ui-font-size) * 0.92857), 0.78em, calc(var(--ui-font-size) * 1.42857))"
+            },
+            {
+              "name": "--ui-header-sub-margin",
+              "default": "0",
+              "description": "the sub header's margin, e.g. `0.5em 0 0` for a gap below the headline"
             },
             {
               "name": "--ui-header-sub-heading-ratio",
@@ -15306,6 +16120,14 @@
               "fieldName": "badge"
             },
             {
+              "name": "info",
+              "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "info"
+            },
+            {
               "name": "collapsible",
               "description": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there.",
               "type": {
@@ -15320,6 +16142,14 @@
                 "text": "boolean"
               },
               "fieldName": "collapsed"
+            },
+            {
+              "name": "fold-icon",
+              "description": "With `collapsible`:  where the fold chevron sits:  `start`, before the title (the default), or `end`, at the far end of the title bar, after the badge and actions (a click on it folds too).",
+              "type": {
+                "text": "\"start\" | \"end\""
+              },
+              "fieldName": "foldIcon"
             },
             {
               "name": "sticky",
@@ -15546,6 +16376,10 @@
             {
               "name": "actions",
               "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
+            },
+            {
+              "name": "info",
+              "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
             }
           ],
           "cssParts": [
@@ -15567,7 +16401,7 @@
             },
             {
               "name": "fold-icon",
-              "description": "With `collapsible`:  the chevron in the toggle."
+              "description": "With `collapsible`:  the chevron, in the toggle;  with `fold-icon=\"end\"`, at the end of the title bar."
             },
             {
               "name": "icon",
@@ -15584,6 +16418,10 @@
             {
               "name": "actions",
               "description": "The actions box, at the right of the title bar."
+            },
+            {
+              "name": "tip",
+              "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
             },
             {
               "name": "subhead",
@@ -15760,6 +16598,27 @@
             {
               "name": "--ui-section-fold-icon-size",
               "default": "0.75em"
+            },
+            {
+              "name": "--ui-section-fold-icon-rotate",
+              "default": "0deg",
+              "description": "the glyph points DOWN: open keeps it so, folded turns it toward the text; a theme can flip the pair (`180deg` / `0deg`: up while open, down while folded)"
+            },
+            {
+              "name": "--ui-section-fold-icon-folded-rotate",
+              "default": "-90deg"
+            },
+            {
+              "name": "--ui-section-tip-background",
+              "default": "var(--ui-ink)"
+            },
+            {
+              "name": "--ui-section-tip-color",
+              "default": "var(--ui-surface)"
+            },
+            {
+              "name": "--ui-section-tip-width",
+              "default": "16.25em"
             },
             {
               "name": "--ui-section-z-index",
@@ -17350,7 +18209,7 @@
             },
             {
               "name": "ticked",
-              "description": "With `labeled`:  a tick at every step.",
+              "description": "A tick at every step (or `tick-step`):  through the track with `labeled`;  alone, a short tick under the track, no numbers (as a native range's tick marks).",
               "type": {
                 "text": "boolean"
               },
@@ -17398,6 +18257,14 @@
               },
               "default": "1",
               "fieldName": "step"
+            },
+            {
+              "name": "tick-step",
+              "description": "Labels and ticks every this much from `min` (e.g. `20` on `0` ... `200`), instead of every `step`;  values still snap to `step`.",
+              "type": {
+                "text": "number"
+              },
+              "fieldName": "tickStep"
             },
             {
               "name": "value",
@@ -18612,6 +19479,10 @@
             {
               "name": "--ui-tabs-pane-margin",
               "default": "1em 0 0"
+            },
+            {
+              "name": "--ui-tabs-menu-margin",
+              "default": "0"
             }
           ]
         },
@@ -19754,6 +20625,10 @@
             {
               "name": "--ui-toast-padding",
               "default": "0.78571429em 1em"
+            },
+            {
+              "name": "--ui-toast-font-size",
+              "default": "var(--ui-font-size)"
             },
             {
               "name": "--ui-toast-box-margin",

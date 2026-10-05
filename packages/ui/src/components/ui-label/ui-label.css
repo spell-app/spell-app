@@ -641,6 +641,17 @@
     --_label-pad-start: calc(var(--_ui-label-image-gap) - var(--_ui-label-border-width));
   }
 
+  /*
+   * Tinted (ours, not Fomantic's):  the colour's soft background (`--ui-color-background`) and text colour
+   * (`--ui-color-text`), as a brand pill or badge;  uncoloured, a plain label.
+   */
+  .ui.tinted:is(.label, .labels) {
+    --_label-bg: var(--ui-color-background, var(--_ui-label-background));
+    --_label-bg-hover: oklch(from var(--_label-bg) calc(l - 0.03) c h);
+    --_label-fg: var(--ui-color-text, var(--_ui-label-color));
+    --_label-fg-hover: var(--_label-fg);
+  }
+
   /* Inverted:  for dark surfaces;  coloured ones use the colour's light (`inverted`) variant. */
   .ui.inverted:is(.label, .labels) {
     --_label-bg: var(--ui-color-inverted, var(--_ui-label-inverted-background));

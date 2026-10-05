@@ -620,6 +620,21 @@
           }
         },
         {
+          "name": "icon-position",
+          "description": {
+            "kind": "markdown",
+            "value": "Which side of the text the icon goes:  `left` (default) or `right` (Fomantic's `right` icon, e.g. `Next →`), spaced by `--ui-button-icon-spacing`.  A `labeled` icon block takes its side from `labeled`.\n\nTakes:  `left` · `right`"
+          },
+          "values": [
+            {
+              "name": "left"
+            },
+            {
+              "name": "right"
+            }
+          ]
+        },
+        {
           "name": "content",
           "description": {
             "kind": "markdown",
@@ -677,6 +692,13 @@
           "description": {
             "kind": "markdown",
             "value": "Link target, with `href`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "download",
+          "description": {
+            "kind": "markdown",
+            "value": "With `href`:  downloads the file instead of opening it, as the native `<a download>`;  a value names the saved file.\n\nTakes:  text"
           }
         },
         {
@@ -1461,6 +1483,13 @@
           "description": {
             "kind": "markdown",
             "value": "No border or shadow.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "dashed",
+          "description": {
+            "kind": "markdown",
+            "value": "A placeholder:  a dashed border (`--ui-card-border-color`) and no drop shadow, unless `raised`.  Not Fomantic's.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -6086,6 +6115,39 @@
             "kind": "markdown",
             "value": "Autofill hint, forwarded to the native input.\n\nTakes:  text"
           }
+        },
+        {
+          "name": "inputmode",
+          "description": {
+            "kind": "markdown",
+            "value": "Virtual keyboard hint, forwarded to the native input.  `decimal` / `numeric` also give the number look (right-aligned, tabular figures), as `type=\"number\"` does.\n\nTakes:  `none` · `text` · `decimal` · `numeric` · `tel` · `search` · `email` · `url`"
+          },
+          "values": [
+            {
+              "name": "none"
+            },
+            {
+              "name": "text"
+            },
+            {
+              "name": "decimal"
+            },
+            {
+              "name": "numeric"
+            },
+            {
+              "name": "tel"
+            },
+            {
+              "name": "search"
+            },
+            {
+              "name": "email"
+            },
+            {
+              "name": "url"
+            }
+          ]
         }
       ]
     },
@@ -6563,6 +6625,13 @@
           }
         },
         {
+          "name": "tinted",
+          "description": {
+            "kind": "markdown",
+            "value": "Soft:  the colour's tint as the fill and its text colour as the text, as a pill or badge.  Not Fomantic's.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "attached",
           "description": {
             "kind": "markdown",
@@ -6795,6 +6864,13 @@
           "description": {
             "kind": "markdown",
             "value": "Every label basic (outlined).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "tinted",
+          "description": {
+            "kind": "markdown",
+            "value": "Every label tinted (the colour's soft fill and text).\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -7266,6 +7342,13 @@
           }
         },
         {
+          "name": "skip-title",
+          "description": {
+            "kind": "markdown",
+            "value": "Drop the text's leading `#` title (an `h1` first thing in the text), e.g. when the page shows its own headline above a README.  The text itself is unchanged:  `content`, `save()` and the editor keep it.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "editable",
           "description": {
             "kind": "markdown",
@@ -7379,7 +7462,7 @@
           "name": "appearance",
           "description": {
             "kind": "markdown",
-            "value": "The look:  `tabular` (tabs on a rule), `pointing` (the active item points at the content), `secondary` (no box, rounded items), `text` (plain words), `segmented` (a bordered group of joined items, the selected one filled with `color`, else the primary colour).  The booleans `tabular`, `pointing`, `secondary`, `text` are aliases:  `appearance=\"pointing\" secondary` ~== `secondary pointing`.\n\nTakes:  `tabular` · `pointing` · `secondary` · `text` · `segmented`"
+            "value": "The look:  `tabular` (tabs on a rule), `pointing` (the active item points at the content), `secondary` (no box, rounded items), `text` (plain words), `segmented` (a segmented control:  a bordered group of joined items, the selected one filled with `color`, else the primary colour;  it moves `selected` to the item chosen itself;  `--ui-menu-segmented-*` restyle it as a pill track with a raised thumb).  The booleans `tabular`, `pointing`, `secondary`, `text` are aliases:  `appearance=\"pointing\" secondary` ~== `secondary pointing`.\n\nTakes:  `tabular` · `pointing` · `secondary` · `text` · `segmented`"
           },
           "values": [
             {
@@ -8279,6 +8362,364 @@
           "description": {
             "kind": "markdown",
             "value": "Badge text;  default the translated `or` text.  Keep it to a short word.\n\nTakes:  text"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ui-panel",
+      "description": {
+        "kind": "markdown",
+        "value": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.  It takes every `<ui-section>` attribute.\n\nAlso known as:  inspector, property panel, properties, settings panel, fieldset, property sheet.\n\n**Slots:**  default, `header`, `subhead`, `icon`, `badge`, `actions`, `info`\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+      },
+      "attributes": [
+        {
+          "name": "header",
+          "description": {
+            "kind": "markdown",
+            "value": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "subhead",
+          "description": {
+            "kind": "markdown",
+            "value": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "level",
+          "description": {
+            "kind": "markdown",
+            "value": "Heading level of the title (`<h1>` ... `<h6>`);  default:  the enclosing section's level + 1, else 2 (under the page's `h1`).\n\nTakes:  `1` · `2` · `3` · `4` · `5` · `6`"
+          },
+          "values": [
+            {
+              "name": "1"
+            },
+            {
+              "name": "2"
+            },
+            {
+              "name": "3"
+            },
+            {
+              "name": "4"
+            },
+            {
+              "name": "5"
+            },
+            {
+              "name": "6"
+            }
+          ]
+        },
+        {
+          "name": "icon",
+          "description": {
+            "kind": "markdown",
+            "value": "Icon name, before the title;  a slotted `slot=\"icon\"` (a `<ui-icon>`, anything) replaces it.\n\nTakes:  icon name"
+          }
+        },
+        {
+          "name": "badge",
+          "description": {
+            "kind": "markdown",
+            "value": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "info",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "collapsible",
+          "description": {
+            "kind": "markdown",
+            "value": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "collapsed",
+          "description": {
+            "kind": "markdown",
+            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "fold-icon",
+          "description": {
+            "kind": "markdown",
+            "value": "Where each band's fold chevron sits:  `end`, at the far end of the band after any actions (the panel's default), or `start`, before the title.\n\nTakes:  `start` · `end`"
+          },
+          "values": [
+            {
+              "name": "start"
+            },
+            {
+              "name": "end"
+            }
+          ]
+        },
+        {
+          "name": "sticky",
+          "description": {
+            "kind": "markdown",
+            "value": "The title bar sticks while the section is on screen;  a sticky section inside another sticks just below its title.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "offset",
+          "description": {
+            "kind": "markdown",
+            "value": "With `sticky`:  pixels between the top edge and a TOP-LEVEL section's stuck title (e.g. a page header's height);  nested sections work theirs out.\n\nTakes:  number\nDefault:  `0`"
+          }
+        },
+        {
+          "name": "color",
+          "description": {
+            "kind": "markdown",
+            "value": "Hue of the whole panel:  the header band, the box, the border and the sub-head bands (sub-panels follow it).  None:  `primary`.  Any hue, including one a theme adds (`spell-brand`'s `accent`, Polished Ivory).\n\nTakes:  `primary` · `secondary` · `red` · `orange` · `yellow` · `olive` · `green` · `teal` · `blue` · `violet` · `purple` · `pink` · `brown` · `grey` · `black`"
+          },
+          "values": [
+            {
+              "name": "primary"
+            },
+            {
+              "name": "secondary"
+            },
+            {
+              "name": "red"
+            },
+            {
+              "name": "orange"
+            },
+            {
+              "name": "yellow"
+            },
+            {
+              "name": "olive"
+            },
+            {
+              "name": "green"
+            },
+            {
+              "name": "teal"
+            },
+            {
+              "name": "blue"
+            },
+            {
+              "name": "violet"
+            },
+            {
+              "name": "purple"
+            },
+            {
+              "name": "pink"
+            },
+            {
+              "name": "brown"
+            },
+            {
+              "name": "grey"
+            },
+            {
+              "name": "black"
+            }
+          ]
+        },
+        {
+          "name": "size",
+          "description": {
+            "kind": "markdown",
+            "value": "Text size of the CONTENT, `mini` ... `massive`;  the title keeps its level's size.\n\nTakes:  `mini` · `tiny` · `small` · `medium` · `large` · `big` · `huge` · `massive`"
+          },
+          "values": [
+            {
+              "name": "mini"
+            },
+            {
+              "name": "tiny"
+            },
+            {
+              "name": "small"
+            },
+            {
+              "name": "medium"
+            },
+            {
+              "name": "large"
+            },
+            {
+              "name": "big"
+            },
+            {
+              "name": "huge"
+            },
+            {
+              "name": "massive"
+            }
+          ]
+        },
+        {
+          "name": "dividing",
+          "description": {
+            "kind": "markdown",
+            "value": "A rule under the title.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "block",
+          "description": {
+            "kind": "markdown",
+            "value": "The title bar in a tinted box.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "bordered",
+          "description": {
+            "kind": "markdown",
+            "value": "A box around the section, as a segment.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "styled",
+          "description": {
+            "kind": "markdown",
+            "value": "Boxed as a styled accordion:  a tinted title bar over padded content.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "raised",
+          "description": {
+            "kind": "markdown",
+            "value": "With a box:  lifted with a shadow.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "basic",
+          "description": {
+            "kind": "markdown",
+            "value": "No box, rule or tint, whatever else is set.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "compact",
+          "description": {
+            "kind": "markdown",
+            "value": "Less padding and space around the title.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "padded",
+          "description": {
+            "kind": "markdown",
+            "value": "More padding in the content;  `padded=\"very\"` for even more.\n\nTakes:  flag, or `very`"
+          },
+          "values": [
+            {
+              "name": "very"
+            }
+          ]
+        },
+        {
+          "name": "attached",
+          "description": {
+            "kind": "markdown",
+            "value": "With a box:  joined edge to edge with the box above / below;  bare `attached` sits between two.\n\nTakes:  flag, or `top` · `bottom`"
+          },
+          "values": [
+            {
+              "name": "top"
+            },
+            {
+              "name": "bottom"
+            }
+          ]
+        },
+        {
+          "name": "scrolling",
+          "description": {
+            "kind": "markdown",
+            "value": "The content has a capped height and scrolls;  `short` ... `very long` scale the cap.\n\nTakes:  flag, or `short` · `very short` · `long` · `very long`"
+          },
+          "values": [
+            {
+              "name": "short"
+            },
+            {
+              "name": "very short"
+            },
+            {
+              "name": "long"
+            },
+            {
+              "name": "very long"
+            }
+          ]
+        },
+        {
+          "name": "height",
+          "description": {
+            "kind": "markdown",
+            "value": "The content's cap, any CSS length (`20em`, `300px`):  above it the content scrolls (implies `scrolling`).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "text-align",
+          "description": {
+            "kind": "markdown",
+            "value": "Aligns the TITLE `left`, `center` or `right`.\n\nTakes:  `left` · `center` · `right`"
+          },
+          "values": [
+            {
+              "name": "left"
+            },
+            {
+              "name": "center"
+            },
+            {
+              "name": "right"
+            }
+          ]
+        },
+        {
+          "name": "inverted",
+          "description": {
+            "kind": "markdown",
+            "value": "For dark backgrounds:  the dark scheme.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Dims the content under a spinner;  `aria-busy`.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Dimmed and inert;  can't be folded.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "source",
+          "description": {
+            "kind": "markdown",
+            "value": "URL of an HTML file whose `<body>` is the content, fetched the first time it opens (at once when it starts open);  same origin only.  Any content already there is a placeholder the file replaces.  `load()` fetches it now, `reload()` again.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "select",
+          "description": {
+            "kind": "markdown",
+            "value": "With `source`:  a CSS selector;  only its first match in the file becomes the content.\n\nTakes:  text"
           }
         }
       ]
@@ -10158,7 +10599,7 @@
       "name": "ui-section",
       "description": {
         "kind": "markdown",
-        "value": "A section is a titled block of content that can fold away and keep its title in view.\n\nAlso known as:  section, panel, collapsible, disclosure, fieldset, expander.\n\n**Slots:**  default, `header`, `subhead`, `icon`, `badge`, `actions`\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+        "value": "A section is a titled block of content that can fold away and keep its title in view.\n\nAlso known as:  section, panel, collapsible, disclosure, fieldset, expander.\n\n**Slots:**  default, `header`, `subhead`, `icon`, `badge`, `actions`, `info`\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
       },
       "attributes": [
         {
@@ -10217,6 +10658,13 @@
           }
         },
         {
+          "name": "info",
+          "description": {
+            "kind": "markdown",
+            "value": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks).\n\nTakes:  text"
+          }
+        },
+        {
           "name": "collapsible",
           "description": {
             "kind": "markdown",
@@ -10229,6 +10677,21 @@
             "kind": "markdown",
             "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
           }
+        },
+        {
+          "name": "fold-icon",
+          "description": {
+            "kind": "markdown",
+            "value": "With `collapsible`:  where the fold chevron sits:  `start`, before the title (the default), or `end`, at the far end of the title bar, after the badge and actions (a click on it folds too).\n\nTakes:  `start` · `end`"
+          },
+          "values": [
+            {
+              "name": "start"
+            },
+            {
+              "name": "end"
+            }
+          ]
         },
         {
           "name": "sticky",
@@ -11471,7 +11934,7 @@
           "name": "ticked",
           "description": {
             "kind": "markdown",
-            "value": "With `labeled`:  a tick at every step.\n\nTakes:  flag (present / absent)"
+            "value": "A tick at every step (or `tick-step`):  through the track with `labeled`;  alone, a short tick under the track, no numbers (as a native range's tick marks).\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -11515,6 +11978,13 @@
           "description": {
             "kind": "markdown",
             "value": "Values snap to multiples of it from `min`;  `0`:  any.\n\nTakes:  number\nDefault:  `1`"
+          }
+        },
+        {
+          "name": "tick-step",
+          "description": {
+            "kind": "markdown",
+            "value": "Labels and ticks every this much from `min` (e.g. `20` on `0` ... `200`), instead of every `step`;  values still snap to `step`.\n\nTakes:  number"
           }
         },
         {

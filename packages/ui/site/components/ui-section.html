@@ -211,6 +211,46 @@
                 </ui-docs-example>
               </ui-section>
 
+              <ui-section id="examples-content-end-chevron" header="End chevron" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`fold-icon="end"` moves the fold chevron to the far end of the title bar, after the badge and actions, as an inspector draws it.  A click on it folds the section too;  the title is still the button.'
+                >
+                  <ui-section header="Variants" level="4" collapsible fold-icon="end" dividing>
+                    <ui-button slot="actions" size="mini" basic icon="copy">Copy</ui-button>
+                    <p>Seventeen shades of one colour.</p>
+                  </ui-section>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-chevron-turn" header="Chevron turn" sticky collapsible dividing>
+                <ui-docs-example
+                  description="The chevron points down while open and turns toward the title while folded.  `--ui-section-fold-icon-rotate` and `--ui-section-fold-icon-folded-rotate` set the two turns:  `180deg` and `0deg` point it up while open and down while folded, as the Spell Brand theme does.  Right to left, each turn is negated."
+                >
+                  <div style="--ui-section-fold-icon-rotate: 180deg; --ui-section-fold-icon-folded-rotate: 0deg">
+                    <ui-section header="Open" level="4" collapsible fold-icon="end" dividing>
+                      <p>The chevron points up.</p>
+                    </ui-section>
+                    <ui-section header="Folded" level="4" collapsible collapsed fold-icon="end" dividing>
+                      <p>The chevron points down.</p>
+                    </ui-section>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-info-tip" header="Info tip" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`info` is a tip about the section, shown under the title bar while the pointer is on the title or its fold button has keyboard focus;  it describes the title for screen readers.  `slot="info"` takes a rich one:  bold words, line breaks.'
+                >
+                  <ui-section header="Theme" level="4" info="The look of an app:  its colours, fonts and shapes." collapsible dividing>
+                    <p>Give it a name, then adjust the sections below.</p>
+                  </ui-section>
+                  <ui-section header="Color" level="4" dividing>
+                    <span slot="info">Pick a <b>colour set</b> for each job in the app.<br>Spell chooses the right <b>shade</b> for light and dark mode.</span>
+                    <p>Primary, secondary and the rest.</p>
+                  </ui-section>
+                </ui-docs-example>
+              </ui-section>
+
               <ui-section id="examples-content-rich-header" header="Rich header" sticky collapsible dividing>
                 <ui-docs-example description='`slot="header"` is the rich version of `header`:  code, links, emphasis.'>
                   <ui-section level="4">
@@ -662,6 +702,9 @@
                 <script type="text/plain">
                   ui-section {
                     --ui-section-scrolling-height: 20em;
+                    /* chevron up while open, down while folded */
+                    --ui-section-fold-icon-rotate: 180deg;
+                    --ui-section-fold-icon-folded-rotate: 0deg;
                   }
                   ui-section::part(heading) {
                     letter-spacing: 0.02em;

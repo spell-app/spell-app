@@ -35,7 +35,12 @@ export const SITE_HOME = "pages/index.html"
 export const PROPERTIES: SiteProperty[] = [
   { name: "Epics", path: "epics/index.html", match: (path) => docsArea(path) === "epics" },
   { name: "Guides", path: "guides/index.html", match: (path) => docsArea(path) === "guides" },
-  { name: "Brand", path: "brand/index.html", match: (path) => docsArea(path) === "brand" },
+  // Brand:  the design-system epic's Brand index (`packages/brand`), lit on the shared `brand/` pages too (claude-design P11)
+  {
+    name: "Brand",
+    path: "packages/brand/index.html",
+    match: (path) => docsArea(path) === "brand" || /\/packages\/brand\//.test(path)
+  },
   {
     name: "Spell UI",
     path: "/ui/",
@@ -93,6 +98,25 @@ export const LEGACY_SCHEME_KEYS = ["spell-site:theme", "spell-ui-site:scheme"] a
 
 /** Media query of the OS's dark scheme:  what an absent `SCHEME_KEY` follows. */
 export const DARK_QUERY = "(prefers-color-scheme: dark)"
+
+/** A color scheme a page shows. */
+export type SiteScheme = "light" | "dark"
+
+/**
+ * Classes on `<html>` that force a scheme:  Spell UI's (`ThemePreference`), which the site header sets too, and so
+ * does a page with its own light / dark switch (Spell App's pill).
+ */
+export const SCHEME_CLASSES = { light: "ui-light", dark: "ui-dark" } as const satisfies Record<SiteScheme, string>
+
+/**
+ * The scheme `classes` (`<html>`'s) force, or `undefined` when neither class is on (the page follows the OS).
+ * - Why:  the site header's sun / moon shows what the page SHOWS, also when the page switched it itself.
+ */
+export function forcedScheme(classes: { contains(token: string): boolean }): SiteScheme | undefined {
+  if (classes.contains(SCHEME_CLASSES.dark)) return "dark"
+  if (classes.contains(SCHEME_CLASSES.light)) return "light"
+  return undefined
+}
 
 /** `sessionStorage` key:  edit mode on for this tab. */
 export const EDIT_KEY = "spell-site:edit"

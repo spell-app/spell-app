@@ -41,13 +41,28 @@ export class SiteDataBuilder {
   /** `packages/ui/`, absolute, with a trailing slash. */
   readonly root: string
 
-  constructor(root: string = UI_ROOT) {
+  /** Other folders to read instead of the site's own (`SiteDataOptions`):  another package's elements. */
+  readonly options: SiteDataOptions
+
+  constructor(root: string = UI_ROOT, options: SiteDataOptions = {}) {
     this.root = root
+    this.options = options
   }
 
-  /** `site/_data/`. */
+  /** `site/_data/`, or `options.data`. */
   get dataFolder(): string {
-    return join(this.root, "site", "_data")
+    return this.options.data ?? join(this.root, "site", "_data")
+  }
+
+  /** Component families:  `src/components/`, or `options.components`. */
+  get componentsFolder(): string {
+    return this.options.components ?? join(this.root, "src", "components")
+  }
+
+  /** Doc-only families:  `src/docs-components/`, or `options.docs`;  `undefined` when `options.docs` is `null`. */
+  get docsFolder(): string | undefined {
+    if (this.options.docs === null) return undefined
+    return this.options.docs ?? join(this.root, "src", "docs-components")
   }
 
   /** `site/_data/components.json`. */
@@ -96,8 +111,9 @@ export class SiteDataBuilder {
 
   /** Build both files' contents (nothing is written):  the data, and pages.json with any new family seeded. */
   async build(): Promise<{ data: SiteDataFile; pages: SitePagesFile }> {
-    const components = await this.readTags(join(this.root, "src", "components"))
-    const docs = await this.readTags(join(this.root, "src", "docs-components"))
+    const components = await this.readTags(this.componentsFolder)
+    const docsFolder = this.docsFolder
+    const docs = docsFolder ? await this.readTags(docsFolder) : []
     const pages = this.seedPages([...components, ...docs])
     const tokens = new FamilyTokens(join(this.root, "src", "styles"))
 
@@ -110,7 +126,7 @@ export class SiteDataBuilder {
       const ordered = [...tags].sort(
         (a, b) => Number(b.tag === mainTag) - Number(a.tag === mainTag) || a.name.localeCompare(b.name)
       )
-      const sheets = join(this.root, "src", isDocs ? "docs-components" : "components", folder)
+      const sheets = join(isDocs ? docsFolder! : this.componentsFolder, folder)
       families[folder] = {
         folder,
         mainTag,
@@ -329,6 +345,16 @@ export class SiteDataBuilder {
     }
   }
 }
+
+/**
+ * Where a `SiteDataBuilder` reads and writes, for another package's elements (`packages/brand`'s
+ * `scripts/site-data.ts`);  each absolute, each defaulting to the Spell UI site's own.
+ * - `components`:  a folder of families laid out as `src/components/` (`<family>/<tag>.vocabulary.en.ts` + sheet)
+ * - `docs`:  doc-only families, as `src/docs-components/`;  `null`:  none
+ * - `data`:  the folder of `components.json` and `pages.json`, as `site/_data/`
+ * - NOTE: foundation tokens and theme sheets always come from Spell UI (`root`'s `src/styles/`)
+ */
+export type SiteDataOptions = { components?: string; docs?: string | null; data?: string }
 
 /** A tag before its family is known. */
 type RawTag = Omit<SiteTag, "mainTag" | "main" | "page" | "href">

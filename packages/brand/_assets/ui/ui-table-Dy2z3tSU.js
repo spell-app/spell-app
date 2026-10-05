@@ -1,0 +1,1 @@
+import{t as e}from"./ui-table-CTgs01nL.js";export{e as UITable};

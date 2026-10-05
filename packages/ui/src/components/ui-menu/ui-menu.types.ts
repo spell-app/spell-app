@@ -23,5 +23,11 @@ export const ITEM_TYPE = "item"
 /** Item host states. */
 export const SELECTED_STATE = ":state(selected)"
 
+/** The `appearance` of a single-choice menu:  it moves `selected` itself. */
+export const SEGMENTED = "segmented"
+
+/** What the menu writes on an item host it chooses (`UIItem`'s reflected `selected`). */
+export type ChoosableItem = Element & { selected?: boolean }
+
 /** Canonical tag of the generic item (a sub-menu's usual parent in a vertical menu). */
 export const ITEM_TAG = "ui-item"

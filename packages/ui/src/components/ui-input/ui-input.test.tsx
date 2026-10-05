@@ -240,6 +240,46 @@ describe("<ui-input> forms", () => {
     await userEvent.type(form.querySelector("ui-input")!.shadowRoot!.querySelector("input")!, "x{Enter}")
     expect(submitter).toBe(form.querySelector("button"))
   })
+
+  it("numbers (`type=number`, `inputmode` decimal / numeric):  end-aligned tabular figures;  text stays at the start", async () => {
+    const look = (control: HTMLInputElement) => {
+      const style = getComputedStyle(control)
+      return [style.textAlign, style.fontVariantNumeric]
+    }
+    expect(look((await input(`<ui-input type="number" aria-label="Size"></ui-input>`)).control)).toEqual([
+      "end",
+      "tabular-nums"
+    ])
+    const { control: decimal } = await input(
+      `<ui-input inputmode="decimal" labeled="right" label="%" aria-label="C"></ui-input>`
+    )
+    expect(decimal.inputMode).toBe("decimal")
+    expect(look(decimal)).toEqual(["end", "tabular-nums"])
+    expect(look((await input(`<ui-input aria-label="Name"></ui-input>`)).control)).toEqual(["start", "normal"])
+    const { control: optedOut } = await input(
+      `<ui-input type="number" style="--ui-input-numeric-align: start" aria-label="Size"></ui-input>`
+    )
+    expect(look(optedOut)).toEqual(["start", "tabular-nums"])
+  })
+
+  it("Enter submits through a `<ui-button type=submit>`, with its name=value", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(`<form>
+      <ui-input name="q" aria-label="Query"></ui-input>
+      <ui-button type="submit" name="go" value="yes">Add</ui-button>
+    </form>`)
+    const entries: [string, FormDataEntryValue][][] = []
+    form.addEventListener("submit", (event) => {
+      event.preventDefault()
+      entries.push([...new FormData(form)])
+    })
+    await userEvent.type(form.querySelector("ui-input")!.shadowRoot!.querySelector("input")!, "x{Enter}")
+    expect(entries).toEqual([
+      [
+        ["q", "x"],
+        ["go", "yes"]
+      ]
+    ])
+  })
 })
 
 describe("<ui-input> validation", () => {

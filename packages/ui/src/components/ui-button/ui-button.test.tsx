@@ -204,6 +204,83 @@ describe("<ui-button> behaviour", () => {
     const { control } = await button(`<ui-button href="#x">Link</ui-button>`)
     expect(control.localName).toBe("a")
     expect(control.getAttribute("href")).toBe("#x")
+    expect(control.hasAttribute("download")).toBe(false)
+  })
+
+  it("forwards `download` to the link, bare or naming the file", async () => {
+    const { control: bare } = await button(`<ui-button href="logo.svg" download>SVG</ui-button>`)
+    expect(bare.getAttribute("download")).toBe("")
+    const { host, control: named } = await button(`<ui-button href="logo.svg" download="spell.svg">SVG</ui-button>`)
+    expect(named.getAttribute("download")).toBe("spell.svg")
+    host.removeAttribute("download")
+    await ElementFixture.tick()
+    expect(named.hasAttribute("download")).toBe(false)
+  })
+
+  it('`icon-position="right"` puts the icon box after the text, as a `right icon`', async () => {
+    const { control } = await button(`<ui-button icon="arrow-right" icon-position="right">Next</ui-button>`)
+    const children = [...control.children].map(
+      (child) => child.localName + (child.className ? `.${child.className}` : "")
+    )
+    expect(children).toEqual(["slot", "span.right icon"])
+    expect(control.className).toBe("ui button")
+    const { control: leading } = await button(`<ui-button icon="arrow-left">Back</ui-button>`)
+    expect([...leading.children].map((child) => child.localName)).toEqual(["span", "slot"])
+  })
+
+  it('`icon-position="right"` spaces the icon from the text on its start side', async () => {
+    const { control } = await button(
+      `<ui-button icon="arrow-right" icon-position="right" style="--ui-button-icon-spacing: 6px">Next</ui-button>`
+    )
+    const style = getComputedStyle(control.querySelector(".icon")!)
+    expect(style.marginInlineStart).toBe("6px")
+    expect(style.marginInlineEnd).toBe("-3px")
+  })
+
+  it("`host.click()` presses the inner control:  submits its form, ONE click reaching the page", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(
+      `<form><ui-button type="submit" name="go" value="yes">Go</ui-button></form>`
+    )
+    const host = form.querySelector<HTMLElement>("ui-button")!
+    const submitted = vi.fn((event: Event) => event.preventDefault())
+    const clicks = vi.fn()
+    form.addEventListener("submit", submitted)
+    form.addEventListener("click", clicks)
+    host.click()
+    expect(submitted).toHaveBeenCalledOnce()
+    expect(clicks).toHaveBeenCalledOnce()
+    expect(clicks.mock.calls[0]![0].target).toBe(host)
+  })
+
+  it("`host.click()`:  a host listener added BEFORE the element connected still sees one click", async () => {
+    const host = document.createElement("ui-button")
+    host.setAttribute("toggle", "")
+    host.textContent = "Mute"
+    const clicks = vi.fn()
+    host.addEventListener("click", clicks)
+    const wrapper = await ElementFixture.render(`<div></div>`)
+    wrapper.append(host)
+    await ElementFixture.settle(wrapper)
+    host.click()
+    await ElementFixture.tick()
+    expect(clicks).toHaveBeenCalledOnce()
+    expect(host.matches(":state(active)")).toBe(true)
+  })
+
+  it("`host.click()` vetoed by an earlier listener's preventDefault() presses nothing", async () => {
+    const { host } = await button(`<ui-button toggle>Mute</ui-button>`)
+    const wrapper = host.parentElement!
+    wrapper.addEventListener("click", (event) => event.preventDefault(), { capture: true })
+    host.click()
+    await ElementFixture.tick()
+    expect(host.matches(":state(active)")).toBe(false)
+  })
+
+  it("`host.click()` toggles a toggle button", async () => {
+    const { host } = await button(`<ui-button toggle>Mute</ui-button>`)
+    host.click()
+    await ElementFixture.tick()
+    expect(host.matches(":state(active)")).toBe(true)
   })
 
   it("delegates focus to the inner control", async () => {
@@ -327,6 +404,18 @@ describe("<ui-button> tokens from outside", () => {
     const { host } = await button(`<ui-button>Go</ui-button>`)
     const probe = await ElementFixture.render(`<span style="border-top-left-radius: var(--ui-radius)"></span>`)
     expect(radius(host)).toBe(getComputedStyle(probe).borderTopLeftRadius)
+  })
+
+  it("`--ui-button-font-family` / `--ui-button-font-size` reach the label", async () => {
+    const { control } = await button(
+      `<ui-button style="--ui-button-font-family: serif; --ui-button-font-size: 15px">Add</ui-button>`
+    )
+    expect(getComputedStyle(control).fontFamily).toBe("serif")
+    expect(getComputedStyle(control).fontSize).toBe("15px")
+    const { control: small } = await button(
+      `<ui-button size="small" style="--ui-button-font-size: 16px">Add</ui-button>`
+    )
+    expect(parseFloat(getComputedStyle(small).fontSize)).toBeLessThan(16)
   })
 
   it("variations:  a swap wins over the base token, a derived value follows it", async () => {

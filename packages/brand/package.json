@@ -1,0 +1,34 @@
+{
+  "name": "@spell-app/brand",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Spell's brand:  Claude Design's pages and tokens, their Spell UI copies, and the <ui-brand-*> elements they need",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "tsx scripts/build.ts",
+    "compare": "tsx scripts/compare.ts",
+    "site:data": "tsx scripts/site-data.ts",
+    "/////// CORRECTNESS": "",
+    "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
+    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && echo '<< TSC PASSED\n'",
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src components scripts && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src components scripts && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components scripts vite.config.ts vitest.config.ts index.html compare.html _assets/brand-pages.js _assets/brand-pages.css _assets/brand-docs.css && echo '<< OXFMT PASSED\n'",
+    "/////// TESTING": "",
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'"
+  },
+  "devDependencies": {
+    "@solidjs/web": "2.0.0-rc.13",
+    "@types/node": "^22.20.4",
+    "solid-js": "2.0.0-rc.13",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.11"
+  },
+  "packageManager": "yarn@4.18.0"
+}

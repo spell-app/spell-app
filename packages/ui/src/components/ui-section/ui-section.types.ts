@@ -32,6 +32,19 @@ export const BADGE = "badge"
 export const ACTIONS = "actions"
 export const SUBHEAD = "subhead"
 export const CONTENT = "content"
+export const TIP = "tip"
+
+/** `id` of the info tip, which the fold button (else the heading) is described by (unique:  one per shadow root). */
+export const TIP_ID = "tip"
+
+/** Role of the info tip. */
+export const TOOLTIP = "tooltip"
+
+/** `fold-icon`'s values:  the chevron before the title (inside the fold button), or at the far end of the bar. */
+export type FoldIconPlace = "start" | "end"
+
+/** `fold-icon` value that moves the chevron to the far end of the title bar, after the badge and actions. */
+export const FOLD_END: FoldIconPlace = "end"
 
 /** Class word of the 1px sentinel before the title, which `StickyWatch` observes with `sticky`. */
 export const SENTINEL = "sentinel"

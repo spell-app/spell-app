@@ -28,6 +28,7 @@ export const labelsVocabulary = {
     { name: "color", kind: "color", description: "Hue of every label in the group." },
     { name: "tag", kind: "keyOnly", description: "Every label shaped like a price tag." },
     { name: "basic", kind: "keyOnly", description: "Every label basic (outlined)." },
+    { name: "tinted", kind: "keyOnly", description: "Every label tinted (the colour's soft fill and text)." },
     { name: "circular", kind: "keyOnly", description: "Every label a round badge." },
     { name: "horizontal", kind: "keyOnly", description: "Every label a fixed-width tag." },
     { name: "image", kind: "keyOnly", description: "Every label an image label." },

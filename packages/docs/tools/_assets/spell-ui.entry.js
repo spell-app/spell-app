@@ -16,9 +16,12 @@
  * - `$/...` aliases resolve through esbuild's own tsconfig `paths` support:  `packages/docs/tsconfig.json` extends
  *   the root's `tsconfig.base.json`.
  * - Exports become `window.SpellUI` (`UI`), for the page runtime's checks and for poking in DevTools.
- * - The look:  UI's `spell` theme (the Spell brand), on every page, applied as soon as the bundle runs.  Its sheet
- *   is inlined like every other `import()`, so it registers a few microtasks after the bundle runs, not a
- *   network round trip later.  It ships no font files:  its serif is an installed Palatino, else `serif`.
+ * - The look:  UI's `spell-brand` theme (the Spell brand as Claude Design drew it), on every page, applied as soon
+ *   as the bundle runs (epic `design-system`, P9;  `spell` before, which stays as it is for everything else).
+ *   Its sheet is inlined like every other `import()`, so it registers a few microtasks after the bundle runs, not
+ *   a network round trip later.  It ships no font files:  its serif is an installed Palatino, else `serif`.
+ *   - it adds the brand's roles (`--spell-surface-warm`, `--spell-type-lede` ...), which `spell-doc.css` and the
+ *     other docs sheets read for eyebrows, ledes, asides and panels
  */
 
 import "spell-ui:icons"
@@ -31,5 +34,5 @@ import { defineSite } from "$/server/site"
 
 export { UI } from "@spell-app/ui"
 
-void ThemeSheets.apply("spell")
+void ThemeSheets.apply("spell-brand")
 defineSite()

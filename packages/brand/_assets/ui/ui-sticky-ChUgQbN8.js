@@ -1,0 +1,1 @@
+import{t as e}from"./ui-sticky-Baui3oMu.js";export{e as UISticky};

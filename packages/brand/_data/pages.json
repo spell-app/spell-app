@@ -1,0 +1,146 @@
+{
+  "$comment": "Hand-kept facts per family (title, summary, status, mainTag, `pages`:  sub-tags with a page of their own, token-table overrides) and per theme sheet (`themes`:  title), read by `yarn site:data`.  Shape:  `SitePagesFile` in src/docs-components/docs-components.types.ts.  Edit by hand;  a new family is added (seeded) by `yarn site:data`.",
+  "families": {
+    "ui-brand-blob": {
+      "title": "Brand blob",
+      "summary": "A brand blob tucks one soft lavender shape into a corner of its parent, never behind body text.",
+      "status": "done"
+    },
+    "ui-brand-checklist": {
+      "title": "Brand checklist",
+      "summary": "A brand checklist shows a build's progress step by step, or a list of things to tick off, each with a round mark.",
+      "status": "done"
+    },
+    "ui-brand-color": {
+      "title": "Brand color",
+      "summary": "A brand color is a square colour chip:  a label inside, an AA mark, a selected ring, a details tip;  click to copy.",
+      "status": "done"
+    },
+    "ui-brand-color-picker": {
+      "title": "Brand color picker",
+      "summary": "A brand color picker chooses a colour by lightness and colourfulness for a hue, or by typing its hex or OKLCH.",
+      "status": "done"
+    },
+    "ui-brand-color-range": {
+      "title": "Brand color range",
+      "summary": "A brand color range is a 17-step ladder of shades made from one base colour, the base colour's step ringed.",
+      "status": "done"
+    },
+    "ui-brand-color-set": {
+      "title": "Brand color set",
+      "summary": "A brand color set lays out colour chips in a row or a grid;  `selectable` makes it a radio group to pick one.",
+      "status": "done"
+    },
+    "ui-brand-composer": {
+      "title": "Brand composer",
+      "summary": "A brand composer is the box where you describe an app in plain words and cast it:  a serif text box, tool chips, a keyboard hint and a round Cast button.",
+      "status": "done"
+    },
+    "ui-brand-field": {
+      "title": "Brand field",
+      "summary": "A brand field wraps one control with its label, a value readout, action buttons, an info tip, help and errors.",
+      "status": "done"
+    },
+    "ui-brand-flourish": {
+      "title": "Brand flourish",
+      "summary": "A brand flourish draws generated page art (swoops, blobs, curls, sparkles) behind its parent's content.",
+      "status": "done"
+    },
+    "ui-brand-logo": {
+      "title": "Brand logo",
+      "summary": "The Spell logo:  the hat mark, or the mark with the wordmark (and tagline), outlined, in one colour.",
+      "status": "done"
+    },
+    "ui-brand-phone": {
+      "title": "Brand phone",
+      "summary": "A brand phone frames live app content as a phone:  a status bar on top, the app below.",
+      "status": "done"
+    }
+  },
+  "themes": {
+    "amazon": {
+      "title": "Amazon"
+    },
+    "basic": {
+      "title": "Basic"
+    },
+    "bookish": {
+      "title": "Bookish"
+    },
+    "bootstrap3": {
+      "title": "Bootstrap 3"
+    },
+    "chubby": {
+      "title": "Chubby"
+    },
+    "classic": {
+      "title": "Classic"
+    },
+    "colored": {
+      "title": "Colored"
+    },
+    "dark": {
+      "title": "Dark"
+    },
+    "duo": {
+      "title": "Duo"
+    },
+    "famfamfam": {
+      "title": "Famfamfam"
+    },
+    "fixed-width": {
+      "title": "Fixed-width"
+    },
+    "flat": {
+      "title": "Flat"
+    },
+    "fomantic-classic": {
+      "title": "Fomantic-classic"
+    },
+    "github": {
+      "title": "GitHub"
+    },
+    "gmail": {
+      "title": "Gmail"
+    },
+    "instagram": {
+      "title": "Instagram"
+    },
+    "material": {
+      "title": "Material"
+    },
+    "pulsar": {
+      "title": "Pulsar"
+    },
+    "raised": {
+      "title": "Raised"
+    },
+    "resetcss": {
+      "title": "Resetcss"
+    },
+    "round": {
+      "title": "Round"
+    },
+    "rtl": {
+      "title": "Rtl"
+    },
+    "spell": {
+      "title": "Spell"
+    },
+    "spell-brand": {
+      "title": "Spell Brand"
+    },
+    "striped": {
+      "title": "Striped"
+    },
+    "systemfont": {
+      "title": "Systemfont"
+    },
+    "timeline": {
+      "title": "Timeline"
+    },
+    "twitter": {
+      "title": "Twitter"
+    }
+  }
+}
