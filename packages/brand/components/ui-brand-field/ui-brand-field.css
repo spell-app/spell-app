@@ -2,11 +2,12 @@
  * `<ui-brand-field>`:  the brand's inspector field (Color Set Chooser's "Vibrancy" row), also fine in a form.
  * - Markup:  `div.brand.field` > `.row` (`.label`, `.actions`, `.value`, `.info` > `.tip`), `.control`, `.help`,
  *   `.error.message`.
- * - Label row:  13px medium label at the start;  actions, the value (12px mono, muted) and the info icon (faded,
- *   its tip a dark bubble under it) at the end.  Actions never grow the row (a taller pill overhangs it).  The
- *   control sits right under the row;  a slotted `<ui-menu>` gets a block host, so it stretches too.
- * - A slotted input, select or dropdown is COMPACT, the inspector's 30px field:  set through ITS public tokens (see
- *   "Compact controls").
+ * - Label row:  20px tall (Claude Design's every field row), 13px medium label at the start;  actions, the value
+ *   (12px mono, muted) and the info icon (faded, its tip a dark bubble under it) at the end.  Actions never grow the
+ *   row (a taller pill overhangs it).  The control sits right under the row;  a slotted `<ui-menu>` or
+ *   `<ui-brand-color-set>` stretches across it.
+ * - A slotted input, select or dropdown is COMPACT, the inspector's 30px field;  a segmented `<ui-menu>` too, the
+ *   inspector's 32px track of 26px options at 12px:  set through THEIR public tokens (see "Compact controls").
  * - Public tokens (`--ui-brand-field-*`) are never declared here:  read through private aliases.  Defaults:  the
  *   `spell-brand` roles, else plain `--ui-*` tokens.
  */
@@ -50,7 +51,7 @@
     display: flex;
     align-items: center;
     gap: 0.5em;
-    min-height: 1.25em;
+    min-height: calc(20em / 13);
     font-size: 0.8125em;
     font-weight: 500;
     line-height: 1;
@@ -70,7 +71,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25em;
-    height: 1.25em;
+    height: calc(20em / 13);
   }
   .brand.field > .row > .value {
     color: var(--_ui-brand-field-value-color);
@@ -145,6 +146,7 @@
       ui-slider,
       ui-textarea,
       ui-brand-color-picker,
+      ui-brand-color-set,
       ui-menu,
       ui-buttons,
       input,
@@ -184,6 +186,24 @@
     --ui-dropdown-radius: calc(6em / 14);
     /* the dropdown sets no weight of its own:  it inherits this */
     font-weight: 500;
+  }
+  /*
+   * A DIRECTLY slotted SEGMENTED menu:  the inspector's track (Theme Creator's "Corners"), 32px tall:  a 1px hairline
+   * (the theme's `--ui-menu-segmented-border`) and 2px inside it, round 26px options 3px apart, 12px medium text,
+   * 9px / 6px corners.  The track's colours stay the theme's (a page tints them to its panel).
+   * - Its own `size` scales the menu's text back (as an input's):  leave it off.
+   * - No margin:  the field's gap spaces it.
+   */
+  .brand.field > .control > ::slotted(ui-menu[appearance="segmented"]) {
+    --ui-menu-margin: 0;
+    --ui-menu-item-font-size: 0.75em;
+    --ui-menu-item-weight: 500;
+    --ui-menu-active-weight: 500;
+    --ui-menu-segmented-padding: 2px;
+    --ui-menu-segmented-gap: 3px;
+    --ui-menu-segmented-radius: 9px;
+    --ui-menu-segmented-item-radius: 6px;
+    --ui-menu-segmented-item-padding: calc(7em / 12) calc(8em / 12);
   }
 
   /* ## Help and error text */

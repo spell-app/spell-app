@@ -122,6 +122,42 @@ describe("<ui-brand-field>", () => {
     expect(input.getBoundingClientRect().height).toBeGreaterThan(30)
   })
 
+  it("draws a slotted segmented menu compact:  a 32px track of 26px options at 12px, 3px apart, no margin", async () => {
+    const host = await ElementFixture.render(`<ui-brand-field label="Corners" style="width: 300px">
+      <ui-menu appearance="segmented" alignment="fluid" equal link>
+        <ui-item selected>Sharp</ui-item><ui-item>Soft</ui-item><ui-item>Round</ui-item>
+      </ui-menu>
+    </ui-brand-field>`)
+    await ElementFixture.settle()
+    const menu = host.querySelector("ui-menu")!
+    const track = menu.shadowRoot!.querySelector<HTMLElement>(".ui.menu")!
+    const items = [...menu.querySelectorAll("ui-item")].map((item) =>
+      item.shadowRoot!.querySelector<HTMLElement>(".item")!
+    )
+    expect(Math.round(track.getBoundingClientRect().height)).toBe(32)
+    expect(Math.round(track.getBoundingClientRect().top)).toBe(
+      Math.round(part(host, "control")!.getBoundingClientRect().top)
+    )
+    expect(getComputedStyle(track).borderTopLeftRadius).toBe("9px")
+    for (const item of items) {
+      expect(Math.round(item.getBoundingClientRect().height)).toBe(26)
+      expect(getComputedStyle(item).fontSize).toBe("12px")
+      expect(getComputedStyle(item).fontWeight).toBe("500")
+    }
+    const [first, second] = items.map((item) => item.getBoundingClientRect())
+    expect(Math.round(second!.left - first!.right)).toBe(3)
+  })
+
+  it("stretches a slotted colour set across the control row, under a 20px label row", async () => {
+    const host = await ElementFixture.render(`<ui-brand-field label="Primary" style="width: 300px">
+      <ui-brand-color-set columns="4"><ui-brand-color value="#6550CA"></ui-brand-color></ui-brand-color-set>
+    </ui-brand-field>`)
+    await ElementFixture.settle()
+    const set = host.querySelector("ui-brand-color-set")!.getBoundingClientRect()
+    expect(Math.abs(set.width - part(host, "control")!.getBoundingClientRect().width)).toBeLessThan(1)
+    expect(Math.round(part(host, "row")!.getBoundingClientRect().height)).toBe(20)
+  })
+
   it("names an unnamed control after its label, follows the label, and leaves a named one alone", async () => {
     const host = await ElementFixture.render(`<ui-brand-field label="Hue">
       <input type="range" id="a"><input type="text" id="b" aria-label="Own name">

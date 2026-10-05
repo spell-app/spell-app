@@ -20518,6 +20518,11 @@
           "type": "color"
         },
         {
+          "name": "--ui-menu-text-active-weight",
+          "default": "var(--ui-font-weight-normal)",
+          "type": "other"
+        },
+        {
           "name": "--ui-menu-segmented-background",
           "default": "var(--ui-surface)",
           "type": "color"
@@ -20610,11 +20615,6 @@
         {
           "name": "--ui-menu-header-weight",
           "default": "var(--ui-font-weight-bold)",
-          "type": "other"
-        },
-        {
-          "name": "--ui-menu-text-active-weight",
-          "default": "var(--ui-font-weight-normal)",
           "type": "other"
         }
       ]
@@ -22167,6 +22167,17 @@
           "name": "--ui-section-fold-icon-size",
           "default": "0.75em",
           "type": "length"
+        },
+        {
+          "name": "--ui-section-fold-icon-rotate",
+          "default": "0deg",
+          "description": "the glyph points DOWN: open keeps it so, folded turns it toward the text; a theme can flip the pair (`180deg` / `0deg`: up while open, down while folded)",
+          "type": "other"
+        },
+        {
+          "name": "--ui-section-fold-icon-folded-rotate",
+          "default": "-90deg",
+          "type": "other"
         },
         {
           "name": "--ui-section-tip-background",

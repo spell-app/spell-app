@@ -50,10 +50,38 @@
         min-width: 0;
       }
 
-      /* ## The colour pickers:  20 chips a row, 3px apart */
-      .layout ui-brand-panel ui-brand-panel {
+      /* ## The inspector:  16px in from the box everywhere (a sub-panel's `1em` padding resolves at its 14px text) */
+      .inspector {
+        --ui-brand-panel-padding: 16px;
+        --ui-brand-panel-gap: 8px;
+        /* the original's field:  the control 4px under its 20px label row */
+        --ui-brand-field-gap: 4px;
+      }
+      /* a band 20px under what's above it (8px gap + 12px), flush under a folded band, as the original's */
+      .inspector > * + ui-brand-panel {
+        margin-top: 12px;
+      }
+      .inspector > ui-brand-panel:state(collapsed) + ui-brand-panel {
+        margin-top: -8px;
+      }
+      .inspector ui-brand-panel {
         --ui-brand-panel-gap: 16px;
       }
+      /* the segmented tracks tinted to the ivory panel:  its band's fill, its border's hairline */
+      .inspector ui-menu[appearance="segmented"] {
+        --ui-menu-segmented-background: var(--ui-accent-background);
+        --ui-menu-segmented-border: 1px solid color-mix(in oklab, var(--ui-accent) 28%, var(--ui-surface));
+      }
+      /* the slider sits right under its label row */
+      #size-field {
+        --ui-brand-field-gap: 0;
+      }
+      /* 22px tall, as the original's native range */
+      #size {
+        --ui-slider-padding-block: 2px;
+      }
+
+      /* ## The colour pickers:  20 chips a row, 3px apart */
       .chips {
         --ui-brand-color-set-gap: 3px;
         --ui-brand-color-radius: 3px;
@@ -73,10 +101,38 @@
         margin-top: 8px;
       }
 
-      /* ## Right column:  an eyebrow title over a hairline */
+      /* ## Right column:  an eyebrow title over a hairline, its 32px row 8px under it, the content 12px under that */
       .tool {
         border-top: 1px solid var(--spell-border-subtle);
         padding-top: 8px;
+        --ui-section-margin: 0;
+        --ui-section-title-padding: 0;
+        --ui-section-title-line-height: 1;
+        /* the heading box only as tall as the 11px eyebrow in it (a level-2 title is 1.71em) */
+        --ui-section-h2: 0.6875;
+        --ui-section-content-padding: 12px 0 0;
+      }
+      .tool .eyebrow {
+        font-size: 11px;
+      }
+      /* the CSS section 12px further down (20px gap + 12px);  closer under a folded preview (20px - 12px) */
+      .tool + .tool {
+        margin-top: 12px;
+      }
+      .tool:state(collapsed) + .tool {
+        margin-top: -12px;
+      }
+      /* Both / Light / Dark:  the inspector's track (32px, 26px options), 11px semibold */
+      .tool ui-menu {
+        --ui-menu-margin: 0;
+        --ui-menu-item-font-size: 0.6875em;
+        --ui-menu-item-weight: 600;
+        --ui-menu-active-weight: 600;
+        --ui-menu-segmented-padding: 2px;
+        --ui-menu-segmented-gap: 3px;
+        --ui-menu-segmented-radius: 9px;
+        --ui-menu-segmented-item-radius: 6px;
+        --ui-menu-segmented-item-padding: calc(7.5em / 11) calc(10em / 11);
       }
       .tool .file {
         font: var(--spell-type-code);
@@ -103,6 +159,43 @@
         /* the card's gap does the spacing */
         --ui-card-margin-block: 0;
         --ui-progress-margin: 0;
+        /* the original's mock-up sizes, each in `em` of the Text size (`--ui-font-size`), so the slider scales them:
+           - "Today":  1.15em, regular */
+        --ui-card-header-font-size: 1.15em;
+        /* - the streak:  0.9em, 0.8em / 1em in, no border, the bolt 1em at the top, 0.7em from the text */
+        --ui-message-margin: 0;
+        --ui-message-padding: 0.8em 1em;
+        --ui-message-border-width: 0;
+        --ui-message-icon-size: 1em;
+        --ui-message-icon-distance: 0.7em;
+        --ui-message-icon-align: start;
+        --ui-message-icon-opacity: 1;
+        /* - the bar:  0.45em, a pill on the strong surface, no label room */
+        --ui-progress-bar-height: 0.45em;
+        --ui-progress-radius: var(--ui-radius-pill);
+        --ui-progress-background: var(--ui-surface-strong);
+        --ui-progress-label-height: 0;
+      }
+      /* "Today":  regular, on a 1.5 line with no pull-up (the original's plain span) */
+      .tc-app ui-card ui-header {
+        --ui-font-weight-bold: var(--ui-font-weight-normal);
+        --ui-line-height: 1;
+        --ui-line-height-heading: 1.5;
+      }
+
+      /* ## The sheet:  12px mono on 1.6 lines, 16px in, on the code surface, no border */
+      /* the copy button overhangs the title row, as the original's (its 26px less 4px above and below) */
+      #copy {
+        margin-block: -4px;
+      }
+      #css {
+        --ui-code-font-size: 0.75em;
+        --ui-code-line-height: 1.6;
+        --ui-code-padding: 16px;
+        --ui-code-radius: 14px;
+        --ui-code-border: none;
+        --ui-code-background: var(--spell-surface-code);
+        --ui-code-color: var(--spell-text-body);
       }
       .tc-app[hidden] {
         display: none;
@@ -120,7 +213,7 @@
         color: var(--ui-text-muted);
       }
       .tc-app-title {
-        margin-top: 0.2em;
+        margin-top: calc(0.2em / 1.6);
         font: 700 1.6em/1.1 var(--ui-font-family-heading);
         color: var(--ui-text-dark);
       }
@@ -143,28 +236,54 @@
         color: var(--ui-text-muted);
         text-decoration: line-through;
       }
+      /* the add row:  2.3em tall at 0.9em, the field on the muted surface */
       .tc-add {
         display: flex;
         gap: 0.5em;
         margin-top: 0.9em;
+        --ui-scale: 0.9;
       }
       .tc-add > ui-input {
         flex: 1;
+        --ui-input-padding-block: calc((2.3em - 1.21428em) / 2);
+        --ui-input-padding-inline: 0.8em;
+        --ui-input-background: var(--ui-surface-muted);
+        --ui-input-placeholder-color: var(--ui-text-muted);
       }
+      .tc-add > ui-button {
+        flex: none;
+        --ui-button-padding-block: 0.65em;
+        --ui-button-padding-inline: 1.1em;
+        --ui-button-icon-spacing: 0.3em;
+      }
+      /* buttons 2.2em tall at 0.85em;  labels 1.7em pills at 0.75em, semibold */
       .tc-row {
         display: flex;
         gap: 0.5em;
         flex-wrap: wrap;
         align-items: center;
+        --ui-button-padding-block: 0.6em;
+        --ui-button-padding-inline: 1em;
+        --ui-button-margin-inline: 0;
+        --ui-label-padding-block: 0.35em;
+        --ui-label-padding-inline: 0.7em;
+        --ui-label-radius: var(--ui-radius-pill);
+        --ui-label-font-weight: var(--ui-font-weight-semibold);
       }
-      .tc-add > ui-button {
-        flex: none;
+      .tc-row > ui-button {
+        --ui-scale: 0.85;
+      }
+      .tc-row > ui-button[basic] {
+        --ui-button-font-weight: var(--ui-font-weight-normal);
       }
       .tc-app > ui-message {
-        margin: 0;
+        --ui-scale: 0.9;
       }
-      .tc-app > ui-message ui-icon {
+      .tc-app > ui-message > ui-icon {
         color: var(--ui-accent-text);
+      }
+      .tc-app > ui-message b {
+        color: var(--ui-text-dark);
       }
     </style>
   </head>
@@ -178,7 +297,7 @@
 
       <div class="layout">
         <!-- ## The inspector -->
-        <ui-brand-panel header="Theme" color="accent" collapsible>
+        <ui-brand-panel class="inspector" header="Theme" color="accent" collapsible>
           <div slot="info" class="tip">
             <p>A <b>theme</b> is the look of an app made with Spell:  its colours, fonts and shapes.</p>
             <p>Give it a <b>name</b>, then adjust the sections below.</p>
@@ -221,7 +340,7 @@
                 <b>Primary</b> feels richer.<br />
                 <b>Neutral</b> feels calmer.
               </span>
-              <ui-menu data-key="darkFrom" appearance="segmented" alignment="fluid" equal link size="small">
+              <ui-menu data-key="darkFrom" appearance="segmented" alignment="fluid" equal link>
                 <ui-item value="primary" selected>Primary</ui-item>
                 <ui-item value="neutral">Neutral</ui-item>
               </ui-menu>
@@ -267,7 +386,7 @@
             </div>
             <ui-brand-field label="Corners">
               <span slot="info">How <b>rounded</b> buttons, cards and fields are.</span>
-              <ui-menu data-key="radius" appearance="segmented" alignment="fluid" equal link size="small">
+              <ui-menu data-key="radius" appearance="segmented" alignment="fluid" equal link>
                 <ui-item value="s">Sharp</ui-item>
                 <ui-item value="m">Soft</ui-item>
                 <ui-item value="l" selected>Round</ui-item>
@@ -278,7 +397,7 @@
               <span slot="info"
                 >How much cards <b>lift off</b> the page.<br /><br /><b>Glow</b> adds a soft halo in dark mode.</span
               >
-              <ui-menu data-key="shadow" appearance="segmented" alignment="fluid" equal link size="small">
+              <ui-menu data-key="shadow" appearance="segmented" alignment="fluid" equal link>
                 <ui-item value="flat">Flat</ui-item>
                 <ui-item value="soft" selected>Soft</ui-item>
                 <ui-item value="glow">Glow</ui-item>
@@ -297,7 +416,6 @@
               appearance="segmented"
               equal
               link
-              size="mini"
               aria-label="Preview mode"
             >
               <ui-item value="both" selected>Both</ui-item>
@@ -328,16 +446,16 @@
                   </ui-content>
                 </ui-card>
                 <div class="tc-row">
-                  <ui-button secondary size="small">Secondary</ui-button>
-                  <ui-button basic size="small">Basic</ui-button>
+                  <ui-button secondary>Secondary</ui-button>
+                  <ui-button basic>Basic</ui-button>
                   <ui-label size="small" tinted color="primary">Live</ui-label>
                   <ui-label size="small" tinted color="accent">Accent</ui-label>
                 </div>
                 <ui-message color="accent"
-                  ><ui-icon name="bolt"></ui-icon> <b>7-day streak.</b> Keep it going — one habit left
+                  ><ui-icon slot="icon" name="bolt"></ui-icon><b>7-day streak.</b> Keep it going — one habit left
                   today.</ui-message
                 >
-                <ui-progress value="66" size="tiny" aria-label="Today's habits"></ui-progress>
+                <ui-progress value="66" aria-label="Today's habits"></ui-progress>
               </div>
               <div class="tc-app ui-dark" data-tp="dark">
                 <div class="tc-app-head">
@@ -362,16 +480,16 @@
                   </ui-content>
                 </ui-card>
                 <div class="tc-row">
-                  <ui-button secondary size="small">Secondary</ui-button>
-                  <ui-button basic size="small">Basic</ui-button>
+                  <ui-button secondary>Secondary</ui-button>
+                  <ui-button basic>Basic</ui-button>
                   <ui-label size="small" tinted color="primary">Live</ui-label>
                   <ui-label size="small" tinted color="accent">Accent</ui-label>
                 </div>
                 <ui-message color="accent"
-                  ><ui-icon name="bolt"></ui-icon> <b>7-day streak.</b> Keep it going — one habit left
+                  ><ui-icon slot="icon" name="bolt"></ui-icon><b>7-day streak.</b> Keep it going — one habit left
                   today.</ui-message
                 >
-                <ui-progress value="66" size="tiny" aria-label="Today's habits"></ui-progress>
+                <ui-progress value="66" aria-label="Today's habits"></ui-progress>
               </div>
             </div>
           </ui-section>

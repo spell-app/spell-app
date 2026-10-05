@@ -1,1 +1,0 @@
-import{t as e}from"./ui-ad-CRGCCuNW.js";export{e as UIAd};

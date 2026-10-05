@@ -1,0 +1,1 @@
+import{t as e}from"./ui-table-DN-jreSm.js";export{e as UITable};

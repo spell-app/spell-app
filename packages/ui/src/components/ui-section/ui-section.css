@@ -75,6 +75,7 @@
  * | `--ui-section-badge-background` / `-color` / `-font-size` | the badge pill                            |
  * | `--ui-section-subhead-color` / `-font-size`           | the subhead                                   |
  * | `--ui-section-fold-icon-size`                         | the fold chevron                              |
+ * | `--ui-section-fold-icon-rotate` / `-folded-rotate`    | chevron turn open / folded (RTL negates)      |
  * | `--ui-section-tip-background` / `-color` / `-width`   | the `info` tip (width:  its widest)           |
  * | `--ui-section-scrolling-height`                       | `scrolling` cap (default grows with viewport) |
  * | `--ui-section-z-index`                                | a sticky title's stacking (minus its depth)   |
@@ -146,6 +147,10 @@
     --_ui-section-subhead-color: var(--ui-section-subhead-color, var(--ui-text-muted));
     --_ui-section-subhead-font-size: var(--ui-section-subhead-font-size, 0.92857em);
     --_ui-section-fold-icon-size: var(--ui-section-fold-icon-size, 0.75em);
+    /* the glyph points DOWN:  open keeps it so, folded turns it toward the text;  a theme can flip the pair
+       (`180deg` / `0deg`:  up while open, down while folded) */
+    --_ui-section-fold-icon-rotate: var(--ui-section-fold-icon-rotate, 0deg);
+    --_ui-section-fold-icon-folded-rotate: var(--ui-section-fold-icon-folded-rotate, -90deg);
     --_ui-section-tip-background: var(--ui-section-tip-background, var(--ui-ink));
     --_ui-section-tip-color: var(--ui-section-tip-color, var(--ui-surface));
     --_ui-section-tip-width: var(--ui-section-tip-width, 16.25em);
@@ -349,21 +354,26 @@
     fill: currentColor;
   }
 
-  /* Fold chevron:  points down while open, turns toward the text while folded. */
+  /* Fold chevron:  points down while open, turns toward the text while folded (by default:  the two
+     `--ui-section-fold-icon-*rotate` tokens;  right to left, each turn is negated, so it mirrors). */
   .ui.section > .title > .heading > .toggle > .fold.icon {
     width: var(--_ui-section-fold-icon-size);
     height: var(--_ui-section-fold-icon-size);
+    rotate: var(--_ui-section-fold-icon-rotate);
     transition: rotate var(--_ui-section-duration) var(--ui-ease);
+  }
+  .ui.section > .title > .heading > .toggle > .fold.icon:dir(rtl) {
+    rotate: calc(-1 * var(--_ui-section-fold-icon-rotate));
   }
   .ui.section > .title > .heading > .toggle > .fold.icon svg {
     width: 100%;
     height: 100%;
   }
   .ui.section > .title > .heading > .toggle[aria-expanded="false"] > .fold.icon {
-    rotate: -90deg;
+    rotate: var(--_ui-section-fold-icon-folded-rotate);
   }
   .ui.section > .title > .heading > .toggle[aria-expanded="false"] > .fold.icon:dir(rtl) {
-    rotate: 90deg;
+    rotate: calc(-1 * var(--_ui-section-fold-icon-folded-rotate));
   }
 
   /* End chevron (`fold-icon="end"`):  after the badge and actions, at the far end of the bar;  turns the same way. */
@@ -374,7 +384,11 @@
     width: var(--_ui-section-fold-icon-size);
     height: var(--_ui-section-fold-icon-size);
     cursor: pointer;
+    rotate: var(--_ui-section-fold-icon-rotate);
     transition: rotate var(--_ui-section-duration) var(--ui-ease);
+  }
+  .ui.section > .title > .fold.icon:dir(rtl) {
+    rotate: calc(-1 * var(--_ui-section-fold-icon-rotate));
   }
   .ui.section > .title > .fold.icon svg {
     display: block;
@@ -383,10 +397,10 @@
     fill: currentColor;
   }
   .ui.section > .title:has(> .heading > .toggle[aria-expanded="false"]) > .fold.icon {
-    rotate: -90deg;
+    rotate: var(--_ui-section-fold-icon-folded-rotate);
   }
   .ui.section > .title:has(> .heading > .toggle[aria-expanded="false"]) > .fold.icon:dir(rtl) {
-    rotate: 90deg;
+    rotate: calc(-1 * var(--_ui-section-fold-icon-folded-rotate));
   }
 
   /* ## Info tip (`info`):  a bubble under the bar's start edge, on hover of the heading / end chevron, or focus. */

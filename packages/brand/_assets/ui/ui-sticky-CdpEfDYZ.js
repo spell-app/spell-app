@@ -1,0 +1,1 @@
+import{t as e}from"./ui-sticky-CRHQPGSr.js";export{e as UISticky};

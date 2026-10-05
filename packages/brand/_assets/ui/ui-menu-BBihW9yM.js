@@ -1,0 +1,1 @@
+import{t as e}from"./ui-menu-3XpsmSAD.js";export{e as UIMenu};

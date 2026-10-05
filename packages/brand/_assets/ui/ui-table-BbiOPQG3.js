@@ -1,1 +1,0 @@
-import{t as e}from"./ui-table-DcN3lt-Q.js";export{e as UITable};

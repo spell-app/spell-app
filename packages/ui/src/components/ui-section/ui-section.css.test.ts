@@ -149,7 +149,7 @@ describe("ui-section.css examples", () => {
     expect(content.getBoundingClientRect().height).toBe(0)
     expect(open.querySelector<HTMLElement>(":scope > .content")!.getBoundingClientRect().height).toBeGreaterThan(0)
     const chevron = (section: Element) => getComputedStyle(section.querySelector(".fold.icon")!).rotate
-    expect(chevron(open)).toBe("none")
+    expect(chevron(open)).toBe("0deg")
     expect(chevron(folded)).toBe("-90deg")
   })
 
@@ -324,5 +324,28 @@ describe("ui-section.css tokens", () => {
       `<div style="--ui-section-radius: 20px"><section class="ui bordered section"><div class="content">x</div></section></div>`
     )
     expect(getComputedStyle(root.querySelector(".ui.section")!).borderTopLeftRadius).toBe("20px")
+  })
+
+  it("turns the chevron by the rotate tokens, start and end, negated right to left", () => {
+    Sheets.adopt([...foundationCSS, sectionCSS])
+    const bar = (expanded: boolean, end: boolean) => {
+      const icon = `<span class="fold icon"><svg></svg></span>`
+      return (
+        `<section class="ui section"><header class="title"><h2 class="heading">` +
+        `<button class="toggle" aria-expanded="${expanded}">${end ? "" : icon}<span class="header">H</span></button>` +
+        `</h2>${end ? icon : ""}</header><div class="content">x</div></section>`
+      )
+    }
+    const root = Fixture.render(
+      `<div style="--ui-section-fold-icon-rotate: 180deg; --ui-section-fold-icon-folded-rotate: 0deg">` +
+        bar(true, false) +
+        bar(false, false) +
+        bar(true, true) +
+        bar(false, true) +
+        `<div dir="rtl" style="--ui-section-fold-icon-folded-rotate: 45deg">${bar(true, true)}${bar(false, true)}</div>` +
+        `</div>`
+    )
+    const turns = [...root.querySelectorAll(".fold.icon")].map((icon) => getComputedStyle(icon).rotate)
+    expect(turns).toEqual(["180deg", "0deg", "180deg", "0deg", "-180deg", "-45deg"])
   })
 })
