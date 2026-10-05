@@ -85,7 +85,9 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 
   dev
     .command("design")
-    .description("Spell UI's claude.ai design system:  build writes its files (packages/ui, yarn design:build)")
+    .description(
+      "Spell's claude.ai design system:  build its files and bundle, check it, pull a board as a page, track pushes"
+    )
     .argument("[verb]", DESIGN_VERBS.join(" | "))
     .argument("[args...]", "the tool's arguments, e.g. build --out /tmp/ds")
     .allowUnknownOption()
