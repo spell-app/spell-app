@@ -28,7 +28,7 @@ describe("RunningEpics", () => {
 
   beforeAll(async () => {
     writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["pages", "epics"] } }))
-    put(root, "pages/index.html", `<html><head></head><body><h1>Docs</h1>${MARKER}</body></html>\n`)
+    put(root, "epics/index.html", `<html><head></head><body><h1>Epics</h1>${MARKER}</body></html>\n`)
     // merged into the main checkout:  a worktree's copy of it is stale, never listed
     put(root, "epics/old/old.html", planDoc("Old"))
     put(root, ".claude/worktrees/seo/epics/old/old.html", planDoc("Old, stale"))
@@ -98,7 +98,7 @@ describe("RunningEpics", () => {
   })
 
   it("puts the running epics' cards at the marker in the Epics list, each title after its state", async () => {
-    const index = (await ask(port, "GET", "/pages/index.html")).text
+    const index = (await ask(port, "GET", "/epics/index.html")).text
     expect(index).not.toContain(MARKER)
     expect(index).toContain(`href="/worktrees/seo/epics/seo/seo.plan.html"`)
     // in progress:  [done/all], the active phase in the meta line

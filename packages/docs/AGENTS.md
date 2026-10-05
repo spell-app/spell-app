@@ -21,8 +21,15 @@ The pages live in SHARED root folders, the tooling here (epics `shared-content`,
   from an area (`solid/solid-2.html` is a guide:  `tools/pages.js` `pageFile()`).
 
 The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, `TEMPLATES`;  `findPages()` walks them):
-- `pages/index.html` -- the docs home.  The list between `<!-- index:start -->` / `<!-- index:end -->` is written by
-  `spell dev docs index`;  edit only outside the markers.  (P5 of `claude-design` makes it a routing page.)
+- `pages/index.html` -- the docs home, a routing page (P5 of `claude-design`):  one card per area, in the top bar's
+  order (Epics · Guides · Brand · Spell UI · Templates · Goals · App), each with its count.  The cards between
+  `<!-- areas:start -->` / `<!-- areas:end -->` are written by `spell dev docs index`;  edit only outside the markers.
+  - NOT `index:start` / `index:end`:  an older checkout's `index.js` stops on the shared home instead of writing its
+    three lists back into it
+- `epics/index.html`, `guides/index.html`, `templates/index.html`, `brand/index.html` -- each area's LIST PAGE, its
+  top-bar tab's home:  a card per page (epics open first), written by `spell dev docs index` between
+  `<!-- index:start -->` / `<!-- index:end -->`;  a missing one is made from `tools/index.js` `skeleton()`.  The
+  Templates page also holds the "Writing docs" notes, the Brand page its folder's files.
 - `guides/` -- every other page:
   - `guides/changelog.html` -- what the repo shipped, newest first;  every `/isolate` and `/epic` adds to it (the
     root's `AGENTS.md`, "Changelog").
@@ -39,7 +46,8 @@ The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, 
 - `pages/details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page
   (`/details`, see "Details pages").  Scratch:  ignored by the shared repo's git, swept after 14 days.  An epic's go
   in `epics/<name>/details/`, kept (auto-committed with the shared repo).
-- `brand/` (in the shared repo, not linked yet) -- the brand pages, from P11 of `claude-design`.
+- `brand/` -- the brand pages (the pony, from Claude Design;  the rest from P11 of `claude-design`) and the design
+  system's push record.  Not in `findPages()`'s areas:  `docs update` doesn't check them (`tools/pages.js` `BRAND`).
 
 In `tools/`:
 - `_assets/` -- shared page assets (pages reach them as `<up>packages/docs/tools/_assets/`, `<up>` the way up to the
@@ -212,7 +220,7 @@ In `tools/`:
   `epics/spell-ui-pages/PAGES.md`;  checked by `yarn site:check` there (`docs update` skips it).
 - Every template but the goals pages and `spell-ui-docs.html` is `<ui-section>` markup (see "Writing a page");  the goals pages keep the old
   `section.s2` markup until they migrate (`agents/CODE-DEBT.md`).
-- A new KIND of doc gets a template here, and a card in the index.
+- A new KIND of doc gets a template here;  `spell dev docs index` gives it a card on the Templates page.
 
 ## Plan docs
 
@@ -309,7 +317,8 @@ In this order, from `packages/docs`:
   onClick>` must count.  Run it after touching the design target.
 - `tools/design.js` (`spell dev design pull | changed | pushed | state`) -- the local half of the `/design` skill:  a
   Claude Design board as a page, and the push record (`brand/design-system.json`, shared).
-- `spell dev docs index` (`tools/index.js`) -- rewrites the lists in the docs home, `pages/index.html`.
+- `spell dev docs index` (`tools/index.js`) -- rewrites the docs home's area cards (`pages/index.html`) and each
+  area's list page (`epics/`, `guides/`, `templates/`, `brand/` `index.html`).
 - `spell dev docs new` (`tools/new-page.js`) -- a page from a template, at any depth.
 - `spell dev docs open [page] [--vs | --review]` (`tools/open.js`) -- show a page (default:  the index) in Chrome,
   reusing its tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" tab (`/spell-docs`);
@@ -321,7 +330,7 @@ In this order, from `packages/docs`:
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
   `tools/showRoutes.ts` (`GET /api/docs/show`).
-- `tools/pages.js` -- shared by the scripts:  the areas (`EPICS`, `GUIDES`, `PAGES`, `TEMPLATES`, `HOME`), `findPages()`,
+- `tools/pages.js` -- shared by the scripts:  the areas (`EPICS`, `GUIDES`, `PAGES`, `TEMPLATES`, `BRAND`, `GOALS`, `HOME`, `LIST_PAGES`), `findPages()`,
   `pageFile()` (a page argument to its file), `atDepth()` (a template at a page's depth),
   `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
   through the spell extension's `DocPreview`;  `{ view: "review" }`:  the "Review" tab).

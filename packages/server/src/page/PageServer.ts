@@ -208,7 +208,7 @@ const WORKTREES = new Map<string, { branch?: string; worktree?: string }>()
 export const DOCS_HOME = "/pages/index.html"
 
 /** Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle. */
-const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "packages/docs/tools/_assets"]
+const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "brand", "packages/docs/tools/_assets"]
 
 /**
  * Where top-level entry `name` of the old `packages/docs/content/` went (claude-design P4, 2026-10-05):  `epics` and
