@@ -143,10 +143,14 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   `Checkout:` trailers.  Nobody commits those files by hand.
   - NEVER `git add` / `git checkout --` / `git restore` the three paths in spell-app.
   - NEVER run git inside `packages/docs/content` (it's the shared repo there):  run it in the spell-app checkout.
-- `spell dev shared status | init | link | commit | migrate <worktree> [--dry-run]`.
+- `spell dev shared status | init | link | commit | migrate <worktree> | repair` (`--dry-run` on the last two).
   - A new worktree is linked by the `WorktreeCreate` hook.
   - A worktree cut before the cutover runs `spell dev shared migrate <name>` before it merges `main`;  first
     merging `0fc52e02` (main just before the cutover) if it predates the docs move.
+  - After merging a branch from before the docs move:  `spell dev shared repair` moves pages it left at
+    `packages/docs/<x>` into `content/`, and fixes links (and their tab names) written for the old layout.
+- Shared docs may link code another branch has and this one doesn't yet:  `doc-links.js --check` reports those as
+  missing in this checkout.
 - Package windows show `spell-app-dev` as a folder, with its own Source Control:  the auto commits.
 - Searching:  the links are git-ignored.
   - `grep -R` follows them (`grep -r` doesn't);  `rg` needs `-L --no-ignore-vcs`;  or search `../spell-app-dev`.
