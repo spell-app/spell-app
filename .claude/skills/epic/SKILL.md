@@ -12,6 +12,11 @@ An EPIC is a planning session and the work it plans;  its live record is the PLA
 Plan, then build, in worktree `<name>`, keeping `packages/docs/content/epics/<name>/<name>.plan.html` (the PLAN DOC) current
 the whole time.  The plan doc is the user's view of the work:  they read it in VS Code's doc preview (the right side bar's "Spell Docs" view) while you work.
 
+- Shared content:  the plan doc lives in `packages/docs/content/`, which spell-app doesn't track:  in every
+  checkout it's a link into ONE shared repo, `../spell-app-dev` (epic `shared-content`, 2026-10-04).
+  - So there is ONE plan doc:  `main` and every worktree see each edit at once;  it never conflicts on merge.
+  - Committed for you after every turn (the `Stop` hook `.claude/hooks/shared-commit.mjs`).  NEVER commit, stage,
+    `git checkout --` or `git restore` it (or the changelog, the docs index, a details page) in spell-app.
 - Rules for the doc (sections, ids, markers, prose):  `packages/docs/content/templates/epics/plan-doc.md`.  Read it first.
 - Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
@@ -48,7 +53,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   it `<name>.<time>.md` first).  No text, but that file exists:  it IS the kickoff prompt (the hook saved it);  say
   so in one line.  Delete the file only once the plan doc holds it (`plan-doc new --prompt-file`).
 - Look for collisions (from the repo root), every time:
-  - `packages/docs/content/epics/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
+  - `packages/docs/content/epics/<name>/`, `packages/docs/content/<name>/`, `packages/docs/content/<name>.html`
   - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2
   - any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the
     user types it in "Other").  Never overwrite an existing plan doc.
@@ -158,8 +163,10 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
    its Done field, brings the doc forward), then `yarn plan-doc summary <name>`.  Done:  what was BUILT, ordered by
    what Owen asks about first:  where to see it, what changed in how he works, what's rough or not yet tried by hand.
    - commit messages, so the doc can list them (its phase's and items' "Commits"):  a phase `P<n>:  <Name> --
-     <summary>` (`P4 + P5:` for two;  `WIP P3:` for a parked part), an item fix `Fix I3:  ...`
-   - after the phase's commit:  `yarn plan-doc commits <name> --backfill` (its change goes in with the next commit)
+     <summary>` (`P4 + P5:` for two;  `WIP P3:` for a parked part), an item fix `<name> I3:  ...` (MUST carry the
+     epic's name:  `commits --backfill` ignores a bare `Fix I3:`, since it can't tell which epic)
+   - after the phase's commit:  `yarn plan-doc commits <name> --backfill` (finds them by subject).  The plan doc
+     is never in that commit:  it's shared content, committed for you (see "Shared content" at the top)
 5. Reply:  a short bulleted list (done, issues, caveats, next), the "complete.  Next is" line (see the top), THEN
    AskUserQuestion so the user picks without copying anything.  Options, most useful first:
    - "Start P<N+1> · <Name> (Recommended)"
@@ -181,15 +188,16 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 - "To test":  every hand check the work needs before merging is there, each a step and what should happen;  list
   the open ones in the reply, as bullets.
 - Turn it into durable docs:  `yarn docs:new durable <page> --title "..."` (fixes asset paths for the depth):
-  - one page:  `packages/docs/<name>.html`;  several files (pages, experiments):
-    `packages/docs/<name>/<name>.html`
+  - one page:  `packages/docs/content/<name>.html`;  several files (pages, experiments):
+    `packages/docs/content/<name>/<name>.html` (shared content too:  committed for you, like the plan doc)
   - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
-  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`, which also adds the plan
-    doc's own card:  `yarn plan-doc` doesn't touch the index in a worktree (until now the main server added its
-    card to the index's Epics section)
+  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index` (the index is shared too:
+    `yarn plan-doc` keeps the epic's own card current from any checkout)
 - The plan doc stays in `epics/` as the record:  every phase done.
-- Changelog:  add the epic's entry to `packages/docs/content/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
-  the plan doc and the durable doc;  under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
+- Changelog:  write the epic's entry straight into the shared `packages/docs/content/changelog.html` ("Changelog"
+  in the root's `AGENTS.md`), linking the plan doc and the durable doc;  under "3. Merged into main" if "Finish"
+  below merges it, else "2. In worktrees".  Nothing to commit on the branch for it, and no merge conflict:  every
+  checkout sees the one file.
 - Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  No move back:  the session and its
   plan doc stay in the window they're in.
 - Last line of the reply:  "All done ..." (see the top).
@@ -204,9 +212,9 @@ items any more (epic `review-review`, 2026-10-04;  plan:  `epics/review-review/r
 
 - Runs from ANY window, `main` or a worktree:  the prompt hook lets `/epic review` through, never renames the session.
   No worktree, no plan mode.
-- Every `yarn plan-doc` command edits the epic's LIVE doc wherever it is (its worktree, else `main`).
-- The page's controls need the PAGE SERVER of the checkout the doc lives in (`yarn server ensure` there):  from
-  `file://`, or a server without the review routes, the page shows no menus.
+- Every `yarn plan-doc` command edits the epic's ONE shared doc, from any checkout.
+- The page's controls need a PAGE SERVER with the review routes (`yarn server ensure`):  from `file://`, or a
+  server without them, the page shows no menus.
 - Owen comes to a review COLD:  never a bare id in chat, always what it is in words ("the highlight.js swap (T2)").
 
 Commands, in the order a review uses them:
@@ -282,8 +290,7 @@ When Owen says he's done ("stop reviewing", "that's it"), or the session must st
 - stop the waiter (`TaskStop`), `yarn plan-doc inbox <name> unlisten`
 - `yarn plan-doc log <name> "Review:  <n> approved, <n> answered, <n> to todos, <n> details added"`
 - reply:  what was decided and done (in words, ids after), what's still waiting on him;  the link pair
-- committing the doc's changes:  in THIS checkout:  stage, then ask;  in another (`main` from a worktree, another
-  epic's worktree):  say which checkout holds them, for Owen or that epic's session to commit
+- the doc's changes:  nothing to commit, from any checkout (shared content, committed for you at the turn's end)
 
 ## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)
 
@@ -295,7 +302,7 @@ phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)
 decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
 commit <name> <sha> --phase N | --item <id> "..."   list a commit under a phase or an item
-commits <name> --backfill                           every phase / item commit in the doc's git history, once
+commits <name> --backfill                           every phase / item commit (`P3:`, `<name> I3:`), once
 close <name> <id>  /  reopen <name> <id>            close (done) / open again, never delete
 cancel <name> <id> ["why"]                          made moot by another decision:  struck;  reopen undoes it
 log <name> "text"                                   timestamped line in the doc's log
@@ -312,8 +319,7 @@ queue <name> <id> "work"  /  unqueue <name> <id>    work a review decided on, wa
 items <name> --section s --spec <file>              a review's item picker, as a details page spec
 items <name> [--section s] [--filter unreviewed|open|reviewed|queued|all] [--json]
                                                     where reviews stand, the to-do list, sections and items
-list [--json]                                       every epic (main + worktrees):  status, not reviewed / all
+list [--json]                                       every epic once:  status, where it runs, not reviewed / all
 backfill <name> | --all [--apply]                   one-off:  mark what past sessions show Owen went through
 ```
-- Every command but `new` edits the epic's LIVE doc wherever it is:  its own worktree, else main, else any
-  worktree (never the stale copy a worktree took of a merged epic).
+- Every command edits the epic's ONE shared doc, wherever it's called from ("Shared content" at the top).

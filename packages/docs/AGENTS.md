@@ -7,7 +7,11 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 Two folders (epic `shared-content`):
 - `content/` -- every page, plan doc and template;  the paths below are inside it, and so are page URLs
-  (`/packages/docs/content/solid/solid-2.html`).  Soon a link into the shared content repo, `../spell-app-dev`.
+  (`/packages/docs/content/solid/solid-2.html`).  A folder link into the shared content repo, `../spell-app-dev`
+  (the root's `AGENTS.md`, "Shared content"):  NOT tracked by spell-app.
+  - One copy for every checkout:  an edit shows in every worktree at once, and never conflicts on merge.
+  - Committed by itself after every Claude turn (the `Stop` hook):  never `git add` / commit a page by hand.
+  - NEVER run git inside `content/`:  it's the shared repo there.  Tools run git in the spell-app checkout.
 - `tools/` -- the tooling:  the scripts (`tools/*.js`, see "Scripts"), `tools/_assets/` and the goals tooling
   (`tools/goals/`).  Tracked here, versioned per branch.  Run a script from `packages/docs`
   (`node tools/check-spell.js content/x.html`) or through its `yarn` script.
@@ -26,8 +30,8 @@ In `content/`:
   2026-10-04:  the tools find either (`tools/pages.js` `planDocIn()`), a worktree cut before keeps the old name
   until it merges `main`, and the page server redirects the old URL;  `tools/plan-rename.js` did the rename.
 - `details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page (`/details`, see
-  "Details pages").  Scratch:  ignored by version control, swept after 14 days.  An epic's go in
-  `epics/<name>/details/`, committed.
+  "Details pages").  Scratch:  ignored by the shared repo's git, swept after 14 days.  An epic's go in
+  `epics/<name>/details/`, kept (auto-committed with the shared repo).
 
 
 In `tools/`:
@@ -254,9 +258,11 @@ In `tools/`:
 
 ## Experiments
 
-- Claims backed by measurement:  runnable scripts in `<topic>/experiments/`, each with a header comment saying how to
-  run it FROM `packages/docs` (`node solid/experiments/<file> dev`, `yarn tsx <topic>/experiments/<file>.ts`).
-- They may import any package through the root's `#` aliases (`tsconfig.json` extends `tsconfig.base.json`).
+- Claims backed by measurement:  scripts in `<topic>/experiments/` (`solid/experiments/`, `precedence/experiments/`),
+  each with a header comment saying how it was run.
+- They live in the shared repo, so they DON'T run in place any more:  Node runs them from their real path in
+  `../spell-app-dev`, where there's no `node_modules` and no `$/` aliases.  To re-measure, copy one into the repo
+  (under `packages/docs`, whose `tsconfig.json` extends `tsconfig.base.json`) and run it there.
 - Tables quote medians of several runs, never a single run.  Keep the scripts:  they re-measure on upgrades.
 
 ## Links

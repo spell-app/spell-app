@@ -108,18 +108,18 @@ Everything else stands:  `yarn vscode` after each stage, the parser speed test o
      `overnight <name> problem "P<m> skipped:  builds on WIP P<n>"`
 5. `yarn plan-doc phase <name> <N> done --done "<ul>...</ul>"` (what was built, as `/epic` writes it;  not for a WIP
    phase:  it stays `active`).
-6. `yarn plan-doc log <name> "P<n> done|WIP:  <what was built>;  checks:  <results>"`, BEFORE the commit so the line
-   goes in with it.
-7. Commit:  `P<n>:  <Name> -- <one-line summary>` (`WIP P<n>:  ...` for WIP).
+6. `yarn plan-doc log <name> "P<n> done|WIP:  <what was built>;  checks:  <results>"`.
+7. Commit:  `P<n>:  <Name> -- <one-line summary>` (`WIP P<n>:  ...` for WIP;  an item fix `<name> I3:  ...`).  The
+   plan doc is never in it:  shared content (`packages/docs/content`, a link into `../spell-app-dev`), committed
+   for you at the turn's end.
 8. `overnight <name> phase <N> "<hash>  <what was built>;  checks:  <results>;  J4, J5"`:  ids link to their items.
-   It goes in with the next phase's commit (or step 6's).
 
 ## 6. At the end
 
 - `overnight <name> done "<done / WIP / skipped counts>;  <n> judgement calls;  branch <branch>"`:  bedtime mode
   off.
-- `yarn plan-doc check <name>`, commit what's uncommitted in the plan doc (`Bedtime:  overnight report`), then
-  `yarn plan-doc open <name>`:  Owen wakes to the Overnight section on top.
+- `yarn plan-doc check <name>`, then `yarn plan-doc open <name>`:  Owen wakes to the Overnight section on top.
+  Nothing to commit for the doc (shared content, committed for you).
 - Final reply:  the summary, the judgement calls by phase (in words, ids after) and the problems, then ONE
   AskUserQuestion (Owen answers in the morning):  "Go through the night?", options "Review it now
   (Recommended)":  runs `/epic review <name>` (`.claude/skills/epic/SKILL.md`, "7. Review"), which starts with the
