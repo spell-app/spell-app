@@ -58,7 +58,7 @@
           <ui-tab value="examples" label="Examples">
             <!--
               EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples (Types, Variations), restyled, plus the
-              vocabulary's `breaks` and `trusted`.  File shown:  `site/examples/readme.md`.
+              vocabulary's `breaks` and `sanitized`.  File shown:  `site/examples/readme.md`.
             -->
             <ui-section id="examples-types" header="Types" sticky collapsible dividing>
               <ui-section id="examples-types-markdown" header="Markdown" sticky collapsible dividing>
@@ -116,17 +116,42 @@
                 </ui-docs-example>
               </ui-section>
 
-              <ui-section id="examples-variations-trusted" header="Trusted" sticky collapsible dividing>
+              <ui-section id="examples-variations-editable" header="Editable" sticky collapsible dividing>
                 <ui-docs-example
-                  description="Raw HTML is sanitized:  `trusted` keeps it as written, `<ui-*>` elements included.  ONLY for text you wrote."
+                  description="`editable` adds Write / Preview tabs:  a text box, and a preview drawn with `ui-*` elements by spell's own markdown engine (on spell's parser), loaded with the first preview."
                 >
-                  <ui-markdown trusted>
+                  <ui-markdown editable>
+                    <script type="text/markdown">
+                      # Try it
+
+                      Type **markdown** here, then look at the *Preview*.
+
+                      - [x] tables, task lists, alerts
+                      - [ ] your text
+
+                      > [!TIP]
+                      > Alerts become messages.
+
+                      | Engine | Draws with |
+                      | ------ | ---------- |
+                      | marked | plain HTML |
+                      | spell  | `ui-*`     |
+                    </script>
+                  </ui-markdown>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-sanitized" header="Sanitized" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Raw HTML is kept as written, `<ui-*>` elements included.  `sanitized` runs it through DOMPurify, loaded only then:  set it for text you didn't write."
+                >
+                  <ui-markdown>
                     <script type="text/markdown">
                       Version **2** adds <ui-label size="mini" color="teal">include</ui-label> and <ui-label size="mini">code</ui-label>.
                     </script>
                   </ui-markdown>
                   <ui-divider></ui-divider>
-                  <ui-markdown>
+                  <ui-markdown sanitized>
                     <script type="text/markdown">
                       Version **2** adds <ui-label size="mini" color="teal">include</ui-label> and <ui-label size="mini">code</ui-label>.
                     </script>
@@ -149,8 +174,8 @@
                   - A `<script type="text/markdown">` child: its text exactly, so `<tags>` in code stay text.
                   - The element's own text, dedented.
 
-                  The `content` property replaces either until `source` changes. Rendering (marked) and sanitizing (DOMPurify) load
-                  lazily, with the first markdown shown.
+                  The `content` property replaces either until `source` changes. Rendering (marked) loads lazily, with the first
+                  markdown shown;  sanitizing (DOMPurify) only with `sanitized`.
                 </script>
               </ui-markdown>
             </ui-section>
@@ -160,12 +185,17 @@
                 <script type="text/markdown">
                   - GitHub-flavoured: tables, task lists, strikethrough, autolinks.
                   - Fenced code blocks become `<ui-code language="x" copy>`: one highlighter and one palette for the whole page.
-                  - Raw HTML is sanitized unless `trusted`.
+                  - Raw HTML is kept as written unless `sanitized`, which runs it through DOMPurify (its own lazy chunk):
+                    set it for text you didn't write.
                   - Headings get GitHub's ids, so `#anchor` links work, inside the element too (the page's own fragment
                     navigation can't see into its shadow root). `heading-offset` shifts their levels to sit under the page's
                     heading (property `headingLevelOffset`: `headingOffset` is WebKit's native `headingoffset`).
                   - `headings` lists the headings (`{ level, text, id }`), e.g. for a table of contents; `ui-render` fires with
                     them after each render.
+                  - `editable`: Write / Preview tabs. The preview uses spell's own markdown engine (`@spell-app/markdown`,
+                    on spell's parser), in a lazy chunk of its own, and draws with `ui-*` elements: headers, lists, tables,
+                    messages for alerts, checkboxes for tasks. Each keystroke is a `ui-change` and makes the element dirty;
+                    `save()` writes the text back to `source`.
                 </script>
               </ui-markdown>
             </ui-section>
@@ -194,7 +224,8 @@
             <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  Nothing of its own: links, task-list checkboxes and code blocks inside are ordinary tab stops.
+                  Nothing of its own: links, task-list checkboxes and code blocks inside are ordinary tab stops. `editable`'s
+                  tabs are one tab stop: the arrow keys move between Write and Preview, Home and End to either end.
                 </script>
               </ui-markdown>
             </ui-section>

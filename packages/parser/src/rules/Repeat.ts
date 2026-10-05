@@ -11,8 +11,9 @@ import { Rule } from "./Rule"
  *    between each instance of `rule`.
  *    - The delimiter at the end is optional.
  *    - Note that the delimiters are NOT added to the `matched` array.
- * - `repeat.minCount` (optional) is the minimum number we need to match successfully.
- * - `repeat.maxCount` (optional) is the maximum number we need to match successfully.
+ * - `repeat.minCount` (optional) is the fewest copies of `rule` that match (delimiters don't count).
+ * - `repeat.maxCount` (optional) is the most copies we take:  we stop there, like regex's `{n,m}`, and leave the
+ *   rest for whatever follows.  Rulex sets both from `{n}` / `{n,m}` / `{n,}`.
  *
  * In the resulting match
  * - `match.items` will be just he `rule` matches, ignoring delimiters,
@@ -30,6 +31,12 @@ export class Repeat<
   declare minCount: number
   /** The maximum number of times the rule must match. */
   declare maxCount: number
+  /**
+   * What may sit between one copy of `rule` and the next, when there's no `delimiter` -- see `P.Spacing`.
+   * - Rulex sets `none` for a repeated symbol written touching its flag (`#{1,6}`, `\*+`):  a run, like `**`.
+   * - A delimiter's own `spacing` says how it sits after the copy before it.
+   */
+  declare itemSpacing: P.Spacing | undefined
 
   /** Pass a bare `Rule` to repeat it with no delimiter / min / max, or a full `RepeatProps` bag. */
   constructor(props: RepeatProps | P.Rule) {
@@ -57,6 +64,10 @@ export class Repeat<
     let next = this.rule
     while (remainingTokens.length) {
       next = this.rule
+      // as many as `maxCount` copies, like regex's `{n,m}`:  the rest is for whatever follows
+      if (typeof this.maxCount === "number" && items.length >= this.maxCount) break
+      // a copy after a copy:  spaced as `itemSpacing` says
+      if (items.length && !this.delimiter && !P.spacingAllows(tokens[length - 1], this.itemSpacing)) break
       const match = this.rule.parse(scope, remainingTokens)
       if (!match) break
       matched.push(match)
@@ -67,6 +78,7 @@ export class Repeat<
       if (this.delimiter) {
         next = this.delimiter
         if (!remainingTokens.length) break
+        if (!P.spacingAllows(tokens[length - 1], this.delimiter.spacing)) break
         // get delimiter, exiting if not found
         const delimiter = this.delimiter.parse(scope, remainingTokens)
         if (!delimiter) break
@@ -79,10 +91,9 @@ export class Repeat<
     // In expecting mode (see `P.Expectations`), out of tokens after an item:  more would only EXTEND us.
     if (items.length && !remainingTokens.length) P.Expectations.current?.expect(next, undefined, undefined, true)
 
-    // Forget it if nothing matched at all
+    // Forget it if nothing matched at all, or too few COPIES (delimiters don't count)
     if (matched.length === 0) return undefined
-    if (typeof this.minCount === "number" && matched.length < this.minCount) return undefined
-    if (typeof this.maxCount === "number" && matched.length > this.maxCount) return undefined
+    if (typeof this.minCount === "number" && items.length < this.minCount) return undefined
 
     const match = new P.Match({
       rule: this,
@@ -100,20 +111,40 @@ export class Repeat<
     return match.items.map((next) => next.compile())
   }
 
+  /** Our count as rulex:  `{7}`, `{1,6}`, `{3,}`, or `undefined` for none (plain `+` / `*`). */
+  intervalSyntax() {
+    if (typeof this.minCount !== "number") return undefined
+    if (this.maxCount === this.minCount) return `{${this.minCount}}`
+    return `{${this.minCount},${this.maxCount ?? ""}}`
+  }
+
   /**
    * Return rulex string for this rule.
-   * - `rule+` / `rule*` normally, or `[rule delimiter]` (optionally suffixed `?`) when `delimiter` is set.
+   * - `rule+` / `rule*` / `rule{1,6}` normally, or `[rule delimiter]` (optionally suffixed `?`) when `delimiter`
+   *   is set.
+   * - Spaced as written, so it reads back the same:
+   *   - a symbol whose copies may space gets a space before its flag (`- {3,}`;  a run is `-{3,}`)
+   *   - a delimiter that must touch the item touches it (`[{item},]`;  `[{item} ,]` lets it space)
+   * - A named repeat of a subrule prints as written, `{name:rule}+`, not `(name:{rule})+`.
    */
   toRulexSyntax() {
     const { matchGroup, optional } = this.getRulexFlags()
-    const repeatSymbol = this.optional ? "*" : "+"
+    const repeatSymbol = this.intervalSyntax() ?? (this.optional ? "*" : "+")
 
     // don't double-up on parens
     let rule = this.rule.toRulexSyntax()
     if (this.delimiter) {
+      // a sequence item keeps its parens:  `[(its {property}) and]`, else the list can't be read back
+      const bare = this.rule instanceof P.Sequence && !this.rule.matchGroup && !this.rule.optional
+      if (bare) rule = `(${rule})`
       const delimiter = this.delimiter.toRulexSyntax()
-      return `[${matchGroup}${rule}${delimiter}]${optional}`
+      const gap = this.delimiter.spacing === "none" ? "" : " "
+      return `[${matchGroup}${rule}${gap}${delimiter}]${optional}`
     }
+    if (matchGroup && this.rule instanceof P.Subrule && !this.rule.matchGroup && !this.rule.optional) {
+      return `{${matchGroup}${this.rule.rule}}${repeatSymbol}`
+    }
+    if (this.rule instanceof P.Symbol && this.itemSpacing !== "none" && !matchGroup) rule += " "
 
     const wrapInParens =
       matchGroup ||
@@ -138,5 +169,7 @@ export type RepeatProps = Prettify<
     minCount?: number
     /** Maximum number of times `rule` must match. */
     maxCount?: number
+    /** What may sit between one copy and the next, without a delimiter -- see `Repeat.itemSpacing`. */
+    itemSpacing?: P.Spacing
   }
 >

@@ -238,6 +238,18 @@
           },
           "comment.heading4:spell": {
             "bold": true
+          },
+          "comment.bold:spell": {
+            "bold": true
+          },
+          "comment.italic:spell": {
+            "italic": true
+          },
+          "comment.link:spell": {
+            "underline": true
+          },
+          "comment.strikethrough:spell": {
+            "strikethrough": true
           }
         }
       },
@@ -268,6 +280,22 @@
       {
         "id": "heading4",
         "description": "A fourth-level or deeper heading comment:  `####` ... at the start of a line."
+      },
+      {
+        "id": "bold",
+        "description": "Markdown `**bold**` inside a comment (spell docstrings are markdown)."
+      },
+      {
+        "id": "italic",
+        "description": "Markdown `*italic*` inside a comment."
+      },
+      {
+        "id": "link",
+        "description": "A markdown link inside a comment."
+      },
+      {
+        "id": "strikethrough",
+        "description": "Markdown `~~struck~~` inside a comment."
       }
     ],
     "viewsContainers": {

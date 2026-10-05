@@ -168,7 +168,7 @@ assignment.addRule(assignment_statement, {
   ]
 })
 assignment.addRule(assignment_statement, {
-  syntax: "(thing:{variable}) is {value: expression}",
+  syntax: "{thing:variable} is {value:expression}",
   tests: [
     {
       ...setup_assignment_statement(),

@@ -17,7 +17,7 @@
         <!--
           TEMPLATE:  copy to `<topic>/<topic>.html` (same depth, so `../_assets/` still works).
           - Replace every placeholder;  delete the widgets you don't need.
-          - Sections are `<ui-section id header sticky collapsible dividing>`, nested for sub-sections;  a title with
+          - Sections are `<ui-section id header sticky collapsible dividing collapsed>`, nested for sub-sections;  a title with
             markup is a `<span slot="header">`, the icon a `<ui-icon slot="icon">`.  `h4` for sub-sub-items.
           - Keep each section's `id` stable once other pages link to it.
           - Finish with the steps in `packages/docs/AGENTS.md`, "Finishing a page".
@@ -26,7 +26,9 @@
           <ui-breadcrumb-section href="../index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
           <ui-breadcrumb-section active>Short Title</ui-breadcrumb-section>
         </ui-breadcrumb>
-        <h1>Short Title</h1>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head"><h1>Short Title</h1></header></ui-sticky
+        >
         <p class="lede">One sentence: what this doc settles, and for whom.</p>
         <ui-list class="spell-meta">
           <ui-item icon="user">Written for: who reads this, and what they're about to do</ui-item>
@@ -39,7 +41,7 @@
           >
         </ui-list>
 
-        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing collapsed>
           <ui-statistics class="spell-stats" size="mini">
             <ui-statistic value="3×" label="faster"></ui-statistic>
             <ui-statistic value="1.2" label="ms, median"></ui-statistic>
@@ -57,7 +59,7 @@
           </ui-message>
         </ui-section>
 
-        <ui-section id="2-the-design" header="2. The design" sticky collapsible dividing>
+        <ui-section id="2-the-design" header="2. The design" sticky collapsible dividing collapsed>
           <p>
             A short lead, then a nested <code>&lt;ui-section&gt;</code> per distinct part. A
             <dfn class="spell-term" tabindex="0">coined term</dfn>
@@ -68,7 +70,7 @@
             gets its meaning in a popup.
           </p>
 
-          <ui-section id="how-it-flows" header="How it flows" sticky collapsible dividing>
+          <ui-section id="how-it-flows" header="How it flows" sticky collapsible dividing collapsed>
             <ui-steps class="spell-steps" ordered>
               <ui-step header="step one" description="What happens first, and when."></ui-step>
               <ui-step header="step two" description="What it hands on."></ui-step>
@@ -76,7 +78,7 @@
             </ui-steps>
           </ui-section>
 
-          <ui-section id="the-parts" header="The parts" sticky collapsible dividing>
+          <ui-section id="the-parts" header="The parts" sticky collapsible dividing collapsed>
             <ui-cards class="spell-flow" stackable>
               <ui-card>
                 <ui-content>
@@ -93,7 +95,7 @@
             </ui-cards>
           </ui-section>
 
-          <ui-section id="today-vs-proposed" header="Today vs proposed" sticky collapsible dividing>
+          <ui-section id="today-vs-proposed" header="Today vs proposed" sticky collapsible dividing collapsed>
             <ui-table celled compact striped unstackable>
               <table>
                 <tbody>
@@ -120,7 +122,7 @@
             </ui-table>
           </ui-section>
 
-          <ui-section id="trade-offs" header="Trade-offs" sticky collapsible dividing>
+          <ui-section id="trade-offs" header="Trade-offs" sticky collapsible dividing collapsed>
             <ui-grid class="spell-pros-cons" columns="2" stackable>
               <ui-column>
                 <ui-segment>
@@ -141,12 +143,12 @@
             </ui-grid>
           </ui-section>
 
-          <ui-section id="the-code" header="The code" sticky collapsible dividing>
+          <ui-section id="the-code" header="The code" sticky collapsible dividing collapsed>
             <p>Prefer an excerpt from a real, runnable file; say which.</p>
-            <ui-accordion class="spell-code" styled open="0">
+            <ui-accordion class="spell-code" styled>
               <ui-title>example.ts · 6 lines</ui-title>
               <ui-content>
-                <pre><code class="language-ts">// 30 lines or fewer start open (`open="0"`);  longer ones start folded
+                <pre><code class="language-ts">// every code block starts folded:  no `open`
 export function greet(name: string): string {
   return `hello, ${name}`
 }
@@ -157,7 +159,7 @@ const message = greet("spell")</code></pre>
             <p>Variants of one snippet (before / after, TS / JS) go in tabs, one code block per tab.</p>
             <ui-tabs class="spell-tabs" pointing secondary basic aria-label="Before and after">
               <ui-tab label="Before">
-                <ui-accordion class="spell-code" styled open="0">
+                <ui-accordion class="spell-code" styled>
                   <ui-title>before.ts · 3 lines</ui-title>
                   <ui-content>
                     <pre><code class="language-ts">export function greet(name: string): string {
@@ -167,7 +169,7 @@ const message = greet("spell")</code></pre>
                 </ui-accordion>
               </ui-tab>
               <ui-tab label="After">
-                <ui-accordion class="spell-code" styled open="0">
+                <ui-accordion class="spell-code" styled>
                   <ui-title>after.ts · 3 lines</ui-title>
                   <ui-content>
                     <pre><code class="language-ts">export function greet(name: string): string {
@@ -191,7 +193,7 @@ const message = greet("spell")</code></pre>
           </ui-section>
         </ui-section>
 
-        <ui-section id="3-history" header="3. History" sticky collapsible dividing>
+        <ui-section id="3-history" header="3. History" sticky collapsible dividing collapsed>
           <p class="meta">What changed in the decision, newest first. Not every edit: only what a reader must know.</p>
           <ui-feed class="spell-history" size="small">
             <ui-event icon="check">
@@ -209,7 +211,7 @@ const message = greet("spell")</code></pre>
           </ui-feed>
         </ui-section>
 
-        <ui-section id="4-sources" header="4. Sources and experiments" sticky collapsible dividing>
+        <ui-section id="4-sources" header="4. Sources and experiments" sticky collapsible dividing collapsed>
           <ul>
             <li>Runnable scripts in <code>&lt;topic&gt;/experiments/</code>, each saying how to run it.</li>
             <li>Tables quote medians of several runs, never a single run.</li>

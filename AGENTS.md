@@ -23,6 +23,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
     spell's own in `src/spell/` (lodash, `Observable`, `Task` ...).  See its `AGENTS.md`.
   - `packages/parser/` (`@spell-app/parser`, `$/parser`, `P`) -- the generic rule-based parser.  Rulex is an opt-in
     side-effect import, `$/parser/rulex`.  See its `AGENTS.md`.
+  - `packages/markdown/` (`@spell-app/markdown`, `$/markdown`, `MD`) -- GitHub-flavoured markdown on the parser,
+    drawing `ui-*` markup.  See its `AGENTS.md`.
   - `packages/core/` (`@spell-app/core`, `$/core`, `SC`) -- the runtime compiled spell runs on.
     See its `AGENTS.md`.
   - `packages/spell/` (`@spell-app/spell`, `$/spell`, `SP`) -- the spell LANGUAGE on the parser, every spell project
@@ -48,13 +50,15 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
     (`yarn server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:
   `docs` -> anything (its experiments import any package;  nothing imports `docs`),
-  `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
+  `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, `app` / `lsp` -> `markdown` -> `parser`, and
   `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
   `@spell-app/ui` lives on its own.
   - `server` is a LEAF (node built-ins only, imports no package):  ANY package may import it, `ui`'s tools too.
   - The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED, `packages/ui/src/languages/spell.<lang>.js`, a
     committed bundle `yarn gen:spell` (in `packages/ui`) builds from `packages/spell/src/highlight/browser.ts`.  `ui`'s
     source never imports `$/spell`;  regenerate after changing spell's grammar.
+    - Likewise markdown:  `packages/ui/src/components/ui-markdown/md.bundle.js`, built by `yarn gen:markdown` (in
+      `packages/ui`) from `packages/markdown/src/browser.ts`;  regenerate after changing `markdown` or `parser`.
   - The direction is by convention, not enforced:  every alias works from every package.
 - ONE alias table, `tsconfig.base.json` at the repo root, read its header comment.  Every package's `tsconfig.json`
   extends it, so `$/parser` means the same file wherever it's compiled from.

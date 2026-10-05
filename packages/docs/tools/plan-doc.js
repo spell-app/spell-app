@@ -17,8 +17,8 @@
  *   as they are, so every helper here takes either markup ("Sections, either markup").
  */
 import { spawnSync } from "node:child_process"
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
-import { basename, dirname, join, relative, resolve } from "node:path"
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
+import { basename, dirname, join, relative, resolve, sep } from "node:path"
 import { setTimeout as sleep } from "node:timers/promises"
 import { pathToFileURL } from "node:url"
 
@@ -212,7 +212,7 @@ const OLD_DECISIONS_NOTES = [
 ]
 
 /** The `#judgements` section as the template has it:  `migrate` adds it to older docs (`addJudgements()`). */
-const JUDGEMENTS_SECTION = `<ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing>
+const JUDGEMENTS_SECTION = `<ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="gavel"></ui-icon>
           <p class="meta">
             Choices made without you (a bedtime run, an agent mid-phase):  what was chosen, over what, and why.
@@ -353,7 +353,8 @@ export class PlanDoc {
         ...(estimate && { badge: estimate }),
         sticky: "",
         collapsible: "",
-        dividing: ""
+        dividing: "",
+        collapsed: ""
       })
       // newlines around the parts:  oxfmt keeps a custom element's whitespace as it is
       phase.innerHTML = `\n${icon("todo", true)}\n${list}\n`
@@ -435,8 +436,8 @@ ${list}`
   /**
    * Set phase `n` to `status` (`todo` / `active` / `done`), on its section and heading (and an old doc's list).
    * - `done` removes the phase's UPDATE markers:  once it's finished, its changes are just the plan
-   * - `done` also folds every OTHER done phase (`collapsed`;  old markup:  `data-fold="closed"`, read by the page
-   *   runtime):  the phase just finished stays open, the older ones get out of the way
+   * - `done` also folds every done phase (`collapsed`;  old markup:  `data-fold="closed"`, read by the page
+   *   runtime);  no status unfolds a phase:  the reader opens what they want
    * - `done` with `{ done }` (HTML:  a `<ul>` of what was built, what Owen will ask about first):  the phase's Done
    *   field, after its Goal (`setDone()`)
    * - SIDE EFFECT:  logs the change
@@ -462,9 +463,9 @@ ${list}`
     }
     if (status === "done") {
       for (const marker of this.updateMarkers(n)) marker.remove()
-      this.foldDonePhases(n)
+      this.foldDonePhases()
       if (done) this.setDone(n, done)
-    } else setFolded(section, false)
+    }
     this.updateProgress()
     this.updateEstimate()
     this.log(`P${n} ${status}`)
@@ -503,11 +504,13 @@ ${list}`
     return count
   }
 
-  /** Fold every done phase but `latest` (the one finished last), which unfolds. */
-  foldDonePhases(latest) {
+  /**
+   * Fold every done phase;  never unfold one.
+   * - Why:  docs start folded and open on demand (`packages/docs/AGENTS.md`, "Writing a page")
+   */
+  foldDonePhases() {
     for (const section of this.phaseSections) {
-      const n = Number(section.getAttribute("data-phase"))
-      setFolded(section, n !== latest && section.getAttribute("data-status") === "done")
+      if (section.getAttribute("data-status") === "done") setFolded(section, true)
     }
   }
 
@@ -774,7 +777,8 @@ ${list}`
       header: "0. To test",
       sticky: "",
       collapsible: "",
-      dividing: ""
+      dividing: "",
+      collapsed: ""
     })
     section.innerHTML =
       `\n<ui-icon slot="icon" name="${SECTION_ICONS.tests}"></ui-icon>\n<p class="meta">${TESTS_NOTE}</p>\n` +
@@ -1581,8 +1585,8 @@ ${list}`
       changes.push(`${swapped} sections' old icon swapped (Questions:  file circle question, Judgement calls:  gavel)`)
     const done = this.phases.filter((phase) => phase.status === "done")
     if (done.length && !this.phaseSections.some(isFolded)) {
-      this.foldDonePhases(done.at(-1).n)
-      if (done.length > 1) changes.push(`${done.length - 1} done phases folded`)
+      this.foldDonePhases()
+      changes.push(`${done.length} done phases folded`)
     }
     const badges = this.estimatesToBadges()
     if (badges) changes.push(`${badges} phase estimates moved into their titles' badges`)
@@ -2851,8 +2855,27 @@ function hereDoc(name) {
  */
 function epicFile(name) {
   return checkouts(name)
-    .map((root) => planDocIn(join(root, "packages/docs/content/epics", name), name))
+    .map((root) => planDocIn(join(epicsDirOf(root), name), name))
     .find(Boolean)
+}
+
+/**
+ * Where checkout `root` keeps its plan docs:  `packages/docs/content/epics`, or (a worktree cut before
+ * 2026-10-04, epic `shared-content` P2) `packages/docs/epics`.
+ */
+function epicsDirOf(root) {
+  const epics = join(root, "packages/docs/content/epics")
+  const old = join(root, "packages/docs/epics")
+  return !existsSync(epics) && existsSync(old) ? old : epics
+}
+
+/** `path` with every link resolved, or `path` itself when it doesn't exist. */
+function realOrSelf(path) {
+  try {
+    return realpathSync(path)
+  } catch {
+    return path
+  }
 }
 
 /** The main checkout's root:  the parent of git's common dir (`.git`), the same from any worktree. */
@@ -2871,7 +2894,15 @@ function checkouts(name) {
         .map((entry) => join(trees, entry.name))
     : []
   const own = worktrees.filter((root) => basename(root) === name)
-  return [...own, main, ...worktrees.filter((root) => basename(root) !== name)]
+  // shared content (`packages/docs/content` a link into `../spell-app-dev`):  every checkout has the SAME epics;
+  // keep the first checkout of each real folder, so an epic's own worktree (else main) answers for it
+  const seen = new Set()
+  return [...own, main, ...worktrees.filter((root) => basename(root) !== name)].filter((root) => {
+    const real = realOrSelf(epicsDirOf(root))
+    if (seen.has(real)) return false
+    seen.add(real)
+    return true
+  })
 }
 
 /**
@@ -2884,7 +2915,7 @@ function listEpics() {
   const main = mainRoot()
   const names = new Set()
   for (const root of checkouts()) {
-    const epics = join(root, "packages/docs/content/epics")
+    const epics = epicsDirOf(root)
     if (!existsSync(epics)) continue
     for (const entry of readdirSync(epics, { withFileTypes: true })) {
       if (entry.isDirectory() && planDocIn(join(epics, entry.name), entry.name)) names.add(entry.name)
@@ -2895,7 +2926,7 @@ function listEpics() {
     const plan = read(file)
     const sections = plan.reviewSections()
     const phases = plan.phases
-    const root = file.slice(0, file.indexOf(`${join("packages", "docs", "content", "epics")}`) - 1)
+    const root = checkoutOf(file)
     return {
       name,
       title: docTitle(plan.document) ?? name,
@@ -2981,9 +3012,22 @@ function escapeAll(value) {
   return text(value).replace(/"/g, "&quot;")
 }
 
-/** `git <args>` in `DOCS`, trimmed stdout ("" on failure). */
+/**
+ * `git <args>` in this checkout, trimmed stdout ("" on failure).
+ * - NEVER in `DOCS`:  once `packages/docs/content` is a link into the shared content repo, git run there sees
+ *   THAT repo, not spell-app
+ */
 function git(...args) {
-  return gitIn(DOCS, ...args)
+  return gitIn(ROOT, ...args)
+}
+
+/**
+ * The spell-app checkout a doc belongs to:  its path up to `/packages/docs/` (another worktree's, maybe), else
+ * `ROOT`.  Git for a doc runs there, never in the doc's folder (`git()`).
+ */
+function checkoutOf(file) {
+  const at = file.lastIndexOf(`${sep}packages${sep}docs${sep}`)
+  return at > 0 ? file.slice(0, at) : ROOT
 }
 
 /** `git <args>` in folder `cwd` (a checkout:  the doc's own, which may be another worktree), trimmed stdout ("" on failure). */
@@ -2998,12 +3042,12 @@ function gitIn(cwd, ...args) {
  * - so green means changed in this commit or the last:  everything since the commit before those
  */
 function recentSince(file) {
-  return gitIn(dirname(file), "log", "-1", "--format=%cI", "HEAD~2") || null
+  return gitIn(checkoutOf(file), "log", "-1", "--format=%cI", "HEAD~2") || null
 }
 
 /** The GitHub page of the doc's repo (`githubBase()` of `origin`), or `null`. */
 function commitBase(file) {
-  return githubBase(gitIn(dirname(file), "remote", "get-url", "origin"))
+  return githubBase(gitIn(checkoutOf(file), "remote", "get-url", "origin"))
 }
 
 /**
@@ -3014,8 +3058,8 @@ function commit(file, [sha, sentence], { phase, item }) {
   need(sha, "a commit sha")
   need(sentence, "a sentence:  what the commit did")
   if ((phase === undefined) === (item === undefined)) throw new PlanDocError(`commit needs --phase N or --item <id>`)
-  const full = gitIn(dirname(file), "rev-parse", "--verify", "--quiet", `${sha}^{commit}`)
-  if (!full) throw new PlanDocError(`no commit "${sha}" in ${dirname(file)}`)
+  const full = gitIn(checkoutOf(file), "rev-parse", "--verify", "--quiet", `${sha}^{commit}`)
+  if (!full) throw new PlanDocError(`no commit "${sha}" in ${checkoutOf(file)}`)
   const target = phase !== undefined ? { phase: Number(phase) } : { item: String(item) }
   const base = commitBase(file)
   const done = edit(file, (plan) => plan.addCommit(target, full, sentence, { base }))
@@ -3024,25 +3068,24 @@ function commit(file, [sha, sentence], { phase, item }) {
 }
 
 /**
- * `commits <name> --backfill`:  the doc's git history (`git log --follow`:  every phase commit touches the plan doc)
- * into its phases' and items' commit lists (`PlanDoc.backfillCommits()`);  prints what it added.
+ * `commits <name> --backfill`:  the doc's phase and item commits into its phases' and items' commit lists
+ * (`PlanDoc.backfillCommits()`);  prints what it added.
+ * - a doc spell-app tracks:  its git history (`git log --follow`:  every phase commit touches the plan doc)
+ * - a SHARED doc (`packages/docs/content` a link into the shared content repo):  spell-app has no history of it, so
+ *   `sharedDocLog()`
  */
 function backfillCommits(file) {
   // the doc as HEAD has it:  a rename to `<name>.plan.html` not committed yet has no history of its own, so follow
   // the old name;  once committed, `--follow` goes through the rename
-  const dir = dirname(file)
-  const names = [basename(file), basename(file).replace(/\.plan\.html$/, ".html")]
+  const checkout = checkoutOf(file)
+  const path = relative(checkout, file).split(sep).join("/")
+  const names = [path, path.replace(/\.plan\.html$/, ".html")]
   const tracked = names.find(
-    (name) => spawnSync("git", ["cat-file", "-e", `HEAD:./${name}`], { cwd: dir }).status === 0
+    (name) => spawnSync("git", ["cat-file", "-e", `HEAD:${name}`], { cwd: checkout }).status === 0
   )
-  const raw = gitIn(dir, "log", "--follow", "--format=%H%x09%s", "--", tracked ?? basename(file))
-  const log = raw
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => {
-      const [sha, ...subject] = line.split("\t")
-      return { sha, subject: subject.join("\t") }
-    })
+  const log = tracked
+    ? parseLog(gitIn(checkout, "log", "--follow", "--format=%H%x09%s", "--", tracked))
+    : sharedDocLog(file, checkout)
   const base = commitBase(file)
   const added = edit(file, (plan) => plan.backfillCommits(log, { base }))
   for (const entry of added) {
@@ -3052,6 +3095,43 @@ function backfillCommits(file) {
   console.log(`${added.length} commit${added.length === 1 ? "" : "s"} added (${log.length} in the doc's history)`)
 }
 
+/** `git log --format=%H%x09%s` output as `{ sha, subject }`s, newest first. */
+function parseLog(raw) {
+  return raw
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const [sha, ...subject] = line.split("\t")
+      return { sha, subject: subject.join("\t") }
+    })
+}
+
+/**
+ * A shared doc's commits:  `checkout`'s commits since the doc was started (its `#plan-started` date) whose subject
+ * names THIS epic's work, newest first.
+ * - `<epic> ...` (`shared-content P3:`, `shared-content I3:`)
+ * - `P3:  <P3's name> -- ...`:  the phase name must match, since other epics have a P3 too
+ * - a bare `Fix I3:` could be any epic's:  left out (write `<epic> I3:` instead)
+ */
+export function sharedDocLog(file, checkout) {
+  const html = readFileSync(file, "utf8")
+  const name = basename(file).replace(/(\.plan)?\.html$/, "")
+  const since = /\bid="plan-started"[^>]*>\s*(\d{4}-\d\d-\d\d)/.exec(html)?.[1]
+  const phases = PlanDoc.parse(html).phases
+  const raw = gitIn(checkout, "log", "--format=%H%x09%s", ...(since ? [`--since=${since}`] : []))
+  return parseLog(raw).filter(({ subject }) => {
+    if (subject.startsWith(`${name} `)) return true
+    const parsed = parseCommitSubject(subject)
+    return Boolean(
+      parsed?.phases.length &&
+      parsed.phases.every((n) => {
+        const phase = phases.find((each) => each.n === n)
+        return phase && subject.includes(phase.name)
+      })
+    )
+  })
+}
+
 /**
  * Rewrite the docs index:  a plan's status badge follows its phases.
  * - NOT in a worktree:  every phase change there would rewrite the committed `index.html`, and two epics' worktrees
@@ -3059,7 +3139,9 @@ function backfillCommits(file) {
  *   `RunningEpics`);  the epic's card comes with Doc Review's `yarn docs:index`.
  */
 function reindex() {
-  if (/[\\/]\.claude[\\/]worktrees[\\/]/.test(DOCS)) return
+  // shared content:  one index for every checkout, so a worktree updates it too
+  const shared = lstatSync(DOCS, { throwIfNoEntry: false })?.isSymbolicLink()
+  if (!shared && /[\\/]\.claude[\\/]worktrees[\\/]/.test(DOCS)) return
   const run = spawnSync("node", [join(TOOLS, "index.js")], { cwd: DOCS, encoding: "utf8" })
   if (run.status !== 0) process.stderr.write(`plan-doc:  docs index not updated\n${run.stdout}${run.stderr}`)
 }
