@@ -74,6 +74,7 @@
       "guides",
       "pages",
       "templates",
+      "brand",
       "packages/docs/tools/_assets"
     ]
   },

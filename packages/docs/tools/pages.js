@@ -39,14 +39,30 @@ export const GUIDES = join(ROOT, "guides")
 /** `pages/`:  the docs home (`HOME`) and the scratch details pages (`DETAILS`). */
 export const PAGES = join(ROOT, "pages")
 
-/** `pages/index.html`:  the docs home. */
+/** `pages/index.html`:  the docs home, a routing page:  a card per area (`index.js`, claude-design P5). */
 export const HOME = join(PAGES, "index.html")
 
 /** `pages/details/`:  scratch details pages (`spell dev details new`, no `--epic`). */
 export const DETAILS = join(PAGES, "details")
 
+/**
+ * `brand/`:  the brand pages (the pony ...) and the design system's push record.
+ * - NOT in `AREAS`:  its pages come from Claude Design, not the docs' templates, so `docs update` doesn't check
+ *   them;  `index.js` lists them on `brand/index.html`
+ */
+export const BRAND = join(ROOT, "brand")
+
+/** `goals/`:  the goal sets, `goals/<set>/index.html` (their tooling:  `tools/goals/`). */
+export const GOALS = join(ROOT, "goals")
+
 /** Every folder `findPages()` walks:  the home first, then the areas. */
 export const AREAS = [PAGES, GUIDES, EPICS, TEMPLATES]
+
+/**
+ * Each area's list page, `<area>/index.html`, written by `index.js` (claude-design P5):  every epic, guide,
+ * template and brand page.  Never listed themselves.
+ */
+export const LIST_PAGES = [EPICS, GUIDES, TEMPLATES, BRAND].map((area) => join(area, "index.html"))
 
 /** The old content folder (a link in checkouts cut before 2026-10-05, into the old-path links):  never walked. */
 export const OLD_CONTENT = join(PACKAGE, "content")
@@ -183,7 +199,8 @@ export function ensurePageServer() {
  * A template's `html` fixed for a page `depth` folders below the checkout's root (`guides/glossary.html` is 1,
  * `epics/a/a.plan.html` 2).
  * - rewrites whatever depth the template assumed:  `_assets` paths (`<up>packages/docs/tools/_assets/`), the docs
- *   home's paths (`<up>pages/index.html`), and the site header's `root` (`<up>`:  the path up to the root)
+ *   home's paths (`<up>pages/index.html`), the areas' list pages (`<up>epics/index.html` ...), and the site
+ *   header's `root` (`<up>`:  the path up to the root)
  * - drops the template's `TEMPLATE:` how-to comment
  * - `docs:new`, `details new`, `plan-doc new`
  */
@@ -195,6 +212,7 @@ export function atDepth(html, depth) {
       `$1${up}packages/docs/tools/_assets/`
     )
     .replace(/((?:href|src)=")(?:\.\.\/)*(?:pages\/)?index\.html/g, `$1${up}pages/index.html`)
+    .replace(/((?:href|src)=")(?:\.\.\/)*(epics|guides|templates|brand)\/index\.html/g, `$1${up}$2/index.html`)
     .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up.replace(/\/$/, "") || "."}"`)
     .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
 }
