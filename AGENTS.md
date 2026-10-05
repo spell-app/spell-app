@@ -20,9 +20,9 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 - Spell:  the parser, the spell language and its tools, and `@spell-app/ui` -- one yarn workspace per folder in
   `packages/`.  Root `yarn ts` / `yarn test` / `yarn review` run each package's own script of that name.
 - This file holds what's about THIS repo:  packages, worktrees, changelog, commands, toolchain, ledgers.  The house
-  style every package shares is WWOD (`agents/wwod/`, above;  shared content, like the ledgers).  Each package's `AGENTS.md` holds only
-  what's local to it;  a section there with the same name as one here, or as a WWOD rule, EXTENDS it ("As the
-  root's, plus:", "As WWOD §4, plus:").
+  style every package shares is WWOD (`agents/wwod/`, above;  shared content, like the ledgers).  Each package's
+  `AGENTS.md` holds only what's local to it;  a section there with the same name as one here, or as a WWOD rule,
+  EXTENDS it ("As the root's, plus:", "As WWOD §4, plus:").
   - Codex reads every `AGENTS.md` from the root down to its working folder;  Claude Code loads the root `CLAUDE.md`
     plus the package's.  So a rule lives in exactly ONE place.
 - Packages (`$/name` is the import alias, `$` meaning `packages/`;  `X` the self-namespace -- WWOD §4):
@@ -131,7 +131,8 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 - Three folders are NOT tracked by spell-app (epic `shared-content`, live since 2026-10-04):
   - `packages/docs/content/` -- docs pages, plan docs, templates, details pages (URLs `/packages/docs/content/...`)
   - `goals/` -- the goal sets (their tooling:  `packages/docs/tools/goals/`, tracked)
-  - `agents/` -- the three logs:  `agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md`
+  - `agents/` -- the three logs (`agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md`), and
+    WWOD, the house style (`agents/wwod/`):  one copy of the rules for every branch
 - In EVERY checkout (main and each worktree) they're folder SYMLINKS into one shared content repo beside the main
   checkout, `../spell-app-dev`:  an ordinary git repo, local only.
   - So every worktree sees every edit at once:  no per-branch copy, and these files never conflict on merge.
