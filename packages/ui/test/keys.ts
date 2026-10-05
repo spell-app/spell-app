@@ -1,4 +1,4 @@
-import { userEvent } from "vitest/browser"
+import { userEvent } from "vite-plus/test/browser"
 
 import { UI } from "$/ui/runtime"
 

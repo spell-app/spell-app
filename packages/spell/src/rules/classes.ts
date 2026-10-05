@@ -338,7 +338,7 @@ class new_list extends SpellStatement<"instanceType?"> {
   }
 }
 classes.addRule(new_list, {
-  syntax: "a new (list|List) (of {instanceType:type}?)",
+  syntax: "a new (list|List) of {instanceType:type}?",
   tests: [
     {
       compileAs: "expression",

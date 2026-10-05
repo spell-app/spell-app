@@ -1,0 +1,10 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  // The repo root's rules, as they are.
+  "extends": ["../../.oxlintrc.json"],
+  // MUST be listed:  without it, oxlint adds its DEFAULT plugins (e.g. `unicorn`) to the extended ones
+  "plugins": ["typescript", "oxc", "import"],
+
+  // NOTE: NOT inherited from the root's.
+  "ignorePatterns": ["build", "dist", ".cache"]
+}

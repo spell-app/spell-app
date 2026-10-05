@@ -1,9 +1,13 @@
 /*
  * `<ui-markdown>`:  ours, not Fomantic's.  GitHub's markdown look, on `ui`'s tokens.
  * - Shadow markup contract:  the source parts (`<ui-loader part="loader">`, `<ui-message part="error">`), then
- *   `<article class="ui [size] markdown" part="body">` holding the rendered HTML (`h1`-`h6` with ids, `p`, lists
- *   (task items:  `li > input[type=checkbox]`), `blockquote`, `table`, `hr`, `img`, inline `code`, `del`), with each
- *   code block as a `<ui-code>` (its own sheet).
+ *   a `<section>` holding `<article class="ui [size] markdown" part="body">`, the rendered HTML (`h1`-`h6` with ids,
+ *   `p`, lists (task items:  `li > input[type=checkbox]`), `blockquote`, `table`, `hr`, `img`, inline `code`, `del`),
+ *   with each code block as a `<ui-code>` (its own sheet).
+ * - `editable`:  `<nav part="tabs">` of `<button part="tab" aria-selected>`, a `<section>` around `<textarea
+ *   part="editor">`, then the article's `<section>` (both `role=tabpanel`).  The article's blocks are spell's
+ *   engine's `ui-*` elements (`ui-header`, `ui-list`, `ui-table` ...):  each styles itself, this sheet only spaces
+ *   them.
  * - Sizes by the generic remap:  `.ui.small` ... set `--ui-scale`, the article scales its font by it.
  * - Public tokens are NEVER declared here:  each is read through its private alias (`docs/theming.md`).
  */
@@ -16,6 +20,11 @@
 
 @layer ui.components.markdown.types {
   :host {
+    --_ui-markdown-editor-border: var(--ui-markdown-editor-border, var(--ui-border-color));
+    --_ui-markdown-editor-background: var(--ui-markdown-editor-background, var(--ui-surface));
+    --_ui-markdown-color: var(--ui-markdown-color, var(--ui-text-color));
+    --_ui-markdown-muted: var(--ui-markdown-muted, var(--ui-text-muted));
+    --_ui-markdown-radius: var(--ui-markdown-radius, var(--ui-radius));
     display: block;
   }
 
@@ -127,8 +136,8 @@
     background: var(--_ui-markdown-rule-color);
   }
 
-  /* tables:  bordered cells, striped rows, scroll when too wide */
-  .ui.markdown table {
+  /* tables:  bordered cells, striped rows, scroll when too wide;  NOT a `<ui-table>`'s, which styles its own */
+  .ui.markdown table:not(ui-table > table) {
     display: block;
     width: max-content;
     max-width: 100%;
@@ -136,16 +145,16 @@
     border-collapse: collapse;
   }
 
-  .ui.markdown :is(th, td) {
+  .ui.markdown :is(th, td):not(ui-table *) {
     padding: 0.4em 0.8em;
     border: 1px solid var(--_ui-markdown-table-border);
   }
 
-  .ui.markdown th {
+  .ui.markdown th:not(ui-table *) {
     font-weight: 600;
   }
 
-  .ui.markdown tbody tr:nth-child(2n) {
+  .ui.markdown tbody tr:nth-child(2n):not(ui-table *) {
     background: var(--_ui-markdown-stripe);
   }
 
@@ -172,6 +181,20 @@
     display: block;
   }
 
+  /* spell's engine (`editable`):  its `ui-*` blocks get the same rhythm */
+  .ui.markdown :is(ui-header, ui-list, ui-message, ui-segment, ui-table, ui-divider) {
+    display: block;
+    margin-block: 0 1em;
+  }
+
+  .ui.markdown ui-header {
+    margin-block-start: 1.5em;
+  }
+
+  .ui.markdown ui-list ui-list {
+    margin-block-end: 0;
+  }
+
   /* no gap above the first block or below the last:  AFTER the block rules, which set both */
   .ui.markdown > :first-child {
     margin-block-start: 0;
@@ -179,5 +202,51 @@
 
   .ui.markdown > :last-child {
     margin-block-end: 0;
+  }
+
+  /* `editable`:  Write / Preview tabs over the text box or the preview, GitHub's comment box */
+  [part~="tabs"] {
+    display: flex;
+    gap: 0.25em;
+    border-block-end: 1px solid var(--_ui-markdown-editor-border);
+  }
+
+  [part~="tab"] {
+    margin-block-end: -1px;
+    padding: 0.5em 1em;
+    border: 1px solid transparent;
+    border-start-start-radius: var(--_ui-markdown-radius);
+    border-start-end-radius: var(--_ui-markdown-radius);
+    background: none;
+    color: var(--_ui-markdown-muted);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  [part~="tab"][aria-selected="true"] {
+    border-color: var(--_ui-markdown-editor-border);
+    border-block-end-color: var(--_ui-markdown-editor-background);
+    background: var(--_ui-markdown-editor-background);
+    color: var(--_ui-markdown-color);
+  }
+
+  [part~="editor"] {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 12em;
+    padding: 0.75em;
+    border: 1px solid var(--_ui-markdown-editor-border);
+    border-radius: var(--_ui-markdown-radius);
+    background: var(--_ui-markdown-editor-background);
+    color: var(--_ui-markdown-color);
+    font-family: var(--ui-font-family-mono);
+    font-size: 0.875em;
+    line-height: 1.5;
+    resize: vertical;
+  }
+
+  [part~="tabs"] ~ section {
+    margin-block-start: 0.75em;
   }
 }

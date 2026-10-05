@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config"
+import { defineConfig } from "vite-plus"
 
 import { standardDecorators } from "../../vite.decorators.ts"
 import { packageVersion } from "../../vite.packageVersion.ts"

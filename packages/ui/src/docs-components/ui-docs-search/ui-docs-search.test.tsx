@@ -1,5 +1,5 @@
 import { flush } from "solid-js"
-import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"

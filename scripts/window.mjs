@@ -64,13 +64,15 @@
  * - Later, it can still move:  `open <name>`, `handoff <name>`.
  *
  * ## Commands
- * - `init`:  write the window file of every package that lacks one;  never overwrites (themes are Owen's to change)
+ * - `init`:  write the window file of every package that lacks one;  never overwrites (themes are Owen's to change),
+ *   except to add the shared content repo as a folder when a window file lacks it (`Window.sharedFolder()`)
  * - `which`:  this session's window:  pid, workspace file, folders
  * - `add <path> [--name <name>]`:  add a folder (a worktree) to the window;  needs a window opened from its
  *   `.code-workspace` (else the change would restart its extensions, Claude panel included)
  * - `remove <path>`:  remove that folder again;  never the window's first
- * - `show <file>`:  show an `.html` doc in the window's doc preview (the right side bar's "Spell Docs" view);  in the window this session
- *   is moving to, once it has, while a `handoff` is pending
+ * - `show <file> [--hash <id>] [--review]`:  show an `.html` doc in the window's doc preview (the right side bar's
+ *   "Spell Docs" tab;  `--review`:  its "Review" tab), at id `<id>`;  in the window this session is moving to, once
+ *   it has, while a `handoff` is pending
  * - `open <name> [--pkg <pkg>]`:  write worktree `<name>`'s window file and open it in a new window;  `<pkg>`
  *   defaults to this session's window's package.  `close <name>`:  close that window, delete the file.
  * - `handoff <name> [--back] [--prompt <text>]`:  move this session to worktree `<name>`'s window when its turn
@@ -145,7 +147,8 @@ export class Window {
     return {
       folders: [
         { path: "..", name: "spell-app" },
-        { path: `../packages/${pkg}`, name: pkg }
+        { path: `../packages/${pkg}`, name: pkg },
+        ...Window.sharedFolder(join(ROOT, "workspaces"))
       ],
       settings: {
         "workbench.colorTheme": THEMES[pkg] ?? FALLBACK_THEME,
@@ -155,16 +158,51 @@ export class Window {
     }
   }
 
-  /** `init`:  write the missing window files;  returns the paths written. */
+  /**
+   * `init`:  write the missing window files, and add the shared content repo to those that lack it;  returns the
+   * paths written.
+   * - an existing file VS Code can't read as JSON (comments) is left alone
+   */
   static init() {
     const written = []
     for (const pkg of Window.packages) {
       const file = Window.file(pkg)
-      if (existsSync(file)) continue
-      writeFileSync(file, `${JSON.stringify(Window.workspace(pkg), null, 2)}\n`)
-      written.push(relative(ROOT, file))
+      if (!existsSync(file)) {
+        writeFileSync(file, `${JSON.stringify(Window.workspace(pkg), null, 2)}\n`)
+        written.push(relative(ROOT, file))
+        continue
+      }
+      const shared = Window.sharedFolder(dirname(file))
+      if (!shared.length) continue
+      try {
+        const workspace = JSON.parse(readFileSync(file, "utf8"))
+        if (workspace.folders?.some((folder) => folder.name === shared[0].name)) continue
+        workspace.folders = [...(workspace.folders ?? []), ...shared]
+        writeFileSync(file, `${JSON.stringify(workspace, null, 2)}\n`)
+        written.push(relative(ROOT, file))
+      } catch {
+        // JSONC:  VS Code reads it, we don't;  add the folder by hand
+      }
     }
     return written
+  }
+
+  /**
+   * The shared content repo (epic `shared-content`) as a window folder, `[{ path, name }]` with `path` relative to
+   * `fromDir` (where the window file is);  `[]` when it doesn't exist.
+   * - its own Source Control entry (the auto commits) and search;  permanent, so unlike a worktree it belongs in a
+   *   package window
+   * - where:  `"shared": { "dir" }` in the main checkout's `package.json`, else `../spell-app-dev`
+   */
+  static sharedFolder(fromDir) {
+    let dir = "../spell-app-dev"
+    try {
+      dir = JSON.parse(readFileSync(join(MAIN_ROOT, "package.json"), "utf8")).shared?.dir ?? dir
+    } catch {
+      // no manifest:  the default
+    }
+    const shared = resolve(MAIN_ROOT, dir)
+    return existsSync(shared) ? [{ path: relative(fromDir, shared), name: "spell-app-dev" }] : []
   }
 
   ////////////////
@@ -186,7 +224,8 @@ export class Window {
       folders: [
         { path: "../..", name: "spell-app" },
         { path: `${worktree}/packages/${pkg}`, name: `${pkg} ⎇ ${name}` },
-        { path: worktree, name: `spell-app ⎇ ${name}` }
+        { path: worktree, name: `spell-app ⎇ ${name}` },
+        ...Window.sharedFolder(join(MAIN_ROOT, "workspaces", "ongoing"))
       ],
       settings: {
         "workbench.colorTheme": Window.theme(pkg),
@@ -271,7 +310,7 @@ export class Window {
    *   file goes.  Not in that window (an older session, or the move there failed):  `null`, nothing to move.
    * - the record ~== `{ sessionId, to, from, close, remove, show, prompt }`:  `to` the target window's file, `from`
    *   this window's pid, `close` `"tab"` or `"window"`, `remove` a file to delete after, `show` a doc to show
-   *   there, `{ file, hash }` (`Window.show()` sets it), `prompt` text typed into the new tab (or `null`)
+   *   there, `{ file, hash?, view? }` (`Window.show()` sets it), `prompt` text typed into the new tab (or `null`)
    */
   static handoff(name, sessionId, { back = false, prompt = null } = {}) {
     if (!SESSION_ID.test(sessionId ?? "")) throw new Error("no session:  $CLAUDE_CODE_SESSION_ID isn't set")
@@ -335,12 +374,14 @@ export class Window {
   /**
    * Show `file` (an `.html` doc) in this session's window's doc preview, at id `hash` if given;  resolves to
    * `{ window }` (the registry entry it showed in) or `{ later }` (the window file it will show in).
+   * - `view`:  the side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review");  sent only when
+   *   given, so an extension from before the tabs still shows the doc
    * - a `handoff` pending for `sessionId`:  NOT here, where the session's tab is about to close, but in the window
-   *   it moves to, once it has (`resume`).  The preview shows one doc, so the last asked for wins.
+   *   it moves to, once it has (`resume`).  The handoff keeps ONE doc, so the last asked for wins, whichever tab.
    * - throws as `request()` does:  no window, or it failed
    */
-  static async show(file, { hash, sessionId = process.env.CLAUDE_CODE_SESSION_ID } = {}) {
-    const show = hash ? { file, hash } : { file }
+  static async show(file, { hash, view, sessionId = process.env.CLAUDE_CODE_SESSION_ID } = {}) {
+    const show = { file, ...(hash && { hash }), ...(view && { view }) }
     const pending = SESSION_ID.test(sessionId ?? "") ? Window.handoffFile(sessionId) : null
     if (pending && existsSync(pending)) {
       const handoff = { ...JSON.parse(readFileSync(pending, "utf8")), show }
@@ -507,7 +548,8 @@ export class Window {
         const { removed } = await Window.request("remove-folder", { path }, window)
         console.log(removed ? `removed ${path} from window ${window.pid}` : `${path} isn't in window ${window.pid}`)
       } else {
-        const { later } = await Window.show(path)
+        const hash = typeof flags.hash === "string" ? flags.hash : undefined
+        const { later } = await Window.show(path, { hash, view: flags.review ? "review" : undefined })
         console.log(
           later
             ? `${path} shows in ${relative(MAIN_ROOT, later)}'s window once this session moves there`
@@ -547,7 +589,8 @@ export class Window {
         const { closed, matches, shown } = await Window.resume(handoff, flags.title)
         console.log(`${new Date().toISOString()}  opened session ${handoff.sessionId} in ${handoff.to}`)
         if (shown !== undefined) console.log(`  ${shown ? "showed" : "couldn't show"} ${handoff.show.file}`)
-        if (!closed) console.log(`  left its old ${handoff.close} open (tabs per title:  ${JSON.stringify(matches ?? {})})`)
+        if (!closed)
+          console.log(`  left its old ${handoff.close} open (tabs per title:  ${JSON.stringify(matches ?? {})})`)
         return 0
       }
       if (command === "close") {
@@ -575,7 +618,9 @@ const USAGE = `usage:  yarn window <command>
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window
   remove <path>                remove it again
-  show <file>                  show an .html doc in the window's doc preview (right side bar)
+  show <file> [--hash <id>] [--review]
+                               show an .html doc in the window's doc preview (right side bar's
+                               "Spell Docs" tab;  --review:  its "Review" tab), at id <id>
                                (moving:  in the window this session moves to)
   open <name> [--pkg <pkg>]    open worktree <name> in a new window (default package:  this window's)
   close <name>                 close that window, delete its file

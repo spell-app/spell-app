@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
-import { page, userEvent } from "vitest/browser"
+import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
+import { page, userEvent } from "vite-plus/test/browser"
 import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
@@ -287,7 +287,7 @@ describe("<ui-toast> actions bar", () => {
 
 describe("<ui-toast> life", () => {
   // `pause-on-hover="false"` on the timer tests:  on CI (Linux) they never time out, perhaps because the test
-  // pointer rests where toasts appear -- see `SUSPECTED-BUGS.md`.  Hover pausing has its own tests, below.
+  // pointer rests where toasts appear -- see `agents/SUSPECTED-BUGS.md`.  Hover pausing has its own tests, below.
   it("fires ui-show, then closes itself after display-time:  ui-close (timeout), hidden, ui-hide", async () => {
     const host = Fixture.render<Toast>(`<ui-toast display-time="80" pause-on-hover="false" message="Bye"></ui-toast>`)
     const shown = next<ToastShowDetail>(host, "ui-show")

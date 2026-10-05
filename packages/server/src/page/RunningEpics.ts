@@ -1,18 +1,21 @@
-import { existsSync, readdirSync, readFileSync, watch, type FSWatcher } from "node:fs"
-import { join, relative, sep } from "node:path"
+import { existsSync, readdirSync, readFileSync, realpathSync, watch, type FSWatcher } from "node:fs"
+import { basename, join, relative, sep } from "node:path"
 
 import type { SRV } from "$/server"
 
 /****************
  * ### `RunningEpics`
  * The main checkout's page server showing every RUNNING epic's plan doc:  the ones still in their worktree
- * (`.claude/worktrees/<w>/packages/docs/epics/<name>/<name>.html`), not yet merged into the main checkout.
+ * (`.claude/worktrees/<w>/packages/docs/content/epics/<name>/<name>.plan.html`, or an old `<name>.html`), not yet
+ * merged into the main checkout.
+ * - a worktree cut before 2026-10-04 keeps its plan docs in `packages/docs/epics/` (no `content/`):  found there too
+ *   (`EPICS_DIRS`)
  * - Why:  each worktree has its own page server (its own port), and the main one refuses `.claude/...` (a dot
  *   path), so the docs index couldn't show an epic until it merged.
  * - `/worktrees/<w>/...` serves worktree `<w>`'s files (`StaticHandler` mount, dot files still refused), so a plan
  *   doc's relative assets come from its own worktree.
  * - `/_server/epics`:  the list, as JSON (`RunningEpic[]`).
- * - The docs index (`packages/docs/index.html`):  its `<!-- running-epics -->` marker, first in the Epics card
+ * - The docs index (`packages/docs/content/index.html`):  its `<!-- running-epics -->` marker, first in the Epics card
  *   list, becomes the running epics' cards, rendered on each request:  running and merged epics in ONE list, each
  *   card's title after its state (`stateMark()`).  None running:  nothing.  Opened from disk:  the marker stays a
  *   comment.
@@ -38,22 +41,33 @@ export class RunningEpics {
   constructor(root: string) {
     this.root = root
     this.worktrees = join(root, ".claude", "worktrees")
-    this.index = join(root, "packages", "docs", "index.html")
+    this.index = join(root, "packages", "docs", "content", "index.html")
   }
 
-  /** every running epic, by worktree then name */
+  /**
+   * every running epic, by worktree then name
+   * - shared content (a worktree's epics folder IS the main checkout's, through a link into `../spell-app-dev`):  the
+   *   card links the main checkout's own URL, so edit mode and live reload work there
+   */
   list(): RunningEpic[] {
     const found: RunningEpic[] = []
+    const mainEpics = EPICS_DIRS.find((epics) => existsSync(join(this.root, epics)))
+    const mainReal = mainEpics && realOrSelf(join(this.root, mainEpics))
     for (const worktree of folders(this.worktrees)) {
-      const epics = join(this.worktrees, worktree, "packages", "docs", "epics")
-      for (const name of folders(epics)) {
-        const file = join(epics, name, `${name}.html`)
-        if (!existsSync(file)) continue
-        if (name !== worktree && existsSync(join(this.root, "packages", "docs", "epics", name))) continue
+      const checkout = join(this.worktrees, worktree)
+      const dir = EPICS_DIRS.find((epics) => existsSync(join(checkout, epics)))
+      if (!dir) continue
+      const shared = realOrSelf(join(checkout, dir)) === mainReal
+      for (const name of folders(join(checkout, dir))) {
+        const file = planFile(join(checkout, dir, name), name)
+        if (!file) continue
+        if (name !== worktree && EPICS_DIRS.some((epics) => existsSync(join(this.root, epics, name)))) continue
         found.push({
           name,
           worktree,
-          url: `/worktrees/${worktree}/packages/docs/epics/${name}/${name}.html`,
+          url: shared
+            ? `/${mainEpics}/${name}/${basename(file)}`
+            : `/worktrees/${worktree}/${dir}/${name}/${basename(file)}`,
           ...read(file)
         })
       }
@@ -101,7 +115,7 @@ export class RunningEpics {
    * `page` (the docs index) with the running epics' cards at its `<!-- running-epics -->` marker:  first in the
    * Epics list (`yarn docs:index` puts the marker there);  none running, or no marker:  as is.
    * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one
-   * - SAME card markup as `packages/docs/scripts/index.js` `epicCard()`:  change both
+   * - SAME card markup as `packages/docs/tools/index.js` `epicCard()`:  change both
    */
   render(page: string): string {
     const epics = this.list()
@@ -150,8 +164,41 @@ export type RunningEpic = {
 /** The marker in the docs index that becomes the "Running epics" section. */
 export const MARKER = "<!-- running-epics -->"
 
-/** A plan doc's path inside `.claude/worktrees`:  `<w>/packages/docs/epics/<name>/<name>.html`. */
-const EPIC_FILE = /^[^/]+\/packages\/docs\/epics\/([^/]+)\/\1\.html$/
+/**
+ * Where a checkout keeps its plan docs, relative to its root, newest layout first.
+ * - `packages/docs/content/epics`:  since 2026-10-04 (epic `shared-content`, P2)
+ * - `packages/docs/epics`:  a worktree cut before that, until it merges `main`
+ */
+const EPICS_DIRS = ["packages/docs/content/epics", "packages/docs/epics"]
+
+/**
+ * A plan doc's path inside `.claude/worktrees`:  `<w>/packages/docs/content/epics/<name>/<name>.plan.html`, or (a
+ * worktree cut before 2026-10-04) `<name>.html`, or either without `content/`.
+ */
+const EPIC_FILE = /^[^/]+\/packages\/docs\/(?:content\/)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
+
+/**
+ * Epic `name`'s plan doc in folder `dir`:  `<name>.plan.html`, else an old `<name>.html` that is a plan doc
+ * (`<body class="... plan-doc">`);  `undefined` when neither.
+ * - why both:  plan docs were renamed on 2026-10-04 (`review-review` P4);  worktrees cut before keep the old name
+ *   until they merge `main`.  `packages/docs/tools/pages.js` `planDocIn()` is the same:  change both
+ */
+function planFile(dir: string, name: string): string | undefined {
+  const file = join(dir, `${name}.plan.html`)
+  if (existsSync(file)) return file
+  const old = join(dir, `${name}.html`)
+  if (!existsSync(old)) return undefined
+  return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(readFileSync(old, "utf8")) ? old : undefined
+}
+
+/** `path` with every link resolved, or `path` itself when it doesn't exist. */
+function realOrSelf(path: string): string {
+  try {
+    return realpathSync(path)
+  } catch {
+    return path
+  }
+}
 
 /** The sub-folders of `dir`, sorted;  none if it's missing. */
 function folders(dir: string): string[] {
@@ -169,7 +216,8 @@ function folders(dir: string): string[] {
  */
 function read(file: string): Pick<RunningEpic, "title" | "done" | "total" | "active" | "updated"> {
   const html = readFileSync(file, "utf8")
-  const title = /<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? ""
+  // without the `Epic: ` plan docs' titles start with since 2026-10-04:  the card is in Epics already
+  const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
   const phases = [...html.matchAll(/<ui-section\b[^>]*\bdata-phase="\d+"[^>]*>/g)].map(([tag]) => ({
     status: /\bdata-status="(\w+)"/.exec(tag)?.[1] ?? "todo",
     header: /\bheader="([^"]*)"/.exec(tag)?.[1] ?? ""
@@ -191,7 +239,7 @@ function read(file: string): Pick<RunningEpic, "title" | "done" | "total" | "act
  * - done:  every phase done (a green check)
  * - stalled:  phases left, no update for more than `STALLED_DAYS` (a yellow pause;  the date on hover)
  * - in progress:  `[3/6]`, phases done of all
- * - SAME as `packages/docs/scripts/index.js` `epicState()`:  change both
+ * - SAME as `packages/docs/tools/index.js` `epicState()`:  change both
  */
 function stateMark(epic: RunningEpic, now = Date.now()): { done: boolean; mark: string } {
   if (!epic.total) return { done: false, mark: stateIcon("comment dots", "blue", "planning") }

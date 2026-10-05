@@ -1,6 +1,6 @@
 import { basename } from "path"
 import { fileURLToPath } from "url"
-import { beforeAll, describe, test, expect } from "vitest"
+import { beforeAll, describe, test, expect } from "vite-plus/test"
 
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"

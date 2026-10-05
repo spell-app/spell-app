@@ -1,4 +1,4 @@
-import { describe, it } from "vitest"
+import { describe, it } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"

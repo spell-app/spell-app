@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spell docs</title>
+    <meta name="description" content="Every doc, plan and template in the spell monorepo." />
+    <link rel="stylesheet" href="../tools/_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <h1>Spell docs</h1>
+        <p class="lede">Every doc, plan and template in the spell monorepo, rendered with @spell-app/ui.</p>
+        <ul>
+          <li>Pages open straight from disk: no server, no build step to read them.</li>
+          <li>The lists below are written by <code>yarn docs:index</code>. Edit only outside its markers.</li>
+        </ul>
+
+        <!-- index:start -->
+        <ui-section id="guides" header="Guides" sticky collapsible dividing>
+          <ui-icon slot="icon" name="book open"></ui-icon>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="changelog.html" target="src-packages-docs-content-changelog-html">Changelog</a></ui-header
+                >
+                <ui-description
+                  >Everything the monorepo shipped, newest first: one entry per epic or isolated piece of work, linked
+                  to its plan doc and durable doc.</ui-description
+                >
+                <ui-meta>changelog.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="cli.html" target="src-packages-docs-content-cli-html">spell Command Line</a></ui-header
+                >
+                <ui-description
+                  >The spell command: what each command does, how it runs spell's source, and why it works the way it
+                  does.</ui-description
+                >
+                <ui-meta>cli.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="details.html" target="src-packages-docs-content-details-html">Details Pages</a></ui-header
+                >
+                <ui-description
+                  >Questions Claude explains on a page in VS Code's side bar, answered on the page: the flow, the
+                  pieces, how to write one, and why.</ui-description
+                >
+                <ui-meta>details.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="dev/commands/commands.html" target="src-packages-docs-content-dev-commands-commands-html"
+                    >Commands</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Every operation the spell CLI, the Claude skills and the yarn scripts can do, side by side, and where
+                  each should live.</ui-description
+                >
+                <ui-meta>dev/commands/commands.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="epic-review.html" target="src-packages-docs-content-epic-review-html"
+                    >Epic Review</a
+                  ></ui-header
+                >
+                <ui-description
+                  >/epic review: walk an epic's open items with Owen, one at a time, and mark what's been gone
+                  through.</ui-description
+                >
+                <ui-meta>epic-review.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="markdown/markdown.html" target="src-packages-docs-content-markdown-markdown-html"
+                    >Markdown on the parser</a
+                  ></ui-header
+                >
+                <ui-description
+                  >@spell-app/markdown: GitHub-flavoured markdown on the generic parser, drawing ui-* elements; how it's
+                  built, where it plugs in, and its numbers.</ui-description
+                >
+                <ui-meta>markdown/markdown.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a
+                    href="precedence/parser-model.html"
+                    target="src-packages-docs-content-precedence-parser-model-html"
+                    >Parser Model</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Every parser and spell-rule change the precedence-and-types epic makes, modelled before any code:
+                  what's added, what goes, and the simplest option at each fork.</ui-description
+                >
+                <ui-meta>precedence/parser-model.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="precedence/precedence.html" target="src-packages-docs-content-precedence-precedence-html"
+                    >Precedence And Types</a
+                  ></ui-header
+                >
+                <ui-description
+                  >How spell's grammar binds operators and knows what every expression is -- precedence, operands,
+                  datatypes, typed calls, multi-word members, built-in member tables and exclusive lists, as built --
+                  for anyone about to change the parser's rules.</ui-description
+                >
+                <ui-meta>precedence/precedence.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="rulex/rulex.html" target="src-packages-docs-content-rulex-rulex-html">Rulex</a></ui-header
+                >
+                <ui-description
+                  >Rulex, the parser's regex-like rule syntax: every construct, what it compiles to, how it matches, its
+                  traps, and how markdown maps onto it.</ui-description
+                >
+                <ui-meta>rulex/rulex.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="seo/seo.html" target="src-packages-docs-content-seo-seo-html"
+                    >Static Pages for SEO</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Render @spell-app/ui pages to plain light-DOM HTML and one stylesheet, for crawlers and no-JS
+                  readers: spell static, the $/ui/server API, how isolation works without shadow DOM, and the rules for
+                  component code.</ui-description
+                >
+                <ui-meta>seo/seo.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="server.html" target="src-packages-docs-content-server-html">Page Server</a></ui-header
+                >
+                <ui-description
+                  >One live-reloading server per checkout for docs, epics, goals, Spell UI and the editor: the $/server
+                  library, its flows, route modules, safety, and why it's built this way.</ui-description
+                >
+                <ui-meta>server.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="solid/cheatsheet.html" target="src-packages-docs-content-solid-cheatsheet-html"
+                    >Solid 2 Cheat Sheet</a
+                  ></ui-header
+                >
+                <ui-description
+                  >What's new in Solid 2 (rc.13, researched on rc.11), one card per feature, with spell-specific notes
+                  where our experiments found more than the docs say.</ui-description
+                >
+                <ui-meta>solid/cheatsheet.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="solid/solid-2.html" target="src-packages-docs-content-solid-solid-2-html"
+                    >Spell on Solid 2</a
+                  ></ui-header
+                >
+                <ui-description
+                  >What spell needs to know about Solid 2 that the Solid docs don't say: the rendering model,
+                  read-after-write with memoized derived properties, gotchas, and ideas for
+                  @spell-app/ui.</ui-description
+                >
+                <ui-meta>solid/solid-2.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="solid-migration.html" target="src-packages-docs-content-solid-migration-html"
+                    >Solid Migration</a
+                  ></ui-header
+                >
+                <ui-description
+                  >How the spell editor app is built on Solid 2 and @spell-app/ui since the React migration, and why:
+                  spell cells, the bridges, one Solid per page, and where React remains.</ui-description
+                >
+                <ui-meta>solid-migration.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="spell-docs/spell-docs.html" target="src-packages-docs-content-spell-docs-spell-docs-html"
+                    >How Spell Docs Work</a
+                  ></ui-header
+                >
+                <ui-description
+                  >How spell's docs are built and written -- pages on @spell-app/ui, templates, the docs index -- and
+                  how /epic keeps a live plan doc for each planning session.</ui-description
+                >
+                <ui-meta>spell-docs/spell-docs.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a
+                    href="spell-docs/ui-section-test.html"
+                    target="src-packages-docs-content-spell-docs-ui-section-test-html"
+                    >UI Section Test Page</a
+                  ></ui-header
+                >
+                <ui-description
+                  >The page runtime's test fixture: every piece of the ui-section page markup -- nested sticky sections,
+                  folds, counts, links into folded sections.</ui-description
+                >
+                <ui-meta>spell-docs/ui-section-test.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="spell-ui-pages.html" target="src-packages-docs-content-spell-ui-pages-html"
+                    >Spell UI Pages</a
+                  ></ui-header
+                >
+                <ui-description
+                  >How the Spell UI docs site is built: plain HTML pages in Fomantic's docs style, made only of ui-*
+                  widgets, plus six ui-docs-* elements and 24 ported themes.</ui-description
+                >
+                <ui-meta>spell-ui-pages.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="spell-ui-site.html" target="src-packages-docs-content-spell-ui-site-html"
+                    >Spell UI Docs Site</a
+                  ></ui-header
+                >
+                <ui-description
+                  >How the Spell UI docs site works: the Spell theme, one layout with pages swapped in, no flash on
+                  load, nested sections with deep links, the nav panel, search and the look controls.</ui-description
+                >
+                <ui-meta>spell-ui-site.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="ui-component-creation.html" target="src-packages-docs-content-ui-component-creation-html"
+                    >UI Component Creation</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Where @spell-app/ui stands after the 2026-10-01 resume: what was fixed and decided, what's left, and
+                  how to check it.</ui-description
+                >
+                <ui-meta>ui-component-creation.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="ui-import/ui-import.html" target="src-packages-docs-content-ui-import-ui-import-html"
+                    >UI Import: include, code, markdown</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Three ui elements that show a file of the site -- a page, code, markdown -- and save it back:
+                  loading, saving, lazy engines.</ui-description
+                >
+                <ui-meta>ui-import/ui-import.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="vite-plus.html" target="src-packages-docs-content-vite-plus-html">Vite+</a></ui-header
+                >
+                <ui-description
+                  >The repo's toolchain on Vite+ 1.0: one vite-plus dependency pins vite, vitest, oxlint and oxfmt; how
+                  it's set up, what it bought, and its limits.</ui-description
+                >
+                <ui-meta>vite-plus.html</ui-meta>
+              </ui-content></ui-card
+            >
+          </ui-cards>
+        </ui-section>
+        <ui-section id="epics" header="Epics" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-cards class="spell-grid spell-epics" stackable>
+            <!-- running-epics -->
+            <ui-card data-epic="cli-additions" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/cli-additions/cli-additions.plan.html" target="cli-additions"
+                    >spell CLI Additions</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: spell CLI Additions.</ui-description>
+                <ui-meta>epics/cli-additions/cli-additions.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="commands" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/commands/commands.plan.html" target="commands"
+                    >Commands: CLI, skills, yarn</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Commands: CLI, skills, yarn.</ui-description>
+                <ui-meta>epics/commands/commands.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="details" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/details/details.plan.html" target="details">Details Pages</a></ui-header
+                >
+                <ui-description>Plan doc: Details Pages.</ui-description>
+                <ui-meta>epics/details/details.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="docs-workspace" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/docs-workspace/docs-workspace.plan.html" target="docs-workspace"
+                    >Docs workspace + /plan-doc</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Docs workspace + /plan-doc.</ui-description>
+                <ui-meta>epics/docs-workspace/docs-workspace.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="epic-review" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/epic-review/epic-review.plan.html" target="epic-review">Epic Review</a></ui-header
+                >
+                <ui-description>Plan doc: Epic Review.</ui-description>
+                <ui-meta>epics/epic-review/epic-review.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="isolate-changes" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/isolate-changes/isolate-changes.plan.html" target="isolate-changes"
+                    >Isolate &amp; Epic Changes</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Isolate &amp; Epic Changes.</ui-description>
+                <ui-meta>epics/isolate-changes/isolate-changes.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="markdown" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/markdown/markdown.plan.html" target="markdown">Markdown on the parser</a></ui-header
+                >
+                <ui-description>Plan doc: Markdown on the parser.</ui-description>
+                <ui-meta>epics/markdown/markdown.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="precedence-and-types" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/precedence-and-types/precedence-and-types.plan.html" target="precedence-and-types"
+                    >Precedence and Types</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Precedence and Types.</ui-description>
+                <ui-meta>epics/precedence-and-types/precedence-and-types.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="review-review" data-status="open"
+              ><ui-content>
+                <ui-header
+                  ><ui-label class="spell-epic-state" size="mini" basic>6/10</ui-label>
+                  <a href="epics/review-review/review-review.plan.html" target="review-review"
+                    >Review Review</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Review Review.</ui-description>
+                <ui-meta>epics/review-review/review-review.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="seo" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/seo/seo.plan.html" target="seo">SEO · Static Server Render</a></ui-header
+                >
+                <ui-description
+                  >Plan doc: server-render ui-* pages to static light-DOM HTML for SEO, no shadow DOM, no
+                  JS.</ui-description
+                >
+                <ui-meta>epics/seo/seo.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="shared-content" data-status="open"
+              ><ui-content>
+                <ui-header
+                  ><ui-label class="spell-epic-state" size="mini" basic>4/8</ui-label>
+                  <a href="epics/shared-content/shared-content.plan.html" target="shared-content"
+                    >Shared Content</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Shared Content.</ui-description>
+                <ui-meta>P5 · Cutover · epics/shared-content/shared-content.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="solid-migration" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/solid-migration/solid-migration.plan.html" target="solid-migration"
+                    >Solid Migration</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Solid Migration.</ui-description>
+                <ui-meta>epics/solid-migration/solid-migration.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="spell-ui-pages" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/spell-ui-pages/spell-ui-pages.plan.html" target="spell-ui-pages"
+                    >Spell UI Pages</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Spell UI Pages.</ui-description>
+                <ui-meta>epics/spell-ui-pages/spell-ui-pages.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="ui-component-creation" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/ui-component-creation/ui-component-creation.plan.html" target="ui-component-creation"
+                    >UI Component Creation</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: UI Component Creation.</ui-description>
+                <ui-meta>epics/ui-component-creation/ui-component-creation.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="ui-docs-rework" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/ui-docs-rework/ui-docs-rework.plan.html" target="ui-docs-rework"
+                    >Spell UI Docs Rework</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Spell UI Docs Rework.</ui-description>
+                <ui-meta>epics/ui-docs-rework/ui-docs-rework.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="ui-import" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/ui-import/ui-import.plan.html" target="ui-import">UI Import</a></ui-header
+                >
+                <ui-description>Plan doc: UI Import.</ui-description>
+                <ui-meta>epics/ui-import/ui-import.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="unified-server" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/unified-server/unified-server.plan.html" target="unified-server"
+                    >Unified Server</a
+                  ></ui-header
+                >
+                <ui-description>Plan doc: Unified Server.</ui-description>
+                <ui-meta>epics/unified-server/unified-server.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card data-epic="vite-plus" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/vite-plus/vite-plus.plan.html" target="vite-plus">Vite+</a></ui-header
+                >
+                <ui-description>Plan doc: Vite+.</ui-description>
+                <ui-meta>epics/vite-plus/vite-plus.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+          </ui-cards>
+        </ui-section>
+        <ui-section id="templates" header="Templates" sticky collapsible dividing>
+          <ui-icon slot="icon" name="copy"></ui-icon>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/cheatsheet.html" target="src-packages-docs-content-templates-cheatsheet-html"
+                    >Cheat Sheet Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Template for an API reference: one card per feature, grouped into sections, filterable by
+                  text.</ui-description
+                >
+                <ui-meta>templates/cheatsheet.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/commands.html" target="src-packages-docs-content-templates-commands-html"
+                    >Commands Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Template for a command reference: operations by family, which CLI / skill / yarn command does each,
+                  drawn from a JSON file.</ui-description
+                >
+                <ui-meta>templates/commands.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/details.html" target="src-packages-docs-content-templates-details-html"
+                    >Details Page Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Template for a details page: a question Claude explains, answered on the page.</ui-description
+                >
+                <ui-meta>templates/details.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/durable.html" target="src-packages-docs-content-templates-durable-html"
+                    >Durable Doc Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Template for design notes, research and references: prose sections, tables, code, callouts,
+                  asides.</ui-description
+                >
+                <ui-meta>templates/durable.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/epics/plan.html" target="src-packages-docs-content-templates-epics-plan-html"
+                    >Plan Doc Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Plan doc template: copied by `yarn plan-doc new &lt;name&gt;`, kept live by
+                  /plan-doc.</ui-description
+                >
+                <ui-meta>templates/epics/plan.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/goals/index.html" target="src-packages-docs-content-templates-goals-index-html"
+                    >Goals Home Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Goals home template: a project's goal sets, one card each; copied to `goals/index.html` by `yarn
+                  goals index` when there is none.</ui-description
+                >
+                <ui-meta>templates/goals/index.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a
+                    href="templates/goals/set/index.html"
+                    target="src-packages-docs-content-templates-goals-set-index-html"
+                    >Goal Set Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Goal set template: a set's contents page, copied by `yarn goals new-set &lt;set&gt;`; its topic cards
+                  are written by `yarn goals index`.</ui-description
+                >
+                <ui-meta>templates/goals/set/index.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a
+                    href="templates/goals/set/topic/topic.html"
+                    target="src-packages-docs-content-templates-goals-set-topic-topic-html"
+                    >Goal Topic Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Goal topic template: copied by `yarn goals new &lt;set&gt;/&lt;topic&gt;`, kept current by /goals
+                  dialogs.</ui-description
+                >
+                <ui-meta>templates/goals/set/topic/topic.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/review.html" target="src-packages-docs-content-templates-review-html"
+                    >Review</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Review: the calls of a finished run, one question each: keep, change or talk over</ui-description
+                >
+                <ui-meta>templates/review.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a
+                    href="templates/spell-ui-docs.html"
+                    target="src-packages-docs-content-templates-spell-ui-docs-html"
+                    >Spell UI Docs Page Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Template for a Spell UI docs page: Fomantic's docs layout in ui-* widgets -- nav, masthead, Examples
+                  / Usage / API / Theming tabs, an On this page rail.</ui-description
+                >
+                <ui-meta>templates/spell-ui-docs.html</ui-meta>
+              </ui-content></ui-card
+            >
+          </ui-cards>
+        </ui-section>
+        <!-- index:end -->
+
+        <ui-section id="writing-docs" header="Writing docs" sticky collapsible dividing>
+          <ui-icon slot="icon" name="pen to square"></ui-icon>
+          <ul>
+            <li>
+              Start from a template:
+              <code>yarn docs:new durable &lt;topic&gt;/&lt;topic&gt;.html --title "Title"</code>.
+            </li>
+            <li>
+              A plan doc: run <code>/epic &lt;name&gt;</code> in Claude Code. Never copy the plan template by hand.
+            </li>
+            <li>
+              The rules: <a href="../AGENTS.md" target="src-packages-docs-agents-md">AGENTS.md</a>. How the pages work:
+              <a href="spell-docs/spell-docs.md" target="src-packages-docs-spell-docs-spell-docs-md">spell-docs.md</a>.
+            </li>
+            <li>
+              <code>docs:new</code> lists the page here; after renaming one or changing its title, run
+              <code>yarn docs:index</code>.
+            </li>
+          </ul>
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

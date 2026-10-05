@@ -1,10 +1,12 @@
-import { beforeAll, describe, expect, it, vi } from "vitest"
+import { beforeAll, describe, expect, it, vi } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
 import { MarkdownEngine } from "./MarkdownEngine"
+import { MarkdownRenderer } from "./MarkdownRenderer"
+import { MDEngine } from "./MDEngine"
 import type { UIMarkdownHost } from "./UIMarkdownHost"
 
 import "$/ui/components/ui-markdown"
@@ -93,9 +95,9 @@ describe("<ui-markdown>", () => {
     expect(body(host).querySelector("h6")!.textContent).toBe("Six")
   })
 
-  it("sanitizes:  no scripts, no handlers, no javascript: links", async () => {
+  it("`sanitized` sanitizes:  no scripts, no handlers, no javascript: links", async () => {
     // through `content`:  a `</script>` in the text would end an inline `<script type="text/markdown">`
-    const host = await markdown(md("placeholder"))
+    const host = await markdown(md("placeholder", "sanitized"))
     const rendered = nextRender(host)
     host.content =
       '<script>window.__md = 1</script>\n\n<img src="x" onerror="window.__md = 2">\n\n[x](javascript:alert(1))'
@@ -106,9 +108,16 @@ describe("<ui-markdown>", () => {
     expect((window as { __md?: number }).__md).toBeUndefined()
   })
 
-  it("`trusted` keeps raw HTML", async () => {
-    const host = await markdown(md('<ui-label color="teal">kept</ui-label>', "trusted"))
-    expect(body(host).querySelector("ui-label")!.textContent).toBe("kept")
+  it("keeps raw HTML without `sanitized`, and never loads DOMPurify", async () => {
+    const loadSanitizer = vi.spyOn(MarkdownRenderer, "loadSanitizer")
+    try {
+      const host = await markdown(md('<ui-label color="teal" data-x="1">kept</ui-label>'))
+      expect(body(host).querySelector("ui-label")!.textContent).toBe("kept")
+      expect(body(host).querySelector("ui-label")!.getAttribute("data-x")).toBe("1")
+      expect(loadSanitizer).not.toHaveBeenCalled()
+    } finally {
+      loadSanitizer.mockRestore()
+    }
   })
 
   it("turns code blocks into highlighted <ui-code>s", async () => {
@@ -148,6 +157,114 @@ describe("<ui-markdown>", () => {
   })
 })
 
+describe("<ui-markdown editable>", () => {
+  /** An editable `<ui-markdown>` holding `text`, on its Write tab (nothing rendered yet). */
+  async function editable(text: string, attributes = ""): Promise<UIMarkdownHost> {
+    const host = await ElementFixture.render<UIMarkdownHost>(md(text, `editable ${attributes}`))
+    await ElementFixture.settle(host)
+    return host
+  }
+
+  /** The tab buttons, the text box. */
+  function tabs(host: UIMarkdownHost): HTMLButtonElement[] {
+    return [...host.shadowRoot!.querySelectorAll<HTMLButtonElement>("[part~=tab]")]
+  }
+
+  function editor(host: UIMarkdownHost): HTMLTextAreaElement {
+    return host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~=editor]")!
+  }
+
+  /** Show the preview;  resolves once it's rendered. */
+  async function preview(host: UIMarkdownHost) {
+    const rendered = nextRender(host)
+    tabs(host)[1].click()
+    await rendered
+    await ElementFixture.settle(host)
+  }
+
+  /** Type `text` into the box, as the user would:  an `input` event. */
+  async function type(host: UIMarkdownHost, text: string) {
+    editor(host).value = text
+    editor(host).dispatchEvent(new InputEvent("input", { bubbles: true }))
+    await ElementFixture.settle(host)
+  }
+
+  it("opens on Write:  the text in a text box, the preview hidden and not rendered", async () => {
+    const host = await editable("# Title")
+    expect(tabs(host).map((tab) => [tab.textContent, tab.getAttribute("aria-selected")])).toEqual([
+      ["Write", "true"],
+      ["Preview", "false"]
+    ])
+    expect(editor(host).value).toBe("# Title")
+    expect(editor(host).getAttribute("aria-label")).toBe("Markdown")
+    expect(body(host).parentElement!.hidden).toBe(true)
+    expect(body(host).childNodes.length).toBe(0)
+  })
+
+  it("previews with spell's engine:  ui-* elements, ids, labelled task boxes, a table", async () => {
+    const host = await editable("# Title\n\n- [x] done\n- [ ] todo\n\n| a | b |\n| - | - |\n| 1 | 2 |")
+    await preview(host)
+    expect(body(host).parentElement!.hidden).toBe(false)
+    expect(editor(host).closest("section")!.hidden).toBe(true)
+    expect(body(host).querySelector("ui-header")!.id).toBe("title")
+    expect(host.headings).toEqual([{ level: 1, text: "Title", id: "title" }])
+    const boxes = body(host).querySelectorAll("ui-checkbox")
+    expect([...boxes].map((box) => box.getAttribute("aria-label"))).toEqual(["done", "todo"])
+    expect(body(host).querySelectorAll("ui-table td").length).toBe(2)
+  })
+
+  it("each edit is `ui-change` and dirty;  the preview swaps only the changed blocks", async () => {
+    const host = await editable("# Title\n\nfirst\n\nlast")
+    await preview(host)
+    const [title, , last] = body(host).childNodes
+    tabs(host)[0].click()
+    const onChange = vi.fn()
+    host.addEventListener("ui-change", onChange)
+    await type(host, "# Title\n\nchanged\n\nlast")
+    expect(onChange.mock.calls.at(-1)![0].detail.content).toBe("# Title\n\nchanged\n\nlast")
+    expect(host.matches(":state(dirty)")).toBe(true)
+    await preview(host)
+    expect(body(host).textContent).toContain("changed")
+    expect(body(host).childNodes[0]).toBe(title)
+    expect(body(host).lastChild).toBe(last)
+  })
+
+  it("arrow keys, Home and End move between the tabs", async () => {
+    const host = await editable("text")
+    const press = async (key: string) => {
+      tabs(host)[0].parentElement!.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }))
+      await ElementFixture.settle(host)
+    }
+    await press("ArrowRight")
+    expect(tabs(host)[1].getAttribute("aria-selected")).toBe("true")
+    expect(host.shadowRoot!.activeElement).toBe(tabs(host)[1])
+    await press("ArrowRight")
+    expect(tabs(host)[0].getAttribute("aria-selected")).toBe("true")
+    await press("End")
+    expect(tabs(host)[1].getAttribute("aria-selected")).toBe("true")
+    await press("Home")
+    expect(tabs(host)[0].getAttribute("aria-selected")).toBe("true")
+  })
+
+  it("`sanitized` sanitizes spell's engine's output too, keeping ui-* elements", async () => {
+    const host = await editable("placeholder", "sanitized")
+    await type(host, '<b onclick="window.__md = 3">bold</b>\n\n<ui-label onclick="window.__md = 4">kept</ui-label>')
+    await preview(host)
+    expect(body(host).querySelector("b")!.hasAttribute("onclick")).toBe(false)
+    expect(body(host).querySelector("ui-label")!.hasAttribute("onclick")).toBe(false)
+    expect(body(host).querySelector("ui-label")!.textContent).toBe("kept")
+  })
+
+  it("axe passes on both tabs", async () => {
+    const host = await editable("# Title\n\n- [ ] todo\n\n| a | b |\n| - | - |\n| 1 | 2 |")
+    await expectAccessible(host)
+    await preview(host)
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    await ElementFixture.settle(host)
+    await expectAccessible(host)
+  })
+})
+
 describe("MarkdownEngine.slug()", () => {
   it.each([
     ["Getting started!", "getting-started"],
@@ -155,6 +272,18 @@ describe("MarkdownEngine.slug()", () => {
     ["Ünïcode wörds", "ünïcode-wörds"]
   ])("%s => %s", (text, slug) => {
     expect(MarkdownEngine.slug(text)).toBe(slug)
+  })
+})
+
+describe("MDEngine (md.bundle.js)", () => {
+  // the bundle decodes with the browser's <textarea>, not `entities`' table (`gen-markdown.ts`, I6)
+  it("decodes entities as the spec does:  whole references only, unknown ones kept", () => {
+    const { html } = MDEngine.instance.render("&notit; &amp; &semi; &#0; &NotEqualTilde; &Afr; &nope; &copy", {
+      breaks: false,
+      headingOffset: 0,
+      sanitized: false
+    })
+    expect(html).toContain("&amp;notit; &amp; ; � ≂̸ \u{1D504} &amp;nope; &amp;copy")
   })
 })
 

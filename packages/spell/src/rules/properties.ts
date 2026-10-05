@@ -558,7 +558,7 @@ class object_literal_properties extends P.Repeat {
   }
 }
 properties.addRule(object_literal_properties, {
-  syntax: "[{object_literal_property}(,|and)]",
+  syntax: "[{object_literal_property} (,|and)]",
   tests: [
     {
       beforeEach(scope: P.Scope) {

@@ -7,7 +7,7 @@ export const REPO_ROOT = resolve(fileURLToPath(import.meta.url), "..", "..", "..
 
 /**
  * The checkout to work on:  the nearest folder from `from` (default the current one) up that holds `marker`, a
- * path relative to a checkout's root, e.g. `packages/docs/scripts/plan-doc.js`;  else this checkout.
+ * path relative to a checkout's root, e.g. `packages/docs/tools/plan-doc.js`;  else this checkout.
  * - Why:  `spell` is usually linked to the MAIN checkout (`yarn cli:install`), but in a worktree the files to read
  *   or edit are the worktree's.  Every `spell dev` command, and `spell plan-doc`, finds its checkout this way.
  */

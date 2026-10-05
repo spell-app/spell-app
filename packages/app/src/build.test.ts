@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process"
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 
 /**
  * Production build smoke test.

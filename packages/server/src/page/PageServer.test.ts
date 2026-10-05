@@ -2,10 +2,10 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { get } from "node:http"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
-import { PageServer, findById, replaceById } from "$/server/page"
+import { PageServer, findById, movedDocsPage, renamedPlanDoc, replaceById } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
 /** A page whose formatting an edit must keep, byte for byte. */
@@ -105,10 +105,55 @@ describe("PageServer", () => {
     expect(served.etag).toBe(answer.headers.etag)
   })
 
-  it("redirects old plan doc URLs from plans/ to epics/, query kept", async () => {
+  it("sends / to the docs index", async () => {
+    const answer = await ask(port, "GET", "/")
+    expect(answer.status).toBe(302)
+    expect(answer.headers.location).toBe("/packages/docs/content/index.html")
+  })
+
+  it("redirects old plan doc URLs from plans/ to content/epics/, query kept", async () => {
     const answer = await ask(port, "GET", "/packages/docs/plans/x/x.html?a=1")
     expect(answer.status).toBe(302)
-    expect(answer.headers.location).toBe("/packages/docs/epics/x/x.html?a=1")
+    expect(answer.headers.location).toBe("/packages/docs/content/epics/x/x.html?a=1")
+  })
+
+  it("redirects an old plan doc name, epics/x/x.html, to x.plan.html, but only while the old file is gone", async () => {
+    const plan = join(root, "packages/docs/content/epics/x")
+    mkdirSync(plan, { recursive: true })
+    writeFileSync(join(plan, "x.plan.html"), "<p>plan</p>")
+    const answer = await ask(port, "GET", "/packages/docs/content/epics/x/x.html?a=1")
+    expect(answer.status).toBe(302)
+    expect(answer.headers.location).toBe("/packages/docs/content/epics/x/x.plan.html?a=1")
+    // from before the move into `content/` as well, in one hop
+    const older = await ask(port, "GET", "/packages/docs/epics/x/x.html?a=1")
+    expect(older.headers.location).toBe("/packages/docs/content/epics/x/x.plan.html?a=1")
+    // a worktree not yet merged:  its old name is still there, and served
+    writeFileSync(join(plan, "x.html"), "<p>old</p>")
+    expect((await ask(port, "GET", "/packages/docs/content/epics/x/x.html")).status).toBe(200)
+    expect(renamedPlanDoc("/worktrees/w/packages/docs/content/epics/x/x.html", root)).toBeUndefined()
+  })
+
+  it("redirects old docs page URLs into content/, query kept, but only while the old page is gone", async () => {
+    const content = join(root, "packages/docs/content")
+    mkdirSync(join(content, "solid"), { recursive: true })
+    writeFileSync(join(content, "index.html"), "<p>index</p>")
+    writeFileSync(join(content, "solid", "solid-2.html"), "<p>solid</p>")
+    writeFileSync(join(root, "packages/docs/README.md"), "# docs\n")
+    writeFileSync(join(root, "packages/docs/package.json"), "{}\n")
+    const page = await ask(port, "GET", "/packages/docs/solid/solid-2.html?a=1")
+    expect(page.status).toBe(302)
+    expect(page.headers.location).toBe("/packages/docs/content/solid/solid-2.html?a=1")
+    expect((await ask(port, "GET", "/packages/docs/")).headers.location).toBe("/packages/docs/content/")
+    expect((await ask(port, "GET", "/packages/docs/index.html")).headers.location).toBe(
+      "/packages/docs/content/index.html"
+    )
+    // the package's own files, new URLs and pages that don't exist anywhere:  as is
+    expect((await ask(port, "GET", "/packages/docs/README.md")).status).toBe(200)
+    expect((await ask(port, "GET", "/packages/docs/package.json")).status).toBe(200)
+    expect((await ask(port, "GET", "/packages/docs/content/solid/solid-2.html")).status).toBe(200)
+    expect((await ask(port, "GET", "/packages/docs/missing.html")).status).toBe(404)
+    // a worktree cut before the move:  its old page is still there, and served
+    expect(movedDocsPage("/worktrees/w/packages/docs/solid/solid-2.html", root)).toBeUndefined()
   })
 
   it("serves Spell UI's docs, packages/ui/site/, at /ui/:  live pages, assets as is", async () => {

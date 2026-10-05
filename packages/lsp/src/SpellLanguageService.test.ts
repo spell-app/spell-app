@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll } from "vitest"
+import { describe, test, expect, beforeAll } from "vite-plus/test"
 import { cpSync, mkdtempSync, readFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
@@ -167,6 +167,32 @@ describe("SpellLanguageService", () => {
         // ...sent as modifier `heading3`:  bit 1 << (1 + 3)
         const { data } = service.semanticTokens(card)
         expect(data[4 + 5]).toBe(1 << 4)
+      })
+    })
+
+    test("markdown in a comment:  bold / italic / link modifiers, code spans as strings", async () => {
+      //                     0123456789012345678901234567890
+      await withCardText(`// a **b** *c* \`d\` [e](f)\n${cardText}`, () => {
+        const pieces = service
+          .highlightSpans(card)
+          .filter((span) => span.start < 26)
+          .map((span) => {
+            const marks = (["bold", "italic", "link"] as const).filter((mark) => span[mark])
+            return `${card.parseText.slice(span.start, span.end)}:${span.kind}${marks.map((mark) => `+${mark}`).join("")}`
+          })
+        expect(pieces).toEqual([
+          "// a :comment",
+          "**b**:comment+bold",
+          " :comment",
+          "*c*:comment+italic",
+          " :comment",
+          "`d`:string",
+          " :comment",
+          "[e](f):comment+link"
+        ])
+        // ...`bold` sent as modifier bit 64
+        const { data } = service.semanticTokens(card)
+        expect(data[5 + 4]).toBe(64)
       })
     })
 

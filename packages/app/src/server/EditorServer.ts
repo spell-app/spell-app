@@ -47,7 +47,7 @@ export class EditorServer {
     const port = await editorPort()
     const log = createWriteStream(join(this.root, ".spell-server.editor.log"), { flags: "a" })
     const env = { ...process.env, VITE_PORT: String(port), PORT: String(pagePort), API_SERVER: "127.0.0.1" }
-    const child = spawn(process.execPath, [VITE, "--port", String(port), "--strictPort"], {
+    const child = spawn(process.execPath, [VP, "dev", "--port", String(port), "--strictPort"], {
       cwd: APP_DIR,
       env,
       detached: true,
@@ -98,11 +98,17 @@ export const EDITOR_FILE = ".spell-server.editor.json"
 /** `packages/app`, where vite runs (its `vite.config.ts`). */
 const APP_DIR = join(environment.packagesDir, "app")
 
-/** vite's command-line script, as `packages/app` resolves it. */
-const VITE = join(dirname(createRequire(join(APP_DIR, "package.json")).resolve("vite/package.json")), "bin/vite.js")
+/**
+ * Vite+'s command-line script, as `packages/app` resolves it:  run as `vp dev`.
+ * - NOT `vite/bin/vite.js`:  `vite` is aliased to `@voidzero-dev/vite-plus-core`, which ships no bin.
+ */
+const VP = join(dirname(createRequire(join(APP_DIR, "package.json")).resolve("vite-plus/package.json")), "bin/vp")
 
-/** What vite prints once it listens, e.g. `VITE v8.3.1  ready in 226 ms`. */
-const READY = /\bready in\b/
+/**
+ * What vite prints once it listens:  `➜  Local:   http://localhost:3000/`.
+ * - NOT `ready in`:  `vp dev` prints `VITE+ v1.0.0` with no timing.
+ */
+const READY = /\bLocal:\s+http/
 
 /**
  * The editor's port:  the wanted one if free on IPv4 AND IPv6 (vite listens on 0.0.0.0), else any free one.
