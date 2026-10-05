@@ -97,10 +97,10 @@ Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan
 Section markup (the template's;  a hand-written Overview sub-section is the same, nested in `#overview`):
 
 ```html
-<ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+<ui-section id="overview" header="1. Overview" sticky collapsible dividing collapsed>
   <ui-icon slot="icon" name="lightbulb"></ui-icon>
   <p class="plan-summary lede">...</p>
-  <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
+  <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing collapsed>
     ...  <!-- sub-sub-items:  <h4 id> -->
   </ui-section>
 </ui-section>
@@ -108,11 +108,12 @@ Section markup (the template's;  a hand-written Overview sub-section is the same
 
 - `header` is the title;  a title with markup is a `<span slot="header">` first inside instead (`1.2 The <code>x</code>
   API`)
-- every section `sticky collapsible dividing`;  `collapsed` starts it folded
+- every section `sticky collapsible dividing collapsed`:  everything starts folded, the reader opens what they want
+  (`packages/docs/AGENTS.md`, "Writing a page")
 - in the browser, EVERY section of a plan doc starts folded (`spell-doc-runtime.js` `wireSectionFolds()`), unless
-  the reader opened or closed it before:  Owen opens what he wants.  `collapsed` in the markup still matters for
-  pages opened from disk without the runtime, and for the script's own bookkeeping.  A link to any id inside
-  (`#q3`, `#p2`) unfolds the sections around it and lands on it
+  the reader opened or closed it before.  `collapsed` in the markup still matters for pages opened from disk
+  without the runtime, and for the script's own bookkeeping.  A link to any id inside (`#q3`, `#p2`) unfolds the
+  sections around it and lands on it
 - NEVER change an `id`:  the items, the log and other docs link to them
 
 ## Ids:  short, so they're easy to say in chat
@@ -136,7 +137,7 @@ Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `valu
 `hidden` while there are none):
 
 ```html
-<ui-section id="p2" data-phase="2" data-status="done" header="P2 · Short Name" badge="1-2h" sticky collapsible dividing>
+<ui-section id="p2" data-phase="2" data-status="done" header="P2 · Short Name" badge="1-2h" sticky collapsible dividing collapsed>
   <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
   <ui-list class="plan-phase-body">
     <ui-item icon="bullseye"><b>Goal:</b>  <ul><li>what it's for, a bullet per outcome</li></ul></ui-item>
@@ -180,8 +181,8 @@ Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `valu
 
 - the status icon (`slot="icon"`):  `todo` -> `circle outline` grey, `active` -> `circle half stroke` orange,
   `done` -> `circle check` green;  it shows in the contents sidebar too
-- `collapsed`:  starts folded.  Setting a phase `done` folds every OTHER done phase:  the one finished last stays
-  open
+- `collapsed`:  every phase starts folded.  Setting a phase `done` folds every done phase;  no status change ever
+  unfolds one
 - docs not yet migrated (`section.s3[data-phase]` in `#phases-section`, an h3 with the icon, `data-fold="closed"`):
   the script still edits them as they are
 
@@ -294,11 +295,81 @@ While a phase is active, flag what changed so the user can spot it:
   `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="2"><p>what changed</p></ui-message>`
 - `yarn plan-doc phase <name> 2 done` removes every `.plan-update[data-phase="2"]`
 
+## Review inbox
+
+Owen marks items ON the page (served by the page server):  approve, todo, Add Details, revisit (soon / now, with a
+note), pick an option card.  A question may carry a pick AND a revisit note together ("pick B, but ..."):  the
+revisit mark holds the `pick`.  The marks wait in `<name>.inbox.json` beside the doc (git-ignored) until "send to
+Claude";  Add Details and revisit now go at once (the inbox's `now` queue).  Read it with `yarn plan-doc inbox
+<name>`;  shape, routes and helpers:  `packages/docs/AGENTS.md`, "Review inbox".  NEVER edit the file by hand:  go
+through `tools/inbox.js` (its lock).
+
+How a `/epic review` session takes the marks (nothing outside a session can wake it, except a background command
+it started ending):
+
+1. `yarn plan-doc inbox <name> listen`:  the page stops saying nobody is reviewing.
+   - a HEARTBEAT keeps it so:  `wait` stamps `listening.seen` every 30s, and `apply`, `done`, `clear`, `working`
+     each time;  silent for 90s (a killed session, no `unlisten`), the page says nobody is reviewing again
+2. `yarn plan-doc inbox <name> wait` in the BACKGROUND, then end the turn.  It exits when there's work, which wakes
+   the session;  it prints, for each item, its id, kind, status and title, the mark, the note, and a pick's option
+   card:
+
+   ```text
+   now (1):  start a background agent for each;  `yarn plan-doc inbox review-review done <id>` after
+     - I1  issue, open · The phases' progress bar label is cut off at its left end
+         Add Details
+   sent 2026-10-04T17:32:26.086-04:00 (4 marks):
+     approve (1):
+       - J9  judgement, open · A reload lands on the remembered section without unfolding it
+     pick (1):
+       - Q7  question, open · Should a reload land on the remembered section without unfolding it?
+           picks B · Land and unfold it
+     revisit, to talk over (1):
+       - Q3  question, open · Where should the send button sit?
+           picks A · In the page header, asks:  "A, but only on plan docs?"
+     ...
+   next:  `yarn plan-doc inbox review-review apply` (approve, pick, todo)
+   ```
+
+   - `now`:  Add Details and revisit now, TAKEN off the queue, each item marked `working` (its spinner);  the mark
+     stays until `done`, unless Owen changed it meanwhile to one waiting for a send (e.g. chose a card:  a revisit
+     `soon` with the pick):  that one stays for the next send
+   - `sent`:  every mark the last "send to Claude" covered, once per send (`handedOver` in the inbox);  a mark an
+     earlier send already handed over (a revisit still being talked over) says "(sent before)"
+   - timeout (3300s):  exit 2, nothing taken;  run it again
+3. `yarn plan-doc inbox <name> apply`:  the mechanical marks, applied and cleared:
+
+   | Mark | On | Does |
+   |---|---|---|
+   | approve | an open question | answered with the option card marked "(recommended)" (`decide`, that card chosen), reviewed;  no recommended card:  left, "needs talk" |
+   | approve | an open judgement call | closed (accepted), reviewed |
+   | approve | an open test | closed (passed), reviewed |
+   | approve | anything else (open caveat, issue, todo;  closed or answered items) | reviewed |
+   | pick | a question | answered with that card's title, the card chosen, reviewed |
+   | todo | any item | a new todo "Follow up:  <title>" linking back, the item reviewed |
+   | revisit soon | any item | left:  talk it over in the chat, then `inbox <name> clear <id>` |
+   | revisit with a pick | a question | left, NOT answered ("to talk over:  picks B · ..., asks:  ..."):  answer the note about that option;  once Owen agrees, `decide <name> <id> "<card title>" --option B`, then `clear` |
+
+   Each applied mark logs one line (`J9 approved:  closed (accepted)`);  a mark Owen changed meanwhile stays.
+4. Requests for now:  a background agent per item writes into it with `yarn plan-doc details <name> <id> --file
+   <html>` (Add Details:  replaces the details;  revisit now:  `--append` a reply), then `inbox <name> done <id>`.
+5. `wait` again.  On leaving:  `inbox <name> unlisten`.
+
+A reply to Owen's revisit note (`details --append`), dated, quoting the note:
+
+```html
+<div class="plan-reply">
+  <div class="plan-reply-title"><b>Claude</b> · <time>2026-10-04 17:20</time> · re:  "why not reuse the details route?"</div>
+  <p>The answer ...</p>
+  <ul><li>bullets;  option cards if Owen must choose;  a Net effect</li></ul>
+</div>
+```
+
 ## Prose
 
 - Code:  ALWAYS folded and colored:
-  `<ui-accordion class="spell-code" styled open="0"><ui-title>file.ts · N lines</ui-title><ui-content><pre><code class="language-ts">`
-  (`open="0"` for 30 lines or fewer).
+  `<ui-accordion class="spell-code" styled><ui-title>file.ts · N lines</ui-title><ui-content><pre><code class="language-ts">`
+  (never `open`).
 - Digressions:  a collapsed `<ui-accordion class="spell-aside" styled>`, title starting "Aside:".
 - Link caveats, issues, decisions and phases wherever prose mentions them.
 
@@ -355,3 +426,10 @@ worktree took of an epic merged before it was cut:  editing that would fork the 
 | `summary <name> [--json]` | open questions, judgement calls, issues, caveats, todos, tests, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
 | `open <name>` | show the doc rendered in VS Code's doc preview (the right side bar's "Spell Docs" tab);  needs the spell extension (`yarn vscode`) |
+| `inbox <name> [--json]` | the marks Owen left on the page (`<name>.inbox.json`), by action, with their items' titles, sent or not;  the `now` queue, agents at work, the session listening |
+| `inbox <name> listen [--session <id>]` / `unlisten` | this session (`$CLAUDE_CODE_SESSION_ID`) waits on the inbox / stopped:  the page tells Owen whether anyone is listening |
+| `inbox <name> wait [--timeout <s>] [--json]` | block (polls every 1s, default 3300s) until there's work, print it, exit 0;  timeout:  exit 2.  Work:  requests for now (taken off the queue, their items marked working) and a send not yet handed over (its marks by action) |
+| `inbox <name> apply [ids...]` | apply the sent approve / pick / todo marks to the doc and clear them;  prints a line per item and what it left (revisits) |
+| `inbox <name> working <id> on\|off` | the page's spinner on an item |
+| `inbox <name> done <id>...` / `clear <id>...` | an agent finished the item:  its mark and spinner go / drop marks (a revisit talked over) |
+| `details <name> <id> --file <html> [--append]` | replace an item's details with the file's HTML, or add it after them (a reply);  the answer card stays first, the commits last;  logs "I1 details rewritten" / "I1 reply added" |

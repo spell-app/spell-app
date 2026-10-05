@@ -1,18 +1,22 @@
-import { marked } from "marked"
+import { Loading, createMemo } from "solid-js"
+
+import type { MD } from "$/markdown"
 
 /****************
  * ### `<Markdown>`
- * `text` as markdown, e.g. a hover from the language server.
+ * `text` as markdown, e.g. a docstring, drawn by `MD.toHTML()` (GitHub-flavoured, plain HTML tags).
+ * - `$/markdown` (and the parser under it) loads LAZILY, on the first `<Markdown>`:  the runners show docstrings
+ *   too (Type / Thing Explorer), and a runner page carries no parser otherwise.  Until it's in, the plain text.
  * - Its links go to `onOpen`, NOT the page -- e.g. `file:///…/Card.spell#L12`, for the editor to open.
- * - NOTE: raw HTML in `text` is rendered as is:  only give it text we made.
+ * - NOTE: raw HTML in `text` is rendered as is, bar GFM's tagfilter (`<script>` ... escaped):  only give it text
+ *   we made.
  ****************/
 export function Markdown(props: MarkdownProps) {
+  const html = createMemo(async () => (await loadMarkdown()).toHTML(props.text))
   return (
-    <div
-      class={["Markdown", props.class]}
-      innerHTML={marked.parse(props.text, { async: false })}
-      onClick={(event) => open(event)}
-    />
+    <Loading fallback={<div class={["Markdown", props.class]}>{props.text}</div>}>
+      <div class={["Markdown", props.class]} innerHTML={html()} onClick={(event) => open(event)} />
+    </Loading>
   )
 
   /** Hand a clicked link to `onOpen`. */
@@ -32,4 +36,13 @@ export type MarkdownProps = {
   class?: string
   /** Link `href` clicked. */
   onOpen: (href: string) => void
+}
+
+/** `$/markdown`'s `MD`, imported once, on first use. */
+let markdown: Promise<typeof MD> | undefined
+
+/** Load `$/markdown` (once). */
+function loadMarkdown() {
+  markdown ??= import("$/markdown").then((module) => module.MD)
+  return markdown
 }

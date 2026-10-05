@@ -89,6 +89,20 @@
             <ui-card
               ><ui-content>
                 <ui-header
+                  ><a href="markdown/markdown.html" target="src-packages-docs-content-markdown-markdown-html"
+                    >Markdown on the parser</a
+                  ></ui-header
+                >
+                <ui-description
+                  >@spell-app/markdown: GitHub-flavoured markdown on the generic parser, drawing ui-* elements; how it's
+                  built, where it plugs in, and its numbers.</ui-description
+                >
+                <ui-meta>markdown/markdown.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
                   ><a href="precedence/precedence.html" target="src-packages-docs-content-precedence-precedence-html"
                     >Precedence And Types</a
                   ></ui-header
@@ -98,6 +112,18 @@
                   anyone about to change the parser's rules.</ui-description
                 >
                 <ui-meta>precedence/precedence.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="rulex/rulex.html" target="src-packages-docs-content-rulex-rulex-html">Rulex</a></ui-header
+                >
+                <ui-description
+                  >Rulex, the parser's regex-like rule syntax: every construct, what it compiles to, how it matches, its
+                  traps, and how markdown maps onto it.</ui-description
+                >
+                <ui-meta>rulex/rulex.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card
@@ -354,10 +380,20 @@
                 <ui-meta>epics/isolate-changes/isolate-changes.plan.html</ui-meta>
               </ui-content></ui-card
             >
+            <ui-card data-epic="markdown" data-status="done"
+              ><ui-content>
+                <ui-header
+                  ><ui-icon class="spell-epic-state" name="circle check" color="green" title="done"></ui-icon>
+                  <a href="epics/markdown/markdown.plan.html" target="markdown">Markdown on the parser</a></ui-header
+                >
+                <ui-description>Plan doc: Markdown on the parser.</ui-description>
+                <ui-meta>epics/markdown/markdown.plan.html</ui-meta>
+              </ui-content></ui-card
+            >
             <ui-card data-epic="review-review" data-status="open"
               ><ui-content>
                 <ui-header
-                  ><ui-label class="spell-epic-state" size="mini" basic>4/10</ui-label>
+                  ><ui-label class="spell-epic-state" size="mini" basic>6/10</ui-label>
                   <a href="epics/review-review/review-review.plan.html" target="review-review"
                     >Review Review</a
                   ></ui-header
@@ -382,13 +418,13 @@
             <ui-card data-epic="shared-content" data-status="open"
               ><ui-content>
                 <ui-header
-                  ><ui-label class="spell-epic-state" size="mini" basic>1/8</ui-label>
+                  ><ui-label class="spell-epic-state" size="mini" basic>3/8</ui-label>
                   <a href="epics/shared-content/shared-content.plan.html" target="shared-content"
                     >Shared Content</a
                   ></ui-header
                 >
                 <ui-description>Plan doc: Shared Content.</ui-description>
-                <ui-meta>P2 · Move Logic Out · epics/shared-content/shared-content.plan.html</ui-meta>
+                <ui-meta>epics/shared-content/shared-content.plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card data-epic="solid-migration" data-status="done"

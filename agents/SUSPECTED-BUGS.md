@@ -272,6 +272,15 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `rules/Sequence.ts` `parse()`: author's `TODOC: WHY?? FOR USE AS A LITERAL STRING??` still unanswered.
 
+## parser
+
+### 1. Behavior bugs
+
+- [V] `packages/parser/src/rules/Literals.ts` `matchAtStart()`: a multi-symbol literal like `**` also matches `* *`
+  (whitespace between), though `Symbols`' docs say "no space in-between" -- it never checks
+  `token.whitespace` / `end` vs `next`.  Prove:  parse `* *` against a `Symbols("**")` rule.  Found planning the
+  `markdown` epic (P4 there fixes it if confirmed).
+
 ## ui
 
 Disproven:  `Icons.get("zoom")` isn't missing -- it is Font Awesome's `zoom` BRAND logo;  with icon packs `zoom` is in
@@ -290,6 +299,13 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- `yarn measure` (2026-10-04, markdown epic P8) prints three `CHECK` lines its docs say should be empty:
+  `entriesMissingCore: [ 'ui-flyout' ]`, `runtimeChunks: [ 'rolldown-runtime-B72Djju_.js' ]` and a long
+  `coreOutsideCore` list (`$/util`'s `decorators.ts` / `dom.ts` / `string.ts`, `vocabulary/`, `icons/`,
+  `docs-components/SiteData.ts`, `runtime/load.ts` ...).  None of them names a markdown file, and the `dist/` built
+  before P8 already holds that same `rolldown-runtime-B72Djju_.js`, so they look older than the markdown branch.
+  Not checked on `main`.  NOTE:  `own ui-markdown` reads 92.59 kB because `md.bundle.js` sits in the family folder
+  (`groups()` buckets by folder);  it's a LAZY chunk (`MDEngine`), not eager code.
 - `src/components/ui-parts/ui-parts.css` `:state(in-item) > .avatar` [V]:  sets only `display` / `overflow` / round corners,
   no size and no `vertical-align`, so an item's `<ui-avatar>` draws at the image's own size (~3em for Fomantic's
   `avatar/small/*.jpg`) with the name on its baseline, while a card's is 2em, `vertical-align: middle`
@@ -459,6 +475,10 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
+- [V] `src/runner/element.build.test.ts` "one Solid per page":  Solid is found in `ui/customElement.js` as well as
+  `spell-solid.js`, so the test fails -- with or without the `markdown` epic's changes (checked 2026-10-04 by
+  reverting `Markdown.tsx`;  likely from `main`'s merge that day).  Prove:  `yarn vitest run --project node
+  src/runner/element.build.test.ts` in `packages/app`.
 - `src/runner/element.build.test.ts` "one Solid per page" fails on `main` (2026-10-04, plain vite) and on
   `vite-plus` alike:  the element build puts Solid code in `ui/customElement.js` as well as `spell-solid.js`, so a
   page may load a second Solid.  Prove:  `yarn vitest run src/runner/element.build.test.ts` in `packages/app`.
@@ -545,6 +565,11 @@ every entry below that date was fixed or disproven;  what's left:
   branch with an old-name plan doc, `node scripts/plan-rename.js --dry-run` lists `review-review.plan.html` under
   "links".  Fix:  skip a link followed by "(the old name)", or only rewrite links to the plan docs it just renamed.
   (Found in epic `design-system`, 2026-10-04;  reverted there by hand.)
+
+- [V] `scripts/plan-doc.js` `summary`:  throws "no .plan-items[data-kind="judgement"] in the doc" on a plan doc from
+  before the Judgement calls section (`epics/unified-server`), so `packages/cli/src/cli.test.ts` "summarizes a plan
+  doc" fails -- on `main` too (checked 2026-10-04, `markdown` epic).  Fix:  `summary` treats a missing list as
+  empty, or `migrate` the doc.
 
 - `scripts/plan-doc.js` `add-phase`:  `--goal` / `--files` / `--verify` go into the page as raw HTML, so
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as

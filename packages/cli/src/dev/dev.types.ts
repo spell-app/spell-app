@@ -229,3 +229,61 @@ export const ENTRYPOINT_PLACES: Record<string, string> = {
   "claude-vscode": "VS Code",
   "claude-desktop": "Desktop"
 }
+
+////////////////
+// ## Shared content
+////////////////
+
+/**
+ * The shared-content manifest (`sharedConfig()`).
+ * - `main`:  the main checkout;  `dir`:  the shared repo, absolute;  `links`:  folders every checkout links,
+ *   relative to a checkout's root
+ */
+export type SharedConfig = { main: string; dir: string; links: string[] }
+
+/**
+ * One link in one checkout:  its `state` (`linkState()`), and what `linkCheckout()` did about it (`action`).
+ */
+export type LinkReport = {
+  path: string
+  state: "ok" | "tracked" | "missing" | "real" | "dangling" | "elsewhere"
+  action?: "ok" | "tracked" | "linked" | "replaced" | "diverged" | "no-shared"
+}
+
+/**
+ * `spell dev shared status`.
+ * - `dir`, `exists`, `isRepo`:  the shared repo;  `dirty`:  files not committed;  `last`:  its newest commit
+ * - `checkouts`:  each checkout (`.` the main one) and its links
+ */
+export type SharedStatus = {
+  dir: string
+  exists: boolean
+  isRepo: boolean
+  dirty: number
+  last: string
+  checkouts: { checkout: string; links: LinkReport[] }[]
+}
+
+/**
+ * What `migrateWorktree()` does with one shared file of a worktree.
+ * - `action`:  `skip` (the worktree didn't change it, or matches), `take` (the worktree's copy goes into the shared
+ *   repo), `delete` (the worktree deleted it), `union` (a log changed on both sides:  merged, `text`), `conflict`
+ */
+export type FoldReport = {
+  file: string
+  action: "skip" | "take" | "delete" | "union" | "conflict"
+  text?: string
+}
+
+/**
+ * `spell dev shared migrate`'s answer.
+ * - `folds`:  every shared file's fate;  `conflicts`:  the files that stopped it;  `done`:  it went through (not a
+ *   dry run, no conflicts)
+ */
+export type MigrateReport = {
+  worktree: string
+  branch: string
+  folds: FoldReport[]
+  conflicts: string[]
+  done: boolean
+}

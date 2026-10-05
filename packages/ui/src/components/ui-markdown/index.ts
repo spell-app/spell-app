@@ -2,7 +2,8 @@
  * Barrel for markdown -- also the `markdown` lib entry (`@spell-app/ui/ui-markdown`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-markdown>`, plus `<ui-code>` (its code blocks), `<ui-loader>` and `<ui-message>` (its
  *   loading and error looks).
- * - NOTE: marked and DOMPurify are NOT in this chunk:  `MarkdownEngine` loads on the first render.
+ * - NOTE: marked and DOMPurify are NOT in this chunk:  `MarkdownEngine` loads on the first render, DOMPurify
+ *   (`MarkdownSanitizer`) only for `sanitized`.
  */
 
 import { UIMarkdown } from "./UIMarkdown"

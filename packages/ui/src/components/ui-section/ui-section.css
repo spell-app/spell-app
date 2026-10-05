@@ -37,6 +37,12 @@
  *   nesting depth (`--_ui-section-depth`, inline), so a nested title slides UNDER its parent's.  It needs an opaque
  *   background (`--ui-section-sticky-background`).
  * - Animated folds (`:state(animated)`:  `interpolate-size`), dropped under `prefers-reduced-motion`.
+ * - `<ui-sections>` shares this sheet:
+ *
+ *     <div class="ui [collapsing] sections" part="group"><slot></slot></div>
+ *
+ *   `collapsing` sets the private switch `--_ui-sections-stack` (0px), inherited by every section below it, which
+ *   then stacks ("Stacked");  a plain group resets it.
  *
  * ## Tokens
  * Public tokens (`--ui-section-*`, the theming surface) are NEVER declared here:  the root reads each through a
@@ -152,8 +158,9 @@
   .ui.section {
     box-sizing: border-box;
     display: block;
-    margin-block: var(--_section-margin-top, var(--_ui-section-margin))
-      var(--_section-margin-bottom, var(--_ui-section-margin));
+    /* `--_section-stack-*`:  set only inside `<ui-sections collapsing>` (see "Stacked") */
+    margin-block: var(--_section-stack-top, var(--_section-margin-top, var(--_ui-section-margin)))
+      var(--_section-stack-bottom, var(--_section-margin-bottom, var(--_ui-section-margin)));
     margin-inline: 0;
     padding: var(--_section-padding, 0);
     border: var(--_section-border, none);
@@ -206,6 +213,40 @@
     margin-block-end: -1px;
     visibility: hidden;
     pointer-events: none;
+  }
+}
+
+/*******************************
+            Sections
+*******************************/
+
+@layer ui.components.section.types {
+  /*
+   * `<ui-sections>`:  a block spaced as one section would be (its first section's top margin and its last one's
+   * bottom margin are 0).  Plain, it resets the stacking switch, so a plain group inside a collapsing one turns
+   * stacking off again for the sections in it.
+   */
+  .ui.sections {
+    --_ui-section-margin: var(--ui-section-margin, 1.5em);
+    --_ui-sections-stack: initial;
+    box-sizing: border-box;
+    display: block;
+    margin-block: var(--_sections-margin-top, var(--_ui-section-margin))
+      var(--_sections-margin-bottom, var(--_ui-section-margin));
+    margin-inline: 0;
+    padding: 0;
+  }
+  .ui.sections:first-child {
+    --_sections-margin-top: 0;
+  }
+  .ui.sections:last-child {
+    --_sections-margin-bottom: 0;
+  }
+  :host(:not(:first-child)) > .ui.sections {
+    --_sections-margin-top: initial;
+  }
+  :host(:not(:last-child)) > .ui.sections {
+    --_sections-margin-bottom: initial;
   }
 }
 
@@ -416,6 +457,14 @@
     --_section-content-padding: 0.5em 1em 1em;
   }
 
+  /*
+   * ## Collapsing group (`<ui-sections collapsing>`):  the stacking switch every section below reads, at any depth
+   * (it inherits through slots):  the margin between stacked sections.
+   */
+  .ui.collapsing.sections {
+    --_ui-sections-stack: 0px;
+  }
+
   /* ## Raised:  a box lifted with a shadow. */
   .ui.raised:is(.bordered, .styled).section {
     --_section-shadow: var(--_ui-section-raised-shadow);
@@ -474,6 +523,25 @@
   }
   :host(:last-child) > .ui[class*="bottom attached"].section {
     --_section-margin-bottom: 0;
+  }
+
+  /*
+   * ## Stacked:  in `<ui-sections collapsing>` (its inherited `--_ui-sections-stack`;  unset elsewhere, so none of
+   * this applies), a FOLDABLE section starts flush under the one above, and a FOLDED one keeps no space below:  a
+   * run of folded titles reads as one accordion.  An open one keeps its usual space below its content, never above
+   * its title, so a title never moves when it's clicked.  Boxes (`bordered`, `styled`) overlap their edges by the
+   * border width, so two never draw a doubled line;  not `attached` ones, which join already.
+   */
+  .ui.section:has(> .title > .heading > button.toggle) {
+    --_section-stack-top: var(--_ui-sections-stack);
+  }
+  .ui.section:has(> .content[hidden]) {
+    --_section-stack-bottom: var(--_ui-sections-stack);
+  }
+  .ui:is(.bordered, .styled):not(.basic, .attached).section:not(:first-child):has(> .title > .heading > button.toggle),
+  :host(:not(:first-child))
+    > .ui:is(.bordered, .styled):not(.basic, .attached).section:has(> .title > .heading > button.toggle) {
+    --_section-stack-top: calc(var(--_ui-sections-stack) - var(--ui-border-width));
   }
 
   /* ## Scrolling:  the content has a capped height (per breakpoint, `short` ... `very long`, or `height`). */
