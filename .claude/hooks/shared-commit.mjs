@@ -13,8 +13,11 @@ import { existsSync, openSync, readFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-/** The checkout this hook belongs to:  `.claude/hooks/` is two folders down. */
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
+/**
+ * The MAIN checkout:  this hook's (`.claude/hooks/` is two folders down), or the one above it when the hook is a
+ * worktree's copy (`<main>/.claude/worktrees/<w>`).  The shared repo's `dir` is relative to it.
+ */
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..").replace(/[\\/]\.claude[\\/]worktrees[\\/][^\\/]+$/, "")
 
 try {
   const { session_id: session, cwd } = JSON.parse(readFileSync(0, "utf8") || "{}")
