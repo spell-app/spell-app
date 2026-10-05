@@ -24,3 +24,9 @@ packages/docs/content/details/
 # plan docs' review inboxes (`packages/docs/tools/inbox.js`), with their lock and temp file:  Owen's marks waiting
 # for a Claude session, per machine;  what Claude makes of them goes into the plan doc, which is committed
 packages/docs/content/epics/*/*.inbox.json*
+
+# shared:start  (epic shared-content:  links into ../spell-app-dev, the shared content repo;  never tracked)
+/packages/docs/content
+/goals
+/agents
+# shared:end
