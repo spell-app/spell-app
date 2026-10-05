@@ -49,7 +49,7 @@ function show(path: string, site = "none") {
   return ask(port, "GET", `/api/docs/show?path=${encodeURIComponent(path)}`, { headers: { "sec-fetch-site": site } })
 }
 
-test("answers 400 with no path:  how `yarn docs:link` tells the route is there", async () => {
+test("answers 400 with no path:  how `spell dev docs link` tells the route is there", async () => {
   expect((await ask(port, "GET", "/api/docs/show")).status).toBe(400)
 })
 

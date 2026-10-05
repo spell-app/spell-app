@@ -6,6 +6,8 @@
       "Bash(grep -v \"^src/app/store.ts$\")",
       "Bash(git restore *)",
       "Bash(yarn *)",
+      "Bash(spell dev *)",
+      "Bash(node packages/cli/bin/spell.mjs dev *)",
       "Bash(npx *)",
       "Bash(git *)",
       "Edit(//Users/owen/www/spell-app/spell-app-dev/**)"

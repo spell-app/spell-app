@@ -3,9 +3,10 @@
 exports[`testing spell module expressions > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
 {
   "and": "operator|expression",
+  "arithmetic_expression": "lhs|rhsChain?",
   "as_a_type": "type",
-  "compound_expression": "lhs|rhsChain",
   "does_not_include": "operator|expression",
+  "expression": "lhs|rhsChain?",
   "includes": "operator|expression",
   "is_a": "operator|expression",
   "is_empty": "operator",

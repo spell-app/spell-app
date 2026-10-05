@@ -54,11 +54,22 @@ describe("testing spell module classes", () => {
     })
     test("a generated rule's `ScopeRule` has its `declaredBy` and built `instances`", () => {
       const scope = spellParser.getScope("rule-declaration")
-      scope.parse("a card is a thing\na card has a suit as one of clubs, diamonds", "block")
-      const scopeRule = scope.rules.get().find((it) => it.declaredBy?.rule.name === "define_property_has")
-      expect(scopeRule?.name).toBe("Card_Suits")
-      const use = scope.parse("card suits", "expression")
+      scope.parse(
+        ["a card is a thing", "a card has a suit as one of clubs, diamonds", 'a card "is a (suit)" for its suits'].join(
+          "\n"
+        ),
+        "block"
+      )
+      const scopeRule = scope.rules.get().find((it) => it.declaredBy?.rule.name === "quoted_property_formula")
+      expect(scopeRule?.name).toBe("is_a_$suit")
+      const use = scope.parse("is a club", "expression_suffix")
       expect(scopeRule?.instance).toBe(use?.rule)
+    })
+    test("an enumeration makes no rule:  `class_member` reads any type's class variables", () => {
+      const scope = spellParser.getScope("enumeration-declaration")
+      scope.parse("a card is a thing\na card has a suit as one of clubs, diamonds", "block")
+      expect(scope.rules.get()).toEqual([])
+      expect(scope.parse("card suits", "expression")?.rule.name).toBe("class_member")
     })
   })
 })

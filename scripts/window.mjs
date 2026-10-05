@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * `yarn window <command>`:  the VS Code windows Owen works in, one per package.
+ * `spell dev window <command>`:  the VS Code windows Owen works in, one per package.
  *
  * ## Window files
  * - `workspaces/<pkg>.code-workspace`:  open a package's window from it (`code workspaces/ui.code-workspace`).
@@ -46,12 +46,15 @@
  *     `.claude/hooks/prompt-gate.mjs`, sets it on `/isolate <name>`), else Claude's own.  No single match (two
  *     sessions with one title):  it stays open, idle;  close it by hand.
  *   - Log:  `<registry>/handoffs/<session id>.log`.
- * - Docs shown while the move is pending (`show`, `yarn plan-doc open`) wait for it, then show in the window the
+ * - Docs shown while the move is pending (`show`, `spell dev plan-doc open`) wait for it, then show in the window the
  *   session moved to:  the window it's leaving is about to close its tab.
  * - Its file:  `workspaces/ongoing/<name>.code-workspace` in the main checkout, beside the package windows' files;
  *   git ignores `workspaces/ongoing/`.
  * - Folders:  the MAIN repo root first, as in every window, so its Claude panel lists every session;  then the
- *   worktree's `packages/<pkg>` and the worktree's root (whose `packages/` is hidden, as the main root's is).
+ *   worktree's root, `⎇ <name>`.  No package folder:  Owen (2026-10-03).
+ *   - `packages/` shows in both:  a window's `files.exclude` applies to every folder, so hiding the main root's
+ *     would hide the worktree's too
+ *   - the package it's for (theme, `handoff --back`'s target) is kept in the file's own `spell.package`
  * - The package window's theme, title bar tinted in a colour of the worktree's own (from its name):  told apart at a
  *   glance from the package window, and from other worktrees.
  *
@@ -215,23 +218,25 @@ export class Window {
   }
 
   /**
-   * The window file of worktree `name`, focused on `pkg`.
+   * The window file of worktree `name`, opened from `pkg`'s window.
    * - folder paths are relative to `workspaces/ongoing/`
+   * - `spell.package`:  `pkg`, for `handoff --back`;  VS Code ignores a top-level key it doesn't know
+   * - NEVER hide `packages`, as a package window does:  it would hide the worktree's too (`PAPERCUTS.md`,
+   *   "claude-code")
    */
   static worktreeWorkspace(pkg, name) {
-    const worktree = `../../.claude/worktrees/${name}`
     return {
       folders: [
         { path: "../..", name: "spell-app" },
-        { path: `${worktree}/packages/${pkg}`, name: `${pkg} ⎇ ${name}` },
-        { path: worktree, name: `spell-app ⎇ ${name}` },
+        { path: `../../.claude/worktrees/${name}`, name: `⎇ ${name}` },
         ...Window.sharedFolder(join(MAIN_ROOT, "workspaces", "ongoing"))
       ],
       settings: {
         "workbench.colorTheme": Window.theme(pkg),
-        "files.exclude": { packages: true, ".claude/worktrees": true },
+        "files.exclude": { ".claude/worktrees": true },
         "workbench.colorCustomizations": tint(name)
-      }
+      },
+      spell: { package: pkg }
     }
   }
 
@@ -507,7 +512,7 @@ export class Window {
     return reply
   }
 
-  /** `yarn window <argv>`:  run one command;  resolves to the exit code. */
+  /** `spell dev window <argv>`:  run one command;  resolves to the exit code. */
   static async main(argv) {
     const { positional, flags } = parseArgs(argv)
     const [command, target] = positional
@@ -530,7 +535,7 @@ export class Window {
     const window = Window.current()
     if (!window) {
       console.error("no window:  the spell extension's bridge isn't running in this session's VS Code window")
-      console.error("  (install it with `yarn vscode`, then reload the window)")
+      console.error("  (install it with `spell dev vscode`, then reload the window)")
       return 1
     }
     if (command === "which") {
@@ -613,7 +618,7 @@ export class Window {
 const COMMANDS = ["init", "which", "add", "remove", "show", "open", "close", "handoff", "resume", "stay-check"]
 
 /** Usage, printed for a bad command. */
-const USAGE = `usage:  yarn window <command>
+const USAGE = `usage:  spell dev window <command>
   init                         write each package's missing workspaces/<pkg>.code-workspace
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window
@@ -632,11 +637,15 @@ const USAGE = `usage:  yarn window <command>
                                the move itself (the Stop hook runs it)
   stay-check [--epic] [--json] stay in this window when isolating, or move?  recommend stay|window, and why`
 
-/** The package worktree window file `file` focuses on:  its second folder, `<name>/packages/<pkg>`. */
+/**
+ * The package worktree window file `file` was opened from:  its `spell.package`.
+ * - an older file (before 2026-10-03) has none:  its second folder, `<name>/packages/<pkg>`
+ */
 function worktreePackage(file) {
-  const folder = JSON.parse(readFileSync(file, "utf8")).folders?.[1]?.path ?? ""
-  const pkg = folder.match(/packages[\\/]([^\\/]+)$/)?.[1]
-  if (!pkg) throw new Error(`${file}:  no package folder`)
+  const workspace = JSON.parse(readFileSync(file, "utf8"))
+  const folder = workspace.folders?.[1]?.path ?? ""
+  const pkg = workspace.spell?.package ?? folder.match(/packages[\\/]([^\\/]+)$/)?.[1]
+  if (!pkg) throw new Error(`${file}:  no package`)
   return pkg
 }
 

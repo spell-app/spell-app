@@ -10,12 +10,15 @@ import { BlockScope } from "./BlockScope"
  *  - `methods` (from BlockScope) are methods defined within the method.
  *  - `thisVar` (optional) variable name which will map to `this` if set on construction.
  *  - `mapItTo` (optional) map `it` to output var name.
+ *  - `itDatatype` (optional) what `thisVar` and `it` are, e.g. `Card` in a method of cards, or a loop's item type.
  */
 export class MethodScope extends BlockScope {
   /** Variable name which will map to `this`, if set on construction. */
   declare thisVar: string
   /** Map `it` to this output var name, if set on construction. */
   declare mapItTo: string
+  /** What `thisVar` and `it` are, if set on construction, e.g. `Card` -- their alias variables' `datatype`. */
+  declare itDatatype: P.Datatype | undefined
 
   /**
    * Create with optional `args` (added to `variables` with `kind: "argument"`), and set up `thisVar`/
@@ -36,14 +39,14 @@ export class MethodScope extends BlockScope {
     }
     // Define variables for thisVar and `it`.
     // Note that `its` automatically maps to `this`.
-    const { thisVar, mapItTo } = this
+    const { thisVar, mapItTo, itDatatype: datatype } = this
     if (thisVar && !this.variables.get(thisVar, "LOCAL_ONLY")) {
       // TODO: scope:this ??
-      this.variables.add({ name: thisVar, output: "this", isAlias: true, declaredBy })
+      this.variables.add({ name: thisVar, output: "this", isAlias: true, datatype, declaredBy })
     }
     if (mapItTo && !this.variables.get("it", "LOCAL_ONLY")) {
       // TODO: scope:this ??
-      this.variables.add({ name: "it", output: mapItTo, isAlias: true, declaredBy })
+      this.variables.add({ name: "it", output: mapItTo, isAlias: true, datatype, declaredBy })
     }
   }
 
@@ -68,6 +71,8 @@ export type MethodScopeProps = P.ScopeProps & {
   thisVar?: string
   /** Map `it` to this output var name. */
   mapItTo?: string
+  /** What `thisVar` and `it` are, e.g. `Card` -- see `MethodScope.itDatatype`. */
+  itDatatype?: P.Datatype
   /** Statement match which made this scope -- `declaredBy` for the variables it adds. */
   declaredBy?: P.Match
 }

@@ -1,7 +1,7 @@
 /*
  * Live goals pages:  buttons to add thoughts and to start Claude sessions.
  * Loaded after `spell-ui.js` by every goals page (`goals/**`, `templates/goals/**`).  Rules:  `goals/AGENTS.md`.
- * - Served by the page server (`yarn goals open`, `yarn server`) with goals' route module
+ * - Served by the page server (`spell dev goals open`, `spell dev server`) with goals' route module
  *   (`packages/docs/tools/goals/goalsRoutes.ts`), a page has `window.GOALS_SERVER` (`{ api }`) and the server's own
  *   `window.SPELL_SERVER` (`{ token, ... }`):
  *   - thoughts save through `POST <api>/thought`;  Claude sessions start through `POST <api>/run`, in a terminal
@@ -341,7 +341,7 @@
 
   /** Show `target` in VS Code's Simple Browser, beside the editor. */
   async function openVSCode(target) {
-    if (!SERVER) return openNoServer(`yarn goals open-vs ${target}`)
+    if (!SERVER) return openNoServer(`spell dev goals open-vs ${target}`)
     try {
       await post(`${SERVER.api}/open-vscode`, { target })
       toast("Opening in VS Code", "Beside your editor, in Simple Browser.", "success")
@@ -355,7 +355,7 @@
    * page on it (if it's running).
    */
   function openNoServer(what) {
-    const command = `yarn goals open ${BASE}`
+    const command = `spell dev goals open ${BASE}`
     const modal = commandModal()
     modal.querySelector("ui-header").textContent = "Start the page server"
     modal.querySelector(".goals-modal-about").innerHTML =

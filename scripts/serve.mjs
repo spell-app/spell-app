@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * `yarn serve`:  start every web server of THIS checkout that isn't running, wait until each answers, and print
- * where they are.  What `/spell-serve` runs, and `/spell-docs` before it shows a page.
- * - The PAGE SERVER (`yarn server ensure`):  docs, epics, goals, the app's `/api`.  Started in the background if it
- *   isn't running;  `yarn server stop` stops it, and with it the rest.
+ * `spell dev server start --all`:  start every web server of THIS checkout that isn't running, wait until each
+ * answers, and print where they are.  What `/spell-serve` runs, and `/spell-docs` before it shows a page.
+ * - The PAGE SERVER (`spell dev server ensure`):  docs, epics, goals, the app's `/api`.  Started in the background
+ *   if it isn't running;  `spell dev server stop` stops it, and with it the rest.
  * - The EDITOR (vite, the spell app):  the page server's child (`packages/app/src/server/EditorServer.ts`), started
  *   once the page server listens;  this waits for its record, `.spell-server.editor.json`, to answer.
  * - SPELL UI's docs:  static pages the page server itself serves at `/ui/` (`packages/ui/site/`, no dev server);
@@ -18,6 +18,9 @@ import { fileURLToPath } from "node:url"
 
 /** This checkout. */
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+
+/** This checkout's own `spell` CLI:  run with `node`, never the `spell` on `PATH` (maybe another checkout's). */
+const SPELL = join(ROOT, "packages", "cli", "bin", "spell.mjs")
 
 /** Where the page server records its editor. */
 const EDITOR_FILE = join(ROOT, ".spell-server.editor.json")
@@ -41,9 +44,9 @@ rows.push(await spellUIRow(page.base))
 print(rows)
 process.exitCode = rows.some((row) => row.failed) ? 1 : 0
 
-/** `yarn server ensure` for this checkout:  its `{ base, launched, ... }`. */
+/** `spell dev server ensure` for this checkout:  its `{ base, launched, ... }`. */
 function ensurePageServer() {
-  const output = execFileSync("yarn", ["server", "ensure"], {
+  const output = execFileSync(process.execPath, [SPELL, "dev", "server", "ensure"], {
     cwd: ROOT,
     encoding: "utf8",
     env: { ...process.env, INIT_CWD: ROOT }

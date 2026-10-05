@@ -1,7 +1,8 @@
 # packages/docs (`@spell-app/docs`)
 
 Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/ui`, their templates, the plan docs
-`/epic` keeps, the experiments behind the claims, and the tooling.  As the root's `AGENTS.md`, plus:
+`/epic` keeps, the experiments behind the claims, and the tooling.  As the root's `AGENTS.md` and WWOD
+(`agents/wwod/WWOD.md`), plus:
 
 ## Layout
 
@@ -18,7 +19,7 @@ Two folders (epic `shared-content`):
 
 In `content/`:
 - `index.html` -- the docs index.  The list between `<!-- index:start -->` / `<!-- index:end -->` is written by
-  `yarn docs:index`;  edit only outside the markers.
+  `spell dev docs index`;  edit only outside the markers.
 - `changelog.html` -- what the repo shipped, newest first;  every `/isolate` and `/epic` adds to it (the root's
   `AGENTS.md`, "Changelog").
 - `<topic>/<topic>.html` -- a doc, folder and file in lower-kebab-case, e.g. `solid/solid-2.html`.
@@ -54,16 +55,16 @@ In `tools/`:
 
 ## Writing a page
 
-- Start from a template:  `yarn docs:new durable|cheatsheet|commands <topic>/<topic>.html --title "Title"` copies
+- Start from a template:  `spell dev docs new durable|cheatsheet|commands <topic>/<topic>.html --title "Title"` copies
   it (and `commands`' JSON, as `<topic>.json`), fixes the `_assets` paths for the page's depth, and lists it in the
   index.
 - Every page (templates too) starts its `<body>` with the site header, `<spell-site-header root="../..">`:  `root` is
-  the path from the page's folder to the REPO root.  The template tools (`docs:new`, `plan-doc new`, `goals new`)
+  the path from the page's folder to the REPO root.  The template tools (`docs new`, `plan-doc new`, `goals new`)
   set it;  everything that sticks or lands starts below it (`spell-doc-runtime.js` `siteHeaderHeight()`, and its
   header's "Landing").  The element itself is `$/server/site`'s `SiteHeader`, bundled into `spell-ui.js`.
 - NEVER inline copies of `_assets`:  improve the shared files instead, and every page gets it.
 - Pages MUST still open straight from disk (`file://`):  no ES modules -- hence the one classic bundle.  But the
-  openers (`docs:open`, `plan-doc open`) show them from this checkout's PAGE SERVER (`yarn server`, see
+  openers (`docs open`, `plan-doc open`) show them from this checkout's PAGE SERVER (`spell dev server`, see
   `packages/server/AGENTS.md`):  live reload, edit mode, and the server-only properties (Spell UI, Editor).
   - The ONE exception:  a `commands` page fetches its JSON, so it draws its tables only from the page server;  from
     `file://` it says so where they'd go.  Its `<body data-spell-needs-server>` makes `check-spell.js` load it from
@@ -81,7 +82,7 @@ In `tools/`:
   - a sticky page header above them, on EVERY page:  `<ui-sticky class="spell-h1"><header
     class="spell-page-head">` around the h1, so the title stays on screen (the templates have it)
   - the OLD markup -- `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>` -- is for the goals
-    pages only;  the runtime still drives it.  `node tools/to-ui-section.js <page>` converts a page (`yarn plan-doc
+    pages only;  the runtime still drives it.  `node tools/to-ui-section.js <page>` converts a page (`spell dev plan-doc
     migrate <name>` a plan doc)
 - The runtime builds the page from that markup:
   - contents sidebar:  sticky right column, expandable per section, follows the scroll;  a drawer on narrow screens.
@@ -119,6 +120,8 @@ In `tools/`:
     - Revisit:  a note box under the line, a grey check ("soon") over a blue send ("now");  the unsaved note
       survives reloads (`spell-revisit:<path>`)
     - an open item's option cards:  a "Choose" pill on each label marks `pick`, the card framed orange
+    - an answered question's Choices panels (`plan-doc.js` `QUESTION`):  "Choose" pills on all but the chosen one,
+      only while it's revisited (its Revisit box open, or a revisit or pick mark);  the picked title orange
     - a pick and a revisit together ("pick B, but ..."):  choosing keeps a revisit's note, a revisit keeps the
       pick;  the button orange with the letter;  the chosen pill again drops just the pick, Clear both
     - the page header's paper plane, left of the git button:  grey, blue with unsent marks, outlined once sent;  its
@@ -138,9 +141,7 @@ In `tools/`:
   - a nested `<ui-section>` for EVERY distinct sub-item, `h4` for sub-sub-items:  a list item with a bold title and
     several lines of body becomes a section, and long lists of such items are grouped under themed sections
   - titles are short labels (they're the contents entries);  the claim goes in the body
-- Text:  bullets, not dense prose.
-  - 3+ sentences => a short lead plus bullets, one idea each, nested for sub-points
-  - keep every fact, number and caveat when you condense
+- Text:  SEE:  WWOD §6 › "Writing for people".
 - Widgets (see the templates for exact markup):
   - recommendations / warnings:  `<ui-message state="positive|negative|warning|info" header="...">`
   - comparisons:  `<ui-table celled compact striped unstackable>` around a native `<table>`;  number cells
@@ -171,7 +172,7 @@ In `tools/`:
       sibling).  The contents sidebar's expand / collapse / code buttons are the model (`spell-doc-runtime.js`
       `tool()`).
     - `basic` for quiet tools (sidebars, toolbars);  `primary` for the one main action in a dialog
-  - an icon a page uses must be in `ICONS` in `tools/bundle-spell-ui.js` (then `yarn docs:update`):  any other
+  - an icon a page uses must be in `ICONS` in `tools/bundle-spell-ui.js` (then `spell dev docs update`):  any other
     name draws nothing
 - Code:
   - ALWAYS folded and colored:  `<ui-accordion class="spell-code" styled>` + `<ui-title>What it is · N lines</ui-title>`
@@ -180,7 +181,7 @@ In `tools/`:
     `yarn vp fmt <file>`
   - valid code only:  no bare JSX statements after other statements -- assign them to a `const`
   - prefer excerpts pasted from a real, runnable file over hand-typed examples
-- Colors only from the `spell-doc.css` / UI tokens, so dark mode keeps working.
+- Colors:  WWOD §18 › "Colours and themes through `ui`'s tokens", plus `spell-doc.css`'s own.
 
 ## Templates
 
@@ -190,18 +191,18 @@ In `tools/`:
   hand-written prose around them.  E.g. `dev/commands/commands.html`.
 - `templates/cheatsheet.html` -- an API reference:  a grid of cards, filtered by text and by badge
   (`ui-select[data-spell-filter-badge]`);  a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link).
-- `templates/epics/plan.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
-- `templates/details.html` -- a details page.  NEVER copy by hand:  `yarn details new <slug>`.
+- `templates/epics/plan.html` -- a plan doc.  NEVER copy by hand:  `spell dev plan-doc new <name>`.
+- `templates/details.html` -- a details page.  NEVER copy by hand:  `spell dev details new <slug>`.
 - `templates/review.html` -- "Review":  a details page reviewing a finished run's calls, one question each (keep,
   change, talk over), then "Where first?";  saved from `ui-docs-rework`'s morning review as the model.
 - `templates/goals/` -- goals pages, laid out as a goals folder is, so their links work in place:
   `index.html` (the home page:  every goal set), `set/index.html` (a set's contents page), `set/topic/topic.html`
-  and `topic.md` (a topic's page and its agent notes).  NEVER copy by hand:  `yarn goals new-set` / `yarn goals new`
+  and `topic.md` (a topic's page and its agent notes).  NEVER copy by hand:  `spell dev goals new-set` / `new`
   fill the `{{placeholders}}` and fix the asset paths.  Rules:  the repo root's `goals/AGENTS.md`.
 - `templates/spell-ui-docs.html` -- a Spell UI docs page (`packages/ui/site/`):  Fomantic's docs layout in `<ui-*>`
   widgets (nav, masthead, Examples / Usage / API / Theming tabs, an "On this page" rail), loading the UI site's
   bundle, NOT `spell-ui.js`.  NEVER copy by hand:  `yarn site:new <tag|page>` in `packages/ui`;  how to write one:
-  `epics/spell-ui-pages/PAGES.md`;  checked by `yarn site:check` there (`docs:update` skips it).
+  `epics/spell-ui-pages/PAGES.md`;  checked by `yarn site:check` there (`docs update` skips it).
 - Every template but the goals pages and `spell-ui-docs.html` is `<ui-section>` markup (see "Writing a page");  the goals pages keep the old
   `section.s2` markup until they migrate (`agents/CODE-DEBT.md`).
 - A new KIND of doc gets a template here, and a card in the index.
@@ -210,7 +211,7 @@ In `tools/`:
 
 - `/epic <name>` (`.claude/skills/epic/`) runs a planning session against `epics/<name>/<name>.plan.html`.
 - How to write one, its sections, ids and markers:  `templates/epics/plan-doc.md`.
-- Edit through `yarn plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
+- Edit through `spell dev plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
 
 ### Review inbox
@@ -233,9 +234,9 @@ In `tools/`:
     items (else 400);  each answer is the whole inbox, but `listening` `null` once stale (`forPage()`);  writes
     need the server's token and origin (`SRV.Guard`)
 - Unsent:  marks newer than `sent` (the last "send to Claude"), never an immediate one (`details`, revisit `now`).
-- `yarn plan-doc inbox <name> [--json]` prints it:  marks by action with their items' titles, sent or not, the
+- `spell dev plan-doc inbox <name> [--json]` prints it:  marks by action with their items' titles, sent or not, the
   `now` queue, agents at work, the session listening.
-- Claude's side, `yarn plan-doc inbox <name> ...` (the loop, step by step:  `templates/epics/plan-doc.md`, "Review
+- Claude's side, `spell dev plan-doc inbox <name> ...` (the loop, step by step:  `templates/epics/plan-doc.md`, "Review
   inbox"):
   - `listen` / `unlisten`:  a session waits on it, or stopped
   - `wait`:  run in the background;  exits 0 with work (requests for now, taken;  a send not yet handed over,
@@ -244,17 +245,17 @@ In `tools/`:
     revisit with a pick is left, "to talk over"
   - `working <id> on|off`, `done <id>...` (keeps a mark Owen changed meanwhile), `clear <id>...`;  these and
     `apply` stamp the heartbeat too
-  - an agent writes into ONE item with `yarn plan-doc details <name> <id> --file <html> [--append]`:  under the
+  - an agent writes into ONE item with `spell dev plan-doc details <name> <id> --file <html> [--append]`:  under the
     doc's lock, so it never races the session's other edits
 
 ## Details pages
 
 - `/details` (`.claude/skills/details/`):  how and when Claude writes one.
-- `yarn details new | show [--wait] | wait | answer | list | sweep` (`tools/details.js`).
+- `spell dev details new | show [--wait] | wait | answer | list | sweep` (`tools/details.js`).
 - Owen's answer:  the page posts it to the page server's route module `tools/detailsRoutes.ts`, which writes
-  `<slug>.answer.json` beside the page;  `yarn details wait`, run in the background, exits with it and so wakes the
+  `<slug>.answer.json` beside the page;  `spell dev details wait`, run in the background, exits with it and so wakes the
   session.
-- `findPages()` skips every `details/` folder:  not in the index, not checked by `docs:update`.
+- `findPages()` skips every `details/` folder:  not in the index, not checked by `docs update`.
 
 ## Experiments
 
@@ -284,23 +285,23 @@ In this order, from `packages/docs`:
 3. `node tools/doc-links.js --check <page>`
 4. `node tools/check-spell.js <page>` must pass -- and LOOK at its four screenshots:  the checks can't see
    overlap, clipping or bad wrapping
-5. `yarn docs:index` when the page is new, renamed, or its `<title>` / description changed
+5. `spell dev docs index` when the page is new, renamed, or its `<title>` / description changed
 
 ## Scripts
 
-- `yarn docs:update` (`tools/update.js`) -- rebuild the bundle from the LATEST UI, `docs:index`, then
+- `spell dev docs update` (`tools/update.js`) -- rebuild the bundle from the LATEST UI, `docs index`, then
   `doc-links.js --check` and `check-spell.js` on every page.  `--skip-ui-build` reuses `../ui/dist`;  `--no-check` skips the browser.
 - `tools/bundle-spell-ui.js` -- builds UI (fork + `yarn build`), bundles `_assets/spell-ui.js`.
-- `yarn docs:index` (`tools/index.js`) -- rewrites the lists in `index.html`.
-- `yarn docs:new` (`tools/new-page.js`) -- a page from a template, at any depth.
-- `yarn docs:open [page] [--vs | --review]` (`tools/open.js`) -- show a page (default:  the index) in Chrome,
+- `spell dev docs index` (`tools/index.js`) -- rewrites the lists in `index.html`.
+- `spell dev docs new` (`tools/new-page.js`) -- a page from a template, at any depth.
+- `spell dev docs open [page] [--vs | --review]` (`tools/open.js`) -- show a page (default:  the index) in Chrome,
   reusing its tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" tab (`/spell-docs`);
   `--review`:  its "Review" tab (`/epic review`).  Each tab keeps its own page;  showing the page a tab already
   has doesn't reload it (the page updates itself).
-- `yarn details` (`tools/details.js`) -- details pages (see "Details pages");  `tools/detailsRoutes.ts`, the
+- `spell dev details` (`tools/details.js`) -- details pages (see "Details pages");  `tools/detailsRoutes.ts`, the
   page server's route module for their answers.
 - `tools/inbox.js`, `tools/reviewRoutes.ts` -- a plan doc's review inbox and its routes (see "Review inbox").
-- `yarn docs:link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
+- `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
   `tools/showRoutes.ts` (`GET /api/docs/show`).
 - `tools/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `atDepth()` (a template at a page's depth),
@@ -332,3 +333,5 @@ In this order, from `packages/docs`:
 - When agents need a doc's rules, also write a distilled `.md` beside it (bullets, `ts` code blocks), and point to it
   from the top of an `AGENTS.md` with an "if working with X, READ file" line -- the package's, or the root's when
   other packages need it too.  See `solid/solid-2.md`, pointed to from the root's.
+- A doc's rules are about ITS topic (Solid's mechanics, a tool's flags).  House style -- how we write any code --
+  goes in WWOD (`agents/wwod/`), not in a distilled doc.

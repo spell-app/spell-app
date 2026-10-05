@@ -58,6 +58,21 @@ export class ParseJournal {
     return undone
   }
 
+  /**
+   * Set `next`'s props on `target`, recording the change in `journal` (if any) so it can be taken back.
+   * - For a change to a record which already EXISTS,
+   *   e.g. a method's `returns` once its body has parsed.
+   * - A new record goes through `ScopeList.add()`, which journals itself.
+   */
+  static assign<T extends object>(journal: ParseJournal | undefined, target: T, next: Partial<T>) {
+    const previous = Object.fromEntries(Object.keys(next).map((key) => [key, target[key as keyof T]])) as Partial<T>
+    Object.assign(target, next)
+    journal?.record({
+      undo: () => Object.assign(target, previous),
+      redo: () => Object.assign(target, next)
+    })
+  }
+
   /** Redo `entries` from `rewindTo()` in order, putting them -- and their marks -- back in the journal. */
   replay(entries: P.JournalEntry[]) {
     for (const entry of entries) {

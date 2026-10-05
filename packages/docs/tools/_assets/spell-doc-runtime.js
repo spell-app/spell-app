@@ -157,8 +157,11 @@ async function start() {
  * Land where the page should open, once its sections have drawn and folded:
  * - a live reload's saved scroll position (`SPELL_SERVER.takeScroll()`):  exactly there, and again after a fold's
  *   transition (`SETTLE_MS`) unless the reader scrolled meanwhile
- * - else the URL's `#hash`, WITHOUT unfolding the target itself:  the address follows the section being read
- *   (`followScroll()`), so a reload (or VS Code restarting) lands on it, folded or not, as the reader left it
+ * - else the URL's `#hash`:
+ *   - a section or heading WITHOUT unfolding the target itself:  the address follows the section being read
+ *     (`followScroll()`), so a reload (or VS Code restarting) lands on it, folded or not, as the reader left it
+ *   - a plan item OPENS:  the address never follows items, so an item's `#q16` is a link someone followed
+ *     (`spell dev docs link --hash q16 --show`), and a folded item shows nothing of what it pointed at
  * - else nowhere:  the top
  * - then the address starts following the scroll
  */
@@ -170,14 +173,27 @@ function land({ hash, scroll }, jump, follow) {
       if (Math.abs(scrollY - landed) < 2) scrollTo({ top: scroll, behavior: "instant" })
     }, SETTLE_MS)
     follow?.update()
-  } else if (hash) jump(hash, { unfoldTarget: false })
-  else follow?.update()
+  } else if (hash) {
+    jump(hash, { unfoldTarget: isPlanItem(hash) })
+    // the browser's own jump to the `#hash` can come AFTER ours and land the target under the stuck titles (an
+    // item has no box of its own:  `display: contents`), so land once more when the page has settled, unless the
+    // reader has moved meanwhile
+    let moved = false
+    for (const type of ["wheel", "touchstart", "keydown", "pointerdown"])
+      addEventListener(type, () => (moved = true), { once: true, passive: true })
+    setTimeout(() => !moved && jump(hash, { unfoldTarget: false }), SETTLE_MS * 2)
+  } else follow?.update()
   follow?.followAddress()
+
+  /** Is `id` a plan item (its own panel, `ui-accordion.plan-item`), rather than a section or heading? */
+  function isPlanItem(id) {
+    return Boolean(document.getElementById(id)?.querySelector(":scope > ui-accordion.plan-item"))
+  }
 }
 
 /**
  * A plan doc (`epics/<name>/<name>.plan.html`;  before 2026-10-04 `<name>.html`) names its tab `<name>`:  every
- * link to it has `target="<name>"` (`doc-links.js`), so they reuse this tab, as `yarn plan-doc open <name>` does.
+ * link to it has `target="<name>"` (`doc-links.js`), so they reuse this tab, as `spell dev plan-doc open <name>` does.
  */
 function nameTab() {
   const plan = /\/epics\/([^/]+)\/\1(?:\.plan)?\.html$/.exec(decodeURIComponent(location.pathname))
@@ -664,10 +680,13 @@ function outlineOf(main) {
     folded
   }
 
-  /** SECTIONS:  every `<ui-section>`, h3 and h4 in `main`, under the section it's in. */
+  /**
+   * SECTIONS:  every `<ui-section>`, h3 and h4 in `main`, under the section it's in.
+   * - not the headings in a plan item's Original Discussion (`outsideOriginal()`):  earlier text, not the page's
+   */
   function readSections() {
     const nodes = new Map()
-    for (const element of main.querySelectorAll("ui-section, h3, h4")) {
+    for (const element of outsideOriginal(main.querySelectorAll("ui-section, h3, h4"))) {
       const node = nodeOf(element)
       nodes.set(element, node)
       const owner = element.parentElement?.closest("ui-section")
@@ -2529,8 +2548,30 @@ const REVIEW_ACTIONS = [
 /** Every plan item a review mark can go on:  the items of every list, open or closed (not the phases). */
 const REVIEW_ITEMS = ".plan-items > [data-status][id]"
 
-/** An item's option cards' labels (`A · ...`), as `wireOptions()` folds them, from the item down. */
-const ITEM_OPTION_LABELS = ":scope ui-grid.spell-pros-cons > ui-column ui-label[attached]"
+/**
+ * An item's option labels (`A · ...`), from the item down:  an open question's option cards' labels (as
+ * `wireOptions()` folds them), and an answered one's Choices panels' titles (`ui-accordion.plan-options`,
+ * `plan-doc.js` `QUESTION`).
+ * - also matches the ones in its Original Discussion:  `outsideOriginal()` drops those
+ */
+const ITEM_OPTION_LABELS =
+  ":scope ui-grid.spell-pros-cons > ui-column ui-label[attached], :scope ui-accordion.plan-options > ui-title"
+
+/**
+ * The element an option label's pick marks (`data-picked`):  an option card's `ui-column`, or a Choices panel's
+ * `ui-title` itself.
+ */
+function optionHolder(label) {
+  return label.closest("ui-column") ?? label.closest("ui-accordion.plan-options > ui-title")
+}
+
+/**
+ * `elements` (a node list) outside every Original Discussion (`ui-accordion.plan-original`, `plan-doc.js`
+ * `ORIGINAL`):  an item's earlier text, kept folded;  nothing in it is chosen, counted or listed.
+ */
+function outsideOriginal(elements) {
+  return Array.from(elements).filter((element) => !element.closest(".plan-original"))
+}
 
 /**
  * Review a plan doc ON the page (plan doc `review-review`, P5):  marks wait in the doc's INBOX FILE
@@ -2547,6 +2588,9 @@ const ITEM_OPTION_LABELS = ":scope ui-grid.spell-pros-cons > ui-column ui-label[
  *   ("revisit soon"), a blue send asks for it now;  the unsaved note survives reloads (`REVISIT_KEY_PREFIX`)
  * - an OPEN item's option cards get a "Choose" pill on their label (`button.plan-choose`):  a click marks that
  *   letter picked (`data-picked` on its `ui-column`, framed orange), a second click clears it
+ *   - an ANSWERED question's options are its Choices panels:  pills on their titles (not the chosen one) only while
+ *     it's being revisited (its Revisit box open, or a revisit or pick mark):  "pick B instead, because ..."
+ *     (`pills()`);  the picked panel's title turns orange
  *   - a pick and a revisit live together ("pick B, but ..."):  the revisit mark carries `pick` (`markWith()`);
  *     choosing keeps the note, writing a revisit keeps the pick, a second click on the chosen pill drops just the
  *     pick, Clear drops both;  the button shows the letter in the revisit's orange
@@ -2619,17 +2663,6 @@ async function wireReview(main) {
     for (const item of main.querySelectorAll(REVIEW_ITEMS)) {
       const line = item.querySelector(":scope > ui-accordion.plan-item > ui-title") ?? item
       if (!line.querySelector(":scope > .plan-act")) line.append(actOf(item))
-      const open = !CLOSED.has(item.dataset.status)
-      for (const label of item.querySelectorAll(ITEM_OPTION_LABELS)) {
-        const pill = label.querySelector(":scope > .plan-choose")
-        if (!open) {
-          pill?.remove()
-          label.closest("ui-column")?.removeAttribute("data-picked")
-        } else if (!pill) {
-          const letter = /^\s*([A-Z])\b/.exec(label.textContent)?.[1]
-          if (letter) label.append(chooseOf(item, letter))
-        }
-      }
       if (boxes.has(item.id) && !item.querySelector(":scope > .plan-revisit")) item.append(boxOf(item))
     }
     const head = main.querySelector(".spell-page-head")
@@ -2680,9 +2713,10 @@ async function wireReview(main) {
         : (work?.action ?? mark?.action) === "revisit"
           ? "Claude is looking into this..."
           : "Claude is adding details..."
+      pills(item)
       for (const pill of item.querySelectorAll(".plan-choose")) {
         const picked = !!mark?.pick && mark.pick === pill.dataset.letter
-        pill.closest("ui-column")?.toggleAttribute("data-picked", picked)
+        optionHolder(pill)?.toggleAttribute("data-picked", picked)
         pill.setAttribute("aria-pressed", String(picked))
         pill.textContent = picked ? "Chosen" : "Choose"
         pill.title = picked ? `${pill.dataset.letter} is picked:  click to un-pick` : `Pick ${pill.dataset.letter}`
@@ -2700,6 +2734,30 @@ async function wireReview(main) {
         : "Nothing to send:  mark an item first (its ... button)"
     send.title = listening || !all.length ? tip : `${tip}.  ${NOBODY_LISTENING}`
     send.setAttribute("aria-label", tip)
+  }
+
+  /**
+   * Add or remove `item`'s "Choose" pills, as its state wants them:  on an open question's option cards;  on an
+   * ANSWERED question's Choices panels, but its chosen one, only while it's being revisited (its Revisit box open,
+   * or a revisit or pick mark).  Gone, a pill takes its `data-picked` with it.
+   * - never an option in the item's Original Discussion:  that's history, not a choice (`plan-doc.js` `ORIGINAL`)
+   */
+  function pills(item) {
+    const mark = inbox.marks[item.id]
+    const open = !CLOSED.has(item.dataset.status)
+    const revisiting =
+      item.hasAttribute("data-answered") && (boxes.has(item.id) || mark?.action === "revisit" || !!mark?.pick)
+    for (const label of outsideOriginal(item.querySelectorAll(ITEM_OPTION_LABELS))) {
+      const pill = label.querySelector(":scope > .plan-choose")
+      const wanted = open || (revisiting && !label.hasAttribute("data-chosen"))
+      if (!wanted) {
+        pill?.remove()
+        optionHolder(label)?.removeAttribute("data-picked")
+      } else if (!pill) {
+        const letter = /^\s*([A-Z])\b/.exec(label.textContent)?.[1]
+        if (letter) label.append(chooseOf(item, letter))
+      }
+    }
   }
 
   ////////////////
@@ -2941,6 +2999,8 @@ async function wireReview(main) {
     boxes.add(item.id)
     let box = item.querySelector(":scope > .plan-revisit")
     if (!box) item.append((box = boxOf(item)))
+    // an answered question's Choices take their pills while it's revisited (`pills()`)
+    render()
     box.querySelector("textarea").focus({ preventScroll: true })
   }
 
@@ -2948,6 +3008,7 @@ async function wireReview(main) {
   function closeBox(item, saved) {
     boxes.delete(item.id)
     item.querySelector(":scope > .plan-revisit")?.remove()
+    render()
     if (!saved) return
     const drafts = readJSON(draftsKey)
     delete drafts[item.id]

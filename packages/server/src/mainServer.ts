@@ -1,7 +1,7 @@
 /**
  * A worktree's files on the MAIN checkout's page server, so every link points to one port.
  * - The main page server serves each worktree under `/worktrees/<w>/` (`$/server/page` `RunningEpics`).
- * - Used by `yarn server url` and the VS Code doc preview;  either falls back to the worktree's own server.
+ * - Used by `spell dev server url` and the VS Code doc preview;  either falls back to the worktree's own server.
  */
 import { resolve, sep } from "node:path"
 
