@@ -1247,6 +1247,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   which hides `packages/` in EVERY folder of the window, the worktree's root too. · `worktreeWorkspace()` no longer hides
   `packages` (and drops the package folder:  just the main root and `⎇ <name>`);  the window already open was
   rewritten the same way. · claude-code
+- 2026-10-04 · `ExitPlanMode` from a session in a worktree's window (`/epic wwod`) failed twice with "Tool permission
+  request failed:  AbortError:  Tool permission stream closed before response received":  the session restarted,
+  plan mode was gone, and the plan file came back untouched (no approval, no comments).  Once for a planning plan,
+  once for `/comment`'s 476-line review round. · Not found yet:  fell back to asking in the modal;  cause unknown
+  (session restart?  plan size?). · claude-code
 
 ## vscode
 

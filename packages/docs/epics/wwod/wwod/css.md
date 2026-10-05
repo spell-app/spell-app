@@ -10,22 +10,46 @@ From:  original WWOD §19 ("CSS"), rewritten for plain `.css` and `@spell-app/ui
 
 ## 18. CSS
 
+- **Modern CSS:**
+  - Our floor:  `CSS_TARGETS` in `packages/ui/vite.config.ts` -- Chrome 125, Safari 26, Firefox 147 (anchor
+    positioning everywhere).  Lightning CSS compiles FOR it;  never Vite's default targets, which lower
+    `light-dark()` and break `.ui-dark` subtrees.
+  - Use freely:  nesting, custom properties, `@layer`, `light-dark()`, `oklch()`, `:has()`, container queries (style
+    queries too), anchor positioning, popover, `<dialog>`, `:state()`, `@custom-media` (a draft Lightning CSS
+    compiles away).
+  - Feature-flagged, with a fallback:  Safari's gaps (`closedby`, `popover=hint`, `CloseWatcher`, customizable
+    `<select>`) through `UI.browser.supports`, NEVER a user-agent check (`packages/ui/AGENTS.md` "UI rules").
+  - Don't use:  `rem` (below), `:host-context`, a bare px media query (below).
+  - Adopting a feature:
+    - every `CSS_TARGETS` browser supports it:  use it freely
+    - one doesn't, but caniuse shows it in 90%+ of global use:  behind a `UI.browser.supports` flag, with a fallback
+    - under that:  not yet
+
 - **Plain `.css` beside its component:**
   - `<Name>.css` next to `<Name>.tsx`, imported by it (last import, WWOD §4):  `import "./InputEditor.css"`
-  - native nesting and custom properties, no preprocessor (`packages/app/AGENTS.md` "Overview")
+  - native nesting and custom properties;  minimal use of preprocessor features (Lightning CSS)
+    (`packages/app/AGENTS.md` "Overview")
   - it opens with a comment naming what it styles and anything surprising:  `/* Look of <FileDropdown>
     (FileDropdown.tsx) ... Hosts are display: contents:  rules reach the boxes through ::part(). */`
-  - importing it from the component is also how it reaches a web component:  the element build gathers every
-    imported sheet into `spell-app.css`, which `<spell-app>` adopts into its shadow root (`vite.element.config.ts`,
-    `runner/shadowStyles.ts`).  A shadow root sees ONLY its own styles:  a rule imported from a page never gets in
   - `ui`'s global sheets:  `src/styles/`, one file per axis (tokens, colours, sizes, typography, utilities), in
     `@layer` order, `layers.css` FIRST (`packages/ui/AGENTS.md` "Overview";  `layers.css`'s header)
+  - TODO:  CSS in the component's own file, e.g. a `postcss`-tagged template, if VS Code still gives IntelliSense
+    for it.
+
+- **How CSS reaches a web component:**
+  - A shadow root sees ONLY its own styles:  a rule a page imports never gets in.
+  - `<spell-app>` / `<spell-editor>`:  importing a sheet from its component is enough.  The element build gathers
+    every imported sheet into `spell-app.css`, which the element adopts into its shadow root
+    (`vite.element.config.ts`, `runner/shadowStyles.ts`).
+  - A `ui-*` element:  its sheet is imported `?inline` and adopted by the element itself (`./ui-button.css?inline`,
+    `packages/ui/AGENTS.md` "Solid authoring").
+  - From outside, a page reaches inside only through `::part()` and inherited custom properties (below).
 
 - **Keep CSS DRY:**
   - re-skin by overriding ONE custom property, not by adding classes:  `ui`'s token remaps (`--ui-color`,
     `--ui-scale`;  `packages/ui/docs/theming.md` "Overriding colours")
   - bridge a TS constant to CSS through a custom property, never the value in both:
-    `style={{ "--TypeExplorer-indent": \`${INDENT_WIDTH}px\` }}`, then `var(--TypeExplorer-indent)` in the sheet
+    ``style={{ "--TypeExplorer-indent": `${INDENT_WIDTH}px` }}``, then `var(--TypeExplorer-indent)` in the sheet
   - layout algebra in CSS (`calc()` on custom properties) over measuring in JS
   - shared spacing is one set of tokens, used everywhere:  `--spell-tight-padding` / `-normal-` / `-loose-`
     (`packages/app/src/solid/spell.css`), read by `SplitPanel.css` for padding AND the gap between panes

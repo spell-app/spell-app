@@ -9,6 +9,7 @@ SEE:  `packages/server/AGENTS.md` for `$/server` itself (`SRV.Router`, `SRV.WebS
 ## 10. Server & API
 
 - **One route table, no logic in it:**
+  - TODO (not settled):  this rule, as written.
   - Each server has ONE `SRV.Router` table wiring paths to named handlers, e.g. `packages/app/src/server/api.ts`.
   - A route line is pattern + handler, nothing else.  Group lines under `////` banners (WWOD §6).
   - Handlers live in the API layer, named `request_<action>`, e.g. `request_createProject` in
@@ -25,6 +26,7 @@ SEE:  `packages/server/AGENTS.md` for `$/server` itself (`SRV.Router`, `SRV.WebS
   - The work is a plain function beside the handler (`createProject()`), the handler is its HTTP face.
   - Wrap in `respondWithJSON()` (`packages/spell/src/node/response-utils.ts`):  its return value is answered as JSON,
     a throw becomes the error answer.
+  - TODO:  an `ApiTransaction` class.
 
   ```ts
   export const request_createProject = respondWithJSON(async (request) => {
@@ -34,21 +36,29 @@ SEE:  `packages/server/AGENTS.md` for `$/server` itself (`SRV.Router`, `SRV.WebS
   })
   ```
 
-- **Caller mistakes throw `SRV.HttpError`:**
-  - `throw new SRV.HttpError(status, message)` for anything the caller got wrong:  400 bad input, 403, 404.
+- **Caller mistakes throw specific error subclasses:**
+  - A specific `Error` subclass for anything the caller got wrong (`NotFoundError` ...), each mapped to its status:
+    400 bad input, 403, 404.  `SRV.HttpError(status, message)` is the general case.
   - Anything else thrown answers 500 (`SRV.toListener()`, `packages/server/src/listener.ts`);  `respondWithJSON()`
-    MUST answer an `SRV.HttpError` with its own status, not 500.
+    MUST answer a mapped error with its own status, not 500.
   - Inside a handler, throw;  NEVER hand-write `reply.status(4xx).send(...)` for an error.
   - ONE error body shape per server, so the client parses one thing.
   - Client side, an answered error becomes `$/util`'s `ResponseError` family (WWOD §5).
-- **Grow `response-utils.ts`, don't write route-local helpers:**
+  - TODO:  response examples, for each error class.
+- **Grow `response-utils.ts` (name will change), don't write route-local helpers:**
   - New request / response capability = a small helper in `response-utils.ts` under its own `////` banner, e.g.
     `getIdParams()` ("Id utilities"), `sendTextFile()` ("Text responses").
   - Generic, app-agnostic pieces (body parsing, static files, routing) belong in `$/server` instead.
-- **Shared response constants live with the helpers:**
-  - Cache headers, content types, header lists:  named constants in `response-utils.ts` (or `$/server` when
-    generic), never string literals in a route file.
+- **Shared constants live in `<feature>.types.ts`:**
+  - Cache headers, content types, header lists:  named constants in `<feature>.types.ts`, so client and server share
+    them;  never string literals in a route file.
+  - Server-only constants, or ones complex enough:  a single server-only `<feature>.types.server.ts`.
 - **`...OrDie` throwing twins:**
+
+  ```ts
+  const rule = parser.getRuleOrDie(ruleName) // throws, naming the rule, if there's no such rule
+  ```
+
   - Beside a getter that may return `undefined`, add `getXOrDie(...)` that throws with a useful message.
   - Call sites use the twin instead of inlining `if (!x) throw`.
   - e.g. `Parser.getRuleOrDie(ruleName)` (`packages/parser/src/Parser.ts`).
@@ -67,11 +77,10 @@ SEE:  `packages/server/AGENTS.md` for `$/server` itself (`SRV.Router`, `SRV.WebS
   - Concrete composed logic on the same class, built from those primitives.
   - e.g. `Loadable` (`packages/util/src/spell/Loadable.ts`):  `abstract getLoader()` / `getSaver()`, with the
     load / save state policy on the class.
-- **Node-only code lives in `src/node/`:**
-  - Anything touching the file system, `process` or node built-ins goes in the package's `src/node/`, imported as
-    `$/spell/node/...` (root "Imports", WWOD §4), so the browser bundle never reaches it.
-  - NOT:  `*.server.ts` suffixes scattered through `src/` -- a folder keeps the browser / node line visible in one
-    place, and the alias table names it.
+- **Server code stays out of the browser bundle:**
+  - All files that run on the server end with `.server.ts`:  `environment.server.ts`, `projectUtils.server.ts`.
+  - Anything touching the file system, `process` or node built-ins is server code.
+  - Today's `src/node/` folders (`$/spell/node/...`, WWOD §4) predate the suffix:  `CODE-DEBT.md`.
 - **API docstrings use stock bullets:**
   - A request handler's docstring opens with `` `METHOD /api/path` -- what it does ``, then:
     - `- Client sends:  ...` -- route params, query, body shape
@@ -84,14 +93,14 @@ SEE:  `packages/server/AGENTS.md` for `$/server` itself (`SRV.Router`, `SRV.WebS
   - e.g. every `request_*` in `packages/spell/src/node/project-utils.ts`.
 - **Server `error.message` strings are user-facing:**
   - The editor shows them as is, so write them for the person using it:  what failed, and what to do.
+  - Design for translation:  whole sentences, no message stitched from fragments.
 
 ## 11. Environment & configuration
 
-- **ONE `environment.ts` per package reads `process.env`:**
-  - `src/node/environment.ts` (or `src/environment.ts` in a node-only package, e.g. `server`, `cli`) reads every
-    env var the package uses and exports ONE `environment` object of normalized values.
+- **ALL server environment variables are stored in `<package>/src/environment.server.ts`:**
+  - It reads every env var the package uses and exports ONE `environment` object of normalized values.
   - Every other file imports `environment`;  NEVER a bare `process.env` read elsewhere.
-  - e.g. `packages/spell/src/node/environment.ts`.
+  - e.g. `packages/spell/src/node/environment.ts` (today's name:  debt).
   - Fields camelCase, named for what they mean, not for the variable.
   - Importing it is silent:  no `console.*` on load.
   - Exempt:
@@ -100,14 +109,17 @@ SEE:  `packages/server/AGENTS.md` for `$/server` itself (`SRV.Router`, `SRV.WebS
     - forwarding env to a child process (`{ ...process.env, PORT: String(port) }`), which reads nothing
   - Browser code NEVER reads `process.env`:  vite replaces it with `{}` (`packages/util/src/spell/Schema.ts`).
     Browser config comes from the server (`window.SPELL_SERVER`) or a build-time `define` (`__PACKAGE_VERSION__`).
+    - TODO:  come up with a scheme for browser config.
 - **Document each variable where it's read:**
   - A docstring on its `environment` field:  what it does, its default, who sets it.
   - e.g. `SPELL_PROJECTS_DIR`:  "overrides it, so the server's contract test (`api.test.ts`) can point the server at
     a temp copy".
-- **Throw at startup for configuration errors,** not at request time:
-  - Validate in `environment.ts` as it loads:  a missing required var, a value that doesn't parse, a path that
-    isn't there.
+- **Servers MUST throw at server startup if not fully configured,** not at request time:
+  - Validate in `environment.server.ts` as it loads:  a missing required var, a value that doesn't parse, a path
+    that isn't there.
   - The message names the variable and the fix (WWOD §5).
+  - The main server checks every package's server code at startup, and throws if any service is configured but not
+    fully configured.
 - **Guard initialization on feature flags:**
   - Don't create or start what isn't enabled;  check the flag at the top of the start-up method.
   - e.g. `EditorServer.start()` (`packages/app/src/server/EditorServer.ts`) returns at once under
@@ -122,8 +134,9 @@ SEE:  `packages/server/AGENTS.md` for `$/server` itself (`SRV.Router`, `SRV.WebS
   - Unprefixed only for variables another tool owns or sets:  `PORT`, `NODE_ENV`, `CI`, `INIT_CWD`,
     `TSX_TSCONFIG_PATH`.
 - **NEVER parse env vars inline:**
-  - Parse through helpers beside `environment.ts`:  `getString()`, `getNumber()`, `getBoolean()`, `getPath()`;
-    add the one you need if it's missing.
+  - Parse through helpers beside `environment.server.ts`:  `getString()`, `getNumber()`, `getBoolean()`,
+    `getPath()`;  add the one you need if it's missing.
+  - TODO:  write the mechanism.
   - Helpers own the edge cases once:  empty string, `"0"` / `"false"`, relative paths, a default.
   - Promote them when a second package needs them (WWOD §8).
 

@@ -27,8 +27,9 @@ From:  original WWOD §8, root `AGENTS.md` "Types / Exports" (files, barrels, na
   - PascalCase when the module IS one class and nothing else:  `Router.ts`, `FileLock.ts`, `Logger.ts`.
   - camelCase capability name when it holds a family:  `ports.ts`, `safePath.ts`, `bodies.ts`.
   - The folder's types:  `<folder>.types.ts` (below).
-  - Node-only code:  a `src/node/` folder (`packages/spell/src/node/`), or a `.node.ts` suffix
-    (`packageVersion.node.ts`).  Its types live beside it, e.g. `packages/spell/src/node/server.types.ts`.
+  - Server code:  every file that runs on the server ends with `.server.ts`;  its server-only types are
+    `<feature>.types.server.ts` (WWOD §10 › "Server code stays out of the browser bundle").  Today's `src/node/`
+    folders predate it:  `CODE-DEBT.md`.
   - A custom element's files take its tag:  `ui-button/ui-button.types.ts` ...  SEE:  `packages/ui/AGENTS.md`
     "Overview".
   - NEVER any other kebab-case name.  Existing ones (`packages/spell/src/node/disk-fetch.ts`, `file-utils.ts` ...)
@@ -40,6 +41,7 @@ From:  original WWOD §8, root `AGENTS.md` "Types / Exports" (files, barrels, na
   - one file per class, named for the class.
   - one pure-helpers file if the folder has any, capability-named.
   - `index.ts` (the barrel), and a `README.md` where a reader needs one.
+  - sub-folders for what isn't code:  fixtures, assets ...
   - e.g. `packages/server/src/page/`:  `page.types.ts`, `PageServer.ts`, `PageEditor.ts`, `RunningEpics.ts`,
     `index.ts`, plus `cli.ts`, the `yarn server` entry point the barrel leaves out.
 
@@ -51,6 +53,8 @@ From:  original WWOD §8, root `AGENTS.md` "Types / Exports" (files, barrels, na
   - Centralize shared types in a single `<folder>.types.ts` per folder, e.g. `parser.types.ts`, `rules.types.ts`.
   - NEVER bare `types.ts` or `constants.ts` -- constants, small error classes and pure helpers
     for those types live in `<folder>.types.ts` too.
+    - The ONE exception:  a `constants.ts` at a package's root, for its string sentinels (WWOD §9 › "String
+      sentinels over booleans for modes").
     - Error classes:  WWOD §5.
   - Group with `// ## Group Name` headers.
   - MUST be runtime-light:  `import type` only, apart from the package's utilities (`$/util`, `$/ui/util`).
@@ -72,12 +76,12 @@ From:  original WWOD §8, root `AGENTS.md` "Types / Exports" (files, barrels, na
   - `<feature>.types.ts` -- types, guards, shared constants.  NO DOM:  DOM entry points go in the logic file.
   - `<Feature>.ts` -- the logic, a class named for the file.
   - Callers reach both through the package's namespace (`P.X`).
-  - NOT:  a namespace per feature (`CD.onDragStart()`) -- ONE namespace per package (below).
+  - NOT:  a namespace per feature (`R.Rule` for `parser`'s rules) -- ONE namespace per package (below).
 
 - **Hosts are thin adapters:**
   - Our hosts:  the editor (`packages/app/src/editor.ts`), the runner (`packages/app/src/runner/`), the web
     components `<spell-app>` / `<spell-editor>` (`SpellAppElement.tsx`, `SpellEditorElement.tsx`).
-  - A host's public entry method is under 10 lines, and delegates to shared code.
+  - A host's constructor and public entry methods are each under 10 lines, and delegate to shared code.
   - Code more than one host uses lives in a capability-named file of free exported functions -- NOT private methods
     on a host class.  `packages/app/src/runner/runCompiled.ts` (`runCompiled()`, `unmountApp()`) serves
     `SpellAppRunner`, `VSCodeRunner` and `<spell-app>`.
@@ -93,21 +97,24 @@ From:  original WWOD §8, root `AGENTS.md` "Types / Exports" (files, barrels, na
   - No owning class:  a small class of its own, all `static`.  `ExampleSource`
     (`packages/ui/src/docs-components/ui-docs-example/ExampleSource.ts`):  `ExampleSource.snapshot()`,
     `ExampleSource.of(host)`.
-  - A registry, signal bus or menu module with no per-instance state folds into its owner's statics:  callers read
-    better (`Owner.add()`, `Owner.fire()`), and the folder's import graph loses edges.
+  - A registry, signal bus or menu module with no per-instance state folds into its owner:  callers read
+    better (`UI.icons.register()`, not a separate `iconRegistry.add()`), and the folder's import graph loses edges.
   - `ui`'s runtime services are classes on ONE per-page instance (`UI.keyboard` ...) -- SEE:  `packages/ui/AGENTS.md`
     "Overview" and "UI rules".
-  - NOT:  an object literal with an extension registry when no class owns the domain
-    (`Serializer.addClass({ ... })`) -- one shape for every service, and a class gains state, `@proto static`
-    defaults or a subclass without its callers changing.
+  - NOT:  an object literal when no class owns the domain (`assert = { string, number, boolean }` in `$/util`:
+    `CODE-DEBT.md`) -- one shape for every service, and a class gains state, `@proto static` defaults
+    (WWOD §12 › "@proto static defaults") or a subclass without its callers changing.
 
 - **Barrels:**
   - Create barrel `index.ts` for each folder:
     - header comment block explaining the barrel, with `NOTE:` for anything deliberately left out or namespaced
     - `export * from "./<folder>.types"` first, then leaf files base-classes-first
     - sub-folder barrels are flattened in:  `export * from "./rules"`
-  - Barrels MUST NOT pull in optional sub-systems.  Make them opt-in via side-effect import, e.g.
-    `import "$/parser/rulex"` registers itself on `Parser.rulexParser`.
+  - Barrels MUST NOT pull in optional sub-systems:  leave them OUT of the barrel, opted into by path --
+    `$/server/page/...`, `$/server/test/...` (SEE:  `packages/server/AGENTS.md` "NOT in the barrel, opt-in by
+    path").
+    - Only a sub-system that must register itself is a side-effect import:  `import "$/parser/rulex"` registers on
+      `Parser.rulexParser`.
   - When refactoring imports and exports, if you encounter circular import problems create smoke tests
     (`barrel.test.ts`) ensuring no circular import problems in TS/rollup/browser for various entry points.
 
@@ -118,6 +125,7 @@ From:  original WWOD §8, root `AGENTS.md` "Types / Exports" (files, barrels, na
     - Exception:  namespace a file whose names would collide when flattened:
       `export * as render from "./renderAST"` + `export * as stringify from "./stringifyAST"`,
       which deliberately export the same names with different return types.
+      - A code smell inside one package:  rename so the names don't collide instead, wherever you can.
     - Prefer a disambiguating affix over a namespace when the names allow it -- token and AST classes
       are `WordToken` / `ASTLiteral` etc. and flatten straight into `$/parser`.
     - NOTE:  `export *` through a circular barrel is riskier than a named re-export -- it must read the
@@ -126,7 +134,7 @@ From:  original WWOD §8, root `AGENTS.md` "Types / Exports" (files, barrels, na
     (WWOD §4).
   - A package's deliberate extra namespaces are listed in its own `AGENTS.md` "Types / Exports", with the reason
     (`ui`:  `E`, `SSR`, `UIT`;  `app`:  `UI`, `F`).
-  - NOT:  a one-to-two-letter namespace per feature folder (`export * as P from "./publish"`) -- one per package.
+  - NOT:  a one-to-two-letter namespace per feature folder (`export * as R from "./rules"`) -- one per package.
 
 - **Promotion path:**  a helper generic enough to lose its feature vocabulary moves up, and is RENAMED on the way.
   - Where to:  the package's own util (`$/ui/util` ...) while one package uses it;  `$/util` only once 2+ packages

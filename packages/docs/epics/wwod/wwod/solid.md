@@ -17,14 +17,15 @@ From:  original WWOD §18 ("Svelte / UI"), rewritten for Solid 2 (D9).
   - pieces several app components share live in `$/app/solid`:  `chrome.tsx`'s `<PanelMenu>` / `<Submenu>` /
     `<DropdownLabel>`;  `<TreeRow>`, shared by `<TypeExplorer>` and `<ThingExplorer>`
   - generic beyond the app (no spell, no `editor`) => a `ui-*` element in `@spell-app/ui`, written as
-    `packages/ui/AGENTS.md` says;  when:  WWOD §8 › "Promotion path"
+    `packages/ui/AGENTS.md` says;  when:  WWOD §8 › "Promotion path".  NEVER without an intensive design review
+    first:  `ui` is a library others build on
   - hosts stay thin adapters (WWOD §8 › "Hosts are thin adapters"):  the VS Code runner (`VSCodeRunner.tsx`) and
     `<spell-app>` (`SpellAppRunner.tsx`) show the SAME `<TypeExplorer>`, `<ThingExplorer>` and `<RunnerConsole>`;
     each host only feeds them (a runtime copy's objects, messages to the extension)
 
 - **Singletons by import, per-subtree values by context:**
   - app-wide services are module imports, read where used:  `import { editor } from "$/app/editor"`, then
-    `editor.file` in JSX or a `tracked()`
+    `editor.file` in JSX or a `tracked()`.  ONE copy of each per page bundle, never handed down through context
   - context only for a value that differs per subtree:  `ConsoleInspectorContext` (`ConsoleLines.tsx`), read with
     `useContext()` in the component body -- it needs an owner (`solid-2.md` "Rules when writing Solid code")
   - take the INSTANCE you're handed;  never reach for a parallel one, and say why in the docstring:
@@ -41,11 +42,12 @@ From:  original WWOD §18 ("Svelte / UI"), rewritten for Solid 2 (D9).
 - **Props:  `type <Name>Props`, read where used:**
   - one `type <Name>Props` per component, directly BELOW it (WWOD §9 › "Props types live with their class"):
     exported with an exported component, private otherwise (`ScopeTreeNodeProps`);  NEVER `interface`
-  - every prop docstring'd (WWOD §6), its default stated:  `Default:  \`true\`.`
+  - every prop docstring'd (WWOD §6), its default stated:  ``Default:  `true`.``
   - prop types reuse the feature's own types:  `tree?: ScopeNode` (`$/lsp`), `state?: TypeExplorerState`
     (`$/app/ui/ui.types`) -- never a parallel shape
   - a `class` prop is typed as Solid types it, so callers pass any form:
     `class: JSX.HTMLAttributes<HTMLDivElement>["class"]` (`TreeRowProps`)
+    - TODO:  a short `ClassValue` type for it, like Svelte's (`cx`)
   - defaults at the read:  `props.x ?? fallback` where it's used, or one accessor when several places read it;
     environment-dependent defaults the same way:  `onSaveDescription={props.readonly ? undefined : ...}`
   - NEVER destructure props:  `solid-2.md` "The model in six bullets"
@@ -81,10 +83,18 @@ export type InputRootProps = {
     docstring saying which (`currentTree`, `shown` in `TypeExplorer.tsx`).  Same trade-off as
     `derive()`:  WWOD §12 › "Derived reads are plain getters;  `@derived` only when worth it"
   - a one-line accessor (`const isOpen = () => ...`) is a VALUE, not a helper:  fine as an arrow.  Anything with a
-    body is a `function` at the bottom (WWOD §9 › "Inner helpers are not inline arrows")
-  - spell state:  a plain read in JSX is reactive (the bridge);  `tracked()` shares one read among readers
-    (`solid-2.md` "Spell's decisions").  Read NARROW:  one `tracked()` returning just what the component shows
-    (`state` in `FileDropdown.tsx`), never `tracked(() => editor)`
+    body is a `function` at the bottom (WWOD §9 › "Inner helpers are regular")
+
+- **Spell app state is spell cells, not signals:**
+  - a separate pattern from a component's own signals:  the editor's state (`editor`) and a spell program's Things
+    are `Observable`s, their props spell cells (WWOD §13)
+  - read them plainly in JSX (`editor.file`):  the bridge makes the read reactive;  `tracked()` shares ONE read
+    among several readers (`solid-2.md` "Spell's decisions")
+  - read NARROW:  one `tracked()` returning just what the component shows (`state` in `FileDropdown.tsx`), never
+    `tracked(() => editor)`
+  - write by plain assignment (`editor.file = file`) or the object's own methods;  NEVER copy spell state into a
+    `createSignal` or a store to "make it reactive" -- it already is, and the copy goes stale
+  - signals are for state the component itself owns:  open / closed, a selection, a cache counter
 
 - **New values, never in-place changes:**
   - nothing is proxied:  a list or object changed in place notifies nobody (`solid-2.md` "Spell's decisions").
@@ -115,6 +125,7 @@ function update(changed: TypeExplorerState) {
     `@spell-app/ui` elements"
   - a handler that does more than one call is a named `function` at the bottom (`choose()` in `FileDropdown.tsx`)
   - NOT:  `use:` directives (`use:activate`) -- gone in Solid 2;  a ref directive factory (`on()`) instead
+  - TODO:  review the event semantics we landed on (`ui-*` event names, `detail` shapes, `on()`)
 
 - **Visibility through named accessors:**
   - `<Show when>` / `<Match when>` read a prop or a NAMED accessor;  beyond a `&&` of two named values, name it:
@@ -129,13 +140,14 @@ function update(changed: TypeExplorerState) {
 
 - **Render pieces as inner functions:**
   - a piece that reads the component's own state is a `function` at the BOTTOM returning JSX, after the `return`
-    (WWOD §9 › "Inner helpers are not inline arrows"):  `explorer()`, `things()`, `output()`
+    (WWOD §9 › "Inner helpers are regular"):  `explorer()`, `things()`, `output()`
     (`SpellAppRunner.tsx`), `memberGroup()`, `childNode()` (`TypeExplorer.tsx`).  The `return` then reads as layout
   - its own props, its own state, or a second user => a component instead
   - a long component groups them under `//// ## Group` banners (WWOD §6)
   - a JSX value made in the body is ONE set of DOM nodes:  place it once;  hide it rather than re-create it when
     what's in it must survive (`appPane` in `SpellAppRunner.tsx`:  "ALWAYS here, just hidden without an app -- so
     its mount point is never redrawn")
+    - TODO:  make sure keeping a hidden subtree alive isn't expensive in Solid
 
 - **Load states:  error, then loading, then loaded:**
   - always in that order:  an error beats a spinner, a spinner beats stale content
@@ -195,6 +207,8 @@ function FileInputEditor() {
   - a late async result checks a `gone` flag that cleanup sets:
     `loadScopes(...).then((it) => gone || setScopes(it))` (`SpellAppRunner.tsx`)
   - which hook when (`onCleanup`, `onSettled`, an effect's apply):  `solid-2.md` "Rules when writing Solid code"
+  - TODO:  a shared mechanism, so a listener can't outlive its component:  `UI.on(component, event, caller, opts)`,
+    `UI.once()`
 
 - **Component docs:**
   - a `/**** ### \`<Name>\`` banner above every component (WWOD §6 › "Component banner"):  one line of what it is,
@@ -210,5 +224,7 @@ function FileInputEditor() {
   - map config objects ONCE, in app code:  `dialogs.ts`'s `modalOptions()` turns the app's props into `UI.modals`'
     options for every dialog;  callers never repeat it
   - `editor` reaches the dialogs through a dynamic `import()`, so `editor.ts` stays free of Solid and `$/ui`
+  - TODO:  review the promise-based modals
+  - TODO:  make modals cheap to draw when they're rarely shown
 
 - **Styles:**  WWOD §18 (`css.md`).

@@ -23,7 +23,8 @@ Places where today's code disagrees with a rule the merged WWOD adopts (D3:  rul
   stale;  inline `Number(...) ||` parsing, no helpers
 - `src/node/response-utils.ts` `respondWithJSON()` / `sendError()`:  every throw → 500 `{ errors: [{ message, trace }] }`
   (leaks stacks);  WWOD §10:  honour `SRV.HttpError`, one error-body shape per server (`{ error }`)
-- kebab-case files in `src/node/` (`response-utils.ts`, `file-utils.ts`, `project-utils.ts`) (D17)
+- kebab-case files in `src/node/` (`response-utils.ts`, `file-utils.ts`, `project-utils.ts`, `disk-fetch.ts`) (D17)
+- `src/node/packageVersion.node.ts`:  node-only suffix is `.server.ts` (WWOD §8, review round 2)
 - `SpellLocation`:  constructor returns the interned registry entry;  public `registry`;  segment pattern a local
   `const` (WWOD §15:  protected constructor + static factories, `private static readonly` registry, `static X_PATTERN`)
 - `console.*`:  ~80 in `src/` (busiest:  `rules/methods.ts`) (WWOD §19:  `Logger`)
