@@ -20,8 +20,11 @@
  *       </header>
  *       <div class="subhead" part="subhead"><slot name="subhead">text</slot></div>       (subhead only)
  *       <div id="content" class="content" part="content" [hidden="until-found"]
- *            [style="--_ui-section-height: <height>"]><slot></slot></div>
- *       <span class="ui-visually-hidden-force" role="status">Loading…</span>              (loading only)
+ *            [style="--_ui-section-height: <height>"]>
+ *         <p class="source error" part="error" role="alert">Couldn't load …</p>       (failed `source` only)
+ *         <slot></slot>
+ *       </div>
+ *       <span class="ui-visually-hidden-force" role="status">Loading…</span>   (loading, or a slow `source`)
  *     </section>
  *
  * - The host is `display: block`, NOT `contents`:  its `id` is an anchor target, and pages scroll to its box.
@@ -694,6 +697,12 @@
   }
   .ui.loading.section > .content[hidden] {
     min-height: 0;
+  }
+
+  /* A `source` body that failed:  one line in the content, above the placeholder. */
+  .ui.section > .content > .source.error {
+    margin: 0 0 1em;
+    color: var(--ui-negative-text);
   }
 
   /* Animated (`:state(animated)`:  the browser can grow to `auto`):  content folds and unfolds by height. */

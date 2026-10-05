@@ -1081,6 +1081,8 @@ export const MESSAGE = "message"
 
 export const STATUS = "status"
 
+export const ALERT = "alert"
+
 /** Utility class (`utilities.css`, adopted in every root) for the loading announcement. */
 export const VISUALLY_HIDDEN = "ui-visually-hidden-force"
 
@@ -1254,9 +1256,11 @@ export const SOURCE_STATES = [
   { name: "dirty", description: "`content` changed since it was loaded or saved." }
 ] as const
 
-/** Texts every source element shows;  `{source}` is the URL as written. */
-export const SOURCE_TEXTS = [
-  { key: "sourceLoading", text: "Loading {source}", description: "Accessible name of the loader." },
+/**
+ * Error messages of a failed load;  `{source}` is the URL as written.
+ * - Spread on their own by `<ui-section>` / `<ui-accordion>`, whose `source` body shows them (`SourceBody`).
+ */
+export const SOURCE_FAILURE_TEXTS = [
   { key: "sourceLoadError", text: "Couldn't load {source}.", description: "The fetch failed." },
   {
     key: "sourceCrossOrigin",
@@ -1269,6 +1273,12 @@ export const SOURCE_TEXTS = [
     description: "The page is a `file://` page."
   },
   { key: "sourceRenderError", text: "Couldn't show {source}.", description: "The text arrived, but couldn't be shown." }
+] as const
+
+/** Texts every source element shows;  `{source}` is the URL as written. */
+export const SOURCE_TEXTS = [
+  { key: "sourceLoading", text: "Loading {source}", description: "Accessible name of the loader." },
+  ...SOURCE_FAILURE_TEXTS
 ] as const
 
 /** `detail` of `ui-load`. */
@@ -1309,3 +1319,55 @@ export type SourceErrorDetail = {
   /** what was thrown */
   error: unknown
 }
+
+////////////////
+// ## Source bodies:  shared by ui-section and ui-accordion (`SourceBody`)
+////////////////
+
+/**
+ * Attributes of an element whose BODY can come from a file, loaded the first time it opens;  spread into its
+ * vocabulary's `attributes` (`<ui-section>`, and so every subclass reusing its vocabulary, `<ui-accordion>`).
+ */
+export const SOURCE_BODY_ATTRIBUTES = [
+  {
+    name: "source",
+    kind: "string",
+    description:
+      "URL of an HTML file whose `<body>` is the content, fetched the first time it opens (at once when it starts " +
+      "open);  same origin only.  Any content already there is a placeholder the file replaces.  " +
+      "`load()` fetches it now, `reload()` again."
+  },
+  {
+    name: "select",
+    kind: "string",
+    description: "With `source`:  a CSS selector;  only its first match in the file becomes the content."
+  }
+] as const
+
+/** Events of a source body;  spread into the vocabulary's `events`. */
+export const SOURCE_BODY_EVENTS = [
+  {
+    name: "ui-load",
+    detail: "{ source: string, content: string }",
+    description: "The `source` file arrived and its body is in place (`content` is the file's text)."
+  },
+  {
+    name: "ui-error",
+    detail: "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }",
+    cancelable: true,
+    description:
+      "The `source` file couldn't be loaded or shown;  `kind` says why.  An error line shows in the content " +
+      "unless cancelled;  opening it again tries again."
+  }
+] as const
+
+/** Parts of a source body. */
+export const SOURCE_BODY_PARTS = [
+  { name: "error", description: "With `source`:  the line saying the file couldn't be loaded." }
+] as const
+
+/** States of a source body (`loading` is the element's own:  `<ui-section>` already has one). */
+export const SOURCE_BODY_STATES = [
+  { name: "loaded", description: "With `source`:  the file's body is in place." },
+  { name: "error", description: "With `source`:  the file couldn't be loaded or shown." }
+] as const

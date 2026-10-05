@@ -1,11 +1,12 @@
 import { userEvent } from "vite-plus/test/browser"
-import { describe, expect, it } from "vite-plus/test"
+import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test"
 
 import type { SectionToggleDetail } from "$/ui/components/components.types"
 import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/a11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Fixture } from "$/ui/test/fixture"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-section"
@@ -635,6 +636,195 @@ describe("<ui-sections>", () => {
     expect(box(byId("a")).bottom - box(byId("b")).top).toBeCloseTo(border, 1)
     expect(box(byId("b")).bottom - box(byId("c")).top).toBeCloseTo(border, 1)
     expect(box(byId("a")).top).toBeCloseTo(host.getBoundingClientRect().top, 1)
+  })
+})
+
+describe("<ui-section source>", () => {
+  /** Fixture bodies the test server serves. */
+  const DIR = "/test/fixtures/sources/bodies"
+
+  /** A section host with its source API. */
+  type SourceSection = SectionHost & { load(): Promise<void>; reload(): Promise<void> }
+
+  beforeAll(async () => {
+    await UI.load()
+  })
+
+  afterEach(() => {
+    UI.sources.forget()
+    vi.restoreAllMocks()
+  })
+
+  /** Count the fetches of `file` from now on. */
+  function fetches(file: string) {
+    const spy = vi.spyOn(globalThis, "fetch")
+    return () => spy.mock.calls.filter(([url]) => typeof url === "string" && url.endsWith(file)).length
+  }
+
+  /** Render a source section;  returns it with its parts. */
+  async function sourced(html: string) {
+    const host = await ElementFixture.render<SourceSection>(html)
+    return { host, ...parts(host) }
+  }
+
+  it("fetches nothing while folded;  the first unfold fetches once, and shows the body", async () => {
+    const count = fetches("body.html")
+    const { host, toggle, content } = await sourced(
+      `<ui-section header="H" source="${DIR}/body.html" collapsible collapsed><p class="wait">Wait</p></ui-section>`
+    )
+    await ElementFixture.tick()
+    expect(count()).toBe(0)
+    expect(host.matches(":state(loaded)")).toBe(false)
+    toggle.click()
+    await host.load()
+    await ElementFixture.tick()
+    expect(count()).toBe(1)
+    expect(host.matches(":state(loaded)")).toBe(true)
+    expect(host.querySelector(":scope > p.body")).not.toBeNull()
+    expect(content.hasAttribute("hidden")).toBe(false)
+    // folding and unfolding again keeps the body:  no second fetch
+    toggle.click()
+    await ElementFixture.tick()
+    toggle.click()
+    await ElementFixture.tick()
+    expect(count()).toBe(1)
+  })
+
+  it("holds the content box closed while the body is on its way;  a slow one shows the placeholder, loading", async () => {
+    let respond!: (response: Response) => void
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise<Response>((resolve) => (respond = resolve)))
+    const { host, toggle, content, root } = await sourced(
+      `<ui-section header="H" source="${DIR}/slow.html" collapsible collapsed><p>Wait</p></ui-section>`
+    )
+    toggle.click()
+    await ElementFixture.tick()
+    expect(host.collapsed).toBe(false)
+    expect(toggle.getAttribute("aria-expanded")).toBe("true")
+    expect(content.getAttribute("hidden")).toBe("until-found")
+    // past the hold:  the placeholder shows under the loading look
+    await expect.poll(() => content.hasAttribute("hidden"), { timeout: 2000 }).toBe(false)
+    expect(root.classList.contains("loading")).toBe(true)
+    expect(host.matches(":state(loading)")).toBe(true)
+    expect(root.getAttribute("aria-busy")).toBe("true")
+    respond(new Response(`<p class="slow">Here</p>`))
+    await host.load()
+    await ElementFixture.tick()
+    expect(host.querySelector("p.slow")).not.toBeNull()
+    expect(root.classList.contains("loading")).toBe(false)
+    expect(host.matches(":state(loading)")).toBe(false)
+  })
+
+  it("replaces the placeholder, keeps slotted title pieces, and announces ui-load", async () => {
+    const loads: { source: string; content: string }[] = []
+    const host = Fixture.render<SourceSection>(
+      `<ui-section source="${DIR}/body.html">` +
+        `<span slot="header">Title</span><ui-icon slot="icon" name="star"></ui-icon>Text <p>Placeholder</p>` +
+        `</ui-section>`
+    )
+    host.addEventListener("ui-load", (event) => loads.push((event as CustomEvent).detail))
+    await ElementFixture.settle(host.parentElement!)
+    await host.load()
+    await ElementFixture.tick()
+    expect([...host.children].map((child) => child.localName)).toEqual(["span", "ui-icon", "p", "section"])
+    expect(host.textContent).not.toContain("Placeholder")
+    expect(host.textContent).not.toContain("Text")
+    expect(loads).toHaveLength(1)
+    expect(loads[0]!.source).toBe(`${DIR}/body.html`)
+    expect(loads[0]!.content).toContain("<title>A body</title>")
+  })
+
+  it("starts unfolded:  loads at once;  page CSS reaches the body (light DOM)", async () => {
+    const { host } = await sourced(`<ui-section header="H" source="${DIR}/body.html"></ui-section>`)
+    await host.load()
+    await ElementFixture.tick()
+    expect(host.querySelector("p.body")!.assignedSlot).not.toBeNull()
+    expect(host.matches(":state(loaded)")).toBe(true)
+  })
+
+  it("points relative URLs where they pointed in the file, keeping each original", async () => {
+    const { host } = await sourced(`<ui-section source="${DIR}/body.html"></ui-section>`)
+    await host.load()
+    const [link, anchor] = host.querySelectorAll("a")
+    expect(link!.href).toBe(new URL(`${DIR}/next.html`, location.href).href)
+    expect(link!.getAttribute("data-ui-include-href")).toBe("next.html")
+    expect(anchor!.getAttribute("href")).toBe("#here")
+  })
+
+  it("`select` takes only the first match", async () => {
+    const { host } = await sourced(`<ui-section source="${DIR}/body.html" select="#item"></ui-section>`)
+    await host.load()
+    expect([...host.children].map((child) => child.id)).toEqual(["item"])
+  })
+
+  it("loads when the page removes `collapsed` (a #id link's unfold), with no event", async () => {
+    const count = fetches("body.html")
+    const { host } = await sourced(
+      `<ui-section id="s" header="H" source="${DIR}/body.html" collapsible collapsed></ui-section>`
+    )
+    const seen = record(host)
+    host.removeAttribute("collapsed")
+    await ElementFixture.tick()
+    await host.load()
+    expect(count()).toBe(1)
+    expect(host.querySelector("p.body")).not.toBeNull()
+    expect(seen).toEqual([])
+  })
+
+  it("`load()` inserts the body while folded, without unfolding", async () => {
+    const { host, content } = await sourced(
+      `<ui-section header="H" source="${DIR}/body.html" collapsible collapsed></ui-section>`
+    )
+    await host.load()
+    await ElementFixture.tick()
+    expect(host.querySelector("p.body")).not.toBeNull()
+    expect(host.collapsed).toBe(true)
+    expect(content.getAttribute("hidden")).toBe("until-found")
+  })
+
+  it("`reload()` fetches again and replaces the body, never doubling it", async () => {
+    const count = fetches("body.html")
+    const { host } = await sourced(`<ui-section source="${DIR}/body.html"></ui-section>`)
+    await host.load()
+    expect(count()).toBe(1)
+    await host.reload()
+    await ElementFixture.tick()
+    expect(count()).toBe(2)
+    expect(host.querySelectorAll("p.body")).toHaveLength(1)
+    expect(host.matches(":state(loaded)")).toBe(true)
+  })
+
+  it("a missing file:  a cancelable ui-error, :state(error) and an error line;  a cancelled one shows none", async () => {
+    const errors: string[] = []
+    const host = Fixture.render<SourceSection>(`<ui-section source="${DIR}/missing.html">Wait</ui-section>`)
+    host.addEventListener("ui-error", (event) => errors.push((event as CustomEvent).detail.kind))
+    await ElementFixture.settle(host.parentElement!)
+    await expect(host.load()).rejects.toThrow(/404/)
+    await ElementFixture.tick()
+    expect(errors).toEqual(["load"])
+    expect(host.matches(":state(error)")).toBe(true)
+    expect(host.textContent).toContain("Wait")
+    const line = host.shadowRoot!.querySelector("[part~=error]")!
+    expect(line.textContent).toBe(`Couldn't load ${DIR}/missing.html.`)
+    expect(line.getAttribute("role")).toBe("alert")
+
+    const quiet = Fixture.render<SourceSection>(`<ui-section source="${DIR}/missing-too.html"></ui-section>`)
+    quiet.addEventListener("ui-error", (event) => event.preventDefault())
+    await ElementFixture.settle(quiet.parentElement!)
+    await quiet.load().catch(() => undefined)
+    await ElementFixture.tick()
+    expect(quiet.matches(":state(error)")).toBe(true)
+    expect(quiet.shadowRoot!.querySelector("[part~=error]")).toBeNull()
+  })
+
+  it("refuses a body holding a source of its own file", async () => {
+    const { host } = await sourced(`<ui-section source="${DIR}/loop.html"></ui-section>`)
+    await host.load()
+    await ElementFixture.settle(host)
+    const inner = host.querySelector<SourceSection>("ui-section")!
+    await inner.load().catch(() => undefined)
+    await ElementFixture.tick()
+    expect(inner.matches(":state(error)")).toBe(true)
+    expect(inner.querySelector("p.loop")).toBeNull()
   })
 })
 

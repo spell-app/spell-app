@@ -43,6 +43,15 @@ export const SLOT_ATTRIBUTE = "slot"
 /** Canonical tag of a title child (`parts`:  another family, not imported). */
 export const TITLE_TAG = "ui-title"
 
+/** Canonical tag of the content child a `source` accordion makes when its title has none (`parts`, not imported). */
+export const CONTENT_TAG = "ui-content"
+
+/** Index of the panel a `source` body fills:  the first. */
+export const SOURCE_PANEL = 0
+
+/** Class words of the line saying a `source` body failed (`part="error"`, in the panel's content box). */
+export const SOURCE_ERROR = "source error"
+
 /** Behaviour attribute read here, not in `classes()`. */
 export const EXCLUSIVE = "exclusive"
 

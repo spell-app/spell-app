@@ -1,4 +1,4 @@
-import { ORIGINAL_PREFIX } from "$/ui/components/ui-include/ui-include.types"
+import { ORIGINAL_PREFIX } from "$/ui/core"
 
 import { HtmlFormatter } from "./HtmlFormatter"
 import { EXAMPLE_TAG, OWN_SLOTS, RUNTIME_ATTRIBUTES, SNAPSHOTS_KEY, type SnapshotGlobal } from "./ui-docs-example.types"
