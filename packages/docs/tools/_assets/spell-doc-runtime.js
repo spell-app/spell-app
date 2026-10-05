@@ -157,8 +157,11 @@ async function start() {
  * Land where the page should open, once its sections have drawn and folded:
  * - a live reload's saved scroll position (`SPELL_SERVER.takeScroll()`):  exactly there, and again after a fold's
  *   transition (`SETTLE_MS`) unless the reader scrolled meanwhile
- * - else the URL's `#hash`, WITHOUT unfolding the target itself:  the address follows the section being read
- *   (`followScroll()`), so a reload (or VS Code restarting) lands on it, folded or not, as the reader left it
+ * - else the URL's `#hash`:
+ *   - a section or heading WITHOUT unfolding the target itself:  the address follows the section being read
+ *     (`followScroll()`), so a reload (or VS Code restarting) lands on it, folded or not, as the reader left it
+ *   - a plan item OPENS:  the address never follows items, so an item's `#q16` is a link someone followed
+ *     (`spell dev docs link --hash q16 --show`), and a folded item shows nothing of what it pointed at
  * - else nowhere:  the top
  * - then the address starts following the scroll
  */
@@ -170,9 +173,22 @@ function land({ hash, scroll }, jump, follow) {
       if (Math.abs(scrollY - landed) < 2) scrollTo({ top: scroll, behavior: "instant" })
     }, SETTLE_MS)
     follow?.update()
-  } else if (hash) jump(hash, { unfoldTarget: false })
-  else follow?.update()
+  } else if (hash) {
+    jump(hash, { unfoldTarget: isPlanItem(hash) })
+    // the browser's own jump to the `#hash` can come AFTER ours and land the target under the stuck titles (an
+    // item has no box of its own:  `display: contents`), so land once more when the page has settled, unless the
+    // reader has moved meanwhile
+    let moved = false
+    for (const type of ["wheel", "touchstart", "keydown", "pointerdown"])
+      addEventListener(type, () => (moved = true), { once: true, passive: true })
+    setTimeout(() => !moved && jump(hash, { unfoldTarget: false }), SETTLE_MS * 2)
+  } else follow?.update()
   follow?.followAddress()
+
+  /** Is `id` a plan item (its own panel, `ui-accordion.plan-item`), rather than a section or heading? */
+  function isPlanItem(id) {
+    return Boolean(document.getElementById(id)?.querySelector(":scope > ui-accordion.plan-item"))
+  }
 }
 
 /**
