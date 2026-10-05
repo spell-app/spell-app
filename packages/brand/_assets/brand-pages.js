@@ -58,22 +58,22 @@
     {
       name: "Design System",
       kind: "brand",
-      built: false,
+      built: true,
       about: "Claude Design's own index:  a card per page, with a live thumbnail."
     },
     {
       name: "Design Guide",
       kind: "brand",
-      built: false,
+      built: true,
       about: "The brand readme, rendered, with a table of contents."
     },
-    { name: "Logo", kind: "brand", built: false, about: "Lockups, the hat mark, app icons, and how not to use them." },
-    { name: "Logo Explorations", kind: "brand", built: false, about: "Earlier rounds of the logo." },
-    { name: "Flourishes", kind: "brand", built: false, about: "Generated swoops and blobs:  click one for another." },
+    { name: "Logo", kind: "brand", built: true, about: "Lockups, the hat mark, app icons, and how not to use them." },
+    { name: "Logo Explorations", kind: "brand", built: true, about: "Earlier rounds of the logo." },
+    { name: "Flourishes", kind: "brand", built: true, about: "Generated swoops and blobs:  click one for another." },
     {
       name: "Brand Montage",
       kind: "brand",
-      built: false,
+      built: true,
       about: "One 1600 × 1600 board:  lockup, light and dark app, palette, tiles."
     }
   ]

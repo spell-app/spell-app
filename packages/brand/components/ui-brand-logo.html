@@ -1,0 +1,211 @@
+<!doctype html>
+<!--
+  A brand element's docs page, in Spell UI's docs format (`packages/docs/content/templates/spell-ui-docs.html`):  masthead, then
+  Examples / Usage / API / Theming tabs.  Without the Spell UI site's shell:  the site header on top, one page.
+  - Loads `brand-docs.js` (`src/brand-docs.ts`):  the brand bundle + Spell UI's docs widgets;  API and tokens come
+    from `_data/components.json` (`yarn site:data` here).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - Grounds:  `<ui-segment>` (light) and `<ui-segment inverted>` (dark), so each tone sits on one it reads on.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Logo</title>
+    <meta
+      name="description"
+      content="<ui-brand-logo>:  the Spell logo, outlined (no font needed):  the hat mark or a lockup, in one colour."
+    />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <link rel="stylesheet" href="../_assets/brand-docs.css" />
+    <script type="module" src="../_assets/ui/brand-docs.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../.."></spell-site-header>
+    <main id="main" class="brand-docs-main">
+      <ui-segment vertical basic class="brand-docs-masthead">
+        <ui-container>
+          <div class="brand-docs-eyebrow"><a href="../index.html">Brand</a> · Components</div>
+          <ui-header level="1" class="brand-docs-title">
+            Brand Logo
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header>The Spell logo, outlined: the hat mark, or the mark with the wordmark, in one colour.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="brand-docs-body">
+        <ui-tabs
+          id="brand-docs-tabs"
+          class="brand-docs-tabs"
+          history
+          basic
+          appearance="segmented"
+          alignment="fluid"
+          equal
+        >
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" collapsible dividing>
+              <ui-section id="examples-types-mark" header="Mark" collapsible dividing>
+                <ui-docs-example
+                  description='`variant="mark"` (the default):  the hat alone.  For app icons, favicons and anywhere the name is already on screen.'
+                >
+                  <ui-brand-logo></ui-brand-logo>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-lockup" header="Lockup" collapsible dividing>
+                <ui-docs-example
+                  description='`variant="lockup"`:  the hat and “Spell”, the hat centred on the capitals.  Headers and small spaces.'
+                >
+                  <ui-brand-logo variant="lockup"></ui-brand-logo>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-tagline" header="Lockup with tagline" collapsible dividing>
+                <ui-docs-example
+                  description='`variant="tagline"`:  the primary logo, “All magic, no fuss.” under the word, exactly as wide as it.  Give it room:  it wants about twice the lockup&apos;s height.'
+                >
+                  <ui-brand-logo variant="tagline" style="--ui-brand-logo-height: 4em"></ui-brand-logo>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-app" header="App lockup" collapsible dividing>
+                <ui-docs-example description='`variant="app"`:  the hat and “Spell App”.'>
+                  <ui-brand-logo variant="app"></ui-brand-logo>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" collapsible dividing>
+              <ui-section id="examples-variations-tone-light" header="Tone, on light" collapsible dividing>
+                <ui-docs-example
+                  description="`tone`:  `ink` (the default:  the theme's strongest text), `aubergine` and `purple`, for light grounds.  `ink` and `purple` follow the scheme (`ui-light` holds this ground light);  `aubergine` never changes."
+                >
+                  <ui-segment class="ui-light">
+                    <div style="display: flex; gap: 2em">
+                      <ui-brand-logo variant="lockup" tone="ink"></ui-brand-logo>
+                      <ui-brand-logo variant="lockup" tone="aubergine"></ui-brand-logo>
+                      <ui-brand-logo variant="lockup" tone="purple"></ui-brand-logo>
+                    </div>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-tone-dark" header="Tone, on dark" collapsible dividing>
+                <ui-docs-example
+                  description="`white` and `lilac`, for aubergine and dark grounds (and dark photos).  Both are fixed colours."
+                >
+                  <ui-segment inverted>
+                    <div style="display: flex; gap: 2em">
+                      <ui-brand-logo variant="lockup" tone="white"></ui-brand-logo>
+                      <ui-brand-logo variant="lockup" tone="lilac"></ui-brand-logo>
+                    </div>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-current" header="Current colour" collapsible dividing>
+                <ui-docs-example
+                  description='`tone="current"`:  the logo takes the colour of the text around it, e.g. inside a button, a label or a link.'
+                >
+                  <ui-button primary>
+                    <ui-brand-logo tone="current" label="" style="--ui-brand-logo-height: 1.25em"></ui-brand-logo>
+                    Open Spell
+                  </ui-button>
+                  <ui-label color="pink">
+                    <ui-brand-logo tone="current" label="" style="--ui-brand-logo-height: 1.2em"></ui-brand-logo>
+                    Made with Spell
+                  </ui-label>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" collapsible dividing>
+                <ui-docs-example
+                  description="`--ui-brand-logo-height` sets the height;  the width follows the logo's proportions.  The default, `2em`, scales with the font size around it."
+                >
+                  <ui-brand-logo variant="lockup" style="--ui-brand-logo-height: 16px"></ui-brand-logo>
+                  <ui-brand-logo variant="lockup" style="--ui-brand-logo-height: 24px"></ui-brand-logo>
+                  <ui-brand-logo variant="lockup"></ui-brand-logo>
+                  <ui-brand-logo variant="lockup" style="--ui-brand-logo-height: 64px"></ui-brand-logo>
+                </ui-docs-example>
+                <ui-docs-example description="In a heading, `1em` sets the mark on the text's height.">
+                  <ui-header level="2">
+                    <ui-brand-logo tone="purple" label="" style="--ui-brand-logo-height: 1em"></ui-brand-logo>
+                    Cast your first spell
+                  </ui-header>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" collapsible dividing>
+              <ui-section id="examples-content-decorative" header="Decorative" collapsible dividing>
+                <ui-docs-example
+                  description='`label=""`:  hidden from screen readers, when the text beside it already says “Spell”.  Any other `label` renames it.'
+                >
+                  <ui-header level="3">
+                    <ui-brand-logo label="" style="--ui-brand-logo-height: 1.2em"></ui-brand-logo>
+                    Spell
+                  </ui-header>
+                  <ui-brand-logo variant="lockup" label="Spell home"></ui-brand-logo>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The logo, drawn from outlines: it looks the same everywhere, with no font to install. Use it
+                  rather than an `<img>` of the files in `spell-design-system/assets/logo/`; link those files only
+                  where people download them.
+
+                  - `variant` picks the drawing: the hat (`mark`), the hat and the word (`lockup`), with the tagline
+                    (`tagline`), or `app`.
+                  - `tone` picks one flat colour from the palette; pick the tone for the ground, as the Logo page
+                    shows. `current` follows the text colour.
+                  - Size it with `--ui-brand-logo-height`; never stretch it.
+                  - The brand's rules: keep clear space round it equal to the height of the hat's brim; never rotate
+                    it, add a gradient or an effect, fade it, or set it on a busy, low-contrast ground.
+                  - The outlines load on first use (one shared module, about 58 KB): the logo appears a frame later.
+                </script>
+              </ui-markdown>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - An image (`role="img"`) named “Spell” (“Spell App” for `app`), or its `label`.
+                  - `label=""` makes it decorative (`aria-hidden`): use it when text beside it already names Spell,
+                    so the name isn't read twice.
+                  - Without its script, it shows the name as text in the heading font.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="ui-brand-logo"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--ui-brand-logo-*` token on the logo, any ancestor or `:root`. The colours come from the
+                  `spell-brand` theme's roles, with plain Spell UI tokens under any other theme. Edit a value below to
+                  try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="ui-brand-logo" playground>
+                <ui-brand-logo></ui-brand-logo>
+                <ui-brand-logo variant="tagline"></ui-brand-logo>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

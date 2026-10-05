@@ -1,0 +1,383 @@
+<!doctype html>
+<!--
+  Design System, on Spell UI:  the copy of `Design System.dc.html`, the brand's index.
+  - The tagline lockup, a headline and lede, then three groups of link cards (Brand, Color & theming, Mockups), each
+    card a live thumbnail of its page above its icon, name, description and file name.
+  - Each card links to the page's `.spell.html` copy.  Thumbnails are live too, as the original's:  each an
+    `<iframe>` of the copy at a quarter scale, so they follow the page's light / dark;  the copy's 44px site header is
+    cropped off the top.  The script fills them in (`data-page`), as they near the viewport:  see there for why.
+  - A page with no copy yet shows the tagline lockup on ivory instead, the look of the original's image thumbnails.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Design System</title>
+    <meta name="description" content="Everything in the Spell design system:  every mockup and tool, one click away." />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <style>
+      /* page layout only:  every colour, font, radius and shadow comes from the theme's tokens */
+      body {
+        margin: 0;
+        background: var(--ui-background);
+        color: var(--spell-text-body);
+        font: var(--spell-type-body);
+      }
+      main {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 44px 40px 64px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+
+      /* ## The header:  lockup, headline, lede */
+      main > header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+      }
+      main > header > ui-brand-logo {
+        --ui-brand-logo-height: 64px;
+      }
+      h1 {
+        margin: 0;
+        font: var(--spell-type-h1);
+        font-size: 40px;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        color: var(--spell-text-strong);
+      }
+      .lede {
+        margin: 0;
+        font: var(--spell-type-lede);
+        font-size: 19px;
+        line-height: 1.3;
+        color: var(--spell-text-strong);
+      }
+
+      /* ## A group:  its eyebrow, then a grid of cards at least 300px wide */
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .eyebrow {
+        margin: 0;
+        font: var(--spell-type-eyebrow);
+        letter-spacing: var(--spell-tracking-eyebrow);
+        text-transform: uppercase;
+        color: var(--spell-text-accent);
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 12px;
+      }
+      .cards > ui-card {
+        --ui-card-margin-block: 0;
+        overflow: hidden;
+      }
+
+      /* ## A card's thumbnail:  its page at a quarter scale (a 400% frame), the copy's site header cropped off */
+      .thumb {
+        position: relative;
+        display: block;
+        aspect-ratio: 16 / 10;
+        overflow: hidden;
+        background: var(--ui-background);
+        border-bottom: 1px solid var(--spell-border-subtle);
+      }
+      .thumb > iframe {
+        position: absolute;
+        top: calc(var(--spell-site-header-height, 44px) * -0.25);
+        left: 0;
+        width: 400%;
+        height: calc(400% + var(--spell-site-header-height, 44px));
+        transform: scale(0.25);
+        transform-origin: 0 0;
+        border: 0;
+        pointer-events: none;
+        background: var(--ui-background);
+      }
+      /* a page with no copy yet:  the tagline lockup on ivory, as the original's image thumbnails */
+      .thumb.pending {
+        display: grid;
+        place-items: center;
+        background: var(--spell-surface-warm);
+      }
+      .thumb.pending > ui-brand-logo {
+        --ui-brand-logo-height: 34%;
+      }
+
+      /* ## A card's text:  the icon tile beside its name, description and file name */
+      .cards > ui-card {
+        --ui-card-content-padding: 14px 16px 16px;
+        --ui-card-header-font-size: 17px;
+        --ui-card-header-color: var(--spell-text-strong);
+        --ui-card-description-color: var(--spell-text-muted);
+        --ui-card-description-distance: 0;
+        --ui-card-meta-color: var(--spell-text-subtle);
+      }
+      .row {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .tile {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: var(--ui-radius-s);
+        background: var(--spell-accent-soft);
+        color: var(--spell-text-accent);
+        font-size: 15px;
+      }
+      .text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+      .text > ui-description {
+        font: 400 13px/1.45 var(--spell-font-sans);
+      }
+      .text > ui-meta {
+        font: 400 11px/1.3 var(--spell-font-mono);
+      }
+    </style>
+  </head>
+  <body>
+    <spell-site-header root="../../.."></spell-site-header>
+    <main>
+      <header>
+        <ui-brand-logo variant="tagline" tone="ink" label="Spell — All magic, no fuss."></ui-brand-logo>
+        <h1>Everything in the Spell design system.</h1>
+        <p class="lede">Every mockup and tool, one click away.</p>
+      </header>
+
+      <section aria-labelledby="brand">
+        <h2 class="eyebrow" id="brand">Brand</h2>
+        <div class="cards">
+          <ui-card fluid href="Brand%20Montage.spell.html">
+            <span class="thumb">
+              <iframe data-page="Brand%20Montage.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="table cells"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Brand montage</ui-header>
+                  <ui-description>Logo, light and dark app, palette and brand tiles in one view.</ui-description>
+                  <ui-meta>Brand%20Montage.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+          <ui-card fluid href="Logo.spell.html">
+            <span class="thumb">
+              <iframe data-page="Logo.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="hat wizard"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Logo</ui-header>
+                  <ui-description>Lockups, mark and app icon, with downloads and usage rules.</ui-description>
+                  <ui-meta>Logo.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+          <ui-card fluid href="Design%20Guide.spell.html">
+            <span class="thumb">
+              <iframe data-page="Design%20Guide.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="file lines outline"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Design guide</ui-header>
+                  <ui-description>Voice, visual foundations, iconography, file index.</ui-description>
+                  <ui-meta>Design%20Guide.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+        </div>
+      </section>
+
+      <section aria-labelledby="color">
+        <h2 class="eyebrow" id="color">Color &amp; theming</h2>
+        <div class="cards">
+          <ui-card fluid href="Brand%20Palette.spell.html">
+            <span class="thumb">
+              <iframe data-page="Brand%20Palette.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="droplet"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Brand palette</ui-header>
+                  <ui-description>Exploring alternatives to the brand purple.</ui-description>
+                  <ui-meta>Brand%20Palette.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+          <ui-card fluid href="Color%20Palette.spell.html">
+            <span class="thumb">
+              <iframe data-page="Color%20Palette.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="swatchbook"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Color palette</ui-header>
+                  <ui-description>Brand, accent, every hue and one grey on the 17-step ladder.</ui-description>
+                  <ui-meta>Color%20Palette.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+          <ui-card fluid href="Flourishes.spell.html">
+            <span class="thumb">
+              <iframe data-page="Flourishes.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="wand sparkles"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Swoops &amp; blobs</ui-header>
+                  <ui-description>Five directions for the &lt;ui-brand-flourish&gt; element.</ui-description>
+                  <ui-meta>Flourishes.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+        </div>
+      </section>
+
+      <section aria-labelledby="mockups">
+        <h2 class="eyebrow" id="mockups">Mockups</h2>
+        <div class="cards">
+          <ui-card fluid href="Spell%20App.spell.html">
+            <span class="thumb">
+              <iframe data-page="Spell%20App.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="wand magic sparkles"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Spell App</ui-header>
+                  <ui-description>The builder: Build, Your Apps, Templates, Settings. Light/dark.</ui-description>
+                  <ui-meta>Spell%20App.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+          <ui-card fluid href="Spell%20Docs.spell.html">
+            <span class="thumb">
+              <iframe data-page="Spell%20Docs.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="book open"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Docs site</ui-header>
+                  <ui-description>Guide pages with sidebar, tips and spell/compiled examples.</ui-description>
+                  <ui-meta>Spell%20Docs.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+          <ui-card fluid href="Spell%20Marketing.spell.html">
+            <span class="thumb">
+              <iframe data-page="Spell%20Marketing.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="bullhorn"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Marketing site</ui-header>
+                  <ui-description>Home page with try-a-spell hero.</ui-description>
+                  <ui-meta>Spell%20Marketing.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+          <ui-card fluid href="Theme%20Creator.spell.html">
+            <span class="thumb">
+              <iframe data-page="Theme%20Creator.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="sliders"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Theme creator</ui-header>
+                  <ui-description>Builds a @spell-app/ui theme sheet with live light/dark preview.</ui-description>
+                  <ui-meta>Theme%20Creator.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+          <ui-card fluid href="Color%20Set%20Chooser.spell.html">
+            <span class="thumb">
+              <iframe data-page="Color%20Set%20Chooser.spell.html" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            </span>
+            <ui-content>
+              <span class="row">
+                <span class="tile"><ui-icon name="palette"></ui-icon></span>
+                <span class="text">
+                  <ui-header>Color set chooser</ui-header>
+                  <ui-description>One seed colour in, a 17-step set and CSS out.</ui-description>
+                  <ui-meta>Color%20Set%20Chooser.spell.html</ui-meta>
+                </span>
+              </span>
+            </ui-content>
+          </ui-card>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="../_assets/ui/brand-ui.js"></script>
+    <script type="module">
+      /*
+       * The thumbnails:  each card's frame shows its page's copy (`data-page`), filled in once it nears the viewport.
+       * - Same origin, so a frame follows the light / dark switch, and takes live reload from this page (a framed
+       *   page opens no connection of its own:  eleven would use up Chrome's 6 per host).
+       * - A page with no copy yet (the mockups land in P7) shows the tagline lockup on ivory, as the original's
+       *   image thumbnails do, so no card shows a 404;  the card's link stays on the copy.
+       */
+      const nearby = new IntersectionObserver(
+        (entries) => {
+          for (const { isIntersecting, target } of entries) {
+            if (!isIntersecting) continue
+            nearby.unobserve(target)
+            void fillThumbnail(target)
+          }
+        },
+        { rootMargin: "300px" }
+      )
+      for (const frame of document.querySelectorAll(".thumb > iframe[data-page]")) nearby.observe(frame)
+
+      /** Show `frame`'s page, or the lockup while the page has no copy. */
+      async function fillThumbnail(frame) {
+        const url = new URL(frame.dataset.page, location.href)
+        const response = await fetch(url, { method: "HEAD" }).catch(() => null)
+        if (response?.ok) {
+          frame.src = url.href
+          return
+        }
+        const logo = document.createElement("ui-brand-logo")
+        logo.setAttribute("variant", "tagline")
+        logo.setAttribute("label", "")
+        frame.parentElement.classList.add("pending")
+        frame.replaceWith(logo)
+      }
+    </script>
+  </body>
+</html>

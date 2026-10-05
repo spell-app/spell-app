@@ -1,6 +1,11 @@
 {
   "$comment": "Hand-kept facts per family (title, summary, status, mainTag, `pages`:  sub-tags with a page of their own, token-table overrides) and per theme sheet (`themes`:  title), read by `yarn site:data`.  Shape:  `SitePagesFile` in src/docs-components/docs-components.types.ts.  Edit by hand;  a new family is added (seeded) by `yarn site:data`.",
   "families": {
+    "ui-brand-blob": {
+      "title": "Brand blob",
+      "summary": "A brand blob tucks one soft lavender shape into a corner of its parent, never behind body text.",
+      "status": "done"
+    },
     "ui-brand-color": {
       "title": "Brand color",
       "summary": "A brand color is a square colour chip:  a label inside, an AA mark, a selected ring, a details tip;  click to copy.",
@@ -24,6 +29,16 @@
     "ui-brand-field": {
       "title": "Brand field",
       "summary": "A brand field wraps one control with its label, a value readout, action buttons, an info tip, help and errors.",
+      "status": "done"
+    },
+    "ui-brand-flourish": {
+      "title": "Brand flourish",
+      "summary": "A brand flourish draws generated page art (swoops, blobs, curls, sparkles) behind its parent's content.",
+      "status": "done"
+    },
+    "ui-brand-logo": {
+      "title": "Brand logo",
+      "summary": "The Spell logo:  the hat mark, or the mark with the wordmark (and tagline), outlined, in one colour.",
       "status": "done"
     },
     "ui-brand-panel": {

@@ -153,6 +153,74 @@
   ],
   "components": [
     {
+      "tag": "ui-brand-blob",
+      "name": "Brand blob",
+      "folder": "ui-brand-blob",
+      "topics": [
+        "images"
+      ],
+      "aka": [
+        "blob",
+        "corner blob",
+        "decoration",
+        "background shape",
+        "motif"
+      ],
+      "description": "A brand blob tucks one soft lavender shape into a corner of its parent, never behind body text.",
+      "noun": "blob",
+      "attributes": [
+        {
+          "name": "corner",
+          "kind": "enum",
+          "values": [
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right"
+          ],
+          "default": "bottom-right",
+          "description": "Which corner of the parent:  `top-left`, `top-right`, `bottom-left`, `bottom-right`."
+        },
+        {
+          "name": "shape",
+          "kind": "enum",
+          "values": [
+            "organic",
+            "mound"
+          ],
+          "default": "organic",
+          "description": "`organic` (a soft egg) or `mound` (a hill rising from the edge, flat side out)."
+        },
+        {
+          "name": "tone",
+          "kind": "enum",
+          "values": [
+            "blob",
+            "blob-2",
+            "lilac",
+            "violet",
+            "current"
+          ],
+          "default": "blob",
+          "description": "Colour:  `blob` (lavender), `blob-2` (paler, grey-blue), `lilac`, `violet` (between the two), `current` (`currentColor`)."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "blob",
+          "description": "The shape."
+        }
+      ],
+      "states": [],
+      "texts": [],
+      "mainTag": "ui-brand-blob",
+      "main": true,
+      "page": true,
+      "href": "components/ui-brand-blob.html"
+    },
+    {
       "tag": "ui-brand-color",
       "name": "Brand color",
       "folder": "ui-brand-color",
@@ -977,6 +1045,157 @@
       "href": "components/ui-brand-field.html"
     },
     {
+      "tag": "ui-brand-flourish",
+      "name": "Brand flourish",
+      "folder": "ui-brand-flourish",
+      "topics": [
+        "images",
+        "animation"
+      ],
+      "aka": [
+        "flourish",
+        "decoration",
+        "swoosh",
+        "blob",
+        "background art",
+        "squiggle"
+      ],
+      "description": "A brand flourish draws generated page art (swoops, blobs, curls, sparkles) behind its parent's content.",
+      "noun": "flourish",
+      "attributes": [
+        {
+          "name": "variant",
+          "kind": "enum",
+          "values": [
+            "swoop",
+            "blobs",
+            "edge-curls",
+            "sparkle-trail",
+            "rising-wave"
+          ],
+          "default": "swoop",
+          "description": "Which flourish:  `swoop`, `blobs`, `edge-curls`, `sparkle-trail`, `rising-wave`."
+        },
+        {
+          "name": "seed",
+          "kind": "number",
+          "default": 7,
+          "description": "Which one of the variant:  another seed, another shape."
+        },
+        {
+          "name": "stroke",
+          "kind": "string",
+          "description": "Line colour;  default the theme's flourish line (lilac)."
+        },
+        {
+          "name": "fill",
+          "kind": "string",
+          "description": "Shape colour;  default the theme's blob (lavender)."
+        },
+        {
+          "name": "fill2",
+          "kind": "string",
+          "description": "Second shape colour;  default the theme's second blob."
+        },
+        {
+          "name": "weight",
+          "kind": "number",
+          "default": 1.6,
+          "description": "Line weight, px."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "art",
+          "description": "The `<svg>`."
+        }
+      ],
+      "states": [],
+      "texts": [],
+      "mainTag": "ui-brand-flourish",
+      "main": true,
+      "page": true,
+      "href": "components/ui-brand-flourish.html"
+    },
+    {
+      "tag": "ui-brand-logo",
+      "name": "Brand logo",
+      "folder": "ui-brand-logo",
+      "topics": [
+        "images",
+        "icons"
+      ],
+      "aka": [
+        "logo",
+        "lockup",
+        "wordmark",
+        "brand mark",
+        "hat mark"
+      ],
+      "description": "The Spell logo:  the hat mark, or the mark with the wordmark (and tagline), outlined, in one colour.",
+      "noun": "logo",
+      "attributes": [
+        {
+          "name": "variant",
+          "kind": "enum",
+          "values": [
+            "mark",
+            "lockup",
+            "tagline",
+            "app"
+          ],
+          "default": "mark",
+          "description": "Which:  `mark` (the hat), `lockup` (hat + Spell), `tagline` (+ All magic, no fuss.), `app` (hat + Spell App)."
+        },
+        {
+          "name": "tone",
+          "kind": "enum",
+          "values": [
+            "ink",
+            "purple",
+            "lilac",
+            "aubergine",
+            "white",
+            "current"
+          ],
+          "default": "ink",
+          "description": "Colour:  `ink` (the theme's strongest text), `purple`, `lilac`, `aubergine`, `white`, `current` (`currentColor`)."
+        },
+        {
+          "name": "label",
+          "kind": "string",
+          "description": "Accessible name;  default `Spell` (`Spell App`).  `\"\"`:  decorative, hidden from screen readers."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "logo",
+          "description": "The `<svg>`."
+        }
+      ],
+      "states": [],
+      "texts": [
+        {
+          "key": "spell",
+          "text": "Spell",
+          "description": "Default name of the mark and the lockups."
+        },
+        {
+          "key": "spellApp",
+          "text": "Spell App",
+          "description": "Default name of the `app` lockup."
+        }
+      ],
+      "mainTag": "ui-brand-logo",
+      "main": true,
+      "page": true,
+      "href": "components/ui-brand-logo.html"
+    },
+    {
       "tag": "ui-brand-panel",
       "name": "Brand panel",
       "folder": "ui-brand-panel",
@@ -1322,6 +1541,44 @@
   ],
   "docs": [],
   "families": {
+    "ui-brand-blob": {
+      "folder": "ui-brand-blob",
+      "mainTag": "ui-brand-blob",
+      "title": "Brand blob",
+      "summary": "A brand blob tucks one soft lavender shape into a corner of its parent, never behind body text.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "ui-brand-blob"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-brand-blob-x",
+          "default": "160px",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-blob-y",
+          "default": "180px",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-blob-width",
+          "default": "420px",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-blob-height",
+          "default": "360px",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-blob-color",
+          "default": "currentColor",
+          "type": "color"
+        }
+      ]
+    },
     "ui-brand-color": {
       "folder": "ui-brand-color",
       "mainTag": "ui-brand-color",
@@ -1529,6 +1786,57 @@
           "name": "--ui-brand-field-tip-width",
           "default": "16.25em",
           "type": "length"
+        }
+      ]
+    },
+    "ui-brand-flourish": {
+      "folder": "ui-brand-flourish",
+      "mainTag": "ui-brand-flourish",
+      "title": "Brand flourish",
+      "summary": "A brand flourish draws generated page art (swoops, blobs, curls, sparkles) behind its parent's content.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "ui-brand-flourish"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-brand-flourish-stroke",
+          "default": "var(--spell-line-flourish, #968aff)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-flourish-fill",
+          "default": "var(--spell-blob, #e0dfff)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-brand-flourish-fill-2",
+          "default": "var(--spell-blob-2, #eef0fa)",
+          "type": "color"
+        }
+      ]
+    },
+    "ui-brand-logo": {
+      "folder": "ui-brand-logo",
+      "mainTag": "ui-brand-logo",
+      "title": "Brand logo",
+      "summary": "The Spell logo:  the hat mark, or the mark with the wordmark (and tagline), outlined, in one colour.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "ui-brand-logo"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-brand-logo-height",
+          "default": "2em",
+          "type": "length"
+        },
+        {
+          "name": "--ui-brand-logo-color",
+          "default": "var(--spell-text-strong, var(--ui-text-dark))",
+          "type": "color"
         }
       ]
     },

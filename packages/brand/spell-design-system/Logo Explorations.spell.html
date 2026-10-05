@@ -1,0 +1,288 @@
+<!doctype html>
+<!--
+  Logo Explorations, on Spell UI:  the copy of `Logo Explorations.dc.html`, its two "Turn" sections, newest first.
+  - Each option is a card:  its id, the lockup large on white, smaller on aubergine, at two small sizes on ivory, then
+    its name and note.
+  - 2a and 2b became the final logo (their files are byte for byte `spell-lockup-*.svg` / `spell-lockup-tagline-*.svg`):
+    each is a `<ui-brand-logo>` (`lockup` / `tagline`), as is Turn 1's "Current, for comparison" (the same files).
+  - 1a, 1b and 1c are DIFFERENT drawings (other hat gaps and sizes), which `<ui-brand-logo>` doesn't have:  each stays
+    an `<img>` of its outlined file in `assets/logo/explore/`, as the original draws it.
+  - The grounds (white, aubergine, ivory) are the brand's fixed colours:  they don't follow the page's scheme.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Logo Explorations</title>
+    <meta name="description" content="Earlier rounds of the Spell logo:  hat gap, size and tagline, turn by turn." />
+    <link rel="stylesheet" href="../_assets/ui/brand-ui.css" />
+    <style>
+      /* page layout only:  every colour, font and radius comes from the theme's tokens */
+      body {
+        margin: 0;
+        background: var(--ui-background);
+        color: var(--spell-text-body);
+        font: var(--spell-type-body);
+      }
+      section {
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      section:first-child {
+        padding-bottom: 24px;
+      }
+      section > header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 760px;
+      }
+      .eyebrow {
+        font: var(--spell-type-eyebrow);
+        letter-spacing: var(--spell-tracking-eyebrow);
+        text-transform: uppercase;
+        color: var(--spell-text-accent);
+      }
+      h1 {
+        margin: 0;
+        font: var(--spell-type-h1);
+        font-size: 40px;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        color: var(--spell-text-strong);
+      }
+      section > header > p {
+        margin: 0;
+        line-height: 1.55;
+        color: var(--spell-text-muted);
+      }
+      section > header a {
+        color: var(--spell-text-accent);
+        text-decoration: none;
+      }
+      section > header a:hover {
+        text-decoration: underline;
+      }
+
+      /* ## An option:  white, aubergine and ivory grounds, then its name and note */
+      .options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: flex-start;
+      }
+      ui-card {
+        --ui-card-width: 520px;
+        --ui-card-margin-block: 0;
+        overflow: hidden;
+        scroll-margin-top: calc(var(--spell-site-header-height, 0px) + 16px);
+      }
+      /* Turn 1's "current":  a placeholder, dashed and flat */
+      ui-card.current::part(card) {
+        border: 1px dashed var(--spell-border-strong);
+      }
+      /* logo files, not photos:  none of the theme's hairline round every `<img>` */
+      .ground > img,
+      .tiny > img {
+        outline: none;
+      }
+      .ground {
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+      .ground > img,
+      .ground > ui-brand-logo {
+        max-width: 80%;
+      }
+      .large {
+        height: 200px;
+        background: white;
+      }
+      .small {
+        height: 120px;
+        background: var(--spell-violet-900);
+      }
+      .tiny {
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        background: var(--spell-accent-150);
+      }
+      .id {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        line-height: 0;
+      }
+      .id > ui-label {
+        --ui-label-background: var(--spell-violet-900);
+        --ui-label-color: white;
+        --ui-label-font-weight: 700;
+        font-family: var(--spell-font-mono);
+      }
+      .caption {
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .caption b {
+        font: 700 16px/1.2 var(--spell-font-serif);
+        color: var(--spell-text-strong);
+      }
+      .current .caption b {
+        color: var(--spell-text-muted);
+      }
+      .caption small {
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--spell-text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <spell-site-header root="../../.."></spell-site-header>
+    <main>
+      <section aria-labelledby="turn-2">
+        <header>
+          <div class="eyebrow">Logo · Turn 2</div>
+          <h1 id="turn-2">Dialled in.</h1>
+          <p>
+            <a href="#2a">2a</a> pulls the hat a little closer than <a href="#1a">1a</a>. <a href="#2b">2b</a> uses the
+            same gap, with the hat between <a href="#1b">1b</a> and <a href="#1c">1c</a> in size.
+          </p>
+        </header>
+        <div class="options">
+          <ui-card id="2a">
+            <div class="ground large ui-light">
+              <span class="id"><ui-label size="small">2a</ui-label></span>
+              <ui-brand-logo variant="lockup" tone="aubergine" label="Horizontal" style="--ui-brand-logo-height: 66px">
+              </ui-brand-logo>
+            </div>
+            <div class="ground small">
+              <ui-brand-logo variant="lockup" tone="white" label="" style="--ui-brand-logo-height: 36px"></ui-brand-logo>
+            </div>
+            <div class="tiny ui-light">
+              <ui-brand-logo variant="lockup" tone="aubergine" label="" style="--ui-brand-logo-height: 26px">
+              </ui-brand-logo>
+              <ui-brand-logo variant="lockup" tone="aubergine" label="" style="--ui-brand-logo-height: 16px">
+              </ui-brand-logo>
+            </div>
+            <div class="caption">
+              <b>Horizontal</b><small>Hat gap between the old lockup and 1a. The primary, no tagline.</small>
+            </div>
+          </ui-card>
+          <ui-card id="2b">
+            <div class="ground large ui-light">
+              <span class="id"><ui-label size="small">2b</ui-label></span>
+              <ui-brand-logo
+                variant="tagline"
+                tone="aubergine"
+                label="Horizontal + tagline"
+                style="--ui-brand-logo-height: 88px"
+              ></ui-brand-logo>
+            </div>
+            <div class="ground small">
+              <ui-brand-logo variant="tagline" tone="white" label="" style="--ui-brand-logo-height: 48px"></ui-brand-logo>
+            </div>
+            <div class="tiny ui-light">
+              <ui-brand-logo variant="tagline" tone="aubergine" label="" style="--ui-brand-logo-height: 35px">
+              </ui-brand-logo>
+              <ui-brand-logo variant="tagline" tone="aubergine" label="" style="--ui-brand-logo-height: 21px">
+              </ui-brand-logo>
+            </div>
+            <div class="caption">
+              <b>Horizontal + tagline</b
+              ><small>Same gap as 2a; hat between 1b and 1c in size, centred on word + tagline.</small>
+            </div>
+          </ui-card>
+        </div>
+      </section>
+
+      <section aria-labelledby="turn-1">
+        <header>
+          <div class="eyebrow">Logo · Turn 1</div>
+          <h1 id="turn-1">Hat, word and tagline.</h1>
+          <p>
+            More room between hat and “Spell”. Tagline is now “All magic, no fuss.” set exactly as wide as “Spell”.
+            It's optional: <a href="#1a">1a</a> is the tagline-free primary; <a href="#1b">1b</a> and
+            <a href="#1c">1c</a> are tagline versions. All are outlined SVGs in assets/logo/explore/.
+          </p>
+        </header>
+        <div class="options">
+          <ui-card id="1-current" class="current" basic>
+            <div class="ground large ui-light">
+              <ui-brand-logo variant="tagline" tone="aubergine" label="Current" style="--ui-brand-logo-height: 96px">
+              </ui-brand-logo>
+            </div>
+            <div class="ground small">
+              <ui-brand-logo variant="lockup" tone="white" label="" style="--ui-brand-logo-height: 44px"></ui-brand-logo>
+            </div>
+            <div class="caption">
+              <b>Current, for comparison</b><small>Tight hat gap; tagline wider than the word.</small>
+            </div>
+          </ui-card>
+          <!-- 1a ... 1c:  other drawings than the final logo, so their own files -->
+          <ui-card id="1a">
+            <div class="ground large">
+              <span class="id"><ui-label size="small">1a</ui-label></span>
+              <img src="assets/logo/explore/1a-aubergine.svg" alt="Horizontal, roomier" style="height: 66px" />
+            </div>
+            <div class="ground small"><img src="assets/logo/explore/1a-white.svg" alt="" style="height: 36px" /></div>
+            <div class="tiny">
+              <img src="assets/logo/explore/1a-aubergine.svg" alt="" style="height: 26px" />
+              <img src="assets/logo/explore/1a-aubergine.svg" alt="" style="height: 16px" />
+            </div>
+            <div class="caption">
+              <b>Horizontal, roomier</b
+              ><small
+                >Gap between hat and word roughly doubled. Hat centred on the capitals. The primary lockup with no
+                tagline.</small
+              >
+            </div>
+          </ui-card>
+          <ui-card id="1b">
+            <div class="ground large">
+              <span class="id"><ui-label size="small">1b</ui-label></span>
+              <img src="assets/logo/explore/1b-aubergine.svg" alt="Horizontal + tagline" style="height: 80px" />
+            </div>
+            <div class="ground small"><img src="assets/logo/explore/1b-white.svg" alt="" style="height: 44px" /></div>
+            <div class="tiny">
+              <img src="assets/logo/explore/1b-aubergine.svg" alt="" style="height: 32px" />
+              <img src="assets/logo/explore/1b-aubergine.svg" alt="" style="height: 19px" />
+            </div>
+            <div class="caption">
+              <b>Horizontal + tagline</b
+              ><small>1a with the tagline underneath, exactly as wide as “Spell”. Hat centred on the whole block.</small>
+            </div>
+          </ui-card>
+          <ui-card id="1c">
+            <div class="ground large">
+              <span class="id"><ui-label size="small">1c</ui-label></span>
+              <img src="assets/logo/explore/1c-aubergine.svg" alt="Big hat + tagline" style="height: 96px" />
+            </div>
+            <div class="ground small"><img src="assets/logo/explore/1c-white.svg" alt="" style="height: 53px" /></div>
+            <div class="tiny">
+              <img src="assets/logo/explore/1c-aubergine.svg" alt="" style="height: 38px" />
+              <img src="assets/logo/explore/1c-aubergine.svg" alt="" style="height: 23px" />
+            </div>
+            <div class="caption">
+              <b>Big hat + tagline</b
+              ><small
+                >Hat grows to the full height of word plus tagline, so the hat and the two lines read as one
+                unit.</small
+              >
+            </div>
+          </ui-card>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="../_assets/ui/brand-ui.js"></script>
+  </body>
+</html>

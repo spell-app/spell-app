@@ -76,6 +76,12 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 - `<ui-brand-field>` (`components/ui-brand-field/`) -- a label row (label, actions, value, info tip), the control,
   help and error;  `:state(field)` + `showErrors()`, so `<ui-form>` validates it as a `<ui-field>`.  Names an unnamed
   slotted control after its `label` (`aria-label`).
+- Page art, brand-only (never moves into Spell UI):
+  - `<ui-brand-logo>` -- the logo outlined from P052 (`logoPaths.ts`, copied from Claude Design's `components/brand/lockupPaths.js`,
+    `import()`ed on first use), so it needs no font.  Use it, never an `<img>` of the SVGs.
+  - `<ui-brand-flourish>` -- `Flourish.ts`, a port of Claude Design's `lib/spell-flourish.js`:  same variants, same
+    seeded shapes.  Fills its positioned parent.
+  - `<ui-brand-blob>` -- a corner blob;  the parent must be positioned and clip.
 
 ## Imports
 
