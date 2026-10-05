@@ -50,19 +50,10 @@
         min-width: 0;
       }
 
-      /* ## The inspector:  16px in from the box everywhere (a sub-panel's `1em` padding resolves at its 14px text) */
+      /* ## The inspector (the panel's own 16px padding, 8px gap and 20px band spacing are the original's) */
       .inspector {
-        --ui-brand-panel-padding: 16px;
-        --ui-brand-panel-gap: 8px;
         /* the original's field:  the control 4px under its 20px label row */
         --ui-brand-field-gap: 4px;
-      }
-      /* a band 20px under what's above it (8px gap + 12px), flush under a folded band, as the original's */
-      .inspector > * + ui-brand-panel {
-        margin-top: 12px;
-      }
-      .inspector > ui-brand-panel:state(collapsed) + ui-brand-panel {
-        margin-top: -8px;
       }
       .inspector ui-brand-panel {
         --ui-brand-panel-gap: 16px;
