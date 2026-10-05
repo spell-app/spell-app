@@ -121,14 +121,18 @@ try {
   if (unfolded) problems.push(`a click on ${approve}'s ellipsis also opened its details`)
   await pickInMenu(page, todo, "Add to todo")
   await expectButton(page, todo, "violet", "todo")
+  // the next item's button in view first:  Playwright scrolls to what it clicks, which is not the page scrolling
+  await page.locator(`#${soon} .plan-act-button`).scrollIntoViewIfNeeded()
   const scrolled = await page.evaluate(() => scrollY)
 
   // Revisit soon, with a note that survives a reload before it's saved
   await pickInMenu(page, soon, "Revisit")
+  // measured before typing:  Playwright's `fill()` scrolls a box half out of the window into it, the page doesn't
+  const afterBox = await page.evaluate(() => scrollY)
+  if (afterBox !== scrolled) problems.push(`opening the menu or the Revisit box scrolled (${scrolled} -> ${afterBox})`)
   await page.fill(`#${soon} .plan-revisit-note`, NOTE)
-  if ((await page.evaluate(() => scrollY)) !== scrolled) problems.push("opening the menu or the Revisit box scrolled")
   await open(page)
-  await page.evaluate(unfold, "judgements")
+  for (const id of [approve, todo, soon, now, details]) await page.evaluate(unfold, id)
   const draft = await page.evaluate((id) => document.querySelector(`#${id} .plan-revisit-note`)?.value, soon)
   if (draft !== NOTE) problems.push(`the Revisit draft didn't survive a reload ("${draft}")`)
   await page.click(`#${soon} .plan-revisit-soon`)
@@ -269,7 +273,9 @@ try {
   if (Q && (shown[Q]?.letter !== "B" || !shown.picked))
     problems.push(`after reload:  ${Q} is ${JSON.stringify(shown[Q])}`)
 
-  // an in-place update keeps the buttons and the marks
+  // an in-place update keeps the buttons and the marks;  the log unfolded first:  a split doc loads its body only then
+  await page.evaluate(unfold, "log")
+  await page.waitForFunction(() => document.querySelector("#log .plan-log"), null, { timeout: 10_000 })
   await page.evaluate(() => (window.__checkReview = true))
   planDoc("log", name, stamp)
   try {
@@ -312,7 +318,7 @@ try {
       const shot = await browser.newContext({ viewport: { width, height: 800 }, colorScheme: scheme })
       const view = await shot.newPage()
       await open(view)
-      await view.evaluate(unfold, "judgements")
+      for (const id of [approve, todo, soon, now, details]) await view.evaluate(unfold, id)
       await view.waitForTimeout(400)
       const layout = await view.evaluate(overlaps)
       for (const problem of layout) problems.push(`${width}px ${scheme}:  ${problem}`)
@@ -345,7 +351,8 @@ process.exit(problems.length ? 1 : 0)
 /** Load (or reload) the doc and wait for the review buttons. */
 async function open(page) {
   await page.goto(url)
-  await page.waitForSelector(".plan-act-button", { timeout: 15_000 })
+  // attached, not visible:  a plan doc starts with every section folded, its items out of sight
+  await page.waitForSelector(".plan-act-button", { state: "attached", timeout: 15_000 })
   await page.waitForTimeout(500)
 }
 
