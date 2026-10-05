@@ -33,7 +33,12 @@ export async function commandsCommand(
   const named = pageNames(data)
   const missing = commands.filter((command) => !named.has(command.name)).map((command) => command.name)
   const known = new Set(commands.map((command) => command.name))
-  const stale = [...named].filter((name) => !known.has(name)).sort()
+  // the page is shared by every checkout (epic `shared-content`):  a yarn row of a package THIS checkout lacks (a
+  // branch's new package, not merged yet) is another branch's, not stale
+  const here = packageNames(root)
+  const unknown = [...named].filter((name) => !known.has(name)).sort()
+  const elsewhere = unknown.filter((name) => isYarnName(name) && !here.has(name.split(" ")[0]!))
+  const stale = unknown.filter((name) => !elsewhere.includes(name))
   const ok = missing.length === 0 && stale.length === 0
 
   if (options.json) {
@@ -48,10 +53,28 @@ export async function commandsCommand(
   } else {
     if (missing.length) session.out(`${chalk.red("not on the commands page:")}\n  ${missing.join("\n  ")}`)
     if (stale.length) session.out(`${chalk.red("on the commands page, but no such command:")}\n  ${stale.join("\n  ")}`)
+    if (elsewhere.length) {
+      const packages = [...new Set(elsewhere.map((name) => name.split(" ")[0]))].join(", ")
+      session.err(chalk.dim(`(${elsewhere.length} rows for packages this checkout doesn't have:  ${packages})`))
+    }
     if (ok) session.err(chalk.green(`${commands.length} commands, every one on the commands page`))
     else session.err(`fix:  ${join(root, COMMANDS_JSON)} (rows' cli / skill / yarn names)`)
   }
   return verb === "check" && !ok ? CLI.EXIT.ERRORS : CLI.EXIT.OK
+}
+
+/** The yarn package names checkout `root` has, as the page writes them:  `root`, `ui-site`, each `packages/*`. */
+function packageNames(root: string): Set<string> {
+  const names = new Set(["root", "ui-site"])
+  for (const name of readdirSync(join(root, "packages"))) {
+    if (existsSync(join(root, "packages", name, "package.json"))) names.add(name)
+  }
+  return names
+}
+
+/** A yarn command's page name, `<package> <script>`:  not a skill (`/name`) or a `spell` command. */
+function isYarnName(name: string): boolean {
+  return !name.startsWith("/") && !name.startsWith("spell ")
 }
 
 /**

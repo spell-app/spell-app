@@ -25,9 +25,10 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
    - a saved prompt `~/.spell/prompts/<name>.md` (the hook saved it while blocking an earlier `/isolate <name>
      ...`):  it's the task to carry on with once isolated.  Delete it once done.
    Already mid-work ("isolate as <name>" in a running session):
-   - edits already made in the main checkout:  the worktree is cut from COMMITTED `main`, so they won't follow.
-     List them (`git status --short`) and AskUserQuestion:  "Carry them over", "Commit on `main` first" (stage,
-     then ask) or "Leave them".  Carry over with a TAGGED stash (the stash stack is shared with every worktree):
+   - edits already made in the main checkout:  the worktree is cut from COMMITTED `main`, so they won't follow
+     (shared content does:  `packages/docs/content`, `goals`, `agents` are links into `../spell-app-dev` in every
+     checkout, and `git status` never lists them).  List them (`git status --short`) and AskUserQuestion:  "Carry
+     them over", "Commit on `main` first" (stage, then ask) or "Leave them".  Carry over with a TAGGED stash (the stash stack is shared with every worktree):
      `git stash push -u -m "isolate:<name>"` here, its sha from `git stash list --format='%H %gs'`, then
      `git stash apply <sha>` in the worktree after step 3, and drop that entry.
 1. `<name>` is `$ARGUMENTS` (or the `<name>` in "isolate as <name>"), lower-kebab-cased (`Docs Index` ->
@@ -123,19 +124,23 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    and "Leave unmerged", listing the commits in the question.  On "Merge now", get the BRANCH ready to fast-forward
    `main`, all from the worktree (branches are shared, so `main` is visible here):
    - NEVER `git -C <main checkout>` or `cd` there:  a worktree session refuses both.  `main` itself moves in step 6.
-   - first, the changelog:  add or move this branch's entry in `packages/docs/content/changelog.html` ("Changelog" in the
-     root's `AGENTS.md`) and commit it on the branch (the "Merge now" answer counts as the ask)
+   - first, the changelog:  add or move this branch's entry in `packages/docs/content/changelog.html` ("Changelog" in
+     the root's `AGENTS.md`).  It's shared content:  write it straight in, nothing to commit on the branch for it
+     (committed for you at the turn's end)
+   - a worktree cut before 2026-10-04 (`spell dev shared status` shows its folders `tracked`, not `ok`):
+     `spell dev shared migrate <name>` first (`--dry-run` to see what it moves), else merging `main` drags its old
+     tracked copies of the docs, goals and logs into conflicts
    - `git log --oneline HEAD..main` empty (`main` hasn't moved):  ready, go on to step 4
    - else `git merge-tree --write-tree --name-only main HEAD`, which merges without touching any files:
      - exit 0:  `git merge main` (a clean merge commit), then step 4
      - exit 1:  conflicts, the file names follow the tree id;  step 3
    - nothing unmerged:  skip this step and say "nothing to merge"
-3. Merge conflicts.  ONLY in logs and built files:  fix them WITHOUT asking (Owen, 2026-10-03), say in one line
-   which files and how, commit the merge ("Merge main into `<name>`"), then step 4.
-   - logs:  `agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md` (keep both sides' entries), the changelog
-     (`packages/docs/content/changelog.html`:  take `main`'s, then put this branch's entry back where it goes)
-   - built files:  regenerate with their command instead of merging by hand:  the docs index (`yarn docs:index`),
-     `yarn.lock` (`yarn install`), bundles (`packages/docs/tools/_assets/spell-ui.js` ...:  their build)
+3. Merge conflicts.  ONLY in built files:  fix them WITHOUT asking (Owen, 2026-10-03), say in one line which files
+   and how, commit the merge ("Merge main into `<name>`"), then step 4.
+   - the logs (`agents/*.md`), the changelog, the docs index and plan docs can't conflict any more:  shared
+     content, untracked by spell-app.  One in conflict means a worktree not migrated yet (step 2)
+   - built files:  regenerate with their command instead of merging by hand:  `yarn.lock` (`yarn install`), bundles
+     (`packages/docs/tools/_assets/spell-ui.js` ...:  their build)
    - any OTHER file in conflict (code, skills, docs prose):  AskUserQuestion, listing the conflicting files, options:
      - "Fix conflicts, then merge":
        - `git merge main` in the worktree;  resolve each file, keeping BOTH sides' intent

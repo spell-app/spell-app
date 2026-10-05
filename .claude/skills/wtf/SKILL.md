@@ -30,11 +30,11 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
     yet answered.
 - Where:  in the session's checkout (`git -C .claude/worktrees/<name>` for `<name>`):  `git branch --show-current`,
   `git status --short`, `git log --oneline main..HEAD` (a worktree) or the session's own commits (`main`).
-- Plan doc, if any:  the session's `/epic <name>`, else a worktree name with `packages/docs/content/epics/<name>/`, else
-  one the session wrote to.  A branch from before 2026-10-02 still has it under `plans/<name>/`.
+- Plan doc, if any:  the session's `/epic <name>`, else the worktree's name if `yarn plan-doc list` has it, else
+  one the session wrote to.  ONE shared doc, in `packages/docs/content/epics/<name>/` of every checkout (a link into
+  `../spell-app-dev`).  A branch from before 2026-10-02 still has it under `plans/<name>/`.
   - `yarn plan-doc summary <name> --json`:  phases with status, next phase, open questions / issues / caveats / todos
-  - its links:  `yarn docs:link <ABSOLUTE path> --hash <id>`, run in the checkout the doc is in:  the side bar
-    link, then `(_browser_)`
+  - its links:  `yarn docs:link <ABSOLUTE path> --hash <id>`:  the side bar link, then `(_browser_)`
 - `/bedtime` run:  the plan doc's "Overnight" section (`yarn plan-doc summary <name> --json`, `overnight`:
   `active` running, `done` not gone through yet);  `/epic review <name>` goes through it.
 - In flight:  `ListAgents` (agents this session started;  for `<name>`, whether its session is running),
@@ -49,7 +49,8 @@ id, running / idle / waiting / not running.
 
 1. **Goal** -- one or two sentences:  what Owen asked for, in his words.  If the work has drifted from his most
    recently stated intent, say how, in **bold**.
-2. **Where** -- worktree and branch (or `main`), and what's uncommitted or staged.  The plan doc, linked.
+2. **Where** -- worktree and branch (or `main`), and what's uncommitted or staged (never the plan doc, logs or
+   docs pages:  shared content, committed for you).  The plan doc, linked.
 3. **Plan** -- the phases as one line each, linked, with status:  done, ACTIVE, to do.
 4. **Done** -- numbered, in the order it happened, each a few words.
 5. **In flight** -- agents, background jobs, wakeups:  what each is doing.

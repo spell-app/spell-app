@@ -37,7 +37,8 @@ name to park this session under.
      sessions' edits too.  `git status --short`;  any file this session didn't touch:  AskUserQuestion,
      multiSelect, "Which of these are this session's?" (preselect none).  Then `git stash push -u -m
      "park:<name>" -- <paths>`, its sha from `git stash list --format='%H %gs'`, and `git stash apply <sha>` in
-     the worktree after step 3 (then drop that entry).
+     the worktree after step 3 (then drop that entry).  Shared content (`packages/docs/content`, `goals`,
+     `agents`:  links into `../spell-app-dev`) needs no carrying:  every checkout already sees it.
    - steps 1-3 as written, then NOT steps 4-6 yet:  the commit and note (steps 3-4 below) come first, since
      isolate's step 6 ends the turn.  No `yarn install`:  parked work doesn't run.
    - then, only for a plain `/park`:  isolate's steps 4-6 (own window, move, end the turn), after step 5 below.
@@ -45,6 +46,7 @@ name to park this session under.
      background wait.  `/unpark`'s window check offers the move later.
 3. Commit, in the worktree:  `git add -A`, then `git commit -m "WIP (parked): <name> -- <where it stopped, one
    line>"`.  Nothing to commit:  skip, and say so.  BEFORE step 4, so the note can't be swept into the commit.
+   Shared content (the plan doc, logs, docs pages) is never in it:  committed for you, in `../spell-app-dev`.
 4. Write `PARKED-<name>.md` at the worktree root:
 
    ```
@@ -73,8 +75,8 @@ name to park this session under.
    ```
 
    - The note must stand on its own:  a new session reading only it, plus the diff, can carry on.
-5. Plan doc (`packages/docs/content/epics/<name>/`, in the worktree):  `yarn plan-doc log <name> "Parked at <hash>:  <one
-   line>;  next:  <step 1>"`.  No plan doc, or no `node_modules/`:  skip.
+5. Plan doc (`packages/docs/content/epics/<name>/`, shared by every checkout):  `yarn plan-doc log <name>
+   "Parked at <hash>:  <one line>;  next:  <step 1>"`.  No plan doc, or no `node_modules/`:  skip.
 6. One line:  "parked `<name>` at `<hash>`;  pick it up with `/unpark <name>`, or `/wait-for <other>` to resume
    when <other> is done".
 
@@ -93,6 +95,8 @@ Used by `/unpark` (after its window check) and by `/wait-for` when the wait ends
 1. Read `PARKED-<name>.md`:  goal, where it stopped, next steps.  Check the session's name
    (`.claude/skills/isolate/SKILL.md`, "Session name").
 2. Bring in the new `main`, the same way as `.claude/skills/isolate/SKILL.md` "Finish" steps 2-3:
+   - a worktree cut before 2026-10-04 (`spell dev shared status` shows its folders `tracked`):  `spell dev shared
+     migrate <name>` first
    - `git log --oneline HEAD..main` empty:  nothing new, go on to step 4
    - `git merge-tree --write-tree --name-only main HEAD`:  exit 0, `git merge main`;  exit 1, conflicts:
      - `git merge main`, resolve each file keeping BOTH sides' intent.  Packages moved or renamed on `main` show
