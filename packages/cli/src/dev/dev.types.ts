@@ -288,3 +288,16 @@ export type MigrateReport = {
   conflicts: string[]
   done: boolean
 }
+
+////////////////
+// ## Agent rules
+////////////////
+
+/**
+ * One broken citation or path (`checkAgentRules()`).
+ * - `file`:  relative to the checkout;  `cite`:  what it says (`§12 › "title"`, a backticked path)
+ */
+export type AgentRulesProblem = { file: string; line: number; cite: string; problem: string }
+
+/** `spell dev agents check`'s answer:  WWOD's size, how many files were read, and what's broken. */
+export type AgentRulesReport = { sections: number; rules: number; files: number; problems: AgentRulesProblem[] }
