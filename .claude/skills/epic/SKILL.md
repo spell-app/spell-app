@@ -307,7 +307,8 @@ commits <name> --backfill                           every phase / item commit (`
 close <name> <id>  /  reopen <name> <id>            close (done) / open again, never delete
 cancel <name> <id> ["why"]                          made moot by another decision:  struck;  reopen undoes it
 log <name> "text"                                   timestamped line in the doc's log
-overnight <name> start|phase|problem|done|remove    a /bedtime run's report, on top of the doc (`/bedtime`)
+bedtime <name> start "P3-P6" | done "summary"       bedtime mode on / off:  the run's changes stay green (`/bedtime`)
+overnight <name> remove                             an older doc's Overnight report (before 2026-10-05), once read
 prompt <name> "text" | --file f                     set the prompt quoted in the Overview
 migrate <name>                                      an older doc (any layout) into the current one;  its D
                                                     items merge into its questions

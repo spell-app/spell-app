@@ -1,6 +1,6 @@
 ---
 name: isolate
-description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and either open it in a new, tinted VS Code window or stay in this one (Owen picks, `stay-check` recommends);  `/isolate done` offers to merge it into `main`, then leaves it.  Use for `/isolate <name>`, `/isolate done`, or when Owen says "isolate as <name>" / "isolate this" about the current session.
+description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and either open it in a new, tinted VS Code window or stay in this one (Owen picks, `stay-check` recommends);  `/isolate done` offers to merge it into `main` and to open a pull request for it, then leaves it.  Use for `/isolate <name>`, `/isolate done`, or when Owen says "isolate as <name>" / "isolate this" about the current session.
 argument-hint: <name> | done
 ---
 
@@ -116,14 +116,14 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    - none:  stop
    - else AskUserQuestion, multi-select, one option per candidate ("`<name>` (`<branch>`)";  it takes 2-4 options,
      so one candidate is "Remove `<name>`" / "Keep it", and more than 4 go in several questions);  for each picked:
-     `git worktree remove .claude/worktrees/<name>`, `git branch -d <branch>`.  Then stop:  steps 1-7 are for a
+     `git worktree remove .claude/worktrees/<name>`, `git branch -d <branch>`.  Then stop:  steps 1-8 are for a
      session IN a worktree.
 1. Report what's uncommitted and unmerged in the worktree (`git status --short`, `git log --oneline main..HEAD`).
    Commit only as the root's rules allow (stage, then ask).
 2. Unmerged commits (`main..HEAD` not empty):  AskUserQuestion "Merge `<name>` into `main`?", options "Merge now"
    and "Leave unmerged", listing the commits in the question.  On "Merge now", get the BRANCH ready to fast-forward
    `main`, all from the worktree (branches are shared, so `main` is visible here):
-   - NEVER `git -C <main checkout>` or `cd` there:  a worktree session refuses both.  `main` itself moves in step 6.
+   - NEVER `git -C <main checkout>` or `cd` there:  a worktree session refuses both.  `main` itself moves in step 7.
    - first, the changelog:  add or move this branch's entry in `packages/docs/content/changelog.html` ("Changelog" in
      the root's `AGENTS.md`).  It's shared content:  write it straight in, nothing to commit on the branch for it
      (committed for you at the turn's end)
@@ -151,19 +151,42 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
    - Can't fix them (keeping both sides needs a decision only the user can make, or the checks fail):
      `git merge --abort`, say so, list each file and why, then AskUserQuestion "Continue exiting?"
      options "Exit, unmerged" and "Stay isolated"
-4. NO move back:  the session stays in the window it's in (the worktree's, or the one it stayed in).  Why:  Owen
+4. Pull request:  an offer, ASKED first (pushing publishes the branch on GitHub), and only when GitHub's `main` is
+   up to date with local `main` (Q16 of `review-review`, answer C).  All from the worktree:
+   - `git fetch origin main`, then `git rev-list --count origin/main..main`:  how far local `main` is ahead of
+     GitHub's.
+     - not 0:  NO offer.  Say why in one line, e.g. "No pull request:  GitHub's `main` is 62 commits behind local
+       `main`, so a PR would list all 62 as well as this branch's.  Push `main` first if you want one."  NEVER push
+       `main` from here.
+     - the fetch fails (offline, not signed in):  "No pull request:  couldn't reach GitHub (<the error's gist>)".
+   - `git rev-list --count origin/main..HEAD` is 0:  nothing GitHub lacks, so nothing to show:  skip, silently.
+   - `gh pr list --head <name> --state open --json number,url`:  one open already:  the offer is to push the branch,
+     which updates it.
+   - AskUserQuestion "Open a pull request for `<name>` on GitHub?", saying how many commits it shows and that pushing
+     publishes them;  options "Push and open a PR" ("Push `<name>` (updates PR #<n>)" when one is open) and "No PR".
+   - On yes:
+     - `git push -u origin <name>` (never `--force`;  refused:  say why and stop the offer there)
+     - `gh pr create --base main --head <name> --title "<title>" --body-file <file in the scratchpad>`, unless one
+       was open:
+       - title:  the branch's changelog entry's header without its date (`2026-10-05 · Review Review` ->
+         `Review Review`);  no entry (left unmerged):  the plan doc's title, else the branch name
+       - body:  the entry's bullets as a markdown list (`- ...`, plain text:  its links point into shared docs,
+         which aren't on GitHub), then the attribution line the session's instructions give for pull requests
+     - one line with the PR's URL
+   - Merged later (step 7) and `main` pushed:  GitHub marks the PR merged by itself, its commits being in `main`.
+5. NO move back:  the session stays in the window it's in (the worktree's, or the one it stayed in).  Why:  Owen
    (2026-10-03) "we don't need to go back into the originating window.  That's just confusing things".
    - The worktree's window stays open for Owen to read the summary;  he closes it.  Its file
      (`workspaces/ongoing/<name>.code-workspace`) goes with `spell dev window close <name>` later, or
      `/worktrees` lists it.
    - NEVER `handoff <name> --back` from here.
-5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
+6. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
    Never `remove` unasked (and on a hook-made worktree `remove` refuses without `discard_changes`).
-6. Merging (only after "Merge now" got the branch ready), now in the main checkout:
+7. Merging (only after "Merge now" got the branch ready), now in the main checkout:
    - it must be on `main` (`git branch --show-current`) with nothing uncommitted (`git status --short`):  another
      session may be working there.  Either fails:  say which and don't merge.
    - `git merge --ff-only <name>`.  Refused (`main` moved since step 2):  say so and don't merge;  `/isolate <name>`
      re-enters the worktree to merge `main` in again.
-7. One line (plus, in a worktree's window, "close this window when you're done with it"):
+8. One line (plus, in a worktree's window, "close this window when you're done with it"):
    - merged:  the worktree can go (`git worktree remove .claude/worktrees/<name>`, `git branch -d <name>`)
    - not merged:  how to merge later (`git merge <name>` from the main checkout), then the same cleanup

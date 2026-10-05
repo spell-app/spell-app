@@ -2,7 +2,7 @@
  * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic` skill and its agents.
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
- *   `commits`, `log`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate`, `relayout`, `inbox`,
+ *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate`, `relayout`, `inbox`,
  *   `details`, `original` (`node tools/plan-doc.js` with no command lists them).
  * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`inbox.js`):  printed,
  *   waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`), cleared;
@@ -316,10 +316,10 @@ export class PlanDoc {
   /**
    * Is a `/bedtime` run going on?  Then every item a command changes also gets `data-bedtime` (`stamp()`), and
    * stays "recent" until reviewed.
-   * - reads `#overnight`'s flag for now;  P7 of `review-review` moves it:  read it HERE only
+   * - `<body data-bedtime>`, set by `startBedtime()`:  read it HERE only
    */
   get bedtime() {
-    return this.overnight === "active"
+    return this.bedtimeRun !== null
   }
 
   /**
@@ -1658,102 +1658,46 @@ ${list}`
         .querySelector("p.plan-estimate")
         ?.textContent.replace(/^Estimate:\s*/, "")
         .trim(),
-      overnight: this.overnight,
+      bedtime: this.bedtimeRun,
       open
     }
   }
 
   ////////////////
-  // ## Overnight
+  // ## Bedtime
   ////////////////
 
   /**
-   * The `#overnight` section's state:  `"active"` while a `/bedtime` run goes on, `"done"` once it's over, `null`
-   * when there's none.
-   * - how a compacted session knows it's still in bedtime mode
+   * The phases a `/bedtime` run is on (`P3-P6`), from `<body data-bedtime>`;  `null` when none is.
+   * - how a compacted session knows it's still in bedtime mode (`summary().bedtime`)
+   * - NOTE:  no report section any more (D5 of `review-review`):  the night's judgement calls and issues show red
+   *   in their own sections, each phase its Done list and Commits
    */
-  get overnight() {
-    return this.document.getElementById("overnight")?.getAttribute("data-bedtime") ?? null
+  get bedtimeRun() {
+    return this.document.body?.getAttribute("data-bedtime") || null
+  }
+
+  /** A `/bedtime` run starts:  bedtime mode on, `phases` (`P3-P6`) what it runs. */
+  startBedtime(phases) {
+    this.document.body.setAttribute("data-bedtime", phases)
+  }
+
+  /** The run is over:  bedtime mode off;  was it on? */
+  finishBedtime() {
+    const was = this.bedtime
+    this.document.body?.removeAttribute("data-bedtime")
+    return was
   }
 
   /**
-   * Start a `/bedtime` run's report:  a fresh `#overnight` section, UNNUMBERED, first in `main` (above the Overview),
-   * with Phases and Problems lists.
-   * - `phases`:  what the night runs (`P3-P6`);  `branch`:  where its commits go
-   * - TEMPORARY:  `/epic review` removes it (`removeOvernight()`) once Owen has gone through the night;  the record
-   *   stays in the items (judgement calls, issues, todos) and the log
-   * - SIDE EFFECT:  replaces an earlier run's section
+   * Remove an older doc's `#overnight` section;  was there one?
+   * - `/bedtime` wrote a report section on top of the doc until 2026-10-05 (D5 of `review-review` dropped it);
+   *   a doc that still has one keeps it until Owen has read it and runs `overnight <name> remove`
    */
-  startOvernight(phases, branch) {
-    this.removeOvernight()
-    const section = this.element("ui-section", {
-      id: "overnight",
-      header: `Overnight · ${this.today}`,
-      "data-bedtime": "active",
-      sticky: "",
-      collapsible: "",
-      dividing: ""
-    })
-    const on = branch ? ` on branch <code>${text(branch)}</code>` : ""
-    section.innerHTML = `
-      <ui-icon slot="icon" name="calendar"></ui-icon>
-      <p class="overnight-summary">Running ${text(phases)} unattended${on}, since ${timeTag(this.now)}.</p>
-      <ui-section id="overnight-phases" header="Phases" sticky collapsible dividing>
-        <ul class="overnight-phases"><li class="overnight-none">None yet.</li></ul>
-      </ui-section>
-      <ui-section id="overnight-problems" header="Problems" sticky collapsible dividing>
-        <ul class="overnight-problems"><li class="overnight-none">None.</li></ul>
-      </ui-section>
-    `
-    this.section("overview").before(section, this.document.createTextNode("\n"))
-  }
-
-  /** A line under Phases:  `P<n>` and what came of it;  ids in `line` (`J4`) link to their items. */
-  overnightPhase(n, line) {
-    this.overnightLine(".overnight-phases", `<b>P${Number(n)}</b>  ${this.linkIds(line)}`)
-  }
-
-  /** A line under Problems;  ids in `line` (`I3`) link to their items. */
-  overnightProblem(line) {
-    this.overnightLine(".overnight-problems", this.linkIds(line))
-  }
-
-  /** The run is over:  `data-bedtime="done"`, and `summary` replaces the "Running ..." line. */
-  finishOvernight(summary) {
-    const section = this.overnightSection()
-    section.setAttribute("data-bedtime", "done")
-    section.querySelector(".overnight-summary").innerHTML = this.linkIds(summary)
-  }
-
-  /** Remove the `#overnight` section;  was there one? */
   removeOvernight() {
     const section = this.document.getElementById("overnight")
     section?.remove()
     return Boolean(section)
-  }
-
-  /** Append `html` to list `selector` in `#overnight`, dropping its "None" placeholder. */
-  overnightLine(selector, html) {
-    const list = this.overnightSection().querySelector(selector)
-    list.querySelector(":scope > .overnight-none")?.remove()
-    const li = this.element("li")
-    li.innerHTML = html
-    list.append(li)
-  }
-
-  /** The `#overnight` section;  throws when no run started one. */
-  overnightSection() {
-    const section = this.document.getElementById("overnight")
-    if (!section) throw new PlanDocError("no overnight section:  `overnight <name> start` first")
-    return section
-  }
-
-  /** `line`, escaped, each item id in it (`J4`, `I12`) a link to that item when the doc has it. */
-  linkIds(line) {
-    return text(line).replace(/\b([A-Z])(\d+)\b/g, (whole, letter, n) => {
-      const id = `${letter.toLowerCase()}${n}`
-      return this.document.getElementById(id) ? `<a href="#${id}">${whole}</a>` : whole
-    })
   }
 
   /**
@@ -2976,9 +2920,10 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   commits <name> --backfill                        list every phase / item commit in the doc's git history
                                                    (subjects "P3:  Name -- summary", "Fix I3:  ...")
   log <name> "text"                                timestamped line in the log
-  overnight <name> start "P3-P6" [--branch b]       a /bedtime run's report:  an "Overnight" section on top
-  overnight <name> phase <N> "text"  /  problem "text"  /  done "summary"  /  remove
-                                                   a line under Phases / Problems;  the run is over;  gone
+  bedtime <name> start "P3-P6"  /  done "summary"  a /bedtime run:  bedtime mode on (every change stays green
+                                                   until reviewed) / off;  both logged
+  overnight <name> remove                          an older doc's Overnight report section (before 2026-10-05):
+                                                   gone, once read
   prompt <name> "text" | --file path               set the prompt that started the plan ("" removes it)
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
   review <name> <id> ["outcome"]                   mark an item reviewed today;  the outcome goes in the log
@@ -3131,8 +3076,10 @@ function main(argv) {
       return printItems(read(file), file, flags)
     case "log":
       return edit(file, (plan) => plan.log(need(rest[0], "the text")))
+    case "bedtime":
+      return edit(file, (plan) => bedtime(plan, rest))
     case "overnight":
-      return edit(file, (plan) => overnight(plan, rest, flags))
+      return edit(file, (plan) => overnight(plan, rest))
     case "prompt": {
       const prompt = flags.file ? readFileSync(flags.file, "utf8") : need(rest[0], "the prompt text")
       return edit(file, (plan) => plan.setPrompt(prompt))
@@ -3176,29 +3123,34 @@ function main(argv) {
   }
 }
 
-/** `overnight <name> <action> ...`:  the `/bedtime` run's temporary report section (`PlanDoc.startOvernight()`). */
-function overnight(plan, [action, ...args], flags) {
+/** `bedtime <name> start|done ...`:  a `/bedtime` run's mode (`PlanDoc.startBedtime()`), logged. */
+function bedtime(plan, [action, ...args]) {
   switch (action) {
     case "start": {
       const phases = need(args[0], "the phases, e.g. P3-P6")
-      plan.startOvernight(phases, flags.branch)
+      plan.startBedtime(phases)
       return plan.log(`Bedtime started:  ${phases}`)
     }
-    case "phase":
-      return plan.overnightPhase(need(args[0], "a phase number"), need(args[1], "what came of it"))
-    case "problem":
-      return plan.overnightProblem(need(args[0], "the problem"))
     case "done": {
       const summary = need(args[0], "a one-line summary")
-      plan.finishOvernight(summary)
+      plan.finishBedtime()
       return plan.log(`Bedtime done:  ${summary}`)
     }
-    case "remove":
-      if (plan.removeOvernight()) plan.log("Overnight report gone through:  section removed")
-      return
     default:
-      throw new PlanDocError(`overnight what?  start | phase | problem | done | remove (not '${action ?? ""}')`)
+      throw new PlanDocError(`bedtime what?  start | done (not '${action ?? ""}')`)
   }
+}
+
+/**
+ * `overnight <name> remove`:  clear an older doc's Overnight report section (`PlanDoc.removeOvernight()`).
+ * - its other actions are gone with the section (D5 of `review-review`):  `bedtime` turns bedtime mode on and off
+ */
+function overnight(plan, [action]) {
+  if (action !== "remove")
+    throw new PlanDocError(
+      `overnight's report is gone:  \`bedtime <name> start|done\` for a /bedtime run;  only \`overnight <name> remove\` is left, for an older doc's section (not '${action ?? ""}')`
+    )
+  if (plan.removeOvernight()) plan.log("Overnight report gone through:  section removed")
 }
 
 /** `--key value` flags and `--key` switches, plus everything else in order. */

@@ -28,7 +28,8 @@ Owen runs several epics at once:  one screen saying where each stands.  Read-onl
 2. Keep the open ones (`/epics all`:  every one):  `in progress`, or `done` with a worktree whose branch has work
    not in `main`.  Then, for those:
    - `spell dev plan-doc summaries <file> ...` (every `file` in one call):  JSON `{ <file>: summary }`, each with
-     `phases[]` (`n`, `name`, `status`), `active`, `next`, `open` (items by kind), `overnight`;  or `{ error }`
+     `phases[]` (`n`, `name`, `status`), `active`, `next`, `open` (items by kind), `bedtime` (the phases a `/bedtime`
+     run is on, while it goes);  or `{ error }`
    - a worktree epic:  `spell dev worktree status <name>` (`ahead`, `merged`), `git -C .claude/worktrees/<name>
      status --short` (uncommitted files), and a `PARKED-<name>.md` at its root (`/park`)
    - its sessions:  the ones whose `branch` or `name` is `<name>`
@@ -50,15 +51,15 @@ Owen runs several epics at once:  one screen saying where each stands.  Read-onl
      - **where**:  worktree / branch `<name>`, or `main`;  commits not in `main`, uncommitted files
      - **session**:  its title and state (`waiting`, `idle` ...), or "none"
      - **waiting on you**:  open questions, judgement calls, tests (issues only when nothing else), and
-       `notReviewed` / `total`;  parked, an overnight report not gone through (or a `/bedtime` run still going)
+       `notReviewed` / `total`;  parked, or a `/bedtime` run still going
    - then one line per epic worth acting on, numbered (Owen refers to them by number), with the command for it:
      - a `stalled` one:  `/wtf <name>`, or `/epic <name>` in a new session to pick it up
      - questions or judgement calls waiting:  its session (`/session <id>`), or `/wtf <name>?` to answer here
      - many items not reviewed:  `/epic review <name>`
      - `unmerged`:  `/isolate done` in its session, or `/worktrees` to merge it
-     - parked:  `/unpark <name>`;  an overnight report:  `/epic review <name>`
-   - then "Done, but still waiting on you":  each `done` epic with open questions, judgement calls or tests, or an
-     overnight report, one line each
+     - parked:  `/unpark <name>`
+   - then "Done, but still waiting on you":  each `done` epic with open questions, judgement calls or tests, one line
+     each
 6. Stop there.  Don't act on any of it unless Owen asks.
 
 ## Notes

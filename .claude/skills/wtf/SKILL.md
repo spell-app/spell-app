@@ -35,8 +35,9 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
   `../spell-app-dev`).  A branch from before 2026-10-02 still has it under `plans/<name>/`.
   - `spell dev plan-doc summary <name> --json`:  phases with status, next phase, open questions / issues / caveats / todos
   - its links:  `spell dev docs link <ABSOLUTE path> --hash <id>`:  the side bar link, then `(_browser_)`
-- `/bedtime` run:  the plan doc's "Overnight" section (`spell dev plan-doc summary <name> --json`, `overnight`:
-  `active` running, `done` not gone through yet);  `/epic review <name>` goes through it.
+- `/bedtime` run:  `spell dev plan-doc summary <name> --json`, `bedtime`:  the phases it's running (`P3-P6`) while
+  it goes, `null` once it's over.  What it decided shows red in the doc (judgement calls, issues);
+  `/epic review <name>` goes through them.
 - In flight:  `ListAgents` (agents this session started;  for `<name>`, whether its session is running),
   background shells, scheduled wakeups.
 
