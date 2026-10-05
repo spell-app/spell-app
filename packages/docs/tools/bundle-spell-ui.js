@@ -125,6 +125,9 @@ const ICONS = {
   "solid/code-branch": ["code branch"],
   "solid/folder": ["folder"],
   "solid/calendar": ["calendar"],
+  // the pony (`brand/pony.html`, epic `claude-design`)
+  "solid/horse": ["horse"],
+  "solid/comment": ["comment"],
   // trade-offs (durable template)
   "solid/thumbs-up": ["thumbs up"],
   "solid/thumbs-down": ["thumbs down"],
