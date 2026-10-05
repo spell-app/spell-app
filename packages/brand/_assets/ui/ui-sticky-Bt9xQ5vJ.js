@@ -1,0 +1,1 @@
+import{t as e}from"./ui-sticky-lpb2lJr2.js";export{e as UISticky};

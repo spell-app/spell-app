@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../../tools/_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../../tools/_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T16:58:30-04:00" class="spell-doc-page plan-doc" data-plan="design-system">
+  <body data-recent-since="2026-10-04T19:20:18-04:00" class="spell-doc-page plan-doc" data-plan="design-system">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Design System</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle right" href="#p5" title="Next:  P5 · Tool Pages"
-                >P5</ui-label
+              ><ui-label basic color="grey" icon="circle right" href="#p6" title="Next:  P6 · Brand Pages"
+                >P6</ui-label
               ></span
             >
           </header></ui-sticky
@@ -51,9 +51,9 @@
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
             Rebuild every Claude Design brand page in
-            <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> with Spell UI elements
-            and a new <code>spell-brand</code> theme, under a new Brand tab, until each copy looks like its original;
-            the new elements (a property panel, a fuller form field, color chips, pickers and ranges) start as
+            <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> with Spell UI
+            elements and a new <code>spell-brand</code> theme, under a new Brand tab, until each copy looks like its
+            original; the new elements (a property panel, a fuller form field, color chips, pickers and ranges) start as
             <code>&lt;ui-brand-*&gt;</code> in
             <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
             >. Then restyle the docs pages and templates in the same look, and list what the theme still can't do.
@@ -85,7 +85,7 @@
               </blockquote></ui-content
             >
           </ui-accordion>
-          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 22h-29h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 34h-46h in all, 18h-24h left</p>
           <ui-section id="o1" header="1.1 What Claude Design made" sticky collapsible dividing>
             <p>
               <a href="../../../../brand/spell-design-system/" target="src-packages-brand-spell-design-system"
@@ -259,8 +259,8 @@
           <ui-section id="o3" header="1.3 The Brand tab" sticky collapsible dividing>
             <p>
               The page server already serves
-              <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> (it serves the whole
-              repo at <code>/</code>); a Brand tab is configuration plus an index page.
+              <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> (it serves the
+              whole repo at <code>/</code>); a Brand tab is configuration plus an index page.
             </p>
             <ul>
               <li>
@@ -514,8 +514,8 @@
               </li>
               <li>
                 Claude Design builds static HTML that can load scripts from public CDNs (jsDelivr, unpkg). Once
-                <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> is on
-                npm, the brand bundle (or a twin of it) is a single
+                <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> is
+                on npm, the brand bundle (or a twin of it) is a single
                 <code>&lt;script src="https://cdn.jsdelivr.net/npm/@spell-app/ui/..."&gt;</code> line.
                 <ul>
                   <li>
@@ -533,7 +533,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="4" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -562,8 +562,8 @@
                   <li>Compare: the original and the Spell UI copy side by side, at the same width</li>
                   <li>brand pages reload by themselves when their files change</li>
                   <li>
-                    <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> is a workspace
-                    package, <code>@spell-app/brand</code> (<code>$/brand</code>), with its own
+                    <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> is a
+                    workspace package, <code>@spell-app/brand</code> (<code>$/brand</code>), with its own
                     <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a>
                   </li>
                 </ul></ui-item
@@ -592,8 +592,9 @@
                     <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> is a
                     workspace, <code>@spell-app/brand</code>, with
                     <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
-                    >; the root <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> lists
-                    it, and the dependency direction <code>brand</code> -&gt; <code>ui</code> / <code>server</code>
+                    >; the root
+                    <a href="../../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> lists it, and
+                    the dependency direction <code>brand</code> -&gt; <code>ui</code> / <code>server</code>
                   </li>
                   <li>
                     not yet tried by hand: scroll sync (no copy exists yet to scroll against); the
@@ -719,7 +720,8 @@
                     <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> now has
                     <a href="../../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a>
                     (<code>$/brand</code>), <code>components/</code> (<code>$/brand/components</code>, empty until P3),
-                    <a href="../../../tsconfig.json" target="src-packages-docs-tsconfig-json"><code>tsconfig.json</code></a
+                    <a href="../../../tsconfig.json" target="src-packages-docs-tsconfig-json"
+                      ><code>tsconfig.json</code></a
                     >, <code>yarn ts</code> / <code>format</code>; both scripts on the commands page (<code
                       >commands:check</code
                     >
@@ -831,6 +833,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p4"
             data-phase="4"
             data-status="done"
@@ -922,14 +925,14 @@
           <ui-section
             id="p5"
             data-phase="5"
-            data-status="todo"
+            data-status="done"
             header="P5 · Tool Pages"
             badge="4-5h"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -940,11 +943,55 @@
                   </li>
                   <li>Theme Creator writes a real Spell UI theme sheet you can drop into <code>themes/</code></li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    where to see it: the Brand index, "3. Tools": <b>Color Palette</b>, <b>Color Set Chooser</b>,
+                    <b>Theme Creator</b>, <b>Brand Palette</b> now have Spell links and working Compare views
+                  </li>
+                  <li>
+                    every control works as in the originals, light and dark; no console errors; built only from
+                    <code>&lt;ui-*&gt;</code> and <code>&lt;ui-brand-*&gt;</code> elements plus page layout CSS
+                  </li>
+                  <li>
+                    Color Set Chooser: ivory inspector (<code>color="accent"</code>), the HSL picker in a popup, live
+                    ladder / samples / CSS; diff 21.5% light
+                  </li>
+                  <li>
+                    Theme Creator: emits a REAL Spell UI theme sheet (token names corrected, J21) previewed on real
+                    elements; 50.4%
+                  </li>
+                  <li>
+                    Color Palette (48.3%) and Brand Palette (89.8%): the diff numbers are mostly the 44px site header
+                    pushing the page down; side by side they read the same; Brand Palette's colours and contrast figures
+                    match the original exactly via <code>window.Palette</code>
+                  </li>
+                  <li>
+                    bundle changes: <code>window.Palette</code>; <code>&lt;ui-brand-field&gt;</code> stretches menus;
+                    the elements load after the <code>accent</code> hue (I17 fixed)
+                  </li>
+                  <li>
+                    gaps for Convergence: I3-I16 (field info rich text, section chevron and tips, segmented control
+                    look, tinted labels, compact inputs, slider ticks, range step numbers, menu tokens)
+                  </li>
+                  <li>
+                    a duplicate copy of this session briefly ran the same agents and overwrote two pages; both were
+                    rebuilt by their own agents
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> <code>packages/brand/spell-design-system/&lt;Name&gt;.spell.html</code> × 4</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> <code>brand:compare</code> per pair; every interaction clicked through in a
                 browser</ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#j16">J16</a>, <a href="#j17">J17</a>, <a href="#j18">J18</a>,
+                <a href="#j19">J19</a>, <a href="#j20">J20</a>, <a href="#j21">J21</a>, <a href="#j22">J22</a>,
+                <a href="#j23">J23</a>, <a href="#i3">I3</a>, <a href="#i4">I4</a>, <a href="#i5">I5</a>,
+                <a href="#i6">I6</a>, <a href="#i8">I8</a>, <a href="#i9">I9</a>, <a href="#i10">I10</a>,
+                <a href="#i11">I11</a>, <a href="#i12">I12</a>, <a href="#i13">I13</a>, <a href="#i14">I14</a>,
+                <a href="#i15">I15</a>, <a href="#i16">I16</a>, <a href="#v10">V10</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -1414,7 +1461,9 @@
                     </li>
                     <li>
                       "Use the Spell UI widgets in Claude Design": publish
-                      <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                      <a href="../../../../ui/README.md" target="src-packages-ui-readme-md"
+                        ><code>@spell-app/ui</code></a
+                      >
                       (and
                       <a href="../../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
                         ><code>@spell-app/solid-element</code></a
@@ -1539,7 +1588,9 @@
                     <p>
                       <b>Changed in P2:</b> built as an ES module with lazy chunks, not one classic script, and icons
                       from Spell UI's own packs, not jsDelivr (judgement <a href="#j4">J4</a>). The bundle is
-                      <a href="../../../../brand/_assets/ui/brand-ui.js" target="src-packages-brand-assets-ui-brand-ui-js"
+                      <a
+                        href="../../../../brand/_assets/ui/brand-ui.js"
+                        target="src-packages-brand-assets-ui-brand-ui-js"
                         ><code>packages/brand/_assets/ui/brand-ui.js</code></a
                       >, built by <code>yarn build</code> in
                       <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
@@ -1675,7 +1726,9 @@
                       <li>
                         Examples are live <code>&lt;ui-docs-example&gt;</code>s: the code shown is the markup as
                         written. API and Tokens come from the brand's own data,
-                        <a href="../../../../brand/_data/components.json" target="src-packages-brand-data-components-json"
+                        <a
+                          href="../../../../brand/_data/components.json"
+                          target="src-packages-brand-data-components-json"
                           ><code>packages/brand/_data/components.json</code></a
                         >
                         (<code>yarn site:data</code>), built by Spell UI's <code>SiteDataBuilder</code>, which now takes
@@ -1726,7 +1779,9 @@
                       </li>
                       <li>
                         <code>accent</code> is a NEW hue: Polished Ivory. The brand bundle adds the name to Spell UI's
-                        <code>hues</code> (<a href="../../../../brand/src/hues.ts" target="src-packages-brand-src-hues-ts"
+                        <code>hues</code> (<a
+                          href="../../../../brand/src/hues.ts"
+                          target="src-packages-brand-src-hues-ts"
                           ><code>packages/brand/src/hues.ts</code></a
                         >); <code>spell-brand</code> gives it tokens (<code>--ui-accent-*</code>) and the
                         <code>.ui.accent</code> remap, so <code>color="accent"</code> tints ANY element while that theme
@@ -2371,6 +2426,324 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:49:27-04:00"
+              id="j16"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j16">J16</a>
+                  <span class="plan-title"
+                    >Color Palette copy: one ui-brand-color-range per set, square chips, steps numbered once</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    P5, <code>Color Palette.spell.html</code>. Each of the 20 sets of
+                    <code>lib/palette.json</code> (fetched by the page script) is a
+                    <code>&lt;ui-brand-color-range value=seed anchor=anchor name=set&gt;</code>, not 17 hand-fed chips:
+                    the ranges rebuild every step exactly (checked in the browser: all 340 hexes equal the JSON's), and
+                    the seed's ring comes from the element. The step numbers show once, in a header row, as the
+                    original: each range's own numbers are hidden with <code>::part(number)</code> (an issue asks for an
+                    attribute). Chips are the elements' SQUARE chips (~62px at 1400px), not the original's 54px-tall
+                    ones: the brand readme says chips are always square. Copy: hex while hexes show, else the token, as
+                    the original; the toast is Spell UI's (<code>UI.toast</code>, inverted, bottom centre, 1.4s) on
+                    <code>ui-copy</code>. The format switch is <code>&lt;ui-menu appearance=segmented&gt;</code>; the
+                    light / dark pill flips <code>ui-dark</code> / <code>ui-light</code> on <code>&lt;html&gt;</code>.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>rows ~8px taller than the original's (square chips)</li>
+                    <li>
+                      no copy of the palette data in the page: the JSON and the element's math are the only sources
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:49:41-04:00"
+              id="j17"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j17">J17</a>
+                  <span class="plan-title"
+                    >Brand Palette copy: the original's OKLCH recipe through window.Palette, chips and real
+                    elements</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    P5, <code>Brand Palette.spell.html</code>. No ladder is the point on this page (5-chip palettes and
+                    specimens), so no <code>&lt;ui-brand-color-range&gt;</code>: the page script does the original's
+                    arithmetic on L / C / H (Aubergine L 27%, C x 0.65 capped at 0.11, same hue; Lilac, Lavender, soft,
+                    dark background, the House of Owen tints ...) and makes each colour hex with
+                    <code>window.Palette.oklchToHex()</code> (gamut-mapped as the original: out-of-sRGB colours lose
+                    chroma), so every hex equals the original's. <strong>Updated</strong> (was:
+                    <code>oklch()</code> text, before the bundle put <code>Palette</code> on <code>window</code>, I7).
+                    The chips show those hexes, and the specimens take them as inline <code>--ui-*</code> tokens on real
+                    elements: a one-item <code>&lt;ui-menu&gt;</code> (the Build nav item),
+                    <code>&lt;ui-checkbox selected&gt;</code>, a circular <code>&lt;ui-button&gt;</code>,
+                    <code>&lt;ui-header&gt;</code>, <code>&lt;ui-label&gt;</code> for the id pill. Each specimen pane
+                    forces its scheme (<code>ui-light</code> / <code>ui-dark</code>) with the candidate's colour as its
+                    <code>--ui-background</code>, so the theme's tokens read right in it on a light or dark page.
+                  </p>
+                  <ul>
+                    <li>
+                      the contrast figures (white 5.9 / 5.5 / 8.9 / 6.5:1 AA) and every hex printed under a chip or a
+                      column name come from <code>Palette</code> at load, as the original's
+                    </li>
+                    <li>
+                      Turn 2's per-row tint is three small stacked chips, not a 3-band gradient; the original House of
+                      Owen beside each id is a 12px square chip, not a 12px-tall bar (chips are always square)
+                    </li>
+                    <li>
+                      the sections sit on <code>--spell-surface-tint</code> (the original's #F2F2FE lavender wash), the
+                      page on <code>--ui-background</code>, not Claude Design's canvas chrome
+                    </li>
+                    <li>the pill reads + Add habit as a <code>plus</code> icon and Add habit</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      every colour, chip and specimen, and every printed hex and contrast figure matches the original's
+                      exactly (checked in the browser)
+                    </li>
+                    <li>the page works in dark mode; the original is light only</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:46-04:00"
+              id="j18"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j18">J18</a>
+                  <span class="plan-title"
+                    >Color Set Chooser: swatch + picker popup, RGB / OKLCH rows kept beside it</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose the original's layout for Base color: a 76px swatch (a <code>&lt;ui-brand-color&gt;</code> in
+                    a <code>&lt;button&gt;</code>) opening <code>&lt;ui-brand-color-picker&gt;</code> in a
+                    <code>&lt;ui-popup on="click"&gt;</code>, with the 20 families as a
+                    <code>&lt;ui-brand-color-set columns="10" selectable&gt;</code> in its default slot, and the RGB and
+                    OKLCH rows (<code>&lt;ui-input&gt;</code>s + copy buttons) beside the swatch. Over: the swatch and
+                    hex alone, or the picker inline. Because the rows are what reads as the original's inspector, and
+                    the picker inline is 27em tall.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>RGB / OKLCH show twice while the popup is open (the picker has its own rows)</li>
+                    <li>
+                      the page's popup has the picker's HSL square, not the original's Lightness × Colourfulness plane
+                    </li>
+                    <li>
+                      typed text is read by <code>Palette.parse()</code> / <code>oklchToHex()</code>, so HSL and OKLCH
+                      text also work in the RGB field
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:48-04:00"
+              id="j19"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j19">J19</a>
+                  <span class="plan-title">Color Set Chooser: presets show the loaded one ringed</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Chose <code>&lt;ui-brand-color-set selectable&gt;</code> for the six presets, so the loaded preset
+                    gets the selected ring; the original's presets are plain buttons with no chosen state. Because a
+                    selectable set gives the arrow-key radio group for free, and the ring says which preset the set came
+                    from.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      the ring shows only while the set is still that preset (its name AND its colour); editing either
+                      clears it
+                    </li>
+                    <li>
+                      the families grid in the popup rings the family whose seed is the current colour, the same way
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:50-04:00"
+              id="j20"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j20">J20</a>
+                  <span class="plan-title">Color Set Chooser: the CSS panel is syntax-coloured</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Chose <code>&lt;ui-code language="css"&gt;</code> (as the brief asks) for the CSS panel, sized to
+                    the original (12px, 1.6 line height, 14px radius, <code>--spell-surface-code</code>); the original's
+                    <code>&lt;pre&gt;</code> is one plain text colour. Because it's the same element every other code
+                    block on the site uses.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>property names and values show in the theme's code colours, not plain ink</li>
+                    <li>switching to <code>language="text"</code> would match the original exactly</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:51:41-04:00"
+              id="j21"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j21">J21</a>
+                  <span class="plan-title"
+                    >Theme Creator: the emitted sheet's tokens corrected to today's Spell UI</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Kept the original's <code>@layer ui.theme { :root { ... } }</code> format, its
+                    <code>LIB</code> set-to-hue mapping and its step choices (bases <code>600</code> / <code>300</code>,
+                    neutrals <code>25</code>-<code>150</code> light, <code>950</code>-<code>850</code> dark). Changed
+                    only what isn't real, or wouldn't work, on today's Spell UI under the
+                    <code>spell-brand</code> theme:
+                  </p>
+                  <ul>
+                    <li><code>--ui-header-font-family</code> (invented) -&gt; <code>--ui-font-family-heading</code></li>
+                    <li>
+                      the dark shadow: one <code>--ui-shadow-raised</code> list with <code>light-dark()</code> colours
+                      per layer (as <code>spell-brand</code> writes shadows), not a
+                      <code>.ui-dark, :root:has(&gt; body.ui-dark)</code> rule that misses OS dark mode; plus
+                      <code>--ui-card-shadow: var(--ui-shadow-raised)</code>
+                    </li>
+                    <li>
+                      primary: restates <code>-hover</code> / <code>-focus</code> / <code>-active</code> /
+                      <code>-down</code> / <code>-text</code> / <code>-header</code> / <code>-border</code> /
+                      <code>-background</code> from the set's ladder, plus <code>--ui-link</code> and
+                      <code>--ui-focus-color</code>: <code>spell-brand</code> pins all of these to violet steps, so a
+                      new primary otherwise keeps violet hovers and tints
+                    </li>
+                    <li>
+                      <code>--ui-primary-on</code> / <code>--ui-secondary-on</code>: added (the theme pins them to
+                      violet / grey)
+                    </li>
+                    <li>
+                      the text and border tokens the original's PREVIEW used but never emitted
+                      (<code>--ui-text-color</code>, <code>-muted</code>, <code>-dark</code>,
+                      <code>--ui-border-color</code>): added
+                    </li>
+                    <li>
+                      corners: <code>--ui-radius</code> alone changes little under <code>spell-brand</code> (pill
+                      buttons, 16px cards), so the sheet also sets <code>--ui-button-radius</code>,
+                      <code>--ui-input-radius</code>, <code>--ui-select-radius</code>,
+                      <code>--ui-message-radius</code> to it, and <code>--ui-card-radius</code> to 1.4x it, capped at
+                      1.5em (the original's pill card became a stadium)
+                    </li>
+                    <li>
+                      primary and secondary on ONE hue (violet + indigo -&gt; <code>violet</code>): the original wrote
+                      the hue twice and primary lost; now secondary gets its own colours directly
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>the sheet is longer than the original's, and every name in it is a real token</li>
+                    <li>loaded after <code>spell-brand</code>, it re-themes everything the preview shows</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:51:43-04:00"
+              id="j22"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j22">J22</a>
+                  <span class="plan-title"
+                    >Theme Creator: the accent role writes the theme's own --ui-accent-* tokens</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The original wrote the accent role to whatever hue <code>LIB</code> maps its set to (<code
+                      >accent</code
+                    >
+                    -&gt; <code>--ui-brown-background</code> / <code>-text</code>). The <code>spell-brand</code> theme
+                    now has a real <code>accent</code> hue (<code>--ui-accent-*</code>, <code>color="accent"</code>), so
+                    the sheet writes there instead: base (<code>600</code> / <code>400</code>, as the theme),
+                    <code>-on</code>, <code>-background</code>, <code>-text</code>, <code>-header</code>,
+                    <code>-border</code>. <code>LIB</code> still maps primary and secondary.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      an accent never collides with primary / secondary (sky accent + blue primary both landed on
+                      <code>blue</code>)
+                    </li>
+                    <li>
+                      <code>color="accent"</code> elements follow the theme; <code>color="brown"</code> keeps its own
+                      colours
+                    </li>
+                    <li>under a theme without the <code>accent</code> hue, those lines do nothing</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:51:44-04:00"
+              id="j23"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j23">J23</a>
+                  <span class="plan-title"
+                    >Theme Creator: the preview wears the sheet's own declarations, on real elements</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The preview cards are real <code>&lt;ui-card&gt;</code>, <code>&lt;ui-checkbox&gt;</code>,
+                    <code>&lt;ui-input&gt;</code>, <code>&lt;ui-button&gt;</code>, <code>&lt;ui-label&gt;</code>,
+                    <code>&lt;ui-message color="accent"&gt;</code> and <code>&lt;ui-progress&gt;</code>. An injected
+                    <code>&lt;style&gt;</code> gives <code>.tc-app</code> the SAME declarations as the sheet's
+                    <code>:root</code> (one list builds both), plus <code>rederive()</code>: the tokens the foundation
+                    and <code>spell-brand</code> compute at <code>:root</code> as <code>var()</code> chains of the
+                    sheet's (<code>--ui-violet</code>, checkbox / progress / slider / button colours ...), because a
+                    custom property's <code>var()</code> resolves where it's DECLARED. Each card forces its scheme with
+                    <code>ui-light</code> / <code>ui-dark</code>. Chose this over an <code>&lt;iframe&gt;</code> per
+                    card (truest, but two more bundle loads and auto-height).
+                  </p>
+                  <p>
+                    Also: the Live / Accent badges stay TINTED as the original's, by the labels' own
+                    <code>--ui-label-background</code> / <code>--ui-label-color</code>; the streak is a
+                    <code>&lt;ui-message&gt;</code>, so it shows the theme's message border, which the original's plain
+                    box didn't have.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>what you see is the theme on the components, light and dark, live</li>
+                    <li>
+                      <code>rederive()</code> must grow if the preview gains an element whose theme tokens chain from
+                      the sheet's
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2626,10 +2999,10 @@
                     <li>
                       root
                       <a href="../../../../../package.json" target="src-package-json"><code>package.json</code></a> and
-                      <a href="../../../../../yarn.lock" target="src-yarn-lock"><code>yarn.lock</code></a> conflict: take
-                      main's toolchain entries, re-add ours (the
-                      <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a> workspace,
-                      <code>pageServer.watch</code>), then <code>yarn install</code>
+                      <a href="../../../../../yarn.lock" target="src-yarn-lock"><code>yarn.lock</code></a> conflict:
+                      take main's toolchain entries, re-add ours (the
+                      <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a>
+                      workspace, <code>pageServer.watch</code>), then <code>yarn install</code>
                     </li>
                     <li>
                       <a href="../../../../brand/" target="src-packages-brand"><code>packages/brand</code></a
@@ -2708,6 +3081,459 @@
                     track about 20px tall, Spell Purple (<code>accent-color</code>), small tick marks under it. For the
                     Tool Pages (<a href="#p5">P5</a>) or Convergence (<a href="#p8">P8</a>): a
                     <code>spell-brand</code> slider look, a compact slider size, or the native range.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:49:48-04:00"
+              id="i3"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title"
+                    >Color Set Chooser: &lt;ui-brand-field info&gt; is plain text</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <b>What:</b> the original's field tips (Base color, Base color sits at, Vibrancy, Hue drift) have
+                    bold words and line breaks; <code>info</code> takes a string, so the copy's tips are flat text.
+                  </p>
+                  <p>
+                    <b>Where:</b> <code>Color Set Chooser.spell.html</code>, every
+                    <code>&lt;ui-brand-field info&gt;</code>.
+                  </p>
+                  <p>
+                    <b>Fix:</b> a <code>slot="info"</code> on <code>&lt;ui-brand-field&gt;</code> for a rich tip (the
+                    attribute stays the short form).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:49:57-04:00"
+              id="i4"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i4">I4</a>
+                  <span class="plan-title">ui-brand-color-range: no attribute to hide the step numbers</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The Color Palette page numbers the 17 steps once, in a header row over 20 ladders; each
+                    <code>&lt;ui-brand-color-range&gt;</code> also prints its numbers under its chips. The copy hides
+                    them with <code>ui-brand-color-range::part(number) { display: none }</code>. Fix: an attribute, e.g.
+                    <code>numbers="none"</code> (or <code>bare</code>), that leaves the numbers out (and their row
+                    height).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:49:59-04:00"
+              id="i5"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i5">I5</a>
+                  <span class="plan-title"
+                    >ui-menu: secondary / vertical variations ignore the public --ui-menu-active-* and icon tokens</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Found building Brand Palette's Build nav item (P5). <code>.ui.secondary.menu</code> writes
+                    <code>--_ui-menu-active-background</code> straight (<code
+                      >oklch(from var(--ui-ink) l c h / 0.05)</code
+                    >), and <code>.ui.vertical.menu</code> writes <code>--_ui-menu-icon-float: right</code> /
+                    <code>--_ui-menu-icon-margin</code>, so an inline <code>--ui-menu-active-background</code> /
+                    <code>-color</code> on the menu does nothing there, and the icon can't move back before the text.
+                    The spell-brand theme's own <code>--ui-menu-active-background</code> doesn't reach secondary menus
+                    either. Also no token reaches: the menu's 1em margin when the host has siblings
+                    (<code>--_menu-margin-top/-bottom</code>), its <code>min-height</code>; and a single active item
+                    takes <code>--ui-menu-active-last-radius</code>, not <code>--ui-menu-active-radius</code>.
+                    Workaround in the page: a plain one-item menu (no box), wrapped in its own <code>&lt;div&gt;</code>,
+                    with <code>--ui-menu-active-first-radius</code> / <code>-last-radius</code>. Fix: variations default
+                    the public token (<code>var(--ui-menu-active-background, ...)</code>) instead of writing the alias.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:01-04:00"
+              id="i6"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i6">I6</a>
+                  <span class="plan-title"
+                    >Segmented control: the brand's is a tinted pill track with a raised white thumb</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Color Palette's Hex / OKLCH / Swatch only switch (P5): the original is a pill track in
+                    <code>--surface-tint</code> with an inset hairline, the chosen option a white pill with
+                    <code>--shadow-sm</code>. Spell UI's <code>&lt;ui-menu appearance=segmented&gt;</code> (and
+                    <code>&lt;ui-tabs&gt;</code>'s) in spell-brand fills the chosen item with the primary colour inside
+                    a bordered box. Fix: spell-brand's segmented appearance (track, thumb, radius) as theme tokens.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T19:52:38-04:00"
+              id="i7"
+              data-status="done"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i7">I7</a>
+                  <span class="plan-title">A page can't turn OKLCH into hex or measure contrast</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Brand Palette (P5) prints each chip's hex under it and "white 5.9:1 AA" per candidate; both need
+                    <code>Palette</code>, which a <code>.spell.html</code> page can't import.
+                    <code>&lt;ui-brand-color&gt;</code> does the math but keeps it inside (its host has only
+                    <code>choice</code>). Workaround: hexes inside the chips (<code>label=hex</code>), contrast figures
+                    written in. Fix, either: <code>&lt;ui-brand-color&gt;</code>'s host exposes <code>hex</code> and
+                    <code>contrast(ink)</code>; or the bundle puts <code>Palette</code> on <code>window</code>. With hex
+                    in hand the specimens could also take the gamut-mapped hex instead of raw <code>oklch()</code>,
+                    which the browser clips differently for out-of-sRGB colours.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:24-04:00"
+              id="i8"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i8">I8</a>
+                  <span class="plan-title"
+                    >Color Set Chooser: &lt;ui-section&gt; chevron can't sit at the far end</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <b>What:</b> the original's results headers (Variants, Samples, CSS) are a mono eyebrow with the
+                    fold chevron at the FAR RIGHT, after any summary (the folded Variants strip, the folded CSS copy
+                    button). <code>&lt;ui-section&gt;</code> draws its chevron before the title, and no token moves it.
+                  </p>
+                  <p>
+                    <b>Where:</b> <code>Color Set Chooser.spell.html</code>, page CSS on <code>::part(heading)</code> /
+                    <code>::part(toggle)</code> / <code>::part(fold-icon)</code> (<code
+                      >order: 2; margin-inline-start: auto</code
+                    >). Even so the <code>actions</code> slot (the strip) lands AFTER the chevron, not before it as the
+                    original's.
+                  </p>
+                  <p>
+                    <b>Fix:</b> a section variation for an end chevron (e.g. <code>fold-icon="end"</code>), placing it
+                    after the actions; <code>&lt;ui-brand-panel&gt;</code> already draws its chevron there.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:27-04:00"
+              id="i9"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i9">I9</a>
+                  <span class="plan-title"
+                    >Color Set Chooser: &lt;ui-input&gt; has no right-aligned number look</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <b>What:</b> Spell UI's rule is numbers right-aligned against their unit, <code>tabular-nums</code>;
+                    <code>&lt;ui-input&gt;</code> always aligns its text to the start (<a
+                      href="../../../../ui/src/components/ui-input/ui-input.css"
+                      target="src-packages-ui-src-components-ui-input-ui-input-css"
+                      ><code>ui-input.css</code></a
+                    >), even for numbers.
+                  </p>
+                  <p>
+                    <b>Where:</b> <code>Color Set Chooser.spell.html</code>, the OKLCH row's L / C / H inputs: page CSS
+                    on <code>::part(control)</code>.
+                  </p>
+                  <p>
+                    <b>Fix:</b> <code>&lt;ui-input&gt;</code> aligns end with <code>tabular-nums</code> for
+                    <code>type=number</code> / <code>inputmode=decimal</code> (or a <code>numeric</code> attribute), so
+                    pages need no part CSS.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:29-04:00"
+              id="i10"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i10">I10</a>
+                  <span class="plan-title"
+                    >Color Set Chooser: &lt;ui-buttons&gt; has no segmented-control look</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <b>What:</b> the CSS panel's RGB / OKLCH switch is a segmented control: the chosen segment soft
+                    violet (<code>--spell-accent-soft</code>) with accent text.
+                    <code>&lt;ui-buttons toggle&gt;</code> paints <code>active</code> buttons in the POSITIVE colour
+                    (green); plain <code>active</code> is a grey tint, which is what the copy uses. Nor does a group
+                    track which button is chosen.
+                  </p>
+                  <p>
+                    <b>Where:</b> <code>Color Set Chooser.spell.html</code>, <code>#css-format</code>: the page script
+                    moves <code>active</code> / <code>aria-pressed</code> by hand.
+                  </p>
+                  <p>
+                    <b>Fix:</b> in <code>spell-brand</code>, default <code>--ui-button-toggle-*</code> to the
+                    accent-soft roles; better, a selectable segmented group (<code
+                      >&lt;ui-buttons selectable value&gt;</code
+                    >
+                    with <code>ui-change</code>), as <code>&lt;ui-brand-color-set selectable&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:31-04:00"
+              id="i11"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i11">I11</a>
+                  <span class="plan-title">Color Set Chooser: &lt;ui-slider&gt; ticks only with labels</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <b>What:</b> the original's Tweak sliders show tick marks under the track (17 for the anchor, every
+                    20% / 8°) without numbers. <code>&lt;ui-slider ticked&gt;</code> only works with
+                    <code>labeled</code>, which also prints the numbers, and ticks every STEP (the vibrancy slider steps
+                    by 1).
+                  </p>
+                  <p><b>Where:</b> <code>Color Set Chooser.spell.html</code>, the three Tweak sliders: no ticks.</p>
+                  <p>
+                    <b>Fix:</b> <code>ticked</code> on its own draws ticks without labels, and a tick interval apart
+                    from <code>step</code> (e.g. <code>ticks="20"</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:33-04:00"
+              id="i12"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i12">I12</a>
+                  <span class="plan-title"
+                    >Color Set Chooser: a mini pill in a field's label row makes the row jump</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <b>What:</b> the original's Reset / Auto pills are 22px, inside a 20px label row; a
+                    <code>size="mini" circular</code> <code>&lt;ui-button&gt;</code> is taller, so the row grows about
+                    5px when Reset appears and the slider under it shifts.
+                  </p>
+                  <p>
+                    <b>Where:</b> <code>Color Set Chooser.spell.html</code>, Vibrancy and Hue drift's Reset
+                    (<code>slot="actions"</code>, shown once the value changes).
+                  </p>
+                  <p>
+                    <b>Fix:</b> <code>&lt;ui-brand-field&gt;</code>'s actions box keeps the row's height (negative block
+                    margin, or a fixed row height), or a 22px pill size for actions.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:50:53-04:00"
+              id="i13"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i13">I13</a>
+                  <span class="plan-title"
+                    >Theme Creator: &lt;ui-brand-field&gt; can't stretch a slotted &lt;ui-menu&gt;</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The field's control row now gives <code>flex: 1 1 auto</code> to a slotted <code>ui-menu</code> /
+                    <code>ui-buttons</code>, but <code>&lt;ui-menu&gt;</code>'s host is <code>display: contents</code>,
+                    so that rule reaches no box: the menu's shadow root is the flex item, and a
+                    <code>segmented</code> menu keeps <code>width: fit-content</code> (<code>fluid aligned</code> only
+                    sets <code>width: auto</code>, which in a flex row is still its content's width). The Theme
+                    Creator's Dark mode surfaces / Corners / Depth controls stay narrow.
+                  </p>
+                  <p>
+                    <b>Where:</b>
+                    <a
+                      href="../../../../brand/components/ui-brand-field/ui-brand-field.css"
+                      target="src-packages-brand-components-ui-brand-field-ui-brand-field-css"
+                      ><code>packages/brand/components/ui-brand-field/ui-brand-field.css</code></a
+                    >
+                    (stretch rule) and
+                    <a
+                      href="../../../../ui/src/components/ui-menu/ui-menu.css"
+                      target="src-packages-ui-src-components-ui-menu-ui-menu-css"
+                      ><code>packages/ui/src/components/ui-menu/ui-menu.css</code></a
+                    >
+                    (segmented width).
+                  </p>
+                  <p>
+                    <b>Fix:</b> either the menu root takes <code>flex: 1 1 auto</code> / <code>width: 100%</code> under
+                    <code>segmented</code> + <code>fluid aligned</code> (or <code>fluid</code>), or a host that isn't
+                    <code>display: contents</code>. Workaround on the page: each menu inside a
+                    <code>&lt;div class="seg"&gt;</code> the field stretches.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:51:10-04:00"
+              id="i14"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i14">I14</a>
+                  <span class="plan-title"
+                    >Theme Creator: segmented &lt;ui-menu&gt; can't be the brand's white chip on a tinted track</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The original's segmented controls (Dark mode surfaces, Corners, Depth, Preview's Both / Light /
+                    Dark) are a white raised chip on an ivory (or lavender) track. Spell UI's
+                    <code>appearance="segmented"</code> fills the chosen item with the primary colour, and the variation
+                    writes <code>--_ui-menu-active-background</code> / <code>-accent</code> itself, so the page's
+                    <code>--ui-menu-active-*</code> tokens never reach it.
+                  </p>
+                  <p>
+                    <b>Where:</b>
+                    <a
+                      href="../../../../ui/src/components/ui-menu/ui-menu.css"
+                      target="src-packages-ui-src-components-ui-menu-ui-menu-css"
+                      ><code>packages/ui/src/components/ui-menu/ui-menu.css</code></a
+                    >, "Segmented".
+                  </p>
+                  <p>
+                    <b>Fix:</b> read the public tokens through the aliases in the segmented block too (<code
+                      >var(--ui-menu-segmented-active-background, var(--ui-color, var(--ui-primary)))</code
+                    >
+                    ...), plus a track background token, so the <code>spell-brand</code> theme can set the brand's look.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:51:12-04:00"
+              id="i15"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i15">I15</a>
+                  <span class="plan-title"
+                    >Theme Creator: section and panel bands have no info tip, and the chevron sits first</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Each band of the original (Theme, Color, Type, Shape, and the Preview / CSS rules) shows a tooltip
+                    on hover explaining it, and its fold chevron sits at the END of the band.
+                    <code>&lt;ui-section&gt;</code> (and so <code>&lt;ui-brand-panel&gt;</code>) has no
+                    <code>info</code> attribute, and a plain collapsible section puts its chevron BEFORE the title. The
+                    copy drops the band tips; the Preview / CSS chevrons sit on the left.
+                  </p>
+                  <p>
+                    <b>Where:</b>
+                    <a
+                      href="../../../../ui/src/components/ui-section/"
+                      target="src-packages-ui-src-components-ui-section"
+                      ><code>packages/ui/src/components/ui-section/</code></a
+                    >.
+                  </p>
+                  <p>
+                    <b>Fix:</b> an <code>info</code> attribute on <code>&lt;ui-section&gt;</code> (the tip
+                    <code>&lt;ui-brand-field&gt;</code> already draws), and a way to put the fold icon at the end (as
+                    <code>&lt;ui-brand-panel&gt;</code> does).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T19:51:14-04:00"
+              id="i16"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i16">I16</a>
+                  <span class="plan-title"
+                    >Theme Creator: no tinted &lt;ui-label&gt;, and inputs taller than the inspector's</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Two small gaps in the Theme Creator copy:</p>
+                  <ul>
+                    <li>
+                      The preview's Live / Accent badges are TINTED (soft fill, coloured text); a coloured
+                      <code>&lt;ui-label&gt;</code> is a solid fill. The copy sets the label's own
+                      <code>--ui-label-background</code> / <code>--ui-label-color</code> per badge. Fix: a tinted label
+                      variation reading <code>--ui-color-background</code> / <code>--ui-color-text</code> (<a
+                        href="../../../../ui/src/components/ui-label/"
+                        target="src-packages-ui-src-components-ui-label"
+                        ><code>packages/ui/src/components/ui-label/</code></a
+                      >).
+                    </li>
+                    <li>
+                      The original's inspector fields are 30px tall; <code>&lt;ui-input size="small"&gt;</code> /
+                      <code>&lt;ui-select size="small"&gt;</code> are about 35px. Fix: a compact control height in
+                      <code>spell-brand</code> for inspector fields, or a <code>--ui-brand-field-*</code> control size.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-reviewed="2026-10-04"
+              data-state="recent"
+              data-changed="2026-10-04T19:53:31-04:00"
+              id="i17"
+              data-status="done"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i17">I17</a>
+                  <ui-label class="plan-review" size="mini" basic color="green">reviewed 10-04</ui-label>
+                  <span class="plan-title"
+                    >&lt;ui-message color="accent"&gt; in markup renders untinted until set again</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    On the Theme Creator copy, <code>&lt;ui-message color="accent"&gt;</code> written in the HTML
+                    renders as <code>ui message</code>, no <code>accent</code> class, so no ivory tint; removing and
+                    setting the attribute again from script gives <code>ui accent message</code>.
+                    <code>&lt;ui-brand-panel color="accent"&gt;</code> on the same page is fine, and
+                    <code>color="red"</code> works. Looks like the brand's <code>accent</code> hue (<code
+                      >ValueSets.add("hues", "accent")</code
+                    >,
+                    <a href="../../../../brand/src/hues.ts" target="src-packages-brand-src-hues-ts"
+                      ><code>packages/brand/src/hues.ts</code></a
+                    >) isn't known to <code>&lt;ui-message&gt;</code>'s first render (its chunk or its vocabulary's
+                    value set read before the add?).
+                  </p>
+                  <p>
+                    <b>Fix:</b> find where <code>&lt;ui-message&gt;</code> validates <code>color</code> on first render.
+                    Workaround on the page: a marked <code>HACK</code> re-sets the attribute after
+                    <code>whenDefined("ui-message")</code>.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2854,6 +3680,27 @@
                     through the presets; the ring follows), Brand Color Range (the ladders; the anchor ringed; AA
                     marks), Brand Color Picker (drag the plane, slide the hue, type <code>142 150 181</code> and an
                     OKLCH value; Tab to the plane and use the arrows; the popup example). Light and dark.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T19:55:02-04:00"
+              id="v10"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v10">V10</a>
+                  <span class="plan-title">Use the four tool pages, beside their originals</span> </ui-title
+                ><ui-content
+                  ><p>
+                    From the Brand index, "3. Tools": each page's Spell link and its Compare view. Color Set Chooser:
+                    type a name, open the swatch (the picker in a popup), drag, pick a family, move the three sliders,
+                    Auto, Reset, a preset; the ladder, samples and CSS follow. Theme Creator: change the four colour
+                    sets, fonts, size, corners, depth, Both / Light / Dark; the preview and the sheet follow; copy the
+                    sheet. Color Palette: Hex / OKLCH / Swatch only, click a chip (a toast). Brand Palette: hover a chip
+                    for its details. Light and dark.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -3157,6 +4004,58 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T19:21-04:00">2026-10-04 19:21</time></ui-date> T3 reviewed: done:
                   main merged in (845a4177); packages/brand on Vite+</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:34-04:00">2026-10-04 19:34</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:38-04:00">2026-10-04 19:38</time></ui-date> P5: the first
+                  three page agents were lost when the session restarted (nothing written); restarted: Color Set
+                  Chooser, Theme Creator, Color Palette + Brand Palette</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:46-04:00">2026-10-04 19:46</time></ui-date> Correction: the P5
+                  agents were NOT lost; a second copy of this session restarted them by mistake, then stopped its
+                  copies. The original session's agents carry on.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:52-04:00">2026-10-04 19:52</time></ui-date> I7 closed: A page
+                  can't turn OKLCH into hex or measure contrast</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:53-04:00">2026-10-04 19:53</time></ui-date> I17 closed:
+                  &lt;ui-message color="accent"&gt; in markup renders untinted until set again</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:53-04:00">2026-10-04 19:53</time></ui-date> I17 reviewed:
+                  fixed: brand-ui.ts loads the elements by import() after the accent hue is registered; Theme Creator's
+                  HACK removed</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:55-04:00">2026-10-04 19:55</time></ui-date> P5
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

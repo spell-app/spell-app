@@ -1,0 +1,1 @@
+import{t as e}from"./ui-menu-RlsYp6XJ.js";export{e as UIMenu};
