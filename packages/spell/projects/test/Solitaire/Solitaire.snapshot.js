@@ -13,7 +13,7 @@ export class Card extends Thing {
   /////////////////////////
   /** card ranks */
   /*! SPELL: DECLARES {
-    property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card",
+    property: "rank", classVariable: "Ranks", of: "Card",
     enumeration: ["'ace'", 2, 3, 4, 5, 6, 7, 8, 9, 10, "'jack'", "'queen'", "'king'"],
     defined: "/Card.spell:126-206",
   } */
@@ -24,7 +24,7 @@ export class Card extends Thing {
 
   /** card suits */
   /*! SPELL: DECLARES {
-    property: "suit", classVariable: "Suits", rule: "enumeration", of: "Card",
+    property: "suit", classVariable: "Suits", of: "Card",
     enumeration: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"],
     defined: "/Card.spell:222-283",
   } */
@@ -45,7 +45,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   /*! SPELL: DECLARES {
-    property: "value", of: "Card",
+    property: "value", of: "Card", datatype: "number",
     defined: "/Card.spell:440-501",
   } */
   get value() {
@@ -54,8 +54,7 @@ export class Card extends Thing {
 
   /** card direction:  up or down */
   /*! SPELL: DECLARES {
-    property: "direction", classVariable: "Directions", rule: "enumeration", of: "Card",
-    enumeration: ["'up'", "'down'"],
+    property: "direction", classVariable: "Directions", of: "Card", enumeration: ["'up'", "'down'"],
     defined: "/Card.spell:534-577",
   } */
   static Directions = ['up', 'down']
@@ -69,7 +68,7 @@ export class Card extends Thing {
   /** "card is face up/down" */
   /*! SPELL: DECLARES {
     syntax: "{operator:is} face up", output: "is_face_up", rule: "method_postfix", of: "Card",
-    kind: "method", name: '"is face up"',
+    kind: "method", name: '"is face up"', returns: "choice",
     defined: "/Card.spell:616-658",
   } */
   get is_face_up() {
@@ -78,7 +77,7 @@ export class Card extends Thing {
 
   /*! SPELL: DECLARES {
     syntax: "{operator:is} face down", output: "is_face_down", rule: "method_postfix", of: "Card",
-    kind: "method", name: '"is face down"',
+    kind: "method", name: '"is face down"', returns: "choice",
     defined: "/Card.spell:659-705",
   } */
   get is_face_down() {
@@ -88,7 +87,7 @@ export class Card extends Thing {
   /** `card is a face card` */
   /*! SPELL: DECLARES {
     syntax: "{operator:is} a face card", output: "is_a_face_card", rule: "method_postfix", of: "Card",
-    kind: "method", name: '"is a face card"',
+    kind: "method", name: '"is a face card"', returns: "choice",
     defined: "/Card.spell:731-796",
   } */
   get is_a_face_card() {
@@ -131,7 +130,7 @@ export class Card extends Thing {
 
   /** name as a derivation of name/suit */
   /*! SPELL: DECLARES {
-    property: "name", of: "Card",
+    property: "name", of: "Card", datatype: "text",
     defined: "/Card.spell:1086-1137",
   } */
   get name() {
@@ -139,7 +138,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_suit", of: "Card",
+    property: "short_suit", asWritten: "short-suit", of: "Card", datatype: "text",
     defined: "/Card.spell:1139-1300",
   } */
   get short_suit() {
@@ -151,7 +150,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_rank", of: "Card",
+    property: "short_rank", asWritten: "short-rank", of: "Card", datatype: "text",
     defined: "/Card.spell:1302-1466",
   } */
   get short_rank() {
@@ -161,7 +160,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_direction", of: "Card",
+    property: "short_direction", asWritten: "short-direction", of: "Card", datatype: "text",
     defined: "/Card.spell:1468-1548",
   } */
   get short_direction() {
@@ -171,7 +170,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "short_name", of: "Card",
+    property: "short_name", asWritten: "short-name", of: "Card", datatype: "text",
     defined: "/Card.spell:1551-1611",
   } */
   get short_name() {
@@ -179,7 +178,7 @@ export class Card extends Thing {
   }
 
   /*! SPELL: DECLARES {
-    property: "state", of: "Card",
+    property: "state", of: "Card", datatype: "text",
     defined: "/Card.spell:1613-1690",
   } */
   get state() {
@@ -271,7 +270,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "move {thisArg:expression} to {callArgs:expression}", output: "move_to_$pile",
     rule: "method_call", of: "Card", alias: ["statement", "expression"], kind: "method",
-    name: "move (a card) to (a pile)",
+    name: "move (a card) to (a pile)", params: [{ name: "pile", datatype: "Pile" }],
     defined: "/Pile.spell:403-581",
   } */
   async move_to_$pile(pile) {
@@ -379,7 +378,7 @@ spellCore.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
 
 /*! SPELL: DECLARES {
-  type: "Deck", superType: "List",
+  type: "Deck", superType: "List", itemType: "Card",
   defined: "/Deck.spell:61-86",
 } */
 export class Deck extends List {
@@ -387,7 +386,7 @@ export class Deck extends List {
 
   /*! SPELL: DECLARES {
     syntax: "set up {thisArg:expression}", output: "set_up", rule: "method_call", of: "Deck",
-    alias: ["statement", "expression"], kind: "method", name: "set up (a deck)",
+    alias: ["statement", "expression"], kind: "method", name: "set up (a deck)", returns: "nothing",
     defined: "/Deck.spell:88-313",
   } */
   set_up() {
@@ -414,6 +413,16 @@ export class Deck extends List {
     spellCore.echo("deck: " + card_names)
   }
 }
+/*! SPELL: DECLARES {
+  property: "is_set_up", asWritten: "is-set-up", of: "Deck", datatype: "choice", autoDeclared: true,
+  defined: "/Deck.spell:277-313",
+} */
+Deck.declareProp('is_set_up', { type: 'choice' })
+Object.defineProperty(Deck.prototype, 'is_set_up', {
+  get() { return this.getProp('is_set_up') },
+  set(value) { this.setProp('is_set_up', value) },
+  configurable: true
+})
 
 /*! SPELL: DECLARES {
   syntax: "test deck creation", output: "test_deck_creation", rule: "method_call",
@@ -448,10 +457,20 @@ export function test_deck_creation() {
 }
 test_deck_creation()
 // -----------
+/*! SPELL: DECLARES {
+  property: "pile", of: "Card", datatype: "Pile", autoDeclared: true,
+  defined: "/Pile.spell:500-536",
+} */
+Card.declareProp('pile', { type: 'Pile' })
+Object.defineProperty(Card.prototype, 'pile', {
+  get() { return this.getProp('pile') },
+  set(value) { this.setProp('pile', value) },
+  configurable: true
+})
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
-  type: "Pile", superType: "List",
+  type: "Pile", superType: "List", itemType: "Card",
   defined: "/Pile.spell:25-50",
 } */
 export class Pile extends List {
@@ -467,7 +486,7 @@ export class Pile extends List {
   }
 
   /*! SPELL: DECLARES {
-    property: "value", of: "Pile",
+    property: "value", of: "Pile", datatype: "number",
     defined: "/Pile.spell:142-225",
   } */
   get value() {
@@ -477,7 +496,7 @@ export class Pile extends List {
   }
 
   /*! SPELL: DECLARES {
-    property: "state", of: "Pile",
+    property: "state", of: "Pile", datatype: "text",
     defined: "/Pile.spell:584-748",
   } */
   get state() {
@@ -489,6 +508,15 @@ export class Pile extends List {
   }
 }
 // -----------
+/*! SPELL: DECLARES {
+  property: "name", of: "Pile", autoDeclared: true,
+  defined: "/Solitaire.spell:3765-3824",
+} */
+Object.defineProperty(Pile.prototype, 'name', {
+  get() { return this.getProp('name') },
+  set(value) { this.setProp('name', value) },
+  configurable: true
+})
 spellCore.heading("Klondike Solitaire Card Game")
 //////////////////////////////////
 // ## Klondike Solitaire Card Game
@@ -513,7 +541,7 @@ export class Game extends App {
   //## actions
 
   /*! SPELL: DECLARES {
-    property: "state", of: "Game",
+    property: "state", of: "Game", datatype: "list",
     defined: "/Solitaire.spell:2210-2329",
   } */
   get state() {
@@ -667,8 +695,9 @@ export let tableaus = new List({ instanceType: "Pile" })
 } */
 export class Stock_Pile extends Pile {
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} pick up {expression:simple_expression}", output: "can_pick_up_$card",
+    syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Stock_Pile", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }], returns: "choice",
     defined: "/Solitaire.spell:433-500",
   } */
   can_pick_up_$card(card) {
@@ -705,8 +734,9 @@ spellCore.append(all_piles, stock)
 } */
 export class Discard_Pile extends Pile {
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} pick up {expression:simple_expression}", output: "can_pick_up_$card",
+    syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Discard_Pile", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }], returns: "choice",
     defined: "/Solitaire.spell:691-760",
   } */
   can_pick_up_$card(card) {
@@ -734,8 +764,9 @@ spellCore.append(all_piles, discards)
 } */
 export class Foundation extends Pile {
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} pick up {expression:simple_expression}", output: "can_pick_up_$card",
+    syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Foundation", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }], returns: "choice",
     defined: "/Solitaire.spell:949-991",
   } */
   can_pick_up_$card(card) {
@@ -743,8 +774,9 @@ export class Foundation extends Pile {
   }
 
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} play {expression:simple_expression}", output: "can_play_$card",
+    syntax: "{operator:can} play {expression:operand}", output: "can_play_$card",
     rule: "method_infix", of: "Foundation", kind: "method", name: '"can play (a card)"',
+    params: [{ name: "card", datatype: "Card" }], returns: "choice",
     defined: "/Solitaire.spell:992-1117",
   } */
   can_play_$card(card) {
@@ -808,8 +840,9 @@ spellCore.map(foundations, (pile) => {
 } */
 export class Tableau extends Pile {
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} pick up {expression:simple_expression}", output: "can_pick_up_$card",
+    syntax: "{operator:can} pick up {expression:operand}", output: "can_pick_up_$card",
     rule: "method_infix", of: "Tableau", kind: "method", name: '"can pick up (a card)"',
+    params: [{ name: "card", datatype: "Card" }], returns: "choice",
     defined: "/Solitaire.spell:1660-1716",
   } */
   can_pick_up_$card(card) {
@@ -817,8 +850,9 @@ export class Tableau extends Pile {
   }
 
   /*! SPELL: DECLARES {
-    syntax: "{operator:can} play {expression:simple_expression}", output: "can_play_$card",
+    syntax: "{operator:can} play {expression:operand}", output: "can_play_$card",
     rule: "method_infix", of: "Tableau", kind: "method", name: '"can play (a card)"',
+    params: [{ name: "card", datatype: "Card" }], returns: "choice",
     defined: "/Solitaire.spell:1717-1894",
   } */
   can_play_$card(card) {
@@ -996,7 +1030,7 @@ export function reset_the_game() {
 
 /*! SPELL: DECLARES {
   syntax: "cheat", output: "cheat", rule: "method_call", alias: ["statement", "expression"],
-  kind: "function",
+  kind: "function", returns: "nothing",
   defined: "/Solitaire.spell:5570-5946",
 } */
 export async function cheat() {

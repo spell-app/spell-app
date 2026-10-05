@@ -8,6 +8,7 @@ import { SP } from "$/spell"
 /**
  * Parse + compile a spell project headlessly, the same way `SpellProject` does in the app:
  * - ONE `ProjectScope` with a clone of the root spell parser
+ * - every type the files declare stubbed first (`parser.stubDeclaredTypes()`), as `P.IncrementalProject` does
  * - one `FileScope` per file under it, all sharing that parser, parsed in order
  * - ALL files parsed first, THEN all compiled, so lazy compile-time lookups see the whole project
  * - NOTE: skips `SpellFile` / `SpellProject` themselves, as they load contents from the server.
@@ -25,6 +26,11 @@ export function parseSpellProject(
     parentScope
   })
 
+  // every type the files declare, so a line can name one declared further down
+  projectScope.parser!.stubDeclaredTypes(
+    projectScope,
+    files.map(({ contents }) => contents)
+  )
   const parsed = files.map(({ path, contents }) => {
     const scope = new P.FileScope({ name: path, path, parentScope: projectScope })
     const start = performance.now()

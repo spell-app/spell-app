@@ -16,8 +16,12 @@ export class ScopeVariable {
   declare output: string | undefined
   /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
   declare kind: "argument" | "static" | undefined
-  /** Type of the variable.  Not consistently used (yet). */
-  declare datatype: string | undefined
+  /**
+   * What it holds, in spell's words -- `undefined` if unknown.  See `P.Datatype`.
+   * - e.g. `Card` for an argument `(a card)`, or the datatype of the value it was declared with
+   * - Set when it's declared, and never changed after:  the first datatype wins.
+   */
+  declare datatype: P.Datatype | undefined
   /** String used to initialize the variable.  Not consistently used. */
   declare initializer: string | undefined
   /**
@@ -34,6 +38,40 @@ export class ScopeVariable {
   declare declaredBy: P.Match | undefined
   /** Where it was declared, if IMPORTED -- so there's no `declaredBy`.  See `P.DeclaredAt`. */
   declare declaredAt: P.DeclaredAt | undefined
+  /**
+   * A member's words as the user wrote them, if not its `name`,
+   * e.g. `short rank` for property `short_rank`.
+   * - For editors:  `name` is how it compiles, and how scope finds it
+   *   (either spelling normalizes to it).
+   */
+  declare asWritten: string | undefined
+  /**
+   * `true` for a property its type never declared:  a `set the X of Y to ...` declared it at its first set.
+   * - See spell's `assignment_statement`.
+   */
+  declare autoDeclared: boolean | undefined
+  /**
+   * `true` for the member an EXCLUSIVE list type gives its item type, naming the list holding it,
+   * e.g. `pile` on `Card` for `a pile is an exclusive list of cards`.
+   * - Its value:  the pile holding the card, or nothing.
+   * - READ-ONLY -- see `P.TypeScope.exclusive`.
+   * - Declared by the list type's statement, NOT by a property statement of the item type.
+   */
+  declare exclusive: boolean | undefined
+  /**
+   * A built-in member's READ template:  javascript which reads it,
+   * `{it}` standing for the value it's read from.
+   * - e.g. `{it}.length`, `{it}.getFullYear()` or `spellCore.itemCountOf({it})`
+   * - `undefined`:  a read compiles as plain `<object>.<name>`.
+   * - From spell's table of built-in types -- see spell's `BUILT_IN_TYPE_TABLE`.
+   * - NEVER set by a statement:  what a project declares compiles as its own statements say.
+   */
+  declare readAs: string | undefined
+  /**
+   * Its docs as markdown, for a member with no source to read them from:  a built-in type's.
+   * - Anything a project declares has its docstring above its declaring statement instead.
+   */
+  declare docstring: string | undefined
 
   /** Create with a string name or `ScopeVariableProps` object. */
   constructor(input: string | ScopeVariableProps) {
@@ -56,8 +94,8 @@ export type ScopeVariableProps = {
   output?: string
   /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
   kind?: "argument" | "static"
-  /** Type of the variable.  Not consistently used (yet). */
-  datatype?: string
+  /** See `ScopeVariable.datatype`. */
+  datatype?: P.Datatype
   /** String used to initialize the variable.  Not consistently used. */
   initializer?: string
   /** See `ScopeVariable.isAlias`. */
@@ -68,4 +106,14 @@ export type ScopeVariableProps = {
   declaredBy?: P.Match
   /** See `ScopeVariable.declaredAt`. */
   declaredAt?: P.DeclaredAt
+  /** See `ScopeVariable.asWritten`. */
+  asWritten?: string
+  /** See `ScopeVariable.autoDeclared`. */
+  autoDeclared?: boolean
+  /** See `ScopeVariable.exclusive`. */
+  exclusive?: boolean
+  /** See `ScopeVariable.readAs`. */
+  readAs?: string
+  /** See `ScopeVariable.docstring`. */
+  docstring?: string
 }
