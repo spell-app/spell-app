@@ -8,5 +8,6 @@
  *   see `$/parser/index.ts`.  Consumers who need `rulex` opt in explicitly.
  */
 
+export * from "./RulexTokenizer"
 export * from "./RulexParser"
 export * from "./rulex"

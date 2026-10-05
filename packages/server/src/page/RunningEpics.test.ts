@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
@@ -142,5 +142,25 @@ describe("RunningEpics", () => {
     } finally {
       rmSync(empty, { recursive: true, force: true })
     }
+  })
+})
+
+// shared content (epic `shared-content`):  every checkout's `packages/docs/content` is a link to the same folder
+describe("RunningEpics, shared content", () => {
+  const temp = mkdtempSync(join(tmpdir(), "srv-epics-shared-"))
+  afterAll(() => rmSync(temp, { recursive: true, force: true }))
+
+  it("links a worktree's epic through the main checkout's own URL", () => {
+    const root = join(temp, "spell-app")
+    put(temp, "spell-app-dev/packages/docs/content/epics/wt/wt.plan.html", planDoc("Shared", [["active", "P1 · Go"]]))
+    put(temp, "spell-app-dev/packages/docs/content/epics/done/done.plan.html", planDoc("Done"))
+    for (const checkout of [root, join(root, ".claude/worktrees/wt")]) {
+      mkdirSync(join(checkout, "packages/docs"), { recursive: true })
+      symlinkSync(join(temp, "spell-app-dev/packages/docs/content"), join(checkout, "packages/docs/content"))
+    }
+    const epics = new RunningEpics(root).list()
+    expect(epics.map(({ name, worktree, url }) => ({ name, worktree, url }))).toEqual([
+      { name: "wt", worktree: "wt", url: "/packages/docs/content/epics/wt/wt.plan.html" }
+    ])
   })
 })

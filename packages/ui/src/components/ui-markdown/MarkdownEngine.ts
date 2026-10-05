@@ -1,4 +1,3 @@
-import DOMPurify from "dompurify"
 import { Marked, type Tokens } from "marked"
 
 // Import directly:  see the class docs
@@ -8,16 +7,15 @@ import type { MarkdownHeading, MarkdownOptions, MarkdownResult } from "./ui-mark
 
 /****************
  * ### `MarkdownEngine`
- * marked + DOMPurify, in `<ui-markdown>`'s LAZY chunk:  imported by `MarkdownRenderer` on the first render, so a page
- * pays for them only when it shows markdown.
+ * marked, in `<ui-markdown>`'s LAZY chunk:  imported by `MarkdownRenderer` on the first render, so a page pays for it
+ * only when it shows markdown.
  * - GitHub-flavoured (`gfm`):  tables, task lists, strikethrough, autolinks.
  * - Headings get GitHub's ids (`slug()`:  lowercase, punctuation dropped, spaces to `-`, repeats numbered), so
  *   `[see](#setup)` links work;  `headingOffset` shifts their levels.
- * - Sanitized with DOMPurify in EVERY browser, unless `trusted` (ids kept:  see `render()`).  Why not the
- *   platform's `Element.setHTML()`:  by default it drops task-list checkboxes, images, heading ids and code-language
- *   classes, and it differs by browser (none in Safari).
- * - Returns a fragment of this document;  the element turns code blocks into `<ui-code>` and resolves URLs.
- * - NEVER a value import but marked, DOMPurify and `SourceError`:  the docs bundler builds this file ALONE into a
+ * - Returns MARKUP, never sanitized:  the element sanitizes it when `sanitized`, in a chunk of its own
+ *   (`MarkdownSanitizer`).
+ * - The element turns code blocks into `<ui-code>` and resolves URLs.
+ * - NEVER a value import but marked and `SourceError`:  the docs bundler builds this file ALONE into a
  *   classic script (`MarkdownRenderer.engineLoader`).
  * - Imports `SourceError` straight from `$/ui/runtime/runtime.types` (built into `core.js`), and USES it:  a lazy
  *   chunk that needs Rolldown's helpers (`__name`, from `keepNames`) without depending on core makes Rolldown split
@@ -49,12 +47,7 @@ export class MarkdownEngine {
     })
     const html = marked.parse(text, { async: false })
     if (typeof html !== "string") throw new SourceError("render", "marked rendered asynchronously")
-    const fragment = options.trusted
-      ? document.createRange().createContextualFragment(html)
-      : // `SANITIZE_DOM` off:  it drops ids that shadow DOM properties (`id="elements"`, `id="forms"`), to stop DOM
-        // clobbering -- which can't happen here:  the markup lives in a shadow root, out of `document`'s named access
-        DOMPurify.sanitize(html, { RETURN_DOM_FRAGMENT: true, SANITIZE_DOM: false })
-    return { fragment, headings }
+    return { html, headings }
   }
 
   /** GitHub's heading slug:  `Getting started!` => `getting-started`. */

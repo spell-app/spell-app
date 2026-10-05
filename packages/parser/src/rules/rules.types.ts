@@ -28,6 +28,60 @@ export type DefinitionFor<RuleType extends { readonly Props: P.RuleProps }> = Pr
   Partial<RuleType["Props"]> & RuleDefinitionProps
 >
 
+// ## Rulex
+
+/** Symbols rulex reads as its own syntax:  a literal one is written escaped, `\(`. */
+export const RULEX_SPECIALS = ["?", "*", "+", "(", ")", "[", "]", "{", "}", "|", ":", "\\"]
+
+/** `literal` as rulex syntax:  escaped when it's one of `RULEX_SPECIALS` (`(` => `\(`). */
+export function escapeRulex(literal: string) {
+  return RULEX_SPECIALS.includes(literal) ? `\\${literal}` : literal
+}
+
+/**
+ * What rulex writes before a part with `spacing`, so a rule prints back as it was written (`compile()` reads it
+ * back the same).
+ * - `none` => nothing, touching (`{a}{b}`, `--`)
+ * - `one` / `some` => `{space}` / `{spaces}`
+ * - unset => one space (`{a} {b}`:  may space)
+ */
+export function rulexSpacing(spacing: Spacing | undefined) {
+  if (spacing === "none") return ""
+  if (spacing === "one") return "{space}"
+  if (spacing === "some") return "{spaces}"
+  return " "
+}
+
+/** `rules` as one rulex sequence, each spaced from the one before as its `spacing` says (`rulexSpacing()`). */
+export function joinRulex(rules: P.Rule[]) {
+  return rules.map((rule, index) => (index ? rulexSpacing(rule.spacing) : "") + rule.toRulexSyntax()).join("")
+}
+
+// ## Spacing
+
+/**
+ * What may sit between the previous token and a rule's first token -- see `Rule.spacing`.
+ * - `none`:  nothing, they touch (`**`, `](`)
+ * - `one`:  exactly one space (rulex `{space}`)
+ * - `some`:  one or more spaces / tabs (rulex `{spaces}`)
+ * - unset:  anything, as before rulex knew about spacing
+ */
+export type Spacing = "none" | "one" | "some"
+
+/**
+ * Does the whitespace after `previous` satisfy `spacing`?
+ * - Reads `previous.whitespace`, which the tokenizer fills when it drops inline whitespace (`LEADING_ONLY` /
+ *   `NONE`):  a tokenizer that keeps whitespace TOKENS (`ALL`) leaves it empty, so `spacing` can't see them.
+ * - No `previous` (start of input) or no `spacing`:  always `true`.
+ */
+export function spacingAllows(previous: P.Token | undefined, spacing: Spacing | undefined) {
+  if (!spacing || !previous) return true
+  const whitespace = previous.whitespace ?? ""
+  if (spacing === "none") return whitespace === ""
+  if (spacing === "one") return whitespace === " "
+  return /^[ \t]+$/.test(whitespace)
+}
+
 /**
  * What `P.Rule.specialize()` puts on a rule class:  `ruleName`, plus any of the rule's own `Props`.
  * - `Props`, not the instance's fields:  what a constructor ACCEPTS, e.g. raw `literals` word arrays.
@@ -202,11 +256,18 @@ export type LiteralProps = Prettify<
     literal: string | string[]
     /** Whether the literal must be escaped when converting to rulex syntax. */
     isEscaped?: boolean
+    /** Match any case (rulex `/i`) -- see `Literal.caseInsensitive`. */
+    caseInsensitive?: boolean
   }
 >
 
 /** One matcher within `Literals.literals` -- a literal (or alternatives) plus whether it's optional. */
-export type LiteralMatcher = { literal: string | string[]; optional?: boolean }
+export type LiteralMatcher = {
+  literal: string | string[]
+  optional?: boolean
+  /** What may sit between the previous matched token and this one -- see `Spacing`. */
+  spacing?: Spacing
+}
 
 /** Props bag accepted by `Literals`'s constructor. */
 export type LiteralsProps = Prettify<
