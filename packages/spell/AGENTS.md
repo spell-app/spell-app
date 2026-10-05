@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
 
-Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
-Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -169,19 +169,19 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 ## Decorators
 
-As the root's, plus:
+As WWOD §12, plus:
 
 - `vite.decorators.ts` (repo root) is used by `vitest.config.ts` here.
 
 ## Imports
 
-- As the root's, with our own `src/` as `$/spell` / `$/spell/*`, and `SP` ~== `$/spell` as our one namespace.
+- As WWOD §4, with our own `src/` as `$/spell` / `$/spell/*`, and `SP` ~== `$/spell` as our one namespace.
 - Imports `$/parser` (`P`), `$/core` (types only) and `$/util`.  NEVER import `$/lsp`, `$/app` or `$/cli`.
 - A rule module imports the generic parser's rule classes from `$/parser`, and registers on `SpellParser` here.
 
 ## Types / Exports
 
-As the root's, plus our self-namespace:
+As WWOD §8, plus our self-namespace:
 
 - `SP` ~== `$/spell`
 

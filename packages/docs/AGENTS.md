@@ -1,7 +1,8 @@
 # packages/docs (`@spell-app/docs`)
 
 Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/ui`, their templates, the plan docs
-`/epic` keeps, the experiments behind the claims, and the tooling.  As the root's `AGENTS.md`, plus:
+`/epic` keeps, the experiments behind the claims, and the tooling.  As the root's `AGENTS.md` and WWOD
+(`agents/wwod/WWOD.md`), plus:
 
 ## Layout
 
@@ -326,3 +327,5 @@ In this order, from `packages/docs`:
 - When agents need a doc's rules, also write a distilled `.md` beside it (bullets, `ts` code blocks), and point to it
   from the top of an `AGENTS.md` with an "if working with X, READ file" line -- the package's, or the root's when
   other packages need it too.  See `solid/solid-2.md`, pointed to from the root's.
+- A doc's rules are about ITS topic (Solid's mechanics, a tool's flags).  House style -- how we write any code --
+  goes in WWOD (`agents/wwod/`), not in a distilled doc.

@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/server`.
 
-**Root conventions apply:  READ the repo root's `AGENTS.md` FIRST** -- its Documentation, Functions,
-Types / Exports and Imports sections all apply here.  Only what DIFFERS is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -50,12 +50,12 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 ## Imports
 
-- As the root's, with `SRV` ~== `$/server` as our one namespace.
+- As WWOD §4, with `SRV` ~== `$/server` as our one namespace.
 - Tests use `$/server/test/serve` (`serveHandler`, `ask`):  real HTTP through `node:http`, never `fetch`, which
   resolves `..` before sending.
 
 ## Types / Exports
 
-As the root's, plus our self-namespace:
+As WWOD §8, plus our self-namespace:
 
 - `SRV` ~== `$/server`

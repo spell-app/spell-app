@@ -3,8 +3,8 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/cli`.
 
-**Root conventions apply:  READ the repo root's `AGENTS.md` FIRST** -- its Documentation, Functions,
-Types / Exports and Imports sections all apply here.  Only what DIFFERS is below.
+**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
+house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
@@ -43,7 +43,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 ## Imports
 
-- As the root's rules, with `CLI` ~== `$/cli` as our one namespace:  `import { CLI } from "$/cli"`.
+- As WWOD §4, with `CLI` ~== `$/cli` as our one namespace:  `import { CLI } from "$/cli"`.
 - Import order puts the other packages' barrels (`$/spell`, `$/lsp`) before our own.
 - `main.ts` and `consoleGuard.ts` are NOT in the barrel:  importing either has side effects.
 
