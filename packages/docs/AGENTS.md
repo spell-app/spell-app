@@ -43,6 +43,8 @@ The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, 
 - `epics/<name>/<name>.plan.html` -- plan docs, one per `/epic` session (see "Plan docs").  `<name>.html` before
   2026-10-04:  the tools find either (`tools/pages.js` `planDocIn()`), a worktree cut before keeps the old name
   until it merges `main`, and the page server redirects the old URL;  `tools/plan-rename.js` did the rename.
+  - a SPLIT doc's bodies:  `epics/<name>/parts/<id>.htm`, loaded by the page when opened (see "Plan docs");
+    `.htm`, so no page walker takes them for pages (`findPages()` skips `parts/` too)
 - `pages/details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page
   (`/details`, see "Details pages").  Scratch:  ignored by the shared repo's git, swept after 14 days.  An epic's go
   in `epics/<name>/details/`, kept (auto-committed with the shared repo).
@@ -148,7 +150,12 @@ In `tools/`:
   - the address follows the section being read (`#id`, replaced, not pushed), so a reload lands there
   - served by the page server, an edit to the page's file updates it IN PLACE (`wireLiveUpdate()`):  scroll,
     folds, open panels and typed text stay.  Anything the runtime adds inside `main` must carry
-    `data-spell-added`, so the patch steps around it.  Pages with scripts of their own still reload
+    `data-spell-added`, so the patch steps around it.  Pages with scripts of their own still reload (inert data
+    blocks, `<script type="text/plain">`, don't count);  `<body>`'s attributes are patched too
+  - bodies from files (`<ui-section source>`, `<ui-accordion source>`:  a split plan doc's parts,
+    `wireSourceBodies()`):  the patch leaves what a host loaded alone;  a changed body file (the live client's
+    `spell-server:file`) re-fetches its open host in place;  each body that loads re-runs the outline, counts,
+    filters and review buttons;  a link to an id inside an unloaded body (its host's `data-part-ids`) loads it first
   - code colors (highlight.js from cdnjs)
 - Headings:
   - one `h1`;  a numbered top-level `<ui-section>` per major section (`header="2. Read-after-write"`), each with a
@@ -228,6 +235,12 @@ In `tools/`:
 - How to write one, its sections, ids and markers:  `templates/epics/plan-doc.md`.
 - Edit through `spell dev plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
+- SPLIT docs (P3 of `claude-design`;  new docs start split):  a skeleton plus part files, `parts/<id>.htm`
+  (`tools/plan-parts.js`;  rules:  `plan-doc.md`, "Parts").  `plan-doc.js` reads either shape whole and writes it
+  back split, each file once, atomically, only when changed;  `split <name>` / `split --done` / `join <name>`.
+  - a reader of the skeleton alone (the docs index, the main server's epic cards, `inbox.js` `itemIds()`) sees every
+    section, phase status and item line;  anything needing bodies reads the doc through `plan-doc.js` `read()`
+  - a split doc needs the page server (`<body data-spell-needs-server>`):  bodies don't load from `file://`
 
 ### Review inbox
 
@@ -334,6 +347,8 @@ In this order, from `packages/docs`:
   `pageFile()` (a page argument to its file), `atDepth()` (a template at a page's depth),
   `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
   through the spell extension's `DocPreview`;  `{ view: "review" }`:  the "Review" tab).
+- `tools/plan-parts.js` -- a split plan doc:  `assembleParts()` / `splitParts()` (pure DOM), the part URLs'
+  rebasing, `formatHTML()` (oxfmt in this process, as `vp fmt` would), `writeChanged()` (atomic, only what changed).
 - `tools/check-spell.js <page> [outDir]` -- Playwright, from `file://` (from the page server when the page says
   `data-spell-needs-server`):  fails on console errors, undefined / unrendered `ui-*`, contents vs sections,
   phone-width overflow, top-level titles that don't stick, a section that won't fold / unfold or forgets its fold
@@ -341,7 +356,7 @@ In this order, from `packages/docs`:
 - `node tools/check-live.js [epic]` -- Playwright, from the page server:  an edit to a plan doc (a log line it
   adds, then removes) must update it in place, keeping scroll, folds, typed text and focus;  the address must
   follow the scroll, and a fresh load of it land there.  Run it after touching `liveClient.ts` or the runtime's
-  "Live update".
+  "Live update".  On a split doc the line lands in `parts/log.htm`:  a part re-fetched in place.
 - `node tools/check-review.js [epic] [outDir]` -- Playwright, from the page server:  clicks through a plan doc's
   review actions (approve, todo, Add Details, revisit soon with a note that must survive a reload, revisit now with
   its spinner, "Choose" on Q7's cards, then a revisit on Q7 keeping the pick, send, `inbox wait` printing the pick
