@@ -8663,6 +8663,376 @@
       "href": "components/ui-button.html#ui-or"
     },
     {
+      "tag": "ui-panel",
+      "name": "Panel",
+      "folder": "ui-panel",
+      "topics": [
+        "layout",
+        "containers"
+      ],
+      "aka": [
+        "inspector",
+        "property panel",
+        "properties",
+        "settings panel",
+        "fieldset",
+        "property sheet"
+      ],
+      "description": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.  It takes every `<ui-section>` attribute.",
+      "noun": "section",
+      "attributes": [
+        {
+          "name": "header",
+          "kind": "string",
+          "description": "Title text;  a slotted `slot=\"header\"` is the rich version (code, links)."
+        },
+        {
+          "name": "subhead",
+          "kind": "string",
+          "description": "Smaller text under the title;  scrolls away with the content, never sticks.  Or `slot=\"subhead\"`."
+        },
+        {
+          "name": "level",
+          "kind": "enum",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "description": "Heading level of the title (`<h1>` ... `<h6>`);  default:  the enclosing section's level + 1, else 2 (under the page's `h1`)."
+        },
+        {
+          "name": "icon",
+          "kind": "icon",
+          "description": "Icon name, before the title;  a slotted `slot=\"icon\"` (a `<ui-icon>`, anything) replaces it."
+        },
+        {
+          "name": "badge",
+          "kind": "string",
+          "description": "A small pill after the title, e.g. a count (`3/7`);  `slot=\"badge\"` is the rich version."
+        },
+        {
+          "name": "info",
+          "kind": "string",
+          "description": "A tip about the section, shown under the title bar while the pointer is on the title (or the fold button has keyboard focus);  it describes the title.  `slot=\"info\"` is the rich version (bold words, line breaks)."
+        },
+        {
+          "name": "collapsible",
+          "kind": "boolean",
+          "description": "The title folds and unfolds the content:  a button with `aria-expanded`.  Default:  on inside `<ui-sections collapsing>`, sub-sections included;  `collapsible=\"false\"` opts out there."
+        },
+        {
+          "name": "collapsed",
+          "kind": "boolean",
+          "description": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match."
+        },
+        {
+          "name": "fold-icon",
+          "kind": "enum",
+          "values": [
+            "start",
+            "end"
+          ],
+          "description": "Where each band's fold chevron sits:  `end`, at the far end of the band after any actions (the panel's default), or `start`, before the title."
+        },
+        {
+          "name": "sticky",
+          "kind": "keyOnly",
+          "description": "The title bar sticks while the section is on screen;  a sticky section inside another sticks just below its title."
+        },
+        {
+          "name": "offset",
+          "kind": "number",
+          "default": 0,
+          "description": "With `sticky`:  pixels between the top edge and a TOP-LEVEL section's stuck title (e.g. a page header's height);  nested sections work theirs out."
+        },
+        {
+          "name": "color",
+          "kind": "color",
+          "values": [
+            "primary",
+            "secondary",
+            "red",
+            "orange",
+            "yellow",
+            "olive",
+            "green",
+            "teal",
+            "blue",
+            "violet",
+            "purple",
+            "pink",
+            "brown",
+            "grey",
+            "black"
+          ],
+          "valueSet": "hues",
+          "description": "Hue of the whole panel:  the header band, the box, the border and the sub-head bands (sub-panels follow it).  None:  `primary`.  Any hue, including one a theme adds (`spell-brand`'s `accent`, Polished Ivory)."
+        },
+        {
+          "name": "size",
+          "kind": "size",
+          "values": [
+            "mini",
+            "tiny",
+            "small",
+            "medium",
+            "large",
+            "big",
+            "huge",
+            "massive"
+          ],
+          "valueSet": "sizes",
+          "description": "Text size of the CONTENT, `mini` ... `massive`;  the title keeps its level's size."
+        },
+        {
+          "name": "dividing",
+          "kind": "keyOnly",
+          "description": "A rule under the title."
+        },
+        {
+          "name": "block",
+          "kind": "keyOnly",
+          "description": "The title bar in a tinted box."
+        },
+        {
+          "name": "bordered",
+          "kind": "keyOnly",
+          "description": "A box around the section, as a segment."
+        },
+        {
+          "name": "styled",
+          "kind": "keyOnly",
+          "description": "Boxed as a styled accordion:  a tinted title bar over padded content."
+        },
+        {
+          "name": "raised",
+          "kind": "keyOnly",
+          "description": "With a box:  lifted with a shadow."
+        },
+        {
+          "name": "basic",
+          "kind": "keyOnly",
+          "description": "No box, rule or tint, whatever else is set."
+        },
+        {
+          "name": "compact",
+          "kind": "keyOnly",
+          "description": "Less padding and space around the title."
+        },
+        {
+          "name": "padded",
+          "kind": "keyOrValueAndKey",
+          "values": [
+            "very"
+          ],
+          "description": "More padding in the content;  `padded=\"very\"` for even more."
+        },
+        {
+          "name": "attached",
+          "kind": "keyOrValueAndKey",
+          "values": [
+            "top",
+            "bottom"
+          ],
+          "description": "With a box:  joined edge to edge with the box above / below;  bare `attached` sits between two."
+        },
+        {
+          "name": "scrolling",
+          "kind": "keyOrValueAndKey",
+          "values": [
+            "short",
+            "very short",
+            "long",
+            "very long"
+          ],
+          "description": "The content has a capped height and scrolls;  `short` ... `very long` scale the cap."
+        },
+        {
+          "name": "height",
+          "kind": "string",
+          "description": "The content's cap, any CSS length (`20em`, `300px`):  above it the content scrolls (implies `scrolling`)."
+        },
+        {
+          "name": "text-align",
+          "kind": "textAlign",
+          "values": [
+            "left",
+            "center",
+            "right"
+          ],
+          "description": "Aligns the TITLE `left`, `center` or `right`."
+        },
+        {
+          "name": "inverted",
+          "kind": "keyOnly",
+          "description": "For dark backgrounds:  the dark scheme."
+        },
+        {
+          "name": "loading",
+          "kind": "keyOnly",
+          "description": "Dims the content under a spinner;  `aria-busy`."
+        },
+        {
+          "name": "disabled",
+          "kind": "keyOnly",
+          "description": "Dimmed and inert;  can't be folded."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "The content:  anything, nested `<ui-section>`s included."
+        },
+        {
+          "name": "header",
+          "description": "Rich title, instead of the `header` attribute."
+        },
+        {
+          "name": "subhead",
+          "description": "Rich subhead, instead of the `subhead` attribute."
+        },
+        {
+          "name": "icon",
+          "description": "Icon before the title, instead of the `icon` attribute (a `<ui-icon>`, an image)."
+        },
+        {
+          "name": "badge",
+          "description": "Rich badge, instead of the `badge` attribute (e.g. a `<ui-label>`)."
+        },
+        {
+          "name": "actions",
+          "description": "Controls at the right of the title bar (buttons, a menu);  never fold it."
+        },
+        {
+          "name": "info",
+          "description": "Rich tip, instead of the `info` attribute (bold words, line breaks)."
+        }
+      ],
+      "events": [
+        {
+          "name": "ui-open",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "About to unfold:  the title was activated, or find-in-page matched inside (not cancelable then, `cancelable: false`).  Cancel to stay folded."
+        },
+        {
+          "name": "ui-close",
+          "detail": "{ open: boolean, section: Element, originalEvent?: Event }",
+          "cancelable": true,
+          "description": "About to fold:  the title was activated.  Cancel to stay open."
+        }
+      ],
+      "parts": [
+        {
+          "name": "section",
+          "description": "The section box."
+        },
+        {
+          "name": "title",
+          "description": "The title bar:  sticks with `sticky`."
+        },
+        {
+          "name": "heading",
+          "description": "The `<h1>` ... `<h6>`."
+        },
+        {
+          "name": "toggle",
+          "description": "With `collapsible`:  the `<button>` inside the heading that folds the section."
+        },
+        {
+          "name": "fold-icon",
+          "description": "With `collapsible`:  the chevron, in the toggle;  with `fold-icon=\"end\"`, at the end of the title bar."
+        },
+        {
+          "name": "icon",
+          "description": "The icon box."
+        },
+        {
+          "name": "header",
+          "description": "The title text box."
+        },
+        {
+          "name": "badge",
+          "description": "The badge pill."
+        },
+        {
+          "name": "actions",
+          "description": "The actions box, at the right of the title bar."
+        },
+        {
+          "name": "tip",
+          "description": "With `info`:  the tip, under the title bar, shown on hover and keyboard focus."
+        },
+        {
+          "name": "subhead",
+          "description": "The subhead under the title."
+        },
+        {
+          "name": "content",
+          "description": "The content box:  `size`, `scrolling` and `height` apply here."
+        }
+      ],
+      "states": [
+        {
+          "name": "collapsed",
+          "description": "Folded."
+        },
+        {
+          "name": "stuck",
+          "description": "With `sticky`:  the title bar is stuck to the top."
+        },
+        {
+          "name": "animated",
+          "description": "Folds with a height transition (`interpolate-size`)."
+        },
+        {
+          "name": "in-section",
+          "description": "Nested in another section."
+        },
+        {
+          "name": "in-sections",
+          "description": "Directly in a `<ui-sections>` group (no section between)."
+        },
+        {
+          "name": "inverted",
+          "description": "In the dark scheme."
+        },
+        {
+          "name": "loading",
+          "description": "Busy."
+        },
+        {
+          "name": "disabled",
+          "description": "Dimmed and inert."
+        }
+      ],
+      "texts": [
+        {
+          "key": "loading",
+          "text": "Loading…",
+          "description": "Announced while `loading`."
+        },
+        {
+          "key": "fold",
+          "text": "Fold",
+          "description": "Tooltip of the fold button while open."
+        },
+        {
+          "key": "unfold",
+          "text": "Unfold",
+          "description": "Tooltip of the fold button while folded."
+        }
+      ],
+      "mainTag": "ui-panel",
+      "main": true,
+      "page": true,
+      "href": "components/ui-panel.html"
+    },
+    {
       "tag": "ui-placeholder",
       "name": "Placeholder",
       "folder": "ui-placeholder",
@@ -21000,6 +21370,85 @@
           "name": "--ui-nag-duration",
           "default": "var(--ui-duration-normal)",
           "type": "time"
+        }
+      ]
+    },
+    "ui-panel": {
+      "folder": "ui-panel",
+      "mainTag": "ui-panel",
+      "title": "Panel",
+      "summary": "A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "ui-panel"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-panel-background",
+          "default": "var(--_ui-panel-hue-box, light-dark(var(--spell-accent-25, var(--ui-surface)), var(--ui-surface)))",
+          "description": "the box (default: a light mix of the hue with the surface)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-panel-border-color",
+          "default": "var(--_ui-panel-hue-border, light-dark(var(--spell-accent-150, var(--ui-border-color)), var(--ui-border-color)))",
+          "description": "the box edge and the hairline above each sub-head band",
+          "type": "color"
+        },
+        {
+          "name": "--ui-panel-header-background",
+          "default": "var( --_ui-panel-hue-header, light-dark(var(--spell-accent-100, var(--ui-surface-strong)), var(--ui-surface-strong)) )",
+          "description": "the header band (default: the hue tint)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-panel-header-color",
+          "default": "var(--_ui-panel-hue-header-color, var(--spell-text-strong, var(--ui-text-dark)))",
+          "description": "the header band's text",
+          "type": "color"
+        },
+        {
+          "name": "--ui-panel-subhead-background",
+          "default": "var(--_ui-panel-hue-subhead, light-dark(var(--spell-accent-75, var(--ui-surface-muted)), var(--ui-surface-muted)))",
+          "description": "each sub-head band (default: a mix of the hue tint with the surface)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-panel-subhead-color",
+          "default": "var( --_ui-panel-hue-subhead-color, light-dark(var(--spell-accent-800, var(--ui-text-muted)), var(--ui-text-muted)) )",
+          "description": "each sub-head band's text",
+          "type": "color"
+        },
+        {
+          "name": "--ui-panel-radius",
+          "default": "var(--ui-radius-l, 16px)",
+          "description": "the box corners",
+          "type": "length"
+        },
+        {
+          "name": "--ui-panel-padding",
+          "default": "var(--ui-font-size, 16px)",
+          "description": "the box padding, also the bands' side padding: the page's base size, never `1em` (a sub-panel's 14px content would shrink it; design-system I46)",
+          "type": "length"
+        },
+        {
+          "name": "--ui-panel-gap",
+          "default": "8px",
+          "description": "space between the fields: px, as `0.5em` was 7px at the content's 14px and 8px in a sub-panel",
+          "type": "length"
+        },
+        {
+          "name": "--ui-panel-band-space",
+          "default": "20px",
+          "description": "space above each sub-head band (none under a folded one)",
+          "type": "length"
+        },
+        {
+          "name": "--ui-panel-shadow",
+          "default": "var(--spell-shadow-sm, var(--ui-shadow-raised))",
+          "description": "the box shadow",
+          "type": "other"
         }
       ]
     },

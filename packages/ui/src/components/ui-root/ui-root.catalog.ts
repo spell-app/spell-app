@@ -145,6 +145,7 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-modal": { folder: "ui-modal" },
   "ui-nag": { folder: "ui-nag" },
   "ui-or": { folder: "ui-button" },
+  "ui-panel": { folder: "ui-panel", skeleton: { parts: [{ shape: "header" }, { shape: "paragraph" }] } },
   "ui-placeholder": { folder: "ui-placeholder" },
   "ui-placeholder-header": { folder: "ui-placeholder" },
   "ui-placeholder-image": { folder: "ui-placeholder" },

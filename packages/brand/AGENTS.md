@@ -70,9 +70,10 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   `_assets/ui/brand-docs.js` (`src/brand-docs.ts`) and `_assets/brand-docs.css`.  A new family:  its
   `<tag>.vocabulary.en.ts` (topics, aka, description), `yarn site:data`, then copy a page.  The Brand index lists them.
 
-- `<ui-brand-panel>` (`components/ui-brand-panel/`) -- the inspector panel:  a `UISection` subclass defined under
-  its own tag with `<ui-section>`'s vocabulary (`define(tag)`), so it takes every section attribute, slot and event;
-  only `ui-brand-panel.css` differs.  A panel in a panel is a sub-head band.
+- The inspector panel is Spell UI's now:  `<ui-panel>` (`packages/ui/src/components/ui-panel/`, moved from
+  `<ui-brand-panel>` 2026-10-05), a `<ui-section>` subclass;  its docs page is Spell UI's
+  (`/ui/components/ui-panel.html`).  Its tokens are `--ui-panel-*`;  `color="accent"` works on the brand pages
+  (`src/hues.ts` + `spell-brand`).
 - `<ui-brand-field>` (`components/ui-brand-field/`) -- a label row (label, actions, value, info tip), the control,
   help and error;  `:state(field)` + `showErrors()`, so `<ui-form>` validates it as a `<ui-field>`.  Names an unnamed
   slotted control after its `label` (`aria-label`).
@@ -97,8 +98,6 @@ move into Spell UI, epic todo T2):
 - `$/ui/runtime`, `$/ui/icons`, `$/ui/styles`, `$/ui/styles/ui.css` -- the bundle entries (`src/`), as Spell UI's site
   entry does
 - `$/ui/docs-components/...` -- the docs widgets and `SiteData` (`src/brand-docs.ts`):  not in `$/ui`'s barrel
-- `$/ui/components/ui-section/ui-section.vocabulary.en` -- `<ui-brand-panel>`'s docs vocabulary:  data, which node
-  must load without the barrel's elements
 - `$/ui/tools/SiteDataBuilder` (`scripts/site-data.ts`) and `$/ui/test/...` (tests)
 
 ## Serving

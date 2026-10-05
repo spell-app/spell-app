@@ -1,0 +1,1 @@
+import{t as e}from"./ui-panel-DCC3amJ2.js";export{e as UIPanel};

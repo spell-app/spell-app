@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
   Color Set Chooser, on Spell UI:  the copy of `Color Set Chooser.dc.html` (Claude Design's original, the reference).
-  - Left, the inspector (`<ui-brand-panel color="accent">`):  the set's name, its base colour (a swatch opening
+  - Left, the inspector (`<ui-panel color="accent">`):  the set's name, its base colour (a swatch opening
     `<ui-brand-color-picker>` in a popup, and RGB / OKLCH rows), Tweak (anchor, vibrancy, hue drift) and Presets.
   - Right, three folding sections under the original's mono eyebrow on a hairline:  the 17-step ladder
     (`<ui-brand-color-range>`), light and dark Samples built from it, and the ladder as CSS.
@@ -292,7 +292,7 @@
 
       <div class="chooser">
         <!-- ## Inspector -->
-        <ui-brand-panel header="Color Set" color="accent" collapsible>
+        <ui-panel header="Color Set" color="accent" collapsible>
           <div slot="info" class="tip">
             <p>The colour this set is built from.</p>
             <p>Give it a <b>name</b>, then pick a <b>base colour</b> to start from.</p>
@@ -420,7 +420,7 @@
             </div>
           </ui-brand-field>
 
-          <ui-brand-panel header="Tweak" collapsible>
+          <ui-panel header="Tweak" collapsible>
             <div slot="info" class="tip">
               <p>Fine-tune how the <b>17 shades</b> are made.</p>
               <p>The defaults work well for most colours, so you can usually skip this.</p>
@@ -478,9 +478,9 @@
               >
               <ui-slider id="drift" min="-40" max="40" value="0" ticked tick-step="8"></ui-slider>
             </ui-brand-field>
-          </ui-brand-panel>
+          </ui-panel>
 
-          <ui-brand-panel header="Presets" collapsible>
+          <ui-panel header="Presets" collapsible>
             <div slot="info" class="tip">
               <p>Ready-made <b>Spell brand</b> colours.</p>
               <p>Click one to load it, then adjust it under <b>Tweak</b>.</p>
@@ -493,8 +493,8 @@
               <ui-brand-color name="rose" value="#E8436A" title="Rose"></ui-brand-color>
               <ui-brand-color name="amber" value="#F0A020" title="Amber"></ui-brand-color>
             </ui-brand-color-set>
-          </ui-brand-panel>
-        </ui-brand-panel>
+          </ui-panel>
+        </ui-panel>
 
         <!-- ## Results -->
         <div class="results">

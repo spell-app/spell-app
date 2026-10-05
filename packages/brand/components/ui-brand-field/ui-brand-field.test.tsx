@@ -3,6 +3,8 @@ import { describe, expect, it } from "vite-plus/test"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { expectAccessible } from "$/ui/test/a11y"
 
+// every Spell UI family the fields hold (`<ui-menu>`, `<ui-form>`, `<ui-input>` ...), as the brand bundle loads them
+import "$/ui"
 import "$/brand/components"
 
 /** A part of `host`'s shadow root, or `null`. */

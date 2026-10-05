@@ -80,6 +80,7 @@ export const COMPONENTS = [
   "ui-calendar",
   "ui-root",
   "ui-section",
+  "ui-panel",
   "ui-include",
   "ui-code",
   "ui-markdown"

@@ -2133,6 +2133,40 @@
               </ui-docs-example>
             </ui-section>
 
+            <ui-section id="spell-ui-s-own-panel" header="Panel" sticky collapsible dividing>
+              <ui-docs-example>
+                <p slot="description">
+                  A panel is an inspector:  a tinted box of fields under a header band, with sub-head bands that fold.
+                  <a href="components/ui-panel.html">Panel page</a>
+                </p>
+                <ui-panel header="Theme" level="5" style="max-width: 320px">
+                  <ui-input placeholder="Name, e.g. sunrise" aria-label="Name"></ui-input>
+                  <ui-slider min="13" max="19" value="16" aria-label="Text size"></ui-slider>
+                </ui-panel>
+              </ui-docs-example>
+              <ui-docs-example description="Sub-panels">
+                <ui-panel header="Color Set" level="5" collapsible style="max-width: 320px">
+                  <ui-input placeholder="Name, e.g. brand" aria-label="Set name"></ui-input>
+                  <ui-panel header="Tweak" collapsible>
+                    <ui-slider min="0" max="200" step="20" value="100" aria-label="Vibrancy"></ui-slider>
+                  </ui-panel>
+                  <ui-panel header="Presets" collapsible collapsed>
+                    <p>Six preset chips.</p>
+                  </ui-panel>
+                </ui-panel>
+              </ui-docs-example>
+              <ui-docs-example description="Colors">
+                <div class="ui-cluster" style="align-items: start">
+                  <ui-panel header="Violet" level="5" color="violet" style="width: 200px">
+                    <ui-panel header="Tweak"><p>Any hue.</p></ui-panel>
+                  </ui-panel>
+                  <ui-panel header="Grey" level="5" color="grey" style="width: 200px">
+                    <ui-panel header="Tweak"><p>Sub-panels follow.</p></ui-panel>
+                  </ui-panel>
+                </div>
+              </ui-docs-example>
+            </ui-section>
+
             <ui-section id="spell-ui-s-own-root" header="Root" sticky collapsible dividing>
               <ui-docs-example>
                 <p slot="description">

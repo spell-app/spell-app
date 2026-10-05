@@ -304,7 +304,7 @@
     --ui-toast-radius: var(--ui-radius-l);
     --ui-modal-radius: 22px;
     --ui-popup-radius: var(--ui-radius-s);
-    /* `<ui-section info>` (and so `<ui-brand-panel>`'s bands):  the brand's tooltip, an aubergine bubble, as
+    /* `<ui-section info>` (and so `<ui-panel>`'s bands):  the brand's tooltip, an aubergine bubble, as
        `<ui-brand-field>`'s */
     --ui-section-tip-background: var(--spell-surface-inverse);
     --ui-section-tip-color: var(--spell-text-inverse);
@@ -717,7 +717,7 @@
  *   a `color` while this theme is on.
  * - The NAME is added to the `hues` value set by the brand bundle (`packages/brand/src/hues.ts`):  a theme sheet can't.
  *   Elsewhere the attribute is refused;  under another theme, accepted but untinted.
- * - `<ui-brand-panel color="accent">`:  the Color Set Chooser's ivory panel.
+ * - `<ui-panel color="accent">`:  the Color Set Chooser's ivory panel.
  */
 @layer ui.theme {
   :root {
