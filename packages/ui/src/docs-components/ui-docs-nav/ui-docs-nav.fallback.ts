@@ -1,9 +1,18 @@
-import { NativeFallback, proto } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
-
+import { VocabularyTexts } from "$/ui/docs-components/docs-components.types"
 import { docsNavVocabulary } from "./ui-docs-nav.vocabulary.en"
 import { NavIndex } from "./NavIndex"
-import { FOUNDATION_PAGES, TOP_PAGES, type DocsNavText, type NavPage } from "./ui-docs-nav.types"
+import {
+  BAND,
+  FOUNDATION_PAGES,
+  HEADING,
+  ROW,
+  ROWS,
+  TOP_PAGES,
+  type DocsNavText,
+  type NavPage
+} from "./ui-docs-nav.types"
 
 /****************
  * ### `DocsNavFallback`
@@ -15,9 +24,9 @@ import { FOUNDATION_PAGES, TOP_PAGES, type DocsNavText, type NavPage } from "./u
  * - The component list fills in once `SiteData` has loaded (the same fetch the element made);  if it fails, the
  *   list stays empty.
  ****************/
-export class DocsNavFallback extends NativeFallback<typeof docsNavVocabulary> {
-  @proto static vocabulary = docsNavVocabulary
-  @proto static degraded = [
+export class DocsNavFallback extends E.NativeFallback<typeof docsNavVocabulary> {
+  @E.proto static vocabulary = docsNavVocabulary
+  @E.proto static degraded = [
     "plain links in fixed groups:  no header band, no search, no folding",
     "every component A-Z only:  no topics, no favourites, no status badges",
     "the current page isn't scrolled into view",
@@ -25,12 +34,12 @@ export class DocsNavFallback extends NativeFallback<typeof docsNavVocabulary> {
   ]
 
   /** The component list, filled once the data arrives. */
-  private readonly components = this.create("ul", { class: "rows" })
+  private readonly components = this.create("ul", { class: ROWS })
 
   protected override build() {
     const nav = this.create(
       "nav",
-      { "aria-label": this.text("navLabel") },
+      { [UIT.ARIA_LABEL]: this.text("navLabel") },
       this.heading("getStarted"),
       this.list(TOP_PAGES),
       this.heading("components"),
@@ -53,23 +62,23 @@ export class DocsNavFallback extends NativeFallback<typeof docsNavVocabulary> {
 
   /** A group's `<h2>`, drawn as its band. */
   private heading(key: DocsNavText): HTMLHeadingElement {
-    return this.create("h2", { class: "heading band" }, this.text(key))
+    return this.create("h2", { class: `${HEADING} ${BAND}` }, this.text(key))
   }
 
   /** A `<ul>` of `pages`' links. */
   private list(pages: readonly NavPage[]): HTMLUListElement {
     return this.create(
       "ul",
-      { class: "rows" },
+      { class: ROWS },
       ...pages.map((page) => this.link(page.file, this.text(page.text), page.id === this.current()))
     )
   }
 
-  /** One `<li><a>`, `current` marked. */
-  private link(path: string, text: string, current: boolean): HTMLLIElement {
+  /** One `<li><a>`, `isCurrent` marked. */
+  private link(path: string, text: string, isCurrent: boolean): HTMLLIElement {
     const href = (this.attr("base") ?? SiteData.root()) + path
-    const link = this.create("a", { class: "item", href, "aria-current": current ? "page" : null }, text)
-    return this.create("li", { class: "row" }, link)
+    const link = this.create("a", { class: UIT.ITEM, href, "aria-current": isCurrent ? UIT.PAGE : undefined }, text)
+    return this.create("li", { class: ROW }, link)
   }
 
   /** `current`, else the page's file name. */
@@ -79,6 +88,6 @@ export class DocsNavFallback extends NativeFallback<typeof docsNavVocabulary> {
 
   /** The vocabulary's English text for `key`. */
   private text(key: DocsNavText): string {
-    return docsNavVocabulary.texts.find((text) => text.key === key)?.text ?? key
+    return VocabularyTexts.english(docsNavVocabulary, key)
   }
 }

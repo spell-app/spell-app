@@ -1,17 +1,15 @@
-import { NativeFallback, proto } from "$/ui/core"
-import { SiteData } from "$/ui/docs-components/SiteData"
-import type { SiteDataFile, SiteToken } from "$/ui/docs-components/docs-components.types"
-
-import { docsTokensVocabulary } from "./ui-docs-tokens.vocabulary.en"
-import { TokenRows } from "./TokenRows"
+import { E, UIT } from "$/ui/core"
 import {
   CODE_SPAN,
-  DEFAULT_LEVEL,
-  MAX_LEVEL,
-  MIN_LEVEL,
-  type DocsTokensTextKey,
-  type TokenTable
-} from "./ui-docs-tokens.types"
+  HeadingLevels,
+  VocabularyTexts,
+  type SiteDataFile,
+  type SiteToken
+} from "$/ui/docs-components/docs-components.types"
+import { SiteData } from "$/ui/docs-components/SiteData"
+import { TokenRows } from "./TokenRows"
+import { COLOR_TYPE, LEVELS, type DocsTokensTextKey, type TokenTable } from "./ui-docs-tokens.types"
+import { docsTokensVocabulary } from "./ui-docs-tokens.vocabulary.en"
 
 /****************
  * ### `DocsTokensFallback`
@@ -20,11 +18,11 @@ import {
  * With `playground`, the preview (default slot) above them, without inputs.
  * - Native elements only:  no widgets, no Fomantic table look;  a colour's swatch is a `<span>` painted with
  *   `background: var(<token>, <default>)`, live like the element's.
- * - English only:  the texts are read straight from the vocabulary (no `UI.i18n`).
+ * - English only:  the texts are read straight from the vocabulary (`VocabularyTexts`, no `UI.i18n`).
  ****************/
-export class DocsTokensFallback extends NativeFallback<typeof docsTokensVocabulary> {
-  @proto static vocabulary = docsTokensVocabulary
-  @proto static degraded = [
+export class DocsTokensFallback extends E.NativeFallback<typeof docsTokensVocabulary> {
+  @E.proto static vocabulary = docsTokensVocabulary
+  @E.proto static degraded = [
     "plain native tables:  no Fomantic look, no stacking at phone width",
     "no filter input",
     "the playground shows its preview, but no inputs and no reset",
@@ -50,12 +48,12 @@ export class DocsTokensFallback extends NativeFallback<typeof docsTokensVocabula
 
   /** The tables, or the message `TokenRows` gives instead. */
   private fill(data: SiteDataFile) {
-    const view = TokenRows.view(
+    const view = TokenRows.viewFor(
       data,
       {
         family: this.attr("family") ?? undefined,
         tag: this.attr("tag") ?? undefined,
-        global: this.flag("global"),
+        isGlobal: this.flag("global"),
         groups: this.attr("groups") ?? undefined,
         tokens: this.attr("tokens") ?? undefined
       },
@@ -65,7 +63,7 @@ export class DocsTokensFallback extends NativeFallback<typeof docsTokensVocabula
       this.section?.append(this.message(view.text))
       return
     }
-    const level = Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Number(this.attr("level")) || DEFAULT_LEVEL))
+    const level = HeadingLevels.levelFor(this.attr("level") ?? undefined, LEVELS)
     for (const table of view.tables) this.section?.append(...this.group(table, level))
   }
 
@@ -75,13 +73,7 @@ export class DocsTokensFallback extends NativeFallback<typeof docsTokensVocabula
     const head = this.create(
       "thead",
       {},
-      this.create(
-        "tr",
-        {},
-        ...(["token", "default", "description"] as const).map((key) =>
-          this.create("th", { scope: "col" }, this.text(key))
-        )
-      )
+      this.create("tr", {}, ...COLUMNS.map((key) => this.create("th", { scope: "col" }, this.text(key))))
     )
     const body = this.create("tbody", {}, ...table.rows.map((row) => this.row(row)))
     const grid = this.decorate(
@@ -98,13 +90,11 @@ export class DocsTokensFallback extends NativeFallback<typeof docsTokensVocabula
 
   /** One token's row:  name, default (a swatch first for a colour), description. */
   private row(row: SiteToken): HTMLElement {
-    const swatch = this.create("span", { "aria-hidden": "true" })
-    swatch.style.cssText =
-      "display: inline-block; width: 1em; height: 1em; margin-inline-end: 0.5em; vertical-align: middle; " +
-      "border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25)"
-    swatch.style.background = this.flag("global") ? `var(${row.name})` : `var(${row.name}, ${row.default})`
+    const swatch = this.create("span", { "aria-hidden": UIT.TRUE })
+    swatch.style.cssText = SWATCH_STYLE
+    swatch.style.background = TokenRows.cssValueFor(row, { isGlobal: this.flag("global") })
     const value = [
-      ...(row.type === "color" ? [this.decorate(swatch, "swatch")] : []),
+      ...(row.type === COLOR_TYPE ? [this.decorate(swatch, "swatch")] : []),
       this.create("code", {}, row.default)
     ]
     return this.create(
@@ -132,8 +122,18 @@ export class DocsTokensFallback extends NativeFallback<typeof docsTokensVocabula
   }
 
   /** The vocabulary's English text for `key`, `{name}`s filled from `params`. */
-  private text(key: DocsTokensTextKey, params: Record<string, string> = {}): string {
-    const text = docsTokensVocabulary.texts.find((entry) => entry.key === key)?.text ?? key
-    return text.replace(/\{(\w+)\}/g, (match, name: string) => params[name] ?? match)
+  private text(key: DocsTokensTextKey, params?: Record<string, string>): string {
+    return VocabularyTexts.english(docsTokensVocabulary, key, params)
   }
 }
+
+/** The columns' text keys:  no inputs, so no value column. */
+const COLUMNS = ["token", "default", "description"] as const
+
+/**
+ * A swatch's look, inline:  the element's swatch is a `<ui-label>`, whose look the family's sheet (still adopted
+ * under the fallback) doesn't have.
+ */
+const SWATCH_STYLE =
+  "display: inline-block; width: 1em; height: 1em; margin-inline-end: 0.5em; vertical-align: middle; " +
+  "border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25)"

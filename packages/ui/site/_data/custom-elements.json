@@ -19955,7 +19955,7 @@
               "name": "text-align",
               "description": "Text alignment of every cell.",
               "type": {
-                "text": "string"
+                "text": "\"left\" | \"center\" | \"right\" | \"justified\""
               },
               "fieldName": "textAlign"
             },
@@ -19963,7 +19963,7 @@
               "name": "vertical-align",
               "description": "Vertical alignment of every cell.",
               "type": {
-                "text": "string"
+                "text": "\"top\" | \"middle\" | \"bottom\""
               },
               "fieldName": "verticalAlign"
             },

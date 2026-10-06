@@ -1,8 +1,8 @@
-import { NativeFallback, proto } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
-
+import { VocabularyTexts } from "$/ui/docs-components/docs-components.types"
 import { docsSearchVocabulary } from "./ui-docs-search.vocabulary.en"
-import type { DocsSearchText } from "./ui-docs-search.types"
+import { FIELD, type DocsSearchText, type DocsSearchVocabulary } from "./ui-docs-search.types"
 
 /****************
  * ### `DocsSearchFallback`
@@ -12,20 +12,17 @@ import type { DocsSearchText } from "./ui-docs-search.types"
  * - Picking a component's name from the browser's suggestions loads its page;  typing still fires `ui-input`
  *   (`{ value }`), so `<ui-docs-nav>` still filters its list.
  ****************/
-export class DocsSearchFallback extends NativeFallback<typeof docsSearchVocabulary> {
-  @proto static vocabulary = docsSearchVocabulary
-  @proto static degraded = [
+export class DocsSearchFallback extends E.NativeFallback<typeof docsSearchVocabulary> {
+  @E.proto static vocabulary = docsSearchVocabulary
+  @E.proto static degraded = [
     "the browser's own suggestions:  components by name only, no sections, pages or attributes",
     "no results card, no ranking, no marked matches",
     "no `/` or Cmd / Ctrl+K shortcut",
     "English texts only"
   ]
 
-  /** Id of the datalist, in the shadow root. */
-  static readonly LIST = "docs-search-list"
-
   /** The suggestions, filled once the data arrives. */
-  private readonly list = this.create("datalist", { id: DocsSearchFallback.LIST })
+  private readonly list = this.create("datalist", { id: LIST_ID })
 
   /** Component name => its page, from the data. */
   private readonly pages = new Map<string, string>()
@@ -33,15 +30,16 @@ export class DocsSearchFallback extends NativeFallback<typeof docsSearchVocabula
   /** The field. */
   private readonly input = this.create("input", {
     type: "search",
-    list: DocsSearchFallback.LIST,
-    "aria-label": this.text("label"),
+    list: LIST_ID,
+    [UIT.ARIA_LABEL]: this.text("label"),
     placeholder: this.attr("placeholder") ?? this.text("placeholder"),
     autocomplete: "off"
   })
 
   protected override build() {
-    const field = this.decorate(this.create("div", { class: "field" }, this.input), "field")
-    this.input.setAttribute("part", "input")
+    const field = this.decorate(this.create("div", { class: FIELD }, this.input), "field")
+    // its part only:  `decorate()` would copy the host's `aria-*` onto it too, which the field box already has
+    this.input.setAttribute("part", "input" satisfies E.PartNameOf<DocsSearchVocabulary>)
     return [this.decorate(this.create("div", { class: this.classes() }, field, this.list), "search")]
   }
 
@@ -69,19 +67,25 @@ export class DocsSearchFallback extends NativeFallback<typeof docsSearchVocabula
   private picked() {
     const path = this.pages.get(this.input.value.trim())
     if (!path) return
-    let base = this.attr("base")
-    if (base === null) {
-      try {
-        base = SiteData.root()
-      } catch {
-        base = ""
-      }
+    location.assign(new URL(this.base() + path, location.href).href)
+  }
+
+  /** Prefix of every link:  `base`, else the site root from `SiteData`, else none (the page's own folder). */
+  private base(): string {
+    const base = this.attr("base")
+    if (base !== null) return base
+    try {
+      return SiteData.root()
+    } catch {
+      return ""
     }
-    location.assign(new URL(base + path, location.href).href)
   }
 
   /** The vocabulary's English text for `key`. */
   private text(key: DocsSearchText): string {
-    return docsSearchVocabulary.texts.find((text) => text.key === key)?.text ?? key
+    return VocabularyTexts.english(docsSearchVocabulary, key)
   }
 }
+
+/** Id of the datalist, in the shadow root. */
+const LIST_ID = "docs-search-list"

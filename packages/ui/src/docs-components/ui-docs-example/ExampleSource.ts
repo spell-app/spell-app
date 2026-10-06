@@ -1,7 +1,5 @@
-import { ORIGINAL_PREFIX } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { HtmlFormatter } from "./HtmlFormatter"
-import { EXAMPLE_TAG, OWN_SLOTS, RUNTIME_ATTRIBUTES, SNAPSHOTS_KEY, type SnapshotGlobal } from "./ui-docs-example.types"
 
 /****************
  * ### `ExampleSource`
@@ -24,13 +22,9 @@ import { EXAMPLE_TAG, OWN_SLOTS, RUNTIME_ATTRIBUTES, SNAPSHOTS_KEY, type Snapsho
  *   - `innerHTML` normalizes:  attribute quotes become `"`, entities are re-escaped (`&gt;` stays, `>` in text
  *     becomes `&gt;`), boolean attributes lose their `=""` (`HtmlFormatter`);  comments survive
  * - Plain DOM, no Solid:  the site entry imports it without the element.
+ * - Static:  the snapshots are page-wide (on `globalThis`, `SNAPSHOTS_KEY`), taken before any element exists.
  ****************/
 export class ExampleSource {
-  /** Host => its markup before upgrades, on `globalThis` (see `SNAPSHOTS_KEY`). */
-  private static get snapshots(): WeakMap<Element, string> {
-    return ((globalThis as SnapshotGlobal)[SNAPSHOTS_KEY] ??= new WeakMap())
-  }
-
   /**
    * Keep the markup of every `<ui-docs-example>` under `root` that isn't defined yet;  returns how many.
    * - Call BEFORE any family loads:  the site entry does, at the top.  Later calls only add new examples.
@@ -64,32 +58,18 @@ export class ExampleSource {
     return count
   }
 
-  /** `host`'s inner markup with every URL an include rewrote put back as written. */
-  private static authored(host: Element): string {
-    const copy = document.createElement("template")
-    copy.innerHTML = host.innerHTML
-    for (const element of copy.content.querySelectorAll("*")) {
-      for (const attribute of [...element.attributes]) {
-        if (!attribute.name.startsWith(ORIGINAL_PREFIX)) continue
-        element.setAttribute(attribute.name.slice(ORIGINAL_PREFIX.length), attribute.value)
-        element.removeAttribute(attribute.name)
-      }
-    }
-    return copy.innerHTML
+  /** The code to show for `host`:  its example markup (see the class), cleaned and re-indented. */
+  static of(host: Element): string {
+    const template = ExampleSource.template(host)
+    if (template) return ExampleSource.format(template.innerHTML, "authored")
+    const snapshot = ExampleSource.snapshots.get(host)
+    return ExampleSource.format(snapshot ?? host.innerHTML, snapshot === undefined ? "live" : "authored")
   }
 
   /** `host`'s top-level `<template>` child, if it has one:  the example's markup, kept inert. */
   static template(host: Element): HTMLTemplateElement | undefined {
-    for (const child of host.children) if (child instanceof HTMLTemplateElement) return child
+    for (const child of host.children) if (child.localName === TEMPLATE_TAG) return child as HTMLTemplateElement
     return undefined
-  }
-
-  /** The code to show for `host`:  its example markup (see the class), cleaned and re-indented. */
-  static of(host: Element): string {
-    const template = ExampleSource.template(host)
-    if (template) return ExampleSource.format(template.innerHTML, false)
-    const snapshot = ExampleSource.snapshots.get(host)
-    return ExampleSource.format(snapshot ?? host.innerHTML, snapshot === undefined)
   }
 
   /**
@@ -97,18 +77,76 @@ export class ExampleSource {
    * re-indented.
    * - Parsed into an inert `<template>`:  nothing in it upgrades or loads.
    */
-  static format(html: string, live: boolean): string {
-    const inert = document.createElement("template")
+  static format(html: string, origin: MarkupOrigin): string {
+    const inert = document.createElement(TEMPLATE_TAG)
     inert.innerHTML = html
-    for (const child of [...inert.content.children]) {
-      const slot = child.getAttribute("slot")
-      if (slot !== null && OWN_SLOTS.includes(slot)) child.remove()
-    }
-    if (live) {
+    for (const child of [...inert.content.children]) if (OWN_SLOTS.includes(child.slot)) child.remove()
+    if (origin === "live") {
       for (const element of inert.content.querySelectorAll("*")) {
         for (const name of RUNTIME_ATTRIBUTES) element.removeAttribute(name)
       }
     }
     return HtmlFormatter.format(inert.innerHTML)
   }
+
+  ////////////////
+  // ## Internal
+  ////////////////
+
+  /** Host => its markup before upgrades, on `globalThis` (see `SNAPSHOTS_KEY`). */
+  private static get snapshots(): WeakMap<Element, string> {
+    return ((globalThis as SnapshotGlobal)[SNAPSHOTS_KEY] ??= new WeakMap())
+  }
+
+  /** `host`'s inner markup with every URL an include rewrote put back as written. */
+  private static authored(host: Element): string {
+    const copy = document.createElement(TEMPLATE_TAG)
+    copy.innerHTML = host.innerHTML
+    for (const element of copy.content.querySelectorAll("*")) {
+      for (const attribute of [...element.attributes]) {
+        if (!attribute.name.startsWith(E.ORIGINAL_PREFIX)) continue
+        element.setAttribute(attribute.name.slice(E.ORIGINAL_PREFIX.length), attribute.value)
+        element.removeAttribute(attribute.name)
+      }
+    }
+    return copy.innerHTML
+  }
 }
+
+/**
+ * Where markup `ExampleSource.format()` gets came from:
+ * - `authored`:  as written (a `<template>`, a snapshot):  shown as is
+ * - `live`:  read from an upgraded tree:  `RUNTIME_ATTRIBUTES` are stripped
+ */
+export type MarkupOrigin = "authored" | "live"
+
+/** The tag whose markup `ExampleSource.snapshot()` keeps:  `docsExampleVocabulary.tag`, as a value. */
+const EXAMPLE_TAG = "ui-docs-example"
+
+/** The inert container an example's markup is read from, or parsed into. */
+const TEMPLATE_TAG = "template"
+
+/**
+ * `globalThis` key of the page's markup snapshots (`ExampleSource.snapshot()`):  host => its `innerHTML` before any
+ * family upgraded it.
+ * - A registered symbol, so the site entry's copy of `ExampleSource` and the lazily loaded family's agree even if a
+ *   bundler gave each its own copy of the module.
+ */
+const SNAPSHOTS_KEY = Symbol.for("@spell-app/ui-docs:example-sources")
+
+/** `globalThis` with the snapshots. */
+type SnapshotGlobal = typeof globalThis & { [SNAPSHOTS_KEY]?: WeakMap<Element, string> }
+
+/**
+ * Named slots of the example ITSELF:  their children are its chrome, not part of the example's markup.
+ * - The default slot (`""`) is the example.
+ */
+const OWN_SLOTS: readonly string[] = ["description"]
+
+/**
+ * Attributes the RUNTIME puts on light-DOM elements, never written by an author:  stripped from the shown markup
+ * when it's read from a live (already upgraded) tree.
+ * - `RovingTabindex`'s `tabindex` is NOT here:  authors write `tabindex` too.  A snapshot or a `<template>` avoids
+ *   the problem (see `ExampleSource`).
+ */
+const RUNTIME_ATTRIBUTES: readonly string[] = ["data-ui-animation", "data-ui-hidden-by-animation"]

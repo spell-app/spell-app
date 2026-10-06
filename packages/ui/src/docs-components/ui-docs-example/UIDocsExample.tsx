@@ -1,21 +1,12 @@
 import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { proto, SlotContent, UIElement } from "$/ui/core"
-
-import { docsExampleVocabulary } from "./ui-docs-example.vocabulary.en"
-import { DocsExampleFallback } from "./ui-docs-example.fallback"
+import { E, UIT } from "$/ui/core"
+import { CODE_SPAN, HeadingLevels } from "$/ui/docs-components/docs-components.types"
 import { ExampleSource } from "./ExampleSource"
-import {
-  CODE_ICON,
-  CODE_PANE_ID,
-  CODE_SPAN,
-  DEFAULT_LANGUAGE,
-  DEFAULT_LEVEL,
-  MAX_LEVEL,
-  MIN_LEVEL,
-  type DocsExampleVocabulary
-} from "./ui-docs-example.types"
+import { DocsExampleFallback } from "./ui-docs-example.fallback"
+import { CODE_PANE_ID, LEVELS, type DocsExampleVocabulary } from "./ui-docs-example.types"
+import { docsExampleVocabulary } from "./ui-docs-example.vocabulary.en"
 
 import exampleCSS from "./ui-docs-example.css?inline"
 
@@ -35,23 +26,23 @@ import exampleCSS from "./ui-docs-example.css?inline"
  * - A doc-only element (`src/docs-components/`):  its shadow composes other families' widgets, which its barrel
  *   imports.
  ****************/
-export class UIDocsExample extends UIElement<DocsExampleVocabulary> {
-  @proto static vocabulary = docsExampleVocabulary
-  @proto static styles = { "docs-example": exampleCSS }
-  @proto static Fallback = DocsExampleFallback
-  @proto static delegatesFocus = false
+export class UIDocsExample extends E.UIElement<DocsExampleVocabulary> {
+  @E.proto static vocabulary = docsExampleVocabulary
+  @E.proto static styles = { "docs-example": exampleCSS }
+  @E.proto static Fallback = DocsExampleFallback
+  @E.proto static delegatesFocus = false
 
   /** The markup to show, read once before anything here touches the light DOM. */
   readonly source: string = isServer ? "" : ExampleSource.of(this.host)
 
   /** Which slots have content:  the description shows only when there is one. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** `code`:  the code pane is open. */
   readonly open = this.controlled("code", false)
 
   /** A `<template>` child was stamped out live (see the class). */
-  readonly stamped: boolean = !isServer && this.stamp()
+  readonly isStamped: boolean = !isServer && this.stamp()
 
   protected override hostStates() {
     return { open: !!this.open.get() }
@@ -60,11 +51,11 @@ export class UIDocsExample extends UIElement<DocsExampleVocabulary> {
   render(): JSX.Element {
     return (
       <section class={this.classes()} part={this.part("example")}>
-        <div class="heading">
+        <div class={HEADING_CLASS}>
           <Show when={this.attrs.header}>
             <ui-header
               part={this.part("header")}
-              level={String(this.level())}
+              level={String(HeadingLevels.levelFor(this.attrs.level, LEVELS))}
               size={this.attrs.variation ? "small" : undefined}
             >
               {this.attrs.header}
@@ -76,22 +67,22 @@ export class UIDocsExample extends UIElement<DocsExampleVocabulary> {
             basic=""
             icon={CODE_ICON}
             size={this.attrs.variation ? "mini" : "tiny"}
-            aria-label={this.open.get() ? this.text("hideCode") : this.text("showCode")}
-            title={this.open.get() ? this.text("hideCode") : this.text("showCode")}
-            aria-expanded={this.open.get() ? "true" : "false"}
+            aria-label={this.toggleLabel()}
+            title={this.toggleLabel()}
+            aria-expanded={this.open.get() ? UIT.TRUE : UIT.FALSE}
             aria-controls={CODE_PANE_ID}
-            ref={(button: HTMLElement) => button.addEventListener("click", (event) => this.toggle(event))}
+            ref={(button: HTMLElement) => button.addEventListener(UIT.CLICK, (event) => this.toggle(event))}
           />
         </div>
         <Show when={this.attrs.description || this.slots.has(this.slot("description"))}>
-          <div class="description" part={this.part("description")}>
-            <slot name={this.slot("description")}>{this.describe()}</slot>
+          <div class={UIT.DESCRIPTION} part={this.part("description")}>
+            <slot name={this.slot("description")}>{this.description()}</slot>
           </div>
         </Show>
         <ui-segment
           part={this.part("demo")}
-          basic={this.framed() ? undefined : ""}
-          attached={this.framed() ? "top" : undefined}
+          basic={this.isFramed() ? undefined : ""}
+          attached={this.isFramed() ? UIT.TOP : undefined}
         >
           <slot />
         </ui-segment>
@@ -100,7 +91,7 @@ export class UIDocsExample extends UIElement<DocsExampleVocabulary> {
             id={CODE_PANE_ID}
             part={this.part("code")}
             secondary=""
-            attached={this.attrs.bare ? undefined : "bottom"}
+            attached={this.attrs.bare ? undefined : UIT.BOTTOM}
           >
             <ui-code
               part={this.part("source")}
@@ -114,25 +105,24 @@ export class UIDocsExample extends UIElement<DocsExampleVocabulary> {
     )
   }
 
-  /** Open or close the code pane, as the user did with `event`. */
+  /** Open or close the code pane, as the viewer did with `event`. */
   toggle(event?: Event): void {
     const next = !this.open.get()
     this.open.request(next, () => this.emit("ui-toggle", { open: next, originalEvent: event }))
   }
 
   /** The live example sits in a frame:  the code is open and the example isn't `bare`. */
-  private framed(): boolean {
+  private isFramed(): boolean {
     return !!this.open.get() && !this.attrs.bare
   }
 
-  /** `level`, clamped to a heading level. */
-  private level(): number {
-    const level = Math.round(Number(this.attrs.level ?? DEFAULT_LEVEL))
-    return Number.isFinite(level) ? Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, level)) : DEFAULT_LEVEL
+  /** The code button's name:  what a click does. */
+  private toggleLabel(): string {
+    return this.open.get() ? this.text("hideCode") : this.text("showCode")
   }
 
   /** The `description` attribute as text, with each backticked span as `<code>`. */
-  private describe(): (string | JSX.Element)[] {
+  private description(): (string | JSX.Element)[] {
     const text = this.attrs.description ?? ""
     return text.split(CODE_SPAN).map((piece, index) => (index % 2 ? <code>{piece}</code> : piece))
   }
@@ -148,3 +138,12 @@ export class UIDocsExample extends UIElement<DocsExampleVocabulary> {
     return true
   }
 }
+
+/** Class word of the header row:  the title and the code button. */
+const HEADING_CLASS = "heading"
+
+/** The icon of the code button:  Fomantic's `code` icon. */
+const CODE_ICON = "code"
+
+/** `language` when unset (the vocabulary's default):  the source is markup. */
+const DEFAULT_LANGUAGE = "html"

@@ -51,13 +51,15 @@ export const FOUNDATION_PAGES: readonly NavPage[] = [
 ////////////////
 
 /**
- * A group of the panel:  a band that folds its links away.
+ * The panel's groups, top to bottom:  each a band that folds its links away.
  * - `start`:  the intro pages
  * - `favorites`:  the starred components
  * - `components`:  every component, A-Z or a band per topic
  * - `foundation`:  the Foundation pages
  */
-export type NavGroup = "start" | "favorites" | "components" | "foundation"
+export const NavGroups = ["start", "favorites", "components", "foundation"] as const
+/** One of `NavGroups`, e.g. `"components"`. */
+export type NavGroup = (typeof NavGroups)[number]
 
 /** `current` when the page's own file name says nothing (`/ui/`):  the overview. */
 export const INDEX_PAGE = "index"
@@ -69,8 +71,10 @@ export const PAGE_EXTENSION = ".html"
 // ## Index
 ////////////////
 
-/** `view`:  every component A-Z, or grouped by topic. */
-export type NavView = "az" | "topics"
+/** `view`'s values:  every component A-Z, or grouped by topic. */
+export const NavViews = ["az", "topics"] as const
+/** One of `NavViews`, e.g. `"topics"`. */
+export type NavView = (typeof NavViews)[number]
 
 /** `view` when neither the page nor the viewer chose one. */
 export const DEFAULT_VIEW: NavView = "topics"
@@ -105,6 +109,7 @@ export type NavTopic = {
   readonly id: string
   /** display title, e.g. `Date & time` */
   readonly title: string
+  /** its tags' rows, A-Z */
   readonly rows: readonly NavRow[]
 }
 
@@ -128,6 +133,22 @@ export const STORAGE_KEYS = {
   openTopics: "spell-ui-site:open-topics",
   closedGroups: "spell-ui-site:closed-groups"
 } as const
+
+////////////////
+// ## Shadow markup:  class words the element and its fallback share
+////////////////
+
+/** Class word of a list of rows (`<ul>`). */
+export const ROWS = "rows"
+
+/** Class word of one row (`<li>`):  a link, and a component's star. */
+export const ROW = "row"
+
+/** Class word of a group's heading (`<h2>`;  a topic's `<h3>`). */
+export const HEADING = "heading"
+
+/** Class word of a heading band:  the element's fold button, the fallback's plain heading. */
+export const BAND = "band"
 
 ////////////////
 // ## Element
@@ -176,8 +197,12 @@ export const REVEAL_FRACTION = 1 / 3
 
 /** What `DocsNavHost` delegates to:  the controller's script API. */
 export type DocsNavController = {
+  /** focus the search field, opening the drawer the nav is in first */
   focusSearch(): void
+  /** scroll the current page's item into view inside the panel */
   revealCurrent(): void
+  /** the starred tags, A-Z */
   favoriteTags(): string[]
+  /** resolves once the component list (or its error) has rendered */
   readonly listed: Promise<void>
 }

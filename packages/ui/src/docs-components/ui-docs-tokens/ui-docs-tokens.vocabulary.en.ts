@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-docs-tokens>` uses:  tag, attributes, events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - A DOC-ONLY element (`src/docs-components/`):  filed under the `documentation` topic, left out of the component
  *   list, loaded by `<ui-root>` like any family.
  * - Class words:  `global`, `playground` (`ui global playground tokens`);  the data's progress is `:state(loading)` /
@@ -8,7 +8,7 @@
  * - Texts:  every column header, label and message it shows;  the data's own descriptions are English.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-docs-tokens>`
@@ -160,4 +160,4 @@ export const docsTokensVocabulary = {
     { key: "loadError", text: "Couldn't load the token data:  {error}", description: "Message when the fetch fails." },
     { key: "missing", text: "Name a family, a tag, or global.", description: "Message with no attribute to go on." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

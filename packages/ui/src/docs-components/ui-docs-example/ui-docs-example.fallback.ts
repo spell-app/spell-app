@@ -1,8 +1,8 @@
-import { NativeFallback, proto } from "$/ui/core"
-
-import { docsExampleVocabulary } from "./ui-docs-example.vocabulary.en"
+import { E } from "$/ui/core"
+import { HeadingLevels } from "$/ui/docs-components/docs-components.types"
 import { ExampleSource } from "./ExampleSource"
-import { CODE_PANE_ID, DEFAULT_LEVEL, MAX_LEVEL, MIN_LEVEL } from "./ui-docs-example.types"
+import { CODE_PANE_ID, LEVELS } from "./ui-docs-example.types"
+import { docsExampleVocabulary } from "./ui-docs-example.vocabulary.en"
 
 /****************
  * ### `DocsExampleFallback`
@@ -10,9 +10,9 @@ import { CODE_PANE_ID, DEFAULT_LEVEL, MAX_LEVEL, MIN_LEVEL } from "./ui-docs-exa
  * example in `<div part="demo">` (`<slot>`), and, with `code`, the markup in `<pre part="code"><code>`.
  * - Native elements only:  no widgets, no highlighting, no code button (the `code` attribute alone opens it).
  ****************/
-export class DocsExampleFallback extends NativeFallback<typeof docsExampleVocabulary> {
-  @proto static vocabulary = docsExampleVocabulary
-  @proto static degraded = [
+export class DocsExampleFallback extends E.NativeFallback<typeof docsExampleVocabulary> {
+  @E.proto static vocabulary = docsExampleVocabulary
+  @E.proto static degraded = [
     "plain heading and paragraph, no `<ui-header>`",
     "no code button:  only the `code` attribute shows the code",
     "unhighlighted code, no copy button",
@@ -22,7 +22,7 @@ export class DocsExampleFallback extends NativeFallback<typeof docsExampleVocabu
   protected override build() {
     const header = this.attr("header")
     const description = this.attr("description")
-    const level = Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Number(this.attr("level")) || DEFAULT_LEVEL))
+    const level = HeadingLevels.levelFor(this.attr("level") ?? undefined, LEVELS)
     const children: Node[] = []
     if (header) children.push(this.decorate(this.create(`h${level}` as "h4", {}, header), "header"))
     if (description) children.push(this.decorate(this.create("p", {}, description), "description"))

@@ -18,7 +18,7 @@ import {
 import { LEGACY_SCHEME_KEYS, SCHEME_KEY } from "$/server/site/site.types"
 
 import { ThemeMenu } from "./ThemeMenu"
-import { DEFAULT_VALUE, SPELL, SPELL_BRAND, type DocsThemesChange } from "./ui-docs-themes.types"
+import { SPELL, SPELL_BRAND, type DocsThemesChange } from "./ui-docs-themes.types"
 
 import "$/ui/docs-components/ui-docs-themes"
 import "$/ui/components/ui-button"
@@ -208,7 +208,7 @@ describe("<ui-docs-themes> overlay", () => {
     expect(list.slice(0, 4)).toEqual([
       [SPELL, "Spell"],
       [SPELL_BRAND, "Spell Brand"],
-      [DEFAULT_VALUE, "Plain"],
+      [DOCS_PLAIN_THEME, "Plain"],
       ["classic", "Classic"]
     ])
     expect(
@@ -283,7 +283,7 @@ describe("<ui-docs-themes> overlay", () => {
     row(host, "classic").click()
     await vi.waitFor(() => expect(UI.styles.has(UI.themes.slots.base)).toBe(true))
     expect(UI.styles.has(UI.themes.slots.theme)).toBe(false)
-    row(host, DEFAULT_VALUE).click()
+    row(host, DOCS_PLAIN_THEME).click()
     await vi.waitFor(() => expect(UI.styles.has(UI.themes.slots.base)).toBe(false))
     expect(UI.themes.current).toBeUndefined()
     expect(part(host, "palette").getAttribute("aria-label")).toBe("Theme:  Plain")
@@ -385,11 +385,12 @@ describe("<ui-docs-themes> dropdown (show=theme)", () => {
   })
 
   it("ThemeMenu:  no data, every theme under its sheet name;  an unknown `for` tag filters nothing", () => {
-    const menu = new ThemeMenu(["fixed-width", "github"], undefined, "ui-button")
-    expect(menu.themes()).toEqual(["fixed-width", "github"])
-    expect(menu.title("fixed-width")).toBe("Fixed width")
+    const text = (key: string) => key
+    const menu = new ThemeMenu({ names: ["fixed-width", "github"], data: undefined, forTag: "ui-button", text })
+    expect(menu.themes).toEqual(["fixed-width", "github"])
+    expect(menu.titleFor("fixed-width")).toBe("Fixed width")
     const data = { components: [], docs: [], families: {}, themes: [] } as unknown as SiteDataFile
-    expect(new ThemeMenu(["github"], data, "ui-nope").themes()).toEqual(["github"])
+    expect(new ThemeMenu({ names: ["github"], data, forTag: "ui-nope", text }).themes).toEqual(["github"])
   })
 
   it("ThemeMenu:  `1 theme`, and the chosen look (never `0 themes`) for a family no theme touches", () => {
@@ -400,10 +401,10 @@ describe("<ui-docs-themes> dropdown (show=theme)", () => {
         themeLabel: `${values?.title} theme`,
         default: "Default"
       })[key] ?? key
-    const one = new ThemeMenu(["github"], undefined, "ui-button")
-    expect(one.label(undefined, text as never)).toBe("1 theme")
-    const none = new ThemeMenu([], undefined, "ui-sticky")
-    expect(none.label(undefined, text as never)).toBe("Default theme")
+    const one = new ThemeMenu({ names: ["github"], data: undefined, forTag: "ui-button", text: text as never })
+    expect(one.labelFor(undefined)).toBe("1 theme")
+    const none = new ThemeMenu({ names: [], data: undefined, forTag: "ui-sticky", text: text as never })
+    expect(none.labelFor(undefined)).toBe("Default theme")
   })
 })
 
@@ -443,7 +444,7 @@ describe("<ui-docs-themes> persistence", () => {
     await vi.waitFor(() => expect(UI.themes.current).toBe(SPELL))
     expect(localStorage.getItem(DOCS_LOOK_KEYS.scheme)).toBeNull()
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBeNull()
-    row(host, DEFAULT_VALUE).click()
+    row(host, DOCS_PLAIN_THEME).click()
     await vi.waitFor(() => expect(UI.themes.current).toBeUndefined())
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBe(DOCS_PLAIN_THEME)
     // the next page keeps Plain

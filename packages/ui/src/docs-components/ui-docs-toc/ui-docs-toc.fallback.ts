@@ -1,7 +1,8 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
+import { VocabularyTexts } from "$/ui/docs-components/docs-components.types"
 import { docsTocVocabulary } from "./ui-docs-toc.vocabulary.en"
 import { TocIndex } from "./TocIndex"
+import type { DocsTocVocabulary } from "./ui-docs-toc.types"
 
 /****************
  * ### `DocsTocFallback`
@@ -9,9 +10,9 @@ import { TocIndex } from "./TocIndex"
  * one per section and entry, from ONE scan of the followed content (`TocIndex`).
  * - Native elements only:  no widgets, no following (nothing is marked current), no rescans.
  ****************/
-export class DocsTocFallback extends NativeFallback<typeof docsTocVocabulary> {
-  @proto static vocabulary = docsTocVocabulary
-  @proto static degraded = [
+export class DocsTocFallback extends E.NativeFallback<typeof docsTocVocabulary> {
+  @E.proto static vocabulary = docsTocVocabulary
+  @E.proto static degraded = [
     "plain links, no `<ui-menu>`",
     "doesn't follow the scroll or the tabs:  every section listed with its entries, as at load"
   ]
@@ -26,16 +27,17 @@ export class DocsTocFallback extends NativeFallback<typeof docsTocVocabulary> {
       // nested sections' entries too, in page order
       for (const entry of TocIndex.flatten(section.entries)) links.push(this.link(entry.id, entry.text, "entry"))
     }
-    const label = docsTocVocabulary.texts[0].text
+    const label = VocabularyTexts.english(docsTocVocabulary, "label")
     const children: Node[] = []
     const header = this.attr("header")
     if (header) children.push(this.decorate(this.create("p", {}, header), "header"))
-    children.push(this.decorate(this.create("nav", { "aria-label": label }, this.create("ul", {}, ...links)), "menu"))
+    const list = this.create("ul", {}, ...links)
+    children.push(this.decorate(this.create("nav", { [UIT.ARIA_LABEL]: label }, list), "menu"))
     return [this.decorate(this.create("div", { class: this.classes() }, ...children), "toc")]
   }
 
-  /** A list item holding a link to `#id`. */
-  private link(id: string, text: string, part: "section" | "entry"): HTMLElement {
+  /** A list item holding a link to `#id`, as part `part`. */
+  private link(id: string, text: string, part: E.PartNameOf<DocsTocVocabulary>): HTMLElement {
     return this.create("li", {}, this.decorate(this.create("a", { href: `#${id}` }, text), part))
   }
 }

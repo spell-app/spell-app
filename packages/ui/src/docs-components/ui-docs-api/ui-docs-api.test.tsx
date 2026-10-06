@@ -390,29 +390,29 @@ describe("<ui-docs-api> messages and states", () => {
 
 describe("InlineCode", () => {
   it.each([
-    ["plain", [{ text: "plain", code: false }]],
+    ["plain", [{ text: "plain", isCode: false }]],
     [
       "a `b` c",
       [
-        { text: "a ", code: false },
-        { text: "b", code: true },
-        { text: " c", code: false }
+        { text: "a ", isCode: false },
+        { text: "b", isCode: true },
+        { text: " c", isCode: false }
       ]
     ],
     [
       "`` `x` `` becomes code",
       [
-        { text: "`x`", code: true },
-        { text: " becomes code", code: false }
+        { text: "`x`", isCode: true },
+        { text: " becomes code", isCode: false }
       ]
     ],
-    ["an `unclosed span", [{ text: "an `unclosed span", code: false }]],
+    ["an `unclosed span", [{ text: "an `unclosed span", isCode: false }]],
     [
       "`a` and `<b>`",
       [
-        { text: "a", code: true },
-        { text: " and ", code: false },
-        { text: "<b>", code: true }
+        { text: "a", isCode: true },
+        { text: " and ", isCode: false },
+        { text: "<b>", isCode: true }
       ]
     ]
   ])("parses %j", (text, pieces) => {
@@ -420,25 +420,25 @@ describe("InlineCode", () => {
   })
 
   it.each(["x", "`x`", "a `` b", "{ a: 1 }"])("wraps %j so it parses back as one code piece", (code) => {
-    expect(InlineCode.parse(InlineCode.wrap(code))).toEqual([{ text: code, code: true }])
+    expect(InlineCode.parse(InlineCode.wrap(code))).toEqual([{ text: code, isCode: true }])
   })
 })
 
 describe("ApiModel", () => {
   it("leaves out empty tables and keeps rich data apart", () => {
-    expect(ApiModel.sections(OR).map((section) => section.id)).toEqual(["parts"])
-    const sections = ApiModel.sections(BUTTON)
+    expect(ApiModel.sectionsFor(OR).map((section) => section.id)).toEqual(["parts"])
+    const sections = ApiModel.sectionsFor(BUTTON)
     expect(sections.find((section) => section.id === "properties")!.rows.map((row) => row.key)).toEqual(["options"])
     expect(sections.find((section) => section.id === "attributes")!.rows.map((row) => row.key)).not.toContain("options")
   })
 
   it("names properties and defaults as the old Astro table did", () => {
-    expect(ApiModel.propertyOf({ name: "column-defs", kind: "json", description: "" })).toBe("columnDefs")
-    expect(ApiModel.propertyOf({ name: "x", kind: "number", property: "y", description: "" })).toBe("y")
-    expect(ApiModel.defaultOf({ name: "x", kind: "keyOnly", description: "" })).toBe("false")
-    expect(ApiModel.defaultOf({ name: "x", kind: "string", description: "" })).toBeUndefined()
-    expect(ApiModel.defaultOf({ name: "x", kind: "number", default: 0, description: "" })).toBe("0")
-    expect(ApiModel.kindLabel("keyOrValueAndKey")).toBe("boolean or value")
+    expect(ApiModel.propertyFor({ name: "column-defs", kind: "json", description: "" })).toBe("columnDefs")
+    expect(ApiModel.propertyFor({ name: "x", kind: "number", property: "y", description: "" })).toBe("y")
+    expect(ApiModel.defaultFor({ name: "x", kind: "keyOnly", description: "" })).toBe("false")
+    expect(ApiModel.defaultFor({ name: "x", kind: "string", description: "" })).toBeUndefined()
+    expect(ApiModel.defaultFor({ name: "x", kind: "number", default: 0, description: "" })).toBe("0")
+    expect(ApiModel.kindLabelFor("keyOrValueAndKey")).toBe("boolean or value")
   })
 })
 

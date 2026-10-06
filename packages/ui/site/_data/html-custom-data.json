@@ -13204,15 +13204,40 @@
           "name": "text-align",
           "description": {
             "kind": "markdown",
-            "value": "Text alignment of every cell.\n\nTakes:  text"
-          }
+            "value": "Text alignment of every cell.\n\nTakes:  `left` · `center` · `right` · `justified`"
+          },
+          "values": [
+            {
+              "name": "left"
+            },
+            {
+              "name": "center"
+            },
+            {
+              "name": "right"
+            },
+            {
+              "name": "justified"
+            }
+          ]
         },
         {
           "name": "vertical-align",
           "description": {
             "kind": "markdown",
-            "value": "Vertical alignment of every cell.\n\nTakes:  text"
-          }
+            "value": "Vertical alignment of every cell.\n\nTakes:  `top` · `middle` · `bottom`"
+          },
+          "values": [
+            {
+              "name": "top"
+            },
+            {
+              "name": "middle"
+            },
+            {
+              "name": "bottom"
+            }
+          ]
         },
         {
           "name": "sort-column",

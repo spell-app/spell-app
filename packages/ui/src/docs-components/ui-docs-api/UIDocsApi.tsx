@@ -1,28 +1,24 @@
 import { For, Show, createEffect, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
+import { HeadingLevels, type SiteDataFile, type SiteTag } from "$/ui/docs-components/docs-components.types"
 import { SiteData } from "$/ui/docs-components/SiteData"
-import type { SiteDataFile, SiteTag } from "$/ui/docs-components/docs-components.types"
-
-import { docsApiVocabulary } from "./ui-docs-api.vocabulary.en"
-import { DocsApiFallback } from "./ui-docs-api.fallback"
 import { ApiModel } from "./ApiModel"
 import { InlineCode } from "./InlineCode"
+import { DocsApiFallback } from "./ui-docs-api.fallback"
 import {
-  DEFAULT_LEVEL,
-  MAX_LEVEL,
-  MIN_LEVEL,
-  RANGE_SEPARATOR,
+  LEVELS,
   type ApiCell,
   type ApiItem,
   type ApiMessage,
   type ApiSection,
   type DocsApiVocabulary
 } from "./ui-docs-api.types"
+import { docsApiVocabulary } from "./ui-docs-api.vocabulary.en"
 
-import apiCSS from "./ui-docs-api.css?inline"
 import tableCSS from "$/ui/components/ui-table/ui-table.css?inline"
+import apiCSS from "./ui-docs-api.css?inline"
 
 /****************
  * ### `<ui-docs-api>`
@@ -44,17 +40,17 @@ import tableCSS from "$/ui/components/ui-table/ui-table.css?inline"
  * - A doc-only element (`src/docs-components/`):  its shadow composes other families' widgets, which its barrel
  *   imports.
  ****************/
-export class UIDocsApi extends UIElement<DocsApiVocabulary> {
-  @proto static vocabulary = docsApiVocabulary
-  @proto static styles = { table: tableCSS, "docs-api": apiCSS }
-  @proto static Fallback = DocsApiFallback
-  @proto static delegatesFocus = false
+export class UIDocsApi extends E.UIElement<DocsApiVocabulary> {
+  @E.proto static vocabulary = docsApiVocabulary
+  @E.proto static styles = { table: tableCSS, "docs-api": apiCSS }
+  @E.proto static Fallback = DocsApiFallback
+  @E.proto static delegatesFocus = false
 
   /** The site's data, once fetched. */
-  readonly data = new Cell<SiteDataFile | undefined>(undefined)
+  readonly data = new E.Cell<SiteDataFile | undefined>(undefined)
 
   /** Why the data couldn't be fetched, if it couldn't. */
-  readonly failure = new Cell<Error | undefined>(undefined)
+  readonly failure = new E.Cell<Error | undefined>(undefined)
 
   /** The fetch, started on first connect;  settles once `data` or `failure` is set. */
   readonly fetched: Promise<void> = isServer ? Promise.resolve() : this.fetch()
@@ -65,24 +61,21 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
   /** What to draw:  one entry per tag, with its tables;  `undefined` until the data is in. */
   readonly items = createMemo((): ApiItem[] | undefined => {
     const data = this.data.get()
-    return data && UIDocsApi.itemsOf(data, this.attrs.tag, this.attrs.family)
+    return data && UIDocsApi.itemsFor(data, { tag: this.attrs.tag, family: this.attrs.family })
   })
 
   /** The message to show instead of tables, if any:  a failed fetch, no `tag` / `family`, an unknown tag. */
   readonly message = createMemo((): ApiMessage | undefined => {
     const failure = this.failure.get()
-    if (failure) return { state: "negative", key: "loadError", params: { error: failure.message } }
+    if (failure) return { state: NEGATIVE, key: "loadError", params: { error: failure.message } }
     const items = this.items()
     if (!items || items.length) return undefined
     const name = this.attrs.family || this.attrs.tag
-    return name ? { state: "warning", key: "notFound", params: { tag: name } } : { state: "warning", key: "noTag" }
+    return name ? { state: WARNING, key: "notFound", params: { tag: name } } : { state: WARNING, key: "noTag" }
   })
 
   /** Heading level of the topmost headers, clamped. */
-  readonly level = createMemo(() => {
-    const level = Math.round(Number(this.attrs.level ?? DEFAULT_LEVEL))
-    return Number.isFinite(level) ? Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, level)) : DEFAULT_LEVEL
-  })
+  readonly level = createMemo(() => HeadingLevels.levelFor(this.attrs.level, LEVELS))
 
   protected override hostStates() {
     return { loading: !isServer && !this.data.get() && !this.failure.get(), error: !!this.message() }
@@ -100,10 +93,10 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
     )
     createEffect(
       () => this.connected.get(),
-      (connected) => {
-        if (!connected) return undefined
-        window.addEventListener("hashchange", this.onHashChange)
-        return () => window.removeEventListener("hashchange", this.onHashChange)
+      (isConnected) => {
+        if (!isConnected) return undefined
+        window.addEventListener(HASHCHANGE, this.onHashChange)
+        return () => window.removeEventListener(HASHCHANGE, this.onHashChange)
       }
     )
     return content
@@ -113,11 +106,13 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
     return (
       <section class={this.classes()} part={this.part("api")}>
         <Show when={this.message()}>
-          <ui-message part={this.part("message")} state={this.message()?.state} size="small">
-            {this.inline(this.message() ? this.text(this.message()!.key, this.message()!.params) : "")}
-          </ui-message>
+          {(message) => (
+            <ui-message part={this.part("message")} state={message().state} size={SMALL}>
+              {this.inline(this.text(message().key, message().params))}
+            </ui-message>
+          )}
         </Show>
-        <For each={this.items() ?? []}>{(item) => this.renderItem(item)}</For>
+        <For each={this.items() ?? []}>{(item) => this.item(item)}</For>
       </section>
     )
   }
@@ -127,39 +122,39 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
   ////////////////
 
   /** One tag:  its tables, under its own header and summary with `family`. */
-  private renderItem(item: ApiItem): JSX.Element {
-    if (!item.grouped) return <For each={item.sections}>{(section) => this.renderSection(item, section)}</For>
+  private item(item: ApiItem): JSX.Element {
+    if (!item.isGrouped) return <For each={item.sections}>{(section) => this.table(item, section)}</For>
     return (
-      <section class="tag" part={this.part("tag")}>
+      <section class={TAG_CLASS} part={this.part("tag")}>
         <ui-header part={this.part("header")} id={item.tag.tag} level={String(this.level())} dividing="">
           <a href={`#${item.tag.tag}`}>
             <code>{`<${item.tag.tag}>`}</code>
           </a>
         </ui-header>
         <Show when={item.tag.description}>
-          <p class="description" part={this.part("description")}>
+          <p class={UIT.DESCRIPTION} part={this.part("description")}>
             {this.inline(item.tag.description ?? "")}
           </p>
         </Show>
-        <For each={item.sections}>{(section) => this.renderSection(item, section)}</For>
+        <For each={item.sections}>{(section) => this.table(item, section)}</For>
       </section>
     )
   }
 
   /** One table:  its title (and note), then the `<ui-table>`. */
-  private renderSection(item: ApiItem, section: ApiSection): JSX.Element {
+  private table(item: ApiItem, section: ApiSection): JSX.Element {
     const tag = `<${item.tag.tag}>`
     return (
       <>
         <ui-header
           part={this.part("title")}
-          level={String(item.grouped ? this.level() + 1 : this.level())}
-          size="small"
+          level={String(item.isGrouped ? this.level() + 1 : this.level())}
+          size={SMALL}
         >
           {this.text(section.id)}
         </ui-header>
         <Show when={section.note}>
-          <p class="note ui-muted" part={this.part("note")}>
+          <p class={NOTE_CLASS} part={this.part("note")}>
             {this.inline(section.note ? this.text(section.note) : "")}
           </p>
         </Show>
@@ -174,7 +169,7 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
               <For each={section.rows}>
                 {(row) => (
                   <tr>
-                    <For each={row.cells}>{(cell) => this.renderCell(cell)}</For>
+                    <For each={row.cells}>{(cell) => this.cell(cell)}</For>
                   </tr>
                 )}
               </For>
@@ -186,14 +181,14 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
   }
 
   /** One cell:  a name as the row's `<th>`, prose with code spans, or values as labels. */
-  private renderCell(cell: ApiCell): JSX.Element {
+  private cell(cell: ApiCell): JSX.Element {
     if (cell.type === "name") {
       return (
         <th scope="row">
           {cell.code === undefined ? <em>{cell.label ? this.text(cell.label) : ""}</em> : <code>{cell.code}</code>}
           <For each={cell.notes}>
             {(note) => (
-              <small class="ui-caption">
+              <small class={CAPTION_CLASS}>
                 {this.text(note.key)}
                 <Show when={note.code !== undefined}>
                   {" "}
@@ -206,20 +201,19 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
       )
     }
     if (cell.type === "text") return <td>{this.inline(cell.text)}</td>
-    const values = cell.range ? [`${cell.values[0]}${RANGE_SEPARATOR}${cell.values.at(-1)}`] : cell.values
     return (
       <td>
         <ui-labels size="mini">
-          <For each={values}>
+          <For each={ApiModel.labelsFor(cell)}>
             {(value) => (
-              <ui-label basic={cell.swatch ? undefined : ""} color={cell.swatch ? value : undefined}>
+              <ui-label basic={cell.isSwatch ? undefined : ""} color={cell.isSwatch ? value : undefined}>
                 {value}
               </ui-label>
             )}
           </For>
         </ui-labels>
         <Show when={cell.set}>
-          <small class="ui-caption">
+          <small class={CAPTION_CLASS}>
             {this.text("valueSet")} <code>{cell.set}</code>
           </small>
         </Show>
@@ -229,7 +223,7 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
 
   /** `text` with its `` `code` `` spans as `<code>`. */
   private inline(text: string): JSX.Element {
-    return <For each={InlineCode.parse(text)}>{(piece) => (piece.code ? <code>{piece.text}</code> : piece.text)}</For>
+    return <For each={InlineCode.parse(text)}>{(piece) => (piece.isCode ? <code>{piece.text}</code> : piece.text)}</For>
   }
 
   ////////////////
@@ -257,7 +251,7 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
    * - Scrolls the header's `<section>` when the header host draws no box of its own (`display: contents`).
    */
   private async reveal(hash: string): Promise<void> {
-    const id = UIDocsApi.idOf(hash)
+    const id = UIDocsApi.idForHash(hash)
     const root = this.host.renderRoot
     const header = id ? (root as ShadowRoot).getElementById?.(id) : undefined
     if (!header) return
@@ -266,8 +260,11 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
     requestAnimationFrame(() => (header.getClientRects().length ? header : header.parentElement)?.scrollIntoView())
   }
 
-  /** The id a `location.hash` names, decoded;  `""` for none or a malformed one. */
-  private static idOf(hash: string): string {
+  /**
+   * The id a `location.hash` names, decoded;  `""` for none or a malformed one.
+   * - Static:  pure.
+   */
+  private static idForHash(hash: string): string {
     try {
       return decodeURIComponent(hash.replace(/^#/, ""))
     } catch {
@@ -278,16 +275,46 @@ export class UIDocsApi extends UIElement<DocsApiVocabulary> {
   /**
    * What `tag` / `family` name in `data`:  a family's tags in its order (grouped, each with a header), else the one
    * tag (no header);  `[]` when neither is set or the data has no such tag.
+   * - Static:  pure.
    */
-  private static itemsOf(data: SiteDataFile, tag: string | undefined, family: string | undefined): ApiItem[] {
+  private static itemsFor(data: SiteDataFile, { tag, family }: ItemsParams): ApiItem[] {
     if (family) {
       const tags = SiteData.family(data, family)?.tags ?? []
       return tags
         .map((name) => SiteData.tag(data, name))
         .filter((entry): entry is SiteTag => !!entry)
-        .map((entry) => ({ tag: entry, grouped: true, sections: ApiModel.sections(entry) }))
+        .map((entry) => ({ tag: entry, isGrouped: true, sections: ApiModel.sectionsFor(entry) }))
     }
     const entry = tag ? SiteData.tag(data, tag) : undefined
-    return entry ? [{ tag: entry, grouped: false, sections: ApiModel.sections(entry) }] : []
+    return entry ? [{ tag: entry, isGrouped: false, sections: ApiModel.sectionsFor(entry) }] : []
   }
 }
+
+/** What `itemsFor()` draws:  the `tag` and `family` attributes. */
+type ItemsParams = {
+  /** one tag, with no header */
+  tag?: string
+  /** every tag of a family, each under its header;  wins over `tag` */
+  family?: string
+}
+
+/** `window` event the element follows while connected. */
+const HASHCHANGE = "hashchange"
+
+/** Class word of one tag's block, with `family`. */
+const TAG_CLASS = "tag"
+
+/** Classes of the line under a table's title:  muted. */
+const NOTE_CLASS = "note ui-muted"
+
+/** Class of the small notes under a name or values:  the caption utility. */
+const CAPTION_CLASS = "ui-caption"
+
+/** `size` of the table titles and the message. */
+const SMALL = "small"
+
+/** `<ui-message>` `state` of a failed fetch. */
+const NEGATIVE = "negative"
+
+/** `<ui-message>` `state` of a missing or unknown tag. */
+const WARNING = "warning"

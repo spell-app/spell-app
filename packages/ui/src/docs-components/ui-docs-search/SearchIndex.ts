@@ -1,15 +1,14 @@
 import type { SiteDataFile, SiteSearchFile, SiteTag } from "$/ui/docs-components/docs-components.types"
-
 import {
   GROUP_LIMIT,
   INSIDE_MIN,
-  KIND_ORDER,
   KIND_WEIGHT,
   SCORES,
   TRAIL,
   type SearchEntry,
   type SearchGroup,
   type SearchHit,
+  SearchKinds,
   type SearchKind
 } from "./ui-docs-search.types"
 
@@ -24,21 +23,12 @@ import {
  *   Inside-a-word matches need `INSIDE_MIN` characters:  `or` finds `Or`, never every `color`.
  * - Ranking:  `SCORES` by how it matched, times `KIND_WEIGHT`, plus the entry's `boost`, minus a little per title
  *   character (the shorter title wins a tie).  Groups show their best `GROUP_LIMIT`;  the group with the best hit
- *   comes first (ties:  `KIND_ORDER`).
+ *   comes first (ties:  `SearchKinds` order).
  * - The page shown:  its own sections come from the DOM, so the search file's copy of that page is skipped;  its
  *   attributes get a small boost.
  * - Plain data, no Solid:  the element keeps the query in a signal and asks `search()`.
  ****************/
 export class SearchIndex {
-  /** Boost of a tag with a page of its own (a family's main tag, `ui-radio`) over a sub-tag on its family's page. */
-  static readonly PAGE_BOOST = 20
-
-  /** Boost of an entry on the page shown (its attributes). */
-  static readonly HERE_BOOST = 40
-
-  /** Score taken off per title character:  shorter titles win ties. */
-  static readonly LENGTH_COST = 0.5
-
   /** Every entry, but the page shown's sections. */
   readonly entries: readonly SearchEntry[]
 
@@ -48,18 +38,16 @@ export class SearchIndex {
   /** Folded (`fold()`) title and terms of each entry, made once. */
   private readonly keys: ReadonlyMap<SearchEntry, Key>
 
-  /**
-   * - `data`:  `components.json` (tags, attributes)
-   * - `search`:  `search.json` (pages and their sections), when it loaded
-   */
-  constructor(data: SiteDataFile | undefined, search?: SiteSearchFile) {
+  /** Index what loaded:  `data`'s tags and attributes, `search`'s pages and sections;  neither:  an empty index. */
+  constructor({ data, search }: SearchIndexProps = {}) {
     const entries: SearchEntry[] = []
     const pageOf = new Map<SearchEntry, string>()
     const families = data?.families ?? {}
+    const topics = data?.topics ?? []
     for (const tag of data?.components ?? []) {
       const page = tag.href?.replace(/#.*$/, "") ?? `components/${tag.mainTag}.html`
       const family = Object.hasOwn(families, tag.folder) ? families[tag.folder]!.title : tag.name
-      const component = SearchIndex.component(tag, family, data!)
+      const component = SearchIndex.component(tag, family, topics)
       entries.push(component)
       pageOf.set(component, page)
       for (const attribute of SearchIndex.attributes(tag, page, family)) {
@@ -111,19 +99,19 @@ export class SearchIndex {
     for (const entry of this.entries) {
       const page = this.pageOf.get(entry)
       if (current && page === `${current}#`) continue
-      consider(entry, this.keys.get(entry)!, current && page === current ? SearchIndex.HERE_BOOST : 0)
+      consider(entry, this.keys.get(entry)!, current && page === current ? HERE_BOOST : 0)
     }
     const groups = [...hits].map(([kind, list]) => ({
       kind,
       hits: list.sort(SearchIndex.compare).slice(0, GROUP_LIMIT[kind])
     }))
     return groups.sort(
-      (a, b) => b.hits[0]!.score - a.hits[0]!.score || KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind)
+      (a, b) => b.hits[0]!.score - a.hits[0]!.score || SearchKinds.indexOf(a.kind) - SearchKinds.indexOf(b.kind)
     )
 
     /** Score `entry` (its `key`, plus `bonus`), filing a hit under its kind. */
     function consider(entry: SearchEntry, key: Key, bonus: number) {
-      const hit = SearchIndex.match(entry, key, folded, words, bonus)
+      const hit = SearchIndex.match({ entry, key, query: folded, words, bonus })
       if (!hit) return
       const list = hits.get(entry.kind)
       if (list) list.push(hit)
@@ -168,21 +156,14 @@ export class SearchIndex {
     return -1
   }
 
-  /** `entry`'s hit for the folded `query` (and its `words`), or `undefined`. */
-  private static match(
-    entry: SearchEntry,
-    key: Key,
-    query: string,
-    words: readonly string[],
-    bonus: number
-  ): SearchHit | undefined {
+  /** `entry`'s hit for the folded `query` (and its `words`), `bonus` added;  `undefined` when it doesn't match. */
+  private static match({ entry, key, query, words, bonus }: MatchInput): SearchHit | undefined {
     const title = SearchIndex.titleScore(key, query)
     const term = SearchIndex.termScore(key, query)
     const spread = words.length > 1 ? SearchIndex.wordsScore(key, words) : 0
     const best = Math.max(title, term, spread)
     if (!best) return undefined
-    const score =
-      best * KIND_WEIGHT[entry.kind] + (entry.boost ?? 0) + bonus - key.title.length * SearchIndex.LENGTH_COST
+    const score = best * KIND_WEIGHT[entry.kind] + (entry.boost ?? 0) + bonus - key.title.length * LENGTH_COST
     const marks = title ? SearchIndex.marks(key.title, [query]) : SearchIndex.marks(key.title, words)
     return { entry, score, marks }
   }
@@ -270,16 +251,16 @@ export class SearchIndex {
   ////////////////
 
   /** A component tag:  its name, its tag in mono, found by its tag, other names and topics. */
-  private static component(tag: SiteTag, family: string, data: SiteDataFile): SearchEntry {
-    const topics = tag.topics.map((id) => data.topics.find((topic) => topic.id === id)?.title ?? id)
+  private static component(tag: SiteTag, family: string, topics: SiteDataFile["topics"]): SearchEntry {
+    const titles = tag.topics.map((id) => topics.find((topic) => topic.id === id)?.title ?? id)
     return {
       kind: "component",
       title: tag.name,
       code: `<${tag.tag}>`,
       ...(!tag.main && { context: family }),
       href: tag.href ?? `components/${tag.mainTag}.html#${tag.tag}`,
-      terms: [tag.tag, ...tag.aka, ...(tag.main ? [] : [family]), ...topics],
-      ...(tag.page && { boost: SearchIndex.PAGE_BOOST })
+      terms: [tag.tag, ...tag.aka, ...(tag.main ? [] : [family]), ...titles],
+      ...(tag.page && { boost: PAGE_BOOST })
     }
   }
 
@@ -319,11 +300,45 @@ export class SearchIndex {
   }
 }
 
+/** What a `SearchIndex` is built from:  the site's files that loaded. */
+export type SearchIndexProps = {
+  /** `components.json`:  tags and their attributes */
+  data?: SiteDataFile
+  /** `search.json`:  pages and their sections */
+  search?: SiteSearchFile
+}
+
+/** What `SearchIndex.match()` scores:  an entry, its key, the folded query and its words, and a bonus. */
+type MatchInput = {
+  /** the entry tried */
+  entry: SearchEntry
+  /** its folded text (`SearchIndex.key()`) */
+  key: Key
+  /** the whole query, folded */
+  query: string
+  /** the query's words, folded */
+  words: readonly string[]
+  /** added to the score:  the page shown's own attributes */
+  bonus: number
+}
+
 /** An entry's text, folded once for matching. */
 type Key = {
   /** the title, lower case, the shown title's length */
   readonly title: string
+  /** the title, letters and digits only (`SearchIndex.compact()`) */
   readonly titleCompact: string
+  /** the terms, folded */
   readonly terms: readonly string[]
+  /** the terms, letters and digits only */
   readonly termsCompact: readonly string[]
 }
+
+/** Boost of a tag with a page of its own (a family's main tag, `ui-radio`) over a sub-tag on its family's page. */
+const PAGE_BOOST = 20
+
+/** Boost of an entry on the page shown (its attributes). */
+const HERE_BOOST = 40
+
+/** Score taken off per title character:  shorter titles win ties. */
+const LENGTH_COST = 0.5

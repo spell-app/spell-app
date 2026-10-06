@@ -1,32 +1,24 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
+import { CODE_SPAN, HeadingLevels, type SiteDataFile, type SiteToken } from "$/ui/docs-components/docs-components.types"
 import { SiteData } from "$/ui/docs-components/SiteData"
-import type { SiteDataFile, SiteToken } from "$/ui/docs-components/docs-components.types"
-
-import { docsTokensVocabulary } from "./ui-docs-tokens.vocabulary.en"
-import { DocsTokensFallback } from "./ui-docs-tokens.fallback"
 import { ColorProbe } from "./ColorProbe"
 import { TokenRows } from "./TokenRows"
+import { DocsTokensFallback } from "./ui-docs-tokens.fallback"
 import {
-  CODE_SPAN,
-  COLOR_INPUT,
-  DEFAULT_LEVEL,
+  COLOR_TYPE,
   FALLBACK_HEX,
-  MAX_LEVEL,
-  MIN_LEVEL,
-  PAGE_TARGET,
-  RESET_ICON,
-  SEARCH_ICON,
-  SEARCH_MIN_ROWS,
+  LEVELS,
   type DocsTokensVocabulary,
   type TokenTable,
   type TokenView
 } from "./ui-docs-tokens.types"
+import { docsTokensVocabulary } from "./ui-docs-tokens.vocabulary.en"
 
-import tokensCSS from "./ui-docs-tokens.css?inline"
 import tableCSS from "$/ui/components/ui-table/ui-table.css?inline"
+import tokensCSS from "./ui-docs-tokens.css?inline"
 
 /****************
  * ### `<ui-docs-tokens>`
@@ -50,29 +42,29 @@ import tableCSS from "$/ui/components/ui-table/ui-table.css?inline"
  * - A doc-only element (`src/docs-components/`):  its shadow composes other families' widgets, which its barrel
  *   imports.
  ****************/
-export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
-  @proto static vocabulary = docsTokensVocabulary
-  @proto static styles = { table: tableCSS, "docs-tokens": tokensCSS }
-  @proto static Fallback = DocsTokensFallback
-  @proto static delegatesFocus = false
+export class UIDocsTokens extends E.UIElement<DocsTokensVocabulary> {
+  @E.proto static vocabulary = docsTokensVocabulary
+  @E.proto static styles = { table: tableCSS, "docs-tokens": tokensCSS }
+  @E.proto static Fallback = DocsTokensFallback
+  @E.proto static delegatesFocus = false
 
   /** The site's data, once fetched. */
-  readonly data = new Cell<SiteDataFile | undefined>(undefined)
+  readonly data = new E.Cell<SiteDataFile | undefined>(undefined)
 
   /** Why the data couldn't be fetched, if it couldn't. */
-  readonly failure = new Cell<Error | undefined>(undefined)
+  readonly failure = new E.Cell<Error | undefined>(undefined)
 
   /** The filter input's text. */
-  readonly query = new Cell("")
+  readonly query = new E.Cell("")
 
   /** Tokens the playground has set:  name => value, in the order they were first set. */
-  readonly overrides = new Cell<ReadonlyMap<string, string>>(new Map())
+  readonly overrides = new E.Cell<ReadonlyMap<string, string>>(new Map())
 
   /**
    * Each colour row's current value as `#rrggbb` (`ColorProbe`), for the colour inputs:  probed once drawn, and
    * again after a reset or a new filter.
    */
-  readonly probed = new Cell<ReadonlyMap<string, string>>(new Map())
+  readonly probed = new E.Cell<ReadonlyMap<string, string>>(new Map())
 
   /** The fetch, started on first connect;  settles once `data` or `failure` is set. */
   readonly fetched: Promise<void> = isServer ? Promise.resolve() : this.fetch()
@@ -86,28 +78,25 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
   /** What to draw:  the tables, or a message;  `undefined` until the data is in. */
   readonly view = createMemo((): TokenView | undefined => {
     const failure = this.failure.get()
-    if (failure) return { kind: "message", text: this.text("loadError", { error: failure.message }), error: true }
+    if (failure) return { kind: "message", text: this.text("loadError", { error: failure.message }), isError: true }
     const data = this.data.get()
     if (!data) return undefined
     const { family, tag, global, groups, tokens } = this.attrs
-    return TokenRows.view(
+    return TokenRows.viewFor(
       data,
-      { family, tag, global: !!global, groups, tokens, query: this.query.get() },
+      { family, tag, isGlobal: !!global, groups, tokens, query: this.query.get() },
       (key, params) => this.text(key, params)
     )
   })
 
   /** Heading level of the group headers, clamped. */
-  readonly level = createMemo(() => {
-    const level = Math.round(Number(this.attrs.level ?? DEFAULT_LEVEL))
-    return Number.isFinite(level) ? Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, level)) : DEFAULT_LEVEL
-  })
+  readonly level = createMemo(() => HeadingLevels.levelFor(this.attrs.level, LEVELS))
 
   protected override hostStates() {
     const view = this.view()
     return {
       loading: !isServer && !view,
-      error: view?.kind === "message" && view.error,
+      error: view?.kind === "message" && view.isError,
       modified: this.overrides.get().size > 0
     }
   }
@@ -119,17 +108,17 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
     createEffect(
       () => ({
         tokens: this.connected.get() && this.attrs.playground ? this.overrides.get() : new Map<string, string>(),
-        page: this.attrs.target === PAGE_TARGET
+        target: this.attrs.target
       }),
-      ({ tokens, page }) => {
-        this.apply(tokens, page)
+      ({ tokens, target }) => {
+        this.apply(tokens, target)
       }
     )
     // after the apply above (same flush, created first), so a reset re-probes with the tokens already removed
     createEffect(
       () => ({
         view: this.loaded() && this.attrs.playground ? this.view() : undefined,
-        pristine: this.overrides.get().size === 0
+        isPristine: this.overrides.get().size === 0
       }),
       ({ view }) => {
         if (view?.kind === "tables") this.probe(view.tables)
@@ -142,12 +131,12 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
     return (
       <section class={this.classes()} part={this.part("tokens")} ref={(section: HTMLElement) => this.listen(section)}>
         <Show when={this.attrs.playground}>
-          <ui-segment part={this.part("playground")} class="playground">
-            <div class="bar">
+          <ui-segment part={this.part("playground")} class={PLAYGROUND_CLASS}>
+            <div class={BAR_CLASS}>
               <div
-                class="preview"
+                class={PREVIEW_CLASS}
                 part={this.part("preview")}
-                role="group"
+                role={UIT.GROUP}
                 aria-label={this.text("preview")}
                 ref={(box: HTMLElement) => (this.previewBox = box)}
               >
@@ -155,23 +144,23 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
               </div>
               <ui-button
                 part={this.part("reset")}
-                size="small"
+                size={SMALL}
                 basic=""
                 icon={RESET_ICON}
                 disabled={this.overrides.get().size ? undefined : ""}
-                ref={(button: HTMLElement) => button.addEventListener("click", (event) => this.reset(event))}
+                ref={(button: HTMLElement) => button.addEventListener(UIT.CLICK, (event) => this.reset(event))}
               >
                 {this.text("reset")}
               </ui-button>
             </div>
           </ui-segment>
         </Show>
-        <Show when={this.searchable()}>
+        <Show when={this.isSearchable()}>
           <ui-input
             part={this.part("search")}
-            class="search"
-            type="search"
-            size="small"
+            class={SEARCH_CLASS}
+            type={SEARCH_TYPE}
+            size={SMALL}
             icon={SEARCH_ICON}
             placeholder={this.text("search")}
             aria-label={this.text("search")}
@@ -179,14 +168,22 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
         </Show>
         <Show when={this.message()}>
           {(message) => (
-            <ui-message part={this.part("message")} state={message().error ? "negative" : "info"} size="small">
+            <ui-message part={this.part("message")} state={message().isError ? "negative" : "info"} size={SMALL}>
               {message().text}
             </ui-message>
           )}
         </Show>
-        <For each={this.tables()}>{(table) => this.renderTable(table)}</For>
+        <For each={this.shownTables()}>{(table) => this.table(table)}</For>
       </section>
     )
+  }
+
+  /** The reset button:  remove every token the playground set. */
+  reset(event?: Event): void {
+    const tokens = [...untrack(() => this.overrides.get()).keys()]
+    if (!tokens.length) return
+    this.overrides.set(new Map())
+    this.emit("ui-reset", { tokens, originalEvent: event })
   }
 
   ////////////////
@@ -197,13 +194,13 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
    * One table:  bare for a family;  with `global`, in a group section under its header and description.
    * - No description column when no row has one (most families' tokens carry none).
    */
-  private renderTable(table: TokenTable): JSX.Element {
-    const described = table.rows.some((row) => row.description)
+  private table(table: TokenTable): JSX.Element {
+    const isDescribed = table.rows.some((row) => row.description)
     const grid = (
       <ui-table part={this.part("table")} celled="" compact="">
         <table>
           <Show when={table.title ?? this.attrs.caption}>
-            <caption class={table.title ? "ui-visually-hidden" : undefined}>
+            <caption class={table.title ? VISUALLY_HIDDEN_CLASS : undefined}>
               {table.title ?? this.attrs.caption}
             </caption>
           </Show>
@@ -211,7 +208,7 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
             <tr>
               <th scope="col">{this.text("token")}</th>
               <th scope="col">{this.text("default")}</th>
-              <Show when={described}>
+              <Show when={isDescribed}>
                 <th scope="col">{this.text("description")}</th>
               </Show>
               <Show when={this.attrs.playground}>
@@ -220,19 +217,19 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
             </tr>
           </thead>
           <tbody>
-            <For each={table.rows}>{(row) => this.renderRow(row, described)}</For>
+            <For each={table.rows}>{(row) => this.row(row, { isDescribed })}</For>
           </tbody>
         </table>
       </ui-table>
     )
     if (!table.title) return grid
     return (
-      <section class="group" part={this.part("group")}>
+      <section class={GROUP_CLASS} part={this.part("group")}>
         <ui-header part={this.part("header")} level={String(this.level())}>
           {table.title}
         </ui-header>
         <Show when={table.description}>
-          <p class="description" part={this.part("description")}>
+          <p class={UIT.DESCRIPTION} part={this.part("description")}>
             {this.inline(table.description ?? "")}
           </p>
         </Show>
@@ -241,40 +238,41 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
     )
   }
 
-  /** One token's row:  name, default (and swatch), description (if `described`), and the playground's input. */
-  private renderRow(row: SiteToken, described: boolean): JSX.Element {
+  /** One token's row:  name, default (and swatch), description (`isDescribed`), and the playground's input. */
+  private row(row: SiteToken, { isDescribed }: { isDescribed: boolean }): JSX.Element {
+    const isColor = row.type === COLOR_TYPE
     return (
       <tr>
         <th scope="row">
-          <code class="name">{row.name}</code>
+          <code class={NAME_CLASS}>{row.name}</code>
         </th>
         <td>
-          <span class="default">
-            <Show when={row.type === "color"}>
+          <span class={DEFAULT_CLASS}>
+            <Show when={isColor}>
               <ui-label
                 part={this.part("swatch")}
                 circular=""
                 empty=""
-                aria-hidden="true"
+                aria-hidden={UIT.TRUE}
                 style={{ "--ui-label-background": this.swatch(row) }}
               />
             </Show>
             <code>{row.default}</code>
           </span>
         </td>
-        <Show when={described}>
+        <Show when={isDescribed}>
           <td>{this.inline(row.description ?? "")}</td>
         </Show>
         <Show when={this.attrs.playground}>
           <td>
             <ui-input
               part={this.part("input")}
-              class="value"
-              size="small"
+              class={VALUE_CLASS}
+              size={SMALL}
               fluid=""
               data-token={row.name}
-              type={row.type === "color" ? COLOR_INPUT : undefined}
-              placeholder={row.type === "color" ? undefined : row.default}
+              type={isColor ? COLOR_TYPE : undefined}
+              placeholder={isColor ? undefined : row.default}
               aria-label={this.text("setToken", { token: row.name })}
               prop:value={this.inputValue(row)}
             />
@@ -294,39 +292,39 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
   ////////////////
 
   /** The tables to draw (none for a message, or while loading). */
-  private tables(): readonly TokenTable[] {
+  private shownTables(): readonly TokenTable[] {
     const view = this.view()
     return view?.kind === "tables" ? view.tables : []
   }
 
   /** The message to show instead of (or, for a filter that matches nothing, below) the tables, if any. */
-  private message(): { text: string; error: boolean } | undefined {
+  private message(): { text: string; isError: boolean } | undefined {
     const view = this.view()
     if (view?.kind === "message") return view
-    if (view?.kind === "tables" && !view.tables.length) return { text: this.text("noMatch"), error: false }
+    if (view?.kind === "tables" && !view.tables.length) return { text: this.text("noMatch"), isError: false }
     return undefined
   }
 
   /** The filter shows for `global`, and for a family with many rows. */
-  private searchable(): boolean {
+  private isSearchable(): boolean {
     const view = this.view()
     return view?.kind === "tables" && (!!this.attrs.global || view.total >= SEARCH_MIN_ROWS)
   }
 
   /**
    * What a row's swatch paints:  the preview's value while the playground set one there, else the token itself,
-   * resolved here, with its default for a family token (no sheet declares the public name).
+   * resolved here (`TokenRows.cssValueFor()`).
    */
   private swatch(row: SiteToken): string {
     const set = this.attrs.target === PAGE_TARGET ? undefined : this.overrides.get().get(row.name)
-    return set ?? (this.attrs.global ? `var(${row.name})` : `var(${row.name}, ${row.default})`)
+    return set ?? TokenRows.cssValueFor(row, { isGlobal: !!this.attrs.global })
   }
 
   /** A row input's value:  what the playground set, else empty (a colour:  its current colour). */
   private inputValue(row: SiteToken): string {
     const set = this.overrides.get().get(row.name)
     if (set !== undefined) return set
-    return row.type === "color" ? (this.probed.get().get(row.name) ?? FALLBACK_HEX) : ""
+    return row.type === COLOR_TYPE ? (this.probed.get().get(row.name) ?? FALLBACK_HEX) : ""
   }
 
   ////////////////
@@ -359,20 +357,12 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
     this.emit("ui-input", { token, value: value.trim(), originalEvent: event })
   }
 
-  /** The reset button:  remove every token the playground set. */
-  reset(event?: Event): void {
-    const tokens = [...untrack(() => this.overrides.get()).keys()]
-    if (!tokens.length) return
-    this.overrides.set(new Map())
-    this.emit("ui-reset", { tokens, originalEvent: event })
-  }
-
   /**
-   * Set `tokens` inline on the target (the preview's box, or `:root` for `page`), and remove what an earlier apply set
-   * that's no longer wanted (or set on another target).
+   * Set `tokens` inline on `target`'s element (the preview's box, or `:root` for `page`), and remove what an earlier
+   * apply set that's no longer wanted (or set on another element).
    */
-  private apply(tokens: ReadonlyMap<string, string>, page: boolean): void {
-    const element = page ? document.documentElement : this.previewBox
+  private apply(tokens: ReadonlyMap<string, string>, target: string | undefined): void {
+    const element = target === PAGE_TARGET ? document.documentElement : this.previewBox
     const previous = this.applied
     if (previous) {
       for (const name of previous.names) {
@@ -394,14 +384,14 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
   private probe(tables: readonly TokenTable[]): void {
     const context = this.host.shadowRoot
     if (!context) return
-    const global = untrack(() => !!this.attrs.global)
+    const isGlobal = untrack(() => !!this.attrs.global)
     const values = new Map<string, string>()
     for (const table of tables) {
       for (const row of table.rows) {
-        if (row.type === "color") values.set(row.name, global ? `var(${row.name})` : `var(${row.name}, ${row.default})`)
+        if (row.type === COLOR_TYPE) values.set(row.name, TokenRows.cssValueFor(row, { isGlobal }))
       }
     }
-    this.probed.set(ColorProbe.hexes(context, values))
+    this.probed.set(ColorProbe.hexesFor(context, values))
   }
 
   ////////////////
@@ -416,3 +406,48 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
     )
   }
 }
+
+/** `target` that writes on `:root` instead of the preview. */
+const PAGE_TARGET = "page"
+
+/** The filter shows for `global`, and for a family with at least this many rows. */
+const SEARCH_MIN_ROWS = 16
+
+/** Icon of the filter input. */
+const SEARCH_ICON = "search"
+
+/** Native input type of the filter. */
+const SEARCH_TYPE = "search"
+
+/** Icon of the reset button. */
+const RESET_ICON = "undo"
+
+/** `size` of the reset button, the filter, the message and the row inputs. */
+const SMALL = "small"
+
+/** Class word of the playground's segment. */
+const PLAYGROUND_CLASS = "playground"
+
+/** Class word of the playground's row:  the preview and the reset button. */
+const BAR_CLASS = "bar"
+
+/** Class word of the preview's box. */
+const PREVIEW_CLASS = "preview"
+
+/** Class word of the filter input. */
+const SEARCH_CLASS = "search"
+
+/** Class word of a `global` group's section. */
+const GROUP_CLASS = "group"
+
+/** Class word of a row's token name. */
+const NAME_CLASS = "name"
+
+/** Class word of a row's default cell content:  the swatch and the value. */
+const DEFAULT_CLASS = "default"
+
+/** Class word of a row's playground input. */
+const VALUE_CLASS = "value"
+
+/** Utility class of a group table's caption:  its header already names it. */
+const VISUALLY_HIDDEN_CLASS = "ui-visually-hidden"

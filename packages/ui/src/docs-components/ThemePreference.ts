@@ -1,5 +1,4 @@
-import { UI } from "$/ui/runtime"
-
+import { UI } from "$/ui/core"
 import {
   DOCS_DARK_QUERY,
   DOCS_DEFAULT_THEME,
@@ -7,7 +6,7 @@ import {
   DOCS_LOOK_KEYS,
   DOCS_PLAIN_THEME,
   DOCS_SCHEME_SWITCHING,
-  DOCS_SCHEMES,
+  DocsSchemes,
   type DocsLook,
   type DocsScheme,
   type DocsShownScheme
@@ -36,8 +35,8 @@ import {
  *   render;  page text may flash the default look for a frame.
  * - Several pickers on one page (the right column's, a component page's `for` one) stay in step through
  *   `subscribe()`.
- * - Cheap to import:  only the runtime's eager half (`UI`, `$/ui/runtime`), as the site entry has;  the runtime
- *   chunk (`UI.themes`) loads only to apply a theme, and the site entry's chunk stays small.
+ * - Imports the core entry (`UI`, `$/ui/core`), which the site entry loads anyway;  the runtime chunk (`UI.themes`)
+ *   loads only to apply a theme.
  * - Static only:  the look is one per page.
  ****************/
 export class ThemePreference {
@@ -215,7 +214,7 @@ export class ThemePreference {
     const theme = ThemePreference.load(DOCS_LOOK_KEYS.theme) || DOCS_DEFAULT_THEME
     return {
       theme: theme === DOCS_PLAIN_THEME ? undefined : theme,
-      scheme: scheme && scheme !== "system" && DOCS_SCHEMES.includes(scheme) ? scheme : "system"
+      scheme: scheme && scheme !== "system" && DocsSchemes.includes(scheme) ? scheme : "system"
     }
   }
 

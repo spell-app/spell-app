@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-docs-search>` uses:  tag, attributes, events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - A DOC-ONLY element (`src/docs-components/`):  filed under the `documentation` topic, left out of the component
  *   list, loaded by `<ui-root>` like any family.
  * - Class words:  `ui [size] finder` on the box;  `size` scales the field and its results (`--ui-scale`).  Not
  *   `search`:  a theme sheet restyling Fomantic's `.ui.search` would reach it.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-docs-search>`
@@ -114,4 +114,4 @@ export const docsSearchVocabulary = {
     { key: "go", text: "to go", description: "Keys line:  after the Enter key." },
     { key: "close", text: "to close", description: "Keys line:  after the Escape key." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

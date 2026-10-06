@@ -479,7 +479,7 @@ describe("<ui-docs-search> data", () => {
 })
 
 describe("SearchIndex", () => {
-  const index = new SearchIndex(DATA, SEARCH)
+  const index = new SearchIndex({ data: DATA, search: SEARCH })
 
   /** The titles found for `query`, group by group. */
   function found(query: string, current?: string) {
@@ -552,8 +552,7 @@ describe("SearchIndex", () => {
   it("finds nothing for an empty query, and caps each group", () => {
     expect(index.search("  ")).toEqual([])
     const many = new SearchIndex({
-      ...DATA,
-      components: Array.from({ length: 12 }, (_, at) => tag(`Thing ${at}`, `ui-thing-${at}`))
+      data: { ...DATA, components: Array.from({ length: 12 }, (_, at) => tag(`Thing ${at}`, `ui-thing-${at}`)) }
     })
     expect(many.search("thing")[0]!.hits).toHaveLength(5)
   })
@@ -583,7 +582,7 @@ describe("PageOutline", () => {
       ["Intro", "", "#intro"],
       ["More", "", "#more"]
     ])
-    expect(PageOutline.read(null)).toEqual([])
+    expect(PageOutline.read(undefined)).toEqual([])
   })
 })
 

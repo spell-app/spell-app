@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-docs-api>` uses:  tag, attributes, events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - A DOC-ONLY element (`src/docs-components/`):  filed under the `documentation` topic, left out of the component
  *   list, loaded by `<ui-root>` like any family.
  * - No class words:  `ui api` only;  the data's progress is `:state(loading)` / `:state(error)`.
  * - Texts:  every title, column header and message the tables show;  the data's own descriptions are English.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-docs-api>`
@@ -144,4 +144,4 @@ export const docsApiVocabulary = {
       description: "Message:  the data file failed to load."
     }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

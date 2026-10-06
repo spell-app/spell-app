@@ -7,9 +7,12 @@
  * - The chrome is `_parts/layout.html` (a page is its `main` alone:  `SiteShell`);  three columns:  nav, page,
  *   aside ("On this page");  the measures are Fomantic's docs.css (the main column 3em from the nav), the nav column
  *   264px to hold the brand's nav panel docked with a margin;  the aside hidden on narrower screens.
- * - Breakpoints in px (this file isn't run through the `@custom-media` import):  Fomantic's computer (992px) and the
- *   width where content + aside no longer fit (1200px).
+ * - Breakpoints are `ui`'s `@custom-media` (`src/styles/media.css`, inlined at build time):  Fomantic's computer
+ *   (`--ui-computer`, 992px), its phone (`--ui-mobile`, under 768px), and the large monitor (`--ui-large-monitor`,
+ *   1200px), under which content + aside no longer fit.
  */
+
+@import "../../src/styles/media.css";
 
 @layer ui.app {
   :root {
@@ -119,7 +122,7 @@
     text-decoration: none;
   }
   /* the menu and search buttons open the nav flyout, and the brand shows:  only where the nav column is hidden */
-  @media (width >= 992px) {
+  @media (--ui-computer) {
     .site-menu-button,
     .site-search-button,
     .site-topbar-brand {
@@ -139,7 +142,7 @@
   .site-nav-flyout > ui-docs-nav {
     margin: var(--site-nav-margin);
   }
-  @media (width >= 768px) {
+  @media not (--ui-mobile) {
     .site-flyout-header {
       display: none;
     }
@@ -277,7 +280,7 @@
   }
 
   /* ## Narrower than content + aside:  no aside, the content takes its room */
-  @media (width < 1200px) {
+  @media not (--ui-large-monitor) {
     :root {
       --site-top: var(--site-topbar-height);
     }
@@ -293,7 +296,7 @@
   }
 
   /* ## Narrower than Fomantic's computer:  the nav moves into the flyout the menu button opens */
-  @media (width < 992px) {
+  @media not (--ui-computer) {
     .site-layout {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -308,7 +311,7 @@
   }
 
   /* ## Phone:  no page links in the masthead;  the top bar keeps its look controls (the flyout needs no copy) */
-  @media (width < 768px) {
+  @media (--ui-mobile) {
     .site-page-links {
       display: none;
     }
