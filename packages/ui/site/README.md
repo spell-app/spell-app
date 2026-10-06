@@ -7,7 +7,7 @@ made.  What stays here is what each branch builds from its own code, and commits
 | Path | What |
 | --- | --- |
 | `_src/` | the site bundle's entry (`site.ts`:  what's in it and why), its router, shell, sections, their shared constants (`site.types.ts`) and layout glue (`site.css`);  config `../vite.site.config.ts` |
-| `_assets/` | GENERATED, committed:  the bundle (`yarn site:bundle`);  `icon-packs` is a symlink to `../../src/icons/icon-packs`.  NEVER edit |
+| `_assets/` | GENERATED, committed:  the bundle (`yarn site:bundle`), and `docs.components.json`, the `<ui-docs-*>` tags as a component pack (the layout's `<ui-components>` reads it);  `icon-packs` is a symlink to `../../src/icons/icon-packs`.  NEVER edit |
 | `_data/` | GENERATED, committed (`yarn site:data`):  `components.json`, `icons.json`, `custom-elements.json`, `html-custom-data.json`;  and `pages.json`, the hand-kept per-family facts they're built from |
 | *(the pages, `_parts/`, `examples/`, `images/`)* | *the shared `ui/`* |
 | *(`_data/search.json`)* | *the shared `ui/_data/search.json`:  built from the shared pages, so it lives beside them* |

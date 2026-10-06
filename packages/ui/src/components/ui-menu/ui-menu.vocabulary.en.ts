@@ -28,7 +28,7 @@ export const menuVocabulary = {
   tag: "ui-menu",
   topics: ["menus", "navigation", "basic", "collections"],
   aka: ["navbar", "nav", "tabs bar", "toolbar", "sidebar menu", "pagination"],
-  skeleton: { height: "3em" },
+  skeleton: "3 tall",
   noun: "menu",
   description: "A menu displays grouped navigation actions.",
   attributes: [

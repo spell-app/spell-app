@@ -24,7 +24,7 @@ export const textareaVocabulary = {
   tag: "ui-textarea",
   topics: ["forms", "inputs", "text", "elements"],
   aka: ["multiline", "text area", "memo", "comment box"],
-  skeleton: { width: "20em", height: "6em" },
+  skeleton: "20 x 6",
   noun: "input",
   description: "A textarea is a multi-line field used to elicit a longer response.",
   attributes: [

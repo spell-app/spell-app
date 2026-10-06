@@ -28,12 +28,7 @@ export const tabsVocabulary = {
   tag: "ui-tabs",
   topics: ["navigation", "menus", "containers", "modules"],
   aka: ["tab bar", "tab strip", "tabbed panel", "tab view"],
-  skeleton: {
-    parts: [
-      { shape: "line", length: "medium" },
-      { shape: "paragraph", lines: 3 }
-    ]
-  },
+  skeleton: "medium line, 3 line paragraph",
   noun: "tabs",
   description: "A tab is a hidden section of content activated by a menu.",
   attributes: [

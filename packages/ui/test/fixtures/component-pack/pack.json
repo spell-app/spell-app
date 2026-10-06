@@ -1,0 +1,6 @@
+[
+  { "tag": "x-pack-chart", "source": "widgets.js", "skeleton": "20 x 12" },
+  { "tag": "x-pack-legend", "source": "./widgets.js", "skeleton": "none" },
+  { "tag": "x-pack-eager", "source": "eager.js", "load": "eager" },
+  { "tag": "x-pack-broken", "source": "missing.js" }
+]

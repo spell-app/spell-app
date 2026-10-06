@@ -18,7 +18,7 @@ export const docsThemesVocabulary = {
   tag: "ui-docs-themes",
   topics: ["documentation", "controls", "selection"],
   aka: ["theme picker", "theme switcher", "dark mode toggle", "colour scheme", "appearance", "skin"],
-  skeleton: { display: "inline", width: "5em", height: "2.25em" },
+  skeleton: "inline 5 x 2.25",
   noun: "themes",
   description:
     "Theme controls switch the page between light and dark, and pick its theme, and remember both for the next " +

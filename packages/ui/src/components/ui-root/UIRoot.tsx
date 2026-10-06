@@ -6,7 +6,6 @@ import { LoaderMessage, type RootLoading } from "./LoaderMessage"
 import { PlaceholderSkeleton, type RootSkeletonRenderer } from "./PlaceholderSkeleton"
 import { RootBox } from "./RootBox"
 import { RootLoader } from "./RootLoader"
-import { ROOT_CATALOG } from "./ui-root.catalog"
 import { RootFallback } from "./ui-root.fallback"
 import {
   RootTimeout,
@@ -23,7 +22,8 @@ import rootCSS from "./ui-root.css?inline"
  * ### `<ui-root>`
  * The top of a page or app:  `<slot>` for the page, plus what shows while it loads.
  * - Loads on demand:  every undefined `ui-*` tag inside (now, and as content is added) imports its family once
- *   (`RootLoader`);  nothing is imported up front.
+ *   (`RootLoader`);  nothing is imported up front.  So does every tag a component pack added (`<ui-components>`),
+ *   whatever its name;  while a pack is on its way, a tag nobody knows yet waits for it before it's `unknown`.
  * - Ready:  every family settled, then every `ui-*` element inside `ready` (a nested root:  its own `settled`), or the
  *   `timeout`.  Then `:state(ready)`, `ui-ready { failed }`, and the content shows.  Each tag that didn't load fires a
  *   cancelable `ui-error` first.  Content added later loads too, but is never hidden again.
@@ -31,8 +31,8 @@ import rootCSS from "./ui-root.css?inline"
  *   before any sheet), with its space kept (`when-ready`), or not drawn at all when the `loading` message or the
  *   skeletons show instead.
  * - `skeleton`:  every element inside whose tag describes a skeleton (`E.ComponentVocabulary.skeleton`, in the generated
- *   catalog) gets a `<ui-placeholder>` in the root's shadow, in page order;  one inside another is covered by it.
- *   Nothing described:  as `when-ready`.
+ *   catalog, or a pack's) gets a `<ui-placeholder>` in the root's shadow, in page order;  one inside another is
+ *   covered by it.  Found again once the packs on their way are in.  Nothing described:  as `when-ready`.
  * - What shows while loading is swappable:  `UIRoot.Loading` (`LoaderMessage`, a `<ui-loader>`) and `UIRoot.Skeleton`
  *   (`PlaceholderSkeleton`).
  * - Settings for everything inside (`E.RootSettings`):  `icons` (a child icon-pack set over the outer root's, or the
@@ -315,25 +315,38 @@ export class UIRoot extends E.UIElement<RootVocabulary> {
   private findSkeletons(): RootSkeleton[] {
     const skeletons: RootSkeleton[] = []
     for (const element of this.host.querySelectorAll("*")) {
-      const spec = Object.hasOwn(ROOT_CATALOG, element.localName) ? ROOT_CATALOG[element.localName].skeleton : undefined
+      const spec = RootLoader.skeletonFor(element.localName)
       if (!spec || skeletons.some((outer) => outer.element.contains(element))) continue
       skeletons.push({ element, spec })
     }
     return skeletons
   }
 
-  /** Import the family of every undefined `ui-*` tag inside;  resolves once each import settled. */
+  /**
+   * Import what defines every undefined tag inside (`RootLoader.undefinedTags()`);  resolves once each import settled.
+   * - A pack on its way (`RootLoader.whenAdded()`) may name a tag nobody knows yet, or one not named `ui-*`:  look
+   *   again once it's in, before calling any tag `unknown`.
+   */
   private loadUndefined(): Promise<void> {
     const loads: Promise<void>[] = []
+    const unknown: string[] = []
     for (const tag of RootLoader.undefinedTags(this.host)) {
-      const folder = RootLoader.folderFor(tag)
-      if (!folder) {
-        this.fail(tag, "unknown")
-        continue
-      }
-      loads.push(RootLoader.load(folder).catch((error: unknown) => this.fail(tag, "failed", error)))
+      const load = RootLoader.loadTag(tag)
+      if (load) loads.push(load.catch((error: unknown) => this.fail(tag, "failed", error)))
+      else unknown.push(tag)
     }
+    const added = RootLoader.whenAdded()
+    if (added) loads.push(added.then(() => this.packsAdded()))
+    else for (const tag of unknown) this.fail(tag, "unknown")
     return Promise.all(loads).then(() => undefined)
+  }
+
+  /** The packs on their way are in:  find the skeletons again (their tags may have some), then load again. */
+  private packsAdded(): Promise<void> {
+    if (!untrack(this.isReady.get) && untrack(this.display) === DISPLAY.skeleton) {
+      this.skeletons.set(this.findSkeletons())
+    }
+    return this.loadUndefined()
   }
 
   /** Defined `ui-*` elements inside, not awaited yet. */
@@ -355,7 +368,7 @@ export class UIRoot extends E.UIElement<RootVocabulary> {
   /** The timeout passed:  report what's still undefined or not ready. */
   private timedOut() {
     for (const tag of RootLoader.undefinedTags(this.host)) {
-      if (RootLoader.folderFor(tag)) this.fail(tag, "timeout")
+      if (RootLoader.knows(tag)) this.fail(tag, "timeout")
     }
     for (const element of this.waiting) this.fail(element.localName, "timeout")
   }

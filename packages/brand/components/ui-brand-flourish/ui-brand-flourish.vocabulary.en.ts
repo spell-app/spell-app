@@ -13,7 +13,7 @@ export const brandFlourishVocabulary = {
   tag: "ui-brand-flourish",
   topics: ["images", "animation"],
   aka: ["flourish", "decoration", "swoosh", "blob", "background art", "squiggle"],
-  skeleton: { height: "0" },
+  skeleton: "0 tall",
   noun: "flourish",
   ui: false,
   description:

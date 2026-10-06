@@ -17,7 +17,7 @@ export const markdownVocabulary = {
   tag: "ui-markdown",
   topics: ["text", "typography", "data display"],
   aka: ["markdown", "md", "gfm", "readme", "rich text", "prose"],
-  skeleton: { parts: [{ shape: "header" }, { shape: "paragraph", lines: 4 }] },
+  skeleton: "header, 4 line paragraph",
   noun: "markdown",
   description:
     "Markdown renders GitHub-flavoured markdown -- tables, task lists, code blocks -- from the element's own text or a file on this site.",

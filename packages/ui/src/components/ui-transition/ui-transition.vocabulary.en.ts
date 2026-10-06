@@ -20,7 +20,7 @@ export const transitionVocabulary = {
   tag: "ui-transition",
   topics: ["animation", "modules"],
   aka: ["animate", "fade", "slide", "motion", "effect"],
-  skeleton: false,
+  skeleton: "none",
   noun: "transition",
   description: "A transition is an animation used to show or hide content, or to draw attention to it.",
   attributes: [

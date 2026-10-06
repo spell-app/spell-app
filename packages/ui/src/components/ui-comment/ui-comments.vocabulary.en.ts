@@ -15,7 +15,7 @@ export const commentsVocabulary = {
   tag: "ui-comments",
   topics: ["social", "lists", "data display", "views"],
   aka: ["discussion", "thread", "replies"],
-  skeleton: false,
+  skeleton: "none",
   noun: "comments",
   description: "A list of comments, or the thread of replies to one.",
   attributes: [

@@ -17,7 +17,7 @@ export const sectionsVocabulary = {
   tag: "ui-sections",
   topics: ["layout", "containers"],
   aka: ["accordion", "section group", "collapsible group", "outline"],
-  skeleton: false,
+  skeleton: "none",
   noun: "sections",
   description:
     "A group of sections:  with `collapsing`, every section in it folds, and folded ones stack with no space between.",

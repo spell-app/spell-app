@@ -20,7 +20,7 @@ export const descriptionVocabulary = {
   tag: "ui-description",
   topics: ["content parts", "text"],
   aka: ["body text", "summary text", "details"],
-  skeleton: false,
+  skeleton: "none",
   noun: "description",
   ui: false,
   description: "A description of the content:  card / item / modal / list / step / search text, a comment's text.",

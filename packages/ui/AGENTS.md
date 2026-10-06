@@ -30,7 +30,9 @@ house style every package shares.  Only what's local is below;  a section named 
     Where a helper goes:  SEE:  WWOD §8 › "Promotion path".  Everything in `$/ui/util` lands in the `core` bundle
     (`core.ts` re-exports it), so keep it small
   - `src/vocabulary/` (`V` through the `api` entry) -- the naming layer:  vocabulary schema, value sets, `Vocabulary`
-    (registry, translated names, `replace()` for hot reload), `Converters`
+    (registry, translated names, `replace()` for hot reload), `Converters`;  `SkeletonText` (skeleton text <=>
+    `SkeletonSpec`) too, but reached by path, NOT through the barrel:  `core` re-exports the barrel, and only
+    `<ui-components>` parses at runtime
   - `src/runtime/` (`UI`) -- the shared `UI` runtime, ONE instance per page (`globalThis.UI ??= new UIRuntime()`).
     Components call `UI.load()` on connect, which dynamic-imports this chunk once.  Services are classes:
     `Browser` (sniffing + `UI.browser.supports` flags), `Keyboard`, `Overlays`, `Focus`, `Styles`, `Vocabulary`,
@@ -62,6 +64,10 @@ house style every package shares.  Only what's local is below;  a section named 
         `src/components/ComponentDefinitions.test.ts` fails on a tag without them.  A new or moved tag also needs `yarn gen:root`
         (`<ui-root>`'s catalog of tag => family;  `src/components/ui-root/ui-root.catalog.test.ts` fails while it's stale) and `yarn site:data`
         (the docs site's data;  `tools/SiteDataBuilder.test.ts` fails while it's stale).  Live:  `UIButton.describe()`
+      - and `skeleton`:  what `<ui-root display="skeleton">` draws for the tag, as SKELETON TEXT (`SkeletonText`,
+        its grammar in its header):  `"inline 6 x 2.5"`, `"2 tall"`, `"18 wide: square image, header, 3 line
+        paragraph"`, or `"none"`.  The same form as a component pack's.  `yarn gen:root` parses it into the catalog;
+        `test/vocabularies.test.ts` parses every one and fails on a typo or a stale catalog
     - `ui-<name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces (nothing top-level
       stays loose in an element / fallback / helper file, but a constant only its class uses:  "Classes");  a
       helper function becomes a private static on the one class that uses it, else a static on a small class here.  Constants used by SEVERAL folders live in
@@ -79,12 +85,18 @@ house style every package shares.  Only what's local is below;  a section named 
       `examples/elements/*.html` -- the same examples as `ui-*` ELEMENT markup (axe in `ui-<name>.test.tsx`,
       `yarn dev`, `yarn test:visual`);  `examples/elements/<example>.visual.ts` -- optional OPEN states for the
       visual tests (`docs/visual-testing.md`)
+  - `src/components/ui-root/` also holds `<ui-components source="pack.json">` (`UIComponents`, `ComponentPack`):  a
+    COMPONENT PACK, a JSON array of `{ tag, source, load?, skeleton? }` (any custom-element tag;  `source` relative
+    to the pack;  `load` `on-demand` or `eager`;  `skeleton` as skeleton text), which every root on the page then
+    loads through `RootLoader.addTags()`.  In the root's family, defined BEFORE `<ui-root>`, so a root finds every
+    pack on its way and waits for it before calling a tag unknown (epic `wwod-spell-ui`, P12)
   - `src/docs-components/ui-docs-<name>/` -- DOC-ONLY element families (`<ui-docs-example>`, `<ui-docs-api>` ...):  the
     widgets the docs site is built from, laid out and written EXACTLY like a component family (same files, same
     rules), but NOT components:  no lib entry, not in `ComponentDefinitions.all` / the component list
     (`ComponentDefinitions.docs`), every tag filed under the `documentation` topic.  `<ui-root>` knows them (`yarn gen:root`
     scans this folder too), but loads them only where the page's bundle called `DocsFamilies.add()` (the site's
-    does;  never the library's own `RootLoader`:  epic `wwod-spell-ui`, I12).  A family that renders other widgets in
+    does;  never the library's own `RootLoader`:  epic `wwod-spell-ui`, I12), or a component pack names them (the
+    site's layout reads `_assets/docs.components.json`, which `yarn site:bundle` writes).  A family that renders other widgets in
     its shadow root imports their families in its barrel, and adds their tags to `DocsJSXTags`.  They read the site's
     data through `SiteData` (`site/_data/components.json`), NEVER the vocabularies.  The barrel's header says how to
     add one

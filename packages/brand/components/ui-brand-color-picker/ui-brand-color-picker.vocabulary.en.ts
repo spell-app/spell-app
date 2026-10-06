@@ -17,7 +17,7 @@ export const brandColorPickerVocabulary = {
   tag: "ui-brand-color-picker",
   topics: ["inputs", "forms", "controls", "selection"],
   aka: ["color picker", "colour picker", "color chooser", "hsl picker", "swatch picker", "eyedropper", "color input"],
-  skeleton: { height: "27em" },
+  skeleton: "27 tall",
   noun: "picker",
   ui: false,
   description:

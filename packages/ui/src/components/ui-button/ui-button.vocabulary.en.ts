@@ -19,7 +19,7 @@ export const buttonVocabulary = {
   tag: "ui-button",
   topics: ["buttons", "basic", "controls", "forms", "elements"],
   aka: ["btn", "action", "submit", "link button"],
-  skeleton: { display: "inline", width: "6em", height: "2.5em" },
+  skeleton: "inline 6 x 2.5",
   noun: "button",
   plural: "buttons",
   description: "A button indicates a possible action.",

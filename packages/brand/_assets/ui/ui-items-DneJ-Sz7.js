@@ -1,0 +1,1 @@
+import{t as e}from"./ui-items-CRnZJt4X.js";export{e as UIItems};

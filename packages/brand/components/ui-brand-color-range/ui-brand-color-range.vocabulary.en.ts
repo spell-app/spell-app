@@ -16,7 +16,7 @@ export const brandColorRangeVocabulary = {
   tag: "ui-brand-color-range",
   topics: ["data display", "lists"],
   aka: ["color scale", "colour scale", "color ramp", "shades", "tints and shades", "color ladder", "palette row"],
-  skeleton: { height: "4em" },
+  skeleton: "4 tall",
   noun: "range",
   ui: false,
   description:

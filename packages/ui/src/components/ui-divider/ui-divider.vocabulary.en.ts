@@ -15,7 +15,7 @@ export const dividerVocabulary = {
   tag: "ui-divider",
   topics: ["layout", "basic", "typography", "elements"],
   aka: ["separator", "hr", "horizontal rule", "rule", "line"],
-  skeleton: { height: "0.25em" },
+  skeleton: "0.25 tall",
   noun: "divider",
   description: "A divider visually segments content into groups.",
   attributes: [

@@ -299,10 +299,9 @@ export class SiteRouter {
     return (globalThis as { SPELL_SERVER?: { file?: string } }).SPELL_SERVER
   }
 
-  /** Load the family defining `tag`, if any. */
+  /** Load what defines `tag` (its family, or a component pack's module), if anything does. */
   private static loadFamily(tag: string): Promise<void> {
-    const folder = RootLoader.folderFor(tag)
-    return folder ? RootLoader.load(folder) : Promise.resolve()
+    return RootLoader.loadTag(tag) ?? Promise.resolve()
   }
 
   /** Run `root`'s inline scripts:  markup that came in through an include never ran them. */

@@ -19,7 +19,7 @@ export const adVocabulary = {
   tag: "ui-ad",
   topics: ["media", "layout", "views"],
   aka: ["advertisement", "banner ad", "ad slot"],
-  skeleton: { width: "18em", height: "15em" },
+  skeleton: "18 x 15",
   noun: "ad",
   description: "An ad displays third-party promotional content.",
   attributes: [

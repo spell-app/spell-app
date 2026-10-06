@@ -51,3 +51,62 @@ describe("RootLoader.add()", () => {
     await expect(RootLoader.load("ui-added-stray")).rejects.toThrow('no family "ui-added-stray"')
   })
 })
+
+/** The pack fixtures' folder, absolute, as a pack tag's `source` is. */
+const PACKS = new URL("/test/fixtures/component-pack/", location.href).href
+
+describe("RootLoader.addTags()", () => {
+  it("lets loadTag() import a pack tag's module, once for every tag it defines", async () => {
+    RootLoader.addTags([
+      { tag: "x-pack-chart", source: `${PACKS}widgets.js`, load: "on-demand" },
+      { tag: "x-pack-legend", source: `${PACKS}widgets.js`, load: "on-demand" }
+    ])
+    expect(customElements.get("x-pack-chart")).toBeUndefined()
+    await Promise.all([RootLoader.loadTag("x-pack-chart"), RootLoader.loadTag("x-pack-legend")])
+    expect(customElements.get("x-pack-legend")).toBeDefined()
+    expect((globalThis as { packWidgetImports?: number }).packWidgetImports).toBe(1)
+  })
+
+  it("imports an `eager` tag at once", async () => {
+    RootLoader.addTags([{ tag: "x-pack-eager", source: `${PACKS}eager.js`, load: "eager" }])
+    await customElements.whenDefined("x-pack-eager")
+  })
+
+  it("wins over the catalog:  the pack's skeleton (or none) and module", () => {
+    expect(RootLoader.skeletonFor("ui-button")).toEqual({ display: "inline", width: "6em", height: "2.5em" })
+    expect(RootLoader.skeletonFor("ui-docs-toc")).toBeDefined()
+    RootLoader.addTags([{ tag: "ui-docs-toc", source: `${PACKS}card.js`, load: "on-demand" }])
+    expect(RootLoader.skeletonFor("ui-docs-toc")).toBeUndefined()
+    expect(RootLoader.knows("ui-docs-toc")).toBe(true)
+  })
+
+  it("puts a pack's tags in undefinedTags(), whatever their name", () => {
+    RootLoader.addTags([{ tag: "app-pack-widget", source: `${PACKS}card.js`, load: "on-demand" }])
+    const root = document.createElement("div")
+    root.innerHTML = `<app-pack-widget></app-pack-widget><app-other></app-other>`
+    expect(RootLoader.undefinedTags(root)).toEqual(new Set(["app-pack-widget"]))
+  })
+})
+
+describe("RootLoader.loadTag()", () => {
+  it("loads a catalog tag's family;  nothing for a tag nobody knows", async () => {
+    await RootLoader.loadTag("ui-rail")
+    expect(customElements.get("ui-rail")).toBeDefined()
+    expect(RootLoader.loadTag("x-nobody")).toBeUndefined()
+    expect(RootLoader.knows("x-nobody")).toBe(false)
+  })
+})
+
+describe("RootLoader.whenAdded()", () => {
+  it("is undefined with no pack on its way;  resolves once every one settled, a failed one too", async () => {
+    expect(RootLoader.whenAdded()).toBeUndefined()
+    let resolve!: () => void
+    RootLoader.adding(new Promise<void>((done) => (resolve = done)))
+    RootLoader.adding(Promise.reject(new Error("no pack")))
+    const added = RootLoader.whenAdded()
+    expect(added).toBeInstanceOf(Promise)
+    resolve()
+    await added
+    expect(RootLoader.whenAdded()).toBeUndefined()
+  })
+})

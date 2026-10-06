@@ -17,7 +17,7 @@ export const includeVocabulary = {
   tag: "ui-include",
   topics: ["containers", "layout", "modules"],
   aka: ["island", "partial", "fragment", "server-side include", "html import", "transclusion", "embed"],
-  skeleton: { parts: [{ shape: "paragraph", lines: 4 }] },
+  skeleton: "4 line paragraph",
   noun: "include",
   description:
     "An include shows part of another page from this site in this one, loaded at once, when idle or when scrolled into view.",

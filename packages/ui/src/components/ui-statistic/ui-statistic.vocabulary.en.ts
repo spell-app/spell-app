@@ -24,7 +24,7 @@ export const statisticVocabulary = {
   tag: "ui-statistic",
   topics: ["data display", "text", "views"],
   aka: ["stat", "kpi", "metric", "counter", "number display"],
-  skeleton: { display: "inline", width: "6em", height: "4em" },
+  skeleton: "inline 6 x 4",
   noun: "statistic",
   plural: "statistics",
   description: "A statistic emphasizes the current value of an attribute.",

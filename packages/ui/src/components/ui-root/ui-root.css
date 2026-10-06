@@ -5,6 +5,8 @@
  *   theme still sets `color-scheme` and the colours every component inside inherits, but paints no background.
  * - Hiding while loading is an INLINE style on the slot (`UIRoot.slotStyle()`):  the root renders before this sheet
  *   arrives.  Width, height and `--ui-scale` are in each root's own sheet (`RootBox`).
+ * - `<ui-components>` adopts this sheet too, for `:host { display: contents }` alone:  it draws nothing, and has none
+ *   of the states below.
  */
 
 @layer ui.components.root.types, ui.components.root.content, ui.components.root.variations, ui.components.root.states;

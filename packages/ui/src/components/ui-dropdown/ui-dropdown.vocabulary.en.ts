@@ -18,7 +18,7 @@ export const dropdownVocabulary = {
   tag: "ui-dropdown",
   topics: ["forms", "inputs", "selection", "menus", "controls", "basic", "modules"],
   aka: ["select", "combobox", "picker", "autocomplete", "menu button", "multi select"],
-  skeleton: { display: "inline", width: "14em", height: "2.5em" },
+  skeleton: "inline 14 x 2.5",
   noun: "dropdown",
   description: "A dropdown lets people choose a value from a series of options.",
   attributes: [

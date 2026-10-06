@@ -22,7 +22,7 @@ export const selectVocabulary = {
   tag: "ui-select",
   topics: ["forms", "inputs", "selection", "controls", "modules"],
   aka: ["select box", "native select", "picker", "option list"],
-  skeleton: { display: "inline", width: "12em", height: "2.5em" },
+  skeleton: "inline 12 x 2.5",
   noun: "select",
   description: "A select lets people choose one or more values from a native list of options.",
   attributes: [

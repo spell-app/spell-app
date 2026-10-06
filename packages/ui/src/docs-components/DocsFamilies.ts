@@ -11,6 +11,9 @@ import { RootLoader } from "$/ui/components/ui-root/RootLoader"
  *   that imports the core and other families, and Rolldown then keeps core's modules out of `core.js` (epic
  *   `wwod-spell-ui`, I12).  Here, only a bundle that imports this file has them.
  * - A LITERAL glob (`BARRELS`), so each family stays a lazy chunk of its own.
+ * - The same tags as a component pack:  `site/_assets/docs.components.json` (`yarn site:bundle`), which the site's
+ *   layout reads with `<ui-components>`, skeletons included.  This call stays for bundles that prefer JS, and for a
+ *   site page that mounts no layout.
  * - Static only:  the families are one set per page.
  ****************/
 export class DocsFamilies {

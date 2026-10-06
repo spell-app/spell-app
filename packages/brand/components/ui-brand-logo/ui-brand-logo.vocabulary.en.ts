@@ -14,7 +14,7 @@ export const brandLogoVocabulary = {
   tag: "ui-brand-logo",
   topics: ["images", "icons"],
   aka: ["logo", "lockup", "wordmark", "brand mark", "hat mark"],
-  skeleton: { height: "2em" },
+  skeleton: "2 tall",
   noun: "logo",
   ui: false,
   description: "The Spell logo:  the hat mark, or the mark with the wordmark (and tagline), outlined, in one colour.",

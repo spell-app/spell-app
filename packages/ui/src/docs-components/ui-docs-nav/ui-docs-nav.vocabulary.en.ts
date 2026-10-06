@@ -18,13 +18,7 @@ export const docsNavVocabulary = {
   tag: "ui-docs-nav",
   topics: ["documentation", "navigation", "menus"],
   aka: ["sidebar", "table of contents", "toc", "site nav", "docs menu", "component browser"],
-  skeleton: {
-    width: "15em",
-    parts: [
-      { shape: "paragraph", lines: 3 },
-      { shape: "paragraph", lines: 8 }
-    ]
-  },
+  skeleton: "15 wide: 3 line paragraph, 8 line paragraph",
   noun: "nav",
   description:
     "A docs nav is a panel listing the site's pages and every component, A-Z or by topic, in folding groups, with " +

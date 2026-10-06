@@ -1,0 +1,1 @@
+import{t as e}from"./ui-rating-CUFc4eca.js";export{e as UIRating};

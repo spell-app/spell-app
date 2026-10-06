@@ -15377,6 +15377,58 @@
       "declarations": [
         {
           "kind": "class",
+          "name": "UIComponents",
+          "tagName": "ui-components",
+          "customElement": true,
+          "summary": "Components loads a component pack, so every root on the page can load the custom elements it lists on demand.",
+          "description": "Components loads a component pack, so every root on the page can load the custom elements it lists on demand.\n\nAlso known as:  component pack, component manifest, component registry, import map, plugin, lazy loading.",
+          "attributes": [
+            {
+              "name": "source",
+              "description": "The pack:  a JSON array of `{ \"tag\", \"source\", \"load\"?, \"skeleton\"? }`, same origin.  Each `source` (the module that defines the tag) is relative to the pack;  `load` is `on-demand` (default:  when a root meets the tag) or `eager` (as soon as the pack is read);  `skeleton` is skeleton text (`inline 6 x 2.5`, `2 tall`, `18 wide: header, 3 line paragraph`, `none`).  Any tag, not only `ui-*`.",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "source"
+            }
+          ],
+          "members": [],
+          "events": [
+            {
+              "name": "ui-load",
+              "description": "The pack is read:  every root on the page knows `tags` now.",
+              "type": {
+                "text": "CustomEvent<{ source: string, tags: string[] }>"
+              }
+            },
+            {
+              "name": "ui-error",
+              "description": "The pack didn't load (`load`, `cross-origin`, `file-protocol`), or isn't a pack (`render`).  Roots then call its tags unknown.  Cancel it to skip the console warning.  Cancelable:  `preventDefault()` vetoes it.",
+              "type": {
+                "text": "CustomEvent<{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }>"
+              }
+            }
+          ],
+          "slots": [],
+          "cssParts": [],
+          "cssStates": [
+            {
+              "name": "loading",
+              "description": "Fetching the pack."
+            },
+            {
+              "name": "loaded",
+              "description": "The pack is read;  its tags are known."
+            },
+            {
+              "name": "error",
+              "description": "The pack didn't load, or isn't a pack."
+            }
+          ],
+          "cssProperties": []
+        },
+        {
+          "kind": "class",
           "name": "UIRoot",
           "tagName": "ui-root",
           "customElement": true,
@@ -15549,6 +15601,22 @@
         }
       ],
       "exports": [
+        {
+          "kind": "js",
+          "name": "UIComponents",
+          "declaration": {
+            "name": "UIComponents",
+            "module": "src/components/ui-root/index.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ui-components",
+          "declaration": {
+            "name": "UIComponents",
+            "module": "src/components/ui-root/index.ts"
+          }
+        },
         {
           "kind": "js",
           "name": "UIRoot",

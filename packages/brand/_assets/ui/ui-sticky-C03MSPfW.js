@@ -1,0 +1,1 @@
+import{t as e}from"./ui-sticky-CYd1_mpc.js";export{e as UISticky};

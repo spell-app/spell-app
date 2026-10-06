@@ -29,7 +29,7 @@ export const flagVocabulary = {
   tag: "ui-flag",
   topics: ["icons", "images", "elements"],
   aka: ["country flag", "country", "locale flag"],
-  skeleton: { display: "inline", width: "1.1em", height: "0.8em" },
+  skeleton: "inline 1.1 x 0.8",
   noun: "flag",
   description: "A flag is used to represent a political state.",
   attributes: [

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
+import { SkeletonText } from "$/ui/vocabulary/SkeletonText"
+import { ROOT_CATALOG } from "$/ui/components/ui-root/ui-root.catalog"
 
 /** Every family's English vocabulary module, by path:  the components' and the doc-only elements'. */
 const MODULES = import.meta.glob<Record<string, unknown>>(
@@ -36,15 +38,14 @@ describe("*.vocabulary.en.ts kinds, across families", () => {
     }
   )
 
-  // `<ui-root display="skeleton">` draws a placeholder for a described tag;  `false` says "none of its own" on purpose
+  // `<ui-root display="skeleton">` draws a placeholder for a described tag;  `none` says "none of its own" on purpose.
+  // Parsed here, so a typo in skeleton text fails a test, not a page;  the catalog holds what it parses to
   it.each(VOCABULARIES.map((vocabulary) => [vocabulary.tag, vocabulary] as const))(
-    "<%s> says what its skeleton is (a description, or false)",
-    (_, vocabulary) => {
-      expect(vocabulary).toHaveProperty("skeleton")
-      const { skeleton } = vocabulary
-      if (skeleton === false) return
-      expect(skeleton?.parts?.length || skeleton?.height || skeleton?.width).toBeTruthy()
-      for (const length of [skeleton?.width, skeleton?.height]) if (length) expect(length).toMatch(/^\d+(\.\d+)?em$/)
+    "<%s> says what its skeleton is (skeleton text, or none), and the catalog agrees (else `yarn gen:root`)",
+    (tag, vocabulary) => {
+      expect(vocabulary.skeleton).toBeTypeOf("string")
+      const skeleton = SkeletonText.parse(vocabulary.skeleton!)
+      expect(ROOT_CATALOG[tag]?.skeleton).toEqual(skeleton || undefined)
     }
   )
 

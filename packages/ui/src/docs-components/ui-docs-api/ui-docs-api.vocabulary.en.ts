@@ -18,12 +18,7 @@ export const docsApiVocabulary = {
   tag: "ui-docs-api",
   topics: ["documentation", "data display", "tables"],
   aka: ["api reference", "api table", "props table", "properties table", "attribute table", "args table", "reference"],
-  skeleton: {
-    parts: [
-      { shape: "line", length: "short" },
-      { shape: "paragraph", lines: 5 }
-    ]
-  },
+  skeleton: "short line, 5 line paragraph",
   noun: "api",
   description:
     "An API reference lists a tag's attributes, properties, events, slots, parts, states and texts as tables, from " +

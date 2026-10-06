@@ -15,7 +15,7 @@ export const cardsVocabulary = {
   tag: "ui-cards",
   topics: ["cards", "layout", "lists", "views"],
   aka: ["card grid", "card group", "gallery"],
-  skeleton: false,
+  skeleton: "none",
   noun: "cards",
   description: "A group of cards, laid out in a wrapping row.",
   attributes: [

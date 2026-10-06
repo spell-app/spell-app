@@ -16,7 +16,7 @@ export const brandFieldVocabulary = {
   tag: "ui-brand-field",
   topics: ["forms", "inputs"],
   aka: ["property", "inspector row", "form field", "labelled control", "fieldset row"],
-  skeleton: { height: "3.5em" },
+  skeleton: "3.5 tall",
   noun: "field",
   ui: false,
   description:

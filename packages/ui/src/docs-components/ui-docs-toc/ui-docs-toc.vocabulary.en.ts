@@ -16,12 +16,7 @@ export const docsTocVocabulary = {
   tag: "ui-docs-toc",
   topics: ["documentation", "navigation"],
   aka: ["table of contents", "on this page", "page index", "scrollspy", "toc", "following menu"],
-  skeleton: {
-    parts: [
-      { shape: "line", length: "short" },
-      { shape: "paragraph", lines: 6 }
-    ]
-  },
+  skeleton: "short line, 6 line paragraph",
   noun: "toc",
   description:
     "A table of contents lists the page's sections and examples as links, opens the one in view and follows the " +

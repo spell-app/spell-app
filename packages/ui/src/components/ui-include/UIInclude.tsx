@@ -195,15 +195,16 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
   ////////////////
 
   /**
-   * Load the family of every undefined `ui-*` tag under `root`, as `<ui-root>` would.
+   * Load what defines every undefined tag under `root` (its family, or a component pack's module), as `<ui-root>`
+   * would.
    * - STATIC:  needs nothing of the include, only `root`.
-   * - NEVER throws:  a family that fails to load is a warning.
+   * - NEVER throws:  a tag that fails to load is a warning.
    */
   private static loadFamilies(root: ParentNode) {
     for (const tag of RootLoader.undefinedTags(root)) {
-      const folder = RootLoader.folderFor(tag)
-      if (!folder) continue
-      RootLoader.load(folder).catch((error: unknown) => E.Warnings.warn("<ui-include>", `<${tag}> didn't load:`, error))
+      RootLoader.loadTag(tag)?.catch((error: unknown) =>
+        E.Warnings.warn("<ui-include>", `<${tag}> didn't load:`, error)
+      )
     }
   }
 
