@@ -35,6 +35,14 @@ export class SpellStatement<
   declare operandInExpressions: boolean
   @proto static operandInExpressions = false
   /**
+   * `true`:  a nested block body compiles FLAT -- its statements beside ours, in the block holding us, NOT
+   * wrapped in `{}` -- e.g. an outline-style type's bulleted body, `a card is a thing where:`.
+   * - So its members are hoisted into the class like any top-level line's (`SP.hoistClassMembers()`).
+   * - `parseNestedBlock()` leaves the body un-`enclose`d;  `Block.getAST()` splices its statements in after ours.
+   */
+  declare flatBody: boolean
+  @proto static flatBody = false
+  /**
    * In the expression twin `operandInExpressions` makes:  the statement rule it's the twin of,
    * the one `scope.addRule()` recorded.  See `SpellStatement.statementRuleOf()`.
    */
@@ -149,7 +157,7 @@ export class SpellStatement<
    * Attempt to parse `nestedBlock` as our nested body, if we take one.
    * - Returns the nested body match if successful.
    * - `bodySpec.nestedAs` ~== `"block"` => parses the whole nested block via `statement.nestedScope` and marks
-   *   the result `enclose`d (wrapped in `{}` when compiled).  Otherwise, only a single-line nested block
+   *   the result `enclose`d (wrapped in `{}` when compiled), unless we're `flatBody`.  Otherwise, only a single-line nested block
    *   can be parsed, as `nestedAs` directly (e.g. an `expression`).
    * - SIDE EFFECT: on success, adds it to `statement.groups` as `body`,
    *   and records it as `statement.data.body` -- see `getBody()`.
@@ -162,8 +170,8 @@ export class SpellStatement<
     if (parseAs === "block") {
       const { nestedScope } = statement
       result = nestedScope.parser?.parse([nestedBlock], "block", nestedScope)
-      // wrap output in braces
-      if (result?.is(Block)) result.data.enclose = true
+      // wrap output in braces -- or not, see `flatBody`
+      if (result?.is(Block) && !this.flatBody) result.data.enclose = true
     } else {
       // if parsing as anything else, we can only handle a single line
       if (nestedBlock.tokens.length > 1) return undefined

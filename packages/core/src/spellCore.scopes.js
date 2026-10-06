@@ -8,6 +8,9 @@
       description: "What your own types are made from -- `a card is a thing` makes a card.\n- Give it properties with `has`, e.g. `a card has a suit as one of clubs, diamonds, hearts, spades`.\n- Make one with `a new card` or `create a card`, optionally `with suit = hearts`.\n- Reactive:  change a property and whatever was drawn from it redraws.\n- Setting a property to the wrong sort of value warns in the console -- but it's set anyway.\n\n```spell\na task is a thing\na task has a name as text\nto draw (a task)\n  return <div>{its name}</div>\n\nit = a new task with name = \"Test Drawing\"\ndraw it\n```",
       rules: [
         { name: "create_type", syntax: "(a|an) {type} is (a|an) {superType:type}" },
+        { name: "create_type", syntax: "(a|an) {type} is (a|an) {superType:type} (where|with)? : {nested_statements}?" },
+        { name: "create_type", syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type}" },
+        { name: "create_type", syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type} (where|with)? : {nested_statements}?" },
         { name: "new_thing", syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?" },
         { name: "create_thing", syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?" }
       ]
@@ -17,6 +20,7 @@
       description: "In ONE list of a kind at a time, e.g. `a card belongs to one pile`:\n- putting the card on one pile takes it off the other, tableaus and other piles included\n- `the pile of the card` is the pile it's in, or nothing\n- a list of another kind, e.g. a deck, doesn't count:  a card can be in the deck AND one pile\n- say it after both types, e.g. after `a pile is a list of cards`\n- `a card can belong to many piles`:  the opposite, which lists do anyway",
       rules: [
         { name: "belongs_to_one", syntax: "(a|an) {type} belongs to one {list:type}" },
+        { name: "belongs_to_one", syntax: "{type:subject_it} belongs to (one|a|an) {list:type}" },
         { name: "can_belong_to_many", syntax: "(a|an) {type:known_type} can belong to many {list:known_type}" }
       ]
     },
@@ -34,6 +38,9 @@
       rules: [
         { name: "create_list_type", syntax: "create a type (named|called) {type} as (a|an) list of {instanceType:type}" },
         { name: "create_list_type", syntax: "(a|an) {type} is (a|an) list of {instanceType:type}" },
+        { name: "create_list_type", syntax: "(a|an) {type} is (a|an) list of {instanceType:type} (where|with)? : {nested_statements}?" },
+        { name: "create_list_type", syntax: "(a|an) {type:quoted_type} is (a|an) list of {instanceType:type}" },
+        { name: "create_list_type", syntax: "(a|an) {type:quoted_type} is (a|an) list of {instanceType:type} (where|with)? : {nested_statements}?" },
         { name: "new_list", syntax: "a new (list|List) of {instanceType:type}?" }
       ]
     },
@@ -214,7 +221,10 @@
       super: "type:Thing",
       description: "A thing which is a whole program -- `a game is an app` makes a game.\n- Everything a thing has, plus `start`.\n- Write its `to draw (a game)` to lay out the page, then `start the game` to show it.\n\n```spell\na game is an app\nto draw (a game)\n  return <div>Hello</div>\n\nset the game to a new game\nstart the game\n```",
       rules: [
-        { name: "create_type", syntax: "(a|an) {type} is (a|an) {superType:type}" }
+        { name: "create_type", syntax: "(a|an) {type} is (a|an) {superType:type}" },
+        { name: "create_type", syntax: "(a|an) {type} is (a|an) {superType:type} (where|with)? : {nested_statements}?" },
+        { name: "create_type", syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type}" },
+        { name: "create_type", syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type} (where|with)? : {nested_statements}?" }
       ]
     },
     {
