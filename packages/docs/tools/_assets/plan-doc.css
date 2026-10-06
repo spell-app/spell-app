@@ -382,7 +382,8 @@ ui-section:has(> ui-list.plan-items:empty)::after {
  * `windows-and-review` P3;  Owen, 2026-10-06:  never an "Updated" word buried in the text):  `ui-item.plan-updated`,
  * a dated line per change.  Kept once the phase is done:  the record of how the plan moved.
  */
-.plan-phase-body > ui-item.plan-updated {
+/* the box on the item's own part:  the `ui-item` host is `display: contents` */
+.plan-phase-body > ui-item.plan-updated::part(item) {
   margin: 4px 0;
   padding: 6px 10px;
   border: 1px dashed color-mix(in srgb, var(--ui-orange, #f2711c) 60%, transparent);
