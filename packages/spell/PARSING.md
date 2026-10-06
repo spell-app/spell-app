@@ -603,8 +603,11 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 ## Compile
 
 - `Match.compile()` => `match.AST?.compile()`.  `Match.AST` is memoized;  `ASTNode.compile()` is not.
+- The AST classes hold what was parsed;  a WRITER writes them out (`packages/parser/src/writers/`):
+  `ASTNode.compile()` is `P.JSWriter.instance.write(node)`, one `JSWriter` method per AST class, named for it
+  (`ASTIfStatement(node)`).  NEVER write output in an AST class.
 - A block compiles as its statements joined with `\n`;  nesting indents by re-joining with `\n` + 2 spaces
-  (`stringify.INDENT` -- NEVER a tab), so a statement's output doesn't depend on its depth.
+  (`P.jsText.INDENT` -- NEVER a tab), so a statement's output doesn't depend on its depth.
 - A DECLARATION's docstring -- comment-only lines directly above it, else the comment on its own line --
   compiles as one `/** ... */` in place of those `//` lines (`getDocComments()`, `Block.ts`), above its
   `SPELL: DECLARES` comment:  after any `/* SPELL: added rule ... */` notes the statement makes.  A `##` heading

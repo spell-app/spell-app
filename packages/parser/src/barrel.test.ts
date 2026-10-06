@@ -43,7 +43,8 @@ const VALUES = [
   // `./ast`
   "ASTNode",
   "ASTExpression",
-  "stringify",
+  "JSWriter",
+  "jsText",
   // self-namespace
   "P"
 ] as const
@@ -149,11 +150,11 @@ describe("$/parser barrel contents", () => {
 
   test("namespaced sub-barrels stay separate and populated", async () => {
     const barrel = await freshBarrel()
-    const { ASTNode, ASTExpression, stringify, Token, WordToken } = barrel
-    // `stringify`'s generic names (`List`, `Block` ...) stay namespaced, never flattened
-    expect(stringify.SPACE).toBe(" ")
-    expect(typeof stringify.List).toBe("function")
-    expect("List" in barrel).toBe(false)
+    const { ASTNode, ASTExpression, jsText, Token, WordToken } = barrel
+    // `jsText`'s generic names (`Block`, `SPACE` ...) stay namespaced, never flattened
+    expect(jsText.SPACE).toBe(" ")
+    expect(typeof jsText.Block).toBe("function")
+    expect("Block" in barrel).toBe(false)
     // AST nodes and tokens are NOT namespaced -- their `ASTXxx` / `XxxToken` affixes
     // keep them collision-free, so both must arrive flattened and correctly wired.
     expect(ASTExpression.prototype).toBeInstanceOf(ASTNode)

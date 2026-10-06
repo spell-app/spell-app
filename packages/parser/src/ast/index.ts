@@ -1,14 +1,8 @@
 //
-//  ## Master import file for parser AST nodes and their output backend.
+//  ## Master import file for parser AST nodes.
 //
-//  NOTE: `stringifyAST` stays namespaced (`P.stringify.SPACE`, `P.stringify.InParens` ...):  its generic names
-//  (`List`, `Block`, `Array` ...) would collide at the top level.
-//
-//  NOTE: the AST classes themselves ARE flattened -- their `ASTXxx` prefix keeps generic
-//  names like `ASTLiteral` / `ASTComment` from colliding at the top level.
+//  NOTE: the AST classes are flattened -- their `ASTXxx` prefix keeps generic names like `ASTLiteral` /
+//  `ASTComment` from colliding at the top level.  What writes them as code:  `../writers/`.
 //
 
 export * from "./AST"
-
-/** Output backend emitting plain strings, for compiled JS output. */
-export * as stringify from "./stringifyAST"
