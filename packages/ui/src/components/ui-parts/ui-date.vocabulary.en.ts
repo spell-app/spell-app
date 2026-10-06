@@ -23,7 +23,14 @@ export const dateVocabulary = {
   noun: "date",
   ui: false,
   description: "When something happened;  inline and small inside a summary.",
-  attributes: [{ name: "datetime", kind: "string", description: "Machine-readable date, as `<time datetime>`." }],
+  attributes: [
+    {
+      name: "datetime",
+      kind: "string",
+      property: "dateTime",
+      description: "Machine-readable date, as `<time datetime>`."
+    }
+  ],
   events: [],
   slots: [{ name: "", description: "The human-readable date." }],
   parts: [{ name: "date", description: "The `<time>`." }],

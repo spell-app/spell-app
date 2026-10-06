@@ -990,7 +990,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   before it paints, unless it `persist`s.  Every storage access is guarded:  blocked storage just doesn't remember.
 - Events:  `ui-show`;  the cancelable `ui-close` (`reason`:  `close`, `timeout` for `display-time` -- which stores
   nothing -- or `dismiss` for `host.close()`);  `ui-hide` once hidden.  `host.show()`, `host.clear()`,
-  `host.isDismissed`.
+  `host.dismissed`.
 
 ## Sticky:  `<ui-sticky>`, CSS `position: sticky` that reports
 

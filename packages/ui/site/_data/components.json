@@ -959,6 +959,7 @@
         {
           "name": "commandfor",
           "kind": "string",
+          "property": "commandFor",
           "description": "Invoker commands, as the native `<button commandfor>`:  the id of the element `command` acts on, looked up in the button's own tree (the inner `<button>` gets it as `commandForElement`, since a shadow button can't see a light-DOM id).  Without browser support (`UI.browser.supports.invokers`) a click runs the built-in commands itself."
         },
         {
@@ -1429,6 +1430,7 @@
         {
           "name": "readonly",
           "kind": "boolean",
+          "property": "readOnly",
           "description": "Shows its value but can't be changed;  submitted with the form (unlike `disabled`)."
         },
         {
@@ -2141,6 +2143,7 @@
         {
           "name": "readonly",
           "kind": "keyOnly",
+          "property": "readOnly",
           "description": "Shows its state but can't be changed;  still submitted."
         },
         {
@@ -3177,6 +3180,7 @@
         {
           "name": "datetime",
           "kind": "string",
+          "property": "dateTime",
           "description": "Machine-readable date, as `<time datetime>`."
         }
       ],
@@ -3768,6 +3772,7 @@
         {
           "name": "readonly",
           "kind": "keyOnly",
+          "property": "readOnly",
           "description": "Shows its value but can't be changed;  submitted with the form (unlike `disabled`)."
         },
         {
@@ -6428,6 +6433,7 @@
         {
           "name": "readonly",
           "kind": "boolean",
+          "property": "readOnly",
           "description": "Shows its value but can't be edited;  submitted with the form (unlike `disabled`)."
         },
         {
@@ -6532,11 +6538,13 @@
         {
           "name": "minlength",
           "kind": "number",
+          "property": "minLength",
           "description": "Constraint:  fewest characters (checked once someone has edited it)."
         },
         {
           "name": "maxlength",
           "kind": "number",
+          "property": "maxLength",
           "description": "Constraint:  most characters."
         },
         {
@@ -6567,6 +6575,7 @@
             "email",
             "url"
           ],
+          "property": "inputMode",
           "description": "Virtual keyboard hint, forwarded to the native input.  `decimal` / `numeric` also give the number look (right-aligned, tabular figures), as `type=\"number\"` does."
         },
         {
@@ -10058,6 +10067,7 @@
         {
           "name": "readonly",
           "kind": "keyOnly",
+          "property": "readOnly",
           "description": "Shows its state but can't be changed;  still submitted."
         },
         {
@@ -10293,6 +10303,7 @@
         {
           "name": "readonly",
           "kind": "keyOnly",
+          "property": "readOnly",
           "description": "Shows its value but can't be changed;  still focusable and submitted."
         },
         {
@@ -12579,6 +12590,7 @@
         {
           "name": "readonly",
           "kind": "keyOnly",
+          "property": "readOnly",
           "description": "Shows its value but can't be changed;  still focusable and submitted."
         },
         {
@@ -14266,6 +14278,7 @@
         {
           "name": "readonly",
           "kind": "boolean",
+          "property": "readOnly",
           "description": "Shows its value but can't be edited;  still submitted."
         },
         {
@@ -14292,11 +14305,13 @@
         {
           "name": "minlength",
           "kind": "number",
+          "property": "minLength",
           "description": "Constraint:  fewest characters (checked once someone has edited it)."
         },
         {
           "name": "maxlength",
           "kind": "number",
+          "property": "maxLength",
           "description": "Constraint:  most characters."
         },
         {
@@ -15911,6 +15926,7 @@
         {
           "name": "for",
           "kind": "string",
+          "property": "htmlFor",
           "description": "A tag, e.g. `ui-button`:  list only the themes that restyle its family, and say how many (`3 Themes`), as Fomantic's per-page theme dropdown does.  Spell, Plain and Classic stay on top."
         },
         {
@@ -16118,6 +16134,7 @@
         {
           "name": "for",
           "kind": "string",
+          "property": "htmlFor",
           "description": "Id of the element whose headings to list.  A `<ui-tabs>`:  its SHOWN pane, followed as the tabs switch.  Default:  the page's `<main>`, else `<body>`."
         },
         {

@@ -112,6 +112,7 @@ export const buttonVocabulary = {
     {
       name: "commandfor",
       kind: "string",
+      property: "commandFor",
       description:
         "Invoker commands, as the native `<button commandfor>`:  the id of the element `command` acts on, looked up " +
         "in the button's own tree (the inner `<button>` gets it as `commandForElement`, since a shadow button can't " +

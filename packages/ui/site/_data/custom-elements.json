@@ -841,7 +841,7 @@
               "type": {
                 "text": "string"
               },
-              "fieldName": "commandfor"
+              "fieldName": "commandFor"
             },
             {
               "name": "command",
@@ -1572,7 +1572,7 @@
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "readonly"
+              "fieldName": "readOnly"
             },
             {
               "name": "placeholder",
@@ -2545,7 +2545,7 @@
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "readonly"
+              "fieldName": "readOnly"
             },
             {
               "name": "inverted",
@@ -2902,7 +2902,7 @@
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "readonly"
+              "fieldName": "readOnly"
             },
             {
               "name": "inverted",
@@ -4295,7 +4295,7 @@
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "readonly"
+              "fieldName": "readOnly"
             },
             {
               "name": "inverted",
@@ -7957,7 +7957,7 @@
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "readonly"
+              "fieldName": "readOnly"
             },
             {
               "name": "icon-position",
@@ -8078,7 +8078,7 @@
               "type": {
                 "text": "number"
               },
-              "fieldName": "minlength"
+              "fieldName": "minLength"
             },
             {
               "name": "maxlength",
@@ -8086,7 +8086,7 @@
               "type": {
                 "text": "number"
               },
-              "fieldName": "maxlength"
+              "fieldName": "maxLength"
             },
             {
               "name": "multiple",
@@ -8118,7 +8118,7 @@
               "type": {
                 "text": "\"none\" | \"text\" | \"decimal\" | \"numeric\" | \"tel\" | \"search\" | \"email\" | \"url\""
               },
-              "fieldName": "inputmode"
+              "fieldName": "inputMode"
             }
           ],
           "members": [
@@ -8438,7 +8438,7 @@
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "readonly"
+              "fieldName": "readOnly"
             },
             {
               "name": "value",
@@ -8478,7 +8478,7 @@
               "type": {
                 "text": "number"
               },
-              "fieldName": "minlength"
+              "fieldName": "minLength"
             },
             {
               "name": "maxlength",
@@ -8486,7 +8486,7 @@
               "type": {
                 "text": "number"
               },
-              "fieldName": "maxlength"
+              "fieldName": "maxLength"
             },
             {
               "name": "rows",
@@ -12971,7 +12971,7 @@
               "type": {
                 "text": "string"
               },
-              "fieldName": "datetime"
+              "fieldName": "dateTime"
             }
           ],
           "members": [],
@@ -15056,7 +15056,7 @@
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "readonly"
+              "fieldName": "readOnly"
             },
             {
               "name": "icon",
@@ -18249,7 +18249,7 @@
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "readonly"
+              "fieldName": "readOnly"
             },
             {
               "name": "hover",

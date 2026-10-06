@@ -39,7 +39,12 @@ export const textareaVocabulary = {
     { name: "fluid", kind: "keyOnly", description: "Takes the full width of its container." },
     { name: "disabled", kind: "keyOnly", description: "Can't be used;  dimmed, left out of the form." },
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds." },
-    { name: "readonly", kind: "boolean", description: "Shows its value but can't be edited;  still submitted." },
+    {
+      name: "readonly",
+      kind: "boolean",
+      property: "readOnly",
+      description: "Shows its value but can't be edited;  still submitted."
+    },
     {
       name: "value",
       kind: "string",
@@ -52,9 +57,10 @@ export const textareaVocabulary = {
     {
       name: "minlength",
       kind: "number",
+      property: "minLength",
       description: "Constraint:  fewest characters (checked once someone has edited it)."
     },
-    { name: "maxlength", kind: "number", description: "Constraint:  most characters." },
+    { name: "maxlength", kind: "number", property: "maxLength", description: "Constraint:  most characters." },
     {
       name: "rows",
       kind: "number",
