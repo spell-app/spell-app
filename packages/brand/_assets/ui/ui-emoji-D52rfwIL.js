@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-emoji-Bpt8uYo_.js";export{e as EmojiData,t as UIEmoji};

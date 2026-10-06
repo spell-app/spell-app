@@ -1,0 +1,1 @@
+import{t as e}from"./ui-select-U0-nOdAu.js";export{e as UISelect};

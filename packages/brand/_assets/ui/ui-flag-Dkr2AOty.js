@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-flag-CpUcUPVa.js";export{e as FlagCountry,t as UIFlag};

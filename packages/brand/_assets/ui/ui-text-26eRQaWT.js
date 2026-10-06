@@ -1,0 +1,1 @@
+import{t as e}from"./ui-text-BYSTYSSa.js";export{e as UIText};

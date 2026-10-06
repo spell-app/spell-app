@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-emoji-J0vdm9Kv.js";export{e as EmojiData,t as UIEmoji};
