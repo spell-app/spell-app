@@ -4,7 +4,7 @@ import { foundationCSS, nativeCSS, resetCSS, typographyCSS } from "$/ui/styles"
 
 import { SSR } from "$/ui/static"
 // Import directly to avoid circular import:  the constants below the class read them
-import { LIST_ITEM, ROOT, SLOTTED } from "./static.types.server"
+import { LIST_ITEM, ROOT, SLOTTED } from "./static.types.ssr"
 
 /****************
  * ### `StaticStylesheet`

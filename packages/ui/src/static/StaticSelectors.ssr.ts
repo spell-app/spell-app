@@ -1,6 +1,6 @@
 import { SSR } from "$/ui/static"
 // Import directly to avoid circular import:  the constants below the class read them
-import { ROOT, SLOTTED } from "./static.types.server"
+import { ROOT, SLOTTED } from "./static.types.ssr"
 
 /****************
  * ### `StaticSelectors`

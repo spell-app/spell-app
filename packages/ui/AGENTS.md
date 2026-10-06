@@ -105,10 +105,11 @@ house style every package shares.  Only what's local is below;  a section named 
     elements (`ServerHost`), controllers render with `renderToString`, `StaticFlattener` swaps each host for its
     root, `StaticInteractions` wires what works without JS.  Node only:  NEVER imported by a component or `$/ui`.
     Plan:  `epics/seo/seo.plan.html`
-    - Server code, so every file is `<Name>.server.ts` (`static.types.server.ts`;  tests `<Name>.server.ssr.test.ts`,
-      in the `ssr` project) except the barrel, `index.ts` (WWOD §10 › "Server code stays out of the browser bundle")
+    - Server code, so every file is `<Name>.ssr.ts`, `.server.ts`'s short form (`static.types.ssr.ts`;  tests
+      `<Name>.ssr.test.ts`, in the `ssr` project) except the barrel, `index.ts` (WWOD §10 › "Server code stays out
+      of the browser bundle")
     - Its files import each other through `SSR` (`import { SSR } from "$/ui/static"`) and the element core through
-      `$/ui/core`;  a mark a static initializer reads comes from `./static.types.server` directly (WWOD §4 ›
+      `$/ui/core`;  a mark a static initializer reads comes from `./static.types.ssr` directly (WWOD §4 ›
       "Circular imports";  `barrel.ssr.test.ts`)
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
