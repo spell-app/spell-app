@@ -112,11 +112,13 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
        `spell dev worktree list`.
        Why:  a fresh worktree has nothing outside `main` either, but its session is still using it.
      - has nothing uncommitted (`git -C .claude/worktrees/<name> status --short`;  fine from the main checkout)
-     - has nothing outside `main` (`git log --oneline main..<branch>` empty)
+     - has nothing outside `main` (`git log --oneline main..<branch>` empty);  an agent's `<owner>-agent-<id>`
+       (below):  or nothing outside branch `<owner>`
    - none:  stop
    - else AskUserQuestion, multi-select, one option per candidate ("`<name>` (`<branch>`)";  it takes 2-4 options,
      so one candidate is "Remove `<name>`" / "Keep it", and more than 4 go in several questions);  for each picked:
-     `git worktree remove .claude/worktrees/<name>`, `git branch -d <branch>`.  Then stop:  steps 1-8 are for a
+     `git worktree remove .claude/worktrees/<name>`, `git branch -d <branch>` (`-D` for an agent's branch that's
+     only in `<owner>`:  `-d` checks against `main`).  Then stop:  steps 1-8 are for a
      session IN a worktree.
 1. Report what's uncommitted and unmerged in the worktree (`git status --short`, `git log --oneline main..HEAD`).
    Commit only as the root's rules allow (stage, then ask).
@@ -194,6 +196,17 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
      session may be working there.  Either fails:  say which and don't merge.
    - `git merge --ff-only <name>`.  Refused (`main` moved since step 2):  say so and don't merge;  `/isolate <name>`
      re-enters the worktree to merge `main` in again.
+7b. Agents' worktrees, WITHOUT asking (Owen, 2026-10-05), now in the main checkout:  an agent this session started
+   with `isolation: "worktree"` (an epic's phases) got `.claude/worktrees/<name>-agent-<id>` on branch
+   `<name>-agent-<id>` (the `WorktreeCreate` hook names it for its owner).  It was kept when the agent finished
+   because its commits weren't in `main` yet.  For each in `git worktree list`:
+   - remove it when it's clean (`git -C <path> status --short` empty) and its commits are in `<name>`
+     (`git log --oneline <name>..<branch>` empty):  `git worktree remove <path>`, then `git branch -D <branch>`
+     (`-d` checks against `main` only;  the `log` check is the safety)
+   - else keep it, and list it in step 8 with why (uncommitted files, or commits `<name>` lacks)
+   - a pre-2026-10-05 agent worktree is plain `agent-<id>`:  remove it on the same checks when its branch is in
+     `<name>` (`git merge-base --is-ancestor <branch> <name>`)
 8. One line (plus, in a worktree's window, "close this window when you're done with it"):
    - merged:  the worktree can go (`git worktree remove .claude/worktrees/<name>`, `git branch -d <name>`)
    - not merged:  how to merge later (`git merge <name>` from the main checkout), then the same cleanup
+   - agents' worktrees:  how many step 7b removed, and any it kept
