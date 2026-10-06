@@ -1,16 +1,47 @@
-import type { P } from "$/parser"
 import type { Block } from "$/markdown"
 
 // ## Markup
 
 /**
- * A raw-HTML node in `P.Markup`:  `MD.markupToHTML()` writes its text as is, unescaped (HTML blocks, inline HTML).
- * - `P.Markup` has no raw node of its own:  this tag name can't be a real element's.
+ * What markdown draws as:  a framework-free description of HTML, built by `MD.h()`.
+ * - Strings and numbers are text;  `null`, `undefined` and booleans draw nothing (as in JSX), so `!!x && "y"`
+ *   works;  arrays are fragments, nested freely.
+ * - `MD.markupToHTML()` writes it as an HTML string;  `MD.toText()` reads its text.
+ * - Plain data, not DOM:  markdown renders under node too, and `ui` runs it from a pre-built bundle.
+ */
+export type Markup = MarkupElement | string | number | boolean | null | undefined | Markup[]
+
+/** One element of `Markup`, e.g. `<a href="x">link</a>`:  make with `MD.h()`. */
+export type MarkupElement = {
+  /** Tag name, e.g. `a`. */
+  tag: string
+  /** Attributes in the order they're set;  `undefined` ones are skipped. */
+  attrs: Record<string, string | number | undefined>
+  /** Contents. */
+  children: Markup[]
+}
+
+/** Element `<tag>` with `attrs` around `children`:  the hyperscript every drawing here is built from. */
+export function h(tag: string, attrs: MarkupElement["attrs"], ...children: Markup[]): MarkupElement {
+  return { tag, attrs, children }
+}
+
+/** Text `markup` draws, nested any depth:  `null`, `undefined` and booleans draw nothing.  No DOM. */
+export function toText(markup: Markup): string {
+  if (markup == null || typeof markup === "boolean") return ""
+  if (Array.isArray(markup)) return markup.map(toText).join("")
+  if (typeof markup === "object") return markup.children.map(toText).join("")
+  return String(markup)
+}
+
+/**
+ * A raw-HTML node in `MD.Markup`:  `MD.markupToHTML()` writes its text as is, unescaped (HTML blocks, inline HTML).
+ * - `MD.Markup` has no raw node of its own:  this tag name can't be a real element's.
  */
 export const RAW_TAG = "#raw"
 
-/** Raw HTML `html`, as a `P.Markup` element. */
-export function raw(html: string): P.MarkupElement {
+/** Raw HTML `html`, as a `MD.Markup` element. */
+export function raw(html: string): MarkupElement {
   return { tag: RAW_TAG, attrs: {}, children: [html] }
 }
 

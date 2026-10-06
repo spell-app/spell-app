@@ -63,7 +63,6 @@ The Spell Parser is a sophisticated parsing and compilation system for the Spell
 - **Components**:
   - `AppContainer.jsx` - Main app container
   - `InputEditor.jsx` - Code input with CodeMirror
-  - `ASTViewer.jsx` - Abstract Syntax Tree visualization
   - `ConsoleViewer.jsx` - Console output display
   - `MatchViewer.jsx` - Parse match visualization
   - `SplitPanel.jsx` - Resizable panel layout

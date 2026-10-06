@@ -7,6 +7,22 @@ function ui(markdown: string, options = {}) {
   return MD.render(markdown, options).html
 }
 
+describe("MD.Markup", () => {
+  it("`h()` builds a plain element, attributes in order", () => {
+    expect(MD.h("b", { title: "x", "data-line": 2 }, "a", 1)).toEqual({
+      tag: "b",
+      attrs: { title: "x", "data-line": 2 },
+      children: ["a", 1]
+    })
+  })
+
+  it("`toText()` reads text, nested any depth;  `null`, `undefined` and booleans draw nothing, as in JSX", () => {
+    const markup = MD.h("i", {}, "a", [MD.h("b", {}, "b", 2), [null, undefined, false, true, "c"]])
+    expect(MD.toText(markup)).toBe("ab2c")
+    expect(MD.toText(null)).toBe("")
+  })
+})
+
 describe("MD.render() -- ui-* elements", () => {
   it("headings:  ui-header, level shifted, GitHub slug ids, the outline", () => {
     const { html, headings } = MD.render("# Getting started!\n\n## Setup\n\n## Setup\n", { headingOffset: 1 })

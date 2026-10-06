@@ -1,10 +1,9 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 
-import { getSuperHierarchy, Assertable, OPTIONAL } from "$/util"
+import { Assertable, OPTIONAL } from "$/util"
 import { P } from "$/parser"
 
 import * as stringify from "./stringifyAST"
-import * as render from "./renderAST"
 
 ////////////////
 // ## Helpers
@@ -102,51 +101,10 @@ export class ASTNode<Props extends object = object> extends Assertable {
   }
 
   ////////////////
-  // ## Rendering as markup
-  ////////////////
-
-  /**
-   * Markup drawing this node as syntax-colored Javascript:  a `<span>` with our `className` around
-   * `renderChildren()` -- see `render.Node()`.
-   * - Plain data, not DOM:  the app's `<ASTViewer>` draws it with `render.toDOM()`.
-   */
-  /*@memoize*/
-  get markup(): P.MarkupElement {
-    return this.derived("markup", () => render.Node(this))
-  }
-
-  /**
-   * Css className as concatenation of all superclass method names.
-   * - Override in subclass to add special stuff, e.g.
-   *   `get className() { return super.className + "foo bar baz" }`
-   */
-  get className(): string {
-    const supers = (getSuperHierarchy(this, ASTNode) as Array<{ name: string }>).reverse()
-    return supers.map((constructor) => constructor.name).join(" ")
-  }
-
-  /**
-   * Markup to draw INSIDE our `markup`'s outer element, which has `node.className`
-   * (e.g. `ASTNode ASTExpression ASTStringLiteral`) set.
-   */
-  renderChildren(): P.Markup {
-    return null
-  }
-
-  // TEST: ensure that `compile()` output is the same as `render.toText(ast.markup)` -- modulo indentation, which
-  //  the app's viewer draws with CSS:  `toText()` lacks it.
-  // REFACTOR: was using enzyme to test component vs. compiled text, but enzyme was problematic
-  //  so we're not using it anymore -- always return `true`.
-  /** Always `true` -- see REFACTOR note above `test()`. */
-  test(): boolean {
-    return true
-  }
-
-  ////////////////
   // ## Debug
   ////////////////
 
-  /** Debug string, deliberately not including properties -- see subclasses for actual rendering. */
+  /** Debug string, deliberately not including properties. */
   toString(): string {
     return `${this.constructor.name} {...}`
   }
@@ -160,9 +118,6 @@ export class ASTNode<Props extends object = object> extends Assertable {
 export class ASTBlankLine extends ASTNode {
   compile(): string {
     return "" // "\n"
-  }
-  renderChildren(): P.Markup {
-    return null // render.NEWLINE
   }
 }
 
@@ -191,9 +146,6 @@ export class ASTExpressionWithComment extends ASTExpression {
   compile(): string {
     return `${this.expression.compile()} ${this.comment.compile()}`
   }
-  renderChildren(): P.Markup {
-    return render.Fragment(this.expression.markup, render.SPACE, this.comment.markup)
-  }
 }
 
 /** Generic Literal type.  Useful for `instanceof`.
@@ -205,9 +157,6 @@ export class ASTLiteral extends ASTExpression {
   declare raw: string | undefined
   compile(): unknown {
     return this.value
-  }
-  renderChildren(): P.Markup {
-    return render.span("value", this.value as P.Markup)
   }
 }
 
@@ -269,9 +218,6 @@ export class ASTBooleanLiteral extends ASTLiteral {
   compile(): string {
     return this.value ? "true" : "false"
   }
-  renderChildren(): P.Markup {
-    return this.value ? "true" : "false"
-  }
 }
 
 /** RegExpLiteral type.
@@ -303,9 +249,6 @@ export class ASTNullLiteral extends ASTLiteral {
   compile(): string {
     return "null"
   }
-  renderChildren(): P.Markup {
-    return render.span("value", "null")
-  }
 }
 
 /** UndefinedLiteral type.  TODO: ???? */
@@ -320,18 +263,12 @@ export class ASTUndefinedLiteral extends ASTLiteral {
   compile(): string {
     return "undefined"
   }
-  renderChildren(): P.Markup {
-    return render.span("value", "undefined")
-  }
 }
 
 /** ThisLiteral type -- represents JS `this`. */
 export class ASTThisLiteral extends ASTLiteral {
   compile(): string {
     return "this"
-  }
-  renderChildren(): P.Markup {
-    return render.span("value", "this")
   }
 }
 
@@ -382,9 +319,6 @@ export class ASTArrayLiteral extends ASTLiteral {
     const { items, wrap } = this
     return stringify.Array({ items, wrap })
   }
-  renderChildren(): P.Markup {
-    return render.Array({ items: this.items, wrap: this.wrap })
-  }
 }
 
 /** Enumeration -- literal array where each item also has a plain string/number `value`.
@@ -403,9 +337,6 @@ export class ASTEnumeration extends ASTLiteral {
   }
   compile(): string {
     return stringify.Array({ items: this.enumeration })
-  }
-  renderChildren(): P.Markup {
-    return render.Array({ items: this.enumeration })
   }
 }
 
@@ -435,9 +366,6 @@ export class ASTQuotedExpression extends ASTExpression {
   compile(): string {
     return stringify.InSingleQuotes({ children: String(this.expression.compile()) })
   }
-  renderChildren(): P.Markup {
-    return render.InSingleQuotes({ children: render.span("expression", this.expression.markup) })
-  }
 }
 
 /**
@@ -461,9 +389,6 @@ export class ASTBackTickExpression extends ASTExpression {
   }
   compile(): string {
     return stringify.InBackTicks({ children: String(this.expression.compile()) })
-  }
-  renderChildren(): P.Markup {
-    return render.InBackTicks({ children: render.span("expression", this.expression.markup) })
   }
 }
 
@@ -489,13 +414,6 @@ export class ASTBacktickSubstitution extends ASTExpression {
   compile(): string {
     return "${" + this.expression.compile() + "}"
   }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.span("literal", "${"),
-      render.span("expression", this.expression.markup),
-      render.span("literal", "}")
-    )
-  }
 }
 
 /**
@@ -519,9 +437,6 @@ export class ASTTripleBackTickExpression extends ASTExpression {
   }
   compile(): string {
     return stringify.InTripleBackTicks({ children: String(this.expression.compile()) })
-  }
-  renderChildren(): P.Markup {
-    return render.InTripleBackTicks({ children: render.span("expression", this.expression.markup) })
   }
 }
 
@@ -553,13 +468,6 @@ export class ASTPropertyLiteral extends ASTLiteral {
     if (this.isLegalIdentifier) return this.value
     return stringify.InSingleQuotes({ children: this.value })
   }
-  get className(): string {
-    return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
-  }
-  renderChildren(): P.Markup {
-    const value = render.span("property", this.value)
-    return this.isLegalIdentifier ? value : render.InSingleQuotes({ children: value })
-  }
 }
 
 /** PropertyExpression -- named property of some object.
@@ -583,13 +491,6 @@ export class ASTPropertyExpression extends ASTExpression {
     const prop = this.property.compile()
     if (this.property.isLegalIdentifier) return `${this.object.compile()}.${prop}`
     return `${this.object.compile()}['${prop}']`
-  }
-  renderChildren(): P.Markup {
-    const object = render.span("object", this.object.markup)
-    if (this.property.isLegalIdentifier) {
-      return render.Fragment(object, render.PERIOD, this.property.markup)
-    }
-    return render.Fragment(object, render.InSquareBrackets({ children: this.property.markup }))
   }
 }
 
@@ -633,17 +534,6 @@ export class ASTVariableExpression extends ASTExpression {
     if (this.default) return `${this.name} = ${this.default.compile()}`
     return this.name
   }
-  /** Adds `type` and the scope variable's `kind` (e.g. `let`/`const`) as extra css classes. */
-  get className(): string {
-    const classes = [super.className]
-    if (this.type) classes.push(this.type)
-    if (this.variable?.kind && !classes.includes(this.variable.kind)) classes.push(this.variable.kind)
-    return classes.join(" ")
-  }
-  renderChildren(): P.Markup {
-    if (!this.default) return render.span("name", this.name)
-    return render.Fragment(render.span("name", this.name), render.EQUALS, render.span("default", this.default.markup))
-  }
 }
 
 /** AwaitExpression:  `await {expression}`.
@@ -661,9 +551,6 @@ export class ASTAwaitExpression extends ASTExpression {
   }
   compile(): string {
     return `await ${this.expression.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.AWAIT, this.expression.markup)
   }
 }
 
@@ -698,19 +585,6 @@ export class ASTLineComment extends ASTComment {
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
     return `${commentSymbol}${initialWhitespace}${value}`
   }
-  /** Adds `"header"` css class for non-plain comment symbols, e.g. section-banner comments. */
-  get className(): string {
-    return `${super.className}${this.commentSymbol !== "//" ? " header" : ""}`
-  }
-  renderChildren(): P.Markup {
-    let { commentSymbol = "" } = this
-    if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
-    return render.Fragment(
-      render.span("punctuation line-comment-symbol", commentSymbol),
-      render.span("whitespace", this.initialWhitespace || " "),
-      render.span("comment", this.value)
-    )
-  }
 }
 
 /** BlockComment type.
@@ -726,9 +600,6 @@ export class ASTBlockComment extends ASTComment {
   }
   compile(): string {
     return `/* ${this.value} */`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.OPEN_COMMENT, render.span("comment", this.value), render.CLOSE_COMMENT)
   }
 }
 
@@ -750,9 +621,6 @@ export class ASTDocComment extends ASTComment {
     if (lines.length === 1) return `/** ${lines[0]} */`
     return ["/**", ...lines.map((line) => ` * ${line}`), " */"].join("\n")
   }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.OPEN_COMMENT, render.span("comment", this.lines.join("\n")), render.CLOSE_COMMENT)
-  }
 }
 
 /** PreservedComment type -- a `/*! ... *\/` comment, which minifiers keep:  data for tools reading compiled output.
@@ -772,9 +640,6 @@ export class ASTPreservedComment extends ASTComment {
   compile(): string {
     const lines = this.lines.map((line) => line.replace(/\*\//g, "*\\/"))
     return `/*! ${lines.join("\n")} */`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.OPEN_COMMENT, render.span("comment", this.lines.join("\n")), render.CLOSE_COMMENT)
   }
 }
 
@@ -799,9 +664,6 @@ export class ASTBannerComment extends ASTComment {
     const rule = "/".repeat(heading.length)
     return [rule, heading, rule].join("\n")
   }
-  renderChildren(): P.Markup {
-    return render.span("comment", this.compile())
-  }
 }
 
 /** ParserAnnotation type, used for parser annotations injected into output.
@@ -817,14 +679,6 @@ export class ASTParserAnnotation extends ASTBlockComment {
   }
   compile(): string {
     return `/* ${this.annotation} ${this.value} */`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.OPEN_COMMENT,
-      render.span("annotation", this.annotation, " "),
-      render.span("comment", this.value),
-      render.CLOSE_COMMENT
-    )
   }
 }
 
@@ -867,9 +721,6 @@ export class ASTParenthesizedExpression extends ASTExpression {
   compile(): string {
     return stringify.InParens({ children: String(this.expression.compile()) })
   }
-  renderChildren(): P.Markup {
-    return render.InParens({ children: render.span("expression", this.expression.markup) })
-  }
 }
 
 /** Not expression.
@@ -890,9 +741,6 @@ export class ASTNotExpression extends ASTExpression {
   compile(): string {
     return `!${this.expression.compile()}`
   }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.BANG, render.span("expression", this.expression.markup))
-  }
 }
 
 /** InfixExpression:  `<lhs> <operator> <rhs>`. */
@@ -910,13 +758,6 @@ export class ASTInfixExpression extends ASTExpression {
   }
   compile(): string {
     return `${this.lhs.compile()} ${this.operator} ${this.rhs.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.span("lhs", this.lhs.markup),
-      render.span("operator", " ", this.operator, " "),
-      render.span("rhs", this.rhs.markup)
-    )
   }
 }
 
@@ -980,9 +821,6 @@ export class ASTInvocationArgs extends ASTNode {
     const { args, wrap } = this
     return stringify.Args({ args, wrap })
   }
-  renderChildren(): P.Markup {
-    return render.Args({ args: this.args, wrap: this.wrap })
-  }
 }
 
 /** MethodInvocation:  generic named method invocation, e.g. `methodName(args)`.
@@ -1022,9 +860,6 @@ export class ASTMethodInvocation extends ASTExpression {
   compile(): string {
     return `${this.methodName}${this.args.compile()}`
   }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.span("method-name", this.methodName), this.args.markup)
-  }
 }
 
 /** Call a `method` on some `thing` with `args`, e.g. `thing.methodName(args)`.
@@ -1044,14 +879,6 @@ export class ASTScopedMethodInvocation extends ASTMethodInvocation {
   }
   compile(): string {
     return `${this.thing.compile()}.${this.methodName}${this.args.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.span("method-scope", this.thing.markup),
-      render.span("operator period", "."),
-      render.span("method-name", this.methodName),
-      this.args.markup
-    )
   }
 }
 
@@ -1243,9 +1070,6 @@ export class ASTTypeExpression extends ASTExpression {
   compile(): string {
     return this.name
   }
-  renderChildren(): P.Markup {
-    return render.span("type", this.name)
-  }
 
   /**
    * Name our type's class has when the code runs -- for a runtime type check, e.g. `spellCore.isOfType()`.
@@ -1282,9 +1106,6 @@ export class ASTPrototypeExpression extends ASTExpression {
     const { type } = this
     return `${type.compile()}.prototype`
   }
-  renderChildren(): P.Markup {
-    return render.Fragment(this.type.markup, render.PERIOD, render.PROTOTYPE)
-  }
 }
 
 /** ConstantExpression -- pointer to a Constant object.
@@ -1312,9 +1133,6 @@ export class ASTConstantExpression extends ASTExpression {
   /** Just outputs pre-baked `output` string verbatim -- `compile()` doesn't re-derive it from `name`. */
   compile(): string {
     return this.output
-  }
-  renderChildren(): P.Markup {
-    return render.span("constant", this.output)
   }
 }
 
@@ -1450,54 +1268,6 @@ export class ASTMethodDefinition extends ASTExpression {
     const error = this.error ? ` ${this.error.compile()}` : ""
     return `${async}function ${stringify.Args({ args: this.args })} ${this.body.compile()}${error}`
   }
-  /** Draw as method shorthand under `name` -- see `compileNamed()`. */
-  renderNamed(name: P.Markup): P.Markup {
-    const async = this.isAsync && render.ASYNC
-    const methodName = render.span("method-name", name)
-    return render.Fragment(
-      async,
-      methodName,
-      render.Args({ args: this.args }),
-      render.SPACE,
-      this.body.markup,
-      this.renderError()
-    )
-  }
-  /** Draw as an anonymous `function (args) {...}` -- see `compileAnonymous()`. */
-  renderAnonymous(): P.Markup {
-    const async = this.isAsync && render.ASYNC
-    return render.Fragment(
-      async,
-      render.FUNCTION,
-      render.Args({ args: this.args }),
-      render.SPACE,
-      this.body.markup,
-      this.renderError()
-    )
-  }
-  /** Render `error` (if any) prefixed with a space -- `null` when there's no error. */
-  renderError(): P.Markup {
-    if (!this.error) return null
-    return render.Fragment(render.SPACE, this.error.markup)
-  }
-  /** SIDE EFFECT: `console.warn`s if `asProperty` is set but `methodName` is missing. */
-  renderChildren(): P.Markup {
-    const async = this.isAsync && render.ASYNC
-    const methodName = !!this.methodName && render.span("method-name", this.getMethodName())
-    const args = render.Args({ args: this.args })
-    const body = this.body.markup
-    const error = !!this.error && render.Fragment(render.SPACE, this.error.markup)
-    if (this.asProperty) {
-      if (!methodName) console.warn("MethodDef: property missing methodName", this)
-      if (this.inline)
-        return render.Fragment(async, methodName, render.COLON_AND_SPACE, args, render.FAT_ARROW, body, error)
-      return render.Fragment(async, methodName, args, render.SPACE, body, error)
-    }
-    // normal method
-    if (this.inline) return render.Fragment(async, args, render.FAT_ARROW, body, error)
-    const export_ = this.exported && render.EXPORT
-    return render.Fragment(export_, async, render.FUNCTION, methodName, args, render.SPACE, body, error)
-  }
 }
 
 ////////////////
@@ -1591,12 +1361,6 @@ export class ASTObjectLiteral extends ASTExpression {
       children: stringify.List({ items: this.properties, delimiter })
     })
   }
-  renderChildren(): P.Markup {
-    if (!this.properties.length) return render.EMPTY_BLOCK
-    const { wrap } = this
-    const delimiter = wrap ? render.INDENTED_COMMA : render.SPACED_COMMA
-    return render.Block({ wrap, space: !wrap, children: render.List({ items: this.properties, delimiter }) })
-  }
 }
 
 /** ObjectLiteralProperty type.
@@ -1632,12 +1396,6 @@ export class ASTObjectLiteralProperty extends ASTNode {
     if (!this.value) return `${prop}${error}`
     return `${prop}: ${this.value.compile()}${error}`
   }
-  renderChildren(): P.Markup {
-    // If no value, assume it's available as a local variable.
-    const value = !!this.value && render.Fragment(render.COLON_AND_SPACE, render.span("value", this.value.markup))
-    const error = !!this.error && render.Fragment(render.SPACE, this.error.markup)
-    return render.Fragment(render.span("property", this.property.markup), value, error)
-  }
 }
 
 ////////////////
@@ -1671,9 +1429,6 @@ export class ASTStatementGroup extends ASTStatement {
   }
   compile(): string {
     return stringify.List({ items: this.statements, delimiter: stringify.NEWLINE })
-  }
-  renderChildren(): P.Markup {
-    return render.List({ items: this.statements, delimiter: render.NEWLINE })
   }
 }
 
@@ -1712,13 +1467,6 @@ export class ASTStatementBlock extends ASTNode {
         items: this.statements,
         delimiter: stringify.NEWLINE
       })
-    })
-  }
-  renderChildren(): P.Markup {
-    if (!this.statements || !this.statements.length) return render.EMPTY_BLOCK
-    return render.Block({
-      wrap: this.wrap,
-      children: render.List({ items: this.statements, delimiter: render.INDENTED_NEWLINE })
     })
   }
 }
@@ -1776,13 +1524,6 @@ export class ASTTryCatchBlock extends ASTStatementGroup {
     if (finallyBlock) output.push(`finally ${finallyBlock.compile()}`)
     return output.join("\n")
   }
-  renderChildren(): P.Markup {
-    const { body, catchBlock, finallyBlock } = this
-    const output: P.Markup[] = [render.TRY, render.span("try-block", body.markup)]
-    if (catchBlock) output.push(render.NEWLINE, render.CATCH, render.span("catch-block", catchBlock.markup))
-    if (finallyBlock) output.push(render.NEWLINE, render.FINALLY, render.span("finally-block", finallyBlock.markup))
-    return render.Fragment(...output)
-  }
 }
 
 ////////////////
@@ -1831,25 +1572,6 @@ export class ASTAssignmentStatement extends ASTStatement {
     const declarator = isNewVariable ? "let " : ""
     return `${export_}${declarator}${thing.compile()} = ${value.compile()}`
   }
-  get className(): string {
-    return [
-      //
-      super.className,
-      this.exportVar && "export",
-      this.isNewVariable && "declaration"
-    ]
-      .filter(Boolean)
-      .join(" ")
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      this.exportVar && render.EXPORT,
-      !!this.isNewVariable && render.LET,
-      render.span("thing", this.thing.markup),
-      render.EQUALS,
-      render.span("value", this.value.markup)
-    )
-  }
 }
 
 /** DestructuredAssignment -- pull multiple variables with defaults out of a `thing`.
@@ -1884,17 +1606,6 @@ export class ASTDestructuredAssignment extends ASTStatement {
     })
     return `${declarator}${vars} = ${this.thing.compile()}`
   }
-  get className(): string {
-    return `${super.className}${this.isNewVariable ? " declaration" : ""}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      !!this.isNewVariable && render.LET,
-      render.InCurlies({ space: true, children: render.List({ items: this.variables }) }),
-      render.EQUALS,
-      render.span("thing", this.thing.markup)
-    )
-  }
 }
 
 /** ReturnStatement -- return a value.
@@ -1912,10 +1623,6 @@ export class ASTReturnStatement extends ASTStatement {
   compile(): string {
     if (!this.value) return "return"
     return `return ${this.value.compile()}`
-  }
-  renderChildren(): P.Markup {
-    const value = !!this.value && render.Fragment(render.SPACE, render.span("value", this.value.markup))
-    return render.Fragment(render.RETURN, value)
   }
 }
 
@@ -1966,29 +1673,6 @@ export class ASTClassDeclaration extends ASTStatement {
       .join(stringify.NEWLINE)
     return `${declaration}${stringify.LEFT_CURLY}${stringify.NEWLINE}${body}${stringify.NEWLINE}${stringify.RIGHT_CURLY}`
   }
-  renderChildren(): P.Markup {
-    const members = this.members?.length
-      ? render.Block({
-          wrap: true,
-          children: render.List({ items: this.members, delimiter: render.INDENTED_NEWLINE, DrawItem: ClassMemberItem })
-        })
-      : render.EMPTY_BLOCK
-    return render.Fragment(
-      render.EXPORT,
-      render.CLASS,
-      render.span("type", this.type.markup),
-      !!this.superType && render.EXTENDS,
-      !!this.superType && render.span("superType", this.superType.markup),
-      render.SPACE,
-      members
-    )
-  }
-}
-
-/** Draws one of `ASTClassDeclaration.members`:  a member as it looks in a class body, else as is. */
-function ClassMemberItem({ item }: render.ListItemProps): P.Markup {
-  if (item instanceof ASTClassMember) return item.memberMarkup
-  return item?.markup ?? null
 }
 
 /** NewInstanceExpression -- `new Type(props)`.
@@ -2010,10 +1694,6 @@ export class ASTNewInstanceExpression extends ASTExpression {
     const props = stringify.InParens({ children: this.props?.compile() })
     return `new ${this.type.compile()}${props}`
   }
-  renderChildren(): P.Markup {
-    const props = this.props ? render.InParens({ children: this.props.markup }) : render.EMPTY_PARENS
-    return render.Fragment(render.NEW, render.span("type", this.type.markup), props)
-  }
 }
 
 /** ListExpression -- `[items]`.
@@ -2031,9 +1711,6 @@ export class ASTListExpression extends ASTExpression {
     return stringify.InSquareBrackets({
       children: stringify.List({ items: this.items })
     })
-  }
-  renderChildren(): P.Markup {
-    return render.InSquareBrackets({ children: render.List({ items: this.items }) })
   }
 }
 
@@ -2067,13 +1744,6 @@ export abstract class ASTClassMember extends ASTStatement {
   }
   /** JS for it in its class's body, e.g. `get title() {...}`. */
   abstract compileAsMember(): string
-  /** Draws it in its class's body -- see `compileAsMember()`. */
-  abstract renderAsMember(): P.Markup
-  /** Markup for `renderAsMember()`, as `markup` is for `renderChildren()`. */
-  /*@memoize*/
-  get memberMarkup(): P.MarkupElement {
-    return this.derived("memberMarkup", () => render.span(`${this.className} as-member`, this.renderAsMember()))
-  }
 }
 
 /**
@@ -2121,29 +1791,6 @@ export class ASTPropertyDefinition extends ASTClassMember {
       return `Object.defineProperty(${prototype}, ${quoted(this.property)}, ${stringify.Block({ wrap: true, children: descriptor })})`
     }
     return `${prototype}${propertyAccess(this.property)} = ${this.method!.compileAnonymous()}`
-  }
-  renderAsMember(): P.Markup {
-    const name = this.property.markup
-    if (this.get) return this.get.renderNamed(render.Fragment(render.GET, name))
-    return this.method!.renderNamed(name)
-  }
-  renderChildren(): P.Markup {
-    const prototype = this.prototypeExpression.markup
-    if (this.get) {
-      return render.Fragment(
-        "Object.defineProperty",
-        render.InParens({
-          children: [
-            render.Fragment(prototype, render.SPACED_COMMA, quoted(this.property), render.SPACED_COMMA),
-            render.Block({
-              wrap: true,
-              children: render.Fragment(this.get.renderNamed("get"), render.INDENTED_COMMA, "configurable: true")
-            })
-          ]
-        })
-      )
-    }
-    return render.Fragment(prototype, propertyAccess(this.property), render.EQUALS, this.method!.renderAnonymous())
   }
 }
 
@@ -2223,23 +1870,6 @@ export class ASTReactiveProperty extends ASTClassMember {
     const declare = this.declareCall(this.type.compile())
     return declare ? [declare, define].join(stringify.NEWLINE) : define
   }
-  renderAsMember(): P.Markup {
-    const name = this.property.markup
-    const declare = this.declareCall("this")
-    return render.Fragment(
-      declare ? render.Fragment(render.STATIC, `{ ${declare} }`, render.NEWLINE) : undefined,
-      render.GET,
-      name,
-      `() ${this.getterBody}`,
-      render.NEWLINE,
-      render.SET,
-      name,
-      `(value) ${this.setterBody}`
-    )
-  }
-  renderChildren(): P.Markup {
-    return this.compile()
-  }
 }
 
 /**
@@ -2270,12 +1900,6 @@ export class ASTStaticDefinition extends ASTClassMember {
   compile(): string {
     return `${this.type.compile()}.${this.name} = ${this.value.compile()}`
   }
-  renderAsMember(): P.Markup {
-    return render.Fragment(render.STATIC, this.name, render.EQUALS, this.value.markup)
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(this.type.markup, render.PERIOD, this.name, render.EQUALS, this.value.markup)
-  }
 }
 
 /**
@@ -2296,9 +1920,6 @@ export class ASTPatchedMember extends ASTStatement {
   }
   compile(): unknown {
     return this.member.compile()
-  }
-  renderChildren(): P.Markup {
-    return this.member.markup
   }
 }
 
@@ -2344,14 +1965,6 @@ export class ASTIfStatement extends ASTStatement {
   compile(): string {
     return `if ${this.condition.compile()} ${this.statements.compile()}`
   }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.IF,
-      render.span("condition", this.condition.markup),
-      render.SPACE,
-      this.statements.markup
-    )
-  }
 }
 
 /** ElseIfStatement.
@@ -2382,15 +1995,6 @@ export class ASTElseIfStatement extends ASTStatement {
   compile(): string {
     return `else if ${this.condition.compile()} ${this.statements.compile()}`
   }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.ELSE,
-      render.IF,
-      render.span("condition", this.condition.markup),
-      render.SPACE,
-      this.statements.markup
-    )
-  }
 }
 
 /** ElseStatement.
@@ -2406,9 +2010,6 @@ export class ASTElseStatement extends ASTStatement {
   }
   compile(): string {
     return `else ${this.statements.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.ELSE, this.statements.markup)
   }
 }
 
@@ -2437,17 +2038,6 @@ export class ASTTernaryExpression extends ASTExpression {
     const { condition, trueValue, falseValue } = this
     return stringify.InParens({
       children: `${condition.compile()} ? ${trueValue.compile()} : ${falseValue.compile()}`
-    })
-  }
-  renderChildren(): P.Markup {
-    return render.InParens({
-      children: [
-        render.span("condition", this.condition.markup),
-        render.TERNARY_QUESTION,
-        this.trueValue.markup,
-        render.TERNARY_COLON,
-        this.falseValue.markup
-      ]
     })
   }
 }
@@ -2534,7 +2124,7 @@ export class ASTJSXElement extends ASTExpression {
   }
   /**
    * Builds -- and memoizes -- `spellCore.element({ tag, props, children })` CoreMethodInvocation that
-   * `compile()`/`renderChildren()` delegate to.
+   * `compile()` delegates to.
    * - `props` key only appears when there's at least one attr; `children` key only when there's at
    *   least one child whose own `output` isn't falsy (e.g. `ASTJSXEndTag.output` is always `undefined`
    *   and gets filtered out).
@@ -2581,9 +2171,6 @@ export class ASTJSXElement extends ASTExpression {
   }
   compile(): string {
     return this.output.compile()
-  }
-  renderChildren(): P.Markup {
-    return this.output.markup
   }
 }
 
