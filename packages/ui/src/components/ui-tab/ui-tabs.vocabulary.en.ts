@@ -11,7 +11,7 @@
  *     selected)
  * - `selected` is the canonical chosen state (`active`, Fomantic's word, is an alias);  the chosen pane is the tabs'
  *   `value`.
- * - The tab list's look is the menu's ONE word, `appearance` (`UIT.MENU_APPEARANCES`:  `tabular`, `pointing`,
+ * - The tab list's look is the menu's ONE word, `appearance` (`UIT.MenuAppearances`:  `tabular`, `pointing`,
  *   `secondary`, `text`, `segmented`);  the older booleans stay as aliases.  `alignment` and `equal` place and size
  *   the tabs, as on `<ui-menu>`.
  */
@@ -50,7 +50,7 @@ export const tabsVocabulary = {
     {
       name: "appearance",
       kind: "valueOnly",
-      values: UIT.MENU_APPEARANCES,
+      values: UIT.MenuAppearances,
       description:
         "The tab list's look, as `<ui-menu appearance>`:  `tabular` (file-folder tabs), `pointing`, `secondary`, " +
         "`text`, `segmented` (a bordered group of joined tabs, the selected one filled:  a segmented control).  The " +
@@ -89,7 +89,7 @@ export const tabsVocabulary = {
       name: "alignment",
       kind: "valueAndKey",
       key: "aligned",
-      values: UIT.ITEM_ALIGNMENTS,
+      values: UIT.ItemAlignments,
       description:
         "Where the tabs sit:  `fluid` -- they fill the row;  `left` / `center` / `right` -- packed at that end (a " +
         "`segmented` tab list moves as a whole).  Ignored when `vertical`."

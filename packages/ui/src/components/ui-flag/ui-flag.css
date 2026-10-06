@@ -5,7 +5,7 @@
  *   - the resolved code is a class word too (Fomantic's `fr flag`):  nothing here reads it, a sprite theme does
  *     (`themes/famfamfam.css`)
  *   - the glyph is the Unicode flag emoji the element computes from `country` (see `ui-flag.vocabulary.en.ts`:
- *     regional-indicator pairs, `flagEmoji` sequences, `flagAliases`);  the label comes from
+ *     regional-indicator pairs, `UIT.SPECIAL_FLAGS` sequences, `FLAG_ALIASES`);  the label comes from
  *     `Intl.DisplayNames` (type `region`), or the vocabulary's texts for non-country flags
  *   - an unknown country renders an EMPTY root, which keeps its line box so layout doesn't jump
  * - The host is `display: contents`:  the root span IS the inline box, where Fomantic's `<i class="fr flag">` sat.

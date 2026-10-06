@@ -1,8 +1,7 @@
-import { SourceError, UI, type CodeLanguage } from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { CodeLines } from "./CodeLines"
-import { TEXT, type Highlighted } from "./ui-code.types"
 import type { CodeEngine } from "./CodeEngine"
+import type { Highlighted } from "./ui-code.types"
 
 /****************
  * ### `CodeHighlighter`
@@ -12,6 +11,7 @@ import type { CodeEngine } from "./CodeEngine"
  *   or its highlight.js `grammar`;  a `load()`ed language is fetched once per name + variant.
  * - Anything else:  highlight.js (`CodeEngine`, the lazy chunk), by name, or guessed when `language` is absent.
  * - Fails with a `render` `SourceError` for a language nobody knows (or a variant that won't load).
+ * - STATIC and instance-free:  ONE engine and one cache of loaded languages per page, shared by every `<ui-code>`.
  ****************/
 export class CodeHighlighter {
   /**
@@ -20,11 +20,11 @@ export class CodeHighlighter {
    */
   static engineLoader: () => Promise<{ CodeEngine: { instance: CodeEngine } }> = () => import("./CodeEngine")
 
-  /** The engine's import, started once. */
+  /** The engine's import, started once per page. */
   private static engine?: Promise<CodeEngine>
 
-  /** `load()`ed `UI.code` languages, by `name/variant`. */
-  private static readonly loaded = new Map<string, Promise<Omit<CodeLanguage, "load">>>()
+  /** `load()`ed `UI.code` languages, by `name/variant`:  page-wide, so each loads once. */
+  private static readonly loaded = new Map<string, Promise<Omit<E.CodeLanguage, "load">>>()
 
   /** highlight.js, loaded on first use. */
   static load(): Promise<CodeEngine> {
@@ -33,7 +33,7 @@ export class CodeHighlighter {
 
   /** `code` as HTML, coloured as `language`, or as its best guess when `language` is absent. */
   static async highlight(code: string, language?: string): Promise<Highlighted> {
-    if (language?.toLowerCase() === TEXT) return { html: CodeLines.escape(code), detected: false }
+    if (language?.toLowerCase() === UIT.TEXT) return { html: CodeLines.escape(code), detected: false }
     const registered = language ? UI.code.find(language) : undefined
     if (registered) return CodeHighlighter.withRegistered(code, registered.language, registered.variant)
     const engine = await CodeHighlighter.load()
@@ -46,7 +46,7 @@ export class CodeHighlighter {
     }
     const name = await engine.ensure(language)
     if (!name) {
-      throw new SourceError(
+      throw new E.SourceError(
         `CodeHighlighter.highlight():  no highlighting for "${language}";  \`UI.code.register()\` it`,
         { cause: { kind: "render" } }
       )
@@ -57,7 +57,7 @@ export class CodeHighlighter {
   /** `code` coloured by a `UI.code` language. */
   private static async withRegistered(
     code: string,
-    language: CodeLanguage & { name: string },
+    language: E.CodeLanguage & { name: string },
     variant: string | undefined
   ): Promise<Highlighted> {
     const name = variant ? `${language.name}/${variant}` : language.name
@@ -65,7 +65,7 @@ export class CodeHighlighter {
     if (ready.highlight)
       return { html: CodeLines.fromSpans(code, await ready.highlight(code)), language: name, detected: false }
     if (!ready.grammar) {
-      throw new SourceError(
+      throw new E.SourceError(
         `CodeHighlighter.highlight():  "${name}" has neither a grammar nor a highlighter;  give it one`,
         { cause: { kind: "render" } }
       )
@@ -78,18 +78,21 @@ export class CodeHighlighter {
   /** `language.load(variant)`, once per `name`;  a failure isn't cached, and becomes a `render` error. */
   private static loadLanguage(
     name: string,
-    language: CodeLanguage,
+    language: E.CodeLanguage,
     variant: string | undefined
-  ): Promise<Omit<CodeLanguage, "load">> {
+  ): Promise<Omit<E.CodeLanguage, "load">> {
     let pending = CodeHighlighter.loaded.get(name)
     if (!pending) {
       pending = language.load!(variant).catch((error: unknown) => {
         CodeHighlighter.loaded.delete(name)
-        if (error instanceof SourceError) throw error
+        if (error instanceof E.SourceError) throw error
         const said = error instanceof Error ? error.message : String(error)
-        throw new SourceError(`CodeHighlighter.highlight():  "${name}" didn't load (${said});  check its \`load()\``, {
-          cause: { kind: "render", error }
-        })
+        throw new E.SourceError(
+          `CodeHighlighter.highlight():  "${name}" didn't load (${said});  check its \`load()\``,
+          {
+            cause: { kind: "render", error }
+          }
+        )
       })
       CodeHighlighter.loaded.set(name, pending)
     }

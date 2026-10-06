@@ -1,8 +1,8 @@
-import { proto } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
+// Import the modal's FILE, not its barrel:  a server render loads this class without `customElements` (`index.ts`)
 import { ModalFallback } from "$/ui/components/ui-modal/ui-modal.fallback"
-
+import { WIDTH } from "./ui-flyout.types"
 import { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
-import { FLYOUT_WORD_WIDTHS, WIDTH } from "./ui-flyout.types"
 
 /****************
  * ### `FlyoutFallback`
@@ -11,21 +11,18 @@ import { FLYOUT_WORD_WIDTHS, WIDTH } from "./ui-flyout.types"
  * `part="flyout"`.
  ****************/
 export class FlyoutFallback extends ModalFallback {
-  // same dialog vocabulary shape as the modal's (see `DialogElement`);  TypeScript only knows the modal's literals
-  @proto static vocabulary = flyoutVocabulary as unknown as typeof ModalFallback.prototype.vocabulary
-  @proto static rootPart = "flyout"
-  @proto static degraded = [
+  // HACK:  the same dialog vocabulary shape as the modal's (`DialogElement`), but `ModalFallback` isn't generic over
+  // it, so TypeScript only knows the modal's literals
+  @E.proto static vocabulary = flyoutVocabulary as unknown as typeof ModalFallback.prototype.vocabulary
+  @E.proto static rootPart = "flyout"
+  @E.proto static degraded = [
     ...ModalFallback.prototype.degraded,
     "the slide-in:  it appears at once;  a word `width` (`thin`) warns in dev, as the class grammar only knows columns"
   ]
 
   /** The class grammar, plus a word width after the noun, as the element adds it. */
   protected override classes(extra?: string): string {
-    const width = this.host
-      .getAttribute(WIDTH)
-      ?.trim()
-      .replace(/[\s-]+/g, " ")
-    const word = FLYOUT_WORD_WIDTHS.find((each) => each === width)
+    const word = UIT.WordWidthClasses.classFor(this.host.getAttribute(WIDTH))
     return super.classes([word, extra].filter(Boolean).join(" ") || undefined)
   }
 }

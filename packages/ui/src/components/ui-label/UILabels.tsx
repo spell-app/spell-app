@@ -1,7 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { labelsVocabulary } from "./ui-labels.vocabulary.en"
 
 import labelCSS from "./ui-label.css?inline"
@@ -11,9 +10,9 @@ import labelCSS from "./ui-label.css?inline"
  * A group of labels sharing one look:  `<div class="ui … labels" part="group"><slot></slot></div>`.
  * - Needs no code beyond that:  `ui-label.css` hands the look to slotted labels through inherited tokens.
  ****************/
-export class UILabels extends UIElement<typeof labelsVocabulary> {
-  @proto static vocabulary = labelsVocabulary
-  @proto static styles = { label: labelCSS }
+export class UILabels extends E.UIElement<typeof labelsVocabulary> {
+  @E.proto static vocabulary = labelsVocabulary
+  @E.proto static styles = { label: labelCSS }
 
   render(): JSX.Element {
     return (

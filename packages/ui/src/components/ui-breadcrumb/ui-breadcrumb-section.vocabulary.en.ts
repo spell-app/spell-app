@@ -1,10 +1,10 @@
 /**
  * Every name `<ui-breadcrumb-section>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * texts.  Schema:  `E.ComponentVocabulary`.
  * - The family's grammar notes are in `ui-breadcrumb.vocabulary.en.ts`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-breadcrumb-section>`
@@ -35,4 +35,4 @@ export const breadcrumbSectionVocabulary = {
   ],
   states: [{ name: "active", description: "The current page." }],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -348,7 +348,7 @@ export type OwnerLookup =
 /**
  * A PART that owns parts only in some contexts, implemented on its CONTROLLER:  `<ui-item>` owns its content parts
  * in the Items view (`:state(in-item)`), but in a list or menu they see through it to the list / menu.
- * - `PartContext` registers such a class (it has `ownsPart()`) as a conditional owner of its vocabulary's
+ * - `PartContext` registers such a class (it has `isOwnerOf()`) as a conditional owner of its vocabulary's
  *   `ownsParts`, and asks it during every climb;  while it says no, it's transparent like any part.
  * - MUST read the DOM now, not signals:  it runs inside other parts' re-resolution, right after moves, before
  *   Solid's writes land.
@@ -356,7 +356,7 @@ export type OwnerLookup =
  */
 export type ConditionalOwner = {
   /** Does this element own part `noun` right now?  Read from the DOM. */
-  ownsPart(noun: string): boolean
+  isOwnerOf(noun: string): boolean
 }
 
 /** What `PartContext.define()` records for one defined tag. */

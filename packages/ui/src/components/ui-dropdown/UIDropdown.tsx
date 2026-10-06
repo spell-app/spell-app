@@ -1,43 +1,12 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  Converters,
-  IconGlyph,
-  proto,
-  SlotContent,
-  type AttributeName,
-  type FieldValue,
-  type MenuAddition,
-  type MenuEntry,
-  type MenuOption,
-  type MenuSeparator,
-  type OverlayEntry,
-  type ValidationRule,
-  UI,
-  UIT
-} from "$/ui/core"
-import { FormElement, MenuOptions, type MenuOptionsProps } from "$/ui/forms"
-
+import { E, UI, UIT } from "$/ui/core"
+import { F } from "$/ui/forms"
 import { dropdownVocabulary } from "./ui-dropdown.vocabulary.en"
 import { DropdownFallback } from "./ui-dropdown.fallback"
 import { SlottedItems } from "./SlottedItems"
-import {
-  ADDITION,
-  DEFAULT,
-  FILTERED,
-  HIDDEN,
-  ID_PREFIX,
-  ITEM,
-  LEFT,
-  MENU,
-  REGIONAL_A,
-  SELECTED,
-  TEXT,
-  VALUE_PLACEHOLDER,
-  Vocabulary
-} from "./ui-dropdown.types"
+import type { Vocabulary } from "./ui-dropdown.types"
 
 import buttonCSS from "$/ui/components/ui-button/ui-button.css?inline"
 import dropdownCSS from "./ui-dropdown.css?inline"
@@ -48,25 +17,39 @@ import dropdownCSS from "./ui-dropdown.css?inline"
  * popover menu, both in the shadow root.
  * - Model:  slotted `<ui-item>`s (`SlottedItems`) + the `options` property + additions, as `MenuOptions`;
  *   memos derive the visible list (exclude chosen, filter, additions) per keystroke.
- * - Invoker commands (`<button commandfor="id" command="--toggle">`, `TOGGLE_COMMANDS`) open / close the menu as a user
- *   action;  a disabled or read-only dropdown ignores them.
+ * - Invoker commands (`<button commandfor="id" command="--toggle">`, `TOGGLE_COMMANDS`) open / close the menu as a
+ *   person's action;  a disabled or read-only dropdown ignores them.
  * - `value` and `open` are auto-controlled (`Controlled`):  events first, the host may veto / override.
  * - Menu rows render only while open (`<For>` keyed by option identity);  `aria-activedescendant` points at
  *   the highlighted row.  Escape and outside clicks come from `UI.overlays`.
  * - Form-associated:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
+ * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with;  Fomantic's country names
+ *   (`france`) are `<ui-flag>`'s alone, so a flag that isn't a code shows as its text.
  * - Static server render (`$/ui/static`):  the menu closed, its rows rendered (their text is in the page), the
  *   `<ui-item>`s dropped, and the value as hidden inputs, so a static form submits it;  choosing needs JS.
  ****************/
-export class UIDropdown extends FormElement<Vocabulary> {
-  @proto static vocabulary = dropdownVocabulary
-  @proto static styles = { button: buttonCSS, dropdown: dropdownCSS }
-  @proto static Fallback = DropdownFallback
+export class UIDropdown extends F.FormElement<Vocabulary> {
+  /**
+   * Rows PageUp / PageDown move.
+   * - `@proto`:  a subclass or an instance may set its own.
+   */
+  declare pageSize: number
 
-  /** Rows PageUp / PageDown move. */
-  static pageSize = 10
+  /**
+   * How long type-ahead keeps what was typed, in ms:  a key after a longer pause starts a new search.
+   * - `@proto`:  a subclass or an instance may set its own (a test, a shorter one).
+   */
+  declare typeAheadDelay: number
 
-  /** Type-ahead buffer timeout, ms. */
-  static typeAheadDelay = 500
+  @E.proto static vocabulary = dropdownVocabulary
+  @E.proto static styles = { button: buttonCSS, dropdown: dropdownCSS }
+  @E.proto static Fallback = DropdownFallback
+
+  /** Default:  10 rows. */
+  @E.proto static pageSize = 10
+
+  /** Default:  500 ms. */
+  @E.proto static typeAheadDelay = 500
 
   ////////////////
   // ## State
@@ -76,16 +59,16 @@ export class UIDropdown extends FormElement<Vocabulary> {
   readonly items = new SlottedItems(this.host)
 
   /** Light-DOM slot occupancy (`icon`, `trigger`, `header`). */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** Values added with `allow-additions`, as options. */
-  readonly added = new Cell<readonly MenuOption[]>([])
+  readonly added = new E.Cell<readonly E.MenuOption[]>([])
 
   /** Search query. */
-  readonly query = new Cell("")
+  readonly query = new E.Cell("")
 
   /** Highlighted index into `visible().options`;  `-1` for none. */
-  readonly active = new Cell(-1)
+  readonly active = new E.Cell(-1)
 
   /** `open`:  host-controlled, or internal. */
   readonly openState = this.controlled("open", false)
@@ -97,31 +80,36 @@ export class UIDropdown extends FormElement<Vocabulary> {
   private readonly initialValue = untrack(() => this.attrs.value)
 
   /** Search-key cache shared by every `MenuOptions` this element derives. */
-  private readonly keys = new WeakMap() as NonNullable<MenuOptionsProps["keys"]>
+  private readonly keys = new WeakMap() as NonNullable<F.MenuOptionsProps["keys"]>
 
   /** Stable DOM id per option. */
-  private readonly optionIds = new WeakMap<MenuOption, string>()
+  private readonly optionIds = new WeakMap<E.MenuOption, string>()
 
-  /** Type-ahead buffer and its timer. */
+  /** Type-ahead buffer:  what was typed since the last pause. */
   private typed = ""
+
+  /** Clears `typed` after `typeAheadDelay`. */
   private typedTimer?: ReturnType<typeof setTimeout>
 
   /** Ids / anchor name, from `UI.ids` once rendering. */
   private ids = { menu: "", text: "", anchor: "" }
 
-  /** The combobox (trigger button or search input), and the menu. */
+  /** The combobox:  the trigger button, or the search input. */
   private combobox?: HTMLElement
+
+  /** The listbox popover. */
   private menu?: HTMLElement
 
   /** This element's `UI.overlays` entry. */
-  private readonly overlay: OverlayEntry = {
+  private readonly overlay: E.OverlayEntry = {
     element: this.host,
     kind: "popover",
     restoreFocus: false,
     onDismiss: () => void this.setOpen(false)
   }
 
-  constructor(...args: ConstructorParameters<typeof FormElement>) {
+  /** Listens for invoker commands aimed at the host, until it's released. */
+  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
     super(...args)
     const listeners = new AbortController()
     this.host.addEventListener("command", this.onCommand, { signal: listeners.signal })
@@ -140,12 +128,12 @@ export class UIDropdown extends FormElement<Vocabulary> {
 
   /** Every option:  slotted, then `options`, then additions. */
   readonly all = createMemo(
-    (): readonly MenuOption[] => [
+    (): readonly E.MenuOption[] => [
       ...this.items.entries().filter(UIDropdown.isOption),
       ...this.propOptions(),
       ...this.added.get()
     ],
-    { equals: UIDropdown.sameItems }
+    { equals: UIDropdown.isSameList }
   )
 
   /** Option by value, for texts of chosen values. */
@@ -157,9 +145,9 @@ export class UIDropdown extends FormElement<Vocabulary> {
       const value = this.valueState.get() as unknown
       if (Array.isArray(value)) return value.map(String)
       if (typeof value !== "string" || value === "") return []
-      return this.attrs.multiple ? Converters.list(value) : [value]
+      return this.attrs.multiple ? E.Converters.list(value) : [value]
     },
-    { equals: UIDropdown.sameItems }
+    { equals: UIDropdown.isSameList }
   )
 
   /** Chosen values as a set, for row state. */
@@ -171,7 +159,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   /** Options offered now:  minus chosen (multiple), filtered, plus the addition. */
   readonly visible = createMemo(() => {
     const query = this.effectiveQuery()
-    return new MenuOptions({ options: this.all(), keys: this.keys })
+    return new F.MenuOptions({ options: this.all(), keys: this.keys })
       .excludeSelected(this.attrs.multiple ? this.values() : [])
       .filter(query, { minCharacters: this.attrs.minCharacters ?? 0 })
       .withAdditions(query, { allowAdditions: this.attrs.allowAdditions && this.canAdd() })
@@ -179,21 +167,21 @@ export class UIDropdown extends FormElement<Vocabulary> {
 
   /** Menu rows:  separators in place while not searching, else just the visible options. */
   readonly rows = createMemo(
-    (): readonly (MenuEntry | MenuAddition)[] => {
+    (): readonly (E.MenuEntry | E.MenuAddition)[] => {
       const visible = this.visible()
       const entries = this.items.entries()
       if (this.effectiveQuery() || !entries.some((entry) => "type" in entry)) return visible.options
-      const shown = new Set<MenuOption>(visible.options)
-      const rows: (MenuEntry | MenuAddition)[] = entries.filter((entry) => "type" in entry || shown.has(entry))
-      const slotted = new Set<MenuEntry>(entries)
+      const shown = new Set<E.MenuOption>(visible.options)
+      const rows: (E.MenuEntry | E.MenuAddition)[] = entries.filter((entry) => "type" in entry || shown.has(entry))
+      const slotted = new Set<E.MenuEntry>(entries)
       for (const option of visible.options) if (!slotted.has(option)) rows.push(option)
       return rows
     },
-    { equals: UIDropdown.sameItems }
+    { equals: UIDropdown.isSameList }
   )
 
   /** Highlighted option. */
-  readonly highlighted = createMemo(() => this.visible().options[this.active.get()] as MenuOption | undefined)
+  readonly highlighted = createMemo(() => this.visible().options[this.active.get()] as E.MenuOption | undefined)
 
   /** Open now. */
   isOpen(): boolean {
@@ -210,7 +198,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   }
 
   /** Text of `value`:  its option's, else `text` (single), else the value itself. */
-  private textOf(value: string): string {
+  private textFor(value: string): string {
     return this.byValue().get(value)?.text ?? (this.attrs.multiple ? undefined : this.attrs.text) ?? value
   }
 
@@ -224,7 +212,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
     if (name === "open") return this.isOpen()
     if (name === "disabled") return this.isDisabled()
     return super.classValue(name)
@@ -239,7 +227,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
     }
   }
 
-  formValue(): FieldValue {
+  formValue(): E.FieldValue {
     const values = this.values()
     return this.attrs.multiple ? values : (values[0] ?? null)
   }
@@ -248,12 +236,13 @@ export class UIDropdown extends FormElement<Vocabulary> {
     return this.attrs.name
   }
 
+  /** Back to the starting value;  clears the query. */
   formReset() {
     this.valueState.set(this.initialValue as never)
     this.query.set("")
   }
 
-  protected rules(): ValidationRule[] {
+  protected rules(): E.ValidationRule[] {
     return this.attrs.required ? [UIT.REQUIRED_RULE] : []
   }
 
@@ -284,7 +273,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
         <Show when={this.attrs.search} fallback={this.trigger()}>
           {this.searchInput()}
           <Show when={this.attrs.multiple}>
-            <span class="sizer" aria-hidden="true">
+            <span class={SIZER} aria-hidden={UIT.TRUE}>
               {this.query.get()}
             </span>
           </Show>
@@ -292,26 +281,26 @@ export class UIDropdown extends FormElement<Vocabulary> {
         <Show when={this.attrs.labeled && this.attrs.icon}>{this.labeledIcon()}</Show>
         <span
           id={this.ids.text}
-          class={[TEXT, { [DEFAULT]: this.showsPlaceholder(), [FILTERED]: !!this.effectiveQuery() }]}
+          class={[UIT.TEXT, { [DEFAULT]: this.isShowingPlaceholder(), [FILTERED]: !!this.effectiveQuery() }]}
           part={this.part("text")}
         >
           <slot name={this.slot("trigger")}>{this.displayText()}</slot>
         </span>
         <Show when={this.attrs.clearable && this.values().length && !this.attrs.readonly}>
           <button
-            type="button"
-            class="remove icon"
+            type={UIT.BUTTON}
+            class={CLEAR_ICON}
             part={this.part("clear")}
             aria-label={this.text("clear")}
             onClick={this.onClear}
           />
         </Show>
-        <span class="dropdown icon" part={this.part("icon")}>
+        <span class={CARET_ICON} part={this.part("icon")}>
           <Show when={this.slots.has(this.slot("icon"))}>
             <slot name={this.slot("icon")} />
           </Show>
         </span>
-        {this.menuElement()}
+        {this.listbox()}
         {isServer ? this.staticValues() : <slot hidden />}
       </div>
     )
@@ -320,29 +309,29 @@ export class UIDropdown extends FormElement<Vocabulary> {
   /** Text shown in `.text`:  chosen text (single), else `text` (a menu's fixed label), else the placeholder. */
   private displayText(): string {
     const [first] = this.values()
-    if (first !== undefined && !this.attrs.multiple) return this.textOf(first)
+    if (first !== undefined && !this.attrs.multiple) return this.textFor(first)
     return this.attrs.text ?? this.attrs.placeholder ?? ""
   }
 
   /** Showing the placeholder (grey `default` text)? */
-  private showsPlaceholder(): boolean {
+  private isShowingPlaceholder(): boolean {
     return !this.values().length && this.attrs.text === undefined
   }
 
-  /** Combobox ARIA shared by the trigger and the search input. */
-  private comboboxProps() {
+  /** Combobox role and ARIA, shared by the trigger and the search input;  the static render's control mark. */
+  private comboboxAttributes() {
     return {
-      role: "combobox",
-      "aria-expanded": this.isOpen() ? "true" : "false",
+      role: COMBOBOX_ROLE,
+      "aria-expanded": this.isOpen() ? UIT.TRUE : UIT.FALSE,
       "aria-controls": this.ids.menu,
-      "aria-haspopup": "listbox",
-      "aria-activedescendant": this.isOpen() && this.highlighted() ? this.optionId(this.highlighted()!) : undefined,
+      "aria-haspopup": LISTBOX_ROLE,
+      "aria-activedescendant": this.isOpen() && this.highlighted() ? this.idFor(this.highlighted()!) : undefined,
       "aria-label": this.label() || undefined,
       "aria-describedby": this.ids.text,
-      "aria-busy": this.attrs.loading ? "true" : undefined,
-      "aria-readonly": this.attrs.readonly ? "true" : undefined,
-      "aria-required": this.attrs.required ? "true" : undefined,
-      "aria-invalid": this.validation().valid ? undefined : "true",
+      "aria-busy": this.attrs.loading ? UIT.TRUE : undefined,
+      "aria-readonly": this.attrs.readonly ? UIT.TRUE : undefined,
+      "aria-required": this.attrs.required ? UIT.TRUE : undefined,
+      "aria-invalid": this.validation().valid ? undefined : UIT.TRUE,
       [UIT.STATIC_CONTROL]: isServer ? "" : undefined
     } as const
   }
@@ -352,11 +341,11 @@ export class UIDropdown extends FormElement<Vocabulary> {
     return (
       <button
         ref={(element) => (this.combobox = element)}
-        type="button"
-        class="trigger"
+        type={UIT.BUTTON}
+        class={TRIGGER}
         part={this.part("trigger")}
         disabled={this.isDisabled()}
-        {...this.comboboxProps()}
+        {...this.comboboxAttributes()}
         onClick={this.onTriggerClick}
         onKeyDown={this.onKeyDown}
         onBlur={this.onBlur}
@@ -369,14 +358,14 @@ export class UIDropdown extends FormElement<Vocabulary> {
     return (
       <input
         ref={(element) => (this.combobox = element)}
-        class="search"
+        class={SEARCH}
         part={this.part("search")}
         autocomplete="off"
         aria-autocomplete="list"
         disabled={this.isDisabled()}
         readonly={this.attrs.readonly}
         value={this.query.get()}
-        {...this.comboboxProps()}
+        {...this.comboboxAttributes()}
         onInput={this.onInput}
         onClick={this.onTriggerClick}
         onKeyDown={this.onKeyDown}
@@ -388,14 +377,14 @@ export class UIDropdown extends FormElement<Vocabulary> {
   /** A chosen value's label, with its delete button (multiple). */
   private chip(value: string): JSX.Element {
     return (
-      <span class="ui label" part={this.part("label")}>
-        {this.textOf(value)}
+      <span class={CHIP} part={this.part("label")}>
+        {this.textFor(value)}
         <Show when={!this.attrs.readonly && !this.isDisabled()}>
           <button
-            type="button"
-            class="delete icon"
+            type={UIT.BUTTON}
+            class={DELETE_ICON}
             tabindex="-1"
-            aria-label={this.text("removeValue", { value: this.textOf(value) })}
+            aria-label={this.text("removeValue", { value: this.textFor(value) })}
             onClick={(event) => this.remove(value, event)}
           />
         </Show>
@@ -410,8 +399,8 @@ export class UIDropdown extends FormElement<Vocabulary> {
 
   /** An icon box drawing `name`:  once loaded in a browser, at once on a server. */
   private iconBox(name: string | undefined): JSX.Element {
-    if (isServer) return <span class={UIT.ICON}>{new IconGlyph(this, () => name).svg()}</span>
-    return <span class={UIT.ICON} ref={(element) => void SVGIcon.fill(element, name)} />
+    if (isServer) return <span class={UIT.ICON}>{new E.IconGlyph(this, () => name).svg()}</span>
+    return <span class={UIT.ICON} ref={(element) => void UIDropdown.fillIcon(element, name)} />
   }
 
   /**
@@ -423,7 +412,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
       <Show when={this.attrs.name}>
         {(name) => (
           <For each={this.values()}>
-            {(value) => <input type={HIDDEN} name={name()} value={value} disabled={this.isDisabled()} />}
+            {(value) => <input type={HIDDEN_INPUT} name={name()} value={value} disabled={this.isDisabled()} />}
           </For>
         )}
       </Show>
@@ -431,18 +420,18 @@ export class UIDropdown extends FormElement<Vocabulary> {
   }
 
   /** The listbox popover. */
-  private menuElement(): JSX.Element {
+  private listbox(): JSX.Element {
     return (
       <div
         ref={(element) => (this.menu = element)}
         id={this.ids.menu}
-        class={[MENU, { [LEFT]: this.attrs.direction === "left" }]}
-        role="listbox"
+        class={[MENU, { [UIT.LEFT]: this.attrs.direction === UIT.LEFT }]}
+        role={LISTBOX_ROLE}
         // a server render can't show a popover:  an open menu is a plain one, shown by the root's `active`
         popover={this.attrs.simple || (isServer && this.isOpen()) ? undefined : "manual"}
         part={this.part("menu")}
         aria-label={this.label() || undefined}
-        aria-multiselectable={this.attrs.multiple ? "true" : undefined}
+        aria-multiselectable={this.attrs.multiple ? UIT.TRUE : undefined}
         onMouseDown={UIDropdown.preventDefault}
       >
         <slot name={this.slot("header")} />
@@ -451,7 +440,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
           <For each={this.rows()}>{(row) => this.row(row)}</For>
           <Show when={!this.visible().length}>
             {/* an option (disabled) rather than a bare div:  a listbox must own options (axe `aria-required-children`) */}
-            <div class="message" role="option" aria-disabled="true" aria-selected="false">
+            <div class={UIT.MESSAGE} role={OPTION_ROLE} aria-disabled={UIT.TRUE} aria-selected={UIT.FALSE}>
               {this.attrs.noResultsText ?? this.text("noResults")}
             </div>
           </Show>
@@ -461,26 +450,26 @@ export class UIDropdown extends FormElement<Vocabulary> {
   }
 
   /** One menu row. */
-  private row(row: MenuEntry | MenuAddition): JSX.Element {
+  private row(row: E.MenuEntry | E.MenuAddition): JSX.Element {
     if ("type" in row) return this.separator(row)
-    if ("addition" in row) return this.additionRow(row)
+    if ("addition" in row) return this.addition(row)
     const option = row
     const slot = this.items.slots.get(option)
     return (
       <div
-        id={this.optionId(option)}
+        id={this.idFor(option)}
         class={[
-          ITEM,
+          UIT.ITEM,
           {
             [UIT.ACTIVE]: this.chosen().has(option.value),
-            [SELECTED]: this.highlighted() === option,
+            [UIT.SELECTED]: this.highlighted() === option,
             [UIT.DISABLED]: !!option.disabled
           }
         ]}
-        role="option"
+        role={OPTION_ROLE}
         part={this.part("item")}
-        aria-selected={this.chosen().has(option.value) ? "true" : "false"}
-        aria-disabled={option.disabled ? "true" : undefined}
+        aria-selected={this.chosen().has(option.value) ? UIT.TRUE : UIT.FALSE}
+        aria-disabled={option.disabled ? UIT.TRUE : undefined}
         onPointerMove={() => this.highlight(option)}
         onClick={(event) => this.select(option, event)}
       >
@@ -492,26 +481,26 @@ export class UIDropdown extends FormElement<Vocabulary> {
   }
 
   /** Icon / image / flag, text with `<mark>`ed matches, description. */
-  private optionContent(option: MenuOption): JSX.Element {
+  private optionContent(option: E.MenuOption): JSX.Element {
     return (
       <>
         <Show when={typeof option.icon === "string"}>{this.iconBox(option.icon as string)}</Show>
         <Show when={typeof option.image === "string"}>
-          <img class="ui avatar image" src={option.image as string} alt="" />
+          <img class={AVATAR_IMAGE} src={option.image as string} alt="" />
         </Show>
         <Show when={typeof option.flag === "string"}>
-          <span class="flag">{UIDropdown.flagEmoji(option.flag as string)}</span>
+          <span class={FLAG}>{UIT.Flags.emojiFor(option.flag as string) || (option.flag as string)}</span>
         </Show>
         <Show when={option.description}>
-          <span class="description">{option.description}</span>
+          <span class={UIT.DESCRIPTION}>{option.description}</span>
         </Show>
-        <span class={TEXT}>{this.highlightText(option)}</span>
+        <span class={UIT.TEXT}>{this.markedText(option)}</span>
       </>
     )
   }
 
   /** `option.text` with the query's matches in `<mark>`. */
-  private highlightText(option: MenuOption): JSX.Element {
+  private markedText(option: E.MenuOption): JSX.Element {
     const query = this.effectiveQuery()
     if (!query) return option.text
     const ranges = this.visible().highlights(option, query)
@@ -527,16 +516,16 @@ export class UIDropdown extends FormElement<Vocabulary> {
   }
 
   /** The "Add …" row of `allow-additions`. */
-  private additionRow(option: MenuAddition): JSX.Element {
+  private addition(option: E.MenuAddition): JSX.Element {
     const template = this.attrs.additionText ?? this.text("addItem")
     const [before = "", after = ""] = template.split(VALUE_PLACEHOLDER)
     return (
       <div
-        id={this.optionId(option)}
-        class={[ITEM, ADDITION, { [SELECTED]: this.highlighted() === option }]}
-        role="option"
+        id={this.idFor(option)}
+        class={[UIT.ITEM, ADDITION, { [UIT.SELECTED]: this.highlighted() === option }]}
+        role={OPTION_ROLE}
         part={this.part("item")}
-        aria-selected="false"
+        aria-selected={UIT.FALSE}
         onPointerMove={() => this.highlight(option)}
         onClick={(event) => this.select(option, event)}
       >
@@ -548,18 +537,18 @@ export class UIDropdown extends FormElement<Vocabulary> {
   }
 
   /** Header or divider row. */
-  private separator(entry: MenuSeparator): JSX.Element {
-    return entry.type === "divider" ? (
-      <hr class="divider" role="presentation" />
+  private separator(entry: E.MenuSeparator): JSX.Element {
+    return entry.type === DIVIDER ? (
+      <hr class={DIVIDER} role={PRESENTATION_ROLE} />
     ) : (
-      <div class="header" role="presentation">
+      <div class={UIT.HEADER} role={PRESENTATION_ROLE}>
         {entry.text}
       </div>
     )
   }
 
-  /** Stable id for `option`'s row. */
-  private optionId(option: MenuOption): string {
+  /** Stable DOM id of `option`'s row, made on first ask. */
+  private idFor(option: E.MenuOption): string {
     let id = this.optionIds.get(option)
     if (!id) this.optionIds.set(option, (id = `${this.ids.menu}-${++UIDropdown.optionCounter}`))
     return id
@@ -577,9 +566,9 @@ export class UIDropdown extends FormElement<Vocabulary> {
   private effects() {
     createEffect(
       () => this.isOpen() && this.connected.get(),
-      (open) => {
+      (isOpen) => {
         const { menu } = this
-        if (!open || !menu || !menu.popover) return
+        if (!isOpen || !menu || !menu.popover) return
         if (!menu.matches(UIT.POPOVER_OPEN)) menu.showPopover()
         UI.overlays.open(this.overlay)
         return () => {
@@ -591,7 +580,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
     createEffect(
       () => (this.isOpen() ? this.highlighted() : undefined),
       (option) => {
-        if (option) this.host.renderRoot.getElementById(this.optionId(option))?.scrollIntoView({ block: "nearest" })
+        if (option) this.host.renderRoot.getElementById(this.idFor(option))?.scrollIntoView({ block: "nearest" })
       }
     )
   }
@@ -603,6 +592,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   /**
    * Open or close, dispatching the cancelable `ui-open` / `ui-close` first.
    * - Opening highlights the chosen option, else the first enabled one.
+   * - Returns true when it changed.
    */
   setOpen(open: boolean, originalEvent?: Event): boolean {
     if (open === untrack(() => this.isOpen())) return false
@@ -617,11 +607,11 @@ export class UIDropdown extends FormElement<Vocabulary> {
     return done
   }
 
-  /** Choose `option` (or add the addition), as the user did with `originalEvent`. */
-  select(option: MenuOption, originalEvent?: Event) {
+  /** Choose `option` (or add the addition), as the person did with `originalEvent`. */
+  select(option: E.MenuOption, originalEvent?: Event) {
     if (option.disabled || this.attrs.readonly) return
     const values = untrack(() => this.values())
-    const addition = "addition" in option
+    const isAddition = "addition" in option
     if (this.attrs.multiple) {
       if (!untrack(() => this.canAdd())) return
       const next = [...values, option.value]
@@ -630,11 +620,11 @@ export class UIDropdown extends FormElement<Vocabulary> {
       this.active.set(0)
     } else {
       this.commit([option.value], originalEvent, () => {
-        if (addition) this.emit("ui-add", { value: option.value, originalEvent })
+        if (isAddition) this.emit("ui-add", { value: option.value, originalEvent })
       })
       this.setOpen(false, originalEvent)
     }
-    if (addition) this.added.set([...untrack(() => this.added.get()), { value: option.value, text: option.text }])
+    if (isAddition) this.added.set([...untrack(() => this.added.get()), { value: option.value, text: option.text }])
   }
 
   /** Remove one chosen value (multiple). */
@@ -658,7 +648,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   }
 
   /** Highlight `option` if it's visible. */
-  private highlight(option: MenuOption) {
+  private highlight(option: E.MenuOption) {
     const index = untrack(() => this.visible()).options.indexOf(option)
     if (index >= 0 && index !== untrack(() => this.active.get())) this.active.set(index)
   }
@@ -679,7 +669,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   ////////////////
 
   /**
-   * An invoker command aimed at the host (`TOGGLE_COMMANDS`):  a user action, ignored when disabled / read-only.
+   * An invoker command aimed at the host (`TOGGLE_COMMANDS`):  a person's action, ignored when disabled / read-only.
    * - Opening focuses the combobox, as opening it by keyboard leaves it (the keys need it).
    */
   private readonly onCommand = (event: Event) => {
@@ -707,7 +697,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   private readonly onRootClick = (event: MouseEvent) => {
     const target = event.composedPath()[0]
     if (!this.attrs.search || target === this.combobox || this.menu?.contains(target as Node)) return
-    if ((target as Element).closest?.("button")) return
+    if ((target as Element).closest?.(UIT.BUTTON)) return
     this.combobox?.focus()
     this.setOpen(!untrack(() => this.isOpen()), event)
   }
@@ -744,29 +734,29 @@ export class UIDropdown extends FormElement<Vocabulary> {
   /** Combobox keyboard pattern (APG), plus type-ahead and Backspace-removes-last. */
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (this.isDisabled() || event.defaultPrevented) return
-    const open = untrack(() => this.isOpen())
+    const isOpen = untrack(() => this.isOpen())
     const { key } = event
     switch (key) {
-      case "ArrowDown":
-      case "ArrowUp":
+      case UIT.Key.arrowDown:
+      case UIT.Key.arrowUp:
         event.preventDefault()
-        if (!open) this.setOpen(true, event)
-        else this.move(key === "ArrowDown" ? 1 : -1)
+        if (!isOpen) this.setOpen(true, event)
+        else this.move(key === UIT.Key.arrowDown ? 1 : -1)
         return
-      case "Home":
-      case "End":
-        if (!open) return
+      case UIT.Key.home:
+      case UIT.Key.end:
+        if (!isOpen) return
         event.preventDefault()
-        this.active.set(untrack(() => this.visible()).nextEnabledIndex(-1, key === "Home" ? 1 : -1))
+        this.active.set(untrack(() => this.visible()).nextEnabledIndex(-1, key === UIT.Key.home ? 1 : -1))
         return
-      case "PageDown":
-      case "PageUp":
-        if (!open) return
+      case UIT.Key.pageDown:
+      case UIT.Key.pageUp:
+        if (!isOpen) return
         event.preventDefault()
-        this.move(key === "PageDown" ? UIDropdown.pageSize : -UIDropdown.pageSize)
+        this.move(key === UIT.Key.pageDown ? this.pageSize : -this.pageSize)
         return
-      case "Enter": {
-        if (!open) {
+      case UIT.Key.enter: {
+        if (!isOpen) {
           if (this.attrs.search) this.setOpen(true, event)
           return
         }
@@ -776,19 +766,17 @@ export class UIDropdown extends FormElement<Vocabulary> {
         if (option) this.select(option, event)
         return
       }
-      case " ":
-        if (this.attrs.search || !open) return
+      case UIT.Key.space: {
+        if (this.attrs.search || !isOpen) return
         event.preventDefault()
-        if (untrack(() => this.highlighted()))
-          this.select(
-            untrack(() => this.highlighted())!,
-            event
-          )
+        const option = untrack(() => this.highlighted())
+        if (option) this.select(option, event)
         return
-      case "Tab":
-        if (open) this.setOpen(false, event)
+      }
+      case UIT.Key.tab:
+        if (isOpen) this.setOpen(false, event)
         return
-      case "Backspace": {
+      case UIT.Key.backspace: {
         const values = untrack(() => this.values())
         if (this.attrs.search && this.attrs.multiple && !untrack(() => this.query.get()) && values.length) {
           this.remove(values.at(-1)!, event)
@@ -806,7 +794,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   private typeAhead(key: string, event: KeyboardEvent) {
     clearTimeout(this.typedTimer)
     this.typed += key
-    this.typedTimer = setTimeout(() => (this.typed = ""), UIDropdown.typeAheadDelay)
+    this.typedTimer = setTimeout(() => (this.typed = ""), this.typeAheadDelay)
     if (!untrack(() => this.isOpen())) this.setOpen(true, event)
     const options = untrack(() => this.visible())
     const index = options.selectionForKey(
@@ -826,49 +814,126 @@ export class UIDropdown extends FormElement<Vocabulary> {
     return untrack(() => this.attrs.multiple) ? values : values[0]
   }
 
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * Counter behind option ids.
+   * - STATIC:  page-wide, so two dropdowns never share an id.
+   */
+  private static optionCounter = 0
+
   /**
    * Same items in the same order?  Memo `equals` for arrays, so a recomputation that yields an equivalent list
    * doesn't wake every row (Solid's dev diagnostics flag it as `UNSTABLE_MEMO_OUTPUT`).
+   * - STATIC:  pure, handed to `createMemo()`.
    */
-  private static sameItems<T>(a: readonly T[], b: readonly T[]): boolean {
+  private static isSameList<T>(a: readonly T[], b: readonly T[]): boolean {
     return a.length === b.length && a.every((item, index) => item === b[index])
   }
 
-  /** Is `entry` an option (not a separator)? */
-  private static isOption(entry: MenuEntry): entry is MenuOption {
+  /**
+   * Is `entry` an option (not a separator)?
+   * - STATIC:  pure, a `filter()` predicate.
+   */
+  private static isOption(entry: E.MenuEntry): entry is E.MenuOption {
     return !("type" in entry)
   }
 
-  /** Counter behind option ids. */
-  private static optionCounter = 0
-
-  /** `preventDefault()`:  menu presses must not take focus from the combobox. */
+  /**
+   * `preventDefault()`:  menu presses must not take focus from the combobox.
+   * - STATIC:  one handler for every instance.
+   */
   private static preventDefault(event: Event) {
     event.preventDefault()
   }
 
-  /** Country code => flag emoji (regional indicators), e.g. `fr` => 🇫🇷;  other text unchanged. */
-  private static flagEmoji(code: string): string {
-    if (!/^[a-z]{2}$/i.test(code)) return code
-    const upper = code.toUpperCase()
-    return String.fromCodePoint(REGIONAL_A + upper.charCodeAt(0) - 65, REGIONAL_A + upper.charCodeAt(1) - 65)
+  /**
+   * Draw icon `name` from the packs `element` sees (its `<ui-root icons>`, else `UI.icons`) into it, once loaded.
+   * - Plain DOM, no signal:  rows are many and their icons never change.
+   * - NEVER rejects (fire-and-forget):  a runtime chunk or icon that won't load draws no icon, not a page error,
+   *   as `IconGlyph` does.
+   * - STATIC:  needs no instance, only the element.
+   */
+  private static async fillIcon(element: HTMLElement, name: string | undefined) {
+    if (!name) return
+    try {
+      const icons = E.IconGlyph.packsFor(element, (await UI.load()).icons)
+      const template = icons.peek(name) ?? (await icons.get(name))
+      if (template) element.replaceChildren(E.IconGlyph.draw(template))
+    } catch {
+      // no icon
+    }
   }
 }
 
 ////////////////
-// ## Helpers
+// ## Constants
 ////////////////
+
+/** `UI.ids` prefix. */
+const ID_PREFIX = "ui-dropdown"
+
+/** Placeholder in the `addItem` text. */
+const VALUE_PLACEHOLDER = "{value}"
+
+/** Hidden input carrying the value in a static server render:  its `type`. */
+const HIDDEN_INPUT = "hidden"
+
+/** `role` of the combobox. */
+const COMBOBOX_ROLE = "combobox"
+
+/** `role` of the menu, and the combobox's `aria-haspopup`. */
+const LISTBOX_ROLE = "listbox"
+
+/** `role` of every row a person can choose (and of the no-results message). */
+const OPTION_ROLE = "option"
+
+/** `role` of header and divider rows. */
+const PRESENTATION_ROLE = "presentation"
 
 /**
- * Draws an icon from the packs the element sees (its `<ui-root icons>`, else `UI.icons`) into it once it has loaded.
- * - Plain DOM, no signal:  rows are many and their icons never change.
+ * Class words of the markup contract (`ui-dropdown.css`) -- grammar, not attributes, so not in the vocabulary.
+ * - NOTE: `active` === chosen, `selected` === highlighted:  Fomantic's meanings.
  */
-class SVGIcon {
-  /** Replace `element`'s content with icon `name`, when loaded. */
-  static async fill(element: HTMLElement, name: string | undefined) {
-    if (!name) return
-    const icons = IconGlyph.packsFor(element, (await UI.load()).icons)
-    const template = icons.peek(name) ?? (await icons.get(name))
-    if (template) element.replaceChildren(IconGlyph.draw(template))
-  }
-}
+const DEFAULT = "default"
+
+/** Class word of the text while a search filters. */
+const FILTERED = "filtered"
+
+/** Class word of the listbox. */
+const MENU = "menu"
+
+/** Class word of the "Add …" row. */
+const ADDITION = "addition"
+
+/** Class words of a divider row;  also `<ui-item type="divider">`. */
+const DIVIDER = "divider"
+
+/** Class word of the covering trigger button. */
+const TRIGGER = "trigger"
+
+/** Class word of the search input. */
+const SEARCH = "search"
+
+/** Class word of the hidden span that sizes a `multiple` search input to its query. */
+const SIZER = "sizer"
+
+/** Class words of the clear button. */
+const CLEAR_ICON = "remove icon"
+
+/** Class words of the caret. */
+const CARET_ICON = "dropdown icon"
+
+/** Class words of a chosen value's label (`multiple`). */
+const CHIP = "ui label"
+
+/** Class words of a chip's delete button. */
+const DELETE_ICON = "delete icon"
+
+/** Class words of an option's `image`. */
+const AVATAR_IMAGE = "ui avatar image"
+
+/** Class word of an option's `flag`. */
+const FLAG = "flag"

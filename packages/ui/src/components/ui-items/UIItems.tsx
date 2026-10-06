@@ -1,12 +1,10 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
-
-import { itemsVocabulary } from "./ui-items.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { ItemsFallback } from "./ui-items.fallback"
+import { itemsVocabulary } from "./ui-items.vocabulary.en"
 
 import itemsCSS from "./ui-items.css?inline"
-import { ITEM_CONTEXT } from "./ui-items.types"
 
 /****************
  * ### `<ui-items>`
@@ -21,11 +19,11 @@ import { ITEM_CONTEXT } from "./ui-items.types"
  *   `ui-items` (`:state(items)`, always on);  or to the screen's, with `stack-with="page"` (a private class).
  * - Not interactive:  `link` is Fomantic's hover look;  an item that goes somewhere takes `href` (one link).
  ****************/
-export class UIItems extends UIElement<typeof itemsVocabulary> implements UIT.ItemOwner {
-  @proto static vocabulary = itemsVocabulary
-  @proto static styles = { items: itemsCSS }
-  @proto static Fallback = ItemsFallback
-  @proto static delegatesFocus = false
+export class UIItems extends E.UIElement<typeof itemsVocabulary> implements UIT.ItemOwner {
+  @E.proto static vocabulary = itemsVocabulary
+  @E.proto static styles = { items: itemsCSS }
+  @E.proto static Fallback = ItemsFallback
+  @E.proto static delegatesFocus = false
 
   /** `ItemOwner`:  how items render -- the same object always, so items never re-render for it. */
   itemContext(): UIT.ItemContext {
@@ -38,7 +36,7 @@ export class UIItems extends UIElement<typeof itemsVocabulary> implements UIT.It
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
   protected extraClasses(): string | undefined {
-    return UIT.StackClasses.of(this.attrs.stackWith)
+    return UIT.StackClasses.classFor(this.attrs.stackWith)
   }
 
   render(): JSX.Element {
@@ -49,3 +47,12 @@ export class UIItems extends UIElement<typeof itemsVocabulary> implements UIT.It
     )
   }
 }
+
+/** What every item gets:  a list item owning its parts, its `image` shorthand a bare `.image`. */
+const ITEM_CONTEXT: UIT.ItemContext = Object.freeze({
+  hostRole: UIT.LISTITEM,
+  interactive: false,
+  current: UIT.PAGE,
+  ownsParts: true,
+  imageClass: UIT.IMAGE
+})

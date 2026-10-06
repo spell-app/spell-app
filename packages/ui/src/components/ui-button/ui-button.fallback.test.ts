@@ -3,7 +3,7 @@ import { describe, expect, it } from "vite-plus/test"
 import { UI } from "$/ui/runtime"
 import { Fixture } from "$/ui/test/fixture"
 import { expectAccessible } from "$/ui/test/a11y"
-import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
+import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 
 import { ButtonFallback } from "./ui-button.fallback"
 

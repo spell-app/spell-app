@@ -11,8 +11,8 @@
           "name": "UIAccordion",
           "tagName": "ui-accordion",
           "customElement": true,
-          "summary": "An accordion allows users to toggle the display of sections of content.",
-          "description": "An accordion allows users to toggle the display of sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.",
+          "summary": "An accordion lets people show and hide sections of content.",
+          "description": "An accordion lets people show and hide sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.",
           "attributes": [
             {
               "name": "styled",
@@ -82,7 +82,7 @@
             },
             {
               "name": "open",
-              "description": "Indexes of the open panels (0-based), space-separated:  `open=\"0\"`, `open=\"0 2\"`.  Controlled:  set it to open / close panels;  `ui-open` / `ui-close` can veto the user's changes.  When `exclusive`, only the first index counts.",
+              "description": "Indexes of the open panels (0-based), space-separated:  `open=\"0\"`, `open=\"0 2\"`.  Controlled:  set it to open / close panels;  `ui-open` / `ui-close` can veto people's changes.  When `exclusive`, only the first index counts.",
               "type": {
                 "text": "string"
               },
@@ -615,8 +615,8 @@
           "name": "UIButton",
           "tagName": "ui-button",
           "customElement": true,
-          "summary": "A button indicates a possible user action.",
-          "description": "A button indicates a possible user action.\n\nAlso known as:  btn, action, submit, link button.",
+          "summary": "A button indicates a possible action.",
+          "description": "A button indicates a possible action.\n\nAlso known as:  btn, action, submit, link button.",
           "attributes": [
             {
               "name": "size",
@@ -1457,8 +1457,8 @@
           "name": "UICalendar",
           "tagName": "ui-calendar",
           "customElement": true,
-          "summary": "A calendar lets a user pick a date, a time, or both.",
-          "description": "A calendar lets a user pick a date, a time, or both.\n\nAlso known as:  date picker, datepicker, time picker, datetime, date range.",
+          "summary": "A calendar lets a person pick a date, a time, or both.",
+          "description": "A calendar lets a person pick a date, a time, or both.\n\nAlso known as:  date picker, datepicker, time picker, datetime, date range.",
           "attributes": [
             {
               "name": "size",
@@ -1708,7 +1708,7 @@
           "events": [
             {
               "name": "ui-change",
-              "description": "The user chose, typed or cleared a value;  `preventDefault()` keeps the old one.  Cancelable:  `preventDefault()` vetoes it.",
+              "description": "The person chose, typed or cleared a value;  `preventDefault()` keeps the old one.  Cancelable:  `preventDefault()` vetoes it.",
               "type": {
                 "text": "CustomEvent<{ value: string, originalEvent?: Event }>"
               }
@@ -2472,8 +2472,8 @@
           "name": "UICheckbox",
           "tagName": "ui-checkbox",
           "customElement": true,
-          "summary": "A checkbox allows a user to select a value from a small set of options, often binary.",
-          "description": "A checkbox allows a user to select a value from a small set of options, often binary.\n\nAlso known as:  check box, toggle, switch, tick box.",
+          "summary": "A checkbox lets people choose a value from a small set of options, often on or off.",
+          "description": "A checkbox lets people choose a value from a small set of options, often on or off.\n\nAlso known as:  check box, toggle, switch, tick box.",
           "attributes": [
             {
               "name": "size",
@@ -2600,7 +2600,7 @@
           "events": [
             {
               "name": "ui-change",
-              "description": "The user chose or unchose it (a radio:  only the newly chosen one fires).",
+              "description": "Someone chose or unchose it (a radio:  only the newly chosen one fires).",
               "type": {
                 "text": "CustomEvent<{ selected: boolean, value: string, originalEvent?: Event }>"
               }
@@ -2641,7 +2641,7 @@
             },
             {
               "name": "invalid",
-              "description": "Fails validation, once the user has interacted (`:user-invalid` semantics)."
+              "description": "Fails validation, once someone has interacted with it (`:user-invalid` semantics)."
             }
           ],
           "cssProperties": [
@@ -2957,7 +2957,7 @@
           "events": [
             {
               "name": "ui-change",
-              "description": "The user chose or unchose it (a radio:  only the newly chosen one fires).",
+              "description": "Someone chose or unchose it (a radio:  only the newly chosen one fires).",
               "type": {
                 "text": "CustomEvent<{ selected: boolean, value: string, originalEvent?: Event }>"
               }
@@ -2994,7 +2994,7 @@
             },
             {
               "name": "invalid",
-              "description": "Fails validation, once the user has interacted (`:user-invalid` semantics)."
+              "description": "Fails validation, once someone has interacted with it (`:user-invalid` semantics)."
             }
           ],
           "cssProperties": []
@@ -3615,7 +3615,7 @@
             },
             {
               "name": "resizable",
-              "description": "With `scrolling`:  the user can drag its height.",
+              "description": "With `scrolling`:  people can drag its height.",
               "type": {
                 "text": "boolean"
               },
@@ -3742,7 +3742,7 @@
             },
             {
               "name": "active",
-              "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.",
+              "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.",
               "type": {
                 "text": "boolean"
               },
@@ -3818,7 +3818,7 @@
           "events": [
             {
               "name": "ui-open",
-              "description": "About to show for a user action (`on`, an invoker command);  `preventDefault()` keeps it hidden.  Cancelable:  `preventDefault()` vetoes it.",
+              "description": "About to show for a person's action (`on`, an invoker command);  `preventDefault()` keeps it hidden.  Cancelable:  `preventDefault()` vetoes it.",
               "type": {
                 "text": "CustomEvent<{ active: true, originalEvent?: Event }>"
               }
@@ -4142,8 +4142,8 @@
           "name": "UIDropdown",
           "tagName": "ui-dropdown",
           "customElement": true,
-          "summary": "A dropdown allows a user to select a value from a series of options.",
-          "description": "A dropdown allows a user to select a value from a series of options.\n\nAlso known as:  select, combobox, picker, autocomplete, menu button, multi select.",
+          "summary": "A dropdown lets people choose a value from a series of options.",
+          "description": "A dropdown lets people choose a value from a series of options.\n\nAlso known as:  select, combobox, picker, autocomplete, menu button, multi select.",
           "attributes": [
             {
               "name": "size",
@@ -4315,7 +4315,7 @@
             },
             {
               "name": "resizable",
-              "description": "A `scrolling` menu the user can resize vertically.",
+              "description": "A `scrolling` menu people can resize vertically.",
               "type": {
                 "text": "boolean"
               },
@@ -4489,14 +4489,14 @@
           "events": [
             {
               "name": "ui-change",
-              "description": "The user chose, added, removed or cleared a value.",
+              "description": "Someone chose, added, removed or cleared a value.",
               "type": {
                 "text": "CustomEvent<{ value: string | string[], originalEvent?: Event }>"
               }
             },
             {
               "name": "ui-open",
-              "description": "The menu is about to open (a user action, an invoker command too);  `preventDefault()` keeps it closed.  Cancelable:  `preventDefault()` vetoes it.",
+              "description": "The menu is about to open (a person's action, an invoker command too);  `preventDefault()` keeps it closed.  Cancelable:  `preventDefault()` vetoes it.",
               "type": {
                 "text": "CustomEvent<{ open: true, originalEvent?: Event }>"
               }
@@ -5297,8 +5297,8 @@
           "name": "UIFeed",
           "tagName": "ui-feed",
           "customElement": true,
-          "summary": "A feed presents user activity chronologically.",
-          "description": "A feed presents user activity chronologically.\n\nAlso known as:  activity feed, timeline, news feed, activity stream.",
+          "summary": "A feed presents people's activity chronologically.",
+          "description": "A feed presents people's activity chronologically.\n\nAlso known as:  activity feed, timeline, news feed, activity stream.",
           "attributes": [
             {
               "name": "size",
@@ -5497,7 +5497,7 @@
             },
             {
               "name": "country",
-              "description": "ISO 3166-1 alpha-2 code in any case (`fr`, `US`), or one of Fomantic's names and aliases (`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `flagAliases`.",
+              "description": "ISO 3166-1 alpha-2 code in any case (`fr`, `US`), or one of Fomantic's names and aliases (`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `FLAG_ALIASES`.",
               "type": {
                 "text": "string"
               },
@@ -5621,7 +5621,7 @@
             },
             {
               "name": "open",
-              "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.",
+              "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.",
               "type": {
                 "text": "boolean"
               },
@@ -5673,7 +5673,7 @@
           "events": [
             {
               "name": "ui-open",
-              "description": "About to show (a user action, not an `open` write);  `preventDefault()` keeps it hidden.  Cancelable:  `preventDefault()` vetoes it.",
+              "description": "About to show (a person's action, not an `open` write);  `preventDefault()` keeps it hidden.  Cancelable:  `preventDefault()` vetoes it.",
               "type": {
                 "text": "CustomEvent<{ open: true, originalEvent?: Event }>"
               }
@@ -5788,6 +5788,21 @@
             {
               "name": "--ui-flyout-actions-background",
               "default": "var(--ui-surface-muted)"
+            },
+            {
+              "name": "--ui-flyout-inverted-background",
+              "default": "oklch(0 0 0)",
+              "description": "Panel of an `inverted` flyout."
+            },
+            {
+              "name": "--ui-flyout-inverted-color",
+              "default": "oklch(1 0 0)",
+              "description": "Text, header and close icon of an `inverted` flyout."
+            },
+            {
+              "name": "--ui-flyout-inverted-actions-background",
+              "default": "oklch(0.2 0 0)",
+              "description": "Actions bar of an `inverted` flyout."
             },
             {
               "name": "--ui-flyout-header-background",
@@ -6050,8 +6065,8 @@
           "name": "UIForm",
           "tagName": "ui-form",
           "customElement": true,
-          "summary": "A form displays a set of related user input fields in a structured way.",
-          "description": "A form displays a set of related user input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.",
+          "summary": "A form displays a set of related input fields in a structured way.",
+          "description": "A form displays a set of related input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.",
           "attributes": [
             {
               "name": "size",
@@ -7869,8 +7884,8 @@
           "name": "UIInput",
           "tagName": "ui-input",
           "customElement": true,
-          "summary": "An input is a field used to elicit a response from a user.",
-          "description": "An input is a field used to elicit a response from a user.\n\nAlso known as:  text field, text box, textbox, input field, search box.",
+          "summary": "An input is a field used to elicit a response from a person.",
+          "description": "An input is a field used to elicit a response from a person.\n\nAlso known as:  text field, text box, textbox, input field, search box.",
           "attributes": [
             {
               "name": "size",
@@ -8059,7 +8074,7 @@
             },
             {
               "name": "minlength",
-              "description": "Constraint:  fewest characters (checked after the user edits).",
+              "description": "Constraint:  fewest characters (checked once someone has edited it).",
               "type": {
                 "text": "number"
               },
@@ -8119,14 +8134,14 @@
           "events": [
             {
               "name": "ui-input",
-              "description": "The user changed the value (every keystroke).",
+              "description": "The value changed as someone typed (every keystroke).",
               "type": {
                 "text": "CustomEvent<{ value: string, originalEvent?: Event }>"
               }
             },
             {
               "name": "ui-change",
-              "description": "The user committed a change (blur, Enter, picking a file).",
+              "description": "Someone committed a change (blur, Enter, picking a file).",
               "type": {
                 "text": "CustomEvent<{ value: string, originalEvent?: Event }>"
               }
@@ -8167,7 +8182,7 @@
           "cssStates": [
             {
               "name": "invalid",
-              "description": "Fails validation, once the user has interacted (`:user-invalid` semantics)."
+              "description": "Fails validation, once someone has interacted (`:user-invalid` semantics)."
             },
             {
               "name": "disabled",
@@ -8459,7 +8474,7 @@
             },
             {
               "name": "minlength",
-              "description": "Constraint:  fewest characters (checked after the user edits).",
+              "description": "Constraint:  fewest characters (checked once someone has edited it).",
               "type": {
                 "text": "number"
               },
@@ -8503,14 +8518,14 @@
           "events": [
             {
               "name": "ui-input",
-              "description": "The user changed the value (every keystroke).",
+              "description": "The value changed as someone typed (every keystroke).",
               "type": {
                 "text": "CustomEvent<{ value: string, originalEvent?: Event }>"
               }
             },
             {
               "name": "ui-change",
-              "description": "The user committed a change (blur).",
+              "description": "Someone committed a change (blur).",
               "type": {
                 "text": "CustomEvent<{ value: string, originalEvent?: Event }>"
               }
@@ -8530,7 +8545,7 @@
           "cssStates": [
             {
               "name": "invalid",
-              "description": "Fails validation, once the user has interacted (`:user-invalid` semantics)."
+              "description": "Fails validation, once someone has interacted (`:user-invalid` semantics)."
             },
             {
               "name": "disabled",
@@ -10076,8 +10091,8 @@
           "name": "UILoader",
           "tagName": "ui-loader",
           "customElement": true,
-          "summary": "A loader alerts a user to wait for an activity to complete.",
-          "description": "A loader alerts a user to wait for an activity to complete.\n\nAlso known as:  spinner, loading indicator, busy, throbber, activity indicator.",
+          "summary": "A loader tells people to wait for an activity to complete.",
+          "description": "A loader tells people to wait for an activity to complete.\n\nAlso known as:  spinner, loading indicator, busy, throbber, activity indicator.",
           "attributes": [
             {
               "name": "size",

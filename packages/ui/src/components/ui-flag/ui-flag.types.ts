@@ -1,47 +1,30 @@
 /**
- * Loose constants and types of the `ui-flag` family:  the words, selectors and shapes its element
- * classes and its native fallback share, lifted out of their files.
- * - Data only:  nothing here runs;  the classes import what they need from `./ui-flag.types`.
+ * Constants of the `ui-flag` family:  what `FlagCountry` (the element's and the fallback's resolver) and the element
+ * read.
+ * - Pure data, at the bottom of the folder's imports:  imports nothing, so node can load it (`yarn site:data`).
+ * - The code => emoji rule and the non-country flags are shared with the menus' option flags:  `UIT.Flags`,
+ *   `UIT.SPECIAL_FLAGS` (`components.types.ts`).
  */
 
-/** Runs of whitespace. */
-export const WHITESPACE = /\s+/g
-
-/** An ISO 3166-1 alpha-2 code, lowercase. */
-export const TWO_LETTERS = /^[a-z]{2}$/
-
-/** `U+1F1E6`, REGIONAL INDICATOR SYMBOL LETTER A. */
-export const INDICATOR_A = 0x1f1e6
-
-/** Char code of `a`. */
-export const LETTER_A = 0x61
+////////////////
+// ## Naming
+////////////////
 
 /** `Intl.DisplayNames` type of a country code. */
 export const REGION = "region"
 
-/**
- * Flags that aren't a regional-indicator pair, by code:  emoji ZWJ sequences, and the England / Scotland / Wales
- * subdivision flags (tag sequences named by their ISO 3166-2 codes, `gb-eng` ...).
- * - Why data:  the code => emoji rule only covers two-letter codes.
- * - NOTE: subdivision flags only render where the emoji font has them (Apple, Google, Samsung, Twemoji);
- *   Windows shows a black flag.
- */
-export const flagEmoji = {
-  rainbow: "\u{1F3F3}\u{FE0F}\u{200D}\u{1F308}",
-  transgender: "\u{1F3F3}\u{FE0F}\u{200D}\u{26A7}\u{FE0F}",
-  pirate: "\u{1F3F4}\u{200D}\u{2620}\u{FE0F}",
-  "gb-eng": "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
-  "gb-sct": "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}",
-  "gb-wls": "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}"
-} as const satisfies Readonly<Record<string, string>>
+////////////////
+// ## Country names
+////////////////
 
 /**
  * Fomantic's flag names and aliases (normalized:  lowercase, `_` => space) => code, from `flag.variables`.
- * - A code is an ISO 3166-1 alpha-2 code (lowercase) or a key of `flagEmoji`.
+ * - A code is an ISO 3166-1 alpha-2 code (lowercase) or a key of `UIT.SPECIAL_FLAGS`.
  * - Only names that differ from their code:  `fr` needs no entry.
  * - Two-letter aliases (`uk` => `gb`, `an` => `bq`) are looked up BEFORE the code rule, as in Fomantic.
+ * - The flag family's only:  a menu option's `flag` takes codes, so `core` never carries this table.
  */
-export const flagAliases = {
+export const FLAG_ALIASES = {
   pride: "rainbow",
   lgbt: "rainbow",
   afghanistan: "af",

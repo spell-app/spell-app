@@ -1,7 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { containerVocabulary } from "./ui-container.vocabulary.en"
 import { ContainerFallback } from "./ui-container.fallback"
 
@@ -12,10 +11,10 @@ import containerCSS from "./ui-container.css?inline"
  * A container:  `<div class="ui … container" part="container"><slot></slot></div>`, centred page width.
  * - `scrolling`:  the root is a keyboard stop (`tabindex=0`), as every scrollable region must be.
  ****************/
-export class UIContainer extends UIElement<typeof containerVocabulary> {
-  @proto static vocabulary = containerVocabulary
-  @proto static styles = { container: containerCSS }
-  @proto static Fallback = ContainerFallback
+export class UIContainer extends E.UIElement<typeof containerVocabulary> {
+  @E.proto static vocabulary = containerVocabulary
+  @E.proto static styles = { container: containerCSS }
+  @E.proto static Fallback = ContainerFallback
 
   render(): JSX.Element {
     return (

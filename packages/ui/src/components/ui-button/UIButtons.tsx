@@ -1,7 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { buttonsVocabulary } from "./ui-buttons.vocabulary.en"
 
 import buttonCSS from "./ui-button.css?inline"
@@ -12,9 +11,9 @@ import buttonCSS from "./ui-button.css?inline"
  * - Needs almost no code:  `ui-button.css` hands the group's look to slotted buttons through inherited tokens.
  * - Host states only for layout the host itself must do:  fluid (also `width` / top / bottom attached) and floats.
  ****************/
-export class UIButtons extends UIElement<typeof buttonsVocabulary> {
-  @proto static vocabulary = buttonsVocabulary
-  @proto static styles = { button: buttonCSS }
+export class UIButtons extends E.UIElement<typeof buttonsVocabulary> {
+  @E.proto static vocabulary = buttonsVocabulary
+  @E.proto static styles = { button: buttonCSS }
 
   protected hostStates() {
     const { attached, floated } = this.attrs
@@ -27,7 +26,7 @@ export class UIButtons extends UIElement<typeof buttonsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} role="group" part={this.part("group")}>
+      <div class={this.classes()} role={UIT.GROUP} part={this.part("group")}>
         <slot />
       </div>
     )

@@ -73,7 +73,7 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
   readonly slots = new SlotContent(this.host)
 
   /** Host `aria-label`, naming the landmark in place of "Documentation":  two navs on a page need two names. */
-  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** The list, once the data has loaded. */
   readonly index = new Cell<NavIndex | undefined>(undefined)

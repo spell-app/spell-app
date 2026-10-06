@@ -1,11 +1,10 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PartContext, proto, SlotContent, UIElement, UIT } from "$/ui/core"
-
-import { commentVocabulary } from "./ui-comment.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { CommentFallback } from "./ui-comment.fallback"
 import { REPLY } from "./ui-comment.types"
+import { commentVocabulary } from "./ui-comment.vocabulary.en"
 
 import commentCSS from "./ui-comment.css?inline"
 
@@ -20,17 +19,17 @@ import commentCSS from "./ui-comment.css?inline"
  * - In a `<ui-comments>` (`PartContext`, noun `comment`):  `:state(in-comments)`.
  * - `disabled`:  `aria-disabled` on the article, which assistive tech (and axe) apply to what's inside.
  ****************/
-export class UIComment extends UIElement<typeof commentVocabulary> {
-  @proto static vocabulary = commentVocabulary
-  @proto static styles = { comment: commentCSS }
-  @proto static Fallback = CommentFallback
-  @proto static delegatesFocus = false
+export class UIComment extends E.UIElement<typeof commentVocabulary> {
+  @E.proto static vocabulary = commentVocabulary
+  @E.proto static styles = { comment: commentCSS }
+  @E.proto static Fallback = CommentFallback
+  @E.proto static delegatesFocus = false
 
   /** Its comment list, if any. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   isDisabled(): boolean {
     return this.attrs.disabled

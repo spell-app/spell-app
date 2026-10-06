@@ -1,24 +1,12 @@
 /**
- * Loose constants and types of the `ui-feed` family:  the words, selectors and shapes its element
- * classes and its native fallback share, lifted out of their files.
- * - Data only:  nothing here runs;  the classes import what they need from `./ui-feed.types`.
+ * Types the `ui-feed` family's files share:  `<ui-feed>`, `<ui-event>` and their native fallback.
+ * - Pure data:  `import type` only, so every file of the family may import it.
+ * - Its words (`ul` / `ol`, `ordered`, `label`, the colour remap prefix) are the list and item families' too:
+ *   `UIT`'s.
  */
 
 import type { eventVocabulary } from "./ui-event.vocabulary.en"
 import type { feedVocabulary } from "./ui-feed.vocabulary.en"
 
-/** Root tags. */
-export const UL = "ul"
-export const OL = "ol"
-
-/** Classes of the label box and the icon box. */
-export const LABEL = "label"
-
-/** Prefix of the colour remap class a coloured event adds (`ui-red`). */
-export const COLOR_CLASS_PREFIX = "ui-"
-
-/** Either vocabulary, for brevity. */
+/** Either vocabulary:  `FeedFallback` serves both tags. */
 export type Vocabulary = typeof feedVocabulary | typeof eventVocabulary
-
-/** The feed attribute that numbers events. */
-export const ORDERED = "ordered"

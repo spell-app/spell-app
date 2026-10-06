@@ -38,7 +38,7 @@ export class RootBox {
     if (w) declarations.push(`width: ${w}`)
     if (h) declarations.push(`height: ${h}`)
     if (size && size !== "medium") declarations.push(`--ui-scale: var(--ui-size-${size})`)
-    if (UIT.STACK_WITH_VALUES.includes(stackWith as UIT.StackWith))
+    if (UIT.StackWithValues.includes(stackWith as UIT.StackWith))
       declarations.push(`${UIT.STACK_WITH_TOKEN}: ${stackWith}`)
     return declarations.join("; ")
   }

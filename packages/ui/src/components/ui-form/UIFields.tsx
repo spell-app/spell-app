@@ -1,9 +1,9 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { fieldsVocabulary } from "./ui-fields.vocabulary.en"
 import { FormFallback } from "./ui-form.fallback"
+import { StateFlags } from "./ui-form.types"
 
 import formCSS from "./ui-form.css?inline"
 
@@ -14,21 +14,14 @@ import formCSS from "./ui-form.css?inline"
  *   (`widths`), the gutter and its state as inherited tokens (`ui-form.css`).
  * - `disabled` makes the root `inert`.
  ****************/
-export class UIFields extends UIElement<typeof fieldsVocabulary> {
-  @proto static vocabulary = fieldsVocabulary
-  @proto static styles = { form: formCSS }
-  @proto static Fallback = FormFallback
-  @proto static delegatesFocus = false
+export class UIFields extends E.UIElement<typeof fieldsVocabulary> {
+  @E.proto static vocabulary = fieldsVocabulary
+  @E.proto static styles = { form: formCSS }
+  @E.proto static Fallback = FormFallback
+  @E.proto static delegatesFocus = false
 
   protected hostStates() {
-    const { state } = this.attrs
-    return {
-      error: state === "error",
-      info: state === "info",
-      success: state === "success",
-      warning: state === "warning",
-      disabled: this.attrs.disabled
-    }
+    return { ...StateFlags.flagsFor(this.attrs.state), disabled: this.attrs.disabled }
   }
 
   render(): JSX.Element {

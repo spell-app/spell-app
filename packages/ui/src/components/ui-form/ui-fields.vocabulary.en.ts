@@ -1,18 +1,13 @@
 /**
- * Every name `<ui-form>`, `<ui-field>` and `<ui-fields>` use:  tags, attributes (kind + allowed values), events,
- * slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
- * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
- *   `<ui-form size="large" state="error">` => `ui large error form`;  `<ui-field width="4" required>` =>
- *   `required four wide field`;  `<ui-fields widths="2" inline>` => `inline two fields`,
- *   `widths="equal"` => `equal width fields`.  Fields have no `ui` (Fomantic styles them inside `.ui.form`).
- * - `state` is `kind: "valueOnly"`:  it emits its value alone (`error field`), a remap in `colors.css`.
- * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
+ * Every name `<ui-fields>` uses:  tag, attributes (kind + allowed values), slots, parts, states.
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only, `UIT` by value
+ *   straight from `components.types`.
+ * - The family's grammar notes are in `ui-form.vocabulary.en.ts`.
  */
 
-// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which node
-// can't (`yarn site:data` / `yarn gen:root` import every vocabulary through tsx:  no `?inline` css, no JSX)
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { STATE_STATES } from "./ui-form.types"
 
 /****************
@@ -31,7 +26,7 @@ export const fieldsVocabulary = {
     {
       name: "state",
       kind: "valueOnly",
-      values: UIT.FORM_STATES,
+      values: UIT.FormStates,
       description: "State of every field inside."
     },
     { name: "inline", kind: "keyOnly", description: "Fields and their labels on one line." },
@@ -67,4 +62,4 @@ export const fieldsVocabulary = {
   parts: [{ name: "fields", description: "The row box." }],
   states: [...STATE_STATES, { name: "disabled", description: "Can't be used." }],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -58,7 +58,7 @@ house style every package shares.  Only what's local is below;  a section named 
       slots, parts, states, text strings.  Translations become `<tag>.vocabulary.<lang>.ts`
       - and `topics` (2+ ids from `ValueSets.topics`:  how a newcomer looks for it AND how widget libraries file it)
         + `aka` (other libraries' / everyday names:  `ui-modal`:  `dialog`, `lightbox`).  A NEW TAG MUST fill both;
-        `src/components/component-definitions.ts` rolls them up (the docs' component browser) and
+        `src/components/ComponentDefinitions.ts` rolls them up (the docs' component browser) and
         `test/component-definitions.test.ts` fails on a tag without them.  A new or moved tag also needs `yarn gen:root`
         (`<ui-root>`'s catalog of tag => family;  `test/root-catalog.test.ts` fails while it's stale) and `yarn site:data`
         (the docs site's data;  `tools/SiteDataBuilder.test.ts` fails while it's stale).  Live:  `UIButton.describe()`

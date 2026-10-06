@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-comments>` and `<ui-comment>` use:  tag, attributes (kind + allowed values), slots, parts,
- * states.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * states.  Schema:  `E.ComponentVocabulary`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-comments threaded minimal size="small">` => `ui small minimal threaded comments`;  a comment has no `ui`
  *   (`<ui-comment collapsed>` => `collapsed comment`).  `ui-comment.css` keys on those.
@@ -10,7 +10,7 @@
  *   of replies.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-comment>`
@@ -53,4 +53,4 @@ export const commentVocabulary = {
   ],
   texts: [],
   ownsParts: ["avatar", "content", "author", "meta", "description", "actions", "comments"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

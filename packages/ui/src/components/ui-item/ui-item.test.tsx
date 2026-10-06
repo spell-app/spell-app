@@ -41,7 +41,7 @@ const OWNER_CSS = ":host(:state(in-owner)) > .item { letter-spacing: 3px }"
 class ItemTestOwner extends UIElement<typeof OWNER_VOCABULARY> implements ItemOwner {
   itemContext(): ItemContext {
     return {
-      hostRole: this.attrs.hostRole ?? null,
+      hostRole: this.attrs.hostRole,
       role: this.attrs.itemRole as ItemContext["role"],
       interactive: this.attrs.interactive,
       current: "page"

@@ -1,13 +1,11 @@
 import { createMemo } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { PartContext, proto, UIElement, type UIHost, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { listVocabulary } from "./ui-list.vocabulary.en"
 import { ListFallback } from "./ui-list.fallback"
 
 import listCSS from "./ui-list.css?inline"
-import { UL, OL, INTERACTIVE } from "./ui-list.types"
 
 /****************
  * ### `<ui-list>`
@@ -26,27 +24,25 @@ import { UL, OL, INTERACTIVE } from "./ui-list.types"
  * - Events:  `ui-select` when an interactive item of THIS list (not of a sub-list) is activated -- one click
  *   listener on the host;  Enter / Space on a link / button click natively, so keyboard needs nothing more.
  ****************/
-export class UIList extends UIElement<typeof listVocabulary> implements UIT.ItemOwner {
-  @proto static vocabulary = listVocabulary
-  @proto static styles = { list: listCSS }
-  @proto static Fallback = ListFallback
-  @proto static isPart = true
-  @proto static delegatesFocus = false
+export class UIList extends E.UIElement<typeof listVocabulary> implements UIT.ItemOwner {
+  @E.proto static vocabulary = listVocabulary
+  @E.proto static styles = { list: listCSS }
+  @E.proto static Fallback = ListFallback
+  @E.proto static isPart = true
+  @E.proto static delegatesFocus = false
 
   /** Outer list, when nested. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
 
   ////////////////
   // ## Derived state
   ////////////////
 
   /** Outer list's controller:  only a list owns the `list` part.  Tracked. */
-  readonly outer = createMemo(
-    () => (this.context.owner.get()?.owner as UIHost | undefined)?.controller as UIList | undefined
-  )
+  readonly outer = createMemo(() => this.context.ownerController<UIList>())
 
   /** Nested in another list:  the sub-list form. */
-  readonly nested = createMemo(() => !!this.context.owner.get())
+  readonly isNested = createMemo(() => !!this.context.owner.get())
 
   /** Numbered:  `ordered`, or inside an ordered list. */
   readonly isOrdered = createMemo((): boolean => this.attrs.ordered || !!this.outer()?.isOrdered())
@@ -61,7 +57,7 @@ export class UIList extends UIElement<typeof listVocabulary> implements UIT.Item
     current: UIT.PAGE
   }))
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     // SIDE EFFECT:  one listener for every item's activation
     this.host.addEventListener(UIT.CLICK, this.onClick)
@@ -80,8 +76,8 @@ export class UIList extends UIElement<typeof listVocabulary> implements UIT.Item
   render(): JSX.Element {
     return (
       <Dynamic
-        component={this.isOrdered() ? OL : UL}
-        class={this.nested() ? this.vocabulary.noun : this.classes()}
+        component={this.isOrdered() ? UIT.OL : UIT.UL}
+        class={this.isNested() ? this.vocabulary.noun : this.classes()}
         part={this.part("list")}
         role={UIT.LIST}
       >
@@ -98,7 +94,7 @@ export class UIList extends UIElement<typeof listVocabulary> implements UIT.Item
   private readonly onClick = (event: MouseEvent) => {
     const item = this.activatedItem(event)
     if (!item) return
-    const detail: UIT.ListSelectDetail = { value: UIList.valueOf(item), item, originalEvent: event }
+    const detail: UIT.ListSelectDetail = { value: UIList.valueFor(item), item, originalEvent: event }
     this.emit("ui-select", detail)
   }
 
@@ -109,26 +105,32 @@ export class UIList extends UIElement<typeof listVocabulary> implements UIT.Item
    * - Only through the item's own root (`<a>` / `<button>` in its shadow):  a click on a plain `<div>` item, or on
    *   a link inside its content, doesn't select it.
    */
-  private activatedItem(event: Event): UIHost | undefined {
+  private activatedItem(event: Event): E.UIHost | undefined {
     let root: Element | undefined
     for (const target of event.composedPath()) {
       if (target === this.host) return undefined
       if (!(target instanceof Element)) continue
-      const context = ((target as UIHost).controller as { context?: PartContext } | undefined)?.context
+      const context = ((target as E.UIHost).controller as { context?: E.PartContext } | undefined)?.context
       if (context?.noun !== UIT.ITEM) {
         root = target
         continue
       }
-      const ours = context.owner.get()?.owner === this.host
-      const interactive = !!root && root.parentNode === target.shadowRoot && INTERACTIVE.has(root.localName)
-      return ours && interactive && !target.matches(UIT.DISABLED_STATE) ? (target as UIHost) : undefined
+      const isOurs = context.owner.get()?.owner === this.host
+      const isInteractive = !!root && root.parentNode === target.shadowRoot && INTERACTIVE_ROOTS.has(root.localName)
+      return isOurs && isInteractive && !target.matches(UIT.DISABLED_STATE) ? (target as E.UIHost) : undefined
     }
     return undefined
   }
 
-  /** `ui-select`'s value:  the item's `value`, else its `text`, else its trimmed text. */
-  private static valueOf(item: UIHost): string {
-    const { value, text } = item as UIHost & { value?: string; text?: string }
+  /**
+   * `ui-select`'s value for `item`:  its `value`, else its `text`, else its trimmed text.
+   * - Static:  a pure lookup on the item.
+   */
+  private static valueFor(item: E.UIHost): string {
+    const { value, text } = item as E.UIHost & { value?: string; text?: string }
     return value || text || (item.textContent ?? "").trim()
   }
 }
+
+/** Item roots that can be activated:  a link, a button. */
+const INTERACTIVE_ROOTS: ReadonlySet<string> = new Set([UIT.ANCHOR_TAG, UIT.BUTTON])

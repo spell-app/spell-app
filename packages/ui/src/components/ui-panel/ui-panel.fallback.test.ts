@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import { Fixture } from "$/ui/test/fixture"
-import { FallbackStub } from "$/ui/components/fallback.stub"
+import { FallbackStub } from "$/ui/test/FallbackStub"
 
 import { PanelFallback } from "./ui-panel.fallback"
 

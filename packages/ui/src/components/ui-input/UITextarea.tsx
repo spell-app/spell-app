@@ -1,7 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { textareaVocabulary } from "./ui-textarea.vocabulary.en"
 import { InputFallback } from "./ui-input.fallback"
 import { TextControl } from "./TextControl"
@@ -15,9 +14,9 @@ import inputCSS from "./ui-input.css?inline"
  * - Without `rows` it takes Fomantic's form textarea height (`ui-input.css`).
  ****************/
 export class UITextarea extends TextControl<typeof textareaVocabulary> {
-  @proto static vocabulary = textareaVocabulary
-  @proto static styles = { input: inputCSS }
-  @proto static Fallback = InputFallback
+  @E.proto static vocabulary = textareaVocabulary
+  @E.proto static styles = { input: inputCSS }
+  @E.proto static Fallback = InputFallback
 
   protected constraints(): Record<string, unknown> {
     const { required, minlength, maxlength } = this.attrs

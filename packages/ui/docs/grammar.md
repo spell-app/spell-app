@@ -213,7 +213,7 @@ parts -- never `ui-list-item` / `ui-menu-item`:
 - A `<ui-menu>` inside a menu (directly, or inside an item) is a SUB-MENU:  `<div class="[position] menu">`,
   e.g. `<ui-menu position="right">` for Fomantic's `right menu`.  It hands its items the top menu's context.
 - `ui-select` (`{ value, item }`) fires when a link / button item is activated;  the menu never moves `selected`.
-- The look is ONE word, `appearance` (`UIT.MENU_APPEARANCES`), shared with `<ui-tabs>`:  `tabular`, `pointing`,
+- The look is ONE word, `appearance` (`UIT.MenuAppearances`), shared with `<ui-tabs>`:  `tabular`, `pointing`,
   `secondary`, `text`, and our `segmented` -- a bordered group of joined items, the selected one filled with `color`
   (else the primary colour) in its on-colour, hugging its items.  `kind: "valueOnly"`:  the value IS the class word,
   so the older booleans (`tabular`, `pointing` ...) stay as aliases with the same words, and combine

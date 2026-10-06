@@ -1,14 +1,13 @@
 import { Show, createMemo } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { HostAttribute, IconGlyph, PartContext, proto, SlotContent, UIElement, UIT } from "$/ui/core"
-
-import { labelVocabulary } from "./ui-label.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { LabelFallback } from "./ui-label.fallback"
+import { DETAIL } from "./ui-label.types"
+import { labelVocabulary } from "./ui-label.vocabulary.en"
 
 import labelCSS from "./ui-label.css?inline"
 import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
-import { DETAIL, DELETE_CLASS, DELETE_ICON } from "./ui-label.types"
 
 /****************
  * ### `<ui-label>`
@@ -24,25 +23,25 @@ import { DETAIL, DELETE_CLASS, DELETE_ICON } from "./ui-label.types"
  *   `<div class="label" part="label">`, adopts `ui-parts.css` after `ui-label.css` and sets `:state(in-statistic)`.
  * - Host `aria-label` is forwarded to the root, so an icon-only or corner label has a name.
  ****************/
-export class UILabel extends UIElement<typeof labelVocabulary> {
-  @proto static vocabulary = labelVocabulary
-  @proto static styles = { label: labelCSS, parts: partsCSS }
-  @proto static Fallback = LabelFallback
+export class UILabel extends E.UIElement<typeof labelVocabulary> {
+  @E.proto static vocabulary = labelVocabulary
+  @E.proto static styles = { label: labelCSS, parts: partsCSS }
+  @E.proto static Fallback = LabelFallback
 
   /** Owner, when it's a statistic's label. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
 
   /** Glyph of the delete button. */
-  readonly deleteGlyph = new IconGlyph(this, () => (this.attrs.removable ? DELETE_ICON : undefined))
+  readonly deleteGlyph = new E.IconGlyph(this, () => (this.attrs.removable ? DELETE_ICON : undefined))
 
   /** Host `aria-label`, forwarded to the root. */
-  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
+  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   ////////////////
   // ## Derived state
@@ -57,10 +56,15 @@ export class UILabel extends UIElement<typeof labelVocabulary> {
   /** `image` attribute as a URL, or `undefined` when bare (a slotted `<img>`) or absent. */
   readonly imageSrc = createMemo(() => this.attrs.image?.trim() || undefined)
 
+  ////////////////
+  // ## Element hooks
+  ////////////////
+
   isDisabled(): boolean {
     return this.attrs.disabled
   }
 
+  /** `image` for an image label, `icon` for an icon without text:  words `ClassBuilder` can't emit. */
   protected extraClasses(): string | undefined {
     const extra = [this.attrs.image === undefined ? "" : UIT.IMAGE, this.hasIcon() && !this.hasText() ? UIT.ICON : ""]
     return extra.filter(Boolean).join(" ") || undefined
@@ -99,7 +103,7 @@ export class UILabel extends UIElement<typeof labelVocabulary> {
         href={this.attrs.disabled ? undefined : this.attrs.href}
         target={this.attrs.href ? this.attrs.target : undefined}
         aria-label={this.ariaLabel.get()}
-        aria-disabled={this.attrs.disabled && this.attrs.href ? "true" : undefined}
+        aria-disabled={this.attrs.disabled && this.attrs.href ? UIT.TRUE : undefined}
         role={this.ariaLabel.get() && !this.attrs.href ? UIT.IMG : undefined}
       >
         <Show when={this.imageSrc()}>
@@ -143,3 +147,9 @@ export class UILabel extends UIElement<typeof labelVocabulary> {
     this.emit("ui-remove", { originalEvent: event })
   }
 }
+
+/** Classes of the delete button. */
+const DELETE_CLASS = "delete icon"
+
+/** Glyph of the delete button (Fomantic's `delete icon`). */
+const DELETE_ICON = "xmark"

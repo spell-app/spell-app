@@ -12,7 +12,7 @@ import { E } from "$/ui/core"
  *   component:  a header inside a segment inside a card stays standalone, as Fomantic's child combinators have it.
  * - `direct` mode (icons):  only the flat-tree parent component counts, skipping its own shadow internals
  *   (`.ui.icons > .icon`).
- * - CONDITIONAL owners (`ConditionalOwner`, a part whose controller has `ownsPart()`):  asked during the climb,
+ * - CONDITIONAL owners (`ConditionalOwner`, a part whose controller has `isOwnerOf()`):  asked during the climb,
  *   transparent while they say no -- `<ui-item>` owns its content parts in the Items view only.
  * - SIDE EFFECT:  keeps `:state(in-<owner>)` on the host in step with `owner`, via an effect;  NEVER the static
  *   `in-<owner>` class.
@@ -88,6 +88,14 @@ export class PartContext {
   }
 
   /**
+   * The owner's CONTROLLER (a card's `UICards`, an item's list), or `undefined` when standalone;  tracked.
+   * - `C` is the caller's word for what the owner is, NOT checked:  owners are registered by tag, not class.
+   */
+  ownerController<C extends object = E.UIElement>(): C | undefined {
+    return PartContext.controllerFor<C>(this.owner.get())
+  }
+
+  /**
    * Resolve again, e.g. after re-slotting;  cascades to part descendants in the light DOM, which climb through
    * this element.
    * - MUST NOT run in an owned scope (it writes a signal).
@@ -157,6 +165,14 @@ export class PartContext {
   }
 
   /**
+   * Controller of `match`'s owner element, or `undefined`;  `C` unchecked, as `ownerController()`'s.
+   * - Static:  also for a match `resolve()` just read, untracked (`<ui-item>` deciding whether it owns its parts).
+   */
+  static controllerFor<C extends object = E.UIElement>(match: E.OwnerMatch | undefined): C | undefined {
+    return (match?.owner as E.UIHost | undefined)?.controller as C | undefined
+  }
+
+  /**
    * Does the climb stop at `element`?  Yes for a registered component that isn't a part.
    * - Static:  a default `barrier`, passed around as a value (`this: void`).
    */
@@ -213,7 +229,7 @@ export class PartContext {
       const ownerNoun = owners.get(tag)
       if (!ownerNoun || !PartContext.conditionalTags.has(tag)) return ownerNoun
       const controller = (element as E.UIHost).controller as Partial<E.ConditionalOwner> | undefined
-      return controller?.ownsPart?.(noun) ? ownerNoun : undefined
+      return controller?.isOwnerOf?.(noun) ? ownerNoun : undefined
     }
   }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import * as library from "$/ui"
-import { ComponentDefinitions } from "$/ui/components/component-definitions"
+import { ComponentDefinitions } from "$/ui/components/ComponentDefinitions"
 import { ValueSets } from "$/ui/vocabulary"
 
 /** Tag of every element class `@spell-app/ui` exports (each carries its vocabulary). */

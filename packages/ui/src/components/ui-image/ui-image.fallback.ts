@@ -1,8 +1,6 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { imageVocabulary } from "./ui-image.vocabulary.en"
 import { imagesVocabulary } from "./ui-images.vocabulary.en"
-import { NATIVE } from "./ui-image.types"
 
 /****************
  * ### `ImageFallback`
@@ -11,32 +9,38 @@ import { NATIVE } from "./ui-image.types"
  *   `<a part="image" class href><img part="img" ...></a>` with `href`
  * - `<ui-images>`:  `<div part="group" class="ui ... images"><slot></slot></div>`
  ****************/
-export class ImageFallback extends NativeFallback {
-  @proto static vocabularies = [imageVocabulary, imagesVocabulary]
-  @proto static degraded = []
+export class ImageFallback extends E.NativeFallback<typeof imageVocabulary | typeof imagesVocabulary> {
+  @E.proto static vocabularies = [imageVocabulary, imagesVocabulary]
+  @E.proto static degraded = []
 
   protected override build() {
     if (this.vocabulary === imagesVocabulary) {
       return [this.decorate(this.create("div", { class: this.classes() }, this.slot()), "group")]
     }
-    const href = this.host.getAttribute("href")
-    if (href === null) return [this.decorate(this.image(this.classes()), "image")]
+    const href = this.attr("href")
+    if (href === null) return [this.decorate(this.image({ class: this.classes() }), "image")]
     const disabled = this.flag("disabled")
     const link = this.create(
       "a",
-      { class: this.classes(), href: disabled ? null : href, "aria-disabled": disabled ? "true" : null },
-      this.image(null, "img")
+      { class: this.classes(), href: disabled ? undefined : href, "aria-disabled": disabled ? UIT.TRUE : undefined },
+      this.image({ part: IMG_PART })
     )
     return [this.decorate(link, "image")]
   }
 
-  /** The `<img>`, its native attributes copied from the host;  `part` only inside a link (`decorate()` names the root). */
-  private image(classes: string | null, part: string | null = null): HTMLImageElement {
-    const image = this.create("img", { class: classes, part })
-    for (const name of NATIVE) {
-      const value = this.host.getAttribute(name)
+  /** The `<img>` with `attributes`, its native ones copied from the host;  `decorate()` names a root one. */
+  private image(attributes: E.NativeFallbackAttributes): HTMLImageElement {
+    const image = this.create("img", attributes)
+    for (const name of NATIVE_ATTRIBUTES) {
+      const value = this.attr(name)
       if (value !== null) image.setAttribute(name, value)
     }
     return image
   }
 }
+
+/** Host attributes passed to the `<img>` as they are. */
+const NATIVE_ATTRIBUTES = ["src", "alt", "width", "height", "loading"] as const
+
+/** Part of the `<img>` inside a link. */
+const IMG_PART: E.PartNameOf<typeof imageVocabulary> = "img"

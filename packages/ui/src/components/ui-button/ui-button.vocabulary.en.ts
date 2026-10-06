@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-button>`, `<ui-buttons>` and `<ui-or>` use:  tags, attributes (kind + allowed values),
- * events, slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * events, slots, parts, states, texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-button size="small" primary basic>`
  *   => `ui small basic primary button`.  `ui-button.css` keys on those words.
  * - Group context needs NO element help:  `<ui-buttons basic>` renders `ui basic buttons`, and `ui-button.css`
@@ -9,7 +9,7 @@
  *   all remap `--ui-color` (`colors.css`), so the last one in the class string wins.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-button>`
@@ -22,7 +22,7 @@ export const buttonVocabulary = {
   skeleton: { display: "inline", width: "6em", height: "2.5em" },
   noun: "button",
   plural: "buttons",
-  description: "A button indicates a possible user action.",
+  description: "A button indicates a possible action.",
   attributes: [
     { name: "size", kind: "size", description: "Size, `mini` ... `massive`;  `medium` is the default." },
     { name: "color", kind: "color", description: "Hue;  fills the button (or its ring and text when `basic`)." },
@@ -164,4 +164,4 @@ export const buttonVocabulary = {
     { name: "right-floated", description: 'The host floats right (`floated="right"`).' }
   ],
   texts: [{ key: "loading", text: "Loading…", description: "Announced while `loading`." }]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

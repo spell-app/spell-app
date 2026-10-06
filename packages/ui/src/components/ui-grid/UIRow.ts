@@ -1,5 +1,4 @@
-import { proto } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { rowVocabulary } from "./ui-row.vocabulary.en"
 import { GridPart } from "./GridPart"
 
@@ -9,5 +8,5 @@ import { GridPart } from "./GridPart"
  * tokens for its own columns (`columns`, `divided`, `reversed` ...).
  ****************/
 export class UIRow extends GridPart<typeof rowVocabulary> {
-  @proto static vocabulary = rowVocabulary
+  @E.proto static vocabulary = rowVocabulary
 }

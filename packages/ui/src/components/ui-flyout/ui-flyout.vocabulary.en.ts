@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-flyout>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-flyout position="right" inverted width="4" open>` => `ui right inverted visible four wide flyout`;  a
  *   word width (`thin`, `very wide`) is added after the noun by the element (`ui left flyout very wide`).
@@ -11,7 +11,7 @@
  *   `:state(in-flyout)` and style themselves from `ui-parts.css`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-flyout>`
@@ -40,7 +40,7 @@ export const flyoutVocabulary = {
       name: "open",
       kind: "keyOnly",
       key: "visible",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
     },
     {
       name: "width",
@@ -82,7 +82,7 @@ export const flyoutVocabulary = {
       name: "ui-open",
       detail: "{ open: true, originalEvent?: Event }",
       cancelable: true,
-      description: "About to show (a user action, not an `open` write);  `preventDefault()` keeps it hidden."
+      description: "About to show (a person's action, not an `open` write);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-show",
@@ -128,4 +128,4 @@ export const flyoutVocabulary = {
   states: [{ name: "open", description: "Shown." }],
   texts: [{ key: "close", text: "Close", description: "Accessible name of the close icon." }],
   ownsParts: ["header", "content", "description", "actions"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -1,7 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, type ComponentVocabulary, type PartName } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { GridFallback } from "./ui-grid.fallback"
 
 import gridCSS from "./ui-grid.css?inline"
@@ -19,14 +18,14 @@ import gridCSS from "./ui-grid.css?inline"
  *   unless the grid says `stack-with="page"` (or the page-wide `--ui-stack-with` does):  then the screen's.
  * - Nothing focusable in the shadow root:  no `delegatesFocus`.
  ****************/
-export abstract class GridPart<V extends ComponentVocabulary = ComponentVocabulary> extends UIElement<V> {
-  @proto static styles = { grid: gridCSS }
-  @proto static Fallback = GridFallback
-  @proto static delegatesFocus = false
+export abstract class GridPart<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends E.UIElement<V> {
+  @E.proto static styles = { grid: gridCSS }
+  @E.proto static Fallback = GridFallback
+  @E.proto static delegatesFocus = false
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part(this.vocabulary.noun as PartName<V>)}>
+      <div class={this.classes()} part={this.part(this.vocabulary.noun as E.PartName<V>)}>
         <slot />
       </div>
     )

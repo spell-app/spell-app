@@ -1,7 +1,14 @@
 /**
- * Shared constants, types and helpers of the `ui-grid` family:  what its element classes, vocabularies and native fallback share.
- * - Runtime-light:  no element code, so every file of the family may import it.
+ * What the `ui-grid` family's vocabularies share (`<ui-grid>`, `<ui-row>`, `<ui-column>`).
+ * - Pure data, at the bottom of the folder's imports:  imports nothing, so node can load it (`yarn site:data`).
  */
 
-/** `only` targets:  device visibility, by the viewport. */
-export const ONLY_DEVICES = ["mobile", "tablet", "computer", "large screen", "widescreen"] as const
+////////////////
+// ## Device visibility
+////////////////
+
+/** `only`'s targets:  the devices a grid, row or column shows on, by the viewport (Fomantic's `mobile only` ...). */
+export const OnlyDevices = ["mobile", "tablet", "computer", "large screen", "widescreen"] as const
+
+/** One of `OnlyDevices`. */
+export type OnlyDevice = (typeof OnlyDevices)[number]

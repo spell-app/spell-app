@@ -1,14 +1,12 @@
 /**
- * Every name `<ui-input>` and `<ui-textarea>` use:  tags, attributes (kind + allowed values), events, slots, parts,
- * states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
- * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
- *   `<ui-input icon="search" icon-position="left" labeled="right" size="small">` =>
- *   `ui small left icon right labeled input`.  The element adds `icon` (no position), `labeled` / `action` (a
- *   slotted label or action without the attribute) and `file` (`type="file"`) itself.
+ * Every name `<ui-textarea>` uses:  tag, attributes (kind + allowed values), events, parts, states.  Schema:
+ * `ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-textarea size="small">` =>
+ *   `ui small input`, the `input` noun of `ui-input.css`, which it shares.
  * - `state` is `kind: "valueOnly"`:  it emits its value alone (`ui error input`), a remap in `colors.css`.
- * - `value` does NOT reflect:  like a native `<input>`, the ATTRIBUTE is the starting (and reset) value and the
- *   PROPERTY the live one -- a password never lands in the DOM.
- * - Constraint attributes (`required`, `pattern`, `min` ...) go to the inner native control, whose validity
+ * - `value` does NOT reflect:  like a native `<textarea>`, the ATTRIBUTE is the starting (and reset) value and the
+ *   PROPERTY the live one.
+ * - Constraint attributes (`required`, `minlength`, `maxlength`) go to the inner native control, whose validity
  *   merges with the Fomantic `rules` property's.
  */
 
@@ -34,7 +32,7 @@ export const textareaVocabulary = {
     {
       name: "state",
       kind: "valueOnly",
-      values: UIT.FORM_STATES,
+      values: UIT.FormStates,
       description: "Form state, tinting the box, text and placeholder."
     },
     { name: "transparent", kind: "keyOnly", description: "No box:  text only." },
@@ -54,7 +52,7 @@ export const textareaVocabulary = {
     {
       name: "minlength",
       kind: "number",
-      description: "Constraint:  fewest characters (checked after the user edits)."
+      description: "Constraint:  fewest characters (checked once someone has edited it)."
     },
     { name: "maxlength", kind: "number", description: "Constraint:  most characters." },
     {
@@ -74,12 +72,12 @@ export const textareaVocabulary = {
     {
       name: "ui-input",
       detail: "{ value: string, originalEvent?: Event }",
-      description: "The user changed the value (every keystroke)."
+      description: "The value changed as someone typed (every keystroke)."
     },
     {
       name: "ui-change",
       detail: "{ value: string, originalEvent?: Event }",
-      description: "The user committed a change (blur)."
+      description: "Someone committed a change (blur)."
     }
   ],
   slots: [],
@@ -88,7 +86,7 @@ export const textareaVocabulary = {
     { name: "control", description: "The native `<textarea>`." }
   ],
   states: [
-    { name: "invalid", description: "Fails validation, once the user has interacted (`:user-invalid` semantics)." },
+    { name: "invalid", description: "Fails validation, once someone has interacted (`:user-invalid` semantics)." },
     { name: "disabled", description: "Can't be used." },
     { name: "fluid", description: "The host is block-level (`fluid`, or inside a `<ui-field>`)." }
   ],

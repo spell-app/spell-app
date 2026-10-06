@@ -1,10 +1,9 @@
 import { Show, createEffect, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, type AttributeName, UI, UIElement, UIT } from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { buttonVocabulary } from "./ui-button.vocabulary.en"
-import { DEFAULT_TYPE, FORM_ATTRIBUTES, ICON_END, RIGHT_ICON_CLASS, HostPress } from "./ui-button.types"
+import { DEFAULT_TYPE, HostPress, RESET } from "./ui-button.types"
 import { ButtonFallback } from "./ui-button.fallback"
 import { Invoker } from "./Invoker"
 
@@ -23,44 +22,44 @@ import buttonCSS from "./ui-button.css?inline"
  * - Invoker commands:  `commandfor` / `command` go to the inner `<button>`, whose `commandForElement` is the element
  *   `commandfor` names in the host's own tree (re-resolved when the attribute changes, and at click time, for a
  *   target that arrived late).  Browsers without invokers (`UI.browser.supports.invokers`) get `Invoker.run()`.
- * - Icons come from the page's icon packs (`IconGlyph`) asynchronously;  the `.icon` box is sized by CSS, so the SVG arriving shifts nothing.
- *   `icon-position="right"` puts the box after the text, as Fomantic's `<i class="right ... icon">`.
+ * - Icons come from the page's icon packs (`IconGlyph`) asynchronously;  the `.icon` box is sized by CSS, so the SVG
+ *   arriving shifts nothing.  `icon-position="right"` puts the box after the text, as Fomantic's
+ *   `<i class="right ... icon">`.
  * - `host.click()` (a click dispatched at the HOST, e.g. `<ui-input>`'s implicit submission) presses the inner
  *   control, as `click()` on a native button does;  the page sees only the host's click (`onHostClick`).
  * - Static server render (`$/ui/static`):  the inner `<button>` IS the submitter -- the host's `type`, `name`,
  *   `value`, `form*` attributes -- so a no-JS form submits as the element would (`nativeType()`, `staticControl()`).
  ****************/
-export class UIButton extends UIElement<typeof buttonVocabulary> {
-  @proto static vocabulary = buttonVocabulary
-  @proto static styles = { button: buttonCSS }
-  @proto static formAssociated = true
-  @proto static Fallback = ButtonFallback
+export class UIButton extends E.UIElement<typeof buttonVocabulary> {
+  @E.proto static vocabulary = buttonVocabulary
+  @E.proto static styles = { button: buttonCSS }
+  @E.proto static formAssociated = true
+  @E.proto static Fallback = ButtonFallback
+
+  ////////////////
+  // ## State
+  ////////////////
 
   /** `active`:  host-controlled, or toggled internally. */
   readonly active = this.controlled("active", false)
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` attribute;  starts from the cache, so a known icon draws at once. */
-  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
 
   /** Host `aria-label`, forwarded to the inner control (an icon-only button's name). */
-  private readonly ariaLabel = new Cell(this.host.getAttribute(UIT.ARIA_LABEL))
+  private readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
-  /** The inner `<button>` / `<a>`. */
-  private control?: HTMLElement
+  /** The inner `<button>` / `<a>`, once rendered. */
+  private innerControl?: HTMLElement
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     if (isServer) return
-    const observer = new MutationObserver(() => this.ariaLabel.set(this.host.getAttribute(UIT.ARIA_LABEL)))
-    observer.observe(this.host, { attributeFilter: [UIT.ARIA_LABEL] })
     this.host.addEventListener("click", this.onHostClick)
-    this.host.addReleaseCallback(() => {
-      observer.disconnect()
-      this.host.removeEventListener("click", this.onHostClick)
-    })
+    this.host.addReleaseCallback(() => this.host.removeEventListener("click", this.onHostClick))
   }
 
   ////////////////
@@ -82,14 +81,15 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   /** Has a joined label (attribute or `label` slot)? */
   readonly hasLabel = createMemo(() => !!this.attrs.label || this.slots.has(this.slot("label")))
 
+  /** Disabled by its attribute, or by a disabled fieldset. */
   isDisabled(): boolean {
     return this.attrs.disabled || this.formDisabled.get()
   }
 
-  protected classValue(name: AttributeName<typeof buttonVocabulary>): unknown {
+  /** `active` and `disabled` follow the state, not the attribute;  a joined label takes `labeled` to the wrapper. */
+  protected classValue(name: E.AttributeName<typeof buttonVocabulary>): unknown {
     if (name === "active") return this.active.get()
     if (name === "disabled") return this.isDisabled()
-    // with a joined label, `labeled` goes on the wrapper, not the inner button
     if (name === "labeled" && this.hasLabel()) return false
     return super.classValue(name)
   }
@@ -97,8 +97,8 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   /** `icon` for icon-only buttons and for `labeled icon` buttons. */
   protected extraClasses(): string | undefined {
     if (!this.hasIcon() || this.attrs.animated) return undefined
-    const labeledIcon = !!this.attrs.labeled && !this.hasLabel()
-    return !this.hasText() || labeledIcon ? UIT.ICON_CLASS : undefined
+    const isLabeledIcon = !!this.attrs.labeled && !this.hasLabel()
+    return !this.hasText() || isLabeledIcon ? UIT.ICON_CLASS : undefined
   }
 
   protected hostStates() {
@@ -120,7 +120,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   render(): JSX.Element {
     this.invokerEffect()
     return (
-      <Show when={this.hasLabel()} fallback={this.control_()}>
+      <Show when={this.hasLabel()} fallback={this.control()}>
         <div
           class={this.buildClasses({
             size: this.attrs.size,
@@ -128,8 +128,8 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
             labeled: this.attrs.labeled || true
           })}
         >
-          {this.control_()}
-          <span class="ui basic label" part={this.part("label")}>
+          {this.control()}
+          <span class={LABEL_CLASS} part={this.part("label")}>
             <slot name={this.slot("label")}>{this.attrs.label}</slot>
           </span>
         </div>
@@ -138,7 +138,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   }
 
   /** The inner `<button>`, or `<a>` with `href`. */
-  private control_(): JSX.Element {
+  private control(): JSX.Element {
     const content = () => this.content()
     return (
       <Show
@@ -146,7 +146,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
         fallback={
           <button
             ref={(element) => {
-              this.control = element
+              this.innerControl = element
               this.resolveInvoker()
             }}
             type={this.nativeType()}
@@ -155,11 +155,11 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
             disabled={this.isDisabled()}
             {...this.staticControl()}
             aria-pressed={
-              this.attrs.toggle && !this.hasStateText() ? (this.active.get() ? "true" : "false") : undefined
+              this.attrs.toggle && !this.hasStateText() ? (this.active.get() ? UIT.TRUE : UIT.FALSE) : undefined
             }
-            aria-busy={this.attrs.loading ? "true" : undefined}
-            aria-label={this.ariaLabel.get() ?? undefined}
-            command={isServer || this.invokers() ? this.attrs.command : undefined}
+            aria-busy={this.attrs.loading ? UIT.TRUE : undefined}
+            aria-label={this.ariaLabel.get()}
+            command={isServer || this.hasNativeInvokers() ? this.attrs.command : undefined}
             onClick={this.onClick}
           >
             {content()}
@@ -167,16 +167,16 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
         }
       >
         <a
-          ref={(element) => (this.control = element)}
+          ref={(element) => (this.innerControl = element)}
           class={this.classes()}
           part={this.part("button")}
           href={this.isDisabled() ? undefined : this.attrs.href}
           target={this.attrs.target}
           download={this.attrs.download}
-          role={this.isDisabled() ? "link" : undefined}
-          aria-disabled={this.isDisabled() ? "true" : undefined}
-          aria-busy={this.attrs.loading ? "true" : undefined}
-          aria-label={this.ariaLabel.get() ?? undefined}
+          role={this.isDisabled() ? LINK_ROLE : undefined}
+          aria-disabled={this.isDisabled() ? UIT.TRUE : undefined}
+          aria-busy={this.attrs.loading ? UIT.TRUE : undefined}
+          aria-label={this.ariaLabel.get()}
           onClick={this.onClick}
         >
           {content()}
@@ -226,16 +226,16 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
         {this.stateText()}
       </Show>
     )
-    const trailing = () => this.attrs.iconPosition === ICON_END
+    const isTrailing = () => this.attrs.iconPosition === ICON_END
     const plain = [
-      <Show when={this.hasIcon() && !trailing()}>{this.icon()}</Show>,
+      <Show when={this.hasIcon() && !isTrailing()}>{this.icon()}</Show>,
       text,
-      <Show when={this.hasIcon() && trailing()}>{this.icon(RIGHT_ICON_CLASS)}</Show>
+      <Show when={this.hasIcon() && isTrailing()}>{this.icon(RIGHT_ICON_CLASS)}</Show>
     ]
     return (
       <Show when={this.attrs.animated} fallback={plain}>
-        <span class="visible content">{text}</span>
-        <span class="hidden content">{this.icon()}</span>
+        <span class={VISIBLE_CONTENT_CLASS}>{text}</span>
+        <span class={HIDDEN_CONTENT_CLASS}>{this.icon()}</span>
       </Show>
     )
   }
@@ -260,7 +260,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   private invokerEffect() {
     if (isServer) return
     createEffect(
-      () => [this.attrs.commandfor, this.invokers()],
+      () => [this.attrs.commandfor, this.hasNativeInvokers()],
       () => this.resolveInvoker()
     )
   }
@@ -269,25 +269,26 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
    * Native invokers?  `undefined` until the runtime is loaded (`UI.browser` throws before that), and on the server.
    * - Render-safe:  reads `loaded()` first, so a button rendered before `UI.load()` settles never touches `UI`.
    */
-  private invokers(): boolean | undefined {
+  private hasNativeInvokers(): boolean | undefined {
     return !isServer && this.loaded() ? UI.browser.supports.invokers : undefined
   }
 
   /**
    * Point the inner `<button>` at the element `commandfor` names.
-   * - Native invokers only;  `null` clears it.  The browser's activation runs AFTER the click event, so the
+   * - Native invokers only;  no target clears it.  The browser's activation runs AFTER the click event, so the
    *   click handler can call this again for a target that arrived after the last attribute change.
    */
   private resolveInvoker() {
-    const control = this.control
-    if (!control || !this.invokers() || !(control instanceof HTMLButtonElement)) return
-    control.commandForElement = Invoker.resolve(this.host, this.attrs.commandfor)
+    const control = this.innerControl
+    if (!control || !this.hasNativeInvokers() || !(control instanceof HTMLButtonElement)) return
+    // `null`:  the platform's "no target"
+    control.commandForElement = Invoker.resolve(this.host, this.attrs.commandfor) ?? null
   }
 
   /** Browsers without invokers:  run the command on the target, as the browser would. */
   private runInvoker(event: MouseEvent) {
     const { command, commandfor } = this.attrs
-    if (this.invokers() !== false || !command || event.defaultPrevented) return
+    if (this.hasNativeInvokers() !== false || !command || event.defaultPrevented) return
     const target = Invoker.resolve(this.host, commandfor)
     if (target) Invoker.run(target, command, this.host)
   }
@@ -306,8 +307,8 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
     }
     const { form } = this.host.internals
     if (!form) return
-    if (this.attrs.type === "submit") this.submit(form)
-    else if (this.attrs.type === "reset") form.reset()
+    if (this.attrs.type === UIT.SUBMIT) this.submit(form)
+    else if (this.attrs.type === RESET) form.reset()
   }
 
   /**
@@ -321,7 +322,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
    * - No connected control (the render threw):  left to the native fallback's own listener.
    */
   private readonly onHostClick = (event: MouseEvent) => {
-    const control = this.control
+    const control = this.innerControl
     if (event.composedPath()[0] !== this.host || !control?.isConnected) return
     if (this.isDisabled() || event.defaultPrevented) return
     HostPress.press(control)
@@ -345,6 +346,30 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
 
   /** Focus the inner control. */
   focus() {
-    this.control?.focus()
+    this.innerControl?.focus()
   }
 }
+
+/**
+ * The native submitter's attributes a server render (`$/ui/static`) copies from the host onto the inner `<button>`,
+ * so a static form submits as the browser would with that button:  not vocabulary, read off the host as written.
+ */
+const FORM_ATTRIBUTES = ["form", "formaction", "formenctype", "formmethod", "formnovalidate", "formtarget"] as const
+
+/** `icon-position` that puts the icon after the text. */
+const ICON_END = "right"
+
+/** Class words of a trailing icon box:  Fomantic's `<i class="right ... icon">`, spaced on its start side. */
+const RIGHT_ICON_CLASS = "right icon"
+
+/** Class words of a joined label's box (`labeled` buttons with `label`). */
+const LABEL_CLASS = "ui basic label"
+
+/** Class words of an `animated` button's resting content. */
+const VISIBLE_CONTENT_CLASS = "visible content"
+
+/** Class words of an `animated` button's content shown on hover. */
+const HIDDEN_CONTENT_CLASS = "hidden content"
+
+/** ARIA role of a disabled link button:  its `href` is gone, so it's no longer a link by itself. */
+const LINK_ROLE = "link"

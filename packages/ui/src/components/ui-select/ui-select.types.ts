@@ -2,7 +2,8 @@
  * Loose constants, types and helpers of `<ui-select>`:  its element classes and native fallback import them from here.
  */
 
-import type { MenuOption, MenuSeparator, PartName, UIT } from "$/ui/core"
+import * as UIT from "$/ui/components/components.types"
+import type { MenuOption, MenuSeparator, PartName } from "$/ui/core"
 import type { selectVocabulary } from "./ui-select.vocabulary.en"
 
 ////////////////
@@ -47,16 +48,11 @@ export const PARTS = {
   option: "option"
 } as const satisfies Record<string, PartName<typeof selectVocabulary>>
 
-/** Code point of the regional indicator for `A`. */
-export const REGIONAL_A = 0x1f1e6
-
 /** Flags of the `flag` option attribute, for the element and its native fallback. */
 export class SelectFlags {
-  /** Country code => flag emoji (regional indicators), e.g. `fr` => 🇫🇷;  other text unchanged. */
+  /** Flag code => emoji through `UIT.Flags`, as `<ui-flag>` draws it (`fr`, `gb-eng`);  other text unchanged. */
   static emoji(code: string): string {
-    if (!/^[a-z]{2}$/i.test(code)) return code
-    const upper = code.toUpperCase()
-    return String.fromCodePoint(REGIONAL_A + upper.charCodeAt(0) - 65, REGIONAL_A + upper.charCodeAt(1) - 65)
+    return UIT.Flags.emojiFor(code) || code
   }
 }
 

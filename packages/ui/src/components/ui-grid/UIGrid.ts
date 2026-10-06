@@ -1,5 +1,4 @@
-import { proto, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { gridVocabulary } from "./ui-grid.vocabulary.en"
 import { GridPart } from "./GridPart"
 
@@ -13,11 +12,11 @@ import { GridPart } from "./GridPart"
  *   range rules key on;  rows and columns follow their grid's range.
  ****************/
 export class UIGrid extends GridPart<typeof gridVocabulary> {
-  @proto static vocabulary = gridVocabulary
+  @E.proto static vocabulary = gridVocabulary
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
   protected extraClasses(): string | undefined {
-    return UIT.StackClasses.of(this.attrs.stackWith)
+    return UIT.StackClasses.classFor(this.attrs.stackWith)
   }
 
   /**

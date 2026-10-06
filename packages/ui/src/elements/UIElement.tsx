@@ -43,7 +43,7 @@ import { UIHost } from "./UIHost"
  *   - the class config, set with `@proto static` ("Class config" below):  `vocabulary`, `styles`, `Fallback`,
  *     `Host`, `isPart`, `delegatesFocus`, `slotAssignment`, `formAssociated`, `canRenderUnstyled`
  *   - the hooks ("Hooks" below):  `render()`, `hostStates()`, `classValue()`, `extraClasses()`, `sheetNames()`,
- *     `isDisabled()`;  a conditional owner adds `ownsPart()` (`ConditionalOwner`)
+ *     `isDisabled()`;  a conditional owner adds `isOwnerOf()` (`ConditionalOwner`)
  * - Import graph:  the top of the element core -- it uses `UIHost`, `E.PartContext`, `E.ElementDefinition`, `E.Cell`,
  *   `E.Controlled`, the runtime's eager loader (`UI`) and the fork;  NEVER a component family, and never
  *   `FormElement` / `FormHost` (they extend it, through `$/ui/core`).  `UIHost` and `proto` come directly:  the class
@@ -474,7 +474,7 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
    * Everything this component's markup can say, for introspection at runtime:  its whole vocabulary -- tag,
    * attributes (kinds, allowed values, defaults), events, slots, parts, states, text strings, descriptions, `topics`
    * and `aka`.  Live data:  the same object the element reads (`UIButton.describe().topics`).
-   * - Every tag's summary at once:  `ComponentDefinitions` (`src/components/component-definitions.ts`).
+   * - Every tag's summary at once:  `ComponentDefinitions` (`src/components/ComponentDefinitions.ts`).
    */
   static describe<T extends { prototype: { vocabulary: E.ComponentVocabulary } }>(
     this: T
@@ -530,7 +530,7 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
   static register(this: UIElementClass, definition: E.ElementDefinition) {
     const { vocabulary, isPart } = this.prototype
     UIElement.definitions.set(definition.tag, definition)
-    E.PartContext.define({ vocabulary, tag: definition.tag, isPart, isConditionalOwner: "ownsPart" in this.prototype })
+    E.PartContext.define({ vocabulary, tag: definition.tag, isPart, isConditionalOwner: "isOwnerOf" in this.prototype })
     UIElement.registerTexts(vocabulary)
   }
 

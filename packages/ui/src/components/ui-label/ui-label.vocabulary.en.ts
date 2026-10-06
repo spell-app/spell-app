@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-label>` and `<ui-labels>` use:  tags, attributes (kind + allowed values), events, slots,
- * parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * parts, states, texts.  Schema:  `E.ComponentVocabulary`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-label color="red" pointing="left" basic>` => `ui red basic left pointing label`.  `ui-label.css` keys on
  *   those words.
@@ -10,7 +10,7 @@
  *   and styles itself from `ui-parts.css` (`:state(in-label)`).
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-label>`
@@ -129,4 +129,4 @@ export const labelVocabulary = {
   ],
   texts: [{ key: "remove", text: "Remove", description: "Accessible name of the delete icon button." }],
   ownsParts: ["detail"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

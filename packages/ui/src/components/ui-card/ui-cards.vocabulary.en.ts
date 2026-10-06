@@ -1,11 +1,11 @@
 /**
  * Every name `<ui-cards>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The family's grammar notes are in `ui-card.vocabulary.en.ts`.
  */
 
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-cards>`
@@ -37,7 +37,7 @@ export const cardsVocabulary = {
     {
       name: "stack-with",
       kind: "enum",
-      values: UIT.STACK_WITH_VALUES,
+      values: UIT.StackWithValues,
       description:
         "What `stackable` and `doubling` measure:  `container` (the default) -- the group's own width;  " +
         "`page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides " +
@@ -61,4 +61,4 @@ export const cardsVocabulary = {
   ],
   texts: [],
   ownsParts: ["card"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

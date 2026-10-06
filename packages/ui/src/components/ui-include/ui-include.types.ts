@@ -1,28 +1,29 @@
 /**
- * Loose constants and types of the `ui-include` family.
- * - Data only:  the element, its host and its fallback import what they need from here.
+ * Types of the `ui-include` family:  what its element, host and fallback share.
+ * - Pure data, at the bottom of the folder's imports:  `import type` only, so node can load it (`yarn site:data`).
+ * - NOTE: `URL_ATTRIBUTES`, `URL_SELECTOR`, `ORIGINAL_PREFIX` and `MAX_DEPTH` live in the element core
+ *   (`elements.types.ts`, as `E.X`):  `SourceMarkup` uses them for `<ui-section source>` / `<ui-accordion source>`
+ *   too.  The constants only `UIInclude` reads sit below that class (epic `wwod-spell-ui`, Q18).
  */
 
 import type { includeVocabulary } from "./ui-include.vocabulary.en"
 
+////////////////
+// ## Element
+////////////////
+
 /** Vocabulary type, for brevity. */
 export type Vocabulary = typeof includeVocabulary
 
-/*
- * NOTE: `URL_ATTRIBUTES`, `URL_SELECTOR`, `ORIGINAL_PREFIX` and `MAX_DEPTH` moved to the element core
- * (`$/ui/core`, `elements.types.ts`):  `SourceMarkup` uses them for `<ui-section source>` /
- * `<ui-accordion source>` too.
- */
+/** What the host asks of its controller (`UIInclude`). */
+export type IncludeController = {
+  /** where the included markup lives */
+  contentRoot(): HTMLElement | undefined
+}
 
-/** The default `load` mode:  no class word. */
-export const EAGER = "eager"
-
-/** Class word after the noun while `source` loads. */
-export const LOADING_CLASS = "loading"
-
-/** The `<body ...>` opening tag and the closing tag of a page, for splicing a saved body back into its file. */
-export const BODY_OPEN = /<body\b[^>]*>/i
-export const BODY_CLOSE = /<\/body\s*>/i
+////////////////
+// ## Events
+////////////////
 
 /** `detail` of `ui-insert`. */
 export type IncludeInsertDetail = {
@@ -30,10 +31,4 @@ export type IncludeInsertDetail = {
   fragment: DocumentFragment
   /** `source` as written */
   source?: string
-}
-
-/** What the host asks of its controller (`UIInclude`). */
-export type IncludeController = {
-  /** where the included markup lives */
-  contentRoot(): HTMLElement | undefined
 }

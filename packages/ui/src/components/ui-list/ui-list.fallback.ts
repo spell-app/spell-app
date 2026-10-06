@@ -1,7 +1,5 @@
-import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { listVocabulary } from "./ui-list.vocabulary.en"
-import { PARENTS, LIST_TAG, ORDERED } from "./ui-list.types"
 
 /****************
  * ### `ListFallback`
@@ -11,24 +9,27 @@ import { PARENTS, LIST_TAG, ORDERED } from "./ui-list.types"
  *   `<ui-list>` it renders `<ul class="list">` (no `ui`, no variations:  it inherits the outer list's tokens),
  *   an `<ol>` when it or the nearest outer `<ui-list>` is `ordered`.
  ****************/
-export class ListFallback extends NativeFallback<typeof listVocabulary> {
-  @proto static vocabulary = listVocabulary
-  @proto static degraded = [
+export class ListFallback extends E.NativeFallback<typeof listVocabulary> {
+  @E.proto static vocabulary = listVocabulary
+  @E.proto static degraded = [
     "sub-lists through translated or slotted parents (only a direct `<ui-item>` / `<ui-list>` parent counts)",
     "`ui-select`"
   ]
 
   /** Inside another list:  the sub-list form. */
-  private readonly nested = PARENTS.has(this.host.parentElement?.localName ?? "")
+  private readonly isNested = PARENTS.has(this.host.parentElement?.localName ?? "")
 
   protected override build() {
-    const outer = this.nested ? this.host.parentElement?.closest(LIST_TAG) : null
-    const ordered = this.flag("ordered") || Converters.boolean(outer?.getAttribute(ORDERED) ?? null, ORDERED)
-    const list = this.create(ordered ? "ol" : "ul", {
-      class: this.nested ? listVocabulary.noun : this.classes(),
+    const outer = this.isNested ? this.host.parentElement?.closest(listVocabulary.tag) : undefined
+    const isOrdered = this.flag("ordered") || E.Converters.boolean(outer?.getAttribute(UIT.ORDERED), UIT.ORDERED)
+    const list = this.create(isOrdered ? UIT.OL : UIT.UL, {
+      class: this.isNested ? listVocabulary.noun : this.classes(),
       role: UIT.LIST
     })
     list.append(this.slot())
     return [this.decorate(list, "list")]
   }
 }
+
+/** Parent tags (canonical only) that make a list a sub-list. */
+const PARENTS: ReadonlySet<string> = new Set(["ui-item", "ui-list"])

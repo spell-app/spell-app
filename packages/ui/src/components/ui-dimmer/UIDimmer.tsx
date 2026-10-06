@@ -1,20 +1,9 @@
 import { Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  HostAttribute,
-  proto,
-  type AttributeName,
-  type DismissReason,
-  type OverlayEntry,
-  UI,
-  UIElement,
-  UIT
-} from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { dimmerVocabulary } from "./ui-dimmer.vocabulary.en"
 import { DimmerFallback } from "./ui-dimmer.fallback"
-import { ANY, CLICK, ESCAPE, HOVER, PAGE_SHEET, Vocabulary } from "./ui-dimmer.types"
 
 import dimmerCSS from "./ui-dimmer.css?inline"
 import dimmablePageCSS from "./ui-dimmer.page.css?inline"
@@ -29,7 +18,7 @@ import dimmablePageCSS from "./ui-dimmer.page.css?inline"
  *   covers everything, so the page is `inert` (a pointer can't reach it either), focus moves inside (the dialog
  *   itself when nothing inside is focusable) and returns on hide.  Registered with `UI.overlays` (kind `dimmer`:
  *   scroll lock, keyboard scope, Escape).  Named by the host's `aria-label`, else "Dimmed page".
- * - `active` is auto-controlled:  the cancelable `ui-open` / `ui-close` come first for user actions -- `on`
+ * - `active` is auto-controlled:  the cancelable `ui-open` / `ui-close` come first for a person's actions -- `on`
  *   (`hover`:  pointer over the parent or focus inside it;  `click`:  a click on the parent), a click on the dimmer
  *   itself (not its content, `closedby="any"`), Escape (a page dimmer), invoker commands (`TOGGLE_COMMANDS`);
  *   `ui-show` / `ui-hide` follow once the CSS transition has ended.  Writing `active` fires no `ui-open` / `ui-close`.
@@ -39,12 +28,12 @@ import dimmablePageCSS from "./ui-dimmer.page.css?inline"
  *   `<ui-header>` in it turns light by itself;  `inverted` is the light one.  `blurring` blurs what's behind
  *   (`backdrop-filter`) instead of Fomantic's filter on the siblings.
  ****************/
-export class UIDimmer extends UIElement<Vocabulary> {
-  @proto static vocabulary = dimmerVocabulary
-  @proto static styles = { dimmer: dimmerCSS }
-  @proto static Fallback = DimmerFallback
+export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
+  @E.proto static vocabulary = dimmerVocabulary
+  @E.proto static styles = { dimmer: dimmerCSS }
+  @E.proto static Fallback = DimmerFallback
   // a click on the dimmer must not jump focus into its content
-  @proto static delegatesFocus = false
+  @E.proto static delegatesFocus = false
 
   ////////////////
   // ## State
@@ -54,7 +43,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
   readonly activeState = this.controlled("active", false)
 
   /** Host `aria-label`, forwarded to a page dimmer's dialog. */
-  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
+  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** The dimmer box:  a `<div>`, or a page dimmer's `<dialog>`. */
   private box?: HTMLElement
@@ -63,20 +52,20 @@ export class UIDimmer extends UIElement<Vocabulary> {
   private generation = 0
 
   /** A dismissal was asked for in this task:  the dialog's own `cancel` for the same key press is ignored. */
-  private dismissing = false
+  private isDismissing = false
 
   /** The pointer is over the parent (`on="hover"`). */
-  private hovered = false
+  private isHovered = false
 
   /** A page dimmer's `UI.overlays` entry;  its Escape option follows `closedby` when it shows. */
-  private readonly overlay: OverlayEntry = {
+  private readonly overlay: E.OverlayEntry = {
     element: this.host,
     kind: "dimmer",
     closeOnOutsideClick: false,
-    onDismiss: (reason: DismissReason) => void this.requestClose(reason === "outside" ? CLICK : reason)
+    onDismiss: (reason: E.DismissReason) => void this.requestClose(reason === "outside" ? "click" : reason)
   }
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     const listeners = new AbortController()
     this.host.addEventListener("command", this.onCommand, { signal: listeners.signal })
@@ -92,13 +81,13 @@ export class UIDimmer extends UIElement<Vocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
-    if (name === "active") return this.isActive()
+  protected classValue(name: E.AttributeName<typeof dimmerVocabulary>): unknown {
+    if (name === UIT.ACTIVE) return this.isActive()
     return super.classValue(name)
   }
 
   protected hostStates() {
-    return { active: this.isActive(), dimmer: true, page: !!this.attrs.page, "on-hover": this.attrs.on === HOVER }
+    return { active: this.isActive(), dimmer: true, page: !!this.attrs.page, "on-hover": this.attrs.on === "hover" }
   }
 
   ////////////////
@@ -149,11 +138,14 @@ export class UIDimmer extends UIElement<Vocabulary> {
   /** Showing / hiding while active AND connected;  the parent's listeners for `on`. */
   private effects() {
     createEffect(
-      () => ({ on: this.connected.get() && this.isActive(), page: !!this.attrs.page }),
-      ({ on, page }) => {
-        if (!on) return
-        this.show(page)
-        return () => this.hide(page)
+      (): { isOn: boolean; kind: DimmerKind } => ({
+        isOn: this.connected.get() && this.isActive(),
+        kind: this.attrs.page ? "page" : "element"
+      }),
+      ({ isOn, kind }) => {
+        if (!isOn) return
+        this.show(kind)
+        return () => this.hide(kind)
       }
     )
     createEffect(
@@ -163,10 +155,10 @@ export class UIDimmer extends UIElement<Vocabulary> {
   }
 
   /** A page dimmer:  `showModal()` and `UI.overlays`;  then `ui-show` once the entry transition ends. */
-  private show(page: boolean) {
+  private show(kind: DimmerKind) {
     const box = this.box
-    if (page && box instanceof HTMLDialogElement) {
-      this.overlay.closeOnEscape = (untrack(() => this.attrs.closedby) ?? ANY) !== UIT.NONE
+    if (kind === "page" && box instanceof HTMLDialogElement) {
+      this.overlay.closeOnEscape = (untrack(() => this.attrs.closedby) ?? "any") !== UIT.NONE
       if (!box.open) {
         box.showModal()
         UI.focus.enter(box)
@@ -180,9 +172,9 @@ export class UIDimmer extends UIElement<Vocabulary> {
   }
 
   /** A page dimmer:  `close()`, THEN leave `UI.overlays` (focus restore needs the page no longer `inert`). */
-  private hide(page: boolean) {
+  private hide(kind: DimmerKind) {
     const box = this.box
-    if (page) {
+    if (kind === "page") {
       if (box instanceof HTMLDialogElement && box.open) box.close()
       UI.overlays.close(this.overlay)
     }
@@ -212,40 +204,33 @@ export class UIDimmer extends UIElement<Vocabulary> {
     if (!parent) return undefined
     const listeners = new AbortController()
     const options = { signal: listeners.signal }
-    if (on === HOVER) {
-      parent.addEventListener("pointerenter", (event) => this.hover(true, event), options)
-      parent.addEventListener("pointerleave", (event) => this.hover(false, event), options)
-      parent.addEventListener("focusin", (event) => this.setActive(event), options)
+    if (on === "hover") {
+      parent.addEventListener("pointerenter", this.onPointerEnter, options)
+      parent.addEventListener("pointerleave", this.onPointerLeave, options)
+      parent.addEventListener("focusin", (event) => this.requestOpen(event), options)
       parent.addEventListener("focusout", (event) => this.leave(event, event.relatedTarget), options)
     } else {
-      parent.addEventListener("click", (event) => this.onParentClick(event), options)
+      parent.addEventListener(UIT.CLICK, (event) => this.onParentClick(event), options)
     }
     return () => {
-      this.hovered = false
+      this.isHovered = false
       listeners.abort()
     }
-  }
-
-  /** The pointer entered / left an `on="hover"` dimmer's parent. */
-  private hover(inside: boolean, event: PointerEvent) {
-    this.hovered = inside
-    if (inside) this.setActive(event)
-    else this.leave(event)
   }
 
   /** The pointer or focus left an `on="hover"` dimmer's parent:  hide once neither is inside. */
   private leave(event: Event, next: EventTarget | null | undefined = UI.focus.activeElementDeep()) {
     const parent = this.host.parentElement
-    if (this.hovered || (parent && next instanceof Node && UI.focus.containsDeep(parent, next))) return
-    this.requestClose(HOVER, event)
+    if (this.isHovered || (parent && next instanceof Node && UI.focus.containsDeep(parent, next))) return
+    this.requestClose("hover", event)
   }
 
   ////////////////
   // ## Transitions
   ////////////////
 
-  /** Show for a user action, dispatching the cancelable `ui-open` first;  true when applied. */
-  setActive(originalEvent?: Event): boolean {
+  /** Show for a person's action, dispatching the cancelable `ui-open` first;  true when applied. */
+  requestOpen(originalEvent?: Event): boolean {
     if (untrack(() => this.activeState.get() || !!this.attrs.disabled)) return false
     const detail: UIT.DimmerOpenDetail = { active: true, originalEvent }
     return this.activeState.request(true, () => this.emit("ui-open", detail))
@@ -254,8 +239,8 @@ export class UIDimmer extends UIElement<Vocabulary> {
   /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
   requestClose(reason: UIT.DimmerCloseReason, originalEvent?: Event): boolean {
     if (!untrack(() => this.activeState.get())) return false
-    this.dismissing = true
-    setTimeout(() => (this.dismissing = false))
+    this.isDismissing = true
+    setTimeout(() => (this.isDismissing = false))
     const detail: UIT.DimmerCloseDetail = { active: false, reason, originalEvent }
     return this.activeState.request(false, () => this.emit("ui-close", detail))
   }
@@ -270,22 +255,34 @@ export class UIDimmer extends UIElement<Vocabulary> {
       event,
       untrack(() => this.activeState.get())
     )
-    if (action === "show") this.setActive(event)
-    else if (action === "close") this.requestClose(CLICK, event)
+    if (action === "show") this.requestOpen(event)
+    else if (action === "close") this.requestClose("click", event)
   }
 
   /** A click on the dimmer itself, not its content:  hides it when `closedby="any"` (never a `hover` one). */
   private readonly onDimmerClick = (event: MouseEvent) => {
     if (event.composedPath()[0] !== this.box) return
-    const closedBy = untrack(() => this.attrs.closedby) ?? ANY
-    if (closedBy !== ANY || untrack(() => this.attrs.on) === HOVER) return
-    this.requestClose(CLICK, event)
+    const closedBy = untrack(() => this.attrs.closedby) ?? "any"
+    if (closedBy !== "any" || untrack(() => this.attrs.on) === "hover") return
+    this.requestClose("click", event)
+  }
+
+  /** The pointer entered an `on="hover"` dimmer's parent:  show. */
+  private readonly onPointerEnter = (event: PointerEvent) => {
+    this.isHovered = true
+    this.requestOpen(event)
+  }
+
+  /** The pointer left an `on="hover"` dimmer's parent:  hide, unless focus is still inside. */
+  private readonly onPointerLeave = (event: PointerEvent) => {
+    this.isHovered = false
+    this.leave(event)
   }
 
   /** A click on the parent (`on="click"`) outside the dimmer:  show. */
   private onParentClick(event: MouseEvent) {
     if (this.box && event.composedPath().includes(this.box)) return
-    this.setActive(event)
+    this.requestOpen(event)
   }
 
   /**
@@ -294,8 +291,8 @@ export class UIDimmer extends UIElement<Vocabulary> {
    */
   private readonly onCancel = (event: Event) => {
     event.preventDefault()
-    if (this.dismissing || (untrack(() => this.attrs.closedby) ?? ANY) === UIT.NONE) return
-    this.requestClose(ESCAPE, event)
+    if (this.isDismissing || (untrack(() => this.attrs.closedby) ?? "any") === UIT.NONE) return
+    this.requestClose("escape", event)
   }
 
   /** A page dimmer's dialog closed while the element thinks it's active:  the browser forced it -- follow. */
@@ -303,8 +300,14 @@ export class UIDimmer extends UIElement<Vocabulary> {
     const box = this.box
     if ((box instanceof HTMLDialogElement && box.open) || !this.host.isConnected) return
     if (!untrack(() => this.activeState.get())) return
-    const detail: UIT.DimmerCloseDetail = { active: false, reason: ESCAPE, originalEvent: event }
+    const detail: UIT.DimmerCloseDetail = { active: false, reason: "escape", originalEvent: event }
     this.emit("ui-close", detail)
     this.activeState.set(false)
   }
 }
+
+/** Which dimmer it is:  over its parent (`element`), or a modal dialog over the page (`page`). */
+type DimmerKind = "element" | "page"
+
+/** Name of the page sheet that positions dimmed parents (`ui-dimmer.page.css`). */
+const PAGE_SHEET = "dimmer-page"

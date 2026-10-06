@@ -1,7 +1,11 @@
 /**
- * Shared constants, types and helpers of the `ui-loader` family:  what its element classes, vocabularies and native fallback share.
- * - Runtime-light:  no element code, so every file of the family may import it.
+ * Loose constants of the `ui-loader` family:  the words its element class and its native fallback share.
+ * - Pure data, at the bottom of the folder's imports:  imports nothing, so node can load it (`yarn site:data`).
  */
 
-/** `aria-live` of the status. */
+////////////////
+// ## Live region
+////////////////
+
+/** `aria-live` of the status:  announced when the reader is idle, never interrupting. */
 export const POLITE = "polite"

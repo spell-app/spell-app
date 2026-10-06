@@ -1,27 +1,11 @@
 import { Show, createMemo, onSettled } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
-import { Cell, ContentPart, PartContext, proto, type AttributeName, type UIHost, UIElement, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { cardVocabulary } from "./ui-card.vocabulary.en"
 import { CardFallback } from "./ui-card.fallback"
 import type { UICards } from "./UICards"
-import {
-  ANCHOR,
-  ARTICLE,
-  CONTENT_SHORTHANDS,
-  DESCRIPTION,
-  EMPTY,
-  EXTRA,
-  IMAGE,
-  META,
-  SHARED,
-  SHORTHANDS,
-  STATUS,
-  Shorthand,
-  VISUALLY_HIDDEN,
-  Vocabulary
-} from "./ui-card.types"
+import { ARTICLE, ContentShorthands, EXTRA, META } from "./ui-card.types"
 
 import cardCSS from "./ui-card.css?inline"
 
@@ -44,43 +28,43 @@ import cardCSS from "./ui-card.css?inline"
  * - `loading`:  `aria-busy` (internals) and a visually hidden `role=status` "Loading…";  `disabled`:
  *   `aria-disabled`, and a link card loses its `href`.
  ****************/
-export class UICard extends UIElement<Vocabulary> {
-  @proto static vocabulary = cardVocabulary
-  @proto static styles = { card: cardCSS, ...ContentPart.styles }
-  @proto static Fallback = CardFallback
+export class UICard extends E.UIElement<typeof cardVocabulary> {
+  @E.proto static vocabulary = cardVocabulary
+  @E.proto static styles = { card: cardCSS, ...E.ContentPart.styles }
+  @E.proto static Fallback = CardFallback
 
   /** Group, if any. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
 
   /** Nouns the slotted content already has (`header`, `extra` ...;  `image` for an `<img>`).  Tracked. */
-  readonly slotted = new Cell<ReadonlySet<string>>(isServer ? EMPTY : this.scan(), { equals: UICard.sameNouns })
+  readonly slotted = new E.Cell<ReadonlySet<string>>(isServer ? NOTHING_SLOTTED : this.scan(), {
+    equals: UICard.isSameNouns
+  })
 
   ////////////////
   // ## Derived state
   ////////////////
 
   /** The group's controller.  Tracked. */
-  readonly group = createMemo(
-    () => (this.context.owner.get()?.owner as UIHost | undefined)?.controller as UICards | undefined
-  )
+  readonly group = createMemo(() => this.context.ownerController<UICards>())
 
   /** Root element:  a link with `href`, else an article. */
-  readonly tag = createMemo(() => (this.attrs.href ? ANCHOR : ARTICLE))
+  readonly tag = createMemo(() => (this.attrs.href ? UIT.ANCHOR_TAG : ARTICLE))
 
   /** Some shorthand of the content block renders. */
-  readonly hasContent = createMemo(() => CONTENT_SHORTHANDS.some((noun) => this.shows(noun)))
+  readonly hasContent = createMemo(() => ContentShorthands.some((noun) => this.isShowing(noun)))
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     const { host } = this
     const { internals } = host
     // SIDE EFFECT:  a list item in a group;  busy / disabled for assistive tech
     this.hostEffect(
-      () => [this.group() ? UIT.LISTITEM : null, this.attrs.loading, this.attrs.disabled] as const,
-      ([role, loading, disabled]) => {
-        internals.role = role
-        internals.ariaBusy = loading ? UIT.TRUE : null
-        internals.ariaDisabled = disabled ? UIT.TRUE : null
+      () => [this.group() ? UIT.LISTITEM : undefined, this.attrs.loading, this.attrs.disabled] as const,
+      ([role, isLoading, isDisabled]) => {
+        internals.role = role ?? null
+        internals.ariaBusy = isLoading ? UIT.TRUE : null
+        internals.ariaDisabled = isDisabled ? UIT.TRUE : null
       }
     )
     if (isServer) return
@@ -94,7 +78,7 @@ export class UICard extends UIElement<Vocabulary> {
   }
 
   /** Does shorthand `noun` render:  set, and no slotted part of that noun?  Tracked. */
-  shows(noun: Shorthand): boolean {
+  isShowing(noun: Shorthand): boolean {
     return !!this.attrs[noun] && !this.slotted.get().has(noun)
   }
 
@@ -103,10 +87,10 @@ export class UICard extends UIElement<Vocabulary> {
   }
 
   /** A shared variation the card doesn't set comes from its group. */
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: E.AttributeName<typeof cardVocabulary>): unknown {
     const own = super.classValue(name)
-    if (own || !SHARED.has(name)) return own
-    return this.group()?.shared(name as UIT.CardSharedVariation)
+    if (own || !SHARED_VARIATIONS.has(name)) return own
+    return this.group()?.variationFor(name as UIT.CardSharedVariation)
   }
 
   protected hostStates() {
@@ -118,48 +102,48 @@ export class UICard extends UIElement<Vocabulary> {
   ////////////////
 
   render(): JSX.Element {
-    const link = () => this.tag() === ANCHOR
+    const isLink = () => this.tag() === UIT.ANCHOR_TAG
     return (
       <Dynamic
         component={this.tag()}
         class={this.classes()}
         part={this.part("card")}
-        href={link() && !this.attrs.disabled ? this.attrs.href : undefined}
-        target={link() ? this.attrs.target : undefined}
-        aria-disabled={link() && this.attrs.disabled ? UIT.TRUE : undefined}
+        href={isLink() && !this.attrs.disabled ? this.attrs.href : undefined}
+        target={isLink() ? this.attrs.target : undefined}
+        aria-disabled={isLink() && this.attrs.disabled ? UIT.TRUE : undefined}
       >
-        <Show when={this.shows(IMAGE)}>
-          <div class={IMAGE} part={this.part("image")}>
+        <Show when={this.isShowing(UIT.IMAGE)}>
+          <div class={UIT.IMAGE} part={this.part("image")}>
             <img src={this.attrs.image} alt={this.attrs.alt ?? ""} />
           </div>
         </Show>
         <Show when={this.hasContent()}>
           <div class={this.staticPart(UIT.CONTENT)} part={this.part("content")}>
-            <Show when={this.shows(UIT.HEADER)}>
+            <Show when={this.isShowing(UIT.HEADER)}>
               <div class={this.staticPart(UIT.HEADER)} part={this.part("header")}>
                 {this.attrs.header}
               </div>
             </Show>
-            <Show when={this.shows(META)}>
+            <Show when={this.isShowing(META)}>
               <div class={this.staticPart(META)} part={this.part("meta")}>
                 {this.attrs.meta}
               </div>
             </Show>
-            <Show when={this.shows(DESCRIPTION)}>
-              <div class={this.staticPart(DESCRIPTION)} part={this.part("description")}>
+            <Show when={this.isShowing(UIT.DESCRIPTION)}>
+              <div class={this.staticPart(UIT.DESCRIPTION)} part={this.part("description")}>
                 {this.attrs.description}
               </div>
             </Show>
           </div>
         </Show>
         <slot />
-        <Show when={this.shows(EXTRA)}>
+        <Show when={this.isShowing(EXTRA)}>
           <div class={this.staticPart(EXTRA)} part={this.part("extra")}>
             {this.attrs.extra}
           </div>
         </Show>
         <Show when={this.attrs.loading}>
-          <span class={VISUALLY_HIDDEN} role={STATUS}>
+          <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
             {this.text("loading")}
           </span>
         </Show>
@@ -175,16 +159,39 @@ export class UICard extends UIElement<Vocabulary> {
   /** Shorthand nouns the light DOM already has, read from the DOM now. */
   private scan(): ReadonlySet<string> {
     const nouns = new Set<string>()
-    for (const child of this.host.children) if (child.localName === UIT.IMG && !child.slot) nouns.add(IMAGE)
+    for (const child of this.host.children) if (child.localName === UIT.IMG && !child.slot) nouns.add(UIT.IMAGE)
     for (const element of this.host.querySelectorAll("*")) {
-      const noun = UIElement.definitions.get(element.localName)?.vocabulary.noun
-      if (noun && (SHORTHANDS as readonly string[]).includes(noun)) nouns.add(noun)
+      const noun = E.UIElement.definitions.get(element.localName)?.vocabulary.noun
+      if (noun && (Shorthands as readonly string[]).includes(noun)) nouns.add(noun)
     }
     return nouns
   }
 
-  /** Same nouns:  no update. */
-  private static sameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
+  /**
+   * Same nouns:  no update.
+   * - Static:  the `slotted` cell's `equals`, passed as a value.
+   */
+  private static isSameNouns(this: void, a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
     return a.size === b.size && [...a].every((noun) => b.has(noun))
   }
 }
+
+/** Every shorthand attribute, by the part noun it renders. */
+const Shorthands = [UIT.IMAGE, UIT.HEADER, META, UIT.DESCRIPTION, EXTRA] as const
+
+/** One of `Shorthands`. */
+type Shorthand = (typeof Shorthands)[number]
+
+/** Variations a card takes from its group (`UIT.CardSharedVariation`). */
+const SHARED_VARIATIONS: ReadonlySet<string> = new Set<UIT.CardSharedVariation>([
+  "size",
+  "color",
+  "horizontal",
+  "raised",
+  "link",
+  "basic",
+  "inverted"
+])
+
+/** Nothing slotted:  the server render's `slotted`. */
+const NOTHING_SLOTTED: ReadonlySet<string> = new Set()

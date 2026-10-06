@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-list>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-list relaxed="very" divided size="large">` => `ui large divided very relaxed list`.  `ui-list.css` keys on
  *   those words.
@@ -10,7 +10,7 @@
  *   and `content` / `header` / `description`, which `ui-parts.css` styles `:state(in-list)`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-list>`
@@ -83,4 +83,4 @@ export const listVocabulary = {
   ],
   texts: [],
   ownsParts: ["item", "list", "content", "header", "description"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -61,6 +61,12 @@
     --ui-inverted: 0;
     --_ui-flyout-header-color: var(--ui-flyout-header-color, var(--ui-text-dark));
     --_ui-flyout-actions-background: var(--ui-flyout-actions-background, var(--ui-surface-muted));
+    /* Panel of an `inverted` flyout. */
+    --_ui-flyout-inverted-background: var(--ui-flyout-inverted-background, oklch(0 0 0));
+    /* Text, header and close icon of an `inverted` flyout. */
+    --_ui-flyout-inverted-color: var(--ui-flyout-inverted-color, oklch(1 0 0));
+    /* Actions bar of an `inverted` flyout. */
+    --_ui-flyout-inverted-actions-background: var(--ui-flyout-inverted-actions-background, oklch(0.2 0 0));
     position: fixed;
     inset: 0 auto auto 0;
     z-index: var(--ui-z-modal);
@@ -363,14 +369,14 @@
   .ui.inverted.flyout {
     --ui-inverted: 1;
     --ui-scheme: dark;
-    --_ui-flyout-background: oklch(0 0 0);
-    --_ui-flyout-color: oklch(1 0 0);
-    --_ui-flyout-header-color: oklch(1 0 0);
-    --_ui-flyout-actions-background: oklch(0.2 0 0);
+    --_ui-flyout-background: var(--_ui-flyout-inverted-background);
+    --_ui-flyout-color: var(--_ui-flyout-inverted-color);
+    --_ui-flyout-header-color: var(--_ui-flyout-inverted-color);
+    --_ui-flyout-actions-background: var(--_ui-flyout-inverted-actions-background);
     color-scheme: dark;
   }
   .ui.inverted.flyout > .close {
-    color: oklch(1 0 0);
+    color: var(--_ui-flyout-inverted-color);
   }
 
   /* ## Blurring:  the page behind the dimmer is blurred and greyed. */

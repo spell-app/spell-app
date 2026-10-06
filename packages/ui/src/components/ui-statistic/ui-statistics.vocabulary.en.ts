@@ -41,7 +41,7 @@ export const statisticsVocabulary = {
     {
       name: "stack-with",
       kind: "enum",
-      values: UIT.STACK_WITH_VALUES,
+      values: UIT.StackWithValues,
       description:
         "What `stackable` measures:  `container` (the default) -- the group's own width;  `page` -- the " +
         "screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root " +

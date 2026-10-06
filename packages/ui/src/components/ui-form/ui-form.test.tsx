@@ -31,7 +31,7 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-form/examples/elem
 type Form = HTMLElement & {
   rules: FormRules | undefined
   values: FormValues
-  nativeForm: HTMLFormElement | null
+  nativeForm: HTMLFormElement | undefined
   validate(): boolean
   isValid(): boolean
   reset(): void
@@ -540,7 +540,7 @@ describe("<ui-form> validation", () => {
       <ui-field><label for="nf-a">A</label><ui-input id="nf-a" name="a"></ui-input></ui-field>
     </ui-form>`)
     host.rules = { a: "notEmpty" }
-    expect(host.nativeForm).toBeNull()
+    expect(host.nativeForm).toBeUndefined()
     expect(host.validate()).toBe(false)
     await ElementFixture.tick()
     expect(prompt(host.querySelector("ui-field")!)).toBe("A must have a value")

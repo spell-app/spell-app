@@ -1,6 +1,4 @@
-import type { CodeSpan } from "$/ui/core"
-
-import { HLJS_PREFIX } from "./ui-code.types"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `CodeLines`
@@ -10,43 +8,31 @@ import { HLJS_PREFIX } from "./ui-code.types"
  *   next line:  a multi-line comment stays coloured on every line.
  * - `fromSpans()` turns a highlighter of our own's spans (spell's) into the same HTML highlight.js makes.
  * - Input HTML is ONLY what these make or highlight.js makes:  escaped text and `<span class="...">`.
+ * - STATIC and instance-free:  pure functions over strings.
  ****************/
 export class CodeLines {
-  /** HTML escapes. */
-  private static readonly ESCAPES: Readonly<Record<string, string>> = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }
-
-  /** The tokens `split()` cares about:  span tags and newlines. */
-  private static readonly TOKENS = /(<span[^>]*>|<\/span>|\n)/
-
-  /** A span's opening and closing tags. */
-  private static readonly OPEN = "<span"
-  private static readonly CLOSE = "</span>"
-
   /** `text` safe as HTML text. */
   static escape(text: string): string {
-    return text.replace(/[&<>"']/g, (char) => CodeLines.ESCAPES[char]!)
+    return text.replace(/[&<>"']/g, (char) => ESCAPES[char]!)
   }
 
-  /** highlight.js's class for scope `kind`:  `keyword` => `hljs-keyword`, `title.function` => `hljs-title function_`. */
-  static className(kind: string): string {
+  /**
+   * highlight.js's class for scope `kind`.
+   * - `keyword` => `hljs-keyword`, `title.function` => `hljs-title function_`
+   */
+  static classNameFor(kind: string): string {
     const [first, ...rest] = kind.split(".")
     return [HLJS_PREFIX + first, ...rest.map((piece, index) => piece + "_".repeat(index + 1))].join(" ")
   }
 
   /** `code` as HTML, each span in `spans` (in order, not overlapping) coloured by its `kind`. */
-  static fromSpans(code: string, spans: readonly CodeSpan[]): string {
+  static fromSpans(code: string, spans: readonly E.CodeSpan[]): string {
     let html = ""
     let at = 0
     for (const { start, end, kind } of [...spans].sort((a, b) => a.start - b.start)) {
       if (start < at || end <= start) continue
       html += CodeLines.escape(code.slice(at, start))
-      html += `<span class="${CodeLines.className(kind)}">${CodeLines.escape(code.slice(start, end))}</span>`
+      html += `<span class="${CodeLines.classNameFor(kind)}">${CodeLines.escape(code.slice(start, end))}</span>`
       at = end
     }
     return html + CodeLines.escape(code.slice(at))
@@ -60,20 +46,44 @@ export class CodeLines {
     const lines: string[] = []
     const open: string[] = []
     let line = ""
-    for (const token of html.split(CodeLines.TOKENS)) {
+    for (const token of html.split(TOKENS)) {
       if (!token) continue
-      if (token === "\n") {
-        lines.push(line + CodeLines.CLOSE.repeat(open.length))
+      if (token === NEWLINE) {
+        lines.push(line + CLOSE.repeat(open.length))
         line = open.join("")
-      } else if (token === CodeLines.CLOSE) {
+      } else if (token === CLOSE) {
         open.pop()
         line += token
       } else {
-        if (token.startsWith(CodeLines.OPEN)) open.push(token)
+        if (token.startsWith(OPEN)) open.push(token)
         line += token
       }
     }
-    if (line !== open.join("") || !lines.length) lines.push(line + CodeLines.CLOSE.repeat(open.length))
+    if (line !== open.join("") || !lines.length) lines.push(line + CLOSE.repeat(open.length))
     return lines
   }
 }
+
+/** HTML escapes. */
+const ESCAPES: Readonly<Record<string, string>> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;"
+}
+
+/** The tokens `split()` cares about:  span tags and newlines. */
+const TOKENS = /(<span[^>]*>|<\/span>|\n)/
+
+/** Start of a span's opening tag. */
+const OPEN = "<span"
+
+/** A span's closing tag. */
+const CLOSE = "</span>"
+
+/** Where `split()` cuts. */
+const NEWLINE = "\n"
+
+/** highlight.js's class prefix:  `hljs-keyword`. */
+const HLJS_PREFIX = "hljs-"

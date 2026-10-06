@@ -1,15 +1,11 @@
-import type { UIT } from "$/ui/core"
-
-import { CalendarDates } from "./CalendarDates"
+import { UIT } from "$/ui/core"
 import {
-  BIG_PAGES,
-  COLUMNS,
-  CalendarCell,
-  CalendarPage,
-  CalendarWeekday,
-  Moment,
-  PAGES,
-  ViewInput
+  MINUTE_STEP,
+  type CalendarCell,
+  type CalendarPage,
+  type CalendarWeekday,
+  type Moment,
+  type ViewInput
 } from "./ui-calendar.types"
 
 /****************
@@ -23,6 +19,7 @@ import {
  *   and the hours / minutes of such a day), or as an adjacent-month day unless `selectAdjacentDays`.
  * - `today` marks the year / month / day holding today (not times);  `active` the value's unit;  `focus` the focus
  *   moment's unit -- the roving tab stop;  `range` a unit inside `range` (inclusive).
+ * - STATIC, instance-free on purpose:  a page is a pure function of its `ViewInput`, so there's nothing to hold.
  ****************/
 export class CalendarView {
   /** Build the page `input` describes. */
@@ -30,8 +27,7 @@ export class CalendarView {
     const { dates, mode, focus } = input
     const moments = CalendarView.moments(input)
     const columns = COLUMNS[mode]
-    const month = focus.month
-    const cells = moments.map((moment) => CalendarView.cell(input, moment, mode === "day" && moment.month !== month))
+    const cells = moments.map((moment) => CalendarView.cell(input, moment))
     const rows: CalendarCell[][] = []
     for (let at = 0; at < cells.length; at += columns) rows.push(cells.slice(at, at + columns))
     const [unit, span] = PAGES[mode]
@@ -62,31 +58,31 @@ export class CalendarView {
    *   first / last cell.  PageUp / PageDown:  a page;  with Shift, a bigger page (a year of days, a decade of
    *   months).
    */
-  static move(input: ViewInput, key: string, shift: boolean): Moment | undefined {
+  static move(input: ViewInput, { key, shiftKey }: Pick<KeyboardEvent, "key" | "shiftKey">): Moment | undefined {
     const { dates, mode, focus } = input
     const columns = COLUMNS[mode]
     switch (key) {
-      case "ArrowLeft":
+      case UIT.Key.arrowLeft:
         return dates.step(focus, mode, -1)
-      case "ArrowRight":
+      case UIT.Key.arrowRight:
         return dates.step(focus, mode, 1)
-      case "ArrowUp":
+      case UIT.Key.arrowUp:
         return dates.step(focus, mode, -columns)
-      case "ArrowDown":
+      case UIT.Key.arrowDown:
         return dates.step(focus, mode, columns)
-      case "Home":
-      case "End": {
+      case UIT.Key.home:
+      case UIT.Key.end: {
         if (mode === "day") {
           const offset = (focus.dayOfWeek - input.firstDayOfWeek + 7) % 7
-          return dates.step(focus, "day", key === "Home" ? -offset : 6 - offset)
+          return dates.step(focus, "day", key === UIT.Key.home ? -offset : 6 - offset)
         }
         const moments = CalendarView.moments(input)
-        return key === "Home" ? moments[0] : moments.at(-1)
+        return key === UIT.Key.home ? moments[0] : moments.at(-1)
       }
-      case "PageUp":
-      case "PageDown": {
-        const [unit, span] = shift ? BIG_PAGES[mode] : PAGES[mode]
-        return dates.step(focus, unit, key === "PageUp" ? -span : span)
+      case UIT.Key.pageUp:
+      case UIT.Key.pageDown: {
+        const [unit, span] = shiftKey ? BIG_PAGES[mode] : PAGES[mode]
+        return dates.step(focus, unit, key === UIT.Key.pageUp ? -span : span)
       }
     }
     return undefined
@@ -116,17 +112,16 @@ export class CalendarView {
       }
       default: {
         const start = dates.floor(focus, "hour")
-        return CalendarView.range(60 / CalendarDates.MINUTE_STEP, (index) =>
-          start.add({ minutes: index * CalendarDates.MINUTE_STEP })
-        )
+        return CalendarView.range(60 / MINUTE_STEP, (index) => start.add({ minutes: index * MINUTE_STEP }))
       }
     }
   }
 
   /** One cell. */
-  private static cell(input: ViewInput, moment: Moment, adjacent: boolean): CalendarCell {
+  private static cell(input: ViewInput, moment: Moment): CalendarCell {
     const { dates, mode, text } = input
-    const disabled = CalendarView.disabled(input, moment, adjacent)
+    const adjacent = CalendarView.isAdjacent(input, moment)
+    const disabled = CalendarView.isDisabled(input, moment)
     const range = input.range
     return {
       moment,
@@ -143,10 +138,15 @@ export class CalendarView {
     }
   }
 
+  /** A day of the previous / next month, on a page of days? */
+  private static isAdjacent(input: ViewInput, moment: Moment): boolean {
+    return input.mode === "day" && moment.month !== input.focus.month
+  }
+
   /** Can't be chosen?  See class docs. */
-  private static disabled(input: ViewInput, moment: Moment, adjacent: boolean): boolean {
+  private static isDisabled(input: ViewInput, moment: Moment): boolean {
     const { dates, mode } = input
-    if (adjacent && !input.selectAdjacentDays) return true
+    if (CalendarView.isAdjacent(input, moment) && !input.selectAdjacentDays) return true
     if (input.min && dates.compare(moment, input.min, mode) < 0) return true
     if (input.max && dates.compare(moment, input.max, mode) > 0) return true
     if (mode === "year" || mode === "month") return false
@@ -186,4 +186,25 @@ export class CalendarView {
   private static range<T>(count: number, make: (index: number) => T): T[] {
     return Array.from({ length: count }, (_, index) => make(index))
   }
+}
+
+/** Cells per row, per view. */
+const COLUMNS: Readonly<Record<UIT.CalendarMode, number>> = { year: 3, month: 3, day: 7, hour: 4, minute: 3 }
+
+/** A page's unit and size, per view:  what previous / next and PageUp / PageDown move by. */
+const PAGES: Readonly<Record<UIT.CalendarMode, readonly [UIT.CalendarMode, number]>> = {
+  year: ["year", 10],
+  month: ["year", 1],
+  day: ["month", 1],
+  hour: ["day", 1],
+  minute: ["day", 1]
+}
+
+/** Shift + PageUp / PageDown, per view. */
+const BIG_PAGES: Readonly<Record<UIT.CalendarMode, readonly [UIT.CalendarMode, number]>> = {
+  year: ["year", 100],
+  month: ["year", 10],
+  day: ["year", 1],
+  hour: ["month", 1],
+  minute: ["month", 1]
 }

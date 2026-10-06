@@ -1,20 +1,12 @@
 import { Show, createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, SourceElement, SourceError, SourceMarkup, Warnings } from "$/ui/core"
+import { E, type UIT } from "$/ui/core"
 import { RootLoader } from "$/ui/components/ui-root"
-
 import { includeVocabulary } from "./ui-include.vocabulary.en"
 import { IncludeFallback } from "./ui-include.fallback"
 import { UIIncludeHost } from "./UIIncludeHost"
-import {
-  BODY_CLOSE,
-  BODY_OPEN,
-  EAGER,
-  LOADING_CLASS,
-  type IncludeInsertDetail,
-  type Vocabulary
-} from "./ui-include.types"
+import type { IncludeInsertDetail, Vocabulary } from "./ui-include.types"
 
 import includeCSS from "./ui-include.css?inline"
 
@@ -38,16 +30,16 @@ import includeCSS from "./ui-include.css?inline"
  *   edited in place, the live markup spliced back into the file's `<body>` (byte-exact outside it).  With
  *   `select`, the matched element's markup alone, saved by its `id` (`fragment`).
  ****************/
-export class UIInclude extends SourceElement<Vocabulary> {
-  @proto static vocabulary = includeVocabulary
-  @proto static styles = { include: includeCSS }
-  @proto static Fallback = IncludeFallback
-  @proto static Host = UIIncludeHost
-  @proto static inlineContent = false
-  @proto static delegatesFocus = false
+export class UIInclude extends E.SourceElement<Vocabulary> {
+  @E.proto static vocabulary = includeVocabulary
+  @E.proto static styles = { include: includeCSS }
+  @E.proto static Fallback = IncludeFallback
+  @E.proto static Host = UIIncludeHost
+  @E.proto static inlineContent = false
+  @E.proto static delegatesFocus = false
 
   /** Markup is in place:  the placeholder slot goes (shadow mode). */
-  readonly inserted = new Cell(false)
+  readonly inserted = new E.Cell(false)
 
   /** The shadow box the markup goes in, once rendered. */
   private box?: HTMLElement
@@ -58,8 +50,10 @@ export class UIInclude extends SourceElement<Vocabulary> {
   /** The element `select` matched, in the live markup. */
   private selected?: Element
 
-  /** The text the live markup was built from, and the markup as first inserted:  is it edited since? */
+  /** The text the live markup was built from:  a new `content` rebuilds it. */
   private insertedFrom?: string
+
+  /** The markup as first inserted:  is it edited since? */
   private insertedMarkup?: string
 
   ////////////////
@@ -72,12 +66,12 @@ export class UIInclude extends SourceElement<Vocabulary> {
       createEffect(
         () => ({
           text: this.contentText(),
-          loaded: this.status.get() === "loaded",
+          isLoaded: this.status.get() === E.SourceStatus.loaded,
           select: this.attrs.select || undefined,
-          light: !!this.attrs.pageStyles
+          pageStyles: !!this.attrs.pageStyles
         }),
-        ({ text, loaded, select, light }) => {
-          if (loaded) this.insert(text, select, light)
+        ({ text, isLoaded, select, pageStyles }) => {
+          if (isLoaded) this.insert({ text, select, pageStyles })
         }
       )
     }
@@ -90,7 +84,7 @@ export class UIInclude extends SourceElement<Vocabulary> {
    */
   protected extraClasses(): string | undefined {
     const mode = this.attrs.load && this.attrs.load !== EAGER ? this.attrs.load : undefined
-    const loading = this.status.get() === "loading" ? LOADING_CLASS : undefined
+    const loading = this.status.get() === E.SourceStatus.loading ? LOADING_CLASS : undefined
     return [mode, loading].filter(Boolean).join(" ") || undefined
   }
 
@@ -120,11 +114,12 @@ export class UIInclude extends SourceElement<Vocabulary> {
 
   /**
    * Put `text`'s markup in place:  parsed, `select`ed, URLs rewritten;  then load the `ui-*` families it uses.
+   * - `pageStyles`:  into the host's light DOM, else the shadow box.
    * - SIDE EFFECT:  `ui-insert` first, with the fragment, while it's still out of the page.
    * - A selector that's invalid or matches nothing is a `render` failure.
    */
-  private insert(text: string, select: string | undefined, light: boolean) {
-    const target = light ? this.host : this.box
+  private insert({ text, select, pageStyles }: { text: string; select?: string; pageStyles: boolean }) {
+    const target = pageStyles ? this.host : this.box
     if (!target) return
     let markup: DocumentFragment
     try {
@@ -149,7 +144,7 @@ export class UIInclude extends SourceElement<Vocabulary> {
    * - Throws a `render` `SourceError` for a selector that's invalid or matches nothing.
    */
   private parse(text: string, select: string | undefined): DocumentFragment {
-    return SourceMarkup.parse(text, { page: this.host.ownerDocument, source: this.sourceAttribute(), select })
+    return E.SourceMarkup.parse(text, { page: this.host.ownerDocument, source: this.sourceAttribute(), select })
   }
 
   /** The live markup (or the `select`ed element's), with every rewritten URL back as written;  none before insert. */
@@ -158,7 +153,7 @@ export class UIInclude extends SourceElement<Vocabulary> {
     const holder = this.host.ownerDocument.createElement("template")
     const nodes = this.selected ? [this.selected] : [...this.root.childNodes]
     for (const node of nodes) holder.content.append(node.cloneNode(true))
-    SourceMarkup.restoreUrls(holder.content)
+    E.SourceMarkup.restoreUrls(holder.content)
     return holder.innerHTML
   }
 
@@ -183,7 +178,7 @@ export class UIInclude extends SourceElement<Vocabulary> {
     if (!this.attrs.select) return undefined
     const id = this.selected?.id
     if (!id) {
-      throw new SourceError(`UIInclude.save():  "${this.attrs.select}" matched an element with no id;  give it one`, {
+      throw new E.SourceError(`UIInclude.save():  "${this.attrs.select}" matched an element with no id;  give it one`, {
         cause: { kind: "save" }
       })
     }
@@ -192,23 +187,30 @@ export class UIInclude extends SourceElement<Vocabulary> {
 
   /** A cycle (inside an include of the same file) or nesting deeper than `MAX_DEPTH`. */
   protected checkSource(source: string) {
-    SourceMarkup.checkNesting(this.host, source, (node) => node.localName === this.host.localName)
+    E.SourceMarkup.checkNesting(this.host, source, (node) => node.localName === this.host.localName)
   }
 
   ////////////////
   // ## Helpers
   ////////////////
 
-  /** Load the family of every undefined `ui-*` tag under `root`, as `<ui-root>` would. */
+  /**
+   * Load the family of every undefined `ui-*` tag under `root`, as `<ui-root>` would.
+   * - STATIC:  needs nothing of the include, only `root`.
+   * - NEVER throws:  a family that fails to load is a warning.
+   */
   private static loadFamilies(root: ParentNode) {
     for (const tag of RootLoader.undefinedTags(root)) {
       const folder = RootLoader.folderOf(tag)
-      if (folder)
-        RootLoader.load(folder).catch((error: unknown) => Warnings.warn("<ui-include>", `<${tag}> didn't load:`, error))
+      if (!folder) continue
+      RootLoader.load(folder).catch((error: unknown) => E.Warnings.warn("<ui-include>", `<${tag}> didn't load:`, error))
     }
   }
 
-  /** `file` with its `<body>` content replaced by `body`;  `body` alone when `file` has no `<body>` tags. */
+  /**
+   * `file` with its `<body>` content replaced by `body`;  `body` alone when `file` has no `<body>` tags.
+   * - STATIC:  pure text work, so tests call it without an element.
+   */
   static spliceBody(file: string, body: string): string {
     const open = BODY_OPEN.exec(file)
     const close = BODY_CLOSE.exec(file)
@@ -216,3 +218,15 @@ export class UIInclude extends SourceElement<Vocabulary> {
     return file.slice(0, open.index + open[0].length) + body + file.slice(close.index)
   }
 }
+
+/** The default `load` mode:  no class word. */
+const EAGER: UIT.SourceLoadMode = "eager"
+
+/** Class word after the noun while `source` loads. */
+const LOADING_CLASS = "loading"
+
+/** The `<body ...>` opening tag of a page, for splicing a saved body back into its file. */
+const BODY_OPEN = /<body\b[^>]*>/i
+
+/** The `</body>` closing tag of a page, as `BODY_OPEN`. */
+const BODY_CLOSE = /<\/body\s*>/i

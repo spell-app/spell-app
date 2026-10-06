@@ -1,5 +1,5 @@
-import { proto, UIT, Warnings } from "$/ui/core"
-import { EmbedSourceSpec, EmbedUrlOptions, ID, SAFE_PROTOCOLS } from "./ui-embed.types"
+import { E, type UIT } from "$/ui/core"
+import type { EmbedSourceSpec, EmbedUrlOptions } from "./ui-embed.types"
 
 /****************
  * ### `EmbedSources`
@@ -12,11 +12,12 @@ import { EmbedSourceSpec, EmbedUrlOptions, ID, SAFE_PROTOCOLS } from "./ui-embed
  * - Only `http:` / `https:` URLs come out:  anything else (`javascript:`, `data:`) is refused with a dev warning, so a
  *   page can't be made to run script through an embed's `url`.
  * - YouTube plays from `youtube-nocookie.com` (its privacy-enhanced mode);  Fomantic used `youtube.com`.
+ * - STATIC, instance-free on purpose:  the element and its native fallback share it, and neither holds one.
  ****************/
 export class EmbedSources {
   /** Known sources:  where their player lives, how a domain is recognised, their parameters. */
   declare sources: Readonly<Record<UIT.EmbedSource, EmbedSourceSpec>>
-  @proto static sources: Readonly<Record<UIT.EmbedSource, EmbedSourceSpec>> = {
+  @E.proto static sources: Readonly<Record<UIT.EmbedSource, EmbedSourceSpec>> = {
     youtube: {
       domains: ["youtube.com", "youtu.be", "youtube-nocookie.com"],
       url: "https://www.youtube-nocookie.com/embed/{id}",
@@ -39,9 +40,12 @@ export class EmbedSources {
     }
   }
 
-  /** The frame URL for `options`, or `undefined` when there's nothing (safe) to load. */
+  /**
+   * The frame URL for `options`, or `undefined` when there's nothing (safe) to load.
+   * - NEVER throws:  a bad or unsafe URL is a dev warning and `undefined`.
+   */
   static resolve(options: EmbedUrlOptions): string | undefined {
-    const source = options.source ?? EmbedSources.sourceOf(options.url)
+    const source = options.source ?? EmbedSources.sourceFor(options.url)
     const spec = source ? EmbedSources.sources[source] : undefined
     const base = options.url || (spec && options.id ? spec.url.replace(ID, encodeURIComponent(options.id)) : "")
     if (!base) return undefined
@@ -49,11 +53,11 @@ export class EmbedSources {
     try {
       url = new URL(base, globalThis.location?.href)
     } catch {
-      Warnings.devWarn("<ui-embed>", `"${base}" is not a URL`)
+      E.Warnings.devWarn("<ui-embed>", `"${base}" is not a URL`)
       return undefined
     }
     if (!SAFE_PROTOCOLS.includes(url.protocol)) {
-      Warnings.devWarn("<ui-embed>", `refusing a ${url.protocol} URL;  only http(s) embeds load`)
+      E.Warnings.devWarn("<ui-embed>", `refusing a ${url.protocol} URL;  only http(s) embeds load`)
       return undefined
     }
     const parameters = {
@@ -68,7 +72,7 @@ export class EmbedSources {
   }
 
   /** The known source whose domain `url` is on, if any. */
-  static sourceOf(url: string | undefined): UIT.EmbedSource | undefined {
+  static sourceFor(url: string | undefined): UIT.EmbedSource | undefined {
     if (!url) return undefined
     let host: string
     try {
@@ -82,3 +86,9 @@ export class EmbedSources {
     return undefined
   }
 }
+
+/** Placeholder of the id in a source's URL. */
+const ID = "{id}"
+
+/** Protocols an embed may load. */
+const SAFE_PROTOCOLS = ["http:", "https:"]

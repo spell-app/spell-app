@@ -32,7 +32,7 @@ export class UIReveal extends UIElement<typeof revealVocabulary> {
   readonly hasFocusable = new Cell(false)
 
   /** Host `aria-label`, forwarded to the root while it is the tab stop. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute({ host: this.host, name: ARIA_LABEL })
 
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)

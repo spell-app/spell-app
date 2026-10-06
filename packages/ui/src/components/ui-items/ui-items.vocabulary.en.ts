@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-items>` uses:  tag, attributes (kind + allowed values), slots, parts, states.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-items divided relaxed="very" link>` => `ui divided link very relaxed items`.  `ui-items.css` keys on those.
  * - Fomantic's Items VIEW, with the SAME generic `<ui-item>` as dropdown, list and menu (`ownsParts:  item`) --
@@ -8,8 +8,8 @@
  *   (`ItemContext.ownsParts`), so they style themselves `:state(in-item)`.
  */
 
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-items>`
@@ -53,7 +53,7 @@ export const itemsVocabulary = {
     {
       name: "stack-with",
       kind: "enum",
-      values: UIT.STACK_WITH_VALUES,
+      values: UIT.StackWithValues,
       description:
         "What stacking and the tablet image width measure:  `container` (the default) -- the group's own " +
         "width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token " +
@@ -73,4 +73,4 @@ export const itemsVocabulary = {
   ],
   texts: [],
   ownsParts: ["item"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

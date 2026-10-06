@@ -1,13 +1,12 @@
 import { createEffect, createMemo, onCleanup, untrack, type Accessor } from "solid-js"
 import { onConnect, onDisconnect, onFormAssociated } from "@spell-app/solid-element"
 
-import { Cell, proto, type AttributeName, type ValidationResult, UIT } from "$/ui/core"
-import { FormElement } from "$/ui/forms"
-
+import { E, UIT } from "$/ui/core"
+import { F } from "$/ui/forms"
 import { radioVocabulary } from "./ui-radio.vocabulary.en"
 import { CheckControl } from "./CheckControl"
 import { RadioGroup } from "./RadioGroup"
-import { NAME, NEXT, PREVIOUS, RADIO, RadioMember } from "./ui-checkbox.types"
+import { RADIO, type RadioMember } from "./ui-checkbox.types"
 
 /****************
  * ### `<ui-radio>`
@@ -20,7 +19,7 @@ import { NAME, NEXT, PREVIOUS, RADIO, RadioMember } from "./ui-checkbox.types"
  * - `required` on any member requires a choice in the group:  every member reports `valueMissing`.
  ****************/
 export class UIRadio extends CheckControl<typeof radioVocabulary> implements RadioMember {
-  @proto static vocabulary = radioVocabulary
+  @E.proto static vocabulary = radioVocabulary
 
   readonly checkable = RADIO
 
@@ -36,15 +35,15 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
    * - Then written ONLY by `joinGroup()`, together with the membership, so readers never see one without the other.
    * - `ownedWrite`:  `joinGroup()` runs from the fork's hooks, possibly inside a Solid render.
    */
-  readonly group = new Cell<RadioGroup | undefined>(this.joined, { ownedWrite: true })
+  readonly group = new E.Cell<RadioGroup | undefined>(this.joined, { ownedWrite: true })
 
   /** Group-wide validation:  a choice required by any member. */
-  override readonly validation: Accessor<ValidationResult> = createMemo(
+  override readonly validation: Accessor<E.ValidationResult> = createMemo(
     () => {
       const group = this.group.get()
       const required = group ? group.isRequired() : this.attrs.required
       const chosen = group ? group.selected()?.choiceValue() : this.isSelected() ? this.choiceValue() : undefined
-      return FormElement.validator.validate(chosen ?? "", required ? [UIT.REQUIRED_RULE] : [], {
+      return F.FormElement.validator.validate(chosen ?? "", required ? [UIT.REQUIRED_RULE] : [], {
         label: this.validationLabel()
       })
     },
@@ -67,15 +66,16 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
     onCleanup(() => this.joined?.leave(this))
   }
 
+  /** Makes its group required?  Tracked. */
   isRequired(): boolean {
     return this.attrs.required
   }
 
-  protected inputType() {
-    return RADIO as typeof RADIO
+  protected inputType(): typeof RADIO {
+    return RADIO
   }
 
-  protected classValue(name: AttributeName<typeof radioVocabulary>): unknown {
+  protected classValue(name: E.AttributeName<typeof radioVocabulary>): unknown {
     if (name === "type") return this.attrs.type ?? RADIO
     return super.classValue(name)
   }
@@ -136,3 +136,12 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
     target.choose(true, event)
   }
 }
+
+/** The `name` prop's key, as the fork's change callback reports it. */
+const NAME: E.AttributeName<typeof radioVocabulary> = "name"
+
+/** Keys that move to the next radio. */
+const NEXT = new Set<string>([UIT.Key.arrowDown, UIT.Key.arrowRight])
+
+/** Keys that move to the previous radio. */
+const PREVIOUS = new Set<string>([UIT.Key.arrowUp, UIT.Key.arrowLeft])

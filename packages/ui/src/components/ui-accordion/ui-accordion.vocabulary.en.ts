@@ -1,6 +1,8 @@
 /**
  * Every name `<ui-accordion>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only, `UIT` by value
+ *   straight from `components.types`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-accordion styled compact="very" inverted>` => `ui inverted styled very compact accordion`.
  *   `ui-accordion.css` keys on those words.
@@ -17,7 +19,7 @@
  *   look, as Fomantic's `.ui.accordion .accordion` does.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
 
 /****************
@@ -36,7 +38,7 @@ export const accordionVocabulary = {
     ]
   },
   noun: "accordion",
-  description: "An accordion allows users to toggle the display of sections of content.",
+  description: "An accordion lets people show and hide sections of content.",
   attributes: [
     { name: "styled", kind: "keyOnly", description: "A boxed accordion:  bordered, bold titles, padded content." },
     { name: "fluid", kind: "keyOnly", description: "Takes the full width of its container." },
@@ -76,7 +78,7 @@ export const accordionVocabulary = {
       kind: "string",
       description:
         'Indexes of the open panels (0-based), space-separated:  `open="0"`, `open="0 2"`.  Controlled:  set it to ' +
-        "open / close panels;  `ui-open` / `ui-close` can veto the user's changes.  When `exclusive`, only the " +
+        "open / close panels;  `ui-open` / `ui-close` can veto people's changes.  When `exclusive`, only the " +
         "first index counts."
     },
     ...UIT.SOURCE_BODY_ATTRIBUTES
@@ -125,4 +127,4 @@ export const accordionVocabulary = {
   ],
   texts: [...UIT.SOURCE_FAILURE_TEXTS],
   ownsParts: ["accordion"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

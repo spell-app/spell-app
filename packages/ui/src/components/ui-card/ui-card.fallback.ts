@@ -1,8 +1,7 @@
-import { NativeFallback, proto, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { cardVocabulary } from "./ui-card.vocabulary.en"
 import { cardsVocabulary } from "./ui-cards.vocabulary.en"
-import { CONTENT_NOUNS, FallbackVocabulary, IMAGE } from "./ui-card.types"
+import { ARTICLE, ContentShorthands, EXTRA } from "./ui-card.types"
 
 /****************
  * ### `CardFallback`
@@ -13,9 +12,9 @@ import { CONTENT_NOUNS, FallbackVocabulary, IMAGE } from "./ui-card.types"
  *   holding the `image`, content (`header`, `meta`, `description`) and `extra` shorthands as static parts around
  *   the slot, as the element renders them;  `role=listitem` on the host inside a `<ui-cards>` parent.
  ****************/
-export class CardFallback extends NativeFallback<FallbackVocabulary> {
-  @proto static vocabularies = [cardVocabulary, cardsVocabulary]
-  @proto static degraded = [
+export class CardFallback extends E.NativeFallback<FallbackVocabulary> {
+  @E.proto static vocabularies = [cardVocabulary, cardsVocabulary]
+  @E.proto static degraded = [
     "the group's variations on its cards (`raised cards` doesn't raise a card) and `:state(in-cards)` spacing",
     "a group through translated or slotted parents (only a direct `<ui-cards>` parent counts)",
     "shorthands yielding to slotted parts;  `aria-busy`, the loading announcement"
@@ -26,25 +25,29 @@ export class CardFallback extends NativeFallback<FallbackVocabulary> {
       return [this.decorate(this.create("div", { class: this.classes(), role: UIT.LIST }, this.slot()), "group")]
     }
     if (this.internals && this.host.parentElement?.localName === cardsVocabulary.tag) this.internals.role = UIT.LISTITEM
+    // `attr()` is `getAttribute()`:  `null` when absent
     const href = this.attr("href")
-    const disabled = this.flag("disabled")
+    const isDisabled = this.flag("disabled")
     const card =
       href === null
-        ? this.create("article", { class: this.classes() })
-        : this.create("a", {
+        ? this.create(ARTICLE, { class: this.classes() })
+        : this.create(UIT.ANCHOR_TAG, {
             class: this.classes(),
-            href: disabled ? null : href,
+            href: isDisabled ? undefined : href,
             target: this.attr("target"),
-            "aria-disabled": disabled ? UIT.TRUE : null
+            "aria-disabled": isDisabled ? UIT.TRUE : undefined
           })
     const image = this.attr("image")
-    if (image)
-      card.append(this.create("div", { class: IMAGE }, this.create("img", { src: image, alt: this.attr("alt") ?? "" })))
-    const blocks = CONTENT_NOUNS.filter((noun) => this.attr(noun)).map((noun) => this.part(noun, this.attr(noun)!))
+    if (image) {
+      card.append(
+        this.create("div", { class: UIT.IMAGE }, this.create("img", { src: image, alt: this.attr("alt") ?? "" }))
+      )
+    }
+    const blocks = ContentShorthands.filter((noun) => this.attr(noun)).map((noun) => this.part(noun, this.attr(noun)!))
     if (blocks.length) card.append(this.create("div", { class: this.staticClass(UIT.CONTENT) }, ...blocks))
     card.append(this.slot())
-    const extra = this.attr("extra")
-    if (extra) card.append(this.part("extra", extra))
+    const extra = this.attr(EXTRA)
+    if (extra) card.append(this.part(EXTRA, extra))
     return [this.decorate(card, "card")]
   }
 
@@ -58,3 +61,6 @@ export class CardFallback extends NativeFallback<FallbackVocabulary> {
     return `${noun} ${UIT.PART_STATIC_CLASS_PREFIX}${cardVocabulary.noun}`
   }
 }
+
+/** Either vocabulary:  the fallback serves both tags. */
+type FallbackVocabulary = typeof cardVocabulary | typeof cardsVocabulary

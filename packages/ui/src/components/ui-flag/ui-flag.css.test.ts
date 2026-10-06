@@ -5,7 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
-import { flagAliases, flagEmoji } from "./ui-flag.types"
+import { UIT } from "$/ui/core"
+import { FLAG_ALIASES } from "./ui-flag.types"
 import { flagVocabulary } from "./ui-flag.vocabulary.en"
 
 import flagCSS from "./ui-flag.css?inline"
@@ -114,13 +115,13 @@ describe("ui-flag.css in shadow roots", () => {
 })
 
 describe("flag vocabulary data", () => {
-  it("normalizes every alias and maps it to a two-letter code or a flagEmoji key", () => {
-    const aliases: Readonly<Record<string, string>> = flagAliases
+  it("normalizes every alias and maps it to a two-letter code or a SPECIAL_FLAGS key", () => {
+    const aliases: Readonly<Record<string, string>> = FLAG_ALIASES
     expect(Object.keys(aliases).length).toBeGreaterThan(250)
     for (const [name, code] of Object.entries(aliases)) {
       expect(name, name).toBe(name.trim().toLowerCase().replaceAll("_", " ").replace(/\s+/g, " "))
       expect(name).not.toBe(code)
-      expect(/^[a-z]{2}$/.test(code) || code in flagEmoji, `${name} => ${code}`).toBe(true)
+      expect(/^[a-z]{2}$/.test(code) || code in UIT.SPECIAL_FLAGS, `${name} => ${code}`).toBe(true)
     }
     expect(aliases["united states"]).toBe("us")
     expect(aliases.america).toBe("us")
@@ -131,9 +132,9 @@ describe("flag vocabulary data", () => {
 
   it("names every two-letter code through Intl.DisplayNames", () => {
     const names = new Intl.DisplayNames(["en"], { type: "region" })
-    const codes = new Set(Object.values(flagAliases as Readonly<Record<string, string>>))
+    const codes = new Set(Object.values(FLAG_ALIASES as Readonly<Record<string, string>>))
     for (const code of codes) {
-      if (code in flagEmoji) continue
+      if (code in UIT.SPECIAL_FLAGS) continue
       const name = names.of(code.toUpperCase())
       expect(name, code).toBeTruthy()
       expect(name, code).not.toBe(code.toUpperCase())
@@ -143,7 +144,7 @@ describe("flag vocabulary data", () => {
   it("labels every non-country flag through the vocabulary's texts, and the examples use them", () => {
     const keys = new Set<string>(flagVocabulary.texts.map((text) => text.key))
     const types = EXAMPLES["./examples/types.html"]!
-    for (const [code, emoji] of Object.entries(flagEmoji)) {
+    for (const [code, emoji] of Object.entries(UIT.SPECIAL_FLAGS)) {
       expect(keys.has(code.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase())), code).toBe(true)
       expect(types, code).toContain(emoji)
     }

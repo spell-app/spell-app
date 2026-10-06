@@ -39,7 +39,7 @@ export class UISteps extends UIElement<typeof stepsVocabulary> {
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
   protected extraClasses(): string | undefined {
-    return UIT.StackClasses.of(this.attrs.stackWith)
+    return UIT.StackClasses.classFor(this.attrs.stackWith)
   }
 
   render(): JSX.Element {

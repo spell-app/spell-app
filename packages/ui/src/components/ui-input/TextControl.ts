@@ -1,21 +1,9 @@
 import { createEffect, createMemo, untrack, type Accessor } from "solid-js"
 import { isServer } from "@solidjs/web"
 
-import {
-  Cell,
-  HostAttribute,
-  type AttributeName,
-  type ComponentVocabulary,
-  type FieldValue,
-  type StateName,
-  type ValidationError,
-  type ValidationResult,
-  type ValidationRule,
-  type ValidityFlag,
-  UIT
-} from "$/ui/core"
-import { ControlLabels, FormElement } from "$/ui/forms"
-import { NATIVE_FLAGS, VALID, FILE_TYPE, type CommonAttributes } from "./ui-input.types"
+import { E, UIT } from "$/ui/core"
+import { F } from "$/ui/forms"
+import { FILE, type CommonAttributes } from "./ui-input.types"
 
 /****************
  * ### `TextControl`
@@ -27,27 +15,27 @@ import { NATIVE_FLAGS, VALID, FILE_TYPE, type CommonAttributes } from "./ui-inpu
  * - Validity:  the NATIVE control's constraint validation (`required`, `pattern`, `type="email"` ...) merged with
  *   Fomantic `rules` through `Validator`, into the host's `setValidity()` -- native flags and message first.
  *   The native side is re-read after the DOM updates (an effect's apply) and after each input event.
- * - `:state(invalid)` only once the user has interacted:  a committed change, leaving an edited field, or a
- *   submit / `reportValidity()` that found it invalid (`invalid` event) -- `:user-invalid` semantics.  Reset
- *   clears it.
+ * - `:state(invalid)` only once the person has interacted (`isTouched`):  a committed change, leaving an edited
+ *   field, or a submit / `reportValidity()` that found it invalid (`invalid` event) -- `:user-invalid` semantics.
+ *   Reset clears it.
  * - Name:  `ControlLabels` hands the host's `<label for>` / `aria-label` to the control as its `aria-label`.
  * - Host `aria-invalid` (a `<ui-form>` marks failing fields) is forwarded to the control.
  ****************/
-export abstract class TextControl<V extends ComponentVocabulary = ComponentVocabulary> extends FormElement<V> {
+export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends F.FormElement<V> {
   /** `value`:  host-controlled, or internal (`""`). */
-  readonly valueState = this.controlled("value" as AttributeName<V>, "" as never)
+  readonly valueState = this.controlled("value" as E.AttributeName<V>, "" as never)
 
-  /** User has interacted (see the class doc). */
-  readonly touched = new Cell(false)
+  /** The person has interacted (see the class doc). */
+  readonly isTouched = new E.Cell(false)
 
   /** The native control's own constraint validation, re-read after updates. */
-  readonly nativeValidity = new Cell<ValidationResult>(VALID)
+  readonly nativeValidity = new E.Cell<E.ValidationResult>(VALID)
 
   /** Host `<label>`s and `aria-label`, as the control's name. */
-  readonly labels = new ControlLabels(this.formHost)
+  readonly labels = new F.ControlLabels(this.formHost)
 
   /** Host `aria-invalid`, forwarded. */
-  readonly ariaInvalid = new HostAttribute(this.host, UIT.ARIA_INVALID)
+  readonly ariaInvalid = new E.HostAttribute({ host: this.host, name: UIT.ARIA_INVALID })
 
   /** The native control. */
   protected control?: HTMLInputElement | HTMLTextAreaElement
@@ -59,9 +47,9 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
    * Native validity merged with the `rules` property's, see the class doc.
    * - `lazy`:  reads subclass hooks.
    */
-  override readonly validation: Accessor<ValidationResult> = createMemo(
+  override readonly validation: Accessor<E.ValidationResult> = createMemo(
     () => {
-      const own = FormElement.validator.validate(this.formValue(), this.rules(), {
+      const own = F.FormElement.validator.validate(this.formValue(), this.rules(), {
         label: this.validationLabel(),
         name: this.common.name
       })
@@ -77,7 +65,7 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
     { lazy: true }
   )
 
-  constructor(...args: ConstructorParameters<typeof FormElement>) {
+  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
     super(...args)
     this.host.addEventListener("invalid", this.onInvalid)
     this.host.addEventListener("click", this.onHostClick)
@@ -101,21 +89,26 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
     return this.common.disabled || this.formDisabled.get()
   }
 
-  protected hostStates(): Partial<Record<StateName<V>, boolean>> {
+  protected hostStates(): Partial<Record<E.StateName<V>, boolean>> {
     const states = { disabled: this.isDisabled(), fluid: this.common.fluid, loading: !!this.common.loading }
-    return states as Partial<Record<StateName<V>, boolean>>
+    return states as Partial<Record<E.StateName<V>, boolean>>
   }
 
-  protected classValue(name: AttributeName<V>): unknown {
+  protected classValue(name: E.AttributeName<V>): unknown {
     if (name === "disabled") return this.isDisabled()
     return super.classValue(name)
+  }
+
+  /** Focus the native control. */
+  focus(options?: FocusOptions) {
+    this.control?.focus(options)
   }
 
   ////////////////
   // ## Form
   ////////////////
 
-  formValue(): FieldValue {
+  formValue(): E.FieldValue {
     return this.value()
   }
 
@@ -127,14 +120,14 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
   formReset() {
     const attribute = this.definition.attribute("value").attribute
     this.valueState.set((this.host.getAttribute(attribute) ?? "") as never)
-    this.touched.set(false)
+    this.isTouched.set(false)
   }
 
   /** The `rules` property:  one rule, a list, or nothing. */
-  protected rules(): ValidationRule[] {
+  protected rules(): E.ValidationRule[] {
     const rules = this.common.rules
     if (rules == null || rules === "") return []
-    return (Array.isArray(rules) ? rules : [rules]) as ValidationRule[]
+    return (Array.isArray(rules) ? rules : [rules]) as E.ValidationRule[]
   }
 
   protected validationLabel(): string | undefined {
@@ -145,8 +138,8 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
     return this.control
   }
 
-  protected showsInvalid(result: ValidationResult): boolean {
-    return !result.valid && this.touched.get()
+  protected showsInvalid(result: E.ValidationResult): boolean {
+    return !result.valid && this.isTouched.get()
   }
 
   ////////////////
@@ -186,7 +179,7 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
     return {
       "aria-label": this.labels.name(),
       "aria-invalid":
-        this.ariaInvalid.get() === "true" || (this.touched.get() && !this.validation().valid) ? "true" : undefined
+        this.ariaInvalid.get() === UIT.TRUE || (this.isTouched.get() && !this.validation().valid) ? UIT.TRUE : undefined
     } as const
   }
 
@@ -212,13 +205,22 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
       return
     }
     const message = control.validationMessage
-    const errors: ValidationError[] = Object.keys(flags).map((flag) => ({
+    const errors: E.ValidationError[] = Object.keys(flags).map((flag) => ({
       type: flag,
       ruleValue: undefined,
       message,
-      flag: flag as ValidityFlag
+      flag: flag as E.ValidityFlag
     }))
     this.nativeValidity.set({ valid: false, errors, flags, message })
+  }
+
+  /** The control shows the host's value again, e.g. after a vetoed `ui-input`. */
+  protected syncControl() {
+    const { control } = this
+    const value = untrack(() => this.value())
+    // a file input's value can only be cleared from script
+    if (!control || control.value === value || (control.type === FILE && value !== "")) return
+    control.value = value
   }
 
   ////////////////
@@ -236,9 +238,9 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
     this.readNativeValidity()
   }
 
-  /** Commit:  `ui-change`;  the user has now interacted. */
+  /** Commit:  `ui-change`;  the person has now interacted. */
   protected readonly onChange = (event: Event) => {
-    this.touched.set(true)
+    this.isTouched.set(true)
     this.emit("ui-change" as never, { value: untrack(() => this.value()), originalEvent: event })
   }
 
@@ -249,22 +251,13 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
 
   /** Leaving an edited field counts as interaction. */
   protected readonly onBlur = () => {
-    if (this.focusValue !== undefined && this.focusValue !== untrack(() => this.value())) this.touched.set(true)
+    if (this.focusValue !== undefined && this.focusValue !== untrack(() => this.value())) this.isTouched.set(true)
     this.focusValue = undefined
-  }
-
-  /** The control shows the host's value again, e.g. after a vetoed `ui-input`. */
-  protected syncControl() {
-    const { control } = this
-    const value = untrack(() => this.value())
-    // a file input's value can only be cleared from script
-    if (!control || control.value === value || (control.type === FILE_TYPE && value !== "")) return
-    control.value = value
   }
 
   /** A submit or `reportValidity()` found it invalid:  show it. */
   private readonly onInvalid = () => {
-    this.touched.set(true)
+    this.isTouched.set(true)
   }
 
   /**
@@ -275,9 +268,20 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
     if (event.composedPath()[0] !== this.host || this.isDisabled()) return
     this.control?.focus()
   }
-
-  /** Focus the native control. */
-  focus(options?: FocusOptions) {
-    this.control?.focus(options)
-  }
 }
+
+/** Every Constraint Validation flag the native control may raise (not `customError`:  the host never sets one). */
+const NATIVE_FLAGS: readonly (keyof ValidityStateFlags)[] = [
+  "valueMissing",
+  "typeMismatch",
+  "patternMismatch",
+  "tooLong",
+  "tooShort",
+  "rangeUnderflow",
+  "rangeOverflow",
+  "stepMismatch",
+  "badInput"
+]
+
+/** A passing result. */
+const VALID: E.ValidationResult = { valid: true, errors: [], flags: {}, message: "" }

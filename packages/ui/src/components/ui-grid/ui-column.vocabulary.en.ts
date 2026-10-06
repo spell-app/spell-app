@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-grid>`, `<ui-row>` and `<ui-column>` use:  tags, attributes (kind + allowed values), slots,
- * parts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * parts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-grid columns="3" divided="vertically" stackable>` => `ui stackable vertically divided three column grid`,
  *   `<ui-column width="4" width-mobile="16">` => `ui four wide sixteen wide mobile column`.
@@ -10,8 +10,8 @@
  *   inherited tokens (`--_grid-*`), see `ui-grid.css`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
-import { ONLY_DEVICES } from "./ui-grid.types"
+import type { E } from "$/ui/core"
+import { OnlyDevices } from "./ui-grid.types"
 
 /****************
  * ### `<ui-column>`
@@ -83,7 +83,7 @@ export const columnVocabulary = {
     {
       name: "only",
       kind: "multiple",
-      values: ONLY_DEVICES,
+      values: OnlyDevices,
       description: "Shown only on these devices (by the viewport)."
     },
     {
@@ -104,4 +104,4 @@ export const columnVocabulary = {
   parts: [{ name: "column", description: "The column box (a flex item)." }],
   states: [],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

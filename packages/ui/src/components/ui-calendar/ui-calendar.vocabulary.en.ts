@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-calendar>` uses:  tag, attributes (kind + allowed values), events, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-calendar size="small" inverted>` =>
  *   `ui small inverted calendar`.  `ui-calendar.css` keys on those words.
  * - Values are ISO strings by `type` (`2026-09-30`, `14:30`, `2026-09-30T14:30`, `2026-09`, `2026`), as the native
@@ -9,7 +9,7 @@
  * - NOTE: text keys are prefixed (`calendarToday`):  every family's texts share one `UI.i18n` key space.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-calendar>`
@@ -21,7 +21,7 @@ export const calendarVocabulary = {
   aka: ["date picker", "datepicker", "time picker", "datetime", "date range"],
   skeleton: { display: "inline", width: "14em", height: "2.5em" },
   noun: "calendar",
-  description: "A calendar lets a user pick a date, a time, or both.",
+  description: "A calendar lets a person pick a date, a time, or both.",
   attributes: [
     { name: "size", kind: "size", description: "Size, `mini` ... `massive`;  `medium` is the default." },
     {
@@ -133,7 +133,7 @@ export const calendarVocabulary = {
       name: "ui-change",
       detail: "{ value: string, originalEvent?: Event }",
       cancelable: true,
-      description: "The user chose, typed or cleared a value;  `preventDefault()` keeps the old one."
+      description: "The person chose, typed or cleared a value;  `preventDefault()` keeps the old one."
     },
     {
       name: "ui-open",
@@ -186,4 +186,4 @@ export const calendarVocabulary = {
     { key: "calendarHours", text: "Hours", description: "Name of a `time` calendar's hour grid (no title)." },
     { key: "calendarMinutes", text: "Minutes", description: "Name of a `time` calendar's minute grid (no title)." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

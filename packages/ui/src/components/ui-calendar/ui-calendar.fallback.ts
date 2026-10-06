@@ -1,7 +1,6 @@
-import { NativeFallback, proto, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { calendarVocabulary } from "./ui-calendar.vocabulary.en"
-import { CalendarHost, NATIVE_TYPES } from "./ui-calendar.types"
+import { DEFAULT_TYPE, type CalendarHost, type Vocabulary } from "./ui-calendar.types"
 
 /****************
  * ### `CalendarFallback`
@@ -14,9 +13,9 @@ import { CalendarHost, NATIVE_TYPES } from "./ui-calendar.types"
  * - Starting value:  the host's `value` PROPERTY, else its attribute.
  * - Accessible name:  the host's `aria-label`, else `placeholder`.
  ****************/
-export class CalendarFallback extends NativeFallback<typeof calendarVocabulary> {
-  @proto static vocabulary = calendarVocabulary
-  @proto static degraded = [
+export class CalendarFallback extends E.NativeFallback<Vocabulary> {
+  @E.proto static vocabulary = calendarVocabulary
+  @E.proto static degraded = [
     "the grid, its views and keyboard pattern:  the native picker's instead (a `year` is a number field)",
     "`inline` (always a field), `position`, `today`, `first-day-of-week`, `locale` (the page's instead)",
     "`disabled-dates`, `disabled-days-of-week`, `select-adjacent-days`, ranges (`start-calendar` / `end-calendar`)",
@@ -29,33 +28,33 @@ export class CalendarFallback extends NativeFallback<typeof calendarVocabulary> 
 
   protected override build() {
     const host = this.host as CalendarHost
-    const type = (this.attr("type") ?? "datetime") as UIT.CalendarType
-    const year = type === "year"
+    const type = (this.attr("type") ?? DEFAULT_TYPE) as UIT.CalendarType
+    const isYear = type === "year"
     const control = this.create("input", {
-      type: NATIVE_TYPES[type] ?? NATIVE_TYPES.datetime,
+      type: NATIVE_TYPES[type] ?? NATIVE_TYPES[DEFAULT_TYPE],
       name: this.attr("name"),
       min: this.attr("min"),
       max: this.attr("max"),
-      step: year ? "1" : null,
-      inputmode: year ? "numeric" : null,
+      step: isYear ? "1" : undefined,
+      inputmode: isYear ? "numeric" : undefined,
       required: this.flag("required"),
       disabled: this.flag("disabled"),
       readonly: this.flag("readonly")
     })
     this.decorate(control, "control")
     const placeholder = this.attr("placeholder")
-    if (!control.hasAttribute("aria-label") && placeholder) control.setAttribute("aria-label", placeholder)
+    if (!control.hasAttribute(UIT.ARIA_LABEL) && placeholder) control.setAttribute(UIT.ARIA_LABEL, placeholder)
     const value = host.value ?? this.attr("value")
     if (value) control.value = String(value)
-    const box = this.create("div", { class: "ui input", part: "input" }, control)
-    const root = this.create("div", { class: this.classes(), part: "calendar" }, box)
+    const box = this.create("div", { class: INPUT_CLASS, part: INPUT_PART }, control)
+    const root = this.create("div", { class: this.classes(), part: CALENDAR_PART }, box)
 
     this.listen(control, "input", () => this.sync())
     this.listen(control, "change", (event) => {
       this.sync()
       host.value = control.value
-      const detail = { value: control.value, originalEvent: event }
-      host.dispatchEvent(new CustomEvent(this.vocabulary.events[0].name, { bubbles: true, composed: true, detail }))
+      const detail: UIT.CalendarChangeDetail = { value: control.value, originalEvent: event }
+      host.dispatchEvent(new CustomEvent(CHANGE_EVENT, { bubbles: true, composed: true, detail }))
     })
     this.control = control
     return [root]
@@ -70,8 +69,30 @@ export class CalendarFallback extends NativeFallback<typeof calendarVocabulary> 
   private sync() {
     const { control, formInternals } = this
     if (!control || !formInternals) return
+    // `null`:  `setFormValue()`'s "no value"
     formInternals.setFormValue(this.attr("name") && control.value ? control.value : null)
     if (control.validity.valid) formInternals.setValidity({})
     else formInternals.setValidity(control.validity, control.validationMessage, control)
   }
 }
+
+/** Native input type holding each calendar type's ISO value. */
+const NATIVE_TYPES: Readonly<Record<UIT.CalendarType, string>> = {
+  date: "date",
+  time: "time",
+  datetime: "datetime-local",
+  month: "month",
+  year: "number"
+}
+
+/** Class words of the field's box (`ui-input.css`'s grammar). */
+const INPUT_CLASS = "ui input"
+
+/** Part of the field's box, from the vocabulary (`decorate()` is for the control, which takes the host's ARIA). */
+const INPUT_PART: E.PartNameOf<Vocabulary> = "input"
+
+/** Part of the root box, as `INPUT_PART`. */
+const CALENDAR_PART: E.PartNameOf<Vocabulary> = "calendar"
+
+/** The event a change dispatches, from the vocabulary. */
+const CHANGE_EVENT: E.EventName<Vocabulary> = "ui-change"

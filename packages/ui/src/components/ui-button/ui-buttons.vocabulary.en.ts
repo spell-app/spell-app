@@ -1,10 +1,10 @@
 /**
  * Every name `<ui-buttons>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The family's grammar notes are in `ui-button.vocabulary.en.ts`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-buttons>`
@@ -76,4 +76,4 @@ export const buttonsVocabulary = {
     { name: "right-floated", description: "The host floats right." }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

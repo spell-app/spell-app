@@ -7,7 +7,7 @@
  *   http://www.famfamfam.com/lab/icons/flags/ (public domain).  Referenced relatively;  Vite rewrites the `url()`
  *   when it inlines the sheet.
  * - Positions:  Fomantic's `flag.overrides`, one rule per CODE our element emits.  Fomantic keyed each position on
- *   the code AND its names (`.ad, .andorra`);  the element resolves names to codes itself (`flagAliases`), so the
+ *   the code AND its names (`.ad, .andorra`);  the element resolves names to codes itself (`FLAG_ALIASES`), so the
  *   names were mapped through the same table and dropped:  244 Fomantic rules -> 244 codes (`gb.eng` -> `gb-eng`,
  *   `an` -> `bq`).  Generated once by a scratch script from the `.overrides`, not by a repo tool:  re-port by hand.
  * - A country the sprite lacks (`ss`, `xk`, `rainbow`, `pirate` ...) keeps its emoji:  only the listed codes match.

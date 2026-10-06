@@ -1,12 +1,10 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, PartContext, proto, SlotContent, type UIHost, UIElement, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
+import type { UIFeed } from "./UIFeed"
 import { eventVocabulary } from "./ui-event.vocabulary.en"
 import { FeedFallback } from "./ui-feed.fallback"
-import type { UIFeed } from "./UIFeed"
-import { COLOR_CLASS_PREFIX, LABEL } from "./ui-feed.types"
 
 import feedCSS from "./ui-feed.css?inline"
 
@@ -24,21 +22,21 @@ import feedCSS from "./ui-feed.css?inline"
  *   as `<ui-item>` does.
  * - `disabled`:  `aria-disabled` on the root, which assistive tech (and axe) apply to the content inside.
  ****************/
-export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
-  @proto static vocabulary = eventVocabulary
-  @proto static styles = { feed: feedCSS }
-  @proto static Fallback = FeedFallback
-  @proto static isPart = true
-  @proto static delegatesFocus = false
+export class UIFeedEvent extends E.UIElement<typeof eventVocabulary> {
+  @E.proto static vocabulary = eventVocabulary
+  @E.proto static styles = { feed: feedCSS }
+  @E.proto static Fallback = FeedFallback
+  @E.proto static isPart = true
+  @E.proto static delegatesFocus = false
 
   /** Feed, if any. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
 
   ////////////////
   // ## Derived state
@@ -46,7 +44,7 @@ export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
 
   /** The feed's controller.  Tracked. */
   readonly feed = createMemo(
-    () => (this.context.owner.get()?.owner as UIHost | undefined)?.controller as UIFeed | undefined
+    () => (this.context.owner.get()?.owner as E.UIHost | undefined)?.controller as UIFeed | undefined
   )
 
   /** Renders the label box:  a shorthand, slotted label content, or a number to show.  Tracked. */
@@ -57,10 +55,11 @@ export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
       !!this.feed()?.isOrdered()
   )
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     const { internals } = this.host
-    // SIDE EFFECT:  a list item in a feed;  a host effect, so a static server render gets the role too (its `<li>`)
+    // SIDE EFFECT:  a list item in a feed;  a host effect, so a static server render gets the role too (its `<li>`).
+    // `null` is `internals.role`'s own "no role" (a platform boundary)
     this.hostEffect(
       () => (this.context.owner.get() ? UIT.LISTITEM : null),
       (role) => {
@@ -75,7 +74,7 @@ export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
 
   /** `ui-<color>` for a coloured event:  the colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`. */
   protected extraClasses(): string | undefined {
-    return this.attrs.color ? `${COLOR_CLASS_PREFIX}${this.attrs.color}` : undefined
+    return this.attrs.color ? `${UIT.COLOR_CLASS_PREFIX}${this.attrs.color}` : undefined
   }
 
   protected hostStates() {
@@ -90,7 +89,7 @@ export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
     return (
       <div class={this.classes()} part={this.part("event")} aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}>
         <Show when={this.hasLabel()}>
-          <div class={LABEL} part={this.part("label")} data-text={this.attrs.label || undefined}>
+          <div class={UIT.LABEL} part={this.part("label")} data-text={this.attrs.label || undefined}>
             <Show when={this.attrs.image}>
               <img src={this.attrs.image} alt="" part={this.part("image")} />
             </Show>

@@ -163,7 +163,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     else if (command === UIT.SHAPE_COMMANDS.previous) void this.flipBy(-1)
     else if (command?.startsWith(UIT.SHAPE_COMMANDS.flip)) {
       const direction = command.slice(UIT.SHAPE_COMMANDS.flip.length) as UIT.ShapeFlip
-      if (UIT.SHAPE_FLIPS.includes(direction)) void this.flipTo(direction)
+      if (UIT.ShapeFlips.includes(direction)) void this.flipTo(direction)
     }
   }
 

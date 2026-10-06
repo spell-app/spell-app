@@ -60,7 +60,7 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   readonly selectedState = this.controlled("selected", false)
 
   /** Host `checked` attribute, the alias. */
-  readonly checkedAttribute = new HostAttribute(this.host, CHECKED)
+  readonly checkedAttribute = new HostAttribute({ host: this.host, name: CHECKED })
 
   /** Owning checklist. */
   readonly context = new PartContext(this.host, CHECK_NOUN)

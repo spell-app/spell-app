@@ -30,7 +30,7 @@ export class UIStatistics extends UIElement<typeof statisticsVocabulary> {
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
   protected extraClasses(): string | undefined {
-    return UIT.StackClasses.of(this.attrs.stackWith)
+    return UIT.StackClasses.classFor(this.attrs.stackWith)
   }
 
   render(): JSX.Element {

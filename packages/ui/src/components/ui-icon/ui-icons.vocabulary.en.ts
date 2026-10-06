@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-icon>` and `<ui-icons>` use:  tags, attributes (kind + allowed values), slots, parts, states.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-icon name="heart" size="large" color="red" circular>` => `ui large red circular icon`.  `ui-icon.css` keys
  *   on those words;  `name` / `outline` / `label` are property-only and pick the SVG (`UI.icons`).
@@ -8,7 +8,7 @@
  *   `OwnerContext` and sets `:state(in-icons)`, which `ui-icon.css` stacks and positions it by.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-icons>`
@@ -41,4 +41,4 @@ export const iconsVocabulary = {
   states: [],
   texts: [],
   ownsParts: ["icon"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

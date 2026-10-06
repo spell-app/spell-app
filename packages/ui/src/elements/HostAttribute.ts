@@ -18,7 +18,7 @@ export class HostAttribute {
    */
   readonly get: Accessor<string | undefined>
 
-  constructor(host: E.UIHost, name: string) {
+  constructor({ host, name }: HostAttributeProps) {
     const read = () => host.getAttribute(name) ?? undefined
     const cell = new E.Cell(read())
     this.get = cell.get
@@ -27,4 +27,12 @@ export class HostAttribute {
     observer.observe(host, { attributeFilter: [name] })
     host.addReleaseCallback(() => observer.disconnect())
   }
+}
+
+/** Constructor props for `HostAttribute`. */
+export type HostAttributeProps = {
+  /** the element whose attribute it watches */
+  host: E.UIHost
+  /** the attribute, e.g. `UIT.ARIA_LABEL` */
+  name: string
 }

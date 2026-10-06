@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-item>` uses:  tag, attributes (kind + allowed values), slots, parts, states.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - ONE generic item, as Fomantic's `.item` is shared by dropdown, list and menu:  it renders by OWNER
  *   (`PartContext`), never `ui-list-item` / `ui-menu-item`.  See `docs/grammar.md`, "Items".
  * - Class words come out through `ClassBuilder`, no `ui`:  `<ui-item color="red" selected link>` =>
@@ -10,7 +10,7 @@
  *   list or menu they see through it to their owner.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-item>`
@@ -95,4 +95,4 @@ export const itemVocabulary = {
   ],
   texts: [],
   ownsParts: ["content", "header", "meta", "description", "extra", "avatar"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

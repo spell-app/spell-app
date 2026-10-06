@@ -1,17 +1,25 @@
 /**
- * Loose constants and types of the `ui-comment` family:  the words, selectors and shapes its element
- * classes and its native fallback share, lifted out of their files.
- * - Data only:  nothing here runs;  the classes import what they need from `./ui-comment.types`.
+ * Constants and types the `ui-comment` family's files share:  `<ui-comments>`, `<ui-comment>` and their native
+ * fallback.
+ * - Pure data:  `import type` only, so every file of the family may import it.
  */
 
 import type { commentVocabulary } from "./ui-comment.vocabulary.en"
 import type { commentsVocabulary } from "./ui-comments.vocabulary.en"
 
-/** Class of the reply box. */
+////////////////
+// ## Class words
+////////////////
+
+/** Class, part and slot of the reply box. */
 export const REPLY = "reply"
 
-/** Class words a thread keeps. */
+/** Class word a thread of replies keeps (`collapsed comments`). */
 export const COLLAPSED = "collapsed"
 
-/** Either vocabulary, for brevity. */
+////////////////
+// ## Types
+////////////////
+
+/** Either vocabulary:  `CommentFallback` serves both tags. */
 export type Vocabulary = typeof commentsVocabulary | typeof commentVocabulary

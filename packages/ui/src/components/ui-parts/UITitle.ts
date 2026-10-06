@@ -12,7 +12,7 @@ export class UITitle extends PartElement<typeof titleVocabulary> {
   @proto static vocabulary = titleVocabulary
 
   protected tag(): string {
-    return this.attrs.href ? UIT.LINK : "div"
+    return this.attrs.href ? UIT.ANCHOR_TAG : "div"
   }
 
   protected href(): string | undefined {

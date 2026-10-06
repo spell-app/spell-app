@@ -1,12 +1,10 @@
 import { createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, RootSettings, UIElement, UIT } from "$/ui/core"
-
-import { emojiVocabulary } from "./ui-emoji.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { EmojiData } from "./EmojiData"
 import { EmojiFallback } from "./ui-emoji.fallback"
-import { NAME_ATTRIBUTE } from "./ui-emoji.types"
+import { emojiVocabulary } from "./ui-emoji.vocabulary.en"
 
 import emojiCSS from "./ui-emoji.css?inline"
 
@@ -20,26 +18,26 @@ import emojiCSS from "./ui-emoji.css?inline"
  *   `aria-label`;  bare `label` => `aria-hidden`.
  * - `link` is a LOOK:  the emoji takes no focus and fires nothing of its own -- wrap it in a `<button>` / `<a>`.
  ****************/
-export class UIEmoji extends UIElement<typeof emojiVocabulary> {
-  @proto static vocabulary = emojiVocabulary
-  @proto static styles = { emoji: emojiCSS }
-  @proto static Fallback = EmojiFallback
-  @proto static delegatesFocus = false
+export class UIEmoji extends E.UIElement<typeof emojiVocabulary> {
+  @E.proto static vocabulary = emojiVocabulary
+  @E.proto static styles = { emoji: emojiCSS }
+  @E.proto static Fallback = EmojiFallback
+  @E.proto static delegatesFocus = false
 
   /** The glyph, `undefined` while loading or for an unknown name;  tracked. */
-  readonly emoji = new Cell(untrack(() => EmojiData.peek(this.attrs.name, EmojiData.setFor(this.host))))
+  readonly emoji = new E.Cell(untrack(() => EmojiData.peek(this.attrs.name, EmojiData.setFor(this.host))))
 
   /** Request counter, so a slower earlier load can't win. */
   private request = 0
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     // again when connected (it may have moved under another root) and when any root's settings change
     createEffect(
       () => ({
         name: this.attrs.name,
         connected: this.connected.get(),
-        generation: RootSettings.generation.get()
+        generation: E.RootSettings.generation.get()
       }),
       ({ name, connected }) => {
         if (connected || !this.request) void this.load(name)
@@ -53,6 +51,7 @@ export class UIEmoji extends UIElement<typeof emojiVocabulary> {
    *   and draws only names already loaded (`EmojiData.peek()`);  a browser loads them after first paint instead.
    * - In every name set that ships:  which one an element uses depends on its `<ui-root emoji>`, unknown in markup.
    * - `tag`:  the tag the family is defined under, if not its own.
+   * - STATIC:  the server render calls it before any element exists.
    */
   static preload(html: string, tag: string = emojiVocabulary.tag): Promise<void> {
     const names: string[] = []
@@ -94,3 +93,9 @@ export class UIEmoji extends UIElement<typeof emojiVocabulary> {
     if (this.request === request && untrack(this.emoji.get) !== emoji) this.emoji.set(emoji)
   }
 }
+
+/**
+ * A start tag's `name="..."` attribute, any quoting:  `UIEmoji.preload()` reads the names a page uses from its markup.
+ * - Groups 1-3:  the value in double, single or no quotes.
+ */
+const NAME_ATTRIBUTE = /(?:^|\s)name\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i

@@ -3,6 +3,7 @@ import { userEvent } from "vite-plus/test/browser"
 
 import { UI } from "$/ui/runtime"
 import type { DropdownOptions } from "$/ui/components/components.types"
+import { FlagCountry } from "$/ui/components/ui-flag"
 import { expectAccessible } from "$/ui/test/a11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -92,6 +93,19 @@ describe("<ui-dropdown> markup", () => {
     expect(icon.matches(":empty")).toBe(false)
     custom.remove()
     await expect.poll(() => icon.matches(":empty")).toBe(true)
+  })
+
+  it("draws an option's `flag` as <ui-flag> does:  codes, ZWJ and subdivision flags;  other text as is", async () => {
+    const { combobox, rows } = await dropdown(`<ui-dropdown selection>
+      <ui-item flag="FR">France</ui-item><ui-item flag="gb-eng">England</ui-item>
+      <ui-item flag="rainbow">Pride</ui-item><ui-item flag="atlantis">Atlantis</ui-item>
+    </ui-dropdown>`)
+    combobox.click()
+    await ElementFixture.tick()
+    const flags = rows().map((row) => row.querySelector(".flag")!.textContent)
+    const country = ["fr", "gb-eng", "rainbow"].map((code) => new FlagCountry(code).emoji)
+    expect(flags).toEqual([...country, "atlantis"])
+    expect(country.every(Boolean)).toBe(true)
   })
 
   it("anchors the menu to the root", async () => {

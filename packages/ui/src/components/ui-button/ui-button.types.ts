@@ -1,26 +1,27 @@
 /**
- * Shared constants of the `ui-button` family.
- * - Runtime-light:  no element code, so every file of the family may import it.
+ * Constants of the `ui-button` family, and `HostPress`, which the element and its native fallback share.
+ * - Runtime-light, at the bottom of the folder's imports:  no element code, so every file of the family may import
+ *   it.  Constants only `UIButton` reads sit below that class (epic `wwod-spell-ui`, Q18).
  */
+
+////////////////
+// ## Types
+////////////////
 
 /** `<ui-button>`'s inner `<button type>` in a browser, and its `type` default. */
 export const DEFAULT_TYPE = "button"
 
-/**
- * The native submitter's attributes a server render (`$/ui/static`) copies from the host onto the inner `<button>`,
- * so a static form submits as the browser would with that button:  not vocabulary, read off the host as written.
- */
-export const FORM_ATTRIBUTES = ["form", "formaction", "formenctype", "formmethod", "formnovalidate", "formtarget"]
+/** The `reset` button `type`:  resets the host's form (`UIT.SUBMIT` submits it). */
+export const RESET = "reset"
 
-/** `icon-position` that puts the icon after the text. */
-export const ICON_END = "right"
-
-/** Class words of a trailing icon box:  Fomantic's `<i class="right ... icon">`, spaced on its start side. */
-export const RIGHT_ICON_CLASS = "right icon"
+////////////////
+// ## Pressing the host
+////////////////
 
 /****************
  * ### `HostPress`
  * `host.click()` on a `<ui-button>`:  pressing its inner control, shared by the element and its native fallback.
+ * - STATIC, instance-free:  one press needs nothing but the control.
  ****************/
 export class HostPress {
   /**
