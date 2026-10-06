@@ -110,6 +110,33 @@ test("show():  sends `show-doc` to this session's window, with `hash` and `view`
   }
 })
 
+test("reload-view:  sends `reload-view` with the view to this session's window;  needs no target", async () => {
+  const seen = []
+  const server = createServer((request, response) => {
+    let body = ""
+    request.on("data", (chunk) => (body += chunk))
+    request.on("end", () => {
+      seen.push({ op: request.url, ...JSON.parse(body) })
+      const known = request.url === "/reload-view"
+      response.writeHead(known ? 200 : 404, { "Content-Type": "application/json" })
+      response.end(JSON.stringify(known ? { ok: true, url: "http://127.0.0.1:4747/x.html?t=1" } : { ok: false }))
+    })
+  })
+  await new Promise((done) => server.listen(0, "127.0.0.1", done))
+  const window = { pid: process.ppid, port: server.address().port, token: "t", folders: [], workspaceFile: null }
+  writeFileSync(join(dir, `${process.ppid}.json`), JSON.stringify(window))
+  try {
+    assert.equal(await Window.main(["reload-view"]), 0)
+    assert.equal(await Window.main(["reload-view", "--review"]), 0)
+    assert.deepEqual(seen, [
+      { op: "/reload-view", view: "docs" },
+      { op: "/reload-view", view: "review" }
+    ])
+  } finally {
+    server.close()
+  }
+})
+
 test("request():  no window, or none listening, throws a clear error", async () => {
   await assert.rejects(Window.request("show-doc", {}, null), /no window/)
   const window = { pid: process.ppid, port: 1, token: "abc", folders: [] }

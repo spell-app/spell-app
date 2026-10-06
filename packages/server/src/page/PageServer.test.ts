@@ -1,5 +1,4 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
-import { get } from "node:http"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
@@ -346,32 +345,24 @@ describe("PageServer", () => {
 })
 
 /**
- * Listen to `/_server/events` on `port`.
+ * Listen to the live-reload websocket (`/_server/events`) on `port`, as a page does.
  * - `next(event, path)`:  resolves with the data of the next `event` about `path`
  */
 function listen(port: number): Promise<{ next: (event: string, path: string) => Promise<unknown>; close: () => void }> {
-  return new Promise((done) => {
+  return new Promise((done, fail) => {
     const waiting: { event: string; path: string; resolve: (data: unknown) => void }[] = []
-    let buffer = ""
-    const request = get({ host: "127.0.0.1", port, path: "/_server/events" }, (response) => {
-      response.setEncoding("utf8")
-      response.on("data", (chunk: string) => {
-        buffer += chunk
-        let end: number
-        while ((end = buffer.indexOf("\n\n")) >= 0) {
-          const block = buffer.slice(0, end)
-          buffer = buffer.slice(end + 2)
-          const event = /^event: (.*)$/m.exec(block)?.[1]
-          const data = /^data: (.*)$/m.exec(block)?.[1]
-          const parsed = data ? (JSON.parse(data) as { path?: string }) : undefined
-          const at = waiting.findIndex((each) => each.event === event && each.path === parsed?.path)
-          if (at >= 0) waiting.splice(at, 1)[0]!.resolve(parsed)
-        }
-      })
+    const socket = new WebSocket(`ws://127.0.0.1:${port}/_server/events`)
+    socket.addEventListener("message", (message: MessageEvent<string>) => {
+      const { event, data } = JSON.parse(message.data) as { event: string; data: { path?: string } }
+      const at = waiting.findIndex((each) => each.event === event && each.path === data.path)
+      if (at >= 0) waiting.splice(at, 1)[0]!.resolve(data)
+    })
+    socket.addEventListener("error", () => fail(new Error(`no live-reload websocket on port ${port}`)))
+    socket.addEventListener("open", () =>
       done({
         next: (event, path) => new Promise((resolve) => waiting.push({ event, path, resolve })),
-        close: () => request.destroy()
+        close: () => socket.close()
       })
-    })
+    )
   })
 }

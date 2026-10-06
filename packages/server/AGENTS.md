@@ -20,7 +20,9 @@ house style every package shares.  Only what's local is below;  a section named 
   - `ports.ts` -- `isFree`, `freePort`, `listenPreferred`
   - `open.ts` -- browser, new window, reused Chrome tab, VS Code's Simple Browser
   - `FileLock` -- `<file>.lock`, so tools writing the same file take turns
-  - `LiveReload` + `liveClient.ts` -- SSE live reload, and the page-side client (`/_server/live.js`, `editPage()`)
+  - `LiveReload` + `liveClient.ts` -- live reload over a websocket, and the page-side client (`/_server/live.js`,
+    `editPage()`);  `webSocket.ts` -- the server's half of one (node built-ins).  NEVER an `EventSource` or any
+    other request held open:  each takes one of Chrome's 6 connections per host, and every VS Code window shares them
   - `Guard` -- `Host` check, per-run token, same-origin writes
   - `PidFile` -- a background server's `<root>/.spell-server.json`:  status, ensure, stop
   - `mainServer.ts` -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server

@@ -2791,7 +2791,7 @@ function outsideOriginal(elements) {
  *   blue with unsent marks, outlined blue once sent while marks wait for Claude
  * - nobody listening (`listening` null:  none, or its heartbeat stopped, as the routes answer it):  the send
  *   button's tooltip and the "now" actions say so (`NOBODY_LISTENING`, decision D6)
- * - re-reads the inbox when the page server says its file changed (`SPELL_SERVER.events`), and every
+ * - re-reads the inbox when the page server says its file changed (the live client's `spell-server:file`), and every
  *   `REVIEW_POLL_MS` while visible, as a fallback
  * - NOTE: nothing here scrolls the page:  the menu and notices are fixed, focus moves with `preventScroll`
  * - SIDE EFFECT:  adds the controls (`data-spell-added` inside `main`), re-adds what an in-place update dropped
@@ -2823,17 +2823,13 @@ async function wireReview(main) {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") void load().then((read) => read && render())
   })
-  // every inbox write is also a file change the page server announces:  re-read at once (the poll is the fallback)
+  // every inbox write is also a file change the page server announces:  re-read at once (the poll is the fallback).
+  // Through the page's live client (`spell-server:file`), never a connection of our own:  each one used to hold one
+  // of Chrome's 6 per host (`packages/server/src/webSocket.ts`)
   const inboxFile = (server.file ?? page).replace(/(?:\.plan)?\.html$/, ".inbox.json")
-  if (server.events)
-    new EventSource(server.events).addEventListener("change", (event) => {
-      if (writing) return
-      try {
-        if (JSON.parse(event.data).path === inboxFile) void load().then((read) => read && render())
-      } catch {
-        // not ours
-      }
-    })
+  addEventListener("spell-server:file", (event) => {
+    if (!writing && event.detail?.path === inboxFile) void load().then((read) => read && render())
+  })
 
   /** Read the inbox;  true when it answered (a write in flight wins:  its answer is newer). */
   async function load() {
