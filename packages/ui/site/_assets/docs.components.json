@@ -1,0 +1,37 @@
+[
+  {
+    "tag": "ui-docs-api",
+    "source": "ui-docs-api.js",
+    "skeleton": "short line, 5 line paragraph"
+  },
+  {
+    "tag": "ui-docs-example",
+    "source": "ui-docs-example.js",
+    "skeleton": "header, 2 line paragraph"
+  },
+  {
+    "tag": "ui-docs-nav",
+    "source": "ui-docs-nav.js",
+    "skeleton": "15 wide: 3 line paragraph, 8 line paragraph"
+  },
+  {
+    "tag": "ui-docs-search",
+    "source": "ui-docs-search.js",
+    "skeleton": "16 x 2.25"
+  },
+  {
+    "tag": "ui-docs-themes",
+    "source": "ui-docs-themes.js",
+    "skeleton": "inline 5 x 2.25"
+  },
+  {
+    "tag": "ui-docs-toc",
+    "source": "ui-docs-toc.js",
+    "skeleton": "short line, 6 line paragraph"
+  },
+  {
+    "tag": "ui-docs-tokens",
+    "source": "ui-docs-tokens.js",
+    "skeleton": "short line, 5 line paragraph"
+  }
+]

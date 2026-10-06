@@ -22,7 +22,7 @@ export const checkboxVocabulary = {
   tag: "ui-checkbox",
   topics: ["forms", "inputs", "controls", "selection", "basic", "modules"],
   aka: ["check box", "toggle", "switch", "tick box"],
-  skeleton: { display: "inline", width: "6em", height: "1.25em" },
+  skeleton: "inline 6 x 1.25",
   noun: "checkbox",
   description: "A checkbox lets people choose a value from a small set of options, often on or off.",
   attributes: [

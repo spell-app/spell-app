@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-item-0CpECSqh.js";export{t as UIItem,e as itemVocabulary};

@@ -2865,6 +2865,66 @@
       "href": "components/ui-comment.html#ui-comments"
     },
     {
+      "tag": "ui-components",
+      "name": "Components",
+      "folder": "ui-root",
+      "topics": [
+        "loading",
+        "modules"
+      ],
+      "aka": [
+        "component pack",
+        "component manifest",
+        "component registry",
+        "import map",
+        "plugin",
+        "lazy loading"
+      ],
+      "description": "Components loads a component pack, so every root on the page can load the custom elements it lists on demand.",
+      "noun": "components",
+      "attributes": [
+        {
+          "name": "source",
+          "kind": "string",
+          "description": "The pack:  a JSON array of `{ \"tag\", \"source\", \"load\"?, \"skeleton\"? }`, same origin.  Each `source` (the module that defines the tag) is relative to the pack;  `load` is `on-demand` (default:  when a root meets the tag) or `eager` (as soon as the pack is read);  `skeleton` is skeleton text (`inline 6 x 2.5`, `2 tall`, `18 wide: header, 3 line paragraph`, `none`).  Any tag, not only `ui-*`."
+        }
+      ],
+      "slots": [],
+      "events": [
+        {
+          "name": "ui-load",
+          "detail": "{ source: string, tags: string[] }",
+          "description": "The pack is read:  every root on the page knows `tags` now."
+        },
+        {
+          "name": "ui-error",
+          "detail": "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }",
+          "cancelable": true,
+          "description": "The pack didn't load (`load`, `cross-origin`, `file-protocol`), or isn't a pack (`render`).  Roots then call its tags unknown.  Cancel it to skip the console warning."
+        }
+      ],
+      "parts": [],
+      "states": [
+        {
+          "name": "loading",
+          "description": "Fetching the pack."
+        },
+        {
+          "name": "loaded",
+          "description": "The pack is read;  its tags are known."
+        },
+        {
+          "name": "error",
+          "description": "The pack didn't load, or isn't a pack."
+        }
+      ],
+      "texts": [],
+      "mainTag": "ui-root",
+      "main": false,
+      "page": false,
+      "href": "components/ui-root.html#ui-components"
+    },
+    {
       "tag": "ui-container",
       "name": "Container",
       "folder": "ui-container",
@@ -22490,7 +22550,8 @@
       "status": "done",
       "docs": false,
       "tags": [
-        "ui-root"
+        "ui-root",
+        "ui-components"
       ],
       "tokens": []
     },

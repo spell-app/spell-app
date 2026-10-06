@@ -17,7 +17,7 @@ export const docsExampleVocabulary = {
   tag: "ui-docs-example",
   topics: ["documentation", "data display"],
   aka: ["example", "demo", "live example", "code sample", "playground", "show code"],
-  skeleton: { parts: [{ shape: "header" }, { shape: "paragraph", lines: 2 }] },
+  skeleton: "header, 2 line paragraph",
   noun: "example",
   description:
     "An example shows its own markup live, under a header and description, with the same markup as code a button " +

@@ -1,0 +1,1 @@
+import{t as e}from"./ui-divider-B3AukWex.js";export{e as UIDivider};

@@ -14,7 +14,7 @@ export const brandColorSetVocabulary = {
   tag: "ui-brand-color-set",
   topics: ["selection", "controls"],
   aka: ["swatches", "swatch picker", "color picker", "palette", "color presets", "color choices"],
-  skeleton: { height: "3em" },
+  skeleton: "3 tall",
   noun: "set",
   ui: false,
   description:

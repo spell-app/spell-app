@@ -212,18 +212,22 @@ export type ComponentVocabulary = {
    */
   aka?: readonly string[]
   /**
-   * What `<ui-root display="skeleton">` draws in this tag's place while its family loads:  a `<ui-placeholder>`
-   * built from this description (`SkeletonSpec`), or `false` for none of its own.
-   * - `false`:  a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a list), or a tag with
+   * What `<ui-root display="skeleton">` draws in this tag's place while its family loads, as skeleton text
+   * (`SkeletonText`):  `"inline 6 x 2.5"`, `"18 wide: square image, header, 3 line paragraph"`, or `"none"` for none
+   * of its own.
+   * - `"none"`:  a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a list), or a tag with
    *   nothing to show (`ui-popup`).  NOT `undefined`:  that's "not said yet", which `test/vocabularies.test.ts`
    *   rejects, since every tag MUST say which.
+   * - Text, not a `SkeletonSpec`:  one form for vocabularies and component packs (`<ui-components>`).  `yarn gen:root`
+   *   parses it into `<ui-root>`'s catalog;  `test/vocabularies.test.ts` parses every one.
    * - NEVER translated:  drawing data, like `states`.
    */
-  skeleton?: SkeletonSpec | false
+  skeleton?: string
 }
 
 /**
- * A tag's skeleton:  the `<ui-placeholder>` shapes that stand in for it until it loads (`ComponentVocabulary.skeleton`).
+ * A tag's skeleton:  the `<ui-placeholder>` shapes that stand in for it until it loads (`ComponentVocabulary.skeleton`,
+ * written as text and parsed by `SkeletonText`).
  * - Sizes are CSS lengths in `em`, so the element's `size` still scales them;  `fluid` on the element fills the width.
  * - No `parts`:  one block, `width` x `height` (a button, an input).
  */

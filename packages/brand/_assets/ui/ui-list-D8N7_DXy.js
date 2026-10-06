@@ -1,0 +1,1 @@
+import{t as e}from"./ui-list-DZbCbGz5.js";export{e as UIList};

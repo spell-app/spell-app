@@ -20,7 +20,7 @@ export const contentVocabulary = {
   tag: "ui-content",
   topics: ["content parts", "containers", "cards"],
   aka: ["body", "content area", "card body"],
-  skeleton: false,
+  skeleton: "none",
   noun: "content",
   ui: false,
   description: "The main content block of a card, item, event, comment, modal, message, list item, step ...",

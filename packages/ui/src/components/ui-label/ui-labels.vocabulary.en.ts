@@ -14,7 +14,7 @@ export const labelsVocabulary = {
   tag: "ui-labels",
   topics: ["status", "lists", "elements"],
   aka: ["badges", "chips", "tags", "tag list"],
-  skeleton: false,
+  skeleton: "none",
   noun: "labels",
   description: "Labels can be grouped to share a look.",
   attributes: [

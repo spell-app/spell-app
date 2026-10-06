@@ -22,7 +22,8 @@ const EXTRA_ENTRIES = { api: ENTRIES.api!, styles: ENTRIES.styles! }
  *   - `solid-js`, `@solidjs/*`, the fork => `library`
  *   - `forms.ts`, `FormElement`, `FormHost`, `Validator`, `MenuOptions`, `ControlLabels` (+ `LabelWatch`) =>
  *     `shared:forms`
- *   - a family folder => its own classes / sheet / vocabulary / fallback
+ *   - a family folder => its own classes / sheet / vocabulary / fallback;  `vocabulary/SkeletonText.ts` too, as
+ *     `ui-root`'s:  its only runtime importer, and NOT in `core` (left out of `$/ui/vocabulary`'s barrel)
  *   - `api.ts` and the two barrels it namespaces (`E`, `V`) => `extra:api`:  only `api.js` holds them
  *   - `src/styles/` (the foundation sheets as text, the style vocabulary) => `extra:styles`:  only `styles.js`
  *     holds them
@@ -79,6 +80,9 @@ function bucket(id: string): Bucket {
   if (/^(api\.ts|elements\/index\.ts|vocabulary\/vocabulary\.api\.ts)$/.test(src)) return "extra:api"
   if (/^components\/[\w-]+\/data\/|^languages\//.test(src)) return "data"
   if (src.startsWith("docs-components/")) return "docs"
+  // `$/ui/vocabulary`'s one module its barrel (and so `core`) leaves out:  only `<ui-root>`'s family parses skeleton
+  // text at runtime (`ComponentPack`), so it ships in that family's chunk
+  if (src === "vocabulary/SkeletonText.ts") return "own:ui-root:classes"
   const component = /^components\/([\w-]+)\/([\w.-]+)$/.exec(src)
   if (component) {
     const [, family, file] = component as unknown as [string, string, string]

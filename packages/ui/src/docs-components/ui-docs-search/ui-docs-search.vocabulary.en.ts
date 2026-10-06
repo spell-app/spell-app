@@ -18,7 +18,7 @@ export const docsSearchVocabulary = {
   tag: "ui-docs-search",
   topics: ["documentation", "navigation", "inputs"],
   aka: ["site search", "docs search", "quick find", "jump to", "command palette", "spotlight", "omnibox", "docsearch"],
-  skeleton: { width: "16em", height: "2.25em" },
+  skeleton: "16 x 2.25",
   noun: "finder",
   description:
     "A docs search is a field that finds sections of the page shown, components, attributes and every page's " +

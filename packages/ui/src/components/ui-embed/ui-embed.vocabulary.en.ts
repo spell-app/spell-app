@@ -18,7 +18,7 @@ export const embedVocabulary = {
   tag: "ui-embed",
   topics: ["media", "modules"],
   aka: ["iframe", "video", "youtube", "vimeo", "player"],
-  skeleton: { width: "28em", height: "15.75em" },
+  skeleton: "28 x 15.75",
   noun: "embed",
   description: "An embed displays content from other websites, like YouTube videos, loaded only when asked for.",
   attributes: [

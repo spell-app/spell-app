@@ -15,7 +15,7 @@ export const brandChecklistVocabulary = {
   tag: "ui-brand-checklist",
   topics: ["lists", "progress", "status", "selection"],
   aka: ["checklist", "to-do list", "todo list", "task list", "progress list", "habit list", "stepper"],
-  skeleton: { height: "6em" },
+  skeleton: "6 tall",
   noun: "checklist",
   ui: false,
   description:

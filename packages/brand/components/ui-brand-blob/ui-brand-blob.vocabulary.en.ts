@@ -14,7 +14,7 @@ export const brandBlobVocabulary = {
   tag: "ui-brand-blob",
   topics: ["images"],
   aka: ["blob", "corner blob", "decoration", "background shape", "motif"],
-  skeleton: { height: "0" },
+  skeleton: "0 tall",
   noun: "blob",
   ui: false,
   description: "A brand blob tucks one soft lavender shape into a corner of its parent, never behind body text.",

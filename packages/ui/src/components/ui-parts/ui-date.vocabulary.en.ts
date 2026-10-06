@@ -20,7 +20,7 @@ export const dateVocabulary = {
   tag: "ui-date",
   topics: ["content parts", "date & time", "social"],
   aka: ["timestamp", "time ago", "posted at"],
-  skeleton: false,
+  skeleton: "none",
   noun: "date",
   ui: false,
   description: "When something happened;  inline and small inside a summary.",

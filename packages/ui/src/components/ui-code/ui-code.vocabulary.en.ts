@@ -17,7 +17,7 @@ export const codeVocabulary = {
   tag: "ui-code",
   topics: ["text", "typography", "data display"],
   aka: ["code block", "syntax highlighting", "highlighter", "pre", "snippet", "source code", "listing"],
-  skeleton: { parts: [{ shape: "paragraph", lines: 5 }] },
+  skeleton: "5 line paragraph",
   noun: "code",
   description:
     "Code shows a block of source code coloured by its language, from the element's own text or a file on this site.",

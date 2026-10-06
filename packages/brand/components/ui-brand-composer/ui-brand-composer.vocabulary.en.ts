@@ -20,7 +20,7 @@ export const brandComposerVocabulary = {
   tag: "ui-brand-composer",
   topics: ["forms", "inputs", "text"],
   aka: ["composer", "prompt box", "prompt input", "chat input", "message box", "spell box", "command box"],
-  skeleton: { height: "8.5em" },
+  skeleton: "8.5 tall",
   noun: "composer",
   ui: false,
   description:

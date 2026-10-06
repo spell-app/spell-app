@@ -28,12 +28,7 @@ export const docsTokensVocabulary = {
     "style playground",
     "swatches"
   ],
-  skeleton: {
-    parts: [
-      { shape: "line", length: "short" },
-      { shape: "paragraph", lines: 5 }
-    ]
-  },
+  skeleton: "short line, 5 line paragraph",
   noun: "tokens",
   description:
     "A token table lists the CSS custom properties of a component family, or of the whole foundation, with their " +

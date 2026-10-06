@@ -24,7 +24,7 @@ export const statisticsVocabulary = {
   tag: "ui-statistics",
   topics: ["data display", "layout", "views"],
   aka: ["stats", "kpis", "metrics", "dashboard numbers"],
-  skeleton: false,
+  skeleton: "none",
   noun: "statistics",
   description: "A group of statistics.",
   attributes: [

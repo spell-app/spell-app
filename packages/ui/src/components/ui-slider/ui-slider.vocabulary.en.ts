@@ -17,7 +17,7 @@ export const sliderVocabulary = {
   tag: "ui-slider",
   topics: ["inputs", "forms", "controls", "modules"],
   aka: ["range", "range slider", "volume", "scrubber", "track bar"],
-  skeleton: { width: "16em", height: "1.25em" },
+  skeleton: "16 x 1.25",
   noun: "slider",
   description: "A slider lets people select values within a range.",
   attributes: [

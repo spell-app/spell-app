@@ -16,7 +16,7 @@ export const brandColorVocabulary = {
   tag: "ui-brand-color",
   topics: ["data display", "selection"],
   aka: ["swatch", "color chip", "colour chip", "color swatch", "color sample", "color tile"],
-  skeleton: { display: "inline", width: "3em", height: "3em" },
+  skeleton: "inline 3 x 3",
   noun: "color",
   ui: false,
   description:

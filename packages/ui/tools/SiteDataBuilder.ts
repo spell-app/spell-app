@@ -1,6 +1,6 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { fileURLToPath, pathToFileURL } from "node:url"
+import { fileURLToPath } from "node:url"
 
 import { ValueSets } from "../src/vocabulary/ValueSets.ts"
 import {
@@ -19,6 +19,7 @@ import { FamilyTokens } from "./FamilyTokens.ts"
 import { FoundationTokens } from "./FoundationTokens.ts"
 import { SiteSearchBuilder } from "./SiteSearchBuilder.ts"
 import { ThemeFamilies } from "./ThemeFamilies.ts"
+import { VocabularyFiles } from "./VocabularyFiles.ts"
 
 /****************
  * ### `SiteDataBuilder`
@@ -197,21 +198,10 @@ export class SiteDataBuilder {
   // ## Tags
   ////////////////
 
-  /** Every tag of every family under `folder`, from its `<tag>.vocabulary.en.ts` files. */
+  /** Every tag of every family under `folder`, from its `<tag>.vocabulary.en.ts` files (`VocabularyFiles`). */
   private async readTags(folder: string): Promise<RawTag[]> {
-    const tags: RawTag[] = []
-    if (!existsSync(folder)) return tags
-    for (const family of readdirSync(folder, { withFileTypes: true })) {
-      if (!family.isDirectory()) continue
-      for (const file of readdirSync(join(folder, family.name)).sort()) {
-        if (!file.endsWith(".vocabulary.en.ts")) continue
-        const module = (await import(pathToFileURL(join(folder, family.name, file)).href)) as Record<string, unknown>
-        for (const value of Object.values(module)) {
-          if (SiteDataBuilder.isVocabulary(value)) tags.push(SiteDataBuilder.tagFor(value, family.name))
-        }
-      }
-    }
-    return tags
+    const vocabularies = await VocabularyFiles.read(folder)
+    return vocabularies.map(({ folder: family, vocabulary }) => SiteDataBuilder.tagFor(vocabulary, family))
   }
 
   /** One vocabulary as a tag entry (before its family's page is known). */
@@ -312,11 +302,6 @@ export class SiteDataBuilder {
     }
     if (!names.length) return {}
     return { pages: Object.fromEntries(names.map((tag) => [tag, { ...seed.pages![tag]! }])) }
-  }
-
-  /** A vocabulary object (a `tag` and `attributes`), not a constant its module also exports. */
-  private static isVocabulary(value: unknown): value is ComponentVocabulary {
-    return typeof value === "object" && value !== null && "tag" in value && "attributes" in value
   }
 
   /**

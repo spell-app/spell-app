@@ -44,6 +44,7 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
     }
   },
   "ui-comments": { folder: "ui-comment" },
+  "ui-components": { folder: "ui-root" },
   "ui-container": { folder: "ui-container" },
   "ui-content": { folder: "ui-parts" },
   "ui-date": { folder: "ui-parts" },

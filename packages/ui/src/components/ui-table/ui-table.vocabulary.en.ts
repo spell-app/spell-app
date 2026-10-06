@@ -20,12 +20,7 @@ export const tableVocabulary = {
   tag: "ui-table",
   topics: ["tables", "data display", "basic", "collections"],
   aka: ["data table", "data grid", "grid", "spreadsheet"],
-  skeleton: {
-    parts: [
-      { shape: "line", length: "long" },
-      { shape: "paragraph", lines: 4 }
-    ]
-  },
+  skeleton: "long line, 4 line paragraph",
   noun: "table",
   description: "A table displays a collection of data grouped into rows.",
   attributes: [

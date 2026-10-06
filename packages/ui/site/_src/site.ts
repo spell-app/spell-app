@@ -11,7 +11,9 @@
  *      the site's layout glue (`./site.css`) -- extracted to `_assets/site.css`, which the page links
  *   3. `SiteData`, `BuiltInPacks`:  pointed at `_data/components.json` and `_assets/icon-packs/` from THIS file's
  *      URL, so a page at any depth finds them;  `DocsFamilies.add()`:  `<ui-root>` may load the `<ui-docs-*>`
- *      families (the library's root knows only the library's)
+ *      families (the library's root knows only the library's).  The layout's `<ui-components>` adds the same tags
+ *      as a component pack (`_assets/docs.components.json`), with their skeletons;  this call stays for a page that
+ *      mounts no layout
  *   4. `ThemePreference.restore()`:  the viewer's theme and colour scheme, re-applied (the scheme already was, by
  *      the page's inline `<head>` script, `ThemePreference.HEAD_SCRIPT`);  Spell unless the viewer picked another
  *   5. `defineSite()`:  the `<spell-site-header>` bar shared by every page the page server serves

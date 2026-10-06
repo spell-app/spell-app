@@ -2654,6 +2654,22 @@
       ]
     },
     {
+      "name": "ui-components",
+      "description": {
+        "kind": "markdown",
+        "value": "Components loads a component pack, so every root on the page can load the custom elements it lists on demand.\n\nAlso known as:  component pack, component manifest, component registry, import map, plugin, lazy loading.\n\n**Events:**  `ui-load`, `ui-error`"
+      },
+      "attributes": [
+        {
+          "name": "source",
+          "description": {
+            "kind": "markdown",
+            "value": "The pack:  a JSON array of `{ \"tag\", \"source\", \"load\"?, \"skeleton\"? }`, same origin.  Each `source` (the module that defines the tag) is relative to the pack;  `load` is `on-demand` (default:  when a root meets the tag) or `eager` (as soon as the pack is read);  `skeleton` is skeleton text (`inline 6 x 2.5`, `2 tall`, `18 wide: header, 3 line paragraph`, `none`).  Any tag, not only `ui-*`.\n\nTakes:  text"
+          }
+        }
+      ]
+    },
+    {
       "name": "ui-container",
       "description": {
         "kind": "markdown",

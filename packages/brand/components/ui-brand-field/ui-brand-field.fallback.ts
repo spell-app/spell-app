@@ -36,7 +36,7 @@ export class BrandFieldFallback extends NativeFallback<typeof brandFieldVocabula
   }
 
   /** A `<slot name>`, with `fallback` text shown while nothing is slotted. */
-  private namedSlot(name: string, fallback?: string | null): HTMLSlotElement {
+  private namedSlot(name: string, fallback?: string): HTMLSlotElement {
     const slot = this.slot(fallback)
     slot.name = name
     return slot

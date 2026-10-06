@@ -15,7 +15,7 @@ export const brandPhoneVocabulary = {
   tag: "ui-brand-phone",
   topics: ["containers", "media"],
   aka: ["phone frame", "device frame", "phone mockup", "device mockup", "app preview", "mobile preview"],
-  skeleton: { width: "18.75em", height: "32em" },
+  skeleton: "18.75 x 32",
   noun: "phone",
   ui: false,
   description: "A brand phone frames live app content as a phone:  a status bar on top, the app below.",
