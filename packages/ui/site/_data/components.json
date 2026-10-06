@@ -18751,7 +18751,7 @@
       "tokens": [
         {
           "name": "--ui-emoji-font-family",
-          "default": "\"Apple Color Emoji\", \"Segoe UI Emoji\", \"Noto Color Emoji\", \"Twemoji Mozilla\", \"Segoe UI Symbol\", var(--ui-font-family)",
+          "default": "var(--ui-font-family-emoji), var(--ui-font-family)",
           "type": "other"
         },
         {
@@ -18889,7 +18889,7 @@
       "tokens": [
         {
           "name": "--ui-flag-font-family",
-          "default": "\"Apple Color Emoji\", \"Segoe UI Emoji\", \"Noto Color Emoji\", \"Twemoji Mozilla\", \"Segoe UI Symbol\", var(--ui-font-family)",
+          "default": "var(--ui-font-family-emoji), var(--ui-font-family)",
           "type": "other"
         },
         {
@@ -24504,6 +24504,12 @@
           "type": "other"
         },
         {
+          "name": "--ui-font-family-emoji",
+          "default": "\"Apple Color Emoji\", \"Segoe UI Emoji\", \"Noto Color Emoji\", \"Twemoji Mozilla\", \"Segoe UI Symbol\"",
+          "description": "Font stack for emojis.",
+          "type": "other"
+        },
+        {
           "name": "--ui-font-weight-light",
           "default": "300",
           "description": "Font weight `light`.",
@@ -27004,14 +27010,6 @@
       "title": "Duo",
       "families": [
         "ui-loader"
-      ],
-      "global": false
-    },
-    {
-      "name": "famfamfam",
-      "title": "Famfamfam",
-      "families": [
-        "ui-flag"
       ],
       "global": false
     },

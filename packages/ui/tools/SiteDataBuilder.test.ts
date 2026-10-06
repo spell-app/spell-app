@@ -70,8 +70,7 @@ describe("SiteDataBuilder.build()", () => {
       families: ["ui-button"],
       global: false
     })
-    // `.ui.flag.ad` is Andorra's flag, not an ad
-    expect(theme("famfamfam").families).toEqual(["ui-flag"])
+    expect(theme("famfamfam")).toBeUndefined()
     expect(theme("timeline").families).toEqual(["ui-feed"])
     expect(theme("github")).toMatchObject({
       families: expect.arrayContaining(["ui-button", "ui-menu", "ui-table"]),

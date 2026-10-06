@@ -89,6 +89,8 @@
    */
   .ui.dropdown {
     --_ui-dropdown-radius: var(--ui-dropdown-radius, var(--ui-radius));
+    /* `<ui-flag>`'s token:  a page's flag font (its "A flag font") reaches menu flags too */
+    --_ui-flag-font-family: var(--ui-flag-font-family, var(--ui-font-family-emoji), var(--ui-font-family));
     --_ui-dropdown-duration: var(--ui-dropdown-duration, var(--ui-duration-fast));
     --_ui-dropdown-color: var(--ui-dropdown-color, var(--ui-text-color));
     --_ui-dropdown-background: var(--ui-dropdown-background, var(--ui-surface));
@@ -621,6 +623,7 @@
   .ui.dropdown > .text ::slotted(.flag),
   .ui.dropdown .menu > :is(.item, .header) > .flag {
     display: inline-block;
+    font-family: var(--_ui-flag-font-family);
     line-height: 1;
   }
   .ui.dropdown > .text [class*="right floated"],

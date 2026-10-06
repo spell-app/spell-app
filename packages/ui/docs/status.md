@@ -51,7 +51,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | grid | A | `ui-grid`, `ui-row`, `ui-column` | ✅ | 77 | 7.84 | — | [✅](../../../ui/components/ui-grid.html) | 🚧 local | stackable / doubling / per-device widths / `reversed` by container query, or the screen with `stack-with="page"` (rows and columns follow the grid) |
 | image | A | `ui-image`, `ui-images` | ✅ | 57 | 5.57 | — | [✅](../../../ui/components/ui-image.html) | 🚧 local | |
 | text | A | `ui-text` | ✅ | 39 | 2.70 | — | [✅](../../../ui/components/ui-text.html) | 🚧 local | |
-| flag | A | `ui-flag` | ✅ | 45 | 6.08 | — | [✅](../../../ui/components/ui-flag.html) | 🚧 local | |
+| flag | A | `ui-flag` | ✅ | 45 | 6.08 | — | [✅](../../../ui/components/ui-flag.html) | 🚧 local | emoji only, by design (2026-10-06, epic `wwod-spell-ui` J47):  the `famfamfam` sprite theme removed;  `--ui-flag-font-family` (default `--ui-font-family-emoji`) also read by `<ui-dropdown>` / `<ui-select>` row flags;  docs:  "A flag font" (an opt-in polyfill font for Windows Chromium;  `ui` ships none) |
 | loader | A | `ui-loader` | ✅ | 44 | 4.26 | — | [✅](../../../ui/components/ui-loader.html) | 🚧 local | |
 | placeholder | A | `ui-placeholder` (+ `-header`, `-paragraph`, `-line`, `-image`) | ✅ | 47 | 5.90 | — | [✅](../../../ui/components/ui-placeholder.html) | 🚧 local | |
 | input | A | `ui-input`, `ui-textarea` | ✅ | 70 | 10.38 | ✅ | [✅](../../../ui/components/ui-input.html) + [textarea](../../../ui/components/ui-textarea.html) | 🚧 local | form-associated;  numbers (`type="number"`, `inputmode` decimal / numeric) right-aligned in tabular figures (`--ui-input-numeric-align`) |

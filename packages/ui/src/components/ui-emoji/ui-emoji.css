@@ -51,15 +51,7 @@
 
   /* Tokens:  one per `emoji.variables` entry that still matters, each the private alias of its public token. */
   .ui.emoji {
-    --_ui-emoji-font-family: var(
-      --ui-emoji-font-family,
-      "Apple Color Emoji",
-      "Segoe UI Emoji",
-      "Noto Color Emoji",
-      "Twemoji Mozilla",
-      "Segoe UI Symbol",
-      var(--ui-font-family)
-    );
+    --_ui-emoji-font-family: var(--ui-emoji-font-family, var(--ui-font-family-emoji), var(--ui-font-family));
     --_ui-emoji-opacity: var(--ui-emoji-opacity, 1);
     --_ui-emoji-line-height: var(--ui-emoji-line-height, 1);
     --_ui-emoji-loading-duration: var(--ui-emoji-loading-duration, 2s);

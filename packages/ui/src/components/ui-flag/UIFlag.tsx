@@ -14,7 +14,7 @@ import flagCSS from "./ui-flag.css?inline"
  * A country flag:  `<span class="ui [size] flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`.
  * - The glyph is the Unicode flag emoji of `country` (`FlagCountry`);  no sprite, no per-country CSS.
  * - The resolved code is also a class word after the noun (`fr`, `gb-eng`;  none when unknown):  Fomantic's own
- *   `fr flag` grammar, the hook a sprite theme selects on (`themes/famfamfam.css`).
+ *   `fr flag` grammar, which a page's own CSS may select on.
  * - Name:  `UI.i18n.displayName("region", …)` for a country, which follows `UI.i18n.locale`;  the vocabulary's
  *   texts for the rainbow, pirate, England ... flags.
  * - Unknown country:  an EMPTY root with no role (an unnamed `role=img` fails axe), which keeps its line box.
@@ -42,7 +42,7 @@ export class UIFlag extends E.UIElement<typeof flagVocabulary> {
     { lazy: true }
   )
 
-  /** The resolved code as a class word, for themes that draw flags from a sprite. */
+  /** The resolved code as a class word (Fomantic's `fr flag`), for a page's own CSS. */
   protected override extraClasses(): string | undefined {
     return this.country().code || undefined
   }

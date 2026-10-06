@@ -4,8 +4,7 @@
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-flag country="fr" size="large">`
  *   => `ui large flag fr`.  The country is CONTENT:  the Unicode flag emoji (`🇫🇷`), which is what
  *   Fomantic 2.9's default theme draws too (Twemoji SVGs named by the same code points).  Its resolved code is
- *   ALSO a class word after the noun, as in Fomantic's `fr flag`:  no rule here reads it, it's the hook a sprite
- *   theme selects on (`themes/famfamfam.css`).
+ *   ALSO a class word after the noun, as in Fomantic's `fr flag`:  no rule here reads it, a page's own CSS may.
  * - Resolving `country` (`FlagCountry`):
  *   - normalize:  trim, lowercase, `_` => space, collapse whitespace (`United_States` ~== `united states`)
  *   - `FLAG_ALIASES[name] ?? name` (`ui-flag.types.ts`) => a code:  an ISO 3166-1 alpha-2 code, or a key of
