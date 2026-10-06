@@ -75,15 +75,18 @@ export class SpellStatement<
    * - For a `parse()` which understood what it read, but mustn't accept it:  return this, NOT `undefined`,
    *   so the error says why, instead of "Don't understand ...".
    * - `BlockLine` reports it as its line's error, and commits nothing:  the line compiles to the error.
+   * - It competes with `match`'s priority (`P.Match.priority`):  a plainer rule which merely fits the same words
+   *   can't take the line instead, e.g. `quoted_type_expression` taking `it "is a suit"` as an empty method.
    */
   static refuse(match: P.Match, message: string): P.Match {
-    const { scope, tokens } = match
+    const { scope, tokens, rule } = match
     return new P.Match({
       scope,
       rule: scope.getRuleOrDie("parse_error"),
       matched: tokens,
       tokens: [...tokens],
-      message
+      message,
+      priority: rule.priority
     })
   }
 

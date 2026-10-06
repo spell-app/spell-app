@@ -366,6 +366,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - Refused statements:  a `parse()` which understood a statement but mustn't take it
   returns `SpellStatement.refuse(match, message)`, NOT `undefined`, which would say only "Don't understand ...".
   - a `parse_error` match over its tokens, with `message`:  `BlockLine` reports it
+  - it competes with the REFUSING rule's priority (`P.Match.priority`), so a plainer rule matching the same words
+    can't take the line instead;  refuse only what the rule matched to the line's end, or it beats a longer match
   - used by the property declarations (`SpellStatement.refuseBuiltInType()`) and `assignment_statement` --
     see "Built-in types"
   - errors inside JSX `{...}` live in the JSX rules' `match.data`, not `matched`;  `BlockLine` gathers them from
@@ -444,12 +446,16 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   `static get instanceType() { return Card }` (`create_list_type`).
 - A property, alias or phrase on a type nobody declares is refused (`SpellStatement.refuseUnknownType()`).
 
-## Inferred phrases:  `- it "is a suit"`
+## Inferred phrases:  `- it "is a (suit)"`
 
-- `quoted_property_formula` with no `for its ...` (an outline body's `{type:subject_it} {alias:text}`):  `parse()`
-  INFERS the placeholders (`inferPlaceholders()`):  each word naming, by its singular, a property of the type with a
-  list of values -- its own (`as one of`), or a value kind's -- e.g. `is the rank of suits` => `is the (rank) of
-  (suits)`, sources `rank`, `suit`.  None:  not ours, so `it "is face up" if ...` stays a `quoted_type_expression`.
+- `quoted_property_formula` with no `for its ...` (an outline body's `{type:subject_it} {alias:text}`, the whole
+  line):  `parse()` INFERS what each blank reads (`inferPlaceholders()`).  A blank is a word in parens, naming by its
+  singular a property of the type with a list of values -- its own (`as one of`), or a value kind's -- e.g. `is the
+  (rank) of (suits)`, sources `rank`, `suit`.  A bare word is always just a word (plan doc J9).
+  - More after the phrase:  not ours, so `it "is face up" if ...` stays a `quoted_type_expression`.
+  - No parens (`it "is a suit"`), or a blank naming no such property (`it "is a (color)"`):  REFUSED, saying why.
+    A refused match competes with its rule's priority (`P.Match.priority`, read by `Choice.getBestMatch()`), so
+    `quoted_type_expression` can't take the line as an empty method instead.
 - A value kind declared FURTHER DOWN (a stub here, e.g. the card above the deck):  its placeholder's syntax is
   `(expression:{constant}|{number})`, and `QuotedPropertyRule` is specialized with `kinds: { suit: "Suit" }`;  its
   `parse()` checks the word against the kind's values WHERE THE PHRASE IS USED (`kindValue()`, into

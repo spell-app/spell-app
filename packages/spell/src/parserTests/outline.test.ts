@@ -246,10 +246,24 @@ describe("outline style", () => {
       expect(js).toContain("get is_face_up() {")
     })
 
-    test("only a word in parens is a blank (J9):  `it \"is my suit\" if ...` is a plain phrase, `suit` a word", () => {
+    test('only a word in parens is a blank (J9):  `it "is my suit" if ...` is a plain phrase, `suit` a word', () => {
       const js = compile([...DECK, ...CARD, '\t- it "is my suit" if its suit is spades'])
       expect(js).toContain("get is_my_suit() {")
       expect(js).not.toContain("is_my_$suit")
+    })
+
+    test('no blank and no `if` is an error, not an empty method (J9):  `it "is a suit"`', () => {
+      expect(errorsOf([...DECK, ...CARD, '\t- it "is a suit"'])).toEqual([
+        `10:3 "is a suit" has no blank:  put the word that varies in parens, e.g. "is a (suit)", ` +
+          `or say when it's true, "is a suit" if ...`
+      ])
+    })
+
+    test('a blank naming no property with a list of values is an error (J9):  `it "is a (color)"`', () => {
+      expect(errorsOf([...DECK, ...CARD, '\t- it "is a (color)"'])).toEqual([
+        `10:3 "(color)" names no property of a card with a list of values, ` +
+          `e.g. its "suit" is one of clubs, diamonds, hearts or spades`
+      ])
     })
   })
 
@@ -384,4 +398,10 @@ function compile(lines: string[]): string {
     .split("\n")
     .filter((line) => line.trim())
     .join("\n")
+}
+
+/** The parse errors of `lines`, as one file of its own project. */
+function errorsOf(lines: string[]): string[] {
+  const { files } = parseSpellProject([{ path: "/test.spell", contents: lines.join("\n") }])
+  return files[0]!.errors
 }
