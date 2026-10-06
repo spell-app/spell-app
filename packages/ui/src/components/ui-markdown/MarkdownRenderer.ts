@@ -6,7 +6,8 @@ import type { MDEngine } from "./MDEngine"
  * ### `MarkdownRenderer`
  * What `<ui-markdown>` asks to render:  loads an engine on first use, each in its own lazy chunk.
  * - `load()`:  marked (`MarkdownEngine`), for plain `<ui-markdown>`.
- * - `loadMD()`:  spell's engine (`MDEngine`, on `@spell-app/markdown`'s bundle), for `<ui-markdown editable>`.
+ * - `loadMD()`:  spell's engine (`MDEngine`, on `@spell-app/markdown`'s bundle), for `<ui-markdown editable>`, and the
+ *   families its markup draws with.
  * - `loadSanitizer()`:  DOMPurify (`MarkdownSanitizer`), only for `sanitized`.
  * - The element only knows `render(text, options) -> { html, headings }` (`MarkdownRendering`).
  ****************/
@@ -43,9 +44,11 @@ export class MarkdownRenderer {
     ))
   }
 
-  /** Spell's engine, loaded on first use. */
+  /** Spell's engine, loaded on first use, with the families its markup draws with (`mdFamilies()`). */
   static loadMD(): Promise<MDEngine> {
-    return (MarkdownRenderer.md ??= MarkdownRenderer.mdLoader().then((module) => module.MDEngine.instance))
+    return (MarkdownRenderer.md ??= Promise.all([MarkdownRenderer.mdLoader(), MarkdownRenderer.mdFamilies()]).then(
+      ([module]) => module.MDEngine.instance
+    ))
   }
 
   /** DOMPurify, loaded on first use. */
@@ -53,5 +56,23 @@ export class MarkdownRenderer {
     return (MarkdownRenderer.sanitizer ??= MarkdownRenderer.sanitizerLoader().then(
       (module) => module.MarkdownSanitizer.instance
     ))
+  }
+
+  /**
+   * The families `MDEngine`'s markup draws with (`ui-header`, `ui-list`, `ui-table`, `ui-checkbox` tasks ...), imported
+   * beside it;  `ui-code` and `ui-message` come with `<ui-markdown>`'s barrel.
+   * - HERE, not as static imports in `MDEngine`:  there they made its lazy chunk import the core (through the
+   *   families), and Rolldown then kept core's modules out of `core.js` (epic `wwod-spell-ui`, I12).  An `import()`
+   *   of a family is its own lib entry (`ui-table.js`):  no new chunk.
+   */
+  private static mdFamilies(): Promise<unknown[]> {
+    return Promise.all([
+      import("$/ui/components/ui-checkbox"),
+      import("$/ui/components/ui-divider"),
+      import("$/ui/components/ui-list"),
+      import("$/ui/components/ui-parts"),
+      import("$/ui/components/ui-segment"),
+      import("$/ui/components/ui-table")
+    ])
   }
 }

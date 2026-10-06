@@ -1,3 +1,4 @@
+import { flatParentFor } from "$/ui/util"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 import type { OwnerFindOptions, OwnerLookup, OwnerMatch } from "./elements.types"
@@ -11,8 +12,8 @@ import type { OwnerFindOptions, OwnerLookup, OwnerMatch } from "./elements.types
  *     `.ui.card > .content > .header`, with `depth` saying how many custom elements sit between
  *   - an optional `barrier` stops the climb, e.g. at a component that doesn't own this part
  * - Climbs the FLAT tree, so slotting and shadow roots don't hide the owner:  `assignedSlot`, then
- *   `parentElement`, then the shadow root's `host` -- the same order as `$/ui/util`'s `closestAcrossShadow()`,
- *   which can't be reused because it matches a selector and doesn't count or stop.
+ *   `parentElement`, then the shadow root's `host`:  `$/ui/util`'s `flatParentFor()`, the climb `closestAcrossShadow()` uses
+ *   too (which can't be reused:  it matches a selector, and doesn't count or stop).
  * - Call on `connectedCallback` and `slotchange`:  moving or re-slotting a part changes its owner.
  */
 export class OwnerContext {
@@ -24,7 +25,7 @@ export class OwnerContext {
    */
   static find(element: Element, owners: OwnerLookup, options: OwnerFindOptions = {}): OwnerMatch | undefined {
     let depth = 0
-    for (let current = OwnerContext.parentOf(element); current; current = OwnerContext.parentOf(current)) {
+    for (let current = flatParentFor(element); current; current = flatParentFor(current)) {
       const tag = current.localName
       const noun = OwnerContext.nounOf(current, owners)
       if (noun) return { owner: current, ownerNoun: noun, depth }
@@ -60,17 +61,6 @@ export class OwnerContext {
   // ## Internals
   ////////////////
 
-  /**
-   * Flat-tree parent:  slot (if slotted), else light parent, else shadow host.
-   * - No `ShadowRoot` global:  the server render climbs linkedom elements in node (`$/ui/server`).
-   */
-  private static parentOf(element: Element): Element | null {
-    if (element.assignedSlot) return element.assignedSlot
-    if (element.parentElement) return element.parentElement
-    const root = element.getRootNode() as Partial<ShadowRoot>
-    return root.nodeType === DOCUMENT_FRAGMENT_NODE && root.host ? root.host : null
-  }
-
   /** Owner noun of `element` (by its tag) per `owners`, or `undefined` if it isn't an owner. */
   private static nounOf(element: Element, owners: OwnerLookup): string | undefined {
     const tag = element.localName
@@ -86,6 +76,3 @@ export class OwnerContext {
     return tag.slice(tag.indexOf("-") + 1)
   }
 }
-
-/** `Node.DOCUMENT_FRAGMENT_NODE`, without the `Node` global. */
-const DOCUMENT_FRAGMENT_NODE = 11

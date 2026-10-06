@@ -82,7 +82,8 @@ house style every package shares.  Only what's local is below;  a section named 
     widgets the docs site is built from, laid out and written EXACTLY like a component family (same files, same
     rules), but NOT components:  no lib entry, not in `ComponentDefinitions.all` / the component list
     (`ComponentDefinitions.docs`), every tag filed under the `documentation` topic.  `<ui-root>` knows them (`yarn gen:root`
-    scans this folder too;  `RootLoader` has a second literal glob for it).  A family that renders other widgets in
+    scans this folder too), but loads them only where the page's bundle called `DocsFamilies.add()` (the site's
+    does;  never the library's own `RootLoader`:  epic `wwod-spell-ui`, I12).  A family that renders other widgets in
     its shadow root imports their families in its barrel, and adds their tags to `DocsJSXTags`.  They read the site's
     data through `SiteData` (`site/_data/components.json`), NEVER the vocabularies.  The barrel's header says how to
     add one
@@ -398,6 +399,17 @@ As WWOD §12, plus:
   `renderThumb()` / `thumbElement()` (WWOD §17's inner functions are for function components;  epic
   `wwod-spell-ui`, Q12).
 - The constructor of `UIElement` stays `(host, definition, attrs)`:  the forked custom-element layer calls it.
+
+## Logging
+
+As WWOD §19, EXCEPT the `Logger`:  `$/util`'s would add bytes (and colours only Chrome's console draws) to every
+component bundle (epic `wwod-spell-ui`, Q5).  Instead:
+
+- Every console warning goes through `Warnings` (`$/ui/util`):  `Warnings.warn(source, message, ...data)` for what
+  the page's author must fix, `Warnings.devWarn(...)` for advice in development builds only.  ONE format:
+  `[@spell-app/ui] <source>:  <what happened>`, then the data.  NEVER a bare `console.warn`.
+- The one `console.error`:  `UIElement`'s when an element's render throws (WWOD §19 › "`console.*` is reserved for").
+- `tools/` and `scripts/` are node CLIs:  their output goes to `process.stdout` / `stderr`.
 
 ## Tests
 

@@ -239,6 +239,7 @@ export class ReportTables {
       runtimeChunks: "no Rolldown runtime chunk (`rolldown-runtime-<hash>.js`):  its helpers stay in `core.js`",
       coreOutsideCore: "no shared-entry module outside its own chunk (`core.js`, `forms.js` ...)",
       libraryBundled: "no Solid / fork module in `dist/`",
+      docsBundled: "no doc-only `<ui-docs-*>` module in `dist/`",
       lazyInEager: "runtime + icon data only in lazy chunks",
       unattributed: "every module attributed to a bucket",
       peersMissing: "every external specifier is in the peer set",

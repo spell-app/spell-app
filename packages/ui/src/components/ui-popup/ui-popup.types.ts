@@ -59,9 +59,6 @@ export const DIALOG = "dialog"
 /** Popover modes. */
 export const HINT = "hint"
 
-/** `Node.ELEMENT_NODE`, without the `Node` global (a server render has none). */
-export const ELEMENT_NODE = 1
-
 /** CSS properties and keywords set inline. */
 export const ANCHOR_NAME = "anchor-name"
 export const POSITION_ANCHOR = "position-anchor"

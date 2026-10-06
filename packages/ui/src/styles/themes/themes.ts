@@ -71,7 +71,7 @@ export class ThemeSheets {
    * - `"classic"`:  `classic` alone.
    * - `undefined` (or `""`):  neither, our own look.
    * - `styles`:  the registry to use, default the page runtime's `UI.styles` (loading the runtime if need be;
-   *   a DYNAMIC import, so `$/ui/styles` stays free of the runtime chunk).
+   *   a DYNAMIC import of `core`, so `$/ui/styles` stays free of `core` and the runtime chunk).
    * - Concurrent calls:  the LAST one wins, even if an earlier theme's chunk arrives after it.
    * - Throws on an unknown name, or `"dark"` (see the class docs).
    */
@@ -101,10 +101,16 @@ export class ThemeSheets {
   /** counts `apply()` calls, so a slow earlier one can't land after a later one */
   private static calls = 0
 
-  /** The page runtime's `Styles`, loading the runtime first;  `undefined` outside a browser. */
+  /**
+   * The page runtime's `Styles`, loading the runtime first;  `undefined` outside a browser.
+   * - `loadUI` through the `core` ENTRY (`$/ui/core`), never `import("$/ui/runtime")`:  that barrel is no entry, so
+   *   its `import()` made a NEW lazy chunk out of `load.ts` + `runtime.types.ts`, which `core.js` holds too, and
+   *   Rolldown then split both out of `core.js` (epic `wwod-spell-ui`, I12).  `core.js` is already loaded wherever
+   *   the runtime is (`UIRuntime`'s chunk imports it), so this costs nothing.
+   */
   private static async pageStyles(): Promise<Styles | undefined> {
     if (typeof document === "undefined") return undefined
-    const { loadUI } = await import("$/ui/runtime")
+    const { loadUI } = await import("$/ui/core")
     return (await loadUI()).styles
   }
 

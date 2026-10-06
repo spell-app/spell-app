@@ -2,7 +2,7 @@ import { onSettled, type Accessor } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 // through the `core` ENTRY, see `FormElement.ts`
-import { Cell } from "$/ui/core"
+import { Cell, NodeType } from "$/ui/core"
 
 import type { FormHost } from "./FormHost"
 
@@ -163,7 +163,7 @@ export class ControlLabels {
    */
   private textIn(node: Node): string {
     if (node === this.host) return ""
-    if (node.nodeType === TEXT_NODE) return node.textContent ?? ""
+    if (node.nodeType === NodeType.text) return node.textContent ?? ""
     let text = ""
     for (const child of node.childNodes) text += this.textIn(child)
     return text
@@ -237,7 +237,7 @@ class LabelWatch {
       }
       for (const nodes of [record.addedNodes, record.removedNodes]) {
         for (const node of nodes) {
-          if (node.nodeType !== ELEMENT_NODE) continue
+          if (node.nodeType !== NodeType.element) continue
           const element = node as Element
           const labels = isLabel(element) ? [element] : element.getElementsByTagName(LABEL)
           for (const label of labels as Iterable<HTMLLabelElement>) {
@@ -271,12 +271,6 @@ const ARIA_LABELLEDBY = "aria-labelledby"
 
 /** Host attributes that change the name (`id` changes which `<label for>`s match). */
 const WATCHED_ATTRIBUTES = [ARIA_LABEL, ARIA_LABELLEDBY, "id"]
-
-/** `Node.ELEMENT_NODE`, without the `Node` global (a server render has none). */
-const ELEMENT_NODE = 1
-
-/** `Node.TEXT_NODE`, without the `Node` global. */
-const TEXT_NODE = 3
 
 /** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global. */
 const DOCUMENT_POSITION_FOLLOWING = 4

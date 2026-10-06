@@ -3,6 +3,7 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
+  flatParentFor,
   HostAttribute,
   IconGlyph,
   RootSettings,
@@ -11,7 +12,8 @@ import {
   UIT,
   proto,
   UIElement,
-  type Disposer
+  type Disposer,
+  Warnings
 } from "$/ui/core"
 
 import { LoaderMessage, type RootLoading } from "./LoaderMessage"
@@ -285,7 +287,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
       if (request !== this.settingsRequest || !this.host.isConnected) return
       // never this root's own set:  its parent is whatever is ABOVE it
       const outer = () => {
-        const above = RootSettings.parentOf(this.host)
+        const above = flatParentFor(this.host)
         return above ? IconGlyph.packsFor(above, ui.icons) : ui.icons
       }
       RootSettings.set(this.host, { emoji, icons: ui.icons.scope(packs, { assets, parent: outer }) })
@@ -385,6 +387,6 @@ export class UIRoot extends UIElement<RootVocabulary> {
     this.reported.add(key)
     const failure: RootFailure = error === undefined ? { tag, reason } : { tag, reason, error }
     this.failures.push(failure)
-    if (this.emit("ui-error", failure)) console.warn(`<ui-root>:  <${tag}> didn't load (${reason})`, error ?? "")
+    if (this.emit("ui-error", failure)) Warnings.warn("<ui-root>", `<${tag}> didn't load (${reason}):`, error ?? "")
   }
 }

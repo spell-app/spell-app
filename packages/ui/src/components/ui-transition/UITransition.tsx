@@ -9,7 +9,8 @@ import {
   type AnimateOptions,
   type AnimationDirection,
   type AnimationName,
-  UIT
+  UIT,
+  Warnings
 } from "$/ui/core"
 
 import { TRANSITION_ANIMATIONS, TRANSITION_ATTENTION_ANIMATIONS } from "./ui-transition.types"
@@ -144,7 +145,7 @@ export class UITransition extends UIElement<TransitionVocabulary> {
   transition(animation = this.animationName()): Promise<boolean> {
     const name = UITransition.fomanticName(animation)
     if (!name) {
-      console.warn(`[@spell-app/ui] <${this.host.localName}>: unknown animation ${JSON.stringify(animation)}`)
+      Warnings.warn(`<${this.host.localName}>`, `unknown animation ${JSON.stringify(animation)}`)
       return Promise.resolve(false)
     }
     if (UITransition.isAttention(name)) return this.enqueue(STATIC, name)

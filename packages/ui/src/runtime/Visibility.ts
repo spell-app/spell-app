@@ -1,3 +1,4 @@
+import { Warnings } from "$/ui/util"
 import type {
   Disposer,
   LazyImageOptions,
@@ -217,9 +218,10 @@ class VisibilityWatch {
       void ready.then(() => this.observers.length && this.schedule())
     } else if (import.meta.env.DEV && !this.warned) {
       this.warned = true
-      console.warn(
-        `UI.observeVisibility():  <${this.element.localName}> is \`display: contents\` with no rendered box inside;` +
-          `  nothing will fire.  Observe an element with a box.`
+      Warnings.warn(
+        "UI.observeVisibility()",
+        `<${this.element.localName}> is \`display: contents\` with no rendered box inside;  nothing will fire.  ` +
+          `Observe an element with a box.`
       )
     }
     return false

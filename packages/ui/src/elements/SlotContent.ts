@@ -1,5 +1,7 @@
 import { createSignal, onSettled, type Accessor } from "solid-js"
 
+import { NodeType } from "$/ui/util"
+
 /**
  * Which of a host's slots have light-DOM content, as signals -- e.g. an icon-only button needs to know that
  * its default slot is empty, and shorthand attributes yield to slotted content.
@@ -41,15 +43,9 @@ export class SlotContent {
   private scan(): Set<string> {
     const names = new Set<string>()
     for (const node of this.host.childNodes) {
-      if (node.nodeType === ELEMENT_NODE) names.add((node as Element).getAttribute("slot") ?? "")
-      else if (node.nodeType === TEXT_NODE && node.textContent?.trim()) names.add("")
+      if (node.nodeType === NodeType.element) names.add((node as Element).getAttribute("slot") ?? "")
+      else if (node.nodeType === NodeType.text && node.textContent?.trim()) names.add("")
     }
     return names
   }
 }
-
-/** `Node.ELEMENT_NODE`, without the `Node` global. */
-const ELEMENT_NODE = 1
-
-/** `Node.TEXT_NODE`, without the `Node` global. */
-const TEXT_NODE = 3

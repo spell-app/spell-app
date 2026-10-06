@@ -16,3 +16,6 @@ export * from "$/ui/elements/MenuOptions"
 export * from "$/ui/elements/FormHost"
 export * from "$/ui/elements/FormElement"
 export * from "$/ui/elements/ControlLabels"
+
+/** The `forms` namespace:  `import { F } from "$/ui/forms"`, then `F.FormElement` (`AGENTS.md`). */
+export * as F from "$/ui/forms"

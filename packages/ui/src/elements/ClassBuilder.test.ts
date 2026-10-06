@@ -169,7 +169,7 @@ describe("ClassBuilder width options", () => {
     expect(columns.build({ width: "1/3" })).toBe("five wide column")
     expect(columns.build({ width: "33%" })).toBe("five wide column")
     expect(warn).toHaveBeenCalledTimes(2)
-    expect(warn.mock.calls[0][0]).toMatch(/5\.33 of 16 columns, using 5/)
+    expect(warn.mock.calls[0][0]).toMatch(/5\.33 of 16 columns;  using 5/)
   })
 })
 

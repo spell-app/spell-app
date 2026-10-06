@@ -9,7 +9,7 @@
  * - Safe to import anywhere, including `*.types.ts` files and the runtime's lazily-loaded chunk.
  * - NOTE: no namespace here (unlike `UI` / `E`):  utilities are imported by name,
  *   e.g. `import { proto, kebabCase } from "$/ui/util"`.
- * - Nothing package-specific lives here yet.
+ * - Package-specific:  `Warnings` (`ui`'s console warnings).
  */
 
 export * from "$/util/class"
@@ -17,3 +17,5 @@ export * from "$/util/decorators"
 export * from "$/util/dom"
 export * from "$/util/string"
 export * from "$/util/util.types"
+
+export * from "./Warnings"

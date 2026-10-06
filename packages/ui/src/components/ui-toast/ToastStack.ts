@@ -1,5 +1,4 @@
 import {
-  Converters,
   UI,
   UIElement,
   ValueSets,
@@ -7,7 +6,8 @@ import {
   type ToastAction,
   type ToastHandle,
   type ToastOptions,
-  type ToastProvider
+  type ToastProvider,
+  Warnings
 } from "$/ui/core"
 
 import { toastVocabulary } from "./ui-toast.vocabulary.en"
@@ -196,7 +196,7 @@ export class ToastStack implements ToastProvider {
   private container(options: ToastOptions): HTMLElement {
     let position = options.position ?? DEFAULT_POSITION
     if (!POSITIONS.includes(position)) {
-      Converters.warn(`UI.toast(): unknown position "${position}", using "${DEFAULT_POSITION}"`)
+      Warnings.devWarn("UI.toast()", `unknown position "${position}";  using "${DEFAULT_POSITION}"`)
       position = DEFAULT_POSITION
     }
     const key = options.horizontal ? `${position} ${HORIZONTAL}` : position

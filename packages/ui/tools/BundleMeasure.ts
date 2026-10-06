@@ -42,7 +42,7 @@ import { NodePackage } from "./NodePackage.ts"
  * - Scenarios add, per family, only the shared entries its chunk actually imports (`families`):  a page with a
  *   button pays for `core`, a page with a dropdown for `core` + `forms`.
  * - Also checks `dist/`'s structure (`MeasureChecks`):  every family imports core, no Rolldown runtime chunk, no
- *   shared-entry / library code elsewhere, nothing unattributed.
+ *   shared-entry / library code elsewhere, no doc-only code, nothing unattributed.
  * - `yarn measure`:  `await new BundleMeasure(PACKAGE).write()`, into `tools/results/measure-results.json`.
  * - Plugins that only matter for a real build (`vite:dts`, `spell-emit-icon-packs`) are dropped from the measured
  *   builds:  they'd write declaration files or copy 2,000 icon files per build.
@@ -113,6 +113,7 @@ export class BundleMeasure {
       runtimeChunks: [],
       coreOutsideCore: [],
       libraryBundled: [],
+      docsBundled: [],
       lazyInEager: [],
       unattributed: [],
       peersMissing: [],
@@ -130,6 +131,7 @@ export class BundleMeasure {
         const shared = bucket.startsWith("shared:") ? sharedChunks.get(bucket.slice("shared:".length)) : undefined
         if (bucket.startsWith("shared:") && chunk !== shared) checks.coreOutsideCore.push(id)
         if (bucket === "library") checks.libraryBundled.push(id)
+        if (bucket === "docs") checks.docsBundled.push(id)
         if ((bucket === "runtime" || bucket === "icons" || bucket === "data") && !lazy) checks.lazyInEager.push(id)
         if (bucket === "other") checks.unattributed.push(id)
       }

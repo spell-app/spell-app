@@ -1,3 +1,4 @@
+import { flatParentFor } from "$/ui/util"
 import type { IconPacks } from "$/ui/runtime"
 
 import { Cell } from "./Cell"
@@ -15,7 +16,7 @@ export type RootSettingsValue = {
  * The settings each `<ui-root>` gives its subtree (icon packs, emoji names), by root element, and the lookup from any
  * element inside:  the NEAREST root that sets a key wins, so a nested root inherits what it doesn't set.
  * - In `core`, not in the root's family:  icons and emoji read it, and must never import `<ui-root>`.
- * - The lookup climbs the FLAT tree (slot, parent, shadow host), so an icon inside a component's shadow root finds the
+ * - The lookup climbs the FLAT tree (`flatParentFor()`:  slot, parent, shadow host), so an icon inside a component's shadow root finds the
  *   root around the component.
  * - `generation` changes whenever a root's settings do:  icons and emoji inside track it and redraw.  Page-wide on
  *   purpose:  a root changing its packs is rare.
@@ -44,24 +45,10 @@ export class RootSettings {
 
   /** `key` from the nearest root at or above `element` that sets it, else `undefined`. */
   static nearest<K extends keyof RootSettingsValue>(element: Element | null, key: K): RootSettingsValue[K] | undefined {
-    for (let current = element; current; current = RootSettings.parentOf(current)) {
+    for (let current: Element | null | undefined = element; current; current = flatParentFor(current)) {
       const value = RootSettings.byRoot.get(current)?.[key]
       if (value !== undefined) return value
     }
     return undefined
   }
-
-  /**
-   * `element`'s parent in the flat tree:  its slot, else its parent, else its shadow root's host;  `null` at the top.
-   * - No `ShadowRoot` global:  the server render climbs linkedom elements in node (`$/ui/server`).
-   */
-  static parentOf(element: Element): Element | null {
-    if (element.assignedSlot) return element.assignedSlot
-    if (element.parentElement) return element.parentElement
-    const root = element.getRootNode() as Partial<ShadowRoot>
-    return root.nodeType === DOCUMENT_FRAGMENT_NODE && root.host ? root.host : null
-  }
 }
-
-/** `Node.DOCUMENT_FRAGMENT_NODE`, without the `Node` global. */
-const DOCUMENT_FRAGMENT_NODE = 11

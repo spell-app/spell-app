@@ -1,3 +1,4 @@
+import { Warnings } from "$/ui/util"
 import { APP_STYLESHEET_ID, LAYER_ORDER } from "./runtime.types"
 
 /**
@@ -126,7 +127,8 @@ export class AppStylesheet {
     const generation = ++this.generation
     const found = document.getElementById(APP_STYLESHEET_ID)
     const element = found instanceof HTMLLinkElement || found instanceof HTMLStyleElement ? found : null
-    if (found && !element) console.warn(`#${APP_STYLESHEET_ID} must be a <link rel="stylesheet"> or <style>`, found)
+    if (found && !element)
+      Warnings.warn(`#${APP_STYLESHEET_ID}`, `must be a <link rel="stylesheet"> or <style>:`, found)
     this.watch(element)
     let text = ""
     let base = document.baseURI
@@ -141,7 +143,7 @@ export class AppStylesheet {
         text = await this.inlineImports(element.textContent ?? "", base)
       }
     } catch (error) {
-      console.warn(`#${APP_STYLESHEET_ID}: couldn't read stylesheet`, error)
+      Warnings.warn(`#${APP_STYLESHEET_ID}`, "couldn't read the stylesheet:", error)
       return
     }
     if (generation !== this.generation) return
@@ -210,7 +212,7 @@ export class AppStylesheet {
       try {
         inner = this.absolutizeUrls(this.serialize(imported.cssRules), imported.href ?? document.baseURI)
       } catch {
-        console.warn(`#${APP_STYLESHEET_ID}: can't read cross-origin @import ${rule.href};  use a <style> instead`)
+        Warnings.warn(`#${APP_STYLESHEET_ID}`, `can't read cross-origin @import ${rule.href};  use a <style> instead`)
         continue
       }
       parts.push(this.wrap(inner, rule.layerName, rule.supportsText, rule.media.mediaText))
@@ -239,7 +241,7 @@ export class AppStylesheet {
     if (!response.ok) throw new Error(`${response.status} fetching ${href}`)
     const text = this.absolutizeUrls(await response.text(), base)
     if (IMPORT_RULE.test(text)) {
-      console.warn(`#${APP_STYLESHEET_ID}: nested @import in ${href} is ignored (only one level is inlined)`)
+      Warnings.warn(`#${APP_STYLESHEET_ID}`, `nested @import in ${href} is ignored (only one level is inlined)`)
     }
     IMPORT_RULE.lastIndex = 0
     return text

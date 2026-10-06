@@ -1,3 +1,4 @@
+import { NodeType } from "$/ui/util"
 import type { StaticView } from "./server.types"
 import { ServerHost } from "./ServerHost"
 
@@ -95,7 +96,7 @@ export class StaticFlattener {
     const assigned = [...host.childNodes].filter((node) => StaticFlattener.slotOf(node) === name)
     const nodes = assigned.length ? assigned : [...slot.childNodes]
     for (const node of assigned) {
-      if (node.nodeType !== ELEMENT_NODE) continue
+      if (node.nodeType !== NodeType.element) continue
       const element = node as Element
       element.removeAttribute("slot")
       // the static stylesheet's `@scope` stops inside it:  author content, as the shadow boundary kept it;  for a
@@ -108,8 +109,8 @@ export class StaticFlattener {
 
   /** Slot name `node` is assigned to:  its `slot` attribute, `""` for text and unnamed elements. */
   private static slotOf(node: Node): string | undefined {
-    if (node.nodeType === ELEMENT_NODE) return (node as Element).getAttribute("slot") ?? ""
-    if (node.nodeType === TEXT_NODE) return ""
+    if (node.nodeType === NodeType.element) return (node as Element).getAttribute("slot") ?? ""
+    if (node.nodeType === NodeType.text) return ""
     return undefined
   }
 
@@ -205,9 +206,3 @@ const PHRASING_ONLY = new Set([
 
 /** Elements `<li>` may sit in. */
 const LIST_TAGS = new Set(["ul", "ol", "menu"])
-
-/** `Node.ELEMENT_NODE`, without the `Node` global. */
-const ELEMENT_NODE = 1
-
-/** `Node.TEXT_NODE`, without the `Node` global. */
-const TEXT_NODE = 3
