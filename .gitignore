@@ -32,4 +32,6 @@ PARKED-*.md
 # the old content link, in checkouts cut before 2026-10-05:  remove with the old-path links (claude-design T1)
 /packages/docs/content
 # shared:end
+# the MAIN checkout's marker:  worktree windows hide its folder's files (scripts/window.mjs `filesExclude()`)
+/.spell-main
 *.code-workspace

@@ -4,10 +4,13 @@
  *
  * ## Window files
  * - `workspaces/<pkg>.code-workspace`:  open a package's window from it (`code workspaces/ui.code-workspace`).
- * - Its FIRST folder is the repo root, its second the package.  Why:  the Claude Code panel lists only the sessions
- *   saved under a window's first folder, so with the root first, every window lists every session.
+ * - Its FIRST folder is the repo root, the whole branch;  then the shared content repo.  Why the root first:  the
+ *   Claude Code panel lists only the sessions saved under a window's first folder, so every window lists every
+ *   session.  No package folder since 2026-10-06 (Owen:  "just check out the full branch").
  * - Its own colour theme, so windows are told apart at a glance (instead of VS Code profiles).
- * - The root folder hides `packages/` and `.claude/worktrees/`:  the package folder is the window's focus.
+ * - Each file shows ONCE in Explorer and Quick Open (`filesExclude()`):  `.claude/worktrees/` hidden, and the shared
+ *   links shown only under the `spell-app-dev` folder.  Generated files, icons and screenshots stay out of Quick
+ *   Open and Find through the root's `.vscode/settings.json` (`search.exclude`).
  * - A saved workspace can gain and lose folders (a worktree, while a session works in it) without restarting
  *   extensions;  a one-folder window can't, and its Claude panel restarts.
  *   - NEVER add one any more:  VS Code writes the folder into the window file, where it outlives the worktree,
@@ -52,8 +55,8 @@
  *   git ignores `workspaces/ongoing/`.
  * - Folders:  the MAIN repo root first, as in every window, so its Claude panel lists every session;  then the
  *   worktree's root, `⎇ <name>`.  No package folder:  Owen (2026-10-03).
- *   - `packages/` shows in both:  a window's `files.exclude` applies to every folder, so hiding the main root's
- *     would hide the worktree's too
+ *   - the main root's files are hidden (`files.exclude` `*` beside its `.spell-main` marker):  the worktree's
+ *     folder has the same ones.  The main root stays first for the Claude panel, and keeps its Source Control.
  *   - the package it's for (theme, `handoff --back`'s target) is kept in the file's own `spell.package`
  * - The package window's theme, title bar tinted in a colour of the worktree's own (from its name):  told apart at a
  *   glance from the package window, and from other worktrees.
@@ -67,8 +70,8 @@
  * - Later, it can still move:  `open <name>`, `handoff <name>`.
  *
  * ## Commands
- * - `init`:  write the window file of every package that lacks one;  never overwrites (themes are Owen's to change),
- *   except to add the shared content repo as a folder when a window file lacks it (`Window.sharedFolder()`)
+ * - `init`:  write the window file of every package that lacks one, and bring the others up to date:  folders and
+ *   `files.exclude` (a worktree's window:  `files.exclude`);  themes and other settings are Owen's, kept
  * - `which`:  this session's window:  pid, workspace file, folders
  * - `add <path> [--name <name>]`:  add a folder (a worktree) to the window;  needs a window opened from its
  *   `.code-workspace` (else the change would restart its extensions, Claude panel included)
@@ -117,6 +120,12 @@ const THEMES = {
 /** A package that isn't in `THEMES`. */
 const FALLBACK_THEME = "Default Dark+"
 
+/** The MAIN checkout's marker file (git-ignored):  worktree windows hide what's beside it (`filesExclude()`). */
+const MAIN_MARKER = ".spell-main"
+
+/** The shared links when the manifest has none:  root `package.json` `"shared": { "links" }`. */
+const SHARED_LINKS = ["epics", "guides", "pages", "templates", "brand", "ui", "goals", "agents"]
+
 /** How long a window gets to answer a request, in msec:  `show-doc` may start a server first. */
 const REQUEST_TIMEOUT = 10_000
 
@@ -145,28 +154,66 @@ export class Window {
     return join(ROOT, "workspaces", `${pkg}.code-workspace`)
   }
 
-  /** The window file's contents for `pkg`. */
+  /**
+   * The window file's contents for `pkg`:  the WHOLE branch (the repo root), then the shared content repo.
+   * - one file per package still, each with its own theme;  no package folder any more (Owen, 2026-10-06:  "just
+   *   check out the full branch")
+   */
   static workspace(pkg) {
     return {
-      folders: [
-        { path: "..", name: "spell-app" },
-        { path: `../packages/${pkg}`, name: pkg },
-        ...Window.sharedFolder(join(ROOT, "workspaces"))
-      ],
+      folders: Window.packageFolders(),
       settings: {
         "workbench.colorTheme": THEMES[pkg] ?? FALLBACK_THEME,
         "git.detectWorktrees": true,
-        "files.exclude": { packages: true, ".claude/worktrees": true }
+        "files.exclude": Window.filesExclude()
       }
     }
   }
 
+  /** A package window's folders, relative to `workspaces/`:  the repo root, then the shared content repo. */
+  static packageFolders() {
+    return [{ path: "..", name: "spell-app" }, ...Window.sharedFolder(join(ROOT, "workspaces"))]
+  }
+
   /**
-   * `init`:  write the missing window files, and add the shared content repo to those that lack it;  returns the
-   * paths written.
+   * A window's `files.exclude`, so Explorer and Quick Open show each file ONCE.  It applies to every folder of the
+   * window, each pattern relative to the folder;  a `when` hides an entry only beside a sibling of that name.
+   * - `.claude/worktrees`:  a worktree is its own folder (a worktree window), or its own repo in Source Control
+   * - the shared links (`epics`, `guides` ...) in a CHECKOUT (beside its `package.json`):  their files show once,
+   *   under the `spell-app-dev` folder, at the real path edits need (root `AGENTS.md`, "Shared content")
+   * - `worktree`:  also everything in the MAIN checkout's folder (beside its `.spell-main` marker,
+   *   `ensureMainMarker()`):  the worktree's folder has the same files.  The main root stays the first folder, for
+   *   the Claude panel, and keeps its Source Control.
+   */
+  static filesExclude({ worktree = false } = {}) {
+    return {
+      ".claude/worktrees": true,
+      ...(worktree && { "*": { when: MAIN_MARKER } }),
+      ...Object.fromEntries(sharedLinks().map((link) => [link, { when: "package.json" }]))
+    }
+  }
+
+  /** Write the MAIN checkout's `.spell-main` marker if it's missing (git-ignored):  see `filesExclude()`. */
+  static ensureMainMarker() {
+    const marker = join(MAIN_ROOT, MAIN_MARKER)
+    if (existsSync(marker)) return
+    writeFileSync(
+      marker,
+      "The MAIN checkout's marker:  worktree windows hide this folder's files (`files.exclude`, scripts/window.mjs\n" +
+        "`filesExclude()`), so Quick Open and Explorer show each file once, from the worktree.  Never in a worktree.\n"
+    )
+  }
+
+  /**
+   * `init`:  write the missing window files, and bring existing ones up to date;  returns the paths written.
+   * - a package window:  its folders (`packageFolders()`) and `files.exclude`;  its theme and every other setting
+   *   are Owen's, kept
+   * - a worktree's window (`workspaces/ongoing/`):  its `files.exclude`
    * - an existing file VS Code can't read as JSON (comments) is left alone
+   * - NOTE:  a package window that changes folders while open re-reads its workspace;  its Claude panel may reload
    */
   static init() {
+    Window.ensureMainMarker()
     const written = []
     for (const pkg of Window.packages) {
       const file = Window.file(pkg)
@@ -175,17 +222,20 @@ export class Window {
         written.push(relative(ROOT, file))
         continue
       }
-      const shared = Window.sharedFolder(dirname(file))
-      if (!shared.length) continue
-      try {
-        const workspace = JSON.parse(readFileSync(file, "utf8"))
-        if (workspace.folders?.some((folder) => folder.name === shared[0].name)) continue
-        workspace.folders = [...(workspace.folders ?? []), ...shared]
-        writeFileSync(file, `${JSON.stringify(workspace, null, 2)}\n`)
-        written.push(relative(ROOT, file))
-      } catch {
-        // JSONC:  VS Code reads it, we don't;  add the folder by hand
-      }
+      const refreshed = refresh(file, (workspace) => {
+        workspace.folders = Window.packageFolders()
+        workspace.settings = { ...workspace.settings, "files.exclude": Window.filesExclude() }
+      })
+      if (refreshed) written.push(relative(ROOT, file))
+    }
+    const ongoing = join(MAIN_ROOT, "workspaces", "ongoing")
+    for (const name of existsSync(ongoing) ? readdirSync(ongoing) : []) {
+      if (!name.endsWith(".code-workspace")) continue
+      const file = join(ongoing, name)
+      const refreshed = refresh(file, (workspace) => {
+        workspace.settings = { ...workspace.settings, "files.exclude": Window.filesExclude({ worktree: true }) }
+      })
+      if (refreshed) written.push(relative(MAIN_ROOT, file))
     }
     return written
   }
@@ -193,8 +243,8 @@ export class Window {
   /**
    * The shared content repo (epic `shared-content`) as a window folder, `[{ path, name }]` with `path` relative to
    * `fromDir` (where the window file is);  `[]` when it doesn't exist.
-   * - its own Source Control entry (the auto commits) and search;  permanent, so unlike a worktree it belongs in a
-   *   package window
+   * - its own Source Control entry (the auto commits) and search;  permanent, so unlike a worktree it belongs in
+   *   every window.  Its own `.vscode/settings.json` hides its `packages/` (the old-path links)
    * - where:  `"shared": { "dir" }` in the main checkout's `package.json`, else `../spell-app-dev`
    */
   static sharedFolder(fromDir) {
@@ -221,8 +271,7 @@ export class Window {
    * The window file of worktree `name`, opened from `pkg`'s window.
    * - folder paths are relative to `workspaces/ongoing/`
    * - `spell.package`:  `pkg`, for `handoff --back`;  VS Code ignores a top-level key it doesn't know
-   * - NEVER hide `packages`, as a package window does:  it would hide the worktree's too (`PAPERCUTS.md`,
-   *   "claude-code")
+   * - hides the main root's files (`filesExclude({ worktree: true })`):  the worktree's folder has the same ones
    */
   static worktreeWorkspace(pkg, name) {
     return {
@@ -233,7 +282,7 @@ export class Window {
       ],
       settings: {
         "workbench.colorTheme": Window.theme(pkg),
-        "files.exclude": { ".claude/worktrees": true },
+        "files.exclude": Window.filesExclude({ worktree: true }),
         "workbench.colorCustomizations": tint(name)
       },
       spell: { package: pkg }
@@ -261,6 +310,7 @@ export class Window {
     if (!Window.packages.includes(pkg)) throw new Error(`no package ${pkg}`)
     const file = Window.worktreeFile(name)
     mkdirSync(dirname(file), { recursive: true })
+    Window.ensureMainMarker()
     writeFileSync(file, `${JSON.stringify(Window.worktreeWorkspace(pkg, name), null, 2)}\n`)
     const run = spawnSync("code", [file], { encoding: "utf8" })
     if (run.status !== 0) throw new Error(`\`code ${file}\` failed:  ${run.stderr || run.error?.message}`)
@@ -518,7 +568,7 @@ export class Window {
     const [command, target] = positional
     if (command === "init") {
       const written = Window.init()
-      console.log(written.length ? `wrote ${written.join(", ")}` : "every package has its window file")
+      console.log(written.length ? `wrote ${written.join(", ")}` : "every window file is up to date")
       return 0
     }
     if (!COMMANDS.includes(command) || (!["which", "stay-check", "reload-view"].includes(command) && !target)) {
@@ -646,7 +696,8 @@ const COMMANDS = [
 
 /** Usage, printed for a bad command. */
 const USAGE = `usage:  spell dev window <command>
-  init                         write each package's missing workspaces/<pkg>.code-workspace
+  init                         write each package's missing workspaces/<pkg>.code-workspace, and bring
+                               every window file up to date (folders, files.exclude;  theme kept)
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window
   remove <path>                remove it again
@@ -676,6 +727,36 @@ function worktreePackage(file) {
   const pkg = workspace.spell?.package ?? folder.match(/packages[\\/]([^\\/]+)$/)?.[1]
   if (!pkg) throw new Error(`${file}:  no package`)
   return pkg
+}
+
+/** The shared links' names:  the main checkout's `package.json` `"shared": { "links" }`, else `SHARED_LINKS`. */
+function sharedLinks() {
+  try {
+    return JSON.parse(readFileSync(join(MAIN_ROOT, "package.json"), "utf8")).shared?.links ?? SHARED_LINKS
+  } catch {
+    return SHARED_LINKS
+  }
+}
+
+/**
+ * Bring window file `file` up to date:  `change(workspace)` edits it in place;  written back only when that
+ * changed something.  Returns whether it was written.
+ * - JSONC (comments):  VS Code reads it, we don't;  left alone, `false`
+ */
+function refresh(file, change) {
+  let text
+  let workspace
+  try {
+    text = readFileSync(file, "utf8")
+    workspace = JSON.parse(text)
+  } catch {
+    return false
+  }
+  change(workspace)
+  const fresh = `${JSON.stringify(workspace, null, 2)}\n`
+  if (fresh === text) return false
+  writeFileSync(file, fresh)
+  return true
 }
 
 /** Whether a process `pid` exists:  signal 0 checks without signalling;  EPERM means it exists, someone else's. */

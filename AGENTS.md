@@ -82,10 +82,15 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 
 ## Worktrees
 
-- Owen works in one VS Code window per package, opened from `workspaces/<pkg>.code-workspace` (`spell dev window
-  init` writes missing ones;  each has its own theme).  Folder 1 is the REPO ROOT, folder 2 the package.  Why:  the
-  Claude panel lists only the sessions saved under a window's FIRST folder, so every window lists every session.
+- Owen works in VS Code windows opened from `workspaces/<pkg>.code-workspace` (`spell dev window init` writes
+  missing ones and brings the rest up to date;  each has its own theme).  Each shows the WHOLE branch:  folder 1 is
+  the REPO ROOT, then the shared content repo;  no package folder since 2026-10-06.  Why the root first:  the Claude
+  panel lists only the sessions saved under a window's FIRST folder, so every window lists every session.
   - So sessions start at the repo root:  read the package's `AGENTS.md` before working in a package.
+  - Each file shows ONCE in Explorer and Quick Open:  the window's `files.exclude` (`scripts/window.mjs`
+    `filesExclude()`) shows the shared links only under `spell-app-dev`, and a worktree's window hides the main
+    root's files (beside its git-ignored `.spell-main` marker);  `.vscode/settings.json` `search.exclude` keeps
+    generated files, icons and screenshots out of Quick Open and Find.
 - Enter a worktree with `/isolate <name>` (`/epic` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
@@ -112,7 +117,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     plan mode or inside another worktree, saving their text to `~/.spell/prompts/<name>.md` first.
   - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), the package window's theme with a title
     bar tinted per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
-    worktree's root (`⎇ <name>`);  no package folder, and `packages/` shows in both.
+    worktree's root (`⎇ <name>`), then the shared content repo;  the main root's files hidden (above).
   - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
   - `spell dev window` works in a fresh worktree, before its `yarn install`:  the `spell` link runs the MAIN
     checkout's CLI, which has its packages.  (`yarn window` couldn't:  yarn runs no script there before `yarn install`.)
