@@ -2,8 +2,10 @@ import { SP } from "$/spell"
 import { CLI } from "$/cli"
 
 /**
- * `spell compile <target...>`:  compile each target, showing progress and errors on stderr.
- * - A project:  writes `<Project>.compiled.js`, as the app does -- or, with `--stdout`, prints it and writes nothing.
+ * `spell compile <project...>`:  compile each project (or lone spell file), showing progress and errors on stderr.
+ * - A project:  writes `<Project>.compiled.js` and `<Project>.declarations.json`, as the app does, plus each other
+ *   target's output, e.g. `<Project>.compiled.ts` -- see `SP.TARGETS` -- or, with `--stdout`, prints one and
+ *   writes nothing.  `--target <name>`:  that target, this run, instead of `project.json`'s.
  *   Compiled with no errors, it also writes `<Project>.scopes.js`, as the language server does -- see
  *   `SpellDiskWorkspace.writeScopes()`.
  * - A `.spell` file:  prints its compiled javascript.  Writes nothing.
@@ -46,18 +48,23 @@ async function compileProject(
   project: SP.SpellProject,
   status: CLI.StatusReporter,
   output: string[],
-  { stdout, force }: CLI.CompileOptions
+  { stdout, force, target }: CLI.CompileOptions
 ): Promise<boolean> {
   const row = status.start(project.projectId)
+  let targets: SP.Target[]
   try {
     await session.compileImports(project, status, force)
-    await project.compile(undefined, { save: !stdout })
+    await project.compile(undefined, { save: !stdout, targets: target ? [target] : undefined })
+    targets = project.targets
   } catch (error) {
     status.done(row, "failed", error instanceof Error ? error.message : String(error))
     return false
   }
-  if (stdout) output.push(project.outputFile.contents ?? "")
-  const wrote = stdout ? [] : [project.outputFile.location.serverPath]
+  // `--stdout`:  the target asked for, else the one that runs
+  const printed = targets.find(({ name }) => name === target) ?? targets[0]!
+  if (stdout) output.push(project.outputFileFor(printed).contents ?? "")
+  const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile]
+  const wrote = stdout ? [] : files.map((file) => file.location.serverPath)
   // a CLEAN compile writes its scope pack too, as the language server does
   if (!stdout && !session.problems(project).length) {
     wrote.push(await session.workspace.writeScopes(project, session.explorer))

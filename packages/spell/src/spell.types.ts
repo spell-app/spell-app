@@ -72,6 +72,8 @@ export type ProjectManifestJSON5 = {
   version?: string
   /** Names it offers importers, from its `project.json` -- default:  everything it declares. */
   exports?: string[]
+  /** Targets it compiles to, from its `project.json`, e.g. `["ts/solid"]` -- `js/solid` always:  see `SP.TARGETS`. */
+  targets?: string[]
 }
 
 /** A single entry in `contents.manifest`, augmented with `path`/`location`/`file` once loaded. */

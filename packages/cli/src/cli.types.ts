@@ -51,6 +51,8 @@ export type GlobalOptions = {
 export type CompileOptions = GlobalOptions & {
   stdout?: boolean
   force?: boolean
+  /** Compile to this target, this run, instead of `project.json`'s -- see `SP.TARGETS`. */
+  target?: string
 }
 
 /**

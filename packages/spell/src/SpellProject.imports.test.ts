@@ -99,6 +99,38 @@ describe("SpellProject imports", () => {
     await lib.compile()
   })
 
+  test("targets:  `js/solid` always, then `project.json`'s;  an unknown one throws, naming the ones there are", async () => {
+    expect(lib.targets.map(({ name }) => name)).toEqual(["js/solid"])
+    const project = makeProject("targets", ["Deck.spell"], { targets: ["nope"] })
+    await project.load(undefined)
+    expect(() => project.targets).toThrow(/There's no target 'nope':  try js\/solid/)
+  })
+
+  test("a project that draws can't compile to a target that can't draw", async () => {
+    SP.TARGETS["test/no-draw"] = {
+      ...SP.TARGETS["js/solid"]!,
+      name: "test/no-draw",
+      suffix: ".nodraw.js",
+      can: { draw: false }
+    }
+    try {
+      const draws = makeProject("draws", ["Card.spell"], { targets: ["test/no-draw"] })
+      await expect(draws.compile()).rejects.toThrow(/'draws' draws a UI, which target 'test\/no-draw' can't/)
+      const quiet = makeProject(
+        "quiet",
+        ["Quiet.spell"],
+        { targets: ["test/no-draw"] },
+        { "Quiet.spell": 'print "hi"\n' }
+      )
+      await quiet.compile()
+      expect(readFileSync(resolve(workspace, "quiet", "quiet.nodraw.js"), "utf8")).toContain(
+        'spellCore.console.log("hi")'
+      )
+    } finally {
+      delete SP.TARGETS["test/no-draw"]
+    }
+  })
+
   test("compiling a project writes its declarations beside its compiled file, which holds just code", () => {
     const json = readFileSync(resolve(workspace, "lib", `lib${SP.DECLARATIONS_JSON_SUFFIX}`), "utf8")
     const declarations = SP.SpellDeclarations.read(json)!
