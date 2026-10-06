@@ -18,6 +18,8 @@
  *   - `remove-folder { path }`:  remove it;  never folder 0 (the repo root);  not there:  ok, no-op
  *   - `show-doc { file, hash?, view? }`:  `DocPreview.show(file, hash, view)`;  `hash` an id on the page to land
  *     on;  `view` the side bar tab:  `"docs"` ("Spell Docs", the default) or `"review"` ("Review")
+ *   - `reload-view { view? }`:  rebuild that doc view from scratch, a new iframe at the page in view
+ *     (`DocView.rebuild()`);  answers its `url`, `null` when the view was never shown
  *   - `close-window {}`:  close this window, just after answering (`/isolate done` closes the worktree's window)
  *   - `open-session { sessionId, prompt? }`:  open Claude Code session `sessionId` in an editor tab (never the
  *     sidebar), `prompt` typed into its input (not sent:  Owen presses enter);  `/isolate` hands its session to
@@ -41,6 +43,7 @@ import { join, resolve } from "path"
 import * as vscode from "vscode"
 
 import { DocPreview } from "./DocPreview"
+import { DocView } from "./DocView"
 
 /** Largest request body accepted, in bytes:  ops carry a path or two. */
 const MAX_BODY = 64 * 1024
@@ -189,6 +192,11 @@ export class WindowBridge {
         if (view !== "docs" && view !== "review") throw new BridgeError(400, `bad view '${String(view)}'`)
         await DocPreview.show(file, typeof body.hash === "string" ? body.hash : undefined, view)
         return { file, view }
+      }
+      case "reload-view": {
+        const view = body.view ?? "docs"
+        if (view !== "docs" && view !== "review") throw new BridgeError(400, `bad view '${String(view)}'`)
+        return { view, url: DocView.of(view).rebuild() ?? null }
       }
       case "close-window":
         // after the reply is on its way:  closing ends this extension host, and the server with it

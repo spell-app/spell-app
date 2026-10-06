@@ -851,24 +851,39 @@ ui-list.plan-phase-body :is(ul, ol) {
 /*
  * Reviewing on the page (plan doc `review-review`, P5;  `spell-doc-runtime.js` `wireReview()`), only while the page
  * server serves the doc (`body.plan-reviewing`):
- * - every item's line ends in a round grey ellipsis (`span.plan-act`):  absolutely placed at the line's far right,
- *   in room the line keeps free, so a long title never wraps under it, at any width
- * - a mark colors it, filled while unsent, outlined once sent:  `data-color` (UI's tokens)
- * - its menu (`div.plan-act-menu`) is a popover, fixed in the window:  it opens in place, nothing scrolls
+ * - every item's line ends in four icon buttons in a `<ui-buttons>` group (`span.plan-act` >
+ *   `ui-buttons.plan-act-group`, epic `windows-and-review` P2):  absolutely placed at the line's far right, in room
+ *   the line keeps free (`--plan-act-room`), so a long title never wraps under them, at any width
+ * - unchosen:  a grey outline;  chosen:  filled in its color (`data-color`:  green decided, orange pending);  sent:
+ *   outlined in it;  running:  the button's own spinner (`loading`), dashed while queued with nobody listening
+ * - beside them, while there's one:  the note bubble (`.plan-act-noted`) and the pick's letter (`.plan-act-pick`)
  */
 body.plan-reviewing {
-  --plan-act-size: 22px;
+  --plan-act-size: 24px;
+  --plan-act-green: var(--ui-green, #21a144);
+  --plan-act-orange: #e09b0d;
 }
-/* the room at the line's end:  the button, and the spinner beside it while busy */
+/* the room at the line's end:  the group and Add Details Now, plus the bubble and the letter while they show */
+body.plan-reviewing :is(ui-accordion.plan-item > ui-title, .plan-items > ui-item:not(:has(> ui-accordion))) {
+  --plan-act-room: calc(4 * var(--plan-act-size) + 12px);
+}
+body.plan-reviewing
+  :is(ui-accordion.plan-item > ui-title, .plan-items > ui-item:not(:has(> ui-accordion))):has(
+    > .plan-act:is([data-noted], [data-picked])
+  ) {
+  --plan-act-room: calc(5 * var(--plan-act-size) + 16px);
+}
+body.plan-reviewing
+  :is(ui-accordion.plan-item > ui-title, .plan-items > ui-item:not(:has(> ui-accordion))):has(
+    > .plan-act[data-noted][data-picked]
+  ) {
+  --plan-act-room: calc(6 * var(--plan-act-size) + 20px);
+}
 body.plan-reviewing ui-accordion.plan-item > ui-title::part(title),
 body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
-  padding-inline-end: calc(var(--plan-act-size) + 6px);
+  padding-inline-end: var(--plan-act-room);
 }
-body.plan-reviewing ui-accordion.plan-item > ui-title:has(> .plan-act[data-busy])::part(title),
-body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion)):has(> .plan-act[data-busy])::part(item) {
-  padding-inline-end: calc(2 * var(--plan-act-size) + 10px);
-}
-/* what the button is placed in:  the title (accordion items), or the item's row */
+/* what the controls are placed in:  the title (accordion items), or the item's row */
 body.plan-reviewing ui-accordion.plan-item > ui-title,
 body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
   position: relative;
@@ -882,151 +897,105 @@ body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion))::part(item) 
   gap: 4px;
   block-size: 100%;
 }
-/* a bare item's row also holds its Revisit box:  the button sits on the first line, not mid-box */
+/* a bare item's row also holds its note box:  the buttons sit on the first line, not mid-box */
 .plan-items > ui-item:not(:has(> ui-accordion)) > .plan-act {
   inset-inline-end: 6px;
   block-size: calc(1lh + 6px);
 }
-button.plan-act-button {
-  --_act: var(--ui-grey, #767676);
+/* the group:  tight, each button a square of `--plan-act-size` */
+ui-buttons.plan-act-group {
+  flex: none;
+}
+/* Add Details Now:  an action, not a state (Q8):  its own round button after the group */
+.plan-act ui-button.plan-act-details::part(button) {
+  border-radius: 50%;
+}
+.plan-act ui-button::part(button) {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--plan-act-size);
+  height: var(--plan-act-size);
+  min-height: 0;
+  padding: 0;
+  color: var(--spell-muted);
+  font-size: 0.72rem;
+}
+.plan-act ui-button:hover::part(button) {
+  color: var(--spell-ink);
+}
+.plan-act ui-button[data-color="green"] {
+  --_act: var(--plan-act-green);
+}
+.plan-act ui-button[data-color="orange"] {
+  --_act: var(--plan-act-orange);
+}
+/* chosen, not sent:  filled;  sent:  outlined in its color */
+.plan-act ui-button[data-chosen]::part(button) {
+  background: var(--_act);
+  box-shadow: inset 0 0 0 1px var(--_act);
+  color: var(--ui-surface, Canvas);
+}
+.plan-act ui-button[data-chosen][data-sent]::part(button) {
+  background: color-mix(in srgb, var(--_act) 14%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--_act);
+  color: var(--_act);
+}
+/* queued, nobody listening:  a still, dashed ring */
+.plan-act ui-button[data-waiting]::part(button) {
+  outline: 1.5px dashed var(--spell-muted);
+  outline-offset: -3px;
+}
+/* the pick's letter:  green for a plain pick (decided), orange with a revisit (pending) */
+.plan-act-pick {
   display: inline-grid;
   flex: none;
   place-items: center;
   width: var(--plan-act-size);
   height: var(--plan-act-size);
-  padding: 0;
-  border: 1.5px solid transparent;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--spell-ink) 9%, transparent);
-  color: var(--spell-muted);
-  font: 700 0.72rem/1 var(--spell-mono);
-  cursor: pointer;
-}
-button.plan-act-button:hover {
-  background: color-mix(in srgb, var(--spell-ink) 16%, transparent);
-  color: var(--spell-ink);
-}
-button.plan-act-button:focus-visible {
-  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
-  outline-offset: 1px;
-}
-button.plan-act-button > * {
-  grid-area: 1 / 1;
-}
-.plan-act-letter:empty {
-  display: none;
-}
-/* marked:  filled in the action's color;  sent:  outlined in it */
-button.plan-act-button[data-color] {
-  border-color: var(--_act);
-  background: var(--_act);
+  background: var(--plan-act-green);
   color: var(--ui-surface, Canvas);
+  font: 700 0.72rem/1 var(--spell-mono);
 }
-button.plan-act-button[data-color][data-sent] {
-  background: color-mix(in srgb, var(--_act) 12%, transparent);
-  color: var(--_act);
+.plan-act-pick[data-color="orange"] {
+  background: var(--plan-act-orange);
 }
-:is(button.plan-act-button, .plan-act-menu > button)[data-color="green"] {
-  --_act: var(--ui-green, #21ba45);
+.plan-act-pick[data-sent] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--plan-act-green);
+  color: var(--plan-act-green);
 }
-:is(button.plan-act-button, .plan-act-menu > button)[data-color="violet"] {
-  --_act: var(--ui-violet, #6435c9);
+.plan-act-pick[data-color="orange"][data-sent] {
+  box-shadow: inset 0 0 0 1.5px var(--plan-act-orange);
+  color: var(--plan-act-orange);
 }
-:is(button.plan-act-button, .plan-act-menu > button)[data-color="blue"] {
-  --_act: var(--ui-blue, #2185d0);
-}
-:is(button.plan-act-button, .plan-act-menu > button)[data-color="orange"] {
-  --_act: var(--ui-orange, #f2711c);
-}
-.plan-act-menu > button[data-color="grey"] {
-  --_act: var(--ui-grey, #767676);
+.plan-act-pick[hidden] {
+  display: none;
 }
 /*
- * Claude at work on the item (or the request on its way):  a turning ring;  queued with nobody listening:  still,
- * dashed
+ * Owen wrote on this item (epic `windows-and-review` P1):  a speech bubble, outline while a draft, solid once a
+ * mark's note, in orange once sent;  the note is its tooltip
  */
-.plan-act-spin {
-  box-sizing: border-box;
-  flex: none;
-  width: 16px;
-  height: 16px;
-  border: 2px solid color-mix(in srgb, var(--ui-blue, #2185d0) 25%, transparent);
-  border-top-color: var(--ui-blue, #2185d0);
-  border-radius: 50%;
-  animation: plan-act-spin 0.8s linear infinite;
-}
-.plan-act-spin[hidden] {
-  display: none;
-}
-.plan-act-spin[data-waiting] {
-  border: 2px dashed var(--spell-muted);
-  animation: none;
-}
-@keyframes plan-act-spin {
-  to {
-    rotate: 1turn;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .plan-act-spin {
-    animation-duration: 2.4s;
-  }
-}
-
-/* the menu:  rows of a round icon in the action's color and its name;  the item's current mark is bold */
-.plan-act-menu {
-  position: fixed;
-  inset: auto;
-  margin: 0;
-  min-width: 170px;
-  padding: 4px;
-  border: 1px solid var(--spell-rule);
-  border-radius: 14px;
-  background: var(--spell-card);
-  box-shadow: var(--spell-shadow-md, 0 6px 20px rgb(0 0 0 / 0.18));
-  color: var(--spell-ink);
-  font: 0.9rem/1.3 var(--spell-sans);
-}
-.plan-act-menu > button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 5px 10px 5px 6px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-.plan-act-menu > button:is(:hover, :focus-visible) {
-  background: color-mix(in srgb, var(--_act) 14%, transparent);
-  outline: none;
-}
-.plan-act-menu > button[aria-checked="true"] {
-  font-weight: 700;
-}
-.plan-act-menu > button.plan-act-clear {
-  margin-top: 3px;
-  border-top: 1px solid var(--spell-rule);
-  border-radius: 0 0 6px 6px;
-  color: var(--spell-muted);
-}
-.plan-act-dot {
+.plan-act-noted {
   display: inline-grid;
   flex: none;
   place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--_act);
-  color: var(--ui-surface, Canvas);
-  font-size: 0.7rem;
+  width: var(--plan-act-size);
+  color: var(--spell-muted);
+  font-size: 0.8rem;
+}
+.plan-act-noted[hidden] {
+  display: none;
+}
+.plan-act-noted[data-sent] {
+  color: var(--plan-act-orange);
 }
 
-/* the Revisit box under an item's line:  the note, and a grey check over a blue send at its right */
+/*
+ * The note box (Q8):  docked at an open item's end (after its accordion), or under a bare item's line once Revisit
+ * opens it;  the note, and Make Todo / Do Now / Later stacked at its right
+ */
 .plan-revisit {
   display: flex;
   flex-basis: 100%;
@@ -1038,16 +1007,46 @@ button.plan-act-button[data-color][data-sent] {
   border-radius: 12px;
   background: color-mix(in srgb, var(--ui-orange, #f2711c) 6%, var(--spell-bg));
 }
+/* docked:  only while its item is open, and not approved */
+.plan-items > [id]:has(> ui-accordion.plan-item:is(:not([open]), [open=""])) > .plan-revisit[data-docked],
+.plan-items > [data-approved] > .plan-revisit[data-docked] {
+  display: none;
+}
+/* the note, its Saved mark (a floppy, its tooltip the time) in the lower right corner */
+.plan-revisit-text {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.plan-revisit-saved {
+  position: absolute;
+  inset-block-end: 5px;
+  inset-inline-end: 7px;
+  color: var(--spell-muted);
+  font-size: 0.7rem;
+  pointer-events: auto;
+}
+.plan-revisit-saved[hidden] {
+  display: none;
+}
+.plan-revisit-saved[data-failed] {
+  color: var(--ui-red, #db2828);
+}
+/* grows with its text (Owen, 2026-10-06:  every "tell me more" box), from two lines to half the window */
 .plan-revisit-note {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 3.6em;
+  min-height: 3.2em;
+  max-height: 50vh;
+  field-sizing: content;
   box-sizing: border-box;
   padding: 4px 6px;
   border: 1px solid var(--spell-rule);
   border-radius: 6px;
   background: var(--spell-bg);
   color: var(--spell-ink);
+  padding-inline-end: 22px;
   font: 0.9rem/1.4 var(--spell-sans);
   resize: vertical;
 }
@@ -1072,13 +1071,19 @@ button.plan-act-button[data-color][data-sent] {
   font-size: 0.8rem;
   cursor: pointer;
 }
-button.plan-revisit-soon {
-  background: color-mix(in srgb, var(--spell-ink) 12%, transparent);
-  color: var(--spell-ink);
+/* Make Todo:  green (decided);  Do Now:  orange (pending, at once);  Later:  orange ring (pending, next batch) */
+button.plan-revisit-todo {
+  background: var(--plan-act-green);
+  color: var(--ui-surface, Canvas);
 }
 button.plan-revisit-now {
-  background: var(--ui-blue, #2185d0);
-  color: var(--ui-blue-on, #fff);
+  background: var(--plan-act-orange);
+  color: var(--ui-surface, Canvas);
+}
+button.plan-revisit-soon {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--plan-act-orange);
+  color: var(--plan-act-orange);
 }
 .plan-revisit-buttons > button:hover {
   filter: brightness(1.1);
@@ -1200,6 +1205,69 @@ button.plan-send:focus-visible {
 }
 .plan-reply > :last-child {
   margin-bottom: 0;
+}
+/*
+ * Owen's own note, kept in the item once Claude took it (`plan-doc inbox done | clear`, epic `windows-and-review`
+ * P1):  the reply card's shape, in Revisit's orange, before Claude's answer
+ */
+.plan-reply.plan-reply-owen {
+  border-color: color-mix(in srgb, var(--ui-orange, #f2711c) 35%, transparent);
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 7%, var(--spell-bg));
+}
+.plan-reply.plan-reply-owen > .plan-reply-title {
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 14%, transparent);
+}
+.plan-reply-owen > p {
+  white-space: pre-wrap;
+}
+
+/*
+ * A marked note on the page, its box closed (`renderNote()`):  "You · revisit soon · sent 10:42", the note, Edit;
+ * under the item's line, where the box was
+ */
+.plan-said {
+  flex-basis: 100%;
+  order: 9;
+  margin: 6px 0 4px 1.5em;
+  padding: 0 10px 6px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ui-orange, #f2711c) 35%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 6%, var(--spell-bg));
+}
+.plan-said-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 -10px 4px;
+  padding: 3px 6px 3px 10px;
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 12%, transparent);
+  font: 600 0.8rem/1.35 var(--spell-sans);
+}
+.plan-said-what {
+  flex: 1 1 auto;
+  font-weight: 400;
+}
+button.plan-said-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 999px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: 0.75rem/1.4 var(--spell-sans);
+  cursor: pointer;
+}
+button.plan-said-edit:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
+  outline-offset: 1px;
+}
+.plan-said-note {
+  margin: 0;
+  font: 0.9rem/1.4 var(--spell-sans);
+  white-space: pre-wrap;
 }
 
 /*******************************
