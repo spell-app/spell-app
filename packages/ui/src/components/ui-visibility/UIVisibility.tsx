@@ -36,10 +36,10 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
   @E.proto static delegatesFocus = false
 
   /** On screen as of the last check. */
-  readonly isOnScreen = new E.Cell(false)
+  readonly isVisible = new E.Cell(false)
 
   protected hostStates() {
-    return { visible: this.isOnScreen.get() }
+    return { visible: this.isVisible.get() }
   }
 
   /** `image` after the noun for a lazy-image wrapper (`ui visibility image`), a hook for page CSS. */
@@ -88,7 +88,7 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
       onTopPassed: emit("ui-top-passed"),
       onBottomPassed: emit("ui-bottom-passed"),
       onPassing: emit("ui-passing"),
-      onUpdate: (calculations) => this.isOnScreen.set(calculations.onScreen)
+      onUpdate: (calculations) => this.isVisible.set(calculations.onScreen)
     }
     const stop = UI.observeVisibility(this.host, options)
     const stopImages = config.images ? this.watchImages(config) : undefined

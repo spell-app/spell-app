@@ -72,7 +72,7 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
   readonly typed = new E.Cell("")
 
   /** The card is wanted:  the field has focus (or was typed in) since the last close. */
-  readonly isOpen = new E.Cell(false)
+  readonly isWanted = new E.Cell(false)
 
   /** Index of the highlighted result (clamped by `active()`). */
   readonly highlight = new E.Cell(0)
@@ -117,7 +117,7 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
   readonly isSearching = createMemo(() => !!this.typed.get().trim())
 
   /** The card shows. */
-  readonly isShown = createMemo(() => this.isOpen.get() && this.isSearching())
+  readonly isOpen = createMemo(() => this.isWanted.get() && this.isSearching())
 
   /** The site's data is on its way. */
   readonly isLoading = createMemo(() => this.isPreparing.get() && !this.index.get())
@@ -145,28 +145,28 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
 
   protected override hostStates() {
     return {
-      open: this.isShown(),
+      open: this.isOpen(),
       searching: this.isSearching(),
       empty: this.isSearching() && !this.rows().length && !this.isLoading(),
       loading: this.isLoading()
     }
   }
 
-  /** Base `mount()`, plus the effects:  the popover follows `isShown`, the highlight scrolls into view, shortcuts. */
+  /** Base `mount()`, plus the effects:  the popover follows `isOpen`, the highlight scrolls into view, shortcuts. */
   override mount(): JSX.Element {
     const content = super.mount()
     if (isServer) return content
-    // SIDE EFFECT:  the popover opens and shuts with `isShown`
+    // SIDE EFFECT:  the popover opens and shuts with `isOpen`
     createEffect(
-      () => this.isShown(),
-      (isShown) => {
-        if (isShown) this.openCard()
+      () => this.isOpen(),
+      (isOpen) => {
+        if (isOpen) this.openCard()
         else this.closeCard()
       }
     )
     // SIDE EFFECT:  the highlighted option stays in the card's view
     createEffect(
-      () => (this.isShown() ? this.active() : -1),
+      () => (this.isOpen() ? this.active() : -1),
       (active) => {
         if (active >= 0) this.optionFor(active)?.scrollIntoView({ block: "nearest" })
       }
@@ -224,10 +224,10 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
             type="search"
             role="combobox"
             aria-autocomplete="list"
-            aria-expanded={this.isShown() && this.rows().length ? UIT.TRUE : UIT.FALSE}
+            aria-expanded={this.isOpen() && this.rows().length ? UIT.TRUE : UIT.FALSE}
             aria-controls={this.rows().length ? LISTBOX_ID : undefined}
             aria-activedescendant={
-              this.isShown() && this.active() >= 0 ? UIDocsSearch.optionIdFor(this.active()) : undefined
+              this.isOpen() && this.active() >= 0 ? UIDocsSearch.optionIdFor(this.active()) : undefined
             }
             aria-label={this.text("label")}
             aria-keyshortcuts={this.hasShortcuts ? KEY_SHORTCUTS : undefined}
@@ -351,7 +351,7 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
 
   /** The live status:  how many results, while the card shows. */
   private status(): string {
-    if (!this.isShown() || this.isLoading()) return ""
+    if (!this.isOpen() || this.isLoading()) return ""
     const count = this.rows().length
     if (!count) return this.text("noMatches", { query: this.typed.get().trim() })
     return count === 1 ? this.text("resultOne") : this.text("resultMany", { count })
@@ -403,14 +403,14 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
   private onFocus() {
     this.refresh()
     this.prepare()
-    this.isOpen.set(true)
+    this.isWanted.set(true)
   }
 
   /** Focus left the box (and its card):  close. */
   private onFocusOut(event: FocusEvent) {
     const next = event.relatedTarget as Node | null
     if (next && (this.host.shadowRoot?.contains(next) || next === this.host)) return
-    this.isOpen.set(false)
+    this.isWanted.set(false)
   }
 
   /** A keystroke changed the text:  search again from the top;  `ui-input`. */
@@ -420,21 +420,21 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
     this.prepare()
     this.typed.set(value)
     this.highlight.set(0)
-    this.isOpen.set(true)
+    this.isWanted.set(true)
     this.emit("ui-input", { value, originalEvent: event })
   }
 
   /** ↑ / ↓ / Enter / Escape / Tab (see the class). */
   private onKeyDown(event: KeyboardEvent) {
     const count = untrack(() => this.rows().length)
-    const isShown = untrack(() => this.isShown())
+    const isOpen = untrack(() => this.isOpen())
     switch (event.key) {
       case UIT.Key.arrowDown:
       case UIT.Key.arrowUp: {
         if (!untrack(() => this.isSearching())) return
         event.preventDefault()
-        if (!isShown) {
-          this.isOpen.set(true)
+        if (!isOpen) {
+          this.isWanted.set(true)
           return
         }
         if (!count) return
@@ -452,17 +452,17 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
       case UIT.Key.escape:
         return this.onEscape(event)
       case UIT.Key.tab:
-        this.isOpen.set(false)
+        this.isWanted.set(false)
         return
     }
   }
 
   /** Escape:  close the card;  else clear the text;  else leave the field, to where a shortcut came from. */
   private onEscape(event: KeyboardEvent) {
-    if (untrack(() => this.isShown())) {
+    if (untrack(() => this.isOpen())) {
       event.preventDefault()
       event.stopPropagation()
-      this.isOpen.set(false)
+      this.isWanted.set(false)
     } else if (untrack(() => this.typed.get())) {
       event.preventDefault()
       event.stopPropagation()
@@ -536,7 +536,7 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
 
   /** After a pick:  close the card, empty the field (the list beside it unfilters). */
   private finish() {
-    this.isOpen.set(false)
+    this.isWanted.set(false)
     if (this.input?.value) this.clear(new Event("input"))
   }
 
