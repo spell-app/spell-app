@@ -110,6 +110,33 @@ test("show():  sends `show-doc` to this session's window, with `hash` and `view`
   }
 })
 
+test("reload-view:  sends `reload-view` with the view to this session's window;  needs no target", async () => {
+  const seen = []
+  const server = createServer((request, response) => {
+    let body = ""
+    request.on("data", (chunk) => (body += chunk))
+    request.on("end", () => {
+      seen.push({ op: request.url, ...JSON.parse(body) })
+      const known = request.url === "/reload-view"
+      response.writeHead(known ? 200 : 404, { "Content-Type": "application/json" })
+      response.end(JSON.stringify(known ? { ok: true, url: "http://127.0.0.1:4747/x.html?t=1" } : { ok: false }))
+    })
+  })
+  await new Promise((done) => server.listen(0, "127.0.0.1", done))
+  const window = { pid: process.ppid, port: server.address().port, token: "t", folders: [], workspaceFile: null }
+  writeFileSync(join(dir, `${process.ppid}.json`), JSON.stringify(window))
+  try {
+    assert.equal(await Window.main(["reload-view"]), 0)
+    assert.equal(await Window.main(["reload-view", "--review"]), 0)
+    assert.deepEqual(seen, [
+      { op: "/reload-view", view: "docs" },
+      { op: "/reload-view", view: "review" }
+    ])
+  } finally {
+    server.close()
+  }
+})
+
 test("request():  no window, or none listening, throws a clear error", async () => {
   await assert.rejects(Window.request("show-doc", {}, null), /no window/)
   const window = { pid: process.ppid, port: 1, token: "abc", folders: [] }
@@ -130,8 +157,25 @@ test("a worktree's window:  the main root first, then the worktree's root, then 
   assert.match(Window.worktreeFile("seo"), /\/workspaces\/ongoing\/seo\.code-workspace$/)
 })
 
-test("a worktree's window never hides `packages`:  it would hide the worktree's too", () => {
-  assert.deepEqual(Window.worktreeWorkspace("ui", "seo").settings["files.exclude"], { ".claude/worktrees": true })
+test("a worktree's window hides the MAIN root's files (beside `.spell-main`), never `packages` outright", () => {
+  const exclude = Window.worktreeWorkspace("ui", "seo").settings["files.exclude"]
+  assert.deepEqual(exclude["*"], { when: ".spell-main" })
+  assert.equal(exclude.packages, undefined)
+  assert.equal(exclude[".claude/worktrees"], true)
+})
+
+test("a package window:  the whole branch, then the shared repo;  shared links shown only under the shared repo", () => {
+  const workspace = Window.workspace("ui")
+  assert.deepEqual(workspace.folders, [
+    { path: "..", name: "spell-app" },
+    ...Window.sharedFolder(dirname(Window.file("ui")))
+  ])
+  const exclude = workspace.settings["files.exclude"]
+  // a checkout's links sit beside its package.json;  the shared repo's real folders don't
+  assert.deepEqual(exclude.epics, { when: "package.json" })
+  assert.deepEqual(exclude.agents, { when: "package.json" })
+  assert.equal(exclude["*"], undefined)
+  assert.equal(exclude.packages, undefined)
 })
 
 test("tint():  a dark hue per name, the same every time", () => {

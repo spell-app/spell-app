@@ -50,11 +50,12 @@ test("parseCommand:  name, then the rest", () => {
   assert.deepEqual(parseCommand(`/epic "Docs Index" x`), { skill: "epic", name: "docs-index", text: "x" })
   assert.deepEqual(parseCommand("/isolate foo"), { skill: "isolate", name: "foo", text: "" })
   assert.deepEqual(parseCommand("/unpark foo"), { skill: "unpark", name: "foo", text: "" })
+  assert.deepEqual(parseCommand("/epic resume Foo"), { skill: "epic resume", name: "foo", text: "" })
 })
 
-test("parseCommand:  ignores other prompts, no name, `/isolate done`, `/epic review`", () => {
+test("parseCommand:  ignores other prompts, no name, `/isolate done`, `/epic review`, `/epic resume` alone", () => {
   const prompts = ["hello", "/epic", "/isolate  ", "/isolate done", "/park foo", "/epicfoo", "/unpark ?", ""]
-  prompts.push("/epic review", "/epic review seo", "/epic Review seo")
+  prompts.push("/epic review", "/epic review seo", "/epic Review seo", "/epic resume", "/epic resume ?")
   for (const prompt of prompts) {
     assert.equal(parseCommand(prompt), null, prompt)
   }
@@ -113,9 +114,11 @@ test("gate:  another worktree blocks, by cwd or window, saving the text", () => 
   assert.equal(readFileSync(join(prompts, "foo.md"), "utf8"), "do it\n")
 })
 
-test("gate:  re-entering the same worktree, and `/unpark`, aren't blocked", () => {
+test("gate:  re-entering the same worktree, `/unpark` and `/epic resume` aren't blocked", () => {
   assert.equal(gate({ prompt: "/isolate other", cwd: WORKTREE }, null).decision, undefined)
   assert.equal(gate({ prompt: "/unpark foo", cwd: WORKTREE }, OTHER_WINDOW).decision, undefined)
+  const resume = gate({ prompt: "/epic resume foo", cwd: WORKTREE, permission_mode: "plan" }, OTHER_WINDOW)
+  assert.equal(resume.hookSpecificOutput.sessionTitle, "foo")
 })
 
 test("gate:  never loses an older saved text", () => {

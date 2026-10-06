@@ -51,9 +51,11 @@
     if (question.hasAttribute("data-filter")) tools.append(buildFilter(question, cards))
     if (tools.childElementCount) question.append(tools)
     if (question.hasAttribute("data-more")) wireMore(question, cards)
-    const other = el("ui-input", {
+    // a textarea that grows as it's typed in (`details.css`):  every "tell me more" box (Owen, 2026-10-06)
+    const other = el("ui-textarea", {
       class: "spell-other",
       name: `${question.id}-other`,
+      rows: "1",
       placeholder: multiple ? "Other:  add your own" : "Other:  your own answer",
       fluid: ""
     })
