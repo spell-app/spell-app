@@ -377,6 +377,38 @@ ui-section:has(> ui-list.plan-items:empty)::after {
   margin: 8px 0;
 }
 
+/*
+ * A change to a phase's plan, FENCED right under its Symptom / Changes (`plan-doc updated`, epic
+ * `windows-and-review` P3;  Owen, 2026-10-06:  never an "Updated" word buried in the text):  `ui-item.plan-updated`,
+ * a dated line per change.  Kept once the phase is done:  the record of how the plan moved.
+ */
+.plan-phase-body > ui-item.plan-updated {
+  margin: 4px 0;
+  padding: 6px 10px;
+  border: 1px dashed color-mix(in srgb, var(--ui-orange, #f2711c) 60%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 6%, var(--spell-bg));
+}
+:is(.plan-updated, .plan-changes) time {
+  margin-right: 6px;
+  font-family: var(--spell-mono);
+  font-size: 0.85em;
+  color: var(--spell-muted);
+}
+:is(.plan-updated, .plan-changes) li > p {
+  display: inline;
+}
+/* every change to a phase still to do, at the top of the phases (`updatePlanChanges()`) */
+.spell-doc-main ui-message.plan-changes {
+  margin: 8px 0;
+}
+
+/* the "Plan hung?" notice, folded while planning (P3 of `windows-and-review`):  an aside under the meta lines */
+.spell-doc-main ui-accordion.plan-hung {
+  display: block;
+  margin: 8px 0 16px;
+}
+
 /*******************************
              Log
 *******************************/
@@ -535,8 +567,22 @@ ui-accordion.plan-item > ui-content {
 .plan-question {
   margin: 0;
 }
+.plan-first {
+  margin: 0;
+}
+.plan-first > :first-child {
+  margin-top: 0;
+}
+.plan-first > :last-child {
+  margin-bottom: 0;
+}
+.plan-first::before {
+  content: "Original Reply";
+}
 .plan-question::before {
   content: "Original question";
+}
+:is(.plan-question, .plan-first)::before {
   display: block;
   margin-bottom: 2px;
   color: var(--spell-muted);
@@ -560,6 +606,34 @@ ui-accordion.plan-item > ui-content > :is(.plan-answer-block, ui-accordion.plan-
 }
 ui-accordion.plan-choices {
   display: block;
+}
+
+/*
+ * Add Details (`plan-doc details --more`, epic `windows-and-review` P3):  the item's text stays on top, labelled
+ * "Original Reply" (`div.plan-first`, above), the new text under it in a WHITE "More Details" card, open and
+ * foldable (`ui-accordion.plan-more`).  Nested in the item's panel, so its box is `::part()` rules, as Choices'.
+ */
+ui-accordion.plan-item > ui-content > ui-accordion.plan-more {
+  display: block;
+  margin: var(--plan-part-gap) 0 0;
+}
+ui-accordion.plan-more::part(accordion) {
+  margin: 0;
+  border: 1px solid var(--spell-rule, rgb(0 0 0 / 0.12));
+  border-radius: 8px;
+  background: var(--spell-card, #fff);
+  box-shadow: none;
+}
+ui-accordion.plan-more::part(title) {
+  padding: 6px 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--spell-muted);
+}
+ui-accordion.plan-more::part(content) {
+  padding: 0 12px 10px;
 }
 ui-accordion.plan-choices::part(accordion) {
   margin: 0;
@@ -845,6 +919,67 @@ ui-list.plan-phase-body :is(ul, ol) {
 }
 
 /*******************************
+     Item folds
+*******************************/
+
+/*
+ * An open item folds from where you're reading it (epic `windows-and-review` Q6, P3;  `spell-doc-runtime.js`
+ * `wireItemFolds()`):
+ * - its line (the accordion's `<summary>`, `::part(title)`) sticks below the section titles stuck above it:  the
+ *   site header plus its section's `--spell-stack` (the runtime's, which anchors land below too);  opaque, as the
+ *   section titles;  sticky inside its `<details>`, so it leaves with the details' end (the note box docked last
+ *   in them included), which (the fold button too) slides UNDER it on the way:  its review buttons stay on top
+ * - the fold button (`ui-button.plan-fold`, last in the details) sticks to the window's bottom while any of the
+ *   details is on screen.  It sits in a gutter at the details' right (`--plan-fold-gutter`), hanging a little into
+ *   the section's inset:  the text stops short of it, and so does the note box docked before it (its Make Todo /
+ *   Do Now / Later at its right):  it never covers them, at any width
+ * - on a line of its own under the details' last line, never beside it:  a negative top margin would let it ride up
+ *   out of the details onto the item's line, over its review buttons, while the details' top enters the window
+ */
+body.plan-doc {
+  --plan-fold-size: 24px;
+  /* how far the button hangs past the item's right edge, into the section's inset (`--plan-inset`, 16px) */
+  --plan-fold-out: 8px;
+  --plan-fold-gutter: calc(var(--plan-fold-size) + 6px - var(--plan-fold-out));
+}
+ui-accordion.plan-item::part(title) {
+  position: sticky;
+  z-index: 1;
+  top: calc(var(--spell-site-header-height, 0px) + var(--spell-stack, 0px));
+}
+body.plan-doc ui-accordion.plan-item::part(title) {
+  background: linear-gradient(var(--plan-band-row), var(--plan-band-row)) var(--spell-bg);
+}
+ui-accordion.plan-item:has(> ui-content > .plan-fold)::part(content) {
+  padding-inline-end: var(--plan-fold-gutter);
+}
+ui-button.plan-fold {
+  position: sticky;
+  z-index: 0;
+  bottom: 8px;
+  display: flex;
+  width: var(--plan-fold-size);
+  height: var(--plan-fold-size);
+  margin-inline: auto calc(-1 * (var(--plan-fold-gutter) + var(--plan-fold-out)));
+}
+ui-button.plan-fold::part(button) {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--plan-fold-size);
+  height: var(--plan-fold-size);
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  background: var(--spell-bg);
+  color: var(--spell-muted);
+  font-size: 0.72rem;
+}
+ui-button.plan-fold:hover::part(button) {
+  color: var(--spell-ink);
+}
+
+/*******************************
      Review actions
 *******************************/
 
@@ -858,10 +993,15 @@ ui-list.plan-phase-body :is(ul, ol) {
  *   outlined in it;  running:  the button's own spinner (`loading`), dashed while queued with nobody listening
  * - beside them, while there's one:  the note bubble (`.plan-act-noted`) and the pick's letter (`.plan-act-pick`)
  */
+/* the Spell UI theme's own hues (`packages/ui/src/styles/themes/spell.css`;  Owen, 2026-10-06), each with its ink */
 body.plan-reviewing {
   --plan-act-size: 24px;
-  --plan-act-green: var(--ui-green, #21a144);
-  --plan-act-orange: #e09b0d;
+  --plan-act-green: var(--ui-green, #00853a);
+  --plan-act-green-on: var(--ui-green-on, #fff);
+  --plan-act-orange: var(--ui-orange, #fc7100);
+  --plan-act-orange-on: var(--ui-orange-on, #1a1040);
+  --plan-act-blue: var(--ui-blue, #1a67e0);
+  --plan-act-blue-on: var(--ui-blue-on, #fff);
 }
 /* the room at the line's end:  the group and Add Details Now, plus the bubble and the letter while they show */
 body.plan-reviewing :is(ui-accordion.plan-item > ui-title, .plan-items > ui-item:not(:has(> ui-accordion))) {
@@ -926,15 +1066,17 @@ ui-buttons.plan-act-group {
 }
 .plan-act ui-button[data-color="green"] {
   --_act: var(--plan-act-green);
+  --_act-on: var(--plan-act-green-on);
 }
 .plan-act ui-button[data-color="orange"] {
   --_act: var(--plan-act-orange);
+  --_act-on: var(--plan-act-orange-on);
 }
 /* chosen, not sent:  filled;  sent:  outlined in its color */
 .plan-act ui-button[data-chosen]::part(button) {
   background: var(--_act);
   box-shadow: inset 0 0 0 1px var(--_act);
-  color: var(--ui-surface, Canvas);
+  color: var(--_act-on);
 }
 .plan-act ui-button[data-chosen][data-sent]::part(button) {
   background: color-mix(in srgb, var(--_act) 14%, transparent);
@@ -955,11 +1097,12 @@ ui-buttons.plan-act-group {
   height: var(--plan-act-size);
   border-radius: 50%;
   background: var(--plan-act-green);
-  color: var(--ui-surface, Canvas);
+  color: var(--plan-act-green-on);
   font: 700 0.72rem/1 var(--spell-mono);
 }
 .plan-act-pick[data-color="orange"] {
   background: var(--plan-act-orange);
+  color: var(--plan-act-orange-on);
 }
 .plan-act-pick[data-sent] {
   background: transparent;
@@ -993,8 +1136,9 @@ ui-buttons.plan-act-group {
 }
 
 /*
- * The note box (Q8):  docked at an open item's end (after its accordion), or under a bare item's line once Revisit
- * opens it;  the note, and Make Todo / Do Now / Later stacked at its right
+ * The note box (Q8):  docked at the end of an open item's details (inside them, before the fold button:  the item's
+ * line stays stuck down to it, P3 of `windows-and-review`), or under a bare item's line once Revisit opens it;  the
+ * note, and Make Todo / Do Now / Later stacked at its right
  */
 .plan-revisit {
   display: flex;
@@ -1007,10 +1151,12 @@ ui-buttons.plan-act-group {
   border-radius: 12px;
   background: color-mix(in srgb, var(--ui-orange, #f2711c) 6%, var(--spell-bg));
 }
-/* docked:  only while its item is open, and not approved */
-.plan-items > [id]:has(> ui-accordion.plan-item:is(:not([open]), [open=""])) > .plan-revisit[data-docked],
-.plan-items > [data-approved] > .plan-revisit[data-docked] {
+/* docked:  folds away with its item's details;  gone once the item is approved */
+.plan-items > [data-approved] .plan-revisit[data-docked] {
   display: none;
+}
+ui-accordion.plan-item > ui-content > .plan-revisit[data-docked] {
+  margin: var(--plan-part-gap, 8px) 0 0;
 }
 /* the note, its Saved mark (a floppy, its tooltip the time) in the lower right corner */
 .plan-revisit-text {
@@ -1071,22 +1217,38 @@ ui-buttons.plan-act-group {
   font-size: 0.8rem;
   cursor: pointer;
 }
-/* Make Todo:  green (decided);  Do Now:  orange (pending, at once);  Later:  orange ring (pending, next batch) */
-button.plan-revisit-todo {
-  background: var(--plan-act-green);
-  color: var(--ui-surface, Canvas);
-}
-button.plan-revisit-now {
-  background: var(--plan-act-orange);
-  color: var(--ui-surface, Canvas);
+/*
+ * Make Todo (list check), Later (comment dots:  talk it over in the next batch), Do Now (the wand:  Claude at once),
+ * as the item line's order, the wand last (Owen, 2026-10-06:  a paper plane read as "sent to Claude now").
+ * - a ring in its color;  filled when pointed at, and for the item's mark (`data-mark`):  Make Todo green
+ *   (decided), Later orange (pending, as the line's Revisit), Do Now blue;  the Spell UI theme's hues
+ */
+.plan-revisit-buttons > button {
+  --_act: var(--plan-act-green);
+  --_act-on: var(--plan-act-green-on);
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--_act);
+  color: var(--_act);
 }
 button.plan-revisit-soon {
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--plan-act-orange);
-  color: var(--plan-act-orange);
+  --_act: var(--plan-act-orange);
+  --_act-on: var(--plan-act-orange-on);
 }
-.plan-revisit-buttons > button:hover {
-  filter: brightness(1.1);
+button.plan-revisit-now {
+  --_act: var(--plan-act-blue);
+  --_act-on: var(--plan-act-blue-on);
+}
+.plan-revisit-buttons > button:is(:hover, :focus-visible, :active),
+.plan-revisit[data-mark="todo"] button.plan-revisit-todo,
+.plan-revisit[data-mark="soon"] button.plan-revisit-soon,
+.plan-revisit[data-mark="now"] button.plan-revisit-now {
+  background: var(--_act);
+  color: var(--_act-on);
+}
+/* centered:  UI's icon keeps a right margin for an icon before text, and a box wider than its glyph */
+.plan-revisit-buttons ui-icon::part(icon) {
+  width: auto;
+  margin: 0;
 }
 .plan-revisit-buttons > button:focus-visible {
   outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));

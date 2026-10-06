@@ -136,9 +136,11 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 - Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04):  in `~/.claude/plans/`,
   `mv <file>.md epic-<name>--<file>.md`, then `ln -s epic-<name>--<file>.md <file>.md` (the harness still reads
   the old name).
-- `spell dev plan-doc add-phase <name> "Short Name" --goal "<ul><li>...</li></ul>" --files "..." --verify "..." --estimate
-  "1-2h"` per phase, in order:  the goal one bullet per outcome, in Owen's terms;  the estimate becomes the title's
-  badge, and the Overview's total (`p.plan-estimate`) follows by itself
+- `spell dev plan-doc add-phase <name> "Short Name" --symptom "..." --changes "..." --goal "<ul><li>...</li></ul>" --files
+  "..." --verify "..." --estimate "1-2h"` per phase, in order (Owen, 2026-10-06:  "Symptom, Changes, then the
+  details"):  the symptom ONE line (what's wrong today), the changes two or three (what changes), the goal the details,
+  one bullet per outcome, in Owen's terms;  the estimate becomes the title's badge, and the Overview's total
+  (`p.plan-estimate`) follows by itself
 - `spell dev plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
 - Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
 - Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
@@ -165,6 +167,9 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
      `cancel <name> <id> "why"` (struck through:  the one struck status, J16 of `review-review`)
    - an item talked through with Owen (he answered, accepted, or said leave it):  `review <name> <id> "outcome"`,
      so the next `/epic review` doesn't bring it up again ("7. Review")
+   - changed a phase's PLAN (Owen's feedback, or something found while building):  `updated <name> <N> "<p>what
+     changed, and why</p>"`, a dated line in its fenced Updated block under Symptom / Changes (never an "Updated" word
+     in the text);  then `phase-body <name> <N> --changes ...` (or `--goal` ...) to make the fields say the new plan
    - changed a prose block:  put
      `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="N"><p>what changed</p></ui-message>`
      just before it (the script marks items itself)
@@ -237,7 +242,7 @@ spell dev plan-doc inbox <name> listen  /  unlisten      this session is (no lon
 spell dev plan-doc inbox <name> wait                     Bash run_in_background:  exits with work (or 2:  timeout)
 spell dev plan-doc inbox <name> apply [ids]              approve / pick / todo marks into the doc;  prints what's left
 spell dev plan-doc inbox <name> working <id> on|off      the page's spinner on an item
-spell dev plan-doc details <name> <id> --file f [--append]   an item's details replaced (Add Details) / a reply appended
+spell dev plan-doc details <name> <id> --file f --more | --append   a More Details card (Add Details) / a reply appended
 spell dev plan-doc inbox <name> done <id>  /  clear <ids>    an item's request finished  /  marks dropped after a talk
 spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or not
 ```
@@ -276,8 +281,10 @@ Read what it printed.  Then, in this order:
    BACKGROUND `Agent` (`run_in_background: true`), each prompt:
    - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net
      effect)
-   - Add Details:  read the item, the code and docs it names, then write its FULL details again, nothing lost,
-     `spell dev plan-doc details <name> <id> --file <html>`
+   - Add Details:  read the item, the code and docs it names, then write what its text leaves out, as MORE
+     details:  `spell dev plan-doc details <name> <id> --more --file <html>`.  The item's text stays on top
+     ("Original Reply");  yours goes under it in a white "More Details" card (P3 of `windows-and-review`), so don't
+     repeat the text:  build on it
    - revisit now:  answer Owen's note (quote it), in the reply block markup (`plan-doc.md`, "Reply"):  what he asked,
      the answer with evidence (real code, the command and its output), option cards when he must choose (he picks
      on the page), a Net effect;  `spell dev plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
@@ -350,7 +357,9 @@ don't redo it.
 
 ```
 new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from the template, update the docs index
-add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
+add-phase <name> "Short Name" --symptom .. --changes .. [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
+phase-body <name> <N> [--symptom ..] [--changes ..] [--goal ..] [--files ..] [--verify ..]   set ("" removes) fields
+updated <name> <N> "<p>what changed</p>"            a change to phase N's plan:  fenced, dated, under Symptom / Changes
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)
