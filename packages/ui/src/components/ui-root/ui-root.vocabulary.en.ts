@@ -18,7 +18,6 @@ export const rootVocabulary = {
   tag: "ui-root",
   topics: ["layout", "containers", "loading", "basic"],
   aka: ["app shell", "app root", "provider", "loader", "lazy loading", "theme provider"],
-  skeleton: "none",
   noun: "root",
   description:
     "A root loads the components inside it on demand, sets their theme and size, and shows them once they're ready.",

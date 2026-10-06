@@ -14,7 +14,6 @@ export const buttonsVocabulary = {
   tag: "ui-buttons",
   topics: ["buttons", "controls", "layout", "elements"],
   aka: ["button group", "segmented control", "toolbar"],
-  skeleton: "none",
   noun: "buttons",
   description: "Buttons can exist together as a group.",
   attributes: [

@@ -19,7 +19,7 @@ import {
  * ```json
  * [
  *   { "tag": "x-chart", "source": "chart.js", "skeleton": "20 x 12" },
- *   { "tag": "x-legend", "source": "chart.js", "load": "eager", "skeleton": "none" }
+ *   { "tag": "x-legend", "source": "chart.js", "load": "eager" }
  * ]
  * ```
  *
@@ -80,12 +80,7 @@ export class ComponentPack {
     if (typeof entry !== "object" || entry === null) throw ComponentPack.notAPack(`${where} isn't an object`)
     const unknownKey = Object.keys(entry).find((key) => !ENTRY_KEYS.includes(key as keyof ComponentPackEntry))
     if (unknownKey) throw ComponentPack.notAPack(`${where} has an unknown key "${unknownKey}"`)
-    const {
-      tag,
-      source,
-      load = DEFAULT_LOAD,
-      skeleton = NONE
-    } = entry as Partial<Record<keyof ComponentPackEntry, unknown>>
+    const { tag, source, load = DEFAULT_LOAD, skeleton } = entry as Partial<Record<keyof ComponentPackEntry, unknown>>
     if (typeof tag !== "string" || !CUSTOM_ELEMENT_TAG.test(tag)) {
       throw ComponentPack.notAPack(`${where}'s tag ${JSON.stringify(tag)} isn't a custom-element name ("x-chart")`)
     }
@@ -95,15 +90,14 @@ export class ComponentPack {
         `${where} (<${tag}>):  load ${JSON.stringify(load)} isn't one of ${ComponentLoadPolicies.join(", ")}`
       )
     }
+    const packTag = { tag, source: new URL(source, url).href, load: load as ComponentLoadPolicy }
+    if (skeleton === undefined) return packTag
     if (typeof skeleton !== "string") throw ComponentPack.notAPack(`${where} (<${tag}>):  skeleton isn't text`)
-    let spec: E.SkeletonSpec | false
     try {
-      spec = SkeletonText.parse(skeleton)
+      return { ...packTag, skeleton: SkeletonText.parse(skeleton) }
     } catch (error) {
       throw ComponentPack.notAPack(`${where} (<${tag}>):  ${(error as Error).message}`, error)
     }
-    const packTag = { tag, source: new URL(source, url).href, load: load as ComponentLoadPolicy }
-    return spec ? { ...packTag, skeleton: spec } : packTag
   }
 
   /** The `render` `SourceError` for a pack that isn't one:  `problem`, then the fix. */
@@ -119,9 +113,6 @@ const ENTRY_KEYS: readonly (keyof ComponentPackEntry)[] = ["tag", "source", "loa
 
 /** `load` unless an entry says. */
 const DEFAULT_LOAD: ComponentLoadPolicy = "on-demand"
-
-/** `skeleton` unless an entry says. */
-const NONE = "none"
 
 /** A valid custom-element name, close enough:  lowercase, starts with a letter, has a `-`. */
 const CUSTOM_ELEMENT_TAG = /^[a-z][a-z0-9._]*-[a-z0-9._-]*$/

@@ -21,7 +21,6 @@ export const placeholderVocabulary = {
   tag: "ui-placeholder",
   topics: ["loading", "feedback", "elements"],
   aka: ["skeleton", "shimmer", "ghost", "loading placeholder", "content loader"],
-  skeleton: "none",
   noun: "placeholder",
   description: "A placeholder is used to reserve space for content that soon will appear in a layout.",
   attributes: [

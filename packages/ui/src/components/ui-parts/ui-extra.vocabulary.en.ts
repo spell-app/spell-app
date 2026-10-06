@@ -20,7 +20,6 @@ export const extraVocabulary = {
   tag: "ui-extra",
   topics: ["content parts", "cards"],
   aka: ["footer", "card footer", "extra content"],
-  skeleton: "none",
   noun: "extra",
   ui: false,
   description: "Extra content, set apart from the main content, e.g. a card's footer.",

@@ -66,7 +66,8 @@ house style every package shares.  Only what's local is below;  a section named 
         (the docs site's data;  `tools/SiteDataBuilder.test.ts` fails while it's stale).  Live:  `UIButton.describe()`
       - and `skeleton`:  what `<ui-root display="skeleton">` draws for the tag, as SKELETON TEXT (`SkeletonText`,
         its grammar in its header):  `"inline 6 x 2.5"`, `"2 tall"`, `"18 wide: square image, header, 3 line
-        paragraph"`, or `"none"`.  The same form as a component pack's.  `yarn gen:root` parses it into the catalog;
+        paragraph"`;  LEFT OUT for none (never `"none"`, `null` or `false`:  an optional property left out, epic
+        `wwod-spell-ui` J26).  The same form as a component pack's.  `yarn gen:root` parses it into the catalog;
         `test/vocabularies.test.ts` parses every one and fails on a typo or a stale catalog
     - `ui-<name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces (nothing top-level
       stays loose in an element / fallback / helper file, but a constant only its class uses:  "Classes");  a

@@ -6,7 +6,7 @@ import type { SkeletonPart, SkeletonSpec } from "./vocabulary.types"
  * component packs (`<ui-components>`) say what `<ui-root display="skeleton">` draws for a tag.  Sizes are in `em`.
  *
  * ```
- * skeleton  := "none" | ["inline"] size | ["inline"] [size ":"] parts
+ * skeleton  := ["inline"] size | ["inline"] [size ":"] parts
  * size      := <w> "x" <h> | <h> "tall" | <w> "wide"
  * parts     := part ("," part)*                                  -- top to bottom
  * part      := "paragraph" | <n> "line paragraph" | "header" | "header with image"
@@ -15,7 +15,9 @@ import type { SkeletonPart, SkeletonSpec } from "./vocabulary.types"
  * ```
  *
  * - `18 x 15` ~== `{ width: "18em", height: "15em" }`;  `inline 6 x 2.5` adds `display: "inline"`;  `2 tall` ~==
- *   `{ height: "2em" }`;  `18 wide: square image, header, 3 line paragraph` ~== a width over parts;  `none` ~== `false`
+ *   `{ height: "2em" }`;  `18 wide: square image, header, 3 line paragraph` ~== a width over parts
+ * - No `none`:  a tag with no skeleton of its own leaves the key OUT, in a vocabulary and in a pack alike (a pack's
+ *   entry without one still wins over the catalog's:  `RootLoader.skeletonFor()`).  Epic `wwod-spell-ui`, J26.
  * - ONE parser for both writers:  `yarn gen:root` parses the vocabularies into `<ui-root>`'s catalog, a pack is
  *   parsed as it's read, and `test/vocabularies.test.ts` parses every vocabulary, so a typo fails a test, not a page.
  * - Pure data, at the bottom of `$/ui/vocabulary` (types only):  node imports it (`yarn gen:root`,
@@ -25,13 +27,12 @@ import type { SkeletonPart, SkeletonSpec } from "./vocabulary.types"
  ****************/
 export class SkeletonText {
   /**
-   * The skeleton `text` describes;  `false` for `none`.
+   * The skeleton `text` describes.
    * - Spaces around words, `x`, `:` and `,` are free;  words are lowercase.
    * - Throws a `TypeError` naming the text when it isn't skeleton text.
    */
-  static parse(text: string): SkeletonSpec | false {
+  static parse(text: string): SkeletonSpec {
     const trimmed = text.trim()
-    if (trimmed === NONE) return false
     const inline = INLINE.exec(trimmed)
     const body = inline ? trimmed.slice(inline[0].length) : trimmed
     const colon = body.indexOf(SIZE_END)
@@ -53,8 +54,7 @@ export class SkeletonText {
    * `spec` as skeleton text:  `parse(format(spec))` gives `spec` back.
    * - Throws a `TypeError` for what the text can't say:  a size not in `em`, or nothing to draw.
    */
-  static format(spec: SkeletonSpec | false): string {
-    if (!spec) return NONE
+  static format(spec: SkeletonSpec): string {
     const width = SkeletonText.emOrDie(spec.width, "width")
     const height = SkeletonText.emOrDie(spec.height, "height")
     const size =
@@ -132,7 +132,7 @@ export class SkeletonText {
   private static unreadable(text: string): TypeError {
     return new TypeError(
       `SkeletonText.parse():  can't read "${text}";  write e.g. "18 x 15", "inline 6 x 2.5", "2 tall", ` +
-        `"18 wide: square image, header, 3 line paragraph", "header, 4 line paragraph" or "none"`
+        `"18 wide: square image, header, 3 line paragraph" or "header, 4 line paragraph"`
     )
   }
 }
@@ -142,9 +142,6 @@ type ImageRatio = Extract<SkeletonPart, { shape: "image" }>["ratio"]
 
 /** `<ui-placeholder-line>`'s lengths. */
 type LineLength = NonNullable<Extract<SkeletonPart, { shape: "line" }>["length"]>
-
-/** No skeleton of its own:  `false`. */
-const NONE = "none"
 
 /** `display` of an inline skeleton. */
 const INLINE_DISPLAY = "inline"

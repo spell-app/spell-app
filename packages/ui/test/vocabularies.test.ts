@@ -38,14 +38,13 @@ describe("*.vocabulary.en.ts kinds, across families", () => {
     }
   )
 
-  // `<ui-root display="skeleton">` draws a placeholder for a described tag;  `none` says "none of its own" on purpose.
+  // `<ui-root display="skeleton">` draws a placeholder for a tag whose vocabulary has a skeleton;  none:  left out.
   // Parsed here, so a typo in skeleton text fails a test, not a page;  the catalog holds what it parses to
   it.each(VOCABULARIES.map((vocabulary) => [vocabulary.tag, vocabulary] as const))(
-    "<%s> says what its skeleton is (skeleton text, or none), and the catalog agrees (else `yarn gen:root`)",
+    "<%s>'s skeleton (if any) is skeleton text, and the catalog agrees (else `yarn gen:root`)",
     (tag, vocabulary) => {
-      expect(vocabulary.skeleton).toBeTypeOf("string")
-      const skeleton = SkeletonText.parse(vocabulary.skeleton!)
-      expect(ROOT_CATALOG[tag]?.skeleton).toEqual(skeleton || undefined)
+      const skeleton = vocabulary.skeleton === undefined ? undefined : SkeletonText.parse(vocabulary.skeleton)
+      expect(ROOT_CATALOG[tag]?.skeleton).toEqual(skeleton)
     }
   )
 

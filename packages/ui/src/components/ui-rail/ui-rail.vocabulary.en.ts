@@ -18,7 +18,6 @@ export const railVocabulary = {
   tag: "ui-rail",
   topics: ["layout", "containers", "elements"],
   aka: ["side rail", "aside", "gutter", "margin column"],
-  skeleton: "none",
   noun: "rail",
   description: "A rail is used to show accompanying content outside the boundaries of the main view of a site.",
   attributes: [

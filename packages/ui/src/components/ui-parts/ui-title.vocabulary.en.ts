@@ -20,7 +20,6 @@ export const titleVocabulary = {
   tag: "ui-title",
   topics: ["content parts", "typography", "containers"],
   aka: ["accordion title", "summary", "toggle header"],
-  skeleton: "none",
   noun: "title",
   ui: false,
   description: "A title:  a step's, an accordion panel's, a search result's.",

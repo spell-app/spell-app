@@ -50,7 +50,10 @@ export type ComponentPackEntry = {
   readonly source: string
   /** When it loads;  default `on-demand`. */
   readonly load?: ComponentLoadPolicy
-  /** What a root draws for it while it loads, as skeleton text (`SkeletonText`);  default `none`. */
+  /**
+   * What a root draws for it while it loads, as skeleton text (`SkeletonText`).
+   * - Left out:  nothing of its own, even for a tag the catalog draws one for (the pack's word wins).
+   */
   readonly skeleton?: string
 }
 
