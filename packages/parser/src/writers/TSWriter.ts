@@ -144,6 +144,55 @@ export class TSWriter extends JSWriter {
   }
 
   ////////////////
+  // ## Lists
+  ////////////////
+
+  /**
+   * A list says what it holds:  `a deck is a list of cards` => `class Deck extends List<Card>`, from its
+   * `static instanceType = Card`.  So `spellCore.getItemOf(deck, 1)` is a `Card | undefined`.
+   */
+  superTypeOf(node: P.ASTClassDeclaration): string {
+    const name = super.superTypeOf(node)
+    if (name !== "List") return name
+    const itemType = node.members?.find(
+      (member): member is P.ASTStaticDefinition =>
+        member instanceof P.ASTStaticDefinition && member.name === "instanceType"
+    )?.value
+    return itemType instanceof P.ASTTypeExpression ? `List<${itemType.name}>` : name
+  }
+
+  /** A new list says what it holds too:  `a new list of piles` => `new List<Pile>({ instanceType: "Pile" })`. */
+  ASTNewInstanceExpression(node: P.ASTNewInstanceExpression): string {
+    const text = super.ASTNewInstanceExpression(node)
+    if (node.type.name !== "List") return text
+    const itemType = node.props?.properties.find(
+      (property): property is P.ASTObjectLiteralProperty =>
+        property instanceof P.ASTObjectLiteralProperty && property.property.value === "instanceType"
+    )?.value
+    if (!(itemType instanceof P.ASTStringLiteral) || !itemType.quote) return text
+    return text.replace(/^new List/, `new List<${itemType.value}>`)
+  }
+
+  /**
+   * A property of a `spellCore` call's result:  `!`, as spell reads it whatever it is, e.g.
+   * `spellCore.getItemOf(deck, -1)!.name`.  Javascript does the same:  `!` changes no code, only the type.
+   */
+  ASTPropertyExpression(node: P.ASTPropertyExpression): string {
+    const text = super.ASTPropertyExpression(node)
+    if (!isCoreCall(node.object)) return text
+    const object = String(this.write(node.object))
+    return `${object}!${text.slice(object.length)}`
+  }
+
+  /** A method called on a `spellCore` call's result:  `!`, as `ASTPropertyExpression()`. */
+  ASTScopedMethodInvocation(node: P.ASTScopedMethodInvocation): string {
+    const text = super.ASTScopedMethodInvocation(node)
+    if (!isCoreCall(node.thing)) return text
+    const thing = String(this.write(node.thing))
+    return `${thing}!${text.slice(thing.length)}`
+  }
+
+  ////////////////
   // ## New variables
   ////////////////
 

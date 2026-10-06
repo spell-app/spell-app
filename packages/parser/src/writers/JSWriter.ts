@@ -368,7 +368,7 @@ export class JSWriter extends Writer {
   /** NOTE: indents its members' non-blank lines only -- `jsText.Block()` would leave a tab on blank ones. */
   ASTClassDeclaration(node: P.ASTClassDeclaration): string {
     const { type, superType, members } = node
-    const superDeclarator = superType ? `extends ${superType.name} ` : ""
+    const superDeclarator = superType ? `extends ${this.superTypeOf(node)} ` : ""
     const declaration = `export class ${type.name} ${superDeclarator}`
     if (!members?.length) return `${declaration}${jsText.EMPTY_BLOCK}`
     const body = members
@@ -378,6 +378,11 @@ export class JSWriter extends Writer {
       .map((line) => (line ? `${jsText.INDENT}${line}` : line))
       .join(jsText.NEWLINE)
     return `${declaration}${jsText.LEFT_CURLY}${jsText.NEWLINE}${body}${jsText.NEWLINE}${jsText.RIGHT_CURLY}`
+  }
+
+  /** What `node` extends, after `extends`, e.g. `Thing`.  A typed target may say more:  see `TSWriter`. */
+  superTypeOf(node: P.ASTClassDeclaration): string {
+    return node.superType!.name
   }
 
   /** `new Type()` (empty parens) when it has no `props`, else `new Type(props)`. */
