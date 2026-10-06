@@ -47,7 +47,8 @@ The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, 
     `.htm`, so no page walker takes them for pages (`findPages()` skips `parts/` too)
 - `pages/details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page
   (`/details`, see "Details pages").  Scratch:  ignored by the shared repo's git, swept after 14 days.  An epic's go
-  in `epics/<name>/details/`, kept (auto-committed with the shared repo).
+  in `epics/<name>/details/`, kept (auto-committed with the shared repo).  SYNTAX-CHOICES pages live there too (see
+  "Syntax-choices pages").
 - `brand/` -- the brand pages (the pony, from Claude Design;  the rest from P11 of `claude-design`) and the design
   system's push record.  Not in `findPages()`'s areas:  `docs update` doesn't check them (`tools/pages.js` `BRAND`).
 
@@ -64,6 +65,9 @@ In `tools/`:
   - `plan-doc.css` -- plan docs, on top of `spell-doc.css`
   - `details.css`, `details.js` -- details pages:  the option cards, Other, notes and Send `details.js` builds from
     the page's `.spell-option` markup, and the answer once sent
+  - `syntax-choices.css`, `syntax-choices.js` -- syntax-choices pages:  draws their tables from `<slug>.rows.json`,
+    saves what's typed, sends "Do it";  then loads `spell-ui.js` itself (loaded INSTEAD of the bundle, as
+    `commands.js`)
   - `goals.css`, `goals-live.js` -- goals pages (the repo root's `goals/`, and `templates/goals/`):  their look, and
     their live buttons (thoughts, Claude sessions) when the page server serves them (goals' route module)
   - `commands.js` -- command reference pages (`templates/commands.html`):  draws their tables from the page's JSON,
@@ -215,6 +219,8 @@ In `tools/`:
   (`ui-select[data-spell-filter-badge]`);  a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link).
 - `templates/epics/plan.html` -- a plan doc.  NEVER copy by hand:  `spell dev plan-doc new <name>`.
 - `templates/details.html` -- a details page.  NEVER copy by hand:  `spell dev details new <slug>`.
+- `templates/syntax-choices.html` (+ `syntax-choices.rows.json`, a small working example) -- a syntax-choices page.
+  NEVER copy by hand:  `spell dev choices new <slug> --rows <rows.json>`.
 - `templates/review.html` -- "Review":  a details page reviewing a finished run's calls, one question each (keep,
   change, talk over), then "Where first?";  saved from `ui-docs-rework`'s morning review as the model.
 - `templates/goals/` -- goals pages, laid out as a goals folder is, so their links work in place:
@@ -285,6 +291,17 @@ In `tools/`:
   session.
 - `findPages()` skips every `details/` folder:  not in the index, not checked by `docs update`.
 
+## Syntax-choices pages
+
+- A table of names (or any syntax) Claude recommends, one row per use site:  File (opens VS Code at the line) |
+  Purpose | Current | Recommended (a box, pre-filled);  Owen types over the ones he'd write differently, then "Do
+  it".  For a call made name by name, after a rule is picked (P13's boolean names).  How-to:
+  `guides/syntax-choices.html`.
+- `spell dev choices new <slug> --rows <rows.json> | show [--wait] | wait | answer | list` (`tools/choices.js`;  the
+  rows' shape in its comment).  Pages go where details pages do;  `<slug>.rows.json` beside the page holds the rows.
+- The page server's route module `tools/choicesRoutes.ts`:  the draft (`<slug>.draft.json`, saved 5s after typing
+  stops, never wakes anyone) and the answer (`<slug>.answer.json`, which `spell dev choices wait` exits with).
+
 ## Experiments
 
 - Claims backed by measurement:  scripts in `<topic>/experiments/` (`solid/experiments/`, `precedence/experiments/`),
@@ -339,6 +356,8 @@ In this order, from `packages/docs`:
   has doesn't reload it (the page updates itself).
 - `spell dev details` (`tools/details.js`) -- details pages (see "Details pages");  `tools/detailsRoutes.ts`, the
   page server's route module for their answers.
+- `spell dev choices` (`tools/choices.js`) -- syntax-choices pages (see "Syntax-choices pages");
+  `tools/choicesRoutes.ts`, their drafts and answers.
 - `tools/inbox.js`, `tools/reviewRoutes.ts` -- a plan doc's review inbox and its routes (see "Review inbox").
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through

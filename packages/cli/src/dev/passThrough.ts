@@ -27,6 +27,7 @@ export const TOOLS = {
   "docs open": { tool: "packages/docs/tools/open.js", cwd: "packages/docs" },
   "docs link": { tool: "packages/docs/tools/link.ts", tsx: "packages/docs/tsconfig.json", cwd: "packages/docs" },
   details: { tool: "packages/docs/tools/details.js", cwd: "packages/docs" },
+  choices: { tool: "packages/docs/tools/choices.js", cwd: "packages/docs" },
   "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
   "design bundle": { tool: "packages/docs/tools/bundle-spell-ui.js", cwd: "packages/docs" },
   "design check": { tool: "packages/docs/tools/check-design-bundle.js", cwd: "packages/docs" },

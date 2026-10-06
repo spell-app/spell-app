@@ -284,6 +284,9 @@ Read what it printed.  Then, in this order:
    answer (short;  evidence when it matters).  A choice he must make:  write it into the item as a reply with option
    cards (`details --append`) so he picks ON THE PAGE;  a quick yes / no:  a modal.  Done:  `inbox clear <id>` and
    `review <name> <id> "<outcome>"`.
+   - a call made name by name (he wants each name's context before a rule's renames go in):  a SYNTAX-CHOICES page,
+     `spell dev choices new <slug> --epic <name> --rows <rows.json>` then `show <slug> --wait` in the background
+     (`guides/syntax-choices.html`)
    - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  answer the note
      about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself
    - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
