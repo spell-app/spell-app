@@ -316,7 +316,6 @@ As WWOD §18, plus:
       (`FormElement`'s `FormHost`, `Validator`) is still direct.
     - `src/elements/barrel.test.ts` checks every export of both entries is live;  NEVER import an element-core leaf by
       path (`$/ui/elements/UIElement`):  entering the cycle there breaks it.
-  - TODO (epic `wwod-spell-ui`, P5-P7):  component files move to `E` / `F` phase by phase.
 - **Eager memos and overridables:**  base-class memos that call overridable methods take `{ lazy: true }`;
   effects that call overridables are created in `mount()`, after every subclass field exists.
 - **`Cell` field order:**  class fields initialize in declaration order, before the subclass constructor body.
