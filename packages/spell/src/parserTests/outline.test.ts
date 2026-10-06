@@ -1,9 +1,9 @@
-import { describe, test, expect } from "vite-plus/test"
+import { describe, test, expect, vi } from "vite-plus/test"
 
 import { spellCore, Thing, List, App } from "$/core"
 import { P } from "$/parser"
 import { SP } from "$/spell"
-import { parseSpellProject } from "$/spell/test"
+import { loadFixtureProject, parseSpellProject } from "$/spell/test"
 
 /**
  * The OUTLINE style (plan doc `outline-spell`):  a type's heading, `a card is a thing where:`, then a bulleted
@@ -283,6 +283,20 @@ describe("outline style", () => {
       compile(["a card is a thing", "a card has a rank as a number"])
     )
   })
+
+  test("the outline Solitaire's cards pass their own tests, as today's cards do (P5)", () => {
+    // its deck, card, dealing and piles -- not the game itself, which starts an app
+    const files = loadFixtureProject("OutlineSolitaire").filter(({ path }) => !path.endsWith("Solitaire.spell"))
+    const lines: string[] = []
+    const console = spellCore.console as unknown as Record<string, (...args: unknown[]) => void>
+    for (const method of ["log", "group", "groupCollapsed", "warn", "error", "info"].filter((it) => console[it])) {
+      vi.spyOn(console, method).mockImplementation((...args) => void lines.push(args.join(" ")))
+    }
+    runSpellFiles(files)("")
+    vi.restoreAllMocks()
+    expect(lines.filter((line) => line.includes("❌"))).toEqual([])
+    expect(lines.filter((line) => line.includes("✅")).length).toBe(30)
+  })
 })
 
 /**
@@ -290,9 +304,14 @@ describe("outline style", () => {
  * - Throws on a parse error.
  */
 function runSpell(lines: string[]) {
-  const { files } = parseSpellProject([{ path: "/Test.spell", contents: lines.join("\n") }])
-  const [file] = files
-  if (file!.errors.length) throw new Error(`parse errors:\n${JSON.stringify(file!.errors, null, 2)}`)
+  return runSpellFiles([{ path: "/Test.spell", contents: lines.join("\n") }])
+}
+
+/** `files`, a project, compiled then RUN -- see `runSpell()`. */
+function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
+  const { files } = parseSpellProject(sources)
+  const errors = files.flatMap((file) => file.errors)
+  if (errors.length) throw new Error(`parse errors:\n${JSON.stringify(errors, null, 2)}`)
   const parts = files.map(({ match, compiled }) => (match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled))
   const code = SP.SpellProject.combineCompiled(parts)
     .split("\n")
