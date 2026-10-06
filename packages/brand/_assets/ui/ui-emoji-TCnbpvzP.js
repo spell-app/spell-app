@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-emoji-BJ-7fZmJ.js";export{e as EmojiData,t as UIEmoji};

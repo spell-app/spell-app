@@ -1,0 +1,1 @@
+import{t as e}from"./ui-ad-VYc_Xy_h.js";export{e as UIAd};

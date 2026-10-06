@@ -1,0 +1,1 @@
+import{t as e}from"./ui-rating-CSURnUYT.js";export{e as UIRating};

@@ -1,0 +1,1 @@
+import{t as e}from"./ui-panel-ChMWePNA.js";export{e as UIPanel};

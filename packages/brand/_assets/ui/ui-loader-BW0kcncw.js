@@ -1,0 +1,1 @@
+import{t as e}from"./ui-loader-CXauNbVD.js";export{e as UILoader};

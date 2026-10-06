@@ -1,0 +1,1 @@
+import{t as e}from"./ui-calendar-DyL3rS0p.js";export{e as UICalendar};

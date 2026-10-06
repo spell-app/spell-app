@@ -1,1 +1,0 @@
-import"./rolldown-runtime-CM1DJQSe.js";import{E as e}from"./UIElement-CJybVtek.js";var HostAttribute=class{get;constructor({host:t,name:n}){let read=()=>t.getAttribute(n)??void 0,r=new e(read());this.get=r.get;let i=new MutationObserver(()=>r.set(read()));i.observe(t,{attributeFilter:[n]}),t.addReleaseCallback(()=>i.disconnect())}};export{HostAttribute as t};
