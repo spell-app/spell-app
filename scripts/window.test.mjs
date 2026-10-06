@@ -157,8 +157,25 @@ test("a worktree's window:  the main root first, then the worktree's root, then 
   assert.match(Window.worktreeFile("seo"), /\/workspaces\/ongoing\/seo\.code-workspace$/)
 })
 
-test("a worktree's window never hides `packages`:  it would hide the worktree's too", () => {
-  assert.deepEqual(Window.worktreeWorkspace("ui", "seo").settings["files.exclude"], { ".claude/worktrees": true })
+test("a worktree's window hides the MAIN root's files (beside `.spell-main`), never `packages` outright", () => {
+  const exclude = Window.worktreeWorkspace("ui", "seo").settings["files.exclude"]
+  assert.deepEqual(exclude["*"], { when: ".spell-main" })
+  assert.equal(exclude.packages, undefined)
+  assert.equal(exclude[".claude/worktrees"], true)
+})
+
+test("a package window:  the whole branch, then the shared repo;  shared links shown only under the shared repo", () => {
+  const workspace = Window.workspace("ui")
+  assert.deepEqual(workspace.folders, [
+    { path: "..", name: "spell-app" },
+    ...Window.sharedFolder(dirname(Window.file("ui")))
+  ])
+  const exclude = workspace.settings["files.exclude"]
+  // a checkout's links sit beside its package.json;  the shared repo's real folders don't
+  assert.deepEqual(exclude.epics, { when: "package.json" })
+  assert.deepEqual(exclude.agents, { when: "package.json" })
+  assert.equal(exclude["*"], undefined)
+  assert.equal(exclude.packages, undefined)
 })
 
 test("tint():  a dark hue per name, the same every time", () => {
