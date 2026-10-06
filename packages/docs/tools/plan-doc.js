@@ -1271,8 +1271,20 @@ ${list}`
     const item = this.findItem(mark.id)
     if (!item) return { applied: false, gone: true, left: "no such item:  mark dropped" }
     const result = this.applyAction(item, mark)
-    if (result.applied) this.log(`${item.id.toUpperCase()} ${result.did}`)
+    if (result.applied) {
+      this.log(`${item.id.toUpperCase()} ${result.did}`)
+      this.reviewedAs(item, mark.action === "pick" ? "approve" : mark.action)
+    }
     return result
+  }
+
+  /**
+   * Record on `item` how Owen's review mark was handled (`data-review-as`:  `approve`, `todo`, `revisit`), once
+   * Claude applied it or talked it over:  the inbox forgets the mark, the doc keeps it, and the page keeps that
+   * review button coloured after a reload (epic `windows-and-review` P2, Q8).  A pick counts as approve (decided).
+   */
+  reviewedAs(item, action) {
+    item.setAttribute("data-review-as", action)
   }
 
   /** `applyMark()`'s work on `item`, the log line aside. */
@@ -3924,7 +3936,13 @@ function inbox(name, file, [what, ...args], flags) {
       for (const id of keys) setWorking(box, id, null)
       touchListening(box)
     })
-    if (notes.length) await edit(file, (plan) => notes.forEach(({ id, mark }) => plan.keepNote(id, mark)))
+    // a revisit taken care of (talked over, or answered now) stays marked as reviewed that way on the page
+    const revisits = notes.filter(({ mark }) => mark.action === "revisit")
+    if (notes.length)
+      await edit(file, (plan) => {
+        for (const { id, mark } of notes) plan.keepNote(id, mark)
+        for (const { id } of revisits) plan.reviewedAs(plan.item(id), "revisit")
+      })
     const none = keys.filter((id) => !had.includes(id) && !kept.includes(id))
     const label = what === "done" ? "done" : "cleared"
     const extras = [

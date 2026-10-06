@@ -128,22 +128,25 @@ In `tools/`:
     per page);  an item with commits gets a git icon on its line that shows its own
   - review actions (`wireReview()`, a plan doc served by the page server, once its inbox answers;  see "Review
     inbox"):
-    - every item's line ends in four icon buttons in a `<ui-buttons>` group (`.plan-act`, placed at the far right
+    - every item's line ends in its STATE buttons in a `<ui-buttons>` group (`.plan-act`, placed at the far right
       in room the line keeps free, so a title never wraps under them;  epic `windows-and-review` P2):  Approve, Make
-      Todo, Revisit Now, Add Details Now.  Grey outlines until chosen;  chosen, filled in their color (Owen,
-      2026-10-06:  green = decided:  Approve, Make Todo;  orange = pending:  Revisit Now, Add Details Now), outlined
-      once sent;  each label a tooltip (`ui-popup`).  The chosen one clicked again clears the mark
+      Todo, Revisit;  then Add Details Now, its own round button (an action, not a state).  Grey outlines until
+      chosen;  chosen, filled in their color (Owen, 2026-10-06:  green = decided:  Approve, Make Todo;  orange =
+      pending:  Revisit, Add Details Now), outlined once sent, and still outlined after Claude applied it (the doc's
+      `data-review-as`);  plain browser tooltips, just the name.  The chosen one clicked again clears the mark
+    - the note box (Q8):  docked at the END of every opened item that isn't approved (bare items:  under the line,
+      opened by Revisit);  Make Todo, Do Now, Later stacked at its right;  saved 10s after the last key, and at once
+      when you leave it, a floppy in its corner saying when
     - Add Details Now / revisit now:  `POST now`, that button spinning (`loading`) while it waits or `working[id]` is
       set;  queued with no session listening:  a still dashed ring, and a notice at the window's bottom (D6).
       Clicked while it spins:  "nevermind", `POST cancel` (the waiting session stops its agent;  a late write into
       the item is refused)
-    - Make Todo:  marks the todo and opens a note box (why follow it up);  its check saves the note with the mark,
-      and `inbox apply` writes it into the new todo
+    - Make Todo (the box's):  the todo with the note, which `inbox apply` writes into the new todo;  the line's
+      Make Todo marks it without one
     - every note box grows as it's typed in (`field-sizing: content`;  the details pages' Other and Notes boxes too)
-    - Revisit:  a note box under the line, a grey check ("soon") over a blue send ("now");  the note is SAVED as
-      typed, to the inbox as a draft (`POST draft`), "Saved 10:42" under it, so a reload from ANY address brings
-      it back (`spell-revisit:<path>` in localStorage is only a backup:  it's per address, and lost notes that
-      way;  epic `windows-and-review` P1)
+    - Later / Do Now (the box's):  revisit soon / now with the note;  the note is SAVED as typed, to the inbox as a
+      draft (`POST draft`), so a reload from ANY address brings it back (`spell-revisit:<path>` in localStorage is
+      only a backup:  it's per address, and lost notes that way;  epic `windows-and-review` P1)
     - a marked note stays in view under its line ("You · revisit soon · sent 10:42", Edit reopens it);  the line's
       speech bubble says a note is there (outline:  a draft;  solid:  marked);  once Claude clears the mark
       (`inbox done | clear`), the note is kept IN the item as Owen's own reply card (`PlanDoc.keepNote()`)

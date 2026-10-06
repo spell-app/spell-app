@@ -2723,7 +2723,7 @@ const REVIEW_POLL_MS = 4000
 const REVISIT_KEY_PREFIX = "spell-revisit:"
 
 /** How long a note box waits after the last keystroke before saving its draft. */
-const DRAFT_SAVE_MS = 600
+const DRAFT_SAVE_MS = 10_000
 
 /** How long a review notice (`notify()`) stays up. */
 const NOTICE_MS = 6000
@@ -2742,10 +2742,16 @@ const NOBODY_LISTENING = "No Claude session is reviewing this doc:  this waits f
  */
 const REVIEW_ACTIONS = [
   ["approve", "green", "check", "Approve", "Fine as it is"],
-  ["todo", "green", "list check", "Make Todo", "Follow it up later, as a todo;  a note box says why"],
-  ["revisit", "orange", "history", "Revisit Now", "A note box:  talk it over in the next batch, or now"],
+  ["todo", "green", "list check", "Make Todo", "Follow it up later, as a todo"],
+  ["revisit", "orange", "history", "Revisit", "Talk it over:  write in the box at the item's end"],
   ["details", "orange", "magic", "Add Details Now", "Claude writes a fuller explanation into the item, at once"]
 ]
+
+/**
+ * The actions in the line's GROUP:  states an item can be in (Owen, 2026-10-06, Q8).  Add Details Now is an action,
+ * not a state:  its own button after the group.
+ */
+const REVIEW_STATES = ["approve", "todo", "revisit"]
 
 /** Every plan item a review mark can go on:  the items of every list, open or closed (not the phases). */
 const REVIEW_ITEMS = ".plan-items > [data-status][id]"
@@ -2819,7 +2825,7 @@ async function wireReview(main) {
   let inbox = null
   const asking = new Map()
   const calling = new Set()
-  const boxes = new Map()
+  const boxes = new Set()
   // writes in flight:  a poll's answer can't overwrite what they're about to
   let writing = 0
   // the notice's timer, why the last write failed (`write()`)
@@ -2830,7 +2836,7 @@ async function wireReview(main) {
   const notice = buildNotice()
   await adoptBackups()
   // a note being written reopens where it was, from any address
-  for (const [id, draft] of Object.entries(inbox.drafts)) boxes.set(id, draft.action)
+  for (const id of Object.keys(inbox.drafts)) boxes.add(id)
   decorate()
   addEventListener("spell-doc:updated", decorate)
   setInterval(() => {
@@ -2868,8 +2874,11 @@ async function wireReview(main) {
     for (const item of main.querySelectorAll(REVIEW_ITEMS)) {
       const line = item.querySelector(":scope > ui-accordion.plan-item > ui-title") ?? item
       if (!line.querySelector(":scope > .plan-act")) line.append(actOf(item))
-      if (boxes.has(item.id) && !item.querySelector(":scope > .plan-revisit"))
-        item.append(boxOf(item, boxes.get(item.id)))
+      if (item.querySelector(":scope > .plan-revisit")) continue
+      // an item with details:  its note box docked at its end, shown while it's open (Q8);  else only when opened
+      const accordion = item.querySelector(":scope > ui-accordion.plan-item")
+      if (accordion) accordion.after(boxOf(item, { docked: true }))
+      else if (boxes.has(item.id)) item.append(boxOf(item))
     }
     const head = main.querySelector(".spell-page-head")
     if (head && !head.querySelector(":scope > .plan-send")) {
@@ -2889,28 +2898,34 @@ async function wireReview(main) {
       const mark = marks[item.id]
       const done = !!mark && isSent(mark, sent)
       const running = runningOf(item.id)
+      // how Claude handled an earlier mark (`data-review-as`, kept in the doc):  that button stays outlined
+      const applied = mark ? null : item.dataset.reviewAs
       for (const [action, color, , label, tip] of REVIEW_ACTIONS) {
         const button = act.querySelector(`ui-button[data-action="${action}"]`)
-        const chosen = mark?.action === action || boxes.get(item.id) === action
+        const chosen = mark?.action === action || (action === "revisit" && mark?.action === "revisit")
         const spinning = running?.action === action
-        button.toggleAttribute("data-chosen", chosen && !!mark)
-        button.toggleAttribute("data-sent", chosen && done)
+        button.toggleAttribute("data-chosen", chosen || applied === action)
+        button.toggleAttribute("data-sent", (chosen && done) || applied === action)
         button.dataset.color = color
         button.toggleAttribute("loading", spinning && !running.queued)
         button.toggleAttribute("data-waiting", spinning && running.queued)
+        // the plain browser tooltip, just the name (Owen, Q8);  the screen reader hears the state too
         const state = spinning
           ? running.queued
             ? `waiting:  ${NOBODY_LISTENING}`
             : `${action === "revisit" ? "Claude is looking into this" : "Claude is adding details"} · click to call it off`
-          : chosen && mark
+          : chosen
             ? `${done ? "sent" : "not sent yet"} · click to clear`
-            : action === "details" && !listening
-              ? `${tip}.  ${NOBODY_LISTENING}`
-              : tip
-        const words = `${label} · ${state}`
-        button.setAttribute("aria-label", words)
-        act.querySelector(`ui-popup[data-action="${action}"]`)?.setAttribute("content", words)
+            : applied === action
+              ? "done before"
+              : action === "details" && !listening
+                ? `${tip}.  ${NOBODY_LISTENING}`
+                : tip
+        button.title = spinning && !running.queued ? `${label}:  click to call it off` : label
+        button.setAttribute("aria-label", `${label} · ${state}`)
       }
+      // the note box at an opened item's end:  every item that isn't approved (Q8)
+      item.toggleAttribute("data-approved", (mark?.action ?? applied) === "approve")
       // a pick shows its letter beside the buttons:  a plain pick (decided, green), or a revisit carrying one (orange)
       const pick = act.querySelector(".plan-act-pick")
       pick.textContent = mark?.pick ?? ""
@@ -2986,9 +3001,13 @@ async function wireReview(main) {
       `<div class="plan-said-title"><ui-icon name="comment"></ui-icon><b>You</b> · <span class="plan-said-what"></span>` +
       `<button type="button" class="plan-said-edit"><ui-icon name="edit"></ui-icon>Edit</button></div>` +
       `<p class="plan-said-note"></p>`
-    said
-      .querySelector("button")
-      .addEventListener("click", () => openBox(item, inbox.marks[item.id]?.action === "todo" ? "todo" : "revisit"))
+    said.querySelector("button").addEventListener("click", () => {
+      // the note back in the box, to change and mark again
+      const note = inbox.marks[item.id]?.note ?? ""
+      openBox(item)
+      const box = item.querySelector(":scope > .plan-revisit textarea")
+      if (box && !box.value) box.value = note
+    })
     return said
   }
 
@@ -3019,7 +3038,7 @@ async function wireReview(main) {
     const open = !CLOSED.has(item.dataset.status)
     const revisiting =
       item.hasAttribute("data-answered") &&
-      (boxes.get(item.id) === "revisit" || mark?.action === "revisit" || !!mark?.pick)
+      (boxes.has(item.id) || !!inbox.drafts[item.id] || mark?.action === "revisit" || !!mark?.pick)
     for (const label of outsideOriginal(item.querySelectorAll(ITEM_OPTION_LABELS))) {
       const pill = label.querySelector(":scope > .plan-choose")
       const wanted = open || (revisiting && !label.hasAttribute("data-chosen"))
@@ -3038,25 +3057,24 @@ async function wireReview(main) {
   ////////////////
 
   /**
-   * An item's controls at its line's end:  `span.plan-act` holding the note bubble, the pick's letter, and the four
-   * review buttons (`ui-buttons.plan-act-group`), each with its tooltip (a `ui-popup` after the group, `target` set,
-   * so the group's first / last buttons keep their rounded ends).
+   * An item's controls at its line's end:  `span.plan-act` holding the note bubble, the pick's letter, the state
+   * buttons (`ui-buttons.plan-act-group`:  Approve, Make Todo, Revisit), and Add Details Now on its own after them
+   * (`ui-button.plan-act-details`:  an action, not a state).  Tooltips:  the plain browser ones (`title`, Q8).
    */
   function actOf(item) {
     const act = document.createElement("span")
     act.className = "plan-act"
     act.dataset.spellAdded = ""
-    const buttons = REVIEW_ACTIONS.map(
-      ([action, , glyph, label]) =>
-        `<ui-button data-action="${action}" icon="${glyph}" aria-label="${text(label)}"></ui-button>`
-    ).join("")
+    const button = ([action, , glyph, label]) =>
+      `<ui-button data-action="${action}" icon="${glyph}" title="${text(label)}" aria-label="${text(label)}"></ui-button>`
+    const states = REVIEW_ACTIONS.filter(([action]) => REVIEW_STATES.includes(action))
+    const [details] = REVIEW_ACTIONS.filter(([action]) => !REVIEW_STATES.includes(action))
     act.innerHTML =
       `<span class="plan-act-noted" hidden><ui-icon name="comment"></ui-icon></span>` +
       `<span class="plan-act-pick" hidden></span>` +
-      `<ui-buttons class="plan-act-group" basic icon size="mini">${buttons}</ui-buttons>` +
-      REVIEW_ACTIONS.map(([action]) => `<ui-popup data-action="${action}" inverted size="mini"></ui-popup>`).join("")
+      `<ui-buttons class="plan-act-group" basic icon size="mini">${states.map(button).join("")}</ui-buttons>` +
+      button(details).replace("<ui-button ", '<ui-button class="plan-act-details" basic size="mini" ')
     for (const button of act.querySelectorAll("ui-button")) {
-      act.querySelector(`ui-popup[data-action="${button.dataset.action}"]`).target = button
       button.addEventListener("click", (event) => {
         // the line's own click would fold the item
         event.preventDefault()
@@ -3096,91 +3114,119 @@ async function wireReview(main) {
   }
 
   /**
-   * An item's note box:  `div.plan-revisit` (`data-action` `revisit` or `todo`), a note that grows as it's typed in,
-   * a status line under it, and round buttons at its right.
-   * - Revisit:  a grey check ("revisit soon") over a blue send ("revisit now");  Make Todo:  one check, the todo
-   *   saved with its note
-   * - the note is SAVED as typed:  to the inbox as a draft (`POST draft`), `DRAFT_SAVE_MS` after the last key, the
-   *   status line saying "Saving…", "Saved 10:42" or why not;  a localStorage backup too (`draftsKey`), for a save
-   *   that fails
-   * - a button saves the mark (the draft goes with it);  Escape closes the box, the draft kept
+   * An item's note box (Owen, 2026-10-06, Q8):  `div.plan-revisit`, a note that grows as it's typed in, a small Saved
+   * mark in its corner, and three round buttons stacked at its right:  Make Todo (green), Do Now (orange:  revisit
+   * now), Later (orange clock:  revisit soon).
+   * - `docked`:  an item WITH details gets one always, after its accordion, shown while the item is open and not
+   *   approved (`plan-doc.css`):  where you are when you've read it.  An item without details gets one under its line
+   *   when Revisit opens it (`boxes`), closed again once used
+   * - the note is SAVED as typed:  to the inbox as a draft (`POST draft`), `DRAFT_SAVE_MS` after the last key, and at
+   *   once when the box loses focus or the page goes away;  the floppy mark says Saved (its tooltip:  when), or turns
+   *   red with why not;  a localStorage backup too (`draftsKey`), for a save that fails
+   * - a button saves the mark (the draft goes with it), then empties the box (docked) or closes it;  Escape leaves
+   *   the box, the draft kept
    */
-  function boxOf(item, action = "revisit") {
+  function boxOf(item, { docked = false } = {}) {
     const id = item.id
-    const todo = action === "todo"
     const box = document.createElement("div")
     box.className = "plan-revisit"
     box.dataset.spellAdded = ""
-    box.dataset.action = action
+    box.toggleAttribute("data-docked", docked)
     box.innerHTML =
       `<span class="plan-revisit-text">` +
-      `<textarea class="plan-revisit-note" rows="2" placeholder="${todo ? "Why follow it up? (optional)" : "Your question or comment"}"></textarea>` +
-      `<span class="plan-revisit-status" aria-live="polite"></span></span>` +
+      `<textarea class="plan-revisit-note" rows="2" placeholder="Your note:  a question, instructions, why"></textarea>` +
+      `<ui-icon class="plan-revisit-saved" name="floppy disk outline" hidden></ui-icon></span>` +
       `<span class="plan-revisit-buttons">` +
-      `<button type="button" class="plan-revisit-soon"><ui-icon name="check"></ui-icon></button>` +
-      (todo ? "" : `<button type="button" class="plan-revisit-now"><ui-icon name="paper plane"></ui-icon></button>`) +
+      `<button type="button" class="plan-revisit-todo"><ui-icon name="list check"></ui-icon></button>` +
+      `<button type="button" class="plan-revisit-now"><ui-icon name="paper plane"></ui-icon></button>` +
+      `<button type="button" class="plan-revisit-soon"><ui-icon name="clock outline"></ui-icon></button>` +
       `</span>`
     const note = box.querySelector("textarea")
-    const status = box.querySelector(".plan-revisit-status")
-    note.setAttribute(
-      "aria-label",
-      `${todo ? "Make Todo" : "Revisit"} ${id.toUpperCase()}:  ${todo ? "why follow it up" : "your question or comment"}`
-    )
+    const saved = box.querySelector(".plan-revisit-saved")
+    note.setAttribute("aria-label", `${id.toUpperCase()}:  your note`)
     const draft = inbox.drafts[id]
-    note.value = (draft?.action === action ? draft.note : null) ?? inbox.marks[id]?.note ?? ""
-    status.textContent = draft ? `Saved ${clockOf(draft.at)}` : ""
-    const [soon, now] = box.querySelectorAll("button")
-    label(soon, todo ? "Make Todo:  save it with this note" : "Revisit soon:  talk it over in the next batch")
-    if (now) label(now, `Revisit now:  Claude looks into it at once${inbox.listening ? "" : `.  ${NOBODY_LISTENING}`}`)
+    note.value = draft?.note ?? ""
+    if (draft) showSaved(true, draft.at)
+    const [todo, now, soon] = box.querySelectorAll("button")
+    label(todo, "Make Todo", "Make Todo:  follow it up later, with this note")
+    label(now, "Do Now", `Do Now:  Claude looks into it at once${inbox.listening ? "" : `.  ${NOBODY_LISTENING}`}`)
+    label(soon, "Later", "Later:  talk it over in the next batch")
     let timer = 0
     note.addEventListener("input", () => {
       backup(id, note.value)
-      status.textContent = "Saving…"
+      saved.hidden = true
       clearTimeout(timer)
       timer = setTimeout(() => void saveDraft(), DRAFT_SAVE_MS)
     })
+    // leaving the box (or the page) saves at once:  a reload or a click elsewhere never loses what was typed
+    note.addEventListener("blur", () => flush())
+    addEventListener("pagehide", () => flush({ keepalive: true }))
     note.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return
       event.stopPropagation()
-      clearTimeout(timer)
-      void saveDraft()
+      flush()
+      if (docked) return note.blur()
       closeBox(item, false)
-      item.querySelector(`.plan-act ui-button[data-action="${action}"]`)?.focus({ preventScroll: true })
+      item.querySelector('.plan-act ui-button[data-action="revisit"]')?.focus({ preventScroll: true })
     })
+    todo.addEventListener("click", () => used(() => save(id, { action: "todo", note: note.value.trim() })))
+    now.addEventListener("click", () => used(() => askNow(id, "revisit", note.value.trim())))
     soon.addEventListener("click", () => {
-      clearTimeout(timer)
-      const text = note.value.trim()
-      closeBox(item, true)
-      if (todo) return void save(id, { action: "todo", note: text })
       // a picked question keeps its pick:  "pick B, but ..."
       const pick = inbox.marks[id]?.pick
-      void save(id, { action: "revisit", when: "soon", note: text, ...(pick && { pick }) })
-    })
-    now?.addEventListener("click", () => {
-      clearTimeout(timer)
-      const text = note.value.trim()
-      closeBox(item, true)
-      void askNow(id, "revisit", text)
+      used(() => save(id, { action: "revisit", when: "soon", note: note.value.trim(), ...(pick && { pick }) }))
     })
     return box
 
-    /** Save the note as the item's draft;  the status line says how it went. */
-    async function saveDraft() {
+    /** A button made the note a mark:  `mark()` saves it;  the box empties (docked) or closes, its draft dropped. */
+    function used(mark) {
+      clearTimeout(timer)
+      timer = 0
+      void mark()
+      note.value = ""
+      saved.hidden = true
+      if (docked) {
+        // a draft at load counted the item as being written in (`boxes`):  that would hide the note just marked
+        boxes.delete(id)
+        delete inbox.drafts[id]
+        backup(id, "")
+        render()
+      } else closeBox(item, true)
+    }
+
+    /** Save a pending draft now (`keepalive`:  the page is going away). */
+    function flush({ keepalive = false } = {}) {
+      if (!timer) return
+      clearTimeout(timer)
+      timer = 0
+      void saveDraft({ keepalive })
+    }
+
+    /** Save the note as the item's draft;  the floppy mark says how it went. */
+    async function saveDraft({ keepalive = false } = {}) {
+      timer = 0
       // a button already made it a mark
       if (!box.isConnected) return
       const text = note.value
-      const saved = await write("draft", { id, action, note: text }, { quiet: true })
+      const ok = await write("draft", { id, action: "revisit", note: text }, { quiet: true, keepalive })
       if (note.value !== text) return
-      if (!saved) return void (status.textContent = `Not saved:  ${lastWriteError} (kept in this browser)`)
+      if (!ok) return showSaved(false)
       backup(id, "")
-      status.textContent = text.trim() ? `Saved ${clockOf(new Date().toISOString())}` : ""
+      if (text.trim()) showSaved(true, new Date().toISOString())
       render()
     }
 
-    /** Give icon-only `button` its tooltip and label. */
-    function label(button, tip) {
-      button.title = tip
-      button.setAttribute("aria-label", tip)
+    /** The corner mark:  a floppy, "Saved 10:42" as its tooltip;  red, with why, when the save failed. */
+    function showSaved(ok, at) {
+      saved.hidden = false
+      saved.toggleAttribute("data-failed", !ok)
+      saved.title = ok ? `Saved ${clockOf(at)}` : `Not saved:  ${lastWriteError} (kept in this browser)`
+    }
+
+    /** Give icon-only `button` its plain tooltip (`name`) and a fuller spoken label (`words`). */
+    function label(button, name, words) {
+      button.title = name
+      button.setAttribute("aria-label", words)
     }
   }
 
@@ -3226,32 +3272,23 @@ async function wireReview(main) {
   }
 
   /**
-   * The reader clicked `item`'s `action` button.
+   * The reader clicked `item`'s `action` button in its line.
    * - running (it spins):  "nevermind", called off (`cancel()`)
-   * - chosen already (its mark, or its note box open):  cleared, back to no action;  a revisit carrying a pick keeps
-   *   the pick ("pick B, but ..." without the "but")
-   * - else:  Approve marks it;  Make Todo marks it and opens its note box;  Revisit Now opens the note box;  Add
-   *   Details Now asks at once
+   * - chosen already:  cleared, back to no action;  a revisit carrying a pick keeps the pick ("pick B, but ..."
+   *   without the "but")
+   * - else:  Approve and Make Todo mark it;  Revisit takes you to the note box (the item opened, its box at the
+   *   end;  an item without details gets one under its line);  Add Details Now asks at once
    */
   function press(item, action) {
     const id = item.id
     const mark = inbox.marks[id]
     if (runningOf(id)?.action === action) return void cancel(id)
-    if (mark?.action === action || boxes.get(id) === action) {
-      closeBox(item, true)
-      // only its box was open:  the mark it has (another action's, or none) stays
-      if (mark?.action !== action) return void write("draft", { id, action, note: null }, { quiet: true })
+    if (mark?.action === action) {
       const pick = action === "revisit" ? mark.pick : undefined
       return void save(id, pick ? { action: "pick", pick } : null)
     }
     if (action === "details") return void askNow(id, "details")
-    if (action === "revisit") return openBox(item, "revisit")
-    if (action === "todo") {
-      openBox(item, "todo")
-      return void save(id, { action: "todo" })
-    }
-    // another box open on the item:  its draft stays, the box goes
-    if (boxes.has(id)) closeBox(item, false)
+    if (action === "revisit") return openBox(item)
     void save(id, { action })
   }
 
@@ -3259,27 +3296,30 @@ async function wireReview(main) {
   // ## Note box
   ////////////////
 
-  /** Open `item`'s note box for `action` (`revisit` or `todo`), or focus it, already open;  another one closes. */
-  function openBox(item, action) {
+  /**
+   * Take the reader to `item`'s note box and focus it:  an item with details is opened, its docked box at the end;
+   * one without gets a box under its line (`boxes`).
+   */
+  function openBox(item) {
+    const accordion = item.querySelector(":scope > ui-accordion.plan-item")
     let box = item.querySelector(":scope > .plan-revisit")
-    if (box && box.dataset.action !== action) {
-      box.remove()
-      box = null
+    if (accordion) accordion.open = "0"
+    else {
+      boxes.add(item.id)
+      if (!box) item.append((box = boxOf(item)))
     }
-    boxes.set(item.id, action)
-    if (!box) item.append((box = boxOf(item, action)))
     // an answered question's Choices take their pills while it's revisited (`pills()`)
     render()
-    box.querySelector("textarea").focus({ preventScroll: true })
+    requestAnimationFrame(() => box?.querySelector("textarea").focus({ preventScroll: true }))
   }
 
   /**
-   * Close `item`'s Revisit box;  `saved`:  its note became a mark, so its draft goes too (the route drops the
-   * inbox's:  `inbox.js` `setMark()`).
+   * Close `item`'s note box (an item without details;  a docked one stays);  `saved`:  its note became a mark, so its
+   * draft goes too (the route drops the inbox's:  `inbox.js` `setMark()`).
    */
   function closeBox(item, saved) {
     boxes.delete(item.id)
-    item.querySelector(":scope > .plan-revisit")?.remove()
+    item.querySelector(":scope > .plan-revisit:not([data-docked])")?.remove()
     if (saved) {
       delete inbox.drafts[item.id]
       backup(item.id, "")
@@ -3354,7 +3394,7 @@ async function wireReview(main) {
     const item = main.querySelector(`#${CSS.escape(id)}`)
     if (!item) return
     await write("draft", { id, action: "revisit", note }, { quiet: true })
-    openBox(item, "revisit")
+    openBox(item)
 
     /** Take the immediate request off the page (its `now` entry, its work, its mark), and show it. */
     function forget() {
@@ -3385,7 +3425,7 @@ async function wireReview(main) {
    * - the page server restarted since this page loaded (a 403 on the token):  takes its new token
    *   (`refreshToken()`) and tries once more, so nothing typed is refused for it
    */
-  async function write(route, body, { quiet = false } = {}) {
+  async function write(route, body, { quiet = false, keepalive = false } = {}) {
     writing++
     let error = ""
     try {
@@ -3393,7 +3433,8 @@ async function wireReview(main) {
         const response = await fetch(`${REVIEW_API}/${route}`, {
           method: "POST",
           headers: { "content-type": "application/json", "x-server-token": server.token },
-          body: JSON.stringify({ page, ...body })
+          body: JSON.stringify({ page, ...body }),
+          keepalive
         })
         const reply = await response.json().catch(() => ({}))
         if (response.ok) {
