@@ -90,18 +90,43 @@ export async function runCompiled(
   options: CLI.TestOptions,
   { capture = false }: { capture?: boolean } = {}
 ): Promise<ChildResult> {
+  const name = project.projectName ?? project.projectId
+  const code = project.outputFile.contents ?? ""
+  return runCode(mode, name, code, { ...options, projects: importedOutputs(project), capture })
+}
+
+/**
+ * Run `code`, project `name` compiled for any target, in `runProject.ts` -- see `runCompiled()`.
+ * - `extension`:  of the temp file it runs from, `.mjs`;  `.mts` for TypeScript (`ts/solid`), which `tsx` strips.
+ * - `projects`:  what it imports, by id -- see `importedOutputs()`.
+ * - `dom`:  in a fake page, printing what it draws -- see `CLI.RunSpec`.
+ * - Used by the core contract test, `contract.test.ts`, to run each target's code the same way.
+ */
+export async function runCode(
+  mode: CLI.RunSpec["mode"],
+  name: string,
+  code: string,
+  {
+    extension = ".mjs",
+    projects = {},
+    capture = false,
+    dom,
+    ...options
+  }: CLI.TestOptions & { extension?: string; projects?: Record<string, string>; capture?: boolean; dom?: boolean } = {}
+): Promise<ChildResult> {
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
-    const entry = resolve(folder, `${project.projectName}.compiled.mjs`)
-    writeFileSync(entry, project.outputFile.contents ?? "")
+    const entry = resolve(folder, `${name}.compiled${extension}`)
+    writeFileSync(entry, code)
     const spec: CLI.RunSpec = {
       mode,
-      name: project.projectName ?? project.projectId,
+      name,
       entry: pathToFileURL(entry).href,
-      projects: importedOutputs(project),
+      projects,
       spellCore: pathToFileURL(resolve(environment.spellCoreDir, "index.ts")).href,
       verbose: options.verbose,
-      filter: options.name
+      filter: options.name,
+      dom
     }
     return await runChild(spec, capture)
   } finally {
@@ -110,7 +135,7 @@ export async function runCompiled(
 }
 
 /** How a `runProject.ts` child went -- see `runCompiled()`. */
-type ChildResult = { exitCode: number; output: string; skipped: string[] }
+export type ChildResult = { exitCode: number; output: string; skipped: string[] }
 
 /**
  * URL of the compiled javascript of each project `project` imports -- and what THEY import -- by id.

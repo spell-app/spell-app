@@ -17,7 +17,8 @@ import type { CLI } from "$/cli"
 const spec = JSON.parse(process.env.SPELL_RUN!) as CLI.RunSpec
 /** What the project tried to do which needs a browser, e.g. `start the game`. */
 const skipped = new Set<string>()
-headless()
+if (spec.dom) await fakeDom()
+else headless()
 // a fresh state bag + event hub for the project, e.g. for `on card-click` -- as the app's runners do
 spellCore.resetRuntime()
 // output piped into e.g. `head`, which closed it:  nothing more to say
@@ -162,6 +163,32 @@ function headless() {
     skipped.add(`start the ${this.constructor.name.toLowerCase()}`)
   }
   spellCore.installStyles = () => {}
+}
+
+/**
+ * SIDE EFFECT:  a fake page for `spec.dom`, so what needs a browser runs:  linkedom's `document`, and `App.start()`
+ * draws into it.  When the program is done, prints the page's `<body>`:  what it drew, to compare.
+ * - `Math.random()` is SEEDED, so a shuffle comes out the same every run, on every target:  by `hooks.mjs`, before
+ *   lodash loads and keeps its own reference to it.
+ * - Only for the core contract test, `contract.test.ts`:  a real browser is `spell run`'s.
+ */
+async function fakeDom() {
+  const { parseHTML } = await import("linkedom")
+  const page = parseHTML("<!doctype html><html><head></head><body></body></html>")
+  for (const name of ["window", "document", "navigator", "HTMLElement", "Element", "Node", "Event", "CustomEvent"]) {
+    Object.defineProperty(globalThis, name, {
+      value: page[name as keyof typeof page],
+      configurable: true,
+      writable: true
+    })
+  }
+  spellCore.installStyles = () => {}
+  // `tsx` compiles `core`'s `App.tsx` with classic JSX here, which reads a global `React`
+  Object.assign(globalThis, { React: await import("react") })
+  process.once("beforeExit", () => {
+    const drawn = page.document.body.innerHTML
+    if (drawn) process.stdout.write(`\n${drawn}\n`)
+  })
 }
 
 /** Silence `console.*` -- the project's `print`s -- unless `verbose`.  Returns how to put it back. */

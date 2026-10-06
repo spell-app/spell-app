@@ -1647,6 +1647,7 @@ __metadata:
     commander: "npm:^14"
     ink: "npm:^5.2.1"
     ink-testing-library: "npm:^4"
+    linkedom: "npm:^0.18.13"
     react: "npm:^18.2.0"
     tsx: "npm:4.20.3"
     typescript: "npm:^7.0.2"
