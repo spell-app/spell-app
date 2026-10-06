@@ -439,6 +439,22 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   `static get instanceType() { return Card }` (`create_list_type`).
 - A property, alias or phrase on a type nobody declares is refused (`SpellStatement.refuseUnknownType()`).
 
+## Inferred phrases:  `- it "is a suit"`
+
+- `quoted_property_formula` with no `for its ...` (an outline body's `{type:subject_it} {alias:text}`):  `parse()`
+  INFERS the placeholders (`inferPlaceholders()`):  each word naming, by its singular, a property of the type with a
+  list of values -- its own (`as one of`), or a value kind's -- e.g. `is the rank of suits` => `is the (rank) of
+  (suits)`, sources `rank`, `suit`.  None:  not ours, so `it "is face up" if ...` stays a `quoted_type_expression`.
+- A value kind declared FURTHER DOWN (a stub here, e.g. the card above the deck):  its placeholder's syntax is
+  `(expression:{constant}|{number})`, and `QuotedPropertyRule` is specialized with `kinds: { suit: "Suit" }`;  its
+  `parse()` checks the word against the kind's values WHERE THE PHRASE IS USED (`kindValue()`, into
+  `data.kindArgs`).
+- A phrase ON a value kind, `a rank "is a face card" if ...`:  `quoted_type_expression.processSignature()` sets
+  `signature.valueKindOf`;  it compiles to the kind's static method (`static is_a_face_card(rank)`), and its
+  `MethodPostfixRule` (`staticOf`) to `Rank.is_a_face_card(card.rank)`.  Postfix phrases only.
+- `draw_side` (`classes.ts`):  `- to "draw its front":` + one line of markup => `get front() {...}`;  front AND back
+  also give the type `draw()`, by its direction (plan doc Q14).
+
 ## Scope:  what's stored where
 
 - All scope collections are `ScopeList`s (`packages/parser/src/scope/ScopeList.ts`):  `get` / `add` / `replace` only, no remove.

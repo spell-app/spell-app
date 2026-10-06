@@ -187,6 +187,78 @@ describe("outline style", () => {
     })
   })
 
+  describe('inferred phrases (P3):  `it "is a suit"` with no `(suit)` and no `for its suits`', () => {
+    const DECK = [
+      "a deck is a list of cards with:",
+      '\t- "suits" as one of clubs, diamonds, hearts or spades',
+      '\t- "ranks" as one of ace, 2 ... 10, jack, queen or king'
+    ]
+    const CARD = [
+      "a card is a thing where:",
+      '\t- its "suit" is a suit',
+      '\t- its "rank" is a rank',
+      "\t- its direction is up or down",
+      '\t- it "is a suit"',
+      '\t- it "is the rank of suits"'
+    ]
+    const USES = [
+      "the queen is a new card with suit = spades, rank = queen",
+      "set spade to the queen is a spade",
+      "set heart to the queen is a heart",
+      "set queen-of-spades to the queen is the queen of spades",
+      "set two-of-spades to the queen is the 2 of spades"
+    ]
+    const EXPECTED = { spade: true, heart: false, queen_of_spades: true, two_of_spades: false }
+
+    test("the deck first:  the values are known", () => {
+      const js = compile([...DECK, ...CARD, ...USES])
+      expect(js).toContain("is_a_$suit(suit) {")
+      expect(js).toContain("let spade = queen.is_a_$suit('spades')")
+      expect(runSpell([...DECK, ...CARD, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
+    })
+
+    test("the card first:  checked where it's used (issue I3's order)", () => {
+      const js = compile([...CARD, ...DECK, ...USES])
+      expect(js).toContain("let spade = queen.is_a_$suit('spades')")
+      expect(runSpell([...CARD, ...DECK, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
+    })
+
+    test('a phrase on a value kind:  `a rank "is a face card" if ...` is the kind\'s static method', () => {
+      const lines = [
+        ...DECK,
+        '\t- a rank "is a face card" if it is jack, queen or king',
+        ...CARD,
+        "the queen is a new card with suit = spades, rank = queen",
+        "set face to the rank of the queen is a face card",
+        "set low to ace is a face card"
+      ]
+      const js = compile(lines)
+      expect(js).toMatch(/export class Rank \{\s+static is_a_face_card\(rank\) \{/)
+      expect(js).toContain("spellCore.includes(['jack', 'queen', 'king'], rank)")
+      expect(js).toContain("let face = Rank.is_a_face_card(queen.rank)")
+      expect(runSpell(lines)("face, low")).toEqual({ face: true, low: false })
+    })
+
+    test('a word that names no property stays a word:  `it "is face up" if ...` is still a phrase method', () => {
+      const js = compile([...DECK, ...CARD, '\t- it "is face up" if its direction is up'])
+      expect(js).toContain("get is_face_up() {")
+    })
+  })
+
+  test('`to "draw its front":` + markup:  a side, as a getter;  front and back give `draw()` by direction (Q14)', () => {
+    const lines = [
+      "a card is a thing where:",
+      "\t- its direction is up or down",
+      '\t- to "draw its front":',
+      '\t\t<ui-image source="images/front.png" />',
+      '\t- to "draw its back": <ui-image source="images/back.png" />'
+    ]
+    const js = compile(lines)
+    expect(js).toMatch(/get front\(\) \{\s+return spellCore\.element\(\{ tag: "ui-image"/)
+    expect(js).toContain("draw() {")
+    expect(js).toContain("return (this.direction === 'down' ? this.back : this.front)")
+  })
+
   test("a bullet is never part of the statement:  `- x` and `x` are the same line", () => {
     expect(compile(["- a card is a thing", "- a card has a rank as a number"])).toBe(
       compile(["a card is a thing", "a card has a rank as a number"])
