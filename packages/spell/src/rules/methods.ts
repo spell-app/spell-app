@@ -200,6 +200,8 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
 
   /** Generated method to read, e.g. `is_face_up`. */
   declare methodName: string
+  /** A value kind's phrase:  the kind whose static method it calls, e.g. `Rank` -- see `MethodRuleDeclared`. */
+  declare staticOf: string | undefined
   /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
   declare readonly Props: MethodOperatorRuleProps
 
@@ -207,17 +209,22 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
   declare static readonly SpecializeWith: MethodRuleDeclared
   /** Reads generated method `output`, e.g. `is_face_up` -- also our `ruleName`.  See `DynamicMethodRule.specialize()`. */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output } = declared as MethodRuleDeclared
-    const statics: P.RuleStatics<MethodPostfixRule> = { ruleName: output, methodName: output }
+    const { output, staticOf } = declared as MethodRuleDeclared
+    const statics: P.RuleStatics<MethodPostfixRule> = { ruleName: output, methodName: output, staticOf }
     return super.specialize(statics, declared) as unknown as T
   }
 
   /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
-  static declarationProps({ output }: MethodRuleDeclared, syntax: string | undefined) {
-    return { syntax, output }
+  static declarationProps({ output, staticOf }: MethodRuleDeclared, syntax: string | undefined) {
+    return staticOf ? { syntax, output, staticOf } : { syntax, output }
   }
 
   compileASTExpression(match: P.Match, { lhs }: OperatorOperands): P.ASTExpression {
+    // a value kind's phrase:  `Rank.is_a_face_card(card.rank)`
+    if (this.staticOf) {
+      const thing = new P.ASTTypeExpression(match, { name: this.staticOf })
+      return new P.ASTScopedMethodInvocation(match, { thing, methodName: this.methodName, args: [lhs!] })
+    }
     return new P.ASTPropertyExpression(match, {
       object: lhs!,
       property: new P.ASTPropertyLiteral(match, this.methodName)
@@ -227,7 +234,7 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
 
 /** Props bag accepted by `MethodPostfixRule` / `MethodInfixRule` -- the generated method, and what it takes. */
 type MethodOperatorRuleProps = Prettify<
-  SpellExpressionProps & { methodName: string; paramTypes?: Array<P.Datatype | undefined> }
+  SpellExpressionProps & { methodName: string; paramTypes?: Array<P.Datatype | undefined>; staticOf?: string }
 >
 
 /**
@@ -236,7 +243,7 @@ type MethodOperatorRuleProps = Prettify<
  * - `of` / `params`:  its owner and parameters, as its `P.ScopeMethod` record --
  *   loading passes the whole declaration, which holds the record's too
  */
-type MethodRuleDeclared = { output: string; of?: string; params?: P.ScopeParam[] }
+type MethodRuleDeclared = { output: string; of?: string; params?: P.ScopeParam[]; staticOf?: string }
 
 ////////////////
 // ## `MethodInfixRule` base class
@@ -407,9 +414,21 @@ export class MethodDefinition<
    *   var-name alias) directly onto the new scope's `variables`.
    */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    const { methodName, args, extraVars, instanceType } = this.getSignature(match)!
+    const { methodName, args, extraVars, instanceType, valueKindOf } = this.getSignature(match)!
     // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
     const declaredBy = match as P.Match
+    // a value kind's phrase:  `it` / `the rank` are its argument, the value -- see `MethodSignatureData.valueKindOf`
+    if (valueKindOf && instanceType) {
+      const datatype = SP.typeName(valueKindOf)
+      return new P.MethodScope({
+        parentScope: match.scope,
+        name: methodName,
+        args: [new P.ScopeVariable({ name: instanceType, datatype })],
+        mapItTo: instanceType,
+        itDatatype: datatype,
+        declaredBy
+      })
+    }
     const methodScope = new P.MethodScope({
       parentScope: match.scope,
       name: methodName,
@@ -552,7 +571,8 @@ export class MethodDefinition<
    */
   getRule(match: P.MatchFor<this>): void {
     const { asTest } = match.groups as { asTest?: P.Match }
-    const { methodName = "", syntax = "", asPostfixExpression, asInfixExpression } = this.getSignature(match)!
+    const signature = this.getSignature(match)!
+    const { methodName = "", syntax = "", asPostfixExpression, asInfixExpression, valueKindOf } = signature
     const { scope } = match
     // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
     const declaredBy = match as P.Match
@@ -560,7 +580,8 @@ export class MethodDefinition<
     const output = methodName
     const { of, params } = this.getOwnerAndParams(match)
     if (asPostfixExpression) {
-      scope.addRule(MethodPostfixRule.specialize({ output }), { syntax }, declaredBy)
+      const declared = valueKindOf ? { output, staticOf: valueKindOf } : { output }
+      scope.addRule(MethodPostfixRule.specialize(declared), { syntax }, declaredBy)
       return
     }
     if (asInfixExpression) {
@@ -654,7 +675,18 @@ export class MethodDefinition<
     }
 
     if (instanceType) {
-      if (asPostfixExpression) {
+      // a value kind's phrase:  its static method, given the value -- see `MethodSignatureData.valueKindOf`
+      if (asPostfixExpression && signature.valueKindOf) {
+        const value = new P.ASTVariableExpression(match, { name: instanceType })
+        const { body } = method
+        output.push(
+          new P.ASTStaticMethod(match, {
+            type: signature.valueKindOf,
+            name: methodName,
+            method: new P.ASTMethodDefinition(match, { args: [value], body, datatype: "choice" })
+          })
+        )
+      } else if (asPostfixExpression) {
         // console.warn("APE:", method)
         output.push(
           new P.ASTPropertyDefinition(match, {
@@ -1691,6 +1723,9 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
     signature.instanceType = groups.type.raw
     if (signature.args.length === 0) {
       signature.asPostfixExpression = true
+      // a value kind's phrase:  its static method -- see `MethodSignatureData.valueKindOf`
+      const { scopeType } = groups.type.data as { scopeType?: unknown }
+      if (scopeType instanceof P.TypeScope && scopeType.valueKind) signature.valueKindOf = scopeType.name
     } else if (signature.args.length === 1) {
       signature.asInfixExpression = true
       signature.syntaxBits = signature.syntaxBits.map((bit) => (bit.startsWith("{") ? "{expression:operand}" : bit))
@@ -1968,6 +2003,12 @@ type MethodSignatureData = {
   /** `true` when it compiles to an infix expression (e.g. `card.nerds_out_with_$another(thing)`) -- set by
    *  `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`. */
   asInfixExpression?: boolean
+  /**
+   * A phrase on a VALUE kind, e.g. `Rank` for `a rank "is a face card" if ...` (plan doc `outline-spell`, P3):
+   * its values are plain text, so the method is the kind's STATIC one, given the value -- `Rank.is_a_face_card(r)`.
+   * Set by `quoted_type_expression.processSignature()`;  postfix only.
+   */
+  valueKindOf?: string
 }
 
 /**

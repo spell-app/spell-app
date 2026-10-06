@@ -7,7 +7,7 @@
  * - `the_property_of_a_thing` / `a_things_property` are the two `type_property` spellings shared by
  *   `property_value_either` / `property_value_getter`.
  */
-import { NONE, instanceCase, pluralize, proto, singularize, typeCase, upperFirst } from "$/util"
+import { NONE, instanceCase, pluralize, proto, singularize, snakeCase, typeCase, upperFirst } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 // Import directly to avoid circular import
@@ -1769,6 +1769,105 @@ classes.addRule(property_value_getter, {
 type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 
 ////////////////
+// ## `draw_side` rule
+//    e.g. `- to "draw its front":` + markup, in a card's outline body
+////////////////
+
+/**
+ * `to "draw its front":` then markup, in a type's outline body -- one SIDE of a thing, as markup
+ * (plan doc `outline-spell`, P3;  Q14):
+ *
+ * ```spell
+ * - to "draw its front":
+ * 	<ui-image source="images/[rank]-of-[suit].png" />
+ * - to "draw its back":
+ * 	<ui-image source="images/card-back.png" />
+ * ```
+ * - Compiles to a getter, the side's name:  `get front() { return <markup> }` -- `its front` reads it.
+ * - Once a type has BOTH `front` and `back`, the second also gives it `draw()`, picking one by its direction:
+ *   `return this.direction === 'down' ? this.back : this.front` -- what `draw the card` calls.
+ *   So `its direction` should be `up or down`;  no direction draws the front.
+ * - The body is one line of markup, inline or indented:  it IS the side, no `return` needed.
+ */
+class draw_side extends SpellStatement<"alias|body?", { side?: string; drawsBoth?: boolean }> {
+  @proto static priority = Priority.declaration
+  @proto static alias = "statement"
+  @proto static declares: P.DeclaresSpec = { kind: "property", name: "alias" }
+
+  /** Only `"draw its <side>"`, in a type's outline body. */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match || !P.SubjectScope.of(scope)?.subjectType) return undefined
+    const side = DRAW_SIDE.exec(`${match.groups.alias.value}`.replace(/^["']|["']$/g, ""))?.[1]
+    if (!side) return undefined
+    match.data.side = snakeCase(side)
+    return match
+  }
+
+  /** SIDE EFFECT:  declares the side on the type;  notes whether it now has both -- see class docs. */
+  mutateScope(match: P.MatchFor<this>) {
+    const type = P.SubjectScope.of(match.scope)!.subjectType!
+    const side = match.data.side!
+    const other = side === "front" ? "back" : side === "back" ? "front" : undefined
+    if (other && type.variables.get(other, "LOCAL_ONLY")) match.data.drawsBoth = true
+    type.declareProperty(side, match)
+  }
+
+  /** The body's scope:  `it` / `its` are the thing, as in a getter. */
+  getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
+    const type = P.SubjectScope.of(match.scope)!.subjectType!
+    return new P.MethodScope({
+      parentScope: match.scope,
+      thisVar: type.instanceName,
+      mapItTo: "this",
+      itDatatype: SP.typeName(type.name),
+      declaredBy: match
+    })
+  }
+
+  getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
+    const typeName = P.SubjectScope.of(match.scope)!.subject
+    const side = match.data.side!
+    const statements: P.ASTClassMember[] = [
+      new P.ASTPropertyDefinition(match, {
+        type: typeName,
+        property: side,
+        get: new P.ASTMethodDefinition(match, { body: P.matchAST<MethodBody>(this.getBody(match)) })
+      })
+    ]
+    if (match.data.drawsBoth) {
+      const facing = (name: string) =>
+        new P.ASTPropertyExpression(match, { object: new P.ASTThisLiteral(match), property: name })
+      const isDown = new P.ASTInfixExpression(match, {
+        lhs: facing("direction"),
+        operator: "===",
+        rhs: new P.ASTConstantExpression(match, { name: "down", output: "'down'" })
+      })
+      statements.push(
+        new P.ASTPropertyDefinition(match, {
+          type: typeName,
+          property: "draw",
+          method: new P.ASTMethodDefinition(match, {
+            body: new P.ASTTernaryExpression(match, {
+              condition: isDown,
+              trueValue: facing("back"),
+              falseValue: facing("front")
+            })
+          })
+        })
+      )
+    }
+    return new P.ASTStatementGroup(match, { statements })
+  }
+}
+classes.addRule(draw_side, {
+  syntax: "to {alias:text} :? ({inline_expression}|{nested_expression})?"
+})
+
+/** What `draw_side` takes in its quotes:  `draw its front`, the side's name captured. */
+const DRAW_SIDE = /^draw its ([a-z][\w-]*(?: [a-z][\w-]*)*)$/i
+
+////////////////
 // ## `QuotedPropertyRule` base class
 //    e.g. "the card is the queen of spades", once 'a card "is the (rank) of (suits)" ...' made one
 ////////////////
@@ -1794,26 +1893,70 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
   declare readonly Props: QuotedPropertyRuleProps
 
   /** TYPE-ONLY: what `specialize()` takes -- see `P.SpecializeWith`. */
-  declare static readonly SpecializeWith: { output: string; values: Record<string, Array<string | number>> }
+  declare static readonly SpecializeWith: {
+    output: string
+    values: Record<string, Array<string | number>>
+    kinds?: Record<string, string>
+  }
   /**
    * Calls generated method `output`, e.g. `is_a_$suit` -- also our `ruleName`.
    * - `values`:  each `(var)` placeholder's enumerated values, in order, e.g. `{ suit: ["'clubs'", ...] }` --
    *   `ruleData` is worked out from them, see `placeholderData()`.
+   * - `kinds`:  a placeholder whose values aren't known yet, by its VALUE kind, e.g. `{ suit: "Suit" }` for a card
+   *   above the deck declaring suits (plan doc `outline-spell`, P3):  its `values` are `[]`, and `parse()` checks the
+   *   word against the kind's values where the phrase is USED -- see `kindValue()`.
    * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.
    */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output, values } = declared as (typeof QuotedPropertyRule)["SpecializeWith"]
-    const ruleData = Object.entries(values).map(([instanceVar, varValues]) => placeholderData(instanceVar, varValues))
+    const { output, values, kinds } = declared as (typeof QuotedPropertyRule)["SpecializeWith"]
+    const ruleData = Object.entries(values).map(([instanceVar, varValues]) =>
+      placeholderData(instanceVar, varValues, kinds?.[instanceVar])
+    )
     const statics: P.RuleStatics<QuotedPropertyRule> = { ruleName: output, methodName: output, ruleData }
     return super.specialize(statics, declared) as unknown as T
   }
 
   /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
   static declarationProps(
-    { output, values }: (typeof QuotedPropertyRule)["SpecializeWith"],
+    { output, values, kinds }: (typeof QuotedPropertyRule)["SpecializeWith"],
     syntax: string | undefined
   ) {
-    return { syntax, output, values }
+    return kinds ? { syntax, output, values, kinds } : { syntax, output, values }
+  }
+
+  /**
+   * Match -- and for a placeholder of a value kind (see `specialize()`), only a word which is one of the kind's
+   * values, e.g. `spade` for `(suit)`, noted as `data.kindArgs` for `compileASTExpression()`.
+   * - A lookup WHERE THE PHRASE IS USED, e.g. `if the card is a spade`:  by then the kind's list is known.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens)
+    if (!match || !this.ruleData.some((data) => data.kind)) return match
+    const found = (match.groups as { expression?: P.Match | P.Match[] }).expression
+    const args = Array.isArray(found) ? found : found ? [found] : []
+    const kindArgs = this.ruleData.map((data, index) =>
+      data.kind ? QuotedPropertyRule.kindValue(scope, data, args[index]) : undefined
+    )
+    if (this.ruleData.some((data, index) => data.kind && kindArgs[index] === undefined)) return undefined
+    ;(match.data as QuotedPropertyRuleData).kindArgs = kindArgs
+    return match
+  }
+
+  /**
+   * The value of placeholder `data`'s kind that `arg` says, as compiled, e.g. `'spades'` for `spade` --
+   * `undefined` if it's none of them, or the kind isn't known.
+   */
+  private static kindValue(
+    scope: P.Scope,
+    data: QuotedPropertyFormulaBits["ruleData"][number],
+    arg: P.Match | undefined
+  ): string | number | undefined {
+    const values = scope.types?.get(data.kind!)?.valueKind?.values
+    if (!values || !arg) return undefined
+    const inflector = data.isSingular ? singularize : pluralize
+    return values.find((value) =>
+      typeof value === "number" ? value === arg.value : inflector(value.replace(/^'(.*)'$/, "$1")) === arg.value
+    )
   }
 
   /** Map each matched placeholder word/number to its compiled enumeration value or literal. */
@@ -1828,8 +1971,13 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
     // `Expression`. Neither shape is representable in `OperatorOperands`, which assumes a single
     // already-resolved `Expression`.
     const rhsMatches = (Array.isArray(rhs) ? rhs : [rhs]) as P.Match[]
+    const { kindArgs } = match.data as QuotedPropertyRuleData
     const args = rhsMatches
       .map((arg, index) => {
+        // a value kind's placeholder:  its value, found by `parse()`
+        const kindArg = kindArgs?.[index]
+        if (typeof kindArg === "number") return new P.ASTNumericLiteral(arg, { value: kindArg })
+        if (kindArg !== undefined) return new P.ASTConstantExpression(arg, { name: `${arg.value}`, output: kindArg })
         if (typeof arg.value === "string") {
           // Handle singular input values mapping to plural internal values
           // `enumeration` will be: "club", "spade", etc
@@ -1858,6 +2006,9 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
   }
 }
 
+/** What `QuotedPropertyRule` stashes on its match:  each value-kind placeholder's value, by placeholder. */
+type QuotedPropertyRuleData = { kindArgs?: Array<string | number | undefined> }
+
 /** Props bag accepted by `QuotedPropertyRule` -- the generated method, and how to map each placeholder. */
 type QuotedPropertyRuleProps = Prettify<
   SpellExpressionProps & { methodName: string; ruleData: QuotedPropertyFormulaBits["ruleData"] }
@@ -1870,14 +2021,17 @@ type QuotedPropertyRuleProps = Prettify<
  */
 function placeholderData(
   instanceVar: string,
-  values: Array<string | number>
+  values: Array<string | number>,
+  kind?: string
 ): QuotedPropertyFormulaBits["ruleData"][number] {
   const isSingular = singularize(instanceVar) === instanceVar
   const inflector = isSingular ? singularize : pluralize
   const enumeration = values.map((value) =>
     typeof value === "string" ? inflector(value.replace(/^'(.*)'$/, "$1")) : value
   )
-  return { isSingular, instanceVar, enumeration, values }
+  return kind
+    ? { isSingular, instanceVar, enumeration, values, kind }
+    : { isSingular, instanceVar, enumeration, values }
 }
 
 ////////////////
@@ -1899,19 +2053,53 @@ function placeholderData(
  *   (rank) of (suits)" for its ranks and its suits` => a `value(rank, suit)` method returning
  *   `this.rank === rank && this.suit === suit`.
  */
-class quoted_property_formula extends SpellStatement<"type|alias|sources", QuotedPropertyFormulaMatchData> {
+class quoted_property_formula extends SpellStatement<"type|alias|sources?", QuotedPropertyFormulaMatchData> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "method", name: "alias", of: "type" }
 
-  /** Reject the match unless `alias`'s first quoted word is `"is"` -- see rule NOTE above. */
+  /**
+   * Reject the match unless `alias`'s first quoted word is `"is"` -- see rule NOTE above.
+   * - No `for its ...` (an outline body's `it "is a suit"`, plan doc `outline-spell` P3):  INFER the placeholders --
+   *   see `inferPlaceholders()`.  None found:  not ours, e.g. `it "is face up" if ...` is a `quoted_type_expression`.
+   */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     // If first word of `alias` is not `is`, forget it
-    const alias = JSON.parse(match.groups.alias.value).split(" ")
+    const alias = `${match.groups.alias.value}`.replace(/^["']|["']$/g, "").split(" ")
     if (alias[0] !== "is") return undefined
+    if (match.groups.sources) return match
+    const inferred = quoted_property_formula.inferPlaceholders(alias, getKnownType(match.groups.type))
+    if (!inferred) return undefined
+    match.data.inferred = inferred
     return match
+  }
+
+  /**
+   * `alias`'s words with each one naming a property of `type` made a placeholder, and those properties --
+   * e.g. `is the rank of suits` on a card => `is the (rank) of (suits)`, `["rank", "suit"]`.
+   * - A word names a property by its singular, e.g. `suits` => `suit`, as `(suits)` and `for its suits` do.
+   * - Only a property with a list of values:  its own (`as one of ...`), or a value kind's (`its "suit" is a suit`).
+   * - `undefined` if no word does.
+   */
+  private static inferPlaceholders(alias: string[], type: P.TypeScope): InferredPlaceholders | undefined {
+    const sources: string[] = []
+    const words = alias.map((word, index) => {
+      const variable = index > 0 ? type.variables.get(singularize(word)) : undefined
+      if (!variable || !(variable.enumeration || variable.datatype)) return word
+      if (!variable.enumeration && !type.getType(variable.datatype)?.valueKind && !isValueKindStub(type, variable)) {
+        return word
+      }
+      sources.push(variable.name)
+      return `(${word})`
+    })
+    return sources.length ? { words, sources } : undefined
+
+    /** Might `variable`'s type be a value kind declared further down:  a stub, so far? */
+    function isValueKindStub(owner: P.TypeScope, variable: P.ScopeVariable): boolean {
+      return !!owner.getType(variable.datatype)?.stub
+    }
   }
 
   /** Compute (and cache in `match.data.bits`) `bits` for making rules and AST nodes -- see the type. */
@@ -1922,11 +2110,15 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
   /** Actual work for `getBits()` -- see rule SIDE EFFECTs above. */
   private computeBits(match: P.MatchFor<this>): QuotedPropertyFormulaBits {
     const { groups } = match
-    const alias = groups.alias.value
+    const alias = `${groups.alias.value}`
     const type = groups.type.value
-    const sources = groups.sources.items
+    const { inferred } = match.data
+    // the source properties' names, written (`for its suits`) or inferred
+    const sourceNames = inferred
+      ? inferred.sources
+      : groups.sources!.items.map((source) => `${(source.groups.property as P.Match | undefined)?.value}`)
 
-    const words: string[] = JSON.parse(alias).split(" ")
+    const words: string[] = inferred?.words ?? alias.replace(/^["']|["']$/g, "").split(" ")
     const syntaxParts: string[] = []
     const ruleData: QuotedPropertyFormulaBits["ruleData"] = []
     const vars: string[] = []
@@ -1943,17 +2135,22 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
         const instanceVar = word.slice(1, -1)
         vars.push(singularize(instanceVar))
 
-        // Try to find the enumeration
-        // NOTE: currently this only works for an enumeration defined on the type!!!
-        const propertyName = (sources[sourceNum]?.groups?.property as P.Match | undefined)?.value
-        const variable = match.scope.types?.get(type)?.variables.get(propertyName)
-        const enumeration = variable?.enumeration
-        // console.warn({ type, Type: scope.types.get(type), propertyName, variable, enumeration })
+        // Try to find the enumeration:  the property's own, or its value kind's
+        const propertyName = sourceNames[sourceNum]
+        const typeScope = match.scope.types?.get(type)
+        const variable = typeScope?.variables.get(propertyName)
+        const kindType = variable?.datatype ? typeScope?.getType(variable.datatype) : undefined
+        const enumeration = variable?.enumeration ?? kindType?.valueKind?.values
         // set up enumeration matcher
         if (variable && enumeration) {
           const placeholder = placeholderData(instanceVar, variable.enumerationValues || enumeration)
           ruleData.push(placeholder)
           syntaxParts.push(`(expression:${placeholder.enumeration.join("|")})`)
+        }
+        // a value kind declared further down:  checked where the phrase is used -- see `QuotedPropertyRule`
+        else if (kindType?.stub) {
+          ruleData.push(placeholderData(instanceVar, [], kindType.name))
+          syntaxParts.push("(expression:{constant}|{number})")
         } else {
           // FIXME: this routine is (somehow) geting called twice, once when type/variable IS NOT set up (???)
           // and then once later, when it IS set up.  Figure out why!
@@ -1976,10 +2173,12 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
 
     // Create an expression suffix to match the quoted statement, e.g. `is not? a queen`.
     // See `scope.addRule()` -- registers on the parser and records the pair for export.
+    const kinds = ruleData.filter(({ kind }) => kind).map(({ instanceVar, kind }) => [instanceVar, kind!])
     match.scope.addRule(
       QuotedPropertyRule.specialize({
         output: property,
-        values: Object.fromEntries(ruleData.map(({ instanceVar, values }) => [instanceVar, values]))
+        values: Object.fromEntries(ruleData.map(({ instanceVar, values }) => [instanceVar, values])),
+        ...(kinds.length ? { kinds: Object.fromEntries(kinds) } : {})
       }),
       { syntax },
       match
@@ -2075,6 +2274,10 @@ classes.addRule(quoted_property_formula, {
 classes.addRule(quoted_property_formula, {
   syntax: "{type:subject_it} {alias:text} for [sources:(its {property:member_words}) and]"
 })
+// ... and with the placeholders inferred (P3):  `- it "is a suit"`, `- it "is the rank of suits"` -- see `parse()`
+classes.addRule(quoted_property_formula, {
+  syntax: "{type:subject_it} {alias:text}"
+})
 
 /**
  * Extra `bits` `quoted_property_formula` derives (and caches in `match.data.bits` via `getBits()`) to hand
@@ -2095,6 +2298,8 @@ type QuotedPropertyFormulaBits = {
     enumeration: Array<string | number>
     /** Enumeration values as they should appear in compiled output, e.g. quoted strings. */
     values: Array<string | number>
+    /** A value kind whose values aren't known yet, e.g. `Suit`:  `values` is `[]` -- see `QuotedPropertyRule`. */
+    kind?: string
   }>
   /** Singularized variable names, in source order -- used as the generated method's argument names. */
   vars: string[]
@@ -2106,4 +2311,14 @@ type QuotedPropertyFormulaBits = {
 type QuotedPropertyFormulaMatchData = {
   /** Cached result of `getBits()` -- see the type above. */
   bits?: QuotedPropertyFormulaBits
+  /** Placeholders worked out while parsing, for a phrase with no `for its ...` -- see `inferPlaceholders()`. */
+  inferred?: InferredPlaceholders
+}
+
+/** What `quoted_property_formula.inferPlaceholders()` works out. */
+type InferredPlaceholders = {
+  /** The phrase's words, a placeholder in parens, e.g. `["is", "a", "(suit)"]`. */
+  words: string[]
+  /** Each placeholder's property, in order, e.g. `["suit"]`. */
+  sources: string[]
 }
