@@ -1,0 +1,465 @@
+{
+  "version": "1.0.0",
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Card",
+    "Joker",
+    "Deck",
+    "Pile",
+    "test_card_setup",
+    "test_deck_creation",
+    "test_deck_with_jokers"
+  ],
+  "statements": [
+    {
+      "type": "Card",
+      "superType": "Thing",
+      "defined": "/Card.spell:69-86"
+    },
+    {
+      "property": "rank",
+      "classVariable": "Ranks",
+      "of": "Card",
+      "enumeration": [
+        "'ace'",
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        "'jack'",
+        "'queen'",
+        "'king'"
+      ],
+      "defined": "/Card.spell:125-205"
+    },
+    {
+      "property": "suit",
+      "classVariable": "Suits",
+      "of": "Card",
+      "enumeration": [
+        "'clubs'",
+        "'diamonds'",
+        "'hearts'",
+        "'spades'"
+      ],
+      "defined": "/Card.spell:221-282"
+    },
+    {
+      "property": "color",
+      "of": "Card",
+      "constants": [
+        "red",
+        "black"
+      ],
+      "defined": "/Card.spell:315-404"
+    },
+    {
+      "property": "value",
+      "of": "Card",
+      "datatype": "number",
+      "defined": "/Card.spell:439-500"
+    },
+    {
+      "property": "direction",
+      "classVariable": "Directions",
+      "of": "Card",
+      "enumeration": [
+        "'up'",
+        "'down'"
+      ],
+      "defined": "/Card.spell:533-576"
+    },
+    {
+      "syntax": "{operator:is} face up",
+      "output": "is_face_up",
+      "rule": "method_postfix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is face up\"",
+      "returns": "choice",
+      "defined": "/Card.spell:615-657"
+    },
+    {
+      "syntax": "{operator:is} face down",
+      "output": "is_face_down",
+      "rule": "method_postfix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is face down\"",
+      "returns": "choice",
+      "defined": "/Card.spell:658-704"
+    },
+    {
+      "syntax": "{operator:is} a face card",
+      "output": "is_a_face_card",
+      "rule": "method_postfix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is a face card\"",
+      "returns": "choice",
+      "defined": "/Card.spell:730-795"
+    },
+    {
+      "syntax": "{operator:is} (a|an) (expression:club|diamond|heart|spade)",
+      "output": "is_a_$suit",
+      "rule": "quoted_property",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is a (suit)\"",
+      "values": {
+        "suit": [
+          "'clubs'",
+          "'diamonds'",
+          "'hearts'",
+          "'spades'"
+        ]
+      },
+      "defined": "/Card.spell:837-871"
+    },
+    {
+      "syntax": "{operator:is} (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
+      "output": "is_a_$rank",
+      "rule": "quoted_property",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is a (rank)\"",
+      "values": {
+        "rank": [
+          "'ace'",
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          "'jack'",
+          "'queen'",
+          "'king'"
+        ]
+      },
+      "defined": "/Card.spell:913-947"
+    },
+    {
+      "syntax": "{operator:is} the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
+      "output": "is_the_$rank_of_$suits",
+      "rule": "quoted_property",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is the (rank) of (suits)\"",
+      "values": {
+        "rank": [
+          "'ace'",
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          "'jack'",
+          "'queen'",
+          "'king'"
+        ],
+        "suits": [
+          "'clubs'",
+          "'diamonds'",
+          "'hearts'",
+          "'spades'"
+        ]
+      },
+      "defined": "/Card.spell:985-1046"
+    },
+    {
+      "property": "name",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1085-1136"
+    },
+    {
+      "property": "short_suit",
+      "asWritten": "short suit",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1138-1299"
+    },
+    {
+      "property": "short_rank",
+      "asWritten": "short rank",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1301-1463"
+    },
+    {
+      "property": "short_direction",
+      "asWritten": "short direction",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1465-1545"
+    },
+    {
+      "property": "short_name",
+      "asWritten": "short name",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1548-1608"
+    },
+    {
+      "property": "state",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1610-1687"
+    },
+    {
+      "syntax": "turn {thisArg:expression} face up",
+      "output": "turn_face_up",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn a card face up",
+      "defined": "/Card.spell:1806-1874"
+    },
+    {
+      "syntax": "turn {thisArg:expression} face down",
+      "output": "turn_face_down",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn a card face down",
+      "defined": "/Card.spell:1875-1947"
+    },
+    {
+      "syntax": "turn {thisArg:expression} over",
+      "output": "turn_over",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn a card over",
+      "defined": "/Card.spell:2055-2165"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw a card",
+      "defined": "/Card.spell:2167-2641"
+    },
+    {
+      "syntax": "{operator:is} the {expression:operand} joker",
+      "output": "is_the_$color_joker",
+      "rule": "method_infix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is the (color) joker\"",
+      "params": [
+        {
+          "name": "color"
+        }
+      ],
+      "returns": "choice",
+      "defined": "/Card.spell:3110-3179"
+    },
+    {
+      "type": "Joker",
+      "superType": "Card",
+      "defined": "/Card.spell:2725-2742"
+    },
+    {
+      "property": "color",
+      "classVariable": "Colors",
+      "of": "Joker",
+      "enumeration": [
+        "'red'",
+        "'black'"
+      ],
+      "defined": "/Card.spell:2835-2877"
+    },
+    {
+      "property": "name",
+      "of": "Joker",
+      "datatype": "text",
+      "defined": "/Card.spell:2918-2962"
+    },
+    {
+      "property": "short_name",
+      "asWritten": "short name",
+      "of": "Joker",
+      "datatype": "text",
+      "defined": "/Card.spell:2964-2998"
+    },
+    {
+      "syntax": "test card setup",
+      "output": "test_card_setup",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "card setup",
+      "defined": "/Card.spell:3231-5011"
+    },
+    {
+      "type": "Deck",
+      "superType": "List",
+      "itemType": "Card",
+      "defined": "/Deck.spell:88-113"
+    },
+    {
+      "property": "with_jokers",
+      "asWritten": "with jokers",
+      "of": "Deck",
+      "datatype": "choice",
+      "defined": "/Deck.spell:208-243"
+    },
+    {
+      "syntax": "set up {thisArg:expression}",
+      "output": "set_up",
+      "rule": "method_call",
+      "of": "Deck",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "set up a deck",
+      "returns": "nothing",
+      "defined": "/Deck.spell:245-614"
+    },
+    {
+      "syntax": "display {thisArg:expression}",
+      "output": "display",
+      "rule": "method_call",
+      "of": "Deck",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "display a deck",
+      "defined": "/Deck.spell:616-765"
+    },
+    {
+      "property": "is_set_up",
+      "asWritten": "is-set-up",
+      "of": "Deck",
+      "datatype": "choice",
+      "autoDeclared": true,
+      "defined": "/Deck.spell:578-614"
+    },
+    {
+      "syntax": "test deck creation",
+      "output": "test_deck_creation",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "deck creation",
+      "defined": "/Deck.spell:767-1417"
+    },
+    {
+      "syntax": "test deck with jokers",
+      "output": "test_deck_with_jokers",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "deck with jokers",
+      "defined": "/Deck.spell:1438-1822"
+    },
+    {
+      "type": "Pile",
+      "superType": "List",
+      "itemType": "Card",
+      "defined": "/Pile.spell:25-50"
+    },
+    {
+      "property": "color",
+      "of": "Pile",
+      "defined": "/Pile.spell:165-253"
+    },
+    {
+      "property": "value",
+      "of": "Pile",
+      "datatype": "number",
+      "defined": "/Pile.spell:255-338"
+    },
+    {
+      "property": "state",
+      "of": "Pile",
+      "datatype": "text",
+      "defined": "/Pile.spell:340-504"
+    },
+    {
+      "property": "pile",
+      "of": "Card",
+      "datatype": "Pile",
+      "exclusive": true,
+      "defined": "/Pile.spell:137-163"
+    }
+  ],
+  "codeLines": [
+    4,
+    9,
+    15,
+    21,
+    27,
+    32,
+    41,
+    45,
+    50,
+    55,
+    60,
+    65,
+    70,
+    74,
+    82,
+    88,
+    94,
+    98,
+    108,
+    113,
+    122,
+    128,
+    160,
+    167,
+    169,
+    175,
+    179,
+    186,
+    256,
+    260,
+    264,
+    281,
+    289,
+    296,
+    331,
+    351,
+    354,
+    359,
+    364,
+    373
+  ]
+}

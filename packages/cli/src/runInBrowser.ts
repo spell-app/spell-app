@@ -32,6 +32,8 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
   await ensureElementBuilt(session)
   const name = project.projectName ?? "app"
   const compiled = project.outputFile.contents ?? ""
+  // where the Type Explorer finds each declaration's code -- see `SP.SpellDeclarations`
+  const declarations = project.declarationsFile.contents ?? ""
   // the explorer shows each imported project's own parse
   await session.workspace.track(project)
   for (const imported of LSP.ScopeExplorer.importedProjects(project)) await session.workspace.track(imported)
@@ -48,6 +50,7 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
     if (path === "/") return { text: page(name), type: "text/html; charset=utf-8" }
     if (path === `/app/${name}${SP.COMPILED_JS_SUFFIX}`) return { text: compiled, type: "text/javascript" }
     if (path === `/app/${name}${SP.SCOPES_JS_SUFFIX}`) return { text: scopes, type: "text/javascript" }
+    if (path === `/app/${name}${SP.DECLARATIONS_JSON_SUFFIX}`) return { text: declarations, type: "application/json" }
     const imported = imports.get(path)
     if (imported) return { file: imported }
     return element(path)

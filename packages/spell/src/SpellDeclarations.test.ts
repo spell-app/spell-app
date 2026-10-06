@@ -6,25 +6,56 @@ import { SP } from "$/spell"
 import { loadFixtureProject, parseSpellProject, summarize, type SpellSourceFile } from "$/spell/test"
 
 /**
- * `files` compiled as a project's `<Project>.compiled.js` would be:  the `/*! SPELL: PROJECT` header, then each
- * file's code, with its statements' `/*! SPELL: DECLARES` comments inline -- a class member's in its class's body.
+ * `files` compiled as a project would be:
+ * - `marked`:  each file's code, with its statements' `/*! SPELL: DECLARES` markers inline -- a class member's in its
+ *   class's body -- as `SpellProject` combines them, before `split()`
+ * - `code`:  that, markers out, as its `<Project>.compiled.js`
+ * - `declarations`:  as its `<Project>.declarations.json`, read back as another project would
  */
 function compiledProject(files: SpellSourceFile[], options: { version?: string; exports?: string[] } = {}) {
   const { scope, files: parsed } = parseSpellProject(files)
   const parts = parsed.map(({ match, compiled }) => (match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled))
-  return SP.SpellDeclarations.header(scope, options) + SP.SpellProject.combineCompiled(parts)
+  const marked = SP.SpellProject.combineCompiled(parts)
+  const { code, declarations } = SP.SpellDeclarations.split(marked, scope, options)
+  return { marked, code, declarations: SP.SpellDeclarations.read(JSON.stringify(declarations))! }
 }
 
 /**
- * A project's declarations, inline in its compiled JS -- what another project imports it by.
+ * A project's declarations:  marked inline while compiling, then split out into its declarations file -- what
+ * another project imports it by.
  * - Snapshot pins Solitaire's, so a change to what a project declares shows up in review.
  */
 describe("SpellDeclarations, inline", () => {
-  const compiled = compiledProject(loadFixtureProject("Solitaire"), { version: "1.0.0" })
-  const declarations = SP.SpellDeclarations.read(compiled)!
+  const {
+    marked: compiled,
+    code,
+    declarations
+  } = compiledProject(loadFixtureProject("Solitaire"), { version: "1.0.0" })
 
   test("Solitaire's declarations", () => {
     expect(declarations).toMatchSnapshot()
+  })
+
+  test("`split()` takes every marker out of the code", () => {
+    expect(compiled).toContain("/*! SPELL: DECLARES")
+    expect(code).not.toContain("SPELL:")
+    expect(code).toBe(SP.SpellDeclarations.stripComments(compiled))
+  })
+
+  test("`codeLines`:  where each statement's code starts in the code", () => {
+    const lines = code.split("\n")
+    expect(declarations.codeLines).toHaveLength(declarations.statements.length)
+    const rank = declarations.statements.findIndex(({ property, of }) => property === "rank" && of === "Card")
+    expect(lines[declarations.codeLines![rank]!]).toMatch(/^ {2}static Ranks = /)
+    const card = declarations.statements.findIndex(({ type }) => type === "Card")
+    expect(lines[declarations.codeLines![card]!]).toBe("export class Card extends Thing {")
+  })
+
+  test("`fromComments()` still reads a compiled .js from before declarations files", () => {
+    const header = `/*! SPELL: PROJECT { spellVersion: "${SP.SPELL_VERSION}", provides: ["Card"] } */\n`
+    const old = SP.SpellDeclarations.fromComments(header + compiled)!
+    expect(old.provides).toEqual(["Card"])
+    expect(old.statements).toEqual(declarations.statements)
   })
 
   test("each statement's comment is short:  3-7 lines", () => {
@@ -42,7 +73,7 @@ describe("SpellDeclarations, inline", () => {
   })
 
   test("reads the way it's written, e.g. a function", () => {
-    const compiled = compiledProject(loadFixtureProject("FizzBuzz"))
+    const compiled = compiledProject(loadFixtureProject("FizzBuzz")).marked
     const source = loadFixtureProject("FizzBuzz")[0]!.contents
     const comment = compiled.match(/\/\*! SPELL: DECLARES \{[\s\S]*? \*\//)![0]
     const start = source.indexOf("to play fizzbuzz")
@@ -69,7 +100,7 @@ describe("SpellDeclarations, inline", () => {
   })
 
   test("`exports` in `project.json` limits what it provides", () => {
-    const limited = SP.SpellDeclarations.read(compiledProject(loadFixtureProject("Solitaire"), { exports: ["Card"] }))
+    const limited = compiledProject(loadFixtureProject("Solitaire"), { exports: ["Card"] }).declarations
     expect(limited?.provides).toEqual(["Card"])
     expect(() => compiledProject(loadFixtureProject("Solitaire"), { exports: ["Joker"] })).toThrow(
       /exports 'Joker', which it doesn't declare/
@@ -102,7 +133,7 @@ describe("SpellDeclarations.importScope()", () => {
   const library = all.filter(({ path }) => path !== "/Solitaire.spell")
   const app = all.filter(({ path }) => path === "/Solitaire.spell")
   // read back out of compiled text, as another project would
-  const declarations = SP.SpellDeclarations.read(compiledProject(library, { version: "1.2.0" }))!
+  const declarations = compiledProject(library, { version: "1.2.0" }).declarations
   const from = "@library/cards"
 
   /** Import layer over the root scope, holding just the library -- `options` as a `project.json` entry. */
@@ -309,7 +340,7 @@ describe("SpellDeclarations of `a card belongs to one pile`", () => {
     { path: "/Card.spell", contents: "a card is a thing" },
     { path: "/Pile.spell", contents: "a pile is a list of cards\na card belongs to one pile\na tableau is a pile" }
   ]
-  const declarations = SP.SpellDeclarations.read(compiledProject(library))!
+  const declarations = compiledProject(library).declarations
   const from = "@library/piles"
 
   test("says the member it gives cards -- its list types stay plain", () => {
@@ -359,7 +390,7 @@ describe("SpellDeclarations of a multi-word member", () => {
   const library = [
     { path: "/Card.spell", contents: "a card is a thing\na card has short rank as text\na card has a suit" }
   ]
-  const declarations = SP.SpellDeclarations.read(compiledProject(library))!
+  const declarations = compiledProject(library).declarations
 
   test("says its `asWritten` when it isn't its name -- not for a one-word member", () => {
     expect(declarations.statements.find(({ property }) => property === "short_rank")?.asWritten).toBe("short rank")

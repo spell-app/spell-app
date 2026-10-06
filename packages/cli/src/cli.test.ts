@@ -292,8 +292,9 @@ describe("spell compile", () => {
   test("a spell file prints its javascript", () => {
     const { status, stdout } = spell(["compile", "Card.spell"], fixturePath("Solitaire"))
     expect(status).toBe(0)
-    // after the file's heading and docstring
-    expect(stdout).toMatch(/^spellCore\.heading\(.*\n.*\n\/\*! SPELL: DECLARES \{\n {2}type: "Card"/)
+    // after the file's heading and docstring;  just code:  declarations go in the project's declarations file
+    expect(stdout).toMatch(/^spellCore\.heading\(.*\n.*\nexport class Card extends Thing \{/)
+    expect(stdout).not.toContain("SPELL:")
   })
 
   test("a bare root, with no terminal to ask on, lists its projects", () => {

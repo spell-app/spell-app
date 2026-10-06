@@ -6,7 +6,7 @@ import type { ThingExplorerState, TypeExplorerState } from "$/app/ui/ui.types"
 import { TypeExplorer } from "$/app/solid/TypeExplorer"
 import { ThingExplorer } from "$/app/solid/ThingExplorer"
 import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
-import { loadScopePack, scopesFromPacks, type ScopesSource } from "$/lsp/ScopesSource"
+import { loadScopePack, scopesFromPacks, type CompiledDeclarations, type ScopesSource } from "$/lsp/ScopesSource"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
@@ -248,8 +248,14 @@ export type SpellAppSource = {
   scopesUrl?: string
   /** Its scope pack, in memory -- used instead of loading `scopesUrl`, e.g. fresh from an editor. */
   scopes?: LSP.ScopePack
+  /** URL of its declarations, `<Project>.declarations.json`, if it may have them:  where the Type Explorer finds code. */
+  declarationsUrl?: string
+  /** Its declarations, in memory -- used instead of loading `declarationsUrl`, e.g. fresh from an editor. */
+  declarations?: CompiledDeclarations
   /** URL of the compiled javascript of project `projectId`, which it imports. */
   importUrl: (projectId: string) => string
+  /** URL of the declarations of project `projectId`, which it imports -- if it may have them. */
+  importDeclarationsUrl?: (projectId: string) => string
   /** URL of spell file `uri`, e.g. `spell:/@system:examples:Solitaire/Card.spell` -- if its sources can be had. */
   sourceUrl?: (uri: string) => string
 }
@@ -369,7 +375,11 @@ async function loadScopes(
   const { sourceUrl } = source
   return scopesFromPacks(builtIns ? [builtIns, pack] : [pack], {
     loadSource: sourceUrl && ((uri) => fetchText(sourceUrl(uri))),
-    loadCompiled: async (projectId) => compiledRef.current.get(projectId === pack.id ? MAIN_PROJECT : projectId)
+    loadCompiled: async (projectId) => compiledRef.current.get(projectId === pack.id ? MAIN_PROJECT : projectId),
+    loadDeclarations: async (projectId) => {
+      if (projectId !== pack.id) return fetchJSON(source.importDeclarationsUrl?.(projectId))
+      return source.declarations ?? fetchJSON(source.declarationsUrl)
+    }
   })
 }
 
@@ -389,7 +399,8 @@ export function pushedSource(base: SpellAppSource, pushed: SpellCompiled, name?:
     ...base,
     name: name || base.name,
     compiled: pushed.compiled,
-    ...(pushed.scopes ? { scopes: pushed.scopes } : {})
+    ...(pushed.scopes ? { scopes: pushed.scopes } : {}),
+    ...(pushed.declarations ? { declarations: pushed.declarations } : {})
   }
 }
 
@@ -467,6 +478,20 @@ async function fetchText(url: string): Promise<string> {
   const response = await fetch(url, { cache: "no-cache" })
   if (!response.ok) throw new Error(`Couldn't load ${url}:  ${response.status} ${response.statusText}`)
   return response.text()
+}
+
+/**
+ * JSON at `url` -- `undefined` if there's no `url`, or nothing there.
+ * - NEVER throws:  what it's for, e.g. a project's declarations, is optional.
+ */
+async function fetchJSON<T>(url: string | undefined): Promise<T | undefined> {
+  if (!url) return undefined
+  try {
+    const response = await fetch(url, { cache: "no-cache" })
+    return response.ok ? ((await response.json()) as T) : undefined
+  } catch {
+    return undefined
+  }
 }
 
 /** Message of `problem`, whatever was thrown. */

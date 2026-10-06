@@ -33,9 +33,7 @@ describe("<TreeViewer>", () => {
 
     setOffset(2)
     flush()
-    expect((host.querySelector("ui-tree-diagram") as HTMLElement & { tree?: P.TreeNode }).tree?.label).not.toBe(
-      "Print"
-    )
+    expect((host.querySelector("ui-tree-diagram") as HTMLElement & { tree?: P.TreeNode }).tree?.label).not.toBe("Print")
   })
 
   test("no line there:  a hint, no diagram", async () => {

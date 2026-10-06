@@ -495,12 +495,16 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - Each project `parse()` / `compile()` builds a FRESH `ProjectScope` with `parser.clone()` (empty own rules,
   imports the base spell parser).  Every file gets a `FileScope` under it and SHARES that parser.
 - So one file's types, constants and rules are visible to every later file.
-- Another project can come in WITHOUT its sources, as its declarations (`SP.SpellDeclarations`), INLINE in its
-  compiled JS:
-  - `Block.getAST()` puts a `/*! SPELL: DECLARES {...} */` comment right on each declaring statement's code,
-    below any docstring -- indented in its class's body for a class member (`commentFor()`):  ONE flat JS object
-    literal, 3-7 lines, merging the scope records it added (`declarationFor()`), e.g.
+- Another project can come in WITHOUT its sources, as its declarations (`SP.SpellDeclarations`), in
+  `<Project>.declarations.json` beside its compiled output (epic `output-targets` P5;  inline in the compiled JS
+  before that:  `fromComments()` still reads those):
+  - while compiling, `Block.getAST()` puts a `/*! SPELL: DECLARES {...} */` MARKER right on each declaring
+    statement's code, below any docstring -- indented in its class's body for a class member (`commentFor()`):  ONE
+    flat JS object literal, 3-7 lines, merging the scope records it added (`declarationFor()`), e.g.
     `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`.
+  - `SpellProject`'s "Combining output" `split()`s the markers back OUT:  the compiled JS is just code, and each
+    marker's object goes in the declarations, with `codeLines`:  the line (from 0) its statement's code starts on.
+    A file's own `compiled`, and the language server's, strip them (`stripComments()`).
     - `rule` is the `importableAs` of the class its rule was `specialize()`d from;  what that took sits beside it,
       e.g. `output` -- loading passes the whole object to `specialize()`, which picks out its own.
       - Loading SKIPS `rule: "enumeration"`, which a compiler from before P6 of precedence-and-types
@@ -509,24 +513,24 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
       See "Compile".
     - Leaves out what loading works out, e.g. an enumeration's constants, or a rule's owner (`of`, else `output`).
     - `defined: "/Card.spell:222-283"` -- where the statement is:  its character offsets, project-relative.
-    - NO line numbers:  a page with no sources matches the code to a scope pack's entry by what it declares,
-      e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit` -- see `ScopesSource` in `packages/app/src/runner/`.
+    - NO source line numbers:  a page with no sources matches the code to a scope pack's entry by what it
+      declares, e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit`, finding the code by
+      `codeLines` -- see `ScopesSource` in `packages/lsp/src/`.
     - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
       unless a key already says, e.g. `type`.
     - a method's `params` (`[{ name: "pile", datatype: "Pile" }]`) and `returns`;
       a list type's `itemType`;  an owner member's `exclusive` -- only what's known
       - loading rebuilds the `P.ScopeMethod` record;  a key an older compiler didn't write loads as unknown
-  - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +
-    `provides`
-  - `read(compiled)` collects them back from the TEXT (`JSON5.parse()`), never running it
+  - the declarations also hold the project's versions and what it `provides`
+  - `read(json)` reads them back, never running anything
   - `importScope(root, imports)` => a `P.ImportScope` holding them -- the project's scope goes UNDER it, with a
     clone of its parser, so imports are a base layer the `journal` never records
     - its records have no `declaredBy`.  Editors read `declaredAt` instead (`P.DeclaredAt`:  full file path +
       offsets, from `defined`) on its types, variables and constants, and `declared` on its rules:  owner,
       what `getDeclaration()` said, and `declaredAt`
   - `project.json` `imports` entries naming a project (`@library/cards` ~== `@system:library:cards`) are
-    `SpellProject.projectImports`.  Its "Loading" task reads each one's declarations out of its
-    `<Project>.compiled.js` (`SpellDeclarations.read()`), and builds the `ImportScope` our scope goes under.
+    `SpellProject.projectImports`.  Its "Loading" task reads each one's `<Project>.declarations.json`
+    (`SpellProject.declarationsOf()`), and builds the `ImportScope` our scope goes under.
     `source: true` instead parses that project's `.spell` files ahead of ours (`sourceImportFiles`).
   - `import: ["Card:Playingcard", "*"]` loads `Card` as `Playingcard` (`SpellDeclarations.picked()` / `renamed()`):
     every loaded record naming it says `Playingcard` -- `type`, `superType`, `of`, `datatype` -- and rules built
