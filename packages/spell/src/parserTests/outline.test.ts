@@ -189,7 +189,7 @@ describe("outline style", () => {
     })
   })
 
-  describe('inferred phrases (P3):  `it "is a suit"` with no `(suit)` and no `for its suits`', () => {
+  describe('inferred phrases (P3, J9):  `it "is a (suit)"` with no `for its suits`', () => {
     const DECK = [
       "a deck is a list of cards with:",
       '\t- "suits" as one of clubs, diamonds, hearts or spades',
@@ -200,8 +200,8 @@ describe("outline style", () => {
       '\t- its "suit" is a suit',
       '\t- its "rank" is a rank',
       "\t- its direction is up or down",
-      '\t- it "is a suit"',
-      '\t- it "is the rank of suits"'
+      '\t- it "is a (suit)"',
+      '\t- it "is the (rank) of (suits)"'
     ]
     const USES = [
       "the queen is a new card with suit = spades, rank = queen",
@@ -244,6 +244,12 @@ describe("outline style", () => {
     test('a word that names no property stays a word:  `it "is face up" if ...` is still a phrase method', () => {
       const js = compile([...DECK, ...CARD, '\t- it "is face up" if its direction is up'])
       expect(js).toContain("get is_face_up() {")
+    })
+
+    test("only a word in parens is a blank (J9):  `it \"is my suit\" if ...` is a plain phrase, `suit` a word", () => {
+      const js = compile([...DECK, ...CARD, '\t- it "is my suit" if its suit is spades'])
+      expect(js).toContain("get is_my_suit() {")
+      expect(js).not.toContain("is_my_$suit")
     })
   })
 
@@ -295,7 +301,7 @@ describe("outline style", () => {
       "\t- its direction is up or down",
       '\t- its "suit" is one of clubs, diamonds, hearts or spades',
       '\t- it "is face up" if its direction is up',
-      '\t- it "is a suit"',
+      '\t- it "is a (suit)"',
       '\t- its "color" is red if its suit is either diamonds or hearts otherwise it is black',
       '\t- its "short name" is: its rank + " of " + its suit',
       "\t- it belongs to a pile"

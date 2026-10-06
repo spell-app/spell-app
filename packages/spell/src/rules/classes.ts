@@ -2087,8 +2087,9 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
 
   /**
    * Reject the match unless `alias`'s first quoted word is `"is"` -- see rule NOTE above.
-   * - No `for its ...` (an outline body's `it "is a suit"`, plan doc `outline-spell` P3):  INFER the placeholders --
-   *   see `inferPlaceholders()`.  None found:  not ours, e.g. `it "is face up" if ...` is a `quoted_type_expression`.
+   * - No `for its ...` (an outline body's `it "is a (suit)"`, plan doc `outline-spell` P3, J9):  INFER what each
+   *   blank reads -- see `inferPlaceholders()`.  No blanks:  not ours, e.g. `it "is face up" if ...` is a
+   *   `quoted_type_expression`.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -2104,7 +2105,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
   }
 
   /**
-   * `it "is a suit"` => `a card "is a (suit)" for its suits`:  the placeholders it inferred, written out -- see
+   * `it "is a (suit)"` => `a card "is a (suit)" for its suits`:  the sources it inferred, written out -- see
    * `SpellStatement.getLongForm()`.
    */
   getLongForm(match: P.MatchFor<this>): string | undefined {
@@ -2116,24 +2117,28 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
   }
 
   /**
-   * `alias`'s words with each one naming a property of `type` made a placeholder, and those properties --
-   * e.g. `is the rank of suits` on a card => `is the (rank) of (suits)`, `["rank", "suit"]`.
-   * - A word names a property by its singular, e.g. `suits` => `suit`, as `(suits)` and `for its suits` do.
+   * `alias`'s blanks -- its words in parens -- and the property each reads, e.g. `is the (rank) of (suits)` on a card
+   * => `["rank", "suit"]`:  what `for its ranks and its suits` would say.
+   * - ONLY a word in parens is a blank;  a bare word is always just a word (plan doc J9, Owen:  "require the parens").
+   * - A blank names a property by its singular, e.g. `(suits)` => `suit`, as `for its suits` does.
    * - Only a property with a list of values:  its own (`as one of ...`), or a value kind's (`its "suit" is a suit`).
-   * - `undefined` if no word does.
+   * - `undefined` if there's no blank, or a blank names no such property:  then it's a phrase method's argument,
+   *   e.g. `it "nerds out with (another as a thing)"` (`quoted_type_expression`).
    */
   private static inferPlaceholders(alias: string[], type: P.TypeScope): InferredPlaceholders | undefined {
     const sources: string[] = []
-    const words = alias.map((word, index) => {
-      const variable = index > 0 ? type.variables.get(singularize(word)) : undefined
-      if (!variable) return word
+    for (const word of alias) {
+      // only a blank in parens:  a bare word is always just a word (plan doc J9:  "require the parens")
+      const blank = /^\((.+)\)$/.exec(word)?.[1]
+      if (!blank) continue
+      const variable = type.variables.get(singularize(blank))
+      if (!variable) return undefined
       // its own list of values is kept as its plural, e.g. `Suits` for `its "suit" is one of ...`
       const listed = !!quoted_property_formula.enumerationOf(type, variable.name)
-      if (!listed && !type.getType(variable.datatype)?.valueKind && !isValueKindStub(type, variable)) return word
+      if (!listed && !type.getType(variable.datatype)?.valueKind && !isValueKindStub(type, variable)) return undefined
       sources.push(variable.name)
-      return `(${word})`
-    })
-    return sources.length ? { words, sources } : undefined
+    }
+    return sources.length ? { words: alias, sources } : undefined
 
     /** Might `variable`'s type be a value kind declared further down:  a stub, so far? */
     function isValueKindStub(owner: P.TypeScope, variable: P.ScopeVariable): boolean {

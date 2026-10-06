@@ -84,7 +84,7 @@
       section: "suit and rank"
     },
     {
-      path: "project:OutlineSolitaire/file:Card.spell/type:Card/method:is a suit", line: 7,
+      path: "project:OutlineSolitaire/file:Card.spell/type:Card/method:is a (suit)", line: 7,
       section: "suit and rank",
       description: "e.g. \"the card is a spade\"",
       rules: [
@@ -97,7 +97,7 @@
       section: "suit and rank"
     },
     {
-      path: "project:OutlineSolitaire/file:Card.spell/type:Card/method:is a rank", line: 9,
+      path: "project:OutlineSolitaire/file:Card.spell/type:Card/method:is a (rank)", line: 9,
       section: "suit and rank",
       description: "e.g. \"the card is a queen\"",
       rules: [
@@ -105,7 +105,7 @@
       ]
     },
     {
-      path: "project:OutlineSolitaire/file:Card.spell/type:Card/method:is the rank of suits", line: 10,
+      path: "project:OutlineSolitaire/file:Card.spell/type:Card/method:is the (rank) of (suits)", line: 10,
       section: "suit and rank",
       description: "e.g. \"the card is the queen of spades\"",
       rules: [

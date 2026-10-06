@@ -4,10 +4,10 @@ a "card" is a thing where:
 	## suit and rank
 	- its "suit" is a suit of its deck
 	- its "color" is the color of its suit
-	- it "is a suit"                        // e.g. "the card is a spade"
+	- it "is a (suit)"                      // e.g. "the card is a spade"
 	- its "rank" is a rank of its deck
-	- it "is a rank"                        // e.g. "the card is a queen"
-	- it "is the rank of suits"             // e.g. "the card is the queen of spades"
+	- it "is a (rank)"                      // e.g. "the card is a queen"
+	- it "is the (rank) of (suits)"         // e.g. "the card is the queen of spades"
 	- it "is a face card" if its rank is a face card
 	- its "value" is the position of its rank in deck ranks
 
