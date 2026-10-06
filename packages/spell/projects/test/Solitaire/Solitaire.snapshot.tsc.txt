@@ -1,0 +1,34 @@
+135:18 TS18048 'spellCore.RUNTIME' is possibly 'undefined'.
+147:18 TS18048 'spellCore.RUNTIME' is possibly 'undefined'.
+187:95 TS2345 Argument of type 'string | number | undefined' is not assignable to parameter of type 'number | null | undefined'.
+274:22 TS2554 Expected 1 arguments, but got 0.
+292:16 TS2554 Expected 1 arguments, but got 0.
+304:22 TS2571 Object is of type 'unknown'.
+305:22 TS2571 Object is of type 'unknown'.
+331:12 TS2571 Object is of type 'unknown'.
+336:12 TS2571 Object is of type 'unknown'.
+458:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+461:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+464:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+467:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+472:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+475:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+478:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+481:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+484:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+487:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+490:37 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+500:19 TS2554 Expected 1 arguments, but got 0.
+526:27 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+541:27 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+568:16 TS2339 Property 'symbol' does not exist on type 'Foundation'.
+571:27 TS2345 Argument of type 'unknown' is not assignable to parameter of type 'Drawable | undefined'.
+611:59 TS18048 'card.value' is possibly 'undefined'.
+611:59 TS2365 Operator '+' cannot be applied to types 'string | number' and 'number'.
+627:19 TS2554 Expected 1 arguments, but got 0.
+642:86 TS2345 Argument of type 'typeof Pile' is not assignable to parameter of type 'new () => unknown'.
+671:87 TS2345 Argument of type 'typeof Pile' is not assignable to parameter of type 'new () => unknown'.
+682:7 TS2571 Object is of type 'unknown'.
+684:15 TS2571 Object is of type 'unknown'.
+695:1 TS18048 'spellCore.RUNTIME' is possibly 'undefined'.
+749:41 TS2571 Object is of type 'unknown'.

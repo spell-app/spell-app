@@ -7,5 +7,6 @@
 export * from "./writers.types"
 export * from "./Writer"
 export * from "./JSWriter"
+export * from "./TSWriter"
 export * from "./TreeWriter"
 export * as jsText from "./jsText"
