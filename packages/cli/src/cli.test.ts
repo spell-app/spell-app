@@ -607,6 +607,22 @@ describe("spell parse", () => {
     const { stdout } = spell(["parse", "1 + 2", "--json"])
     expect(JSON.parse(stdout)).toMatchObject({ rule: "expression", compiled: "(1 + 2)" })
   })
+
+  test("--tree:  the spell tree, then its javascript;  --json its data;  --html a <ui-tree-diagram>", () => {
+    const { status, stdout } = spell(["parse", "1 + 2", "--tree"])
+    expect(status).toBe(0)
+    expect(stdout).toBe("plus\n  lhs: Number 1\n  rhs: Number 2\n\n(1 + 2)\n")
+    expect(JSON.parse(spell(["parse", "1 + 2", "--tree", "--json"]).stdout)).toEqual({
+      label: "plus",
+      children: [
+        { label: "Number 1", slot: "lhs" },
+        { label: "Number 2", slot: "rhs" }
+      ]
+    })
+    const html = spell(["parse", "1 + 2", "--tree", "--html"]).stdout
+    expect(html).toMatch(/^<ui-tree-diagram>\n<script type="application\/json">\n\{/)
+    expect(html).toMatch(/<\/script>\n<\/ui-tree-diagram>\n$/)
+  })
 })
 
 describe("spell repl", () => {

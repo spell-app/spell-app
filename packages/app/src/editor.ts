@@ -671,16 +671,6 @@ export class EditorStore extends Observable {
   // ## UI
   ////////////////
 
-  /** Whether `<MatchRoot>` shows rule names alongside matches. */
-  @prop({ type: "choice", default: true })
-  accessor showingMatchRuleNames!: boolean
-  /** Toggle (or force via `on`) `showingMatchRuleNames`. */
-  toggleMatchRuleNames(on?: boolean): void {
-    // NOTE: defaulted here rather than in the signature -- see `createApp()` above.
-    on ??= !editor.showingMatchRuleNames
-    editor.showingMatchRuleNames = on
-  }
-
   /** Single `notice` display. */
   @prop({ type: "text" })
   accessor notice: string | undefined

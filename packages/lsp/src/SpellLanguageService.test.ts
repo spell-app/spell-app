@@ -738,6 +738,22 @@ describe("SpellLanguageService", () => {
     })
   })
 
+  test("custom requests:  a line's spell tree;  none for a blank line", () => {
+    const lines = card.parseText.split("\n")
+    const tree = service.lineTree(
+      card,
+      lines.findIndex((line) => line.includes("set its direction to up"))
+    )
+    expect(tree?.label).toBe("Set")
+    expect(tree?.children?.map(({ slot }) => slot)).toEqual(["thing", "value"])
+    expect(
+      service.lineTree(
+        card,
+        lines.findIndex((line) => line.trim() === "")
+      )
+    ).toBeNull()
+  })
+
   test("custom requests:  compiled javascript, and the project's files", () => {
     expect(service.compiled(card)).toContain("export class Card extends Thing {\n")
     expect(service.projectInfo(card).files.map(({ file, errors }) => `${file} ${errors}`)).toEqual([

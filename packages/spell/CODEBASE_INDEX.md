@@ -64,7 +64,6 @@ The Spell Parser is a sophisticated parsing and compilation system for the Spell
   - `AppContainer.jsx` - Main app container
   - `InputEditor.jsx` - Code input with CodeMirror
   - `ConsoleViewer.jsx` - Console output display
-  - `MatchViewer.jsx` - Parse match visualization
   - `SplitPanel.jsx` - Resizable panel layout
   - `SpellPage.jsx` - Page layout wrapper
 - **State Management** (`store.js`): Central application state (623 lines)

@@ -8,6 +8,8 @@ import { CLI } from "$/cli"
  * - Tried as a `statement`, then an `expression` -- or as `--rule <name>`.  Several lines parse as a `block`.
  * - `--in <target>`:  parse inside that project's scope, so its types and phrases are known.
  * - `--json`:  the result as JSON -- see `CLI.ParsedText`.
+ * - `--tree`:  the SPELL tree instead of the match tree:  what it means, as `<ui-tree-diagram>` draws it
+ *   (`P.TreeWriter`).  With `--json`:  just that tree's data;  with `--html`:  a `<ui-tree-diagram>` for a docs page.
  * - Returns the exit code:  `EXIT.ERRORS` if it didn't parse or compile.
  */
 export async function parseCommand(
@@ -18,6 +20,14 @@ export async function parseCommand(
   const [text = ""] = args
   const project = options.in ? await projectFor(session, options.in) : undefined
   const result = CLI.parseText(text, CLI.lineScope(project), { rule: options.rule })
+  if (options.tree) {
+    if (result.error) session.err(chalk.red(result.error))
+    else if (!result.spellTree) session.err(chalk.red("It parses, but makes no spell tree to draw"))
+    else if (options.json) session.out(JSON.stringify(result.spellTree, null, 2))
+    else if (options.html) session.out(CLI.spellTreeHTML(result.spellTree))
+    else session.out([...CLI.spellTreeLines(result.spellTree), "", result.compiled ?? ""].join("\n"))
+    return result.error || !result.spellTree ? CLI.EXIT.ERRORS : CLI.EXIT.OK
+  }
   if (options.json) {
     session.out(JSON.stringify(result, null, 2))
   } else {
