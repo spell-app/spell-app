@@ -1,0 +1,1 @@
+import{t as e}from"./ui-select-DM3nkye8.js";export{e as UISelect};

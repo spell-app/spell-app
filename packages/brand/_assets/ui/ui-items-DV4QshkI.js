@@ -1,0 +1,1 @@
+import{t as e}from"./ui-items-B8gStdjI.js";export{e as UIItems};

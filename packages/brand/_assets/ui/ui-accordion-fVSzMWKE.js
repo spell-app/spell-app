@@ -1,0 +1,1 @@
+import{t as e}from"./ui-accordion-BdBqaKw4.js";export{e as UIAccordion};
