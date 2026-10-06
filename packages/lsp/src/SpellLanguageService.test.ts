@@ -893,7 +893,7 @@ describe("SpellLanguageService, outline style", () => {
     const hoverOn = (line: number, word: string) =>
       (service.hover(card, at(card, line, word))!.contents as { value: string }).value
     expect(hoverOn(5, "suit")).toMatch(/^\*\*Reads as\*\*  `a card has a suit as a suit of its deck`/)
-    expect(hoverOn(7, "is a suit")).toContain('**Reads as**  `a card "is a (suit)" for its suits`')
+    expect(hoverOn(7, "is a (suit)")).toContain('**Reads as**  `a card "is a (suit)" for its suits`')
     expect(hoverOn(16, "face up")).toContain('**Reads as**  `a card "is face up" if its direction is up`')
   })
 

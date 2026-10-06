@@ -117,9 +117,9 @@ export class Card extends Thing {
   /** e.g. "the card is a spade" */
   /*! SPELL: DECLARES {
     syntax: "{operator:is} (a|an) (expression:club|diamond|heart|spade)", output: "is_a_$suit",
-    rule: "quoted_property", of: "Card", kind: "method", name: '"is a suit"',
+    rule: "quoted_property", of: "Card", kind: "method", name: '"is a (suit)"',
     values: { suit: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"] },
-    defined: "/Card.spell:209-223",
+    defined: "/Card.spell:209-225",
   } */
   is_a_$suit(suit) {
     return this.suit === suit
@@ -136,9 +136,9 @@ export class Card extends Thing {
   /** e.g. "the card is a queen" */
   /*! SPELL: DECLARES {
     syntax: "{operator:is} (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
-    output: "is_a_$rank", rule: "quoted_property", of: "Card", kind: "method", name: '"is a rank"',
+    output: "is_a_$rank", rule: "quoted_property", of: "Card", kind: "method", name: '"is a (rank)"',
     values: { rank: ["'ace'", 2, 3, 4, 5, 6, 7, 8, 9, 10, "'jack'", "'queen'", "'king'"] },
-    defined: "/Card.spell:316-330",
+    defined: "/Card.spell:316-332",
   } */
   is_a_$rank(rank) {
     return this.rank === rank
@@ -148,9 +148,9 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "{operator:is} the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
     output: "is_the_$rank_of_$suits", rule: "quoted_property", of: "Card", kind: "method",
-    name: '"is the rank of suits"',
+    name: '"is the (rank) of (suits)"',
     values: { rank: ["'ace'", 2, 3, 4, 5, 6, 7, 8, 9, 10, "'jack'", "'queen'", "'king'"], suits: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"] },
-    defined: "/Card.spell:387-412",
+    defined: "/Card.spell:387-416",
   } */
   is_the_$rank_of_$suits(rank, suit) {
     return this.rank === rank && this.suit === suit
