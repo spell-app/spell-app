@@ -43,7 +43,6 @@ const VALUES = [
   // `./ast`
   "ASTNode",
   "ASTExpression",
-  "render",
   "stringify",
   // self-namespace
   "P"
@@ -149,13 +148,12 @@ describe("$/parser barrel contents", () => {
   })
 
   test("namespaced sub-barrels stay separate and populated", async () => {
-    const { ASTNode, ASTExpression, render, stringify, Token, WordToken } = await freshBarrel()
-    // `render` and `stringify` deliberately export the SAME names -- flattening them
-    // would silently drop one side, so assert both survive and stay distinct.
+    const barrel = await freshBarrel()
+    const { ASTNode, ASTExpression, stringify, Token, WordToken } = barrel
+    // `stringify`'s generic names (`List`, `Block` ...) stay namespaced, never flattened
     expect(stringify.SPACE).toBe(" ")
-    expect(typeof render.List).toBe("function")
     expect(typeof stringify.List).toBe("function")
-    expect(render.List).not.toBe(stringify.List)
+    expect("List" in barrel).toBe(false)
     // AST nodes and tokens are NOT namespaced -- their `ASTXxx` / `XxxToken` affixes
     // keep them collision-free, so both must arrive flattened and correctly wired.
     expect(ASTExpression.prototype).toBeInstanceOf(ASTNode)

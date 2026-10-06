@@ -1,18 +1,17 @@
-import type { P } from "$/parser"
 import { MD, type MarkdownHeading, type MarkdownOptions, type RenderOptions } from "$/markdown"
 
 /**
  * `MD.toHTML(markdown)` -- markdown to PLAIN HTML, as the GFM spec spells it.
  * - Blocks (`MD.BlockScanner`), then link reference definitions out of the paragraphs (`MD.extractReferences()`),
- *   then each leaf's inlines (`MD.InlineParser`, GFM autolinks), drawn as `P.Markup` and written as HTML.
+ *   then each leaf's inlines (`MD.InlineParser`, GFM autolinks), drawn as `MD.Markup` and written as HTML.
  * - `options`:  GFM autolinks and tagfilter, both on unless turned off.
  */
 export function toHTML(markdown: string, options: MarkdownOptions = {}): string {
   return MD.markupToHTML(toMarkup(markdown, options))
 }
 
-/** `markdown` as plain-HTML `P.Markup`. */
-export function toMarkup(markdown: string, options: MarkdownOptions = {}): P.Markup {
+/** `markdown` as plain-HTML `MD.Markup`. */
+export function toMarkup(markdown: string, options: MarkdownOptions = {}): MD.Markup {
   return render(markdown, { ...options, ui: false, headingIds: false }).markup
 }
 
@@ -44,8 +43,8 @@ export function render(markdown: string, options: RenderOptions = {}): MarkdownR
 
 /** What `MD.render()` returns. */
 export type MarkdownRender = {
-  /** The document as `P.Markup`. */
-  markup: P.Markup
+  /** The document as `MD.Markup`. */
+  markup: MD.Markup
   /** ... written as HTML. */
   html: string
   /** Every heading, in order. */

@@ -1,5 +1,5 @@
 /**
- * Barrel for `render/` -- `MD.Block` trees => `P.Markup` => HTML.
+ * Barrel for `render/` -- `MD.Block` trees => `MD.Markup` => HTML.
  */
 export * from "./render.types"
 export * from "./renderBlocks"

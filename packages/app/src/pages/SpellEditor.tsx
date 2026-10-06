@@ -4,7 +4,7 @@ import {
   Actions,
   AppMenu,
   AppRoot,
-  ASTRoot,
+  OutputRoot,
   ConsoleRoot,
   InputRoot,
   MatchRoot,
@@ -21,7 +21,8 @@ import { followRoute } from "./followRoute"
 /****************
  * ### `<SpellEditor>`
  * The editing page:  `<InputRoot>` (the code) above `<ConsoleRoot>` (compile and run log) on the left;
- * `<AppRoot>` (the running program) above `<ASTRoot>` and `<MatchRoot>` (parse tree, match inspector) on the right.
+ * `<AppRoot>` (the running program) above `<OutputRoot>` (compiled javascript) and `<MatchRoot>` (match inspector) on
+ * the right.
  * - SIDE EFFECT:  the page's keyboard shortcuts while it's up, outside Monaco (`editorHotkeys()`).
  ****************/
 export function SpellEditor() {
@@ -36,7 +37,7 @@ export function SpellEditor() {
         </SplitPanel>
         <SplitPanel id="spellEditor-right" rows="60%" resizable rounded>
           <AppRoot />
-          <ASTRoot />
+          <OutputRoot />
           <MatchRoot />
         </SplitPanel>
       </SplitPanel>

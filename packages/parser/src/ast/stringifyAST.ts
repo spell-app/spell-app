@@ -1,7 +1,7 @@
 /**
  * Output backend for `ASTNode`s -- draws parens/lists/blocks/etc. as plain `string`s, for compiled JS output.
- * - Mirrors `renderAST.ts` export-for-export: same core names (`SPACE`, `COMMA`, `List`, `InParens`, `Block`, ...)
- *   but returning `string` instead of `Markup`.  See barrel `index.ts` NOTE -- they MUST stay namespaced.
+ * - Generic names (`SPACE`, `COMMA`, `List`, `InParens`, `Block`, ...):  see barrel `index.ts` NOTE -- it MUST stay
+ *   namespaced.
  * - Usage: `import * as stringify from "./stringifyAST"`, then e.g. `stringify.Args({ args })`.
  */
 import type { ASTNode } from "./AST"
