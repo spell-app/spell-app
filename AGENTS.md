@@ -124,6 +124,14 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
   included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `spell dev window open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
+- Merge `main` into a branch with `spell dev worktree merge-main`, never a bare `git merge main`:  it REGENERATES
+  each generated file both sides changed (bundles, site and brand assets, snapshots, `yarn.lock`) from the merged
+  source, and stops on any other conflict (`--continue` once they're resolved and added).
+  - Those files are `merge=binary` in the root `.gitattributes` (never line-merged), `-diff` when minified, and
+    `linguist-generated` (collapsed in GitHub's PR diffs).  A new committed generated file:  add it there AND to
+    `GENERATORS` in `packages/cli/src/dev/mergeMain.ts`.
+  - It reports snapshot entries with a value NEITHER side had:  new behaviour nobody reviewed;  show them to Owen.
+  - NOT `merge=ours`:  it drops the other side's changes silently, and GitHub ignores merge drivers anyway.
 - Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
   worktree, plus a `PARKED-<name>.md` note), `/unpark` to pick it back up, or `/wait-for <other>` to wait for
   that session to finish, then merge `main` in and carry on by itself.

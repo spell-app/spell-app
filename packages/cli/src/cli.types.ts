@@ -208,10 +208,12 @@ export type SessionOptions = GlobalOptions & {
 
 /**
  * `spell dev worktree` flags.
- * - `json`:  `list` prints the data as JSON (`status` always does)
+ * - `json`:  `list` and `merge-main` print the data as JSON (`status` always does)
+ * - `continue`:  `merge-main` finishes a merge it stopped on other conflicts
  */
 export type WorktreeOptions = GlobalOptions & {
   json?: boolean
+  continue?: boolean
 }
 
 /**
