@@ -45,13 +45,13 @@ describe("spell help", () => {
     const { status, stdout } = spell(["help"])
     expect(status).toBe(0)
     expect(stdout).toMatch(/^Usage: spell \[options\] \[command\]\n/)
-    expect(stdout).toMatch(/^ {2}compile \[options\] \[targets\.\.\.\]/m)
+    expect(stdout).toMatch(/^ {2}compile \[options\] \[projects\.\.\.\]/m)
   })
 
   test("one command", () => {
     const { status, stdout } = spell(["help", "compile"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^Usage: spell compile \[options\] \[targets\.\.\.\]\n/)
+    expect(stdout).toMatch(/^Usage: spell compile \[options\] \[projects\.\.\.\]\n/)
   })
 
   test("an unknown command", () => {
@@ -317,7 +317,9 @@ describe("spell compile", () => {
     cpSync(fixturePath("Solitaire"), copy, { recursive: true })
     const { status, stderr } = spell(["compile", "."], copy)
     expect(status).toBe(0)
-    expect(stderr).toContain(`wrote Solitaire${SP.COMPILED_JS_SUFFIX}, Solitaire${SP.SCOPES_JS_SUFFIX}`)
+    expect(stderr).toContain(
+      `wrote Solitaire${SP.COMPILED_JS_SUFFIX}, Solitaire${SP.DECLARATIONS_JSON_SUFFIX}, Solitaire${SP.SCOPES_JS_SUFFIX}`
+    )
     const pack = readFileSync(resolve(copy, `Solitaire${SP.SCOPES_JS_SUFFIX}`), "utf8")
     expect(pack).toContain("type:Card")
     expect(pack).not.toContain("file://")

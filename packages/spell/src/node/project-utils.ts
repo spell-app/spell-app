@@ -138,7 +138,7 @@ export const loadProjectFile = async (projectId: string): Promise<ProjectFileJSO
 /**
  * Save a project's `project.json` file.
  * - SIDE EFFECT: overwrites file wholesale, no merge with disk -- pass what `loadProjectFile()` gave you,
- *   changed, so its `version` / `exports` survive.
+ *   changed, so its `version` / `exports` / `targets` survive.
  */
 export const saveProjectFile = async (projectId: string, contents: ProjectFileJSON) => {
   const location = getProjectFileLocation(projectId)
@@ -223,8 +223,8 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   )
 
   // return manifest and imports
-  const { version, exports } = importsFile
-  return { imports: importsFile.imports, manifest, version, exports }
+  const { version, exports, targets } = importsFile
+  return { imports: importsFile.imports, manifest, version, exports, targets }
 }
 
 /**
