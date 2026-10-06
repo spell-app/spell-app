@@ -348,7 +348,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/server`):  the input's `name` (it holds the query, the value) and the `STATIC_CONTROL`
+   * Server render only (`$/ui/static`):  the input's `name` (it holds the query, the value) and the `STATIC_CONTROL`
    * mark, so a static form submits it;  `{}` in a browser, where the HOST submits (`ElementInternals`).
    */
   private staticControl(): Record<string, unknown> {

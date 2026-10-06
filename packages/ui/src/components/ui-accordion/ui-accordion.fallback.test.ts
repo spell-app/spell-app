@@ -26,7 +26,12 @@ if (!customElements.get(TAG)) {
       }
 
       connectedCallback() {
-        this.handle = AccordionFallback.render(this, this.shadowRoot!, new Error("boom"), this.internals)
+        this.handle = AccordionFallback.render({
+          host: this,
+          root: this.shadowRoot!,
+          error: new Error("boom"),
+          internals: this.internals
+        })
       }
     }
   )

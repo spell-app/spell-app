@@ -7,9 +7,13 @@ no Solid, so it renders whatever broke the Solid render (the Lit spike rendered 
 
 ```ts
 // src/elements/NativeFallback.ts
-static render(host, root, error?, internals?): NativeFallbackHandle
+static render({ host, root, error?, internals? }): NativeFallbackHandle
 // handle: { dispose(): void, degraded: readonly string[] }
 ```
+
+- One `NativeFallbackProps` object, the constructor's too:  `new ButtonFallback({ host, root, error, internals })`.
+- A class serving several tags sets `@proto static vocabularies` (the first the default);  the base picks the
+  host tag's into `vocabulary`, so no subclass needs a constructor for it.
 
 - `root.replaceChildren(...)`:  the component's adopted sheets stay, so the same `ui-*` classes and `part`s
   style the fallback.
@@ -40,7 +44,7 @@ static render(host, root, error?, internals?): NativeFallbackHandle
 | label     | `<span>` / `<a href>`, classes, `part`, slot, `detail`                                      | `removable` delete button and `ui-remove`, icon, image                                                                                          |
 | segment, container | root `div`, classes, `part`, slot, `aria-busy` for `loading`                       | segment's inverted owner tokens (CSS side, none needed here)                                                                                    |
 | divider   | `role=separator` (`none` when `hidden`), `aria-orientation`, classes, slot                  | `icon` shorthand                                                                                                                                |
-| parts     | `div.<noun>`, standalone header as `<h1-6>` / `<a>`, owned header as `role=heading`        | `:state(in-<owner>)` styling (owned or not comes from the owner registry, `PartContext.ownerOf()`)                                             |
+| parts     | `div.<noun>`, standalone header as `<h1-6>` / `<a>`, owned header as `role=heading`        | `:state(in-<owner>)` styling (owned or not comes from the owner registry, `PartContext.ownerFor()`)                                             |
 | grid      | grid / row / column `div`s, classes (widths included), `part`, slot:  `ui-grid.css` lays them out unchanged | --                                                                                                                                  |
 | image     | `<img>` (`src`, `alt`, `width`, `height`, `loading`) or `<a href>` around it, classes, `part`;  `<ui-images>` group | --                                                                                                                          |
 | text      | `<span>`, classes, `part`, slot                                                             | --                                                                                                                                              |

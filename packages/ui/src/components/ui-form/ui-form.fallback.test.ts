@@ -6,7 +6,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { FormFallback } from "./ui-form.fallback"
 
 FallbackStub.define("x-fb-form", (host, root, internals) =>
-  FormFallback.render(host, root, new Error("boom"), internals)
+  FormFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("FormFallback", () => {

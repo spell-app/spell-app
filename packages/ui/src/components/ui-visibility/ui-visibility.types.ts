@@ -31,7 +31,7 @@ export const DATA_SRC = "data-src"
 export const LAZY_IMAGES = "img[data-src]"
 
 /**
- * A lazy image's attributes in a static server render (`$/ui/server`):  `data-src` / `data-srcset` become the real
+ * A lazy image's attributes in a static server render (`$/ui/static`):  `data-src` / `data-srcset` become the real
  * ones, and the browser's own lazy loading (`loading="lazy"`) stands in for the observer.
  */
 export const DATA_SRCSET = "data-srcset"

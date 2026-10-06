@@ -6,7 +6,9 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 
 import { NagFallback } from "./ui-nag.fallback"
 
-FallbackStub.define("x-fb-nag", (host, root, internals) => NagFallback.render(host, root, new Error("boom"), internals))
+FallbackStub.define("x-fb-nag", (host, root, internals) =>
+  NagFallback.render({ host, root, error: new Error("boom"), internals })
+)
 
 /** Axe without contrast:  the stub has no stylesheet. */
 const AXE = { rules: { "color-contrast": { enabled: false } } }

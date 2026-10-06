@@ -149,7 +149,7 @@ export class UICode extends SourceElement<Vocabulary> {
     } catch (error) {
       if (ticket !== this.ticket) return
       this.highlighted.set(undefined)
-      const kind = error instanceof SourceError ? error.kind : "render"
+      const kind = SourceError.kindFor(error, "render")
       this.emitSource("ui-error", { kind, source: untrack(() => this.sourceAttribute()), error })
     }
   }
@@ -160,7 +160,7 @@ export class UICode extends SourceElement<Vocabulary> {
 
   /** The copy button:  the code to the clipboard, `ui-copy`, "Copied" for a moment. */
   private readonly onCopy = async () => {
-    const content = this.getContent()
+    const { content } = this
     await navigator.clipboard.writeText(content)
     this.copied.set(true)
     this.emitSource("ui-copy", { content })

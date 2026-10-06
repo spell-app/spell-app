@@ -2,12 +2,12 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIInput } from "$/ui/components/ui-input/UIInput"
 import { UITextarea } from "$/ui/components/ui-input/UITextarea"
 
 /**
- * `<ui-input>` / `<ui-textarea>` in a static server render (`$/ui/server`):  Fomantic's `div.ui.input` around the
+ * `<ui-input>` / `<ui-textarea>` in a static server render (`$/ui/static`):  Fomantic's `div.ui.input` around the
  * native control, which carries what a no-JS form submits.
  */
 describe("ui-input (static render)", () => {

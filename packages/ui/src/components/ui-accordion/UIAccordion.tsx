@@ -87,7 +87,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
 
   /**
    * `name` of an exclusive accordion's `<details>`.
-   * - A server render (`$/ui/server`) puts every accordion in ONE light DOM, where a `name` groups the whole page:
+   * - A server render (`$/ui/static`) puts every accordion in ONE light DOM, where a `name` groups the whole page:
    *   a page-unique name there, so two exclusive accordions don't close each other.
    */
   readonly group = isServer ? UI.ids.next(GROUP) : GROUP
@@ -112,7 +112,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
   readonly openIndexes = createMemo(() => AccordionPanels.parse(this.openState.get(), this.attrs.exclusive))
 
   /** The `source` panel's `<details>` held closed while its body is on its way (never in a server render). */
-  readonly veiled = createMemo(() => !isServer && !!this.attrs.source && this.body.veiled())
+  readonly veiled = createMemo(() => !isServer && !!this.attrs.source && this.body.isVeiled)
 
   /** The error line's text, when the `source` body failed;  else `undefined`. */
   readonly bodyFailureText = createMemo(() => {
@@ -216,7 +216,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
   /**
    * The `<slot>` showing `child` (a panel's title or content):  assigned by hand in a browser.
    * - A server render can't assign by hand (no refs run, no shadow root):  the slot gets a NAME, and so does
-   *   `child` (its `slot` attribute), which the flattener (`$/ui/server`) matches and then drops.
+   *   `child` (its `slot` attribute), which the flattener (`$/ui/static`) matches and then drops.
    * - SIDE EFFECT, server only:  sets `child`'s `slot` attribute (the render's own parsed copy of the page).
    */
   private panelSlot(child: Element, index: Accessor<number>, part: string): JSX.Element {

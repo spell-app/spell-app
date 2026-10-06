@@ -1,18 +1,10 @@
 import { createEffect, createMemo, untrack, type Accessor } from "solid-js"
 import { isServer, ssr } from "@solidjs/web"
 
-import { RUNTIME_KEY, UI, type IconPacks, type RuntimeGlobal } from "$/ui/runtime"
+import { E, UI } from "$/ui/core"
 
-import { Cell } from "./Cell"
-import { RootSettings } from "./RootSettings"
-
-/** What an `IconGlyph` needs of the component drawing it:  its element, and whether it's in the document. */
-export type IconGlyphOwner = {
-  readonly host: Element
-  readonly connected: Cell<boolean>
-}
-
-/**
+/****************
+ * ### `IconGlyph`
  * An icon NAME (attribute, shorthand) turned into an `<svg>`, loaded through the icon packs the OWNER's element draws
  * from -- its nearest `<ui-root icons>`'s, else the page's (`UI.icons`) -- shared by `<ui-icon>` and every component's
  * `icon` shorthand, close / delete icons and the like.
@@ -22,45 +14,40 @@ export type IconGlyphOwner = {
  * - A later request wins over an earlier, slower load.
  * - `svg()` is a fresh `aria-hidden` clone per change;  the box around it is the caller's.
  * - MUST be created under the element's owner:  it creates a signal, a memo and an effect.
- * - Server render (`$/ui/server`):  `svg()` is the SVG as markup, read synchronously through `serverMarkup`;
- *   `data` stays empty.
- */
+ * - Server render (`$/ui/static`):  `svg()` is the SVG as markup, read synchronously through `serverMarkup`;
+ *   `data` stays empty.  It NEVER imports the server's code:  that reaches it through the hook.
+ ****************/
 export class IconGlyph {
   /**
    * The cached `<svg>` for the name, `undefined` until loaded (or for an unknown name);  tracked.
    * - A shared TEMPLATE:  NEVER insert it -- `svg()` / `IconGlyph.draw()` clone it.
    */
-  readonly data: Cell<SVGSVGElement | undefined>
+  readonly data: E.Cell<SVGSVGElement | undefined>
 
   /** A fresh `<svg>` to insert, or `undefined`;  tracked. */
   readonly svg: Accessor<SVGSVGElement | undefined>
 
+  /** The component drawing this icon. */
+  private readonly owner: IconGlyphOwner
+
   /** Request counter, so a slower earlier load can't win. */
   private request = 0
 
-  /**
-   * Server hook, set by `$/ui/server` (`ServerRuntime`):  an icon name => its SVG markup, from `packs`.
-   * - Why a hook:  the server reads SVG files from disk (`node:fs`), which browser code must never import.
-   */
-  static serverMarkup?: (packs: IconPacks, name: string) => string | undefined
-
-  constructor(
-    private readonly owner: IconGlyphOwner,
-    name: Accessor<string | undefined>
-  ) {
+  constructor(owner: IconGlyphOwner, name: Accessor<string | undefined>) {
+    this.owner = owner
     if (isServer) {
       // no DOM to clone into, and the render is synchronous:  the SVG as markup, read now
-      this.data = new Cell<SVGSVGElement | undefined>(undefined)
+      this.data = new E.Cell<SVGSVGElement | undefined>(undefined)
       this.svg = () => IconGlyph.serverSvg(owner.host, name())
       return
     }
-    this.data = new Cell(untrack(() => IconGlyph.peek(owner.host, name())))
+    this.data = new E.Cell(untrack(() => IconGlyph.peek(owner.host, name())))
     this.svg = createMemo(() => {
       const template = this.data.get()
       return template ? IconGlyph.draw(template) : undefined
     })
     createEffect(
-      () => ({ name: name(), connected: owner.connected.get(), generation: RootSettings.generation.get() }),
+      () => ({ name: name(), connected: owner.connected.get(), generation: E.RootSettings.generation.get() }),
       ({ name: nameNow, connected }) => {
         if (connected || !this.request) void this.load(nameNow)
       }
@@ -81,12 +68,29 @@ export class IconGlyph {
     if (this.request === request && untrack(this.data.get) !== template) this.data.set(template)
   }
 
-  /** The icon packs `element` draws from:  its nearest `<ui-root icons>`'s (`RootSettings`), else `page`. */
-  static packsFor(element: Element, page: IconPacks): IconPacks {
-    return RootSettings.nearest(element, "icons") ?? page
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * Server hook, set by `$/ui/static` (`ServerRuntime`):  an icon name => its SVG markup, from `packs`.
+   * - Why a hook:  the server reads SVG files from disk (`node:fs`), which browser code must never import.
+   * - Static:  one server runtime per process, installed before any element renders.
+   */
+  static serverMarkup?: (packs: E.IconPacks, name: string) => string | undefined
+
+  /**
+   * The icon packs `element` draws from:  its nearest `<ui-root icons>`'s (`RootSettings`), else `page`.
+   * - Static:  components that draw icons without an `IconGlyph` (`<ui-dropdown>`'s options) ask it too.
+   */
+  static packsFor(element: Element, page: E.IconPacks): E.IconPacks {
+    return E.RootSettings.nearest(element, "icons") ?? page
   }
 
-  /** An insertable, decorative copy of `template` (`aria-hidden`:  the accessible name is the caller's). */
+  /**
+   * An insertable, decorative copy of `template` (`aria-hidden`:  the accessible name is the caller's).
+   * - Static:  pure, and used without an `IconGlyph` (`<ui-rating>`'s icons).
+   */
   static draw(template: SVGSVGElement): SVGSVGElement {
     const svg = template.cloneNode(true) as SVGSVGElement
     svg.setAttribute(ARIA_HIDDEN, TRUE)
@@ -99,7 +103,7 @@ export class IconGlyph {
    * - Typed as the `<svg>` the browser branch returns:  only ever inserted into JSX.
    */
   private static serverSvg(element: Element, name: string | undefined): SVGSVGElement | undefined {
-    const page = (globalThis as RuntimeGlobal)[RUNTIME_KEY]?.icons
+    const page = (globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]?.icons
     if (!name || !page || !IconGlyph.serverMarkup) return undefined
     const markup = IconGlyph.serverMarkup(IconGlyph.packsFor(element, page), name)
     if (!markup) return undefined
@@ -108,9 +112,17 @@ export class IconGlyph {
 
   /** Cached template for `name` as `element` sees it, or `undefined` -- also before the runtime loads (or on a server). */
   private static peek(element: Element, name: string | undefined): SVGSVGElement | undefined {
-    const page = (globalThis as RuntimeGlobal)[RUNTIME_KEY]?.icons
+    const page = (globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]?.icons
     return name && page ? IconGlyph.packsFor(element, page).peek(name) : undefined
   }
+}
+
+/** What an `IconGlyph` needs of the component drawing it. */
+export type IconGlyphOwner = {
+  /** its element:  where the climb to the nearest `<ui-root icons>` starts */
+  readonly host: Element
+  /** whether it's in the document (`UIElement.connected`):  a reconnect may mean another root */
+  readonly connected: E.Cell<boolean>
 }
 
 /** Hides a decorative icon from assistive technology. */

@@ -6,7 +6,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { VisibilityFallback } from "./ui-visibility.fallback"
 
 FallbackStub.define("x-fb-visibility", (host, root, internals) =>
-  VisibilityFallback.render(host, root, new Error("boom"), internals)
+  VisibilityFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** A 1x1 GIF. */

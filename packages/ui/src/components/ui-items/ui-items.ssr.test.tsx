@@ -2,7 +2,7 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIItem } from "$/ui/components/ui-item/UIItem"
 import { UIItems } from "$/ui/components/ui-items/UIItems"
 import { UIContent } from "$/ui/components/ui-parts/UIContent"
@@ -10,7 +10,7 @@ import { UIHeader } from "$/ui/components/ui-parts/UIHeader"
 import { UIMeta } from "$/ui/components/ui-parts/UIMeta"
 
 /**
- * `<ui-items>` in the static server render (`$/ui/server`):  a `<ul>` of items whose `<div>` roots become the `<li>`s
+ * `<ui-items>` in the static server render (`$/ui/static`):  a `<ul>` of items whose `<div>` roots become the `<li>`s
  * (a link item's `<a>` is wrapped instead), content parts owned by their item (`in-item`).
  */
 describe("ui-items, static", () => {

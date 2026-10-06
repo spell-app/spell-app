@@ -168,7 +168,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   }
 
   /**
-   * The static markup of a server render (`$/ui/server`), where the root replaces the host:
+   * The static markup of a server render (`$/ui/static`), where the root replaces the host:
    * - a popover itself (`serverPopover()`):  hidden until opened, in the HTML
    * - PHRASING content (`<span>`s):  a popup often sits in running text, after a `<dfn>` or a button in a `<p>`,
    *   where its host was valid;  a `<div>` would close the `<p>` when a browser parses the page
@@ -198,7 +198,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   /**
    * Role / name, popover mode, position, target binding, and showing -- all once the runtime is loaded (`UI`).
    * - Created in `mount()`:  they read overridable methods and every field.
-   * - Role, name and position are host effects:  a static render (`$/ui/server`) writes them out;  it binds the
+   * - Role, name and position are host effects:  a static render (`$/ui/static`) writes them out;  it binds the
    *   target's ARIA once (`serverBind()`) instead of the rest.
    */
   private effects() {
@@ -256,7 +256,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   }
 
   /**
-   * `popover` of the ROOT in a server render (`$/ui/server`), where the root replaces the host:  hidden until
+   * `popover` of the ROOT in a server render (`$/ui/static`), where the root replaces the host:  hidden until
    * opened, in the HTML.
    * - `auto` for a click popup:  light dismiss and Escape without JS, once something opens it (`popovertarget`);
    *   `manual` for the rest (`hint` isn't everywhere, and an unknown value means `manual`).
@@ -447,7 +447,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   // ## Targets
   ////////////////
 
-  /** `value` is an element:  by node type, since a server render (`$/ui/server`) has no `Element` global. */
+  /** `value` is an element:  by node type, since a server render (`$/ui/static`) has no `Element` global. */
   private static isElement(value: unknown): value is Element {
     return typeof value === "object" && value !== null && (value as Node).nodeType === NodeType.element
   }

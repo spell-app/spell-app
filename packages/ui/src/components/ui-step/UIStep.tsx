@@ -66,7 +66,7 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
 
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
-    // SIDE EFFECT:  one item of the group's ordered list;  a server render (`$/ui/server`) makes the root an `<li>`
+    // SIDE EFFECT:  one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
     this.host.internals.role = LISTITEM
   }
 
@@ -118,7 +118,7 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
       >
         <Show when={this.hasIcon()}>
           <span class={ICON} part={this.part("icon")}>
-            {/* a server render (`$/ui/server`) swaps the slot for its content, `hidden` and all:  leave it out */}
+            {/* a server render (`$/ui/static`) swaps the slot for its content, `hidden` and all:  leave it out */}
             <Show when={!(isServer && attrs.completed)}>
               <slot name={this.slot("icon")} hidden={attrs.completed || undefined}>
                 {this.glyph.svg()}

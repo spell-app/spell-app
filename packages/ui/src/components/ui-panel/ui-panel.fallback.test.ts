@@ -9,7 +9,7 @@ import { PanelFallback } from "./ui-panel.fallback"
 import "$/ui/components/ui-section"
 
 FallbackStub.define("x-fb-panel", (host, root, internals) =>
-  PanelFallback.render(host, root, new Error("boom"), internals)
+  PanelFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** The fallback's `<section>` root in `host`. */

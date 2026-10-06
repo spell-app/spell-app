@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { DividerFallback } from "./ui-divider.fallback"
 
 FallbackStub.define("x-fb-divider", (host, root, internals) =>
-  DividerFallback.render(host, root, new Error("boom"), internals)
+  DividerFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("DividerFallback", () => {

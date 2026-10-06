@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { EmbedFallback } from "./ui-embed.fallback"
 
 FallbackStub.define("x-fb-embed", (host, root, internals) =>
-  EmbedFallback.render(host, root, new Error("boom"), internals)
+  EmbedFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

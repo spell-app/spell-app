@@ -2,12 +2,12 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIItem } from "$/ui/components/ui-item/UIItem"
 import { UIMenu } from "$/ui/components/ui-menu/UIMenu"
 
 /**
- * `<ui-menu>` in the static server render (`$/ui/server`):  a `<nav>` landmark of link items, a sub-menu as
+ * `<ui-menu>` in the static server render (`$/ui/static`):  a `<nav>` landmark of link items, a sub-menu as
  * `<div class="right menu">`, and the `interactive` menubar with `menuitem` buttons.
  */
 describe("ui-menu, static", () => {

@@ -201,7 +201,10 @@ export const fmtConfig = {
     "**/.vitest/**",
     "**/graphify-out/**",
     "**/thoughts/**",
-    "**/static/**",
+    // a package's built `static/` (`app`, `spell`):  from its own folder, and from the root.  NOT `**/static/**`,
+    // which also skipped `ui`'s source folder `src/static/` (the static server render)
+    "static/**",
+    "**/packages/*/static/**",
     "**/projects/**",
     "**/vscode-extension/out/**",
     "**/docs/tools/_assets/spell-ui.js",

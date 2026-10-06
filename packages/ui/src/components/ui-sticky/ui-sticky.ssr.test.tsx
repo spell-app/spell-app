@@ -2,10 +2,10 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UISticky } from "$/ui/components/ui-sticky/UISticky"
 
-/** `<ui-sticky>` in the static server render (`$/ui/server`, seo plan P3):  CSS sticks it, nothing observes. */
+/** `<ui-sticky>` in the static server render (`$/ui/static`, seo plan P3):  CSS sticks it, nothing observes. */
 describe("ui-sticky static render", () => {
   beforeAll(() => {
     StaticRender.define(UISticky)

@@ -3,12 +3,12 @@
 import { parseHTML } from "linkedom"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UITab } from "$/ui/components/ui-tab/UITab"
 import { UITabs } from "$/ui/components/ui-tab/UITabs"
 
 /**
- * `<ui-tabs>` rendered statically (`$/ui/server`):  the tab list built from the panes, the selected pane shown, the
+ * `<ui-tabs>` rendered statically (`$/ui/static`):  the tab list built from the panes, the selected pane shown, the
  * others in the HTML but hidden (no `active`), tabs and panes related by ids.
  */
 describe("ui-tab static render", () => {

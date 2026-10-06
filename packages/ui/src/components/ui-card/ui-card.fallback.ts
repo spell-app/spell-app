@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { cardVocabulary } from "./ui-card.vocabulary.en"
 import { cardsVocabulary } from "./ui-cards.vocabulary.en"
@@ -14,17 +14,12 @@ import { CONTENT_NOUNS, FallbackVocabulary, IMAGE } from "./ui-card.types"
  *   the slot, as the element renders them;  `role=listitem` on the host inside a `<ui-cards>` parent.
  ****************/
 export class CardFallback extends NativeFallback<FallbackVocabulary> {
+  @proto static vocabularies = [cardVocabulary, cardsVocabulary]
   @proto static degraded = [
     "the group's variations on its cards (`raised cards` doesn't raise a card) and `:state(in-cards)` spacing",
     "a group through translated or slotted parents (only a direct `<ui-cards>` parent counts)",
     "shorthands yielding to slotted parts;  `aria-busy`, the loading announcement"
   ]
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = host.localName === cardsVocabulary.tag ? cardsVocabulary : cardVocabulary
-  }
 
   protected override build() {
     if (this.vocabulary === cardsVocabulary) {

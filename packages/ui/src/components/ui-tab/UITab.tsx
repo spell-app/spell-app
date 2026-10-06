@@ -66,7 +66,7 @@ export class UITab extends UIElement<TabVocabulary> {
 
   /**
    * How to show:  the owner's say, else its own attributes.
-   * - `lazy` on a server:  the owner's answer reads every pane's controller, and a static render (`$/ui/server`)
+   * - `lazy` on a server:  the owner's answer reads every pane's controller, and a static render (`$/ui/static`)
    *   builds this one before its later siblings';  a server memo computes once, so it waits for render time.
    */
   readonly state = createMemo(
@@ -130,7 +130,7 @@ export class UITab extends UIElement<TabVocabulary> {
   /**
    * Role, name and Tab stop while owned;  `ui-show` (and lazy content) each time it becomes the shown pane.
    * - Created in `mount()`:  they read the owner and overridable state.
-   * - Role, name and Tab stop are host effects:  a static render (`$/ui/server`) writes them out.
+   * - Role, name and Tab stop are host effects:  a static render (`$/ui/static`) writes them out.
    */
   private effects() {
     const { host } = this

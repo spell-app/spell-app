@@ -8,7 +8,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { FlyoutFallback } from "./ui-flyout.fallback"
 
 FallbackStub.define("x-fb-flyout", (host, root, internals) =>
-  FlyoutFallback.render(host, root, new Error("boom"), internals)
+  FlyoutFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

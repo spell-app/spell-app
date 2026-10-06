@@ -1,4 +1,5 @@
-import type { SourceController } from "./elements.types"
+import type { E } from "$/ui/core"
+// Import directly to avoid circular import
 import { UIHost } from "./UIHost"
 
 /****************
@@ -11,6 +12,8 @@ import { UIHost } from "./UIHost"
  *   rejects when it fails
  * - `save(text?)` / `reload()` -- see `SourceElement`
  * - Works before the first render:  a `content` set early is kept and shown once the controller exists.
+ * - Knows its controller only as a `SourceController` (`elements.types`):  NEVER imports `SourceElement`, which
+ *   imports it.
  * - NOTE: the fork checks host prototype members against prop names;  none of these is an attribute.  Private
  *   members too:  NEVER call one `source` or `load` (instance fields would hide the attributes' accessors).
  ****************/
@@ -19,7 +22,7 @@ export class SourceHost extends UIHost {
   private pendingContent?: string
 
   /** the current load's promise and how to settle it */
-  private current = SourceHost.deferred()
+  private currentLoad = SourceHost.deferred()
 
   /** has the current load settled? */
   private settled = false
@@ -28,33 +31,55 @@ export class SourceHost extends UIHost {
   // ## Script API
   ////////////////
 
+  /**
+   * The text shown now, edits included;  synchronous, even right after a set.
+   * - Before the controller exists:  what was set early, else `""`.
+   */
   get content(): string {
-    return this.controllerApi?.getContent() ?? this.pendingContent ?? ""
+    return this.sourceController?.content ?? this.pendingContent ?? ""
   }
 
+  /**
+   * Show `text` instead of the source's, until `source` changes or `reload()`;  `dirty` until saved, `ui-change`.
+   * - Before the controller exists:  kept, and shown once it does.
+   */
   set content(text: string) {
-    if (this.controllerApi) this.controllerApi.setContent(text)
+    if (this.sourceController) this.sourceController.setContent(text)
     else this.pendingContent = text
   }
 
+  /** Version of the last load / save (the response's `ETag`);  `undefined` before one, or when there was none. */
   get etag(): string | undefined {
-    return this.controllerApi?.getEtag()
+    return this.sourceController?.etag
   }
 
+  /** Changed since loaded / saved?  Before the controller exists:  whether `content` was set early. */
   get dirty(): boolean {
-    return this.controllerApi?.isDirty() ?? this.pendingContent !== undefined
+    return this.sourceController?.isDirty ?? this.pendingContent !== undefined
   }
 
+  /**
+   * Resolves with the content once the CURRENT load is done;  rejects when it fails.
+   * - A new `source` starts a new load, and a new promise:  read `loaded` after changing it.
+   */
   get loaded(): Promise<string> {
-    return this.current.promise
+    return this.currentLoad.promise
   }
 
+  /**
+   * Save `text` (default the content) back to `source`;  resolves `true` once saved here (`SourceElement.save()`).
+   * - Before the controller exists:  `false`, nothing saved.
+   */
   save(text?: string): Promise<boolean> {
-    return this.controllerApi?.save(text) ?? Promise.resolve(false)
+    return this.sourceController?.save(text) ?? Promise.resolve(false)
   }
 
+  /**
+   * Fetch `source` again past the cache, dropping edits;  resolves with the new content.
+   * - Before the controller exists:  `loaded`.
+   */
   reload(): Promise<string> {
-    return this.controllerApi?.reload() ?? this.current.promise
+    return this.sourceController?.reload() ?? this.currentLoad.promise
   }
 
   ////////////////
@@ -71,31 +96,32 @@ export class SourceHost extends UIHost {
   /** A new load started:  `loaded` becomes a new promise, unless the current one is still waiting. */
   beginLoad() {
     if (!this.settled) return
-    this.current = SourceHost.deferred()
+    this.currentLoad = SourceHost.deferred()
     this.settled = false
   }
 
   /** The current load is done with `text`. */
   endLoad(text: string) {
     this.settled = true
-    this.current.resolve(text)
+    this.currentLoad.resolve(text)
   }
 
   /** The current load failed with `error`. */
   failLoad(error: unknown) {
     this.settled = true
-    this.current.reject(error)
+    this.currentLoad.reject(error)
   }
 
-  /** The controller, typed. */
-  private get controllerApi(): SourceController | undefined {
-    return this.controller as unknown as SourceController | undefined
+  /** The controller, typed;  `undefined` until the fork creates it. */
+  private get sourceController(): E.SourceController | undefined {
+    return this.controller as unknown as E.SourceController | undefined
   }
 
   /**
    * A promise with its settle functions.
    * - Its rejection is pre-handled:  nobody awaiting `loaded` must not be an "unhandled rejection";  an awaiting
    *   caller still sees it.
+   * - Static:  needs no host.
    */
   private static deferred() {
     let resolve!: (text: string) => void

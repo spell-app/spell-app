@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { ServerRuntime, StaticRender } from "$/ui/server"
+import { ServerRuntime, StaticRender } from "$/ui/static"
 import { UIButton } from "$/ui/components/ui-button/UIButton"
 import { UIIcon } from "$/ui/components/ui-icon/UIIcon"
 import { UIIcons } from "$/ui/components/ui-icon/UIIcons"

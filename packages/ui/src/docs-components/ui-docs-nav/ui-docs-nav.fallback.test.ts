@@ -8,7 +8,7 @@ import { SiteData } from "$/ui/docs-components"
 import { DocsNavFallback } from "./ui-docs-nav.fallback"
 
 FallbackStub.define("x-fb-docs-nav", (host, root, internals) =>
-  DocsNavFallback.render(host, root, new Error("boom"), internals)
+  DocsNavFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** A data file with two components, as a blob URL. */

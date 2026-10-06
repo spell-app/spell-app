@@ -2,12 +2,12 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { ServerRuntime, StaticRender } from "$/ui/server"
+import { ServerRuntime, StaticRender } from "$/ui/static"
 import { UIBreadcrumb } from "$/ui/components/ui-breadcrumb/UIBreadcrumb"
 import { UIBreadcrumbSection } from "$/ui/components/ui-breadcrumb/UIBreadcrumbSection"
 
 /**
- * `<ui-breadcrumb>` / `<ui-breadcrumb-section>` in the static server render (`$/ui/server`, seo plan P3):  the class
+ * `<ui-breadcrumb>` / `<ui-breadcrumb-section>` in the static server render (`$/ui/static`, seo plan P3):  the class
  * grammar's semantic form, `<nav><ol><li><span class="divider"></span><a class="section">`.
  */
 describe("ui-breadcrumb static render", () => {

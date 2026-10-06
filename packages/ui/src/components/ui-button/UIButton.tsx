@@ -27,7 +27,7 @@ import buttonCSS from "./ui-button.css?inline"
  *   `icon-position="right"` puts the box after the text, as Fomantic's `<i class="right ... icon">`.
  * - `host.click()` (a click dispatched at the HOST, e.g. `<ui-input>`'s implicit submission) presses the inner
  *   control, as `click()` on a native button does;  the page sees only the host's click (`onHostClick`).
- * - Static server render (`$/ui/server`):  the inner `<button>` IS the submitter -- the host's `type`, `name`,
+ * - Static server render (`$/ui/static`):  the inner `<button>` IS the submitter -- the host's `type`, `name`,
  *   `value`, `form*` attributes -- so a no-JS form submits as the element would (`nativeType()`, `staticControl()`).
  ****************/
 export class UIButton extends UIElement<typeof buttonVocabulary> {
@@ -187,7 +187,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
 
   /**
    * The inner `<button>`'s `type`:  `button` in a browser, where a click submits / resets through `internals.form`
-   * (`onClick`);  the host's `type` in a server render (`$/ui/server`), where no script runs, so a static form's
+   * (`onClick`);  the host's `type` in a server render (`$/ui/static`), where no script runs, so a static form's
    * `<button type="submit">` submits it natively.
    */
   private nativeType(): "button" | "submit" | "reset" {
@@ -199,7 +199,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
    * (`FORM_ATTRIBUTES`) -- and the `STATIC_CONTROL` mark (the host's `id` and ARIA names go there, under a joined
    * label too);  `{}` in a browser, where the HOST submits (`submit()`).
    * - Also `commandfor` as written (with `command`, rendered on a server too):  a static page's invoker, for the
-   *   server's no-JS pass (`$/ui/server`) to point at its target;  a browser sets `commandForElement` instead.
+   *   server's no-JS pass (`$/ui/static`) to point at its target;  a browser sets `commandForElement` instead.
    */
   private staticControl(): Record<string, unknown> {
     if (!isServer) return {}

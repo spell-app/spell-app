@@ -9,7 +9,7 @@ import { DropdownFallback } from "./ui-dropdown.fallback"
 
 FallbackStub.define(
   "x-fb-dropdown",
-  (host, root, internals) => DropdownFallback.render(host, root, new Error("boom"), internals),
+  (host, root, internals) => DropdownFallback.render({ host, root, error: new Error("boom"), internals }),
   true
 )
 

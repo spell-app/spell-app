@@ -8,7 +8,7 @@ import { InputFallback } from "./ui-input.fallback"
 
 FallbackStub.define(
   "x-fb-input",
-  (host, root, internals) => InputFallback.render(host, root, new Error("boom"), internals),
+  (host, root, internals) => InputFallback.render({ host, root, error: new Error("boom"), internals }),
   true
 )
 

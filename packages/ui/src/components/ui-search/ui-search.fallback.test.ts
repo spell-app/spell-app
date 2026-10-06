@@ -9,7 +9,7 @@ import { SearchFallback } from "./ui-search.fallback"
 
 FallbackStub.define(
   "x-fb-search",
-  (host, root, internals) => SearchFallback.render(host, root, new Error("boom"), internals),
+  (host, root, internals) => SearchFallback.render({ host, root, error: new Error("boom"), internals }),
   true
 )
 

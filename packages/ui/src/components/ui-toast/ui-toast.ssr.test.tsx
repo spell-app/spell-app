@@ -3,11 +3,11 @@
 import { parseHTML } from "linkedom"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIToast } from "$/ui/components/ui-toast/UIToast"
 
 /**
- * `<ui-toast>` written in a page, rendered statically (`$/ui/server`):  an ordinary block with its live-region role,
+ * `<ui-toast>` written in a page, rendered statically (`$/ui/static`):  an ordinary block with its live-region role,
  * header, message and close icon.
  */
 describe("ui-toast static render", () => {

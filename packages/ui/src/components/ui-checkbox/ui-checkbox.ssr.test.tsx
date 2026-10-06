@@ -2,12 +2,12 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UICheckbox } from "$/ui/components/ui-checkbox/UICheckbox"
 import { UIRadio } from "$/ui/components/ui-checkbox/UIRadio"
 
 /**
- * `<ui-checkbox>` / `<ui-radio>` in a static server render (`$/ui/server`):  Fomantic's markup -- the native input
+ * `<ui-checkbox>` / `<ui-radio>` in a static server render (`$/ui/static`):  Fomantic's markup -- the native input
  * and its `<label for>` -- with the chosen state and form fields on the input, so a no-JS form submits it.
  */
 describe("ui-checkbox (static render)", () => {

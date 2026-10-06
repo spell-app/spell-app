@@ -12,7 +12,7 @@ const OPTIONS: MenuOption[] = [
   { value: "green", text: "Green" }
 ]
 
-const menu = new MenuOptions(OPTIONS)
+const menu = new MenuOptions({ options: OPTIONS })
 
 /** Values of `list`, for compact assertions. */
 function values(list: MenuOptions) {
@@ -142,16 +142,18 @@ describe("MenuOptions.nextEnabledIndex()", () => {
   })
 
   it("stays put when the only options ahead are disabled", () => {
-    const trailing = new MenuOptions([
-      { value: "a", text: "A" },
-      { value: "b", text: "B", disabled: true }
-    ])
+    const trailing = new MenuOptions({
+      options: [
+        { value: "a", text: "A" },
+        { value: "b", text: "B", disabled: true }
+      ]
+    })
     expect(trailing.nextEnabledIndex(0, 1)).toBe(0)
     expect(trailing.nextEnabledIndex(0, 1, { wrap: true })).toBe(0)
   })
 
   it("returns -1 when nothing is enabled", () => {
-    expect(new MenuOptions([{ value: "a", text: "A", disabled: true }]).nextEnabledIndex(-1, 1)).toBe(-1)
+    expect(new MenuOptions({ options: [{ value: "a", text: "A", disabled: true }] }).nextEnabledIndex(-1, 1)).toBe(-1)
     expect(new MenuOptions().nextEnabledIndex(-1, 1)).toBe(-1)
   })
 })
@@ -218,7 +220,7 @@ describe("MenuOptions performance", () => {
   }
 
   it("filters 5000 options per keystroke in under 50 ms", () => {
-    const big = new MenuOptions(manyOptions(5000))
+    const big = new MenuOptions({ options: manyOptions(5000) })
     // Warm-up builds the lazy search keys, as the first keystroke would.
     big.filter("a", { ignoreDiacritics: true })
     const start = performance.now()
@@ -230,7 +232,7 @@ describe("MenuOptions performance", () => {
   })
 
   it("filters 5000 cold options in under 50 ms", () => {
-    const big = new MenuOptions(manyOptions(5000))
+    const big = new MenuOptions({ options: manyOptions(5000) })
     const start = performance.now()
     const result = big.filter("delta", { ignoreDiacritics: true })
     expect(performance.now() - start).toBeLessThan(50)

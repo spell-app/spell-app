@@ -8,7 +8,9 @@ import { SidebarFallback } from "./ui-sidebar.fallback"
 
 // the fallback keys on the host's tag, so the stubs take the real tags
 for (const tag of ["ui-sidebar", "ui-pushable", "ui-pusher"]) {
-  FallbackStub.define(tag, (host, root, internals) => SidebarFallback.render(host, root, new Error("boom"), internals))
+  FallbackStub.define(tag, (host, root, internals) =>
+    SidebarFallback.render({ host, root, error: new Error("boom"), internals })
+  )
 }
 
 /** Axe without contrast:  the stub has no stylesheet. */

@@ -107,7 +107,7 @@
   /*
    * Scroller:  around the slot;  spaced by the host's position, since the table is always an only child.
    * - In the shadow root the host carries that spacing (above), so the scroller has none:  `:not([data-ui])`, a
-   *   static server render's scroller (`$/ui/server`) REPLACES the host and keeps it.
+   *   static server render's scroller (`$/ui/static`) REPLACES the host and keeps it.
    * - `--_ui-table-row-height` here too:  the scroller's scrolling heights read it (the table's alias is below it).
    */
   .scroller {

@@ -1,12 +1,13 @@
 import { onSettled, type Accessor } from "solid-js"
 import { isServer } from "@solidjs/web"
 
-// through the `core` ENTRY, see `FormElement.ts`
-import { Cell, NodeType } from "$/ui/core"
+import { E } from "$/ui/core"
+import type { F } from "$/ui/forms"
+// Not in the `forms` entry:  `ControlLabels`' own helper
+import { LabelWatch } from "./LabelWatch"
 
-import type { FormHost } from "./FormHost"
-
-/**
+/****************
+ * ### `ControlLabels`
  * The accessible name of a form control's INNER element (the `<input>` in its shadow root), from whatever names
  * its HOST.
  * - Why:  `<label for="email">` + `<ui-input id="email">` labels the host (`ElementInternals.labels`), but the
@@ -23,20 +24,22 @@ import type { FormHost } from "./FormHost"
  *   - `<label>`s added to / removed from the host's tree, and their `for` changes:  ONE observer per root node
  *     (document or shadow root), shared by every control in it (`LabelWatch`)
  *   - NOTE: `aria-labelledby` targets added later are not watched
- * - Server render (`$/ui/server`):  read ONCE, in the constructor, from the parsed page (`serverLabels()`);
+ * - Server render (`$/ui/static`):  read ONCE, in the constructor, from the parsed page (`serverLabels()`);
  *   nothing is watched.  Why:  a slider thumb, a rating's radio group, an inline calendar's group can't be named by
  *   a `<label for>` on the static page either.
  * - MUST be created under the element's owner (it creates a signal and an `onSettled`).
- */
+ * - Part of the `forms` entry:  reaches the core through the `$/ui/core` ENTRY (`E`), never its leaves, and its
+ *   `forms` peers through `F` (`forms.ts`);  `LabelWatch` directly, its own helper, in neither entry.
+ ****************/
 export class ControlLabels {
   /** Name for the inner control, `undefined` when nothing names the host;  tracked. */
   readonly name: Accessor<string | undefined>
 
   /** The host. */
-  private readonly host: FormHost
+  private readonly host: F.FormHost
 
   /** Writes `name`. */
-  private readonly cell: Cell<string | undefined>
+  private readonly cell: E.Cell<string | undefined>
 
   /** Watches the labels found last. */
   private labelObserver?: MutationObserver
@@ -44,10 +47,11 @@ export class ControlLabels {
   /** Watches the host's root node for `<label>`s coming and going. */
   private watch?: LabelWatch
 
-  constructor(host: FormHost) {
+  /** The name of `host`'s inner control;  call it under the element's owner. */
+  constructor(host: F.FormHost) {
     this.host = host
-    // a server render (`$/ui/server`) reads the page once:  nothing changes, nothing is watched
-    this.cell = new Cell<string | undefined>(isServer ? this.compute(this.serverLabels()) : undefined)
+    // a server render (`$/ui/static`) reads the page once:  nothing changes, nothing is watched
+    this.cell = new E.Cell<string | undefined>(isServer ? this.nameFor(this.serverLabels()) : undefined)
     this.name = this.cell.get
     if (isServer) return
     onSettled(() => {
@@ -64,6 +68,11 @@ export class ControlLabels {
         host.removeEventListener("focusin", refresh)
       }
     })
+  }
+
+  /** Its host's `id`:  which `<label for>`s concern it (`LabelWatch`). */
+  get id(): string {
+    return this.host.id
   }
 
   /** Re-read the name now, and re-watch the current labels and root;  call on connect. */
@@ -83,8 +92,12 @@ export class ControlLabels {
         this.labelObserver.observe(label, { childList: true, characterData: true, subtree: true })
       }
     }
-    this.cell.set(this.compute(labels))
+    this.cell.set(this.nameFor(labels))
   }
+
+  ////////////////
+  // ## Reading the name
+  ////////////////
 
   /**
    * The `<label>`s naming the host, in document order.
@@ -97,9 +110,8 @@ export class ControlLabels {
     const found = new Set(host.labels as NodeListOf<HTMLLabelElement>)
     if (host.id && host.isConnected) {
       const root = host.getRootNode() as Document | ShadowRoot
-      for (const label of root.querySelectorAll<HTMLLabelElement>(`label[for="${CSS.escape(host.id)}"]`)) {
-        found.add(label)
-      }
+      const selector = `${E.LABEL_TAG}[${E.FOR_ATTRIBUTE}="${CSS.escape(host.id)}"]`
+      for (const label of root.querySelectorAll<HTMLLabelElement>(selector)) found.add(label)
     }
     return [...found]
       .filter((label) => label.control === host)
@@ -115,18 +127,20 @@ export class ControlLabels {
   private serverLabels(): HTMLLabelElement[] {
     const { host } = this
     const found = new Set<HTMLLabelElement>()
-    const wrapping = host.parentElement?.closest<HTMLLabelElement>(LABEL)
-    if (wrapping && (!wrapping.hasAttribute(FOR) || wrapping.getAttribute(FOR) === host.id)) found.add(wrapping)
+    const wrapping = host.parentElement?.closest<HTMLLabelElement>(E.LABEL_TAG)
+    const wrappingFor = wrapping?.getAttribute(E.FOR_ATTRIBUTE)
+    if (wrapping && (wrappingFor === null || wrappingFor === host.id)) found.add(wrapping)
     if (host.id) {
       const root = host.getRootNode() as Document | ShadowRoot
       const id = host.id.replace(/["\\]/g, "\\$&")
-      for (const label of root.querySelectorAll?.<HTMLLabelElement>(`${LABEL}[${FOR}="${id}"]`) ?? []) found.add(label)
+      const selector = `${E.LABEL_TAG}[${E.FOR_ATTRIBUTE}="${id}"]`
+      for (const label of root.querySelectorAll?.<HTMLLabelElement>(selector) ?? []) found.add(label)
     }
     return [...found]
   }
 
-  /** The name from the host's attributes, else `labels`. */
-  private compute(labels: readonly HTMLLabelElement[]): string | undefined {
+  /** The name from the host's attributes, else from `labels`. */
+  private nameFor(labels: readonly HTMLLabelElement[]): string | undefined {
     const { host } = this
     const own = host.getAttribute(ARIA_LABEL)?.trim()
     if (own) return own
@@ -141,127 +155,29 @@ export class ControlLabels {
       if (text) return text
     }
     const text = labels
-      .map((label) => this.textOf(label))
+      .map((label) => this.labelTextFor(label))
       .filter(Boolean)
       .join(" ")
     return text || undefined
   }
 
-  /** Its host's `id`:  which `<label for>`s concern it. */
-  get id(): string {
-    return this.host.id
-  }
-
-  /** Text of `label`, minus anything inside the host. */
-  private textOf(label: HTMLLabelElement): string {
-    return this.textIn(label).replace(/\s+/g, " ").trim()
+  /** Text of `label`, minus anything inside the host, whitespace collapsed. */
+  private labelTextFor(label: HTMLLabelElement): string {
+    return this.textFor(label).replace(/\s+/g, " ").trim()
   }
 
   /**
    * Text nodes' text under `node`, in order, skipping the host's subtree.
    * - A walk over `childNodes`, not a `TreeWalker`:  a server render's linkedom document has none.
    */
-  private textIn(node: Node): string {
+  private textFor(node: Node): string {
     if (node === this.host) return ""
-    if (node.nodeType === NodeType.text) return node.textContent ?? ""
+    if (node.nodeType === E.NodeType.text) return node.textContent ?? ""
     let text = ""
-    for (const child of node.childNodes) text += this.textIn(child)
+    for (const child of node.childNodes) text += this.textFor(child)
     return text
   }
 }
-
-/****************
- * ### `LabelWatch`
- * One `MutationObserver` per root node (document or shadow root), shared by the `ControlLabels` in it:  refreshes
- * the controls a `<label>` added, removed or re-pointed (`for`) there may name.
- * - Cheap by scope:  exists only while a control is connected in that root;  a batch without a `<label>` in it
- *   costs one pass over its records.
- * - Targeted:  a label with `for` refreshes the controls with that id (old and new `for`);  one without (a wrapping
- *   label) refreshes every control in the root.
- ****************/
-class LabelWatch {
-  /** Watches by root node. */
-  private static readonly watches = new WeakMap<Node, LabelWatch>()
-
-  /** Controls in this root. */
-  private readonly members = new Set<ControlLabels>()
-
-  /** The observer, while there are members. */
-  private observer?: MutationObserver
-
-  /** The root node watched. */
-  private readonly root: Node
-
-  constructor(root: Node) {
-    this.root = root
-  }
-
-  /** The watch for `root`, created on first use. */
-  static of(root: Node): LabelWatch {
-    let watch = LabelWatch.watches.get(root)
-    if (!watch) LabelWatch.watches.set(root, (watch = new LabelWatch(root)))
-    return watch
-  }
-
-  /** Start refreshing `member`;  observes from the first one. */
-  add(member: ControlLabels) {
-    this.members.add(member)
-    if (this.observer) return
-    this.observer = new MutationObserver((records) => this.changed(records))
-    this.observer.observe(this.root, {
-      childList: true,
-      subtree: true,
-      attributeFilter: [FOR],
-      attributeOldValue: true
-    })
-  }
-
-  /** Stop refreshing `member`;  stops observing after the last one. */
-  remove(member: ControlLabels) {
-    this.members.delete(member)
-    if (this.members.size) return
-    this.observer?.disconnect()
-    this.observer = undefined
-  }
-
-  /** Refresh the members `records` may concern. */
-  private changed(records: MutationRecord[]) {
-    const ids = new Set<string>()
-    let all = false
-    for (const record of records) {
-      if (record.type === "attributes") {
-        if (!isLabel(record.target)) continue
-        if (record.oldValue) ids.add(record.oldValue)
-        ids.add((record.target as HTMLLabelElement).htmlFor)
-        continue
-      }
-      for (const nodes of [record.addedNodes, record.removedNodes]) {
-        for (const node of nodes) {
-          if (node.nodeType !== NodeType.element) continue
-          const element = node as Element
-          const labels = isLabel(element) ? [element] : element.getElementsByTagName(LABEL)
-          for (const label of labels as Iterable<HTMLLabelElement>) {
-            if (label.htmlFor) ids.add(label.htmlFor)
-            else all = true
-          }
-        }
-      }
-    }
-    if (!all && !ids.size) return
-    for (const member of [...this.members]) if (all || ids.has(member.id)) member.refresh()
-  }
-}
-
-/** Is `node` a `<label>`? */
-function isLabel(node: Node): node is HTMLLabelElement {
-  return (node as Element).localName === LABEL
-}
-
-/** Label tag. */
-const LABEL = "label"
-
-/** Label attribute naming its control by id. */
-const FOR = "for"
 
 /** Host attribute with an explicit name. */
 const ARIA_LABEL = "aria-label"
@@ -272,5 +188,5 @@ const ARIA_LABELLEDBY = "aria-labelledby"
 /** Host attributes that change the name (`id` changes which `<label for>`s match). */
 const WATCHED_ATTRIBUTES = [ARIA_LABEL, ARIA_LABELLEDBY, "id"]
 
-/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global. */
+/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global (a server render has none). */
 const DOCUMENT_POSITION_FOLLOWING = 4

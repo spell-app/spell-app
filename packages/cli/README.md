@@ -147,11 +147,11 @@ Every command takes one or more targets:
 
 ### `static`
 
-- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `epics/seo/seo.plan.html`)
+- Renders through `@spell-app/ui`'s static server render (`$/ui/static`, plan doc `epics/seo/seo.plan.html`)
   in a child process, `src/runner/renderStatic.ts`, on an SSR-only Vite server (`ui/tools/StaticRenderer.ts`):  `ui`'s
   Solid JSX must compile for the server, which `tsx` can't.  Each run starts Vite and compiles every family, so a page
   takes about 3 seconds;  several pages share one run.
-- Renders the families in `StaticCatalog` (`ui/src/server/`);  any other `ui-*` tag (`ui-code`, `ui-markdown` ...)
+- Renders the families in `StaticCatalog` (`ui/src/static/`);  any other `ui-*` tag (`ui-code`, `ui-markdown` ...)
   stays as it is, and is listed on stderr.
 - Removes a `<script>` (or `<link rel="modulepreload">`) whose `src` or text names `@spell-app/ui`, `$/ui`, `ui`'s
   `src/` / `dist/`, a family folder, or the docs' `spell-ui.js` bundle:  the elements must not load on a static page,

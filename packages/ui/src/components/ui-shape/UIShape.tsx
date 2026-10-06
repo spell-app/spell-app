@@ -92,7 +92,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   ////////////////
 
   render(): JSX.Element {
-    // a host effect:  a static render (`$/ui/server`) marks the sides once, before they render
+    // a host effect:  a static render (`$/ui/static`) marks the sides once, before they render
     this.hostEffect(
       () => this.sides.get(),
       (sides) => {
@@ -118,7 +118,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   }
 
   /**
-   * A `text` shape in a server render (`$/ui/server`):  its static output is PHRASING content (`<span>`s, as the
+   * A `text` shape in a server render (`$/ui/static`):  its static output is PHRASING content (`<span>`s, as the
    * class grammar's), since the host it replaces sits in running text -- a `<div>` would close an open `<p>` when a
    * browser parses the page.  Its sides follow (`UISide`).
    */

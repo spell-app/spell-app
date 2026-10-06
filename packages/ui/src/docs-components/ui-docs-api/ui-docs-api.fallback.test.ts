@@ -8,7 +8,7 @@ import { SiteData, type SiteDataFile } from "$/ui/docs-components"
 import { DocsApiFallback } from "./ui-docs-api.fallback"
 
 FallbackStub.define("x-fb-docs-api", (host, root, internals) =>
-  DocsApiFallback.render(host, root, new Error("boom"), internals)
+  DocsApiFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Two tags of one family. */

@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { LoaderFallback } from "./ui-loader.fallback"
 
 FallbackStub.define("x-fb-loader", (host, root, internals) =>
-  LoaderFallback.render(host, root, new Error("boom"), internals)
+  LoaderFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { MessageFallback } from "./ui-message.fallback"
 
 FallbackStub.define("x-fb-message", (host, root, internals) =>
-  MessageFallback.render(host, root, new Error("boom"), internals)
+  MessageFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

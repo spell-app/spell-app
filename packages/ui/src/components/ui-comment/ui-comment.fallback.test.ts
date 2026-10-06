@@ -8,10 +8,10 @@ import { CommentFallback } from "./ui-comment.fallback"
 
 // the fallback keys on the host's and its parent's tags, so the stubs take the real tags
 FallbackStub.define("ui-comments", (host, root, internals) =>
-  CommentFallback.render(host, root, new Error("boom"), internals)
+  CommentFallback.render({ host, root, error: new Error("boom"), internals })
 )
 FallbackStub.define("ui-comment", (host, root, internals) =>
-  CommentFallback.render(host, root, new Error("boom"), internals)
+  CommentFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

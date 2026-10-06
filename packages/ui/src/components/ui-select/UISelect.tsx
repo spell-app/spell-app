@@ -276,7 +276,7 @@ export class UISelect extends FormElement<SelectVocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/server`):  the select's `name`, so it submits without JS;  `{}` in a browser, where
+   * Server render only (`$/ui/static`):  the select's `name`, so it submits without JS;  `{}` in a browser, where
    * the HOST submits (`ElementInternals`).
    */
   private staticSelect(): Record<string, unknown> {

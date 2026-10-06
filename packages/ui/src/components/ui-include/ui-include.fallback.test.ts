@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { IncludeFallback } from "./ui-include.fallback"
 
 FallbackStub.define("x-fb-include", (host, root, internals) =>
-  IncludeFallback.render(host, root, new Error("boom"), internals)
+  IncludeFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

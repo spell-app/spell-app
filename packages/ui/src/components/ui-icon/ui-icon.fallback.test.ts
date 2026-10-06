@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { IconFallback } from "./ui-icon.fallback"
 
 FallbackStub.define("x-fb-icon", (host, root, internals) =>
-  IconFallback.render(host, root, new Error("boom"), internals)
+  IconFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("IconFallback", () => {

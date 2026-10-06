@@ -2,10 +2,10 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIMessage } from "$/ui/components/ui-message/UIMessage"
 
-/** `<ui-message>` in the static server render (`$/ui/server`, seo plan P3). */
+/** `<ui-message>` in the static server render (`$/ui/static`, seo plan P3). */
 describe("ui-message static render", () => {
   beforeAll(() => {
     StaticRender.define(UIMessage)

@@ -9,7 +9,7 @@ import { SelectFallback } from "./ui-select.fallback"
 
 FallbackStub.define(
   "x-fb-select",
-  (host, root, internals) => SelectFallback.render(host, root, new Error("boom"), internals),
+  (host, root, internals) => SelectFallback.render({ host, root, error: new Error("boom"), internals }),
   true
 )
 

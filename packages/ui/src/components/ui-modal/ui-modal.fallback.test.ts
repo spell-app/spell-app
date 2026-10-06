@@ -8,7 +8,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { ModalFallback } from "./ui-modal.fallback"
 
 FallbackStub.define("x-fb-modal", (host, root, internals) =>
-  ModalFallback.render(host, root, new Error("boom"), internals)
+  ModalFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

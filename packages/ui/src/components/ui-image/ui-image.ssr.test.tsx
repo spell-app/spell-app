@@ -2,11 +2,11 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIImage } from "$/ui/components/ui-image/UIImage"
 import { UIImages } from "$/ui/components/ui-image/UIImages"
 
-/** `<ui-image>` / `<ui-images>` in the static server render (`$/ui/server`, seo plan P3). */
+/** `<ui-image>` / `<ui-images>` in the static server render (`$/ui/static`, seo plan P3). */
 describe("ui-image static render", () => {
   beforeAll(() => {
     StaticRender.define(UIImage, UIImages)

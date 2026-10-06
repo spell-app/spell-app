@@ -98,7 +98,7 @@ export class UICalendar extends FormElement<Vocabulary> {
   /**
    * Load `Temporal` before a static server render, so its pickers render in full (header, grid, cells):  the render
    * is synchronous, and node has no `Temporal`, so `UI.i18n` loads `temporal-polyfill` (`loadTemporal()`).
-   * - Called by `StaticRender.prepare(html)` (`$/ui/server`) for a page with this tag;  NEVER in a browser, where
+   * - Called by `StaticRender.prepare(html)` (`$/ui/static`) for a page with this tag;  NEVER in a browser, where
    *   the constructor loads it after first paint, as before.
    * - NOTE: "today" (highlight, starting page) is then the RENDER's day.
    */
@@ -371,7 +371,7 @@ export class UICalendar extends FormElement<Vocabulary> {
     )
   }
 
-  /** Server render only (`$/ui/server`):  the field's `STATIC_CONTROL` mark;  `{}` in a browser. */
+  /** Server render only (`$/ui/static`):  the field's `STATIC_CONTROL` mark;  `{}` in a browser. */
   private staticControl(): Record<string, unknown> {
     return isServer ? { [UIT.STATIC_CONTROL]: "" } : {}
   }

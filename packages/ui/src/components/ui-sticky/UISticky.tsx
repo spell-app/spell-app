@@ -52,8 +52,8 @@ export class UISticky extends UIElement<StickyVocabulary> {
   // ## State
   ////////////////
 
-  /** Edge it's stuck to, or `null`. */
-  readonly edge = new Cell<UIT.StickyEdge | null>(null)
+  /** Edge it's stuck to;  `undefined` when not stuck. */
+  readonly edge = new Cell<UIT.StickyEdge | undefined>(undefined)
 
   /** Pushed out by the end of its container. */
   readonly bound = new Cell(false)
@@ -75,7 +75,7 @@ export class UISticky extends UIElement<StickyVocabulary> {
   ////////////////
 
   protected hostStates() {
-    return { stuck: this.edge.get() !== null, bound: this.bound.get() }
+    return { stuck: this.edge.get() !== undefined, bound: this.bound.get() }
   }
 
   ////////////////
@@ -106,7 +106,7 @@ export class UISticky extends UIElement<StickyVocabulary> {
         <slot />
       </div>
     )
-    // a server render (`$/ui/server`):  the box alone, the root;  CSS sticks it, nothing observes
+    // a server render (`$/ui/static`):  the box alone, the root;  CSS sticks it, nothing observes
     if (isServer) return box
     return (
       <>
@@ -146,8 +146,8 @@ export class UISticky extends UIElement<StickyVocabulary> {
   }
 
   /** Publish `edge` / `bound`, firing `ui-unstick` then `ui-stick` on a change. */
-  private report({ edge, bound, previous }: StickyWatchState) {
-    this.bound.set(bound)
+  private report({ edge, isBound, previous }: StickyWatchState) {
+    this.bound.set(isBound)
     if (edge === previous) return
     this.edge.set(edge)
     if (previous) {

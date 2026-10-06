@@ -2,10 +2,10 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UITransition } from "$/ui/components/ui-transition/UITransition"
 
-/** `<ui-transition>` in the static server render (`$/ui/server`, seo plan P3):  first paint, no animation. */
+/** `<ui-transition>` in the static server render (`$/ui/static`, seo plan P3):  first paint, no animation. */
 describe("ui-transition static render", () => {
   beforeAll(() => {
     StaticRender.define(UITransition)

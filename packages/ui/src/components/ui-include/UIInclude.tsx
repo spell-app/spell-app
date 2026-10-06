@@ -126,9 +126,11 @@ export class UIInclude extends SourceElement<Vocabulary> {
   private insert(text: string, select: string | undefined, light: boolean) {
     const target = light ? this.host : this.box
     if (!target) return
-    const markup = this.parse(text, select)
-    if (markup instanceof SourceError) {
-      this.loadFailed(markup, "render")
+    let markup: DocumentFragment
+    try {
+      markup = this.parse(text, select)
+    } catch (error) {
+      this.loadFailed(error, "render")
       return
     }
     if (this.root && this.root !== target) this.root.replaceChildren()
@@ -142,8 +144,11 @@ export class UIInclude extends SourceElement<Vocabulary> {
     UIInclude.loadFamilies(target)
   }
 
-  /** `text` as a fragment of this document:  `<body>`'s content or the `select` match, URLs rewritten. */
-  private parse(text: string, select: string | undefined): DocumentFragment | SourceError {
+  /**
+   * `text` as a fragment of this document:  `<body>`'s content or the `select` match, URLs rewritten.
+   * - Throws a `render` `SourceError` for a selector that's invalid or matches nothing.
+   */
+  private parse(text: string, select: string | undefined): DocumentFragment {
     return SourceMarkup.parse(text, { page: this.host.ownerDocument, source: this.sourceAttribute(), select })
   }
 
@@ -165,8 +170,8 @@ export class UIInclude extends SourceElement<Vocabulary> {
    * The FILE as it should be saved:  the text as loaded while the markup is untouched (or not yet rebuilt from a new
    * `content`);  else the live markup -- the `select`ed element alone, or spliced into the file's `<body>`.
    */
-  getContent(): string {
-    const text = super.getContent()
+  get content(): string {
+    const text = super.content
     if (text !== this.insertedFrom) return text
     const live = this.liveMarkup()
     if (live === undefined || live === this.insertedMarkup) return this.selected ? (this.insertedMarkup ?? text) : text
@@ -177,13 +182,17 @@ export class UIInclude extends SourceElement<Vocabulary> {
   protected saveFragment(): string | undefined {
     if (!this.attrs.select) return undefined
     const id = this.selected?.id
-    if (!id) throw new SourceError("save", `Can't save "${this.attrs.select}":  it has no id`)
+    if (!id) {
+      throw new SourceError(`UIInclude.save():  "${this.attrs.select}" matched an element with no id;  give it one`, {
+        cause: { kind: "save" }
+      })
+    }
     return id
   }
 
   /** A cycle (inside an include of the same file) or nesting deeper than `MAX_DEPTH`. */
-  protected refuseSource(source: string): SourceError | undefined {
-    return SourceMarkup.refusal(this.host, source, (node) => node.localName === this.host.localName)
+  protected checkSource(source: string) {
+    SourceMarkup.checkNesting(this.host, source, (node) => node.localName === this.host.localName)
   }
 
   ////////////////

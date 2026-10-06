@@ -46,7 +46,11 @@ export class MarkdownEngine {
       }
     })
     const html = marked.parse(text, { async: false })
-    if (typeof html !== "string") throw new SourceError("render", "marked rendered asynchronously")
+    if (typeof html !== "string") {
+      throw new SourceError("MarkdownEngine.render():  marked rendered asynchronously;  drop its async extensions", {
+        cause: { kind: "render" }
+      })
+    }
     return { html, headings }
   }
 

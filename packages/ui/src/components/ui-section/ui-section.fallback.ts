@@ -215,7 +215,7 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
    * - The group's `collapsing` is read by its English name, as every fallback reads attributes.
    */
   private static inCollapsing(host: Element): boolean {
-    const match = PartContext.ownerOf(host, sectionVocabulary.noun, PartContext.noBarrier)
+    const match = PartContext.ownerFor(host, sectionVocabulary.noun, PartContext.noBarrier)
     if (!match) return false
     if (match.ownerNoun !== sectionsVocabulary.noun) return SectionFallback.inCollapsing(match.owner)
     const [collapsing] = sectionsVocabulary.attributes

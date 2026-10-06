@@ -386,7 +386,7 @@
   }
 
   /*
-   * Static markup whose box IS the popover (a server render's, `$/ui/server`):  hidden until open, as the host is.
+   * Static markup whose box IS the popover (a server render's, `$/ui/static`):  hidden until open, as the host is.
    * Never matches inside the element's shadow root, where the HOST carries `popover`.
    */
   .ui.popup[popover]:not(:popover-open) {

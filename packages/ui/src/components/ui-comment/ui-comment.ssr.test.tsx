@@ -2,7 +2,7 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIComment } from "$/ui/components/ui-comment/UIComment"
 import { UIComments } from "$/ui/components/ui-comment/UIComments"
 import { UIAuthor } from "$/ui/components/ui-parts/UIAuthor"
@@ -10,7 +10,7 @@ import { UIContent } from "$/ui/components/ui-parts/UIContent"
 import { UIDescription } from "$/ui/components/ui-parts/UIDescription"
 
 /**
- * `<ui-comments>` in the static server render (`$/ui/server`):  `<article>` comments in a `ui comments` box, a nested
+ * `<ui-comments>` in the static server render (`$/ui/static`):  `<article>` comments in a `ui comments` box, a nested
  * `<ui-comments>` as the thread (`comments`, no `ui`), the `reply` slot in its own box.
  */
 describe("ui-comment, static", () => {

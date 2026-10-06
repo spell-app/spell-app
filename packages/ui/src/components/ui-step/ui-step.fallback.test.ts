@@ -8,7 +8,9 @@ import { StepFallback } from "./ui-step.fallback"
 
 // the fallback keys its vocabulary on the host's tag, so the stubs take the real tags
 for (const tag of ["ui-steps", "ui-step"]) {
-  FallbackStub.define(tag, (host, root, internals) => StepFallback.render(host, root, new Error("boom"), internals))
+  FallbackStub.define(tag, (host, root, internals) =>
+    StepFallback.render({ host, root, error: new Error("boom"), internals })
+  )
 }
 
 describe("StepFallback", () => {

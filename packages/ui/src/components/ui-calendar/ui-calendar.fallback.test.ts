@@ -8,7 +8,7 @@ import { CalendarFallback } from "./ui-calendar.fallback"
 
 FallbackStub.define(
   "x-fb-calendar",
-  (host, root, internals) => CalendarFallback.render(host, root, new Error("boom"), internals),
+  (host, root, internals) => CalendarFallback.render({ host, root, error: new Error("boom"), internals }),
   true
 )
 

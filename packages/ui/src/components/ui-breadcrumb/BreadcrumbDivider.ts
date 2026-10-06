@@ -22,7 +22,7 @@ export class BreadcrumbDivider {
   }
 
   /**
-   * The same from an icon's SVG MARKUP, for a static server render (`$/ui/server`:  no DOM to clone or serialize).
+   * The same from an icon's SVG MARKUP, for a static server render (`$/ui/static`:  no DOM to clone or serialize).
    * - Adds the SVG namespace when the markup lacks it.
    */
   static markupUrl(markup: string): string {

@@ -6,7 +6,9 @@ import { SourceError } from "$/ui/runtime/runtime.types"
 import highlighter from "./spell.en.bundle.js"
 
 if (typeof highlighter?.highlight !== "function") {
-  throw new SourceError("render", "spell.en.bundle.js has no highlight():  run `yarn gen:spell`")
+  throw new SourceError("spell.en.ts:  spell.en.bundle.js has no highlight();  run `yarn gen:spell`", {
+    cause: { kind: "render" }
+  })
 }
 
 export default highlighter

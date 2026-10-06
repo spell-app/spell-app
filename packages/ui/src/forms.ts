@@ -6,9 +6,10 @@
  *   host's `<label>`s as the inner control's name).
  * - Imported by `dropdown`, `input`, `checkbox` and `form`.  `ui-button` is form-associated too (submit / reset), but through the fork's
  *   `formAssociated` option alone:  it needs no value, validity or form API, so it stays on `core`.
- * - NOTE: `$/ui/elements` leaves directly, for the reason given in `core.ts`;  and `FormHost` / `FormElement` import
- *   the element core through the `$/ui/core` ENTRY, never its leaves, or Rolldown hoists what `core` and `forms`
- *   share into a third, hashed chunk.
+ * - NOTE: `$/ui/elements` leaves directly, for the reason given in `core.ts`;  and every `forms` file imports the
+ *   element core through the `$/ui/core` ENTRY (`E`), never its leaves, or Rolldown hoists what `core` and `forms`
+ *   share into a third, hashed chunk.  They reach each other through `F`, except what a class definition reads
+ *   (`FormElement`'s `FormHost`, `Validator`):  directly (WWOD §4 › "Circular imports").
  */
 
 export * from "$/ui/elements/Validator"

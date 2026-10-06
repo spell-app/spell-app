@@ -8,7 +8,7 @@ import { EmojiFallback } from "./ui-emoji.fallback"
 import { EmojiData } from "./EmojiData"
 
 FallbackStub.define("x-fb-emoji", (host, root, internals) =>
-  EmojiFallback.render(host, root, new Error("boom"), internals)
+  EmojiFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("EmojiFallback", () => {

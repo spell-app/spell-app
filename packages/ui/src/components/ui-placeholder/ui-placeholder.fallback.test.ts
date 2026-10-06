@@ -9,7 +9,7 @@ import { PlaceholderFallback } from "./ui-placeholder.fallback"
 // the fallback keys its vocabulary on the host's tag, so the stubs take the real tags
 for (const tag of ["ui-placeholder", "ui-placeholder-header", "ui-placeholder-line", "ui-placeholder-image"]) {
   FallbackStub.define(tag, (host, root, internals) =>
-    PlaceholderFallback.render(host, root, new Error("boom"), internals)
+    PlaceholderFallback.render({ host, root, error: new Error("boom"), internals })
   )
 }
 

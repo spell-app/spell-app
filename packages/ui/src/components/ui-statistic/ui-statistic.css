@@ -173,7 +173,7 @@
     /*
      * Shadow DOM:  the root is always an only child, so the class-grammar `:first-child` / `:last-child` above
      * always match there;  the HOST's position decides instead:  the full margin back, then the edges it loses.
-     * - `:not([data-ui])`:  a static server render's root (`$/ui/server`) is a real child, which the rules above
+     * - `:not([data-ui])`:  a static server render's root (`$/ui/static`) is a real child, which the rules above
      *   already space as class grammar.
      */
     :host(:not(:nth-child(n + 2 of :state(statistic)))) > .ui.statistic:not([data-ui]) {

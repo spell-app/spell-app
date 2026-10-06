@@ -62,8 +62,8 @@ house style every package shares.  Only what's local is below;  a section named 
         (`<ui-root>`'s catalog of tag => family;  `test/root-catalog.test.ts` fails while it's stale) and `yarn site:data`
         (the docs site's data;  `tools/SiteDataBuilder.test.ts` fails while it's stale).  Live:  `UIButton.describe()`
     - `ui-<name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces (nothing top-level
-      stays loose in an element / fallback / helper file);  a helper function becomes a private static on the one class
-      that uses it, else a static on a small class here.  Constants used by SEVERAL folders live in
+      stays loose in an element / fallback / helper file, but a constant only its class uses:  "Classes");  a
+      helper function becomes a private static on the one class that uses it, else a static on a small class here.  Constants used by SEVERAL folders live in
       `src/components/components.types.ts` and are used as `UIT.<NAME>` from `$/ui/core`.  NOTE:  a types file imports its
       vocabularies with `import type` only (vocabularies import values from it:  a value import is a cycle);
       `ui-parts.types.ts` is the exception
@@ -87,11 +87,16 @@ house style every package shares.  Only what's local is below;  a section named 
     its shadow root imports their families in its barrel, and adds their tags to `DocsJSXTags`.  They read the site's
     data through `SiteData` (`site/_data/components.json`), NEVER the vocabularies.  The barrel's header says how to
     add one
-  - `src/server/` (`$/ui/server`, `SSR`) -- the STATIC server render:  `StaticRender.page()` / `fragment()` turn
+  - `src/static/` (`$/ui/static`, `SSR`) -- the STATIC server render:  `StaticRender.page()` / `fragment()` turn
     `ui-*` markup into plain light-DOM HTML (no shadow DOM, no JS) in node, for SEO.  Stand-in hosts are linkedom
     elements (`ServerHost`), controllers render with `renderToString`, `StaticFlattener` swaps each host for its
     root, `StaticInteractions` wires what works without JS.  Node only:  NEVER imported by a component or `$/ui`.
     Plan:  `epics/seo/seo.plan.html`
+    - Server code, so every file is `<Name>.server.ts` (`static.types.server.ts`;  tests `<Name>.server.ssr.test.ts`,
+      in the `ssr` project) except the barrel, `index.ts` (WWOD §10 › "Server code stays out of the browser bundle")
+    - Its files import each other through `SSR` (`import { SSR } from "$/ui/static"`) and the element core through
+      `$/ui/core`;  a mark a static initializer reads comes from `./static.types.server` directly (WWOD §4 ›
+      "Circular imports";  `barrel.ssr.test.ts`)
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
     (`FormElement`, `FormHost`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
@@ -164,7 +169,7 @@ house style every package shares.  Only what's local is below;  a section named 
       markup, tokens, an example) is handed back
     - a change that alters rendering MUST update its baselines in the SAME change (`--update`), after reviewing
       every diff in the HTML report;  never update to silence a diff you haven't looked at
-    - `--static` -- instead, compare the STATIC server render (`$/ui/server`) of the families in
+    - `--static` -- instead, compare the STATIC server render (`$/ui/static`) of the families in
       `tools/visual/StaticFamilies.ts` with the elements;  report only (`tools/results/visual/static-parity.md`),
       `--os local` by default
   - `yarn dev` -- `tools/demo/`:  every example as class grammar beside elements;  edits hot-reload
@@ -277,13 +282,25 @@ As WWOD §18, plus:
   vocabulary, fallback, helpers and sheet as peers (`./ui-button.vocabulary.en`, `./ui-button.css?inline`).  Why:  the
   lib build puts everything `$/ui/core` re-exports into `dist/core.js`;  a leaf imported by a family AND by `core`
   splits into a hashed third chunk.  For the same reason `core.ts` / `forms.ts` re-export `$/ui/elements` LEAVES, and
-  `FormHost` / `FormElement` import the core through `$/ui/core` (`yarn measure`'s checks catch a violation).
+  every `forms` file imports the core through `$/ui/core` (`yarn measure`'s checks catch a violation).
   - Through namespaces, WWOD §4 › "ONE namespace per sub-system":  `import { E, UI, UIT } from "$/ui/core"` (+
     `import { F } from "$/ui/forms"`), then `E.UIElement`, `@E.proto`, `UI.browser`, `UIT.ARIA_LABEL`, `F.FormElement`
     ("Types / Exports").  NEVER a bare shared name.  Measured (epic `wwod-spell-ui`, Q4):  family chunks come out
     byte-for-byte the same (Rolldown turns `E.Cell` back into a plain import);  `core` pays ~0.8 kB gzipped for the
     `E` object.
-  - TODO (epic `wwod-spell-ui`, P2-P7):  `E` / `F` don't exist yet;  each phase moves its slice over.
+  - The element core (`src/elements/`) too, though `core.ts` / `forms.ts` re-export its own files:  `import { E, UI,
+    UIT } from "$/ui/core"` (the `forms` files also `import { F } from "$/ui/forms"`), `E.Cell`, `E.Warnings`,
+    `E.flatParentFor()`, never named imports from `./elements.types`, `./Cell`, `$/ui/util`, `$/ui/runtime` ...
+    EXCEPT what a module reads while it EVALUATES -- the base class in `extends`, a decorator (`@proto`), a static
+    initializer (`static readonly generation = new Cell(0)`) -- which is a direct import from its file, under
+    `// Import directly to avoid circular import` (WWOD §4 › "Circular imports").  Instance fields, method bodies
+    and types go through `E`.  `elements.types.ts` stays `import type` only (`import type { E }`).
+    - The `forms` files are the exception's exception:  `extends E.UIElement` / `@E.proto` are fine there, since the
+      core never imports `forms` and has always finished loading first;  a `forms` peer a class definition reads
+      (`FormElement`'s `FormHost`, `Validator`) is still direct.
+    - `src/elements/barrel.test.ts` checks every export of both entries is live;  NEVER import an element-core leaf by
+      path (`$/ui/elements/UIElement`):  entering the cycle there breaks it.
+  - TODO (epic `wwod-spell-ui`, P5-P7):  component files move to `E` / `F` phase by phase.
 - **Eager memos and overridables:**  base-class memos that call overridable methods take `{ lazy: true }`;
   effects that call overridables are created in `mount()`, after every subclass field exists.
 - **`Cell` field order:**  class fields initialize in declaration order, before the subclass constructor body.
@@ -321,7 +338,7 @@ As WWOD §18, plus:
 - **One Solid per page:**  every Vite config dedupes `solid-js` / `@solidjs/web` (`SOLID_DEDUPE`);  NEVER
   `import * as` a Solid package in shipped code (it pins every export into bundles and vendored copies).
 - SSR:  anything that reads the DOM in a constructor needs an `isServer` guard (`test/ssr.ssr.test.tsx`).
-  - Static render (`$/ui/server`):  as WWOD §12 › "Brand checks only where `instanceof` can't work", plus:  hosts
+  - Static render (`$/ui/static`):  as WWOD §12 › "Brand checks only where `instanceof` can't work", plus:  hosts
     are linkedom elements, so NEVER `instanceof Element` / `Node` / `ShadowRoot` / `HTMLSlotElement` in shared code
     (node has no such globals):  `nodeType`, `localName`.
   - An effect whose APPLY writes the host (`internals.role`, ARIA, states) is `this.hostEffect(compute, apply)`:  the
@@ -340,16 +357,15 @@ As WWOD §12, plus:
 
 As WWOD §8, plus our self-namespaces (one per lib entry, since each entry is its own bundle):
 
-- `E` ~== `$/ui/core`:  the element core and the foundation (`E.UIElement`, `E.proto`, `E.Cell`, `E.Converters`).
-  TODO (epic `wwod-spell-ui`, P2):  today `E` is `$/ui/elements`, from the `api` entry only
-- `F` ~== `$/ui/forms`:  what only form controls need (`F.FormElement`, `F.MenuOptions`).  TODO (P2)
+- `E` ~== `$/ui/core`:  the element core and the foundation (`E.UIElement`, `E.proto`, `E.Cell`, `E.Converters`)
+- `F` ~== `$/ui/forms`:  what only form controls need (`F.FormElement`, `F.MenuOptions`)
 - `UI` ~== the runtime singleton from `$/ui/runtime`:  an instance, read like an app singleton, never through `E`
 - `UIT` ~== `$/ui/components/components.types` -- the constants, types and `ToggleCommands` several families share:
   `UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
   never flat, never through `E`
 - `V` ~== `$/ui/vocabulary`, namespaced through `vocabulary.api.ts` from the `api` entry only (why:  that file's
   header)
-- `SSR` ~== `$/ui/server` (node only)
+- `SSR` ~== `$/ui/static` (node only)
 - the components barrel exports classes by name (`UIButton`, `UIDropdown`), no namespace
 
 ## Imports
@@ -359,6 +375,8 @@ wins), plus these deliberate EXCEPTIONS:
 
 - Component files import shared code from `$/ui/core` / `$/ui/forms` only, as `E` / `F` / `UI` / `UIT` ("Solid
   authoring").  Folder peers stay direct imports (`./ui-button.types`), one statement per module.
+- The element core (`src/elements/`) imports itself the same way, through `E` / `F`, NOT its peers:  only what a
+  module reads while it evaluates comes from its file directly ("Solid authoring").
 - Vocabularies and types files value-import `UIT` as `import * as UIT from "$/ui/components/components.types"`, not
   through `$/ui/core`.  Why:  they're PURE DATA that node imports (`yarn site:data`, `yarn gen:root`), and `core`
   loads the element layer, which node can't ("Overview", `ui-<name>.types.ts`)
@@ -371,8 +389,8 @@ As WWOD §6, plus:
 - An override that only FILLS a hook its base class documents (`render()`, `hostStates()`, a fallback's `build()`)
   needs no docstring;  one that adds to the base's contract says what it adds:  `/** Disabled by its attribute, or by
   a disabled fieldset. */`.  The base class documents each hook once (epic `wwod-spell-ui`, Q3).
-- Likewise `@proto static vocabulary` / `styles` / `Fallback` / `degraded`:  documented once, with why they're
-  static, on `UIElement` / `NativeFallback`.
+- Likewise `@proto static vocabulary` / `vocabularies` / `styles` / `Fallback` / `degraded`:  documented once, with
+  why they're static, on `UIElement` / `NativeFallback`.
 
 ## Functions & types
 
@@ -391,10 +409,18 @@ As WWOD §9, plus:
 As WWOD §12, plus:
 
 - `@proto static` defaults stay at the TOP of the class:  they're its declared config (epic `wwod-spell-ui`, Q11).
-  Other statics and constants go after the main methods.
-- Module-level constants:  the folder's `.types.ts`, or a `private static` after the methods of the one class that
-  uses them;  page-wide registries are `private static readonly` + `static reset()` (WWOD §15;  epic
-  `wwod-spell-ui`, Q10).  Applies to `src/elements/`, `src/server/` and `src/runtime/` too, not only component folders.
+  Other statics go after the main methods;  constants go below the class (next bullet).
+- Constants (epic `wwod-spell-ui`, Q18:  bundle size over WWOD §12's `static` constants):
+  - Used by ONE class:  a module `const` (not exported) BELOW the class, with its other helpers (WWOD §8), each with
+    its docstring.  Why:  a module `const` minifies to one letter;  a static's name (`t.LIST_SEPARATOR`) doesn't.
+  - ABOVE the class only when something reads it while the class loads (a static initializer, a decorator argument,
+    a static's computed key, a module `const` above):  below, it'd hit the temporal dead zone.  Say so in one line:
+    `// Above the class:  <static x> reads it while the class is defined`.
+  - Used by SEVERAL files of the folder:  the folder's `.types.ts`.
+  - Page-wide registries stay `private static readonly` + `static reset()`, as tests reset them (WWOD §15;  epic
+    `wwod-spell-ui`, Q10);  developer / debug switches stay ALL-CAPS statics at the top (`UIElement.ISOLATE_ERRORS`).
+  - A public static read from outside the class is API:  it stays.
+  - Applies to `src/elements/`, `src/static/` and `src/runtime/` too, not only component folders.
 - Render pieces of a controller class are private methods named for what they draw, no type word:  `thumb()`, not
   `renderThumb()` / `thumbElement()` (WWOD §17's inner functions are for function components;  epic
   `wwod-spell-ui`, Q12).

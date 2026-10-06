@@ -1,8 +1,4 @@
-import { SourceError, UI } from "$/ui/runtime"
-
-import { SOURCE_BODY_HOLD_MS, type SourceBodyOwner, type SourceFailure, type SourceStatus } from "./elements.types"
-import { Cell } from "./Cell"
-import { SourceMarkup } from "./SourceMarkup"
+import { E, UI } from "$/ui/core"
 
 /****************
  * ### `SourceBody`
@@ -16,27 +12,28 @@ import { SourceMarkup } from "./SourceMarkup"
  *   header, icon, badge ... stay) -- and, on `reload()`, the body it put there before.
  * - Events through the owner:  `ui-load` once the body is in;  the cancelable `ui-error` on failure, after which
  *   `failure` holds what to say (unless cancelled).  A failure isn't remembered:  the next `load()` tries again.
- * - `veiled()`:  the owner keeps its content box closed while it's true, so an opening section or panel shows the
+ * - `isVeiled`:  the owner keeps its content box closed while it's true, so an opening section or panel shows the
  *   body, not the placeholder, and animates once;  it turns false when the body arrives, on failure, or after
  *   `SOURCE_BODY_HOLD_MS` (then `overdue`:  the owner shows its loading look over the placeholder).
  * - The families of `ui-*` tags in the body are NOT loaded here:  light DOM is the page's, so whatever defines the
  *   page's tags (a `<ui-root>`, which watches its subtree, or a bundle) defines these too.
  * - NOTE: a cycle (a body holding a source of its own file) or nesting deeper than `MAX_DEPTH` is a `render` error.
+ * - Knows its owner only as a `SourceBodyOwner` (`elements.types`):  NEVER imports a component.
  ****************/
 export class SourceBody {
   /** Where the body is. */
-  readonly status = new Cell<SourceStatus>("idle")
+  readonly status = new E.Cell<E.SourceStatus>(E.SourceStatus.idle)
 
   /** The load has taken longer than `SOURCE_BODY_HOLD_MS`:  stop holding the content box closed. */
-  readonly overdue = new Cell(false)
+  readonly overdue = new E.Cell(false)
 
   /** What the error line says;  `undefined` when there's none to show. */
-  readonly failure = new Cell<SourceFailure | undefined>(undefined)
+  readonly failure = new E.Cell<E.SourceFailure | undefined>(undefined)
 
   /** The element whose body this is. */
-  private readonly owner: SourceBodyOwner
+  private readonly owner: E.SourceBodyOwner
 
-  /** The current load (in flight, or done for `loadedKey`). */
+  /** The current load (in flight, or done for `pendingKey`). */
   private pending?: Promise<void>
 
   /** `source` + `select` of `pending`. */
@@ -48,7 +45,8 @@ export class SourceBody {
   /** Nodes the last insert put in the target, removed by the next one. */
   private inserted: ChildNode[] = []
 
-  constructor(owner: SourceBodyOwner) {
+  /** The body of `owner`, which calls `load()` once it opens. */
+  constructor(owner: E.SourceBodyOwner) {
     this.owner = owner
   }
 
@@ -57,14 +55,14 @@ export class SourceBody {
   ////////////////
 
   /** Hold the content box closed?  True while the body is on its way and not `overdue`;  tracked. */
-  veiled(): boolean {
+  get isVeiled(): boolean {
     const status = this.status.get()
-    return (status === "idle" || status === "loading") && !this.overdue.get()
+    return (status === E.SourceStatus.idle || status === E.SourceStatus.loading) && !this.overdue.get()
   }
 
   /** Is a load in flight and past `SOURCE_BODY_HOLD_MS`?  The owner's loading look;  tracked. */
-  busy(): boolean {
-    return this.status.get() === "loading" && this.overdue.get()
+  get isBusy(): boolean {
+    return this.status.get() === E.SourceStatus.loading && this.overdue.get()
   }
 
   ////////////////
@@ -81,27 +79,27 @@ export class SourceBody {
     if (!source) return Promise.resolve()
     const select = this.owner.select()
     if (this.pending && this.pendingKey === SourceBody.key(source, select)) return this.pending
-    return this.start(source, select, false)
+    return this.start({ source, select, fresh: false })
   }
 
   /** Fetch the body again past the cache, and replace the one inserted;  resolves once it's in. */
   reload(): Promise<void> {
     const source = this.owner.source()
     if (!source) return Promise.resolve()
-    return this.start(source, this.owner.select(), true)
+    return this.start({ source, select: this.owner.select(), fresh: true })
   }
 
-  /** A new load:  `fresh` skips the cache. */
-  private start(source: string, select: string | undefined, fresh: boolean): Promise<void> {
+  /** A new load, replacing any in flight. */
+  private start(request: BodyLoad): Promise<void> {
     const generation = ++this.generation
-    this.pendingKey = SourceBody.key(source, select)
-    this.status.set("loading")
+    this.pendingKey = SourceBody.key(request.source, request.select)
+    this.status.set(E.SourceStatus.loading)
     this.failure.set(undefined)
     this.overdue.set(false)
     const timer = setTimeout(() => {
       if (generation === this.generation) this.overdue.set(true)
-    }, SOURCE_BODY_HOLD_MS)
-    const load = this.fetch(source, select, fresh, generation).finally(() => clearTimeout(timer))
+    }, E.SOURCE_BODY_HOLD_MS)
+    const load = this.fetch(request, generation).finally(() => clearTimeout(timer))
     this.pending = load
     // a failure isn't remembered:  the next `load()` tries again
     load.catch(() => {
@@ -110,20 +108,17 @@ export class SourceBody {
     return load
   }
 
-  /** Fetch, parse and insert;  a newer load since makes this one quietly do nothing. */
-  private async fetch(source: string, select: string | undefined, fresh: boolean, generation: number) {
+  /** Fetch, parse and insert;  a newer load (`generation`) since makes this one quietly do nothing. */
+  private async fetch({ source, select, fresh }: BodyLoad, generation: number) {
     const { host } = this.owner
     try {
-      const refusal = SourceMarkup.refusal(host, source, (node) => node.hasAttribute(SOURCE_ATTRIBUTE))
-      if (refusal) throw refusal
+      E.SourceMarkup.checkNesting(host, source, (node) => node.hasAttribute(E.SOURCE_ATTRIBUTE))
       const ui = await UI.load()
       const loaded = await ui.sources.load(source, { fresh })
       if (generation !== this.generation) return
-      const fragment = SourceMarkup.parse(loaded.text, { page: host.ownerDocument, source, select })
-      if (fragment instanceof SourceError) throw fragment
-      this.insert(fragment)
-      this.status.set("loaded")
-      this.owner.emit(LOAD_EVENT, { source, content: loaded.text })
+      this.insert(E.SourceMarkup.parse(loaded.text, { page: host.ownerDocument, source, select }))
+      this.status.set(E.SourceStatus.loaded)
+      this.owner.emit(E.SourceEvent.load, { source, content: loaded.text })
     } catch (error) {
       if (generation !== this.generation) return
       this.fail(source, error)
@@ -142,9 +137,9 @@ export class SourceBody {
 
   /** Loading or showing failed:  `ui-error`, then the error line unless it was cancelled. */
   private fail(source: string, error: unknown) {
-    const kind = error instanceof SourceError ? error.kind : "load"
-    this.status.set("error")
-    const shown = this.owner.emit(ERROR_EVENT, { kind, source, error })
+    const kind = E.SourceError.kindFor(error, "load")
+    this.status.set(E.SourceStatus.error)
+    const shown = this.owner.emit(E.SourceEvent.error, { kind, source, error })
     this.failure.set(shown ? { kind, error } : undefined)
   }
 
@@ -152,23 +147,29 @@ export class SourceBody {
   // ## Helpers
   ////////////////
 
-  /** Identity of a load:  `source` and `select`. */
+  /** Identity of a load:  `source` and `select`.  Static:  pure. */
   private static key(source: string, select: string | undefined): string {
     return select ? `${source} ${select}` : source
   }
 
-  /** Is `node` part of the placeholder?  Anything but an element headed for a named slot. */
+  /**
+   * Is `node` part of the placeholder?  Anything but an element headed for a named slot.
+   * - Static:  pure.  `NodeType`, not the `Node` global, which a server render has none of.
+   */
   private static isPlaceholder(node: Node): boolean {
-    return !(node.nodeType === Node.ELEMENT_NODE && (node as Element).hasAttribute(SLOT_ATTRIBUTE))
+    return !(node.nodeType === E.NodeType.element && (node as Element).hasAttribute(SLOT_ATTRIBUTE))
   }
 }
 
-/** The attribute naming an element's file:  what counts as an enclosing source. */
-const SOURCE_ATTRIBUTE = "source"
+/** One load of a `SourceBody`:  what to fetch, and whether past the cache. */
+type BodyLoad = {
+  /** `source`, as written */
+  source: string
+  /** `select`, as written */
+  select: string | undefined
+  /** skip the cache (`reload()`) */
+  fresh: boolean
+}
 
 /** A child with this attribute goes to a named slot:  never a placeholder. */
 const SLOT_ATTRIBUTE = "slot"
-
-/** Events the owner's vocabulary MUST have (`UIT.SOURCE_BODY_EVENTS`). */
-const LOAD_EVENT = "ui-load"
-const ERROR_EVENT = "ui-error"

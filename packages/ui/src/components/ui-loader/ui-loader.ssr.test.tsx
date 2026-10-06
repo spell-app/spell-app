@@ -2,10 +2,10 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UILoader } from "$/ui/components/ui-loader/UILoader"
 
-/** `<ui-loader>` in the static server render (`$/ui/server`, seo plan P3):  internals ARIA written out. */
+/** `<ui-loader>` in the static server render (`$/ui/static`, seo plan P3):  internals ARIA written out. */
 describe("ui-loader static render", () => {
   beforeAll(() => {
     StaticRender.define(UILoader)

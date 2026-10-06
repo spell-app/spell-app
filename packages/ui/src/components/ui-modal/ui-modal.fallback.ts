@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
+import { Converters, NativeFallback, proto, type PartNameOf, UIT } from "$/ui/core"
 
 import { modalVocabulary } from "./ui-modal.vocabulary.en"
 import { OPEN, CLOSEDBY, APPROVE_EVENT_NAME, DENY_EVENT_NAME, HIDE_EVENT_NAME } from "./ui-modal.types"
@@ -49,7 +49,8 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
     if (this.attr("closable") !== null && !this.flag("closable") && this.attr(CLOSEDBY) === null) {
       this.listen(dialog, "cancel", (event) => event.preventDefault())
     }
-    this.dialog = this.decorate(dialog, this.rootPart)
+    // a cast:  a `FlyoutFallback`'s vocabulary, so its `rootPart`, is typed as the modal's
+    this.dialog = this.decorate(dialog, this.rootPart as PartNameOf<typeof modalVocabulary>)
     return [this.dialog]
   }
 

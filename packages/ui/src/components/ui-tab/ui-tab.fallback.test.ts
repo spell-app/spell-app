@@ -7,8 +7,12 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { TabFallback } from "./ui-tab.fallback"
 
 // the fallback keys on the host's (and its parent's) tag, so the stubs take the real tags
-FallbackStub.define("ui-tabs", (host, root, internals) => TabFallback.render(host, root, new Error("boom"), internals))
-FallbackStub.define("ui-tab", (host, root, internals) => TabFallback.render(host, root, new Error("boom"), internals))
+FallbackStub.define("ui-tabs", (host, root, internals) =>
+  TabFallback.render({ host, root, error: new Error("boom"), internals })
+)
+FallbackStub.define("ui-tab", (host, root, internals) =>
+  TabFallback.render({ host, root, error: new Error("boom"), internals })
+)
 
 /** Axe without contrast:  the stubs have no stylesheet. */
 const AXE = { rules: { "color-contrast": { enabled: false } } }

@@ -191,7 +191,7 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
   }
 
   /**
-   * Server render only (`$/ui/server`):  what the native control needs to submit without JS -- `name` and the
+   * Server render only (`$/ui/static`):  what the native control needs to submit without JS -- `name` and the
    * starting `value` -- and the `STATIC_CONTROL` mark;  `{}` in a browser, where the HOST submits
    * (`ElementInternals`) and the effects keep the control in sync.
    */

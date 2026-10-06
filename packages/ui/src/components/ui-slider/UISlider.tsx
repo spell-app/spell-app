@@ -319,7 +319,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/server`):  the `STATIC_CONTROL` mark when `on` -- a single thumb, else a range's
+   * Server render only (`$/ui/static`):  the `STATIC_CONTROL` mark when `on` -- a single thumb, else a range's
    * group, whichever the host's name belongs to;  `{}` in a browser.
    */
   private staticMark(on: boolean): Record<string, unknown> {
@@ -327,7 +327,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/server`):  the value as hidden inputs (two for a `range`), so a static form submits
+   * Server render only (`$/ui/static`):  the value as hidden inputs (two for a `range`), so a static form submits
    * it without JS;  in a browser the HOST submits (`ElementInternals`).
    */
   private staticValues(): JSX.Element {

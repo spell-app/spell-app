@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { OwnerContext } from "$/ui/elements"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /**
  * Real custom elements with shadow roots and slots, as components will have:
@@ -125,21 +124,6 @@ describe("OwnerContext helpers", () => {
   it("names the custom state", () => {
     expect(OwnerContext.stateName("card")).toBe("in-card")
   })
-
-  it("builds an owner lookup from vocabularies", () => {
-    const card = vocabulary("ui-card", "card", ["header", "content"])
-    const item = vocabulary("ui-item", "item", ["header"])
-    const button = vocabulary("ui-button", "button")
-    expect(OwnerContext.ownersOf("header", [card, item, button])).toEqual(
-      new Map([
-        ["ui-card", "card"],
-        ["ui-item", "item"]
-      ])
-    )
-    expect(OwnerContext.ownersOf("content", [card, item], new Map([["ui-card", "ie-tarjeta"]]))).toEqual(
-      new Map([["ie-tarjeta", "card"]])
-    )
-  })
 })
 
 ////////////////
@@ -157,9 +141,4 @@ function define(tag: string, html: string, mode: ShadowRootMode = "open") {
       }
     }
   )
-}
-
-/** Minimal vocabulary owning `ownsParts`. */
-function vocabulary(tag: string, noun: string, ownsParts?: string[]): ComponentVocabulary {
-  return { tag, noun, attributes: [], events: [], slots: [], parts: [], states: [], texts: [], ownsParts }
 }

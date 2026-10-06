@@ -15,7 +15,7 @@ export class CodeFallback extends NativeFallback<typeof codeVocabulary> {
   ]
 
   protected override build() {
-    const code = this.create("code", { part: "code" }, SourceElement.readInline(this.host))
+    const code = this.create("code", { part: "code" }, SourceElement.inlineTextFor(this.host))
     const pre = this.create("pre", { part: "pre", tabindex: "0" }, code)
     return [this.decorate(this.create("div", { class: this.classes() }, pre), "box")]
   }

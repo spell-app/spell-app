@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { StatisticFallback } from "./ui-statistic.fallback"
 
 FallbackStub.define("x-fb-statistic", (host, root, internals) =>
-  StatisticFallback.render(host, root, new Error("boom"), internals)
+  StatisticFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("StatisticFallback", () => {

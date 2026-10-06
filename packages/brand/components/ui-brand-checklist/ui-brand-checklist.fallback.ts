@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { brandChecklistVocabulary } from "./ui-brand-checklist.vocabulary.en"
 import { brandCheckVocabulary } from "./ui-brand-check.vocabulary.en"
@@ -24,6 +24,7 @@ import {
  *   its own `font`, else the list's
  ****************/
 export class BrandChecklistFallback extends NativeFallback {
+  @proto static vocabularies = [brandChecklistVocabulary, brandCheckVocabulary]
   @proto static degraded = [
     "ticking a `checkable` check (it shows its state, but a click changes nothing)",
     "progress announcements",
@@ -37,12 +38,6 @@ export class BrandChecklistFallback extends NativeFallback {
   private static readonly TEXTS: Record<string, string> = Object.fromEntries(
     brandCheckVocabulary.texts.map(({ key, text }) => [key, text])
   )
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = host.localName === brandChecklistVocabulary.tag ? brandChecklistVocabulary : brandCheckVocabulary
-  }
 
   protected override build() {
     if (this.vocabulary === brandChecklistVocabulary) {

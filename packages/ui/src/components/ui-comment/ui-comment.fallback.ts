@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { commentVocabulary } from "./ui-comment.vocabulary.en"
 import { commentsVocabulary } from "./ui-comments.vocabulary.en"
@@ -14,16 +14,11 @@ import { COLLAPSED, REPLY, Vocabulary } from "./ui-comment.types"
  * - Both:  the `reply` slot in its `div.reply` box, `aria-disabled` while `disabled`.
  ****************/
 export class CommentFallback extends NativeFallback<Vocabulary> {
+  @proto static vocabularies = [commentsVocabulary, commentVocabulary]
   @proto static degraded = [
     "threads through translated or slotted parents (only a direct `<ui-comment>` parent counts)",
     "the content parts' comment context (`:state(in-comment)`)"
   ]
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = host.localName === commentVocabulary.tag ? commentVocabulary : commentsVocabulary
-  }
 
   protected override build() {
     const disabled = this.flag("disabled") ? UIT.TRUE : null

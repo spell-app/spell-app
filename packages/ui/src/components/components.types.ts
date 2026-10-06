@@ -192,7 +192,7 @@ export const PART_OWNER_TOKENS = {
 export const PART_STATIC_CLASS_PREFIX = "in-"
 
 /**
- * Marks the NATIVE control in a static server render (`$/ui/server`), for the flattener:  the host's `id` and ARIA
+ * Marks the NATIVE control in a static server render (`$/ui/static`), for the flattener:  the host's `id` and ARIA
  * names belong there, so a `<label for>` the host's id labels the control.
  * - Elements NEVER set it in a browser;  `StaticFlattener` moves the host's `id` / `aria-label*` /
  *   `aria-describedby` there, then drops the mark (seo plan, T5).

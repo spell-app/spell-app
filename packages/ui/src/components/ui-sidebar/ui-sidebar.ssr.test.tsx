@@ -3,13 +3,13 @@
 import { parseHTML } from "linkedom"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIPushable } from "$/ui/components/ui-sidebar/UIPushable"
 import { UIPusher } from "$/ui/components/ui-sidebar/UIPusher"
 import { UISidebar } from "$/ui/components/ui-sidebar/UISidebar"
 
 /**
- * `<ui-pushable>` / `<ui-sidebar>` / `<ui-pusher>` rendered statically (`$/ui/server`):  a modal sidebar as a CLOSED
+ * `<ui-pushable>` / `<ui-sidebar>` / `<ui-pusher>` rendered statically (`$/ui/static`):  a modal sidebar as a CLOSED
  * `<dialog>`, a persistent one as an `<aside>`, the pusher around the page content.
  */
 describe("ui-sidebar static render", () => {

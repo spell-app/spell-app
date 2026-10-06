@@ -62,6 +62,15 @@ describe("Sources.load()", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1)
   })
 
+  it("keeps a network failure as `cause.error`", async () => {
+    const offline = new TypeError("Failed to fetch")
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(offline)
+    const failure = (await new Sources().load(HELLO).catch((error: unknown) => error)) as SourceError
+    expect(failure.kind).toBe("load")
+    expect(failure.cause?.error).toBe(offline)
+    expect(failure.message).toMatch(/Failed to fetch/)
+  })
+
   it("rejects another origin with `cross-origin`, without fetching", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch")
     const failure = await new Sources().load("https://example.com/x.md").catch((error: unknown) => error)
@@ -101,17 +110,19 @@ describe("Sources.save()", () => {
   it("passes a saver's `SourceError` through;  anything else becomes `save`", async () => {
     const sources = new Sources()
     sources.saver = async () => {
-      throw new SourceError("conflict", "changed", 409)
+      throw new SourceError("saver:  changed", { cause: { kind: "conflict", status: 409 } })
     }
     expect(((await sources.save({ url: HELLO, text: "x" }).catch((e: unknown) => e)) as SourceError).kind).toBe(
       "conflict"
     )
+    const diskFull = new Error("disk full")
     sources.saver = async () => {
-      throw new Error("disk full")
+      throw diskFull
     }
     const failure = (await sources.save({ url: HELLO, text: "x" }).catch((e: unknown) => e)) as SourceError
     expect(failure.kind).toBe("save")
     expect(failure.message).toMatch(/disk full/)
+    expect(failure.cause?.error).toBe(diskFull)
   })
 
   it("takes a `{ kind }`-shaped error from a saver that can't import SourceError", async () => {

@@ -128,7 +128,7 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
 
   /** Adds the internals (ARIA value, range, name) and the change events. */
   mount(): JSX.Element {
-    // `hostEffect`:  a server render (`$/ui/server`) applies it too
+    // `hostEffect`:  a server render (`$/ui/static`) applies it too
     this.hostEffect(
       () => (this.loaded() ? this.aria() : undefined),
       (aria) => {

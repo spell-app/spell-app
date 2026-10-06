@@ -131,7 +131,7 @@
   }
   /*
    * Shrink-wrapped, as an `inline-block` already is:  a no-op inside the host, but a static render's root
-   * (`$/ui/server`) IS the flex / grid item the host was, and would stretch.
+   * (`$/ui/static`) IS the flex / grid item the host was, and would stretch.
    */
   .ui.checkbox:not(.invisible) {
     inline-size: fit-content;

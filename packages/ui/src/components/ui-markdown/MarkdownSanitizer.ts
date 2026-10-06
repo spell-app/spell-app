@@ -34,7 +34,12 @@ export class MarkdownSanitizer {
    * - `uiTags`:  keep `ui-*` elements (spell's engine draws with them), with any attribute but an `on*` handler.
    */
   sanitize(html: string, uiTags: boolean): DocumentFragment {
-    if (!DOMPurify.isSupported) throw new SourceError("render", "DOMPurify can't sanitize in this browser")
+    if (!DOMPurify.isSupported) {
+      throw new SourceError(
+        "MarkdownSanitizer.sanitize():  DOMPurify can't sanitize in this browser;  use a newer one",
+        { cause: { kind: "render" } }
+      )
+    }
     return DOMPurify.sanitize(html, {
       RETURN_DOM_FRAGMENT: true,
       SANITIZE_DOM: false,

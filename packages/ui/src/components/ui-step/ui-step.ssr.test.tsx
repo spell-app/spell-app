@@ -2,12 +2,12 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { ServerRuntime, StaticRender } from "$/ui/server"
+import { ServerRuntime, StaticRender } from "$/ui/static"
 import { UIStep } from "$/ui/components/ui-step/UIStep"
 import { UISteps } from "$/ui/components/ui-step/UISteps"
 
 /**
- * `<ui-step>` / `<ui-steps>` in the static server render (`$/ui/server`, seo plan P3):  an `<ol>` of `<li>` steps,
+ * `<ui-step>` / `<ui-steps>` in the static server render (`$/ui/static`, seo plan P3):  an `<ol>` of `<li>` steps,
  * as the class grammar writes it.
  */
 describe("ui-step static render", () => {

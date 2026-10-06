@@ -182,7 +182,7 @@ over 32 of 255, and a pair counts as different over 1% differing pixels (size ch
 ## Static parity
 
 `yarn test:visual --static [--grep <family>] [--browsers chrome]` compares the STATIC server render of each element
-example (`$/ui/server`:  `StaticRender` + `StaticStylesheet`, plan `packages/docs/content/plans/seo/seo.html`) with the live
+example (`$/ui/static`:  `StaticRender` + `StaticStylesheet`, plan `packages/docs/content/plans/seo/seo.html`) with the live
 elements, light and dark, using Parity's comparison and tolerances.  Report:  `tools/results/visual/static-parity.md`,
 most different first, with diff images, the `ui-*` tags the static page left unrendered, and any page that failed to
 render or to be captured (with its error;  Firefox can't capture a page over 32767px tall).

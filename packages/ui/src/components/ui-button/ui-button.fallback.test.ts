@@ -9,7 +9,7 @@ import { ButtonFallback } from "./ui-button.fallback"
 
 FallbackStub.define(
   "x-fb-button",
-  (host, root, internals) => ButtonFallback.render(host, root, new Error("boom"), internals),
+  (host, root, internals) => ButtonFallback.render({ host, root, error: new Error("boom"), internals }),
   true
 )
 

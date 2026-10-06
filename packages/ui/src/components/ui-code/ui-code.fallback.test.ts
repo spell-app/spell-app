@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { CodeFallback } from "./ui-code.fallback"
 
 FallbackStub.define("x-fb-code", (host, root, internals) =>
-  CodeFallback.render(host, root, new Error("boom"), internals)
+  CodeFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

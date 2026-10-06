@@ -1,15 +1,15 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
+// Import directly to avoid circular import
 import { proto } from "$/ui/util"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
-
-import type { PartName } from "./elements.types"
-import { PartContext } from "./PartContext"
+import { E } from "$/ui/core"
+// Import directly to avoid circular import
 import { UIElement } from "./UIElement"
 
 import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
 
-/**
+/****************
+ * ### `ContentPart`
  * Base of the generic content parts (`<ui-content>`, `<ui-header>`, `<ui-meta>` ...):  ONE element per part word,
  * styled by its OWNER (`:state(in-card)`), never `ui-card-header`.
  * - Owner:  `PartContext` resolves the nearest owner whose vocabulary `ownsParts` this noun, climbing the flat
@@ -20,13 +20,15 @@ import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
  *   declaring it would be what its own root's `@container style(--_ui-part: summary)` queries, so a date could
  *   never see the summary it sits in.
  * - Every part adopts `ui-parts.css`;  `@proto static isPart` makes parts transparent to other parts' climbs.
- */
-export abstract class ContentPart<V extends ComponentVocabulary = ComponentVocabulary> extends UIElement<V> {
+ * - The one element-core class that loads a family's file (`ui-parts.css`):  every part family shares the sheet, so it
+ *   lands in `core`.  It imports nothing else of `$/ui/components`.
+ ****************/
+export abstract class ContentPart<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends UIElement<V> {
   @proto static styles = { parts: partsCSS }
   @proto static isPart = true
 
   /** Owner context for this part's noun. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
 
   ////////////////
   // ## Rendering
@@ -37,7 +39,7 @@ export abstract class ContentPart<V extends ComponentVocabulary = ComponentVocab
       <Dynamic
         component={this.tag()}
         class={this.rootClass()}
-        part={this.part(this.vocabulary.noun as PartName<V>)}
+        part={this.part(this.vocabulary.noun as E.PartName<V>)}
         href={this.href()}
         target={this.target()}
         datetime={this.datetime()}

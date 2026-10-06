@@ -2,12 +2,12 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIColumn } from "$/ui/components/ui-grid/UIColumn"
 import { UIGrid } from "$/ui/components/ui-grid/UIGrid"
 import { UIRow } from "$/ui/components/ui-grid/UIRow"
 
-/** `<ui-grid>`, `<ui-row>`, `<ui-column>` in the static server render (`$/ui/server`, seo plan P3). */
+/** `<ui-grid>`, `<ui-row>`, `<ui-column>` in the static server render (`$/ui/static`, seo plan P3). */
 describe("ui-grid static render", () => {
   beforeAll(() => {
     StaticRender.define(UIGrid, UIRow, UIColumn)

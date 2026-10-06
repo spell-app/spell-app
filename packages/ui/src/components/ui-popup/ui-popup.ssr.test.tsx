@@ -3,12 +3,12 @@
 import { parseHTML } from "linkedom"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIButton } from "$/ui/components/ui-button/UIButton"
 import { UIPopup } from "$/ui/components/ui-popup/UIPopup"
 
 /**
- * `<ui-popup>` rendered statically (`$/ui/server`):  a hidden popover box right after its target, as phrasing
+ * `<ui-popup>` rendered statically (`$/ui/static`):  a hidden popover box right after its target, as phrasing
  * content, related to the target by id as the element's ARIA does.
  */
 describe("ui-popup static render", () => {

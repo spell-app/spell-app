@@ -9,9 +9,11 @@ import { ItemsFallback } from "./ui-items.fallback"
 
 // the item fallback keys on its parent's tag, so the stubs take the real tags
 FallbackStub.define("ui-items", (host, root, internals) =>
-  ItemsFallback.render(host, root, new Error("boom"), internals)
+  ItemsFallback.render({ host, root, error: new Error("boom"), internals })
 )
-FallbackStub.define("ui-item", (host, root, internals) => ItemFallback.render(host, root, new Error("boom"), internals))
+FallbackStub.define("ui-item", (host, root, internals) =>
+  ItemFallback.render({ host, root, error: new Error("boom"), internals })
+)
 
 /** Axe without contrast:  the stub has no stylesheet. */
 const AXE = { rules: { "color-contrast": { enabled: false } } }

@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { ToastFallback } from "./ui-toast.fallback"
 
 FallbackStub.define("x-fb-toast", (host, root, internals) =>
-  ToastFallback.render(host, root, new Error("boom"), internals)
+  ToastFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

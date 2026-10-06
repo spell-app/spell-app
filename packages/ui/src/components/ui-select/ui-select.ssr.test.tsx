@@ -2,12 +2,12 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIItem } from "$/ui/components/ui-item/UIItem"
 import { UISelect } from "$/ui/components/ui-select/UISelect"
 
 /**
- * `<ui-select>` in a static server render (`$/ui/server`):  a real `<select>` with its `<option>`s, from `<ui-item>`
+ * `<ui-select>` in a static server render (`$/ui/static`):  a real `<select>` with its `<option>`s, from `<ui-item>`
  * children and the `options` attribute (JSON), the chosen ones `selected`, so a no-JS form submits it.
  */
 describe("ui-select (static render)", () => {

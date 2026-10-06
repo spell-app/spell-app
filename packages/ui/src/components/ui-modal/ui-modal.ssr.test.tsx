@@ -3,7 +3,7 @@
 import { parseHTML } from "linkedom"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIButton } from "$/ui/components/ui-button/UIButton"
 import { UIActions } from "$/ui/components/ui-parts/UIActions"
 import { UIContent } from "$/ui/components/ui-parts/UIContent"
@@ -11,7 +11,7 @@ import { UIHeader } from "$/ui/components/ui-parts/UIHeader"
 import { UIModal } from "$/ui/components/ui-modal/UIModal"
 
 /**
- * `<ui-modal>` rendered statically (`$/ui/server`):  a CLOSED `<dialog>` (its initial state:  opening needs JS, or
+ * `<ui-modal>` rendered statically (`$/ui/static`):  a CLOSED `<dialog>` (its initial state:  opening needs JS, or
  * P4's invoker commands), its content in the HTML, named by its heading through an id.
  */
 describe("ui-modal static render", () => {
