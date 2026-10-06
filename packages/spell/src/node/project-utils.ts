@@ -77,9 +77,12 @@ const DEFAULT_FILE = {
  * - Format: `[ "<project-path>"... ]`, e.g. `["@user:projects:myProject", ...]`.
  * - Lists (non-empty) subfolders of `domain`'s `serverPath` as project names -- so a "project" is just
  *   a folder on disk.
+ * - A root whose folder doesn't exist yet has no projects:  `[]`, e.g. `@system:guides` before its first guide.
+ *   Creating a project makes the folder.
  */
 export const getProjectList = async (domainId: string) => {
   const domain = SP.SpellLocation.getProjectRoot(domainId)
+  if (!(await fileUtils.pathExists(domain.serverPath))) return []
   const options = { includeFolders: true, includeFiles: false, namesOnly: true, ignoreEmptyFolders: true }
   const projectNames = await fileUtils.getFolderContents(domain.serverPath, options)
   return projectNames.map((projectName) => `${domain.owner}:${domain.domain}:${projectName}`)
