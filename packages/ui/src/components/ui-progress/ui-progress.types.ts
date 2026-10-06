@@ -1,39 +1,14 @@
 /**
- * Loose constants, types and helpers of `<ui-progress>`:  its element classes and native fallback import them from here.
+ * Constants of the `ui-progress` family that its element (`UIProgress`), its arithmetic (`ProgressValues`) and its
+ * native fallback share.
+ * - Pure data, at the bottom of the folder's imports:  no imports at all, so node can load it (`yarn site:data`).
+ * - Constants only one class reads live below that class (epic `wwod-spell-ui`, Q18);  `ProgressValuesProps` lives
+ *   with `ProgressValues` (WWOD §9 › "Props types live with their class").
  */
 
 ////////////////
-// ## ProgressValues
+// ## Lists
 ////////////////
 
-/** Constructor props for `ProgressValues`:  the host's converted attributes. */
-export type ProgressValuesProps = {
-  /** `value`:  one number or a comma list. */
-  value?: string | number | null
-  /** `total`. */
-  total?: number | null
-  /** `percent`:  one number or a comma list. */
-  percent?: string | number | null
-  /** Decimal places for display. */
-  precision?: number | null
-}
-
-////////////////
-// ## UIProgress
-////////////////
-
-/** Host role. */
-export const PROGRESSBAR = "progressbar"
-
-/** The automatic outcome at 100%. */
-export const SUCCESS = "success"
-
-/** `bar-text` value for the ratio format. */
-export const RATIO = "ratio"
-
-/** Joins several bars' texts into one `aria-valuetext`. */
-export const LIST_SEPARATOR = ", "
-export const BAR_TEXT = "progress"
-
-/** Prefix of the colour-remap utility class (`colors.css`), e.g. `ui-red`. */
-export const UTILITY_PREFIX = "ui-"
+/** What separates the items of a list attribute (`value`, `percent`, `bar-colors`):  commas and / or spaces. */
+export const LIST_SPLIT = /[\s,]+/

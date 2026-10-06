@@ -1,7 +1,6 @@
-import { proto, UIT } from "$/ui/core"
-
-import { titleVocabulary } from "./ui-title.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { titleVocabulary } from "./ui-title.vocabulary.en"
 
 /****************
  * ### `<ui-title>`
@@ -9,7 +8,7 @@ import { PartElement } from "./PartElement"
  * - A step's, an accordion panel's or a search result's title.
  ****************/
 export class UITitle extends PartElement<typeof titleVocabulary> {
-  @proto static vocabulary = titleVocabulary
+  @E.proto static vocabulary = titleVocabulary
 
   protected tag(): string {
     return this.attrs.href ? UIT.ANCHOR_TAG : "div"

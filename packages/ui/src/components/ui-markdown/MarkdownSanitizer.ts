@@ -20,20 +20,15 @@ import { SourceError } from "$/ui/runtime/runtime.types"
  *   `wwod-spell-ui`, I12;  `yarn measure`'s `runtimeChunks`).
  ****************/
 export class MarkdownSanitizer {
-  /** The one sanitizer. */
+  /** The one sanitizer:  static, as it keeps no state and every element shares it. */
   static readonly instance = new MarkdownSanitizer()
-
-  /** Custom elements `uiTags` keeps. */
-  private static readonly UI_TAG = /^ui-[a-z-]+$/
-
-  /** Event-handler attributes, never kept. */
-  private static readonly HANDLER = /^on/i
 
   /**
    * `html`, sanitized, as a fragment of this document;  throws where DOMPurify can't sanitize.
    * - `uiTags`:  keep `ui-*` elements (spell's engine draws with them), with any attribute but an `on*` handler.
+   *   Default:  `false`.
    */
-  sanitize(html: string, uiTags: boolean): DocumentFragment {
+  sanitize(html: string, { uiTags = false }: { uiTags?: boolean } = {}): DocumentFragment {
     if (!DOMPurify.isSupported) {
       throw new SourceError(
         "MarkdownSanitizer.sanitize():  DOMPurify can't sanitize in this browser;  use a newer one",
@@ -45,11 +40,17 @@ export class MarkdownSanitizer {
       SANITIZE_DOM: false,
       ...(uiTags && {
         CUSTOM_ELEMENT_HANDLING: {
-          tagNameCheck: MarkdownSanitizer.UI_TAG,
-          attributeNameCheck: (name: string) => !MarkdownSanitizer.HANDLER.test(name),
+          tagNameCheck: UI_TAG,
+          attributeNameCheck: (name: string) => !HANDLER.test(name),
           allowCustomizedBuiltInElements: false
         }
       })
     })
   }
 }
+
+/** Custom elements `uiTags` keeps. */
+const UI_TAG = /^ui-[a-z-]+$/
+
+/** Event-handler attributes, never kept. */
+const HANDLER = /^on/i

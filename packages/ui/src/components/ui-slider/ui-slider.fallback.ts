@@ -1,8 +1,6 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { sliderVocabulary } from "./ui-slider.vocabulary.en"
-import { DEFAULT_MIN, DEFAULT_MAX, DEFAULT_STEP } from "./ui-slider.types"
-import type { SliderHost } from "./ui-slider.types"
+import { DEFAULT_MAX, DEFAULT_MIN, DEFAULT_STEP } from "./ui-slider.types"
 
 /****************
  * ### `SliderFallback`
@@ -14,9 +12,9 @@ import type { SliderHost } from "./ui-slider.types"
  *   Fomantic's 0 / 20 / 1.
  * - Named by the host's `aria-*` (copied onto each input).
  ****************/
-export class SliderFallback extends NativeFallback<typeof sliderVocabulary> {
-  @proto static vocabulary = sliderVocabulary
-  @proto static degraded = [
+export class SliderFallback extends E.NativeFallback<typeof sliderVocabulary> {
+  @E.proto static vocabulary = sliderVocabulary
+  @E.proto static degraded = [
     "Fomantic's track, fill and thumbs (the browser's range inputs instead), `labeled` / `ticked` labels",
     "a range's thumbs don't block each other while dragging, `vertical` / `reversed` layout, `smooth`",
     "`step-labels` (numbers are spoken), vetoing by re-setting `value`, form reset, translated thumb names"
@@ -29,21 +27,19 @@ export class SliderFallback extends NativeFallback<typeof sliderVocabulary> {
     const host = this.host as SliderHost
     const min = this.number("min", DEFAULT_MIN)
     const max = Math.max(min, this.number("max", DEFAULT_MAX))
-    const range = this.flag("range")
-    const disabled = this.flag("disabled")
+    const isRange = this.flag("range")
     const starts = [host.value ?? this.number("value", min), host.end ?? this.number("end", max)]
-    const names = ["Minimum", "Maximum"]
-    for (let index = 0; index < (range ? 2 : 1); index++) {
+    for (let index = 0; index < (isRange ? 2 : 1); index++) {
       const input = this.create("input", {
-        type: "range",
+        type: RANGE,
         min: String(min),
         max: String(max),
-        step: String(this.number("step", DEFAULT_STEP) || "any"),
-        disabled,
-        "aria-readonly": this.flag("readonly") ? "true" : null
+        step: String(this.number("step", DEFAULT_STEP) || ANY),
+        disabled: this.flag("disabled"),
+        "aria-readonly": this.flag("readonly") ? UIT.TRUE : undefined
       })
       this.decorate(input, "thumb")
-      if (range) input.setAttribute("aria-label", names[index]!)
+      if (isRange) input.setAttribute(UIT.ARIA_LABEL, THUMB_NAMES[index]!)
       input.value = String(starts[index])
       this.listen(input, "input", (event) => this.changed(event, "ui-input"))
       this.listen(input, "change", (event) => this.changed(event, "ui-change"))
@@ -55,7 +51,8 @@ export class SliderFallback extends NativeFallback<typeof sliderVocabulary> {
       })
       this.inputs.push(input)
     }
-    return [this.create("div", { class: this.classes(), part: "slider" }, ...this.inputs)]
+    // the root takes no `aria-*`:  the inputs carry the host's name
+    return [this.create("div", { class: this.classes(), part: ROOT_PART }, ...this.inputs)]
   }
 
   /** First form value, which needs the inputs built. */
@@ -64,7 +61,7 @@ export class SliderFallback extends NativeFallback<typeof sliderVocabulary> {
   }
 
   /** An input moved:  keep a range ordered, update the host, dispatch `name`. */
-  private changed(originalEvent: Event, name: string) {
+  private changed(originalEvent: Event, name: E.EventName<typeof sliderVocabulary>) {
     const [first, second] = this.inputs
     if (second && Number(first!.value) > Number(second.value)) {
       if (originalEvent.target === first) first!.value = second.value
@@ -82,6 +79,7 @@ export class SliderFallback extends NativeFallback<typeof sliderVocabulary> {
   private sync() {
     const name = this.attr("name")
     if (!this.formInternals) return
+    // `setFormValue()` takes `null` for "no value":  a platform boundary
     if (!name) return this.formInternals.setFormValue(null)
     if (this.inputs.length < 2) return this.formInternals.setFormValue(this.inputs[0]!.value)
     const data = new FormData()
@@ -90,8 +88,30 @@ export class SliderFallback extends NativeFallback<typeof sliderVocabulary> {
   }
 
   /** Host attribute `name` as a number, else `fallback`. */
-  private number(name: "min" | "max" | "step" | "value" | "end", fallback: number): number {
+  private number(name: E.AttributeNameOf<typeof sliderVocabulary>, fallback: number): number {
     const value = Number(this.attr(name) ?? Number.NaN)
     return Number.isFinite(value) ? value : fallback
   }
 }
+
+/** The part of a slider host the fallback touches;  optional, the element may not have upgraded. */
+type SliderHost = HTMLElement & {
+  /** the (first) thumb's value, once set as a property */
+  value?: number
+  /** a range's second thumb's value, once set as a property */
+  end?: number
+}
+
+/** The root's part. */
+const ROOT_PART = "slider"
+
+/** `type` of each native thumb. */
+const RANGE = "range"
+
+/** `step` of a slider whose step is `0`:  any value. */
+const ANY = "any"
+
+/** A range's thumb names, in English:  a failed render can't count on the runtime's translations. */
+const THUMB_NAMES = (["sliderMinimum", "sliderMaximum"] as const).map(
+  (key) => sliderVocabulary.texts.find((text) => text.key === key)!.text
+)

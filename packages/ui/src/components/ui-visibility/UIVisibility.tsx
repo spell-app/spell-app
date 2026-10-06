@@ -1,41 +1,26 @@
 import { createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  AnimationNames,
-  Cell,
-  proto,
-  UI,
-  UIElement,
-  type AnimationName,
-  type Disposer,
-  type VisibilityCalculations,
-  type VisibilityOptions
-} from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { visibilityVocabulary } from "./ui-visibility.vocabulary.en"
 import { VisibilityFallback } from "./ui-visibility.fallback"
-
-import visibilityCSS from "./ui-visibility.css?inline"
 import {
-  DEFAULT_DURATION,
-  LAZY_IMAGES,
   DATA_SRC,
   DATA_SRCSET,
-  FADE,
   LAZY,
+  LAZY_IMAGES,
   LOADING,
   SRC,
-  SRCSET
+  type VisibilityVocabulary
 } from "./ui-visibility.types"
-import type { VisibilityVocabulary, VisibilityConfig } from "./ui-visibility.types"
-import { IMAGE } from "$/ui/components/components.types"
+
+import visibilityCSS from "./ui-visibility.css?inline"
 
 /****************
  * ### `<ui-visibility>`
- * A block (`<div class="ui visibility" part="visibility">` around the slot) around content that reports where it is against the screen:  Fomantic's visibility callbacks as `ui-*`
- * events (`ui-visible`, `ui-hidden`, `ui-top-passed` ...), through `UI.observeVisibility()` -- `IntersectionObserver`,
- * no scroll listener.
+ * A block (`<div class="ui visibility" part="visibility">` around the slot) around content that reports where it is
+ * against the screen:  Fomantic's visibility callbacks as `ui-*` events (`ui-visible`, `ui-hidden`, `ui-top-passed`
+ * ...), through `UI.observeVisibility()` -- `IntersectionObserver`, no scroll listener.
  * - Watches while connected, again whenever `once`, `continuous`, `offset` or the image settings change (which
  *   re-arms `once`).
  * - `:state(visible)`:  on screen as of the last check.
@@ -43,28 +28,28 @@ import { IMAGE } from "$/ui/components/components.types"
  *   `UI.visibility.lazyImage()`:  its source is set once it's on screen, then it fades in and `ui-load` fires.
  * - Measured against the viewport (Fomantic's default `context`).
  ****************/
-export class UIVisibility extends UIElement<VisibilityVocabulary> {
-  @proto static vocabulary = visibilityVocabulary
-  @proto static styles = { visibility: visibilityCSS }
-  @proto static Fallback = VisibilityFallback
+export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
+  @E.proto static vocabulary = visibilityVocabulary
+  @E.proto static styles = { visibility: visibilityCSS }
+  @E.proto static Fallback = VisibilityFallback
   // a wrapper:  a click on its text must not jump to a link inside
-  @proto static delegatesFocus = false
+  @E.proto static delegatesFocus = false
 
   /** On screen as of the last check. */
-  readonly visible = new Cell(false)
+  readonly isOnScreen = new E.Cell(false)
 
   protected hostStates() {
-    return { visible: this.visible.get() }
+    return { visible: this.isOnScreen.get() }
   }
 
   /** `image` after the noun for a lazy-image wrapper (`ui visibility image`), a hook for page CSS. */
   protected extraClasses(): string | undefined {
-    return this.attrs.type === IMAGE ? IMAGE : undefined
+    return this.attrs.type === UIT.IMAGE ? UIT.IMAGE : undefined
   }
 
   render(): JSX.Element {
-    this.effects()
-    if (isServer && this.attrs.type === IMAGE) this.serverImages()
+    this.watchScreen()
+    if (isServer && this.attrs.type === UIT.IMAGE) this.serverImages()
     return (
       <div class={this.classes()} part={this.part("visibility")}>
         <slot />
@@ -73,14 +58,14 @@ export class UIVisibility extends UIElement<VisibilityVocabulary> {
   }
 
   /** Watch while connected;  anew when the settings change. */
-  private effects() {
+  private watchScreen() {
     createEffect(
       () => ({
         connected: this.connected.get(),
         once: this.attrs.once !== false,
         continuous: !!this.attrs.continuous,
         offset: this.attrs.offset ?? 0,
-        images: this.attrs.type === IMAGE,
+        images: this.attrs.type === UIT.IMAGE,
         transition: this.attrs.transition,
         duration: this.attrs.duration ?? DEFAULT_DURATION
       }),
@@ -89,10 +74,10 @@ export class UIVisibility extends UIElement<VisibilityVocabulary> {
   }
 
   /** Observe the host (and lazy images);  returns the undo. */
-  private watch(config: VisibilityConfig): Disposer {
-    const emit = (name: Parameters<UIVisibility["emit"]>[0]) => (calculations: VisibilityCalculations) =>
+  private watch(config: VisibilityConfig): E.Disposer {
+    const emit = (name: Parameters<UIVisibility["emit"]>[0]) => (calculations: E.VisibilityCalculations) =>
       void this.emit(name, calculations)
-    const options: VisibilityOptions = {
+    const options: E.VisibilityOptions = {
       once: config.once,
       continuous: config.continuous,
       offset: config.offset,
@@ -103,7 +88,7 @@ export class UIVisibility extends UIElement<VisibilityVocabulary> {
       onTopPassed: emit("ui-top-passed"),
       onBottomPassed: emit("ui-bottom-passed"),
       onPassing: emit("ui-passing"),
-      onUpdate: (calculations) => this.visible.set(calculations.onScreen)
+      onUpdate: (calculations) => this.isOnScreen.set(calculations.onScreen)
     }
     const stop = UI.observeVisibility(this.host, options)
     const stopImages = config.images ? this.watchImages(config) : undefined
@@ -114,23 +99,32 @@ export class UIVisibility extends UIElement<VisibilityVocabulary> {
   }
 
   /** Lazy-load every `<img data-src>` inside, now and as content changes;  returns the undo. */
-  private watchImages({ transition, duration, offset }: VisibilityConfig): Disposer {
-    const stops = new Map<HTMLImageElement, Disposer>()
-    const animation = UIVisibility.animation(transition)
-    const scan = () => {
-      for (const image of this.host.querySelectorAll<HTMLImageElement>(LAZY_IMAGES)) {
-        if (stops.has(image)) continue
-        const onLoad = (loaded: HTMLImageElement) => void this.emit("ui-load", { image: loaded })
-        stops.set(image, UI.visibility.lazyImage(image, { transition: animation, duration, offset, onLoad }))
-      }
-    }
-    scan()
-    const observer = new MutationObserver(scan)
+  private watchImages({ transition, duration, offset }: VisibilityConfig): E.Disposer {
+    const stops = new Map<HTMLImageElement, E.Disposer>()
+    const options: E.LazyImageOptions = { transition: UIVisibility.animationFor(transition), duration, offset }
+    this.lazyLoad(stops, options)
+    const observer = new MutationObserver(() => this.lazyLoad(stops, options))
     observer.observe(this.host, { childList: true, subtree: true, attributeFilter: [DATA_SRC] })
     return () => {
       observer.disconnect()
       for (const stop of stops.values()) stop()
     }
+  }
+
+  /**
+   * Hand every `<img data-src>` inside that isn't in `stops` yet to `UI.visibility.lazyImage()`.
+   * - SIDE EFFECT:  records each one's undo in `stops`.
+   */
+  private lazyLoad(stops: Map<HTMLImageElement, E.Disposer>, options: E.LazyImageOptions) {
+    for (const image of this.host.querySelectorAll<HTMLImageElement>(LAZY_IMAGES)) {
+      if (stops.has(image)) continue
+      stops.set(image, UI.visibility.lazyImage(image, { ...options, onLoad: this.onImageLoad }))
+    }
+  }
+
+  /** A lazy image has its `src`. */
+  private readonly onImageLoad = (image: HTMLImageElement) => {
+    this.emit("ui-load", { image })
   }
 
   /**
@@ -147,9 +141,39 @@ export class UIVisibility extends UIElement<VisibilityVocabulary> {
     }
   }
 
-  /** `transition` as a `UI.transitions` name, `false` for `none` or an unknown name. */
-  private static animation(transition: string | null | undefined): AnimationName | false {
+  /**
+   * `transition` as a `UI.transitions` name, `false` for `none` or an unknown name.
+   * - STATIC:  pure.
+   */
+  private static animationFor(transition: string | undefined): E.AnimationName | false {
     const name = transition ?? FADE
-    return (AnimationNames as readonly string[]).includes(name) ? (name as AnimationName) : false
+    return (E.AnimationNames as readonly string[]).includes(name) ? (name as E.AnimationName) : false
   }
 }
+
+/** What a watch depends on. */
+type VisibilityConfig = {
+  /** the host is in the document */
+  connected: boolean
+  /** each event fires at most once (re-armed by a change here) */
+  once: boolean
+  /** events fire at every check while their condition holds */
+  continuous: boolean
+  /** px below the viewport top that count as the screen top */
+  offset: number
+  /** `type="image"`:  lazy-load the images inside */
+  images: boolean
+  /** a lazy image's fade, a `UI.transitions` name;  default `fade` */
+  transition: string | undefined
+  /** its ms */
+  duration: number
+}
+
+/** Default lazy-image transition (Fomantic's `fade in`). */
+const FADE = "fade"
+
+/** Its default ms (Fomantic's 1000). */
+const DEFAULT_DURATION = 1000
+
+/** A lazy image's `srcset`, set from `data-srcset` in a server render. */
+const SRCSET = "srcset"

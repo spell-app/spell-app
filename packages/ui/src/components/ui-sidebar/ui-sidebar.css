@@ -16,9 +16,10 @@
  *   under it (1) for `uncover` / `slide along` / `slide out`;  the pusher 2, its dimmer 1000.
  * - Static markup keeps Fomantic's sibling rules (`.ui.visible.left.sidebar ~ .pusher`);  the elements can't use
  *   them (the pusher is another element's shadow box), hence the tokens.
- * - Tokens:  `--ui-sidebar-duration`, `--ui-sidebar-width`, `--ui-sidebar-background`,
- *   `--ui-sidebar-dimmer-background` (Fomantic's lighter 0.4 dimmer), `--ui-pusher-background`;  `blurring` uses the
- *   shared `--ui-dimmer-blurred-background` / `--ui-dimmer-blur` (`ui-dimmer.css`).
+ * - Tokens:  `--ui-sidebar-duration`, `--ui-sidebar-width`, `--ui-sidebar-background`
+ *   (`--ui-sidebar-inverted-background` when `inverted`), `--ui-sidebar-dimmer-background` (Fomantic's lighter 0.4
+ *   dimmer), `--ui-pusher-background`;  `blurring` uses the shared `--ui-dimmer-blurred-background` /
+ *   `--ui-dimmer-blur` (`ui-dimmer.css`).
  * - Public tokens are NEVER declared here:  the ones a variation swaps (the width words, `inverted`) are read
  *   through a private alias on the sidebar box (`--_ui-sidebar-width: var(--ui-sidebar-width, 260px)`), the rest
  *   where they paint (read on several boxes, varied by nothing).  So a value set on `:root`, an ancestor, the host
@@ -271,7 +272,8 @@
   .ui.inverted.sidebar {
     --ui-inverted: 1;
     --ui-scheme: dark;
-    --_ui-sidebar-background: oklch(0.22 0.005 260);
+    --_ui-sidebar-inverted-background: var(--ui-sidebar-inverted-background, oklch(0.22 0.005 260));
+    --_ui-sidebar-background: var(--_ui-sidebar-inverted-background);
     color-scheme: dark;
   }
 

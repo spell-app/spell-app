@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-sidebar>`, `<ui-pushable>` and `<ui-pusher>` use:  tags, attributes (kind + allowed values),
- * events, slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * events, slots, parts, states, texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-sidebar position="right" width="thin" transition="scale down" visible>` =>
  *   `ui right thin scale down visible sidebar`.  Without `transition`, the element adds Fomantic's default for
@@ -12,7 +12,7 @@
  * - `pushable` / `pusher` have no `ui` (Fomantic's `.pushable`, `.pusher`).
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-sidebar>`
@@ -55,7 +55,7 @@ export const sidebarVocabulary = {
     {
       name: "visible",
       kind: "keyOnly",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
     },
     {
       name: "persistent",
@@ -80,7 +80,7 @@ export const sidebarVocabulary = {
       name: "ui-open",
       detail: "{ visible: true, originalEvent?: Event }",
       cancelable: true,
-      description: "About to show for a user action (an invoker command);  `preventDefault()` keeps it hidden."
+      description: "About to show for a person's action (an invoker command);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-show",
@@ -106,4 +106,4 @@ export const sidebarVocabulary = {
     { name: "visible", description: "Shown." }
   ],
   texts: [{ key: "sidebar", text: "Sidebar", description: "Accessible name of an unnamed sidebar." }]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

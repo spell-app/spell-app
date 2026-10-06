@@ -1,7 +1,7 @@
 /**
  * Every name `<ui-placeholder>` and its shapes use -- `<ui-placeholder-header>`, `<ui-placeholder-paragraph>`,
  * `<ui-placeholder-line>`, `<ui-placeholder-image>`:  tags, attributes (kind + allowed values), slots, parts,
- * states.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * states.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-placeholder fluid>` => `ui fluid placeholder`;  `<ui-placeholder-line length="very long">` =>
  *   `very long line`;  `<ui-placeholder-header image>` => `image header`.
@@ -11,7 +11,7 @@
  *   announces itself.  No texts.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-placeholder-paragraph>`
@@ -31,4 +31,4 @@ export const placeholderParagraphVocabulary = {
   parts: [{ name: "paragraph", description: "The paragraph block." }],
   states: [],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -129,6 +129,11 @@
     --_ui-steps-accent-on: var(--ui-steps-accent-on, white);
     /* ## The look:  a private alias per `step.variables` entry that still matters. */
     --_ui-step-background: var(--ui-step-background, var(--ui-surface));
+    /* A step of an `inverted` group:  the surface darkened. */
+    --_ui-step-inverted-background: var(
+      --ui-step-inverted-background,
+      color-mix(in oklab, var(--ui-surface) 70%, oklch(0 0 0))
+    );
     --_ui-step-color: var(--ui-step-color, var(--ui-text-color));
     --_ui-step-divider: var(--ui-step-divider, var(--ui-border-width) solid var(--ui-border-color));
     --_ui-step-border-color: var(--ui-step-border-color, var(--ui-border-color));
@@ -705,7 +710,7 @@
     --ui-inverted: 1;
     --ui-scheme: dark;
     color-scheme: dark;
-    --_ui-step-background: color-mix(in oklab, var(--ui-surface) 70%, oklch(0 0 0));
+    --_ui-step-background: var(--_ui-step-inverted-background);
     --_ui-step-active-background: color-mix(in oklab, var(--ui-ink) 13%, var(--_ui-step-background));
     --_ui-step-hover-background: color-mix(in oklab, var(--ui-ink) 16%, var(--_ui-step-background));
     --_ui-step-active-hover-background: color-mix(in oklab, var(--ui-ink) 20%, var(--_ui-step-background));

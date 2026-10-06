@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { metaVocabulary } from "./ui-meta.vocabulary.en"
+import { E } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { metaVocabulary } from "./ui-meta.vocabulary.en"
 
 /****************
  * ### `<ui-meta>`
@@ -10,5 +9,5 @@ import { PartElement } from "./PartElement"
  * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
  ****************/
 export class UIMeta extends PartElement<typeof metaVocabulary> {
-  @proto static vocabulary = metaVocabulary
+  @E.proto static vocabulary = metaVocabulary
 }

@@ -113,9 +113,7 @@ export class ControlLabels {
       const selector = `${E.LABEL_TAG}[${E.FOR_ATTRIBUTE}="${CSS.escape(host.id)}"]`
       for (const label of root.querySelectorAll<HTMLLabelElement>(selector)) found.add(label)
     }
-    return [...found]
-      .filter((label) => label.control === host)
-      .sort((a, b) => (a.compareDocumentPosition(b) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+    return [...found].filter((label) => label.control === host).sort(E.byDocumentOrder)
   }
 
   /**
@@ -187,6 +185,3 @@ const ARIA_LABELLEDBY = "aria-labelledby"
 
 /** Host attributes that change the name (`id` changes which `<label for>`s match). */
 const WATCHED_ATTRIBUTES = [ARIA_LABEL, ARIA_LABELLEDBY, "id"]
-
-/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global (a server render has none). */
-const DOCUMENT_POSITION_FOLLOWING = 4

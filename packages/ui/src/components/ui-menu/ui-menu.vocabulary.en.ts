@@ -1,6 +1,8 @@
 /**
  * Every name `<ui-menu>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only, `UIT` by value
+ *   straight from `components.types`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-menu secondary pointing size="large" items="3">` => `ui large pointing secondary three item menu`.
  *   `ui-menu.css` keys on those words.
@@ -14,8 +16,8 @@
  *   themselves;  `items="3"` / `items="equal"` stay as the older count-based aliases.
  */
 
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-menu>`
@@ -172,4 +174,4 @@ export const menuVocabulary = {
   ],
   texts: [],
   ownsParts: ["item", "menu", "header"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

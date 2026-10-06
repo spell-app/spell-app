@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-progress>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-progress size="small" color="teal" active indicating attached="top">` =>
  *   `ui small teal active indicating top attached progress`.
@@ -8,7 +8,7 @@
  * - `value` / `percent` are STRINGS:  one number, or a comma list for several bars (`value="10,20,30"`).
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-progress>`
@@ -123,4 +123,4 @@ export const progressVocabulary = {
     { key: "progressPercent", text: "{percent}%", description: '`bar-text="percent"` and the spoken value.' },
     { key: "progressRatio", text: "{value} of {total}", description: '`bar-text="ratio"`.' }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

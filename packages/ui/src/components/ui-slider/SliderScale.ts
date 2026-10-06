@@ -1,5 +1,3 @@
-import type { SliderScaleProps } from "./ui-slider.types"
-
 /****************
  * ### `SliderScale`
  * The number line of a slider:  `min` ... `max` in `step`s -- snapping, ratios along the track, and which steps get
@@ -8,6 +6,7 @@ import type { SliderScaleProps } from "./ui-slider.types"
  *   reached (the last step below it is).  `step` `0` allows any value.
  * - Floating point:  results are rounded to the step's own decimals, so `0.1` steps give `0.3`, not
  *   `0.30000000000000004`.
+ * - Exported from the family barrel:  an app can snap values the same way.
  ****************/
 export class SliderScale {
   /** Lowest value. */
@@ -96,9 +95,21 @@ export class SliderScale {
     return Math.round(value * factor) / factor
   }
 
-  /** Decimal places written in `value`. */
+  /** Decimal places written in `value`.  Static:  pure, and read in the constructor. */
   private static decimalsOf(value: number): number {
     const [, decimals = ""] = String(value).split(".")
     return decimals.length
   }
+}
+
+/** Constructor props for `SliderScale`. */
+export type SliderScaleProps = {
+  /** lowest value;  not finite ~== `0` */
+  min: number
+  /** highest value;  not finite, or below `min`, ~== `min` */
+  max: number
+  /** step;  not finite, or `<= 0`, ~== any value */
+  step: number
+  /** labels / ticks every this much;  absent or `<= 0` ~== every step */
+  tickStep?: number
 }

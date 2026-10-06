@@ -1,65 +1,97 @@
 /**
- * Shared constants, types and helpers of the `ui-modal` family:  what its element classes, vocabularies and native fallback share.
- * - Runtime-light:  no element code, so every file of the family may import it.
+ * Constants and types of the `ui-modal` family:  what `DialogElement` (so `<ui-modal>` and `<ui-flyout>`),
+ * `ModalDialogs` and the native fallbacks (`ModalFallback`, `FlyoutFallback`) share.
+ * - Pure data, at the bottom of the folder's imports:  `import type` only, plus `UIT`, so node can load it
+ *   (`yarn site:data`).  A constant only one class reads sits below that class (epic `wwod-spell-ui`, Q18).
  */
 
-import type { ComponentVocabulary, AttributeValues, CamelCase, AttributeName, EventName } from "$/ui/core"
+import * as UIT from "$/ui/components/components.types"
+import type { E } from "$/ui/core"
 import type { modalVocabulary } from "./ui-modal.vocabulary.en"
 
-/** The dialog attributes `DialogElement` reads, as converted values. */
+////////////////
+// ## The dialog vocabulary
+////////////////
+
+/** The modal's vocabulary type, for brevity. */
+export type Vocabulary = typeof modalVocabulary
+
+/**
+ * The dialog attributes `DialogElement` and `ModalFallback` read, whatever the vocabulary, as converted values.
+ * - Every dialog vocabulary (modal, flyout) MUST name them;  each family's tests check it.
+ */
 export type DialogAttributes = {
+  /** the close icon;  `false` (written) is also Fomantic's `closable: false` */
   closable?: boolean
+  /** what dismisses it, as `<dialog closedby>` */
   closedby?: "any" | "closerequest" | "none"
+  /** the `header` shorthand */
   header?: string
+  /** the `content` shorthand */
   content?: string
 }
+
+/** Name of an attribute in `DialogAttributes`, or the controlled `open`. */
+export type DialogAttributeName = keyof DialogAttributes | typeof OPEN
 
 /** Events every dialog vocabulary names. */
 export type DialogEventName = "ui-open" | "ui-show" | "ui-close" | "ui-hide" | "ui-approve" | "ui-deny"
 
 /** The converted type of `V`'s `open`. */
-export type OpenValue<V extends ComponentVocabulary> = AttributeValues<V>[CamelCase<AttributeName<V>> &
-  keyof AttributeValues<V>]
+export type OpenValue<V extends E.ComponentVocabulary> = E.AttributeValues<V>[E.CamelCase<E.AttributeName<V>> &
+  keyof E.AttributeValues<V>]
 
-/** The controlled attribute. */
+/** The controlled attribute:  shown. */
 export const OPEN = "open"
 
-/** `closedby` values the element reads. */
-export const ANY = "any"
-
-/** Close reasons it names itself. */
-export const ESCAPE = "escape"
-export const OUTSIDE = "outside"
-export const APPROVE = "approve"
-export const DENY = "deny"
-
-/** Attributes set on the dialog. */
-export const ARIA_LABELLEDBY = "aria-labelledby"
-export const CLOSEDBY = "closedby"
+/** Attribute of the close icon (and of Fomantic's `closable: false`). */
 export const CLOSABLE = "closable"
 
-/** `<ui-modal>` attributes it sets (canonical names). */
-export const SIZE = "size"
-export const TINY = "tiny"
-export const CLOSEREQUEST = "closerequest"
-export const ACTIONS = "actions"
+/** Attribute (and `<dialog>` attribute) saying what dismisses it. */
+export const CLOSEDBY = "closedby"
 
-/** `<ui-button>` attribute of the approve button. */
-export const PRIMARY = "primary"
-export const CANCEL = "cancel"
-export const OK = "ok"
+/** Attribute naming the dialog by its header's id. */
+export const ARIA_LABELLEDBY = "aria-labelledby"
 
-/** Events it waits for. */
-export const APPROVE_EVENT = "ui-approve"
-export const HIDE_EVENT = "ui-hide"
+////////////////
+// ## Events
+////////////////
 
-/** `native.css`'s opt-in class, for the prompt's input. */
-export const NATIVE_LOOK = "ui-native"
+/** An approve element was activated:  `ModalDialogs` answers yes;  the fallback fires it. */
+export const APPROVE_EVENT: E.EventName<Vocabulary> = "ui-approve"
 
-/** The prompt's label:  message above a full-width input. */
-export const LABEL_LAYOUT = "display: grid; gap: 0.5em"
+/** A deny element was activated:  the fallback fires it. */
+export const DENY_EVENT: E.EventName<Vocabulary> = "ui-deny"
 
-/** Events the fallback still fires, checked against the vocabulary. */
-export const APPROVE_EVENT_NAME: EventName<typeof modalVocabulary> = "ui-approve"
-export const DENY_EVENT_NAME: EventName<typeof modalVocabulary> = "ui-deny"
-export const HIDE_EVENT_NAME: EventName<typeof modalVocabulary> = "ui-hide"
+/** Hidden:  `ModalDialogs` settles on it;  the fallback fires it. */
+export const HIDE_EVENT: E.EventName<Vocabulary> = "ui-hide"
+
+////////////////
+// ## Actions
+////////////////
+
+/** What an activated element inside a dialog does:  `approve` or `deny` it (`UIT.MODAL_ACTION_SELECTORS`). */
+export type DialogAction = keyof typeof UIT.MODAL_ACTION_SELECTORS
+
+/**
+ * ### `DialogActions`
+ * Which approve / deny element a click activated:  shared by `DialogElement` and `ModalFallback`, which react
+ * differently (a vetoable close, or a plain `<dialog>` close).
+ * - Static, and plain DOM:  it reads only the event and the host it's given.
+ */
+export class DialogActions {
+  /**
+   * The approve / deny element `event` activated:  the innermost light-DOM element (in `host`'s tree) on its path
+   * matching `UIT.MODAL_ACTION_SELECTORS`, up to `host`;  `undefined` for none.
+   */
+  static actionFor(event: Event, host: Element): [DialogAction, Element] | undefined {
+    const scope = host.getRootNode()
+    for (const target of event.composedPath()) {
+      if (target === host) return undefined
+      if (!(target instanceof Element) || target.getRootNode() !== scope) continue
+      if (target.matches(UIT.MODAL_ACTION_SELECTORS.approve)) return ["approve", target]
+      if (target.matches(UIT.MODAL_ACTION_SELECTORS.deny)) return ["deny", target]
+    }
+    return undefined
+  }
+}

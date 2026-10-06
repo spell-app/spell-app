@@ -10,6 +10,8 @@ import type { MDEngine } from "./MDEngine"
  *   families its markup draws with.
  * - `loadSanitizer()`:  DOMPurify (`MarkdownSanitizer`), only for `sanitized`.
  * - The element only knows `render(text, options) -> { html, headings }` (`MarkdownRendering`).
+ * - Static:  the loads are page-wide, started once and shared by every `<ui-markdown>`;  the loaders are swapped
+ *   page-wide too.
  ****************/
 export class MarkdownRenderer {
   /**
@@ -32,9 +34,13 @@ export class MarkdownRenderer {
   static sanitizerLoader: () => Promise<{ MarkdownSanitizer: { instance: MarkdownSanitizer } }> = () =>
     import("./MarkdownSanitizer")
 
-  /** The engines' imports, each started once. */
+  /** marked's import (`load()`), started once. */
   private static engine?: Promise<MarkdownEngine>
+
+  /** Spell's engine's import (`loadMD()`), started once. */
   private static md?: Promise<MDEngine>
+
+  /** DOMPurify's import (`loadSanitizer()`), started once. */
   private static sanitizer?: Promise<MarkdownSanitizer>
 
   /** marked, loaded on first use. */

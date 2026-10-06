@@ -1,6 +1,7 @@
 /**
  * Every name `<ui-select>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only.
  * - Class words come out through `ClassBuilder`:  `<ui-select size="small" fluid state="error">` =>
  *   `ui small error fluid select`, on the shadow `<select>`.  `ui-select.css` keys on those words.
  * - NOTE: the noun is `select`, not Fomantic's `selection dropdown`:  the element IS a native `<select>` with its
@@ -10,7 +11,7 @@
  *   the `value` / `placeholder` attributes carry what SSR must show.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-select>`
@@ -23,7 +24,7 @@ export const selectVocabulary = {
   aka: ["select box", "native select", "picker", "option list"],
   skeleton: { display: "inline", width: "12em", height: "2.5em" },
   noun: "select",
-  description: "A select lets a user choose one or more values from a native list of options.",
+  description: "A select lets people choose one or more values from a native list of options.",
   attributes: [
     { name: "size", kind: "size", description: "Size, `mini` ... `massive`;  `medium` is the default." },
     {
@@ -65,7 +66,7 @@ export const selectVocabulary = {
     {
       name: "ui-change",
       detail: "{ value: string | string[], originalEvent?: Event }",
-      description: "The user chose a value (or changed the chosen set, with `multiple`)."
+      description: "Someone chose a value (or changed the chosen set, with `multiple`)."
     }
   ],
   slots: [
@@ -88,4 +89,4 @@ export const selectVocabulary = {
     { name: "customizable", description: "The browser draws the customizable select (`appearance: base-select`)." }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

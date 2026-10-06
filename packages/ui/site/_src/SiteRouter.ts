@@ -312,7 +312,7 @@ export class SiteRouter {
 
   /** Load the family defining `tag`, if any. */
   private static loadFamily(tag: string): Promise<void> {
-    const folder = RootLoader.folderOf(tag)
+    const folder = RootLoader.folderFor(tag)
     return folder ? RootLoader.load(folder) : Promise.resolve()
   }
 

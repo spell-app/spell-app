@@ -1,7 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { statisticsVocabulary } from "./ui-statistics.vocabulary.en"
 
 import statisticCSS from "./ui-statistic.css?inline"
@@ -14,10 +13,10 @@ import statisticCSS from "./ui-statistic.css?inline"
  *   the screen is, with `stack-with="page"` (a private class after the noun).
  * - No native fallback of its own:  a failed group keeps its statistics visible through the default `<slot>`.
  ****************/
-export class UIStatistics extends UIElement<typeof statisticsVocabulary> {
-  @proto static vocabulary = statisticsVocabulary
-  @proto static styles = { statistic: statisticCSS }
-  @proto static delegatesFocus = false
+export class UIStatistics extends E.UIElement<typeof statisticsVocabulary> {
+  @E.proto static vocabulary = statisticsVocabulary
+  @E.proto static styles = { statistic: statisticCSS }
+  @E.proto static delegatesFocus = false
 
   /**
    * `statistics` always;  `spaced` unless `horizontal` or `widths`, whose roots have no top margin.

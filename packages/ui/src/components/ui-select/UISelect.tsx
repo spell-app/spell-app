@@ -1,32 +1,16 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  Converters,
-  IconGlyph,
-  proto,
-  UI,
-  type AttributeName,
-  type FieldValue,
-  type MenuEntry,
-  type MenuOption,
-  type MenuSeparator,
-  type ValidationRule,
-  UIT
-} from "$/ui/core"
-import { ControlLabels, FormElement } from "$/ui/forms"
+import { E, UI, UIT } from "$/ui/core"
+import { F } from "$/ui/forms"
 // REFACTOR: `SlottedItems` reads `<ui-item>`s as data for the dropdown AND the select;  it belongs to the `item`
 // family (next to `itemVocabulary`), which would also spare the bundle a shared dropdown / select chunk
 import { SlottedItems } from "$/ui/components/ui-dropdown/SlottedItems"
-
 import { selectVocabulary } from "./ui-select.vocabulary.en"
 import { SelectFallback } from "./ui-select.fallback"
+import { DIVIDER, PLACEHOLDER, type SelectBlock, type Vocabulary } from "./ui-select.types"
 
 import selectCSS from "./ui-select.css?inline"
-import type { SelectVocabulary, SelectBlock } from "./ui-select.types"
-import { PLACEHOLDER, DIVIDER, IMAGE, FLAG, SelectFlags } from "./ui-select.types"
-import { HEADER, REQUIRED_RULE, ITEM, ICON, TEXT, DESCRIPTION } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-select>`
@@ -37,17 +21,19 @@ import { HEADER, REQUIRED_RULE, ITEM, ICON, TEXT, DESCRIPTION } from "$/ui/compo
  *   plain native select:  every option keeps its text, so nothing shows blank, and the closed box looks the same.
  * - Model:  slotted `<ui-item>`s (`SlottedItems`, shared with the dropdown) + the `options` property;  a `header`
  *   item opens an `<optgroup>`, a `divider` item is an `<hr>`.
- * - `value` is auto-controlled (`Controlled`):  a user change dispatches `ui-change` first;  a handler that re-sets
- *   `el.value` wins, and the select shows the host's value again.
+ * - `value` is auto-controlled (`Controlled`):  a person's change dispatches `ui-change` first;  a handler that
+ *   re-sets `el.value` wins, and the select shows the host's value again.
  * - Single:  an empty first option (the `placeholder`) stands while nothing is chosen, so the browser never
  *   silently chooses the first option;  `required` disables it (it can't be chosen back).
+ * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with;  a flag that isn't a code shows
+ *   as its text.
  * - Keyboard, picker, type-ahead and screen-reader semantics are the browser's.
  * - Form-associated:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
  ****************/
-export class UISelect extends FormElement<SelectVocabulary> {
-  @proto static vocabulary = selectVocabulary
-  @proto static styles = { select: selectCSS }
-  @proto static Fallback = SelectFallback
+export class UISelect extends F.FormElement<Vocabulary> {
+  @E.proto static vocabulary = selectVocabulary
+  @E.proto static styles = { select: selectCSS }
+  @E.proto static Fallback = SelectFallback
 
   ////////////////
   // ## State
@@ -57,10 +43,10 @@ export class UISelect extends FormElement<SelectVocabulary> {
   readonly items = new SlottedItems(this.host)
 
   /** Host `<label>`s and `aria-label`, as the select's name. */
-  readonly labels = new ControlLabels(this.formHost)
+  readonly labels = new F.ControlLabels(this.formHost)
 
-  /** Bumped on every user change, so the `<select>` re-syncs even when the value stayed (a host veto). */
-  readonly revision = new Cell(0)
+  /** Bumped on every change a person makes, so the `<select>` re-syncs even when the value stayed (a host veto). */
+  readonly revision = new E.Cell(0)
 
   /** `value`:  host-controlled, or internal;  starts from `selected` items. */
   readonly valueState = this.controlled("value", this.selectedItemValues() as never)
@@ -84,14 +70,14 @@ export class UISelect extends FormElement<SelectVocabulary> {
   /** What the select holds:  slotted entries grouped under their headers, then the `options` property. */
   readonly blocks = createMemo((): readonly SelectBlock[] => {
     const blocks: SelectBlock[] = []
-    let group: { header: MenuSeparator; options: MenuOption[] } | undefined
+    let groupOptions: E.MenuOption[] | undefined
     for (const entry of this.items.entries()) {
       if (!("type" in entry)) {
-        if (group) group.options.push(entry)
+        if (groupOptions) groupOptions.push(entry)
         else blocks.push(entry)
-      } else if (entry.type === HEADER) blocks.push((group = { header: entry, options: [] }))
+      } else if (entry.type === UIT.HEADER) blocks.push({ header: entry, options: (groupOptions = []) })
       else {
-        group = undefined
+        groupOptions = undefined
         blocks.push(entry)
       }
     }
@@ -100,8 +86,8 @@ export class UISelect extends FormElement<SelectVocabulary> {
 
   /** Every option, in order. */
   readonly all = createMemo(
-    (): readonly MenuOption[] => [...this.items.entries().filter(UISelect.isOption), ...this.propOptions()],
-    { equals: UISelect.sameItems }
+    (): readonly E.MenuOption[] => [...this.items.entries().filter(UISelect.isOption), ...this.propOptions()],
+    { equals: UISelect.isSameList }
   )
 
   /** Chosen values, always as an array. */
@@ -110,13 +96,13 @@ export class UISelect extends FormElement<SelectVocabulary> {
       const value = this.valueState.get() as unknown
       if (Array.isArray(value)) return value.map(String)
       if (typeof value !== "string" || value === "") return []
-      return this.attrs.multiple ? Converters.list(value) : [value]
+      return this.attrs.multiple ? E.Converters.list(value) : [value]
     },
-    { equals: UISelect.sameItems }
+    { equals: UISelect.isSameList }
   )
 
   /** Render the empty first option:  single, and a `placeholder` or nothing chosen yet. */
-  readonly showsPlaceholder = createMemo(
+  readonly isShowingPlaceholder = createMemo(
     () => !this.attrs.multiple && (this.attrs.placeholder !== undefined || !this.values().length)
   )
 
@@ -129,20 +115,26 @@ export class UISelect extends FormElement<SelectVocabulary> {
     return this.labels.name() ?? this.attrs.placeholder ?? this.attrs.name
   }
 
+  /** Draws the customizable select?  Single only, and only once the runtime (`UI.browser`) is there. */
+  private isCustomizable(): boolean {
+    return this.loaded() && !this.attrs.multiple && UI.browser.supports.baseSelect
+  }
+
   ////////////////
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<SelectVocabulary>): unknown {
+  /** The `disabled` class:  also by a disabled fieldset. */
+  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
     if (name === "disabled") return this.isDisabled()
     return super.classValue(name)
   }
 
   protected hostStates() {
-    return { disabled: this.isDisabled(), fluid: this.attrs.fluid, customizable: this.customizable() }
+    return { disabled: this.isDisabled(), fluid: this.attrs.fluid, customizable: this.isCustomizable() }
   }
 
-  formValue(): FieldValue {
+  formValue(): E.FieldValue {
     const values = this.values()
     return this.attrs.multiple ? values : (values[0] ?? null)
   }
@@ -151,13 +143,14 @@ export class UISelect extends FormElement<SelectVocabulary> {
     return this.attrs.name
   }
 
+  /** Back to the starting value;  the `<select>` shows it again. */
   formReset() {
     this.valueState.set(this.initialValue as never)
     this.revision.set(untrack(() => this.revision.get()) + 1)
   }
 
-  protected rules(): ValidationRule[] {
-    return this.attrs.required ? [REQUIRED_RULE] : []
+  protected rules(): E.ValidationRule[] {
+    return this.attrs.required ? [UIT.REQUIRED_RULE] : []
   }
 
   protected validationLabel(): string | undefined {
@@ -168,11 +161,6 @@ export class UISelect extends FormElement<SelectVocabulary> {
     return this.select
   }
 
-  /** Draws the customizable select?  Single only, and only once the runtime (`UI.browser`) is there. */
-  private customizable(): boolean {
-    return this.loaded() && !this.attrs.multiple && UI.browser.supports.baseSelect
-  }
-
   ////////////////
   // ## Rendering
   ////////////////
@@ -180,7 +168,7 @@ export class UISelect extends FormElement<SelectVocabulary> {
   /** Adds the DOM sync (state => `<select>`) and the label refresh to `FormElement.mount()`. */
   mount() {
     createEffect(
-      () => [this.values(), this.blocks(), this.showsPlaceholder(), this.revision.get(), this.loaded()],
+      () => [this.values(), this.blocks(), this.isShowingPlaceholder(), this.revision.get(), this.loaded()],
       () => this.syncSelect()
     )
     createEffect(
@@ -202,16 +190,16 @@ export class UISelect extends FormElement<SelectVocabulary> {
         disabled={this.isDisabled()}
         required={this.attrs.required}
         aria-label={this.label()}
-        aria-invalid={this.validation().valid ? undefined : "true"}
+        aria-invalid={this.validation().valid ? undefined : UIT.TRUE}
         {...this.staticSelect()}
         onChange={this.onChange}
       >
-        <Show when={this.customizable()}>
-          <button type="button" part={this.part("button")}>
+        <Show when={this.isCustomizable()}>
+          <button type={UIT.BUTTON} part={this.part("button")}>
             <selectedcontent />
           </button>
         </Show>
-        <Show when={this.showsPlaceholder()}>
+        <Show when={this.isShowingPlaceholder()}>
           <option
             class={PLACEHOLDER}
             part={this.part("placeholder")}
@@ -245,31 +233,31 @@ export class UISelect extends FormElement<SelectVocabulary> {
    * - Only the TEXT parts (flag emoji, text, description) count in a plain select:  it shows the option's text
    *   content.  A space keeps the description apart from the text there.
    */
-  private option(option: MenuOption): JSX.Element {
-    const glyph = new IconGlyph(this, () => (typeof option.icon === "string" ? option.icon : undefined))
+  private option(option: E.MenuOption): JSX.Element {
+    const glyph = new E.IconGlyph(this, () => (typeof option.icon === "string" ? option.icon : undefined))
     return (
       <option
-        class={ITEM}
+        class={UIT.ITEM}
         part={this.part("option")}
         value={option.value}
         disabled={!!option.disabled}
         {...this.staticOption(option.value)}
       >
         <Show when={typeof option.icon === "string"}>
-          <span class={ICON} aria-hidden="true">
+          <span class={UIT.ICON} aria-hidden={UIT.TRUE}>
             {glyph.svg()}
           </span>
         </Show>
         <Show when={typeof option.image === "string"}>
-          <img class={IMAGE} src={option.image as string} alt="" />
+          <img class={AVATAR_IMAGE} src={option.image as string} alt="" />
         </Show>
         <Show when={typeof option.flag === "string"}>
-          <span class={FLAG}>{SelectFlags.emoji(option.flag as string)}</span>
+          <span class={FLAG}>{UIT.Flags.emojiFor(option.flag as string) || (option.flag as string)}</span>
         </Show>
-        <span class={TEXT}>{option.text}</span>
+        <span class={UIT.TEXT}>{option.text}</span>
         <Show when={option.description}>
           {" "}
-          <span class={DESCRIPTION}>{option.description}</span>
+          <span class={UIT.DESCRIPTION}>{option.description}</span>
         </Show>
       </option>
     )
@@ -293,14 +281,14 @@ export class UISelect extends FormElement<SelectVocabulary> {
     if (!isServer) return {}
     const values = this.values()
     if (value !== "") return { selected: values.includes(value) }
-    const required = this.attrs.required && this.attrs.placeholder !== undefined
-    return { selected: !values.length, disabled: required || !values.length }
+    const isRequired = this.attrs.required && this.attrs.placeholder !== undefined
+    return { selected: !values.length, disabled: isRequired || !values.length }
   }
 
   /**
    * Show the chosen values in the `<select>`.
    * - Runs after every DOM update that could move the browser's selection (options added, the placeholder
-   *   removed) and after each user change, so the select always shows the element's value.
+   *   removed) and after each change a person makes, so the select always shows the element's value.
    */
   private syncSelect() {
     const { select } = this
@@ -315,7 +303,7 @@ export class UISelect extends FormElement<SelectVocabulary> {
   // ## Handlers
   ////////////////
 
-  /** The user changed the selection:  `ui-change` through `Controlled`, then re-sync. */
+  /** Someone changed the selection:  `ui-change` through `Controlled`, then re-sync. */
   private readonly onChange = (event: Event) => {
     const select = event.currentTarget as HTMLSelectElement
     const chosen = [...select.selectedOptions].map((option) => option.value).filter((value) => value !== "")
@@ -337,13 +325,33 @@ export class UISelect extends FormElement<SelectVocabulary> {
     return untrack(() => this.attrs.multiple) ? values : values[0]
   }
 
-  /** Is `entry` an option (not a header or divider)? */
-  private static isOption(entry: MenuEntry): entry is MenuOption {
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * Is `entry` an option (not a header or divider)?
+   * - STATIC:  pure, a `filter()` predicate.
+   */
+  private static isOption(entry: E.MenuEntry): entry is E.MenuOption {
     return !("type" in entry)
   }
 
-  /** Same items in the same order?  Memo `equals` for arrays. */
-  private static sameItems<T>(a: readonly T[], b: readonly T[]): boolean {
+  /**
+   * Same items in the same order?  Memo `equals` for arrays.
+   * - STATIC:  pure, handed to `createMemo()`.
+   */
+  private static isSameList<T>(a: readonly T[], b: readonly T[]): boolean {
     return a.length === b.length && a.every((item, index) => item === b[index])
   }
 }
+
+////////////////
+// ## Constants
+////////////////
+
+/** Class words of an option's `image`. */
+const AVATAR_IMAGE = "ui avatar image"
+
+/** Class word of an option's `flag`. */
+const FLAG = "flag"

@@ -6,8 +6,7 @@
  *   - registers `ToastStack` as `UI.toasts`' provider once the runtime has loaded, so `UI.toast({...})` works
  */
 
-import { isBrowser, UI } from "$/ui/core"
-
+import { E, UI } from "$/ui/core"
 import { UIToast } from "./UIToast"
 import { UIToastHost } from "./UIToastHost"
 import { ToastStack } from "./ToastStack"
@@ -15,6 +14,6 @@ import { ToastStack } from "./ToastStack"
 import "$/ui/components/ui-button"
 
 UIToast.define()
-if (isBrowser()) void UI.load().then(() => UI.toasts.register(new ToastStack()))
+if (E.isBrowser()) void UI.load().then(() => UI.toasts.register(new ToastStack()))
 
 export { UIToast, UIToastHost, ToastStack }

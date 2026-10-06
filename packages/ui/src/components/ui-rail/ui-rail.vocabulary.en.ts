@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-rail>` uses:  tag, attributes (kind + allowed values), slots, parts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-rail position="left" close="very">`
  *   => `ui left very close rail`.  `ui-rail.css` keys on those words.
  * - `position` is the SIDE, emitted as a bare word (`left rail`), hence `kind: "valueOnly"` (as the
  *   menu's `position`).  Fomantic has no side-less rail:  without one the rail sits over its container's start.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-rail>`
@@ -44,4 +44,4 @@ export const railVocabulary = {
   parts: [{ name: "rail", description: "The rail box." }],
   states: [],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

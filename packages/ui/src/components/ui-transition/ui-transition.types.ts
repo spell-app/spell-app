@@ -1,13 +1,22 @@
 /**
- * Loose constants, types and helpers of `<ui-transition>`:  the element class, the vocabulary and the native fallback
- * import them from here.
+ * Constants and types of the `ui-transition` family:  what its element (`UITransition`), vocabulary and native
+ * fallback share.
+ * - Pure data, at the bottom of the folder's imports:  `import type` only, so node can load it (`yarn site:data`),
+ *   and the vocabulary can value-import the animation names.  A constant only one class reads sits below that
+ *   class (epic `wwod-spell-ui`, Q18).
  */
 
-import { transitionVocabulary } from "./ui-transition.vocabulary.en"
-import type { AnimationDirection, EventName } from "$/ui/core"
+import type { transitionVocabulary } from "./ui-transition.vocabulary.en"
+
+/** Vocabulary type, for brevity. */
+export type Vocabulary = typeof transitionVocabulary
+
+////////////////
+// ## Animations
+////////////////
 
 /** Fomantic's appear / disappear animations, as the `animation` attribute takes them:  run `in` or `out`. */
-export const TRANSITION_VISIBILITY_ANIMATIONS = [
+export const VisibilityAnimations = [
   "fade",
   "fade up",
   "fade down",
@@ -38,45 +47,13 @@ export const TRANSITION_VISIBILITY_ANIMATIONS = [
 ] as const
 
 /** Fomantic's attention animations:  run `static`, in place, visibility unchanged. */
-export const TRANSITION_ATTENTION_ANIMATIONS = ["flash", "shake", "bounce", "tada", "pulse", "jiggle", "glow"] as const
+export const AttentionAnimations = ["flash", "shake", "bounce", "tada", "pulse", "jiggle", "glow"] as const
 
 /** Every animation name `animation` takes. */
-export const TRANSITION_ANIMATIONS = [...TRANSITION_VISIBILITY_ANIMATIONS, ...TRANSITION_ATTENTION_ANIMATIONS] as const
+export const TransitionAnimations = [...VisibilityAnimations, ...AttentionAnimations] as const
 
-////////////////
-// ## UITransition
-////////////////
+/** One of `TransitionAnimations`, Fomantic's spelling (`fade up`). */
+export type TransitionAnimation = (typeof TransitionAnimations)[number]
 
-/** TransitionVocabulary type, for brevity. */
-export type TransitionVocabulary = typeof transitionVocabulary
-
-/** One queued animation. */
-export type TransitionStep = {
-  direction: AnimationDirection
-  /** Fomantic's name */
-  animation: string
-  /** resolves when it has run:  `true` finished, `false` superseded */
-  done: Promise<boolean>
-  resolve: (completed: boolean) => void
-}
-export const STATIC = "static"
-
-/** Default of `animation` (the vocabulary's). */
-export const DEFAULT_ANIMATION = "fade"
-
-/** Fomantic names whose runtime name isn't the kebab-cased one. */
-export const RUNTIME_NAMES: Readonly<Record<string, string>> = {
-  "horizontal flip": "flip-horizontal",
-  "vertical flip": "flip-vertical",
-  slide: "slide-down",
-  swing: "swing-down"
-}
-
-////////////////
-// ## ui-transition.fallback
-////////////////
-
-/** Events it still fires, checked against the vocabulary. */
-export const SHOW: EventName<typeof transitionVocabulary> = "ui-show"
-export const HIDE: EventName<typeof transitionVocabulary> = "ui-hide"
-export const COMPLETE: EventName<typeof transitionVocabulary> = "ui-complete"
+/** Default of `animation`:  the vocabulary's default, and the fallback's `detail.animation` without one. */
+export const DEFAULT_ANIMATION = "fade" satisfies TransitionAnimation

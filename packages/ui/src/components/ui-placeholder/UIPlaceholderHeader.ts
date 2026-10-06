@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { placeholderHeaderVocabulary } from "./ui-placeholder-header.vocabulary.en"
+import { E } from "$/ui/core"
 import { PlaceholderShape } from "./PlaceholderShape"
+import { placeholderHeaderVocabulary } from "./ui-placeholder-header.vocabulary.en"
 
 /****************
  * ### `<ui-placeholder-header>`
@@ -9,5 +8,5 @@ import { PlaceholderShape } from "./PlaceholderShape"
  * `<div class="[image] header" part="header"><slot></slot></div>`.
  ****************/
 export class UIPlaceholderHeader extends PlaceholderShape<typeof placeholderHeaderVocabulary> {
-  @proto static vocabulary = placeholderHeaderVocabulary
+  @E.proto static vocabulary = placeholderHeaderVocabulary
 }

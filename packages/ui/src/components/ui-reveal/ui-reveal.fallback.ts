@@ -1,6 +1,6 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { revealVocabulary } from "./ui-reveal.vocabulary.en"
+import { HIDDEN, HIDDEN_CONTENT, VISIBLE_CONTENT } from "./ui-reveal.types"
 
 /****************
  * ### `RevealFallback`
@@ -8,25 +8,25 @@ import { revealVocabulary } from "./ui-reveal.vocabulary.en"
  * (`slot=visible`, the default slot) and the hidden one (`slot=hidden`), so `ui-reveal.css` still reveals on hover,
  * focus and `active`.
  ****************/
-export class RevealFallback extends NativeFallback<typeof revealVocabulary> {
-  @proto static vocabulary = revealVocabulary
-  @proto static degraded = [
+export class RevealFallback extends E.NativeFallback<typeof revealVocabulary> {
+  @E.proto static vocabulary = revealVocabulary
+  @E.proto static degraded = [
     "skipping the root's tab stop when the content is focusable (always a stop, unless disabled)",
     "the `aria-label` forwarding"
   ]
 
   protected override build() {
-    const disabled = this.flag("disabled")
-    const visible = this.create("div", { class: "visible content", part: "visible" })
-    visible.append(this.create("slot", { name: "visible" }), this.slot())
-    const hidden = this.create(
+    const isDisabled = this.flag("disabled")
+    const visible = this.create(
       "div",
-      { class: "hidden content", part: "hidden" },
-      this.create("slot", { name: "hidden" })
+      { class: VISIBLE_CONTENT, part: UIT.VISIBLE },
+      this.create("slot", { name: UIT.VISIBLE }),
+      this.slot()
     )
+    const hidden = this.create("div", { class: HIDDEN_CONTENT, part: HIDDEN }, this.create("slot", { name: HIDDEN }))
     const reveal = this.create(
       "div",
-      { class: this.classes(), tabindex: disabled ? null : "0", role: disabled ? null : "group" },
+      { class: this.classes(), tabindex: isDisabled ? undefined : "0", role: isDisabled ? undefined : UIT.GROUP },
       visible,
       hidden
     )

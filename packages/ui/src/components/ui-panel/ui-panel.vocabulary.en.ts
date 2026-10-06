@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-panel>` uses:  `<ui-section>`'s vocabulary under the panel's own tag, description and other names.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Built ON the section's:  the same attributes, slots, parts, events, states and texts, so this file can't drift from
  *   what the element does, and an attribute the section gains reaches the panel with no change here (`source`, once
  *   epic `claude-design`'s P2 "Section Sources" merges:  load the body the first time it's unfolded).
@@ -11,7 +11,7 @@
  *   `<ui-panel color="violet">` => `ui violet section panel`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 import { sectionVocabulary } from "$/ui/components/ui-section/ui-section.vocabulary.en"
 
 // NOTE:  above the vocabulary, which reads them as it's built
@@ -46,4 +46,4 @@ export const panelVocabulary = {
         ? { ...spec, description: FOLD_ICON_DESCRIPTION }
         : spec
   )
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

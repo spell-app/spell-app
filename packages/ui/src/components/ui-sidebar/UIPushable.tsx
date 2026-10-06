@@ -1,15 +1,12 @@
 import { createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, type UIHost, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { pushableVocabulary } from "./ui-pushable.vocabulary.en"
 import { SidebarFallback } from "./ui-sidebar.fallback"
+import { CENTER, NONE_TRANSFORM, type PushableVocabulary } from "./ui-sidebar.types"
 
 import sidebarCSS from "./ui-sidebar.css?inline"
-import { PUSHABLE, CENTER, ON, OFF, INERT } from "./ui-sidebar.types"
-import type { PushableVocabulary } from "./ui-sidebar.types"
-import { NONE, VISIBLE } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-pushable>`
@@ -22,14 +19,14 @@ import { NONE, VISIBLE } from "$/ui/components/components.types"
  * - SIDE EFFECT on the light DOM:  while a MODAL sidebar is visible, every other child (the pusher, other sidebars)
  *   gets `inert`, removed again when it hides -- only the `inert`s it added.
  ****************/
-export class UIPushable extends UIElement<PushableVocabulary> {
-  @proto static vocabulary = pushableVocabulary
-  @proto static styles = { sidebar: sidebarCSS }
-  @proto static Fallback = SidebarFallback
-  @proto static delegatesFocus = false
+export class UIPushable extends E.UIElement<PushableVocabulary> {
+  @E.proto static vocabulary = pushableVocabulary
+  @E.proto static styles = { sidebar: sidebarCSS }
+  @E.proto static Fallback = SidebarFallback
+  @E.proto static delegatesFocus = false
 
   /** What each visible sidebar asks for. */
-  readonly layouts = new Cell<ReadonlyMap<Element, UIT.SidebarLayout>>(new Map())
+  readonly layouts = new E.Cell<ReadonlyMap<Element, UIT.SidebarLayout>>(new Map())
 
   /** The root, which carries the tokens. */
   private root?: HTMLDivElement
@@ -58,7 +55,7 @@ export class UIPushable extends UIElement<PushableVocabulary> {
   /** Sidebars that rendered (and reported) before this element had a controller:  ask them again. */
   private askSidebars() {
     for (const child of this.host.children) {
-      const sidebar = (child as UIHost).controller as { reportLayout?: () => void } | undefined
+      const sidebar = (child as E.UIHost).controller as { reportLayout?: () => void } | undefined
       sidebar?.reportLayout?.()
     }
   }
@@ -81,10 +78,10 @@ export class UIPushable extends UIElement<PushableVocabulary> {
     const root = this.root
     if (!root) return
     const visible = [...layouts.values()]
-    const pushing = visible.filter((layout) => layout.transform !== NONE)
+    const pushing = visible.filter((layout) => layout.transform !== NONE_TRANSFORM)
     const push = pushing.length === 1 ? pushing[0] : undefined
     const modal = visible.find((layout) => layout.modal)
-    root.style.setProperty(UIT.PUSHER_TOKENS.transform, push?.transform ?? NONE)
+    root.style.setProperty(UIT.PUSHER_TOKENS.transform, push?.transform ?? NONE_TRANSFORM)
     root.style.setProperty(UIT.PUSHER_TOKENS.origin, push?.origin ?? CENTER)
     root.style.setProperty(UIT.PUSHER_TOKENS.dimmed, modal ? ON : OFF)
     root.style.setProperty(UIT.PUSHER_TOKENS.blurring, modal?.blurring ? ON : OFF)
@@ -105,6 +102,18 @@ export class UIPushable extends UIElement<PushableVocabulary> {
 
   /** A sidebar that isn't showing:  already out of reach, no `inert` needed. */
   private isHiddenSidebar(child: Element): boolean {
-    return child.matches(`:state(${UIT.SIDEBAR_HOST_STATE}):not(:state(${VISIBLE}))`)
+    return child.matches(`:state(${UIT.SIDEBAR_HOST_STATE}):not(:state(${UIT.VISIBLE}))`)
   }
 }
+
+/** Class word of the root (`ui-sidebar.css`). */
+const PUSHABLE = "pushable"
+
+/** A `PUSHER_TOKENS` switch on:  dimmed, blurring. */
+const ON = "1"
+
+/** A `PUSHER_TOKENS` switch off. */
+const OFF = "0"
+
+/** The attribute it adds to the children beside a modal sidebar. */
+const INERT = "inert"

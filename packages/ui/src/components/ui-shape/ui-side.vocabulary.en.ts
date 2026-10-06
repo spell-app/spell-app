@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-shape>` and `<ui-side>` use:  tags, attributes (kind + allowed values), events, slots, parts,
- * states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * states, texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-shape cube>` => `ui cube shape`;  the
  *   element adds `animating` after the noun while it flips.
  * - A side has no `ui` (Fomantic's `.side`);  which one shows is the shape's `active-index`, not an attribute of the
  *   side.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-side>`
@@ -33,4 +33,4 @@ export const sideVocabulary = {
     { name: "leaving", description: "Turning out of view (set by the shape)." }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -46,6 +46,9 @@
 
 @layer ui.components.search.types, ui.components.search.content, ui.components.search.variations, ui.components.search.states;
 
+/* Breakpoints (`@custom-media`), inlined at build time:  the scrolling result counts and the phone width. */
+@import "../../styles/media.css";
+
 /* Loader spin, for a `loading` search whose input isn't marked `loading` itself (static markup). */
 @keyframes ui-search-spin {
   to {
@@ -387,17 +390,17 @@
     max-height: none;
     resize: vertical;
   }
-  @media (width >= 768px) {
+  @media (--ui-tablet), (--ui-computer) {
     .ui.search {
       --_search-results-rows: 6;
     }
   }
-  @media (width >= 992px) {
+  @media (--ui-computer) {
     .ui.search {
       --_search-results-rows: 8;
     }
   }
-  @media (width >= 1920px) {
+  @media (--ui-widescreen) {
     .ui.search {
       --_search-results-rows: 12;
     }
@@ -430,7 +433,7 @@
   }
 
   /* Phones:  never wider than the screen. */
-  @media (width < 768px) {
+  @media (--ui-mobile) {
     .ui.search > .results {
       max-width: calc(100vw - 2em);
     }

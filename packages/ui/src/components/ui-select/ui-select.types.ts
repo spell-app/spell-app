@@ -1,67 +1,65 @@
 /**
- * Loose constants, types and helpers of `<ui-select>`:  its element classes and native fallback import them from here.
+ * Types of the `ui-select` family:  what its element class (`UISelect`) and its native fallback (`SelectFallback`)
+ * share.
+ * - Pure data, at the bottom of the folder's imports:  types only (`$/ui/core`, the vocabulary), so node can load it
+ *   (`yarn site:data`).
+ * - Its other class words and part names are module constants below the one class that uses them (epic
+ *   `wwod-spell-ui`, Q18).
  */
 
-import * as UIT from "$/ui/components/components.types"
-import type { MenuOption, MenuSeparator, PartName } from "$/ui/core"
+import type { E, UIT } from "$/ui/core"
 import type { selectVocabulary } from "./ui-select.vocabulary.en"
 
 ////////////////
-// ## UISelect
+// ## Element
 ////////////////
 
-/** SelectVocabulary type, for brevity. */
-export type SelectVocabulary = typeof selectVocabulary
+/** Vocabulary type, for brevity. */
+export type Vocabulary = typeof selectVocabulary
 
 /** A header item and the options after it, as one `<optgroup>`. */
 export type OptionGroup = {
-  header: MenuSeparator
-  options: readonly MenuOption[]
+  /** the `header` item:  the group's label */
+  header: E.MenuSeparator
+  /** the options up to the next header or divider */
+  options: readonly E.MenuOption[]
 }
 
 /** What the `<select>` holds, in order:  options, groups and dividers. */
-export type SelectBlock = MenuOption | OptionGroup | MenuSeparator
+export type SelectBlock = E.MenuOption | OptionGroup | E.MenuSeparator
 
 ////////////////
-// ## ui-select.fallback
+// ## Markup:  shared by the element and its fallback
+////////////////
+
+/** Class word of the empty first option (the `placeholder` text). */
+export const PLACEHOLDER = "placeholder"
+
+/** Class word of a divider (`<hr>`);  also `<ui-item type="divider">`. */
+export const DIVIDER = "divider"
+
+////////////////
+// ## Fallback
 ////////////////
 
 /** One option, header or divider, from either source. */
 export type Choice = {
-  type: "item" | "header" | "divider"
+  /** an option, a group header or a divider */
+  type: UIT.ItemType
+  /** shown text:  the flag emoji, the text and the description, as a plain select shows them */
   text: string
+  /** submitted value */
   value: string
+  /** can't be chosen */
   disabled: boolean
+  /** chosen by its own `selected` */
   selected: boolean
 }
 
 /** The parts of a `<ui-select>` the fallback touches;  all optional, the element may not have upgraded. */
 export type SelectHost = HTMLElement & {
-  value?: UIT.SelectValue | null
-  options?: readonly MenuOption[]
+  /** chosen value(s), once set as a property */
+  value?: UIT.SelectValue
+  /** the `options` property, once set */
+  options?: readonly E.MenuOption[]
 }
-
-/** Part names the fallback writes itself (`decorate()` checks only the root's). */
-export const PARTS = {
-  placeholder: "placeholder",
-  group: "group",
-  option: "option"
-} as const satisfies Record<string, PartName<typeof selectVocabulary>>
-
-/** Flags of the `flag` option attribute, for the element and its native fallback. */
-export class SelectFlags {
-  /** Flag code => emoji through `UIT.Flags`, as `<ui-flag>` draws it (`fr`, `gb-eng`);  other text unchanged. */
-  static emoji(code: string): string {
-    return UIT.Flags.emojiFor(code) || code
-  }
-}
-
-////////////////
-// ## UISelect (markup)
-////////////////
-
-/** Class words of the markup contract (`ui-select.css`) -- grammar, not attributes, so not in the vocabulary. */
-export const PLACEHOLDER = "placeholder"
-export const DIVIDER = "divider"
-export const IMAGE = "ui avatar image"
-export const FLAG = "flag"

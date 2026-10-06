@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-table>` uses:  tag, attributes (kind + allowed values), events, slots, parts, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar, and are MIRRORED onto the slotted
  *   `<table>` (see `UITable`):  `<ui-table size="small" celled basic="very" stuck="head first">` =>
  *   `ui small celled very basic head stuck first stuck table`.
@@ -10,7 +10,7 @@
  *   list is `column-defs` (`columnDefs`), so the two never collide.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-table>`
@@ -36,7 +36,7 @@ export const tableVocabulary = {
     { name: "definition", kind: "keyOnly", description: "First column is a definition column;  blank corner." },
     { name: "fixed", kind: "keyOnly", description: "`table-layout: fixed`;  overflowing cell text is cut with `…`." },
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds:  the dark scheme." },
-    { name: "resizable", kind: "keyOnly", description: "With `scrolling`:  the user can drag the height." },
+    { name: "resizable", kind: "keyOnly", description: "With `scrolling`:  people can drag the height." },
     { name: "selectable", kind: "keyOnly", description: "Body rows highlight on hover." },
     {
       name: "single-line",
@@ -134,7 +134,7 @@ export const tableVocabulary = {
       name: "sort-column",
       kind: "number",
       description:
-        "Index of the sorted column (0-based, counting `colspan`s);  set by the user's clicks unless the app " +
+        "Index of the sorted column (0-based, counting `colspan`s);  set by people's clicks unless the app " +
         "controls it."
     },
     {
@@ -200,4 +200,4 @@ export const tableVocabulary = {
       description: "Name of the scrolling region when the host has no `aria-label` and the table no `<caption>`."
     }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -1,5 +1,5 @@
+import { UIT } from "$/ui/core"
 import { CLASS } from "./ui-table.types"
-import { WHITESPACE } from "$/ui/components/components.types"
 
 /****************
  * ### `TableClassMirror`
@@ -72,6 +72,8 @@ export class TableClassMirror {
    * `table`'s class text with `classes` mirrored in once:  its author words, then the element's phrase.
    * - For a static server render (`UITable.decorateStatic()`):  no observer, nothing owned yet;  the same text a
    *   first `apply()` writes.
+   * - `text` is `getAttribute()`'s:  `null` when absent (a platform boundary).
+   * - Static:  one call, nothing to mirror into later.
    */
   static mirrored(text: string | null, classes: string): string {
     const ours = TableClassMirror.words(classes)
@@ -79,8 +81,8 @@ export class TableClassMirror {
     return [...TableClassMirror.words(text).filter((word) => !mine.has(word)), ...ours].join(" ")
   }
 
-  /** Class words of `text`, in order. */
+  /** Class words of `text`, in order.  Static:  pure, for `mirrored()` too. */
   private static words(text: string | null): string[] {
-    return text ? text.split(WHITESPACE).filter(Boolean) : []
+    return text ? text.split(UIT.WHITESPACE).filter(Boolean) : []
   }
 }

@@ -2,43 +2,14 @@ import { For, Repeat, Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 import { onFormStateRestore } from "@spell-app/solid-element"
 
-import { Cell, Converters, proto, UI, UIT, type AttributeName, type FieldValue } from "$/ui/core"
-import { ControlLabels, FormElement } from "$/ui/forms"
-
+import { E, UI, UIT } from "$/ui/core"
+import { F } from "$/ui/forms"
 import { sliderVocabulary } from "./ui-slider.vocabulary.en"
 import { SliderFallback } from "./ui-slider.fallback"
 import { SliderScale } from "./SliderScale"
+import { DEFAULT_MAX, DEFAULT_MIN, DEFAULT_STEP } from "./ui-slider.types"
 
 import sliderCSS from "./ui-slider.css?inline"
-import {
-  DEFAULT_MIN,
-  DEFAULT_MAX,
-  DEFAULT_STEP,
-  SECOND,
-  INNER,
-  FROM,
-  FIRST,
-  TO,
-  TRACK,
-  TRACK_FILL,
-  LABELS,
-  SECOND_THUMB,
-  THUMB,
-  SLIDER,
-  AT,
-  LABEL_DISTANCE,
-  HALF_TICK_LABEL,
-  ARROW_UP,
-  ARROW_LEFT,
-  ARROW_RIGHT,
-  PAGE_UP,
-  PAGE_MULTIPLIER,
-  PAGE_DOWN,
-  SECOND_CLASS,
-  HIDDEN
-} from "./ui-slider.types"
-import type { Thumb } from "./ui-slider.types"
-import { VERTICAL, TRUE, GROUP, LABEL, HOME, END, ARROW_DOWN } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-slider>`
@@ -60,10 +31,10 @@ import { VERTICAL, TRUE, GROUP, LABEL, HOME, END, ARROW_DOWN } from "$/ui/compon
  * - Form:  `value`;  a `range` submits TWO entries under `name` (`FormData.getAll(name)` ~== `[value, end]`), per
  *   `FormElement`'s multi-value convention.  Restores a saved state (back / forward cache, autofill).
  ****************/
-export class UISlider extends FormElement<typeof sliderVocabulary> {
-  @proto static vocabulary = sliderVocabulary
-  @proto static styles = { slider: sliderCSS }
-  @proto static Fallback = SliderFallback
+export class UISlider extends F.FormElement<typeof sliderVocabulary> {
+  @E.proto static vocabulary = sliderVocabulary
+  @E.proto static styles = { slider: sliderCSS }
+  @E.proto static Fallback = SliderFallback
 
   /** `value`:  the host's property, else `min`. */
   readonly valueState = this.controlled("value", undefined)
@@ -72,16 +43,16 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   readonly endState = this.controlled("end", undefined)
 
   /** Host `<label>`s and `aria-label`, as the thumb's (or range group's) name. */
-  readonly labels = new ControlLabels(this.formHost)
+  readonly labels = new F.ControlLabels(this.formHost)
 
   /** Thumb being dragged, if any. */
-  readonly dragging = new Cell<Thumb | undefined>(undefined)
+  readonly dragging = new E.Cell<Thumb | undefined>(undefined)
 
   /** `smooth` drag:  where the dragged thumb is drawn, `0` ... `1`. */
-  readonly glide = new Cell<number | undefined>(undefined)
+  readonly glide = new E.Cell<number | undefined>(undefined)
 
   /** Length of the track in px, for label spacing;  `0` until measured. */
-  readonly trackLength = new Cell(0)
+  readonly trackLength = new E.Cell(0)
 
   /** The number line. */
   readonly scale = createMemo(
@@ -103,7 +74,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   /** Thumb being dragged, for the handlers:  `dragging` is a microtask late (Solid's writes land on a flush). */
   private dragThumb?: Thumb
 
-  constructor(...args: ConstructorParameters<typeof FormElement>) {
+  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
     super(...args)
     this.host.addEventListener("click", this.onHostClick)
     onFormStateRestore((state) => this.restore(state))
@@ -147,7 +118,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
     return this.attrs.disabled || this.formDisabled.get()
   }
 
-  /** Can the user change it?  Tracked. */
+  /** Can a person change it?  Tracked. */
   isInteractive(): boolean {
     return !this.isDisabled() && !this.attrs.readonly
   }
@@ -163,7 +134,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
     return UI.i18n.formatNumber(value)
   }
 
-  protected classValue(name: AttributeName<typeof sliderVocabulary>): unknown {
+  protected classValue(name: E.AttributeName<typeof sliderVocabulary>): unknown {
     if (name === "disabled") return this.isDisabled()
     return super.classValue(name)
   }
@@ -176,7 +147,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   // ## Form
   ////////////////
 
-  formValue(): FieldValue {
+  formValue(): E.FieldValue {
     return this.isRange() ? [String(this.value()), String(this.end())] : String(this.value())
   }
 
@@ -186,11 +157,11 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
 
   /** Back to the `value` / `end` ATTRIBUTES. */
   formReset() {
-    this.valueState.set(Converters.number(this.host.getAttribute(this.attributeName("value"))) as never)
-    this.endState.set(Converters.number(this.host.getAttribute(this.attributeName("end"))) as never)
+    this.valueState.set(E.Converters.number(this.host.getAttribute(this.attributeName("value"))) as never)
+    this.endState.set(E.Converters.number(this.host.getAttribute(this.attributeName("end"))) as never)
   }
 
-  /** A saved state:  one value, or a range's two entries. */
+  /** A saved state:  one value, or a range's two entries.  `null`:  the fork's callback, a platform boundary. */
   private restore(state: File | string | FormData | null) {
     const values =
       state instanceof FormData ? [...state.values()].map(String) : typeof state === "string" ? [state] : []
@@ -199,7 +170,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   }
 
   /** Localized attribute name of canonical `name`. */
-  private attributeName(name: AttributeName<typeof sliderVocabulary>): string {
+  private attributeName(name: E.AttributeName<typeof sliderVocabulary>): string {
     return this.definition.attribute(name).attribute
   }
 
@@ -250,7 +221,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
    *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
    */
   private innerStyle(): Record<string, string> {
-    return { [FROM]: String(this.ratio(FIRST, true)), [TO]: String(this.ratio(SECOND, true)) }
+    return { [FROM]: String(this.ratio(FIRST, { isFill: true })), [TO]: String(this.ratio(SECOND, { isFill: true })) }
   }
 
   render(): JSX.Element {
@@ -259,10 +230,10 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
         <div
           ref={(element) => (this.inner = element)}
           class={INNER}
-          role={this.isRange() ? GROUP : undefined}
+          role={this.isRange() ? UIT.GROUP : undefined}
           aria-label={this.isRange() ? this.labels.name() : undefined}
           style={this.innerStyle()}
-          {...this.staticMark(this.isRange())}
+          {...this.staticMark(UIT.GROUP)}
           onPointerDown={this.onPointerDown}
           onPointerMove={this.onPointerMove}
           onPointerUp={this.onPointerUp}
@@ -274,7 +245,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
           <Show when={this.isRange()}>{this.thumb(SECOND)}</Show>
         </div>
         <Show when={this.attrs.labeled || this.attrs.ticked}>
-          <ul class={LABELS} part={this.part("labels")} aria-hidden="true">
+          <ul class={LABELS} part={this.part("labels")} aria-hidden={UIT.TRUE}>
             <Repeat count={this.scale().intervals + 1}>{(index) => this.label(index)}</Repeat>
           </ul>
         </Show>
@@ -285,11 +256,11 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
 
   /**
    * Where `thumb` is drawn, `0` ... `1`:  its value's ratio, or the pointer while gliding (`smooth`).
-   * - `fill`:  for the track fill, where a single thumb's fill starts at `0`.
+   * - `isFill`:  an end of the track fill instead, where a single thumb's fill starts at `0`.
    */
-  private ratio(thumb: Thumb, fill = false): number {
-    if (fill && thumb === FIRST && !this.isRange()) return 0
-    if (fill && thumb === SECOND && !this.isRange()) thumb = FIRST
+  private ratio(thumb: Thumb, { isFill = false }: { isFill?: boolean } = {}): number {
+    if (isFill && thumb === FIRST && !this.isRange()) return 0
+    if (isFill && thumb === SECOND && !this.isRange()) thumb = FIRST
     const glide = this.glide.get()
     if (glide !== undefined && this.dragging.get() === thumb) return glide
     return this.scale().ratio(this.thumbValue(thumb))
@@ -309,21 +280,23 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
         aria-valuenow={this.thumbValue(thumb)}
         aria-valuetext={this.valueText(this.thumbValue(thumb))}
         aria-label={this.thumbName(thumb)}
-        aria-orientation={this.attrs.vertical ? VERTICAL : undefined}
-        aria-disabled={this.isDisabled() ? TRUE : undefined}
-        aria-readonly={this.attrs.readonly ? TRUE : undefined}
-        {...this.staticMark(thumb === FIRST && !this.isRange())}
+        aria-orientation={this.attrs.vertical ? UIT.VERTICAL : undefined}
+        aria-disabled={this.isDisabled() ? UIT.TRUE : undefined}
+        aria-readonly={this.attrs.readonly ? UIT.TRUE : undefined}
+        {...this.staticMark(thumb)}
         onKeyDown={(event) => this.onKeyDown(thumb, event)}
       />
     )
   }
 
   /**
-   * Server render only (`$/ui/static`):  the `STATIC_CONTROL` mark when `on` -- a single thumb, else a range's
-   * group, whichever the host's name belongs to;  `{}` in a browser.
+   * Server render only (`$/ui/static`):  the `STATIC_CONTROL` mark on `target` when the host's name belongs to it --
+   * a single slider's thumb, a range's group;  `{}` in a browser.
    */
-  private staticMark(on: boolean): Record<string, unknown> {
-    return isServer && on ? { [UIT.STATIC_CONTROL]: "" } : {}
+  private staticMark(target: Thumb | typeof UIT.GROUP): Record<string, unknown> {
+    if (!isServer) return {}
+    const isNamed = target === UIT.GROUP ? this.isRange() : target === FIRST && !this.isRange()
+    return isNamed ? { [UIT.STATIC_CONTROL]: "" } : {}
   }
 
   /**
@@ -360,7 +333,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
       index === scale().intervals
     return (
       <li
-        class={full() ? LABEL : HALF_TICK_LABEL}
+        class={full() ? UIT.LABEL : HALF_TICK_LABEL}
         part={this.part("label")}
         style={{ [AT]: String(scale().ratio(value())) }}
       >
@@ -374,7 +347,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   ////////////////
 
   /**
-   * Move `thumb` to `value` (within its bounds) as the user:  `ui-input` first, then the host property, unless a
+   * Move `thumb` to `value` (within its bounds) as a person would:  `ui-input` first, then the host property, unless a
    * handler re-set it.  Returns true when the value changed.
    */
   private move(thumb: Thumb, value: number, originalEvent: Event): boolean {
@@ -404,8 +377,8 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
     let next: number | undefined
     const steps = this.keySteps(event.key)
     if (steps) next = scale.move(current, steps)
-    else if (event.key === HOME) next = untrack(() => this.bounds(thumb))[0]
-    else if (event.key === END) next = untrack(() => this.bounds(thumb))[1]
+    else if (event.key === UIT.Key.home) next = untrack(() => this.bounds(thumb))[0]
+    else if (event.key === UIT.Key.end) next = untrack(() => this.bounds(thumb))[1]
     if (next === undefined) return
     event.preventDefault()
     if (!untrack(() => this.isInteractive())) return
@@ -417,12 +390,13 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   private keySteps(key: string): number {
     const { vertical, reversed } = untrack(() => this.attrs)
     // the value grows downward on a vertical slider (min at the top) and leftward on a reversed horizontal one
-    const grows = vertical ? (reversed ? ARROW_UP : ARROW_DOWN) : reversed ? ARROW_LEFT : ARROW_RIGHT
-    const shrinks = vertical ? (reversed ? ARROW_DOWN : ARROW_UP) : reversed ? ARROW_RIGHT : ARROW_LEFT
-    if (key === grows || (!vertical && key === ARROW_UP) || (vertical && key === ARROW_RIGHT)) return 1
-    if (key === shrinks || (!vertical && key === ARROW_DOWN) || (vertical && key === ARROW_LEFT)) return -1
-    if (key === PAGE_UP) return PAGE_MULTIPLIER
-    if (key === PAGE_DOWN) return -PAGE_MULTIPLIER
+    const { arrowUp, arrowDown, arrowLeft, arrowRight, pageUp, pageDown } = UIT.Key
+    const grows = vertical ? (reversed ? arrowUp : arrowDown) : reversed ? arrowLeft : arrowRight
+    const shrinks = vertical ? (reversed ? arrowDown : arrowUp) : reversed ? arrowRight : arrowLeft
+    if (key === grows || (!vertical && key === arrowUp) || (vertical && key === arrowRight)) return 1
+    if (key === shrinks || (!vertical && key === arrowDown) || (vertical && key === arrowLeft)) return -1
+    if (key === pageUp) return PAGE_MULTIPLIER
+    if (key === pageDown) return -PAGE_MULTIPLIER
     return 0
   }
 
@@ -432,13 +406,13 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
     event.preventDefault()
     const ratio = this.pointerRatio(event)
     // the pressed element itself:  delegated handlers may see a retargeted `event.target`
-    const target = (event.composedPath()[0] as Element).closest?.(`.${THUMB}`)
+    const target = (event.composedPath()[0] as Element).closest?.(THUMB_SELECTOR)
     const thumb = target ? (target.classList.contains(SECOND_CLASS) ? SECOND : FIRST) : this.nearest(ratio)
     this.capture(event.pointerId)
     this.dragStart = untrack(() => [this.value(), this.end()] as const)
     this.dragThumb = thumb
     this.dragging.set(thumb)
-    this.inner.querySelectorAll<HTMLElement>(`.${THUMB}`)[thumb]?.focus()
+    this.inner.querySelectorAll<HTMLElement>(THUMB_SELECTOR)[thumb]?.focus()
     if (!target) this.drag(thumb, ratio, event)
   }
 
@@ -491,7 +465,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   private pointerRatio(event: PointerEvent): number {
     const inner = this.inner!
     const box = inner.getBoundingClientRect()
-    const thumb = inner.querySelector<HTMLElement>(`.${THUMB}`)
+    const thumb = inner.querySelector<HTMLElement>(THUMB_SELECTOR)
     const { vertical, reversed } = untrack(() => this.attrs)
     const size = vertical ? (thumb?.offsetHeight ?? 0) : (thumb?.offsetWidth ?? 0)
     const length = (vertical ? box.height : box.width) - size
@@ -513,6 +487,63 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
   /** A click aimed at the HOST itself (its `<label for>`) focuses the first thumb. */
   private readonly onHostClick = (event: MouseEvent) => {
     if (event.composedPath()[0] !== this.host || this.isDisabled()) return
-    this.inner?.querySelector<HTMLElement>(`.${THUMB}`)?.focus()
+    this.inner?.querySelector<HTMLElement>(THUMB_SELECTOR)?.focus()
   }
 }
+
+/** A thumb:  the first (`value`) or, in a range, the second (`end`);  also its index among the thumbs. */
+type Thumb = 0 | 1
+
+/** The first thumb. */
+const FIRST: Thumb = 0
+
+/** A range's second thumb. */
+const SECOND: Thumb = 1
+
+/** Fomantic's `labelDistance`:  least px between full labels. */
+const LABEL_DISTANCE = 100
+
+/** Fomantic's `pageMultiplier`:  steps per PageUp / PageDown. */
+const PAGE_MULTIPLIER = 2
+
+/** Class of the inner box:  track, fill, thumbs. */
+const INNER = "inner"
+
+/** Class of the track. */
+const TRACK = "track"
+
+/** Class of the track's selected stretch. */
+const TRACK_FILL = "track-fill"
+
+/** Class of a thumb. */
+const THUMB = "thumb"
+
+/** A thumb, as a selector. */
+const THUMB_SELECTOR = `.${THUMB}`
+
+/** Class word of a range's second thumb. */
+const SECOND_CLASS = "second"
+
+/** Classes of a range's second thumb. */
+const SECOND_THUMB = `${SECOND_CLASS} ${THUMB}`
+
+/** Classes of the labels' list. */
+const LABELS = "auto labels"
+
+/** Classes of a label too crowded to show in full:  a half tick. */
+const HALF_TICK_LABEL = "halftick label"
+
+/** Custom property `ui-slider.css` places a thumb or label by:  its ratio along the track. */
+const AT = "--_slider-at"
+
+/** Custom property of the fill's start ratio. */
+const FROM = "--_slider-from"
+
+/** Custom property of the fill's end ratio. */
+const TO = "--_slider-to"
+
+/** Role of a thumb. */
+const SLIDER = "slider"
+
+/** `type` of the inputs carrying the value in a static server render. */
+const HIDDEN = "hidden"

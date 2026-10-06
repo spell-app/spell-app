@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-statistic>` and `<ui-statistics>` use:  tags, attributes (kind + allowed values), slots, parts,
- * states.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * states.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-statistic size="large" color="red"
  *   horizontal>` => `ui large red horizontal statistic`;  `<ui-statistics widths="3" stackable>` => `ui stackable
  *   three statistics`.  `ui-statistic.css` keys on those words.
@@ -13,8 +13,8 @@
  *   a `<ui-label>` before a `<ui-value>` is Fomantic's top label.
  */
 
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-statistics>`
@@ -76,4 +76,4 @@ export const statisticsVocabulary = {
     }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

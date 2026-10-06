@@ -1,15 +1,13 @@
 import { Repeat, Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UI, UIElement, ValueSets, type AttributeName } from "$/ui/core"
-
-import { progressVocabulary } from "./ui-progress.vocabulary.en"
-import { ProgressFallback } from "./ui-progress.fallback"
+import { E, UI, UIT } from "$/ui/core"
 import { ProgressValues } from "./ProgressValues"
+import { ProgressFallback } from "./ui-progress.fallback"
+import { LIST_SPLIT } from "./ui-progress.types"
+import { progressVocabulary } from "./ui-progress.vocabulary.en"
 
 import progressCSS from "./ui-progress.css?inline"
-import { PROGRESSBAR, SUCCESS, RATIO, LIST_SEPARATOR, BAR_TEXT, UTILITY_PREFIX } from "./ui-progress.types"
-import { LABEL, BAR } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-progress>`
@@ -28,14 +26,14 @@ import { LABEL, BAR } from "$/ui/components/components.types"
  * - Events:  `ui-change` when the percentage changes, `ui-complete` when it reaches 100 -- both after the first
  *   render, whatever wrote the numbers (there is no user input).
  ****************/
-export class UIProgress extends UIElement<typeof progressVocabulary> {
-  @proto static vocabulary = progressVocabulary
-  @proto static styles = { progress: progressCSS }
-  @proto static Fallback = ProgressFallback
-  @proto static delegatesFocus = false
+export class UIProgress extends E.UIElement<typeof progressVocabulary> {
+  @E.proto static vocabulary = progressVocabulary
+  @E.proto static styles = { progress: progressCSS }
+  @E.proto static Fallback = ProgressFallback
+  @E.proto static delegatesFocus = false
 
   /** Host text (slotted label), re-read when it changes. */
-  readonly hostText = new Cell((this.host.textContent ?? "").trim())
+  readonly hostText = new E.Cell((this.host.textContent ?? "").trim())
 
   /** The numbers, from `value` / `total` / `percent` / `precision`. */
   readonly numbers = createMemo(
@@ -50,13 +48,13 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
 
   /** Hue per bar, from `bar-colors`;  unknown words dropped. */
   readonly barColors = createMemo(() =>
-    (this.attrs.barColors ?? "").split(/[\s,]+/).map((hue) => (ValueSets.has("hues", hue) ? hue : undefined))
+    (this.attrs.barColors ?? "").split(LIST_SPLIT).map((hue) => (E.ValueSets.has("hues", hue) ? hue : undefined))
   )
 
   /** Percentage when the last `ui-change` went out, to tell when it reaches 100. */
   private lastPercent = untrack(() => this.numbers().percent)
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     this.host.internals.role = PROGRESSBAR
     if (isServer) return
@@ -87,7 +85,7 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
     return this.isComplete() && this.numbers().bars === 1 ? SUCCESS : undefined
   }
 
-  protected classValue(name: AttributeName<typeof progressVocabulary>): unknown {
+  protected classValue(name: E.AttributeName<typeof progressVocabulary>): unknown {
     if (name === "state") return this.state()
     return super.classValue(name)
   }
@@ -112,8 +110,8 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
   /** Text for bar `index` (every bar together without one), in the `bar-text` format. */
   barText(index?: number): string {
     const numbers = this.numbers()
-    const ratio = this.attrs.barText === RATIO && numbers.total !== undefined
-    return numbers.fill(this.text(ratio ? "progressRatio" : "progressPercent"), index, this.format)
+    const isRatio = this.attrs.barText === RATIO && numbers.total !== undefined
+    return numbers.fill(this.text(isRatio ? "progressRatio" : "progressPercent"), index, this.format)
   }
 
   /** The `label` shorthand with its placeholders filled in. */
@@ -149,16 +147,19 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
     return super.mount()
   }
 
-  /** ARIA values for the internals;  tracked. */
+  /**
+   * ARIA values for the internals;  tracked.
+   * - `null`, not `undefined`:  what `ElementInternals` takes to clear one, a platform boundary.
+   */
   private aria() {
     const numbers = this.numbers()
-    const indeterminate = this.isIndeterminate()
+    const isIndeterminate = this.isIndeterminate()
     const total = numbers.total
     const texts = Array.from({ length: numbers.bars }, (_, index) => this.barText(index))
     return {
       max: String(total ?? 100),
-      now: indeterminate ? null : String(total !== undefined ? numbers.value : numbers.percent),
-      text: indeterminate ? null : texts.join(LIST_SEPARATOR),
+      now: isIndeterminate ? null : String(total !== undefined ? numbers.value : numbers.percent),
+      text: isIndeterminate ? null : texts.join(LIST_SEPARATOR),
       label: this.labelText() || this.hostText.get() || null
     }
   }
@@ -166,11 +167,11 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
   /** The numbers changed:  `ui-change`, and `ui-complete` when it just reached 100. */
   private changed(numbers: ProgressValues) {
     if (numbers.percent === this.lastPercent) return
-    const reached = numbers.percent >= 100 && this.lastPercent < 100
+    const hasReached = numbers.percent >= 100 && this.lastPercent < 100
     this.lastPercent = numbers.percent
     const { percent, shown, value, total } = numbers
     this.emit("ui-change", { percent, percents: [...shown], value, total })
-    if (reached) this.emit("ui-complete", { value, total })
+    if (hasReached) this.emit("ui-complete", { value, total })
   }
 
   render(): JSX.Element {
@@ -181,7 +182,7 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
         data-percent={this.isIndeterminate() ? undefined : String(Math.round(this.numbers().percent))}
       >
         <Repeat count={this.numbers().bars}>{(index) => this.bar(index)}</Repeat>
-        <div class={LABEL} part={this.part("label")}>
+        <div class={UIT.LABEL} part={this.part("label")}>
           <slot>{this.labelText()}</slot>
         </div>
       </div>
@@ -204,7 +205,7 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
   /** `bar`, with `ui-<hue>` (the colour remap) from `bar-colors`. */
   private barClass(index: number): string {
     const hue = this.barColors()[index]
-    return hue ? `${UTILITY_PREFIX}${hue} ${BAR}` : BAR
+    return hue ? `${UIT.COLOR_CLASS_PREFIX}${hue} ${UIT.BAR}` : UIT.BAR
   }
 
   /**
@@ -215,15 +216,30 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
     if (this.isIndeterminate()) return {}
     const { percents, bars } = this.numbers()
     const percent = percents[index] ?? 0
-    const multiple = bars > 1
-    const shown = percents.map((value, at) => value > 0 || (at === bars - 1 && percents.every((p) => p === 0)))
-    if (multiple && !shown[index]) return { display: "none" }
+    const isMultiple = bars > 1
+    const shown = percents.map((value, at) => value > 0 || (at === bars - 1 && percents.every((it) => it === 0)))
+    if (isMultiple && !shown[index]) return { display: "none" }
     const first = shown.indexOf(true)
     const last = shown.lastIndexOf(true)
     const style: JSX.CSSProperties = { width: `${percent}%` }
-    if (!multiple) return style
+    if (!isMultiple) return style
     if (index !== first) Object.assign(style, { "border-top-left-radius": "0", "border-bottom-left-radius": "0" })
     if (index !== last) Object.assign(style, { "border-top-right-radius": "0", "border-bottom-right-radius": "0" })
     return style
   }
 }
+
+/** Host role. */
+const PROGRESSBAR = "progressbar"
+
+/** The automatic outcome at 100%. */
+const SUCCESS = "success"
+
+/** `bar-text` value for the ratio format. */
+const RATIO = "ratio"
+
+/** Joins several bars' texts into one `aria-valuetext`. */
+const LIST_SEPARATOR = ", "
+
+/** Class of a bar's text (Fomantic's `.bar > .progress`). */
+const BAR_TEXT = "progress"

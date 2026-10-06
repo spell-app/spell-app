@@ -1,15 +1,12 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-
-import { statisticVocabulary } from "./ui-statistic.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { StatisticFallback } from "./ui-statistic.fallback"
+import { VALUE } from "./ui-statistic.types"
+import { statisticVocabulary } from "./ui-statistic.vocabulary.en"
 
 import statisticCSS from "./ui-statistic.css?inline"
-import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
-import { LABEL_CLASS, VALUE_CLASS } from "./ui-statistic.types"
-import { TEXT } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-statistic>`
@@ -20,15 +17,16 @@ import { TEXT } from "$/ui/components/components.types"
  *   `ui-statistic.css` declares on the root (layout, value sizes, `--ui-inverted`).  Registered by `define()`.
  * - Shorthands are the SAME parts, drawn in this shadow root:  `<div class="value in-statistic">` and `<div
  *   class="label in-statistic">` -- the static part classes `ui-parts.css` keys on (they ARE children of this root),
- *   which is why this element adopts `ui-parts.css` too.  `text` makes the value shorthand a word value.
+ *   which is why this element adopts `ui-parts.css` too (`E.ContentPart.styles`).  `text` makes the value shorthand
+ *   a word value.
  * - No role:  a statistic is text;  the page names a group of them where it matters (a heading, `aria-label` on a
  *   region).
  ****************/
-export class UIStatistic extends UIElement<typeof statisticVocabulary> {
-  @proto static vocabulary = statisticVocabulary
-  @proto static styles = { statistic: statisticCSS, parts: partsCSS }
-  @proto static Fallback = StatisticFallback
-  @proto static delegatesFocus = false
+export class UIStatistic extends E.UIElement<typeof statisticVocabulary> {
+  @E.proto static vocabulary = statisticVocabulary
+  @E.proto static styles = { statistic: statisticCSS, ...E.ContentPart.styles }
+  @E.proto static Fallback = StatisticFallback
+  @E.proto static delegatesFocus = false
 
   protected hostStates() {
     return { statistic: true, inverted: this.attrs.inverted }
@@ -44,7 +42,7 @@ export class UIStatistic extends UIElement<typeof statisticVocabulary> {
         </Show>
         <slot />
         <Show when={this.attrs.label}>
-          <div class={LABEL_CLASS} part={this.part("label")}>
+          <div class={this.staticPart(UIT.LABEL)} part={this.part("label")}>
             {this.attrs.label}
           </div>
         </Show>
@@ -54,6 +52,12 @@ export class UIStatistic extends UIElement<typeof statisticVocabulary> {
 
   /** Classes of the value shorthand:  `[text] value in-statistic`. */
   private valueClass(): string {
-    return this.attrs.text ? `${TEXT} ${VALUE_CLASS}` : VALUE_CLASS
+    const value = this.staticPart(VALUE)
+    return this.attrs.text ? `${UIT.TEXT} ${value}` : value
+  }
+
+  /** Classes of a shorthand:  the part noun and the static owner class, e.g. `label in-statistic`. */
+  private staticPart(noun: string): string {
+    return `${noun} ${UIT.PART_STATIC_CLASS_PREFIX}${this.vocabulary.noun}`
   }
 }

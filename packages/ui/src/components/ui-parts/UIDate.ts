@@ -1,8 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { dateVocabulary } from "./ui-date.vocabulary.en"
+import { E } from "$/ui/core"
 import { PartElement } from "./PartElement"
-import { TIME } from "./ui-parts.types"
+import { dateVocabulary } from "./ui-date.vocabulary.en"
 
 /****************
  * ### `<ui-date>`
@@ -10,7 +8,7 @@ import { TIME } from "./ui-parts.types"
  * - Inside a feed summary it goes inline and small:  `ui-parts.css` style-queries the summary's `--_ui-part`.
  ****************/
 export class UIDate extends PartElement<typeof dateVocabulary> {
-  @proto static vocabulary = dateVocabulary
+  @E.proto static vocabulary = dateVocabulary
 
   protected tag(): string {
     return TIME
@@ -20,3 +18,6 @@ export class UIDate extends PartElement<typeof dateVocabulary> {
     return this.attrs.datetime
   }
 }
+
+/** Root element. */
+const TIME = "time"

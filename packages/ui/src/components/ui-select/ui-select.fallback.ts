@@ -1,9 +1,7 @@
-import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
 import { itemVocabulary } from "$/ui/components/ui-item/ui-item.vocabulary.en"
-
 import { selectVocabulary } from "./ui-select.vocabulary.en"
-import { PARTS, SelectFlags } from "./ui-select.types"
-import type { SelectHost, Choice } from "./ui-select.types"
+import { DIVIDER, PLACEHOLDER, type Choice, type SelectHost, type Vocabulary } from "./ui-select.types"
 
 /****************
  * ### `SelectFallback`
@@ -18,9 +16,9 @@ import type { SelectHost, Choice } from "./ui-select.types"
  *   `ui-change` fires.  The form value is also set on first render, so the form submits without a change.
  * - Accessible name:  the host's `aria-label`, else `placeholder`.
  ****************/
-export class SelectFallback extends NativeFallback<typeof selectVocabulary> {
-  @proto static vocabulary = selectVocabulary
-  @proto static degraded = [
+export class SelectFallback extends E.NativeFallback<Vocabulary> {
+  @E.proto static vocabulary = selectVocabulary
+  @E.proto static degraded = [
     "the customizable picker:  option icons and images (flags and descriptions stay, as text)",
     "a host `<label for>` naming the select (use `aria-label`)",
     "`:state(invalid)`, `:state(customizable)`",
@@ -32,57 +30,59 @@ export class SelectFallback extends NativeFallback<typeof selectVocabulary> {
 
   protected override build() {
     const host = this.host as SelectHost
-    const multiple = this.flag("multiple")
-    const required = this.flag("required")
+    const isMultiple = this.flag("multiple")
+    const isRequired = this.flag("required")
+    // `attr()` is `getAttribute()`:  `null` when absent
     const placeholder = this.attr("placeholder")
     const select = this.create("select", {
       class: this.classes(),
-      multiple,
-      required,
+      multiple: isMultiple,
+      required: isRequired,
       disabled: this.flag("disabled")
     })
     this.decorate(select, "select")
-    if (!select.hasAttribute("aria-label") && placeholder) select.setAttribute("aria-label", placeholder)
+    if (!select.hasAttribute(UIT.ARIA_LABEL) && placeholder) select.setAttribute(UIT.ARIA_LABEL, placeholder)
 
     const choices = this.choices(host)
-    const chosen = this.chosen(host, multiple, choices)
-    if (!multiple && (placeholder !== null || !chosen.size)) {
-      const empty = this.create("option", {
-        value: "",
-        class: "placeholder",
-        disabled: required && placeholder !== null
-      })
-      empty.textContent = placeholder ?? ""
-      empty.setAttribute("part", PARTS.placeholder)
+    const chosen = this.chosen(host, choices)
+    if (!isMultiple && (placeholder !== null || !chosen.size)) {
+      const empty = this.create(
+        "option",
+        {
+          value: "",
+          class: PLACEHOLDER,
+          part: PLACEHOLDER_PART,
+          disabled: isRequired && placeholder !== null
+        },
+        placeholder ?? ""
+      )
       empty.selected = !chosen.size
       select.append(empty)
     }
 
     let group: HTMLElement = select
     for (const choice of choices) {
-      if (choice.type === "header") {
-        select.append((group = this.create("optgroup", { label: choice.text, part: PARTS.group })))
-      } else if (choice.type === "divider") {
-        select.append(this.create("hr", { class: "divider" }))
+      if (choice.type === UIT.HEADER) {
+        select.append((group = this.create("optgroup", { label: choice.text, part: GROUP_PART })))
+      } else if (choice.type === DIVIDER) {
+        select.append(this.create("hr", { class: DIVIDER }))
         group = select
       } else {
-        const option = this.create("option", { value: choice.value, disabled: choice.disabled, class: "item" })
-        option.textContent = choice.text
-        option.setAttribute("part", PARTS.option)
+        const option = this.create(
+          "option",
+          { value: choice.value, disabled: choice.disabled, class: UIT.ITEM, part: OPTION_PART },
+          choice.text
+        )
         option.selected = chosen.has(choice.value)
         group.append(option)
       }
     }
 
     this.listen(select, "change", (event) => {
-      const value = this.sync(select, multiple)
+      const value = this.sync(select)
       host.value = value
       host.dispatchEvent(
-        new CustomEvent(selectVocabulary.events[0].name, {
-          bubbles: true,
-          composed: true,
-          detail: { value, originalEvent: event }
-        })
+        new CustomEvent(CHANGE_EVENT, { bubbles: true, composed: true, detail: { value, originalEvent: event } })
       )
     })
     this.select = select
@@ -91,37 +91,38 @@ export class SelectFallback extends NativeFallback<typeof selectVocabulary> {
 
   /** First form value + validity, which need the select attached. */
   protected override attached() {
-    this.sync(this.select!, this.select!.multiple)
+    this.sync(this.select!)
   }
 
   /** Values the host says are chosen:  `value` property, else attribute, else `selected` items. */
-  private chosen(host: SelectHost, multiple: boolean, choices: readonly Choice[]): Set<string> {
+  private chosen(host: SelectHost, choices: readonly Choice[]): Set<string> {
+    const isMultiple = this.flag("multiple")
     const value = host.value ?? this.attr("value")
     if (Array.isArray(value)) return new Set(value.map(String))
-    if (value != null && value !== "") return new Set(multiple ? Converters.list(String(value)) : [String(value)])
-    const picked = choices.filter((choice) => choice.type === "item" && choice.selected).map((choice) => choice.value)
-    return new Set(multiple ? picked : picked.slice(0, 1))
+    if (value != null && value !== "") return new Set(isMultiple ? E.Converters.list(String(value)) : [String(value)])
+    const picked = choices.filter((choice) => choice.type === UIT.ITEM && choice.selected).map((choice) => choice.value)
+    return new Set(isMultiple ? picked : picked.slice(0, 1))
   }
 
   /** `<ui-item>` children, then the `options` property, as one flat list. */
   private choices(host: SelectHost): Choice[] {
     const choices: Choice[] = []
     for (const item of host.querySelectorAll(`:scope > ${itemVocabulary.tag}`)) {
-      const text = item.getAttribute("text") ?? item.textContent?.trim() ?? ""
-      const type = item.getAttribute("type")
-      const description = item.getAttribute("description")
-      const flag = item.getAttribute("flag")
+      const text = SelectFallback.itemAttribute(item, "text") ?? item.textContent?.trim() ?? ""
+      const type = SelectFallback.itemAttribute(item, "type")
+      const description = SelectFallback.itemAttribute(item, "description")
+      const flag = SelectFallback.itemAttribute(item, "flag")
       choices.push({
-        type: type === "header" || type === "divider" ? type : "item",
-        text: [flag ? SelectFlags.emoji(flag) : "", text, description ? ` ${description}` : ""].join(""),
-        value: item.getAttribute("value") ?? text,
-        disabled: Converters.boolean(item.getAttribute("disabled"), "disabled"),
-        selected: Converters.boolean(item.getAttribute("selected"), "selected")
+        type: type === UIT.HEADER || type === DIVIDER ? type : UIT.ITEM,
+        text: [flag ? UIT.Flags.emojiFor(flag) || flag : "", text, description ? ` ${description}` : ""].join(""),
+        value: SelectFallback.itemAttribute(item, "value") ?? text,
+        disabled: E.Converters.boolean(SelectFallback.itemAttribute(item, "disabled"), "disabled"),
+        selected: E.Converters.boolean(SelectFallback.itemAttribute(item, "selected"), "selected")
       })
     }
     for (const option of host.options ?? []) {
       choices.push({
-        type: "item",
+        type: UIT.ITEM,
         text: option.description ? `${option.text} ${option.description}` : option.text,
         value: option.value,
         disabled: !!option.disabled,
@@ -131,20 +132,40 @@ export class SelectFallback extends NativeFallback<typeof selectVocabulary> {
     return choices
   }
 
-  /** Push the select's value into the form (and validity);  return it. */
-  private sync(select: HTMLSelectElement, multiple: boolean): UIT.SelectValue {
+  /** Push the select's value into the form (and validity);  return it.  `multiple` is the select's own. */
+  private sync(select: HTMLSelectElement): UIT.SelectValue {
     const values = [...select.selectedOptions].map((option) => option.value).filter((value) => value !== "")
     const name = this.attr("name")
     const internals = this.formInternals
     if (internals) {
-      if (multiple) {
+      if (select.multiple) {
         const data = new FormData()
         for (const value of values) data.append(name ?? "", value)
         internals.setFormValue(name && values.length ? data : null)
       } else internals.setFormValue(name && values.length ? values[0]! : null)
-      const missing = this.flag("required") && !values.length
-      internals.setValidity(missing ? { valueMissing: true } : {}, select.validationMessage, select)
+      const isMissing = this.flag("required") && !values.length
+      internals.setValidity(isMissing ? { valueMissing: true } : {}, select.validationMessage, select)
     }
-    return multiple ? values : (values[0] ?? "")
+    return select.multiple ? values : (values[0] ?? "")
+  }
+
+  /**
+   * `<ui-item>` attribute `name` of `item`, or `null`:  its `getAttribute()`, typed by the item's vocabulary.
+   * - STATIC:  pure, needs no instance.
+   */
+  private static itemAttribute(item: Element, name: E.AttributeNameOf<typeof itemVocabulary>): string | null {
+    return item.getAttribute(name)
   }
 }
+
+/** Event the select's `change` becomes. */
+const CHANGE_EVENT: E.EventName<Vocabulary> = "ui-change"
+
+/** Part of the empty first option. */
+const PLACEHOLDER_PART: E.PartName<Vocabulary> = "placeholder"
+
+/** Part of each `<optgroup>`. */
+const GROUP_PART: E.PartName<Vocabulary> = "group"
+
+/** Part of each `<option>`. */
+const OPTION_PART: E.PartName<Vocabulary> = "option"

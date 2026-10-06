@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-rating>` uses:  tag, attributes (kind + allowed values), events, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-rating size="large" color="yellow" readonly>` => `ui large yellow read-only rating`.
  * - `icon` is an icon NAME (`star`, `heart`, any `<ui-icon>` name), not a class:  Fomantic 2.9 reads it from
  *   `data-icon` too.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-rating>`
@@ -19,7 +19,7 @@ export const ratingVocabulary = {
   aka: ["stars", "star rating", "score", "review stars", "hearts"],
   skeleton: { display: "inline", width: "5.5em", height: "1.1em" },
   noun: "rating",
-  description: "A rating indicates user interest in content.",
+  description: "A rating indicates people's interest in content.",
   attributes: [
     { name: "size", kind: "size", description: "Icon size, `mini` ... `massive`;  `medium` is the default." },
     { name: "color", kind: "color", description: "Hue of the filled icons." },
@@ -56,7 +56,7 @@ export const ratingVocabulary = {
     {
       name: "ui-change",
       detail: "{ value: number, originalEvent?: Event }",
-      description: "The user rated (`0` when cleared).  A handler that re-sets `value` wins."
+      description: "The person rated (`0` when cleared).  A handler that re-sets `value` wins."
     }
   ],
   slots: [],
@@ -67,10 +67,10 @@ export const ratingVocabulary = {
   ],
   states: [
     { name: "disabled", description: "Can't be used." },
-    { name: "invalid", description: "Fails validation, once the user has interacted (`:user-invalid` semantics)." }
+    { name: "invalid", description: "Fails validation, once a person has interacted (`:user-invalid` semantics)." }
   ],
   texts: [
     { key: "ratingItem", text: "{value} of {max}", description: "Accessible name of each icon's radio." },
     { key: "ratingValue", text: "Rated {value} of {max}", description: "Description of a fractional rating." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

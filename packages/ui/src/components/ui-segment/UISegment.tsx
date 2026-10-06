@@ -1,17 +1,15 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { segmentVocabulary } from "./ui-segment.vocabulary.en"
 import { SegmentFallback } from "./ui-segment.fallback"
 
 import segmentCSS from "./ui-segment.css?inline"
-import { TRUE, VISUALLY_HIDDEN, STATUS } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-segment>`
- * A segment:  `<div class="ui … segment" part="segment"><slot></slot></div>`.
+ * A segment:  `<div class="ui ... segment" part="segment"><slot></slot></div>`.
  * - OWNER side:  declares `--ui-inverted` on its root, default included (`0`), so parts inside a plain segment
  *   nested in an inverted one don't inherit the outer segment's `1` (`ui-parts.css` "Owner tokens").  Inline only
  *   when `inverted` (`1`):  the sheet declares the `0`, or `1` for a member of an `<ui-segments inverted>`, which an
@@ -21,19 +19,20 @@ import { TRUE, VISUALLY_HIDDEN, STATUS } from "$/ui/components/components.types"
  * - `loading`:  `aria-busy` (internals) and a visually hidden `role=status` "Loading…";  `disabled`:
  *   `aria-disabled`.
  ****************/
-export class UISegment extends UIElement<typeof segmentVocabulary> {
-  @proto static vocabulary = segmentVocabulary
-  @proto static styles = { segment: segmentCSS }
-  @proto static Fallback = SegmentFallback
+export class UISegment extends E.UIElement<typeof segmentVocabulary> {
+  @E.proto static vocabulary = segmentVocabulary
+  @E.proto static styles = { segment: segmentCSS }
+  @E.proto static Fallback = SegmentFallback
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     const { internals } = this.host
+    // SIDE EFFECT:  busy / disabled for assistive tech
     this.hostEffect(
       () => [this.attrs.loading, this.attrs.disabled] as const,
-      ([loading, disabled]) => {
-        internals.ariaBusy = loading ? TRUE : null
-        internals.ariaDisabled = disabled ? TRUE : null
+      ([isLoading, isDisabled]) => {
+        internals.ariaBusy = isLoading ? UIT.TRUE : null
+        internals.ariaDisabled = isDisabled ? UIT.TRUE : null
       }
     )
   }
@@ -49,11 +48,11 @@ export class UISegment extends UIElement<typeof segmentVocabulary> {
         class={this.classes()}
         part={this.part("segment")}
         tabindex={this.attrs.scrolling ? 0 : undefined}
-        style={this.attrs.inverted ? { [UIT.PART_OWNER_TOKENS.inverted]: "1" } : undefined}
+        style={this.attrs.inverted ? { [UIT.PART_OWNER_TOKENS.inverted]: INVERTED } : undefined}
       >
         <slot />
         <Show when={this.attrs.loading}>
-          <span class={VISUALLY_HIDDEN} role={STATUS}>
+          <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
             {this.text("loading")}
           </span>
         </Show>
@@ -61,3 +60,6 @@ export class UISegment extends UIElement<typeof segmentVocabulary> {
     )
   }
 }
+
+/** `UIT.PART_OWNER_TOKENS.inverted` of an `inverted` segment, inline:  its parts take the dark scheme. */
+const INVERTED = "1"

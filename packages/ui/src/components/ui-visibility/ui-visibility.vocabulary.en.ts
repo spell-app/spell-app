@@ -1,11 +1,11 @@
 /**
  * Every name `<ui-visibility>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - No class attributes:  visibility is a behaviour (Fomantic's has no stylesheet);  the root is `ui visibility`.
  * - Events are Fomantic's callbacks as `ui-*` events, `detail` the calculations (`VisibilityCalculations`).
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-visibility>`
@@ -69,4 +69,4 @@ export const visibilityVocabulary = {
   parts: [{ name: "visibility", description: "The box around the slot." }],
   states: [{ name: "visible", description: "Some of it is on screen now (as of the last check)." }],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -1,7 +1,7 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E } from "$/ui/core"
+import { itemVocabulary } from "$/ui/components/ui-item/ui-item.vocabulary.en"
 import { menuVocabulary } from "./ui-menu.vocabulary.en"
-import { ITEM_TAG } from "./ui-menu.types"
+import type { Vocabulary } from "./ui-menu.types"
 
 /****************
  * ### `MenuFallback`
@@ -10,9 +10,9 @@ import { ITEM_TAG } from "./ui-menu.types"
  *   navigation landmark, no menubar)
  * - inside a `<ui-menu>` / `<ui-item>` parent (canonical tags):  the sub-menu `<div class="[position] menu">`
  ****************/
-export class MenuFallback extends NativeFallback<typeof menuVocabulary> {
-  @proto static vocabulary = menuVocabulary
-  @proto static degraded = [
+export class MenuFallback extends E.NativeFallback<Vocabulary> {
+  @E.proto static vocabulary = menuVocabulary
+  @E.proto static degraded = [
     "`interactive` (a `<nav>`, not a menubar:  no roving focus, no `menuitem` roles)",
     "`ui-select`",
     "sub-menus under translated or slotted owners (only a direct `<ui-menu>` / `<ui-item>` parent counts)"
@@ -20,7 +20,7 @@ export class MenuFallback extends NativeFallback<typeof menuVocabulary> {
 
   protected override build() {
     const parent = this.host.parentElement?.localName
-    if (parent === menuVocabulary.tag || parent === ITEM_TAG) {
+    if (parent === menuVocabulary.tag || parent === itemVocabulary.tag) {
       const classes = [this.attr("position"), menuVocabulary.noun].filter(Boolean).join(" ")
       return [this.decorate(this.create("div", { class: classes }, this.slot()), "menu")]
     }

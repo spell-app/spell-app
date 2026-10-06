@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from "vite-plus/test"
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import { expectAccessible } from "$/ui/test/a11y"
-import { PART_NOUNS } from "./ui-parts.types"
+import { PartNouns } from "./ui-parts.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 import { UIElement, type PartContext, type UIElementClass, type UIHost } from "$/ui/elements"
@@ -101,7 +101,7 @@ beforeAll(() => {
 })
 
 describe("parts standalone", () => {
-  it.each(PART_NOUNS.map((noun) => [noun]))("<ui-%s> renders `.<noun>` around a slot, unowned", async (noun) => {
+  it.each(PartNouns.map((noun) => [noun]))("<ui-%s> renders `.<noun>` around a slot, unowned", async (noun) => {
     const host = await ElementFixture.render(`<ui-${noun}>Text</ui-${noun}>`)
     const part = root(host)
     const expected = noun === "header" ? "ui header" : noun

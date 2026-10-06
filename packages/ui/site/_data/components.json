@@ -358,7 +358,7 @@
         "button bar",
         "dialog actions"
       ],
-      "description": "Actions a user can take:  a modal's or toast's buttons, a comment's reply links.",
+      "description": "Actions a person can take:  a modal's or toast's buttons, a comment's reply links.",
       "noun": "actions",
       "attributes": [],
       "slots": [
@@ -590,7 +590,7 @@
         },
         {
           "name": "in-item",
-          "description": "Owned by a item."
+          "description": "Owned by an item."
         },
         {
           "name": "in-comment",
@@ -3040,7 +3040,7 @@
         },
         {
           "name": "in-item",
-          "description": "Owned by a item."
+          "description": "Owned by an item."
         },
         {
           "name": "in-feed",
@@ -3072,7 +3072,7 @@
         },
         {
           "name": "in-accordion",
-          "description": "Owned by a accordion."
+          "description": "Owned by an accordion."
         },
         {
           "name": "in-popup",
@@ -3181,7 +3181,7 @@
         },
         {
           "name": "in-item",
-          "description": "Owned by a item."
+          "description": "Owned by an item."
         },
         {
           "name": "in-comment",
@@ -4379,7 +4379,7 @@
         },
         {
           "name": "in-item",
-          "description": "Owned by a item."
+          "description": "Owned by an item."
         },
         {
           "name": "in-feed",
@@ -5544,7 +5544,7 @@
         },
         {
           "name": "in-item",
-          "description": "Owned by a item."
+          "description": "Owned by an item."
         },
         {
           "name": "in-modal",
@@ -8262,7 +8262,7 @@
         },
         {
           "name": "in-item",
-          "description": "Owned by a item."
+          "description": "Owned by an item."
         },
         {
           "name": "in-feed",
@@ -8352,7 +8352,7 @@
         {
           "name": "open",
           "kind": "keyOnly",
-          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
         },
         {
           "name": "closable",
@@ -8393,7 +8393,7 @@
           "name": "ui-open",
           "detail": "{ open: true, originalEvent?: Event }",
           "cancelable": true,
-          "description": "About to show (a user action, not an `open` write);  `preventDefault()` keeps it hidden."
+          "description": "About to show (a person's action, not an `open` write);  `preventDefault()` keeps it hidden."
         },
         {
           "name": "ui-show",
@@ -8785,7 +8785,7 @@
         {
           "name": "collapsed",
           "kind": "boolean",
-          "description": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match."
+          "description": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match."
         },
         {
           "name": "fold-icon",
@@ -9453,7 +9453,7 @@
         {
           "name": "open",
           "kind": "keyOnly",
-          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
         },
         {
           "name": "wide",
@@ -9548,7 +9548,7 @@
           "name": "ui-open",
           "detail": "{ open: true, originalEvent?: Event }",
           "cancelable": true,
-          "description": "About to show for a user action (the trigger, an invoker command);  `preventDefault()` keeps it hidden."
+          "description": "About to show for a person's action (the trigger, an invoker command);  `preventDefault()` keeps it hidden."
         },
         {
           "name": "ui-close",
@@ -10183,7 +10183,7 @@
         "review stars",
         "hearts"
       ],
-      "description": "A rating indicates user interest in content.",
+      "description": "A rating indicates people's interest in content.",
       "noun": "rating",
       "attributes": [
         {
@@ -10274,7 +10274,7 @@
         {
           "name": "ui-change",
           "detail": "{ value: number, originalEvent?: Event }",
-          "description": "The user rated (`0` when cleared).  A handler that re-sets `value` wins."
+          "description": "The person rated (`0` when cleared).  A handler that re-sets `value` wins."
         }
       ],
       "parts": [
@@ -10298,7 +10298,7 @@
         },
         {
           "name": "invalid",
-          "description": "Fails validation, once the user has interacted (`:user-invalid` semantics)."
+          "description": "Fails validation, once a person has interacted (`:user-invalid` semantics)."
         }
       ],
       "texts": [
@@ -10824,7 +10824,7 @@
         "combobox",
         "lookup"
       ],
-      "description": "A search module allows a user to query for results from a selection of data.",
+      "description": "A search module lets people query for results from a selection of data.",
       "noun": "search",
       "attributes": [
         {
@@ -10866,7 +10866,7 @@
         {
           "name": "resizable",
           "kind": "keyOnly",
-          "description": "`scrolling`:  the user can resize the results vertically."
+          "description": "`scrolling`:  people can resize the results vertically."
         },
         {
           "name": "short",
@@ -11012,7 +11012,7 @@
         {
           "name": "ui-search",
           "detail": "{ query: string, originalEvent?: Event }",
-          "description": "The user typed a query at least `min-characters` long;  it's about to run."
+          "description": "Someone typed a query at least `min-characters` long;  it's about to run."
         },
         {
           "name": "ui-select",
@@ -11205,7 +11205,7 @@
         {
           "name": "collapsed",
           "kind": "boolean",
-          "description": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match."
+          "description": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match."
         },
         {
           "name": "fold-icon",
@@ -11815,7 +11815,7 @@
         {
           "name": "resizable",
           "kind": "keyOnly",
-          "description": "With `scrolling`:  the user can drag its height."
+          "description": "With `scrolling`:  people can drag its height."
         }
       ],
       "slots": [
@@ -11999,7 +11999,7 @@
         "picker",
         "option list"
       ],
-      "description": "A select lets a user choose one or more values from a native list of options.",
+      "description": "A select lets people choose one or more values from a native list of options.",
       "noun": "select",
       "attributes": [
         {
@@ -12091,7 +12091,7 @@
         {
           "name": "ui-change",
           "detail": "{ value: string | string[], originalEvent?: Event }",
-          "description": "The user chose a value (or changed the chosen set, with `multiple`)."
+          "description": "Someone chose a value (or changed the chosen set, with `multiple`)."
         }
       ],
       "parts": [
@@ -12369,7 +12369,7 @@
         {
           "name": "visible",
           "kind": "keyOnly",
-          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
         },
         {
           "name": "persistent",
@@ -12400,7 +12400,7 @@
           "name": "ui-open",
           "detail": "{ visible: true, originalEvent?: Event }",
           "cancelable": true,
-          "description": "About to show for a user action (an invoker command);  `preventDefault()` keeps it hidden."
+          "description": "About to show for a person's action (an invoker command);  `preventDefault()` keeps it hidden."
         },
         {
           "name": "ui-show",
@@ -12464,7 +12464,7 @@
         "scrubber",
         "track bar"
       ],
-      "description": "A slider allows users to select values within a range.",
+      "description": "A slider lets people select values within a range.",
       "noun": "slider",
       "attributes": [
         {
@@ -13587,7 +13587,7 @@
         {
           "name": "resizable",
           "kind": "keyOnly",
-          "description": "With `scrolling`:  the user can drag the height."
+          "description": "With `scrolling`:  people can drag the height."
         },
         {
           "name": "selectable",
@@ -13739,7 +13739,7 @@
         {
           "name": "sort-column",
           "kind": "number",
-          "description": "Index of the sorted column (0-based, counting `colspan`s);  set by the user's clicks unless the app controls it."
+          "description": "Index of the sorted column (0-based, counting `colspan`s);  set by people's clicks unless the app controls it."
         },
         {
           "name": "sort-direction",
@@ -13957,7 +13957,7 @@
         {
           "name": "value",
           "kind": "string",
-          "description": "Value of the selected pane (its `value`, else its index).  Controlled:  set it to switch panes;  `ui-change` can veto the user's changes.  Without it, the first `selected` pane, else the first enabled one."
+          "description": "Value of the selected pane (its `value`, else its index).  Controlled:  set it to switch panes;  `ui-change` can veto a person's changes.  Without it, the first `selected` pane, else the first enabled one."
         },
         {
           "name": "activation",
@@ -14329,7 +14329,7 @@
         },
         {
           "name": "in-accordion",
-          "description": "Owned by a accordion."
+          "description": "Owned by an accordion."
         },
         {
           "name": "in-search",
@@ -14360,7 +14360,7 @@
         "flash message",
         "toaster"
       ],
-      "description": "A toast allows users to receive a short, non-blocking notification.",
+      "description": "A toast gives people a short, non-blocking notification.",
       "noun": "toast",
       "attributes": [
         {
@@ -23316,6 +23316,12 @@
           "default": "light grey (dark grey in dark mode)",
           "description": "A cube face's background.",
           "type": "color"
+        },
+        {
+          "name": "--ui-shape-cube-shadow",
+          "default": "black at 30%",
+          "description": "Colour of a cube face's thin shadow.",
+          "type": "other"
         }
       ]
     },
@@ -23342,6 +23348,11 @@
           "name": "--ui-sidebar-background",
           "default": "transparent",
           "description": "The panel; `inverted` sets a dark one.",
+          "type": "color"
+        },
+        {
+          "name": "--ui-sidebar-inverted-background",
+          "default": "oklch(0.22 0.005 260)",
           "type": "color"
         },
         {
@@ -23582,6 +23593,12 @@
         {
           "name": "--ui-step-background",
           "default": "var(--ui-surface)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-step-inverted-background",
+          "default": "color-mix(in oklab, var(--ui-surface) 70%, oklch(0 0 0))",
+          "description": "A step of an `inverted` group: the surface darkened.",
           "type": "color"
         },
         {
@@ -24020,6 +24037,36 @@
           "name": "--ui-table-inverted-cell-border-color",
           "default": "oklch(1 0 0 / 0.1)",
           "type": "color"
+        },
+        {
+          "name": "--ui-table-inverted-striped-background",
+          "default": "oklch(1 0 0 / 0.05)",
+          "description": "Body rows of an `inverted striped` table: every other one.",
+          "type": "color"
+        },
+        {
+          "name": "--ui-table-inverted-selectable-background",
+          "default": "oklch(1 0 0 / 0.08)",
+          "description": "A hovered body row of an `inverted selectable` table.",
+          "type": "color"
+        },
+        {
+          "name": "--ui-table-inverted-sortable-background",
+          "default": "oklch(1 0 0 / 0.08)",
+          "description": "A hovered or sorted header of an `inverted sortable` table.",
+          "type": "color"
+        },
+        {
+          "name": "--ui-table-inverted-definition-column-background",
+          "default": "oklch(1 0 0 / 0.02)",
+          "description": "The definition column of an `inverted definition` table.",
+          "type": "color"
+        },
+        {
+          "name": "--ui-table-inverted-stuck-shade",
+          "default": "black",
+          "description": "Darkens the stuck header of an `inverted` table: mixed 15% into its fill.",
+          "type": "other"
         },
         {
           "name": "--ui-table-stuck-background",

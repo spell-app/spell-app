@@ -22,6 +22,22 @@ export const NodeType = {
 export type NodeType = (typeof NodeType)[keyof typeof NodeType]
 
 ////////////////
+// ## Order
+////////////////
+
+/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global (node has none). */
+const DOCUMENT_POSITION_FOLLOWING = 4
+
+/**
+ * Sort comparator for document order:  `elements.sort(byDocumentOrder)`.
+ * - Negative when `a` comes first, else positive:  never `0`, as a sort never compares a node with itself.
+ * - The one comparator `ui`'s radio groups, form fields and control labels share.
+ */
+export function byDocumentOrder(a: Node, b: Node): number {
+  return a.compareDocumentPosition(b) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+}
+
+////////////////
 // ## Environment
 ////////////////
 

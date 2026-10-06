@@ -1,44 +1,15 @@
 import { For, Show, createEffect, createMemo, flush, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  ClassBuilder,
-  HostAttribute,
-  IconGlyph,
-  proto,
-  UI,
-  UIElement,
-  type AttributeName,
-  type RovingTabindex,
-  type UIHost,
-  UIT
-} from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { tabsVocabulary } from "./ui-tabs.vocabulary.en"
+import { tabVocabulary } from "./ui-tab.vocabulary.en"
 import { TabFallback } from "./ui-tab.fallback"
 import { UITab } from "./UITab"
+import { MENU, TAB, TABLIST, type TabOwner, type TabPaneState } from "./ui-tab.types"
 
 import menuCSS from "$/ui/components/ui-menu/ui-menu.css?inline"
 import tabCSS from "./ui-tab.css?inline"
-import { MENU_NOUN } from "./ui-tab.types"
-import type { TabsVocabulary, TabOwner, TabPaneState } from "./ui-tab.types"
-import { NONE, TABLIST, TAB, HASHCHANGE, POPSTATE, TAB_SELECTOR, PANE_NOUN, PANE_ID } from "./ui-tab.types"
-import {
-  VERTICAL,
-  TRUE,
-  ARIA_LABEL,
-  BOTTOM,
-  TOP,
-  ACTIVE,
-  DISABLED,
-  ITEM,
-  FALSE,
-  ICON,
-  VISIBLE,
-  HORIZONTAL,
-  MANUAL
-} from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-tabs>`
@@ -66,30 +37,23 @@ import {
  * - ARIA:  each tab `aria-controls` its pane (element reflection:  the pane is light DOM, a tree this shadow root
  *   may point into);  the pane is a `tabpanel` named by its label (it can't point back into this shadow root).
  * - The swap:  a View Transition (`document.startViewTransition`) when `UI.browser.supports.viewTransitions` and
- *   the user doesn't prefer reduced motion, else instant.  The tab list follows the selection at once;  the panes
+ *   the person doesn't prefer reduced motion, else instant.  The tab list follows the selection at once;  the panes
  *   swap inside the transition (`shown`).
  * - `history`:  the selected value mirrors `location.hash` (see the vocabulary).
- * - SIDE EFFECTS:  `history` pushes history entries and listens to `window`'s `hashchange` / `popstate` while
- *   connected.
+ * - SIDE EFFECTS:  `history` pushes history entries and listens to its window's `hashchange` / `popstate` while
+ *   connected.  The page globals (`window`, `document`, `location`, `history`) are the HOST's document's, so a
+ *   tab set in an iframe follows its own frame.
  ****************/
-export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
-  declare menuBuilder: ClassBuilder
-
-  @proto static vocabulary = tabsVocabulary
-  @proto static styles = { menu: menuCSS, tab: tabCSS }
-  @proto static Fallback = TabFallback
+export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwner {
+  @E.proto static vocabulary = tabsVocabulary
+  @E.proto static styles = { menu: menuCSS, tab: tabCSS }
+  @E.proto static Fallback = TabFallback
   // the tabs are the focus targets;  a click on a pane must not jump to one
-  @proto static delegatesFocus = false
+  @E.proto static delegatesFocus = false
 
   /** Builds the tab list's classes:  this vocabulary's words, Fomantic's noun `menu`. */
-  @proto static menuBuilder = new ClassBuilder({ ...tabsVocabulary, noun: MENU_NOUN })
-
-  /**
-   * Options of a memo that reads OTHER elements' controllers:  `lazy` on a server only.
-   * - Why:  a server memo computes ONCE, and a static render (`$/ui/static`) builds controllers in document order,
-   *   so an eager memo here would see panes without controllers;  lazy, it first computes at render time.
-   */
-  static readonly serverLazy = { lazy: isServer }
+  @E.proto static menuBuilder = new E.ClassBuilder({ ...tabsVocabulary, noun: MENU })
+  declare menuBuilder: E.ClassBuilder
 
   ////////////////
   // ## State
@@ -99,22 +63,22 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   readonly valueState = this.controlled("value", undefined)
 
   /** Host `aria-label`, forwarded to the tab list. */
-  readonly ariaLabel = new HostAttribute({ host: this.host, name: ARIA_LABEL })
+  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** Pane hosts among the children (upgraded or not);  notifies on every read of the children. */
-  readonly panes = new Cell<readonly UIHost[]>(this.readPanes(), { equals: false })
+  readonly panes = new E.Cell<readonly E.UIHost[]>(this.readPanes(), { equals: false })
 
   /** Value of the pane ON SCREEN:  follows `selectedValue()`, inside a View Transition when there is one. */
-  readonly shownValue = new Cell<string | undefined>(undefined)
+  readonly shownValue = new E.Cell<string | undefined>(undefined)
 
   /** Live roving tabindex over the tabs. */
-  private roving: RovingTabindex | undefined
+  private roving: E.RovingTabindex | undefined
 
   /** The tab list, while rendered. */
   private bar: HTMLElement | undefined
 
   /** A pane re-read is queued. */
-  private refreshQueued = false
+  private isRefreshQueued = false
 
   /** The key that is moving the roving focus right now (`automatic` selects on it). */
   private key: KeyboardEvent | undefined
@@ -125,17 +89,17 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
 
   /**
    * Upgraded panes, in order:  the tabs.
-   * - `lazy` on a server, as are the memos below that read the panes' controllers (`serverLazy`).
+   * - `lazy` on a server, as are the memos below that read the panes' controllers (`SERVER_LAZY`).
    */
   readonly tabs = createMemo(() => this.panes.get().filter((pane) => pane.controller instanceof UITab), {
     equals: UITabs.sameList,
-    ...UITabs.serverLazy
+    ...SERVER_LAZY
   })
 
   /** Each tab's value:  its `value`, else its index. */
   readonly values = createMemo(
-    () => this.tabs().map((pane, index) => UITabs.tab(pane).attrs.value ?? String(index)),
-    UITabs.serverLazy
+    () => this.tabs().map((pane, index) => UITabs.controllerOf(pane).attrs.value ?? String(index)),
+    SERVER_LAZY
   )
 
   /** The selected value (see class docs). */
@@ -143,23 +107,23 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
     const values = this.values()
     const value = this.valueState.get()
     if (value !== undefined && values.includes(value)) return value
-    const tabs = this.tabs().map(UITabs.tab)
+    const tabs = this.tabs().map(UITabs.controllerOf)
     const chosen = tabs.findIndex((tab) => tab.ownSelected() && !tab.attrs.disabled)
     const first = chosen >= 0 ? chosen : tabs.findIndex((tab) => !tab.attrs.disabled)
     return first >= 0 ? values[first] : undefined
-  }, UITabs.serverLazy)
+  }, SERVER_LAZY)
 
   /** Index of the selected tab, or -1. */
-  readonly selectedIndex = createMemo(() => this.values().indexOf(this.selectedValue() ?? NONE), UITabs.serverLazy)
+  readonly selectedIndex = createMemo(() => this.values().indexOf(this.selectedValue() ?? NO_VALUE), SERVER_LAZY)
 
   /** The pane on screen. */
-  readonly displayed = createMemo(() => this.shownValue.get() ?? this.selectedValue(), UITabs.serverLazy)
+  readonly displayed = createMemo(() => this.shownValue.get() ?? this.selectedValue(), SERVER_LAZY)
 
   /** The tab list's edge:  `top` / `bottom` when `attached` (bare ~== `top`);  never while `vertical`. */
-  readonly menuEdge = createMemo((): "top" | "bottom" | undefined => {
+  readonly menuEdge = createMemo((): MenuEdge | undefined => {
     const attached = this.attrs.attached
     if (!attached || this.attrs.vertical) return undefined
-    return attached === BOTTOM ? BOTTOM : TOP
+    return attached === UIT.BOTTOM ? UIT.BOTTOM : UIT.TOP
   })
 
   /** Where the tabs sit (`alignment`);  none while `vertical`, whose tabs fill their column. */
@@ -194,27 +158,27 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
    * - SIDE EFFECT:  a pane not among the tabs yet (it upgraded after the last read) queues a re-read.
    */
   paneState(pane: Element): TabPaneState {
-    const index = this.tabs().indexOf(pane as UIHost)
+    const index = this.tabs().indexOf(pane as E.UIHost)
     if (index < 0) this.queueRefresh()
     const edge = this.menuEdge()
     return {
       selected: index >= 0 && this.values()[index] === this.displayed(),
-      attached: edge ? (edge === TOP ? BOTTOM : TOP) : undefined,
+      attached: edge ? (edge === UIT.TOP ? UIT.BOTTOM : UIT.TOP) : undefined,
       basic: this.attrs.basic,
       inverted: this.attrs.inverted
     }
   }
 
   /** `TabOwner`:  `pane`'s value.  Untracked. */
-  valueOf(pane: Element): string {
-    return untrack(() => this.values()[this.tabs().indexOf(pane as UIHost)]) ?? ""
+  valueFor(pane: Element): string {
+    return untrack(() => this.values()[this.tabs().indexOf(pane as E.UIHost)]) ?? ""
   }
 
   ////////////////
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<TabsVocabulary>): unknown {
+  protected classValue(name: E.AttributeName<typeof tabsVocabulary>): unknown {
     if (name === "attached") return this.menuEdge()
     if (name === "alignment") return this.alignment()
     return super.classValue(name)
@@ -241,16 +205,16 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
         part={this.part("menu")}
         role={TABLIST}
         aria-label={this.ariaLabel.get()}
-        aria-orientation={this.attrs.vertical ? VERTICAL : undefined}
+        aria-orientation={this.attrs.vertical ? UIT.VERTICAL : undefined}
         onFocusOut={this.onFocusOut}
       >
-        <For each={this.tabs()}>{(pane, index) => this.renderTab(pane, index)}</For>
+        <For each={this.tabs()}>{(pane, index) => this.tab(pane, index)}</For>
       </div>
     )
     const panes = <slot onSlotChange={() => this.refreshPanes()} />
     return (
       <div class={this.classes()} part={this.part("tabs")}>
-        {this.menuEdge() === BOTTOM ? [panes, menu] : [menu, panes]}
+        {this.menuEdge() === UIT.BOTTOM ? [panes, menu] : [menu, panes]}
       </div>
     )
   }
@@ -261,25 +225,25 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
    *   SIDE EFFECT there:  gives the pane (the render's parsed copy) an id if it has none, which the static output
    *   keeps.
    */
-  private renderTab(pane: UIHost, index: Accessor<number>): JSX.Element {
-    const tab = UITabs.tab(pane)
-    const selected = () => index() === this.selectedIndex()
-    const glyph = new IconGlyph(this, () => tab.attrs.icon)
+  private tab(pane: E.UIHost, index: Accessor<number>): JSX.Element {
+    const tab = UITabs.controllerOf(pane)
+    const isSelected = () => index() === this.selectedIndex()
+    const glyph = new E.IconGlyph(this, () => tab.attrs.icon)
     return (
       <button
         ref={(button: HTMLButtonElement) => (button.ariaControlsElements = [pane])}
         type="button"
         role={TAB}
-        class={[selected() && ACTIVE, tab.attrs.disabled && DISABLED, ITEM].filter(Boolean).join(" ")}
+        class={[isSelected() && UIT.ACTIVE, tab.attrs.disabled && UIT.DISABLED, UIT.ITEM].filter(Boolean).join(" ")}
         part={this.part("tab")}
-        aria-selected={selected() ? TRUE : FALSE}
-        aria-disabled={tab.attrs.disabled ? TRUE : undefined}
+        aria-selected={isSelected() ? UIT.TRUE : UIT.FALSE}
+        aria-disabled={tab.attrs.disabled ? UIT.TRUE : undefined}
         aria-controls={isServer ? UI.ids.ensure(pane, PANE_ID) : undefined}
         onClick={(event: MouseEvent) => this.select(pane, event)}
       >
         <Show when={glyph.svg()}>
           {(svg) => (
-            <i class={ICON} part={this.part("icon")}>
+            <i class={UIT.ICON} part={this.part("icon")}>
               {svg()}
             </i>
           )}
@@ -294,17 +258,17 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   ////////////////
 
   /**
-   * Select `pane` as the user would:  the cancelable `ui-change` first, then `value` (and, with `history`, a new
+   * Select `pane` as a person would:  the cancelable `ui-change` first, then `value` (and, with `history`, a new
    * history entry).  True when applied;  false for a disabled or already selected pane, or a veto.
    */
   select(pane: Element, originalEvent?: Event): boolean {
-    const tab = (pane as UIHost).controller
+    const tab = (pane as E.UIHost).controller
     if (!(tab instanceof UITab) || untrack(() => tab.attrs.disabled)) return false
-    const value = this.valueOf(pane)
+    const value = this.valueFor(pane)
     if (value === untrack(this.selectedValue)) return false
     const detail: UIT.TabChangeDetail = { value, tab: pane, originalEvent }
     const applied = this.valueState.request(value, () => this.emit("ui-change", detail))
-    if (applied && untrack(() => this.attrs.history)) UITabs.pushHash(value)
+    if (applied && untrack(() => this.attrs.history)) UITabs.pushHash(value, this.view)
     return applied
   }
 
@@ -339,8 +303,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
         if (!history) return
         const listeners = new AbortController()
         const onNavigate = (event: Event) => this.fromHash(event)
-        window.addEventListener(HASHCHANGE, onNavigate, { signal: listeners.signal })
-        window.addEventListener(POPSTATE, onNavigate, { signal: listeners.signal })
+        for (const type of HISTORY_EVENTS) this.view.addEventListener(type, onNavigate, { signal: listeners.signal })
         queueMicrotask(() => this.fromHash())
         return () => listeners.abort()
       }
@@ -348,7 +311,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   }
 
   /**
-   * Put the pane for `value` on screen:  inside a View Transition when the browser has them, the user doesn't
+   * Put the pane for `value` on screen:  inside a View Transition when the browser has them, the person doesn't
    * prefer reduced motion and another pane was showing;  else at once.
    * - Runs in an effect's APPLY function (a signal write is allowed there);  the transition's callback runs later,
    *   outside any owner, and flushes so the new panes are in the DOM when it returns.
@@ -356,7 +319,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   private show(value: string | undefined) {
     const before = untrack(this.shownValue.get)
     if (before === undefined || before === value || !this.canTransition()) return this.shownValue.set(value)
-    const transition = document.startViewTransition(() => {
+    const transition = this.host.ownerDocument.startViewTransition(() => {
       this.shownValue.set(value)
       flush()
     })
@@ -366,7 +329,8 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
 
   /** Animate the swap?  See `show()`. */
   private canTransition(): boolean {
-    if (!untrack(this.loaded) || !this.host.isConnected || document.visibilityState !== VISIBLE) return false
+    const { host } = this
+    if (!untrack(this.loaded) || !host.isConnected || host.ownerDocument.visibilityState !== UIT.VISIBLE) return false
     return UI.browser.supports.viewTransitions && !UI.browser.isReducedMotion
   }
 
@@ -378,7 +342,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
     this.roving = UI.focus.roving({
       container: bar,
       items: () => this.buttons(),
-      orientation: untrack(() => this.attrs.vertical) ? VERTICAL : HORIZONTAL,
+      orientation: untrack(() => this.attrs.vertical) ? UIT.VERTICAL : UIT.HORIZONTAL,
       activeIndex: Math.max(0, untrack(this.selectedIndex)),
       onChange: (_item, index) => this.onRovingChange(index)
     })
@@ -422,13 +386,14 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   private onRovingChange(index: number) {
     const key = this.key
     // a click's focus also moves the roving stop:  only a key still being dispatched counts
-    if (!key || key.eventPhase === Event.NONE || untrack(() => this.attrs.activation) === MANUAL) return
+    if (!key || key.eventPhase === Event.NONE || untrack(() => this.attrs.activation) === UIT.MANUAL) return
     const pane = untrack(this.tabs)[index]
     if (pane) this.select(pane, key)
   }
 
   /** Focus left the tab list:  the Tab stop goes back to the selected tab (`manual` may have moved it). */
   private readonly onFocusOut = (event: FocusEvent) => {
+    // `relatedTarget`:  `null` when focus left the page
     const next = event.relatedTarget as Node | null
     if (next && this.bar?.contains(next)) return
     if (this.roving && this.roving.activeIndex !== untrack(this.selectedIndex)) this.startRoving()
@@ -436,8 +401,8 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
 
   /** The URL hash changed (or, `event`-less, the page opened on one):  select the pane it names. */
   private fromHash(event?: Event) {
-    const value = UITabs.hashValue()
-    const index = untrack(this.values).indexOf(value ?? NONE)
+    const value = UITabs.hashValue(this.view.location)
+    const index = untrack(this.values).indexOf(value ?? NO_VALUE)
     const pane = untrack(this.tabs)[index]
     if (!pane || value === untrack(this.selectedValue)) return
     if (event) this.select(pane, event)
@@ -456,35 +421,43 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   /** Queue `refreshPanes()` once:  it writes a signal, so never from the tracked scope that asked. */
   private queueRefresh() {
     // a server render reads every pane before it renders, and writes nothing after
-    if (isServer || this.refreshQueued) return
-    this.refreshQueued = true
+    if (isServer || this.isRefreshQueued) return
+    this.isRefreshQueued = true
     queueMicrotask(() => {
-      this.refreshQueued = false
+      this.isRefreshQueued = false
       this.refreshPanes()
     })
   }
 
   /** The pane children, in order, upgraded or not. */
-  private readPanes(): UIHost[] {
-    return [...this.host.children].filter(UITabs.isPane) as UIHost[]
+  private readPanes(): E.UIHost[] {
+    return [...this.host.children].filter(UITabs.isPane) as E.UIHost[]
+  }
+
+  /** The host's window:  its document's, for `history` and its events. */
+  private get view(): Window {
+    return this.host.ownerDocument.defaultView ?? window
   }
 
   ////////////////
   // ## Helpers
   ////////////////
 
+  // Static:  pure, passed around as values (`filter`, `map`, `equals`);  page globals come in as arguments, defaulting
+  // to this window's.
+
   /** A pane child:  an element DEFINED with the pane's noun (`<ui-tab>`, or its translated tag). */
   private static isPane(this: void, element: Element): boolean {
-    return UIElement.definitions.get(element.localName)?.vocabulary.noun === PANE_NOUN
+    return E.UIElement.definitions.get(element.localName)?.vocabulary.noun === tabVocabulary.noun
   }
 
   /** The `UITab` controller of an (upgraded) pane host. */
-  private static tab(pane: UIHost): UITab {
+  private static controllerOf(this: void, pane: E.UIHost): UITab {
     return pane.controller as UITab
   }
 
   /** The pane value in `location.hash`, or `undefined`. */
-  private static hashValue(): string | undefined {
+  private static hashValue(location: Location = window.location): string | undefined {
     const hash = location.hash.slice(1)
     if (!hash) return undefined
     try {
@@ -494,9 +467,10 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
     }
   }
 
-  /** Record `value` as the URL hash, as a new history entry (no scroll, no `hashchange`). */
-  private static pushHash(value: string) {
+  /** Record `value` as `view`'s URL hash, as a new history entry (no scroll, no `hashchange`). */
+  private static pushHash(value: string, view: Window = window) {
     const hash = `#${encodeURIComponent(value)}`
+    const { history, location } = view
     if (location.hash !== hash) history.pushState(history.state, "", hash)
   }
 
@@ -505,3 +479,25 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
     return a.length === b.length && a.every((element, index) => element === b[index])
   }
 }
+
+/** Where the tab list sits when `attached`. */
+type MenuEdge = typeof UIT.TOP | typeof UIT.BOTTOM
+
+/**
+ * Options of a memo that reads OTHER elements' controllers:  `lazy` on a server only.
+ * - Why:  a server memo computes ONCE, and a static render (`$/ui/static`) builds controllers in document order,
+ *   so an eager memo here would see panes without controllers;  lazy, it first computes at render time.
+ */
+const SERVER_LAZY = { lazy: isServer }
+
+/** The tab buttons in the tab list. */
+const TAB_SELECTOR = `:scope > [role=${TAB}]`
+
+/** Window events `history` follows. */
+const HISTORY_EVENTS = ["hashchange", "popstate"] as const
+
+/** A value no pane has. */
+const NO_VALUE = "\u0000"
+
+/** Prefix of the id a server render gives a pane, for its tab's `aria-controls`. */
+const PANE_ID = "ui-tab"

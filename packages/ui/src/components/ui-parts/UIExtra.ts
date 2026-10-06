@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { extraVocabulary } from "./ui-extra.vocabulary.en"
+import { E } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { extraVocabulary } from "./ui-extra.vocabulary.en"
 
 /****************
  * ### `<ui-extra>`
@@ -10,5 +9,5 @@ import { PartElement } from "./PartElement"
  * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
  ****************/
 export class UIExtra extends PartElement<typeof extraVocabulary> {
-  @proto static vocabulary = extraVocabulary
+  @E.proto static vocabulary = extraVocabulary
 }

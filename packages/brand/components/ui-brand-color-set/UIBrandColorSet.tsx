@@ -233,8 +233,8 @@ export class UIBrandColorSet extends UIElement<BrandColorSetVocabulary> {
   /** Where key `event` goes from chip `index` of `count`, or `undefined` for a key the group doesn't take. */
   private keyTarget(event: KeyboardEvent, index: number, count: number): number | undefined {
     const { key } = event
-    if (key === UIT.HOME) return 0
-    if (key === UIT.END) return count - 1
+    if (key === UIT.Key.home) return 0
+    if (key === UIT.Key.end) return count - 1
     if (CHOOSE_KEYS.has(key)) return index
     let step = ARROWS[key]
     if (!step || event.shiftKey) return undefined

@@ -24,7 +24,7 @@ import type { MarkdownHeading, MarkdownOptions, MarkdownResult } from "./ui-mark
  *   `runtime.types` is all it may pull in.
  ****************/
 export class MarkdownEngine {
-  /** The one engine. */
+  /** The one engine:  static, as it keeps no state and every element shares it. */
   static readonly instance = new MarkdownEngine()
 
   /** `text` rendered as `options` say. */
@@ -39,7 +39,7 @@ export class MarkdownEngine {
           const html = this.parser.parseInline(tokens)
           const plain = MarkdownEngine.plainText(html)
           const id = MarkdownEngine.unique(MarkdownEngine.slug(plain), ids)
-          const level = Math.min(6, Math.max(1, depth + options.headingOffset))
+          const level = Math.min(MAX_LEVEL, Math.max(1, depth + options.headingOffset))
           headings.push({ level, text: plain, id })
           return `<h${level} id="${id}">${html}</h${level}>\n`
         }
@@ -54,7 +54,10 @@ export class MarkdownEngine {
     return { html, headings }
   }
 
-  /** GitHub's heading slug:  `Getting started!` => `getting-started`. */
+  /**
+   * GitHub's heading slug:  `Getting started!` => `getting-started`.
+   * - Static:  pure.
+   */
   static slug(text: string): string {
     return text
       .trim()
@@ -63,17 +66,26 @@ export class MarkdownEngine {
       .replace(/\s/g, "-")
   }
 
-  /** `slug`, or `slug-1`, `slug-2` ... when `seen` has it already;  records it. */
+  /**
+   * `slug`, or `slug-1`, `slug-2` ... when `seen` has it already;  records it.
+   * - Static:  works on `seen` only, one map per render.
+   */
   private static unique(slug: string, seen: Map<string, number>): string {
     const count = seen.get(slug)
     seen.set(slug, (count ?? -1) + 1)
     return count === undefined ? slug : `${slug}-${count + 1}`
   }
 
-  /** `html`'s text:  tags dropped, entities decoded. */
+  /**
+   * `html`'s text:  tags dropped, entities decoded.
+   * - Static:  pure.
+   */
   private static plainText(html: string): string {
     const holder = document.createElement("template")
     holder.innerHTML = html
     return holder.content.textContent ?? ""
   }
 }
+
+/** The deepest heading HTML has (`<h6>`):  `headingOffset` never shifts past it. */
+const MAX_LEVEL = 6

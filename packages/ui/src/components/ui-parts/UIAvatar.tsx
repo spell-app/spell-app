@@ -1,10 +1,9 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto } from "$/ui/core"
-
-import { avatarVocabulary } from "./ui-avatar.vocabulary.en"
+import { E } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { avatarVocabulary } from "./ui-avatar.vocabulary.en"
 
 /****************
  * ### `<ui-avatar>`
@@ -13,7 +12,7 @@ import { PartElement } from "./PartElement"
  * - `alt` defaults to `""`:  the person's name is almost always right next to it.
  ****************/
 export class UIAvatar extends PartElement<typeof avatarVocabulary> {
-  @proto static vocabulary = avatarVocabulary
+  @E.proto static vocabulary = avatarVocabulary
 
   protected tag(): string {
     return "span"

@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { actionsVocabulary } from "./ui-actions.vocabulary.en"
+import { E } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { actionsVocabulary } from "./ui-actions.vocabulary.en"
 
 /****************
  * ### `<ui-actions>`
@@ -10,5 +9,5 @@ import { PartElement } from "./PartElement"
  * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
  ****************/
 export class UIActions extends PartElement<typeof actionsVocabulary> {
-  @proto static vocabulary = actionsVocabulary
+  @E.proto static vocabulary = actionsVocabulary
 }

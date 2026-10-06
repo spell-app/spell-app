@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { detailVocabulary } from "./ui-detail.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { detailVocabulary } from "./ui-detail.vocabulary.en"
 
 /****************
  * ### `<ui-detail>`
@@ -10,10 +9,10 @@ import { PartElement } from "./PartElement"
  * - `href` renders `<a class="detail" href>` (a link detail, `ui-label.css` styles `a.detail`).
  ****************/
 export class UIDetail extends PartElement<typeof detailVocabulary> {
-  @proto static vocabulary = detailVocabulary
+  @E.proto static vocabulary = detailVocabulary
 
   protected tag(): string {
-    return this.attrs.href ? "a" : "span"
+    return this.attrs.href ? UIT.ANCHOR_TAG : "span"
   }
 
   protected href(): string | undefined {

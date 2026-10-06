@@ -195,6 +195,19 @@
     --_ui-table-marker-width: var(--ui-table-marker-width, 0.2em);
     --_ui-table-inverted-header-background: var(--ui-table-inverted-header-background, oklch(0 0 0 / 0.15));
     --_ui-table-inverted-cell-border-color: var(--ui-table-inverted-cell-border-color, oklch(1 0 0 / 0.1));
+    /* Body rows of an `inverted striped` table:  every other one. */
+    --_ui-table-inverted-striped-background: var(--ui-table-inverted-striped-background, oklch(1 0 0 / 0.05));
+    /* A hovered body row of an `inverted selectable` table. */
+    --_ui-table-inverted-selectable-background: var(--ui-table-inverted-selectable-background, oklch(1 0 0 / 0.08));
+    /* A hovered or sorted header of an `inverted sortable` table. */
+    --_ui-table-inverted-sortable-background: var(--ui-table-inverted-sortable-background, oklch(1 0 0 / 0.08));
+    /* The definition column of an `inverted definition` table. */
+    --_ui-table-inverted-definition-column-background: var(
+      --ui-table-inverted-definition-column-background,
+      oklch(1 0 0 / 0.02)
+    );
+    /* Darkens the stuck header of an `inverted` table:  mixed 15% into its fill. */
+    --_ui-table-inverted-stuck-shade: var(--ui-table-inverted-stuck-shade, black);
     --_ui-table-stuck-background: var(--ui-table-stuck-background, var(--ui-surface));
     --_ui-table-stuck-header-background: var(--ui-table-stuck-header-background, var(--ui-surface-muted));
     --_ui-table-stuck-z: var(--ui-table-stuck-z, var(--ui-z-sticky));
@@ -256,7 +269,7 @@
       color var(--_ui-table-duration) var(--ui-ease);
   }
   :is(.ui.table, :where(ui-table) > table) tr {
-    --_table-mark-shadow: 0 0 #0000;
+    --_table-mark-shadow: 0 0 transparent;
   }
 
   /* Caption:  above the table, muted. */
@@ -738,9 +751,13 @@
     --_ui-table-footer-background: var(--_ui-table-inverted-header-background);
     --_ui-table-header-color: inherit;
     --_ui-table-footer-color: inherit;
-    --_ui-table-striped-background: oklch(1 0 0 / 0.05);
-    --_ui-table-selectable-background: oklch(1 0 0 / 0.08);
-    --_ui-table-stuck-header-background: color-mix(in oklab, black 15%, var(--ui-surface));
+    --_ui-table-striped-background: var(--_ui-table-inverted-striped-background);
+    --_ui-table-selectable-background: var(--_ui-table-inverted-selectable-background);
+    --_ui-table-stuck-header-background: color-mix(
+      in oklab,
+      var(--_ui-table-inverted-stuck-shade) 15%,
+      var(--ui-surface)
+    );
     color-scheme: dark;
     border: none;
     background: var(--ui-color, var(--ui-surface));
@@ -764,14 +781,18 @@
       .black
     ) {
     --_ui-table-stuck-background: var(--ui-color);
-    --_ui-table-stuck-header-background: color-mix(in oklab, black 15%, var(--ui-color));
+    --_ui-table-stuck-header-background: color-mix(
+      in oklab,
+      var(--_ui-table-inverted-stuck-shade) 15%,
+      var(--ui-color)
+    );
   }
   .ui.inverted.definition.table > :is(thead, tfoot):not(.full-width) > tr > :is(th, td):first-child {
     --_ui-table-definition-page-background: var(--ui-background);
     color-scheme: light;
   }
   .ui.inverted.definition.table > :is(tbody, tfoot) > tr > td:first-child {
-    --_ui-table-definition-column-background: oklch(1 0 0 / 0.02);
+    --_ui-table-definition-column-background: var(--_ui-table-inverted-definition-column-background);
   }
 
   /* Basic:  no fills, a lighter border. */
@@ -1440,7 +1461,7 @@
   }
   .ui.inverted.sortable.table:not(.basic) > thead > tr > th:not([data-sortable="false"], .disabled):hover,
   .ui.inverted.sortable.table:not(.basic) thead th:is([aria-sort], .sorted) {
-    background: oklch(1 0 0 / 0.08);
+    background: var(--_ui-table-inverted-sortable-background);
   }
 
   /*

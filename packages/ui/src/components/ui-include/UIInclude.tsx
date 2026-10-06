@@ -201,7 +201,7 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
    */
   private static loadFamilies(root: ParentNode) {
     for (const tag of RootLoader.undefinedTags(root)) {
-      const folder = RootLoader.folderOf(tag)
+      const folder = RootLoader.folderFor(tag)
       if (!folder) continue
       RootLoader.load(folder).catch((error: unknown) => E.Warnings.warn("<ui-include>", `<${tag}> didn't load:`, error))
     }

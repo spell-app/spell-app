@@ -6,7 +6,7 @@
  *   content" part="hidden">` (`slot=hidden`)
  * - The host is `display: contents`;  the root is an inline block as big as the HIDDEN content, the visible content
  *   laid over it.  Fomantic's `display: inherit` would inherit `contents` from the host here.
- * - REVEALED ~== `.active` or `:hover`, as in Fomantic, PLUS `:focus-within`:  keyboard users reveal it by
+ * - REVEALED ~== `.active` or `:hover`, as in Fomantic, PLUS `:focus-within`:  people on a keyboard reveal it by
  *   focusing it.  The element makes the root a tab stop (`tabindex=0`) unless its content has a focusable element
  *   of its own, which reveals it the same way.
  * - Reduced motion:  under `prefers-reduced-motion: reduce` the swap is instant (no duration, no delay);  the

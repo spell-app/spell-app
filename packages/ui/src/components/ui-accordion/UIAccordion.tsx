@@ -251,7 +251,7 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
    *   would.
    */
   private onTitleClick(index: number, event: MouseEvent) {
-    if (UIAccordion.isFromControl(event)) return
+    if (UIT.TitleControls.isClicked(event, SUMMARY)) return
     event.preventDefault()
     this.toggle(index, event)
   }
@@ -350,19 +350,6 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
   private static isTitle(element: Element): boolean {
     return E.UIElement.definitions.get(element.localName)?.vocabulary.noun === TITLE_NOUN
   }
-
-  /**
-   * Did the click land on a control inside the title (before reaching the `<summary>`)?
-   * - STATIC:  pure, reads only the event.
-   */
-  private static isFromControl(event: Event): boolean {
-    for (const target of event.composedPath()) {
-      if (!(target instanceof Element)) continue
-      if (target.localName === SUMMARY) return false
-      if (target.matches(CONTROLS)) return true
-    }
-    return false
-  }
 }
 
 /** What `UIAccordion.detail()` builds a `ui-open` / `ui-close` detail from. */
@@ -384,14 +371,11 @@ const CONTENT_TAG = "ui-content"
 /** Leading `ui` of the class string, dropped when nested. */
 const UI_WORD = /^ui /
 
-/** A panel's title element, for `isFromControl()`. */
+/** A panel's title element, where a click stops counting as one on a control inside it (`UIT.TitleControls`). */
 const SUMMARY = "summary"
 
 /** This accordion's own titles, for arrow-key moves. */
 const TITLE_SELECTOR = ":scope > details > summary"
-
-/** What counts as a control inside a title:  a click on one never toggles the panel. */
-const CONTROLS = "a[href], button, input, select, textarea, label, [contenteditable], [tabindex]"
 
 /** Slot assignment by name, in a server render (`panelSlot()`). */
 const SLOT_ATTRIBUTE = "slot"

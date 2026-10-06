@@ -1,7 +1,17 @@
-import { Converters, NativeFallback, proto, type PartNameOf, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { modalVocabulary } from "./ui-modal.vocabulary.en"
-import { OPEN, CLOSEDBY, APPROVE_EVENT_NAME, DENY_EVENT_NAME, HIDE_EVENT_NAME } from "./ui-modal.types"
+import {
+  APPROVE_EVENT,
+  ARIA_LABELLEDBY,
+  CLOSABLE,
+  CLOSEDBY,
+  DENY_EVENT,
+  DialogActions,
+  HIDE_EVENT,
+  OPEN,
+  type DialogAttributeName,
+  type Vocabulary
+} from "./ui-modal.types"
 
 /****************
  * ### `ModalFallback`
@@ -11,19 +21,21 @@ import { OPEN, CLOSEDBY, APPROVE_EVENT_NAME, DENY_EVENT_NAME, HIDE_EVENT_NAME } 
  * - Follows the host's `open` attribute (a `MutationObserver`), with the `active` class;  any close (Escape, the
  *   close button, an approve / deny click) removes it again.
  * - Approve / deny elements still fire the cancelable `ui-approve` / `ui-deny` before closing.
- * - `FlyoutFallback` extends it with its own vocabulary and `rootPart`:  the same dialog, a flyout's classes.
+ * - Generic over the dialog vocabulary, as `DialogElement` is:  `FlyoutFallback` extends it with the flyout's
+ *   vocabulary and `rootPart` -- the same dialog, a flyout's classes.
  ****************/
-export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
-  /** Part name of the `<dialog>`, e.g. `modal`. */
-  declare rootPart: string
-
-  @proto static vocabulary = modalVocabulary
-  @proto static rootPart = "modal"
-  @proto static degraded = [
+export class ModalFallback<V extends E.ComponentVocabulary = Vocabulary> extends E.NativeFallback<V> {
+  // typed wide, so a subclass's vocabulary (the flyout's) fits the static side
+  @E.proto static vocabulary: E.ComponentVocabulary = modalVocabulary
+  @E.proto static rootPart = "modal"
+  @E.proto static degraded = [
     "`ui-open` / `ui-close` (no veto), `ui-show`, invoker commands;  `ui-hide` fires at once, without a transition",
     "`closedby` (the browser's own Escape handling;  no dimmer clicks), page scroll lock, the overlay stack",
     "close icon glyph (a `×` stands in), translated `close` label (English only), a slotted header naming it"
   ]
+
+  /** Part name of the `<dialog>`, e.g. `modal`. */
+  declare rootPart: E.PartNameOf<V>
 
   /** The dialog. */
   private dialog?: HTMLDialogElement
@@ -32,25 +44,25 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
   private observer?: MutationObserver
 
   protected override build() {
-    const header = this.attr("header")
-    const content = this.attr("content")
+    const header = this.dialogAttr("header")
+    const content = this.dialogAttr("content")
     const dialog = this.create("dialog", { class: this.classes() })
     if (header) {
       const id = `${this.host.id || `ui-${this.vocabulary.noun}`}-fallback-header`
-      dialog.append(this.create("div", { id, class: "header", part: "header" }, header))
-      dialog.setAttribute("aria-labelledby", id)
+      dialog.append(this.create("div", { id, class: UIT.HEADER, part: UIT.HEADER }, header))
+      dialog.setAttribute(ARIA_LABELLEDBY, id)
     }
-    if (content) dialog.append(this.create("div", { class: "content", part: "content" }, content))
+    if (content) dialog.append(this.create("div", { class: UIT.CONTENT, part: UIT.CONTENT }, content))
     dialog.append(this.slot())
-    if (this.flag("closable")) dialog.append(this.closeButton())
-    this.listen<MouseEvent>(dialog, "click", (event) => this.onClick(event))
-    this.listen(dialog, "close", () => this.onClosed())
+    const isClosable = this.flag(CLOSABLE as E.AttributeNameOf<V>)
+    if (isClosable) dialog.append(this.closeButton())
+    this.listen<MouseEvent>(dialog, UIT.CLICK, (event) => this.onClick(event))
+    this.listen(dialog, CLOSE_EVENT, () => this.onClosed())
     // `closable="false"` (Fomantic's `closable: false`) with no explicit `closedby`:  Escape does nothing
-    if (this.attr("closable") !== null && !this.flag("closable") && this.attr(CLOSEDBY) === null) {
-      this.listen(dialog, "cancel", (event) => event.preventDefault())
+    if (this.dialogAttr(CLOSABLE) !== null && !isClosable && this.dialogAttr(CLOSEDBY) === null) {
+      this.listen(dialog, CANCEL_EVENT, (event) => event.preventDefault())
     }
-    // a cast:  a `FlyoutFallback`'s vocabulary, so its `rootPart`, is typed as the modal's
-    this.dialog = this.decorate(dialog, this.rootPart as PartNameOf<typeof modalVocabulary>)
+    this.dialog = this.decorate(dialog, this.rootPart)
     return [this.dialog]
   }
 
@@ -66,14 +78,19 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
     super.dispose()
   }
 
+  /** One of the attributes every dialog vocabulary names (`DialogAttributes`):  `getAttribute()`, so `null` when absent. */
+  private dialogAttr(name: DialogAttributeName): string | null {
+    return this.attr(name as E.AttributeNameOf<V>)
+  }
+
   /** Show or close the dialog as the host's `open` says. */
   private sync() {
     const dialog = this.dialog
     if (!dialog?.isConnected) return
-    const open = Converters.boolean(this.host.getAttribute(OPEN), OPEN)
-    dialog.classList.toggle(this.openClass(), open)
-    if (open && !dialog.open) dialog.showModal()
-    else if (!open && dialog.open) dialog.close()
+    const isOpen = E.Converters.boolean(this.dialogAttr(OPEN), OPEN)
+    dialog.classList.toggle(this.openClass(), isOpen)
+    if (isOpen && !dialog.open) dialog.showModal()
+    else if (!isOpen && dialog.open) dialog.close()
   }
 
   /** The dialog closed (Escape, a button):  drop `open`, tell the page. */
@@ -81,26 +98,18 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
     this.dialog?.classList.remove(this.openClass())
     if (this.host.hasAttribute(OPEN)) this.host.removeAttribute(OPEN)
     const detail: UIT.ModalOpenDetail = { open: false }
-    this.host.dispatchEvent(new CustomEvent(HIDE_EVENT_NAME, { bubbles: true, composed: true, detail }))
+    this.host.dispatchEvent(new CustomEvent(HIDE_EVENT, { bubbles: true, composed: true, detail }))
   }
 
   /** Approve / deny:  the cancelable event, then close. */
   private onClick(event: MouseEvent) {
-    const scope = this.host.getRootNode()
-    for (const target of event.composedPath()) {
-      if (target === this.host) return
-      if (!(target instanceof Element) || target.getRootNode() !== scope) continue
-      const kind = target.matches(UIT.MODAL_ACTION_SELECTORS.approve)
-        ? APPROVE_EVENT_NAME
-        : target.matches(UIT.MODAL_ACTION_SELECTORS.deny)
-          ? DENY_EVENT_NAME
-          : undefined
-      if (!kind) continue
-      const detail: UIT.ModalActionDetail = { action: target, originalEvent: event }
-      const init = { bubbles: true, composed: true, cancelable: true, detail }
-      if (this.host.dispatchEvent(new CustomEvent(kind, init))) this.dialog?.close()
-      return
-    }
+    const found = DialogActions.actionFor(event, this.host)
+    if (!found) return
+    const [kind, action] = found
+    const detail: UIT.ModalActionDetail = { action, originalEvent: event }
+    const init = { bubbles: true, composed: true, cancelable: true, detail }
+    const name = kind === "approve" ? APPROVE_EVENT : DENY_EVENT
+    if (this.host.dispatchEvent(new CustomEvent(name, init))) this.dialog?.close()
   }
 
   /** Class word of `open` (`active` on a modal, `visible` on a flyout):  the vocabulary's `key`. */
@@ -109,15 +118,18 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
     return spec?.key ?? OPEN
   }
 
-  /** The close button. */
+  /** The close button:  closes the dialog. */
   private closeButton(): HTMLButtonElement {
-    const label = this.vocabulary.texts.find(({ key }) => key === "close")!.text
-    const button = this.create(
-      "button",
-      { type: "button", class: "close icon", part: "close", "aria-label": label },
-      "×"
-    )
-    this.listen(button, "click", () => this.dialog?.close())
+    const label = this.vocabulary.texts.find(({ key }) => key === UIT.CLOSE)!.text
+    const attributes = { type: "button", class: UIT.CLOSE_CLASS, part: UIT.CLOSE, "aria-label": label }
+    const button = this.create("button", attributes, UIT.CLOSE_TEXT)
+    this.listen(button, UIT.CLICK, () => this.dialog?.close())
     return button
   }
 }
+
+/** The `<dialog>`'s event once it has closed, however. */
+const CLOSE_EVENT = "close"
+
+/** The `<dialog>`'s event before Escape closes it. */
+const CANCEL_EVENT = "cancel"

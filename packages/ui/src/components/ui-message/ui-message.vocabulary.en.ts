@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-message>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-message state="negative" attached="bottom" size="small">` => `ui small negative bottom attached message`.
  *   The element adds `icon` (`extra`) when it shows an icon.
@@ -10,7 +10,7 @@
  *   `:state(in-message)` and style themselves from `ui-parts.css`, reading `--_ui-message-layout` (`ui-message.css`).
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-message>`
@@ -89,4 +89,4 @@ export const messageVocabulary = {
   states: [{ name: "inverted", description: "In the dark scheme." }],
   texts: [{ key: "dismiss", text: "Dismiss", description: "Accessible name of the close button." }],
   ownsParts: ["header", "content"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -1,8 +1,8 @@
-import { proto } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { modalVocabulary } from "./ui-modal.vocabulary.en"
 import { DialogElement } from "./DialogElement"
 import { ModalFallback } from "./ui-modal.fallback"
+import type { Vocabulary } from "./ui-modal.types"
 
 import modalCSS from "./ui-modal.css?inline"
 
@@ -15,10 +15,10 @@ import modalCSS from "./ui-modal.css?inline"
  *   `DialogElement`'s, which `<ui-flyout>` shares;  this class only names and styles it.
  * - `UI.modals.confirm()` / `alert()` / `prompt()` render one of these (`ModalDialogs`, registered by the barrel).
  ****************/
-export class UIModal extends DialogElement<typeof modalVocabulary> {
-  @proto static vocabulary = modalVocabulary
-  @proto static styles = { modal: modalCSS }
-  @proto static Fallback = ModalFallback
-  @proto static rootPart = "modal"
-  @proto static overlayKind = "modal" as const
+export class UIModal extends DialogElement<Vocabulary> {
+  @E.proto static vocabulary = modalVocabulary
+  @E.proto static styles = { modal: modalCSS }
+  @E.proto static Fallback = ModalFallback
+  @E.proto static rootPart = "modal"
+  @E.proto static overlayKind = "modal" as const
 }

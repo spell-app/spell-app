@@ -96,7 +96,7 @@
       "name": "ui-actions",
       "description": {
         "kind": "markdown",
-        "value": "Actions a user can take:  a modal's or toast's buttons, a comment's reply links.\n\nAlso known as:  footer buttons, button bar, dialog actions.\n\n**Slots:**  default"
+        "value": "Actions a person can take:  a modal's or toast's buttons, a comment's reply links.\n\nAlso known as:  footer buttons, button bar, dialog actions.\n\n**Slots:**  default"
       },
       "attributes": []
     },
@@ -8083,7 +8083,7 @@
           "name": "open",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -8446,7 +8446,7 @@
           "name": "collapsed",
           "description": {
             "kind": "markdown",
-            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
+            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -8970,7 +8970,7 @@
           "name": "open",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -9654,7 +9654,7 @@
       "name": "ui-rating",
       "description": {
         "kind": "markdown",
-        "value": "A rating indicates user interest in content.\n\nAlso known as:  stars, star rating, score, review stars, hearts.\n\n**Events:**  `ui-change`"
+        "value": "A rating indicates people's interest in content.\n\nAlso known as:  stars, star rating, score, review stars, hearts.\n\n**Events:**  `ui-change`"
       },
       "attributes": [
         {
@@ -10343,7 +10343,7 @@
       "name": "ui-search",
       "description": {
         "kind": "markdown",
-        "value": "A search module allows a user to query for results from a selection of data.\n\nAlso known as:  autocomplete, typeahead, search box, combobox, lookup.\n\n**Slots:**  `icon`\n\n**Events:**  `ui-search`, `ui-select`, `ui-change`, `ui-results`, `ui-open`, `ui-close`"
+        "value": "A search module lets people query for results from a selection of data.\n\nAlso known as:  autocomplete, typeahead, search box, combobox, lookup.\n\n**Slots:**  `icon`\n\n**Events:**  `ui-search`, `ui-select`, `ui-change`, `ui-results`, `ui-open`, `ui-close`"
       },
       "attributes": [
         {
@@ -10411,7 +10411,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "`scrolling`:  the user can resize the results vertically.\n\nTakes:  flag (present / absent)"
+            "value": "`scrolling`:  people can resize the results vertically.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -10675,7 +10675,7 @@
           "name": "collapsed",
           "description": {
             "kind": "markdown",
-            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
+            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -11279,7 +11279,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "With `scrolling`:  the user can drag its height.\n\nTakes:  flag (present / absent)"
+            "value": "With `scrolling`:  people can drag its height.\n\nTakes:  flag (present / absent)"
           }
         }
       ]
@@ -11419,7 +11419,7 @@
       "name": "ui-select",
       "description": {
         "kind": "markdown",
-        "value": "A select lets a user choose one or more values from a native list of options.\n\nAlso known as:  select box, native select, picker, option list.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
+        "value": "A select lets people choose one or more values from a native list of options.\n\nAlso known as:  select box, native select, picker, option list.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
       },
       "attributes": [
         {
@@ -11743,7 +11743,7 @@
           "name": "visible",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -11777,7 +11777,7 @@
       "name": "ui-slider",
       "description": {
         "kind": "markdown",
-        "value": "A slider allows users to select values within a range.\n\nAlso known as:  range, range slider, volume, scrubber, track bar.\n\n**Events:**  `ui-input`, `ui-change`"
+        "value": "A slider lets people select values within a range.\n\nAlso known as:  range, range slider, volume, scrubber, track bar.\n\n**Events:**  `ui-input`, `ui-change`"
       },
       "attributes": [
         {
@@ -12957,7 +12957,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "With `scrolling`:  the user can drag the height.\n\nTakes:  flag (present / absent)"
+            "value": "With `scrolling`:  people can drag the height.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -13218,7 +13218,7 @@
           "name": "sort-column",
           "description": {
             "kind": "markdown",
-            "value": "Index of the sorted column (0-based, counting `colspan`s);  set by the user's clicks unless the app controls it.\n\nTakes:  number"
+            "value": "Index of the sorted column (0-based, counting `colspan`s);  set by people's clicks unless the app controls it.\n\nTakes:  number"
           }
         },
         {
@@ -13473,7 +13473,7 @@
           "name": "value",
           "description": {
             "kind": "markdown",
-            "value": "Value of the selected pane (its `value`, else its index).  Controlled:  set it to switch panes;  `ui-change` can veto the user's changes.  Without it, the first `selected` pane, else the first enabled one.\n\nTakes:  text"
+            "value": "Value of the selected pane (its `value`, else its index).  Controlled:  set it to switch panes;  `ui-change` can veto a person's changes.  Without it, the first `selected` pane, else the first enabled one.\n\nTakes:  text"
           }
         },
         {
@@ -13805,7 +13805,7 @@
       "name": "ui-toast",
       "description": {
         "kind": "markdown",
-        "value": "A toast allows users to receive a short, non-blocking notification.\n\nAlso known as:  snackbar, notification, growl, flash message, toaster.\n\n**Slots:**  default, `actions`\n\n**Events:**  `ui-show`, `ui-close`, `ui-hide`, `ui-approve`, `ui-deny`"
+        "value": "A toast gives people a short, non-blocking notification.\n\nAlso known as:  snackbar, notification, growl, flash message, toaster.\n\n**Slots:**  default, `actions`\n\n**Events:**  `ui-show`, `ui-close`, `ui-hide`, `ui-approve`, `ui-deny`"
       },
       "attributes": [
         {

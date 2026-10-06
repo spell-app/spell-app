@@ -1,24 +1,7 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  Converters,
-  HostAttribute,
-  IconGlyph,
-  PartContext,
-  proto,
-  SlotContent,
-  SOURCE_FAILURE_KEYS,
-  SourceBody,
-  SourceBodyHost,
-  StickyWatch,
-  UI,
-  UIElement,
-  UIT,
-  type UIHost
-} from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { sectionVocabulary } from "./ui-section.vocabulary.en"
 import { SectionFallback } from "./ui-section.fallback"
 import { UISections } from "./UISections"
@@ -26,34 +9,23 @@ import {
   ACTIONS,
   BADGE,
   BEFORE_MATCH,
-  CONTENT,
   CONTENT_ID,
-  DEPTH_PROPERTY,
-  FOLD_END,
-  FOLD_ICON,
   FOLD_ICON_CLASS,
-  HEADER,
+  FoldIconPlace,
   HEADING,
   HEADING_TAG,
   HEIGHT_PROPERTY,
-  LOADING,
   MAX_LEVEL,
   SCROLLING,
-  SENTINEL,
-  SOURCE_ERROR,
   STATIC_TOGGLE_TAG,
-  TOGGLE_BUTTON,
-  CONTROLS,
   STICK_TOP_PROPERTY,
   SUBHEAD,
   TIP,
   TIP_ID,
-  TITLE,
   TOGGLE,
   TOOLTIP,
   TOP_LEVEL,
   UNTIL_FOUND,
-  type FoldIconPlace,
   type SectionVocabulary
 } from "./ui-section.types"
 
@@ -100,14 +72,14 @@ import sectionCSS from "./ui-section.css?inline"
  *   `StickyWatch` writes the scroll container's inline `scroll-padding-top` while stuck.
  * - SIDE EFFECT:  with `source`, replaces its own light children (the placeholder) with the file's body.
  ****************/
-export class UISection extends UIElement<SectionVocabulary> {
-  @proto static vocabulary = sectionVocabulary
-  @proto static styles = { section: sectionCSS }
-  @proto static Fallback = SectionFallback
-  @proto static Host = SourceBodyHost
+export class UISection extends E.UIElement<SectionVocabulary> {
+  @E.proto static vocabulary = sectionVocabulary
+  @E.proto static styles = { section: sectionCSS }
+  @E.proto static Fallback = SectionFallback
+  @E.proto static Host = E.SourceBodyHost
   // a container:  a click on its text must not jump to the fold button or a link inside
-  @proto static delegatesFocus = false
-  @proto static defaultFoldIcon: FoldIconPlace = "start"
+  @E.proto static delegatesFocus = false
+  @E.proto static defaultFoldIcon: FoldIconPlace = FoldIconPlace.start
 
   /** Where the fold chevron sits without a `fold-icon` attribute:  `start`;  a subclass may move it. */
   declare defaultFoldIcon: FoldIconPlace
@@ -117,20 +89,20 @@ export class UISection extends UIElement<SectionVocabulary> {
   ////////////////
 
   /** Enclosing section, when nested (`:state(in-section)`);  climbs through any other component. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun, { barrier: PartContext.noBarrier })
+  readonly context = new E.PartContext(this.host, this.vocabulary.noun, { barrier: E.PartContext.noBarrier })
 
   /** Light-DOM slot occupancy:  icon, badge, subhead, actions. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
 
   /**
-   * The host's `collapsible` attribute as written, `null` when absent;  tracked.
+   * The host's `collapsible` attribute as written, `undefined` when absent;  tracked.
    * - Why raw:  `attrs.collapsible` reads absent and `"false"` alike (false), but only absent takes the group's
    *   default (`collapsible()`).
    */
-  readonly collapsibleAttribute = new HostAttribute({
+  readonly collapsibleAttribute = new E.HostAttribute({
     host: this.host,
     name: this.definition.attribute("collapsible").attribute
   })
@@ -139,13 +111,13 @@ export class UISection extends UIElement<SectionVocabulary> {
   readonly collapsedState = this.controlled("collapsed", false)
 
   /** Title bar's height in pixels, while `sticky` (for the stack below it). */
-  readonly titleHeight = new Cell(0)
+  readonly titleHeight = new E.Cell(0)
 
   /** Title bar is stuck. */
-  readonly stuck = new Cell(false)
+  readonly isStuck = new E.Cell(false)
 
   /** The content from `source`, loaded on first unfold;  into the host's light DOM. */
-  readonly body = new SourceBody({
+  readonly body = new E.SourceBody({
     host: this.host,
     source: () => untrack(() => this.attrs.source) || undefined,
     select: () => untrack(() => this.attrs.select) || undefined,
@@ -160,7 +132,7 @@ export class UISection extends UIElement<SectionVocabulary> {
   private sentinel?: HTMLDivElement
 
   /** Observes the stuck title and reserves its room. */
-  private readonly watch = new StickyWatch(({ edge }) => this.stuck.set(edge !== undefined))
+  private readonly watch = new E.StickyWatch(({ edge }) => this.isStuck.set(edge !== undefined))
 
   ////////////////
   // ## Derived state
@@ -172,14 +144,14 @@ export class UISection extends UIElement<SectionVocabulary> {
    *   still nested.
    */
   readonly parent = createMemo((): UISection | undefined => {
-    let owner = UISection.ownerOf(this.context)
-    while (owner instanceof UISections) owner = UISection.ownerOf(owner.context)
+    let owner = this.context.ownerController<UISection | UISections>()
+    while (owner instanceof UISections) owner = owner.context.ownerController<UISection | UISections>()
     return owner instanceof UISection ? owner : undefined
   })
 
   /** Nearest `<ui-sections>` group's controller, directly or through enclosing sections, or `undefined`. */
   readonly group = createMemo((): UISections | undefined => {
-    const owner = UISection.ownerOf(this.context)
+    const owner = this.context.ownerController<UISection | UISections>()
     if (owner instanceof UISections) return owner
     return owner instanceof UISection ? owner.group() : undefined
   })
@@ -192,12 +164,12 @@ export class UISection extends UIElement<SectionVocabulary> {
    */
   readonly collapsible = createMemo((): boolean => {
     const own = this.collapsibleAttribute.get()
-    if (own !== undefined) return Converters.boolean(own, this.definition.attribute("collapsible").attribute)
+    if (own !== undefined) return E.Converters.boolean(own, this.definition.attribute("collapsible").attribute)
     return !!this.attrs.collapsible || !!this.group()?.attrs.collapsing
   })
 
   /** Glyph of the fold button, while `collapsible()`. */
-  readonly foldGlyph = new IconGlyph(this, () => (this.collapsible() ? FOLD_ICON : undefined))
+  readonly foldGlyph = new E.IconGlyph(this, () => (this.collapsible() ? FOLD_ICON : undefined))
 
   /** Heading level, 1 ... 6. */
   readonly level = createMemo((): number => {
@@ -226,7 +198,7 @@ export class UISection extends UIElement<SectionVocabulary> {
   readonly innerStackTop = createMemo((): number => (this.scrolls() ? 0 : this.stackBottom()))
 
   /** Folded:  `collapsible` and `collapsed`. */
-  readonly folded = createMemo(() => this.collapsible() && !!this.collapsedState.get())
+  readonly isFolded = createMemo(() => this.collapsible() && !!this.collapsedState.get())
 
   /** Content box held closed while the `source` body is on its way (never in a server render:  nothing loads). */
   readonly veiled = createMemo(() => !isServer && !!this.attrs.source && this.body.isVeiled)
@@ -238,7 +210,7 @@ export class UISection extends UIElement<SectionVocabulary> {
   readonly bodyFailureText = createMemo(() => {
     const failure = this.body.failure.get()
     if (!failure) return undefined
-    const key = SOURCE_FAILURE_KEYS[failure.kind] ?? SOURCE_FAILURE_KEYS.load
+    const key = E.SOURCE_FAILURE_KEYS[failure.kind] ?? E.SOURCE_FAILURE_KEYS.load
     return this.text(key as never, { source: this.attrs.source ?? "" })
   })
 
@@ -258,7 +230,7 @@ export class UISection extends UIElement<SectionVocabulary> {
   readonly hasInfo = createMemo(() => !!this.attrs.info || this.slots.has(this.slot("info")))
 
   /** The fold chevron sits at the far end of the title bar:  `fold-icon`, else the class's `defaultFoldIcon`. */
-  readonly foldAtEnd = createMemo(() => (this.attrs.foldIcon ?? this.defaultFoldIcon) === FOLD_END)
+  readonly foldAtEnd = createMemo(() => (this.attrs.foldIcon ?? this.defaultFoldIcon) === FoldIconPlace.end)
 
   /** Is the content its own scroll box? */
   scrolls(): boolean {
@@ -287,14 +259,14 @@ export class UISection extends UIElement<SectionVocabulary> {
     const { inverted, disabled } = this.attrs
     const status = this.body.status.get()
     return {
-      collapsed: this.folded(),
-      stuck: !!this.attrs.sticky && this.stuck.get(),
+      collapsed: this.isFolded(),
+      stuck: !!this.attrs.sticky && this.isStuck.get(),
       animated: this.loaded() && UI.browser.supports.interpolateSize,
       inverted,
       loading: this.busy(),
       disabled,
-      loaded: status === "loaded",
-      error: status === "error"
+      loaded: status === E.SourceStatus.loaded,
+      error: status === E.SourceStatus.error
     }
   }
 
@@ -313,7 +285,7 @@ export class UISection extends UIElement<SectionVocabulary> {
         () => ({
           source: this.attrs.source,
           select: this.attrs.select,
-          open: !this.folded(),
+          open: !this.isFolded(),
           connected: this.connected.get()
         }),
         ({ source, open, connected }) => {
@@ -325,11 +297,11 @@ export class UISection extends UIElement<SectionVocabulary> {
   }
 
   render(): JSX.Element {
-    this.effects()
+    this.watchTitle()
     return (
       <section class={this.classes()} part={this.part("section")} aria-busy={this.busy() ? UIT.TRUE : undefined}>
         <div ref={(element) => (this.sentinel = element)} class={SENTINEL} aria-hidden={UIT.TRUE} />
-        {this.renderTitle()}
+        {this.titleBar()}
         <Show when={this.hasSubhead()}>
           <div class={SUBHEAD} part={this.part("subhead")}>
             <slot name={this.slot("subhead")}>{this.attrs.subhead}</slot>
@@ -338,9 +310,9 @@ export class UISection extends UIElement<SectionVocabulary> {
         <div
           ref={(element) => element.addEventListener(BEFORE_MATCH, this.onBeforeMatch)}
           id={CONTENT_ID}
-          class={CONTENT}
+          class={UIT.CONTENT}
           part={this.part("content")}
-          hidden={this.folded() || this.veiled() ? UNTIL_FOUND : undefined}
+          hidden={this.isFolded() || this.veiled() ? UNTIL_FOUND : undefined}
           tabindex={this.scrolls() ? 0 : undefined}
           style={this.attrs.height ? { [HEIGHT_PROPERTY]: this.attrs.height } : undefined}
         >
@@ -370,11 +342,11 @@ export class UISection extends UIElement<SectionVocabulary> {
   }
 
   /** `<header class="title">`:  the heading around the toggle, then the badge and actions. */
-  private renderTitle(): JSX.Element {
+  private titleBar(): JSX.Element {
     return (
       <header
         ref={(element) => (this.title = element)}
-        class={TITLE}
+        class={UIT.TITLE}
         part={this.part("title")}
         style={this.titleStyle()}
       >
@@ -389,20 +361,20 @@ export class UISection extends UIElement<SectionVocabulary> {
             type={this.collapsible() ? UIT.BUTTON : undefined}
             class={TOGGLE}
             part={this.part("toggle")}
-            aria-expanded={this.collapsible() ? (this.folded() ? UIT.FALSE : UIT.TRUE) : undefined}
+            aria-expanded={this.collapsible() ? (this.isFolded() ? UIT.FALSE : UIT.TRUE) : undefined}
             aria-controls={this.collapsible() ? CONTENT_ID : undefined}
-            title={this.collapsible() ? this.text(this.folded() ? "unfold" : "fold") : undefined}
+            title={this.collapsible() ? this.text(this.isFolded() ? "unfold" : "fold") : undefined}
             disabled={this.collapsible() && this.attrs.disabled ? true : undefined}
             aria-describedby={this.hasInfo() && this.collapsible() ? TIP_ID : undefined}
             onClick={this.onToggleClick}
           >
-            <Show when={this.collapsible() && !this.foldAtEnd()}>{this.renderFoldIcon()}</Show>
+            <Show when={this.collapsible() && !this.foldAtEnd()}>{this.foldIcon()}</Show>
             <Show when={this.hasIcon()}>
               <span class={UIT.ICON} part={this.part("icon")}>
                 <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
               </span>
             </Show>
-            <span class={HEADER} part={this.part("header")}>
+            <span class={UIT.HEADER} part={this.part("header")}>
               <slot name={this.slot("header")}>{this.attrs.header}</slot>
             </span>
           </Dynamic>
@@ -417,7 +389,7 @@ export class UISection extends UIElement<SectionVocabulary> {
             <slot name={this.slot("actions")} />
           </span>
         </Show>
-        <Show when={this.collapsible() && this.foldAtEnd()}>{this.renderFoldIcon(this.onFoldIconClick)}</Show>
+        <Show when={this.collapsible() && this.foldAtEnd()}>{this.foldIcon(this.onFoldIconClick)}</Show>
         <Show when={this.hasInfo()}>
           <span id={TIP_ID} class={TIP} part={this.part("tip")} role={TOOLTIP}>
             <slot name={this.slot("info")}>{this.attrs.info}</slot>
@@ -428,7 +400,7 @@ export class UISection extends UIElement<SectionVocabulary> {
   }
 
   /** The fold chevron, `aria-hidden` (the button is the control):  in the button, or at the bar's end with `onClick`. */
-  private renderFoldIcon(onClick?: (event: MouseEvent) => void): JSX.Element {
+  private foldIcon(onClick?: (event: MouseEvent) => void): JSX.Element {
     return (
       <span class={FOLD_ICON_CLASS} part={this.part("fold-icon")} aria-hidden={UIT.TRUE} onClick={onClick}>
         {this.foldGlyph.svg()}
@@ -440,7 +412,7 @@ export class UISection extends UIElement<SectionVocabulary> {
    * While connected and `sticky`:  measure the title (for the stack) and watch it stick, again whenever its
    * `top` changes;  unstuck otherwise.
    */
-  private effects() {
+  private watchTitle() {
     createEffect(
       () => ({ watching: this.connected.get() && !!this.attrs.sticky, offset: this.stickTop() }),
       ({ watching, offset }) => {
@@ -479,13 +451,13 @@ export class UISection extends UIElement<SectionVocabulary> {
   ////////////////
 
   /**
-   * Fold or unfold as the user would:  the cancelable `ui-open` / `ui-close` first, then `collapsed`.  True when
+   * Fold or unfold as a person would:  the cancelable `ui-open` / `ui-close` first, then `collapsed`.  True when
    * applied.
    * - Does nothing unless `collapsible`, or while `disabled`.
    */
   toggle(originalEvent?: Event): boolean {
     if (!untrack(this.collapsible) || untrack(() => this.isDisabled())) return false
-    const opening = untrack(this.folded)
+    const opening = untrack(this.isFolded)
     const detail: UIT.SectionToggleDetail = { open: opening, section: this.host, originalEvent }
     return this.collapsedState.request(!opening, () => this.emit(opening ? "ui-open" : "ui-close", detail))
   }
@@ -493,7 +465,7 @@ export class UISection extends UIElement<SectionVocabulary> {
   /** A click on the toggle (Enter / Space on the button click it too). */
   private readonly onToggleClick = (event: MouseEvent) => {
     // a link or control inside a rich `slot="header"` title acts on its own, as in an accordion's title
-    if (UISection.fromControl(event)) return
+    if (UIT.TitleControls.isClicked(event, TOGGLE_BUTTON)) return
     this.toggle(event)
   }
 
@@ -502,30 +474,33 @@ export class UISection extends UIElement<SectionVocabulary> {
     this.toggle(event)
   }
 
-  /** Controller of the nearest owner `context` resolved (a section or a group), or `undefined`;  tracked. */
-  private static ownerOf(context: PartContext): unknown {
-    return (context.owner.get()?.owner as UIHost | undefined)?.controller
-  }
-
-  /** Did the click land on a control inside the title, before reaching the fold button? */
-  private static fromControl(event: Event): boolean {
-    for (const target of event.composedPath()) {
-      if (!(target instanceof Element)) continue
-      if (target.matches(TOGGLE_BUTTON)) return false
-      if (target.matches(CONTROLS)) return true
-    }
-    return false
-  }
-
   /**
    * Find-in-page matched inside the folded content:  the browser has already revealed it, so announce `ui-open`
    * after the fact (not cancelable) and adopt it.
    */
   private readonly onBeforeMatch = () => {
-    if (!untrack(this.folded)) return
+    if (!untrack(this.isFolded)) return
     const detail: UIT.SectionToggleDetail = { open: true, section: this.host }
     const init = { bubbles: true, composed: true, cancelable: false, detail }
     this.host.dispatchEvent(new CustomEvent(this.definition.event("ui-open"), init))
     this.collapsedState.set(false)
   }
 }
+
+/** Glyph of the fold button (rotated by CSS while folded). */
+const FOLD_ICON = "chevron down"
+
+/** Class word of the 1px sentinel before the title, which `StickyWatch` observes with `sticky`. */
+const SENTINEL = "sentinel"
+
+/** The fold button, in the shadow root:  where a click's path stops counting as one on a control in the title. */
+const TOGGLE_BUTTON = "button.toggle"
+
+/** Private custom property of a title's nesting depth (0 at the top), inline:  deeper titles slide under. */
+const DEPTH_PROPERTY = "--_ui-section-depth"
+
+/** Class words of the line saying a `source` body failed (`part="error"`, inside the content box). */
+const SOURCE_ERROR = "source error"
+
+/** Class word after the noun while a `source` body is slow to arrive:  the `loading` look. */
+const LOADING = "loading"

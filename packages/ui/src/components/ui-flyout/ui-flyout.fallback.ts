@@ -1,7 +1,7 @@
 import { E, UIT } from "$/ui/core"
 // Import the modal's FILE, not its barrel:  a server render loads this class without `customElements` (`index.ts`)
 import { ModalFallback } from "$/ui/components/ui-modal/ui-modal.fallback"
-import { WIDTH } from "./ui-flyout.types"
+import { WIDTH, type Vocabulary } from "./ui-flyout.types"
 import { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
 
 /****************
@@ -10,10 +10,8 @@ import { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
  * `open` (focus trap, dimmer, Escape, approve / deny), in the flyout's class grammar (`ui left visible flyout`),
  * `part="flyout"`.
  ****************/
-export class FlyoutFallback extends ModalFallback {
-  // HACK:  the same dialog vocabulary shape as the modal's (`DialogElement`), but `ModalFallback` isn't generic over
-  // it, so TypeScript only knows the modal's literals
-  @E.proto static vocabulary = flyoutVocabulary as unknown as typeof ModalFallback.prototype.vocabulary
+export class FlyoutFallback extends ModalFallback<Vocabulary> {
+  @E.proto static vocabulary = flyoutVocabulary
   @E.proto static rootPart = "flyout"
   @E.proto static degraded = [
     ...ModalFallback.prototype.degraded,
@@ -22,7 +20,7 @@ export class FlyoutFallback extends ModalFallback {
 
   /** The class grammar, plus a word width after the noun, as the element adds it. */
   protected override classes(extra?: string): string {
-    const word = UIT.WordWidthClasses.classFor(this.host.getAttribute(WIDTH))
+    const word = UIT.WordWidthClasses.classFor(this.attr(WIDTH))
     return super.classes([word, extra].filter(Boolean).join(" ") || undefined)
   }
 }

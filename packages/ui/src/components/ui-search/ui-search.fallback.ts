@@ -1,8 +1,6 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { searchVocabulary } from "./ui-search.vocabulary.en"
-import { CHANGE_EVENT, PROMPT, PARTS, INPUT } from "./ui-search.types"
-import type { SearchHost } from "./ui-search.types"
+import { INPUT, PROMPT, type SearchHost, type Vocabulary } from "./ui-search.types"
 
 /****************
  * ### `SearchFallback`
@@ -13,9 +11,9 @@ import type { SearchHost } from "./ui-search.types"
  *   `host.value` follows.
  * - Accessible name:  the host's `aria-label`, else `placeholder`.
  ****************/
-export class SearchFallback extends NativeFallback<typeof searchVocabulary> {
-  @proto static vocabulary = searchVocabulary
-  @proto static degraded = [
+export class SearchFallback extends E.NativeFallback<Vocabulary> {
+  @E.proto static vocabulary = searchVocabulary
+  @E.proto static degraded = [
     "remote results (`url`):  no suggestions",
     "result descriptions, images, prices and categories (titles only, as the browser's suggestions)",
     "Fomantic's matching (`full-text-search`, `search-fields`, `max-results`):  the browser's own",
@@ -28,21 +26,20 @@ export class SearchFallback extends NativeFallback<typeof searchVocabulary> {
 
   protected override build() {
     const host = this.host as SearchHost
-    const listId = `${this.vocabulary.tag}-suggestions`
+    const listId = `${this.vocabulary.tag}${SUGGESTIONS_SUFFIX}`
+    const placeholder = this.attr("placeholder")
     const input = this.create("input", {
       class: PROMPT,
-      type: "search",
-      name: null,
-      placeholder: this.attr("placeholder"),
+      type: SEARCH_TYPE,
+      placeholder,
       required: this.flag("required"),
       disabled: this.flag("disabled"),
-      autocomplete: "off",
+      autocomplete: AUTOCOMPLETE_OFF,
       list: listId
     })
     input.value = typeof host.value === "string" ? host.value : (this.attr("value") ?? "")
-    this.decorate(input, PARTS.prompt)
-    const placeholder = this.attr("placeholder")
-    if (!input.hasAttribute("aria-label") && placeholder) input.setAttribute("aria-label", placeholder)
+    this.decorate(input, "prompt")
+    if (!input.hasAttribute(UIT.ARIA_LABEL) && placeholder) input.setAttribute(UIT.ARIA_LABEL, placeholder)
 
     const list = this.create("datalist", { id: listId })
     const titles = new Set<string>()
@@ -51,7 +48,7 @@ export class SearchFallback extends NativeFallback<typeof searchVocabulary> {
     }
     for (const title of titles) list.append(this.create("option", { value: title }))
 
-    const box = this.create("div", { class: INPUT, part: PARTS.input }, input, list)
+    const box = this.create("div", { class: INPUT, part: INPUT_PART }, input, list)
     const root = this.create("div", { class: this.classes() }, box)
 
     this.listen(input, "input", () => {
@@ -81,7 +78,22 @@ export class SearchFallback extends NativeFallback<typeof searchVocabulary> {
     const internals = this.formInternals
     if (!internals) return
     internals.setFormValue(this.attr("name") ? input.value : null)
-    const missing = input.validity.valueMissing
-    internals.setValidity(missing ? { valueMissing: true } : {}, input.validationMessage, input)
+    const isMissing = input.validity.valueMissing
+    internals.setValidity(isMissing ? { valueMissing: true } : {}, input.validationMessage, input)
   }
 }
+
+/** Event the input's `change` becomes. */
+const CHANGE_EVENT: E.EventName<Vocabulary> = "ui-change"
+
+/** Part of the box around the input (the input itself is `prompt`, through `decorate()`). */
+const INPUT_PART: E.PartName<Vocabulary> = "input"
+
+/** The input's `type`:  a native search field. */
+const SEARCH_TYPE = "search"
+
+/** The input's `autocomplete`:  off, so only the `<datalist>` suggests. */
+const AUTOCOMPLETE_OFF = "off"
+
+/** Suffix of the `<datalist>` id, after the tag. */
+const SUGGESTIONS_SUFFIX = "-suggestions"

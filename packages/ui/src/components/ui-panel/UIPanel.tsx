@@ -1,9 +1,8 @@
-import { proto } from "$/ui/core"
+import { E } from "$/ui/core"
 // the family barrel, not the leaf:  the lib build then imports `ui-section.js` instead of splitting a shared chunk
 // (SIDE EFFECT:  defines `<ui-section>` / `<ui-sections>`, which panels nest in and hold)
 import { UISection } from "$/ui/components/ui-section"
-import type { SectionVocabulary } from "$/ui/components/ui-section/ui-section.types"
-
+import { FoldIconPlace, type SectionVocabulary } from "$/ui/components/ui-section/ui-section.types"
 import { panelVocabulary } from "./ui-panel.vocabulary.en"
 import { PanelFallback } from "./ui-panel.fallback"
 import { PANEL, SUB_PANEL } from "./ui-panel.types"
@@ -32,11 +31,11 @@ import panelCSS from "./ui-panel.css?inline"
  ****************/
 export class UIPanel extends UISection {
   // the section's names under the panel's tag:  same shape, but TypeScript only knows the section's literals
-  @proto static vocabulary = panelVocabulary as unknown as SectionVocabulary
-  @proto static styles = { ...UISection.styles, panel: panelCSS }
-  @proto static Fallback = PanelFallback
+  @E.proto static vocabulary = panelVocabulary as unknown as SectionVocabulary
+  @E.proto static styles = { ...UISection.styles, panel: panelCSS }
+  @E.proto static Fallback = PanelFallback
   // the band's chevron at its far end, after any actions (`fold-icon="start"` moves it back)
-  @proto static defaultFoldIcon = "end" as const
+  @E.proto static defaultFoldIcon = FoldIconPlace.end
 
   /** `panel`, and `sub` inside another panel. */
   protected extraClasses(): string | undefined {

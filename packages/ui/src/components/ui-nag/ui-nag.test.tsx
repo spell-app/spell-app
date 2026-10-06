@@ -20,7 +20,7 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-nag/examples/eleme
 })
 
 /** A nag host with its script API. */
-type Nag = UIHost & { close(): boolean; show(): boolean; clear(): void; readonly dismissed: boolean }
+type Nag = UIHost & { close(): boolean; show(): boolean; clear(): void; readonly isDismissed: boolean }
 
 /** Storage keys the tests use, cleared around each test. */
 const KEY = "ui-nag-test"
@@ -201,7 +201,7 @@ describe("<ui-nag> remembering", () => {
     const { host } = await nag(`<ui-nag storage="local">Hello</ui-nag>`)
     expect(host.close()).toBe(true)
     expect(localStorage.length === 0 || localStorage.getItem("nag") === null).toBe(true)
-    expect(host.dismissed).toBe(false)
+    expect(host.isDismissed).toBe(false)
   })
 
   it.each(["local", "session"] as const)(
@@ -213,7 +213,7 @@ describe("<ui-nag> remembering", () => {
       host.close()
       expect((await hidden).reason).toBe("dismiss")
       expect(store.getItem(KEY)).toBe("dismiss")
-      expect(host.dismissed).toBe(true)
+      expect(host.isDismissed).toBe(true)
       if (storage === "local") expect(new Date(store.getItem(`${KEY}ExpirationDate`)!) > new Date()).toBe(true)
       const again = Fixture.render<Nag>(`<ui-nag key="${KEY}" storage="${storage}">Hello again</ui-nag>`)
       expect(again.hidden).toBe(true)
@@ -294,7 +294,7 @@ describe("<ui-nag> remembering", () => {
       expect(host.close()).toBe(true)
       await hidden
       expect(host.hidden).toBe(true)
-      expect(host.dismissed).toBe(false)
+      expect(host.isDismissed).toBe(false)
     } finally {
       Object.defineProperty(window, "localStorage", descriptor)
     }
