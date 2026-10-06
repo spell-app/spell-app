@@ -521,7 +521,7 @@ export class Window {
       console.log(written.length ? `wrote ${written.join(", ")}` : "every package has its window file")
       return 0
     }
-    if (!COMMANDS.includes(command) || (!["which", "stay-check"].includes(command) && !target)) {
+    if (!COMMANDS.includes(command) || (!["which", "stay-check", "reload-view"].includes(command) && !target)) {
       console.error(USAGE)
       return 1
     }
@@ -543,6 +543,21 @@ export class Window {
       console.log(`workspace  ${window.workspaceFile ?? "(none:  not opened from a .code-workspace)"}`)
       console.log(`folders    ${window.folders.join("\n           ")}`)
       return 0
+    }
+    if (command === "reload-view") {
+      const view = flags.review ? "review" : "docs"
+      try {
+        const { url } = await Window.request("reload-view", { view }, window)
+        console.log(
+          url ? `rebuilt the ${view} view at ${url}` : `the ${view} view hasn't been shown yet:  nothing to rebuild`
+        )
+        return 0
+      } catch (error) {
+        console.error(error.message)
+        if (/unknown op/.test(error.message))
+          console.error("  (this window's spell extension predates `reload-view`:  `spell dev vscode`, then reload it)")
+        return 1
+      }
     }
     const path = resolve(target)
     try {
@@ -615,7 +630,19 @@ export class Window {
 }
 
 /** Every command. */
-const COMMANDS = ["init", "which", "add", "remove", "show", "open", "close", "handoff", "resume", "stay-check"]
+const COMMANDS = [
+  "init",
+  "which",
+  "add",
+  "remove",
+  "show",
+  "reload-view",
+  "open",
+  "close",
+  "handoff",
+  "resume",
+  "stay-check"
+]
 
 /** Usage, printed for a bad command. */
 const USAGE = `usage:  spell dev window <command>
@@ -627,6 +654,8 @@ const USAGE = `usage:  spell dev window <command>
                                show an .html doc in the window's doc preview (right side bar's
                                "Spell Docs" tab;  --review:  its "Review" tab), at id <id>
                                (moving:  in the window this session moves to)
+  reload-view [--review]       rebuild the "Spell Docs" view (--review:  "Review") from scratch, a new
+                               frame at the page it shows:  for a view gone wrong (clicks lost ...)
   open <name> [--pkg <pkg>]    open worktree <name> in a new window (default package:  this window's)
   close <name>                 close that window, delete its file
   handoff <name> [--back] [--prompt <text>]

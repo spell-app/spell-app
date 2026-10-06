@@ -174,6 +174,24 @@ export class DocView implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Rebuild the view from scratch:  new html, so a new iframe, at the page in view (fresh `?t=` stamp);  resolves to
+   * that URL, `undefined` when the view hasn't been shown yet (nothing to rebuild).
+   * - for a view gone wrong in a way a reload doesn't fix (clicks no longer reaching the page, PAPERCUTS `vscode`,
+   *   2026-10-06):  `spell dev window reload-view`.  The reload button only navigates the SAME iframe.
+   * - NOT a fix for pages stuck on their placeholders (6 docs pages holding every connection to a host):  live reload
+   *   moved to websockets for that (`packages/server/src/webSocket.ts`)
+   */
+  rebuild(): string | undefined {
+    if (!this.view) return undefined
+    const url = this.here && stamped(this.here)
+    this.url = url
+    this.current = undefined
+    this.view.webview.html = this.html(url)
+    this.view.show(true)
+    return url
+  }
+
+  /**
    * Restart the page server behind the page in view, then show the same page from it again.
    * - which checkout:  the server's own `/_server/ping` says (`root`)
    * - runs `spell dev server stop`, then `spell dev server ensure`, in a LOGIN shell (`$SHELL -lc`):  a GUI VS Code's

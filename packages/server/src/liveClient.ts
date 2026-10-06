@@ -6,6 +6,7 @@
 /**
  * What a served page knows about its server:  `window.SPELL_SERVER`, injected before `</head>`.
  * - `token`:  this run's write token (see `Guard`)
+ * - `events`:  URL path of the live-reload websocket (`LiveReload.events`)
  * - `file`:  URL path of the FILE served, e.g. `/guides/solid/index.html` for `/guides/solid/`
  * - `etag`:  the file's `ETag` when served, for `If-Match` on edits
  * - `root`:  absolute folder served;  `branch` / `worktree`:  of that checkout, when known
@@ -125,13 +126,7 @@ export function liveClient(): void {
   }
   holder.__spellLiveChange = onChange
   // in a same-origin frame of a live page, the parent hands changes down:  no connection of our own
-  if (!liveParent()) {
-    const source = new EventSource(config.events)
-    source.addEventListener("change", (event) => {
-      const { path } = JSON.parse((event as MessageEvent<string>).data) as { path: string }
-      onChange(path)
-    })
-  }
+  if (!liveParent()) connect()
 
   let etag = config.etag
   config.editPage = async ({ id, html, inner, parent, etag: version = etag }) => {
@@ -183,9 +178,33 @@ export function liveClient(): void {
   }
 
   /**
+   * Open the live-reload websocket (`config.events`), and act on each change it reports.
+   * - a websocket, not an `EventSource`:  an event stream holds one of Chrome's 6 connections per host for good,
+   *   and every VS Code window shares them:  6 docs pages open anywhere, and every other page's requests waited
+   *   forever (`webSocket.ts`).  Websockets don't count toward those 6.
+   * - closed (the server restarted or stopped):  tries again, as `EventSource` did:  0.5s after an open socket
+   *   closes, then `wait` ms after each try that failed, doubling up to 10s
+   */
+  function connect(wait = 1000) {
+    const url = new URL(config!.events, location.href)
+    url.protocol = url.protocol === "https:" ? "wss:" : "ws:"
+    const socket = new WebSocket(url)
+    let opened = false
+    socket.addEventListener("open", () => (opened = true))
+    socket.addEventListener("message", (message: MessageEvent<string>) => {
+      const { event, data } = JSON.parse(message.data) as { event: string; data: { path: string } }
+      if (event === "change") onChange(data.path)
+    })
+    socket.addEventListener("close", () => {
+      const retry = opened ? 500 : wait
+      setTimeout(() => connect(Math.min(retry * 2, 10_000)), retry)
+    })
+  }
+
+  /**
    * Is this page in a same-origin frame whose page runs live reload?  Then the parent hands us its changes.
-   * - Why:  every connection stays open, and Chrome allows 6 per host:  a page framing 6 served pages (the brand
-   *   index's thumbnails) used them all, and its own scripts never loaded
+   * - Why:  one connection per page is enough.  (Before live reload moved to websockets, every connection took one
+   *   of Chrome's 6 per host:  a page framing 6 served pages, the brand index's thumbnails, used them all.)
    * - a cross-origin parent (VS Code's view) throws or has no `frameElement`:  we keep our own connection
    */
   function liveParent(): boolean {
