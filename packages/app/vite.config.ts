@@ -25,8 +25,13 @@ export default defineConfig({
   server: {
     port: environment.vitePort,
     host: "0.0.0.0",
+    // the page server's:  the API, and the elements' bundles for the demo pages (`appRoutes.ts`)
     proxy: {
       "/api": {
+        target: `http://${environment.api_server}:${environment.expressPort}`,
+        changeOrigin: true
+      },
+      "/element": {
         target: `http://${environment.api_server}:${environment.expressPort}`,
         changeOrigin: true
       }
