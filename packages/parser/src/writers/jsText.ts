@@ -23,6 +23,18 @@ export function quoted(name: string): string {
   return `'${name.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`
 }
 
+/**
+ * `text` as a JS string in `quote`, escaped for it:
+ * - `"`:  as `JSON.stringify()` writes it
+ * - `'`:  `quoted()`
+ * - `` ` ``:  backslashes, back ticks and `${` escaped
+ */
+export function inQuotes(text: string, quote: '"' | "'" | "`"): string {
+  if (quote === '"') return JSON.stringify(text)
+  if (quote === "'") return quoted(text)
+  return `\`${text.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${")}\``
+}
+
 ////////////////
 // ## Whitespace & Delimiters
 ////////////////
