@@ -39,8 +39,7 @@ describe("SkeletonText.parse()", () => {
           { shape: "line", length: "very short" }
         ]
       }
-    ],
-    ["none", false]
+    ]
   ] as const)("%s", (text, spec) => {
     expect(SkeletonText.parse(text)).toEqual(spec)
   })
@@ -73,7 +72,8 @@ describe("SkeletonText.parse()", () => {
     ["header, hedaer", /"hedaer" in "header, hedaer" isn't a part/],
     ["2 x 2: huge line", /"huge line" in .* isn't a part/],
     ["header, 0 line paragraph", /"0 line paragraph" in .* isn't a part/],
-    ["None", /can't read "None"/]
+    // no skeleton is the key left out, not a word (J26)
+    ["none", /can't read "none"/]
   ])("throws a TypeError naming bad text:  %s", (text, message) => {
     expect(() => SkeletonText.parse(text)).toThrow(TypeError)
     expect(() => SkeletonText.parse(text)).toThrow(message)
@@ -87,7 +87,6 @@ describe("SkeletonText.format()", () => {
     expect(SkeletonText.format({ width: "15em", parts: [{ shape: "paragraph", lines: 8 }] })).toBe(
       "15 wide: 8 line paragraph"
     )
-    expect(SkeletonText.format(false)).toBe("none")
   })
 
   test("throws for what text can't say:  a size not in em, nothing to draw", () => {

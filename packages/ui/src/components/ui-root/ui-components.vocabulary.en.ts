@@ -16,7 +16,6 @@ export const componentsVocabulary = {
   tag: "ui-components",
   topics: ["loading", "modules"],
   aka: ["component pack", "component manifest", "component registry", "import map", "plugin", "lazy loading"],
-  skeleton: "none",
   noun: "components",
   description:
     "Components loads a component pack, so every root on the page can load the custom elements it lists on demand.",
@@ -28,7 +27,7 @@ export const componentsVocabulary = {
         'The pack:  a JSON array of `{ "tag", "source", "load"?, "skeleton"? }`, same origin.  Each `source` (the ' +
         "module that defines the tag) is relative to the pack;  `load` is `on-demand` (default:  when a root meets the " +
         "tag) or `eager` (as soon as the pack is read);  `skeleton` is skeleton text (`inline 6 x 2.5`, `2 tall`, " +
-        "`18 wide: header, 3 line paragraph`, `none`).  Any tag, not only `ui-*`."
+        "`18 wide: header, 3 line paragraph`;  left out:  none).  Any tag, not only `ui-*`."
     }
   ],
   events: [

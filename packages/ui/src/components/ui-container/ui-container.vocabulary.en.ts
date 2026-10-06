@@ -15,7 +15,6 @@ export const containerVocabulary = {
   tag: "ui-container",
   topics: ["layout", "containers", "basic", "elements"],
   aka: ["wrapper", "page width", "content width"],
-  skeleton: "none",
   noun: "container",
   description: "A container limits content to a maximum width.",
   attributes: [

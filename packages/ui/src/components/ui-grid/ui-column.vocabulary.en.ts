@@ -21,7 +21,6 @@ export const columnVocabulary = {
   tag: "ui-column",
   topics: ["layout", "collections"],
   aka: ["grid column", "col", "cell"],
-  skeleton: "none",
   noun: "column",
   description: "A column is a vertical cell of a grid, N of 16 wide.",
   attributes: [

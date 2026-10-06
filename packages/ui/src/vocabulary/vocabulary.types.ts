@@ -213,11 +213,9 @@ export type ComponentVocabulary = {
   aka?: readonly string[]
   /**
    * What `<ui-root display="skeleton">` draws in this tag's place while its family loads, as skeleton text
-   * (`SkeletonText`):  `"inline 6 x 2.5"`, `"18 wide: square image, header, 3 line paragraph"`, or `"none"` for none
-   * of its own.
-   * - `"none"`:  a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a list), or a tag with
-   *   nothing to show (`ui-popup`).  NOT `undefined`:  that's "not said yet", which `test/vocabularies.test.ts`
-   *   rejects, since every tag MUST say which.
+   * (`SkeletonText`):  `"inline 6 x 2.5"`, `"18 wide: square image, header, 3 line paragraph"`.
+   * - Left OUT for none of its own:  a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a
+   *   list), or a tag with nothing to show (`ui-popup`).
    * - Text, not a `SkeletonSpec`:  one form for vocabularies and component packs (`<ui-components>`).  `yarn gen:root`
    *   parses it into `<ui-root>`'s catalog;  `test/vocabularies.test.ts` parses every one.
    * - NEVER translated:  drawing data, like `states`.

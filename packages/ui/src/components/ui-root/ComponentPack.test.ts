@@ -35,7 +35,7 @@ describe("ComponentPack.entries()", () => {
     expect(
       entries([
         { tag: "x-chart", source: "chart.js", skeleton: "20 x 12" },
-        { tag: "ui-docs-api", source: "../site/ui-docs-api.js", load: "eager", skeleton: "none" },
+        { tag: "ui-docs-api", source: "../site/ui-docs-api.js", load: "eager" },
         { tag: "x-legend", source: "/abs/legend.js" }
       ])
     ).toEqual([

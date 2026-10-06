@@ -1,8 +1,8 @@
 /**
  * `yarn gen:root`:  write `src/components/ui-root/ui-root.catalog.ts`, every component tag => what `<ui-root>` needs
  * BEFORE that tag's family loads:  its folder (which family to import) and its skeleton
- * (`ComponentVocabulary.skeleton`, skeleton text parsed by `SkeletonText` into a `SkeletonSpec`;  `none` writes no
- * `skeleton` key).
+ * (`ComponentVocabulary.skeleton`, skeleton text parsed by `SkeletonText` into a `SkeletonSpec`;  a vocabulary
+ * without one writes no `skeleton` key).
  * - Run after adding or moving a tag, or changing a skeleton.  `src/components/ui-root/ui-root.catalog.test.ts` and
  *   `test/vocabularies.test.ts` fail while the file is stale.
  * - Why generated, not `ComponentDefinitions`:  that roll-up imports every vocabulary (~325 kB of source);  a lib
@@ -37,8 +37,8 @@ const OUTPUT = path.join(COMPONENTS, "ui-root", "ui-root.catalog.ts")
 const entries: Record<string, { folder: string; skeleton?: unknown }> = {}
 for (const root of [COMPONENTS, DOCS_COMPONENTS]) {
   for (const { folder, vocabulary } of await VocabularyFiles.read(root)) {
-    const skeleton = vocabulary.skeleton === undefined ? false : SkeletonText.parse(vocabulary.skeleton)
-    entries[vocabulary.tag] = skeleton ? { folder, skeleton } : { folder }
+    entries[vocabulary.tag] =
+      vocabulary.skeleton === undefined ? { folder } : { folder, skeleton: SkeletonText.parse(vocabulary.skeleton) }
   }
 }
 

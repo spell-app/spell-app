@@ -25,7 +25,6 @@ export const formVocabulary = {
   tag: "ui-form",
   topics: ["forms", "inputs", "basic", "collections"],
   aka: ["form layout", "fieldset", "validation"],
-  skeleton: "none",
   noun: "form",
   description: "A form displays a set of related input fields in a structured way.",
   attributes: [

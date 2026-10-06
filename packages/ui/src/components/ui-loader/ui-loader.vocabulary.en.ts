@@ -19,7 +19,6 @@ export const loaderVocabulary = {
   tag: "ui-loader",
   topics: ["loading", "feedback", "progress", "elements"],
   aka: ["spinner", "loading indicator", "busy", "throbber", "activity indicator"],
-  skeleton: "none",
   noun: "loader",
   description: "A loader tells people to wait for an activity to complete.",
   attributes: [

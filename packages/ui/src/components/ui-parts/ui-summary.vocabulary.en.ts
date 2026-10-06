@@ -20,7 +20,6 @@ export const summaryVocabulary = {
   tag: "ui-summary",
   topics: ["content parts", "social"],
   aka: ["event summary", "headline"],
-  skeleton: "none",
   noun: "summary",
   ui: false,
   description: "A feed event's summary line, e.g. who did what, with an inline date.",
