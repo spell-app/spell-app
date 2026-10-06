@@ -207,7 +207,8 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
   static autoDeclarationAST(statement: P.Match, declared: SP.AutoDeclaredProperty): P.ASTStatementGroup {
     const { typeName, property, checkType } = declared
     const check = checkType ? new P.ASTObjectLiteral(statement) : undefined
-    check?.addProp("type", `'${checkType}'`)
+    // a text value, so a writer can read the type:  `P.TSWriter` types the property from it
+    check?.addProp("type", new P.ASTStringLiteral(statement, { value: checkType!, quote: "'" }))
     const member = new P.ASTReactiveProperty(statement, { type: typeName, property, check })
     const comment = SP.SpellDeclarations.commentFor(statement)
     const patched = new P.ASTPatchedMember(statement, { member })

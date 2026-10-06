@@ -941,7 +941,8 @@ class define_property_has extends SpellStatement<"type|property|specifier?"> {
       // `type_specifier`'s `getAST()` can only be typed as returning `ASTNode` in general.
       const typeExpression = specifier as P.ASTTypeExpression
       // checked at runtime by its class's name -- see `P.ASTTypeExpression.runtimeName`
-      check.addProp("type", `'${typeExpression.runtimeName}'`)
+      // a text value, so a writer can read the type:  `P.TSWriter` types the property from it
+      check.addProp("type", new P.ASTStringLiteral(match, { value: typeExpression.runtimeName, quote: "'" }))
     }
 
     statements.push(
