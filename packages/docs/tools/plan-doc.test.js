@@ -1457,6 +1457,31 @@ describe("PlanDoc review inbox", () => {
     expect(plan.document.querySelector("#c1 > ui-accordion > ui-content").innerHTML).toBe("<p>more</p>")
     expect(plan.document.getElementById("c1").getAttribute("data-changed")).toMatch(/^2026-10-01T09:05/)
   })
+
+  // epic `windows-and-review` P2 (Q8):  an applied mark leaves its trace on the item, so the page keeps the colour
+  it("applyMark records how the item was reviewed:  approve, todo;  a pick counts as approve", () => {
+    const plan = inboxPlan()
+    plan.applyMark({ id: "c1", action: "approve" })
+    expect(plan.document.getElementById("c1").getAttribute("data-review-as")).toBe("approve")
+    plan.applyMark({ id: "c1", action: "todo", note: "check perf" })
+    expect(plan.document.getElementById("c1").getAttribute("data-review-as")).toBe("todo")
+    expect(plan.document.querySelector("#t1, [id^='t']")?.textContent).toContain("check perf")
+  })
+
+  // epic `windows-and-review` P1:  what Owen wrote stays in the doc once Claude clears the mark
+  it("keepNote:  Owen's note as his reply card, before Claude's answer to it;  once", () => {
+    const plan = inboxPlan()
+    const reply =
+      '<div class="plan-reply"><div class="plan-reply-title"><b>Claude</b> · <time>2026-10-01 09:20</time></div><p>a</p></div>'
+    plan.setDetails("c1", reply, { append: true })
+    const mark = { action: "revisit", when: "soon", note: "why not B?\nreally", at: "2026-10-01T09:10:00" }
+    plan.keepNote("c1", mark)
+    plan.keepNote("c1", mark)
+    const cards = Array.from(plan.document.querySelectorAll("#c1 .plan-reply"))
+    expect(cards.map((card) => card.className)).toEqual(["plan-reply plan-reply-owen", "plan-reply"])
+    expect(cards[0].querySelector(".plan-reply-title").textContent).toBe("Owen · 2026-10-01 09:10 · revisit soon")
+    expect(cards[0].querySelector("p").textContent).toBe("why not B?\nreally")
+  })
 })
 
 describe("PlanDoc original discussion (I7)", () => {

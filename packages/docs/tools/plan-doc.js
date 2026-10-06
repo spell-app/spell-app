@@ -43,6 +43,7 @@ import {
   finishMarks,
   hasWork,
   inboxPath,
+  isCanceled,
   isImmediate,
   liveListener,
   markList,
@@ -1270,8 +1271,20 @@ ${list}`
     const item = this.findItem(mark.id)
     if (!item) return { applied: false, gone: true, left: "no such item:  mark dropped" }
     const result = this.applyAction(item, mark)
-    if (result.applied) this.log(`${item.id.toUpperCase()} ${result.did}`)
+    if (result.applied) {
+      this.log(`${item.id.toUpperCase()} ${result.did}`)
+      this.reviewedAs(item, mark.action === "pick" ? "approve" : mark.action)
+    }
     return result
+  }
+
+  /**
+   * Record on `item` how Owen's review mark was handled (`data-review-as`:  `approve`, `todo`, `revisit`), once
+   * Claude applied it or talked it over:  the inbox forgets the mark, the doc keeps it, and the page keeps that
+   * review button coloured after a reload (epic `windows-and-review` P2, Q8).  A pick counts as approve (decided).
+   */
+  reviewedAs(item, action) {
+    item.setAttribute("data-review-as", action)
   }
 
   /** `applyMark()`'s work on `item`, the log line aside. */
@@ -1304,7 +1317,9 @@ ${list}`
       case "todo": {
         const id = item.id.toUpperCase()
         const title = titleOf(item)
-        const details = `<p>From <a href="#${item.id}">${id}</a> (${kind}), marked "Add to todo" on the page:  ${text(title)}</p>`
+        // Owen's note (Make Todo's box, epic `windows-and-review` P2) goes in as his words
+        const said = note ? `<p><b>Owen:</b>  ${text(note)}</p>` : ""
+        const details = `<p>From <a href="#${item.id}">${id}</a> (${kind}), marked "Make Todo" on the page:  ${text(title)}</p>${said}`
         const todo = this.addItem("todo", `Follow up:  ${title}`, { details })
         this.review(item.id)
         return { applied: true, did: `to todo ${todo.toUpperCase()}` }
@@ -1372,6 +1387,37 @@ ${list}`
     this.stamp(item)
     this.markUpdate(item)
     return titleOf(item)
+  }
+
+  /**
+   * Keep Owen's note -- `mark.note`, a mark Claude took and is clearing (`inbox done | clear`) -- in item `id`, as his
+   * own reply card:  `div.plan-reply.plan-reply-owen`, "Owen · 2026-10-06 10:42 · revisit soon", then the note.
+   * - placed before the first reply dated at or after the note (Claude's answer to it), else where an appended
+   *   reply goes (before the Original Discussion and the commits)
+   * - a card with the same time and note already there:  nothing (`done` after `clear`, a retry)
+   * - stamped (`data-changed`);  no UPDATE flag:  nothing about the item changed but the record
+   */
+  keepNote(id, { note, action, when, at }) {
+    const item = this.item(id)
+    const content = this.detailsOf(item)
+    const stamp = clockTime(at ? new Date(at) : this.now)
+    const replies = Array.from(content.querySelectorAll(":scope > .plan-reply"))
+    const same = (reply) =>
+      reply.classList.contains("plan-reply-owen") &&
+      reply.querySelector("time")?.textContent === stamp &&
+      reply.querySelector(":scope > p")?.textContent === note
+    if (replies.some(same)) return
+    const how = action === "revisit" ? `revisit ${when === "now" ? "now" : "soon"}` : action
+    const card = this.fragment(
+      `<div class="plan-reply plan-reply-owen"><div class="plan-reply-title"><b>Owen</b> · <time>${text(stamp)}</time>` +
+        ` · ${text(how)}</div><p>${text(note)}</p></div>`
+    )
+    const next =
+      replies.find((reply) => (reply.querySelector("time")?.textContent ?? "") >= stamp) ??
+      content.querySelector(`:scope > ${ORIGINAL}, :scope > .plan-commits`)
+    if (next) next.before(card)
+    else content.append(card)
+    this.stamp(item)
   }
 
   /**
@@ -3137,6 +3183,12 @@ async function main(argv) {
     case "details": {
       const id = need(rest[0], "an item id")
       const html = readFileSync(need(flags.file, "--file <html file>"), "utf8")
+      // Owen said "nevermind" while the agent worked (epic `windows-and-review` P2):  nothing lands
+      if (isCanceled(readInbox(inboxPath(file)), id))
+        throw new PlanDocError(
+          `${id.toUpperCase()}:  Owen called this request off on the page ("nevermind"):  nothing written.  ` +
+            `\`plan-doc inbox ${name} done ${id}\` and stop.`
+        )
       return edit(file, (plan) => {
         plan.setDetails(id, html, { append: Boolean(flags.append) })
         plan.log(`${id.toUpperCase()} ${flags.append ? "reply added" : "details rewritten"}`)
@@ -3778,6 +3830,7 @@ function printInbox(plan, file, json) {
     marks,
     now: inbox.now,
     working: inbox.working,
+    drafts: inbox.drafts,
     // `live:  false`:  its heartbeat stopped (`liveListener()`):  the session is gone, the page says nobody
     listening: inbox.listening && { ...inbox.listening, live: !!liveListener(inbox) }
   }
@@ -3804,6 +3857,10 @@ function printInbox(plan, file, json) {
   const working = Object.entries(inbox.working)
   if (working.length) lines.push(`working (${working.length}):`)
   for (const [id, { action, since }] of working) lines.push(`  - ${id.toUpperCase()}  ${action}  (since ${since})`)
+  const drafts = Object.entries(inbox.drafts)
+  if (drafts.length) lines.push(`drafts, still being written (${drafts.length}):`)
+  for (const [id, { action, note, at }] of drafts)
+    lines.push(`  - ${id.toUpperCase()}  ${action}  "${note.trim()}"  (${at})`)
   console.log(lines.join("\n"))
 
   /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
@@ -3853,28 +3910,47 @@ function inbox(name, file, [what, ...args], flags) {
       return console.log(`${id.toUpperCase()} working:  ${on}`)
     }
     case "done":
-    case "clear": {
-      if (!args.length) throw new PlanDocError(`${what} which items?  ids`)
-      const ids = args.map(toItemId)
-      // `done` keeps a mark Owen changed while the agent worked (`finishMarks()`);  `clear` drops it
-      let had = []
-      let kept = []
-      updateInbox(path, (box) => {
-        if (what === "done") ({ had, kept } = finishMarks(box, ids))
-        else had = clearMarks(box, ids)
-        for (const id of ids) setWorking(box, id, null)
-        touchListening(box)
-      })
-      const none = ids.filter((id) => !had.includes(id) && !kept.includes(id))
-      const label = what === "done" ? "done" : "cleared"
-      const notes = [
-        none.length ? `no mark:  ${upper(none)}` : "",
-        kept.length ? `changed since, kept for the next send:  ${upper(kept)}` : ""
-      ].filter(Boolean)
-      return console.log(`${label}:  ${upper(ids)}${notes.length ? `  (${notes.join(";  ")})` : ""}`)
-    }
+    case "clear":
+      return finish(what, args)
     default:
       throw new PlanDocError(`inbox what?  listen | unlisten | wait | apply | working | done | clear (not '${what}')`)
+  }
+
+  /**
+   * `done` / `clear` items `ids`:  their marks go (`done` keeps one Owen changed while the agent worked,
+   * `finishMarks()`;  `clear` drops it), and their `working` too.
+   * - a mark leaving with Owen's note in it:  the note is kept IN the item first, as his own reply card
+   *   (`PlanDoc.keepNote()`, epic `windows-and-review` P1):  what he wrote is never lost from the page
+   */
+  async function finish(what, ids) {
+    if (!ids.length) throw new PlanDocError(`${what} which items?  ids`)
+    const keys = ids.map(toItemId)
+    let had = []
+    let kept = []
+    let notes = []
+    updateInbox(path, (box) => {
+      const before = { ...box.marks }
+      if (what === "done") ({ had, kept } = finishMarks(box, keys))
+      else had = clearMarks(box, keys)
+      notes = had.filter((id) => before[id]?.note).map((id) => ({ id, mark: before[id] }))
+      for (const id of keys) setWorking(box, id, null)
+      touchListening(box)
+    })
+    // a revisit taken care of (talked over, or answered now) stays marked as reviewed that way on the page
+    const revisits = notes.filter(({ mark }) => mark.action === "revisit")
+    if (notes.length)
+      await edit(file, (plan) => {
+        for (const { id, mark } of notes) plan.keepNote(id, mark)
+        for (const { id } of revisits) plan.reviewedAs(plan.item(id), "revisit")
+      })
+    const none = keys.filter((id) => !had.includes(id) && !kept.includes(id))
+    const label = what === "done" ? "done" : "cleared"
+    const extras = [
+      none.length ? `no mark:  ${upper(none)}` : "",
+      kept.length ? `changed since, kept for the next send:  ${upper(kept)}` : "",
+      notes.length ? `Owen's note kept in the doc:  ${upper(notes.map(({ id }) => id))}` : ""
+    ].filter(Boolean)
+    console.log(`${label}:  ${upper(keys)}${extras.length ? `  (${extras.join(";  ")})` : ""}`)
   }
 
   /** What an agent works on for a mark:  a revisit's answer, else details. */
@@ -3950,8 +4026,16 @@ async function waitForWork(name, file, { timeout = 3300, json }) {
 function printWork(name, plan, work, json) {
   const now = work.now.map((each) => withItem(each))
   const sent = work.sent && { at: work.sent.at, marks: work.sent.marks.map((mark) => withItem(mark)) }
-  if (json) return console.log(JSON.stringify({ now, sent }, null, 2))
+  const canceled = (work.canceled ?? []).map((each) => withItem(each))
+  if (json) return console.log(JSON.stringify({ now, sent, canceled }, null, 2))
   const lines = []
+  if (canceled.length) {
+    lines.push(
+      `canceled (${canceled.length}):  Owen said "nevermind":  stop each one's background agent (TaskStop), then ` +
+        `\`yarn plan-doc inbox ${name} done <id>\``
+    )
+    for (const each of canceled) lines.push(`  - ${line(each)}  (${each.action})`)
+  }
   if (now.length) {
     lines.push(
       `now (${now.length}):  start a background agent for each;  \`yarn plan-doc inbox ${name} done <id>\` after`
