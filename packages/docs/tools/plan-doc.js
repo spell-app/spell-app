@@ -43,6 +43,7 @@ import {
   finishMarks,
   hasWork,
   inboxPath,
+  isCanceled,
   isImmediate,
   liveListener,
   markList,
@@ -1304,7 +1305,9 @@ ${list}`
       case "todo": {
         const id = item.id.toUpperCase()
         const title = titleOf(item)
-        const details = `<p>From <a href="#${item.id}">${id}</a> (${kind}), marked "Add to todo" on the page:  ${text(title)}</p>`
+        // Owen's note (Make Todo's box, epic `windows-and-review` P2) goes in as his words
+        const said = note ? `<p><b>Owen:</b>  ${text(note)}</p>` : ""
+        const details = `<p>From <a href="#${item.id}">${id}</a> (${kind}), marked "Make Todo" on the page:  ${text(title)}</p>${said}`
         const todo = this.addItem("todo", `Follow up:  ${title}`, { details })
         this.review(item.id)
         return { applied: true, did: `to todo ${todo.toUpperCase()}` }
@@ -3168,6 +3171,12 @@ async function main(argv) {
     case "details": {
       const id = need(rest[0], "an item id")
       const html = readFileSync(need(flags.file, "--file <html file>"), "utf8")
+      // Owen said "nevermind" while the agent worked (epic `windows-and-review` P2):  nothing lands
+      if (isCanceled(readInbox(inboxPath(file)), id))
+        throw new PlanDocError(
+          `${id.toUpperCase()}:  Owen called this request off on the page ("nevermind"):  nothing written.  ` +
+            `\`plan-doc inbox ${name} done ${id}\` and stop.`
+        )
       return edit(file, (plan) => {
         plan.setDetails(id, html, { append: Boolean(flags.append) })
         plan.log(`${id.toUpperCase()} ${flags.append ? "reply added" : "details rewritten"}`)
@@ -3999,8 +4008,16 @@ async function waitForWork(name, file, { timeout = 3300, json }) {
 function printWork(name, plan, work, json) {
   const now = work.now.map((each) => withItem(each))
   const sent = work.sent && { at: work.sent.at, marks: work.sent.marks.map((mark) => withItem(mark)) }
-  if (json) return console.log(JSON.stringify({ now, sent }, null, 2))
+  const canceled = (work.canceled ?? []).map((each) => withItem(each))
+  if (json) return console.log(JSON.stringify({ now, sent, canceled }, null, 2))
   const lines = []
+  if (canceled.length) {
+    lines.push(
+      `canceled (${canceled.length}):  Owen said "nevermind":  stop each one's background agent (TaskStop), then ` +
+        `\`yarn plan-doc inbox ${name} done <id>\``
+    )
+    for (const each of canceled) lines.push(`  - ${line(each)}  (${each.action})`)
+  }
   if (now.length) {
     lines.push(
       `now (${now.length}):  start a background agent for each;  \`yarn plan-doc inbox ${name} done <id>\` after`

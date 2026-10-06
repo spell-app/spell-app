@@ -123,6 +123,7 @@ export function liveClient(): void {
         history.go(data.go)
     })
     addEventListener("click", followInFrame, true)
+    addEventListener("keydown", editKeys, true)
   }
   holder.__spellLiveChange = onChange
   // in a same-origin frame of a live page, the parent hands changes down:  no connection of our own
@@ -332,6 +333,33 @@ export function liveClient(): void {
     if (!/\.html?$/.test(url.pathname) && link.target.startsWith("src-"))
       return window.parent.postMessage({ spell: "open", url: url.href, kind: "file" }, "*")
     location.assign(url.href)
+  }
+
+  /**
+   * The edit keys, done here, in a frame (epic `windows-and-review` I2):  Cmd / Ctrl + C, X, V, A, Z (Shift:  redo),
+   * Y.  Why:  VS Code's webview takes these keys and applies them to ITS frame, never this cross-origin page in it,
+   * so copy, paste and select all did nothing in the side bar.
+   * - copy, cut, select all, undo, redo:  `document.execCommand()`, on the focused field or the page's selection
+   * - paste:  the clipboard's text (`navigator.clipboard`, allowed by the view's `allow="clipboard-read"`), typed in
+   *   where the caret is (`insertText`:  the field's own undo keeps it)
+   */
+  function editKeys(event: KeyboardEvent) {
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.defaultPrevented) return
+    const key = event.key.toLowerCase()
+    const command = (
+      { c: "copy", x: "cut", a: "selectAll", z: event.shiftKey ? "redo" : "undo", y: "redo" } as Record<string, string>
+    )[key]
+    if (key === "v") {
+      event.preventDefault()
+      void navigator.clipboard
+        .readText()
+        .then((text) => text && document.execCommand("insertText", false, text))
+        .catch(() => {})
+      return
+    }
+    if (!command) return
+    event.preventDefault()
+    document.execCommand(command)
   }
 
   /**
