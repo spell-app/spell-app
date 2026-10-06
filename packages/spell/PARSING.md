@@ -454,6 +454,19 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   `MethodPostfixRule` (`staticOf`) to `Rank.is_a_face_card(card.rank)`.  Postfix phrases only.
 - `draw_side` (`classes.ts`):  `- to "draw its front":` + one line of markup => `get front() {...}`;  front AND back
   also give the type `draw()`, by its direction (plan doc Q14).
+- A one-line indented body (`{nested_expression}`, e.g. `return` + markup, `draw_side`'s) parses in the statement's
+  `nestedScope`, as an inline body does (`SpellStatement.parseNestedBlock()`).
+
+## Fill-ins:  `"images/[rank]-of-[suit].png"`
+
+- `[x]` inside text ALWAYS fills in (plan doc Q2):  `parseFillIns()` (`core.ts`) splits the text into plain pieces
+  and fill-ins, each parsed as an expression where the text is -- `its x` when `x` is a property of `it`'s type,
+  so `[rank]` in a card's getter is the card's.  A real bracket:  `[[` or `\[`, and `]]` (Q15).
+- Three places use it:  the `text` rule, a markup attribute's text value (`SpellJSXAttribute`), and markup text
+  (`SpellJSXText`, as one `{...}` child).  Each keeps the parts in `data.fillIns`, and compiles them to a javascript
+  template string, `P.ASTTemplateString`:  `` `images/${this.rank}-of-${this.suit}.png` ``.
+- A fill-in that doesn't parse:  the text doesn't match ("Don't understand"), or the attribute is a parse error.
+- Each fill-in parses on its own, so its tokens don't map back onto the file:  no hover or go-to inside one yet.
 
 ## Scope:  what's stored where
 

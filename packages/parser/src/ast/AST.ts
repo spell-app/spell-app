@@ -249,6 +249,43 @@ export class ASTStringLiteral extends ASTLiteral {
   }
 }
 
+/**
+ * TemplateString -- text with values inside, e.g. spell's `"images/[rank]-of-[suit].png"`:
+ * `` `images/${this.rank}-of-${this.suit}.png` ``.
+ * - `parts` (required):  in order, each plain text (as written between the quotes, its escapes kept) or an
+ *   Expression whose value goes there.
+ * - Escapes what a javascript template would read:  a backtick, and `${`.
+ */
+export type ASTTemplateStringProps = Prettify<{ parts: Array<string | ASTExpression> }>
+
+export class ASTTemplateString extends ASTExpression {
+  declare parts: Array<string | ASTExpression>
+  /*@readonly*/ /*@proto*/ get datatype(): string {
+    return "text"
+  }
+  constructor(match: P.AnyMatch, props: ASTTemplateStringProps) {
+    super(match, props)
+    this.assertArrayType("parts", ["string", ASTExpression])
+  }
+  compile(): string {
+    const body = this.parts
+      .map((part) =>
+        typeof part === "string" ? part.replace(/`/g, "\\`").replace(/\$\{/g, "\\${") : `\${${part.compile()}}`
+      )
+      .join("")
+    return `\`${body}\``
+  }
+  renderChildren(): P.Markup {
+    return render.Fragment(
+      "`",
+      ...this.parts.map((part) =>
+        typeof part === "string" ? render.span("value", part) : render.Fragment("${", part.markup, "}")
+      ),
+      "`"
+    )
+  }
+}
+
 /** BooleanLiteral type.
  *  - `value` is the boolean.
  *  - `raw` (optional) is original input string.
