@@ -15,6 +15,8 @@
  *     - a plain pick:  `{ action: "pick", pick: "B" }`, applied by `plan-doc inbox apply`
  *     - "pick B, but ...":  a revisit carrying the pick, `{ action: "revisit", when, note, pick: "B" }`;  never
  *       applied:  Claude talks it over (`toMark()`)
+ *   - `drafts`:  `{ [id]: { action, note, at } }`, a note box's text as Owen types it (`setDraft()`), until the mark
+ *     that uses it;  never sent or counted
  *   - `sent`:  ISO time of the last "send to Claude", else `null`;  marks newer than it are unsent (`unsentMarks()`)
  *   - `now`:  `[{ id, action, at, note?, pick? }]`, immediate requests (Add Details, revisit now) for Claude to take
  *   - `working`:  `{ [id]: { action, since } }`, Claude's agents at work on an item (the page shows a spinner)
@@ -80,7 +82,16 @@ export function inboxPath(planDoc) {
 
 /** An inbox with nothing in it. */
 export function emptyInbox() {
-  return { version: INBOX_VERSION, marks: {}, sent: null, now: [], working: {}, listening: null, handedOver: null }
+  return {
+    version: INBOX_VERSION,
+    marks: {},
+    drafts: {},
+    sent: null,
+    now: [],
+    working: {},
+    listening: null,
+    handedOver: null
+  }
 }
 
 /**
@@ -141,11 +152,45 @@ export function updateInboxAsync(file, change) {
 }
 
 /**
- * Is there nothing in `inbox` worth a file?  No marks, no requests, no agents at work, nobody listening.
+ * Is there nothing in `inbox` worth a file?  No marks, no drafts, no requests, no agents at work, nobody listening.
  * - `sent` and `handedOver` alone don't count:  they only date marks, and there are none
  */
 export function isEmpty(inbox) {
-  return !Object.keys(inbox.marks).length && !inbox.now.length && !Object.keys(inbox.working).length && !inbox.listening
+  return (
+    !Object.keys(inbox.marks).length &&
+    !Object.keys(inbox.drafts).length &&
+    !inbox.now.length &&
+    !Object.keys(inbox.working).length &&
+    !inbox.listening
+  )
+}
+
+////////////////
+// ## Drafts
+////////////////
+
+/** Actions whose mark carries a note Owen types:  their note box's text is kept as a draft until it's marked. */
+export const NOTE_ACTIONS = ["revisit", "todo"]
+
+/**
+ * Item `id`'s note box text, as Owen types it (epic `windows-and-review` P1):  kept here, on the server, so a
+ * reload from ANY address finds it (the page's `localStorage` is per address, and lost notes that way);  `note`
+ * empty or `null` drops it.
+ * - not a mark:  never sent, never counted, never wakes a waiting session;  the mark that uses it drops it
+ *   (`setMark()`, `requestNow()`)
+ * - `note` kept as typed (not trimmed:  the box shows it back as it was)
+ * - returns the draft set, or `null`
+ */
+export function setDraft(inbox, id, action, note, at = isoTime()) {
+  const key = toItemId(id)
+  if (!NOTE_ACTIONS.includes(action)) throw new InboxError(`no note box on ${action} (${NOTE_ACTIONS.join(" | ")})`)
+  if (note !== null && typeof note !== "string") throw new InboxError("a draft's note is text, or null")
+  if (!note?.trim()) {
+    delete inbox.drafts[key]
+    return null
+  }
+  inbox.drafts[key] = { action, note, at }
+  return inbox.drafts[key]
 }
 
 ////////////////
@@ -165,6 +210,8 @@ export function setMark(inbox, id, mark, at = isoTime()) {
   if (!checked || !isImmediate(checked)) inbox.now = inbox.now.filter((each) => each.id !== key)
   if (checked) inbox.marks[key] = checked
   else delete inbox.marks[key]
+  // the note box's text is in the mark now;  a mark removed (Clear) takes its unsent text with it
+  if (!checked || checked.note !== undefined) delete inbox.drafts[key]
   return checked
 }
 

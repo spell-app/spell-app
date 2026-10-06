@@ -2714,8 +2714,16 @@ const REVIEW_API = "/api/review"
 /** How often a VISIBLE plan doc re-reads its inbox, so what Claude does to it (P6 of `review-review`) shows. */
 const REVIEW_POLL_MS = 4000
 
-/** localStorage key prefix of a plan doc's unsaved Revisit notes:  `spell-revisit:<path>`, `{ [item id]: text }`. */
+/**
+ * localStorage key prefix of a plan doc's note-box backups:  `spell-revisit:<path>`, `{ [item id]: text }`.
+ * - only a BACKUP since epic `windows-and-review` P1:  notes are kept in the inbox as drafts (`POST draft`), which
+ *   every address reads;  localStorage is per address (port included), which is how notes got lost
+ * - a backup the inbox lacks (an older page's, or one whose save failed) is handed to the inbox on load
+ */
 const REVISIT_KEY_PREFIX = "spell-revisit:"
+
+/** How long a note box waits after the last keystroke before saving its draft. */
+const DRAFT_SAVE_MS = 600
 
 /** How long a review notice (`notify()`) stays up. */
 const NOTICE_MS = 6000
@@ -2805,16 +2813,20 @@ async function wireReview(main) {
   // the inbox as last read or written;  ids with a "now" request in flight;  ids whose note box is open
   let inbox = null
   const asking = new Set()
-  const boxes = new Set(Object.keys(readJSON(draftsKey)))
+  const boxes = new Set()
   // writes in flight:  a poll's answer can't overwrite what they're about to
   let writing = 0
-  // the button the menu is open on, and the notice's timer
+  // the button the menu is open on, the notice's timer, why the last write failed (`write()`)
   let menuOwner = null
   let noticeTimer = 0
+  let lastWriteError = ""
   if (!(await load())) return
   document.body.classList.add("plan-reviewing")
   const menu = buildMenu()
   const notice = buildNotice()
+  await adoptBackups()
+  // a note being written reopens where it was, from any address
+  for (const id of Object.keys(inbox.drafts)) boxes.add(id)
   decorate()
   addEventListener("spell-doc:updated", decorate)
   setInterval(() => {
@@ -2902,6 +2914,7 @@ async function wireReview(main) {
         : (work?.action ?? mark?.action) === "revisit"
           ? "Claude is looking into this..."
           : "Claude is adding details..."
+      renderNote(item, act, mark, sent)
       pills(item)
       for (const pill of item.querySelectorAll(".plan-choose")) {
         const picked = !!mark?.pick && mark.pick === pill.dataset.letter
@@ -2923,6 +2936,69 @@ async function wireReview(main) {
         : "Nothing to send:  mark an item first (its ... button)"
     send.title = listening || !all.length ? tip : `${tip}.  ${NOBODY_LISTENING}`
     send.setAttribute("aria-label", tip)
+  }
+
+  /**
+   * Show what Owen wrote on `item` (epic `windows-and-review` P1:  a note must never seem lost):
+   * - the line's speech bubble (`.plan-act-noted`, beside the button):  outline while it's a draft (`drafts[id]`),
+   *   solid once it's a mark's note, in the mark's color once sent;  the note itself as its tooltip
+   * - a marked note, its box closed:  shown under the line (`div.plan-said`), "You · revisit soon · sent 10:42", with
+   *   Edit, which reopens the box on it;  a changed note is unsent again until the next send
+   */
+  function renderNote(item, act, mark, sent) {
+    const draft = inbox.drafts[item.id]
+    const noted = mark?.note ? mark : null
+    const text = draft?.note ?? noted?.note ?? ""
+    const bubble = act.querySelector(".plan-act-noted")
+    bubble.hidden = !text
+    act.toggleAttribute("data-noted", !!text)
+    const done = !!noted && !draft && isSent(noted, sent)
+    bubble.querySelector("ui-icon").setAttribute("name", draft ? "comment outline" : "comment")
+    bubble.toggleAttribute("data-sent", done)
+    bubble.title = text
+      ? `${draft ? "Your note, not sent yet (saved)" : done ? "Your note, sent" : "Your note, not sent yet"}:  ${text}`
+      : ""
+    let said = item.querySelector(":scope > .plan-said")
+    if (!noted || draft || boxes.has(item.id)) return void said?.remove()
+    if (!said) {
+      said = saidOf(item)
+      const box = item.querySelector(":scope > .plan-revisit")
+      if (box) box.before(said)
+      else item.append(said)
+    }
+    const how = noted.action === "revisit" ? `revisit ${noted.when === "now" ? "now" : "soon"}` : noted.action
+    const state = done ? `sent ${clockOf(isImmediate(noted) ? noted.at : sent)}` : "not sent yet"
+    said.querySelector(".plan-said-what").textContent = `${how} · ${state}`
+    said.querySelector(".plan-said-note").textContent = noted.note
+  }
+
+  /** The block showing a sent (or saved) note under an item's line:  `div.plan-said`, with Edit. */
+  function saidOf(item) {
+    const said = document.createElement("div")
+    said.className = "plan-said"
+    said.dataset.spellAdded = ""
+    said.innerHTML =
+      `<div class="plan-said-title"><ui-icon name="comment"></ui-icon><b>You</b> · <span class="plan-said-what"></span>` +
+      `<button type="button" class="plan-said-edit"><ui-icon name="edit"></ui-icon>Edit</button></div>` +
+      `<p class="plan-said-note"></p>`
+    said.querySelector("button").addEventListener("click", () => openBox(item))
+    return said
+  }
+
+  /**
+   * Hand the inbox every note-box backup it lacks (`REVISIT_KEY_PREFIX`:  an older page's drafts, or a save that
+   * failed), then drop the backups it took:  nothing typed before this page is lost in the switch.
+   * - an item gone from the doc, or already holding a note:  its backup goes, quietly
+   */
+  async function adoptBackups() {
+    const backups = readJSON(draftsKey)
+    for (const [id, text] of Object.entries(backups)) {
+      const known =
+        inbox.drafts[id] || inbox.marks[id]?.note === text.trim() || !main.querySelector(`#${CSS.escape(id)}`)
+      if (known || !text.trim() || (await write("draft", { id, action: "revisit", note: text }, { quiet: true })))
+        delete backups[id]
+    }
+    writeJSON(draftsKey, backups)
   }
 
   /**
@@ -2960,6 +3036,7 @@ async function wireReview(main) {
     act.dataset.spellAdded = ""
     act.innerHTML =
       `<span class="plan-act-spin" hidden></span>` +
+      `<span class="plan-act-noted" hidden><ui-icon name="comment"></ui-icon></span>` +
       `<button type="button" class="plan-act-button" aria-haspopup="menu">` +
       `<ui-icon name="ellipsis"></ui-icon><span class="plan-act-letter"></span></button>`
     const button = act.querySelector("button")
@@ -3007,8 +3084,11 @@ async function wireReview(main) {
 
   /**
    * An item's Revisit box:  `div.plan-revisit`, a note and two round buttons stacked at its right, a grey check
-   * ("revisit soon") over a blue send ("revisit now").  Its text is saved as typed (`draftsKey`) until a button
-   * saves the mark;  Escape closes it, keeping the draft.
+   * ("revisit soon") over a blue send ("revisit now"), and a status line under the note.
+   * - the note is SAVED as typed:  to the inbox as a draft (`POST draft`), `DRAFT_SAVE_MS` after the last key, the
+   *   status line saying "Saving…", "Saved 10:42" or why not;  a localStorage backup too (`draftsKey`), for a save
+   *   that fails
+   * - a button saves the mark (the draft goes with it);  Escape closes the box, the draft kept
    */
   function boxOf(item) {
     const id = item.id
@@ -3016,29 +3096,38 @@ async function wireReview(main) {
     box.className = "plan-revisit"
     box.dataset.spellAdded = ""
     box.innerHTML =
+      `<span class="plan-revisit-text">` +
       `<textarea class="plan-revisit-note" rows="3" placeholder="Your question or comment"></textarea>` +
+      `<span class="plan-revisit-status" aria-live="polite"></span></span>` +
       `<span class="plan-revisit-buttons">` +
       `<button type="button" class="plan-revisit-soon"><ui-icon name="check"></ui-icon></button>` +
       `<button type="button" class="plan-revisit-now"><ui-icon name="paper plane"></ui-icon></button></span>`
     const note = box.querySelector("textarea")
+    const status = box.querySelector(".plan-revisit-status")
     note.setAttribute("aria-label", `Revisit ${id.toUpperCase()}:  your question or comment`)
-    note.value = readJSON(draftsKey)[id] ?? inbox.marks[id]?.note ?? ""
+    const draft = inbox.drafts[id]
+    note.value = draft?.note ?? inbox.marks[id]?.note ?? ""
+    status.textContent = draft ? `Saved ${clockOf(draft.at)}` : ""
     const [soon, now] = box.querySelectorAll("button")
     label(soon, "Revisit soon:  talk it over in the next batch")
     label(now, `Revisit now:  Claude looks into it at once${inbox.listening ? "" : `.  ${NOBODY_LISTENING}`}`)
+    let timer = 0
     note.addEventListener("input", () => {
-      const drafts = readJSON(draftsKey)
-      if (note.value) drafts[id] = note.value
-      else delete drafts[id]
-      writeJSON(draftsKey, drafts)
+      backup(id, note.value)
+      status.textContent = "Saving…"
+      clearTimeout(timer)
+      timer = setTimeout(() => void saveDraft(), DRAFT_SAVE_MS)
     })
     note.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return
       event.stopPropagation()
+      clearTimeout(timer)
+      void saveDraft()
       closeBox(item, false)
       item.querySelector(".plan-act-button")?.focus({ preventScroll: true })
     })
     soon.addEventListener("click", () => {
+      clearTimeout(timer)
       const text = note.value.trim()
       // a picked question keeps its pick:  "pick B, but ..."
       const pick = inbox.marks[id]?.pick
@@ -3046,11 +3135,25 @@ async function wireReview(main) {
       void save(id, { action: "revisit", when: "soon", note: text, ...(pick && { pick }) })
     })
     now.addEventListener("click", () => {
+      clearTimeout(timer)
       const text = note.value.trim()
       closeBox(item, true)
       void askNow(id, "revisit", text)
     })
     return box
+
+    /** Save the note as the item's draft;  the status line says how it went. */
+    async function saveDraft() {
+      // a button already made it a mark
+      if (!box.isConnected) return
+      const text = note.value
+      const saved = await write("draft", { id, action: "revisit", note: text }, { quiet: true })
+      if (note.value !== text) return
+      if (!saved) return void (status.textContent = `Not saved:  ${lastWriteError} (kept in this browser)`)
+      backup(id, "")
+      status.textContent = text.trim() ? `Saved ${clockOf(new Date().toISOString())}` : ""
+      render()
+    }
 
     /** Give icon-only `button` its tooltip and label. */
     function label(button, tip) {
@@ -3193,15 +3296,26 @@ async function wireReview(main) {
     box.querySelector("textarea").focus({ preventScroll: true })
   }
 
-  /** Close `item`'s Revisit box;  `saved`:  its draft goes too. */
+  /**
+   * Close `item`'s Revisit box;  `saved`:  its note became a mark, so its draft goes too (the route drops the
+   * inbox's:  `inbox.js` `setMark()`).
+   */
   function closeBox(item, saved) {
     boxes.delete(item.id)
     item.querySelector(":scope > .plan-revisit")?.remove()
+    if (saved) {
+      delete inbox.drafts[item.id]
+      backup(item.id, "")
+    }
     render()
-    if (!saved) return
-    const drafts = readJSON(draftsKey)
-    delete drafts[item.id]
-    writeJSON(draftsKey, drafts)
+  }
+
+  /** Keep `text` as item `id`'s note backup in this browser (`draftsKey`);  empty drops it. */
+  function backup(id, text) {
+    const backups = readJSON(draftsKey)
+    if (text) backups[id] = text
+    else delete backups[id]
+    writeJSON(draftsKey, backups)
   }
 
   ////////////////
@@ -3248,32 +3362,59 @@ async function wireReview(main) {
 
   /**
    * POST `body` (plus `page`) to `route`;  the reply is the new inbox.  True when written;  else says why
-   * (`notify()`) and re-reads the inbox, undoing what was shown early.
+   * (`notify()`, unless `quiet`:  the caller says it, from `lastWriteError`) and re-reads the inbox, undoing what
+   * was shown early.
+   * - the page server restarted since this page loaded (a 403 on the token):  takes its new token
+   *   (`refreshToken()`) and tries once more, so nothing typed is refused for it
    */
-  async function write(route, body) {
+  async function write(route, body, { quiet = false } = {}) {
     writing++
+    let error = ""
     try {
-      const response = await fetch(`${REVIEW_API}/${route}`, {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-server-token": server.token },
-        body: JSON.stringify({ page, ...body })
-      })
-      const reply = await response.json().catch(() => ({}))
-      if (response.ok) {
-        inbox = inboxOf(reply)
-        return true
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const response = await fetch(`${REVIEW_API}/${route}`, {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-server-token": server.token },
+          body: JSON.stringify({ page, ...body })
+        })
+        const reply = await response.json().catch(() => ({}))
+        if (response.ok) {
+          inbox = inboxOf(reply)
+          return true
+        }
+        const stale = response.status === 403 && /token/i.test(reply.error ?? "")
+        if (stale && attempt === 0 && (await refreshToken())) continue
+        error = stale
+          ? "the page server restarted since this page loaded:  reload the page"
+          : (reply.error ?? `couldn't save (${response.status})`)
+        break
       }
-      if (response.status === 403 && /token/i.test(reply.error ?? ""))
-        notify("The page server restarted since this page loaded:  reload the page, then mark again.")
-      else notify(reply.error ?? `Couldn't save (${response.status}).`)
-    } catch (error) {
-      notify(`Couldn't reach the page server (${error.message}).`)
+    } catch (failure) {
+      error = `couldn't reach the page server (${failure.message})`
     } finally {
       writing--
     }
+    lastWriteError = error
+    if (!quiet) notify(`${error[0].toUpperCase()}${error.slice(1)}.`)
     await load()
     render()
     return false
+  }
+
+  /**
+   * Take the page server's CURRENT write token from the page as it serves it now (its `window.SPELL_SERVER`):  a
+   * restarted server has a new one.  True when it changed.
+   */
+  async function refreshToken() {
+    try {
+      const html = await (await fetch(location.pathname + location.search, { cache: "no-store" })).text()
+      const fresh = JSON.parse(/window\.SPELL_SERVER = (\{.*?\})<\/script>/.exec(html)?.[1] ?? "null")?.token
+      if (!fresh || fresh === server.token) return false
+      server.token = fresh
+      return true
+    } catch {
+      return false
+    }
   }
 
   /** Say `message` at the bottom of the window for a few seconds. */
@@ -3290,6 +3431,7 @@ function inboxOf(reply) {
   const inbox = reply?.inbox ?? reply ?? {}
   return {
     marks: inbox.marks && typeof inbox.marks === "object" ? inbox.marks : {},
+    drafts: inbox.drafts && typeof inbox.drafts === "object" ? inbox.drafts : {},
     sent: inbox.sent ?? null,
     now: Array.isArray(inbox.now) ? inbox.now : [],
     working: inbox.working && typeof inbox.working === "object" ? inbox.working : {},
@@ -3302,8 +3444,19 @@ function inboxOf(reply) {
  * (Add Details, revisit now:  handed over when made), as `tools/inbox.js` `unsentMarks()` counts.
  */
 function isSent(mark, sent) {
-  if (mark.action === "details" || (mark.action === "revisit" && mark.when === "now")) return true
+  if (isImmediate(mark)) return true
   return !!sent && Date.parse(mark.at) <= Date.parse(sent)
+}
+
+/** Is `mark` an immediate request (Add Details, revisit now), handed over when made?  As `tools/inbox.js`'s. */
+function isImmediate(mark) {
+  return mark.action === "details" || (mark.action === "revisit" && mark.when === "now")
+}
+
+/** ISO time `iso` as the reader's clock time, `10:42`;  `""` for none. */
+function clockOf(iso) {
+  const date = iso ? new Date(iso) : null
+  return date && !isNaN(date) ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""
 }
 
 ////////////////

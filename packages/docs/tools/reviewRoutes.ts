@@ -14,6 +14,8 @@
  *   that doc (400 otherwise)
  * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request (`details`, or `revisit`, which
  *   keeps the item's pick):  queued on `now`, and the item's mark set
+ * - `POST /api/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it (`revisit` or
+ *   `todo`;  empty or `null` drops it):  kept until the mark that uses it (`inbox.js` `setDraft()`)
  * - `POST /api/review/send` `{ page }` -- "send to Claude":  `sent` is now
  * - writes:  under the inbox's lock, atomic (`inbox.js` `updateInboxAsync()`);  each needs the page server's token
  *   (`x-server-token`) and its own origin (`SRV.Guard`)
@@ -31,6 +33,7 @@ import {
   markSent,
   readInbox,
   requestNow,
+  setDraft,
   setMark,
   toItemId,
   updateInboxAsync
@@ -66,6 +69,12 @@ const reviewRoutes: RouteModule = {
       const file = planDoc(web.files, body.page)
       const id = itemOf(file, body.id)
       reply.json(await update(file, (inbox) => requestNow(inbox, id, body.action, (body.note ?? "") as string)))
+    })
+    api.post("/draft", async (request, reply) => {
+      const body = request.body as { page?: unknown; id?: unknown; action?: unknown; note?: unknown }
+      const file = planDoc(web.files, body.page)
+      const id = itemOf(file, body.id)
+      reply.json(await update(file, (inbox) => setDraft(inbox, id, body.action, body.note ?? null)))
     })
     api.post("/send", async (request, reply) => {
       const body = request.body as { page?: unknown }

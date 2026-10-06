@@ -134,8 +134,13 @@ In `tools/`:
       unsent, outlined once sent
     - Add Details / revisit now:  `POST now`, a spinner beside the button while it waits or `working[id]` is set;
       queued with no session listening:  a still dashed ring, and a notice at the window's bottom (D6)
-    - Revisit:  a note box under the line, a grey check ("soon") over a blue send ("now");  the unsaved note
-      survives reloads (`spell-revisit:<path>`)
+    - Revisit:  a note box under the line, a grey check ("soon") over a blue send ("now");  the note is SAVED as
+      typed, to the inbox as a draft (`POST draft`), "Saved 10:42" under it, so a reload from ANY address brings
+      it back (`spell-revisit:<path>` in localStorage is only a backup:  it's per address, and lost notes that
+      way;  epic `windows-and-review` P1)
+    - a marked note stays in view under its line ("You · revisit soon · sent 10:42", Edit reopens it);  the line's
+      speech bubble says a note is there (outline:  a draft;  solid:  marked);  once Claude clears the mark
+      (`inbox done | clear`), the note is kept IN the item as Owen's own reply card (`PlanDoc.keepNote()`)
     - an open item's option cards:  a "Choose" pill on each label marks `pick`, the card framed orange
     - an answered question's Choices panels (`plan-doc.js` `QUESTION`):  "Choose" pills on all but the chosen one,
       only while it's revisited (its Revisit box open, or a revisit or pick mark);  the picked title orange
@@ -249,15 +254,20 @@ In `tools/`:
   - absent until the first mark, deleted once empty;  git-ignored:  per-machine pending state, never the record
   - shape and helpers:  `tools/inbox.js` (`setMark()`, `requestNow()`, `markSent()`, `unsentMarks()`,
     `sentMarks()`, `takeNow()`, `takeWork()`, `setWorking()`, `setListening()`, `touchListening()`,
-    `liveListener()`, `clearMarks()`, `finishMarks()`, `clearApplied()`);  EVERY write through `updateInbox()` /
-    `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
+    `liveListener()`, `clearMarks()`, `finishMarks()`, `clearApplied()`, `setDraft()`);  EVERY write through
+    `updateInbox()` / `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
+  - `drafts`:  a note box's text as Owen types it, kept until the mark that uses it;  never sent, counted, or work
+    for a waiting session
   - one mark per item;  a question's pick with a remark is ONE revisit mark carrying `pick`
     (`{ action: "revisit", when, note, pick }`):  talked over, never applied by itself
   - `listening.seen`:  the session's heartbeat (`LISTEN_HEARTBEAT_MS`, 30s, from `wait`);  older than
     `LISTEN_STALE_MS` (90s), the session is gone (`liveListener()` `null`)
 - The page writes through the page server's route module `tools/reviewRoutes.ts`, `/api/review/...`:
-  `GET inbox?page=`, `POST mark { page, id, mark | null }`, `POST now { page, id, action, note? }` (Add Details,
-  revisit now, which keeps the item's pick:  queued on `now`), `POST send { page }`.
+  `GET inbox?page=`, `POST mark { page, id, mark | null }`, `POST draft { page, id, action, note }` (a note box's
+  text as typed), `POST now { page, id, action, note? }` (Add Details, revisit now, which keeps the item's pick:
+  queued on `now`), `POST send { page }`.
+  - a page whose token is stale (its server restarted) takes the new one from the page as served now and retries
+    once (`spell-doc-runtime.js` `refreshToken()`):  nothing typed is refused for a restart
   - `page`:  the doc's URL path (`/worktrees/<w>/...` too);  only `<name>.plan.html` (else 403), only ids of its
     items (else 400);  each answer is the whole inbox, but `listening` `null` once stale (`forPage()`);  writes
     need the server's token and origin (`SRV.Guard`)

@@ -1375,6 +1375,37 @@ ${list}`
   }
 
   /**
+   * Keep Owen's note -- `mark.note`, a mark Claude took and is clearing (`inbox done | clear`) -- in item `id`, as his
+   * own reply card:  `div.plan-reply.plan-reply-owen`, "Owen · 2026-10-06 10:42 · revisit soon", then the note.
+   * - placed before the first reply dated at or after the note (Claude's answer to it), else where an appended
+   *   reply goes (before the Original Discussion and the commits)
+   * - a card with the same time and note already there:  nothing (`done` after `clear`, a retry)
+   * - stamped (`data-changed`);  no UPDATE flag:  nothing about the item changed but the record
+   */
+  keepNote(id, { note, action, when, at }) {
+    const item = this.item(id)
+    const content = this.detailsOf(item)
+    const stamp = clockTime(at ? new Date(at) : this.now)
+    const replies = Array.from(content.querySelectorAll(":scope > .plan-reply"))
+    const same = (reply) =>
+      reply.classList.contains("plan-reply-owen") &&
+      reply.querySelector("time")?.textContent === stamp &&
+      reply.querySelector(":scope > p")?.textContent === note
+    if (replies.some(same)) return
+    const how = action === "revisit" ? `revisit ${when === "now" ? "now" : "soon"}` : action
+    const card = this.fragment(
+      `<div class="plan-reply plan-reply-owen"><div class="plan-reply-title"><b>Owen</b> · <time>${text(stamp)}</time>` +
+        ` · ${text(how)}</div><p>${text(note)}</p></div>`
+    )
+    const next =
+      replies.find((reply) => (reply.querySelector("time")?.textContent ?? "") >= stamp) ??
+      content.querySelector(`:scope > ${ORIGINAL}, :scope > .plan-commits`)
+    if (next) next.before(card)
+    else content.append(card)
+    this.stamp(item)
+  }
+
+  /**
    * Keep `nodes` -- item `item`'s text being replaced, already out of the doc -- in its Original Discussion
    * (`ORIGINAL`), made when it has none;  returns `"added"`, `"unchanged"` (a version saying the same is there) or
    * `"empty"` (nothing but whitespace:  no section).
@@ -3778,6 +3809,7 @@ function printInbox(plan, file, json) {
     marks,
     now: inbox.now,
     working: inbox.working,
+    drafts: inbox.drafts,
     // `live:  false`:  its heartbeat stopped (`liveListener()`):  the session is gone, the page says nobody
     listening: inbox.listening && { ...inbox.listening, live: !!liveListener(inbox) }
   }
@@ -3804,6 +3836,10 @@ function printInbox(plan, file, json) {
   const working = Object.entries(inbox.working)
   if (working.length) lines.push(`working (${working.length}):`)
   for (const [id, { action, since }] of working) lines.push(`  - ${id.toUpperCase()}  ${action}  (since ${since})`)
+  const drafts = Object.entries(inbox.drafts)
+  if (drafts.length) lines.push(`drafts, still being written (${drafts.length}):`)
+  for (const [id, { action, note, at }] of drafts)
+    lines.push(`  - ${id.toUpperCase()}  ${action}  "${note.trim()}"  (${at})`)
   console.log(lines.join("\n"))
 
   /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
@@ -3853,28 +3889,41 @@ function inbox(name, file, [what, ...args], flags) {
       return console.log(`${id.toUpperCase()} working:  ${on}`)
     }
     case "done":
-    case "clear": {
-      if (!args.length) throw new PlanDocError(`${what} which items?  ids`)
-      const ids = args.map(toItemId)
-      // `done` keeps a mark Owen changed while the agent worked (`finishMarks()`);  `clear` drops it
-      let had = []
-      let kept = []
-      updateInbox(path, (box) => {
-        if (what === "done") ({ had, kept } = finishMarks(box, ids))
-        else had = clearMarks(box, ids)
-        for (const id of ids) setWorking(box, id, null)
-        touchListening(box)
-      })
-      const none = ids.filter((id) => !had.includes(id) && !kept.includes(id))
-      const label = what === "done" ? "done" : "cleared"
-      const notes = [
-        none.length ? `no mark:  ${upper(none)}` : "",
-        kept.length ? `changed since, kept for the next send:  ${upper(kept)}` : ""
-      ].filter(Boolean)
-      return console.log(`${label}:  ${upper(ids)}${notes.length ? `  (${notes.join(";  ")})` : ""}`)
-    }
+    case "clear":
+      return finish(what, args)
     default:
       throw new PlanDocError(`inbox what?  listen | unlisten | wait | apply | working | done | clear (not '${what}')`)
+  }
+
+  /**
+   * `done` / `clear` items `ids`:  their marks go (`done` keeps one Owen changed while the agent worked,
+   * `finishMarks()`;  `clear` drops it), and their `working` too.
+   * - a mark leaving with Owen's note in it:  the note is kept IN the item first, as his own reply card
+   *   (`PlanDoc.keepNote()`, epic `windows-and-review` P1):  what he wrote is never lost from the page
+   */
+  async function finish(what, ids) {
+    if (!ids.length) throw new PlanDocError(`${what} which items?  ids`)
+    const keys = ids.map(toItemId)
+    let had = []
+    let kept = []
+    let notes = []
+    updateInbox(path, (box) => {
+      const before = { ...box.marks }
+      if (what === "done") ({ had, kept } = finishMarks(box, keys))
+      else had = clearMarks(box, keys)
+      notes = had.filter((id) => before[id]?.note).map((id) => ({ id, mark: before[id] }))
+      for (const id of keys) setWorking(box, id, null)
+      touchListening(box)
+    })
+    if (notes.length) await edit(file, (plan) => notes.forEach(({ id, mark }) => plan.keepNote(id, mark)))
+    const none = keys.filter((id) => !had.includes(id) && !kept.includes(id))
+    const label = what === "done" ? "done" : "cleared"
+    const extras = [
+      none.length ? `no mark:  ${upper(none)}` : "",
+      kept.length ? `changed since, kept for the next send:  ${upper(kept)}` : "",
+      notes.length ? `Owen's note kept in the doc:  ${upper(notes.map(({ id }) => id))}` : ""
+    ].filter(Boolean)
+    console.log(`${label}:  ${upper(keys)}${extras.length ? `  (${extras.join(";  ")})` : ""}`)
   }
 
   /** What an agent works on for a mark:  a revisit's answer, else details. */

@@ -177,6 +177,8 @@ const ICONS = {
   "solid/code": ["code"],
   // master plan:  live pages (thoughts, Claude sessions, setup)
   "regular/comment-dots": ["comment dots"],
+  // review notes:  an item Owen wrote in (outline:  a draft;  solid `comment`:  sent), and Edit on a sent note
+  "regular/comment": ["comment outline"],
   "solid/arrows-rotate": ["arrows rotate", "refresh"],
   "solid/up-right-from-square": ["up right from square", "external alternate"],
   "solid/right-to-bracket": ["right to bracket", "sign in"],

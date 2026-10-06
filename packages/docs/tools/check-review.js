@@ -3,7 +3,9 @@
  * server and its review routes (`tools/reviewRoutes.ts`).
  * Usage:  node tools/check-review.js [epic name] [outDir]   (default `review-review`;  from `packages/docs`)
  * - clicks through what Owen would:  an item's ellipsis menu -> Approve, Add to todo, Add Details;  Revisit with a
- *   note (the draft must survive a reload), saved "soon";  another revisited "now" (its spinner must show while the
+ *   note (saved to the inbox as typed, "Saved";  it must survive a reload at ANOTHER address, `localhost`, whose
+ *   localStorage is its own), saved "soon", then shown under its item with Edit (epic `windows-and-review` P1);
+ *   another revisited "now" (its spinner must show while the
  *   request waits);  "Choose" on an open question's option card, then a Revisit on it ("pick B, but ...":  both
  *   kept, the letter changes and drops without losing the note);  then "Send to Claude", and `spell dev plan-doc
  *   inbox <name> wait` must print the pick with its note
@@ -131,13 +133,40 @@ try {
   const afterBox = await page.evaluate(() => scrollY)
   if (afterBox !== scrolled) problems.push(`opening the menu or the Revisit box scrolled (${scrolled} -> ${afterBox})`)
   await page.fill(`#${soon} .plan-revisit-note`, NOTE)
-  await open(page)
+  // saved to the inbox as typed (epic `windows-and-review` P1):  the status says so, the inbox has it
+  await page
+    .waitForFunction(
+      (id) => /^Saved /.test(document.querySelector(`#${id} .plan-revisit-status`)?.textContent ?? ""),
+      soon,
+      { timeout: 5000 }
+    )
+    .catch(() => problems.push("the Revisit note never said Saved"))
+  if ((await inbox()).drafts?.[soon]?.note !== NOTE) problems.push("the Revisit note isn't a draft in the inbox")
+  // reloaded at ANOTHER address (localhost, not 127.0.0.1):  its own localStorage, so only the inbox can bring it back
+  const elsewhere = url.replace("//127.0.0.1:", "//localhost:")
+  await open(page, elsewhere)
   for (const id of [approve, todo, soon, now, details]) await page.evaluate(unfold, id)
   const draft = await page.evaluate((id) => document.querySelector(`#${id} .plan-revisit-note`)?.value, soon)
-  if (draft !== NOTE) problems.push(`the Revisit draft didn't survive a reload ("${draft}")`)
+  if (draft !== NOTE) problems.push(`the Revisit draft didn't survive a reload at another address ("${draft}")`)
+  const bubble = await page.evaluate((id) => {
+    const noted = document.querySelector(`#${id} .plan-act-noted`)
+    return noted && !noted.hidden ? noted.querySelector("ui-icon")?.getAttribute("name") : null
+  }, soon)
+  if (bubble !== "comment outline") problems.push(`a draft's line shows ${bubble ?? "no"} note bubble`)
+  await open(page)
+  for (const id of [approve, todo, soon, now, details]) await page.evaluate(unfold, id)
   await page.click(`#${soon} .plan-revisit-soon`)
   await expectButton(page, soon, "orange", "revisit", (mark) => mark.when === "soon" && mark.note === NOTE)
   if (await page.$(`#${soon} .plan-revisit`)) problems.push("the Revisit box stayed open after saving")
+  if ((await inbox()).drafts?.[soon]) problems.push("the draft stayed after the note became a mark")
+  // the note stays in view, with Edit (I1:  a sent note used to vanish)
+  const noteShown = await page.evaluate((id) => document.querySelector(`#${id} .plan-said-note`)?.textContent, soon)
+  if (noteShown !== NOTE) problems.push(`the saved note isn't shown under its item ("${noteShown}")`)
+  await page.click(`#${soon} .plan-said-edit`)
+  const editing = await page.evaluate((id) => document.querySelector(`#${id} .plan-revisit-note`)?.value, soon)
+  if (editing !== NOTE) problems.push(`Edit didn't reopen the note ("${editing}")`)
+  await page.click(`#${soon} .plan-revisit-soon`)
+  await page.waitForTimeout(300)
 
   // Revisit now:  the request held a moment, so its spinner must show
   await page.route("**/api/review/now", async (route) => {
@@ -349,8 +378,8 @@ process.exit(problems.length ? 1 : 0)
 ////////////////
 
 /** Load (or reload) the doc and wait for the review buttons. */
-async function open(page) {
-  await page.goto(url)
+async function open(page, at = url) {
+  await page.goto(at)
   // attached, not visible:  a plan doc starts with every section folded, its items out of sight
   await page.waitForSelector(".plan-act-button", { state: "attached", timeout: 15_000 })
   await page.waitForTimeout(500)

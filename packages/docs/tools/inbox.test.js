@@ -18,6 +18,7 @@ import {
   forPage,
   hasWork,
   inboxPath,
+  isEmpty,
   isoTime,
   itemIds,
   liveListener,
@@ -27,6 +28,7 @@ import {
   readInbox,
   requestNow,
   sentMarks,
+  setDraft,
   setListening,
   setMark,
   setWorking,
@@ -115,6 +117,51 @@ describe("marks", () => {
     expect(clearMarks(inbox, ["J1", "i2", "t9"])).toEqual(["j1", "i2"])
     expect(inbox.marks).toEqual({})
     expect(inbox.now).toEqual([])
+  })
+})
+
+// epic `windows-and-review` P1:  a note box's text kept on the server, as typed, so no address loses it
+describe("drafts", () => {
+  test("kept as typed (not trimmed);  blank or null drops it;  an inbox with only a draft isn't empty", () => {
+    const inbox = emptyInbox()
+    expect(setDraft(inbox, "Q3", "revisit", "  why not B?\n", T1)).toEqual({
+      action: "revisit",
+      note: "  why not B?\n",
+      at: T1
+    })
+    expect(isEmpty(inbox)).toBe(false)
+    expect(setDraft(inbox, "q3", "revisit", "   ")).toBe(null)
+    expect(inbox.drafts).toEqual({})
+    setDraft(inbox, "q3", "todo", "later", T1)
+    setDraft(inbox, "q3", "todo", null)
+    expect(isEmpty(inbox)).toBe(true)
+  })
+
+  test("never a mark:  not counted, never work for a waiting session", () => {
+    const inbox = emptyInbox()
+    setDraft(inbox, "q3", "revisit", "why?", T1)
+    expect(unsentMarks(inbox)).toEqual([])
+    expect(hasWork(inbox)).toBe(false)
+  })
+
+  test("the mark that uses the note drops the draft:  revisit soon, revisit now, Clear;  approve doesn't", () => {
+    const inbox = emptyInbox()
+    setDraft(inbox, "q3", "revisit", "why?", T1)
+    setMark(inbox, "q3", { action: "approve" }, T2)
+    expect(inbox.drafts.q3).toBeDefined()
+    setMark(inbox, "q3", { action: "revisit", note: "why?" }, T2)
+    expect(inbox.drafts.q3).toBeUndefined()
+    setDraft(inbox, "i2", "revisit", "and this", T1)
+    requestNow(inbox, "i2", "revisit", "and this", T2)
+    expect(inbox.drafts.i2).toBeUndefined()
+    setDraft(inbox, "j1", "revisit", "hmm", T1)
+    setMark(inbox, "j1", null)
+    expect(inbox.drafts.j1).toBeUndefined()
+  })
+
+  test("only note actions, only item ids", () => {
+    expect(() => setDraft(emptyInbox(), "q3", "approve", "x")).toThrow(InboxError)
+    expect(() => setDraft(emptyInbox(), "nope", "revisit", "x")).toThrow(InboxError)
   })
 })
 
