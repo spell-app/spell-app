@@ -45,7 +45,7 @@ export class UITransition extends E.UIElement<Vocabulary> {
   readonly visibleState = this.controlled("visible", false)
 
   /** Shown, or on its way in;  follows the queue, not the attribute. */
-  readonly isShown = new E.Cell(untrack(() => !!this.attrs.visible))
+  readonly isVisible = new E.Cell(untrack(() => !!this.attrs.visible))
 
   /** An animation is running. */
   readonly isAnimating = new E.Cell(false)
@@ -75,12 +75,12 @@ export class UITransition extends E.UIElement<Vocabulary> {
 
   /** Its state after the noun, as Fomantic's script added it:  `visible`, `animating`. */
   protected extraClasses(): string | undefined {
-    const words = [this.isShown.get() ? UIT.VISIBLE : undefined, this.isAnimating.get() ? UIT.ANIMATING : undefined]
+    const words = [this.isVisible.get() ? UIT.VISIBLE : undefined, this.isAnimating.get() ? UIT.ANIMATING : undefined]
     return words.filter(Boolean).join(" ") || undefined
   }
 
   protected hostStates() {
-    return { visible: this.isShown.get(), animating: this.isAnimating.get() }
+    return { visible: this.isVisible.get(), animating: this.isAnimating.get() }
   }
 
   ////////////////
@@ -198,10 +198,10 @@ export class UITransition extends E.UIElement<Vocabulary> {
     this.running = step
     this.isAnimating.set(!!step)
     if (!step) return
-    if (step.direction === UIT.IN) this.isShown.set(true)
+    if (step.direction === UIT.IN) this.isVisible.set(true)
     void this.run(step).then((isCompleted) => {
       if (this.running !== step) return step.resolve(false)
-      if (step.direction === UIT.OUT) this.isShown.set(false)
+      if (step.direction === UIT.OUT) this.isVisible.set(false)
       this.announce(step)
       step.resolve(isCompleted)
       this.next()

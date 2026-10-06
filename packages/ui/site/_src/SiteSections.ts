@@ -120,10 +120,10 @@ export class SiteSections {
     let hasChanged = false
     for (const section of SiteSections.pageSections(main)) {
       if (!section.hasAttribute("collapsible") || !(section.id in saved)) continue
-      const isFolded = !!saved[section.id]
-      if (section.hasAttribute(COLLAPSED) === isFolded) continue
+      const isCollapsed = !!saved[section.id]
+      if (section.hasAttribute(COLLAPSED) === isCollapsed) continue
       if (isInstant && !hasChanged) SiteSections.instantly(main)
-      section.toggleAttribute(COLLAPSED, isFolded)
+      section.toggleAttribute(COLLAPSED, isCollapsed)
       hasChanged = true
     }
   }

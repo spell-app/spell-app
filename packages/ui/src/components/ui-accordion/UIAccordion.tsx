@@ -39,7 +39,7 @@ import accordionCSS from "./ui-accordion.css?inline"
  * - Source (`source`, `select`):  the FIRST panel's content comes from a file the first time it opens (or at once
  *   when it starts open), through `SourceBody`:  into that panel's content child, a `<ui-content>` made after the
  *   title when there's none;  its children are the placeholder.  The `<details>` stays closed while the body is on
- *   its way (`veiled()`, at most `SOURCE_BODY_HOLD_MS`), so it opens on the body.  `load()` / `reload()` on the host
+ *   its way (`isVeiled()`, at most `SOURCE_BODY_HOLD_MS`), so it opens on the body.  `load()` / `reload()` on the host
  *   (`SourceBodyHost`);  `:state(loading)`, `:state(loaded)`, `:state(error)`.
  * - SIDE EFFECT:  watches its own child list (a `MutationObserver`) to re-pair titles and contents.
  * - SIDE EFFECT:  with `source`, may add a `<ui-content>` child, and replaces its children with the file's body.
@@ -91,7 +91,7 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
   )
 
   /** The `source` panel's `<details>` held closed while its body is on its way (never in a server render). */
-  readonly veiled = createMemo(() => !isServer && !!this.attrs.source && this.body.isVeiled)
+  readonly isVeiled = createMemo(() => !isServer && !!this.attrs.source && this.body.isVeiled)
 
   /** The error line's text, when the `source` body failed;  else `undefined`. */
   readonly bodyFailureText = createMemo(() => {
@@ -169,7 +169,7 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
       <details
         part={this.part("panel")}
         name={this.attrs.exclusive ? this.group : undefined}
-        open={open() && !(source() && this.veiled())}
+        open={open() && !(source() && this.isVeiled())}
         onToggle={(event: Event) => this.onToggle(event)}
       >
         <summary
@@ -267,8 +267,8 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
       (child): child is HTMLDetailsElement => child instanceof HTMLDetailsElement
     )
     const before = untrack(this.openIndexes)
-    // the `source` panel held closed for its body (`veiled()`) is open all the same
-    const held = (index: number) => index === SOURCE_PANEL && before.includes(index) && untrack(this.veiled)
+    // the `source` panel held closed for its body (`isVeiled()`) is open all the same
+    const held = (index: number) => index === SOURCE_PANEL && before.includes(index) && untrack(this.isVeiled)
     const now = panels.flatMap((details, index) => (details.open || held(index) ? [index] : []))
     if (AccordionPanels.format(now) === AccordionPanels.format(before)) return
     for (const index of now) {

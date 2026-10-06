@@ -64,7 +64,7 @@ import sectionCSS from "./ui-section.css?inline"
  * - Source (`source`, `select`):  the content comes from a file the first time the section unfolds -- by any route:
  *   a click, `collapsed` removed by the page (a `#id` link's unfold), or starting unfolded (then at once).
  *   `SourceBody` fetches it (`UI.sources`), and puts its `<body>` in the LIGHT DOM in place of the placeholder
- *   (children without a `slot`).  While it's on its way the content box stays hidden (`veiled()`, at most
+ *   (children without a `slot`).  While it's on its way the content box stays hidden (`isVeiled()`, at most
  *   `SOURCE_BODY_HOLD_MS`, then the `loading` look over the placeholder), so the unfold shows the body.
  *   `load()` / `reload()` on the host (`SourceBodyHost`);  `:state(loaded)`, `:state(error)`.  Lives in the CLASS,
  *   so subclasses (`<ui-panel>`) get it with the vocabulary they reuse.
@@ -202,13 +202,13 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   readonly innerStackTop = createMemo((): number => (this.scrolls() ? 0 : this.stackBottom()))
 
   /** Folded:  `collapsible` and `collapsed`. */
-  readonly isFolded = createMemo(() => this.collapsible() && !!this.collapsedState.get())
+  readonly isCollapsed = createMemo(() => this.collapsible() && !!this.collapsedState.get())
 
   /** Content box held closed while the `source` body is on its way (never in a server render:  nothing loads). */
-  readonly veiled = createMemo(() => !isServer && !!this.attrs.source && this.body.isVeiled)
+  readonly isVeiled = createMemo(() => !isServer && !!this.attrs.source && this.body.isVeiled)
 
   /** Busy:  `loading`, or a `source` body slow to arrive. */
-  readonly busy = createMemo(() => !!this.attrs.loading || this.body.isBusy)
+  readonly isLoading = createMemo(() => !!this.attrs.loading || this.body.isBusy)
 
   /** The error line's text, when the `source` body failed;  else `undefined`. */
   readonly bodyFailureText = createMemo(() => {
@@ -263,11 +263,11 @@ export class UISection extends E.UIElement<SectionVocabulary> {
     const { inverted, disabled } = this.attrs
     const status = this.body.status.get()
     return {
-      collapsed: this.isFolded(),
+      collapsed: this.isCollapsed(),
       stuck: !!this.attrs.sticky && this.isStuck.get(),
       animated: this.isLoaded() && UI.browser.supports.interpolateSize,
       inverted,
-      loading: this.busy(),
+      loading: this.isLoading(),
       disabled,
       loaded: status === E.SourceStatus.loaded,
       error: status === E.SourceStatus.error
@@ -289,7 +289,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
         () => ({
           source: this.attrs.source,
           select: this.attrs.select,
-          open: !this.isFolded(),
+          open: !this.isCollapsed(),
           connected: this.isConnected.get()
         }),
         ({ source, open, connected }) => {
@@ -303,7 +303,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   render(): JSX.Element {
     this.watchTitle()
     return (
-      <section class={this.classes()} part={this.part("section")} aria-busy={this.busy() ? UIT.TRUE : undefined}>
+      <section class={this.classes()} part={this.part("section")} aria-busy={this.isLoading() ? UIT.TRUE : undefined}>
         <div ref={(element) => (this.sentinel = element)} class={SENTINEL} aria-hidden={UIT.TRUE} />
         {this.titleBar()}
         <Show when={this.hasSubhead()}>
@@ -316,7 +316,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
           id={CONTENT_ID}
           class={UIT.CONTENT}
           part={this.part("content")}
-          hidden={this.isFolded() || this.veiled() ? UNTIL_FOUND : undefined}
+          hidden={this.isCollapsed() || this.isVeiled() ? UNTIL_FOUND : undefined}
           tabindex={this.scrolls() ? 0 : undefined}
           style={this.attrs.height ? { [HEIGHT_PROPERTY]: this.attrs.height } : undefined}
         >
@@ -327,7 +327,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
           </Show>
           <slot />
         </div>
-        <Show when={this.busy()}>
+        <Show when={this.isLoading()}>
           <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
             {this.text("loading")}
           </span>
@@ -365,9 +365,9 @@ export class UISection extends E.UIElement<SectionVocabulary> {
             type={this.collapsible() ? UIT.BUTTON : undefined}
             class={TOGGLE}
             part={this.part("toggle")}
-            aria-expanded={this.collapsible() ? (this.isFolded() ? UIT.FALSE : UIT.TRUE) : undefined}
+            aria-expanded={this.collapsible() ? (this.isCollapsed() ? UIT.FALSE : UIT.TRUE) : undefined}
             aria-controls={this.collapsible() ? CONTENT_ID : undefined}
-            title={this.collapsible() ? this.text(this.isFolded() ? "unfold" : "fold") : undefined}
+            title={this.collapsible() ? this.text(this.isCollapsed() ? "unfold" : "fold") : undefined}
             disabled={this.collapsible() && this.attrs.disabled ? true : undefined}
             aria-describedby={this.hasInfo() && this.collapsible() ? TIP_ID : undefined}
             onClick={this.onToggleClick}
@@ -461,7 +461,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
    */
   toggle(originalEvent?: Event): boolean {
     if (!untrack(this.collapsible) || untrack(() => this.isDisabled())) return false
-    const opening = untrack(this.isFolded)
+    const opening = untrack(this.isCollapsed)
     const detail: UIT.SectionToggleDetail = { open: opening, section: this.host, originalEvent }
     return this.collapsedState.request(!opening, () => this.emit(opening ? "ui-open" : "ui-close", detail))
   }
@@ -483,7 +483,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
    * after the fact (not cancelable) and adopt it.
    */
   private readonly onBeforeMatch = () => {
-    if (!untrack(this.isFolded)) return
+    if (!untrack(this.isCollapsed)) return
     const detail: UIT.SectionToggleDetail = { open: true, section: this.host }
     const init = { bubbles: true, composed: true, cancelable: false, detail }
     this.host.dispatchEvent(new CustomEvent(this.definition.event("ui-open"), init))
