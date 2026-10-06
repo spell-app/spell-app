@@ -18,6 +18,9 @@ house style every package shares.  Only what's local is below;  a section named 
 - `$/parser/test` (`src/test/`) holds the helpers language packages use to test their rules, e.g.
   `unitTestModuleRules()`.  Tests that need the SPELL grammar are not here:  they're `../spell/src/parserTests/`.
 - Depends only on `$/util` (and what that re-exports).  NEVER import `$/spell` or anything above it.
+- `src/writers/` writes ASTs out as a target's code:  `P.Writer` (one method per AST class, found by class
+  name -- so `keepNames`, below), `P.JSWriter` (javascript;  what `ASTNode.compile()` calls), `P.jsText` (its
+  punctuation).  The AST classes never write output themselves.
 - No UI framework, no JSX, no DOM:  node tools run the parser's SOURCE through `tsx` / esbuild / Vite's oxc, none
   of which compile Solid's JSX.  ASTs only write text (`compile()`);  the app shows compiled JavaScript in Monaco.
 - "Parser rules" (how to write a rule class + its `syntax` + `tests`) is in `../spell/AGENTS.md`:  the rules
