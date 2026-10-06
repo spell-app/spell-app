@@ -35,6 +35,13 @@ export const PROJECT_FILE = "project.json"
 export const COMPILED_JS_SUFFIX = ".compiled.js"
 
 /**
+ * End of a project's declarations file's name, e.g. `Solitaire.declarations.json`:  what it offers importers, beside
+ * its compiled output -- see `SpellProject.declarationsFile`, `SP.SpellDeclarationsData`.
+ * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js` and `.jsx`.
+ */
+export const DECLARATIONS_JSON_SUFFIX = ".declarations.json"
+
+/**
  * End of a test fixture's snapshot file's name, e.g. `Solitaire.snapshot.js` -- its compiled output, which
  * `$/spell/test`'s `fixtures.test.ts` checks against.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
@@ -328,10 +335,9 @@ export const SPELL_VERSION = "0.8.0"
 
 /**
  * Everything a project added to scope while parsing, as plain data -- see `SpellDeclarations`.
- * - Lives in the project's compiled JS, so another project can import it WITHOUT re-parsing its `.spell` files:
- *   a one-line `/*! SPELL: PROJECT {...} *\/` header, then a `/*! SPELL: DECLARES {...} *\/` comment above
- *   each declaring statement.
- * - JSON-able:  no `Match`es, classes or functions.
+ * - Lives in `<Project>.declarations.json`, beside its compiled output, so another project can import it WITHOUT
+ *   re-parsing its `.spell` files -- whatever language that output is in.
+ * - JSON:  no `Match`es, classes or functions.
  */
 export type SpellDeclarationsData = {
   /** This project's own semver, from its `project.json` -- if it has one. */
@@ -345,6 +351,11 @@ export type SpellDeclarationsData = {
   provides: string[]
   /** What each declaring statement declared, in source order. */
   statements: SpellDeclaration[]
+  /**
+   * Where each of `statements` starts in the compiled output:  its line, from 0 -- so a Type Explorer can show a
+   * declaration's code.  Missing in declarations read from an older compiled `.js`.
+   */
+  codeLines?: number[]
 }
 
 /**

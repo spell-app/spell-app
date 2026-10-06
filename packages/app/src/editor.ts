@@ -319,7 +319,7 @@ export class EditorStore extends Observable {
   /**
    * Run already-`compiled` current `project` afresh, on the runtime programs run on -- logging how it went to
    * `runtimeConsole()`.  See `runCompiled()`.
-   * - Runs what it wrote to `<Project>.compiled.js`, declarations header and all.
+   * - Runs what it wrote to `<Project>.compiled.js`:  its declarations are in `<Project>.declarations.json`.
    * - Each project it imports is fetched afresh, so a recompiled library shows at once.
    * - An error's stack goes to devtools too -- `runCompiled()` logs it.
    */

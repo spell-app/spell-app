@@ -2115,7 +2115,8 @@ export class SpellLanguageService {
   static compileQuietly(match: P.Match): string | undefined {
     try {
       const compiled = match.compile()
-      return typeof compiled === "string" ? compiled : undefined
+      // declaration markers are for the declarations file, not for people -- see `SP.SpellDeclarations`
+      return typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : undefined
     } catch {
       return undefined
     }

@@ -1,4 +1,3 @@
-/*! SPELL: PROJECT { spellVersion: "0.8.0", provides: ["Calculator"] } */
 import { spellCore, Thing, List, App } from "@spell/core"
 
 // IDEAS FOR EXTENDING THIS
@@ -9,58 +8,25 @@ import { spellCore, Thing, List, App } from "@spell/core"
 // - `output` as getter
 // - tape to show past results
 
-/*! SPELL: DECLARES {
-  type: "Calculator", superType: "App",
-  defined: "/Calculator.spell:191-213",
-} */
 export class Calculator extends App {
-  /*! SPELL: DECLARES {
-    property: "input", of: "Calculator",
-    defined: "/Calculator.spell:214-239",
-  } */
   get input() { return this.getProp('input') }
   set input(value) { this.setProp('input', value) }
 
-  /*! SPELL: DECLARES {
-    property: "output", of: "Calculator",
-    defined: "/Calculator.spell:240-266",
-  } */
   get output() { return this.getProp('output') }
   set output(value) { this.setProp('output', value) }
 
-  /*! SPELL: DECLARES {
-    property: "left", of: "Calculator",
-    defined: "/Calculator.spell:267-290",
-  } */
   get left() { return this.getProp('left') }
   set left(value) { this.setProp('left', value) }
 
-  /*! SPELL: DECLARES {
-    property: "right", of: "Calculator",
-    defined: "/Calculator.spell:291-315",
-  } */
   get right() { return this.getProp('right') }
   set right(value) { this.setProp('right', value) }
 
-  /*! SPELL: DECLARES {
-    property: "total", of: "Calculator",
-    defined: "/Calculator.spell:316-340",
-  } */
   get total() { return this.getProp('total') }
   set total(value) { this.setProp('total', value) }
 
-  /*! SPELL: DECLARES {
-    property: "operator", of: "Calculator",
-    defined: "/Calculator.spell:341-369",
-  } */
   get operator() { return this.getProp('operator') }
   set operator(value) { this.setProp('operator', value) }
 
-  /*! SPELL: DECLARES {
-    syntax: "clear {thisArg:expression}", output: "clear", rule: "method_call", of: "Calculator",
-    alias: ["statement", "expression"], kind: "method", name: "clear (a calculator)",
-    defined: "/Calculator.spell:371-524",
-  } */
   clear() {
     this.input = ""
     this.output = ""
@@ -70,12 +36,6 @@ export class Calculator extends App {
     this.total = ""
   }
 
-  /*! SPELL: DECLARES {
-    syntax: "update the total of {thisArg:expression}", output: "update_the_total_of",
-    rule: "method_call", of: "Calculator", alias: ["statement", "expression"], kind: "method",
-    name: "update the total of (a calculator)",
-    defined: "/Calculator.spell:526-955",
-  } */
   update_the_total_of() {
     if (spellCore.isEmpty(this.right)) { this.output = "" }
     else {
@@ -89,12 +49,6 @@ export class Calculator extends App {
     }
   }
 
-  /*! SPELL: DECLARES {
-    syntax: "append {callArgs:expression} to {thisArg:expression}", output: "append_$digit_to",
-    rule: "method_call", of: "Calculator", alias: ["statement", "expression"], kind: "method",
-    name: "append (digit) to (a calculator)", params: [{ name: "digit" }],
-    defined: "/Calculator.spell:957-1457",
-  } */
   append_$digit_to(digit) {
     // TODO: handle digit = "DELETE"
     if (digit == ".") {
@@ -108,13 +62,6 @@ export class Calculator extends App {
     this.update_the_total_of()
   }
 
-  /*! SPELL: DECLARES {
-    syntax: "set the operator of {thisArg:expression} to {callArgs:expression}",
-    output: "set_the_operator_of_to_$op", rule: "method_call", of: "Calculator",
-    alias: ["statement", "expression"], kind: "method",
-    name: "set the operator of (a calculator) to (op)", params: [{ name: "op" }],
-    defined: "/Calculator.spell:1459-1701",
-  } */
   set_the_operator_of_to_$op(op) {
     this.operator = op
     this.input = ""
@@ -127,11 +74,6 @@ export class Calculator extends App {
     }
   }
 
-  /*! SPELL: DECLARES {
-    syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Calculator",
-    alias: ["statement", "expression"], kind: "method", name: "draw (a calculator)",
-    defined: "/Calculator.spell:1703-3629",
-  } */
   draw() {
     return spellCore.element({ tag: "div", props: { className: "ui container" }, children: [
       spellCore.element({ tag: "table", props: { className: "ui table" }, children: [

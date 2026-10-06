@@ -99,13 +99,26 @@ describe("SpellProject imports", () => {
     await lib.compile()
   })
 
-  test("compiling a project leads its compiled file with its declarations", () => {
-    const compiled = readFileSync(resolve(workspace, "lib", `lib${SP.COMPILED_JS_SUFFIX}`), "utf8")
-    const declarations = SP.SpellDeclarations.read(compiled)!
+  test("compiling a project writes its declarations beside its compiled file, which holds just code", () => {
+    const json = readFileSync(resolve(workspace, "lib", `lib${SP.DECLARATIONS_JSON_SUFFIX}`), "utf8")
+    const declarations = SP.SpellDeclarations.read(json)!
     expect(declarations.version).toBe("1.2.0")
     expect(declarations.provides).toEqual(expect.arrayContaining(["Card", "Deck", "Pile"]))
-    // ...and the code follows, as before
+    const compiled = readFileSync(resolve(workspace, "lib", `lib${SP.COMPILED_JS_SUFFIX}`), "utf8")
     expect(compiled).toContain("export class Card extends Thing {\n")
+    expect(compiled).not.toContain("SPELL:")
+  })
+
+  test("a project compiled before declarations files still imports, from the comments in its compiled file", async () => {
+    const lib = resolve(workspace, "lib")
+    const json = readFileSync(resolve(lib, `lib${SP.DECLARATIONS_JSON_SUFFIX}`), "utf8")
+    const declarations = SP.SpellDeclarations.read(json)!
+    // what an older compile wrote:  a header, then each statement's comment -- here, all at the top
+    const header = `/*! SPELL: PROJECT ${JSON.stringify({ spellVersion: declarations.spellVersion, provides: declarations.provides })} */\n`
+    const comments = declarations.statements.map((it) => `/*! SPELL: DECLARES ${JSON.stringify(it)} */\n`).join("")
+    const older = SP.SpellDeclarations.fromComments(header + comments)!
+    expect(older.provides).toEqual(declarations.provides)
+    expect(older.statements).toEqual(declarations.statements)
   })
 
   test("a project parses against another's compiled declarations -- not its sources", async () => {
