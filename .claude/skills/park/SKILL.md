@@ -98,11 +98,13 @@ Used by `/unpark` (after its window check) and by `/wait-for` when the wait ends
    - a worktree cut before 2026-10-04 (`spell dev shared status` shows its folders `tracked`):  `spell dev shared
      migrate <name>` first
    - `git log --oneline HEAD..main` empty:  nothing new, go on to step 4
-   - `git merge-tree --write-tree --name-only main HEAD`:  exit 0, `git merge main`;  exit 1, conflicts:
-     - `git merge main`, resolve each file keeping BOTH sides' intent.  Packages moved or renamed on `main` show
-       up as rename / delete conflicts:  follow the move, carrying this branch's edits to the new path, and
-       update its imports to the new aliases.
-     - commit the merge ("Merge main into `<name>`";  parking was the go-ahead)
+   - `spell dev worktree merge-main`:  merges `main`, regenerates the generated files both sides changed (bundles,
+     snapshots ...), commits ("Merge main into `<name>`";  parking was the go-ahead).  Its `REVIEW` lines (snapshot
+     entries neither side had) go in the summary, in bold.
+   - it stops on other conflicts:  resolve each file keeping BOTH sides' intent, `git add` it, then
+     `spell dev worktree merge-main --continue`.  Packages moved or renamed on `main` show up as rename / delete
+     conflicts:  follow the move, carrying this branch's edits to the new path, and update its imports to the new
+     aliases.
 3. Checks:
    - `package.json` workspaces or any `yarn.lock` changed in the merge, or no `node_modules/`:  `yarn install`
    - `yarn ts` and `yarn test` in each package this branch touches (`git diff --name-only main...HEAD`)

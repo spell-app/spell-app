@@ -149,9 +149,10 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .description(
       "git worktrees:  list the live sessions and where they work, or where a worktree / plan / session stands"
     )
-    .argument("[verb]", "list (default) | status <name>")
+    .argument("[verb]", "list (default) | status <name> | merge-main [--continue]")
     .argument("[name]", "status:  a worktree, branch, plan doc or session name")
-    .option("--json", "list:  print the data as JSON")
+    .option("--json", "list, merge-main:  print the data as JSON")
+    .option("--continue", "merge-main:  finish a merge it stopped on other conflicts, once they're resolved and added")
     .action((verb: string | undefined, name: string | undefined, _options, command) =>
       runBarrel(
         "worktreeCommand",

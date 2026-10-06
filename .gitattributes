@@ -1,0 +1,44 @@
+# Generated files:  each is a function of BOTH branches' source, so a line merge of two versions is never right.
+# - `linguist-generated`:  collapsed in GitHub's PR diffs ("Load diff")
+# - `merge=binary`:  changed on both sides => git keeps ours, marks it conflicted, and never interleaves the two;
+#   `spell dev worktree merge-main` then regenerates it from the merged source (its table:
+#   `packages/cli/src/dev/mergeMain.ts`, `GENERATORS`)
+# - `-diff`:  minified;  `git diff` says "Binary files differ" instead of printing megabytes of one line
+# NOT `merge=ours`:  it silently drops the other side's changes, flips meaning in a rebase, and GitHub ignores it.
+
+# Vitest snapshots:  regenerated with `vp test run --update`, then checked against both sides
+**/__snapshots__/*.snap                                       linguist-generated merge=binary
+
+# ui:  pre-compiled spell highlighter and markdown (`yarn gen:spell`, `yarn gen:markdown`)
+packages/ui/src/languages/spell.*                             linguist-generated merge=binary
+packages/ui/src/languages/spell.*.bundle.js                   -diff
+packages/ui/src/components/ui-markdown/md.bundle.*            linguist-generated merge=binary
+packages/ui/src/components/ui-markdown/md.bundle.js           -diff
+packages/ui/src/components/ui-markdown/MDBundle.ts            linguist-generated merge=binary
+
+# ui:  Spell UI site data and bundle (`yarn site:data`, `yarn site:bundle`);  `pages.json` is hand-kept
+packages/ui/site/_data/components.json                        linguist-generated merge=binary
+packages/ui/site/_data/icons.json                             linguist-generated merge=binary -diff
+packages/ui/site/_data/custom-elements.json                   linguist-generated merge=binary
+packages/ui/site/_data/html-custom-data.json                  linguist-generated merge=binary
+packages/ui/site/_assets/**                                   linguist-generated merge=binary -diff
+
+# docs:  the single-file bundle for docs pages (`node tools/bundle-spell-ui.js`)
+packages/docs/tools/_assets/spell-ui.js                       linguist-generated merge=binary -diff
+packages/docs/tools/_assets/emoji/**                          linguist-generated merge=binary -diff
+packages/docs/tools/_assets/lazy/**                           linguist-generated merge=binary -diff
+
+# brand:  its pages' bundle and data (`yarn build`, `yarn site:data`);  `pages.json` is hand-kept
+packages/brand/_assets/ui/**                                  linguist-generated merge=binary -diff
+packages/brand/_data/components.json                          linguist-generated merge=binary
+packages/brand/_data/custom-elements.json                     linguist-generated merge=binary
+packages/brand/_data/html-custom-data.json                    linguist-generated merge=binary
+
+# ui:  emoji data, from a reference clone (`yarn gen:emoji`):  collapsed only, never regenerated on a merge
+packages/ui/src/components/ui-emoji/data/**                   linguist-generated -diff
+
+# vendored Fomantic build
+packages/app/static/semantic-ui-css/**                        linguist-vendored -diff
+
+# yarn.lock stays a LINE merge:  `yarn install` resolves its conflict markers itself
+yarn.lock                                                     linguist-generated
