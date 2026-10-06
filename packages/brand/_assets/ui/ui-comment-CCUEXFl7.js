@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-comment-Dc62A7CI.js";export{e as UIComment,t as UIComments};
