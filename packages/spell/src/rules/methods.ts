@@ -1896,6 +1896,10 @@ methods.addRule(quoted_type_expression, {
     }
   ]
 })
+// in an outline body:  `- it "is face up" if its direction is up` -- tests in `parserTests/outline.test.ts`
+methods.addRule(quoted_type_expression, {
+  syntax: "{type:subject_it} {signature:quoted_method_signature} (if|is)? :? {expression_body}?"
+})
 
 ////////////////
 // ## Method-signature data types

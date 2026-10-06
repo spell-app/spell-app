@@ -79,6 +79,8 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
 
       // parse the statement (which may parse an inline body as well)
       const unparsed = tokens.slice(start, end)
+      // an outline's bullet, e.g. `- it has a deck`:  kept as a token, never part of the statement
+      if (BlockLine.isBullet(unparsed)) matched.push(unparsed.shift()!)
       let statement = scope.parser?.parse(unparsed, "statement", scope)
       // a statement its rule refused, saying why -- see `SpellStatement.refuse()`:  an error, never committed
       if (statement?.is(ParseError)) {
@@ -144,6 +146,17 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
     if (lineBodyMark) result.data.bodyMark = lineBodyMark
     if (fromBody !== undefined) result.data.fromBody = fromBody
     return result
+  }
+
+  /**
+   * Do `tokens` start with an outline's bullet:  a `-` with a space after it, and more after that?
+   * - e.g. `- it has a deck`, in an outline-style type's body (plan doc `outline-spell`) -- or any line:
+   *   a statement never starts `- `.
+   * - NOT `-5`, nor a lone `-`.
+   */
+  static isBullet(tokens: P.Token[]): boolean {
+    const [first] = tokens
+    return tokens.length > 1 && first instanceof P.SymbolToken && first.value === "-" && !!first.whitespace
   }
 
   /**

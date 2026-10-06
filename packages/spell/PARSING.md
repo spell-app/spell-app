@@ -371,6 +371,42 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - errors inside JSX `{...}` live in the JSX rules' `match.data`, not `matched`;  `BlockLine` gathers them from
     anywhere in its statement (`SpellJSX.parseErrorsIn()`) into `data.errors` too -- reported, but compiled in place
 
+## Outline bodies:  `a card is a thing where:`
+
+- The OUTLINE style (epic `outline-spell`):  a type's heading, then indented lines all about that type,
+  `it` / `its` meaning it, e.g.
+
+  ```spell
+  a card is a thing where:
+  	- it has a name as text
+  	- its "suit" is one of clubs, diamonds, hearts or spades
+  	- it "is a (suit)" for its suits
+  	- its "color" is red if its suit is either diamonds or hearts otherwise it is black
+  	- it belongs to a pile
+  ```
+
+  - compiles EXACTLY as the same lines in the sentence style do (`a card has a name as text` ...):
+    `src/parserTests/outline.test.ts` pins it
+- `create_type` / `create_list_type` share `TypeDeclaration` (`classes.ts`):  a syntax ending
+  `(where|with)? : {nested_statements}?` (`TYPE_BODY_SYNTAX`) takes the body.
+  - The body's scope is a `P.SubjectScope` (`packages/parser/src/scope/SubjectScope.ts`):  owns nothing, so what
+    its lines declare lands where the same lines at the top level would;  `subject` names the type.
+  - `flatBody` (`SpellStatement`):  the body is NOT `enclose`d;  `Block.getAST()` splices its statements in after
+    the type's, so `SP.hoistClassMembers()` moves its members into the class as usual.
+- `subject_it` / `subject_its` (`types.ts`, `SubjectRule`):  `it` / `its` as a line's SUBJECT, a `SpellType` match
+  for the type (`value` its name, `raw` its instance name, `data.scopeType`).  Only directly in a `SubjectScope`:
+  inside a getter or method in the body, `it` is the instance, as anywhere.
+  - Each member rule gets a second syntax with `{type:subject_it}` where it says `(a|an) {type}`:
+    `define_property_has`, `property_value_getter`, `belongs_to_one`, `quoted_type_expression`,
+    `quoted_property_formula`, and `its_quoted_property` (a `type_property` for `property_value_either`).
+- Quoted names, "quotes teach a new word":  `quoted_type` (`a "card" is a thing`, any type declaration) and
+  `quoted_member` (`its "short rank" is ...`, in a body).  `its "x" is` takes an `outline_specifier`:
+  a `type_specifier` without its `as` (`one of ...`, `a number`, `yes or no`).
+  - A declaration names them without quotes:  `Rule.declaredText()`, which `SubjectRule` also overrides (`card`,
+    not `it`).
+- Bullets:  a line starting `- ` (`BlockLine.isBullet()`) drops the `-` before the statement is read, on ANY line.
+  It stays a token of the line's match, so editors see it.
+
 ## Scope:  what's stored where
 
 - All scope collections are `ScopeList`s (`packages/parser/src/scope/ScopeList.ts`):  `get` / `add` / `replace` only, no remove.
@@ -387,6 +423,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
       with super-types, e.g. `integer` is a `number`
     - their members, from `SP.BUILT_IN_TYPE_TABLE`
 - `MethodScope` adds args, plus `this` / `it` alias variables (of type `itDatatype`).
+- `SubjectScope` owns nothing, and names the type its lines are about -- see "Outline bodies".
 - `TypeScope` holds:
   - instance + class variables
   - instance methods' records

@@ -41,6 +41,36 @@ declare module "$/parser/scope/ScopeVariable" {
 export const classes = new SpellParser({ module: "classes" })
 
 ////////////////
+// ## `TypeDeclaration` base class
+//    e.g. base for `create_type`, `create_list_type`:  "a card is a thing where:" + a bulleted body
+////////////////
+
+/**
+ * A statement declaring a type -- which may take an OUTLINE body:  `a card is a thing where:`, then indented
+ * lines all about cards, e.g. `- it has a deck` (plan doc `outline-spell`).
+ * - The body's scope is a `P.SubjectScope` about the type:  `it` / `its` there mean it -- `subject_it`,
+ *   `subject_its` -- except inside a method or getter, where `it` is the instance.
+ * - `flatBody`:  the body compiles beside the class, as if its lines were written out at the top level,
+ *   so its members are hoisted into the class as usual.
+ * - `where:`, `with:` and a bare `:` all open the body (plan doc Q7).  See `TYPE_BODY_SYNTAX`.
+ */
+class TypeDeclaration<Groups extends string> extends SpellStatement<Groups> {
+  @proto static priority = Priority.declaration
+  @proto static alias = "statement"
+  @proto static flatBody = true
+
+  /** Our body is all about the type we declare -- see class docs. */
+  getNestedScopeForMatch(match: P.MatchFor<this>): P.SubjectScope {
+    // generic `Groups`:  TS can't see every subclass has a `type` group
+    const { groups, scope } = match as unknown as P.Match<{ type: P.Match }>
+    return new P.SubjectScope({ parentScope: scope, subject: `${groups.type.value}`, declaredBy: match as P.Match })
+  }
+}
+
+/** How a type declaration ends when it takes an outline body:  `where:`, `with:` or `:`, then the body. */
+const TYPE_BODY_SYNTAX = "(where|with)? : {nested_statements}?"
+
+////////////////
 // ## `create_type` rule
 //    e.g. "a card is a thing"
 ////////////////
@@ -52,9 +82,7 @@ export const classes = new SpellParser({ module: "classes" })
  * - Compiles to an exported class declaration, e.g. `a card is a thing` => `export class Card extends Thing {}`.
  *   Another project reaches it by `import`ing it -- no globals.
  */
-class create_type extends SpellStatement<"type|superType"> {
-  @proto static priority = Priority.declaration
-  @proto static alias = "statement"
+class create_type extends TypeDeclaration<"type|superType|body?"> {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "superType" }
 
   mutateScope(match: P.MatchFor<this>) {
@@ -96,6 +124,36 @@ classes.addRule(create_type, {
     }
   ]
 })
+classes.addRule(create_type, {
+  syntax: `(a|an) {type} is (a|an) {superType:type} ${TYPE_BODY_SYNTAX}`,
+  tests: [
+    {
+      compileAs: "block",
+      tests: [
+        ["a card is a thing where:", "export class Card extends Thing {}"],
+        ["a card is a thing:", "export class Card extends Thing {}"],
+        [
+          ["a card is a thing with:", "\t- it has a rank as a number"],
+          [
+            "export class Card extends Thing {",
+            "  static { this.declareProp('rank', { type: 'number' }) }",
+            "  get rank() { return this.getProp('rank') }",
+            "  set rank(value) { this.setProp('rank', value) }",
+            "}"
+          ]
+        ]
+      ]
+    }
+  ]
+})
+classes.addRule(create_type, {
+  syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type}",
+  tests: [{ compileAs: "statement", tests: [['a "card" is a thing', "export class Card extends Thing {}"]] }]
+})
+classes.addRule(create_type, {
+  syntax: `(a|an) {type:quoted_type} is (a|an) {superType:type} ${TYPE_BODY_SYNTAX}`,
+  tests: [{ compileAs: "block", tests: [['a "card" is a thing where:', "export class Card extends Thing {}"]] }]
+})
 
 ////////////////
 // ## `create_list_type` rule
@@ -112,9 +170,7 @@ classes.addRule(create_type, {
  *   e.g. `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
  * - A card in at most ONE pile at a time:  `a card belongs to one pile`, below.
  */
-class create_list_type extends SpellStatement<"type|instanceType"> {
-  @proto static priority = Priority.declaration
-  @proto static alias = "statement"
+class create_list_type extends TypeDeclaration<"type|instanceType|body?"> {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
 
   /** SIDE EFFECT:  declares our type -- see class docs. */
@@ -171,6 +227,39 @@ classes.addRule(create_list_type, {
     {
       compileAs: "statement",
       tests: [["a deck is a list of cards", ["export class Deck extends List {", "  static instanceType = Card", "}"]]]
+    }
+  ]
+})
+classes.addRule(create_list_type, {
+  syntax: `(a|an) {type} is (a|an) list of {instanceType:type} ${TYPE_BODY_SYNTAX}`,
+  tests: [
+    {
+      compileAs: "block",
+      tests: [
+        ["a deck is a list of cards with:", ["export class Deck extends List {", "  static instanceType = Card", "}"]]
+      ]
+    }
+  ]
+})
+classes.addRule(create_list_type, {
+  syntax: "(a|an) {type:quoted_type} is (a|an) list of {instanceType:type}",
+  tests: [
+    {
+      compileAs: "statement",
+      tests: [
+        ['a "deck" is a list of cards', ["export class Deck extends List {", "  static instanceType = Card", "}"]]
+      ]
+    }
+  ]
+})
+classes.addRule(create_list_type, {
+  syntax: `(a|an) {type:quoted_type} is (a|an) list of {instanceType:type} ${TYPE_BODY_SYNTAX}`,
+  tests: [
+    {
+      compileAs: "block",
+      tests: [
+        ['a "deck" is a list of cards with:', ["export class Deck extends List {", "  static instanceType = Card", "}"]]
+      ]
     }
   ]
 })
@@ -325,6 +414,8 @@ classes.addRule(belongs_to_one, {
     }
   ]
 })
+// in an outline body:  `- it belongs to a deck` -- tests in `parserTests/outline.test.ts`
+classes.addRule(belongs_to_one, { syntax: "{type:subject_it} belongs to (one|a|an) {list:type}" })
 
 ////////////////
 // ## `can_belong_to_many` rule
@@ -1100,6 +1191,53 @@ classes.addRule(define_property_has, {
     }
   ]
 })
+// in an outline body -- tests in `parserTests/outline.test.ts`:
+// - `- it has a deck`
+// - `- its "suit" is one of clubs, diamonds, hearts or spades`, `- its "rank" is a number`
+classes.addRule(define_property_has, {
+  syntax: "{type:subject_it} has (a|an|a property)? {property:member_words} {specifier:type_specifier}?"
+})
+classes.addRule(define_property_has, {
+  syntax: "{type:subject_its} {property:quoted_member} is {specifier:outline_specifier}"
+})
+
+////////////////
+// ## `outline_specifier_*` rules
+//    e.g. "one of clubs, diamonds" in `- its "suit" is one of clubs, diamonds`
+////////////////
+
+/**
+ * The `type_specifier`s again, without their `as`, for an outline body's `its "suit" is ...`:
+ * - `one of clubs, diamonds` / `either up or down` -- `outline_specifier_enum`
+ * - `a number`, `an automobile` -- `outline_specifier_datatype`
+ * - `yes or no` -- `outline_specifier_yes_or_no`
+ * - Their own alias, `outline_specifier`, so `a card has a suit one of ...` (no `as`) stays an error.
+ */
+class outline_specifier_enum extends type_specifier_enum {
+  @proto static alias = "outline_specifier"
+}
+classes.addRule(outline_specifier_enum, {
+  syntax: "(either|one of) {enumeration:identifier_list}",
+  tests: [{ tests: [["one of clubs, diamonds, hearts, spades", "['clubs', 'diamonds', 'hearts', 'spades']"]] }]
+})
+
+/** `a number` -- see `outline_specifier_enum`. */
+class outline_specifier_datatype extends type_specifier_datatype {
+  @proto static alias = "outline_specifier"
+}
+classes.addRule(outline_specifier_datatype, {
+  syntax: "(a|an) {datatype:singular_type}",
+  tests: [{ tests: [["a number", "number"]] }]
+})
+
+/** `yes or no` -- see `outline_specifier_enum`. */
+class outline_specifier_yes_or_no extends type_specifier_yes_or_no {
+  @proto static alias = "outline_specifier"
+}
+classes.addRule(outline_specifier_yes_or_no, {
+  syntax: "either? (yes or no|true or false)",
+  tests: [{ tests: [["yes or no", "choice"]] }]
+})
 
 ////////////////
 // ## `the_property_of_a_thing` rule
@@ -1128,6 +1266,22 @@ class a_things_property extends P.Sequence<"type|property"> {
 }
 classes.addRule(a_things_property, {
   syntax: "(a|an) {type:plural_type} {property:member_words}"
+})
+
+////////////////
+// ## `its_quoted_property` rule
+//    e.g. `its "color"` in an outline body
+////////////////
+
+/**
+ * `its "color"` in an outline body -- the third `type_property` spelling, for `property_value_either`:
+ * `- its "color" is red if its suit is either diamonds or hearts otherwise it is black`.
+ */
+class its_quoted_property extends P.Sequence<"type|property"> {
+  @proto static alias = "type_property"
+}
+classes.addRule(its_quoted_property, {
+  syntax: "{type:subject_its} {property:quoted_member}"
 })
 
 ////////////////
@@ -1374,6 +1528,10 @@ classes.addRule(property_value_getter, {
       ]
     }
   ]
+})
+// in an outline body:  `- its "color" is the color of its suit` -- tests in `parserTests/outline.test.ts`
+classes.addRule(property_value_getter, {
+  syntax: "{type:subject_its} {property:quoted_member} is :? {expression_body}?"
 })
 
 /** What `P.ASTMethodDefinition`'s `body` prop accepts. */
@@ -1681,6 +1839,10 @@ classes.addRule(quoted_property_formula, {
       ]
     }
   ]
+})
+// in an outline body:  `- it "is a (suit)" for its suits` -- tests in `parserTests/outline.test.ts`
+classes.addRule(quoted_property_formula, {
+  syntax: "{type:subject_it} {alias:text} for [sources:(its {property:member_words}) and]"
 })
 
 /**
