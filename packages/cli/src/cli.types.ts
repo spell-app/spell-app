@@ -276,6 +276,7 @@ export type NewOptions = GlobalOptions & {
  * - `spellCore`:  URL of `core`'s `src/index.ts`, for `@spell/core`
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
  * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
+ * - `dom`:  run in a fake page, drawing what it draws, and print it -- see `fakeDom()` in `runProject.ts`
  */
 export type RunSpec = {
   mode: "run" | "test"
@@ -285,6 +286,7 @@ export type RunSpec = {
   spellCore: string
   verbose?: boolean
   filter?: string
+  dom?: boolean
 }
 
 /**
