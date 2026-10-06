@@ -402,9 +402,9 @@ class compound_expression extends SpellExpression<"lhs|rhsChain"> {
     let rest = tokens.slice(lhs.length)
     while (rest.length) {
       const remaining = rest
-      // the FIRST suffix knows what it follows -- see `SuffixLeft`
-      const parseSuffix = () =>
-        SuffixLeft.while(suffixes.length ? undefined : lhs, () => chain.rule.parse(scope, remaining))
+      // what the suffix follows, when known -- see `SuffixLeft`
+      const left = compound_expression.suffixLeft(lhs, suffixes.at(-1))
+      const parseSuffix = () => SuffixLeft.while(left, () => chain.rule.parse(scope, remaining))
       const suffix = expecting ? expecting.nested(parseSuffix) : parseSuffix()
       if (!suffix || compound_expression.precedenceOf(suffix) <= this.bound) break
       suffixes.push(suffix)
@@ -574,6 +574,21 @@ class compound_expression extends SpellExpression<"lhs|rhsChain"> {
   }
 
   /** A suffix match's `precedence` -- every `expression_suffix` is an `InfixOperatorSuffix`, which must have one. */
+  /**
+   * What the next suffix follows, if known -- see `SuffixLeft`.
+   * - The first suffix:  our operand, `lhs`.
+   * - After `and` / `or`:  the operand after it, e.g. `the game` in `the card is face up and the game is red`.  Every
+   *   suffix which asks (a user's phrase) binds tighter than those, so that operand is its whole left side.
+   * - After anything else:  unknown, e.g. after `+` the left side is the sum so far.
+   */
+  private static suffixLeft(lhs: P.Match, previous: P.Match | undefined): P.Match | undefined {
+    if (!previous) return lhs
+    if (previous.rule instanceof PostfixOperatorSuffix) return undefined
+    const precedence = compound_expression.precedenceOf(previous)
+    if (precedence !== Precedence.and && precedence !== Precedence.or) return undefined
+    return previous.groups.expression as P.Match | undefined
+  }
+
   private static precedenceOf(suffix: P.Match): number {
     return (suffix.rule as InfixOperatorSuffix).precedence
   }
@@ -1326,12 +1341,13 @@ type OperatorOperands = {
 }
 
 /**
- * What the suffix being parsed FOLLOWS, when `compound_expression` knows:  its operand, for the first suffix after it
- * -- so a user's phrase can refuse a thing that isn't its own, e.g. a deck's `a rank "is a face card"` on
- * `the card is a face card`, where the card has its own (plan doc `outline-spell`, J8 / J11).
+ * What the suffix being parsed FOLLOWS, when `compound_expression` knows:  its operand, for the first suffix after it,
+ * or the operand after an `and` / `or` -- so a user's phrase can refuse a thing that isn't its own, e.g. a deck's
+ * `a rank "is a face card"` on `the card is a face card`, where the card has its own (plan doc `outline-spell`, J8 /
+ * J11, I7).
  * - A suffix can't see its left side through `parse()`'s arguments:  this is the side channel, set while
  *   `compound_expression` parses that one suffix, and restored after, so nested expressions keep their own.
- * - `undefined`:  not known, e.g. a later suffix (what it follows is the chain so far):  anything fits.
+ * - `undefined`:  not known, e.g. a suffix after `+` (what it follows is the sum so far):  anything fits.
  */
 export const SuffixLeft = {
   /** The operand the suffix being parsed follows, if known. */

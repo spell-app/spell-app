@@ -241,7 +241,7 @@ describe("outline style", () => {
       expect(runSpell(lines)("face, low")).toEqual({ face: true, low: false })
     })
 
-    test('`for its suits` on a value kind\'s `suit` finds it by its singular (I5), above or below the deck', () => {
+    test("`for its suits` on a value kind's `suit` finds it by its singular (I5), above or below the deck", () => {
       const card = CARD.map((line) =>
         line
           .replace('"is a (suit)"', '"is a (suit)" for its suits')
@@ -281,6 +281,39 @@ describe("outline style", () => {
       expect(errorsOf([...DECK, ...CARD, '\t- it "is a (color)"'])).toEqual([
         `10:3 "(color)" names no property of a card with a list of values, ` +
           `e.g. its "suit" is one of clubs, diamonds, hearts or spades`
+      ])
+    })
+  })
+
+  describe("whose phrase (J11, I7):  a phrase after `and` / `or` checks its owner too", () => {
+    const TYPES = [
+      "a card is a thing where:",
+      "\t- its color is red or black",
+      '\t- it "is (color)"',
+      "\t- its direction is up or down",
+      '\t- it "is face up" if its direction is up',
+      "a game is a thing where:",
+      "\t- its team is red or blue",
+      '\t- it "is (team)"',
+      "the card is a new card with color = red, direction = up",
+      "the game is a new game with team = blue"
+    ]
+
+    test("`... and the game is red` is the game's phrase, not the card's (declared first)", () => {
+      const lines = [...TYPES, "set both to the card is face up and the game is red"]
+      expect(compile(lines)).toContain("let both = (card.is_face_up && game.is_$team('red'))")
+      expect(runSpell(lines)("both")).toEqual({ both: false })
+    })
+
+    test("`... or the game is red` too", () => {
+      const lines = [...TYPES, "set either to the card is black or the game is red"]
+      expect(compile(lines)).toContain("let either = (card.is_$color('black') || game.is_$team('red'))")
+      expect(runSpell(lines)("either")).toEqual({ either: false })
+    })
+
+    test("a card's phrase on the game, after `and`, is an error, not silently false", () => {
+      expect(errorsOf([...TYPES, "set both to the card is red and the game is face up"])).toEqual([
+        `11:41 Don't understand "is face up"`
       ])
     })
   })

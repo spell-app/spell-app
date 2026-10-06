@@ -467,8 +467,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   operand is (`SuffixLeft`, `expressions.ts`:  a side channel, set while that suffix parses, restored after).
   `MethodPostfixRule`, `MethodInfixRule` and `QuotedPropertyRule` (each `specialize()`d with its owner `of`, as
   `thisType`) refuse an operand KNOWN not to be their owner (`scope.couldBeA()`), e.g. a deck's `a rank "is a face
-  card"` on `the card is a face card`, where the card has its own.  Unknown:  anything fits.  Later suffixes
-  aren't told (what they follow is the chain so far).
+  card"` on `the card is a face card`, where the card has its own.  Unknown:  anything fits.  A suffix after `and` /
+  `or` is told the operand after it (`the game` in `... and the game is red`, plan doc I7);  after anything else,
+  it isn't (what it follows is the chain so far, e.g. a sum).
 - `draw_side` (`classes.ts`):  `- to "draw its front":` + one line of markup => `get front() {...}`;  front AND back
   also give the type `draw()`, by its direction (plan doc Q14).
 - A one-line indented body (`{nested_expression}`, e.g. `return` + markup, `draw_side`'s) parses in the statement's
