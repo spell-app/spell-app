@@ -566,6 +566,9 @@ export class SpellLanguageService {
     const sections = [
       this.describeRule(described.data.statement instanceof P.Match ? described.data.statement : described)
     ]
+    // an outline body's line, as the sentence style says it -- see `SP.SpellStatement.getLongForm()`
+    const longForm = statement?.rule instanceof SP.SpellStatement ? statement.rule.getLongForm(statement) : undefined
+    if (longForm) sections.unshift(`**Reads as**  \`${longForm}\``)
     if (subject) sections.push(this.describeSubject(subject))
     const compiled = statement && SpellLanguageService.compileQuietly(statement)
     if (compiled) sections.push(["```js", SpellLanguageService.truncateLines(compiled, 20), "```"].join("\n"))

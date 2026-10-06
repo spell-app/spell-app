@@ -220,6 +220,55 @@ export class SpellStatement<
   }
 
   /**
+   * `match`, an outline body's line, as the sentence style would say it -- what editors show as "Reads as"
+   * (plan doc `outline-spell`, Q1:  hover teaches the long form).  `undefined` for any other line.
+   * - Default:  a line whose subject (its `type` group) is the body's `it` / `its`, with the subject spelled out:
+   *   - `it has a deck` => `a card has a deck`
+   *   - `its "color" is red if ...` => `the "color" of a card is red if ...`
+   * - Override where the sentence style says it differently, e.g. `define_property_has`'s `has ... as ...`.
+   * - Its FIRST line only:  a body stays as written.
+   */
+  getLongForm(match: P.Match): string | undefined {
+    const { subject, property } = SpellStatement.subjectOf(match)
+    const typeWords = SpellStatement.subjectWords(match)
+    if (!subject || !typeWords) return undefined
+    const text = SpellStatement.firstLineOf(match)
+    const at = subject.start! - match.start!
+    const after = text.slice(at + subject.inputText.trimEnd().length).trimStart()
+    if (/^it$/i.test(subject.inputText.trim())) return `${text.slice(0, at)}a ${typeWords} ${after}`
+    // `its <property> ...` => `the <property> of a <type> ...`
+    const propertyText = property?.inputText.trimEnd()
+    if (!propertyText || !after.startsWith(propertyText)) return undefined
+    return `${text.slice(0, at)}the ${propertyText} of a ${typeWords}${after.slice(propertyText.length)}`
+  }
+
+  /**
+   * The words for the type an outline body is about, e.g. `card`, if `match`'s subject is that body's `it` / `its`
+   * -- else `undefined`.  See `getLongForm()`.
+   */
+  static subjectWords(match: P.Match): string | undefined {
+    const { subject } = SpellStatement.subjectOf(match)
+    if (!subject || !P.SubjectScope.of(match.scope) || !/^its?$/i.test(subject.inputText.trim())) return undefined
+    return `${subject.raw}`
+  }
+
+  /**
+   * `match`'s subject and property:  its `type` and `property` groups, or its `type_property`'s, e.g.
+   * `property_value_either`'s `its "color"`.
+   */
+  static subjectOf(match: P.Match): { subject?: P.Match; property?: P.Match } {
+    type Groups = { type?: P.Match; property?: P.Match; type_property?: P.Match }
+    const groups = match.groups as Groups
+    const holder = groups.type ? groups : ((groups.type_property?.groups as Groups | undefined) ?? groups)
+    return { subject: holder.type, property: holder.property }
+  }
+
+  /** `match`'s source text, up to the end of its first line. */
+  static firstLineOf(match: P.Match): string {
+    return match.inputText.split("\n")[0]!.trimEnd()
+  }
+
+  /**
    * If `match` RETURNS from the method it's in, e.g. `return the card`:  `{ value }`, the returned expression's match.
    * - `value` is `undefined` for a bare `return`.
    * - `undefined` if it doesn't return.  See `getReturnedDatatype()`.
