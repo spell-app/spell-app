@@ -2088,18 +2088,39 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
   /**
    * Reject the match unless `alias`'s first quoted word is `"is"` -- see rule NOTE above.
    * - No `for its ...` (an outline body's `it "is a (suit)"`, plan doc `outline-spell` P3, J9):  INFER what each
-   *   blank reads -- see `inferPlaceholders()`.  No blanks:  not ours, e.g. `it "is face up" if ...` is a
-   *   `quoted_type_expression`.
+   *   blank reads -- see `inferPlaceholders()`.  Only when the line is the phrase and nothing more, and then
+   *   (J9, option A):
+   *   - no blank at all, e.g. `it "is a suit"`:  an error, not an empty method (the parens are required)
+   *   - a blank naming no property with a list of values, e.g. `it "is a (color)"`:  an error naming it
+   *   - a blank of several words, e.g. `it "is near (another as a card)"`:  not ours, a `quoted_type_expression`
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     // If first word of `alias` is not `is`, forget it
-    const alias = `${match.groups.alias.value}`.replace(/^["']|["']$/g, "").split(" ")
+    const phrase = `${match.groups.alias.value}`.replace(/^["']|["']$/g, "")
+    const alias = phrase.split(" ")
     if (alias[0] !== "is") return undefined
     if (match.groups.sources) return match
+    // more after the phrase, e.g. `it "is face up" if ...`:  not ours, a `quoted_type_expression`
+    if (tokens.slice(match.length).join("").trim()) return undefined
+    const typeWords = SpellStatement.subjectWords(match) ?? "thing"
+    if (!phrase.includes("(")) {
+      return SpellStatement.refuse(
+        match,
+        `"${phrase}" has no blank:  put the word that varies in parens, e.g. "is a (suit)", ` +
+          `or say when it's true, "${phrase}" if ...`
+      )
+    }
     const inferred = quoted_property_formula.inferPlaceholders(alias, getKnownType(match.groups.type))
     if (!inferred) return undefined
+    if ("unlisted" in inferred) {
+      return SpellStatement.refuse(
+        match,
+        `"(${inferred.unlisted})" names no property of a ${typeWords} with a list of values, ` +
+          `e.g. its "suit" is one of clubs, diamonds, hearts or spades`
+      )
+    }
     match.data.inferred = inferred
     return match
   }
@@ -2122,20 +2143,26 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
    * - ONLY a word in parens is a blank;  a bare word is always just a word (plan doc J9, Owen:  "require the parens").
    * - A blank names a property by its singular, e.g. `(suits)` => `suit`, as `for its suits` does.
    * - Only a property with a list of values:  its own (`as one of ...`), or a value kind's (`its "suit" is a suit`).
-   * - `undefined` if there's no blank, or a blank names no such property:  then it's a phrase method's argument,
-   *   e.g. `it "nerds out with (another as a thing)"` (`quoted_type_expression`).
+   * - `{ unlisted }`:  the first blank naming no such property, e.g. `color` for `is a (color)`.
+   * - `undefined` if there's no one-word blank:  then it's a phrase method's argument, e.g.
+   *   `it "nerds out with (another as a thing)"` (`quoted_type_expression`).
    */
-  private static inferPlaceholders(alias: string[], type: P.TypeScope): InferredPlaceholders | undefined {
+  private static inferPlaceholders(
+    alias: string[],
+    type: P.TypeScope
+  ): InferredPlaceholders | { unlisted: string } | undefined {
     const sources: string[] = []
     for (const word of alias) {
       // only a blank in parens:  a bare word is always just a word (plan doc J9:  "require the parens")
       const blank = /^\((.+)\)$/.exec(word)?.[1]
       if (!blank) continue
       const variable = type.variables.get(singularize(blank))
-      if (!variable) return undefined
+      if (!variable) return { unlisted: blank }
       // its own list of values is kept as its plural, e.g. `Suits` for `its "suit" is one of ...`
       const listed = !!quoted_property_formula.enumerationOf(type, variable.name)
-      if (!listed && !type.getType(variable.datatype)?.valueKind && !isValueKindStub(type, variable)) return undefined
+      if (!listed && !type.getType(variable.datatype)?.valueKind && !isValueKindStub(type, variable)) {
+        return { unlisted: blank }
+      }
       sources.push(variable.name)
     }
     return sources.length ? { words: alias, sources } : undefined
