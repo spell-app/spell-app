@@ -4,4 +4,6 @@ coverage
 .DS_Store
 *.log
 .yarn/install-state.gz
+.recent-projects.json
+# its name until epic output-targets T6:  renamed on first read
 .recent-targets.json

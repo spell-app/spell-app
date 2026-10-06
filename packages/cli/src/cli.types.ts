@@ -11,23 +11,23 @@ import type {
 } from "$/ui/tools/tools.types"
 
 ////////////////
-// ## Targets
+// ## Projects
 ////////////////
 
 /**
- * What one command-line argument names -- see `resolveTarget()`.
+ * What one command-line argument names -- see `resolveProject()`.
  * - `arg`:  what was typed, for messages.
  * - `project`:  one spell project, e.g. `@library/cards`, a project folder, `@workspace`.
  * - `file`:  one `.spell` file, inside its project.
  * - `root`:  a whole project root, e.g. `@library` -- commands turn it into projects with `CliSession.projectsFor()`.
  */
-export type CliTarget =
+export type CliProject =
   | { kind: "project"; arg: string; project: SP.SpellProject }
   | { kind: "file"; arg: string; file: SP.SpellFile }
   | { kind: "root"; arg: string; title: string; projectIds: string[] }
 
-/** A `CliTarget` once any `root` has become the projects in it. */
-export type ResolvedTarget = Exclude<CliTarget, { kind: "root" }>
+/** A `CliProject` once any `root` has become the projects in it. */
+export type ResolvedProject = Exclude<CliProject, { kind: "root" }>
 
 ////////////////
 // ## Options
@@ -148,7 +148,7 @@ export type FormatOptions = GlobalOptions & {
 /**
  * `spell parse` flags.
  * - `rule`:  parse as this rule only, e.g. `expression`
- * - `in`:  parse inside this target's project, e.g. `@test/Solitaire`
+ * - `in`:  parse inside this project's scope, e.g. `@test/Solitaire`
  * - `json`:  print the result as JSON
  * - `tree`:  print the spell tree (what it means), not the match tree
  * - `html`:  with `tree`, print it as a `<ui-tree-diagram>` for a docs page
@@ -163,7 +163,7 @@ export type ParseOptions = GlobalOptions & {
 
 /**
  * `spell explain` flags.
- * - `in`:  look in this target's project, too, e.g. `@test/Solitaire`
+ * - `in`:  look in this project, too, e.g. `@test/Solitaire`
  * - `json`:  print what was found as JSON
  */
 export type ExplainOptions = GlobalOptions & {

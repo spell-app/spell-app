@@ -9,10 +9,10 @@ import { fixturePath, fixtureProjectId, fixtureProjectNames, FIXTURES_DIR } from
 
 /** What `arg` names, reduced to `kind` + id for comparing. */
 async function named(arg: string, cwd?: string) {
-  const target = await CLI.resolveTarget(arg, cwd)
-  if (target.kind === "project") return { kind: target.kind, id: target.project.projectId }
-  if (target.kind === "file") return { kind: target.kind, id: target.file.path }
-  return { kind: target.kind, ids: target.projectIds }
+  const resolved = await CLI.resolveProject(arg, cwd)
+  if (resolved.kind === "project") return { kind: resolved.kind, id: resolved.project.projectId }
+  if (resolved.kind === "file") return { kind: resolved.kind, id: resolved.file.path }
+  return { kind: resolved.kind, ids: resolved.projectIds }
 }
 
 const FIZZBUZZ = fixtureProjectId("FizzBuzz")
@@ -20,7 +20,7 @@ const SOLITAIRE = fixtureProjectId("Solitaire")
 const CARD = `${SOLITAIRE}/Card.spell`
 const ALL_FIXTURES = fixtureProjectNames().map(fixtureProjectId)
 
-describe("resolveTarget()", () => {
+describe("resolveProject()", () => {
   describe("spell paths", () => {
     test("a project, by its root's alias", async () => {
       expect(await named("@test/FizzBuzz")).toEqual({ kind: "project", id: FIZZBUZZ })
@@ -60,7 +60,7 @@ describe("resolveTarget()", () => {
     test.each(["@nope", "@test/Nope", "@test/Solitaire/Nope.spell", "@test/Solitaire/project.json", "./no/such/thing"])(
       "%s",
       async (arg) => {
-        await expect(CLI.resolveTarget(arg, fixturePath())).rejects.toBeInstanceOf(CLI.CliError)
+        await expect(CLI.resolveProject(arg, fixturePath())).rejects.toBeInstanceOf(CLI.CliError)
       }
     )
 
@@ -68,8 +68,8 @@ describe("resolveTarget()", () => {
       const folder = mkdtempSync(resolve(tmpdir(), "spell-cli-"))
       try {
         writeFileSync(resolve(folder, "Loose.spell"), "print 1")
-        await expect(CLI.resolveTarget(folder)).rejects.toThrow(/isn't in a spell project/)
-        await expect(CLI.resolveTarget(resolve(folder, "Loose.spell"))).rejects.toThrow(/isn't in a spell project/)
+        await expect(CLI.resolveProject(folder)).rejects.toThrow(/isn't in a spell project/)
+        await expect(CLI.resolveProject(resolve(folder, "Loose.spell"))).rejects.toThrow(/isn't in a spell project/)
         expect(existsSync(resolve(folder, SP.PROJECT_FILE))).toBe(false)
       } finally {
         rmSync(folder, { recursive: true })

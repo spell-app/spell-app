@@ -12,7 +12,7 @@ const ALL = "*"
  * - Resolves to the ids picked -- every one for "All projects" -- or `[]` if cancelled with `Esc` / `q`.
  * - Draws on stderr, so stdout stays clean for output.
  */
-export function pickProjects(root: Extract<CLI.CliTarget, { kind: "root" }>): Promise<string[]> {
+export function pickProjects(root: Extract<CLI.CliProject, { kind: "root" }>): Promise<string[]> {
   return new Promise((done) => {
     const app = render(<ProjectPicker root={root} onPick={pick} />, {
       stdout: process.stderr,
@@ -61,7 +61,7 @@ export function ProjectPicker({ root, onPick }: ProjectPickerProps) {
  * - `onPick`:  called once, with the ids picked, or `[]` if cancelled
  */
 export type ProjectPickerProps = {
-  root: Extract<CLI.CliTarget, { kind: "root" }>
+  root: Extract<CLI.CliProject, { kind: "root" }>
   onPick: (projectIds: string[]) => void
 }
 

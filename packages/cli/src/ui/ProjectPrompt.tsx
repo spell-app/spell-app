@@ -11,39 +11,39 @@ const MAX_SHOWN = 10
 const HELP = "type to narrow · Tab complete · ↑↓ choose · Enter pick · Esc cancel"
 
 /**
- * Ask for a target at a `<TargetPrompt>`, on stderr -- resolving to what was picked, or `undefined` if cancelled.
- * - Remembers the pick for next time -- see `recentTargets.ts`.
+ * Ask for a project or file at a `<ProjectPrompt>`, on stderr -- resolving to what was picked, or `undefined` if cancelled.
+ * - Remembers the pick for next time -- see `recentProjects.ts`.
  */
-export function promptForTarget(): Promise<string | undefined> {
-  const recents = CLI.recentTargets()
+export function promptForProject(): Promise<string | undefined> {
+  const recents = CLI.recentProjects()
   return new Promise((done) => {
-    const app = render(<TargetPrompt choicesFor={(text) => CLI.targetChoices(text, recents)} onDone={finish} />, {
+    const app = render(<ProjectPrompt choicesFor={(text) => CLI.projectChoices(text, recents)} onDone={finish} />, {
       stdout: process.stderr,
       patchConsole: false,
       exitOnCtrlC: true
     })
 
-    /** Close the prompt -- clearing it off screen -- and hand back `target`. */
-    function finish(target: string | undefined) {
+    /** Close the prompt -- clearing it off screen -- and hand back `picked`. */
+    function finish(picked: string | undefined) {
       app.clear()
       app.unmount()
-      if (target) CLI.rememberTarget(target)
-      done(target)
+      if (picked) CLI.rememberProject(picked)
+      done(picked)
     }
   })
 }
 
 /****************
- * ### `<TargetPrompt>`
- * Asks which project or file, completing as a shell completes a path -- see `targetChoices.ts`:  recent picks and
+ * ### `<ProjectPrompt>`
+ * Asks which project or file, completing as a shell completes a path -- see `projectChoices.ts`:  recent picks and
  * roots, then a root's projects, then "entire project" and its files.
  * - Typing narrows the list;  `Tab` completes as far as the choices agree -- or, if they agree no further, to the
  *   one chosen;  `↑↓` choose;  `Enter` picks a project or file, or goes into a root or project;  `Esc` cancels.
- * - `Enter` with nothing to choose from picks what's typed, for `resolveTarget()` to judge.
+ * - `Enter` with nothing to choose from picks what's typed, for `resolveProject()` to judge.
  ****************/
-export function TargetPrompt({ choicesFor, onDone }: TargetPromptProps) {
+export function ProjectPrompt({ choicesFor, onDone }: ProjectPromptProps) {
   const [text, setText] = useState("")
-  const [choices, setChoices] = useState<CLI.TargetChoice[]>([])
+  const [choices, setChoices] = useState<CLI.ProjectChoice[]>([])
   const [selected, setSelected] = useState(0)
   // what `choices` were worked out for -- until it's `text`, keys wait in `queue`
   const [loadedFor, setLoadedFor] = useState<string>()
@@ -147,11 +147,11 @@ function keysIn(input: string, key: InkKey): Key[] {
 }
 
 /**
- * `<TargetPrompt>` props.
- * - `choicesFor`:  completions for what's typed so far -- see `CLI.targetChoices()`
- * - `onDone`:  called with the target picked, or `undefined` if cancelled
+ * `<ProjectPrompt>` props.
+ * - `choicesFor`:  completions for what's typed so far -- see `CLI.projectChoices()`
+ * - `onDone`:  called with the project or file picked, or `undefined` if cancelled
  */
-export type TargetPromptProps = {
-  choicesFor: (text: string) => Promise<CLI.TargetChoice[]>
-  onDone: (target: string | undefined) => void
+export type ProjectPromptProps = {
+  choicesFor: (text: string) => Promise<CLI.ProjectChoice[]>
+  onDone: (picked: string | undefined) => void
 }

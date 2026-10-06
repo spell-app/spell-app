@@ -8,11 +8,11 @@ const KEY = { down: "\u001B[B", tab: "\t", enter: "\r", escape: "\u001B" }
 /** Let Ink -- and the choices, worked out async -- catch up with the input just written. */
 const settle = () => new Promise((done) => setTimeout(done, 60))
 
-/** Draw a `<TargetPrompt>` with `recents`, type each of `keys`, and return the last frame and what it picked. */
+/** Draw a `<ProjectPrompt>` with `recents`, type each of `keys`, and return the last frame and what it picked. */
 async function prompt(keys: string[], recents: string[] = []) {
   const onDone = vi.fn()
   const { stdin, lastFrame, unmount } = render(
-    <CLI.TargetPrompt choicesFor={(text) => CLI.targetChoices(text, recents)} onDone={onDone} />
+    <CLI.ProjectPrompt choicesFor={(text) => CLI.projectChoices(text, recents)} onDone={onDone} />
   )
   await settle()
   for (const key of keys) {
@@ -24,7 +24,7 @@ async function prompt(keys: string[], recents: string[] = []) {
   return { frame, onDone }
 }
 
-describe("<TargetPrompt>", () => {
+describe("<ProjectPrompt>", () => {
   test("starts with recent picks, then the roots", async () => {
     const { frame } = await prompt([], ["@test/FizzBuzz"])
     expect(frame).toMatch(/^Which project or file\? {2}█\n❯ @test\/FizzBuzz {2}\(recent\)\n {2}@user\//)
