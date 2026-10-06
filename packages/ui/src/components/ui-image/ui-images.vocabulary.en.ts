@@ -20,7 +20,7 @@ export const imagesVocabulary = {
   tag: "ui-images",
   topics: ["images", "media", "layout", "elements"],
   aka: ["image group", "gallery", "avatars"],
-  skeleton: null,
+  skeleton: false,
   noun: "images",
   description: "A group of images can be formatted together.",
   attributes: [

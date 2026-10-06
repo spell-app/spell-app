@@ -20,7 +20,7 @@ export const authorVocabulary = {
   tag: "ui-author",
   topics: ["content parts", "social"],
   aka: ["user name", "byline", "poster"],
-  skeleton: null,
+  skeleton: false,
   noun: "author",
   ui: false,
   description: "Who wrote a comment or did a feed event (Fomantic's feed `user`).",

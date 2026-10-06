@@ -21,7 +21,7 @@ export const popupVocabulary = {
   tag: "ui-popup",
   topics: ["popups", "overlays", "feedback", "modules"],
   aka: ["tooltip", "popover", "hint", "hover card", "info bubble"],
-  skeleton: null,
+  skeleton: false,
   noun: "popup",
   description: "A popup displays additional information on top of a page.",
   attributes: [

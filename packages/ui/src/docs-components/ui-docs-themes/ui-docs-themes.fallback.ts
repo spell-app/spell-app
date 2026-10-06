@@ -1,5 +1,4 @@
-import { NativeFallback, proto } from "$/ui/core"
-import { ThemeSheets } from "$/ui/styles"
+import { NativeFallback, proto, UI } from "$/ui/core"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 
 import { docsThemesVocabulary } from "./ui-docs-themes.vocabulary.en"
@@ -34,7 +33,7 @@ export class DocsThemesFallback extends NativeFallback<typeof docsThemesVocabula
 
   /** The theme `<select>`, `theme` chosen. */
   private select(theme: string | undefined): HTMLSelectElement {
-    const menu = new ThemeMenu(ThemeSheets.names, undefined, undefined)
+    const menu = new ThemeMenu(UI.themes.names, undefined, undefined)
     const select = this.create("select", { "aria-label": DocsThemesFallback.english("themeName") })
     select.setAttribute("part", "theme")
     let group: HTMLElement = select

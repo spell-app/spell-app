@@ -16,7 +16,7 @@
  *   3. (LAST, by `import()`:  after the hue, whatever the chunking)  every `ui-*` family (`$/ui`) and every
  *      `ui-brand-*` element (`$/brand/components`), defined at once:  brand
  *      pages are small and use many families
- *   4. the `spell-brand` theme (`ThemeSheets.apply`), then the site header (`defineSite()`)
+ *   4. the `spell-brand` theme (`UI.themes.apply()`), then the site header (`defineSite()`)
  * - Lazy, by `import()`:  the runtime, the theme sheets, `<ui-code>`'s and `<ui-markdown>`'s engines, emoji names.
  * - `window.UI`:  the runtime, for poking in DevTools;  `window.Palette`:  the brand's colour math (`$/brand`), for
  *   the pages' own scripts.
@@ -26,7 +26,6 @@ import "$/ui/styles/ui.css"
 
 import { BuiltInPacks } from "$/ui/icons"
 import { UI } from "$/ui/runtime"
-import { ThemeSheets } from "$/ui/styles"
 import { defineSite } from "$/server/site"
 import { Palette } from "$/brand"
 
@@ -37,7 +36,9 @@ BuiltInPacks.base = ASSETS
 // `Palette` too:  the brand pages' scripts do colour math (contrast, OKLCH) without importing a module
 Object.assign(globalThis, { UI, Palette })
 
-void ThemeSheets.apply("spell-brand")
+void UI.load()
+  .then((ui) => ui.themes.apply("spell-brand"))
+  .catch((error: unknown) => console.error("brand-ui:  the spell-brand theme", error))
 defineSite()
 
 // The elements LAST, by `import()`:  a chunked build may run a static import's chunk before this file's own

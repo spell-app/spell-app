@@ -179,7 +179,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     )
     createEffect(
       () => this.checkedAttribute.get(),
-      (checked) => this.setSelected(checked !== null),
+      (checked) => this.setSelected(checked !== undefined),
       { defer: true }
     )
     createEffect(

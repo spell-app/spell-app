@@ -19,7 +19,7 @@ Everything lives in `src/styles/`;  the design rationale is in `plan.md` ("CSS s
 | `themes/classic.css` | Fomantic's original look | `ui.theme` |
 | `themes/dark.css` | force the dark scheme page-wide | `ui.theme` |
 | `themes/<name>.css` | a Fomantic theme (`github`, `material` ...), on top of `classic`;  see "Themes" | `ui.theme` |
-| `themes/themes.ts` | `ThemeSheets`:  loads and applies the theme sheets | -- |
+| `src/runtime/Themes.ts` | `UI.themes`:  loads and applies the theme sheets (a runtime service, not in `$/ui/styles`) | -- |
 | `media.css` | `@custom-media --ui-mobile` ... (build-time only) | -- |
 | `ui.css` | one `@import` entry of the page set, for pages without the runtime | -- |
 
@@ -392,7 +392,7 @@ Dark mode by default follows the OS (`color-scheme: light dark` on `:root`, in `
 every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks another) and `packages/docs` pages
 (`spell-ui.entry.js`).
 
-- Listed in `ThemeSheets.OWN`, not `names`:  it's no Fomantic port.  Applied exactly like one, on top of `classic`,
+- Listed in `UI.themes.own`, not `names`:  it's no Fomantic port.  Applied exactly like one, on top of `classic`,
   so it restates every classic token the brand replaces (type, the size ladder, radii, ink, borders, shadows, the
   palette, message colours, links, focus).
 - Maps the brand's semantic meanings, light and dark (dark is AUBERGINE, `violet-950`, never black), onto `--ui-*`:
@@ -427,7 +427,7 @@ every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks an
 `design-system`, `packages/docs/content/epics/design-system/design-system.plan.html`).
 
 - Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift;  whether it replaces `spell` is a later
-  call.  Also in `ThemeSheets.OWN`, and in the docs' theme picker as "Spell brand".
+  call.  Also in `UI.themes.own`, and in the docs' theme picker as "Spell brand".
 - Adds the brand's own semantic roles that no `--ui-*` token covers, as `--spell-*` `light-dark()` pairs:
   surfaces (`--spell-surface-tint`, `-warm`, `-selected`, `-code`, `-inverse`), text, accent (`--spell-accent`,
   `-soft`, `-ring`), borders, status, art (`--spell-blob`, `--spell-line-flourish`), shadows (`--spell-shadow-xs`
@@ -451,41 +451,44 @@ Every other sheet in `themes/` is a port of one of Fomantic's themes (`src/theme
      there, so theme sheets are ALSO adopted into every shadow root (`shadow: true`, below).
 - Assets a theme needs live in `themes/<name>/`, referenced relatively.
 
-### Applying a theme:  `ThemeSheets`
+### Applying a theme:  `UI.themes`
 
 ```ts
-import { ThemeSheets } from "@spell-app/ui/styles" // `$/ui/styles` in the package
+import { UI } from "@spell-app/ui/core" // `$/ui/core` in the package
 
-ThemeSheets.names // ["fomantic-classic", "github", "material" ...]:  the Fomantic themes, A-Z
-ThemeSheets.OWN // ["spell"]:  our own themes
-await ThemeSheets.apply("github") // classic + github, on the page and in every shadow root
-await ThemeSheets.apply("spell") // classic + spell, the same way
-await ThemeSheets.apply("classic") // classic alone
-await ThemeSheets.apply(undefined) // our own look
+const { themes } = await UI.load() // the runtime:  `UI.themes` exists once it has loaded
+themes.names // ["fomantic-classic", "github", "material" ...]:  the Fomantic themes, A-Z
+themes.own // ["spell", "spell-brand"]:  our own themes
+await themes.apply("github") // classic + github, on the page and in every shadow root
+await themes.apply("spell") // classic + spell, the same way
+await themes.apply("classic") // classic alone
+await themes.apply(undefined) // our own look
 ```
 
-- `themes/themes.ts`:  a LITERAL `import.meta.glob("./*.css", { query: "?inline" })`, so a new sheet in `themes/`
-  is a theme with no registry edit.  Each sheet is its own LAZY chunk, loaded on first `apply()`:  `$/ui/styles`
-  doesn't grow with every theme (only `classic` / `dark` are also exported as text, statically).
-- `ThemeSheets.sheets`:  every sheet, `classic` and `dark` included;  `ThemeSheets.names`:  the Fomantic themes,
-  i.e. without `NOT_THEMES` and `OWN` (`spell`, above):
+- `Themes` (`src/runtime/Themes.ts`, the runtime service behind `UI.themes`):  a LITERAL
+  `import.meta.glob("../styles/themes/*.css", { query: "?inline" })`, so a new sheet in `themes/` is a theme with no
+  registry edit.  Each sheet is its own LAZY chunk, loaded on first `apply()`.  None is in `$/ui/styles`, which
+  holds no code:  code there split Rolldown's helpers into an extra chunk every page fetched (epic `wwod-spell-ui`,
+  I13).
+- `UI.themes.sheets`:  every sheet, `classic` and `dark` included;  `UI.themes.names`:  the Fomantic themes, i.e.
+  without `classic`, `dark` and `own` (`spell`, `spell-brand`, above):
   - `classic`:  the base, applied with every Fomantic theme, or alone with `apply("classic")`
   - `dark`:  a colour SCHEME, not a look:  switch it with `color-scheme`, `ui-dark` or `<ui-root theme="dark">`,
-    on top of any theme.  `apply("dark")` throws.  A theme picker offers `OWN` (`spell`), "plain" (`undefined`),
-    `classic`, then `names`;  a separate light / dark switch.  The docs site's is `<ui-docs-themes>`
+    on top of any theme.  `apply("dark")` throws.  A theme picker offers `own` (`spell`, `spell-brand`),
+    "plain" (`undefined`), `classic`, then `names`;  a separate light / dark switch.  The docs site's is `<ui-docs-themes>`
     (`src/docs-components/`:  a sun / moon flip and a palette overlay with the list and "Match system"),
     remembering both per viewer through `ThemePreference`, the scheme under the one key every doc site shares;  `for="ui-button"` lists the
     themes touching one family, from the site data's `themes` (`tools/ThemeFamilies.ts` reads each sheet's class
     grammar and tokens at build time).
-- `apply()` loads the runtime if needed (dynamic import) and registers two `UI.styles` names:  `classic` (the
-  base slot) and `theme` (the current Fomantic theme;  switching replaces its text in place).  Concurrent calls:
-  the last one wins.  `ThemeSheets.current` is the last name applied.
+- `apply()` registers two `UI.styles` names (`UI.themes.slots`):  `classic` (the base slot) and `theme` (the current
+  Fomantic theme;  switching replaces its text in place).  Concurrent calls:  the last one wins.
+  `UI.themes.current` is the last name applied.
 - Under it, `UI.styles.register(name, css, { page: true, shadow: true })`:
   - `page`:  on `document.adoptedStyleSheets` (tokens, and class-grammar markup in the page)
   - `shadow`:  adopted into EVERY component shadow root, existing and future, after utilities and before the
     app stylesheet:  foundation -> component -> utilities -> `shadow` sheets (registration order) -> app sheet
   - `register(name, "")` UNREGISTERS:  off the page, out of every root, `has(name)` false
-- Shipping:  a bundle that includes `ThemeSheets` (a site bundle, an app) gets one chunk per theme beside it,
+- Shipping:  a bundle that includes the runtime (a site bundle, an app) gets one chunk per theme beside it,
   fetched on `apply()`;  keep code-splitting on (a single-file bundle inlines every theme, which works, just
   bigger).  A page without the runtime can still `<link>` `ui.css` + `themes/classic.css` + `themes/<name>.css`,
   but then only the TOKEN half reaches components:  the overrides need the runtime's shadow adoption.
@@ -499,7 +502,7 @@ re-checks), `fomantic-classic.css` (small, mostly overrides).
    `.variables` and `.overrides`.  Only what's THERE is the theme:  everything else is Fomantic's default, which
    `classic.css` already is.  An empty or comment-only file ports to nothing.
 2. Create `themes/<name>.css` with a header comment like `github.css`'s (what, touches, font, dark scheme,
-   NOT ported), everything inside `@layer ui.theme { ... }`.  No registry edit:  `ThemeSheets` globs the folder.
+   NOT ported), everything inside `@layer ui.theme { ... }`.  No registry edit:  `UI.themes` globs the folder.
 3. Tokens first, on `:root`.  Find each component's public tokens in its sheet's token block
    (`grep -n -- '--_ui-<tag>-.*: var(' src/components/ui-<family>/*.css`;  some wrap over two lines) or its docs
    table.  Common mappings:

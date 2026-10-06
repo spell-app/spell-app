@@ -584,7 +584,7 @@ describe("UI.modals", () => {
     expect(await done).toBeUndefined()
   })
 
-  it("prompt():  the typed text on OK (or Enter), null on Cancel", async () => {
+  it("prompt():  the typed text on OK (or Enter), undefined on Cancel", async () => {
     const typed = UI.modals.prompt({ message: "Your name", value: "Ann" })
     let host = await current()
     const input = host.querySelector("input")!
@@ -596,7 +596,7 @@ describe("UI.modals", () => {
     const cancelled = UI.modals.prompt("Your name")
     host = await current()
     host.querySelector<HTMLElement>(".cancel")!.click()
-    expect(await cancelled).toBeNull()
+    expect(await cancelled).toBeUndefined()
   })
 
   it("uses the translated ok / cancel texts", async () => {

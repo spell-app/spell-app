@@ -8,7 +8,9 @@ import type { ValueSets } from "./ValueSets"
  *   rename all of them in one place.
  * - Canonical names are English and never change;  CSS, `ClassBuilder` output and `:state()`s always use them.
  *   A `Dictionary` only renames what AUTHORS type:  tags, attribute names, attribute values, events, slots, parts.
- * - Runtime-light:  types only.
+ * - The BOTTOM of the folder's import graph:  types only, and `ValueSets` only as a type (`import type`), so it
+ *   erases completely.  Node reads it with every vocabulary (`yarn site:data`, `yarn gen:root`):  it MUST NOT reach
+ *   the element layer.
  */
 
 ////////////////
@@ -16,7 +18,7 @@ import type { ValueSets } from "./ValueSets"
 ////////////////
 
 /**
- * How an attribute turns into Fomantic classes (see `ClassBuilder`, `docs/grammar.md`) or, for the last five,
+ * How an attribute turns into Fomantic classes (see `ClassBuilder`, `docs/grammar.md`) or, for the last six,
  * into a plain property with no class.
  * - `keyOnly` -- `basic` => `basic`
  * - `valueAndKey` -- `floated="left"` => `left floated`;  bare `floated` => nothing
@@ -32,6 +34,9 @@ import type { ValueSets } from "./ValueSets"
  * - `boolean` / `enum` / `string` / `number` / `json` / `icon` -- no class;  typed property only
  * - `icon` -- an icon name;  bare / `"true"` / `"yes"` => `spec.default`, else `""` ("the element's own icon",
  *   none if it has none);  `"false"` / `"no"` => none (`undefined`), even over a default
+ * - NOTE: camelCase, not WWOD §9's English values, on purpose:  PUBLISHED data -- `site/_data/components.json`,
+ *   `<ui-docs-api>`'s Kind column (`KIND_LABELS`), `tools/ElementManifests.ts`, `docs/grammar.md` and the site's
+ *   `grammar.html` read them (epic `wwod-spell-ui`, P4 judgement).
  */
 export type AttributeKind =
   | "keyOnly"
@@ -86,7 +91,7 @@ export type AttributeSpec = {
   /** JS property name, when it isn't `camelCase(name)`. */
   property?: string
   /** Value when the attribute is absent. */
-  default?: string | number | boolean | null
+  default?: string | number | boolean
   /**
    * Other canonical attribute names accepted for this one, e.g. `checked` for `selected` on checkbox / radio.
    * - NOTE: aliases are English muscle memory;  translations don't rename them.
@@ -111,12 +116,15 @@ export type EventSpec = {
   detail: string
   /** `preventDefault()` vetoes the transition, e.g. `ui-close`. */
   cancelable?: boolean
+  /** When it fires and what it means, for docs and the custom-elements manifest. */
   description: string
 }
 
 /** A named slot;  `""` is the default slot, which has no name to translate. */
 export type SlotSpec = {
+  /** Canonical slot name, e.g. `header`;  `""` for the default slot. */
   name: string
+  /** What goes in it, for docs and the custom-elements manifest. */
   description: string
 }
 
@@ -126,22 +134,27 @@ export type SlotSpec = {
  *   app stylesheet keeps working under any translation.
  */
 export type PartSpec = {
+  /** Canonical part name, e.g. `header`. */
   name: string
+  /** Which box it is, for docs and the custom-elements manifest. */
   description: string
 }
 
 /** A custom state, `:state(open)`.  NEVER translated:  states are a CSS contract. */
 export type StateSpec = {
+  /** State name, as CSS writes it in `:state()`, e.g. `open`. */
   name: string
+  /** When the element has it, for docs and the custom-elements manifest. */
   description: string
 }
 
-/** A user-visible text string, looked up through `UI.i18n`, e.g. `{ key: "noResults", text: "No results found." }`. */
+/** Text people read, looked up through `UI.i18n`, e.g. `{ key: "noResults", text: "No results found." }`. */
 export type TextSpec = {
   /** Lookup key, camelCase, unique within the component. */
   key: string
   /** English text;  may contain `{placeholders}`. */
   text: string
+  /** Where it shows, for translators and docs. */
   description?: string
 }
 
@@ -166,11 +179,17 @@ export type ComponentVocabulary = {
    * - `false` for parts which Fomantic styles by context only, e.g. `column` (`four wide column`, no `ui`).
    */
   ui?: boolean
+  /** Its attributes, in docs order. */
   attributes: readonly AttributeSpec[]
+  /** The events it dispatches. */
   events: readonly EventSpec[]
+  /** Its slots;  `""` is the default one. */
   slots: readonly SlotSpec[]
+  /** The `::part()`s it exposes. */
   parts: readonly PartSpec[]
+  /** The custom states it sets. */
   states: readonly StateSpec[]
+  /** Text it shows people (`UI.i18n`). */
   texts: readonly TextSpec[]
   /**
    * Nouns of the generic content parts this component styles by context, e.g. card:
@@ -193,12 +212,14 @@ export type ComponentVocabulary = {
    */
   aka?: readonly string[]
   /**
-   * What `<ui-root display="skeleton">` draws in this tag's place while its family loads:  a `<ui-placeholder>` built
-   * from this description (`SkeletonSpec`), or `null` for none of its own -- a part covered by its owner's skeleton
-   * (`ui-column` in a grid, `ui-item` in a list), or a tag with nothing to show (`ui-popup`).  NEVER translated:
-   * drawing data, like `states`.  `test/vocabularies.test.ts` requires every tag to say which.
+   * What `<ui-root display="skeleton">` draws in this tag's place while its family loads:  a `<ui-placeholder>`
+   * built from this description (`SkeletonSpec`), or `false` for none of its own.
+   * - `false`:  a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a list), or a tag with
+   *   nothing to show (`ui-popup`).  NOT `undefined`:  that's "not said yet", which `test/vocabularies.test.ts`
+   *   rejects, since every tag MUST say which.
+   * - NEVER translated:  drawing data, like `states`.
    */
-  skeleton?: SkeletonSpec | null
+  skeleton?: SkeletonSpec | false
 }
 
 /**
@@ -239,7 +260,7 @@ export type ComponentTopic = (typeof ValueSets.topics)[number]
 ////////////////
 
 /**
- * Keys of the shared English value sets in `ValueSets`.
+ * Names of the shared English value sets in `ValueSets`:  the sets its instances declare, so the class is the ONE list.
  * - `hues` -- Fomantic's `@variationAllColors`;  extensible
  * - `sizes` -- `mini` ... `massive`;  `medium` is the no-op default
  * - `positions` -- popup / tooltip positions (`top left` ... `right center`)
@@ -252,21 +273,7 @@ export type ComponentTopic = (typeof ValueSets.topics)[number]
  * - `booleans` -- spellings the boolean converter understands, so a translation can map `sí` => `yes`
  * - `topics` -- what a component is filed under (a vocabulary's `topics`), so a translation maps them once
  */
-export type ValueSetName =
-  | "hues"
-  | "sizes"
-  | "positions"
-  | "attachments"
-  | "alignments"
-  | "verticalAlignments"
-  | "floats"
-  | "widths"
-  | "devices"
-  | "booleans"
-  | "topics"
-
-/** Every shared value set, by name. */
-export type ValueSetMap = Record<ValueSetName, readonly string[]>
+export type ValueSetName = keyof ValueSets
 
 ////////////////
 // ## Translation
@@ -306,11 +313,15 @@ export type Dictionary = {
 
 /** Per-component part of a `Dictionary`:  wins over the dictionary-wide maps for that component only. */
 export type ComponentDictionary = {
+  /** Canonical attribute name => localized, for this component only. */
   attributes?: NameMap
   /** Canonical attribute name => (canonical value => localized), for inline enums or to override a shared set. */
   values?: Readonly<Record<string, NameMap>>
+  /** Canonical event name => localized stem, for this component only. */
   events?: NameMap
+  /** Canonical slot name => localized, for this component only. */
   slots?: NameMap
+  /** Canonical part name => localized, for this component only. */
   parts?: NameMap
   /** The tag's other names in this language (replacing the English `aka`), e.g. `["diálogo", "ventana"]`. */
   aka?: readonly string[]
@@ -346,18 +357,23 @@ export type LocalizedVocabulary = {
 
 /** Canonical => localized name maps for one component. */
 export type LocalizedNames = {
+  /** Canonical attribute name => localized. */
   attributes: Map<string, string>
   /** Canonical attribute name => (canonical value => localized value). */
   values: Map<string, Map<string, string>>
+  /** Canonical event name => localized, prefix included (`ie-cambio`). */
   events: Map<string, string>
+  /** Canonical slot name => localized. */
   slots: Map<string, string>
+  /** Canonical part name => localized. */
   parts: Map<string, string>
 }
 
 /** Result of `Vocabulary.canonicalize()` / `localize()`. */
 export type NamePair = {
+  /** The attribute's name, in the language asked for. */
   attribute: string
-  /** `undefined` when no value was passed. */
+  /** Its value in that language;  `undefined` when no value was passed. */
   value: string | undefined
 }
 

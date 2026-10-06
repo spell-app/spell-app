@@ -87,7 +87,7 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
 
   /** `selected`, or its alias `active`. */
   readonly isSelected = createMemo(
-    () => this.attrs.selected || Converters.boolean(this.activeAttribute.get() ?? undefined, UIT.ACTIVE)
+    () => this.attrs.selected || Converters.boolean(this.activeAttribute.get(), UIT.ACTIVE)
   )
 
   /** Root element:  link, button, or plain box. */
@@ -227,9 +227,9 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
         disabled={disabledButton() && !this.itemContext()?.role ? true : undefined}
         aria-disabled={this.attrs.disabled && !(disabledButton() && !this.itemContext()?.role) ? "true" : undefined}
         aria-current={this.current()}
-        aria-label={this.ariaLabel.get() ?? undefined}
+        aria-label={this.ariaLabel.get()}
         aria-expanded={
-          this.tag() === UIT.BUTTON ? ((this.ariaExpanded.get() as "true" | "false" | null) ?? undefined) : undefined
+          this.tag() === UIT.BUTTON ? (this.ariaExpanded.get() as "true" | "false" | undefined) : undefined
         }
         data-value={this.attrs.value}
       >

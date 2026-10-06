@@ -24,7 +24,7 @@ export const rowVocabulary = {
   tag: "ui-row",
   topics: ["layout", "collections"],
   aka: ["grid row"],
-  skeleton: null,
+  skeleton: false,
   noun: "row",
   description: "A row is a horizontal grouping of columns.",
   attributes: [

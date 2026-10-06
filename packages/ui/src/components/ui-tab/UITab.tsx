@@ -85,7 +85,7 @@ export class UITab extends UIElement<TabVocabulary> {
 
   /** Its own `selected` (or `active`):  the tabs read it for the first pane to show.  Tracked. */
   ownSelected(): boolean {
-    return this.attrs.selected || Converters.boolean(this.activeAttribute.get() ?? undefined, ACTIVE)
+    return this.attrs.selected || Converters.boolean(this.activeAttribute.get(), ACTIVE)
   }
 
   ////////////////

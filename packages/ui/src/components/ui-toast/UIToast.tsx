@@ -374,7 +374,8 @@ export class UIToast extends UIElement<ToastVocabulary> {
     this.shown = true
     this.startTimer()
     const box = this.box
-    void (box ? UI.transitions.animate(box, SCALE, IN) : Promise.resolve(true)).then(() => {
+    const entered = box ? UI.transitions.animate({ element: box, name: SCALE, direction: IN }) : Promise.resolve(true)
+    void entered.then(() => {
       const detail: UIT.ToastShowDetail = { displayTime: untrack(this.displayTime) }
       if (!this.closing) this.emit("ui-show", detail)
     })
@@ -403,7 +404,8 @@ export class UIToast extends UIElement<ToastVocabulary> {
     this.stopTimer()
     UI.overlays.close(this.overlay)
     const box = this.box
-    void (box ? UI.transitions.animate(box, SCALE, OUT) : Promise.resolve(true)).then(() => {
+    const exited = box ? UI.transitions.animate({ element: box, name: SCALE, direction: OUT }) : Promise.resolve(true)
+    void exited.then(() => {
       this.host.hidden = true
       const hidden: UIT.ToastCloseDetail = { reason }
       this.emit("ui-hide", hidden)

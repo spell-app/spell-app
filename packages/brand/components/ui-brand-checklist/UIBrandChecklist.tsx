@@ -95,12 +95,7 @@ export class UIBrandChecklist extends UIElement<BrandChecklistVocabulary> implem
   render(): JSX.Element {
     return (
       <>
-        <div
-          class={this.classes()}
-          part={this.part("list")}
-          role={UIT.LIST}
-          aria-label={this.ariaLabel.get() ?? undefined}
-        >
+        <div class={this.classes()} part={this.part("list")} role={UIT.LIST} aria-label={this.ariaLabel.get()}>
           <slot onSlotChange={() => this.refreshChecks()} />
         </div>
         <span class={UIT.VISUALLY_HIDDEN} part={this.part("status")} role={STATUS}>

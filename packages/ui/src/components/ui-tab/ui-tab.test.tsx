@@ -352,7 +352,7 @@ describe("<ui-tabs> transitions", () => {
   it("swaps panes inside a View Transition when the browser has them", async () => {
     const { buttons, panes } = await tabs()
     const start = vi.spyOn(document, "startViewTransition")
-    vi.spyOn(UI.browser, "reducedMotion", "get").mockReturnValue(false)
+    vi.spyOn(UI.browser, "isReducedMotion", "get").mockReturnValue(false)
     await userEvent.click(buttons[1]!)
     await expect.poll(() => shown(panes)).toEqual([1])
     expect(start).toHaveBeenCalledTimes(UI.browser.supports.viewTransitions ? 1 : 0)
@@ -361,7 +361,7 @@ describe("<ui-tabs> transitions", () => {
   it("swaps at once for reduced motion", async () => {
     const { buttons, panes } = await tabs()
     const start = vi.spyOn(document, "startViewTransition")
-    vi.spyOn(UI.browser, "reducedMotion", "get").mockReturnValue(true)
+    vi.spyOn(UI.browser, "isReducedMotion", "get").mockReturnValue(true)
     await userEvent.click(buttons[1]!)
     await ElementFixture.tick()
     expect(shown(panes)).toEqual([1])

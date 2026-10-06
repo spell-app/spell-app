@@ -8,7 +8,7 @@ import type { DesignSkip, DesignTokenRow, DesignTokensFile, DesignTypeStyle, The
 /**
  * The design system's `tokens.json` (claude.ai's Design System format, LIST shape), from the `spell-brand` theme as
  * it ships:  every `:root` custom property of the foundation sheets, then `themes/classic.css`, then
- * `themes/spell-brand.css` (the order `ThemeSheets.apply("spell-brand")` stacks them), each resolved for a light and a
+ * `themes/spell-brand.css` (the order `UI.themes.apply("spell-brand")` stacks them), each resolved for a light and a
  * dark theme.
  * - Why `spell-brand`, not `spell`:  it's the brand (epic `claude-design`, P11):  the docs wear it, the design bundle
  *   applies it, and the `<ui-brand-*>` cards read its brand roles (`--spell-surface-warm` ...).
@@ -505,5 +505,5 @@ export type Theme = (typeof THEMES)[number]
 /** The two themes, light FIRST (the format reads a plain string, and anything missing, from the first). */
 const THEMES = ["light", "dark"] as const
 
-/** The sheets `ThemeSheets.apply("spell-brand")` stacks, in cascade order (later wins), relative to `src/styles/`. */
+/** The sheets `UI.themes.apply("spell-brand")` stacks, in cascade order (later wins), relative to `src/styles/`. */
 const SHEETS = ["tokens.css", "sizes.css", "colors.css", "themes/classic.css", "themes/spell-brand.css"] as const

@@ -12,14 +12,18 @@ import { E } from "$/ui/core"
  * - MUST be created under the element's owner (field initializer / constructor).
  ****************/
 export class HostAttribute {
-  /** Current value, `null` when absent (as `getAttribute()` says);  tracked. */
-  readonly get: Accessor<string | null>
+  /**
+   * Current value, `undefined` when absent;  tracked.
+   * - `getAttribute()`'s `null` stops here:  `null` only at platform boundaries (epic `wwod-spell-ui`, Q9, Q17).
+   */
+  readonly get: Accessor<string | undefined>
 
   constructor(host: E.UIHost, name: string) {
-    const cell = new E.Cell(host.getAttribute(name))
+    const read = () => host.getAttribute(name) ?? undefined
+    const cell = new E.Cell(read())
     this.get = cell.get
     if (isServer) return
-    const observer = new MutationObserver(() => cell.set(host.getAttribute(name)))
+    const observer = new MutationObserver(() => cell.set(read()))
     observer.observe(host, { attributeFilter: [name] })
     host.addReleaseCallback(() => observer.disconnect())
   }

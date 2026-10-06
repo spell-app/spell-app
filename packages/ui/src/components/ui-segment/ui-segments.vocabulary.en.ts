@@ -17,7 +17,7 @@ export const segmentsVocabulary = {
   tag: "ui-segments",
   topics: ["containers", "layout", "elements"],
   aka: ["panel group", "stacked panels"],
-  skeleton: null,
+  skeleton: false,
   noun: "segments",
   description: "A group of segments can be formatted to appear together.",
   attributes: [

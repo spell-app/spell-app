@@ -18,7 +18,7 @@ export const revealVocabulary = {
   tag: "ui-reveal",
   topics: ["animation", "images", "media", "elements"],
   aka: ["hover reveal", "flip", "slide reveal", "overlay image"],
-  skeleton: null,
+  skeleton: false,
   noun: "reveal",
   description: "A reveal displays additional content in place of previous content when activated.",
   attributes: [

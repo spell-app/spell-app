@@ -9,14 +9,14 @@ function keydown(key: string, init: KeyboardEventInit = {}) {
 
 describe("Chord", () => {
   it("parses modifiers and key in any case", () => {
-    const chord = Chord.parse("shift+ALT+ArrowUp", { apple: false })
+    const chord = Chord.parse("shift+ALT+ArrowUp", { isApple: false })
     expect(chord).toMatchObject({ key: "arrowup", shift: true, alt: true, ctrl: false, meta: false })
     expect(chord.toString()).toBe("Alt+Shift+arrowup")
   })
 
   it("maps Mod to Meta on Apple and Ctrl elsewhere", () => {
-    expect(Chord.parse("Mod+K", { apple: true })).toMatchObject({ meta: true, ctrl: false })
-    expect(Chord.parse("Mod+K", { apple: false })).toMatchObject({ meta: false, ctrl: true })
+    expect(Chord.parse("Mod+K", { isApple: true })).toMatchObject({ meta: true, ctrl: false })
+    expect(Chord.parse("Mod+K", { isApple: false })).toMatchObject({ meta: false, ctrl: true })
   })
 
   it("resolves key aliases and a trailing ++", () => {
@@ -32,7 +32,7 @@ describe("Chord", () => {
   })
 
   it("matches modifiers exactly", () => {
-    const chord = Chord.parse("Mod+Shift+K", { apple: false })
+    const chord = Chord.parse("Mod+Shift+K", { isApple: false })
     expect(chord.matches(keydown("K", { ctrlKey: true, shiftKey: true }))).toBe(true)
     expect(chord.matches(keydown("k", { ctrlKey: true }))).toBe(false)
     expect(chord.matches(keydown("K", { ctrlKey: true, shiftKey: true, altKey: true }))).toBe(false)
@@ -40,7 +40,7 @@ describe("Chord", () => {
   })
 
   it("matches letters by code when Alt changes the key (macOS Option)", () => {
-    const chord = Chord.parse("Alt+K", { apple: true })
+    const chord = Chord.parse("Alt+K", { isApple: true })
     expect(chord.matches(keydown("˚", { altKey: true, code: "KeyK" }))).toBe(true)
   })
 

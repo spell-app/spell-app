@@ -19,7 +19,7 @@ export const dimmerVocabulary = {
   tag: "ui-dimmer",
   topics: ["overlays", "loading", "feedback", "modules"],
   aka: ["overlay", "backdrop", "scrim", "mask", "blocker"],
-  skeleton: null,
+  skeleton: false,
   noun: "dimmer",
   description: "A dimmer hides distractions to focus attention on particular content.",
   attributes: [

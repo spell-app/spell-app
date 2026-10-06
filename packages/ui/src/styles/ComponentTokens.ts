@@ -1,15 +1,21 @@
-/**
- * Reads component sheets for their per-component tokens:  which `--ui-*` names belong to a component family, where a
- * sheet DECLARES them, the private aliases (`--_ui-x: var(--ui-x, <default>)`) that replace them, and the codemod
+import type { TokenDeclaration } from "./styles.types"
+
+/****************
+ * ### `ComponentTokens`
+ * Reads component sheets for their per-component tokens:  which `--ui-*` names belong to a component family, where
+ * a sheet DECLARES them, the private aliases (`--_ui-x: var(--ui-x, <default>)`) that replace them, and the codemod
  * that converts a family.  See `docs/theming.md` "Component tokens".
- * - Pure text in, text out:  no DOM, no Vite, so the browser test (`test/component-tokens.test.ts`), the codemod
- *   (`yarn tokens:alias`, `scripts/alias-tokens.ts`) and the docs site's token tables (`tools/FamilyTokens.ts`) share it.
+ * - Pure text in, text out:  no DOM, no Vite, and nothing of `ui`'s but `styles.types` (types only), so the browser
+ *   test (`test/component-tokens.test.ts`), the codemod (`yarn tokens:alias`, `scripts/alias-tokens.ts`) and the docs
+ *   site's token tables (`tools/FamilyTokens.ts`, `tools/FoundationTokens.ts`, in node) share it.
  * - Build / test time only:  left out of the `$/ui/styles` barrel, import the leaf file.
  * - A COMPONENT token is `--ui-<tag>` or `--ui-<tag>-*` for a tag some vocabulary declares (`ui-button` =>
  *   `--ui-button-radius`), minus the foundation's own names (`--ui-text-color` is a token of `tokens.css`, not of
  *   `<ui-text>`).  The longest tag wins:  `--ui-buttons-x` is `buttons`, `--ui-placeholder-line-x` is
  *   `placeholder-line`.
- */
+ * - An instance knows the tags and the foundation (`owner()`, `publicDeclarations()`, `convert()`);  reading one
+ *   sheet's text needs neither, so those are statics (`declarations()`, `aliases()`, `stripComments()`).
+ ****************/
 export class ComponentTokens {
   /** tag without `ui-` => family folder, e.g. `buttons` => `ui-button`;  longest tags first */
   readonly tags: Array<[tag: string, family: string]>
@@ -17,30 +23,20 @@ export class ComponentTokens {
   /** every `--ui-*` name the foundation sheets (`src/styles/*.css`) declare */
   readonly foundation: Set<string>
 
-  /**
-   * Build from source TEXT.
-   * - `vocabularies`:  path => text of every `ui-<tag>.vocabulary.en.ts` (one per tag);  the family is the path's folder
-   * - `foundation`:  texts of the foundation sheets
-   */
-  constructor(vocabularies: Record<string, string>, foundation: string[]) {
+  /** Build from source TEXT:  `ComponentTokensProps`. */
+  constructor({ vocabularies, foundation }: ComponentTokensProps) {
     const tags = new Map<string, string>()
     for (const [path, text] of Object.entries(vocabularies)) {
-      const family = ComponentTokens.familyOf(path)
+      const family = ComponentTokens.familyFor(path)
       for (const match of text.matchAll(/\btag:\s*"ui-([a-z0-9-]+)"/g)) tags.set(match[1]!, family)
     }
     this.tags = [...tags].sort(([a], [b]) => b.length - a.length)
     this.foundation = new Set(foundation.flatMap((css) => ComponentTokens.declarations(css).map(({ name }) => name)))
   }
 
-  /**
-   * Family folder of a sheet or vocabulary path:  the folder after `components/`, e.g. `ui-button`.
-   * - Throws on a path outside `src/components/`:  every caller passes component files.
-   */
-  static familyOf(path: string): string {
-    const family = /components\/([^/]+)\//.exec(path)?.[1]
-    if (!family) throw new Error(`ComponentTokens: not a component path:  ${path}`)
-    return family
-  }
+  ////////////////
+  // ## Owners
+  ////////////////
 
   /**
    * The tag and family a PUBLIC custom property belongs to, or `undefined` for a foundation / remap / private name.
@@ -48,8 +44,8 @@ export class ComponentTokens {
    *   `--ui-text-color` (foundation) and `--_ui-button-radius` => `undefined`.
    */
   owner(name: string): { tag: string; family: string } | undefined {
-    if (!name.startsWith("--ui-") || this.foundation.has(name)) return undefined
-    const rest = name.slice("--ui-".length)
+    if (!name.startsWith(PUBLIC_PREFIX) || this.foundation.has(name)) return undefined
+    const rest = name.slice(PUBLIC_PREFIX.length)
     const found = this.tags.find(([tag]) => rest === tag || rest.startsWith(`${tag}-`))
     return found && { tag: found[0], family: found[1] }
   }
@@ -58,9 +54,13 @@ export class ComponentTokens {
    * Every component token a sheet DECLARES:  the thing `docs/theming.md` forbids.
    * - Style-query conditions (`@container style(--ui-x: 1)`) are reads, not declarations.
    */
-  publicDeclarations(css: string): Declaration[] {
+  publicDeclarations(css: string): TokenDeclaration[] {
     return ComponentTokens.declarations(css).filter(({ name }) => this.owner(name))
   }
+
+  ////////////////
+  // ## Codemod
+  ////////////////
 
   /**
    * Convert one sheet of `family` to private aliases (the codemod behind `yarn tokens:alias`).
@@ -83,11 +83,11 @@ export class ComponentTokens {
     for (const match of stripped.matchAll(/\b(var|style)\(\s*(--ui-[a-z0-9-]+)(?![a-z0-9-])/g)) {
       if (!names.has(match[2]!)) continue
       const at = match.index + match[0].length - match[2]!.length
-      edits.push({ at, remove: match[2]!.length, insert: `--_${match[2]!.slice(2)}` })
+      edits.push({ at, remove: match[2]!.length, insert: ComponentTokens.privateNameFor(match[2]!) })
     }
     const seen = new Set<string>()
     for (const declaration of own) {
-      const privateName = `--_${declaration.name.slice(2)}`
+      const privateName = ComponentTokens.privateNameFor(declaration.name)
       edits.push({ at: declaration.at, remove: declaration.name.length, insert: privateName })
       const where = `line ${declaration.line}, \`${declaration.selector}\``
       if (seen.has(declaration.name)) {
@@ -117,15 +117,20 @@ export class ComponentTokens {
     return { css: result, notes }
   }
 
+  ////////////////
+  // ## Reading a sheet
+  ////////////////
+
   /**
    * Public tokens a sheet exposes through private aliases:  `--_ui-x: var(--ui-x, <default>)`, first one wins,
    * with the `/* comment *\/` right above as the description (the docs' token tables, `tools/FamilyTokens.ts`).
+   * - Static:  one sheet's text is all it reads, no vocabulary or foundation.
    */
   static aliases(css: string): Array<{ name: string; default: string; description?: string }> {
     const found = new Map<string, { name: string; default: string; description?: string }>()
     for (const declaration of ComponentTokens.declarations(css)) {
       const match = /^var\(\s*(--ui-[a-z0-9-]+)\s*,\s*([\s\S]*)\)$/.exec(declaration.value)
-      if (!match || declaration.name !== `--_${match[1]!.slice(2)}` || found.has(match[1]!)) continue
+      if (!match || declaration.name !== ComponentTokens.privateNameFor(match[1]!) || found.has(match[1]!)) continue
       if (!ComponentTokens.balanced(match[2]!)) continue
       found.set(match[1]!, {
         name: match[1]!,
@@ -139,10 +144,12 @@ export class ComponentTokens {
   /**
    * Every custom-property declaration in `css` (`--_ui-*` and `--ui-*`), in source order, outside comments.
    * - `selector`:  the prelude of the enclosing rule;  `nested`:  inside an `@media` / `@container` / `@supports`.
+   * - Static:  one sheet's text is all it reads;  the constructor reads the foundation with it, before an instance
+   *   exists.
    */
-  static declarations(css: string): Declaration[] {
+  static declarations(css: string): TokenDeclaration[] {
     const stripped = ComponentTokens.stripComments(css)
-    const result: Declaration[] = []
+    const result: TokenDeclaration[] = []
     for (const match of stripped.matchAll(/(?<=[{;]\s*)(--_?ui-[a-z0-9-]+)\s*:/g)) {
       const valueStart = ComponentTokens.skipSpace(stripped, match.index + match[0].length)
       let depth = 0
@@ -172,12 +179,39 @@ export class ComponentTokens {
     return result
   }
 
-  /** `css` with every comment blanked to spaces (newlines kept), so indices and line numbers still match. */
+  /**
+   * `css` with every comment blanked to spaces (newlines kept), so indices and line numbers still match.
+   * - Static:  plain text in, text out.
+   */
   static stripComments(css: string): string {
     return css.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, " "))
   }
 
-  /** Whether the declaration at `index` sits inside an `@media` / `@container` / `@supports` block. */
+  ////////////////
+  // ## Internal
+  ////////////////
+
+  /**
+   * Family folder of a sheet or vocabulary path:  the folder after `components/`, e.g. `ui-button`.
+   * - Static:  the constructor reads it before the instance has its tags.
+   * - Throws a `TypeError` on a path outside `src/components/`:  every caller passes component files.
+   */
+  private static familyFor(path: string): string {
+    const family = /components\/([^/]+)\//.exec(path)?.[1]
+    if (!family) {
+      throw new TypeError(
+        `ComponentTokens.familyFor():  \`${path}\` is no component path;  pass a file in \`src/components/<family>/\``
+      )
+    }
+    return family
+  }
+
+  /** The private alias of a public token:  `--ui-button-radius` => `--_ui-button-radius`.  Static:  plain text. */
+  private static privateNameFor(name: string): string {
+    return `--_${name.slice(2)}`
+  }
+
+  /** Whether the declaration at `index` sits inside an `@media` / `@container` / `@supports` block.  Static:  text. */
   private static nestedIn(stripped: string, index: number): boolean {
     const stack: boolean[] = []
     const pattern = /(@(?:media|container|supports)\b[^{]*)?\{|\}/g
@@ -188,7 +222,10 @@ export class ComponentTokens {
     return stack.some(Boolean)
   }
 
-  /** The text of a `/* comment *\/` that ends right before `index` (whitespace between), whitespace collapsed. */
+  /**
+   * The text of a `/* comment *\/` that ends right before `index` (whitespace between), whitespace collapsed.
+   * - Static:  plain text.
+   */
   private static commentBefore(css: string, index: number): string | undefined {
     const before = css.slice(0, index).trimEnd()
     if (!before.endsWith("*/")) return undefined
@@ -200,13 +237,13 @@ export class ComponentTokens {
       .trim()
   }
 
-  /** First non-whitespace index at or after `index`. */
+  /** First non-whitespace index at or after `index`.  Static:  plain text. */
   private static skipSpace(text: string, index: number): number {
     while (index < text.length && /\s/.test(text[index]!)) index++
     return index
   }
 
-  /** Whether `text`'s parentheses balance (a `var(--ui-x, a), b` pair would not). */
+  /** Whether `text`'s parentheses balance (a `var(--ui-x, a), b` pair would not).  Static:  plain text. */
   private static balanced(text: string): boolean {
     let depth = 0
     for (const char of text) {
@@ -217,26 +254,12 @@ export class ComponentTokens {
   }
 }
 
-/** One custom-property declaration found by `ComponentTokens.declarations()`. */
-export type Declaration = {
-  /** property name, e.g. `--ui-button-radius` */
-  name: string
-  /** index of the name in the sheet text */
-  at: number
-  /** 1-based line of the name */
-  line: number
-  /** value text, trimmed, comments blanked */
-  value: string
-  /** index where the value starts */
-  valueStart: number
-  /** index right after the value's last non-space character */
-  valueEnd: number
-  /** prelude of the enclosing rule, whitespace collapsed, e.g. `.ui.button, .ui.buttons, .or` */
-  selector: string
-  /** inside `@media` / `@container` / `@supports`:  a first declaration there usually lacks a base value */
-  nested: boolean
-  /** the comment right above, if any */
-  comment?: string
+/** What `new ComponentTokens()` reads:  source TEXT, never files. */
+export type ComponentTokensProps = {
+  /** path => text of every `ui-<tag>.vocabulary.en.ts` (one per tag);  the family is the path's folder */
+  vocabularies: Record<string, string>
+  /** texts of the foundation sheets (`src/styles/*.css`) */
+  foundation: string[]
 }
 
 /** One text replacement of `convert()`, applied back to front. */
@@ -248,3 +271,6 @@ type Edit = {
   /** text to insert */
   insert: string
 }
+
+/** What every public token starts with:  `--ui-`.  A private alias adds `_`:  `--_ui-`. */
+const PUBLIC_PREFIX = "--ui-"

@@ -56,7 +56,7 @@ export const docsThemesVocabulary = {
       name: "ui-change",
       detail: "{ theme?: string, scheme: 'light' | 'dark' | 'system', shown: 'light' | 'dark', originalEvent?: Event }",
       description:
-        "The viewer picked a theme or a scheme here;  `theme` is a `ThemeSheets` name, absent for our own look;  " +
+        "The viewer picked a theme or a scheme here;  `theme` is a `UI.themes` name, absent for our own look;  " +
         "`scheme` is `system` while following the OS, and `shown` the scheme the page shows.  Fired after the look " +
         "is stored and while its sheets load."
     }

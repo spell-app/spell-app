@@ -234,7 +234,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
   }
 
   /** The pointer or focus left an `on="hover"` dimmer's parent:  hide once neither is inside. */
-  private leave(event: Event, next: EventTarget | null = UI.focus.activeElementDeep()) {
+  private leave(event: Event, next: EventTarget | null | undefined = UI.focus.activeElementDeep()) {
     const parent = this.host.parentElement
     if (this.hovered || (parent && next instanceof Node && UI.focus.containsDeep(parent, next))) return
     this.requestClose(HOVER, event)

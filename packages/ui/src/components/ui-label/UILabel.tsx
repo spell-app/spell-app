@@ -98,7 +98,7 @@ export class UILabel extends UIElement<typeof labelVocabulary> {
         part={this.part("label")}
         href={this.attrs.disabled ? undefined : this.attrs.href}
         target={this.attrs.href ? this.attrs.target : undefined}
-        aria-label={this.ariaLabel.get() ?? undefined}
+        aria-label={this.ariaLabel.get()}
         aria-disabled={this.attrs.disabled && this.attrs.href ? "true" : undefined}
         role={this.ariaLabel.get() && !this.attrs.href ? UIT.IMG : undefined}
       >

@@ -60,6 +60,21 @@ describe("Styles", () => {
     }
   })
 
+  it("a page sheet registered again with `linked` comes OFF a page that links ui.css", () => {
+    const marker = document.createElement("style")
+    marker.textContent = ":root { --ui-page-sheet: linked }"
+    document.head.append(marker)
+    const sheet = styles.register("linked-later", "p { color: red }", { page: true })
+    try {
+      expect(document.adoptedStyleSheets).toContain(sheet)
+      styles.register("linked-later", "p { color: red }", { page: true, linked: true })
+      expect(document.adoptedStyleSheets).not.toContain(sheet)
+    } finally {
+      marker.remove()
+      document.adoptedStyleSheets = document.adoptedStyleSheets.filter((each) => each !== sheet)
+    }
+  })
+
   it("register() is idempotent and updates sheets in place", () => {
     const sheet = styles.register("button", ".probe { color: red }")
     expect(styles.register("button", ".probe { color: red }")).toBe(sheet)

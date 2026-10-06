@@ -18,7 +18,7 @@ export const brandCheckVocabulary = {
   tag: "ui-brand-check",
   topics: ["lists", "progress", "selection", "controls"],
   aka: ["check item", "to-do", "todo", "task", "habit", "progress step", "check mark"],
-  skeleton: null,
+  skeleton: false,
   noun: "check",
   ui: false,
   description: "A brand check is one line of a checklist:  a round mark, filled with a check once done, and its text.",

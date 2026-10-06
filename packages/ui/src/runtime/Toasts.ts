@@ -1,13 +1,17 @@
 import type { Disposer, ToastHandle, ToastOptions, ToastProvider } from "./runtime.types"
 
-/**
+/****************
+ * ### `Toasts`
  * Programmatic toasts, as `UI.toasts` (and the `UI.toast()` shortcut).
  * - A thin front door:  the `ui-toast` family registers its provider (`register()`) when it's imported, so the
  *   runtime chunk carries no toast markup or CSS.
  * - Until then `show()` throws, rather than silently dropping a message.
- */
+ ****************/
 export class Toasts {
-  /** set by the toast component on definition */
+  /**
+   * The provider rendering toasts:  set by the `ui-toast` family through `register()`.
+   * - STATIC:  one per page, like the runtime;  tests set and clear it without reaching the instance.
+   */
   static provider?: ToastProvider
 
   /**
@@ -25,17 +29,19 @@ export class Toasts {
 
   /** Show a toast;  see `ToastOptions`. */
   show(options: ToastOptions): ToastHandle {
-    return this.provider.show(options)
+    return this.registeredProvider.show(options)
   }
 
   /** Remove toast `id` early. */
   dismiss(id: string) {
-    this.provider.dismiss(id)
+    this.registeredProvider.dismiss(id)
   }
 
-  /** The registered provider, or a helpful error. */
-  private get provider(): ToastProvider {
-    if (!Toasts.provider) throw new Error("ui-toast not registered:  import the toast component first")
+  /** `Toasts.provider`;  throws until the `ui-toast` family has registered one. */
+  private get registeredProvider(): ToastProvider {
+    if (!Toasts.provider) {
+      throw new Error("UI.toasts:  ui-toast not registered;  import its family (`@spell-app/ui/ui-toast`) first")
+    }
     return Toasts.provider
   }
 }

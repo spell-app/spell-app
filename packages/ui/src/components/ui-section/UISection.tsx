@@ -189,7 +189,7 @@ export class UISection extends UIElement<SectionVocabulary> {
    */
   readonly collapsible = createMemo((): boolean => {
     const own = this.collapsibleAttribute.get()
-    if (own !== null) return Converters.boolean(own, this.definition.attribute("collapsible").attribute)
+    if (own !== undefined) return Converters.boolean(own, this.definition.attribute("collapsible").attribute)
     return !!this.attrs.collapsible || !!this.group()?.attrs.collapsing
   })
 

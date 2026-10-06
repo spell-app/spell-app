@@ -89,7 +89,7 @@ export type SiteDataFile = {
 
 /** One theme sheet:  its title, and which families it restyles. */
 export type SiteTheme = {
-  /** sheet name, as `ThemeSheets` knows it, e.g. `github` */
+  /** sheet name, as `UI.themes` knows it, e.g. `github` */
   readonly name: string
   /** display title, from `pages.json` `themes`, e.g. `GitHub` */
   readonly title: string
@@ -416,7 +416,7 @@ export type DocsShownScheme = "light" | "dark"
 
 /** The viewer's look:  theme and colour scheme (`ThemePreference.look`). */
 export type DocsLook = {
-  /** a `ThemeSheets` name (`spell`, `github`, `classic`);  `undefined`:  our own look, no theme */
+  /** a `UI.themes` name (`spell`, `github`, `classic`);  `undefined`:  our own look, no theme */
   readonly theme: string | undefined
   readonly scheme: DocsScheme
 }
@@ -424,7 +424,7 @@ export type DocsLook = {
 /** Every `DocsScheme`, in the order the picker shows them. */
 export const DOCS_SCHEMES: readonly DocsScheme[] = ["light", "dark", "system"]
 
-/** The theme a viewer who never picked one sees:  the Spell brand (`ThemeSheets.OWN`). */
+/** The theme a viewer who never picked one sees:  the Spell brand (`UI.themes.own`). */
 export const DOCS_DEFAULT_THEME = "spell"
 
 /** What the `theme` key holds for our own look, no theme (the key is absent for `DOCS_DEFAULT_THEME`). */
@@ -442,7 +442,7 @@ export const DOCS_SCHEME_SWITCHING = "ui-scheme-switching"
  *   on the docs, plan docs and goals reads and writes it too.
  *   - MUST equal `SCHEME_KEY` in `packages/server/src/site/site.types.ts`:  `ui` can't import it (the server package
  *     is a leaf `ui` stays clear of in shipped code);  `ui-docs-themes.test.tsx` pins the two equal
- * - `theme`:  a `ThemeSheets` name (`github`, `classic`), `DOCS_PLAIN_THEME` for our own look, absent for
+ * - `theme`:  a `UI.themes` name (`github`, `classic`), `DOCS_PLAIN_THEME` for our own look, absent for
  *   `DOCS_DEFAULT_THEME`.  Spell UI's site only.
  */
 export const DOCS_LOOK_KEYS = { scheme: "spell-site:scheme", theme: "spell-ui-site:theme" } as const

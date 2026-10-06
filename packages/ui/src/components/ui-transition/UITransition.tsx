@@ -225,7 +225,7 @@ export class UITransition extends UIElement<TransitionVocabulary> {
       box.hidden = step.direction === OUT
       return Promise.resolve(true)
     }
-    return UI.transitions.animate(box, name, step.direction, this.options())
+    return UI.transitions.animate({ element: box, name, direction: step.direction, ...this.options() })
   }
 
   /** `ui-show` / `ui-hide` after an `in` / `out`, then `ui-complete`. */

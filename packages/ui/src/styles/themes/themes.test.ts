@@ -1,7 +1,6 @@
 import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
-import { ThemeSheets } from "$/ui/styles"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
 import "$/ui/components/ui-button"
@@ -25,11 +24,11 @@ import "$/ui/components/ui-progress"
  * - Import the families a case renders at the top (`import "$/ui/components/ui-<name>"`).
  */
 class ThemeHarness {
-  /** Apply `name` (`ThemeSheets.apply()`) for the current test;  back to our own look when it finishes. */
+  /** Apply `name` (`UI.themes.apply()`) for the current test;  back to our own look when it finishes. */
   static async use(name: string | undefined) {
     await UI.load()
-    await ThemeSheets.apply(name)
-    onTestFinished(() => ThemeSheets.apply(undefined))
+    await UI.themes.apply(name)
+    onTestFinished(() => UI.themes.apply(undefined))
   }
 
   /** Render `html`;  the element matching `selector` in the first element's shadow root, and its computed style. */
@@ -52,21 +51,23 @@ class ThemeHarness {
   }
 }
 
-describe("ThemeSheets", () => {
-  it("lists every sheet in the folder;  names are the Fomantic themes (no classic, no dark)", () => {
-    expect(ThemeSheets.sheets).toContain("classic")
-    expect(ThemeSheets.sheets).toContain("dark")
-    expect(ThemeSheets.names).not.toContain("classic")
-    expect(ThemeSheets.names).not.toContain("dark")
-    for (const name of ThemeSheets.names) expect(ThemeSheets.sheets).toContain(name)
+describe("UI.themes", () => {
+  it("lists every sheet in the folder;  names are the Fomantic themes (no classic, no dark)", async () => {
+    await UI.load()
+    expect(UI.themes.sheets).toContain("classic")
+    expect(UI.themes.sheets).toContain("dark")
+    expect(UI.themes.names).not.toContain("classic")
+    expect(UI.themes.names).not.toContain("dark")
+    for (const name of UI.themes.names) expect(UI.themes.sheets).toContain(name)
   })
 
   it("every sheet is wholly inside @layer ui.theme (bar LAYER_EXCEPTIONS)", async () => {
+    await UI.load()
     // a reset must sit UNDER everything:  `resetcss` in `ui.theme` would beat typography and native.css
     const LAYER_EXCEPTIONS: Readonly<Record<string, string>> = { resetcss: "ui.reset" }
-    for (const name of ThemeSheets.sheets) {
+    for (const name of UI.themes.sheets) {
       const sheet = new CSSStyleSheet()
-      sheet.replaceSync(await ThemeSheets.load(name))
+      sheet.replaceSync(await UI.themes.load(name))
       for (const rule of sheet.cssRules) {
         // `@font-face` / `@property` can't live in a layer and are harmless outside one
         if (rule instanceof CSSFontFaceRule || rule instanceof CSSPropertyRule) continue
@@ -79,11 +80,11 @@ describe("ThemeSheets", () => {
 
   it("apply() registers classic + the theme on the page and in shadow roots, in that order;  undefined clears", async () => {
     const { host } = await ThemeHarness.inner(`<ui-button>Probe</ui-button>`, ".ui.button")
-    const theme = ThemeSheets.names[0]
+    const theme = UI.themes.names[0]
     if (!theme) return // no Fomantic theme ported yet
     await ThemeHarness.use(theme)
-    const base = UI.styles.sheet(ThemeSheets.SLOTS.base)!
-    const sheet = UI.styles.sheet(ThemeSheets.SLOTS.theme)!
+    const base = UI.styles.sheet(UI.themes.slots.base)!
+    const sheet = UI.styles.sheet(UI.themes.slots.theme)!
     expect(document.adoptedStyleSheets).toContain(base)
     expect(document.adoptedStyleSheets).toContain(sheet)
     const adopted = [...host.shadowRoot!.adoptedStyleSheets]
@@ -92,39 +93,40 @@ describe("ThemeSheets", () => {
     // the app stylesheet stays last
     expect(adopted.at(-1)).toBe(UI.styles.appSheet)
 
-    await ThemeSheets.apply(undefined)
-    expect(UI.styles.has(ThemeSheets.SLOTS.base)).toBe(false)
-    expect(UI.styles.has(ThemeSheets.SLOTS.theme)).toBe(false)
+    await UI.themes.apply(undefined)
+    expect(UI.styles.has(UI.themes.slots.base)).toBe(false)
+    expect(UI.styles.has(UI.themes.slots.theme)).toBe(false)
     expect(host.shadowRoot!.adoptedStyleSheets).not.toContain(sheet)
-    expect(ThemeSheets.current).toBeUndefined()
+    expect(UI.themes.current).toBeUndefined()
   })
 
   it('apply("classic") is classic alone, and reaches components (Lato, 14px)', async () => {
     const before = (await ThemeHarness.inner(`<ui-button>Probe</ui-button>`, ".ui.button")).style.fontFamily
     await ThemeHarness.use("classic")
-    expect(UI.styles.has(ThemeSheets.SLOTS.theme)).toBe(false)
+    expect(UI.styles.has(UI.themes.slots.theme)).toBe(false)
     const { style } = await ThemeHarness.inner(`<ui-button>Probe</ui-button>`, ".ui.button")
     expect(style.fontFamily).toMatch(/^Lato/)
     expect(style.fontFamily).not.toBe(before)
   })
 
   it("the last apply() wins", async () => {
-    const [first, second] = ThemeSheets.names
-    if (!first || !second) return
     await UI.load()
-    onTestFinished(() => ThemeSheets.apply(undefined))
-    await Promise.all([ThemeSheets.apply(first), ThemeSheets.apply(second)])
-    expect(ThemeSheets.current).toBe(second)
-    expect(UI.styles.sheet(ThemeSheets.SLOTS.theme)!.cssRules.length).toBeGreaterThan(0)
-    const text = await ThemeSheets.load(second)
+    const [first, second] = UI.themes.names
+    if (!first || !second) return
+    onTestFinished(() => UI.themes.apply(undefined))
+    await Promise.all([UI.themes.apply(first), UI.themes.apply(second)])
+    expect(UI.themes.current).toBe(second)
+    expect(UI.styles.sheet(UI.themes.slots.theme)!.cssRules.length).toBeGreaterThan(0)
+    const text = await UI.themes.load(second)
     const probe = new CSSStyleSheet()
     probe.replaceSync(text)
-    expect(UI.styles.sheet(ThemeSheets.SLOTS.theme)!.cssRules[0]!.cssText).toBe(probe.cssRules[0]!.cssText)
+    expect(UI.styles.sheet(UI.themes.slots.theme)!.cssRules[0]!.cssText).toBe(probe.cssRules[0]!.cssText)
   })
 
   it("refuses dark and unknown names", async () => {
-    await expect(ThemeSheets.apply("dark")).rejects.toThrow(/isn't a theme/)
-    await expect(ThemeSheets.apply("no-such-theme")).rejects.toThrow(/isn't a theme/)
+    await UI.load()
+    await expect(UI.themes.apply("dark")).rejects.toThrow(/isn't a theme/)
+    await expect(UI.themes.apply("no-such-theme")).rejects.toThrow(/isn't a theme/)
   })
 })
 
@@ -725,10 +727,11 @@ describe("twitter", () => {
 })
 
 describe("spell", () => {
-  it("is our own theme:  a sheet, listed in OWN, not among the Fomantic names", () => {
-    expect(ThemeSheets.sheets).toContain("spell")
-    expect(ThemeSheets.OWN).toEqual(["spell", "spell-brand"])
-    expect(ThemeSheets.names).not.toContain("spell")
+  it("is our own theme:  a sheet, listed in `own`, not among the Fomantic names", async () => {
+    await UI.load()
+    expect(UI.themes.sheets).toContain("spell")
+    expect(UI.themes.own).toEqual(["spell", "spell-brand"])
+    expect(UI.themes.names).not.toContain("spell")
   })
 
   it("Spell Purple primary (lilac on the aubergine dark), pill buttons that press in", async () => {
@@ -762,9 +765,10 @@ describe("spell", () => {
 })
 
 describe("spell-brand", () => {
-  it("is our own theme too:  a sheet, listed in OWN, not among the Fomantic names", () => {
-    expect(ThemeSheets.sheets).toContain("spell-brand")
-    expect(ThemeSheets.names).not.toContain("spell-brand")
+  it("is our own theme too:  a sheet, listed in `own`, not among the Fomantic names", async () => {
+    await UI.load()
+    expect(UI.themes.sheets).toContain("spell-brand")
+    expect(UI.themes.names).not.toContain("spell-brand")
   })
 
   it("spell's look, plus the brand roles:  ivory warm surface, aubergine inverse, lilac in dark", async () => {

@@ -24,7 +24,17 @@ describe("Browser", () => {
   })
 
   it("reads live media preferences", () => {
-    expect(browser.reducedMotion).toBe(matchMedia("(prefers-reduced-motion: reduce)").matches)
-    expect(browser.prefersDark).toBe(matchMedia("(prefers-color-scheme: dark)").matches)
+    expect(browser.isReducedMotion).toBe(matchMedia("(prefers-reduced-motion: reduce)").matches)
+    expect(browser.isDark).toBe(matchMedia("(prefers-color-scheme: dark)").matches)
+  })
+})
+
+describe("Browser.isApplePlatform()", () => {
+  it("reads the platform, else the user agent", () => {
+    const navigatorFor = (platform: string, userAgent = "") => ({ platform, userAgent }) as Navigator
+    expect(Browser.isApplePlatform(navigatorFor("MacIntel"))).toBe(true)
+    expect(Browser.isApplePlatform(navigatorFor("", "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)"))).toBe(true)
+    expect(Browser.isApplePlatform(navigatorFor("Win32"))).toBe(false)
+    expect(new Browser().isApple).toBe(Browser.isApplePlatform(navigator))
   })
 })

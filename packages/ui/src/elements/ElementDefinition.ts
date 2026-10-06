@@ -120,7 +120,7 @@ export class ElementDefinition {
       case "boolean":
         return E.Converters.boolean(value as string | boolean | null | undefined, attribute.attribute)
       case "keyOrValueAndKey":
-        return E.Converters.keyOrValue(value as string | boolean | null | undefined, E.ValueSets.of(spec), where)
+        return E.Converters.keyOrValue(value as string | boolean | null | undefined, E.ValueSets.setFor(spec), where)
       case "size":
       case "color":
       case "valueOnly":
@@ -128,7 +128,7 @@ export class ElementDefinition {
       case "valueAndKey":
       case "textAlign":
       case "verticalAlign": {
-        const set = E.ValueSets.of(spec)
+        const set = E.ValueSets.setFor(spec)
         if (value == null || value === "") return undefined
         return set ? E.Converters.enumValue(ElementDefinition.text(value), set, where) : ElementDefinition.text(value)
       }

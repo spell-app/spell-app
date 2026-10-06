@@ -1,15 +1,19 @@
 import type { Disposer, ModalOptions, ModalProvider } from "./runtime.types"
 
-/**
+/****************
+ * ### `Modals`
  * Promise-based dialogs, as `UI.modals`:  `confirm()`, `alert()`, `prompt()` -- the Fomantic
  * `$.modal('confirm', ...)` shortcuts.
  * - A thin front door:  the `ui-modal` family registers its provider (`register()`) when it's imported, so the
  *   runtime chunk carries no modal markup.
  * - Until then every method throws, rather than falling back to `window.confirm()` with different behaviour.
  * - Strings accept plain text or options:  `UI.modals.confirm("Delete?")`.
- */
+ ****************/
 export class Modals {
-  /** set by the modal component on definition */
+  /**
+   * The provider rendering dialogs:  set by the `ui-modal` family through `register()`.
+   * - STATIC:  one per page, like the runtime;  tests set and clear it without reaching the instance.
+   */
   static provider?: ModalProvider
 
   /**
@@ -27,27 +31,29 @@ export class Modals {
 
   /** Resolves `true` on approve, `false` on deny / dismiss. */
   confirm(options: ModalOptions | string): Promise<boolean> {
-    return this.provider.confirm(this.options(options))
+    return this.registeredProvider.confirm(this.optionsFor(options))
   }
 
   /** Resolves once acknowledged. */
   alert(options: ModalOptions | string): Promise<void> {
-    return this.provider.alert(this.options(options))
+    return this.registeredProvider.alert(this.optionsFor(options))
   }
 
-  /** Resolves with the entered text, or `null` on deny / dismiss. */
-  prompt(options: ModalOptions | string): Promise<string | null> {
-    return this.provider.prompt(this.options(options))
+  /** Resolves with the entered text, or `undefined` on deny / dismiss. */
+  prompt(options: ModalOptions | string): Promise<string | undefined> {
+    return this.registeredProvider.prompt(this.optionsFor(options))
   }
 
-  /** The registered provider, or a helpful error. */
-  private get provider(): ModalProvider {
-    if (!Modals.provider) throw new Error("ui-modal not registered:  import the modal component first")
+  /** `Modals.provider`;  throws until the `ui-modal` family has registered one. */
+  private get registeredProvider(): ModalProvider {
+    if (!Modals.provider) {
+      throw new Error("UI.modals:  ui-modal not registered;  import its family (`@spell-app/ui/ui-modal`) first")
+    }
     return Modals.provider
   }
 
-  /** Accept a bare message string. */
-  private options(options: ModalOptions | string): ModalOptions {
-    return typeof options === "string" ? { message: options } : options
+  /** Options for `input`:  a bare string is the message. */
+  private optionsFor(input: ModalOptions | string): ModalOptions {
+    return typeof input === "string" ? { message: input } : input
   }
 }

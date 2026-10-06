@@ -2,11 +2,13 @@ import { IconName, type IconPackIndex } from "$/ui/icons"
 
 import type { IconPackIcon, IconPackOptions, ResolvedIcon } from "./runtime.types"
 
-/**
+/****************
+ * ### `IconPack`
  * One loaded icon pack:  its index, the names it answers, and where its SVGs live.
+ * - In the runtime's lazy chunk;  imports the icon PACK format (`$/ui/icons`), never a pack itself.
  * - Built by `IconPacks.use()` (`UI.icons`);  the page-wide order and the SVG cache are `IconPacks`'.
  * - Names follow `IconName.claim()`:  an `alias` beats a file name, else the first entry keeps a shared name.
- */
+ ****************/
 export class IconPack {
   /** the index, as `pack.js` exported it */
   readonly index: IconPackIndex
@@ -19,10 +21,11 @@ export class IconPack {
   /** normalized name -> index key */
   private readonly names: Map<string, string>
 
-  constructor(index: IconPackIndex, url: string, options: IconPackOptions = {}) {
+  constructor({ index, url, options = {} }: IconPackProps) {
     this.index = index
     this.url = url
-    this.base = IconPack.folder(options.base ? new URL(options.base, IconPack.page()).href : new URL("./", url).href)
+    const base = options.base ? new URL(options.base, IconPack.pageUrl()).href : new URL("./", url).href
+    this.base = base.endsWith("/") ? base : `${base}/`
     this.prefix = options.prefix?.toLowerCase()
     this.names = IconName.claim(Object.entries(index.icons).map(([key, entry]) => [key, entry.alias]))
   }
@@ -40,7 +43,7 @@ export class IconPack {
   /** Where normalized `name` leads in this pack, or `undefined`. */
   resolve(name: string): ResolvedIcon | undefined {
     const key = this.names.get(name)
-    return key === undefined ? undefined : { ...this.icon(key), name }
+    return key === undefined ? undefined : { ...this.iconFor(key), name }
   }
 
   /**
@@ -50,11 +53,11 @@ export class IconPack {
   icons(): IconPackIcon[] {
     const names = new Map<string, string[]>()
     for (const [name, key] of this.names) names.set(key, [...(names.get(key) ?? []), name])
-    return Object.keys(this.index.icons).map((key) => ({ ...this.icon(key), names: names.get(key) ?? [] }))
+    return Object.keys(this.index.icons).map((key) => ({ ...this.iconFor(key), names: names.get(key) ?? [] }))
   }
 
-  /** One entry's location and size, defaults applied. */
-  private icon(key: string): Omit<ResolvedIcon, "name"> {
+  /** Index entry `key`'s location and size, defaults applied. */
+  private iconFor(key: string): Omit<ResolvedIcon, "name"> {
     const entry = this.index.icons[key]
     const defaults = this.index.defaults ?? {}
     return {
@@ -66,8 +69,13 @@ export class IconPack {
     }
   }
 
+  ////////////////
+  // ## Statics
+  ////////////////
+
   /**
    * Import the pack whose index is at absolute `url`.
+   * - STATIC:  the factory, called before there's a pack.
    * - SIDE EFFECT:  runs `pack.js`, like any script the page adds:  the page author opted in to it.
    * - Rejects when the file can't load or isn't an index (no `id` / `icons`).
    */
@@ -75,20 +83,28 @@ export class IconPack {
     const module = (await import(/* @vite-ignore */ url)) as { default?: IconPackIndex }
     const index = module.default
     if (!index || typeof index.id !== "string" || typeof index.icons !== "object") {
-      throw new Error(`${url} is not an icon pack index`)
+      throw new TypeError(`IconPack.load():  ${url} isn't an icon pack index (no \`id\` / \`icons\`);  check the URL`)
     }
-    return new IconPack(index, url, options)
+    return new IconPack({ index, url, options })
   }
 
-  /** `url` ending in `/`, so relative keys resolve INSIDE it. */
-  private static folder(url: string): string {
-    return url.endsWith("/") ? url : `${url}/`
+  /**
+   * What a relative URL is relative to:  the page's base URL, or `undefined` outside a browser.
+   * - STATIC:  read for every pack and source alike (`IconPacks` asks it too), from no pack in particular.
+   */
+  static pageUrl(): string | undefined {
+    return globalThis.document?.baseURI
   }
+}
 
-  /** What a relative `base` is relative to:  the page, or nothing outside a browser. */
-  private static page(): string | undefined {
-    return typeof document === "undefined" ? undefined : document.baseURI
-  }
+/** Constructor props for `IconPack`. */
+export type IconPackProps = {
+  /** the index, as `pack.js` exported it */
+  index: IconPackIndex
+  /** absolute URL of `pack.js` */
+  url: string
+  /** how `UI.icons.use()` added it */
+  options?: IconPackOptions
 }
 
 /** viewBox width / height when neither the entry nor `defaults` sets it. */

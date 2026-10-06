@@ -1,8 +1,7 @@
 import { createEffect, createMemo, For, Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, type MenuEntry } from "$/ui/core"
-import { ThemeSheets } from "$/ui/styles"
+import { Cell, proto, UI, UIElement, type MenuEntry } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 import type { DocsLook, DocsShownScheme, SiteDataFile } from "$/ui/docs-components/docs-components.types"
@@ -73,8 +72,12 @@ export class UIDocsThemes extends UIElement<DocsThemesVocabulary> {
   /** The site data, once loaded:  titles and `for`'s families.  `undefined` before, or if it failed. */
   readonly data = new Cell<SiteDataFile | undefined>(undefined)
 
-  /** What the list / dropdown shows, for `for`. */
-  readonly menu = createMemo(() => new ThemeMenu(ThemeSheets.names, this.data.get(), this.attrs.for))
+  /**
+   * What the list / dropdown shows, for `for`.
+   * - `lazy`:  `UI.themes` exists once the runtime has loaded, which this constructor may run before;  only `render()`
+   *   reads it, and that waits for the runtime.
+   */
+  readonly menu = createMemo(() => new ThemeMenu(UI.themes.names, this.data.get(), this.attrs.for), { lazy: true })
 
   /** The scheme the page shows:  the chosen one, or the OS's while following it. */
   readonly shown = createMemo((): DocsShownScheme => {

@@ -240,7 +240,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
         class={this.menuClasses()}
         part={this.part("menu")}
         role={TABLIST}
-        aria-label={this.ariaLabel.get() ?? undefined}
+        aria-label={this.ariaLabel.get()}
         aria-orientation={this.attrs.vertical ? VERTICAL : undefined}
         onFocusOut={this.onFocusOut}
       >
@@ -367,7 +367,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   /** Animate the swap?  See `show()`. */
   private canTransition(): boolean {
     if (!untrack(this.loaded) || !this.host.isConnected || document.visibilityState !== VISIBLE) return false
-    return UI.browser.supports.viewTransitions && !UI.browser.reducedMotion
+    return UI.browser.supports.viewTransitions && !UI.browser.isReducedMotion
   }
 
   /** (Re)start the roving tabindex on the tab list, the selected tab as the Tab stop. */
@@ -375,7 +375,9 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
     this.stopRoving()
     const bar = this.bar
     if (!bar || !this.host.isConnected) return
-    this.roving = UI.focus.roving(bar, () => this.buttons(), {
+    this.roving = UI.focus.roving({
+      container: bar,
+      items: () => this.buttons(),
       orientation: untrack(() => this.attrs.vertical) ? VERTICAL : HORIZONTAL,
       activeIndex: Math.max(0, untrack(this.selectedIndex)),
       onChange: (_item, index) => this.onRovingChange(index)

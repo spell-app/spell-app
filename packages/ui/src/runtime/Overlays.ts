@@ -1,4 +1,6 @@
+// Import directly to avoid circular import
 import { proto } from "$/ui/util"
+import * as UIT from "$/ui/components/components.types"
 
 import {
   LAYER_ORDER,
@@ -6,15 +8,18 @@ import {
   type CloseWatcherConstructor,
   type CloseWatcherLike,
   type DismissReason,
-  type OverlayEntry
+  type OverlayEntry,
+  type OverlayKind
 } from "./runtime.types"
 import type { Browser } from "./Browser"
 import type { Focus } from "./Focus"
 import type { Keyboard } from "./Keyboard"
 import type { Styles } from "./Styles"
 
-/**
+/****************
+ * ### `Overlays`
  * Top-layer coordination, as `UI.overlays`:  what Fomantic did with event pools and body classes.
+ * - In the runtime's lazy chunk;  `UIRuntime` hands it the `Keyboard`, `Focus`, `Browser` and `Styles` it leans on.
  * - Components call `open(entry)` when they show and `close(entry)` when they hide;  `Overlays` keeps the stack
  *   and ASKS the right entry to dismiss itself (`entry.onDismiss(reason)`) -- it never closes or emits anything.
  * - Escape:  only the topmost Escape-handling entry hears it.  Each such entry pushes a `Keyboard` scope,
@@ -31,16 +36,22 @@ import type { Styles } from "./Styles"
  * - Focus restore:  remembers the deep active element on `open()`, refocuses it on `close()` if it's still
  *   connected and focus was inside the overlay (or lost to `<body>`).
  * - TODO: dimmer coordination (one page dimmer shared by stacked modals) lands with `ui-dimmer`.
- */
+ ****************/
 export class Overlays {
-  /** use `CloseWatcher` when the browser has it;  tests turn it off to drive Escape with synthetic events */
+  /**
+   * use `CloseWatcher` when the browser has it;  tests turn it off to drive Escape with synthetic events
+   * - `@proto` default (on the prototype, not per instance):  an instance or subclass overrides it
+   */
   declare useCloseWatcher: boolean
   @proto static useCloseWatcher = true
 
-  /** services this one leans on */
+  /** Escape bindings and scopes */
   private readonly keyboard: Keyboard
+  /** active element, containment */
   private readonly focus: Focus
+  /** `supports.closeWatcher` */
   private readonly browser: Browser
+  /** registers the scroll-lock page sheet, when given */
   private readonly styles?: Styles
   /** open entries, bottom first */
   private readonly stack: OverlayRecord[] = []
@@ -48,8 +59,8 @@ export class Overlays {
   private scrollLocks = 0
   /** where the current press started, see class docs */
   private press?: PointerPress
-  /** document listeners installed? */
-  private listening = false
+  /** removes the document listeners;  set while they're installed */
+  private listeners?: AbortController
   /** for unique keyboard scope ids */
   private counter = 0
 
@@ -70,14 +81,15 @@ export class Overlays {
    */
   open(entry: OverlayEntry) {
     if (this.recordOf(entry)) return
+    const isToast = entry.kind === TOAST
     const record: OverlayRecord = {
       entry,
-      pool: entry.pool ?? (entry.kind === "toast" ? "toast" : "default"),
-      closeOnEscape: entry.closeOnEscape ?? entry.kind !== "toast",
-      closeOnOutsideClick: entry.closeOnOutsideClick ?? entry.kind !== "toast",
-      modal: entry.modal ?? (entry.kind === "modal" || entry.kind === "flyout" || entry.kind === "dimmer"),
+      pool: entry.pool ?? (isToast ? TOAST : DEFAULT_POOL),
+      closeOnEscape: entry.closeOnEscape ?? !isToast,
+      closeOnOutsideClick: entry.closeOnOutsideClick ?? !isToast,
+      modal: entry.modal ?? MODAL_KINDS.has(entry.kind),
       scope: `overlay-${++this.counter}`,
-      restoreTo: entry.restoreFocus === false ? null : this.focus.activeElementDeep()
+      restoreTo: entry.restoreFocus === false ? undefined : this.focus.activeElementDeep()
     }
     this.stack.push(record)
     if (record.closeOnEscape || record.modal) this.keyboard.pushScope(record.scope)
@@ -107,7 +119,7 @@ export class Overlays {
   }
 
   /** Topmost open entry, optionally only of `kind`. */
-  topmost(kind?: OverlayEntry["kind"]): OverlayEntry | undefined {
+  topmost(kind?: OverlayKind): OverlayEntry | undefined {
     return this.stack.findLast((record) => !kind || record.entry.kind === kind)?.entry
   }
 
@@ -140,8 +152,12 @@ export class Overlays {
     if (this.useCloseWatcher && this.browser.supports.closeWatcher && Watcher) {
       this.watchCloseRequests(record, Watcher)
     } else {
-      const onEscape = () => void this.dismiss(record, "escape")
-      record.unwatchEscape = this.keyboard.register(record.scope, "Escape", onEscape, { inEditable: true })
+      record.unwatchEscape = this.keyboard.register({
+        scope: record.scope,
+        chord: UIT.Key.escape,
+        handler: () => void this.dismiss(record, "escape"),
+        inEditable: true
+      })
     }
   }
 
@@ -172,28 +188,6 @@ export class Overlays {
   // ## Outside clicks
   ////////////////
 
-  /** Install the document listeners, once. */
-  private listen() {
-    if (this.listening) return
-    this.listening = true
-    document.addEventListener("pointerdown", this.onPointerDown, { capture: true })
-    document.addEventListener("click", this.onClick, { capture: true })
-  }
-
-  /** Remove the document listeners. */
-  private unlisten() {
-    if (!this.listening) return
-    this.listening = false
-    this.press = undefined
-    document.removeEventListener("pointerdown", this.onPointerDown, { capture: true })
-    document.removeEventListener("click", this.onClick, { capture: true })
-  }
-
-  /** Remember where the press started. */
-  private readonly onPointerDown = (event: PointerEvent) => {
-    this.press = { path: event.composedPath(), x: event.clientX, y: event.clientY }
-  }
-
   /**
    * Is the press in progress on an invoker button of `element` (`commandfor` = its id)?
    * - For a blur that the press caused:  the button's `command` decides what happens, not the lost focus.  Safari
@@ -204,9 +198,25 @@ export class Overlays {
     return !!this.press && Overlays.invokes(this.press.path, element)
   }
 
-  /** Does `path` hold an invoker button (`commandfor`) of `element`? */
-  private static invokes(path: readonly EventTarget[], element: Element): boolean {
-    return !!element.id && path.some((node) => (node as Element).getAttribute?.(COMMANDFOR) === element.id)
+  /** Install the document listeners, once. */
+  private listen() {
+    if (this.listeners) return
+    this.listeners = new AbortController()
+    const options = { capture: true, signal: this.listeners.signal }
+    document.addEventListener("pointerdown", this.onPointerDown, options)
+    document.addEventListener("click", this.onClick, options)
+  }
+
+  /** Remove the document listeners. */
+  private unlisten() {
+    this.listeners?.abort()
+    this.listeners = undefined
+    this.press = undefined
+  }
+
+  /** Remember where the press started. */
+  private readonly onPointerDown = (event: PointerEvent) => {
+    this.press = { path: event.composedPath(), x: event.clientX, y: event.clientY }
   }
 
   /** A click:  dismiss the topmost entry of each pool if the click both started and ended outside it. */
@@ -218,7 +228,7 @@ export class Overlays {
       path: event.composedPath(),
       x: event.clientX,
       y: event.clientY,
-      keyboard: !event.detail
+      isKeyboard: !event.detail
     }
     for (const record of this.topmostPerPool()) {
       if (!record.closeOnOutsideClick) continue
@@ -246,7 +256,7 @@ export class Overlays {
     if (Overlays.invokes(press.path, element)) return true
     if (!press.path.includes(element)) return false
     const target = press.path[0]
-    if (target instanceof HTMLDialogElement && !press.keyboard) {
+    if (target instanceof HTMLDialogElement && !press.isKeyboard) {
       const box = target.getBoundingClientRect()
       return press.x >= box.left && press.x <= box.right && press.y >= box.top && press.y <= box.bottom
     }
@@ -262,7 +272,7 @@ export class Overlays {
     if (this.scrollLocks++ > 0) return
     const html = document.documentElement
     this.styles?.register("scroll-lock", SCROLL_LOCK_CSS, { page: true })
-    html.style.setProperty("--ui-scrollbar-width", `${Math.max(0, window.innerWidth - html.clientWidth)}px`)
+    html.style.setProperty(SCROLLBAR_WIDTH_PROPERTY, `${Math.max(0, window.innerWidth - html.clientWidth)}px`)
     html.classList.add(SCROLL_LOCK_CLASS)
   }
 
@@ -271,7 +281,7 @@ export class Overlays {
     if (this.scrollLocks === 0 || --this.scrollLocks > 0) return
     const html = document.documentElement
     html.classList.remove(SCROLL_LOCK_CLASS)
-    html.style.removeProperty("--ui-scrollbar-width")
+    html.style.removeProperty(SCROLLBAR_WIDTH_PROPERTY)
   }
 
   /** Refocus what had focus before `record` opened -- see class docs for when. */
@@ -286,6 +296,18 @@ export class Overlays {
   /** Record for `entry`, if open. */
   private recordOf(entry: OverlayEntry): OverlayRecord | undefined {
     return this.stack.find((record) => record.entry === entry)
+  }
+
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * Does `path` hold an invoker button (`commandfor`) of `element`?
+   * - STATIC:  pure over its arguments;  reads nothing of the instance.
+   */
+  private static invokes(path: readonly EventTarget[], element: Element): boolean {
+    return !!element.id && path.some((node) => (node as Element).getAttribute?.(COMMANDFOR) === element.id)
   }
 }
 
@@ -315,8 +337,8 @@ type OverlayRecord = {
   modal: boolean
   /** its `Keyboard` scope id */
   scope: string
-  /** deep active element when opened */
-  restoreTo: Element | null
+  /** deep active element when opened;  `undefined` with `restoreFocus: false` */
+  restoreTo?: Element
   /** undoes `watchEscape()` */
   unwatchEscape?: () => void
 }
@@ -330,8 +352,20 @@ type PointerPress = {
   /** viewport y */
   y: number
   /** keyboard-activated (no real coordinates) */
-  keyboard?: boolean
+  isKeyboard?: boolean
 }
+
+/** The toast kind, and the pool toasts default to, so a toast never steals a modal's outside click. */
+const TOAST = "toast" satisfies OverlayKind
+
+/** Pool of every entry that doesn't name one, toasts aside. */
+const DEFAULT_POOL = "default"
+
+/** Kinds that lock page scroll unless the entry says `modal: false` (a `sidebar` doesn't:  Fomantic's `scrollLock`). */
+const MODAL_KINDS = new Set<OverlayKind>(["modal", "flyout", "dimmer"])
+
+/** Custom property on `<html>` holding the scrollbar's width while scroll is locked, so the page can pad for it. */
+const SCROLLBAR_WIDTH_PROPERTY = "--ui-scrollbar-width"
 
 /**
  * Page sheet for scroll lock.
@@ -342,7 +376,7 @@ const SCROLL_LOCK_CSS = `${LAYER_ORDER}
 @layer ui.base {
   html.${SCROLL_LOCK_CLASS} {
     overflow: hidden;
-    padding-inline-end: var(--ui-scrollbar-width, 0px);
+    padding-inline-end: var(${SCROLLBAR_WIDTH_PROPERTY}, 0px);
   }
 }`
 

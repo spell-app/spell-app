@@ -1,5 +1,8 @@
 /**
- * Shared types for `$/ui/styles`:  the shapes of the global scales in `styles.vocabulary.en.ts`.
+ * Shared types for `$/ui/styles`:  the shapes of the global scales in `styles.vocabulary.en.ts`, and of the sheet
+ * declarations `StyleGenerator` writes and `ComponentTokens` reads.
+ * - The BOTTOM of the folder's import graph:  `import type` only (the vocabulary, `Prettify`), so it erases
+ *   completely;  node reads it with the vocabulary (`yarn gen:styles`).
  * - The vocabulary is DATA, read by `StyleGenerator` (`yarn gen:styles`) to write `tokens.css`,
  *   `colors.css` and `sizes.css`, and by the runtime / `ClassBuilder` for allowed attribute values.
  * - Name unions (`HueName`, `SizeName` ...) derive from the vocabulary objects, so adding a hue or size
@@ -208,3 +211,32 @@ export type ShadowLayer = readonly [x: number, y: number, blur: number, spread: 
 
 /** File names `StyleGenerator.sheets()` writes, inside `src/styles/`. */
 export type GeneratedSheetName = "tokens.css" | "colors.css" | "sizes.css"
+
+/** One `property: value` pair `StyleGenerator` writes, e.g. `["--ui-radius", "var(--ui-radius-m)"]`. */
+export type GeneratedDeclaration = [property: string, value: string]
+
+////////////////
+// ## Component tokens
+////////////////
+
+/** One custom-property declaration (`--ui-*`, `--_ui-*`) found in a sheet's text by `ComponentTokens.declarations()`. */
+export type TokenDeclaration = {
+  /** property name, e.g. `--ui-button-radius` */
+  name: string
+  /** index of the name in the sheet text */
+  at: number
+  /** 1-based line of the name */
+  line: number
+  /** value text, trimmed, comments blanked */
+  value: string
+  /** index where the value starts */
+  valueStart: number
+  /** index right after the value's last non-space character */
+  valueEnd: number
+  /** prelude of the enclosing rule, whitespace collapsed, e.g. `.ui.button, .ui.buttons, .or` */
+  selector: string
+  /** inside `@media` / `@container` / `@supports`:  a first declaration there usually lacks a base value */
+  nested: boolean
+  /** the comment right above, if any */
+  comment?: string
+}
