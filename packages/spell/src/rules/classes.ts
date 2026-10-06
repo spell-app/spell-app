@@ -316,6 +316,11 @@ class belongs_to_one extends SpellStatement<"type|list"> {
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "list", of: "type" }
 
+  /** `it belongs to a pile` => `a card belongs to one pile` -- see `SpellStatement.getLongForm()`. */
+  getLongForm(match: P.Match): string | undefined {
+    return super.getLongForm(match)?.replace(/ belongs to (a|an) /i, " belongs to one ")
+  }
+
   /** Refused unless both types are declared above, and `list` is a list type of the project's -- see class docs. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -1039,6 +1044,24 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { v
       })
     }
   }
+
+  /**
+   * `its "rank" is a number` => `a card has a rank as a number`;  `its direction is up or down` =>
+   * `a card has a direction as one of up or down` -- see `SpellStatement.getLongForm()`.
+   */
+  getLongForm(match: P.Match): string | undefined {
+    const typeWords = SpellStatement.subjectWords(match)
+    const { type, property, specifier } = match.groups as { type: P.Match; property: P.Match; specifier?: P.Match }
+    if (!typeWords || !/^its$/i.test(type.inputText.trim())) return super.getLongForm(match)
+    const said = specifier?.inputText.trim()
+    const as = !said
+      ? ""
+      : specifier!.is(outline_specifier_enum) && !/^(either|one of)\b/i.test(said)
+        ? ` as one of ${said}`
+        : ` as ${said}`
+    return `a ${typeWords} has a ${property.raw}${as}`
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
     const { type, property } = match.groups
     const typeAST = P.matchAST<P.ASTTypeExpression>(type)
@@ -1786,6 +1809,13 @@ class draw_side extends SpellStatement<"alias|body?", { side?: string; drawsBoth
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "alias" }
 
+  /** `to "draw its front":` => `the front of a card is:` -- see `SpellStatement.getLongForm()`. */
+  getLongForm(match: P.MatchFor<this>): string | undefined {
+    const type = P.SubjectScope.of(match.scope)?.subjectType
+    const side = match.data.side
+    return type && side ? `the ${side.replace(/_/g, " ")} of a ${type.instanceName} is:` : undefined
+  }
+
   /** Only `"draw its <side>"`, in a type's outline body. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -2074,6 +2104,18 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
   }
 
   /**
+   * `it "is a suit"` => `a card "is a (suit)" for its suits`:  the placeholders it inferred, written out -- see
+   * `SpellStatement.getLongForm()`.
+   */
+  getLongForm(match: P.MatchFor<this>): string | undefined {
+    const typeWords = SpellStatement.subjectWords(match)
+    const { inferred } = match.data
+    if (!typeWords || !inferred) return super.getLongForm(match)
+    const sources = inferred.sources.map((source) => `its ${pluralize(source)}`).join(" and ")
+    return `a ${typeWords} "${inferred.words.join(" ")}" for ${sources}`
+  }
+
+  /**
    * `alias`'s words with each one naming a property of `type` made a placeholder, and those properties --
    * e.g. `is the rank of suits` on a card => `is the (rank) of (suits)`, `["rank", "suit"]`.
    * - A word names a property by its singular, e.g. `suits` => `suit`, as `(suits)` and `for its suits` do.
@@ -2084,10 +2126,10 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
     const sources: string[] = []
     const words = alias.map((word, index) => {
       const variable = index > 0 ? type.variables.get(singularize(word)) : undefined
-      if (!variable || !(variable.enumeration || variable.datatype)) return word
-      if (!variable.enumeration && !type.getType(variable.datatype)?.valueKind && !isValueKindStub(type, variable)) {
-        return word
-      }
+      if (!variable) return word
+      // its own list of values is kept as its plural, e.g. `Suits` for `its "suit" is one of ...`
+      const listed = !!quoted_property_formula.enumerationOf(type, variable.name)
+      if (!listed && !type.getType(variable.datatype)?.valueKind && !isValueKindStub(type, variable)) return word
       sources.push(variable.name)
       return `(${word})`
     })
@@ -2097,6 +2139,14 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
     function isValueKindStub(owner: P.TypeScope, variable: P.ScopeVariable): boolean {
       return !!owner.getType(variable.datatype)?.stub
     }
+  }
+
+  /**
+   * Property `name`'s own list of values on `type`, if it has one -- kept on the property, or as its plural class
+   * variable's instance twin, e.g. `Suits` for `suit` (`define_property_has`).
+   */
+  private static enumerationOf(type: P.TypeScope, name: string): Array<string | number> | undefined {
+    return type.variables.get(name)?.enumeration ?? type.variables.get(pluralize(upperFirst(name)))?.enumeration
   }
 
   /** Compute (and cache in `match.data.bits`) `bits` for making rules and AST nodes -- see the type. */
@@ -2137,7 +2187,9 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
         const typeScope = match.scope.types?.get(type)
         const variable = typeScope?.variables.get(propertyName)
         const kindType = variable?.datatype ? typeScope?.getType(variable.datatype) : undefined
-        const enumeration = variable?.enumeration ?? kindType?.valueKind?.values
+        const enumeration =
+          (typeScope && quoted_property_formula.enumerationOf(typeScope, `${propertyName}`)) ??
+          kindType?.valueKind?.values
         // set up enumeration matcher
         if (variable && enumeration) {
           const placeholder = placeholderData(instanceVar, variable.enumerationValues || enumeration)

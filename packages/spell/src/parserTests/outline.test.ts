@@ -66,7 +66,9 @@ describe("outline style", () => {
     const { files } = parseSpellProject([
       { path: "/test.spell", contents: "a card is a thing\nit has a rank as a number" }
     ])
-    expect(files[0]!.errors).not.toEqual([])
+    expect(files[0]!.errors).toEqual([
+      `2:0 "it" and "its" mean a type only in its outline, indented under e.g. "a card is a thing where:"`
+    ])
   })
 
   test("a property's quotes are optional:  `its rank is ...` (plan doc Q4)", () => {
@@ -281,6 +283,42 @@ describe("outline style", () => {
   test("a bullet is never part of the statement:  `- x` and `x` are the same line", () => {
     expect(compile(["- a card is a thing", "- a card has a rank as a number"])).toBe(
       compile(["a card is a thing", "a card has a rank as a number"])
+    )
+  })
+
+  test("each body line's long form (P6's hover) is the sentence style, and compiles the same", () => {
+    const outline = [
+      "a pile is a list of cards",
+      "a card is a thing where:",
+      "\t- it has a name as text",
+      '\t- its "rank" is a number',
+      "\t- its direction is up or down",
+      '\t- its "suit" is one of clubs, diamonds, hearts or spades',
+      '\t- it "is face up" if its direction is up',
+      '\t- it "is a suit"',
+      '\t- its "color" is red if its suit is either diamonds or hearts otherwise it is black',
+      '\t- its "short name" is: its rank + " of " + its suit',
+      "\t- it belongs to a pile"
+    ]
+    const { files } = parseSpellProject([{ path: "/test.spell", contents: outline.join("\n") }])
+    const typeLine = files[0]!.match!.matched[1] as P.Match
+    const body = (typeLine.data.statement as P.Match).data.body as P.Match
+    const longForms = body.matched
+      .map((line) => (line as P.Match).data.statement as P.Match | undefined)
+      .map((statement) => statement && (statement.rule as SP.SpellStatement).getLongForm(statement))
+    expect(longForms).toEqual([
+      "a card has a name as text",
+      "a card has a rank as a number",
+      "a card has a direction as one of up or down",
+      "a card has a suit as one of clubs, diamonds, hearts or spades",
+      'a card "is face up" if its direction is up',
+      'a card "is a (suit)" for its suits',
+      'the "color" of a card is red if its suit is either diamonds or hearts otherwise it is black',
+      'the "short name" of a card is: its rank + " of " + its suit',
+      "a card belongs to one pile"
+    ])
+    expect(compile(["a pile is a list of cards", "a card is a thing", ...(longForms as string[])])).toBe(
+      compile(outline)
     )
   })
 

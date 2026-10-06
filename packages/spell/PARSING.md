@@ -406,6 +406,11 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     not `it`).
 - Bullets:  a line starting `- ` (`BlockLine.isBullet()`) drops the `-` before the statement is read, on ANY line.
   It stays a token of the line's match, so editors see it.
+- Editors:  hovering an outline line shows **Reads as**, the sentence style's words for it -- each rule's
+  `SpellStatement.getLongForm()` (default:  the subject spelled out, `it has a deck` => `a card has a deck`;
+  `define_property_has`, `belongs_to_one`, `quoted_property_formula`, `draw_side` say theirs).  Compiling the long
+  forms gives the same javascript as the outline (`outline.test.ts`).
+- `it` / `its` starting a line OUTSIDE a type's body says so (`BlockLine.isOutlineLineOutsideBody()`).
 - A property's quotes are optional, `- its rank is a number` (plan doc Q4);  quoted names work in the sentence style
   too, `a card has a "suit" as ...` (J3, option C).  `- it "rank" is ...` is refused, saying to write `its`
   (`quoted_type_expression.isPropertySlip()`).
