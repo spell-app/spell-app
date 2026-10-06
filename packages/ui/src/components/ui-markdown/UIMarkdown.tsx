@@ -103,7 +103,7 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
         }
       )
       createEffect(
-        () => this.connected.get(),
+        () => this.isConnected.get(),
         (connected) => {
           if (!connected) return
           const listeners = new AbortController()

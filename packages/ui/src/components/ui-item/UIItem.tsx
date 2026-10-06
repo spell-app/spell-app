@@ -41,7 +41,7 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
   @E.proto static isPart = true
 
   /** Owner (list, menu), if any. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   /** Light-DOM slot occupancy. */
   readonly slots = new E.SlotContent(this.host)
@@ -82,7 +82,7 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
   })
 
   /** Glyph of the `icon` shorthand;  only loaded once rendered by an owner. */
-  readonly glyph = new E.IconGlyph(this, () => (this.itemContext() ? this.attrs.icon : undefined))
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => (this.itemContext() ? this.attrs.icon : undefined) })
 
   /** Has an icon (shorthand or `icon` slot)? */
   readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))

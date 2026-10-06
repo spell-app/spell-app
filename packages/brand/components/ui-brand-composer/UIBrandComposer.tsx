@@ -64,8 +64,8 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
 
   /** The Cast button's arrow, and the spinner it shows while `casting`;  loaded up front, so neither flashes in. */
   readonly glyphs = {
-    cast: new IconGlyph(this, () => CAST_ICON),
-    casting: new IconGlyph(this, () => CASTING_ICON)
+    cast: new IconGlyph({ owner: this, name: () => CAST_ICON }),
+    casting: new IconGlyph({ owner: this, name: () => CASTING_ICON })
   }
 
   /** The native text box. */
@@ -86,7 +86,7 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
   }
 
   isDisabled(): boolean {
-    return this.attrs.disabled || this.formDisabled.get()
+    return this.attrs.disabled || this.isFormDisabled.get()
   }
 
   /** Can't cast now:  blank, `casting` or disabled;  tracked. */
@@ -132,13 +132,13 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
   /** Adds the value sync (host value => text box, after DOM updates) and the labels' refresh. */
   mount(): JSX.Element {
     createEffect(
-      () => [this.value(), this.loaded()],
+      () => [this.value(), this.isLoaded()],
       () => {
         this.syncControl()
       }
     )
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (connected) this.labels.refresh()
       }
@@ -250,7 +250,7 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
    */
   cast(originalEvent?: Event): boolean {
     const value = this.current()
-    if (!value.trim() || this.hostFlag("casting") || this.hostFlag("disabled") || untrack(this.formDisabled.get)) {
+    if (!value.trim() || this.hostFlag("casting") || this.hostFlag("disabled") || untrack(this.isFormDisabled.get)) {
       return false
     }
     if (!this.emit("ui-cast", { value, originalEvent })) return false

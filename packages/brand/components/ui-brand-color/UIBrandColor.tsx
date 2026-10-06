@@ -79,7 +79,7 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   })
 
   /** The check shown after a copy;  loaded once the chip can copy. */
-  readonly glyph = new IconGlyph(this, () => (this.copyFormat() ? COPIED_ICON : undefined))
+  readonly glyph = new IconGlyph({ owner: this, name: () => (this.copyFormat() ? COPIED_ICON : undefined) })
 
   /** The colour's facts:  ink, contrast of white and ink text, OKLCH;  `undefined` without a colour. */
   readonly facts = createMemo(() => {

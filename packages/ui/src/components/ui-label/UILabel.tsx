@@ -29,16 +29,16 @@ export class UILabel extends E.UIElement<typeof labelVocabulary> {
   @E.proto static Fallback = LabelFallback
 
   /** Owner, when it's a statistic's label. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   /** Light-DOM slot occupancy. */
   readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
 
   /** Glyph of the delete button. */
-  readonly deleteGlyph = new E.IconGlyph(this, () => (this.attrs.removable ? DELETE_ICON : undefined))
+  readonly deleteGlyph = new E.IconGlyph({ owner: this, name: () => (this.attrs.removable ? DELETE_ICON : undefined) })
 
   /** Host `aria-label`, forwarded to the root. */
   readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })

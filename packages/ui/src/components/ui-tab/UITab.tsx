@@ -30,7 +30,7 @@ export class UITab extends E.UIElement<typeof tabVocabulary> {
   @E.proto static delegatesFocus = false
 
   /** Owning tabs. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   /** Host `active`, the alias of `selected`. */
   readonly activeAttribute = new E.HostAttribute({ host: this.host, name: UIT.ACTIVE })
@@ -141,7 +141,7 @@ export class UITab extends E.UIElement<typeof tabVocabulary> {
       }
     )
     createEffect(
-      () => this.loaded() && this.connected.get() && this.state().selected,
+      () => this.isLoaded() && this.isConnected.get() && this.state().selected,
       (shown) => {
         if (shown) this.shown()
       }

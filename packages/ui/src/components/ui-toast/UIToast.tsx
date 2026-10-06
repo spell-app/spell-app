@@ -72,10 +72,10 @@ export class UIToast extends E.UIElement<Vocabulary> {
   readonly isClosingTracked = new E.Cell(false)
 
   /** Glyph of the icon:  the `icon` name, or the type's own for a bare `icon`. */
-  readonly glyph = new E.IconGlyph(this, () => this.iconName())
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.iconName() })
 
   /** Glyph of the close icon. */
-  readonly closeGlyph = new E.IconGlyph(this, () => (this.attrs.closable ? UIT.CLOSE_ICON : undefined))
+  readonly closeGlyph = new E.IconGlyph({ owner: this, name: () => (this.attrs.closable ? UIT.CLOSE_ICON : undefined) })
 
   /** Has slotted actions? */
   readonly hasActions = createMemo(() => this.slots.has(this.slot(ACTIONS)))
@@ -188,11 +188,11 @@ export class UIToast extends E.UIElement<Vocabulary> {
 
   /**
    * Adds the effect that makes it appear while connected (`appear()` / `disappear()`), then the content.
-   * - It waits for the runtime (`loaded`) too, as the render does:  appearing animates the rendered box.
+   * - It waits for the runtime (`isLoaded`) too, as the render does:  appearing animates the rendered box.
    */
   mount(): JSX.Element {
     createEffect(
-      () => this.connected.get() && this.loaded(),
+      () => this.isConnected.get() && this.isLoaded(),
       (isShowing) => {
         if (!isShowing) return
         this.appear()

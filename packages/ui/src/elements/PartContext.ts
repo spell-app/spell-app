@@ -10,7 +10,7 @@ import { E } from "$/ui/core"
  * `<ui-label>` in a statistic, `<ui-icon>` in `<ui-icons>`), plus the page-wide registry of who owns what.
  * - Resolution is `OwnerContext.find()` over the flat tree, with a `barrier` at every registered NON-part
  *   component:  a header inside a segment inside a card stays standalone, as Fomantic's child combinators have it.
- * - `direct` mode (icons):  only the flat-tree parent component counts, skipping its own shadow internals
+ * - `isDirect` mode (icons):  only the flat-tree parent component counts, skipping its own shadow internals
  *   (`.ui.icons > .icon`).
  * - CONDITIONAL owners (`ConditionalOwner`, a part whose controller has `isOwnerOf()`):  asked during the climb,
  *   transparent while they say no -- `<ui-item>` owns its content parts in the Items view only.
@@ -38,20 +38,16 @@ export class PartContext {
   /** Part noun resolved against `ownsParts`, e.g. `header`. */
   readonly noun: string
 
-  /** Only the flat-tree parent component counts (`direct`). */
+  /** Only the flat-tree parent component counts (`<ui-icon>` in `<ui-icons>`). */
   private readonly isDirect: boolean
 
   /** Where the climb stops;  default `PartContext.isBarrier`. */
   private readonly barrier: (element: Element) => boolean
 
-  constructor(
-    host: E.UIHost,
-    noun: string,
-    { direct = false, barrier = PartContext.isBarrier }: PartContextProps = {}
-  ) {
+  constructor({ host, noun, isDirect = false, barrier = PartContext.isBarrier }: PartContextProps) {
     this.host = host
     this.noun = noun
-    this.isDirect = direct
+    this.isDirect = isDirect
     this.barrier = barrier
     this.owner = new E.Cell(this.resolve(), { equals: PartContext.isSameOwner })
     PartContext.contexts.set(host, this)
@@ -269,10 +265,14 @@ export class PartContext {
 
 /** Constructor props for `PartContext`. */
 export type PartContextProps = {
+  /** The element acting as a part. */
+  host: E.UIHost
+  /** Its part noun, resolved against `ownsParts`, e.g. `header`. */
+  noun: string
   /** Only the flat-tree parent component counts (`<ui-icon>` in `<ui-icons>`). */
-  direct?: boolean
+  isDirect?: boolean
   /**
-   * Where the climb stops, ignored with `direct`;  default `PartContext.isBarrier` (any registered non-part
+   * Where the climb stops, ignored with `isDirect`;  default `PartContext.isBarrier` (any registered non-part
    * component).
    * - `<ui-section>` passes `PartContext.noBarrier`:  a section inside a segment inside a section is still nested.
    */

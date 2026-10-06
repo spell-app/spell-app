@@ -190,7 +190,7 @@ export class UIRoot extends E.UIElement<RootVocabulary> {
    * exists, and `text()` throws until then.
    */
   private runtimeText(key: Parameters<UIRoot["text"]>[0]): string | undefined {
-    return this.loaded() ? this.text(key) : undefined
+    return this.isLoaded() ? this.text(key) : undefined
   }
 
   /** Inline style of the slot:  hidden while loading (unless `immediately`);  not drawn while the message or skeletons show. */
@@ -203,12 +203,12 @@ export class UIRoot extends E.UIElement<RootVocabulary> {
   private effects() {
     if (isServer) return
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => (connected ? this.watch() : undefined)
     )
     createEffect(
       () => ({
-        connected: this.connected.get(),
+        connected: this.isConnected.get(),
         icons: this.attrs.icons,
         emoji: this.attrs.emoji,
         assets: this.attrs.assets

@@ -86,13 +86,13 @@ export class UIDocsApi extends E.UIElement<DocsApiVocabulary> {
     const content = super.mount()
     if (isServer) return content
     createEffect(
-      () => (this.loaded() ? this.items() : undefined),
+      () => (this.isLoaded() ? this.items() : undefined),
       (items) => {
         if (items?.length) this.drawn(items)
       }
     )
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (isConnected) => {
         if (!isConnected) return undefined
         window.addEventListener(HASHCHANGE, this.onHashChange)

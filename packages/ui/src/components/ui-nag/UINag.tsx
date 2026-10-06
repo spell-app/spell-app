@@ -36,7 +36,7 @@ export class UINag extends E.UIElement<Vocabulary> {
   ////////////////
 
   /** Glyph of the close icon. */
-  readonly closeGlyph = new E.IconGlyph(this, () => (this.attrs.closable ? UIT.CLOSE_ICON : undefined))
+  readonly closeGlyph = new E.IconGlyph({ owner: this, name: () => (this.attrs.closable ? UIT.CLOSE_ICON : undefined) })
 
   /** Hidden because it was dismissed, now or before (stored):  drives `:state(dismissed)`. */
   readonly isHiddenByDismissal = new E.Cell(untrack(() => this.isHiddenByStorage()))
@@ -84,11 +84,11 @@ export class UINag extends E.UIElement<Vocabulary> {
 
   /**
    * Adds the effect that makes it appear once connected (and not hidden), then the content.
-   * - It waits for the runtime (`loaded`) too, as the render does:  appearing animates the rendered bar.
+   * - It waits for the runtime (`isLoaded`) too, as the render does:  appearing animates the rendered bar.
    */
   mount(): JSX.Element {
     createEffect(
-      () => this.connected.get() && this.loaded(),
+      () => this.isConnected.get() && this.isLoaded(),
       (isShowing) => {
         if (isShowing) this.appear()
         return () => clearTimeout(this.timer)

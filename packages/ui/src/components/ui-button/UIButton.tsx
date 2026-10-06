@@ -47,7 +47,7 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
   readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` attribute;  starts from the cache, so a known icon draws at once. */
-  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
 
   /** Host `aria-label`, forwarded to the inner control (an icon-only button's name). */
   private readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
@@ -83,7 +83,7 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
 
   /** Disabled by its attribute, or by a disabled fieldset. */
   isDisabled(): boolean {
-    return this.attrs.disabled || this.formDisabled.get()
+    return this.attrs.disabled || this.isFormDisabled.get()
   }
 
   /** `active` and `disabled` follow the state, not the attribute;  a joined label takes `labeled` to the wrapper. */
@@ -267,10 +267,10 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
 
   /**
    * Native invokers?  `undefined` until the runtime is loaded (`UI.browser` throws before that), and on the server.
-   * - Render-safe:  reads `loaded()` first, so a button rendered before `UI.load()` settles never touches `UI`.
+   * - Render-safe:  reads `isLoaded()` first, so a button rendered before `UI.load()` settles never touches `UI`.
    */
   private hasNativeInvokers(): boolean | undefined {
-    return !isServer && this.loaded() ? UI.browser.supports.invokers : undefined
+    return !isServer && this.isLoaded() ? UI.browser.supports.invokers : undefined
   }
 
   /**

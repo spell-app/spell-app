@@ -41,7 +41,7 @@ class UIThing extends HTMLElement {
     SVG cache per page.  `IconGlyph.packsFor(element, UI.icons)` is the set an element draws from.
   - `emoji="fomantic"` -- `EmojiData.setFor(element)`;  each set keeps its own loaded names.
   - `RootSettings.generation` changes on any root's change:  `IconGlyph` and `<ui-emoji>` track it (and their
-    `connected`) and redraw.
+    `isConnected`) and redraw.
 - Pages without a root:  `UI.icons.use()` / `reset()` and `EmojiData.use()` set the PAGE's packs and names.
 
 ## Introspection

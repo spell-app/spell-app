@@ -86,7 +86,7 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   isDisabled(): boolean {
-    return this.common.disabled || this.formDisabled.get()
+    return this.common.disabled || this.isFormDisabled.get()
   }
 
   protected hostStates(): Partial<Record<E.StateName<V>, boolean>> {
@@ -147,20 +147,20 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   ////////////////
 
   /**
-   * Adds the value sync (host value => control) and the native-validity reader, both after DOM updates;  `loaded()`
+   * Adds the value sync (host value => control) and the native-validity reader, both after DOM updates;  `isLoaded()`
    * is tracked because the control only exists once the content renders.
    */
   mount() {
     createEffect(
-      () => [this.value(), this.loaded()],
+      () => [this.value(), this.isLoaded()],
       () => this.syncControl()
     )
     createEffect(
-      () => [this.value(), this.constraints(), this.isDisabled(), this.common.readonly, this.loaded()],
+      () => [this.value(), this.constraints(), this.isDisabled(), this.common.readonly, this.isLoaded()],
       () => this.readNativeValidity()
     )
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (connected) this.labels.refresh()
       }

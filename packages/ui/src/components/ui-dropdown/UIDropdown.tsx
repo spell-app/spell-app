@@ -189,7 +189,7 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
   }
 
   isDisabled(): boolean {
-    return this.attrs.disabled || this.formDisabled.get()
+    return this.attrs.disabled || this.isFormDisabled.get()
   }
 
   /** Label for the combobox and listbox:  `placeholder`, else `text`, else `name`. */
@@ -399,7 +399,7 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
 
   /** An icon box drawing `name`:  once loaded in a browser, at once on a server. */
   private iconBox(name: string | undefined): JSX.Element {
-    if (isServer) return <span class={UIT.ICON}>{new E.IconGlyph(this, () => name).svg()}</span>
+    if (isServer) return <span class={UIT.ICON}>{new E.IconGlyph({ owner: this, name: () => name }).svg()}</span>
     return <span class={UIT.ICON} ref={(element) => void UIDropdown.fillIcon(element, name)} />
   }
 
@@ -560,12 +560,12 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
 
   /**
    * Popover + overlay registration while open AND connected;  highlighted row kept in view.
-   * - `connected`:  `keepAlive` keeps an open dropdown's state when it's removed, but the page must not keep its
+   * - `isConnected`:  `keepAlive` keeps an open dropdown's state when it's removed, but the page must not keep its
    *   overlay entry (Escape / outside clicks) for an element that isn't there;  reconnecting re-registers.
    */
   private effects() {
     createEffect(
-      () => this.isOpen() && this.connected.get(),
+      () => this.isOpen() && this.isConnected.get(),
       (isOpen) => {
         const { menu } = this
         if (!isOpen || !menu || !menu.popover) return
@@ -727,7 +727,7 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
     if (next && (this.host.contains(next) || this.host.renderRoot.contains(next))) return
     const id = this.host.id
     if (id && (next as Element | null)?.closest?.(`[commandfor="${CSS.escape(id)}"]`)) return
-    if (this.loaded() && UI.overlays.pressedInvokerOf(this.host)) return
+    if (this.isLoaded() && UI.overlays.pressedInvokerOf(this.host)) return
     this.setOpen(false, event)
   }
 

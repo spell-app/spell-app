@@ -30,13 +30,13 @@ export class UIFeedEvent extends E.UIElement<typeof eventVocabulary> {
   @E.proto static delegatesFocus = false
 
   /** Feed, if any. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   /** Light-DOM slot occupancy. */
   readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
 
   ////////////////
   // ## Derived state

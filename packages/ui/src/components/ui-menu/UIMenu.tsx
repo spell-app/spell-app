@@ -39,7 +39,7 @@ export class UIMenu extends E.UIElement<Vocabulary> implements UIT.ItemOwner {
   @E.proto static delegatesFocus = false
 
   /** Owning menu, when this is a sub-menu. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   /** Host `aria-label`, forwarded to the landmark / menubar. */
   readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
@@ -67,7 +67,7 @@ export class UIMenu extends E.UIElement<Vocabulary> implements UIT.ItemOwner {
   readonly ownContext = createMemo(() => this.computeContext(), { equals: UIMenu.isSameContext })
 
   /** The menubar is live:  top-level, `interactive`, rendered. */
-  readonly isMenubar = createMemo(() => !this.parent() && this.attrs.interactive && this.loaded())
+  readonly isMenubar = createMemo(() => !this.parent() && this.attrs.interactive && this.isLoaded())
 
   /** Listens for clicks on the host (`ui-select`), and runs the roving tabindex while this is a menubar. */
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {

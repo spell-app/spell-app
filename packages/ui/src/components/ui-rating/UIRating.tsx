@@ -49,7 +49,7 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   readonly labels = new F.ControlLabels(this.formHost)
 
   /** The icon, by name. */
-  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
 
   /** The radio group. */
   private group?: HTMLFieldSetElement
@@ -79,7 +79,7 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   }
 
   isDisabled(): boolean {
-    return this.attrs.disabled || this.formDisabled.get()
+    return this.attrs.disabled || this.isFormDisabled.get()
   }
 
   /** Can a person change it?  Tracked. */
@@ -156,11 +156,11 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   /** Adds the radio sync (host value => radios) and label refresh on connect. */
   mount(): JSX.Element {
     createEffect(
-      () => [this.value(), this.max(), this.loaded()] as const,
+      () => [this.value(), this.max(), this.isLoaded()] as const,
       () => this.syncRadios()
     )
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (connected) this.labels.refresh()
       }

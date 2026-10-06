@@ -113,7 +113,7 @@ export class UISticky extends E.UIElement<StickyVocabulary> {
   private watchBox() {
     createEffect(
       () => ({
-        connected: this.connected.get(),
+        connected: this.isConnected.get(),
         offset: this.attrs.offset ?? 0,
         bottomOffset: this.attrs.bottomOffset ?? 0,
         pushing: !!this.attrs.pushing

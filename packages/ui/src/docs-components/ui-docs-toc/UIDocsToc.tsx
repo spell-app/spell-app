@@ -69,7 +69,7 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
     if (isServer) return
     // SIDE EFFECT:  page listeners and the observer, while connected
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (isConnected) => {
         if (isConnected) return this.watch()
       }

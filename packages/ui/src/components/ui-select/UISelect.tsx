@@ -107,7 +107,7 @@ export class UISelect extends F.FormElement<Vocabulary> {
   )
 
   isDisabled(): boolean {
-    return this.attrs.disabled || this.formDisabled.get()
+    return this.attrs.disabled || this.isFormDisabled.get()
   }
 
   /** Name for the select:  its `<label>`s / `aria-label`, else `placeholder`, else `name`. */
@@ -117,7 +117,7 @@ export class UISelect extends F.FormElement<Vocabulary> {
 
   /** Draws the customizable select?  Single only, and only once the runtime (`UI.browser`) is there. */
   private isCustomizable(): boolean {
-    return this.loaded() && !this.attrs.multiple && UI.browser.supports.baseSelect
+    return this.isLoaded() && !this.attrs.multiple && UI.browser.supports.baseSelect
   }
 
   ////////////////
@@ -168,11 +168,11 @@ export class UISelect extends F.FormElement<Vocabulary> {
   /** Adds the DOM sync (state => `<select>`) and the label refresh to `FormElement.mount()`. */
   mount() {
     createEffect(
-      () => [this.values(), this.blocks(), this.isShowingPlaceholder(), this.revision.get(), this.loaded()],
+      () => [this.values(), this.blocks(), this.isShowingPlaceholder(), this.revision.get(), this.isLoaded()],
       () => this.syncSelect()
     )
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (connected) this.labels.refresh()
       }
@@ -234,7 +234,10 @@ export class UISelect extends F.FormElement<Vocabulary> {
    *   content.  A space keeps the description apart from the text there.
    */
   private option(option: E.MenuOption): JSX.Element {
-    const glyph = new E.IconGlyph(this, () => (typeof option.icon === "string" ? option.icon : undefined))
+    const glyph = new E.IconGlyph({
+      owner: this,
+      name: () => (typeof option.icon === "string" ? option.icon : undefined)
+    })
     return (
       <option
         class={UIT.ITEM}

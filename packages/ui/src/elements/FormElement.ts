@@ -11,7 +11,7 @@ import { Validator } from "./Validator"
  * Controller base of form-associated components:  form value, validity, reset, fieldset-disabled.
  * - The fork's `formAssociated` option makes the host a form control;  its host class is a `FormHost` (the
  *   form-control API).  Form callbacks arrive as the fork's hooks:  `onFormReset` => `formReset()`,
- *   `onFormDisabled` => `formDisabled` (in `UIElement`).
+ *   `onFormDisabled` => `isFormDisabled` (in `UIElement`).
  * - Pushes `formValue()` into `ElementInternals.setFormValue()` -- a `string[]` becomes a `FormData` with one
  *   entry per value, so `new FormData(form).getAll(name)` returns them all -- and `rules()` through `Validator`
  *   into `setValidity()`.

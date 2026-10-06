@@ -139,7 +139,7 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
   private effects() {
     createEffect(
       (): { isOn: boolean; kind: DimmerKind } => ({
-        isOn: this.connected.get() && this.isActive(),
+        isOn: this.isConnected.get() && this.isActive(),
         kind: this.attrs.page ? "page" : "element"
       }),
       ({ isOn, kind }) => {
@@ -149,7 +149,7 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
       }
     )
     createEffect(
-      () => (this.connected.get() ? this.attrs.on : undefined),
+      () => (this.isConnected.get() ? this.attrs.on : undefined),
       (on) => (on ? this.listenToParent(on) : undefined)
     )
   }

@@ -130,7 +130,7 @@ export class UIForm extends E.UIElement<Vocabulary> {
   /** Adds the form discovery, its listeners, and the host's own listeners while connected. */
   mount() {
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (!connected || isServer) return
         const observer = new MutationObserver(() => this.findForm())

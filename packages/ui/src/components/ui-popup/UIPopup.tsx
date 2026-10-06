@@ -62,7 +62,7 @@ export class UIPopup extends E.UIElement<Vocabulary> {
 
   /** The target:  `target` property, else `for`, else the previous element sibling;  `undefined` when unbound. */
   readonly target = createMemo((): Element | undefined => {
-    if (!this.connected.get()) return undefined
+    if (!this.isConnected.get()) return undefined
     const property = this.attrs.target
     if (UIPopup.isElement(property)) return property
     const id = this.attrs.for
@@ -213,13 +213,13 @@ export class UIPopup extends E.UIElement<Vocabulary> {
     )
     if (isServer) return this.serverBind()
     createEffect(
-      () => (this.loaded() ? this.popoverMode() : undefined),
+      () => (this.isLoaded() ? this.popoverMode() : undefined),
       (mode) => {
         if (mode && host.popover !== mode) host.popover = mode
       }
     )
     createEffect(
-      () => (this.loaded() ? { target: this.target(), trigger: this.trigger() } : undefined),
+      () => (this.isLoaded() ? { target: this.target(), trigger: this.trigger() } : undefined),
       (binding) => (binding?.target ? this.bind(binding.target, binding.trigger) : undefined)
     )
     createEffect(
@@ -230,7 +230,7 @@ export class UIPopup extends E.UIElement<Vocabulary> {
       (expanded) => expanded?.element.setAttribute(UIT.ARIA_EXPANDED, String(expanded.isOpen))
     )
     createEffect(
-      () => this.loaded() && this.connected.get() && this.isOpen(),
+      () => this.isLoaded() && this.isConnected.get() && this.isOpen(),
       (isOpen) => {
         if (!isOpen) return
         // a `ui-*` target renders async:  its box (or `display: contents`) is only known once it's ready

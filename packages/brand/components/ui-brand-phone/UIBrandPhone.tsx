@@ -26,9 +26,9 @@ export class UIBrandPhone extends UIElement<BrandPhoneVocabulary> {
   @proto static delegatesFocus = false
 
   /** The status bar's icons. */
-  readonly signal = new IconGlyph(this, () => STATUS_ICONS.signal)
-  readonly wifi = new IconGlyph(this, () => STATUS_ICONS.wifi)
-  readonly battery = new IconGlyph(this, () => STATUS_ICONS.battery)
+  readonly signal = new IconGlyph({ owner: this, name: () => STATUS_ICONS.signal })
+  readonly wifi = new IconGlyph({ owner: this, name: () => STATUS_ICONS.wifi })
+  readonly battery = new IconGlyph({ owner: this, name: () => STATUS_ICONS.battery })
 
   /** The region's accessible name:  `label`, else `App preview`;  `""`:  none (no region). */
   readonly name = createMemo(() => this.attrs.label ?? this.text("appPreview"))

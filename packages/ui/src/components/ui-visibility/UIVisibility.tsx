@@ -61,7 +61,7 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
   private watchScreen() {
     createEffect(
       () => ({
-        connected: this.connected.get(),
+        connected: this.isConnected.get(),
         once: this.attrs.once !== false,
         continuous: !!this.attrs.continuous,
         offset: this.attrs.offset ?? 0,

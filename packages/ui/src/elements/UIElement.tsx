@@ -29,15 +29,15 @@ import { UIHost } from "./UIHost"
  * - `attrs`:  the fork's props -- converted, canonical attribute values, one signal each.
  * - `classes()`:  `ClassBuilder.build()` in a memo, over `classValue()` (overridable, e.g. for controlled state).
  * - Styles:  `await UI.load()`, then the class's sheets (`@proto static styles`) are registered once and adopted
- *   into the shadow root;  content renders only then (`loaded()`), so there's no unstyled flash.
+ *   into the shadow root;  content renders only then (`isLoaded()`), so there's no unstyled flash.
  * - Lifecycle:  `keepAlive` -- the controller lives from first connect to `host.dispose()`, across moves;
- *   `connected()` follows the host.  The constructor may create signals / memos / effects for its OWN fields;
+ *   `isConnected` follows the host.  The constructor may create signals / memos / effects for its OWN fields;
  *   effects that call overridable methods are created in `mount()`, after every subclass field exists.
  * - Errors:  the fork's boundary catches anything thrown while constructing, rendering or updating;  `failed()`
  *   logs and dispatches `ui-error`, then the family's `Fallback` (a native `<button>`, `<select>` ...) replaces
  *   the shadow content -- see `renderFallback()`.
  * - NOTE: Solid 2 forbids signal writes inside an owned scope (component body, memo, effect compute).  Write
- *   from event handlers, promise callbacks or the fork's hooks (deferred, see `connected`).
+ *   from event handlers, promise callbacks or the fork's hooks (deferred, see `isConnected`).
  * - Documents ONCE what subclasses fill in, so their plain overrides need no docstring (`AGENTS.md` "Comments &
  *   docs"):
  *   - the class config, set with `@proto static` ("Class config" below):  `vocabulary`, `styles`, `Fallback`,
@@ -119,9 +119,9 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
   declare formAssociated: boolean
 
   /**
-   * Render at once, before the runtime and this class's sheets arrive (`loaded()`), instead of waiting for them.
+   * Render at once, before the runtime and this class's sheets arrive (`isLoaded()`), instead of waiting for them.
    * - For an element whose content must not wait:  `<ui-root>`'s slot (the page) shows the moment the root is
-   *   defined.  Its render MUST look right unstyled (inline styles only) until `loaded()`.
+   *   defined.  Its render MUST look right unstyled (inline styles only) until `isLoaded()`.
    * - Static:  how the class's render is built (`mount()`), the same for every instance.
    */
   declare canRenderUnstyled: boolean
@@ -170,19 +170,19 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
   readonly classes: Accessor<string>
 
   /** Runtime loaded and sheets adopted;  tracked. */
-  readonly loaded: Accessor<boolean>
+  readonly isLoaded: Accessor<boolean>
 
   /**
    * In the document?  Tracked;  follows connects / disconnects one microtask late.
    * - Deferred:  the fork's hooks run inside `connectedCallback`, which may run inside a Solid render (an app
    *   inserting the element), where a signal write would throw.
    */
-  readonly connected: E.Cell<boolean>
+  readonly isConnected: E.Cell<boolean>
 
   /** Disabled by an ancestor `<fieldset disabled>` (form-associated elements only, the fork's hook);  tracked. */
-  readonly formDisabled = new E.Cell(false)
+  readonly isFormDisabled = new E.Cell(false)
 
-  /** Sets `loaded`. */
+  /** Sets `isLoaded`. */
   private readonly setLoaded: (value: boolean) => void
 
   /**
@@ -195,7 +195,7 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
     this.attrs = attrs
     host.controller = this
     this.app = useContext(UIElement.AppContext)
-    this.connected = new E.Cell(isServer || host.isConnected)
+    this.isConnected = new E.Cell(isServer || host.isConnected)
     const classInput = this.classInput()
     // `lazy`:  memos compute EAGERLY in Solid 2, and this one calls overridable methods that read subclass
     // fields, which don't exist yet while this constructor runs
@@ -206,22 +206,22 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
     const isRuntimeLoaded =
       isServer || (E.RUNTIME_KEY in globalThis && !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY])
     const [loaded, setLoaded] = createSignal(isRuntimeLoaded)
-    this.loaded = loaded
+    this.isLoaded = loaded
     this.setLoaded = setLoaded
     if (isServer) return
     const root = host.renderRoot
     const onSlotChange = (event: Event) => E.PartContext.slotChanged(event.target as HTMLSlotElement)
     root.addEventListener("slotchange", onSlotChange)
     host.addReleaseCallback(() => root.removeEventListener("slotchange", onSlotChange))
-    const sync = () => queueMicrotask(() => this.connected.set(host.isConnected))
+    const sync = () => queueMicrotask(() => this.isConnected.set(host.isConnected))
     onConnect(sync)
     onDisconnect(sync)
     // the fork replays the last state to a late registration -- i.e. right here, inside the component body,
     // where Solid 2 forbids the write:  defer it then;  platform calls (no owner) write at once
     if (this.formAssociated) {
       onFormDisabled((disabled) => {
-        if (getOwner()) queueMicrotask(() => this.formDisabled.set(disabled))
-        else this.formDisabled.set(disabled)
+        if (getOwner()) queueMicrotask(() => this.isFormDisabled.set(disabled))
+        else this.isFormDisabled.set(disabled)
       })
     }
     if (!isRuntimeLoaded) void UI.load().then(() => this.onLoaded())
@@ -235,7 +235,7 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
 
   /**
    * Hook:  the component's shadow content (JSX).
-   * - Runs ONCE, under the element's owner, after its sheets are adopted (`loaded()`;  at once with
+   * - Runs ONCE, under the element's owner, after its sheets are adopted (`isLoaded()`;  at once with
    *   `canRenderUnstyled`):  what changes later is reactive inside the JSX, not a re-render.
    * - An owned scope:  NEVER write a signal here.
    */
@@ -279,7 +279,7 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
   /**
    * Hook:  can't the element be used right now?  Default never.
    * - The host swallows clicks while it says so (`UIHost`);  an element with a `disabled` attribute overrides it
-   *   (`<ui-card>`, `<ui-step>`, the form controls with `formDisabled`).
+   *   (`<ui-card>`, `<ui-step>`, the form controls with `isFormDisabled`).
    */
   isDisabled(): boolean {
     return false
@@ -296,7 +296,7 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
   mount(): JSX.Element {
     // adopted HERE when the runtime was already loaded:  `sheetNames()` is overridable and may read subclass
     // fields, which don't exist yet while the base constructor runs
-    if (!isServer && untrack(this.loaded)) this.adoptStyles()
+    if (!isServer && untrack(this.isLoaded)) this.adoptStyles()
     // a RENDER effect:  a throw in `hostStates()` (a subclass's, in the compute) must reach the fork's error
     // boundary, for `:state(errored)` and the fallback -- a plain effect's error is only logged
     createRenderEffect(
@@ -306,7 +306,7 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
       }
     )
     createEffect(
-      () => this.loaded(),
+      () => this.isLoaded(),
       (isLoaded) => {
         if (isLoaded) queueMicrotask(() => this.host.markReady())
       }
@@ -316,11 +316,11 @@ export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVoc
     createEffect(
       () => this.sheetNames().join(separator),
       (names) => {
-        if (untrack(this.loaded)) UI.styles.adoptInto(this.host.renderRoot, names ? names.split(separator) : [])
+        if (untrack(this.isLoaded)) UI.styles.adoptInto(this.host.renderRoot, names ? names.split(separator) : [])
       },
       { defer: true }
     )
-    return <Show when={this.canRenderUnstyled || this.loaded()}>{this.render()}</Show>
+    return <Show when={this.canRenderUnstyled || this.isLoaded()}>{this.render()}</Show>
   }
 
   /**

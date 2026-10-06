@@ -127,7 +127,7 @@ export abstract class SourceElement<V extends E.ComponentVocabulary = E.Componen
 
   /**
    * Start following inline content and `source`, then render.
-   * - The load effect tracks `source`, `load` and `connected`:  a change stops the old load and schedules the new
+   * - The load effect tracks `source`, `load` and `isConnected`:  a change stops the old load and schedules the new
    *   one;  disconnecting stops it.
    */
   mount(): JSX.Element {
@@ -140,7 +140,7 @@ export abstract class SourceElement<V extends E.ComponentVocabulary = E.Componen
         })
       }
       createEffect(
-        () => ({ source: this.sourceAttribute(), mode: this.loadMode(), connected: this.connected.get() }),
+        () => ({ source: this.sourceAttribute(), mode: this.loadMode(), connected: this.isConnected.get() }),
         ({ source, mode, connected }) => {
           if (!connected) return
           this.stopLoad = this.schedule(source, mode)

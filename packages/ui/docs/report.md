@@ -720,11 +720,11 @@ Counted by `LocCount` (non-blank, non-comment lines as "code").  The fork is not
 The rules are in `AGENTS.md`, "Solid authoring".
 - **Eager memos:**  Solid 2 memos compute at creation;  base-class memos that call overridables are
   `{ lazy: true }`, and effects that call overridables are created in `mount()`, after subclass fields exist.
-- **No signal writes in owned scopes:**  the fork's hooks can run inside a Solid render, so `connected` and the
-  fieldset `formDisabled` replay are deferred a microtask.
+- **No signal writes in owned scopes:**  the fork's hooks can run inside a Solid render, so `isConnected` and the
+  fieldset `isFormDisabled` replay are deferred a microtask.
 - **Writes land on a microtask:**  tests `flush()` (`ElementFixture.settle()` / `tick()`).
 - **`keepAlive` has a cost:**  a removed element keeps its reactive root until `dispose()` or garbage collection;
-  anything page-wide (overlay entries) must follow `connected`, not disposal.
+  anything page-wide (overlay entries) must follow `isConnected`, not disposal.
 - **Dev diagnostics** flag the `classes()` memo as `WIDE_SCOPE_DEPS` (it reads every attribute);  the production
   build drops them.
 
@@ -831,7 +831,7 @@ other than esm.sh / unpkg are blocked.  Each host mounts ONE `<ui-dropdown>` wit
     `<UIElement.AppContext value="from-the-app">` and the controller inside reads it (owner adoption across the
     custom-element boundary, through the fork's shadow-crossing owner lookup)
   - **signal => prop** (`hostSetsValue`) and **`ui-change` => signal** (`pickUpdatesHost`) with no glue
-  - plus the app's own context, unmount, and `overlaysAfterUnmount` (the overlay entry follows `connected`)
+  - plus the app's own context, unmount, and `overlaysAfterUnmount` (the overlay entry follows `isConnected`)
 
 ### Other pages
 

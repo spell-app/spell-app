@@ -82,7 +82,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
 
   /** Can't be used now:  `disabled`, or a disabled fieldset / form;  tracked. */
   isDisabled(): boolean {
-    return this.common.disabled || this.formDisabled.get()
+    return this.common.disabled || this.isFormDisabled.get()
   }
 
   /** Value submitted while chosen. */
@@ -160,7 +160,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   /** Adds the input sync (host state => input) and the `checked` attribute alias. */
   mount() {
     createEffect(
-      () => [this.isSelected(), this.loaded(), this.indeterminate()] as const,
+      () => [this.isSelected(), this.isLoaded(), this.indeterminate()] as const,
       ([selected, , indeterminate]) => {
         if (!this.control) return
         this.control.checked = selected
@@ -173,7 +173,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
       { defer: true }
     )
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (connected) this.labels.refresh()
       }
