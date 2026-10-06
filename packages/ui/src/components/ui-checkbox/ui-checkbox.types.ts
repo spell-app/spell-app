@@ -54,7 +54,7 @@ export const SHARED_ATTRIBUTES = [
   {
     name: "value",
     kind: "string",
-    description: "Value submitted while chosen;  default `on`, as a native checkbox."
+    description: "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`)."
   },
   { name: "name", kind: "string", description: "Form field name." },
   { name: "required", kind: "boolean", description: "Form validation:  must be chosen (a radio:  one of its group)." },
@@ -66,7 +66,8 @@ export const SHARED_EVENTS = [
   {
     name: "ui-change",
     detail: "{ selected: boolean, value: string, originalEvent?: Event }",
-    description: "Someone chose or unchose it (a radio:  only the newly chosen one fires)."
+    description:
+      "Someone chose or unchose it (a radio:  only the newly chosen one fires);  `value`:  what it stands for after the change, a checkbox's `off-value` once unchosen."
   }
 ] as const
 
@@ -118,13 +119,28 @@ export type RadioMember = {
   /** Makes the group required?  Tracked. */
   isRequired(): boolean
   /** Its value;  tracked. */
-  choiceValue(): string
+  chosenValue(): string
   /** Choose / unchoose it without an event. */
   setSelected(selected: boolean): void
 }
 
+/** What `CheckHost` asks its controller for:  the values it submits (`CheckControl`). */
+export type CheckValues = {
+  /** Submitted while chosen;  tracked. */
+  chosenValue(): string
+  /** Submitted while unchosen;  none ~== nothing.  Tracked. */
+  unchosenValue(): string | undefined
+}
+
 /** The part of a checkbox / radio host the fallback touches;  optional, the element may not have upgraded. */
-export type NativeCheckHost = HTMLElement & { selected?: boolean }
+export type NativeCheckHost = HTMLElement & {
+  /** chosen now */
+  selected?: boolean
+  /** submitted while chosen (`CheckHost`) */
+  chosenValue?: string
+  /** submitted while unchosen (`CheckHost`) */
+  unchosenValue?: string
+}
 
 ////////////////
 // ## Words

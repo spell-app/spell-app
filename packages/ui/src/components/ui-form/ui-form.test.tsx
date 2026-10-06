@@ -417,6 +417,16 @@ describe("<ui-form> values", () => {
       nameless: "by id"
     })
   })
+
+  it("reads `off-value`:  a lone unchosen box reports it;  several of one name list what each submits", async () => {
+    const { host } = await form(`<ui-form><form>
+      <ui-checkbox name="panel" value="open" off-value="closed">Panel</ui-checkbox>
+      <ui-checkbox name="lamp" value="lit" off-value="dark" selected>Lamp</ui-checkbox>
+      <ui-checkbox name="sizes" value="s" selected>S</ui-checkbox><ui-checkbox name="sizes" value="m" off-value="no m">M</ui-checkbox>
+      <input type="checkbox" name="native" aria-label="Native">
+    </form></ui-form>`)
+    expect(host.values).toEqual({ panel: "closed", lamp: "lit", sizes: ["s", "no m"], native: false })
+  })
 })
 
 ////////////////

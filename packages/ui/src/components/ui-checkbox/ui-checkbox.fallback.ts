@@ -8,8 +8,9 @@ import { CHECKBOX, CHECKED, RADIO, SWITCH, type CheckPartName, type NativeCheckH
  * The element's markup, plain DOM:  `<div part="checkbox" class="ui … checkbox">` holding a native
  * `<input part="control">` and its `<label for part="label">` around the slot.
  * - A `<ui-radio>` host gets `type="radio"`, and the `radio` class.
- * - Still a form control:  `change` pushes `value` (default `on`) into the host's form value while chosen, the
- *   input's validity into the host's, sets `host.selected`, and dispatches a composed `ui-change`.
+ * - Still a form control:  `change` pushes what the box submits into the host's form value -- the host's
+ *   `chosenValue` / `unchosenValue` (class defaults included), else the `value` (default `on`) / `off-value`
+ *   attributes -- the input's validity into the host's, sets `host.selected`, and dispatches a composed `ui-change`.
  * - Starting state:  the host's `selected` PROPERTY, else its `selected` / `checked` attributes.
  * - Accessible name:  the slotted text, else the host's `aria-label`.
  ****************/
@@ -49,7 +50,8 @@ export class CheckboxFallback extends E.NativeFallback<typeof checkboxVocabulary
     this.listen(input, "change", (event) => {
       host.selected = input.checked
       this.sync()
-      const detail = { selected: input.checked, value: this.value(), originalEvent: event }
+      const value = (input.checked ? undefined : this.unchosenValue()) ?? this.chosenValue()
+      const detail = { selected: input.checked, value, originalEvent: event }
       host.dispatchEvent(new CustomEvent(this.vocabulary.events[0].name, { bubbles: true, composed: true, detail }))
     })
     this.input = input
@@ -66,15 +68,23 @@ export class CheckboxFallback extends E.NativeFallback<typeof checkboxVocabulary
     const { input, formInternals } = this
     if (!input || !formInternals) return
     const name = this.attr("name")
+    const value = input.checked ? this.chosenValue() : this.unchosenValue()
     // `null`:  `setFormValue()`'s "submit nothing"
-    formInternals.setFormValue(name && input.checked ? this.value() : null)
+    formInternals.setFormValue(name && value !== undefined ? value : null)
     if (input.validity.valid) formInternals.setValidity({})
     else formInternals.setValidity(input.validity, input.validationMessage, input)
   }
 
-  /** What the box submits while chosen:  its `value`, else the native default. */
-  private value(): string {
-    return this.attr("value") ?? UIT.CHECKBOX_DEFAULT_VALUE
+  /** What the box submits while chosen:  the host's `chosenValue`, else its `value`, else the native default. */
+  private chosenValue(): string {
+    return (this.host as NativeCheckHost).chosenValue ?? this.attr("value") ?? UIT.CHECKBOX_DEFAULT_VALUE
+  }
+
+  /** What the box submits while unchosen:  the host's `unchosenValue`, else its `off-value`;  a radio:  nothing. */
+  private unchosenValue(): string | undefined {
+    const host = this.host as NativeCheckHost
+    if (host.localName === radioVocabulary.tag) return undefined
+    return host.unchosenValue ?? this.attr("off-value")
   }
 
   /**

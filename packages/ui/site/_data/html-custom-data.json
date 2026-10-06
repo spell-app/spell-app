@@ -1946,7 +1946,7 @@
           "name": "value",
           "description": {
             "kind": "markdown",
-            "value": "Value submitted while chosen;  default `on`, as a native checkbox.\n\nTakes:  text"
+            "value": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`).\n\nTakes:  text"
           }
         },
         {
@@ -1968,6 +1968,13 @@
           "description": {
             "kind": "markdown",
             "value": "Label text;  slotted content is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "off-value",
+          "description": {
+            "kind": "markdown",
+            "value": "Value submitted while unchosen:  `value=\"open\" off-value=\"closed\"`;  default its class's `offValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen.\n\nTakes:  text"
           }
         }
       ]
@@ -9550,7 +9557,7 @@
           "name": "value",
           "description": {
             "kind": "markdown",
-            "value": "Value submitted while chosen;  default `on`, as a native checkbox.\n\nTakes:  text"
+            "value": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`).\n\nTakes:  text"
           }
         },
         {

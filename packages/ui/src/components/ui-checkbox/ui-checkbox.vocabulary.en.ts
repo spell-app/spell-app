@@ -38,7 +38,13 @@ export const checkboxVocabulary = {
       kind: "keyOnly",
       description: "Neither on nor off (a dash);  a click clears it, as natively."
     },
-    ...SHARED_ATTRIBUTES
+    ...SHARED_ATTRIBUTES,
+    {
+      name: "off-value",
+      kind: "string",
+      description:
+        'Value submitted while unchosen:  `value="open" off-value="closed"`;  default its class\'s `offValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen.'
+    }
   ],
   events: SHARED_EVENTS,
   slots: [{ name: "", description: "Label content." }],

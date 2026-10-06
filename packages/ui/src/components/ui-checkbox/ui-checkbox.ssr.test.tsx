@@ -51,6 +51,15 @@ describe("<ui-checkbox> static render", () => {
     expect(html).toMatch(/class="ui read-only checkbox"[^>]*><input [^>]*aria-readonly="true"/)
   })
 
+  it("leaves `off-value` out (a native box can't submit one) and the default `value` too", () => {
+    const [panel, plain] = StaticRender.fragment(
+      `<ui-checkbox name="panel" value="open" off-value="closed">P</ui-checkbox><ui-checkbox name="news">N</ui-checkbox>`
+    ).match(/<input [^>]*>/g)!
+    expect(panel).toContain(`value="open"`)
+    expect(panel).not.toContain("closed")
+    expect(plain).not.toContain("value=")
+  })
+
   it("renders a radio group:  one name, the chosen radio checked", () => {
     const html = StaticRender.fragment(
       `<ui-radio name="size" value="s">S</ui-radio><ui-radio name="size" value="m" selected>M</ui-radio>`

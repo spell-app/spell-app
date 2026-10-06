@@ -5,7 +5,7 @@ import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
 import { CheckboxFallback } from "./ui-checkbox.fallback"
 import { CheckHost } from "./CheckHost"
-import { CHECKBOX, CHECKED, type CheckVocabulary, type CommonAttributes } from "./ui-checkbox.types"
+import { CHECKBOX, CHECKED, type CheckValues, type CheckVocabulary, type CommonAttributes } from "./ui-checkbox.types"
 
 import checkboxCSS from "./ui-checkbox.css?inline"
 
@@ -17,17 +17,33 @@ import checkboxCSS from "./ui-checkbox.css?inline"
  * - `selected` is auto-controlled:  the input's `change` dispatches `ui-change` first;  a handler that re-sets
  *   `el.selected` wins (the input shows the host's state again).  `checked` is its alias:  the host property
  *   (`CheckHost`) and the `checked` ATTRIBUTE, which selects it like markup selects a native checkbox.
- * - Form value:  `value` (default `on`) while chosen, nothing otherwise;  reset restores the starting state.
+ * - Form value:  `chosenValue()` while chosen -- `value`, else the class's `onValue` (`on`) -- and `unchosenValue()`
+ *   otherwise (`<ui-checkbox>`'s `off-value`;  none:  nothing);  reset restores the starting state.
+ *   - A subclass changes both for every element it defines:  `@E.proto static onValue = "open"` (`offValue` on
+ *     `UICheckbox`).
+ *   - `required` reads the chosen state only:  an off-value never counts as chosen.
  * - Role comes from the input (checkbox / radio;  `switch` for toggles and sliders), its name from the slotted
  *   label -- else from the host's `<label for>` / `aria-label` (`ControlLabels`), for a `fitted` box.
  * - A click aimed at the HOST (its `<label for>`, `host.click()`) clicks the input.
  * - `readonly`:  clicks are cancelled, so the state never changes;  still submitted.
  * - `:state(invalid)` only after interaction, as `TextControl`.
  ****************/
-export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> extends F.FormElement<V> {
+export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
+  extends F.FormElement<V>
+  implements CheckValues
+{
+  /**
+   * Submitted while chosen, when the element has no `value`.
+   * - `@proto`:  a subclass sets its own for every element it defines.
+   */
+  declare readonly onValue: string
+
   @E.proto static Host = CheckHost
   @E.proto static styles = { checkbox: checkboxCSS }
   @E.proto static Fallback = CheckboxFallback
+
+  /** Default:  `on`, as a native checkbox. */
+  @E.proto static onValue = UIT.CHECKBOX_DEFAULT_VALUE
 
   /** How a form reads it. */
   abstract readonly checkable: "checkbox" | "radio"
@@ -85,9 +101,14 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     return this.common.disabled || this.isFormDisabled.get()
   }
 
-  /** Value submitted while chosen. */
-  choiceValue(): string {
-    return this.common.value ?? UIT.CHECKBOX_DEFAULT_VALUE
+  /** Submitted while chosen:  `value`, else the class's `onValue`;  tracked. */
+  chosenValue(): string {
+    return this.common.value ?? this.onValue
+  }
+
+  /** Submitted while unchosen;  none ~== nothing (a radio:  always none, its group submits).  Tracked. */
+  unchosenValue(): string | undefined {
+    return undefined
   }
 
   /** Has label text (slot or shorthand)? */
@@ -127,9 +148,14 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   // ## Form
   ////////////////
 
-  /** `value` while chosen;  nothing to submit otherwise. */
+  /** `chosenValue()` while chosen, else `unchosenValue()`. */
   formValue(): E.FieldValue {
-    return this.isSelected() ? this.choiceValue() : undefined
+    return this.isSelected() ? this.chosenValue() : this.unchosenValue()
+  }
+
+  /** The chosen state only:  an off-value never satisfies `required`. */
+  protected validationValue(): E.FieldValue {
+    return this.isSelected() ? this.chosenValue() : undefined
   }
 
   protected formName(): string | undefined {
@@ -190,11 +216,19 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
    * Server render only (`$/ui/static`):  what the native input needs to submit without JS -- `name`, `value`,
    * `checked` -- and the `STATIC_CONTROL` mark;  `{}` in a browser, where the HOST submits (`ElementInternals`)
    * and an effect sets `checked`.
+   * - `value` left out when it's the native default.
+   * - No off-value:  a native box can't submit one, and a hidden input of the same name would send both while
+   *   chosen (epic `wwod-spell-ui`, J44).
    */
   protected staticControl(): Record<string, unknown> {
     if (!isServer) return {}
-    const { name, value } = this.common
-    return { [UIT.STATIC_CONTROL]: "", name, value, checked: this.isSelected() }
+    const value = this.chosenValue()
+    return {
+      [UIT.STATIC_CONTROL]: "",
+      name: this.common.name,
+      value: value === UIT.CHECKBOX_DEFAULT_VALUE ? undefined : value,
+      checked: this.isSelected()
+    }
   }
 
   render(): JSX.Element {
@@ -251,11 +285,13 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
 
   /**
    * A transition to `selected` someone made (a click, a key):  `ui-change`, then the host property, unless a handler re-set it.
+   * - `detail.value`:  what it stands for after the change -- `chosenValue()`, or once unchosen, `unchosenValue()`
+   *   when there is one.
    * - Returns true when applied.
    */
   choose(selected: boolean, originalEvent?: Event): boolean {
     this.isTouched.set(true)
-    const value = this.choiceValue()
+    const value = (selected ? undefined : this.unchosenValue()) ?? this.chosenValue()
     const applied = this.selectedState.request(selected as never, () =>
       this.emit("ui-change" as never, { selected, value, originalEvent })
     )

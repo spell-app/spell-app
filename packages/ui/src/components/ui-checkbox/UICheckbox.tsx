@@ -11,8 +11,17 @@ import { CHECKBOX, SWITCH } from "./ui-checkbox.types"
  * - `indeterminate`:  the input's `indeterminate` (a dash, `aria-checked="mixed"`);  a click clears it, as
  *   natively, by writing `indeterminate = false` to the host.
  * - `required` => Fomantic's `checked` rule (`valueMissing`).
+ * - `off-value`:  submitted while unchosen, so a box toggles between two values (`value="open" off-value="closed"`);
+ *   a subclass sets both for every element it defines:
+ *   `class UIDoor extends UICheckbox { @E.proto static onValue = "open";  @E.proto static offValue = "closed" }`.
  ****************/
 export class UICheckbox extends CheckControl<typeof checkboxVocabulary> {
+  /**
+   * Submitted while unchosen, when the element has no `off-value`;  left out:  nothing, as a native checkbox.
+   * - `@proto`:  a subclass sets its own for every element it defines.
+   */
+  declare readonly offValue?: string
+
   @E.proto static vocabulary = checkboxVocabulary
 
   readonly checkable = CHECKBOX
@@ -23,6 +32,11 @@ export class UICheckbox extends CheckControl<typeof checkboxVocabulary> {
 
   protected role(): string | undefined {
     return this.attrs.type ? SWITCH : undefined
+  }
+
+  /** `off-value`, else the class's `offValue`. */
+  unchosenValue(): string | undefined {
+    return this.attrs.offValue ?? this.offValue
   }
 
   protected indeterminate(): boolean {

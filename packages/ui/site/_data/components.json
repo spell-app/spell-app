@@ -2159,7 +2159,7 @@
         {
           "name": "value",
           "kind": "string",
-          "description": "Value submitted while chosen;  default `on`, as a native checkbox."
+          "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`)."
         },
         {
           "name": "name",
@@ -2175,6 +2175,11 @@
           "name": "label",
           "kind": "string",
           "description": "Label text;  slotted content is the rich version."
+        },
+        {
+          "name": "off-value",
+          "kind": "string",
+          "description": "Value submitted while unchosen:  `value=\"open\" off-value=\"closed\"`;  default its class's `offValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen."
         }
       ],
       "slots": [
@@ -2187,7 +2192,7 @@
         {
           "name": "ui-change",
           "detail": "{ selected: boolean, value: string, originalEvent?: Event }",
-          "description": "Someone chose or unchose it (a radio:  only the newly chosen one fires)."
+          "description": "Someone chose or unchose it (a radio:  only the newly chosen one fires);  `value`:  what it stands for after the change, a checkbox's `off-value` once unchosen."
         }
       ],
       "parts": [
@@ -10083,7 +10088,7 @@
         {
           "name": "value",
           "kind": "string",
-          "description": "Value submitted while chosen;  default `on`, as a native checkbox."
+          "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`)."
         },
         {
           "name": "name",
@@ -10111,7 +10116,7 @@
         {
           "name": "ui-change",
           "detail": "{ selected: boolean, value: string, originalEvent?: Event }",
-          "description": "Someone chose or unchose it (a radio:  only the newly chosen one fires)."
+          "description": "Someone chose or unchose it (a radio:  only the newly chosen one fires);  `value`:  what it stands for after the change, a checkbox's `off-value` once unchosen."
         }
       ],
       "parts": [
