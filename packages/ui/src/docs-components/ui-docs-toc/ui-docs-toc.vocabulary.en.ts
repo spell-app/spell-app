@@ -25,6 +25,7 @@ export const docsTocVocabulary = {
     {
       name: "for",
       kind: "string",
+      property: "htmlFor",
       description:
         "Id of the element whose headings to list.  A `<ui-tabs>`:  its SHOWN pane, followed as the tabs switch.  " +
         "Default:  the page's `<main>`, else `<body>`."

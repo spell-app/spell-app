@@ -41,6 +41,7 @@ export const SHARED_ATTRIBUTES = [
   {
     name: "readonly",
     kind: "keyOnly",
+    property: "readOnly",
     key: "read-only",
     description: "Shows its state but can't be changed;  still submitted."
   },

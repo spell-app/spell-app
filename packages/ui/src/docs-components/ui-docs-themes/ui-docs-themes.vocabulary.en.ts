@@ -27,6 +27,7 @@ export const docsThemesVocabulary = {
     {
       name: "for",
       kind: "string",
+      property: "htmlFor",
       description:
         "A tag, e.g. `ui-button`:  list only the themes that restyle its family, and say how many (`3 Themes`), as " +
         "Fomantic's per-page theme dropdown does.  Spell, Plain and Classic stay on top."

@@ -57,6 +57,7 @@ export const dropdownVocabulary = {
     {
       name: "readonly",
       kind: "keyOnly",
+      property: "readOnly",
       key: "read-only",
       description: "Shows its value but can't be changed;  submitted with the form (unlike `disabled`)."
     },

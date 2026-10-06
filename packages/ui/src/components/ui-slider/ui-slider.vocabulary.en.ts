@@ -28,6 +28,7 @@ export const sliderVocabulary = {
     {
       name: "readonly",
       kind: "keyOnly",
+      property: "readOnly",
       key: "read-only",
       description: "Shows its value but can't be changed;  still focusable and submitted."
     },

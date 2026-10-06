@@ -71,6 +71,7 @@ export const calendarVocabulary = {
     {
       name: "readonly",
       kind: "boolean",
+      property: "readOnly",
       description: "Shows its value but can't be changed;  submitted with the form (unlike `disabled`)."
     },
     { name: "placeholder", kind: "string", description: "Text shown in the empty field;  its accessible name too." },

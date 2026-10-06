@@ -28,7 +28,7 @@ export class UINagHost extends E.UIHost {
   }
 
   /** A dismissal is stored (and not expired);  `false` without a `key`. */
-  get isDismissed(): boolean {
+  get dismissed(): boolean {
     return this.nag?.isDismissed() ?? false
   }
 }

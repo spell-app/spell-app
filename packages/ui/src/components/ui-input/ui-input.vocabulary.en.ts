@@ -68,6 +68,7 @@ export const inputVocabulary = {
     {
       name: "readonly",
       kind: "boolean",
+      property: "readOnly",
       description: "Shows its value but can't be edited;  submitted with the form (unlike `disabled`)."
     },
     {
@@ -123,15 +124,19 @@ export const inputVocabulary = {
     {
       name: "minlength",
       kind: "number",
+      property: "minLength",
       description: "Constraint:  fewest characters (checked once someone has edited it)."
     },
-    { name: "maxlength", kind: "number", description: "Constraint:  most characters." },
+    { name: "maxlength", kind: "number", property: "maxLength", description: "Constraint:  most characters." },
     { name: "multiple", kind: "boolean", description: "`email` / `file`:  accepts several values." },
     { name: "accept", kind: "string", description: "`file`:  accepted file types." },
     { name: "autocomplete", kind: "string", description: "Autofill hint, forwarded to the native input." },
     {
       name: "inputmode",
       kind: "enum",
+      // Shadows `HTMLElement.inputMode` on purpose:  same attribute, same meaning, forwarded to the native input
+      // (unlike `<ui-divider hidden>`, which means something else:  `dividerHidden`)
+      property: "inputMode",
       values: ["none", "text", "decimal", "numeric", "tel", "search", "email", "url"],
       description:
         "Virtual keyboard hint, forwarded to the native input.  `decimal` / `numeric` also give the number look " +
