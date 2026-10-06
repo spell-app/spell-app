@@ -70,7 +70,7 @@ describe("Overlays", () => {
 
   it("sends Escape only to the topmost entry, and shadows page shortcuts", () => {
     const pageShortcut = vi.fn()
-    keyboard.register("page", "Escape", pageShortcut)
+    keyboard.register({ chord: "Escape", handler: pageShortcut })
     const modal = entry("modal")
     const popover = entry("popover")
     overlays.open(modal)

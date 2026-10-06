@@ -47,7 +47,7 @@ async function settle() {
 
 /** Pretend the user asked for reduced motion, until `afterEach`. */
 function reduceMotion() {
-  Object.defineProperty(UI.browser, "reducedMotion", { value: true, configurable: true })
+  Object.defineProperty(UI.browser, "isReducedMotion", { value: true, configurable: true })
 }
 
 beforeEach(async () => {
@@ -55,7 +55,7 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
-  delete (UI.browser as { reducedMotion?: boolean }).reducedMotion
+  delete (UI.browser as { isReducedMotion?: boolean }).isReducedMotion
 })
 
 describe("<ui-transition> classes and first paint", () => {

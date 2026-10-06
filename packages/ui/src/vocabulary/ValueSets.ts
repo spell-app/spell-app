@@ -1,26 +1,45 @@
 import { numberToWord, proto, suggest } from "$/ui/util"
-
 import type { AttributeKind, AttributeSpec, ValueSetName } from "./vocabulary.types"
 
-/**
+/****************
+ * ### `ValueSets`
  * The shared English value sets attribute values are checked against:  hues, sizes, positions, alignments ...
  * - Why shared:  a hue or size means the same thing on every component, so vocabularies reference a set by key
  *   (`values: "hues"`) and a translation maps it ONCE (`Dictionary.values.hues`).
  * - Data is `@proto static` (on the prototype, and on the class as a static), so a theme which adds hues
  *   calls `ValueSets.add("hues", "indigo")` and every reader sees it.
  * - Helpers are static:  there is one set of canonical values per page.
- */
+ * - Pure data, no DOM, imports only `$/ui/util`:  node reads it with the vocabularies (`yarn site:data`).
+ ****************/
 export class ValueSets {
+  ////////////////
+  // ## The sets, as the prototype holds them
+  ////////////////
+
+  // What `@proto` puts on the prototype, typed:  `get()` reads them there, so `add()` and subclasses are seen.
+  // ALSO the one list of set names:  `ValueSetName` is `keyof ValueSets`, so a new set needs its line here.
+
+  /** `ValueSets.hues` */
   declare hues: readonly string[]
+  /** `ValueSets.sizes` */
   declare sizes: readonly string[]
+  /** `ValueSets.positions` */
   declare positions: readonly string[]
+  /** `ValueSets.attachments` */
   declare attachments: readonly string[]
+  /** `ValueSets.alignments` */
   declare alignments: readonly string[]
+  /** `ValueSets.verticalAlignments` */
   declare verticalAlignments: readonly string[]
+  /** `ValueSets.floats` */
   declare floats: readonly string[]
+  /** `ValueSets.widths` */
   declare widths: readonly string[]
+  /** `ValueSets.devices` */
   declare devices: readonly string[]
+  /** `ValueSets.booleans` */
   declare booleans: readonly string[]
+  /** `ValueSets.topics` */
   declare topics: readonly string[]
 
   ////////////////
@@ -95,7 +114,7 @@ export class ValueSets {
   @proto static floats = ["left", "right"] as const
 
   /**
-   * Column counts of the 16-column grid, as strings.
+   * Column counts of the grid (`GRID_COLUMNS`, 16), as strings.
    * - `ValueSets.has("widths", ...)` ALSO accepts words (`four`), fractions (`1/4`) and percentages (`25%`),
    *   via `ValueSets.columns()`.
    */
@@ -228,7 +247,7 @@ export class ValueSets {
    *   `multiple` => `devices`, `boolean` => `booleans`
    * - `undefined` for free-form kinds (`string`, `number`, `json`, `width`, `keyOnly`).
    */
-  static of(spec: AttributeSpec): ValueSetName | readonly string[] | undefined {
+  static setFor(spec: AttributeSpec): ValueSetName | readonly string[] | undefined {
     return spec.values ?? KIND_VALUES[spec.kind]
   }
 
@@ -237,20 +256,13 @@ export class ValueSets {
   ////////////////
 
   /**
-   * Fomantic's word for column count 1..16, e.g. `4` => `"four"`;  `undefined` otherwise.
-   * - Same as `$/ui/util`'s `numberToWord()`, here so value-set users needn't import both.
-   */
-  static numberToWord(value: number | string): string | undefined {
-    return numberToWord(value)
-  }
-
-  /**
-   * Parse a width into a column count out of 16, WITHOUT rounding, so callers can warn on inexact values.
+   * Parse a width into a column count out of `GRID_COLUMNS` (16), WITHOUT rounding, so callers can warn on inexact
+   * values.
    * - `4` / `"4"` => `4`
    * - `"four"` => `4`
    * - `"1/4"` => `4`;  `"1/3"` => `5.33...`
    * - `"25%"` => `4`
-   * - Returns `undefined` for anything unparseable or outside `(0, 16.5)`.
+   * - Returns `undefined` for anything unparseable or outside `(0, 16.5)`:  what rounds to `1`..`GRID_COLUMNS`.
    */
   static columns(value: string | number): number | undefined {
     let columns: number
@@ -259,27 +271,30 @@ export class ValueSets {
       const text = value.trim()
       const fraction = FRACTION.exec(text)
       const percent = PERCENT.exec(text)
-      if (fraction) columns = (16 * Number(fraction[1])) / Number(fraction[2])
-      else if (percent) columns = (16 * Number(percent[1])) / 100
+      if (fraction) columns = (GRID_COLUMNS * Number(fraction[1])) / Number(fraction[2])
+      else if (percent) columns = (GRID_COLUMNS * Number(percent[1])) / 100
       else if (NUMBER.test(text)) columns = Number(text)
       else columns = ValueSets.wordColumns().get(text.toLowerCase()) ?? NaN
     }
-    return Number.isFinite(columns) && columns > 0 && columns < 16.5 ? columns : undefined
+    return Number.isFinite(columns) && columns > 0 && columns < GRID_COLUMNS + 0.5 ? columns : undefined
   }
 
-  /** True for an integer column count 1..16. */
+  /** True for an integer column count `1`..`GRID_COLUMNS`. */
   static isColumnCount(columns: number) {
-    return Number.isInteger(columns) && columns >= 1 && columns <= 16
+    return Number.isInteger(columns) && columns >= 1 && columns <= GRID_COLUMNS
   }
 
   ////////////////
   // ## Internals
   ////////////////
 
-  /** `Set` per value array, for O(1) `has()`;  weak, so arrays replaced by `add()` drop out. */
-  private static sets = new WeakMap<readonly string[], Set<string>>()
+  /**
+   * `Set` per value array, for O(1) `has()`;  weak, so arrays replaced by `add()` drop out.
+   * - Static:  a page-wide cache, like the sets it indexes.
+   */
+  private static readonly sets = new WeakMap<readonly string[], Set<string>>()
 
-  /** Lazily-built `"four"` => `4` map for `columns()`. */
+  /** Lazily-built `"four"` => `4` map for `columns()`;  static, as the words are the same for every set. */
   private static words: Map<string, number> | undefined
 
   /** `Set` of `values`, built once per array. */
@@ -293,13 +308,16 @@ export class ValueSets {
   private static wordColumns() {
     if (!ValueSets.words) {
       ValueSets.words = new Map()
-      for (let columns = 1; columns <= 16; columns++) ValueSets.words.set(numberToWord(columns)!, columns)
+      for (let columns = 1; columns <= GRID_COLUMNS; columns++) ValueSets.words.set(numberToWord(columns)!, columns)
     }
     return ValueSets.words
   }
 }
 
-/** Default value set per attribute kind, for `ValueSets.of()`. */
+/** Columns of Fomantic's grid:  what a width counts out of (`width="4"` ~== a quarter). */
+const GRID_COLUMNS = 16
+
+/** Default value set per attribute kind, for `ValueSets.setFor()`. */
 const KIND_VALUES: Partial<Record<AttributeKind, ValueSetName>> = {
   color: "hues",
   size: "sizes",

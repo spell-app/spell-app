@@ -7,9 +7,11 @@ import {
   type SourceText
 } from "./runtime.types"
 
-/**
+/****************
+ * ### `Sources`
  * Text files elements show and save, as `UI.sources`:  `<ui-include>`, `<ui-code>` and `<ui-markdown>` load their
  * `source` here, and `save()` goes back through here.
+ * - In the runtime's lazy chunk;  imports only `./runtime.types`.  `SourceElement` (the elements' base) calls it.
  * - Same origin ONLY:  a URL on another origin is refused before any fetch (`SourceError` `cross-origin`), and so
  *   is everything on a `file://` page (`file-protocol`), whose fetches the browser blocks anyway.  Why:  included
  *   markup runs in this page, and a save must go to the server that served it.
@@ -20,7 +22,7 @@ import {
  *   registered rejects with `no-saver`.  A successful save updates the cache, so the next `load()` sees it.
  * - NOTE: `ETag`s come from the response headers;  a server that sends none still loads, but its saver gets
  *   `etag: undefined` and can't detect a conflict.
- */
+ ****************/
 export class Sources {
   /** writes text back;  set by the host page, e.g. the docs runtime on the page server */
   saver?: SourceSaver
@@ -60,7 +62,7 @@ export class Sources {
    * - Rejects with `SourceError` (`cross-origin`, `file-protocol`, `load`), or an `AbortError` when `signal`
    *   aborts first.
    */
-  load(source: string, options: SourceLoadOptions = {}): Promise<SourceText> {
+  load(source: string, { fresh, signal }: SourceLoadOptions = {}): Promise<SourceText> {
     let url: URL
     try {
       url = this.resolve(source)
@@ -68,7 +70,7 @@ export class Sources {
       return Promise.reject(error)
     }
     const key = url.href
-    let pending = options.fresh ? undefined : this.cache.get(key)
+    let pending = fresh ? undefined : this.cache.get(key)
     if (!pending) {
       pending = this.fetch(key)
       this.cache.set(key, pending)
@@ -77,7 +79,7 @@ export class Sources {
         if (this.cache.get(key) === pending) this.cache.delete(key)
       })
     }
-    return options.signal ? Sources.abortable(pending, options.signal) : pending
+    return signal ? Sources.abortable(pending, signal) : pending
   }
 
   /** Drop `source`'s cache entry, or every entry. */
@@ -156,7 +158,10 @@ export class Sources {
   // ## Helpers
   ////////////////
 
-  /** `promise`, or an `AbortError` as soon as `signal` aborts. */
+  /**
+   * `promise`, or an `AbortError` as soon as `signal` aborts.
+   * - STATIC:  pure, no cache of its own.
+   */
   private static abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
     if (signal.aborted) return Promise.reject(signal.reason)
     return new Promise<T>((resolve, reject) => {

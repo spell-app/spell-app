@@ -71,7 +71,7 @@ export class UIReveal extends UIElement<typeof revealVocabulary> {
         part={this.part("reveal")}
         tabindex={this.isStop() ? 0 : undefined}
         role={this.isStop() ? GROUP : undefined}
-        aria-label={this.isStop() ? (this.ariaLabel.get() ?? undefined) : undefined}
+        aria-label={this.isStop() ? this.ariaLabel.get() : undefined}
       >
         <div class={VISIBLE} part={this.part("visible")}>
           <slot name={this.slot("visible")} />

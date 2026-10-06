@@ -1,23 +1,23 @@
 import { isBrowser } from "$/ui/util"
 
-import { APPLE_PLATFORM, type BrowserSupports } from "./runtime.types"
+import type { BrowserSupports } from "./runtime.types"
 
-/**
+/****************
+ * ### `Browser`
  * Browser sniffing and feature flags, as `UI.browser`.
  * - ONE place for "can this browser do X":  call sites read `UI.browser.supports.popoverHint`,
  *   NEVER a user-agent check of their own (see `AGENTS.md` "Platform").
  * - Constructs anywhere:  outside a browser (SSR, node tooling) every flag is `false`.
- * - `supports` is detected once, on first read;  media-query flags (`reducedMotion`, `prefersDark`)
+ * - `supports` is detected once, on first read;  media-query flags (`isReducedMotion`, `isDark`)
  *   are live, re-read on every access.
- */
+ ****************/
 export class Browser {
-  /** cache for `supports`, filled on first read */
-  private detected?: BrowserSupports
-
   /** Feature flags, detected once on first read -- see `BrowserSupports`. */
   get supports(): BrowserSupports {
     return (this.detected ??= this.detect())
   }
+  /** cache for `supports`, filled on first read */
+  private detected?: BrowserSupports
 
   ////////////////
   // ## Engines and platforms
@@ -43,21 +43,21 @@ export class Browser {
    * - NOTE: Chrome / Edge / Android UAs also say "Safari", hence the exclusions.
    */
   get isSafari(): boolean {
-    const ua = this.userAgent
-    return /Safari\//.test(ua) && !/Chrom(e|ium)\/|Edg\/|Android/.test(ua)
+    const userAgent = this.userAgent
+    return /Safari\//.test(userAgent) && !/Chrom(e|ium)\/|Edg\/|Android/.test(userAgent)
   }
 
   /** iPhone / iPad, including iPadOS which reports itself as a Mac with a touch screen. */
   get isIOS(): boolean {
-    const nav = this.navigator
-    if (!nav) return false
-    return /iPad|iPhone|iPod/.test(nav.userAgent) || (/Mac/.test(nav.userAgent) && nav.maxTouchPoints > 1)
+    const navigator = this.navigator
+    if (!navigator) return false
+    const { userAgent } = navigator
+    return /iPad|iPhone|iPod/.test(userAgent) || (/Mac/.test(userAgent) && navigator.maxTouchPoints > 1)
   }
 
   /** Apple platform:  `Mod` in shortcuts means Meta (Cmd), not Ctrl. */
   get isApple(): boolean {
-    const nav = this.navigator
-    return !!nav && APPLE_PLATFORM.test(nav.platform || nav.userAgent)
+    return Browser.isApplePlatform(this.navigator)
   }
 
   /** Primary pointer is coarse (finger), or the device has a touch screen. */
@@ -66,16 +66,16 @@ export class Browser {
   }
 
   ////////////////
-  // ## User preferences (live)
+  // ## Preferences (live)
   ////////////////
 
-  /** User asked for reduced motion;  `Transitions` then skips animations.  Live. */
-  get reducedMotion(): boolean {
+  /** The person asked for reduced motion (`prefers-reduced-motion`);  `Transitions` then skips animations.  Live. */
+  get isReducedMotion(): boolean {
     return this.matches("(prefers-reduced-motion: reduce)")
   }
 
-  /** OS / browser is in dark mode.  Live. */
-  get prefersDark(): boolean {
+  /** The OS / browser is in dark mode (`prefers-color-scheme`).  Live. */
+  get isDark(): boolean {
     return this.matches("(prefers-color-scheme: dark)")
   }
 
@@ -85,7 +85,7 @@ export class Browser {
 
   /** `navigator`, or `undefined` outside a browser. */
   private get navigator(): Navigator | undefined {
-    return typeof navigator === "undefined" ? undefined : navigator
+    return globalThis.navigator
   }
 
   /** `navigator.userAgent`, or `""` outside a browser. */
@@ -155,7 +155,26 @@ export class Browser {
       typeof CSSContainerRule !== "undefined" && rule instanceof CSSContainerRule && /style\(/.test(rule.conditionText)
     )
   }
+
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * Is `navigator` an Apple platform's (`Mod` means Meta, not Ctrl)?  `false` outside a browser.
+   * - STATIC:  `Chord.parse()` asks before any runtime exists (and in tests);  `isApple` asks it too.
+   * - `navigator.platform`, falling back to `navigator.userAgent`.
+   */
+  static isApplePlatform(navigator: Navigator | undefined = globalThis.navigator): boolean {
+    return !!navigator && APPLE_PLATFORM.test(navigator.platform || navigator.userAgent)
+  }
 }
+
+/**
+ * Platforms whose primary shortcut modifier is Meta (Cmd), not Ctrl.
+ * - Tested against `navigator.platform`, falling back to `navigator.userAgent`.
+ */
+const APPLE_PLATFORM = /Mac|iPhone|iPad|iPod/i
 
 /** `navigator` with Chromium's `userAgentData`, which TypeScript's DOM lib doesn't declare. */
 type NavigatorWithUAData = Navigator & {

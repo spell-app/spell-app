@@ -21,7 +21,7 @@ export const placeholderParagraphVocabulary = {
   tag: "ui-placeholder-paragraph",
   topics: ["loading", "content parts", "elements"],
   aka: ["skeleton text", "skeleton paragraph"],
-  skeleton: null,
+  skeleton: false,
   noun: "paragraph",
   ui: false,
   description: "The skeleton of a paragraph:  a block of lines, of varied lengths unless set.",

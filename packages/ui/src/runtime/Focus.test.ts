@@ -61,7 +61,7 @@ describe("Focus.focusables()", () => {
     const root = Fixture.render(`<div><button>a</button><button>b</button><button>c</button></div>`)
     expect(focus.first(root)?.textContent).toBe("a")
     expect(focus.last(root)?.textContent).toBe("c")
-    expect(focus.first(Fixture.render(`<p>none</p>`))).toBeNull()
+    expect(focus.first(Fixture.render(`<p>none</p>`))).toBeUndefined()
   })
 })
 
@@ -73,6 +73,16 @@ describe("Focus", () => {
     input.focus()
     expect(document.activeElement).toBe(host)
     expect(focus.activeElementDeep()).toBe(input)
+  })
+
+  it("activeElementDeep() of another document is undefined when only ITS <body> has focus", () => {
+    const frame = Fixture.render<HTMLIFrameElement>(`<iframe></iframe>`)
+    const other = frame.contentDocument!
+    expect(other.activeElement).toBe(other.body)
+    expect(focus.activeElementDeep(other)).toBeUndefined()
+    const input = other.body.appendChild(other.createElement("input"))
+    input.focus()
+    expect(focus.activeElementDeep(other)).toBe(input)
   })
 
   it("containsDeep() follows slots and shadow hosts", () => {

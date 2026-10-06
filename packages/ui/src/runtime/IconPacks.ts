@@ -4,8 +4,10 @@ import { BuiltInPacks, DEFAULT_ICON_PACK, IconName } from "$/ui/icons"
 import type { IconPackOptions, ResolvedIcon } from "./runtime.types"
 import { IconPack } from "./IconPack"
 
-/**
+/****************
+ * ### `IconPacks`
  * Icon packs and the SVG cache, as `UI.icons` (`docs/icons.md`).
+ * - In the runtime's lazy chunk;  imports the icon PACK format (`$/ui/icons`) and `IconPack`, never a pack itself.
  * - A pack is a folder of SVGs plus its index, `pack.js`.  Packs are added in order and the LAST one added wins a
  *   name;  `prefix:name` asks one pack.
  * - Starts on first use (any lookup or `use()`), not on construction, so a page that never draws an icon loads no
@@ -19,7 +21,7 @@ import { IconPack } from "./IconPack"
  *   fetch an SVG once.
  * - No sanitizing:  a pack's SVGs are verified when it's built (`IconPackBuilder`), and adding a pack runs its
  *   `pack.js`, so the page trusts it like any script it adds.
- */
+ ****************/
 export class IconPacks {
   /** every pack source in order, loaded or not */
   private sources: IconPackSource[] = []
@@ -29,13 +31,12 @@ export class IconPacks {
   private readonly templates: Map<string, IconTemplate>
   /** `register()`ed icons, by normalized name;  consulted before any pack.  Shared with child sets. */
   private readonly registered: Map<string, SVGSVGElement>
+  /** a child set's parent set, asked at each lookup (see `IconPacksProps.parent`);  none for the page's */
+  private readonly parent?: () => IconPacks
 
-  /**
-   * The page's set (`UI.icons`), or a child set (`scope()`) over `parent`.
-   * - `parent` is a FUNCTION, asked at each lookup, so a root nested in another always sits over the outer root's
-   *   CURRENT set, even after the outer one changes its packs.
-   */
-  constructor(private readonly parent?: () => IconPacks) {
+  /** The page's set (`UI.icons`), or a child set (`scope()`) over `parent`. */
+  constructor({ parent }: IconPacksProps = {}) {
+    this.parent = parent
     const top = parent?.()
     this.templates = top?.templates ?? new Map()
     this.registered = top?.registered ?? new Map()
@@ -49,7 +50,7 @@ export class IconPacks {
    * - `assets`:  the folder built-in packs load from (`<assets>icon-packs/<id>/pack.js`), relative to the page.
    */
   scope(sources: readonly string[], { assets, parent }: { assets?: string; parent?: () => IconPacks } = {}): IconPacks {
-    const child = new IconPacks(parent ?? (() => this))
+    const child = new IconPacks({ parent: parent ?? (() => this) })
     for (const source of sources) child.add({ source, options: {} }, assets)
     return child
   }
@@ -145,7 +146,9 @@ export class IconPacks {
    */
   register(name: string, svg: string | SVGSVGElement) {
     const template = typeof svg === "string" ? IconPacks.parse(svg) : IconPacks.adopt(svg)
-    if (!template) throw new Error(`UI.icons.register("${name}"):  not an <svg>`)
+    if (!template) {
+      throw new TypeError(`UI.icons.register():  "${name}" is not an <svg>;  pass SVG text or an <svg> element`)
+    }
     this.registered.set(IconName.normalize(name), template)
   }
 
@@ -170,14 +173,14 @@ export class IconPacks {
    */
   private add(source: Omit<IconPackSource, "promise" | "pack">, assets?: string): IconPackSource {
     const entry = source as IconPackSource
-    const url = IconPacks.url(entry.source, assets)
+    const url = IconPacks.urlFor(entry.source, assets)
     entry.promise =
       url === undefined
         ? Promise.resolve(undefined)
         : IconPack.load(url, entry.options).then(
             (pack) => (entry.pack = pack),
             (error: unknown) => {
-              Warnings.warn("UI.icons", `icon pack ${url} didn't load:`, error)
+              Warnings.warn(WARNING_SOURCE, `icon pack ${url} didn't load:`, error)
               return undefined
             }
           )
@@ -189,15 +192,16 @@ export class IconPacks {
   /**
    * Where `source` (a built-in id or a URL) loads from, or `undefined` (warned) when that can't be worked out:  a
    * malformed URL, or a built-in pack with no `BuiltInPacks.base` (an IIFE bundle has no `import.meta.url`).
+   * - STATIC:  a pure lookup, the same for every set.
    */
-  private static url(source: string, assets?: string): string | undefined {
+  private static urlFor(source: string, assets?: string): string | undefined {
     try {
-      const page = typeof document === "undefined" ? undefined : document.baseURI
+      const page = IconPack.pageUrl()
       return BuiltInPacks.has(source)
         ? BuiltInPacks.url(source, assets === undefined ? undefined : new URL(assets, page).href)
         : new URL(source, page).href
     } catch (error) {
-      Warnings.warn("UI.icons", `icon pack ${source} has no usable URL:`, error)
+      Warnings.warn(WARNING_SOURCE, `icon pack ${source} has no usable URL:`, error)
       return undefined
     }
   }
@@ -227,7 +231,10 @@ export class IconPacks {
     return entry.promise
   }
 
-  /** SVG text -> a template owned by the page's document, or `undefined` if it isn't an `<svg>`. */
+  /**
+   * SVG text -> a template owned by the page's document, or `undefined` if it isn't an `<svg>`.
+   * - STATIC:  pure, the same for every set.
+   */
   private static parse(text: string): SVGSVGElement | undefined {
     const root = new DOMParser().parseFromString(text, SVG_TYPE).documentElement
     return root instanceof SVGSVGElement ? IconPacks.adopt(root) : undefined
@@ -240,6 +247,7 @@ export class IconPacks {
    *   sheets set `fill: currentColor` on icon `<svg>`s (for slotted SVGs without one), and CSS beats a
    *   presentation attribute, but not an inline style.
    * - The file itself is untouched;  its licence comment stays in the copy.
+   * - STATIC:  pure, the same for every set.
    */
   private static adopt(svg: SVGSVGElement): SVGSVGElement {
     const copy = document.importNode(svg, true)
@@ -250,10 +258,20 @@ export class IconPacks {
   }
 }
 
+/** Constructor props for `IconPacks`. */
+export type IconPacksProps = {
+  /**
+   * A child set's parent:  a FUNCTION, asked at each lookup, so a root nested in another always sits over the outer
+   * root's CURRENT set, even after the outer one changes its packs.
+   */
+  parent?: () => IconPacks
+}
+
 /** One added pack:  where from, how, and its load. */
 type IconPackSource = {
   /** URL or built-in id */
   source: string
+  /** how `use()` added it */
   options: IconPackOptions
   /** settles with the pack, or `undefined` if it failed */
   promise: Promise<IconPack | undefined>
@@ -263,10 +281,14 @@ type IconPackSource = {
 
 /** One cached SVG. */
 type IconTemplate = {
+  /** its load, shared by every caller;  never rejects */
   promise: Promise<SVGSVGElement | undefined>
   /** once loaded;  `undefined` after settling ~== miss */
   svg?: SVGSVGElement
 }
+
+/** `Warnings` source of this class's warnings. */
+const WARNING_SOURCE = "UI.icons"
 
 /** MIME type `DOMParser` needs for SVG. */
 const SVG_TYPE = "image/svg+xml"

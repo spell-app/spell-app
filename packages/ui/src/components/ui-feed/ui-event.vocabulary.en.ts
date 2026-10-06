@@ -15,7 +15,7 @@ export const eventVocabulary = {
   tag: "ui-event",
   topics: ["social", "content parts", "views"],
   aka: ["activity", "feed item", "timeline entry"],
-  skeleton: null,
+  skeleton: false,
   noun: "event",
   ui: false,
   description: "One event of a feed:  a label (a picture, an icon, a number) beside what happened.",

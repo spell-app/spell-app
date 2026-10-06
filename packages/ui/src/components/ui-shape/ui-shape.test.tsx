@@ -59,7 +59,7 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
-  delete (UI.browser as { reducedMotion?: boolean }).reducedMotion
+  delete (UI.browser as { isReducedMotion?: boolean }).isReducedMotion
 })
 
 describe("<ui-shape> classes and markup", () => {
@@ -169,7 +169,7 @@ describe("<ui-shape> flipping", () => {
   })
 
   it("reduced motion:  an instant swap, ui-change all the same", async () => {
-    Object.defineProperty(UI.browser, "reducedMotion", { value: true, configurable: true })
+    Object.defineProperty(UI.browser, "isReducedMotion", { value: true, configurable: true })
     const { host, box, sides } = await shape(`<ui-shape>${SIDES}</ui-shape>`)
     const details = changes(host)
     const done = host.next()

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vite-plus/test"
 
-import { ThemeSheets } from "$/ui/styles"
+import { UI } from "$/ui/runtime"
 import { ValueSets } from "$/ui/vocabulary"
 import { sectionVocabulary } from "$/ui/components/ui-section/ui-section.vocabulary.en"
 import { expectAccessible } from "$/ui/test/a11y"
@@ -171,7 +171,7 @@ describe("<ui-panel>", () => {
   it('`color="accent"`, where a theme adds the hue (`spell-brand`), is the ivory look', async () => {
     // what the brand bundle does (`packages/brand/src/hues.ts`)
     ValueSets.add("hues", "accent")
-    await ThemeSheets.apply("spell-brand")
+    await (await UI.load()).themes.apply("spell-brand")
     try {
       const host = await ElementFixture.render(`<ui-panel header="Theme" color="accent"><p>x</p></ui-panel>`)
       await ElementFixture.settle()
@@ -179,7 +179,7 @@ describe("<ui-panel>", () => {
       // accent-100
       await vi.waitFor(() => expect(getComputedStyle(part(host, "title")).backgroundColor).toBe("rgb(247, 239, 226)"))
     } finally {
-      await ThemeSheets.apply(undefined)
+      await UI.themes.apply(undefined)
     }
   })
 

@@ -4,7 +4,6 @@ import { userEvent } from "vite-plus/test/browser"
 import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UI } from "$/ui/runtime"
-import { ThemeSheets } from "$/ui/styles"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 import {
@@ -114,7 +113,7 @@ async function clean() {
   }
   ThemePreference.reset()
   ThemePreference.applyScheme("system")
-  await ThemeSheets.apply(undefined)
+  await (await UI.load()).themes.apply(undefined)
 }
 
 beforeEach(async () => {
@@ -217,7 +216,7 @@ describe("<ui-docs-themes> overlay", () => {
         .slice(4)
         .map(([value]) => value)
         .sort()
-    ).toEqual([...ThemeSheets.names].sort())
+    ).toEqual([...UI.themes.names].sort())
     expect(list).toContainEqual(["github", "GitHub"])
     expect(list.map(([value]) => value)).not.toContain("dark")
     expect(row(host, SPELL).getAttribute("aria-checked")).toBe("true")
@@ -262,10 +261,10 @@ describe("<ui-docs-themes> overlay", () => {
     const changes: DocsThemesChange[] = []
     host.addEventListener("ui-change", (event) => changes.push((event as CustomEvent<DocsThemesChange>).detail))
     row(host, "github").click()
-    await vi.waitFor(() => expect(UI.styles.has(ThemeSheets.SLOTS.theme)).toBe(true))
-    expect(ThemeSheets.current).toBe("github")
-    const base = UI.styles.sheet(ThemeSheets.SLOTS.base)!
-    const theme = UI.styles.sheet(ThemeSheets.SLOTS.theme)!
+    await vi.waitFor(() => expect(UI.styles.has(UI.themes.slots.theme)).toBe(true))
+    expect(UI.themes.current).toBe("github")
+    const base = UI.styles.sheet(UI.themes.slots.base)!
+    const theme = UI.styles.sheet(UI.themes.slots.theme)!
     expect(document.adoptedStyleSheets).toEqual(expect.arrayContaining([base, theme]))
     expect(probe.shadowRoot!.adoptedStyleSheets).toEqual(expect.arrayContaining([base, theme]))
     expect(changes).toMatchObject([{ theme: "github", scheme: "system", shown: "light" }])
@@ -282,11 +281,11 @@ describe("<ui-docs-themes> overlay", () => {
   it("Plain:  no sheet at all", async () => {
     const host = await render(`<ui-docs-themes></ui-docs-themes>`)
     row(host, "classic").click()
-    await vi.waitFor(() => expect(UI.styles.has(ThemeSheets.SLOTS.base)).toBe(true))
-    expect(UI.styles.has(ThemeSheets.SLOTS.theme)).toBe(false)
+    await vi.waitFor(() => expect(UI.styles.has(UI.themes.slots.base)).toBe(true))
+    expect(UI.styles.has(UI.themes.slots.theme)).toBe(false)
     row(host, DEFAULT_VALUE).click()
-    await vi.waitFor(() => expect(UI.styles.has(ThemeSheets.SLOTS.base)).toBe(false))
-    expect(ThemeSheets.current).toBeUndefined()
+    await vi.waitFor(() => expect(UI.styles.has(UI.themes.slots.base)).toBe(false))
+    expect(UI.themes.current).toBeUndefined()
     expect(part(host, "palette").getAttribute("aria-label")).toBe("Theme:  Plain")
   })
 })
@@ -341,7 +340,7 @@ describe("<ui-docs-themes> scheme", () => {
     const [first, second] = wrapper.querySelectorAll("ui-docs-themes")
     part(first!, "scheme").click()
     row(first!, "github").click()
-    await vi.waitFor(() => expect(ThemeSheets.current).toBe("github"))
+    await vi.waitFor(() => expect(UI.themes.current).toBe("github"))
     await ElementFixture.settle()
     expect(part(second!, "theme").getAttribute("value")).toBe("github")
     expect(second!.matches(":state(dark)")).toBe(true)
@@ -363,7 +362,7 @@ describe("<ui-docs-themes> dropdown (show=theme)", () => {
     const listed = dropdownRows(host)
       .slice(4)
       .map(([value]) => value)
-    expect(listed.sort()).toEqual(buttons.filter((name) => ThemeSheets.names.includes(name)).sort())
+    expect(listed.sort()).toEqual(buttons.filter((name) => UI.themes.names.includes(name)).sort())
     expect(listed).toContain("github")
     expect(listed).not.toContain("gmail")
     expect(labelOf(host)).toBe(`${listed.length} themes`)
@@ -378,7 +377,7 @@ describe("<ui-docs-themes> dropdown (show=theme)", () => {
       else inner.push(event)
     })
     pick(host, "material")
-    await vi.waitFor(() => expect(ThemeSheets.current).toBe("material"))
+    await vi.waitFor(() => expect(UI.themes.current).toBe("material"))
     expect(changes).toMatchObject([{ theme: "material" }])
     expect(inner).toEqual([])
     await ElementFixture.settle()
@@ -418,17 +417,17 @@ describe("<ui-docs-themes> persistence", () => {
     const host = await render(`<ui-docs-themes></ui-docs-themes>`)
     part(host, "scheme").click()
     row(host, "material").click()
-    await vi.waitFor(() => expect(ThemeSheets.current).toBe("material"))
+    await vi.waitFor(() => expect(UI.themes.current).toBe("material"))
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBe("material")
     expect(localStorage.getItem(DOCS_LOOK_KEYS.scheme)).toBe("dark")
 
     // "the next page":  nothing applied, nothing in memory
     ThemePreference.reset()
     ThemePreference.applyScheme("system")
-    await ThemeSheets.apply(undefined)
+    await UI.themes.apply(undefined)
     await ThemePreference.restore()
     expect(htmlScheme().dark).toBe(true)
-    expect(ThemeSheets.current).toBe("material")
+    expect(UI.themes.current).toBe("material")
     const next = await render(`<ui-docs-themes></ui-docs-themes>`)
     expect(row(next, "material").getAttribute("aria-checked")).toBe("true")
     expect(shownOf(next)).toBe("dark")
@@ -441,11 +440,11 @@ describe("<ui-docs-themes> persistence", () => {
     part(host, "system").click()
     row(host, "github").click()
     row(host, SPELL).click()
-    await vi.waitFor(() => expect(ThemeSheets.current).toBe(SPELL))
+    await vi.waitFor(() => expect(UI.themes.current).toBe(SPELL))
     expect(localStorage.getItem(DOCS_LOOK_KEYS.scheme)).toBeNull()
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBeNull()
     row(host, DEFAULT_VALUE).click()
-    await vi.waitFor(() => expect(ThemeSheets.current).toBeUndefined())
+    await vi.waitFor(() => expect(UI.themes.current).toBeUndefined())
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBe(DOCS_PLAIN_THEME)
     // the next page keeps Plain
     ThemePreference.reset()
@@ -473,8 +472,8 @@ describe("<ui-docs-themes> persistence", () => {
   it("with nothing stored, restore() applies the Spell theme", async () => {
     expect(DOCS_DEFAULT_THEME).toBe(SPELL)
     await ThemePreference.restore()
-    expect(ThemeSheets.current).toBe(SPELL)
-    expect(UI.styles.has(ThemeSheets.SLOTS.theme)).toBe(true)
+    expect(UI.themes.current).toBe(SPELL)
+    expect(UI.styles.has(UI.themes.slots.theme)).toBe(true)
   })
 
   it("HEAD_SCRIPT applies the stored scheme (or an old key's) synchronously, and never throws", () => {
@@ -496,7 +495,7 @@ describe("<ui-docs-themes> persistence", () => {
     localStorage.setItem(DOCS_LOOK_KEYS.theme, "no-such-theme")
     ThemePreference.reset()
     await ThemePreference.restore()
-    expect(ThemeSheets.current).toBe(DOCS_DEFAULT_THEME)
+    expect(UI.themes.current).toBe(DOCS_DEFAULT_THEME)
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBeNull()
     expect(ThemePreference.look.theme).toBe(DOCS_DEFAULT_THEME)
   })

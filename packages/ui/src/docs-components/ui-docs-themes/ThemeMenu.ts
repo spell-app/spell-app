@@ -9,13 +9,13 @@ import { CLASSIC, DEFAULT_VALUE, SPELL, SPELL_BRAND, type DocsThemesText } from 
  * What `<ui-docs-themes>`' dropdown lists, and its text:  plain data, no Solid, so the element and the native
  * fallback share it.
  * - Entries:  Spell (our own theme, the docs' default), Plain (our own look, no theme), Classic, then a
- *   `Fomantic themes` header over every Fomantic theme (`ThemeSheets.names`, A-Z by title).
+ *   `Fomantic themes` header over every Fomantic theme (`UI.themes.names`, A-Z by title).
  * - `for`:  only the Fomantic themes whose `SiteTheme.families` hold that tag's family;  Spell, Plain and Classic
  *   stay.  Until the site data arrives (or if it can't, or doesn't know the tag), the list is unfiltered;  titles
  *   fall back to the sheet name.
  ****************/
 export class ThemeMenu {
-  /** The Fomantic theme names there are (`ThemeSheets.names`). */
+  /** The Fomantic theme names there are (`UI.themes.names`). */
   readonly names: readonly string[]
 
   /** The site data, once loaded. */

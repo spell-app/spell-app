@@ -30,9 +30,10 @@ class AliasTokensCommand {
     const write = args.includes("--write")
     if (!family) throw new Error("usage:  yarn tokens:alias <family> [--write]")
 
-    const tokens = new ComponentTokens(this.read(this.files("src/components", /\.vocabulary\.en\.ts$/)), [
-      ...Object.values(this.read(this.files("src/styles", /\.css$/)))
-    ])
+    const tokens = new ComponentTokens({
+      vocabularies: this.read(this.files("src/components", /\.vocabulary\.en\.ts$/)),
+      foundation: Object.values(this.read(this.files("src/styles", /\.css$/)))
+    })
     const sheets = this.read(this.files(`src/components/${family}`, /\.css$/))
     const declared = new Set(
       Object.values(sheets).flatMap((css) =>

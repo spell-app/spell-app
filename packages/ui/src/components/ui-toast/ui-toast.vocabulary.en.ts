@@ -21,7 +21,7 @@ export const toastVocabulary = {
   tag: "ui-toast",
   topics: ["notifications", "messages", "feedback", "overlays", "modules"],
   aka: ["snackbar", "notification", "growl", "flash message", "toaster"],
-  skeleton: null,
+  skeleton: false,
   noun: "toast",
   description: "A toast allows users to receive a short, non-blocking notification.",
   attributes: [

@@ -190,13 +190,12 @@ describe("ValueSets", () => {
     expect(ValueSets.columns("0")).toBeUndefined()
     expect(ValueSets.columns("2/1")).toBeUndefined()
     expect(ValueSets.columns("wide")).toBeUndefined()
-    expect(ValueSets.numberToWord(12)).toBe("twelve")
   })
 
   it("picks the value set for an attribute's kind", () => {
-    expect(ValueSets.of({ name: "color", kind: "color", description: "" })).toBe("hues")
-    expect(ValueSets.of({ name: "x", kind: "enum", values: ["a"], description: "" })).toEqual(["a"])
-    expect(ValueSets.of({ name: "x", kind: "string", description: "" })).toBeUndefined()
+    expect(ValueSets.setFor({ name: "color", kind: "color", description: "" })).toBe("hues")
+    expect(ValueSets.setFor({ name: "x", kind: "enum", values: ["a"], description: "" })).toEqual(["a"])
+    expect(ValueSets.setFor({ name: "x", kind: "string", description: "" })).toBeUndefined()
   })
 
   it("adds values to a shared set", () => {

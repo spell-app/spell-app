@@ -5,8 +5,8 @@
  *   overlay and the tooltips), `<ui-icon>` (sun, moon, palette, check), `<ui-dropdown>` and `<ui-item>` (its rows,
  *   `show="theme"`).  A `<ui-root>` only loads what's in the page's light DOM, so a family that composes widgets
  *   imports them itself.
- * - `ThemeSheets` (`$/ui/styles`) comes with it:  in a code-split bundle that's the runtime's chunk, and every theme
- *   sheet stays its own lazy chunk, fetched on `apply()`.
+ * - It applies themes through the runtime (`UI.themes`, in the runtime's chunk), and every theme sheet stays its
+ *   own lazy chunk, fetched on `apply()`.
  */
 
 import { UIDocsThemes } from "./UIDocsThemes"

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 import { Fixture } from "$/ui/test/fixture"
 import { expectAccessible } from "$/ui/test/a11y"
 import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
-import { ThemeSheets } from "$/ui/styles"
+import { UI } from "$/ui/runtime"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 import { DOCS_LOOK_KEYS } from "$/ui/docs-components/docs-components.types"
 
@@ -18,7 +18,9 @@ function controlsOf(host: StubHost) {
   return FallbackStub.shadow(host).firstElementChild as HTMLElement
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  // the fallback lists `UI.themes.names`:  a real element shows it only after the runtime loaded
+  await UI.load()
   vi.spyOn(ThemePreference, "osScheme").mockReturnValue("light")
 })
 
@@ -27,7 +29,7 @@ afterEach(async () => {
   localStorage.removeItem(DOCS_LOOK_KEYS.scheme)
   ThemePreference.reset()
   ThemePreference.applyScheme("system")
-  await ThemeSheets.apply(undefined)
+  await UI.themes.apply(undefined)
   vi.restoreAllMocks()
 })
 
@@ -40,7 +42,7 @@ describe("DocsThemesFallback", () => {
     const select = controls.querySelector("select[part=theme]")!
     const values = [...select.querySelectorAll("option")].map((option) => option.value)
     expect(values.slice(0, 4)).toEqual(["spell", "spell-brand", "default", "classic"])
-    expect(values.slice(4).sort()).toEqual([...ThemeSheets.names].sort())
+    expect(values.slice(4).sort()).toEqual([...UI.themes.names].sort())
     expect(select.querySelector("optgroup")!.label).toBe("Fomantic themes")
     expect(controls.querySelector("button[part=scheme]")!.textContent).toBe("Switch to dark")
     const system = controls.querySelector("label[part=system]")!
@@ -67,7 +69,7 @@ describe("DocsThemesFallback", () => {
     const select = controls.querySelector("select")!
     select.value = "github"
     select.dispatchEvent(new Event("change"))
-    await vi.waitFor(() => expect(ThemeSheets.current).toBe("github"))
+    await vi.waitFor(() => expect(UI.themes.current).toBe("github"))
     expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBe("github")
     expect(changes).toMatchObject([
       { scheme: "dark", shown: "dark" },

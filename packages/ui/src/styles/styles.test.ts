@@ -1,16 +1,7 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { ANIMATION_NAMES } from "$/ui/runtime"
-import {
-  breakpoints,
-  classicThemeCSS,
-  colorsCSS,
-  darkThemeCSS,
-  foundationCSS,
-  pageCSS,
-  sizes,
-  utilitiesCSS
-} from "$/ui/styles"
+import { AnimationNames } from "$/ui/runtime"
+import { breakpoints, colorsCSS, foundationCSS, pageCSS, sizes, utilitiesCSS } from "$/ui/styles"
 import { StyleGenerator } from "$/ui/styles/StyleGenerator"
 
 import { Fixture } from "$/ui/test/fixture"
@@ -22,6 +13,8 @@ import sizesRaw from "./sizes.css?raw"
 import utilitiesRaw from "./utilities.css?raw"
 import animationsRaw from "./animations.css?raw"
 import mediaRaw from "./media.css?raw"
+import classicThemeCSS from "$/ui/styles/themes/classic.css?inline"
+import darkThemeCSS from "$/ui/styles/themes/dark.css?inline"
 
 /**
  * The CSS foundation, in a real browser:  sheets adopted into the document and into shadow roots.
@@ -204,7 +197,7 @@ describe("style sources", () => {
   })
 
   it("covers every runtime animation name", () => {
-    for (const name of ANIMATION_NAMES) {
+    for (const name of AnimationNames) {
       const directions = STATIC_ANIMATIONS.has(name) ? ["static"] : ["in", "out"]
       for (const direction of directions) expect(animationsRaw).toContain(`[data-ui-animation="${name} ${direction}"]`)
     }

@@ -36,13 +36,13 @@ describe("vocabulary kinds, across families", () => {
     }
   )
 
-  // `<ui-root display="skeleton">` draws a placeholder for a described tag;  `null` says "none of its own" on purpose
+  // `<ui-root display="skeleton">` draws a placeholder for a described tag;  `false` says "none of its own" on purpose
   it.each(VOCABULARIES.map((vocabulary) => [vocabulary.tag, vocabulary] as const))(
-    "<%s> says what its skeleton is (a description, or null)",
+    "<%s> says what its skeleton is (a description, or false)",
     (_, vocabulary) => {
       expect(vocabulary).toHaveProperty("skeleton")
       const { skeleton } = vocabulary
-      if (skeleton === null) return
+      if (skeleton === false) return
       expect(skeleton?.parts?.length || skeleton?.height || skeleton?.width).toBeTruthy()
       for (const length of [skeleton?.width, skeleton?.height]) if (length) expect(length).toMatch(/^\d+(\.\d+)?em$/)
     }

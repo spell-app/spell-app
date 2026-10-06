@@ -146,7 +146,7 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
     createEffect(
       () => this.checkedAttribute.get(),
       (checked) => {
-        this.selectedState.set(checked !== null)
+        this.selectedState.set(checked !== undefined)
       },
       { defer: true }
     )

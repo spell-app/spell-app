@@ -1,3 +1,5 @@
+import { UI } from "$/ui/runtime"
+
 import {
   DOCS_DARK_QUERY,
   DOCS_DEFAULT_THEME,
@@ -13,7 +15,7 @@ import {
 
 /****************
  * ### `ThemePreference`
- * The docs site viewer's LOOK -- theme (`ThemeSheets`) and colour scheme -- remembered per viewer, re-applied on
+ * The docs site viewer's LOOK -- theme (`UI.themes`) and colour scheme -- remembered per viewer, re-applied on
  * every page.  `<ui-docs-themes>` changes it;  the site entry (`site/_src/site.ts`) calls `restore()` once per page.
  * - Theme:  `DOCS_DEFAULT_THEME` (`spell`, the brand) until the viewer picks another;  picking Plain (our own look,
  *   `undefined`) is stored as `DOCS_PLAIN_THEME`, so it outlives the page.
@@ -34,8 +36,8 @@ import {
  *   render;  page text may flash the default look for a frame.
  * - Several pickers on one page (the right column's, a component page's `for` one) stay in step through
  *   `subscribe()`.
- * - Cheap to import:  `$/ui/styles` (`ThemeSheets`, every foundation sheet as text) is a DYNAMIC import, loaded only
- *   to apply a theme;  the site entry's chunk stays small.
+ * - Cheap to import:  only the runtime's eager half (`UI`, `$/ui/runtime`), as the site entry has;  the runtime
+ *   chunk (`UI.themes`) loads only to apply a theme, and the site entry's chunk stays small.
  * - Static only:  the look is one per page.
  ****************/
 export class ThemePreference {
@@ -192,17 +194,17 @@ export class ThemePreference {
   }
 
   /**
-   * Apply theme `name` with `ThemeSheets` (loaded now, if need be).
-   * - Only a picker's names:  one of ours (`ThemeSheets.OWN`), `classic` or a Fomantic theme (`ThemeSheets.names`);
+   * Apply theme `name` with `UI.themes` (the runtime loaded now, if need be).
+   * - Only a picker's names:  one of ours (`UI.themes.own`), `classic` or a Fomantic theme (`UI.themes.names`);
    *   anything else is forgotten, for the default theme.
    */
   private static async applyTheme(name: string | undefined): Promise<void> {
-    const { ThemeSheets } = await import("$/ui/styles")
-    const known = [...ThemeSheets.OWN, ThemeSheets.BASE, ...ThemeSheets.names]
+    const { themes } = await UI.load()
+    const known = [...themes.own, themes.base, ...themes.names]
     if (name !== undefined && !known.includes(name)) {
       return ThemePreference.setTheme(name === DOCS_DEFAULT_THEME ? undefined : DOCS_DEFAULT_THEME)
     }
-    await ThemeSheets.apply(name)
+    await themes.apply(name)
   }
 
   /** The stored look;  anything unreadable is the default (`DOCS_DEFAULT_THEME`, `system`). */

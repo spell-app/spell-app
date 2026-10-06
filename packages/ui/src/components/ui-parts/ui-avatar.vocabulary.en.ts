@@ -20,7 +20,7 @@ export const avatarVocabulary = {
   tag: "ui-avatar",
   topics: ["content parts", "images", "social"],
   aka: ["profile picture", "user image", "userpic"],
-  skeleton: null,
+  skeleton: false,
   noun: "avatar",
   ui: false,
   description: "A small picture of a person:  a comment's or a card's.",

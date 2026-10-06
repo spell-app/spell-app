@@ -29,12 +29,13 @@ house style every package shares.  Only what's local is below;  a section named 
     aliases, never `../`"), so spell's utilities never reach `ui`'s bundles.
     Where a helper goes:  SEE:  WWOD §8 › "Promotion path".  Everything in `$/ui/util` lands in the `core` bundle
     (`core.ts` re-exports it), so keep it small
-  - `src/vocabulary/` (`V`) -- the naming layer:  vocabulary schema, value sets, `Vocabulary` (registry, translated
-    names, `replace()` for hot reload), `Converters`
+  - `src/vocabulary/` (`V` through the `api` entry) -- the naming layer:  vocabulary schema, value sets, `Vocabulary`
+    (registry, translated names, `replace()` for hot reload), `Converters`
   - `src/runtime/` (`UI`) -- the shared `UI` runtime, ONE instance per page (`globalThis.UI ??= new UIRuntime()`).
     Components call `UI.load()` on connect, which dynamic-imports this chunk once.  Services are classes:
     `Browser` (sniffing + `UI.browser.supports` flags), `Keyboard`, `Overlays`, `Focus`, `Styles`, `Vocabulary`,
-    `I18n`, `Transitions`, `Ids`, `Toasts`, `Modals`, `Api`, `IconPacks` (`UI.icons`), `Sources` (`UI.sources`)
+    `I18n`, `Transitions`, `Ids`, `Toasts`, `Modals`, `Api`, `IconPacks` (`UI.icons`), `Sources` (`UI.sources`),
+    `Themes` (`UI.themes`)
   - `src/icons/` -- the icon PACK format (`IconPackIndex`, `IconName`, `BuiltInPacks`) and the built-in packs
     (`icon-packs/<id>/`:  SVG files + `pack.js`);  loading and caching are the runtime's (`UI.icons`);  packs are built by
     `tools/IconPackBuilder.ts` (`yarn icons:pack`);  see `docs/icons.md`
@@ -103,8 +104,8 @@ house style every package shares.  Only what's local is below;  a section named 
     these (see "Solid authoring")
   - `src/styles/` -- `layers.css`, tokens, colours, sizes, reset, typography, animations, utilities, `native.css`,
     `themes/`;  its own lib entry (`@spell-app/ui/styles`)
-  - `src/index.ts` -- `@spell-app/ui`:  registers every family (side effect) and re-exports them, plus `E`, `V`, the
-    runtime, styles and icons
+  - `src/index.ts` -- `@spell-app/ui`:  registers every family (side effect) and re-exports them, plus `UIT`, the
+    runtime, styles and icons;  the namespaces `E` / `F` / `V` come from `core` / `forms` / the `api` entry
   - `test/` -- shared test utils and cross-family tests:  `Fixture.render(html)` (`fixture.ts`),
     `A11y.check(el)` / `expectAccessible(el)` (`a11y.ts`), `ElementFixture` (render + wait for `ready` +
     `flush()`, `breakRender()`), `StubOwner` (stand-in owners:  card, feed ...), `PerfRun` (the dropdown
@@ -380,6 +381,10 @@ wins), plus these deliberate EXCEPTIONS:
 - Vocabularies and types files value-import `UIT` as `import * as UIT from "$/ui/components/components.types"`, not
   through `$/ui/core`.  Why:  they're PURE DATA that node imports (`yarn site:data`, `yarn gen:root`), and `core`
   loads the element layer, which node can't ("Overview", `ui-<name>.types.ts`)
+- What sits BELOW `core` -- `$/ui/runtime`, `$/ui/vocabulary`, `$/ui/icons`, `$/ui/util`, types files -- NEVER imports
+  the `$/ui/core` entry:  shared helpers by name from `$/ui/util` (no namespace of its own), `UIT` as above.  Why:
+  `core` re-exports the runtime's loader, so a lazy runtime chunk importing the entry makes Rolldown split the
+  modules both reach into a chunk every page loads (epic `wwod-spell-ui`, I16;  `yarn measure` catches it).
 - `tools/` are node scripts:  relative imports with `.ts` extensions, no aliases.
 
 ## Comments & docs

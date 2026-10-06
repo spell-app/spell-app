@@ -37,7 +37,7 @@ const EXCEPTIONS: Record<string, Record<string, string>> = {
   }
 }
 
-const tokens = new ComponentTokens(VOCABULARIES, Object.values(FOUNDATION))
+const tokens = new ComponentTokens({ vocabularies: VOCABULARIES, foundation: Object.values(FOUNDATION) })
 
 /** `src/components/ui-button/ui-button.css` => `ui-button/ui-button.css` */
 function short(path: string): string {

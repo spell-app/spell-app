@@ -19,7 +19,7 @@ export type DocsThemesText = (key: DocsThemesTextKey, params?: Record<string, st
 
 /** `ui-change`'s detail. */
 export type DocsThemesChange = {
-  /** a `ThemeSheets` name;  absent:  our own look */
+  /** a `UI.themes` name;  absent:  our own look */
   theme?: string
   /** the chosen scheme;  `system`:  following the OS */
   scheme: DocsScheme
@@ -31,16 +31,16 @@ export type DocsThemesChange = {
 /** `show`:  which controls render. */
 export type DocsThemesShow = "both" | "theme" | "scheme"
 
-/** The dropdown value standing for our own look (`ThemeSheets.apply(undefined)`):  no sheet is named so. */
+/** The dropdown value standing for our own look (`UI.themes.apply(undefined)`):  no sheet is named so. */
 export const DEFAULT_VALUE = "default"
 
-/** The `ThemeSheets` name of Spell:  our own theme (`ThemeSheets.OWN`), the docs' default (`DOCS_DEFAULT_THEME`). */
+/** The `UI.themes` name of Spell:  our own theme (`UI.themes.own`), the docs' default (`DOCS_DEFAULT_THEME`). */
 export const SPELL = "spell"
 
-/** The `ThemeSheets` name of Spell Brand:  our own theme too, converging on Claude Design's brand pages (epic `design-system`). */
+/** The `UI.themes` name of Spell Brand:  our own theme too, converging on Claude Design's brand pages (epic `design-system`). */
 export const SPELL_BRAND = "spell-brand"
 
-/** The `ThemeSheets` name of Classic, the base every Fomantic theme sits on (`ThemeSheets.BASE`). */
+/** The `UI.themes` name of Classic, the base every Fomantic theme sits on (`UI.themes.base`). */
 export const CLASSIC = "classic"
 
 /**

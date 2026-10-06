@@ -107,7 +107,7 @@
 - `src/util/`: `decorators.ts` (`@proto`), `class.ts`, `dom.ts`, `string.ts`, `util.types.ts`.
 - `src/runtime/` — the shared `UI` runtime (one instance per page: `globalThis.UI ??= new UIRuntime()`; components call `UI.load()` which dynamic-imports this chunk once):
   - `UIRuntime.ts`: singleton, `load()`, `ready` promise, service registry
-  - `Browser.ts`: browser sniffing + feature flags (`supports.anchor`, `supports.baseSelect`, `supports.closedby`, `supports.popoverHint`, `isSafari`, `reducedMotion`, `touch`)
+  - `Browser.ts`: browser sniffing + feature flags (`supports.anchor`, `supports.baseSelect`, `supports.closedby`, `supports.popoverHint`, `isSafari`, `isReducedMotion`, `touch`)
   - `Keyboard.ts`: global shortcut registry with scopes (page, overlay stack, component), `Mod+K` style parsing, conflict detection
   - `Overlays.ts`: top-layer stack with named pools (only the top overlay handles Escape / outside click), nested modals / `allowMultiple`, scroll lock, focus restore, dimmer coordination
   - `Focus.ts`: roving tabindex, focus trap helpers (for non-dialog cases), `restoreFocus`

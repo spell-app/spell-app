@@ -1,9 +1,12 @@
 import { Warnings } from "$/ui/util"
+
 import { APP_STYLESHEET_ID, LAYER_ORDER } from "./runtime.types"
 
-/**
+/****************
+ * ### `AppStylesheet`
  * The page's ONE app stylesheet (`id="ui-app-stylesheet"`), mirrored into a constructable sheet
  * that `Styles` appends LAST in every component's shadow root.
+ * - In the runtime's lazy chunk;  only `Styles` makes one, on the first `adoptInto()` / `appSheetReady`.
  * - Why:  page CSS can't reach into shadow roots.  Convention over configuration -- the app marks one
  *   `<link>` or `<style>` and every component picks it up, no per-component wiring.
  * - Sources:
@@ -17,34 +20,34 @@ import { APP_STYLESHEET_ID, LAYER_ORDER } from "./runtime.types"
  *   - `layer()`, `supports()` and media on the `@import` become wrapping `@layer` / `@supports` / `@media` blocks
  *   - relative `url()`s in inlined files are made absolute, since the combined sheet has one base URL
  * - Kept in sync:  a `MutationObserver` watches the element (text / `href`) and `<head>` / `<body>` children
- *   (late insertion, removal, replacement);  changes are debounced.
+ *   (late insertion, removal, replacement);  changes are coalesced (`syncSoon()`).
  * - NOTE: an element that GAINS the id later via `setAttribute("id")` is not noticed -- insert it instead.
- */
+ ****************/
 export class AppStylesheet {
   /** current sheet;  replaced (and `onSheetChange` called) only when its base URL must change */
   sheet: CSSStyleSheet
   /** called when `sheet` is swapped for a new object, so `Styles` can re-push it */
   private readonly onSheetChange: (sheet: CSSStyleSheet) => void
-  /** ms to coalesce bursts of mutations */
-  private readonly debounce: number
+  /** ms `syncSoon()` waits, to coalesce bursts of mutations */
+  private readonly syncDelay: number
   /** the watched `<link>` / `<style>` */
-  private element: HTMLLinkElement | HTMLStyleElement | null = null
+  private element?: HTMLLinkElement | HTMLStyleElement
+  /** removes the watched `<link>`'s `load` listener */
+  private elementListeners?: AbortController
   /** last text applied, to skip no-op syncs */
   private text = ""
   /** bumped per sync;  a sync whose number is stale by the time its fetches finish is dropped */
   private generation = 0
-  /** latest sync, see `ready` */
-  private latest: Promise<void> = Promise.resolve()
-  /** debounce timer */
+  /** `syncSoon()`'s timer */
   private timer?: ReturnType<typeof setTimeout>
   /** watches `<head>` / `<body>` / `<html>` children */
   private treeObserver?: MutationObserver
   /** watches the element's text or `href` */
   private elementObserver?: MutationObserver
 
-  constructor({ onSheetChange, debounce = 30 }: AppStylesheetProps) {
+  constructor({ onSheetChange, syncDelay = 30 }: AppStylesheetProps) {
     this.onSheetChange = onSheetChange
-    this.debounce = debounce
+    this.syncDelay = syncDelay
     this.sheet = this.createSheet(document.baseURI)
   }
 
@@ -52,9 +55,11 @@ export class AppStylesheet {
   get ready(): Promise<void> {
     return this.latest
   }
+  /** the latest sync, pending or done */
+  private latest: Promise<void> = Promise.resolve()
 
   /** Is it watching? */
-  get started(): boolean {
+  get isStarted(): boolean {
     return !!this.treeObserver
   }
 
@@ -63,12 +68,12 @@ export class AppStylesheet {
    * - SIDE EFFECT:  `MutationObserver`s on the document until `stop()`.
    */
   start(): Promise<void> {
-    if (this.started || typeof document === "undefined") return this.latest
+    if (this.isStarted || typeof document === "undefined") return this.latest
     this.treeObserver = new MutationObserver(() => this.onTreeChange())
     for (const parent of [document.documentElement, document.head, document.body]) {
       if (parent) this.treeObserver.observe(parent, { childList: true })
     }
-    this.elementObserver = new MutationObserver(() => this.schedule())
+    this.elementObserver = new MutationObserver(() => this.syncSoon())
     this.latest = this.sync()
     return this.latest
   }
@@ -78,8 +83,8 @@ export class AppStylesheet {
     this.treeObserver?.disconnect()
     this.elementObserver?.disconnect()
     this.treeObserver = this.elementObserver = undefined
-    this.element?.removeEventListener("load", this.onLoad)
-    this.element = null
+    this.elementListeners?.abort()
+    this.element = this.elementListeners = undefined
     clearTimeout(this.timer)
   }
 
@@ -89,30 +94,33 @@ export class AppStylesheet {
 
   /** Children of `<head>` / `<body>` changed:  resync if our element appeared, vanished or was replaced. */
   private onTreeChange() {
-    if (document.getElementById(APP_STYLESHEET_ID) !== this.element) this.schedule()
+    if ((document.getElementById(APP_STYLESHEET_ID) ?? undefined) !== this.element) this.syncSoon()
   }
 
-  /** `<link>` finished (re)loading. */
-  private readonly onLoad = () => this.schedule()
-
-  /** Debounced `sync()`;  `ready` covers it immediately. */
-  private schedule() {
+  /**
+   * `sync()` once things have been quiet for `syncDelay` ms;  `ready` covers it at once.
+   * - Hand-rolled, not a `debounce()`:  `ready` must be a promise of the sync to come (epic `wwod-spell-ui`).
+   */
+  private syncSoon() {
     clearTimeout(this.timer)
     this.latest = new Promise((resolve) => {
-      this.timer = setTimeout(() => resolve(this.sync()), this.debounce)
+      this.timer = setTimeout(() => resolve(this.sync()), this.syncDelay)
     })
   }
 
   /** Point the element observer at `element` (or nothing). */
-  private watch(element: HTMLLinkElement | HTMLStyleElement | null) {
+  private watch(element: HTMLLinkElement | HTMLStyleElement | undefined) {
     if (element === this.element) return
-    this.element?.removeEventListener("load", this.onLoad)
+    this.elementListeners?.abort()
     this.elementObserver?.disconnect()
     this.element = element
+    this.elementListeners = undefined
     if (!element || !this.elementObserver) return
     if (element instanceof HTMLLinkElement) {
       this.elementObserver.observe(element, { attributes: true, attributeFilter: ["href", "media", "disabled"] })
-      element.addEventListener("load", this.onLoad)
+      this.elementListeners = new AbortController()
+      // the `<link>` finished (re)loading
+      element.addEventListener(LOAD, () => this.syncSoon(), { signal: this.elementListeners.signal })
     } else {
       this.elementObserver.observe(element, { characterData: true, childList: true, subtree: true })
     }
@@ -126,9 +134,8 @@ export class AppStylesheet {
   private async sync(): Promise<void> {
     const generation = ++this.generation
     const found = document.getElementById(APP_STYLESHEET_ID)
-    const element = found instanceof HTMLLinkElement || found instanceof HTMLStyleElement ? found : null
-    if (found && !element)
-      Warnings.warn(`#${APP_STYLESHEET_ID}`, `must be a <link rel="stylesheet"> or <style>:`, found)
+    const element = found instanceof HTMLLinkElement || found instanceof HTMLStyleElement ? found : undefined
+    if (found && !element) Warnings.warn(WARNING_SOURCE, `must be a <link rel="stylesheet"> or <style>:`, found)
     this.watch(element)
     let text = ""
     let base = document.baseURI
@@ -143,7 +150,7 @@ export class AppStylesheet {
         text = await this.inlineImports(element.textContent ?? "", base)
       }
     } catch (error) {
-      Warnings.warn(`#${APP_STYLESHEET_ID}`, "couldn't read the stylesheet:", error)
+      Warnings.warn(WARNING_SOURCE, "couldn't read the stylesheet:", error)
       return
     }
     if (generation !== this.generation) return
@@ -185,16 +192,15 @@ export class AppStylesheet {
       // cross-origin CSSOM throws SecurityError -- fall back to fetching the text
       text = await this.fetchText(link.href, link.href)
     }
-    const media = link.media.trim()
-    return media && media !== "all" ? `@media ${media} {\n${text}\n}` : text
+    return this.wrap(text, { media: link.media.trim() })
   }
 
-  /** `link.sheet` once the CURRENT `href` has loaded;  `null` if loading failed. */
-  private loadedSheet(link: HTMLLinkElement): Promise<CSSStyleSheet | null> {
+  /** `link.sheet` once the CURRENT `href` has loaded;  `undefined` if loading failed. */
+  private loadedSheet(link: HTMLLinkElement): Promise<CSSStyleSheet | undefined> {
     if (link.sheet && link.sheet.href === link.href) return Promise.resolve(link.sheet)
     return new Promise((resolve) => {
-      link.addEventListener("load", () => resolve(link.sheet), { once: true })
-      link.addEventListener("error", () => resolve(null), { once: true })
+      link.addEventListener(LOAD, () => resolve(link.sheet ?? undefined), { once: true })
+      link.addEventListener("error", () => resolve(undefined), { once: true })
     })
   }
 
@@ -212,10 +218,16 @@ export class AppStylesheet {
       try {
         inner = this.absolutizeUrls(this.serialize(imported.cssRules), imported.href ?? document.baseURI)
       } catch {
-        Warnings.warn(`#${APP_STYLESHEET_ID}`, `can't read cross-origin @import ${rule.href};  use a <style> instead`)
+        Warnings.warn(WARNING_SOURCE, `can't read cross-origin @import ${rule.href};  use a <style> instead`)
         continue
       }
-      parts.push(this.wrap(inner, rule.layerName, rule.supportsText, rule.media.mediaText))
+      // the platform's `null`s:  no `layer` / `supports()` on the rule
+      const conditions = {
+        layer: rule.layerName ?? undefined,
+        supports: rule.supportsText ?? undefined,
+        media: rule.media.mediaText
+      }
+      parts.push(this.wrap(inner, conditions))
     }
     return parts.join("\n")
   }
@@ -228,33 +240,35 @@ export class AppStylesheet {
       imports.map(async (match) => {
         const href = new URL(match[2] ?? match[4] ?? "", base).href
         const body = await this.fetchText(href, href)
-        return this.wrap(body, ...this.parseImportConditions(match[5] ?? ""))
+        return this.wrap(body, this.importConditionsFor(match[5] ?? ""))
       })
     )
     let index = 0
     return text.replace(IMPORT_RULE, () => bodies[index++] ?? "")
   }
 
-  /** Fetch a stylesheet's text, with relative `url()`s made absolute against `base`. */
+  /**
+   * Fetch a stylesheet's text, with relative `url()`s made absolute against `base`.
+   * - Throws when the server says no;  `sync()` warns and keeps the last sheet.
+   */
   private async fetchText(href: string, base: string): Promise<string> {
     const response = await fetch(href)
-    if (!response.ok) throw new Error(`${response.status} fetching ${href}`)
+    if (!response.ok) {
+      throw new Error(`AppStylesheet.fetchText():  ${href} answered ${response.status};  check the stylesheet's URL`)
+    }
     const text = this.absolutizeUrls(await response.text(), base)
     if (IMPORT_RULE.test(text)) {
-      Warnings.warn(`#${APP_STYLESHEET_ID}`, `nested @import in ${href} is ignored (only one level is inlined)`)
+      Warnings.warn(WARNING_SOURCE, `nested @import in ${href} is ignored (only one level is inlined)`)
     }
     IMPORT_RULE.lastIndex = 0
     return text
   }
 
-  /**
-   * Split what follows the URL in an `@import`:  `layer(x) supports(display: grid) screen`.
-   * - Returns `[layer, supports, media]` for `wrap()`:  `layer` is `null` for none, `""` for anonymous.
-   */
-  private parseImportConditions(rest: string): [string | null, string | null, string] {
+  /** The conditions after the URL in an `@import`:  `layer(x) supports(display: grid) screen`. */
+  private importConditionsFor(rest: string): ImportConditions {
     let remaining = rest.trim()
-    let layer: string | null = null
-    let supports: string | null = null
+    let layer: string | undefined
+    let supports: string | undefined
     const layerMatch = /^layer(?:\(\s*([^)]*?)\s*\))?/.exec(remaining)
     if (layerMatch) {
       layer = layerMatch[1] ?? ""
@@ -265,26 +279,26 @@ export class AppStylesheet {
       supports = supportsMatch[1]!.trim()
       remaining = remaining.slice(supportsMatch[0].length).trim()
     }
-    return [layer, supports, remaining]
+    return { layer, supports, media: remaining }
   }
 
-  /** Wrap `text` in the blocks an `@import`'s conditions imply. */
-  private wrap(text: string, layer: string | null, supports: string | null, media: string): string {
+  /** Wrap `text` in the blocks an `@import`'s (or a `<link>`'s) conditions imply. */
+  private wrap(text: string, { layer, supports, media }: ImportConditions): string {
     let result = text
-    if (layer !== null) result = `@layer ${layer} {\n${result}\n}`
+    if (layer !== undefined) result = `@layer ${layer} {\n${result}\n}`
     if (supports) result = `@supports (${supports.replace(/^\((.*)\)$/, "$1")}) {\n${result}\n}`
-    if (media && media !== "all") result = `@media ${media} {\n${result}\n}`
+    if (media && media !== ALL_MEDIA) result = `@media ${media} {\n${result}\n}`
     // re-declare the package layer order first, so an inlined `@layer` can't establish a different one
-    return layer !== null ? `${LAYER_ORDER}\n${result}` : result
+    return layer !== undefined ? `${LAYER_ORDER}\n${result}` : result
   }
 
   /** Make relative `url()`s in `text` absolute against `base`. */
   private absolutizeUrls(text: string, base: string): string {
-    return text.replace(RELATIVE_URL, (_match, quote: string, path: string) => {
+    return text.replace(RELATIVE_URL, (match, quote: string, path: string) => {
       try {
         return `url(${quote}${new URL(path, base).href}${quote})`
       } catch {
-        return _match
+        return match
       }
     })
   }
@@ -294,8 +308,8 @@ export class AppStylesheet {
 export type AppStylesheetProps = {
   /** told when the sheet object is replaced */
   onSheetChange: (sheet: CSSStyleSheet) => void
-  /** ms to coalesce mutation bursts;  default `30` */
-  debounce?: number
+  /** ms `syncSoon()` waits, to coalesce mutation bursts;  default `30` */
+  syncDelay?: number
 }
 
 /** A sheet remembering the base URL it was built with (`CSSStyleSheet` doesn't expose it). */
@@ -303,6 +317,25 @@ type SheetWithBase = CSSStyleSheet & {
   /** base URL passed to the constructor */
   baseURLForUI?: string
 }
+
+/** What an `@import` (or a `<link>`) says beyond its URL;  `wrap()` turns each into a block. */
+type ImportConditions = {
+  /** `layer(name)`:  the name;  `""` for an anonymous `layer`;  `undefined` for none */
+  layer?: string
+  /** `supports(...)`'s condition, if any */
+  supports?: string
+  /** media query list;  `""` or `all` for every medium */
+  media: string
+}
+
+/** `Warnings` source of every warning about the app stylesheet. */
+const WARNING_SOURCE = `#${APP_STYLESHEET_ID}`
+
+/** A `<link>`'s load event. */
+const LOAD = "load"
+
+/** The media query that matches every medium:  no `@media` block needed. */
+const ALL_MEDIA = "all"
 
 /**
  * An `@import` rule in CSS text.

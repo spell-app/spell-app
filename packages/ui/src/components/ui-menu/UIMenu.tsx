@@ -153,13 +153,13 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements UIT.Item
             part={this.part("menu")}
             role={MENUBAR}
             aria-orientation={this.attrs.vertical ? VERTICAL : undefined}
-            aria-label={this.ariaLabel.get() ?? undefined}
+            aria-label={this.ariaLabel.get()}
           >
             <slot />
           </div>
         </Match>
         <Match when={true}>
-          <nav class={this.classes()} part={this.part("menu")} aria-label={this.ariaLabel.get() ?? undefined}>
+          <nav class={this.classes()} part={this.part("menu")} aria-label={this.ariaLabel.get()}>
             <slot />
           </nav>
         </Match>
@@ -222,7 +222,9 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements UIT.Item
     if (!bar || !this.host.isConnected) return
     const boxes = this.menuItems()
     const selected = boxes.findIndex((box) => (box.getRootNode() as ShadowRoot).host?.matches(SELECTED_STATE))
-    this.roving = UI.focus.roving(bar, () => this.menuItems(), {
+    this.roving = UI.focus.roving({
+      container: bar,
+      items: () => this.menuItems(),
       orientation,
       activeIndex: Math.max(0, selected)
     })

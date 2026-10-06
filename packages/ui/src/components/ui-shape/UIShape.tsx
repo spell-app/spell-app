@@ -189,7 +189,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     const next = sides[index]
     if (!next || index === this.current) return false
     const { stage, box } = this
-    const instant = !active || !stage || !box || !this.host.isConnected || UI.browser.reducedMotion
+    const instant = !active || !stage || !box || !this.host.isConnected || UI.browser.isReducedMotion
     if (!instant && stage.offsetParent !== null) await this.animate(direction, stage, box, active, next)
     this.current = index
     this.mark(sides)

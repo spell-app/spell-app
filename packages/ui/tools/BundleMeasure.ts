@@ -27,8 +27,8 @@ import { NodePackage } from "./NodePackage.ts"
 /**
  * Bundle measurer of the package:  what each tier, family and page scenario costs, min and min+gz.
  * - Builds the library IN MEMORY (`write: false`) with the repo's Vite config, entries overridden to the shared
- *   entries (`core`, `forms`) + one per family + the `extra` ones (`api`), and attributes every emitted module to a
- *   bucket (`PackageConfig.groups`).
+ *   entries (`core`, `forms`) + one per family + the `extra` ones (`api`, `styles`), and attributes every emitted
+ *   module to a bucket (`PackageConfig.groups`).
  * - Sizes:  esbuild `transform({ minify: true })`, then gzip level 9;  kB = 1000 bytes.  Each tier is minified
  *   and gzipped ON ITS OWN, as a page fetches them as separate files, so a scenario is a sum of tiers.
  * - Tiers:

@@ -1,10 +1,14 @@
-import { proto, Warnings } from "$/ui/util"
+// Import directly to avoid circular import
+import { proto } from "$/ui/util"
+import { Warnings, type Prettify } from "$/ui/util"
 
 import { PAGE_SCOPE, type Disposer, type KeyHandler, type KeyRegistrationOptions } from "./runtime.types"
 import { Chord } from "./Chord"
 
-/**
+/****************
+ * ### `Keyboard`
  * Keyboard shortcut registry with scopes, as `UI.keyboard`.
+ * - In the runtime's lazy chunk (`UIRuntime` builds it);  `Overlays` pushes its scopes.
  * - Why one registry:  with every component listening for keys on its own, an open modal can't stop
  *   the page's `/` search shortcut, and two components claiming `Escape` both fire.
  * - Scopes form a STACK:  `page` at the bottom, then one per open overlay (`Overlays` pushes / pops them).
@@ -15,23 +19,26 @@ import { Chord } from "./Chord"
  *   beats its container's.  The first handler that doesn't return `false` wins.
  * - Keys from editable targets (`<input>`, `<textarea>`, contenteditable) are ignored unless the chord has
  *   Ctrl / Meta / Alt or the registration says `{ inEditable: true }`, so typing never triggers shortcuts.
- */
+ ****************/
 export class Keyboard {
-  /** warn when two active registrations in one scope claim the same chord;  on in dev builds */
+  /**
+   * warn when two active registrations in one scope claim the same chord;  on in dev builds
+   * - `@proto` default (on the prototype, not per instance):  a test or a page turns it off on one `Keyboard`
+   */
   declare warnConflicts: boolean
   @proto static warnConflicts = import.meta.env.DEV
 
   /** decides what `Mod` means in chords */
-  private readonly apple: boolean
+  private readonly isApple: boolean
   /** every live registration, oldest first */
   private readonly registrations: Registration[] = []
   /** scope ids, bottom first;  `page` is always at the bottom */
   private readonly scopes: string[] = [PAGE_SCOPE]
-  /** document the listener is on, once connected */
-  private connected?: Document
+  /** removes the document listener;  set once it's installed */
+  private listener?: AbortController
 
-  constructor({ apple = false }: KeyboardProps = {}) {
-    this.apple = apple
+  constructor({ isApple = false }: KeyboardProps = {}) {
+    this.isApple = isApple
   }
 
   /**
@@ -39,7 +46,7 @@ export class Keyboard {
    * - Exposed so components can match chords in their own handlers without importing `Chord`.
    */
   chord(text: string): Chord {
-    return Chord.parse(text, { apple: this.apple })
+    return Chord.parse(text, { isApple: this.isApple })
   }
 
   ////////////////
@@ -47,12 +54,11 @@ export class Keyboard {
   ////////////////
 
   /**
-   * Call `handler` when `chord` is pressed while `scope` is the topmost scope.
-   * - `scope`:  `"page"` for page-level shortcuts, or an overlay's scope id.
+   * Call `handler` when `chord` is pressed while `scope` (default `"page"`) is the topmost scope.
    * - Returns a disposer;  call it on disconnect.
    * - SIDE EFFECT:  first call installs the document listener.
    */
-  register(scope: string, chord: string | Chord, handler: KeyHandler, options: KeyRegistrationOptions = {}): Disposer {
+  register({ scope = PAGE_SCOPE, chord, handler, ...options }: KeyRegistration): Disposer {
     const registration: Registration = {
       scope,
       chord: typeof chord === "string" ? this.chord(chord) : chord,
@@ -74,7 +80,7 @@ export class Keyboard {
 
   /** Topmost scope id:  the only one (besides `global` registrations) that receives keys. */
   get activeScope(): string {
-    return this.scopes[this.scopes.length - 1] ?? PAGE_SCOPE
+    return this.scopes.at(-1) ?? PAGE_SCOPE
   }
 
   /** Push `id` on top, e.g. when a modal opens.  Its registrations now shadow everything below. */
@@ -94,8 +100,8 @@ export class Keyboard {
 
   /** Remove the document listener and every registration;  for tests and teardown. */
   dispose() {
-    this.connected?.removeEventListener("keydown", this.onKeyDown, { capture: true })
-    this.connected = undefined
+    this.listener?.abort()
+    this.listener = undefined
     this.registrations.length = 0
     this.scopes.length = 1
   }
@@ -134,9 +140,9 @@ export class Keyboard {
 
   /** Install the document listener once. */
   private connect() {
-    if (this.connected || typeof document === "undefined") return
-    this.connected = document
-    document.addEventListener("keydown", this.onKeyDown, { capture: true })
+    if (this.listener || typeof document === "undefined") return
+    this.listener = new AbortController()
+    document.addEventListener("keydown", this.onKeyDown, { capture: true, signal: this.listener.signal })
   }
 
   /** Dev warning when `registration` claims a chord another registration in its scope already has. */
@@ -161,10 +167,22 @@ export class Keyboard {
 /** Constructor props for `Keyboard`. */
 export type KeyboardProps = {
   /** Apple platform:  `Mod` means Meta.  The runtime passes `UI.browser.isApple`. */
-  apple?: boolean
+  isApple?: boolean
 }
 
-/** One `register()` call. */
+/** What `Keyboard.register()` takes:  the chord, its handler, where it's live, and `KeyRegistrationOptions`. */
+export type KeyRegistration = Prettify<
+  KeyRegistrationOptions & {
+    /** `"page"` (the default) for page-level shortcuts, or an overlay's scope id */
+    scope?: string
+    /** `"Mod+Shift+K"`, or an already-parsed `Chord` */
+    chord: string | Chord
+    /** what to run;  return `false` to pass the key on */
+    handler: KeyHandler
+  }
+>
+
+/** One `register()` call, its chord parsed. */
 type Registration = {
   /** scope it's active in */
   scope: string
@@ -172,7 +190,7 @@ type Registration = {
   chord: Chord
   /** what to run */
   handler: KeyHandler
-  /** as passed to `register()` */
+  /** the rest of what `register()` was given */
   options: KeyRegistrationOptions
 }
 

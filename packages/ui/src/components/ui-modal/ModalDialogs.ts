@@ -42,8 +42,10 @@ export class ModalDialogs implements ModalProvider {
     return this.run(options, { deny: false }, () => undefined)
   }
 
-  prompt(options: ModalOptions): Promise<string | null> {
-    return this.run(options, { deny: true, input: options.value ?? "" }, (approved, value) => (approved ? value : null))
+  prompt(options: ModalOptions): Promise<string | undefined> {
+    return this.run(options, { deny: true, input: options.value ?? "" }, (approved, value) =>
+      approved ? value : undefined
+    )
   }
 
   /**

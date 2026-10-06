@@ -20,8 +20,10 @@
 
 import "spell-ui:icons"
 import "@spell-app/brand/design"
-import { ThemeSheets } from "@spell-app/ui"
+import { UI } from "@spell-app/ui"
 
-export { UI } from "@spell-app/ui"
+export { UI }
 
-void ThemeSheets.apply("spell-brand")
+void UI.load()
+  .then((ui) => ui.themes.apply("spell-brand"))
+  .catch((error) => console.error("spell-ui:  the spell-brand theme", error))

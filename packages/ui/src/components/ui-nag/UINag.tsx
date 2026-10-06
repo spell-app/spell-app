@@ -121,7 +121,10 @@ export class UINag extends UIElement<Vocabulary> {
     const time = untrack(() => this.attrs.displayTime) ?? 0
     if (time > 0) this.timer = setTimeout(() => this.close(TIMEOUT), time)
     const root = this.root
-    void (root ? UI.transitions.animate(root, SLIDE, UIT.IN) : Promise.resolve(true)).then(() => {
+    const entered = root
+      ? UI.transitions.animate({ element: root, name: SLIDE, direction: UIT.IN })
+      : Promise.resolve(true)
+    void entered.then(() => {
       if (!this.closing) this.emit("ui-show", {})
     })
   }
@@ -145,7 +148,10 @@ export class UINag extends UIElement<Vocabulary> {
       this.dismissedState.set(true)
     }
     const root = this.root
-    void (root ? UI.transitions.animate(root, SLIDE, UIT.OUT) : Promise.resolve(true)).then(() => {
+    const exited = root
+      ? UI.transitions.animate({ element: root, name: SLIDE, direction: UIT.OUT })
+      : Promise.resolve(true)
+    void exited.then(() => {
       this.closing = false
       this.shown = false
       this.host.hidden = true

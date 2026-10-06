@@ -10,6 +10,8 @@ import { TEMPORAL_POLYFILL } from "./runtime.types"
  *   `rolldown-runtime-<hash>.js` that EVERY page then loaded (`yarn measure`'s `runtimeChunks` check).
  * - NEVER drop the `TEMPORAL_POLYFILL` use below:  an unused import is tree-shaken, and the split comes back.
  */
-if (!Temporal?.PlainDate) throw new Error(`${TEMPORAL_POLYFILL}:  no \`Temporal\` export`)
+if (!Temporal?.PlainDate) {
+  throw new Error(`I18n.loadTemporal():  ${TEMPORAL_POLYFILL} has no \`Temporal\` export;  check its version`)
+}
 
 export { Temporal }

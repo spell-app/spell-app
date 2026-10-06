@@ -12,7 +12,10 @@ describe("Api.url()", () => {
   })
 
   it("throws on a missing required slot", () => {
-    expect(() => api.url("/users/{id}", {})).toThrow(/Missing a required URL parameter: id/)
+    expect(() => api.url("/users/{id}", {})).toThrow(TypeError)
+    expect(() => api.url("/users/{id}", {})).toThrow(
+      "Api.url():  no value for {id} in /users/{id};  pass it in the URL data"
+    )
   })
 
   it("fills or removes optional {/name} slots with their slash", () => {

@@ -43,7 +43,7 @@ describe("UIRuntime", () => {
     Modals.provider = {
       confirm: async ({ message }) => message === "sure?",
       alert: async () => {},
-      prompt: async ({ value }) => value ?? null
+      prompt: async ({ value }) => value
     }
     Toasts.provider = { show: ({ id = "t1" }) => ({ id, closed: Promise.resolve() }), dismiss: () => {} }
     try {

@@ -2,7 +2,7 @@ import { createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import {
-  ANIMATION_NAMES,
+  AnimationNames,
   Cell,
   proto,
   UI,
@@ -150,6 +150,6 @@ export class UIVisibility extends UIElement<VisibilityVocabulary> {
   /** `transition` as a `UI.transitions` name, `false` for `none` or an unknown name. */
   private static animation(transition: string | null | undefined): AnimationName | false {
     const name = transition ?? FADE
-    return (ANIMATION_NAMES as readonly string[]).includes(name) ? (name as AnimationName) : false
+    return (AnimationNames as readonly string[]).includes(name) ? (name as AnimationName) : false
   }
 }

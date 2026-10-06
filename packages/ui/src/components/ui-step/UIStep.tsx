@@ -48,9 +48,7 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
   ////////////////
 
   /** The current step:  `selected`, or the `active` alias. */
-  readonly isSelected = createMemo(
-    () => this.attrs.selected || Converters.boolean(this.activeAttribute.get() ?? undefined, ACTIVE)
-  )
+  readonly isSelected = createMemo(() => this.attrs.selected || Converters.boolean(this.activeAttribute.get(), ACTIVE))
 
   /** Has an icon (shorthand or `icon` slot)? */
   readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))

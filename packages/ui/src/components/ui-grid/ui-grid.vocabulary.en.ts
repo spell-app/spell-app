@@ -32,7 +32,7 @@ export const gridVocabulary = {
   tag: "ui-grid",
   topics: ["layout", "basic", "collections"],
   aka: ["columns", "row", "flex grid", "layout grid", "responsive grid"],
-  skeleton: null,
+  skeleton: false,
   noun: "grid",
   description: "A grid is used to harmonize negative space in a layout.",
   attributes: [

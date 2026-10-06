@@ -8,7 +8,7 @@ import { readFileSync } from "fs"
 import { dirname, resolve } from "path"
 import { fileURLToPath } from "url"
 
-import { BUILT_IN_ICON_PACKS, BuiltInPacks, IconName, type IconPackIndex } from "$/ui/icons"
+import { BuiltInIconPacks, BuiltInPacks, IconName, type IconPackIndex } from "$/ui/icons"
 
 /** ui's search keywords:  `src/icons/data/search.json`, beside `icon-packs/`. */
 const SEARCH_FILE = resolve(dirname(fileURLToPath(BuiltInPacks.url("fa7-free"))), "..", "..", "data", "search.json")
@@ -30,11 +30,11 @@ export type IconInfo = {
 }
 
 /** Every icon of `packs` -- default, all the built-in ones -- in pack order, then index order. */
-export async function loadIcons(packs: readonly string[] = BUILT_IN_ICON_PACKS): Promise<IconInfo[]> {
+export async function loadIcons(packs: readonly string[] = BuiltInIconPacks): Promise<IconInfo[]> {
   const keywordsByFile = JSON.parse(readFileSync(SEARCH_FILE, "utf8")) as Record<string, string[]>
   const icons: IconInfo[] = []
   for (const pack of packs) {
-    if (!BuiltInPacks.has(pack)) throw new Error(`No icon pack '${pack}' -- packs:  ${BUILT_IN_ICON_PACKS.join(", ")}`)
+    if (!BuiltInPacks.has(pack)) throw new Error(`No icon pack '${pack}' -- packs:  ${BuiltInIconPacks.join(", ")}`)
     const indexUrl = BuiltInPacks.url(pack)
     const index = (await import(indexUrl)).default as IconPackIndex
     const folder = dirname(fileURLToPath(indexUrl))
