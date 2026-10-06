@@ -43,6 +43,22 @@ describe("CheckboxFallback", () => {
     expect(details).toEqual([true])
   })
 
+  it("submits `off-value` while unchosen, and says which value in ui-change", () => {
+    const form = Fixture.render<HTMLFormElement>(
+      `<form><x-fb-checkbox name="panel" value="open" off-value="closed">Open</x-fb-checkbox></form>`
+    )
+    const host = form.querySelector<StubHost>("x-fb-checkbox")!
+    const values: unknown[] = []
+    host.addEventListener("ui-change", (event) => values.push((event as CustomEvent).detail.value))
+    expect(new FormData(form).get("panel")).toBe("closed")
+    const input = FallbackStub.shadow(host).querySelector("input")!
+    input.click()
+    expect(new FormData(form).get("panel")).toBe("open")
+    input.click()
+    expect(new FormData(form).get("panel")).toBe("closed")
+    expect(values).toEqual(["open", "closed"])
+  })
+
   it("keeps readonly unchangeable", () => {
     const host = Fixture.render<StubHost>(`<x-fb-checkbox readonly>Locked</x-fb-checkbox>`)
     const input = FallbackStub.shadow(host).querySelector("input")!

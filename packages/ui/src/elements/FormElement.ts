@@ -28,11 +28,11 @@ export abstract class FormElement<V extends E.ComponentVocabulary = E.ComponentV
   @E.proto static formAssociated = true
 
   /**
-   * Result of `rules()` against `formValue()`.
+   * Result of `rules()` against `validationValue()`.
    * - `lazy`:  it calls subclass hooks, which read subclass fields that don't exist yet here.
    */
   readonly validation: Accessor<E.ValidationResult> = createMemo(
-    () => FormElement.validator.validate(this.formValue(), this.rules(), { label: this.validationLabel() }),
+    () => FormElement.validator.validate(this.validationValue(), this.rules(), { label: this.validationLabel() }),
     { lazy: true }
   )
 
@@ -57,6 +57,15 @@ export abstract class FormElement<V extends E.ComponentVocabulary = E.ComponentV
   /** Validation rules;  default none. */
   protected rules(): E.ValidationRule[] {
     return []
+  }
+
+  /**
+   * Value `rules()` check;  tracked.
+   * - Default:  `formValue()`.  A checkbox checks its chosen state alone:  its `off-value` is submitted, yet never
+   *   "checked".
+   */
+  protected validationValue(): E.FieldValue {
+    return this.formValue()
   }
 
   /** Label used in validation messages. */

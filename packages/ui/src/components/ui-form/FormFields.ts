@@ -11,8 +11,10 @@ import { FIELD_SELECTOR, type Field, type FieldSpec } from "./ui-form.types"
  *   `<ui-form>` when the form is outside it;  without a form, every control inside.  Buttons are skipped;  a
  *   `ui-*` host counts when it has the form-control API (`validity`), so `<ui-button>` doesn't.
  * - Values, Fomantic's `get.values()` shape:
- *   - checkboxes (`ui-checkbox` / native):  one => `value` (or `true`) when chosen, else `false`;  several of one
- *     name => the chosen values
+ *   - checkboxes (`ui-checkbox` / native):  one => its value (`true` for the native default, `on`, with no `value`
+ *     attribute) when chosen, else its `off-value` or `false`;  several of one name => what each submits, the
+ *     chosen values and the unchosen ones' off-values
+ *   - a `ui-*` host's values come from the host (`chosenValue` / `unchosenValue`), so its class's defaults count
  *   - radios:  the chosen one's value, else `null` (Fomantic's, kept:  pages read it, and JSON keeps it)
  *   - anything else:  its `value` (`string`, or `string[]` for a multiple dropdown / select);  several => a list
  * - Errors of a field:  its `rules` through `Validator` (with every value for `match` / `different`, and every
@@ -159,10 +161,18 @@ export class FormFields {
       return chosen ? FormFields.chosenValueFor(chosen) : null
     }
     if (FormFields.isCheckable(first)) {
-      if (controls.length === 1) return FormFields.isChosen(first) ? (first.getAttribute(VALUE) ?? true) : false
-      return controls
-        .filter((control) => FormFields.isChosen(control))
-        .map((control) => FormFields.chosenValueFor(control))
+      if (controls.length === 1) {
+        if (!FormFields.isChosen(first)) return FormFields.unchosenValueFor(first) ?? false
+        const value = FormFields.chosenValueFor(first)
+        // Fomantic's `value || true`, as our attribute reading always had it (epic `wwod-spell-ui`, J44's aside)
+        return value === UIT.CHECKBOX_DEFAULT_VALUE && !first.hasAttribute(VALUE) ? true : value
+      }
+      return controls.flatMap((control) => {
+        const value = FormFields.isChosen(control)
+          ? FormFields.chosenValueFor(control)
+          : FormFields.unchosenValueFor(control)
+        return value === undefined ? [] : [value]
+      })
     }
     const values = controls.map((control) => FormFields.ownValueFor(control))
     return values.length === 1 ? values[0]! : values.flat()
@@ -230,9 +240,14 @@ export class FormFields {
     return !!(control as { selected?: boolean }).selected
   }
 
-  /** What a chosen checkable submits:  its `value` attribute, else `on` (native default). */
+  /** What a chosen checkable submits:  a `ui-*` host's `chosenValue`, else its `value` attribute, else `on` (native). */
   private static chosenValueFor(control: Element): string {
-    return control.getAttribute(VALUE) ?? UIT.CHECKBOX_DEFAULT_VALUE
+    return (control as CheckableHost).chosenValue ?? control.getAttribute(VALUE) ?? UIT.CHECKBOX_DEFAULT_VALUE
+  }
+
+  /** What an unchosen checkable submits:  a `ui-*` host's `unchosenValue` (`off-value`);  a native:  nothing. */
+  private static unchosenValueFor(control: Element): string | undefined {
+    return (control as CheckableHost).unchosenValue
   }
 
   /** The value of a non-checkable control. */
@@ -263,6 +278,14 @@ export type FormFieldsProps = {
   host: HTMLElement
   /** The native form, when there is one;  read on every call. */
   form: () => HTMLFormElement | undefined
+}
+
+/** What a checkable `ui-*` host says it submits (`CheckHost`);  structural, so this file never imports that family. */
+type CheckableHost = Element & {
+  /** submitted while chosen;  none before its controller exists */
+  chosenValue?: string
+  /** submitted while unchosen;  none ~== nothing */
+  unchosenValue?: string
 }
 
 /** What `FormFields.errors()` checks one field against. */

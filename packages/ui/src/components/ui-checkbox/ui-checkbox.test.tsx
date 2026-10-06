@@ -3,12 +3,13 @@ import { userEvent } from "vite-plus/test/browser"
 import { OBSERVE } from "solid-js"
 import { attribution } from "solid-js/attribution"
 
+import { E } from "$/ui/core"
 import type { FormHost } from "$/ui/elements"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import "$/ui/components/ui-checkbox"
+import { UICheckbox } from "$/ui/components/ui-checkbox"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/ui-checkbox/examples/elements/*.html", {
@@ -24,7 +25,16 @@ type Check = FormHost & {
   indeterminate: boolean
   value: string
   checkable: string
+  chosenValue: string | undefined
+  unchosenValue: string | undefined
 }
+
+/** A subclass with class defaults for both values:  `<x-door>`, as the docs show it. */
+class Door extends UICheckbox {
+  @E.proto static onValue = "open"
+  @E.proto static offValue = "closed"
+}
+Door.define("x-door")
 
 /** Render one control;  returns the host, its root, input and label. */
 async function check(html: string) {
@@ -241,6 +251,85 @@ describe("<ui-checkbox> forms", () => {
     await ElementFixture.tick()
     expect(host.validity.valid).toBe(true)
     expect(host.matches(":state(invalid)")).toBe(false)
+  })
+})
+
+describe("<ui-checkbox> off-value", () => {
+  it("submits `off-value` while unchosen and `value` while chosen;  ui-change says which", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(
+      `<form><ui-checkbox type="toggle" name="panel" value="open" off-value="closed">Open</ui-checkbox></form>`
+    )
+    await ElementFixture.tick()
+    const host = form.querySelector<Check>("ui-checkbox")!
+    const details = changes(host)
+    expect([...new FormData(form)]).toEqual([["panel", "closed"]])
+    parts(host).input.click()
+    await ElementFixture.tick()
+    expect([...new FormData(form)]).toEqual([["panel", "open"]])
+    parts(host).input.click()
+    await ElementFixture.tick()
+    expect([...new FormData(form)]).toEqual([["panel", "closed"]])
+    expect(details.map(({ selected, value }) => ({ selected, value }))).toEqual([
+      { selected: true, value: "open" },
+      { selected: false, value: "closed" }
+    ])
+  })
+
+  it("never satisfies `required`:  it still means chosen", async () => {
+    const host = (await check(`<ui-checkbox name="terms" off-value="no" required>Terms</ui-checkbox>`)).host
+    expect(host.validity.valueMissing).toBe(true)
+    parts(host).input.click()
+    await ElementFixture.tick()
+    expect(host.validity.valid).toBe(true)
+  })
+
+  it("resets to the starting state's value", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(
+      `<form><ui-checkbox name="panel" value="open" off-value="closed" selected>Open</ui-checkbox></form>`
+    )
+    const host = form.querySelector<Check>("ui-checkbox")!
+    host.selected = false
+    await ElementFixture.tick()
+    expect(new FormData(form).get("panel")).toBe("closed")
+    form.reset()
+    await ElementFixture.tick()
+    expect(new FormData(form).get("panel")).toBe("open")
+  })
+
+  it("comes from a subclass's `@E.proto static` defaults;  the attributes still win", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(
+      `<form><x-door name="front">Front</x-door><x-door name="back" value="ajar" off-value="shut">Back</x-door></form>`
+    )
+    await ElementFixture.tick()
+    const [front, back] = form.querySelectorAll<Check>("x-door")
+    expect([front!.chosenValue, front!.unchosenValue, back!.chosenValue, back!.unchosenValue]).toEqual([
+      "open",
+      "closed",
+      "ajar",
+      "shut"
+    ])
+    expect([...new FormData(form)]).toEqual([
+      ["front", "closed"],
+      ["back", "shut"]
+    ])
+    parts(front!).input.click()
+    await ElementFixture.tick()
+    expect(new FormData(form).get("front")).toBe("open")
+  })
+
+  it("leaves boxes without one, and radios, as they were:  nothing while unchosen", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(
+      `<form><ui-checkbox name="news">News</ui-checkbox><ui-radio name="plan" value="pro">Pro</ui-radio></form>`
+    )
+    await ElementFixture.tick()
+    const [news, plan] = form.querySelectorAll<Check>("ui-checkbox, ui-radio")
+    expect([...new FormData(form)]).toEqual([])
+    expect([news!.chosenValue, news!.unchosenValue, plan!.chosenValue, plan!.unchosenValue]).toEqual([
+      "on",
+      undefined,
+      "pro",
+      undefined
+    ])
   })
 })
 

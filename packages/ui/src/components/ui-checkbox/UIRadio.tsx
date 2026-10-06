@@ -42,7 +42,7 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
     () => {
       const group = this.group.get()
       const required = group ? group.isRequired() : this.attrs.required
-      const chosen = group ? group.selected()?.choiceValue() : this.isSelected() ? this.choiceValue() : undefined
+      const chosen = group ? group.selected()?.chosenValue() : this.isSelected() ? this.chosenValue() : undefined
       return F.FormElement.validator.validate(chosen ?? "", required ? [UIT.REQUIRED_RULE] : [], {
         label: this.validationLabel()
       })

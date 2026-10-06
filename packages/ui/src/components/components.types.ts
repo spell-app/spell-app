@@ -433,7 +433,7 @@ export const InputOwnerTokens = {
 export type CheckboxChangeDetail = {
   /** chosen after the change */
   selected: boolean
-  /** the element's `value` (default `on`) */
+  /** what it stands for after the change:  its `value` (default `on`), or once unchosen its `off-value`, if any */
   value: string
   /** event of the person's action, when there was one */
   originalEvent?: Event
@@ -441,7 +441,8 @@ export type CheckboxChangeDetail = {
 
 /**
  * What a chosen checkbox / radio submits without a `value`:  the native default.
- * - Shared by `ui-checkbox` (the elements, the fallback) and `ui-form` (`values` of native and `ui-*` checkables).
+ * - Shared by `ui-checkbox` (`CheckControl`'s `@proto static onValue`, the fallback) and `ui-form` (`values` of
+ *   native and `ui-*` checkables).
  */
 export const CHECKBOX_DEFAULT_VALUE = "on"
 
