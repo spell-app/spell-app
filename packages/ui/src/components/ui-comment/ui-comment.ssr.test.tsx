@@ -13,7 +13,7 @@ import { UIDescription } from "$/ui/components/ui-parts/UIDescription"
  * `<ui-comments>` in the static server render (`$/ui/static`):  `<article>` comments in a `ui comments` box, a nested
  * `<ui-comments>` as the thread (`comments`, no `ui`), the `reply` slot in its own box.
  */
-describe("ui-comment, static", () => {
+describe("<ui-comment> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIComments, UIComment, UIContent, UIAuthor, UIDescription)
   })

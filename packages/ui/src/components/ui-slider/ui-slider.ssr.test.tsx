@@ -9,7 +9,7 @@ import { UISlider } from "$/ui/components/ui-slider/UISlider"
  * `<ui-slider>` in a static server render (`$/ui/static`):  the track and APG thumbs at their positions, and the
  * value as hidden inputs (no native control has two thumbs), so a no-JS form submits it.
  */
-describe("ui-slider (static render)", () => {
+describe("<ui-slider> static render", () => {
   beforeAll(() => {
     StaticRender.define(UISlider)
   })

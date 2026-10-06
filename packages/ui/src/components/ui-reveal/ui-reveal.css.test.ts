@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { revealVocabulary } from "./ui-reveal.vocabulary.en"
 
@@ -30,6 +30,10 @@ function visible(root: Element, selector: string): CSSStyleDeclaration {
   return getComputedStyle(root.querySelector(`${selector} > .visible.content`)!)
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-reveal.css source", () => {
   it("never uses rem or !important", () => {
     const text = Sheets.withoutComments(revealRaw)
@@ -51,6 +55,10 @@ describe("ui-reveal.css source", () => {
     for (const selector of revealed) expect(selector, selector).toContain(":focus-within")
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-reveal.css examples", () => {
   it("stacks the visible content over the hidden one", () => {
@@ -96,6 +104,10 @@ describe("ui-reveal.css examples", () => {
     expect(getComputedStyle(root.querySelector(".ui.visible.reveal")!).overflow).toBe("visible")
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-reveal.css tokens", () => {
   it("takes a public token from a wrapper or the reveal itself (static markup)", () => {

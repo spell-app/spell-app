@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
@@ -10,6 +10,10 @@ import type { TocEntry } from "./ui-docs-toc.types"
 import "$/ui/docs-components/ui-docs-toc"
 import "$/ui/components/ui-section"
 import "$/ui/components/ui-tab"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** Element-markup examples, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-toc/examples/elements/*.html", {
@@ -58,6 +62,10 @@ const SECTIONS = `
     </article>
   </div>`
 
+////////////////
+// ## Helpers
+////////////////
+
 /** Render `html`;  returns its toc host. */
 async function render(html: string) {
   document.scrollingElement!.scrollTo(0, 0)
@@ -73,10 +81,19 @@ async function rendered(toc: Element) {
   await ElementFixture.settle(toc)
 }
 
+/** `entries` as a tree of ids:  `[id, text, [...]]` for an entry with entries under it, else its id. */
+function shapeOf(entries: readonly TocEntry[]): unknown[] {
+  return entries.map((entry) => (entry.entries.length ? [entry.id, entry.text, shapeOf(entry.entries)] : entry.id))
+}
+
 /** The link texts of `toc`, by part (`section` / `entry`), in order. */
 function links(toc: Element, part: "section" | "entry") {
   return [...toc.shadowRoot!.querySelectorAll(`[part~=${part}]`)].map((item) => item.textContent!.trim())
 }
+
+////////////////
+// ## Scanning
+////////////////
 
 describe("<ui-docs-toc> scan", () => {
   it("lists level 2 headings as sections and the current one's examples / level 3 headings as entries", async () => {
@@ -121,9 +138,7 @@ describe("<ui-docs-toc> scan", () => {
 
   it("lists `<ui-section>`s as a tree:  nested sections and examples under theirs, a slotted title's text", async () => {
     const { wrapper, toc } = await render(SECTIONS)
-    const shape = (entries: readonly TocEntry[]): unknown[] =>
-      entries.map((entry) => (entry.entries.length ? [entry.id, entry.text, shape(entry.entries)] : entry.id))
-    expect(shape(TocIndex.scan(wrapper.querySelector("#nested")!))).toEqual([
+    expect(shapeOf(TocIndex.scan(wrapper.querySelector("#nested")!))).toEqual([
       [
         "examples-types",
         "Types",
@@ -140,13 +155,11 @@ describe("<ui-docs-toc> scan", () => {
     const { toc } = await render(SECTIONS.replace("<ui-docs-toc ", "<ui-docs-toc expanded "))
     expect(links(toc, "entry")).toEqual(["Button", "Group ui-buttons", "Or", "Disabled"])
   })
-
-  it("slugs text", () => {
-    expect(TocIndex.slug("Labeled Icon")).toBe("labeled-icon")
-    expect(TocIndex.slug("  Émphasis & More! ")).toBe("emphasis-more")
-    expect(TocIndex.slug("---")).toBe("section")
-  })
 })
+
+////////////////
+// ## Following the page
+////////////////
 
 describe("<ui-docs-toc> following", () => {
   it("marks the entry in view and opens its section as the page scrolls;  fires `ui-change`", async () => {
@@ -206,6 +219,10 @@ describe("<ui-docs-toc> following", () => {
     expect(wrapper.querySelector<HTMLElement & { value: string }>("ui-tabs")!.value).toBe("two")
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("<ui-docs-toc> examples", () => {
   it.each(Object.entries(EXAMPLES))("%s:  renders and is accessible", async (_path, html) => {

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
 
@@ -36,6 +36,10 @@ function flyoutNamed(root: Element, text: string): HTMLElement {
   if (!found) throw new Error(`no flyout "${text}"`)
   return found
 }
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-flyout.css source", () => {
   it("never uses rem", () => {
@@ -74,15 +78,16 @@ describe("ui-flyout.css source", () => {
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-flyout.css examples", () => {
   it("draws a visible flyout:  a column of header, growing content, actions;  a shadow", () => {
     const root = example("types")
     const flyout = flyoutNamed(root, "Archive old messages")
     const style = getComputedStyle(flyout)
-    expect(style.display).toBe("flex")
-    expect(style.flexDirection).toBe("column")
-    expect(style.visibility).toBe("visible")
-    expect(style.width).toBe("400px")
+    expect(style).toMatchObject({ display: "flex", flexDirection: "column", visibility: "visible", width: "400px" })
     expect(style.boxShadow).not.toBe("none")
     expect(getComputedStyle(flyout.querySelector(".header")!).borderBottomStyle).toBe("solid")
     const actions = flyout.querySelector<HTMLElement>(".actions")!
@@ -119,6 +124,10 @@ describe("ui-flyout.css examples", () => {
     expect(new DOMMatrix(getComputedStyle(right!).transform).m41).toBe(400)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-flyout.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

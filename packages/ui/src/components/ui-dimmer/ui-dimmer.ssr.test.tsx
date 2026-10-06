@@ -10,7 +10,7 @@ import { UIDimmer } from "$/ui/components/ui-dimmer/UIDimmer"
  * `<ui-dimmer>` rendered statically (`$/ui/static`):  an element dimmer as its `<div>` (shown while `active`), a page
  * dimmer as a CLOSED `<dialog>` with its name.
  */
-describe("ui-dimmer static render", () => {
+describe("<ui-dimmer> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIDimmer)
   })

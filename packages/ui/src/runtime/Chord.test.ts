@@ -7,7 +7,11 @@ function keydown(key: string, init: KeyboardEventInit = {}) {
   return new KeyboardEvent("keydown", { key, ...init })
 }
 
-describe("Chord", () => {
+////////////////
+// ## Parsing
+////////////////
+
+describe("Chord.parse()", () => {
   it("parses modifiers and key in any case", () => {
     const chord = Chord.parse("shift+ALT+ArrowUp", { isApple: false })
     expect(chord).toMatchObject({ key: "arrowup", shift: true, alt: true, ctrl: false, meta: false })
@@ -30,7 +34,13 @@ describe("Chord", () => {
     expect(() => Chord.parse("Hyper+K")).toThrow(/unknown modifier/)
     expect(() => Chord.parse("Ctrl+")).toThrow(/no key/)
   })
+})
 
+////////////////
+// ## Matching
+////////////////
+
+describe("Chord.matches()", () => {
   it("matches modifiers exactly", () => {
     const chord = Chord.parse("Mod+Shift+K", { isApple: false })
     expect(chord.matches(keydown("K", { ctrlKey: true, shiftKey: true }))).toBe(true)
@@ -54,7 +64,9 @@ describe("Chord", () => {
     expect(Chord.parse("Escape").matches(keydown("Escape"))).toBe(true)
     expect(Chord.parse("ArrowDown").matches(keydown("ArrowUp"))).toBe(false)
   })
+})
 
+describe("Chord.hasCommandModifier", () => {
   it("reports whether a chord has a command modifier", () => {
     expect(Chord.parse("Mod+K").hasCommandModifier).toBe(true)
     expect(Chord.parse("Shift+K").hasCommandModifier).toBe(false)

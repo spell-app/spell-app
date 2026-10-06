@@ -2,13 +2,14 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { REACH, StaticPageStyles } from "$/ui/static"
 
+/** The families the render knows:  tag -> its `data-ui` name. */
+const TAGS = new Map([
+  ["ui-segment", "segment"],
+  ["ui-card", "card"]
+])
+
 /** A page's own selectors, rewritten for the flattened output. */
 describe("StaticPageStyles.selector()", () => {
-  const tags = new Map([
-    ["ui-segment", "segment"],
-    ["ui-card", "card"]
-  ])
-
   it.each([
     ["#circular-segment::part(segment)", ['#circular-segment[part~="segment"]', '#circular-segment [part~="segment"]']],
     [
@@ -23,11 +24,13 @@ describe("StaticPageStyles.selector()", () => {
     // page CSS never reached a component's own markup:  every subject keeps to what the light DOM held
     ["h2::before", [`h2${REACH}::before`]]
   ])("%s", (selector, expected) => {
-    expect(StaticPageStyles.selector(selector, tags)).toEqual(expected)
+    expect(StaticPageStyles.selector(selector, TAGS)).toEqual(expected)
   })
+})
 
+describe("StaticPageStyles.rewrite()", () => {
   it("rewrites a whole sheet, keeping its at-rules", () => {
-    expect(StaticPageStyles.rewrite("@media (width > 1px) { ui-card { color: red } }", tags)).toBe(
+    expect(StaticPageStyles.rewrite("@media (width > 1px) { ui-card { color: red } }", TAGS)).toBe(
       `@media (width > 1px) { [data-ui="card"]${REACH} { color: red } }`
     )
   })

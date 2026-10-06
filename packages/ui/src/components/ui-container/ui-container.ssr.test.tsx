@@ -6,7 +6,7 @@ import { StaticRender } from "$/ui/static"
 import { UIContainer } from "$/ui/components/ui-container/UIContainer"
 
 /** `<ui-container>` in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-container static render", () => {
+describe("<ui-container> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIContainer)
   })

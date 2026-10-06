@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { UIT } from "$/ui/core"
 import { FLAG_ALIASES } from "./ui-flag.types"
@@ -24,6 +24,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-flag.css source", () => {
   it("never uses rem", () => {
@@ -55,6 +59,10 @@ describe("ui-flag.css source", () => {
     for (const value of size.values) expect(flagRaw).toContain(`--_ui-flag-size-${value}:`)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-flag.css examples", () => {
   it.each(Object.keys(EXAMPLES))("draws every flag in %s as a one-line emoji box", (path) => {
@@ -95,6 +103,10 @@ describe("ui-flag.css examples", () => {
   })
 })
 
+////////////////
+// ## In shadow roots
+////////////////
+
 describe("ui-flag.css in shadow roots", () => {
   it("renders the host as contents and ignores a parent's scale", () => {
     Sheets.adopt(foundationCSS)
@@ -114,7 +126,11 @@ describe("ui-flag.css in shadow roots", () => {
   })
 })
 
-describe("flag vocabulary data", () => {
+////////////////
+// ## FLAG_ALIASES / UIT.SPECIAL_FLAGS
+////////////////
+
+describe("FLAG_ALIASES / UIT.SPECIAL_FLAGS", () => {
   it("normalizes every alias and maps it to a two-letter code or a SPECIAL_FLAGS key", () => {
     const aliases: Readonly<Record<string, string>> = FLAG_ALIASES
     expect(Object.keys(aliases).length).toBeGreaterThan(250)
@@ -123,11 +139,13 @@ describe("flag vocabulary data", () => {
       expect(name).not.toBe(code)
       expect(/^[a-z]{2}$/.test(code) || code in UIT.SPECIAL_FLAGS, `${name} => ${code}`).toBe(true)
     }
-    expect(aliases["united states"]).toBe("us")
-    expect(aliases.america).toBe("us")
-    expect(aliases.uk).toBe("gb")
-    expect(aliases.england).toBe("gb-eng")
-    expect(aliases.pride).toBe("rainbow")
+    expect(aliases).toMatchObject({
+      "united states": "us",
+      america: "us",
+      uk: "gb",
+      england: "gb-eng",
+      pride: "rainbow"
+    })
   })
 
   it("names every two-letter code through Intl.DisplayNames", () => {
@@ -150,6 +168,10 @@ describe("flag vocabulary data", () => {
     }
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-flag.css tokens", () => {
   it("takes a public token from a wrapper or the flag itself (static markup)", () => {

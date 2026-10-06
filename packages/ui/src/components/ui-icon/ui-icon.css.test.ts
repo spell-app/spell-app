@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { iconVocabulary } from "./ui-icon.vocabulary.en"
 import { iconsVocabulary } from "./ui-icons.vocabulary.en"
@@ -22,6 +22,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-icon.css source", () => {
   it("never uses rem", () => {
@@ -54,6 +58,10 @@ describe("ui-icon.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-icon.css examples", () => {
   it.each(Object.keys(EXAMPLES))("draws every icon in %s as a one-line glyph box", (path) => {
@@ -133,6 +141,10 @@ describe("ui-icon.css examples", () => {
   })
 })
 
+////////////////
+// ## In shadow roots
+////////////////
+
 describe("ui-icon.css in shadow roots", () => {
   it("resets an inherited scale and colour on the host", () => {
     Sheets.adopt(foundationCSS)
@@ -187,6 +199,10 @@ function defineTestIcon() {
     }
   )
 }
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-icon.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

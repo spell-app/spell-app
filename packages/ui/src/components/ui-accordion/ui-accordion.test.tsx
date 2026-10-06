@@ -2,7 +2,7 @@ import { userEvent } from "vite-plus/test/browser"
 import { afterEach, beforeAll, describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -58,6 +58,10 @@ function events(host: Element) {
   return seen
 }
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-accordion> classes", () => {
   it.each([
     ["", "ui accordion"],
@@ -73,6 +77,10 @@ describe("<ui-accordion> classes", () => {
     expect(root.className).toBe(classes)
   })
 })
+
+////////////////
+// ## Panels
+////////////////
 
 describe("<ui-accordion> panels", () => {
   it("wraps each title + content pair in a <details> > <summary class=title> + <div class=content>", async () => {
@@ -159,6 +167,10 @@ describe("<ui-accordion> panels", () => {
   })
 })
 
+////////////////
+// ## Tokens from outside
+////////////////
+
 describe("<ui-accordion> tokens from outside", () => {
   /** The first title's top padding. */
   function padding(host: Element): string {
@@ -202,6 +214,10 @@ describe("<ui-accordion> tokens from outside", () => {
     expect(getComputedStyle(titles[0]!).color).toBe(red)
   })
 })
+
+////////////////
+// ## Behaviour
+////////////////
 
 describe("<ui-accordion> behaviour", () => {
   it("opens a panel on a title click, closing the open one (exclusive), with ui-open / ui-close first", async () => {
@@ -294,6 +310,10 @@ describe("<ui-accordion> behaviour", () => {
   })
 })
 
+////////////////
+// ## Keyboard
+////////////////
+
 describe("<ui-accordion> keyboard", () => {
   it("Tab reaches every title;  Enter / Space toggle;  arrows / Home / End move between titles", async () => {
     const { host, details, titles } = await accordion()
@@ -325,6 +345,10 @@ describe("<ui-accordion> keyboard", () => {
   })
 })
 
+////////////////
+// ## Nested
+////////////////
+
 describe("<ui-accordion> nested", () => {
   const NESTED =
     `<ui-title>Outer</ui-title><ui-content>` +
@@ -352,6 +376,10 @@ describe("<ui-accordion> nested", () => {
     expect(openPanels(details)).toEqual([0])
   })
 })
+
+////////////////
+// ## Look
+////////////////
 
 describe("<ui-accordion> look", () => {
   it("draws the styled box, rules between titles, and turns the open title's arrow", async () => {
@@ -387,7 +415,11 @@ describe("<ui-accordion> look", () => {
   })
 })
 
-describe("<ui-accordion source>", () => {
+////////////////
+// ## Source
+////////////////
+
+describe("<ui-accordion> source", () => {
   /** Fixture bodies the test server serves. */
   const DIR = "/test/fixtures/sources/bodies"
 
@@ -472,6 +504,10 @@ describe("<ui-accordion source>", () => {
     expect(contents[0]!.querySelector("[part~=error]")!.textContent).toBe(`Couldn't load ${DIR}/missing.html.`)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-accordion> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

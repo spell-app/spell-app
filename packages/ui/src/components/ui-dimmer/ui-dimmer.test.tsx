@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
 import type { DimmerCloseDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -61,6 +61,10 @@ afterEach(() => {
   for (const host of document.querySelectorAll<Dimmer>("ui-dimmer")) host.active = false
 })
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-dimmer> classes", () => {
   it.each([
     ["", "ui dimmer"],
@@ -82,6 +86,10 @@ describe("<ui-dimmer> classes", () => {
     expect(page.localName).toBe("dialog")
   })
 })
+
+////////////////
+// ## Element dimmer
+////////////////
 
 describe("<ui-dimmer> element dimmer", () => {
   it("covers its parent segment (inside its border) while active;  hidden otherwise", async () => {
@@ -172,8 +180,12 @@ describe("<ui-dimmer> element dimmer", () => {
   })
 })
 
+////////////////
+// ## Tokens from outside
+////////////////
+
 describe("<ui-dimmer> tokens from outside", () => {
-  const shade = "rgba(10, 20, 30, 0.5)"
+  const SHADE = "rgba(10, 20, 30, 0.5)"
 
   /** The dimmer box's background colour. */
   function background(box: Element): string {
@@ -181,44 +193,48 @@ describe("<ui-dimmer> tokens from outside", () => {
   }
 
   it("takes a token set on the HOST", async () => {
-    const { box } = await dimmer(`<ui-dimmer active style="--ui-dimmer-background: ${shade}"></ui-dimmer>`)
-    expect(background(box)).toBe(shade)
+    const { box } = await dimmer(`<ui-dimmer active style="--ui-dimmer-background: ${SHADE}"></ui-dimmer>`)
+    expect(background(box)).toBe(SHADE)
   })
 
   it("takes a token set on an ANCESTOR", async () => {
     const { box } = await dimmer(
-      `<section style="--ui-dimmer-background: ${shade}"><ui-dimmer active></ui-dimmer></section>`
+      `<section style="--ui-dimmer-background: ${SHADE}"><ui-dimmer active></ui-dimmer></section>`
     )
-    expect(background(box)).toBe(shade)
+    expect(background(box)).toBe(SHADE)
   })
 
   it("takes a token set through `::part(dimmer)`", async () => {
     const { box } = await dimmer(
-      `<style>.themed::part(dimmer) { --ui-dimmer-background: ${shade} }</style><ui-dimmer active class="themed"></ui-dimmer>`
+      `<style>.themed::part(dimmer) { --ui-dimmer-background: ${SHADE} }</style><ui-dimmer active class="themed"></ui-dimmer>`
     )
-    expect(background(box)).toBe(shade)
+    expect(background(box)).toBe(SHADE)
   })
 
   it("takes a token set on `:root`", async () => {
-    document.documentElement.style.setProperty("--ui-dimmer-background", shade)
+    document.documentElement.style.setProperty("--ui-dimmer-background", SHADE)
     onTestFinished(() => {
       document.documentElement.style.removeProperty("--ui-dimmer-background")
     })
     const { box } = await dimmer(`<ui-dimmer active></ui-dimmer>`)
-    expect(background(box)).toBe(shade)
+    expect(background(box)).toBe(SHADE)
   })
 
   it("a shade swaps the background;  the duration reaches the fade", async () => {
     const { box } = await dimmer(
-      `<ui-dimmer active shade="light" style="--ui-dimmer-background: ${shade}"></ui-dimmer>`
+      `<ui-dimmer active shade="light" style="--ui-dimmer-background: ${SHADE}"></ui-dimmer>`
     )
-    expect(background(box)).not.toBe(shade)
+    expect(background(box)).not.toBe(SHADE)
     const { box: slow } = await dimmer(`<ui-dimmer style="--ui-dimmer-duration: 2s"></ui-dimmer>`)
     expect(getComputedStyle(slow).transitionDuration.split(",")[0]).toBe("2s")
   })
 })
 
-describe("<ui-dimmer on>", () => {
+////////////////
+// ## `on`
+////////////////
+
+describe("<ui-dimmer> on", () => {
   it("on=hover:  shows while the pointer is over the parent", async () => {
     const { host, wrapper } = await dimmer(
       `<div id="card" style="width: 10em; height: 6em"><ui-dimmer on="hover"><button>Add</button></ui-dimmer></div>` +
@@ -260,7 +276,11 @@ describe("<ui-dimmer on>", () => {
   })
 })
 
-describe("<ui-dimmer page>", () => {
+////////////////
+// ## Page dimmer
+////////////////
+
+describe("<ui-dimmer> page", () => {
   it("a modal dialog over the viewport:  inert page, scroll lock, focus inside;  Escape hides and restores focus", async () => {
     const { host, box, wrapper } = await dimmer(
       `<button id="trigger">Open</button><ui-dimmer page aria-label="Busy"><button>Inside</button></ui-dimmer>`
@@ -341,6 +361,10 @@ describe("<ui-dimmer page>", () => {
     expect(document.documentElement.classList.contains("ui-scroll-locked")).toBe(false)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-dimmer> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s, with each page dimmer shown", async (path) => {

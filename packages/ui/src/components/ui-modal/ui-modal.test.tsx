@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
 import { page, userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
 import { PART_OWNER_TOKENS, type ModalCloseDetail } from "$/ui/components/components.types"
-import { A11y, expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { A11y, expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -78,6 +78,10 @@ afterEach(() => {
   for (const dialog of document.querySelectorAll("ui-modal")) (dialog as Modal).open = false
 })
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-modal> classes", () => {
   it.each([
     ["", "ui modal"],
@@ -100,6 +104,10 @@ describe("<ui-modal> classes", () => {
     expect(host.matches(":state(open)")).toBe(true)
   })
 })
+
+////////////////
+// ## Content
+////////////////
 
 describe("<ui-modal> content", () => {
   it("renders in contract order:  header, content, slot, close icon (last)", async () => {
@@ -134,6 +142,10 @@ describe("<ui-modal> content", () => {
     expect(style.getPropertyValue(PART_OWNER_TOKENS.modalHeaderSize).trim()).toBe("1.6em")
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-modal> tokens from outside", () => {
   /** The dialog's top-left radius. */
@@ -198,6 +210,10 @@ describe("<ui-modal> tokens from outside", () => {
     expect(getComputedStyle(header(basic)).color).not.toBe(red)
   })
 })
+
+////////////////
+// ## Open / close
+////////////////
 
 describe("<ui-modal> open / close", () => {
   it("`open` shows it with showModal():  top layer, inert page, scroll lock;  ui-show, then ui-hide", async () => {
@@ -367,10 +383,6 @@ describe("<ui-modal> open / close", () => {
 
   it("answers a plain `command` event (what the button's JS fallback dispatches)", async () => {
     const { host, dialog } = await modal(`<ui-modal id="m" content="Body"></ui-modal>`)
-    const send = (command: string) => {
-      const event = Object.assign(new Event("command", { cancelable: true }), { command })
-      host.dispatchEvent(event)
-    }
     send("--show")
     await settle()
     expect(dialog.open).toBe(true)
@@ -383,6 +395,12 @@ describe("<ui-modal> open / close", () => {
     send("--close")
     await settle()
     expect(dialog.open).toBe(false)
+
+    /** Dispatch a plain cancelable `command` event carrying `command` at the host. */
+    function send(command: string) {
+      const event = Object.assign(new Event("command", { cancelable: true }), { command })
+      host.dispatchEvent(event)
+    }
   })
 
   it("without native `closedby`, the overlay's outside click tells the dimmer from the dialog", async () => {
@@ -441,6 +459,10 @@ describe("<ui-modal> open / close", () => {
   })
 })
 
+////////////////
+// ## Actions
+////////////////
+
 describe("<ui-modal> actions", () => {
   /** A modal with deny / approve buttons in its actions. */
   const ACTIONS =
@@ -476,6 +498,10 @@ describe("<ui-modal> actions", () => {
     expect(dialog.open).toBe(false)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-modal> accessibility", () => {
   it("is named by its header shorthand, a slotted <ui-header>, or the host's aria-label", async () => {
@@ -536,6 +562,10 @@ describe("<ui-modal> accessibility", () => {
     }
   })
 })
+
+////////////////
+// ## `UI.modals`
+////////////////
 
 describe("UI.modals", () => {
   /** The dialog `UI.modals` put in the body. */

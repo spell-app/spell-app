@@ -4,7 +4,7 @@ import { userEvent } from "vite-plus/test/browser"
 import { UI } from "$/ui/runtime"
 import type { DropdownOptions } from "$/ui/components/components.types"
 import { FlagCountry } from "$/ui/components/ui-flag"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -46,6 +46,15 @@ const GENDER = `<ui-dropdown selection placeholder="Gender" name="gender">
   <ui-item value="male">Male</ui-item><ui-item value="female">Female</ui-item><ui-item value="other">Other</ui-item>
 </ui-dropdown>`
 
+/** A short type-ahead pause (`UIDropdown.typeAheadDelay`, 500 ms by default), set on the instance under test. */
+const TYPE_AHEAD_DELAY = 20
+
+/**
+ * How long WebKit takes to reset the page scroll after the previous tests (focused dropdowns, now removed):  a
+ * REAL wait, since nothing announces it.
+ */
+const WEBKIT_SCROLL_RESET_MS = 100
+
 /** Collect `detail`s of `name` events. */
 function record(host: Element, name: string) {
   const details: unknown[] = []
@@ -60,6 +69,10 @@ beforeEach(async () => {
 })
 
 afterEach(() => UI.overlays.dispose())
+
+////////////////
+// ## Markup
+////////////////
 
 describe("<ui-dropdown> markup", () => {
   it("renders the contract:  classes, order, combobox ARIA", async () => {
@@ -118,6 +131,10 @@ describe("<ui-dropdown> markup", () => {
     expect(getComputedStyle(menu).positionAnchor).toBe(anchor)
   })
 })
+
+////////////////
+// ## Open / close
+////////////////
 
 describe("<ui-dropdown> open / close", () => {
   it("opens and closes with clicks, with ui-open / ui-close", async () => {
@@ -238,6 +255,10 @@ describe("<ui-dropdown> open / close", () => {
   })
 })
 
+////////////////
+// ## Keyboard
+////////////////
+
 describe("<ui-dropdown> keyboard", () => {
   it("opens, navigates and selects (combobox pattern)", async () => {
     const { host, combobox, text, highlighted } = await dropdown(GENDER)
@@ -282,18 +303,28 @@ describe("<ui-dropdown> keyboard", () => {
   })
 
   it("type-ahead highlights by text", async () => {
-    const { combobox, highlighted } = await dropdown(GENDER)
+    const { host, combobox, highlighted } = await dropdown(GENDER)
+    ;(host.controller as unknown as { typeAheadDelay: number }).typeAheadDelay = TYPE_AHEAD_DELAY
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
     combobox.focus()
     await userEvent.keyboard("o")
     await ElementFixture.tick()
     expect(highlighted()).toBe("Other")
     await userEvent.keyboard("{ArrowUp}")
-    await new Promise((resolve) => setTimeout(resolve, 600))
+    // the pause that ends a type-ahead search
+    await vi.advanceTimersByTimeAsync(TYPE_AHEAD_DELAY)
     await userEvent.keyboard("f")
     await ElementFixture.tick()
     expect(highlighted()).toBe("Female")
   })
 })
+
+////////////////
+// ## Search
+////////////////
 
 describe("<ui-dropdown> search", () => {
   it("filters, marks matches and dispatches ui-search", async () => {
@@ -347,6 +378,10 @@ describe("<ui-dropdown> search", () => {
   })
 })
 
+////////////////
+// ## Multiple
+////////////////
+
 describe("<ui-dropdown> multiple", () => {
   const SKILLS = `<ui-dropdown multiple search selection placeholder="Skills" name="skills" value="css">
     <ui-item value="angular">Angular</ui-item><ui-item value="css">CSS</ui-item><ui-item value="html">HTML</ui-item>
@@ -391,6 +426,10 @@ describe("<ui-dropdown> multiple", () => {
     expect(host.value).toBe("css")
   })
 })
+
+////////////////
+// ## Value
+////////////////
 
 describe("<ui-dropdown> value", () => {
   it("takes a slotted item's `selected`, or its alias `active`, as the value", async () => {
@@ -455,6 +494,10 @@ describe("<ui-dropdown> value", () => {
   })
 })
 
+////////////////
+// ## Forms
+////////////////
+
 describe("<ui-dropdown> forms", () => {
   it("submits one entry per value, validates `required`, resets", async () => {
     const form = await ElementFixture.render<HTMLFormElement>(`<form>
@@ -493,6 +536,10 @@ describe("<ui-dropdown> forms", () => {
     expect(parts(host).root.classList.contains("disabled")).toBe(true)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-dropdown> tokens from outside", () => {
   /** A selection box's top-left radius, which `--ui-dropdown-radius` drives. */
@@ -538,6 +585,10 @@ describe("<ui-dropdown> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Multiple search
+////////////////
+
 describe("<ui-dropdown> multiple search", () => {
   it("hides the placeholder text once a value's chip is shown (it drew over the chip)", async () => {
     const { host } = await dropdown(
@@ -548,6 +599,10 @@ describe("<ui-dropdown> multiple search", () => {
   })
 })
 
+////////////////
+// ## Menu placement
+////////////////
+
 describe("<ui-dropdown> menu placement", () => {
   it("a dropdown below the first screenful, scrolled into view, opens its menu downwards (webkit measured an absolute popover against the origin screenful)", async () => {
     await ElementFixture.render(
@@ -555,16 +610,18 @@ describe("<ui-dropdown> menu placement", () => {
     )
     const host = document.querySelector<Dropdown>("ui-dropdown")!
     const { menu } = parts(host)
-    // WebKit resets the page scroll once, shortly after the previous tests (focused dropdowns, now removed):
-    // let that pass before scrolling
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    // let WebKit's scroll reset pass before scrolling
+    await new Promise((resolve) => setTimeout(resolve, WEBKIT_SCROLL_RESET_MS))
     host.scrollIntoView({ block: "center" })
     host.open = true
     await ElementFixture.tick()
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    expect(menu.getBoundingClientRect().top).toBeGreaterThan(host.getBoundingClientRect().bottom - 1)
+    await expect.poll(() => menu.getBoundingClientRect().top - host.getBoundingClientRect().bottom).toBeGreaterThan(-1)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-dropdown> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
@@ -573,6 +630,10 @@ describe("<ui-dropdown> accessibility", () => {
     await expectAccessible(root)
   })
 })
+
+////////////////
+// ## Invoker commands
+////////////////
 
 describe("<ui-dropdown> invoker commands", () => {
   const NATIVE = "commandForElement" in HTMLButtonElement.prototype

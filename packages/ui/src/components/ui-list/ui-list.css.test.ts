@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { listVocabulary } from "./ui-list.vocabulary.en"
 
@@ -59,6 +59,10 @@ function style(element: Element, pseudo?: string): CSSStyleDeclaration {
   return getComputedStyle(element, pseudo)
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-list.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(listRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -104,6 +108,10 @@ describe("ui-list.css source", () => {
     for (const token of remapped) expect(declared.has(token), token).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-list.css examples", () => {
   it.each(Object.keys(EXAMPLES))("lays out every list in %s", (path) => {
@@ -283,6 +291,10 @@ describe("ui-list.css examples", () => {
     expect(style(disabled!).color).not.toBe(style(other!).color)
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-list.css in shadow roots", () => {
   it("styles item hosts by position and by the list's inherited tokens", () => {

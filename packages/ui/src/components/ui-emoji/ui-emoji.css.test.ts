@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { emojiVocabulary } from "./ui-emoji.vocabulary.en"
 
@@ -17,6 +17,10 @@ import emojiRaw from "./ui-emoji.css?raw"
 
 /** Every example fragment, by path. */
 const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-emoji.css source", () => {
   it("never uses rem or !important", () => {
@@ -35,6 +39,10 @@ describe("ui-emoji.css source", () => {
       expect(Sheets.covers(emojiRaw, phrase), phrase).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-emoji.css examples", () => {
   it("draws one emoji glyph per box, in an emoji font", () => {
@@ -61,6 +69,10 @@ describe("ui-emoji.css examples", () => {
     expect(parseFloat(getComputedStyle(medium.querySelector(".ui.emoji")!).fontSize)).toBe(48)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-emoji.css tokens", () => {
   it("takes a public token from a wrapper or the emoji itself (static markup)", () => {

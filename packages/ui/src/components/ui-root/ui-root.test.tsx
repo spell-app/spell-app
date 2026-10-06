@@ -1,14 +1,12 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Viewport } from "$/ui/test/viewport"
+import { Viewport } from "$/ui/test/Viewport"
 import { UIHost } from "$/ui/elements"
 
-import { RootLoader, UIRoot, type RootFailure } from "$/ui/components/ui-root"
-import { RootTimeout } from "./ui-root.types"
-import { ROOT_CATALOG } from "./ui-root.catalog"
+import { UIRoot, type RootFailure } from "$/ui/components/ui-root"
 
 /** Element examples, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/ui-root/examples/elements/*.html", {
@@ -34,6 +32,10 @@ async function root(html: string) {
   const controller = host.controller as UIRoot
   return { host, controller, events, slot: host.shadowRoot!.querySelector("slot")! }
 }
+
+////////////////
+// ## Loading
+////////////////
 
 describe("<ui-root> loading on demand", () => {
   it("imports only the families its content uses", async () => {
@@ -82,13 +84,11 @@ describe("<ui-root> loading on demand", () => {
     await controller.settled.then(() => order.push("outer"))
     expect(order).toEqual(["inner", "outer"])
   })
-
-  it("RootLoader rejects a folder with no family", async () => {
-    await expect(RootLoader.load("ui-nope")).rejects.toThrow(/no family/)
-    expect(RootLoader.folderFor("ui-buttons")).toBe("ui-button")
-    expect(RootLoader.folderFor("toString")).toBeUndefined()
-  })
 })
+
+////////////////
+// ## Display
+////////////////
 
 describe("<ui-root> display", () => {
   const WAITING = `<ui-test-never-ready></ui-test-never-ready><p>Text</p>`
@@ -214,6 +214,10 @@ describe("<ui-root> skeletons", () => {
   })
 })
 
+////////////////
+// ## Theme, size and box
+////////////////
+
 describe("<ui-root> theme, size and box", () => {
   it("theme sets the colour scheme of everything inside", async () => {
     const { host, controller } = await root(`<ui-root theme="dark"><p>Text</p></ui-root>`)
@@ -287,24 +291,9 @@ describe("<ui-root> theme, size and box", () => {
   })
 })
 
-describe("RootTimeout and the catalog", () => {
-  it.each([
-    ["5s", 5000],
-    ["2.5s", 2500],
-    ["500ms", 500],
-    ["3000", 3000],
-    ["soon", 5000],
-    [undefined, 5000]
-  ])("%s => %d ms", (value, ms) => {
-    expect(RootTimeout.parse(value)).toBe(ms)
-  })
-
-  it("knows every tag, and its family", () => {
-    expect(ROOT_CATALOG["ui-or"].folder).toBe("ui-button")
-    expect(ROOT_CATALOG["ui-content"].folder).toBe("ui-parts")
-    expect(ROOT_CATALOG["ui-root"].folder).toBe("ui-root")
-  })
-})
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-root> examples", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s, once every root is ready", async (path) => {

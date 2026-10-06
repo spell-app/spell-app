@@ -3,8 +3,8 @@ import { userEvent } from "vite-plus/test/browser"
 
 import { UI } from "$/ui/runtime"
 import type { ShapeChangeDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -62,6 +62,10 @@ afterEach(() => {
   delete (UI.browser as { isReducedMotion?: boolean }).isReducedMotion
 })
 
+////////////////
+// ## Rendering
+////////////////
+
 describe("<ui-shape> classes and markup", () => {
   it.each([
     ["", "ui shape"],
@@ -112,6 +116,10 @@ describe("<ui-shape> classes and markup", () => {
     expect(getComputedStyle(face).backgroundColor).not.toBe("rgba(0, 0, 0, 0)")
   })
 })
+
+////////////////
+// ## Flipping
+////////////////
 
 describe("<ui-shape> flipping", () => {
   it("next() turns the sides box, then shows the next side and fires ui-change", async () => {
@@ -216,14 +224,11 @@ describe("<ui-shape> flipping", () => {
     await host.next()
     expect(sides[0]!.style.color).toBe("red")
   })
-
-  it.each(Object.keys(EXAMPLES))("axe passes on %s, before and after a flip", async (path) => {
-    const root = await ElementFixture.render(EXAMPLES[path]!)
-    await expectAccessible(root)
-    for (const host of root.querySelectorAll<Shape>("ui-shape")) await host.next()
-    await expectAccessible(root)
-  })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("<ui-shape> tokens from outside", () => {
   /** The first side's face height. */
@@ -262,5 +267,18 @@ describe("<ui-shape> tokens from outside", () => {
   it("keeps its defaults when nothing is set", async () => {
     const { sides } = await shape(`<ui-shape cube>${SIDES}</ui-shape>`)
     expect(face(sides)).toBe("240px")
+  })
+})
+
+////////////////
+// ## Accessibility
+////////////////
+
+describe("<ui-shape> accessibility", () => {
+  it.each(Object.keys(EXAMPLES))("axe passes on %s, before and after a flip", async (path) => {
+    const root = await ElementFixture.render(EXAMPLES[path]!)
+    await expectAccessible(root)
+    for (const host of root.querySelectorAll<Shape>("ui-shape")) await host.next()
+    await expectAccessible(root)
   })
 })

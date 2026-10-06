@@ -4,7 +4,7 @@ import { ClassBuilder } from "$/ui/elements"
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { buttonsVocabulary } from "./ui-buttons.vocabulary.en"
 import { buttonVocabulary } from "./ui-button.vocabulary.en"
@@ -30,6 +30,10 @@ const ALLOWED_IMPORTANT = 0
 const LAYERS =
   "@layer ui.components.button.types, ui.components.button.content, ui.components.button.variations, " +
   "ui.components.button.states;"
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-button.css source", () => {
   it("never uses rem", () => {
@@ -64,6 +68,10 @@ describe("ui-button.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-button.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every button in %s", (path) => {
@@ -170,6 +178,10 @@ describe("ui-button.css examples", () => {
     expect(getComputedStyle(translated!, "::before").content).toBe('"ou"')
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-button.css in shadow roots", () => {
   it("styles a host's inner <button> and keeps the host inline-flex", () => {

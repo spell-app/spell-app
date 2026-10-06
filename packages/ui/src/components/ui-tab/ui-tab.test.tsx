@@ -1,8 +1,8 @@
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UI } from "$/ui/runtime"
@@ -100,6 +100,10 @@ afterEach(() => {
   if (location.hash) history.replaceState(history.state, "", location.pathname + location.search)
 })
 
+////////////////
+// ## Rendering
+////////////////
+
 describe("<ui-tabs> classes", () => {
   it.each([
     ["", "ui tabs", "ui menu"],
@@ -189,6 +193,10 @@ describe("<ui-tabs> semantics", () => {
     expect(buttons[0]!.textContent).toBe("Mail")
   })
 })
+
+////////////////
+// ## Selection
+////////////////
 
 describe("<ui-tabs> selection", () => {
   it("starts on the first `selected` (or `active`) pane, else the first enabled one", async () => {
@@ -321,6 +329,10 @@ describe("<ui-tabs> keyboard", () => {
   })
 })
 
+////////////////
+// ## History and transitions
+////////////////
+
 describe("<ui-tabs> history", () => {
   it("pushes the selected value as the URL hash", async () => {
     const { buttons } = await tabs("history")
@@ -368,6 +380,10 @@ describe("<ui-tabs> transitions", () => {
     expect(start).not.toHaveBeenCalled()
   })
 })
+
+////////////////
+// ## Panes
+////////////////
 
 describe("<ui-tab>", () => {
   it("fires ui-show each time it becomes the shown pane;  `first` the first time", async () => {
@@ -423,6 +439,10 @@ describe("<ui-tab>", () => {
   })
 })
 
+////////////////
+// ## Look
+////////////////
+
 describe("<ui-tabs> look", () => {
   it("joins a tabular menu and its panes, and lays vertical tabs out beside the pane", async () => {
     const { menu, panes } = await tabs("tabular attached")
@@ -457,10 +477,11 @@ describe("<ui-tabs> look", () => {
 
   it("draws the tabs as menu items:  the tabular active tab joins its pane", async () => {
     const { menu, buttons } = await tabs("tabular attached")
-    const active = getComputedStyle(buttons[0]!)
-    expect(active.borderTopWidth).toBe("1px")
-    expect(active.marginBottom).toBe("-1px")
-    expect(active.fontFamily).toBe(getComputedStyle(menu).fontFamily)
+    expect(getComputedStyle(buttons[0]!)).toMatchObject({
+      borderTopWidth: "1px",
+      marginBottom: "-1px",
+      fontFamily: getComputedStyle(menu).fontFamily
+    })
     expect(getComputedStyle(buttons[1]!).backgroundColor).toBe("rgba(0, 0, 0, 0)")
   })
 
@@ -508,6 +529,10 @@ describe("<ui-tabs> appearance, alignment, equal", () => {
     await expectAccessible(host)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("<ui-tabs> tokens from outside", () => {
   /** The first pane's top margin. */
@@ -574,12 +599,17 @@ describe("<ui-tabs> tokens from outside", () => {
     )
     expect(getComputedStyle(menu).minHeight).toBe("0px")
     expect(Math.round(menu.getBoundingClientRect().height)).toBeLessThan(30)
-    const label = getComputedStyle(buttons[0]!)
-    expect(label.fontFamily).toBe("monospace")
-    expect(label.textTransform).toBe("uppercase")
-    expect(label.letterSpacing).toBe("2px")
+    expect(getComputedStyle(buttons[0]!)).toMatchObject({
+      fontFamily: "monospace",
+      textTransform: "uppercase",
+      letterSpacing: "2px"
+    })
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-tabs> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

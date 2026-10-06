@@ -10,7 +10,7 @@ import { UIToast } from "$/ui/components/ui-toast/UIToast"
  * `<ui-toast>` written in a page, rendered statically (`$/ui/static`):  an ordinary block with its live-region role,
  * header, message and close icon.
  */
-describe("ui-toast static render", () => {
+describe("<ui-toast> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIToast)
   })

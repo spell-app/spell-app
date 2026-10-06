@@ -83,10 +83,10 @@ Read ONLY in `tools/environment.ts` (WWOD §11), by `tools/`, `scripts/` and the
    `UI<Name>.tsx`, `index.ts` (calls `define()`, re-exports the classes), `ui-<name>.css`, `ui-<name>.types.ts`,
    `ui-<name>.fallback.ts`, tests, `examples/*.html` (class grammar) and `examples/elements/*.html` (elements).
 2. Write one `<tag>.vocabulary.en.ts` per tag, `topics` (2+ ids from `ValueSets.topics`) and `aka` (other
-   libraries' names) included:  `test/component-definitions.test.ts` fails on a tag without them.
+   libraries' names) included:  `src/components/ComponentDefinitions.test.ts` fails on a tag without them.
 3. Make it a lib entry:  `COMPONENTS` in `vite.config.ts`, plus `exports` and `sideEffects` in `package.json`;
    re-export it from `src/index.ts`.
-4. `yarn gen:root`:  `<ui-root>`'s catalog of tag => family (`test/root-catalog.test.ts` fails while stale).
+4. `yarn gen:root`:  `<ui-root>`'s catalog of tag => family (`src/components/ui-root/ui-root.catalog.test.ts` fails while stale).
 5. `yarn site:data`:  the docs site's data (`tools/SiteDataBuilder.test.ts` fails while stale);  add the family's
    facts to `site/_data/pages.json`.
 6. `yarn site:new <tag>`:  its docs page, from the template;  then `yarn site:build` and `yarn site:check <tag>`.

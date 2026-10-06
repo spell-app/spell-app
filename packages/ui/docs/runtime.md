@@ -27,7 +27,7 @@ class UIThing extends HTMLElement {
 
 - `src/components/ui-root/` (`@spell-app/ui/ui-root`):  a page imports the root only;  every `ui-*` tag inside loads
   its family on demand, once per page (`RootLoader`, a literal `import.meta.glob` per family).  Tag => family comes
-  from `ui-root.catalog.ts`, GENERATED from the vocabularies (`yarn gen:root`;  `test/root-catalog.test.ts` fails while
+  from `ui-root.catalog.ts`, GENERATED from the vocabularies (`yarn gen:root`;  `src/components/ui-root/ui-root.catalog.test.ts` fails while
   it's stale) -- never `ComponentDefinitions`, which would put every vocabulary in the root's chunk.
 - Ready:  families settled, then every element inside `ready` (an inner root:  its `settled`), or `timeout` (5s).
   Then `:state(ready)`, `ui-ready { failed }`, a cancelable `ui-error` per failure before it.

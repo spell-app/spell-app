@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { cardVocabulary } from "./ui-card.vocabulary.en"
 import { cardsVocabulary } from "./ui-cards.vocabulary.en"
@@ -58,6 +58,10 @@ function style(element: Element, pseudo?: string): CSSStyleDeclaration {
   return getComputedStyle(element, pseudo)
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-card.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(cardRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -94,6 +98,10 @@ describe("ui-card.css source", () => {
         expect(Sheets.covers(css, phrase), `${vocabulary.tag}: ${phrase}`).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-card.css examples", () => {
   it.each(Object.keys(EXAMPLES))("lays out every card in %s", (path) => {

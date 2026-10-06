@@ -6,12 +6,11 @@ import { IconPacks } from "./IconPacks"
 /** The stroke-style (Lucide-like) fixture pack:  `bell`, `sun` (aliases `light`, `day`), 24 x 24. */
 const STROKE = new URL("/test/fixtures/stroke-pack/pack.js", location.href).href
 
-/** Resource Timing entries whose URL contains `part`, since the last `clearResourceTimings()`. */
-function requests(part: string): number {
-  return performance.getEntriesByType("resource").filter((entry) => entry.name.includes(part)).length
-}
+////////////////
+// ## Names
+////////////////
 
-describe("UI.icons:  names", () => {
+describe("IconPacks.resolve()", () => {
   it("answers one normalized name:  case, dashes and spaces ~== the same icon", async () => {
     const packs = new IconPacks()
     await packs.ready
@@ -51,7 +50,11 @@ describe("UI.icons:  names", () => {
   })
 })
 
-describe("UI.icons:  packs", () => {
+////////////////
+// ## Packs
+////////////////
+
+describe("IconPacks.use()", () => {
   it("lets the last pack added win a name, and `prefix:name` pick one", async () => {
     const packs = new IconPacks()
     await packs.use(STROKE, { prefix: "lucide" })
@@ -99,8 +102,10 @@ describe("UI.icons:  packs", () => {
     expect(packs.resolve("bell")?.pack).toBe("fa7-free")
     warn.mockRestore()
   })
+})
 
-  it("reset() drops every pack, the default included, and chains:  `reset().use(pack)`", async () => {
+describe("IconPacks.reset()", () => {
+  it("drops every pack, the default included, and chains:  `reset().use(pack)`", async () => {
     const packs = new IconPacks()
     await packs.use(STROKE)
     const pack = await packs.reset().use("fa7-brands")
@@ -109,14 +114,14 @@ describe("UI.icons:  packs", () => {
     expect(packs.resolve("bell")).toBeUndefined()
   })
 
-  it("reset() before first use never loads the default", async () => {
+  it("before first use NEVER loads the default", async () => {
     const packs = new IconPacks().reset()
     await packs.ready
     expect(packs.packs).toEqual([])
     expect(packs.resolve("bell")).toBeUndefined()
   })
 
-  it("reset() forgets packs still loading", async () => {
+  it("forgets packs still loading", async () => {
     const packs = new IconPacks()
     void packs.use(STROKE)
     packs.reset()
@@ -124,13 +129,15 @@ describe("UI.icons:  packs", () => {
     expect(packs.packs).toEqual([])
   })
 
-  it("reset() keeps register()ed icons", async () => {
+  it("keeps register()ed icons", async () => {
     const packs = new IconPacks()
     packs.register("mine", `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="M0 0h1v1z"/></svg>`)
     expect(await packs.reset().get("mine")).toBeInstanceOf(SVGSVGElement)
   })
+})
 
-  it("remove() drops a pack", async () => {
+describe("IconPacks.remove()", () => {
+  it("drops a pack", async () => {
     const packs = new IconPacks()
     await packs.use(STROKE)
     packs.remove("stroke")
@@ -138,8 +145,9 @@ describe("UI.icons:  packs", () => {
   })
 })
 
-describe("UI.icons:  child sets (`<ui-root icons>`)", () => {
-  it("scope() adds packs over its parent's:  its own win, the parent's answer the rest", async () => {
+describe("IconPacks.scope()", () => {
+  // child sets:  `<ui-root icons>`
+  it("adds packs over its parent's:  its own win, the parent's answer the rest", async () => {
     const page = new IconPacks()
     const child = page.scope([STROKE])
     await child.ready
@@ -170,15 +178,13 @@ describe("UI.icons:  child sets (`<ui-root icons>`)", () => {
     expect(child.resolve("gear")).toBeUndefined()
     expect(child.resolve("bell")?.pack).toBe("stroke")
   })
-
-  it("`assets` re-points built-in packs:  `<assets>icon-packs/<id>/pack.js`", () => {
-    expect(BuiltInPacks.url("fa7-brands", "https://cdn.example/ui/")).toBe(
-      "https://cdn.example/ui/icon-packs/fa7-brands/pack.js"
-    )
-  })
 })
 
-describe("UI.icons:  SVGs", () => {
+////////////////
+// ## SVGs
+////////////////
+
+describe("IconPacks.get()", () => {
   it("returns a page-owned template:  FA's fill becomes currentColor, its licence comment stays", async () => {
     const packs = new IconPacks()
     const svg = (await packs.get("bell"))!
@@ -203,8 +209,10 @@ describe("UI.icons:  SVGs", () => {
     expect(await packs.get("no such icon")).toBeUndefined()
     expect(requests(".svg")).toBe(0)
   })
+})
 
-  it("register() adds an icon ahead of every pack", async () => {
+describe("IconPacks.register()", () => {
+  it("adds an icon ahead of every pack", async () => {
     const packs = new IconPacks()
     packs.register("Bell", `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="M0 0h1v1z"/></svg>`)
     const svg = (await packs.get("bell"))!
@@ -214,7 +222,11 @@ describe("UI.icons:  SVGs", () => {
   })
 })
 
-describe("UI.icons:  never rejects", () => {
+////////////////
+// ## Failures:  NEVER rejects
+////////////////
+
+describe("IconPacks.get() / use() failures", () => {
   it("answers nothing, with a warning, when the built-in packs have no base (an IIFE bundle)", async () => {
     const base = BuiltInPacks.base
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
@@ -244,3 +256,12 @@ describe("UI.icons:  never rejects", () => {
     }
   })
 })
+
+////////////////
+// ## Helpers
+////////////////
+
+/** Resource Timing entries whose URL contains `part`, since the last `clearResourceTimings()`. */
+function requests(part: string): number {
+  return performance.getEntriesByType("resource").filter((entry) => entry.name.includes(part)).length
+}

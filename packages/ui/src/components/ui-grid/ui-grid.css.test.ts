@@ -2,9 +2,9 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
-import { Viewport } from "$/ui/test/viewport"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
+import { Viewport } from "$/ui/test/Viewport"
 
 import { gridVocabulary } from "./ui-grid.vocabulary.en"
 import { columnVocabulary } from "./ui-column.vocabulary.en"
@@ -26,6 +26,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-grid.css source", () => {
   it("never uses rem", () => {
@@ -71,6 +75,10 @@ describe("ui-grid.css source", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("ui-grid.css tokens", () => {
   it("takes a public token from a wrapper or the grid itself;  columns follow (static markup)", () => {
     Sheets.adopt([...foundationCSS, gridCSS])
@@ -84,6 +92,10 @@ describe("ui-grid.css tokens", () => {
     expect(getComputedStyle(root.nextElementSibling!.querySelector(".column")!).paddingTop).toBe("7px")
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-grid.css examples", () => {
   it.each(Object.keys(EXAMPLES))("lays out every column in %s", (path) => {
@@ -272,6 +284,10 @@ describe("ui-grid.css examples", () => {
   })
 })
 
+////////////////
+// ## In shadow roots
+////////////////
+
 describe("ui-grid.css in shadow roots", () => {
   it("lays out slotted column hosts by their own width:  4 / 8 / 4 => 25% / 50% / 25%", () => {
     Sheets.adopt(foundationCSS)
@@ -304,9 +320,7 @@ describe("ui-grid.css in shadow roots", () => {
     const width = Sheets.inner(row).getBoundingClientRect().width
     expect(inRow[0]!.getBoundingClientRect().width / width).toBeCloseTo(1 / 3, 3)
     expect(inCounted[0]!.getBoundingClientRect().width / width).toBeCloseTo(1 / 4, 3)
-    expect(getComputedStyle(inRow[0]!).paddingLeft).toBe("24px")
-    expect(getComputedStyle(inRow[0]!).paddingTop).toBe("0px")
-    expect(getComputedStyle(inRow[0]!).boxShadow).toBe("none")
+    expect(getComputedStyle(inRow[0]!)).toMatchObject({ paddingLeft: "24px", paddingTop: "0px", boxShadow: "none" })
     expect(getComputedStyle(inRow[1]!).boxShadow).toMatch(/-1px 0px 0px 0px/)
     expect(getComputedStyle(Sheets.inner(row)).paddingTop).toBe("16px")
   })

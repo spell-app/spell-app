@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from "vite-plus/test"
+import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
 import type {
@@ -8,10 +8,10 @@ import type {
   FormSuccessDetail,
   FormValues
 } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Viewport } from "$/ui/test/viewport"
+import { Viewport } from "$/ui/test/Viewport"
 
 import "$/ui/components/ui-form"
 import "$/ui/components/ui-input"
@@ -57,9 +57,21 @@ function prompt(field: Element): string | null {
   return label ? [...label.querySelectorAll(".message")].map((line) => line.textContent).join(" | ") : null
 }
 
-/** Wait for the form's deferred (blur / change) validation. */
-function later() {
-  return new Promise((resolve) => setTimeout(resolve, 10))
+/**
+ * Fake `setTimeout` for the rest of the test:  the form defers a blur / change validation to a timer
+ * (`UIForm.checkFieldSoon()`), which `later()` then runs.
+ */
+function fakeTimers() {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+  onTestFinished(() => {
+    vi.useRealTimers()
+  })
+}
+
+/** Run the form's deferred (blur / change) validation (after `fakeTimers()`), then flush. */
+async function later() {
+  await vi.runOnlyPendingTimersAsync()
+  await ElementFixture.tick()
 }
 
 /** Collect `detail`s of `name` events. */
@@ -114,6 +126,10 @@ async function set(control: Element | null, value: unknown) {
   await ElementFixture.tick()
 }
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-form> classes", () => {
   it.each([
     ["", "ui form"],
@@ -157,6 +173,10 @@ describe("<ui-form> classes", () => {
   })
 })
 
+////////////////
+// ## Layout
+////////////////
+
 describe("<ui-form> layout", () => {
   it("shares a row:  `widths` halves, `width` quarters, equal width fills", async () => {
     const { host } = await form(`<div style="width: 800px"><ui-form><form>
@@ -197,17 +217,18 @@ describe("<ui-form> layout", () => {
     )
     const forms = [...wrapper.querySelectorAll("ui-form")]
     expect(forms[0]!.shadowRoot!.querySelector("[part~=form]")!.className).toBe("ui form stack-with-page")
+    await Viewport.resize(1200)
+    await expect.poll(() => forms.map((host) => stacked(host))).toEqual([false, false, true])
+    await Viewport.resize(500)
+    await expect.poll(() => forms.map((host) => stacked(host))).toEqual([true, true, true])
+
     /** Whether `host`'s row is stacked. */
-    const stacked = (host: Element) => {
+    function stacked(host: Element) {
       const [a, b] = [...host.querySelectorAll("ui-field")].map((field) =>
         field.shadowRoot!.querySelector("[part~=field]")!.getBoundingClientRect()
       )
       return b!.top > a!.top
     }
-    await Viewport.resize(1200)
-    await expect.poll(() => forms.map(stacked)).toEqual([false, false, true])
-    await Viewport.resize(500)
-    await expect.poll(() => forms.map(stacked)).toEqual([true, true, true])
   })
 
   it("makes its controls fill the field", async () => {
@@ -229,7 +250,11 @@ describe("<ui-form> layout", () => {
   })
 })
 
-describe("<ui-fields equal>", () => {
+////////////////
+// ## <ui-fields> equal
+////////////////
+
+describe("<ui-fields> equal", () => {
   it('is Fomantic\'s `equal width fields`:  an equal share of the row each, as `widths="equal"`', async () => {
     const { host } = await form(
       `<div style="width: 900px"><ui-form><form><ui-fields equal>` +
@@ -247,6 +272,10 @@ describe("<ui-fields equal>", () => {
     expect(widths[0]).toBeGreaterThan(250)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-form> tokens from outside", () => {
   /** A row of two fields (in a form) whose row margin `--ui-form-gutter` drives. */
@@ -307,6 +336,10 @@ describe("<ui-form> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Native form
+////////////////
+
 describe("<ui-form> native form", () => {
   it("works with a <form> inside it or around it, and turns its bubbles off", async () => {
     const inside = await form(`<ui-form><form></form></ui-form>`)
@@ -359,6 +392,10 @@ describe("<ui-form> native form", () => {
   })
 })
 
+////////////////
+// ## Values
+////////////////
+
 describe("<ui-form> values", () => {
   it("reads Fomantic's shapes:  booleans, lists, the chosen radio", async () => {
     const { host } = await form(`<ui-form><form>
@@ -381,6 +418,10 @@ describe("<ui-form> values", () => {
     })
   })
 })
+
+////////////////
+// ## Validation
+////////////////
 
 describe("<ui-form> validation", () => {
   it("blocks an invalid submit:  prompts, aria-invalid, error state and message, ui-failure, focus", async () => {
@@ -463,6 +504,7 @@ describe("<ui-form> validation", () => {
 
   it("re-validates a field showing an error as it changes", async () => {
     const { host, native } = await form(SIGN_UP)
+    fakeTimers()
     host.rules = { name: "notEmpty" }
     host.validate()
     await ElementFixture.tick()
@@ -478,6 +520,7 @@ describe("<ui-form> validation", () => {
 
   it('on="blur" validates a field as it loses focus;  on="change" as it changes', async () => {
     const { host, native } = await form(SIGN_UP.replace("<ui-form>", `<ui-form on="blur">`))
+    fakeTimers()
     host.rules = { email: "email" }
     const input = native.querySelector("[name=email]")!.shadowRoot!.querySelector("input")!
     await userEvent.type(input, "nope")
@@ -550,19 +593,25 @@ describe("<ui-form> validation", () => {
     const { host, native } = await form(
       `<ui-form prevent-leaving><form><ui-input name="a" aria-label="A"></ui-input></form></ui-form>`
     )
-    const leave = () => {
-      const event = new Event("beforeunload", { cancelable: true })
-      window.dispatchEvent(event)
-      return event.defaultPrevented
-    }
     expect(leave()).toBe(false)
     await set(native.querySelector("[name=a]"), "dirty")
     expect(leave()).toBe(true)
     host.removeAttribute("prevent-leaving")
     await ElementFixture.tick()
     expect(leave()).toBe(false)
+
+    /** Whether leaving the page now is held back:  a cancelable `beforeunload`, prevented. */
+    function leave() {
+      const event = new Event("beforeunload", { cancelable: true })
+      window.dispatchEvent(event)
+      return event.defaultPrevented
+    }
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-form> accessibility", () => {
   it("the prompt is an alert;  axe passes on a failed form", async () => {

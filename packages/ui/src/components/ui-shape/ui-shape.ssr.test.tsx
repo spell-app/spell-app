@@ -11,7 +11,7 @@ import { UISide } from "$/ui/components/ui-shape/UISide"
  * `<ui-shape>` rendered statically (`$/ui/static`):  every side in the HTML, the `active-index` one shown (its state),
  * the rest `inactive`;  a `text` shape as `<span>`s, so it stays inside its paragraph.
  */
-describe("ui-shape static render", () => {
+describe("<ui-shape> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIShape, UISide)
   })

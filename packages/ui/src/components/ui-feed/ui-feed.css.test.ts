@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { eventVocabulary } from "./ui-event.vocabulary.en"
 import { feedVocabulary } from "./ui-feed.vocabulary.en"
@@ -51,6 +51,10 @@ function style(element: Element, pseudo?: string): CSSStyleDeclaration {
   return getComputedStyle(element, pseudo)
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-feed.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(feedRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -88,6 +92,10 @@ describe("ui-feed.css source", () => {
         expect(Sheets.covers(css, phrase), `${vocabulary.tag}: ${phrase}`).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-feed.css examples", () => {
   it.each(Object.keys(EXAMPLES))("lays out every event in %s", (path) => {
@@ -143,6 +151,10 @@ describe("ui-feed.css examples", () => {
     expect(Number(style(disabled!).opacity)).toBeLessThan(1)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-feed.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

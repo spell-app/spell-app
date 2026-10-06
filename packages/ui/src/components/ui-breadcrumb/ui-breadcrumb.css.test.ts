@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
 import { breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
@@ -26,6 +26,10 @@ const ALLOWED_IMPORTANT = 0
 
 /** A chevron as a CSS `url()`, the value the element publishes for `divider-icon`. */
 const CHEVRON = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 0l6 5-6 5z'/%3E%3C/svg%3E")`
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-breadcrumb.css source", () => {
   it("never uses rem", () => {
@@ -58,6 +62,10 @@ describe("ui-breadcrumb.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-breadcrumb.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every breadcrumb in %s", (path) => {
@@ -139,6 +147,10 @@ describe("ui-breadcrumb.css examples", () => {
     expect(active).toBeGreaterThanOrEqual(text - 0.01)
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-breadcrumb.css in shadow roots", () => {
   it("lets section hosts draw the breadcrumb's divider, text or icon, skipping the first", () => {

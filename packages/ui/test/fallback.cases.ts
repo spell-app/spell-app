@@ -32,12 +32,18 @@ export type FallbackAdapter = {
 
 /** One case:  `run()` resolves when it passes, throws when it fails. */
 export type FallbackCase = {
+  /** the test's name */
   name: string
+  /** check the case on `adapter`'s elements */
   run(adapter: FallbackAdapter): Promise<void>
 }
 
 /** The error event name every element dispatches (`E.ERROR_EVENT`).  NOTE: no vocabulary names it yet. */
 export const ERROR_EVENT = "ui-error"
+
+////////////////
+// ## Families
+////////////////
 
 /**
  * Per family:  markup of one element, and the selector of its fallback's root inside the shadow root.
@@ -190,6 +196,11 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
   { family: "ui-markdown", html: `<ui-markdown size="small"># Title</ui-markdown>`, root: "[part~=body]" }
 ]
 
+////////////////
+// ## Cases
+////////////////
+
+/** Every case, in the order `fallback.test.tsx` runs them. */
 export const FALLBACK_CASES: readonly FallbackCase[] = [
   {
     name: "a throw in render shows the native fallback:  one console error, one ui-error, :state(errored)",

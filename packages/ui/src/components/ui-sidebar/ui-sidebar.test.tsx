@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
 import type { SidebarCloseDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -88,6 +88,10 @@ afterEach(() => {
   for (const host of document.querySelectorAll<Sidebar>("ui-sidebar")) host.visible = false
 })
 
+////////////////
+// ## Rendering
+////////////////
+
 describe("<ui-sidebar> classes and markup", () => {
   it.each([
     ["", "ui left uncover sidebar"],
@@ -123,6 +127,10 @@ describe("<ui-sidebar> classes and markup", () => {
     expect(wrapper.querySelector("ui-pushable")!.matches(":state(pushable)")).toBe(true)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("<ui-sidebar> tokens from outside", () => {
   /** The panel's width. */
@@ -178,6 +186,10 @@ describe("<ui-sidebar> tokens from outside", () => {
     expect(getComputedStyle(inverted).backgroundColor).not.toBe(red)
   })
 })
+
+////////////////
+// ## Showing and hiding
+////////////////
 
 describe("<ui-sidebar> modal (default)", () => {
   it("shows:  focus moves in, the pusher moves aside, dims and goes inert;  aria-modal", async () => {
@@ -292,6 +304,10 @@ describe("<ui-sidebar> modal (default)", () => {
   })
 })
 
+////////////////
+// ## Transitions
+////////////////
+
 describe("<ui-sidebar> transitions", () => {
   it.each([
     ['transition="overlay"', [0, 0], "none"],
@@ -347,6 +363,10 @@ describe("<ui-sidebar persistent>", () => {
     await expect.poll(() => translation(pusherBox)).toEqual([260, 0])
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-sidebar> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s, with each sidebar shown", async (path) => {

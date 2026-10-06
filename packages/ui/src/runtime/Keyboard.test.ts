@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import { Keyboard } from "./Keyboard"
 
 /** Dispatch a bubbling, composed `keydown` from `target`;  returns the event. */
@@ -10,10 +10,10 @@ function press(target: EventTarget, key: string, init: KeyboardEventInit = {}) {
   return event
 }
 
-describe("Keyboard", () => {
-  let keyboard: Keyboard
-  afterEach(() => keyboard.dispose())
+let keyboard: Keyboard
+afterEach(() => keyboard.dispose())
 
+describe("Keyboard.register()", () => {
   it("fires a page-scope shortcut and prevents default", () => {
     keyboard = new Keyboard({ isApple: false })
     const handler = vi.fn()
@@ -49,17 +49,6 @@ describe("Keyboard", () => {
     expect(page).toHaveBeenCalledTimes(2)
   })
 
-  it("pops scopes out of order and never pops the page scope", () => {
-    keyboard = new Keyboard()
-    keyboard.pushScope("a")
-    keyboard.pushScope("b")
-    keyboard.popScope("a")
-    expect(keyboard.activeScope).toBe("b")
-    keyboard.popScope("b")
-    keyboard.popScope("page")
-    expect(keyboard.activeScope).toBe("page")
-  })
-
   it("newest registration wins;  returning false passes to the next", () => {
     keyboard = new Keyboard()
     keyboard.warnConflicts = false
@@ -73,7 +62,7 @@ describe("Keyboard", () => {
     expect(event.defaultPrevented).toBe(true)
   })
 
-  it("disposer removes the registration", () => {
+  it("its disposer removes the registration", () => {
     keyboard = new Keyboard()
     const handler = vi.fn()
     const dispose = keyboard.register({ chord: "x", handler })
@@ -122,5 +111,18 @@ describe("Keyboard", () => {
     keyboard.register({ chord: "Mod+K", handler: () => {} })
     expect(warn).toHaveBeenCalledOnce()
     warn.mockRestore()
+  })
+})
+
+describe("Keyboard.popScope()", () => {
+  it("pops scopes out of order and NEVER pops the page scope", () => {
+    keyboard = new Keyboard()
+    keyboard.pushScope("a")
+    keyboard.pushScope("b")
+    keyboard.popScope("a")
+    expect(keyboard.activeScope).toBe("b")
+    keyboard.popScope("b")
+    keyboard.popScope("page")
+    expect(keyboard.activeScope).toBe("page")
   })
 })

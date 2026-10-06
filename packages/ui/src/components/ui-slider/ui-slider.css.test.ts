@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { sliderVocabulary } from "./ui-slider.vocabulary.en"
 
@@ -41,6 +41,10 @@ function centre(element: Element, origin: Element, axis: "x" | "y" = "x"): numbe
   return axis === "x" ? box.left + box.width / 2 - from.left : box.top + box.height / 2 - from.top
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-slider.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(sliderRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -65,6 +69,10 @@ describe("ui-slider.css source", () => {
     for (const word of ["halftick", "track-fill", "inner"]) expect(Sheets.covers(css, word)).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-slider.css examples", () => {
   it.each(Object.keys(EXAMPLES))("lays out every slider in %s", (path) => {

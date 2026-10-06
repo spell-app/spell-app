@@ -3,8 +3,8 @@ import { page } from "vite-plus/test/browser"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { containerVocabulary } from "./ui-container.vocabulary.en"
 
@@ -22,6 +22,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-container.css source", () => {
   it("never uses rem", () => {
@@ -48,6 +52,10 @@ describe("ui-container.css source", () => {
       expect(Sheets.covers(containerRaw, phrase), phrase).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-container.css examples", () => {
   it.each([
@@ -97,6 +105,10 @@ describe("ui-container.css examples", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("ui-container.css tokens", () => {
   it.each([
     [500, "15em", "--ui-container-scrolling-height"],
@@ -127,6 +139,10 @@ describe("ui-container.css tokens", () => {
     expect(getComputedStyle(root.nextElementSibling!).fontSize).toBe("32px")
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-container.css in shadow roots", () => {
   it("keeps the host out of layout and centres the root", async () => {

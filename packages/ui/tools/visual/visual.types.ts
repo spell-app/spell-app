@@ -1,7 +1,7 @@
 /**
  * Types of `yarn test:visual` (`tools/visual/`).
  * - At the bottom of the folder's import graph, and runtime-light:  `import type` only;  its values are the error
- *   classes and `VisualMarkups`, so the fixture page (`fixture.ts`, in the browser) can import it too.
+ *   classes and `VisualMarkups`, so the fixture page (`Fixture.ts`, in the browser) can import it too.
  */
 
 import type { VisualHooks } from "../../test/test.types.ts"

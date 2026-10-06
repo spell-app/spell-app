@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
 import type { ModalCloseDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -69,6 +69,10 @@ afterEach(() => {
   for (const host of document.querySelectorAll<Flyout>("ui-flyout")) host.open = false
 })
 
+////////////////
+// ## Tokens from outside
+////////////////
+
 describe("<ui-flyout> tokens from outside", () => {
   /** The dialog's width. */
   function width(host: Element): string {
@@ -128,6 +132,10 @@ describe("<ui-flyout> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-flyout> classes", () => {
   it.each([
     ["", "ui left flyout"],
@@ -161,6 +169,10 @@ describe("<ui-flyout> classes", () => {
     expect(dialog.getAttribute("part")).toBe("flyout")
   })
 })
+
+////////////////
+// ## Layout
+////////////////
 
 describe("<ui-flyout> layout", () => {
   it("slides in from its edge, full height;  widths by word and column", async () => {
@@ -208,6 +220,10 @@ describe("<ui-flyout> layout", () => {
     expect(Math.round(actions.getBoundingClientRect().bottom)).toBe(Math.round(dialog.getBoundingClientRect().bottom))
   })
 })
+
+////////////////
+// ## Behaviour (DialogElement)
+////////////////
 
 describe("<ui-flyout> behaviour (DialogElement)", () => {
   it("`open` shows it with showModal():  top layer, scroll lock;  ui-show then ui-hide", async () => {

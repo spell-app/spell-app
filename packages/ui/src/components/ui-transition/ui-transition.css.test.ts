@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { transitionVocabulary } from "./ui-transition.vocabulary.en"
 
@@ -29,6 +29,10 @@ function example(): HTMLElement {
   Sheets.adopt([...foundationCSS, buttonCSS, segmentCSS, transitionCSS])
   return Fixture.render(EXAMPLES["./examples/transition.html"]!)
 }
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-transition.css source", () => {
   it("never uses rem", () => {
@@ -56,6 +60,10 @@ describe("ui-transition.css source", () => {
       expect(Sheets.covers(css, phrase), `${transitionVocabulary.tag}: ${phrase}`).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-transition.css examples", () => {
   it("visible shows, hidden takes no room", () => {
@@ -88,6 +96,10 @@ describe("ui-transition.css examples", () => {
     expect(getComputedStyle(box).animationName).toBe("ui-fade-up-out")
   })
 })
+
+////////////////
+// ## Element box
+////////////////
 
 describe("ui-transition.css on the element's box", () => {
   it("the host has no box;  `inline` makes an inline block;  `[hidden]` always hides", () => {

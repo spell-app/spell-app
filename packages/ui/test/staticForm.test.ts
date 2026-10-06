@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { EMPTY_FORM_ENTRIES, EMPTY_FORM_HTML, STATIC_FORM_ENTRIES, STATIC_FORM_HTML } from "$/ui/test/static-form.cases"
+import { EMPTY_FORM_ENTRIES, EMPTY_FORM_HTML, STATIC_FORM_ENTRIES, STATIC_FORM_HTML } from "$/ui/test/staticForm.cases"
 
 import "$/ui/components/ui-button"
 import "$/ui/components/ui-calendar"
@@ -16,9 +16,9 @@ import "$/ui/components/ui-slider"
 
 /**
  * A static form's round trip, the LIVE half (seo plan, P4):  `STATIC_FORM_HTML` as elements, submitted with its Save
- * button, sends `STATIC_FORM_ENTRIES` -- which `static-form.ssr.test.tsx` checks the static render sends too.
+ * button, sends `STATIC_FORM_ENTRIES` -- which `staticForm.ssr.test.tsx` checks the static render sends too.
  */
-describe("static form round trip (live elements)", () => {
+describe("<ui-*> form round trip (live elements)", () => {
   it("submits, with its Save button, the entries the static render submits", async () => {
     const form = await ElementFixture.render<HTMLFormElement>(STATIC_FORM_HTML)
     let entries: [string, string][] | undefined

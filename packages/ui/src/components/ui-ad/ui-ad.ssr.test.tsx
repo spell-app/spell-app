@@ -6,7 +6,7 @@ import { StaticRender } from "$/ui/static"
 import { UIAd } from "$/ui/components/ui-ad/UIAd"
 
 /** `<ui-ad>` in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-ad static render", () => {
+describe("<ui-ad> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIAd)
   })

@@ -6,7 +6,7 @@ import { StaticRender } from "$/ui/static"
 import { UIFlag } from "$/ui/components/ui-flag/UIFlag"
 
 /** `<ui-flag>` in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-flag static render", () => {
+describe("<ui-flag> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIFlag)
   })

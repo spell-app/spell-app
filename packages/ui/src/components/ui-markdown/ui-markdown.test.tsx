@@ -1,12 +1,10 @@
 import { beforeAll, describe, expect, it, vi } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import { MarkdownEngine } from "./MarkdownEngine"
 import { MarkdownRenderer } from "./MarkdownRenderer"
-import { MDEngine } from "./MDEngine"
 import type { UIMarkdownHost } from "./UIMarkdownHost"
 
 import "$/ui/components/ui-markdown"
@@ -34,18 +32,33 @@ async function markdown(html: string): Promise<UIMarkdownHost> {
   return host
 }
 
-/** Resolves on the next `ui-render` or `ui-error` reaching `target` (or after 2s). */
+/**
+ * Resolves on the next `ui-render` or `ui-error` reaching `target`.
+ * - No timeout of its own:  a render that never ends fails the test at Vitest's test timeout.
+ */
 function nextRender(target: EventTarget): Promise<void> {
   return new Promise<void>((resolve) => {
-    const done = () => {
+    target.addEventListener("ui-render", done)
+    target.addEventListener("ui-error", done)
+
+    /** Stop listening, and resolve. */
+    function done() {
       target.removeEventListener("ui-render", done)
       target.removeEventListener("ui-error", done)
       resolve()
     }
-    target.addEventListener("ui-render", done)
-    target.addEventListener("ui-error", done)
-    setTimeout(done, 2000)
   })
+}
+
+/**
+ * Resolves once every `ui-*` element in `root` is defined and rendered.
+ * - Why:  the markup brings tags whose families load lazily (`MarkdownRenderer.loadMD()`), and
+ *   `ElementFixture.settle()` only waits for elements already defined.
+ */
+async function drawn(root: Element) {
+  const tags = new Set([...root.querySelectorAll("*")].map(({ localName }) => localName))
+  await Promise.all([...tags].filter((tag) => tag.startsWith("ui-")).map((tag) => customElements.whenDefined(tag)))
+  await ElementFixture.settle(root)
 }
 
 /** The article. */
@@ -58,7 +71,11 @@ function md(text: string, attributes = ""): string {
   return `<ui-markdown ${attributes}><script type="text/markdown">${text}</script></ui-markdown>`
 }
 
-describe("<ui-markdown>", () => {
+////////////////
+// ## Rendering
+////////////////
+
+describe("<ui-markdown> rendering", () => {
   it("renders GitHub markdown:  tables, task lists, strikethrough, autolinks", async () => {
     const host = await markdown(
       md("| a | b |\n| - | - |\n| 1 | 2 |\n\n- [x] done\n- [ ] todo\n\n~~old~~ https://example.com")
@@ -157,6 +174,10 @@ describe("<ui-markdown>", () => {
   })
 })
 
+////////////////
+// ## `<ui-markdown skip-title>`
+////////////////
+
 describe("<ui-markdown skip-title>", () => {
   it("drops the leading `#` title, keeping the text and every other heading", async () => {
     const text = "\n# Spell Design System\n\nIntro.\n\n## Voice\n\n# Second title"
@@ -189,6 +210,10 @@ describe("<ui-markdown skip-title>", () => {
     expect(body(host).querySelector("h1")!.textContent).toBe("Title")
   })
 })
+
+////////////////
+// ## Revealing a heading
+////////////////
 
 describe("<ui-markdown> revealing a heading", () => {
   /** Spy on `id`'s `scrollIntoView`. */
@@ -251,6 +276,10 @@ describe("<ui-markdown> revealing a heading", () => {
   })
 })
 
+////////////////
+// ## `<ui-markdown editable>`
+////////////////
+
 describe("<ui-markdown editable>", () => {
   /** An editable `<ui-markdown>` holding `text`, on its Write tab (nothing rendered yet). */
   async function editable(text: string, attributes = ""): Promise<UIMarkdownHost> {
@@ -259,11 +288,12 @@ describe("<ui-markdown editable>", () => {
     return host
   }
 
-  /** The tab buttons, the text box. */
+  /** The tab buttons. */
   function tabs(host: UIMarkdownHost): HTMLButtonElement[] {
     return [...host.shadowRoot!.querySelectorAll<HTMLButtonElement>("[part~=tab]")]
   }
 
+  /** The text box. */
   function editor(host: UIMarkdownHost): HTMLTextAreaElement {
     return host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~=editor]")!
   }
@@ -325,10 +355,6 @@ describe("<ui-markdown editable>", () => {
 
   it("arrow keys, Home and End move between the tabs", async () => {
     const host = await editable("text")
-    const press = async (key: string) => {
-      tabs(host)[0].parentElement!.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }))
-      await ElementFixture.settle(host)
-    }
     await press("ArrowRight")
     expect(tabs(host)[1].getAttribute("aria-selected")).toBe("true")
     expect(host.shadowRoot!.activeElement).toBe(tabs(host)[1])
@@ -338,6 +364,12 @@ describe("<ui-markdown editable>", () => {
     expect(tabs(host)[1].getAttribute("aria-selected")).toBe("true")
     await press("Home")
     expect(tabs(host)[0].getAttribute("aria-selected")).toBe("true")
+
+    /** Press `key` on the tab list. */
+    async function press(key: string) {
+      tabs(host)[0].parentElement!.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }))
+      await ElementFixture.settle(host)
+    }
   })
 
   it("`sanitized` sanitizes spell's engine's output too, keeping ui-* elements", async () => {
@@ -353,40 +385,21 @@ describe("<ui-markdown editable>", () => {
     const host = await editable("# Title\n\n- [ ] todo\n\n| a | b |\n| - | - |\n| 1 | 2 |")
     await expectAccessible(host)
     await preview(host)
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    await ElementFixture.settle(host)
+    await drawn(body(host))
     await expectAccessible(host)
   })
 })
 
-describe("MarkdownEngine.slug()", () => {
-  it.each([
-    ["Getting started!", "getting-started"],
-    ["  API:  `load()` & more ", "api--load--more"],
-    ["Ünïcode wörds", "ünïcode-wörds"]
-  ])("%s => %s", (text, slug) => {
-    expect(MarkdownEngine.slug(text)).toBe(slug)
-  })
-})
-
-describe("MDEngine (md.bundle.js)", () => {
-  // the bundle decodes with the browser's <textarea>, not `entities`' table (`gen-markdown.ts`, I6)
-  it("decodes entities as the spec does:  whole references only, unknown ones kept", () => {
-    const { html } = MDEngine.instance.render("&notit; &amp; &semi; &#0; &NotEqualTilde; &Afr; &nope; &copy", {
-      breaks: false,
-      headingOffset: 0,
-      sanitized: false
-    })
-    expect(html).toContain("&amp;notit; &amp; ; � ≂̸ \u{1D504} &amp;nope; &amp;copy")
-  })
-})
+////////////////
+// ## Examples
+////////////////
 
 describe("<ui-markdown> examples", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
     const rendered = nextRender(document)
     const root = await ElementFixture.render(EXAMPLES[path]!)
     await rendered
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    for (const host of root.querySelectorAll<UIMarkdownHost>("ui-markdown")) await drawn(body(host))
     await ElementFixture.settle(root)
     await expectAccessible(root)
   })

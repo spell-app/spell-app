@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { accordionVocabulary } from "./ui-accordion.vocabulary.en"
 
@@ -40,6 +40,10 @@ function style(root: Element, selector: string, pseudo?: string) {
   return getComputedStyle(root.querySelector(selector)!, pseudo)
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-accordion.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(accordionRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -70,6 +74,10 @@ describe("ui-accordion.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-accordion.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every title in %s as a pointer row", (path) => {
@@ -149,6 +157,10 @@ describe("ui-accordion.css examples", () => {
     expect(style(tree, ".accordion").marginTop).toBe("0px")
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-accordion.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

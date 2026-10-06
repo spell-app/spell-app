@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 import { SiteData } from "$/ui/docs-components"
 
@@ -13,23 +13,18 @@ FallbackStub.define("x-fb-docs-nav", (host, root, internals) =>
 
 /** A data file with two components, as a blob URL. */
 function serve(): string {
-  const tag = (name: string, folder: string) => ({
-    tag: folder,
-    name,
-    folder,
-    main: true,
-    page: true,
-    href: `components/${folder}.html`,
-    topics: [],
-    aka: []
-  })
   const data = {
     topics: [],
-    components: [tag("Input", "ui-input"), tag("Button", "ui-button")],
+    components: [component("Input", "ui-input"), component("Button", "ui-button")],
     docs: [],
     families: {}
   }
   return URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }))
+}
+
+/** One main component's entry in the data file, with its own page. */
+function component(name: string, folder: string) {
+  return { tag: folder, name, folder, main: true, page: true, href: `components/${folder}.html`, topics: [], aka: [] }
 }
 
 afterEach(() => {
@@ -37,7 +32,7 @@ afterEach(() => {
   SiteData.url = undefined
 })
 
-describe("DocsNavFallback", () => {
+describe("DocsNavFallback.render()", () => {
   it("renders plain links:  top pages, every component A-Z once the data loads, Foundation;  the current one marked", async () => {
     SiteData.reset(serve())
     const host = Fixture.render<StubHost>(`<x-fb-docs-nav base="#/" current="ui-button"></x-fb-docs-nav>`)

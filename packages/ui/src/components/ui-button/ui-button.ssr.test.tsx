@@ -9,7 +9,7 @@ import { UIButton } from "$/ui/components/ui-button/UIButton"
  * `<ui-button>` in a static server render (`$/ui/static`):  the inner `<button>` is the form's submitter, so a no-JS
  * form submits / resets with it as the element would (seo plan, I18).
  */
-describe("ui-button (static render)", () => {
+describe("<ui-button> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIButton)
   })

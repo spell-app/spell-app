@@ -1,13 +1,13 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { page, userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { colorsCSS, foundationCSS, nativeCSS } from "$/ui/styles"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import type { UIHost } from "$/ui/elements"
-import { Sheets } from "$/ui/test/sheets"
+import { Sheets } from "$/ui/test/Sheets"
 
 import "$/ui/components/ui-button"
 
@@ -44,6 +44,10 @@ function popupNamed(root: Element, text: string): HTMLElement {
   if (!found) throw new Error(`no popup "${text}"`)
   return found
 }
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-popup.css source", () => {
   it("never uses rem", () => {
@@ -118,6 +122,10 @@ describe("ui-popup.css source", () => {
     expect(text).toMatch(/\.ui\.popup \{[^}]*--_ui-popup-header-distance: var\(--ui-popup-header-distance, 0\.5em\);/)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-popup.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every popup in %s", (path) => {
@@ -224,7 +232,11 @@ describe("ui-popup.css examples", () => {
   })
 })
 
-describe("CSS-only tooltip (native.css)", () => {
+////////////////
+// ## `native.css` tooltip
+////////////////
+
+describe("native.css tooltip", () => {
   it("draws the bubble and arrow on hover-able elements, hidden until hovered", () => {
     const root = example("types")
     const button = root.querySelector<HTMLElement>("[data-tooltip]:not([data-position])")!
@@ -258,7 +270,11 @@ describe("CSS-only tooltip (native.css)", () => {
   })
 })
 
-describe("CSS-only tooltip shown states", () => {
+////////////////
+// ## `native.css` tooltip shown states
+////////////////
+
+describe("native.css tooltip shown states", () => {
   /** Scale factor of a computed `matrix(a, ...)` transform (`none` ~== 1). */
   function scaleOf(transform: string): number {
     return transform === "none" ? 1 : parseFloat(transform.replace(/^matrix\(/, ""))
@@ -313,6 +329,10 @@ async function resize(width: number) {
   await page.viewport(width, 800)
   onTestFinished(() => page.viewport(previousWidth, previousHeight))
 }
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-popup.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

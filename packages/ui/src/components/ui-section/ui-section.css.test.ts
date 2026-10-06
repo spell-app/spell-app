@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { sectionVocabulary } from "./ui-section.vocabulary.en"
 import { sectionsVocabulary } from "./ui-sections.vocabulary.en"
@@ -48,6 +48,10 @@ function font(style: CSSStyleDeclaration): number {
   return parseFloat(style.fontSize)
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-section.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(sectionRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -80,6 +84,10 @@ describe("ui-section.css source", () => {
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-section.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every section in %s", (path) => {
     Sheets.adopt([...foundationCSS, sectionCSS])
@@ -99,10 +107,11 @@ describe("ui-section.css examples", () => {
   it("draws a plain section with no box, and sizes each heading level", () => {
     const root = example("types")
     const plain = titled(root, "Getting started")
-    const style = getComputedStyle(plain)
-    expect(style.borderTopStyle).toBe("none")
-    expect(style.backgroundColor).toBe("rgba(0, 0, 0, 0)")
-    expect(style.paddingTop).toBe("0px")
+    expect(getComputedStyle(plain)).toMatchObject({
+      borderTopStyle: "none",
+      backgroundColor: "rgba(0, 0, 0, 0)",
+      paddingTop: "0px"
+    })
     const heading = (section: Element) => font(child(section.querySelector(":scope > .title")!, "heading"))
     expect(heading(plain)).toBeCloseTo(16 * 1.71428, 0)
     const h3 = heading(titled(root, "Chapter one"))
@@ -279,6 +288,10 @@ describe("ui-section.css examples", () => {
   })
 })
 
+////////////////
+// ## Groups
+////////////////
+
 describe("ui-section.css groups", () => {
   /** The page rectangle of the section titled `header` in `root`. */
   function rect(root: Element, header: string) {
@@ -317,6 +330,10 @@ describe("ui-section.css groups", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("ui-section.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {
     Sheets.adopt([...foundationCSS, sectionCSS])
@@ -328,14 +345,6 @@ describe("ui-section.css tokens", () => {
 
   it("turns the chevron by the rotate tokens, start and end, negated right to left", () => {
     Sheets.adopt([...foundationCSS, sectionCSS])
-    const bar = (expanded: boolean, end: boolean) => {
-      const icon = `<span class="fold icon"><svg></svg></span>`
-      return (
-        `<section class="ui section"><header class="title"><h2 class="heading">` +
-        `<button class="toggle" aria-expanded="${expanded}">${end ? "" : icon}<span class="header">H</span></button>` +
-        `</h2>${end ? icon : ""}</header><div class="content">x</div></section>`
-      )
-    }
     const root = Fixture.render(
       `<div style="--ui-section-fold-icon-rotate: 180deg; --ui-section-fold-icon-folded-rotate: 0deg">` +
         bar(true, false) +
@@ -347,5 +356,15 @@ describe("ui-section.css tokens", () => {
     )
     const turns = [...root.querySelectorAll(".fold.icon")].map((icon) => getComputedStyle(icon).rotate)
     expect(turns).toEqual(["180deg", "0deg", "180deg", "0deg", "-180deg", "-45deg"])
+
+    /** A section's markup, open or folded, its chevron in the button or at the `end` of the bar. */
+    function bar(expanded: boolean, end: boolean) {
+      const icon = `<span class="fold icon"><svg></svg></span>`
+      return (
+        `<section class="ui section"><header class="title"><h2 class="heading">` +
+        `<button class="toggle" aria-expanded="${expanded}">${end ? "" : icon}<span class="header">H</span></button>` +
+        `</h2>${end ? icon : ""}</header><div class="content">x</div></section>`
+      )
+    }
   })
 })

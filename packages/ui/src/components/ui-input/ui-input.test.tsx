@@ -2,7 +2,7 @@ import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
 import type { FormHost } from "$/ui/elements"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
@@ -34,6 +34,10 @@ function record(host: Element, name: string) {
   host.addEventListener(name, (event) => details.push((event as CustomEvent).detail))
   return details
 }
+
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-input> classes", () => {
   it.each([
@@ -111,6 +115,10 @@ describe("<ui-input> classes", () => {
   })
 })
 
+////////////////
+// ## Value
+////////////////
+
 describe("<ui-input> value", () => {
   it("starts from the attribute;  the property is live and never reflects", async () => {
     const { host, control } = await input(`<ui-input value="Ada" aria-label="Name"></ui-input>`)
@@ -153,6 +161,10 @@ describe("<ui-input> value", () => {
     expect(control.value).toBe("AB")
   })
 })
+
+////////////////
+// ## Forms
+////////////////
 
 describe("<ui-input> forms", () => {
   it("submits its value, resets to the attribute, skips a nameless field", async () => {
@@ -242,10 +254,6 @@ describe("<ui-input> forms", () => {
   })
 
   it("numbers (`type=number`, `inputmode` decimal / numeric):  end-aligned tabular figures;  text stays at the start", async () => {
-    const look = (control: HTMLInputElement) => {
-      const style = getComputedStyle(control)
-      return [style.textAlign, style.fontVariantNumeric]
-    }
     expect(look((await input(`<ui-input type="number" aria-label="Size"></ui-input>`)).control)).toEqual([
       "end",
       "tabular-nums"
@@ -260,6 +268,12 @@ describe("<ui-input> forms", () => {
       `<ui-input type="number" style="--ui-input-numeric-align: start" aria-label="Size"></ui-input>`
     )
     expect(look(optedOut)).toEqual(["start", "tabular-nums"])
+
+    /** `control`'s text alignment and number figures. */
+    function look(control: HTMLInputElement) {
+      const style = getComputedStyle(control)
+      return [style.textAlign, style.fontVariantNumeric]
+    }
   })
 
   it("Enter submits through a `<ui-button type=submit>`, with its name=value", async () => {
@@ -281,6 +295,10 @@ describe("<ui-input> forms", () => {
     ])
   })
 })
+
+////////////////
+// ## Validation
+////////////////
 
 describe("<ui-input> validation", () => {
   it("merges native constraints into the host's validity", async () => {
@@ -312,9 +330,10 @@ describe("<ui-input> validation", () => {
     const { host } = await input(`<ui-input value="abc" aria-label="Password"></ui-input>`)
     host.rules = ["minLength[6]", "contains[1]"]
     await ElementFixture.tick()
-    expect(host.validity.tooShort).toBe(true)
-    expect(host.validity.customError).toBe(true)
-    expect(host.validationMessage).toBe("Password must be at least 6 characters")
+    expect(host).toMatchObject({
+      validity: { tooShort: true, customError: true },
+      validationMessage: "Password must be at least 6 characters"
+    })
     host.value = "abc123"
     await ElementFixture.tick()
     expect(host.validity.valid).toBe(true)
@@ -366,6 +385,10 @@ describe("<ui-input> validation", () => {
     expect(host.matches(":state(invalid)")).toBe(true)
   })
 })
+
+////////////////
+// ## Labels
+////////////////
 
 describe("<ui-input> labels", () => {
   it("picks up a <label for> added (or retargeted) AFTER the control:  accessible name and internals.labels", async () => {
@@ -426,6 +449,10 @@ describe("<ui-input> labels", () => {
   })
 })
 
+////////////////
+// ## `<ui-textarea>`
+////////////////
+
 describe("<ui-textarea>", () => {
   it("renders a native textarea in the input box, with rows", async () => {
     const host = await ElementFixture.render<Input>(
@@ -439,6 +466,10 @@ describe("<ui-textarea>", () => {
     expect(host.validity.valueMissing).toBe(true)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-input> tokens from outside", () => {
   /** The native control's top-left radius, which `--ui-input-radius` drives. */
@@ -481,6 +512,10 @@ describe("<ui-input> tokens from outside", () => {
     expect(radius(host)).toBe("12px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-input> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

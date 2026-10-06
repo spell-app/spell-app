@@ -9,7 +9,7 @@ import { UISearch } from "$/ui/components/ui-search/UISearch"
  * `<ui-search>` in a static server render (`$/ui/static`):  the input (a combobox holding the query) and its icon box;
  * the results popover empty and closed -- searching needs JS.
  */
-describe("ui-search (static render)", () => {
+describe("<ui-search> static render", () => {
   beforeAll(() => {
     StaticRender.define(UISearch)
   })

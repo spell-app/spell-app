@@ -1,7 +1,7 @@
 import { userEvent } from "vite-plus/test/browser"
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -74,6 +74,10 @@ function colorOf(value: string): string {
   return color
 }
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-menu> classes", () => {
   it.each([
     ["", "ui menu"],
@@ -112,6 +116,10 @@ describe("<ui-menu> classes", () => {
   })
 })
 
+////////////////
+// ## Semantics
+////////////////
+
 describe("<ui-menu> semantics", () => {
   it("is a <nav> landmark named by the host's aria-label", async () => {
     const { host, root } = await menu()
@@ -124,10 +132,8 @@ describe("<ui-menu> semantics", () => {
   it("renders link items as <a href>, the selected one aria-current=page", async () => {
     const { items } = await menu()
     const [a, b] = items.map(boxOf)
-    expect(a!.localName).toBe("a")
+    expect(a).toMatchObject({ localName: "a", className: "item", ariaCurrent: null })
     expect(a!.getAttribute("href")).toBe("#a")
-    expect(a!.className).toBe("item")
-    expect(a!.hasAttribute("aria-current")).toBe(false)
     expect(b!.className).toBe("active item")
     expect(b!.getAttribute("aria-current")).toBe("page")
     expect(items[1]!.matches(":state(selected)")).toBe(true)
@@ -151,10 +157,12 @@ describe("<ui-menu> semantics", () => {
     )
     const [plain, action, header] = items.map(boxOf)
     expect(plain!.localName).toBe("div")
-    expect(action!.localName).toBe("button")
-    expect(action!.getAttribute("type")).toBe("button")
-    expect(action!.className).toBe("link active item")
-    expect(action!.getAttribute("aria-current")).toBe("true")
+    expect(action).toMatchObject({
+      localName: "button",
+      type: "button",
+      className: "link active item",
+      ariaCurrent: "true"
+    })
     expect(header!.localName).toBe("div")
     expect(header!.className).toBe("item header")
     expect(getComputedStyle(header!).fontWeight).toBe("700")
@@ -171,10 +179,8 @@ describe("<ui-menu> semantics", () => {
   it("renders a disabled link without href, aria-disabled", async () => {
     const { items } = await menu("", `<ui-item href="#x" disabled>X</ui-item><ui-item link disabled>Y</ui-item>`)
     const [link, button] = items.map(boxOf)
-    expect(link!.localName).toBe("a")
+    expect(link).toMatchObject({ localName: "a", className: "disabled item", ariaDisabled: "true" })
     expect(link!.hasAttribute("href")).toBe(false)
-    expect(link!.getAttribute("aria-disabled")).toBe("true")
-    expect(link!.className).toBe("disabled item")
     expect((button as HTMLButtonElement).disabled).toBe(true)
   })
 
@@ -249,6 +255,10 @@ describe("<ui-menu> semantics", () => {
     expect(option.shadowRoot!.querySelector("[part~=item]")).toBeNull()
   })
 })
+
+////////////////
+// ## Owner tokens reach the items
+////////////////
 
 describe("<ui-menu> owner tokens reach the items", () => {
   it("adopts ui-menu.css into each item", async () => {
@@ -331,6 +341,10 @@ describe("<ui-menu> owner tokens reach the items", () => {
   })
 })
 
+////////////////
+// ## Tokens from outside
+////////////////
+
 describe("<ui-menu> tokens from outside", () => {
   /** An item's top padding. */
   function padding(item: Element): string {
@@ -401,15 +415,26 @@ describe("<ui-menu> tokens from outside", () => {
       `<ui-item type="header">Group</ui-item>${LINKS}`
     )
     const header = styleOf(items[0]!)
-    expect([header.paddingTop, header.paddingLeft, header.paddingBottom]).toEqual(["0px", "12px", "6px"])
-    expect([header.fontFamily, header.fontWeight, header.letterSpacing]).toEqual(["monospace", "500", "1px"])
+    expect(header).toMatchObject({
+      paddingTop: "0px",
+      paddingLeft: "12px",
+      paddingBottom: "6px",
+      fontFamily: "monospace",
+      fontWeight: "500",
+      letterSpacing: "1px"
+    })
     const plain = await menu("vertical", `<ui-item type="header">Group</ui-item>${LINKS}`)
     expect(styleOf(plain.items[0]!).paddingTop).toBe(styleOf(plain.items[1]!).paddingTop)
     expect(Number(styleOf(plain.items[0]!).fontWeight)).toBeGreaterThanOrEqual(600)
   })
 })
 
-describe("<ui-menu> variation tokens (design-system I5 / I21 / I35)", () => {
+////////////////
+// ## Variation tokens
+////////////////
+
+// epic `design-system`, I5 / I21 / I35
+describe("<ui-menu> variation tokens", () => {
   /** Three link items with icons, the second selected. */
   const ICONS =
     `<ui-item href="#a" icon="home">A</ui-item>` +
@@ -508,6 +533,10 @@ describe("<ui-menu> variation tokens (design-system I5 / I21 / I35)", () => {
   })
 })
 
+////////////////
+// ## `<ui-menu interactive>` (menubar)
+////////////////
+
 describe("<ui-menu interactive> (menubar)", () => {
   /** A menubar of four buttons, `Edit` selected, `Help` disabled. */
   const BAR =
@@ -517,10 +546,7 @@ describe("<ui-menu interactive> (menubar)", () => {
 
   it("renders role=menubar with menuitems;  item hosts are role=none", async () => {
     const { root, items } = await menu("interactive", BAR)
-    expect(root.localName).toBe("div")
-    expect(root.getAttribute("role")).toBe("menubar")
-    expect(root.hasAttribute("aria-orientation")).toBe(false)
-    expect(root.getAttribute("aria-label")).toBe("Test")
+    expect(root).toMatchObject({ localName: "div", role: "menubar", ariaOrientation: null, ariaLabel: "Test" })
     expect(boxOf(items[0]!).getAttribute("role")).toBe("menuitem")
     expect(items[0]!.internals.role).toBe("none")
     expect(boxOf(items[3]!).hasAttribute("role")).toBe(false)
@@ -586,6 +612,10 @@ describe("<ui-menu interactive> (menubar)", () => {
   })
 })
 
+////////////////
+// ## `ui-select`
+////////////////
+
 describe("<ui-menu> ui-select", () => {
   /** Collect `ui-select` details from `host`. */
   function selections(host: Element) {
@@ -627,6 +657,10 @@ describe("<ui-menu> ui-select", () => {
     expect(details.map(({ value }) => value)).toEqual(["a", "a", "s"])
   })
 })
+
+////////////////
+// ## Appearance, alignment, equal
+////////////////
 
 describe("<ui-menu> appearance, alignment, equal", () => {
   it("takes the look as one word:  the boolean words stay aliases with the same classes", async () => {
@@ -767,6 +801,10 @@ describe("<ui-menu> appearance, alignment, equal", () => {
     expect(span(items)).toBeCloseTo(root.clientWidth, -0.5)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-menu> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

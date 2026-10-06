@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 import { cardVocabulary } from "$/ui/components/ui-card/ui-card.vocabulary.en"
 import { segmentVocabulary } from "$/ui/components/ui-segment/ui-segment.vocabulary.en"
@@ -24,8 +24,7 @@ describe("ContentPartFallback", () => {
   it("renders a bare noun div, keyed by the host's tag", async () => {
     const host = Fixture.render<StubHost>(`<ui-meta>Yesterday</ui-meta>`)
     const meta = FallbackStub.shadow(host).firstElementChild!
-    expect(meta.tagName).toBe("DIV")
-    expect(meta.className).toBe("meta")
+    expect(meta).toMatchObject({ tagName: "DIV", className: "meta" })
     expect(meta.getAttribute("part")).toBe("meta")
     expect(meta.querySelector("slot")).not.toBeNull()
     await expectAccessible(host)
@@ -34,8 +33,7 @@ describe("ContentPartFallback", () => {
   it("renders a standalone header as an `ui header` heading by level", async () => {
     const host = Fixture.render<StubHost>(`<ui-header level="2" dividing size="large">Title</ui-header>`)
     const header = FallbackStub.shadow(host).firstElementChild!
-    expect(header.tagName).toBe("H2")
-    expect(header.className).toBe("ui large dividing header")
+    expect(header).toMatchObject({ tagName: "H2", className: "ui large dividing header" })
     expect(header.getAttribute("part")).toBe("header")
     await expectAccessible(host)
   })
@@ -64,8 +62,6 @@ describe("ContentPartFallback", () => {
     const outer = Fixture.render<StubHost>(`<ui-header><ui-header level="3">Sub</ui-header></ui-header>`)
     const inner = outer.querySelector<StubHost>("ui-header")!
     const header = FallbackStub.shadow(inner).firstElementChild!
-    expect(header.className).toBe("header")
-    expect(header.getAttribute("role")).toBe("heading")
-    expect(header.getAttribute("aria-level")).toBe("3")
+    expect(header).toMatchObject({ className: "header", role: "heading", ariaLevel: "3" })
   })
 })

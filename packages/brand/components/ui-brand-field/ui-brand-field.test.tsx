@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 // every Spell UI family the fields hold (`<ui-menu>`, `<ui-form>`, `<ui-input>` ...), as the brand bundle loads them
 import "$/ui"
 import "$/brand/components"
+
+////////////////
+// ## Helpers
+////////////////
 
 /** A part of `host`'s shadow root, or `null`. */
 function part(host: Element, name: string): HTMLElement | null {
@@ -15,18 +19,22 @@ function part(host: Element, name: string): HTMLElement | null {
 /** `<ui-brand-field>`'s host API, as `<ui-form>` sees it. */
 type FieldHost = HTMLElement & { showErrors(messages: readonly string[]): void; errors: readonly string[] }
 
-describe("<ui-brand-field>", () => {
+////////////////
+// ## Layout
+////////////////
+
+describe("<ui-brand-field> layout", () => {
   it("lays out the label row, the control and the help;  leaves out what isn't there", async () => {
     const host =
       await ElementFixture.render(`<ui-brand-field label="Vibrancy" value="100%" help="Above 100% can leave sRGB.">
       <input type="range" min="0" max="200">
     </ui-brand-field>`)
-    expect(part(host, "label")!.textContent).toBe("Vibrancy")
-    expect(part(host, "value")!.textContent).toBe("100%")
-    expect(part(host, "help")!.textContent).toBe("Above 100% can leave sRGB.")
-    expect(part(host, "actions")).toBeNull()
-    expect(part(host, "info")).toBeNull()
-    expect(part(host, "error")).toBeNull()
+    expect(["label", "value", "help"].map((name) => part(host, name)!.textContent)).toEqual([
+      "Vibrancy",
+      "100%",
+      "Above 100% can leave sRGB."
+    ])
+    expect(["actions", "info", "error"].map((name) => part(host, name))).toEqual([null, null, null])
     expect(host.matches(":state(field)")).toBe(true)
     expect([...part(host, "field")!.classList]).toEqual(["field", "brand"])
     await expectAccessible(host)
@@ -77,7 +85,13 @@ describe("<ui-brand-field>", () => {
     expect(row.getBoundingClientRect().height).toBe(before.row)
     expect(control.getBoundingClientRect().top).toBe(before.control)
   })
+})
 
+////////////////
+// ## Slotted controls
+////////////////
+
+describe("<ui-brand-field> slotted controls", () => {
   it("stretches a slotted <ui-menu> (its host is `display: contents`) across the control row", async () => {
     const host = await ElementFixture.render(`<ui-brand-field label="Corners" style="width: 400px">
       <ui-menu appearance="segmented" alignment="fluid" equal size="small">
@@ -108,10 +122,15 @@ describe("<ui-brand-field>", () => {
     }
     for (const [name, box] of Object.entries(boxes)) {
       const style = getComputedStyle(box)
-      expect(Math.round(box.getBoundingClientRect().height), name).toBe(30)
-      expect(style.fontSize, name).toBe("14px")
-      expect(style.fontWeight, name).toBe("500")
-      expect(Math.round(parseFloat(style.borderTopLeftRadius)), name).toBe(6)
+      expect(
+        {
+          height: Math.round(box.getBoundingClientRect().height),
+          fontSize: style.fontSize,
+          fontWeight: style.fontWeight,
+          radius: Math.round(parseFloat(style.borderTopLeftRadius))
+        },
+        name
+      ).toEqual({ height: 30, fontSize: "14px", fontWeight: "500", radius: 6 })
     }
 
     // nested deeper (a row in a slotted `<div>`):  the page's size, untouched
@@ -142,9 +161,12 @@ describe("<ui-brand-field>", () => {
     )
     expect(getComputedStyle(track).borderTopLeftRadius).toBe("9px")
     for (const item of items) {
-      expect(Math.round(item.getBoundingClientRect().height)).toBe(26)
-      expect(getComputedStyle(item).fontSize).toBe("12px")
-      expect(getComputedStyle(item).fontWeight).toBe("500")
+      const { fontSize, fontWeight } = getComputedStyle(item)
+      expect({ height: Math.round(item.getBoundingClientRect().height), fontSize, fontWeight }).toEqual({
+        height: 26,
+        fontSize: "12px",
+        fontWeight: "500"
+      })
     }
     const [first, second] = items.map((item) => item.getBoundingClientRect())
     expect(Math.round(second!.left - first!.right)).toBe(3)
@@ -159,7 +181,13 @@ describe("<ui-brand-field>", () => {
     expect(Math.abs(set.width - part(host, "control")!.getBoundingClientRect().width)).toBeLessThan(1)
     expect(Math.round(part(host, "row")!.getBoundingClientRect().height)).toBe(20)
   })
+})
 
+////////////////
+// ## Naming, errors and states
+////////////////
+
+describe("<ui-brand-field> naming and errors", () => {
   it("names an unnamed control after its label, follows the label, and leaves a named one alone", async () => {
     const host = await ElementFixture.render(`<ui-brand-field label="Hue">
       <input type="range" id="a"><input type="text" id="b" aria-label="Own name">

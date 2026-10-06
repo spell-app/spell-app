@@ -6,7 +6,7 @@ import { StaticRender } from "$/ui/static"
 import { UIProgress } from "$/ui/components/ui-progress/UIProgress"
 
 /** `<ui-progress>` in the static server render (`$/ui/static`, seo plan P3):  internals ARIA written out. */
-describe("ui-progress static render", () => {
+describe("<ui-progress> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIProgress)
   })

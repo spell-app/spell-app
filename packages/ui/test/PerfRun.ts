@@ -170,12 +170,19 @@ export type PerfStep = {
 
 /** `PerfRun.run()` result. */
 export type PerfResult = {
+  /** options in the dropdown */
   count: number
+  /** what was typed, a keystroke per character */
   query: string
+  /** opening the menu */
   open: PerfStep
+  /** each keystroke of `query` */
   keystrokes: PerfStep[]
+  /** `update` over the keystrokes */
   update: PerfStats
+  /** `layout` over the keystrokes */
   layout: PerfStats
+  /** `frame` over the keystrokes */
   frame: PerfStats
 }
 
@@ -187,7 +194,9 @@ export type PerfRecord = {
   where: string
   /** e.g. `dev` (Vite dev server) or `production` (`dist/` + vendored peers) */
   build: string
+  /** when it ran */
   date: string
+  /** what it measured */
   result: PerfResult
 }
 

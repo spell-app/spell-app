@@ -10,7 +10,7 @@ import { UIRadio } from "$/ui/components/ui-checkbox/UIRadio"
  * `<ui-checkbox>` / `<ui-radio>` in a static server render (`$/ui/static`):  Fomantic's markup -- the native input
  * and its `<label for>` -- with the chosen state and form fields on the input, so a no-JS form submits it.
  */
-describe("ui-checkbox (static render)", () => {
+describe("<ui-checkbox> static render", () => {
   beforeAll(() => {
     StaticRender.define(UICheckbox, UIRadio)
   })

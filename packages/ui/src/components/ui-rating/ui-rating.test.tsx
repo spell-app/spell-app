@@ -1,9 +1,9 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import type { FormHost } from "$/ui/elements"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
@@ -48,6 +48,10 @@ async function settle() {
   await ElementFixture.tick()
   await ElementFixture.tick()
 }
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-rating> markup", () => {
   it.each([
@@ -103,6 +107,10 @@ describe("<ui-rating> markup", () => {
     )
   })
 })
+
+////////////////
+// ## Behaviour
+////////////////
 
 describe("<ui-rating> choosing", () => {
   it("chooses on click, with ui-change first", async () => {
@@ -245,6 +253,10 @@ describe("<ui-rating> keyboard", () => {
   })
 })
 
+////////////////
+// ## Forms
+////////////////
+
 describe("<ui-rating> forms", () => {
   it("submits the rating (nothing at 0), resets to the attribute", async () => {
     const form = await ElementFixture.render<HTMLFormElement>(`<form>
@@ -316,6 +328,10 @@ describe("<ui-rating> forms", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("<ui-rating> tokens from outside", () => {
   /** The first icon's width, which `--ui-rating-icon-width` drives. */
   function iconWidth(host: Element): string {
@@ -355,6 +371,10 @@ describe("<ui-rating> tokens from outside", () => {
     expect(iconWidth(host)).toBe("20px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-rating> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

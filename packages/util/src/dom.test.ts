@@ -8,6 +8,10 @@ function uniqueTag(name: string) {
   return `test-${name}-${++tagCount}`
 }
 
+////////////////
+// ## The page
+////////////////
+
 describe("isBrowser()", () => {
   it("is true under vitest browser mode", () => {
     expect(isBrowser()).toBe(true)
@@ -37,6 +41,10 @@ describe("whenDefined()", () => {
     expect(await whenDefined(tag)).toBe(Now)
   })
 })
+
+////////////////
+// ## The flat tree
+////////////////
 
 describe("closestAcrossShadow()", () => {
   afterEach(() => container.remove())

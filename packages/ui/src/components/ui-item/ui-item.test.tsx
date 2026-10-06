@@ -5,7 +5,7 @@ import type { ItemContext, ItemOwner } from "$/ui/components/components.types"
 import { UIElement, type UIElementClass, type UIHost } from "$/ui/elements"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
@@ -71,6 +71,10 @@ function boxOf(item: Element): HTMLElement {
   return item.shadowRoot!.querySelector<HTMLElement>("[part~=item]")!
 }
 
+////////////////
+// ## Unowned
+////////////////
+
 describe("<ui-item> unowned", () => {
   it("renders only its slot:  a dropdown reads it as data", async () => {
     const item = await ElementFixture.render<UIHost>(`<ui-item value="a" selected>Apple</ui-item>`)
@@ -80,6 +84,10 @@ describe("<ui-item> unowned", () => {
     expect((item.controller as unknown as { focusTarget?: HTMLElement }).focusTarget).toBeUndefined()
   })
 })
+
+////////////////
+// ## Owned
+////////////////
 
 describe("<ui-item> owned", () => {
   it.each([

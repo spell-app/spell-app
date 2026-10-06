@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -29,6 +29,10 @@ async function railIn(attributes: string) {
   const root = host.shadowRoot!.firstElementChild as HTMLElement
   return { segment, root, rail: root.getBoundingClientRect() }
 }
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-rail> classes", () => {
   it.each([
@@ -92,6 +96,10 @@ describe("<ui-rail> placement", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("<ui-rail> tokens from outside", () => {
   /** The inner box's width. */
   function measure(host: Element): string {
@@ -139,6 +147,10 @@ describe("<ui-rail> tokens from outside", () => {
     expect(measure(host)).toBe("216px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-rail> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

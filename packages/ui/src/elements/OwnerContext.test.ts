@@ -120,7 +120,7 @@ describe("OwnerContext.find()", () => {
   })
 })
 
-describe("OwnerContext helpers", () => {
+describe("OwnerContext.stateName()", () => {
   it("names the custom state", () => {
     expect(OwnerContext.stateName("card")).toBe("in-card")
   })

@@ -10,7 +10,7 @@ import { StaticCatalog, StaticRender, StaticStylesheet } from "$/ui/static"
  * with JavaScript disabled:  dialogs open and close through invoker commands, click popups through `popovertarget`,
  * accordions through `<details>`.
  */
-describe("StaticInteractions (JavaScript off)", { timeout: 30_000 }, () => {
+describe("StaticInteractions.wire() with JavaScript off", { timeout: 30_000 }, () => {
   let browser: Browser
   let page: Page
 

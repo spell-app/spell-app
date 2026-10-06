@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -20,6 +20,10 @@ async function text(html: string) {
   const root = host.shadowRoot!.querySelector<HTMLElement>("[part~=text]")!
   return { host, root }
 }
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-text> classes", () => {
   it.each([
@@ -70,6 +74,10 @@ describe("<ui-text> states and looks", () => {
     expect(getComputedStyle(red).color).not.toBe(getComputedStyle(plain).color)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("<ui-text> tokens from outside", () => {
   /** The inner box's opacity. */
@@ -124,6 +132,10 @@ describe("<ui-text> tokens from outside", () => {
     expect(getComputedStyle(root).fontSize).toBe("48px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-text> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

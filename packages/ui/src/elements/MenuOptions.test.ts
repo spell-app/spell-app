@@ -14,10 +14,9 @@ const OPTIONS: MenuOption[] = [
 
 const menu = new MenuOptions({ options: OPTIONS })
 
-/** Values of `list`, for compact assertions. */
-function values(list: MenuOptions) {
-  return list.options.map((option) => option.value)
-}
+////////////////
+// ## Narrowing the list
+////////////////
 
 describe("MenuOptions.filter()", () => {
   it("passes everything through for an empty query", () => {
@@ -113,6 +112,10 @@ describe("MenuOptions.withAdditions()", () => {
   })
 })
 
+////////////////
+// ## Moving through it
+////////////////
+
 describe("MenuOptions.nextEnabledIndex()", () => {
   // Index 3 (`gb`) is disabled.
   it("steps forward and back, skipping disabled options", () => {
@@ -184,6 +187,10 @@ describe("MenuOptions.selectionForKey()", () => {
   })
 })
 
+////////////////
+// ## Highlights
+////////////////
+
 describe("MenuOptions.highlights()", () => {
   it("returns one range for a contiguous match", () => {
     expect(menu.highlights(OPTIONS[2], "states")).toEqual([[7, 13]])
@@ -209,16 +216,11 @@ describe("MenuOptions.highlights()", () => {
   })
 })
 
-describe("MenuOptions performance", () => {
-  /** `count` options with accented, varied text. */
-  function manyOptions(count: number): MenuOption[] {
-    const words = ["alpha", "Brâvo", "charlie", "délta", "echo", "foxtrot", "golf", "hôtel"]
-    return Array.from({ length: count }, (_, index) => ({
-      value: `v${index}`,
-      text: `${words[index % words.length]} ${words[(index * 7) % words.length]} ${index}`
-    }))
-  }
+////////////////
+// ## Performance
+////////////////
 
+describe("MenuOptions.filter() performance", () => {
   it("filters 5000 options per keystroke in under 50 ms", () => {
     const big = new MenuOptions({ options: manyOptions(5000) })
     // Warm-up builds the lazy search keys, as the first keystroke would.
@@ -239,3 +241,21 @@ describe("MenuOptions performance", () => {
     expect(result.length).toBeGreaterThan(0)
   })
 })
+
+////////////////
+// ## Helpers
+////////////////
+
+/** Values of `list`, for compact assertions. */
+function values(list: MenuOptions) {
+  return list.options.map((option) => option.value)
+}
+
+/** `count` options with accented, varied text. */
+function manyOptions(count: number): MenuOption[] {
+  const words = ["alpha", "Brâvo", "charlie", "délta", "echo", "foxtrot", "golf", "hôtel"]
+  return Array.from({ length: count }, (_, index) => ({
+    value: `v${index}`,
+    text: `${words[index % words.length]} ${words[(index * 7) % words.length]} ${index}`
+  }))
+}

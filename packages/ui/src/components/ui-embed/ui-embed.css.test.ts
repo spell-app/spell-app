@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { embedVocabulary } from "./ui-embed.vocabulary.en"
 
@@ -18,6 +18,10 @@ import embedRaw from "./ui-embed.css?raw"
 
 /** Every example fragment, by path. */
 const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-embed.css source", () => {
   it("never uses rem, nor !important", () => {
@@ -38,18 +42,24 @@ describe("ui-embed.css source", () => {
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-embed.css examples", () => {
   it("sizes each box by its ratio, 16:9 by default", () => {
     Sheets.adopt([...foundationCSS, embedCSS])
     const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
-    const ratio = (selector: string) => {
-      const box = root.querySelector(selector)!.getBoundingClientRect()
-      return box.width / box.height
-    }
     expect(ratio(".ui.embed:not([class*=':'], .square)")).toBeCloseTo(16 / 9, 1)
     expect(ratio('.ui.embed[class*="4:3"]')).toBeCloseTo(4 / 3, 1)
     expect(ratio('.ui.embed[class*="21:9"]')).toBeCloseTo(21 / 9, 1)
     expect(ratio(".ui.square.embed")).toBeCloseTo(1, 1)
+
+    /** Width over height of the box `selector` finds. */
+    function ratio(selector: string) {
+      const box = root.querySelector(selector)!.getBoundingClientRect()
+      return box.width / box.height
+    }
   })
 
   it("fills the box with the play button, the placeholder and the icon overlay", () => {
@@ -93,6 +103,10 @@ describe("ui-embed.css examples", () => {
     expect(getComputedStyle(root.nextElementSibling!.querySelector(".embed")!).display).toBe("none")
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-embed.css tokens", () => {
   it("takes a public token from a wrapper or the embed itself (static markup)", () => {

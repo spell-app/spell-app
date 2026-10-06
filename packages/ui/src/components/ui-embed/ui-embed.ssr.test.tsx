@@ -6,7 +6,7 @@ import { StaticRender } from "$/ui/static"
 import { UIEmbed } from "$/ui/components/ui-embed/UIEmbed"
 
 /** `<ui-embed>` in the static server render (`$/ui/static`, seo plan P3):  nothing third-party loads. */
-describe("ui-embed static render", () => {
+describe("<ui-embed> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIEmbed)
   })

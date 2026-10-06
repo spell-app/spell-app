@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { labelVocabulary } from "./ui-label.vocabulary.en"
 import { labelsVocabulary } from "./ui-labels.vocabulary.en"
@@ -22,6 +22,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-label.css source", () => {
   it("never uses rem", () => {
@@ -56,6 +60,10 @@ describe("ui-label.css source", () => {
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-label.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every label in %s", (path) => {
     Sheets.adopt([...foundationCSS, labelCSS])
@@ -78,9 +86,11 @@ describe("ui-label.css examples", () => {
     const filled = getComputedStyle(root.querySelector(".ui.red.label:not(.basic, .circular)")!)
     expect(filled.backgroundColor).toBe(getComputedStyle(red).backgroundColor)
     const basic = getComputedStyle(root.querySelector(".ui.red.basic.label:not(.tag)")!)
-    expect(basic.borderTopWidth).toBe("1px")
-    expect(basic.borderTopColor).toBe(getComputedStyle(red).backgroundColor)
-    expect(basic.backgroundColor).toBe(getComputedStyle(red).color)
+    expect(basic).toMatchObject({
+      borderTopWidth: "1px",
+      borderTopColor: getComputedStyle(red).backgroundColor,
+      backgroundColor: getComputedStyle(red).color
+    })
   })
 
   it("scales by size;  medium is the default", () => {
@@ -163,6 +173,10 @@ describe("ui-label.css examples", () => {
     expect(huge).toBeGreaterThan(plain)
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-label.css in shadow roots", () => {
   it("keeps the host out of layout and styles the inner root", () => {

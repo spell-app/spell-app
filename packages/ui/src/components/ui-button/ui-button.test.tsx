@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -22,6 +22,10 @@ async function button(html: string) {
   const control = host.shadowRoot!.querySelector<HTMLElement>("[part~=button]")!
   return { host, control }
 }
+
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-button> classes", () => {
   it.each([
@@ -102,6 +106,10 @@ describe("<ui-button> classes", () => {
     expect(getComputedStyle(host).display).toBe("flex")
   })
 })
+
+////////////////
+// ## Behaviour
+////////////////
 
 describe("<ui-button> behaviour", () => {
   it("toggles `active` with aria-pressed and ui-toggle", async () => {
@@ -303,6 +311,10 @@ describe("<ui-button> behaviour", () => {
   })
 })
 
+////////////////
+// ## <ui-buttons> / <ui-or>
+////////////////
+
 describe("<ui-buttons> / <ui-or>", () => {
   it("renders a group and an or", async () => {
     const group = await ElementFixture.render<UIHost>(
@@ -360,6 +372,10 @@ async function group(attributes: string) {
   )
   return { host, root, buttons }
 }
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 /**
  * Public `--ui-button-*` tokens set from OUTSIDE the shadow root reach the box:  the sheet declares only private
@@ -437,6 +453,10 @@ describe("<ui-button> tokens from outside", () => {
     expect(getComputedStyle(first!.shadowRoot!.querySelector("[part~=button]")!).borderTopRightRadius).toBe("0px")
   })
 })
+
+////////////////
+// ## Invoker commands
+////////////////
 
 describe("<ui-button> invoker commands", () => {
   /** Render a button wired to `target`, which is rendered after it. */
@@ -586,6 +606,10 @@ describe("<ui-button> invoker commands", () => {
     })
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-button> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

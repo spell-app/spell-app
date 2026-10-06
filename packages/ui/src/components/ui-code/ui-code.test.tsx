@@ -1,11 +1,9 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import { CodeHighlighter } from "./CodeHighlighter"
-import { CodeLines } from "./CodeLines"
 import type { UICodeHost } from "./UICodeHost"
 
 import "$/ui/components/ui-code"
@@ -25,9 +23,9 @@ afterEach(() => {
   UI.sources.forget()
 })
 
-/** Render one `<ui-code>`, wait until it's coloured (or failed to be). */
-async function code(html: string): Promise<UICodeHost> {
-  const finished = nextHighlight(document)
+/** Render `html`, wait until each of its `count` `<ui-code>`s is coloured (or failed to be);  returns the first. */
+async function code(html: string, count = 1): Promise<UICodeHost> {
+  const finished = highlights(document, count)
   const host = await ElementFixture.render<UICodeHost>(html)
   await finished
   await ElementFixture.tick()
@@ -36,21 +34,29 @@ async function code(html: string): Promise<UICodeHost> {
 
 /** Wait for `host`'s next `ui-highlight` or `ui-error`, then flush. */
 async function settled(host: UICodeHost) {
-  await nextHighlight(host)
+  await highlights(host)
   await ElementFixture.tick()
 }
 
-/** Resolves on the next `ui-highlight` or `ui-error` reaching `target` (or after 2s). */
-function nextHighlight(target: EventTarget): Promise<void> {
+/**
+ * Resolves once `count` `ui-highlight` / `ui-error` events have reached `target`.
+ * - Listen BEFORE the change that colours:  an event that already went by never comes back (the test's timeout
+ *   catches one that never comes).
+ */
+function highlights(target: EventTarget, count = 1): Promise<void> {
+  let left = count
   return new Promise<void>((resolve) => {
-    const done = () => {
-      target.removeEventListener("ui-highlight", done)
-      target.removeEventListener("ui-error", done)
+    if (left <= 0) return resolve()
+    target.addEventListener("ui-highlight", seen)
+    target.addEventListener("ui-error", seen)
+
+    /** One more colouring (or failure);  stops listening after the last. */
+    function seen() {
+      if (--left > 0) return
+      target.removeEventListener("ui-highlight", seen)
+      target.removeEventListener("ui-error", seen)
       resolve()
     }
-    target.addEventListener("ui-highlight", done)
-    target.addEventListener("ui-error", done)
-    setTimeout(done, 2000)
   })
 }
 
@@ -64,7 +70,11 @@ function linesOf(host: UICodeHost): string[] {
   return [...codeOf(host).querySelectorAll(".line")].map((line) => line.textContent ?? "")
 }
 
-describe("<ui-code>", () => {
+////////////////
+// ## Behaviour
+////////////////
+
+describe("<ui-code> behaviour", () => {
   it("colours its own text in the asked-for language, a span per line", async () => {
     const host = await code(`<ui-code language="ts"><script type="text/plain">
       const x = "a < b"
@@ -183,40 +193,14 @@ describe("<ui-code>", () => {
   })
 })
 
-describe("CodeLines", () => {
-  it("splits highlighted HTML at newlines, reopening open spans", () => {
-    expect(CodeLines.split('a <span class="c">x\ny</span> b\nc')).toEqual([
-      'a <span class="c">x</span>',
-      '<span class="c">y</span> b',
-      "c"
-    ])
-  })
+////////////////
+// ## Accessibility
+////////////////
 
-  it("makes no empty last line for a final newline", () => {
-    expect(CodeLines.split("a\nb\n")).toEqual(["a", "b"])
-    expect(CodeLines.split("")).toEqual([""])
-  })
-
-  it("turns spans into highlight.js HTML, escaped", () => {
-    expect(
-      CodeLines.fromSpans("if a<b", [
-        { start: 0, end: 2, kind: "keyword" },
-        { start: 3, end: 6, kind: "title.function" }
-      ])
-    ).toBe('<span class="hljs-keyword">if</span> <span class="hljs-title function_">a&lt;b</span>')
-  })
-})
-
-describe("CodeHighlighter", () => {
-  it("loads highlight.js only for code it must colour", async () => {
-    expect((await CodeHighlighter.highlight("x", "text")).html).toBe("x")
-  })
-})
-
-describe("<ui-code> examples", () => {
+describe("<ui-code> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
-    const root = await ElementFixture.render(EXAMPLES[path]!)
-    await Promise.all([...root.querySelectorAll<UICodeHost>("ui-code")].map((host) => settled(host)))
+    const html = EXAMPLES[path]!
+    const root = await code(html, html.match(/<ui-code\b/g)?.length ?? 0)
     await expectAccessible(root)
   })
 })

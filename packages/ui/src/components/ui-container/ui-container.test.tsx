@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -14,7 +14,11 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-container/examples
   eager: true
 })
 
-describe("<ui-container>", () => {
+////////////////
+// ## Classes and layout
+////////////////
+
+describe("<ui-container> classes and layout", () => {
   it.each([
     ["", "ui container"],
     ["text", "ui text container"],
@@ -41,6 +45,10 @@ describe("<ui-container>", () => {
     expect(style.marginLeft).toBe(style.marginRight)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-container> tokens from outside", () => {
   /** The inner box's max width. */
@@ -87,6 +95,10 @@ describe("<ui-container> tokens from outside", () => {
     expect(measure(host)).toBe(getComputedStyle(probe).maxWidth)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-container> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

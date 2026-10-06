@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { dimmerVocabulary } from "./ui-dimmer.vocabulary.en"
 
@@ -40,6 +40,10 @@ function dimmerIn(root: Element, text: string): HTMLElement {
   return segment.querySelector<HTMLElement>(".ui.dimmer")!
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-dimmer.css source", () => {
   it("never uses rem", () => {
     for (const css of [dimmerRaw, dimmablePageRaw]) expect(Sheets.withoutComments(css)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -71,6 +75,10 @@ describe("ui-dimmer.css source", () => {
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-dimmer.css examples", () => {
   it("an active dimmer fades in over its dimmable parent, dark, content centred", async () => {
     const root = example("types")
@@ -78,11 +86,13 @@ describe("ui-dimmer.css examples", () => {
     const style = getComputedStyle(dimmer)
     expect(dimmer.getAnimations().length).toBeGreaterThan(0)
     await Promise.all(dimmer.getAnimations().map((animation) => animation.finished))
-    expect(style.display).toBe("flex")
-    expect(style.position).toBe("absolute")
-    expect(style.opacity).toBe("1")
-    expect(style.justifyContent).toBe("center")
-    expect(style.colorScheme).toBe("dark")
+    expect(style).toMatchObject({
+      display: "flex",
+      position: "absolute",
+      opacity: "1",
+      justifyContent: "center",
+      colorScheme: "dark"
+    })
     expect(dimmer.offsetWidth).toBe(dimmer.parentElement!.clientWidth)
     expect(dimmer.offsetHeight).toBe(dimmer.parentElement!.clientHeight)
   })
@@ -109,7 +119,11 @@ describe("ui-dimmer.css examples", () => {
   })
 })
 
-describe("dimmer tokens", () => {
+////////////////
+// ## Tokens
+////////////////
+
+describe("ui-dimmer.css tokens", () => {
   it("one `--ui-dimmer-background` themes the dimmer AND the modal's backdrop", () => {
     Sheets.adopt([...foundationCSS, dimmerCSS, modalCSS])
     const root = Fixture.render(

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 import { SiteData } from "$/ui/docs-components"
 
@@ -13,9 +13,13 @@ FallbackStub.define("x-fb-docs-search", (host, root, internals) =>
 
 /** A data file with two components, as a blob URL. */
 function serve(): string {
-  const tag = (name: string, folder: string) => ({ tag: folder, name, folder, mainTag: folder, main: true })
-  const data = { topics: [], components: [tag("Button", "ui-button"), tag("Input", "ui-input")], docs: [] }
+  const data = { topics: [], components: [component("Button", "ui-button"), component("Input", "ui-input")], docs: [] }
   return URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }))
+}
+
+/** One main component's entry in the data file. */
+function component(name: string, folder: string) {
+  return { tag: folder, name, folder, mainTag: folder, main: true }
 }
 
 afterEach(() => {
@@ -23,7 +27,7 @@ afterEach(() => {
   SiteData.url = undefined
 })
 
-describe("DocsSearchFallback", () => {
+describe("DocsSearchFallback.render()", () => {
   it("renders a labelled native search field, suggesting every component once the data loads", async () => {
     SiteData.reset(serve())
     const host = Fixture.render<StubHost>(`<x-fb-docs-search base="#/"></x-fb-docs-search>`)
@@ -31,9 +35,11 @@ describe("DocsSearchFallback", () => {
     expect(box.className).toBe("ui finder")
     expect(box.getAttribute("part")).toBe("search")
     const input = box.querySelector("input")!
-    expect(input.type).toBe("search")
-    expect(input.getAttribute("aria-label")).toBe("Search the docs")
-    expect(input.getAttribute("part")).toBe("input")
+    expect({ type: input.type, label: input.getAttribute("aria-label"), part: input.getAttribute("part") }).toEqual({
+      type: "search",
+      label: "Search the docs",
+      part: "input"
+    })
     await expect.poll(() => box.querySelectorAll("datalist option").length).toBe(2)
     expect(input.list!.querySelector("option")!.value).toBe("Button")
     await expectAccessible(host)

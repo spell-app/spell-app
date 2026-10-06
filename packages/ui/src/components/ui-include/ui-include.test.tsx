@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test"
 
 import { UI, type SourceSaver } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
 import { UIInclude } from "./UIInclude"
@@ -43,7 +43,11 @@ function box(host: UIIncludeHost): HTMLElement {
   return host.shadowRoot!.querySelector<HTMLElement>("[part~=content]")!
 }
 
-describe("<ui-include>", () => {
+////////////////
+// ## Loading
+////////////////
+
+describe("<ui-include> loading", () => {
   it("shows a fragment in its shadow root, and its placeholder until then", async () => {
     const host = await ElementFixture.render<UIIncludeHost>(
       `<ui-include source="${DIR}/part.html" load="visible" style="display:block;margin-top:300vh">Wait</ui-include>`
@@ -91,12 +95,6 @@ describe("<ui-include>", () => {
 
   it("`ui-insert` hands over the markup before it goes in, and may change it", async () => {
     const seen: string[] = []
-    const listener = (event: Event) => {
-      const { fragment } = (event as CustomEvent<{ fragment: DocumentFragment }>).detail
-      seen.push(fragment.querySelector("p.part")?.textContent ?? "")
-      expect(fragment.querySelector("p.part")!.isConnected).toBe(false)
-      fragment.querySelector("p.part")!.classList.add("seen")
-    }
     document.addEventListener("ui-insert", listener)
     try {
       const host = await include(`<ui-include source="${DIR}/part.html" page-styles></ui-include>`)
@@ -104,6 +102,14 @@ describe("<ui-include>", () => {
       expect(host.querySelector("p.part.seen")).not.toBeNull()
     } finally {
       document.removeEventListener("ui-insert", listener)
+    }
+
+    /** Record the part's text, check it's not in the page yet, and mark it. */
+    function listener(event: Event) {
+      const { fragment } = (event as CustomEvent<{ fragment: DocumentFragment }>).detail
+      seen.push(fragment.querySelector("p.part")?.textContent ?? "")
+      expect(fragment.querySelector("p.part")!.isConnected).toBe(false)
+      fragment.querySelector("p.part")!.classList.add("seen")
     }
   })
 
@@ -143,6 +149,10 @@ describe("<ui-include>", () => {
     expect(host.shadowRoot!.querySelector("[part~=error]")!.textContent).toMatch(/only files from this site/)
   })
 })
+
+////////////////
+// ## Content and save()
+////////////////
 
 describe("<ui-include> content and save()", () => {
   it("`content` is the file as loaded while untouched", async () => {
@@ -196,6 +206,10 @@ describe("<ui-include> content and save()", () => {
   })
 })
 
+////////////////
+// ## `UIInclude.spliceBody()`
+////////////////
+
 describe("UIInclude.spliceBody()", () => {
   it("replaces what's between <body> and </body>", () => {
     expect(UIInclude.spliceBody("<html><body class=x>old</body></html>", "new")).toBe(
@@ -207,6 +221,10 @@ describe("UIInclude.spliceBody()", () => {
     expect(UIInclude.spliceBody("<p>old</p>", "<p>new</p>")).toBe("<p>new</p>")
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("<ui-include> examples", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

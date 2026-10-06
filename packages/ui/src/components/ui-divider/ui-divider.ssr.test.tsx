@@ -6,7 +6,7 @@ import { StaticRender } from "$/ui/static"
 import { UIDivider } from "$/ui/components/ui-divider/UIDivider"
 
 /** `<ui-divider>` in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-divider static render", () => {
+describe("<ui-divider> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIDivider)
   })

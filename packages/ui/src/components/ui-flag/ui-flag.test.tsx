@@ -1,11 +1,10 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
-import { FlagCountry } from "$/ui/components/ui-flag"
 
 import "$/ui/components/ui-flag"
 
@@ -23,33 +22,9 @@ async function flag(html: string) {
   return { host, root }
 }
 
-describe("FlagCountry", () => {
-  it.each([
-    ["fr", "fr", "🇫🇷"],
-    ["FR", "fr", "🇫🇷"],
-    [" France ", "fr", "🇫🇷"],
-    ["United_States", "us", "🇺🇸"],
-    ["united   states", "us", "🇺🇸"],
-    ["america", "us", "🇺🇸"],
-    ["uk", "gb", "🇬🇧"],
-    ["england", "gb-eng", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}"],
-    ["pride", "rainbow", "\u{1F3F3}\u{FE0F}\u{200D}\u{1F308}"],
-    ["atlantis", "", ""],
-    ["", "", ""]
-  ])("%j => %j %s", (country, code, emoji) => {
-    const resolved = new FlagCountry(country)
-    expect(resolved.code).toBe(code)
-    expect(resolved.emoji).toBe(emoji)
-  })
-
-  it("names non-country flags by text key, countries by region", () => {
-    expect(new FlagCountry("england").textKey).toBe("gbEng")
-    expect(new FlagCountry("england").region).toBeUndefined()
-    expect(new FlagCountry("fr").textKey).toBeUndefined()
-    expect(new FlagCountry("fr").region).toBe("FR")
-    expect(new FlagCountry("nowhere").region).toBeUndefined()
-  })
-})
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-flag> classes", () => {
   it.each([
@@ -64,6 +39,10 @@ describe("<ui-flag> classes", () => {
     expect(root.className).toBe(classes)
   })
 })
+
+////////////////
+// ## Glyph and name
+////////////////
 
 describe("<ui-flag> glyph and name", () => {
   it("is role=img, named by its region in the runtime's locale, holding the emoji", async () => {
@@ -103,6 +82,10 @@ describe("<ui-flag> glyph and name", () => {
     expect(Number.parseFloat(getComputedStyle(root).fontSize)).toBeCloseTo(surrounding * 6, 0)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-flag> tokens from outside", () => {
   /** The inner box's margin right. */
@@ -155,6 +138,10 @@ describe("<ui-flag> tokens from outside", () => {
     expect(getComputedStyle(root).fontSize).toBe("64px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-flag> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

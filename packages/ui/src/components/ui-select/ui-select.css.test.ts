@@ -6,7 +6,8 @@ import { UI } from "$/ui/runtime"
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { selectVocabulary } from "./ui-select.vocabulary.en"
 
@@ -29,25 +30,24 @@ const BASE_SELECT = (await UI.load()).browser.supports.baseSelect
 /** Every example fragment, by path. */
 const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
 
-/** Sublayer order every component sheet declares first. */
-const LAYERS =
-  "@layer ui.components.select.types, ui.components.select.content, ui.components.select.variations, " +
-  "ui.components.select.states;"
-
 /** Sheets `<ui-select>` adopts, in order. */
 const SHEETS = [...foundationCSS, selectCSS]
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-select.css source", () => {
   it("never uses rem", () => {
-    expect(withoutComments(selectRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
+    expect(Sheets.withoutComments(selectRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
   })
 
   it("never uses !important", () => {
-    expect(withoutComments(selectRaw)).not.toMatch(/!important/)
+    expect(Sheets.withoutComments(selectRaw)).not.toMatch(/!important/)
   })
 
   it("declares its sublayer order before any rule", () => {
-    expect(withoutComments(selectRaw).trim().replace(/\s+/g, " ").startsWith(LAYERS)).toBe(true)
+    expect(Sheets.withoutComments(selectRaw).trim().replace(/\s+/g, " ").startsWith(Sheets.layers("select"))).toBe(true)
   })
 
   it("keeps the customizable select behind @supports, after Lightning CSS", () => {
@@ -56,7 +56,7 @@ describe("ui-select.css source", () => {
       sheet.replaceSync(css)
       const supports = [...sheet.cssRules].filter((rule) => rule instanceof CSSSupportsRule)
       expect(supports.map((rule) => (rule as CSSSupportsRule).conditionText)).toContain("(appearance: base-select)")
-      const rules = styleRules(sheet)
+      const rules = Sheets.rules(sheet)
       if (!BASE_SELECT) continue
       expect(rules.some((rule) => rule.selectorText.includes("::picker(select)"))).toBe(true)
       expect(rules.some((rule) => rule.selectorText.includes("selectedcontent"))).toBe(true)
@@ -66,14 +66,18 @@ describe("ui-select.css source", () => {
   it("covers every class word the vocabulary can emit", () => {
     const css = selectRaw + colorsCSS
     for (const phrase of classPhrases(selectVocabulary)) {
-      expect(covers(css, phrase), phrase).toBe(true)
+      expect(Sheets.covers(css, phrase), phrase).toBe(true)
     }
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-select.css examples", () => {
   it.each(Object.keys(EXAMPLES))("draws every select in %s as a closed selection box", (path) => {
-    adoptIntoPage(SHEETS)
+    Sheets.adopt(SHEETS)
     const root = Fixture.render(EXAMPLES[path]!)
     const selects = root.querySelectorAll<HTMLSelectElement>("select.ui.select")
     expect(selects.length).toBeGreaterThan(0)
@@ -87,7 +91,7 @@ describe("ui-select.css examples", () => {
   })
 
   it("draws the caret in every browser:  two gradients in currentColor, room for it at the end", () => {
-    adoptIntoPage(SHEETS)
+    Sheets.adopt(SHEETS)
     const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
     const select = root.querySelector<HTMLSelectElement>("select.ui.select")!
     const style = getComputedStyle(select)
@@ -99,14 +103,14 @@ describe("ui-select.css examples", () => {
   })
 
   it("greys the placeholder while it's shown", () => {
-    adoptIntoPage(SHEETS)
+    Sheets.adopt(SHEETS)
     const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
     const [placeholder, chosen] = root.querySelectorAll<HTMLSelectElement>("select.ui.select")
     expect(getComputedStyle(placeholder!).color).not.toBe(getComputedStyle(chosen!).color)
   })
 
   it.skipIf(!BASE_SELECT)("is the customizable select where supported, with a hidden picker icon", () => {
-    adoptIntoPage(SHEETS)
+    Sheets.adopt(SHEETS)
     const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
     const select = root.querySelector<HTMLSelectElement>("select.ui.select")!
     expect(getComputedStyle(select).appearance).toBe("base-select")
@@ -114,7 +118,7 @@ describe("ui-select.css examples", () => {
   })
 
   it.skipIf(!BASE_SELECT)("opens the picker below the box, anchored and at least as wide", async () => {
-    adoptIntoPage(SHEETS)
+    Sheets.adopt(SHEETS)
     const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
     const select = root.querySelector<HTMLSelectElement>("select.ui.select")!
     await userEvent.click(select)
@@ -132,7 +136,7 @@ describe("ui-select.css examples", () => {
   })
 
   it("takes a public token from a wrapper (static markup)", () => {
-    adoptIntoPage(SHEETS)
+    Sheets.adopt(SHEETS)
     const root = Fixture.render(
       `<div style="--ui-select-radius: 12px"><select class="ui select" aria-label="A"><option>A</option></select></div>`
     )
@@ -140,7 +144,7 @@ describe("ui-select.css examples", () => {
   })
 
   it("scales by size;  medium is the default", () => {
-    adoptIntoPage(SHEETS)
+    Sheets.adopt(SHEETS)
     const root = Fixture.render(EXAMPLES["./examples/variations.html"]!)
     const size = (selector: string) => parseFloat(getComputedStyle(root.querySelector(selector)!).fontSize)
     expect(size(".ui.mini.select")).toBeLessThan(size(".ui.massive.select"))
@@ -148,7 +152,7 @@ describe("ui-select.css examples", () => {
   })
 
   it("fills its container when fluid, and drops the minimum width when compact", () => {
-    adoptIntoPage(SHEETS)
+    Sheets.adopt(SHEETS)
     const root = Fixture.render(`<div style="width: 600px">${EXAMPLES["./examples/variations.html"]!}</div>`)
     const fluid = root.querySelector<HTMLElement>(".ui.fluid.select")!
     expect(Math.round(fluid.getBoundingClientRect().width)).toBe(600)
@@ -156,7 +160,7 @@ describe("ui-select.css examples", () => {
   })
 
   it("tints form states, dims disabled, and switches inverted to the dark scheme", () => {
-    adoptIntoPage(SHEETS)
+    Sheets.adopt(SHEETS)
     const states = Fixture.render(EXAMPLES["./examples/states.html"]!)
     const tint = Fixture.render(`<span style="background-color: var(--ui-error-background)"></span>`)
     expect(getComputedStyle(states.querySelector(".ui.error.select")!).backgroundColor).toBe(
@@ -168,9 +172,14 @@ describe("ui-select.css examples", () => {
   })
 })
 
+////////////////
+// ## Helpers
+////////////////
+
 /**
  * Class phrases `vocabulary` can emit for class-bearing attributes, one attribute at a time.
  * - `size` / `color` kinds with shared sets are left out:  `sizes.css` / `colors.css` own those remaps.
+ * - NOTE: not `Sheets.classPhrases()`, which skips every `color`:  this probes a `color` with inline values too.
  */
 function classPhrases(vocabulary: ComponentVocabulary): string[] {
   const builder = new ClassBuilder(vocabulary)
@@ -195,41 +204,4 @@ function classPhrases(vocabulary: ComponentVocabulary): string[] {
 /** Inline values of `spec`. */
 function listOf(spec: AttributeSpec): string[] {
   return Array.isArray(spec.values) ? [...(spec.values as readonly string[])] : []
-}
-
-/** `css` styles `phrase`:  as a `[class*="..."]` phrase, or every word as a class selector. */
-function covers(css: string, phrase: string): boolean {
-  if (css.includes(`[class*="${phrase}"]`)) return true
-  return phrase.split(" ").every((word) => new RegExp(`\\.${word}(?![\\w-])`).test(css))
-}
-
-/** Every `CSSStyleRule` in `sheet`, including those nested in `@layer` / `@media` / `@supports`. */
-function styleRules(sheet: CSSStyleSheet | CSSGroupingRule): CSSStyleRule[] {
-  const rules: CSSStyleRule[] = []
-  for (const rule of sheet.cssRules) {
-    if (rule instanceof CSSStyleRule) rules.push(rule)
-    if (rule instanceof CSSGroupingRule) rules.push(...styleRules(rule))
-  }
-  return rules
-}
-
-/**
- * Adopt `css` into the document for the current test.
- * - SIDE EFFECT:  appended to `document.adoptedStyleSheets`, removed when the test finishes.
- */
-function adoptIntoPage(css: readonly string[]) {
-  const sheets = css.map((text) => {
-    const sheet = new CSSStyleSheet()
-    sheet.replaceSync(text)
-    return sheet
-  })
-  document.adoptedStyleSheets = [...document.adoptedStyleSheets, ...sheets]
-  onTestFinished(() => {
-    document.adoptedStyleSheets = document.adoptedStyleSheets.filter((sheet) => !sheets.includes(sheet))
-  })
-}
-
-/** `css` without comments. */
-function withoutComments(css: string): string {
-  return css.replace(/\/\*[\s\S]*?\*\//g, "")
 }

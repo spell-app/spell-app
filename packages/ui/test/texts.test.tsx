@@ -13,7 +13,7 @@ function textOf(host: Element, key: string): string {
   return ((host as UIHost).controller as UIElement).text(key as never)
 }
 
-describe("component texts are scoped per component", () => {
+describe("UIElement.text()", () => {
   it("gives two families sharing a key each their own English text", async () => {
     const breadcrumb = await ElementFixture.render(`<ui-breadcrumb><a href="#a">A</a></ui-breadcrumb>`)
     expect(breadcrumb.shadowRoot!.querySelector("nav")!.getAttribute("aria-label")).toBe("Breadcrumb")

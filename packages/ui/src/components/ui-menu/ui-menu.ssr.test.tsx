@@ -10,7 +10,7 @@ import { UIMenu } from "$/ui/components/ui-menu/UIMenu"
  * `<ui-menu>` in the static server render (`$/ui/static`):  a `<nav>` landmark of link items, a sub-menu as
  * `<div class="right menu">`, and the `interactive` menubar with `menuitem` buttons.
  */
-describe("ui-menu, static", () => {
+describe("<ui-menu> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIMenu, UIItem)
   })

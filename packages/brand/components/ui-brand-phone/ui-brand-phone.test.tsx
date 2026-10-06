@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import "$/brand/components/ui-brand-phone"
 
@@ -31,12 +31,14 @@ describe("<ui-brand-phone>", () => {
     const host = await ElementFixture.render(APP)
     const phone = part(host, "phone")!
     const style = getComputedStyle(phone)
-    expect(phone.localName).toBe("section")
     expect(host.getBoundingClientRect().width).toBe(300)
-    expect(phone.getBoundingClientRect().width).toBe(300)
-    expect(style.borderTopLeftRadius).toBe("32px")
-    expect([style.paddingTop, style.paddingRight, style.paddingBottom]).toEqual(["14px", "14px", "18px"])
-    expect([...phone.classList]).toEqual(["phone"])
+    expect({
+      tag: phone.localName,
+      width: phone.getBoundingClientRect().width,
+      radius: style.borderTopLeftRadius,
+      padding: [style.paddingTop, style.paddingRight, style.paddingBottom],
+      classes: [...phone.classList]
+    }).toEqual({ tag: "section", width: 300, radius: "32px", padding: ["14px", "14px", "18px"], classes: ["phone"] })
     expect(part(host, "time")!.textContent).toBe("9:41")
     expect(await icons(host)).toHaveLength(3)
   })
@@ -62,10 +64,13 @@ describe("<ui-brand-phone>", () => {
   it("`dimmed` fades it to 45% (animated) and marks it busy", async () => {
     const host = await ElementFixture.render(`<ui-brand-phone dimmed></ui-brand-phone>`)
     const phone = part(host, "phone")!
-    expect(phone.classList.contains("dimmed")).toBe(true)
-    expect(getComputedStyle(phone).opacity).toBe("0.45")
-    expect(getComputedStyle(phone).transitionDuration).toBe("0.4s")
-    expect(phone.getAttribute("aria-busy")).toBe("true")
+    const { opacity, transitionDuration } = getComputedStyle(phone)
+    expect({
+      dimmed: phone.classList.contains("dimmed"),
+      opacity,
+      transitionDuration,
+      busy: phone.getAttribute("aria-busy")
+    }).toEqual({ dimmed: true, opacity: "0.45", transitionDuration: "0.4s", busy: "true" })
     host.removeAttribute("dimmed")
     await ElementFixture.tick()
     expect(phone.hasAttribute("aria-busy")).toBe(false)

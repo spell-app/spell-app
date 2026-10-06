@@ -4,9 +4,9 @@ import { page, userEvent } from "vite-plus/test/browser"
 import { UI } from "$/ui/runtime"
 import type { TableColumn, TableRow, TableSortDetail } from "$/ui/components/components.types"
 import type { UIHost } from "$/ui/elements"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Viewport } from "$/ui/test/viewport"
+import { Viewport } from "$/ui/test/Viewport"
 
 import "$/ui/components/ui-table"
 
@@ -62,10 +62,9 @@ const WIDE = 1000
 /** Wrapper width every stackable table stacks at. */
 const NARROW = 500
 
-/** Let observers, queued writes and effects run. */
+/** Let queued writes, effects and the class mirror's `MutationObserver` (a microtask) run. */
 async function settle() {
   await ElementFixture.tick()
-  await new Promise((resolve) => setTimeout(resolve, 0))
   await ElementFixture.tick()
 }
 
@@ -88,6 +87,10 @@ function sorts(host: Element, cancel = false): TableSortDetail[] {
   })
   return seen
 }
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-table> classes, mirrored onto the table", () => {
   it.each([
@@ -213,7 +216,7 @@ describe("<ui-table> shadow markup", () => {
     expect(getComputedStyle(cell).display).toBe("table-cell")
     await page.viewport(500, 900)
     wrapper.style.width = `${WIDE}px`
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await Viewport.frame()
     expect(getComputedStyle(cell).display).toBe("block")
   })
 
@@ -228,7 +231,7 @@ describe("<ui-table> shadow markup", () => {
     expect(getComputedStyle(own!.querySelector("td")!).display).toBe("block")
     expect(getComputedStyle(viewport!.querySelector("td")!).display).toBe("table-cell")
     wrapper.style.width = "900px"
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await Viewport.frame()
     expect(getComputedStyle(own!.querySelector("td")!).display).toBe("table-cell")
   })
 
@@ -256,7 +259,7 @@ describe("<ui-table> shadow markup", () => {
     expect(getComputedStyle(stacking!.querySelector("td")!).display).toBe("block")
     expect(getComputedStyle(unstackable!.querySelector("td")!).display).toBe("table-cell")
     wrapper.style.width = "900px"
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await Viewport.frame()
     expect(getComputedStyle(stacking!.querySelector("td")!).display).toBe("table-cell")
   })
 })
@@ -294,6 +297,10 @@ describe("<ui-table> outer margin", () => {
     expect(hosts[2]!.matches(":state(attached-bottom)")).toBe(true)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("<ui-table> tokens from outside", () => {
   /** The table's top-left radius, which `--ui-table-radius` drives. */
@@ -353,6 +360,10 @@ describe("<ui-table> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Sorting
+////////////////
+
 describe("<ui-table sortable>", () => {
   it("sorts by a header's button:  ui-sort, aria-sort, reflected state, direction flips", async () => {
     const { host, table: element } = await table("sortable")
@@ -361,8 +372,12 @@ describe("<ui-table sortable>", () => {
     name!.querySelector("button")!.click()
     await settle()
     expect(seen).toHaveLength(1)
-    expect(seen[0]).toMatchObject({ column: 0, key: "name", direction: "ascending" })
-    expect(seen[0]!.originalEvent).toBeInstanceOf(MouseEvent)
+    expect(seen[0]).toMatchObject({
+      column: 0,
+      key: "name",
+      direction: "ascending",
+      originalEvent: expect.any(MouseEvent)
+    })
     expect(name!.getAttribute("aria-sort")).toBe("ascending")
     expect(host.getAttribute("sort-column")).toBe("0")
     expect(host.getAttribute("sort-direction")).toBe("ascending")
@@ -464,6 +479,10 @@ describe("<ui-table sortable>", () => {
   })
 })
 
+////////////////
+// ## Data mode
+////////////////
+
 describe("<ui-table> data mode", () => {
   /** Rows with a value that would be markup if injected. */
   const ROWS: TableRow[] = [
@@ -561,6 +580,10 @@ describe("<ui-table> data mode", () => {
   })
 })
 
+////////////////
+// ## Accessibility
+////////////////
+
 describe("<ui-table> accessibility", () => {
   it.each(Object.keys(EXAMPLES).flatMap((path) => [[path, WIDE] as const, [path, NARROW] as const]))(
     "axe passes on %s at %ipx",
@@ -578,6 +601,10 @@ describe("<ui-table> accessibility", () => {
     await expectAccessible(host)
   })
 })
+
+////////////////
+// ## Fallback
+////////////////
 
 describe("<ui-table> native fallback", () => {
   it("keeps the scroller, the slot and the mirrored classes when its render fails", async () => {

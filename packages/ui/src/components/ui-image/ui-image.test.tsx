@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -25,6 +25,10 @@ async function image(html: string) {
   return { host, root }
 }
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-image> classes", () => {
   it.each([
     ["", "ui image"],
@@ -46,17 +50,19 @@ describe("<ui-image> classes", () => {
   })
 })
 
+////////////////
+// ## Image
+////////////////
+
 describe("<ui-image> image", () => {
   it("passes src, alt, width, height and loading through to the <img>", async () => {
     const { root } = await image(
       `<ui-image src="${SRC}" alt="A field" width="200" height="100" loading="lazy"></ui-image>`
     )
     const img = root as HTMLImageElement
-    expect(img.getAttribute("src")).toBe(SRC)
-    expect(img.alt).toBe("A field")
+    expect(img).toMatchObject({ src: SRC, alt: "A field", loading: "lazy" })
     expect(img.getAttribute("width")).toBe("200")
     expect(img.getAttribute("height")).toBe("100")
-    expect(img.loading).toBe("lazy")
   })
 
   it('marks `alt=""` decorative, and leaves a missing alt missing', async () => {
@@ -78,9 +84,8 @@ describe("<ui-image> image", () => {
 
   it("wraps the <img> in a link with href:  classes on the link, the image named by alt", async () => {
     const { root } = await image(`<ui-image href="#photo" size="small" src="${SRC}" alt="Profile"></ui-image>`)
-    expect(root.localName).toBe("a")
+    expect(root).toMatchObject({ localName: "a", className: "ui small image" })
     expect(root.getAttribute("href")).toBe("#photo")
-    expect(root.className).toBe("ui small image")
     const img = root.querySelector("img")!
     expect(img.getAttribute("part")).toBe("img")
     expect(img.hasAttribute("class")).toBe(false)
@@ -105,6 +110,10 @@ describe("<ui-image> image", () => {
     expect(root.getBoundingClientRect().width).toBe(0)
   })
 })
+
+////////////////
+// ## `<ui-images>`
+////////////////
 
 describe("<ui-images>", () => {
   it.each([
@@ -133,6 +142,10 @@ describe("<ui-images>", () => {
     expect(group.querySelector("img")!.getBoundingClientRect().width).toBeCloseTo(80, 0)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-image> tokens from outside", () => {
   /** The inner image's top-left radius. */
@@ -193,6 +206,10 @@ describe("<ui-image> tokens from outside", () => {
     for (const member of group.querySelectorAll("ui-image")) expect(radius(member)).toBe("20px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-image> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

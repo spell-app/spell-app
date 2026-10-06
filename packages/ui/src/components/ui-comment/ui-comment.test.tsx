@@ -1,8 +1,8 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -54,6 +54,10 @@ function style(element: Element): CSSStyleDeclaration {
   return getComputedStyle(element)
 }
 
+////////////////
+// ## <ui-comments> classes and markup
+////////////////
+
 describe("<ui-comments> classes and markup", () => {
   it.each([
     ["", "ui comments"],
@@ -96,6 +100,10 @@ describe("<ui-comments> classes and markup", () => {
   })
 })
 
+////////////////
+// ## Outside a list
+////////////////
+
 describe("<ui-comment> outside a list", () => {
   it("a LONE comment has its defaults:  line height 1.2", async () => {
     const comment = await ElementFixture.render<UIHost>(`<ui-comment>${PARTS}</ui-comment>`)
@@ -104,6 +112,10 @@ describe("<ui-comment> outside a list", () => {
     expect(parseFloat(style(rootOf(comment)).lineHeight)).toBeCloseTo(1.2 * 16, 1)
   })
 })
+
+////////////////
+// ## <ui-comments> tokens from outside
+////////////////
 
 describe("<ui-comments> tokens from outside", () => {
   /** The second comment's top margin, in `host`. */
@@ -149,6 +161,10 @@ describe("<ui-comments> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## <ui-comments> threads
+////////////////
+
 describe("<ui-comments> threads", () => {
   it("renders a list inside a comment as its thread:  `comments`, no `ui`, indented", async () => {
     const { comments } = await list('size="large"', THREAD)
@@ -189,6 +205,10 @@ describe("<ui-comments> threads", () => {
   })
 })
 
+////////////////
+// ## <ui-comments> variations
+////////////////
+
 describe("<ui-comments> variations", () => {
   it("hides a minimal list's actions until the comment is hovered -- or holds keyboard focus", async () => {
     const { comments } = await list("minimal", `<ui-comment>${PARTS}</ui-comment>`)
@@ -228,6 +248,10 @@ describe("<ui-comments> variations", () => {
     expect(comments[0]!.matches(":state(disabled)")).toBe(true)
   })
 })
+
+////////////////
+// ## <ui-comments> reply form
+////////////////
 
 describe("<ui-comments> reply form", () => {
   it("puts a slotted reply form in a spaced `reply` box, below the comments", async () => {
@@ -270,6 +294,10 @@ describe("<ui-comments> reply form", () => {
   })
 })
 
+////////////////
+// ## <ui-comments> keyboard
+////////////////
+
 describe("<ui-comments> keyboard", () => {
   it("reaches the author link and each action in reading order", async () => {
     const { comments } = await list("minimal", `<ui-comment>${PARTS}</ui-comment>`)
@@ -283,6 +311,10 @@ describe("<ui-comments> keyboard", () => {
     await expect.poll(() => style(partRoot(comments[0]!.querySelector("ui-actions")!)).opacity).toBe("1")
   })
 })
+
+////////////////
+// ## <ui-comments> accessibility
+////////////////
 
 describe("<ui-comments> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

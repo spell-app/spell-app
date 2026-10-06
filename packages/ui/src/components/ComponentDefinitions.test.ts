@@ -11,7 +11,7 @@ const EXPORTED_TAGS = Object.values(library)
   .map((value) => (value as { prototype?: { vocabulary?: { tag?: unknown } } }).prototype?.vocabulary?.tag)
   .filter((tag): tag is string => typeof tag === "string")
 
-describe("component definitions (the vocabularies' topics, rolled up)", () => {
+describe("ComponentDefinitions", () => {
   it("has exactly one definition per tag, each a defined element", () => {
     const tags = ComponentDefinitions.all.map((definition) => definition.tag)
     expect(new Set(tags).size).toBe(tags.length)
@@ -55,8 +55,10 @@ describe("component definitions (the vocabularies' topics, rolled up)", () => {
     expect(ComponentDefinitions.nameOf("ui-breadcrumb-section")).toBe("Breadcrumb section")
     expect(ComponentDefinitions.byTag("ui-or")?.folder).toBe("ui-button")
   })
+})
 
-  it("exposes the whole vocabulary live on the class:  describe()", () => {
+describe("UIElement.describe()", () => {
+  it("exposes the whole vocabulary live on the class", () => {
     expect(library.UIButton.describe().tag).toBe("ui-button")
     expect(library.UIButton.describe().topics).toContain("buttons")
   })

@@ -61,7 +61,7 @@ afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()))
 describe.each([
   ["without other Solid code", false],
   ["with a Solid app on the page", true]
-])("page listeners %s", (_, withApp) => {
+])("<ui-*> events, page listeners %s", (_, withApp) => {
   beforeEach(() => {
     if (withApp) solidApp()
   })
@@ -125,7 +125,7 @@ describe.each([
   })
 })
 
-describe("nested elements", () => {
+describe("<ui-dropdown> events from nested elements", () => {
   it("<ui-dropdown>:  a click inside a rich item's nested element selects the option", async () => {
     const host = await ElementFixture.render<HTMLElement & { value: unknown }>(
       `<ui-dropdown selection placeholder="Fruit">

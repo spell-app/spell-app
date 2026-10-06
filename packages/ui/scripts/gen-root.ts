@@ -2,7 +2,7 @@
  * `yarn gen:root`:  write `src/components/ui-root/ui-root.catalog.ts`, every component tag => what `<ui-root>` needs
  * BEFORE that tag's family loads:  its folder (which family to import) and its skeleton
  * (`ComponentVocabulary.skeleton`).
- * - Run after adding or moving a tag.  `test/root-catalog.test.ts` fails while the file is stale.
+ * - Run after adding or moving a tag.  `src/components/ui-root/ui-root.catalog.test.ts` fails while the file is stale.
  * - Why generated, not `ComponentDefinitions`:  that roll-up imports every vocabulary (~325 kB of source);  a lib
  *   entry importing it would split each vocabulary into a chunk shared with its family.  The catalog is a few kB.
  * - Reads the vocabularies the way `ComponentDefinitions` does:  every `<tag>.vocabulary.en.ts` of every folder,

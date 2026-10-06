@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -22,6 +22,10 @@ async function render(html: string) {
   return { host, root }
 }
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-ad> classes", () => {
   it.each([
     ["", "ui ad"],
@@ -36,6 +40,10 @@ describe("<ui-ad> classes", () => {
     expect(root.getAttribute("part")).toBe("ad")
   })
 })
+
+////////////////
+// ## Units and test
+////////////////
 
 describe("<ui-ad> units and test", () => {
   it.each([
@@ -110,6 +118,10 @@ describe("<ui-ad> units and test", () => {
   })
 })
 
+////////////////
+// ## Tokens from outside
+////////////////
+
 describe("<ui-ad> tokens from outside", () => {
   /** The inner box's background color. */
   function measure(host: Element): string {
@@ -156,6 +168,10 @@ describe("<ui-ad> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Outer margin
+////////////////
+
 describe("<ui-ad> outer margin", () => {
   it("keeps 1em vertical margins between siblings:  the HOST's position decides (the root is an only child)", async () => {
     const holder = await ElementFixture.render(
@@ -168,6 +184,10 @@ describe("<ui-ad> outer margin", () => {
     expect([last!.marginTop, last!.marginBottom]).toEqual(["0px", "0px"])
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-ad> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

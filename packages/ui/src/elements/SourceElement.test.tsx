@@ -33,6 +33,12 @@ const X_SOURCE = {
 const HELLO = "/test/fixtures/sources/hello.txt"
 const OTHER = "/test/fixtures/sources/other.txt"
 
+/**
+ * How long a `load="visible"` element gets to NOT fetch while off screen:  a REAL wait, on purpose.
+ * - It watches with an `IntersectionObserver`, which fake timers don't drive, and "no fetch yet" can't be polled for.
+ */
+const OFF_SCREEN_WAIT_MS = 100
+
 beforeAll(async () => {
   Object.defineProperty(XSource.prototype, "vocabulary", { value: X_SOURCE })
   ;(XSource as unknown as UIElementClass & typeof UIElement).define("ui-test-source")
@@ -57,6 +63,10 @@ async function renderLoaded(html: string): Promise<SourceHost> {
   return host
 }
 
+////////////////
+// ## Text
+////////////////
+
 describe("SourceElement.dedent()", () => {
   it("drops the common indent and blank first / last lines", () => {
     expect(SourceElement.dedent("\n    a\n      b\n\n    c\n  ")).toBe("a\n  b\n\nc")
@@ -67,7 +77,7 @@ describe("SourceElement.dedent()", () => {
   })
 })
 
-describe("inline content", () => {
+describe("<ui-test-source> inline content", () => {
   it("shows the host's text, dedented", async () => {
     const host = await renderLoaded(`<ui-test-source>
         first
@@ -98,7 +108,11 @@ describe("inline content", () => {
   })
 })
 
-describe("source", () => {
+////////////////
+// ## Loading
+////////////////
+
+describe("<ui-test-source source>", () => {
   it("loads the file:  `ui-load`, `loaded`, the text shown", async () => {
     const onLoad = vi.fn()
     document.addEventListener("ui-load", onLoad)
@@ -153,7 +167,7 @@ describe("source", () => {
     const host = await ElementFixture.render<SourceHost>(
       `<div><div style="height: 300vh"></div><ui-test-source style="display: block" source="${OTHER}" load="visible"></ui-test-source></div>`
     ).then((wrapper) => wrapper.querySelector<SourceHost>("ui-test-source")!)
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, OFF_SCREEN_WAIT_MS))
     expect(fetchSpy).not.toHaveBeenCalled()
     host.scrollIntoView()
     expect(await host.loaded).toBe("Another file.\n")
@@ -161,7 +175,11 @@ describe("source", () => {
   })
 })
 
-describe("content and save()", () => {
+////////////////
+// ## Editing and saving
+////////////////
+
+describe("<ui-test-source> content / save() / reload()", () => {
   it("`content` shows other text, `dirty` until saved, with `ui-change`", async () => {
     const host = await renderLoaded(`<ui-test-source source="${HELLO}"></ui-test-source>`)
     const onChange = vi.fn()

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 
 import { DocsExampleFallback } from "./ui-docs-example.fallback"
@@ -10,15 +10,17 @@ FallbackStub.define("x-fb-docs-example", (host, root, internals) =>
   DocsExampleFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
-describe("DocsExampleFallback", () => {
+describe("DocsExampleFallback.render()", () => {
   it("renders the class grammar, a heading, the description, the slot and parts", async () => {
     const host = Fixture.render<StubHost>(
       `<x-fb-docs-example header="Emphasis" description="Levels of emphasis." bare><button>Save</button></x-fb-docs-example>`
     )
     const section = FallbackStub.shadow(host).firstElementChild as HTMLElement
-    expect(section.localName).toBe("section")
-    expect(section.className).toBe("ui bare example")
-    expect(section.getAttribute("part")).toBe("example")
+    expect({ tag: section.localName, class: section.className, part: section.getAttribute("part") }).toEqual({
+      tag: "section",
+      class: "ui bare example",
+      part: "example"
+    })
     expect(section.querySelector("h4[part=header]")!.textContent).toBe("Emphasis")
     expect(section.querySelector("p[part=description]")!.textContent).toBe("Levels of emphasis.")
     expect(section.querySelector("[part=demo] slot")).not.toBeNull()

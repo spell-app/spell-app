@@ -40,7 +40,7 @@ const FOLDER = /^(?:\.\/|\.\.\/docs-components\/)([\w-]+)\//
  * collects them.
  * - Reads the vocabulary MODULES (`import.meta.glob`, eager), never the families' `index.ts`, so nothing is defined
  *   as a side effect.  NOT re-exported by `core`:  for the docs site, tools and tests (and later `<ui-root>`).
- * - A new tag needs nothing here:  its vocabulary's `topics` / `aka` are picked up (`test/component-definitions.test.ts`
+ * - A new tag needs nothing here:  its vocabulary's `topics` / `aka` are picked up (`src/components/ComponentDefinitions.test.ts`
  *   checks every defined tag has a definition with topics).
  * - The doc-only `<ui-docs-*>` elements (`src/docs-components/`) are `docs`, NEVER in `all`:  the component list,
  *   `byTag()`, `byTopic()` and `byFolder()` leave them out;  `<ui-root>`'s catalog and `yarn site:data` read both.

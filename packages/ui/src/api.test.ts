@@ -10,12 +10,14 @@ import * as vocabulary from "$/ui/vocabulary"
  * and `V` the whole `$/ui/vocabulary` surface, although it goes through `vocabulary.api.ts` (see `api.ts`);  all three
  * survive the circular barrels (`AGENTS.md`:  `barrel.test.ts`).
  */
-describe("api entry", () => {
+describe("$/ui/api", () => {
   it("E is $/ui/core's own namespace:  element core and foundation", () => {
     expect(E).toBe(core.E)
-    expect(E.UIElement).toBe(core.UIElement)
-    expect(E.ClassBuilder).toBeTypeOf("function")
-    expect(E.proto).toBeTypeOf("function")
+    expect(E).toMatchObject({
+      UIElement: core.UIElement,
+      ClassBuilder: expect.any(Function),
+      proto: expect.any(Function)
+    })
   })
 
   it("F is $/ui/forms' own namespace:  the form bases", () => {

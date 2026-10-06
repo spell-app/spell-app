@@ -2,7 +2,7 @@ import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
 import type { ListSelectDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -59,6 +59,10 @@ function selections(host: Element): CustomEvent<ListSelectDetail>[] {
   return events
 }
 
+////////////////
+// ## Classes and markup
+////////////////
+
 describe("<ui-list> classes and markup", () => {
   it.each([
     ["", "ui list"],
@@ -83,8 +87,7 @@ describe("<ui-list> classes and markup", () => {
 
   it("renders a <ul role=list> around a slot;  its items are role=listitem hosts", async () => {
     const { root, items } = await list()
-    expect(root.localName).toBe("ul")
-    expect(root.getAttribute("role")).toBe("list")
+    expect(root).toMatchObject({ localName: "ul", role: "list" })
     expect(root.querySelector("slot")).not.toBeNull()
     for (const item of items) {
       expect(item.internals.role).toBe("listitem")
@@ -131,6 +134,10 @@ describe("<ui-list> classes and markup", () => {
     expect(style(box).color).not.toBe(style(boxOf(items[0]!)).color)
   })
 })
+
+////////////////
+// ## Items adopt ui-list.css and style by owner
+////////////////
 
 describe("<ui-list> items adopt ui-list.css and style by owner", () => {
   it("pads items but not the outer edges", async () => {
@@ -246,6 +253,10 @@ describe("<ui-list> items adopt ui-list.css and style by owner", () => {
   })
 })
 
+////////////////
+// ## A slotted image beside content
+////////////////
+
 describe("<ui-list> a slotted image beside content", () => {
   /** A 40px square picture. */
   const PICTURE =
@@ -265,6 +276,10 @@ describe("<ui-list> a slotted image beside content", () => {
     expect(content.left).toBeGreaterThanOrEqual(image.right - 1)
   })
 })
+
+////////////////
+// ## Markers
+////////////////
 
 describe("<ui-list> markers", () => {
   it("bullets bulleted items", async () => {
@@ -290,6 +305,10 @@ describe("<ui-list> markers", () => {
     expect(style(boxOf(items[1]!), "::before").content).toBe('counters(ordered, ".") " "')
   })
 })
+
+////////////////
+// ## Nested
+////////////////
 
 describe("<ui-list> nested", () => {
   const NESTED =
@@ -340,6 +359,10 @@ describe("<ui-list> nested", () => {
     sub.remove()
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-list> tokens from outside", () => {
   /** The middle item's top padding. */
@@ -442,6 +465,10 @@ describe("<ui-list> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Marker tokens
+////////////////
+
 describe("<ui-list> marker tokens", () => {
   /** An item's marker (`::before`). */
   function marker(item: Element): CSSStyleDeclaration {
@@ -450,15 +477,11 @@ describe("<ui-list> marker tokens", () => {
 
   it("`bulleted` reads `--ui-list-marker-content` and `-margin`;  `--ui-list-marker-size` sizes the marker", async () => {
     const { items } = await list(`bulleted`)
-    expect(marker(items[0]!).content).toBe('"•"')
-    expect(marker(items[0]!).marginLeft).toBe("-20px")
-    expect(marker(items[0]!).fontSize).toBe("16px")
+    expect(marker(items[0]!)).toMatchObject({ content: '"•"', marginLeft: "-20px", fontSize: "16px" })
     const themed = await list(
       `bulleted style="--ui-list-marker-content: '–'; --ui-list-marker-margin: 0 0 0 -15px; --ui-list-marker-size: 20px"`
     )
-    expect(marker(themed.items[0]!).content).toBe('"–"')
-    expect(marker(themed.items[0]!).marginLeft).toBe("-15px")
-    expect(marker(themed.items[0]!).fontSize).toBe("20px")
+    expect(marker(themed.items[0]!)).toMatchObject({ content: '"–"', marginLeft: "-15px", fontSize: "20px" })
   })
 
   it("a `selected` item's marker takes `--ui-list-marker-active-color`;  the rest keep the marker colour", async () => {
@@ -477,6 +500,10 @@ describe("<ui-list> marker tokens", () => {
   })
 })
 
+////////////////
+// ## `ui-select`
+////////////////
+
 describe("<ui-list> ui-select", () => {
   it("fires with the item's value on click", async () => {
     const { host, items } = await list(
@@ -488,10 +515,12 @@ describe("<ui-list> ui-select", () => {
     await userEvent.click(boxOf(items[1]!))
     boxOf(items[2]!).click()
     expect(events).toHaveLength(2)
-    expect(events[0]!.detail.value).toBe("a")
+    expect(events[0]).toMatchObject({
+      bubbles: true,
+      composed: true,
+      detail: { value: "a", originalEvent: { type: "click" } }
+    })
     expect(events[0]!.detail.item).toBe(items[0])
-    expect(events[0]!.detail.originalEvent?.type).toBe("click")
-    expect(events[0]!.bubbles && events[0]!.composed).toBe(true)
     // no value:  the text, trimmed
     expect(events[1]!.detail.value).toBe("Pears")
   })
@@ -535,6 +564,10 @@ describe("<ui-list> ui-select", () => {
     expect(events[0]!.detail.value).toBe("inner")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-list> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

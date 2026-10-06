@@ -4,8 +4,8 @@ import { page } from "vite-plus/test/browser"
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { itemVocabulary } from "$/ui/components/ui-item"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { menuVocabulary } from "./ui-menu.vocabulary.en"
 
@@ -25,6 +25,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-menu.css source", () => {
   it("never uses rem", () => {
@@ -60,6 +64,10 @@ describe("ui-menu.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-menu.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every menu and item in %s", (path) => {
@@ -180,6 +188,10 @@ describe("ui-menu.css examples", () => {
     expect(getComputedStyle(root.nextElementSibling!.querySelector(".item")!).borderTopLeftRadius).toBe("10px")
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-menu.css in shadow roots", () => {
   it("styles item hosts by the menu root's tokens:  secondary padding, rounded active item, no dividers", () => {

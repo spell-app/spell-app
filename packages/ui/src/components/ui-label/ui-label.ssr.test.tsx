@@ -11,7 +11,7 @@ import { UIDetail } from "$/ui/components/ui-parts/UIDetail"
  * `<ui-label>` / `<ui-labels>` in the static server render (`$/ui/static`, seo plan P3):  light-DOM class grammar,
  * as `examples/*.html` writes it.
  */
-describe("ui-label static render", () => {
+describe("<ui-label> static render", () => {
   beforeAll(() => {
     StaticRender.define(UILabel, UILabels, UIDetail)
   })

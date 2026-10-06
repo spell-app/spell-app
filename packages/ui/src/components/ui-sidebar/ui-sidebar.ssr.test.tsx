@@ -12,7 +12,7 @@ import { UISidebar } from "$/ui/components/ui-sidebar/UISidebar"
  * `<ui-pushable>` / `<ui-sidebar>` / `<ui-pusher>` rendered statically (`$/ui/static`):  a modal sidebar as a CLOSED
  * `<dialog>`, a persistent one as an `<aside>`, the pusher around the page content.
  */
-describe("ui-sidebar static render", () => {
+describe("<ui-sidebar> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIPushable, UISidebar, UIPusher)
   })

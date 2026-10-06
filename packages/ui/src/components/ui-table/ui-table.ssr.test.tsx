@@ -9,7 +9,7 @@ import { UITable } from "$/ui/components/ui-table/UITable"
  * `<ui-table>` in the static server render (`$/ui/static`):  the author's `<table>` gets the class grammar the
  * element mirrors (`TableClassMirror`), and data mode renders its rows from the `rows` / `column-defs` attributes.
  */
-describe("ui-table, static", () => {
+describe("<ui-table> static render", () => {
   beforeAll(() => {
     StaticRender.define(UITable)
   })

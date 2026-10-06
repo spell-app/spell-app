@@ -2,7 +2,7 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Sheets } from "$/ui/test/sheets"
+import { Sheets } from "$/ui/test/Sheets"
 
 import itemCSS from "./ui-item.css?inline"
 import itemRaw from "./ui-item.css?raw"
@@ -43,9 +43,7 @@ describe("ui-item.css in a shadow root", () => {
     expect(getComputedStyle(host).display).toBe("contents")
     const box = Sheets.inner(host)
     const style = getComputedStyle(box)
-    expect(style.backgroundColor).toBe("rgba(0, 0, 0, 0)")
-    expect(style.borderTopWidth).toBe("0px")
-    expect(style.cursor).toBe("pointer")
+    expect(style).toMatchObject({ backgroundColor: "rgba(0, 0, 0, 0)", borderTopWidth: "0px", cursor: "pointer" })
     expect(style.getPropertyValue("--_ui-item-media").trim()).toBe("1")
   })
 })

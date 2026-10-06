@@ -1,19 +1,22 @@
 import { flush } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import type { UIHost } from "$/ui/elements"
-import { SiteData, type SiteDataFile, type SiteSearchFile, type SiteTag } from "$/ui/docs-components"
+import { DATA, PAGE, SEARCH } from "$/ui/test/docsSearch.fixtures"
+import { SiteData } from "$/ui/docs-components"
 
-import { PageOutline } from "./PageOutline"
 import { SearchData } from "./SearchData"
-import { SearchIndex } from "./SearchIndex"
 import type { DocsSearchHost } from "./DocsSearchHost"
 
 import "$/ui/docs-components/ui-docs-search"
 import "$/ui/components/ui-flyout"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** Element-markup examples, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-search/examples/elements/*.html", {
@@ -21,131 +24,6 @@ const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-search/e
   import: "default",
   eager: true
 })
-
-/** A tag of the test data. */
-function tag(name: string, tagName: string, extra: Partial<SiteTag> = {}): SiteTag {
-  const folder = extra.folder ?? tagName
-  return {
-    tag: tagName,
-    name,
-    folder,
-    mainTag: folder,
-    main: folder === tagName,
-    page: folder === tagName,
-    href: folder === tagName ? `components/${folder}.html` : `components/${folder}.html#${tagName}`,
-    topics: [],
-    aka: [],
-    noun: name.toLowerCase(),
-    attributes: [],
-    slots: [],
-    events: [],
-    parts: [],
-    states: [],
-    texts: [],
-    ...extra
-  }
-}
-
-/** An attribute of the test data. */
-function attribute(name: string, aliases?: string[]) {
-  return { name, kind: "keyOnly", description: "", ...(aliases && { aliases }) }
-}
-
-/** A family of the test data. */
-function family(folder: string, title: string) {
-  return {
-    folder,
-    mainTag: folder,
-    title,
-    summary: "",
-    status: "done" as const,
-    docs: false,
-    tags: [folder],
-    tokens: []
-  }
-}
-
-/** The test data:  Button (+ Or), Divider, Modal, Label;  each with a few attributes. */
-const DATA: SiteDataFile = {
-  $comment: "test",
-  version: 1,
-  topics: [
-    { id: "buttons", title: "Buttons" },
-    { id: "dialogs", title: "Dialogs" }
-  ],
-  components: [
-    tag("Button", "ui-button", { topics: ["buttons"], attributes: [attribute("circular"), attribute("color")] }),
-    tag("Divider", "ui-divider", { attributes: [attribute("vertical"), attribute("horizontal")] }),
-    tag("Label", "ui-label", { attributes: [attribute("circular"), attribute("color")] }),
-    tag("Modal", "ui-modal", { topics: ["dialogs"], aka: ["dialog", "lightbox"] }),
-    tag("Or", "ui-or", { folder: "ui-button" })
-  ],
-  docs: [],
-  families: {
-    "ui-button": family("ui-button", "Button"),
-    "ui-divider": family("ui-divider", "Divider"),
-    "ui-label": family("ui-label", "Label"),
-    "ui-modal": family("ui-modal", "Modal")
-  },
-  foundation: [],
-  themes: []
-}
-
-/** The test search file:  the overview, Theming, Button's page and Divider's. */
-const SEARCH: SiteSearchFile = {
-  $comment: "test",
-  pages: [
-    { path: "index.html", title: "Overview", summary: "What it is.", sections: [{ id: "design", title: "Design" }] },
-    {
-      path: "theming.html",
-      title: "Theming",
-      summary: "Tokens and themes.",
-      sections: [
-        { id: "tokens", title: "Tokens" },
-        { id: "tokens-vertical-rhythm", title: "Vertical rhythm", parent: 0 }
-      ]
-    },
-    {
-      path: "components/ui-button.html",
-      title: "Button",
-      tag: "ui-button",
-      tabs: { examples: "Examples", usage: "Usage" },
-      sections: [
-        { id: "examples-variations", title: "Variations", tab: "examples" },
-        { id: "examples-variations-circular", title: "Circular", parent: 0 },
-        { id: "usage-keyboard", title: "Keyboard", tab: "usage" }
-      ]
-    },
-    {
-      path: "components/ui-divider.html",
-      title: "Divider",
-      tag: "ui-divider",
-      tabs: { examples: "Examples" },
-      sections: [
-        { id: "examples-types", title: "Types", tab: "examples" },
-        { id: "examples-types-vertical-divider", title: "Vertical Divider", parent: 0 }
-      ]
-    }
-  ]
-}
-
-/** The page shown in the element's tests:  Divider's, as tabs of sections (an example's demo section ignored). */
-const PAGE = `
-  <main id="test-page">
-    <ui-tabs id="site-tabs">
-      <ui-tab value="examples" label="Examples">
-        <ui-section id="examples-types" header="Types">
-          <ui-section id="examples-types-divider" header="Divider"></ui-section>
-          <ui-section id="examples-types-vertical-divider" header="Vertical Divider">
-            <ui-docs-example><ui-section id="demo" header="Vertical demo"></ui-section></ui-docs-example>
-          </ui-section>
-        </ui-section>
-      </ui-tab>
-      <ui-tab value="usage" label="Usage">
-        <ui-section id="usage-keyboard" header="Keyboard"></ui-section>
-      </ui-tab>
-    </ui-tabs>
-  </main>`
 
 /** A blob URL serving `data` as JSON. */
 function serve(data: unknown): string {
@@ -164,6 +42,10 @@ afterEach(() => {
   SiteData.url = undefined
   SearchData.reset()
 })
+
+////////////////
+// ## Helpers
+////////////////
 
 /** Render the page and a field reading it (links under `#/`). */
 async function render(attributes = "") {
@@ -236,15 +118,28 @@ function open(field: Element): boolean {
   return find(field, "[part~=results]").matches(":popover-open")
 }
 
+////////////////
+// ## Finding
+////////////////
+
 describe("<ui-docs-search>", () => {
   it("is a pill:  a labelled combobox, the shortcut hint, the card shut", async () => {
     const { field } = await render()
     const control = input(field)
-    expect(control.getAttribute("role")).toBe("combobox")
-    expect(control.getAttribute("aria-label")).toBe("Search the docs")
-    expect(control.getAttribute("aria-expanded")).toBe("false")
-    expect(control.getAttribute("placeholder")).toBe("Search")
-    expect(control.getAttribute("aria-keyshortcuts")).toBe("/ Meta+K Control+K")
+    expect(
+      Object.fromEntries(
+        ["role", "aria-label", "aria-expanded", "placeholder", "aria-keyshortcuts"].map((name) => [
+          name,
+          control.getAttribute(name)
+        ])
+      )
+    ).toEqual({
+      role: "combobox",
+      "aria-label": "Search the docs",
+      "aria-expanded": "false",
+      placeholder: "Search",
+      "aria-keyshortcuts": "/ Meta+K Control+K"
+    })
     expect([...find(field, "[part~=keys]").querySelectorAll("kbd")].map((key) => key.textContent)).toHaveLength(2)
     expect(find(field, ".ui.finder").getAttribute("part")).toBe("search")
     expect(open(field)).toBe(false)
@@ -259,9 +154,11 @@ describe("<ui-docs-search>", () => {
     expect(first.getAttribute("aria-selected")).toBe("true")
     expect(input(field).getAttribute("aria-activedescendant")).toBe(first.id)
     expect(input(field).getAttribute("aria-expanded")).toBe("true")
-    expect(first.querySelector("mark")!.textContent).toBe("Or")
-    expect(first.querySelector("code")!.textContent).toBe("<ui-or>")
-    expect(first.getAttribute("href")).toBe("#/components/ui-button.html#ui-or")
+    expect({
+      mark: first.querySelector("mark")!.textContent,
+      code: first.querySelector("code")!.textContent,
+      href: first.getAttribute("href")
+    }).toEqual({ mark: "Or", code: "<ui-or>", href: "#/components/ui-button.html#ui-or" })
     expect(field.matches(":state(open)")).toBe(true)
     expect(find(field, "[role=status]").textContent).toMatch(/results?$/)
   })
@@ -320,6 +217,10 @@ describe("<ui-docs-search>", () => {
     expect(field.shadowRoot!.activeElement).toBe(input(field))
   })
 })
+
+////////////////
+// ## Keyboard and shortcuts
+////////////////
 
 describe("<ui-docs-search> keyboard", () => {
   it("moves with ↑ / ↓ (wrapping), the active option named by `aria-activedescendant`", async () => {
@@ -467,6 +368,10 @@ describe("<ui-docs-search> shortcuts", () => {
   })
 })
 
+////////////////
+// ## Data
+////////////////
+
 describe("<ui-docs-search> data", () => {
   it("searches the page shown when the site's data doesn't load", async () => {
     SiteData.reset("/no-such-folder/_data/components.json")
@@ -478,113 +383,9 @@ describe("<ui-docs-search> data", () => {
   })
 })
 
-describe("SearchIndex", () => {
-  const index = new SearchIndex({ data: DATA, search: SEARCH })
-
-  /** The titles found for `query`, group by group. */
-  function found(query: string, current?: string) {
-    return index.search(query, [], current).map((group) => [group.kind, group.hits.map((hit) => hit.entry.title)])
-  }
-
-  it("builds a component per tag, an attribute per tag attribute, a page per hand-written page, a section each", () => {
-    const kinds = index.entries.map((entry) => entry.kind)
-    expect(kinds.filter((kind) => kind === "component")).toHaveLength(5)
-    expect(kinds.filter((kind) => kind === "attribute")).toHaveLength(6)
-    expect(index.entries.filter((entry) => entry.kind === "page").map((entry) => entry.title)).toEqual([
-      "Overview",
-      "Theming"
-    ])
-    expect(kinds.filter((kind) => kind === "section")).toHaveLength(8)
-  })
-
-  it.each([
-    ["or", "component", "Or"],
-    ["OR", "component", "Or"],
-    ["ui-or", "component", "Or"],
-    ["uior", "component", "Or"],
-    ["dialog", "component", "Modal"],
-    ["light", "component", "Modal"],
-    ["modal", "component", "Modal"],
-    ["over", "page", "Overview"],
-    ["rhythm", "section", "Vertical rhythm"]
-  ])("ranks %j's best match first:  a %s, %s", (query, kind, title) => {
-    const [group] = index.search(query)
-    expect(group!.kind).toBe(kind)
-    expect(group!.hits[0]!.entry.title).toBe(title)
-  })
-
-  it("matches short queries only at word starts:  `or` never finds every `color`", () => {
-    expect(found("or").flatMap(([, titles]) => titles)).not.toContain("color")
-    expect(found("olo")).toEqual([["attribute", ["color", "color"]]])
-  })
-
-  it("needs every word of a query, found at word starts, across title and terms", () => {
-    const [group] = index.search("label circ")
-    expect(group!.kind).toBe("attribute")
-    expect(group!.hits.map((hit) => hit.entry.code)).toEqual(["<ui-label>"])
-    expect(group!.hits[0]!.marks).toEqual([[0, 4]])
-    expect(index.search("label zebra")).toEqual([])
-  })
-
-  it("marks the matched text:  the whole query, else each word", () => {
-    expect(SearchIndex.marks("vertical divider", ["div"])).toEqual([[9, 12]])
-    expect(SearchIndex.marks("vertical divider", ["ver", "div"])).toEqual([
-      [0, 3],
-      [9, 12]
-    ])
-    expect(SearchIndex.marks("abc", ["zz"])).toEqual([])
-  })
-
-  it("skips the search file's copy of the page shown, and boosts its own attributes", () => {
-    expect(found("vertical divider", "components/ui-divider.html").flatMap(([, titles]) => titles)).not.toContain(
-      "Vertical Divider"
-    )
-    const [attributes] = index.search("circular", [], "components/ui-label.html").filter((g) => g.kind === "attribute")
-    expect(attributes!.hits[0]!.entry.code).toBe("<ui-label>")
-  })
-
-  it("orders groups by their best hit;  the page shown's sections win a tie", () => {
-    const here = PageOutline.read(Fixture.render(PAGE))
-    const groups = index.search("vertical divider", here, "components/ui-divider.html")
-    expect(groups[0]!.kind).toBe("here")
-  })
-
-  it("finds nothing for an empty query, and caps each group", () => {
-    expect(index.search("  ")).toEqual([])
-    const many = new SearchIndex({
-      data: { ...DATA, components: Array.from({ length: 12 }, (_, at) => tag(`Thing ${at}`, `ui-thing-${at}`)) }
-    })
-    expect(many.search("thing")[0]!.hits).toHaveLength(5)
-  })
-
-  it("is blind to accents and case", () => {
-    expect(SearchIndex.fold("  Ça  VA ")).toBe("ca va")
-    expect(SearchIndex.compact("UI-Or")).toBe("uior")
-    expect(SearchIndex.words("ui-button › circular")).toEqual(["ui-button", "circular"])
-  })
-})
-
-describe("PageOutline", () => {
-  it("reads sections and headers with ids, their trail through tabs and parents, never a demo's", () => {
-    const page = Fixture.render(`
-      <main>
-        ${PAGE}
-        <ui-header level="2" id="intro">Intro <ui-header>sub</ui-header></ui-header>
-        <h3 id="more">More</h3>
-        <ui-section id="untitled"></ui-section>
-      </main>`)
-    const entries = PageOutline.read(page)
-    expect(entries.map((entry) => [entry.title, entry.context ?? "", entry.href])).toEqual([
-      ["Types", "Examples", "#examples-types"],
-      ["Divider", "Examples › Types", "#examples-types-divider"],
-      ["Vertical Divider", "Examples › Types", "#examples-types-vertical-divider"],
-      ["Keyboard", "Usage", "#usage-keyboard"],
-      ["Intro", "", "#intro"],
-      ["More", "", "#more"]
-    ])
-    expect(PageOutline.read(undefined)).toEqual([])
-  })
-})
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-docs-search> a11y", () => {
   it("axe passes shut, open with results, and with no match", async () => {

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { stepsVocabulary } from "./ui-steps.vocabulary.en"
 import { stepVocabulary } from "./ui-step.vocabulary.en"
@@ -32,6 +32,10 @@ function example(name: string, width = 1000): HTMLElement {
 function steps(root: Element, selector: string): HTMLElement[] {
   return [...root.querySelector(selector)!.querySelectorAll<HTMLElement>(":scope > .step")]
 }
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-step.css source", () => {
   it("never uses rem", () => {
@@ -63,6 +67,10 @@ describe("ui-step.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-step.css examples", () => {
   it("draws steps in a bordered row with arrows, the current one darker", () => {

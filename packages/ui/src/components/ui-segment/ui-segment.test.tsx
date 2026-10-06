@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -25,6 +25,10 @@ async function render(html: string) {
   const root = host.shadowRoot!.firstElementChild as HTMLElement
   return { host, root }
 }
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-segment> classes", () => {
   it.each([
@@ -124,6 +128,10 @@ describe("<ui-segment> states and owner tokens", () => {
   })
 })
 
+////////////////
+// ## Groups
+////////////////
+
 describe("<ui-segments>", () => {
   it.each([
     ["", "ui segments"],
@@ -156,6 +164,10 @@ describe("<ui-segments>", () => {
     expect([second!.marginTop, second!.marginBottom]).toEqual(["16px", "0px"])
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("<ui-segment> tokens from outside", () => {
   /** The segment box's top-left radius, which `--ui-segment-radius` drives. */
@@ -228,6 +240,10 @@ describe("<ui-segment> tokens from outside", () => {
     expect(getComputedStyle(themed).paddingTop).toBe("5px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-segment> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

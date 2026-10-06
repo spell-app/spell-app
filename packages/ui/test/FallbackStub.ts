@@ -52,7 +52,10 @@ export type FallbackRender = (
 
 /** What a stub adds to `HTMLElement`. */
 export type StubHost = HTMLElement & {
+  /** its `attachInternals()`, as a form-associated `<ui-*>` host has */
   internals: ElementInternals
+  /** what the last `render()` returned;  disposed before the next */
   handle: E.NativeFallbackHandle | undefined
+  /** run the fallback again, e.g. after a test sets a property */
   render(): void
 }

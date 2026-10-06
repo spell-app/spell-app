@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS, tokensCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { textVocabulary } from "./ui-text.vocabulary.en"
 
@@ -21,6 +21,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-text.css source", () => {
   it("never uses rem", () => {
@@ -60,6 +64,10 @@ describe("ui-text.css source", () => {
     for (const name of aliased) expect(tokensCSS + colorsCSS, name).not.toMatch(new RegExp(`${name}\\s*:`))
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-text.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every text in %s as one tight line", (path) => {
@@ -113,6 +121,10 @@ describe("ui-text.css examples", () => {
   })
 })
 
+////////////////
+// ## Shadow roots
+////////////////
+
 describe("ui-text.css in shadow roots", () => {
   it("renders the host as contents and the root as the coloured, sized text", () => {
     Sheets.adopt(foundationCSS)
@@ -144,6 +156,10 @@ describe("ui-text.css in shadow roots", () => {
 function sheets(): string[] {
   return [...foundationCSS, textCSS]
 }
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-text.css tokens", () => {
   it("takes a public token from a wrapper or the text itself (static markup)", () => {

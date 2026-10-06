@@ -53,3 +53,36 @@ describe("StaticSelectors.rewrite()", () => {
     expect({ selectors: actual, hostOnly: actualHostOnly }).toEqual({ selectors, hostOnly })
   })
 })
+
+/** List groups wrap each item in an `<li>` (`[data-ui-li]`):  positions and child combinators follow it. */
+describe("StaticSelectors.rewrite() list items", () => {
+  it("tests a wrapped item's position on its wrapper", () => {
+    expect(StaticSelectors.rewrite(":host(:first-child) > .item").selectors).toEqual([
+      ":scope:where([data-ui]):is(:is(:not([data-ui-li]) > *:first-child, [data-ui-li]:first-child > *)):is(.item)"
+    ])
+    expect(StaticSelectors.rewrite(".ui.list > .item:first-child", { listItems: true }).selectors).toEqual([
+      ".ui.list > .item:first-child:where(:scope, :not([data-ui-slotted]))",
+      ".ui.list > [data-ui-li]:first-child > .item:where(:scope, :not([data-ui-slotted]))"
+    ])
+  })
+
+  it("moves a whole :not(position) onto the wrapper, NEVER leaving an empty :not()", () => {
+    expect(StaticSelectors.rewrite(".ui.feed > .event:not(:first-child)", { listItems: true }).selectors).toEqual([
+      ".ui.feed > .event:not(:first-child):where(:scope, :not([data-ui-slotted]))",
+      ".ui.feed > [data-ui-li]:not(:first-child) > .event:where(:scope, :not([data-ui-slotted]))"
+    ])
+    expect(
+      StaticSelectors.rewrite(":is(.ui.card, .ui.cards > .card) > :is(.button, .buttons)", { listItems: true })
+        .selectors.length
+    ).toBeGreaterThan(1)
+  })
+
+  it("lets a list group's child combinators step over the item wrapper", () => {
+    expect(StaticSelectors.rewrite(".ui.cards > .card > .image", { listItems: true }).selectors).toEqual([
+      ".ui.cards > .card > .image:where(:scope, :not([data-ui-slotted]))",
+      ".ui.cards > .card > [data-ui-li] > .image:where(:scope, :not([data-ui-slotted]))",
+      ".ui.cards > [data-ui-li] > .card > .image:where(:scope, :not([data-ui-slotted]))",
+      ".ui.cards > [data-ui-li] > .card > [data-ui-li] > .image:where(:scope, :not([data-ui-slotted]))"
+    ])
+  })
+})

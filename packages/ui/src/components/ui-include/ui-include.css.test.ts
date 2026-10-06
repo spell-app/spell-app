@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { includeVocabulary } from "./ui-include.vocabulary.en"
 
@@ -35,9 +35,6 @@ describe("ui-include.css examples", () => {
     Sheets.adopt([...foundationCSS, includeCSS])
     const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
     const box = root.querySelector<HTMLElement>(".ui.include")!
-    const style = getComputedStyle(box)
-    expect(style.display).toBe("block")
-    expect(style.paddingTop).toBe("0px")
-    expect(style.borderTopStyle).toBe("none")
+    expect(getComputedStyle(box)).toMatchObject({ display: "block", paddingTop: "0px", borderTopStyle: "none" })
   })
 })

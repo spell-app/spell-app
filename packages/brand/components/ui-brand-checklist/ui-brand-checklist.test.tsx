@@ -2,9 +2,13 @@ import { describe, expect, it } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import "$/brand/components/ui-brand-checklist"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** A checklist host, as tests use it. */
 type ListHost = HTMLElement & { step: number | undefined; checkable: boolean; internals: ElementInternals }
@@ -24,6 +28,10 @@ const HABITS = `
   <ui-brand-check checked>Drink water</ui-brand-check>
   <ui-brand-check>Read</ui-brand-check>
   <ui-brand-check>Move body</ui-brand-check>`
+
+////////////////
+// ## Helpers
+////////////////
 
 /** Render a list;  returns it and its checks. */
 async function render(html: string) {
@@ -58,6 +66,10 @@ function changes(target: Element): { selected: boolean; checked: boolean }[] {
   target.addEventListener("ui-change", (event) => details.push((event as CustomEvent).detail))
   return details
 }
+
+////////////////
+// ## Progress
+////////////////
 
 describe("<ui-brand-checklist> progress", () => {
   it("renders a list of listitems, every check pending without a `step`", async () => {
@@ -151,17 +163,29 @@ describe("<ui-brand-checklist> progress", () => {
   })
 })
 
+////////////////
+// ## Checkable
+////////////////
+
 describe("<ui-brand-checklist checkable>", () => {
   it("makes every check a checkbox;  `checked` in markup ticks it", async () => {
     const { host, checks } = await render(`<ui-brand-checklist checkable font="serif">${HABITS}</ui-brand-checklist>`)
     const buttons = checks.map(line)
-    expect(buttons.map((button) => button.localName)).toEqual(["button", "button", "button"])
-    expect(buttons.map((button) => button.getAttribute("role"))).toEqual(["checkbox", "checkbox", "checkbox"])
-    expect(buttons.map((button) => button.getAttribute("aria-checked"))).toEqual(["true", "false", "false"])
-    expect(checks.map((check) => check.selected)).toEqual([true, false, false])
-    expect(checks.map((check) => check.checked)).toEqual([true, false, false])
+    expect(
+      buttons.map((button) => [button.localName, button.getAttribute("role"), button.getAttribute("aria-checked")])
+    ).toEqual([
+      ["button", "checkbox", "true"],
+      ["button", "checkbox", "false"],
+      ["button", "checkbox", "false"]
+    ])
+    expect(
+      checks.map(({ selected, checked, internals }) => ({ selected, checked, current: internals.ariaCurrent }))
+    ).toEqual([
+      { selected: true, checked: true, current: null },
+      { selected: false, checked: false, current: null },
+      { selected: false, checked: false, current: null }
+    ])
     expect(checks[0]!.hasAttribute("selected")).toBe(true)
-    expect(checks.map((check) => check.internals.ariaCurrent)).toEqual([null, null, null])
     await expectAccessible(host)
   })
 
@@ -225,6 +249,10 @@ describe("<ui-brand-checklist checkable>", () => {
     expect(status(host)).toBe("")
   })
 })
+
+////////////////
+// ## A check alone
+////////////////
 
 describe("<ui-brand-check> alone", () => {
   it("shows its own `state`;  `selected` / `checked` mean done;  no listitem role outside a list", async () => {
@@ -326,7 +354,11 @@ describe("<ui-brand-check> alone", () => {
   })
 })
 
-describe("native fallback", () => {
+////////////////
+// ## Native fallback
+////////////////
+
+describe("<ui-brand-check> native fallback", () => {
   it("a check whose render throws draws the same line from the DOM:  its list's `step`, the mark", async () => {
     const { host, checks } = await render(`<ui-brand-checklist step="0">${STEPS}</ui-brand-checklist>`)
     for (const check of checks.slice(0, 2)) breakOnUpdate(check)

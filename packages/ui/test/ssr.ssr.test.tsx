@@ -20,7 +20,7 @@ import buttonCSS from "$/ui/components/ui-button/ui-button.css?inline"
  *   then wraps the result in `<template shadowrootmode>`.
  * - SIDE EFFECT:  writes the string to `.cache/ssr-button.html` for the browser check (`dsd.test.ts`).
  */
-describe("SSR / Declarative Shadow DOM", () => {
+describe("<ui-button> server render to Declarative Shadow DOM", () => {
   it("renders <ui-button primary>Save</ui-button> to a DSD string", async () => {
     const definition = new ElementDefinition(buttonVocabulary)
     const attrs = { primary: true } as unknown as ConstructorParameters<typeof UIButton>[2]
