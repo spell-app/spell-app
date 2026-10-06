@@ -20,6 +20,8 @@
  *   - `sent`:  ISO time of the last "send to Claude", else `null`;  marks newer than it are unsent (`unsentMarks()`)
  *   - `now`:  `[{ id, action, at, note?, pick? }]`, immediate requests (Add Details, revisit now) for Claude to take
  *   - `working`:  `{ [id]: { action, since } }`, Claude's agents at work on an item (the page shows a spinner)
+ *   - `canceled`:  `{ [id]: { action, at, told } }`, a request Owen called off ("nevermind", `cancelNow()`):  the
+ *     waiting session stops its agent (`told` once handed over), and a late write into the item is refused
  *   - `listening`:  `{ session, since, seen }` while a Claude session waits on this inbox, else `null`
  *     - `seen`:  its last heartbeat (`plan-doc inbox wait` stamps it every `LISTEN_HEARTBEAT_MS`);  older than
  *       `LISTEN_STALE_MS` (an old file without one:  `since` that old), the session is gone:  `liveListener()` is
@@ -89,6 +91,7 @@ export function emptyInbox() {
     sent: null,
     now: [],
     working: {},
+    canceled: {},
     listening: null,
     handedOver: null
   }
@@ -161,6 +164,7 @@ export function isEmpty(inbox) {
     !Object.keys(inbox.drafts).length &&
     !inbox.now.length &&
     !Object.keys(inbox.working).length &&
+    !Object.keys(inbox.canceled).length &&
     !inbox.listening
   )
 }
@@ -237,7 +241,38 @@ export function requestNow(inbox, id, action, note = "", at = isoTime()) {
   }
   inbox.now = inbox.now.filter((each) => each.id !== key)
   inbox.now.push(entry)
+  // asked again:  an earlier "nevermind" is over
+  delete inbox.canceled[key]
   return entry
+}
+
+/**
+ * "Nevermind" (epic `windows-and-review` P2):  Owen calls off item `id`'s immediate request (Add Details, revisit
+ * now), queued or already being worked on.
+ * - its `now` entry, its `working` and its immediate mark go;  a mark waiting for a send isn't one, and stays
+ * - recorded in `canceled` (`{ action, at, told }`):  a waiting session is woken to stop the item's agent
+ *   (`takeWork()`, `told`), and `plan-doc details` refuses that agent's late write (`isCanceled()`), until
+ *   `inbox done | clear` or a new request for the item
+ * - returns the entry recorded, or `null` when nothing was asked or running
+ */
+export function cancelNow(inbox, id, at = isoTime()) {
+  const key = toItemId(id)
+  const queued = inbox.now.find((each) => each.id === key)
+  const work = inbox.working[key]
+  const mark = inbox.marks[key]
+  if (!queued && !work && !(mark && isImmediate(mark))) return null
+  inbox.now = inbox.now.filter((each) => each.id !== key)
+  delete inbox.working[key]
+  if (mark && isImmediate(mark)) delete inbox.marks[key]
+  // a request still queued was never taken:  nobody to tell
+  const action = work?.action ?? queued?.action ?? (mark?.action === "revisit" ? "revisit" : "details")
+  inbox.canceled[key] = { action, at, told: !work }
+  return inbox.canceled[key]
+}
+
+/** Did Owen call off item `id`'s request (`cancelNow()`), and nothing asked since? */
+export function isCanceled(inbox, id) {
+  return toItemId(id) in inbox.canceled
 }
 
 /** Owen pressed "send to Claude":  every mark so far is sent. */
@@ -287,7 +322,11 @@ export function isImmediate(mark) {
 export function clearMarks(inbox, ids) {
   const keys = ids.map(toItemId)
   const had = keys.filter((key) => key in inbox.marks)
-  for (const key of keys) delete inbox.marks[key]
+  for (const key of keys) {
+    delete inbox.marks[key]
+    // the session is through with the item:  a "nevermind" on it has done its job
+    delete inbox.canceled[key]
+  }
   inbox.now = inbox.now.filter((each) => !keys.includes(each.id))
   return had
 }
@@ -380,7 +419,7 @@ export function forPage(inbox, now = Date.now()) {
  * - cheap, and read without the lock:  `takeWork()` checks again under it
  */
 export function hasWork(inbox) {
-  return inbox.now.length > 0 || newSend(inbox)
+  return inbox.now.length > 0 || newSend(inbox) || Object.values(inbox.canceled).some((each) => !each.told)
 }
 
 /** Has Owen pressed "send to Claude" since a waiting session last took a send (`handedOver`)? */
@@ -409,7 +448,12 @@ export function takeWork(inbox, at = isoTime()) {
     inbox.handedOver = inbox.sent
     if (marks.length) sent = { at: inbox.sent, marks }
   }
-  return now.length || sent ? { now, sent } : null
+  // "nevermind"s for work a session took:  stop those agents (`cancelNow()`)
+  const canceled = Object.entries(inbox.canceled)
+    .filter(([, each]) => !each.told)
+    .map(([id, { action, at: when }]) => ({ id, action, at: when }))
+  for (const { id } of canceled) inbox.canceled[id].told = true
+  return now.length || sent || canceled.length ? { now, sent, canceled } : null
 }
 
 /**
@@ -437,6 +481,7 @@ export function clearApplied(inbox, marks) {
  * - `revisit`:  `when` `soon` (default) or `now`;  `note` trimmed, `""` when none;  `pick` too, when given (a
  *   letter):  "pick B, but ...", a question's pick with a remark, talked over rather than applied
  * - `pick`:  `pick` an option card's letter, `A`-`Z`
+ * - `todo`:  `note` trimmed, kept only when there is one
  * - throws an `InboxError` for anything else;  `at` is never taken from it (the writer stamps it)
  */
 export function toMark(mark) {
@@ -450,6 +495,11 @@ export function toMark(mark) {
     return { action, when, note: note.trim(), pick: toLetter(pick) }
   }
   if (action === "pick") return { action, pick: toLetter(pick) }
+  // Make Todo's note box (epic `windows-and-review` P2):  why it's worth following up
+  if (action === "todo") {
+    if (typeof note !== "string") throw new InboxError("a todo's note is text")
+    return note.trim() ? { action, note: note.trim() } : { action }
+  }
   return { action }
 }
 

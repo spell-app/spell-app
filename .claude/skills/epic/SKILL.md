@@ -214,9 +214,9 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 
 ## 7. Review:  `/epic review [<name>]`
 
-Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items (each item's ⋯ menu:
-Approve, Add to todo, Add Details, Revisit;  Choose on option cards) and sends them with the page header's paper
-plane.  This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at
+Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items (each item's four
+buttons:  Approve, Make Todo, Revisit Now, Add Details Now;  Choose on option cards) and sends them with the page
+header's paper plane.  A running Add Details Now / Revisit Now clicked again is "nevermind" (`canceled`, 7.3).  This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at
 once, Add Details and "revisit now" by background agents, "revisit soon" talked over in chat.  No modal walk through
 items any more (epic `review-review`, 2026-10-04;  plan:  `epics/review-review/review-review.plan.html`, 1.1-1.2).
 
@@ -260,13 +260,17 @@ spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or
    question, an unreviewed judgement call or issue);  none:  the first `open` (blue) one;  none:  the top.
    `spell dev docs link <ABS doc> --hash <that id> --review --show`:  the doc opens in the Review tab, at it.
 4. `spell dev plan-doc inbox <name> listen`, then `spell dev plan-doc inbox <name> wait` with Bash `run_in_background: true`.
-5. END THE TURN, short:  "Mark items in the Review tab:  each item's ⋯ menu;  Add Details and revisit now start at
-   once;  the paper plane sends the rest.  I'm listening."  Then the doc's link pair.
+5. END THE TURN, short:  "Mark items in the Review tab:  each item's buttons;  Add Details Now and Revisit Now start
+   at once (click again to call one off);  the paper plane sends the rest.  I'm listening."  Then the doc's link
+   pair.
 
 ### 7.3 Woken:  the `wait` command finished
 
 Read what it printed.  Then, in this order:
 1. Exit 2 (timeout, nothing happened):  arm `wait` again, end the turn with one line ("still listening").
+1b. CANCELED (Owen said "nevermind" on a running Add Details Now / Revisit Now, epic `windows-and-review` P2):  stop
+   that item's background agent (`TaskStop`), then `spell dev plan-doc inbox <name> done <id>`.  An agent that
+   finishes anyway is refused (`plan-doc details` errors:  "Owen called this request off"):  nothing lands.
 2. NOW requests (Add Details, revisit now) -- `wait` already marked them `working` (the page spins):  per item, a
    BACKGROUND `Agent` (`run_in_background: true`), each prompt:
    - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net

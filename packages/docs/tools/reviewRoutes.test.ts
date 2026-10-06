@@ -129,6 +129,18 @@ test("draft:  kept as typed until the mark that uses it;  blank drops it;  only 
   expect((await post("draft", { page: PLAN_URL, id: "z9", action: "revisit", note: "x" })).status).toBe(400)
 })
 
+// epic `windows-and-review` P2
+test("cancel:  a queued request and its mark go, recorded as canceled;  nothing asked is still a 200", async () => {
+  await post("now", { page: PLAN_URL, id: "i2", action: "details" })
+  const off = await post("cancel", { page: PLAN_URL, id: "I2" })
+  expect(off.status).toBe(200)
+  expect(off.body.now).toEqual([])
+  expect(off.body.marks).toEqual({})
+  expect(off.body.canceled.i2).toMatchObject({ action: "details", told: true })
+  expect((await post("cancel", { page: PLAN_URL, id: "j3" })).status).toBe(200)
+  expect((await post("cancel", { page: PLAN_URL, id: "z9" })).status).toBe(400)
+})
+
 test("now:  queued and marked;  revisit carries its note", async () => {
   const details = await post("now", { page: PLAN_URL, id: "i2", action: "details" })
   expect(details.status).toBe(200)
