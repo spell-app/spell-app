@@ -1,3 +1,7 @@
+import { basename } from "path"
+import { fileURLToPath } from "url"
+
+import { describeTypecheckError, typecheck } from "$/spell/node/typecheck"
 import { SP } from "$/spell"
 import { CLI } from "$/cli"
 
@@ -6,6 +10,8 @@ import { CLI } from "$/cli"
  * - A project:  writes `<Project>.compiled.js` and `<Project>.declarations.json`, as the app does, plus each other
  *   target's output, e.g. `<Project>.compiled.ts` -- see `SP.TARGETS` -- or, with `--stdout`, prints one and
  *   writes nothing.  `--target <name>`:  that target, this run, instead of `project.json`'s.
+ *   A target checked by `tsc` (`ts/solid`) is checked once written:  its errors are listed, but don't fail the
+ *   compile -- see `typecheckTargets()`.
  *   Compiled with no errors, it also writes `<Project>.scopes.js`, as the language server does -- see
  *   `SpellDiskWorkspace.writeScopes()`.
  * - A `.spell` file:  prints its compiled javascript.  Writes nothing.
@@ -69,8 +75,38 @@ async function compileProject(
   if (!stdout && !session.problems(project).length) {
     wrote.push(await session.workspace.writeScopes(project, session.explorer))
   }
-  const note = wrote.length ? `wrote ${wrote.map((path) => session.relative(path)).join(", ")}` : undefined
-  return !session.report(status, row, project, { note }).length
+  const checked = stdout ? { count: 0, details: [] } : typecheckTargets(session, project, targets)
+  const notes = [
+    checked.count && `${checked.count} tsc error${checked.count === 1 ? "" : "s"}`,
+    wrote.length && `wrote ${wrote.map((path) => session.relative(path)).join(", ")}`
+  ]
+  const note = notes.filter(Boolean).join(" · ") || undefined
+  return !session.report(status, row, project, { note, details: checked.details }).length
+}
+
+/**
+ * `tsc` on each of `project`'s targets checked by it (`ts/solid`), as just written:  its errors, as lines under the
+ * project, e.g. `Solitaire.compiled.ts:135:18  TS18048 ...`.
+ * - Shown, NOT counted as the project's errors:  most come from `@spell/core`'s loose types, not the spell (epic
+ *   `output-targets`, C5) -- the exit code stays the spell's.
+ */
+function typecheckTargets(
+  session: CLI.CliSession,
+  project: SP.SpellProject,
+  targets: SP.Target[]
+): { count: number; details: string[] } {
+  const details: string[] = []
+  const projects = Object.fromEntries(
+    Object.entries(CLI.importedOutputs(project)).map(([id, url]) => [id, fileURLToPath(url)])
+  )
+  for (const target of targets.filter((it) => it.checkedBy === "tsc")) {
+    const file = project.outputFileFor(target)
+    const name = basename(file.location.serverPath)
+    const { errors } = typecheck({ [name]: file.contents ?? "" }, { projects })
+    const path = session.relative(file.location.serverPath)
+    details.push(...errors[name]!.map((error) => `${path}:${describeTypecheckError(error)}`))
+  }
+  return { count: details.length, details }
 }
 
 /**

@@ -19,6 +19,8 @@ export type Target = {
   suffix: string
   /** What its runtime can do. */
   can: TargetAbilities
+  /** What checks its output after `spell compile`, e.g. `tsc` -- see `typecheck()` in `$/spell/node/typecheck`. */
+  checkedBy?: "tsc"
 }
 
 /** What a target's runtime can do -- checked while compiling, so a project asks only what its targets give. */
@@ -31,7 +33,13 @@ export type TargetAbilities = {
 export const TARGETS: Record<string, Target> = {
   "js/solid": { name: "js/solid", writer: P.JSWriter.instance, suffix: ".compiled.js", can: { draw: "dom" } },
   // the same code and runtime, typed:  checked by `tsc`, never run
-  "ts/solid": { name: "ts/solid", writer: P.TSWriter.instance, suffix: ".compiled.ts", can: { draw: "dom" } }
+  "ts/solid": {
+    name: "ts/solid",
+    writer: P.TSWriter.instance,
+    suffix: ".compiled.ts",
+    can: { draw: "dom" },
+    checkedBy: "tsc"
+  }
 }
 
 /** The target everything runs:  always compiled -- see the module docs. */

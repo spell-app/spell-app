@@ -226,18 +226,29 @@ export class CliSession {
    * Finish `row` for `project` -- or just its `file`:  ok, or how many errors, listing them under it.
    * - `note` follows the error count, e.g. where the output went.
    * - `list: false` leaves the errors out, e.g. when they're printed elsewhere.
+   * - `details`:  more lines under it, after the errors, e.g. `tsc`'s on a `ts/solid` target -- not counted.
    * - Returns its problems.
    */
   report(
     status: CLI.StatusReporter,
     row: CLI.StatusRow,
     project: SP.SpellProject,
-    { note, file, list = true }: { note?: string; file?: SP.SpellFile; list?: boolean } = {}
+    {
+      note,
+      file,
+      list = true,
+      details: more = []
+    }: { note?: string; file?: SP.SpellFile; list?: boolean; details?: string[] } = {}
   ): CLI.Problem[] {
     const problems = this.problems(project, file)
     const count = problems.length ? `${problems.length} error${problems.length === 1 ? "" : "s"}` : undefined
-    const details = list ? problems.map((problem) => this.problemLine(problem)) : undefined
-    status.done(row, problems.length ? "errors" : "ok", [count, note].filter(Boolean).join(" · "), details)
+    const details = [...(list ? problems.map((problem) => this.problemLine(problem)) : []), ...more]
+    status.done(
+      row,
+      problems.length ? "errors" : "ok",
+      [count, note].filter(Boolean).join(" · "),
+      details.length ? details : undefined
+    )
     return problems
   }
 
