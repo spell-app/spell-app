@@ -562,7 +562,7 @@ export const ERRORED_STATE = "errored"
 
 /**
  * Where a `SourceElement` (or a `SourceBody`) is with its content:  `status.set(SourceStatus.loading)`.
- * - Ours alone, never published:  `:state(loading)` / `:state(error)` are the vocabulary's (`UIT.SOURCE_STATES`).
+ * - Ours alone, never published:  `:state(loading)` / `:state(error)` are the vocabulary's (`UIT.SourceStates`).
  */
 export const SourceStatus = {
   idle: "idle",
@@ -622,7 +622,7 @@ export const ORIGINAL_PREFIX = "data-ui-include-"
 export const MAX_DEPTH = 8
 
 /**
- * Text key (`UIT.SOURCE_FAILURE_TEXTS`) of the message per failure kind;  save kinds never show one.
+ * Text key (`UIT.SourceFailureTexts`) of the message per failure kind;  save kinds never show one.
  * - `SourceElement` and the owners of a `SourceBody` show it.
  */
 export const SOURCE_FAILURE_KEYS: Partial<Record<E.SourceErrorKind, string>> & { load: string } = {
@@ -667,7 +667,7 @@ export const SOURCE_ATTRIBUTE = "source"
 
 /**
  * Events the source layer dispatches through its owner:  `SourceEvent.load`.
- * - The owner's vocabulary MUST name them:  `UIT.SOURCE_EVENTS` (`SourceElement`), `UIT.SOURCE_BODY_EVENTS`
+ * - The owner's vocabulary MUST name them:  `UIT.SourceEvents` (`SourceElement`), `UIT.SourceBodyEvents`
  *   (`SourceBody`:  `load` and `error` only).
  */
 export const SourceEvent = {

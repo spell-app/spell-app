@@ -42,7 +42,7 @@ import toastCSS from "./ui-toast.css?inline"
  *   close icon does.  Nothing shows it again (a closed toast stays closed, `hidden`:  the app inserts a new one), so
  *   `--show` and `--toggle` are not answered.
  * - Actions:  a slotted button closes the toast unless its click was `preventDefault()`ed;  approve / deny ones
- *   (`MODAL_ACTION_SELECTORS`) fire the cancelable `ui-approve` / `ui-deny` first.
+ *   (`ModalActionSelectors`) fire the cancelable `ui-approve` / `ui-deny` first.
  ****************/
 export class UIToast extends E.UIElement<Vocabulary> {
   @E.proto static vocabulary = toastVocabulary
@@ -492,9 +492,9 @@ export class UIToast extends E.UIElement<Vocabulary> {
     })
   }
 
-  /** An invoker command aimed at the host:  only `TOGGLE_COMMANDS.close`. */
+  /** An invoker command aimed at the host:  only `ToggleCommands.close`. */
   private readonly onCommand = (event: Event) => {
-    if ((event as Event & { command?: string }).command === UIT.TOGGLE_COMMANDS.close) this.close("close", event)
+    if ((event as Event & { command?: string }).command === UIT.ToggleCommands.close) this.close("close", event)
   }
 
   /** Close icon. */
@@ -536,7 +536,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
 
   /**
    * The action `event` activated:  walking the composed path up to the host, the innermost light-DOM element that
-   * approves / denies (`MODAL_ACTION_SELECTORS`) or is a button -- counted only inside a child slotted as `actions`.
+   * approves / denies (`ModalActionSelectors`) or is a button -- counted only inside a child slotted as `actions`.
    */
   private actionFor(event: Event): [ToastAction, Element] | undefined {
     const scope = this.host.getRootNode()
@@ -546,8 +546,8 @@ export class UIToast extends E.UIElement<Vocabulary> {
       if (target === this.host) return undefined
       if (!(target instanceof Element) || target.getRootNode() !== scope) continue
       if (!found) {
-        if (target.matches(UIT.MODAL_ACTION_SELECTORS.approve)) found = ["approve", target]
-        else if (target.matches(UIT.MODAL_ACTION_SELECTORS.deny)) found = ["deny", target]
+        if (target.matches(UIT.ModalActionSelectors.approve)) found = ["approve", target]
+        else if (target.matches(UIT.ModalActionSelectors.deny)) found = ["deny", target]
         else if (UIToast.isButton(target)) found = ["action", target]
       }
       if (target.parentElement === this.host) return target.slot === slotName ? found : undefined

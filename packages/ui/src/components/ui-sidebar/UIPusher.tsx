@@ -9,7 +9,7 @@ import sidebarCSS from "./ui-sidebar.css?inline"
 /****************
  * ### `<ui-pusher>`
  * The page content beside a sidebar (Fomantic's `.pusher`):  `<div class="pusher" part="pusher"><slot>`.
- * - Passive:  `ui-sidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`PUSHER_TOKENS`), and the
+ * - Passive:  `ui-sidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`PusherTokens`), and the
  *   pushable makes the HOST `inert` beside a modal sidebar.  Its `::after` is the dimmer.
  ****************/
 export class UIPusher extends E.UIElement<typeof pusherVocabulary> {

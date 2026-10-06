@@ -23,7 +23,7 @@ import transitionCSS from "./ui-transition.css?inline"
  *   `out`, removes it before an `in`), so hidden content is out of the page and the accessibility tree.
  * - `visible` drives it:  a change queues an `in` / `out` of `animation`;  the host's `show()` / `hide()` /
  *   `toggle()` / `transition(name)` do the same from script (`TransitionHost`), and invoker commands without any
- *   (`TRANSITION_COMMANDS`:  `<button commandfor="id" command="--toggle">`).  First paint never animates.
+ *   (`TransitionCommands`:  `<button commandfor="id" command="--toggle">`).  First paint never animates.
  * - Queue, as Fomantic's `queue: true`:  each animation waits for the one before it;  the same animation twice in a
  *   row is dropped unless `allow-repeats`;  `interrupt` makes a new one stop the running one instead.
  * - `ui-show` / `ui-hide` once an `in` / `out` has run, `ui-complete` after every animation.
@@ -150,13 +150,13 @@ export class UITransition extends E.UIElement<Vocabulary> {
     return this.setVisible(!this.isHeadingVisible, name)
   }
 
-  /** An invoker command aimed at the host (`TRANSITION_COMMANDS`). */
+  /** An invoker command aimed at the host (`TransitionCommands`). */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
-    if (command === UIT.TRANSITION_COMMANDS.show) void this.setVisible(true)
-    else if (command === UIT.TRANSITION_COMMANDS.close) void this.setVisible(false)
-    else if (command === UIT.TRANSITION_COMMANDS.toggle) void this.toggle()
-    else if (command === UIT.TRANSITION_COMMANDS.transition) void this.transition()
+    if (command === UIT.TransitionCommands.show) void this.setVisible(true)
+    else if (command === UIT.TransitionCommands.close) void this.setVisible(false)
+    else if (command === UIT.TransitionCommands.toggle) void this.toggle()
+    else if (command === UIT.TransitionCommands.transition) void this.transition()
   }
 
   ////////////////

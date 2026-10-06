@@ -20,7 +20,7 @@ import dimmablePageCSS from "./ui-dimmer.page.css?inline"
  *   scroll lock, keyboard scope, Escape).  Named by the host's `aria-label`, else "Dimmed page".
  * - `active` is auto-controlled:  the cancelable `ui-open` / `ui-close` come first for a person's actions -- `on`
  *   (`hover`:  pointer over the parent or focus inside it;  `click`:  a click on the parent), a click on the dimmer
- *   itself (not its content, `closedby="any"`), Escape (a page dimmer), invoker commands (`TOGGLE_COMMANDS`);
+ *   itself (not its content, `closedby="any"`), Escape (a page dimmer), invoker commands (`ToggleCommands`);
  *   `ui-show` / `ui-hide` follow once the CSS transition has ended.  Writing `active` fires no `ui-open` / `ui-close`.
  * - An inactive `hover` dimmer stays laid out but transparent (and ignores the pointer), so a keyboard user can Tab
  *   into its content, which shows it.
@@ -249,7 +249,7 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
   // ## Handlers
   ////////////////
 
-  /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
+  /** An invoker command aimed at the host (`ToggleCommands`). */
   private readonly onCommand = (event: Event) => {
     const action = UIT.ToggleCommands.action(
       event,

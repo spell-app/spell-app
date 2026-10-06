@@ -5,7 +5,7 @@
  *   `<ui-section color="teal" dividing sticky>` => `ui teal dividing sticky section`.
  * - Strings and numbers (`header`, `subhead`, `info`, `level`, `badge`, `offset`, `height`), the booleans
  *   (`collapsible`, `collapsed`) and `fold-icon` are not class words:  the element renders or reads them.
- * - `source` (`UIT.SOURCE_BODY_*`):  the content comes from a file the first time the section unfolds (`SourceBody`).
+ * - `source` (`UIT.SourceBody*`):  the content comes from a file the first time the section unfolds (`SourceBody`).
  *   Spread here, so a subclass reusing this vocabulary (`<ui-panel>`) has it too.
  * - `collapsed` is CONTROLLED (as accordion's `open`):  set it to fold / unfold;  `ui-open` / `ui-close` can veto
  *   a person's changes.
@@ -150,7 +150,7 @@ export const sectionVocabulary = {
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds:  the dark scheme." },
     { name: "loading", kind: "keyOnly", description: "Dims the content under a spinner;  `aria-busy`." },
     { name: "disabled", kind: "keyOnly", description: "Dimmed and inert;  can't be folded." },
-    ...UIT.SOURCE_BODY_ATTRIBUTES
+    ...UIT.SourceBodyAttributes
   ],
   events: [
     {
@@ -167,7 +167,7 @@ export const sectionVocabulary = {
       cancelable: true,
       description: "About to fold:  the title was activated.  Cancel to stay open."
     },
-    ...UIT.SOURCE_BODY_EVENTS
+    ...UIT.SourceBodyEvents
   ],
   slots: [
     { name: "", description: "The content:  anything, nested `<ui-section>`s included." },
@@ -195,7 +195,7 @@ export const sectionVocabulary = {
     { name: "tip", description: "With `info`:  the tip, under the title bar, shown on hover and keyboard focus." },
     { name: "subhead", description: "The subhead under the title." },
     { name: "content", description: "The content box:  `size`, `scrolling` and `height` apply here." },
-    ...UIT.SOURCE_BODY_PARTS
+    ...UIT.SourceBodyParts
   ],
   states: [
     { name: "collapsed", description: "Folded." },
@@ -206,13 +206,13 @@ export const sectionVocabulary = {
     { name: "inverted", description: "In the dark scheme." },
     { name: "loading", description: "Busy:  `loading`, or a `source` body that is slow to arrive." },
     { name: "disabled", description: "Dimmed and inert." },
-    ...UIT.SOURCE_BODY_STATES
+    ...UIT.SourceBodyStates
   ],
   texts: [
     { key: "loading", text: "Loading…", description: "Announced while `loading`." },
     { key: "fold", text: "Fold", description: "Tooltip of the fold button while open." },
     { key: "unfold", text: "Unfold", description: "Tooltip of the fold button while folded." },
-    ...UIT.SOURCE_FAILURE_TEXTS
+    ...UIT.SourceFailureTexts
   ],
   ownsParts: ["section"]
 } as const satisfies E.ComponentVocabulary

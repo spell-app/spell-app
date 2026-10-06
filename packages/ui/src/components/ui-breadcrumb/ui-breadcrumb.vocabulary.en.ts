@@ -5,7 +5,7 @@
  *   `<ui-breadcrumb size="large" inverted>` => `ui large inverted breadcrumb`;
  *   `<ui-breadcrumb-section active>` => `active section` (no `ui`:  Fomantic styles sections by context).
  * - Dividers are drawn by each section from tokens the breadcrumb publishes (`--ui-breadcrumb-divider*`,
- *   `BREADCRUMB_DIVIDER_TOKENS`), see `ui-breadcrumb.css`.
+ *   `BreadcrumbDividerTokens`), see `ui-breadcrumb.css`.
  */
 
 import type { E } from "$/ui/core"

@@ -17,7 +17,7 @@ import dropdownCSS from "./ui-dropdown.css?inline"
  * popover menu, both in the shadow root.
  * - Model:  slotted `<ui-item>`s (`SlottedItems`) + the `options` property + additions, as `MenuOptions`;
  *   memos derive the visible list (exclude chosen, filter, additions) per keystroke.
- * - Invoker commands (`<button commandfor="id" command="--toggle">`, `TOGGLE_COMMANDS`) open / close the menu as a
+ * - Invoker commands (`<button commandfor="id" command="--toggle">`, `ToggleCommands`) open / close the menu as a
  *   person's action;  a disabled or read-only dropdown ignores them.
  * - `value` and `open` are auto-controlled (`Controlled`):  events first, the host may veto / override.
  * - Menu rows render only while open (`<For>` keyed by option identity);  `aria-activedescendant` points at
@@ -669,7 +669,7 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
   ////////////////
 
   /**
-   * An invoker command aimed at the host (`TOGGLE_COMMANDS`):  a person's action, ignored when disabled / read-only.
+   * An invoker command aimed at the host (`ToggleCommands`):  a person's action, ignored when disabled / read-only.
    * - Opening focuses the combobox, as opening it by keyboard leaves it (the keys need it).
    */
   private readonly onCommand = (event: Event) => {

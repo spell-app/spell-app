@@ -9,8 +9,8 @@ describe("Flags.emojiFor()", () => {
   })
 
   test("draws the flags that aren't a country's:  ZWJ sequences and subdivision tag sequences", () => {
-    expect(UIT.Flags.emojiFor("rainbow")).toBe(UIT.SPECIAL_FLAGS.rainbow)
-    expect(UIT.Flags.emojiFor("GB-ENG")).toBe(UIT.SPECIAL_FLAGS["gb-eng"])
+    expect(UIT.Flags.emojiFor("rainbow")).toBe(UIT.SpecialFlags.rainbow)
+    expect(UIT.Flags.emojiFor("GB-ENG")).toBe(UIT.SpecialFlags["gb-eng"])
   })
 
   test('returns `""` for anything that names no flag, `Object.prototype` keys included', () => {
@@ -21,7 +21,7 @@ describe("Flags.emojiFor()", () => {
 })
 
 describe("Flags.isSpecial()", () => {
-  test("is true ONLY for a lowercase key of `SPECIAL_FLAGS`", () => {
+  test("is true ONLY for a lowercase key of `SpecialFlags`", () => {
     expect(UIT.Flags.isSpecial("pirate")).toBe(true)
     expect(UIT.Flags.isSpecial("fr")).toBe(false)
     expect(UIT.Flags.isSpecial("toString")).toBe(false)

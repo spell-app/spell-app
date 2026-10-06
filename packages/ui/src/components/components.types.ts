@@ -75,7 +75,7 @@ export type DropdownItemDetail = {
  * Flag code => Unicode flag emoji:  ONE rule for `<ui-flag>` (`FlagCountry`, after its names) and the `flag` of a
  * menu option (`<ui-dropdown>`, `<ui-select>`), so a flag draws the same everywhere (epic `wwod-spell-ui`, I6).
  * - A two-letter code (ISO 3166-1 alpha-2, any case) => its regional-indicator pair (`fr` => `🇫🇷`);  a code of
- *   `SPECIAL_FLAGS` (`rainbow`, `gb-eng` ...) => its emoji sequence;  anything else => `""`.
+ *   `SpecialFlags` (`rainbow`, `gb-eng` ...) => its emoji sequence;  anything else => `""`.
  * - Here, not in the `flag` family:  a menu importing that family's files would split a chunk both entries share.
  *   Fomantic's country NAMES (`FLAG_ALIASES`, ~250 of them) stay there, out of `core`:  a menu option takes codes.
  * - STATIC and instance-free:  pure lookups.
@@ -84,14 +84,14 @@ export class Flags {
   /** Emoji of flag `code`, in any case;  `""` when it names no flag. */
   static emojiFor(code: string): string {
     const key = code.toLowerCase()
-    if (Flags.isSpecial(key)) return SPECIAL_FLAGS[key]
+    if (Flags.isSpecial(key)) return SpecialFlags[key]
     if (!TWO_LETTERS.test(key)) return ""
     return String.fromCodePoint(...Array.from(key, (letter) => INDICATOR_A + letter.charCodeAt(0) - LETTER_A))
   }
 
-  /** Is lowercase `code` a flag that isn't a country's, a key of `SPECIAL_FLAGS`? */
+  /** Is lowercase `code` a flag that isn't a country's, a key of `SpecialFlags`? */
   static isSpecial(code: string): code is SpecialFlag {
-    return Object.hasOwn(SPECIAL_FLAGS, code)
+    return Object.hasOwn(SpecialFlags, code)
   }
 }
 
@@ -103,7 +103,7 @@ export class Flags {
  * - NOTE: subdivision flags only render where the emoji font has them (Apple, Google, Samsung, Twemoji);
  *   Windows shows a black flag.
  */
-export const SPECIAL_FLAGS = {
+export const SpecialFlags = {
   rainbow: "\u{1F3F3}\u{FE0F}\u{200D}\u{1F308}",
   transgender: "\u{1F3F3}\u{FE0F}\u{200D}\u{26A7}\u{FE0F}",
   pirate: "\u{1F3F4}\u{200D}\u{2620}\u{FE0F}",
@@ -112,8 +112,8 @@ export const SPECIAL_FLAGS = {
   "gb-wls": "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}"
 } as const
 
-/** Code of a flag in `SPECIAL_FLAGS`, e.g. `"gb-eng"`. */
-export type SpecialFlag = keyof typeof SPECIAL_FLAGS
+/** Code of a flag in `SpecialFlags`, e.g. `"gb-eng"`. */
+export type SpecialFlag = keyof typeof SpecialFlags
 
 /** An ISO 3166-1 alpha-2 code, lowercase. */
 const TWO_LETTERS = /^[a-z]{2}$/
@@ -228,7 +228,7 @@ export type HeaderLevel = 1 | 2 | 3 | 4 | 5 | 6
  *   outer owner's layout.
  * - `inverted` owners also set `color-scheme: dark`;  the token is only for looks the dark scheme doesn't give.
  */
-export const PART_OWNER_TOKENS = {
+export const PartOwnerTokens = {
   inverted: "--ui-inverted",
   cardLayout: "--_ui-card-layout",
   cardLeading: "--_ui-card-leading",
@@ -383,7 +383,7 @@ export type MessageDismissDetail = {
  * - `layout` -- `icon` while `divider-icon` is set;  removed otherwise.  PRIVATE (`--_ui-`):  a switch the
  *   element decides;  static markup sets it by hand
  */
-export const BREADCRUMB_DIVIDER_TOKENS = {
+export const BreadcrumbDividerTokens = {
   text: "--ui-breadcrumb-divider",
   icon: "--ui-breadcrumb-divider-icon",
   layout: "--_ui-breadcrumb-divider-layout"
@@ -418,7 +418,7 @@ export type InputChangeDetail = {
  * - `color` / `background` / `border` -- a field's state, RESOLVED colours (declared where the state's remap
  *   runs), so a control's own `state` still wins
  */
-export const INPUT_OWNER_TOKENS = {
+export const InputOwnerTokens = {
   width: "--_ui-input-owner-width",
   color: "--_ui-field-state-color",
   background: "--_ui-field-state-background",
@@ -652,7 +652,7 @@ export type ModalActionDetail = {
  * - Matched against the light-DOM elements on a click's composed path, innermost first;  the native fallback
  *   uses the same selectors.
  */
-export const MODAL_ACTION_SELECTORS = {
+export const ModalActionSelectors = {
   approve: `.approve, .ok, .positive, [positive]:not([positive="false"], [positive="no"])`,
   deny: `.deny, .cancel, .negative, [negative]:not([negative="false"], [negative="no"])`
 } as const
@@ -899,7 +899,7 @@ export type TransitionDetail = {
  * - `--show` / `--close` / `--toggle` -- animate in / out / whichever it isn't
  * - `--transition` -- run its `animation` (an attention one in place)
  */
-export const TRANSITION_COMMANDS = {
+export const TransitionCommands = {
   show: "--show",
   close: "--close",
   toggle: "--toggle",
@@ -966,27 +966,34 @@ export type SidebarCloseDetail = {
   originalEvent?: Event
 }
 
-/**
+/****************
+ * ### `ToggleCommands`
  * Invoker commands a `<ui-modal>`, `<ui-flyout>`, `<ui-sidebar>`, `<ui-dimmer>`, `<ui-popup>`, `<ui-dropdown>` and
- * `<ui-toast>` (`--close` only) answer
- * (`<button commandfor="id" command="--toggle">`):  custom commands, since a custom element gets no built-in ones
- * (`show-modal` only reaches a real `<dialog>`).  All are user actions (the cancelable `ui-open` / `ui-close` first).
- * - `--show` -- open
- * - `--close` -- close, reason `close`
- * - `--toggle` -- either
- */
-export const TOGGLE_COMMANDS = { show: "--show", close: "--close", toggle: "--toggle" } as const
-
-/** Reads `TOGGLE_COMMANDS` off a `command` event:  the shared first step of every family's `onCommand`. */
+ * `<ui-toast>` (`--close` only) answer (`<button commandfor="id" command="--toggle">`):  custom commands, since a
+ * custom element gets no built-in ones (`show-modal` only reaches a real `<dialog>`).  All are user actions (the
+ * cancelable `ui-open` / `ui-close` first).
+ * - The words, `ToggleCommands.show` ... (as `TransitionCommands` / `ShapeCommands` hold theirs), and `action()`,
+ *   the shared first step of every family's `onCommand`.
+ * - Static:  one set of words per page.
+ ****************/
 export class ToggleCommands {
+  /** `--show`:  open. */
+  static readonly show = "--show"
+
+  /** `--close`:  close, reason `close`. */
+  static readonly close = "--close"
+
+  /** `--toggle`:  either. */
+  static readonly toggle = "--toggle"
+
   /**
    * What `event` asks of an element that is `open` now:  `"show"`, `"close"`, or `undefined` for a command it doesn't
    * know (`--toggle` flips `open`).
    */
   static action(event: Event, open: boolean): "show" | "close" | undefined {
     const { command } = event as Event & { command?: string }
-    if (command === TOGGLE_COMMANDS.show || (command === TOGGLE_COMMANDS.toggle && !open)) return "show"
-    if (command === TOGGLE_COMMANDS.close || command === TOGGLE_COMMANDS.toggle) return "close"
+    if (command === ToggleCommands.show || (command === ToggleCommands.toggle && !open)) return "show"
+    if (command === ToggleCommands.close || command === ToggleCommands.toggle) return "close"
     return undefined
   }
 }
@@ -1010,7 +1017,7 @@ export const PUSHABLE_HOST_STATE = "pushable"
  * - PRIVATE (`--_ui-`):  switches the pushable decides, never a theming surface;  `ui-sidebar.css` declares their
  *   defaults on the pushable box, which the inline values beat
  */
-export const PUSHER_TOKENS = {
+export const PusherTokens = {
   transform: "--_ui-pusher-transform",
   origin: "--_ui-pusher-origin",
   dimmed: "--_ui-pusher-dimmed",
@@ -1070,7 +1077,7 @@ export type ShapeFlip = (typeof ShapeFlips)[number]
  * - `next` / `previous`:  turn to the next / previous side, the `direction` attribute's way
  * - `flip` + a `ShapeFlip`:  turn to the next side THAT way (`--flip-up` ...), Fomantic's `flip up` behaviour
  */
-export const SHAPE_COMMANDS = { next: "--next", previous: "--previous", flip: "--flip-" } as const
+export const ShapeCommands = { next: "--next", previous: "--previous", flip: "--flip-" } as const
 
 /** `detail` of `ui-change`, from a `<ui-shape>` once it shows another side. */
 export type ShapeChangeDetail = {
@@ -1460,7 +1467,7 @@ export const SourceLoadModes = ["eager", "visible", "idle"] as const
 export type SourceLoadMode = (typeof SourceLoadModes)[number]
 
 /** Attributes every source element has;  spread first into its vocabulary's `attributes`. */
-export const SOURCE_ATTRIBUTES = [
+export const SourceAttributes = [
   {
     name: "source",
     kind: "string",
@@ -1480,7 +1487,7 @@ export const SOURCE_ATTRIBUTES = [
 ] as const
 
 /** Events every source element dispatches;  spread into its vocabulary's `events`. */
-export const SOURCE_EVENTS = [
+export const SourceEvents = [
   {
     name: "ui-load",
     detail: "{ source?: string, content: string }",
@@ -1515,13 +1522,13 @@ export const SOURCE_EVENTS = [
 ] as const
 
 /** Parts every source element has. */
-export const SOURCE_PARTS = [
+export const SourceParts = [
   { name: "loader", description: "The `<ui-loader>` shown while `source` loads." },
   { name: "error", description: "The `<ui-message>` shown when loading or showing failed." }
 ] as const
 
 /** States every source element has. */
-export const SOURCE_STATES = [
+export const SourceStates = [
   { name: "loading", description: "Fetching `source`." },
   { name: "error", description: "Loading or showing failed:  the error message shows." },
   { name: "saving", description: "`save()` is in progress." },
@@ -1532,7 +1539,7 @@ export const SOURCE_STATES = [
  * Error messages of a failed load;  `{source}` is the URL as written.
  * - Spread on their own by `<ui-section>` / `<ui-accordion>`, whose `source` body shows them (`SourceBody`).
  */
-export const SOURCE_FAILURE_TEXTS = [
+export const SourceFailureTexts = [
   { key: "sourceLoadError", text: "Couldn't load {source}.", description: "The fetch failed." },
   {
     key: "sourceCrossOrigin",
@@ -1548,9 +1555,9 @@ export const SOURCE_FAILURE_TEXTS = [
 ] as const
 
 /** Texts every source element shows;  `{source}` is the URL as written. */
-export const SOURCE_TEXTS = [
+export const SourceTexts = [
   { key: "sourceLoading", text: "Loading {source}", description: "Accessible name of the loader." },
-  ...SOURCE_FAILURE_TEXTS
+  ...SourceFailureTexts
 ] as const
 
 /** `detail` of `ui-load`. */
@@ -1603,7 +1610,7 @@ export type SourceErrorDetail = {
  * Attributes of an element whose BODY can come from a file, loaded the first time it opens;  spread into its
  * vocabulary's `attributes` (`<ui-section>`, and so every subclass reusing its vocabulary, `<ui-accordion>`).
  */
-export const SOURCE_BODY_ATTRIBUTES = [
+export const SourceBodyAttributes = [
   {
     name: "source",
     kind: "string",
@@ -1620,7 +1627,7 @@ export const SOURCE_BODY_ATTRIBUTES = [
 ] as const
 
 /** Events of a source body;  spread into the vocabulary's `events`. */
-export const SOURCE_BODY_EVENTS = [
+export const SourceBodyEvents = [
   {
     name: "ui-load",
     detail: "{ source: string, content: string }",
@@ -1637,12 +1644,12 @@ export const SOURCE_BODY_EVENTS = [
 ] as const
 
 /** Parts of a source body. */
-export const SOURCE_BODY_PARTS = [
+export const SourceBodyParts = [
   { name: "error", description: "With `source`:  the line saying the file couldn't be loaded." }
 ] as const
 
 /** States of a source body (`loading` is the element's own:  `<ui-section>` already has one). */
-export const SOURCE_BODY_STATES = [
+export const SourceBodyStates = [
   { name: "loaded", description: "With `source`:  the file's body is in place." },
   { name: "error", description: "With `source`:  the file couldn't be loaded or shown." }
 ] as const

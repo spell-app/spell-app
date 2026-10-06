@@ -104,23 +104,23 @@ export class StaticInteractions {
 }
 
 /**
- * A dialog's custom commands (`UIT.TOGGLE_COMMANDS`) => native invoker commands.
+ * A dialog's custom commands (`UIT.ToggleCommands`) => native invoker commands.
  * - `--open` / `--hide`:  aliases a page may write;  no element answers them, the static page does.
  */
 const DIALOG_COMMANDS: Readonly<Record<string, string>> = {
-  [UIT.TOGGLE_COMMANDS.show]: "show-modal",
+  [UIT.ToggleCommands.show]: "show-modal",
   "--open": "show-modal",
-  [UIT.TOGGLE_COMMANDS.toggle]: "show-modal",
-  [UIT.TOGGLE_COMMANDS.close]: "close",
+  [UIT.ToggleCommands.toggle]: "show-modal",
+  [UIT.ToggleCommands.close]: "close",
   "--hide": "close"
 }
 
 /** A popover's custom commands => native invoker commands;  aliases as `DIALOG_COMMANDS`. */
 const POPOVER_COMMANDS: Readonly<Record<string, string>> = {
-  [UIT.TOGGLE_COMMANDS.show]: "show-popover",
+  [UIT.ToggleCommands.show]: "show-popover",
   "--open": "show-popover",
-  [UIT.TOGGLE_COMMANDS.toggle]: "toggle-popover",
-  [UIT.TOGGLE_COMMANDS.close]: "hide-popover",
+  [UIT.ToggleCommands.toggle]: "toggle-popover",
+  [UIT.ToggleCommands.close]: "hide-popover",
   "--hide": "hide-popover"
 }
 

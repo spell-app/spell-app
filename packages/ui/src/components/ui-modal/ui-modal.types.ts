@@ -70,8 +70,8 @@ export const HIDE_EVENT: E.EventName<Vocabulary> = "ui-hide"
 // ## Actions
 ////////////////
 
-/** What an activated element inside a dialog does:  `approve` or `deny` it (`UIT.MODAL_ACTION_SELECTORS`). */
-export type DialogAction = keyof typeof UIT.MODAL_ACTION_SELECTORS
+/** What an activated element inside a dialog does:  `approve` or `deny` it (`UIT.ModalActionSelectors`). */
+export type DialogAction = keyof typeof UIT.ModalActionSelectors
 
 /**
  * ### `DialogActions`
@@ -82,15 +82,15 @@ export type DialogAction = keyof typeof UIT.MODAL_ACTION_SELECTORS
 export class DialogActions {
   /**
    * The approve / deny element `event` activated:  the innermost light-DOM element (in `host`'s tree) on its path
-   * matching `UIT.MODAL_ACTION_SELECTORS`, up to `host`;  `undefined` for none.
+   * matching `UIT.ModalActionSelectors`, up to `host`;  `undefined` for none.
    */
   static actionFor(event: Event, host: Element): [DialogAction, Element] | undefined {
     const scope = host.getRootNode()
     for (const target of event.composedPath()) {
       if (target === host) return undefined
       if (!(target instanceof Element) || target.getRootNode() !== scope) continue
-      if (target.matches(UIT.MODAL_ACTION_SELECTORS.approve)) return ["approve", target]
-      if (target.matches(UIT.MODAL_ACTION_SELECTORS.deny)) return ["deny", target]
+      if (target.matches(UIT.ModalActionSelectors.approve)) return ["approve", target]
+      if (target.matches(UIT.ModalActionSelectors.deny)) return ["deny", target]
     }
     return undefined
   }

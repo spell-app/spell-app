@@ -3,10 +3,10 @@
  * sheet for the three elements (each adopts it), as Fomantic's one definition styles the three classes.
  * - Shadow markup contracts:
  *   - `<ui-pushable>`:  `<div class="pushable" part="pushable"><slot>` -- positioned, clipping;  carries the
- *     pusher tokens (`PUSHER_TOKENS`) INLINE, set by the element from its visible sidebar
+ *     pusher tokens (`PusherTokens`) INLINE, set by the element from its visible sidebar
  *   - `<ui-pusher>`:  `<div class="pusher" part="pusher"><slot>` -- moved by `--_ui-pusher-transform` /
  *     `--_ui-pusher-origin`;  its `::after` is the dimmer, shown by `--_ui-pusher-dimmed: 1` (a style query) and
- *     blurred by `--_ui-pusher-blurring: 1` (the private `PUSHER_TOKENS` the pushable sets)
+ *     blurred by `--_ui-pusher-blurring: 1` (the private `PusherTokens` the pushable sets)
  *   - `<ui-sidebar>`:  `<dialog class="ui [position] [width] [transition] [keyOnly ...] sidebar" part="sidebar">`
  *     (modal, opened with `show()` so it stays IN the pushable) or `<aside ...>` (`persistent`), around the slot
  * - Hidden sidebars are laid out but `visibility: hidden` (out of the tab order and the accessibility tree) and
@@ -47,7 +47,7 @@
   /* ## Pushable:  positioned and clipping, so sidebars slide inside it. */
   .pushable {
     /*
-     * The pusher switches' defaults (`PUSHER_TOKENS`):  the element's inline values beat them, and they reset a
+     * The pusher switches' defaults (`PusherTokens`):  the element's inline values beat them, and they reset a
      * nested pushable.  Private:  switches, not theming.
      */
     --_ui-pusher-transform: none;

@@ -36,9 +36,9 @@ import {
  *   - a close the browser forces anyway (a repeated Escape it won't let a page veto) is followed:  a `ui-close`
  *     that can't veto, then `open` off
  * - Opening as a PERSON'S action (so `ui-open` fires):  an invoker command, `<button commandfor="id"
- *   command="--show">` (`TOGGLE_COMMANDS`;  `--close` closes, `--toggle` flips);  an `open` write is the app's own
+ *   command="--show">` (`ToggleCommands`;  `--close` closes, `--toggle` flips);  an `open` write is the app's own
  *   decision and fires nothing.
- * - Buttons:  a click on an approve / deny element (`MODAL_ACTION_SELECTORS`:  Fomantic's `.approve` / `.deny`
+ * - Buttons:  a click on an approve / deny element (`ModalActionSelectors`:  Fomantic's `.approve` / `.deny`
  *   classes, `<ui-button positive / negative>`) fires the cancelable `ui-approve` / `ui-deny`, then closes;  the
  *   `closable` icon closes (reason `close`).
  * - `closable="false"` is Fomantic's `closable: false` AND `closeIcon: false`:  no icon, and (unless `closedby` is
@@ -340,7 +340,7 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
   // ## Handlers
   ////////////////
 
-  /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
+  /** An invoker command aimed at the host (`ToggleCommands`). */
   private readonly onCommand = (event: Event) => {
     const action = UIT.ToggleCommands.action(
       event,

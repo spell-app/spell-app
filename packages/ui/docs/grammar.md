@@ -391,7 +391,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 - Host METHODS (`TransitionHost`), as there's no attribute for "shake now":  `show()`, `hide()`, `toggle()`,
   `transition(name?)` (Fomantic's `$(el).transition(name)`;  `animate` is taken by Web Animations).  They write
   `visible`, so it reflects.  Invoker commands do the same with no script:  `--show`, `--close`, `--toggle`,
-  `--transition` (`TRANSITION_COMMANDS`).
+  `--transition` (`TransitionCommands`).
 - Queue, as Fomantic's `queue: true`:  each animation waits for the one before;  the same animation twice in a row is
   dropped (`allow-repeats` keeps it);  `interrupt` stops the running one instead (Fomantic's `queue: false`).
 - Events:  `ui-show` / `ui-hide` once an in / out has run (`{ visible, animation }`, Fomantic's `onVisible` /
@@ -472,7 +472,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 
 - Fomantic's three classes as three elements:  `<ui-pushable>` (the clipping box), `<ui-sidebar>` (the panel),
   `<ui-pusher>` (the page beside it).  A visible sidebar reports what it needs to its pushable, which sets inherited
-  PRIVATE tokens (`PUSHER_TOKENS`, `--_ui-pusher-*`) the pusher reads:  where it moves (measured, as Fomantic's
+  PRIVATE tokens (`PusherTokens`, `--_ui-pusher-*`) the pusher reads:  where it moves (measured, as Fomantic's
   script did), its origin, dimmed, blurred.  Fomantic's sibling rules (`.visible.left.sidebar ~ .pusher`) stay for static markup.
 - `position` (`left` default, `right`, `top`, `bottom`), `width` (Fomantic's words `very thin` 60px, `thin` 150px, `wide`, `very wide`, AND columns / fractions /
   percentages of the viewport:  `4`, `1/4`, `25%` => `four wide`;  as `<ui-flyout>`'s, the word goes after the noun:
@@ -487,7 +487,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   - `persistent` -- part of the page:  an `<aside>` landmark (a `<ui-menu>` inside is the `<nav>`), nothing
     dimmed, inert or trapped, focus stays put.
 - `visible` is auto-controlled:  `ui-open` / `ui-close` (`escape`, `outside`, `close`, `close-all`) for user
-  actions -- the `--show` / `--close` / `--toggle` invoker commands (`TOGGLE_COMMANDS`) -- then `ui-show` /
+  actions -- the `--show` / `--close` / `--toggle` invoker commands (`ToggleCommands`) -- then `ui-show` /
   `ui-hide` after the slide.
 - A hidden sidebar is `visibility: hidden`:  out of the tab order and the tree, but laid out for measuring.
 - Sizing:  the pushable's host is a block (`<ui-pushable style="height: 100dvh">` for a whole page);  a sidebar's
@@ -512,7 +512,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 - `active-index` (controlled, from 0) is the side shown;  changing it turns the `direction` way (`up`, `down`,
   `left` default, `right`, `over`, `back`) -- the attribute isn't `flip`, which is the host's METHOD
   (`ShapeHost`:  `flip(direction?, index?)`, `next()`, `previous()`, resolving once turned).  Invoker commands:
-  `--next`, `--previous` (`SHAPE_COMMANDS`).
+  `--next`, `--previous` (`ShapeCommands`).
 - The flip is Fomantic's geometry (`shape.js`), a CSS transition on the sides box;  flips queue;  `ui-change`
   (`{ activeIndex, side, flip }`) once turned.  Reduced motion:  an instant swap.
 - The shape's type reaches its sides as a token (the private `--_ui-shape-type`, style-queried):  a side's shadow can't see the

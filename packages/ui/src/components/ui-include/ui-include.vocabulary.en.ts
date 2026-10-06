@@ -2,7 +2,7 @@
  * Every name `<ui-include>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
  * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The source pieces (`source`, `load`, `ui-load` ... `ui-error`, the loader / error parts, the states and texts)
- *   are shared with `<ui-code>` and `<ui-markdown>`:  `UIT.SOURCE_*`, which `SourceElement` reads.
+ *   are shared with `<ui-code>` and `<ui-markdown>`:  `UIT.Source*`, which `SourceElement` reads.
  */
 
 import type { E } from "$/ui/core"
@@ -22,7 +22,7 @@ export const includeVocabulary = {
   description:
     "An include shows part of another page from this site in this one, loaded at once, when idle or when scrolled into view.",
   attributes: [
-    ...UIT.SOURCE_ATTRIBUTES,
+    ...UIT.SourceAttributes,
     {
       name: "select",
       kind: "string",
@@ -40,7 +40,7 @@ export const includeVocabulary = {
     }
   ],
   events: [
-    ...UIT.SOURCE_EVENTS,
+    ...UIT.SourceEvents,
     {
       name: "ui-insert",
       detail: "{ fragment: DocumentFragment, source?: string }",
@@ -55,7 +55,7 @@ export const includeVocabulary = {
       description: "Placeholder shown until the include loads (e.g. a server-rendered copy), then replaced."
     }
   ],
-  parts: [...UIT.SOURCE_PARTS, { name: "content", description: "The box around the included markup (shadow root)." }],
-  states: [...UIT.SOURCE_STATES],
-  texts: [...UIT.SOURCE_TEXTS]
+  parts: [...UIT.SourceParts, { name: "content", description: "The box around the included markup (shadow root)." }],
+  states: [...UIT.SourceStates],
+  texts: [...UIT.SourceTexts]
 } as const satisfies E.ComponentVocabulary

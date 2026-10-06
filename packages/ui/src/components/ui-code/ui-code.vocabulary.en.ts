@@ -2,7 +2,7 @@
  * Every name `<ui-code>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
  * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The source pieces (`source`, `load`, `ui-load` ... `ui-error`, the loader / error parts, the states and texts)
- *   are shared with `<ui-include>` and `<ui-markdown>`:  `UIT.SOURCE_*`, which `SourceElement` reads.
+ *   are shared with `<ui-include>` and `<ui-markdown>`:  `UIT.Source*`, which `SourceElement` reads.
  * - Class words:  `line-numbers` => `numbered`, `wrap` => `wrapping` (`ui numbered wrapping code`).
  */
 
@@ -22,7 +22,7 @@ export const codeVocabulary = {
   description:
     "Code shows a block of source code coloured by its language, from the element's own text or a file on this site.",
   attributes: [
-    ...UIT.SOURCE_ATTRIBUTES,
+    ...UIT.SourceAttributes,
     {
       name: "language",
       kind: "string",
@@ -47,7 +47,7 @@ export const codeVocabulary = {
     { name: "copy", kind: "boolean", description: "A button that copies the code." }
   ],
   events: [
-    ...UIT.SOURCE_EVENTS,
+    ...UIT.SourceEvents,
     {
       name: "ui-highlight",
       detail: "{ language?: string, detected: boolean }",
@@ -58,15 +58,15 @@ export const codeVocabulary = {
   ],
   slots: [],
   parts: [
-    ...UIT.SOURCE_PARTS,
+    ...UIT.SourceParts,
     { name: "box", description: "The box around the code and the copy button." },
     { name: "pre", description: "The `<pre>`." },
     { name: "code", description: "The `<code>`, holding one `.line` span per line." },
     { name: "copy", description: "The copy button." }
   ],
-  states: [...UIT.SOURCE_STATES, { name: "copied", description: "The copy button just copied the code." }],
+  states: [...UIT.SourceStates, { name: "copied", description: "The copy button just copied the code." }],
   texts: [
-    ...UIT.SOURCE_TEXTS,
+    ...UIT.SourceTexts,
     { key: "codeCopy", text: "Copy", description: "The copy button." },
     { key: "codeCopied", text: "Copied", description: "The copy button, just after a copy." },
     { key: "codeLabel", text: "{language} code", description: "Accessible name of the code, by its language." },

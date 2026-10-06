@@ -206,7 +206,7 @@ An owner hands the components inside it (content parts, items, icons, labels) in
   the layout.  They were public `--ui-*` names until 2026-09-30, renamed in every family (a pure rename, no look
   change):
   - owners and parts:  `--_ui-card-layout`, `--_ui-card-leading`, `--_ui-part` and every switch of `ui-parts.css`'s
-    "Owner tokens" table (`PART_OWNER_TOKENS`), whose two look entries now name the aliases
+    "Owner tokens" table (`PartOwnerTokens`), whose two look entries now name the aliases
     `--_ui-modal-header-size` and `--_ui-statistic-value-size`
   - icons, inputs, labels:  `--_ui-icon-owner-*`, `--_ui-icons-*` (corner icons), `--_ui-input-owner-width`,
     `--_ui-label-owner-*` (read dual, see the table), `--_ui-labels-margin`, `--_ui-label-layout`
@@ -221,7 +221,7 @@ An owner hands the components inside it (content parts, items, icons, labels) in
   - steps:  `--_ui-step-state`, `--_ui-step-layout`
   - one-offs:  `--_ui-container-width`, `--_ui-shape-type`, `--_ui-breadcrumb-divider-layout`
   - set inline by an element:  `--_ui-dropdown-anchor`, `--_ui-search-anchor`, `--_ui-calendar-anchor` (anchor
-    names), `--_ui-pusher-*` (`PUSHER_TOKENS`)
+    names), `--_ui-pusher-*` (`PusherTokens`)
 - Declared on EVERY owner root, default included (the alias re-declares from the public token), so a nested owner
   never inherits an outer owner's value.
 - Where a page sets an owner look token:  on the owner, above it, or `::part()` of the owner's box -- the part
@@ -610,8 +610,8 @@ owner), `parts` (the header's own tokens, and the part side of owner tokens).
      the computed property it drives.
    - TS setting a public token INLINE on its own root (`style={{ "--ui-x": ... }}`) blocks the page exactly like a
      sheet:  set the private name.  Check `grep -rn -- '--ui-<tag>-' src/components/ui-<family>/*.ts*`.
-   - `PART_OWNER_TOKENS` (`components.types.ts`):  a look token (`modalHeaderSize`, `statisticValueSize`) names
-     the alias;  so does every switch an element sets inline (`PUSHER_TOKENS`, the anchor names).
+   - `PartOwnerTokens` (`components.types.ts`):  a look token (`modalHeaderSize`, `statisticValueSize`) names
+     the alias;  so does every switch an element sets inline (`PusherTokens`, the anchor names).
    - Examples and docs:  public names stay (they're the API);  fix text that says "only through `::part()`" or
      "declared on the box".
 6. The sheet's header comment:  add the "Public tokens ... are NEVER declared here" bullet (copy `ui-button.css`'s)

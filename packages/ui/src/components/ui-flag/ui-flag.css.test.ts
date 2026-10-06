@@ -127,17 +127,17 @@ describe("ui-flag.css in shadow roots", () => {
 })
 
 ////////////////
-// ## FLAG_ALIASES / UIT.SPECIAL_FLAGS
+// ## FLAG_ALIASES / UIT.SpecialFlags
 ////////////////
 
-describe("FLAG_ALIASES / UIT.SPECIAL_FLAGS", () => {
-  it("normalizes every alias and maps it to a two-letter code or a SPECIAL_FLAGS key", () => {
+describe("FLAG_ALIASES / UIT.SpecialFlags", () => {
+  it("normalizes every alias and maps it to a two-letter code or a SpecialFlags key", () => {
     const aliases: Readonly<Record<string, string>> = FLAG_ALIASES
     expect(Object.keys(aliases).length).toBeGreaterThan(250)
     for (const [name, code] of Object.entries(aliases)) {
       expect(name, name).toBe(name.trim().toLowerCase().replaceAll("_", " ").replace(/\s+/g, " "))
       expect(name).not.toBe(code)
-      expect(/^[a-z]{2}$/.test(code) || code in UIT.SPECIAL_FLAGS, `${name} => ${code}`).toBe(true)
+      expect(/^[a-z]{2}$/.test(code) || code in UIT.SpecialFlags, `${name} => ${code}`).toBe(true)
     }
     expect(aliases).toMatchObject({
       "united states": "us",
@@ -152,7 +152,7 @@ describe("FLAG_ALIASES / UIT.SPECIAL_FLAGS", () => {
     const names = new Intl.DisplayNames(["en"], { type: "region" })
     const codes = new Set(Object.values(FLAG_ALIASES as Readonly<Record<string, string>>))
     for (const code of codes) {
-      if (code in UIT.SPECIAL_FLAGS) continue
+      if (code in UIT.SpecialFlags) continue
       const name = names.of(code.toUpperCase())
       expect(name, code).toBeTruthy()
       expect(name, code).not.toBe(code.toUpperCase())
@@ -162,7 +162,7 @@ describe("FLAG_ALIASES / UIT.SPECIAL_FLAGS", () => {
   it("labels every non-country flag through the vocabulary's texts, and the examples use them", () => {
     const keys = new Set<string>(flagVocabulary.texts.map((text) => text.key))
     const types = EXAMPLES["./examples/types.html"]!
-    for (const [code, emoji] of Object.entries(UIT.SPECIAL_FLAGS)) {
+    for (const [code, emoji] of Object.entries(UIT.SpecialFlags)) {
       expect(keys.has(code.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase())), code).toBe(true)
       expect(types, code).toContain(emoji)
     }

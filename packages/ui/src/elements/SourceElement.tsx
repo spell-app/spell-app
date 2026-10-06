@@ -23,13 +23,13 @@ import { SOURCE_LOADER_TAG, SOURCE_MESSAGE_TAG } from "./elements.types"
  *   cancelable `ui-error` was cancelled), `:state(saving)`, `:state(dirty)`.
  * - Saving (`save()`):  the cancelable `ui-save` first, then `UI.sources.save()` through the page's saver;
  *   `ui-saved` or `ui-error` after.  A save failure never replaces the content with a message.
- * - The vocabulary MUST spread `UIT.SOURCE_ATTRIBUTES` / `_EVENTS` / `_PARTS` / `_STATES` / `_TEXTS`:  the names
+ * - The vocabulary MUST spread `UIT.SourceAttributes` / `SourceEvents` / `SourceParts` / `SourceStates` / `SourceTexts`:  the names
  *   used here.  The family barrel MUST import `ui-loader` and `ui-message` (built here by tag, see
  *   `SOURCE_LOADER_TAG`).
  * - A moved element keeps its content:  reconnecting doesn't fetch again (`keepAlive`).
  * - Imports the core as `E` / `UI` / `UIT`, except what its class definition reads (the base class, `Host`, the
  *   status tags):  directly (WWOD §4 › "Circular imports").  NEVER a value from `$/ui/components`:  the vocabulary
- *   pieces it relies on (`UIT.SOURCE_*`) only as types.
+ *   pieces it relies on (`UIT.Source*`) only as types.
  ****************/
 export abstract class SourceElement<V extends E.ComponentVocabulary = E.ComponentVocabulary>
   extends UIElement<V>
@@ -199,12 +199,12 @@ export abstract class SourceElement<V extends E.ComponentVocabulary = E.Componen
 
   /** `source`, as written;  `undefined` when absent or empty. */
   protected sourceAttribute(): string | undefined {
-    return (this.attrs as unknown as SourceAttributes).source || undefined
+    return (this.attrs as unknown as SourceAttributeValues).source || undefined
   }
 
   /** `load`, default `eager` (also for a value the vocabulary doesn't know). */
   private loadMode(): UIT.SourceLoadMode {
-    return (this.attrs as unknown as SourceAttributes).load || AT_ONCE
+    return (this.attrs as unknown as SourceAttributeValues).load || AT_ONCE
   }
 
   /**
@@ -453,8 +453,8 @@ export abstract class SourceElement<V extends E.ComponentVocabulary = E.Componen
   }
 }
 
-/** The shared attributes (`UIT.SOURCE_ATTRIBUTES`), as `attrs` has them. */
-type SourceAttributes = {
+/** The shared attributes (`UIT.SourceAttributes`), as `attrs` has them. */
+type SourceAttributeValues = {
   /** URL of the file to show */
   source?: string
   /** when to fetch it;  `undefined` for a value the vocabulary doesn't know */
