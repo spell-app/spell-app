@@ -85,7 +85,19 @@ describe("spell dev", () => {
   test("--help lists its nouns, the pass-throughs too", () => {
     const { status, stdout } = spell(["dev", "--help"])
     expect(status).toBe(0)
-    for (const noun of ["plan-doc", "goals", "docs", "details", "server", "window", "vscode", "commands", "session"]) {
+    const nouns = [
+      "plan-doc",
+      "goals",
+      "docs",
+      "details",
+      "choices",
+      "server",
+      "window",
+      "vscode",
+      "commands",
+      "session"
+    ]
+    for (const noun of nouns) {
       expect(stdout).toMatch(new RegExp(`^ {2}${noun} `, "m"))
     }
   })
@@ -129,6 +141,7 @@ process.exit(3)
       "packages/docs/tools/open.js",
       "packages/docs/tools/link.ts",
       "packages/docs/tools/details.js",
+      "packages/docs/tools/choices.js",
       "packages/docs/tools/plan-doc.js",
       "packages/server/src/page/cli.ts"
     ]) {
@@ -163,8 +176,15 @@ process.exit(3)
     expect(link.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
   })
 
-  test("details, plan-doc", () => {
+  test("details, choices, plan-doc", () => {
     expect(passThrough(["details", "list"])).toMatchObject({ status: 3, tool: "packages/docs/tools/details.js" })
+    const choices = passThrough(["choices", "new", "x", "--rows", "r.json"])
+    expect(choices).toMatchObject({
+      status: 3,
+      tool: "packages/docs/tools/choices.js",
+      args: ["new", "x", "--rows", "r.json"]
+    })
+    expect(realpathSync(choices.cwd)).toBe(resolve(CHECKOUT, "packages/docs"))
     const planDoc = passThrough(["plan-doc", "add", "x", "issue", "--details", "<p>y</p>"])
     expect(planDoc).toMatchObject({ status: 3, args: ["add", "x", "issue", "--details", "<p>y</p>"] })
     expect(realpathSync(planDoc.cwd)).toBe(INSIDE)

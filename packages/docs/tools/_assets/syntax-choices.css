@@ -1,0 +1,185 @@
+/*
+ * Syntax-choices pages (`templates/syntax-choices.html`), on top of `spell-doc.css`:  the rows' table and the toolbar
+ * `syntax-choices.js` draws.
+ * - Phone width:  the table scrolls inside its own box (`spell-doc.css`'s `ui-table` rule), never the page.
+ */
+
+/* a section's rule:  which question it answers, the recommended way */
+.spell-choices-rule {
+  margin: 0 0 0.5em;
+  color: var(--spell-muted);
+}
+
+/*******************************
+            Rows
+*******************************/
+
+/*
+ * Fixed columns, so the boxes are always in view on a desktop:  long code wraps inside its cell instead of pushing
+ * Recommended off to the right.  Under 720px the table keeps that width and scrolls inside its box.
+ */
+.spell-choices-table table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 720px;
+}
+.spell-choices-table th:nth-child(1) {
+  width: 19%;
+}
+.spell-choices-table th:nth-child(2) {
+  width: 22%;
+}
+.spell-choices-table th:nth-child(3) {
+  width: 27%;
+}
+.spell-choices-table :is(td, th) {
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+/* File:  the name and line as a link, its folder under it */
+.spell-choice-link {
+  font: 0.85em/1.4 var(--spell-mono);
+}
+.spell-choice-line {
+  font-variant-numeric: tabular-nums;
+  color: var(--spell-muted);
+}
+.spell-choice-folder {
+  font: 0.72em/1.3 var(--spell-mono);
+  color: var(--spell-muted);
+}
+
+/* Purpose:  1-3 words, the "stays" tag, the note in small print */
+.spell-choice-note {
+  margin-top: 2px;
+  font-size: 0.8em;
+  line-height: 1.35;
+  color: var(--spell-muted);
+}
+.spell-choice-stays {
+  vertical-align: 1px;
+}
+
+.spell-choice-current code {
+  white-space: pre-wrap;
+}
+
+/* Recommended:  a mono box growing with its text, the reset button beside it once it differs */
+.spell-choice-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.spell-choice-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  field-sizing: content;
+  resize: none;
+  overflow-wrap: anywhere;
+  padding: 3px 6px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 4px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: 0.85em/1.4 var(--spell-mono);
+}
+.spell-choice-input:focus {
+  outline: 2px solid var(--spell-doc-accent);
+  outline-offset: -1px;
+}
+
+/* a box Owen changed:  orange box, an orange edge on the row */
+tr[data-changed] .spell-choice-input {
+  border-color: var(--ui-orange, #f2711c);
+  background: var(--ui-orange-background, light-dark(#fff3e8, #3a2a1c));
+}
+tr[data-changed] > td:first-child {
+  box-shadow: inset 3px 0 0 var(--ui-orange, #f2711c);
+}
+
+/* the round "back to the recommendation" button:  just the icon, grey, the accent on hover */
+.spell-choice-reset {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--spell-muted);
+  cursor: pointer;
+}
+.spell-choice-reset:is(:hover, :focus-visible) {
+  background: var(--spell-tint);
+  color: var(--spell-doc-accent);
+}
+.spell-choice-reset[hidden] {
+  display: none;
+}
+
+/*******************************
+           Toolbar
+*******************************/
+
+/*
+ * The toolbar stays in view:  pinned to the window's bottom while the rows scroll above it.  A little wider than the
+ * column (negative margins, padding back), so the rows scrolling under it don't show at its edges.
+ */
+#choices-bar.spell-choices-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 1em -16px 0;
+  padding: 8px 16px 6px;
+  border-top: 1px solid var(--spell-rule);
+  background: var(--spell-bg);
+  box-shadow: 0 -8px 16px -10px rgb(0 0 0 / 0.3);
+}
+/* the toolbar is the page's bottom:  no room left under it */
+.spell-doc-main:has(> #choices-bar) {
+  padding-bottom: 0;
+}
+
+/* the feedback, then "Do it" to its right, level with its last line */
+.spell-choices-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.spell-choices-feedback {
+  flex: 1 1 auto;
+  margin: 0;
+}
+/* grows with its text, up to a third of the window */
+.spell-choices-feedback::part(control) {
+  field-sizing: content;
+  min-block-size: 2.5em;
+  max-block-size: 33vh;
+}
+.spell-choices-send {
+  flex: none;
+}
+
+/* counts, save status, Expand all:  small, quiet, numbers in tabular figures */
+.spell-choices-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin-top: 4px;
+  font-size: 0.8em;
+  color: var(--spell-muted);
+  font-variant-numeric: tabular-nums;
+}
+.spell-choices-meta > .spell-choices-expand {
+  margin-left: auto;
+}
+.spell-choices-failed {
+  color: var(--ui-error-text, var(--ui-red, #db2828));
+}
+#choices-bar > ui-message {
+  margin: 6px 0 0;
+}

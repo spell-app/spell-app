@@ -4,9 +4,9 @@
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
- *   - pass-throughs (`plan-doc`, `goals`, `docs`, `details`, `design`, `server`, `window`, `vscode`):  a repo tool
- *     run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them directly, so they
- *     load no spell
+ *   - pass-throughs (`plan-doc`, `goals`, `docs`, `details`, `choices`, `design`, `server`, `window`, `vscode`):  a
+ *     repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them directly, so
+ *     they load no spell
  *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);  run through the
  *     `runBarrel` each entry passes in
  * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
@@ -19,6 +19,7 @@ import { Command } from "commander"
 import { CliError, EXIT, type GlobalOptions } from "$/cli/cli.types"
 import { DESIGN_VERBS, DOCS_VERBS } from "$/cli/dev/passThrough"
 import { designCommand } from "$/cli/commands/designCommand"
+import { choicesCommand } from "$/cli/commands/choicesCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
 import { goalsCommand } from "$/cli/commands/goalsCommand"
@@ -82,6 +83,16 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(detailsCommand, rawArgs("details")))
+
+  dev
+    .command("choices")
+    .description(
+      "syntax-choices pages:  names Claude recommends, one row each, Owen's call per name (new, show, wait ...)"
+    )
+    .argument("[args...]", "a choices command and its arguments")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(choicesCommand, rawArgs("choices")))
 
   dev
     .command("design")
