@@ -4,7 +4,7 @@
 //
 
 export { unitTestModuleRules } from "$/parser/test"
-export { tsxBinary, tscBinary } from "./tsxBinary"
+export { tsxBinary } from "./tsxBinary"
 export {
   parseSpellProject,
   loadFixtureProject,
