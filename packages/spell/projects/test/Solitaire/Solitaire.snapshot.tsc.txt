@@ -1,5 +1,6 @@
 135:18 TS18048 'spellCore.RUNTIME' is possibly 'undefined'.
 147:18 TS18048 'spellCore.RUNTIME' is possibly 'undefined'.
+174:22 TS2339 Property 'can_pick_up_$card' does not exist on type 'Pile'.
 187:95 TS2345 Argument of type 'string | number | undefined' is not assignable to parameter of type 'number | null | undefined'.
 274:22 TS2554 Expected 1 arguments, but got 0.
 292:16 TS2554 Expected 1 arguments, but got 0.

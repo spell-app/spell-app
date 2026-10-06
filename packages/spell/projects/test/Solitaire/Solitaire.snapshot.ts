@@ -278,11 +278,11 @@ export class Deck extends List {
     spellCore.echo("deck: " + card_names)
   }
 }
-export interface Deck { is_set_up: any /* spell: type unknown */ }
+export interface Deck { is_set_up: boolean }
 Deck.declareProp('is_set_up', { type: 'choice' })
 Object.defineProperty(Deck.prototype, 'is_set_up', {
-  get(this: Deck): any /* spell: type unknown */ { return this.getProp('is_set_up') },
-  set(this: Deck, value: any /* spell: type unknown */) { this.setProp('is_set_up', value) },
+  get(this: Deck): boolean { return this.getProp('is_set_up') as boolean },
+  set(this: Deck, value: boolean) { this.setProp('is_set_up', value) },
   configurable: true
 })
 
@@ -314,11 +314,11 @@ export function test_deck_creation() {
 }
 test_deck_creation()
 // -----------
-export interface Card { pile: any /* spell: type unknown */ }
+export interface Card { pile: Pile }
 Card.declareProp('pile', { type: 'Pile' })
 Object.defineProperty(Card.prototype, 'pile', {
-  get(this: Card): any /* spell: type unknown */ { return this.getProp('pile') },
-  set(this: Card, value: any /* spell: type unknown */) { this.setProp('pile', value) },
+  get(this: Card): Pile { return this.getProp('pile') as Pile },
+  set(this: Card, value: Pile) { this.setProp('pile', value) },
   configurable: true
 })
 spellCore.heading("Pile of playing cards")
@@ -362,8 +362,8 @@ spellCore.heading("Game bits")
 /** Game bits */
 export class Game extends App {
   static { this.declareProp('score', { type: 'number' }) }
-  get score(): any /* spell: type unknown */ { return this.getProp('score') }
-  set score(value: any /* spell: type unknown */) { this.setProp('score', value) }
+  get score(): number { return this.getProp('score') as number }
+  set score(value: number) { this.setProp('score', value) }
 
   //## actions
 
