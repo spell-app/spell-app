@@ -1,6 +1,8 @@
 /**
- * Shared constants, types and helpers of the `ui-parts` family:  what its element classes, vocabularies and native fallback share.
+ * Shared constants of the `ui-parts` family:  what its element classes, its native fallback and the tests share.
  * - Runtime-light:  no element code, so every file of the family may import it.
+ * - The ONE types file that value-imports vocabularies (`packages/ui/AGENTS.md` "Overview"):  `PartVocabularies` IS
+ *   the list of them, and no vocabulary of this family imports this file back, so there's no cycle.
  */
 
 import { contentVocabulary } from "./ui-content.vocabulary.en"
@@ -17,8 +19,12 @@ import { avatarVocabulary } from "./ui-avatar.vocabulary.en"
 import { detailVocabulary } from "./ui-detail.vocabulary.en"
 import { valueVocabulary } from "./ui-value.vocabulary.en"
 
+////////////////
+// ## Parts
+////////////////
+
 /** Part nouns, in the order the plan lists them;  each is also the class its root renders. */
-export const PART_NOUNS = [
+export const PartNouns = [
   "content",
   "header",
   "description",
@@ -34,8 +40,8 @@ export const PART_NOUNS = [
   "value"
 ] as const
 
-/** Every part's vocabulary, in `PART_NOUNS` order. */
-export const PART_VOCABULARIES = [
+/** Every part's vocabulary, in `PartNouns` order. */
+export const PartVocabularies = [
   contentVocabulary,
   headerVocabulary,
   descriptionVocabulary,
@@ -51,8 +57,9 @@ export const PART_VOCABULARIES = [
   valueVocabulary
 ] as const
 
-/** Root element. */
-export const TIME = "time"
+////////////////
+// ## Roles
+////////////////
 
-/** Role of a linked page header. */
+/** Role of a linked or owned header with a `level` (`<ui-header>` and its fallback). */
 export const HEADING = "heading"

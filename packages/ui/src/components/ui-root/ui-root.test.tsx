@@ -85,8 +85,8 @@ describe("<ui-root> loading on demand", () => {
 
   it("RootLoader rejects a folder with no family", async () => {
     await expect(RootLoader.load("ui-nope")).rejects.toThrow(/no family/)
-    expect(RootLoader.folderOf("ui-buttons")).toBe("ui-button")
-    expect(RootLoader.folderOf("toString")).toBeUndefined()
+    expect(RootLoader.folderFor("ui-buttons")).toBe("ui-button")
+    expect(RootLoader.folderFor("toString")).toBeUndefined()
   })
 })
 

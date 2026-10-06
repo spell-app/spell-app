@@ -1,6 +1,6 @@
-import { proto } from "$/ui/core"
+import { E } from "$/ui/core"
+// by path:  the section family's barrel exports its elements only
 import { SectionFallback } from "$/ui/components/ui-section/ui-section.fallback"
-
 import { panelVocabulary } from "./ui-panel.vocabulary.en"
 import { PANEL, SUB_PANEL } from "./ui-panel.types"
 
@@ -14,7 +14,7 @@ import { PANEL, SUB_PANEL } from "./ui-panel.types"
  ****************/
 export class PanelFallback extends SectionFallback {
   // same shape as the section's vocabulary (built on it);  TypeScript only knows the section's literals
-  @proto static vocabulary = panelVocabulary as unknown as typeof SectionFallback.prototype.vocabulary
+  @E.proto static vocabulary = panelVocabulary as unknown as typeof SectionFallback.prototype.vocabulary
 
   /** The class grammar, then `panel`, and `sub` inside another panel, as the element adds them. */
   protected override classes(extra?: string): string {

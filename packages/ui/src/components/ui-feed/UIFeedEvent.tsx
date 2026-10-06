@@ -43,9 +43,7 @@ export class UIFeedEvent extends E.UIElement<typeof eventVocabulary> {
   ////////////////
 
   /** The feed's controller.  Tracked. */
-  readonly feed = createMemo(
-    () => (this.context.owner.get()?.owner as E.UIHost | undefined)?.controller as UIFeed | undefined
-  )
+  readonly feed = createMemo(() => this.context.ownerController<UIFeed>())
 
   /** Renders the label box:  a shorthand, slotted label content, or a number to show.  Tracked. */
   readonly hasLabel = createMemo(

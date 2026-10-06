@@ -1,27 +1,15 @@
 import { For, Show, createEffect, createMemo, createRenderEffect, untrack } from "solid-js"
 import { Portal, isServer, type JSX } from "@solidjs/web"
 
-import { Cell, HostAttribute, UI, UIElement, proto, type AttributeName, UIT } from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { tableVocabulary } from "./ui-table.vocabulary.en"
+import { TableFallback } from "./ui-table.fallback"
 import { TableClassMirror } from "./TableClassMirror"
 import { TableGrammar } from "./TableGrammar"
 import { TableSort } from "./TableSort"
-import { TableFallback } from "./ui-table.fallback"
+import { CLASS, DESCENDING, TABLE } from "./ui-table.types"
 
 import tableCSS from "./ui-table.css?inline"
-import {
-  ASCENDING,
-  ARIA_SORT,
-  CLASS,
-  DATA_UI,
-  DESCENDING,
-  GENERATED,
-  SPACE,
-  STACK_BY_CLASS,
-  TABLE
-} from "./ui-table.types"
-import { ARIA_LABEL, BUTTON, TABINDEX, ENTER } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-table>`
@@ -58,14 +46,15 @@ import { ARIA_LABEL, BUTTON, TABINDEX, ENTER } from "$/ui/components/components.
  *   table's classes, marker and `aria-sort` once, and data mode renders its table inside the scroller (the page's
  *   static stylesheet styles it there).
  ****************/
-export class UITable extends UIElement<typeof tableVocabulary> {
-  @proto static vocabulary = tableVocabulary
-  @proto static styles = { table: tableCSS }
-  @proto static Fallback = TableFallback
-  @proto static delegatesFocus = false
+export class UITable extends E.UIElement<typeof tableVocabulary> {
+  @E.proto static vocabulary = tableVocabulary
+  @E.proto static styles = { table: tableCSS }
+  @E.proto static Fallback = TableFallback
+  // the scroller and the light-DOM headers take focus themselves
+  @E.proto static delegatesFocus = false
 
   /** Host `aria-label`:  the scroller region's name. */
-  readonly ariaLabel = new HostAttribute({ host: this.host, name: ARIA_LABEL })
+  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** `sort-column`:  host-controlled, or set by clicks. */
   readonly sortColumnState = this.controlled("sort-column", undefined)
@@ -74,13 +63,13 @@ export class UITable extends UIElement<typeof tableVocabulary> {
   readonly sortDirectionState = this.controlled("sort-direction", undefined)
 
   /** First author `<table>` child (never the generated one);  follows the host's children. */
-  readonly authorTable = new Cell<HTMLTableElement | undefined>(untrack(() => this.scanAuthorTable()))
+  readonly authorTable = new E.Cell<HTMLTableElement | undefined>(untrack(() => this.scanAuthorTable()))
 
   /** The generated data-mode table, once rendered (set a microtask after its `ref`). */
-  readonly dataTable = new Cell<HTMLTableElement | undefined>(undefined)
+  readonly dataTable = new E.Cell<HTMLTableElement | undefined>(undefined)
 
   /** Bumped when the managed table's content changes (header rows, caption text ...). */
-  readonly revision = new Cell(0)
+  readonly revision = new E.Cell(0)
 
   /** `rows`, when it's an array. */
   readonly dataRows = createMemo(() => {
@@ -89,7 +78,7 @@ export class UITable extends UIElement<typeof tableVocabulary> {
   })
 
   /** Data mode:  `rows` set and no author table. */
-  readonly dataMode = createMemo(() => this.dataRows() !== undefined && !this.authorTable.get())
+  readonly isDataMode = createMemo(() => this.dataRows() !== undefined && !this.authorTable.get())
 
   /** Data-mode columns:  `columnDefs`, else the first row's keys. */
   readonly columns = createMemo((): readonly UIT.TableColumn[] => {
@@ -100,7 +89,7 @@ export class UITable extends UIElement<typeof tableVocabulary> {
   })
 
   /** The table this element styles and sorts:  the author's, else the generated one. */
-  readonly table = createMemo(() => this.authorTable.get() ?? (this.dataMode() ? this.dataTable.get() : undefined))
+  readonly table = createMemo(() => this.authorTable.get() ?? (this.isDataMode() ? this.dataTable.get() : undefined))
 
   /** Direction in effect:  `sort-direction`, `ascending` when only a column is set. */
   readonly direction = createMemo((): UIT.TableSortDirection | undefined =>
@@ -160,9 +149,14 @@ export class UITable extends UIElement<typeof tableVocabulary> {
     createEffect(
       () => {
         this.revision.get()
-        return [this.table(), this.attrs.sortable, this.sortColumnState.get(), this.direction()] as const
+        return {
+          table: this.table(),
+          isSortable: this.attrs.sortable,
+          column: this.sortColumnState.get(),
+          direction: this.direction()
+        }
       },
-      ([table, sortable, column, direction]) => this.decorateHeaders(table, sortable, column, direction)
+      (sort) => this.decorateHeaders(sort)
     )
     createEffect(
       () => [this.authorTable.get(), this.attrs.clientSort, this.sortColumnState.get(), this.direction()] as const,
@@ -189,7 +183,11 @@ export class UITable extends UIElement<typeof tableVocabulary> {
    */
   protected hostStates() {
     const attached = this.scrollerValue("attached")
-    return { attached: !!attached, "attached-top": attached === "top", "attached-bottom": attached === "bottom" }
+    return {
+      attached: !!attached,
+      "attached-top": attached === UIT.TOP,
+      "attached-bottom": attached === UIT.BOTTOM
+    }
   }
 
   render(): JSX.Element {
@@ -200,15 +198,15 @@ export class UITable extends UIElement<typeof tableVocabulary> {
           class={this.scrollerClasses()}
           part={this.part("scroller")}
           tabindex={this.scrolls() ? 0 : undefined}
-          role={this.scrolls() ? "region" : undefined}
+          role={this.scrolls() ? UIT.REGION : undefined}
           aria-label={this.scrolls() ? this.regionLabel() : undefined}
         >
           <slot />
-          {isServer ? <Show when={this.dataMode()}>{this.renderStaticData()}</Show> : null}
+          {isServer ? <Show when={this.isDataMode()}>{this.staticTable()}</Show> : undefined}
         </div>
-        {isServer ? null : (
+        {isServer ? undefined : (
           <Portal mount={this.host}>
-            <Show when={this.dataMode()}>{this.renderData()}</Show>
+            <Show when={this.isDataMode()}>{this.generatedTable()}</Show>
           </Portal>
         )}
       </>
@@ -219,16 +217,16 @@ export class UITable extends UIElement<typeof tableVocabulary> {
    * The data-mode table, into the host's LIGHT DOM (through the `Portal`).
    * - No classes here:  `mirror` writes them like on an author table.
    */
-  private renderData(): JSX.Element {
-    return <table ref={(table: HTMLTableElement) => this.adoptDataTable(table)}>{this.renderDataContent()}</table>
+  private generatedTable(): JSX.Element {
+    return <table ref={(table: HTMLTableElement) => this.adoptDataTable(table)}>{this.headAndBody()}</table>
   }
 
   /**
    * The data-mode table in a static server render:  inside the scroller (no light DOM to portal into), with the
    * classes the mirror would write, and `aria-sort` on the sorted header.
    */
-  private renderStaticData(): JSX.Element {
-    return <table class={this.classes()}>{this.renderDataContent(this.direction())}</table>
+  private staticTable(): JSX.Element {
+    return <table class={this.classes()}>{this.headAndBody(this.direction())}</table>
   }
 
   /**
@@ -236,14 +234,14 @@ export class UITable extends UIElement<typeof tableVocabulary> {
    * - `direction`:  the static render's `aria-sort` for the sorted column's header (the browser's comes from
    *   `decorateHeaders()`).
    */
-  private renderDataContent(direction?: UIT.TableSortDirection): JSX.Element {
+  private headAndBody(direction?: UIT.TableSortDirection): JSX.Element {
     const sorted = direction && this.attrs.sortable ? this.sortColumnState.get() : undefined
     return (
       <>
         <thead>
           <tr>
             <For each={this.columns()}>
-              {(column, index) => this.renderHeader(column, index() === sorted ? direction : undefined)}
+              {(column, index) => this.columnHeader(column, index() === sorted ? direction : undefined)}
             </For>
           </tr>
         </thead>
@@ -277,7 +275,7 @@ export class UITable extends UIElement<typeof tableVocabulary> {
    * One data-mode header:  `th scope="col"`, a `<button>` inside while it can sort.
    * - `sort`:  its `aria-sort`, in a static server render only.
    */
-  private renderHeader(column: UIT.TableColumn, sort?: UIT.TableSortDirection): JSX.Element {
+  private columnHeader(column: UIT.TableColumn, sort?: UIT.TableSortDirection): JSX.Element {
     const text = column.header ?? column.key
     const optOut = column.sortable === false
     return (
@@ -362,7 +360,7 @@ export class UITable extends UIElement<typeof tableVocabulary> {
     if (!table) return
     untrack(() => {
       table.setAttribute(CLASS, TableClassMirror.mirrored(table.getAttribute(CLASS), this.classes()))
-      table.setAttribute(DATA_UI, this.vocabulary.noun)
+      table.setAttribute(UIT.STATIC_ROOT, this.vocabulary.noun)
       const column = this.sortColumnState.get()
       const direction = this.direction()
       if (!this.attrs.sortable || column === undefined || !direction) return
@@ -387,26 +385,23 @@ export class UITable extends UIElement<typeof tableVocabulary> {
    *   qualifying lose the ones THIS element set
    * - the sorted column's header gets `aria-sort`;  every other header in the `thead` loses it
    */
-  private decorateHeaders(
-    table: HTMLTableElement | undefined,
-    sortable: boolean,
-    column: number | undefined,
-    direction: UIT.TableSortDirection | undefined
-  ) {
-    const headers = table && sortable ? TableSort.headers(table) : []
-    const focusable = new Set(headers.filter((header) => TableSort.isSortable(header) && !header.querySelector(BUTTON)))
+  private decorateHeaders({ table, isSortable, column, direction }: HeaderSort) {
+    const headers = table && isSortable ? TableSort.headers(table) : []
+    const focusable = new Set(
+      headers.filter((header) => TableSort.isSortable(header) && !header.querySelector(UIT.BUTTON))
+    )
     for (const header of this.focusable) {
       if (!focusable.has(header)) {
-        header.removeAttribute(TABINDEX)
+        header.removeAttribute(UIT.TABINDEX)
         this.focusable.delete(header)
       }
     }
     for (const header of focusable) {
-      if (header.hasAttribute(TABINDEX)) continue
-      header.setAttribute(TABINDEX, "0")
+      if (header.hasAttribute(UIT.TABINDEX)) continue
+      header.setAttribute(UIT.TABINDEX, "0")
       this.focusable.add(header)
     }
-    const sorted = table && sortable && column !== undefined ? TableSort.headerAt(table, column) : undefined
+    const sorted = table && isSortable && column !== undefined ? TableSort.headerAt(table, column) : undefined
     if (this.sortedHeader && this.sortedHeader !== sorted) this.sortedHeader.removeAttribute(ARIA_SORT)
     for (const header of headers) if (header !== sorted) header.removeAttribute(ARIA_SORT)
     if (sorted && direction) sorted.setAttribute(ARIA_SORT, direction)
@@ -425,7 +420,7 @@ export class UITable extends UIElement<typeof tableVocabulary> {
 
   /** Enter / Space on a focusable header (not its button:  that one clicks). */
   private readonly onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== ENTER && event.key !== SPACE) return
+    if (event.key !== UIT.Key.enter && event.key !== UIT.Key.space) return
     const header = this.sortableHeader(event)
     if (!header || event.target !== header) return
     event.preventDefault()
@@ -460,8 +455,32 @@ export class UITable extends UIElement<typeof tableVocabulary> {
   // ## Values
   ////////////////
 
-  /** Converted value of scroller attribute `name` (see `TableGrammar.scrollerAttributes`). */
+  /** Converted value of scroller attribute `name` (`TableGrammar.scroller()`'s). */
   private scrollerValue(name: string): unknown {
-    return this.classValue(name as AttributeName<typeof tableVocabulary>)
+    return this.classValue(name as E.AttributeName<typeof tableVocabulary>)
   }
 }
+
+/** What `decorateHeaders()` decorates for. */
+type HeaderSort = {
+  /** the managed table, if any */
+  table: HTMLTableElement | undefined
+  /** `sortable` */
+  isSortable: boolean
+  /** sorted column, if any */
+  column: number | undefined
+  /** its direction, if any */
+  direction: UIT.TableSortDirection | undefined
+}
+
+/** Tables the element rendered itself (data mode):  never mistaken for an author's. */
+const GENERATED = new WeakSet<HTMLTableElement>()
+
+/** Header attribute of the sorted column's direction (the caret in `ui-table.css`). */
+const ARIA_SORT = "aria-sort"
+
+/** A newly sorted column's direction. */
+const ASCENDING: UIT.TableSortDirection = "ascending"
+
+/** Prefix of the class `stack-by` adds to the table:  `stack-by-container`, `stack-by-viewport`. */
+const STACK_BY_CLASS = "stack-by-"

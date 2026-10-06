@@ -1,8 +1,6 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { popupVocabulary } from "./ui-popup.vocabulary.en"
-import { DEFAULT_POSITION } from "./ui-popup.types"
-import { CLICK, TITLE } from "$/ui/components/components.types"
+import { DEFAULT_POSITION, type Vocabulary } from "./ui-popup.types"
 
 /****************
  * ### `PopupFallback`
@@ -13,9 +11,9 @@ import { CLICK, TITLE } from "$/ui/components/components.types"
  *   a tooltip-like popup (`on` isn't `click`) copies its text into the target's `title` when the target has
  *   none, removed again on dispose.
  ****************/
-export class PopupFallback extends NativeFallback<typeof popupVocabulary> {
-  @proto static vocabulary = popupVocabulary
-  @proto static degraded = [
+export class PopupFallback extends E.NativeFallback<Vocabulary> {
+  @E.proto static vocabulary = popupVocabulary
+  @E.proto static degraded = [
     "showing it:  no popover, positioning, triggers, invoker commands, `ui-open` / `ui-close` or Escape;  a tooltip's text becomes " +
       "the target's native `title`",
     "click popups (`on=click`):  nothing at all"
@@ -28,31 +26,33 @@ export class PopupFallback extends NativeFallback<typeof popupVocabulary> {
     const header = this.attr("header")
     const content = this.attr("content")
     const popup = this.create("div", { class: this.classes(this.attr("position") ?? DEFAULT_POSITION) })
-    if (header) popup.append(this.create("div", { class: "header", part: "header" }, header))
-    if (content) popup.append(this.create("div", { class: "content", part: "content" }, content))
+    if (header) popup.append(this.create("div", { class: UIT.HEADER, part: UIT.HEADER }, header))
+    if (content) popup.append(this.create("div", { class: UIT.CONTENT, part: UIT.CONTENT }, content))
     popup.append(this.slot())
     return [this.decorate(popup, "popup")]
   }
 
+  /** Copies a tooltip's text into its target's `title`, which needs the host attached (its target is a sibling). */
   protected override attached() {
-    if (this.attr("on") === CLICK) return
+    if (this.attr("on") === UIT.PopupTrigger.click) return
     const target = this.target()
     const text = [this.attr("header"), this.attr("content"), this.host.textContent?.trim()].filter(Boolean).join(" -- ")
-    if (!target || !text || target.hasAttribute(TITLE)) return
-    target.setAttribute(TITLE, text)
+    if (!target || !text || target.hasAttribute(UIT.TITLE)) return
+    target.setAttribute(UIT.TITLE, text)
     this.titled = target
   }
 
+  /** Takes the `title` it set off the target again. */
   override dispose() {
-    this.titled?.removeAttribute(TITLE)
+    this.titled?.removeAttribute(UIT.TITLE)
     this.titled = undefined
     super.dispose()
   }
 
   /** The element `for` names in the host's tree, else the previous element sibling. */
-  private target(): Element | null {
+  private target(): Element | undefined {
     const id = this.attr("for")
-    if (id) return (this.host.getRootNode() as Document | ShadowRoot).getElementById?.(id) ?? null
-    return this.host.previousElementSibling
+    if (id) return (this.host.getRootNode() as Document | ShadowRoot).getElementById?.(id) ?? undefined
+    return this.host.previousElementSibling ?? undefined
   }
 }

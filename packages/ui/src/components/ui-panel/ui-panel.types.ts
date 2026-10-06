@@ -1,18 +1,11 @@
 /**
- * Loose constants and types of the `ui-panel` family:  what its element class, vocabulary and native fallback share.
- * - Data only:  nothing here runs.
- * - NOTE:  `import type` only from the vocabulary (it imports nothing from here, but a value import would be a cycle
- *   the day it does).
+ * Constants of the `ui-panel` family that its element (`UIPanel`) and its native fallback (`PanelFallback`) share.
+ * - Pure data, at the bottom of the folder's imports:  imports nothing, so node can load it (`yarn site:data`).
  */
 
-import type { panelVocabulary } from "./ui-panel.vocabulary.en"
-
 ////////////////
-// ## UIPanel
+// ## Class words
 ////////////////
-
-/** PanelVocabulary type, for brevity. */
-export type PanelVocabulary = typeof panelVocabulary
 
 /** Class word added after the section's:  `ui ... section panel`. */
 export const PANEL = "panel"

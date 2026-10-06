@@ -1,71 +1,46 @@
 /**
- * Loose constants, types and helpers of `<ui-popup>`:  its element classes and native fallback import them from here.
+ * Types of the `ui-popup` family:  what its element class (`UIPopup`) and its native fallback (`PopupFallback`)
+ * share.
+ * - Pure data, at the bottom of the folder's imports:  types only (the vocabulary), so node can load it
+ *   (`yarn site:data`).
+ * - Its roles, ids, inline properties and ARIA relations are module constants below `UIPopup`, the one class that
+ *   uses them (epic `wwod-spell-ui`, Q18).
  */
 
 import type { popupVocabulary } from "./ui-popup.vocabulary.en"
-import type { UIT } from "$/ui/core"
 
 ////////////////
-// ## UIPopup
+// ## Element
 ////////////////
 
-/** PopupVocabulary type, for brevity. */
-export type PopupVocabulary = typeof popupVocabulary
+/** Vocabulary type, for brevity. */
+export type Vocabulary = typeof popupVocabulary
 
 /** An idref ARIA relation:  its attribute and its element-reflection property. */
-export type AriaRelation = { attribute: string; property: string }
-
-/** `showPopover()` options with `source` (not in every DOM lib yet). */
-export type ShowPopoverOptions = { source?: HTMLElement }
-
-/** Tooltips describe their target. */
-export const DESCRIBED_BY: AriaRelation = { attribute: "aria-describedby", property: "ariaDescribedByElements" }
-
-/** Click popups are controlled by their target. */
-export const CONTROLS: AriaRelation = { attribute: "aria-controls", property: "ariaControlsElements" }
-
-/**
- * `position` => `position-area`:  the popup on that side, its edge lined up with the target's (`span-*` grows
- * away from the named corner), or centred on it.
- */
-export const POSITION_AREAS: Readonly<Record<string, string>> = {
-  "top left": "top span-right",
-  "top center": "top center",
-  "top right": "top span-left",
-  "bottom left": "bottom span-right",
-  "bottom center": "bottom center",
-  "bottom right": "bottom span-left",
-  "left center": "left center",
-  "right center": "right center",
-  "left top": "left span-bottom",
-  "left bottom": "left span-top",
-  "right top": "right span-bottom",
-  "right bottom": "right span-top"
+export type AriaRelation = {
+  /** the idref attribute, e.g. `aria-describedby` */
+  attribute: string
+  /** its element-reflection property, e.g. `ariaDescribedByElements` (an idref can't cross a shadow boundary) */
+  property: string
 }
 
-/** Fomantic's default position. */
+/** `showPopover()` options with `source` (not in every DOM lib yet). */
+export type ShowPopoverOptions = {
+  /** the invoker:  the implicit anchor, and where Tab continues from */
+  source?: HTMLElement
+}
+
+/**
+ * A `popover` value the element sets on its host (or, in a server render, its root):
+ * - `auto` -- light dismiss;  only a server render's click popup
+ * - `manual` -- the page (or the element) decides;  click and manual popups
+ * - `hint` -- hover / focus popups where the browser has it (`UI.browser.supports.popoverHint`)
+ */
+export type PopoverMode = "auto" | "manual" | "hint"
+
+////////////////
+// ## Markup:  shared by the element and its fallback
+////////////////
+
+/** Fomantic's default position:  the popup's class words after its noun, `ui popup top left`. */
 export const DEFAULT_POSITION = "top left"
-
-/** Fomantic's default trigger. */
-export const DEFAULT_TRIGGER: UIT.PopupTrigger = "hover"
-
-/** `UI.ids` prefix. */
-export const ID_PREFIX = "ui-popup"
-
-/** Host roles. */
-export const TOOLTIP = "tooltip"
-export const DIALOG = "dialog"
-
-/** Popover modes. */
-export const HINT = "hint"
-
-/** CSS properties and keywords set inline. */
-export const ANCHOR_NAME = "anchor-name"
-export const POSITION_ANCHOR = "position-anchor"
-export const POSITION_AREA = "position-area"
-export const CONTENTS = "contents"
-
-/** ARIA attributes set on the target. */
-export const ARIA_EXPANDED = "aria-expanded"
-export const ARIA_HASPOPUP = "aria-haspopup"
-export const CLOSED = "closed"

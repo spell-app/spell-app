@@ -1,24 +1,21 @@
 import { createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UI, UIElement, type UIHost, UIT } from "$/ui/core"
-
-import { shapeVocabulary } from "./ui-shape.vocabulary.en"
+import { E, UI, UIT } from "$/ui/core"
 import { ShapeHost } from "./ShapeHost"
 import { ShapeFallback } from "./ui-shape.fallback"
+import { POLITE, SIDE, SIDES, type ShapeVocabulary } from "./ui-shape.types"
+import { shapeVocabulary } from "./ui-shape.vocabulary.en"
 
 import shapeCSS from "./ui-shape.css?inline"
-import { DEFAULT_FLIP, SIDES, POLITE, INACTIVE, LEAVING, STYLE, STAGED, FAIL_SAFE, SIDE } from "./ui-shape.types"
-import type { ShapeVocabulary, ShapeSizes } from "./ui-shape.types"
-import { ANIMATING, ACTIVE, DIGITS } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-shape>`
  * Fomantic's shape:  one of its `<ui-side>`s at a time, turning in 3D to another --
  * `<div class="ui ... shape [animating]" part="shape"><div class="sides" part="sides"><slot>`.
  * - `activeIndex` is the side shown;  changing it (or the host's `flip()` / `next()` / `previous()`,
- *   `ShapeHost`, or an invoker command, `SHAPE_COMMANDS`) turns the `direction` way (`up`, `down`, `left`, `right`,
- *   `over`, `back`), then fires `ui-change`.  Flips queue;  a flip to the side already shown does nothing.
+ *   `ShapeHost`, or an invoker command, `UIT.SHAPE_COMMANDS`) turns the `direction` way (`up`, `down`, `left`,
+ *   `right`, `over`, `back`), then fires `ui-change`.  Flips queue;  a flip to the side already shown does nothing.
  * - The flip is Fomantic's own geometry (`shape.js`):  the stage keeps its size, the next side is staged at 90° (or
  *   180°) around the current one, and the sides box turns with a CSS transition;  inline styles are cleared after.
  * - SIDE EFFECTS on the sides (this family's own hosts):  custom states (`active`, `inactive`, `animating`,
@@ -27,12 +24,12 @@ import { ANIMATING, ACTIVE, DIGITS } from "$/ui/components/components.types"
  * - Accessibility:  hidden sides are `display: none`;  the sides box is a polite live region, so the new side is
  *   read out after a flip (Fomantic's had no ARIA).
  ****************/
-export class UIShape extends UIElement<ShapeVocabulary> {
-  @proto static vocabulary = shapeVocabulary
-  @proto static styles = { shape: shapeCSS }
-  @proto static Fallback = ShapeFallback
-  @proto static Host = ShapeHost
-  @proto static delegatesFocus = false
+export class UIShape extends E.UIElement<ShapeVocabulary> {
+  @E.proto static vocabulary = shapeVocabulary
+  @E.proto static styles = { shape: shapeCSS }
+  @E.proto static Fallback = ShapeFallback
+  @E.proto static Host = ShapeHost
+  @E.proto static delegatesFocus = false
 
   ////////////////
   // ## State
@@ -42,16 +39,16 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   readonly activeState = this.controlled("active-index", 0)
 
   /** The side elements, in order. */
-  readonly sides = new Cell<UIHost[]>(this.findSides())
+  readonly sides = new E.Cell<E.UIHost[]>(this.findSides())
 
   /** A flip is running. */
-  readonly animating = new Cell(false)
+  readonly isAnimating = new E.Cell(false)
 
   /**
    * Has had sides;  until then `current` is only a guess.
    * - NOTE:  the barrel defines `<ui-shape>` BEFORE `<ui-side>`, so a parsed shape upgrades with no sides yet.
    */
-  private hadSides = untrack(() => this.sides.get().length > 0)
+  private hasHadSides = untrack(() => this.sides.get().length > 0)
 
   /** Index of the side shown now;  follows the queue, not the attribute. */
   private current = untrack(() => this.normalize(this.activeState.get() ?? 0, this.sides.get().length))
@@ -62,11 +59,13 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   /** The queue:  each flip starts when the one before has finished. */
   private queue: Promise<unknown> = Promise.resolve()
 
-  /** The stage and the turning box. */
+  /** The stage:  the outer box, which keeps its size while the sides turn. */
   private stage?: HTMLDivElement
+
+  /** The turning box of sides. */
   private box?: HTMLDivElement
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     const listeners = new AbortController()
     const options = { signal: listeners.signal }
@@ -80,11 +79,11 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   ////////////////
 
   protected extraClasses(): string | undefined {
-    return this.animating.get() ? ANIMATING : undefined
+    return this.isAnimating.get() ? UIT.ANIMATING : undefined
   }
 
   protected hostStates() {
-    return { animating: this.animating.get() }
+    return { animating: this.isAnimating.get() }
   }
 
   ////////////////
@@ -107,7 +106,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
         if (next !== this.target) void this.enqueue(untrack(() => this.attrs.direction) ?? DEFAULT_FLIP, next)
       }
     )
-    if (this.serverInline()) return this.renderInline()
+    if (this.isServerInline()) return this.inlineShape()
     return (
       <div ref={(element) => (this.stage = element)} class={this.classes()} part={this.part("shape")}>
         <div ref={(element) => (this.box = element)} class={SIDES} part={this.part("sides")} aria-live={POLITE}>
@@ -122,12 +121,12 @@ export class UIShape extends UIElement<ShapeVocabulary> {
    * class grammar's), since the host it replaces sits in running text -- a `<div>` would close an open `<p>` when a
    * browser parses the page.  Its sides follow (`UISide`).
    */
-  serverInline(): boolean {
+  isServerInline(): boolean {
     return isServer && untrack(() => !!this.attrs.text)
   }
 
-  /** `render()`'s markup as `<span>`s (`serverInline()`). */
-  private renderInline(): JSX.Element {
+  /** `render()`'s markup as `<span>`s (`isServerInline()`). */
+  private inlineShape(): JSX.Element {
     return (
       <span class={this.classes()} part={this.part("shape")}>
         <span class={SIDES} part={this.part("sides")} aria-live={POLITE}>
@@ -156,7 +155,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     return this.flipTo(undefined, this.target + step)
   }
 
-  /** An invoker command aimed at the host (`SHAPE_COMMANDS`):  `--next`, `--previous`, `--flip-<direction>`. */
+  /** An invoker command aimed at the host (`UIT.SHAPE_COMMANDS`):  `--next`, `--previous`, `--flip-<direction>`. */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
     if (command === UIT.SHAPE_COMMANDS.next) void this.flipBy(1)
@@ -189,8 +188,9 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     const next = sides[index]
     if (!next || index === this.current) return false
     const { stage, box } = this
-    const instant = !active || !stage || !box || !this.host.isConnected || UI.browser.isReducedMotion
-    if (!instant && stage.offsetParent !== null) await this.animate(direction, stage, box, active, next)
+    const isInstant = !active || !stage || !box || !this.host.isConnected || UI.browser.isReducedMotion
+    // `offsetParent` is the platform's:  `null` while hidden
+    if (!isInstant && stage.offsetParent !== null) await this.animate({ direction, stage, box, active, next })
     this.current = index
     this.mark(sides)
     const detail: UIT.ShapeChangeDetail = { activeIndex: index, side: next, flip: direction }
@@ -199,12 +199,12 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   }
 
   /** Stage, turn, wait, reset. */
-  private async animate(direction: UIT.ShapeFlip, stage: HTMLElement, box: HTMLElement, active: UIHost, next: UIHost) {
+  private async animate({ direction, stage, box, active, next }: FlipParams) {
     // the stage keeps its size (Fomantic's `width` / `height: 'initial'`)
     stage.style.width = `${stage.offsetWidth}px`
     stage.style.height = `${stage.offsetHeight}px`
     next.setState(INACTIVE, false)
-    next.setState(ANIMATING, true)
+    next.setState(UIT.ANIMATING, true)
     const sizes = { active: this.sizeOf(active), next: this.sizeOf(next) }
     const staged = UIShape.staging(direction, sizes)
     Object.assign(active.style, { transform: staged.active })
@@ -212,17 +212,17 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     const duration = this.duration()
     if (duration) box.style.transitionDuration = duration
     void box.offsetWidth
-    this.animating.set(true)
-    stage.classList.add(ANIMATING)
+    this.isAnimating.set(true)
+    stage.classList.add(UIT.ANIMATING)
     active.setState(LEAVING, true)
     box.style.transform = UIShape.turn(direction, sizes)
     await this.transitionEnd(box)
     for (const element of [stage, box]) element.removeAttribute(STYLE)
     for (const side of [active, next]) for (const property of STAGED) side.style.removeProperty(property)
-    stage.classList.remove(ANIMATING)
+    stage.classList.remove(UIT.ANIMATING)
     active.setState(LEAVING, false)
-    next.setState(ANIMATING, false)
-    this.animating.set(false)
+    next.setState(UIT.ANIMATING, false)
+    this.isAnimating.set(false)
   }
 
   /** Resolve on the box's `transitionend` (its own), or after its duration plus a fail-safe. */
@@ -230,23 +230,25 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     return new Promise((resolve) => {
       const style = getComputedStyle(box)
       const wait = Math.max(...style.transitionDuration.split(",").map((time) => UIShape.ms(time)))
-      const done = () => {
-        clearTimeout(timer)
-        box.removeEventListener("transitionend", onEnd)
-        resolve()
-      }
       const onEnd = (event: TransitionEvent) => {
         if (event.target === box) done()
       }
       const timer = setTimeout(done, wait + FAIL_SAFE)
       box.addEventListener("transitionend", onEnd)
+
+      /** Stop waiting:  the timer and the listener go, and the flip goes on. */
+      function done() {
+        clearTimeout(timer)
+        box.removeEventListener("transitionend", onEnd)
+        resolve()
+      }
     })
   }
 
   /** The first sides found after none (upgrade order, or content added later):  start at `activeIndex`, not 0. */
-  private firstSides(sides: readonly UIHost[]) {
-    if (this.hadSides || !sides.length) return
-    this.hadSides = true
+  private firstSides(sides: readonly E.UIHost[]) {
+    if (this.hasHadSides || !sides.length) return
+    this.hasHadSides = true
     this.current = this.target = this.normalize(
       untrack(() => this.activeState.get() ?? 0),
       sides.length
@@ -254,30 +256,65 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   }
 
   /** Show the current side;  hide the rest. */
-  private mark(sides: readonly UIHost[]) {
+  private mark(sides: readonly E.UIHost[]) {
     sides.forEach((side, index) => {
-      side.setState(ACTIVE, index === this.current)
+      side.setState(UIT.ACTIVE, index === this.current)
       side.setState(INACTIVE, index !== this.current)
     })
   }
 
-  ////////////////
-  // ## Geometry (Fomantic's `shape.js`)
-  ////////////////
-
   /** A side's margin box. */
-  private sizeOf(side: HTMLElement): { width: number; height: number } {
+  private sizeOf(side: HTMLElement): Size {
     const style = getComputedStyle(side)
-    const margin = (a: string, b: string) =>
-      parseFloat(style.getPropertyValue(a)) + parseFloat(style.getPropertyValue(b))
     return {
-      width: side.offsetWidth + margin("margin-left", "margin-right"),
-      height: side.offsetHeight + margin("margin-top", "margin-bottom")
+      width: side.offsetWidth + margins("margin-left", "margin-right"),
+      height: side.offsetHeight + margins("margin-top", "margin-bottom")
+    }
+
+    /** The two margins, in px. */
+    function margins(first: string, second: string): number {
+      return parseFloat(style.getPropertyValue(first)) + parseFloat(style.getPropertyValue(second))
     }
   }
 
+  ////////////////
+  // ## Reading
+  ////////////////
+
+  /** Child elements whose definition's noun is `side` (a `<ui-side>`, or a translated one). */
+  private findSides(): E.UIHost[] {
+    return [...this.host.children].filter(
+      (child): child is E.UIHost => E.UIElement.definitions.get(child.localName)?.vocabulary.noun === SIDE
+    )
+  }
+
+  /** `index` wrapped into `0 .. count - 1`. */
+  private normalize(index: number, count: number): number {
+    if (!count) return 0
+    return ((Math.trunc(index) % count) + count) % count
+  }
+
+  /** The `direction` attribute. */
+  private defaultFlip(): UIT.ShapeFlip {
+    return untrack(() => this.attrs.direction) ?? DEFAULT_FLIP
+  }
+
+  /** `duration` as CSS:  bare digits are ms. */
+  private duration(): string | undefined {
+    const text = untrack(() => this.attrs.duration)?.trim()
+    if (!text) return undefined
+    return UIT.DIGITS.test(text) ? `${text}ms` : text
+  }
+
+  ////////////////
+  // ## Geometry (Fomantic's `shape.js`):  static, as it's pure
+  ////////////////
+
   /** Where the active side stays and the next one waits, 90° (or 180°) round (Fomantic's `stage.*`). */
-  static staging(direction: UIT.ShapeFlip, sizes: ShapeSizes): { active: string; next: Partial<CSSStyleDeclaration> } {
+  private static staging(
+    direction: UIT.ShapeFlip,
+    sizes: Sizes
+  ): { active: string; next: Partial<CSSStyleDeclaration> } {
     const { active, next } = sizes
     if (direction === "up" || direction === "down") {
       const origin = (active.height - next.height) / 2
@@ -305,7 +342,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   }
 
   /** How the sides box turns (Fomantic's `get.transform.*`). */
-  static turn(direction: UIT.ShapeFlip, { active, next }: ShapeSizes): string {
+  private static turn(direction: UIT.ShapeFlip, { active, next }: Sizes): string {
     switch (direction) {
       case "up":
         return `translateY(${next.height - active.height / 2}px) translateZ(${-active.height / 2}px) rotateX(-90deg)`
@@ -322,35 +359,6 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     }
   }
 
-  ////////////////
-  // ## Reading
-  ////////////////
-
-  /** Child elements whose definition's noun is `side` (a `<ui-side>`, or a translated one). */
-  private findSides(): UIHost[] {
-    return [...this.host.children].filter(
-      (child): child is UIHost => UIElement.definitions.get(child.localName)?.vocabulary.noun === SIDE
-    )
-  }
-
-  /** `index` wrapped into `0 .. count - 1`. */
-  private normalize(index: number, count: number): number {
-    if (!count) return 0
-    return ((Math.trunc(index) % count) + count) % count
-  }
-
-  /** The `direction` attribute. */
-  private defaultFlip(): UIT.ShapeFlip {
-    return untrack(() => this.attrs.direction) ?? DEFAULT_FLIP
-  }
-
-  /** `duration` as CSS:  bare digits are ms. */
-  private duration(): string | undefined {
-    const text = untrack(() => this.attrs.duration)?.trim()
-    if (!text) return undefined
-    return DIGITS.test(text) ? `${text}ms` : text
-  }
-
   /** A CSS time (`0.6s`, `600ms`) in ms. */
   private static ms(time: string): number {
     const value = Number.parseFloat(time)
@@ -358,3 +366,41 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     return time.trim().endsWith("ms") ? value : value * 1000
   }
 }
+
+/** What one animated flip works on. */
+type FlipParams = {
+  /** which way it turns */
+  direction: UIT.ShapeFlip
+  /** the outer box, held at its size */
+  stage: HTMLElement
+  /** the turning box of sides */
+  box: HTMLElement
+  /** the side shown now */
+  active: E.UIHost
+  /** the side turning in */
+  next: E.UIHost
+}
+
+/** A margin box, in px. */
+type Size = { width: number; height: number }
+
+/** Margin-box sizes of the active and next sides. */
+type Sizes = { active: Size; next: Size }
+
+/** Default of `direction` (the vocabulary's). */
+const DEFAULT_FLIP: UIT.ShapeFlip = "left"
+
+/** A side's state while another is shown:  hidden. */
+const INACTIVE = "inactive"
+
+/** The active side's state while it turns away. */
+const LEAVING = "leaving"
+
+/** Its own boxes' inline styles are cleared after a flip (the attribute);  on the sides, only what it staged. */
+const STYLE = "style"
+
+/** The inline properties a flip stages on the sides. */
+const STAGED = ["transform", "top", "left"] as const
+
+/** ms added to the transition before giving up on `transitionend`. */
+const FAIL_SAFE = 100

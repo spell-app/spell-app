@@ -268,6 +268,14 @@ export const PART_STATIC_CLASS_PREFIX = "in-"
  */
 export const STATIC_CONTROL = "data-ui-control"
 
+/**
+ * Marks each component ROOT in a static server render (`$/ui/static`) with its family's kind (`data-ui="table"`).
+ * - The flattener writes it (as `SSR.ROOT_ATTRIBUTE`, which IS this);  a component writes it itself only on what the
+ *   flattener never sees as a root:  `<ui-table>`'s slotted author table.
+ * - PUBLISHED spelling:  component sheets (`:not([data-ui])`) and `native.css` spell it out.
+ */
+export const STATIC_ROOT = "data-ui"
+
 ////////////////
 // ## Grid
 ////////////////
@@ -580,8 +588,16 @@ export type CardSharedVariation = "size" | "color" | "horizontal" | "raised" | "
 // ## Popup
 ////////////////
 
-/** What opens a `<ui-popup>` (`on`):  Fomantic's names;  `hover` also opens on keyboard focus. */
-export type PopupTrigger = "hover" | "focus" | "click" | "manual"
+/**
+ * What opens a `<ui-popup>` (`on`):  Fomantic's names;  `hover` also opens on keyboard focus.
+ * - A const object (the `Key` shape), so the element compares `trigger === UIT.PopupTrigger.click`.
+ */
+export const PopupTrigger = { hover: "hover", focus: "focus", click: "click", manual: "manual" } as const
+/** One of `PopupTrigger`'s values, e.g. `"click"`. */
+export type PopupTrigger = (typeof PopupTrigger)[keyof typeof PopupTrigger]
+
+/** Every `PopupTrigger`, in Fomantic's order:  the vocabulary's `on` values. */
+export const PopupTriggers = [PopupTrigger.hover, PopupTrigger.focus, PopupTrigger.click, PopupTrigger.manual] as const
 
 /** `detail` of the cancelable `ui-open` / `ui-close`, from a `<ui-popup>`. */
 export type PopupOpenDetail = {
@@ -713,8 +729,21 @@ export type SearchResponse =
  * - `prefix` -- nothing more (Fomantic's `false`)
  * - `some` -- any of its words, anywhere
  * - `all` -- all of its words, anywhere in the fields together
+ *
+ * A const object (the `Key` shape), so `SearchMatcher` compares `match === UIT.SearchMatch.fuzzy`.
  */
-export type SearchMatch = "exact" | "fuzzy" | "prefix" | "some" | "all"
+export const SearchMatch = { exact: "exact", fuzzy: "fuzzy", prefix: "prefix", some: "some", all: "all" } as const
+/** One of `SearchMatch`'s values, e.g. `"fuzzy"`. */
+export type SearchMatch = (typeof SearchMatch)[keyof typeof SearchMatch]
+
+/** Every `SearchMatch`, in Fomantic's order:  the vocabulary's `full-text-search` values. */
+export const SearchMatches = [
+  SearchMatch.exact,
+  SearchMatch.fuzzy,
+  SearchMatch.prefix,
+  SearchMatch.some,
+  SearchMatch.all
+] as const
 
 /** `detail` of the cancelable `ui-select`, from `<ui-search>`. */
 export type SearchSelectDetail = {
@@ -1095,6 +1124,31 @@ export type AccordionToggleDetail = {
   originalEvent?: Event
 }
 
+/**
+ * What acts on its own inside a title that folds (a `<ui-accordion>` panel's, a collapsible `<ui-section>`'s):  a
+ * click on one never folds it.
+ */
+export const TITLE_CONTROLS = "a[href], button, input, select, textarea, label, [contenteditable], [tabindex]"
+
+/** Tells a click on a folding title from a click on a control inside it (`TITLE_CONTROLS`). */
+export class TitleControls {
+  /**
+   * Did `event` land on a control inside the title, before reaching its toggle (`toggle`, a selector:  the
+   * accordion's `summary`, the section's fold button)?
+   * - Climbs `composedPath()`, so a control slotted into the title counts.
+   */
+  static isClicked(event: Event, toggle: string): boolean {
+    for (const target of event.composedPath()) {
+      // elements only:  the path ends in shadow roots, the document and the window, which can't `matches()`
+      const element = target as Partial<Element>
+      if (!element.matches) continue
+      if (element.matches(toggle)) return false
+      if (element.matches(TITLE_CONTROLS)) return true
+    }
+    return false
+  }
+}
+
 ////////////////
 // ## Tab
 ////////////////
@@ -1176,18 +1230,6 @@ export const Key = {
 /** One of `Key`'s values, e.g. `"ArrowDown"`. */
 export type Key = (typeof Key)[keyof typeof Key]
 
-/** DEPRECATED:  `Key.arrowDown`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
-export const ARROW_DOWN = "ArrowDown"
-
-/** DEPRECATED:  `Key.enter`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
-export const ENTER = "Enter"
-
-/** DEPRECATED:  `Key.home`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
-export const HOME = "Home"
-
-/** DEPRECATED:  `Key.end`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
-export const END = "End"
-
 ////////////////
 // ## ARIA:  attributes, roles and values
 ////////////////
@@ -1239,6 +1281,9 @@ export const HORIZONTAL = "horizontal"
 
 /** Orientation (`aria-orientation`, roving focus, a layout word):  one above the other. */
 export const VERTICAL = "vertical"
+
+/** ARIA role of a named landmark:  a root's or a table's scrolling box, a toast container. */
+export const REGION = "region"
 
 ////////////////
 // ## Tags and selectors
@@ -1365,6 +1410,9 @@ export const CLOSE_CLASS = "close icon"
 
 /** Glyph of a close button's icon (Fomantic's `close icon`). */
 export const CLOSE_ICON = "xmark"
+
+/** Text a native fallback's close button shows instead of `CLOSE_ICON`'s glyph (no icon packs without Solid). */
+export const CLOSE_TEXT = "×"
 
 /**
  * Prefix of the colour remap class a coloured box adds without the `ui` word (`ui-red`):  an item, a step, a feed

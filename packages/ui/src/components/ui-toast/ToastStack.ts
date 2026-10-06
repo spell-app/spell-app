@@ -1,52 +1,8 @@
-import {
-  UI,
-  UIElement,
-  ValueSets,
-  type AttributeNameOf,
-  type ToastAction,
-  type ToastHandle,
-  type ToastOptions,
-  type ToastProvider,
-  Warnings
-} from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { toastVocabulary } from "./ui-toast.vocabulary.en"
+import { ACTIONS, ATTACHED, FOCUS_WITHIN, HIDE_EVENT, INVERTED, UI_WORD, type Vocabulary } from "./ui-toast.types"
 
 import containerCSS from "./ui-toast.container.css?inline"
-import {
-  ID_PREFIX,
-  HIDE_EVENT,
-  DEFAULT_DISPLAY_TIME,
-  TYPES,
-  HUES,
-  INVERTED,
-  GROUP_NOUN,
-  ATTACHED,
-  SLOT_ACTIONS,
-  BUTTON_NOUN,
-  KEY_ONLY,
-  COLOR,
-  DEFAULT_POSITION,
-  POSITIONS,
-  CONTAINER_SHEET,
-  UI_WORD,
-  CONTAINER_CLASS,
-  ROLE,
-  REGION,
-  NOTIFICATIONS,
-  FOCUS_WITHIN
-} from "./ui-toast.types"
-import type { ToastRecord } from "./ui-toast.types"
-import {
-  FALSE,
-  FLUID,
-  ICON,
-  ARIA_LABEL,
-  MANUAL,
-  POPOVER_OPEN,
-  VERTICAL,
-  HORIZONTAL
-} from "$/ui/components/components.types"
 
 /****************
  * ### `ToastStack`
@@ -64,19 +20,28 @@ import {
  *   `<ui-buttons>`.  An action's `click()` returning `false` prevents the click's default, which keeps the toast.
  * - Replacing:  `show({ id })` with the id of a showing toast removes that one first (its `closed` resolves).
  * - Everything is light DOM built with `createElement` / `textContent`:  never `innerHTML` with caller text.
+ * - Registered by the family barrel as `UI.toasts`' provider;  the runtime never imports it.
  ****************/
-export class ToastStack implements ToastProvider {
+export class ToastStack implements E.ToastProvider {
+  /** Page the toasts and their containers are made in;  a test passes its own. */
+  readonly document: Document
+
   /** Showing toasts by id, with what settles their `closed`. */
   private readonly toasts = new Map<string, ToastRecord>()
 
   /** Containers by position key. */
   private readonly containers = new Map<string, HTMLElement>()
 
-  show(options: ToastOptions): ToastHandle {
+  constructor({ document = globalThis.document }: ToastStackProps = {}) {
+    this.document = document
+  }
+
+  /** Show a `<ui-toast>` for `options`, replacing a showing one with the same `id`. */
+  show(options: E.ToastOptions): E.ToastHandle {
     const id = options.id ?? UI.ids.next(ID_PREFIX)
     this.remove(id)
-    const toast = this.build(options, id)
-    const container = this.container(options)
+    const toast = this.toastFor(options, id)
+    const container = this.containerFor(options)
     if (options.newestOnTop) container.prepend(toast)
     else container.append(toast)
     ToastStack.raise(container)
@@ -87,6 +52,7 @@ export class ToastStack implements ToastProvider {
     return { id, closed, element: toast }
   }
 
+  /** Close toast `id` as `host.close()` does (the cancelable `ui-close` first);  nothing for an unknown id. */
   dismiss(id: string) {
     const record = this.toasts.get(id)
     ;(record?.element as { close?: () => boolean } | undefined)?.close?.()
@@ -97,34 +63,34 @@ export class ToastStack implements ToastProvider {
   ////////////////
 
   /** The `<ui-toast>` for `options`. */
-  private build(options: ToastOptions, id: string): HTMLElement {
-    const toast = document.createElement(toastVocabulary.tag)
+  private toastFor(options: E.ToastOptions, id: string): HTMLElement {
+    const toast = this.document.createElement(toastVocabulary.tag)
     toast.id = id
     // keys checked against the vocabulary
-    const attributes: Partial<Record<AttributeNameOf<typeof toastVocabulary>, string>> = {
+    const attributes: Partial<Record<E.AttributeNameOf<Vocabulary>, string>> = {
       header: options.title,
       message: options.message,
       "display-time": String(options.displayTime ?? DEFAULT_DISPLAY_TIME),
       icon: options.showIcon === true ? "" : options.showIcon || undefined,
       progress: options.showProgress || undefined,
       "progress-up": options.progressUp ? "" : undefined,
-      "pause-on-hover": options.pauseOnHover === false ? FALSE : undefined,
+      "pause-on-hover": options.pauseOnHover === false ? UIT.FALSE : undefined,
       closable: options.closeIcon ? "" : undefined,
-      "close-on-click": options.closeOnClick === false ? FALSE : undefined,
-      compact: options.compact === false ? FALSE : undefined,
+      "close-on-click": options.closeOnClick === false ? UIT.FALSE : undefined,
+      compact: options.compact === false ? UIT.FALSE : undefined,
       actions: options.actions?.length ? options.classActions : undefined,
       type: options.type
     }
-    const words = (options.class ?? "").split(/\s+/).filter(Boolean)
+    const words = (options.class ?? "").split(UIT.WHITESPACE).filter(Boolean)
     for (const word of words) {
-      if (TYPES.includes(word)) attributes.type = word
-      else if (ValueSets.has(HUES, word)) attributes.color = word
+      if (TYPE_WORDS.includes(word)) attributes.type = word
+      else if (E.ValueSets.has(HUES, word)) attributes.color = word
       else if (word === INVERTED) attributes.inverted = ""
     }
     for (const [name, value] of Object.entries(attributes)) if (value !== undefined) toast.setAttribute(name, value)
     // every word stays on the host too (Fomantic's `class`):  the page themes this one toast by it
     if (words.length) toast.className = words.join(" ")
-    if (options.actions?.length) toast.append(ToastStack.actions(options.actions, options.classActions ?? ""))
+    if (options.actions?.length) toast.append(this.actionsFor(options.actions, options.classActions ?? ""))
     return toast
   }
 
@@ -132,21 +98,21 @@ export class ToastStack implements ToastProvider {
    * The actions:  `<ui-button slot="actions">`s, or one `<ui-buttons slot="actions">` around them for `attached`
    * layouts (`vertical` with `vertical attached`).
    */
-  private static actions(actions: readonly ToastAction[], layout: string): Node {
-    const words = layout.split(/\s+/)
-    const buttons = actions.map((action) => ToastStack.button(action))
-    const group = ToastStack.definition(GROUP_NOUN)
+  private actionsFor(actions: readonly E.ToastAction[], layout: string): Node {
+    const words = layout.split(UIT.WHITESPACE)
+    const buttons = actions.map((action) => this.buttonFor(action))
+    const group = ToastStack.definitionFor(GROUP_NOUN)
     if (!words.includes(ATTACHED) || !group) {
-      const fragment = document.createDocumentFragment()
+      const fragment = this.document.createDocumentFragment()
       for (const button of buttons) {
-        button.slot = SLOT_ACTIONS
+        button.slot = ACTIONS
         fragment.append(button)
       }
       return fragment
     }
-    const buttonsElement = document.createElement(group.tag)
-    buttonsElement.slot = SLOT_ACTIONS
-    buttonsElement.setAttribute(words.includes(VERTICAL) ? VERTICAL : FLUID, "")
+    const buttonsElement = this.document.createElement(group.tag)
+    buttonsElement.slot = ACTIONS
+    buttonsElement.setAttribute(words.includes(UIT.VERTICAL) ? UIT.VERTICAL : UIT.FLUID, "")
     buttonsElement.append(...buttons)
     return buttonsElement
   }
@@ -156,33 +122,36 @@ export class ToastStack implements ToastProvider {
    * attributes (`positive`, `basic` ...) or hues (`color`) set as attributes;  `click` wired, `false` keeping the
    * toast open.
    */
-  private static button(action: ToastAction): HTMLElement {
-    const definition = ToastStack.definition(BUTTON_NOUN)
-    const button = document.createElement(definition?.tag ?? BUTTON_NOUN)
-    const words = (action.class ?? "").split(/\s+/).filter(Boolean)
+  private buttonFor(action: E.ToastAction): HTMLElement {
+    const definition = ToastStack.definitionFor(UIT.BUTTON)
+    const button = this.document.createElement(definition?.tag ?? UIT.BUTTON)
+    const words = (action.class ?? "").split(UIT.WHITESPACE).filter(Boolean)
     if (words.length) button.className = words.join(" ")
     const known = new Set(
       definition?.vocabulary.attributes.filter(({ kind }) => kind === KEY_ONLY).map(({ name }) => name)
     )
     for (const word of words) {
       if (known.has(word)) button.setAttribute(word, "")
-      else if (ValueSets.has(HUES, word)) button.setAttribute(COLOR, word)
+      else if (E.ValueSets.has(HUES, word)) button.setAttribute(COLOR, word)
     }
-    if (action.icon && definition) button.setAttribute(ICON, action.icon)
+    if (action.icon && definition) button.setAttribute(UIT.ICON, action.icon)
     if (action.text) button.textContent = action.text
-    else if (action.icon) button.setAttribute(ARIA_LABEL, action.icon)
+    else if (action.icon) button.setAttribute(UIT.ARIA_LABEL, action.icon)
     const click = action.click
     if (click) {
-      button.addEventListener("click", (event) => {
+      button.addEventListener(UIT.CLICK, (event) => {
         if (click(event) === false) event.preventDefault()
       })
     }
     return button
   }
 
-  /** The registered definition whose vocabulary noun is `noun` (`<ui-button>`, or a translated tag). */
-  private static definition(noun: string) {
-    for (const definition of UIElement.definitions.values()) {
+  /**
+   * The registered definition whose vocabulary noun is `noun` (`<ui-button>`, or a translated tag).
+   * - Static:  it reads the page-wide registry, `UIElement.definitions`, nothing of this stack's.
+   */
+  private static definitionFor(noun: string) {
+    for (const definition of E.UIElement.definitions.values()) {
       if (definition.vocabulary.noun === noun) return definition
     }
     return undefined
@@ -193,29 +162,33 @@ export class ToastStack implements ToastProvider {
   ////////////////
 
   /** The container for `options`' position (and `horizontal`), made (and its sheet registered) on first use. */
-  private container(options: ToastOptions): HTMLElement {
+  private containerFor(options: E.ToastOptions): HTMLElement {
     let position = options.position ?? DEFAULT_POSITION
-    if (!POSITIONS.includes(position)) {
-      Warnings.devWarn("UI.toast()", `unknown position "${position}";  using "${DEFAULT_POSITION}"`)
+    if (!ToastPositions.includes(position as ToastPosition)) {
+      E.Warnings.devWarn("UI.toast()", `unknown position "${position}";  using "${DEFAULT_POSITION}"`)
       position = DEFAULT_POSITION
     }
-    const key = options.horizontal ? `${position} ${HORIZONTAL}` : position
+    const key = options.horizontal ? `${position} ${UIT.HORIZONTAL}` : position
     const existing = this.containers.get(key)
     if (existing?.isConnected) return existing
     if (!UI.styles.has(CONTAINER_SHEET)) UI.styles.register(CONTAINER_SHEET, containerCSS, { page: true })
-    const container = document.createElement("div")
-    container.popover = MANUAL
-    container.className = [UI_WORD, position, CONTAINER_CLASS, ...(options.horizontal ? [HORIZONTAL] : [])].join(" ")
+    const container = this.document.createElement(CONTAINER_TAG)
+    container.popover = UIT.MANUAL
+    const words = [UI_WORD, position, CONTAINER_CLASS, ...(options.horizontal ? [UIT.HORIZONTAL] : [])]
+    container.className = words.join(" ")
     container.setAttribute(ROLE, REGION)
-    container.setAttribute(ARIA_LABEL, UI.i18n.t(NOTIFICATIONS))
-    document.body.append(container)
+    container.setAttribute(UIT.ARIA_LABEL, UI.i18n.t(NOTIFICATIONS))
+    this.document.body.append(container)
     this.containers.set(key, container)
     return container
   }
 
-  /** Show `container` on top of the top layer;  left alone while focus is inside (re-showing would drop it). */
+  /**
+   * Show `container` on top of the top layer;  left alone while focus is inside (re-showing would drop it).
+   * - Static:  it touches only the container it's given.
+   */
   private static raise(container: HTMLElement) {
-    const open = container.matches(POPOVER_OPEN)
+    const open = container.matches(UIT.POPOVER_OPEN)
     if (open && container.matches(FOCUS_WITHIN)) return
     if (open) container.hidePopover()
     container.showPopover()
@@ -230,9 +203,80 @@ export class ToastStack implements ToastProvider {
     record.element.remove()
     record.settle()
     if (container && !container.children.length) {
-      if (container.matches(POPOVER_OPEN)) container.hidePopover()
+      if (container.matches(UIT.POPOVER_OPEN)) container.hidePopover()
       container.remove()
       for (const [key, value] of this.containers) if (value === container) this.containers.delete(key)
     }
   }
 }
+
+/** Constructor props for `ToastStack`. */
+export type ToastStackProps = {
+  /** page to build in.  Default:  the global `document`. */
+  document?: Document
+}
+
+/** A showing toast. */
+type ToastRecord = {
+  /** its `<ui-toast>` */
+  element: HTMLElement
+  /** resolves the handle's `closed` */
+  settle: () => void
+}
+
+/** Positions a toast container takes (Fomantic's);  the first is the default. */
+const ToastPositions = [
+  "top right",
+  "top left",
+  "top center",
+  "bottom right",
+  "bottom left",
+  "bottom center",
+  "centered"
+] as const
+
+/** One of `ToastPositions`. */
+type ToastPosition = (typeof ToastPositions)[number]
+
+/** Position of a toast that names none. */
+const DEFAULT_POSITION: ToastPosition = ToastPositions[0]
+
+/** `UI.ids` prefix of toast ids. */
+const ID_PREFIX = toastVocabulary.tag
+
+/** Fomantic's default `displayTime`, in ms. */
+const DEFAULT_DISPLAY_TIME = 3000
+
+/** `type` words (the vocabulary's):  a `class` word among them becomes `type`. */
+const TYPE_WORDS = (toastVocabulary.attributes.find(({ name }) => name === "type") as E.AttributeSpec)
+  .values as readonly string[]
+
+/** Value set of the hues:  a `class` word among them becomes `color`. */
+const HUES = "hues"
+
+/** Attribute kind of a button's words (`positive`, `basic` ...):  a `class` word of that kind becomes an attribute. */
+const KEY_ONLY = "keyOnly"
+
+/** `<ui-button>`'s hue attribute (canonical). */
+const COLOR = "color"
+
+/** Noun of the button group (`<ui-buttons>`) that holds `attached` actions. */
+const GROUP_NOUN = "buttons"
+
+/** Page sheet of the containers (`ui-toast.container.css`). */
+const CONTAINER_SHEET = "toast-container"
+
+/** Tag of a container. */
+const CONTAINER_TAG = "div"
+
+/** Class word of a container. */
+const CONTAINER_CLASS = "toast-container"
+
+/** Attribute that makes a container a landmark. */
+const ROLE = "role"
+
+/** A container's role:  a `region` landmark, named by the `notifications` text. */
+const REGION = "region"
+
+/** Text key of the containers' name. */
+const NOTIFICATIONS = "notifications"

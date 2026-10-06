@@ -1,12 +1,13 @@
 /**
  * Shared types and constants of `$/ui/static`, the static (no shadow DOM, no JS) server render of `ui-*` pages.
- * - The BOTTOM of the folder's import graph:  `import type` only, no class file of its folder;  every class file
- *   above it reads it.
+ * - The BOTTOM of the folder's import graph:  `import type` only (and `UIT`, pure data), no class file of its folder;
+ *   every class file above it reads it.
  * - Its marks are read while their users EVALUATE (the module constants of `StaticSelectors`, `StaticStylesheet`),
  *   so those import them from this file, not through `SSR`.
  * - Node only, like the folder:  NEVER imported by a component or `$/ui`.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { E } from "$/ui/core"
 
 ////////////////
@@ -14,15 +15,15 @@ import type { E } from "$/ui/core"
 ////////////////
 
 // The attributes the flattener writes on its output, and the static stylesheet selects by.
-// - PUBLISHED, so their spelling is fixed:  component sheets (`:not([data-ui])`), `native.css`, `UITable` and the
-//   `*.ssr.test.tsx` expectations spell them out.
+// - PUBLISHED, so their spelling is fixed:  component sheets (`:not([data-ui])`), `native.css` and the
+//   `*.ssr.test.tsx` expectations spell them out;  `UITable` writes `ROOT_ATTRIBUTE` as `UIT.STATIC_ROOT` (I14).
 // - A form control's own mark is the components' `UIT.STATIC_CONTROL` (`data-ui-control`):  their renders write it.
 
 /**
  * Marks each component root with its family's kind (`data-ui="card"`, `StaticFamily.kind`).
  * - The static stylesheet's `@scope` root, and its boundary:  `[data-ui]` inside a scope is another component.
  */
-export const ROOT_ATTRIBUTE = "data-ui"
+export const ROOT_ATTRIBUTE = UIT.STATIC_ROOT
 
 /**
  * Marks what the flattener put where a `<slot>` was:  author content, or a slotted component's root.

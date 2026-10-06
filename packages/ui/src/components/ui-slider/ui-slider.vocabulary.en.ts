@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-slider>` uses:  tag, attributes (kind + allowed values), events, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-slider color="blue" labeled ticked range aligned="bottom">` => `ui blue labeled range ticked bottom aligned
  *   slider`.
  * - `value` and `end` are Fomantic's `start` / `end` settings:  the (first) thumb, and a `range`'s second thumb.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-slider>`
@@ -19,7 +19,7 @@ export const sliderVocabulary = {
   aka: ["range", "range slider", "volume", "scrubber", "track bar"],
   skeleton: { width: "16em", height: "1.25em" },
   noun: "slider",
-  description: "A slider allows users to select values within a range.",
+  description: "A slider lets people select values within a range.",
   attributes: [
     { name: "size", kind: "size", description: "Size of track and thumbs, `mini` ... `massive`." },
     { name: "color", kind: "color", description: "Hue of the filled track (and of `basic` thumbs)." },
@@ -114,4 +114,4 @@ export const sliderVocabulary = {
     { key: "sliderMinimum", text: "Minimum", description: "Name of a range's first thumb." },
     { key: "sliderMaximum", text: "Maximum", description: "Name of a range's second thumb." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

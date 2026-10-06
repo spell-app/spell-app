@@ -1,11 +1,11 @@
 /**
  * Every name `<ui-markdown>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The source pieces (`source`, `load`, `ui-load` ... `ui-error`, the loader / error parts, the states and texts)
  *   are shared with `<ui-include>` and `<ui-code>`:  `UIT.SOURCE_*`, which `SourceElement` reads.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
 
 /****************
@@ -84,4 +84,4 @@ export const markdownVocabulary = {
     { key: "preview", text: "Preview", description: "`editable`:  the preview tab." },
     { key: "editor", text: "Markdown", description: "`editable`:  accessible name of the text box." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

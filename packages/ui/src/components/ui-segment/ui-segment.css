@@ -30,7 +30,7 @@
  *   through a private alias, `--_ui-segment-radius: var(--ui-segment-radius, var(--ui-radius))`, and every rule
  *   reads the alias.  So a value set on `:root`, an ancestor, the host, `::part(segment)` or in the app stylesheet
  *   reaches the box (`docs/theming.md` "Component tokens").  Set on a `<ui-segments>`, they reach its segments.  The
- *   owner side follows the user's values:  `--_ui-label-owner-edge` is the `--ui-segment-border-width` alias.
+ *   owner side follows the page's values:  `--_ui-label-owner-edge` is the `--ui-segment-border-width` alias.
  * - Group looks are TOKEN driven:  `.ui.segments` sets `--_ui-segments-*` on each child (light DOM `> *`, shadow
  *   `::slotted(*)`) -- margin, border, radius, divider line, shadow, flex -- which the segment root reads first.
  *   Each segment root resets them for its OWN children, so nested segments don't inherit a group's layout.
@@ -708,7 +708,7 @@
       --_segment-scrolling-default: 30em;
     }
   }
-  /* Resizable:  starts at the capped height, the user drags it taller or shorter. */
+  /* Resizable:  starts at the capped height, a person drags it taller or shorter. */
   .ui.resizable.scrolling.segment {
     height: var(--_segment-scroll);
     max-height: none;

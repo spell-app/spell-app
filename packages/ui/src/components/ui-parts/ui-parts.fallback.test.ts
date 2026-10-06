@@ -8,7 +8,7 @@ import { segmentVocabulary } from "$/ui/components/ui-segment/ui-segment.vocabul
 import { PartContext } from "$/ui/elements"
 
 import { ContentPartFallback } from "./ui-parts.fallback"
-import { PART_VOCABULARIES } from "./ui-parts.types"
+import { PartVocabularies } from "./ui-parts.types"
 
 for (const tag of ["ui-meta", "ui-header", "ui-content", "ui-description"]) {
   FallbackStub.define(tag, (host, root, internals) =>
@@ -16,7 +16,7 @@ for (const tag of ["ui-meta", "ui-header", "ui-content", "ui-description"]) {
   )
 }
 // the owner registry, as `UIElement.define()` fills it:  the parts, a card (an owner) and a segment (a barrier)
-for (const vocabulary of PART_VOCABULARIES) PartContext.define({ vocabulary, tag: vocabulary.tag, isPart: true })
+for (const vocabulary of PartVocabularies) PartContext.define({ vocabulary, tag: vocabulary.tag, isPart: true })
 PartContext.define({ vocabulary: cardVocabulary, tag: cardVocabulary.tag, isPart: false })
 PartContext.define({ vocabulary: segmentVocabulary, tag: segmentVocabulary.tag, isPart: false })
 

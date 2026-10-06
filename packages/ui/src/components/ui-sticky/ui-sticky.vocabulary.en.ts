@@ -1,12 +1,12 @@
 /**
  * Every name `<ui-sticky>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`:  `<ui-sticky pushing>` => `ui pushing sticky`.
  * - Stuck-ness is a STATE (`:state(stuck)`, `:state(bound)`), not a class:  CSS `position: sticky` does the sticking,
  *   the element only reports it.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-sticky>`
@@ -59,4 +59,4 @@ export const stickyVocabulary = {
     { name: "bound", description: "Pushed out by the end of its container (Fomantic's `bound`)." }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

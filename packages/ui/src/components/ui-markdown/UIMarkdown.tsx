@@ -1,27 +1,13 @@
 import { For, Show, createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, SourceElement, UI } from "$/ui/core"
-
-import { markdownVocabulary } from "./ui-markdown.vocabulary.en"
-import { MarkdownFallback } from "./ui-markdown.fallback"
+import { E, UI, UIT } from "$/ui/core"
+import type { codeVocabulary } from "$/ui/components/ui-code/ui-code.vocabulary.en"
 import { MarkdownRenderer } from "./MarkdownRenderer"
 import { UIMarkdownHost } from "./UIMarkdownHost"
-import {
-  CODE_TAG,
-  HASHCHANGE,
-  LEADING_TITLE,
-  MARKDOWN_TABS,
-  TABLE_SHEET,
-  TAB_KEYS,
-  TAB_ROLES,
-  TASK_BOXES,
-  URL_ATTRIBUTES,
-  type MarkdownHeading,
-  type MarkdownOptions,
-  type MarkdownTab,
-  type Vocabulary
-} from "./ui-markdown.types"
+import { MarkdownFallback } from "./ui-markdown.fallback"
+import type { MarkdownHeading, MarkdownOptions, Vocabulary } from "./ui-markdown.types"
+import { markdownVocabulary } from "./ui-markdown.vocabulary.en"
 
 import markdownCSS from "./ui-markdown.css?inline"
 
@@ -33,8 +19,8 @@ import markdownCSS from "./ui-markdown.css?inline"
  *   `SourceElement`.
  * - Rendering:  marked, loaded with the first render (`MarkdownRenderer` -> `MarkdownEngine`, the lazy chunk);
  *   headings get GitHub's ids (`headings`, `ui-render`).
- * - NOT sanitized unless `sanitized`:  raw HTML in the text is kept.  `sanitized` loads DOMPurify (`MarkdownSanitizer`, a
- *   lazy chunk of its own) alongside the engine;  set it for text you didn't write.
+ * - NOT sanitized unless `sanitized`:  raw HTML in the text is kept.  `sanitized` loads DOMPurify
+ *   (`MarkdownSanitizer`, a lazy chunk of its own) alongside the engine;  set it for text you didn't write.
  * - After rendering:
  *   - each fenced code block becomes a `<ui-code language="x" copy>` (one highlighter, one palette)
  *   - each task-list checkbox is named by its item's text (marked leaves it unlabelled)
@@ -44,27 +30,27 @@ import markdownCSS from "./ui-markdown.css?inline"
  *     FIRST render (a page loaded with it), and on each `hashchange` (a link elsewhere on the page)
  * - `skip-title`:  the text's leading `#` title isn't rendered (the text keeps it).
  * - A failed render (an engine that won't load) is a `render` error with its message.
- * - `editable`:  Write / Preview tabs (`role=tablist`, arrow keys), a `<textarea>` for the text and the article as the
- *   preview, drawn by spell's engine (`MarkdownRenderer.loadMD()`:  `ui-*` elements, `<ui-table>`'s sheet adopted
- *   here too).
+ * - `editable`:  Write / Preview tabs (`role=tablist`, arrow keys), a `<textarea>` for the text and the article as
+ *   the preview, drawn by spell's engine (`MarkdownRenderer.loadMD()`:  `ui-*` elements, `<ui-table>`'s sheet
+ *   adopted here too).
  *   - each keystroke is `setContent()`:  `ui-change`, `:state(dirty)`, and `save()` writes it back to `source`
  *   - the preview renders while it's shown:  the WHOLE text each time (~2 ms for 32 kB), then only the top-level
  *     blocks whose markup changed are swapped (`patchBody()`), so unchanged `ui-*` elements keep their state
  * - SIDE EFFECTS:  listens to `window`'s `hashchange` while connected;  a revealed heading is put in the address
  *   (`history.replaceState`, no new entry).
  ****************/
-export class UIMarkdown extends SourceElement<Vocabulary> {
-  @proto static vocabulary = markdownVocabulary
-  @proto static styles = { markdown: markdownCSS }
-  @proto static Fallback = MarkdownFallback
-  @proto static Host = UIMarkdownHost
-  @proto static delegatesFocus = false
+export class UIMarkdown extends E.SourceElement<Vocabulary> {
+  @E.proto static vocabulary = markdownVocabulary
+  @E.proto static styles = { markdown: markdownCSS }
+  @E.proto static Fallback = MarkdownFallback
+  @E.proto static Host = UIMarkdownHost
+  @E.proto static delegatesFocus = false
 
   /** The headings of the last render. */
-  readonly headings = new Cell<MarkdownHeading[]>([])
+  readonly headings = new E.Cell<MarkdownHeading[]>([])
 
   /** `editable`'s shown tab. */
-  readonly tab = new Cell<MarkdownTab>("write")
+  readonly tab = new E.Cell<MarkdownTab>(WRITE)
 
   /** The `<article>`, once rendered. */
   private body?: HTMLElement
@@ -73,10 +59,12 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
   private ticket = 0
 
   /** A render has finished:  the address's `#id` was looked for once, after the first. */
-  private renderedOnce = false
+  private hasRendered = false
 
-  /** `editable`:  the text box, and the tab buttons by tab. */
-  private editor?: HTMLTextAreaElement
+  /** `editable`:  the text box. */
+  private textBox?: HTMLTextAreaElement
+
+  /** `editable`:  the tab buttons, by tab. */
   private readonly tabButtons = new Map<MarkdownTab, HTMLButtonElement>()
 
   /** Markup of each top-level node `patchBody()` put in the article, to tell which blocks changed. */
@@ -94,24 +82,24 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
     if (!isServer) {
       createEffect(
         () => ({
-          text: this.attrs.skipTitle ? UIMarkdown.withoutTitle(this.contentText()) : this.contentText(),
-          loaded: this.status.get() === "loaded",
-          editable: this.editable(),
-          shown: !this.editable() || this.tab.get() === "preview",
+          text: this.attrs.skipTitle ? this.contentText().replace(LEADING_TITLE, "") : this.contentText(),
+          isLoaded: this.status.get() === "loaded",
+          isEditable: this.isEditable(),
+          isShown: !this.isEditable() || this.tab.get() === PREVIEW,
           options: {
             breaks: !!this.attrs.breaks,
             headingOffset: Number(this.attrs.headingOffset) || 0,
             sanitized: !!this.attrs.sanitized
           }
         }),
-        ({ text, loaded, editable, shown, options }) => {
-          if (loaded && shown) void this.renderMarkdown(text, options, editable)
+        ({ text, isLoaded, isEditable, isShown, options }) => {
+          if (isLoaded && isShown) void this.renderMarkdown({ text, options, isEditable })
         }
       )
       createEffect(
         () => this.contentText(),
         (text) => {
-          if (this.editor && this.editor.value !== text) this.editor.value = text
+          if (this.textBox && this.textBox.value !== text) this.textBox.value = text
         }
       )
       createEffect(
@@ -130,15 +118,15 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
   protected renderContent(): JSX.Element {
     return (
       <>
-        <Show when={this.editable()}>
-          {this.renderTabs()}
-          {this.renderEditor()}
+        <Show when={this.isEditable()}>
+          {this.tabs()}
+          {this.editor()}
         </Show>
         <section
-          id={UIMarkdown.panelId("preview")}
-          role={this.editable() ? TAB_ROLES.panel : undefined}
-          aria-labelledby={this.editable() ? UIMarkdown.tabId("preview") : undefined}
-          hidden={this.editable() && this.tab.get() !== "preview" ? true : undefined}
+          id={UIMarkdown.panelId(PREVIEW)}
+          role={this.isEditable() ? TAB_ROLES.panel : undefined}
+          aria-labelledby={this.isEditable() ? UIMarkdown.tabId(PREVIEW) : undefined}
+          hidden={this.isEditable() && this.tab.get() !== PREVIEW ? true : undefined}
         >
           <article
             class={this.classes()}
@@ -153,18 +141,24 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
     )
   }
 
+  /** `editable`:  `<ui-table>`'s sheet too, since the preview draws tables with it (a page sheet:  `TABLE_SHEET`). */
+  protected sheetNames(): string[] {
+    const names = super.sheetNames()
+    return this.isEditable() ? [...names, TABLE_SHEET] : names
+  }
+
   /** `editable`'s tab list:  Write, Preview. */
-  private renderTabs(): JSX.Element {
+  private tabs(): JSX.Element {
     return (
       <nav part={this.part("tabs")} role={TAB_ROLES.list} onKeyDown={this.onTabKey}>
-        <For each={MARKDOWN_TABS}>
+        <For each={MarkdownTabs}>
           {(tab) => (
             <button
               type="button"
               id={UIMarkdown.tabId(tab)}
               role={TAB_ROLES.tab}
               part={this.part("tab")}
-              aria-selected={this.tab.get() === tab ? "true" : "false"}
+              aria-selected={this.tab.get() === tab ? UIT.TRUE : UIT.FALSE}
               aria-controls={UIMarkdown.panelId(tab)}
               tabindex={this.tab.get() === tab ? 0 : -1}
               onClick={() => this.tab.set(tab)}
@@ -181,37 +175,35 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
   }
 
   /** `editable`'s text box, in the Write panel. */
-  private renderEditor(): JSX.Element {
+  private editor(): JSX.Element {
     return (
       <section
-        id={UIMarkdown.panelId("write")}
+        id={UIMarkdown.panelId(WRITE)}
         role={TAB_ROLES.panel}
-        aria-labelledby={UIMarkdown.tabId("write")}
-        hidden={this.tab.get() !== "write" ? true : undefined}
+        aria-labelledby={UIMarkdown.tabId(WRITE)}
+        hidden={this.tab.get() !== WRITE ? true : undefined}
       >
         <textarea
           part={this.part("editor")}
           aria-label={this.text("editor")}
           onInput={this.onInput}
-          ref={(editor: HTMLTextAreaElement) => {
-            this.editor = editor
-            editor.value = untrack(this.contentText)
+          ref={(textBox: HTMLTextAreaElement) => {
+            this.textBox = textBox
+            textBox.value = untrack(this.contentText)
           }}
         />
       </section>
     )
   }
 
-  /** `editable`, as a boolean. */
-  private editable(): boolean {
+  /** `editable` is set.  Tracked. */
+  private isEditable(): boolean {
     return !!this.attrs.editable
   }
 
-  /** `editable`:  `<ui-table>`'s sheet too, since the preview draws tables with it (a page sheet:  `TABLE_SHEET`). */
-  protected sheetNames(): string[] {
-    const names = super.sheetNames()
-    return this.editable() ? [...names, TABLE_SHEET] : names
-  }
+  ////////////////
+  // ## Headings
+  ////////////////
 
   /** The headings of the last render. */
   getHeadings(): MarkdownHeading[] {
@@ -230,7 +222,7 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
    * - Not when the PAGE has that id:  the browser went there itself.
    */
   private revealHash() {
-    const id = UIMarkdown.hashId(location.hash)
+    const id = UIMarkdown.idForHash(location.hash)
     if (id && !this.host.ownerDocument.getElementById(id)) this.scrollTo(id)
   }
 
@@ -241,43 +233,36 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
     return !!target
   }
 
-  /** `#some%20id` => `some id`;  `undefined` for no hash, or a malformed one. */
-  private static hashId(hash: string): string | undefined {
-    try {
-      return decodeURIComponent(hash.slice(1)) || undefined
-    } catch {
-      return undefined
-    }
-  }
+  ////////////////
+  // ## Markup
+  ////////////////
 
-  /** `text` without its leading `#` title (`skip-title`). */
-  private static withoutTitle(text: string): string {
-    return text.replace(LEADING_TITLE, "")
-  }
-
-  /** Render `text` into the article (`editable`:  with spell's engine, patched);  `ui-render` when done. */
-  private async renderMarkdown(text: string, options: MarkdownOptions, editable: boolean) {
+  /**
+   * Render `text` into the article;  `ui-render` when done.
+   * - `isEditable`:  with spell's engine, its markup patched in (`patchBody()`);  sanitized keeping `ui-*` tags.
+   */
+  private async renderMarkdown({ text, options, isEditable }: RenderParams) {
     const ticket = ++this.ticket
     try {
       await UI.load()
       const [engine, sanitizer] = await Promise.all([
-        editable ? MarkdownRenderer.loadMD() : MarkdownRenderer.load(),
+        isEditable ? MarkdownRenderer.loadMD() : MarkdownRenderer.load(),
         options.sanitized ? MarkdownRenderer.loadSanitizer() : undefined
       ])
       if (ticket !== this.ticket || !this.body) return
       const { html, headings } = engine.render(text, options)
       const fragment = sanitizer
-        ? sanitizer.sanitize(html, editable)
+        ? sanitizer.sanitize(html, { uiTags: isEditable })
         : this.host.ownerDocument.createRange().createContextualFragment(html)
       this.upgradeCode(fragment)
       this.labelTaskItems(fragment)
       this.resolveUrls(fragment)
-      if (editable) this.patchBody(this.body, fragment)
+      if (isEditable) this.patchBody(this.body, fragment)
       else this.body.replaceChildren(fragment)
       this.headings.set(headings)
       this.emitSource("ui-render", { headings })
-      if (!this.renderedOnce) {
-        this.renderedOnce = true
+      if (!this.hasRendered) {
+        this.hasRendered = true
         this.revealHash()
       }
     } catch (error) {
@@ -287,12 +272,12 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
 
   /** Each `<pre><code class="language-x">` in `fragment` becomes a `<ui-code language="x" copy>` with its text. */
   private upgradeCode(fragment: DocumentFragment) {
-    for (const code of fragment.querySelectorAll("pre > code")) {
+    for (const code of fragment.querySelectorAll(CODE_BLOCK)) {
       const pre = code.parentElement!
       const block = this.host.ownerDocument.createElement(CODE_TAG)
-      const language = /\blanguage-(\S+)/.exec(code.className)?.[1]
-      if (language) block.setAttribute("language", language)
-      block.setAttribute("copy", "")
+      const language = LANGUAGE_CLASS.exec(code.className)?.[1]
+      if (language) block.setAttribute(LANGUAGE, language)
+      block.setAttribute(COPY, "")
       block.textContent = (code.textContent ?? "").replace(/\n$/, "")
       pre.replaceWith(block)
     }
@@ -302,7 +287,7 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
   private labelTaskItems(fragment: DocumentFragment) {
     for (const box of fragment.querySelectorAll(TASK_BOXES)) {
       const text = box.parentElement!.textContent?.trim()
-      if (text) box.setAttribute("aria-label", text)
+      if (text) box.setAttribute(UIT.ARIA_LABEL, text)
     }
   }
 
@@ -311,7 +296,7 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
     const source = this.sourceAttribute()
     if (!source) return
     const base = new URL(source, this.host.ownerDocument.baseURI)
-    for (const name of URL_ATTRIBUTES) {
+    for (const name of LINK_ATTRIBUTES) {
       for (const element of fragment.querySelectorAll(`[${name}]`)) {
         const value = element.getAttribute(name)!
         if (value.startsWith("#")) continue
@@ -333,7 +318,7 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
    */
   private patchBody(body: HTMLElement, fragment: DocumentFragment) {
     const next = [...fragment.childNodes]
-    const nextMarkup = next.map(UIMarkdown.markupOf)
+    const nextMarkup = next.map(UIMarkdown.markupFor)
     const old = [...body.childNodes]
     const oldMarkup = old.map((node) => this.rendered.get(node))
     let lead = 0
@@ -347,25 +332,12 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
       tail++
     }
     for (const node of old.slice(lead, old.length - tail)) node.remove()
+    // `insertBefore()`'s "at the end" is `null`:  a platform boundary
     const anchor = tail ? old[old.length - tail] : null
     for (const [index, node] of next.slice(lead, next.length - tail).entries()) {
       this.rendered.set(node, nextMarkup[lead + index])
       body.insertBefore(node, anchor)
     }
-  }
-
-  /** A top-level node's markup, to compare renders by. */
-  private static markupOf(node: Node): string {
-    return `${node.nodeType}:${node.nodeType === Node.ELEMENT_NODE ? (node as Element).outerHTML : node.textContent}`
-  }
-
-  /** Ids of `tab`'s button and panel, inside the shadow root. */
-  private static tabId(tab: MarkdownTab): string {
-    return `ui-markdown-${tab}-tab`
-  }
-
-  private static panelId(tab: MarkdownTab): string {
-    return `ui-markdown-${tab}-panel`
   }
 
   ////////////////
@@ -386,21 +358,114 @@ export class UIMarkdown extends SourceElement<Vocabulary> {
     this.tabButtons.get(to)?.focus()
   }
 
-  /** The tab `key` moves to from `tab`;  `undefined` for any other key. */
-  private static tabAfter(tab: MarkdownTab, key: string): MarkdownTab | undefined {
-    const index = MARKDOWN_TABS.indexOf(tab)
-    const count = MARKDOWN_TABS.length
-    if (key === TAB_KEYS.previous) return MARKDOWN_TABS[(index + count - 1) % count]
-    if (key === TAB_KEYS.next) return MARKDOWN_TABS[(index + 1) % count]
-    if (key === TAB_KEYS.first) return MARKDOWN_TABS[0]
-    if (key === TAB_KEYS.last) return MARKDOWN_TABS[count - 1]
-    return undefined
-  }
-
   /** A `#id` link:  scroll to that heading here, in the shadow root, and put it in the address. */
   private readonly onClick = (event: MouseEvent) => {
-    const link = (event.target as Element).closest?.("a[href^='#']")
-    const id = link && UIMarkdown.hashId(link.getAttribute("href")!)
+    const link = (event.target as Element).closest?.(IN_PAGE_LINK)
+    const id = link && UIMarkdown.idForHash(link.getAttribute("href")!)
     if (id && this.reveal(id)) event.preventDefault()
   }
+
+  ////////////////
+  // ## Helpers:  static, as they're pure
+  ////////////////
+
+  /** `#some%20id` => `some id`;  `undefined` for no hash, or a malformed one. */
+  private static idForHash(hash: string): string | undefined {
+    try {
+      return decodeURIComponent(hash.slice(1)) || undefined
+    } catch {
+      return undefined
+    }
+  }
+
+  /** A top-level node's markup, to compare renders by. */
+  private static markupFor(node: Node): string {
+    const markup = node.nodeType === E.NodeType.element ? (node as Element).outerHTML : node.textContent
+    return `${node.nodeType}:${markup}`
+  }
+
+  /** Id of `tab`'s button, inside the shadow root. */
+  private static tabId(tab: MarkdownTab): string {
+    return `ui-markdown-${tab}-tab`
+  }
+
+  /** Id of `tab`'s panel, inside the shadow root. */
+  private static panelId(tab: MarkdownTab): string {
+    return `ui-markdown-${tab}-panel`
+  }
+
+  /** The tab `key` moves to from `tab`;  `undefined` for any other key. */
+  private static tabAfter(tab: MarkdownTab, key: string): MarkdownTab | undefined {
+    const index = MarkdownTabs.indexOf(tab)
+    const count = MarkdownTabs.length
+    if (key === UIT.Key.arrowLeft) return MarkdownTabs[(index + count - 1) % count]
+    if (key === UIT.Key.arrowRight) return MarkdownTabs[(index + 1) % count]
+    if (key === UIT.Key.home) return MarkdownTabs[0]
+    if (key === UIT.Key.end) return MarkdownTabs[count - 1]
+    return undefined
+  }
 }
+
+/** What `renderMarkdown()` renders. */
+type RenderParams = {
+  /** the markdown */
+  text: string
+  /** how to render it */
+  options: MarkdownOptions
+  /** `editable`:  spell's engine, patched in, `ui-*` tags kept when sanitized */
+  isEditable: boolean
+}
+
+/** `editable`'s Write tab:  the text box. */
+const WRITE = "write"
+
+/** `editable`'s Preview tab:  the article. */
+const PREVIEW = "preview"
+
+/** `editable`'s tabs, in order;  each is also its text's key. */
+const MarkdownTabs = [WRITE, PREVIEW] as const
+
+/** One of `MarkdownTabs`. */
+type MarkdownTab = (typeof MarkdownTabs)[number]
+
+/** `editable`'s tab roles. */
+const TAB_ROLES = { list: "tablist", tab: "tab", panel: "tabpanel" } as const
+
+/** `<ui-table>`'s sheet (`UI.styles` name):  a page sheet, so `editable` adopts it into its shadow root too. */
+const TABLE_SHEET = "table"
+
+/** `window`'s event for a new `#id` in the address:  the element reveals a heading of its own it names. */
+const HASHCHANGE = "hashchange"
+
+/**
+ * A leading `#` title (`skip-title`):  blank lines, then an ATX `# Title` (one `#`) or a setext title (a line
+ * underlined with `=`), with its line end.
+ */
+const LEADING_TITLE = /^(?:[ \t]*\n)*[ ]{0,3}(?:#(?=[ \t\n]|$)[^\n]*|[^\s][^\n]*\n[ ]{0,3}=+[ \t]*)(?:\n|$)/
+
+/** A fenced code block, as both engines write it. */
+const CODE_BLOCK = "pre > code"
+
+/** A code block's language, from its class:  `language-js` => `js`. */
+const LANGUAGE_CLASS = /\blanguage-(\S+)/
+
+/** Tag a fenced code block becomes. */
+const CODE_TAG: (typeof codeVocabulary)["tag"] = "ui-code"
+
+/** `<ui-code>`'s highlighting language. */
+const LANGUAGE: E.AttributeName<typeof codeVocabulary> = "language"
+
+/** `<ui-code>`'s copy button. */
+const COPY: E.AttributeName<typeof codeVocabulary> = "copy"
+
+/** Task-list checkboxes:  marked's (`<input>`) and spell's engine's (`<ui-checkbox>`). */
+const TASK_BOXES = "li > input[type=checkbox], ui-item > ui-checkbox"
+
+/**
+ * Attributes rewritten against `source`, so relative links and images point where they did beside the file.
+ * - Not the element core's `E.URL_ATTRIBUTES`:  markdown writes only these two, and keeps no originals to save.
+ */
+const LINK_ATTRIBUTES = ["href", "src"] as const
+
+/** A link to a `#id` on this page. */
+const IN_PAGE_LINK = "a[href^='#']"

@@ -1,67 +1,25 @@
 /**
- * Loose constants, types and helpers of `<ui-table>`:  its element classes and native fallback import them from here.
+ * Constants of the `ui-table` family that several of its files share:  its element (`UITable`), its native fallback
+ * (`TableFallback`) and its helpers (`TableClassMirror`, `TableSort`).
+ * - Pure data, at the bottom of the folder's imports:  types only, so node can load it (`yarn site:data`).
+ * - A constant ONE class uses is a module constant below that class (epic `wwod-spell-ui`, Q18).
  */
 
 import type { UIT } from "$/ui/core"
 
 ////////////////
-// ## TableClassMirror
+// ## The light-DOM table
 ////////////////
 
-/** The attribute mirrored. */
+/** Tag of a table:  the slotted author table, and the one data mode renders. */
+export const TABLE = "table"
+
+/** The table's `class` attribute, which the element mirrors its class string onto (`TableClassMirror`). */
 export const CLASS = "class"
 
 ////////////////
-// ## TableGrammar
+// ## Sorting
 ////////////////
 
-/** Scroller attributes that make it scroll. */
-export const SCROLLING = "scrolling"
-export const OVERFLOWING = "overflowing"
-
-////////////////
-// ## TableSort
-////////////////
-
-/** Tag of a header cell. */
-export const HEADER = "th"
-
-/** Tag of a table. */
-export const TABLE = "table"
-
-/** A cell's column span attribute. */
-export const COLSPAN = "colspan"
-
-/** A table's own header rows, as a selector (`TableSort.staticHeaderAt()`). */
-export const STATIC_HEADER_ROWS = ":scope > thead > tr"
-
-/** The flipped direction. */
+/** The flipped sort direction:  a sorted column's second activation (`UITable`), and `TableSort`'s sign. */
 export const DESCENDING: UIT.TableSortDirection = "descending"
-
-////////////////
-// ## UITable
-////////////////
-
-/** Tables the element rendered itself:  never mistaken for an author's. */
-export const GENERATED = new WeakSet<HTMLTableElement>()
-
-/** The static server render's component-root marker (`$/ui/static`'s flattener writes it on every root). */
-export const DATA_UI = "data-ui"
-
-/** Header attributes the element manages. */
-export const ARIA_SORT = "aria-sort"
-
-export const SPACE = " "
-
-/** Sort directions. */
-export const ASCENDING: UIT.TableSortDirection = "ascending"
-
-////////////////
-// ## ui-table.fallback
-////////////////
-
-/** The fallback's one part. */
-export const SCROLLER = "scroller"
-
-/** Prefix of the class `stack-by` adds to the table:  `stack-by-container`, `stack-by-viewport`. */
-export const STACK_BY_CLASS = "stack-by-"

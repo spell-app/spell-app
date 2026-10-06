@@ -76,7 +76,7 @@ export class RadioGroup {
 
   /** Members in document order;  tracked. */
   ordered(): RadioMember[] {
-    return this.members().sort(RadioGroup.byDocumentOrder)
+    return this.members().sort(RadioGroup.byHostOrder)
   }
 
   /** The chosen member, if any;  tracked. */
@@ -101,7 +101,7 @@ export class RadioGroup {
 
   /** The enabled member `delta` steps from `from` in document order, wrapping;  reads the live set, untracked. */
   step(from: RadioMember, delta: number): RadioMember | undefined {
-    const ordered = [...this.current].sort(RadioGroup.byDocumentOrder)
+    const ordered = [...this.current].sort(RadioGroup.byHostOrder)
     const enabled = ordered.filter((member) => member === from || !member.isDisabled())
     if (enabled.length < 2) return undefined
     const index = enabled.indexOf(from)
@@ -113,13 +113,10 @@ export class RadioGroup {
   ////////////////
 
   /**
-   * Sort comparator:  members in document order.
+   * Sort comparator:  members in their hosts' document order (`E.byDocumentOrder`).
    * - STATIC:  pure, handed to `sort()`.
    */
-  private static byDocumentOrder(a: RadioMember, b: RadioMember): number {
-    return a.host.compareDocumentPosition(b.host) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+  private static byHostOrder(a: RadioMember, b: RadioMember): number {
+    return E.byDocumentOrder(a.host, b.host)
   }
 }
-
-/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global:  node has none (static server render). */
-const DOCUMENT_POSITION_FOLLOWING = 4

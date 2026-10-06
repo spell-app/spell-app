@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-tabs>` and `<ui-tab>` use:  tags, attributes (kind + allowed values), events, slots, parts,
- * states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * states, texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Fomantic's words:  a `.ui.tab` is a PANE (`<div class="ui bottom attached tab segment" data-tab>`);  the tabs
  *   you click are the items of a `tabular` (or `pointing` / `secondary` / `text`) MENU.  So `<ui-tab>` is the pane,
  *   and `<ui-tabs>` draws the menu from its panes' `label`s, with `ui-menu.css`.
@@ -16,8 +16,8 @@
  *   the tabs, as on `<ui-menu>`.
  */
 
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-tabs>`
@@ -119,7 +119,7 @@ export const tabsVocabulary = {
       kind: "string",
       description:
         "Value of the selected pane (its `value`, else its index).  Controlled:  set it to switch panes;  " +
-        "`ui-change` can veto the user's changes.  Without it, the first `selected` pane, else the first enabled one."
+        "`ui-change` can veto a person's changes.  Without it, the first `selected` pane, else the first enabled one."
     },
     {
       name: "activation",
@@ -158,4 +158,4 @@ export const tabsVocabulary = {
   states: [{ name: "vertical", description: "Tabs in a column (`vertical`)." }],
   texts: [],
   ownsParts: ["tab"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

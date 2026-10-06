@@ -1,15 +1,13 @@
 import { Show, createMemo } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
-import { Converters, HostAttribute, IconGlyph, proto, SlotContent, UIElement } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { stepVocabulary } from "./ui-step.vocabulary.en"
 import { StepFallback } from "./ui-step.fallback"
+import { BOX, CURRENT_STEP, TITLE_PART } from "./ui-step.types"
 
-import stepCSS from "./ui-step.css?inline"
 import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
-import { CHECK, BOX, STEP, CONTENT, TITLE, DESCRIPTION, COLOR_CLASS_PREFIX } from "./ui-step.types"
-import { ACTIVE, BUTTON, TRUE, ICON, VISUALLY_HIDDEN, ANCHOR_TAG, LISTITEM } from "$/ui/components/components.types"
+import stepCSS from "./ui-step.css?inline"
 
 /****************
  * ### `<ui-step>`
@@ -29,26 +27,28 @@ import { ACTIVE, BUTTON, TRUE, ICON, VISUALLY_HIDDEN, ANCHOR_TAG, LISTITEM } fro
  * - Group variations (vertical, ordered, stacked, circular ...) arrive as inherited `--_ui-steps-*` tokens from the
  *   `<ui-steps>` root;  `ui-step.css` reads them (see its header).
  ****************/
-export class UIStep extends UIElement<typeof stepVocabulary> {
-  @proto static vocabulary = stepVocabulary
-  @proto static styles = { step: stepCSS, parts: partsCSS }
-  @proto static Fallback = StepFallback
+export class UIStep extends E.UIElement<typeof stepVocabulary> {
+  @E.proto static vocabulary = stepVocabulary
+  @E.proto static styles = { step: stepCSS, parts: partsCSS }
+  @E.proto static Fallback = StepFallback
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** Fomantic's `active` attribute, an alias of `selected`. */
-  readonly activeAttribute = new HostAttribute({ host: this.host, name: ACTIVE })
+  readonly activeAttribute = new E.HostAttribute({ host: this.host, name: UIT.ACTIVE })
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
 
   ////////////////
   // ## Derived state
   ////////////////
 
   /** The current step:  `selected`, or the `active` alias. */
-  readonly isSelected = createMemo(() => this.attrs.selected || Converters.boolean(this.activeAttribute.get(), ACTIVE))
+  readonly isSelected = createMemo(
+    () => this.attrs.selected || E.Converters.boolean(this.activeAttribute.get(), UIT.ACTIVE)
+  )
 
   /** Has an icon (shorthand or `icon` slot)? */
   readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))
@@ -57,15 +57,15 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
   readonly hasShorthand = createMemo(() => !!this.attrs.header || !!this.attrs.description)
 
   /** The check a completed step shows in place of its icon;  after `hasIcon`, which it reads at once. */
-  readonly checkGlyph = new IconGlyph(this, () => (this.attrs.completed && this.hasIcon() ? CHECK : undefined))
+  readonly checkGlyph = new E.IconGlyph(this, () => (this.attrs.completed && this.hasIcon() ? CHECK : undefined))
 
   /** Root element:  a link, a button (`link`), or a box. */
-  readonly tag = createMemo(() => (this.attrs.href ? ANCHOR_TAG : this.attrs.link ? BUTTON : BOX))
+  readonly tag = createMemo(() => (this.attrs.href ? UIT.ANCHOR_TAG : this.attrs.link ? UIT.BUTTON : BOX))
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     // SIDE EFFECT:  one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
-    this.host.internals.role = LISTITEM
+    this.host.internals.role = UIT.LISTITEM
   }
 
   isDisabled(): boolean {
@@ -81,8 +81,8 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
   protected extraClasses(): string | undefined {
     const color = this.attrs.color
     const extra = [
-      this.isSelected() && !this.attrs.selected ? ACTIVE : "",
-      color ? `${COLOR_CLASS_PREFIX}${color}` : ""
+      this.isSelected() && !this.attrs.selected ? UIT.ACTIVE : "",
+      color ? `${UIT.COLOR_CLASS_PREFIX}${color}` : ""
     ]
     return extra.filter(Boolean).join(" ") || undefined
   }
@@ -107,15 +107,15 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
         component={this.tag()}
         class={this.classes()}
         part={this.part("step")}
-        href={this.tag() === ANCHOR_TAG && !attrs.disabled ? attrs.href : undefined}
-        target={this.tag() === ANCHOR_TAG ? attrs.target : undefined}
-        type={this.tag() === BUTTON ? BUTTON : undefined}
-        disabled={this.tag() === BUTTON && attrs.disabled ? true : undefined}
-        aria-disabled={this.tag() !== BUTTON && attrs.disabled ? TRUE : undefined}
-        aria-current={this.isSelected() ? STEP : undefined}
+        href={this.tag() === UIT.ANCHOR_TAG && !attrs.disabled ? attrs.href : undefined}
+        target={this.tag() === UIT.ANCHOR_TAG ? attrs.target : undefined}
+        type={this.tag() === UIT.BUTTON ? UIT.BUTTON : undefined}
+        disabled={this.tag() === UIT.BUTTON && attrs.disabled ? true : undefined}
+        aria-disabled={this.tag() !== UIT.BUTTON && attrs.disabled ? UIT.TRUE : undefined}
+        aria-current={this.isSelected() ? CURRENT_STEP : undefined}
       >
         <Show when={this.hasIcon()}>
-          <span class={ICON} part={this.part("icon")}>
+          <span class={UIT.ICON} part={this.part("icon")}>
             {/* a server render (`$/ui/static`) swaps the slot for its content, `hidden` and all:  leave it out */}
             <Show when={!(isServer && attrs.completed)}>
               <slot name={this.slot("icon")} hidden={attrs.completed || undefined}>
@@ -126,14 +126,14 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
           </span>
         </Show>
         <Show when={this.hasShorthand()}>
-          <div class={CONTENT} part={this.part("content")}>
+          <div class={this.staticPart(UIT.CONTENT)} part={this.part("content")}>
             <Show when={attrs.header}>
-              <div class={TITLE} part={this.part("title")}>
+              <div class={this.staticPart(TITLE_PART)} part={this.part("title")}>
                 {attrs.header}
               </div>
             </Show>
             <Show when={attrs.description}>
-              <div class={DESCRIPTION} part={this.part("description")}>
+              <div class={this.staticPart(UIT.DESCRIPTION)} part={this.part("description")}>
                 {attrs.description}
               </div>
             </Show>
@@ -141,9 +141,17 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
         </Show>
         <slot />
         <Show when={attrs.completed}>
-          <span class={VISUALLY_HIDDEN}>{this.text("stepCompleted")}</span>
+          <span class={UIT.VISUALLY_HIDDEN}>{this.text("stepCompleted")}</span>
         </Show>
       </Dynamic>
     )
   }
+
+  /** Classes of a shorthand part:  its noun and the static owner class (`ui-parts.css`), e.g. `title in-step`. */
+  private staticPart(noun: string): string {
+    return `${noun} ${UIT.PART_STATIC_CLASS_PREFIX}${this.vocabulary.noun}`
+  }
 }
+
+/** Glyph of a completed step's icon. */
+const CHECK = "check"

@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { authorVocabulary } from "./ui-author.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { authorVocabulary } from "./ui-author.vocabulary.en"
 
 /****************
  * ### `<ui-author>`
@@ -9,10 +8,10 @@ import { PartElement } from "./PartElement"
  * - Fomantic's comment `.author` and feed `.user`.
  ****************/
 export class UIAuthor extends PartElement<typeof authorVocabulary> {
-  @proto static vocabulary = authorVocabulary
+  @E.proto static vocabulary = authorVocabulary
 
   protected tag(): string {
-    return this.attrs.href ? "a" : "span"
+    return this.attrs.href ? UIT.ANCHOR_TAG : "span"
   }
 
   protected href(): string | undefined {

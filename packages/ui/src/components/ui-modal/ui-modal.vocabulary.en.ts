@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-modal>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-modal size="tiny" basic vertical-align="top" open>` => `ui tiny active basic top aligned modal`.
  * - Sizes are WIDTHS here (Fomantic's modal ratios), not text sizes:  `ui-modal.css` reads the size class, never
@@ -12,7 +12,7 @@
  *   Fomantic's `closable: false` (dismissal `none`) unless `closedby` is set.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-modal>`
@@ -50,7 +50,7 @@ export const modalVocabulary = {
       name: "open",
       kind: "keyOnly",
       key: "active",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
     },
     {
       name: "closable",
@@ -87,7 +87,7 @@ export const modalVocabulary = {
       name: "ui-open",
       detail: "{ open: true, originalEvent?: Event }",
       cancelable: true,
-      description: "About to show (a user action, not an `open` write);  `preventDefault()` keeps it hidden."
+      description: "About to show (a person's action, not an `open` write);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-show",
@@ -142,4 +142,4 @@ export const modalVocabulary = {
     { key: "cancel", text: "Cancel", description: "Deny button of `UI.modals.confirm()` / `prompt()`." }
   ],
   ownsParts: ["header", "content", "description", "actions"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

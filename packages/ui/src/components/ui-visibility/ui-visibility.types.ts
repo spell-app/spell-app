@@ -1,41 +1,35 @@
 /**
- * Loose constants, types and helpers of `<ui-visibility>`:  its element classes and native fallback import them from here.
+ * Constants of the `ui-visibility` family that its element (`UIVisibility`) and its native fallback
+ * (`VisibilityFallback`) share.
+ * - Pure data, at the bottom of the folder's imports:  `import type` only, so node can load it (`yarn site:data`).
  */
 
 import type { visibilityVocabulary } from "./ui-visibility.vocabulary.en"
 
-////////////////
-// ## UIVisibility
-////////////////
-
-/** VisibilityVocabulary type, for brevity. */
+/** `<ui-visibility>`'s vocabulary type, for brevity. */
 export type VisibilityVocabulary = typeof visibilityVocabulary
 
-/** What a watch depends on. */
-export type VisibilityConfig = {
-  connected: boolean
-  once: boolean
-  continuous: boolean
-  offset: number
-  images: boolean
-  transition: string | null | undefined
-  duration: number
-}
+////////////////
+// ## Lazy images
+////////////////
 
-/** Default transition (Fomantic's `fade in`, 1000ms). */
-export const FADE = "fade"
-export const DEFAULT_DURATION = 1000
-
-/** Lazy images (Fomantic's `metadata.src`). */
+/** A lazy image's source, until it's on screen (Fomantic's `metadata.src`). */
 export const DATA_SRC = "data-src"
+
+/** A lazy image's `srcset`, until it's on screen. */
+export const DATA_SRCSET = "data-srcset"
+
+/** The lazy images inside `type="image"`. */
 export const LAZY_IMAGES = "img[data-src]"
 
-/**
- * A lazy image's attributes in a static server render (`$/ui/static`):  `data-src` / `data-srcset` become the real
- * ones, and the browser's own lazy loading (`loading="lazy"`) stands in for the observer.
- */
-export const DATA_SRCSET = "data-srcset"
+/** Where `DATA_SRC` goes once the image may load. */
 export const SRC = "src"
-export const SRCSET = "srcset"
+
+/**
+ * The image attribute the browser's own lazy loading reads:  set to `LAZY` where nothing observes (a server render,
+ * the fallback).
+ */
 export const LOADING = "loading"
+
+/** `LOADING`'s value that defers the image until it's near the screen. */
 export const LAZY = "lazy"

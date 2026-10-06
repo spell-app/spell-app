@@ -156,11 +156,11 @@ describe("SearchMatcher", () => {
       ["Fruit", 2],
       ["Vegetables", 1]
     ])
-    expect(SearchMatcher.groups({ results: FRUIT }, 2)[0]!.results).toHaveLength(2)
-    expect(SearchMatcher.groups(FRUIT)[0]!.results).toHaveLength(5)
+    expect(SearchMatcher.groupsFor({ results: FRUIT }, 2)[0]!.results).toHaveLength(2)
+    expect(SearchMatcher.groupsFor(FRUIT)[0]!.results).toHaveLength(5)
     const keyed = { results: { fruit: { name: "Fruit", results: [FRUIT[0]!] }, none: { name: "None", results: [] } } }
-    expect(SearchMatcher.groups(keyed).map((group) => group.name)).toEqual(["Fruit"])
-    expect(SearchMatcher.groups({} as never)).toEqual([])
+    expect(SearchMatcher.groupsFor(keyed).map((group) => group.name)).toEqual(["Fruit"])
+    expect(SearchMatcher.groupsFor({} as never)).toEqual([])
   })
 })
 

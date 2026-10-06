@@ -1,4 +1,4 @@
-import type { ProgressValuesProps } from "./ui-progress.types"
+import { LIST_SPLIT } from "./ui-progress.types"
 
 /****************
  * ### `ProgressValues`
@@ -8,6 +8,7 @@ import type { ProgressValuesProps } from "./ui-progress.types"
  * - Each percentage is kept within 0 ... 100 (Fomantic's `limitValues`);  several bars that add up to more than 100
  *   are scaled down to fit (Fomantic refused the update with an error).
  * - `percents` are exact (bar widths);  `shown` are rounded to `precision` decimals (texts, `data-percent`).
+ * - Plain arithmetic, no DOM:  exported from the family's barrel, so an app can compute the same numbers.
  ****************/
 export class ProgressValues {
   /** Exact percentage per bar. */
@@ -33,7 +34,7 @@ export class ProgressValues {
 
   constructor(input: ProgressValuesProps) {
     const precision = Math.max(0, Math.floor(input.precision ?? 0))
-    const total = input.total != null && input.total > 0 ? input.total : undefined
+    const total = input.total !== undefined && input.total > 0 ? input.total : undefined
     const given = ProgressValues.list(input.percent)
     const values = ProgressValues.list(input.value)
     let percents = given.length
@@ -90,20 +91,38 @@ export class ProgressValues {
     return template.replace(/\{(\w+)\}/g, (match, name: string) => (name in params ? format(params[name]!) : match))
   }
 
-  /** Numbers in `value`:  one, or a comma / space separated list;  anything else is skipped. */
-  static list(value: string | number | null | undefined): number[] {
-    if (value == null || value === "") return []
+  /**
+   * Numbers in `value`:  one, or a comma / space separated list;  anything else is skipped.
+   * - Static:  pure, and the constructor's parsing step.
+   */
+  static list(value: string | number | undefined): number[] {
+    if (value === undefined || value === "") return []
     if (typeof value === "number") return Number.isFinite(value) ? [value] : []
     return value
-      .split(/[\s,]+/)
+      .split(LIST_SPLIT)
       .filter(Boolean)
       .map(Number)
       .filter((number) => Number.isFinite(number))
   }
 
-  /** `value` rounded to `precision` decimals. */
+  /**
+   * `value` rounded to `precision` decimals.
+   * - Static:  pure.
+   */
   static round(value: number, precision: number): number {
     const factor = 10 ** precision
     return Math.round(value * factor) / factor
   }
+}
+
+/** Constructor props for `ProgressValues`:  the host's converted attributes. */
+export type ProgressValuesProps = {
+  /** `value`:  one number or a comma list. */
+  value?: string | number
+  /** `total`. */
+  total?: number
+  /** `percent`:  one number or a comma list. */
+  percent?: string | number
+  /** Decimal places for display. */
+  precision?: number
 }

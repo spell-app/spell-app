@@ -1,15 +1,14 @@
-import { Converters, NativeFallback, PartContext, proto, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { sectionVocabulary } from "./ui-section.vocabulary.en"
 import { sectionsVocabulary } from "./ui-sections.vocabulary.en"
 import {
   ACTIONS,
   BADGE,
-  CONTENT,
+  BEFORE_MATCH,
   CONTENT_ID,
-  FOLD_END,
   FOLD_ICON_CLASS,
-  HEADER,
+  FOLD_ICON_PART,
+  FoldIconPlace,
   HEADING,
   HEADING_TAG,
   HEIGHT_PROPERTY,
@@ -20,12 +19,10 @@ import {
   SUBHEAD,
   TIP,
   TIP_ID,
-  TITLE,
   TOGGLE,
   TOOLTIP,
   TOP_LEVEL,
-  UNTIL_FOUND,
-  type FoldIconPlace
+  UNTIL_FOUND
 } from "./ui-section.types"
 
 /****************
@@ -40,9 +37,9 @@ import {
  * - Without its own `collapsible`, folds when its nearest `<ui-sections>` is `collapsing` (read once, as the rest).
  * - Read once:  later attribute or child changes (`collapsed` set by the page, a new badge) don't re-render it.
  ****************/
-export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
-  @proto static vocabulary = sectionVocabulary
-  @proto static degraded = [
+export class SectionFallback extends E.NativeFallback<typeof sectionVocabulary> {
+  @E.proto static vocabulary = sectionVocabulary
+  @E.proto static degraded = [
     "the `icon` glyph and the fold chevron (a `▾` stands in)",
     "nested sticky titles stacking below their parent's",
     "`:state(collapsed)`, `:state(stuck)`, `:state(in-section)`, `:state(animated)` and the fold animation",
@@ -50,34 +47,40 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
     "later changes to the host's attributes and slotted children (read once)"
   ]
 
+  /** The fold button, while `collapsible`. */
+  private toggle: HTMLButtonElement | undefined
+
+  /** The content box. */
+  private content: HTMLElement | undefined
+
   /**
    * Where the fold chevron sits without a `fold-icon` attribute:  the controller's `defaultFoldIcon` (a subclass's,
    * `<ui-panel>`'s `end`), else `start` (no controller:  its constructor threw).
    */
   private get defaultFoldIcon(): FoldIconPlace {
-    return (this.host as { controller?: { defaultFoldIcon?: FoldIconPlace } }).controller?.defaultFoldIcon ?? "start"
+    const { controller } = this.host as { controller?: { defaultFoldIcon?: FoldIconPlace } }
+    return controller?.defaultFoldIcon ?? FoldIconPlace.start
   }
-  /** The fold button, while `collapsible`. */
-  private toggle: HTMLButtonElement | undefined
 
   protected override build() {
     const height = this.attr("height")
-    const scrolls = !!height || this.host.hasAttribute("scrolling")
+    const hasScrolling = this.attr("scrolling") !== null
     const content = this.create(
       "div",
       {
         id: CONTENT_ID,
-        class: CONTENT,
-        part: CONTENT,
+        class: UIT.CONTENT,
+        part: UIT.CONTENT,
         // a scroll box is a tab stop, so the keyboard can scroll it
-        tabindex: scrolls ? "0" : null,
-        style: height ? `${HEIGHT_PROPERTY}: ${height}` : null
+        tabindex: height || hasScrolling ? "0" : undefined,
+        style: height ? `${HEIGHT_PROPERTY}: ${height}` : undefined
       },
       this.slot()
     )
+    this.content = content
     // `height` implies `scrolling`, after the noun as the element has it
-    const extra = height && !this.host.hasAttribute("scrolling") ? SCROLLING : undefined
-    const section = this.create("section", { class: this.classes(extra) }, this.title(content))
+    const extra = height && !hasScrolling ? SCROLLING : undefined
+    const section = this.create("section", { class: this.classes(extra) }, this.title())
     const subhead = this.attr("subhead")
     if (subhead || this.slotted("subhead")) {
       section.append(this.create("div", { class: SUBHEAD, part: SUBHEAD }, this.named("subhead", subhead)))
@@ -86,7 +89,7 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
     if (this.flag("loading")) {
       section.append(this.create("span", { class: UIT.VISUALLY_HIDDEN, role: UIT.STATUS }, this.text("loading")))
     }
-    if (this.toggle) this.fold(this.toggle, content, this.flag("collapsed"))
+    if (this.toggle) this.fold(this.toggle, content)
     return [this.decorate(section, "section")]
   }
 
@@ -95,53 +98,60 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
   ////////////////
 
   /** `<header class="title">`:  the heading around the toggle, then the badge and actions boxes when used. */
-  private title(content: HTMLElement): HTMLElement {
+  private title(): HTMLElement {
     // the host's own attribute wins (`"false"` included), else its group's default
-    const collapsible =
-      this.attr("collapsible") === null ? SectionFallback.inCollapsing(this.host) : this.flag("collapsible")
-    const atEnd = (this.attr("fold-icon") ?? this.defaultFoldIcon) === FOLD_END
-    const foldIcon = collapsible
-      ? this.create("span", { class: FOLD_ICON_CLASS, part: "fold-icon", "aria-hidden": UIT.TRUE }, "▾")
+    const isCollapsible =
+      this.attr("collapsible") === null ? SectionFallback.isInCollapsing(this.host) : this.flag("collapsible")
+    const isAtEnd = (this.attr("fold-icon") ?? this.defaultFoldIcon) === FoldIconPlace.end
+    const foldIcon = isCollapsible
+      ? this.create("span", { class: FOLD_ICON_CLASS, part: FOLD_ICON_PART, "aria-hidden": UIT.TRUE }, FOLD_GLYPH)
       : undefined
     const info = this.attr("info")
     const hasInfo = !!info || this.slotted("info")
     const inner: Node[] = []
-    if (foldIcon && !atEnd) inner.push(foldIcon)
-    const icon = this.attr("icon")
-    if (icon || this.slotted("icon"))
-      inner.push(this.create("span", { class: "icon", part: "icon" }, this.named("icon")))
-    inner.push(this.create("span", { class: HEADER, part: HEADER }, this.named("header", this.attr("header"))))
+    if (foldIcon && !isAtEnd) inner.push(foldIcon)
+    if (this.attr("icon") || this.slotted("icon")) {
+      inner.push(this.create("span", { class: UIT.ICON, part: UIT.ICON }, this.named("icon")))
+    }
+    inner.push(this.create("span", { class: UIT.HEADER, part: UIT.HEADER }, this.named("header", this.attr("header"))))
     const attributes = { class: TOGGLE, part: TOGGLE }
-    const described = hasInfo ? TIP_ID : null
-    if (collapsible) {
-      const disabled = this.flag("disabled")
+    const described = hasInfo ? TIP_ID : undefined
+    if (isCollapsible) {
       this.toggle = this.create(
-        "button",
-        { ...attributes, type: "button", "aria-controls": content.id, "aria-describedby": described, disabled },
+        UIT.BUTTON,
+        {
+          ...attributes,
+          type: UIT.BUTTON,
+          "aria-controls": CONTENT_ID,
+          "aria-describedby": described,
+          disabled: this.flag("disabled")
+        },
         ...inner
       )
     }
     const toggle = this.toggle ?? this.create(STATIC_TOGGLE_TAG, attributes, ...inner)
-    const level = SectionFallback.levelOf(this.host)
+    const level = SectionFallback.levelFor(this.host)
     const heading = this.create(
       `${HEADING_TAG}${level}` as "h2",
-      { class: HEADING, part: HEADING, "aria-describedby": collapsible ? null : described },
+      { class: HEADING, part: HEADING, "aria-describedby": isCollapsible ? undefined : described },
       toggle
     )
     const offset = Number(this.attr("offset")) || 0
     const title = this.create(
       "header",
-      { class: TITLE, part: TITLE, style: `${STICK_TOP_PROPERTY}: ${offset}px` },
+      { class: UIT.TITLE, part: UIT.TITLE, style: `${STICK_TOP_PROPERTY}: ${offset}px` },
       heading
     )
     const badge = this.attr("badge")
-    if (badge || this.slotted("badge"))
+    if (badge || this.slotted("badge")) {
       title.append(this.create("span", { class: BADGE, part: BADGE }, this.named("badge", badge)))
-    if (this.slotted("actions"))
+    }
+    if (this.slotted("actions")) {
       title.append(this.create("span", { class: ACTIONS, part: ACTIONS }, this.named("actions")))
-    if (foldIcon && atEnd) {
+    }
+    if (foldIcon && isAtEnd) {
       title.append(foldIcon)
-      this.listen(foldIcon, "click", () => this.toggle?.click())
+      this.listen(foldIcon, UIT.CLICK, () => this.toggle?.click())
     }
     if (hasInfo) {
       title.append(this.create("span", { id: TIP_ID, class: TIP, part: TIP, role: TOOLTIP }, this.named("info", info)))
@@ -149,15 +159,18 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
     return title
   }
 
-  /** A named `<slot>`, with `text` shown while nothing is slotted. */
-  private named(name: string, text?: string | null): HTMLSlotElement {
+  /**
+   * A named `<slot>`, with `text` shown while nothing is slotted.
+   * - Takes `null`:  `text` is often `attr()`'s.
+   */
+  private named(name: SectionSlot, text?: string | null): HTMLSlotElement {
     const slot = this.slot(text)
     slot.name = name
     return slot
   }
 
   /** Whether the host has a light-DOM child in slot `name`. */
-  private slotted(name: string): boolean {
+  private slotted(name: SectionSlot): boolean {
     return [...this.host.children].some((child) => child.slot === name)
   }
 
@@ -166,36 +179,39 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
   ////////////////
 
   /**
-   * Wire the toggle:  a click (Enter / Space are the button's own) asks first, then folds or unfolds.
-   * - SIDE EFFECT:  sets / removes the host's `collapsed`, so the page reads the state the user chose.
+   * Wire the toggle:  a click (Enter / Space are the button's own) asks first, then folds or unfolds;  find-in-page
+   * unfolds a match.
+   * - SIDE EFFECT:  sets / removes the host's `collapsed`, so the page reads the state the person chose.
    */
-  private fold(button: HTMLButtonElement, content: HTMLElement, collapsed: boolean) {
-    this.show(button, content, !collapsed)
-    this.listen<MouseEvent>(button, "click", (event) => {
+  private fold(button: HTMLButtonElement, content: HTMLElement) {
+    this.show({ open: !this.flag("collapsed") })
+    this.listen<MouseEvent>(button, UIT.CLICK, (event) => {
       // NOT `content.hidden`:  that reads `"until-found"`, a string
-      const open = content.hasAttribute("hidden")
-      if (this.announce(open, event, true)) this.show(button, content, open)
+      const open = content.hasAttribute(HIDDEN)
+      if (this.announce({ open, originalEvent: event })) this.show({ open })
     })
-    this.listen(content, "beforematch", () => {
-      this.announce(true, undefined, false)
-      this.show(button, content, true)
+    this.listen(content, BEFORE_MATCH, () => {
+      this.announce({ open: true, isCancelable: false })
+      this.show({ open: true })
     })
   }
 
   /** Show / hide the content, keeping the button's `aria-expanded` and tooltip and the host's `collapsed` in step. */
-  private show(button: HTMLButtonElement, content: HTMLElement, open: boolean) {
-    if (open) content.removeAttribute("hidden")
-    else content.setAttribute("hidden", UNTIL_FOUND)
-    button.setAttribute("aria-expanded", String(open))
-    button.title = this.text(open ? "fold" : "unfold")
-    if (this.host.hasAttribute("collapsed") === open) this.host.toggleAttribute("collapsed", !open)
+  private show({ open }: { open: boolean }) {
+    const { toggle, content } = this
+    if (!toggle || !content) return
+    if (open) content.removeAttribute(HIDDEN)
+    else content.setAttribute(HIDDEN, UNTIL_FOUND)
+    toggle.setAttribute(UIT.ARIA_EXPANDED, String(open))
+    toggle.title = this.text(open ? "fold" : "unfold")
+    if (this.host.hasAttribute(COLLAPSED) === open) this.host.toggleAttribute(COLLAPSED, !open)
   }
 
   /** Dispatch `ui-open` / `ui-close` from the host;  `false` when a handler cancelled it. */
-  private announce(open: boolean, originalEvent: Event | undefined, cancelable: boolean): boolean {
+  private announce({ open, originalEvent, isCancelable = true }: AnnounceParams): boolean {
     const [opened, closed] = this.vocabulary.events
     const detail: UIT.SectionToggleDetail = { open, section: this.host, originalEvent }
-    const init = { bubbles: true, composed: true, cancelable, detail }
+    const init = { bubbles: true, composed: true, cancelable: isCancelable, detail }
     return this.host.dispatchEvent(new CustomEvent((open ? opened : closed).name, init))
   }
 
@@ -213,13 +229,14 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
    * - The climb every section's `PartContext` makes (defined owners of `section` parts, by tag, translated tags
    *   included), read once:  a group answers, an enclosing section passes the question up.
    * - The group's `collapsing` is read by its English name, as every fallback reads attributes.
+   * - STATIC:  recurses on owners, not on this fallback's host.
    */
-  private static inCollapsing(host: Element): boolean {
-    const match = PartContext.ownerFor(host, sectionVocabulary.noun, PartContext.noBarrier)
+  private static isInCollapsing(host: Element): boolean {
+    const match = E.PartContext.ownerFor(host, sectionVocabulary.noun, E.PartContext.noBarrier)
     if (!match) return false
-    if (match.ownerNoun !== sectionsVocabulary.noun) return SectionFallback.inCollapsing(match.owner)
+    if (match.ownerNoun !== sectionsVocabulary.noun) return SectionFallback.isInCollapsing(match.owner)
     const [collapsing] = sectionsVocabulary.attributes
-    return Converters.boolean(match.owner.getAttribute(collapsing.name), collapsing.name)
+    return E.Converters.boolean(match.owner.getAttribute(collapsing.name), collapsing.name)
   }
 
   ////////////////
@@ -231,11 +248,37 @@ export class SectionFallback extends NativeFallback<typeof sectionVocabulary> {
    * - An enclosing section is an ancestor with the host's own tag (a translated tag nests in itself).
    * - Light DOM only:  a section slotted through another component's shadow root still counts, one inside a
    *   shadow root doesn't.
+   * - STATIC:  recurses on ancestors, not on this fallback's host.
    */
-  private static levelOf(host: Element): number {
-    const level = Number(host.getAttribute("level"))
+  private static levelFor(host: Element): number {
+    const level = Number(host.getAttribute(LEVEL))
     if (Number.isInteger(level) && level >= 1 && level <= MAX_LEVEL) return level
     const parent = host.parentElement?.closest(host.localName)
-    return parent ? Math.min(SectionFallback.levelOf(parent) + 1, MAX_LEVEL) : TOP_LEVEL
+    return parent ? Math.min(SectionFallback.levelFor(parent) + 1, MAX_LEVEL) : TOP_LEVEL
   }
 }
+
+/** What `SectionFallback.announce()` dispatches. */
+type AnnounceParams = {
+  /** State the section is ABOUT to enter:  `true` unfolding. */
+  open: boolean
+  /** The click on the toggle;  none for find-in-page. */
+  originalEvent?: Event
+  /** Can a handler veto it?  Default `true`;  `false` after the fact (find-in-page has already revealed it). */
+  isCancelable?: boolean
+}
+
+/** One of the section's slot names. */
+type SectionSlot = (typeof sectionVocabulary)["slots"][number]["name"]
+
+/** Stands in for the fold chevron's glyph:  no icon packs without the element. */
+const FOLD_GLYPH = "▾"
+
+/** Attribute that folds the content box:  `hidden="until-found"`. */
+const HIDDEN = "hidden"
+
+/** The host's attribute it keeps in step:  set while folded. */
+const COLLAPSED = "collapsed"
+
+/** The host's `level`, read on ancestors too (`levelFor()`). */
+const LEVEL = "level"

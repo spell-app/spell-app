@@ -1,8 +1,7 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, SlotContent, UIElement, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { messageVocabulary } from "./ui-message.vocabulary.en"
 import { MessageFallback } from "./ui-message.fallback"
 
@@ -22,25 +21,26 @@ import messageCSS from "./ui-message.css?inline"
  *   `hidden` on ITSELF.  It never removes itself:  a framework that rendered the node still owns it.
  * - No role:  a message inserted to announce something gets `role="status"` / `alert` from the page.
  ****************/
-export class UIMessage extends UIElement<typeof messageVocabulary> {
-  @proto static vocabulary = messageVocabulary
-  @proto static styles = { message: messageCSS }
-  @proto static Fallback = MessageFallback
+export class UIMessage extends E.UIElement<typeof messageVocabulary> {
+  @E.proto static vocabulary = messageVocabulary
+  @E.proto static styles = { message: messageCSS }
+  @E.proto static Fallback = MessageFallback
 
   /** Light-DOM slot occupancy:  a slotted icon. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
 
   /** Glyph of the close button. */
-  readonly closeGlyph = new IconGlyph(this, () => (this.attrs.dismissible ? UIT.CLOSE_ICON : undefined))
+  readonly closeGlyph = new E.IconGlyph(this, () => (this.attrs.dismissible ? UIT.CLOSE_ICON : undefined))
 
   /** Has an icon (shorthand or `icon` slot)? */
-  readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))
+  readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot(UIT.ICON)))
 
+  /** The `icon` class after the noun while it shows an icon:  the sheet's icon layout. */
   protected extraClasses(): string | undefined {
-    return this.hasIcon() ? UIT.ICON : undefined
+    return this.hasIcon() ? UIT.ICON_CLASS : undefined
   }
 
   protected hostStates() {
@@ -56,7 +56,7 @@ export class UIMessage extends UIElement<typeof messageVocabulary> {
       <div class={this.classes()} part={this.part("message")}>
         <Show when={this.hasIcon()}>
           <span class={UIT.ICON} part={this.part("icon")}>
-            <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
+            <slot name={this.slot(UIT.ICON)}>{this.glyph.svg()}</slot>
           </span>
         </Show>
         <div class={UIT.CONTENT} part={this.part("content")}>

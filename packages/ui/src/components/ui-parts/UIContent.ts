@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { contentVocabulary } from "./ui-content.vocabulary.en"
+import { E } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { contentVocabulary } from "./ui-content.vocabulary.en"
 
 /****************
  * ### `<ui-content>`
@@ -12,7 +11,7 @@ import { PartElement } from "./PartElement"
  * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
  ****************/
 export class UIContent extends PartElement<typeof contentVocabulary> {
-  @proto static vocabulary = contentVocabulary
+  @E.proto static vocabulary = contentVocabulary
 
   protected tabIndex(): number | undefined {
     return this.attrs.scrolling ? 0 : undefined

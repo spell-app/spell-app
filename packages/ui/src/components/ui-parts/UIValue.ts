@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { valueVocabulary } from "./ui-value.vocabulary.en"
+import { E } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { valueVocabulary } from "./ui-value.vocabulary.en"
 
 /****************
  * ### `<ui-value>`
@@ -10,5 +9,5 @@ import { PartElement } from "./PartElement"
  * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
  ****************/
 export class UIValue extends PartElement<typeof valueVocabulary> {
-  @proto static vocabulary = valueVocabulary
+  @E.proto static vocabulary = valueVocabulary
 }

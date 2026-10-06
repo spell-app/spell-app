@@ -44,7 +44,7 @@ export class FormFields {
       ? [...form.elements]
       : [...this.host.querySelectorAll(CONTROL_SELECTOR), ...this.customControls()]
     const inside = !form || !form.contains(this.host) ? candidates : candidates.filter((el) => this.host.contains(el))
-    return [...new Set(inside)].filter(FormFields.isControl).sort(FormFields.byDocumentOrder)
+    return [...new Set(inside)].filter(FormFields.isControl).sort(E.byDocumentOrder)
   }
 
   /** Fields by identifier, in document order. */
@@ -254,11 +254,6 @@ export class FormFields {
   private static willValidate(control: Element): boolean {
     if ((control as { willValidate?: boolean }).willValidate === false) return false
     return !control.closest(FIELD_SELECTOR)?.matches(UIT.DISABLED_STATE)
-  }
-
-  /** Sort comparator:  document order. */
-  private static byDocumentOrder(a: Element, b: Element): number {
-    return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
   }
 }
 

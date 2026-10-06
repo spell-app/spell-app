@@ -1,12 +1,10 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { pusherVocabulary } from "./ui-pusher.vocabulary.en"
 import { SidebarFallback } from "./ui-sidebar.fallback"
 
 import sidebarCSS from "./ui-sidebar.css?inline"
-import { PUSHER } from "./ui-sidebar.types"
 
 /****************
  * ### `<ui-pusher>`
@@ -14,11 +12,11 @@ import { PUSHER } from "./ui-sidebar.types"
  * - Passive:  `ui-sidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`PUSHER_TOKENS`), and the
  *   pushable makes the HOST `inert` beside a modal sidebar.  Its `::after` is the dimmer.
  ****************/
-export class UIPusher extends UIElement<typeof pusherVocabulary> {
-  @proto static vocabulary = pusherVocabulary
-  @proto static styles = { sidebar: sidebarCSS }
-  @proto static Fallback = SidebarFallback
-  @proto static delegatesFocus = false
+export class UIPusher extends E.UIElement<typeof pusherVocabulary> {
+  @E.proto static vocabulary = pusherVocabulary
+  @E.proto static styles = { sidebar: sidebarCSS }
+  @E.proto static Fallback = SidebarFallback
+  @E.proto static delegatesFocus = false
 
   protected hostStates() {
     return { pusher: true }
@@ -32,3 +30,6 @@ export class UIPusher extends UIElement<typeof pusherVocabulary> {
     )
   }
 }
+
+/** Class word of the root (`ui-sidebar.css`). */
+const PUSHER = "pusher"

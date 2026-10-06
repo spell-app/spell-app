@@ -1,6 +1,8 @@
 /**
  * Every name `<ui-search>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only, `UIT` by value
+ *   straight from `components.types`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-search category fluid aligned="right">` => `ui category fluid right aligned search`.  `ui-search.css` keys on
  *   those words.
@@ -8,7 +10,8 @@
  *   are all SSR must show.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
+import * as UIT from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-search>`
@@ -21,7 +24,7 @@ export const searchVocabulary = {
   aka: ["autocomplete", "typeahead", "search box", "combobox", "lookup"],
   skeleton: { display: "inline", width: "15em", height: "2.5em" },
   noun: "search",
-  description: "A search module allows a user to query for results from a selection of data.",
+  description: "A search module lets people query for results from a selection of data.",
   attributes: [
     { name: "size", kind: "size", description: "Size, `mini` ... `massive`;  `medium` is the default." },
     { name: "category", kind: "keyOnly", description: "Results in named groups (`category` of each result)." },
@@ -32,7 +35,7 @@ export const searchVocabulary = {
     },
     { name: "fluid", kind: "keyOnly", description: "Takes the full width of its container;  so do the results." },
     { name: "scrolling", kind: "keyOnly", description: "The results scroll after a fixed height." },
-    { name: "resizable", kind: "keyOnly", description: "`scrolling`:  the user can resize the results vertically." },
+    { name: "resizable", kind: "keyOnly", description: "`scrolling`:  people can resize the results vertically." },
     { name: "short", kind: "keyOnly", description: "The results scroll after a shorter height." },
     { name: "very-short", kind: "keyOnly", description: "The results scroll after a much shorter height." },
     { name: "long", kind: "keyOnly", description: "The results scroll after a longer height." },
@@ -81,8 +84,8 @@ export const searchVocabulary = {
     {
       name: "full-text-search",
       kind: "enum",
-      values: ["exact", "fuzzy", "prefix", "some", "all"],
-      default: "exact",
+      values: UIT.SearchMatches,
+      default: UIT.SearchMatch.exact,
       description:
         "Local matching (`SearchMatch`):  a word START always matches;  then `exact` anywhere, `fuzzy` in order, " +
         "`prefix` nothing more, `some` any word, `all` every word."
@@ -118,7 +121,7 @@ export const searchVocabulary = {
     {
       name: "ui-search",
       detail: "{ query: string, originalEvent?: Event }",
-      description: "The user typed a query at least `min-characters` long;  it's about to run."
+      description: "Someone typed a query at least `min-characters` long;  it's about to run."
     },
     {
       name: "ui-select",
@@ -181,4 +184,4 @@ export const searchVocabulary = {
     { key: "searchOneResult", text: "1 result available.", description: "Announced when one result shows." },
     { key: "searchResultCount", text: "{count} results available.", description: "Announced when results show." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

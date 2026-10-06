@@ -1,7 +1,7 @@
 /**
  * Every name the generic content parts use -- `<ui-content>`, `<ui-header>`, `<ui-description>`, `<ui-meta>`,
  * `<ui-extra>`, `<ui-actions>`, `<ui-title>`, `<ui-summary>`, `<ui-date>`, `<ui-author>`, `<ui-avatar>`,
- * `<ui-detail>`, `<ui-value>`.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * `<ui-detail>`, `<ui-value>`.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The noun IS the part word, and the class it renders:  `<ui-meta>` => `<div class="meta">`.  Parts have no
  *   `ui` class (`ui: false`), except a STANDALONE `<ui-header>`, which is Fomantic's `ui header`.
  * - Owners declare what they own (`ownsParts` in THEIR vocabularies);  `OwnerContext` finds a part's nearest
@@ -10,7 +10,7 @@
  * - `ui-parts.css` styles every part;  see its header for the owner tokens owners must set.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-header>`
@@ -75,7 +75,7 @@ export const headerVocabulary = {
   parts: [{ name: "header", description: "The header box (`<div>`, `<h1>` ... `<h6>`, or `<a>`)." }],
   states: [
     { name: "in-card", description: "Owned by a card." },
-    { name: "in-item", description: "Owned by a item." },
+    { name: "in-item", description: "Owned by an item." },
     { name: "in-modal", description: "Owned by a modal." },
     { name: "in-flyout", description: "Owned by a flyout." },
     { name: "in-message", description: "Owned by a message." },
@@ -87,4 +87,4 @@ export const headerVocabulary = {
   ],
   texts: [],
   ownsParts: ["header", "content"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

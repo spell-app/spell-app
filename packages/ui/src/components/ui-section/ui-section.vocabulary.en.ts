@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-section>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-section color="teal" dividing sticky>` => `ui teal dividing sticky section`.
  * - Strings and numbers (`header`, `subhead`, `info`, `level`, `badge`, `offset`, `height`), the booleans
@@ -8,10 +8,10 @@
  * - `source` (`UIT.SOURCE_BODY_*`):  the content comes from a file the first time the section unfolds (`SourceBody`).
  *   Spread here, so a subclass reusing this vocabulary (`<ui-panel>`) has it too.
  * - `collapsed` is CONTROLLED (as accordion's `open`):  set it to fold / unfold;  `ui-open` / `ui-close` can veto
- *   the user's changes.
+ *   a person's changes.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
 
 /****************
@@ -75,7 +75,7 @@ export const sectionVocabulary = {
       kind: "boolean",
       description:
         "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto " +
-        "the user's changes.  Find-in-page unfolds a match."
+        "a person's changes.  Find-in-page unfolds a match."
     },
     {
       name: "fold-icon",
@@ -215,4 +215,4 @@ export const sectionVocabulary = {
     ...UIT.SOURCE_FAILURE_TEXTS
   ],
   ownsParts: ["section"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

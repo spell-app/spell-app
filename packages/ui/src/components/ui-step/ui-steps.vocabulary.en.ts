@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-steps>` and `<ui-step>` use:  tags, attributes (kind + allowed values), slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-steps ordered vertical="right"
  *   widths="3">` => `ui ordered right vertical three steps`;  `<ui-step selected completed>` => `completed active
  *   step` (a step has no `ui`, as Fomantic's `.ui.steps > .step`).  `ui-step.css` keys on those words.
@@ -12,8 +12,8 @@
  *   `HTMLElement` property, as the popup's `header`) and `description`.
  */
 
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-steps>`
@@ -108,4 +108,4 @@ export const stepsVocabulary = {
     }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

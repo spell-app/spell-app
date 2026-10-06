@@ -1,9 +1,8 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { proto, UIT } from "$/ui/core"
-
-import { headerVocabulary } from "./ui-header.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { headerVocabulary } from "./ui-header.vocabulary.en"
 import { HEADING } from "./ui-parts.types"
 
 /****************
@@ -18,7 +17,7 @@ import { HEADING } from "./ui-parts.types"
  * - It is an OWNER too (`ownsParts:  header, content`):  a nested `<ui-header>` / `<ui-content>` resolves to it.
  ****************/
 export class UIHeader extends PartElement<typeof headerVocabulary> {
-  @proto static vocabulary = headerVocabulary
+  @E.proto static vocabulary = headerVocabulary
 
   render(): JSX.Element {
     return (
@@ -37,7 +36,7 @@ export class UIHeader extends PartElement<typeof headerVocabulary> {
 
   /** `<a>` for `href`, `<hN>` for `level`, else `<div>`. */
   protected tag(): string {
-    if (this.attrs.href) return "a"
+    if (this.attrs.href) return UIT.ANCHOR_TAG
     const level = this.attrs.level ? (Number(this.attrs.level) as UIT.HeaderLevel) : undefined
     return level ? `h${level}` : "div"
   }

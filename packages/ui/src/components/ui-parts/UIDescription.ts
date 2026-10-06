@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { descriptionVocabulary } from "./ui-description.vocabulary.en"
+import { E } from "$/ui/core"
 import { PartElement } from "./PartElement"
+import { descriptionVocabulary } from "./ui-description.vocabulary.en"
 
 /****************
  * ### `<ui-description>`
@@ -10,5 +9,5 @@ import { PartElement } from "./PartElement"
  * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
  ****************/
 export class UIDescription extends PartElement<typeof descriptionVocabulary> {
-  @proto static vocabulary = descriptionVocabulary
+  @E.proto static vocabulary = descriptionVocabulary
 }

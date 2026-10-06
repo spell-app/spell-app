@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
-import { PART_NOUNS, PART_VOCABULARIES } from "./ui-parts.types"
+import { PartNouns, PartVocabularies } from "./ui-parts.types"
 
 import iconCSS from "$/ui/components/ui-icon/ui-icon.css?inline"
 import partsCSS from "./ui-parts.css?inline"
@@ -57,9 +57,9 @@ describe("ui-parts.css source", () => {
   })
 
   it("lists one vocabulary per part noun, and covers the header's class words", () => {
-    expect(PART_VOCABULARIES.map((vocabulary) => vocabulary.noun)).toEqual([...PART_NOUNS])
+    expect(PartVocabularies.map((vocabulary) => vocabulary.noun)).toEqual([...PartNouns])
     const css = partsRaw + colorsCSS
-    for (const vocabulary of PART_VOCABULARIES) {
+    for (const vocabulary of PartVocabularies) {
       for (const phrase of Sheets.classPhrases(vocabulary))
         expect(Sheets.covers(css, phrase), `${vocabulary.tag}: ${phrase}`).toBe(true)
     }
@@ -73,7 +73,7 @@ describe("ui-parts.css examples", () => {
     const owned = root.querySelectorAll<HTMLElement>("[class*='in-']")
     expect(owned.length).toBeGreaterThan(0)
     for (const part of owned) {
-      const noun = [...part.classList].find((word) => (PART_NOUNS as readonly string[]).includes(word))
+      const noun = [...part.classList].find((word) => (PartNouns as readonly string[]).includes(word))
       if (!noun) continue
       expect(getComputedStyle(part).getPropertyValue("--_ui-part").trim(), part.outerHTML.slice(0, 60)).toBe(noun)
     }

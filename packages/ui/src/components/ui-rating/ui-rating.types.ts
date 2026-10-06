@@ -1,41 +1,18 @@
 /**
- * Loose constants, types and helpers of `<ui-rating>`:  its element classes and native fallback import them from here.
+ * Constants of the `ui-rating` family that its element (`UIRating`) and its native fallback (`RatingFallback`) share.
+ * - Pure data, at the bottom of the folder's imports:  no imports at all, so node can load it (`yarn site:data`).
+ * - A constant ONE class uses is a module constant below that class (epic `wwod-spell-ui`, Q18).
  */
 
-import { HOME, END } from "$/ui/components/components.types"
-
 ////////////////
-// ## UIRating
+// ## The radio group
 ////////////////
 
-/** Fomantic's default `maxRating`. */
+/** Fomantic's default `maxRating`:  how many icons when `max-rating` is unset. */
 export const DEFAULT_MAX = 4
 
-/** Class word of a partly filled icon. */
-export const PARTIAL = "partial"
-
-/** Class of the clipped glyph over a partly filled icon. */
-export const FILL = "fill"
-
-/** Fomantic's custom property for the filled share of a partial icon. */
-export const FULL = "--full"
-
-/** Group role and radio type. */
+/** Role of the group of points. */
 export const RADIOGROUP = "radiogroup"
+
+/** `type` of each point's native control. */
 export const RADIO = "radio"
-
-/** Keys that clear the rating. */
-export const CLEAR_KEYS = new Set(["Backspace", "Delete"])
-
-/** Keys that choose natively (or through us), blocked while `readonly`. */
-export const CHOICE_KEYS = new Set([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", HOME, END, ...CLEAR_KEYS])
-
-/** `UI.ids` prefix. */
-export const ID_PREFIX = "ui-rating"
-
-////////////////
-// ## ui-rating.fallback
-////////////////
-
-/** The part of a rating host the fallback touches;  optional, the element may not have upgraded. */
-export type RatingHost = HTMLElement & { value?: number }

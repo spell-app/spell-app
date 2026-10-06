@@ -1,21 +1,7 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  flatParentFor,
-  HostAttribute,
-  IconGlyph,
-  RootSettings,
-  UI,
-  UIHost,
-  UIT,
-  proto,
-  UIElement,
-  type Disposer,
-  Warnings
-} from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { LoaderMessage, type RootLoading } from "./LoaderMessage"
 import { PlaceholderSkeleton, type RootSkeletonRenderer } from "./PlaceholderSkeleton"
 import { RootBox } from "./RootBox"
@@ -23,10 +9,6 @@ import { RootLoader } from "./RootLoader"
 import { ROOT_CATALOG } from "./ui-root.catalog"
 import { RootFallback } from "./ui-root.fallback"
 import {
-  DISPLAY,
-  MAX_ROUNDS,
-  PACK_SEPARATOR,
-  SERVER_CONTENTS,
   RootTimeout,
   type RootFailure,
   type RootFailureReason,
@@ -48,45 +30,45 @@ import rootCSS from "./ui-root.css?inline"
  * - While loading (`display`, not `immediately`):  the slot is hidden by an INLINE style (`canRenderUnstyled`,
  *   before any sheet), with its space kept (`when-ready`), or not drawn at all when the `loading` message or the
  *   skeletons show instead.
- * - `skeleton`:  every element inside whose tag describes a skeleton (`ComponentVocabulary.skeleton`, in the generated
+ * - `skeleton`:  every element inside whose tag describes a skeleton (`E.ComponentVocabulary.skeleton`, in the generated
  *   catalog) gets a `<ui-placeholder>` in the root's shadow, in page order;  one inside another is covered by it.
  *   Nothing described:  as `when-ready`.
  * - What shows while loading is swappable:  `UIRoot.Loading` (`LoaderMessage`, a `<ui-loader>`) and `UIRoot.Skeleton`
  *   (`PlaceholderSkeleton`).
- * - Settings for everything inside (`RootSettings`):  `icons` (a child icon-pack set over the outer root's, or the
+ * - Settings for everything inside (`E.RootSettings`):  `icons` (a child icon-pack set over the outer root's, or the
  *   page's), `emoji` (a name set);  nested roots inherit what they don't set.  A change redraws the icons / emoji
- *   inside (`RootSettings.generation`).
+ *   inside (`E.RootSettings.generation`).
  * - Theme, size, box:  `:state(light | dark)`, `:state(box)`, `:state(fixed)` in `ui-root.css`;  width, height and the
  *   subtree's `--ui-scale` in the root's own sheet (`RootBox`).
  * - `stack-with`:  the subtree's `--ui-stack-with` token (also in `RootBox`), which every stacking element without a
  *   `stack-with` of its own follows (`UIT.STACK_WITH_TOKEN`).
  * - Static server render (`$/ui/static`):  nothing loads and nothing is hidden;  the root is a plain wrapper
- *   (`serverRender()`).
+ *   (`serverWrapper()`).
  ****************/
-export class UIRoot extends UIElement<RootVocabulary> {
-  @proto static vocabulary = rootVocabulary
-  @proto static styles = { root: rootCSS }
-  @proto static Fallback = RootFallback
-  @proto static delegatesFocus = false
-  @proto static canRenderUnstyled = true
+export class UIRoot extends E.UIElement<RootVocabulary> {
+  @E.proto static vocabulary = rootVocabulary
+  @E.proto static styles = { root: rootCSS }
+  @E.proto static Fallback = RootFallback
+  @E.proto static delegatesFocus = false
+  @E.proto static canRenderUnstyled = true
 
   /** What shows with `loading`:  swap it for another look (`UIRoot.Loading = MyLoading`). */
-  @proto static Loading: RootLoading = LoaderMessage
+  @E.proto static Loading: RootLoading = LoaderMessage
 
   /** What shows with `display="skeleton"`:  swap it for another look (`UIRoot.Skeleton = MySkeleton`). */
-  @proto static Skeleton: RootSkeletonRenderer = PlaceholderSkeleton
+  @E.proto static Skeleton: RootSkeletonRenderer = PlaceholderSkeleton
 
   declare Loading: RootLoading
   declare Skeleton: RootSkeletonRenderer
 
   /** Host `aria-label`:  the scrolling region's name. */
-  readonly ariaLabel = new HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
+  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** Everything inside is ready (or the timeout passed). */
-  readonly isReady = new Cell(false)
+  readonly isReady = new E.Cell(false)
 
   /** The skeletons to draw while loading (`display="skeleton"`), found when loading starts. */
-  readonly skeletons = new Cell<readonly RootSkeleton[]>([])
+  readonly skeletons = new E.Cell<readonly RootSkeleton[]>([])
 
   /** Resolves `settled`. */
   private resolveSettled!: (failures: readonly RootFailure[]) => void
@@ -117,11 +99,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
 
   /** The `loading` message shows. */
   private readonly showLoading = createMemo(
-    () =>
-      !this.isReady.get() &&
-      this.display() !== DISPLAY.immediately &&
-      this.attrs.loading !== undefined &&
-      this.attrs.loading !== null
+    () => !this.isReady.get() && this.display() !== DISPLAY.immediately && this.attrs.loading !== undefined
   )
 
   /** The skeletons show. */
@@ -137,27 +115,20 @@ export class UIRoot extends UIElement<RootVocabulary> {
       ready,
       light: this.attrs.theme === "light",
       dark: this.attrs.theme === "dark",
-      box: RootBox.isBox(this.attrs.width, this.attrs.height),
+      box: RootBox.isBox(this.attrs),
       fixed: !!this.attrs.fixed
     }
   }
 
   render(): JSX.Element {
-    if (isServer) return this.serverRender()
+    if (isServer) return this.serverWrapper()
     this.effects()
     return (
       <>
         <Show when={this.showLoading()}>{this.Loading.render(this.part("loading"), () => this.message())}</Show>
         <Show when={this.showSkeleton()}>{this.Skeleton.render(this.part("skeleton"), this.skeletons.get)}</Show>
         <Show when={this.scrolls()} fallback={<slot class={this.classes()} style={this.slotStyle()} />}>
-          <div
-            part={this.part("scroller")}
-            tabindex="0"
-            role="region"
-            aria-label={this.ariaLabel.get() ?? this.runtimeText("label")}
-          >
-            <slot class={this.classes()} style={this.slotStyle()} />
-          </div>
+          {this.scroller(<slot class={this.classes()} style={this.slotStyle()} />)}
         </Show>
       </>
     )
@@ -171,41 +142,42 @@ export class UIRoot extends UIElement<RootVocabulary> {
    *   stylesheet drops).
    * - A box scrolls its content in the same named region as in the browser.
    */
-  private serverRender(): JSX.Element {
+  private serverWrapper(): JSX.Element {
     return (
       <div class={this.classes()} style={this.serverStyle()}>
         <Show when={this.scrolls()} fallback={<slot />}>
-          <div
-            part={this.part("scroller")}
-            tabindex="0"
-            role="region"
-            aria-label={this.ariaLabel.get() ?? this.runtimeText("label")}
-          >
-            <slot />
-          </div>
+          {this.scroller(<slot />)}
         </Show>
+      </div>
+    )
+  }
+
+  /** The scrolling region of a box around `slot`:  a tab stop named by the host's `aria-label`, else "Content". */
+  private scroller(slot: JSX.Element): JSX.Element {
+    return (
+      <div
+        part={this.part("scroller")}
+        tabindex="0"
+        role={UIT.REGION}
+        aria-label={this.ariaLabel.get() ?? this.runtimeText("label")}
+      >
+        {slot}
       </div>
     )
   }
 
   /** The server wrapper's inline style:  `RootBox`'s declarations, or `display: contents` when not a box. */
   private serverStyle(): string | undefined {
-    const box = RootBox.css({
-      width: this.attrs.width,
-      height: this.attrs.height,
-      size: this.attrs.size,
-      stackWith: this.attrs.stackWith
-    })
-    const declarations = [this.scrolls() ? "" : SERVER_CONTENTS, box].filter(Boolean)
+    const declarations = [this.scrolls() ? "" : SERVER_CONTENTS, this.boxCSS()].filter(Boolean)
     return declarations.join("; ") || undefined
   }
 
   /**
    * A box (`width` / `height` / `fixed`):  its content scrolls in an inner region, a tab stop with a name (as a
-   * scrolling `<ui-table>`'s), so keyboard users can scroll it -- Firefox doesn't make a scroller focusable by itself.
+   * scrolling `<ui-table>`'s), so people on a keyboard can scroll it -- Firefox doesn't make a scroller focusable by itself.
    */
   private scrolls(): boolean {
-    return RootBox.isBox(this.attrs.width, this.attrs.height) || !!this.attrs.fixed
+    return RootBox.isBox(this.attrs) || !!this.attrs.fixed
   }
 
   /** The loader's message:  `loading`'s value, or the default text for a bare `loading`. */
@@ -242,25 +214,25 @@ export class UIRoot extends UIElement<RootVocabulary> {
         assets: this.attrs.assets
       }),
       ({ connected, icons, emoji, assets }) => {
-        if (connected) this.applySettings(UIRoot.packs(icons), emoji, assets)
-        else RootSettings.delete(this.host)
+        if (connected) this.applySettings({ packs: UIRoot.packs(icons), emoji, assets })
+        else E.RootSettings.delete(this.host)
       }
     )
-    const box = new RootBox(this.host.renderRoot)
+    const box = new RootBox({ root: this.host.renderRoot })
     createEffect(
-      () =>
-        RootBox.css({
-          width: this.attrs.width,
-          height: this.attrs.height,
-          size: this.attrs.size,
-          stackWith: this.attrs.stackWith
-        }),
+      () => this.boxCSS(),
       (css) => box.set(css)
     )
   }
 
+  /** The root's own declarations (`RootBox`):  width, height, `--ui-scale`, `--ui-stack-with`.  Tracked. */
+  private boxCSS(): string {
+    const { width, height, size, stackWith } = this.attrs
+    return RootBox.css({ width, height, size, stackWith })
+  }
+
   /** Load what's inside now (first connect:  and wait for it), and whatever is added later;  returns the undo. */
-  private watch(): Disposer {
+  private watch(): E.Disposer {
     const observer = new MutationObserver(() => void this.loadUndefined())
     observer.observe(this.host, { childList: true, subtree: true })
     if (this.started) void this.loadUndefined()
@@ -276,25 +248,33 @@ export class UIRoot extends UIElement<RootVocabulary> {
   ////////////////
 
   /**
-   * Give everything inside `emoji` at once, and an icon-pack set of `packs` over the outer root's (or the page's)
-   * once the runtime is loaded.
+   * Give everything inside `emoji` at once, and an icon-pack set of `packs` (built-ins from `assets`) over the outer
+   * root's (or the page's) once the runtime is loaded.
    */
-  private applySettings(packs: string[], emoji: string | undefined, assets: string | undefined) {
+  private applySettings({ packs, emoji, assets }: { packs: string[]; emoji?: string; assets?: string }) {
     const request = ++this.settingsRequest
-    RootSettings.set(this.host, { emoji })
+    E.RootSettings.set(this.host, { emoji })
     if (!packs.length) return
     void UI.load().then((ui) => {
       if (request !== this.settingsRequest || !this.host.isConnected) return
-      // never this root's own set:  its parent is whatever is ABOVE it
-      const outer = () => {
-        const above = flatParentFor(this.host)
-        return above ? IconGlyph.packsFor(above, ui.icons) : ui.icons
-      }
-      RootSettings.set(this.host, { emoji, icons: ui.icons.scope(packs, { assets, parent: outer }) })
+      const parent = () => this.outerPacks(ui.icons)
+      E.RootSettings.set(this.host, { emoji, icons: ui.icons.scope(packs, { assets, parent }) })
     })
   }
 
-  /** `icons="fa7-free, /packs/lucide/pack.js"` => its packs, spaces around commas ignored. */
+  /**
+   * The icon packs this root's set goes over:  never its own, but whatever is ABOVE it -- the outer root's, else
+   * `page` (`UI.icons`).  Read when an icon is drawn, so a later outer root still counts.
+   */
+  private outerPacks(page: E.IconPacks): E.IconPacks {
+    const above = E.flatParentFor(this.host)
+    return above ? E.IconGlyph.packsFor(above, page) : page
+  }
+
+  /**
+   * `icons="fa7-free, /packs/lucide/pack.js"` => its packs, spaces around commas ignored.
+   * - Static:  pure.
+   */
   private static packs(icons: string | undefined): string[] {
     return (icons ?? "")
       .split(PACK_SEPARATOR)
@@ -346,7 +326,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
   private loadUndefined(): Promise<void> {
     const loads: Promise<void>[] = []
     for (const tag of RootLoader.undefinedTags(this.host)) {
-      const folder = RootLoader.folderOf(tag)
+      const folder = RootLoader.folderFor(tag)
       if (!folder) {
         this.fail(tag, "unknown")
         continue
@@ -357,14 +337,14 @@ export class UIRoot extends UIElement<RootVocabulary> {
   }
 
   /** Defined `ui-*` elements inside, not awaited yet. */
-  private pendingElements(): UIHost[] {
+  private pendingElements(): E.UIHost[] {
     return [...this.host.querySelectorAll("*")].filter(
-      (element): element is UIHost => element instanceof UIHost && !this.awaited.has(element)
+      (element): element is E.UIHost => element instanceof E.UIHost && !this.awaited.has(element)
     )
   }
 
   /** Resolves once `element` is ready:  a nested root once IT is settled. */
-  private async whenReady(element: UIHost): Promise<void> {
+  private async whenReady(element: E.UIHost): Promise<void> {
     this.awaited.add(element)
     this.waiting.add(element)
     await element.ready
@@ -375,7 +355,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
   /** The timeout passed:  report what's still undefined or not ready. */
   private timedOut() {
     for (const tag of RootLoader.undefinedTags(this.host)) {
-      if (RootLoader.folderOf(tag)) this.fail(tag, "timeout")
+      if (RootLoader.folderFor(tag)) this.fail(tag, "timeout")
     }
     for (const element of this.waiting) this.fail(element.localName, "timeout")
   }
@@ -387,6 +367,18 @@ export class UIRoot extends UIElement<RootVocabulary> {
     this.reported.add(key)
     const failure: RootFailure = error === undefined ? { tag, reason } : { tag, reason, error }
     this.failures.push(failure)
-    if (this.emit("ui-error", failure)) Warnings.warn("<ui-root>", `<${tag}> didn't load (${reason}):`, error ?? "")
+    if (this.emit("ui-error", failure)) E.Warnings.warn("<ui-root>", `<${tag}> didn't load (${reason}):`, error ?? "")
   }
 }
+
+/** `display` values. */
+const DISPLAY = { skeleton: "skeleton", whenReady: "when-ready", immediately: "immediately" } as const
+
+/** Separates the packs in `icons="fa7-free, /packs/lucide/pack.js"`. */
+const PACK_SEPARATOR = ","
+
+/** The static server render's wrapper when it isn't a box:  no box of its own, as the browser's host. */
+const SERVER_CONTENTS = "display: contents"
+
+/** Rounds of "load what's undefined, wait for what's defined":  content that keeps adding new tags stops here. */
+const MAX_ROUNDS = 10

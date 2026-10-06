@@ -2,36 +2,14 @@ import { Repeat, Show, createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 import { onFormStateRestore } from "@spell-app/solid-element"
 
-import {
-  Cell,
-  Converters,
-  IconGlyph,
-  proto,
-  UI,
-  type AttributeName,
-  type FieldValue,
-  type ValidationResult,
-  type ValidationRule
-} from "$/ui/core"
-import { ControlLabels, FormElement } from "$/ui/forms"
-
+import { E, UI, UIT } from "$/ui/core"
+import { F } from "$/ui/forms"
 import { ratingVocabulary } from "./ui-rating.vocabulary.en"
 import { RatingFallback } from "./ui-rating.fallback"
 import { RatingHost } from "./RatingHost"
+import { DEFAULT_MAX, RADIO, RADIOGROUP } from "./ui-rating.types"
 
 import ratingCSS from "./ui-rating.css?inline"
-import {
-  DEFAULT_MAX,
-  ID_PREFIX,
-  RADIOGROUP,
-  FULL,
-  RADIO,
-  FILL,
-  PARTIAL,
-  CHOICE_KEYS,
-  CLEAR_KEYS
-} from "./ui-rating.types"
-import { SELECTED, REQUIRED_RULE, TRUE, ACTIVE, ICON, HOME, END } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-rating>`
@@ -44,7 +22,7 @@ import { SELECTED, REQUIRED_RULE, TRUE, ACTIVE, ICON, HOME, END } from "$/ui/com
  * - `value` is auto-controlled (`Controlled`):  a choice dispatches `ui-change` first;  a handler that re-sets
  *   `el.value` wins and the radios show the host's value again.  The ATTRIBUTE is the starting (and reset) value.
  * - Fractions (`value="3.5"`) fill part of the next icon (Fomantic's `partial`, `--full`) -- display:  no radio is
- *   chosen, and the group's `aria-description` says "Rated 3.5 of 5".  A user choice is always whole.
+ *   chosen, and the group's `aria-description` says "Rated 3.5 of 5".  A person's choice is always whole.
  * - `clearable`:  choosing the current rating again clears it (Fomantic's `clearable`;  `auto` ~== one icon).
  * - Hover previews a choice (`selected` icons, `selected` root), as Fomantic's JS did.
  * - `readonly` (Fomantic's `interactive: false`):  focusable, announced read-only, nothing changes it.  `disabled`:
@@ -52,26 +30,26 @@ import { SELECTED, REQUIRED_RULE, TRUE, ACTIVE, ICON, HOME, END } from "$/ui/com
  * - Form:  `value` while above 0;  `required` needs one.  Named by the host's `<label for>` / `aria-label`
  *   (`ControlLabels`).
  ****************/
-export class UIRating extends FormElement<typeof ratingVocabulary> {
-  @proto static vocabulary = ratingVocabulary
-  @proto static styles = { rating: ratingCSS }
-  @proto static Fallback = RatingFallback
-  @proto static Host = RatingHost
+export class UIRating extends F.FormElement<typeof ratingVocabulary> {
+  @E.proto static vocabulary = ratingVocabulary
+  @E.proto static styles = { rating: ratingCSS }
+  @E.proto static Fallback = RatingFallback
+  @E.proto static Host = RatingHost
 
   /** `value`:  the host's property, else `0`. */
   readonly valueState = this.controlled("value", 0)
 
   /** Point under the pointer, `0` for none. */
-  readonly hovered = new Cell(0)
+  readonly hovered = new E.Cell(0)
 
-  /** User has interacted. */
-  readonly touched = new Cell(false)
+  /** A person has interacted:  only then does it show as invalid. */
+  readonly isTouched = new E.Cell(false)
 
   /** Host `<label>`s and `aria-label`, as the group's name. */
-  readonly labels = new ControlLabels(this.formHost)
+  readonly labels = new F.ControlLabels(this.formHost)
 
   /** The icon, by name. */
-  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
 
   /** The radio group. */
   private group?: HTMLFieldSetElement
@@ -79,7 +57,7 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
   /** Name tying the radios into one native group. */
   private groupName = ""
 
-  constructor(...args: ConstructorParameters<typeof FormElement>) {
+  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
     super(...args)
     this.host.addEventListener("invalid", this.onInvalid)
     this.host.addEventListener("click", this.onHostClick)
@@ -104,7 +82,7 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
     return this.attrs.disabled || this.formDisabled.get()
   }
 
-  /** Can the user change it?  Tracked. */
+  /** Can a person change it?  Tracked. */
   isInteractive(): boolean {
     return !this.isDisabled() && !this.attrs.readonly
   }
@@ -114,20 +92,20 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
     return this.attrs.clearable || this.max() === 1
   }
 
-  /** Is point `n` the partly filled one?  Tracked. */
-  isPartial(n: number): boolean {
+  /** Is `point` the partly filled one?  Tracked. */
+  isPartial(point: number): boolean {
     const value = this.value()
-    return value % 1 !== 0 && n === Math.ceil(value)
+    return value % 1 !== 0 && point === Math.ceil(value)
   }
 
-  protected classValue(name: AttributeName<typeof ratingVocabulary>): unknown {
+  protected classValue(name: E.AttributeName<typeof ratingVocabulary>): unknown {
     if (name === "disabled") return this.isDisabled()
     return super.classValue(name)
   }
 
   /** `selected` while the pointer previews a choice. */
   protected extraClasses(): string | undefined {
-    return this.hovered.get() ? SELECTED : undefined
+    return this.hovered.get() ? UIT.SELECTED : undefined
   }
 
   protected hostStates() {
@@ -138,7 +116,8 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
   // ## Form
   ////////////////
 
-  formValue(): FieldValue {
+  /** The rating while above `0`;  `null` (`setFormValue()`'s "no value") at `0`. */
+  formValue(): E.FieldValue {
     const value = this.value()
     return value > 0 ? String(value) : null
   }
@@ -150,12 +129,12 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
   /** Back to the `value` ATTRIBUTE;  forgets the interaction. */
   formReset() {
     const attribute = this.definition.attribute("value").attribute
-    this.valueState.set(Converters.number(this.host.getAttribute(attribute)) as never)
-    this.touched.set(false)
+    this.valueState.set(E.Converters.number(this.host.getAttribute(attribute)) as never)
+    this.isTouched.set(false)
   }
 
-  protected rules(): ValidationRule[] {
-    return this.attrs.required ? [REQUIRED_RULE] : []
+  protected rules(): E.ValidationRule[] {
+    return this.attrs.required ? [UIT.REQUIRED_RULE] : []
   }
 
   protected validationLabel(): string | undefined {
@@ -166,8 +145,8 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
     return this.radios()[0]
   }
 
-  protected showsInvalid(result: ValidationResult): boolean {
-    return !result.valid && this.touched.get()
+  protected showsInvalid(result: E.ValidationResult): boolean {
+    return !result.valid && this.isTouched.get()
   }
 
   ////////////////
@@ -199,9 +178,9 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
         role={RADIOGROUP}
         disabled={this.isDisabled()}
         aria-label={this.labels.name()}
-        aria-readonly={this.attrs.readonly ? TRUE : undefined}
-        aria-required={this.attrs.required ? TRUE : undefined}
-        aria-invalid={this.touched.get() && !this.validation().valid ? TRUE : undefined}
+        aria-readonly={this.attrs.readonly ? UIT.TRUE : undefined}
+        aria-required={this.attrs.required ? UIT.TRUE : undefined}
+        aria-invalid={this.isTouched.get() && !this.validation().valid ? UIT.TRUE : undefined}
         aria-description={this.description()}
         onPointerLeave={this.onLeave}
         onKeyDown={this.onKeyDown}
@@ -211,50 +190,50 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
     )
   }
 
-  /** Point `n`:  its label, radio and glyph (twice when partly filled:  the fill is clipped over the base). */
-  private icon(n: number): JSX.Element {
+  /** One point:  its label, radio and glyph (twice when partly filled:  the fill is clipped over the base). */
+  private icon(point: number): JSX.Element {
     return (
       <label
-        class={this.iconClass(n)}
+        class={this.iconClass(point)}
         part={this.part("icon")}
-        style={this.isPartial(n) ? { [FULL]: `${Math.round((this.value() % 1) * 100)}%` } : undefined}
-        onPointerEnter={() => this.hover(n)}
+        style={this.isPartial(point) ? { [FULL]: `${Math.round((this.value() % 1) * 100)}%` } : undefined}
+        onPointerEnter={() => this.hover(point)}
       >
         <input
           type={RADIO}
           part={this.part("control")}
           name={this.groupName}
-          value={String(n)}
-          aria-label={this.text("ratingItem", { value: n, max: this.max() })}
-          {...this.staticRadio(n)}
+          value={String(point)}
+          aria-label={this.text("ratingItem", { value: point, max: this.max() })}
+          {...this.staticRadio(point)}
           onClick={this.onClick}
           onChange={this.onChange}
         />
         {this.svg()}
-        <Show when={this.isPartial(n)}>{this.svg(FILL)}</Show>
+        <Show when={this.isPartial(point)}>{this.svg(FILL)}</Show>
       </label>
     )
   }
 
-  /** `[active] [partial] [selected] icon` for point `n`. */
-  private iconClass(n: number): string {
+  /** `[active] [partial] [selected] icon` for `point`. */
+  private iconClass(point: number): string {
     const value = this.value()
     const words = []
-    if (n <= Math.ceil(value)) words.push(ACTIVE)
-    if (this.isPartial(n)) words.push(PARTIAL)
-    if (n <= this.hovered.get()) words.push(SELECTED)
-    words.push(ICON)
+    if (point <= Math.ceil(value)) words.push(UIT.ACTIVE)
+    if (this.isPartial(point)) words.push(PARTIAL)
+    if (point <= this.hovered.get()) words.push(UIT.SELECTED)
+    words.push(UIT.ICON)
     return words.join(" ")
   }
 
   /**
-   * Server render only (`$/ui/static`):  radio `n` named for the form (the host's `name`) and `checked` when it is
-   * the value, so a static form submits the rating;  `{}` in a browser, where the HOST submits
+   * Server render only (`$/ui/static`):  the radio of `point` named for the form (the host's `name`) and
+   * `checked` when it is the value, so a static form submits the rating;  `{}` in a browser, where the HOST submits
    * (`ElementInternals`) and the radios share a generated name.
    */
-  private staticRadio(n: number): Record<string, unknown> {
+  private staticRadio(point: number): Record<string, unknown> {
     if (!isServer) return {}
-    return { name: this.attrs.name ?? this.groupName, checked: this.value() === n }
+    return { name: this.attrs.name ?? this.groupName, checked: this.value() === point }
   }
 
   /**
@@ -265,7 +244,7 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
     if (isServer) return extra ? undefined : this.glyph.svg()
     const template = this.glyph.data.get()
     if (!template) return undefined
-    const svg = IconGlyph.draw(template)
+    const svg = E.IconGlyph.draw(template)
     if (extra) svg.classList.add(extra)
     return svg
   }
@@ -279,7 +258,7 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
 
   /** The radios, in order. */
   private radios(): HTMLInputElement[] {
-    return [...(this.group?.querySelectorAll<HTMLInputElement>(`input[type=${RADIO}]`) ?? [])]
+    return [...(this.group?.querySelectorAll<HTMLInputElement>(RADIO_SELECTOR) ?? [])]
   }
 
   /** Check exactly the radio of the current value (none for 0 or a fraction). */
@@ -293,19 +272,19 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
   ////////////////
 
   /**
-   * A user choice of `value`:  `ui-change`, then the host property, unless a handler re-set it.
+   * A person's choice of `value`:  `ui-change`, then the host property, unless a handler re-set it.
    * - Returns true when applied.
    */
   choose(value: number, originalEvent?: Event): boolean {
-    this.touched.set(true)
+    this.isTouched.set(true)
     const applied = this.valueState.request(value as never, () => this.emit("ui-change", { value, originalEvent }))
     if (!applied) queueMicrotask(() => this.syncRadios())
     return applied
   }
 
-  /** Preview choice `n` while pointing at it. */
-  private hover(n: number) {
-    if (untrack(() => this.isInteractive())) this.hovered.set(n)
+  /** Preview choice `point` while pointing at it. */
+  private hover(point: number) {
+    if (untrack(() => this.isInteractive())) this.hovered.set(point)
   }
 
   /** The pointer left the group:  no preview. */
@@ -319,8 +298,8 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
       event.preventDefault()
       return
     }
-    const n = Number((event.currentTarget as HTMLInputElement).value)
-    if (n === untrack(() => this.value()) && untrack(() => this.isClearable())) this.choose(0, event)
+    const point = Number((event.currentTarget as HTMLInputElement).value)
+    if (point === untrack(() => this.value()) && untrack(() => this.isClearable())) this.choose(0, event)
   }
 
   /** A radio was chosen (click, arrows, Space). */
@@ -336,10 +315,10 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
       return
     }
     if (!untrack(() => this.isInteractive())) return
-    if (key === HOME || key === END) {
+    if (key === UIT.Key.home || key === UIT.Key.end) {
       event.preventDefault()
       const radios = this.radios()
-      const target = key === HOME ? radios[0] : radios.at(-1)
+      const target = key === UIT.Key.home ? radios[0] : radios.at(-1)
       target?.focus()
       if (target && !target.checked) this.choose(Number(target.value), event)
       return
@@ -365,12 +344,11 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
    * it is not that (the browser moves, or wraps, on its own).
    */
   private wrapStep(event: KeyboardEvent): -1 | 0 | 1 {
-    const ARROWS: Record<string, number> = { ArrowUp: -1, ArrowDown: 1, ArrowLeft: -1, ArrowRight: 1 }
-    let step = ARROWS[event.key]
+    let step = ARROW_STEPS[event.key]
     if (!step || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return 0
     // a right-to-left group runs the horizontal arrows backwards
-    const horizontal = event.key === "ArrowLeft" || event.key === "ArrowRight"
-    if (horizontal && getComputedStyle(this.host).direction === "rtl") step = -step
+    const isHorizontal = event.key === UIT.Key.arrowLeft || event.key === UIT.Key.arrowRight
+    if (isHorizontal && getComputedStyle(this.host).direction === RTL) step = -step
     const radios = this.radios().filter((radio) => !radio.disabled)
     const active = this.host.shadowRoot?.activeElement
     if (step < 0 && active === radios[0]) return -1
@@ -380,7 +358,7 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
 
   /** A submit or `reportValidity()` found it invalid:  show it. */
   private readonly onInvalid = () => {
-    this.touched.set(true)
+    this.isTouched.set(true)
   }
 
   /** A click aimed at the HOST itself (its `<label for>`) focuses the group's tab stop. */
@@ -401,3 +379,44 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
     return true
   }
 }
+
+/** Class word of a partly filled icon. */
+const PARTIAL = "partial"
+
+/** Class of the clipped glyph over a partly filled icon. */
+const FILL = "fill"
+
+/** Fomantic's custom property for the filled share of a partial icon. */
+const FULL = "--full"
+
+/** `UI.ids` prefix of the radios' group name. */
+const ID_PREFIX = "ui-rating"
+
+/** The radios, as a selector. */
+const RADIO_SELECTOR = `input[type=${RADIO}]`
+
+/** Keys that clear the rating. */
+const CLEAR_KEYS: ReadonlySet<string> = new Set([UIT.Key.backspace, UIT.Key.delete])
+
+/** Keys that choose natively (or through us), blocked while `readonly`. */
+const CHOICE_KEYS: ReadonlySet<string> = new Set([
+  UIT.Key.space,
+  UIT.Key.arrowUp,
+  UIT.Key.arrowDown,
+  UIT.Key.arrowLeft,
+  UIT.Key.arrowRight,
+  UIT.Key.home,
+  UIT.Key.end,
+  ...CLEAR_KEYS
+])
+
+/** Which way each arrow key moves through the points:  `-1` back, `1` on (left-to-right). */
+const ARROW_STEPS: Readonly<Record<string, number>> = {
+  [UIT.Key.arrowUp]: -1,
+  [UIT.Key.arrowDown]: 1,
+  [UIT.Key.arrowLeft]: -1,
+  [UIT.Key.arrowRight]: 1
+}
+
+/** A right-to-left `direction`. */
+const RTL = "rtl"

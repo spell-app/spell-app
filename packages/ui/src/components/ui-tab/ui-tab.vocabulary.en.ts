@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-tabs>` and `<ui-tab>` use:  tags, attributes (kind + allowed values), events, slots, parts,
- * states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * states, texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Fomantic's words:  a `.ui.tab` is a PANE (`<div class="ui bottom attached tab segment" data-tab>`);  the tabs
  *   you click are the items of a `tabular` (or `pointing` / `secondary` / `text`) MENU.  So `<ui-tab>` is the pane,
  *   and `<ui-tabs>` draws the menu from its panes' `label`s, with `ui-menu.css`.
@@ -13,7 +13,7 @@
  *   `value`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-tab>`
@@ -76,4 +76,4 @@ export const tabVocabulary = {
     { name: "in-tabs", description: "A pane of a `<ui-tabs>` (a `role=tabpanel` host)." }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

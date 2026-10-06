@@ -1,46 +1,19 @@
 /**
- * Loose constants, types and helpers of `<ui-step>`:  its element classes and native fallback import them from here.
+ * Constants of the `ui-step` family that its elements (`UIStep`, `UISteps`) and their native fallback
+ * (`StepFallback`) share.
+ * - Pure data, at the bottom of the folder's imports:  no imports at all, so node can load it (`yarn site:data`).
+ * - A constant ONE class uses is a module constant below that class (epic `wwod-spell-ui`, Q18).
  */
 
-// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which node
-// can't (`yarn site:data` / `yarn gen:root` import every vocabulary through tsx:  no `?inline` css, no JSX)
-import * as UIT from "$/ui/components/components.types"
-import { stepVocabulary } from "./ui-step.vocabulary.en"
-
 ////////////////
-// ## UIStep
+// ## A step
 ////////////////
 
-/** Glyph of a completed step's icon. */
-export const CHECK = "check"
-
-/** Root of a plain step. */
+/** Root tag of a plain step (a link step's is `UIT.ANCHOR_TAG`, a `link` step's `UIT.BUTTON`). */
 export const BOX = "div"
 
-/**
- * Prefix of the colour remap class a coloured step adds (`ui-red`):  `colors.css` keys on `.ui.red` / `.ui-red`, and a
- * step has no `ui`, so without it a step's own `color` resolved to nothing (an invisible ring).
- */
-export const COLOR_CLASS_PREFIX = "ui-"
+/** `aria-current` of the selected step:  the current one in the sequence. */
+export const CURRENT_STEP = "step"
 
-/** `aria-current` of the selected step. */
-export const STEP = "step"
-
-/** The static owner class of a part in a step (`ui-parts.css`). */
-export const IN_STEP = `${UIT.PART_STATIC_CLASS_PREFIX}${stepVocabulary.noun}`
-
-/** Classes of the shorthand content block. */
-export const CONTENT = `content ${IN_STEP}`
-
-/** Classes of the `header` shorthand (Fomantic's `.title`). */
-export const TITLE = `title ${IN_STEP}`
-
-/** Classes of the `description` shorthand. */
-export const DESCRIPTION = `description ${IN_STEP}`
-
-////////////////
-// ## ui-step.fallback
-////////////////
-
-/** The English "Completed", from the vocabulary:  a failed render can't count on the runtime's translations. */
-export const COMPLETED = stepVocabulary.texts.find(({ key }) => key === "stepCompleted")!.text
+/** The `header` shorthand's part and class word, Fomantic's `.title` (not `UIT.TITLE`, the tooltip attribute). */
+export const TITLE_PART = "title"

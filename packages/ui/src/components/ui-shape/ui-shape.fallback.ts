@@ -1,9 +1,7 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E } from "$/ui/core"
+import { POLITE, SIDE, SIDES } from "./ui-shape.types"
 import { shapeVocabulary } from "./ui-shape.vocabulary.en"
 import { sideVocabulary } from "./ui-side.vocabulary.en"
-import { SIDE, SIDES, POLITE, SHAPE } from "./ui-shape.types"
-import type { ShapeFallbackVocabulary } from "./ui-shape.types"
 
 /****************
  * ### `ShapeFallback`
@@ -12,9 +10,9 @@ import type { ShapeFallbackVocabulary } from "./ui-shape.types"
  * - `<ui-side>`:  `<div class="side" part="side"><slot>`;  a working shape still shows / hides it (its states are
  *   on the host)
  ****************/
-export class ShapeFallback extends NativeFallback<ShapeFallbackVocabulary> {
-  @proto static vocabularies = [shapeVocabulary, sideVocabulary]
-  @proto static degraded = [
+export class ShapeFallback extends E.NativeFallback<FallbackVocabulary> {
+  @E.proto static vocabularies = [shapeVocabulary, sideVocabulary]
+  @E.proto static degraded = [
     "a failed shape:  every side shows, stacked;  no flips, `ui-change` or `flip()` / `next()` / `previous()` " +
       "(they resolve `false`)"
   ]
@@ -27,3 +25,9 @@ export class ShapeFallback extends NativeFallback<ShapeFallbackVocabulary> {
     return [this.decorate(this.create("div", { class: this.classes() }, sides), SHAPE)]
   }
 }
+
+/** Either vocabulary:  the fallback serves both tags. */
+type FallbackVocabulary = typeof shapeVocabulary | typeof sideVocabulary
+
+/** The shape's class noun and part. */
+const SHAPE = "shape"

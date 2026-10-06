@@ -10,8 +10,7 @@
  *   and `ModalFallback`, which `FlyoutFallback` extends.
  */
 
-import { isBrowser, UI } from "$/ui/core"
-
+import { E, UI } from "$/ui/core"
 import { DialogElement } from "./DialogElement"
 import { UIModal } from "./UIModal"
 import { ModalDialogs } from "./ModalDialogs"
@@ -21,7 +20,7 @@ import "$/ui/components/ui-parts"
 import "$/ui/components/ui-button"
 
 UIModal.define()
-if (isBrowser()) void UI.load().then(() => UI.modals.register(new ModalDialogs()))
+if (E.isBrowser()) void UI.load().then(() => UI.modals.register(new ModalDialogs()))
 
 export { DialogElement, UIModal, ModalDialogs, ModalFallback }
 export type { DialogAttributes } from "./ui-modal.types"

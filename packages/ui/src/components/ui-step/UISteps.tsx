@@ -1,12 +1,10 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { stepsVocabulary } from "./ui-steps.vocabulary.en"
 import { StepFallback } from "./ui-step.fallback"
 
 import stepCSS from "./ui-step.css?inline"
-import { LIST } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-steps>`
@@ -19,11 +17,12 @@ import { LIST } from "$/ui/components/components.types"
  *   after the noun).
  * - Numbering (`ordered`) is a CSS counter reset here and incremented by each step, across the shadow boundaries.
  ****************/
-export class UISteps extends UIElement<typeof stepsVocabulary> {
-  @proto static vocabulary = stepsVocabulary
-  @proto static styles = { step: stepCSS }
-  @proto static Fallback = StepFallback
-  @proto static delegatesFocus = false
+export class UISteps extends E.UIElement<typeof stepsVocabulary> {
+  @E.proto static vocabulary = stepsVocabulary
+  @E.proto static styles = { step: stepCSS }
+  @E.proto static Fallback = StepFallback
+  // the steps are the focus targets, each its own host
+  @E.proto static delegatesFocus = false
 
   /**
    * `steps` always;  `block` while the root is block-level (`fluid`, or `circular` and not `vertical`), `circular`
@@ -44,7 +43,7 @@ export class UISteps extends UIElement<typeof stepsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <ol class={this.classes()} part={this.part("steps")} role={LIST}>
+      <ol class={this.classes()} part={this.part("steps")} role={UIT.LIST}>
         <slot />
       </ol>
     )

@@ -9,10 +9,10 @@ describe("MarkdownSanitizer.sanitize()", () => {
   it("drops scripts and handlers, and keeps `ui-*` tags only when asked", () => {
     const html = `<p onclick="x()">hi</p><script>x()</script><ui-label color="red" onmouseover="x()">tag</ui-label>`
     const kept = document.createElement("div")
-    kept.append(MarkdownSanitizer.instance.sanitize(html, true))
+    kept.append(MarkdownSanitizer.instance.sanitize(html, { uiTags: true }))
     expect(kept.innerHTML).toBe(`<p>hi</p><ui-label color="red">tag</ui-label>`)
     const dropped = document.createElement("div")
-    dropped.append(MarkdownSanitizer.instance.sanitize(html, false))
+    dropped.append(MarkdownSanitizer.instance.sanitize(html))
     expect(dropped.querySelector("ui-label, script")).toBeNull()
   })
 
@@ -22,6 +22,6 @@ describe("MarkdownSanitizer.sanitize()", () => {
     onTestFinished(() => {
       DOMPurify.isSupported = supported
     })
-    expect(() => MarkdownSanitizer.instance.sanitize("<b>hi</b>", false)).toThrow(SourceError)
+    expect(() => MarkdownSanitizer.instance.sanitize("<b>hi</b>")).toThrow(SourceError)
   })
 })

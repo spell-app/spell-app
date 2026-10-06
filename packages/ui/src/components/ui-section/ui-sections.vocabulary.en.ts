@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-sections>` uses:  tag, attributes (kind + allowed values), slots, parts, states.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-sections collapsing>` =>
  *   `ui collapsing sections`.
  * - `ownsParts: ["section"]`:  a `<ui-section>` finds its group the way it finds an enclosing section
  *   (`PartContext`), so its default `collapsible` follows the NEAREST group, at any depth (`UISection.group`).
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-sections>`
@@ -39,4 +39,4 @@ export const sectionsVocabulary = {
   ],
   texts: [],
   ownsParts: ["section"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

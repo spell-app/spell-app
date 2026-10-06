@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-root>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - No Fomantic counterpart, so no class grammar:  every attribute is a property (`enum`, `string`, `boolean`), plus
  *   `size` (kind `size`, for the shared value set), which the root applies to its subtree, not to a class.
  * - Design:  `epics/ui-component-creation/ui-component-creation.plan.html`, Overview 3.5 and D51-D68.
  */
 
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-root>`
@@ -142,4 +142,4 @@ export const rootVocabulary = {
       description: "Name of the scrolling region of a root with a box, when the host has no `aria-label`."
     }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

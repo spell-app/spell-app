@@ -16,7 +16,7 @@ import type { MarkdownOptions, MarkdownRendering, MarkdownResult } from "./ui-ma
  *   until it's slimmer, only the editable one pays for it.
  ****************/
 export class MDEngine implements MarkdownRendering {
-  /** The one engine. */
+  /** The one engine:  static, as it keeps no state and every element shares it. */
   static readonly instance = new MDEngine()
 
   /** `text` rendered as `options` say. */

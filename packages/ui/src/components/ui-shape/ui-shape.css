@@ -14,8 +14,8 @@
  *   the shape's classes decide it, so NEVER set it from outside.
  * - Public tokens (`--ui-shape-*`, the theming surface) are NEVER declared here:  a face reads
  *   `--ui-shape-cube-size` through its private alias (`--_ui-shape-cube-size: var(--ui-shape-cube-size, 15em)`,
- *   declared on the face), and `--ui-shape-duration` / `-easing` / `-cube-background` are read with their
- *   defaults inline, since nothing declares them.  So a value set on `:root`, an ancestor, the host,
+ *   declared on the face), and `--ui-shape-duration` / `-easing` / `-cube-background` / `-cube-shadow` are read
+ *   with their defaults inline, since nothing declares them.  So a value set on `:root`, an ancestor, the host,
  *   `::part(shape)` / `::part(side)` or in the app stylesheet reaches the box (`docs/theming.md` "Component
  *   tokens").
  * - Motion:  the sides box's `transform` transition (`--ui-shape-duration`, Fomantic's 0.6s ease-in-out);  the
@@ -101,7 +101,7 @@
     height: var(--_ui-shape-cube-size);
     padding: 2em;
     background-color: var(--ui-shape-cube-background, light-dark(oklch(0.93 0 0), oklch(0.32 0 0)));
-    box-shadow: 0 0 2px oklch(0 0 0 / 0.3);
+    box-shadow: 0 0 2px var(--ui-shape-cube-shadow, oklch(0 0 0 / 0.3));
     color: var(--ui-text-color);
   }
   .ui.cube.shape .side > .content {
@@ -125,7 +125,7 @@
       height: var(--_ui-shape-cube-size);
       padding: 2em;
       background-color: var(--ui-shape-cube-background, light-dark(oklch(0.93 0 0), oklch(0.32 0 0)));
-      box-shadow: 0 0 2px oklch(0 0 0 / 0.3);
+      box-shadow: 0 0 2px var(--ui-shape-cube-shadow, oklch(0 0 0 / 0.3));
       color: var(--ui-text-color);
       text-align: center;
       user-select: text;

@@ -1,32 +1,21 @@
 /**
- * Loose constants, types and helpers of `<ui-sticky>`:  its element classes and native fallback import them from here.
+ * Constants of the `ui-sticky` family that its element (`UISticky`) and its native fallback (`StickyFallback`) share.
+ * - Pure data, at the bottom of the folder's imports:  `import type` only, so node can load it (`yarn site:data`).
+ * - The scroll-container / reservation thresholds are `StickyWatch`'s (`$/ui/elements`), shared with
+ *   `<ui-section sticky>`.
  */
 
 import type { stickyVocabulary } from "./ui-sticky.vocabulary.en"
 
-////////////////
-// ## UISticky
-////////////////
-
-/** StickyVocabulary type, for brevity. */
+/** `<ui-sticky>`'s vocabulary type, for brevity. */
 export type StickyVocabulary = typeof stickyVocabulary
 
-/**
- * What an observation depends on.
- * - NOTE: the scroll-container / reservation thresholds (`STICKY_SCROLLING`, `STICKY_MAX_RESERVE`, `STICKY_SLACK`)
- *   moved to `$/ui/elements` with `StickyWatch`, shared with `<ui-section sticky>`.
- */
-export type StickyConfig = {
-  connected: boolean
-  offset: number
-  bottomOffset: number
-  pushing: boolean
-}
+////////////////
+// ## Inline custom properties
+////////////////
 
-/** Class words of the sentinels (`ui-sticky.css`). */
-export const SENTINEL = "sentinel"
-export const BOTTOM_SENTINEL = "bottom sentinel"
-
-/** Private custom properties the box reads (`ui-sticky.css`), which win over the public tokens' aliases. */
+/** Private custom property the box reads for `top` (`offset`), inline:  wins over the public token's alias. */
 export const OFFSET_PROPERTY = "--_ui-sticky-offset"
+
+/** Private custom property the box reads for `bottom` (`bottom-offset`), inline. */
 export const BOTTOM_OFFSET_PROPERTY = "--_ui-sticky-bottom-offset"

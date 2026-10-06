@@ -1,7 +1,7 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { HostAttribute, PartContext, proto, UIElement, type UIHost, UIT } from "$/ui/core"
+import { HostAttribute, PartContext, proto, UIElement, UIT } from "$/ui/core"
 
 import { brandCheckVocabulary } from "./ui-brand-check.vocabulary.en"
 import { BrandChecklistFallback } from "./ui-brand-checklist.fallback"
@@ -71,9 +71,7 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
 
   /** The owning checklist's controller, if it answers `checkState()`. */
   readonly owner = createMemo((): ChecklistOwner | undefined => {
-    const controller = (this.context.owner.get()?.owner as UIHost | undefined)?.controller as
-      | Partial<ChecklistOwner>
-      | undefined
+    const controller = this.context.ownerController<Partial<ChecklistOwner>>()
     return controller?.checkState ? (controller as ChecklistOwner) : undefined
   })
 

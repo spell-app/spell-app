@@ -1,7 +1,6 @@
-import { proto } from "$/ui/core"
-
-import { placeholderLineVocabulary } from "./ui-placeholder-line.vocabulary.en"
+import { E } from "$/ui/core"
 import { PlaceholderShape } from "./PlaceholderShape"
+import { placeholderLineVocabulary } from "./ui-placeholder-line.vocabulary.en"
 
 /****************
  * ### `<ui-placeholder-line>`
@@ -9,7 +8,7 @@ import { PlaceholderShape } from "./PlaceholderShape"
  * `medium` ...);  absent, the bar follows its position in the block.
  ****************/
 export class UIPlaceholderLine extends PlaceholderShape<typeof placeholderLineVocabulary> {
-  @proto static vocabulary = placeholderLineVocabulary
+  @E.proto static vocabulary = placeholderLineVocabulary
 
   /** Solid:  nothing inside. */
   protected holdsShapes(): boolean {

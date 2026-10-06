@@ -1,6 +1,8 @@
 /**
  * Every name `<ui-popup>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only, `UIT` by value
+ *   straight from `components.types`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-popup size="small" inverted wide="very">` => `ui small inverted very wide popup`;  the element adds the
  *   `position` words after the noun (`ui inverted popup bottom left`), as Fomantic's script added them.
@@ -11,7 +13,8 @@
  *   what markup must say.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
+import * as UIT from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-popup>`
@@ -41,7 +44,7 @@ export const popupVocabulary = {
       name: "open",
       kind: "keyOnly",
       key: "visible",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
     },
     {
       name: "wide",
@@ -62,8 +65,8 @@ export const popupVocabulary = {
     {
       name: "on",
       kind: "enum",
-      values: ["hover", "focus", "click", "manual"],
-      default: "hover",
+      values: UIT.PopupTriggers,
+      default: UIT.PopupTrigger.hover,
       description:
         "What opens it:  `hover` (also keyboard focus), `focus`, `click` (toggles;  a non-modal dialog), or " +
         "`manual` (only `open`)."
@@ -109,7 +112,7 @@ export const popupVocabulary = {
       detail: "{ open: true, originalEvent?: Event }",
       cancelable: true,
       description:
-        "About to show for a user action (the trigger, an invoker command);  `preventDefault()` keeps it hidden."
+        "About to show for a person's action (the trigger, an invoker command);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-close",
@@ -132,4 +135,4 @@ export const popupVocabulary = {
   ],
   texts: [],
   ownsParts: ["header", "content"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

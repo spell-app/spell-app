@@ -1,12 +1,22 @@
 /**
- * Loose constants and types of the `ui-markdown` family.
- * - Data only:  the element, its helpers and its fallback import what they need from here.
+ * Types of the `ui-markdown` family that its element, host, renderer and engines share.
+ * - Pure data, at the bottom of the folder's imports:  `import type` only, so node can load it (`yarn site:data`),
+ *   and the engines (built ALONE by the docs bundler) pull in nothing with it.
+ * - Constants only `UIMarkdown` reads live below that class (epic `wwod-spell-ui`, Q18).
  */
 
 import type { markdownVocabulary } from "./ui-markdown.vocabulary.en"
 
+////////////////
+// ## Vocabulary
+////////////////
+
 /** Vocabulary type, for brevity. */
 export type Vocabulary = typeof markdownVocabulary
+
+////////////////
+// ## Rendering
+////////////////
 
 /** One heading of the rendered markdown. */
 export type MarkdownHeading = {
@@ -32,44 +42,19 @@ export type MarkdownOptions = {
 export type MarkdownResult = {
   /** the markup, NOT sanitized:  the element sanitizes it when `sanitized` */
   html: string
+  /** every heading, in order */
   headings: MarkdownHeading[]
 }
 
 /** What renders markdown:  marked (`MarkdownEngine`) or spell's (`MDEngine`, `editable`). */
 export type MarkdownRendering = {
+  /** `text` rendered as `options` say. */
   render(text: string, options: MarkdownOptions): MarkdownResult
 }
 
-/** `editable`'s tabs. */
-export type MarkdownTab = "write" | "preview"
-
-/** `editable`'s tabs, in order. */
-export const MARKDOWN_TABS: readonly MarkdownTab[] = ["write", "preview"]
-
-/** `<ui-table>`'s sheet (`UI.styles` name):  a page sheet, so `editable` adopts it into its shadow root too. */
-export const TABLE_SHEET = "table"
-
-/** `editable`'s tab roles and keys. */
-export const TAB_ROLES = { list: "tablist", tab: "tab", panel: "tabpanel" } as const
-export const TAB_KEYS = { previous: "ArrowLeft", next: "ArrowRight", first: "Home", last: "End" } as const
-
-/** Task-list checkboxes:  marked's (`<input>`) and spell's engine's (`<ui-checkbox>`). */
-export const TASK_BOXES = "li > input[type=checkbox], ui-item > ui-checkbox"
-
-/** Tag a fenced code block becomes. */
-export const CODE_TAG = "ui-code"
-
-/** Attributes rewritten against `source`, so relative links and images point where they did beside the file. */
-export const URL_ATTRIBUTES = ["href", "src"] as const
-
-/** `window`'s event for a new `#id` in the address:  the element reveals a heading of its own it names. */
-export const HASHCHANGE = "hashchange"
-
-/**
- * A leading `#` title (`skip-title`):  blank lines, then an ATX `# Title` (one `#`) or a setext title (a line
- * underlined with `=`), with its line end.
- */
-export const LEADING_TITLE = /^(?:[ \t]*\n)*[ ]{0,3}(?:#(?=[ \t\n]|$)[^\n]*|[^\s][^\n]*\n[ ]{0,3}=+[ \t]*)(?:\n|$)/
+////////////////
+// ## Host
+////////////////
 
 /** What the host asks of its controller (`UIMarkdown`). */
 export type MarkdownController = {
