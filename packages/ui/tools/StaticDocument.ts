@@ -4,7 +4,7 @@
  * styles what's left, linked or inline.
  * - Loaded through Vite's SSR (`StaticRenderer`, `server.ssrLoadModule(StaticRenderer.DOCUMENT)`), NEVER by node
  *   directly:  the controllers' JSX must compile for the server, as for `visual/StaticFixture.ts`.
- * - Node only, like `$/ui/static`.
+ * - Node only, like `$/ui/static`, which it reaches through `SSR`:  the Vite server resolves the alias.
  */
 
 import { existsSync, readFileSync } from "node:fs"
@@ -13,12 +13,13 @@ import { parseHTML } from "linkedom"
 import { transform } from "lightningcss"
 import postcss from "postcss"
 
-import { StaticCatalog, StaticPageStyles, StaticRender, StaticStylesheet } from "$/ui/static"
+import { SSR } from "$/ui/static"
 
 import type {
   StaticCoverage,
   StaticDocumentOptions,
   StaticDocumentResult,
+  StaticStylesheetOptions,
   StaticStylesheetResult
 } from "./tools.types.ts"
 
@@ -37,8 +38,8 @@ export class StaticDocument {
   static readonly ELEMENT_SCRIPT =
     /@spell-app\/ui\b|\$\/ui\b|\/ui\/(?:src|dist)\/|\/components\/ui-[\w-]+\/|\bspell-ui(?:[\w.-]*)\.js\b/
 
-  /** `StaticCatalog`'s classes, once defined */
-  private static defined = false
+  /** `StaticCatalog`'s classes are defined:  static, as defining is once per process. */
+  private static isDefined = false
 
   /**
    * Render `html`, a whole document.
@@ -46,12 +47,14 @@ export class StaticDocument {
    */
   static async render(html: string, options: StaticDocumentOptions = {}): Promise<StaticDocumentResult> {
     StaticDocument.define()
-    if (options.shared && !options.href) throw new Error("StaticDocument:  a shared stylesheet needs an href")
-    if (!options.shared) StaticRender.resetUsage()
-    await StaticRender.prepare(html)
-    const rendered = StaticRender.page(html)
-    const tags = [...StaticRender.lastTags]
-    const css = options.shared ? undefined : StaticDocument.stylesheet(tags, options.minify)
+    if (options.shared && !options.href) {
+      throw new TypeError("StaticDocument.render():  a `shared` stylesheet has no `href`;  pass the sheet's URL")
+    }
+    if (!options.shared) SSR.StaticRender.resetUsage()
+    await SSR.StaticRender.prepare(html)
+    const rendered = SSR.StaticRender.page(html)
+    const tags = [...SSR.StaticRender.lastTags]
+    const css = options.shared ? undefined : StaticDocument.stylesheet(tags, { minify: options.minify })
 
     const { document } = parseHTML(rendered)
     const inlined = options.input ? StaticDocument.inlineLinkedSheets(document, options.input, options.output) : []
@@ -86,18 +89,21 @@ export class StaticDocument {
    * - `coverage`:  what an earlier run's sheet covered (its tags, what they adopted):  merged in, so the sheet keeps
    *   styling pages this run didn't render.  The result's `coverage` is the union.
    */
-  static stylesheet(tags: Iterable<string>, minify = true, coverage?: StaticCoverage): StaticStylesheetResult {
+  static stylesheet(
+    tags: Iterable<string>,
+    { minify = true, coverage }: StaticStylesheetOptions = {}
+  ): StaticStylesheetResult {
     StaticDocument.define()
-    const usage = StaticRender.sheetUsage
+    const usage = SSR.StaticRender.sheetUsage
     for (const [name, nouns] of Object.entries(coverage?.users ?? {})) {
       let set = usage.users.get(name)
       if (!set) usage.users.set(name, (set = new Set()))
       for (const noun of nouns) set.add(noun)
     }
     for (const order of coverage?.orders ?? []) usage.orders.set(order.join(" "), order)
-    const all = [...new Set([...tags, ...(coverage?.tags ?? [])])].filter((tag) => StaticRender.families.has(tag))
-    const families = all.map((tag) => StaticRender.families.get(tag)!)
-    const full = StaticStylesheet.build(families, usage)
+    const all = [...new Set([...tags, ...(coverage?.tags ?? [])])].filter((tag) => SSR.StaticRender.families.has(tag))
+    const families = all.map((tag) => SSR.StaticRender.families.get(tag)!)
+    const full = SSR.StaticStylesheet.build(families, usage)
     const covered: StaticCoverage = {
       tags: all.sort(),
       users: Object.fromEntries([...usage.users].map(([name, nouns]) => [name, [...nouns].sort()])),
@@ -139,9 +145,9 @@ export class StaticDocument {
 
   /** Define `StaticCatalog`'s classes, once. */
   private static define() {
-    if (StaticDocument.defined) return
-    StaticRender.define(...StaticCatalog.classes)
-    StaticDocument.defined = true
+    if (StaticDocument.isDefined) return
+    SSR.StaticRender.define(...SSR.StaticCatalog.classes)
+    StaticDocument.isDefined = true
   }
 
   /**
@@ -153,7 +159,7 @@ export class StaticDocument {
    * - NOTE:  `@import` inside a sheet isn't followed.
    */
   static inlineLinkedSheets(document: Document, input: string, output = input): string[] {
-    const tags = StaticRender.tags()
+    const tags = SSR.StaticRender.tags()
     const inlined: string[] = []
     for (const link of [...document.querySelectorAll('link[rel~="stylesheet"][href]')]) {
       const href = link.getAttribute("href")!
@@ -163,7 +169,7 @@ export class StaticDocument {
       const css = readFileSync(file, "utf8")
       let rewritten: string
       try {
-        rewritten = StaticPageStyles.rewrite(css, tags)
+        rewritten = SSR.StaticPageStyles.rewrite(css, tags)
       } catch {
         continue
       }
@@ -179,7 +185,7 @@ export class StaticDocument {
 
   /** `css`'s relative `url()`s, written for `from`, made relative to `to`. */
   private static rebase(css: string, from: string, to: string): string {
-    return css.replace(URL, (match, quote: string, url: string) => {
+    return css.replace(CSS_URL, (match, quote: string, url: string) => {
       if (/^(?:[a-z][\w+.-]*:|\/|#)/i.test(url)) return match
       const moved = relative(to, resolve(from, url)).split(sep).join("/")
       return `url(${quote}${moved}${quote})`
@@ -220,7 +226,7 @@ export class StaticDocument {
 }
 
 /** A `url(...)` in CSS:  its quote (or none) and its URL. */
-const URL = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g
+const CSS_URL = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g
 
 /** Where each sheet of a `StaticStylesheet.build()` result starts:  its name-comment heading (`/\* ui-card ...`). */
 const SHEET_START = /\n\n(?=\/\* [\w.-]+(?: \(page\))? \*\/\n)/

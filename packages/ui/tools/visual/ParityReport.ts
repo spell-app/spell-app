@@ -5,42 +5,17 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import type { ParityKind, ParityResult, VisualOs } from "./visual.types.ts"
 import { VisualSettings } from "./VisualSettings.ts"
 
-/**
+/****************
+ * ### `ParityReport`
  * The parity reports:  collect the spec's `ParityResult` files (`tools/results/visual/<os>/<kind folder>/<browser>/`)
  * into one markdown file per kind, one table per OS and browser, most different first.
  * - `--parity` => `tools/results/visual/parity.md`:  class grammar vs elements
  * - `--static` => `tools/results/visual/static-parity.md`:  static render vs elements
  * - Informational only:  the two sides aren't pixel-identical (headings, wrappers, shorthands;  a static page has no
  *   icon glyphs yet), so a difference is a lead to look at, not a failure.
- */
+ * - STATIC:  it reads and writes files, and keeps nothing.
+ ****************/
 export class ParityReport {
-  /** What differs per kind:  results folder, report file, wording. */
-  static readonly KINDS: Record<ParityKind, ParityReportKind> = {
-    parity: {
-      folder: "parity",
-      file: "parity.md",
-      title: "Parity:  class grammar vs elements",
-      command: "yarn test:visual --parity",
-      other: "Classes",
-      intro: [
-        "Each example's class-grammar original (`examples/<name>.html`) against its element markup",
-        "(`examples/elements/<name>.html`), light scheme.  Informational:  the two markups are not pixel-identical."
-      ]
-    },
-    static: {
-      folder: "static-parity",
-      file: "static-parity.md",
-      title: "Static parity:  static render vs elements",
-      command: "yarn test:visual --static",
-      other: "Static",
-      intro: [
-        "Each element example (`examples/elements/<name>.html`) rendered statically -- `StaticRender` + `StaticStylesheet`,",
-        "no scripts, no `ui-*` element defined (`/static/<family>/<name>.html`) -- against the live elements, light and dark.",
-        "Only the families in `tools/visual/StaticFamilies.ts`.  Informational."
-      ]
-    }
-  }
-
   /** Remove `os`'s previous `kind` results, so the report never mixes runs. */
   static clear(os: VisualOs, kind: ParityKind) {
     rmSync(ParityReport.folder(os, kind), { recursive: true, force: true })
@@ -48,13 +23,13 @@ export class ParityReport {
 
   /** Results folder of `os` and `kind`, relative to `VisualSettings.RESULTS` (where the report lives). */
   static relativeFolder(os: VisualOs, kind: ParityKind): string {
-    return `${VisualSettings.osFolder(os)}/${ParityReport.KINDS[kind].folder}`
+    return `${VisualSettings.osFolder(os)}/${KINDS[kind].folder}`
   }
 
   /** Write the `kind` report for `oses`;  returns its path. */
   static write(oses: readonly VisualOs[], kind: ParityKind): string {
     const { threshold, ratio } = VisualSettings.PARITY
-    const { file, title, command, other, intro } = ParityReport.KINDS[kind]
+    const { file, title, command, other, intro } = KINDS[kind]
     const lines = [
       `# ${title}`,
       "",
@@ -116,7 +91,7 @@ export class ParityReport {
   }
 }
 
-/** One kind of parity report (`ParityReport.KINDS`). */
+/** One kind of parity report (`KINDS`). */
 export type ParityReportKind = {
   /** results folder under `tools/results/visual/<os>/` */
   folder: string
@@ -130,4 +105,31 @@ export type ParityReportKind = {
   other: string
   /** lines under the heading */
   intro: string[]
+}
+
+/** What differs per kind:  results folder, report file, wording. */
+const KINDS: Record<ParityKind, ParityReportKind> = {
+  parity: {
+    folder: "parity",
+    file: "parity.md",
+    title: "Parity:  class grammar vs elements",
+    command: "yarn test:visual --parity",
+    other: "Classes",
+    intro: [
+      "Each example's class-grammar original (`examples/<name>.html`) against its element markup",
+      "(`examples/elements/<name>.html`), light scheme.  Informational:  the two markups are not pixel-identical."
+    ]
+  },
+  static: {
+    folder: "static-parity",
+    file: "static-parity.md",
+    title: "Static parity:  static render vs elements",
+    command: "yarn test:visual --static",
+    other: "Static",
+    intro: [
+      "Each element example (`examples/elements/<name>.html`) rendered statically -- `StaticRender` + `StaticStylesheet`,",
+      "no scripts, no `ui-*` element defined (`/static/<family>/<name>.html`) -- against the live elements, light and dark.",
+      "Only the families in `tools/visual/StaticFamilies.ts`.  Informational."
+    ]
+  }
 }

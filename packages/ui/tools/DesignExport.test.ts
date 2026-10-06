@@ -205,7 +205,7 @@ describe("design export:  the brand's cards", () => {
 </ui-docs-example>
 </ui-section></ui-section>
 </ui-tab><ui-tab value="usage" label="Usage"><ui-docs-example><b>not this</b></ui-docs-example></ui-tab></ui-tabs>`
-    const brand = new DesignBrand("/nowhere", brandData)
+    const brand = new DesignBrand({ root: "/nowhere", data: brandData })
     ;(brand as unknown as { pages: Map<string, string> }).pages.set("ui-brand-phone", page)
     expect(brand.examples("ui-brand-phone")).toEqual([
       { title: "Phone", markup: "<ui-brand-phone></ui-brand-phone>", source: "brand/components/ui-brand-phone.html" }
@@ -214,7 +214,7 @@ describe("design export:  the brand's cards", () => {
   })
 
   it("leave the brand's manifests current (else `yarn site:data` in packages/brand)", () => {
-    const manifests = new ElementManifests(brandData, BRAND, { componentsPath: "components" })
+    const manifests = new ElementManifests({ data: brandData, packageFolder: BRAND, componentsPath: "components" })
     const [[elements], [custom]] = manifests.outputs(join(BRAND, "_data"))
     const written = JSON.parse(readFileSync(elements!, "utf8")) as { modules: unknown[] }
     expect(written.modules).toEqual(manifests.customElements().modules)
@@ -224,12 +224,12 @@ describe("design export:  the brand's cards", () => {
 
 describe("design export:  editor manifests", () => {
   it("are current (else run `yarn site:data`)", () => {
-    for (const [file, text] of new ElementManifests(data, UI).outputs(join(UI, "site/_data")))
+    for (const [file, text] of new ElementManifests({ data, packageFolder: UI }).outputs(join(UI, "site/_data")))
       expect(readFileSync(file, "utf8") === text, file).toBe(true)
   })
 
   it("describe every component tag as a Custom Elements Manifest", () => {
-    const manifest = new ElementManifests(data, UI).customElements()
+    const manifest = new ElementManifests({ data, packageFolder: UI }).customElements()
     expect(manifest.schemaVersion).toMatch(/^2\./)
     const definitions = manifest.modules.flatMap((module) =>
       module.exports.filter((entry) => entry.kind === "custom-element-definition").map((entry) => String(entry.name))
@@ -253,7 +253,7 @@ describe("design export:  editor manifests", () => {
   })
 
   it("give VS Code every tag, with values for value sets", () => {
-    const custom = new ElementManifests(data, UI).htmlCustomData()
+    const custom = new ElementManifests({ data, packageFolder: UI }).htmlCustomData()
     expect(custom.tags.map((tag) => tag.name).toSorted(compare)).toEqual(
       data.components.map((tag) => tag.tag).toSorted(compare)
     )

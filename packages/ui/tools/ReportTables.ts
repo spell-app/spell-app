@@ -4,44 +4,30 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 
 import type { PerfRecord, PerfResult, PerfStep } from "../test/PerfRun.ts"
-import type { LocResults, MeasureResults, ScenarioName, Size, SmokePage, SmokeResults } from "./tools.types.ts"
+import {
+  kB,
+  ScenarioNames,
+  type LocResults,
+  type MeasureChecks,
+  type MeasureResults,
+  type ScenarioName,
+  type Size,
+  type SmokePage,
+  type SmokeResults
+} from "./tools.types.ts"
+import { Terminal } from "./Terminal.ts"
 
-/**
+/****************
+ * ### `ReportTables`
  * Rewrites the GENERATED tables of `docs/report.md` from the result files, with fixed headers, units and rounding.
  * - A table lives between `<!-- generated:<name> -->` and `<!-- /generated:<name> -->`;  ONLY that content
- *   is replaced, prose around it is left alone.  Names are the keys of `ReportTables.TABLES`.
+ *   is replaced, prose around it is left alone.  Names are the keys of `TABLES` (`TableName`).
  * - Inputs, all in `tools/results/`:  `measure-results.json` (`BundleMeasure`), `perf-results.json` (`PerfRun`,
  *   written by the dropdown perf test), `smoke-results.json` (`SmokeRunner`), `loc-results.json` (`LocCount`).  A
  *   missing file renders a one-line "not measured" note instead of the table.
  * - Idempotent:  running it twice changes nothing.
- */
+ ****************/
 export class ReportTables {
-  /**
-   * Every generated table:  name => what it shows.
-   * - Headers are defined ONCE, in the renderers below.
-   */
-  static readonly TABLES = {
-    versions: "installed peer packages and toolchain",
-    "bundle-tiers":
-      "library (as used, full) / shared entries (core, forms ...) / own / extra (api) / lazy, min and min+gz",
-    "bundle-families": "own cost per family, split classes / css / vocabulary / fallback, and what it imports",
-    "bundle-scenarios": "the three page scenarios",
-    "bundle-checks": "structural checks of dist/",
-    loc: "lines per group",
-    "loc-files": "lines per file",
-    perf: "1000-option search dropdown, open + keystrokes",
-    smoke: "import-map smoke pages"
-  } as const
-
-  /** Packages the versions table lists:  Solid, the fork and the Solid plugin (the pins that matter). */
-  static readonly VERSIONED = /^solid-js$|^@solidjs\/|^@spell-app\/solid-element$/
-
-  /** What each extra entry (`MeasureResults.extra`) holds, for the tier table. */
-  static readonly EXTRA: Record<string, string> = { api: "`E` / `V` namespaces, `@spell-app/ui/api`" }
-
-  /** LOC groups listed file by file (`loc-files`). */
-  static readonly LOC_FILE_GROUPS = ["element core", "components"]
-
   /** repo root, absolute */
   readonly root: string
   /** report file, relative to the root */
@@ -49,7 +35,7 @@ export class ReportTables {
   /** folder of the result files, relative to the root */
   readonly results: string
 
-  constructor(root: string, file = "docs/report.md", results = "tools/results") {
+  constructor({ root, file = "docs/report.md", results = "tools/results" }: ReportTablesProps) {
     this.root = root
     this.file = file
     this.results = results
@@ -60,7 +46,7 @@ export class ReportTables {
     const path = join(this.root, this.file)
     let text = readFileSync(path, "utf8")
     const found: string[] = []
-    for (const name of Object.keys(ReportTables.TABLES) as TableName[]) {
+    for (const name of Object.keys(TABLES) as TableName[]) {
       const pattern = new RegExp(`(<!-- generated:${name} -->\\n)[\\s\\S]*?(<!-- /generated:${name} -->)`, "g")
       if (!pattern.test(text)) continue
       found.push(name)
@@ -68,7 +54,7 @@ export class ReportTables {
       text = text.replace(pattern, (_match, open: string, close: string) => `${open}${body}\n${close}`)
     }
     writeFileSync(path, text)
-    console.log(`${this.file}:  regenerated ${found.join(", ") || "nothing (no markers)"}`)
+    Terminal.out(`${this.file}:  regenerated ${found.join(", ") || "nothing (no markers)"}`)
     return found
   }
 
@@ -103,7 +89,7 @@ export class ReportTables {
   /** Peer package versions (from `measure-results.json`) + the root `package.json`'s Solid-related pins. */
   private versions(): string {
     const measure = this.read<MeasureResults>("measure-results.json")
-    const pkg = this.readRoot<{
+    const packageJson = this.readRoot<{
       dependencies?: Record<string, string>
       devDependencies?: Record<string, string>
       peerDependencies?: Record<string, string>
@@ -111,13 +97,13 @@ export class ReportTables {
     const rows: string[][] = []
     for (const [name, version] of Object.entries(measure?.versions ?? {}))
       rows.push([`\`${name}\``, version, "installed"])
-    for (const [kind, deps] of [
-      ["peer", pkg?.peerDependencies],
-      ["dependency", pkg?.dependencies],
-      ["dev", pkg?.devDependencies]
+    for (const [kind, dependencies] of [
+      ["peer", packageJson?.peerDependencies],
+      ["dependency", packageJson?.dependencies],
+      ["dev", packageJson?.devDependencies]
     ] as const) {
-      for (const [name, range] of Object.entries(deps ?? {})) {
-        if (ReportTables.VERSIONED.test(name)) rows.push([`\`${name}\``, range, kind])
+      for (const [name, range] of Object.entries(dependencies ?? {})) {
+        if (VERSIONED.test(name)) rows.push([`\`${name}\``, range, kind])
       }
     }
     return ReportTables.table(["Package", "Version", "Kind"], rows)
@@ -148,7 +134,7 @@ export class ReportTables {
       ...shared,
       [`own, all ${Object.keys(results.own).length} families`, kB(ownMin), kB(ownGzip), "eager"],
       ...Object.entries(results.extra ?? {}).map(([name, size]) => [
-        `${name} (${ReportTables.EXTRA[name] ?? "extra entry"})`,
+        `${name} (${EXTRA[name] ?? "extra entry"})`,
         kB(size.min),
         kB(size.gzip),
         "app only"
@@ -172,7 +158,7 @@ export class ReportTables {
           ]
         : [])
     ]
-    return ReportTables.table(["Tier", "min kB", "min+gz kB", "Loaded"], rows, ["l", "r", "r", "l"])
+    return ReportTables.table(["Tier", "min kB", "min+gz kB", "Loaded"], rows, ["left", "right", "right", "left"])
   }
 
   /**
@@ -207,46 +193,35 @@ export class ReportTables {
         "standalone (library bundled)"
       ],
       rows,
-      ["l", "r", "r", "r", "r", "r", "l", "r", "r"]
+      ["left", "right", "right", "right", "right", "right", "left", "right", "right"]
     )
   }
 
   /** Scenario table, beside the same page from standalone builds (library bundled per build). */
   private scenarios(results: MeasureResults): string {
+    const onePage = results.scenarios["page with one button"].parts.at(-1)!.slice(OWN_PREFIX.length)
     const standalone: Record<ScenarioName, Size | undefined> = {
-      "page with one button": results.standalone[results.scenarios["page with one button"].parts.at(-1)!.slice(4)],
+      "page with one button": results.standalone[onePage],
       "all families": results.standalone["all families"],
       "app already ships the library": undefined
     }
-    const order: ScenarioName[] = ["page with one button", "all families", "app already ships the library"]
-    const rows = order.map((name) => {
+    const rows = ScenarioNames.map((name) => {
       const scenario = results.scenarios[name]
       const before = standalone[name]
       return [name, ReportTables.parts(scenario.parts), `**${kB(scenario.gzip)}**`, before ? kB(before.gzip) : "--"]
     })
     return ReportTables.table(["Scenario", "Adds up", "shared runtime min+gz kB", "standalone build"], rows, [
-      "l",
-      "l",
-      "r",
-      "r"
+      "left",
+      "left",
+      "right",
+      "right"
     ])
   }
 
   /** Structural checks. */
   private checks(results: MeasureResults): string {
-    const labels: Record<keyof MeasureResults["checks"], string> = {
-      entriesMissingCore: "every family entry imports `core.js`",
-      runtimeChunks: "no Rolldown runtime chunk (`rolldown-runtime-<hash>.js`):  its helpers stay in `core.js`",
-      coreOutsideCore: "no shared-entry module outside its own chunk (`core.js`, `forms.js` ...)",
-      libraryBundled: "no Solid / fork module in `dist/`",
-      docsBundled: "no doc-only `<ui-docs-*>` module in `dist/`",
-      lazyInEager: "runtime + icon data only in lazy chunks",
-      unattributed: "every module attributed to a bucket",
-      peersMissing: "every external specifier is in the peer set",
-      lightDarkLowered: "`light-dark()` kept as is (never lowered to `--lightningcss-*` variables)"
-    }
-    const rows = Object.entries(labels).map(([key, label]) => {
-      const found = results.checks[key as keyof MeasureResults["checks"]]
+    const rows = Object.entries(CHECK_LABELS).map(([key, label]) => {
+      const found = results.checks[key as keyof MeasureChecks]
       return [
         label,
         found.length
@@ -272,15 +247,15 @@ export class ReportTables {
       String(total.lines),
       String(total.code)
     ])
-    return ReportTables.table(["Group", "Files", "Lines", "Code lines"], rows, ["l", "r", "r", "r"])
+    return ReportTables.table(["Group", "Files", "Lines", "Code lines"], rows, ["left", "right", "right", "right"])
   }
 
   /** Lines per file, element core and components only. */
   private locFiles(results: LocResults): string {
     const rows = results.files
-      .filter((file) => ReportTables.LOC_FILE_GROUPS.includes(file.group))
+      .filter((file) => LOC_FILE_GROUPS.includes(file.group))
       .map((file) => [`\`${file.path.replace(/^src\//, "")}\``, String(file.lines), String(file.code)])
-    return ReportTables.table(["File", "Lines", "Code lines"], rows, ["l", "r", "r"])
+    return ReportTables.table(["File", "Lines", "Code lines"], rows, ["left", "right", "right"])
   }
 
   ////////////////
@@ -307,7 +282,7 @@ export class ReportTables {
         "+ frame"
       ],
       rows,
-      ["l", "l", "r", "r", "r", "r"]
+      ["left", "left", "right", "right", "right", "right"]
     )
   }
 
@@ -354,10 +329,17 @@ export class ReportTables {
 
   /** A perf table row. */
   private static perfRow(where: string, build: string, result: PerfResult): string[] {
-    const open = (step: PerfStep) => `${ms(step.update)} / ${ms(step.layout)} / ${ms(step.frame)}`
-    const stats = (value: { min: number; avg: number; max: number }) =>
-      `${ms(value.min)} / **${ms(value.avg)}** / ${ms(value.max)}`
     return [where, build, open(result.open), stats(result.update), stats(result.layout), stats(result.frame)]
+
+    /** The open step's three timings. */
+    function open(step: PerfStep): string {
+      return `${ms(step.update)} / ${ms(step.layout)} / ${ms(step.frame)}`
+    }
+
+    /** A keystroke timing's min / avg (bold) / max. */
+    function stats(value: { min: number; avg: number; max: number }): string {
+      return `${ms(value.min)} / **${ms(value.avg)}** / ${ms(value.max)}`
+    }
   }
 
   /** Short check list of a smoke page:  failed checks first, then the rest by name. */
@@ -383,26 +365,78 @@ export class ReportTables {
 
   /** Scenario parts, several `own:*` collapsed:  `library + core + forms + own (8 families)`. */
   private static parts(parts: string[]): string {
-    const own = parts.filter((part) => part.startsWith("own:"))
-    const rest = parts.filter((part) => !part.startsWith("own:"))
+    const own = parts.filter((part) => part.startsWith(OWN_PREFIX))
+    const rest = parts.filter((part) => !part.startsWith(OWN_PREFIX))
     if (own.length < 2) return parts.join(" + ")
     return [...rest, `own (${own.length} families)`].join(" + ")
   }
 
-  /** A markdown table;  `align` per column, `l` / `r`. */
-  static table(headers: string[], rows: string[][], align: ("l" | "r")[] = []): string {
-    const rule = headers.map((_, index) => (align[index] === "r" ? "--:" : "---"))
+  /** A markdown table;  `align` per column, `left` by default. */
+  static table(headers: string[], rows: string[][], align: ColumnAlign[] = []): string {
+    const rule = headers.map((_, index) => (align[index] === "right" ? "--:" : "---"))
     return [headers, rule, ...rows].map((row) => `| ${row.join(" | ")} |`).join("\n")
   }
 }
 
-/** A key of `ReportTables.TABLES`. */
-export type TableName = keyof typeof ReportTables.TABLES
-
-/** Bytes as kB (1000), two decimals. */
-function kB(bytes: number): string {
-  return (bytes / 1000).toFixed(2)
+/** Constructor props of `ReportTables`. */
+export type ReportTablesProps = {
+  /** repo root, absolute */
+  root: string
+  /** report file, relative to the root;  default `docs/report.md` */
+  file?: string
+  /** folder of the result files, relative to the root;  default `tools/results` */
+  results?: string
 }
+
+/** A key of `TABLES`:  a `<!-- generated:<name> -->` marker's name. */
+export type TableName = keyof typeof TABLES
+
+/** How a markdown table column aligns. */
+export const ColumnAligns = ["left", "right"] as const
+/** One of `ColumnAligns`. */
+export type ColumnAlign = (typeof ColumnAligns)[number]
+
+/**
+ * Every generated table:  name => what it shows.
+ * - Headers are defined ONCE, in the renderers.
+ */
+const TABLES = {
+  versions: "installed peer packages and toolchain",
+  "bundle-tiers":
+    "library (as used, full) / shared entries (core, forms ...) / own / extra (api) / lazy, min and min+gz",
+  "bundle-families": "own cost per family, split classes / css / vocabulary / fallback, and what it imports",
+  "bundle-scenarios": "the three page scenarios",
+  "bundle-checks": "structural checks of dist/",
+  loc: "lines per group",
+  "loc-files": "lines per file",
+  perf: "1000-option search dropdown, open + keystrokes",
+  smoke: "import-map smoke pages"
+} as const
+
+/** What each structural check means, as the checks table words it, in table order. */
+const CHECK_LABELS: Record<keyof MeasureChecks, string> = {
+  entriesMissingCore: "every family entry imports `core.js`",
+  runtimeChunks: "no Rolldown runtime chunk (`rolldown-runtime-<hash>.js`):  its helpers stay in `core.js`",
+  coreOutsideCore: "no shared-entry module outside its own chunk (`core.js`, `forms.js` ...)",
+  libraryBundled: "no Solid / fork module in `dist/`",
+  docsBundled: "no doc-only `<ui-docs-*>` module in `dist/`",
+  lazyInEager: "runtime + icon data only in lazy chunks",
+  unattributed: "every module attributed to a bucket",
+  peersMissing: "every external specifier is in the peer set",
+  lightDarkLowered: "`light-dark()` kept as is (never lowered to `--lightningcss-*` variables)"
+}
+
+/** Packages the versions table lists:  Solid, the fork and the Solid plugin (the pins that matter). */
+const VERSIONED = /^solid-js$|^@solidjs\/|^@spell-app\/solid-element$/
+
+/** What each extra entry (`MeasureResults.extra`) holds, for the tier table. */
+const EXTRA: Record<string, string> = { api: "`E` / `V` namespaces, `@spell-app/ui/api`" }
+
+/** LOC groups listed file by file (`loc-files`). */
+const LOC_FILE_GROUPS = ["element core", "components"]
+
+/** A family's part in a scenario, `own:<family>` (`BundleMeasure`). */
+const OWN_PREFIX = "own:"
 
 /** Milliseconds, one decimal. */
 function ms(value: number): string {

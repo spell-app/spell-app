@@ -1,10 +1,3 @@
-import { readdirSync, readFileSync, writeFileSync } from "node:fs"
-import { fileURLToPath } from "node:url"
-
-import { ComponentTokens } from "$/ui/styles/ComponentTokens"
-import { NodePackage } from "../tools/NodePackage.ts"
-import { SITE_PAGES } from "../tools/tools.types.ts"
-
 /**
  * `yarn tokens:alias <family> [--write]`:  the codemod of `docs/theming.md` "Converting a family".
  * - Rewrites every sheet of `src/components/ui-<family>/` so it never DECLARES a public `--ui-<family>-*` token:
@@ -14,22 +7,29 @@ import { SITE_PAGES } from "../tools/tools.types.ts"
  *   (other sheets' reads, tests, examples, docs) -- those need a human, see the recipe.
  * - NOTE: imports the leaf file, not the `$/ui/styles` barrel (whose `?inline` imports only Vite understands).
  */
+import { readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { fileURLToPath } from "node:url"
+import { parseArgs } from "node:util"
+
+import { ComponentTokens } from "../src/styles/ComponentTokens.ts"
+import { Terminal } from "../tools/Terminal.ts"
+import { SITE_PAGES } from "../tools/tools.types.ts"
+
+import { formatFiles } from "./generatedFiles.ts"
+
+/****************
+ * ### `AliasTokensCommand`
+ * Converts one family's sheets to private token aliases, and lists what's left for a person to fix.
+ ****************/
 class AliasTokensCommand {
-  /** repo root */
+  /** `packages/ui/`. */
   readonly root = fileURLToPath(new URL("../", import.meta.url))
 
-  /** oxfmt binary, run over rewritten sheets so `yarn format` is a no-op afterwards */
-  readonly formatter = `${NodePackage.need("oxfmt")}/bin/oxfmt`
-
   /**
-   * Parse arguments, convert, report.
-   * - SIDE EFFECT:  with `--write`, overwrites the family's sheets (then formats them).
+   * Convert, report.
+   * - SIDE EFFECT:  with `write`, overwrites the family's sheets (then formats them).
    */
-  async run(args: string[]) {
-    const family = args.find((arg) => !arg.startsWith("--"))
-    const write = args.includes("--write")
-    if (!family) throw new Error("usage:  yarn tokens:alias <family> [--write]")
-
+  run({ family, write }: AliasTokensOptions) {
     const tokens = new ComponentTokens({
       vocabularies: this.read(this.files("src/components", /\.vocabulary\.en\.ts$/)),
       foundation: Object.values(this.read(this.files("src/styles", /\.css$/)))
@@ -43,24 +43,22 @@ class AliasTokensCommand {
           .map(({ name }) => name)
       )
     )
-    console.log(`${family}:  ${declared.size} public tokens declared`)
+    Terminal.out(`${family}:  ${declared.size} public tokens declared`)
 
     const written: string[] = []
     for (const [path, css] of Object.entries(sheets)) {
       const { css: converted, notes } = tokens.convert(family, css, declared)
-      console.log(`\n${path}${converted === css ? "  (unchanged)" : ""}`)
-      for (const note of notes) console.log(`  - ${note}`)
+      Terminal.out(`\n${path}${converted === css ? "  (unchanged)" : ""}`)
+      for (const note of notes) Terminal.out(`  - ${note}`)
       if (write && converted !== css) {
         writeFileSync(`${this.root}${path}`, converted)
         written.push(`${this.root}${path}`)
       }
     }
-    if (written.length > 0) {
-      const { execFileSync } = await import("node:child_process")
-      execFileSync(this.formatter, written, { stdio: "ignore" })
-    }
+    // formatted so `yarn format` is a no-op afterwards
+    if (written.length > 0) formatFiles(written)
 
-    console.log("\nOther files naming a converted token (reads of the PUBLIC name, not through the alias):")
+    Terminal.out("\nOther files naming a converted token (reads of the PUBLIC name, not through the alias):")
     const own = new Set(Object.keys(sheets))
     const pattern = new RegExp(`(?<!var\\(--_ui-[a-z0-9-]+, var\\()(${[...declared].join("|")})(?![a-z0-9-])`, "g")
     // the site's pages:  the shared `ui/` at the checkout's root (`SITE_PAGES`)
@@ -70,7 +68,7 @@ class AliasTokensCommand {
           continue
         const lines = readFileSync(`${this.root}${path}`, "utf8").split("\n")
         lines.forEach((line, index) => {
-          if (line.match(pattern)) console.log(`  ${path}:${index + 1}:  ${line.trim().slice(0, 140)}`)
+          if (line.match(pattern)) Terminal.out(`  ${path}:${index + 1}:  ${line.trim().slice(0, 140)}`)
         })
       }
     }
@@ -90,7 +88,27 @@ class AliasTokensCommand {
   }
 }
 
+/** What `AliasTokensCommand.run()` converts, and whether it writes. */
+type AliasTokensOptions = {
+  /** the family's folder, e.g. `ui-button` */
+  family: string
+  /** overwrite the sheets;  else only print */
+  write: boolean
+}
+
 /** The site's generated files:  the minified bundle and its data, never hand-edited. */
 const GENERATED_SITE = /^site\/_(assets|data)\//
 
-await new AliasTokensCommand().run(process.argv.slice(2))
+/** Printed when the family is missing. */
+const USAGE = "usage:  yarn tokens:alias <family> [--write]"
+
+const { values, positionals } = parseArgs({
+  options: { write: { type: "boolean", default: false } },
+  allowPositionals: true
+})
+const [family] = positionals
+if (!family) {
+  Terminal.err(USAGE)
+  process.exit(2)
+}
+new AliasTokensCommand().run({ family, write: values.write })

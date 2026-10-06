@@ -18,6 +18,8 @@ import { execFileSync } from "node:child_process"
 import path from "node:path"
 import { build, type Rolldown } from "vite"
 
+import { Terminal } from "../tools/Terminal.ts"
+
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
 
@@ -29,7 +31,7 @@ const SPELL = path.join(REPO, "packages/cli/bin/spell.mjs")
 
 execFileSync("yarn", ["site:bundle"], { cwd: UI, stdio: "inherit" })
 const base = ensurePageServer()
-console.log(`\nSpell UI site:  ${base}/ui/  (live reload);  watching the bundle's sources, Ctrl-C to stop\n`)
+Terminal.out(`\nSpell UI site:  ${base}/ui/  (live reload);  watching the bundle's sources, Ctrl-C to stop\n`)
 const watcher = (await build({
   configFile: path.join(UI, "vite.site.config.ts"),
   build: { watch: {} }
@@ -38,8 +40,8 @@ watcher.on("event", report)
 
 /** One line per rebuild (the config's `logLevel` is `warn`, so Vite lists nothing). */
 function report(event: Rolldown.RolldownWatcherEvent): void {
-  if (event.code === "BUNDLE_END") console.log(`${new Date().toLocaleTimeString()}  rebuilt in ${event.duration}ms`)
-  if (event.code === "ERROR") console.error(`${new Date().toLocaleTimeString()}  build failed:  ${event.error.message}`)
+  if (event.code === "BUNDLE_END") Terminal.out(`${new Date().toLocaleTimeString()}  rebuilt in ${event.duration}ms`)
+  if (event.code === "ERROR") Terminal.err(`${new Date().toLocaleTimeString()}  build failed:  ${event.error.message}`)
 }
 
 /**

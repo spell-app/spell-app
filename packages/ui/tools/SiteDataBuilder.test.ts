@@ -60,7 +60,7 @@ describe("site data", () => {
   }, 60_000)
 })
 
-describe("FamilyTokens.typeOf", () => {
+describe("FamilyTokens.typeFor()", () => {
   it.each([
     ["--ui-x-color", "var(--ui-text-color)", "color"],
     ["--ui-x-background", "oklch(0.5 0 0)", "color"],
@@ -70,7 +70,7 @@ describe("FamilyTokens.typeOf", () => {
     ["--ui-x-opacity", "0.5", "number"],
     ["--ui-x-shadow", "0 1px 2px var(--ui-border-color)", "other"]
   ])("%s: %s => %s", (name, value, type) => {
-    expect(FamilyTokens.typeOf(name, value)).toBe(type)
+    expect(FamilyTokens.typeFor(name, value)).toBe(type)
   })
 })
 
@@ -105,7 +105,7 @@ describe("theme data (ThemeFamilies)", () => {
       { tag: "ui-table", noun: "table", folder: "ui-table", attributes: [] },
       { tag: "ui-card", noun: "card", folder: "ui-card", attributes: [] }
     ]
-    const families = new ThemeFamilies("/nowhere", tags, {}, ["--ui-font-family"])
+    const families = new ThemeFamilies({ folder: "/nowhere", tags, families: {}, foundation: ["--ui-font-family"] })
     expect(families.touched(".ui.labeled.icon.button { color: red }")).toEqual({
       families: ["ui-button"],
       global: false
@@ -119,8 +119,8 @@ describe("theme data (ThemeFamilies)", () => {
     })
     expect(families.touched("b, strong { font-weight: 600 }").global).toBe(true)
     expect(families.touched("@keyframes x { from { opacity: 0 } }").global).toBe(false)
-    expect(ThemeFamilies.titleOf("/*\n * GitHub theme:  port of ...", "github")).toBe("GitHub")
-    expect(ThemeFamilies.titleOf("", "fixed-width")).toBe("Fixed width")
+    expect(ThemeFamilies.titleFor("/*\n * GitHub theme:  port of ...", "github")).toBe("GitHub")
+    expect(ThemeFamilies.titleFor("", "fixed-width")).toBe("Fixed width")
   })
 })
 

@@ -35,7 +35,7 @@ async function run(job: CLI.StaticMessage) {
     }
     for (const sheet of job.sheets) {
       const used = sheet.pages.flatMap((index) => tags[index] ?? [])
-      const result = module.StaticDocument.stylesheet(used, job.minify, sheet.coverage)
+      const result = module.StaticDocument.stylesheet(used, { minify: job.minify, coverage: sheet.coverage })
       await send({ kind: "stylesheet", path: sheet.path, result })
     }
     await send({ kind: "done" })

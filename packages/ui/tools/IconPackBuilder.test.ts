@@ -5,7 +5,8 @@ import { pathToFileURL } from "node:url"
 import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import type { IconPackIndex } from "../src/icons/icons.types.ts"
-import { IconPackBuilder, IconPackError } from "./IconPackBuilder.ts"
+import { IconPackBuilder } from "./IconPackBuilder.ts"
+import { IconPackError } from "./tools.types.ts"
 
 /** FA-style glyph:  licence comment, one path, no fill (inherits). */
 const FA = (width: number) =>

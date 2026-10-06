@@ -26,10 +26,10 @@ export class StaticRenderer {
   static readonly DOCUMENT = "/tools/StaticDocument.ts"
 
   /**
-   * Start the server:  `root`'s Vite config (`vite.config.ts`), in vitest's `ssr` posture.
+   * Start the server:  `root`'s Vite config (`vite.config.ts`, or `configFile`), in vitest's `ssr` posture.
    * - SIDE EFFECT:  caller MUST `close()` it, or the process stays alive.
    */
-  static start(root: string = StaticRenderer.ROOT, configFile?: string | false): Promise<ViteDevServer> {
+  static start({ root = StaticRenderer.ROOT, configFile }: StaticRendererOptions = {}): Promise<ViteDevServer> {
     return createServer(StaticRenderer.config(root, configFile ?? `${root.replace(/\/?$/, "/")}vite.config.ts`))
   }
 
@@ -53,4 +53,12 @@ export class StaticRenderer {
       ssr: { noExternal: ["solid-js", "@solidjs/web"] }
     }
   }
+}
+
+/** What `StaticRenderer.start()` serves from;  each defaults to `packages/ui`'s. */
+export type StaticRendererOptions = {
+  /** the server's root, absolute;  default `StaticRenderer.ROOT` */
+  root?: string
+  /** its Vite config file, or `false` for none;  default `<root>/vite.config.ts` */
+  configFile?: string | false
 }

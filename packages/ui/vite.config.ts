@@ -10,6 +10,7 @@ import { standardDecorators } from "../../vite.decorators.ts"
 // import external, so Node would load the package's `dist/vite.js`, which a fresh checkout doesn't have yet
 // (Node 22.17 can't load the `.ts`).  A relative import is bundled into the config instead.  See `AGENTS.md`.
 import { solidElementHot } from "../solid-element/src/vite.ts"
+import { environment } from "./tools/environment.ts"
 
 /** Absolute path of `src/`. */
 const SRC = fileURLToPath(new URL("./src", import.meta.url))
@@ -127,15 +128,15 @@ export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
  *   `resolve.tsconfigPaths`.  A FUNCTION, so every caller gets its own plugin instances.
  * - `standardDecorators()` MUST come first:  both it and the Solid plugin are `enforce: "pre"`, and the Solid
  *   compiler must see decorator-free code.
- * - `UI_SOLID_PROD=1`:  Solid's PRODUCTION runtime under `vite dev` (no dev diagnostics, no performance tracks),
- *   for timing `tools/demo/perf.html`.
+ * - `SPELL_UI_SOLID_PROD=1` (`environment.isSolidProduction`, `tools/environment.ts`):  Solid's PRODUCTION runtime
+ *   under `vite dev` (no dev diagnostics, no performance tracks), for timing `tools/demo/perf.html`.
  * - `optimizeDeps`:  `axe-core`, `temporal-polyfill` (only a Temporal-less page imports it), highlight.js, marked and
  *   DOMPurify (only the lazy `CodeEngine` / `MarkdownEngine` import them) pre-bundled up front, so the first test run doesn't reload mid-run;  NOT
  *   `@spell-app/solid-element`:  it's linked TypeScript source (its `development` export), compiled by the Solid
  *   plugin like our own files.
  */
 export function baseConfig() {
-  const production = process.env.UI_SOLID_PROD ? { dev: false, performanceTracks: false } : {}
+  const production = environment.isSolidProduction ? { dev: false, performanceTracks: false } : {}
   return {
     plugins: [standardDecorators(), solid(production)],
     resolve: {

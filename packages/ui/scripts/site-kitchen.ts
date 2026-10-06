@@ -18,15 +18,19 @@
  *   one example.
  * - Writes ONLY between the page's `<!-- kitchen:start -->` and `<!-- kitchen:end -->` markers;  the rest of the page
  *   is hand-kept.  Written flat (a header per group, the family's first example headed), then nested into
- *   `<ui-section>`s by `yarn site:sections`' converter (`SiteSections`), as every page is.  Lines keep the example files' own layout, re-indented, so oxfmt may re-wrap a long one:  rerun.
+ *   `<ui-section>`s by `yarn site:sections`' converter (`SiteSections`), as every page is.  Lines keep the example
+ *   files' own layout, re-indented, so oxfmt may re-wrap a long one:  rerun.
  * - Rerun after changing an example (`yarn site:build` runs it).  `--check`:  write nothing;  exit 1 if stale.
  */
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
+import { parseArgs } from "node:util"
 
 import type { SiteDataFile, SiteFamily, SiteTag } from "../src/docs-components/docs-components.types.ts"
+import { Terminal } from "../tools/Terminal.ts"
 import { SITE_BUILD, SITE_PAGES } from "../tools/tools.types.ts"
 
+import { escapeHtml, spliceGenerated, withoutTicks, writeOrCheck } from "./generatedFiles.ts"
 import { SiteSections } from "./site-sections.ts"
 
 /** `packages/ui/`. */
@@ -35,6 +39,7 @@ const UI = path.resolve(import.meta.dirname, "..")
 /****************
  * ### `KitchenSinkWriter`
  * Renders the kitchen sink's generated block from the example files, and splices it between the page's markers.
+ * - Its `private static` helpers are STATIC because they're pure:  data in, text out.
  ****************/
 class KitchenSinkWriter {
   /** The page. */
@@ -43,41 +48,9 @@ class KitchenSinkWriter {
   /** The site's data:  titles, summaries, topics. */
   readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, SITE_BUILD, "_data/components.json"), "utf8"))
 
-  /** Start marker (its own line);  its indent is the block's. */
-  static readonly START = "<!-- kitchen:start -->"
-
-  /** End marker (its own line). */
-  static readonly END = "<!-- kitchen:end -->"
-
-  /** The groups, in order:  Fomantic's four, then ours (`topic` absent). */
-  static readonly GROUPS: readonly { id: string; title: string; topic?: string }[] = [
-    { id: "elements", title: "Elements", topic: "elements" },
-    { id: "collections", title: "Collections", topic: "collections" },
-    { id: "views", title: "Views", topic: "views" },
-    { id: "modules", title: "Modules", topic: "modules" },
-    { id: "spell-ui", title: "Spell UI's own" }
-  ]
-
-  /** Sections shown per family:  enough to judge a theme, short enough to scroll through every family. */
-  static readonly MAX_SECTIONS = 3
-
-  /** A family's main example file where it isn't `types.html` (or the first file):  folder => file name. */
-  static readonly MAIN_FILES: Readonly<Record<string, string>> = { "ui-parts": "header.html" }
-
-  /**
-   * The site's copies of the example source files (`ui/examples/`), by the source's file name, where the name
-   * differs;  a `source="/src/components/.../examples/sources/<file>"` (a dev-server path) points at the copy.
-   */
-  static readonly SITE_SOURCES: Readonly<Record<string, string>> = { "notes.html": "release-notes.html" }
-
   /** `page` with its generated block replaced by a fresh one. */
   render(page: string): string {
-    const start = page.indexOf(KitchenSinkWriter.START)
-    const end = page.indexOf(KitchenSinkWriter.END)
-    if (start < 0 || end < start) throw new Error(`${this.file}:  no ${KitchenSinkWriter.START} ... END markers`)
-    const lineStart = page.lastIndexOf("\n", start) + 1
-    const indent = page.slice(lineStart, start)
-    return page.slice(0, start + KitchenSinkWriter.START.length) + "\n" + this.block(indent) + indent + page.slice(end)
+    return spliceGenerated(page, { file: this.file, start: START, end: END, block: (indent) => this.block(indent) })
   }
 
   /** The generated lines:  per group a header, then each family's examples, at `indent`. */
@@ -85,7 +58,7 @@ class KitchenSinkWriter {
     const tags = new Map(this.data.components.map((tag) => [tag.tag, tag]))
     const families = Object.values(this.data.families).filter((family) => !family.docs && this.exampleFile(family))
     const lines: string[] = []
-    for (const group of KitchenSinkWriter.GROUPS) {
+    for (const group of GROUPS) {
       const members = families
         .filter((family) => KitchenSinkWriter.groupOf(tags.get(family.mainTag)) === group.topic)
         .sort((a, b) => a.title.localeCompare(b.title))
@@ -101,21 +74,21 @@ class KitchenSinkWriter {
     const file = this.exampleFile(family)!
     const sections = KitchenSinkWriter.sections(readFileSync(file, "utf8"))
       .filter((section) => !section.body.some((line) => line.includes("<stub-")))
-      .slice(0, KitchenSinkWriter.MAX_SECTIONS)
+      .slice(0, MAX_SECTIONS)
     const lines: string[] = []
     sections.forEach((section, index) => {
       if (index === 0) {
         const page = `components/${family.mainTag}.html`
         lines.push(
-          `${indent}<ui-docs-example header="${KitchenSinkWriter.escape(family.title)}">`,
+          `${indent}<ui-docs-example header="${escapeHtml(family.title)}">`,
           `${indent}  <p slot="description">`,
-          `${indent}    ${KitchenSinkWriter.escape(KitchenSinkWriter.plain(family.summary))}`,
-          `${indent}    <a href="${page}">${KitchenSinkWriter.escape(family.title)} page</a>`,
+          `${indent}    ${escapeHtml(withoutTicks(family.summary))}`,
+          `${indent}    <a href="${page}">${escapeHtml(family.title)} page</a>`,
           ...KitchenSinkWriter.ownPages(family).map((line) => `${indent}    ${line}`),
           `${indent}  </p>`
         )
       } else {
-        lines.push(`${indent}<ui-docs-example description="${KitchenSinkWriter.escape(section.title)}">`)
+        lines.push(`${indent}<ui-docs-example description="${escapeHtml(section.title)}">`)
       }
       const body = section.className
         ? [`<div class="${section.className}">`, ...section.body.map((line) => `  ${line}`), "</div>"]
@@ -135,7 +108,7 @@ class KitchenSinkWriter {
    */
   private static ownPages(family: SiteFamily): string[] {
     return Object.entries(family.pages ?? {}).map(
-      ([tag, page]) => `&middot; <a href="components/${tag}.html">${KitchenSinkWriter.escape(page.title)} page</a>`
+      ([tag, page]) => `&middot; <a href="components/${tag}.html">${escapeHtml(page.title)} page</a>`
     )
   }
 
@@ -146,7 +119,7 @@ class KitchenSinkWriter {
     const files = readdirSync(folder)
       .filter((name) => name.endsWith(".html"))
       .sort()
-    const main = KitchenSinkWriter.MAIN_FILES[family.folder]
+    const main = MAIN_FILES[family.folder]
     const name = main && files.includes(main) ? main : files.includes("types.html") ? "types.html" : files[0]
     return name ? path.join(folder, name) : undefined
   }
@@ -183,7 +156,7 @@ class KitchenSinkWriter {
   private static siteSources(line: string): string {
     return line.replace(
       /source="\/src\/components\/[^/"]+\/examples\/sources\/([^"]+)"/g,
-      (_match, file: string) => `source="examples/${KitchenSinkWriter.SITE_SOURCES[file] ?? file}"`
+      (_match, file: string) => `source="examples/${SITE_SOURCES[file] ?? file}"`
     )
   }
 
@@ -196,17 +169,7 @@ class KitchenSinkWriter {
 
   /** Which group `tag` files under:  its Fomantic topic, else ours (`undefined`). */
   private static groupOf(tag: SiteTag | undefined): string | undefined {
-    return KitchenSinkWriter.GROUPS.find((group) => group.topic && tag?.topics.includes(group.topic))?.topic
-  }
-
-  /** `text` without markdown code ticks. */
-  private static plain(text: string): string {
-    return text.replaceAll("`", "")
-  }
-
-  /** `text` safe inside an attribute or element. */
-  private static escape(text: string): string {
-    return text.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+    return GROUPS.find((group) => group.topic && tag?.topics.includes(group.topic))?.topic
   }
 }
 
@@ -220,15 +183,40 @@ type Section = {
   body: string[]
 }
 
+////////////////
+// ## Constants
+////////////////
+
+/** Start marker (its own line);  its indent is the block's. */
+const START = "<!-- kitchen:start -->"
+
+/** End marker (its own line). */
+const END = "<!-- kitchen:end -->"
+
+/** The groups, in order:  Fomantic's four, then ours (`topic` absent). */
+const GROUPS: readonly { id: string; title: string; topic?: string }[] = [
+  { id: "elements", title: "Elements", topic: "elements" },
+  { id: "collections", title: "Collections", topic: "collections" },
+  { id: "views", title: "Views", topic: "views" },
+  { id: "modules", title: "Modules", topic: "modules" },
+  { id: "spell-ui", title: "Spell UI's own" }
+]
+
+/** Sections shown per family:  enough to judge a theme, short enough to scroll through every family. */
+const MAX_SECTIONS = 3
+
+/** A family's main example file where it isn't `types.html` (or the first file):  folder => file name. */
+const MAIN_FILES: Readonly<Record<string, string>> = { "ui-parts": "header.html" }
+
+/**
+ * The site's copies of the example source files (`ui/examples/`), by the source's file name, where the name
+ * differs;  a `source="/src/components/.../examples/sources/<file>"` (a dev-server path) points at the copy.
+ */
+const SITE_SOURCES: Readonly<Record<string, string>> = { "notes.html": "release-notes.html" }
+
+const { values } = parseArgs({ options: { check: { type: "boolean", default: false } } })
 const writer = new KitchenSinkWriter()
-const before = readFileSync(writer.file, "utf8")
 // the block is written flat (headers, headed examples), then nested into sections as every page is
-const after = SiteSections.convert(writer.render(before))
-const relative = path.relative(process.cwd(), writer.file)
-if (process.argv.includes("--check")) {
-  if (after !== before) console.error(`stale:  ${relative} (run \`yarn site:kitchen\`)`)
-  process.exitCode = after === before ? 0 : 1
-} else {
-  if (after !== before) writeFileSync(writer.file, after)
-  console.log(`kitchen sink:  ${after === before ? "unchanged" : `wrote ${relative}`}`)
-}
+const page = SiteSections.convert(writer.render(readFileSync(writer.file, "utf8")))
+const [stale] = writeOrCheck([[writer.file, page]], { command: "site:kitchen", isCheck: values.check })
+if (!values.check) Terminal.out(`kitchen sink:  ${stale ? `wrote ${stale}` : "unchanged"}`)

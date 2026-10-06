@@ -20,9 +20,12 @@
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
+import { parseArgs } from "node:util"
 
+import { Terminal } from "../tools/Terminal.ts"
 import { SITE_BUILD, SITE_PAGES } from "../tools/tools.types.ts"
 
+import { STATUS_TEXT, escapeHtml } from "./generatedFiles.ts"
 import { SiteSections } from "./site-sections.ts"
 
 /** `packages/ui/`. */
@@ -54,9 +57,6 @@ const FOMANTIC_TAG_PAGES: Record<string, string> = {
   "ui-radio": "modules/checkbox",
   "ui-textarea": "collections/form"
 }
-
-/** Words shown for a family's `status` in the masthead label. */
-const STATUS_TEXT: Record<string, string> = { planned: "Planned", "in-progress": "In progress" }
 
 /** A family as `components.json` describes it (the fields used here). */
 type Family = {
@@ -165,8 +165,8 @@ class SitePageWriter {
     html = SitePageWriter.block(html, "tag", facts.own)
     html = SitePageWriter.block(html, "theming", facts.theming)
     html = html
-      .replace(/<title>[^<]*<\/title>/, `<title>${SitePageWriter.escape(`${facts.title} | Spell UI`)}</title>`)
-      .replace(/(<meta\s+name="description"\s+content=")[^"]*(")/, `$1${SitePageWriter.escape(facts.summary)}$2`)
+      .replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(`${facts.title} | Spell UI`)}</title>`)
+      .replace(/(<meta\s+name="description"\s+content=")[^"]*(")/, `$1${escapeHtml(facts.summary)}$2`)
       .replaceAll(TEMPLATE_SITE, rel)
     const values: Record<string, string> = {
       title: facts.title,
@@ -177,9 +177,7 @@ class SitePageWriter {
       fomantic: facts.fomantic,
       bugTitle: encodeURIComponent(`${facts.tag || facts.title}:  `)
     }
-    return html.replace(/\{\{(\w+)\}\}/g, (match, key: string) =>
-      key in values ? SitePageWriter.escape(values[key]!) : match
-    )
+    return html.replace(/\{\{(\w+)\}\}/g, (match, key: string) => (key in values ? escapeHtml(values[key]!) : match))
   }
 
   /** `name` as a tag:  `button` => `ui-button`. */
@@ -226,11 +224,6 @@ class SitePageWriter {
     return html.replace(/<!--\s*\n\s*TEMPLATE:[\s\S]*?-->\n/, "")
   }
 
-  /** `text` safe inside an attribute or element. */
-  private static escape(text: string): string {
-    return text.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-  }
-
   /** `getting-started` => `Getting Started`. */
   private static titleCase(name: string): string {
     return name
@@ -240,29 +233,29 @@ class SitePageWriter {
   }
 }
 
-const args = process.argv.slice(2)
-const name = args.find((arg, index) => !arg.startsWith("--") && !args[index - 1]?.match(/^--(title|summary)$/))
+/** Printed when the name is missing. */
+const USAGE = 'usage:  yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]'
+
+const { values: flags, positionals } = parseArgs({
+  options: { title: { type: "string" }, summary: { type: "string" }, force: { type: "boolean", default: false } },
+  allowPositionals: true
+})
+const [name] = positionals
 if (!name) {
-  console.error('usage:  yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]')
+  Terminal.err(USAGE)
   process.exit(2)
 }
 const writer = new SitePageWriter()
-const facts = writer.facts(name, { title: option("--title"), summary: option("--summary") })
+const facts = writer.facts(name, { title: flags.title, summary: flags.summary })
 const file = path.join(writer.site, facts.file)
-if (existsSync(file) && !args.includes("--force")) {
-  console.error(`${path.relative(process.cwd(), file)} exists:  pass --force to overwrite it`)
+if (existsSync(file) && !flags.force) {
+  Terminal.err(`${path.relative(process.cwd(), file)} exists:  pass --force to overwrite it`)
   process.exit(1)
 }
 // the template's section ids are written for its placeholder title:  fixed for the page's own (`#examples-types-card`)
 writeFileSync(file, SiteSections.convert(writer.render(facts)))
 const kind = facts.own ? `own page of ${facts.tag}` : facts.tag ? `component ${facts.tag}` : "page"
-console.log(
+Terminal.out(
   `wrote ${path.relative(process.cwd(), file)}  (${kind}${facts.own && !facts.theming ? ", no Theming tab" : ""})`
 )
-console.log(`  view:  spell dev server url ${file}   (from the repo root);  check:  yarn site:check ${facts.file}`)
-
-/** The value after `flag` in the arguments. */
-function option(flag: string): string | undefined {
-  const at = args.indexOf(flag)
-  return at < 0 ? undefined : args[at + 1]
-}
+Terminal.out(`  view:  spell dev server url ${file}   (from the repo root);  check:  yarn site:check ${facts.file}`)
