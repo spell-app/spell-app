@@ -301,8 +301,10 @@ function inspectPage() {
     danglingTargets: targets.filter((id) => !document.getElementById(id)),
     missingFromToc: headingIds.filter((id) => !targets.includes(id)),
     codeBlocks: document.querySelectorAll("ui-accordion.spell-code").length,
-    codeWithoutPre: [...document.querySelectorAll("ui-accordion.spell-code")].filter((a) => !a.querySelector("pre"))
-      .length,
+    // a `<ui-code>` draws its own `<pre>`, in its shadow root
+    codeWithoutPre: [...document.querySelectorAll("ui-accordion.spell-code")].filter(
+      (a) => !a.querySelector("pre, ui-code")
+    ).length,
     icons: { total: icons.length, blankCount: blank.length, blank: blank.slice(0, 10).map(describe) }
   }
 
