@@ -25,11 +25,10 @@ export class CardFallback extends E.NativeFallback<FallbackVocabulary> {
       return [this.decorate(this.create("div", { class: this.classes(), role: UIT.LIST }, this.slot()), "group")]
     }
     if (this.internals && this.host.parentElement?.localName === cardsVocabulary.tag) this.internals.role = UIT.LISTITEM
-    // `attr()` is `getAttribute()`:  `null` when absent
     const href = this.attr("href")
     const isDisabled = this.flag("disabled")
     const card =
-      href === null
+      href === undefined
         ? this.create(ARTICLE, { class: this.classes() })
         : this.create(UIT.ANCHOR_TAG, {
             class: this.classes(),

@@ -22,7 +22,7 @@ export class DocsExampleFallback extends E.NativeFallback<typeof docsExampleVoca
   protected override build() {
     const header = this.attr("header")
     const description = this.attr("description")
-    const level = HeadingLevels.levelFor(this.attr("level") ?? undefined, LEVELS)
+    const level = HeadingLevels.levelFor(this.attr("level"), LEVELS)
     const children: Node[] = []
     if (header) children.push(this.decorate(this.create(`h${level}` as "h4", {}, header), "header"))
     if (description) children.push(this.decorate(this.create("p", {}, description), "description"))

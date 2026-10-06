@@ -18,7 +18,6 @@ export class ContentPartFallback extends E.NativeFallback {
 
   protected override build() {
     const { noun } = this.vocabulary
-    // `attr()` is `getAttribute()`:  `null` when absent
     const level = this.attr("level")
     if (noun !== headerVocabulary.noun) {
       return [this.decorate(this.create("div", { class: this.classes() }, this.slot()), noun)]
@@ -32,7 +31,7 @@ export class ContentPartFallback extends E.NativeFallback {
       return [this.decorate(header, noun)]
     }
     const href = this.attr("href")
-    const tag = href !== null ? UIT.ANCHOR_TAG : level ? (`h${level}` as "h1") : "div"
+    const tag = href !== undefined ? UIT.ANCHOR_TAG : level ? (`h${level}` as "h1") : "div"
     return [this.decorate(this.create(tag, { class: this.classes(), href }, this.slot()), noun)]
   }
 }

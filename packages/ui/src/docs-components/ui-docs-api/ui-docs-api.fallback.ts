@@ -47,7 +47,7 @@ export class DocsApiFallback extends E.NativeFallback<typeof docsApiVocabulary> 
       : [SiteData.tag(data, name ?? "")].flatMap((entry) => entry ?? [])
     if (!name) return this.say("noTag")
     if (!tags.length) return this.say("notFound", { tag: name })
-    const level = HeadingLevels.levelFor(this.attr("level") ?? undefined, LEVELS)
+    const level = HeadingLevels.levelFor(this.attr("level"), LEVELS)
     for (const tag of tags) {
       if (family) {
         const header = this.create(`h${level}` as "h3", { id: tag.tag }, this.code(`<${tag.tag}>`))

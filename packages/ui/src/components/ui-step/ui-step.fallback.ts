@@ -26,14 +26,13 @@ export class StepFallback extends E.NativeFallback<FallbackVocabulary> {
     }
     const isSelected = this.flag("selected") || E.Converters.boolean(this.host.getAttribute(UIT.ACTIVE), UIT.ACTIVE)
     const isAlias = isSelected && !this.flag("selected")
-    // `attr()` is `getAttribute()`:  `null` when absent
     const href = this.attr("href")
     const isDisabled = this.flag("disabled")
     const color = this.attr("color")
     const extra = [isAlias ? UIT.ACTIVE : "", color ? `${UIT.COLOR_CLASS_PREFIX}${color}` : ""]
       .filter(Boolean)
       .join(" ")
-    const isLink = href !== null
+    const isLink = href !== undefined
     const step = this.create(isLink ? UIT.ANCHOR_TAG : BOX, {
       class: this.classes(extra || undefined),
       href: isLink && !isDisabled ? href : undefined,

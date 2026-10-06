@@ -14,7 +14,7 @@ export class FlagFallback extends E.NativeFallback<typeof flagVocabulary> {
   @E.proto static degraded = ["translated names of the non-country flags (English only)"]
 
   protected override build() {
-    const country = new FlagCountry(this.attr("country") ?? undefined)
+    const country = new FlagCountry(this.attr("country"))
     const label = this.label(country)
     const flag = this.create(
       "span",

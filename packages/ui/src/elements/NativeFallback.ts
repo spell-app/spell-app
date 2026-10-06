@@ -139,13 +139,9 @@ export abstract class NativeFallback<V extends E.ComponentVocabulary = E.Compone
   // ## Reading the host
   ////////////////
 
-  /**
-   * Host attribute `name`, or `null`.
-   * - `null`, not `undefined`:  it IS `getAttribute()`, a platform boundary.  Subclasses test `=== null` for
-   *   "absent", and TypeScript wouldn't flag one of those left behind by a switch to `undefined`.
-   */
-  protected attr(name: E.AttributeNameOf<V>): string | null {
-    return this.host.getAttribute(name)
+  /** Host attribute `name`, or `undefined` when absent (`getAttribute()`'s `null` stops here). */
+  protected attr(name: E.AttributeNameOf<V>): string | undefined {
+    return this.host.getAttribute(name) ?? undefined
   }
 
   /** Host attribute `name` as a boolean, `disabled="no"` ~== false. */
@@ -194,11 +190,8 @@ export abstract class NativeFallback<V extends E.ComponentVocabulary = E.Compone
     return element
   }
 
-  /**
-   * A `<slot>` for light-DOM content, with `fallback` text shown while nothing is slotted.
-   * - Takes `null` too:  `fallback` is often `attr()`'s.
-   */
-  protected slot(fallback?: string | null): HTMLSlotElement {
+  /** A `<slot>` for light-DOM content, with `fallback` text shown while nothing is slotted. */
+  protected slot(fallback?: string): HTMLSlotElement {
     return this.create("slot", {}, ...(fallback ? [fallback] : []))
   }
 

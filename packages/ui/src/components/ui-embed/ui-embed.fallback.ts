@@ -71,15 +71,16 @@ export class EmbedFallback extends E.NativeFallback<Vocabulary> {
   private url(): string | undefined {
     let parameters: EmbedParameters | undefined
     try {
-      parameters = JSON.parse(this.attr("parameters") ?? "null") ?? undefined
+      const text = this.attr("parameters")
+      parameters = text === undefined ? undefined : JSON.parse(text)
     } catch {
       parameters = undefined
     }
     return EmbedSources.resolve({
-      source: (this.attr("source") ?? undefined) as UIT.EmbedSource | undefined,
-      id: this.attr("video-id") ?? undefined,
-      url: this.attr("url") ?? undefined,
-      autoplay: this.attr("autoplay") === null || this.flag("autoplay"),
+      source: this.attr("source") as UIT.EmbedSource | undefined,
+      id: this.attr("video-id"),
+      url: this.attr("url"),
+      autoplay: this.attr("autoplay") === undefined || this.flag("autoplay"),
       brandedUI: this.flag("branded-ui"),
       parameters
     })

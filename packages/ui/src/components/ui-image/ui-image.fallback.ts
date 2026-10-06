@@ -18,7 +18,7 @@ export class ImageFallback extends E.NativeFallback<typeof imageVocabulary | typ
       return [this.decorate(this.create("div", { class: this.classes() }, this.slot()), "group")]
     }
     const href = this.attr("href")
-    if (href === null) return [this.decorate(this.image({ class: this.classes() }), "image")]
+    if (href === undefined) return [this.decorate(this.image({ class: this.classes() }), "image")]
     const disabled = this.flag("disabled")
     const link = this.create(
       "a",
@@ -33,7 +33,7 @@ export class ImageFallback extends E.NativeFallback<typeof imageVocabulary | typ
     const image = this.create("img", attributes)
     for (const name of NATIVE_ATTRIBUTES) {
       const value = this.attr(name)
-      if (value !== null) image.setAttribute(name, value)
+      if (value !== undefined) image.setAttribute(name, value)
     }
     return image
   }

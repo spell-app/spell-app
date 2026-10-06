@@ -59,7 +59,7 @@ export class ModalFallback<V extends E.ComponentVocabulary = Vocabulary> extends
     this.listen<MouseEvent>(dialog, UIT.CLICK, (event) => this.onClick(event))
     this.listen(dialog, CLOSE_EVENT, () => this.onClosed())
     // `closable="false"` (Fomantic's `closable: false`) with no explicit `closedby`:  Escape does nothing
-    if (this.dialogAttr(CLOSABLE) !== null && !isClosable && this.dialogAttr(CLOSEDBY) === null) {
+    if (this.dialogAttr(CLOSABLE) !== undefined && !isClosable && this.dialogAttr(CLOSEDBY) === undefined) {
       this.listen(dialog, CANCEL_EVENT, (event) => event.preventDefault())
     }
     this.dialog = this.decorate(dialog, this.rootPart)
@@ -78,8 +78,8 @@ export class ModalFallback<V extends E.ComponentVocabulary = Vocabulary> extends
     super.dispose()
   }
 
-  /** One of the attributes every dialog vocabulary names (`DialogAttributes`):  `getAttribute()`, so `null` when absent. */
-  private dialogAttr(name: DialogAttributeName): string | null {
+  /** One of the attributes every dialog vocabulary names (`DialogAttributes`), or `undefined` when absent. */
+  private dialogAttr(name: DialogAttributeName): string | undefined {
     return this.attr(name as E.AttributeNameOf<V>)
   }
 

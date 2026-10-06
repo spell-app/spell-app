@@ -133,11 +133,11 @@ export class DropdownFallback extends E.NativeFallback<Vocabulary> {
   }
 
   /**
-   * `<ui-item>` attribute `name` of `item`, or `null`:  its `getAttribute()`, typed by the item's vocabulary.
+   * `<ui-item>` attribute `name` of `item`, or `undefined`:  its `getAttribute()`, typed by the item's vocabulary.
    * - STATIC:  pure, needs no instance.
    */
-  private static itemAttribute(item: Element, name: E.AttributeNameOf<typeof itemVocabulary>): string | null {
-    return item.getAttribute(name)
+  private static itemAttribute(item: Element, name: E.AttributeNameOf<typeof itemVocabulary>): string | undefined {
+    return item.getAttribute(name) ?? undefined
   }
 }
 

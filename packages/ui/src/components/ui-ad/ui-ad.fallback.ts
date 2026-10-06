@@ -18,8 +18,8 @@ export class AdFallback extends E.NativeFallback<typeof adVocabulary> {
     const ad = this.create(
       "div",
       {
-        class: this.classes(test === null ? undefined : TEST),
-        "data-text": test === null ? undefined : test || this.defaultText()
+        class: this.classes(test === undefined ? undefined : TEST),
+        "data-text": test === undefined ? undefined : test || this.defaultText()
       },
       this.slot()
     )
