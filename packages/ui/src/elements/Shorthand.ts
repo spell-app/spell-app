@@ -1,4 +1,4 @@
-import { Converters } from "$/ui/vocabulary"
+import { Warnings } from "$/ui/util"
 
 import type { ShorthandMapper, ShorthandOptions, ShorthandProps, ShorthandValue } from "./elements.types"
 
@@ -41,7 +41,7 @@ export class Shorthand {
     if (typeof value === "string" || typeof value === "number" || Array.isArray(value)) user = mapPrimitive(value)
     else if (Shorthand.isPlainObject(value)) user = value
     else {
-      Converters.warn(`Shorthand: expected string | number | array | object, got ${typeof value}`)
+      Warnings.devWarn("Shorthand", `expected string | number | array | object, got ${typeof value}`)
       return undefined
     }
     const defaults = options.defaults ?? {}

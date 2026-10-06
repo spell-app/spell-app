@@ -1,4 +1,4 @@
-import { proto } from "$/ui/util"
+import { proto, Warnings } from "$/ui/util"
 import { Converters, type ComponentVocabulary } from "$/ui/vocabulary"
 
 import type {
@@ -188,7 +188,7 @@ export abstract class NativeFallback<V extends ComponentVocabulary = ComponentVo
    */
   protected decorate<E extends Element>(target: E, name: string, ...extra: string[]): E {
     if (!this.vocabulary.parts.some((part) => part.name === name)) {
-      Converters.warn(`<${this.vocabulary.tag}> fallback: "${name}" is not a part in its vocabulary`)
+      Warnings.devWarn(`<${this.vocabulary.tag}> fallback`, `"${name}" is not a part in its vocabulary`)
     }
     target.setAttribute("part", [name, ...extra].join(" "))
     for (const { name: attribute, value } of this.host.attributes) {

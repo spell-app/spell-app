@@ -51,3 +51,6 @@ export * from "$/ui/elements/SourceElement"
 export * from "$/ui/elements/SourceMarkup"
 export * from "$/ui/elements/SourceBody"
 export * from "$/ui/elements/SourceBodyHost"
+
+/** The package namespace (WWOD §4):  `import { E, UI, UIT } from "$/ui/core"`, then `E.UIElement`, `@E.proto` (`AGENTS.md`). */
+export * as E from "$/ui/core"

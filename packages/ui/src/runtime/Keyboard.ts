@@ -1,4 +1,4 @@
-import { proto } from "$/ui/util"
+import { proto, Warnings } from "$/ui/util"
 
 import { PAGE_SCOPE, type Disposer, type KeyHandler, type KeyRegistrationOptions } from "./runtime.types"
 import { Chord } from "./Chord"
@@ -149,8 +149,9 @@ export class Keyboard {
         other.options.target === registration.options.target
     )
     if (clash) {
-      console.warn(
-        `UI.keyboard: "${text}" registered twice in scope "${registration.scope}";  the newer handler wins.`,
+      Warnings.warn(
+        "UI.keyboard",
+        `"${text}" registered twice in scope "${registration.scope}";  the newer handler wins:`,
         { existing: clash.handler, added: registration.handler }
       )
     }

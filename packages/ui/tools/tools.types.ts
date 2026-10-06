@@ -77,6 +77,7 @@ export type OwnKind = "classes" | "css" | "vocabulary" | "fallback"
  * - `data` -- a family's lazily imported data files (`components/ui-<family>/data/`, e.g. the emoji chunks)
  * - `own:<family>:<kind>` -- one family's classes, sheet, vocabulary or fallback
  * - `extra:<name>` -- a module only `PackageConfig.extra` entry `<name>` holds (`extra:api` => `api.js`)
+ * - `docs` -- the doc-only `<ui-docs-*>` families and their helpers:  never part of the library's build (a check flags it)
  * - `other` -- unattributed;  reported by a check so nothing is silently dropped
  */
 export type Bucket =
@@ -86,6 +87,7 @@ export type Bucket =
   | "runtime"
   | "icons"
   | "data"
+  | "docs"
   | "other"
   | `own:${string}:${OwnKind}`
   | `extra:${string}`
@@ -182,6 +184,8 @@ export type MeasureChecks = {
   coreOutsideCore: string[]
   /** `library`-bucket module ids found anywhere in the build (should be external) */
   libraryBundled: string[]
+  /** `docs`-bucket module ids found anywhere in the build:  only the docs site's bundle may hold them */
+  docsBundled: string[]
   /** `runtime` / `icons` / `data` module ids found in an eager chunk */
   lazyInEager: string[]
   /** `other`-bucket module ids */

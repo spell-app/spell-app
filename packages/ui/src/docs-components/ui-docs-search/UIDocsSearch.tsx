@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, closestAcrossShadow, nextFrame, proto, UI, UIElement } from "$/ui/core"
+import { Cell, closestAcrossShadow, nextFrame, proto, UI, UIElement, Warnings } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
 
 import { docsSearchVocabulary } from "./ui-docs-search.vocabulary.en"
@@ -519,7 +519,7 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
     this.preparing.set(true)
     void Promise.allSettled([SiteData.load(), SearchData.load()]).then(([data, search]) => {
       for (const result of [data, search]) {
-        if (result.status === "rejected") console.warn("<ui-docs-search>:  the index didn't load", result.reason)
+        if (result.status === "rejected") Warnings.warn("<ui-docs-search>", "the index didn't load:", result.reason)
       }
       const site = data.status === "fulfilled" ? data.value : undefined
       this.index.set(new SearchIndex(site, search.status === "fulfilled" ? search.value : undefined))

@@ -10,13 +10,15 @@
  *   2. the page CSS:  `@spell-app/ui`'s foundation (`ui.css`:  layers, tokens, reset, typography, native markup) +
  *      the site's layout glue (`./site.css`) -- extracted to `_assets/site.css`, which the page links
  *   3. `SiteData`, `BuiltInPacks`:  pointed at `_data/components.json` and `_assets/icon-packs/` from THIS file's
- *      URL, so a page at any depth finds them
+ *      URL, so a page at any depth finds them;  `DocsFamilies.add()`:  `<ui-root>` may load the `<ui-docs-*>`
+ *      families (the library's root knows only the library's)
  *   4. `ThemePreference.restore()`:  the viewer's theme and colour scheme, re-applied (the scheme already was, by
  *      the page's inline `<head>` script, `ThemePreference.HEAD_SCRIPT`);  Spell unless the viewer picked another
  *   5. `defineSite()`:  the `<spell-site-header>` bar shared by every page the page server serves
  *   6. `SiteShell.mount()`:  the page's `main` into the ONE layout, `_parts/layout.html` (fetched)
  *   7. THEN `<ui-root>` (`import()`):  defined only once the layout AND the theme's sheet are in, so its
- *      `display="when-ready"` shows the whole page at once, already themed;  every OTHER family, `<ui-docs-*>` included, is a lazy chunk it imports on first use
+ *      `display="when-ready"` shows the whole page at once, already themed;  every OTHER family, `<ui-docs-*>`
+ *      included, is a lazy chunk it imports on first use
  *   8. `SiteRouter`:  links to other pages swap only the `main`, the layout stays
  * - Lazy, by `import()`:  families, the runtime, icon packs (`_assets/icon-packs/`), emoji names, `<ui-code>`'s and
  *   `<ui-markdown>`'s engines, spell's highlighter, the Temporal polyfill.
@@ -29,6 +31,7 @@ import "./site.css"
 
 import { BuiltInPacks } from "$/ui/icons"
 import { UI } from "$/ui/runtime"
+import { DocsFamilies } from "$/ui/docs-components/DocsFamilies"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 import { defineSite } from "$/server/site"
@@ -44,6 +47,7 @@ const SITE_ROOT = new URL("../", ASSETS)
 
 BuiltInPacks.base = ASSETS
 SiteData.url ??= `${ASSETS}../_data/components.json`
+DocsFamilies.add()
 Object.assign(globalThis, { UI })
 
 // the viewer's theme + scheme (`<ui-docs-themes>`):  started NOW, beside the layout's fetch;  `<ui-root>` waits for it

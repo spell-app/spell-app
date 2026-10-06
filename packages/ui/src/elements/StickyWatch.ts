@@ -1,3 +1,5 @@
+import { flatParentFor } from "$/ui/util"
+
 import {
   STICKY_MAX_RESERVE,
   STICKY_SCROLLING,
@@ -188,8 +190,7 @@ export class StickyWatch {
     const document = element.ownerDocument
     let current: Element | null = element
     while (current) {
-      const parent: Element | null =
-        current.assignedSlot ?? current.parentElement ?? ((current.getRootNode() as ShadowRoot).host || null)
+      const parent = flatParentFor(current)
       if (!parent || parent === document.body || parent === document.documentElement) return null
       if (STICKY_SCROLLING.has(getComputedStyle(parent).overflowY)) return parent
       current = parent

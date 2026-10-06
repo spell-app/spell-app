@@ -1,3 +1,4 @@
+import { Warnings } from "$/ui/util"
 import { BuiltInPacks, DEFAULT_ICON_PACK, IconName } from "$/ui/icons"
 
 import type { IconPackOptions, ResolvedIcon } from "./runtime.types"
@@ -176,7 +177,7 @@ export class IconPacks {
         : IconPack.load(url, entry.options).then(
             (pack) => (entry.pack = pack),
             (error: unknown) => {
-              console.warn(`UI.icons:  icon pack ${url} didn't load`, error)
+              Warnings.warn("UI.icons", `icon pack ${url} didn't load:`, error)
               return undefined
             }
           )
@@ -196,7 +197,7 @@ export class IconPacks {
         ? BuiltInPacks.url(source, assets === undefined ? undefined : new URL(assets, page).href)
         : new URL(source, page).href
     } catch (error) {
-      console.warn(`UI.icons:  icon pack ${source} has no usable URL`, error)
+      Warnings.warn("UI.icons", `icon pack ${source} has no usable URL:`, error)
       return undefined
     }
   }

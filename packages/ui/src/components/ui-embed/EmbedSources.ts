@@ -1,4 +1,4 @@
-import { Converters, proto, UIT } from "$/ui/core"
+import { proto, UIT, Warnings } from "$/ui/core"
 import { EmbedSourceSpec, EmbedUrlOptions, ID, SAFE_PROTOCOLS } from "./ui-embed.types"
 
 /****************
@@ -49,11 +49,11 @@ export class EmbedSources {
     try {
       url = new URL(base, globalThis.location?.href)
     } catch {
-      Converters.warn(`<ui-embed>: "${base}" is not a URL`)
+      Warnings.devWarn("<ui-embed>", `"${base}" is not a URL`)
       return undefined
     }
     if (!SAFE_PROTOCOLS.includes(url.protocol)) {
-      Converters.warn(`<ui-embed>: refusing a ${url.protocol} URL;  only http(s) embeds load`)
+      Warnings.devWarn("<ui-embed>", `refusing a ${url.protocol} URL;  only http(s) embeds load`)
       return undefined
     }
     const parameters = {

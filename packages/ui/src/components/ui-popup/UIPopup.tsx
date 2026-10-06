@@ -1,7 +1,7 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UI, UIElement, type AttributeName, type OverlayEntry, UIT } from "$/ui/core"
+import { Cell, NodeType, proto, UI, UIElement, type AttributeName, type OverlayEntry, UIT } from "$/ui/core"
 
 import { popupVocabulary } from "./ui-popup.vocabulary.en"
 import { PopupFallback } from "./ui-popup.fallback"
@@ -24,8 +24,7 @@ import {
   ARIA_HASPOPUP,
   CLOSED,
   CONTENTS,
-  ANCHOR_NAME,
-  ELEMENT_NODE
+  ANCHOR_NAME
 } from "./ui-popup.types"
 import type { PopupVocabulary, ShowPopoverOptions, AriaRelation } from "./ui-popup.types"
 import { HEADER, CONTENT, MANUAL, AUTO, NONE, POPOVER_OPEN } from "$/ui/components/components.types"
@@ -450,7 +449,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
 
   /** `value` is an element:  by node type, since a server render (`$/ui/server`) has no `Element` global. */
   private static isElement(value: unknown): value is Element {
-    return typeof value === "object" && value !== null && (value as Node).nodeType === ELEMENT_NODE
+    return typeof value === "object" && value !== null && (value as Node).nodeType === NodeType.element
   }
 
   /**

@@ -1,7 +1,7 @@
 import { Show, createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, SourceElement, SourceError, SourceMarkup } from "$/ui/core"
+import { Cell, proto, SourceElement, SourceError, SourceMarkup, Warnings } from "$/ui/core"
 import { RootLoader } from "$/ui/components/ui-root"
 
 import { includeVocabulary } from "./ui-include.vocabulary.en"
@@ -195,7 +195,7 @@ export class UIInclude extends SourceElement<Vocabulary> {
     for (const tag of RootLoader.undefinedTags(root)) {
       const folder = RootLoader.folderOf(tag)
       if (folder)
-        RootLoader.load(folder).catch((error: unknown) => console.warn(`<ui-include>:  <${tag}> didn't load`, error))
+        RootLoader.load(folder).catch((error: unknown) => Warnings.warn("<ui-include>", `<${tag}> didn't load:`, error))
     }
   }
 

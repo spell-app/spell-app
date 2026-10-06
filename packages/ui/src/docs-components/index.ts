@@ -13,7 +13,8 @@
  * - NOT components:  `ComponentDefinitions.all`, the component list and the lib build's entries leave them out
  *   (`ComponentDefinitions.docs` lists them);  every vocabulary's topics include `documentation`.
  * - `<ui-root>` KNOWS them:  `yarn gen:root` puts their tags in its catalog, and `RootLoader` imports a family from
- *   here (a second literal `import.meta.glob`) on first use, like any component's.
+ *   here on first use, like any component's, once the page's bundle has called `DocsFamilies.add()` (the docs site's
+ *   does):  never in the library's own `<ui-root>` (`DocsFamilies` says why).
  * - Adding one:  make `ui-docs-<name>/` (copy `ui-docs-example/`), `yarn gen:root`, `yarn site:data`;  add the tags
  *   its JSX renders to `DocsJSXTags`, and import their families in its barrel (a root only loads the light DOM's).
  * - `package.json` `sideEffects` lists every `./src/docs-components/<family>/index.ts`:  without it a bundler

@@ -1,3 +1,4 @@
+import { Warnings } from "$/ui/util"
 import type { EnumOptions, ValueSetName } from "./vocabulary.types"
 import { ValueSets } from "./ValueSets"
 
@@ -105,8 +106,9 @@ export class Converters {
     if (text === "") return undefined
     const guess = ValueSets.suggest(set, text)
     const where = options.tag ? `<${options.tag} ${options.attribute ?? ""}>` : (options.attribute ?? "value")
-    Converters.warn(
-      `${where}: unknown value ${JSON.stringify(value)}${guess ? `, did you mean ${JSON.stringify(guess)}?` : ""}`
+    Warnings.devWarn(
+      where,
+      `unknown value ${JSON.stringify(value)}${guess ? `;  did you mean ${JSON.stringify(guess)}?` : ""}`
     )
     return undefined
   }
@@ -144,7 +146,7 @@ export class Converters {
     try {
       return JSON.parse(text) as T
     } catch (error) {
-      Converters.warn(`invalid JSON ${JSON.stringify(value)}: ${(error as Error).message}`)
+      Warnings.devWarn("Converters.json()", `invalid JSON ${JSON.stringify(value)}:`, (error as Error).message)
       return undefined
     }
   }
@@ -158,19 +160,6 @@ export class Converters {
     if (value == null) return []
     if (typeof value !== "string") return [...value]
     return value.split(LIST_SEPARATOR).filter(Boolean)
-  }
-
-  ////////////////
-  // ## Dev warnings
-  ////////////////
-
-  /**
-   * `console.warn` in development only, prefixed so it's greppable.
-   * - `import.meta.env?.DEV` is statically replaced by Vite, so production builds drop the call.
-   * - REFACTOR: move to `$/ui/util` as `devWarn()` once more than `$/ui/vocabulary` and `$/ui/elements` need it.
-   */
-  static warn(message: string) {
-    if (import.meta.env?.DEV) console.warn(`[@spell-app/ui] ${message}`)
   }
 }
 

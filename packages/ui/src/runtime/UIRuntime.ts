@@ -1,4 +1,4 @@
-import { proto } from "$/ui/util"
+import { proto, Warnings } from "$/ui/util"
 import { Vocabulary } from "$/ui/vocabulary"
 import {
   animationsCSS,
@@ -136,7 +136,7 @@ export class UIRuntime {
     const existing = global[RUNTIME_KEY]
     if (existing) {
       if (import.meta.env.DEV && existing.version !== RUNTIME_VERSION) {
-        console.warn(`@spell-app/ui: runtime ${existing.version} already loaded;  this bundle is ${RUNTIME_VERSION}.`)
+        Warnings.warn("UI", `runtime ${existing.version} already loaded;  this bundle is ${RUNTIME_VERSION}`)
       }
       return existing
     }

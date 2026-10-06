@@ -1,5 +1,5 @@
 /**
- * Barrel for `$/ui/elements` (`E`) -- the element core every component builds on.
+ * Barrel for `$/ui/elements` -- the element core every component builds on.
  * - Library-neutral:  `ClassBuilder`, `Validator`, `MenuOptions`, `OwnerContext`, `Shorthand`, `NativeFallback`
  *   (the base of the per-component `*.fallback.ts`, plain DOM when a render throws), `StickyWatch` (reports and
  *   reserves room for a `position: sticky` box).
@@ -43,5 +43,3 @@ export * from "./SourceBodyHost"
 export * from "./FormHost"
 export * from "./FormElement"
 export * from "./ControlLabels"
-
-export * as E from "."

@@ -1,5 +1,4 @@
-import { proto, suggest } from "$/ui/util"
-import { Converters } from "$/ui/vocabulary"
+import { proto, suggest, Warnings } from "$/ui/util"
 
 import type {
   CreditCardSpec,
@@ -290,8 +289,9 @@ export class Validator {
         const test = this.rules[parsed.type]
         if (!test) {
           const guess = suggest(parsed.type, Object.keys(this.rules))
-          Converters.warn(
-            `Validator: unknown rule ${JSON.stringify(parsed.type)}${guess ? `, did you mean "${guess}"?` : ""}`
+          Warnings.devWarn(
+            "Validator",
+            `unknown rule ${JSON.stringify(parsed.type)}${guess ? `;  did you mean "${guess}"?` : ""}`
           )
           continue
         }

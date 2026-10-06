@@ -1000,6 +1000,33 @@ export const SHAPE_COMMANDS = { next: "--next", previous: "--previous", flip: "-
 export const SHAPE_FLIPS: readonly ShapeFlip[] = ["up", "down", "left", "right", "over", "back"]
 
 ////////////////
+// ## Keys
+////////////////
+
+/**
+ * `KeyboardEvent.key` of every key a family handles:  `event.key === UIT.Key.arrowDown`.
+ * - ONE set for every family (epic `wwod-spell-ui`, P2), instead of a constant per family per key.
+ */
+export const Key = {
+  arrowUp: "ArrowUp",
+  arrowDown: "ArrowDown",
+  arrowLeft: "ArrowLeft",
+  arrowRight: "ArrowRight",
+  home: "Home",
+  end: "End",
+  pageUp: "PageUp",
+  pageDown: "PageDown",
+  enter: "Enter",
+  space: " ",
+  escape: "Escape",
+  tab: "Tab",
+  backspace: "Backspace",
+  delete: "Delete"
+} as const
+/** One of `Key`'s values, e.g. `"ArrowDown"`. */
+export type Key = (typeof Key)[keyof typeof Key]
+
+////////////////
 // ## Shared words
 // Constants two or more families read, lifted out of their files.
 ////////////////
@@ -1010,7 +1037,7 @@ export const ACTIVE = "active"
 /** The `aria-label` attribute:  a host's label, forwarded to its inner element. */
 export const ARIA_LABEL = "aria-label"
 
-/** `KeyboardEvent.key` of the down arrow. */
+/** DEPRECATED:  `Key.arrowDown`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
 export const ARROW_DOWN = "ArrowDown"
 
 /** The `content` word:  a part, a class, a slot. */
@@ -1131,7 +1158,7 @@ export const SUBMIT = "submit"
 /** The `aria-invalid` attribute, set on a failing control. */
 export const ARIA_INVALID = "aria-invalid"
 
-/** The key that submits a prompt or a form. */
+/** DEPRECATED:  `Key.enter`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
 export const ENTER = "Enter"
 
 /** The `item` word:  an item's part noun, class and `type`. */
@@ -1162,9 +1189,10 @@ export const VERTICAL = "vertical"
 // ## More constants shared by ui-rating, ui-slider, ui-reveal, ui-search, ui-select, ui-statistic, ui-tab, ui-toast
 ////////////////
 
-/** Keys. */
+/** DEPRECATED:  `Key.home`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
 export const HOME = "Home"
 
+/** DEPRECATED:  `Key.end`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
 export const END = "End"
 
 /** Role of the root while it is the tab stop:  a group of the two contents. */

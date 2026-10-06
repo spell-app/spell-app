@@ -1,5 +1,5 @@
-import { numberToWord, proto } from "$/ui/util"
-import { type AttributeSpec, type ComponentVocabulary, Converters, ValueSets } from "$/ui/vocabulary"
+import { numberToWord, proto, Warnings } from "$/ui/util"
+import { type AttributeSpec, type ComponentVocabulary, ValueSets } from "$/ui/vocabulary"
 
 import type { ClassBuildOptions, ClassGrammar, ClassInput } from "./elements.types"
 
@@ -167,12 +167,16 @@ export class ClassBuilder {
     const columns = ValueSets.columns(value)
     const rounded = columns === undefined ? 0 : Math.round(columns)
     if (!ValueSets.isColumnCount(rounded)) {
-      Converters.warn(`<${this.vocabulary.tag} ${spec.name}>: ${JSON.stringify(value)} is not a width of 1..16 columns`)
+      Warnings.devWarn(
+        `<${this.vocabulary.tag} ${spec.name}>`,
+        `${JSON.stringify(value)} is not a width of 1..16 columns`
+      )
       return
     }
     if (rounded !== columns) {
-      Converters.warn(
-        `<${this.vocabulary.tag} ${spec.name}>: ${JSON.stringify(value)} is ${columns!.toFixed(2)} of 16 columns, using ${rounded}`
+      Warnings.devWarn(
+        `<${this.vocabulary.tag} ${spec.name}>`,
+        `${JSON.stringify(value)} is ${columns!.toFixed(2)} of 16 columns;  using ${rounded}`
       )
     }
     const word = numberToWord(rounded)!

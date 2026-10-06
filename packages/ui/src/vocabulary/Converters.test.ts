@@ -96,13 +96,13 @@ describe("Converters.enumValue()", () => {
   it("warns with a suggestion for a near miss", () => {
     const warn = spyWarn()
     expect(Converters.enumValue("gray", "hues", { tag: "ui-button", attribute: "color" })).toBeUndefined()
-    expect(warn).toHaveBeenCalledWith('[@spell-app/ui] <ui-button color>: unknown value "gray", did you mean "grey"?')
+    expect(warn).toHaveBeenCalledWith('[@spell-app/ui] <ui-button color>:  unknown value "gray";  did you mean "grey"?')
   })
 
   it("warns without a suggestion when nothing is close", () => {
     const warn = spyWarn()
     expect(Converters.enumValue("magenta", "hues", { attribute: "color" })).toBeUndefined()
-    expect(warn).toHaveBeenCalledWith('[@spell-app/ui] color: unknown value "magenta"')
+    expect(warn).toHaveBeenCalledWith('[@spell-app/ui] color:  unknown value "magenta"')
   })
 
   it("accepts every width form", () => {
