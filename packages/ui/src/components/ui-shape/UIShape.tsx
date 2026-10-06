@@ -14,7 +14,7 @@ import shapeCSS from "./ui-shape.css?inline"
  * Fomantic's shape:  one of its `<ui-side>`s at a time, turning in 3D to another --
  * `<div class="ui ... shape [animating]" part="shape"><div class="sides" part="sides"><slot>`.
  * - `activeIndex` is the side shown;  changing it (or the host's `flip()` / `next()` / `previous()`,
- *   `ShapeHost`, or an invoker command, `UIT.SHAPE_COMMANDS`) turns the `direction` way (`up`, `down`, `left`,
+ *   `ShapeHost`, or an invoker command, `UIT.ShapeCommands`) turns the `direction` way (`up`, `down`, `left`,
  *   `right`, `over`, `back`), then fires `ui-change`.  Flips queue;  a flip to the side already shown does nothing.
  * - The flip is Fomantic's own geometry (`shape.js`):  the stage keeps its size, the next side is staged at 90° (or
  *   180°) around the current one, and the sides box turns with a CSS transition;  inline styles are cleared after.
@@ -155,13 +155,13 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
     return this.flipTo(undefined, this.target + step)
   }
 
-  /** An invoker command aimed at the host (`UIT.SHAPE_COMMANDS`):  `--next`, `--previous`, `--flip-<direction>`. */
+  /** An invoker command aimed at the host (`UIT.ShapeCommands`):  `--next`, `--previous`, `--flip-<direction>`. */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
-    if (command === UIT.SHAPE_COMMANDS.next) void this.flipBy(1)
-    else if (command === UIT.SHAPE_COMMANDS.previous) void this.flipBy(-1)
-    else if (command?.startsWith(UIT.SHAPE_COMMANDS.flip)) {
-      const direction = command.slice(UIT.SHAPE_COMMANDS.flip.length) as UIT.ShapeFlip
+    if (command === UIT.ShapeCommands.next) void this.flipBy(1)
+    else if (command === UIT.ShapeCommands.previous) void this.flipBy(-1)
+    else if (command?.startsWith(UIT.ShapeCommands.flip)) {
+      const direction = command.slice(UIT.ShapeCommands.flip.length) as UIT.ShapeFlip
       if (UIT.ShapeFlips.includes(direction)) void this.flipTo(direction)
     }
   }

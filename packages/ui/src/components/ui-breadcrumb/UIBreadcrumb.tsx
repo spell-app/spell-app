@@ -13,7 +13,7 @@ import breadcrumbCSS from "./ui-breadcrumb.css?inline"
  * A breadcrumb trail, WAI-ARIA's pattern:  `<nav class="ui … breadcrumb" part="breadcrumb" aria-label>` around
  * `<ol part="list"><slot></slot></ol>`;  the `<ui-breadcrumb-section>`s are its list items.
  * - Dividers:  each section draws its OWN leading divider from inherited tokens this root publishes INLINE
- *   (`UIT.BREADCRUMB_DIVIDER_TOKENS`), so no JS reaches into the sections:
+ *   (`UIT.BreadcrumbDividerTokens`), so no JS reaches into the sections:
  *   - `divider="›"` => `--ui-breadcrumb-divider: "›"`, serialized as a CSS string;  only when the attribute is
  *     set, so a page theming the token on a wrapper isn't overridden (the sheet's own fallback is `/`)
  *   - `divider-icon="chevron right"` => `--ui-breadcrumb-divider-icon: url("data:image/svg+xml,…")` of the glyph
@@ -39,9 +39,9 @@ export class UIBreadcrumb extends E.UIElement<typeof breadcrumbVocabulary> {
     const divider = this.attrs.divider
     const icon = this.attrs.dividerIcon ? this.dividerIcon() : undefined
     return {
-      [UIT.BREADCRUMB_DIVIDER_TOKENS.text]: divider === undefined ? undefined : BreadcrumbDivider.cssString(divider),
-      [UIT.BREADCRUMB_DIVIDER_TOKENS.icon]: icon,
-      [UIT.BREADCRUMB_DIVIDER_TOKENS.layout]: icon ? ICON_LAYOUT : undefined
+      [UIT.BreadcrumbDividerTokens.text]: divider === undefined ? undefined : BreadcrumbDivider.cssString(divider),
+      [UIT.BreadcrumbDividerTokens.icon]: icon,
+      [UIT.BreadcrumbDividerTokens.layout]: icon ? ICON_LAYOUT : undefined
     }
   })
 

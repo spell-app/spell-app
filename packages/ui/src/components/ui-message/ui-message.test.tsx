@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { PART_OWNER_TOKENS, type MessageDismissDetail } from "$/ui/components/components.types"
+import { PartOwnerTokens, type MessageDismissDetail } from "$/ui/components/components.types"
 import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/A11y"
 
@@ -113,9 +113,9 @@ describe("<ui-message> content", () => {
 
   it("switches the owner layout token to `icon` with an icon, `block` without", async () => {
     const { root: plain } = await message(`<ui-message>x</ui-message>`)
-    expect(getComputedStyle(plain).getPropertyValue(PART_OWNER_TOKENS.messageLayout).trim()).toBe("block")
+    expect(getComputedStyle(plain).getPropertyValue(PartOwnerTokens.messageLayout).trim()).toBe("block")
     const { root: icon } = await message(`<ui-message icon="envelope">x</ui-message>`)
-    expect(getComputedStyle(icon).getPropertyValue(PART_OWNER_TOKENS.messageLayout).trim()).toBe("icon")
+    expect(getComputedStyle(icon).getPropertyValue(PartOwnerTokens.messageLayout).trim()).toBe("icon")
   })
 })
 

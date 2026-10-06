@@ -20,7 +20,7 @@ import nagCSS from "./ui-nag.css?inline"
  *   `persist`s.  Storage that is blocked or missing just doesn't remember:  the nag still shows and closes.
  * - Closing:  the cancelable `ui-close` (with a `reason`) first, then the exit animation (Fomantic's `slide`), `hidden`
  *   on the HOST and `ui-hide`.  It never removes itself.  `display-time` hides it without storing anything.
- * - Invoker commands (`TOGGLE_COMMANDS`):  a `<button commandfor command="--show">` shows it (`show()`), `--close`
+ * - Invoker commands (`ToggleCommands`):  a `<button commandfor command="--show">` shows it (`show()`), `--close`
  *   closes it (`close()`, so a `key` remembers it), `--toggle` picks by `hidden`.
  * - No role:  a banner that must be announced gets `role` / `aria-live` from the page;  the close icon is a real
  *   `<button>` with a translated label.
@@ -181,7 +181,7 @@ export class UINag extends E.UIElement<Vocabulary> {
   // ## Handlers
   ////////////////
 
-  /** An invoker command aimed at the host (`TOGGLE_COMMANDS`):  open means not `hidden`. */
+  /** An invoker command aimed at the host (`ToggleCommands`):  open means not `hidden`. */
   private readonly onCommand = (event: Event) => {
     const action = UIT.ToggleCommands.action(event, !this.host.hidden)
     if (action === "show") this.show()

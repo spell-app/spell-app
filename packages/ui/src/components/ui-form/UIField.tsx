@@ -18,7 +18,7 @@ import formCSS from "./ui-form.css?inline"
  * - Failed validation shows `error` over the author's `state`, and clears back to it.
  * - Host:  `display: contents` (`ui-form.css`);  the root is the flex item of a `<ui-fields>` row, which hands it
  *   its width and gutter as inherited tokens.
- * - Hands its controls inherited owner tokens (`INPUT_OWNER_TOKENS`):  full width, and its state's colours.
+ * - Hands its controls inherited owner tokens (`InputOwnerTokens`):  full width, and its state's colours.
  * - `disabled` makes the root `inert`, so the slotted controls can't be used.
  * - Always carries `:state(field)`, which is how `<ui-form>` finds a control's field.
  ****************/

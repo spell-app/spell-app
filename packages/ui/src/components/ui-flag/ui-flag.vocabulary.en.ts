@@ -9,11 +9,11 @@
  * - Resolving `country` (`FlagCountry`):
  *   - normalize:  trim, lowercase, `_` => space, collapse whitespace (`United_States` ~== `united states`)
  *   - `FLAG_ALIASES[name] ?? name` (`ui-flag.types.ts`) => a code:  an ISO 3166-1 alpha-2 code, or a key of
- *     `UIT.SPECIAL_FLAGS`
- *   - the code => its emoji (`UIT.Flags.emojiFor()`, which menu options' flags use too):  `SPECIAL_FLAGS[code]`,
+ *     `UIT.SpecialFlags`
+ *   - the code => its emoji (`UIT.Flags.emojiFor()`, which menu options' flags use too):  `SpecialFlags[code]`,
  *     else a two-letter code's regional-indicator pair (`U+1F1E6 + letter - "a"` per letter:  `fr` => `🇫🇷`);
  *     anything else renders an empty flag box
- *   - `aria-label`:  `texts` for the `SPECIAL_FLAGS` codes, else `Intl.DisplayNames(lang, { type: "region" })`
+ *   - `aria-label`:  `texts` for the `SpecialFlags` codes, else `Intl.DisplayNames(lang, { type: "region" })`
  *     of the upper-cased code (`FR` => `France`), which also follows the page language for free
  * - NOTE: aliases are Fomantic's English names;  a translation adds its own names next to them (they're data,
  *   not vocabulary names).

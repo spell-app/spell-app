@@ -21,12 +21,12 @@ class XSource extends SourceElement<typeof X_SOURCE> {
 const X_SOURCE = {
   tag: "ui-test-source",
   noun: "source",
-  attributes: [...UIT.SOURCE_ATTRIBUTES],
-  events: [...UIT.SOURCE_EVENTS],
+  attributes: [...UIT.SourceAttributes],
+  events: [...UIT.SourceEvents],
   slots: [],
-  parts: [...UIT.SOURCE_PARTS, { name: "text", description: "The text." }],
-  states: [...UIT.SOURCE_STATES],
-  texts: [...UIT.SOURCE_TEXTS]
+  parts: [...UIT.SourceParts, { name: "text", description: "The text." }],
+  states: [...UIT.SourceStates],
+  texts: [...UIT.SourceTexts]
 } as const satisfies ComponentVocabulary
 
 /** Fixture files the test server serves. */

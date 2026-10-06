@@ -2,7 +2,7 @@
  * Every name `<ui-markdown>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
  * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The source pieces (`source`, `load`, `ui-load` ... `ui-error`, the loader / error parts, the states and texts)
- *   are shared with `<ui-include>` and `<ui-code>`:  `UIT.SOURCE_*`, which `SourceElement` reads.
+ *   are shared with `<ui-include>` and `<ui-code>`:  `UIT.Source*`, which `SourceElement` reads.
  */
 
 import type { E } from "$/ui/core"
@@ -22,7 +22,7 @@ export const markdownVocabulary = {
   description:
     "Markdown renders GitHub-flavoured markdown -- tables, task lists, code blocks -- from the element's own text or a file on this site.",
   attributes: [
-    ...UIT.SOURCE_ATTRIBUTES,
+    ...UIT.SourceAttributes,
     { name: "size", kind: "size", description: "Text size, as Fomantic's sizes;  default `medium`." },
     {
       name: "breaks",
@@ -61,7 +61,7 @@ export const markdownVocabulary = {
     }
   ],
   events: [
-    ...UIT.SOURCE_EVENTS,
+    ...UIT.SourceEvents,
     {
       name: "ui-render",
       detail: "{ headings: { level: number, text: string, id: string }[] }",
@@ -71,15 +71,15 @@ export const markdownVocabulary = {
   ],
   slots: [],
   parts: [
-    ...UIT.SOURCE_PARTS,
+    ...UIT.SourceParts,
     { name: "body", description: "The `<article>` holding the rendered markdown." },
     { name: "tabs", description: "`editable`:  the Write / Preview tab list." },
     { name: "tab", description: "`editable`:  each tab button." },
     { name: "editor", description: "`editable`:  the `<textarea>` holding the markdown." }
   ],
-  states: [...UIT.SOURCE_STATES],
+  states: [...UIT.SourceStates],
   texts: [
-    ...UIT.SOURCE_TEXTS,
+    ...UIT.SourceTexts,
     { key: "write", text: "Write", description: "`editable`:  the editing tab." },
     { key: "preview", text: "Preview", description: "`editable`:  the preview tab." },
     { key: "editor", text: "Markdown", description: "`editable`:  accessible name of the text box." }

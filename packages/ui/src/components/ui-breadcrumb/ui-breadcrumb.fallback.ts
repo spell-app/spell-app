@@ -34,7 +34,7 @@ export class BreadcrumbFallback extends E.NativeFallback<
     // only when set, as the element does:  a page theming the token on a wrapper keeps it
     const divider = this.attr("divider")
     if (divider !== undefined) {
-      nav.style.setProperty(UIT.BREADCRUMB_DIVIDER_TOKENS.text, BreadcrumbDivider.cssString(divider))
+      nav.style.setProperty(UIT.BreadcrumbDividerTokens.text, BreadcrumbDivider.cssString(divider))
     }
     return this.decorate(nav, "breadcrumb")
   }

@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { BREADCRUMB_DIVIDER_TOKENS } from "$/ui/components/components.types"
+import { BreadcrumbDividerTokens } from "$/ui/components/components.types"
 import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/A11y"
 
@@ -142,10 +142,10 @@ describe("<ui-breadcrumb> dividers", () => {
 
   it("publishes `divider` as a CSS string token, only when it isn't the default", async () => {
     const { host, nav, sections } = await breadcrumb('divider="›"')
-    expect(nav.style.getPropertyValue(BREADCRUMB_DIVIDER_TOKENS.text)).toBe('"›"')
+    expect(nav.style.getPropertyValue(BreadcrumbDividerTokens.text)).toBe('"›"')
     expect(dividerText(sections[1]!)).toBe('"›"')
     host.removeAttribute("divider")
-    await expect.poll(() => nav.style.getPropertyValue(BREADCRUMB_DIVIDER_TOKENS.text)).toBe("")
+    await expect.poll(() => nav.style.getPropertyValue(BreadcrumbDividerTokens.text)).toBe("")
     expect(dividerText(sections[1]!)).toBe('"/"')
   })
 
@@ -175,15 +175,15 @@ describe("<ui-breadcrumb> dividers", () => {
 
   it("publishes `divider-icon` as a mask image + the icon layout, once the glyph loads", async () => {
     const { host, nav, sections } = await breadcrumb('divider-icon="chevron right"')
-    await expect.poll(() => nav.style.getPropertyValue(BREADCRUMB_DIVIDER_TOKENS.layout)).toBe("icon")
+    await expect.poll(() => nav.style.getPropertyValue(BreadcrumbDividerTokens.layout)).toBe("icon")
     const data = (await (await UI.load()).icons.get("chevron right"))!
-    expect(nav.style.getPropertyValue(BREADCRUMB_DIVIDER_TOKENS.icon)).toBe(BreadcrumbDivider.svgUrl(data))
+    expect(nav.style.getPropertyValue(BreadcrumbDividerTokens.icon)).toBe(BreadcrumbDivider.svgUrl(data))
     const before = getComputedStyle(dividerOf(sections[1]!), "::before")
     expect(before.content).toBe('""')
     expect(before.maskImage).toContain("data:image/svg+xml")
     host.removeAttribute("divider-icon")
-    await expect.poll(() => nav.style.getPropertyValue(BREADCRUMB_DIVIDER_TOKENS.layout)).toBe("")
-    expect(nav.style.getPropertyValue(BREADCRUMB_DIVIDER_TOKENS.icon)).toBe("")
+    await expect.poll(() => nav.style.getPropertyValue(BreadcrumbDividerTokens.layout)).toBe("")
+    expect(nav.style.getPropertyValue(BreadcrumbDividerTokens.icon)).toBe("")
   })
 })
 

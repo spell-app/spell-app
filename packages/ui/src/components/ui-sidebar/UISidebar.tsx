@@ -25,7 +25,7 @@ import sidebarCSS from "./ui-sidebar.css?inline"
  * - A hidden sidebar is `visibility: hidden` (out of the tab order and the accessibility tree), laid out so its
  *   pushable can measure it.
  * - `visible` is auto-controlled:  the cancelable `ui-open` / `ui-close` come first for a person's actions (invoker
- *   commands `TOGGLE_COMMANDS`, Escape, a click beside it);  `ui-show` / `ui-hide` follow once the transition has
+ *   commands `ToggleCommands`, Escape, a click beside it);  `ui-show` / `ui-hide` follow once the transition has
  *   ended.  Writing `visible` fires no `ui-open` / `ui-close`.
  ****************/
 export class UISidebar extends E.UIElement<SidebarVocabulary> {
@@ -284,7 +284,7 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
   // ## Handlers
   ////////////////
 
-  /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
+  /** An invoker command aimed at the host (`ToggleCommands`). */
   private readonly onCommand = (event: Event) => {
     const action = UIT.ToggleCommands.action(
       event,
@@ -326,5 +326,5 @@ const SCALE_ORIGINS: Readonly<Record<string, string>> = {
 /** `closedby` value letting a click beside the sidebar close it too (its default). */
 const ANY = "any"
 
-/** Invoker commands (`TOGGLE_COMMANDS`) arrive as this event on the host. */
+/** Invoker commands (`ToggleCommands`) arrive as this event on the host. */
 const COMMAND = "command"

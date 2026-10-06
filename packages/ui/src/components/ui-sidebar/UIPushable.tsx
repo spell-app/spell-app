@@ -13,7 +13,7 @@ import sidebarCSS from "./ui-sidebar.css?inline"
  * The context sidebars appear in (Fomantic's `.pushable`):  `<div class="pushable" part="pushable"><slot>` -- a
  * clipping, positioned box holding `<ui-sidebar>`s and a `<ui-pusher>`.
  * - Its visible sidebars REPORT what they need (`report()`, a `SidebarLayout`);  it turns that into inherited
- *   tokens on its root (`PUSHER_TOKENS`:  where the pusher moves, dimmed, blurred), which `ui-sidebar.css` reads in
+ *   tokens on its root (`PusherTokens`:  where the pusher moves, dimmed, blurred), which `ui-sidebar.css` reads in
  *   each `<ui-pusher>`.
  * - One pushing sidebar moves the pusher;  two at once (opposite sides) leave it in place, as Fomantic.
  * - SIDE EFFECT on the light DOM:  while a MODAL sidebar is visible, every other child (the pusher, other sidebars)
@@ -81,10 +81,10 @@ export class UIPushable extends E.UIElement<PushableVocabulary> {
     const pushing = visible.filter((layout) => layout.transform !== NONE_TRANSFORM)
     const push = pushing.length === 1 ? pushing[0] : undefined
     const modal = visible.find((layout) => layout.modal)
-    root.style.setProperty(UIT.PUSHER_TOKENS.transform, push?.transform ?? NONE_TRANSFORM)
-    root.style.setProperty(UIT.PUSHER_TOKENS.origin, push?.origin ?? CENTER)
-    root.style.setProperty(UIT.PUSHER_TOKENS.dimmed, modal ? ON : OFF)
-    root.style.setProperty(UIT.PUSHER_TOKENS.blurring, modal?.blurring ? ON : OFF)
+    root.style.setProperty(UIT.PusherTokens.transform, push?.transform ?? NONE_TRANSFORM)
+    root.style.setProperty(UIT.PusherTokens.origin, push?.origin ?? CENTER)
+    root.style.setProperty(UIT.PusherTokens.dimmed, modal ? ON : OFF)
+    root.style.setProperty(UIT.PusherTokens.blurring, modal?.blurring ? ON : OFF)
     const keep = new Set([...layouts].filter(([, layout]) => layout.modal).map(([sidebar]) => sidebar))
     for (const child of this.host.children) {
       const inert = !!modal && !keep.has(child) && !this.isHiddenSidebar(child)
@@ -109,10 +109,10 @@ export class UIPushable extends E.UIElement<PushableVocabulary> {
 /** Class word of the root (`ui-sidebar.css`). */
 const PUSHABLE = "pushable"
 
-/** A `PUSHER_TOKENS` switch on:  dimmed, blurring. */
+/** A `PusherTokens` switch on:  dimmed, blurring. */
 const ON = "1"
 
-/** A `PUSHER_TOKENS` switch off. */
+/** A `PusherTokens` switch off. */
 const OFF = "0"
 
 /** The attribute it adds to the children beside a modal sidebar. */

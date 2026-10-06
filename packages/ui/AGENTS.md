@@ -439,6 +439,10 @@ As WWOD §9, plus:
 - A SET of related values (close reasons, key names, positions, modes) is a const array + type:
   `ToastCloseReasons` + `ToastCloseReason`.  A single vocabulary word (a class word, a part name) stays a named
   ALL-CAPS constant, under a `// ##` group in its types file (epic `wwod-spell-ui`, Q2).
+  - A MAP of words or tokens is a PascalCase const object (WWOD §9 › "Const object + `keyof typeof`"):
+    `UIT.PusherTokens.dimmed`, `UIT.TransitionCommands.show`;  a shared vocabulary table too
+    (`...UIT.SourceAttributes`).  A frozen pair stays ALL-CAPS (`UIT.TABLE_SORT_OPT_OUT`, WWOD §9's frozen
+    singletons).  (Epic `wwod-spell-ui`, J12, undoing J50's churn-only keep.)
 - Values are English where they're only ours (`"file protocol"`);  values a page or CSS reads (an event's `detail`,
   `data-ui-animation`, a vocabulary's attribute values) keep their published spelling.
 - `null` only at platform boundaries:  `getAttribute()`, `setFormValue()`, the fork's `toAttribute`, `useContext`'s

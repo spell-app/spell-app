@@ -3,7 +3,7 @@ import { page, userEvent } from "vite-plus/test/browser"
 import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
-import { PART_OWNER_TOKENS, type ModalCloseDetail } from "$/ui/components/components.types"
+import { PartOwnerTokens, type ModalCloseDetail } from "$/ui/components/components.types"
 import { A11y, expectAccessible } from "$/ui/test/A11y"
 import { Fixture } from "$/ui/test/Fixture"
 
@@ -138,8 +138,8 @@ describe("<ui-modal> content", () => {
       expect(host.querySelector(tag)!.matches(":state(in-modal)"), tag).toBe(true)
     }
     const style = getComputedStyle(dialog)
-    expect(style.getPropertyValue(PART_OWNER_TOKENS.modalBasic).trim()).toBe("1")
-    expect(style.getPropertyValue(PART_OWNER_TOKENS.modalHeaderSize).trim()).toBe("1.6em")
+    expect(style.getPropertyValue(PartOwnerTokens.modalBasic).trim()).toBe("1")
+    expect(style.getPropertyValue(PartOwnerTokens.modalHeaderSize).trim()).toBe("1.6em")
   })
 })
 

@@ -25,7 +25,7 @@ import anchoredCSS from "./ui-popup.anchored.css?raw"
  *   `manual` (only `open`).  A hovered popup stays open while the pointer is over it (WCAG 1.4.13), unlike
  *   Fomantic's default `hoverable: false`;  `hoverable="false"` gives Fomantic's behaviour back (it hides as the
  *   pointer leaves the target, after `hide-delay`).
- * - Invoker commands (`<button commandfor="id" command="--toggle">`, `TOGGLE_COMMANDS`) are a person's actions
+ * - Invoker commands (`<button commandfor="id" command="--toggle">`, `ToggleCommands`) are a person's actions
  *   too:  the popup opens at ITS target, whichever button sent the command.
  * - `open` is auto-controlled:  the cancelable `ui-open` / `ui-close` come first.  Escape and outside clicks come
  *   from `UI.overlays` (kind `popover`, the target counts as inside).
@@ -417,7 +417,7 @@ export class UIPopup extends E.UIElement<Vocabulary> {
     this.setOpen(!untrack(() => this.isOpen()), event)
   }
 
-  /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
+  /** An invoker command aimed at the host (`ToggleCommands`). */
   private readonly onCommand = (event: Event) => {
     const action = UIT.ToggleCommands.action(
       event,

@@ -3,7 +3,7 @@
  * read.
  * - Pure data, at the bottom of the folder's imports:  imports nothing, so node can load it (`yarn site:data`).
  * - The code => emoji rule and the non-country flags are shared with the menus' option flags:  `UIT.Flags`,
- *   `UIT.SPECIAL_FLAGS` (`components.types.ts`).
+ *   `UIT.SpecialFlags` (`components.types.ts`).
  */
 
 ////////////////
@@ -19,7 +19,7 @@ export const REGION = "region"
 
 /**
  * Fomantic's flag names and aliases (normalized:  lowercase, `_` => space) => code, from `flag.variables`.
- * - A code is an ISO 3166-1 alpha-2 code (lowercase) or a key of `UIT.SPECIAL_FLAGS`.
+ * - A code is an ISO 3166-1 alpha-2 code (lowercase) or a key of `UIT.SpecialFlags`.
  * - Only names that differ from their code:  `fr` needs no entry.
  * - Two-letter aliases (`uk` => `gb`, `an` => `bq`) are looked up BEFORE the code rule, as in Fomantic.
  * - The flag family's only:  a menu option's `flag` takes codes, so `core` never carries this table.

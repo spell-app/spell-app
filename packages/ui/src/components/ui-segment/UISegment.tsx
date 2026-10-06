@@ -48,7 +48,7 @@ export class UISegment extends E.UIElement<typeof segmentVocabulary> {
         class={this.classes()}
         part={this.part("segment")}
         tabindex={this.attrs.scrolling ? 0 : undefined}
-        style={this.attrs.inverted ? { [UIT.PART_OWNER_TOKENS.inverted]: INVERTED } : undefined}
+        style={this.attrs.inverted ? { [UIT.PartOwnerTokens.inverted]: INVERTED } : undefined}
       >
         <slot />
         <Show when={this.attrs.loading}>
@@ -61,5 +61,5 @@ export class UISegment extends E.UIElement<typeof segmentVocabulary> {
   }
 }
 
-/** `UIT.PART_OWNER_TOKENS.inverted` of an `inverted` segment, inline:  its parts take the dark scheme. */
+/** `UIT.PartOwnerTokens.inverted` of an `inverted` segment, inline:  its parts take the dark scheme. */
 const INVERTED = "1"

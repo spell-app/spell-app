@@ -11,7 +11,7 @@ import { FLAG_ALIASES } from "./ui-flag.types"
  *   goes through `UI.i18n` and the fallback can't count on the runtime.
  ****************/
 export class FlagCountry {
-  /** Normalized code:  ISO 3166-1 alpha-2 (`fr`) or a `UIT.SPECIAL_FLAGS` key (`gb-eng`);  `""` when unknown. */
+  /** Normalized code:  ISO 3166-1 alpha-2 (`fr`) or a `UIT.SpecialFlags` key (`gb-eng`);  `""` when unknown. */
   readonly code: string
 
   /** Flag emoji;  `""` when unknown. */
