@@ -64,7 +64,7 @@ export class SectionFallback extends E.NativeFallback<typeof sectionVocabulary> 
 
   protected override build() {
     const height = this.attr("height")
-    const hasScrolling = this.attr("scrolling") !== null
+    const hasScrolling = this.attr("scrolling") !== undefined
     const content = this.create(
       "div",
       {
@@ -101,7 +101,7 @@ export class SectionFallback extends E.NativeFallback<typeof sectionVocabulary> 
   private title(): HTMLElement {
     // the host's own attribute wins (`"false"` included), else its group's default
     const isCollapsible =
-      this.attr("collapsible") === null ? SectionFallback.isInCollapsing(this.host) : this.flag("collapsible")
+      this.attr("collapsible") === undefined ? SectionFallback.isInCollapsing(this.host) : this.flag("collapsible")
     const isAtEnd = (this.attr("fold-icon") ?? this.defaultFoldIcon) === FoldIconPlace.end
     const foldIcon = isCollapsible
       ? this.create("span", { class: FOLD_ICON_CLASS, part: FOLD_ICON_PART, "aria-hidden": UIT.TRUE }, FOLD_GLYPH)
@@ -159,11 +159,8 @@ export class SectionFallback extends E.NativeFallback<typeof sectionVocabulary> 
     return title
   }
 
-  /**
-   * A named `<slot>`, with `text` shown while nothing is slotted.
-   * - Takes `null`:  `text` is often `attr()`'s.
-   */
-  private named(name: SectionSlot, text?: string | null): HTMLSlotElement {
+  /** A named `<slot>`, with `text` shown while nothing is slotted. */
+  private named(name: SectionSlot, text?: string): HTMLSlotElement {
     const slot = this.slot(text)
     slot.name = name
     return slot

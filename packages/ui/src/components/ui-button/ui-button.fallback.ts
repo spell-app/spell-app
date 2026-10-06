@@ -33,7 +33,7 @@ export class ButtonFallback extends E.NativeFallback<typeof buttonVocabulary> {
     const icon = E.Converters.icon(this.attr("icon"))
     const isIconOnly = icon && !this.attr("content") && !host.textContent?.trim()
     const control =
-      href !== null
+      href !== undefined
         ? this.create("a", {
             href: isDisabled ? undefined : href,
             target: this.attr("target"),
@@ -70,7 +70,7 @@ export class ButtonFallback extends E.NativeFallback<typeof buttonVocabulary> {
   private invoke(control: HTMLElement, event: MouseEvent) {
     const command = this.attr(COMMAND)
     if (!command) return
-    const target = Invoker.resolve(this.host, this.attr("commandfor") ?? undefined)
+    const target = Invoker.resolve(this.host, this.attr("commandfor"))
     if (UI.browser.supports.invokers && control instanceof HTMLButtonElement) {
       control.setAttribute(COMMAND, command)
       // `null`:  the platform's "no target"
@@ -86,7 +86,7 @@ export class ButtonFallback extends E.NativeFallback<typeof buttonVocabulary> {
     if (type === RESET) return form.reset()
     if (type !== UIT.SUBMIT) return
     // `requestSubmit()` builds the entries synchronously, so the value need only exist during the call.
-    const isSubmitted = this.formInternals && this.attr("name") !== null
+    const isSubmitted = this.formInternals && this.attr("name") !== undefined
     if (isSubmitted) this.formInternals!.setFormValue(this.attr("value") ?? "")
     try {
       form.requestSubmit()

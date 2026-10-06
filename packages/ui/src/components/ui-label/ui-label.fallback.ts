@@ -15,8 +15,8 @@ export class LabelFallback extends E.NativeFallback<typeof labelVocabulary> {
     const disabled = this.flag("disabled")
     const detail = this.attr("detail")
     const label = this.create(
-      href === null ? "span" : "a",
-      href === null
+      href === undefined ? "span" : "a",
+      href === undefined
         ? { class: this.classes() }
         : {
             class: this.classes(),

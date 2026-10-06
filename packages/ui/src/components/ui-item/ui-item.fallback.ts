@@ -35,10 +35,9 @@ export class ItemFallback extends E.NativeFallback<typeof itemVocabulary> {
     ]
       .filter(Boolean)
       .join(" ")
-    // `attr()` is `getAttribute()`:  `null` when absent
-    const href = this.flag("disabled") ? null : this.attr("href")
+    const href = this.flag("disabled") ? undefined : this.attr("href")
     const box =
-      href === null
+      href === undefined
         ? this.create("div", { class: this.classes(extra || undefined) })
         : this.create(UIT.ANCHOR_TAG, {
             class: this.classes(extra || undefined),

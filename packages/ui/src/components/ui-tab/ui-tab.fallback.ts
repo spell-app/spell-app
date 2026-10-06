@@ -30,7 +30,7 @@ export class TabFallback extends E.NativeFallback<FallbackVocabulary> {
   private tabs(): Node[] {
     const panes = [...this.host.children].filter((child) => child.localName === tabVocabulary.tag)
     const values = panes.map((pane, index) => pane.getAttribute(VALUE) ?? String(index))
-    const selected = TabFallback.selectedIndex(panes, values, this.host.getAttribute(VALUE))
+    const selected = TabFallback.selectedIndex(panes, values, this.attr(VALUE))
     const tabs = panes.map((pane, index) =>
       this.create(
         "button",
@@ -66,11 +66,10 @@ export class TabFallback extends E.NativeFallback<FallbackVocabulary> {
 
   /**
    * Index of the selected pane:  `value`'s, else the first chosen one, else `0`.
-   * - `value` is `getAttribute()`'s:  `null` when the host has none.
    * - Static:  pure.
    */
-  private static selectedIndex(panes: Element[], values: string[], value: string | null): number {
-    const named = value === null ? -1 : values.indexOf(value)
+  private static selectedIndex(panes: Element[], values: string[], value: string | undefined): number {
+    const named = value === undefined ? -1 : values.indexOf(value)
     if (named >= 0) return named
     return Math.max(0, panes.findIndex(TabFallback.isOwnSelected))
   }

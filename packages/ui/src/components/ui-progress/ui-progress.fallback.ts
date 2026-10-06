@@ -20,11 +20,10 @@ export class ProgressFallback extends E.NativeFallback<typeof progressVocabulary
   ]
 
   protected override build() {
-    // `attr()` is `getAttribute()`:  `null` when absent
     const numbers = new ProgressValues({
-      value: this.attr("value") ?? undefined,
+      value: this.attr("value"),
       total: Number(this.attr("total")) || undefined,
-      percent: this.attr("percent") ?? undefined
+      percent: this.attr("percent")
     })
     const max = numbers.total ?? 100
     const id = `${this.host.localName}-fallback-${++ProgressFallback.labels}`

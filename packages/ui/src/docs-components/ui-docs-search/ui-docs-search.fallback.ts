@@ -73,7 +73,7 @@ export class DocsSearchFallback extends E.NativeFallback<typeof docsSearchVocabu
   /** Prefix of every link:  `base`, else the site root from `SiteData`, else none (the page's own folder). */
   private base(): string {
     const base = this.attr("base")
-    if (base !== null) return base
+    if (base !== undefined) return base
     try {
       return SiteData.root()
     } catch {

@@ -33,7 +33,7 @@ export class BreadcrumbFallback extends E.NativeFallback<
     )
     // only when set, as the element does:  a page theming the token on a wrapper keeps it
     const divider = this.attr("divider")
-    if (divider !== null) {
+    if (divider !== undefined) {
       nav.style.setProperty(UIT.BREADCRUMB_DIVIDER_TOKENS.text, BreadcrumbDivider.cssString(divider))
     }
     return this.decorate(nav, "breadcrumb")
@@ -46,7 +46,7 @@ export class BreadcrumbFallback extends E.NativeFallback<
     const isActive = this.flag("active")
     const href = this.attr("href")
     const section =
-      isActive || href === null
+      isActive || href === undefined
         ? this.create("span", { class: this.classes(), "aria-current": isActive ? UIT.PAGE : undefined }, this.slot())
         : this.create("a", { class: this.classes(), href, target: this.attr("target") }, this.slot())
     return [divider, this.decorate(section, "section")]

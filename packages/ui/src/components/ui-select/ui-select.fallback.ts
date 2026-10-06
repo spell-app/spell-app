@@ -32,7 +32,6 @@ export class SelectFallback extends E.NativeFallback<Vocabulary> {
     const host = this.host as SelectHost
     const isMultiple = this.flag("multiple")
     const isRequired = this.flag("required")
-    // `attr()` is `getAttribute()`:  `null` when absent
     const placeholder = this.attr("placeholder")
     const select = this.create("select", {
       class: this.classes(),
@@ -45,14 +44,14 @@ export class SelectFallback extends E.NativeFallback<Vocabulary> {
 
     const choices = this.choices(host)
     const chosen = this.chosen(host, choices)
-    if (!isMultiple && (placeholder !== null || !chosen.size)) {
+    if (!isMultiple && (placeholder !== undefined || !chosen.size)) {
       const empty = this.create(
         "option",
         {
           value: "",
           class: PLACEHOLDER,
           part: PLACEHOLDER_PART,
-          disabled: isRequired && placeholder !== null
+          disabled: isRequired && placeholder !== undefined
         },
         placeholder ?? ""
       )
@@ -150,11 +149,11 @@ export class SelectFallback extends E.NativeFallback<Vocabulary> {
   }
 
   /**
-   * `<ui-item>` attribute `name` of `item`, or `null`:  its `getAttribute()`, typed by the item's vocabulary.
+   * `<ui-item>` attribute `name` of `item`, or `undefined`:  its `getAttribute()`, typed by the item's vocabulary.
    * - STATIC:  pure, needs no instance.
    */
-  private static itemAttribute(item: Element, name: E.AttributeNameOf<typeof itemVocabulary>): string | null {
-    return item.getAttribute(name)
+  private static itemAttribute(item: Element, name: E.AttributeNameOf<typeof itemVocabulary>): string | undefined {
+    return item.getAttribute(name) ?? undefined
   }
 }
 

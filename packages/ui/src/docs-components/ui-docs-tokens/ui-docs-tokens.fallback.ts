@@ -51,11 +51,11 @@ export class DocsTokensFallback extends E.NativeFallback<typeof docsTokensVocabu
     const view = TokenRows.viewFor(
       data,
       {
-        family: this.attr("family") ?? undefined,
-        tag: this.attr("tag") ?? undefined,
+        family: this.attr("family"),
+        tag: this.attr("tag"),
         isGlobal: this.flag("global"),
-        groups: this.attr("groups") ?? undefined,
-        tokens: this.attr("tokens") ?? undefined
+        groups: this.attr("groups"),
+        tokens: this.attr("tokens")
       },
       (key, params) => this.text(key, params)
     )
@@ -63,7 +63,7 @@ export class DocsTokensFallback extends E.NativeFallback<typeof docsTokensVocabu
       this.section?.append(this.message(view.text))
       return
     }
-    const level = HeadingLevels.levelFor(this.attr("level") ?? undefined, LEVELS)
+    const level = HeadingLevels.levelFor(this.attr("level"), LEVELS)
     for (const table of view.tables) this.section?.append(...this.group(table, level))
   }
 

@@ -13,7 +13,7 @@ export class EmojiFallback extends E.NativeFallback<typeof emojiVocabulary> {
 
   protected override build() {
     const label = this.attr("label")
-    const name = this.attr("name") ?? undefined
+    const name = this.attr("name")
     const span = this.create("span", { class: this.classes(), "aria-hidden": label === "" ? UIT.TRUE : undefined })
     const set = EmojiData.setFor(this.host)
     const cached = EmojiData.peek(name, set)

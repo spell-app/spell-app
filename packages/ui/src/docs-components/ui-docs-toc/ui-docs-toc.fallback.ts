@@ -19,7 +19,7 @@ export class DocsTocFallback extends E.NativeFallback<typeof docsTocVocabulary> 
 
   protected override build() {
     const document = this.host.ownerDocument
-    const followed = TocIndex.followed(document, this.attr("for") ?? undefined)
+    const followed = TocIndex.followed(document, this.attr("for"))
     const root = followed?.tabs ? TocIndex.shownPane(followed.tabs) : followed?.root
     const links: Node[] = []
     for (const section of root ? TocIndex.scan(root) : []) {

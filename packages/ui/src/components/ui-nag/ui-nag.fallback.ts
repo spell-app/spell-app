@@ -18,7 +18,7 @@ export class NagFallback extends E.NativeFallback<Vocabulary> {
   protected override build() {
     const nag = this.create("div", { class: this.classes() }, this.slot())
     // `closable` defaults on:  only a written `closable="false"` drops the button
-    if (this.attr("closable") === null || this.flag("closable")) nag.append(this.closeButton())
+    if (this.attr("closable") === undefined || this.flag("closable")) nag.append(this.closeButton())
     return [this.decorate(nag, "nag")]
   }
 

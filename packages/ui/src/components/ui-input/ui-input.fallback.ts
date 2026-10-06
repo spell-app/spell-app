@@ -61,7 +61,7 @@ export class InputFallback extends E.NativeFallback<Vocabulary> {
 
     const label = isTextarea ? undefined : this.attr("label")
     const labeled = this.attr("labeled")
-    const extra = [label && labeled === null ? LABELED : "", control.type === FILE ? FILE : ""]
+    const extra = [label && labeled === undefined ? LABELED : "", control.type === FILE ? FILE : ""]
     const root = this.create("div", { class: this.classes(extra.filter(Boolean).join(" ") || undefined) })
     const labelBox = label ? this.create("span", { class: LABEL_CLASSES, part: LABEL_PART }, label) : undefined
     if (labelBox && labeled !== "right") root.append(labelBox)
