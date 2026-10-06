@@ -91,6 +91,40 @@ describe("TSWriter", () => {
     expect(writer.write(thing)).toBe(`let thing: ${UNKNOWN} = spellCore.randomItemOf()`)
   })
 
+  test("a list says what it holds:  its class, and a new one", () => {
+    const deck = new P.ASTTypeExpression(match, { name: "Deck" })
+    const card = new P.ASTTypeExpression(match, { name: "Card" })
+    const instanceType = new P.ASTStaticDefinition(match, { type: deck, name: "instanceType", value: card })
+    const superType = new P.ASTTypeExpression(match, { name: "List" })
+    const declaration = new P.ASTClassDeclaration(match, { type: deck, superType, members: [instanceType] })
+    expect(writer.write(declaration)).toMatch(/^export class Deck extends List<Card> \{/)
+    expect(P.JSWriter.instance.write(declaration)).toMatch(/^export class Deck extends List \{/)
+
+    const props = new P.ASTObjectLiteral(match)
+    props.addProp("instanceType", new P.ASTStringLiteral(match, { value: "Pile", quote: '"' }))
+    const piles = new P.ASTNewInstanceExpression(match, {
+      type: new P.ASTTypeExpression(match, { name: "List" }),
+      props
+    })
+    expect(writer.write(piles)).toBe(`new List<Pile>({ instanceType: "Pile" })`)
+  })
+
+  test("a property of, or a method on, a spellCore call's result is read with `!`", () => {
+    const top = () =>
+      new P.ASTCoreMethodInvocation(match, {
+        methodName: "getItemOf",
+        args: [new P.ASTVariableExpression(match, { name: "deck" })]
+      })
+    const name = new P.ASTPropertyExpression(match, {
+      object: top(),
+      property: new P.ASTPropertyLiteral(match, "name")
+    })
+    expect(writer.write(name)).toBe("spellCore.getItemOf(deck)!.name")
+    const flip = new P.ASTScopedMethodInvocation(match, { thing: top(), methodName: "flip" })
+    expect(writer.write(flip)).toBe("spellCore.getItemOf(deck)!.flip()")
+    expect(P.JSWriter.instance.write(name)).toBe("spellCore.getItemOf(deck).name")
+  })
+
   test("javascript is unchanged by the type hooks", () => {
     const card = new P.ASTVariableExpression(match, { name: "card", datatype: "Card" })
     expect(P.JSWriter.instance.write(method([card]))).toBe("function play(card) {\n  return 1\n}")

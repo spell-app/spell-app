@@ -256,7 +256,7 @@ test_card_setup()
 spellCore.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
 
-export class Deck extends List {
+export class Deck extends List<Card> {
   static instanceType = Card
 
   set_up() {
@@ -301,8 +301,8 @@ export function test_deck_creation() {
       return (card.rank == "queen")
     })
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
-    spellCore.expect(spellCore.getItemOf(deck, -1).name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemOf(deck, 1).short_name, `the short-name of the top card of the deck`, "A♣️", `"A♣️"`)
+    spellCore.expect(spellCore.getItemOf(deck, -1)!.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    spellCore.expect(spellCore.getItemOf(deck, 1)!.short_name, `the short-name of the top card of the deck`, "A♣️", `"A♣️"`)
     
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
@@ -323,17 +323,17 @@ Object.defineProperty(Card.prototype, 'pile', {
 })
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
-export class Pile extends List {
+export class Pile extends List<Card> {
   static instanceType = Card
 
   get color() {
     if (spellCore.isEmpty(this)) { return "none" }
-    return spellCore.getItemOf(this, -1).color
+    return spellCore.getItemOf(this, -1)!.color
   }
 
   get value() {
     if (spellCore.isEmpty(this)) { return 0 }
-    return spellCore.getItemOf(this, -1).value
+    return spellCore.getItemOf(this, -1)!.value
     
   }
 
@@ -502,9 +502,9 @@ spellCore.console.log(game)
 
 spellCore.heading("set up all piles")
 /** set up all piles */
-export let all_piles = new List({ instanceType: "Pile" })
-export let foundations = new List({ instanceType: "Pile" })
-export let tableaus = new List({ instanceType: "Pile" })
+export let all_piles = new List<Pile>({ instanceType: "Pile" })
+export let foundations = new List<Pile>({ instanceType: "Pile" })
+export let tableaus = new List<Pile>({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
 export class Stock_Pile extends Pile {
@@ -679,9 +679,9 @@ export async function deal_the_cards() {
     
     // deal cards into tableaus
     await spellCore.forEachSequential(spellCore.getRange(1, 7), async (row: any /* spell: type unknown */) => {
-      (spellCore.getItemOf(stock, -1)).turn_face_up()
+      (spellCore.getItemOf(stock, -1))!.turn_face_up()
       await spellCore.forEachSequential(spellCore.getRange(row, 7), async (column: any /* spell: type unknown */) => {
-        await spellCore.getItemOf(stock, -1).move_to_$pile(spellCore.getItemOf(tableaus, column))
+        await spellCore.getItemOf(stock, -1)!.move_to_$pile(spellCore.getItemOf(tableaus, column))
       })
     })
     
@@ -746,7 +746,7 @@ export function reset_the_game() {
 
 export async function cheat() {
   let remaining_piles: any /* spell: type unknown */ = spellCore.filter(tableaus, (pile: any /* spell: type unknown */) => {
-    return (!spellCore.isEmpty(pile) && spellCore.getItemOf(pile, 1).is_face_down)
+    return (!spellCore.isEmpty(pile) && spellCore.getItemOf(pile, 1)!.is_face_down)
   })
   if (spellCore.isEmpty(remaining_piles)) { return }
   let pile: any /* spell: type unknown */ = spellCore.randomItemOf(remaining_piles)
