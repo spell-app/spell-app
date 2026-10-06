@@ -134,20 +134,27 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
      tracked copies of the docs, goals and logs into conflicts
    - `git log --oneline HEAD..main` empty (`main` hasn't moved):  ready, go on to step 4
    - else `git merge-tree --write-tree --name-only main HEAD`, which merges without touching any files:
-     - exit 0:  `git merge main` (a clean merge commit), then step 4
-     - exit 1:  conflicts, the file names follow the tree id;  step 3
+     - exit 0, or conflicts ONLY in generated files:  `spell dev worktree merge-main`, then step 4.  No asking
+       (Owen, 2026-10-03);  say in one line what it regenerated.
+       - generated:  the root `.gitattributes`' `merge=binary` paths (bundles, site and brand assets, snapshots) and
+         `yarn.lock`.  `merge-main` rebuilds each one both sides changed, from the merged source, with the command
+         in `GENERATORS` (`packages/cli/src/dev/mergeMain.ts`), and commits the merge ("Merge main into `<name>`").
+       - its `REVIEW` lines:  snapshot entries with a value NEITHER side had, i.e. new behaviour nobody looked at.
+         Show each to Owen, in bold, in the summary.
+       - it fails (a generator errors):  the merge is left in progress;  fix the cause, then
+         `spell dev worktree merge-main --continue`, or `git merge --abort` and step 3's "Can't fix them"
+     - other files conflict:  step 3
    - nothing unmerged:  skip this step and say "nothing to merge"
-3. Merge conflicts.  ONLY in built files:  fix them WITHOUT asking (Owen, 2026-10-03), say in one line which files
-   and how, commit the merge ("Merge main into `<name>`"), then step 4.
+3. Merge conflicts in other files (code, skills, docs prose).
    - the logs (`agents/*.md`), the changelog, the docs index and plan docs can't conflict any more:  shared
      content, untracked by spell-app.  One in conflict means a worktree not migrated yet (step 2)
-   - built files:  regenerate with their command instead of merging by hand:  `yarn.lock` (`yarn install`), bundles
-     (`packages/docs/tools/_assets/spell-ui.js` ...:  their build)
-   - any OTHER file in conflict (code, skills, docs prose):  AskUserQuestion, listing the conflicting files, options:
+   - AskUserQuestion, listing the conflicting files, options:
      - "Fix conflicts, then merge":
-       - `git merge main` in the worktree;  resolve each file, keeping BOTH sides' intent
+       - `spell dev worktree merge-main`:  it stops mid-merge, listing them
+       - resolve each file, keeping BOTH sides' intent, and `git add` it
        - run the checks of each package the conflicts touch (`yarn ts`, `yarn test` there), if installed
-       - commit the merge ("Merge main into `<name>`";  the answer counts as the ask), then step 4
+       - `spell dev worktree merge-main --continue`:  regenerates the generated files and commits the merge (the
+         answer counts as the ask), then step 4
      - "Exit anyway":  go on to step 4, unmerged
      - "Stay isolated":  stop here, still in the worktree
    - Can't fix them (keeping both sides needs a decision only the user can make, or the checks fail):

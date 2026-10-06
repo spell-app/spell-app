@@ -290,6 +290,55 @@ export type MigrateReport = {
 }
 
 ////////////////
+// ## Merging main
+////////////////
+
+/**
+ * One generated output family, and the command that rebuilds it from the merged source (`GENERATORS`).
+ * - `outputs`:  globs, relative to a checkout's root (`path.matchesGlob()`);  a folder is `<folder>/**`
+ * - `run`:  the command, run in `cwd` (relative to a checkout's root)
+ */
+export type Generator = { name: string; outputs: string[]; cwd: string; run: string[] }
+
+/**
+ * A snapshot entry the merge's regenerated `.snap` holds with a value NEITHER side had:  nobody reviewed it.
+ * - `file`:  the `.snap`, relative to the checkout;  `keys`:  its `exports[...]` names
+ */
+export type SnapshotReview = { file: string; keys: string[] }
+
+/**
+ * `spell dev worktree merge-main`'s answer.
+ * - `result`:
+ *   - `up-to-date`:  `main` is already in the branch
+ *   - `fast-forward`:  the branch had nothing of its own, so it moved to `main`
+ *   - `merged`:  a merge commit, generated files regenerated
+ *   - `conflicts`:  stopped mid-merge on `conflicts`;  resolve them, `git add` them, then `--continue`
+ * - `regenerated`:  each generator that ran, and the files it staged
+ * - `review`:  snapshot entries to show Owen (`SnapshotReview`)
+ * - `unstaged`:  files a generator changed outside its `outputs`, left for a person to look at
+ */
+export type MergeMainReport = {
+  branch: string
+  result: "up-to-date" | "fast-forward" | "merged" | "conflicts"
+  conflicts: string[]
+  regenerated: { name: string; files: string[] }[]
+  review: SnapshotReview[]
+  unstaged: string[]
+}
+
+/**
+ * `mergeMain()`'s options.
+ * - `mode`:  `start` (default) merges `main`;  `continue` finishes a merge it stopped on other conflicts
+ * - `generators`:  the table (tests pass their own);  default `GENERATORS`
+ * - `snapshotUpdate`:  the command that updates the snapshots of `tests`;  default `yarn vp test run <tests> --update`
+ */
+export type MergeMainOptions = {
+  mode?: "start" | "continue"
+  generators?: Generator[]
+  snapshotUpdate?: (tests: string[]) => string[]
+}
+
+////////////////
 // ## Pass-through tools
 ////////////////
 
