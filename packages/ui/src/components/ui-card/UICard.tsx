@@ -34,7 +34,7 @@ export class UICard extends E.UIElement<typeof cardVocabulary> {
   @E.proto static Fallback = CardFallback
 
   /** Group, if any. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   /** Nouns the slotted content already has (`header`, `extra` ...;  `image` for an `<img>`).  Tracked. */
   readonly slotted = new E.Cell<ReadonlySet<string>>(isServer ? NOTHING_SLOTTED : this.scan(), {

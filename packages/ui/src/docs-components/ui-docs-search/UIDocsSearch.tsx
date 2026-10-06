@@ -132,7 +132,7 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
   })
 
   /** The modifier key the hint shows:  `⌘` on Apple platforms, else `Ctrl`. */
-  readonly modifier = createMemo(() => (this.loaded() && UI.browser.isApple ? "⌘" : "Ctrl"))
+  readonly modifier = createMemo(() => (this.isLoaded() && UI.browser.isApple ? "⌘" : "Ctrl"))
 
   /** `/` and Cmd / Ctrl+K summon this field:  `shortcuts` isn't off. */
   private get hasShortcuts(): boolean {
@@ -173,7 +173,7 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
     )
     // SIDE EFFECT:  `/` and Cmd / Ctrl+K, while connected
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (isConnected) => {
         if (!isConnected) return undefined
         UIDocsSearch.listen(this)

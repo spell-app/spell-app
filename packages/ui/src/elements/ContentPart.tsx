@@ -28,7 +28,7 @@ export abstract class ContentPart<V extends E.ComponentVocabulary = E.ComponentV
   @proto static isPart = true
 
   /** Owner context for this part's noun. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   ////////////////
   // ## Rendering

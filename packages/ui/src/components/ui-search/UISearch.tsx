@@ -64,7 +64,7 @@ export class UISearch extends F.FormElement<Vocabulary> {
   readonly openState = this.controlled("open", false)
 
   /** The magnifying glass. */
-  readonly glyph = new E.IconGlyph(this, () => SEARCH_ICON)
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => SEARCH_ICON })
 
   /** Value to restore on form reset:  the `value` attribute. */
   private readonly initialValue = untrack(() => this.attrs.value)
@@ -171,7 +171,7 @@ export class UISearch extends F.FormElement<Vocabulary> {
   }
 
   isDisabled(): boolean {
-    return this.attrs.disabled || this.formDisabled.get()
+    return this.attrs.disabled || this.isFormDisabled.get()
   }
 
   /** Busy:  the `loading` attribute, or a remote query running. */
@@ -230,11 +230,11 @@ export class UISearch extends F.FormElement<Vocabulary> {
 
   /**
    * The label in validation messages.
-   * - Only once `loaded()`:  `label()` may fall back to a translated text, and the validity memo can run before the
+   * - Only once `isLoaded()`:  `label()` may fall back to a translated text, and the validity memo can run before the
    *   runtime arrives (seen on the docs kitchen sink:  `UI.i18n ... isn't loaded yet`).  Tracked, so it recomputes.
    */
   protected validationLabel(): string | undefined {
-    return this.loaded() ? this.label() : undefined
+    return this.isLoaded() ? this.label() : undefined
   }
 
   protected validationAnchor(): HTMLElement | undefined {
@@ -248,14 +248,14 @@ export class UISearch extends F.FormElement<Vocabulary> {
   /** Adds the input sync, the popover / overlay, scrolling and the label refresh to `FormElement.mount()`. */
   mount() {
     createEffect(
-      () => [this.query(), this.revision.get(), this.loaded()],
+      () => [this.query(), this.revision.get(), this.isLoaded()],
       () => {
         const value = untrack(() => this.query())
         if (this.input && this.input.value !== value) this.input.value = value
       }
     )
     createEffect(
-      () => this.isShowing() && this.connected.get(),
+      () => this.isShowing() && this.isConnected.get(),
       (isShowing) => {
         const box = this.resultsBox
         if (!isShowing || !box) return
@@ -274,7 +274,7 @@ export class UISearch extends F.FormElement<Vocabulary> {
       }
     )
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (connected) this.labels.refresh()
       }

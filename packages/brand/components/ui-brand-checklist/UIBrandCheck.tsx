@@ -63,7 +63,7 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   readonly checkedAttribute = new HostAttribute({ host: this.host, name: CHECKED })
 
   /** Owning checklist. */
-  readonly context = new PartContext(this.host, CHECK_NOUN)
+  readonly context = new PartContext({ host: this.host, noun: CHECK_NOUN })
 
   ////////////////
   // ## Derived state

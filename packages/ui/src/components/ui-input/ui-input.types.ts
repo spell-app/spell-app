@@ -22,7 +22,7 @@ export type CommonAttributes = {
   readonly name: string | undefined
   /** hint shown while empty */
   readonly placeholder: string | undefined
-  /** `disabled` attribute (a disabled fieldset is `formDisabled`) */
+  /** `disabled` attribute (a disabled fieldset is `isFormDisabled`) */
   readonly disabled: boolean
   /** shows its value, can't be edited */
   readonly readonly: boolean

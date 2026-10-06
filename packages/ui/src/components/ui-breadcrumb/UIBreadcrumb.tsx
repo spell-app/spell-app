@@ -32,7 +32,7 @@ export class UIBreadcrumb extends E.UIElement<typeof breadcrumbVocabulary> {
   readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** Glyph of `divider-icon`. */
-  readonly glyph = new E.IconGlyph(this, () => this.attrs.dividerIcon || undefined)
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.dividerIcon || undefined })
 
   /** Inline divider tokens for the root;  `undefined` values are removed. */
   readonly tokens = createMemo(() => {

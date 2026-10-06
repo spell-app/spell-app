@@ -33,7 +33,7 @@ export class IconGlyph {
   /** Request counter, so a slower earlier load can't win. */
   private request = 0
 
-  constructor(owner: IconGlyphOwner, name: Accessor<string | undefined>) {
+  constructor({ owner, name }: IconGlyphProps) {
     this.owner = owner
     if (isServer) {
       // no DOM to clone into, and the render is synchronous:  the SVG as markup, read now
@@ -47,7 +47,7 @@ export class IconGlyph {
       return template ? IconGlyph.draw(template) : undefined
     })
     createEffect(
-      () => ({ name: name(), connected: owner.connected.get(), generation: E.RootSettings.generation.get() }),
+      () => ({ name: name(), connected: owner.isConnected.get(), generation: E.RootSettings.generation.get() }),
       ({ name: nameNow, connected }) => {
         if (connected || !this.request) void this.load(nameNow)
       }
@@ -117,12 +117,20 @@ export class IconGlyph {
   }
 }
 
+/** Constructor props for `IconGlyph`. */
+export type IconGlyphProps = {
+  /** the component drawing the icon */
+  owner: IconGlyphOwner
+  /** the icon name, e.g. `xmark`;  `undefined` for none;  tracked */
+  name: Accessor<string | undefined>
+}
+
 /** What an `IconGlyph` needs of the component drawing it. */
 export type IconGlyphOwner = {
   /** its element:  where the climb to the nearest `<ui-root icons>` starts */
   readonly host: Element
-  /** whether it's in the document (`UIElement.connected`):  a reconnect may mean another root */
-  readonly connected: E.Cell<boolean>
+  /** whether it's in the document (`UIElement.isConnected`):  a reconnect may mean another root */
+  readonly isConnected: E.Cell<boolean>
 }
 
 /** Hides a decorative icon from assistive technology. */

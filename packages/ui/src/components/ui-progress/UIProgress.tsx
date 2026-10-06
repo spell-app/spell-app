@@ -128,7 +128,7 @@ export class UIProgress extends E.UIElement<typeof progressVocabulary> {
   mount(): JSX.Element {
     // `hostEffect`:  a server render (`$/ui/static`) applies it too
     this.hostEffect(
-      () => (this.loaded() ? this.aria() : undefined),
+      () => (this.isLoaded() ? this.aria() : undefined),
       (aria) => {
         if (!aria) return
         const { internals } = this.host

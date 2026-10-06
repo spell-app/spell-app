@@ -107,7 +107,7 @@ export class UIDocsTokens extends E.UIElement<DocsTokensVocabulary> {
     if (isServer) return content
     createEffect(
       () => ({
-        tokens: this.connected.get() && this.attrs.playground ? this.overrides.get() : new Map<string, string>(),
+        tokens: this.isConnected.get() && this.attrs.playground ? this.overrides.get() : new Map<string, string>(),
         target: this.attrs.target
       }),
       ({ tokens, target }) => {
@@ -117,7 +117,7 @@ export class UIDocsTokens extends E.UIElement<DocsTokensVocabulary> {
     // after the apply above (same flush, created first), so a reset re-probes with the tokens already removed
     createEffect(
       () => ({
-        view: this.loaded() && this.attrs.playground ? this.view() : undefined,
+        view: this.isLoaded() && this.attrs.playground ? this.view() : undefined,
         isPristine: this.overrides.get().size === 0
       }),
       ({ view }) => {

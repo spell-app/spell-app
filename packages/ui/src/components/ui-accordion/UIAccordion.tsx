@@ -52,7 +52,7 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
   @E.proto static slotAssignment: SlotAssignmentMode = "manual"
 
   /** Owning accordion, when nested. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   /** `open` (panel indexes as text):  host-controlled, or internal. */
   readonly openState = this.controlled("open", undefined)
@@ -123,7 +123,7 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
     const status = this.body.status.get()
     return {
       open: this.openIndexes().some((index) => index < this.panels.get().length),
-      animated: this.loaded() && UI.browser.supports.interpolateSize,
+      animated: this.isLoaded() && UI.browser.supports.interpolateSize,
       loading: status === "loading",
       loaded: status === "loaded",
       error: status === "error"
@@ -138,7 +138,7 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
   mount(): JSX.Element {
     if (!isServer) {
       createEffect(
-        () => ({ source: this.attrs.source, open: this.isOpen(SOURCE_PANEL), connected: this.connected.get() }),
+        () => ({ source: this.attrs.source, open: this.isOpen(SOURCE_PANEL), connected: this.isConnected.get() }),
         ({ source, open, connected }) => {
           if (source && open && connected) this.body.load().catch(() => undefined)
         }

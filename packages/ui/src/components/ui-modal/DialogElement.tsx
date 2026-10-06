@@ -61,7 +61,10 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
   readonly openState = this.controlled(OPEN as E.AttributeName<V>, false as OpenValue<V>)
 
   /** Glyph of the close icon. */
-  readonly closeGlyph = new E.IconGlyph(this, () => (this.dialogAttrs.closable ? UIT.CLOSE_ICON : undefined))
+  readonly closeGlyph = new E.IconGlyph({
+    owner: this,
+    name: () => (this.dialogAttrs.closable ? UIT.CLOSE_ICON : undefined)
+  })
 
   /** Host `aria-label`, forwarded to the dialog. */
   readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
@@ -216,12 +219,12 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
 
   /**
    * The dialog's name, and showing / hiding it while open AND connected.
-   * - Both wait for the runtime (`loaded`), as the render does:  they act on the rendered `<dialog>`.
+   * - Both wait for the runtime (`isLoaded`), as the render does:  they act on the rendered `<dialog>`.
    */
   private effects() {
     createEffect(
       () => ({
-        isRendered: this.loaded(),
+        isRendered: this.isLoaded(),
         label: this.ariaLabel.get(),
         hasHeader: !!this.dialogAttrs.header,
         heading: this.heading.get()
@@ -239,7 +242,7 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
       }
     )
     createEffect(
-      () => this.connected.get() && this.loaded() && this.isOpen(),
+      () => this.isConnected.get() && this.isLoaded() && this.isOpen(),
       (isShowing) => {
         if (!isShowing) return
         this.show()

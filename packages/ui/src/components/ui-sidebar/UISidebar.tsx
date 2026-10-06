@@ -146,7 +146,7 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
   /** Showing / hiding while visible AND connected;  reporting the layout to the pushable. */
   private watchVisible() {
     createEffect(
-      () => ({ on: this.connected.get() && this.isVisible(), modal: this.isModal() }),
+      () => ({ on: this.isConnected.get() && this.isVisible(), modal: this.isModal() }),
       ({ on, modal }) => {
         if (!on) return
         this.show(modal)
@@ -155,7 +155,7 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
     )
     createEffect(
       () => ({
-        visible: this.connected.get() && this.isVisible(),
+        visible: this.isConnected.get() && this.isVisible(),
         modal: this.isModal(),
         position: this.attrs.position,
         width: this.attrs.width,
@@ -170,7 +170,7 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
   reportLayout() {
     const pushable = this.pushable()
     if (!pushable) return
-    const visible = untrack(() => this.connected.get() && this.isVisible())
+    const visible = untrack(() => this.isConnected.get() && this.isVisible())
     pushable.report(this.host, visible ? this.layout() : undefined)
   }
 

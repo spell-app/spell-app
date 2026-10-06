@@ -115,7 +115,7 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
   }
 
   isDisabled(): boolean {
-    return this.attrs.disabled || this.formDisabled.get()
+    return this.attrs.disabled || this.isFormDisabled.get()
   }
 
   /** Can a person change it?  Tracked. */
@@ -190,7 +190,7 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
       }
     )
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (connected) this.labels.refresh()
       }

@@ -32,7 +32,7 @@ export class UIList extends E.UIElement<typeof listVocabulary> implements UIT.It
   @E.proto static delegatesFocus = false
 
   /** Outer list, when nested. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   ////////////////
   // ## Derived state

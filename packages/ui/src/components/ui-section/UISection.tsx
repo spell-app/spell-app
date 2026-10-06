@@ -89,13 +89,17 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   ////////////////
 
   /** Enclosing section, when nested (`:state(in-section)`);  climbs through any other component. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun, { barrier: E.PartContext.noBarrier })
+  readonly context = new E.PartContext({
+    host: this.host,
+    noun: this.vocabulary.noun,
+    barrier: E.PartContext.noBarrier
+  })
 
   /** Light-DOM slot occupancy:  icon, badge, subhead, actions. */
   readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
 
   /**
    * The host's `collapsible` attribute as written, `undefined` when absent;  tracked.
@@ -169,7 +173,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   })
 
   /** Glyph of the fold button, while `collapsible()`. */
-  readonly foldGlyph = new E.IconGlyph(this, () => (this.collapsible() ? FOLD_ICON : undefined))
+  readonly foldGlyph = new E.IconGlyph({ owner: this, name: () => (this.collapsible() ? FOLD_ICON : undefined) })
 
   /** Heading level, 1 ... 6. */
   readonly level = createMemo((): number => {
@@ -261,7 +265,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
     return {
       collapsed: this.isFolded(),
       stuck: !!this.attrs.sticky && this.isStuck.get(),
-      animated: this.loaded() && UI.browser.supports.interpolateSize,
+      animated: this.isLoaded() && UI.browser.supports.interpolateSize,
       inverted,
       loading: this.busy(),
       disabled,
@@ -286,7 +290,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
           source: this.attrs.source,
           select: this.attrs.select,
           open: !this.isFolded(),
-          connected: this.connected.get()
+          connected: this.isConnected.get()
         }),
         ({ source, open, connected }) => {
           if (source && open && connected) this.body.load().catch(() => undefined)
@@ -414,7 +418,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
    */
   private watchTitle() {
     createEffect(
-      () => ({ watching: this.connected.get() && !!this.attrs.sticky, offset: this.stickTop() }),
+      () => ({ watching: this.isConnected.get() && !!this.attrs.sticky, offset: this.stickTop() }),
       ({ watching, offset }) => {
         const { title, sentinel } = this
         if (!watching || !title || !sentinel) {

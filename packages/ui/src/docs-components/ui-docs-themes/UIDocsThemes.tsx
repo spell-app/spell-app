@@ -391,7 +391,7 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
       () => undefined // no data:  the menu stays unfiltered, titled from sheet names
     )
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (isConnected) => {
         if (!isConnected) return
         this.follow(ThemePreference.look)

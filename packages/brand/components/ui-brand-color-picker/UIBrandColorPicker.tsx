@@ -134,7 +134,7 @@ export class UIBrandColorPicker extends FormElement<BrandColorPickerVocabulary> 
   }
 
   isDisabled(): boolean {
-    return this.attrs.disabled || this.formDisabled.get()
+    return this.attrs.disabled || this.isFormDisabled.get()
   }
 
   protected classValue(name: AttributeName<BrandColorPickerVocabulary>): unknown {
@@ -174,7 +174,7 @@ export class UIBrandColorPicker extends FormElement<BrandColorPickerVocabulary> 
   /** Adds following outside `value` changes, and the labels' refresh. */
   mount(): JSX.Element {
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (connected) this.labels.refresh()
       }
@@ -434,7 +434,7 @@ export class UIBrandColorPicker extends FormElement<BrandColorPickerVocabulary> 
 
   /** A copy icon and a check, for one row's button. */
   private copyGlyphs(): { copy: IconGlyph; check: IconGlyph } {
-    return { copy: new IconGlyph(this, () => COPY_ICON), check: new IconGlyph(this, () => COPIED_ICON) }
+    return { copy: new IconGlyph({ owner: this, name: () => COPY_ICON }), check: new IconGlyph({ owner: this, name: () => COPIED_ICON }) }
   }
 
   ////////////////

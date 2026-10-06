@@ -44,7 +44,7 @@ export class UILoader extends E.UIElement<typeof loaderVocabulary> {
     // here, not in the constructor:  the name reads `UI.i18n` (via `text()`), which exists once the runtime loads;
     // `hostEffect`:  a server render (`$/ui/static`) applies it too
     this.hostEffect(
-      () => (this.loaded() && !this.hasText() ? this.text("loading") : undefined),
+      () => (this.isLoaded() && !this.hasText() ? this.text("loading") : undefined),
       (label) => {
         // `null`:  `ariaLabel` is the platform's, and `null` removes it
         this.host.internals.ariaLabel = label ?? null

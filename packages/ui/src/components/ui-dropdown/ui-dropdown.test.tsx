@@ -203,7 +203,7 @@ describe("<ui-dropdown> open / close", () => {
     expect(UI.overlays.entries).toHaveLength(1)
     const parent = host.parentElement!
     host.remove()
-    // `connected` follows a microtask late (the fork's hooks may run inside a Solid render)
+    // `isConnected` follows a microtask late (the fork's hooks may run inside a Solid render)
     await ElementFixture.tick()
     await ElementFixture.tick()
     expect(UI.overlays.entries).toHaveLength(0)

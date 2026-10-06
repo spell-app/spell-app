@@ -36,7 +36,7 @@ export class UIEmoji extends E.UIElement<typeof emojiVocabulary> {
     createEffect(
       () => ({
         name: this.attrs.name,
-        connected: this.connected.get(),
+        connected: this.isConnected.get(),
         generation: E.RootSettings.generation.get()
       }),
       ({ name, connected }) => {

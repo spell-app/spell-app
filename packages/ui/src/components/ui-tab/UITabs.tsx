@@ -228,7 +228,7 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   private tab(pane: E.UIHost, index: Accessor<number>): JSX.Element {
     const tab = UITabs.controllerOf(pane)
     const isSelected = () => index() === this.selectedIndex()
-    const glyph = new E.IconGlyph(this, () => tab.attrs.icon)
+    const glyph = new E.IconGlyph({ owner: this, name: () => tab.attrs.icon })
     return (
       <button
         ref={(button: HTMLButtonElement) => (button.ariaControlsElements = [pane])}
@@ -288,7 +288,7 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
     )
     createEffect(
       () =>
-        this.loaded() && this.connected.get()
+        this.isLoaded() && this.isConnected.get()
           ? { vertical: this.attrs.vertical, count: this.tabs().length, index: this.selectedIndex() }
           : undefined,
       (roving) => {
@@ -298,7 +298,7 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
       }
     )
     createEffect(
-      () => this.loaded() && this.connected.get() && this.attrs.history,
+      () => this.isLoaded() && this.isConnected.get() && this.attrs.history,
       (history) => {
         if (!history) return
         const listeners = new AbortController()
@@ -330,7 +330,7 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   /** Animate the swap?  See `show()`. */
   private canTransition(): boolean {
     const { host } = this
-    if (!untrack(this.loaded) || !host.isConnected || host.ownerDocument.visibilityState !== UIT.VISIBLE) return false
+    if (!untrack(this.isLoaded) || !host.isConnected || host.ownerDocument.visibilityState !== UIT.VISIBLE) return false
     return UI.browser.supports.viewTransitions && !UI.browser.isReducedMotion
   }
 

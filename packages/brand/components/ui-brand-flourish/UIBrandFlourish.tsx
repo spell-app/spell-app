@@ -65,7 +65,7 @@ export class UIBrandFlourish extends UIElement<BrandFlourishVocabulary> {
   /** While connected:  measure the host, again on every resize. */
   private effects() {
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected.get(),
       (connected) => {
         if (!connected) return undefined
         const resizes = new ResizeObserver(() => {

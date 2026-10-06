@@ -23,7 +23,11 @@ export class UISections extends E.UIElement<typeof sectionsVocabulary> {
   @E.proto static styles = { section: sectionCSS }
 
   /** Enclosing section or group (`:state(in-section)` / `:state(in-sections)`);  climbs through any component. */
-  readonly context = new E.PartContext(this.host, sectionVocabulary.noun, { barrier: E.PartContext.noBarrier })
+  readonly context = new E.PartContext({
+    host: this.host,
+    noun: sectionVocabulary.noun,
+    barrier: E.PartContext.noBarrier
+  })
 
   render(): JSX.Element {
     return (

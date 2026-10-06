@@ -26,7 +26,7 @@ export class UIComments extends E.UIElement<typeof commentsVocabulary> {
   @E.proto static delegatesFocus = false
 
   /** The comment this is the thread of, if any. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
   /** Light-DOM slot occupancy. */
   readonly slots = new E.SlotContent(this.host)

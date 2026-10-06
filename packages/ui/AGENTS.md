@@ -351,7 +351,7 @@ As WWOD §18, plus:
     Solid's shadow-root delegation leaves on the event (`target`, `currentTarget`, its handled marker);  NEVER
     work around a wrong `target` in a component -- fix it there (`packages/solid-element/UPSTREAM.md`, PR 10).
 - **`keepAlive`:**  a removed element keeps its reactive root (until `dispose()` or garbage collection), so
-  anything page-wide (overlay entries, document listeners) follows `connected()`, never disposal.
+  anything page-wide (overlay entries, document listeners) follows `isConnected`, never disposal.
 - **Slots carry no Solid context:**  an element's root is owned by whoever CREATED it, never by the `<slot>` it's
   assigned to (fork PR 11), so a `<slot>` may live in any `<Show>` / `<Dynamic>` branch, but context provided
   around it never reaches slotted elements.  Owner data goes through `PartContext` / `OwnerContext`.

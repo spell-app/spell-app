@@ -25,10 +25,10 @@ export class UIIcon extends E.UIElement<typeof iconVocabulary> {
   @E.proto static Fallback = IconFallback
 
   /** `<ui-icons>` parent, if any. */
-  readonly context = new E.PartContext(this.host, this.vocabulary.noun, { direct: true })
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun, isDirect: true })
 
   /** The glyph for `name` (+ `outline`). */
-  readonly glyph = new E.IconGlyph(this, () => this.iconName())
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.iconName() })
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)

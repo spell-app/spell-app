@@ -84,16 +84,16 @@ export class UICalendar extends F.FormElement<Vocabulary> {
   readonly labels = new F.ControlLabels(this.formHost)
 
   /** The popup button's glyph:  `icon`, else `calendar` (`clock` for `time`). */
-  readonly glyph = new E.IconGlyph(
-    this,
-    () => this.attrs.icon || (this.attrs.type === "time" ? CLOCK_ICON : CALENDAR_ICON)
-  )
+  readonly glyph = new E.IconGlyph({
+    owner: this,
+    name: () => this.attrs.icon || (this.attrs.type === "time" ? CLOCK_ICON : CALENDAR_ICON)
+  })
 
   /** Previous-page glyph. */
-  readonly previousGlyph = new E.IconGlyph(this, () => PREVIOUS_ICON)
+  readonly previousGlyph = new E.IconGlyph({ owner: this, name: () => PREVIOUS_ICON })
 
   /** Next-page glyph. */
-  readonly nextGlyph = new E.IconGlyph(this, () => NEXT_ICON)
+  readonly nextGlyph = new E.IconGlyph({ owner: this, name: () => NEXT_ICON })
 
   /** Starting value, for form reset:  the `value` ATTRIBUTE. */
   private readonly initialValue = untrack(
@@ -202,7 +202,7 @@ export class UICalendar extends F.FormElement<Vocabulary> {
 
   /** Disabled by its attribute, or by a disabled fieldset. */
   isDisabled(): boolean {
-    return this.attrs.disabled || this.formDisabled.get()
+    return this.attrs.disabled || this.isFormDisabled.get()
   }
 
   /** The field's text:  what's being typed, else the value's. */
@@ -545,7 +545,7 @@ export class UICalendar extends F.FormElement<Vocabulary> {
    */
   private effects() {
     createEffect(
-      () => this.isOpen() && this.connected.get() && this.loaded(),
+      () => this.isOpen() && this.isConnected.get() && this.isLoaded(),
       (isOpen) => {
         const { popup } = this
         if (!isOpen || !popup) return
@@ -564,7 +564,7 @@ export class UICalendar extends F.FormElement<Vocabulary> {
       }
     )
     createEffect(
-      () => [this.connected.get(), this.attrs.startCalendar, this.attrs.endCalendar] as const,
+      () => [this.isConnected.get(), this.attrs.startCalendar, this.attrs.endCalendar] as const,
       ([isConnected, start, end]) => {
         if (!isConnected) return
         void this.resolvePartner(start, this.startPartner)

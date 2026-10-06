@@ -56,7 +56,7 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
   readonly hasInfo = createMemo(() => !!this.attrs.info || this.slots.has(this.slot("info")))
 
   /** Glyph of the info icon, while there's a tip. */
-  readonly infoGlyph = new IconGlyph(this, () => (this.hasInfo() ? INFO_ICON : undefined))
+  readonly infoGlyph = new IconGlyph({ owner: this, name: () => (this.hasInfo() ? INFO_ICON : undefined) })
 
   /** Controls this field named (`aria-label`), so a new `label` renames them and nothing else. */
   private readonly named = new WeakSet<Element>()
