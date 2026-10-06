@@ -61,19 +61,25 @@ export class JSWriter extends Writer {
     return node.value as string
   }
 
+  /** A text value in its `quote` (its `raw` spelling, if the spell source gave one), else a fragment, as is. */
+  ASTStringLiteral(node: P.ASTStringLiteral): string {
+    if (!node.quote) return node.value
+    return node.raw ?? jsText.inQuotes(node.value, node.quote)
+  }
+
   ASTBooleanLiteral(node: P.ASTBooleanLiteral): string {
     return node.value ? "true" : "false"
   }
 
-  ASTNullLiteral(node: P.ASTNullLiteral): string {
+  ASTMissingExpression(node: P.ASTMissingExpression): string {
     return "null"
   }
 
-  ASTUndefinedLiteral(node: P.ASTUndefinedLiteral): string {
+  ASTNothingLiteral(node: P.ASTNothingLiteral): string {
     return "undefined"
   }
 
-  ASTThisLiteral(node: P.ASTThisLiteral): string {
+  ASTSelfLiteral(node: P.ASTSelfLiteral): string {
     return "this"
   }
 
@@ -183,8 +189,9 @@ export class JSWriter extends Writer {
     return `!${this.write(node.expression)}`
   }
 
+  /** `lhs op rhs`, `op` the javascript for its `operator`'s meaning -- see `OPERATORS`. */
   ASTInfixExpression(node: P.ASTInfixExpression): string {
-    return `${this.write(node.lhs)} ${node.operator} ${this.write(node.rhs)}`
+    return `${this.write(node.lhs)} ${JSWriter.OPERATORS[node.operator]} ${this.write(node.rhs)}`
   }
 
   ////////////////
@@ -496,6 +503,27 @@ export class JSWriter extends Writer {
   ////////////////
   // ## Settings
   ////////////////
+
+  /**
+   * Javascript for each infix operator's meaning (`P.ASTOperator`).
+   * - `equals` is `==`, not `===`:  spell's `is` is forgiving, `"2"` is `2`.
+   */
+  static OPERATORS: Record<P.ASTOperator, string> = {
+    and: "&&",
+    or: "||",
+    equals: "==",
+    "not equals": "!=",
+    "exactly equals": "===",
+    "not exactly equals": "!==",
+    "less than": "<",
+    "greater than": ">",
+    "at most": "<=",
+    "at least": ">=",
+    plus: "+",
+    minus: "-",
+    times: "*",
+    "divided by": "/"
+  }
 
   /** Should we `export` top-level vars?  Global toggle -- flip to `false` to disable entirely. */
   static EXPORT_VARS = true

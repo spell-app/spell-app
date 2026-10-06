@@ -41,7 +41,7 @@ class _await extends SpellStatement<"expression?"> {
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
     return new P.ASTAwaitExpression(match, {
-      expression: (expression && P.asAST<P.ASTExpression>(expression.AST)) || new P.ASTUndefinedLiteral(match)
+      expression: (expression && P.asAST<P.ASTExpression>(expression.AST)) || new P.ASTNothingLiteral(match)
     })
   }
 }

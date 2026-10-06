@@ -163,22 +163,33 @@ export class ASTNumericLiteral extends ASTLiteral {
   }
 }
 
-/** StringLiteral type.
- *  - `value` is the string.
+/** A quote a text literal is written in:  double, single or a back tick. */
+export type ASTQuote = '"' | "'" | "`"
+
+/** StringLiteral type -- text.
+ *  - `quote` set:  a text VALUE.  `value` is the text itself, plain;  a writer quotes it in `quote` -- or, given
+ *    `raw` (how the spell source spelled it, e.g. `"a \"b\""`), may write that.
+ *  - `quote` unset:  a FRAGMENT of output, `value` written as is -- e.g. inside an `ASTQuotedExpression`, which
+ *    adds the quotes itself.
  *  - `raw` (optional) is original input string.
  */
-export type ASTStringLiteralProps = Prettify<{ value: string; raw?: string }>
+export type ASTStringLiteralProps = Prettify<{ value: string; quote?: ASTQuote; raw?: string }>
 
 export class ASTStringLiteral extends ASTLiteral {
   declare value: string
+  declare quote: ASTQuote | undefined
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "text"
   }
-  /** Constructor also accepts a bare `string` as shorthand for `{ value }`. */
+  /** Constructor also accepts a bare `string` as shorthand for `{ value }`:  a fragment. */
   constructor(match: P.AnyMatch, props: string | ASTStringLiteralProps) {
     if (typeof props === "string") props = { value: props }
     super(match, props)
     this.assertType("value", "string")
+    this.assert(
+      this.quote === undefined || ['"', "'", "`"].includes(this.quote),
+      `ASTStringLiteral: unknown quote '${this.quote}'`
+    )
   }
 }
 
@@ -217,9 +228,11 @@ export class ASTRegExpLiteral extends ASTLiteral {
   }
 }
 
-/** NullLiteral type.  TODO: ???? */
-export class ASTNullLiteral extends ASTLiteral {
-  // TODO: ???
+/**
+ * MissingExpression -- stands in for an expression that didn't parse, beside the error saying why, e.g. a JSX
+ * `{...}` with nothing usable in it.  `JSWriter` writes `null`.
+ */
+export class ASTMissingExpression extends ASTLiteral {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "nothing"
   }
@@ -229,8 +242,8 @@ export class ASTNullLiteral extends ASTLiteral {
   }
 }
 
-/** UndefinedLiteral type.  TODO: ???? */
-export class ASTUndefinedLiteral extends ASTLiteral {
+/** NothingLiteral -- spell's `nothing`:  no value.  `JSWriter` writes `undefined`, a Python writer would `None`. */
+export class ASTNothingLiteral extends ASTLiteral {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "nothing"
   }
@@ -240,8 +253,8 @@ export class ASTUndefinedLiteral extends ASTLiteral {
   }
 }
 
-/** ThisLiteral type -- represents JS `this`. */
-export class ASTThisLiteral extends ASTLiteral {}
+/** SelfLiteral -- the thing a method runs on, e.g. the card in a card's `turn over`.  `JSWriter` writes `this`. */
+export class ASTSelfLiteral extends ASTLiteral {}
 
 /** KeywordLiteral type.
  *  - `value` is raw input converted into a JS-legal keyword.
@@ -642,17 +655,43 @@ export class ASTNotExpression extends ASTExpression {
   }
 }
 
-/** InfixExpression:  `<lhs> <operator> <rhs>`. */
-export type ASTInfixExpressionProps = Prettify<{ lhs: ASTExpression; operator: string; rhs: ASTExpression }>
+/**
+ * What an infix operator MEANS, in spell's words -- a writer spells it in its language, e.g. `JSWriter`:
+ * `equals` => `==`, `exactly equals` => `===`, `and` => `&&`.
+ * - `equals` is spell's `is`:  forgiving, `"2"` is `2`;  `exactly equals` is `is exactly`.
+ * - `plus` adds numbers or joins text:  which, a writer can tell from the sides' datatypes.
+ */
+export const AST_OPERATORS = [
+  "and",
+  "or",
+  "equals",
+  "not equals",
+  "exactly equals",
+  "not exactly equals",
+  "less than",
+  "greater than",
+  "at most",
+  "at least",
+  "plus",
+  "minus",
+  "times",
+  "divided by"
+] as const
+
+/** One of `AST_OPERATORS`, e.g. `exactly equals`. */
+export type ASTOperator = (typeof AST_OPERATORS)[number]
+
+/** InfixExpression:  `<lhs> <operator> <rhs>`, `operator` an `ASTOperator`, e.g. `equals`. */
+export type ASTInfixExpressionProps = Prettify<{ lhs: ASTExpression; operator: ASTOperator; rhs: ASTExpression }>
 
 export class ASTInfixExpression extends ASTExpression {
   declare lhs: ASTExpression
-  declare operator: string
+  declare operator: ASTOperator
   declare rhs: ASTExpression
   constructor(match: P.AnyMatch, props: ASTInfixExpressionProps) {
     super(match, props)
     this.assertType("lhs", ASTExpression)
-    this.assertType("operator", "string")
+    this.assert(AST_OPERATORS.includes(this.operator), `ASTInfixExpression: unknown operator '${this.operator}'`)
     this.assertType("rhs", ASTExpression)
   }
 }
@@ -667,7 +706,7 @@ export class ASTInfixExpression extends ASTExpression {
  */
 export function ASTMultiInfixExpression(
   match: P.AnyMatch,
-  { expressions, operator }: { expressions: ASTExpression[]; operator: string }
+  { expressions, operator }: { expressions: ASTExpression[]; operator: ASTOperator }
 ): ASTExpression | undefined {
   if (expressions.length < 2) return expressions[0]
   const remaining = [...expressions]
@@ -882,8 +921,8 @@ export class ASTExpectMethodInvocation extends ASTCoreMethodInvocation {
   /** Wraps `expressionString`/`valueString` as backtick `ASTStringLiteral`s and never wraps args. */
   constructor(match: P.AnyMatch, props: ASTExpectMethodInvocationProps) {
     const { expression, expressionString, value, valueString } = props
-    const args = [expression, new ASTStringLiteral(match, "`" + expressionString + "`")]
-    if (value) args.push(value, new ASTStringLiteral(match, "`" + valueString + "`"))
+    const args = [expression, new ASTStringLiteral(match, { value: expressionString, quote: "`" })]
+    if (value) args.push(value, new ASTStringLiteral(match, { value: String(valueString), quote: "`" }))
     super(match, { methodName: "expect", args, wrap: false })
   }
 }
@@ -906,7 +945,7 @@ export class ASTEchoInvocation extends ASTCoreMethodInvocation {
   constructor(match: P.AnyMatch, props: ASTEchoInvocationProps) {
     const { methodName = "echo" } = props
     let { expression } = props
-    if (typeof expression === "string") expression = new ASTStringLiteral(match, "`" + expression + "`")
+    if (typeof expression === "string") expression = new ASTStringLiteral(match, { value: expression, quote: "`" })
     super(match, { methodName, args: [expression] })
   }
 }
@@ -922,7 +961,7 @@ export type ASTHeadingInvocationProps = { heading: string }
 
 export class ASTHeadingInvocation extends ASTCoreMethodInvocation {
   constructor(match: P.AnyMatch, { heading }: ASTHeadingInvocationProps) {
-    super(match, { methodName: "heading", args: [new ASTStringLiteral(match, JSON.stringify(heading))] })
+    super(match, { methodName: "heading", args: [new ASTStringLiteral(match, { value: heading, quote: '"' })] })
   }
 }
 
@@ -1774,7 +1813,7 @@ export class ASTJSXElement extends ASTExpression {
       const properties: ASTObjectLiteralProperty[] = [
         new ASTObjectLiteralProperty(this.match, {
           property: "tag",
-          value: new ASTStringLiteral(this.match, `"${this.tagName}"`)
+          value: new ASTStringLiteral(this.match, { value: this.tagName, quote: '"' })
         })
       ]
 
@@ -1841,7 +1880,7 @@ export class ASTJSXAttribute extends ASTExpression {
       //  if we have a parse error, return `undefined`
       //  otherwise return `true` as per spec for an empty attribute
       const value: ASTExpression =
-        this.value || (this.error ? new ASTUndefinedLiteral(this.match) : new ASTBooleanLiteral(this.match, true))
+        this.value || (this.error ? new ASTNothingLiteral(this.match) : new ASTBooleanLiteral(this.match, true))
       if (value instanceof ASTMethodDefinition) {
         value.asProperty = true
         value.methodName = this.name
@@ -1875,7 +1914,7 @@ export class ASTJSXEndTag extends ASTExpression {
 }
 
 /** JSXText -- plain text content between tags.
- * - `value` is text content.
+ * - `value` is text content, trimmed:  plain, NOT quoted -- its `output` is a text value a writer quotes.
  * - `raw` (optional) is original unnormalized input string.
  */
 export type ASTJSXTextProps = Prettify<{ value: string; raw?: string }>
@@ -1892,7 +1931,7 @@ export class ASTJSXText extends ASTExpression {
   /*@memoize*/
   get output(): ASTStringLiteral {
     return this.derived("output", () => {
-      return new ASTStringLiteral(this.match, this.value)
+      return new ASTStringLiteral(this.match, { value: this.value, quote: '"' })
     })
   }
 }
@@ -1912,14 +1951,14 @@ export class ASTJSXExpression extends ASTExpression {
     this.assertType("error", ASTParseError, OPTIONAL)
   }
   /**
-   * `expression` as-is normally; when there's an `error`, wraps it (or an `ASTNullLiteral` placeholder if
+   * `expression` as-is normally; when there's an `error`, wraps it (or an `ASTMissingExpression` placeholder if
    * `expression` is also missing) in an `ASTExpressionWithComment` so error surfaces in compiled output.
    */
   /*@memoize*/
   get output(): ASTExpression | ASTExpressionWithComment | undefined {
     return this.derived("output", () => {
       if (this.error) {
-        const expression = this.expression || new ASTNullLiteral(this.match)
+        const expression = this.expression || new ASTMissingExpression(this.match)
         return new ASTExpressionWithComment(this.match, {
           expression,
           comment: this.error
