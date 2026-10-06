@@ -213,9 +213,12 @@ export class SpellParser extends P.Parser {
     return [...text.matchAll(SpellParser.TYPE_DECLARATION)].map(([, type, created]) => (type ?? created)!)
   }
 
-  /** A line declaring a type, its name captured -- see `declaredTypes()`. */
+  /**
+   * A line declaring a type, its name captured -- see `declaredTypes()`.
+   * - The name may be quoted, `a "card" is a thing` (`quoted_type`), and the line bulleted, `- a card is a thing`.
+   */
   static TYPE_DECLARATION =
-    /^[ \t]*(?:an?[ \t]+([\w-]+)[ \t]+is\b|create[ \t]+a[ \t]+type[ \t]+(?:named|called)[ \t]+([\w-]+))/gim
+    /^[ \t]*(?:-[ \t]+)?(?:an?[ \t]+["']?([\w-]+)["']?[ \t]+is\b|create[ \t]+a[ \t]+type[ \t]+(?:named|called)[ \t]+([\w-]+))/gim
 
   /** Commit a spell statement parsed on its own -- see `SP.commitStatement()`. */
   commit(match: P.Match) {

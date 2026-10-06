@@ -2279,6 +2279,56 @@ export class ASTStaticDefinition extends ASTClassMember {
 }
 
 /**
+ * StaticMethod -- a method of the class itself, e.g. a property of a VALUE kind, which works on a value it's
+ * given:  `static color(suit) {...}`, read as `Suit.color(card.suit)`.
+ * - `type` (required) is its class, as a TypeExpression or bare name.
+ * - `name` (required) is its name, a legal identifier.
+ * - `method` (required) is its MethodDefinition:  its args and body.
+ * - `getter` (optional):  a static GETTER, read when used, e.g. `static get instanceType() { return Card }` for a
+ *   class defined below its list's.
+ * - `static color(suit) {...}` in its class, else `Suit.color = function (suit) {...}` -- or for a getter
+ *   `Object.defineProperty(Deck, 'instanceType', { get() {...}, configurable: true })`.
+ */
+export type ASTStaticMethodProps = Prettify<{
+  type: string | ASTTypeExpression
+  name: string
+  method: ASTMethodDefinition
+  getter?: boolean
+}>
+
+export class ASTStaticMethod extends ASTClassMember {
+  declare name: string
+  declare method: ASTMethodDefinition
+  declare getter: boolean | undefined
+  constructor(match: P.AnyMatch, props: ASTStaticMethodProps) {
+    super(match, props)
+    this.assertType("name", "string")
+    this.assert(isLegalIdentifier(this.name), `ASTStaticMethod: illegal name '${this.name}'`)
+    this.assertType("method", ASTMethodDefinition)
+    this.assertType("getter", "boolean", OPTIONAL)
+  }
+  compileAsMember(): string {
+    return this.method.compileNamed(this.getter ? `static get ${this.name}` : `static ${this.name}`)
+  }
+  compile(): string {
+    if (this.getter) {
+      const descriptor = [`${this.method.compileNamed("get")},`, "configurable: true"].join(stringify.NEWLINE)
+      return `Object.defineProperty(${this.type.compile()}, '${this.name}', ${stringify.Block({ wrap: true, children: descriptor })})`
+    }
+    return `${this.type.compile()}.${this.name} = ${this.method.compileAnonymous()}`
+  }
+  renderAsMember(): P.Markup {
+    const name = this.getter
+      ? render.Fragment(render.STATIC, render.GET, this.name)
+      : render.Fragment(render.STATIC, this.name)
+    return this.method.renderNamed(name)
+  }
+  renderChildren(): P.Markup {
+    return render.Fragment(this.type.markup, render.PERIOD, this.name, render.EQUALS, this.method.renderAnonymous())
+  }
+}
+
+/**
  * PatchedMember -- a class member ALWAYS patched onto its class from outside, wherever that class is compiled,
  * e.g. `Card.declareProp('pile', ...)` + `Object.defineProperty(Card.prototype, 'pile', ...)`.
  * - `member` (required) is the ClassMember, compiled with its `compile()`.

@@ -1,5 +1,8 @@
 import { describe, test, expect } from "vite-plus/test"
 
+import { spellCore, Thing, List, App } from "$/core"
+import { P } from "$/parser"
+import { SP } from "$/spell"
 import { parseSpellProject } from "$/spell/test"
 
 /**
@@ -66,12 +69,143 @@ describe("outline style", () => {
     expect(files[0]!.errors).not.toEqual([])
   })
 
+  test("a property's quotes are optional:  `its rank is ...` (plan doc Q4)", () => {
+    const quoted = [
+      "a card is a thing where:",
+      '\t- its "rank" is a number',
+      '\t- its "name" is text',
+      '\t- its "double" is: its rank * 2',
+      '\t- its "color" is red if its rank is 1 otherwise it is black'
+    ]
+    const bare = [
+      "a card is a thing where:",
+      "\t- its rank is a number",
+      "\t- its name is text",
+      "\t- its double is: its rank * 2",
+      "\t- its color is red if its rank is 1 otherwise it is black"
+    ]
+    expect(compile(bare)).toBe(compile(quoted))
+    expect(compile(quoted)).toContain("this.declareProp('name', { type: 'text' })")
+  })
+
+  test("without its article, only a TYPE makes a declaration:  `its x is total` is a getter (issue I2)", () => {
+    expect(compile(["total is 5", "a card is a thing where:", "\t- its x is total"])).toContain("return total")
+  })
+
+  test('`- it "rank" is ...` says to write `its` (plan doc todo T3)', () => {
+    const { files } = parseSpellProject([
+      { path: "/test.spell", contents: 'a card is a thing where:\n\t- it "rank" is a number' }
+    ])
+    expect(files[0]!.errors).toEqual([`2:3 A property starts "its":  write its "rank" is ...`])
+  })
+
+  test("quoted property names in the sentence style (plan doc J3, option C)", () => {
+    const sentences = [
+      "a card is a thing",
+      "a card has a suit as one of clubs, diamonds, hearts or spades",
+      "cards have a direction as either up or down",
+      'the short name of a card is: "x" + its suit',
+      "the color of a card is red if its suit is either diamonds or hearts otherwise it is black"
+    ]
+    const quoted = [
+      "a card is a thing",
+      'a card has a "suit" as one of clubs, diamonds, hearts or spades',
+      'cards have a "direction" as either up or down',
+      'the "short name" of a card is: "x" + its suit',
+      'the "color" of a card is red if its suit is either diamonds or hearts otherwise it is black'
+    ]
+    expect(compile(quoted)).toBe(compile(sentences))
+  })
+
+  test("a quoted type can be named above its line (issue I1)", () => {
+    const quoted = compile(["the card is a new card", 'a "card" is a thing'])
+    expect(quoted).toBe(compile(["the card is a new card", "a card is a thing"]))
+  })
+
+  describe('value kinds (P2):  `"suits" as one of ...` in a deck\'s body', () => {
+    const DECK = [
+      "a deck is a list of cards with:",
+      '\t- "suits" as one of clubs, diamonds, hearts or spades',
+      '\t- the "color" of a suit is:',
+      "\t\tred if it is diamonds or hearts",
+      "\t\tblack otherwise",
+      '\t- "ranks" as one of ace, 2 ... 10, jack, queen or king',
+      "a card is a thing where:",
+      '\t- its "suit" is a suit',
+      '\t- its "color" is the color of its suit',
+      '\t- its "rank" is a rank'
+    ]
+
+    test("compiles:  the list on the deck, the kind's class, its property as a static method", () => {
+      const js = compile(DECK)
+      expect(js).toContain("Deck.Suits = ['clubs', 'diamonds', 'hearts', 'spades']")
+      expect(js).toContain("Deck.Ranks = ['ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king']")
+      expect(js).toMatch(/export class Suit \{\s+static color\(suit\) \{/)
+      expect(js).toContain("if (spellCore.includes(['diamonds', 'hearts'], suit)) { return 'red' }")
+      expect(js).toContain("static { this.declareProp('suit', { oneOf: () => Deck.Suits }) }")
+      expect(js).toContain("return Suit.color(this.suit)")
+    })
+
+    test("`a suit of its deck` says the same as `a suit`;  `up or down` needs no `either`", () => {
+      const said = compile([
+        ...DECK.slice(0, 7),
+        '\t- its "suit" is a suit of its deck',
+        '\t- its "direction" is up or down'
+      ])
+      expect(said).toContain("this.declareProp('suit', { oneOf: () => Deck.Suits })")
+      expect(said).toContain("static Directions = ['up', 'down']")
+    })
+
+    test("`is jack, queen or king`:  one of those values", () => {
+      const js = compile([...DECK, '\t- it "is a face card" if its rank is jack, queen or king'])
+      expect(js).toContain("spellCore.includes(['jack', 'queen', 'king'], this.rank)")
+    })
+
+    test("a property of a type nobody declared is an error, not a class that doesn't exist", () => {
+      const { files } = parseSpellProject([{ path: "/test.spell", contents: 'a widget "is shiny" if 1 is 1' }])
+      expect(files[0]!.errors).toEqual([`1:0 There's no type "widget":  declare it, e.g. "a widget is a thing"`])
+    })
+
+    test("runs:  a card's color comes from its suit", () => {
+      const run = runSpell([
+        ...DECK,
+        "the queen is a new card with suit = hearts, rank = queen",
+        "the other is a new card with suit = spades, rank = 2",
+        "set queen-color to the color of the queen",
+        "set other-color to the color of the other"
+      ])
+      expect(run("queen_color, other_color")).toEqual({ queen_color: "red", other_color: "black" })
+    })
+  })
+
   test("a bullet is never part of the statement:  `- x` and `x` are the same line", () => {
     expect(compile(["- a card is a thing", "- a card has a rank as a number"])).toBe(
       compile(["a card is a thing", "a card has a rank as a number"])
     )
   })
 })
+
+/**
+ * `lines` compiled, then RUN on `core`'s source, as `membership.test.ts` does:  a function of the names to return.
+ * - Throws on a parse error.
+ */
+function runSpell(lines: string[]) {
+  const { files } = parseSpellProject([{ path: "/Test.spell", contents: lines.join("\n") }])
+  const [file] = files
+  if (file!.errors.length) throw new Error(`parse errors:\n${JSON.stringify(file!.errors, null, 2)}`)
+  const parts = files.map(({ match, compiled }) => (match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled))
+  const code = SP.SpellProject.combineCompiled(parts)
+    .split("\n")
+    .filter((line) => !line.startsWith("import "))
+    .join("\n")
+    .replace(/^export /gm, "")
+  return (names: string) => {
+    const body = `${code}\nreturn { ${names} }`
+    // oxlint-disable-next-line no-implied-eval -- running compiled spell, as a runner does, is the test
+    const fn = new Function("spellCore", "Thing", "List", "App", body)
+    return spellCore.things.quietly(() => fn(spellCore, Thing, List, App)) as Record<string, unknown>
+  }
+}
 
 /**
  * Compiled `lines`, as one file of its own project -- without its `SPELL: DECLARES` comments, which say where

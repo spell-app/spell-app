@@ -529,14 +529,19 @@ export function builtInMemberName(words: string): string {
 export function parseReadAsTemplate(template: string): SP.ReadAsTemplate | undefined {
   const match = READ_AS_TEMPLATE.exec(template)
   if (!match) return undefined
-  const [, property, method, helper] = match
+  const [, property, method, helper, type, staticName] = match
   if (property) return { form: "property", name: property }
   if (method) return { form: "method", name: method }
-  return { form: "spellCore", name: helper! }
+  if (helper) return { form: "spellCore", name: helper }
+  return { form: "static", type: type!, name: staticName! }
 }
 
-/** What `parseReadAsTemplate()` reads:  `{it}.name`, `{it}.name()`, `spellCore.name({it})`. */
-const READ_AS_TEMPLATE = /^(?:\{it\}\.(\w+)|\{it\}\.(\w+)\(\)|spellCore\.(\w+)\(\{it\}\))$/
+/**
+ * What `parseReadAsTemplate()` reads:  `{it}.name`, `{it}.name()`, `spellCore.name({it})`, `Type.name({it})`.
+ * - The last is a VALUE kind's property, e.g. `Suit.color({it})` -- never in the table:  see `value_kind`.
+ */
+const READ_AS_TEMPLATE =
+  /^(?:\{it\}\.(\w+)|\{it\}\.(\w+)\(\)|spellCore\.(\w+)\(\{it\}\)|(?!spellCore\.)([A-Z]\w*)\.(\w+)\(\{it\}\))$/
 
 ////////////////
 // ## Lookups

@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { NONE, proto } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 // Import directly to avoid circular import -- rules are constructed while the `SP` barrel is still loading.
@@ -105,6 +105,20 @@ export class SpellStatement<
       match,
       `Can't add ${words} to ${typeName}:  it's built in, and every project shares it`
     )
+  }
+
+  /**
+   * `match`, a statement adding to `type` -- or, when spell knows NO type of that name, a parse error saying so,
+   * e.g. `the color of a suit is ...` with no `suit` declared anywhere in the project.
+   * - Why:  it'd compile against a class nobody defines, `Suit.prototype`, and throw when run
+   *   (was `agents/SUSPECTED-BUGS.md`;  plan doc `outline-spell`, P2).
+   * - A type declared further down is known:  every declaration is stubbed before a project parses.
+   * - A lookup:  call it WHILE PARSING.
+   */
+  static refuseUnknownType(match: P.Match, type: P.Match): P.Match {
+    const { scopeType } = type.data as { scopeType?: unknown }
+    if (scopeType !== NONE) return match
+    return SpellStatement.refuse(match, `There's no type "${type.raw}":  declare it, e.g. "a ${type.raw} is a thing"`)
   }
 
   /**
