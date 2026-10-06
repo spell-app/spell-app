@@ -6,7 +6,7 @@ import { CLI } from "$/cli"
 /**
  * `spell parse "<text>"`:  how spell reads a line -- its match tree, then the javascript it compiles to.
  * - Tried as a `statement`, then an `expression` -- or as `--rule <name>`.  Several lines parse as a `block`.
- * - `--in <target>`:  parse inside that project's scope, so its types and phrases are known.
+ * - `--in <project>`:  parse inside that project's scope, so its types and phrases are known.
  * - `--json`:  the result as JSON -- see `CLI.ParsedText`.
  * - `--tree`:  the SPELL tree instead of the match tree:  what it means, as `<ui-tree-diagram>` draws it
  *   (`P.TreeWriter`).  With `--json`:  just that tree's data;  with `--html`:  a `<ui-tree-diagram>` for a docs page.
@@ -43,10 +43,10 @@ export async function parseCommand(
  * - A `.spell` file means its project.  Throws `CLI.CliError` for several.
  */
 export async function projectFor(session: CLI.CliSession, arg: string): Promise<SP.SpellProject> {
-  const targets = await session.targets([arg])
-  if (targets.length !== 1) throw new CLI.CliError(`'${arg}' is several projects -- name one`)
-  const [target] = targets
-  const project = target!.kind === "file" ? target!.file.project : target!.project
+  const resolvedProjects = await session.projects([arg])
+  if (resolvedProjects.length !== 1) throw new CLI.CliError(`'${arg}' is several projects -- name one`)
+  const [resolved] = resolvedProjects
+  const project = resolved!.kind === "file" ? resolved!.file.project : resolved!.project
   const status = session.isInteractive ? new CLI.StatusReporter(true) : undefined
   const row = status?.start(`Parsing ${project.projectId}`)
   try {

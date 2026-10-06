@@ -25,17 +25,17 @@ export async function compileCommand(
   args: string[],
   options: CLI.CompileOptions
 ): Promise<number> {
-  const targets = await session.targets(args)
+  const resolvedProjects = await session.projects(args)
   const status = new CLI.StatusReporter(session.isInteractive)
   // printed once `status` is done, so the two don't interleave
   const output: string[] = []
   let exitCode: number = CLI.EXIT.OK
   try {
-    for (const target of targets) {
+    for (const resolved of resolvedProjects) {
       const ok =
-        target.kind === "file"
-          ? await compileFile(session, target.file, status, output)
-          : await compileProject(session, target.project, status, output, options)
+        resolved.kind === "file"
+          ? await compileFile(session, resolved.file, status, output)
+          : await compileProject(session, resolved.project, status, output, options)
       if (!ok) exitCode = CLI.EXIT.ERRORS
     }
   } finally {

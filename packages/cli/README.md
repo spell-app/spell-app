@@ -89,7 +89,7 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 
 - No project named:  the project here, for every command.  Outside a project, in a terminal, `spell` asks -- completing as
   you type, like a shell:  `Tab` completes a root (`@examples/`), then a project, then "entire project" or one of
-  its files;  your last 3 picks come first (kept in `.recent-targets.json`, gitignored).  Piped, it says to name one.
+  its files;  your last 3 picks come first (kept in `.recent-projects.json`, gitignored).  Piped, it says to name one.
 - Names in `describe` ignore case, and spaces ~== `-` ~== `_`:  `stock pile` finds `Stock_Pile`.
 - Everywhere:  `--verbose` lets spell's own logging through, on stderr.  `NO_COLOR=1` turns colour off.
 - `o` in `explore` runs `$SPELL_EDITOR -g path:line`, `code` by default.  Cursor works too.

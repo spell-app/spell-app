@@ -8,7 +8,7 @@ const ROOT = {
   arg: "@test",
   title: "Test fixtures",
   projectIds: ["@test:fixtures:FizzBuzz", "@test:fixtures:Solitaire"]
-} as const satisfies CLI.CliTarget
+} as const satisfies CLI.CliProject
 
 const DOWN = "\u001B[B"
 const ENTER = "\r"

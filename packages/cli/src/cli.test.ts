@@ -214,7 +214,7 @@ describe("spell serve", () => {
   // one retry:  vite's first start, in a busy run, once timed out (plan doc I3)
   const options = { timeout: 180_000, retry: 1 }
   test(
-    "--headless:  the page server's editor (on --port if it starts the page server), /api through it, the target",
+    "--headless:  the page server's editor (on --port if it starts the page server), /api through it, the project",
     options,
     async () => {
       // the editor is the page server's child:  a page server already running (a developer's) keeps its own port
@@ -265,7 +265,7 @@ describe("spell serve", () => {
   })
 })
 
-describe("no target", () => {
+describe("no project named", () => {
   test("in a project's folder:  that project -- for every command", () => {
     const here = tempProject("Here", 'print "here"\n')
     expect(spell(["check"], here).stderr).toContain("✓ @workspace:")
@@ -304,7 +304,7 @@ describe("spell compile", () => {
     expect(stderr).toContain("@test holds several projects -- name one, or pass --all:\n  @test:fixtures:FizzBuzz\n")
   })
 
-  test("an unknown target", () => {
+  test("an unknown project", () => {
     const { status, stderr } = spell(["compile", "@nope"])
     expect(status).toBe(2)
     expect(stderr).toContain("'@nope' isn't a project")
@@ -472,7 +472,7 @@ describe("spell watch", () => {
   }, 30_000)
 
   test("rebuilds a project when one it imports changes", async () => {
-    // `@workspace:<folder>` is the root `resolveTarget()` makes for TEMP
+    // `@workspace:<folder>` is the root `resolveProject()` makes for TEMP
     const lib = tempProject("Lib", "a widget is a thing\n")
     const app = resolve(TEMP, "App")
     mkdirSync(app)

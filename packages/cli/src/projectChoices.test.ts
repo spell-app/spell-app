@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "fs"
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
 import { afterAll, describe, test, expect } from "vite-plus/test"
@@ -7,12 +7,12 @@ import { CLI } from "$/cli"
 
 /** Values of the choices for `text`. */
 async function values(text: string, recents: string[] = []) {
-  return (await CLI.targetChoices(text, recents)).map((choice) => choice.value)
+  return (await CLI.projectChoices(text, recents)).map((choice) => choice.value)
 }
 
-describe("targetChoices()", () => {
+describe("projectChoices()", () => {
   test("nothing typed:  recent picks, then each root", async () => {
-    const choices = await CLI.targetChoices("", ["@test/FizzBuzz"])
+    const choices = await CLI.projectChoices("", ["@test/FizzBuzz"])
     expect(choices[0]).toEqual({ value: "@test/FizzBuzz", isFinal: true, isRecent: true })
     expect(choices.map((it) => it.value)).toEqual(expect.arrayContaining(["@examples/", "@library/", "@test/"]))
     expect(choices.filter((it) => !it.isRecent).every((it) => !it.isFinal)).toBe(true)
@@ -28,7 +28,7 @@ describe("targetChoices()", () => {
   })
 
   test("a project:  the entire project first, then its spell files", async () => {
-    const choices = await CLI.targetChoices("@test/Solitaire/")
+    const choices = await CLI.projectChoices("@test/Solitaire/")
     expect(choices[0]).toEqual({ value: "@test/Solitaire", label: "entire project", isFinal: true })
     expect(choices.slice(1).map((it) => it.value)).toEqual([
       "@test/Solitaire/Card.spell",
@@ -53,19 +53,32 @@ describe("commonPrefix()", () => {
   })
 })
 
-describe("recentTargets()", () => {
+describe("recentProjects()", () => {
   const folder = mkdtempSync(resolve(tmpdir(), "spell-recent-"))
   const file = resolve(folder, "recent.json")
   afterAll(() => rmSync(folder, { recursive: true, force: true }))
 
   test("none yet, or a broken file:  none", () => {
-    expect(CLI.recentTargets(file)).toEqual([])
+    expect(CLI.recentProjects(file)).toEqual([])
     writeFileSync(file, "not json")
-    expect(CLI.recentTargets(file)).toEqual([])
+    expect(CLI.recentProjects(file)).toEqual([])
   })
 
   test("newest first, no repeats, at most 3", () => {
-    for (const target of ["a", "b", "c", "a", "d"]) CLI.rememberTarget(target, file)
-    expect(CLI.recentTargets(file)).toEqual(["d", "a", "c"])
+    for (const arg of ["a", "b", "c", "a", "d"]) CLI.rememberProject(arg, file)
+    expect(CLI.recentProjects(file)).toEqual(["d", "a", "c"])
+  })
+
+  test("an old .recent-targets.json beside it:  moved into place, unless there's a new one already", () => {
+    const newFile = resolve(folder, ".recent-projects.json")
+    const oldFile = resolve(folder, ".recent-targets.json")
+    writeFileSync(oldFile, '["@test/FizzBuzz"]')
+    expect(CLI.recentProjects(newFile)).toEqual(["@test/FizzBuzz"])
+    expect(existsSync(oldFile)).toBe(false)
+    expect(readFileSync(newFile, "utf8")).toBe('["@test/FizzBuzz"]')
+
+    writeFileSync(oldFile, '["@test/Solitaire"]')
+    expect(CLI.recentProjects(newFile)).toEqual(["@test/FizzBuzz"])
+    expect(existsSync(oldFile)).toBe(true)
   })
 })

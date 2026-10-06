@@ -45,43 +45,43 @@ export class CliSession {
   }
 
   ////////////////
-  // ## Targets
+  // ## Projects
   ////////////////
 
   /**
    * What `args` name, in order, with each bare root turned into its projects -- see `projectsFor()`.
-   * - No `args`:  see `defaultTarget()`.
+   * - No `args`:  see `defaultProject()`.
    * - Throws `CLI.CliError` for anything it can't place.
    */
-  async targets(args: string[]): Promise<CLI.ResolvedTarget[]> {
-    const targets: CLI.ResolvedTarget[] = []
-    for (const arg of args.length ? args : [await this.defaultTarget()]) {
-      const target = await CLI.resolveTarget(arg)
-      if (target.kind !== "root") {
-        targets.push(target)
+  async projects(args: string[]): Promise<CLI.ResolvedProject[]> {
+    const projects: CLI.ResolvedProject[] = []
+    for (const arg of args.length ? args : [await this.defaultProject()]) {
+      const resolved = await CLI.resolveProject(arg)
+      if (resolved.kind !== "root") {
+        projects.push(resolved)
         continue
       }
-      for (const projectId of await this.projectsFor(target)) {
-        targets.push({ kind: "project", arg: projectId, project: new SP.SpellProject(projectId) })
+      for (const projectId of await this.projectsFor(resolved)) {
+        projects.push({ kind: "project", arg: projectId, project: new SP.SpellProject(projectId) })
       }
     }
-    return targets
+    return projects
   }
 
   /**
-   * The target when none was given:
+   * The project when none was given:
    * - In a project's folder, or below it:  that project, `@workspace`.
-   * - Otherwise, in a terminal:  ask, at a `<TargetPrompt>`.  Throws `CLI.CliError` if cancelled.
+   * - Otherwise, in a terminal:  ask, at a `<ProjectPrompt>`.  Throws `CLI.CliError` if cancelled.
    * - Otherwise:  throws `CLI.CliError`, saying to name one.
    */
-  async defaultTarget(): Promise<string> {
+  async defaultProject(): Promise<string> {
     if (CLI.projectDirAbove(process.cwd())) return CLI.WORKSPACE_ARG
     if (!this.isInteractive) {
       throw new CLI.CliError("No spell project here -- name one, e.g. @examples/Solitaire, or `spell projects`")
     }
-    const target = await CLI.promptForTarget()
-    if (!target) throw new CLI.CliError("Cancelled")
-    return target
+    const picked = await CLI.promptForProject()
+    if (!picked) throw new CLI.CliError("Cancelled")
+    return picked
   }
 
   /**
@@ -90,7 +90,7 @@ export class CliSession {
    * - `--all`:  all of them.
    * - Otherwise we ask, with "All projects" first -- or, with no terminal to ask on, throw listing them.
    */
-  async projectsFor(root: Extract<CLI.CliTarget, { kind: "root" }>): Promise<string[]> {
+  async projectsFor(root: Extract<CLI.CliProject, { kind: "root" }>): Promise<string[]> {
     const { projectIds } = root
     if (!projectIds.length) throw new CLI.CliError(`No projects in ${root.title}`)
     if (projectIds.length === 1 || this.options.all) return projectIds

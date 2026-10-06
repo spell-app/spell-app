@@ -1,5 +1,5 @@
 /**
- * Completions for a half-typed target, as a shell completes a path -- for `<TargetPrompt>`:
+ * Completions for a half-typed project or file, as a shell completes a path -- for `<ProjectPrompt>`:
  * - nothing typed yet:  recent picks, then the project roots, e.g. `@examples/`
  * - a root and `/`:  its projects, e.g. `@examples/Solitaire/`
  * - a project and `/`:  "entire project" (`@examples/Solitaire`) first, then its `.spell` files
@@ -13,12 +13,12 @@ import { CLI } from "$/cli"
 
 /**
  * One completion.
- * - `value`:  the target text it completes to;  a root or project ends in `/`, to go on into
+ * - `value`:  the text it completes to;  a root or project ends in `/`, to go on into
  * - `label`:  how to show it, if not as `value`, e.g. "entire project"
- * - `isFinal`:  picking it picks a target -- a project or a file -- rather than going into it
+ * - `isFinal`:  picking it picks a project or a file, rather than going into it
  * - `isRecent`:  one of the recent picks
  */
-export type TargetChoice = {
+export type ProjectChoice = {
   value: string
   label?: string
   isFinal: boolean
@@ -26,7 +26,7 @@ export type TargetChoice = {
 }
 
 /** Completions for `text` -- see the header.  `recents` come first while nothing's typed past a root. */
-export async function targetChoices(text: string, recents: string[] = []): Promise<TargetChoice[]> {
+export async function projectChoices(text: string, recents: string[] = []): Promise<ProjectChoice[]> {
   const parts = text.split("/")
   if (parts.length === 1) {
     const roots = CLI.knownRoots().map((spec) => `${CLI.rootName(spec)}/`)

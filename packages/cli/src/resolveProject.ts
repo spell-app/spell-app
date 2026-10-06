@@ -28,7 +28,7 @@ export const WORKSPACE_ARG = "@workspace"
  * What `arg` names, relative to `cwd` if it's a path on disk.
  * - SIDE EFFECT:  a project outside the known roots registers a `@workspace:<folder>` root -- see `locationForDiskPath()`.
  */
-export async function resolveTarget(arg: string, cwd = process.cwd()): Promise<CLI.CliTarget> {
+export async function resolveProject(arg: string, cwd = process.cwd()): Promise<CLI.CliProject> {
   if (arg === WORKSPACE_ARG) return resolveDiskPath(arg, cwd)
   if (arg.startsWith(`${WORKSPACE_ARG}/`))
     return resolveDiskPath(arg, resolve(cwd, arg.slice(WORKSPACE_ARG.length + 1)))
@@ -56,7 +56,7 @@ export function knownRoots(): SP.ProjectRootSpec[] {
 }
 
 /**
- * What to type for root `spec`, as `resolveTarget()` reads it:  its `alias`, e.g. `@library`;  else its owner if
+ * What to type for root `spec`, as `resolveProject()` reads it:  its `alias`, e.g. `@library`;  else its owner if
  * it's the owner's only root, e.g. `@user`;  else `@<domain>`.
  */
 export function rootName(spec: SP.ProjectRootSpec): string {
@@ -80,29 +80,29 @@ export async function projectIdsIn(roots: SP.ProjectRootSpec[]): Promise<string[
 ////////////////
 
 /** `arg` starting with `@`, other than `@workspace`. */
-async function resolveSpellPath(arg: string): Promise<CLI.CliTarget> {
+async function resolveSpellPath(arg: string): Promise<CLI.CliProject> {
   const [head, ...rest] = arg.split("/")
   const roots = rootsNamed(head!)
-  if (!roots.length) return locationTarget(arg, arg)
-  if (!rest.length) return rootTarget(arg, roots)
+  if (!roots.length) return resolveLocation(arg, arg)
+  if (!rest.length) return resolveRoots(arg, roots)
   if (roots.length > 1) {
     const names = roots.map((spec) => spec.alias ?? spec.path).join(", ")
     throw new CLI.CliError(
       `'${head}' is several project roots (${names}) -- name one, e.g. '${roots[0]!.path}:${rest[0]}'`
     )
   }
-  return locationTarget(arg, `${roots[0]!.path}:${rest.join("/")}`)
+  return resolveLocation(arg, `${roots[0]!.path}:${rest.join("/")}`)
 }
 
-/** Target for full spell path `path`:  a project, or a `.spell` file in one. */
-async function locationTarget(arg: string, path: string): Promise<CLI.CliTarget> {
+/** What full spell path `path` names:  a project, or a `.spell` file in one. */
+async function resolveLocation(arg: string, path: string): Promise<CLI.CliProject> {
   let location: SP.SpellLocation
   try {
     location = new SP.SpellLocation(path)
   } catch {
     throw new CLI.CliError(`'${arg}' isn't a project, a spell file or a project root -- see \`spell --help\``)
   }
-  if (location.isProjectRoot) return rootTarget(arg, [SP.SpellSetup.projectSpectForRootPath(location.projectRoot)])
+  if (location.isProjectRoot) return resolveRoots(arg, [SP.SpellSetup.projectSpectForRootPath(location.projectRoot)])
 
   const projectDir = new SP.SpellLocation(location.projectId).serverPath
   if (!hasManifest(projectDir)) throw new CLI.CliError(`No project '${location.projectId}' (looked in ${projectDir})`)
@@ -113,8 +113,8 @@ async function locationTarget(arg: string, path: string): Promise<CLI.CliTarget>
   return { kind: "file", arg, file: new SP.SpellFile(location.path) }
 }
 
-/** Target for all of `roots`' projects. */
-async function rootTarget(arg: string, roots: SP.ProjectRootSpec[]): Promise<CLI.CliTarget> {
+/** A root covering all of `roots`' projects. */
+async function resolveRoots(arg: string, roots: SP.ProjectRootSpec[]): Promise<CLI.CliProject> {
   const title = roots.map((spec) => spec.title).join(", ")
   return { kind: "root", arg, title, projectIds: await projectIdsIn(roots) }
 }
@@ -123,8 +123,8 @@ async function rootTarget(arg: string, roots: SP.ProjectRootSpec[]): Promise<CLI
 // ## Disk paths
 ////////////////
 
-/** Target for `path` on disk, which `arg` named. */
-async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliTarget> {
+/** What `path` on disk names -- `arg`, as typed. */
+async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliProject> {
   if (!existsSync(path)) throw new CLI.CliError(`No such file or folder:  ${arg}`)
   const isFolder = statSync(path).isDirectory()
   const isManifest = basename(path) === SP.PROJECT_FILE
@@ -136,7 +136,7 @@ async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliTarget
     const roots = Object.values(SP.SpellSetup.projectRoots).filter(
       (spec) => projectUtils.serverPathForRoot(spec.path) === path
     )
-    if (roots.length) return rootTarget(arg, roots)
+    if (roots.length) return resolveRoots(arg, roots)
   }
 
   // `locationForDiskPath()` falls back to a file's own folder, which loading would write a `project.json` into
