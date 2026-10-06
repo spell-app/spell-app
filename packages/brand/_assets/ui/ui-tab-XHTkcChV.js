@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-tab-C9BGcX_x.js";export{e as UITab,t as UITabs};

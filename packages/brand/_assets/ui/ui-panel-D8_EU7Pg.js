@@ -1,0 +1,1 @@
+import{t as e}from"./ui-panel-X57_tT_7.js";export{e as UIPanel};
