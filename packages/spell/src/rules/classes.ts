@@ -2101,7 +2101,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
     const phrase = `${match.groups.alias.value}`.replace(/^["']|["']$/g, "")
     const alias = phrase.split(" ")
     if (alias[0] !== "is") return undefined
-    if (match.groups.sources) return match
+    if (match.groups.sources) return quoted_property_formula.resolveSources(match)
     // more after the phrase, e.g. `it "is face up" if ...`:  not ours, a `quoted_type_expression`
     if (tokens.slice(match.length).join("").trim()) return undefined
     const typeWords = SpellStatement.subjectWords(match) ?? "thing"
@@ -2123,6 +2123,47 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
     }
     match.data.inferred = inferred
     return match
+  }
+
+  /**
+   * `match`, its `for its ...` properties found while parsing (into `data.sources`) -- or a parse error naming the
+   * first with no list of values.
+   * - As written, else by its singular:  `for its suits` is a value kind's `suit` (plan doc I5), or the sentence
+   *   style's own `suits` list.
+   */
+  private static resolveSources(match: P.MatchFor<quoted_property_formula>): P.Match {
+    const type = getKnownType(match.groups.type)
+    const sources: string[] = []
+    for (const source of match.groups.sources!.items) {
+      const name = `${(source.groups.property as P.Match | undefined)?.value}`
+      const listed = quoted_property_formula.listedProperty(type, [name, singularize(name)])
+      if (!listed) {
+        return SpellStatement.refuse(
+          match,
+          `"its ${name}" isn't a property of a ${match.groups.type.raw} with a list of values, ` +
+            `e.g. its "suit" is one of clubs, diamonds, hearts or spades`
+        )
+      }
+      sources.push(listed)
+    }
+    match.data.sources = sources
+    return match
+  }
+
+  /**
+   * The first of `names` which is a property of `type` with a list of values:  its own (`as one of ...`), or a value
+   * kind's (`its "suit" is a suit`), maybe declared further down (a stub, so far).
+   */
+  private static listedProperty(type: P.TypeScope, names: string[]): string | undefined {
+    for (const name of names) {
+      const variable = type.variables.get(name)
+      if (!variable) continue
+      // its own list of values is kept as its plural, e.g. `Suits` for `its "suit" is one of ...`
+      if (quoted_property_formula.enumerationOf(type, name)) return variable.name
+      const kind = type.getType(variable.datatype)
+      if (kind?.valueKind || kind?.stub) return variable.name
+    }
+    return undefined
   }
 
   /**
@@ -2156,21 +2197,11 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
       // only a blank in parens:  a bare word is always just a word (plan doc J9:  "require the parens")
       const blank = /^\((.+)\)$/.exec(word)?.[1]
       if (!blank) continue
-      const variable = type.variables.get(singularize(blank))
-      if (!variable) return { unlisted: blank }
-      // its own list of values is kept as its plural, e.g. `Suits` for `its "suit" is one of ...`
-      const listed = !!quoted_property_formula.enumerationOf(type, variable.name)
-      if (!listed && !type.getType(variable.datatype)?.valueKind && !isValueKindStub(type, variable)) {
-        return { unlisted: blank }
-      }
-      sources.push(variable.name)
+      const listed = quoted_property_formula.listedProperty(type, [singularize(blank)])
+      if (!listed) return { unlisted: blank }
+      sources.push(listed)
     }
     return sources.length ? { words: alias, sources } : undefined
-
-    /** Might `variable`'s type be a value kind declared further down:  a stub, so far? */
-    function isValueKindStub(owner: P.TypeScope, variable: P.ScopeVariable): boolean {
-      return !!owner.getType(variable.datatype)?.stub
-    }
   }
 
   /**
@@ -2192,10 +2223,8 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
     const alias = `${groups.alias.value}`
     const type = groups.type.value
     const { inferred } = match.data
-    // the source properties' names, written (`for its suits`) or inferred
-    const sourceNames = inferred
-      ? inferred.sources
-      : groups.sources!.items.map((source) => `${(source.groups.property as P.Match | undefined)?.value}`)
+    // the source properties' names, written (`for its suits`, found by `resolveSources()`) or inferred
+    const sourceNames = inferred?.sources ?? match.data.sources ?? []
 
     const words: string[] = inferred?.words ?? alias.replace(/^["']|["']$/g, "").split(" ")
     const syntaxParts: string[] = []
@@ -2395,6 +2424,8 @@ type QuotedPropertyFormulaMatchData = {
   bits?: QuotedPropertyFormulaBits
   /** Placeholders worked out while parsing, for a phrase with no `for its ...` -- see `inferPlaceholders()`. */
   inferred?: InferredPlaceholders
+  /** The properties `for its ...` names, found while parsing, e.g. `["suit"]` -- see `resolveSources()`. */
+  sources?: string[]
 }
 
 /** What `quoted_property_formula.inferPlaceholders()` works out. */

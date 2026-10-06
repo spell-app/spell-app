@@ -241,6 +241,24 @@ describe("outline style", () => {
       expect(runSpell(lines)("face, low")).toEqual({ face: true, low: false })
     })
 
+    test('`for its suits` on a value kind\'s `suit` finds it by its singular (I5), above or below the deck', () => {
+      const card = CARD.map((line) =>
+        line
+          .replace('"is a (suit)"', '"is a (suit)" for its suits')
+          .replace('"is the (rank) of (suits)"', '"is the (rank) of (suits)" for its ranks and its suits')
+      )
+      expect(compile([...DECK, ...card, ...USES])).toContain("let spade = queen.is_a_$suit('spades')")
+      expect(runSpell([...DECK, ...card, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
+      expect(runSpell([...card, ...DECK, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
+    })
+
+    test("`for its ...` naming no property with a list of values is an error (I5), not a crash where it's used", () => {
+      expect(errorsOf([...DECK, ...CARD, '\t- it "is a (color)" for its colors'])).toEqual([
+        `10:3 "its colors" isn't a property of a card with a list of values, ` +
+          `e.g. its "suit" is one of clubs, diamonds, hearts or spades`
+      ])
+    })
+
     test('a word that names no property stays a word:  `it "is face up" if ...` is still a phrase method', () => {
       const js = compile([...DECK, ...CARD, '\t- it "is face up" if its direction is up'])
       expect(js).toContain("get is_face_up() {")
