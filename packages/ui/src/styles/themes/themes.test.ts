@@ -329,26 +329,6 @@ describe("instagram.css", () => {
   })
 })
 
-describe("famfamfam.css", () => {
-  it("draws a flag from the sprite, by its code class, inside the shadow root", async () => {
-    await ThemeHarness.use("famfamfam")
-    const { box, style } = await ThemeHarness.inner(`<ui-flag country="france"></ui-flag>`, ".ui.flag")
-    expect(box.classList.contains("fr")).toBe(true)
-    expect(style).toMatchObject({
-      backgroundImage: expect.stringMatching(/flags\.png/),
-      backgroundPosition: "0px -1976px",
-      width: "16px",
-      height: "11px"
-    })
-  })
-
-  it("keeps the emoji for a flag the sprite lacks", async () => {
-    await ThemeHarness.use("famfamfam")
-    const { style } = await ThemeHarness.inner(`<ui-flag country="pirate"></ui-flag>`, ".ui.flag")
-    expect(style.backgroundImage).toBe("none")
-  })
-})
-
 describe("systemfont.css", () => {
   it("swaps Lato for the system stack and bold for 600, in shadow roots and the page", async () => {
     await ThemeHarness.use("systemfont")

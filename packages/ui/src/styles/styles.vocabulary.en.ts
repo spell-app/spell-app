@@ -259,7 +259,18 @@ export const fonts = {
     "Noto Color Emoji"
   ],
   heading: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Noto Sans", "Arial", "sans-serif"],
-  mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+  mono: [
+    "ui-monospace",
+    "SFMono-Regular",
+    "Menlo",
+    "Monaco",
+    "Consolas",
+    "Liberation Mono",
+    "Courier New",
+    "monospace"
+  ],
+  /** colour emoji fonts, Firefox's own last:  what `<ui-emoji>` and every flag (`<ui-flag>`, menu rows) draw with */
+  emoji: ["Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", "Segoe UI Symbol"]
 } as const satisfies Record<string, readonly string[]>
 
 /** Font weights by role. */

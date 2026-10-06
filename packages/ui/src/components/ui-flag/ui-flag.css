@@ -2,17 +2,17 @@
  * `<ui-flag>`:  port of Fomantic's `flag.less` + `flag.variables` -- the box and size rules only.
  * - Shadow markup contract (class grammar on semantic elements):
  *   `<span class="ui [size] flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`
- *   - the resolved code is a class word too (Fomantic's `fr flag`):  nothing here reads it, a sprite theme does
- *     (`themes/famfamfam.css`)
+ *   - the resolved code is a class word too (Fomantic's `fr flag`):  nothing here reads it;  a page's own CSS may
  *   - the glyph is the Unicode flag emoji the element computes from `country` (see `ui-flag.vocabulary.en.ts`:
  *     regional-indicator pairs, `UIT.SpecialFlags` sequences, `FLAG_ALIASES`);  the label comes from
  *     `Intl.DisplayNames` (type `region`), or the vocabulary's texts for non-country flags
  *   - an unknown country renders an EMPTY root, which keeps its line box so layout doesn't jump
  * - The host is `display: contents`:  the root span IS the inline box, where Fomantic's `<i class="fr flag">` sat.
  * - Rendering depends on the platform's EMOJI FONT:  Apple, Android, ChromeOS and Linux (Noto) draw flags;
- *   Windows' Segoe UI Emoji shows the two letters instead.  `--ui-flag-font-family` puts the colour emoji
- *   fonts first;  a page wanting flags on Windows loads a flag font (e.g. the "Twemoji Country Flags" polyfill)
- *   and names it first in that token.
+ *   Windows' Segoe UI Emoji shows the two letters instead (Chrome / Edge;  Firefox brings its own font).
+ *   `--ui-flag-font-family` defaults to the colour emoji fonts (`--ui-font-family-emoji`);  a page wanting flags on
+ *   Windows loads a flag font itself and names it first there (the flag page's "A flag font":  the "Twemoji Country
+ *   Flags" polyfill).  `ui` ships no font.  The dropdown's and select's menu flags read the same token.
  * - Sizes are relative to the SURROUNDING text (em), with Fomantic's flag ladder (`1.5em * n`:  `small` 1.5em,
  *   `large` 6em ... `massive` 12em):  the root re-points `--ui-size-*` to `--ui-flag-size-*`, so the generic
  *   `.ui.large { --ui-scale }` remap picks the flag ratio.  The host resets `--ui-scale`, so a flag in a large
@@ -25,9 +25,9 @@
  *   alias.  So a value set on `:root`, an ancestor, the host, `::part(flag)` or in the app stylesheet reaches the box
  *   (`docs/theming.md` "Component tokens").
  * - NOTE: left out, on purpose:
- *   - the sprite / Twemoji SVG background images and the 264 per-country `background-image` rules:  the glyph is
- *     text now, so there's no network fetch and no per-country CSS.  An SVG flag set (consistent everywhere,
- *     Windows included) could come back later as an opt-in pack, like icons (`UI.icons`)
+ *   - flag IMAGES of any kind -- Fomantic's sprite, its Twemoji SVGs, the 264 per-country `background-image` rules:
+ *     flags are emoji only, by design (epic `wwod-spell-ui`, J47:  the opt-in `famfamfam` sprite theme went too),
+ *     so there's no network fetch and no per-country CSS
  *   - `speak: none`:  the root is `role="img"` with an `aria-label`, which is what assistive tech reads
  */
 
@@ -50,15 +50,7 @@
 
   /* Tokens:  one per `flag.variables` entry that still matters, each the private alias of its public token. */
   .ui.flag {
-    --_ui-flag-font-family: var(
-      --ui-flag-font-family,
-      "Apple Color Emoji",
-      "Segoe UI Emoji",
-      "Noto Color Emoji",
-      "Twemoji Mozilla",
-      "Segoe UI Symbol",
-      var(--ui-font-family)
-    );
+    --_ui-flag-font-family: var(--ui-flag-font-family, var(--ui-font-family-emoji), var(--ui-font-family));
     --_ui-flag-line-height: var(--ui-flag-line-height, 1);
     --_ui-flag-distance: var(--ui-flag-distance, var(--ui-space-2xs));
     /* Fomantic's flag ladder (`1.5em * n`), relative to the surrounding text. */

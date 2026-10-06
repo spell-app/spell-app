@@ -68,6 +68,8 @@
    */
   .ui.select {
     --_ui-select-radius: var(--ui-select-radius, var(--ui-radius));
+    /* `<ui-flag>`'s token:  a page's flag font (its "A flag font") reaches option flags too */
+    --_ui-flag-font-family: var(--ui-flag-font-family, var(--ui-font-family-emoji), var(--ui-font-family));
     --_ui-select-duration: var(--ui-select-duration, var(--ui-duration-fast));
     --_ui-select-color: var(--ui-select-color, var(--ui-text-color));
     --_ui-select-background: var(--ui-select-background, var(--ui-surface));
@@ -194,6 +196,7 @@
   }
   .ui.select .item > .flag {
     flex: none;
+    font-family: var(--_ui-flag-font-family);
     line-height: 1;
   }
   .ui.select .item > .description {

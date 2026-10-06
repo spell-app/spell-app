@@ -5144,7 +5144,7 @@
           "cssProperties": [
             {
               "name": "--ui-emoji-font-family",
-              "default": "\"Apple Color Emoji\", \"Segoe UI Emoji\", \"Noto Color Emoji\", \"Twemoji Mozilla\", \"Segoe UI Symbol\", var(--ui-font-family)"
+              "default": "var(--ui-font-family-emoji), var(--ui-font-family)"
             },
             {
               "name": "--ui-emoji-opacity",
@@ -5525,7 +5525,7 @@
           "cssProperties": [
             {
               "name": "--ui-flag-font-family",
-              "default": "\"Apple Color Emoji\", \"Segoe UI Emoji\", \"Noto Color Emoji\", \"Twemoji Mozilla\", \"Segoe UI Symbol\", var(--ui-font-family)"
+              "default": "var(--ui-font-family-emoji), var(--ui-font-family)"
             },
             {
               "name": "--ui-flag-line-height",
