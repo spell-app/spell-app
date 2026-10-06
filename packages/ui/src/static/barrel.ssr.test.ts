@@ -14,7 +14,7 @@ import { describe, expect, test, vi } from "vite-plus/test"
 
 /** Values the barrel MUST expose:  every class and constant of the folder (types erase). */
 const VALUES = [
-  // `./static.types.server`
+  // `./static.types.ssr`
   "ROOT_ATTRIBUTE",
   "SLOTTED_ATTRIBUTE",
   "LIST_ITEM_ATTRIBUTE",
@@ -41,17 +41,17 @@ const VALUES = [
 /** Ways in:  the barrel, then each of its files imported BEFORE it. */
 const ENTRIES = [
   "$/ui/static",
-  "$/ui/static/static.types.server",
-  "$/ui/static/ServerIds.server",
-  "$/ui/static/ServerHost.server",
-  "$/ui/static/StaticSelectors.server",
-  "$/ui/static/ServerRuntime.server",
-  "$/ui/static/StaticFlattener.server",
-  "$/ui/static/StaticInteractions.server",
-  "$/ui/static/StaticPageStyles.server",
-  "$/ui/static/StaticStylesheet.server",
-  "$/ui/static/StaticRender.server",
-  "$/ui/static/StaticCatalog.server"
+  "$/ui/static/static.types.ssr",
+  "$/ui/static/ServerIds.ssr",
+  "$/ui/static/ServerHost.ssr",
+  "$/ui/static/StaticSelectors.ssr",
+  "$/ui/static/ServerRuntime.ssr",
+  "$/ui/static/StaticFlattener.ssr",
+  "$/ui/static/StaticInteractions.ssr",
+  "$/ui/static/StaticPageStyles.ssr",
+  "$/ui/static/StaticStylesheet.ssr",
+  "$/ui/static/StaticRender.ssr",
+  "$/ui/static/StaticCatalog.ssr"
 ]
 
 /**
@@ -91,7 +91,7 @@ describe("$/ui/static barrel", () => {
   })
 
   test("the module constants that read marks got them, not undefined", async () => {
-    const { StaticStylesheet, ROOT, SLOTTED } = await freshBarrel("$/ui/static/StaticStylesheet.server")
+    const { StaticStylesheet, ROOT, SLOTTED } = await freshBarrel("$/ui/static/StaticStylesheet.ssr")
     const css = StaticStylesheet.scope(".ui.button { color: red }", ROOT)
     expect(css).not.toContain("undefined")
     expect(css).toContain(SLOTTED)

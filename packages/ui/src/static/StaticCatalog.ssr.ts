@@ -97,7 +97,7 @@ import { UISide } from "$/ui/components/ui-shape/UISide"
  * ### `StaticCatalog`
  * Every family the static render supports, as controller classes:  `StaticRender.define(...StaticCatalog.classes)`.
  * - Imported from their own files, never a family's `index.ts` (it calls `customElements.define()`).
- * - Keep in step with `tools/visual/StaticFamilies.ts` (the visual tests' list);  `StaticCatalog.server.ssr.test.ts`
+ * - Keep in step with `tools/visual/StaticFamilies.ts` (the visual tests' list);  `StaticCatalog.ssr.test.ts`
  *   checks it.
  * - Node only, like all of `$/ui/static`:  it imports every family's classes;  NEVER imported by a component or `$/ui`.
  * - Its own file, not a static on `StaticRender`, on purpose:  the engine stays free of family imports (it renders
