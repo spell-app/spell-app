@@ -57,6 +57,23 @@ export class SpellConstant extends P.Pattern<never, ConstantMatchData> {
       constant: scopeConst
     })
   }
+
+  /**
+   * SIDE EFFECT:  if `constant` is an unknown constant's match, declares it in the project's constants, by
+   * `statement` -- and records it on the match, for `getAST()`.
+   * - e.g. `red` in `the color of a card is red if ...`, or in `red if it is diamonds or hearts`:  later lines
+   *   then know `red`, e.g. `expect the color of the card to be red`.
+   * - Anything else, e.g. an expression's match:  nothing.  Call it from `mutateScope()`.
+   */
+  static declareValue(statement: P.Match, constant: P.Match | undefined) {
+    if (!constant?.is(SpellConstant)) return
+    const found = constant.data.scopeConstant
+    if (found && found !== NONE) return
+    const { scope } = statement
+    const name = `${constant.raw}`
+    const known = scope.constants?.get(name) ?? scope.constants?.add({ name, declaredBy: statement })[0]
+    if (known) constant.data.scopeConstant = known
+  }
 }
 
 /** What constant rules stash on their matches. */

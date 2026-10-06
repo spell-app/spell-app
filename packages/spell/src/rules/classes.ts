@@ -7,7 +7,7 @@
  * - `the_property_of_a_thing` / `a_things_property` are the two `type_property` spellings shared by
  *   `property_value_either` / `property_value_getter`.
  */
-import { NONE, instanceCase, pluralize, proto, singularize, snakeCase, typeCase, upperFirst } from "$/util"
+import { instanceCase, pluralize, proto, singularize, snakeCase, typeCase, upperFirst } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 // Import directly to avoid circular import
@@ -15,7 +15,7 @@ import { SpellParser } from "$/spell/SpellParser"
 import { Priority, declaredPrefix } from "./rules.types"
 import { SpellStatement } from "./Statement"
 import { getKnownType } from "./types"
-import { InfixOperatorSuffix, Precedence, SpellExpression, type SpellExpressionProps } from "./expressions"
+import { InfixOperatorSuffix, Precedence, SpellExpression, SuffixLeft, type SpellExpressionProps } from "./expressions"
 import { SpellConstant } from "./constants"
 
 /**
@@ -1515,16 +1515,8 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     P.TypeScope.getOrStub(scope, type.value, match).declareProperty(`${property.value}`, match, {
       asWritten: property.raw
     })
-    // `is()` narrows `data` to what `SpellConstant` stashes on its matches.
     // Declare any unknown constant values, and record them on their matches for `SpellConstant.getAST()`.
-    for (const constant of [value, otherValue]) {
-      if (!constant?.is(SpellConstant)) continue
-      const found = constant.data.scopeConstant
-      if (found && found !== NONE) continue
-      const known =
-        scope.constants?.get(constant.raw!) ?? scope.constants?.add({ name: constant.raw!, declaredBy: match })[0]
-      if (known) constant.data.scopeConstant = known
-    }
+    for (const constant of [value, otherValue]) SpellConstant.declareValue(match, constant)
   }
   getAST(match: P.MatchFor<this>): P.ASTPropertyDefinition {
     const { value, otherValue, type_property, condition } = match.groups
@@ -1897,7 +1889,10 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
     output: string
     values: Record<string, Array<string | number>>
     kinds?: Record<string, string>
+    of?: string
   }
+  /** The phrase's owner, e.g. `Card`, if known -- see `parse()`. */
+  declare thisType: P.Datatype | undefined
   /**
    * Calls generated method `output`, e.g. `is_a_$suit` -- also our `ruleName`.
    * - `values`:  each `(var)` placeholder's enumerated values, in order, e.g. `{ suit: ["'clubs'", ...] }` --
@@ -1908,11 +1903,11 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
    * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.
    */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output, values, kinds } = declared as (typeof QuotedPropertyRule)["SpecializeWith"]
+    const { output, values, kinds, of } = declared as (typeof QuotedPropertyRule)["SpecializeWith"]
     const ruleData = Object.entries(values).map(([instanceVar, varValues]) =>
       placeholderData(instanceVar, varValues, kinds?.[instanceVar])
     )
-    const statics: P.RuleStatics<QuotedPropertyRule> = { ruleName: output, methodName: output, ruleData }
+    const statics: P.RuleStatics<QuotedPropertyRule> = { ruleName: output, methodName: output, ruleData, thisType: of }
     return super.specialize(statics, declared) as unknown as T
   }
 
@@ -1930,6 +1925,8 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
    * - A lookup WHERE THE PHRASE IS USED, e.g. `if the card is a spade`:  by then the kind's list is known.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    // not on a thing KNOWN to be another type's, e.g. `the game is red` with a card's `is (color)` -- see `SuffixLeft`
+    if (!SuffixLeft.couldBeA(scope, this.thisType)) return undefined
     const match = super.parse(scope, tokens)
     if (!match || !this.ruleData.some((data) => data.kind)) return match
     const found = (match.groups as { expression?: P.Match | P.Match[] }).expression
@@ -2011,7 +2008,7 @@ type QuotedPropertyRuleData = { kindArgs?: Array<string | number | undefined> }
 
 /** Props bag accepted by `QuotedPropertyRule` -- the generated method, and how to map each placeholder. */
 type QuotedPropertyRuleProps = Prettify<
-  SpellExpressionProps & { methodName: string; ruleData: QuotedPropertyFormulaBits["ruleData"] }
+  SpellExpressionProps & { methodName: string; ruleData: QuotedPropertyFormulaBits["ruleData"]; thisType?: P.Datatype }
 >
 
 /**
@@ -2169,7 +2166,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
 
   /** Register the quoted-phrase's generated `expression_suffix` rule -- see rule SIDE EFFECTs above. */
   mutateScope(match: P.MatchFor<this>) {
-    const { syntax, property, ruleData } = this.getBits(match)
+    const { syntax, property, ruleData, type } = this.getBits(match)
 
     // Create an expression suffix to match the quoted statement, e.g. `is not? a queen`.
     // See `scope.addRule()` -- registers on the parser and records the pair for export.
@@ -2177,6 +2174,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
     match.scope.addRule(
       QuotedPropertyRule.specialize({
         output: property,
+        of: type,
         values: Object.fromEntries(ruleData.map(({ instanceVar, values }) => [instanceVar, values])),
         ...(kinds.length ? { kinds: Object.fromEntries(kinds) } : {})
       }),

@@ -14,6 +14,7 @@ import {
   InfixOperatorSuffix,
   Negatable,
   Precedence,
+  SuffixLeft,
   type SpellExpressionProps
 } from "./expressions"
 
@@ -202,6 +203,8 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
   declare methodName: string
   /** A value kind's phrase:  the kind whose static method it calls, e.g. `Rank` -- see `MethodRuleDeclared`. */
   declare staticOf: string | undefined
+  /** Our method's owner, e.g. `Card`, if known -- see `parse()`. */
+  declare thisType: P.Datatype | undefined
   /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
   declare readonly Props: MethodOperatorRuleProps
 
@@ -209,9 +212,18 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
   declare static readonly SpecializeWith: MethodRuleDeclared
   /** Reads generated method `output`, e.g. `is_face_up` -- also our `ruleName`.  See `DynamicMethodRule.specialize()`. */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output, staticOf } = declared as MethodRuleDeclared
-    const statics: P.RuleStatics<MethodPostfixRule> = { ruleName: output, methodName: output, staticOf }
+    const { output, staticOf, of } = declared as MethodRuleDeclared
+    const statics: P.RuleStatics<MethodPostfixRule> = { ruleName: output, methodName: output, staticOf, thisType: of }
     return super.specialize(statics, declared) as unknown as T
+  }
+
+  /**
+   * Match, unless what we follow is KNOWN, and can't be our method's owner (`thisType`), e.g. a deck's
+   * `a rank "is a face card"` on `the card is a face card` -- see `SuffixLeft`.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    if (!SuffixLeft.couldBeA(scope, this.thisType)) return undefined
+    return super.parse(scope, tokens)
   }
 
   /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
@@ -234,7 +246,12 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
 
 /** Props bag accepted by `MethodPostfixRule` / `MethodInfixRule` -- the generated method, and what it takes. */
 type MethodOperatorRuleProps = Prettify<
-  SpellExpressionProps & { methodName: string; paramTypes?: Array<P.Datatype | undefined>; staticOf?: string }
+  SpellExpressionProps & {
+    methodName: string
+    paramTypes?: Array<P.Datatype | undefined>
+    staticOf?: string
+    thisType?: P.Datatype
+  }
 >
 
 /**
@@ -269,6 +286,8 @@ export class MethodInfixRule extends InfixOperatorSuffix {
   declare methodName: string
   /** Datatype of its one parameter, if the signature says -- see `parse()`. */
   declare paramTypes: Array<P.Datatype | undefined> | undefined
+  /** Our method's owner, e.g. `Card`, if known -- see `parse()`. */
+  declare thisType: P.Datatype | undefined
   /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
   declare readonly Props: MethodOperatorRuleProps
 
@@ -276,23 +295,25 @@ export class MethodInfixRule extends InfixOperatorSuffix {
   declare static readonly SpecializeWith: MethodRuleDeclared
   /**
    * Calls generated method `output` -- also our `ruleName`.
-   * - Its `params` are our `paramTypes`.  See `DynamicMethodRule.specialize()`.
+   * - Its `of` / `params` are our `thisType` / `paramTypes`.  See `DynamicMethodRule.specialize()`.
    */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output, params } = declared as MethodRuleDeclared
+    const { output, of, params } = declared as MethodRuleDeclared
     const statics: P.RuleStatics<MethodInfixRule> = {
       ruleName: output,
       methodName: output,
+      thisType: of,
       paramTypes: params?.map((param) => param.datatype)
     }
     return super.specialize(statics, declared) as unknown as T
   }
 
   /**
-   * Match, unless our right side is KNOWN to be the wrong type -- as `DynamicMethodRule.parse()`.
-   * - NOTE: our LEFT side isn't checked:  a suffix can't see it while parsing.
+   * Match, unless a side is KNOWN to be the wrong type -- as `DynamicMethodRule.parse()`.
+   * - Our left side, when `compound_expression` knows it:  see `SuffixLeft`.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    if (!SuffixLeft.couldBeA(scope, this.thisType)) return undefined
     const match = super.parse(scope, tokens)
     const rhs = (match?.groups as { expression?: P.Match } | undefined)?.expression
     if (match && rhs && !scope.couldBeA(rhs.datatype, this.paramTypes?.[0])) return undefined
@@ -580,12 +601,12 @@ export class MethodDefinition<
     const output = methodName
     const { of, params } = this.getOwnerAndParams(match)
     if (asPostfixExpression) {
-      const declared = valueKindOf ? { output, staticOf: valueKindOf } : { output }
+      const declared = valueKindOf ? { output, of, staticOf: valueKindOf } : { output, of }
       scope.addRule(MethodPostfixRule.specialize(declared), { syntax }, declaredBy)
       return
     }
     if (asInfixExpression) {
-      scope.addRule(MethodInfixRule.specialize({ output, params }), { syntax }, declaredBy)
+      scope.addRule(MethodInfixRule.specialize({ output, of, params }), { syntax }, declaredBy)
       return
     }
     const alias = asTest ? "statement" : ["statement", "expression"]

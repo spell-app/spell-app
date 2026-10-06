@@ -204,9 +204,18 @@ describe("grammar probes", () => {
   })
 
   test("P8c  Solitaire:166 without its parens", () => {
-    expect(probe("if x is a king and x is the first card of the pile return")).toMatchInlineSnapshot(
-      `"if (x.is_a_$rank('king') && (x == spellCore.getItemOf(pile, 1))) { return }"`
+    // a card, as in Solitaire:  `x` here is a number, and a card's phrase now refuses one (`SuffixLeft`)
+    expect(probe("if the card is a king and the card is the first card of the pile return")).toMatchInlineSnapshot(
+      `"if (card.is_a_$rank('king') && (card == spellCore.getItemOf(pile, 1))) { return }"`
     )
+  })
+
+  test("P8f  a card's phrase on something known NOT to be a card:  refused (outline-spell J8)", () => {
+    expect(probe("if x is a king return")).toMatchInlineSnapshot(`
+      "if (x) {}
+      /* PARSE ERROR: Don't understand "is a king return" */
+      ERROR 8:5 Don't understand "is a king return""
+    `)
   })
 
   test("P8d  Card.spell:46 without its parens", () => {

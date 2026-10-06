@@ -402,9 +402,10 @@ class compound_expression extends SpellExpression<"lhs|rhsChain"> {
     let rest = tokens.slice(lhs.length)
     while (rest.length) {
       const remaining = rest
-      const suffix = expecting
-        ? expecting.nested(() => chain.rule.parse(scope, remaining))
-        : chain.rule.parse(scope, remaining)
+      // the FIRST suffix knows what it follows -- see `SuffixLeft`
+      const parseSuffix = () =>
+        SuffixLeft.while(suffixes.length ? undefined : lhs, () => chain.rule.parse(scope, remaining))
+      const suffix = expecting ? expecting.nested(parseSuffix) : parseSuffix()
       if (!suffix || compound_expression.precedenceOf(suffix) <= this.bound) break
       suffixes.push(suffix)
       rest = rest.slice(suffix.length)
@@ -1322,4 +1323,36 @@ type OperatorOperands = {
   lhs?: P.ASTExpression
   /** Right-hand-side AST -- only populated for infix operators. */
   rhs?: P.ASTExpression
+}
+
+/**
+ * What the suffix being parsed FOLLOWS, when `compound_expression` knows:  its operand, for the first suffix after it
+ * -- so a user's phrase can refuse a thing that isn't its own, e.g. a deck's `a rank "is a face card"` on
+ * `the card is a face card`, where the card has its own (plan doc `outline-spell`, J8 / J11).
+ * - A suffix can't see its left side through `parse()`'s arguments:  this is the side channel, set while
+ *   `compound_expression` parses that one suffix, and restored after, so nested expressions keep their own.
+ * - `undefined`:  not known, e.g. a later suffix (what it follows is the chain so far):  anything fits.
+ */
+export const SuffixLeft = {
+  /** The operand the suffix being parsed follows, if known. */
+  current: undefined as P.Match | undefined,
+
+  /** `parse()` with `left` as `current`, restoring what was there after. */
+  while<T>(left: P.Match | undefined, parse: () => T): T {
+    const outer = SuffixLeft.current
+    SuffixLeft.current = left
+    try {
+      return parse()
+    } finally {
+      SuffixLeft.current = outer
+    }
+  },
+
+  /**
+   * Could what the suffix follows be a `type`, e.g. the owner of a user's phrase?  `true` unless both are KNOWN and
+   * neither is the other -- as `scope.couldBeA()`.
+   */
+  couldBeA(scope: P.Scope, type: P.Datatype | undefined): boolean {
+    return !SuffixLeft.current || scope.couldBeA(SuffixLeft.current.datatype, type)
+  }
 }

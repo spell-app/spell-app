@@ -7,6 +7,7 @@ import { SpellParser } from "$/spell/SpellParser"
 import { Priority } from "./rules.types"
 import { SpellStatement } from "./Statement"
 import { InfixOperatorSuffix, Precedence } from "./expressions"
+import { SpellConstant } from "./constants"
 
 /** Rule module for `if`/`else if`/`else` statement rules, plus the `backwards_if` ternary suffix. */
 export const _if_ = new SpellParser({ module: "if" })
@@ -352,6 +353,11 @@ class value_if extends SpellStatement<"value|condition"> {
   @proto static priority = Priority.overridable
   @proto static alias = "statement"
 
+  /** SIDE EFFECT:  a bare word, e.g. `red`, becomes a known value -- see `SpellConstant.declareValue()`. */
+  mutateScope(match: P.MatchFor<this>) {
+    SpellConstant.declareValue(match, match.groups.value)
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTIfStatement {
     const { value, condition } = match.groups
     return new P.ASTIfStatement(match, {
@@ -387,6 +393,11 @@ _if_.addRule(value_if, {
 class value_otherwise extends SpellStatement<"value"> {
   @proto static priority = Priority.overridable
   @proto static alias = "statement"
+
+  /** SIDE EFFECT:  a bare word, e.g. `black`, becomes a known value -- see `SpellConstant.declareValue()`. */
+  mutateScope(match: P.MatchFor<this>) {
+    SpellConstant.declareValue(match, match.groups.value)
+  }
 
   getAST(match: P.MatchFor<this>): P.ASTReturnStatement {
     return new P.ASTReturnStatement(match, { value: match.groups.value.AST as P.ASTExpression })
