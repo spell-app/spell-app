@@ -253,6 +253,12 @@ As WWOD §18, plus:
   (`--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`) and read the alias, so values set on the
   page, an ancestor, the host or `::part()` reach the box.  Owner switches are private (`--_ui-card-layout`).
   See `docs/theming.md` "Component tokens";  `test/component-tokens.test.ts` enforces it.
+  - Two private shapes, on purpose:  `--_ui-<tag>-*` is a public token's ALIAS;  `--_<tag>-*` (`--_button-*`) is
+    variation plumbing no page sets.  NEVER rename one into the other (epic `wwod-spell-ui`, Q13).
+- WWOD §18 › "Naming" (PascalCase root classes, nested parts) is for app sheets:  shadow sheets keep Fomantic's class
+  grammar (`.ui.small.button`), "UI rules" above.
+- Breakpoints:  `@custom-media` only (`src/styles/media.css`), never a bare px media query (WWOD §18 › "Check at
+  phone width").
 - Utilities (`src/styles/utilities.css`, `docs/theming.md` "Utilities"):  named in the grammar
   `ui-<property>-<modifier>` (`ui-text-truncate`, `ui-gap-m`), `:` for variants (`ui-split:column`).
   - `-ish` suffix ~== "looks like X but isn't one":  `ui-button-ish`, `ui-link-ish`.
@@ -271,7 +277,12 @@ As WWOD §18, plus:
   lib build puts everything `$/ui/core` re-exports into `dist/core.js`;  a leaf imported by a family AND by `core`
   splits into a hashed third chunk.  For the same reason `core.ts` / `forms.ts` re-export `$/ui/elements` LEAVES, and
   `FormHost` / `FormElement` import the core through `$/ui/core` (`yarn measure`'s checks catch a violation).
-  Shared constants and types come as `UIT.<NAME>` from `$/ui/core` (`import { UIT } from "$/ui/core"`), never bare.
+  - Through namespaces, WWOD §4 › "ONE namespace per sub-system":  `import { E, UI, UIT } from "$/ui/core"` (+
+    `import { F } from "$/ui/forms"`), then `E.UIElement`, `@E.proto`, `UI.browser`, `UIT.ARIA_LABEL`, `F.FormElement`
+    ("Types / Exports").  NEVER a bare shared name.  Measured (epic `wwod-spell-ui`, Q4):  family chunks come out
+    byte-for-byte the same (Rolldown turns `E.Cell` back into a plain import);  `core` pays ~0.8 kB gzipped for the
+    `E` object.
+  - TODO (epic `wwod-spell-ui`, P2-P7):  `E` / `F` don't exist yet;  each phase moves its slice over.
 - **Eager memos and overridables:**  base-class memos that call overridable methods take `{ lazy: true }`;
   effects that call overridables are created in `mount()`, after every subclass field exists.
 - **`Cell` field order:**  class fields initialize in declaration order, before the subclass constructor body.
@@ -326,16 +337,18 @@ As WWOD §12, plus:
 
 ## Types / Exports
 
-As WWOD §8, plus our self-namespaces:
+As WWOD §8, plus our self-namespaces (one per lib entry, since each entry is its own bundle):
 
-- `UI` ~== the runtime singleton from `$/ui/runtime`
-- `E` ~== `$/ui/elements`
+- `E` ~== `$/ui/core`:  the element core and the foundation (`E.UIElement`, `E.proto`, `E.Cell`, `E.Converters`).
+  TODO (epic `wwod-spell-ui`, P2):  today `E` is `$/ui/elements`, from the `api` entry only
+- `F` ~== `$/ui/forms`:  what only form controls need (`F.FormElement`, `F.MenuOptions`).  TODO (P2)
+- `UI` ~== the runtime singleton from `$/ui/runtime`:  an instance, read like an app singleton, never through `E`
+- `UIT` ~== `$/ui/components/components.types` -- the constants, types and `ToggleCommands` several families share:
+  `UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
+  never flat, never through `E`
 - `V` ~== `$/ui/vocabulary`, namespaced through `vocabulary.api.ts` from the `api` entry only (why:  that file's
   header)
 - `SSR` ~== `$/ui/server` (node only)
-- `UIT` ~== `$/ui/components/components.types` -- the constants, types and `ToggleCommands` several families share:
-  `UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
-  never flat
 - the components barrel exports classes by name (`UIButton`, `UIDropdown`), no namespace
 
 ## Imports
@@ -343,10 +356,59 @@ As WWOD §8, plus our self-namespaces:
 As WWOD §4, with `$/ui` / `$/ui/*` as our alias (`$/ui/test/*`, the test helpers, is longer than `$/ui/*`, so it
 wins), plus these deliberate EXCEPTIONS:
 
-- Component files import shared code from `$/ui/core` / `$/ui/forms` only ("Solid authoring").
-- `UIT`, two ways that aren't WWOD §4's:
-  - inside `src/components/` itself, plain named imports from `components.types`
-  - vocabularies and types files value-import it as `import * as UIT from "$/ui/components/components.types"`, not
-    through `$/ui/core`.  Why:  they're PURE DATA that node imports (`yarn site:data`, `yarn gen:root`), and `core`
-    loads the element layer, which node can't ("Overview", `ui-<name>.types.ts`)
+- Component files import shared code from `$/ui/core` / `$/ui/forms` only, as `E` / `F` / `UI` / `UIT` ("Solid
+  authoring").  Folder peers stay direct imports (`./ui-button.types`), one statement per module.
+- Vocabularies and types files value-import `UIT` as `import * as UIT from "$/ui/components/components.types"`, not
+  through `$/ui/core`.  Why:  they're PURE DATA that node imports (`yarn site:data`, `yarn gen:root`), and `core`
+  loads the element layer, which node can't ("Overview", `ui-<name>.types.ts`)
 - `tools/` are node scripts:  relative imports with `.ts` extensions, no aliases.
+
+## Comments & docs
+
+As WWOD §6, plus:
+
+- An override that only FILLS a hook its base class documents (`render()`, `hostStates()`, a fallback's `build()`)
+  needs no docstring;  one that adds to the base's contract says what it adds:  `/** Disabled by its attribute, or by
+  a disabled fieldset. */`.  The base class documents each hook once (epic `wwod-spell-ui`, Q3).
+- Likewise `@proto static vocabulary` / `styles` / `Fallback` / `degraded`:  documented once, with why they're
+  static, on `UIElement` / `NativeFallback`.
+
+## Functions & types
+
+As WWOD §9, plus:
+
+- A SET of related values (close reasons, key names, positions, modes) is a const array + type:
+  `ToastCloseReasons` + `ToastCloseReason`.  A single vocabulary word (a class word, a part name) stays a named
+  ALL-CAPS constant, under a `// ##` group in its types file (epic `wwod-spell-ui`, Q2).
+- Values are English where they're only ours (`"file protocol"`);  values a page or CSS reads (an event's `detail`,
+  `data-ui-animation`, a vocabulary's attribute values) keep their published spelling.
+- `null` only at platform boundaries:  `getAttribute()`, `setFormValue()`, the fork's `toAttribute`, `useContext`'s
+  default.  Everything of ours is `undefined` (epic `wwod-spell-ui`, Q9).
+
+## Classes
+
+As WWOD §12, plus:
+
+- `@proto static` defaults stay at the TOP of the class:  they're its declared config (epic `wwod-spell-ui`, Q11).
+  Other statics and constants go after the main methods.
+- Module-level constants:  the folder's `.types.ts`, or a `private static` after the methods of the one class that
+  uses them;  page-wide registries are `private static readonly` + `static reset()` (WWOD §15;  epic
+  `wwod-spell-ui`, Q10).  Applies to `src/elements/`, `src/server/` and `src/runtime/` too, not only component folders.
+- Render pieces of a controller class are private methods named for what they draw, no type word:  `thumb()`, not
+  `renderThumb()` / `thumbElement()` (WWOD §17's inner functions are for function components;  epic
+  `wwod-spell-ui`, Q12).
+- The constructor of `UIElement` stays `(host, definition, attrs)`:  the forked custom-element layer calls it.
+
+## Tests
+
+As WWOD §20, plus:
+
+- An element's tests describe as `describe("<ui-button> keyboard")`:  `ui`'s form of the call path.  Helper classes
+  use the call path (`describe("SliderScale.ratio()")`) and get their own test file beside them (epic
+  `wwod-spell-ui`, Q8).
+
+## Out of scope for WWOD
+
+- `packages/solid-element/`:  a fork whose modules map 1:1 to upstream PRs (`UPSTREAM.md`);  keeps upstream's shape.
+- Generated files (`src/languages/`, `md.bundle.js`, `site/_assets/`, `site/_data/`, `ui-root.catalog.ts`):  never
+  edited, only regenerated.
