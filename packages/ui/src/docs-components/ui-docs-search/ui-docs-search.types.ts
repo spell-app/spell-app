@@ -18,17 +18,16 @@ export type DocsSearchText = DocsSearchVocabulary["texts"][number]["key"]
 ////////////////
 
 /**
- * What a result is, which is also its group:
+ * What a result can be, which is also its group;  in the groups' order when their best results tie:
  * - `here`:  a section of the page shown, read live from its DOM
  * - `component`:  a `<ui-*>` tag (its family's page, or its heading there)
  * - `page`:  a hand-written page (Overview, Theming ...)
  * - `section`:  a section of ANOTHER page, from the search file
  * - `attribute`:  a tag's attribute (its tag's API tables)
  */
-export type SearchKind = "here" | "component" | "page" | "section" | "attribute"
-
-/** The groups' order when their best results tie. */
-export const KIND_ORDER: readonly SearchKind[] = ["here", "component", "page", "section", "attribute"]
+export const SearchKinds = ["here", "component", "page", "section", "attribute"] as const
+/** One of `SearchKinds`, e.g. `"component"`. */
+export type SearchKind = (typeof SearchKinds)[number]
 
 /**
  * Weight of each kind's score:  the page shown first, then what a reader most likely means;  an attribute never
@@ -71,6 +70,7 @@ export const GROUP_LIMIT: Readonly<Record<SearchKind, number>> = {
 
 /** One thing a search can find:  a link, what it shows, what it's found by. */
 export type SearchEntry = {
+  /** what it is, and so its group */
   readonly kind: SearchKind
   /** shown, matched first and highlighted, e.g. `Vertical Divider`, `Or`, `circular` */
   readonly title: string
@@ -88,15 +88,27 @@ export type SearchEntry = {
 
 /** A matched entry:  its score and where its title matched. */
 export type SearchHit = {
+  /** what matched */
   readonly entry: SearchEntry
+  /** how well:  higher is better (`SearchIndex`'s class says how it adds up) */
   readonly score: number
   /** `[start, end)` ranges of the title to highlight, sorted, never overlapping */
   readonly marks: readonly (readonly [number, number])[]
 }
 
+/** A piece of a result's title (`UIDocsSearch.segments()`):  marked where the query matched. */
+export type TitleSegment = {
+  /** its text */
+  readonly text: string
+  /** a match:  drawn as `<mark>` */
+  readonly isMarked: boolean
+}
+
 /** One group of hits, best first. */
 export type SearchGroup = {
+  /** the kind its hits share */
   readonly kind: SearchKind
+  /** its best hits, at most `GROUP_LIMIT[kind]` */
   readonly hits: readonly SearchHit[]
 }
 
@@ -132,6 +144,9 @@ export const TRAIL = " › "
 // ## Element
 ////////////////
 
+/** Class word of the pill around the input:  the element's and the fallback's, drawn by the same sheet. */
+export const FIELD = "field"
+
 /** The search box's icon (the default `fa7-free` pack). */
 export const SEARCH_ICON = "magnifying glass"
 
@@ -151,7 +166,7 @@ export const TYPING_SELECTOR =
 
 /**
  * What the field reads "On this page" from when `page` isn't set:  the site's page `main`, else any `main`.
- * - A page's sections:  `PageOutline.SECTIONS`.
+ * - A page's sections:  `PageOutline` (its `SECTIONS`).
  */
 export const DEFAULT_PAGE = "main#main, main"
 
@@ -163,6 +178,8 @@ export const SUMMON_FRAMES = 30
 
 /** What `DocsSearchHost` delegates to:  the controller's script API. */
 export type DocsSearchController = {
+  /** show the field and focus it, its text selected (`DocsSearchHost.summon()`) */
   summon(): Promise<void>
+  /** the text typed */
   readonly query: string
 }

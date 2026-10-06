@@ -1,9 +1,8 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, closestAcrossShadow, nextFrame, proto, UI, UIElement, Warnings } from "$/ui/core"
+import { E, UI, UIT } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
-
 import { docsSearchVocabulary } from "./ui-docs-search.vocabulary.en"
 import { DocsSearchFallback } from "./ui-docs-search.fallback"
 import { DocsSearchHost } from "./DocsSearchHost"
@@ -14,6 +13,7 @@ import {
   CLEAR_ICON,
   DEFAULT_PAGE,
   DRAWERS,
+  FIELD,
   KIND_ICON,
   KIND_TEXT,
   SEARCH_ICON,
@@ -24,7 +24,8 @@ import {
   type DocsSearchVocabulary,
   type SearchEntry,
   type SearchHit,
-  type SearchKind
+  type SearchKind,
+  type TitleSegment
 } from "./ui-docs-search.types"
 
 import searchCSS from "./ui-docs-search.css?inline"
@@ -57,32 +58,36 @@ import searchCSS from "./ui-docs-search.css?inline"
  *   every field, while any is connected.
  * - A doc-only element (`src/docs-components/`):  its shadow composes `<ui-icon>`s, which its barrel imports.
  ****************/
-export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements DocsSearchController {
-  @proto static vocabulary = docsSearchVocabulary
-  @proto static styles = { "docs-search": searchCSS }
-  @proto static Fallback = DocsSearchFallback
-  @proto static Host = DocsSearchHost
+export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements DocsSearchController {
+  @E.proto static vocabulary = docsSearchVocabulary
+  @E.proto static styles = { "docs-search": searchCSS }
+  @E.proto static Fallback = DocsSearchFallback
+  @E.proto static Host = DocsSearchHost
+
+  ////////////////
+  // ## State
+  ////////////////
 
   /** The text typed, as typed. */
-  readonly typed = new Cell("")
+  readonly typed = new E.Cell("")
 
   /** The card is wanted:  the field has focus (or was typed in) since the last close. */
-  readonly open = new Cell(false)
+  readonly isOpen = new E.Cell(false)
 
   /** Index of the highlighted result (clamped by `active()`). */
-  readonly highlight = new Cell(0)
+  readonly highlight = new E.Cell(0)
 
   /** The page shown's sections, read on focus and on the first keystroke. */
-  readonly outline = new Cell<readonly SearchEntry[]>([])
+  readonly outline = new E.Cell<readonly SearchEntry[]>([])
 
   /** The page shown's path from the site root, e.g. `components/ui-divider.html` (read with `outline`). */
-  readonly current = new Cell<string | undefined>(undefined)
+  readonly current = new E.Cell<string | undefined>(undefined)
 
   /** Everything else, once the site's data is in (or has failed:  an index of what did load). */
-  readonly index = new Cell<SearchIndex | undefined>(undefined)
+  readonly index = new E.Cell<SearchIndex | undefined>(undefined)
 
   /** The site's data was asked for. */
-  readonly preparing = new Cell(false)
+  readonly isPreparing = new E.Cell(false)
 
   /** The `<input>`, while rendered. */
   private input: HTMLInputElement | undefined
@@ -93,16 +98,13 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
   /** What had focus before a shortcut summoned the field:  Escape on an empty field returns there. */
   private returnFocus: HTMLElement | undefined
 
-  /** The index of nothing:  what the page shown is searched with until the data is in. */
-  private static readonly EMPTY = new SearchIndex(undefined)
-
   ////////////////
   // ## Derived state
   ////////////////
 
   /** The groups found, best first. */
   readonly groups = createMemo(() =>
-    (this.index.get() ?? UIDocsSearch.EMPTY).search(this.typed.get(), this.outline.get(), this.current.get())
+    (this.index.get() ?? NO_INDEX).search(this.typed.get(), this.outline.get(), this.current.get())
   )
 
   /** Every result in order, with its group:  what ↑ / ↓ walk. */
@@ -112,13 +114,13 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
   readonly active = createMemo(() => Math.min(this.highlight.get(), this.rows().length - 1))
 
   /** Text is typed (blank isn't). */
-  readonly searching = createMemo(() => !!this.typed.get().trim())
+  readonly isSearching = createMemo(() => !!this.typed.get().trim())
 
   /** The card shows. */
-  readonly shown = createMemo(() => this.open.get() && this.searching())
+  readonly isShown = createMemo(() => this.isOpen.get() && this.isSearching())
 
   /** The site's data is on its way. */
-  readonly loading = createMemo(() => this.preparing.get() && !this.index.get())
+  readonly isLoading = createMemo(() => this.isPreparing.get() && !this.index.get())
 
   /** Groups with each row's index among all rows. */
   readonly view = createMemo(() => {
@@ -132,43 +134,77 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
   /** The modifier key the hint shows:  `⌘` on Apple platforms, else `Ctrl`. */
   readonly modifier = createMemo(() => (this.loaded() && UI.browser.isApple ? "⌘" : "Ctrl"))
 
+  /** `/` and Cmd / Ctrl+K summon this field:  `shortcuts` isn't off. */
+  private get hasShortcuts(): boolean {
+    return this.attrs.shortcuts !== false
+  }
+
+  ////////////////
+  // ## Element hooks
+  ////////////////
+
   protected override hostStates() {
     return {
-      open: this.shown(),
-      searching: this.searching(),
-      empty: this.searching() && !this.rows().length && !this.loading(),
-      loading: this.loading()
+      open: this.isShown(),
+      searching: this.isSearching(),
+      empty: this.isSearching() && !this.rows().length && !this.isLoading(),
+      loading: this.isLoading()
     }
   }
 
-  /** Base `mount()`, plus the effects:  the popover follows `shown`, the highlight scrolls into view, shortcuts. */
+  /** Base `mount()`, plus the effects:  the popover follows `isShown`, the highlight scrolls into view, shortcuts. */
   override mount(): JSX.Element {
     const content = super.mount()
     if (isServer) return content
-    // SIDE EFFECT:  the popover opens and shuts with `shown`
+    // SIDE EFFECT:  the popover opens and shuts with `isShown`
     createEffect(
-      () => this.shown(),
-      (shown) => {
-        this.showCard(shown)
+      () => this.isShown(),
+      (isShown) => {
+        if (isShown) this.openCard()
+        else this.closeCard()
       }
     )
     // SIDE EFFECT:  the highlighted option stays in the card's view
     createEffect(
-      () => (this.shown() ? this.active() : -1),
+      () => (this.isShown() ? this.active() : -1),
       (active) => {
-        if (active >= 0) this.option(active)?.scrollIntoView({ block: "nearest" })
+        if (active >= 0) this.optionFor(active)?.scrollIntoView({ block: "nearest" })
       }
     )
     // SIDE EFFECT:  `/` and Cmd / Ctrl+K, while connected
     createEffect(
       () => this.connected.get(),
-      (connected) => {
-        if (!connected) return undefined
+      (isConnected) => {
+        if (!isConnected) return undefined
         UIDocsSearch.listen(this)
         return () => UIDocsSearch.unlisten(this)
       }
     )
     return content
+  }
+
+  ////////////////
+  // ## Script API (`DocsSearchHost`)
+  ////////////////
+
+  /** The text typed. */
+  get query(): string {
+    return untrack(() => this.typed.get())
+  }
+
+  /** Show the field (opening its drawer if it's hidden in one) and focus it, its text selected. */
+  async summon(): Promise<void> {
+    const before = UIDocsSearch.deepActive()
+    if (before && !this.host.shadowRoot?.contains(before)) this.returnFocus = before
+    if (!this.host.checkVisibility()) {
+      const drawer = E.closestAcrossShadow(this.host, DRAWERS)
+      if (drawer && !drawer.hasAttribute(OPEN)) drawer.setAttribute(OPEN, "")
+      for (let frame = 0; frame < SUMMON_FRAMES && !this.host.checkVisibility(); frame++) await E.nextFrame()
+      // the drawer moves focus into itself as it opens:  take it after
+      await E.nextFrame()
+    }
+    this.input?.focus()
+    this.input?.select()
   }
 
   ////////////////
@@ -178,8 +214,8 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
   render(): JSX.Element {
     return (
       <div class={this.classes()} part={this.part("search")} ref={(element: HTMLElement) => this.wire(element)}>
-        <div class="field" part={this.part("field")}>
-          <span class="glyph" aria-hidden="true">
+        <div class={FIELD} part={this.part("field")}>
+          <span class={GLYPH} aria-hidden={UIT.TRUE}>
             <ui-icon name={SEARCH_ICON} />
           </span>
           <input
@@ -188,13 +224,13 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
             type="search"
             role="combobox"
             aria-autocomplete="list"
-            aria-expanded={this.shown() && this.rows().length ? "true" : "false"}
-            aria-controls={this.rows().length ? UIDocsSearch.LISTBOX : undefined}
+            aria-expanded={this.isShown() && this.rows().length ? UIT.TRUE : UIT.FALSE}
+            aria-controls={this.rows().length ? LISTBOX_ID : undefined}
             aria-activedescendant={
-              this.shown() && this.active() >= 0 ? UIDocsSearch.optionId(this.active()) : undefined
+              this.isShown() && this.active() >= 0 ? UIDocsSearch.optionIdFor(this.active()) : undefined
             }
             aria-label={this.text("label")}
-            aria-keyshortcuts={this.attrs.shortcuts === false ? undefined : "/ Meta+K Control+K"}
+            aria-keyshortcuts={this.hasShortcuts ? KEY_SHORTCUTS : undefined}
             placeholder={this.attrs.placeholder ?? this.text("placeholder")}
             autocomplete="off"
             autocapitalize="off"
@@ -204,43 +240,43 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
             onKeyDown={(event) => this.onKeyDown(event)}
             onFocus={() => this.onFocus()}
           />
-          <Show when={this.searching()}>
+          <Show when={this.isSearching()}>
             <button
               type="button"
-              class="clear"
+              class={CLEAR}
               tabindex="-1"
               aria-label={this.text("clear")}
               title={this.text("clear")}
-              onClick={(event) => this.clear(event, true)}
+              onClick={(event) => this.onClearClick(event)}
             >
               <ui-icon name={CLEAR_ICON} />
             </button>
           </Show>
-          <Show when={this.attrs.shortcuts !== false}>
-            <span class="keys" part={this.part("keys")} aria-hidden="true">
+          <Show when={this.hasShortcuts}>
+            <span class={KEYS} part={this.part("keys")} aria-hidden={UIT.TRUE}>
               <kbd>{this.modifier()}</kbd>
               <kbd>K</kbd>
             </span>
           </Show>
         </div>
         <div
-          class="results"
+          class={RESULTS}
           part={this.part("results")}
-          popover="manual"
+          popover={UIT.MANUAL}
           ref={(element: HTMLElement) => this.wireCard(element)}
         >
           <Show when={this.rows().length}>
-            <div role="listbox" id={UIDocsSearch.LISTBOX} class="list" aria-label={this.text("results")}>
+            <div role="listbox" id={LISTBOX_ID} class={LIST} aria-label={this.text("results")}>
               <For each={this.view()}>{(group) => this.group(group.kind, group.rows)}</For>
             </div>
           </Show>
-          <Show when={this.searching() && !this.rows().length && !this.loading()}>
-            <p class="note empty">{this.text("noMatches", { query: this.typed.get().trim() })}</p>
+          <Show when={this.isSearching() && !this.rows().length && !this.isLoading()}>
+            <p class={[NOTE, EMPTY]}>{this.text("noMatches", { query: this.typed.get().trim() })}</p>
           </Show>
-          <Show when={this.loading()}>
-            <p class="note">{this.text("loading")}</p>
+          <Show when={this.isLoading()}>
+            <p class={NOTE}>{this.text("loading")}</p>
           </Show>
-          <div class="hints" part={this.part("hints")} aria-hidden="true">
+          <div class={HINTS} part={this.part("hints")} aria-hidden={UIT.TRUE}>
             <span>
               <kbd>↑</kbd>
               <kbd>↓</kbd> {this.text("move")}
@@ -253,7 +289,7 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
             </span>
           </div>
         </div>
-        <span class="ui-visually-hidden-force" role="status">
+        <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
           {this.status()}
         </span>
       </div>
@@ -262,40 +298,40 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
 
   /** One group:  its eyebrow, then its options. */
   private group(kind: SearchKind, rows: readonly { hit: SearchHit; index: number }[]): JSX.Element {
-    const label = `docs-search-group-${kind}`
+    const label = GROUP_ID + kind
     return (
-      <div role="group" class="group" part={this.part("group")} aria-labelledby={label}>
-        <div class="label" part={this.part("label")} id={label}>
+      <div role={UIT.GROUP} class={UIT.GROUP} part={this.part("group")} aria-labelledby={label}>
+        <div class={UIT.LABEL} part={this.part("label")} id={label}>
           {this.text(KIND_TEXT[kind])}
         </div>
-        <For each={rows}>{(row) => this.renderOption(row.hit, row.index)}</For>
+        <For each={rows}>{(row) => this.option(row.hit, row.index)}</For>
       </div>
     )
   }
 
   /** One result:  a link with its icon, its title (matches marked, a tag in mono) and where it is. */
-  private renderOption(hit: SearchHit, index: number): JSX.Element {
+  private option(hit: SearchHit, index: number): JSX.Element {
     const entry = hit.entry
-    const active = () => this.active() === index
+    const isActive = () => this.active() === index
     return (
       <a
-        role="option"
-        id={UIDocsSearch.optionId(index)}
-        class={["option", entry.kind, { active: active() }]}
+        role={OPTION}
+        id={UIDocsSearch.optionIdFor(index)}
+        class={[OPTION, entry.kind, { [UIT.ACTIVE]: isActive() }]}
         part={this.part("option")}
         href={this.href(entry.href)}
         tabindex="-1"
-        aria-selected={active() ? "true" : "false"}
+        aria-selected={isActive() ? UIT.TRUE : UIT.FALSE}
         data-index={String(index)}
       >
-        <span class="glyph" aria-hidden="true">
+        <span class={GLYPH} aria-hidden={UIT.TRUE}>
           <ui-icon name={KIND_ICON[entry.kind]} />
         </span>
-        <span class="text">
-          <span class="title">
-            <span class="name">
+        <span class={UIT.TEXT}>
+          <span class={UIT.TITLE}>
+            <span class={NAME}>
               <For each={UIDocsSearch.segments(entry.title, hit.marks)}>
-                {(piece) => (piece.mark ? <mark>{piece.text}</mark> : piece.text)}
+                {(piece) => (piece.isMarked ? <mark>{piece.text}</mark> : piece.text)}
               </For>
             </span>
             <Show when={entry.code}>
@@ -303,10 +339,10 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
             </Show>
           </span>
           <Show when={entry.context}>
-            <span class="context">{entry.context}</span>
+            <span class={CONTEXT}>{entry.context}</span>
           </Show>
         </span>
-        <span class="enter" aria-hidden="true">
+        <span class={ENTER} aria-hidden={UIT.TRUE}>
           ↵
         </span>
       </a>
@@ -315,7 +351,7 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
 
   /** The live status:  how many results, while the card shows. */
   private status(): string {
-    if (!this.shown() || this.loading()) return ""
+    if (!this.isShown() || this.isLoading()) return ""
     const count = this.rows().length
     if (!count) return this.text("noMatches", { query: this.typed.get().trim() })
     return count === 1 ? this.text("resultOne") : this.text("resultMany", { count })
@@ -353,27 +389,28 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
     card.addEventListener("click", (event) => this.onClick(event))
   }
 
-  /** Show or hide the popover (it may be gone, or already so). */
-  private showCard(shown: boolean) {
-    const card = this.card
-    if (!card?.isConnected) return
-    const open = card.matches(":popover-open")
-    if (shown && !open) card.showPopover()
-    else if (!shown && open) card.hidePopover()
+  /** Show the popover (unless it's gone, or already open). */
+  private openCard() {
+    if (this.card?.isConnected && !this.card.matches(UIT.POPOVER_OPEN)) this.card.showPopover()
+  }
+
+  /** Hide the popover (unless it's gone, or already shut). */
+  private closeCard() {
+    if (this.card?.isConnected && this.card.matches(UIT.POPOVER_OPEN)) this.card.hidePopover()
   }
 
   /** The field has focus:  read the page, start the data, reopen the card. */
   private onFocus() {
     this.refresh()
     this.prepare()
-    this.open.set(true)
+    this.isOpen.set(true)
   }
 
   /** Focus left the box (and its card):  close. */
   private onFocusOut(event: FocusEvent) {
     const next = event.relatedTarget as Node | null
     if (next && (this.host.shadowRoot?.contains(next) || next === this.host)) return
-    this.open.set(false)
+    this.isOpen.set(false)
   }
 
   /** A keystroke changed the text:  search again from the top;  `ui-input`. */
@@ -383,49 +420,49 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
     this.prepare()
     this.typed.set(value)
     this.highlight.set(0)
-    this.open.set(true)
+    this.isOpen.set(true)
     this.emit("ui-input", { value, originalEvent: event })
   }
 
   /** ↑ / ↓ / Enter / Escape / Tab (see the class). */
   private onKeyDown(event: KeyboardEvent) {
     const count = untrack(() => this.rows().length)
-    const shown = untrack(() => this.shown())
+    const isShown = untrack(() => this.isShown())
     switch (event.key) {
-      case "ArrowDown":
-      case "ArrowUp": {
-        if (!untrack(() => this.searching())) return
+      case UIT.Key.arrowDown:
+      case UIT.Key.arrowUp: {
+        if (!untrack(() => this.isSearching())) return
         event.preventDefault()
-        if (!shown) {
-          this.open.set(true)
+        if (!isShown) {
+          this.isOpen.set(true)
           return
         }
         if (!count) return
-        const step = event.key === "ArrowDown" ? 1 : -1
+        const step = event.key === UIT.Key.arrowDown ? 1 : -1
         this.highlight.set((untrack(() => this.active()) + step + count) % count)
         return
       }
-      case "Enter": {
-        if (event.isComposing || !untrack(() => this.searching())) return
+      case UIT.Key.enter: {
+        if (event.isComposing || !untrack(() => this.isSearching())) return
         event.preventDefault()
         const active = untrack(() => this.active())
         if (active >= 0) this.choose(active, event)
         return
       }
-      case "Escape":
+      case UIT.Key.escape:
         return this.onEscape(event)
-      case "Tab":
-        this.open.set(false)
+      case UIT.Key.tab:
+        this.isOpen.set(false)
         return
     }
   }
 
   /** Escape:  close the card;  else clear the text;  else leave the field, to where a shortcut came from. */
   private onEscape(event: KeyboardEvent) {
-    if (untrack(() => this.shown())) {
+    if (untrack(() => this.isShown())) {
       event.preventDefault()
       event.stopPropagation()
-      this.open.set(false)
+      this.isOpen.set(false)
     } else if (untrack(() => this.typed.get())) {
       event.preventDefault()
       event.stopPropagation()
@@ -437,15 +474,21 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
     }
   }
 
+  /** The clear button:  empty the field, and give it focus back. */
+  private onClearClick(event: MouseEvent) {
+    this.clear(event)
+    this.input?.focus()
+  }
+
   /** The pointer moved over an option:  highlight it. */
   private onHover(event: PointerEvent) {
-    const index = UIDocsSearch.indexOf(event)
+    const index = UIDocsSearch.indexFor(event)
     if (index !== undefined && index !== untrack(() => this.active())) this.highlight.set(index)
   }
 
   /** A click on an option:  pick it (a modified click is the browser's:  a new tab, a download ...). */
   private onClick(event: MouseEvent) {
-    const index = UIDocsSearch.indexOf(event)
+    const index = UIDocsSearch.indexFor(event)
     if (index === undefined) return
     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
     this.choose(index, event)
@@ -458,16 +501,16 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
    */
   private choose(index: number, event: KeyboardEvent | MouseEvent) {
     const hit = untrack(() => this.rows()[index])
-    const link = this.option(index)
+    const link = this.optionFor(index)
     if (!hit || !link) return
     const href = link.href
     if (event.type === "keydown" && (event.metaKey || event.ctrlKey)) {
       window.open(href, "_blank", "noopener")
       return
     }
-    const follow = this.emit("ui-navigate", { href, kind: hit.entry.kind, originalEvent: event })
+    const shouldFollow = this.emit("ui-navigate", { href, kind: hit.entry.kind, originalEvent: event })
     setTimeout(() => this.finish())
-    if (!follow) {
+    if (!shouldFollow) {
       event.preventDefault()
       return
     }
@@ -484,8 +527,8 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
    * the hash;  the same hash again re-announces it (`hashchange`), so the page lands once more.
    */
   private jumpHere(hash: string) {
-    const drawer = closestAcrossShadow(this.host, DRAWERS)
-    if (drawer?.hasAttribute("open")) drawer.removeAttribute("open")
+    const drawer = E.closestAcrossShadow(this.host, DRAWERS)
+    if (drawer?.hasAttribute(OPEN)) drawer.removeAttribute(OPEN)
     if (location.hash === hash) {
       window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL: location.href, newURL: location.href }))
     } else location.hash = hash
@@ -493,36 +536,39 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
 
   /** After a pick:  close the card, empty the field (the list beside it unfilters). */
   private finish() {
-    this.open.set(false)
+    this.isOpen.set(false)
     if (this.input?.value) this.clear(new Event("input"))
   }
 
-  /** Empty the field;  `ui-input`.  `refocus`:  the clear button was clicked, so focus goes back to the field. */
-  private clear(event: Event, refocus = false) {
+  /** Empty the field;  `ui-input`. */
+  private clear(event: Event) {
     if (this.input) this.input.value = ""
     this.typed.set("")
     this.highlight.set(0)
     this.emit("ui-input", { value: "", originalEvent: event })
-    if (refocus) this.input?.focus()
   }
 
   /** Read the page shown:  its sections and its path. */
   private refresh() {
     const page = this.attrs.page || DEFAULT_PAGE
-    this.outline.set(PageOutline.read(document.querySelector(page)))
+    this.outline.set(PageOutline.read(document.querySelector(page) ?? undefined))
     this.current.set(this.pagePath())
   }
 
   /** Start fetching the site's data, once:  `index` gets what loads (both, one, or neither). */
   private prepare() {
-    if (untrack(() => this.preparing.get())) return
-    this.preparing.set(true)
+    if (untrack(() => this.isPreparing.get())) return
+    this.isPreparing.set(true)
     void Promise.allSettled([SiteData.load(), SearchData.load()]).then(([data, search]) => {
       for (const result of [data, search]) {
-        if (result.status === "rejected") Warnings.warn("<ui-docs-search>", "the index didn't load:", result.reason)
+        if (result.status === "rejected") E.Warnings.warn("<ui-docs-search>", "the index didn't load:", result.reason)
       }
-      const site = data.status === "fulfilled" ? data.value : undefined
-      this.index.set(new SearchIndex(site, search.status === "fulfilled" ? search.value : undefined))
+      this.index.set(
+        new SearchIndex({
+          data: data.status === "fulfilled" ? data.value : undefined,
+          search: search.status === "fulfilled" ? search.value : undefined
+        })
+      )
     })
   }
 
@@ -539,45 +585,18 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
   }
 
   /** The option at `index`, while rendered. */
-  private option(index: number): HTMLAnchorElement | undefined {
-    return this.card?.querySelector<HTMLAnchorElement>(`#${UIDocsSearch.optionId(index)}`) ?? undefined
-  }
-
-  ////////////////
-  // ## Script API (`DocsSearchHost`)
-  ////////////////
-
-  /** The text typed. */
-  get query(): string {
-    return untrack(() => this.typed.get())
-  }
-
-  /** Show the field (opening its drawer if it's hidden in one) and focus it, its text selected. */
-  async summon(): Promise<void> {
-    const before = UIDocsSearch.deepActive()
-    if (before && !this.host.shadowRoot?.contains(before)) this.returnFocus = before
-    if (!this.host.checkVisibility()) {
-      const drawer = closestAcrossShadow(this.host, DRAWERS)
-      if (drawer && !drawer.hasAttribute("open")) drawer.setAttribute("open", "")
-      for (let frame = 0; frame < SUMMON_FRAMES && !this.host.checkVisibility(); frame++) await nextFrame()
-      // the drawer moves focus into itself as it opens:  take it after
-      await nextFrame()
-    }
-    this.input?.focus()
-    this.input?.select()
+  private optionFor(index: number): HTMLAnchorElement | undefined {
+    return this.card?.querySelector<HTMLAnchorElement>(`#${UIDocsSearch.optionIdFor(index)}`) ?? undefined
   }
 
   ////////////////
   // ## Shortcuts
   ////////////////
 
-  /** Id of the listbox in the shadow root. */
-  private static readonly LISTBOX = "docs-search-results"
-
-  /** Every connected field:  the shortcut picks one. */
+  /** Every connected field:  the shortcut picks one.  Page-wide, as the one document listener is. */
   private static readonly fields = new Set<UIDocsSearch>()
 
-  /** The one document listener, while any field is connected. */
+  /** The one document listener, while any field is connected:  static, so adding and removing it match. */
   private static readonly onDocumentKey = (event: KeyboardEvent) => UIDocsSearch.shortcut(event)
 
   /** `field` is connected:  listen (the first one adds the listener). */
@@ -598,17 +617,17 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
    */
   private static shortcut(event: KeyboardEvent) {
     if (event.defaultPrevented || event.altKey || event.isComposing) return
-    const palette = event.key.toLowerCase() === SHORTCUT_KEYS.palette && (event.metaKey || event.ctrlKey)
-    const slash = event.key === SHORTCUT_KEYS.slash && !event.metaKey && !event.ctrlKey
-    if (!palette && !slash) return
-    if (slash) {
+    const isPalette = event.key.toLowerCase() === SHORTCUT_KEYS.palette && (event.metaKey || event.ctrlKey)
+    const isSlash = event.key === SHORTCUT_KEYS.slash && !event.metaKey && !event.ctrlKey
+    if (!isPalette && !isSlash) return
+    if (isSlash) {
       const origin = event.composedPath()[0]
       if (origin instanceof HTMLElement && (origin.isContentEditable || origin.matches(TYPING_SELECTOR))) return
     }
-    const fields = [...UIDocsSearch.fields].filter((field) => field.attrs.shortcuts !== false)
+    const fields = [...UIDocsSearch.fields].filter((field) => field.hasShortcuts)
     const field =
       fields.find((each) => each.host.checkVisibility()) ??
-      fields.find((each) => closestAcrossShadow(each.host, DRAWERS))
+      fields.find((each) => E.closestAcrossShadow(each.host, DRAWERS))
     if (!field) return
     event.preventDefault()
     void field.summon()
@@ -619,15 +638,15 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
   ////////////////
 
   /** Id of the option at `index`. */
-  private static optionId(index: number): string {
-    return `docs-search-option-${index}`
+  private static optionIdFor(index: number): string {
+    return OPTION_ID + index
   }
 
   /** The option index on `event`'s path, if any. */
-  private static indexOf(event: Event): number | undefined {
+  private static indexFor(event: Event): number | undefined {
     for (const target of event.composedPath()) {
-      if (target instanceof Element && target.hasAttribute("data-index"))
-        return Number(target.getAttribute("data-index"))
+      if (target instanceof Element && target.hasAttribute(INDEX_ATTRIBUTE))
+        return Number(target.getAttribute(INDEX_ATTRIBUTE))
     }
     return undefined
   }
@@ -640,15 +659,76 @@ export class UIDocsSearch extends UIElement<DocsSearchVocabulary> implements Doc
   }
 
   /** `title` cut at `marks`:  the pieces to show, the marked ones flagged. */
-  static segments(title: string, marks: readonly (readonly [number, number])[]): { text: string; mark: boolean }[] {
-    const pieces: { text: string; mark: boolean }[] = []
+  static segments(title: string, marks: readonly (readonly [number, number])[]): TitleSegment[] {
+    const pieces: TitleSegment[] = []
     let at = 0
     for (const [start, end] of marks) {
-      if (start > at) pieces.push({ text: title.slice(at, start), mark: false })
-      pieces.push({ text: title.slice(start, end), mark: true })
+      if (start > at) pieces.push({ text: title.slice(at, start), isMarked: false })
+      pieces.push({ text: title.slice(start, end), isMarked: true })
       at = end
     }
-    if (at < title.length) pieces.push({ text: title.slice(at), mark: false })
+    if (at < title.length) pieces.push({ text: title.slice(at), isMarked: false })
     return pieces
   }
 }
+
+/** The index of nothing:  what the page shown is searched with until the data is in. */
+const NO_INDEX = new SearchIndex()
+
+/** Id of the listbox in the shadow root. */
+const LISTBOX_ID = "docs-search-results"
+
+/** Id prefix of an option, + its index among all rows. */
+const OPTION_ID = "docs-search-option-"
+
+/** Id prefix of a group's eyebrow, + its kind. */
+const GROUP_ID = "docs-search-group-"
+
+/**
+ * Attribute holding an option's index among all rows:  what hover and click find it by.
+ * - NOTE: the JSX writes it literally (`data-index={...}`):  a spread to use this key there would make each option's
+ *   attributes one object Solid sets as a whole.  Keep the two in step.
+ */
+const INDEX_ATTRIBUTE = "data-index"
+
+/** The input's `aria-keyshortcuts`, while shortcuts are on. */
+const KEY_SHORTCUTS = "/ Meta+K Control+K"
+
+/** A drawer's `open` attribute:  `summon()` opens one, a jump to the page shown closes it. */
+const OPEN = "open"
+
+/** Role and class word of a result. */
+const OPTION = "option"
+
+/** Class word of an icon's box (the field's, a result's). */
+const GLYPH = "glyph"
+
+/** Class word of the clear button. */
+const CLEAR = "clear"
+
+/** Class word of the shortcut hint. */
+const KEYS = "keys"
+
+/** Class word of the results card. */
+const RESULTS = "results"
+
+/** Class word of the listbox. */
+const LIST = "list"
+
+/** Class word of a result's title text. */
+const NAME = "name"
+
+/** Class word of a result's context (where it is). */
+const CONTEXT = "context"
+
+/** Class word of a result's Enter hint. */
+const ENTER = "enter"
+
+/** Class word of a note in the card (loading, no matches). */
+const NOTE = "note"
+
+/** Class word of the "no matches" note. */
+const EMPTY = "empty"
+
+/** Class word of the keys line at the card's foot. */
+const HINTS = "hints"

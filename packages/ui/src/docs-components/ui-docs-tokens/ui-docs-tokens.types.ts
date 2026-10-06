@@ -1,17 +1,34 @@
 /**
- * Loose constants and types of the `ui-docs-tokens` family:  what the element, its row model (`TokenRows`), the colour
- * probe (`ColorProbe`) and the native fallback share.
- * - Data only:  nothing here runs.
+ * Constants and types of the `ui-docs-tokens` family:  what the element (`UIDocsTokens`), its row model
+ * (`TokenRows`), the colour probe (`ColorProbe`) and the native fallback share.
+ * - Pure data, at the bottom of the folder's imports:  `import type` only, so node can load it (`yarn site:data`).
+ *   A constant only one class reads sits below that class (epic `wwod-spell-ui`, Q18).
  */
 
-import type { SiteToken } from "$/ui/docs-components/docs-components.types"
+import type { HeadingBounds, SiteToken, SiteTokenType } from "$/ui/docs-components/docs-components.types"
 import type { docsTokensVocabulary } from "./ui-docs-tokens.vocabulary.en"
+
+////////////////
+// ## Element
+////////////////
 
 /** `docsTokensVocabulary`'s type. */
 export type DocsTokensVocabulary = typeof docsTokensVocabulary
 
 /** A text key of the vocabulary, e.g. `noTokens`. */
 export type DocsTokensTextKey = DocsTokensVocabulary["texts"][number]["key"]
+
+/** `level`:  any heading level;  unset, `3`:  group headers sit under the page's `h2` sections. */
+export const LEVELS: HeadingBounds = { min: 1, max: 6, fallback: 3 }
+
+/** `SiteToken.type` of a colour:  a live swatch, and a colour input in the playground. */
+export const COLOR_TYPE: SiteTokenType = "color"
+
+/**
+ * What a colour input shows when the probe can't read a colour (no canvas, an unresolvable value):  the element's
+ * colour inputs and `ColorProbe` both fall back to it.
+ */
+export const FALLBACK_HEX = "#000000"
 
 ////////////////
 // ## Rows
@@ -31,16 +48,34 @@ export type TokenTable = {
 
 /** What the element shows, once the data is in. */
 export type TokenView =
-  | { kind: "tables"; tables: readonly TokenTable[]; total: number }
-  | { kind: "message"; text: string; error: boolean }
+  | {
+      kind: "tables"
+      /** the tables left after narrowing */
+      tables: readonly TokenTable[]
+      /** rows before the filter text:  how big the family is */
+      total: number
+    }
+  | {
+      kind: "message"
+      /** the message, translated */
+      text: string
+      /** a problem (`negative`), not news (`info`) */
+      isError: boolean
+    }
 
-/** The attributes `TokenRows.view()` reads, plus the filter text. */
-export type TokenRowsOptions = {
+/** The attributes `TokenRows.viewFor()` reads, plus the filter text. */
+export type TokenViewParams = {
+  /** a family folder (or any tag of it):  its one table */
   family?: string
+  /** a tag:  its family's table */
   tag?: string
-  global?: boolean
+  /** the foundation's tables instead */
+  isGlobal?: boolean
+  /** `global`:  the group ids to show, space-separated */
   groups?: string
+  /** names and `prefix*`es to keep, space-separated */
   tokens?: string
+  /** the filter text */
   query?: string
 }
 
@@ -49,44 +84,3 @@ export type TokenRowsText = (key: "missing" | "unknownFamily" | "noTokens", para
 
 /** One word of `tokens`:  an exact name, or a prefix. */
 export type TokenPattern = { name: string } | { prefix: string }
-
-////////////////
-// ## Constants
-////////////////
-
-/** `level` bounds:  a heading level. */
-export const MIN_LEVEL = 1
-export const MAX_LEVEL = 6
-
-/** `level` when unset:  group headers sit under the page's `h2` sections. */
-export const DEFAULT_LEVEL = 3
-
-/** `target` that writes on `:root` instead of the preview. */
-export const PAGE_TARGET = "page"
-
-/** The filter shows for `global`, and for a family with at least this many rows. */
-export const SEARCH_MIN_ROWS = 16
-
-/** Icon of the filter input. */
-export const SEARCH_ICON = "search"
-
-/** Icon of the reset button. */
-export const RESET_ICON = "undo"
-
-/** A trailing `*` in the `tokens` attribute:  a prefix. */
-export const PREFIX_MARK = "*"
-
-/** Native input type of a colour token's `<ui-input>`. */
-export const COLOR_INPUT = "color"
-
-/** What a colour input shows when the probe can't read a colour (no canvas, an unresolvable value). */
-export const FALLBACK_HEX = "#000000"
-
-/** What `ColorProbe` paints a translucent colour over:  the page background, where the token is used. */
-export const BACKDROP = "var(--ui-background, white)"
-
-/** `ColorProbe`'s key for the backdrop's own probe;  never a token name. */
-export const BACKDROP_KEY = " backdrop"
-
-/** A backticked span in a description, shown as `<code>`. */
-export const CODE_SPAN = /`([^`]+)`/g

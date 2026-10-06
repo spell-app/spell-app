@@ -1,14 +1,6 @@
 import type { SiteDataFile, SiteToken } from "$/ui/docs-components/docs-components.types"
 import { SiteData } from "$/ui/docs-components/SiteData"
-
-import {
-  PREFIX_MARK,
-  type TokenPattern,
-  type TokenRowsOptions,
-  type TokenRowsText,
-  type TokenTable,
-  type TokenView
-} from "./ui-docs-tokens.types"
+import type { TokenPattern, TokenRowsText, TokenTable, TokenView, TokenViewParams } from "./ui-docs-tokens.types"
 
 /****************
  * ### `TokenRows`
@@ -18,17 +10,18 @@ import {
  * - A family:  `families[folder].tokens`, as one table;  `tag` finds the folder through `SiteData.family()`.
  * - `global`:  `foundation`, one table per group, `groups` picking some.
  * - Then `tokens` (names, `prefix*`) and the filter text narrow the rows;  a table left with none is dropped.
+ * - Static:  pure, and shared by the element and its fallback.
  ****************/
 export class TokenRows {
   /**
-   * The view for `data` and the element's attributes.
+   * The view for `data` and the element's attributes (`params`).
    * - `text`:  the element's message texts (`text(key, params)`), so messages stay translated
    */
-  static view(data: SiteDataFile, options: TokenRowsOptions, text: TokenRowsText): TokenView {
-    const tables = TokenRows.tables(data, options, text)
+  static viewFor(data: SiteDataFile, params: TokenViewParams, text: TokenRowsText): TokenView {
+    const tables = TokenRows.tablesFor(data, params, text)
     if (!Array.isArray(tables)) return tables
-    const patterns = TokenRows.patterns(options.tokens)
-    const query = options.query?.trim().toLowerCase() ?? ""
+    const patterns = TokenRows.patternsFor(params.tokens)
+    const query = params.query?.trim().toLowerCase() ?? ""
     const narrowed = tables.map((table) => ({
       ...table,
       rows: table.rows.filter((row) => TokenRows.matches(row, patterns) && TokenRows.found(row, query))
@@ -40,33 +33,8 @@ export class TokenRows {
     return { kind: "tables", tables: narrowed.filter((table) => table.rows.length), total }
   }
 
-  /** The tables before narrowing, or the message to show instead. */
-  private static tables(data: SiteDataFile, options: TokenRowsOptions, text: TokenRowsText): TokenTable[] | TokenView {
-    if (options.global) {
-      const ids = TokenRows.words(options.groups)
-      const groups = data.foundation.filter((group) => !ids.length || ids.includes(group.id))
-      return groups.map((group) => ({
-        id: group.id,
-        title: group.title,
-        description: group.description,
-        rows: group.tokens
-      }))
-    }
-    const name = options.family || options.tag
-    if (!name) return { kind: "message", text: text("missing"), error: true }
-    const family = options.family
-      ? Object.hasOwn(data.families, options.family)
-        ? data.families[options.family]
-        : undefined
-      : SiteData.family(data, name)
-    if (!family) return { kind: "message", text: text("unknownFamily", { family: name }), error: true }
-    if (!family.tokens.length)
-      return { kind: "message", text: text("noTokens", { tag: `<${family.mainTag}>` }), error: false }
-    return [{ id: family.folder, rows: family.tokens }]
-  }
-
   /** `tokens` as patterns:  exact names, and prefixes (a trailing `*`, dropped). */
-  static patterns(tokens: string | undefined): TokenPattern[] {
+  static patternsFor(tokens: string | undefined): TokenPattern[] {
     return TokenRows.words(tokens).map((word) =>
       word.endsWith(PREFIX_MARK) ? { prefix: word.slice(0, -PREFIX_MARK.length) } : { name: word }
     )
@@ -86,8 +54,49 @@ export class TokenRows {
     return [row.name, row.default, row.description ?? ""].some((text) => text.toLowerCase().includes(query))
   }
 
+  /**
+   * What `row` resolves to where it's drawn, as a CSS value:  the token itself, with its default as the fallback for
+   * a family token (no sheet declares the public name);  a foundation token (`isGlobal`) is always declared.
+   */
+  static cssValueFor(row: SiteToken, { isGlobal }: { isGlobal: boolean }): string {
+    return isGlobal ? `var(${row.name})` : `var(${row.name}, ${row.default})`
+  }
+
+  ////////////////
+  // ## Internal
+  ////////////////
+
+  /** The tables before narrowing, or the message to show instead. */
+  private static tablesFor(data: SiteDataFile, params: TokenViewParams, text: TokenRowsText): TokenTable[] | TokenView {
+    if (params.isGlobal) {
+      const ids = TokenRows.words(params.groups)
+      const groups = data.foundation.filter((group) => !ids.length || ids.includes(group.id))
+      return groups.map((group) => ({
+        id: group.id,
+        title: group.title,
+        description: group.description,
+        rows: group.tokens
+      }))
+    }
+    const name = params.family || params.tag
+    if (!name) return { kind: "message", text: text("missing"), isError: true }
+    const family = params.family
+      ? Object.hasOwn(data.families, params.family)
+        ? data.families[params.family]
+        : undefined
+      : SiteData.family(data, name)
+    if (!family) return { kind: "message", text: text("unknownFamily", { family: name }), isError: true }
+    if (!family.tokens.length) {
+      return { kind: "message", text: text("noTokens", { tag: `<${family.mainTag}>` }), isError: false }
+    }
+    return [{ id: family.folder, rows: family.tokens }]
+  }
+
   /** Space-separated words of an attribute;  none when unset. */
   private static words(value: string | undefined): string[] {
     return (value ?? "").split(/\s+/).filter(Boolean)
   }
 }
+
+/** A trailing `*` in the `tokens` attribute:  a prefix. */
+const PREFIX_MARK = "*"

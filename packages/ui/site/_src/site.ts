@@ -29,13 +29,11 @@ import "./snapshot"
 import "$/ui/styles/ui.css"
 import "./site.css"
 
-import { BuiltInPacks } from "$/ui/icons"
-import { UI } from "$/ui/runtime"
+import { E, UI } from "$/ui/core"
 import { DocsFamilies } from "$/ui/docs-components/DocsFamilies"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 import { defineSite } from "$/server/site"
-
 import { SiteRouter } from "./SiteRouter"
 import { SiteShell } from "./SiteShell"
 
@@ -45,13 +43,15 @@ const ASSETS = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 /** The site's root (`/ui/`):  the folder above `_assets/`. */
 const SITE_ROOT = new URL("../", ASSETS)
 
-BuiltInPacks.base = ASSETS
+E.BuiltInPacks.base = ASSETS
 SiteData.url ??= `${ASSETS}../_data/components.json`
 DocsFamilies.add()
 Object.assign(globalThis, { UI })
 
 // the viewer's theme + scheme (`<ui-docs-themes>`):  started NOW, beside the layout's fetch;  `<ui-root>` waits for it
-const theme = ThemePreference.restore().catch((error: unknown) => console.warn("Spell UI site:  theme", error))
+const theme = ThemePreference.restore().catch((error: unknown) =>
+  E.Warnings.warn("Spell UI site", "the theme didn't load;  showing the default look", error)
+)
 
 defineSite()
 
@@ -62,10 +62,10 @@ document.addEventListener("click", (event) => {
 })
 
 void SiteShell.mount(SITE_ROOT).then(async (content) => {
-  const router = content && new SiteRouter(SITE_ROOT, content)
+  const router = content && new SiteRouter({ siteRoot: SITE_ROOT, content })
   router?.followPage()
   // the swaps' landing, for the first page:  saved folds before the sections draw;  the hash once the root is ready
-  router?.land(new URL(location.href), undefined, true)
+  router?.land(new URL(location.href), { isFirst: true })
   // the theme's sheet in place BEFORE the root shows the page:  no restyle (and reflow) after first paint
   await theme
   await import("$/ui/components/ui-root")

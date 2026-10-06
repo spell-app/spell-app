@@ -31,6 +31,14 @@ export type TocEntry = {
 /** A top-level entry:  a level 2 heading or a `<ui-section>` inside no other, with the entries under it. */
 export type TocSection = TocEntry
 
+/** What a toc follows (`TocIndex.followed()`):  the element `for` names (else the page's `main`), and its tabs. */
+export type FollowedContent = {
+  /** the element whose headings are listed */
+  readonly root: Element
+  /** `root` itself, when it's a `<ui-tabs>`:  then only its shown pane is listed */
+  readonly tabs?: Element
+}
+
 /**
  * What becomes a SECTION:  a level 2 page header, or a `<ui-section>` inside no other (inside one:  an entry of
  * it, at any depth).

@@ -1,12 +1,12 @@
 /**
  * Every name `<ui-docs-nav>` uses:  tag, attributes, events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - A DOC-ONLY element (`src/docs-components/`):  filed under the `documentation` topic, left out of the component
  *   list, loaded by `<ui-root>` like any family.
  * - Class words:  `ui [size] nav` on the panel;  `size` scales the panel and the widgets in it (`--ui-scale`).
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-docs-nav>`
@@ -128,4 +128,4 @@ export const docsNavVocabulary = {
     { key: "planned", text: "planned", description: "Badge of a family whose port hasn't started." },
     { key: "inProgress", text: "in progress", description: "Badge of a family being ported." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

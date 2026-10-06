@@ -15,6 +15,9 @@
 
 @layer ui.components.docs-example.types, ui.components.docs-example.content, ui.components.docs-example.variations, ui.components.docs-example.states;
 
+/* Breakpoints (`@custom-media`), inlined at build time:  phones. */
+@import "../../styles/media.css";
+
 @layer ui.components.docs-example.types {
   :host {
     display: block;
@@ -122,7 +125,7 @@
     display: flow-root;
   }
   /* Phones:  an example wider than the column scrolls inside its frame, never the page. */
-  @media (width < 768px) {
+  @media (--ui-mobile) {
     [part~="demo"]::part(segment) {
       overflow-x: auto;
     }

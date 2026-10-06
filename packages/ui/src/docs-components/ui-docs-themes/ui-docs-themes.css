@@ -42,6 +42,12 @@
     --_ui-docs-themes-overlay-radius: var(--ui-docs-themes-overlay-radius, 14px);
     /* How long the sun / moon swap takes. */
     --_ui-docs-themes-swap-duration: var(--ui-docs-themes-swap-duration, 280ms);
+    /* Knob of the "Match system" switch. */
+    --_ui-docs-themes-knob-color: var(--ui-docs-themes-knob-color, oklch(1 0 0));
+    /* The knob's drop shadow. */
+    --_ui-docs-themes-knob-shadow: var(--ui-docs-themes-knob-shadow, 0 1px 2px oklch(0 0 0 / 0.25));
+    /* Ink of the `inverted` buttons (for dark backgrounds):  their fill, ring and icon are it, translucent. */
+    --_ui-docs-themes-inverted-ink: var(--ui-docs-themes-inverted-ink, oklch(1 0 0));
 
     display: inline-flex;
     flex-wrap: wrap;
@@ -252,8 +258,8 @@
     width: 1em;
     height: 1em;
     border-radius: 50%;
-    background: oklch(1 0 0);
-    box-shadow: 0 1px 2px oklch(0 0 0 / 0.25);
+    background: var(--_ui-docs-themes-knob-color);
+    box-shadow: var(--_ui-docs-themes-knob-shadow);
   }
 
   /* Tooltips:  the palette's hides while its overlay is open. */
@@ -265,14 +271,14 @@
 @layer ui.components.docs-themes.variations {
   /* For dark backgrounds:  translucent white buttons. */
   .ui.inverted.themes .button {
-    background: oklch(1 0 0 / 0.08);
-    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.16);
-    color: oklch(1 0 0 / 0.8);
+    background: oklch(from var(--_ui-docs-themes-inverted-ink) l c h / 0.08);
+    box-shadow: inset 0 0 0 1px oklch(from var(--_ui-docs-themes-inverted-ink) l c h / 0.16);
+    color: oklch(from var(--_ui-docs-themes-inverted-ink) l c h / 0.8);
   }
   .ui.inverted.themes .button:hover {
-    background: oklch(1 0 0 / 0.14);
-    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.28);
-    color: oklch(1 0 0);
+    background: oklch(from var(--_ui-docs-themes-inverted-ink) l c h / 0.14);
+    box-shadow: inset 0 0 0 1px oklch(from var(--_ui-docs-themes-inverted-ink) l c h / 0.28);
+    color: var(--_ui-docs-themes-inverted-ink);
   }
 }
 

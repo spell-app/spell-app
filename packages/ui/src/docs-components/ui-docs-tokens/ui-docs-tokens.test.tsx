@@ -363,8 +363,8 @@ describe("<ui-docs-tokens playground>", () => {
 
 describe("TokenRows", () => {
   it("reads `tokens` as names and prefixes", () => {
-    expect(TokenRows.patterns("--a --b-* ")).toEqual([{ name: "--a" }, { prefix: "--b-" }])
-    expect(TokenRows.patterns(undefined)).toEqual([])
+    expect(TokenRows.patternsFor("--a --b-* ")).toEqual([{ name: "--a" }, { prefix: "--b-" }])
+    expect(TokenRows.patternsFor(undefined)).toEqual([])
   })
 
   it("searches name, default and description, ignoring case", () => {
@@ -377,12 +377,12 @@ describe("TokenRows", () => {
 
 describe("ColorProbe", () => {
   it("reads any CSS colour back as #rrggbb", () => {
-    expect(ColorProbe.toHex("rgb(255, 0, 0)")).toBe("#ff0000")
-    expect(ColorProbe.toHex("oklch(1 0 0)")).toBe("#ffffff")
-    expect(ColorProbe.hexes(document.body, new Map([["a", "var(--nope, rgb(0, 0, 255))"]])).get("a")).toBe("#0000ff")
+    expect(ColorProbe.hexFor("rgb(255, 0, 0)")).toBe("#ff0000")
+    expect(ColorProbe.hexFor("oklch(1 0 0)")).toBe("#ffffff")
+    expect(ColorProbe.hexesFor(document.body, new Map([["a", "var(--nope, rgb(0, 0, 255))"]])).get("a")).toBe("#0000ff")
     // translucent:  flattened onto the backdrop, as the reader sees it
     expect(
-      ColorProbe.hexes(document.body, new Map([["a", "rgb(0 0 0 / 0.5)"]]), "rgb(255, 255, 255)").get("a")
+      ColorProbe.hexesFor(document.body, new Map([["a", "rgb(0 0 0 / 0.5)"]]), "rgb(255, 255, 255)").get("a")
     ).toMatch(/^#(7f|80){3}$/)
   })
 })

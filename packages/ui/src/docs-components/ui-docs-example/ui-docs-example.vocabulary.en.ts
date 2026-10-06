@@ -1,12 +1,12 @@
 /**
  * Every name `<ui-docs-example>` uses:  tag, attributes, events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - A DOC-ONLY element (`src/docs-components/`):  filed under the `documentation` topic, left out of the component
  *   list, loaded by `<ui-root>` like any family.
  * - Class words:  `bare`, `variation` (`ui bare example`);  the open state is `:state(open)`, not a class.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-docs-example>`
@@ -95,4 +95,4 @@ export const docsExampleVocabulary = {
     { key: "showCode", text: "Show code", description: "The code button's label while the code is hidden." },
     { key: "hideCode", text: "Hide code", description: "The code button's label while the code shows." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

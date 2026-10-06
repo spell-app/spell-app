@@ -6,6 +6,7 @@ import {
   SECTION_SELECTOR,
   SECTION_TAG,
   TABS_TAG,
+  type FollowedContent,
   type TocEntry,
   type TocSection
 } from "./ui-docs-toc.types"
@@ -13,7 +14,9 @@ import {
 /****************
  * ### `TocIndex`
  * The page side of `<ui-docs-toc>`:  which content it follows, the sections and entries in it, the one in view.
- * - Plain DOM, no Solid:  the element and its native fallback both use it.
+ * - Plain DOM, no Solid:  the element and its native fallback both use it, and node scripts load it by path
+ *   (`scripts/site-sections.ts`, `tools/SiteCheck.ts`):  NEVER imports a value from `$/ui/core`.
+ * - Static only:  pure reads (and id writes) of the DOM it's given.
  * - Entries form a tree:  level 2 headings and top-level `<ui-section>`s, then what's under each (examples, level 3
  *   headings, nested sections), as deep as the sections nest.
  * - SIDE EFFECT:  `scan()` gives every listed heading / section / example without an `id` one (a slug of its text,
@@ -24,7 +27,7 @@ export class TocIndex {
    * The element named by `forId` (else the page's `<main>`, else `<body>`), and the tab set when it is one.
    * - `undefined` while a named element doesn't exist yet (the toc may come first in the page).
    */
-  static followed(document: Document, forId: string | undefined): { root: Element; tabs?: Element } | undefined {
+  static followed(document: Document, forId: string | undefined): FollowedContent | undefined {
     const root = forId ? document.getElementById(forId) : (document.querySelector("main") ?? document.body)
     if (!root) return undefined
     return root.localName === TABS_TAG ? { root, tabs: root } : { root }
@@ -171,12 +174,14 @@ export class TocIndex {
    */
   private static text(heading: Element): string {
     let text: string | null | undefined
-    if (heading.localName === EXAMPLE_TAG) text = heading.getAttribute("header")
+    if (heading.localName === EXAMPLE_TAG) text = heading.getAttribute(HEADER)
     else if (heading.localName === SECTION_TAG)
-      text = heading.getAttribute("header") || heading.querySelector(SECTION_HEADER_SELECTOR)?.textContent
+      text = heading.getAttribute(HEADER) || heading.querySelector(SECTION_HEADER_SELECTOR)?.textContent
     else
       text = [...heading.childNodes]
-        .filter((node) => !(node instanceof Element && node.localName === heading.localName))
+        // `localName`, not `instanceof Element`:  node scripts run this on linkedom, which has no `Element` global;
+        // a text node has no `localName`
+        .filter((node) => (node as Element).localName !== heading.localName)
         .map((node) => node.textContent)
         .join("")
     return (text ?? "").replace(/\s+/g, " ").trim()
@@ -222,3 +227,6 @@ export class TocIndex {
     }
   }
 }
+
+/** A section's or example's title attribute. */
+const HEADER = "header"

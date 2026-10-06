@@ -1,12 +1,12 @@
 /**
  * Every name `<ui-docs-toc>` uses:  tag, attributes, events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - A DOC-ONLY element (`src/docs-components/`):  filed under the `documentation` topic, left out of the component
  *   list, loaded by `<ui-root>` like any family.
  * - Class words:  `size` (`ui small toc`);  what's current is the items' `selected`, not a class of its own.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-docs-toc>`
@@ -74,4 +74,4 @@ export const docsTocVocabulary = {
   ],
   states: [{ name: "empty", description: "Nothing to list (the followed content has no headings)." }],
   texts: [{ key: "label", text: "On this page", description: "Accessible name of the links' landmark." }]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

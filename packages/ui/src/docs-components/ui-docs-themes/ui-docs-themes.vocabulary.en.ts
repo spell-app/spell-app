@@ -1,12 +1,12 @@
 /**
  * Every name `<ui-docs-themes>` uses:  tag, attributes, events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - A DOC-ONLY element (`src/docs-components/`):  filed under the `documentation` topic, left out of the component
  *   list, loaded by `<ui-root>` like any family.
  * - Class words:  `inverted` (`ui inverted themes`), for dark backgrounds.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-docs-themes>`
@@ -117,4 +117,4 @@ export const docsThemesVocabulary = {
       description: "Under `Match system`."
     }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

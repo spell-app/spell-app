@@ -4,10 +4,11 @@
  * - Why a data file, not the vocabularies:  `ComponentDefinitions` imports every vocabulary (~325 KB of source);  a
  *   docs element importing it would drag all of that into the site bundle (and into docs' `spell-ui.js`, whose
  *   `<ui-root>` glob reaches these families too).  The file is written by `yarn site:data`
- *   (`scripts/gen-site-data.ts`, built by `tools/SiteDataBuilder.ts`) and committed;
+ *   (`scripts/site-data.ts`, built by `tools/SiteDataBuilder.ts`) and committed;
  *   `tools/SiteDataBuilder.test.ts` fails while it's stale.
  * - Also the JSX types of the `<ui-*>` tags the docs elements render in their shadow roots (`DocsJSXTags`).
- * - Runtime-light:  types and constants only.
+ * - Runtime-light:  types and constants only, plus the docs families' small pure helpers (`HeadingLevels`,
+ *   `VocabularyTexts`).
  */
 
 import type { JSX } from "@solidjs/web"
@@ -406,23 +407,24 @@ export const SITE_DATA_META = "ui-docs-data"
 ////////////////
 
 /**
- * A docs page's colour scheme (`ThemePreference`):  `light` / `dark` put `ui-light` / `ui-dark` on `<html>`, and the
- * same `color-scheme` inline;  `system` neither, so `color-scheme: light dark` follows the OS.
+ * Every docs page colour scheme (`ThemePreference`), in the order the picker shows them:
+ * - `light` / `dark`:  `ui-light` / `ui-dark` on `<html>`, and the same `color-scheme` inline
+ * - `system`:  neither, so `color-scheme: light dark` follows the OS
  */
-export type DocsScheme = "light" | "dark" | "system"
+export const DocsSchemes = ["light", "dark", "system"] as const
+/** One of `DocsSchemes`, e.g. `"system"`. */
+export type DocsScheme = (typeof DocsSchemes)[number]
 
 /** The scheme the page SHOWS:  `system` resolved through the OS (`prefers-color-scheme`). */
-export type DocsShownScheme = "light" | "dark"
+export type DocsShownScheme = Exclude<DocsScheme, "system">
 
 /** The viewer's look:  theme and colour scheme (`ThemePreference.look`). */
 export type DocsLook = {
   /** a `UI.themes` name (`spell`, `github`, `classic`);  `undefined`:  our own look, no theme */
   readonly theme: string | undefined
+  /** the chosen scheme;  `system` follows the OS */
   readonly scheme: DocsScheme
 }
-
-/** Every `DocsScheme`, in the order the picker shows them. */
-export const DOCS_SCHEMES: readonly DocsScheme[] = ["light", "dark", "system"]
 
 /** The theme a viewer who never picked one sees:  the Spell brand (`UI.themes.own`). */
 export const DOCS_DEFAULT_THEME = "spell"
@@ -458,3 +460,59 @@ export const DOCS_LEGACY_SCHEME_KEYS = ["spell-site:theme", "spell-ui-site:schem
 
 /** Media query of the OS's dark scheme:  what `system` follows. */
 export const DOCS_DARK_QUERY = "(prefers-color-scheme: dark)"
+
+////////////////
+// ## What the docs elements share
+////////////////
+
+/**
+ * A backticked span in a description, its content in group 1:  `<ui-docs-example>` and `<ui-docs-tokens>` split
+ * text on it and draw each odd piece as `<code>`.
+ * - `<ui-docs-api>` follows CommonMark's longer fences instead (`InlineCode`):  its texts come from vocabularies.
+ */
+export const CODE_SPAN = /`([^`]+)`/g
+
+/** A family's `level` attribute:  the heading levels it may draw, and the one when unset. */
+export type HeadingBounds = {
+  /** lowest level allowed */
+  readonly min: number
+  /** highest level allowed */
+  readonly max: number
+  /** level when unset or not a number */
+  readonly fallback: number
+}
+
+/****************
+ * ### `HeadingLevels`
+ * A `level` attribute as a heading level the element and its native fallback both draw.
+ * - Static:  pure;  a helper of every docs family with a `level`, so it lives with their shared types.
+ ****************/
+export class HeadingLevels {
+  /** `value` (an attribute) rounded and clamped to `bounds`;  `bounds.fallback` when unset or not a number. */
+  static levelFor(value: unknown, bounds: HeadingBounds): number {
+    const level = Math.round(Number(value ?? bounds.fallback))
+    return Number.isFinite(level) ? Math.min(bounds.max, Math.max(bounds.min, level)) : bounds.fallback
+  }
+}
+
+/** What `VocabularyTexts` reads of a vocabulary:  its texts. */
+export type TextsVocabulary = {
+  readonly texts: readonly { readonly key: string; readonly text: string }[]
+}
+
+/****************
+ * ### `VocabularyTexts`
+ * A vocabulary's ENGLISH text, `{name}` placeholders filled:  what the docs families' native fallbacks show, as they
+ * never reach `UI.i18n` (the runtime may be what failed).
+ * - Static:  pure, and shared by every docs fallback.
+ ****************/
+export class VocabularyTexts {
+  /** `vocabulary`'s text for `key` (`key` itself if it has none), each `{name}` filled from `params`. */
+  static english(vocabulary: TextsVocabulary, key: string, params: Record<string, string | number> = {}): string {
+    const text = vocabulary.texts.find((entry) => entry.key === key)?.text ?? key
+    return text.replace(PLACEHOLDER, (match, name: string) => String(params[name] ?? match))
+  }
+}
+
+/** A `{name}` placeholder in a text, the name in group 1. */
+const PLACEHOLDER = /\{(\w+)\}/g

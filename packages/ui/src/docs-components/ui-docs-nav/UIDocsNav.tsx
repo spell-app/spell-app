@@ -1,23 +1,28 @@
 import { For, Match, Show, Switch, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, HostAttribute, proto, SlotContent, UIElement, type UIHost, UIT } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import type { DocsSearchHost } from "$/ui/docs-components/ui-docs-search/DocsSearchHost"
-
 import { docsNavVocabulary } from "./ui-docs-nav.vocabulary.en"
 import { DocsNavFallback } from "./ui-docs-nav.fallback"
 import { DocsNavHost } from "./DocsNavHost"
 import { NavIndex } from "./NavIndex"
 import { NavPreferences } from "./NavPreferences"
 import {
+  BAND,
   DATA,
   DEFAULT_VIEW,
   FOUNDATION_PAGES,
+  HEADING,
   ICONS,
   INDEX_PAGE,
   MOTION_QUERY,
+  NavGroups,
+  NavViews,
   REVEAL_FRACTION,
+  ROW,
+  ROWS,
   TOP_PAGES,
   type DocsNavController,
   type DocsNavText,
@@ -62,51 +67,55 @@ import navCSS from "./ui-docs-nav.css?inline"
  * - A doc-only element (`src/docs-components/`):  its shadow composes other families' widgets, which its barrel
  *   imports.
  ****************/
-export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavController {
-  @proto static vocabulary = docsNavVocabulary
-  @proto static styles = { "docs-nav": navCSS }
-  @proto static Fallback = DocsNavFallback
-  @proto static Host = DocsNavHost
-  @proto static delegatesFocus = false
+export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNavController {
+  @E.proto static vocabulary = docsNavVocabulary
+  @E.proto static styles = { "docs-nav": navCSS }
+  @E.proto static Fallback = DocsNavFallback
+  @E.proto static Host = DocsNavHost
+  @E.proto static delegatesFocus = false
+
+  ////////////////
+  // ## State
+  ////////////////
 
   /** Which slots have content:  the header / footer boxes show only then. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** Host `aria-label`, naming the landmark in place of "Documentation":  two navs on a page need two names. */
-  readonly ariaLabel = new HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
+  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** The list, once the data has loaded. */
-  readonly index = new Cell<NavIndex | undefined>(undefined)
+  readonly index = new E.Cell<NavIndex | undefined>(undefined)
 
   /** Why the data didn't load, if it didn't. */
-  readonly failure = new Cell<string | undefined>(undefined)
+  readonly failure = new E.Cell<string | undefined>(undefined)
 
   /** The search text, normalized (`NavIndex.normalize()`). */
-  readonly query = new Cell("")
+  readonly query = new E.Cell("")
 
   /** Starred tags, as stored:  unknown ones are dropped by `favorites()`. */
-  readonly starred = new Cell<ReadonlySet<string>>(new Set(isServer ? [] : NavPreferences.favorites()))
+  readonly starred = new E.Cell<ReadonlySet<string>>(new Set(isServer ? [] : NavPreferences.favorites()))
 
   /** Topic ids the viewer opened (no search typed). */
-  readonly openTopics = new Cell<ReadonlySet<string>>(new Set(isServer ? [] : NavPreferences.openTopics()))
+  readonly openTopics = new E.Cell<ReadonlySet<string>>(new Set(isServer ? [] : NavPreferences.openTopics()))
 
   /** Groups the viewer folded away (no search typed). */
-  readonly closedGroups = new Cell<ReadonlySet<string>>(new Set(isServer ? [] : NavPreferences.closedGroups()))
+  readonly closedGroups = new E.Cell<ReadonlySet<NavGroup>>(new Set(isServer ? [] : NavPreferences.closedGroups()))
 
   /** Topic ids the viewer closed during THIS search;  emptied when the query changes. */
-  readonly searchClosed = new Cell<ReadonlySet<string>>(new Set())
+  readonly searchClosed = new E.Cell<ReadonlySet<string>>(new Set())
 
   /** Groups the viewer folded during THIS search;  emptied when the query changes. */
-  readonly searchClosedGroups = new Cell<ReadonlySet<string>>(new Set())
+  readonly searchClosedGroups = new E.Cell<ReadonlySet<NavGroup>>(new Set())
 
   /** Topics shut by the viewer whose fold is still easing shut:  their rows stay rendered until it has. */
-  readonly closing = new Cell<ReadonlySet<string>>(new Set())
+  readonly closing = new E.Cell<ReadonlySet<string>>(new Set())
 
   /** The viewer closed the topic opened for the current page:  don't open it again. */
-  readonly autoClosed = new Cell(false)
+  readonly isAutoClosed = new E.Cell(false)
 
   /** The list's widgets are ready and the current page revealed:  from now on a topic eases open. */
-  readonly settled = new Cell(false)
+  readonly isSettled = new E.Cell(false)
 
   /** `view`:  the host's when set, else the remembered one. */
   readonly view = this.controlled("view", (isServer ? undefined : NavPreferences.view()) ?? DEFAULT_VIEW)
@@ -160,15 +169,15 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
   /** The topic Topics opens for the current page:  its first, unless an open topic already holds it. */
   readonly autoTopic = createMemo(() => {
     const row = this.currentRow()
-    if (!row || this.autoClosed.get()) return undefined
+    if (!row || this.isAutoClosed.get()) return undefined
     const open = this.openTopics.get()
     return row.topics.some((topic) => open.has(topic)) ? undefined : row.topics[0]
   })
 
   /** A search is typed. */
-  readonly searching = createMemo(() => !!this.query.get())
+  readonly isSearching = createMemo(() => !!this.query.get())
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     this.listed = new Promise((resolve) => (this.resolveListed = resolve))
     if (isServer) return
@@ -179,19 +188,59 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
     // SIDE EFFECT:  once the list (or the error) has rendered, scroll to the current page and resolve `listed`
     createEffect(
       () => !!(this.index.get() || this.failure.get()),
-      (done) => {
-        if (done) queueMicrotask(() => void this.afterListed())
+      (isDone) => {
+        if (isDone) queueMicrotask(() => void this.afterListed())
       }
     )
   }
 
+  ////////////////
+  // ## Element hooks
+  ////////////////
+
   protected override hostStates() {
     return {
-      searching: this.searching(),
-      empty: this.searching() && this.matched().size === 0,
+      searching: this.isSearching(),
+      empty: this.isSearching() && this.matched().size === 0,
       listed: !!(this.index.get() || this.failure.get()),
-      settled: this.settled.get()
+      settled: this.isSettled.get()
     }
+  }
+
+  ////////////////
+  // ## Script API (`DocsNavHost`)
+  ////////////////
+
+  /** Show the search field (opening the drawer the nav is in, if it's hidden there) and focus it. */
+  focusSearch() {
+    void this.search?.summon()
+  }
+
+  /**
+   * Scroll the current page's link into view, a third of the way down its scroll container (the panel's list);
+   * nothing if it's already in view, or nothing scrolls (never the page itself).
+   * - The link in the main list, not its copy in Favourites;  none in a shut fold.
+   */
+  revealCurrent() {
+    const shown = `[${DATA.current}]:not([inert] *)`
+    const item =
+      this.box?.querySelector<HTMLElement>(`.${ROWS}:not(.${FAVORITES}) ${shown}`) ??
+      this.box?.querySelector<HTMLElement>(shown)
+    if (!item) return
+    const scroller = UIDocsNav.scrollerFor(item)
+    if (!scroller) return
+    const box = item.getBoundingClientRect()
+    const port = scroller.getBoundingClientRect()
+    if (box.top >= port.top && box.bottom <= port.bottom) return
+    scroller.scrollTop += box.top - port.top - port.height * REVEAL_FRACTION
+  }
+
+  /** The starred tags, A-Z. */
+  favoriteTags(): string[] {
+    const favorites = untrack(() => this.favorites())
+    return untrack(() => this.index.get()?.rows ?? [])
+      .filter((row) => favorites.has(row.tag))
+      .map((row) => row.tag)
   }
 
   ////////////////
@@ -203,20 +252,22 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
       <div class={this.classes()} part={this.part("nav")} ref={(element: HTMLElement) => this.wire(element)}>
         {this.masthead()}
         <nav part={this.part("menu")} aria-label={this.ariaLabel.get() ?? this.text("navLabel")}>
-          {this.group("start", "getStarted", this.pages(TOP_PAGES))}
+          {this.group({ group: "start", title: "getStarted", body: this.pages(TOP_PAGES) })}
           <Show when={this.favoriteRows().length}>
-            {this.group(
-              "favorites",
-              "favorites",
-              <ul class="rows favorites">
-                <For each={this.favoriteRows()}>{(row) => this.row(row)}</For>
-              </ul>
-            )}
+            {this.group({
+              group: FAVORITES,
+              title: "favorites",
+              body: (
+                <ul class={[ROWS, FAVORITES]}>
+                  <For each={this.favoriteRows()}>{(row) => this.row(row)}</For>
+                </ul>
+              )
+            })}
           </Show>
-          {this.group("components", "components", this.components(), this.count())}
-          {this.group("foundation", "foundation", this.pages(FOUNDATION_PAGES))}
+          {this.group({ group: "components", title: "components", body: this.components(), extra: this.count() })}
+          {this.group({ group: "foundation", title: "foundation", body: this.pages(FOUNDATION_PAGES) })}
           <Show when={this.slots.has(this.slot("footer"))}>
-            <div class="slotted footer">
+            <div class={[SLOTTED, FOOTER]}>
               <slot name={this.slot("footer")} />
             </div>
           </Show>
@@ -228,24 +279,23 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
   /** The header band:  the `header` slot, the search box beside the A-Z / Topics switch, the live status. */
   private masthead(): JSX.Element {
     return (
-      <div class="masthead" part={this.part("header")}>
+      <div class={MASTHEAD} part={this.part("header")}>
         <Show when={this.slots.has(this.slot("header"))}>
-          <div class="slotted header">
+          <div class={[SLOTTED, UIT.HEADER]}>
             <slot name={this.slot("header")} />
           </div>
         </Show>
-        <div class="tools">
+        <div class={TOOLS}>
           <ui-docs-search
             ref={(element: HTMLElement) => (this.search = element as DocsSearchHost)}
             part={this.part("search")}
             base={this.attrs.base}
           />
           <ui-buttons part={this.part("views")} size="small" basic="" icon="" aria-label={this.text("views")}>
-            {this.viewButton("az")}
-            {this.viewButton("topics")}
+            <For each={NavViews}>{(view) => this.viewButton(view)}</For>
           </ui-buttons>
         </div>
-        <span class="ui-visually-hidden-force" role="status">
+        <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
           {this.status()}
         </span>
       </div>
@@ -256,26 +306,26 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
    * One group:  its heading band (a `<button aria-expanded>` in an `<h2>`, the brand's sub-head band), then its fold.
    * - The fold stays rendered while shut:  `inert` keeps its links out of reach, the sheet hides it once folded.
    */
-  private group(group: NavGroup, title: DocsNavText, body: JSX.Element, extra?: JSX.Element): JSX.Element {
-    const open = () => this.isGroupOpen(group)
-    const fold = `nav-group-${group}`
+  private group({ group, title, body, extra }: GroupProps): JSX.Element {
+    const isOpen = () => this.isGroupOpen(group)
+    const fold = GROUP_FOLD_ID + group
     return (
-      <section class={["group", group]}>
-        <h2 class="heading">
+      <section class={[GROUP, group]}>
+        <h2 class={HEADING}>
           <button
             type="button"
-            class="band"
+            class={BAND}
             data-nav-group={group}
-            aria-expanded={open() ? "true" : "false"}
+            aria-expanded={isOpen() ? UIT.TRUE : UIT.FALSE}
             aria-controls={fold}
           >
-            <span class="title">{this.text(title)}</span>
+            <span class={UIT.TITLE}>{this.text(title)}</span>
             {extra}
             {this.chevron()}
           </button>
         </h2>
-        <div id={fold} class={["fold", { open: open() }]} inert={open() ? undefined : ""}>
-          <div class="folded">{body}</div>
+        <div id={fold} class={[FOLD, { [OPEN]: isOpen() }]} inert={isOpen() ? undefined : ""}>
+          <div class={FOLDED}>{body}</div>
         </div>
       </section>
     )
@@ -286,26 +336,26 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
     return (
       <Switch>
         <Match when={this.failure.get()}>
-          <ui-message class="problem" size="small" state="negative" header={this.text("loadError")}>
+          <ui-message class={PROBLEM} size="small" state="negative" header={this.text("loadError")}>
             {this.failure.get()}
           </ui-message>
         </Match>
         <Match when={!this.index.get()}>
-          <p class="note">{this.text("loading")}</p>
+          <p class={NOTE}>{this.text("loading")}</p>
         </Match>
         <Match when={true}>
           <Show
             when={this.view.get() === "topics"}
             fallback={
-              <ul class="rows">
+              <ul class={ROWS}>
                 <For each={this.azRows()}>{(row) => this.row(row)}</For>
               </ul>
             }
           >
             <For each={this.index.get()!.topics}>{(topic, index) => this.topic(topic, index)}</For>
           </Show>
-          <Show when={this.searching() && this.matched().size === 0}>
-            <p class="note empty">{this.text("noMatches")}</p>
+          <Show when={this.isSearching() && this.matched().size === 0}>
+            <p class={[NOTE, EMPTY]}>{this.text("noMatches")}</p>
           </Show>
         </Match>
       </Switch>
@@ -349,34 +399,34 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
    */
   private topic(topic: NavTopic, index: () => number): JSX.Element {
     const rows = createMemo(() => topic.rows.filter((row) => this.matched().has(row.tag)))
-    const open = () => this.isOpen(topic.id)
-    const fold = () => `nav-topic-${index()}`
+    const isOpen = () => this.isOpen(topic.id)
+    const fold = () => TOPIC_FOLD_ID + index()
     return (
       <Show when={rows().length}>
-        <h3 class="heading">
+        <h3 class={HEADING}>
           <button
             type="button"
-            class="band topic"
+            class={[BAND, TOPIC]}
             data-nav-topic={topic.id}
-            aria-expanded={open() ? "true" : "false"}
-            aria-controls={open() ? fold() : undefined}
+            aria-expanded={isOpen() ? UIT.TRUE : UIT.FALSE}
+            aria-controls={isOpen() ? fold() : undefined}
           >
-            <span class="title">{topic.title}</span>
-            <ui-label class="count" size="mini" circular="" aria-label={this.text("count", { count: rows().length })}>
+            <span class={UIT.TITLE}>{topic.title}</span>
+            <ui-label class={COUNT} size="mini" circular="" aria-label={this.text("count", { count: rows().length })}>
               {rows().length}
             </ui-label>
             {this.chevron()}
           </button>
         </h3>
-        <Show when={open() || this.closing.get().has(topic.id)}>
+        <Show when={isOpen() || this.closing.get().has(topic.id)}>
           <div
             id={fold()}
-            class={["fold", "topic-rows", { open: open() }]}
+            class={[FOLD, TOPIC_ROWS, { [OPEN]: isOpen() }]}
             data-nav-fold={topic.id}
-            inert={open() ? undefined : ""}
+            inert={isOpen() ? undefined : ""}
           >
-            <div class="folded">
-              <ul class="rows">
+            <div class={FOLDED}>
+              <ul class={ROWS}>
                 <For each={rows()}>{(row) => this.row(row)}</For>
               </ul>
             </div>
@@ -388,31 +438,31 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
 
   /** One component:  its link (with a status badge) and its star. */
   private row(row: NavRow): JSX.Element {
-    const starred = () => this.favorites().has(row.tag)
-    const current = () => this.currentRow() === row
-    const label = () => this.text(starred() ? "removeFavorite" : "addFavorite", { name: row.name })
+    const isStarred = () => this.favorites().has(row.tag)
+    const isCurrent = () => this.currentRow() === row
+    const label = () => this.text(isStarred() ? "removeFavorite" : "addFavorite", { name: row.name })
     return (
-      <li class="row">
+      <li class={ROW}>
         <a
-          class="item"
+          class={UIT.ITEM}
           href={this.href(row.href)}
-          aria-current={current() ? "page" : undefined}
+          aria-current={isCurrent() ? UIT.PAGE : undefined}
           data-nav-link={row.tag}
-          data-nav-current={current() ? "" : undefined}
+          data-nav-current={isCurrent() ? "" : undefined}
         >
-          <span class="name">{row.name}</span>
+          <span class={NAME}>{row.name}</span>
           {row.status && (
-            <ui-label class="status" size="mini" color="yellow" basic="">
+            <ui-label class={STATUS_BADGE} size="mini" color="yellow" basic="">
               {this.text(row.status === "planned" ? "planned" : "inProgress")}
             </ui-label>
           )}
         </a>
         <ui-button
-          class="star"
+          class={STAR}
           data-nav-star={row.tag}
           toggle=""
-          active={starred() ? "" : undefined}
-          icon={starred() ? ICONS.star : ICONS.starOutline}
+          active={isStarred() ? "" : undefined}
+          icon={isStarred() ? ICONS.star : ICONS.starOutline}
           size="mini"
           tertiary=""
           aria-label={label()}
@@ -425,7 +475,7 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
   /** A list of hand-written pages' rows. */
   private pages(pages: readonly NavPage[]): JSX.Element {
     return (
-      <ul class="rows pages">
+      <ul class={[ROWS, PAGES]}>
         <For each={pages}>{(page) => this.pageRow(page)}</For>
       </ul>
     )
@@ -433,20 +483,20 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
 
   /** A hand-written page's row:  its icon and name. */
   private pageRow(page: NavPage): JSX.Element {
-    const current = () => this.current() === page.id
+    const isCurrent = () => this.current() === page.id
     return (
-      <li class="row">
+      <li class={ROW}>
         <a
-          class="item"
+          class={UIT.ITEM}
           href={this.href(page.file)}
-          aria-current={current() ? "page" : undefined}
+          aria-current={isCurrent() ? UIT.PAGE : undefined}
           data-nav-link={page.id}
-          data-nav-current={current() ? "" : undefined}
+          data-nav-current={isCurrent() ? "" : undefined}
         >
-          <span class="icon">
+          <span class={UIT.ICON}>
             <ui-icon name={page.icon} />
           </span>
-          <span class="name">{this.text(page.text)}</span>
+          <span class={NAME}>{this.text(page.text)}</span>
         </a>
       </li>
     )
@@ -455,7 +505,7 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
   /** A band's chevron (a box round the icon, whose host is `display: contents`):  the sheet turns it while shut. */
   private chevron(): JSX.Element {
     return (
-      <span class="chevron">
+      <span class={CHEVRON}>
         <ui-icon name={ICONS.chevron} />
       </span>
     )
@@ -463,7 +513,7 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
 
   /** The live status:  how many match, while searching. */
   private status(): string {
-    if (!this.searching()) return ""
+    if (!this.isSearching()) return ""
     const count = this.matched().size
     return count === 1 ? this.text("matchOne") : this.text("matchMany", { count })
   }
@@ -475,7 +525,7 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
 
   /** Is `topic` open now:  every matching topic while searching (unless closed for it), else the viewer's. */
   private isOpen(topic: string): boolean {
-    if (this.searching()) return !this.searchClosed.get().has(topic)
+    if (this.isSearching()) return !this.searchClosed.get().has(topic)
     return this.openTopics.get().has(topic) || this.autoTopic() === topic
   }
 
@@ -484,7 +534,7 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
    * - While searching, the groups a search filters (Favourites, Components) open, unless folded for this search.
    */
   private isGroupOpen(group: NavGroup): boolean {
-    if (this.searching() && UIDocsNav.SEARCHED.has(group)) return !this.searchClosedGroups.get().has(group)
+    if (this.isSearching() && SEARCHED.has(group)) return !this.searchClosedGroups.get().has(group)
     return !this.closedGroups.get().has(group)
   }
 
@@ -503,13 +553,17 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
 
   /** A click:  a star, a band, a view button, or a link (delegated, by `data-nav-*`). */
   private onClick(event: MouseEvent) {
-    const target = UIDocsNav.dataTarget(event)
+    const target = UIDocsNav.dataTargetFor(event)
     if (!target) return
     const { element, name, value } = target
-    if (name === DATA.star) this.toggleFavorite(value, element, event)
+    if (name === DATA.star) this.toggleFavorite({ tag: value, star: element, event })
     else if (name === DATA.topic) this.toggleTopic(value)
-    else if (name === DATA.group) this.toggleGroup(value as NavGroup)
-    else if (name === DATA.view) this.setView(value as NavView, event)
+    else if (name === DATA.group) this.toggleGroup(NavGroups.find((group) => group === value))
+    else if (name === DATA.view)
+      this.setView(
+        NavViews.find((view) => view === value),
+        event
+      )
     else if (name === DATA.link) this.navigate(value, event)
   }
 
@@ -530,7 +584,7 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
    *   replaces it ends with its own `transitionend` (or none:  `closeSoon()`).
    */
   private onTransitionEnd(event: TransitionEvent) {
-    if (event.propertyName !== "grid-template-rows") return
+    if (event.propertyName !== FOLD_PROPERTY) return
     const topic = (event.target as Element).getAttribute(DATA.fold)
     if (topic !== null) this.closed(topic)
   }
@@ -549,12 +603,13 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
    * open, from the same height):  no `transitionend` comes, so end `closing` now.
    */
   private closeSoon(topic: string) {
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        const fold = this.box?.querySelector(`[${DATA.fold}="${CSS.escape(topic)}"]`)
-        if (!fold?.getAnimations().length) this.closed(topic)
-      })
-    )
+    requestAnimationFrame(() => requestAnimationFrame(() => this.closeIfStill(topic)))
+  }
+
+  /** `topic`'s fold isn't animating:  end its `closing` (`closeSoon()`). */
+  private closeIfStill(topic: string) {
+    const fold = this.box?.querySelector(`[${DATA.fold}="${CSS.escape(topic)}"]`)
+    if (!fold?.getAnimations().length) this.closed(topic)
   }
 
   /** The search box changed (every keystroke). */
@@ -568,57 +623,59 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
     this.closing.set(new Set())
   }
 
-  /** Switch the view, as the viewer did with `event`;  remembered. */
-  private setView(view: NavView, event: Event) {
-    if (view === untrack(() => this.view.get())) return
-    const applied = this.view.request(view, () => this.emit("ui-change", { view, originalEvent: event }))
-    if (applied) NavPreferences.setView(view)
+  /** Switch the view, as the viewer did with `event`;  remembered.  No `view` (not a `NavView`):  nothing. */
+  private setView(view: NavView | undefined, event: Event) {
+    if (!view || view === untrack(() => this.view.get())) return
+    const isApplied = this.view.request(view, () => this.emit("ui-change", { view, originalEvent: event }))
+    if (isApplied) NavPreferences.setView(view)
   }
 
   /** Open or close `topic`;  remembered unless searching.  A topic shut with motion on eases shut (`closing`). */
   private toggleTopic(topic: string) {
-    const open = untrack(() => this.isOpen(topic))
-    if (open && matchMedia(MOTION_QUERY).matches) {
+    const isOpen = untrack(() => this.isOpen(topic))
+    if (isOpen && matchMedia(MOTION_QUERY).matches) {
       this.closing.set(new Set(untrack(() => this.closing.get())).add(topic))
       this.closeSoon(topic)
     }
-    if (untrack(() => this.searching())) {
+    if (untrack(() => this.isSearching())) {
       this.searchClosed.set(
-        UIDocsNav.flip(
+        UIDocsNav.copyWith(
           untrack(() => this.searchClosed.get()),
           topic,
-          open
+          isOpen ? "add" : "delete"
         )
       )
       return
     }
-    const topics = UIDocsNav.flip(
+    const topics = UIDocsNav.copyWith(
       untrack(() => this.openTopics.get()),
       topic,
-      !open
+      isOpen ? "delete" : "add"
     )
-    if (open && topic === untrack(() => this.autoTopic())) this.autoClosed.set(true)
+    if (isOpen && topic === untrack(() => this.autoTopic())) this.isAutoClosed.set(true)
     this.openTopics.set(topics)
     NavPreferences.setOpenTopics(topics)
   }
 
-  /** Fold or unfold `group`;  remembered, unless it's one a search opened. */
-  private toggleGroup(group: NavGroup) {
-    const open = untrack(() => this.isGroupOpen(group))
-    if (untrack(() => this.searching()) && UIDocsNav.SEARCHED.has(group)) {
+  /** Fold or unfold `group`;  remembered, unless it's one a search opened.  No `group`:  nothing. */
+  private toggleGroup(group: NavGroup | undefined) {
+    if (!group) return
+    // an open group joins the closed ones;  a closed one leaves them
+    const change = untrack(() => this.isGroupOpen(group)) ? "add" : "delete"
+    if (untrack(() => this.isSearching()) && SEARCHED.has(group)) {
       this.searchClosedGroups.set(
-        UIDocsNav.flip(
+        UIDocsNav.copyWith(
           untrack(() => this.searchClosedGroups.get()),
           group,
-          open
+          change
         )
       )
       return
     }
-    const groups = UIDocsNav.flip(
+    const groups = UIDocsNav.copyWith(
       untrack(() => this.closedGroups.get()),
       group,
-      open
+      change
     )
     this.closedGroups.set(groups)
     NavPreferences.setClosedGroups(groups)
@@ -629,19 +686,21 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
    * - Un-starring from the Favourites list removes the clicked row:  focus moves to the tag's star in the list
    *   below, else the search box.
    */
-  private toggleFavorite(tag: string, star: Element, event: Event) {
+  private toggleFavorite({ tag, star, event }: { tag: string; star: Element; event: Event }) {
     const favorites = new Set(untrack(() => this.favorites()))
-    const favorite = !favorites.has(tag)
-    if (favorite) favorites.add(tag)
+    const isFavorite = !favorites.has(tag)
+    if (isFavorite) favorites.add(tag)
     else favorites.delete(tag)
     this.starred.set(favorites)
     const rows = untrack(() => this.index.get()?.rows ?? [])
     const list = rows.filter((row) => favorites.has(row.tag)).map((row) => row.tag)
     NavPreferences.setFavorites(list)
-    this.emit("ui-favorite", { tag, favorite, favorites: list, originalEvent: event })
-    if (favorite || !star.closest(".favorites")) return
+    this.emit("ui-favorite", { tag, favorite: isFavorite, favorites: list, originalEvent: event })
+    if (isFavorite || !star.closest(`.${FAVORITES}`)) return
     queueMicrotask(() => {
-      const next = this.box?.querySelector<HTMLElement>(`.rows:not(.favorites) [${DATA.star}="${CSS.escape(tag)}"]`)
+      const next = this.box?.querySelector<HTMLElement>(
+        `.${ROWS}:not(.${FAVORITES}) [${DATA.star}="${CSS.escape(tag)}"]`
+      )
       ;(next ?? this.search)?.focus()
     })
   }
@@ -654,73 +713,34 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
     if (!this.emit("ui-navigate", { href: link.href, page, originalEvent: event })) event.preventDefault()
   }
 
-  ////////////////
-  // ## Script API (`DocsNavHost`)
-  ////////////////
-
-  /** Show the search field (opening the drawer the nav is in, if it's hidden there) and focus it. */
-  focusSearch() {
-    void this.search?.summon()
-  }
-
-  /**
-   * Scroll the current page's link into view, a third of the way down its scroll container (the panel's list);
-   * nothing if it's already in view, or nothing scrolls (never the page itself).
-   * - The link in the main list, not its copy in Favourites;  none in a shut fold.
-   */
-  revealCurrent() {
-    const shown = `[${DATA.current}]:not([inert] *)`
-    const item =
-      this.box?.querySelector<HTMLElement>(`.rows:not(.favorites) ${shown}`) ??
-      this.box?.querySelector<HTMLElement>(shown)
-    if (!item) return
-    const scroller = UIDocsNav.scroller(item)
-    if (!scroller) return
-    const box = item.getBoundingClientRect()
-    const port = scroller.getBoundingClientRect()
-    if (box.top >= port.top && box.bottom <= port.bottom) return
-    scroller.scrollTop += box.top - port.top - port.height * REVEAL_FRACTION
-  }
-
-  /** The starred tags, A-Z. */
-  favoriteTags(): string[] {
-    const favorites = untrack(() => this.favorites())
-    return untrack(() => this.index.get()?.rows ?? [])
-      .filter((row) => favorites.has(row.tag))
-      .map((row) => row.tag)
-  }
-
   /** The list (or its error) has rendered:  wait for its widgets, reveal the current page, resolve `listed`. */
   private async afterListed() {
     const hosts = [...(this.box?.querySelectorAll("*") ?? [])].filter(
-      (element): element is UIHost => "ready" in element
+      (element): element is E.UIHost => READY in element
     )
     await Promise.all(hosts.map((host) => host.ready))
     this.revealCurrent()
     this.resolveListed()
-    this.settled.set(true)
+    this.isSettled.set(true)
   }
 
   ////////////////
   // ## Helpers
   ////////////////
 
-  /** Groups a search filters:  they open while searching. */
-  private static readonly SEARCHED: ReadonlySet<NavGroup> = new Set(["favorites", "components"])
-
-  /** A copy of `set` with `item` in it (`present`) or not. */
-  private static flip(set: ReadonlySet<string>, item: string, present: boolean): Set<string> {
+  /** A copy of `set` with `item` added or deleted:  a new value for a `Cell`, which never changes in place. */
+  private static copyWith<T extends string>(set: ReadonlySet<T>, item: T, change: "add" | "delete"): Set<T> {
     const next = new Set(set)
-    if (present) next.add(item)
+    if (change === "add") next.add(item)
     else next.delete(item)
     return next
   }
 
   /** The nearest element on `event`'s path with one of the `DATA` attributes:  it, the attribute, its value. */
-  private static dataTarget(event: Event): { element: Element; name: string; value: string } | undefined {
+  private static dataTargetFor(event: Event): { element: Element; name: string; value: string } | undefined {
     for (const target of event.composedPath()) {
       if (!(target instanceof Element)) continue
-      for (const name of [DATA.star, DATA.topic, DATA.group, DATA.view, DATA.link]) {
+      for (const name of CLICK_TARGETS) {
         const value = target.getAttribute(name)
         if (value !== null) return { element: target, name, value }
       }
@@ -732,24 +752,108 @@ export class UIDocsNav extends UIElement<DocsNavVocabulary> implements DocsNavCo
    * The nearest scroll container of `element`, up the FLAT tree (slots, shadow hosts):  one whose content overflows
    * and may scroll.  Never the page's own scroller.
    */
-  private static scroller(element: Element): HTMLElement | undefined {
+  private static scrollerFor(element: Element): HTMLElement | undefined {
     const page = document.scrollingElement
-    let node: Element | null = UIDocsNav.flatParent(element)
-    while (node && node !== page && node !== document.body) {
+    for (let node = E.flatParentFor(element); node && node !== page && node !== document.body;) {
       if (node instanceof HTMLElement && node.scrollHeight > node.clientHeight) {
         const overflow = getComputedStyle(node).overflowY
-        if (overflow === "auto" || overflow === "scroll") return node
+        if (SCROLLING.has(overflow)) return node
       }
-      node = UIDocsNav.flatParent(node)
+      node = E.flatParentFor(node)
     }
     return undefined
   }
-
-  /** `element`'s parent in the flat tree:  its slot, its parent, or its shadow root's host. */
-  private static flatParent(element: Element): Element | null {
-    if (element.assignedSlot) return element.assignedSlot
-    if (element.parentElement) return element.parentElement
-    const root = element.getRootNode()
-    return root instanceof ShadowRoot ? root.host : null
-  }
 }
+
+/** What `UIDocsNav.group()` draws:  one group's band and fold. */
+type GroupProps = {
+  /** which group:  its class word, its fold's id, its `data-nav-group` */
+  group: NavGroup
+  /** the vocabulary text of its band's title */
+  title: DocsNavText
+  /** what folds away under the band */
+  body: JSX.Element
+  /** what the band shows after its title (the Components count) */
+  extra?: JSX.Element
+}
+
+/** The Favourites group:  also the class word of its list, which `revealCurrent()` skips. */
+const FAVORITES: NavGroup = "favorites"
+
+/** Groups a search filters:  they open while searching. */
+const SEARCHED: ReadonlySet<NavGroup> = new Set([FAVORITES, "components"])
+
+/** The `DATA` attributes a click acts on, nearest first per element. */
+const CLICK_TARGETS = [DATA.star, DATA.topic, DATA.group, DATA.view, DATA.link]
+
+/** Id prefix of a group's fold, + the group:  its band's `aria-controls`. */
+const GROUP_FOLD_ID = "nav-group-"
+
+/** Id prefix of a topic's fold, + the topic's index. */
+const TOPIC_FOLD_ID = "nav-topic-"
+
+/** The property a fold eases (the sheet's `grid-template-rows`):  its `transitionend` ends `closing`. */
+const FOLD_PROPERTY = "grid-template-rows"
+
+/** `overflow-y` values that make a box a scroll container. */
+const SCROLLING: ReadonlySet<string> = new Set(["auto", "scroll"])
+
+/** What every `ui-*` host has, and plain elements don't:  its `ready` promise. */
+const READY = "ready"
+
+/** Class word of the header band. */
+const MASTHEAD = "masthead"
+
+/** Class word of a box round a slot (with `header` / `footer`). */
+const SLOTTED = "slotted"
+
+/** Class word of the footer slot's box. */
+const FOOTER = "footer"
+
+/** Class word of the box holding the search field and the view switch. */
+const TOOLS = "tools"
+
+/** Class word of a group (with its `NavGroup`). */
+const GROUP = "group"
+
+/** Class word of a fold (with `open` while open). */
+const FOLD = "fold"
+
+/** Class word of a fold's inner box, the one that clips. */
+const FOLDED = "folded"
+
+/** Class word of an open fold. */
+const OPEN = "open"
+
+/** Class word of a topic's band. */
+const TOPIC = "topic"
+
+/** Class word of a topic's fold. */
+const TOPIC_ROWS = "topic-rows"
+
+/** Class word of a topic band's count. */
+const COUNT = "count"
+
+/** Class word of the hand-written pages' lists. */
+const PAGES = "pages"
+
+/** Class word of a row's name. */
+const NAME = "name"
+
+/** Class word of a row's status badge. */
+const STATUS_BADGE = "status"
+
+/** Class word of a component's star. */
+const STAR = "star"
+
+/** Class word of a band's chevron box. */
+const CHEVRON = "chevron"
+
+/** Class word of a note in the list (loading, no matches). */
+const NOTE = "note"
+
+/** Class word of the "no matches" note. */
+const EMPTY = "empty"
+
+/** Class word of the load error's message. */
+const PROBLEM = "problem"
