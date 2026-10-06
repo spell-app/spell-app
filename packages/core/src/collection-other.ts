@@ -10,6 +10,7 @@ import _ from "lodash"
 import { spellCore } from "./core"
 import { assert } from "$/core"
 import { defineSpellCoreModule } from "./spellCore.types"
+import type { CollectionOf } from "./collection-core"
 
 /** A valid `{ start, end }` 1-based range, as computed by the `_validateRange*` helpers. */
 export type Range = {
@@ -19,8 +20,13 @@ export type Range = {
   end: number
 }
 
-/** Iteration callback shared by `forEach`/`map`/`filter`/`all`/`any`/etc: `(value, item, collection) => ...` */
-export type CollectionIterationCallback = (value: unknown, item: string | number, collection: unknown) => unknown
+/**
+ * Iteration callback shared by `forEach`/`map`/`filter`/`all`/`any`/etc: `(value, item, collection) => ...`
+ * - `value`:  an item of the collection, `T` -- see `CollectionOf`.
+ * - Those helpers take it as `CollectionIterationCallback<NoInfer<T>>`:  ONLY the collection says what `T` is, so a
+ *   callback taking a `Card` is checked against a `List<Card>`, and refused for a list of who-knows-what.
+ */
+export type CollectionIterationCallback<T = unknown> = (value: T, item: string | number, collection: unknown) => unknown
 
 /** A list with guards, e.g. a `List` -- see `spellCore.move()`, `List.moveHere()`. */
 type Guarded = {
@@ -241,7 +247,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
   ////////////////
 
   /** Execute `method` for each item in `collection`, ignoring results. */
-  forEach(collection?: unknown, method?: CollectionIterationCallback): void {
+  forEach<T = unknown>(collection?: CollectionOf<T>, method?: CollectionIterationCallback<NoInfer<T>>): void {
     if (!assert.isDefined(collection, "spellCore.forEach(collection)")) return
     if (!method) return
     const iterator = spellCore.getIteratorFor(collection)
@@ -257,7 +263,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - The entire thing will finish when all waiting is done.
    * - Results are ignored.
    */
-  async forEachSequential(collection?: unknown, method?: CollectionIterationCallback): Promise<void> {
+  async forEachSequential<T = unknown>(
+    collection?: CollectionOf<T>,
+    method?: CollectionIterationCallback<NoInfer<T>>
+  ): Promise<void> {
     if (!assert.isDefined(collection, "spellCore.forEachSequential(collection)")) return
     if (!method) return
     const iterator = spellCore.getIteratorFor(collection)
@@ -274,7 +283,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    *   `spellCore.map(spellCore.getRange(...), (number) => { ... })` -- see `lists.ts`.
    * TODO: rename???
    */
-  map(collection?: unknown, method?: CollectionIterationCallback): unknown {
+  map<T = unknown>(collection?: CollectionOf<T>, method?: CollectionIterationCallback<NoInfer<T>>): unknown {
     if (!assert.isDefined(collection, "spellCore.map(collection)")) return undefined
     const results = spellCore.newThingLike(collection)
     if (!method) return results
@@ -290,11 +299,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - For object: returns new type of collection with just specified keys.
    * - Compiles from `words in "a word list" where ...` -- see `lists.ts`.
    */
-  filter(collection?: unknown, condition?: CollectionIterationCallback): unknown {
+  filter<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): unknown {
     if (!assert.isDefined(collection, "spellCore.filter(collection)")) return undefined
     if (!condition) condition = (it) => it
     const results = spellCore.newThingLike(collection)
-    let filter: CollectionIterationCallback
+    let filter: CollectionIterationCallback<T>
     if (spellCore.isArrayLike(collection)) {
       filter = (value, item, _collection) => {
         if (condition!(value, item, _collection)) spellCore.append(results, value)
@@ -312,7 +321,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * Return `true` if all items in collection match `condition`, called as
    * `condition(value, item, collection)`.
    */
-  all(collection?: unknown, condition?: CollectionIterationCallback): boolean {
+  all<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): boolean {
     if (!assert.isDefined(collection, "spellCore.all(collection)")) return false
     if (!condition) condition = (it) => it
     const iterator = spellCore.getIteratorFor(collection)
@@ -330,7 +339,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * `condition(value, item, collection)`.
    * - Compiles from `my-list has items where ...` -- see `lists.ts`.
    */
-  any(collection?: unknown, condition?: CollectionIterationCallback): boolean {
+  any<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): boolean {
     if (!assert.isDefined(collection, "spellCore.any(collection)")) return false
     if (!condition) condition = (it) => it
     const iterator = spellCore.getIteratorFor(collection)
@@ -377,7 +386,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * Remove items from `collection` which match `condition`, called as `condition(value, item, collection)`.
    * - Compiles from `remove items from my-list where ...` -- see `lists.ts`.
    */
-  removeWhere(collection?: unknown, condition?: CollectionIterationCallback): void {
+  removeWhere<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): void {
     if (!assert.isDefined(collection, "spellCore.removeWhere(collection)")) return
     const itemsToRemove = spellCore.filter(collection, condition)
     if (spellCore.isArrayLike(collection)) spellCore.remove(collection, ...(itemsToRemove as unknown[]))
@@ -439,8 +448,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Return a single item from `collection`, picked randomly.
    * - Compiles from `a random item of my-list` / `a random card from the deck` -- see `lists.ts`.
+   * - Typed by `collection`, as `getItemOf()`.
    */
-  randomItemOf(collection?: unknown): unknown {
+  randomItemOf<T = unknown>(collection?: CollectionOf<T>): T | undefined {
     if (!assert.isDefined(collection, "spellCore.randomItemOf(collection)")) return undefined
     const key = spellCore._randomKeyOf(collection)
     if (key === undefined) return undefined

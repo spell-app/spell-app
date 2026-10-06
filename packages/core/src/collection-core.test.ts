@@ -1,5 +1,5 @@
-import { describe, test, expect, beforeEach, vi } from "vite-plus/test"
-import { spellCore, assert } from "$/core"
+import { describe, test, expect, expectTypeOf, beforeEach, vi } from "vite-plus/test"
+import { spellCore, assert, List, Thing } from "$/core"
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
@@ -350,5 +350,59 @@ describe("spellCore.getIteratorFor()", () => {
     expect(iterator.next()).toEqual({ done: false, value: [1, "a", collection] })
     expect(iterator.next()).toEqual({ done: false, value: [true, "b", collection] })
     expect(iterator.next()).toEqual({ done: true })
+  })
+})
+
+////////////////
+// ## Typed collections -- `CollectionOf`
+////////////////
+
+/** A card, for a deck to hold. */
+class Card extends Thing {
+  get name(): string {
+    return "ace of spades"
+  }
+}
+
+/** A list TypeScript knows holds cards. */
+class Deck extends List<Card> {
+  get top() {
+    return spellCore.getItemOf(this, -1)
+  }
+  // `this` in a sub-class's `draw()`:  no circular inference (TS7023)
+  draw() {
+    return spellCore.drawThing(spellCore.getItemOf(this, -1))
+  }
+}
+
+/** A list of who-knows-what, as compiled spell's `a pile is a list` is today. */
+class Pile extends List {}
+
+describe("typed collections:  a helper's result and callbacks follow its collection's items", () => {
+  test("a `List<Card>`'s item is a `Card`, if it has one -- `this` in a sub-class too", () => {
+    expectTypeOf(spellCore.getItemOf(new Deck(), 1)).toEqualTypeOf<Card | undefined>()
+    expectTypeOf(new Deck().top).toEqualTypeOf<Card | undefined>()
+    expectTypeOf(spellCore.getItemOf([new Card()], 1)).toEqualTypeOf<Card | undefined>()
+    expectTypeOf(spellCore.randomItemOf(new Deck())).toEqualTypeOf<Card | undefined>()
+  })
+
+  test("a list with no item type, or a collection typed `unknown`, holds `unknown`", () => {
+    expectTypeOf(spellCore.getItemOf(new Pile(), 1)).toEqualTypeOf<unknown>()
+    expectTypeOf(spellCore.getItemOf({ a: 1 } as unknown, "a")).toEqualTypeOf<unknown>()
+  })
+
+  test("a callback is checked against the collection's items, and ONLY them", () => {
+    spellCore.forEach(new Deck(), (card) => expectTypeOf(card).toEqualTypeOf<Card>())
+    spellCore.forEach(new Pile(), (card: unknown) => card)
+    // @ts-expect-error -- a deck holds cards
+    spellCore.forEach(new Deck(), (count: number) => count)
+    // @ts-expect-error -- TypeScript can't tell what a `Pile` holds
+    spellCore.forEach(new Pile(), (card: Card) => card)
+  })
+
+  test("`itemOf()` a list or an array is a position;  of anything else, a key or a position", () => {
+    expectTypeOf(spellCore.itemOf(new Pile(), 1)).toEqualTypeOf<number | undefined>()
+    expectTypeOf(spellCore.itemOf(["a"], "a")).toEqualTypeOf<number | undefined>()
+    expectTypeOf(spellCore.itemOf({ a: 1 }, 1)).toEqualTypeOf<string | number | undefined>()
   })
 })

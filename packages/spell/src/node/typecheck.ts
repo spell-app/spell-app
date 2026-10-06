@@ -7,9 +7,9 @@ import environment from "$/spell/node/environment"
 
 /**
  * `tsc` on compiled spell's TypeScript (the `ts/solid` target):  what it says is wrong, by file.
- * - Checked against `@spell/core`'s SOURCE, with `core`'s own `strict` settings -- but NOT `strictFunctionTypes`:
- *   `core` types every callback's item `unknown`, so a callback taking a `Card` couldn't be passed to it (epic
- *   `output-targets`, J14).
+ * - Checked against `@spell/core`'s SOURCE, with `core`'s own `strict` settings, `strictFunctionTypes` too:  a
+ *   collection helper's callback takes its collection's item type (`CollectionOf`), e.g. a `Card` for a
+ *   `List<Card>` (epic `output-targets`, J14, T7).
  * - `files`:  each file's name, e.g. `Solitaire.ts`, and its code.  Written to a temp folder, checked together.
  * - `projects`:  each project they import, `@spell/project/<id>`, as the path of its compiled output.
  * - Used by `spell compile` (on a `ts/solid` target) and spell's `typescript.test.ts`.
@@ -88,8 +88,7 @@ function tsconfig(names: string[], projects: Record<string, string>) {
       // `vite/client` isn't found from a temp folder:  `core` uses none of it
       types: ["node"],
       typeRoots: [`${repo}/node_modules/@types`],
-      noUnusedLocals: false,
-      strictFunctionTypes: false
+      noUnusedLocals: false
     },
     files: names,
     include: [`${repo}/types`]
