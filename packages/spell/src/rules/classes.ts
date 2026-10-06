@@ -987,22 +987,24 @@ type ClassMemberData = {
  *   `set name(value) { this.setProp('name', value) }`
  * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `class_member`.
  */
-class define_property_has extends SpellStatement<"type|property|specifier?", { valueList?: P.ValueKind }> {
+class define_property_has extends SpellStatement<"type|property|specifier?", { valueType?: P.TypeScope }> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type", detail: "specifier" }
 
   /**
    * Refused on a built-in type -- see `SpellStatement.refuseBuiltInType()`.
-   * - A property holding a VALUE kind, e.g. `its "suit" is a suit`:  notes where its values are listed,
-   *   so its setter checks against them -- see `value_kind`.
+   * - Notes the type its specifier names, e.g. `Suit` for `its "suit" is a suit`:  if it's a VALUE kind, its setter
+   *   checks against its list -- see `value_kind`.
+   *   - The type's RECORD, read when compiling:  a value kind may be declared further down, e.g. the deck below the
+   *     card, so here it's still a stub (plan doc `outline-spell`, issue I3).  As a call reads `data.method.returns`.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     const { specifier } = match.groups
-    const valueKind = specifier?.datatype ? scope.types?.get(specifier.datatype)?.valueKind : undefined
-    if (valueKind) match.data.valueList = valueKind
+    const valueType = specifier?.datatype ? scope.types?.get(specifier.datatype) : undefined
+    if (valueType) match.data.valueType = valueType
     return SpellStatement.refuseBuiltInType(match, match.groups.type, match.groups.property)
   }
 
@@ -1058,8 +1060,8 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { v
     }
     // a value kind, e.g. `a suit`:  one of its list, e.g. `Deck.Suits` -- its values are plain text.  Read when set:
     // the list's class names ours (`static instanceType = Card`), so one of the two is defined second
-    else if (match.data.valueList) {
-      const { listOn, listName } = match.data.valueList
+    else if (match.data.valueType?.valueKind) {
+      const { listOn, listName } = match.data.valueType.valueKind
       check.addProp("oneOf", `() => ${listOn}.${listName}`)
     }
     // type

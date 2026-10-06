@@ -292,6 +292,12 @@ export class MemberReadExpression<
     if (member instanceof P.ScopeVariable && member.readAs) {
       return MemberReadExpression.builtInMemberAST(match, object, member.readAs)
     }
+    // a value kind's property declared further down, e.g. `the color of its suit` in a card above the deck:
+    // its type's record knows by now (issue I3 of `outline-spell`) -- the static form, as `property_value_getter`'s
+    const { ownerType } = match.data as MemberData
+    if (!member && ownerType?.valueKind) {
+      return MemberReadExpression.builtInMemberAST(match, object, `${ownerType.name}.${property.value}({it})`)
+    }
     return new P.ASTPropertyExpression(match, { object, property: P.asAST<P.ASTPropertyLiteral>(property.AST) })
   }
 

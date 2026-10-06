@@ -429,6 +429,12 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `it is diamonds or hearts` / `is jack, queen or king`:  `is_in` with `value_choices` (`lists.ts`), two or more
   KNOWN constants or numbers joined by `or` => `spellCore.includes([...], it)`.  Was `(it == 'diamonds') || 'hearts'`.
 - Ranges in a list of values:  `2 ... 10` (`number_range`, spread by `identifier_list`).
+- A value kind may be used ABOVE its declaration, e.g. the card above the deck (issue I3):
+  - `SpellParser.declaredTypes()` finds `"suits" as one of ...` lines too (`VALUE_KIND_DECLARATION`), so `Suit` is
+    a stub before the project parses
+  - what depends on it reads the kind's RECORD when compiling, as a call reads `data.method.returns`:
+    `define_property_has`'s `data.valueType.valueKind` (its `oneOf`), and a member read's `data.ownerType.valueKind`
+    (`the color of its suit` => `Suit.color(...)`, though `color` wasn't declared yet when it parsed)
 - A list type whose item type is declared BELOW it (a stub when it parses) reads it when used:
   `static get instanceType() { return Card }` (`create_list_type`).
 - A property, alias or phrase on a type nobody declares is refused (`SpellStatement.refuseUnknownType()`).

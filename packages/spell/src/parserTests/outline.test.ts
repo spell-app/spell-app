@@ -166,6 +166,15 @@ describe("outline style", () => {
       expect(files[0]!.errors).toEqual([`1:0 There's no type "widget":  declare it, e.g. "a widget is a thing"`])
     })
 
+    test("the card may come first, above the deck whose kinds it uses (issue I3)", () => {
+      const cardFirst = [...DECK.slice(6), ...DECK.slice(0, 6)]
+      const js = compile(cardFirst)
+      expect(js).toContain("static { this.declareProp('suit', { oneOf: () => Deck.Suits }) }")
+      expect(js).toContain("return Suit.color(this.suit)")
+      const run = runSpell([...cardFirst, "the queen is a new card with suit = hearts, rank = queen"])
+      expect(run("queen")).toMatchObject({ queen: { color: "red" } })
+    })
+
     test("runs:  a card's color comes from its suit", () => {
       const run = runSpell([
         ...DECK,

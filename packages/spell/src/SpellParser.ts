@@ -1,4 +1,4 @@
-import { getDerived, typeCase } from "$/util"
+import { getDerived, singularize, typeCase } from "$/util"
 import { P } from "$/parser"
 // Import directly, NOT through the `$/core` barrel:  the parser MUST NOT load `spellCore` itself -- each
 // runner runs its own copy.  See `spellRuntime.ts`.
@@ -208,10 +208,17 @@ export class SpellParser extends P.Parser {
    * - `a card is` is enough:  a declaration being typed, e.g. `a card is a`, still declares `card`,
    *   so the editor keeps its last good version rather than re-parsing everything.
    *   See `P.IncrementalProject.update()`.
+   * - A value kind too, `- "suits" as one of ...` declares `suit` (`value_kind`):  so a card above the deck
+   *   can say `its "suit" is a suit` (plan doc `outline-spell`, issue I3).
    */
   declaredTypes(text: string): string[] {
-    return [...text.matchAll(SpellParser.TYPE_DECLARATION)].map(([, type, created]) => (type ?? created)!)
+    const types = [...text.matchAll(SpellParser.TYPE_DECLARATION)].map(([, type, created]) => (type ?? created)!)
+    const kinds = [...text.matchAll(SpellParser.VALUE_KIND_DECLARATION)].map(([, plural]) => singularize(plural!))
+    return [...types, ...kinds]
   }
+
+  /** A line declaring a value kind, its PLURAL name captured, e.g. `suits` -- see `declaredTypes()`. */
+  static VALUE_KIND_DECLARATION = /^[ \t]*(?:-[ \t]+)?["']([\w-]+)["'][ \t]+as[ \t]+(?:one[ \t]+of|either)\b/gim
 
   /**
    * A line declaring a type, its name captured -- see `declaredTypes()`.
