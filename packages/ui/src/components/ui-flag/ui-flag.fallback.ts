@@ -1,7 +1,7 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { flagVocabulary } from "./ui-flag.vocabulary.en"
 import { FlagCountry } from "./FlagCountry"
+import { REGION } from "./ui-flag.types"
 
 /****************
  * ### `FlagFallback`
@@ -9,28 +9,28 @@ import { FlagCountry } from "./FlagCountry"
  * - Names a country with `Intl.DisplayNames` in the page language (`<html lang>`, else the browser's), and the
  *   non-country flags with the vocabulary's ENGLISH texts:  the runtime's translations may not be there.
  ****************/
-export class FlagFallback extends NativeFallback<typeof flagVocabulary> {
-  @proto static vocabulary = flagVocabulary
-  @proto static degraded = ["translated names of the non-country flags (English only)"]
+export class FlagFallback extends E.NativeFallback<typeof flagVocabulary> {
+  @E.proto static vocabulary = flagVocabulary
+  @E.proto static degraded = ["translated names of the non-country flags (English only)"]
 
   protected override build() {
-    const country = new FlagCountry(this.attr("country"))
+    const country = new FlagCountry(this.attr("country") ?? undefined)
     const label = this.label(country)
     const flag = this.create(
       "span",
-      { class: this.classes(country.code || undefined), role: label ? "img" : null, "aria-label": label },
+      { class: this.classes(country.code || undefined), role: label ? UIT.IMG : undefined, "aria-label": label },
       country.emoji
     )
     return [this.decorate(flag, "flag")]
   }
 
-  /** Name of `country`, or `null` when unknown. */
-  private label(country: FlagCountry): string | null {
-    if (country.textKey) return this.vocabulary.texts.find(({ key }) => key === country.textKey)?.text ?? null
-    if (!country.region) return null
+  /** Name of `country`, or `undefined` when unknown. */
+  private label(country: FlagCountry): string | undefined {
+    if (country.textKey) return this.vocabulary.texts.find(({ key }) => key === country.textKey)?.text
+    if (!country.region) return undefined
     const lang = this.host.ownerDocument.documentElement.lang || navigator.language
     try {
-      return new Intl.DisplayNames([lang, "en"], { type: "region" }).of(country.region) ?? country.region
+      return new Intl.DisplayNames([lang, "en"], { type: REGION }).of(country.region) ?? country.region
     } catch {
       return country.region
     }

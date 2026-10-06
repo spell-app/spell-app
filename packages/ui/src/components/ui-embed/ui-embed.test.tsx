@@ -246,9 +246,9 @@ describe("EmbedSources", () => {
   })
 
   it("recognises a source by its url's domain, and leaves other urls' parameters alone", () => {
-    expect(EmbedSources.sourceOf("https://player.vimeo.com/video/1")).toBe("vimeo")
-    expect(EmbedSources.sourceOf("https://www.youtube.com/embed/1")).toBe("youtube")
-    expect(EmbedSources.sourceOf("https://notyoutube.com/x")).toBeUndefined()
+    expect(EmbedSources.sourceFor("https://player.vimeo.com/video/1")).toBe("vimeo")
+    expect(EmbedSources.sourceFor("https://www.youtube.com/embed/1")).toBe("youtube")
+    expect(EmbedSources.sourceFor("https://notyoutube.com/x")).toBeUndefined()
     expect(EmbedSources.resolve({ url: "https://example.com/a?b=1", autoplay: true, brandedUI: false })).toBe(
       "https://example.com/a?b=1"
     )

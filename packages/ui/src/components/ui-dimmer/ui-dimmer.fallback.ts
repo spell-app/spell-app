@@ -1,7 +1,5 @@
-import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { dimmerVocabulary } from "./ui-dimmer.vocabulary.en"
-import { HIDE } from "./ui-dimmer.types"
 
 /****************
  * ### `DimmerFallback`
@@ -10,9 +8,9 @@ import { HIDE } from "./ui-dimmer.types"
  * - Follows the host's `active` attribute (a `MutationObserver`), with the `active` class;  a page dimmer closed
  *   by the browser (Escape) drops `active` and fires `ui-hide`.
  ****************/
-export class DimmerFallback extends NativeFallback<typeof dimmerVocabulary> {
-  @proto static vocabulary = dimmerVocabulary
-  @proto static degraded = [
+export class DimmerFallback extends E.NativeFallback<typeof dimmerVocabulary> {
+  @E.proto static vocabulary = dimmerVocabulary
+  @E.proto static degraded = [
     "`on` (hover / click), clicks on the dimmer, `closedby`, invoker commands, `ui-open` / `ui-close` / `ui-show`",
     "a page dimmer:  the browser's own Escape handling, no scroll lock or overlay stack, no fade;  " +
       "the translated `dimmedPage` name (English only)",
@@ -26,12 +24,12 @@ export class DimmerFallback extends NativeFallback<typeof dimmerVocabulary> {
   private observer?: MutationObserver
 
   protected override build() {
-    const page = this.flag("page")
-    const content = this.create("div", { class: UIT.CONTENT, part: "content" }, this.slot())
-    const box = page
+    const isPage = this.flag("page")
+    const content = this.create("div", { class: UIT.CONTENT, part: UIT.CONTENT }, this.slot())
+    const box = isPage
       ? this.create("dialog", {
           class: this.classes(),
-          "aria-label": this.host.getAttribute("aria-label") ?? this.label()
+          [UIT.ARIA_LABEL]: this.host.getAttribute(UIT.ARIA_LABEL) ?? this.label()
         })
       : this.create("div", { class: this.classes() })
     box.append(content)
@@ -56,11 +54,11 @@ export class DimmerFallback extends NativeFallback<typeof dimmerVocabulary> {
   private sync() {
     const box = this.box
     if (!box?.isConnected) return
-    const active = Converters.boolean(this.host.getAttribute(UIT.ACTIVE), UIT.ACTIVE) && !this.flag("disabled")
-    box.classList.toggle(UIT.ACTIVE, active)
+    const isActive = E.Converters.boolean(this.host.getAttribute(UIT.ACTIVE), UIT.ACTIVE) && !this.flag("disabled")
+    box.classList.toggle(UIT.ACTIVE, isActive)
     if (!(box instanceof HTMLDialogElement)) return
-    if (active && !box.open) box.showModal()
-    else if (!active && box.open) box.close()
+    if (isActive && !box.open) box.showModal()
+    else if (!isActive && box.open) box.close()
   }
 
   /** A page dimmer closed (Escape):  drop `active`, tell the page. */
@@ -76,3 +74,6 @@ export class DimmerFallback extends NativeFallback<typeof dimmerVocabulary> {
     return this.vocabulary.texts.find(({ key }) => key === "dimmedPage")!.text
   }
 }
+
+/** The event a page dimmer the browser closed fires, checked against the vocabulary. */
+const HIDE: E.EventName<typeof dimmerVocabulary> = "ui-hide"

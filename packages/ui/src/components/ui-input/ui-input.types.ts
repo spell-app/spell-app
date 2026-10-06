@@ -1,61 +1,56 @@
 /**
- * Shared constants, types and helpers of the `ui-input` family:  what its element classes, vocabularies and native fallback share.
- * - Runtime-light:  no element code, so every file of the family may import it.
+ * Constants and types of the `ui-input` family:  what its element classes (`TextControl`, `UIInput`,
+ * `UITextarea`) and its native fallback share.
+ * - Pure data, at the bottom of the folder's imports:  only the vocabulary's TYPE, so node can load it
+ *   (`yarn site:data`).
  */
 
-import type { ValidationResult } from "$/ui/core"
 import type { inputVocabulary } from "./ui-input.vocabulary.en"
 
-/** Converted attributes every text control has (`input` and `textarea`), see `TextControl.common`. */
-export type CommonAttributes = {
-  readonly value: string | undefined
-  readonly name: string | undefined
-  readonly placeholder: string | undefined
-  readonly disabled: boolean
-  readonly readonly: boolean
-  readonly fluid: boolean
-  readonly loading?: boolean
-  readonly rules: unknown
-}
-
-/** Every Constraint Validation flag the native control may raise (not `customError`:  the host never sets one). */
-export const NATIVE_FLAGS: readonly (keyof ValidityStateFlags)[] = [
-  "valueMissing",
-  "typeMismatch",
-  "patternMismatch",
-  "tooLong",
-  "tooShort",
-  "rangeUnderflow",
-  "rangeOverflow",
-  "stepMismatch",
-  "badInput"
-]
-
-/** A passing result. */
-export const VALID: ValidationResult = { valid: true, errors: [], flags: {}, message: "" }
-
-/** Native type whose value script can't set. */
-export const FILE_TYPE = "file"
+////////////////
+// ## Types
+////////////////
 
 /** Vocabulary type, for brevity. */
 export type Vocabulary = typeof inputVocabulary
 
-/** Where a joined label sits. */
+/** Converted attributes every text control has (`input` and `textarea`), see `TextControl.common`. */
+export type CommonAttributes = {
+  /** host value, as converted */
+  readonly value: string | undefined
+  /** form field name */
+  readonly name: string | undefined
+  /** hint shown while empty */
+  readonly placeholder: string | undefined
+  /** `disabled` attribute (a disabled fieldset is `formDisabled`) */
+  readonly disabled: boolean
+  /** shows its value, can't be edited */
+  readonly readonly: boolean
+  /** takes the full width */
+  readonly fluid: boolean
+  /** busy:  `<ui-input>` only */
+  readonly loading?: boolean
+  /** the `rules` property:  one `ValidationRule`, a list, or nothing */
+  readonly rules: unknown
+}
+
+/** Where a `<ui-input>`'s joined label sits. */
 export type LabelPlace = "start" | "end" | "corner"
 
-/** Submit type, and the attribute that says it. */
-export const TYPE = "type"
+/** The part of a `<ui-input>` the fallback touches;  optional, the element may not have upgraded. */
+export type InputHost = HTMLElement & {
+  /** live value, once set */
+  value?: string
+}
 
-/** A disabled custom element (`:disabled` matches form-associated hosts). */
-export const DISABLED_PSEUDO = ":disabled"
+////////////////
+// ## Class words
+////////////////
 
 /**
- * Class words of the markup contract (`ui-input.css`) -- grammar, not attributes, so not in the vocabulary.
+ * `type` of a file input, and its class word (`ui file input`):  script can't set its value, and it submits files.
  */
 export const FILE = "file"
-export const LABEL_CLASSES = "ui label"
-export const CORNER_LABEL = "ui corner label"
-export const LEFT_CORNER_LABEL = "ui left corner label"
 
-/** The part of a `<ui-input>` the fallback touches;  optional, the element may not have upgraded. */
-export type InputHost = HTMLElement & { value?: string | null }
+/** Class words of a joined label (`ui-input.css`). */
+export const LABEL_CLASSES = "ui label"

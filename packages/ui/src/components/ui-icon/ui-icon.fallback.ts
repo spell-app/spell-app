@@ -1,5 +1,4 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { iconVocabulary } from "./ui-icon.vocabulary.en"
 
 /****************
@@ -8,17 +7,17 @@ import { iconVocabulary } from "./ui-icon.vocabulary.en"
  * - With `label`:  `role="img"` + `aria-label`, plus the label as visually hidden text.
  * - Without:  empty and `aria-hidden`, a decorative box that keeps its size so layout doesn't jump.
  ****************/
-export class IconFallback extends NativeFallback<typeof iconVocabulary> {
-  @proto static vocabulary = iconVocabulary
-  @proto static degraded = ["the glyph itself (the SVG needs the icon data)"]
+export class IconFallback extends E.NativeFallback<typeof iconVocabulary> {
+  @E.proto static vocabulary = iconVocabulary
+  @E.proto static degraded = ["the glyph itself (the SVG needs the icon data)"]
 
   protected override build() {
     const label = this.attr("label")
     const box = this.create("span", {
       class: this.classes(),
-      role: label ? "img" : null,
-      "aria-label": label,
-      "aria-hidden": label ? null : "true"
+      role: label ? UIT.IMG : undefined,
+      [UIT.ARIA_LABEL]: label,
+      "aria-hidden": label ? undefined : UIT.TRUE
     })
     this.decorate(box, "icon")
     if (label) {

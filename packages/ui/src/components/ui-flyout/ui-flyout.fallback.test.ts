@@ -3,7 +3,7 @@ import { userEvent } from "vite-plus/test/browser"
 
 import { Fixture } from "$/ui/test/fixture"
 import { expectAccessible } from "$/ui/test/a11y"
-import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
+import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 
 import { FlyoutFallback } from "./ui-flyout.fallback"
 

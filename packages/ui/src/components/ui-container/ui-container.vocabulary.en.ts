@@ -1,11 +1,11 @@
 /**
  * Every name `<ui-container>` uses:  tag, attributes (kind + allowed values), slots, parts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-container text text-align="justified">` => `ui text justified container`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-container>`
@@ -48,11 +48,11 @@ export const containerVocabulary = {
         "tokens:  `--ui-container-scrolling-height` (mobile, 15em), `--ui-container-scrolling-height-tablet` " +
         "(18em), `-computer` (24em), `-widescreen` (30em)."
     },
-    { name: "resizable", kind: "keyOnly", description: "With `scrolling`:  the user can drag its height." }
+    { name: "resizable", kind: "keyOnly", description: "With `scrolling`:  people can drag its height." }
   ],
   events: [],
   slots: [{ name: "", description: "Content." }],
   parts: [{ name: "container", description: "The container box." }],
   states: [],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

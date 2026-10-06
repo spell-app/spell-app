@@ -170,7 +170,7 @@
         "details",
         "faq"
       ],
-      "description": "An accordion allows users to toggle the display of sections of content.",
+      "description": "An accordion lets people show and hide sections of content.",
       "noun": "accordion",
       "attributes": [
         {
@@ -221,7 +221,7 @@
         {
           "name": "open",
           "kind": "string",
-          "description": "Indexes of the open panels (0-based), space-separated:  `open=\"0\"`, `open=\"0 2\"`.  Controlled:  set it to open / close panels;  `ui-open` / `ui-close` can veto the user's changes.  When `exclusive`, only the first index counts."
+          "description": "Indexes of the open panels (0-based), space-separated:  `open=\"0\"`, `open=\"0 2\"`.  Controlled:  set it to open / close panels;  `ui-open` / `ui-close` can veto people's changes.  When `exclusive`, only the first index counts."
         },
         {
           "name": "source",
@@ -760,7 +760,7 @@
         "submit",
         "link button"
       ],
-      "description": "A button indicates a possible user action.",
+      "description": "A button indicates a possible action.",
       "noun": "button",
       "attributes": [
         {
@@ -1313,7 +1313,7 @@
         "datetime",
         "date range"
       ],
-      "description": "A calendar lets a user pick a date, a time, or both.",
+      "description": "A calendar lets a person pick a date, a time, or both.",
       "noun": "calendar",
       "attributes": [
         {
@@ -1520,7 +1520,7 @@
           "name": "ui-change",
           "detail": "{ value: string, originalEvent?: Event }",
           "cancelable": true,
-          "description": "The user chose, typed or cleared a value;  `preventDefault()` keeps the old one."
+          "description": "The person chose, typed or cleared a value;  `preventDefault()` keeps the old one."
         },
         {
           "name": "ui-open",
@@ -2062,7 +2062,7 @@
         "switch",
         "tick box"
       ],
-      "description": "A checkbox allows a user to select a value from a small set of options, often binary.",
+      "description": "A checkbox lets people choose a value from a small set of options, often on or off.",
       "noun": "checkbox",
       "attributes": [
         {
@@ -2184,7 +2184,7 @@
         {
           "name": "ui-change",
           "detail": "{ selected: boolean, value: string, originalEvent?: Event }",
-          "description": "The user chose or unchose it (a radio:  only the newly chosen one fires)."
+          "description": "Someone chose or unchose it (a radio:  only the newly chosen one fires)."
         }
       ],
       "parts": [
@@ -2216,7 +2216,7 @@
         },
         {
           "name": "invalid",
-          "description": "Fails validation, once the user has interacted (`:user-invalid` semantics)."
+          "description": "Fails validation, once someone has interacted with it (`:user-invalid` semantics)."
         }
       ],
       "texts": [],
@@ -2936,7 +2936,7 @@
         {
           "name": "resizable",
           "kind": "keyOnly",
-          "description": "With `scrolling`:  the user can drag its height."
+          "description": "With `scrolling`:  people can drag its height."
         }
       ],
       "slots": [
@@ -3293,7 +3293,7 @@
         {
           "name": "active",
           "kind": "keyOnly",
-          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
         },
         {
           "name": "page",
@@ -3362,7 +3362,7 @@
           "name": "ui-open",
           "detail": "{ active: true, originalEvent?: Event }",
           "cancelable": true,
-          "description": "About to show for a user action (`on`, an invoker command);  `preventDefault()` keeps it hidden."
+          "description": "About to show for a person's action (`on`, an invoker command);  `preventDefault()` keeps it hidden."
         },
         {
           "name": "ui-show",
@@ -3577,7 +3577,7 @@
         "menu button",
         "multi select"
       ],
-      "description": "A dropdown allows a user to select a value from a series of options.",
+      "description": "A dropdown lets people choose a value from a series of options.",
       "noun": "dropdown",
       "attributes": [
         {
@@ -3723,7 +3723,7 @@
         {
           "name": "resizable",
           "kind": "keyOnly",
-          "description": "A `scrolling` menu the user can resize vertically."
+          "description": "A `scrolling` menu people can resize vertically."
         },
         {
           "name": "short",
@@ -3872,13 +3872,13 @@
         {
           "name": "ui-change",
           "detail": "{ value: string | string[], originalEvent?: Event }",
-          "description": "The user chose, added, removed or cleared a value."
+          "description": "Someone chose, added, removed or cleared a value."
         },
         {
           "name": "ui-open",
           "detail": "{ open: true, originalEvent?: Event }",
           "cancelable": true,
-          "description": "The menu is about to open (a user action, an invoker command too);  `preventDefault()` keeps it closed."
+          "description": "The menu is about to open (a person's action, an invoker command too);  `preventDefault()` keeps it closed."
         },
         {
           "name": "ui-close",
@@ -4408,7 +4408,7 @@
         "news feed",
         "activity stream"
       ],
-      "description": "A feed presents user activity chronologically.",
+      "description": "A feed presents people's activity chronologically.",
       "noun": "feed",
       "attributes": [
         {
@@ -4768,7 +4768,7 @@
         {
           "name": "country",
           "kind": "string",
-          "description": "ISO 3166-1 alpha-2 code in any case (`fr`, `US`), or one of Fomantic's names and aliases (`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `flagAliases`."
+          "description": "ISO 3166-1 alpha-2 code in any case (`fr`, `US`), or one of Fomantic's names and aliases (`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `FLAG_ALIASES`."
         }
       ],
       "slots": [],
@@ -4867,7 +4867,7 @@
         {
           "name": "open",
           "kind": "keyOnly",
-          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+          "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
         },
         {
           "name": "width",
@@ -4932,7 +4932,7 @@
           "name": "ui-open",
           "detail": "{ open: true, originalEvent?: Event }",
           "cancelable": true,
-          "description": "About to show (a user action, not an `open` write);  `preventDefault()` keeps it hidden."
+          "description": "About to show (a person's action, not an `open` write);  `preventDefault()` keeps it hidden."
         },
         {
           "name": "ui-show",
@@ -5014,7 +5014,7 @@
         "fieldset",
         "validation"
       ],
-      "description": "A form displays a set of related user input fields in a structured way.",
+      "description": "A form displays a set of related input fields in a structured way.",
       "noun": "form",
       "attributes": [
         {
@@ -6287,7 +6287,7 @@
         "input field",
         "search box"
       ],
-      "description": "An input is a field used to elicit a response from a user.",
+      "description": "An input is a field used to elicit a response from a person.",
       "noun": "input",
       "attributes": [
         {
@@ -6472,7 +6472,7 @@
         {
           "name": "minlength",
           "kind": "number",
-          "description": "Constraint:  fewest characters (checked after the user edits)."
+          "description": "Constraint:  fewest characters (checked once someone has edited it)."
         },
         {
           "name": "maxlength",
@@ -6534,12 +6534,12 @@
         {
           "name": "ui-input",
           "detail": "{ value: string, originalEvent?: Event }",
-          "description": "The user changed the value (every keystroke)."
+          "description": "The value changed as someone typed (every keystroke)."
         },
         {
           "name": "ui-change",
           "detail": "{ value: string, originalEvent?: Event }",
-          "description": "The user committed a change (blur, Enter, picking a file)."
+          "description": "Someone committed a change (blur, Enter, picking a file)."
         }
       ],
       "parts": [
@@ -6563,7 +6563,7 @@
       "states": [
         {
           "name": "invalid",
-          "description": "Fails validation, once the user has interacted (`:user-invalid` semantics)."
+          "description": "Fails validation, once someone has interacted (`:user-invalid` semantics)."
         },
         {
           "name": "disabled",
@@ -7414,7 +7414,7 @@
         "throbber",
         "activity indicator"
       ],
-      "description": "A loader alerts a user to wait for an activity to complete.",
+      "description": "A loader tells people to wait for an activity to complete.",
       "noun": "loader",
       "attributes": [
         {
@@ -10041,7 +10041,7 @@
         {
           "name": "ui-change",
           "detail": "{ selected: boolean, value: string, originalEvent?: Event }",
-          "description": "The user chose or unchose it (a radio:  only the newly chosen one fires)."
+          "description": "Someone chose or unchose it (a radio:  only the newly chosen one fires)."
         }
       ],
       "parts": [
@@ -10069,7 +10069,7 @@
         },
         {
           "name": "invalid",
-          "description": "Fails validation, once the user has interacted (`:user-invalid` semantics)."
+          "description": "Fails validation, once someone has interacted with it (`:user-invalid` semantics)."
         }
       ],
       "texts": [],
@@ -14219,7 +14219,7 @@
         {
           "name": "minlength",
           "kind": "number",
-          "description": "Constraint:  fewest characters (checked after the user edits)."
+          "description": "Constraint:  fewest characters (checked once someone has edited it)."
         },
         {
           "name": "maxlength",
@@ -14248,12 +14248,12 @@
         {
           "name": "ui-input",
           "detail": "{ value: string, originalEvent?: Event }",
-          "description": "The user changed the value (every keystroke)."
+          "description": "The value changed as someone typed (every keystroke)."
         },
         {
           "name": "ui-change",
           "detail": "{ value: string, originalEvent?: Event }",
-          "description": "The user committed a change (blur)."
+          "description": "Someone committed a change (blur)."
         }
       ],
       "parts": [
@@ -14269,7 +14269,7 @@
       "states": [
         {
           "name": "invalid",
-          "description": "Fails validation, once the user has interacted (`:user-invalid` semantics)."
+          "description": "Fails validation, once someone has interacted (`:user-invalid` semantics)."
         },
         {
           "name": "disabled",
@@ -18886,6 +18886,24 @@
         {
           "name": "--ui-flyout-actions-background",
           "default": "var(--ui-surface-muted)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-flyout-inverted-background",
+          "default": "oklch(0 0 0)",
+          "description": "Panel of an `inverted` flyout.",
+          "type": "color"
+        },
+        {
+          "name": "--ui-flyout-inverted-color",
+          "default": "oklch(1 0 0)",
+          "description": "Text, header and close icon of an `inverted` flyout.",
+          "type": "color"
+        },
+        {
+          "name": "--ui-flyout-inverted-actions-background",
+          "default": "oklch(0.2 0 0)",
+          "description": "Actions bar of an `inverted` flyout.",
           "type": "color"
         },
         {

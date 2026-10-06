@@ -1,9 +1,8 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-
-import { imagesVocabulary } from "./ui-images.vocabulary.en"
+import { E } from "$/ui/core"
 import { ImageFallback } from "./ui-image.fallback"
+import { imagesVocabulary } from "./ui-images.vocabulary.en"
 
 import imageCSS from "./ui-image.css?inline"
 
@@ -13,11 +12,11 @@ import imageCSS from "./ui-image.css?inline"
  * - `ui-image.css` hands the group look (size, border, radius, spacing) to each child through `--_ui-images-*`
  *   tokens:  a `display: contents` image host takes no box styles from `::slotted()`.
  ****************/
-export class UIImages extends UIElement<typeof imagesVocabulary> {
-  @proto static vocabulary = imagesVocabulary
-  @proto static styles = { image: imageCSS }
-  @proto static Fallback = ImageFallback
-  @proto static delegatesFocus = false
+export class UIImages extends E.UIElement<typeof imagesVocabulary> {
+  @E.proto static vocabulary = imagesVocabulary
+  @E.proto static styles = { image: imageCSS }
+  @E.proto static Fallback = ImageFallback
+  @E.proto static delegatesFocus = false
 
   render(): JSX.Element {
     return (

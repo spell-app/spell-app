@@ -37,6 +37,69 @@ import { SourceError, type CodeGrammar } from "$/ui/runtime/runtime.types"
 /** A highlight.js language function, as its modules export it. */
 type LanguageFn = Parameters<typeof core.registerLanguage>[1]
 
+// Above the class:  its `instance` static builds the engine, whose constructor reads them, while the class is defined
+
+/** Built-in languages auto-detection chooses from. */
+const DETECT_SET: Readonly<Record<string, LanguageFn>> = {
+  bash,
+  css,
+  javascript,
+  json,
+  markdown,
+  python,
+  typescript,
+  xml,
+  yaml
+}
+
+/** highlight.js's name for no colouring (`language="text"`). */
+const PLAINTEXT = "plaintext"
+
+/**
+ * Languages registered on first use, by highlight.js name.
+ * - In this chunk too:  each its own chunk would split Rolldown's runtime off, see the class docs.
+ */
+const MORE: Readonly<Record<string, LanguageFn>> = {
+  c: cLanguage,
+  cpp: cppLanguage,
+  csharp: csharpLanguage,
+  diff: diffLanguage,
+  dockerfile: dockerfileLanguage,
+  go: goLanguage,
+  graphql: graphqlLanguage,
+  ini: iniLanguage,
+  java: javaLanguage,
+  kotlin: kotlinLanguage,
+  less: lessLanguage,
+  lua: luaLanguage,
+  makefile: makefileLanguage,
+  php: phpLanguage,
+  powershell: powershellLanguage,
+  ruby: rubyLanguage,
+  rust: rustLanguage,
+  scss: scssLanguage,
+  shell: shellLanguage,
+  sql: sqlLanguage,
+  swift: swiftLanguage
+}
+
+/** Other names for `MORE` languages, before they're loaded (loaded ones answer their own aliases). */
+const MORE_ALIASES: Readonly<Record<string, string>> = {
+  "c++": "cpp",
+  cs: "csharp",
+  "c#": "csharp",
+  docker: "dockerfile",
+  golang: "go",
+  gql: "graphql",
+  toml: "ini",
+  kt: "kotlin",
+  make: "makefile",
+  ps1: "powershell",
+  rb: "ruby",
+  rs: "rust",
+  console: "shell"
+}
+
 /****************
  * ### `CodeEngine`
  * highlight.js, in `<ui-code>`'s LAZY chunk:  imported by `CodeHighlighter` on the first highlight, so a page pays
@@ -54,80 +117,26 @@ type LanguageFn = Parameters<typeof core.registerLanguage>[1]
  *   `runtime.types` is all it may pull in.
  ****************/
 export class CodeEngine {
-  /** Built-in languages auto-detection chooses from. */
-  static readonly DETECT_SET: Readonly<Record<string, LanguageFn>> = {
-    bash,
-    css,
-    javascript,
-    json,
-    markdown,
-    python,
-    typescript,
-    xml,
-    yaml
-  }
-
-  /** highlight.js's name for no colouring (`language="text"`). */
-  static readonly PLAINTEXT = "plaintext"
-
-  /** Languages registered on first use, by highlight.js name (in this chunk too:  each its own chunk would
-   * split Rolldown's runtime off, see the class docs). */
-  static readonly MORE: Readonly<Record<string, LanguageFn>> = {
-    c: cLanguage,
-    cpp: cppLanguage,
-    csharp: csharpLanguage,
-    diff: diffLanguage,
-    dockerfile: dockerfileLanguage,
-    go: goLanguage,
-    graphql: graphqlLanguage,
-    ini: iniLanguage,
-    java: javaLanguage,
-    kotlin: kotlinLanguage,
-    less: lessLanguage,
-    lua: luaLanguage,
-    makefile: makefileLanguage,
-    php: phpLanguage,
-    powershell: powershellLanguage,
-    ruby: rubyLanguage,
-    rust: rustLanguage,
-    scss: scssLanguage,
-    shell: shellLanguage,
-    sql: sqlLanguage,
-    swift: swiftLanguage
-  }
-
-  /** Other names for `MORE` languages, before they're loaded (loaded ones answer their own aliases). */
-  static readonly MORE_ALIASES: Readonly<Record<string, string>> = {
-    "c++": "cpp",
-    cs: "csharp",
-    "c#": "csharp",
-    docker: "dockerfile",
-    golang: "go",
-    gql: "graphql",
-    toml: "ini",
-    kt: "kotlin",
-    make: "makefile",
-    ps1: "powershell",
-    rb: "ruby",
-    rs: "rust",
-    console: "shell"
-  }
-
-  /** The one engine;  AFTER the statics above, which its constructor reads. */
+  /**
+   * The one engine.
+   * - Static:  ONE highlight.js instance per page, made when the chunk loads;  its constructor reads the tables above
+   *   the class.
+   */
   static readonly instance = new CodeEngine()
 
   /** The highlight.js instance. */
   private readonly hljs = core.newInstance()
 
   /** Names auto-detection chooses from:  the detect set, plus registered detectable languages. */
-  private readonly detectable = new Set(Object.keys(CodeEngine.DETECT_SET))
+  private readonly detectable = new Set(Object.keys(DETECT_SET))
 
   /** Registered grammars by name, so a re-register with the SAME grammar is free. */
   private readonly grammars = new Map<string, CodeGrammar>()
 
+  /** Registers the detect set.  Private:  `instance` is the one engine. */
   private constructor() {
-    for (const [name, language] of Object.entries(CodeEngine.DETECT_SET)) this.hljs.registerLanguage(name, language)
-    this.hljs.registerLanguage(CodeEngine.PLAINTEXT, plaintext)
+    for (const [name, language] of Object.entries(DETECT_SET)) this.hljs.registerLanguage(name, language)
+    this.hljs.registerLanguage(PLAINTEXT, plaintext)
     this.hljs.configure({ ignoreUnescapedHTML: true })
   }
 
@@ -154,8 +163,8 @@ export class CodeEngine {
     const key = language.toLowerCase()
     const known = this.hljs.getLanguage(key)
     if (known) return this.canonical(key)
-    const name = CodeEngine.MORE_ALIASES[key] ?? key
-    const grammar = CodeEngine.MORE[name]
+    const name = MORE_ALIASES[key] ?? key
+    const grammar = MORE[name]
     if (!grammar) return undefined
     this.hljs.registerLanguage(name, grammar)
     return name

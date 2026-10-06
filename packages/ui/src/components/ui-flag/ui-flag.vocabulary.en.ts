@@ -1,16 +1,19 @@
 /**
- * Every name `<ui-flag>` uses:  tag, attributes (kind + allowed values), parts, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Every name `<ui-flag>` uses:  tag, attributes (kind + allowed values), parts, texts.  Schema:
+ * `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-flag country="fr" size="large">`
  *   => `ui large flag fr`.  The country is CONTENT:  the Unicode flag emoji (`🇫🇷`), which is what
  *   Fomantic 2.9's default theme draws too (Twemoji SVGs named by the same code points).  Its resolved code is
  *   ALSO a class word after the noun, as in Fomantic's `fr flag`:  no rule here reads it, it's the hook a sprite
  *   theme selects on (`themes/famfamfam.css`).
- * - Resolving `country` (the element's job):
+ * - Resolving `country` (`FlagCountry`):
  *   - normalize:  trim, lowercase, `_` => space, collapse whitespace (`United_States` ~== `united states`)
- *   - `flagAliases[name] ?? name` (`ui-flag.types.ts`) => a code:  an ISO 3166-1 alpha-2 code, or a key of `flagEmoji`
- *   - `flagEmoji[code]`, else a two-letter code => its regional-indicator pair
- *     (`U+1F1E6 + letter - "a"` per letter:  `fr` => `🇫🇷`);  anything else renders an empty flag box
- *   - `aria-label`:  `texts` for the `flagEmoji` codes, else `Intl.DisplayNames(lang, { type: "region" })`
+ *   - `FLAG_ALIASES[name] ?? name` (`ui-flag.types.ts`) => a code:  an ISO 3166-1 alpha-2 code, or a key of
+ *     `UIT.SPECIAL_FLAGS`
+ *   - the code => its emoji (`UIT.Flags.emojiFor()`, which menu options' flags use too):  `SPECIAL_FLAGS[code]`,
+ *     else a two-letter code's regional-indicator pair (`U+1F1E6 + letter - "a"` per letter:  `fr` => `🇫🇷`);
+ *     anything else renders an empty flag box
+ *   - `aria-label`:  `texts` for the `SPECIAL_FLAGS` codes, else `Intl.DisplayNames(lang, { type: "region" })`
  *     of the upper-cased code (`FR` => `France`), which also follows the page language for free
  * - NOTE: aliases are Fomantic's English names;  a translation adds its own names next to them (they're data,
  *   not vocabulary names).
@@ -43,7 +46,7 @@ export const flagVocabulary = {
       kind: "string",
       description:
         "ISO 3166-1 alpha-2 code in any case (`fr`, `US`), or one of Fomantic's names and aliases " +
-        "(`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `flagAliases`."
+        "(`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `FLAG_ALIASES`."
     }
   ],
   events: [],

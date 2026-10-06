@@ -9,7 +9,7 @@ import { StepFallback } from "./ui-step.fallback"
 import stepCSS from "./ui-step.css?inline"
 import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
 import { CHECK, BOX, STEP, CONTENT, TITLE, DESCRIPTION, COLOR_CLASS_PREFIX } from "./ui-step.types"
-import { ACTIVE, BUTTON, TRUE, ICON, VISUALLY_HIDDEN, LINK, LISTITEM } from "$/ui/components/components.types"
+import { ACTIVE, BUTTON, TRUE, ICON, VISUALLY_HIDDEN, ANCHOR_TAG, LISTITEM } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-step>`
@@ -38,7 +38,7 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
   readonly slots = new SlotContent(this.host)
 
   /** Fomantic's `active` attribute, an alias of `selected`. */
-  readonly activeAttribute = new HostAttribute(this.host, ACTIVE)
+  readonly activeAttribute = new HostAttribute({ host: this.host, name: ACTIVE })
 
   /** Glyph of the `icon` shorthand. */
   readonly glyph = new IconGlyph(this, () => this.attrs.icon)
@@ -60,7 +60,7 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
   readonly checkGlyph = new IconGlyph(this, () => (this.attrs.completed && this.hasIcon() ? CHECK : undefined))
 
   /** Root element:  a link, a button (`link`), or a box. */
-  readonly tag = createMemo(() => (this.attrs.href ? LINK : this.attrs.link ? BUTTON : BOX))
+  readonly tag = createMemo(() => (this.attrs.href ? ANCHOR_TAG : this.attrs.link ? BUTTON : BOX))
 
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
@@ -107,8 +107,8 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
         component={this.tag()}
         class={this.classes()}
         part={this.part("step")}
-        href={this.tag() === LINK && !attrs.disabled ? attrs.href : undefined}
-        target={this.tag() === LINK ? attrs.target : undefined}
+        href={this.tag() === ANCHOR_TAG && !attrs.disabled ? attrs.href : undefined}
+        target={this.tag() === ANCHOR_TAG ? attrs.target : undefined}
         type={this.tag() === BUTTON ? BUTTON : undefined}
         disabled={this.tag() === BUTTON && attrs.disabled ? true : undefined}
         aria-disabled={this.tag() !== BUTTON && attrs.disabled ? TRUE : undefined}

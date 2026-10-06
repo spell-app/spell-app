@@ -1,10 +1,10 @@
 /****************
  * ### `BreadcrumbDivider`
- * Values of the divider tokens a breadcrumb publishes (`BREADCRUMB_DIVIDER_TOKENS`), as CSS text -- shared by
- * `<ui-breadcrumb>` and its native fallback, so plain DOM, no Solid.
+ * Values of the divider tokens a breadcrumb publishes (`UIT.BREADCRUMB_DIVIDER_TOKENS`), as CSS text -- shared by
+ * `<ui-breadcrumb>` and its native fallback.
+ * - Imports nothing:  plain DOM, no Solid, so the fallback and a static server render use it too.
+ * - STATIC and instance-free:  pure conversions.
  ****************/
-
-import { LINE_BREAK, SVG_NS, SVG_START, XMLNS } from "./ui-breadcrumb.types"
 export class BreadcrumbDivider {
   /** `text` as a CSS string:  quoted, with `\`, `"` and line breaks escaped (`\A `), e.g. `›` => `"›"`. */
   static cssString(text: string): string {
@@ -27,7 +27,7 @@ export class BreadcrumbDivider {
    */
   static markupUrl(markup: string): string {
     const standalone = markup.replace(SVG_START, (tag, attributes: string) =>
-      new RegExp(`\\s${XMLNS}=`).test(attributes) ? tag : `<svg ${XMLNS}="${SVG_NS}"${attributes}>`
+      HAS_XMLNS.test(attributes) ? tag : `<svg ${XMLNS}="${SVG_NS}"${attributes}>`
     )
     return BreadcrumbDivider.dataUrl(standalone)
   }
@@ -37,3 +37,18 @@ export class BreadcrumbDivider {
     return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
   }
 }
+
+/** SVG namespace, for the data URL's root:  a standalone SVG image needs it. */
+const SVG_NS = "http://www.w3.org/2000/svg"
+
+/** Attribute declaring it. */
+const XMLNS = "xmlns"
+
+/** An `<svg>` start tag:  group 1 is the rest of the tag, its attributes. */
+const SVG_START = /^\s*<svg\b([^>]*)>/
+
+/** Attributes that declare `xmlns` already. */
+const HAS_XMLNS = new RegExp(`\\s${XMLNS}=`)
+
+/** Line breaks, escaped in a CSS string. */
+const LINE_BREAK = /\r\n|\r|\n/g

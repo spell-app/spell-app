@@ -1,5 +1,4 @@
-import { proto } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { columnVocabulary } from "./ui-column.vocabulary.en"
 import { GridPart } from "./GridPart"
 
@@ -11,5 +10,5 @@ import { GridPart } from "./GridPart"
  *   range.  Without a width it takes its row's or grid's count, else shares the line.
  ****************/
 export class UIColumn extends GridPart<typeof columnVocabulary> {
-  @proto static vocabulary = columnVocabulary
+  @E.proto static vocabulary = columnVocabulary
 }

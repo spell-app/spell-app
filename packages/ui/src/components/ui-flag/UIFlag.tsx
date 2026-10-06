@@ -1,8 +1,7 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, type TextKey, UI, UIElement, UIT } from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { flagVocabulary } from "./ui-flag.vocabulary.en"
 import { FlagCountry } from "./FlagCountry"
 import { FlagFallback } from "./ui-flag.fallback"
@@ -21,11 +20,11 @@ import flagCSS from "./ui-flag.css?inline"
  * - Unknown country:  an EMPTY root with no role (an unnamed `role=img` fails axe), which keeps its line box.
  * - Host is `display: contents`:  the span IS the inline box, where Fomantic's `<i class="fr flag">` sat.
  ****************/
-export class UIFlag extends UIElement<typeof flagVocabulary> {
-  @proto static vocabulary = flagVocabulary
-  @proto static styles = { flag: flagCSS }
-  @proto static Fallback = FlagFallback
-  @proto static delegatesFocus = false
+export class UIFlag extends E.UIElement<typeof flagVocabulary> {
+  @E.proto static vocabulary = flagVocabulary
+  @E.proto static styles = { flag: flagCSS }
+  @E.proto static Fallback = FlagFallback
+  @E.proto static delegatesFocus = false
 
   /** `country` resolved. */
   readonly country = createMemo(() => new FlagCountry(this.attrs.country))
@@ -37,7 +36,7 @@ export class UIFlag extends UIElement<typeof flagVocabulary> {
   readonly label = createMemo(
     () => {
       const { textKey, region } = this.country()
-      if (textKey) return this.text(textKey as TextKey<typeof flagVocabulary>)
+      if (textKey) return this.text(textKey as E.TextKey<typeof flagVocabulary>)
       return region ? UI.i18n.displayName(REGION, region) : undefined
     },
     { lazy: true }

@@ -1,14 +1,14 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
+import { DETAIL } from "./ui-label.types"
 import { labelVocabulary } from "./ui-label.vocabulary.en"
 
 /****************
  * ### `LabelFallback`
  * `<span part="label" class="ui ... label">` (`<a>` with `href`) around a `<slot>`, then the `detail` shorthand.
  ****************/
-export class LabelFallback extends NativeFallback<typeof labelVocabulary> {
-  @proto static vocabulary = labelVocabulary
-  @proto static degraded = ["`removable` delete button and `ui-remove`", "`icon` glyph", "`image` shorthand"]
+export class LabelFallback extends E.NativeFallback<typeof labelVocabulary> {
+  @E.proto static vocabulary = labelVocabulary
+  @E.proto static degraded = ["`removable` delete button and `ui-remove`", "`icon` glyph", "`image` shorthand"]
 
   protected override build() {
     const href = this.attr("href")
@@ -20,13 +20,13 @@ export class LabelFallback extends NativeFallback<typeof labelVocabulary> {
         ? { class: this.classes() }
         : {
             class: this.classes(),
-            href: disabled ? null : href,
+            href: disabled ? undefined : href,
             target: this.attr("target"),
-            "aria-disabled": disabled ? "true" : null
+            "aria-disabled": disabled ? UIT.TRUE : undefined
           },
       this.slot()
     )
-    if (detail) label.append(this.create("span", { class: "detail", part: "detail" }, detail))
+    if (detail) label.append(this.create("span", { class: DETAIL, part: DETAIL }, detail))
     return [this.decorate(label, "label")]
   }
 }

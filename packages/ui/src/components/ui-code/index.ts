@@ -7,7 +7,6 @@
  */
 
 import { UI } from "$/ui/core"
-
 import { UICode } from "./UICode"
 import { UICodeHost } from "./UICodeHost"
 import { CodeHighlighter } from "./CodeHighlighter"

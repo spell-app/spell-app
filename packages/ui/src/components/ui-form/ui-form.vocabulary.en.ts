@@ -1,6 +1,9 @@
 /**
- * Every name `<ui-form>`, `<ui-field>` and `<ui-fields>` use:  tags, attributes (kind + allowed values), events,
- * slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Every name `<ui-form>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only, `UIT` by value
+ *   straight from `components.types`.
+ * - The notes below are the whole family's:  `<ui-field>` and `<ui-fields>` too.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-form size="large" state="error">` => `ui large error form`;  `<ui-field width="4" required>` =>
  *   `required four wide field`;  `<ui-fields widths="2" inline>` => `inline two fields`,
@@ -9,11 +12,9 @@
  * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
  */
 
-// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which node
-// can't (`yarn site:data` / `yarn gen:root` import every vocabulary through tsx:  no `?inline` css, no JSX)
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
-import { STATE_STATES } from "./ui-form.types"
+import { STATE_STATES, ValidationTriggers } from "./ui-form.types"
 
 /****************
  * ### `<ui-form>`
@@ -26,13 +27,13 @@ export const formVocabulary = {
   aka: ["form layout", "fieldset", "validation"],
   skeleton: false,
   noun: "form",
-  description: "A form displays a set of related user input fields in a structured way.",
+  description: "A form displays a set of related input fields in a structured way.",
   attributes: [
     { name: "size", kind: "size", description: "Size of everything inside, `mini` ... `massive`." },
     {
       name: "state",
       kind: "valueOnly",
-      values: UIT.FORM_STATES,
+      values: UIT.FormStates,
       description:
         "Form state:  shows the `<ui-message>`s of that state inside.  Failed validation sets `error` on top."
     },
@@ -49,7 +50,7 @@ export const formVocabulary = {
     {
       name: "stack-with",
       kind: "enum",
-      values: UIT.STACK_WITH_VALUES,
+      values: UIT.StackWithValues,
       description:
         "What its rows of fields stack by:  `container` (the default) -- the form's own width;  `page` -- " +
         "the screen's, as in Fomantic.  Its `<ui-fields>` follow it.  Unset:  the page-wide " +
@@ -58,7 +59,7 @@ export const formVocabulary = {
     {
       name: "on",
       kind: "enum",
-      values: ["submit", "blur", "change"],
+      values: ValidationTriggers,
       default: "submit",
       description:
         "When fields validate:  on `submit` only, or also when one loses focus (`blur`) or changes (`change`).  A " +
@@ -121,4 +122,4 @@ export const formVocabulary = {
     }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -52,7 +52,7 @@ export const rootVocabulary = {
     {
       name: "stack-with",
       kind: "enum",
-      values: UIT.STACK_WITH_VALUES,
+      values: UIT.StackWithValues,
       description:
         "What stacking layouts inside measure (`stackable`, `doubling` ... on grids, cards, steps, forms, items, " +
         "statistics;  tables' `stack-by`):  `container` -- each element's own width (their default);  `page` -- the " +

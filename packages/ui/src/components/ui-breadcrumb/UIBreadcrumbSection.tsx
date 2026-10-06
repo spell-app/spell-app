@@ -1,11 +1,10 @@
 import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
-
-import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { BreadcrumbFallback } from "./ui-breadcrumb.fallback"
-import { DIVIDER, PAGE } from "./ui-breadcrumb.types"
+import { DIVIDER } from "./ui-breadcrumb.types"
+import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
 
 import breadcrumbCSS from "./ui-breadcrumb.css?inline"
 
@@ -20,12 +19,12 @@ import breadcrumbCSS from "./ui-breadcrumb.css?inline"
  * - else `<span class="section" part="section">`
  * - The HOST is `role=listitem` (internals), so the breadcrumb's `<ol>` owns real list items through its slot.
  ****************/
-export class UIBreadcrumbSection extends UIElement<typeof breadcrumbSectionVocabulary> {
-  @proto static vocabulary = breadcrumbSectionVocabulary
-  @proto static styles = { breadcrumb: breadcrumbCSS }
-  @proto static Fallback = BreadcrumbFallback
+export class UIBreadcrumbSection extends E.UIElement<typeof breadcrumbSectionVocabulary> {
+  @E.proto static vocabulary = breadcrumbSectionVocabulary
+  @E.proto static styles = { breadcrumb: breadcrumbCSS }
+  @E.proto static Fallback = BreadcrumbFallback
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     this.host.internals.role = UIT.LISTITEM
   }
@@ -37,7 +36,7 @@ export class UIBreadcrumbSection extends UIElement<typeof breadcrumbSectionVocab
   render(): JSX.Element {
     const content = (
       <>
-        <span class={DIVIDER} part={this.part("divider")} aria-hidden="true" />
+        <span class={DIVIDER} part={this.part("divider")} aria-hidden={UIT.TRUE} />
         <Show when={this.attrs.href && !this.attrs.active} fallback={this.plainSection()}>
           <a class={this.classes()} part={this.part("section")} href={this.attrs.href} target={this.attrs.target}>
             <slot />
@@ -53,7 +52,7 @@ export class UIBreadcrumbSection extends UIElement<typeof breadcrumbSectionVocab
   /** The section as text:  the current page (`aria-current`), or a level without a link. */
   private plainSection(): JSX.Element {
     return (
-      <span class={this.classes()} part={this.part("section")} aria-current={this.attrs.active ? PAGE : undefined}>
+      <span class={this.classes()} part={this.part("section")} aria-current={this.attrs.active ? UIT.PAGE : undefined}>
         <slot />
       </span>
     )

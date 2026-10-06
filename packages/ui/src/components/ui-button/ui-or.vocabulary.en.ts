@@ -1,10 +1,10 @@
 /**
  * Every name `<ui-or>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The family's grammar notes are in `ui-button.vocabulary.en.ts`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-or>`
@@ -30,4 +30,4 @@ export const orVocabulary = {
   parts: [{ name: "or", description: "The badge." }],
   states: [{ name: "or", description: "Marks the host as a separator, so a group doesn't stretch it." }],
   texts: [{ key: "or", text: "or", description: "Badge text." }]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

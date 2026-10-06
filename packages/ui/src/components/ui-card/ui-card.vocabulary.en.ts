@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-card>` and `<ui-cards>` use:  tag, attributes (kind + allowed values), slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-card raised color="red" size="small">` => `ui small red raised card`;
  *   `<ui-cards columns="3" doubling stackable>` => `ui doubling stackable three cards`.  `ui-card.css` keys on those.
@@ -10,7 +10,7 @@
  *   variations (`size`, `color`, `raised` ...) as its own classes, as Fomantic's `.ui.raised.cards > .card` has it.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-card>`
@@ -99,4 +99,4 @@ export const cardVocabulary = {
   ],
   texts: [{ key: "loading", text: "Loading…", description: "Announced while `loading`." }],
   ownsParts: ["content", "header", "meta", "description", "extra", "avatar"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

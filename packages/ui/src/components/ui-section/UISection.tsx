@@ -130,7 +130,10 @@ export class UISection extends UIElement<SectionVocabulary> {
    * - Why raw:  `attrs.collapsible` reads absent and `"false"` alike (false), but only absent takes the group's
    *   default (`collapsible()`).
    */
-  readonly collapsibleAttribute = new HostAttribute(this.host, this.definition.attribute("collapsible").attribute)
+  readonly collapsibleAttribute = new HostAttribute({
+    host: this.host,
+    name: this.definition.attribute("collapsible").attribute
+  })
 
   /** `collapsed`:  the host's (a boolean is always the host's, see `Controlled`). */
   readonly collapsedState = this.controlled("collapsed", false)

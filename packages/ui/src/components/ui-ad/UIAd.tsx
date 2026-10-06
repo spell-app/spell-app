@@ -1,7 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { adVocabulary } from "./ui-ad.vocabulary.en"
 import { AdFallback } from "./ui-ad.fallback"
 import { TEST } from "./ui-ad.types"
@@ -15,16 +14,11 @@ import adCSS from "./ui-ad.css?inline"
  *   (`adTest`) when bare;  `ui-ad.css` draws it with `::after`, which assistive tech reads as the box's text.
  * - No role:  see `ui-ad.css` (why not `<aside>`).
  ****************/
-export class UIAd extends UIElement<typeof adVocabulary> {
-  @proto static vocabulary = adVocabulary
-  @proto static styles = { ad: adCSS }
-  @proto static Fallback = AdFallback
-  @proto static delegatesFocus = false
-
-  /** `test` present (bare or with text)? */
-  private isTest(): boolean {
-    return this.attrs.test != null
-  }
+export class UIAd extends E.UIElement<typeof adVocabulary> {
+  @E.proto static vocabulary = adVocabulary
+  @E.proto static styles = { ad: adCSS }
+  @E.proto static Fallback = AdFallback
+  @E.proto static delegatesFocus = false
 
   protected extraClasses(): string | undefined {
     return this.isTest() ? TEST : undefined
@@ -40,5 +34,10 @@ export class UIAd extends UIElement<typeof adVocabulary> {
         <slot />
       </div>
     )
+  }
+
+  /** `test` present, bare or with text? */
+  private isTest(): boolean {
+    return this.attrs.test !== undefined
   }
 }

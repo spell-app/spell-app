@@ -46,7 +46,7 @@ export const inputVocabulary = {
   aka: ["text field", "text box", "textbox", "input field", "search box"],
   skeleton: { display: "inline", width: "14em", height: "2.5em" },
   noun: "input",
-  description: "An input is a field used to elicit a response from a user.",
+  description: "An input is a field used to elicit a response from a person.",
   attributes: [
     { name: "size", kind: "size", description: "Size, `mini` ... `massive`;  `medium` is the default." },
     {
@@ -57,7 +57,7 @@ export const inputVocabulary = {
     {
       name: "state",
       kind: "valueOnly",
-      values: UIT.FORM_STATES,
+      values: UIT.FormStates,
       description: "Form state, tinting the box, text and placeholder."
     },
     { name: "transparent", kind: "keyOnly", description: "No box:  text only, e.g. inside a menu or header." },
@@ -123,7 +123,7 @@ export const inputVocabulary = {
     {
       name: "minlength",
       kind: "number",
-      description: "Constraint:  fewest characters (checked after the user edits)."
+      description: "Constraint:  fewest characters (checked once someone has edited it)."
     },
     { name: "maxlength", kind: "number", description: "Constraint:  most characters." },
     { name: "multiple", kind: "boolean", description: "`email` / `file`:  accepts several values." },
@@ -150,12 +150,12 @@ export const inputVocabulary = {
     {
       name: "ui-input",
       detail: "{ value: string, originalEvent?: Event }",
-      description: "The user changed the value (every keystroke)."
+      description: "The value changed as someone typed (every keystroke)."
     },
     {
       name: "ui-change",
       detail: "{ value: string, originalEvent?: Event }",
-      description: "The user committed a change (blur, Enter, picking a file)."
+      description: "Someone committed a change (blur, Enter, picking a file)."
     }
   ],
   slots: [
@@ -170,7 +170,7 @@ export const inputVocabulary = {
     { name: "icon", description: "The icon box (the spinner while `loading`)." }
   ],
   states: [
-    { name: "invalid", description: "Fails validation, once the user has interacted (`:user-invalid` semantics)." },
+    { name: "invalid", description: "Fails validation, once someone has interacted (`:user-invalid` semantics)." },
     { name: "disabled", description: "Can't be used." },
     { name: "loading", description: "Busy." },
     { name: "fluid", description: "The host is block-level (`fluid`, or inside a `<ui-field>`)." }

@@ -65,7 +65,7 @@ export class UITable extends UIElement<typeof tableVocabulary> {
   @proto static delegatesFocus = false
 
   /** Host `aria-label`:  the scroller region's name. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute({ host: this.host, name: ARIA_LABEL })
 
   /** `sort-column`:  host-controlled, or set by clicks. */
   readonly sortColumnState = this.controlled("sort-column", undefined)

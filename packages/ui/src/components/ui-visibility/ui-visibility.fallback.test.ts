@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import { Fixture } from "$/ui/test/fixture"
-import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
+import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 
 import { VisibilityFallback } from "./ui-visibility.fallback"
 

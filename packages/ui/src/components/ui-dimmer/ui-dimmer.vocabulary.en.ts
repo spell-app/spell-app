@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-dimmer>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-dimmer shade="light" inverted vertical-align="top" active>` => `ui light active inverted top aligned dimmer`.
  * - `active` is Fomantic's word for a shown dimmer (its class, and `.dimmer('show')`).
@@ -8,7 +8,7 @@
  * - `closedby` mirrors `<dialog closedby>`, as on `<ui-modal>`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-dimmer>`
@@ -32,7 +32,7 @@ export const dimmerVocabulary = {
     {
       name: "active",
       kind: "keyOnly",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
+      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
     },
     { name: "page", kind: "keyOnly", description: "Dims the whole page:  a modal dialog over the viewport." },
     { name: "inverted", kind: "keyOnly", description: "A light dimmer (dark text), where the default is dark." },
@@ -70,7 +70,8 @@ export const dimmerVocabulary = {
       name: "ui-open",
       detail: "{ active: true, originalEvent?: Event }",
       cancelable: true,
-      description: "About to show for a user action (`on`, an invoker command);  `preventDefault()` keeps it hidden."
+      description:
+        "About to show for a person's action (`on`, an invoker command);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-show",
@@ -101,4 +102,4 @@ export const dimmerVocabulary = {
     { name: "on-hover", description: '`on="hover"`:  laid out (transparent) while inactive, so Tab can reach it.' }
   ],
   texts: [{ key: "dimmedPage", text: "Dimmed page", description: "Accessible name of an unnamed page dimmer." }]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

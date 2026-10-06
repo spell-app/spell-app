@@ -1017,7 +1017,7 @@
     }
   }
   /* ... or the page's. */
-  @media (--ui-large-monitor) and (width < 1920px) {
+  @media (--ui-large-monitor) and (not (--ui-widescreen)) {
     @container style(--ui-stack-with: page) {
       .ui.grid:not(.stack-with-container) {
         --_grid-large-screen: 1;

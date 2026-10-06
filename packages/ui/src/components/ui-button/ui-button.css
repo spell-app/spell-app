@@ -39,7 +39,7 @@
  *     - why not write the alias:  every button box re-declares `--_ui-button-*` from the public token, so a
  *       group's write would never reach its members
  *     - values derived from a public token (`compact`'s ratio, tertiary's margin) read its alias, so the
- *       user's base value flows through
+ *       page's base value flows through
  *   - colours (`--ui-color*`) and sizes (`--ui-scale`) inherit the same way
  *   - `.ui.buttons` sets position tokens on each child (light DOM `> *`, shadow `::slotted(*)`):
  *     `--_ui-buttons-{ss,se,es,ee}` (corner factors 0 / 1), `--_ui-buttons-flex`, `--_ui-buttons-margin`,
@@ -56,6 +56,9 @@
  */
 
 @layer ui.components.button.types, ui.components.button.content, ui.components.button.variations, ui.components.button.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time:  `stackable` groups. */
+@import "../../styles/media.css";
 
 /* Loader spin, shared by `loading` buttons. */
 @keyframes ui-button-spin {
@@ -776,7 +779,7 @@
   }
 
   /* Stackable:  horizontal groups stack on mobile. */
-  @media (width < 768px) {
+  @media (--ui-mobile) {
     .ui.stackable.buttons {
       flex-direction: column;
     }

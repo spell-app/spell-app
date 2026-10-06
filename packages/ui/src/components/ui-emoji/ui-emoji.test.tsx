@@ -38,9 +38,9 @@ describe("EmojiData", () => {
   })
 
   it("chunks by first letter, digits together", () => {
-    expect(EmojiData.chunkOf("smile")).toBe("s")
-    expect(EmojiData.chunkOf("100")).toBe("0")
-    expect(EmojiData.chunkOf("8ball")).toBe("0")
+    expect(EmojiData.chunkFor("smile")).toBe("s")
+    expect(EmojiData.chunkFor("100")).toBe("0")
+    expect(EmojiData.chunkFor("8ball")).toBe("0")
   })
 
   it("loads a name's chunk lazily, then answers synchronously", async () => {

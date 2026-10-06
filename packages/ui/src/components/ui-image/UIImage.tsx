@@ -1,10 +1,9 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
-
-import { imageVocabulary } from "./ui-image.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { ImageFallback } from "./ui-image.fallback"
+import { imageVocabulary } from "./ui-image.vocabulary.en"
 
 import imageCSS from "./ui-image.css?inline"
 
@@ -20,10 +19,10 @@ import imageCSS from "./ui-image.css?inline"
  * - `disabled`:  a link loses its `href` and gets `aria-disabled`;  `:state(disabled)` for page styling.
  * - Host is `display: contents`:  the root IS the image box, so it floats and sits in text as Fomantic's did.
  ****************/
-export class UIImage extends UIElement<typeof imageVocabulary> {
-  @proto static vocabulary = imageVocabulary
-  @proto static styles = { image: imageCSS }
-  @proto static Fallback = ImageFallback
+export class UIImage extends E.UIElement<typeof imageVocabulary> {
+  @E.proto static vocabulary = imageVocabulary
+  @E.proto static styles = { image: imageCSS }
+  @E.proto static Fallback = ImageFallback
 
   isDisabled(): boolean {
     return this.attrs.disabled
@@ -35,24 +34,24 @@ export class UIImage extends UIElement<typeof imageVocabulary> {
 
   render(): JSX.Element {
     return (
-      <Show when={this.attrs.href} fallback={this.image(this.classes(), "image")}>
+      <Show when={this.attrs.href} fallback={this.image("image")}>
         <a
           class={this.classes()}
           part={this.part("image")}
           href={this.attrs.disabled ? undefined : this.attrs.href}
           aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}
         >
-          {this.image(undefined, "img")}
+          {this.image("img")}
         </a>
       </Show>
     )
   }
 
-  /** The `<img>`:  the root (classes, part `image`), or the link's child (part `img`). */
-  private image(classes: string | undefined, part: "image" | "img"): JSX.Element {
+  /** The `<img>`:  the root (part `image`, with the classes), or the link's child (part `img`). */
+  private image(part: "image" | "img"): JSX.Element {
     return (
       <img
-        class={classes}
+        class={part === "image" ? this.classes() : undefined}
         part={this.part(part)}
         src={this.attrs.src}
         alt={this.attrs.alt}

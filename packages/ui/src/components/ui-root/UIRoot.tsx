@@ -80,7 +80,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
   declare Skeleton: RootSkeletonRenderer
 
   /** Host `aria-label`:  the scrolling region's name. */
-  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** Everything inside is ready (or the timeout passed). */
   readonly isReady = new Cell(false)

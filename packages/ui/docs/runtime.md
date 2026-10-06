@@ -49,7 +49,7 @@ class UIThing extends HTMLElement {
 - Every element class carries its whole vocabulary, live:  `UIButton.describe()` (~== `UIButton.prototype.vocabulary`)
   -- tag, attributes (kinds, allowed values, defaults), events, slots, parts, states, texts, descriptions, `topics`,
   `aka`.  The same object the element reads, so it can't drift.
-- Every tag at once:  `ComponentDefinitions` (`src/components/component-definitions.ts`):  `{ tag, folder, name,
+- Every tag at once:  `ComponentDefinitions` (`src/components/ComponentDefinitions.ts`):  `{ tag, folder, name,
   topics, aka, description }` per tag, from the vocabulary modules (no element is defined by reading it);  `byTag()`,
   `byTopic()`, `byFolder()`.  Not in `core`.  A tag's `skeleton` (what `<ui-root>` draws for it) is in its
   vocabulary too.

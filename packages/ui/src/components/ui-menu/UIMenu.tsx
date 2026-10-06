@@ -54,7 +54,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements UIT.Item
   readonly context = new PartContext(this.host, this.vocabulary.noun)
 
   /** Host `aria-label`, forwarded to the landmark / menubar. */
-  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** Item hosts that asked THIS (top) menu for their context:  the roving candidates. */
   private readonly asked = new WeakSet<Element>()
@@ -122,7 +122,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements UIT.Item
   private computeContext(): UIT.ItemContext {
     const interactive = this.attrs.interactive
     return {
-      hostRole: interactive ? UIT.NONE : null,
+      hostRole: interactive ? UIT.NONE : undefined,
       role: interactive ? MENUITEM : undefined,
       interactive: interactive || this.attrs.link || this.attrs.pagination,
       current: UIT.PAGE
@@ -207,7 +207,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements UIT.Item
   private static activatedItem(event: Event): Element | undefined {
     for (const target of event.composedPath()) {
       if (!(target instanceof HTMLElement)) continue
-      if ((target.localName === UIT.LINK || target.localName === UIT.BUTTON) && target.part.contains(ITEM_PART)) {
+      if ((target.localName === UIT.ANCHOR_TAG || target.localName === UIT.BUTTON) && target.part.contains(ITEM_PART)) {
         const root = target.getRootNode()
         return root instanceof ShadowRoot ? root.host : undefined
       }

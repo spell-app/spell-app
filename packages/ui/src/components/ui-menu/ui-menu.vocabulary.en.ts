@@ -8,9 +8,9 @@
  *   A `<ui-menu>` inside a menu is a SUB-MENU (Fomantic's `<div class="right menu">`), so `menu` is owned too;
  *   a `<ui-header>` inside an item is a vertical menu's sub header.
  * - `tabular` is Fomantic's classic word;  2.9 renamed it `tabbed` (`@variationMenuTabbedLegacyTabular`).
- * - The look is ONE word, `appearance` (`UIT.MENU_APPEARANCES`), shared with `<ui-tabs>`;  the older booleans
+ * - The look is ONE word, `appearance` (`UIT.MenuAppearances`), shared with `<ui-tabs>`;  the older booleans
  *   (`tabular`, `pointing`, `secondary`, `text`) stay as aliases and emit the same class words.
- * - Item layout:  `alignment` (`UIT.ITEM_ALIGNMENTS`) places the items, `equal` sizes them alike from the items
+ * - Item layout:  `alignment` (`UIT.ItemAlignments`) places the items, `equal` sizes them alike from the items
  *   themselves;  `items="3"` / `items="equal"` stay as the older count-based aliases.
  */
 
@@ -39,7 +39,7 @@ export const menuVocabulary = {
     {
       name: "appearance",
       kind: "valueOnly",
-      values: UIT.MENU_APPEARANCES,
+      values: UIT.MenuAppearances,
       description:
         "The look:  `tabular` (tabs on a rule), `pointing` (the active item points at the content), `secondary` " +
         "(no box, rounded items), `text` (plain words), `segmented` (a segmented control:  a bordered group of " +
@@ -124,7 +124,7 @@ export const menuVocabulary = {
       name: "alignment",
       kind: "valueAndKey",
       key: "aligned",
-      values: UIT.ITEM_ALIGNMENTS,
+      values: UIT.ItemAlignments,
       description:
         "Where the items sit:  `fluid` -- they fill the bar;  `left` / `center` / `right` -- packed at that end of " +
         'a full-width bar (a `segmented` menu moves as a whole).  `alignment="center"` => `center aligned`.'

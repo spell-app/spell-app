@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-image>` and `<ui-images>` use:  tags, attributes (kind + allowed values), slots, parts,
- * states.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * states.  Schema:  `E.ComponentVocabulary`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-image size="small" rounded floated="right" vertical-align="top">` =>
  *   `ui small rounded right floated top aligned image`.
@@ -10,7 +10,7 @@
  * - NOT the generic content part `<ui-image>` of cards / items (`plan.md`):  those land with their owners.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-image>`
@@ -86,4 +86,4 @@ export const imageVocabulary = {
   ],
   states: [{ name: "disabled", description: "Faded:  shown as unavailable." }],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -1,16 +1,13 @@
 /**
- * Loose constants and types of the `ui-flyout` family:  the words, selectors and shapes its element
- * classes and its native fallback share, lifted out of their files.
- * - Data only:  nothing here runs;  the classes import what they need from `./ui-flyout.types`.
+ * Constants and types the `ui-flyout` family's files share:  `<ui-flyout>` and its native fallback.
+ * - Pure data:  `import type` only, so every file of the family may import it.
+ * - The word widths (`thin`, `very wide`) are `<ui-sidebar>`'s too:  `UIT.WordWidths`, `UIT.WordWidthClasses`.
  */
 
 import type { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
 
-/** Vocabulary type, for brevity. */
+/** The flyout's vocabulary type:  `DialogElement<Vocabulary>`, `AttributeName<Vocabulary>`. */
 export type Vocabulary = typeof flyoutVocabulary
 
-/** The attribute with word values. */
+/** The attribute taking word widths beside columns. */
 export const WIDTH = "width"
-
-/** Fomantic's word widths (`thin flyout`), which `width` takes beside column counts. */
-export const FLYOUT_WORD_WIDTHS = ["very thin", "thin", "wide", "very wide"] as const

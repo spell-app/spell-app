@@ -7,23 +7,24 @@
  *   (`event.command`, `event.source`), then, unless that was prevented, a built-in command on a `<dialog>`
  *   (`show-modal`, `close`, `request-close`) or a popover (`show-popover`, `hide-popover`, `toggle-popover`).
  *   Custom commands (`--foo`) stop at the event.
+ * - STATIC, instance-free:  the element and its native fallback share it, and neither holds one.
  ****************/
 export class Invoker {
   /**
-   * The element `commandfor` names, looked up from `host`'s root node (document or shadow root);  `null` for no id
-   * or no such element.
+   * The element `commandfor` names, looked up from `host`'s root node (document or shadow root);  `undefined` for no
+   * id or no such element.
    */
-  static resolve(host: Element, id: string | undefined): Element | null {
-    if (!id) return null
+  static resolve(host: Element, id: string | undefined): Element | undefined {
+    if (!id) return undefined
     // duck-typed, not `instanceof Document / ShadowRoot`:  the static render resolves ids in node (`$/ui/static`)
     const root = host.getRootNode() as Partial<Document>
-    return typeof root.getElementById === "function" ? root.getElementById(id) : null
+    return typeof root.getElementById === "function" ? (root.getElementById(id) ?? undefined) : undefined
   }
 
   /** Run `command` on `target`, as the browser's invoker activation would. */
   static run(target: Element, command: string, source: Element): void {
     const event = this.event(command, source)
-    if (!target.dispatchEvent(event) || !command || command.startsWith("--")) return
+    if (!target.dispatchEvent(event) || !command || command.startsWith(CUSTOM_PREFIX)) return
     if (target instanceof HTMLDialogElement) this.dialog(target, command)
     else if (target instanceof HTMLElement) this.popover(target, command)
   }
@@ -32,27 +33,49 @@ export class Invoker {
   private static event(command: string, source: Element): Event {
     const init = { command, source, cancelable: true }
     const CommandEventClass = (globalThis as { CommandEvent?: new (type: string, init: object) => Event }).CommandEvent
-    if (CommandEventClass) return new CommandEventClass("command", init)
-    return Object.assign(new Event("command", { cancelable: true }), { command, source })
+    if (CommandEventClass) return new CommandEventClass(COMMAND_EVENT, init)
+    return Object.assign(new Event(COMMAND_EVENT, { cancelable: true }), { command, source })
   }
 
   /** Built-in dialog commands. */
   private static dialog(dialog: HTMLDialogElement, command: string) {
-    if (command === "show-modal") {
+    if (command === Command.showModal) {
       if (!dialog.open) dialog.showModal()
-    } else if (command === "close") dialog.close()
-    else if (command === "request-close") {
+    } else if (command === Command.close) dialog.close()
+    else if (command === Command.requestClose) {
       const request = dialog as { requestClose?: () => void }
       if (request.requestClose) request.requestClose()
-      else if (dialog.dispatchEvent(new Event("cancel", { cancelable: true }))) dialog.close()
+      else if (dialog.dispatchEvent(new Event(CANCEL_EVENT, { cancelable: true }))) dialog.close()
     }
   }
 
   /** Built-in popover commands. */
   private static popover(element: HTMLElement, command: string) {
-    if (!element.hasAttribute("popover")) return
-    if (command === "show-popover") element.showPopover()
-    else if (command === "hide-popover") element.hidePopover()
-    else if (command === "toggle-popover") element.togglePopover()
+    if (!element.hasAttribute(POPOVER)) return
+    if (command === Command.showPopover) element.showPopover()
+    else if (command === Command.hidePopover) element.hidePopover()
+    else if (command === Command.togglePopover) element.togglePopover()
   }
 }
+
+/** The built-in commands `run()` carries out, as the platform spells them. */
+const Command = {
+  showModal: "show-modal",
+  close: "close",
+  requestClose: "request-close",
+  showPopover: "show-popover",
+  hidePopover: "hide-popover",
+  togglePopover: "toggle-popover"
+} as const
+
+/** A custom command starts with it (`--foo`):  only the `command` event, no built-in action. */
+const CUSTOM_PREFIX = "--"
+
+/** The event the target gets before any built-in action. */
+const COMMAND_EVENT = "command"
+
+/** The event a dialog without `requestClose()` gets first, as the platform's own `request-close` would send. */
+const CANCEL_EVENT = "cancel"
+
+/** The attribute that makes an element a popover. */
+const POPOVER = "popover"

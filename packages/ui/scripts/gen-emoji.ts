@@ -17,7 +17,7 @@
  * - Output is COMMITTED (like the icon data):  installs and CI need neither the reference clone nor this
  *   dependency.  The `fmt` settings (`vite.lint.ts`) ignore it, so formatting never inflates it.
  * - Chunks:  `a` ... `z` by the name's first letter, `0` for names starting with a digit (`100`, `1st_place_medal`).
- *   `EmojiData.chunkOf()` MUST agree.
+ *   `EmojiData.chunkFor()` MUST agree.
  */
 
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
@@ -174,7 +174,7 @@ class EmojiGenerator {
       .join("-")
   }
 
-  /** Chunk key of `name`:  its first letter, or `0` for a digit.  MUST match `EmojiData.chunkOf()`. */
+  /** Chunk key of `name`:  its first letter, or `0` for a digit.  MUST match `EmojiData.chunkFor()`. */
   static chunkOf(name: string): string {
     const first = name[0] ?? ""
     return /[a-z]/.test(first) ? first : DIGIT_CHUNK

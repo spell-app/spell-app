@@ -1,7 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { orVocabulary } from "./ui-or.vocabulary.en"
 
 import buttonCSS from "./ui-button.css?inline"
@@ -10,9 +9,9 @@ import buttonCSS from "./ui-button.css?inline"
  * ### `<ui-or>`
  * The round "or" between two buttons of a group:  `<span class="or" data-text="or">`, text from `UI.i18n`.
  ****************/
-export class UIOr extends UIElement<typeof orVocabulary> {
-  @proto static vocabulary = orVocabulary
-  @proto static styles = { button: buttonCSS }
+export class UIOr extends E.UIElement<typeof orVocabulary> {
+  @E.proto static vocabulary = orVocabulary
+  @E.proto static styles = { button: buttonCSS }
 
   protected hostStates() {
     return { or: true }

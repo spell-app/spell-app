@@ -1,26 +1,11 @@
-import type { I18n, UIT } from "$/ui/core"
-
+import type { E, UIT } from "$/ui/core"
 import { CalendarDates } from "./CalendarDates"
-import {
-  CELL_FORMATS,
-  CLOCK,
-  DIGITS,
-  DatePart,
-  LABEL_FORMATS,
-  Moment,
-  MomentLike,
-  MomentFields,
-  TITLE_FORMATS,
-  UTC,
-  VALUE_FORMATS,
-  WORDS,
-  YEAR_FIRST
-} from "./ui-calendar.types"
+import type { DatePart, Moment, MomentFields, MomentLike } from "./ui-calendar.types"
 
 /****************
  * ### `CalendarText`
  * The words of one calendar in one locale:  the field's text, cell and title texts, weekday / month names (all
- * `Intl`, through `UI.i18n`), and reading back what a user TYPES.
+ * `Intl`, through `UI.i18n`), and reading back what a person TYPES.
  * - Formatting passes `timeZone: "UTC"` with `CalendarDates.epoch()`:  a moment's fields print as they are, with
  *   no zone shift, whichever `Temporal` made them.
  * - 12 / 24 hours:  whatever the locale's `Intl` clock is (`en-US` `2:30 PM`, `de-DE` `14:30`).
@@ -30,7 +15,7 @@ import {
  ****************/
 export class CalendarText {
   /** Where `Intl` lives, and its formatter cache. */
-  readonly i18n: I18n
+  readonly i18n: E.I18n
 
   /** BCP 47 locale. */
   readonly locale: string
@@ -38,7 +23,7 @@ export class CalendarText {
   /** Lowercased month names, long then short, index % 12 === month - 1;  built on first `read()`. */
   private monthNames?: string[]
 
-  constructor(i18n: I18n, locale: string) {
+  constructor({ i18n, locale }: CalendarTextProps) {
     this.i18n = i18n
     this.locale = locale
   }
@@ -87,10 +72,10 @@ export class CalendarText {
   ////////////////
 
   /**
-   * What the user typed, as a moment of `dates.type`, or `null` when it can't be read (see class docs).
+   * What the person typed, as a moment of `dates.type`, or `undefined` when it can't be read (see class docs).
    * - Fields left out:  the current year;  midnight for a `datetime` without a time.
    */
-  read(text: string, dates: CalendarDates): Moment | null {
+  read(text: string, dates: CalendarDates): Moment | undefined {
     const iso = dates.parse(text)
     if (iso) return iso
     let rest = text.toLocaleLowerCase(this.locale).normalize("NFKC")
@@ -110,28 +95,28 @@ export class CalendarText {
       }
       if (period && hour !== undefined) {
         rest = rest.replace(CalendarText.word(period[0]), " ")
-        if (period[1] === "pm" && hour < 12) hour += 12
-        if (period[1] === "am" && hour === 12) hour = 0
+        if (period[1] === PM && hour < 12) hour += 12
+        if (period[1] === AM && hour === 12) hour = 0
       }
       if (dates.type === "time") {
         const numbers = rest.match(DIGITS)?.map(Number) ?? []
         hour ??= numbers[0]
         if (!clock && numbers.length > 1 && !period) minute = numbers[1]!
-        return hour === undefined ? null : dates.parse(`${CalendarText.pad(hour)}:${CalendarText.pad(minute)}`)
+        return hour === undefined ? undefined : dates.parse(`${CalendarText.pad(hour)}:${CalendarText.pad(minute)}`)
       }
     }
     const fields = this.dateFields(rest, dates.type)
-    if (!fields) return null
+    if (!fields) return undefined
     if (dates.type === "datetime") return dates.build({ ...fields, hour: hour ?? 0, minute })
     return dates.build(fields)
   }
 
   /**
-   * Year / month / day from the date part of typed text, or `null`.
+   * Year / month / day from the date part of typed text, or `undefined`.
    * - A 4+ digit first number means year-first (ISO-ish order);  a month NAME takes the month;  otherwise the
    *   locale's numeric order.  Two-digit years:  under 60 => 20xx, else 19xx (Fomantic's `centuryBreak`).
    */
-  private dateFields(text: string, type: UIT.CalendarType): MomentFields | null {
+  private dateFields(text: string, type: UIT.CalendarType): MomentFields | undefined {
     const numbers = text.match(DIGITS) ?? []
     const named = this.monthByName(text)
     const order = numbers[0] && numbers[0].length >= 4 ? YEAR_FIRST : this.numericOrder()
@@ -154,7 +139,7 @@ export class CalendarText {
       month: values.month ?? (type === "year" ? 1 : NaN),
       day: values.day ?? (type === "month" || type === "year" ? 1 : NaN)
     }
-    return Number.isNaN(fields.month) || Number.isNaN(fields.day) ? null : fields
+    return Number.isNaN(fields.month) || Number.isNaN(fields.day) ? undefined : fields
   }
 
   /** Month (1-12) named in `text`:  a full name or a 3+ letter prefix of one, long or short. */
@@ -180,13 +165,13 @@ export class CalendarText {
   }
 
   /** Day-period words to look for, lowercased, with what they mean:  the locale's, then English. */
-  private dayPeriods(): [string, "am" | "pm"][] {
-    const found: [string, "am" | "pm"][] = []
+  private dayPeriods(): [string, DayPeriod][] {
+    const found: [string, DayPeriod][] = []
     for (const [name, meaning] of [
-      [this.dayPeriod(1), "am"],
-      [this.dayPeriod(13), "pm"],
-      ["am", "am"],
-      ["pm", "pm"]
+      [this.dayPeriod(1), AM],
+      [this.dayPeriod(13), PM],
+      [AM, AM],
+      [PM, PM]
     ] as const) {
       if (name && !found.some(([each]) => each === name)) found.push([name, meaning])
     }
@@ -202,6 +187,11 @@ export class CalendarText {
       ?.value.toLocaleLowerCase(this.locale)
       .replace(/\./g, "")
   }
+
+  ////////////////
+  // ## Pure helpers
+  // STATIC:  pure text work, needing nothing of the instance.
+  ////////////////
 
   /** Two-digit year => full year (see `dateFields()`). */
   private static century(year: number): number {
@@ -223,3 +213,71 @@ export class CalendarText {
     return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   }
 }
+
+/** What `new CalendarText()` takes. */
+export type CalendarTextProps = {
+  /** where `Intl` lives (`UI.i18n`) */
+  i18n: E.I18n
+  /** BCP 47 locale */
+  locale: string
+}
+
+/** What a day-period word means:  before or after noon. */
+type DayPeriod = typeof AM | typeof PM
+
+/** Before noon, and the English day-period word for it. */
+const AM = "am"
+
+/** After noon, as `AM`. */
+const PM = "pm"
+
+/** The field's text per type (Fomantic's `MMMM D, YYYY h:mm A` family, in the locale's words). */
+const VALUE_FORMATS: Readonly<Record<UIT.CalendarType, Intl.DateTimeFormatOptions>> = {
+  date: { dateStyle: "long" },
+  datetime: { dateStyle: "long", timeStyle: "short" },
+  time: { timeStyle: "short" },
+  month: { year: "numeric", month: "long" },
+  year: { year: "numeric" }
+}
+
+/** Cell texts per view. */
+const CELL_FORMATS: Readonly<Record<UIT.CalendarMode, Intl.DateTimeFormatOptions>> = {
+  year: { year: "numeric" },
+  month: { month: "short" },
+  day: { day: "numeric" },
+  hour: { hour: "numeric", minute: "2-digit" },
+  minute: { hour: "numeric", minute: "2-digit" }
+}
+
+/** Cell names per view. */
+const LABEL_FORMATS: Readonly<Record<UIT.CalendarMode, Intl.DateTimeFormatOptions>> = {
+  year: { year: "numeric" },
+  month: { year: "numeric", month: "long" },
+  day: { dateStyle: "full" },
+  hour: { hour: "numeric", minute: "2-digit" },
+  minute: { hour: "numeric", minute: "2-digit" }
+}
+
+/** Page titles per view (the year view's is a range, built by `CalendarView`). */
+const TITLE_FORMATS: Readonly<Record<UIT.CalendarMode, Intl.DateTimeFormatOptions>> = {
+  year: { year: "numeric" },
+  month: { year: "numeric" },
+  day: { year: "numeric", month: "long" },
+  hour: { dateStyle: "long" },
+  minute: { dateStyle: "long" }
+}
+
+/** ISO-ish numeric order, for text that starts with a 4-digit year. */
+const YEAR_FIRST: DatePart[] = ["year", "month", "day"]
+
+/** A clock time in typed text:  `14:30`, `2:30`. */
+const CLOCK = /(\d{1,2}):(\d{2})/
+
+/** Runs of digits. */
+const DIGITS = /\d+/g
+
+/** Runs of letters, any script. */
+const WORDS = /\p{L}+/gu
+
+/** Time zone every format runs in (see class docs). */
+const UTC = "UTC"

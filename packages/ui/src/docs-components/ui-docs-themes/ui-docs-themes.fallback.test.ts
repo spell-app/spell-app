@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { Fixture } from "$/ui/test/fixture"
 import { expectAccessible } from "$/ui/test/a11y"
-import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
+import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 import { UI } from "$/ui/runtime"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 import { DOCS_LOOK_KEYS } from "$/ui/docs-components/docs-components.types"

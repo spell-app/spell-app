@@ -1,7 +1,7 @@
 import type { Temporal } from "temporal-polyfill"
 
-import type { TemporalAPI, UIT } from "$/ui/core"
-import { ISO_FORMS, MODES, ModeOptions, Moment, MomentFields, MomentLike, YEAR } from "./ui-calendar.types"
+import type { E, UIT } from "$/ui/core"
+import { MINUTE_STEP, type ModeOptions, type Moment, type MomentFields, type MomentLike } from "./ui-calendar.types"
 
 /****************
  * ### `CalendarDates`
@@ -9,16 +9,16 @@ import { ISO_FORMS, MODES, ModeOptions, Moment, MomentFields, MomentLike, YEAR }
  * (`floor()` / `same()` / `compare()`), paging (`step()`) and the views a type walks through (`modes()`).
  * - Every type is held as a `PlainDateTime`, so one comparison serves all:  a `date` at midnight, a `month` on its
  *   first day, a `year` on January 1st, a `time` on TODAY (`anchor`, read once).
- * - `T` is whichever `Temporal` the page has (`UI.i18n.temporal`):  native, or the polyfill;  values from one
- *   are never mixed with the other's, since everything here goes through `T`.
+ * - `temporal` is whichever `Temporal` the page has (`UI.i18n.temporal`):  native, or the polyfill;  values from one
+ *   are never mixed with the other's, since everything here goes through `temporal`.
  * - Minute cells are `MINUTE_STEP` apart (Fomantic's `minTimeGap`):  a minute's unit is its 5-minute slot.
  ****************/
 export class CalendarDates {
-  /** Minutes between two minute cells. */
-  static readonly MINUTE_STEP = 5
-
-  /** The page's `Temporal`. */
-  readonly T: TemporalAPI
+  /**
+   * The page's `Temporal`.
+   * - STATIC for the object's life:  a calendar that gets another one builds another `CalendarDates`.
+   */
+  readonly temporal: E.TemporalAPI
 
   /** What the calendar picks. */
   readonly type: UIT.CalendarType
@@ -26,10 +26,10 @@ export class CalendarDates {
   /** Day a `time` value is held on:  today, read once. */
   readonly anchor: Temporal.PlainDate
 
-  constructor(T: TemporalAPI, type: UIT.CalendarType) {
-    this.T = T
+  constructor({ temporal, type }: CalendarDatesProps) {
+    this.temporal = temporal
     this.type = type
-    this.anchor = T.Now.plainDateISO()
+    this.anchor = temporal.Now.plainDateISO()
   }
 
   /** Has a time part (`time`, `datetime`)? */
@@ -47,30 +47,32 @@ export class CalendarDates {
   ////////////////
 
   /**
-   * `value` as a moment, or `null` when empty or unreadable.
+   * `value` as a moment, or `undefined` when empty or unreadable.
    * - Takes an ISO string of the calendar's type (a `datetime` also takes a bare date, a `date` a date-time), a
    *   `Date` (its LOCAL fields), or a Temporal object (through its ISO `toString()`).
+   * - NEVER throws.
    */
-  parse(value: unknown): Moment | null {
-    if (value == null || value === "") return null
-    if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : this.fromDate(value)
+  parse(value: unknown): Moment | undefined {
+    if (value == null || value === "") return undefined
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : this.fromDate(value)
     // a Temporal object's `toString()` is its ISO form
     const text = (typeof value === "string" ? value : (value as { toString(): string }).toString()).trim()
+    const { temporal } = this
     try {
       switch (this.type) {
         case "time":
-          return this.anchor.toPlainDateTime(this.T.PlainTime.from(text))
+          return this.anchor.toPlainDateTime(temporal.PlainTime.from(text))
         case "year":
-          return YEAR.test(text) ? this.T.PlainDateTime.from({ year: Number(text), month: 1, day: 1 }) : null
+          return YEAR.test(text) ? temporal.PlainDateTime.from({ year: Number(text), month: 1, day: 1 }) : undefined
         case "month":
-          return this.T.PlainYearMonth.from(text).toPlainDate({ day: 1 }).toPlainDateTime()
+          return temporal.PlainYearMonth.from(text).toPlainDate({ day: 1 }).toPlainDateTime()
         case "date":
-          return this.T.PlainDate.from(text).toPlainDateTime()
+          return temporal.PlainDate.from(text).toPlainDateTime()
         default:
-          return this.floor(this.T.PlainDateTime.from(text), "minute", 1)
+          return this.floor(temporal.PlainDateTime.from(text), "minute", 1)
       }
     } catch {
-      return null
+      return undefined
     }
   }
 
@@ -92,19 +94,19 @@ export class CalendarDates {
 
   /** Now, to the minute;  a `time` on `anchor`. */
   now(): Moment {
-    const now = this.floor(this.T.Now.plainDateTimeISO(), "minute", 1)
+    const now = this.floor(this.temporal.Now.plainDateTimeISO(), "minute", 1)
     return this.type === "time" ? this.anchor.toPlainDateTime(now.toPlainTime()) : now
   }
 
   /**
-   * A moment from fields, `null` when they don't make one (`reject`:  no 31st of April).
+   * A moment from fields, `undefined` when they don't make one (`reject`:  no 31st of April).
    * - What the text parser builds from what it read.
    */
-  build(fields: MomentFields): Moment | null {
+  build(fields: MomentFields): Moment | undefined {
     try {
-      return this.T.PlainDateTime.from(fields, { overflow: "reject" })
+      return this.temporal.PlainDateTime.from(fields, { overflow: "reject" })
     } catch {
-      return null
+      return undefined
     }
   }
 
@@ -116,7 +118,7 @@ export class CalendarDates {
    * Start of the `mode` unit holding `moment`:  its year's January 1st, its month's 1st, its day's midnight, its
    * hour, its minute slot (`step` minutes, default `MINUTE_STEP`).
    */
-  floor(moment: Moment, mode: UIT.CalendarMode, step = CalendarDates.MINUTE_STEP): Moment {
+  floor(moment: Moment, mode: UIT.CalendarMode, step = MINUTE_STEP): Moment {
     const time = { second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }
     switch (mode) {
       case "year":
@@ -134,11 +136,11 @@ export class CalendarDates {
 
   /** `a` before (`-1`), in (`0`) or after (`1`) `b`'s `mode` unit. */
   compare(a: Moment, b: Moment, mode: UIT.CalendarMode): number {
-    return this.T.PlainDateTime.compare(this.floor(a, mode), this.floor(b, mode))
+    return this.temporal.PlainDateTime.compare(this.floor(a, mode), this.floor(b, mode))
   }
 
-  /** Same `mode` unit? */
-  same(a: Moment | null | undefined, b: Moment | null | undefined, mode: UIT.CalendarMode): boolean {
+  /** Same `mode` unit?  `false` when either is missing. */
+  same(a: Moment | undefined, b: Moment | undefined, mode: UIT.CalendarMode): boolean {
     return !!a && !!b && this.compare(a, b, mode) === 0
   }
 
@@ -154,14 +156,14 @@ export class CalendarDates {
       case "hour":
         return moment.add({ hours: count })
       default:
-        return moment.add({ minutes: count * CalendarDates.MINUTE_STEP })
+        return moment.add({ minutes: count * MINUTE_STEP })
     }
   }
 
   /** `moment` kept within `min` / `max` (either may be missing). */
-  clamp(moment: Moment, min: Moment | null, max: Moment | null): Moment {
-    if (min && this.T.PlainDateTime.compare(moment, min) < 0) return min
-    if (max && this.T.PlainDateTime.compare(moment, max) > 0) return max
+  clamp(moment: Moment, min: Moment | undefined, max: Moment | undefined): Moment {
+    if (min && this.temporal.PlainDateTime.compare(moment, min) < 0) return min
+    if (max && this.temporal.PlainDateTime.compare(moment, max) > 0) return max
     return moment
   }
 
@@ -188,7 +190,30 @@ export class CalendarDates {
     })
   }
 
-  /** The view the picker opens on:  days, else hours, else the final view. */
+  ////////////////
+  // ## Internal
+  ////////////////
+
+  /** A `Date`'s local fields, to the minute. */
+  private fromDate(date: Date): Moment {
+    const moment = this.temporal.PlainDateTime.from({
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+      hour: date.getHours(),
+      minute: date.getMinutes()
+    })
+    return this.parse(this.format(moment))!
+  }
+
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * The view the picker opens on:  days, else hours, else the final view.
+   * - STATIC:  pure over `modes`, needs no `Temporal`.
+   */
   static startMode(modes: readonly UIT.CalendarMode[]): UIT.CalendarMode {
     return modes.find((mode) => mode === "day" || mode === "hour") ?? modes.at(-1)!
   }
@@ -196,6 +221,7 @@ export class CalendarDates {
   /**
    * Milliseconds for `Intl.DateTimeFormat` with `timeZone: "UTC"`:  the moment's fields, unshifted.
    * - `setUTCFullYear`, not `Date.UTC()`, which maps years 0-99 to 19xx.
+   * - STATIC:  `CalendarText` formats with it, and a server render's fields come without any `Temporal`.
    */
   static epoch(moment: MomentLike): number {
     const date = new Date(0)
@@ -205,8 +231,9 @@ export class CalendarDates {
   }
 
   /**
-   * Server render:  the fields of ISO `text` for `type`, read by hand (no `Temporal` there), for FORMATTING only;
-   * `undefined` when it isn't that type's ISO form.  Unused parts are zero (a time's date:  1970-01-01).
+   * Server render:  the fields of ISO `text` for `type`, read by hand, for FORMATTING only;  `undefined` when it
+   * isn't that type's ISO form.  Unused parts are zero (a time's date:  1970-01-01).
+   * - STATIC:  a server render has no `Temporal`, so no `CalendarDates`.
    */
   static isoFields(text: string, type: UIT.CalendarType): MomentLike | undefined {
     const match = ISO_FORMS[type].exec(text.trim())
@@ -216,16 +243,33 @@ export class CalendarDates {
     const [year = 1970, month = 1, day = 1, hour = 0, minute = 0] = numbers
     return { year, month, day, hour, minute }
   }
-
-  /** A `Date`'s local fields, to the minute. */
-  private fromDate(date: Date): Moment {
-    const moment = this.T.PlainDateTime.from({
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      day: date.getDate(),
-      hour: date.getHours(),
-      minute: date.getMinutes()
-    })
-    return this.parse(this.format(moment))!
-  }
 }
+
+/** What `new CalendarDates()` takes. */
+export type CalendarDatesProps = {
+  /** the page's `Temporal` (`UI.i18n.temporal`) */
+  temporal: E.TemporalAPI
+  /** what the calendar picks */
+  type: UIT.CalendarType
+}
+
+/** ISO forms a server render reads by hand, by calendar type (`isoFields()`). */
+const ISO_FORMS: Readonly<Record<UIT.CalendarType, RegExp>> = {
+  year: /^(\d{1,6})$/,
+  month: /^(\d{4,6})-(\d{2})$/,
+  date: /^(\d{4,6})-(\d{2})-(\d{2})$/,
+  datetime: /^(\d{4,6})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/,
+  time: /^(\d{2}):(\d{2})/
+}
+
+/** Views per type, before the `disable-*` attributes (`modes()`). */
+const MODES: Readonly<Record<UIT.CalendarType, readonly UIT.CalendarMode[]>> = {
+  date: ["year", "month", "day"],
+  datetime: ["year", "month", "day", "hour", "minute"],
+  time: ["hour", "minute"],
+  month: ["year", "month"],
+  year: ["year"]
+}
+
+/** A `year` value:  up to six digits, as ISO's expanded years. */
+const YEAR = /^\d{1,6}$/

@@ -1,16 +1,10 @@
 /**
- * Every name `<ui-label>` and `<ui-labels>` use:  tags, attributes (kind + allowed values), events, slots,
- * parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
- * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
- *   `<ui-label color="red" pointing="left" basic>` => `ui red basic left pointing label`.  `ui-label.css` keys on
- *   those words.
- * - Group context needs NO element help:  `<ui-labels tag>` renders `ui tag labels`, and `ui-label.css` hands the
- *   look to its children through inherited tokens.
- * - `labelVocabulary.ownsParts` lists `detail`:  a slotted `<ui-detail>` finds its label through `OwnerContext`
- *   and styles itself from `ui-parts.css` (`:state(in-label)`).
+ * Every name `<ui-labels>` uses:  tag, attributes (kind + allowed values), slots, parts.
+ * Schema:  `E.ComponentVocabulary`.
+ * - The family's grammar notes are in `ui-label.vocabulary.en.ts`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-labels>`
@@ -42,4 +36,4 @@ export const labelsVocabulary = {
   parts: [{ name: "group", description: "The group box." }],
   states: [],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

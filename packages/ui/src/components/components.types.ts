@@ -1,11 +1,16 @@
 /**
- * Shared types for `$/ui/components` -- event details and the CSS contracts every implementation of a component
- * (the element and its native fallback) must honour.
- * - Runtime-light:  `import type` only, plus a few constants.
+ * `UIT` -- what several component families share:  event details, the CSS contracts every implementation of a
+ * component (the element and its native fallback) must honour, vocabulary pieces, and the words more than one family
+ * reads (`UIT.ACTIVE`, `UIT.Key`).
+ * - Read as `UIT.X`:  element and fallback files `import { E, UI, UIT } from "$/ui/core"`;  vocabularies and types
+ *   files, which node imports (`yarn site:data`, `yarn gen:root`), value-import this file directly,
+ *   `import * as UIT from "$/ui/components/components.types"` (`AGENTS.md` "Imports").
+ * - PURE DATA, at the bottom of the import graph:  `import type` only, so node loads it and it never pulls in the
+ *   element layer.  Its small helper classes (`Flags`, `StackClasses`, `ToggleCommands`) read only what's here.
+ * - A constant ONE family reads stays in that family's types file;  it moves here once a second family needs it.
  */
 
-import type { FieldValue, MenuOption, ValidationRule } from "$/ui/elements"
-import type { SourceErrorKind } from "$/ui/runtime"
+import type { E } from "$/ui/core"
 
 ////////////////
 // ## Button
@@ -27,12 +32,13 @@ export type ButtonToggleDetail = {
 export type DropdownValue = string | string[]
 
 /** `options` property of `<ui-dropdown>`:  the `MenuOptions` model's option shape. */
-export type DropdownOptions = readonly MenuOption[]
+export type DropdownOptions = readonly E.MenuOption[]
 
 /** `detail` of `ui-change`. */
 export type DropdownChangeDetail = {
   /** value after the change */
   value: DropdownValue
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -40,6 +46,7 @@ export type DropdownChangeDetail = {
 export type DropdownOpenDetail = {
   /** state it's ABOUT to enter */
   open: boolean
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -47,14 +54,75 @@ export type DropdownOpenDetail = {
 export type DropdownSearchDetail = {
   /** current query */
   query: string
+  /** `input` event that changed it */
   originalEvent?: Event
 }
 
 /** `detail` of `ui-add` / `ui-remove`:  the one value added or removed. */
 export type DropdownItemDetail = {
+  /** value added or removed */
   value: string
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
+
+////////////////
+// ## Flag
+////////////////
+
+/****************
+ * ### `Flags`
+ * Flag code => Unicode flag emoji:  ONE rule for `<ui-flag>` (`FlagCountry`, after its names) and the `flag` of a
+ * menu option (`<ui-dropdown>`, `<ui-select>`), so a flag draws the same everywhere (epic `wwod-spell-ui`, I6).
+ * - A two-letter code (ISO 3166-1 alpha-2, any case) => its regional-indicator pair (`fr` => `🇫🇷`);  a code of
+ *   `SPECIAL_FLAGS` (`rainbow`, `gb-eng` ...) => its emoji sequence;  anything else => `""`.
+ * - Here, not in the `flag` family:  a menu importing that family's files would split a chunk both entries share.
+ *   Fomantic's country NAMES (`FLAG_ALIASES`, ~250 of them) stay there, out of `core`:  a menu option takes codes.
+ * - STATIC and instance-free:  pure lookups.
+ ****************/
+export class Flags {
+  /** Emoji of flag `code`, in any case;  `""` when it names no flag. */
+  static emojiFor(code: string): string {
+    const key = code.toLowerCase()
+    if (Flags.isSpecial(key)) return SPECIAL_FLAGS[key]
+    if (!TWO_LETTERS.test(key)) return ""
+    return String.fromCodePoint(...Array.from(key, (letter) => INDICATOR_A + letter.charCodeAt(0) - LETTER_A))
+  }
+
+  /** Is lowercase `code` a flag that isn't a country's, a key of `SPECIAL_FLAGS`? */
+  static isSpecial(code: string): code is SpecialFlag {
+    return Object.hasOwn(SPECIAL_FLAGS, code)
+  }
+}
+
+/**
+ * Flags that aren't a regional-indicator pair, by code:  emoji ZWJ sequences, and the England / Scotland / Wales
+ * subdivision flags (tag sequences named by their ISO 3166-2 codes, `gb-eng` ...).
+ * - Why data:  the code => emoji rule only covers two-letter codes.
+ * - Each one's name is a `<ui-flag>` text, its code in camel case (`gb-eng` => `gbEng`).
+ * - NOTE: subdivision flags only render where the emoji font has them (Apple, Google, Samsung, Twemoji);
+ *   Windows shows a black flag.
+ */
+export const SPECIAL_FLAGS = {
+  rainbow: "\u{1F3F3}\u{FE0F}\u{200D}\u{1F308}",
+  transgender: "\u{1F3F3}\u{FE0F}\u{200D}\u{26A7}\u{FE0F}",
+  pirate: "\u{1F3F4}\u{200D}\u{2620}\u{FE0F}",
+  "gb-eng": "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
+  "gb-sct": "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}",
+  "gb-wls": "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}"
+} as const
+
+/** Code of a flag in `SPECIAL_FLAGS`, e.g. `"gb-eng"`. */
+export type SpecialFlag = keyof typeof SPECIAL_FLAGS
+
+/** An ISO 3166-1 alpha-2 code, lowercase. */
+const TWO_LETTERS = /^[a-z]{2}$/
+
+/** `U+1F1E6`, REGIONAL INDICATOR SYMBOL LETTER A. */
+const INDICATOR_A = 0x1f1e6
+
+/** Char code of `a`. */
+const LETTER_A = 0x61
 
 ////////////////
 // ## Item
@@ -70,8 +138,8 @@ export type ItemType = "item" | "header" | "divider"
  *   every item.
  */
 export type ItemContext = {
-  /** Role of the item HOST (internals), e.g. `listitem`;  `null` for none. */
-  hostRole: string | null
+  /** Role of the item HOST (internals), e.g. `listitem`;  `undefined` for none. */
+  hostRole?: string
   /** Role of the item's ROOT, e.g. `menuitem` in a menubar;  `undefined` keeps the native element's. */
   role?: ItemRole
   /** An item without `href` renders a `<button>` (selection list, menubar);  else a `<div>` (unless `link`). */
@@ -92,11 +160,12 @@ export type ItemRole = "menuitem" | "menuitemradio" | "menuitemcheckbox" | "opti
 
 /**
  * What an owner of `<ui-item>`s (`<ui-list>`, `<ui-menu>`, `<ui-items>`) implements on its CONTROLLER;  the item
- * calls it as `(owner as UIHost).controller.itemContext(item)`, tracked.
+ * reaches it through `PartContext.ownerController()` and calls `itemContext(item)`, tracked.
  * - The item also adopts the owner's `styles`:  the owner's sheet holds its item rules
  *   (`:host(:state(in-list)) > .item`), next to the static class-grammar ones (`.ui.list > .item`).
  */
 export type ItemOwner = {
+  /** How `item` (the `<ui-item>` host) renders;  tracked, so an owner attribute change re-renders it. */
   itemContext(item: Element): ItemContext
 }
 
@@ -222,10 +291,10 @@ export const GRID_CONTAINER_NAME = "ui-grid"
  * - On `<ui-grid>`, `<ui-cards>`, `<ui-steps>`, `<ui-form>`, `<ui-items>`, `<ui-statistics>`, and on `<ui-root>`,
  *   which sets `STACK_WITH_TOKEN` for everything inside
  */
-export const STACK_WITH_VALUES = ["container", "page"] as const
+export const StackWithValues = ["container", "page"] as const
 
-/** One of `STACK_WITH_VALUES`. */
-export type StackWith = (typeof STACK_WITH_VALUES)[number]
+/** One of `StackWithValues`. */
+export type StackWith = (typeof StackWithValues)[number]
 
 /**
  * Page-wide token the stacking sheets read when an element has no `stack-with` of its own:
@@ -245,10 +314,11 @@ export const STACK_WITH_CLASS = "stack-with-"
 /****************
  * ### `StackClasses`
  * The class `stack-with` adds, shared by every element that has the attribute.
+ * - STATIC and instance-free:  a pure lookup.
  ****************/
 export class StackClasses {
   /** `stack-with-page` / `stack-with-container` for `value`;  `undefined` when unset (the token decides). */
-  static of(value: StackWith | undefined): string | undefined {
+  static classFor(value: StackWith | undefined): string | undefined {
     return value ? `${STACK_WITH_CLASS}${value}` : undefined
   }
 }
@@ -265,7 +335,10 @@ export class StackClasses {
  *   primary colour by default) -- a segmented control.  It hugs its items;  `alignment` places it.
  * - NOTE: not `vertical` (an orientation every look combines with) or `basic` (`<ui-tabs basic>` is the panes')
  */
-export const MENU_APPEARANCES = ["tabular", "pointing", "secondary", "text", "segmented"] as const
+export const MenuAppearances = ["tabular", "pointing", "secondary", "text", "segmented"] as const
+
+/** One of `MenuAppearances`. */
+export type MenuAppearance = (typeof MenuAppearances)[number]
 
 /**
  * `alignment` of `<ui-menu>` and `<ui-tabs>`:  where the items sit along the bar, emitted as `<value> aligned`.
@@ -274,7 +347,10 @@ export const MENU_APPEARANCES = ["tabular", "pointing", "secondary", "text", "se
  *   one, which IS its items and moves as a whole
  * - Unset:  as before (packed left, the bar as its look makes it)
  */
-export const ITEM_ALIGNMENTS = ["fluid", "left", "center", "right"] as const
+export const ItemAlignments = ["fluid", "left", "center", "right"] as const
+
+/** One of `ItemAlignments`. */
+export type ItemAlignment = (typeof ItemAlignments)[number]
 
 ////////////////
 // ## Message
@@ -324,6 +400,7 @@ export const PLACEHOLDER_HOST_STATE = "placeholder"
 export type InputChangeDetail = {
   /** value after the change */
   value: string
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -350,18 +427,25 @@ export type CheckboxChangeDetail = {
   selected: boolean
   /** the element's `value` (default `on`) */
   value: string
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
+
+/**
+ * What a chosen checkbox / radio submits without a `value`:  the native default.
+ * - Shared by `ui-checkbox` (the elements, the fallback) and `ui-form` (`values` of native and `ui-*` checkables).
+ */
+export const CHECKBOX_DEFAULT_VALUE = "on"
 
 ////////////////
 // ## Form
 ////////////////
 
-/** One field's value as `<ui-form>` reads it (`values`):  the `Validator`'s `FieldValue`. */
-export type FormFieldValue = FieldValue
+/** One field's value as `<ui-form>` reads it (`values`):  the `Validator`'s `E.FieldValue`. */
+export type FormFieldValue = E.FieldValue
 
 /** `<ui-form>`'s `values`:  by field name (or id). */
-export type FormValues = Record<string, FieldValue>
+export type FormValues = Record<string, E.FieldValue>
 
 /**
  * One field's rules in `<ui-form rules>`, Fomantic's `fields` shape:
@@ -371,12 +455,16 @@ export type FormValues = Record<string, FieldValue>
  * - NOTE: Fomantic's deprecated `empty` means `notEmpty`
  */
 export type FormFieldRules =
-  | ValidationRule
-  | readonly ValidationRule[]
+  | E.ValidationRule
+  | readonly E.ValidationRule[]
   | {
-      rules: readonly ValidationRule[]
+      /** the rules, in order */
+      rules: readonly E.ValidationRule[]
+      /** skip the field while it's blank */
       optional?: boolean
+      /** skip the field while the field of this name is blank */
       depends?: string
+      /** the control's name or id, when the key isn't */
       identifier?: string
     }
 
@@ -387,7 +475,9 @@ export type FormRules = Record<string, FormFieldRules>
 export type FormValidDetail = {
   /** field name (or id) */
   field: string
-  value: FieldValue
+  /** the field's value */
+  value: E.FieldValue
+  /** every field's value */
   values: FormValues
 }
 
@@ -399,7 +489,9 @@ export type FormInvalidDetail = FormValidDetail & {
 
 /** `detail` of the cancelable `ui-success`. */
 export type FormSuccessDetail = {
+  /** every field's value */
   values: FormValues
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -480,7 +572,7 @@ export type ListSelectDetail = {
 
 /**
  * Variations of a `<ui-cards>` group that every card in it takes as its OWN class when it doesn't set the
- * attribute itself (Fomantic's `.ui.raised.cards > .card`), read through `UICards.shared()`.
+ * attribute itself (Fomantic's `.ui.raised.cards > .card`), read through `UICards.variationFor()`.
  */
 export type CardSharedVariation = "size" | "color" | "horizontal" | "raised" | "link" | "basic" | "inverted"
 
@@ -516,13 +608,17 @@ export type ModalCloseReason = "escape" | "outside" | "close-all" | "close" | "a
 export type ModalOpenDetail = {
   /** state it's entering / entered */
   open: boolean
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
 /** `detail` of the cancelable `ui-close`. */
 export type ModalCloseDetail = {
+  /** always `false`:  it's closing */
   open: false
+  /** why it's closing */
   reason: ModalCloseReason
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -530,6 +626,7 @@ export type ModalCloseDetail = {
 export type ModalActionDetail = {
   /** the button (or other element) that was activated, in the light DOM */
   action: Element
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -552,12 +649,13 @@ export const MODAL_ACTION_SELECTORS = {
 export type SelectValue = string | string[]
 
 /** `options` property of `<ui-select>`:  the `MenuOptions` model's option shape, as the dropdown's. */
-export type SelectOptions = readonly MenuOption[]
+export type SelectOptions = readonly E.MenuOption[]
 
 /** `detail` of `ui-change`, from `<ui-select>`. */
 export type SelectChangeDetail = {
   /** value after the change */
   value: SelectValue
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -572,6 +670,7 @@ export type SelectChangeDetail = {
 export type SearchResult = {
   /** shown, and what choosing the result puts in the input */
   title: string
+  /** shown under the title */
   description?: string
   /** image URL, shown at the result's end */
   image?: string
@@ -583,13 +682,16 @@ export type SearchResult = {
   category?: string
   /** choosing the result follows it;  the result is a link */
   url?: string
+  /** Fomantic's result id:  the page's own, unread here;  it rides along in `ui-select`'s `result` */
   id?: string
   [field: string]: unknown
 }
 
 /** A named group of results, Fomantic's category shape (`{ name, results }`). */
 export type SearchCategory = {
+  /** the category's heading */
   name: string
+  /** its results, in order */
   results: readonly SearchResult[]
 }
 
@@ -616,25 +718,33 @@ export type SearchMatch = "exact" | "fuzzy" | "prefix" | "some" | "all"
 
 /** `detail` of the cancelable `ui-select`, from `<ui-search>`. */
 export type SearchSelectDetail = {
+  /** the result chosen */
   result: SearchResult
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
 /** `detail` of `ui-search`:  the query about to run. */
 export type SearchQueryDetail = {
+  /** the query */
   query: string
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
 /** `detail` of `ui-results`:  what a query found (before `max-results` for a remote one). */
 export type SearchResultsDetail = {
+  /** the query */
   query: string
+  /** what matched */
   results: readonly SearchResult[]
 }
 
 /** `detail` of `ui-change`, from `<ui-search>`:  its text was committed. */
 export type SearchChangeDetail = {
+  /** the committed text */
   value: string
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -672,7 +782,9 @@ export type ToastCloseReason =
 
 /** `detail` of the cancelable `ui-close`, and of `ui-hide` (without the event). */
 export type ToastCloseDetail = {
+  /** why it's closing */
   reason: ToastCloseReason
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -686,6 +798,7 @@ export type ToastShowDetail = {
 export type ToastActionDetail = {
   /** the button (or other element) that was activated, in the light DOM */
   action: Element
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -706,7 +819,9 @@ export type NagCloseReason = "close" | "timeout" | "dismiss"
 
 /** `detail` of the cancelable `ui-close`, and of `ui-hide` (without the event). */
 export type NagCloseDetail = {
+  /** why it's closing */
   reason: NagCloseReason
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -734,6 +849,7 @@ export type EmbedSource = "youtube" | "vimeo"
 export type EmbedActivateDetail = {
   /** the frame's `src`, parameters included */
   url: string
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -777,13 +893,17 @@ export type DimmerCloseReason = "escape" | "close-all" | "click" | "hover"
 export type DimmerOpenDetail = {
   /** state it's entering / entered */
   active: boolean
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
 /** `detail` of the cancelable `ui-close`. */
 export type DimmerCloseDetail = {
+  /** always `false`:  it's hiding */
   active: false
+  /** why it's hiding */
   reason: DimmerCloseReason
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -803,13 +923,17 @@ export type SidebarCloseReason = "escape" | "outside" | "close-all" | "close"
 export type SidebarOpenDetail = {
   /** state it's entering / entered */
   visible: boolean
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
 /** `detail` of the cancelable `ui-close`. */
 export type SidebarCloseDetail = {
+  /** always `false`:  it's closing */
   visible: false
+  /** why it's closing */
   reason: SidebarCloseReason
+  /** event of the person's action, when there was one */
   originalEvent?: Event
 }
 
@@ -876,12 +1000,48 @@ export type SidebarLayout = {
   blurring: boolean
 }
 
+/** Fomantic's word widths (`thin sidebar`, `very wide flyout`):  `<ui-sidebar>` / `<ui-flyout>` `width` beside columns. */
+export const WordWidths = ["very thin", "thin", "wide", "very wide"] as const
+
+/** One of `WordWidths`. */
+export type WordWidth = (typeof WordWidths)[number]
+
+/****************
+ * ### `WordWidthClasses`
+ * The word a `width` adds after the noun (`ui left sidebar thin`), shared by `<ui-sidebar>`, `<ui-flyout>` and their
+ * fallbacks:  `ClassBuilder`'s `width` kind only knows columns.
+ ****************/
+export class WordWidthClasses {
+  /**
+   * `width` as one of `WordWidths`, its words joined by spaces or dashes (`very-thin` ~== `very thin`);  `undefined`
+   * for columns or nothing.
+   * - Takes `null`:  a fallback passes `getAttribute()`'s.
+   */
+  static classFor(width: string | number | null | undefined): WordWidth | undefined {
+    const text = typeof width === "string" ? width.trim().replace(WORD_SEPARATORS, " ") : undefined
+    return WordWidths.find((word) => word === text)
+  }
+}
+
+/** Runs of spaces or dashes between a word width's words. */
+const WORD_SEPARATORS = /[\s-]+/g
+
 ////////////////
 // ## Shape
 ////////////////
 
-/** Which way a `<ui-shape>` flips to its next side (Fomantic's `flip up` ... `flip back`). */
-export type ShapeFlip = "up" | "down" | "left" | "right" | "over" | "back"
+/** Each way a `<ui-shape>` flips to its next side (Fomantic's `flip up` ... `flip back`), for `--flip-<way>`. */
+export const ShapeFlips = ["up", "down", "left", "right", "over", "back"] as const
+
+/** One of `ShapeFlips`. */
+export type ShapeFlip = (typeof ShapeFlips)[number]
+
+/**
+ * Invoker commands a `<ui-shape>` answers, `<button commandfor="id" command="--next">`.
+ * - `next` / `previous`:  turn to the next / previous side, the `direction` attribute's way
+ * - `flip` + a `ShapeFlip`:  turn to the next side THAT way (`--flip-up` ...), Fomantic's `flip up` behaviour
+ */
+export const SHAPE_COMMANDS = { next: "--next", previous: "--previous", flip: "--flip-" } as const
 
 /** `detail` of `ui-change`, from a `<ui-shape>` once it shows another side. */
 export type ShapeChangeDetail = {
@@ -989,16 +1149,6 @@ export type CalendarOpenDetail = {
   originalEvent?: Event
 }
 
-/**
- * Invoker commands a `<ui-shape>` answers, `<button commandfor="id" command="--next">`.
- * - `next` / `previous`:  turn to the next / previous side, the `direction` attribute's way
- * - `flip` + a `ShapeFlip`:  turn to the next side THAT way (`--flip-up` ...), Fomantic's `flip up` behaviour
- */
-export const SHAPE_COMMANDS = { next: "--next", previous: "--previous", flip: "--flip-" } as const
-
-/** Every `ShapeFlip`, for the `--flip-<direction>` commands. */
-export const SHAPE_FLIPS: readonly ShapeFlip[] = ["up", "down", "left", "right", "over", "back"]
-
 ////////////////
 // ## Keys
 ////////////////
@@ -1026,34 +1176,42 @@ export const Key = {
 /** One of `Key`'s values, e.g. `"ArrowDown"`. */
 export type Key = (typeof Key)[keyof typeof Key]
 
-////////////////
-// ## Shared words
-// Constants two or more families read, lifted out of their files.
-////////////////
+/** DEPRECATED:  `Key.arrowDown`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
+export const ARROW_DOWN = "ArrowDown"
 
-/** The `active` state / class word. */
-export const ACTIVE = "active"
+/** DEPRECATED:  `Key.enter`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
+export const ENTER = "Enter"
+
+/** DEPRECATED:  `Key.home`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
+export const HOME = "Home"
+
+/** DEPRECATED:  `Key.end`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
+export const END = "End"
+
+////////////////
+// ## ARIA:  attributes, roles and values
+////////////////
 
 /** The `aria-label` attribute:  a host's label, forwarded to its inner element. */
 export const ARIA_LABEL = "aria-label"
 
-/** DEPRECATED:  `Key.arrowDown`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
-export const ARROW_DOWN = "ArrowDown"
+/** The `aria-invalid` attribute, set on a failing control. */
+export const ARIA_INVALID = "aria-invalid"
 
-/** The `content` word:  a part, a class, a slot. */
-export const CONTENT = "content"
+/** The `aria-expanded` attribute:  a disclosure's state (a popup's trigger, an item's button). */
+export const ARIA_EXPANDED = "aria-expanded"
 
-/** The `disabled` state / class word. */
-export const DISABLED = "disabled"
+/** ARIA boolean `true`, as attribute text (`aria-*="true"`, `internals.ariaBusy`). */
+export const TRUE = "true"
 
-/** The `header` word:  a part, a class, a slot. */
-export const HEADER = "header"
+/** ARIA boolean `false`, as attribute text;  also a boolean attribute's "off" (`collapsible="false"`). */
+export const FALSE = "false"
 
-/** The `icon` word:  a part, a class, a slot. */
-export const ICON = "icon"
+/** `aria-current="page"`:  the selected link of a list or menu. */
+export const PAGE = "page"
 
-/** Grammar word the element adds itself (not an attribute):  the `icon` class. */
-export const ICON_CLASS = "icon"
+/** The `none` value:  an ARIA role to remove, an attribute value that switches a thing off. */
+export const NONE = "none"
 
 /** ARIA role of a decorative or labelled picture. */
 export const IMG = "img"
@@ -1064,114 +1222,143 @@ export const LIST = "list"
 /** ARIA role of an item of a list. */
 export const LISTITEM = "listitem"
 
-/** The `none` value:  an ARIA role to remove, an attribute value that switches a thing off. */
-export const NONE = "none"
+/** ARIA role of a root that groups its parts while it is the tab stop (a reveal, a range slider). */
+export const GROUP = "group"
+
+/** ARIA role of a polite live region:  a loading announcement, a toast. */
+export const STATUS = "status"
+
+/** ARIA role of an assertive live region:  an error line, an error toast. */
+export const ALERT = "alert"
+
+/** ARIA role of a dividing line:  a divider, a divider item. */
+export const SEPARATOR = "separator"
+
+/** Orientation (`aria-orientation`, roving focus, a layout word):  side by side. */
+export const HORIZONTAL = "horizontal"
+
+/** Orientation (`aria-orientation`, roving focus, a layout word):  one above the other. */
+export const VERTICAL = "vertical"
+
+////////////////
+// ## Tags and selectors
+////////////////
+
+/** The anchor tag, `a`:  the root of a linked item, card, step, title or section. */
+export const ANCHOR_TAG = "a"
+
+/** The `button` tag (a `link` item or step without `href`), and its `type`. */
+export const BUTTON = "button"
+
+/** Tag of an unordered list's root. */
+export const UL = "ul"
+
+/** Tag of an ordered (`ordered`) list's root. */
+export const OL = "ol"
 
 /** Pseudo-class of an open popover. */
 export const POPOVER_OPEN = ":popover-open"
 
-/** ARIA boolean, `aria-*="true"`. */
-export const TRUE = "true"
-
-/** The `notEmpty` validation rule a `required` field applies. */
-export const REQUIRED_RULE: ValidationRule = "notEmpty"
+/** Selector of a disabled custom element (`:state(disabled)`). */
+export const DISABLED_STATE = ":state(disabled)"
 
 ////////////////
-// ## Constants shared by ui-popup, ui-toast, ui-search, ui-progress, ui-tab, ui-rating, ui-table, ui-visibility, ui-segment, ui-step, ui-shape, ui-transition, ui-sidebar, ui-sticky
+// ## Attributes and their values
 ////////////////
 
-export const MANUAL = "manual"
-
-export const AUTO = "auto"
-
-/** The one trigger with interactive content. */
-export const CLICK = "click"
-
-/** The native tooltip attribute. */
+/** The native tooltip attribute, `title`. */
 export const TITLE = "title"
 
-/** Class words of Fomantic's markup. */
-export const BAR = "bar"
-
-export const LABEL = "label"
-
-export const SELECTED = "selected"
-
-/** Runs of whitespace, between query words. */
-export const WHITESPACE = /\s+/
-
-export const FLUID = "fluid"
-
-export const IMAGE = "image"
-
-export const MESSAGE = "message"
-
-export const STATUS = "status"
-
-export const ALERT = "alert"
-
-/** Utility class (`utilities.css`, adopted in every root) for the loading announcement. */
-export const VISUALLY_HIDDEN = "ui-visually-hidden-force"
-
-export const ANIMATING = "animating"
-
-/** A duration of bare digits, in ms. */
-export const DIGITS = /^\d+(\.\d+)?$/
-
-/** State of a shown sidebar. */
-export const VISIBLE = "visible"
-
-/** Positions. */
-export const LEFT = "left"
-
-export const TOP = "top"
-
-/** Close reason of a command. */
-export const CLOSE = "close"
-
-/** Root of a `link` step without `href`;  also its `type`. */
-export const BUTTON = "button"
-
-export const BOTTOM = "bottom"
-
-/** Host attribute for the pane's Tab stop. */
+/** The `tabindex` attribute:  a tab stop (roving focus, a scrolling pane). */
 export const TABINDEX = "tabindex"
 
-export const BASIC = "basic"
+/** The `ordered` attribute:  a numbered list or feed;  a nested one reads its outer one's. */
+export const ORDERED = "ordered"
 
-export const FALSE = "false"
+/** The `auto` value:  decided by the platform or the element (`popover="auto"`, a toast's `display-time`). */
+export const AUTO = "auto"
 
+/** The `manual` value:  left to script (`popover="manual"`, a tab list's `activation`). */
+export const MANUAL = "manual"
+
+/** The `click` event, and the trigger value meaning it (a popup's `on`, the one with interactive content). */
+export const CLICK = "click"
+
+/** The `close` word:  the close reason of a close icon or command, the close button's part and text key. */
+export const CLOSE = "close"
+
+/** A side:  the `left` position word. */
+export const LEFT = "left"
+
+/** A side:  the `top` position word. */
+export const TOP = "top"
+
+/** A side:  the `bottom` position word. */
+export const BOTTOM = "bottom"
+
+/** Transition direction:  showing (`UI.transitions.animate({ direction })`). */
 export const IN = "in"
 
+/** Transition direction:  hiding. */
 export const OUT = "out"
 
-///////////////////////////////////////////
-// ## Shared by the form, input, item, list, menu, message, modal, nag and parts families
-///////////////////////////////////////////
+////////////////
+// ## Class and part words
+////////////////
 
-/** The form states:  tint a form, field or input and show the matching `<ui-message>`s. */
-export const FORM_STATES = ["error", "info", "success", "warning"] as const
+/** The `active` state / class word. */
+export const ACTIVE = "active"
 
-/** The `submit` word:  a button `type`, a form event. */
-export const SUBMIT = "submit"
+/** The `disabled` state / class word. */
+export const DISABLED = "disabled"
 
-/** The `aria-invalid` attribute, set on a failing control. */
-export const ARIA_INVALID = "aria-invalid"
+/** The `selected` state / class word. */
+export const SELECTED = "selected"
 
-/** DEPRECATED:  `Key.enter`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
-export const ENTER = "Enter"
+/** The `animating` class word:  a box mid-transition. */
+export const ANIMATING = "animating"
+
+/** The `visible` class / state word:  a shown sidebar, tab or transition. */
+export const VISIBLE = "visible"
+
+/** The `content` word:  a part, a class, a slot. */
+export const CONTENT = "content"
+
+/** The `header` word:  a part, a class, a slot. */
+export const HEADER = "header"
+
+/** The `description` word:  a part, a class. */
+export const DESCRIPTION = "description"
+
+/** The `icon` word:  a part, a class, a slot. */
+export const ICON = "icon"
+
+/** Grammar word the element adds itself (not an attribute):  the `icon` class. */
+export const ICON_CLASS = "icon"
+
+/** The `image` word:  a part, a class. */
+export const IMAGE = "image"
 
 /** The `item` word:  an item's part noun, class and `type`. */
 export const ITEM = "item"
 
-/** The `a` tag:  the root of a linked item, title or section. */
-export const LINK = "a"
+/** The `label` word:  a part, a class. */
+export const LABEL = "label"
 
-/** `aria-current="page"`:  the selected link of a list or menu. */
-export const PAGE = "page"
+/** The `message` word:  a class, a part. */
+export const MESSAGE = "message"
 
-/** Selector of a disabled custom element (`:state(disabled)`). */
-export const DISABLED_STATE = ":state(disabled)"
+/** The `text` word:  a class, a part, a value (`language="text"`). */
+export const TEXT = "text"
+
+/** The `bar` class word (a progress bar, a toast's progress). */
+export const BAR = "bar"
+
+/** The `basic` class word. */
+export const BASIC = "basic"
+
+/** The `fluid` class word. */
+export const FLUID = "fluid"
 
 /** Class words of a close button's icon (`close icon`). */
 export const CLOSE_CLASS = "close icon"
@@ -1179,41 +1366,50 @@ export const CLOSE_CLASS = "close icon"
 /** Glyph of a close button's icon (Fomantic's `close icon`). */
 export const CLOSE_ICON = "xmark"
 
+/**
+ * Prefix of the colour remap class a coloured box adds without the `ui` word (`ui-red`):  an item, a step, a feed
+ * event.  Why:  the generic remap (`colors.css`) keys on `.ui.red` or `.ui-red`.
+ */
+export const COLOR_CLASS_PREFIX = "ui-"
+
+/** Utility class (`utilities.css`, adopted in every root) of a visually hidden announcement. */
+export const VISUALLY_HIDDEN = "ui-visually-hidden-force"
+
 ////////////////
-// ## Constants shared by ui-slider, ui-tab
+// ## Form words
 ////////////////
 
-export const VERTICAL = "vertical"
+/** The form states:  tint a form, field or input and show the matching `<ui-message>`s. */
+export const FormStates = ["error", "info", "success", "warning"] as const
+
+/** One of `FormStates`. */
+export type FormState = (typeof FormStates)[number]
+
+/** The `submit` word:  a button `type`, a form event. */
+export const SUBMIT = "submit"
+
+/** The `notEmpty` validation rule a `required` field applies. */
+export const REQUIRED_RULE: E.ValidationRule = "notEmpty"
 
 ////////////////
-// ## More constants shared by ui-rating, ui-slider, ui-reveal, ui-search, ui-select, ui-statistic, ui-tab, ui-toast
+// ## Patterns
 ////////////////
 
-/** DEPRECATED:  `Key.home`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
-export const HOME = "Home"
+/** Runs of whitespace:  between query words, class words, country names. */
+export const WHITESPACE = /\s+/
 
-/** DEPRECATED:  `Key.end`;  goes once every family uses `Key` (epic `wwod-spell-ui`, P5 / P6). */
-export const END = "End"
-
-/** Role of the root while it is the tab stop:  a group of the two contents. */
-export const GROUP = "group"
-
-export const DESCRIPTION = "description"
-
-export const TEXT = "text"
-
-/** Orientations (`aria-orientation`, roving). */
-export const HORIZONTAL = "horizontal"
+/** A duration of bare digits, in ms (`duration="300"`). */
+export const DIGITS = /^\d+(\.\d+)?$/
 
 ////////////////
 // ## Sources:  shared by ui-include, ui-code, ui-markdown (`SourceElement`)
 ////////////////
 
 /** When a `source` is fetched:  now, once scrolled into view, or when the browser is idle (Astro's islands). */
-export const SOURCE_LOAD_MODES = ["eager", "visible", "idle"] as const
+export const SourceLoadModes = ["eager", "visible", "idle"] as const
 
-/** A `SOURCE_LOAD_MODES` value. */
-export type SourceLoadMode = (typeof SOURCE_LOAD_MODES)[number]
+/** One of `SourceLoadModes`. */
+export type SourceLoadMode = (typeof SourceLoadModes)[number]
 
 /** Attributes every source element has;  spread first into its vocabulary's `attributes`. */
 export const SOURCE_ATTRIBUTES = [
@@ -1227,7 +1423,7 @@ export const SOURCE_ATTRIBUTES = [
   {
     name: "load",
     kind: "enum",
-    values: SOURCE_LOAD_MODES,
+    values: SourceLoadModes,
     default: "eager",
     description:
       "When to fetch `source`:  `eager` (at once), `visible` (once scrolled into view) or `idle` (when the browser " +
@@ -1325,6 +1521,7 @@ export type SourceChangeDetail = {
 
 /** `detail` of the cancelable `ui-save`. */
 export type SourceSaveDetail = {
+  /** `source` as written, or `undefined` for the element's own content */
   source?: string
   /** what's about to be saved */
   content: string
@@ -1334,6 +1531,7 @@ export type SourceSaveDetail = {
 
 /** `detail` of `ui-saved`. */
 export type SourceSavedDetail = {
+  /** `source` as written, or `undefined` for the element's own content */
   source?: string
   /** the file's new version */
   etag?: string
@@ -1341,8 +1539,9 @@ export type SourceSavedDetail = {
 
 /** `detail` of a source element's `ui-error`. */
 export type SourceErrorDetail = {
-  /** why, see `SourceErrorKind` */
-  kind: SourceErrorKind
+  /** why, see `E.SourceErrorKind` */
+  kind: E.SourceErrorKind
+  /** `source` as written, or `undefined` for the element's own content */
   source?: string
   /** what was thrown */
   error: unknown

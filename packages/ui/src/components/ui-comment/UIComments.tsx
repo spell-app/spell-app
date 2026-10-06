@@ -1,11 +1,10 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PartContext, proto, SlotContent, UIElement, UIT } from "$/ui/core"
-
-import { commentsVocabulary } from "./ui-comments.vocabulary.en"
+import { E, UIT } from "$/ui/core"
 import { CommentFallback } from "./ui-comment.fallback"
 import { COLLAPSED, REPLY } from "./ui-comment.types"
+import { commentsVocabulary } from "./ui-comments.vocabulary.en"
 
 import commentCSS from "./ui-comment.css?inline"
 
@@ -20,20 +19,20 @@ import commentCSS from "./ui-comment.css?inline"
  * - No role:  each comment is an `<article>`, which is the structure a reader moves through.
  * - `disabled`:  `aria-disabled` on the root, which assistive tech (and axe) apply to what's inside.
  ****************/
-export class UIComments extends UIElement<typeof commentsVocabulary> {
-  @proto static vocabulary = commentsVocabulary
-  @proto static styles = { comment: commentCSS }
-  @proto static Fallback = CommentFallback
-  @proto static delegatesFocus = false
+export class UIComments extends E.UIElement<typeof commentsVocabulary> {
+  @E.proto static vocabulary = commentsVocabulary
+  @E.proto static styles = { comment: commentCSS }
+  @E.proto static Fallback = CommentFallback
+  @E.proto static delegatesFocus = false
 
   /** The comment this is the thread of, if any. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext(this.host, this.vocabulary.noun)
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** A thread of replies inside a comment.  Tracked. */
-  readonly nested = createMemo(() => !!this.context.owner.get())
+  readonly isThread = createMemo(() => !!this.context.owner.get())
 
   protected hostStates() {
     return { collapsed: this.attrs.collapsed }
@@ -42,7 +41,7 @@ export class UIComments extends UIElement<typeof commentsVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={this.nested() ? this.threadClasses() : this.classes()}
+        class={this.isThread() ? this.threadClasses() : this.classes()}
         part={this.part("comments")}
         aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}
       >

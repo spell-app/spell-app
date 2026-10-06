@@ -82,7 +82,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
   readonly closeGlyph = new IconGlyph(this, () => (this.dialogAttrs.closable ? UIT.CLOSE_ICON : undefined))
 
   /** Host `aria-label`, forwarded to the dialog. */
-  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** First slotted `<ui-header>` (any tag whose noun is `header`), which names the dialog. */
   readonly heading = new Cell<Element | null>(this.findHeading())

@@ -99,7 +99,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   readonly valueState = this.controlled("value", undefined)
 
   /** Host `aria-label`, forwarded to the tab list. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute({ host: this.host, name: ARIA_LABEL })
 
   /** Pane hosts among the children (upgraded or not);  notifies on every read of the children. */
   readonly panes = new Cell<readonly UIHost[]>(this.readPanes(), { equals: false })

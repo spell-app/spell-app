@@ -20,7 +20,7 @@ export const dropdownVocabulary = {
   aka: ["select", "combobox", "picker", "autocomplete", "menu button", "multi select"],
   skeleton: { display: "inline", width: "14em", height: "2.5em" },
   noun: "dropdown",
-  description: "A dropdown allows a user to select a value from a series of options.",
+  description: "A dropdown lets people choose a value from a series of options.",
   attributes: [
     { name: "size", kind: "size", description: "Size, `mini` ... `massive`;  `medium` is the default." },
     {
@@ -62,7 +62,7 @@ export const dropdownVocabulary = {
     },
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds:  the dark scheme's colours." },
     { name: "unlimited", kind: "keyOnly", description: "A selection menu that never scrolls." },
-    { name: "resizable", kind: "keyOnly", description: "A `scrolling` menu the user can resize vertically." },
+    { name: "resizable", kind: "keyOnly", description: "A `scrolling` menu people can resize vertically." },
     { name: "short", kind: "keyOnly", description: "A shorter selection menu (3/4 height)." },
     { name: "very-short", kind: "keyOnly", description: "A much shorter selection menu (1/2 height)." },
     { name: "long", kind: "keyOnly", description: "A longer selection menu (2x height)." },
@@ -140,14 +140,14 @@ export const dropdownVocabulary = {
     {
       name: "ui-change",
       detail: "{ value: string | string[], originalEvent?: Event }",
-      description: "The user chose, added, removed or cleared a value."
+      description: "Someone chose, added, removed or cleared a value."
     },
     {
       name: "ui-open",
       detail: "{ open: true, originalEvent?: Event }",
       cancelable: true,
       description:
-        "The menu is about to open (a user action, an invoker command too);  `preventDefault()` keeps it closed."
+        "The menu is about to open (a person's action, an invoker command too);  `preventDefault()` keeps it closed."
     },
     {
       name: "ui-close",

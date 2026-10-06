@@ -1,5 +1,5 @@
-import { Cell } from "$/ui/core"
-import { DOCUMENT_POSITION_FOLLOWING, type RadioMember } from "./ui-checkbox.types"
+import { E } from "$/ui/core"
+import type { RadioMember } from "./ui-checkbox.types"
 
 /****************
  * ### `RadioGroup`
@@ -15,14 +15,18 @@ import { DOCUMENT_POSITION_FOLLOWING, type RadioMember } from "./ui-checkbox.typ
  *   after the effect's write -- Solid dev's `EFFECT_RELAY_TEAR`, a wasted frame per radio.
  ****************/
 export class RadioGroup {
-  /** Groups by scope node, then name. */
+  /**
+   * Groups by scope node, then name.
+   * - STATIC:  page-wide, so every radio of one scope and name finds the same group;  weakly keyed, so a scope that
+   *   goes away takes its groups with it.
+   */
   private static readonly groups = new WeakMap<Node, Map<string, RadioGroup>>()
 
   /**
    * Bumped on every join / leave:  tracked reads of the members go through it.
    * - `ownedWrite`:  a member joins from its constructor and the fork's hooks, which may run inside a Solid render.
    */
-  private readonly version = new Cell(0, { ownedWrite: true })
+  private readonly version = new E.Cell(0, { ownedWrite: true })
 
   /**
    * Members right now -- read LIVE, not from a published copy.
@@ -34,7 +38,10 @@ export class RadioGroup {
   /** Joins + leaves so far:  `version`'s next value. */
   private changes = 0
 
-  /** The group for `name` in `scope`, created on first use. */
+  /**
+   * The group for `name` in `scope`, created on first use.
+   * - STATIC:  the registry's way in, before any member holds a group.
+   */
   static of(scope: Node, name: string): RadioGroup {
     let byName = RadioGroup.groups.get(scope)
     if (!byName) RadioGroup.groups.set(scope, (byName = new Map()))
@@ -69,9 +76,7 @@ export class RadioGroup {
 
   /** Members in document order;  tracked. */
   ordered(): RadioMember[] {
-    return this.members().sort((a, b) =>
-      a.host.compareDocumentPosition(b.host) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1
-    )
+    return this.members().sort(RadioGroup.byDocumentOrder)
   }
 
   /** The chosen member, if any;  tracked. */
@@ -96,12 +101,25 @@ export class RadioGroup {
 
   /** The enabled member `delta` steps from `from` in document order, wrapping;  reads the live set, untracked. */
   step(from: RadioMember, delta: number): RadioMember | undefined {
-    const ordered = [...this.current].sort((a, b) =>
-      a.host.compareDocumentPosition(b.host) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1
-    )
+    const ordered = [...this.current].sort(RadioGroup.byDocumentOrder)
     const enabled = ordered.filter((member) => member === from || !member.isDisabled())
     if (enabled.length < 2) return undefined
     const index = enabled.indexOf(from)
     return enabled[(index + delta + enabled.length) % enabled.length]
   }
+
+  ////////////////
+  // ## Helpers
+  ////////////////
+
+  /**
+   * Sort comparator:  members in document order.
+   * - STATIC:  pure, handed to `sort()`.
+   */
+  private static byDocumentOrder(a: RadioMember, b: RadioMember): number {
+    return a.host.compareDocumentPosition(b.host) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+  }
 }
+
+/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global:  node has none (static server render). */
+const DOCUMENT_POSITION_FOLLOWING = 4

@@ -1,12 +1,12 @@
 /**
  * Every name `<ui-code>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The source pieces (`source`, `load`, `ui-load` ... `ui-error`, the loader / error parts, the states and texts)
  *   are shared with `<ui-include>` and `<ui-markdown>`:  `UIT.SOURCE_*`, which `SourceElement` reads.
  * - Class words:  `line-numbers` => `numbered`, `wrap` => `wrapping` (`ui numbered wrapping code`).
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
 
 /****************
@@ -72,4 +72,4 @@ export const codeVocabulary = {
     { key: "codeLabel", text: "{language} code", description: "Accessible name of the code, by its language." },
     { key: "codeLabelPlain", text: "Code", description: "Accessible name of the code, language unknown." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

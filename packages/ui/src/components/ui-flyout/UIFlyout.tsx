@@ -1,9 +1,9 @@
-import { proto, type AttributeName } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
+// Import the modal's FILE, not its barrel:  a server render loads this class without `customElements` (`index.ts`)
 import { DialogElement } from "$/ui/components/ui-modal/DialogElement"
-
-import { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
 import { FlyoutFallback } from "./ui-flyout.fallback"
-import { FLYOUT_WORD_WIDTHS, Vocabulary, WIDTH } from "./ui-flyout.types"
+import { WIDTH, type Vocabulary } from "./ui-flyout.types"
+import { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
 
 import flyoutCSS from "./ui-flyout.css?inline"
 
@@ -19,25 +19,20 @@ import flyoutCSS from "./ui-flyout.css?inline"
  *   `<ui-pushable>`.
  ****************/
 export class UIFlyout extends DialogElement<Vocabulary> {
-  @proto static vocabulary = flyoutVocabulary
-  @proto static styles = { flyout: flyoutCSS }
-  @proto static Fallback = FlyoutFallback
-  @proto static rootPart = "flyout"
-  @proto static overlayKind = "flyout" as const
+  @E.proto static vocabulary = flyoutVocabulary
+  @E.proto static styles = { flyout: flyoutCSS }
+  @E.proto static Fallback = FlyoutFallback
+  @E.proto static rootPart = "flyout"
+  @E.proto static overlayKind = "flyout" as const
 
-  /** A word width (`thin`) goes after the noun;  `ClassBuilder`'s `width` kind only knows columns. */
+  /** A word width (`thin`) goes after the noun (`UIT.WordWidthClasses`). */
   protected extraClasses(): string | undefined {
-    return UIFlyout.wordWidth(this.attrs.width)
+    return UIT.WordWidthClasses.classFor(this.attrs.width)
   }
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
-    if (name === WIDTH && UIFlyout.wordWidth(this.attrs.width)) return undefined
+  /** A word width emits nothing through `ClassBuilder`:  its `width` kind only knows columns. */
+  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
+    if (name === WIDTH && UIT.WordWidthClasses.classFor(this.attrs.width)) return undefined
     return super.classValue(name)
-  }
-
-  /** `width` when it's one of Fomantic's words (spaces or dashes), else `undefined`. */
-  static wordWidth(width: string | number | undefined): string | undefined {
-    const text = typeof width === "string" ? width.trim().replace(/[\s-]+/g, " ") : undefined
-    return FLYOUT_WORD_WIDTHS.find((word) => word === text)
   }
 }

@@ -1,10 +1,10 @@
 /**
  * Every name `<ui-comments>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * texts.  Schema:  `E.ComponentVocabulary`.
  * - The family's grammar notes are in `ui-comment.vocabulary.en.ts`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-comments>`
@@ -45,4 +45,4 @@ export const commentsVocabulary = {
   ],
   texts: [],
   ownsParts: ["comment"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

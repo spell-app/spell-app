@@ -1,11 +1,11 @@
 /**
  * Every name `<ui-include>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - The source pieces (`source`, `load`, `ui-load` ... `ui-error`, the loader / error parts, the states and texts)
  *   are shared with `<ui-code>` and `<ui-markdown>`:  `UIT.SOURCE_*`, which `SourceElement` reads.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
 
 /****************
@@ -58,4 +58,4 @@ export const includeVocabulary = {
   parts: [...UIT.SOURCE_PARTS, { name: "content", description: "The box around the included markup (shadow root)." }],
   states: [...UIT.SOURCE_STATES],
   texts: [...UIT.SOURCE_TEXTS]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

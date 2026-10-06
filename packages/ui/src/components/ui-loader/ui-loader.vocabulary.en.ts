@@ -1,6 +1,7 @@
 /**
  * Every name `<ui-loader>` uses:  tag, attributes (kind + allowed values), slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-loader size="large" color="red" speed="slow" active inline>` => `ui large red slow active inline loader`.
  * - `speed` is `kind: "valueOnly"` because it emits its value alone (`slow` / `fast`), like dropdown's `state`.
@@ -8,7 +9,7 @@
  *   accessible name is the `loading` text.  The spinner is decorative.  See `ui-loader.css`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-loader>`
@@ -20,7 +21,7 @@ export const loaderVocabulary = {
   aka: ["spinner", "loading indicator", "busy", "throbber", "activity indicator"],
   skeleton: false,
   noun: "loader",
-  description: "A loader alerts a user to wait for an activity to complete.",
+  description: "A loader tells people to wait for an activity to complete.",
   attributes: [
     {
       name: "size",
@@ -62,4 +63,4 @@ export const loaderVocabulary = {
   texts: [
     { key: "loading", text: "Loading…", description: "Accessible name of the `status` host when nothing is slotted." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-breadcrumb>` and `<ui-breadcrumb-section>` use:  tags, attributes (kind + allowed values),
- * slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * slots, parts, states, texts.  Schema:  `E.ComponentVocabulary`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-breadcrumb size="large" inverted>` => `ui large inverted breadcrumb`;
  *   `<ui-breadcrumb-section active>` => `active section` (no `ui`:  Fomantic styles sections by context).
@@ -8,7 +8,7 @@
  *   `BREADCRUMB_DIVIDER_TOKENS`), see `ui-breadcrumb.css`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-breadcrumb>`
@@ -45,4 +45,4 @@ export const breadcrumbVocabulary = {
   ],
   states: [],
   texts: [{ key: "label", text: "Breadcrumb", description: "Accessible name of the `<nav>` landmark." }]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

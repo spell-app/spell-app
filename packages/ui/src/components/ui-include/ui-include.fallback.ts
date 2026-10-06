@@ -1,5 +1,4 @@
-import { NativeFallback, proto } from "$/ui/core"
-
+import { E } from "$/ui/core"
 import { includeVocabulary } from "./ui-include.vocabulary.en"
 
 /****************
@@ -7,9 +6,9 @@ import { includeVocabulary } from "./ui-include.vocabulary.en"
  * `<div part="content" class="ui include">` holding the placeholder (`<slot>`) and a link to `source`, so the
  * included page is still one click away.
  ****************/
-export class IncludeFallback extends NativeFallback<typeof includeVocabulary> {
-  @proto static vocabulary = includeVocabulary
-  @proto static degraded = [
+export class IncludeFallback extends E.NativeFallback<typeof includeVocabulary> {
+  @E.proto static vocabulary = includeVocabulary
+  @E.proto static degraded = [
     "the included markup itself (a link to `source` instead), `load`, `select`, `page-styles`",
     "`content`, `save()`, `reload()` and their events"
   ]

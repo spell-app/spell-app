@@ -1,11 +1,17 @@
 /**
- * Loose constants of the checkbox family:  the vocabulary pieces `<ui-checkbox>` and `<ui-radio>` share.
- * - Data only:  no imports, so the vocabulary files and the element classes can both read it.
+ * Loose constants and types of the checkbox family:  the vocabulary pieces `<ui-checkbox>` and `<ui-radio>` share,
+ * and the words and shapes their classes and native fallback share.
+ * - Pure data, at the bottom of the folder's imports:  `import type` only (its vocabularies too:  they value-import
+ *   this file), so node can load it (`yarn site:data`).
+ * - A word only ONE class uses sits below that class instead (epic `wwod-spell-ui`, Q18).
  */
 
 import type { checkboxVocabulary } from "./ui-checkbox.vocabulary.en"
-import { radioVocabulary } from "./ui-radio.vocabulary.en"
-import type { AttributeName, ValidationRule } from "$/ui/core"
+import type { radioVocabulary } from "./ui-radio.vocabulary.en"
+
+////////////////
+// ## Vocabulary pieces
+////////////////
 
 /** Attributes both elements start with:  `type` comes after them, so its word follows the colour. */
 export const LEADING_ATTRIBUTES = [
@@ -59,7 +65,7 @@ export const SHARED_EVENTS = [
   {
     name: "ui-change",
     detail: "{ selected: boolean, value: string, originalEvent?: Event }",
-    description: "The user chose or unchose it (a radio:  only the newly chosen one fires)."
+    description: "Someone chose or unchose it (a radio:  only the newly chosen one fires)."
   }
 ] as const
 
@@ -70,35 +76,35 @@ export const SHARED_PARTS = [
   { name: "label", description: "The `<label>` drawing the box, the mark and the text." }
 ] as const
 
-/** Converted attributes both elements have (`checkbox` and `radio`), see `CheckControl.common`. */
-export type CommonAttributes = {
-  readonly type: string | undefined
-  readonly selected: boolean
-  readonly value: string | undefined
-  readonly name: string | undefined
-  readonly label: string | undefined
-  readonly required: boolean
-  readonly disabled: boolean
-  readonly readonly: boolean
-}
+/** One of `SHARED_PARTS`' names, e.g. `"label"`. */
+export type CheckPartName = (typeof SHARED_PARTS)[number]["name"]
+
+////////////////
+// ## Element shapes
+////////////////
 
 /** Either element's vocabulary. */
 export type CheckVocabulary = typeof checkboxVocabulary | typeof radioVocabulary
 
-/** Host attribute aliasing `selected`. */
-export const CHECKED = "checked"
-
-/** Native default value of a checkbox. */
-export const DEFAULT_VALUE = "on"
-
-/** Input type that may be read-only. */
-export const CHECKBOX = "checkbox"
-
-/** `UI.ids` prefix. */
-export const ID_PREFIX = "ui-checkbox"
-
-/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global:  node has none (static server render). */
-export const DOCUMENT_POSITION_FOLLOWING = 4
+/** Converted attributes both elements have (`checkbox` and `radio`), see `CheckControl.common`. */
+export type CommonAttributes = {
+  /** `slider` / `toggle`;  none for the plain box */
+  readonly type: string | undefined
+  /** chosen now */
+  readonly selected: boolean
+  /** submitted while chosen;  none ~== `on` */
+  readonly value: string | undefined
+  /** form field name */
+  readonly name: string | undefined
+  /** label text (the `label` shorthand) */
+  readonly label: string | undefined
+  /** must be chosen to submit */
+  readonly required: boolean
+  /** can't be used */
+  readonly disabled: boolean
+  /** shows its state, can't be changed */
+  readonly readonly: boolean
+}
 
 /** What a group needs from each member (`UIRadio`);  structural, so this file never imports the element. */
 export type RadioMember = {
@@ -116,21 +122,21 @@ export type RadioMember = {
   setSelected(selected: boolean): void
 }
 
-/** Role of toggles and sliders. */
-export const SWITCH = "switch"
-
-/** `required` => Fomantic's `checked`. */
-export const CHECKED_RULE: ValidationRule = "checked"
-
-/** The `name` prop's key, as the fork's change callback reports it. */
-export const NAME: AttributeName<typeof radioVocabulary> = "name"
-
-/** Input type, and what a form reads it as. */
-export const RADIO = "radio" as const
-
-/** Keys that move to the next / previous radio. */
-export const NEXT = new Set(["ArrowDown", "ArrowRight"])
-export const PREVIOUS = new Set(["ArrowUp", "ArrowLeft"])
-
 /** The part of a checkbox / radio host the fallback touches;  optional, the element may not have upgraded. */
 export type NativeCheckHost = HTMLElement & { selected?: boolean }
+
+////////////////
+// ## Words
+////////////////
+
+/** Host attribute aliasing `selected`. */
+export const CHECKED = "checked"
+
+/** Input type of `<ui-checkbox>`, and what a form reads it as;  the only type that may be read-only. */
+export const CHECKBOX = "checkbox"
+
+/** Input type of `<ui-radio>`, and what a form reads it as. */
+export const RADIO = "radio"
+
+/** Role of toggles and sliders:  on / off, not "checked". */
+export const SWITCH = "switch"

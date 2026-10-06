@@ -202,7 +202,7 @@ export type ComponentVocabulary = {
   /**
    * What the tag is filed under, so people find it however they look:  `ValueSets.topics` ids, several per tag
    * (`ui-button`:  `buttons`, `basic`, `controls`, `forms`, `elements`).  Rolled up in
-   * `src/components/component-definitions.ts`;  a translation maps them (`Dictionary.values.topics`).
+   * `src/components/ComponentDefinitions.ts`;  a translation maps them (`Dictionary.values.topics`).
    */
   topics?: readonly ComponentTopic[]
   /**

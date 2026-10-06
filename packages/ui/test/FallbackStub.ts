@@ -1,4 +1,4 @@
-import type { NativeFallbackHandle } from "$/ui/elements"
+import type { E } from "$/ui/core"
 
 /**
  * Throwaway host element for `*.fallback.test.ts`:  an open shadow root that "failed" and renders its fallback.
@@ -18,7 +18,7 @@ export class FallbackStub {
       class extends HTMLElement implements StubHost {
         static formAssociated = formAssociated
         readonly internals = this.attachInternals()
-        handle: NativeFallbackHandle | undefined
+        handle: E.NativeFallbackHandle | undefined
 
         constructor() {
           super()
@@ -44,11 +44,15 @@ export class FallbackStub {
 }
 
 /** Runs the fallback under test for a stub. */
-export type FallbackRender = (host: HTMLElement, root: ShadowRoot, internals: ElementInternals) => NativeFallbackHandle
+export type FallbackRender = (
+  host: HTMLElement,
+  root: ShadowRoot,
+  internals: ElementInternals
+) => E.NativeFallbackHandle
 
 /** What a stub adds to `HTMLElement`. */
 export type StubHost = HTMLElement & {
   internals: ElementInternals
-  handle: NativeFallbackHandle | undefined
+  handle: E.NativeFallbackHandle | undefined
   render(): void
 }

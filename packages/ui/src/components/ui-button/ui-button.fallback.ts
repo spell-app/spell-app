@@ -1,7 +1,6 @@
-import { Converters, NativeFallback, proto, UI } from "$/ui/core"
-
+import { E, UI, UIT } from "$/ui/core"
 import { buttonVocabulary } from "./ui-button.vocabulary.en"
-import { HostPress } from "./ui-button.types"
+import { DEFAULT_TYPE, HostPress, RESET } from "./ui-button.types"
 import { Invoker } from "./Invoker"
 
 /****************
@@ -13,9 +12,9 @@ import { Invoker } from "./Invoker"
  *   form work, and a light-DOM root can't submit twice.
  * - `content` is the slot's fallback text, so slotted children win, as in the real element.
  ****************/
-export class ButtonFallback extends NativeFallback<typeof buttonVocabulary> {
-  @proto static vocabulary = buttonVocabulary
-  @proto static degraded = [
+export class ButtonFallback extends E.NativeFallback<typeof buttonVocabulary> {
+  @E.proto static vocabulary = buttonVocabulary
+  @E.proto static degraded = [
     "`ui-toggle` event (toggle only flips `aria-pressed` + `active`)",
     "`icon` glyph and `icon` / `label` slots",
     "joined `label`",
@@ -28,38 +27,38 @@ export class ButtonFallback extends NativeFallback<typeof buttonVocabulary> {
   protected override build() {
     const { host } = this
     const href = this.attr("href")
-    const disabled = this.flag("disabled")
-    const toggle = this.flag("toggle")
-    const link = href !== null
+    const isDisabled = this.flag("disabled")
+    const isToggle = this.flag("toggle")
     // a bare `icon` (`"true"`) names no glyph, so it can't name the button either
-    const icon = Converters.icon(this.attr("icon"))
-    const iconOnly = icon && !this.attr("content") && !host.textContent?.trim()
-    const control = link
-      ? this.create("a", {
-          href: disabled ? null : href,
-          target: this.attr("target"),
-          download: this.attr("download"),
-          rel: this.attr("target") === "_blank" ? "noopener" : null,
-          "aria-disabled": disabled ? "true" : null,
-          tabindex: disabled ? "-1" : null
-        })
-      : this.create("button", { type: "button", disabled })
+    const icon = E.Converters.icon(this.attr("icon"))
+    const isIconOnly = icon && !this.attr("content") && !host.textContent?.trim()
+    const control =
+      href !== null
+        ? this.create("a", {
+            href: isDisabled ? undefined : href,
+            target: this.attr("target"),
+            download: this.attr("download"),
+            rel: this.attr("target") === BLANK_TARGET ? NOOPENER : undefined,
+            "aria-disabled": isDisabled ? UIT.TRUE : undefined,
+            tabindex: isDisabled ? "-1" : undefined
+          })
+        : this.create("button", { type: DEFAULT_TYPE, disabled: isDisabled })
     control.className = this.classes()
     this.decorate(control, "button")
-    if (toggle) control.setAttribute("aria-pressed", String(this.flag("active")))
+    if (isToggle) control.setAttribute(ARIA_PRESSED, String(this.flag("active")))
     // An icon-only button has no glyph here, so its name would be empty.
-    if (iconOnly && !control.hasAttribute("aria-label")) control.setAttribute("aria-label", icon)
+    if (isIconOnly && !control.hasAttribute(UIT.ARIA_LABEL)) control.setAttribute(UIT.ARIA_LABEL, icon)
     control.append(this.slot(this.attr("content")))
 
     this.listen<MouseEvent>(control, "click", (event) => {
-      if (disabled) return event.preventDefault()
-      if (toggle) control.setAttribute("aria-pressed", String(control.classList.toggle("active")))
+      if (isDisabled) return event.preventDefault()
+      if (isToggle) control.setAttribute(ARIA_PRESSED, String(control.classList.toggle(UIT.ACTIVE)))
       this.invoke(control, event)
       this.activate()
     })
     // `host.click()` presses the control, as in the element (only the host's click reaches the page)
     this.listen<MouseEvent>(host, "click", (event) => {
-      if (event.composedPath()[0] === host && !disabled && !event.defaultPrevented) HostPress.press(control)
+      if (event.composedPath()[0] === host && !isDisabled && !event.defaultPrevented) HostPress.press(control)
     })
     return [control]
   }
@@ -69,12 +68,13 @@ export class ButtonFallback extends NativeFallback<typeof buttonVocabulary> {
    * click), else run by `Invoker`.
    */
   private invoke(control: HTMLElement, event: MouseEvent) {
-    const command = this.attr("command")
+    const command = this.attr(COMMAND)
     if (!command) return
     const target = Invoker.resolve(this.host, this.attr("commandfor") ?? undefined)
     if (UI.browser.supports.invokers && control instanceof HTMLButtonElement) {
-      control.setAttribute("command", command)
-      control.commandForElement = target
+      control.setAttribute(COMMAND, command)
+      // `null`:  the platform's "no target"
+      control.commandForElement = target ?? null
     } else if (target && !event.defaultPrevented) Invoker.run(target, command, this.host)
   }
 
@@ -83,15 +83,27 @@ export class ButtonFallback extends NativeFallback<typeof buttonVocabulary> {
     const type = this.attr("type")
     const form = this.form()
     if (!form) return
-    if (type === "reset") return form.reset()
-    if (type !== "submit") return
+    if (type === RESET) return form.reset()
+    if (type !== UIT.SUBMIT) return
     // `requestSubmit()` builds the entries synchronously, so the value need only exist during the call.
-    const submitted = this.formInternals && this.attr("name") !== null
-    if (submitted) this.formInternals!.setFormValue(this.attr("value") ?? "")
+    const isSubmitted = this.formInternals && this.attr("name") !== null
+    if (isSubmitted) this.formInternals!.setFormValue(this.attr("value") ?? "")
     try {
       form.requestSubmit()
     } finally {
-      if (submitted) this.formInternals!.setFormValue(null)
+      if (isSubmitted) this.formInternals!.setFormValue(null)
     }
   }
 }
+
+/** The invoker attribute:  read off the host, copied onto the native button. */
+const COMMAND: E.AttributeNameOf<typeof buttonVocabulary> = "command"
+
+/** Shows the toggle's state to assistive tech:  `"true"` / `"false"`. */
+const ARIA_PRESSED = "aria-pressed"
+
+/** `target` of a link that opens in a new browsing context. */
+const BLANK_TARGET = "_blank"
+
+/** `rel` of such a link:  the new page gets no `window.opener`. */
+const NOOPENER = "noopener"

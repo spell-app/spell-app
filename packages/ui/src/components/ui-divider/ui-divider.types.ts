@@ -1,11 +1,11 @@
 /**
- * Loose constants and types of the `ui-divider` family:  the words, selectors and shapes its element
- * classes and its native fallback share, lifted out of their files.
- * - Data only:  nothing here runs;  the classes import what they need from `./ui-divider.types`.
+ * Loose constants of the `ui-divider` family:  the words its element class and its native fallback share.
+ * - Pure data, at the bottom of the folder's imports:  imports nothing, so node can load it (`yarn site:data`).
  */
 
-/** Role of a divider with a line. */
-export const SEPARATOR = "separator"
+////////////////
+// ## Roles
+////////////////
 
-/** `aria-orientation` of a vertical divider. */
-export const VERTICAL = "vertical"
+/** ARIA role of a divider with a line;  a `hidden` one (spacing only) is `UIT.NONE`. */
+export const SEPARATOR = "separator"

@@ -1,24 +1,14 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { inputVocabulary } from "./ui-input.vocabulary.en"
 import { InputFallback } from "./ui-input.fallback"
 import { TextControl } from "./TextControl"
+import { FILE, LABEL_CLASSES, type LabelPlace, type Vocabulary } from "./ui-input.types"
 
 import labelCSS from "$/ui/components/ui-label/ui-label.css?inline"
 import inputCSS from "./ui-input.css?inline"
-import {
-  TYPE,
-  DISABLED_PSEUDO,
-  FILE,
-  LABEL_CLASSES,
-  CORNER_LABEL,
-  LEFT_CORNER_LABEL,
-  type Vocabulary,
-  type LabelPlace
-} from "./ui-input.types"
 
 /****************
  * ### `<ui-input>`
@@ -31,15 +21,15 @@ import {
  *   the form's first submit button is clicked, else `requestSubmit()`.
  ****************/
 export class UIInput extends TextControl<Vocabulary> {
-  @proto static vocabulary = inputVocabulary
-  @proto static styles = { label: labelCSS, input: inputCSS }
-  @proto static Fallback = InputFallback
+  @E.proto static vocabulary = inputVocabulary
+  @E.proto static styles = { label: labelCSS, input: inputCSS }
+  @E.proto static Fallback = InputFallback
 
   /** Light-DOM slot occupancy (`label`, `action`, `icon`). */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.host)
 
   /** Files chosen in a `file` input. */
-  readonly files = new Cell<readonly File[]>([])
+  readonly files = new E.Cell<readonly File[]>([])
 
   ////////////////
   // ## Derived
@@ -67,16 +57,16 @@ export class UIInput extends TextControl<Vocabulary> {
   readonly isFile = createMemo(() => this.attrs.type === FILE)
 
   /** Glyph of the `icon` attribute. */
-  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
+  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon)
 
   /** Glyph of a corner label (its `label` is an icon name). */
-  readonly cornerGlyph = new IconGlyph(this, () => (this.labelPlace() === "corner" ? this.attrs.label : undefined))
+  readonly cornerGlyph = new E.IconGlyph(this, () => (this.labelPlace() === "corner" ? this.attrs.label : undefined))
 
   ////////////////
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
     if (name === "labeled") return this.labelPlace() ? this.attrs.labeled || true : false
     if (name === "action") return this.actionPlace() ? this.attrs.action || true : false
     if (name === "icon-position") return this.hasIconBox() ? this.attrs.iconPosition : undefined
@@ -94,7 +84,7 @@ export class UIInput extends TextControl<Vocabulary> {
   }
 
   /** Files submit themselves:  one entry per file. */
-  protected formSubmission(value: FieldValue, name: string | undefined): string | File | FormData | null {
+  protected formSubmission(value: E.FieldValue, name: string | undefined): string | File | FormData | null {
     if (!this.isFile()) return super.formSubmission(value, name)
     const files = this.files.get()
     if (!name || !files.length) return null
@@ -103,6 +93,7 @@ export class UIInput extends TextControl<Vocabulary> {
     return data
   }
 
+  /** Also clears a file input's chosen files, which only script can. */
   formReset() {
     super.formReset()
     if (this.control && this.isFile()) this.control.value = ""
@@ -129,7 +120,7 @@ export class UIInput extends TextControl<Vocabulary> {
           inputmode={this.attrs.inputmode}
           disabled={this.isDisabled()}
           readonly={this.attrs.readonly}
-          aria-busy={this.attrs.loading ? "true" : undefined}
+          aria-busy={this.attrs.loading ? UIT.TRUE : undefined}
           {...this.constraints()}
           {...this.controlAria()}
           {...this.staticControl()}
@@ -188,11 +179,11 @@ export class UIInput extends TextControl<Vocabulary> {
 
   /** Enter submits the form, as a native field would. */
   private readonly onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== UIT.ENTER || event.isComposing || event.defaultPrevented) return
+    if (event.key !== UIT.Key.enter || event.isComposing || event.defaultPrevented) return
     const form = this.formHost.form
     if (!form) return
     event.preventDefault()
-    this.touched.set(true)
+    this.isTouched.set(true)
     const submitter = [...form.elements].find(UIInput.isSubmitter) as HTMLElement | undefined
     if (submitter) submitter.click()
     else form.requestSubmit()
@@ -201,6 +192,8 @@ export class UIInput extends TextControl<Vocabulary> {
   /**
    * A form's default button:  a native submit button, or a `<ui-button type="submit">` (form-associated, so in
    * `form.elements`).
+   * - STATIC:  pure, a `find()` predicate.  `instanceof` is safe here:  a key handler, which the static render never
+   *   reaches.
    */
   private static isSubmitter(element: Element): boolean {
     if (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) {
@@ -209,3 +202,15 @@ export class UIInput extends TextControl<Vocabulary> {
     return element.getAttribute(TYPE) === UIT.SUBMIT && !element.matches(DISABLED_PSEUDO)
   }
 }
+
+/** Attribute saying a `<ui-button>` submits (`type="submit"`). */
+const TYPE = "type"
+
+/** A disabled custom element (`:disabled` matches form-associated hosts). */
+const DISABLED_PSEUDO = ":disabled"
+
+/** Class words of a `labeled="corner"` label (`ui-input.css`). */
+const CORNER_LABEL = "ui corner label"
+
+/** Class words of a `labeled="left corner"` label. */
+const LEFT_CORNER_LABEL = "ui left corner label"

@@ -75,7 +75,7 @@ export const stepsVocabulary = {
     {
       name: "stack-with",
       kind: "enum",
-      values: UIT.STACK_WITH_VALUES,
+      values: UIT.StackWithValues,
       description:
         'What stacking (and `stackable="tablet"`) measures:  `container` (the default) -- the group\'s own ' +
         "width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token " +

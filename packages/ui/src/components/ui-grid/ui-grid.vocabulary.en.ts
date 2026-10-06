@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-grid>`, `<ui-row>` and `<ui-column>` use:  tags, attributes (kind + allowed values), slots,
- * parts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * parts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-grid columns="3" divided="vertically" stackable>` => `ui stackable vertically divided three column grid`,
  *   `<ui-column width="4" width-mobile="16">` => `ui four wide sixteen wide mobile column`.
@@ -10,9 +10,9 @@
  *   inherited tokens (`--_grid-*`), see `ui-grid.css`.
  */
 
+import type { E } from "$/ui/core"
 import * as UIT from "$/ui/components/components.types"
-import type { ComponentVocabulary } from "$/ui/vocabulary"
-import { ONLY_DEVICES } from "./ui-grid.types"
+import { OnlyDevices } from "./ui-grid.types"
 
 /** `reversed` targets on a grid:  a device, optionally `vertically` (the lines, not the columns). */
 const GRID_REVERSALS = [
@@ -88,7 +88,7 @@ export const gridVocabulary = {
     {
       name: "only",
       kind: "multiple",
-      values: ONLY_DEVICES,
+      values: OnlyDevices,
       description: 'Shown only on these devices (by the viewport), e.g. `only="mobile tablet"`.'
     },
     {
@@ -100,7 +100,7 @@ export const gridVocabulary = {
     {
       name: "stack-with",
       kind: "enum",
-      values: UIT.STACK_WITH_VALUES,
+      values: UIT.StackWithValues,
       description:
         "What `stackable`, `doubling`, `reversed` and per-device widths measure:  `container` (the default) -- the " +
         "grid's own width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token " +
@@ -129,4 +129,4 @@ export const gridVocabulary = {
     }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

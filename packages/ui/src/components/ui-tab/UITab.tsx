@@ -45,7 +45,7 @@ export class UITab extends UIElement<TabVocabulary> {
   readonly context = new PartContext(this.host, this.vocabulary.noun)
 
   /** Host `active`, the alias of `selected`. */
-  readonly activeAttribute = new HostAttribute(this.host, ACTIVE)
+  readonly activeAttribute = new HostAttribute({ host: this.host, name: ACTIVE })
 
   /** Shown before (lazy content stamped, `first` spent). */
   private shownBefore = false

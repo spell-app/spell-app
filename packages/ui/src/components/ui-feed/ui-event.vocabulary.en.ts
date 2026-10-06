@@ -1,10 +1,10 @@
 /**
  * Every name `<ui-event>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * texts.  Schema:  `E.ComponentVocabulary`.
  * - The family's grammar notes are in `ui-feed.vocabulary.en.ts`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-event>`
@@ -51,4 +51,4 @@ export const eventVocabulary = {
     { name: "disabled", description: "`disabled`." }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

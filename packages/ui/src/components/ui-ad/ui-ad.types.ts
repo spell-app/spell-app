@@ -1,13 +1,11 @@
 /**
- * Loose constants and types of the `ui-ad` family:  the words, selectors and shapes its element
- * classes and its native fallback share, lifted out of their files.
- * - Data only:  nothing here runs;  the classes import what they need from `./ui-ad.types`.
+ * Loose constants of the `ui-ad` family:  the words its element class and its native fallback share.
+ * - Pure data, at the bottom of the folder's imports:  imports nothing, so node can load it (`yarn site:data`).
  */
 
-import { adVocabulary } from "./ui-ad.vocabulary.en"
+////////////////
+// ## Class words
+////////////////
 
-/** Fomantic's placeholder class word. */
+/** Fomantic's placeholder class word, on the root of a `test` ad. */
 export const TEST = "test"
-
-/** The English default `test` text, from the vocabulary:  a failed render can't count on the runtime's texts. */
-export const DEFAULT_TEXT = adVocabulary.texts.find(({ key }) => key === "adTest")!.text

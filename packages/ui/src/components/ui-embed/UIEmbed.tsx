@@ -1,20 +1,19 @@
 import { Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, type AttributeName, UIElement, UIT } from "$/ui/core"
-
+import { E, UIT } from "$/ui/core"
 import { embedVocabulary } from "./ui-embed.vocabulary.en"
 import { EmbedFallback } from "./ui-embed.fallback"
 import { EmbedSources } from "./EmbedSources"
 import { UIEmbedHost } from "./UIEmbedHost"
 import {
   ALLOW,
-  EmbedParameters,
   FRAME_CLASS,
   PLACEHOLDER_CLASS,
   PLAY_CLASS,
   REFERRER_POLICY,
-  Vocabulary
+  type EmbedParameters,
+  type Vocabulary
 } from "./ui-embed.types"
 
 import embedCSS from "./ui-embed.css?inline"
@@ -26,19 +25,19 @@ import embedCSS from "./ui-embed.css?inline"
  * - Privacy:  NOTHING third-party loads before activation -- no frame, no player script, not even a preconnect;
  *   only the page's own placeholder image.  (Fomantic loaded the frame at once when there was no placeholder.)
  * - Activation:  a click, Enter or Space on the button (a native `<button>`), or `host.activate()`:  the cancelable
- *   `ui-activate` (with the frame's `url`), then `active` -- and focus moves into the frame, so a keyboard user
- *   carries on in the player.  Writing `active` loads / unloads without an event;  `host.reset()` unloads with
- *   `ui-reset`.
+ *   `ui-activate` (with the frame's `url`), then `active` -- and focus moves into the frame, so someone on the
+ *   keyboard carries on in the player.  Writing `active` loads / unloads without an event;  `host.reset()` unloads
+ *   with `ui-reset`.
  * - URL:  `EmbedSources` -- `source` + `video-id`, or `url`;  `http(s)` only;  `autoplay` (default on:  the click
  *   asked for it), `branded-ui` and `parameters` become player parameters.
  * - Names:  the button is `Play {label}`, the frame's `title` is `label` (`label`, else `alt`, else `video` /
  *   `embedded content`), all translated texts.
  ****************/
-export class UIEmbed extends UIElement<Vocabulary> {
-  @proto static vocabulary = embedVocabulary
-  @proto static styles = { embed: embedCSS }
-  @proto static Fallback = EmbedFallback
-  @proto static Host = UIEmbedHost
+export class UIEmbed extends E.UIElement<Vocabulary> {
+  @E.proto static vocabulary = embedVocabulary
+  @E.proto static styles = { embed: embedCSS }
+  @E.proto static Fallback = EmbedFallback
+  @E.proto static Host = UIEmbedHost
 
   ////////////////
   // ## State
@@ -48,7 +47,7 @@ export class UIEmbed extends UIElement<Vocabulary> {
   readonly activeState = this.controlled("active", false)
 
   /** Glyph over the placeholder. */
-  readonly glyph = new IconGlyph(this, () => this.attrs.icon || undefined)
+  readonly glyph = new E.IconGlyph(this, () => this.attrs.icon || undefined)
 
   /** The frame URL, `undefined` when there's nothing (safe) to load. */
   readonly url = createMemo(() =>
@@ -66,12 +65,12 @@ export class UIEmbed extends UIElement<Vocabulary> {
   readonly label = createMemo(() => {
     const own = this.attrs.label || this.attrs.alt
     if (own) return own
-    const video = this.attrs.source || EmbedSources.sourceOf(this.attrs.url ?? undefined)
+    const video = this.attrs.source || EmbedSources.sourceFor(this.attrs.url ?? undefined)
     return this.text(video ? "embedVideo" : "embedContent")
   })
 
   /** Move focus into the next frame (it was activated from the keyboard / a click). */
-  private focusFrame = false
+  private shouldFocusFrame = false
 
   /** Is the frame loaded? */
   isActive(): boolean {
@@ -82,7 +81,7 @@ export class UIEmbed extends UIElement<Vocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
     if (name === "active") return this.isActive()
     return super.classValue(name)
   }
@@ -146,15 +145,15 @@ export class UIEmbed extends UIElement<Vocabulary> {
   // ## Transitions
   ////////////////
 
-  /** Load the frame as a user action:  the cancelable `ui-activate` first.  True when it loads. */
+  /** Load the frame as an action of the page's reader:  the cancelable `ui-activate` first.  True when it loads. */
   activate(originalEvent?: Event): boolean {
     if (untrack(() => this.isActive())) return false
     const url = untrack(this.url)
     if (!url) return false
     const detail: UIT.EmbedActivateDetail = { url, originalEvent }
-    const applied = this.activeState.request(true, () => this.emit("ui-activate", detail))
-    if (applied) this.focusFrame = true
-    return applied
+    const isApplied = this.activeState.request(true, () => this.emit("ui-activate", detail))
+    if (isApplied) this.shouldFocusFrame = true
+    return isApplied
   }
 
   /** Back to the placeholder (Fomantic's `reset`), with `ui-reset`. */
@@ -175,8 +174,8 @@ export class UIEmbed extends UIElement<Vocabulary> {
 
   /** A frame rendered:  take focus into it after an activation. */
   private readonly onFrame = (frame: HTMLIFrameElement) => {
-    if (!this.focusFrame) return
-    this.focusFrame = false
+    if (!this.shouldFocusFrame) return
+    this.shouldFocusFrame = false
     queueMicrotask(() => {
       if (frame.isConnected) frame.focus()
     })

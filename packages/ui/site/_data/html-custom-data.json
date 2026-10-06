@@ -5,7 +5,7 @@
       "name": "ui-accordion",
       "description": {
         "kind": "markdown",
-        "value": "An accordion allows users to toggle the display of sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.\n\n**Slots:**  default\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+        "value": "An accordion lets people show and hide sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.\n\n**Slots:**  default\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
       },
       "attributes": [
         {
@@ -73,7 +73,7 @@
           "name": "open",
           "description": {
             "kind": "markdown",
-            "value": "Indexes of the open panels (0-based), space-separated:  `open=\"0\"`, `open=\"0 2\"`.  Controlled:  set it to open / close panels;  `ui-open` / `ui-close` can veto the user's changes.  When `exclusive`, only the first index counts.\n\nTakes:  text"
+            "value": "Indexes of the open panels (0-based), space-separated:  `open=\"0\"`, `open=\"0 2\"`.  Controlled:  set it to open / close panels;  `ui-open` / `ui-close` can veto people's changes.  When `exclusive`, only the first index counts.\n\nTakes:  text"
           }
         },
         {
@@ -344,7 +344,7 @@
       "name": "ui-button",
       "description": {
         "kind": "markdown",
-        "value": "A button indicates a possible user action.\n\nAlso known as:  btn, action, submit, link button.\n\n**Slots:**  default, `icon`, `label`\n\n**Events:**  `ui-toggle`"
+        "value": "A button indicates a possible action.\n\nAlso known as:  btn, action, submit, link button.\n\n**Slots:**  default, `icon`, `label`\n\n**Events:**  `ui-toggle`"
       },
       "attributes": [
         {
@@ -1044,7 +1044,7 @@
       "name": "ui-calendar",
       "description": {
         "kind": "markdown",
-        "value": "A calendar lets a user pick a date, a time, or both.\n\nAlso known as:  date picker, datepicker, time picker, datetime, date range.\n\n**Events:**  `ui-change`, `ui-open`, `ui-close`"
+        "value": "A calendar lets a person pick a date, a time, or both.\n\nAlso known as:  date picker, datepicker, time picker, datetime, date range.\n\n**Events:**  `ui-change`, `ui-open`, `ui-close`"
       },
       "attributes": [
         {
@@ -1781,7 +1781,7 @@
       "name": "ui-checkbox",
       "description": {
         "kind": "markdown",
-        "value": "A checkbox allows a user to select a value from a small set of options, often binary.\n\nAlso known as:  check box, toggle, switch, tick box.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
+        "value": "A checkbox lets people choose a value from a small set of options, often on or off.\n\nAlso known as:  check box, toggle, switch, tick box.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
       },
       "attributes": [
         {
@@ -2746,7 +2746,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "With `scrolling`:  the user can drag its height.\n\nTakes:  flag (present / absent)"
+            "value": "With `scrolling`:  people can drag its height.\n\nTakes:  flag (present / absent)"
           }
         }
       ]
@@ -2897,7 +2897,7 @@
           "name": "active",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -3159,7 +3159,7 @@
       "name": "ui-dropdown",
       "description": {
         "kind": "markdown",
-        "value": "A dropdown allows a user to select a value from a series of options.\n\nAlso known as:  select, combobox, picker, autocomplete, menu button, multi select.\n\n**Slots:**  default, `trigger`, `header`, `icon`\n\n**Events:**  `ui-change`, `ui-open`, `ui-close`, `ui-search`, `ui-add`, `ui-remove`"
+        "value": "A dropdown lets people choose a value from a series of options.\n\nAlso known as:  select, combobox, picker, autocomplete, menu button, multi select.\n\n**Slots:**  default, `trigger`, `header`, `icon`\n\n**Events:**  `ui-change`, `ui-open`, `ui-close`, `ui-search`, `ui-add`, `ui-remove`"
       },
       "attributes": [
         {
@@ -3400,7 +3400,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "A `scrolling` menu the user can resize vertically.\n\nTakes:  flag (present / absent)"
+            "value": "A `scrolling` menu people can resize vertically.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -3877,7 +3877,7 @@
       "name": "ui-feed",
       "description": {
         "kind": "markdown",
-        "value": "A feed presents user activity chronologically.\n\nAlso known as:  activity feed, timeline, news feed, activity stream.\n\n**Slots:**  default"
+        "value": "A feed presents people's activity chronologically.\n\nAlso known as:  activity feed, timeline, news feed, activity stream.\n\n**Slots:**  default"
       },
       "attributes": [
         {
@@ -4265,7 +4265,7 @@
           "name": "country",
           "description": {
             "kind": "markdown",
-            "value": "ISO 3166-1 alpha-2 code in any case (`fr`, `US`), or one of Fomantic's names and aliases (`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `flagAliases`.\n\nTakes:  text"
+            "value": "ISO 3166-1 alpha-2 code in any case (`fr`, `US`), or one of Fomantic's names and aliases (`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `FLAG_ALIASES`.\n\nTakes:  text"
           }
         }
       ]
@@ -4323,7 +4323,7 @@
           "name": "open",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -4428,7 +4428,7 @@
       "name": "ui-form",
       "description": {
         "kind": "markdown",
-        "value": "A form displays a set of related user input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.\n\n**Slots:**  default\n\n**Events:**  `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`"
+        "value": "A form displays a set of related input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.\n\n**Slots:**  default\n\n**Events:**  `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`"
       },
       "attributes": [
         {
@@ -5765,7 +5765,7 @@
       "name": "ui-input",
       "description": {
         "kind": "markdown",
-        "value": "An input is a field used to elicit a response from a user.\n\nAlso known as:  text field, text box, textbox, input field, search box.\n\n**Slots:**  `label`, `action`, `icon`\n\n**Events:**  `ui-input`, `ui-change`"
+        "value": "An input is a field used to elicit a response from a person.\n\nAlso known as:  text field, text box, textbox, input field, search box.\n\n**Slots:**  `label`, `action`, `icon`\n\n**Events:**  `ui-input`, `ui-change`"
       },
       "attributes": [
         {
@@ -6085,7 +6085,7 @@
           "name": "minlength",
           "description": {
             "kind": "markdown",
-            "value": "Constraint:  fewest characters (checked after the user edits).\n\nTakes:  number"
+            "value": "Constraint:  fewest characters (checked once someone has edited it).\n\nTakes:  number"
           }
         },
         {
@@ -7092,7 +7092,7 @@
       "name": "ui-loader",
       "description": {
         "kind": "markdown",
-        "value": "A loader alerts a user to wait for an activity to complete.\n\nAlso known as:  spinner, loading indicator, busy, throbber, activity indicator.\n\n**Slots:**  default"
+        "value": "A loader tells people to wait for an activity to complete.\n\nAlso known as:  spinner, loading indicator, busy, throbber, activity indicator.\n\n**Slots:**  default"
       },
       "attributes": [
         {
@@ -13759,7 +13759,7 @@
           "name": "minlength",
           "description": {
             "kind": "markdown",
-            "value": "Constraint:  fewest characters (checked after the user edits).\n\nTakes:  number"
+            "value": "Constraint:  fewest characters (checked once someone has edited it).\n\nTakes:  number"
           }
         },
         {

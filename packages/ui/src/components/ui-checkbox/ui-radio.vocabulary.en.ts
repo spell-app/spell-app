@@ -1,11 +1,11 @@
 /**
  * Every name `<ui-radio>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only.
  * - The family's grammar notes are in `ui-checkbox.vocabulary.en.ts`.
  */
 
-import type { ComponentVocabulary } from "$/ui/vocabulary"
-
+import type { E } from "$/ui/core"
 import { LEADING_ATTRIBUTES, SHARED_ATTRIBUTES, SHARED_EVENTS, SHARED_PARTS } from "./ui-checkbox.types"
 
 /****************
@@ -36,7 +36,10 @@ export const radioVocabulary = {
   states: [
     { name: "selected", description: "Chosen." },
     { name: "disabled", description: "Can't be used." },
-    { name: "invalid", description: "Fails validation, once the user has interacted (`:user-invalid` semantics)." }
+    {
+      name: "invalid",
+      description: "Fails validation, once someone has interacted with it (`:user-invalid` semantics)."
+    }
   ],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

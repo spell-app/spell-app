@@ -50,7 +50,7 @@ export class UIBrandChecklist extends UIElement<BrandChecklistVocabulary> implem
   readonly announcement = new Cell("")
 
   /** Host `aria-label`, forwarded to the list. */
-  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
 
   /** A check re-read is queued. */
   private refreshQueued = false

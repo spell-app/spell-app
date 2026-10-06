@@ -68,7 +68,7 @@ export class UISidebar extends UIElement<SidebarVocabulary> {
   readonly visibleState = this.controlled("visible", false)
 
   /** Host `aria-label`, forwarded to the panel. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute({ host: this.host, name: ARIA_LABEL })
 
   /** The panel:  a `<dialog>`, or an `<aside>` when `persistent`. */
   private box?: HTMLElement
