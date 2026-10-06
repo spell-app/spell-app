@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-card-HDZYv02m.js";export{e as UICard,t as UICards};

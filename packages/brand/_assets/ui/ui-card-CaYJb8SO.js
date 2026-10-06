@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-card-BTkGpKUQ.js";export{e as UICard,t as UICards};

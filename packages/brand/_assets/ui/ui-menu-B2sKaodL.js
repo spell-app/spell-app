@@ -1,0 +1,1 @@
+import{t as e}from"./ui-menu-Blc_mTtf.js";export{e as UIMenu};

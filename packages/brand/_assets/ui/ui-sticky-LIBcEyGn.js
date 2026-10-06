@@ -1,0 +1,1 @@
+import{t as e}from"./ui-sticky-Cb8oXdQu.js";export{e as UISticky};
