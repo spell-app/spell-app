@@ -864,9 +864,17 @@ body.plan-reviewing ui-accordion.plan-item > ui-title::part(title),
 body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
   padding-inline-end: calc(var(--plan-act-size) + 6px);
 }
-body.plan-reviewing ui-accordion.plan-item > ui-title:has(> .plan-act[data-busy])::part(title),
-body.plan-reviewing .plan-items > ui-item:not(:has(> ui-accordion)):has(> .plan-act[data-busy])::part(item) {
+body.plan-reviewing ui-accordion.plan-item > ui-title:has(> .plan-act:is([data-busy], [data-noted]))::part(title),
+body.plan-reviewing
+  .plan-items
+  > ui-item:not(:has(> ui-accordion)):has(> .plan-act:is([data-busy], [data-noted]))::part(item) {
   padding-inline-end: calc(2 * var(--plan-act-size) + 10px);
+}
+body.plan-reviewing ui-accordion.plan-item > ui-title:has(> .plan-act[data-busy][data-noted])::part(title),
+body.plan-reviewing
+  .plan-items
+  > ui-item:not(:has(> ui-accordion)):has(> .plan-act[data-busy][data-noted])::part(item) {
+  padding-inline-end: calc(3 * var(--plan-act-size) + 14px);
 }
 /* what the button is placed in:  the title (accordion items), or the item's row */
 body.plan-reviewing ui-accordion.plan-item > ui-title,
@@ -958,6 +966,24 @@ button.plan-act-button[data-color][data-sent] {
 .plan-act-spin[hidden] {
   display: none;
 }
+/*
+ * Owen wrote on this item (epic `windows-and-review` P1):  a speech bubble, outline while a draft, solid once a
+ * mark's note, in the mark's colour once sent;  the note is its tooltip
+ */
+.plan-act-noted {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--plan-act-size);
+  color: var(--spell-muted);
+  font-size: 0.8rem;
+}
+.plan-act-noted[hidden] {
+  display: none;
+}
+.plan-act-noted[data-sent] {
+  color: var(--ui-orange, #f2711c);
+}
 .plan-act-spin[data-waiting] {
   border: 2px dashed var(--spell-muted);
   animation: none;
@@ -1037,6 +1063,21 @@ button.plan-act-button[data-color][data-sent] {
   border: 1px solid color-mix(in srgb, var(--ui-orange, #f2711c) 45%, transparent);
   border-radius: 12px;
   background: color-mix(in srgb, var(--ui-orange, #f2711c) 6%, var(--spell-bg));
+}
+/* the note and its status line ("Saved 10:42") under it */
+.plan-revisit-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.plan-revisit-status {
+  color: var(--spell-muted);
+  font: 0.75rem/1.3 var(--spell-sans);
+}
+.plan-revisit-status:empty {
+  display: none;
 }
 .plan-revisit-note {
   flex: 1 1 auto;
@@ -1200,6 +1241,69 @@ button.plan-send:focus-visible {
 }
 .plan-reply > :last-child {
   margin-bottom: 0;
+}
+/*
+ * Owen's own note, kept in the item once Claude took it (`plan-doc inbox done | clear`, epic `windows-and-review`
+ * P1):  the reply card's shape, in Revisit's orange, before Claude's answer
+ */
+.plan-reply.plan-reply-owen {
+  border-color: color-mix(in srgb, var(--ui-orange, #f2711c) 35%, transparent);
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 7%, var(--spell-bg));
+}
+.plan-reply.plan-reply-owen > .plan-reply-title {
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 14%, transparent);
+}
+.plan-reply-owen > p {
+  white-space: pre-wrap;
+}
+
+/*
+ * A marked note on the page, its box closed (`renderNote()`):  "You · revisit soon · sent 10:42", the note, Edit;
+ * under the item's line, where the box was
+ */
+.plan-said {
+  flex-basis: 100%;
+  order: 9;
+  margin: 6px 0 4px 1.5em;
+  padding: 0 10px 6px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ui-orange, #f2711c) 35%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 6%, var(--spell-bg));
+}
+.plan-said-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 -10px 4px;
+  padding: 3px 6px 3px 10px;
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 12%, transparent);
+  font: 600 0.8rem/1.35 var(--spell-sans);
+}
+.plan-said-what {
+  flex: 1 1 auto;
+  font-weight: 400;
+}
+button.plan-said-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 999px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: 0.75rem/1.4 var(--spell-sans);
+  cursor: pointer;
+}
+button.plan-said-edit:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
+  outline-offset: 1px;
+}
+.plan-said-note {
+  margin: 0;
+  font: 0.9rem/1.4 var(--spell-sans);
+  white-space: pre-wrap;
 }
 
 /*******************************

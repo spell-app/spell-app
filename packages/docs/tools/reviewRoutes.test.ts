@@ -114,6 +114,21 @@ test("mark:  set (stamped here), replaced, removed;  every answer is the whole i
   expect(existsSync(inboxFile(PAGES.plan))).toBe(false)
 })
 
+// epic `windows-and-review` P1:  a note box's text saved as typed, on the server every address reads
+test("draft:  kept as typed until the mark that uses it;  blank drops it;  only note actions", async () => {
+  const typed = await post("draft", { page: PLAN_URL, id: "Q8", action: "revisit", note: "why not B?\n" })
+  expect(typed.status).toBe(200)
+  expect(typed.body.drafts.q8).toMatchObject({ action: "revisit", note: "why not B?\n" })
+  expect(typed.body.marks).toEqual({})
+  expect(written(PAGES.plan).drafts.q8.note).toBe("why not B?\n")
+  const marked = await post("mark", { page: PLAN_URL, id: "q8", mark: { action: "revisit", note: "why not B?" } })
+  expect(marked.body.drafts).toEqual({})
+  await post("draft", { page: PLAN_URL, id: "j3", action: "revisit", note: "x" })
+  expect((await post("draft", { page: PLAN_URL, id: "j3", action: "revisit", note: "  " })).body.drafts).toEqual({})
+  expect((await post("draft", { page: PLAN_URL, id: "j3", action: "approve", note: "x" })).status).toBe(400)
+  expect((await post("draft", { page: PLAN_URL, id: "z9", action: "revisit", note: "x" })).status).toBe(400)
+})
+
 test("now:  queued and marked;  revisit carries its note", async () => {
   const details = await post("now", { page: PLAN_URL, id: "i2", action: "details" })
   expect(details.status).toBe(200)
