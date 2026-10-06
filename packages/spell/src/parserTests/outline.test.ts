@@ -259,6 +259,25 @@ describe("outline style", () => {
     expect(js).toContain("return (this.direction === 'down' ? this.back : this.front)")
   })
 
+  test("`[rank]` fills in, in text and markup:  inside a card, a bare property is its own (P4)", () => {
+    const lines = [
+      "a card is a thing where:",
+      "\t- its rank is a number",
+      "\t- its suit is text",
+      '\t- to "draw its front":',
+      '\t\t<ui-image source="images/[rank]-of-[suit].png" />',
+      '\t- its "label" is: "the [rank] of [suit]"',
+      '\t- to "draw its back": <span>[rank] of [suit], [[face down]]</span>'
+    ]
+    const js = compile(lines)
+    expect(js).toContain("props: { source: `images/${this.rank}-of-${this.suit}.png` }")
+    expect(js).toContain("return `the ${this.rank} of ${this.suit}`")
+    expect(js).toContain("`${this.rank} of ${this.suit}, [face down]`")
+    expect(runSpell([...lines, 'the card is a new card with rank = 2, suit = "spades"'])("card")).toMatchObject({
+      card: { label: "the 2 of spades" }
+    })
+  })
+
   test("a bullet is never part of the statement:  `- x` and `x` are the same line", () => {
     expect(compile(["- a card is a thing", "- a card has a rank as a number"])).toBe(
       compile(["a card is a thing", "a card has a rank as a number"])

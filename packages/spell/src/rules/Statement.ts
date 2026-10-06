@@ -195,9 +195,10 @@ export class SpellStatement<
       // Only a `LineToken` (not a nested `BlockToken`) can be parsed as a single rule here.
       if (!(first instanceof P.LineToken)) return undefined
       const { tokens } = first
-      // TODO: `statement.scope` or `statement.nestedScope` ???
-      const { scope } = statement
-      result = scope.parser?.parse(tokens, parseAs, scope)
+      // the body's scope, as an inline body's (`parseInlineStatement()`):  e.g. `draw_side`'s markup, where `[rank]`
+      // is the card's.  The same as `statement.scope` for a rule with no scope of its own, e.g. `return`
+      const { nestedScope } = statement
+      result = nestedScope.parser?.parse(tokens, parseAs, nestedScope)
       // forget it if we didn't parse the entire line
       if (result?.length !== tokens.length) return undefined
     }
