@@ -136,6 +136,8 @@ program
   .option("--rule <name>", "parse as this rule only, e.g. expression -- default statement, then expression")
   .option("--in <target>", "parse inside this project's scope, e.g. @test/Solitaire")
   .option("--json", "print the result as JSON")
+  .option("--tree", "print the spell tree -- what it means -- not the match tree;  with --json:  its data")
+  .option("--html", "with --tree:  print it as a <ui-tree-diagram> for a docs page")
   .action((text: string, _options, command) => run(CLI.parseCommand, [text], command.optsWithGlobals()))
 
 program

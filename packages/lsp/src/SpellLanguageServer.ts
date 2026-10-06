@@ -168,6 +168,9 @@ export class SpellLanguageServer {
     connection.onRequest("spell/compiled", ({ uri }: { uri: string }) =>
       this.answer(uri, null, (file) => service.compiled(file))
     )
+    connection.onRequest("spell/lineTree", ({ uri, line }: { uri: string; line: number }) =>
+      this.answer(uri, null, (file) => service.lineTree(file, line))
+    )
     connection.onRequest("spell/project", ({ uri }: { uri: string }) =>
       this.answer(uri, null, (file) => service.projectInfo(file))
     )

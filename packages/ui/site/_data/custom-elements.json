@@ -20918,6 +20918,128 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/components/ui-tree-diagram/index.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "UITreeDiagram",
+          "tagName": "ui-tree-diagram",
+          "customElement": true,
+          "summary": "A tree diagram draws a tree top-down:  a box for each node, a line to each of its children.",
+          "description": "A tree diagram draws a tree top-down:  a box for each node, a line to each of its children.\n\nAlso known as:  tree, tree chart, hierarchy, hierarchy diagram, org chart, parse tree, syntax tree, AST, dendrogram.",
+          "attributes": [],
+          "members": [
+            {
+              "kind": "field",
+              "name": "tree",
+              "description": "The tree to draw, a `TreeDiagramNode`:  `label`, and optional `detail`, `slot`, `title` and `children`.  A JS property (JSON in the attribute);  wins over a `<script type=\"application/json\">` child.  Set a NEW tree to redraw.  A JS property (rich data), not an attribute.",
+              "type": {
+                "text": "unknown"
+              }
+            }
+          ],
+          "events": [],
+          "slots": [],
+          "cssParts": [
+            {
+              "name": "diagram",
+              "description": "The `<svg>`."
+            },
+            {
+              "name": "node",
+              "description": "Each node's `<g>`:  its box, label and detail."
+            },
+            {
+              "name": "root-node",
+              "description": "The root's `<g>`, also part `node`."
+            },
+            {
+              "name": "edge",
+              "description": "Each line from a parent to a child."
+            },
+            {
+              "name": "slot-label",
+              "description": "Each slot label, on its line."
+            }
+          ],
+          "cssStates": [],
+          "cssProperties": [
+            {
+              "name": "--ui-tree-diagram-font-family",
+              "default": "var(--ui-font-family-mono)"
+            },
+            {
+              "name": "--ui-tree-diagram-font-size",
+              "default": "0.8125em"
+            },
+            {
+              "name": "--ui-tree-diagram-slot-font-family",
+              "default": "var(--ui-font-family)"
+            },
+            {
+              "name": "--ui-tree-diagram-min-scale",
+              "default": "0.75"
+            },
+            {
+              "name": "--ui-tree-diagram-radius",
+              "default": "var(--ui-radius-m)"
+            },
+            {
+              "name": "--ui-tree-diagram-node-background",
+              "default": "var(--ui-surface-muted)"
+            },
+            {
+              "name": "--ui-tree-diagram-node-border-color",
+              "default": "var(--ui-border-color-strong)"
+            },
+            {
+              "name": "--ui-tree-diagram-root-background",
+              "default": "var(--ui-primary-background)"
+            },
+            {
+              "name": "--ui-tree-diagram-root-border-color",
+              "default": "var(--ui-primary)"
+            },
+            {
+              "name": "--ui-tree-diagram-label-color",
+              "default": "var(--ui-text-color)"
+            },
+            {
+              "name": "--ui-tree-diagram-detail-color",
+              "default": "var(--ui-text-muted)"
+            },
+            {
+              "name": "--ui-tree-diagram-edge-color",
+              "default": "var(--ui-text-light)"
+            },
+            {
+              "name": "--ui-tree-diagram-slot-color",
+              "default": "var(--ui-text-muted)"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "UITreeDiagram",
+          "declaration": {
+            "name": "UITreeDiagram",
+            "module": "src/components/ui-tree-diagram/index.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ui-tree-diagram",
+          "declaration": {
+            "name": "UITreeDiagram",
+            "module": "src/components/ui-tree-diagram/index.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/components/ui-visibility/index.ts",
       "declarations": [
         {

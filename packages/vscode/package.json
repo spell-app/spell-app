@@ -29,6 +29,12 @@
         "enablement": "editorLangId == spell"
       },
       {
+        "command": "spell.showLineTree",
+        "title": "Show Tree for This Line",
+        "category": "Spell",
+        "enablement": "editorLangId == spell"
+      },
+      {
         "command": "spell.runProject",
         "title": "Run Project",
         "category": "Spell",
@@ -155,6 +161,13 @@
       }
     ],
     "menus": {
+      "editor/context": [
+        {
+          "command": "spell.showLineTree",
+          "when": "editorLangId == spell",
+          "group": "navigation"
+        }
+      ],
       "editor/title": [
         {
           "command": "spell.showCompiled",
@@ -318,6 +331,11 @@
           "type": "webview",
           "id": "spell.docView",
           "name": "Spell Docs"
+        },
+        {
+          "type": "webview",
+          "id": "spell.treeView",
+          "name": "Spell Tree"
         }
       ],
       "spell-review": [

@@ -148,11 +148,15 @@ export type FormatOptions = GlobalOptions & {
  * - `rule`:  parse as this rule only, e.g. `expression`
  * - `in`:  parse inside this target's project, e.g. `@test/Solitaire`
  * - `json`:  print the result as JSON
+ * - `tree`:  print the spell tree (what it means), not the match tree
+ * - `html`:  with `tree`, print it as a `<ui-tree-diagram>` for a docs page
  */
 export type ParseOptions = GlobalOptions & {
   rule?: string
   in?: string
   json?: boolean
+  tree?: boolean
+  html?: boolean
 }
 
 /**
