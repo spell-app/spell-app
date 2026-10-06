@@ -1,11 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 import { page, userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
 import type { ToastActionDetail, ToastCloseDetail, ToastShowDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { Viewport } from "$/ui/test/Viewport"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -44,15 +45,37 @@ function record<T = ToastCloseDetail>(target: EventTarget, name: string) {
   return details
 }
 
-/** Wait `ms`. */
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+/**
+ * Fake the countdown's clock -- `setTimeout` and `performance.now()` -- for one test;  animations stay real.
+ * - Move it with `vi.advanceTimersByTimeAsync(ms)`.
+ */
+function fakeClock() {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "performance"] })
+  onTestFinished(() => void vi.useRealTimers())
+}
+
+/**
+ * Let the box's entry / exit animation (1ms here) end, and its handlers run:  by then, a close that started has
+ * hidden the toast.  For checks that something did NOT happen.
+ */
+async function animationsDone(host: Element) {
+  await UI.transitions.whenTransitionEnds(host.shadowRoot!.querySelector("[part~=box]")!)
+  await Viewport.frame()
+  await ElementFixture.tick()
 }
 
 /** Part names of `root`'s children, in order. */
 function partsOf(root: Element) {
   return [...root.children].map((child) => `${child.localName}.${child.getAttribute("part")}`)
 }
+
+/** `element`'s attributes, by name. */
+function attributesOf(element: Element): Record<string, string> {
+  return Object.fromEntries([...element.attributes].map(({ name, value }) => [name, value]))
+}
+
+/** A time no countdown here comes near. */
+const LONG_AFTER = 60_000
 
 beforeEach(async () => {
   await UI.load()
@@ -64,6 +87,10 @@ afterEach(() => {
   UI.overlays.closeAll("toast")
   for (const container of document.querySelectorAll(".ui.toast-container")) container.remove()
 })
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-toast> definition", () => {
   it("registers its texts with UI.i18n when DEFINED", () => {
@@ -108,6 +135,10 @@ describe("<ui-toast> classes", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("<ui-toast> tokens from outside", () => {
   /** The toast's top-left radius. */
   function radius(root: Element): string {
@@ -151,6 +182,10 @@ describe("<ui-toast> tokens from outside", () => {
     await expect.poll(() => getComputedStyle(root).width).toBe("200px")
   })
 })
+
+////////////////
+// ## Content
+////////////////
 
 describe("<ui-toast> content", () => {
   it("renders in contract order:  icon, content (header, message, slot), close", async () => {
@@ -285,6 +320,10 @@ describe("<ui-toast> actions bar", () => {
   })
 })
 
+////////////////
+// ## Life and closing
+////////////////
+
 describe("<ui-toast> life", () => {
   // `pause-on-hover="false"` on the timer tests:  on CI (Linux) they never time out, perhaps because the test
   // pointer rests where toasts appear -- see `agents/SUSPECTED-BUGS.md`.  Hover pausing has its own tests, below.
@@ -302,17 +341,23 @@ describe("<ui-toast> life", () => {
   })
 
   it("stays without a display time", async () => {
+    fakeClock()
     const { host } = await toast(`<ui-toast message="Stay"></ui-toast>`)
-    await wait(100)
+    await vi.advanceTimersByTimeAsync(LONG_AFTER)
+    await animationsDone(host)
     expect(host.hidden).toBe(false)
   })
 
   it("stays when a handler cancels ui-close", async () => {
+    fakeClock()
     const host = Fixture.render<Toast>(`<ui-toast display-time="40" pause-on-hover="false" message="Stay"></ui-toast>`)
     host.addEventListener("ui-close", (event) => event.preventDefault())
     const closes = record(host, "ui-close")
+    await host.ready
+    await vi.advanceTimersByTimeAsync(40)
     await expect.poll(() => closes.length).toBe(1)
-    await wait(40)
+    await vi.advanceTimersByTimeAsync(LONG_AFTER)
+    await animationsDone(host)
     expect(host.hidden).toBe(false)
   })
 
@@ -351,14 +396,15 @@ describe("<ui-toast> life", () => {
   it("never takes focus", async () => {
     const button = Fixture.render<HTMLButtonElement>(`<button>Keep me</button>`)
     button.focus()
-    await toast(`<ui-toast closable message="Hi"><ui-button slot="actions">Ok</ui-button></ui-toast>`)
-    await wait(20)
+    const { host } = await toast(`<ui-toast closable message="Hi"><ui-button slot="actions">Ok</ui-button></ui-toast>`)
+    await animationsDone(host)
     expect(document.activeElement).toBe(button)
   })
 })
 
 describe("<ui-toast> pausing", () => {
   it("pauses while the pointer is over it, and resumes after", async () => {
+    fakeClock()
     const host = Fixture.render<Toast>(`<ui-toast display-time="120" progress="bottom" message="Hover"></ui-toast>`)
     await next(host, "ui-show")
     host.dispatchEvent(new PointerEvent("pointerenter"))
@@ -367,9 +413,10 @@ describe("<ui-toast> pausing", () => {
     expect(host.matches(":state(paused)")).toBe(true)
     const bar = host.shadowRoot!.querySelector<HTMLElement>("[part~=bar]")!
     expect(getComputedStyle(bar).animationPlayState).toBe("paused")
-    await wait(200)
+    await vi.advanceTimersByTimeAsync(200)
     expect(host.hidden).toBe(false)
     host.dispatchEvent(new PointerEvent("pointerleave"))
+    await vi.advanceTimersByTimeAsync(120)
     await expect.poll(() => host.hidden, { timeout: 1000 }).toBe(true)
   })
 
@@ -389,6 +436,7 @@ describe("<ui-toast> pausing", () => {
   })
 
   it("pauses while focus is inside, whatever pause-on-hover says", async () => {
+    fakeClock()
     const host = Fixture.render<Toast>(
       `<ui-toast display-time="100" pause-on-hover="false" closable message="Focus"></ui-toast>`
     )
@@ -396,10 +444,11 @@ describe("<ui-toast> pausing", () => {
     host.shadowRoot!.querySelector<HTMLButtonElement>("[part~=close]")!.focus()
     await ElementFixture.tick()
     expect(host.matches(":state(paused)")).toBe(true)
-    await wait(180)
+    await vi.advanceTimersByTimeAsync(180)
     expect(host.hidden).toBe(false)
     // the DEEP active element:  `document.activeElement` is the host, and Firefox's `blur()` on a host does nothing
     ;(UI.focus.activeElementDeep() as HTMLElement).blur()
+    await vi.advanceTimersByTimeAsync(100)
     await expect.poll(() => host.hidden, { timeout: 1000 }).toBe(true)
   })
 })
@@ -503,6 +552,10 @@ describe("<ui-toast> keyboard", () => {
   })
 })
 
+////////////////
+// ## UI.toast()
+////////////////
+
 describe("UI.toast()", () => {
   it("builds a <ui-toast> in a top-right container:  a region popover in the top layer", async () => {
     const handle = UI.toast({ title: "Saved", message: "All good", class: "success", displayTime: 0 })
@@ -554,17 +607,18 @@ describe("UI.toast()", () => {
       compact: false,
       displayTime: "auto"
     })
-    const element = handle.element!
-    expect(element.getAttribute("color")).toBe("blue")
-    expect(element.hasAttribute("inverted")).toBe(true)
-    expect(element.getAttribute("icon")).toBe("")
-    expect(element.getAttribute("progress")).toBe("top")
-    expect(element.hasAttribute("progress-up")).toBe(true)
-    expect(element.getAttribute("pause-on-hover")).toBe("false")
-    expect(element.hasAttribute("closable")).toBe(true)
-    expect(element.getAttribute("close-on-click")).toBe("false")
-    expect(element.getAttribute("compact")).toBe("false")
-    expect(element.getAttribute("display-time")).toBe("auto")
+    expect(attributesOf(handle.element!)).toMatchObject({
+      color: "blue",
+      inverted: expect.any(String),
+      icon: "",
+      progress: "top",
+      "progress-up": expect.any(String),
+      "pause-on-hover": "false",
+      closable: expect.any(String),
+      "close-on-click": "false",
+      compact: "false",
+      "display-time": "auto"
+    })
   })
 
   it("keeps every `class` word on the host, so the page can theme ONE toast", async () => {
@@ -646,6 +700,10 @@ describe("UI.toast()", () => {
   })
 })
 
+////////////////
+// ## Accessibility
+////////////////
+
 describe("<ui-toast> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
     const root = await ElementFixture.render(EXAMPLES[path]!)
@@ -660,12 +718,17 @@ describe("<ui-toast> accessibility", () => {
   })
 })
 
+////////////////
+// ## Invoker commands
+////////////////
+
 describe("<ui-toast> invoker commands", () => {
   const NATIVE = "commandForElement" in HTMLButtonElement.prototype
 
-  /** A plain `command` event, what the button's JS fallback dispatches. */
-  const send = (host: Element, command: string) =>
+  /** Dispatch a plain `command` event, what the button's JS fallback dispatches. */
+  function send(host: Element, command: string) {
     host.dispatchEvent(Object.assign(new Event("command", { cancelable: true }), { command }))
+  }
 
   it.skipIf(!NATIVE)("a native `--close` button dismisses it:  reason `close`, then hidden", async () => {
     const wrapper = await ElementFixture.render<HTMLElement>(
@@ -685,7 +748,7 @@ describe("<ui-toast> invoker commands", () => {
     const { host } = await toast(`<ui-toast message="Hi"></ui-toast>`)
     host.addEventListener("ui-close", (event) => event.preventDefault())
     send(host, "--close")
-    await wait(400)
+    await animationsDone(host)
     expect(host.hidden).toBe(false)
   })
 
@@ -694,7 +757,7 @@ describe("<ui-toast> invoker commands", () => {
     const closes = record(host, "ui-close")
     send(host, "--toggle")
     send(host, "--show")
-    await wait(50)
+    await animationsDone(host)
     expect(closes).toHaveLength(0)
     expect(host.hidden).toBe(false)
     const hidden = next<ToastCloseDetail>(host, "ui-hide")
@@ -702,7 +765,7 @@ describe("<ui-toast> invoker commands", () => {
     await hidden
     send(host, "--show")
     send(host, "--toggle")
-    await wait(50)
+    await animationsDone(host)
     expect(host.hidden).toBe(true)
   })
 

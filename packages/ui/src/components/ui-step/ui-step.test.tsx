@@ -1,12 +1,12 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Viewport } from "$/ui/test/viewport"
+import { Viewport } from "$/ui/test/Viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-step"
@@ -55,6 +55,10 @@ function uneven(attributes: string) {
     `<ui-step selected header="A much longer step"></ui-step><ui-step header="C"></ui-step></ui-steps></div>`
   )
 }
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-steps> classes", () => {
   it.each([
@@ -168,6 +172,10 @@ describe("<ui-step>", () => {
     expect(token(link!, "--_ui-step-state")).toBe("disabled")
   })
 })
+
+////////////////
+// ## Layouts
+////////////////
 
 describe("<ui-steps> layouts", () => {
   it("draws a row of steps with arrows between them, rounded at the ends", async () => {
@@ -349,6 +357,10 @@ describe("<ui-steps> outer margin", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("<ui-steps> tokens from outside", () => {
   const RED = "rgb(255, 0, 0)"
   /** Three steps, content as a slotted part in the first. */
@@ -432,6 +444,10 @@ describe("<ui-steps> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Keyboard
+////////////////
+
 describe("<ui-step> keyboard", () => {
   it("makes link and button steps Tab stops, plain steps not", async () => {
     const holder = await ElementFixture.render(
@@ -454,6 +470,10 @@ describe("<ui-step> keyboard", () => {
     expect(document.activeElement).not.toBe(holder.querySelector("ui-step[disabled]"))
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-step> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

@@ -1,17 +1,20 @@
 import { flush } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import type { UIHost } from "$/ui/elements"
 import { SiteData, type SiteDataFile, type SiteTag } from "$/ui/docs-components"
 
-import { NavIndex } from "./NavIndex"
 import { STORAGE_KEYS } from "./ui-docs-nav.types"
 import type { DocsNavHost } from "./DocsNavHost"
 
 import "$/ui/docs-components/ui-docs-nav"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** Element-markup examples, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-nav/examples/elements/*.html", {
@@ -97,6 +100,10 @@ afterEach(() => {
   SiteData.url = undefined
 })
 
+////////////////
+// ## Helpers
+////////////////
+
 /** Render a nav (links under `#/`, so following one only changes the hash), wait for its list. */
 async function render(attributes = "", html?: string) {
   const nav = await ElementFixture.render<DocsNavHost>(html ?? `<ui-docs-nav base="#/" ${attributes}></ui-docs-nav>`)
@@ -146,6 +153,10 @@ async function click(nav: Element, selector: string) {
   await settle(nav)
 }
 
+////////////////
+// ## Lists, topics and folds
+////////////////
+
 describe("<ui-docs-nav> lists", () => {
   it("lists the top links, every component A-Z (no docs tags), then Foundation", async () => {
     const nav = await render()
@@ -194,11 +205,6 @@ describe("<ui-docs-nav> lists", () => {
       "#/components/ui-button.html#ui-buttons"
     )
     expect(find(nav, '[data-nav-link="ui-buttons"]').localName).toBe("a")
-  })
-
-  it("defaults `base` to the site root above the data file", async () => {
-    SiteData.reset("/somewhere/site/_data/components.json")
-    expect(SiteData.root()).toBe(`${location.origin}/somewhere/site/`)
   })
 
   it("badges a family that isn't done", async () => {
@@ -269,9 +275,11 @@ describe("<ui-docs-nav> topics", () => {
     const toggles = [...nav.shadowRoot!.querySelectorAll(".topic")]
     expect(toggles.map((toggle) => toggle.getAttribute("data-nav-topic"))).toEqual(["buttons", "forms", "date & time"])
     expect(toggles.map((toggle) => toggle.querySelector(".count")!.textContent)).toEqual(["3", "3", "1"])
-    expect(toggles[0]!.localName).toBe("button")
-    expect(toggles[0]!.parentElement!.localName).toBe("h3")
-    expect(toggles[0]!.getAttribute("aria-expanded")).toBe("false")
+    expect({
+      tag: toggles[0]!.localName,
+      heading: toggles[0]!.parentElement!.localName,
+      expanded: toggles[0]!.getAttribute("aria-expanded")
+    }).toEqual({ tag: "button", heading: "h3", expanded: "false" })
     expect(links(nav, ".topic-rows")).toEqual([])
   })
 
@@ -386,6 +394,10 @@ describe("<ui-docs-nav> folding groups", () => {
   })
 })
 
+////////////////
+// ## Search and favourites
+////////////////
+
 describe("<ui-docs-nav> search", () => {
   it.each([
     ["butt", ["ui-button", "ui-buttons", "ui-checkbox"]],
@@ -494,6 +506,10 @@ describe("<ui-docs-nav> favourites", () => {
   })
 })
 
+////////////////
+// ## Navigation and scrolling
+////////////////
+
 describe("<ui-docs-nav> navigation and scrolling", () => {
   it("fires a cancelable `ui-navigate` for a plain click on a link", async () => {
     const nav = await render()
@@ -536,37 +552,9 @@ describe("<ui-docs-nav> navigation and scrolling", () => {
   })
 })
 
-describe("NavIndex", () => {
-  it.each([
-    ["Date & Time", "datetime"],
-    ["date-time", "datetime"],
-    ["ui-date", "uidate"],
-    ["  Ünïcode ", "unicode"]
-  ])("normalizes %j", (text, normalized) => {
-    expect(NavIndex.normalize(text)).toBe(normalized)
-  })
-
-  it("never matches across two terms", () => {
-    const key = NavIndex.key(["Button", "ui-button"])
-    expect(NavIndex.matches(key, "button")).toBe(true)
-    expect(NavIndex.matches(key, "buttonui")).toBe(false)
-    expect(NavIndex.matches(key, "")).toBe(true)
-  })
-
-  it("builds rows A-Z and the used topics, in the data's order", () => {
-    const index = new NavIndex(DATA)
-    expect(index.rows.map((row) => row.tag)).toEqual([
-      "ui-button",
-      "ui-buttons",
-      "ui-calendar",
-      "ui-checkbox",
-      "ui-input"
-    ])
-    expect(index.topics.map((topic) => topic.id)).toEqual(["buttons", "forms", "date & time"])
-    expect(index.row("ui-calendar")!.status).toBe("in-progress")
-    expect(index.row("ui-docs-example")).toBeUndefined()
-  })
-})
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-docs-nav> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

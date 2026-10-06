@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { railVocabulary } from "./ui-rail.vocabulary.en"
 
@@ -38,6 +38,10 @@ function measure(root: Element, selector: string) {
   }
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-rail.css source", () => {
   it("never uses rem or !important", () => {
     const text = Sheets.withoutComments(railRaw)
@@ -56,6 +60,10 @@ describe("ui-rail.css source", () => {
     expect(Sheets.covers(railRaw, "right")).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-rail.css examples", () => {
   it("places rails outside, inside and dividing", () => {
@@ -81,6 +89,10 @@ describe("ui-rail.css examples", () => {
     expect(parseFloat(measure(root, ".ui.large.rail").style.fontSize)).toBeCloseTo(18, 0)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-rail.css tokens", () => {
   it("takes a public token from a wrapper or the rail itself (static markup)", () => {

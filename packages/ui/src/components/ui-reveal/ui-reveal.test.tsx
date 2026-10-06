@@ -1,9 +1,9 @@
 /// <reference types="vite-plus/test/browser-playwright" />
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { commands, userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -41,6 +41,10 @@ async function render(html: string) {
 async function settled(element: Element) {
   await Promise.all(element.getAnimations().map((animation) => animation.finished))
 }
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-reveal> classes", () => {
   it.each([
@@ -80,6 +84,10 @@ describe("<ui-reveal> structure", () => {
     expect(Number(getComputedStyle(visible).zIndex)).toBeGreaterThan(Number(getComputedStyle(hidden).zIndex))
   })
 })
+
+////////////////
+// ## Behaviour
+////////////////
 
 describe("<ui-reveal> revealing", () => {
   it("reveals on hover", async () => {
@@ -149,6 +157,10 @@ describe("<ui-reveal> revealing", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("<ui-reveal> tokens from outside", () => {
   /** The visible content's transition duration. */
   async function duration(html: string, select = (element: Element) => element) {
@@ -183,6 +195,10 @@ describe("<ui-reveal> tokens from outside", () => {
     expect(await duration(markup("fade"))).toBe("0.5s")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-reveal> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

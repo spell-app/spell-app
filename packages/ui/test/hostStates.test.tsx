@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vite-plus/test"
+import { describe, expect, it, vi } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -14,15 +14,14 @@ describe("UIElement.mount() effects", () => {
         throw new Error("forced hostStates failure")
       }
     })
-    const original = console.error
-    console.error = () => {}
+    const error = vi.spyOn(console, "error").mockImplementation(() => {})
     try {
       // `closingState` is read by the original `hostStates()`, so the effect's compute re-runs
       ;(host as unknown as { close(): boolean }).close()
       await ElementFixture.tick()
       await ElementFixture.tick()
     } finally {
-      console.error = original
+      error.mockRestore()
     }
     expect(host.matches(":state(errored)")).toBe(true)
   })

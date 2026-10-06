@@ -23,9 +23,12 @@ async function place(blob: string) {
 describe("<ui-brand-blob>", () => {
   it("hangs off the bottom-right corner by default, 420 x 360, decorative", async () => {
     const { element, left, top, width, height } = await place(`<ui-brand-blob></ui-brand-blob>`)
-    expect([width, height]).toEqual([420, 360])
-    expect(left).toBe(800 + 160 - 420)
-    expect(top).toBe(400 + 180 - 360)
+    expect({ left, top, width, height }).toEqual({
+      left: 800 + 160 - 420,
+      top: 400 + 180 - 360,
+      width: 420,
+      height: 360
+    })
     expect(getComputedStyle(element).pointerEvents).toBe("none")
     expect(shape(element).getAttribute("aria-hidden")).toBe("true")
     expect([...shape(element).classList]).toEqual(["blob", "organic", "bottom-right", "tone-blob"])

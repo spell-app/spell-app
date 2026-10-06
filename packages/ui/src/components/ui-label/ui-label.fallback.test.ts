@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 
 import { LabelFallback } from "./ui-label.fallback"
@@ -16,9 +16,8 @@ describe("LabelFallback", () => {
       `<x-fb-label color="blue" basic detail="23" aria-label="Mail 23">Mail</x-fb-label>`
     )
     const label = FallbackStub.shadow(host).querySelector("span")!
-    expect(label.className).toBe("ui blue basic label")
+    expect(label).toMatchObject({ className: "ui blue basic label", ariaLabel: "Mail 23" })
     expect(label.getAttribute("part")).toBe("label")
-    expect(label.getAttribute("aria-label")).toBe("Mail 23")
     expect(label.querySelector("slot")).not.toBeNull()
     expect(label.querySelector(".detail")!.textContent).toBe("23")
     await expectAccessible(host)

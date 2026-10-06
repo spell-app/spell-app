@@ -6,7 +6,7 @@ import { StaticRender } from "$/ui/static"
 import { UIText } from "$/ui/components/ui-text/UIText"
 
 /** `<ui-text>` in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-text static render", () => {
+describe("<ui-text> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIText)
   })

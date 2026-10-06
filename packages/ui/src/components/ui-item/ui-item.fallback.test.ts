@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 
 import { ItemFallback } from "./ui-item.fallback"
@@ -25,9 +25,7 @@ describe("ItemFallback", () => {
     const [a, header, disabled] = [...menu.querySelectorAll<StubHost>("ui-item")].map(
       (item) => FallbackStub.shadow(item).firstElementChild as HTMLElement
     )
-    expect(a!.localName).toBe("a")
-    expect(a!.className).toBe("item active")
-    expect(a!.getAttribute("aria-current")).toBe("page")
+    expect(a).toMatchObject({ localName: "a", className: "item active", ariaCurrent: "page" })
     expect(a!.getAttribute("part")).toBe("item")
     expect(a!.querySelector("slot")).not.toBeNull()
     expect(header!.localName).toBe("div")

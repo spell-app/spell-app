@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import { RovingTabindex } from "./RovingTabindex"
 
 /** Dispatch a `keydown` from `target`. */
@@ -19,7 +19,7 @@ function list() {
     </ul>`)
 }
 
-describe("RovingTabindex", () => {
+describe("RovingTabindex.attach()", () => {
   it("makes one tab stop and moves it with arrows, skipping disabled items", () => {
     const container = list()
     const onChange = vi.fn()
@@ -51,7 +51,7 @@ describe("RovingTabindex", () => {
     stuck.detach()
   })
 
-  it("Home / End and horizontal orientation", () => {
+  it("moves to the ends with Home / End;  horizontal ignores the vertical arrows", () => {
     const container = list()
     const roving = RovingTabindex.attach({ container, items: "li", orientation: "horizontal" })
     roving.focus(1)

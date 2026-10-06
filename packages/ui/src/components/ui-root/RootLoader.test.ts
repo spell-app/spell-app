@@ -13,6 +13,28 @@ describe("RootLoader.load()", () => {
   it("doesn't know the doc-only families until a bundle adds them (I12)", async () => {
     await expect(RootLoader.load("ui-docs-toc")).rejects.toThrow('no family "ui-docs-toc"')
   })
+
+  it("rejects a folder with no family", async () => {
+    await expect(RootLoader.load("ui-nope")).rejects.toThrow(/no family/)
+  })
+})
+
+describe("RootLoader.folderFor()", () => {
+  it("names the family that defines a tag;  nothing for an `Object.prototype` key", () => {
+    expect(RootLoader.folderFor("ui-buttons")).toBe("ui-button")
+    expect(RootLoader.folderFor("toString")).toBeUndefined()
+  })
+})
+
+describe("RootLoader.undefinedTags()", () => {
+  it("lists each undefined `ui-*` tag once;  defined ones and an app's own elements are left out", () => {
+    customElements.define("ui-test-loader-defined", class extends HTMLElement {})
+    const root = document.createElement("div")
+    root.innerHTML =
+      `<ui-test-loader-a></ui-test-loader-a><p><ui-test-loader-a></ui-test-loader-a></p>` +
+      `<ui-test-loader-defined></ui-test-loader-defined><app-widget></app-widget>`
+    expect(RootLoader.undefinedTags(root)).toEqual(new Set(["ui-test-loader-a"]))
+  })
 })
 
 describe("RootLoader.add()", () => {

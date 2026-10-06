@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { checkboxVocabulary } from "./ui-checkbox.vocabulary.en"
 import { radioVocabulary } from "./ui-radio.vocabulary.en"

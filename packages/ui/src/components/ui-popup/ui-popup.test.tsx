@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 import { page, userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
 import type { PopupOpenDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -40,11 +40,32 @@ function record(target: EventTarget, name: string) {
   return details
 }
 
-/** Wait for the element to catch up with events and timers (`ms` covers a delay). */
-async function settle(ms = 0) {
-  if (ms) await new Promise((resolve) => setTimeout(resolve, ms))
+/** Let the element catch up with events. */
+async function settle() {
   await ElementFixture.tick()
   await ElementFixture.tick()
+}
+
+/**
+ * Fake `setTimeout` for this test, so `advance()` runs the element's show / hide delays.
+ * - Only the timers:  the pointer, focus and the popover's own events still come from the browser.
+ */
+function fakeTimers() {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+  onTestFinished(() => {
+    vi.useRealTimers()
+  })
+}
+
+/** Move the faked clock `ms` on (`fakeTimers()`), then let the element catch up. */
+async function advance(ms: number) {
+  await vi.advanceTimersByTimeAsync(ms)
+  await settle()
+}
+
+/** Resolves on `host`'s next `toggle` event (the browser queues it after a popover shows or hides). */
+function nextToggle(host: Element) {
+  return new Promise((resolve) => host.addEventListener("toggle", resolve, { once: true }))
 }
 
 /** Is `host` shown in the top layer? */
@@ -57,6 +78,10 @@ beforeEach(async () => {
   // Escape through a keyboard binding rather than `CloseWatcher`, so every test can press it
   UI.overlays.useCloseWatcher = false
 })
+
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-popup> classes", () => {
   it.each([
@@ -86,6 +111,10 @@ describe("<ui-popup> classes", () => {
   })
 })
 
+////////////////
+// ## Content
+////////////////
+
 describe("<ui-popup> content", () => {
   it("renders the header and content shorthands, then the slot", async () => {
     const { root } = await popup(`<button>t</button><ui-popup header="Title" content="Body">Extra</ui-popup>`)
@@ -111,6 +140,10 @@ describe("<ui-popup> content", () => {
     expect(host.querySelector("ui-content")!.matches(":state(in-popup)")).toBe(true)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-popup> tokens from outside", () => {
   /** The box's top-left radius. */
@@ -179,6 +212,10 @@ describe("<ui-popup> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Target
+////////////////
+
 describe("<ui-popup> target", () => {
   it("is the previous element sibling by default (Fomantic's inline popup)", async () => {
     const { host, wrapper } = await popup(`<button id="a">A</button><ui-popup>Tip</ui-popup>`)
@@ -229,8 +266,13 @@ describe("<ui-popup> target", () => {
   })
 })
 
+////////////////
+// ## Hover
+////////////////
+
 describe("<ui-popup> hover", () => {
   it("shows after show-delay, as a `hint` popover, with ui-open;  hides after hide-delay", async () => {
+    fakeTimers()
     const { host, wrapper } = await popup(
       `<button>Target</button><ui-popup show-delay="30" hide-delay="30">Tip</ui-popup>`
     )
@@ -239,44 +281,45 @@ describe("<ui-popup> hover", () => {
     await userEvent.hover(wrapper.querySelector("button")!)
     await settle()
     expect(shown(host)).toBe(false)
-    await settle(60)
+    await advance(60)
     expect(shown(host)).toBe(true)
-    expect(host.popover).toBe(UI.browser.supports.popoverHint ? "hint" : "manual")
-    expect(host.open).toBe(true)
+    expect(host).toMatchObject({ popover: UI.browser.supports.popoverHint ? "hint" : "manual", open: true })
     expect(host.hasAttribute("open")).toBe(true)
     expect(opens).toHaveLength(1)
     expect(opens[0]!.open).toBe(true)
     await userEvent.unhover(wrapper.querySelector("button")!)
-    await settle(60)
+    await advance(60)
     expect(shown(host)).toBe(false)
     expect(host.open).toBe(false)
     expect(closes).toHaveLength(1)
   })
 
   it("stays open while the pointer is over the popup itself", async () => {
+    fakeTimers()
     const { host, wrapper } = await popup(
       `<button>Target</button><ui-popup show-delay="0" hide-delay="80">Tip</ui-popup>`
     )
     await userEvent.hover(wrapper.querySelector("button")!)
-    await settle(20)
+    await advance(20)
     expect(shown(host)).toBe(true)
     await userEvent.hover(host)
-    await settle(120)
+    await advance(120)
     expect(shown(host)).toBe(true)
     await userEvent.hover(wrapper, { position: { x: 1, y: 1 } })
-    await settle(120)
+    await advance(120)
     expect(shown(host)).toBe(false)
   })
 
   it('`hoverable="false"` (Fomantic\'s default) closes as the pointer leaves the target, even onto the popup', async () => {
+    fakeTimers()
     const { host, wrapper } = await popup(
       `<button>Target</button><ui-popup hoverable="false" show-delay="0" hide-delay="40">Tip</ui-popup>`
     )
     await userEvent.hover(wrapper.querySelector("button")!)
-    await settle(20)
+    await advance(20)
     expect(shown(host)).toBe(true)
     await userEvent.hover(host)
-    await settle(120)
+    await advance(120)
     expect(shown(host)).toBe(false)
     expect(host.shadowRoot!.querySelector("[part~=popup]")!.className).not.toContain("hoverable")
   })
@@ -313,12 +356,17 @@ describe("<ui-popup> hover", () => {
   })
 })
 
+////////////////
+// ## Focus
+////////////////
+
 describe("<ui-popup> focus", () => {
   it("opens on focus only, not on hover", async () => {
+    fakeTimers()
     const { host, wrapper } = await popup(`<button>Target</button><ui-popup on="focus" show-delay="0">Tip</ui-popup>`)
     const button = wrapper.querySelector("button")!
     await userEvent.hover(button)
-    await settle(20)
+    await advance(20)
     expect(shown(host)).toBe(false)
     button.focus()
     await settle()
@@ -329,6 +377,10 @@ describe("<ui-popup> focus", () => {
   })
 })
 
+////////////////
+// ## Click
+////////////////
+
 describe("<ui-popup> click", () => {
   /** A click popup with a control inside. */
   const CLICK = `<button id="t">Target</button><ui-popup for="t" on="click" header="Plan"><button>Choose</button></ui-popup>`
@@ -336,12 +388,10 @@ describe("<ui-popup> click", () => {
   it("is a non-modal dialog:  role, name, and aria-haspopup / -expanded / -controls on the target", async () => {
     const { host, wrapper } = await popup(CLICK)
     const button = wrapper.querySelector<HTMLButtonElement>("#t")!
-    expect(host.internals.role).toBe("dialog")
-    expect(host.internals.ariaLabel).toBe("Plan")
+    expect(host.internals).toMatchObject({ role: "dialog", ariaLabel: "Plan" })
     expect(host.popover).toBe("manual")
-    expect(button.getAttribute("aria-haspopup")).toBe("dialog")
+    expect(button).toMatchObject({ ariaHasPopup: "dialog", ariaExpanded: "false" })
     expect(button.getAttribute("aria-controls")).toBe(host.id)
-    expect(button.getAttribute("aria-expanded")).toBe("false")
     expect(button.hasAttribute("aria-describedby")).toBe(false)
     button.click()
     await settle()
@@ -405,6 +455,10 @@ describe("<ui-popup> click", () => {
   })
 })
 
+////////////////
+// ## Manual
+////////////////
+
 describe("<ui-popup> manual", () => {
   it("shows and hides with `open` only, as a `manual` popover, without events", async () => {
     const { host, wrapper } = await popup(`<button>Target</button><ui-popup on="manual">Tip</ui-popup>`)
@@ -425,8 +479,10 @@ describe("<ui-popup> manual", () => {
   it("follows the browser when it dismisses the popover itself:  a ui-close, `open` off", async () => {
     const { host } = await popup(`<button>Target</button><ui-popup on="manual" open>Tip</ui-popup>`)
     const closes = record(host, "ui-close")
+    const toggled = nextToggle(host)
     host.hidePopover()
-    await settle(10)
+    await toggled
+    await settle()
     expect(host.open).toBe(false)
     expect(closes).toHaveLength(1)
   })
@@ -442,6 +498,10 @@ describe("<ui-popup> manual", () => {
     expect(shown(host)).toBe(true)
   })
 })
+
+////////////////
+// ## Positioning
+////////////////
 
 describe("<ui-popup> positioning", () => {
   /** Rectangles of the popup box and its target. */
@@ -532,6 +592,10 @@ describe("<ui-popup> positioning", () => {
   })
 })
 
+////////////////
+// ## Accessibility
+////////////////
+
 describe("<ui-popup> accessibility", () => {
   it("a tooltip is role=tooltip;  a <ui-button> target's inner button is described by it", async () => {
     const { host, wrapper } = await popup(`<ui-button>Go</ui-button><ui-popup content="Goes">x</ui-popup>`)
@@ -563,7 +627,12 @@ describe("<ui-popup> accessibility", () => {
   })
 })
 
+////////////////
+// ## Invoker commands
+////////////////
+
 describe("<ui-popup> invoker commands", () => {
+  /** Whether this browser has native invoker commands (`commandfor`). */
   const NATIVE = "commandForElement" in HTMLButtonElement.prototype
 
   /** A manual popup at its own target, and buttons elsewhere that command it. */
@@ -572,9 +641,10 @@ describe("<ui-popup> invoker commands", () => {
     <button id="flip" commandfor="p" command="--toggle">Flip</button>
     <button id="hide" commandfor="p" command="--close">Hide</button>`
 
-  /** A plain `command` event, what the button's JS fallback dispatches. */
-  const send = (host: Element, command: string) =>
+  /** Dispatch a plain `command` event at `host`, what the button's JS fallback dispatches. */
+  function send(host: Element, command: string) {
     host.dispatchEvent(Object.assign(new Event("command", { cancelable: true }), { command }))
+  }
 
   it.skipIf(!NATIVE)(
     "REAL clicks on --toggle flip a manual and a click popup (no outside-close + reopen)",

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { markdownVocabulary } from "./ui-markdown.vocabulary.en"
 
@@ -52,9 +52,15 @@ describe("ui-markdown.css examples", () => {
         `<p>x</p><h2>Two</h2><hr><p><strong>bold</strong> <code>code</code></p></article>`
     )
     const h2 = getComputedStyle(root.querySelector("h2")!)
-    expect([h2.fontFamily, h2.fontWeight, h2.fontSize]).toEqual(["serif", "700", "28px"])
-    expect([h2.borderBottomStyle, h2.paddingBottom]).toEqual(["none", "0px"])
-    expect([h2.marginTop, h2.marginBottom]).toEqual(["30px", "10px"])
+    expect(h2).toMatchObject({
+      fontFamily: "serif",
+      fontWeight: "700",
+      fontSize: "28px",
+      borderBottomStyle: "none",
+      paddingBottom: "0px",
+      marginTop: "30px",
+      marginBottom: "10px"
+    })
     expect(getComputedStyle(root.querySelector("hr")!).height).toBe("1px")
     expect(getComputedStyle(root.querySelector("strong")!).color).toBe("rgb(255, 0, 0)")
     expect(getComputedStyle(root.querySelector("code")!).color).toBe("rgb(0, 0, 255)")

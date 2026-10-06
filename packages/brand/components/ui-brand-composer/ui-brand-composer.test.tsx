@@ -2,15 +2,23 @@ import { describe, expect, it, vi } from "vite-plus/test"
 
 import { UI, type UIHost } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import "$/brand/components/ui-brand-composer"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** `<ui-brand-composer>`'s host. */
 type ComposerHost = HTMLElement & { value?: string; casting?: boolean; disabled?: boolean; cast(): boolean }
 
 /** One event the composer dispatched. */
 type Fired = { type: string; value: string }
+
+////////////////
+// ## Helpers
+////////////////
 
 /** A part of `host`'s shadow root. */
 function part<T extends HTMLElement = HTMLElement>(host: Element, name: string): T {
@@ -55,13 +63,19 @@ async function composer(html: string): Promise<ComposerHost> {
   return ElementFixture.render<ComposerHost>(html)
 }
 
-describe("<ui-brand-composer>", () => {
+////////////////
+// ## The card
+////////////////
+
+describe("<ui-brand-composer> card", () => {
   it("renders the card:  text box (3 rows, the placeholder), the platform's hint, a named Cast button", async () => {
     const host = await composer(`<ui-brand-composer></ui-brand-composer>`)
     expect([...part(host, "composer").classList]).toEqual(["composer", "brand"])
-    expect(box(host).rows).toBe(3)
-    expect(box(host).placeholder).toBe("Describe what you want to build…")
-    expect(box(host).getAttribute("aria-label")).toBe("Your spell")
+    expect({
+      rows: box(host).rows,
+      placeholder: box(host).placeholder,
+      label: box(host).getAttribute("aria-label")
+    }).toEqual({ rows: 3, placeholder: "Describe what you want to build…", label: "Your spell" })
     const apple = UI.browser.isApple
     expect(part(host, "hint").textContent).toBe(apple ? "⌘↵ to cast" : "Ctrl+↵ to cast")
     expect(box(host).getAttribute("aria-describedby")).toBe(part(host, "hint").id)
@@ -100,9 +114,11 @@ describe("<ui-brand-composer>", () => {
     const host = await composer(
       `<ui-brand-composer placeholder="Say it" rows="2" label="Your app" hint="Enter twice"></ui-brand-composer>`
     )
-    expect(box(host).placeholder).toBe("Say it")
-    expect(box(host).rows).toBe(2)
-    expect(box(host).getAttribute("aria-label")).toBe("Your app")
+    expect({
+      rows: box(host).rows,
+      placeholder: box(host).placeholder,
+      label: box(host).getAttribute("aria-label")
+    }).toEqual({ rows: 2, placeholder: "Say it", label: "Your app" })
     expect(part(host, "hint").textContent).toBe("Enter twice")
     const bare = await composer(`<ui-brand-composer placeholder="" hint=""></ui-brand-composer>`)
     expect(box(bare).placeholder).toBe("")
@@ -140,7 +156,13 @@ describe("<ui-brand-composer>", () => {
     expect(button(host).getBoundingClientRect().right).toBeCloseTo(bar.right, 0)
     await expectAccessible(host)
   })
+})
 
+////////////////
+// ## Typing and casting
+////////////////
+
+describe("<ui-brand-composer> casting", () => {
   it("typing:  `ui-input` per keystroke, `host.value` follows;  leaving it edited:  `ui-change`", async () => {
     const host = await composer(`<ui-brand-composer></ui-brand-composer>`)
     const fired = record(host)
@@ -249,7 +271,13 @@ describe("<ui-brand-composer>", () => {
     expect(host.cast()).toBe(false)
     expect(fired).toEqual([])
   })
+})
 
+////////////////
+// ## Form control and fallback
+////////////////
+
+describe("<ui-brand-composer> form", () => {
   it("in a `<form>`:  submits `value` under `name` on cast;  `preventDefault()` on `ui-cast` stops it", async () => {
     const form = await ElementFixture.render<HTMLFormElement>(
       `<form><ui-brand-composer name="spell" value="A habit tracker"></ui-brand-composer></form>`

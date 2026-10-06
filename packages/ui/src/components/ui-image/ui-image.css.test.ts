@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { imageVocabulary } from "./ui-image.vocabulary.en"
 import { imagesVocabulary } from "./ui-images.vocabulary.en"
@@ -28,6 +28,10 @@ const ALLOWED_IMPORTANT = 0
 const SQUARE =
   "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 " +
   "viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-image.css source", () => {
   it("never uses rem", () => {
@@ -60,6 +64,10 @@ describe("ui-image.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-image.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every image in %s", (path) => {
@@ -153,6 +161,10 @@ describe("ui-image.css examples", () => {
   })
 })
 
+////////////////
+// ## Groups
+////////////////
+
 describe("ui-image.css groups", () => {
   it("hands its children size, spacing and looks", () => {
     Sheets.adopt([...foundationCSS, imageCSS])
@@ -178,6 +190,10 @@ describe("ui-image.css groups", () => {
   })
 })
 
+////////////////
+// ## Groups beside the page's other sheets
+////////////////
+
 describe("ui-image.css groups beside the page's other sheets", () => {
   it("an `ui avatar images` group keeps its 2em avatars next to ui-parts.css (whose bare `.avatar img` is a part's)", () => {
     Sheets.adopt([...foundationCSS, imageCSS, partsCSS])
@@ -186,6 +202,10 @@ describe("ui-image.css groups beside the page's other sheets", () => {
     expect(avatar.clientWidth).toBe(Math.round(2 * parseFloat(getComputedStyle(avatar).fontSize)))
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-image.css tokens", () => {
   it("takes a public token from a wrapper or the image itself (static markup)", () => {
@@ -198,6 +218,10 @@ describe("ui-image.css tokens", () => {
     expect(getComputedStyle(root.nextElementSibling!).borderTopWidth).toBe("3px")
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-image.css in shadow roots", () => {
   it("renders the host as contents and the root as the image box", () => {

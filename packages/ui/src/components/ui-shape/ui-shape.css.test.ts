@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { shapeVocabulary } from "./ui-shape.vocabulary.en"
 
@@ -26,6 +26,10 @@ function example(): HTMLElement {
   Sheets.adopt([...foundationCSS, shapeCSS])
   return Fixture.render(EXAMPLES["./examples/shape.html"]!)
 }
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-shape.css source", () => {
   it("never uses rem", () => {
@@ -57,6 +61,10 @@ describe("ui-shape.css source", () => {
     expect(Sheets.covers(css, "animating")).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-shape.css examples", () => {
   it("only the active side shows;  the stage is an inline block with perspective", () => {
@@ -90,6 +98,10 @@ describe("ui-shape.css examples", () => {
     expect(getComputedStyle(root.querySelector(".hidden.side")!).opacity).toBe("0.6")
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-shape.css tokens", () => {
   it("takes a public token from a wrapper or the shape itself (static markup)", () => {

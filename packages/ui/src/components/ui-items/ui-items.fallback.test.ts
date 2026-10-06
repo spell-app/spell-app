@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 import { ItemFallback } from "$/ui/components/ui-item/ui-item.fallback"
 
@@ -24,11 +24,13 @@ describe("ItemsFallback", () => {
       `<ui-items divided relaxed="very" aria-label="Places"><ui-item>One</ui-item><ui-item href="#b">Two</ui-item></ui-items>`
     )
     const root = FallbackStub.shadow(host).firstElementChild as HTMLElement
-    expect(root.localName).toBe("div")
-    expect(root.className).toBe("ui divided very relaxed items")
+    expect(root).toMatchObject({
+      localName: "div",
+      className: "ui divided very relaxed items",
+      role: "list",
+      ariaLabel: "Places"
+    })
     expect(root.getAttribute("part")).toBe("items")
-    expect(root.getAttribute("role")).toBe("list")
-    expect(root.getAttribute("aria-label")).toBe("Places")
     expect(root.querySelector("slot")).not.toBeNull()
     expect(host.handle!.degraded.length).toBeGreaterThan(0)
     const [one, two] = host.querySelectorAll<StubHost>("ui-item")

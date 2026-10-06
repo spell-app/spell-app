@@ -7,7 +7,7 @@ import { UIImage } from "$/ui/components/ui-image/UIImage"
 import { UIImages } from "$/ui/components/ui-image/UIImages"
 
 /** `<ui-image>` / `<ui-images>` in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-image static render", () => {
+describe("<ui-image> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIImage, UIImages)
   })

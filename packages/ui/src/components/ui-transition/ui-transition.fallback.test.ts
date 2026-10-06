@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 
 import { TransitionFallback } from "./ui-transition.fallback"
@@ -45,7 +45,8 @@ describe("TransitionFallback", () => {
     const { host, box } = transition(`<x-fb-transition visible>x</x-fb-transition>`)
     host.handle!.dispose()
     host.removeAttribute("visible")
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    // a `MutationObserver` delivers in a microtask:  one turn would have shown a change
+    await Promise.resolve()
     expect(box.hidden).toBe(false)
   })
 })

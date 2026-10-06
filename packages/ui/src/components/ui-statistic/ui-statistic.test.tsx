@@ -1,10 +1,10 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Viewport } from "$/ui/test/viewport"
+import { Viewport } from "$/ui/test/Viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-statistic"
@@ -34,6 +34,10 @@ function token(element: Element, name: string): string {
 
 /** Root font size in px, the unit of the value ladder. */
 const BASE = 16
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-statistic> classes", () => {
   it.each([
@@ -109,6 +113,10 @@ describe("<ui-statistic> content", () => {
   })
 })
 
+////////////////
+// ## Layout
+////////////////
+
 describe("<ui-statistic> owner tokens and layout", () => {
   it("declares its layout, value sizes and --ui-inverted on the root, defaults included", async () => {
     const { root } = await render(`<ui-statistic value="1"></ui-statistic>`)
@@ -172,6 +180,10 @@ describe("<ui-statistic> owner tokens and layout", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("<ui-statistic> tokens from outside", () => {
   /** Two statistics;  the second one's start margin is the horizontal spacing. */
   const PAIR = `<ui-statistic value="1"></ui-statistic><ui-statistic value="2"></ui-statistic>`
@@ -234,6 +246,10 @@ describe("<ui-statistic> tokens from outside", () => {
     expect(getComputedStyle(horizontal.querySelector("[part=value]")!).fontSize).not.toBe("30px")
   })
 })
+
+////////////////
+// ## Groups
+////////////////
 
 describe("<ui-statistics>", () => {
   it.each([
@@ -354,6 +370,10 @@ describe("<ui-statistics equal>", () => {
   })
 })
 
+////////////////
+// ## Margins
+////////////////
+
 describe("<ui-statistic> outer margins", () => {
   it("re-decides a standalone statistic's margins by its HOST's position (the root is always an only child)", async () => {
     const holder = await ElementFixture.render(
@@ -387,6 +407,10 @@ describe("<ui-statistic> outer margins", () => {
     expect(getComputedStyle(horizontal!).marginTop).toBe("0px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-statistic> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

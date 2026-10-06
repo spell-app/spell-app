@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { itemsVocabulary } from "./ui-items.vocabulary.en"
 
@@ -51,6 +51,10 @@ function style(element: Element): CSSStyleDeclaration {
   return getComputedStyle(element)
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-items.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(itemsRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -89,6 +93,10 @@ describe("ui-items.css source", () => {
       expect(Sheets.covers(css, phrase), `${itemsVocabulary.tag}: ${phrase}`).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-items.css examples", () => {
   it.each(Object.keys(EXAMPLES))("lays out every item in %s", (path) => {

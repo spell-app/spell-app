@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { toastVocabulary } from "./ui-toast.vocabulary.en"
 
@@ -20,6 +20,10 @@ import containerRaw from "./ui-toast.container.css?raw"
 
 /** Every example fragment, by path. */
 const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-toast.css source", () => {
   it("never uses rem, nor !important", () => {
@@ -56,6 +60,10 @@ describe("ui-toast.css source", () => {
     )
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-toast.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every toast in %s", (path) => {
@@ -143,9 +151,7 @@ describe("ui-toast.css examples", () => {
     Sheets.adopt([...foundationCSS, toastCSS])
     const root = Fixture.render(EXAMPLES["./examples/variations.html"]!)
     const bar = getComputedStyle(root.querySelector(".ui.toast > .actions:not(.basic, .vertical)")!)
-    expect(bar.textAlign).toBe("right")
-    expect(bar.borderTopWidth).toBe("1px")
-    expect(bar.marginLeft).toBe(`-${bar.fontSize}`)
+    expect(bar).toMatchObject({ textAlign: "right", borderTopWidth: "1px", marginLeft: `-${bar.fontSize}` })
     const basic = getComputedStyle(root.querySelector(".ui.toast > .basic.actions")!)
     expect(basic.borderTopStyle).toBe("none")
     const vertical = root.querySelector<HTMLElement>(".ui.vertical.toast")!
@@ -173,6 +179,10 @@ describe("ui-toast.css examples", () => {
   })
 })
 
+////////////////
+// ## Containers
+////////////////
+
 describe("ui-toast.container.css", () => {
   it("pins a container to its corner, over the page, undoing the popover box", () => {
     Sheets.adopt([...foundationCSS, containerCSS])
@@ -180,10 +190,11 @@ describe("ui-toast.container.css", () => {
       `<div class="ui bottom left toast-container" popover="manual"><div style="width: 100px; height: 40px"></div></div>`
     )
     container.showPopover()
-    const style = getComputedStyle(container)
-    expect(style.position).toBe("fixed")
-    expect(style.backgroundColor).toBe("rgba(0, 0, 0, 0)")
-    expect(style.borderTopWidth).toBe("0px")
+    expect(getComputedStyle(container)).toMatchObject({
+      position: "fixed",
+      backgroundColor: "rgba(0, 0, 0, 0)",
+      borderTopWidth: "0px"
+    })
     const box = container.getBoundingClientRect()
     expect(box.left).toBeCloseTo(12, 0)
     expect(window.innerHeight - box.bottom).toBeCloseTo(12, 0)
@@ -204,14 +215,9 @@ describe("ui-toast.container.css", () => {
   })
 })
 
-/** Relative luminance (0..1) of a computed colour, via a canvas round trip. */
-function luminance(color: string): number {
-  const context = document.createElement("canvas").getContext("2d")!
-  context.fillStyle = color
-  context.fillRect(0, 0, 1, 1)
-  const [r, g, b] = context.getImageData(0, 0, 1, 1).data
-  return (0.2126 * r! + 0.7152 * g! + 0.0722 * b!) / 255
-}
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-toast.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {
@@ -222,3 +228,16 @@ describe("ui-toast.css tokens", () => {
     expect(getComputedStyle(root.querySelector(".ui.toast")!).borderTopLeftRadius).toBe("20px")
   })
 })
+
+////////////////
+// ## Helpers
+////////////////
+
+/** Relative luminance (0..1) of a computed colour, via a canvas round trip. */
+function luminance(color: string): number {
+  const context = document.createElement("canvas").getContext("2d")!
+  context.fillStyle = color
+  context.fillRect(0, 0, 1, 1)
+  const [r, g, b] = context.getImageData(0, 0, 1, 1).data
+  return (0.2126 * r! + 0.7152 * g! + 0.0722 * b!) / 255
+}

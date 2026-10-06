@@ -1,7 +1,7 @@
 import postcss from "postcss"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender, StaticSelectors, StaticStylesheet } from "$/ui/static"
+import { StaticRender, StaticStylesheet } from "$/ui/static"
 import { UICard } from "$/ui/components/ui-card/UICard"
 import { UICards } from "$/ui/components/ui-card/UICards"
 import { UIItem } from "$/ui/components/ui-item/UIItem"
@@ -11,8 +11,12 @@ import { UIContent } from "$/ui/components/ui-parts/UIContent"
 import { UIHeader } from "$/ui/components/ui-parts/UIHeader"
 import { UISegment } from "$/ui/components/ui-segment/UISegment"
 
+////////////////
+// ## The page's sheet
+////////////////
+
 /** The static page's ONE stylesheet:  shadow selectors gone, every component sheet kept to its own `@scope`. */
-describe("StaticStylesheet", () => {
+describe("StaticStylesheet.build()", () => {
   let css = ""
 
   beforeAll(() => {
@@ -47,7 +51,13 @@ describe("StaticStylesheet", () => {
     const menu = css.slice(css.indexOf("/* menu */"))
     expect(menu).toMatch(/@layer ui\.components\.menu\.[a-z]+ \{\s*@scope/)
   })
+})
 
+////////////////
+// ## Its pieces
+////////////////
+
+describe("StaticStylesheet.scope()", () => {
   it("moves a host-only rule to the first layer, without its display", () => {
     const css = StaticStylesheet.scope(
       "@layer ui.components.x { @media (width > 1px) { :host { display: block; --ui-x: 1 } .ui.x { color: red } } }",
@@ -59,7 +69,9 @@ describe("StaticStylesheet", () => {
     )
     expect(css).toMatch(/@layer ui\.components\.x \{\s*@scope [^{]+\{\s*@media \(width > 1px\) \{\s*\.ui\.x/)
   })
+})
 
+describe("StaticStylesheet.ordered()", () => {
   it("orders sheets so a later-adopted sheet's layers come later, as in the shadow root", () => {
     expect(
       StaticStylesheet.ordered(
@@ -80,35 +92,5 @@ describe("StaticStylesheet", () => {
         ]
       )
     ).toEqual(["a", "b"])
-  })
-
-  it("tests a wrapped item's position on its wrapper", () => {
-    expect(StaticSelectors.rewrite(":host(:first-child) > .item").selectors).toEqual([
-      ":scope:where([data-ui]):is(:is(:not([data-ui-li]) > *:first-child, [data-ui-li]:first-child > *)):is(.item)"
-    ])
-    expect(StaticSelectors.rewrite(".ui.list > .item:first-child", { listItems: true }).selectors).toEqual([
-      ".ui.list > .item:first-child:where(:scope, :not([data-ui-slotted]))",
-      ".ui.list > [data-ui-li]:first-child > .item:where(:scope, :not([data-ui-slotted]))"
-    ])
-  })
-
-  it("moves a whole :not(position) onto the wrapper, never leaving an empty :not()", () => {
-    expect(StaticSelectors.rewrite(".ui.feed > .event:not(:first-child)", { listItems: true }).selectors).toEqual([
-      ".ui.feed > .event:not(:first-child):where(:scope, :not([data-ui-slotted]))",
-      ".ui.feed > [data-ui-li]:not(:first-child) > .event:where(:scope, :not([data-ui-slotted]))"
-    ])
-    expect(
-      StaticSelectors.rewrite(":is(.ui.card, .ui.cards > .card) > :is(.button, .buttons)", { listItems: true })
-        .selectors.length
-    ).toBeGreaterThan(1)
-  })
-
-  it("lets a list group's child combinators step over the item wrapper", () => {
-    expect(StaticSelectors.rewrite(".ui.cards > .card > .image", { listItems: true }).selectors).toEqual([
-      ".ui.cards > .card > .image:where(:scope, :not([data-ui-slotted]))",
-      ".ui.cards > .card > [data-ui-li] > .image:where(:scope, :not([data-ui-slotted]))",
-      ".ui.cards > [data-ui-li] > .card > .image:where(:scope, :not([data-ui-slotted]))",
-      ".ui.cards > [data-ui-li] > .card > [data-ui-li] > .image:where(:scope, :not([data-ui-slotted]))"
-    ])
   })
 })

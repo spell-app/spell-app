@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { PartNouns, PartVocabularies } from "./ui-parts.types"
 
@@ -23,6 +23,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-parts.css source", () => {
   it("never uses rem", () => {
@@ -65,6 +69,10 @@ describe("ui-parts.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-parts.css examples", () => {
   it.each(Object.keys(EXAMPLES))("names and styles every owned part in %s", (path) => {
@@ -232,6 +240,10 @@ describe("ui-parts.css examples", () => {
     expect(getComputedStyle(avatars.querySelector(".in-card.avatar")!).borderTopLeftRadius).toBe("50%")
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-parts.css in shadow roots", () => {
   it("styles a part by its host's in-<owner> state, and reads the owner's tokens", () => {

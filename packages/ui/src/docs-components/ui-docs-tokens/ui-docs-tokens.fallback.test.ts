@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 import { SiteData, type SiteDataFile } from "$/ui/docs-components"
 
@@ -42,17 +42,20 @@ afterAll(() => SiteData.reset())
 async function render(attributes: string, children = "") {
   SiteData.reset(`data:application/json,${encodeURIComponent(JSON.stringify(DATA))}`)
   const host = Fixture.render<StubHost>(`<x-fb-docs-tokens ${attributes}>${children}</x-fb-docs-tokens>`)
+  // The fallback's own `.then` on the SAME cached promise was attached first (on connect), so it has filled the
+  // section by the time this await resumes
   await SiteData.load().catch(() => undefined)
-  await new Promise((resolve) => setTimeout(resolve))
   return { host, section: FallbackStub.shadow(host).firstElementChild as HTMLElement }
 }
 
-describe("DocsTokensFallback", () => {
+describe("DocsTokensFallback.render()", () => {
   it("renders a family's tokens as a plain native table, a swatch on colours", async () => {
     const { host, section } = await render(`family="x-chip" caption="Chip tokens"`)
-    expect(section.localName).toBe("section")
-    expect(section.className).toBe("ui tokens")
-    expect(section.getAttribute("part")).toBe("tokens")
+    expect({ tag: section.localName, class: section.className, part: section.getAttribute("part") }).toEqual({
+      tag: "section",
+      class: "ui tokens",
+      part: "tokens"
+    })
     const table = section.querySelector("table[part=table]")!
     expect(table.querySelector("caption")!.textContent).toBe("Chip tokens")
     const rows = [...table.querySelectorAll("tbody tr")]

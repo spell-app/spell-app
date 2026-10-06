@@ -11,7 +11,7 @@ import { UIPopup } from "$/ui/components/ui-popup/UIPopup"
  * `<ui-popup>` rendered statically (`$/ui/static`):  a hidden popover box right after its target, as phrasing
  * content, related to the target by id as the element's ARIA does.
  */
-describe("ui-popup static render", () => {
+describe("<ui-popup> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIPopup, UIButton)
   })

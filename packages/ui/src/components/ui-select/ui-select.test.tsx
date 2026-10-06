@@ -3,7 +3,7 @@ import { userEvent } from "vite-plus/test/browser"
 
 import { UI } from "$/ui/runtime"
 import type { SelectOptions } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -57,6 +57,10 @@ function choose(native: HTMLSelectElement, ...values: string[]) {
 beforeEach(async () => {
   await UI.load()
 })
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-select> markup", () => {
   it("renders a native select in the class grammar, the placeholder first", async () => {
@@ -145,6 +149,10 @@ describe("<ui-select> markup", () => {
     await expect.poll(() => native.getAttribute("aria-label")).toBe("Favourite fruit")
   })
 })
+
+////////////////
+// ## Behaviour
+////////////////
 
 describe("<ui-select> value", () => {
   it("starts from the attribute, else from a `selected` item", async () => {
@@ -254,6 +262,10 @@ describe("<ui-select> multiple", () => {
   })
 })
 
+////////////////
+// ## Forms
+////////////////
+
 describe("<ui-select> forms", () => {
   it("submits one entry per value, validates `required`, resets", async () => {
     const form = await ElementFixture.render<HTMLFormElement>(`<form>
@@ -300,6 +312,10 @@ describe("<ui-select> forms", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("<ui-select> tokens from outside", () => {
   /** The native select's top-left radius, which `--ui-select-radius` drives. */
   function radius(host: Element): string {
@@ -345,6 +361,10 @@ describe("<ui-select> tokens from outside", () => {
     expect(border(error)).not.toBe(red)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-select> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

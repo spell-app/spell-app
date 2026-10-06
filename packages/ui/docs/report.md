@@ -870,7 +870,7 @@ other than esm.sh / unpkg are blocked.  Each host mounts ONE `<ui-dropdown>` wit
   `aria-label` is forwarded to the inner control.
 - **axe** passes on every element-markup example (`src/components/ui-<name>/examples/elements/`, 39 files),
   `color-contrast` included (text inside a `.ui.disabled` element exempt, as WCAG exempts inactive components --
-  `test/a11y.ts`), with `heading-order` off for two pages of heading demos;  and on every family's native fallback.
+  `test/A11y.ts`), with `heading-order` off for two pages of heading demos;  and on every family's native fallback.
 
 ## SSR / Declarative Shadow DOM
 

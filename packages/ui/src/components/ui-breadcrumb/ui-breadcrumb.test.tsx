@@ -2,7 +2,7 @@ import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { BREADCRUMB_DIVIDER_TOKENS } from "$/ui/components/components.types"
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -45,6 +45,10 @@ function dividerText(host: Element): string {
   return getComputedStyle(dividerOf(host), "::before").content
 }
 
+////////////////
+// ## Classes and markup
+////////////////
+
 describe("<ui-breadcrumb> classes and markup", () => {
   it.each([
     ["", "ui breadcrumb"],
@@ -74,6 +78,10 @@ describe("<ui-breadcrumb> classes and markup", () => {
     await expect.poll(() => nav.getAttribute("aria-label")).toBe("Breadcrumb")
   })
 })
+
+////////////////
+// ## <ui-breadcrumb-section>
+////////////////
 
 describe("<ui-breadcrumb-section>", () => {
   it("renders a link with href, text without, and the active one as the current page", async () => {
@@ -120,6 +128,10 @@ describe("<ui-breadcrumb-section>", () => {
   })
 })
 
+////////////////
+// ## Dividers
+////////////////
+
 describe("<ui-breadcrumb> dividers", () => {
   it("draws `/` between sections by default, none before the first", async () => {
     const { sections } = await breadcrumb()
@@ -157,8 +169,6 @@ describe("<ui-breadcrumb> dividers", () => {
   })
 
   it("escapes a divider as CSS text", async () => {
-    expect(BreadcrumbDivider.cssString('a"b\\c')).toBe('"a\\"b\\\\c"')
-    expect(BreadcrumbDivider.cssString("a\nb")).toBe('"a\\A b"')
     const { sections } = await breadcrumb(`divider='"'`)
     expect(dividerText(sections[1]!)).toBe('"\\""')
   })
@@ -176,6 +186,10 @@ describe("<ui-breadcrumb> dividers", () => {
     expect(nav.style.getPropertyValue(BREADCRUMB_DIVIDER_TOKENS.icon)).toBe("")
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-breadcrumb> tokens from outside", () => {
   const RED = "rgb(255, 0, 0)"
@@ -228,6 +242,10 @@ describe("<ui-breadcrumb> tokens from outside", () => {
     expect(color(host)).not.toBe(RED)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-breadcrumb> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

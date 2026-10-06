@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vite-plus/test"
 import { UI } from "$/ui/runtime"
 import { ValueSets } from "$/ui/vocabulary"
 import { sectionVocabulary } from "$/ui/components/ui-section/ui-section.vocabulary.en"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UIPanel } from "$/ui/components/ui-panel"
@@ -42,7 +42,11 @@ function part(host: Element, name: string): HTMLElement {
   return host.shadowRoot!.querySelector(`[part~="${name}"]`)!
 }
 
-describe("<ui-panel>", () => {
+////////////////
+// ## Structure
+////////////////
+
+describe("<ui-panel> structure", () => {
   it("is a section under its own tag:  `section panel`, and `sub` inside another panel", async () => {
     const host = await ElementFixture.render(`<ui-panel header="Color Set">
       <ui-panel header="Tweak"><p>Vibrancy</p></ui-panel>
@@ -74,7 +78,13 @@ describe("<ui-panel>", () => {
     expect(part(panel, "heading").localName).toBe("h3")
     expect(root(panel).classList.contains("sub")).toBe(false)
   })
+})
 
+////////////////
+// ## Folding
+////////////////
+
+describe("<ui-panel> folding", () => {
   it("folds from its band:  the content hides, `:state(collapsed)`, `ui-close`", async () => {
     const host = await ElementFixture.render(`<ui-panel header="Presets" collapsible><p>chips</p></ui-panel>`)
     const closes: Event[] = []
@@ -121,7 +131,13 @@ describe("<ui-panel>", () => {
     expect(part(host, "toggle").getAttribute("aria-describedby")).toBe(tip.id)
     expect(getComputedStyle(tip).visibility).toBe("hidden")
   })
+})
 
+////////////////
+// ## Tokens and colour
+////////////////
+
+describe("<ui-panel> tokens and colour", () => {
   it("draws the box and the bands from its tokens", async () => {
     const host = await ElementFixture.render(`<ui-panel header="Theme"
       style="--ui-panel-background: rgb(1, 2, 3); --ui-panel-header-background: rgb(4, 5, 6);
@@ -182,7 +198,13 @@ describe("<ui-panel>", () => {
       await UI.themes.apply(undefined)
     }
   })
+})
 
+////////////////
+// ## Spacing
+////////////////
+
+describe("<ui-panel> spacing", () => {
   it("closes the box with a folded LAST sub-panel's band:  no padding left under it", async () => {
     const host = await ElementFixture.render(`<ui-panel header="Color Set">
       <p>name</p>
@@ -213,7 +235,13 @@ describe("<ui-panel>", () => {
     // a sub-panel's padding is the page's 16px, not 1em of its 14px content
     expect(getComputedStyle(part(type!, "content")).paddingLeft).toBe("16px")
   })
+})
 
+////////////////
+// ## Accessibility
+////////////////
+
+describe("<ui-panel> accessibility", () => {
   it.each(Object.entries(EXAMPLES))("%s is accessible", async (_, html) => {
     const host = await ElementFixture.render(`<div>${html}</div>`)
     await ElementFixture.settle()

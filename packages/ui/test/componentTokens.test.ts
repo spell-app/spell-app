@@ -37,17 +37,18 @@ const EXCEPTIONS: Record<string, Record<string, string>> = {
   }
 }
 
-const tokens = new ComponentTokens({ vocabularies: VOCABULARIES, foundation: Object.values(FOUNDATION) })
+/** The real tags and foundation;  `ComponentTokens.test.ts` (beside the class) tests its methods. */
+const TOKENS = new ComponentTokens({ vocabularies: VOCABULARIES, foundation: Object.values(FOUNDATION) })
 
 /** `src/components/ui-button/ui-button.css` => `ui-button/ui-button.css` */
 function short(path: string): string {
   return path.replace("/src/components/", "")
 }
 
-describe("component tokens", () => {
+describe("ui-*.css component tokens", () => {
   it.each(Object.keys(SHEETS).map(short))("%s never declares a public component token", (path) => {
     const allowed = EXCEPTIONS[path] ?? {}
-    const declared = tokens.publicDeclarations(SHEETS[`/src/components/${path}`]!)
+    const declared = TOKENS.publicDeclarations(SHEETS[`/src/components/${path}`]!)
     const found = declared.filter(({ name }) => !(name in allowed)).map(({ name, line }) => `${name} (line ${line})`)
     expect(found, "declare `--_ui-x: var(--ui-x, <default>)` instead (docs/theming.md)").toEqual([])
     for (const name of Object.keys(allowed))
@@ -63,8 +64,8 @@ describe("component tokens", () => {
       .filter(({ name, value }) => name.startsWith("--_ui-") && /^var\(\s*--ui-/.test(value))
       .map(({ name, value, line }) => ({ name, read: /^var\(\s*(--ui-[a-z0-9-]+)/.exec(value)![1]!, line }))
       .filter(({ name, read }) => {
-        const family = tokens.owner(`--${name.slice(3)}`)?.family
-        return family && tokens.owner(read)?.family === family && read !== `--${name.slice(3)}`
+        const family = TOKENS.owner(`--${name.slice(3)}`)?.family
+        return family && TOKENS.owner(read)?.family === family && read !== `--${name.slice(3)}`
       })
       .map(({ name, read, line }) => `${name} reads ${read} (line ${line})`)
     expect(mismatched).toEqual([])
@@ -83,44 +84,5 @@ describe("component tokens", () => {
       }
     }
     expect(bypasses, "read `var(--_ui-x)`:  a variation writes the alias, so a bare public read skips it").toEqual([])
-  })
-})
-
-describe("ComponentTokens", () => {
-  it("classifies names by the longest tag, never the foundation's", () => {
-    expect(tokens.owner("--ui-button-radius")).toEqual({ tag: "button", family: "ui-button" })
-    expect(tokens.owner("--ui-buttons-gap")).toEqual({ tag: "buttons", family: "ui-button" })
-    expect(tokens.owner("--ui-header-color")?.family).toBe("ui-parts")
-    expect(tokens.owner("--ui-text-color")).toBeUndefined()
-    expect(tokens.owner("--ui-color")).toBeUndefined()
-    expect(tokens.owner("--_ui-button-radius")).toBeUndefined()
-  })
-
-  it("finds declarations, not style-query conditions", () => {
-    const css = `.a { --ui-button-x: 1; } @container style(--ui-button-y: 1) { .b { color: red } }`
-    expect(tokens.publicDeclarations(css).map(({ name }) => name)).toEqual(["--ui-button-x"])
-  })
-
-  it("converts a sheet:  the first declaration becomes the alias, later ones write it, reads read it", () => {
-    const css = [
-      ".ui.button {",
-      "  /* the radius */",
-      "  --ui-button-radius: var(--ui-radius);",
-      "  --ui-button-pad: calc(var(--ui-button-radius) * 2);",
-      "  border-radius: var(--ui-button-radius);",
-      "}",
-      ".ui.circular.button { --ui-button-radius: 999px; }"
-    ].join("\n")
-    const { css: converted, notes } = tokens.convert("ui-button", css)
-    expect(converted).toContain("--_ui-button-radius: var(--ui-button-radius, var(--ui-radius));")
-    expect(converted).toContain("--_ui-button-pad: var(--ui-button-pad, calc(var(--_ui-button-radius) * 2));")
-    expect(converted).toContain("border-radius: var(--_ui-button-radius);")
-    expect(converted).toContain(".ui.circular.button { --_ui-button-radius: 999px; }")
-    expect(notes).toEqual([expect.stringContaining("variation writes --_ui-button-radius")])
-    expect(ComponentTokens.aliases(converted)).toEqual([
-      { name: "--ui-button-radius", default: "var(--ui-radius)", description: "the radius" },
-      { name: "--ui-button-pad", default: "calc(var(--_ui-button-radius) * 2)", description: undefined }
-    ])
-    expect(tokens.publicDeclarations(converted)).toEqual([])
   })
 })

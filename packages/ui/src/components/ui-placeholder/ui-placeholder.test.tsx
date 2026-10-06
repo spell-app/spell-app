@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { PLACEHOLDER_HOST_STATE } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -19,6 +19,10 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-placeholder/exampl
 function rootOf(host: Element): HTMLElement {
   return host.shadowRoot!.firstElementChild as HTMLElement
 }
+
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-placeholder> classes", () => {
   it.each([
@@ -54,6 +58,10 @@ describe("<ui-placeholder> classes", () => {
   })
 })
 
+////////////////
+// ## Host contract
+////////////////
+
 describe("<ui-placeholder> host contract", () => {
   it("always carries :state(placeholder), and is aria-hidden", async () => {
     const host = await ElementFixture.render<UIHost>(`<ui-placeholder></ui-placeholder>`)
@@ -71,6 +79,10 @@ describe("<ui-placeholder> host contract", () => {
     expect(Number.parseFloat(getComputedStyle(second!).marginTop)).toBeGreaterThan(0)
   })
 })
+
+////////////////
+// ## Shapes by position
+////////////////
 
 describe("<ui-placeholder> shapes by position", () => {
   it("draws a line as a bar, header bars taller than paragraph bars", async () => {
@@ -111,6 +123,10 @@ describe("<ui-placeholder> shapes by position", () => {
     expect(box.height).toBeCloseTo(box.width, 0)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-placeholder> tokens from outside", () => {
   /** The inner box's max width. */
@@ -167,6 +183,10 @@ describe("<ui-placeholder> tokens from outside", () => {
     expect(getComputedStyle(own!).borderTopLeftRadius).toBe("3px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-placeholder> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

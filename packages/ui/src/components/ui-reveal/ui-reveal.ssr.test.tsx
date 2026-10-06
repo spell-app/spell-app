@@ -6,7 +6,7 @@ import { StaticRender } from "$/ui/static"
 import { UIReveal } from "$/ui/components/ui-reveal/UIReveal"
 
 /** `<ui-reveal>` in the static server render (`$/ui/static`, seo plan P3):  CSS reveals on hover and focus. */
-describe("ui-reveal static render", () => {
+describe("<ui-reveal> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIReveal)
   })

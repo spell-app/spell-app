@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 
 import { ImageFallback } from "./ui-image.fallback"
@@ -22,12 +22,9 @@ describe("ImageFallback", () => {
       `<ui-image size="small" rounded src="data:," alt="Photo" width="20" height="10" loading="lazy"></ui-image>`
     )
     const img = FallbackStub.shadow(host).firstElementChild as HTMLImageElement
-    expect(img.localName).toBe("img")
-    expect(img.className).toBe("ui small rounded image")
+    expect(img).toMatchObject({ localName: "img", className: "ui small rounded image", alt: "Photo", loading: "lazy" })
     expect(img.getAttribute("part")).toBe("image")
-    expect(img.alt).toBe("Photo")
     expect(img.getAttribute("width")).toBe("20")
-    expect(img.loading).toBe("lazy")
     // `loading` is the native attribute here, not a busy flag
     expect(img.hasAttribute("aria-busy")).toBe(false)
     await expectAccessible(host, AXE)

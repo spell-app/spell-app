@@ -13,7 +13,7 @@ import { UIForm } from "$/ui/components/ui-form/UIForm"
  * `<ui-form>`, `<ui-fields>`, `<ui-field>` in a static server render (`$/ui/static`):  a slotted `<form>` merges
  * into the root, which becomes Fomantic's `<form class="ui form">`, and the controls submit natively.
  */
-describe("ui-form (static render)", () => {
+describe("<ui-form> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIForm, UIFields, UIField, UIInput, UICheckbox)
   })

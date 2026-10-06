@@ -8,7 +8,7 @@ import { UIGrid } from "$/ui/components/ui-grid/UIGrid"
 import { UIRow } from "$/ui/components/ui-grid/UIRow"
 
 /** `<ui-grid>`, `<ui-row>`, `<ui-column>` in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-grid static render", () => {
+describe("<ui-grid> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIGrid, UIRow, UIColumn)
   })

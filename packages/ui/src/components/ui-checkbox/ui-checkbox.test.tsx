@@ -4,7 +4,7 @@ import { OBSERVE } from "solid-js"
 import { attribution } from "solid-js/attribution"
 
 import type { FormHost } from "$/ui/elements"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
@@ -48,6 +48,10 @@ function changes(host: Element) {
   host.addEventListener("ui-change", (event) => details.push((event as CustomEvent).detail))
   return details
 }
+
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-checkbox> classes", () => {
   it.each([
@@ -93,6 +97,10 @@ describe("<ui-checkbox> classes", () => {
     expect(plain.hasAttribute("role")).toBe(false)
   })
 })
+
+////////////////
+// ## Selected
+////////////////
 
 describe("<ui-checkbox> selected", () => {
   it("toggles on click, with ui-change first", async () => {
@@ -177,6 +185,10 @@ describe("<ui-checkbox> selected", () => {
   })
 })
 
+////////////////
+// ## Forms
+////////////////
+
 describe("<ui-checkbox> forms", () => {
   it("submits `value` (default `on`) while chosen, resets to the starting state", async () => {
     const form = await ElementFixture.render<HTMLFormElement>(`<form>
@@ -232,6 +244,10 @@ describe("<ui-checkbox> forms", () => {
   })
 })
 
+////////////////
+// ## Labels
+////////////////
+
 describe("<ui-checkbox> labels", () => {
   it("names a fitted box from <label for> across the shadow boundary;  clicking that label toggles", async () => {
     const container = await ElementFixture.render<HTMLDivElement>(
@@ -252,6 +268,10 @@ describe("<ui-checkbox> labels", () => {
     expect(input.hasAttribute("aria-label")).toBe(false)
   })
 })
+
+////////////////
+// ## <ui-radio> groups
+////////////////
 
 describe("<ui-radio> groups", () => {
   /** Three radios of one name in a form. */
@@ -401,6 +421,10 @@ describe("<ui-radio> groups", () => {
   })
 })
 
+////////////////
+// ## Tokens from outside
+////////////////
+
 describe("<ui-checkbox> tokens from outside", () => {
   /** The drawn box's top-left radius, which `--ui-checkbox-radius` drives. */
   function radius(host: Element): string {
@@ -449,6 +473,10 @@ describe("<ui-checkbox> tokens from outside", () => {
     expect(getComputedStyle(themed).color).toBe(red)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-checkbox> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

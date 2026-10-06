@@ -1,15 +1,17 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 import { SiteData, type SiteDataFile, type SiteTag } from "$/ui/docs-components"
 
 import type { UIDocsApi } from "./UIDocsApi"
-import { ApiModel } from "./ApiModel"
-import { InlineCode } from "./InlineCode"
 
 import "$/ui/docs-components/ui-docs-api"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** Element-markup examples, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-api/examples/elements/*.html", {
@@ -115,6 +117,10 @@ const DATA: SiteDataFile = {
 /** `DATA` as a URL `SiteData` can fetch. */
 const DATA_URL = `data:application/json,${encodeURIComponent(JSON.stringify(DATA))}`
 
+////////////////
+// ## Helpers
+////////////////
+
 /** Render `html` with `url` as the data, and wait for the tables (and every widget in them) to draw. */
 async function render(html: string, url = DATA_URL) {
   SiteData.reset(url)
@@ -152,6 +158,10 @@ function rowOf(table: HTMLTableElement, name: string): HTMLTableRowElement {
 }
 
 afterAll(() => SiteData.reset())
+
+////////////////
+// ## Tables
+////////////////
 
 describe("<ui-docs-api tag>", () => {
   it("draws only the tables the tag has, in order, under titles;  no tag header", async () => {
@@ -198,12 +208,21 @@ describe("<ui-docs-api tag>", () => {
     expect(rowOf(attributes, "options")).toBeUndefined()
 
     const basic = rowOf(attributes, "basic")
-    expect(basic.cells[0]!.localName).toBe("th")
-    expect(basic.cells[0]!.getAttribute("scope")).toBe("row")
-    expect(basic.cells[1]!.textContent).toBe("boolean")
-    expect(basic.cells[3]!.querySelector("code")!.textContent).toBe("false")
-    expect(basic.cells[4]!.querySelector("code")!.textContent).toBe("pronounced")
-    expect(basic.cells[4]!.textContent).toBe("Less pronounced.")
+    expect({
+      header: basic.cells[0]!.localName,
+      scope: basic.cells[0]!.getAttribute("scope"),
+      kind: basic.cells[1]!.textContent,
+      default: basic.cells[3]!.querySelector("code")!.textContent,
+      code: basic.cells[4]!.querySelector("code")!.textContent,
+      description: basic.cells[4]!.textContent
+    }).toEqual({
+      header: "th",
+      scope: "row",
+      kind: "boolean",
+      default: "false",
+      code: "pronounced",
+      description: "Less pronounced."
+    })
 
     const selected = rowOf(attributes, "selected").cells[0]!
     expect(selected.querySelector("small")!.textContent).toBe("alias checked")
@@ -347,16 +366,22 @@ describe("<ui-docs-api family>", () => {
   })
 })
 
+////////////////
+// ## Messages and states
+////////////////
+
 describe("<ui-docs-api> messages and states", () => {
   beforeEach(() => SiteData.reset(DATA_URL))
 
   it("says when the data has no such tag", async () => {
     const host = await render(`<ui-docs-api tag="x-nope"></ui-docs-api>`)
     const message = host.shadowRoot!.querySelector("[part~=message]")!
-    expect(message.localName).toBe("ui-message")
-    expect(message.getAttribute("state")).toBe("warning")
-    expect(message.textContent).toBe("No API data for x-nope.")
-    expect(message.querySelector("code")!.textContent).toBe("x-nope")
+    expect({
+      tag: message.localName,
+      state: message.getAttribute("state"),
+      text: message.textContent,
+      code: message.querySelector("code")!.textContent
+    }).toEqual({ tag: "ui-message", state: "warning", text: "No API data for x-nope.", code: "x-nope" })
     expect(host.matches(":state(error)")).toBe(true)
     expect(host.matches(":state(loading)")).toBe(false)
   })
@@ -388,59 +413,9 @@ describe("<ui-docs-api> messages and states", () => {
   })
 })
 
-describe("InlineCode", () => {
-  it.each([
-    ["plain", [{ text: "plain", isCode: false }]],
-    [
-      "a `b` c",
-      [
-        { text: "a ", isCode: false },
-        { text: "b", isCode: true },
-        { text: " c", isCode: false }
-      ]
-    ],
-    [
-      "`` `x` `` becomes code",
-      [
-        { text: "`x`", isCode: true },
-        { text: " becomes code", isCode: false }
-      ]
-    ],
-    ["an `unclosed span", [{ text: "an `unclosed span", isCode: false }]],
-    [
-      "`a` and `<b>`",
-      [
-        { text: "a", isCode: true },
-        { text: " and ", isCode: false },
-        { text: "<b>", isCode: true }
-      ]
-    ]
-  ])("parses %j", (text, pieces) => {
-    expect(InlineCode.parse(text)).toEqual(pieces)
-  })
-
-  it.each(["x", "`x`", "a `` b", "{ a: 1 }"])("wraps %j so it parses back as one code piece", (code) => {
-    expect(InlineCode.parse(InlineCode.wrap(code))).toEqual([{ text: code, isCode: true }])
-  })
-})
-
-describe("ApiModel", () => {
-  it("leaves out empty tables and keeps rich data apart", () => {
-    expect(ApiModel.sectionsFor(OR).map((section) => section.id)).toEqual(["parts"])
-    const sections = ApiModel.sectionsFor(BUTTON)
-    expect(sections.find((section) => section.id === "properties")!.rows.map((row) => row.key)).toEqual(["options"])
-    expect(sections.find((section) => section.id === "attributes")!.rows.map((row) => row.key)).not.toContain("options")
-  })
-
-  it("names properties and defaults as the old Astro table did", () => {
-    expect(ApiModel.propertyFor({ name: "column-defs", kind: "json", description: "" })).toBe("columnDefs")
-    expect(ApiModel.propertyFor({ name: "x", kind: "number", property: "y", description: "" })).toBe("y")
-    expect(ApiModel.defaultFor({ name: "x", kind: "keyOnly", description: "" })).toBe("false")
-    expect(ApiModel.defaultFor({ name: "x", kind: "string", description: "" })).toBeUndefined()
-    expect(ApiModel.defaultFor({ name: "x", kind: "number", default: 0, description: "" })).toBe("0")
-    expect(ApiModel.kindLabelFor("keyOrValueAndKey")).toBe("boolean or value")
-  })
-})
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-docs-api> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

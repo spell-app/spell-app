@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 import { UI } from "$/ui/runtime"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
@@ -33,7 +33,7 @@ afterEach(async () => {
   vi.restoreAllMocks()
 })
 
-describe("DocsThemesFallback", () => {
+describe("DocsThemesFallback.render()", () => {
   it("renders the class grammar, a native select of every theme, a scheme button and a Match system box", async () => {
     const host = Fixture.render<StubHost>(`<x-fb-docs-themes size="small"></x-fb-docs-themes>`)
     const controls = controlsOf(host)

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vit
 import { userEvent } from "vite-plus/test/browser"
 
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -82,6 +82,10 @@ beforeEach(async () => {
 
 afterEach(() => UI.overlays.dispose())
 
+////////////////
+// ## Markup
+////////////////
+
 describe("<ui-calendar> markup", () => {
   it("renders a field, an icon button and a closed popover dialog", async () => {
     const { root, input, trigger, popup } = await calendar(DATE)
@@ -145,6 +149,10 @@ describe("<ui-calendar> markup", () => {
     expect(today()!.textContent).toBe("Now")
   })
 })
+
+////////////////
+// ## Views
+////////////////
 
 describe("<ui-calendar> views", () => {
   it("walks date:  the title goes up to months and years;  choosing goes back down to the value", async () => {
@@ -252,6 +260,10 @@ describe("<ui-calendar> views", () => {
   })
 })
 
+////////////////
+// ## Bounds
+////////////////
+
 describe("<ui-calendar> bounds", () => {
   it("disables cells outside min / max and the pages beyond them", async () => {
     const { host, cell, previous, next } = await calendar(
@@ -305,6 +317,10 @@ describe("<ui-calendar> bounds", () => {
     expect(ranged(end!).map((cell) => cell.textContent)).toEqual(["16", "17", "18"])
   })
 })
+
+////////////////
+// ## Keyboard (APG date picker)
+////////////////
 
 describe("<ui-calendar> keyboard (APG date picker)", () => {
   it("moves the focus with arrows, Home / End, PageUp / PageDown (+ Shift);  Enter chooses", async () => {
@@ -427,6 +443,10 @@ describe("<ui-calendar> keyboard (APG date picker)", () => {
   })
 })
 
+////////////////
+// ## Typing
+////////////////
+
 describe("<ui-calendar> typing", () => {
   it("reads the locale's numeric order, month names and its own output;  Enter commits", async () => {
     const { host, input } = await calendar(DATE)
@@ -497,6 +517,10 @@ describe("<ui-calendar> typing", () => {
   })
 })
 
+////////////////
+// ## Events and value
+////////////////
+
 describe("<ui-calendar> events and value", () => {
   it("ui-change is cancelable:  a veto keeps the old value", async () => {
     const { host, cell } = await calendar(INLINE)
@@ -545,6 +569,10 @@ describe("<ui-calendar> events and value", () => {
   })
 })
 
+////////////////
+// ## Locales
+////////////////
+
 describe("<ui-calendar> locales", () => {
   it("en-US:  Sunday first, 12-hour cells;  de-DE:  Monday first, German names, 24-hour cells", async () => {
     const us = await calendar(INLINE)
@@ -574,6 +602,10 @@ describe("<ui-calendar> locales", () => {
     expect(cells()[0]!.getAttribute("aria-label")).toBe("Monday, August 31, 2026")
   })
 })
+
+////////////////
+// ## Forms
+////////////////
 
 describe("<ui-calendar> forms", () => {
   it("submits the ISO value, validates `required`, resets to the attribute", async () => {
@@ -624,6 +656,10 @@ describe("<ui-calendar> forms", () => {
     expect(new FormData(form).get("day")).toBe("2026-02-14")
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-calendar> tokens from outside", () => {
   /** The first cell's top padding, which `--ui-calendar-cell-padding` drives. */
@@ -680,6 +716,10 @@ describe("<ui-calendar> tokens from outside", () => {
     )
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-calendar> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

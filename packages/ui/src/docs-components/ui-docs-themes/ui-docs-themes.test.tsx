@@ -1,27 +1,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UI } from "$/ui/runtime"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 import {
-  DOCS_DEFAULT_THEME,
   DOCS_LEGACY_SCHEME_KEYS,
   DOCS_LOOK_KEYS,
   DOCS_PLAIN_THEME,
-  DOCS_SCHEME_SWITCHING,
-  type DocsShownScheme,
-  type SiteDataFile
+  type DocsShownScheme
 } from "$/ui/docs-components/docs-components.types"
-import { LEGACY_SCHEME_KEYS, SCHEME_KEY } from "$/server/site/site.types"
 
-import { ThemeMenu } from "./ThemeMenu"
 import { SPELL, SPELL_BRAND, type DocsThemesChange } from "./ui-docs-themes.types"
 
 import "$/ui/docs-components/ui-docs-themes"
 import "$/ui/components/ui-button"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** The committed site data, served by Vite. */
 const REAL_DATA = Object.values(
@@ -37,6 +36,10 @@ const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-themes/e
 
 /** The OS's scheme the tests pretend:  `osScheme()` is spied on, so the real OS never matters. */
 let os: DocsShownScheme = "light"
+
+////////////////
+// ## Helpers
+////////////////
 
 /** Render `html` and wait for it, and for the site data to reach its menu. */
 async function render(html: string) {
@@ -98,14 +101,6 @@ function htmlScheme() {
   }
 }
 
-/** Run `ThemePreference.HEAD_SCRIPT` as a page's inline `<head>` script:  an inline classic script runs on insert. */
-function runHeadScript() {
-  const script = document.createElement("script")
-  script.textContent = ThemePreference.HEAD_SCRIPT
-  document.head.append(script)
-  script.remove()
-}
-
 /** Back to no stored look (so the default theme, in memory), nothing applied, the system scheme. */
 async function clean() {
   for (const key of [DOCS_LOOK_KEYS.theme, DOCS_LOOK_KEYS.scheme, ...DOCS_LEGACY_SCHEME_KEYS]) {
@@ -125,10 +120,15 @@ beforeEach(async () => {
   UI.overlays.useCloseWatcher = false
   await clean()
 })
+
 afterEach(async () => {
   await clean()
   vi.restoreAllMocks()
 })
+
+////////////////
+// ## Markup and overlay
+////////////////
 
 describe("<ui-docs-themes> markup", () => {
   it("renders the palette button, its overlay, and the sun / moon button showing the page's scheme", async () => {
@@ -290,6 +290,10 @@ describe("<ui-docs-themes> overlay", () => {
   })
 })
 
+////////////////
+// ## Scheme
+////////////////
+
 describe("<ui-docs-themes> scheme", () => {
   it("a click flips the shown scheme and stores it:  ui-dark / ui-light + color-scheme on <html>", async () => {
     const host = await render(`<ui-docs-themes></ui-docs-themes>`)
@@ -345,14 +349,11 @@ describe("<ui-docs-themes> scheme", () => {
     expect(part(second!, "theme").getAttribute("value")).toBe("github")
     expect(second!.matches(":state(dark)")).toBe(true)
   })
-
-  it("a scheme switch turns transitions off for a frame (`DOCS_SCHEME_SWITCHING`)", async () => {
-    const root = document.documentElement
-    ThemePreference.applyScheme("dark")
-    expect(root.classList.contains(DOCS_SCHEME_SWITCHING)).toBe(true)
-    await vi.waitFor(() => expect(root.classList.contains(DOCS_SCHEME_SWITCHING)).toBe(false))
-  })
 })
+
+////////////////
+// ## Dropdown
+////////////////
 
 describe("<ui-docs-themes> dropdown (show=theme)", () => {
   it('for="ui-button":  only the themes touching the button family, and how many', async () => {
@@ -383,37 +384,13 @@ describe("<ui-docs-themes> dropdown (show=theme)", () => {
     await ElementFixture.settle()
     expect(labelOf(host)).toBe("Material theme")
   })
-
-  it("ThemeMenu:  no data, every theme under its sheet name;  an unknown `for` tag filters nothing", () => {
-    const text = (key: string) => key
-    const menu = new ThemeMenu({ names: ["fixed-width", "github"], data: undefined, forTag: "ui-button", text })
-    expect(menu.themes).toEqual(["fixed-width", "github"])
-    expect(menu.titleFor("fixed-width")).toBe("Fixed width")
-    const data = { components: [], docs: [], families: {}, themes: [] } as unknown as SiteDataFile
-    expect(new ThemeMenu({ names: ["github"], data, forTag: "ui-nope", text }).themes).toEqual(["github"])
-  })
-
-  it("ThemeMenu:  `1 theme`, and the chosen look (never `0 themes`) for a family no theme touches", () => {
-    const text = (key: string, values?: Record<string, unknown>) =>
-      ({
-        themeCount: `${values?.count} themes`,
-        themeCountOne: "1 theme",
-        themeLabel: `${values?.title} theme`,
-        default: "Default"
-      })[key] ?? key
-    const one = new ThemeMenu({ names: ["github"], data: undefined, forTag: "ui-button", text: text as never })
-    expect(one.labelFor(undefined)).toBe("1 theme")
-    const none = new ThemeMenu({ names: [], data: undefined, forTag: "ui-sticky", text: text as never })
-    expect(none.labelFor(undefined)).toBe("Default theme")
-  })
 })
 
-describe("<ui-docs-themes> persistence", () => {
-  it("ONE scheme key for every doc site:  the site header's (`$/server/site`)", () => {
-    expect(DOCS_LOOK_KEYS.scheme).toBe(SCHEME_KEY)
-    expect([...DOCS_LEGACY_SCHEME_KEYS]).toEqual([...LEGACY_SCHEME_KEYS])
-  })
+////////////////
+// ## Persistence
+////////////////
 
+describe("<ui-docs-themes> persistence", () => {
   it("stores the look, and restore() re-applies it on the next page", async () => {
     const host = await render(`<ui-docs-themes></ui-docs-themes>`)
     part(host, "scheme").click()
@@ -450,55 +427,6 @@ describe("<ui-docs-themes> persistence", () => {
     // the next page keeps Plain
     ThemePreference.reset()
     expect(ThemePreference.look.theme).toBeUndefined()
-  })
-
-  it.each([
-    ["spell-site:theme", "dark"],
-    ["spell-ui-site:scheme", "light"]
-  ])("moves an old key's scheme (%s) to the one key, once", (key, scheme) => {
-    localStorage.setItem(key, scheme)
-    ThemePreference.reset()
-    expect(ThemePreference.look.scheme).toBe(scheme)
-    expect(localStorage.getItem(DOCS_LOOK_KEYS.scheme)).toBe(scheme)
-    for (const old of DOCS_LEGACY_SCHEME_KEYS) expect(localStorage.getItem(old)).toBeNull()
-  })
-
-  it("an old key never overrides the one key", () => {
-    localStorage.setItem(DOCS_LOOK_KEYS.scheme, "light")
-    localStorage.setItem("spell-site:theme", "dark")
-    ThemePreference.reset()
-    expect(ThemePreference.look.scheme).toBe("light")
-  })
-
-  it("with nothing stored, restore() applies the Spell theme", async () => {
-    expect(DOCS_DEFAULT_THEME).toBe(SPELL)
-    await ThemePreference.restore()
-    expect(UI.themes.current).toBe(SPELL)
-    expect(UI.styles.has(UI.themes.slots.theme)).toBe(true)
-  })
-
-  it("HEAD_SCRIPT applies the stored scheme (or an old key's) synchronously, and never throws", () => {
-    localStorage.setItem(DOCS_LOOK_KEYS.scheme, "dark")
-    runHeadScript()
-    expect(htmlScheme()).toEqual({ light: false, dark: true, colorScheme: "dark" })
-    ThemePreference.applyScheme("system")
-    localStorage.removeItem(DOCS_LOOK_KEYS.scheme)
-    localStorage.setItem("spell-ui-site:scheme", "light")
-    runHeadScript()
-    expect(htmlScheme()).toEqual({ light: true, dark: false, colorScheme: "light" })
-    ThemePreference.applyScheme("system")
-    localStorage.setItem(DOCS_LOOK_KEYS.scheme, "<junk>")
-    runHeadScript()
-    expect(document.documentElement.className).not.toMatch(/ui-(light|dark)/)
-  })
-
-  it("forgets a stored theme that no longer exists, for the default", async () => {
-    localStorage.setItem(DOCS_LOOK_KEYS.theme, "no-such-theme")
-    ThemePreference.reset()
-    await ThemePreference.restore()
-    expect(UI.themes.current).toBe(DOCS_DEFAULT_THEME)
-    expect(localStorage.getItem(DOCS_LOOK_KEYS.theme)).toBeNull()
-    expect(ThemePreference.look.theme).toBe(DOCS_DEFAULT_THEME)
   })
 
   it("works for the page when storage throws", async () => {

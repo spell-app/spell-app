@@ -3,8 +3,8 @@ import { page } from "vite-plus/test/browser"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { modalVocabulary } from "./ui-modal.vocabulary.en"
 
@@ -40,6 +40,10 @@ function modalNamed(root: Element, text: string): HTMLElement {
   if (!found) throw new Error(`no modal "${text}"`)
   return found
 }
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-modal.css source", () => {
   it("never uses rem", () => {
@@ -83,6 +87,10 @@ describe("ui-modal.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-modal.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every modal in %s", async (path) => {
@@ -189,6 +197,10 @@ describe("ui-modal.css examples", () => {
   })
 })
 
+////////////////
+// ## On a <dialog>
+////////////////
+
 describe("ui-modal.css on a <dialog>", () => {
   /** A `<dialog class="ui modal">` in a stand-in host with the modal sheet, shown with `showModal()`. */
   async function dialog(classes = "ui modal") {
@@ -243,6 +255,10 @@ async function resize(width: number) {
   await page.viewport(width, 800)
   onTestFinished(() => page.viewport(previousWidth, previousHeight))
 }
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-modal.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

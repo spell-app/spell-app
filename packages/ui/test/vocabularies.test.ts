@@ -23,7 +23,7 @@ function attributes(test: (spec: AttributeSpec) => boolean): [string, AttributeS
   )
 }
 
-describe("vocabulary kinds, across families", () => {
+describe("*.vocabulary.en.ts kinds, across families", () => {
   it("finds the vocabularies", () => {
     expect(VOCABULARIES.length).toBeGreaterThan(40)
   })
@@ -65,7 +65,7 @@ const DATA_FILES = import.meta.glob<string>(
   { query: "?raw", import: "default", eager: true }
 )
 
-describe("vocabularies and types files stay pure data", () => {
+describe("*.vocabulary.en.ts / *.types.ts imports", () => {
   // `$/ui/core` by VALUE loads the element layer, which node can't:  `yarn site:data` / `yarn gen:root` import every
   // vocabulary through tsx (no `?inline` css, no JSX)
   it.each(Object.entries(DATA_FILES))("%s imports `$/ui/core` for types only", (_, source) => {

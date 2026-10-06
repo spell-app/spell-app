@@ -16,15 +16,15 @@ import { UIRating } from "$/ui/components/ui-rating/UIRating"
 import { UISearch } from "$/ui/components/ui-search/UISearch"
 import { UISelect } from "$/ui/components/ui-select/UISelect"
 import { UISlider } from "$/ui/components/ui-slider/UISlider"
-import { EMPTY_FORM_ENTRIES, EMPTY_FORM_HTML, STATIC_FORM_ENTRIES, STATIC_FORM_HTML } from "$/ui/test/static-form.cases"
+import { EMPTY_FORM_ENTRIES, EMPTY_FORM_HTML, STATIC_FORM_ENTRIES, STATIC_FORM_HTML } from "$/ui/test/staticForm.cases"
 
 /**
  * A static form's round trip (seo plan, P4):  `STATIC_FORM_HTML` rendered by `StaticRender.page()`, then the entry
  * list a browser would submit from that plain HTML, with no script -- computed here from the HTML spec's
- * "constructing the entry list" -- must equal what the LIVE elements submit (`static-form.test.ts`, the same
+ * "constructing the entry list" -- must equal what the LIVE elements submit (`staticForm.test.ts`, the same
  * `STATIC_FORM_ENTRIES`).
  */
-describe("static form round trip", () => {
+describe("StaticRender.page() form round trip", () => {
   let document: Document
 
   beforeAll(async () => {

@@ -6,7 +6,7 @@ import type { TokenDeclaration } from "./styles.types"
  * a sheet DECLARES them, the private aliases (`--_ui-x: var(--ui-x, <default>)`) that replace them, and the codemod
  * that converts a family.  See `docs/theming.md` "Component tokens".
  * - Pure text in, text out:  no DOM, no Vite, and nothing of `ui`'s but `styles.types` (types only), so the browser
- *   test (`test/component-tokens.test.ts`), the codemod (`yarn tokens:alias`, `scripts/tokens-alias.ts`) and the docs
+ *   test (`test/componentTokens.test.ts`), the codemod (`yarn tokens:alias`, `scripts/tokens-alias.ts`) and the docs
  *   site's token tables (`tools/FamilyTokens.ts`, `tools/FoundationTokens.ts`, in node) share it.
  * - Build / test time only:  left out of the `$/ui/styles` barrel, import the leaf file.
  * - A COMPONENT token is `--ui-<tag>` or `--ui-<tag>-*` for a tag some vocabulary declares (`ui-button` =>
@@ -106,7 +106,7 @@ export class ComponentTokens {
       notes.push(
         `declares another family's token ${declaration.name} (line ${declaration.line}):  convert by hand -- ` +
           "the alias `--_ui-x: var(--ui-x, <default>)` for a look token its readers take through the alias, a " +
-          "private switch for an internal one, or an EXCEPTION in `test/component-tokens.test.ts` when it " +
+          "private switch for an internal one, or an EXCEPTION in `test/componentTokens.test.ts` when it " +
           "deliberately themes a nested component"
       )
     }

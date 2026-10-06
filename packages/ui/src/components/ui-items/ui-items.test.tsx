@@ -1,11 +1,11 @@
 import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Viewport } from "$/ui/test/viewport"
+import { Viewport } from "$/ui/test/Viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-items"
@@ -67,6 +67,10 @@ function style(element: Element): CSSStyleDeclaration {
   return getComputedStyle(element)
 }
 
+////////////////
+// ## Classes and markup
+////////////////
+
 describe("<ui-items> classes and markup", () => {
   it.each([
     ["", "ui items"],
@@ -97,6 +101,10 @@ describe("<ui-items> classes and markup", () => {
     expect(boxOf(items[1]!).getAttribute("href")).toBe("#b")
   })
 })
+
+////////////////
+// ## Owns its parts in the Items view
+////////////////
 
 describe("<ui-item> owns its parts in the Items view", () => {
   it("gives its content parts ITEM context -- the item is their owner", async () => {
@@ -159,6 +167,10 @@ describe("<ui-item> owns its parts in the Items view", () => {
   })
 })
 
+////////////////
+// ## Images
+////////////////
+
 describe("<ui-items> images", () => {
   it("draws a slotted <img> 175px wide, the content beside it", async () => {
     const { items } = await view("", ITEM)
@@ -204,6 +216,10 @@ describe("<ui-items> images", () => {
   })
 })
 
+////////////////
+// ## Variations
+////////////////
+
 describe("<ui-items> variations", () => {
   it("spaces items 1em apart, but not the outer edges", async () => {
     const { items } = await view("", ITEM + ITEM + ITEM)
@@ -224,9 +240,7 @@ describe("<ui-items> variations", () => {
     host.setAttribute("divided", "")
     await ElementFixture.tick()
     expect(style(first!).borderTopWidth).toBe("0px")
-    expect(style(middle!).borderTopWidth).toBe("1px")
-    expect(style(middle!).marginTop).toBe("0px")
-    expect(style(middle!).paddingTop).toBe("16px")
+    expect(style(middle!)).toMatchObject({ borderTopWidth: "1px", marginTop: "0px", paddingTop: "16px" })
   })
 
   it("links:  a pointer and the header in the link colour while an item is hovered", async () => {
@@ -260,6 +274,10 @@ describe("<ui-items> variations", () => {
     expect(style(root).fontSize).toBe("18px")
   })
 })
+
+////////////////
+// ## Responsive (container queries)
+////////////////
 
 describe("<ui-items> responsive (container queries)", () => {
   it("stacks items in a narrow group:  the image above the content", async () => {
@@ -299,12 +317,14 @@ describe("<ui-items> responsive (container queries)", () => {
 
   it("a stacked item's sized <ui-image> takes its natural width, as static markup does (Fomantic's mobile `width: auto`)", async () => {
     const sized = `<ui-item><ui-image size="tiny" src="${PHOTO}" alt=""></ui-image><ui-content>Text</ui-content></ui-item>`
-    const widthAt = async (width: number) => {
+    expect(await widthAt(1000)).toBe(80)
+    expect(await widthAt(500)).toBeGreaterThan(80)
+
+    /** The sized image's width in a group `width` px wide. */
+    async function widthAt(width: number) {
       const { items } = await view("", sized, width)
       return items[0]!.querySelector("ui-image")!.shadowRoot!.querySelector("img")!.getBoundingClientRect().width
     }
-    expect(await widthAt(1000)).toBe(80)
-    expect(await widthAt(500)).toBeGreaterThan(80)
   })
 
   it("caps a stacked item's sized <ui-image> at 250px tall, keeping its shape (Fomantic's mobile `max-height`)", async () => {
@@ -321,6 +341,10 @@ describe("<ui-items> responsive (container queries)", () => {
     expect(style(partRoot(items[0]!.querySelector("ui-content")!)).paddingLeft).toBe("16px")
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-items> tokens from outside", () => {
   /** The second item's top margin. */
@@ -372,6 +396,10 @@ describe("<ui-items> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Keyboard
+////////////////
+
 describe("<ui-items> keyboard", () => {
   it("makes an item with `href` one Tab stop;  plain items are none", async () => {
     const wrapper = await ElementFixture.render(
@@ -389,6 +417,10 @@ describe("<ui-items> keyboard", () => {
   })
 })
 
+////////////////
+// ## Outer margin
+////////////////
+
 describe("<ui-items> outer margin", () => {
   it("collapses with the heading above like static markup (the host, a size container, carries the margin)", async () => {
     const wrapper = await ElementFixture.render(
@@ -401,6 +433,10 @@ describe("<ui-items> outer margin", () => {
     expect(host.top - heading.bottom).toBeCloseTo(24, 0)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-items> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

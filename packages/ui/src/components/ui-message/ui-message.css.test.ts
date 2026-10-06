@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { messageVocabulary } from "./ui-message.vocabulary.en"
 
@@ -23,6 +23,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-message.css source", () => {
   it("never uses rem", () => {
@@ -59,6 +63,10 @@ describe("ui-message.css source", () => {
     expect(Sheets.withoutComments(messageRaw)).toMatch(/\.ui\.icon\.message \{[^}]*--_ui-message-layout: icon;/)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-message.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every message in %s", (path) => {
@@ -125,12 +133,6 @@ describe("ui-message.css examples", () => {
   it("tints colours and states from their roles:  surface, text, header and border", () => {
     Sheets.adopt([...foundationCSS, messageCSS])
     const root = Fixture.render(EXAMPLES["./examples/variations.html"]!)
-    const roles = (hue: string) =>
-      getComputedStyle(
-        Fixture.render(
-          `<span style="background: var(--ui-${hue}-background); color: var(--ui-${hue}-text); outline-color: var(--ui-${hue}-header)"></span>`
-        )
-      )
     for (const [selector, hue] of [
       [".ui.red.message:not(.inverted)", "red"],
       [".ui.warning.message", "warning"],
@@ -144,6 +146,15 @@ describe("ui-message.css examples", () => {
       const header = message.querySelector(".header")
       if (header) expect(getComputedStyle(header).color).toBe(roles(hue).outlineColor)
     }
+
+    /** `hue`'s roles on a probe:  surface as its background, text as its colour, header as its outline. */
+    function roles(hue: string) {
+      return getComputedStyle(
+        Fixture.render(
+          `<span style="background: var(--ui-${hue}-background); color: var(--ui-${hue}-text); outline-color: var(--ui-${hue}-header)"></span>`
+        )
+      )
+    }
   })
 
   it("floats, compacts, attaches, aligns and inverts", () => {
@@ -156,9 +167,7 @@ describe("ui-message.css examples", () => {
     expect(style(".ui.compact.icon.message").display).toBe("inline-flex")
     const top = style(".ui.attached.message:not(.bottom)")
     expect(parseFloat(top.borderTopLeftRadius)).toBeGreaterThan(0)
-    expect(top.borderBottomLeftRadius).toBe("0px")
-    expect(top.marginBottom).toBe("-1px")
-    expect(top.marginLeft).toBe("-1px")
+    expect(top).toMatchObject({ borderBottomLeftRadius: "0px", marginBottom: "-1px", marginLeft: "-1px" })
     const bottom = style(".ui.bottom.attached.message")
     expect(bottom.borderTopLeftRadius).toBe("0px")
     expect(parseFloat(bottom.borderBottomLeftRadius)).toBeGreaterThan(0)
@@ -192,6 +201,10 @@ describe("ui-message.css examples", () => {
     expect(getComputedStyle(root.querySelector(".ui.visible.message")!).display).toBe("block")
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-message.css in shadow roots", () => {
   it("styles slotted paragraphs and lists, and spaces hosts by their position", () => {
@@ -266,6 +279,10 @@ function luminance(color: string): number {
   const [r, g, b] = context.getImageData(0, 0, 1, 1).data
   return (0.2126 * r! + 0.7152 * g! + 0.0722 * b!) / 255
 }
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-message.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

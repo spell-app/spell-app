@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import type { SectionToggleDetail } from "$/ui/components/components.types"
-import { Fixture } from "$/ui/test/fixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/Fixture"
+import { expectAccessible } from "$/ui/test/A11y"
 import { FallbackStub, type StubHost } from "$/ui/test/FallbackStub"
 
 import { SectionFallback } from "./ui-section.fallback"
@@ -125,9 +125,10 @@ describe("SectionFallback", () => {
       ["ui-close", false, true],
       ["ui-open", true, true]
     ])
-    expect(seen[0]!.event.detail.section).toBe(host)
-    expect(seen[0]!.event.detail.originalEvent).toBeInstanceOf(MouseEvent)
-    expect(seen[0]!.event.composed).toBe(true)
+    expect(seen[0]!.event).toMatchObject({
+      composed: true,
+      detail: { section: host, originalEvent: expect.any(MouseEvent) }
+    })
   })
 
   it("starts folded with `collapsed`, and find-in-page unfolds it", () => {

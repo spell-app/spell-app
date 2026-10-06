@@ -6,7 +6,7 @@ import { UIIcon } from "$/ui/components/ui-icon/UIIcon"
 import { UIIcons } from "$/ui/components/ui-icon/UIIcons"
 
 /** Icons in a static render:  the pack's SVG inline, `aria-hidden`, read from disk in node. */
-describe("ui-icon static render", () => {
+describe("<ui-icon> static render", () => {
   beforeAll(async () => {
     StaticRender.define(UIIcon, UIIcons, UIButton)
     await ServerRuntime.icons()

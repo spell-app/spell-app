@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { segmentsVocabulary } from "./ui-segments.vocabulary.en"
 import { segmentVocabulary } from "./ui-segment.vocabulary.en"
@@ -22,6 +22,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-segment.css source", () => {
   it("never uses rem", () => {
@@ -56,6 +60,10 @@ describe("ui-segment.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-segment.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every segment in %s", (path) => {
@@ -144,12 +152,13 @@ describe("ui-segment.css examples", () => {
         <div class="ui segment"><p>Nested bottom</p></div>
       </div>
     </div>`)
-    const nested = getComputedStyle(root.querySelector(".ui.segments > .ui.segments")!)
-    expect(nested.marginTop).toBe("0px")
-    expect(nested.boxShadow).toBe("rgba(0, 0, 0, 0) 0px 0px 0px 0px")
-    expect(nested.borderBottomStyle).toBe("none")
-    expect(nested.borderTopStyle).toBe("solid")
-    expect(nested.borderTopLeftRadius).toBe("0px")
+    expect(getComputedStyle(root.querySelector(".ui.segments > .ui.segments")!)).toMatchObject({
+      marginTop: "0px",
+      boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      borderBottomStyle: "none",
+      borderTopStyle: "solid",
+      borderTopLeftRadius: "0px"
+    })
   })
 
   it("joins attached segments edge to edge", () => {
@@ -233,6 +242,10 @@ describe("ui-segment.css examples", () => {
   })
 })
 
+////////////////
+// ## Shadow roots
+////////////////
+
 describe("ui-segment.css in shadow roots", () => {
   it("spaces hosts by their position, and hands a group's corners to slotted segments", () => {
     Sheets.adopt(foundationCSS)
@@ -274,14 +287,14 @@ describe("ui-segment.css in shadow roots", () => {
     Sheets.attach(nestedFirst, `<div class="ui segment" part="segment"><slot></slot></div>`, sheets())
     Sheets.inner(nestedHost).append(nestedFirst)
 
-    const nestedInner = Sheets.inner(nestedHost)
-    const style = getComputedStyle(nestedInner)
-    expect(style.marginTop).toBe("0px")
-    expect(style.boxShadow).toBe("rgba(0, 0, 0, 0) 0px 0px 0px 0px")
-    expect(style.borderBottomStyle).toBe("none")
-    // Second child of the outer group (not the first):  keeps its divider line on top.
-    expect(style.borderTopStyle).toBe("solid")
-    expect(style.borderTopLeftRadius).toBe("0px")
+    expect(getComputedStyle(Sheets.inner(nestedHost))).toMatchObject({
+      marginTop: "0px",
+      boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      borderBottomStyle: "none",
+      // second child of the outer group (not the first):  keeps its divider line on top
+      borderTopStyle: "solid",
+      borderTopLeftRadius: "0px"
+    })
   })
 
   it("hands inverted to its content, but not its colour, scale or group layout", () => {
@@ -296,6 +309,10 @@ describe("ui-segment.css in shadow roots", () => {
     expect(parseFloat(probe.fontSize)).toBeGreaterThan(16)
   })
 })
+
+////////////////
+// ## Helpers
+////////////////
 
 /** Foundation plus `ui-segment.css`, as a segment host adopts them. */
 function sheets(): string[] {

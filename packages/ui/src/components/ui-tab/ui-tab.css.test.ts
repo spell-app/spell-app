@@ -3,8 +3,8 @@ import { page } from "vite-plus/test/browser"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { tabsVocabulary } from "./ui-tabs.vocabulary.en"
 import { tabVocabulary } from "./ui-tab.vocabulary.en"
@@ -33,6 +33,10 @@ async function example(name: string): Promise<HTMLElement> {
   Sheets.adopt([...foundationCSS, segmentCSS, menuCSS, tabCSS])
   return Fixture.render(EXAMPLES[`./examples/${name}.html`]!)
 }
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-tab.css source", () => {
   it("never uses rem", () => {
@@ -66,6 +70,10 @@ describe("ui-tab.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-tab.css examples", () => {
   it.each(Object.keys(EXAMPLES))("shows only the active pane in %s, and draws the tabs as menu items", (path) => {

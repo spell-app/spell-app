@@ -2,10 +2,9 @@ import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
 import type { FormHost } from "$/ui/elements"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { SliderScale } from "./SliderScale"
 
 import "$/ui/components/ui-slider"
 import "$/ui/components/ui-segment"
@@ -74,43 +73,9 @@ function point(type: string, target: Element, inner: HTMLElement, ratio: number)
   )
 }
 
-describe("SliderScale", () => {
-  it("snaps to the step grid within min ... max, rounding float noise", () => {
-    const scale = new SliderScale({ min: 0, max: 10, step: 3 })
-    expect([scale.snap(4), scale.snap(5), scale.snap(10), scale.snap(-2), scale.snap(Number.NaN)]).toEqual([
-      3, 6, 9, 0, 0
-    ])
-    const tenths = new SliderScale({ min: 0, max: 1, step: 0.1 })
-    expect(tenths.move(0.2, 1)).toBe(0.3)
-    expect(new SliderScale({ min: 0, max: 1, step: 0 }).snap(0.123)).toBe(0.123)
-  })
-
-  it("maps values and ratios both ways", () => {
-    const scale = new SliderScale({ min: 10, max: 20, step: 1 })
-    expect([scale.ratio(15), scale.ratio(5), scale.valueAt(0.42), scale.valueAt(2)]).toEqual([0.5, 0, 14, 20])
-    expect(new SliderScale({ min: 5, max: 5, step: 1 }).ratio(5)).toBe(0)
-  })
-
-  it("spaces labels by distance, dividing the intervals evenly", () => {
-    const scale = new SliderScale({ min: 0, max: 20, step: 1 })
-    expect([
-      scale.intervals,
-      scale.gap(0, 100),
-      scale.gap(2000, 100),
-      scale.gap(400, 100),
-      scale.gap(100, 100)
-    ]).toEqual([20, 1, 1, 5, 20])
-  })
-
-  it("`tickStep`:  labels every tick step from `min`;  snapping keeps to `step`", () => {
-    const scale = new SliderScale({ min: -40, max: 40, step: 1, tickStep: 8 })
-    expect(scale.intervals).toBe(10)
-    expect([0, 1, 5, 10].map((index) => scale.labelValue(index))).toEqual([-40, -32, 0, 40])
-    expect(scale.snap(3.4)).toBe(3)
-    const fallback = new SliderScale({ min: 0, max: 10, step: 2, tickStep: 0 })
-    expect(fallback.intervals).toBe(5)
-  })
-})
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-slider> markup", () => {
   it.each([
@@ -218,6 +183,10 @@ describe("<ui-slider> markup", () => {
   })
 })
 
+////////////////
+// ## Keyboard
+////////////////
+
 describe("<ui-slider> keyboard", () => {
   it("arrows step, pages take 2, Home / End go to the ends;  each ui-input then ui-change", async () => {
     const { host, thumbs } = await slider(`value="10" aria-label="S"`)
@@ -301,6 +270,10 @@ describe("<ui-slider> keyboard", () => {
   })
 })
 
+////////////////
+// ## Pointer
+////////////////
+
 describe("<ui-slider> pointer", () => {
   it("pressing the track jumps the thumb there;  dragging follows;  ui-change once at the end", async () => {
     const { host, inner, root } = await slider(`value="0" aria-label="S"`)
@@ -354,6 +327,10 @@ describe("<ui-slider> pointer", () => {
     expect(host.value).toBe(2)
   })
 })
+
+////////////////
+// ## Forms
+////////////////
 
 describe("<ui-slider> forms", () => {
   it("submits `value`;  a range two entries under its name;  resets to the attributes", async () => {
@@ -418,6 +395,10 @@ describe("<ui-slider> forms", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("<ui-slider> tokens from outside", () => {
   /** The track's height, which `--ui-slider-track-height` drives. */
   function trackHeight(host: Element): string {
@@ -463,6 +444,10 @@ describe("<ui-slider> tokens from outside", () => {
     expect(track(themed).backgroundColor).toBe(red)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-slider> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

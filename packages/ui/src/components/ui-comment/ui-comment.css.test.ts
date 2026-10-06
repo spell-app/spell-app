@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { commentVocabulary } from "./ui-comment.vocabulary.en"
 import { commentsVocabulary } from "./ui-comments.vocabulary.en"
@@ -51,6 +51,10 @@ function style(element: Element): CSSStyleDeclaration {
   return getComputedStyle(element)
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-comment.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(commentRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -81,6 +85,10 @@ describe("ui-comment.css source", () => {
         expect(Sheets.covers(css, phrase), `${vocabulary.tag}: ${phrase}`).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-comment.css examples", () => {
   it.each(Object.keys(EXAMPLES))("lays out every visible comment in %s", (path) => {
@@ -124,6 +132,10 @@ describe("ui-comment.css examples", () => {
     expect(style(reply).marginTop).toBe("16px")
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-comment.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { calendarVocabulary } from "./ui-calendar.vocabulary.en"
 
@@ -43,6 +43,10 @@ function color(token: string): string {
   return getComputedStyle(Fixture.render(`<span style="background: ${token}"></span>`)).backgroundColor
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-calendar.css source", () => {
   it("never uses rem or !important", () => {
     const text = Sheets.withoutComments(calendarRaw)
@@ -76,6 +80,10 @@ describe("ui-calendar.css source", () => {
       expect(Sheets.covers(calendarRaw, position), position).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-calendar.css examples", () => {
   it("draws the picker box:  surface, strong border, radius;  the popup floats with a shadow", () => {
@@ -181,9 +189,6 @@ describe("ui-calendar.css examples", () => {
   it("the field's icon box is a clickable button", () => {
     const root = example("types")
     const button = root.querySelector<HTMLElement>(".ui.calendar > .ui.input > button.icon")!
-    const style = getComputedStyle(button)
-    expect(style.pointerEvents).toBe("auto")
-    expect(style.cursor).toBe("pointer")
-    expect(style.position).toBe("absolute")
+    expect(getComputedStyle(button)).toMatchObject({ pointerEvents: "auto", cursor: "pointer", position: "absolute" })
   })
 })

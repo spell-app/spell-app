@@ -3,12 +3,12 @@ import { userEvent } from "vite-plus/test/browser"
 
 import { UI } from "$/ui/runtime"
 import type { SearchResult } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
-import { SearchMatcher } from "$/ui/components/ui-search"
+import "$/ui/components/ui-search"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/ui-search/examples/elements/*.html", {
@@ -54,26 +54,6 @@ async function search(html: string, source?: SearchResult[]) {
   }
 }
 
-describe("<ui-search> rendering open from the start", () => {
-  it.each([
-    ["", FRUIT],
-    ["category", FOOD]
-  ])("%s results render without a STRICT_READ_UNTRACKED warning", async (attributes, source) => {
-    const logs: string[] = []
-    const spies = (["warn", "error", "info", "log"] as const).map((method) =>
-      vi.spyOn(console, method).mockImplementation((...args: unknown[]) => void logs.push(args.map(String).join(" ")))
-    )
-    try {
-      const { titles } = await search(`<ui-search open value="a" ${attributes}></ui-search>`, source)
-      await ElementFixture.tick()
-      expect(titles().length).toBeGreaterThan(0)
-    } finally {
-      spies.forEach((spy) => spy.mockRestore())
-    }
-    expect(logs.filter((line) => line.includes("STRICT_READ_UNTRACKED"))).toEqual([])
-  })
-})
-
 /** Collect `detail`s of `name` events. */
 function record(host: Element, name: string) {
   const details: unknown[] = []
@@ -113,54 +93,27 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe("SearchMatcher", () => {
-  it("puts word starts first, then matches anywhere (`exact`)", () => {
-    const matcher = new SearchMatcher()
-    expect(matcher.search(FRUIT, "ap").map((result) => result.title)).toEqual([
-      "Apple",
-      "Apricot",
-      "Grape",
-      "Pineapple"
-    ])
-    expect(matcher.search(FRUIT, "SWEET").map((result) => result.title)).toEqual(["Apple"])
-    expect(matcher.search(FRUIT, "  ")).toEqual([])
-  })
+////////////////
+// ## Rendering
+////////////////
 
-  it("matches in order with `fuzzy`, only word starts with `prefix`", () => {
-    expect(new SearchMatcher({ match: "fuzzy" }).search(FRUIT, "bnn").map((result) => result.title)).toEqual(["Banana"])
-    expect(new SearchMatcher({ match: "prefix" }).search(FRUIT, "pple").map((result) => result.title)).toEqual([])
-    expect(new SearchMatcher({ match: "exact" }).search(FRUIT, "pple").map((result) => result.title)).toEqual([
-      "Apple",
-      "Pineapple"
-    ])
-  })
-
-  it("matches any word with `some`, every word across fields with `all`", () => {
-    expect(new SearchMatcher({ match: "some" }).search(FRUIT, "zzz yellow").map((result) => result.title)).toEqual([
-      "Banana"
-    ])
-    expect(new SearchMatcher({ match: "all" }).search(FRUIT, "apple sweet").map((result) => result.title)).toEqual([
-      "Apple"
-    ])
-  })
-
-  it("searches the fields it's given, and folds diacritics on request", () => {
-    const source = [{ title: "Café", code: 42 }]
-    expect(new SearchMatcher({ fields: ["code"] }).search(source, "42")).toHaveLength(1)
-    expect(new SearchMatcher().search(source, "cafe")).toHaveLength(0)
-    expect(new SearchMatcher({ ignoreDiacritics: true }).search(source, "cafe")).toHaveLength(1)
-  })
-
-  it("groups by category (leaving uncategorized results out, as Fomantic) and reads remote answers", () => {
-    expect(SearchMatcher.categorize(FOOD).map((group) => [group.name, group.results.length])).toEqual([
-      ["Fruit", 2],
-      ["Vegetables", 1]
-    ])
-    expect(SearchMatcher.groupsFor({ results: FRUIT }, 2)[0]!.results).toHaveLength(2)
-    expect(SearchMatcher.groupsFor(FRUIT)[0]!.results).toHaveLength(5)
-    const keyed = { results: { fruit: { name: "Fruit", results: [FRUIT[0]!] }, none: { name: "None", results: [] } } }
-    expect(SearchMatcher.groupsFor(keyed).map((group) => group.name)).toEqual(["Fruit"])
-    expect(SearchMatcher.groupsFor({} as never)).toEqual([])
+describe("<ui-search> rendering open from the start", () => {
+  it.each([
+    ["", FRUIT],
+    ["category", FOOD]
+  ])("%s results render without a STRICT_READ_UNTRACKED warning", async (attributes, source) => {
+    const logs: string[] = []
+    const spies = (["warn", "error", "info", "log"] as const).map((method) =>
+      vi.spyOn(console, method).mockImplementation((...args: unknown[]) => void logs.push(args.map(String).join(" ")))
+    )
+    try {
+      const { titles } = await search(`<ui-search open value="a" ${attributes}></ui-search>`, source)
+      await ElementFixture.tick()
+      expect(titles().length).toBeGreaterThan(0)
+    } finally {
+      spies.forEach((spy) => spy.mockRestore())
+    }
+    expect(logs.filter((line) => line.includes("STRICT_READ_UNTRACKED"))).toEqual([])
   })
 })
 
@@ -195,6 +148,10 @@ describe("<ui-search> markup", () => {
     expect(input.getAttribute("aria-label")).toBe("Search")
   })
 })
+
+////////////////
+// ## Searching
+////////////////
 
 describe("<ui-search> local", () => {
   it("shows the matches of what's typed, with ui-search and a live count", async () => {
@@ -274,6 +231,10 @@ describe("<ui-search> local", () => {
     expect(quiet.results.matches(":popover-open")).toBe(false)
   })
 })
+
+////////////////
+// ## Keyboard and pointer
+////////////////
 
 describe("<ui-search> keyboard", () => {
   it("moves with the arrows (stopping at the ends), chooses with Enter", async () => {
@@ -392,6 +353,10 @@ describe("<ui-search> keyboard", () => {
   })
 })
 
+////////////////
+// ## Remote
+////////////////
+
 describe("<ui-search> remote", () => {
   it("fills the url template, shows loading, then the answer;  caches per query", async () => {
     const calls = stubFetch((url) => ({
@@ -464,6 +429,10 @@ describe("<ui-search> remote", () => {
   })
 })
 
+////////////////
+// ## Forms
+////////////////
+
 describe("<ui-search> forms", () => {
   it("submits its text, validates `required`, resets to the attribute", async () => {
     const form = await ElementFixture.render<HTMLFormElement>(`<form>
@@ -514,6 +483,10 @@ describe("<ui-search> forms", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("<ui-search> tokens from outside", () => {
   /** The prompt's top-left radius, which `--ui-search-prompt-radius` drives (through the input's own token). */
   function radius(host: Element): string {
@@ -560,6 +533,10 @@ describe("<ui-search> tokens from outside", () => {
     expect(parseFloat(radius(host))).toBeGreaterThan(100)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-search> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

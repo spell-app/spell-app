@@ -13,7 +13,7 @@ import { UISummary } from "$/ui/components/ui-parts/UISummary"
  * `<ui-feed>` in the static server render (`$/ui/static`):  a `<ul>` (`<ol>` when `ordered`) whose events' `<div>`
  * roots become the `<li>`s -- the events' `listitem` role is a host effect, applied once on the server.
  */
-describe("ui-feed, static", () => {
+describe("<ui-feed> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIFeed, UIFeedEvent, UIContent, UISummary, UIDate)
   })

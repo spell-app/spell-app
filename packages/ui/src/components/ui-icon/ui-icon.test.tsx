@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -21,6 +21,10 @@ async function icon(html: string) {
   const root = host.shadowRoot!.querySelector<HTMLElement>("[part~=icon]")!
   return { host, root }
 }
+
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-icon> classes", () => {
   it.each([
@@ -77,6 +81,10 @@ describe("<ui-icon> classes", () => {
   })
 })
 
+////////////////
+// ## Tokens from outside
+////////////////
+
 describe("<ui-icon> tokens from outside", () => {
   /** The root span's width. */
   function width(root: Element): string {
@@ -131,6 +139,10 @@ describe("<ui-icon> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Accessibility
+////////////////
+
 describe("<ui-icon> accessibility", () => {
   it("is hidden without a label, an image with one", async () => {
     const { host } = await icon(`<ui-icon name="house"></ui-icon>`)
@@ -138,9 +150,7 @@ describe("<ui-icon> accessibility", () => {
     expect(host.internals.role).toBeNull()
     host.setAttribute("label", "Home")
     await ElementFixture.tick()
-    expect(host.internals.role).toBe("img")
-    expect(host.internals.ariaLabel).toBe("Home")
-    expect(host.internals.ariaHidden).toBeNull()
+    expect(host.internals).toMatchObject({ role: "img", ariaLabel: "Home", ariaHidden: null })
   })
 
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
@@ -148,6 +158,10 @@ describe("<ui-icon> accessibility", () => {
     await expectAccessible(root)
   })
 })
+
+////////////////
+// ## `<ui-icons>`
+////////////////
 
 describe("<ui-icons>", () => {
   it("renders the group and puts direct children in `:state(in-icons)`", async () => {
@@ -185,6 +199,10 @@ describe("<ui-icons>", () => {
     expect(child.matches(":state(in-icons)")).toBe(false)
   })
 })
+
+////////////////
+// ## In a <ui-root icons>
+////////////////
 
 describe("<ui-icon> in a <ui-root icons>", () => {
   /** The stroke-style (Lucide-like) fixture pack:  `bell`, `sun`;  its id is `stroke`. */

@@ -10,7 +10,7 @@ import { UICalendar } from "$/ui/components/ui-calendar/UICalendar"
  * it, the ISO value as a hidden input (so a no-JS form submits it), the popup closed.
  * - The picker needs `Temporal`, which a server render may not have:  these hold either way.
  */
-describe("ui-calendar (static render)", () => {
+describe("<ui-calendar> static render", () => {
   beforeAll(() => {
     StaticRender.define(UICalendar)
   })
@@ -57,16 +57,16 @@ describe("ui-calendar (static render)", () => {
  * inline picker renders in full (seo plan, T7).
  * - Its own `describe`, AFTER the ones above:  once loaded, the polyfill stays for the rest of the file.
  */
-describe("ui-calendar (static render, Temporal preloaded)", () => {
-  const source = `<ui-calendar inline type="date" name="day" value="2026-09-30"></ui-calendar>`
+describe("<ui-calendar> static render, Temporal preloaded", () => {
+  const SOURCE = `<ui-calendar inline type="date" name="day" value="2026-09-30"></ui-calendar>`
 
   beforeAll(async () => {
     StaticRender.define(UICalendar)
-    await StaticRender.prepare(source)
+    await StaticRender.prepare(SOURCE)
   })
 
   it("renders an inline picker's header and day grid, the value's cell selected", () => {
-    const html = StaticRender.fragment(source)
+    const html = StaticRender.fragment(SOURCE)
     expect(html).toMatch(/<table [^>]*role="grid"/)
     expect(html).toContain("September 2026")
     expect(html.match(/role="gridcell"/g)?.length).toBeGreaterThanOrEqual(28)

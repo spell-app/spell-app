@@ -8,7 +8,7 @@ import { UIStatistics } from "$/ui/components/ui-statistic/UIStatistics"
 import { UIValue } from "$/ui/components/ui-parts/UIValue"
 
 /** `<ui-statistic>` / `<ui-statistics>` in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-statistic static render", () => {
+describe("<ui-statistic> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIStatistic, UIStatistics, UIValue)
   })

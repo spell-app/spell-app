@@ -1,16 +1,18 @@
 import { afterAll, describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import type { SiteDataFile, SiteTag, SiteToken } from "$/ui/docs-components/docs-components.types"
 
 import { UIDocsTokens } from "./UIDocsTokens"
-import { TokenRows } from "./TokenRows"
-import { ColorProbe } from "./ColorProbe"
 
 import "$/ui/docs-components/ui-docs-tokens"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** Element-markup examples, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-tokens/examples/elements/*.html", {
@@ -91,6 +93,10 @@ const DATA = {
 /** `DATA` as a URL `SiteData` can fetch. */
 const DATA_URL = `data:application/json,${encodeURIComponent(JSON.stringify(DATA))}`
 
+////////////////
+// ## Helpers
+////////////////
+
 /** Render `html` with `url` as the data, and wait for the tables (and every widget in them) to draw. */
 async function render(html: string, url = DATA_URL) {
   SiteData.reset(url)
@@ -144,6 +150,10 @@ async function type(input: Element, value: string) {
 
 afterAll(() => SiteData.reset())
 
+////////////////
+// ## Tables
+////////////////
+
 describe("<ui-docs-tokens family>", () => {
   it("draws one table:  name, default, description (code spans), caption", async () => {
     const host = await render(`<ui-docs-tokens family="x-button" caption="Button tokens"></ui-docs-tokens>`)
@@ -159,9 +169,11 @@ describe("<ui-docs-tokens family>", () => {
     ])
     expect(namesOf(table)).toEqual(["--x-button-radius", "--x-button-background", "--x-button-padding-block"])
     const radius = rowOf(host, "--x-button-radius")
-    expect(radius.cells[0]!.localName).toBe("th")
-    expect(radius.cells[1]!.textContent).toBe("0.5em")
-    expect(radius.cells[2]!.querySelector("code")!.textContent).toBe("radius")
+    expect({
+      header: radius.cells[0]!.localName,
+      default: radius.cells[1]!.textContent,
+      code: radius.cells[2]!.querySelector("code")!.textContent
+    }).toEqual({ header: "th", default: "0.5em", code: "radius" })
     expect(host.shadowRoot!.querySelector("[part~=search]")).toBeNull()
     expect(host.shadowRoot!.querySelector("[part~=playground]")).toBeNull()
   })
@@ -214,9 +226,11 @@ describe("<ui-docs-tokens family>", () => {
   ])("<ui-docs-tokens %s> shows a message", async (attributes, text, state, error) => {
     const host = await render(`<ui-docs-tokens ${attributes}></ui-docs-tokens>`)
     const message = host.shadowRoot!.querySelector("[part~=message]")!
-    expect(message.localName).toBe("ui-message")
-    expect(message.textContent).toBe(text)
-    expect(message.getAttribute("state")).toBe(state)
+    expect({ tag: message.localName, text: message.textContent, state: message.getAttribute("state") }).toEqual({
+      tag: "ui-message",
+      text,
+      state
+    })
     expect(tablesOf(host)).toEqual([])
     expect(host.matches(":state(error)")).toBe(error)
   })
@@ -263,6 +277,10 @@ describe("<ui-docs-tokens global>", () => {
     expect(outside).toEqual([])
   })
 })
+
+////////////////
+// ## Playground
+////////////////
 
 describe("<ui-docs-tokens playground>", () => {
   /** A playground over `x-button`, with a `<span>` preview child. */
@@ -361,31 +379,9 @@ describe("<ui-docs-tokens playground>", () => {
   })
 })
 
-describe("TokenRows", () => {
-  it("reads `tokens` as names and prefixes", () => {
-    expect(TokenRows.patternsFor("--a --b-* ")).toEqual([{ name: "--a" }, { prefix: "--b-" }])
-    expect(TokenRows.patternsFor(undefined)).toEqual([])
-  })
-
-  it("searches name, default and description, ignoring case", () => {
-    const row = { name: "--x-a", default: "1em", description: "Space around", type: "length" } as const
-    expect(TokenRows.found(row, "around")).toBe(true)
-    expect(TokenRows.found(row, "1em")).toBe(true)
-    expect(TokenRows.found(row, "nope")).toBe(false)
-  })
-})
-
-describe("ColorProbe", () => {
-  it("reads any CSS colour back as #rrggbb", () => {
-    expect(ColorProbe.hexFor("rgb(255, 0, 0)")).toBe("#ff0000")
-    expect(ColorProbe.hexFor("oklch(1 0 0)")).toBe("#ffffff")
-    expect(ColorProbe.hexesFor(document.body, new Map([["a", "var(--nope, rgb(0, 0, 255))"]])).get("a")).toBe("#0000ff")
-    // translucent:  flattened onto the backdrop, as the reader sees it
-    expect(
-      ColorProbe.hexesFor(document.body, new Map([["a", "rgb(0 0 0 / 0.5)"]]), "rgb(255, 255, 255)").get("a")
-    ).toMatch(/^#(7f|80){3}$/)
-  })
-})
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-docs-tokens> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
 import type { TransitionDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -58,6 +58,10 @@ afterEach(() => {
   delete (UI.browser as { isReducedMotion?: boolean }).isReducedMotion
 })
 
+////////////////
+// ## Rendering
+////////////////
+
 describe("<ui-transition> classes and first paint", () => {
   it.each([
     ["", "ui transition"],
@@ -84,6 +88,10 @@ describe("<ui-transition> classes and first paint", () => {
     expect((wrapper.querySelector("#b") as UIHost).matches(":state(visible)")).toBe(true)
   })
 })
+
+////////////////
+// ## Animating
+////////////////
 
 describe("<ui-transition> show / hide", () => {
   it("`visible` animates out then in through UI.transitions:  ui-hide, ui-show, ui-complete", async () => {
@@ -212,7 +220,11 @@ describe("<ui-transition> queue", () => {
   })
 })
 
-describe("<ui-transition> reduced motion, commands, accessibility", () => {
+////////////////
+// ## Reduced motion and commands
+////////////////
+
+describe("<ui-transition> reduced motion", () => {
   it("reduced motion:  the end state at once, events still fire", async () => {
     reduceMotion()
     const { host, box } = await transition(`<ui-transition animation="fly left" visible>x</ui-transition>`)
@@ -222,7 +234,9 @@ describe("<ui-transition> reduced motion, commands, accessibility", () => {
     expect(box.hasAttribute("data-ui-animation")).toBe(false)
     expect(hides).toHaveLength(1)
   })
+})
 
+describe("<ui-transition> invoker commands", () => {
   it("invoker commands:  --toggle, --show, --close, --transition", async () => {
     const { host, box, wrapper } = await transition(
       `<button commandfor="t" command="--toggle">Toggle</button>` +
@@ -239,7 +253,13 @@ describe("<ui-transition> reduced motion, commands, accessibility", () => {
     await expect.poll(() => completes.length).toBe(3)
     expect(box.hidden).toBe(true)
   })
+})
 
+////////////////
+// ## Accessibility
+////////////////
+
+describe("<ui-transition> accessibility", () => {
   it("hidden content can't be reached with Tab;  shown, it can", async () => {
     const { host, wrapper } = await transition(
       `<button id="before">Before</button><ui-transition duration="30"><button id="inside">In</button></ui-transition>`

@@ -6,7 +6,7 @@ import { SiteSearchBuilder } from "./SiteSearchBuilder.ts"
  * `SiteSearchBuilder`:  a page's entry in `site/_data/search.json`, from its markup.  (That the committed file is
  * current:  `SiteDataBuilder.test.ts`.)
  */
-describe("SiteSearchBuilder.page", () => {
+describe("SiteSearchBuilder.page()", () => {
   const PAGE = `<!doctype html>
     <html><head><title>Divider | Spell UI</title><meta name="description" content="Segments content."></head>
     <body><main id="main" data-toc-header="Divider">

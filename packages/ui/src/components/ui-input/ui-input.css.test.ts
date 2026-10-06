@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { inputVocabulary } from "./ui-input.vocabulary.en"
 import { textareaVocabulary } from "./ui-textarea.vocabulary.en"
@@ -28,6 +28,10 @@ const ALLOWED_IMPORTANT = 0
 
 /** The sheets an input page needs. */
 const SHEETS = [...foundationCSS, labelCSS, buttonCSS, inputCSS]
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-input.css source", () => {
   it("never uses rem", () => {
@@ -62,6 +66,10 @@ describe("ui-input.css source", () => {
     expect(Sheets.covers(css, "icon")).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-input.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every input in %s", (path) => {

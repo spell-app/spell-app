@@ -9,7 +9,7 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 UIButton.define("ie-boton", es)
 UIDropdown.define("ie-desplegable", es)
 
-describe("translation hook (alias define)", () => {
+describe("UIElement.define(tag, dictionary)", () => {
   it("maps Spanish attribute names and values onto the canonical grammar", async () => {
     const host = await ElementFixture.render<UIHost>(
       `<ie-boton primario color="rojo" tamano="pequeno">Guardar</ie-boton>`

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { nagVocabulary } from "./ui-nag.vocabulary.en"
 
@@ -18,6 +18,10 @@ import nagRaw from "./ui-nag.css?raw"
 
 /** Every example fragment, by path. */
 const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-nag.css source", () => {
   it("never uses rem, nor !important", () => {
@@ -42,6 +46,10 @@ describe("ui-nag.css source", () => {
       expect(Sheets.covers(css, phrase), `${nagVocabulary.tag}: ${phrase}`).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-nag.css examples", () => {
   it("draws a nag as a full-width, centred, dark bar with light text", () => {
@@ -117,6 +125,10 @@ function luminance(color: string): number {
   const [r, g, b] = context.getImageData(0, 0, 1, 1).data
   return (0.2126 * r! + 0.7152 * g! + 0.0722 * b!) / 255
 }
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-nag.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

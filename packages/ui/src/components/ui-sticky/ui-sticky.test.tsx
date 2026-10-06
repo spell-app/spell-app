@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
+import { nextFrame } from "$/ui/util"
 import type { StickyDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -41,9 +42,25 @@ function record(target: EventTarget, name: string) {
   return details
 }
 
+/**
+ * Wait until an `IntersectionObserver` report that's coming has come, before checking something did NOT happen.
+ * - Why frames, not a timer:  the browser computes intersections while rendering a frame, and reports in a task
+ *   right after it;  the second frame starts once that task has run.
+ */
+async function observerSettled() {
+  for (let frame = 0; frame < OBSERVER_FRAMES; frame++) await nextFrame()
+}
+
+/** Frames `observerSettled()` waits:  the one that measures, then one after its report. */
+const OBSERVER_FRAMES = 2
+
 beforeEach(async () => {
   await UI.load()
 })
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-sticky> classes and markup", () => {
   it.each([
@@ -77,12 +94,16 @@ describe("<ui-sticky> classes and markup", () => {
   })
 })
 
+////////////////
+// ## Sticking
+////////////////
+
 describe("<ui-sticky> stuck state", () => {
   it("reports sticking to the top:  :state(stuck), ui-stick;  and leaving:  ui-unstick", async () => {
     const { scroller, host, box } = await frame()
     const sticks = record(host, "ui-stick")
     const unsticks = record(host, "ui-unstick")
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await nextFrame()
     expect(host.matches(":state(stuck)")).toBe(false)
     scroller.scrollTop = 150
     await expect.poll(() => host.matches(":state(stuck)")).toBe(true)
@@ -141,7 +162,7 @@ describe("<ui-sticky> stuck state", () => {
     )
     const host = scroller.querySelector<UIHost>("ui-sticky")!
     await ElementFixture.settle(host)
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    await observerSettled()
     expect(host.matches(":state(stuck)")).toBe(false)
   })
 })
@@ -178,7 +199,7 @@ describe("<ui-sticky> reserves its room on the scroll container", () => {
     host.querySelector("p")!.style.height = "120px"
     scroller.scrollTop = 150
     await expect.poll(() => host.matches(":state(stuck)")).toBe(true)
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    await observerSettled()
     expect(scroller.style.scrollPaddingTop).toBe("")
   })
 
@@ -188,7 +209,7 @@ describe("<ui-sticky> reserves its room on the scroll container", () => {
     host.parentElement!.style.width = "40%"
     scroller.scrollTop = 150
     await expect.poll(() => host.matches(":state(stuck)")).toBe(true)
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    await observerSettled()
     expect(scroller.style.scrollPaddingTop).toBe("")
   })
 
@@ -205,6 +226,10 @@ describe("<ui-sticky> reserves its room on the scroll container", () => {
     await expect.poll(() => scroller.style.scrollPaddingBottom).toBe("45px")
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("<ui-sticky> tokens from outside", () => {
   /** The inner box's z index. */
@@ -254,6 +279,10 @@ describe("<ui-sticky> tokens from outside", () => {
     expect(getComputedStyle(host.shadowRoot!.querySelector("[part~=sticky]")!).top).toBe("12px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-sticky> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

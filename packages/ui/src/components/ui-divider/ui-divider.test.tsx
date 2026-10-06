@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -21,7 +21,11 @@ async function divider(html: string) {
   return { host, root }
 }
 
-describe("<ui-divider>", () => {
+////////////////
+// ## Classes and markup
+////////////////
+
+describe("<ui-divider> classes and markup", () => {
   it.each([
     ["", "ui divider"],
     ['size="large"', "ui large divider"],
@@ -64,6 +68,10 @@ describe("<ui-divider>", () => {
     expect((host as unknown as { dividerHidden: unknown }).dividerHidden).toBe(true)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-divider> tokens from outside", () => {
   /** The inner box's margin top. */
@@ -114,6 +122,10 @@ describe("<ui-divider> tokens from outside", () => {
     expect(getComputedStyle(root).marginTop).toBe("32px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-divider> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

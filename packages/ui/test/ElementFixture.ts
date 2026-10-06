@@ -1,6 +1,6 @@
 import { flush } from "solid-js"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import type { UIHost } from "$/ui/elements"
 
 /**

@@ -1,11 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
 import type { NagCloseDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -63,6 +63,10 @@ beforeEach(async () => {
 
 afterEach(() => forget())
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-nag> classes", () => {
   it.each([
     ["", "ui nag"],
@@ -77,6 +81,10 @@ describe("<ui-nag> classes", () => {
     expect(root.className).toBe(classes)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-nag> tokens from outside", () => {
   /** The bar's bottom-left radius. */
@@ -119,14 +127,16 @@ describe("<ui-nag> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Content
+////////////////
+
 describe("<ui-nag> content", () => {
   it("renders the slot, then a labelled close button (closable by default)", async () => {
     const { root } = await nag(`<ui-nag>Hello</ui-nag>`)
     expect([...root.children].map((child) => child.localName)).toEqual(["slot", "button"])
     const close = root.querySelector("button")!
-    expect(close.type).toBe("button")
-    expect(close.className).toBe("close icon")
-    expect(close.getAttribute("aria-label")).toBe("Close")
+    expect(close).toMatchObject({ type: "button", className: "close icon", ariaLabel: "Close" })
     await expect.poll(() => close.querySelector("svg")).not.toBeNull()
   })
 
@@ -135,6 +145,10 @@ describe("<ui-nag> content", () => {
     expect(root.querySelector("button")).toBeNull()
   })
 })
+
+////////////////
+// ## Closing
+////////////////
 
 describe("<ui-nag> closing", () => {
   it("fires ui-show, then on the close icon a cancelable ui-close, hidden, ui-hide", async () => {
@@ -145,8 +159,7 @@ describe("<ui-nag> closing", () => {
     await userEvent.click(host.shadowRoot!.querySelector("button")!)
     expect(closes.map(({ reason }) => reason)).toEqual(["close"])
     expect((await hidden).reason).toBe("close")
-    expect(host.hidden).toBe(true)
-    expect(host.isConnected).toBe(true)
+    expect(host).toMatchObject({ hidden: true, isConnected: true })
     expect(host.matches(":state(dismissed)")).toBe(true)
   })
 
@@ -159,8 +172,15 @@ describe("<ui-nag> closing", () => {
   })
 
   it("hides itself after display-time, storing nothing", async () => {
-    const host = Fixture.render<Nag>(`<ui-nag display-time="40" key="${KEY}" storage="local">Hello</ui-nag>`)
-    expect((await next(host, "ui-hide")).reason).toBe("timeout")
+    // only the timers:  the slide's `animationend` still comes from the browser
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
+    const { host } = await nag(`<ui-nag display-time="40" key="${KEY}" storage="local">Hello</ui-nag>`)
+    const hidden = next(host, "ui-hide")
+    await vi.advanceTimersByTimeAsync(40)
+    expect((await hidden).reason).toBe("timeout")
     expect(host.hidden).toBe(true)
     expect(localStorage.getItem(KEY)).toBeNull()
   })
@@ -195,6 +215,10 @@ describe("<ui-nag> closing", () => {
     expect((await hidden).reason).toBe("close")
   })
 })
+
+////////////////
+// ## Remembering
+////////////////
 
 describe("<ui-nag> remembering", () => {
   it("stores nothing without a key", async () => {
@@ -300,6 +324,10 @@ describe("<ui-nag> remembering", () => {
     }
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-nag> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

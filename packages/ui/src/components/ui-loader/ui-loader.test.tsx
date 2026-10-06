@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -21,6 +21,10 @@ async function loader(html: string) {
   return { host, root }
 }
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-loader> classes", () => {
   it.each([
     ["", "ui loader"],
@@ -36,18 +40,19 @@ describe("<ui-loader> classes", () => {
     ["active disabled", "ui active disabled loader"]
   ])("<ui-loader %s>", async (attributes, classes) => {
     const { root } = await loader(`<ui-loader ${attributes}></ui-loader>`)
-    expect(root.localName).toBe("div")
-    expect(root.className).toBe(classes)
+    expect(root).toMatchObject({ localName: "div", className: classes })
     expect(root.querySelector("slot")).not.toBeNull()
   })
 })
 
+////////////////
+// ## Live region
+////////////////
+
 describe("<ui-loader> live region", () => {
   it("is a polite status on the host, named `Loading…` while empty", async () => {
     const { host, root } = await loader(`<ui-loader active></ui-loader>`)
-    expect(host.internals.role).toBe("status")
-    expect(host.internals.ariaLive).toBe("polite")
-    expect(host.internals.ariaLabel).toBe("Loading…")
+    expect(host.internals).toMatchObject({ role: "status", ariaLive: "polite", ariaLabel: "Loading…" })
     // nothing in the shadow root claims the role:  the host is the region
     expect(root.hasAttribute("role")).toBe(false)
   })
@@ -59,6 +64,10 @@ describe("<ui-loader> live region", () => {
     await expect.poll(() => host.internals.ariaLabel).toBe("Loading…")
   })
 })
+
+////////////////
+// ## States and visibility
+////////////////
 
 describe("<ui-loader> states and visibility", () => {
   it("sets :state(active) / :state(disabled)", async () => {
@@ -92,6 +101,10 @@ describe("<ui-loader> states and visibility", () => {
     expect(inner.top + inner.height / 2).toBeCloseTo(outer.top + outer.height / 2, 0)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-loader> tokens from outside", () => {
   /** The inner box's width. */
@@ -140,6 +153,10 @@ describe("<ui-loader> tokens from outside", () => {
     expect(getComputedStyle(root, "::after").animationDuration).toBe("1.5s")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-loader> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

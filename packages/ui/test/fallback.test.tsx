@@ -1,6 +1,6 @@
 import { describe, it } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { FALLBACK_CASES, type FallbackAdapter } from "$/ui/test/fallback.cases"
 import type { UIHost } from "$/ui/elements"
@@ -18,6 +18,6 @@ const SOLID: FallbackAdapter = {
   axe: async (root) => void (await expectAccessible(root))
 }
 
-describe("native fallback", () => {
+describe("UIElement.Fallback", () => {
   for (const test of FALLBACK_CASES) it(test.name, () => test.run(SOLID))
 })

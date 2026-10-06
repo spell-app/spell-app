@@ -2,7 +2,7 @@ import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { PART_OWNER_TOKENS, type MessageDismissDetail } from "$/ui/components/components.types"
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -31,12 +31,20 @@ function partsOf(root: Element) {
   return [...root.children].map((child) => `${child.localName}.${child.getAttribute("part")}`)
 }
 
+////////////////
+// ## Definition
+////////////////
+
 describe("<ui-message> definition", () => {
   it("registers its texts with UI.i18n when DEFINED", async () => {
     await UI.load()
     expect(UI.i18n.t("dismiss")).toBe("Dismiss")
   })
 })
+
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-message> classes", () => {
   it.each([
@@ -70,6 +78,10 @@ describe("<ui-message> classes", () => {
   })
 })
 
+////////////////
+// ## Content
+////////////////
+
 describe("<ui-message> content", () => {
   it("renders in contract order:  icon, content (header, slot), close", async () => {
     const { root } = await message(`<ui-message icon="envelope" header="Mail" dismissible>Body</ui-message>`)
@@ -95,9 +107,7 @@ describe("<ui-message> content", () => {
   it("names the close button with its translated text", async () => {
     const { root } = await message(`<ui-message dismissible>x</ui-message>`)
     const close = root.querySelector("button")!
-    expect(close.type).toBe("button")
-    expect(close.className).toBe("close icon")
-    expect(close.getAttribute("aria-label")).toBe("Dismiss")
+    expect(close).toMatchObject({ type: "button", className: "close icon", ariaLabel: "Dismiss" })
     await expect.poll(() => close.querySelector("svg")).not.toBeNull()
   })
 
@@ -108,6 +118,10 @@ describe("<ui-message> content", () => {
     expect(getComputedStyle(icon).getPropertyValue(PART_OWNER_TOKENS.messageLayout).trim()).toBe("icon")
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-message> tokens from outside", () => {
   /** The box's top-left radius. */
@@ -182,6 +196,10 @@ describe("<ui-message> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Owner context
+////////////////
+
 describe("<ui-message> owner context", () => {
   it("owns a slotted <ui-header> and <ui-content>:  :state(in-message), the bare noun", async () => {
     const { host } = await message(
@@ -216,6 +234,10 @@ describe("<ui-message> owner context", () => {
   })
 })
 
+////////////////
+// ## Dismiss
+////////////////
+
 describe("<ui-message> dismiss", () => {
   it("dispatches a cancelable, composed ui-dismiss, then hides itself (never removes itself)", async () => {
     const { host, root } = await message(`<ui-message dismissible>x</ui-message>`)
@@ -225,10 +247,12 @@ describe("<ui-message> dismiss", () => {
     expect(events).toHaveLength(1)
     const [event] = events
     expect(event!.target).toBe(host)
-    expect(event!.cancelable).toBe(true)
-    expect(event!.composed).toBe(true)
-    expect(event!.bubbles).toBe(true)
-    expect(event!.detail.originalEvent).toBeInstanceOf(MouseEvent)
+    expect(event).toMatchObject({
+      cancelable: true,
+      composed: true,
+      bubbles: true,
+      detail: { originalEvent: expect.any(MouseEvent) }
+    })
     expect(host.hidden).toBe(true)
     expect(host.isConnected).toBe(true)
     expect(root.getBoundingClientRect().height).toBe(0)
@@ -242,6 +266,10 @@ describe("<ui-message> dismiss", () => {
     expect(host.hasAttribute("hidden")).toBe(false)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-message> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

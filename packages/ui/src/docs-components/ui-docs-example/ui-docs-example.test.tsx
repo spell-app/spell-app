@@ -1,11 +1,10 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
 import { ExampleSource } from "./ExampleSource"
-import { HtmlFormatter } from "./HtmlFormatter"
 
 import "$/ui/docs-components/ui-docs-example"
 
@@ -15,6 +14,10 @@ const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-example/
   import: "default",
   eager: true
 })
+
+////////////////
+// ## Helpers
+////////////////
 
 /** Render one example;  returns it with its shadow `<section>`. */
 async function render(html: string) {
@@ -33,6 +36,10 @@ function toggleOf(host: Element) {
   return host.shadowRoot!.querySelector<HTMLElement>("[part~=toggle]")!
 }
 
+////////////////
+// ## Chrome, code pane and frame
+////////////////
+
 describe("<ui-docs-example> classes and chrome", () => {
   it.each([
     ["", "ui example"],
@@ -48,9 +55,11 @@ describe("<ui-docs-example> classes and chrome", () => {
       `<ui-docs-example header="Emphasis" description="Use \`primary\` once."><ui-button>A</ui-button></ui-docs-example>`
     )
     const header = host.shadowRoot!.querySelector("[part~=header]")!
-    expect(header.localName).toBe("ui-header")
-    expect(header.getAttribute("level")).toBe("4")
-    expect(header.textContent).toBe("Emphasis")
+    expect({ tag: header.localName, level: header.getAttribute("level"), text: header.textContent }).toEqual({
+      tag: "ui-header",
+      level: "4",
+      text: "Emphasis"
+    })
     const description = host.shadowRoot!.querySelector("[part~=description]")!
     expect(description.querySelector("code")?.textContent).toBe("primary")
     expect(description.textContent).toBe("Use primary once.")
@@ -122,6 +131,21 @@ describe("<ui-docs-example> code pane", () => {
   })
 })
 
+describe("<ui-docs-example> demo frame", () => {
+  it("unpads its own demo box only:  a segment in the example keeps its padding (I18)", async () => {
+    const { host } = await render(`<ui-docs-example><ui-segment>Inside</ui-segment></ui-docs-example>`)
+    await ElementFixture.settle(host)
+    const demo = host.shadowRoot!.querySelector("[part~=demo]")!.shadowRoot!.querySelector("[part~=segment]")!
+    expect(getComputedStyle(demo).paddingTop).toBe("0px")
+    const inner = host.querySelector("ui-segment")!.shadowRoot!.querySelector("[part~=segment]")!
+    expect(parseFloat(getComputedStyle(inner).paddingTop)).toBeGreaterThan(0)
+  })
+})
+
+////////////////
+// ## Source capture
+////////////////
+
 describe("<ui-docs-example> source capture", () => {
   it("leaves the description slot out of the code", async () => {
     const { host } = await render(
@@ -190,27 +214,9 @@ describe("<ui-docs-example> source capture", () => {
   })
 })
 
-describe("HtmlFormatter", () => {
-  it.each([
-    ['<ui-button\n    primary\n    size="small">A</ui-button>', '<ui-button primary size="small">A</ui-button>'],
-    ['<ui-button basic="">A</ui-button>', "<ui-button basic>A</ui-button>"],
-    [
-      "<div><ui-button>A</ui-button><ui-button>B</ui-button></div>",
-      "<div>\n  <ui-button>A</ui-button>\n  <ui-button>B</ui-button>\n</div>"
-    ],
-    [
-      '<ui-code language="js">  if (x) {\n    y()\n  }</ui-code>',
-      '<ui-code language="js">  if (x) {\n    y()\n  }</ui-code>'
-    ],
-    ["<p>Some <code>code</code> here</p>", "<p>Some <code>code</code> here</p>"],
-    [
-      '<div><script type="module">\n          if (x) {\n            y()\n          }\n        </script></div>',
-      '<div>\n  <script type="module">\n    if (x) {\n      y()\n    }\n  </script>\n</div>'
-    ]
-  ])("formats %j", (html, expected) => {
-    expect(HtmlFormatter.format(html)).toBe(expected)
-  })
-})
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-docs-example> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
@@ -218,16 +224,5 @@ describe("<ui-docs-example> accessibility", () => {
     await ElementFixture.tick()
     await ElementFixture.settle(root)
     await expectAccessible(root)
-  })
-})
-
-describe("<ui-docs-example> demo frame", () => {
-  it("unpads its own demo box only:  a segment in the example keeps its padding (I18)", async () => {
-    const { host } = await render(`<ui-docs-example><ui-segment>Inside</ui-segment></ui-docs-example>`)
-    await ElementFixture.settle(host)
-    const demo = host.shadowRoot!.querySelector("[part~=demo]")!.shadowRoot!.querySelector("[part~=segment]")!
-    expect(getComputedStyle(demo).paddingTop).toBe("0px")
-    const inner = host.querySelector("ui-segment")!.shadowRoot!.querySelector("[part~=segment]")!
-    expect(parseFloat(getComputedStyle(inner).paddingTop)).toBeGreaterThan(0)
   })
 })

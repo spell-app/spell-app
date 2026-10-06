@@ -4,7 +4,7 @@ import { ClassBuilder } from "$/ui/elements"
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { dropdownVocabulary } from "./ui-dropdown.vocabulary.en"
 
@@ -35,6 +35,10 @@ const SHEETS = [...foundationCSS, buttonCSS, dropdownCSS]
 
 /** Class phrases with no rule of their own:  `top pointing` IS the default `pointing`. */
 const DEFAULT_PHRASES = new Set(["top pointing"])
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-dropdown.css source", () => {
   it("never uses rem", () => {
@@ -73,6 +77,10 @@ describe("ui-dropdown.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-dropdown.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every dropdown in %s", (path) => {
@@ -195,6 +203,10 @@ describe("ui-dropdown.css examples", () => {
     expect(getComputedStyle(root.querySelector(".ui.inverted.dropdown")!).colorScheme).toBe("dark")
   })
 })
+
+////////////////
+// ## In a shadow root
+////////////////
 
 describe("ui-dropdown.css in a shadow root", () => {
   it("anchors the menu to its root with the fallback name", () => {

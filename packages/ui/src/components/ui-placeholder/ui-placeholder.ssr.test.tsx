@@ -9,7 +9,7 @@ import { UIPlaceholderLine } from "$/ui/components/ui-placeholder/UIPlaceholderL
 import { UIPlaceholderParagraph } from "$/ui/components/ui-placeholder/UIPlaceholderParagraph"
 
 /** `<ui-placeholder>` and its shapes in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-placeholder static render", () => {
+describe("<ui-placeholder> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIPlaceholder, UIPlaceholderHeader, UIPlaceholderLine, UIPlaceholderParagraph)
   })

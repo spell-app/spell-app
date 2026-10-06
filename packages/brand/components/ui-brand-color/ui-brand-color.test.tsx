@@ -1,10 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { Palette } from "$/brand"
 
 import "$/brand/components/ui-brand-color"
+
+////////////////
+// ## Helpers
+////////////////
 
 /** A part of `host`'s shadow root, or `null`. */
 function part(host: Element, name: string): HTMLElement | null {
@@ -23,22 +27,28 @@ function stubClipboard() {
 }
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.restoreAllMocks()
 })
 
-describe("<ui-brand-color>", () => {
+////////////////
+// ## Drawing
+////////////////
+
+describe("<ui-brand-color> chip", () => {
   it("draws a square chip in the colour, ink picked for contrast, named by name and colour", async () => {
     const host = await ElementFixture.render(`<ui-brand-color value="#8e96b5" name="brand-500"></ui-brand-color>`)
     const chip = part(host, "chip")!
-    expect(chip.localName).toBe("span")
-    expect(chip.getAttribute("role")).toBe("img")
-    expect(chip.getAttribute("aria-label")).toBe("brand-500 #8E96B5")
+    expect({ tag: chip.localName, role: chip.getAttribute("role"), label: chip.getAttribute("aria-label") }).toEqual({
+      tag: "span",
+      role: "img",
+      label: "brand-500 #8E96B5"
+    })
     const style = getComputedStyle(chip)
     expect(style.backgroundColor).toBe(rgb("#8E96B5"))
     expect(style.color).toBe(rgb(Palette.ink("#8E96B5")))
     const box = chip.getBoundingClientRect()
-    expect(box.width).toBe(48)
-    expect(box.height).toBe(48)
+    expect([box.width, box.height]).toEqual([48, 48])
     expect([...chip.classList]).toEqual(["color", "brand"])
     await expectAccessible(host)
   })
@@ -88,7 +98,13 @@ describe("<ui-brand-color>", () => {
     expect(part(dark!, "chip")!.getAttribute("aria-label")).toBe("#6550CA AA")
     expect(part(mid!, "mark")).toBeNull()
   })
+})
 
+////////////////
+// ## Copying
+////////////////
+
+describe("<ui-brand-color> copy", () => {
   it("`copy`:  a button named after the chip;  a click copies, `ui-copy`, then `:state(copied)` for a moment", async () => {
     const writeText = stubClipboard()
     const host = await ElementFixture.render(`<ui-brand-color value="#8E96B5" name="brand-500" copy></ui-brand-color>`)
@@ -101,13 +117,12 @@ describe("<ui-brand-color>", () => {
     chip.click()
     await vi.waitFor(() => expect(onCopy).toHaveBeenCalled())
     expect(writeText).toHaveBeenCalledWith("#8E96B5")
-    expect(onCopy.mock.calls[0]![0].detail.value).toBe("#8E96B5")
-    expect(onCopy.mock.calls[0]![0].detail.originalEvent).toBeInstanceOf(MouseEvent)
+    expect(onCopy.mock.calls[0]![0].detail).toMatchObject({ value: "#8E96B5", originalEvent: expect.any(MouseEvent) })
     await ElementFixture.tick()
     expect(host.matches(":state(copied)")).toBe(true)
     expect(part(host, "copied")).not.toBeNull()
     expect(host.shadowRoot!.querySelector("[role=status]")!.textContent).toBe("Copied #8E96B5")
-    vi.advanceTimersByTime(1400)
+    await vi.advanceTimersByTimeAsync(1400)
     vi.useRealTimers()
     await ElementFixture.tick()
     expect(host.matches(":state(copied)")).toBe(false)
@@ -134,7 +149,13 @@ describe("<ui-brand-color>", () => {
       "#8E96B5"
     ])
   })
+})
 
+////////////////
+// ## States, size and fallback
+////////////////
+
+describe("<ui-brand-color> states", () => {
   it("`selected` draws the double ring", async () => {
     const host = await ElementFixture.render(`<ui-brand-color value="#8E96B5" selected></ui-brand-color>`)
     const chip = part(host, "chip")!

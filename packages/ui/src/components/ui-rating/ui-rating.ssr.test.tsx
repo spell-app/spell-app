@@ -9,7 +9,7 @@ import { UIRating } from "$/ui/components/ui-rating/UIRating"
  * `<ui-rating>` in a static server render (`$/ui/static`):  a radio group of native radios, the value's radio
  * checked and named for the form, so a no-JS form submits it.
  */
-describe("ui-rating (static render)", () => {
+describe("<ui-rating> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIRating)
   })

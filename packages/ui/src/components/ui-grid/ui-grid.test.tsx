@@ -1,10 +1,10 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { GRID_CONTAINER_NAME } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Viewport } from "$/ui/test/viewport"
+import { Viewport } from "$/ui/test/Viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-grid"
@@ -34,6 +34,10 @@ function fractions(box: Element, grid = box.querySelector("ui-grid")!): number[]
   )
 }
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-grid> classes", () => {
   it.each([
     ["", "ui grid"],
@@ -55,8 +59,7 @@ describe("<ui-grid> classes", () => {
   ])("<ui-grid %s>", async (attributes, classes) => {
     const host = await ElementFixture.render<UIHost>(`<ui-grid ${attributes}></ui-grid>`)
     const root = rootOf(host)
-    expect(root.localName).toBe("div")
-    expect(root.className).toBe(classes)
+    expect(root).toMatchObject({ localName: "div", className: classes })
     expect(root.getAttribute("part")).toBe("grid")
     expect(root.querySelector("slot")).not.toBeNull()
   })
@@ -104,6 +107,10 @@ describe("<ui-grid> classes", () => {
   })
 })
 
+////////////////
+// ## Layout across shadow roots
+////////////////
+
 describe("<ui-grid> layout across shadow roots", () => {
   it("makes the top-level grid host the size container, and slotted rows / columns boxless", async () => {
     const box = await inBox(800, `<ui-grid><ui-row><ui-column>A</ui-column></ui-row></ui-grid>`)
@@ -121,10 +128,7 @@ describe("<ui-grid> layout across shadow roots", () => {
       `<ui-grid><ui-column width="4">A</ui-column><ui-column width="8">B</ui-column>` +
         `<ui-column width="4">C</ui-column></ui-grid>`
     )
-    const [a, b, c] = fractions(box)
-    expect(a).toBeCloseTo(0.25, 3)
-    expect(b).toBeCloseTo(0.5, 3)
-    expect(c).toBeCloseTo(0.25, 3)
+    expect(fractions(box).map((fraction) => fraction.toFixed(3))).toEqual(["0.250", "0.500", "0.250"])
     // one line
     const tops = [...box.querySelectorAll("ui-column")].map((column) => rootOf(column).getBoundingClientRect().top)
     expect(new Set(tops).size).toBe(1)
@@ -145,11 +149,7 @@ describe("<ui-grid> layout across shadow roots", () => {
       `<ui-grid columns="4"><ui-row><ui-column>A</ui-column><ui-column>B</ui-column></ui-row>` +
         `<ui-row columns="2"><ui-column>C</ui-column><ui-column>D</ui-column></ui-row></ui-grid>`
     )
-    const [a, b, c, d] = fractions(box)
-    expect(a).toBeCloseTo(0.25, 3)
-    expect(b).toBeCloseTo(0.25, 3)
-    expect(c).toBeCloseTo(0.5, 3)
-    expect(d).toBeCloseTo(0.5, 3)
+    expect(fractions(box).map((fraction) => fraction.toFixed(3))).toEqual(["0.250", "0.250", "0.500", "0.500"])
   })
 
   it("shares an equal-width line", async () => {
@@ -236,14 +236,23 @@ describe("<ui-grid> layout across shadow roots", () => {
   })
 })
 
+////////////////
+// ## `<ui-grid stack-with>`
+////////////////
+
 describe("<ui-grid stack-with>", () => {
   /** A stackable three-column grid, `attributes` on the grid. */
-  const stackable = (attributes = "") =>
-    `<ui-grid stackable columns="3" ${attributes}><ui-column>A</ui-column><ui-column>B</ui-column>` +
-    `<ui-column>C</ui-column></ui-grid>`
+  function stackable(attributes = "") {
+    return (
+      `<ui-grid stackable columns="3" ${attributes}><ui-column>A</ui-column><ui-column>B</ui-column>` +
+      `<ui-column>C</ui-column></ui-grid>`
+    )
+  }
 
   /** Whether every column of the grid in `box` fills its line. */
-  const stacked = (box: Element) => fractions(box).every((fraction) => Math.abs(fraction - 1) < 0.01)
+  function stacked(box: Element) {
+    return fractions(box).every((fraction) => Math.abs(fraction - 1) < 0.01)
+  }
 
   it("`page` follows the SCREEN:  no stacking in a narrow box on a desktop, stacking on a phone", async () => {
     const box = await inBox(500, stackable('stack-with="page"'))
@@ -288,6 +297,10 @@ describe("<ui-grid stack-with>", () => {
   })
 })
 
+////////////////
+// ## `<ui-grid celled>` outer margin
+////////////////
+
 describe("<ui-grid celled> outer margin", () => {
   it("sits on the HOST, so it collapses with the heading above as class grammar's does", async () => {
     const box = await inBox(
@@ -314,6 +327,10 @@ describe("<ui-grid celled> outer margin", () => {
     expect(getComputedStyle(rootOf(inner)).marginTop).toBe("16px")
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-grid> tokens from outside", () => {
   /** The inner box's margin left. */
@@ -372,6 +389,10 @@ describe("<ui-grid> tokens from outside", () => {
     expect(measure(host)).toBe("-30px")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-grid> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

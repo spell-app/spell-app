@@ -10,7 +10,7 @@ import { UISelect } from "$/ui/components/ui-select/UISelect"
  * `<ui-select>` in a static server render (`$/ui/static`):  a real `<select>` with its `<option>`s, from `<ui-item>`
  * children and the `options` attribute (JSON), the chosen ones `selected`, so a no-JS form submits it.
  */
-describe("ui-select (static render)", () => {
+describe("<ui-select> static render", () => {
   beforeAll(() => {
     StaticRender.define(UISelect, UIItem)
   })

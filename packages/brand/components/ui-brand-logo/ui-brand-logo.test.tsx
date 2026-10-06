@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import "$/brand/components/ui-brand-logo"
 
@@ -18,9 +18,11 @@ describe("<ui-brand-logo>", () => {
   it("draws the hat mark, named Spell, in ink, 2em high", async () => {
     const host = await ElementFixture.render(`<ui-brand-logo style="font-size: 16px"></ui-brand-logo>`)
     const svg = await logo(host)
-    expect(svg.getAttribute("role")).toBe("img")
-    expect(svg.getAttribute("aria-label")).toBe("Spell")
-    expect(svg.getAttribute("viewBox")).toBe("12 39 218 192")
+    expect(["role", "aria-label", "viewBox"].map((name) => svg.getAttribute(name))).toEqual([
+      "img",
+      "Spell",
+      "12 39 218 192"
+    ])
     expect(svg.querySelector("path")!.getAttribute("d")!.length).toBeGreaterThan(100)
     expect([...svg.classList]).toEqual(["logo", "ink"])
     expect(svg.getBoundingClientRect().height).toBe(32)

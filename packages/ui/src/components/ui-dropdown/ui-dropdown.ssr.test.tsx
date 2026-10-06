@@ -10,7 +10,7 @@ import { UIDropdown } from "$/ui/components/ui-dropdown/UIDropdown"
  * `<ui-dropdown>` in a static server render (`$/ui/static`):  the combobox, the menu CLOSED but its rows rendered
  * from the `<ui-item>` children (their text is in the page), and the value as hidden inputs.
  */
-describe("ui-dropdown (static render)", () => {
+describe("<ui-dropdown> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIDropdown, UIItem)
   })

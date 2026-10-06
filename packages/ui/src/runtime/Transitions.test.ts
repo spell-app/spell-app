@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import { Transitions } from "./Transitions"
 
 /** Stand-in for `animations.css`:  a short `fade` in / out, driven by `data-ui-animation`. */
@@ -13,18 +13,18 @@ const KEYFRAMES = `
   .block { display: block }
 `
 
-describe("Transitions", () => {
-  const sheet = new CSSStyleSheet()
-  const transitions = new Transitions({ browser: { isReducedMotion: false } })
+const sheet = new CSSStyleSheet()
+const transitions = new Transitions({ browser: { isReducedMotion: false } })
 
-  beforeAll(() => {
-    sheet.replaceSync(KEYFRAMES)
-    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
-  })
-  afterAll(() => {
-    document.adoptedStyleSheets = document.adoptedStyleSheets.filter((each) => each !== sheet)
-  })
+beforeAll(() => {
+  sheet.replaceSync(KEYFRAMES)
+  document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
+})
+afterAll(() => {
+  document.adoptedStyleSheets = document.adoptedStyleSheets.filter((each) => each !== sheet)
+})
 
+describe("Transitions.animate()", () => {
   it("runs in:  un-hides, sets the attribute, resolves on animationend and cleans up", async () => {
     const element = Fixture.render(`<p hidden>hi</p>`)
     const done = transitions.animate({ element, name: "fade", direction: "in" })
@@ -74,8 +74,10 @@ describe("Transitions", () => {
     expect(element.hidden).toBe(true)
     expect(element.hasAttribute("data-ui-animation")).toBe(false)
   })
+})
 
-  it("whenTransitionEnds() waits for running animations", async () => {
+describe("Transitions.whenTransitionEnds()", () => {
+  it("waits for running animations", async () => {
     const element = Fixture.render(`<p>x</p>`)
     const animation = element.animate([{ opacity: 0 }, { opacity: 1 }], 30)
     await transitions.whenTransitionEnds(element)

@@ -2,17 +2,25 @@ import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
 import type { UIHost } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { Palette } from "$/brand"
 
 import "$/brand/components/ui-brand-color-picker"
 import "$/brand/components/ui-brand-field"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** `<ui-brand-color-picker>`'s host. */
 type PickerHost = HTMLElement & { value?: string }
 
 /** One event the picker dispatched. */
 type Fired = { type: string; value: string; format?: string }
+
+////////////////
+// ## Helpers
+////////////////
 
 /** A part of `host`'s shadow root. */
 function part<T extends HTMLElement = HTMLElement>(host: Element, name: string): T {
@@ -110,7 +118,11 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe("<ui-brand-color-picker>", () => {
+////////////////
+// ## Display
+////////////////
+
+describe("<ui-brand-color-picker> display", () => {
   it("shows the value:  chip, hex, HSL / RGB / OKLCH rows;  reads `#abc`;  default `#8E96B5`", async () => {
     const host = await picker(`<ui-brand-color-picker value="#6550ca"></ui-brand-color-picker>`)
     expect(part(host, "hex").textContent).toBe("#6550CA")
@@ -146,11 +158,15 @@ describe("<ui-brand-color-picker>", () => {
     const host = await picker(`<ui-brand-color-picker label="Base color"></ui-brand-color-picker>`)
     expect(part(host, "picker").getAttribute("aria-label")).toBe("Base color")
     const [saturation, lightness] = axes(host)
-    expect(saturation.getAttribute("aria-label")).toBe("Saturation")
-    expect(saturation.getAttribute("aria-valuetext")).toMatch(/^\d+%$/)
-    expect(saturation.tabIndex).toBe(0)
-    expect(lightness.getAttribute("aria-label")).toBe("Lightness")
-    expect(lightness.tabIndex).toBe(-1)
+    expect({
+      label: saturation.getAttribute("aria-label"),
+      text: saturation.getAttribute("aria-valuetext"),
+      tabIndex: saturation.tabIndex
+    }).toEqual({ label: "Saturation", text: expect.stringMatching(/^\d+%$/), tabIndex: 0 })
+    expect({ label: lightness.getAttribute("aria-label"), tabIndex: lightness.tabIndex }).toEqual({
+      label: "Lightness",
+      tabIndex: -1
+    })
     expect(part(host, "hue").getAttribute("aria-label")).toBe("Hue")
     expect(hslField(host, 0).getAttribute("aria-label")).toBe("HSL hue, 0–360°")
     expect(copyButton(host, 2).getAttribute("aria-label")).toBe("Copy OKLCH")
@@ -187,7 +203,13 @@ describe("<ui-brand-color-picker>", () => {
     expect(part(host, "hex").textContent).toBe("#E8436A")
     expect(fired).toEqual([])
   })
+})
 
+////////////////
+// ## Fields
+////////////////
+
+describe("<ui-brand-color-picker> fields", () => {
   it("hex field:  a valid keystroke is `ui-input`, Enter commits;  RGB triples, `#abc` and hsl() read", async () => {
     const host = await picker(`<ui-brand-color-picker value="#8E96B5"></ui-brand-color-picker>`)
     const fired = record(host)
@@ -280,7 +302,13 @@ describe("<ui-brand-color-picker>", () => {
     expect(Number(c.value)).toBeLessThan(0.4)
     expect(Number(h.value)).toBeCloseTo(150, -1)
   })
+})
 
+////////////////
+// ## Square and hue slider
+////////////////
+
+describe("<ui-brand-color-picker> square and hue", () => {
   it("hue slider:  changes the hue (`ui-input`), commits on `change`;  the square's hue follows", async () => {
     const host = await picker(`<ui-brand-color-picker value="#6550CA"></ui-brand-color-picker>`)
     const fired = record(host)
@@ -365,7 +393,13 @@ describe("<ui-brand-color-picker>", () => {
     expect(hslField(host, 1).value).toBe(saturation)
     expect(hslField(host, 2).value).toBe("0")
   })
+})
 
+////////////////
+// ## Copying
+////////////////
+
+describe("<ui-brand-color-picker> copy", () => {
   it("copy buttons:  HSL as shown, the hex, OKLCH;  `ui-copy`, a check, an announcement", async () => {
     const write = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue()
     const host = await picker(`<ui-brand-color-picker value="#6550CA"></ui-brand-color-picker>`)
@@ -394,16 +428,23 @@ describe("<ui-brand-color-picker>", () => {
   })
 
   it("copy:  a refused clipboard write does nothing", async () => {
-    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"))
+    const write = vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"))
     const host = await picker(`<ui-brand-color-picker value="#6550CA"></ui-brand-color-picker>`)
     const fired = record(host)
     copyButton(host, 1).click()
-    await new Promise((resolve) => setTimeout(resolve, 20))
+    // the picker's own `await` on the write was queued first:  its `catch` has run once this resumes
+    await (write.mock.results[0]!.value as Promise<void>).catch(() => undefined)
     await ElementFixture.tick()
     expect(fired).toEqual([])
     expect(host.matches(":state(copied)")).toBe(false)
   })
+})
 
+////////////////
+// ## Form control and states
+////////////////
+
+describe("<ui-brand-color-picker> form and states", () => {
   it("a `ui-input` handler that re-sets `value` wins", async () => {
     const host = await picker(`<ui-brand-color-picker value="#8E96B5"></ui-brand-color-picker>`)
     host.addEventListener("ui-input", () => (host.value = "#8E96B5"))

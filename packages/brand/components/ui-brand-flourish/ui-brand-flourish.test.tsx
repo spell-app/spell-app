@@ -2,34 +2,12 @@ import { describe, expect, it, vi } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import { Flourish } from "$/brand/components/ui-brand-flourish"
-import { VARIANTS } from "./ui-brand-flourish.types"
-
-const COLORS = { stroke: "red", fill: "green", fill2: "blue", weight: 2 }
+import "$/brand/components/ui-brand-flourish"
 
 /** `host`'s `<svg part="art">`. */
 function art(host: Element): SVGSVGElement {
   return host.shadowRoot!.querySelector<SVGSVGElement>(`[part~="art"]`)!
 }
-
-describe("Flourish", () => {
-  it("draws every variant;  the same seed draws the same art, another seed another", () => {
-    for (const variant of VARIANTS) {
-      const one = Flourish.draw(variant, 600, 300, 7, COLORS)
-      expect(one).toMatch(/^<path d="M/)
-      expect(Flourish.draw(variant, 600, 300, 7, COLORS)).toBe(one)
-      // `rising-wave` uses no randomness
-      if (variant !== "rising-wave") expect(Flourish.draw(variant, 600, 300, 8, COLORS)).not.toBe(one)
-    }
-  })
-
-  it("uses the colours and weight it's given", () => {
-    expect(Flourish.draw("swoop", 600, 300, 7, COLORS)).toContain(`stroke="red" stroke-width="2"`)
-    const blobs = Flourish.draw("blobs", 600, 300, 7, COLORS)
-    expect(blobs).toContain(`fill="green"`)
-    expect(blobs).toContain(`fill="blue"`)
-  })
-})
 
 describe("<ui-brand-flourish>", () => {
   it("fills its positioned parent, decorative, sized to it", async () => {

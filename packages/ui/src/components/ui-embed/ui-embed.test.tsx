@@ -1,16 +1,14 @@
 import { beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
 import { UI } from "$/ui/runtime"
 import type { EmbedActivateDetail } from "$/ui/components/components.types"
-import { expectAccessible } from "$/ui/test/a11y"
-import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/A11y"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
-
-import { EmbedSources } from "./EmbedSources"
 
 import "$/ui/components/ui-embed"
 
@@ -53,12 +51,20 @@ beforeEach(async () => {
   await UI.load()
 })
 
+////////////////
+// ## Definition
+////////////////
+
 describe("<ui-embed> definition", () => {
   it("registers its texts with UI.i18n when DEFINED", () => {
     expect(UI.i18n.t("embedPlay", { name: "x" })).toBe("Play x")
     expect(UI.i18n.t("embedVideo")).toBe("video")
   })
 })
+
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-embed> classes", () => {
   it.each([
@@ -79,6 +85,10 @@ describe("<ui-embed> classes", () => {
     expect(square.getBoundingClientRect().height).toBeCloseTo(200, 0)
   })
 })
+
+////////////////
+// ## Placeholder
+////////////////
 
 describe("<ui-embed> placeholder", () => {
   it("renders a named play button with the placeholder image and icon, and NO frame", async () => {
@@ -130,6 +140,10 @@ describe("<ui-embed> placeholder", () => {
   })
 })
 
+////////////////
+// ## Activation
+////////////////
+
 describe("<ui-embed> activation", () => {
   it("loads the frame on a click:  ui-activate with the url, active, a titled iframe", async () => {
     const { host, root } = await embed(`<ui-embed url="${LOCAL}" label="Local page"></ui-embed>`)
@@ -143,9 +157,7 @@ describe("<ui-embed> activation", () => {
     expect(host.active).toBe(true)
     expect(host.matches(":state(active)")).toBe(true)
     const frame = root.querySelector("iframe")!
-    expect(frame.src).toBe(LOCAL)
-    expect(frame.title).toBe("Local page")
-    expect(frame.allowFullscreen).toBe(true)
+    expect(frame).toMatchObject({ src: LOCAL, title: "Local page", allowFullscreen: true })
     expect(frame.parentElement!.getAttribute("part")).toBe("frame")
     expect(root.querySelector("button")).toBeNull()
   })
@@ -230,36 +242,9 @@ describe("<ui-embed> activation", () => {
   })
 })
 
-describe("EmbedSources", () => {
-  it("fills the source's URL and its player parameters", () => {
-    const youtube = new URL(EmbedSources.resolve({ source: "youtube", id: "a b", autoplay: false, brandedUI: false })!)
-    expect(youtube.pathname).toBe("/embed/a%20b")
-    expect(Object.fromEntries(youtube.searchParams)).toEqual({
-      autohide: "1",
-      autoplay: "0",
-      hq: "1",
-      modestbranding: "1"
-    })
-    const vimeo = new URL(EmbedSources.resolve({ source: "vimeo", id: "42", autoplay: true, brandedUI: true })!)
-    expect(vimeo.origin + vimeo.pathname).toBe("https://player.vimeo.com/video/42")
-    expect(Object.fromEntries(vimeo.searchParams)).toEqual({ autoplay: "1", byline: "1", portrait: "1", title: "1" })
-  })
-
-  it("recognises a source by its url's domain, and leaves other urls' parameters alone", () => {
-    expect(EmbedSources.sourceFor("https://player.vimeo.com/video/1")).toBe("vimeo")
-    expect(EmbedSources.sourceFor("https://www.youtube.com/embed/1")).toBe("youtube")
-    expect(EmbedSources.sourceFor("https://notyoutube.com/x")).toBeUndefined()
-    expect(EmbedSources.resolve({ url: "https://example.com/a?b=1", autoplay: true, brandedUI: false })).toBe(
-      "https://example.com/a?b=1"
-    )
-  })
-
-  it("refuses non-http(s) urls and needs an id or url", () => {
-    expect(EmbedSources.resolve({ url: "javascript:alert(1)", autoplay: true, brandedUI: false })).toBeUndefined()
-    expect(EmbedSources.resolve({ url: "data:text/html,x", autoplay: true, brandedUI: false })).toBeUndefined()
-    expect(EmbedSources.resolve({ source: "youtube", autoplay: true, brandedUI: false })).toBeUndefined()
-  })
-})
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-embed> tokens from outside", () => {
   /** The inner box's aspect ratio. */
@@ -308,6 +293,10 @@ describe("<ui-embed> tokens from outside", () => {
     expect(getComputedStyle(root).aspectRatio).toBe("4 / 3")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-embed> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s, loading nothing third-party", async (path) => {

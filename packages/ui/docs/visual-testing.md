@@ -25,7 +25,7 @@ yarn test:visual:update              # accept the new renders (review first!)
   tokens follow the OS scheme (`color-scheme: light dark` on `:root`, see `docs/theming.md`), so this is the same
   switch a person's OS setting makes.  The page is `<body class="ui-typography">`, so the page background and
   text follow the scheme too.
-- **The page** (`tools/visual/fixture.html` + `fixture.ts`, served by the Vite dev server):  the same setup as the
+- **The page** (`tools/visual/fixture.html` + `Fixture.ts`, served by the Vite dev server):  the same setup as the
   `yarn dev` demo -- every family defined, every family sheet on the page, the stub owners, the runtime loaded.
 - **Stability**, before each capture:
   - viewport 1024 x 768, device scale 1, locale `en-US`, time zone UTC

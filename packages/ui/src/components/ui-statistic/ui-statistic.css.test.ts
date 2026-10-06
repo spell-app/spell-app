@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { statisticsVocabulary } from "./ui-statistics.vocabulary.en"
 import { statisticVocabulary } from "./ui-statistic.vocabulary.en"
@@ -35,6 +35,10 @@ function valueSize(statistic: Element): number {
   return parseFloat(getComputedStyle(statistic.querySelector(".value")!).fontSize)
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-statistic.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(statisticRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -64,6 +68,10 @@ describe("ui-statistic.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-statistic.css examples", () => {
   it("draws a statistic as a flex column with a 4x value and an uppercase label", () => {
@@ -149,6 +157,10 @@ describe("ui-statistic.css examples", () => {
     expect(d!.getBoundingClientRect().top).toBe(c!.getBoundingClientRect().top)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-statistic.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

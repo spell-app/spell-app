@@ -1,15 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
-import { Converters, ValueSets } from "$/ui/vocabulary"
+import { Converters } from "$/ui/vocabulary"
 
 afterEach(() => {
   vi.restoreAllMocks()
 })
 
-/** Spy on dev warnings, silencing them. */
-function spyWarn() {
-  return vi.spyOn(console, "warn").mockImplementation(() => {})
-}
+////////////////
+// ## Booleans and variations
+////////////////
 
 describe("Converters.boolean()", () => {
   it.each([
@@ -37,7 +36,9 @@ describe("Converters.boolean()", () => {
     // Vue sets `open="false"` when it can't find an `open` property on the element.
     expect(Converters.boolean("false", "open")).toBe(false)
   })
+})
 
+describe("Converters.booleanToAttribute()", () => {
   it("reflects true as empty and false as removal", () => {
     expect(Converters.booleanToAttribute(true)).toBe("")
     expect(Converters.booleanToAttribute(false)).toBeNull()
@@ -84,6 +85,10 @@ describe("Converters.icon()", () => {
   })
 })
 
+////////////////
+// ## Enums
+////////////////
+
 describe("Converters.enumValue()", () => {
   it("returns canonical values, normalized", () => {
     expect(Converters.enumValue("red", "hues")).toBe("red")
@@ -119,7 +124,11 @@ describe("Converters.enumValue()", () => {
   })
 })
 
-describe("Converters.number() / json() / list()", () => {
+////////////////
+// ## Numbers, JSON and lists
+////////////////
+
+describe("Converters.number()", () => {
   it("parses numbers", () => {
     expect(Converters.number("4")).toBe(4)
     expect(Converters.number("-1.5")).toBe(-1.5)
@@ -128,7 +137,9 @@ describe("Converters.number() / json() / list()", () => {
     expect(Converters.number("abc")).toBeUndefined()
     expect(Converters.number(null)).toBeUndefined()
   })
+})
 
+describe("Converters.json()", () => {
   it("parses JSON strings and passes objects through", () => {
     const options = [{ value: "a", text: "A" }]
     expect(Converters.json(options)).toBe(options)
@@ -151,7 +162,9 @@ describe("Converters.number() / json() / list()", () => {
     expect(Converters.json("  ")).toBeUndefined()
     expect(warn).not.toHaveBeenCalled()
   })
+})
 
+describe("Converters.list()", () => {
   it("splits lists on spaces and commas", () => {
     expect(Converters.list("a, b  c,d")).toEqual(["a", "b", "c", "d"])
     expect(Converters.list(["x"])).toEqual(["x"])
@@ -160,54 +173,11 @@ describe("Converters.number() / json() / list()", () => {
   })
 })
 
-describe("ValueSets", () => {
-  it("has shared sets on the prototype and the class", () => {
-    expect(ValueSets.hues).toContain("red")
-    expect(new ValueSets().sizes).toBe(ValueSets.sizes)
-    expect(Object.hasOwn(ValueSets.prototype, "hues")).toBe(true)
-  })
+////////////////
+// ## Helpers
+////////////////
 
-  it("checks membership", () => {
-    expect(ValueSets.has("sizes", "medium")).toBe(true)
-    expect(ValueSets.has("sizes", "Medium")).toBe(false)
-    expect(ValueSets.has("devices", "large screen")).toBe(true)
-    expect(ValueSets.has(["a", "b"], "b")).toBe(true)
-  })
-
-  it("suggests", () => {
-    expect(ValueSets.suggest("sizes", "smal")).toBe("small")
-    expect(ValueSets.suggest("positions", "top lft")).toBe("top left")
-  })
-
-  it("parses widths into columns", () => {
-    expect(ValueSets.columns(4)).toBe(4)
-    expect(ValueSets.columns("4")).toBe(4)
-    expect(ValueSets.columns("four")).toBe(4)
-    expect(ValueSets.columns("1/4")).toBe(4)
-    expect(ValueSets.columns("3/4")).toBe(12)
-    expect(ValueSets.columns("25%")).toBe(4)
-    expect(ValueSets.columns("1/3")).toBeCloseTo(5.333, 3)
-    expect(ValueSets.columns("0")).toBeUndefined()
-    expect(ValueSets.columns("2/1")).toBeUndefined()
-    expect(ValueSets.columns("wide")).toBeUndefined()
-  })
-
-  it("picks the value set for an attribute's kind", () => {
-    expect(ValueSets.setFor({ name: "color", kind: "color", description: "" })).toBe("hues")
-    expect(ValueSets.setFor({ name: "x", kind: "enum", values: ["a"], description: "" })).toEqual(["a"])
-    expect(ValueSets.setFor({ name: "x", kind: "string", description: "" })).toBeUndefined()
-  })
-
-  it("adds values to a shared set", () => {
-    const before = ValueSets.get("floats")
-    try {
-      ValueSets.add("floats", "center", "left")
-      expect(ValueSets.get("floats")).toEqual(["left", "right", "center"])
-      expect(ValueSets.has("floats", "center")).toBe(true)
-      expect(ValueSets.floats).toEqual(["left", "right", "center"])
-    } finally {
-      Object.defineProperty(ValueSets.prototype, "floats", { value: before, writable: true, configurable: true })
-      ;(ValueSets as unknown as Record<string, unknown>).floats = before
-    }
-  })
-})
+/** Spy on dev warnings, silencing them. */
+function spyWarn() {
+  return vi.spyOn(console, "warn").mockImplementation(() => {})
+}

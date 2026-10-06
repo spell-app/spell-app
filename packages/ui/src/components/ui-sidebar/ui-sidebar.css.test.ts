@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { sidebarVocabulary } from "./ui-sidebar.vocabulary.en"
 
@@ -34,6 +34,10 @@ function translation(element: Element): [number, number] {
   const matrix = new DOMMatrix(getComputedStyle(element).transform)
   return [Math.round(matrix.m41), Math.round(matrix.m42)]
 }
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-sidebar.css source", () => {
   it("never uses rem", () => {
@@ -68,6 +72,10 @@ describe("ui-sidebar.css source", () => {
     }
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-sidebar.css examples", () => {
   it("a visible left sidebar:  inside its pushable, full height, and the pusher beside it", () => {
@@ -130,8 +138,12 @@ describe("ui-sidebar.css examples", () => {
   })
 })
 
-describe("pusher tokens", () => {
-  it("move, shrink and dim the pusher", () => {
+////////////////
+// ## Tokens
+////////////////
+
+describe("ui-sidebar.css pusher tokens", () => {
+  it("moves, shrinks and dims the pusher by its private tokens", () => {
     Sheets.adopt([...foundationCSS, sidebarCSS])
     const root = Fixture.render(
       `<div class="pushable" style="--_ui-pusher-transform: scale(0.75); --_ui-pusher-origin: 75% 50%; ` +

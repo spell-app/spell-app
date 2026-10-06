@@ -8,6 +8,9 @@ afterEach(() => {
 
 const validator = new Validator()
 
+/** The other fields' values, for `match` / `different`. */
+const FIELD_VALUES = { password: "secret", empty: "" }
+
 /** `[rule, value, passes]` rows, one or more per rule. */
 const CASES: [string, FieldValue, boolean][] = [
   ["notEmpty", "x", true],
@@ -93,7 +96,11 @@ const CASES: [string, FieldValue, boolean][] = [
   ["creditCard[unionPay]", "6200000000000000", true]
 ]
 
-describe("Validator rules", () => {
+////////////////
+// ## Rules
+////////////////
+
+describe("Validator.test()", () => {
   it.each(CASES)("%s on %j => %j", (rule, value, passes) => {
     expect(validator.test(rule, value)).toBe(passes)
   })
@@ -110,31 +117,24 @@ describe("Validator rules", () => {
   })
 })
 
-describe("Validator cross-field rules", () => {
-  const fieldValues = { password: "secret", empty: "" }
-
+describe("Validator.test() cross-field rules", () => {
   it("match compares with another field", () => {
-    expect(validator.test("match[password]", "secret", fieldValues)).toBe(true)
-    expect(validator.test("match[password]", " secret ", fieldValues)).toBe(true)
-    expect(validator.test("match[password]", "other", fieldValues)).toBe(false)
-    expect(validator.test("match[missing]", "secret", fieldValues)).toBe(false)
+    expect(validator.test("match[password]", "secret", FIELD_VALUES)).toBe(true)
+    expect(validator.test("match[password]", " secret ", FIELD_VALUES)).toBe(true)
+    expect(validator.test("match[password]", "other", FIELD_VALUES)).toBe(false)
+    expect(validator.test("match[missing]", "secret", FIELD_VALUES)).toBe(false)
   })
 
   it("different compares with another field", () => {
-    expect(validator.test("different[password]", "other", fieldValues)).toBe(true)
-    expect(validator.test("different[password]", "secret", fieldValues)).toBe(false)
-    expect(validator.test("different[missing]", "other", fieldValues)).toBe(false)
-  })
-
-  it("names the other field by its label", () => {
-    const result = validator.validate("x", ["match[password]"], {
-      label: "Confirm",
-      fieldValues,
-      fieldLabels: { password: "Password" }
-    })
-    expect(result.message).toBe("Confirm must match Password field")
+    expect(validator.test("different[password]", "other", FIELD_VALUES)).toBe(true)
+    expect(validator.test("different[password]", "secret", FIELD_VALUES)).toBe(false)
+    expect(validator.test("different[missing]", "other", FIELD_VALUES)).toBe(false)
   })
 })
+
+////////////////
+// ## Parsing
+////////////////
 
 describe("Validator.parseRule()", () => {
   it("splits type and bracket", () => {
@@ -157,6 +157,10 @@ describe("Validator.parseRule()", () => {
   })
 })
 
+////////////////
+// ## Validating
+////////////////
+
 describe("Validator.validate()", () => {
   it("is valid with empty flags and message", () => {
     expect(validator.validate("abc", ["notEmpty", "minLength[2]"])).toEqual({
@@ -169,14 +173,25 @@ describe("Validator.validate()", () => {
 
   it("reports every failure with Fomantic's prompts", () => {
     const result = validator.validate("", ["notEmpty", "email", "minLength[6]"], { name: "email", label: "E-mail" })
-    expect(result.valid).toBe(false)
-    expect(result.errors.map((error) => error.message)).toEqual([
-      "E-mail must have a value",
-      "E-mail must be a valid e-mail",
-      "E-mail must be at least 6 characters"
-    ])
-    expect(result.message).toBe("E-mail must have a value")
-    expect(result.flags).toEqual({ valueMissing: true, typeMismatch: true, tooShort: true })
+    expect(result).toMatchObject({
+      valid: false,
+      errors: [
+        { message: "E-mail must have a value" },
+        { message: "E-mail must be a valid e-mail" },
+        { message: "E-mail must be at least 6 characters" }
+      ],
+      message: "E-mail must have a value",
+      flags: { valueMissing: true, typeMismatch: true, tooShort: true }
+    })
+  })
+
+  it("names a cross-field rule's other field by its label", () => {
+    const result = validator.validate("x", ["match[password]"], {
+      label: "Confirm",
+      fieldValues: FIELD_VALUES,
+      fieldLabels: { password: "Password" }
+    })
+    expect(result.message).toBe("Confirm must match Password field")
   })
 
   it("falls back to the name, then 'This field'", () => {
@@ -232,7 +247,7 @@ describe("Validator.validate()", () => {
   })
 })
 
-describe("Validator Constraint Validation flags", () => {
+describe("Validator.validate() Constraint Validation flags", () => {
   it.each<[string, FieldValue, keyof ValidityStateFlags]>([
     ["notEmpty", "", "valueMissing"],
     ["checked", false, "valueMissing"],
@@ -283,7 +298,11 @@ describe("Validator Constraint Validation flags", () => {
   })
 })
 
-describe("Validator overrides", () => {
+////////////////
+// ## Overrides
+////////////////
+
+describe("Validator.prompts / text / rules", () => {
   it("lets an instance swap prompts without touching the prototype", () => {
     const spanish = new Validator()
     spanish.prompts = { ...spanish.prompts, notEmpty: "{name} debe tener un valor" }

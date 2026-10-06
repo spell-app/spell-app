@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -29,6 +29,10 @@ async function label(html: string) {
   return { host, root }
 }
 
+////////////////
+// ## Definition
+////////////////
+
 describe("<ui-label> definition", () => {
   it("registers its texts with UI.i18n when DEFINED, before any instance exists", async () => {
     expect(document.querySelector("ui-label")).toBeNull()
@@ -37,6 +41,10 @@ describe("<ui-label> definition", () => {
     expect(UI.i18n.t("remove")).toBe("Remove")
   })
 })
+
+////////////////
+// ## Classes
+////////////////
 
 describe("<ui-label> classes", () => {
   it.each([
@@ -84,6 +92,10 @@ describe("<ui-label> classes", () => {
   })
 })
 
+////////////////
+// ## Content
+////////////////
+
 describe("<ui-label> content", () => {
   it("renders children in contract order:  image, icon, slot, detail, delete", async () => {
     const { root } = await label(`<ui-label image="${IMAGE}" icon="user" detail="Friend" removable>Veronika</ui-label>`)
@@ -106,9 +118,8 @@ describe("<ui-label> content", () => {
 
   it("renders <a> for href, and the icon box only when there's an icon", async () => {
     const { root } = await label(`<ui-label href="#tag" target="_blank">Tag</ui-label>`)
-    expect(root.localName).toBe("a")
+    expect(root).toMatchObject({ localName: "a", target: "_blank" })
     expect(root.getAttribute("href")).toBe("#tag")
-    expect(root.getAttribute("target")).toBe("_blank")
     expect(root.querySelector("[part~=icon]")).toBeNull()
     const { root: withIcon } = await label(`<ui-label icon="envelope">Mail</ui-label>`)
     const box = withIcon.querySelector("[part~=icon]")!
@@ -132,6 +143,10 @@ describe("<ui-label> content", () => {
   })
 })
 
+////////////////
+// ## Remove
+////////////////
+
 describe("<ui-label> remove", () => {
   it("dispatches a cancelable, composed ui-remove from the delete button", async () => {
     const { host, root } = await label(`<ui-label removable>Tag</ui-label>`)
@@ -141,9 +156,11 @@ describe("<ui-label> remove", () => {
     expect(events).toHaveLength(1)
     const [event] = events
     expect(event!.target).toBe(host)
-    expect(event!.cancelable).toBe(true)
-    expect(event!.composed).toBe(true)
-    expect(event!.detail.originalEvent).toBeInstanceOf(MouseEvent)
+    expect(event).toMatchObject({
+      cancelable: true,
+      composed: true,
+      detail: { originalEvent: expect.any(MouseEvent) }
+    })
     // the label never removes itself
     expect(host.isConnected).toBe(true)
   })
@@ -171,6 +188,10 @@ describe("<ui-label> remove", () => {
   })
 })
 
+////////////////
+// ## `<ui-labels>`
+////////////////
+
 describe("<ui-labels>", () => {
   it("renders the group", async () => {
     const group = await ElementFixture.render<UIHost>(
@@ -190,11 +211,16 @@ describe("<ui-labels>", () => {
   })
 })
 
-describe("<ui-label> colour (Fomantic:  only its own, or its `labels` group's)", () => {
+////////////////
+// ## Colour
+////////////////
+
+/** Fomantic's rule:  a label takes only its own colour, or its `labels` group's. */
+describe("<ui-label> colour", () => {
   /** The first label's root inside `html`, and a plain label's, for comparison. */
   async function roots(html: string) {
     const wrapper = await ElementFixture.render<UIHost>(html)
-    const root = (el: Element) => el.shadowRoot!.querySelector<HTMLElement>("[part~=label]")!
+    const root = (host: Element) => host.shadowRoot!.querySelector<HTMLElement>("[part~=label]")!
     const plain = await label(`<ui-label>Plain</ui-label>`)
     return { wrapper, inner: root(wrapper.querySelector("ui-label")!), plain: plain.root }
   }
@@ -240,6 +266,10 @@ describe("<ui-label> colour (Fomantic:  only its own, or its `labels` group's)",
     expect(getComputedStyle(group.inner).backgroundColor).toBe(getComputedStyle(root).backgroundColor)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-label> tokens from outside", () => {
   /** The label box's top-left radius, which `--ui-label-radius` drives. */
@@ -294,6 +324,10 @@ describe("<ui-label> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Statistic / standalone swap
+////////////////
+
 describe("<ui-label> statistic / standalone swap", () => {
   it("keeps elements slotted into it live when its root switches branch", async () => {
     // loaded first:  the label renders its slot synchronously, BEFORE the detail connects (the old owner bug's
@@ -313,6 +347,10 @@ describe("<ui-label> statistic / standalone swap", () => {
     expect(detail.shadowRoot!.firstElementChild!.localName).toBe("a")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-label> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

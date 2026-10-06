@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
+import { nextFrame } from "$/ui/util"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { stickyVocabulary } from "./ui-sticky.vocabulary.en"
 
@@ -17,6 +18,10 @@ import stickyRaw from "./ui-sticky.css?raw"
 
 /** Every example fragment, by path. */
 const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-sticky.css source", () => {
   it("never uses rem, nor !important", () => {
@@ -36,6 +41,10 @@ describe("ui-sticky.css source", () => {
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-sticky.css examples", () => {
   it("sticks the rail's box at its offset as the frame scrolls", async () => {
     Sheets.adopt([...foundationCSS, stickyCSS])
@@ -45,7 +54,7 @@ describe("ui-sticky.css examples", () => {
     expect(getComputedStyle(sticky).position).toBe("sticky")
     expect(getComputedStyle(sticky).top).toBe("8px")
     frame.scrollTop = 120
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await nextFrame()
     expect(sticky.getBoundingClientRect().top - frame.getBoundingClientRect().top - frame.clientTop).toBeCloseTo(8, 0)
   })
 
@@ -67,6 +76,10 @@ describe("ui-sticky.css examples", () => {
     expect(root.querySelector("p")!.getBoundingClientRect().top).toBe(sentinel.getBoundingClientRect().top)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-sticky.css tokens", () => {
   it("takes a public token from a wrapper or the box itself (static markup)", () => {

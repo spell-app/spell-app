@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { Sheets } from "$/ui/test/sheets"
+import { Sheets } from "$/ui/test/Sheets"
 
 import tocRaw from "./ui-docs-toc.css?raw"
 

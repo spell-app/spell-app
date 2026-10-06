@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { Palette, STEPS, type Scale, type Step } from "$/brand"
 
 import "$/brand/components/ui-brand-color-range"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** A range host, as tests use it. */
 type RangeHost = HTMLElement & {
@@ -20,6 +24,10 @@ type RangeHost = HTMLElement & {
 
 /** A chip host in a range. */
 type ChipHost = HTMLElement & { value: string; name: string; selected: boolean }
+
+////////////////
+// ## Helpers
+////////////////
 
 /** Render a range;  returns it and its chips. */
 async function render(html: string) {
@@ -41,6 +49,10 @@ function changes(host: Element) {
   return details
 }
 
+////////////////
+// ## Step numbers
+////////////////
+
 describe("<ui-brand-color-range> numbers", () => {
   it('`numbers="none"` leaves the step numbers out, and their row', async () => {
     const shown = await render(`<ui-brand-color-range value="#8E96B5" style="width: 680px"></ui-brand-color-range>`)
@@ -59,14 +71,18 @@ describe("<ui-brand-color-range> numbers", () => {
   })
 })
 
+////////////////
+// ## The ladder
+////////////////
+
 describe("<ui-brand-color-range>", () => {
   it("draws the 17 steps of `Palette.generateScale()`, named, numbered, the base colour's ringed", async () => {
     const { host, chips } = await render(`<ui-brand-color-range value="#8E96B5" name="brand"></ui-brand-color-range>`)
     const { scale, anchor } = Palette.generateScale("#8E96B5")
     expect(chips).toHaveLength(17)
-    expect(chips.map((chip) => chip.value)).toEqual(STEPS.map((step) => scale[step]))
-    expect(chips.map((chip) => chip.name)).toEqual(STEPS.map((step) => `brand-${step}`))
-    expect(chips.filter((chip) => chip.selected).map((chip) => chip.name)).toEqual([`brand-${anchor}`])
+    expect(chips.map((chip) => [chip.value, chip.name, chip.selected])).toEqual(
+      STEPS.map((step) => [scale[step], `brand-${step}`, step === anchor])
+    )
     const numbers = [...host.shadowRoot!.querySelectorAll("[part~=number]")].map((number) => number.textContent)
     expect(numbers).toEqual(STEPS.map(String))
     const list = host.shadowRoot!.querySelector("ol")!
@@ -141,10 +157,12 @@ describe("<ui-brand-color-range>", () => {
       `<ui-brand-color-range value="#8E96B5" label="hex" contrast copy="token" details></ui-brand-color-range>`
     )
     for (const chip of chips) {
-      expect(chip.getAttribute("label")).toBe("hex")
-      expect(chip.hasAttribute("contrast")).toBe(true)
-      expect(chip.getAttribute("copy")).toBe("token")
-      expect(chip.hasAttribute("details")).toBe(true)
+      expect({
+        label: chip.getAttribute("label"),
+        contrast: chip.hasAttribute("contrast"),
+        copy: chip.getAttribute("copy"),
+        details: chip.hasAttribute("details")
+      }).toEqual({ label: "hex", contrast: true, copy: "token", details: true })
     }
     await ElementFixture.settle(chips[0]!)
     expect(chips[0]!.shadowRoot!.querySelector("[part~=chip]")!.localName).toBe("button")

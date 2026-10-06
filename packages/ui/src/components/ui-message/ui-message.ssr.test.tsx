@@ -6,7 +6,7 @@ import { StaticRender } from "$/ui/static"
 import { UIMessage } from "$/ui/components/ui-message/UIMessage"
 
 /** `<ui-message>` in the static server render (`$/ui/static`, seo plan P3). */
-describe("ui-message static render", () => {
+describe("<ui-message> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIMessage)
   })

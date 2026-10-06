@@ -59,8 +59,8 @@ house style every package shares.  Only what's local is below;  a section named 
       - and `topics` (2+ ids from `ValueSets.topics`:  how a newcomer looks for it AND how widget libraries file it)
         + `aka` (other libraries' / everyday names:  `ui-modal`:  `dialog`, `lightbox`).  A NEW TAG MUST fill both;
         `src/components/ComponentDefinitions.ts` rolls them up (the docs' component browser) and
-        `test/component-definitions.test.ts` fails on a tag without them.  A new or moved tag also needs `yarn gen:root`
-        (`<ui-root>`'s catalog of tag => family;  `test/root-catalog.test.ts` fails while it's stale) and `yarn site:data`
+        `src/components/ComponentDefinitions.test.ts` fails on a tag without them.  A new or moved tag also needs `yarn gen:root`
+        (`<ui-root>`'s catalog of tag => family;  `src/components/ui-root/ui-root.catalog.test.ts` fails while it's stale) and `yarn site:data`
         (the docs site's data;  `tools/SiteDataBuilder.test.ts` fails while it's stale).  Live:  `UIButton.describe()`
     - `ui-<name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces (nothing top-level
       stays loose in an element / fallback / helper file, but a constant only its class uses:  "Classes");  a
@@ -106,8 +106,8 @@ house style every package shares.  Only what's local is below;  a section named 
     `themes/`;  its own lib entry (`@spell-app/ui/styles`)
   - `src/index.ts` -- `@spell-app/ui`:  registers every family (side effect) and re-exports them, plus `UIT`, the
     runtime, styles and icons;  the namespaces `E` / `F` / `V` come from `core` / `forms` / the `api` entry
-  - `test/` -- shared test utils and cross-family tests:  `Fixture.render(html)` (`fixture.ts`),
-    `A11y.check(el)` / `expectAccessible(el)` (`a11y.ts`), `ElementFixture` (render + wait for `ready` +
+  - `test/` -- shared test utils and cross-family tests:  `Fixture.render(html)` (`Fixture.ts`),
+    `A11y.check(el)` / `expectAccessible(el)` (`A11y.ts`), `ElementFixture` (render + wait for `ready` +
     `flush()`, `breakRender()`), `StubOwner` (stand-in owners:  card, feed ...), `PerfRun` (the dropdown
     benchmark), `fallback.cases.ts`, `dictionary.es.ts`, `VisualOpen` + `test.types.ts` (visual-test hooks),
     `visual/baselines/` (screenshots, `yarn test:visual`);  `fallback` / `isolation` / `translate` / SSR / DSD
@@ -274,7 +274,7 @@ As WWOD §18, plus:
 - NEVER declare a public component token (`--ui-<tag>-*`) in a component sheet:  declare its private alias
   (`--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`) and read the alias, so values set on the
   page, an ancestor, the host or `::part()` reach the box.  Owner switches are private (`--_ui-card-layout`).
-  See `docs/theming.md` "Component tokens";  `test/component-tokens.test.ts` enforces it.
+  See `docs/theming.md` "Component tokens";  `test/componentTokens.test.ts` enforces it.
   - Two private shapes, on purpose:  `--_ui-<tag>-*` is a public token's ALIAS;  `--_<tag>-*` (`--_button-*`) is
     variation plumbing no page sets.  NEVER rename one into the other (epic `wwod-spell-ui`, Q13).
 - WWOD §18 › "Naming" (PascalCase root classes, nested parts) is for app sheets:  shadow sheets keep Fomantic's class

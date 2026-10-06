@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { progressVocabulary } from "./ui-progress.vocabulary.en"
 
@@ -32,6 +32,10 @@ function render(html: string, css: readonly string[] = []): HTMLElement {
   return root.matches(".ui.progress") ? root : root.querySelector<HTMLElement>(".ui.progress")!
 }
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-progress.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(progressRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -59,6 +63,10 @@ describe("ui-progress.css source", () => {
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-progress.css examples", () => {
   it.each(Object.keys(EXAMPLES))("draws a track and bars in %s", (path) => {
     Sheets.adopt([...foundationCSS, colorsCSS, progressCSS, STILL])
@@ -85,12 +93,6 @@ describe("ui-progress.css examples", () => {
   })
 
   it("colours the bar:  remap, per-bar hue, indicating by percent, states over everything", () => {
-    const probe = (token: string, parent?: HTMLElement) => {
-      const span = document.createElement("span")
-      span.style.backgroundColor = `var(${token})`
-      ;(parent ?? Fixture.render("<div></div>")).append(span)
-      return getComputedStyle(span).backgroundColor
-    }
     const bar = (element: HTMLElement) => getComputedStyle(element.querySelector(".bar")!).backgroundColor
     const red = render(`<div class="ui red progress" data-percent="40"><div class="bar"></div></div>`)
     expect(bar(red)).toBe(probe("--ui-red"))
@@ -103,6 +105,14 @@ describe("ui-progress.css examples", () => {
     const success = render(`<div class="ui red indicating success progress" data-percent="100">
       <div class="bar"></div></div>`)
     expect(bar(success)).toBe(probe("--ui-success"))
+
+    /** `token` as a background colour, computed on a probe in `parent` (else a fresh fixture). */
+    function probe(token: string, parent?: HTMLElement) {
+      const span = document.createElement("span")
+      span.style.backgroundColor = `var(${token})`
+      ;(parent ?? Fixture.render("<div></div>")).append(span)
+      return getComputedStyle(span).backgroundColor
+    }
   })
 
   it("hides the colour of a text bar at 0%", () => {
@@ -129,6 +139,10 @@ describe("ui-progress.css examples", () => {
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) expect(piece.animationName).toBe("progress-sliding")
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-progress.css tokens", () => {
   it("takes a public token set on a wrapper of static markup", () => {

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { adVocabulary } from "./ui-ad.vocabulary.en"
 
@@ -17,6 +17,10 @@ import adRaw from "./ui-ad.css?raw"
 
 /** Every example fragment, by path. */
 const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-ad.css source", () => {
   it("never uses rem or !important", () => {
@@ -38,6 +42,10 @@ describe("ui-ad.css source", () => {
     for (const phrase of Sheets.classPhrases(adVocabulary)) expect(Sheets.covers(adRaw, phrase), phrase).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-ad.css examples", () => {
   it("sizes each unit and labels test ads", () => {
@@ -61,6 +69,10 @@ describe("ui-ad.css examples", () => {
     expect(getComputedStyle(bare, "::after").content).toBe(`"Ad"`)
   })
 })
+
+////////////////
+// ## Tokens
+////////////////
 
 describe("ui-ad.css tokens", () => {
   it("takes a public token from a wrapper or the ad itself (static markup)", () => {

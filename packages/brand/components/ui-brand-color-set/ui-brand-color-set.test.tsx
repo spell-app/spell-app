@@ -2,9 +2,13 @@ import { describe, expect, it } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import "$/brand/components/ui-brand-color-set"
+
+////////////////
+// ## Fixtures
+////////////////
 
 /** A set host, as tests use it. */
 type SetHost = HTMLElement & { value: string | undefined; internals: ElementInternals }
@@ -20,6 +24,10 @@ const PRESETS = `
   <ui-brand-color name="teal" value="#14A39A"></ui-brand-color>
   <ui-brand-color name="rose" value="#E8436A"></ui-brand-color>
   <ui-brand-color name="amber" value="#F0A020"></ui-brand-color>`
+
+////////////////
+// ## Helpers
+////////////////
 
 /** Render a set;  returns it and its chips. */
 async function render(html: string) {
@@ -40,7 +48,11 @@ function changes(host: Element): string[] {
   return values
 }
 
-describe("<ui-brand-color-set>", () => {
+////////////////
+// ## Layout
+////////////////
+
+describe("<ui-brand-color-set> layout", () => {
   it("lays chips out in one row, each at its own size, shrinking alike when narrow", async () => {
     const { host, chips } = await render(`<ui-brand-color-set>${PRESETS}</ui-brand-color-set>`)
     const box = host.shadowRoot!.querySelector("[part~=set]")!
@@ -66,7 +78,13 @@ describe("<ui-brand-color-set>", () => {
     expect(sizes.map((size) => size.height)).toEqual([100, 100, 100, 100, 100, 100])
     expect(sizes[3]!.top).toBeGreaterThan(sizes[0]!.top)
   })
+})
 
+////////////////
+// ## Value
+////////////////
+
+describe("<ui-brand-color-set> value", () => {
   it("`value` selects the chip it names, by name or by colour however written;  unset, chips keep their own", async () => {
     const { host, chips } = await render(`<ui-brand-color-set value="violet">${PRESETS}</ui-brand-color-set>`)
     expect(chips.map((chip) => chip.selected)).toEqual([false, false, true, false, false, false])
@@ -82,24 +100,29 @@ describe("<ui-brand-color-set>", () => {
     </ui-brand-color-set>`)
     expect(own.map((chip) => chip.selected)).toEqual([false, true])
   })
+})
 
+////////////////
+// ## Choosing
+////////////////
+
+describe("<ui-brand-color-set selectable>", () => {
   it("`selectable`:  a radio group of radios, one Tab stop, no buttons inside", async () => {
     const { host, chips } = await render(
       `<ui-brand-color-set selectable value="violet" aria-label="Presets">${PRESETS.replaceAll("<ui-brand-color ", "<ui-brand-color copy ")}</ui-brand-color-set>`
     )
     expect(host.internals.role).toBe("radiogroup")
-    expect(chips.map((chip) => chip.internals.role)).toEqual(Array(6).fill("radio"))
-    expect(chips.map((chip) => chip.internals.ariaChecked)).toEqual([
-      "false",
-      "false",
-      "true",
-      "false",
-      "false",
-      "false"
+    expect(
+      chips.map((chip) => [chip.internals.role, chip.internals.ariaChecked, chip.tabIndex, chipOf(chip).localName])
+    ).toEqual([
+      ["radio", "false", -1, "span"],
+      ["radio", "false", -1, "span"],
+      ["radio", "true", 0, "span"],
+      ["radio", "false", -1, "span"],
+      ["radio", "false", -1, "span"],
+      ["radio", "false", -1, "span"]
     ])
     expect(chips[0]!.internals.ariaLabel).toBe("brand #8E96B5")
-    expect(chips.map((chip) => chip.tabIndex)).toEqual([-1, -1, 0, -1, -1, -1])
-    expect(chips.map((chip) => chipOf(chip).localName)).toEqual(Array(6).fill("span"))
     expect(chips.every((chip) => chip.matches(":state(choice)"))).toBe(true)
     await expectAccessible(host)
   })

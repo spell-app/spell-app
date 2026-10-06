@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it } from "vite-plus/test"
 
 import { UI, type VisibilityCalculations } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { nextFrame } from "$/ui/util"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-visibility"
@@ -55,14 +56,31 @@ function record(host: EventTarget) {
 /** Scroll the page so `host`'s top is `offset` px below the viewport top, then let the observers report. */
 async function scrollHostTo(host: Element, offset: number) {
   window.scrollTo(0, window.scrollY + host.getBoundingClientRect().top - offset)
-  await new Promise((resolve) => requestAnimationFrame(resolve))
-  await new Promise((resolve) => setTimeout(resolve, 40))
+  await observersSettle()
 }
+
+/** A frame, then `OBSERVER_SETTLE_MS`:  long enough for the observers to report and `Visibility` to check. */
+async function observersSettle() {
+  await nextFrame()
+  await new Promise((resolve) => setTimeout(resolve, OBSERVER_SETTLE_MS))
+}
+
+/**
+ * How long, after a frame, the observers get to report a scroll:  a REAL wait, on purpose (as in
+ * `src/runtime/Visibility.test.ts`).
+ * - `IntersectionObserver` delivers after the browser's next rendering update, and `Visibility` then coalesces its
+ *   reports with a `setTimeout`:  fake timers drive neither, and "nothing fired" can't be polled for.
+ */
+const OBSERVER_SETTLE_MS = 40
 
 beforeEach(async () => {
   await UI.load()
   window.scrollTo(0, 0)
 })
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-visibility> markup", () => {
   it("is a block:  `ui visibility` around the slot", async () => {
@@ -74,6 +92,10 @@ describe("<ui-visibility> markup", () => {
     expect(getComputedStyle(root).display).toBe("block")
   })
 })
+
+////////////////
+// ## Events
+////////////////
 
 describe("<ui-visibility> events", () => {
   it("reports off screen at once, then on screen as it scrolls in, with Fomantic's calculations", async () => {
@@ -127,7 +149,7 @@ describe("<ui-visibility> events", () => {
     await ElementFixture.tick()
     parent.append(host)
     host.remove()
-    await new Promise((resolve) => setTimeout(resolve, 60))
+    await observersSettle()
     expect(names).toEqual(["ui-hidden"])
   })
 })
@@ -150,6 +172,10 @@ describe("UI.observeVisibility() on a `display: contents` host", () => {
   })
 })
 
+////////////////
+// ## Images
+////////////////
+
 describe("<ui-visibility type=image>", () => {
   it("marks the box `image`", async () => {
     const host = await below(`type="image"`)
@@ -164,7 +190,7 @@ describe("<ui-visibility type=image>", () => {
     const loaded: HTMLImageElement[] = []
     host.addEventListener("ui-load", (event) => loaded.push((event as CustomEvent).detail.image))
     const images = [...host.querySelectorAll("img")]
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    await observersSettle()
     expect(images.map((image) => image.hasAttribute("src"))).toEqual([false, false])
     await scrollHostTo(host, 100)
     await expect.poll(() => loaded.length).toBe(2)
@@ -187,6 +213,10 @@ describe("<ui-visibility type=image>", () => {
     expect(host.querySelector("img")!.hasAttribute("src")).toBe(false)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-visibility> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

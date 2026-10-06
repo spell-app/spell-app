@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
-import { Keys } from "$/ui/test/keys"
+import { Keys } from "$/ui/test/Keys"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Viewport } from "$/ui/test/viewport"
+import { Viewport } from "$/ui/test/Viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-card"
@@ -53,6 +53,10 @@ function style(element: Element, pseudo?: string): CSSStyleDeclaration {
 function cardsOf(group: Element): UIHost[] {
   return [...group.querySelectorAll<UIHost>(":scope > ui-card")]
 }
+
+////////////////
+// ## Classes and markup
+////////////////
 
 describe("<ui-card> classes and markup", () => {
   it.each([
@@ -104,6 +108,10 @@ describe("<ui-card> classes and markup", () => {
     expect(host.shadowRoot!.querySelector("[role=status]")).toBeNull()
   })
 })
+
+////////////////
+// ## Shorthands
+////////////////
 
 describe("<ui-card> shorthands", () => {
   it("renders image, content block (header, meta, description) and extra as static parts, in order", async () => {
@@ -161,6 +169,10 @@ describe("<ui-card> shorthands", () => {
   })
 })
 
+////////////////
+// ## Content parts
+////////////////
+
 describe("<ui-card> content parts", () => {
   it("gives its parts card context", async () => {
     const host = await render(
@@ -206,6 +218,10 @@ describe("<ui-card> content parts", () => {
     expect(host.querySelector("ui-header")!.matches(":state(in-card)")).toBe(false)
   })
 })
+
+////////////////
+// ## Variations
+////////////////
 
 describe("<ui-card> variations", () => {
   it("draws a coloured bottom line from the colour remap", async () => {
@@ -334,6 +350,10 @@ describe("<ui-card> variations", () => {
   })
 })
 
+////////////////
+// ## <ui-cards>
+////////////////
+
 describe("<ui-cards>", () => {
   const THREE = `<ui-card header="A"></ui-card><ui-card header="B"></ui-card><ui-card header="C"></ui-card>`
 
@@ -413,15 +433,16 @@ describe("<ui-cards>", () => {
     )
     const [own, token, container] = [...wrapper.querySelectorAll("ui-cards")]
     expect(rootOf(own!).className).toBe("ui stackable four cards stack-with-page")
-    /** Whether the first two cards of `group` sit in one row. */
-    const oneRow = (group: Element) => {
-      const [a, b] = cardsOf(group).map((card) => rootOf(card).getBoundingClientRect())
-      return a!.top === b!.top
-    }
     await Viewport.resize(1200)
     await expect.poll(() => [oneRow(own!), oneRow(token!), oneRow(container!)]).toEqual([true, true, false])
     await Viewport.resize(500)
     await expect.poll(() => [oneRow(own!), oneRow(token!)]).toEqual([false, false])
+
+    /** Whether the first two cards of `group` sit in one row. */
+    function oneRow(group: Element) {
+      const [a, b] = cardsOf(group).map((card) => rootOf(card).getBoundingClientRect())
+      return a!.top === b!.top
+    }
   })
 
   it("centres its rows", async () => {
@@ -443,6 +464,10 @@ describe("<ui-cards>", () => {
     expect(rootOf(card).className).toBe("ui card")
   })
 })
+
+////////////////
+// ## Keyboard
+////////////////
 
 describe("<ui-card> keyboard", () => {
   it("is one Tab stop as a link card, followed with Enter", async () => {
@@ -467,6 +492,10 @@ describe("<ui-card> keyboard", () => {
     expect(document.activeElement).toBe(after)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-card> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

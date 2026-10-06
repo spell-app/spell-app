@@ -13,7 +13,7 @@ import { UIMeta } from "$/ui/components/ui-parts/UIMeta"
  * `<ui-items>` in the static server render (`$/ui/static`):  a `<ul>` of items whose `<div>` roots become the `<li>`s
  * (a link item's `<a>` is wrapped instead), content parts owned by their item (`in-item`).
  */
-describe("ui-items, static", () => {
+describe("<ui-items> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIItems, UIItem, UIContent, UIHeader, UIMeta)
   })

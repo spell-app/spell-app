@@ -3,8 +3,8 @@ import { page } from "vite-plus/test/browser"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { tableVocabulary } from "./ui-table.vocabulary.en"
 
@@ -38,6 +38,10 @@ beforeEach(async () => {
   await page.viewport(DESKTOP.width, DESKTOP.height)
 })
 
+////////////////
+// ## Source
+////////////////
+
 describe("ui-table.css source", () => {
   it("never uses rem", () => {
     expect(Sheets.withoutComments(tableRaw)).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -68,6 +72,10 @@ describe("ui-table.css source", () => {
     for (const phrase of Sheets.classPhrases(tableVocabulary)) expect(covers(css, phrase), phrase).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-table.css on class-grammar examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every table in %s", (path) => {
@@ -233,6 +241,10 @@ describe("ui-table.css on class-grammar examples", () => {
   })
 })
 
+////////////////
+// ## Hosted
+////////////////
+
 describe("ui-table.css as the page sheet of an un-upgraded <ui-table>", () => {
   it("gives the bare slotted table the base look", () => {
     Sheets.adopt([...foundationCSS, tableCSS])
@@ -270,6 +282,10 @@ describe("ui-table.css in a shadow root", () => {
     expect(getComputedStyle(table.tBodies[0]!).display).toBe("table-row-group")
   })
 })
+
+////////////////
+// ## Helpers
+////////////////
 
 /**
  * `css` styles `phrase`:  Fomantic's multi-word `[class*="..."]` phrases (`very short`, `tablet stackable`)

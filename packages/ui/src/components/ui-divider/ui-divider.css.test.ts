@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { dividerVocabulary } from "./ui-divider.vocabulary.en"
 
@@ -21,6 +21,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-divider.css source", () => {
   it("never uses rem", () => {
@@ -45,6 +49,10 @@ describe("ui-divider.css source", () => {
     for (const phrase of Sheets.classPhrases(dividerVocabulary)) expect(Sheets.covers(css, phrase), phrase).toBe(true)
   })
 })
+
+////////////////
+// ## Examples
+////////////////
 
 describe("ui-divider.css examples", () => {
   it.each(Object.keys(EXAMPLES))("styles every divider in %s", (path) => {
@@ -120,6 +128,10 @@ describe("ui-divider.css examples", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("ui-divider.css tokens", () => {
   it("takes a public token from a wrapper or the divider itself (static markup)", () => {
     Sheets.adopt([...foundationCSS, dividerCSS])
@@ -131,6 +143,10 @@ describe("ui-divider.css tokens", () => {
     expect(getComputedStyle(root.nextElementSibling!).borderTopWidth).toBe("3px")
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-divider.css in shadow roots", () => {
   it("keeps the host out of layout and draws the root", () => {

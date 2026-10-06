@@ -173,7 +173,7 @@ each public token through a PRIVATE ALIAS declared where the public one used to 
   value flows into it.  Both aliases sit on the same box:  `var()` in a custom property resolves where it's declared.
 - NOT component tokens, mechanism unchanged:  the remaps (`--ui-color*`, `--ui-scale`, `--ui-inverted`,
   `--ui-scheme`, `--ui-variation-*`, a local `--ui-size-*` ladder) and the global tokens.  A sheet may declare those.
-- `test/component-tokens.test.ts` enforces it:  no sheet declares a `--ui-<tag>-*` name (any family's), every alias
+- `test/componentTokens.test.ts` enforces it:  no sheet declares a `--ui-<tag>-*` name (any family's), every alias
   is named after the token it reads, and no sheet reads an aliased token bare.  `EXCEPTIONS` lists deliberate
   cross-family theming, each with why.
 - A token nothing varies needs no alias:  the rule reads it where it paints, `var(--ui-modal-content-padding, 1.5em)`.
@@ -559,9 +559,10 @@ re-checks), `fomantic-classic.css` (small, mostly overrides).
      native state, e.g. `:focus-within`)
 6. Assets the theme really uses (images, a font it needs to look right) go in `themes/<name>/`, referenced
    relatively.
-7. Test:  append a `describe("<name>")` to `themes/themes.test.ts`:  `ThemeHarness.use(name)`, then at least one
-   COMPUTED style per touched component INSIDE its shadow root (`ThemeHarness.inner(html, selector)`).  The generic
-   cases already check that the sheet is wholly `@layer ui.theme`.
+7. Test:  append a `describe("<name>.css")` to `themes/themes.test.ts`:  `ThemeHarness.use(name)`, then at least one
+   COMPUTED style per touched component INSIDE its shadow root (`ThemeHarness.inner(html, selector)`;
+   `test/ThemeHarness.ts`).  `UI.themes`' own tests (`src/runtime/Themes.test.ts`) already check that the sheet is
+   wholly `@layer ui.theme`.
 8. Look:  screenshot the touched components with the theme applied, next to fomantic-ui.com's theming page
    (`reference/Fomantic-UI-Docs/server/documents/usage/theming.html.eco`), light and dark.
 

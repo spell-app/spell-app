@@ -10,7 +10,7 @@ import { UIBreadcrumbSection } from "$/ui/components/ui-breadcrumb/UIBreadcrumbS
  * `<ui-breadcrumb>` / `<ui-breadcrumb-section>` in the static server render (`$/ui/static`, seo plan P3):  the class
  * grammar's semantic form, `<nav><ol><li><span class="divider"></span><a class="section">`.
  */
-describe("ui-breadcrumb static render", () => {
+describe("<ui-breadcrumb> static render", () => {
   beforeAll(async () => {
     StaticRender.define(UIBreadcrumb, UIBreadcrumbSection)
     await ServerRuntime.icons()

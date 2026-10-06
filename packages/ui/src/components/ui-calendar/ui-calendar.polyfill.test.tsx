@@ -16,7 +16,7 @@ import "$/ui/components/ui-calendar"
  * each test file has its own page), so `UI.browser.supports.temporal` is `false` and `UI.i18n.loadTemporal()`
  * imports `temporal-polyfill` -- the path Safari 26 takes.
  */
-const native = vi.hoisted(() => {
+const NATIVE_TEMPORAL = vi.hoisted(() => {
   const global = globalThis as { Temporal?: unknown }
   const found = global.Temporal
   delete global.Temporal
@@ -37,9 +37,9 @@ beforeEach(async () => {
   await UI.load()
 })
 
-describe("Temporal without a native one", () => {
+describe("<ui-calendar> without a native Temporal", () => {
   it("the browser really has none here, and the flag says so", () => {
-    expect(native === undefined || typeof native === "object").toBe(true)
+    expect(NATIVE_TEMPORAL === undefined || typeof NATIVE_TEMPORAL === "object").toBe(true)
     expect("Temporal" in globalThis).toBe(false)
     expect(UI.browser.supports.temporal).toBe(false)
   })

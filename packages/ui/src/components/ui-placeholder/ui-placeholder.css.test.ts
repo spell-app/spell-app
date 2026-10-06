@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { placeholderHeaderVocabulary } from "./ui-placeholder-header.vocabulary.en"
 import { placeholderImageVocabulary } from "./ui-placeholder-image.vocabulary.en"
@@ -38,6 +38,10 @@ const VOCABULARIES = [
 
 /** Shapes that paint the shimmer, in static markup. */
 const SHAPES = ".ui.placeholder .line, .ui.placeholder .image:not(.header)"
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-placeholder.css source", () => {
   it("never uses rem", () => {
@@ -78,6 +82,10 @@ describe("ui-placeholder.css source", () => {
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-placeholder.css examples", () => {
   it.each(Object.keys(EXAMPLES))("paints every shape in %s with the shared, fixed shimmer", (path) => {
     Sheets.adopt([...foundationCSS, placeholderCSS])
@@ -86,11 +94,12 @@ describe("ui-placeholder.css examples", () => {
     expect(shapes.length).toBeGreaterThan(0)
     for (const shape of shapes) {
       const label = shape.outerHTML.slice(0, 80)
-      const style = getComputedStyle(shape)
-      expect(style.animationName, label).toBe("ui-placeholder-shimmer")
-      expect(style.animationIterationCount, label).toBe("infinite")
-      expect(style.backgroundAttachment, label).toBe("fixed")
-      expect(style.backgroundImage, label).toContain("linear-gradient")
+      expect(getComputedStyle(shape), label).toMatchObject({
+        animationName: "ui-placeholder-shimmer",
+        animationIterationCount: "infinite",
+        backgroundAttachment: "fixed",
+        backgroundImage: expect.stringContaining("linear-gradient")
+      })
       const rect = shape.getBoundingClientRect()
       expect(rect.width, label).toBeGreaterThan(0)
       expect(rect.height, label).toBeGreaterThan(0)
@@ -184,6 +193,10 @@ describe("ui-placeholder.css examples", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("ui-placeholder.css tokens", () => {
   it("takes a public token from a wrapper, the placeholder or a shape (static markup)", () => {
     Sheets.adopt([...foundationCSS, placeholderCSS])
@@ -198,6 +211,10 @@ describe("ui-placeholder.css tokens", () => {
     expect(getComputedStyle(own!).borderTopLeftRadius).toBe("3px")
   })
 })
+
+////////////////
+// ## In shadow roots
+////////////////
 
 describe("ui-placeholder.css in shadow roots", () => {
   it("decides line spacing, lengths and block spacing by HOST position, through nested shadow roots", () => {

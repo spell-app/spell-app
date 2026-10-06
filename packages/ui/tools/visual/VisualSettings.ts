@@ -35,7 +35,7 @@ export class VisualSettings {
   /** fixed viewport:  wide enough for Fomantic's computer layouts (768px+), no device scaling */
   static readonly VIEWPORT = { width: 1024, height: 768 }
   /**
-   * `Date.now()` in every page (`page.clock.setFixedTime()`);  `Temporal.Now` follows (`fixture.ts`)
+   * `Date.now()` in every page (`page.clock.setFixedTime()`);  `Temporal.Now` follows (`Fixture.ts`)
    * - NOT an example's own date (2026-09-30), so "today" is visibly its own cell in a calendar
    */
   static readonly TIME = "2026-06-15T10:00:00Z"

@@ -278,7 +278,7 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
 
 - yarn, Node 22, TypeScript 7, Vite 8 (library mode, multiple entries, `css.transformer: "lightningcss"` with `drafts.customMedia`), `vite-plugin-dts`, `vite.decorators.ts`, `lodash-es`, `temporal-polyfill`.
 - oxlint + oxfmt with Owen's config; `yarn review` = tsc + lint:fix + format + test.
-- Vitest 5 browser mode + `@vitest/browser-playwright` (chromium default; webkit/firefox in `test:all`); axe-core via `test/a11y.ts`; `toMatchScreenshot` for visual.
+- Vitest 5 browser mode + `@vitest/browser-playwright` (chromium default; webkit/firefox in `test:all`); axe-core via `test/A11y.ts`; `toMatchScreenshot` for visual.
 - `@custom-elements-manifest/analyzer` → `custom-elements.json` → VS Code custom data, JetBrains web-types, JSX types (`@wc-toolkit/jsx-types`), docs API tables.
 - (Superseded 2026-10 by plain HTML pages in Fomantic's docs style, epic `spell-ui-pages`.)  Astro 7 + MDX in `site/`; components loaded client-side from the built package; Fomantic-like layout (left nav by component, sticky section index, example/code toggles, theme switcher, editable playground); framework smoke pages under `site/playground`.
 - `git init` at start; conventional commits; GitHub Actions later.

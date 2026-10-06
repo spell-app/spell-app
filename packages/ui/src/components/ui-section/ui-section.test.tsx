@@ -3,10 +3,11 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test"
 
 import type { SectionToggleDetail } from "$/ui/components/components.types"
 import { UI } from "$/ui/runtime"
-import { expectAccessible } from "$/ui/test/a11y"
+import { nextFrame } from "$/ui/util"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-section"
@@ -74,6 +75,10 @@ function record(host: Element) {
 function folded(content: HTMLElement) {
   return content.getAttribute("hidden") === "until-found" && content.getBoundingClientRect().height === 0
 }
+
+////////////////
+// ## Rendering
+////////////////
 
 describe("<ui-section> definition", () => {
   it("registers its texts with UI.i18n when DEFINED", async () => {
@@ -223,6 +228,10 @@ describe("<ui-section> levels", () => {
   })
 })
 
+////////////////
+// ## Folding
+////////////////
+
 describe("<ui-section> folding", () => {
   it("makes the title a button controlling the content", async () => {
     const { toggle, content } = await section(`<ui-section header="H" collapsible>Body</ui-section>`)
@@ -251,14 +260,13 @@ describe("<ui-section> folding", () => {
     await userEvent.click(toggle)
     await ElementFixture.tick()
     expect(seen.map(({ type }) => type)).toEqual(["ui-close"])
-    const { event } = seen[0]!
-    expect(event.target).toBe(host)
-    expect(event.cancelable).toBe(true)
-    expect(event.composed).toBe(true)
-    expect(event.bubbles).toBe(true)
-    expect(event.detail.open).toBe(false)
-    expect(event.detail.section).toBe(host)
-    expect(event.detail.originalEvent).toBeInstanceOf(MouseEvent)
+    expect(seen[0]!.event).toMatchObject({
+      target: host,
+      cancelable: true,
+      composed: true,
+      bubbles: true,
+      detail: { open: false, section: host, originalEvent: expect.any(MouseEvent) }
+    })
     expect(host.collapsed).toBe(true)
     expect(host.hasAttribute("collapsed")).toBe(true)
     expect(host.matches(":state(collapsed)")).toBe(true)
@@ -377,6 +385,10 @@ describe("<ui-section> folding", () => {
   })
 })
 
+////////////////
+// ## Look
+////////////////
+
 describe("<ui-section> look", () => {
   it("`size` scales the content's text, not the title's", async () => {
     const plain = await section(`<ui-section header="H">Body</ui-section>`)
@@ -455,7 +467,7 @@ describe("<ui-section> sticky", () => {
     const { scroller, outer } = await frame()
     const { title } = parts(outer)
     expect(getComputedStyle(title).position).toBe("sticky")
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await nextFrame()
     expect(outer.matches(":state(stuck)")).toBe(false)
     scroller.scrollTop = 300
     await expect.poll(() => outer.matches(":state(stuck)")).toBe(true)
@@ -491,6 +503,10 @@ describe("<ui-section> sticky", () => {
     expect(getComputedStyle(subhead!).position).not.toBe("sticky")
   })
 })
+
+////////////////
+// ## Groups
+////////////////
 
 describe("<ui-sections>", () => {
   /** Render a group;  returns it and its sections by id. */
@@ -639,6 +655,10 @@ describe("<ui-sections>", () => {
   })
 })
 
+////////////////
+// ## Source
+////////////////
+
 describe("<ui-section source>", () => {
   /** Fixture bodies the test server serves. */
   const DIR = "/test/fixtures/sources/bodies"
@@ -728,9 +748,7 @@ describe("<ui-section source>", () => {
     expect([...host.children].map((child) => child.localName)).toEqual(["span", "ui-icon", "p", "section"])
     expect(host.textContent).not.toContain("Placeholder")
     expect(host.textContent).not.toContain("Text")
-    expect(loads).toHaveLength(1)
-    expect(loads[0]!.source).toBe(`${DIR}/body.html`)
-    expect(loads[0]!.content).toContain("<title>A body</title>")
+    expect(loads).toEqual([{ source: `${DIR}/body.html`, content: expect.stringContaining("<title>A body</title>") }])
   })
 
   it("starts unfolded:  loads at once;  page CSS reaches the body (light DOM)", async () => {
@@ -828,6 +846,10 @@ describe("<ui-section source>", () => {
   })
 })
 
+////////////////
+// ## Title bar extras
+////////////////
+
 describe("<ui-section> end chevron", () => {
   it('`fold-icon="end"`:  the chevron leaves the button for the far end of the bar, after the actions', async () => {
     const { title, toggle, foldIcon } = await section(
@@ -923,12 +945,17 @@ describe("<ui-section> info tip", () => {
       `<ui-section header="H" info="Tip" style="--ui-section-tip-background: rgb(1, 2, 3); ` +
         `--ui-section-tip-color: rgb(4, 5, 6); --ui-section-tip-width: 100px">Body</ui-section>`
     )
-    const tip = getComputedStyle(title.querySelector("[part~=tip]")!)
-    expect(tip.backgroundColor).toBe("rgb(1, 2, 3)")
-    expect(tip.color).toBe("rgb(4, 5, 6)")
-    expect(tip.maxWidth).toBe("100px")
+    expect(getComputedStyle(title.querySelector("[part~=tip]")!)).toMatchObject({
+      backgroundColor: "rgb(1, 2, 3)",
+      color: "rgb(4, 5, 6)",
+      maxWidth: "100px"
+    })
   })
 })
+
+////////////////
+// ## Fallback
+////////////////
 
 describe("<ui-section> native fallback", () => {
   it("draws the end chevron and the info tip too", async () => {
@@ -956,6 +983,10 @@ describe("<ui-section> native fallback", () => {
     expect(content.getAttribute("hidden")).toBe("until-found")
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-section> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

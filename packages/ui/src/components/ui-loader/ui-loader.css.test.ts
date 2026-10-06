@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$/ui/test/fixture"
-import { Sheets } from "$/ui/test/sheets"
+import { Fixture } from "$/ui/test/Fixture"
+import { Sheets } from "$/ui/test/Sheets"
 
 import { loaderVocabulary } from "./ui-loader.vocabulary.en"
 
@@ -21,6 +21,10 @@ const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", 
 
 /** `!important`s the sheet is allowed, each documented where it's used:  none. */
 const ALLOWED_IMPORTANT = 0
+
+////////////////
+// ## Source
+////////////////
 
 describe("ui-loader.css source", () => {
   it("never uses rem", () => {
@@ -60,6 +64,10 @@ describe("ui-loader.css source", () => {
   })
 })
 
+////////////////
+// ## Examples
+////////////////
+
 describe("ui-loader.css examples", () => {
   it.each(Object.keys(EXAMPLES))("draws every active loader in %s with a track and a turning arc", (path) => {
     Sheets.adopt([...foundationCSS, loaderCSS])
@@ -75,9 +83,11 @@ describe("ui-loader.css examples", () => {
       expect(track.position, label).toBe("absolute")
       expect(parseFloat(track.borderTopWidth), label).toBeGreaterThan(0)
       expect(track.borderTopLeftRadius, label).toBe("50%")
-      expect(arc.animationName, label).toBe("ui-loader-spin")
-      expect(arc.animationIterationCount, label).toBe("infinite")
-      expect(arc.borderLeftColor, label).toBe("rgba(0, 0, 0, 0)")
+      expect(arc, label).toMatchObject({
+        animationName: "ui-loader-spin",
+        animationIterationCount: "infinite",
+        borderLeftColor: "rgba(0, 0, 0, 0)"
+      })
     }
   })
 
@@ -174,6 +184,10 @@ describe("ui-loader.css examples", () => {
   })
 })
 
+////////////////
+// ## Tokens
+////////////////
+
 describe("ui-loader.css tokens", () => {
   it("takes a public token from a wrapper or the loader itself (static markup)", () => {
     Sheets.adopt([...foundationCSS, loaderCSS])
@@ -185,6 +199,10 @@ describe("ui-loader.css tokens", () => {
     expect(getComputedStyle(root.nextElementSibling!, "::before").borderTopWidth).toBe("5px")
   })
 })
+
+////////////////
+// ## In a shadow root
+////////////////
 
 describe("ui-loader.css in a shadow root", () => {
   it("renders through a display: contents host, centred against a positioned ancestor outside the shadow", () => {

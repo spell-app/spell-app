@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
@@ -59,6 +59,10 @@ function style(element: Element, pseudo?: string): CSSStyleDeclaration {
   return getComputedStyle(element, pseudo)
 }
 
+////////////////
+// ## Classes and markup
+////////////////
+
 describe("<ui-feed> classes and markup", () => {
   it.each([
     ["", "ui feed"],
@@ -114,6 +118,10 @@ describe("<ui-feed> classes and markup", () => {
   })
 })
 
+////////////////
+// ## <ui-event> labels
+////////////////
+
 describe("<ui-event> labels", () => {
   it("gives a LONE event (no feed) its defaults:  the label box is 2.5em wide", async () => {
     const event = await ElementFixture.render<UIHost>(`<ui-event image="${AVATAR}">${CONTENT}</ui-event>`)
@@ -158,10 +166,7 @@ describe("<ui-event> labels", () => {
     const { events } = await feed("", `<ui-event label="J">${CONTENT}</ui-event>`)
     const label = labelOf(events[0]!)!
     expect(label.dataset.text).toBe("J")
-    const circle = style(label, "::before")
-    expect(circle.content).toBe('"J"')
-    expect(circle.borderTopLeftRadius).toBe("50%")
-    expect(circle.height).toBe("40px")
+    expect(style(label, "::before")).toMatchObject({ content: '"J"', borderTopLeftRadius: "50%", height: "40px" })
   })
 
   it("shows slotted label content, and puts the content beside it", async () => {
@@ -173,6 +178,10 @@ describe("<ui-event> labels", () => {
     expect(parseFloat(style(content).marginLeft)).toBeCloseTo(1.14285 * 16, 1)
   })
 })
+
+////////////////
+// ## Tokens from outside
+////////////////
 
 describe("<ui-feed> tokens from outside", () => {
   /** An event with an image label. */
@@ -217,6 +226,10 @@ describe("<ui-feed> tokens from outside", () => {
     expect(style(partRoot(events[0]!.querySelector("ui-summary")!)).color).toBe(red)
   })
 })
+
+////////////////
+// ## Variations
+////////////////
 
 describe("<ui-feed> variations", () => {
   it("numbers events when ordered:  a label box each, counters on the feed", async () => {
@@ -287,6 +300,10 @@ describe("<ui-feed> variations", () => {
     expect(events[0]!.matches(":state(disabled)")).toBe(true)
   })
 })
+
+////////////////
+// ## Accessibility
+////////////////
 
 describe("<ui-feed> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {

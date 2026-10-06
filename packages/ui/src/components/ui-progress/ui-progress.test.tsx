@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import type { UIHost } from "$/ui/elements"
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
@@ -41,6 +41,10 @@ function events(host: Element, name: string) {
   return details
 }
 
+////////////////
+// ## Classes
+////////////////
+
 describe("<ui-progress> classes", () => {
   it.each([
     ["", "ui progress"],
@@ -59,6 +63,10 @@ describe("<ui-progress> classes", () => {
     expect(root.className).toBe(classes)
   })
 })
+
+////////////////
+// ## Numbers
+////////////////
 
 describe("<ui-progress> numbers", () => {
   it("draws one bar at `value` percent, with `data-percent`", async () => {
@@ -126,6 +134,10 @@ describe("<ui-progress> numbers", () => {
   })
 })
 
+////////////////
+// ## Tokens from outside
+////////////////
+
 describe("<ui-progress> tokens from outside", () => {
   /** The first bar's height. */
   function height(host: Element): string {
@@ -169,6 +181,10 @@ describe("<ui-progress> tokens from outside", () => {
   })
 })
 
+////////////////
+// ## Label
+////////////////
+
 describe("<ui-progress> label", () => {
   it("fills the `label` shorthand's placeholders", async () => {
     const { label } = await progress(`<ui-progress value="9" total="20" label="{value} of {total}, {left} left">
@@ -183,14 +199,21 @@ describe("<ui-progress> label", () => {
   })
 })
 
+////////////////
+// ## Accessibility
+////////////////
+
 describe("<ui-progress> accessibility", () => {
   it("is a progressbar through internals:  range, value, text, name", async () => {
     const { host } = await progress(`<ui-progress value="9" total="20" label="Files"></ui-progress>`)
-    const { internals } = host
-    expect(internals.role).toBe("progressbar")
-    expect([internals.ariaValueMin, internals.ariaValueMax, internals.ariaValueNow]).toEqual(["0", "20", "9"])
-    expect(internals.ariaValueText).toBe("45%")
-    expect(internals.ariaLabel).toBe("Files")
+    expect(host.internals).toMatchObject({
+      role: "progressbar",
+      ariaValueMin: "0",
+      ariaValueMax: "20",
+      ariaValueNow: "9",
+      ariaValueText: "45%",
+      ariaLabel: "Files"
+    })
   })
 
   it("speaks the ratio with `bar-text=ratio`, every bar's text for several", async () => {
@@ -212,6 +235,10 @@ describe("<ui-progress> accessibility", () => {
     await expectAccessible(root)
   })
 })
+
+////////////////
+// ## Events and states
+////////////////
 
 describe("<ui-progress> events and states", () => {
   it("fires ui-change on changes (not the first render), ui-complete once at 100", async () => {

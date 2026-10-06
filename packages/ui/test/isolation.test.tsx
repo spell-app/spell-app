@@ -78,7 +78,11 @@ async function siblingStillUpdates(sibling: UIHost) {
   return sibling.shadowRoot!.querySelector("[part~=label]")!.className
 }
 
-describe("per-element error boundary", () => {
+////////////////
+// ## UIElement.define() error boundary
+////////////////
+
+describe("UIElement.define() error boundary", () => {
   it("disables ONLY the element whose render throws;  its sibling keeps updating", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {})
     const root = await ElementFixture.render(`<div><x-bomb></x-bomb><ui-label>Sibling</ui-label></div>`)
@@ -126,7 +130,11 @@ describe("per-element error boundary", () => {
   })
 })
 
-describe("error boundary cost", () => {
+////////////////
+// ## UIElement.define() error boundary cost
+////////////////
+
+describe("UIElement.define() error boundary cost", () => {
   it("measures render time of 300 labels with and without boundaries", { timeout: 60_000 }, async () => {
     const { UILabel } = await import("$/ui/components/ui-label")
     defineBare(UILabel as unknown as UIElementClass & typeof UIElement, "bare-label")
@@ -147,8 +155,12 @@ describe("error boundary cost", () => {
   })
 })
 
+////////////////
+// ## UIElement.define() without the error boundary
+////////////////
+
 // LAST:  a halt poisons Solid's scheduler for the rest of the file (`resetErrorHalt()` only re-arms it)
-describe("without the boundary", () => {
+describe("UIElement.define() without the error boundary", () => {
   it("the same throw halts EVERY element (the failure mode it prevents)", async () => {
     // a fresh tag defined with the fork's `errorBoundary: false`
     defineBare(Bomb as unknown as UIElementClass & typeof UIElement, "x-bare-bomb")

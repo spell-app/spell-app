@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { expectAccessible } from "$/ui/test/a11y"
+import { expectAccessible } from "$/ui/test/A11y"
 import { PartNouns } from "./ui-parts.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
@@ -81,26 +81,32 @@ function defineShell(tag: string, html: string) {
   )
 }
 
+/** `Split`'s vocabulary:  it owns headers. */
+const SPLIT_VOCABULARY: ComponentVocabulary = {
+  tag: "x-split",
+  noun: "split",
+  attributes: [],
+  events: [],
+  slots: [],
+  parts: [],
+  states: [],
+  texts: [],
+  ownsParts: ["header"]
+}
+
 beforeAll(() => {
   StubOwner.defineFomanticOwners()
-  const vocabulary: ComponentVocabulary = {
-    tag: "x-split",
-    noun: "split",
-    attributes: [],
-    events: [],
-    slots: [],
-    parts: [],
-    states: [],
-    texts: [],
-    ownsParts: ["header"]
-  }
-  Object.defineProperty(Split.prototype, "vocabulary", { value: vocabulary })
+  Object.defineProperty(Split.prototype, "vocabulary", { value: SPLIT_VOCABULARY })
   if (!customElements.get("x-split")) (Split as unknown as UIElementClass & typeof UIElement).define("x-split")
   defineShell("x-shell", "<ui-card><slot></slot></ui-card>")
   defineShell("x-panel", "<ui-header>Inside a shadow root</ui-header>")
 })
 
-describe("parts standalone", () => {
+////////////////
+// ## Standalone
+////////////////
+
+describe("<ui-{part}> standalone", () => {
   it.each(PartNouns.map((noun) => [noun]))("<ui-%s> renders `.<noun>` around a slot, unowned", async (noun) => {
     const host = await ElementFixture.render(`<ui-${noun}>Text</ui-${noun}>`)
     const part = root(host)
@@ -153,6 +159,10 @@ describe("parts standalone", () => {
   })
 })
 
+////////////////
+// ## Standalone
+////////////////
+
 describe("<ui-header> standalone", () => {
   it.each([
     ["", "ui header"],
@@ -185,9 +195,7 @@ describe("<ui-header> standalone", () => {
     expect(root(plain).localName).toBe("div")
     expect(root(plain).hasAttribute("role")).toBe(false)
     const link = await ElementFixture.render(`<ui-header level="2" href="#h">H</ui-header>`)
-    expect(root(link).localName).toBe("a")
-    expect(root(link).getAttribute("role")).toBe("heading")
-    expect(root(link).getAttribute("aria-level")).toBe("2")
+    expect(root(link)).toMatchObject({ localName: "a", role: "heading", ariaLevel: "2" })
   })
 
   it("keeps elements slotted into it live when `href` swaps its root tag", async () => {
@@ -227,7 +235,11 @@ describe("<ui-header> standalone", () => {
   })
 })
 
-describe("owner context", () => {
+////////////////
+// ## Owner context
+////////////////
+
+describe("<ui-{part}> owner context", () => {
   it("resolves an owner through another part:  card > content > header", async () => {
     const card = await ElementFixture.render(
       `<ui-card><ui-content><ui-header>Elliot</ui-header></ui-content></ui-card>`
@@ -354,7 +366,11 @@ describe("owner context", () => {
   })
 })
 
-describe("owner tokens", () => {
+////////////////
+// ## Owner tokens
+////////////////
+
+describe("<ui-{part}> owner tokens", () => {
   it("resolves `--ui-inverted` from the NEAREST segment", async () => {
     const outerInverted = await ElementFixture.render(
       `<ui-segment inverted><ui-segment><ui-header>H</ui-header></ui-segment></ui-segment>`
@@ -420,7 +436,11 @@ describe("owner tokens", () => {
   })
 })
 
-describe("parts accessibility", () => {
+////////////////
+// ## Accessibility
+////////////////
+
+describe("<ui-{part}> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
     const root = await ElementFixture.render(EXAMPLES[path]!)
     // `heading-order` off only where the ORIGINAL fragment breaks it identically (a page of h1 ... h6 demos)
