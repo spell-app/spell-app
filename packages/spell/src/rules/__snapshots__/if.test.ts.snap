@@ -6,5 +6,7 @@ exports[`testing spell module if > rule group specs > match snapshot -- if this 
   "else": "body?",
   "else_if": "condition|body?",
   "if": "condition|body?",
+  "value_if": "value|condition",
+  "value_otherwise": "value",
 }
 `;

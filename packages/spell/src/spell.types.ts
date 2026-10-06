@@ -309,10 +309,13 @@ export type ReadAsTemplate = {
    * - `property`:  `{it}.name`
    * - `method`:  `{it}.name()`
    * - `spellCore`:  `spellCore.name({it})`
+   * - `static`:  `Type.name({it})` -- a VALUE kind's property, e.g. `Suit.color({it})` (epic `outline-spell`)
    */
-  form: "property" | "method" | "spellCore"
+  form: "property" | "method" | "spellCore" | "static"
   /** Property or method name, e.g. `length`, `itemCountOf`. */
   name: string
+  /** `static` form:  the class it's called on, e.g. `Suit`. */
+  type?: string
 }
 
 // ## Declarations

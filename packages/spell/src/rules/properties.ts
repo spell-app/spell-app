@@ -343,9 +343,13 @@ export class MemberReadExpression<
    * - The table's templates are checked as it loads (`SP.loadBuiltInTypes()`), so one always reads.
    */
   private static builtInMemberAST(match: P.AnyMatch, object: P.ASTExpression, readAs: string): P.ASTExpression {
-    const { form, name } = SP.parseReadAsTemplate(readAs)!
+    const { form, name, type } = SP.parseReadAsTemplate(readAs)!
     if (form === "property") return new P.ASTPropertyExpression(match, { object, property: name })
     if (form === "method") return new P.ASTScopedMethodInvocation(match, { thing: object, methodName: name })
+    if (form === "static") {
+      const thing = new P.ASTTypeExpression(match, { name: type! })
+      return new P.ASTScopedMethodInvocation(match, { thing, methodName: name, args: [object] })
+    }
     return new P.ASTCoreMethodInvocation(match, { methodName: name, args: [object] })
   }
 }

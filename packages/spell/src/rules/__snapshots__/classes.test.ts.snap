@@ -14,7 +14,7 @@ exports[`testing spell module classes > rule group specs > match snapshot -- if 
   "list_guard": "type|verb|item|body?|never?",
   "new_list": "instanceType?",
   "new_thing": "type|props?",
-  "outline_specifier_datatype": "datatype",
+  "outline_specifier_datatype": "datatype|owner?",
   "outline_specifier_enum": "enumeration",
   "property_value_either": "type_property|value|condition|otherValue?",
   "property_value_getter": "property|type|body?",
@@ -23,5 +23,6 @@ exports[`testing spell module classes > rule group specs > match snapshot -- if 
   "type_specifier_datatype": "datatype",
   "type_specifier_enum": "enumeration",
   "type_specifier_instance": "new_thing",
+  "value_kind": "values|specifier",
 }
 `;

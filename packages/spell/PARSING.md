@@ -406,6 +406,32 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     not `it`).
 - Bullets:  a line starting `- ` (`BlockLine.isBullet()`) drops the `-` before the statement is read, on ANY line.
   It stays a token of the line's match, so editors see it.
+- A property's quotes are optional, `- its rank is a number` (plan doc Q4);  quoted names work in the sentence style
+  too, `a card has a "suit" as ...` (J3, option C).  `- it "rank" is ...` is refused, saying to write `its`
+  (`quoted_type_expression.isPropertySlip()`).
+
+## Value kinds:  `"suits" as one of clubs, diamonds, hearts or spades`
+
+- In a type's outline body, `value_kind` (`classes.ts`) makes a list of values a KIND of thing, `Suit`, its list kept
+  by the body's type:  the class variable `Deck.Suits` (and its instance twin), each value a constant, and the
+  kind's `P.TypeScope` with `valueKind` (`{ values, listOn, listName }`).  The name must be quoted.
+  - Compiles to `Deck.Suits = [...]` + `export class Suit {}`, where the line is.
+  - Values stay plain text and numbers when the code runs (plan doc Q10).
+- `its "suit" is a suit` (or `a suit of its deck`):  `define_property_has` notes the kind (`data.valueList`), and
+  its setter checks `{ oneOf: () => Deck.Suits }` -- a FUNCTION (`core`'s `checkProp()`), as the deck's class
+  names the card's (`static instanceType = Card`), so one of them is defined second.
+- A kind's property, `the "color" of a suit is:` + an indented body:  `property_value_getter` with `data.valueKind`
+  compiles a STATIC method, `static color(suit) {...}` (`P.ASTStaticMethod`), `it` / `the suit` its argument;  and
+  records the property's `readAs` as `Suit.color({it})`, so `the color of its suit` compiles to
+  `Suit.color(this.suit)` (`MemberReadExpression`, the `static` form of `SP.parseReadAsTemplate()`).
+- A value-per-line body:  `value_if` (`red if it is diamonds or hearts` => `if (...) { return 'red' }`) and
+  `value_otherwise` (`black otherwise` => `return 'black'`), in `if.ts`, at `Priority.overridable`.
+- `it is diamonds or hearts` / `is jack, queen or king`:  `is_in` with `value_choices` (`lists.ts`), two or more
+  KNOWN constants or numbers joined by `or` => `spellCore.includes([...], it)`.  Was `(it == 'diamonds') || 'hearts'`.
+- Ranges in a list of values:  `2 ... 10` (`number_range`, spread by `identifier_list`).
+- A list type whose item type is declared BELOW it (a stub when it parses) reads it when used:
+  `static get instanceType() { return Card }` (`create_list_type`).
+- A property, alias or phrase on a type nobody declares is refused (`SpellStatement.refuseUnknownType()`).
 
 ## Scope:  what's stored where
 

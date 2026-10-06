@@ -915,6 +915,25 @@ expressions.addRule(is_in, {
     }
   ]
 })
+// `thing is green or blue`, the values known -- see `value_choices`
+expressions.addRule(is_in, {
+  syntax: "(operator:is not?) (expression:{value_choices})",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("thing")
+        scope.constants?.add("green")
+        scope.constants?.add("blue")
+      },
+      tests: [
+        ["thing is green or blue", "spellCore.includes(['green', 'blue'], thing)"],
+        ["thing is not green or blue", "!spellCore.includes(['green', 'blue'], thing)"],
+        ["thing is green or thing is blue", "((thing == 'green') || (thing == 'blue'))"]
+      ]
+    }
+  ]
+})
 
 ////////////////
 // ## `includes` rule

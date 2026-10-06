@@ -1640,8 +1640,32 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
         }
         return undefined
       }
+      const refused = SpellStatement.refuseUnknownType(match, match.groups.type)
+      if (refused !== match) return refused
+      if (quoted_type_expression.isPropertySlip(scope, tokens)) {
+        const whole = match.clone({ matched: tokens, tokens: [...tokens] })
+        const name = (tokens[1] as P.TextToken).innerText
+        return SpellStatement.refuse(whole, `A property starts "its":  write its "${name}" is ...`)
+      }
     }
     return match
+  }
+
+  /**
+   * Is `tokens` a property written with `it` for `its` in an outline body, e.g. `- it "rank" is a number`
+   * (plan doc `outline-spell`, todo T3)?
+   * - `it`, a quoted member name (no verb, so not a phrase like `"is face up"`), then `is`.
+   * - Refused, saying so:  read as a phrase, it'd make an empty `get rank() {}`, and say only
+   *   "Don't understand `a number`".
+   */
+  private static isPropertySlip(scope: P.Scope, tokens: P.Token[]): boolean {
+    const [subject, name, is] = tokens
+    return (
+      `${subject?.value}`.toLowerCase() === "it" &&
+      !!name &&
+      !!scope.getRuleOrDie("quoted_member").test(scope, [name]) &&
+      `${is?.value}`.toLowerCase() === "is"
+    )
   }
 
   /**

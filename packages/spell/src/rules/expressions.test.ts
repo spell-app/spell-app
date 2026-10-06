@@ -81,6 +81,9 @@ describe("priority and precedence", () => {
         "round_number:  Priority.preferred",
         "starts_with:  Precedence.comparison",
         "times:  Precedence.product",
+        "value_if:  Priority.overridable",
+        "value_kind:  Priority.declaration",
+        "value_otherwise:  Priority.overridable",
       ]
     `)
   })
