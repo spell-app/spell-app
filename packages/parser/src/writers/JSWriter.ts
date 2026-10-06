@@ -238,7 +238,7 @@ export class JSWriter extends Writer {
    */
   ASTMethodDefinition(node: P.ASTMethodDefinition): string {
     const async = node.isAsync ? "async " : ""
-    const args = this.args(node.args)
+    const args = this.params(node)
     const error = node.error ? ` ${this.write(node.error)}` : ""
     const body = this.write(node.body)
 
@@ -259,17 +259,27 @@ export class JSWriter extends Writer {
    * `method` as method shorthand under `name`, whatever its own `methodName`, e.g. in a class body.
    * - `name` is ready to print:  quoted if need be, and may lead with `get `, e.g. `get title` => `get title() {...}`.
    */
-  methodNamed(method: P.ASTMethodDefinition, name: string): string {
+  methodNamed(method: P.ASTMethodDefinition, name: string, thisType?: string): string {
     const async = method.isAsync ? "async " : ""
     const error = method.error ? ` ${this.write(method.error)}` : ""
-    return `${async}${name}${this.args(method.args)} ${this.write(method.body)}${error}`
+    return `${async}${name}${this.params(method, thisType)} ${this.write(method.body)}${error}`
   }
 
   /** `method` as an anonymous `function (args) {...}` -- NOT an arrow, so `this` is whatever it's called on. */
-  anonymousFunction(method: P.ASTMethodDefinition): string {
+  anonymousFunction(method: P.ASTMethodDefinition, thisType?: string): string {
     const async = method.isAsync ? "async " : ""
     const error = method.error ? ` ${this.write(method.error)}` : ""
-    return `${async}function ${this.args(method.args)} ${this.write(method.body)}${error}`
+    return `${async}function ${this.params(method, thisType)} ${this.write(method.body)}${error}`
+  }
+
+  /**
+   * `method`'s parameters, in parens:  `(card, pile = stock)`.
+   * - `thisType`:  the class `this` is, when it's written outside it, e.g. `Card` for
+   *   `Card.prototype.play = function () {...}`.  Javascript has nothing to say about it;  a typed target does --
+   *   see `TSWriter`.
+   */
+  params(method: P.ASTMethodDefinition, thisType?: string): string {
+    return this.args(method.args)
   }
 
   /** `method`'s `methodName`, quoted when used `asProperty` with a non-legal-identifier name;  `""` if unset. */
@@ -398,10 +408,12 @@ export class JSWriter extends Writer {
   ASTPropertyDefinition(node: P.ASTPropertyDefinition): string {
     const prototype = this.write(node.prototypeExpression)
     if (node.get) {
-      const descriptor = [`${this.methodNamed(node.get, "get")},`, "configurable: true"].join(jsText.NEWLINE)
+      const descriptor = [`${this.methodNamed(node.get, "get", node.typeName)},`, "configurable: true"].join(
+        jsText.NEWLINE
+      )
       return `Object.defineProperty(${prototype}, ${jsText.quoted(node.property.value)}, ${jsText.Block({ wrap: true, children: descriptor })})`
     }
-    return `${prototype}${propertyAccess(node.property)} = ${this.anonymousFunction(node.method!)}`
+    return `${prototype}${propertyAccess(node.property)} = ${this.anonymousFunction(node.method!, node.typeName)}`
   }
 
   /** In its class's body:  `static { this.declareProp(...) }` (if it declares anything), its getter and setter. */
@@ -410,8 +422,8 @@ export class JSWriter extends Writer {
     const declare = this.declareCall(node, "this")
     return [
       declare && `static { ${declare} }`,
-      `get ${name}() ${this.getterBody(node)}`,
-      `set ${name}(value) ${this.setterBody(node)}`
+      `get ${name}()${this.valueType(node)} ${this.getterBody(node)}`,
+      `set ${name}(${this.setterParams(node)}) ${this.setterBody(node)}`
     ]
       .filter(Boolean)
       .join(jsText.NEWLINE)
@@ -422,7 +434,11 @@ export class JSWriter extends Writer {
    * `Object.defineProperty(Type.prototype, 'name', { get() {...}, set(value) {...}, configurable: true })`.
    */
   ASTReactiveProperty(node: P.ASTReactiveProperty): string {
-    const descriptor = [`get() ${this.getterBody(node)},`, `set(value) ${this.setterBody(node)},`, "configurable: true"]
+    const descriptor = [
+      `get(${this.thisParam(node.typeName)})${this.valueType(node)} ${this.getterBody(node)},`,
+      `set(${this.setterParams(node, node.typeName)}) ${this.setterBody(node)},`,
+      "configurable: true"
+    ]
     const block = jsText.Block({ wrap: true, children: descriptor.join(jsText.NEWLINE) })
     const define = `Object.defineProperty(${this.write(node.prototypeExpression)}, ${jsText.quoted(node.property.value)}, ${block})`
     const declare = this.declareCall(node, this.write(node.type))
@@ -432,6 +448,21 @@ export class JSWriter extends Writer {
   /** `{ return this.getProp('name') }`:  its default, if any, is in its class's schema -- see `declaration()`. */
   getterBody(node: P.ASTReactiveProperty): string {
     return `{ return this.getProp(${jsText.quoted(node.property.value)}) }`
+  }
+
+  /** `: type` after its getter's parens:  javascript has none -- see `TSWriter`. */
+  valueType(node: P.ASTReactiveProperty): string {
+    return ""
+  }
+
+  /** Its setter's parameters:  `value`.  `thisType`:  as `params()`'s. */
+  setterParams(node: P.ASTReactiveProperty, thisType?: string): string {
+    return "value"
+  }
+
+  /** A `this` parameter typed `thisType`, for a function written outside its class:  javascript has none. */
+  thisParam(thisType?: string): string {
+    return ""
   }
 
   /** `{ this.setProp('name', value) }`:  its `check`, if any, is in its class's schema -- see `declaration()`. */

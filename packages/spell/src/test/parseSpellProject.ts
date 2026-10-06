@@ -83,9 +83,10 @@ export function fixtureProjectNames(): string[] {
  * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.compiled.js` -- parsed headlessly,
  * with `parseSpellProject()`:  `import`s, then each file's code in `project.json` order.
  * - Its declarations, as its `<Project>.declarations.json`:  `fixtureDeclarations()`.
+ * - `target`:  compiled for that target, e.g. `ts/solid` -- see `SP.TARGETS`.
  */
-export function compiledFixture(projectName: string): string {
-  return compileFixture(projectName).code
+export function compiledFixture(projectName: string, target = SP.RUNNING_TARGET): string {
+  return compileFixture(projectName, target).code
 }
 
 /** Fixture `projectName`'s declarations, as its `<Project>.declarations.json` would hold them -- see `compileFixture()`. */
@@ -101,8 +102,12 @@ export function fixtureDeclarations(projectName: string): string {
  * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
  * - NOT projects it imports:  a fixture is parsed on its own.
  * - `version` / `exports` from its `project.json`, as a compile would.
+ * - `target`'s writer writes it, `js/solid`'s by default.
  */
-function compileFixture(projectName: string): { code: string; declarations: SP.SpellDeclarationsData } {
+function compileFixture(
+  projectName: string,
+  target = SP.RUNNING_TARGET
+): { code: string; declarations: SP.SpellDeclarationsData } {
   const projectDir = fixturePath(projectName)
   const { version, exports, imports } = readProjectFile(projectDir)
   const { scope, files } = parseSpellProject(loadFixtureProject(projectName))
@@ -115,7 +120,8 @@ function compileFixture(projectName: string): { code: string; declarations: SP.S
       return file.match?.AST instanceof P.ASTStatementGroup ? file.match.AST : file.compiled
     })
   const importLines = SP.SpellProject.importHeaderFor(scope)
-  const marked = errors.join("") + importLines + SP.SpellProject.combineCompiled(parts) + "\n"
+  const marked =
+    errors.join("") + importLines + SP.SpellProject.combineCompiled(parts, SP.targetFor(target).writer) + "\n"
   return SP.SpellDeclarations.split(marked, scope, { version, exports })
 }
 

@@ -29,7 +29,9 @@ export type TargetAbilities = {
 
 /** Every target, by name. */
 export const TARGETS: Record<string, Target> = {
-  "js/solid": { name: "js/solid", writer: P.JSWriter.instance, suffix: ".compiled.js", can: { draw: "dom" } }
+  "js/solid": { name: "js/solid", writer: P.JSWriter.instance, suffix: ".compiled.js", can: { draw: "dom" } },
+  // the same code and runtime, typed:  checked by `tsc`, never run
+  "ts/solid": { name: "ts/solid", writer: P.TSWriter.instance, suffix: ".compiled.ts", can: { draw: "dom" } }
 }
 
 /** The target everything runs:  always compiled -- see the module docs. */
