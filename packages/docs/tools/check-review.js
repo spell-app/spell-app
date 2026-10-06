@@ -1,23 +1,30 @@
 /**
- * Check a plan doc's review actions (plan doc `review-review`, P5;  the buttons:  epic `windows-and-review` P2) in a
- * real browser, against this checkout's page server and its review routes (`tools/reviewRoutes.ts`).
+ * Check a plan doc's review actions (plan doc `review-review`, P5;  the buttons and note box:  epic
+ * `windows-and-review` P2, Q8) in a real browser, against this checkout's page server and its review routes
+ * (`tools/reviewRoutes.ts`).
  * Usage:  node tools/check-review.js [epic name] [outDir]   (default `review-review`;  from `packages/docs`)
- * - clicks through what Owen would, on the four buttons at each item's line end (`.plan-act`:  Approve, Make Todo,
- *   Revisit Now, Add Details Now):
- *   - Approve, then again (cleared), then again;  Make Todo, whose note box opens:  it must grow with ten lines
- *     typed, and its check saves the todo WITH its note
- *   - Revisit Now with a note (saved to the inbox as typed, "Saved";  it must survive a reload at ANOTHER address,
- *     `localhost`, whose localStorage is its own), saved "soon", then shown under its item with Edit (P1);  another
- *     revisited "now":  its button must spin (`loading`) while the request waits
+ * - the line's controls (`.plan-act`):  the state buttons in a group (Approve, Make Todo, Revisit), then Add Details
+ *   Now on its own;  plain tooltips (`title`), just the name;  every item WITH details has a note box docked after
+ *   its accordion, shown while it's open and not approved
+ * - clicks through what Owen would:
+ *   - Approve, then again (cleared), then again;  the line's Make Todo (marked, no box), then again (cleared)
+ *   - Revisit on an item:  it opens, its docked box at its end, focused;  the box must grow with ten lines typed,
+ *     and its Make Todo saves the todo WITH its note, emptying the box;  an approved item opened shows no box;  an
+ *     item without details (if the doc has one) gets a box under its line, closed once used
+ *   - a note typed, then the box left (Tab):  saved as a draft at once (the floppy's "Saved" tooltip);  it must
+ *     survive a reload at ANOTHER address (`localhost`, whose localStorage is its own);  then Later (revisit soon),
+ *     shown under its item, and Edit puts it back in the box (P1);  another item's Do Now (revisit now):  its
+ *     Revisit button must spin (`loading`) while the request waits
  *   - Add Details Now;  then "nevermind" on another item:  its button clicked again while the request is still on
  *     its way, and again once it's queued:  nothing left on `now`, `canceled[id]` set, the button idle
- *   - "Choose" on an open question's option card, then a Revisit on it ("pick B, but ...":  both kept, the letter
+ *   - "Choose" on an open question's option card, then a Later on it ("pick B, but ...":  both kept, the letter
  *     changes and drops without losing the note);  then "Send to Claude", and `spell dev plan-doc inbox <name> wait`
  *     must print the pick with its note;  at the end the chosen Revisit clicked again leaves the plain pick, and
  *     the chosen pill again clears it
- * - the items:  the first six judgement calls, topped up from the other lists;  the question:  the doc's first open
- *   one with option cards A and B (`openQuestionWithCards()`).  None:  the "Choose" steps are skipped, and the
- *   summary's `items.pick` says so
+ * - the items:  the first six judgement calls with details, topped up from the other lists;  the question:  the
+ *   doc's first open one with option cards A and B (`openQuestionWithCards()`).  None:  the "Choose" steps are
+ *   skipped, and the summary's `items.pick` says so
+ * - NOT `inbox apply` (the doc's `data-review-as`):  it would edit the shared doc
  * - a SPLIT doc (P3 of `claude-design`:  item details load when opened):  the question is opened before its cards
  *   are clicked (`openQuestion()`), and after the reload its line must show the pick's letter BEFORE its details
  *   load;  the log line goes into the log's part file
@@ -26,10 +33,10 @@
  * - fails (exit 1) unless each shows on the page (which button is chosen and sent, its color, the picked card, the
  *   send button's states) AND lands in the inbox file (read back through `GET /api/review/inbox`);  after a reload
  *   every mark still shows;  an in-place update (a log line it adds with `spell dev plan-doc log <name> ...`, then
- *   removes) keeps the buttons and marks without reloading;  at 280px and 700px, light and dark, no item title runs
- *   under its buttons, and no review control runs past the window
+ *   removes) keeps the buttons, docked boxes and marks without reloading;  at 280px and 700px, light and dark, no
+ *   item title runs under its buttons (an opened item too), and no review control runs past the window
  * - screenshots (outDir, default a temp folder):  `review-marked.png`, `review-picked.png`, and
- *   `review-<width>-<scheme>.png` with a Revisit box open and a button's tooltip showing
+ *   `review-<width>-<scheme>.png` with an item opened, its docked box showing
  * - REFUSES to run while the inbox file exists (its marks, or a session listening, would be Owen's);  SIDE EFFECT:
  *   writes the inbox (by hand, then `spell dev plan-doc inbox <name> listen` / `wait`), deletes it afterwards,
  *   and its log line from the doc (reformatting it with oxfmt)
@@ -96,18 +103,23 @@ try {
   page.on("console", (message) => message.type() === "error" && errors.push(message.text()))
   await open(page)
 
-  // the items to mark:  the first six judgement calls (open or closed:  every item has the buttons), topped up from
-  // the other lists when there are fewer;  and an open question's cards (`Q`)
-  const ids = await page.evaluate((skip) => {
+  // the items to mark:  the first six judgement calls WITH details (their note box docked at their end), topped up
+  // from the other lists when there are fewer;  an item without details, if any (its box opens under its line);  and
+  // an open question's cards (`Q`)
+  const { ids, bare } = await page.evaluate((skip) => {
     const items = Array.from(document.querySelectorAll(".plan-items > [data-status][id]")).filter(
       (item) => item.id !== skip
     )
-    const judgements = items.filter((item) => item.parentElement.dataset.kind === "judgement")
-    return [...judgements, ...items.filter((item) => !judgements.includes(item))].map((item) => item.id)
+    const detailed = items.filter((item) => item.querySelector(":scope > ui-accordion.plan-item"))
+    const judgements = detailed.filter((item) => item.parentElement.dataset.kind === "judgement")
+    return {
+      ids: [...judgements, ...detailed.filter((item) => !judgements.includes(item))].map((item) => item.id),
+      bare: items.find((item) => !detailed.includes(item))?.id ?? null
+    }
   }, Q)
-  if (ids.length < 6) throw new Error(`only ${ids.length} items:  need 6`)
+  if (ids.length < 6) throw new Error(`only ${ids.length} items with details:  need 6`)
   const [approve, todo, soon, now, details, nevermind] = ids
-  const marked = [approve, todo, soon, now, details, nevermind]
+  const marked = [approve, todo, soon, now, details, nevermind, ...(bare ? [bare] : [])]
   summary.items = {
     approve,
     todo,
@@ -115,18 +127,40 @@ try {
     now,
     details,
     nevermind,
+    bare: bare ?? "none:  every item has details",
     pick: Q ?? "none:  no open question with option cards A and B"
   }
   for (const id of marked) await page.evaluate(unfold, id)
-  const count = await page.evaluate(() => ({
-    items: document.querySelectorAll(".plan-items > [data-status][id]").length,
-    acts: document.querySelectorAll(".plan-items > [data-status][id] .plan-act").length,
-    buttons: document.querySelectorAll(".plan-items > [data-status][id] .plan-act ui-button[data-action]").length,
-    send: document.querySelector(".spell-page-head .plan-send")?.dataset.state
-  }))
+  const count = await page.evaluate(() => {
+    const items = Array.from(document.querySelectorAll(".plan-items > [data-status][id]"))
+    const all = (selector) => items.flatMap((item) => Array.from(item.querySelectorAll(selector)))
+    return {
+      items: items.length,
+      detailed: items.filter((item) => item.querySelector(":scope > ui-accordion.plan-item")).length,
+      acts: all(".plan-act").length,
+      states: all(".plan-act > ui-buttons.plan-act-group > ui-button[data-action]").length,
+      details: all('.plan-act > ui-button.plan-act-details[data-action="details"]').length,
+      docked: items.filter((item) => item.querySelector(":scope > ui-accordion.plan-item + .plan-revisit[data-docked]"))
+        .length,
+      popups: all(".plan-act ui-popup").length,
+      titles: Array.from(
+        items[0]?.querySelectorAll(".plan-act ui-button[data-action]") ?? [],
+        (button) => button.title
+      ),
+      send: document.querySelector(".spell-page-head .plan-send")?.dataset.state
+    }
+  })
   summary.count = count
   if (count.acts !== count.items) problems.push(`${count.items} items but ${count.acts} button groups`)
-  if (count.buttons !== 4 * count.items) problems.push(`${count.items} items but ${count.buttons} buttons, not 4 each`)
+  if (count.states !== 3 * count.items)
+    problems.push(`${count.items} items but ${count.states} state buttons in the groups, not 3 each`)
+  if (count.details !== count.items)
+    problems.push(`${count.items} items but ${count.details} Add Details Now buttons after the group`)
+  if (count.docked !== count.detailed)
+    problems.push(`${count.detailed} items with details but ${count.docked} note boxes docked after them`)
+  if (count.popups) problems.push(`${count.popups} ui-popups on the lines:  the tooltips are plain titles now`)
+  if (count.titles.join() !== "Approve,Make Todo,Revisit,Add Details Now")
+    problems.push(`the buttons' tooltips are ${JSON.stringify(count.titles)}, not just their names`)
   if (count.send !== "idle") problems.push(`send button starts "${count.send}", not idle (grey)`)
 
   // Approve;  again clears it (no Clear row any more);  a third time marks it again
@@ -150,53 +184,100 @@ try {
   await press(page, approve, "approve")
   await expectButton(page, approve, "approve")
 
-  // Make Todo:  marked at once, its note box opens;  the box grows as it's typed in;  its check saves the note
+  // the line's Make Todo:  marked at once, no box;  again clears it
   await press(page, todo, "todo")
-  const todoBox = `#${todo} > .plan-revisit[data-action="todo"]`
-  if (!(await page.$(todoBox))) problems.push("Make Todo didn't open its note box")
-  else {
-    const mark = (await inbox()).marks[todo]
-    if (mark?.action !== "todo") problems.push(`Make Todo:  inbox ${todo} is ${JSON.stringify(mark)}, not a todo`)
-    const note = `${todoBox} .plan-revisit-note`
-    const short = await page.$eval(note, (box) => box.getBoundingClientRect().height)
-    await page.fill(note, Array.from({ length: 10 }, (_, line) => `line ${line + 1}`).join("\n"))
-    await page.waitForTimeout(100)
-    const tall = await page.$eval(note, (box) => box.getBoundingClientRect().height)
-    summary.noteGrows = { short, tall }
-    if (tall < short + 60) problems.push(`the note box didn't grow with ten lines (${short}px -> ${tall}px)`)
-    await page.fill(note, TODO_NOTE)
-    await page.click(`${todoBox} .plan-revisit-soon`)
-    await page.waitForTimeout(300)
-    await expectButton(page, todo, "todo", (mark) => mark.note === TODO_NOTE)
-    if (await page.$(todoBox)) problems.push("the todo's note box stayed open after its check")
-    const shown = await page.evaluate((id) => document.querySelector(`#${id} .plan-said-note`)?.textContent, todo)
-    if (shown !== TODO_NOTE) problems.push(`the todo's note isn't shown under its item ("${shown}")`)
+  await expectButton(page, todo, "todo")
+  if (await page.$(`#${todo} > .plan-revisit:not([data-docked])`)) problems.push("the line's Make Todo opened a box")
+  if (await boxShown(page, todo)) problems.push("the line's Make Todo opened the item")
+  await press(page, todo, "todo")
+  if ((await inbox()).marks[todo]) problems.push("Make Todo clicked again didn't clear the todo")
+
+  // Revisit on an item with details:  the item opens, its docked box at the end;  the box grows as it's typed in;  its
+  // Make Todo saves the todo WITH the note, and the box empties (it stays:  docked)
+  await press(page, todo, "revisit")
+  const dock = `#${todo} > .plan-revisit[data-docked]`
+  const docked = await page.evaluate((id) => {
+    const item = document.getElementById(id)
+    const box = item.querySelector(":scope > .plan-revisit[data-docked]")
+    const accordion = item.querySelector(":scope > ui-accordion.plan-item")
+    return {
+      shown: !!box?.getClientRects().length,
+      atEnd: !!box && box.getBoundingClientRect().top >= accordion.getBoundingClientRect().bottom - 1,
+      focused: document.activeElement === box?.querySelector("textarea")
+    }
+  }, todo)
+  summary.docked = docked
+  if (!docked.shown || !docked.atEnd || !docked.focused)
+    problems.push(
+      `Revisit on ${todo}:  its docked box isn't shown, at the item's end, and focused (${JSON.stringify(docked)})`
+    )
+  if ((await inbox()).marks[todo]) problems.push("Revisit alone marked the item:  only the box's buttons do")
+  const note = `${dock} .plan-revisit-note`
+  const short = await page.$eval(note, (box) => box.getBoundingClientRect().height)
+  await page.fill(note, Array.from({ length: 10 }, (_, line) => `line ${line + 1}`).join("\n"))
+  await page.waitForTimeout(100)
+  const tall = await page.$eval(note, (box) => box.getBoundingClientRect().height)
+  summary.noteGrows = { short, tall }
+  if (tall < short + 60) problems.push(`the note box didn't grow with ten lines (${short}px -> ${tall}px)`)
+  await page.fill(note, TODO_NOTE)
+  await page.click(`${dock} .plan-revisit-todo`)
+  await page.waitForTimeout(300)
+  await expectButton(page, todo, "todo", (mark) => mark.note === TODO_NOTE)
+  const emptied = await page.evaluate((selector) => document.querySelector(selector)?.value, note)
+  if (emptied !== "") problems.push(`the docked box didn't empty after its Make Todo ("${emptied}")`)
+  const todoShown = await page.evaluate((id) => document.querySelector(`#${id} .plan-said-note`)?.textContent, todo)
+  if (todoShown !== TODO_NOTE) problems.push(`the todo's note isn't shown under its item ("${todoShown}")`)
+
+  // an approved item opened:  no box at its end
+  await page.evaluate((id) => (document.querySelector(`#${id} > ui-accordion.plan-item`).open = "0"), approve)
+  await page.waitForTimeout(300)
+  if (await boxShown(page, approve)) problems.push(`the approved ${approve}, opened, shows its note box`)
+  await page.evaluate((id) => (document.querySelector(`#${id} > ui-accordion.plan-item`).open = ""), approve)
+  // its fold finishing later would move the items below it, under the scroll check next
+  await page.waitForTimeout(600)
+
+  // an item WITHOUT details:  Revisit opens a box under its line;  used, it closes
+  if (bare) {
+    await press(page, bare, "revisit")
+    const under = `#${bare} > .plan-revisit:not([data-docked])`
+    if (!(await page.$(under))) problems.push(`Revisit on ${bare} (no details) didn't open a box under its line`)
+    else {
+      await page.fill(`${under} .plan-revisit-note`, NOTE)
+      await page.click(`${under} .plan-revisit-soon`)
+      await page.waitForTimeout(300)
+      await expectButton(page, bare, "revisit", (mark) => mark.when === "soon" && mark.note === NOTE)
+      if (await page.$(under)) problems.push(`${bare}'s box stayed open after Later`)
+      await press(page, bare, "revisit")
+      if ((await inbox()).marks[bare]) problems.push(`Revisit clicked again on ${bare} didn't clear it`)
+    }
   }
-  // the next item's buttons in view first:  Playwright scrolls to what it clicks, which is not the page scrolling
-  await page.locator(`#${soon} .plan-act`).scrollIntoViewIfNeeded()
+  // the next item well inside the window first:  Playwright scrolls to what it clicks, which is not the page scrolling
+  await page.evaluate(scrollNear, soon)
   const scrolled = await page.evaluate(() => scrollY)
 
-  // Revisit soon, with a note that survives a reload before it's saved
+  // Later (revisit soon), with a note saved as typed:  it must survive a reload before it's marked
   await press(page, soon, "revisit")
   // measured before typing:  Playwright's `fill()` scrolls a box half out of the window into it, the page doesn't
   const afterBox = await page.evaluate(() => scrollY)
-  if (afterBox !== scrolled) problems.push(`opening the Revisit box scrolled (${scrolled} -> ${afterBox})`)
-  await page.fill(`#${soon} .plan-revisit-note`, NOTE)
-  // saved to the inbox as typed (epic `windows-and-review` P1):  the status says so, the inbox has it
+  if (afterBox !== scrolled) problems.push(`Revisit's opening the item scrolled (${scrolled} -> ${afterBox})`)
+  const soonNote = `#${soon} > .plan-revisit .plan-revisit-note`
+  await page.fill(soonNote, NOTE)
+  // leaving the box saves at once (else 10s after the last key):  the floppy says so, the inbox has it
+  await page.press(soonNote, "Tab")
   await page
     .waitForFunction(
-      (id) => /^Saved /.test(document.querySelector(`#${id} .plan-revisit-status`)?.textContent ?? ""),
+      (id) => /^Saved /.test(document.querySelector(`#${id} .plan-revisit-saved:not([hidden])`)?.title ?? ""),
       soon,
       { timeout: 5000 }
     )
-    .catch(() => problems.push("the Revisit note never said Saved"))
-  if ((await inbox()).drafts?.[soon]?.note !== NOTE) problems.push("the Revisit note isn't a draft in the inbox")
+    .catch(() => problems.push("the note never showed Saved after leaving its box"))
+  if ((await inbox()).drafts?.[soon]?.note !== NOTE) problems.push("the note isn't a draft in the inbox")
   // reloaded at ANOTHER address (localhost, not 127.0.0.1):  its own localStorage, so only the inbox can bring it back
   const elsewhere = url.replace("//127.0.0.1:", "//localhost:")
   await open(page, elsewhere)
   for (const id of marked) await page.evaluate(unfold, id)
-  const draft = await page.evaluate((id) => document.querySelector(`#${id} .plan-revisit-note`)?.value, soon)
-  if (draft !== NOTE) problems.push(`the Revisit draft didn't survive a reload at another address ("${draft}")`)
+  const draft = await page.evaluate((selector) => document.querySelector(selector)?.value, soonNote)
+  if (draft !== NOTE) problems.push(`the draft didn't survive a reload at another address ("${draft}")`)
   const bubble = await page.evaluate((id) => {
     const noted = document.querySelector(`#${id} .plan-act-noted`)
     return noted && !noted.hidden ? noted.querySelector("ui-icon")?.getAttribute("name") : null
@@ -204,18 +285,21 @@ try {
   if (bubble !== "comment outline") problems.push(`a draft's line shows ${bubble ?? "no"} note bubble`)
   await open(page)
   for (const id of marked) await page.evaluate(unfold, id)
-  await page.click(`#${soon} .plan-revisit-soon`)
+  await press(page, soon, "revisit")
+  await page.click(`#${soon} > .plan-revisit .plan-revisit-soon`)
   await page.waitForTimeout(300)
   await expectButton(page, soon, "revisit", (mark) => mark.when === "soon" && mark.note === NOTE)
-  if (await page.$(`#${soon} .plan-revisit`)) problems.push("the Revisit box stayed open after saving")
+  if ((await page.evaluate((selector) => document.querySelector(selector)?.value, soonNote)) !== "")
+    problems.push("the docked box didn't empty after Later")
   if ((await inbox()).drafts?.[soon]) problems.push("the draft stayed after the note became a mark")
-  // the note stays in view, with Edit (I1:  a sent note used to vanish)
+  // the note stays in view, with Edit (I1:  a sent note used to vanish), which puts it back in the box
   const noteShown = await page.evaluate((id) => document.querySelector(`#${id} .plan-said-note`)?.textContent, soon)
   if (noteShown !== NOTE) problems.push(`the saved note isn't shown under its item ("${noteShown}")`)
   await page.click(`#${soon} .plan-said-edit`)
-  const editing = await page.evaluate((id) => document.querySelector(`#${id} .plan-revisit-note`)?.value, soon)
-  if (editing !== NOTE) problems.push(`Edit didn't reopen the note ("${editing}")`)
-  await page.click(`#${soon} .plan-revisit-soon`)
+  await page.waitForTimeout(200)
+  const editing = await page.evaluate((selector) => document.querySelector(selector)?.value, soonNote)
+  if (editing !== NOTE) problems.push(`Edit didn't put the note back in the box ("${editing}")`)
+  await page.click(`#${soon} > .plan-revisit .plan-revisit-soon`)
   await page.waitForTimeout(300)
 
   // Revisit now:  the request held a moment, so its button must spin
@@ -250,6 +334,8 @@ try {
   await press(page, nevermind, "details", { settle: 150 })
   const asked = await buttonState(page, nevermind, "details")
   if (!asked.loading) problems.push(`nevermind:  Add Details Now didn't spin while its request waited`)
+  if (asked.title !== "Add Details Now:  click to call it off")
+    problems.push(`nevermind:  the spinning button's tooltip is "${asked.title}"`)
   await press(page, nevermind, "details", { settle: HOLD_MS + 600 })
   await expectCalledOff(page, nevermind, "on its way")
   await page.unroute("**/api/review/now")
@@ -388,9 +474,16 @@ try {
     const items = document.querySelectorAll(".plan-items > [data-status][id]").length
     const acts = document.querySelectorAll(".plan-items > [data-status][id] .plan-act").length
     const buttons = document.querySelectorAll(".plan-items > [data-status][id] .plan-act ui-button[data-action]")
-    return acts === items && buttons.length === 4 * items && document.querySelectorAll(".plan-send").length === 1
+    const docked = document.querySelectorAll(".plan-items > [data-status][id] > .plan-revisit[data-docked]").length
+    const detailed = document.querySelectorAll(".plan-items > [data-status][id] > ui-accordion.plan-item").length
+    return (
+      acts === items &&
+      buttons.length === 4 * items &&
+      docked === detailed &&
+      document.querySelectorAll(".plan-send").length === 1
+    )
   })
-  if (!after) problems.push("the in-place update lost (or doubled) buttons")
+  if (!after) problems.push("the in-place update lost (or doubled) buttons or docked boxes")
   removeLogLine()
 
   // un-doing "pick B, but ...":  the chosen Revisit again leaves the plain pick;  the chosen pill again clears it
@@ -422,11 +515,13 @@ try {
       await view.waitForTimeout(400)
       const layout = await view.evaluate(overlaps)
       for (const problem of layout) problems.push(`${width}px ${scheme}:  ${problem}`)
-      // a Revisit box open (on the unmarked item:  nothing written), the working Add Details' tooltip showing
+      // an item opened by Revisit (the unmarked one:  nothing written), its docked box at its end, in view
       await press(view, nevermind, "revisit")
-      await view.evaluate(scrollNear, now)
-      await view.hover(`#${details} .plan-act ui-button[data-action="details"]`)
-      await view.waitForTimeout(600)
+      await view.evaluate(scrollNear, details)
+      await view.waitForTimeout(400)
+      if (!(await boxShown(view, nevermind)))
+        problems.push(`${width}px ${scheme}:  ${nevermind} opened shows no note box`)
+      for (const problem of await view.evaluate(overlaps)) problems.push(`${width}px ${scheme}, opened:  ${problem}`)
       const path = join(out, `review-${width}-${scheme}.png`)
       await view.screenshot({ path })
       summary.screenshots.push(path)
@@ -471,15 +566,13 @@ async function holdNow(page) {
 }
 
 /**
- * Item `id`'s `action` button must be chosen, in that action's color, and no other button unless a note box is open
- * on the item;  the inbox must hold an `action` mark for it (and pass `check`).
+ * Item `id`'s `action` button must be the one chosen, in that action's color;  the inbox must hold an `action` mark
+ * for it (and pass `check`).
  */
 async function expectButton(page, id, action, check = () => true) {
   const chosen = await chosenOn(page, id)
   const color = (await buttonState(page, id, action)).color
-  const boxOpen = !!(await page.$(`#${id} > .plan-revisit`))
-  if (!chosen.includes(action) || (!boxOpen && chosen.length !== 1))
-    problems.push(`${id}:  chosen ${JSON.stringify(chosen)}, not just ${action}`)
+  if (chosen.join() !== action) problems.push(`${id}:  chosen ${JSON.stringify(chosen)}, not just ${action}`)
   if (color !== COLORS[action]) problems.push(`${id}:  ${action} is ${color}, not ${COLORS[action]}`)
   const mark = (await inbox()).marks[id]
   if (mark?.action !== action || !check(mark)) problems.push(`inbox:  ${id} is ${JSON.stringify(mark)}`)
@@ -515,7 +608,12 @@ async function chosenOn(page, id) {
   )
 }
 
-/** Item `id`'s `action` button as shown:  `{ color, chosen, sent, loading, waiting }`. */
+/** Is item `id`'s note box on screen (docked:  the item open and not approved;  else opened under its line)? */
+async function boxShown(page, id) {
+  return page.evaluate((item) => !!document.querySelector(`#${item} > .plan-revisit`)?.getClientRects().length, id)
+}
+
+/** Item `id`'s `action` button as shown:  `{ color, chosen, sent, loading, waiting, title }`. */
 async function buttonState(page, id, action) {
   return page.evaluate(
     ([item, which]) => {
@@ -525,7 +623,8 @@ async function buttonState(page, id, action) {
         chosen: !!button?.hasAttribute("data-chosen"),
         sent: !!button?.hasAttribute("data-sent"),
         loading: !!button?.hasAttribute("loading"),
-        waiting: !!button?.hasAttribute("data-waiting")
+        waiting: !!button?.hasAttribute("data-waiting"),
+        title: button?.title
       }
     },
     [id, action]
@@ -636,10 +735,13 @@ function unfold(which) {
   if (section.hasAttribute("collapsed")) section.collapsed = false
 }
 
-/** In the page:  scroll item `id` to 200px below the window's top. */
+/**
+ * In the page:  scroll item `id`'s line to 300px below the window's top, clear of the stuck titles (the item itself may
+ * have no box:  `display:  contents`).
+ */
 function scrollNear(id) {
-  const item = document.getElementById(id)
-  scrollTo({ top: scrollY + item.getBoundingClientRect().top - 200, behavior: "instant" })
+  const line = document.querySelector(`#${id} .plan-act`) ?? document.getElementById(id)
+  scrollTo({ top: scrollY + line.getBoundingClientRect().top - 300, behavior: "instant" })
 }
 
 /**

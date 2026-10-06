@@ -107,7 +107,24 @@ export class DocView implements vscode.WebviewViewProvider {
         )
       )
     }
-    context.subscriptions.push(vscode.commands.registerCommand("spell.docView.home", () => DocView.goHome()))
+    context.subscriptions.push(
+      vscode.commands.registerCommand("spell.docView.home", () => DocView.goHome()),
+      vscode.commands.registerCommand("spell.docView.edit", (args: EditKey) => void DocView.of(args?.view).edit(args))
+    )
+  }
+
+  /**
+   * An edit key pressed while this view has focus (`package.json` keybindings, `focusedView`;  epic
+   * `windows-and-review` I2):  done IN the page, since VS Code takes these keys before a page in a frame sees them.
+   * - copy / cut:  the page sends back its selection (`{ spell: "clipboard", text }`), which goes on the clipboard here
+   *   (the page can't:  copying needs a key press IN it);  cut then deletes it there
+   * - paste:  the clipboard's text, sent in, typed where the caret is
+   * - select all, undo, redo:  the page does them (`document.execCommand()`)
+   */
+  async edit({ command }: EditKey): Promise<void> {
+    if (!this.view) return
+    const text = command === "paste" ? await vscode.env.clipboard.readText() : undefined
+    void this.view.webview.postMessage({ spell: "edit", command, ...(text !== undefined && { text }) })
   }
 
   /** The doc view called `name`;  `docs` for anything else. */
@@ -237,8 +254,9 @@ export class DocView implements vscode.WebviewViewProvider {
     view.onDidDispose(() => {
       if (this.view === view) this.view = undefined
     })
-    view.webview.onDidReceiveMessage((message: Place | OpenLink) => {
+    view.webview.onDidReceiveMessage((message: Place | OpenLink | Clipboard) => {
       if (message?.spell === "open") return void DocView.open(message)
+      if (message?.spell === "clipboard") return void vscode.env.clipboard.writeText(message.text ?? "")
       if (message?.spell !== "place") return
       this.current = message.url
       void vscode.commands.executeCommand("setContext", `${this.id}.canGoBack`, !!message.canGoBack)
@@ -280,7 +298,7 @@ export class DocView implements vscode.WebviewViewProvider {
         if (frame && event.source === frame.contentWindow) return vscode.postMessage(event.data)
         const data = event.data
         if (data?.spell === "navigate") return navigate(data.url)
-        if (frame && (data?.spell === "history" || data?.spell === "go")) frame.contentWindow.postMessage(data, "*")
+        if (frame && ["history", "go", "edit"].includes(data?.spell)) frame.contentWindow.postMessage(data, "*")
       })
 
       /** Point the frame at url:  the same frame, so the old page stays until the new one paints. */
@@ -398,6 +416,12 @@ type Place = { spell: "place"; url?: string; canGoBack?: boolean; canGoForward?:
  * - `kind`:  `"file"` (on the page server:  the editor) or `"external"` (the browser)
  */
 type OpenLink = { spell: "open"; url?: string; kind?: "file" | "external" }
+
+/** A keybinding's args for `spell.docView.edit`:  which view, and what the key does (`package.json` keybindings). */
+type EditKey = { view?: DocViewName; command: "copy" | "cut" | "paste" | "selectAll" | "undo" | "redo" }
+
+/** The page's selection, for the clipboard (an `edit` copy or cut):  `{ spell: "clipboard", text }`. */
+type Clipboard = { spell: "clipboard"; text?: string }
 
 /** `text` safe inside a double-quoted html attribute. */
 function escapeAttribute(text: string): string {

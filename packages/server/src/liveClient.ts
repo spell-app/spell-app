@@ -118,12 +118,12 @@ export function liveClient(): void {
     addEventListener("hashchange", reportPlace)
     addEventListener("spell-doc:place", reportPlace)
     addEventListener("message", (event) => {
-      const data = event.data as { spell?: string; go?: number } | null
-      if (event.source === window.parent && data?.spell === "history" && (data.go === -1 || data.go === 1))
-        history.go(data.go)
+      const data = event.data as { spell?: string; go?: number; command?: string; text?: string } | null
+      if (event.source !== window.parent) return
+      if (data?.spell === "history" && (data.go === -1 || data.go === 1)) history.go(data.go)
+      if (data?.spell === "edit" && typeof data.command === "string") edit(data.command, data.text)
     })
     addEventListener("click", followInFrame, true)
-    addEventListener("keydown", editKeys, true)
   }
   holder.__spellLiveChange = onChange
   // in a same-origin frame of a live page, the parent hands changes down:  no connection of our own
@@ -336,30 +336,36 @@ export function liveClient(): void {
   }
 
   /**
-   * The edit keys, done here, in a frame (epic `windows-and-review` I2):  Cmd / Ctrl + C, X, V, A, Z (Shift:  redo),
-   * Y.  Why:  VS Code's webview takes these keys and applies them to ITS frame, never this cross-origin page in it,
-   * so copy, paste and select all did nothing in the side bar.
-   * - copy, cut, select all, undo, redo:  `document.execCommand()`, on the focused field or the page's selection
-   * - paste:  the clipboard's text (`navigator.clipboard`, allowed by the view's `allow="clipboard-read"`), typed in
-   *   where the caret is (`insertText`:  the field's own undo keeps it)
+   * An edit key, sent in by VS Code's docs view (`{ spell: "edit", command, text? }`, `packages/vscode/src/DocView.ts`
+   * `edit()`;  epic `windows-and-review` I2).  Why:  VS Code takes Cmd / Ctrl + C, X, V, A, Z as its own keys before
+   * a page in a frame sees them, so copy, paste and select all did nothing in the side bar.
+   * - copy / cut:  the selection (a field's, else the page's) goes back to the view, which puts it on the clipboard;
+   *   cut then deletes it here
+   * - paste:  `text` (the clipboard, read by the view), typed in where the caret is (the field's own undo keeps it)
+   * - selectAll, undo, redo:  `document.execCommand()`, on the focused field or the page
    */
-  function editKeys(event: KeyboardEvent) {
-    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.defaultPrevented) return
-    const key = event.key.toLowerCase()
-    const command = (
-      { c: "copy", x: "cut", a: "selectAll", z: event.shiftKey ? "redo" : "undo", y: "redo" } as Record<string, string>
-    )[key]
-    if (key === "v") {
-      event.preventDefault()
-      void navigator.clipboard
-        .readText()
-        .then((text) => text && document.execCommand("insertText", false, text))
-        .catch(() => {})
+  function edit(command: string, text?: string) {
+    if (command === "paste") {
+      if (text) document.execCommand("insertText", false, text)
       return
     }
-    if (!command) return
-    event.preventDefault()
-    document.execCommand(command)
+    if (command === "copy" || command === "cut") {
+      window.parent.postMessage({ spell: "clipboard", text: selectedText() }, "*")
+      if (command === "cut") document.execCommand("delete")
+      return
+    }
+    if (["selectAll", "undo", "redo"].includes(command)) document.execCommand(command)
+  }
+
+  /** What's selected:  in the focused field (through shadow roots:  `ui-textarea`'s own), else on the page. */
+  function selectedText(): string {
+    let focused = document.activeElement
+    while (focused?.shadowRoot?.activeElement) focused = focused.shadowRoot.activeElement
+    if (focused instanceof HTMLTextAreaElement || focused instanceof HTMLInputElement) {
+      const { selectionStart: start, selectionEnd: end, value } = focused
+      if (start !== null && end !== null && end > start) return value.slice(start, end)
+    }
+    return getSelection()?.toString() ?? ""
   }
 
   /**
