@@ -6,7 +6,7 @@ import type { TokenDeclaration } from "./styles.types"
  * a sheet DECLARES them, the private aliases (`--_ui-x: var(--ui-x, <default>)`) that replace them, and the codemod
  * that converts a family.  See `docs/theming.md` "Component tokens".
  * - Pure text in, text out:  no DOM, no Vite, and nothing of `ui`'s but `styles.types` (types only), so the browser
- *   test (`test/component-tokens.test.ts`), the codemod (`yarn tokens:alias`, `scripts/alias-tokens.ts`) and the docs
+ *   test (`test/component-tokens.test.ts`), the codemod (`yarn tokens:alias`, `scripts/tokens-alias.ts`) and the docs
  *   site's token tables (`tools/FamilyTokens.ts`, `tools/FoundationTokens.ts`, in node) share it.
  * - Build / test time only:  left out of the `$/ui/styles` barrel, import the leaf file.
  * - A COMPONENT token is `--ui-<tag>` or `--ui-<tag>-*` for a tag some vocabulary declares (`ui-button` =>

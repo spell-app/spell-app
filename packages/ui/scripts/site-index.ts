@@ -12,13 +12,16 @@
  *   `yarn site:sections`' converter (`SiteSections`), as every page is.
  * - `--check`:  write nothing;  exit 1 if the page is stale.
  */
-import { readFileSync, writeFileSync } from "node:fs"
+import { readFileSync } from "node:fs"
 import path from "node:path"
+import { parseArgs } from "node:util"
 
 import type { SiteDataFile, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import { NavIndex } from "../src/docs-components/ui-docs-nav/NavIndex.ts"
+import { Terminal } from "../tools/Terminal.ts"
 import { SITE_BUILD, SITE_PAGES } from "../tools/tools.types.ts"
 
+import { STATUS_TEXT, escapeHtml, spliceGenerated, withoutTicks, writeOrCheck } from "./generatedFiles.ts"
 import { SiteSections } from "./site-sections.ts"
 
 /** `packages/ui/`. */
@@ -27,6 +30,7 @@ const UI = path.resolve(import.meta.dirname, "..")
 /****************
  * ### `ComponentIndexWriter`
  * Renders the index page's generated block from the site's data, and splices it between the page's markers.
+ * - Its `private static` helpers are STATIC because they're pure:  data in, text out.
  ****************/
 class ComponentIndexWriter {
   /** The page. */
@@ -35,27 +39,9 @@ class ComponentIndexWriter {
   /** The site's data. */
   readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, SITE_BUILD, "_data/components.json"), "utf8"))
 
-  /** Start marker (its own line);  its indent is the block's. */
-  static readonly START = "<!-- components:start -->"
-
-  /** End marker (its own line). */
-  static readonly END = "<!-- components:end -->"
-
-  /** oxfmt's line width (`.oxfmtrc.json`):  a longer tag breaks one attribute per line. */
-  static readonly WIDTH = 120
-
-  /** The status label's words, by status (`done` shows none). */
-  static readonly STATUS_TEXT: Record<string, string> = { planned: "Planned", "in-progress": "In progress" }
-
   /** `page` with its generated block replaced by a fresh one. */
   render(page: string): string {
-    const start = page.indexOf(ComponentIndexWriter.START)
-    const end = page.indexOf(ComponentIndexWriter.END)
-    if (start < 0 || end < start) throw new Error(`${this.file}:  no ${ComponentIndexWriter.START} ... END markers`)
-    const lineStart = page.lastIndexOf("\n", start) + 1
-    const indent = page.slice(lineStart, start)
-    const block = this.block(indent)
-    return page.slice(0, start + ComponentIndexWriter.START.length) + "\n" + block + indent + page.slice(end)
+    return spliceGenerated(page, { file: this.file, start: START, end: END, block: (indent) => this.block(indent) })
   }
 
   /** The generated lines, each topic a header and a card group, at `indent`. */
@@ -66,7 +52,7 @@ class ComponentIndexWriter {
     for (const topic of index.topics) {
       lines.push(
         "",
-        `${indent}<ui-header level="2" dividing id="topic-${ComponentIndexWriter.slug(topic.id)}">${ComponentIndexWriter.escape(topic.title)}</ui-header>`,
+        `${indent}<ui-header level="2" dividing id="topic-${ComponentIndexWriter.slug(topic.id)}">${escapeHtml(topic.title)}</ui-header>`,
         `${indent}<ui-cards>`
       )
       for (const row of topic.rows) lines.push(...this.card(tags.get(row.tag)!, `${indent}  `))
@@ -83,16 +69,14 @@ class ComponentIndexWriter {
     const family = this.data.families[tag.folder]
     const status = family?.pages?.[tag.tag]?.status ?? family?.status ?? "done"
     const attributes = [
-      `href="${ComponentIndexWriter.escape(ComponentIndexWriter.href(tag))}"`,
-      `header="${ComponentIndexWriter.escape(tag.name)}"`,
-      `meta="${ComponentIndexWriter.escape(`<${tag.tag}>`)}"`,
-      ...(tag.description
-        ? [`description="${ComponentIndexWriter.escape(ComponentIndexWriter.plain(tag.description))}"`]
-        : []),
-      ...(status === "done" ? [] : [`extra="${ComponentIndexWriter.STATUS_TEXT[status] ?? status}"`])
+      `href="${escapeHtml(ComponentIndexWriter.href(tag))}"`,
+      `header="${escapeHtml(tag.name)}"`,
+      `meta="${escapeHtml(`<${tag.tag}>`)}"`,
+      ...(tag.description ? [`description="${escapeHtml(withoutTicks(tag.description))}"`] : []),
+      ...(status === "done" ? [] : [`extra="${STATUS_TEXT[status] ?? status}"`])
     ]
     const line = `${indent}<ui-card ${attributes.join(" ")}></ui-card>`
-    if (line.length <= ComponentIndexWriter.WIDTH) return [line]
+    if (line.length <= WIDTH) return [line]
     return [`${indent}<ui-card`, ...attributes.map((attribute) => `${indent}  ${attribute}`), `${indent}></ui-card>`]
   }
 
@@ -104,11 +88,6 @@ class ComponentIndexWriter {
     return (tag.href ?? `components/${tag.folder}.html#${tag.tag}`).replace(/^components\//, "")
   }
 
-  /** `text` without markdown code ticks:  a card shows plain text. */
-  private static plain(text: string): string {
-    return text.replaceAll("`", "")
-  }
-
   /** `date & time` => `date-time`. */
   private static slug(text: string): string {
     return text
@@ -116,22 +95,20 @@ class ComponentIndexWriter {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "")
   }
-
-  /** `text` safe inside an attribute or element. */
-  private static escape(text: string): string {
-    return text.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-  }
 }
 
+/** Start marker (its own line);  its indent is the block's. */
+const START = "<!-- components:start -->"
+
+/** End marker (its own line). */
+const END = "<!-- components:end -->"
+
+/** oxfmt's line width (`vite.lint.ts`):  a longer tag breaks one attribute per line. */
+const WIDTH = 120
+
+const { values } = parseArgs({ options: { check: { type: "boolean", default: false } } })
 const writer = new ComponentIndexWriter()
-const before = readFileSync(writer.file, "utf8")
 // the block is written flat (a header per topic), then nested into sections as every page is
-const after = SiteSections.convert(writer.render(before))
-const relative = path.relative(process.cwd(), writer.file)
-if (process.argv.includes("--check")) {
-  if (after !== before) console.error(`stale:  ${relative} (run \`yarn site:index\`)`)
-  process.exitCode = after === before ? 0 : 1
-} else {
-  if (after !== before) writeFileSync(writer.file, after)
-  console.log(`component index:  ${after === before ? "unchanged" : `wrote ${relative}`}`)
-}
+const page = SiteSections.convert(writer.render(readFileSync(writer.file, "utf8")))
+const [stale] = writeOrCheck([[writer.file, page]], { command: "site:index", isCheck: values.check })
+if (!values.check) Terminal.out(`component index:  ${stale ? `wrote ${stale}` : "unchanged"}`)

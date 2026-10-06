@@ -5,7 +5,8 @@ import { DesignComponents } from "./DesignComponents.ts"
 import type { SiteDataFile } from "../src/docs-components/docs-components.types.ts"
 import type { DesignExample, DesignSource } from "./tools.types.ts"
 
-/**
+/****************
+ * ### `DesignBrand`
  * The brand's `<ui-brand-*>` elements as a card source of the design system (`DesignSource`;  epic `claude-design`,
  * P11):  one "Brand" card per family, beside Spell UI's own.
  * - Read as DATA, never imported:  `ui` must not depend on `brand` (root `AGENTS.md`, "Overview"), so this reads files
@@ -18,7 +19,7 @@ import type { DesignExample, DesignSource } from "./tools.types.ts"
  *     `.brand-docs-panel`):  the classes those examples use
  * - The elements themselves reach the bundle from the docs tool (`bundle-spell-ui.js --design`), which may import any
  *   package.
- */
+ ****************/
 export class DesignBrand {
   /** the repo root, absolute */
   readonly root: string
@@ -27,7 +28,7 @@ export class DesignBrand {
   /** each docs page's text, by family folder, read once */
   private readonly pages = new Map<string, string>()
 
-  constructor(root: string, data: SiteDataFile) {
+  constructor({ root, data }: DesignBrandProps) {
     this.root = root
     this.data = data
   }
@@ -36,7 +37,7 @@ export class DesignBrand {
   static read(root: string): DesignSource | undefined {
     const file = join(root, DATA)
     if (!existsSync(file)) return undefined
-    return new DesignBrand(root, JSON.parse(readFileSync(file, "utf8")) as SiteDataFile).source()
+    return new DesignBrand({ root, data: JSON.parse(readFileSync(file, "utf8")) as SiteDataFile }).source()
   }
 
   /** This brand as a `DesignSource`. */
@@ -92,6 +93,14 @@ export class DesignBrand {
     this.pages.set(folder, text)
     return text
   }
+}
+
+/** Constructor props of `DesignBrand`. */
+export type DesignBrandProps = {
+  /** the repo root, absolute */
+  root: string
+  /** the brand's site data */
+  data: SiteDataFile
 }
 
 /** The brand's card group, after Spell UI's own. */

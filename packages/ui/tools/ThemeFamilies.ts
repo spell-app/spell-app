@@ -3,7 +3,8 @@ import { join } from "node:path"
 
 import type { SiteFamily, SiteTag, SiteTheme, SiteThemeSeed } from "../src/docs-components/docs-components.types.ts"
 
-/**
+/****************
+ * ### `ThemeFamilies`
  * Which families each theme sheet (`src/styles/themes/*.css`) touches, read from its CSS at BUILD time, for the site's
  * data (`SiteDataFile.themes`):  `<ui-docs-themes for="ui-button">` lists only the themes touching a family, as
  * Fomantic's per-page "N Themes" dropdown does.
@@ -23,7 +24,8 @@ import type { SiteFamily, SiteTag, SiteTheme, SiteThemeSeed } from "../src/docs-
  * - A small rule walker, not a CSS parser:  comments and `@keyframes` blocks are dropped, `{` / `}` / `;` split
  *   preludes from declarations.  Good enough for our own sheets;  `SiteDataBuilder.test.ts` pins known answers.
  * - Titles:  `pages.json` `themes` (hand-kept), seeded once per new sheet from its header (`GitHub theme:`).
- */
+ * - Node only;  given the tags and families (`SiteDataBuilder`), it reads nothing but the sheets.
+ ****************/
 export class ThemeFamilies {
   /** `src/styles/themes/`. */
   readonly folder: string
@@ -46,12 +48,7 @@ export class ThemeFamilies {
   /** foundation token names:  never a family's, whatever their name says. */
   private readonly foundation: ReadonlySet<string>
 
-  constructor(
-    folder: string,
-    tags: readonly Pick<SiteTag, "tag" | "noun" | "folder" | "attributes">[],
-    families: Readonly<Record<string, SiteFamily>>,
-    foundation: Iterable<string> = []
-  ) {
+  constructor({ folder, tags, families, foundation = [] }: ThemeFamiliesProps) {
     this.folder = folder
     this.foundation = new Set(foundation)
     for (const entry of tags) {
@@ -85,14 +82,14 @@ export class ThemeFamilies {
     return this.names().map((name) => {
       const css = this.css(name)
       const { families, global } = this.touched(css)
-      return { name, title: seeds[name]?.title ?? ThemeFamilies.titleOf(css, name), families, global }
+      return { name, title: seeds[name]?.title ?? ThemeFamilies.titleFor(css, name), families, global }
     })
   }
 
   /** `seeds`, plus a seed for every sheet it lacks;  sorted, unknown ones kept. */
   seed(seeds: Readonly<Record<string, SiteThemeSeed>> = {}): Record<string, SiteThemeSeed> {
     const all: Record<string, SiteThemeSeed> = { ...seeds }
-    for (const name of this.names()) all[name] ??= { title: ThemeFamilies.titleOf(this.css(name), name) }
+    for (const name of this.names()) all[name] ??= { title: ThemeFamilies.titleFor(this.css(name), name) }
     return Object.fromEntries(Object.entries(all).sort(([a], [b]) => a.localeCompare(b)))
   }
 
@@ -141,7 +138,7 @@ export class ThemeFamilies {
    * Title from a sheet's header comment, `GitHub theme:  ...` => `GitHub`, first letter upper-cased;  else `name`
    * in words (`fixed-width` => `Fixed width`).
    */
-  static titleOf(css: string, name: string): string {
+  static titleFor(css: string, name: string): string {
     const title = /^\s*\/\*\s*\n?\s*\*?\s*([^:\n]+?) theme:/i.exec(css)?.[1] ?? name.replace(/-/g, " ")
     return title.charAt(0).toUpperCase() + title.slice(1)
   }
@@ -253,6 +250,18 @@ export class ThemeFamilies {
     }
     return out + css.slice(index)
   }
+}
+
+/** Constructor props of `ThemeFamilies`. */
+export type ThemeFamiliesProps = {
+  /** `src/styles/themes/`, absolute */
+  folder: string
+  /** every tag:  its noun, family folder and attributes (the words that modify its noun) */
+  tags: readonly Pick<SiteTag, "tag" | "noun" | "folder" | "attributes">[]
+  /** every family, by folder:  their token tables name each family's public tokens */
+  families: Readonly<Record<string, SiteFamily>>
+  /** foundation token names:  never a family's, whatever their name says */
+  foundation?: Iterable<string>
 }
 
 /** A `ui-*` TAG in a selector (not a `.ui-dark` class, not a `--ui-` token);  group 1 is the tag. */

@@ -7,7 +7,8 @@ import type { Plugin, ViteDevServer } from "vite"
 import { StaticRenderer } from "../StaticRenderer.ts"
 import { VisualSettings } from "./VisualSettings.ts"
 
-/**
+/****************
+ * ### `StaticPages`
  * Vite plugin serving `--static`'s pages from the visual tests' dev server (`VisualRunner`):
  * - `/static/<family>/<example>.html` -- `fixture.html`'s chrome (body class, `#example` box) around the element
  *   example rendered statically, linking the static stylesheet;  NO script, so no `ui-*` element is ever defined
@@ -18,11 +19,8 @@ import { VisualSettings } from "./VisualSettings.ts"
  *   its `ssr` option would change the ELEMENT pages' compile too (`hydratable`), so the visual server stays as it is.
  * - NOTE: pages are NOT passed through `transformIndexHtml`, which would inject Vite's client script.
  * - SIDE EFFECT:  the renderer starts on the first request and closes with the dev server.
- */
+ ****************/
 export class StaticPages {
-  /** Vite path of the SSR module that renders */
-  static readonly MODULE = "/tools/visual/StaticFixture.ts"
-
   /** the SSR-only server, once started */
   private renderer?: Promise<ViteDevServer>
 
@@ -56,21 +54,22 @@ export class StaticPages {
     const rest = path.slice(VisualSettings.STATIC_PAGES.length)
     const isPage = /^[\w-]+\/[\w-]+\.html$/.test(rest)
     if (rest !== "ui.css" && !isPage) return false
-    const renderer = await (this.renderer ??= StaticRenderer.start(server.config.root, server.config.configFile))
+    const renderer = await (this.renderer ??= StaticRenderer.start({
+      root: server.config.root,
+      configFile: server.config.configFile
+    }))
     try {
-      const { StaticFixture } = (await renderer.ssrLoadModule(
-        StaticPages.MODULE
-      )) as typeof import("./StaticFixture.ts")
+      const { StaticFixture } = (await renderer.ssrLoadModule(RENDER_MODULE)) as typeof import("./StaticFixture.ts")
       if (isPage) {
         const body = await StaticFixture.example(rest.slice(0, -".html".length))
-        StaticPages.send(response, 200, "text/html", StaticPages.page(body))
+        StaticPages.send(response, { status: 200, type: "text/html", body: StaticPages.page(body) })
       } else {
-        StaticPages.send(response, 200, "text/css", await StaticFixture.stylesheet())
+        StaticPages.send(response, { status: 200, type: "text/css", body: await StaticFixture.stylesheet() })
       }
     } catch (error) {
-      const err = error as Error
-      renderer.ssrFixStacktrace(err)
-      StaticPages.send(response, 500, "text/plain", err.stack ?? String(err))
+      const failure = error as Error
+      renderer.ssrFixStacktrace(failure)
+      StaticPages.send(response, { status: 500, type: "text/plain", body: failure.stack ?? String(failure) })
     }
     return true
   }
@@ -79,6 +78,7 @@ export class StaticPages {
    * `fixture.html` with `body` in `#example`, the stylesheet linked, and its script removed.
    * - Read on every request:  an edit to the fixture shows on the next page.
    * - Throws when the fixture no longer has the markers this relies on.
+   * - Static:  no state, read from disk each time.
    */
   static page(body: string): string {
     const fixture = readFileSync(`${VisualSettings.ROOT}${VisualSettings.FIXTURE.slice(1)}`, "utf8")
@@ -90,17 +90,24 @@ export class StaticPages {
     ]
     let html = fixture
     for (const [pattern, replacement] of replacements) {
-      if (!pattern.test(html)) throw new Error(`StaticPages:  ${VisualSettings.FIXTURE} has no ${pattern}`)
+      if (!pattern.test(html))
+        throw new Error(`StaticPages.page():  ${VisualSettings.FIXTURE} has no ${pattern};  put the marker back`)
       html = html.replace(pattern, () => replacement)
     }
     return html
   }
 
-  /** Send `body` uncached. */
-  private static send(response: ServerResponse, status: number, type: string, body: string) {
+  /** Send `body` uncached.  Static:  a pure helper. */
+  private static send(
+    response: ServerResponse,
+    { status, type, body }: { status: number; type: string; body: string }
+  ) {
     response.statusCode = status
     response.setHeader("Content-Type", `${type}; charset=utf-8`)
     response.setHeader("Cache-Control", "no-store")
     response.end(body)
   }
 }
+
+/** Vite path of the SSR module that renders. */
+const RENDER_MODULE = "/tools/visual/StaticFixture.ts"

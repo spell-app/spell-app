@@ -6,20 +6,22 @@ import { SRV } from "$/server"
 
 import type { ImportMap } from "./tools.types.ts"
 
-/**
+/****************
+ * ### `StaticServer`
  * A tiny static file server for the smoke pages:  URL prefixes mapped to directories, nothing else.
- * - A thin wrapper over `SRV.WebServer`, which owns the mime table, path safety and http plumbing.
+ * - A thin wrapper over `SRV.WebServer`, which owns the mime table, path safety and http plumbing.  `$/server` is a
+ *   leaf (node built-ins only), the one package `tools/` imports by alias.
  * - No Vite dev server:  pages load BUILT files (`dist/`, vendored peers) exactly as a CDN would serve them.
  * - `.ts` files are transpiled on the fly (esbuild `transform`, types stripped, no bundling), so a
  *   type-only-importing helper like `PerfRun.ts` or a dictionary file can be loaded as-is.
  * - Every `.html` response gets `importMap` injected as `<script type="importmap">` right after `<head>`,
  *   before any module script, as the spec requires.
- */
+ ****************/
 export class StaticServer {
   /** the shared server;  loopback only */
   private readonly web: SRV.WebServer
 
-  constructor(mounts: Record<string, string>, importMap: ImportMap) {
+  constructor({ mounts, importMap }: StaticServerProps) {
     this.web = new SRV.WebServer({
       mounts: Object.entries(mounts).map(([prefix, dir]) => ({ prefix, dir })),
       html: [(html) => StaticServer.inject(html, importMap)],
@@ -52,4 +54,12 @@ export class StaticServer {
     const tag = `<script type="importmap">${JSON.stringify(importMap)}</script>`
     return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (head) => `${head}\n    ${tag}`) : tag + html
   }
+}
+
+/** Constructor props of `StaticServer`. */
+export type StaticServerProps = {
+  /** URL prefix (`/dist/`) => folder, absolute */
+  mounts: Record<string, string>
+  /** injected into every page */
+  importMap: ImportMap
 }

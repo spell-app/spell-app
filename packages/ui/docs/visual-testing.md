@@ -222,5 +222,9 @@ render or to be captured (with its error;  Firefox can't capture a page over 327
 - **Playwright version bump** -- the Docker image follows `@playwright/test`'s version;  new browser builds usually
   move pixels:  bump, run, review, `--update`, all in one change.
 - **Ports** -- the dev server takes 5391 or the next free port;  the browser server a free loopback port.
+- **Running Playwright by hand** -- the CLI hands each run's choices to Playwright's processes as environment
+  variables, `SPELL_UI_VISUAL_OS` / `_BASE_URL` / `_WS` / `_PARITY` / `_STATIC` / `_WORKERS` (`VisualVariables`,
+  read back as `environment.visual`, `tools/environment.ts`);  set at least `SPELL_UI_VISUAL_BASE_URL` to a running
+  dev server.
 - **The HTML report is empty / stale** -- each OS writes its own:  `tools/results/visual/local-darwin/report`,
   `tools/results/visual/linux/report`.

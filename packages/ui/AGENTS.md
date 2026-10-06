@@ -116,7 +116,8 @@ house style every package shares.  Only what's local is below;  a section named 
   - `tools/` -- package tooling (node scripts run by `tsx`, see `tools/README.md`):  bundle measurement, peer
     vendoring, import-map smoke pages (framework hosts), LOC, report tables, the HMR end-to-end test;
     `tools/demo/` is the `yarn dev` site;  `tools/visual/` the visual tests;  results go to `tools/results/`
-    (git-ignored)
+    (git-ignored).  Environment variables (ours `SPELL_UI_*`, WWOD §11) are read ONLY in `tools/environment.ts`
+    (`environment`):  by `tools/`, `scripts/` and the configs alike
   - the docs site, modelled on Fomantic's docs, served at `/ui/` by the page server (static, live-reloading;
     `packages/server`'s `UI_SITE`):  plain `.html` pages on `<ui-*>` widgets, no build step to view one (epic
     `spell-ui-pages`, which replaced the old Astro site).  In TWO halves since 2026-10-05 (claude-design P6), one
@@ -145,9 +146,16 @@ house style every package shares.  Only what's local is below;  a section named 
       `ui/_data/search.json`:  rerun `yarn site:data` after renaming or moving a section
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
-  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`,
-    `gen-markdown.ts`, `gen-site-data.ts`, `site-new.ts`, `site-components-index.ts`, `site-kitchen-sink.ts`) and the
-    site bundle's build (`site-bundle.ts`, watched by `site-dev.ts`)
+  - `scripts/` -- one file per yarn script, named for it (WWOD §8 › "File naming"):  `<group>:<verb>` runs
+    `scripts/<group>-<verb>.ts` (`site:data` -> `site-data.ts`, `gen:root` -> `gen-root.ts`);  generators
+    (`gen-*.ts`), the site's writers (`site-data.ts`, `site-index.ts`, `site-kitchen.ts`, `site-sections.ts`,
+    `site-new.ts`), the site bundle's build (`site-bundle.ts`, watched by `site-dev.ts`), `site-check.ts`,
+    `tokens-alias.ts`, `design-build.ts`
+    - what several scripts share:  camelCase helper files, run by none (`browserBundles.ts`:  `gen:spell` /
+      `gen:markdown`;  `generatedFiles.ts`:  write-or-`--check`, `vp fmt`, markup escaping);  data:  `iconExtras.ts`
+    - a class other code uses lives in `tools/` (PascalCase), its script is a few lines here (`site-check.ts` ->
+      `tools/SiteCheck.ts`);  a folder of `tools/` with its own flags has a `cli.ts` instead (`tools/cli.ts`,
+      `tools/visual/cli.ts`:  WWOD §8's `page/cli.ts`)
   - `src/languages/` -- GENERATED, committed:  `spell.<lang>.js`, spell's pre-compiled highlighter for
     `<ui-code language="spell">` (`yarn gen:spell`;  the root `AGENTS.md`'s one `ui` -> spell exception).  NEVER edit;
     lint and format skip it
@@ -199,14 +207,21 @@ house style every package shares.  Only what's local is below;  a section named 
   - `yarn site:sections [--check] [page...]` -- `scripts/site-sections.ts`:  nests every page's flat level 2 / 3
     headers and headed examples into `<ui-section>`s and writes (or fixes) their ids, `<tab>-<section>-<example>`;
     idempotent.  `site:index`, `site:kitchen` and `site:new` run it on what they write
-  - `yarn design:build [--out <dir>]` (`spell dev design build`) -- `tools/DesignExport.ts`:  the claude.ai design
-    system's files (epic `claude-design`) in `<dir>/project/`, default `build/design-system/` (git-ignored), from
-    `site/_data/components.json`, the element examples and the Spell theme;  `yarn site:data` first after a
-    vocabulary change.  `yarn site:data` also writes `site/_data/custom-elements.json` and `html-custom-data.json`
-    (VS Code autocomplete for `<ui-*>`, `tools/ElementManifests.ts`);  `tools/DesignExport.test.ts` fails while stale
-  - `yarn site:check <page...> | --all` -- `tools/SiteCheck.ts`:  loads the `ui/` pages from the page server
-    (Playwright), fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an empty toc,
-    phone-width overflow, a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK at them
+  - `yarn design:build [--out <dir>]` (`spell dev design build`) -- `scripts/design-build.ts` on
+    `tools/DesignExport.ts`:  the claude.ai design system's files (epic `claude-design`) in `<dir>/project/`, default
+    `build/design-system/` (git-ignored), from `site/_data/components.json`, the element examples and the Spell
+    theme;  `yarn site:data` first after a vocabulary change.  `yarn site:data` also writes
+    `site/_data/custom-elements.json` and `html-custom-data.json` (VS Code autocomplete for `<ui-*>`,
+    `tools/ElementManifests.ts`);  `tools/DesignExport.test.ts` fails while stale
+  - `yarn site:check <page...> | --all` -- `scripts/site-check.ts` on `tools/SiteCheck.ts`:  loads the `ui/` pages
+    from the page server (Playwright), fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an
+    empty toc, phone-width overflow, a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK
+    at them
+  - Generators, each writing COMMITTED files (never edit their output):  `yarn gen:styles` (`src/styles/` token
+    sheets), `gen:icons` (the built-in icon packs;  downloads Font Awesome, needs `reference/Fomantic-UI/`),
+    `gen:emoji` (`ui-emoji/data/`;  needs `reference/Fomantic-UI/`), `gen:root` (`<ui-root>`'s catalog),
+    `gen:spell` / `gen:markdown` (the pre-compiled bundles);  `yarn tokens:alias <family> [--write]` is
+    `docs/theming.md`'s codemod (prints only, without `--write`)
   - `yarn tsc`, not `npx tsc`, and no hard-coded `node_modules` paths:  SEE:  root `AGENTS.md` "Toolchain:  Vite+".
     Here, node code finds a dependency through `tools/NodePackage.ts`.
 
@@ -385,7 +400,14 @@ wins), plus these deliberate EXCEPTIONS:
   the `$/ui/core` entry:  shared helpers by name from `$/ui/util` (no namespace of its own), `UIT` as above.  Why:
   `core` re-exports the runtime's loader, so a lazy runtime chunk importing the entry makes Rolldown split the
   modules both reach into a chunk every page loads (epic `wwod-spell-ui`, I16;  `yarn measure` catches it).
-- `tools/` are node scripts:  relative imports with `.ts` extensions, no aliases.
+- `tools/` are node scripts:  relative imports with `.ts` extensions, no aliases.  Two exceptions:  another
+  package by its alias (`$/server`:  `tsx` resolves the paths;  `../../server/src` would be a `../` across
+  packages);  and PAGE scripts Vite serves or SSR-loads (`tools/demo/*.ts`, `tools/visual/fixture.ts`,
+  `StaticFixture.ts`, `StaticDocument.ts`) import `ui` through `$/ui/...` (`SSR` for `$/ui/static`), as `src/`
+  does, and `tools/` peers relatively.
+- `scripts/` likewise:  relative imports with `.ts` extensions (`../tools/Terminal.ts`,
+  `../src/styles/StyleGenerator.ts` -- a leaf file, never a barrel with `?inline` CSS), no aliases;  peers after a
+  blank line (`./generatedFiles.ts`).
 
 ## Comments & docs
 

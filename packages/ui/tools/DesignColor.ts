@@ -1,12 +1,15 @@
-/**
+/****************
+ * ### `DesignColor`
  * Colour math for the design-system export (`DesignTokens`):  just enough CSS Color 4 / 5 to turn our token
  * sheets' values into plain colours a claude.ai design system accepts (hex, `rgb()`, `oklch()` with numbers only).
  * - Understands:  hex, `rgb()` / `rgba()`, `oklch()`, `transparent`, relative `oklch(from <colour> <l> <c> <h> [/ <a>])`
  *   with `calc()` / `min()` / `max()` / `clamp()` channel maths, and `color-mix(in oklab | oklch | srgb, ...)`.
- * - NOT:  `var()` and `light-dark()`:  the caller (`DesignTokens.evaluate()`) resolves those first, per theme, and
+ * - NOT:  `var()` and `light-dark()`:  the caller (`DesignTokens.resolve()`) resolves those first, per theme, and
  *   hands each argument back through its own `resolve` callback.
  * - Conversions:  Björn Ottosson's OKLab matrices;  sRGB output is clipped to the gamut (our palettes are sRGB hex).
- */
+ * - Single-letter names are the colour spaces' own channels (`l`, `c`, `h`, `a`, `b`, `r`, `g`), on purpose.
+ * - STATIC and instance-free:  pure maths, no state.  Imports nothing.
+ ****************/
 export class DesignColor {
   /**
    * `text` as a colour, or `undefined` when it isn't one this class understands.
@@ -35,12 +38,15 @@ export class DesignColor {
   /** `color` as `#rrggbb`, or `#rrggbbaa` when it isn't opaque;  clipped to sRGB. */
   static toHex(color: Oklch): string {
     const [r, g, b] = DesignColor.toSrgb(color)
-    const byte = (unit: number) =>
-      Math.round(Math.min(1, Math.max(0, unit)) * 255)
-        .toString(16)
-        .padStart(2, "0")
     const alpha = color.alpha >= 1 ? "" : byte(color.alpha)
     return `#${byte(r)}${byte(g)}${byte(b)}${alpha}`
+
+    /** A 0..1 channel as two hex digits, clipped. */
+    function byte(unit: number): string {
+      return Math.round(Math.min(1, Math.max(0, unit)) * 255)
+        .toString(16)
+        .padStart(2, "0")
+    }
   }
 
   /** Whether `text` is a colour value the design-system format takes as is:  hex, or `rgb()` / `oklch()` of numbers. */
@@ -57,8 +63,12 @@ export class DesignColor {
     let digits = hex.slice(1)
     if (!/^[0-9a-f]+$/i.test(digits) || ![3, 4, 6, 8].includes(digits.length)) return undefined
     if (digits.length <= 4) digits = digits.replace(/./g, (digit) => digit + digit)
-    const channel = (index: number) => parseInt(digits.slice(index * 2, index * 2 + 2), 16) / 255
     return DesignColor.fromSrgb(channel(0), channel(1), channel(2), digits.length === 8 ? channel(3) : 1)
+
+    /** Channel `index` (two hex digits) as 0..1. */
+    function channel(index: number): number {
+      return parseInt(digits.slice(index * 2, index * 2 + 2), 16) / 255
+    }
   }
 
   /** `rgb()`'s arguments, modern (`200 206 231 / 0.16`) or legacy (`200, 206, 231, 0.16`);  numbers or percentages. */
@@ -123,32 +133,39 @@ export class DesignColor {
     const a = DesignColor.mixArgument(first, resolve)
     const b = DesignColor.mixArgument(second, resolve)
     if (!a || !b) return undefined
-    let p = a.percent
-    let q = b.percent
-    if (p === undefined && q === undefined) p = q = 0.5
-    else if (p === undefined) p = 1 - q!
-    else if (q === undefined) q = 1 - p
-    const total = p + q!
+    let percentA = a.percent
+    let percentB = b.percent
+    if (percentA === undefined && percentB === undefined) percentA = percentB = 0.5
+    else if (percentA === undefined) percentA = 1 - percentB!
+    else if (percentB === undefined) percentB = 1 - percentA
+    const total = percentA + percentB!
     if (total <= 0) return undefined
-    const weight = q! / total
+    const weight = percentB! / total
     const scale = Math.min(1, total)
     const alpha = a.color.alpha * (1 - weight) + b.color.alpha * weight
     if (alpha <= 0) return { l: 0, c: 0, h: 0, alpha: 0 }
     if (method === "oklch") {
       const hue = DesignColor.mixHue(a.color.h, b.color.h, weight)
-      const pre = (x: number, y: number) => (x * a.color.alpha * (1 - weight) + y * b.color.alpha * weight) / alpha
-      return { l: pre(a.color.l, b.color.l), c: pre(a.color.c, b.color.c), h: hue, alpha: alpha * scale }
+      return { l: premix(a.color.l, b.color.l), c: premix(a.color.c, b.color.c), h: hue, alpha: alpha * scale }
     }
-    const toSpace = (color: Oklch) => (method === "srgb" ? DesignColor.toSrgb(color) : DesignColor.toOklab(color))
     const [x1, y1, z1] = toSpace(a.color)
     const [x2, y2, z2] = toSpace(b.color)
-    const pre = (x: number, y: number) => (x * a.color.alpha * (1 - weight) + y * b.color.alpha * weight) / alpha
-    const mixed: [number, number, number] = [pre(x1, x2), pre(y1, y2), pre(z1, z2)]
+    const mixed: [number, number, number] = [premix(x1, x2), premix(y1, y2), premix(z1, z2)]
     const color =
       method === "srgb"
         ? DesignColor.fromSrgb(mixed[0], mixed[1], mixed[2], 1)
         : DesignColor.fromOklab(mixed[0], mixed[1], mixed[2], 1)
     return { ...color, alpha: alpha * scale }
+
+    /** One channel of `a` (`x`) and `b` (`y`) mixed by `weight`, premultiplied by their alphas. */
+    function premix(x: number, y: number): number {
+      return (x * a!.color.alpha * (1 - weight) + y * b!.color.alpha * weight) / alpha
+    }
+
+    /** `color` in the mixing space:  sRGB or OKLab. */
+    function toSpace(color: Oklch): [number, number, number] {
+      return method === "srgb" ? DesignColor.toSrgb(color) : DesignColor.toOklab(color)
+    }
   }
 
   /** One `color-mix()` colour argument, `<colour> [<percentage>]`. */
@@ -256,16 +273,27 @@ export class DesignColor {
 }
 
 /** A colour in OKLCH:  `l` 0..1, `c` 0..~0.4, `h` degrees, `alpha` 0..1. */
-export type Oklch = { l: number; c: number; h: number; alpha: number }
+export type Oklch = {
+  /** lightness, 0..1 */
+  l: number
+  /** chroma, 0..~0.4 */
+  c: number
+  /** hue, degrees */
+  h: number
+  /** opacity, 0..1 */
+  alpha: number
+}
 
 /** Colour values the design-system format takes as they are:  hex, or `rgb()` / `rgba()` / `oklch()` of numbers. */
 const PLAIN_COLOR = /^(#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})|(?:rgba?|oklch)\(\s*[-\d.%\s,/]+\))$/i
 
-/**
+/****************
  * ### `ChannelMath`
  * The arithmetic in a relative colour's channels:  numbers, percentages, the base's `l` `c` `h` `alpha`, `+ - * /`,
  * parentheses, `calc()`, `min()`, `max()`, `clamp()`.
- */
+ * - A recursive-descent parser over the tokens, in `evaluate()`'s inner functions;  `DesignColor` only.
+ * - STATIC and instance-free:  each call parses its own text.
+ ****************/
 class ChannelMath {
   /** `text` evaluated with `scope`'s channel values;  a percentage is of `percentOf`;  `undefined` if it can't be. */
   static evaluate(text: string, scope: Record<string, number>, percentOf: number): number | undefined {
@@ -283,9 +311,9 @@ class ChannelMath {
     function expression(): number {
       let value = term()
       while (tokens![index] === "+" || tokens![index] === "-") {
-        const op = tokens![index++]
+        const operator = tokens![index++]
         const right = term()
-        value = op === "+" ? value + right : value - right
+        value = operator === "+" ? value + right : value - right
       }
       return value
     }
@@ -294,9 +322,9 @@ class ChannelMath {
     function term(): number {
       let value = factor()
       while (tokens![index] === "*" || tokens![index] === "/") {
-        const op = tokens![index++]
+        const operator = tokens![index++]
         const right = factor()
-        value = op === "*" ? value * right : value / right
+        value = operator === "*" ? value * right : value / right
       }
       return value
     }

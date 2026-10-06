@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url"
 
 import { IconName } from "../src/icons/IconName.ts"
 import { ICON_PACK_INDEX, type IconPackEntry, type IconPackIndex } from "../src/icons/icons.types.ts"
-import type { IconPackProblem, IconPackReport } from "./tools.types.ts"
+import { IconPackError, type IconPackProblem, type IconPackReport, type IconPackUnsafePolicy } from "./tools.types.ts"
 
 /****************
  * ### `IconPackBuilder`
@@ -23,11 +23,9 @@ import type { IconPackProblem, IconPackReport } from "./tools.types.ts"
  * - Re-running on a folder whose `pack.js` has the same `id` keeps the hand edits:  entries are matched by key, keep
  *   their order, `alias` and any other field;  only their size is refreshed.
  * - Called by `tools/cli.ts icons:pack` and `scripts/gen-icons.ts`;  a class, so a future CLI can drive it too.
+ * - Node only;  reads the pack format from `src/icons/` (`icons.types.ts`, `IconName`:  plain data and logic).
  ****************/
 export class IconPackBuilder {
-  /** Elements that could run script or embed another document:  any one refuses the pack. */
-  static readonly FORBIDDEN_ELEMENTS = ["script", "foreignobject", "iframe", "embed", "object"]
-
   /** what to build */
   private readonly options: IconPackBuilderProps
 
@@ -80,7 +78,14 @@ export class IconPackBuilder {
         sanitized.push(...removed)
       }
     }
-    if (problems.length) throw new IconPackError(`${id}:  ${problems.length} problem(s) in ${folder}`, problems)
+    if (problems.length) {
+      const list = problems.map((problem) => `  ${problem.file}:  ${problem.reason}`).join("\n")
+      throw new IconPackError(
+        `IconPackBuilder.build():  pack "${id}" has ${problems.length} problem(s) in ${folder};  fix the SVGs, or ` +
+          `sanitize, skip or allow them (\`--sanitize\`, \`--skip-unsafe\`, \`--allow-unsafe\`)\n${list}`,
+        { cause: { problems } }
+      )
+    }
     for (const [file, text] of rewrites) writeFileSync(path.resolve(folder, file), text)
     const indexed = keys.filter((key) => sizes.has(key))
 
@@ -139,7 +144,7 @@ export class IconPackBuilder {
         first = false
         if (element !== "svg") broken.push(`root is <${tag}>, not <svg>`)
       }
-      if (IconPackBuilder.FORBIDDEN_ELEMENTS.includes(element)) problems.push(`<${tag}> element`)
+      if (FORBIDDEN_ELEMENTS.includes(element)) problems.push(`<${tag}> element`)
       for (const [, , rawName, value = ""] of attributes.matchAll(ATTRIBUTE)) {
         const unquoted = value.replace(QUOTES, "")
         const unsafe = IconPackBuilder.unsafeAttribute(tag, rawName, unquoted)
@@ -199,7 +204,7 @@ export class IconPackBuilder {
   /** `[width, height]` of a `viewBox` value, or `undefined` if it isn't four numbers with a positive size. */
   private static viewBox(value: string): [number, number] | undefined {
     const numbers = value.trim().split(VIEWBOX_SEPARATOR).map(Number)
-    if (numbers.length !== 4 || numbers.some((n) => !Number.isFinite(n))) return undefined
+    if (numbers.length !== 4 || numbers.some((value) => !Number.isFinite(value))) return undefined
     const [, , width, height] = numbers
     return width > 0 && height > 0 ? [width, height] : undefined
   }
@@ -326,8 +331,9 @@ export class IconPackBuilder {
     if (previous.id === this.options.id) return previous
     if (this.options.force) return undefined
     throw new IconPackError(
-      `${indexFile} is pack "${previous.id}", not "${this.options.id}" (--force to replace it)`,
-      []
+      `IconPackBuilder.build():  ${indexFile} is pack "${previous.id}", not "${this.options.id}";  ` +
+        "pass `force` (`--force`) to replace it",
+      { cause: { problems: [] } }
     )
   }
 }
@@ -351,30 +357,30 @@ export type IconPackBuilderProps = {
   keys?: string[]
   /** strip unsafe attributes from the SVGs (rewriting those files) before verifying */
   sanitize?: boolean
-  /**
-   * What to do with a file that still fails verification:
-   * - `"refuse"` (default):  the whole pack
-   * - `"skip"`:  leave the file out of the index (also a broken one)
-   * - `"allow"`:  index an unsafe file anyway;  a broken one still refuses the pack
-   */
-  unsafe?: "refuse" | "skip" | "allow"
+  /** What to do with a file that still fails verification (`IconPackUnsafePolicies`);  default `refuse`. */
+  unsafe?: IconPackUnsafePolicy
   /** `alias` for NEW entries, by key;  kept entries keep their own */
   aliases?: Record<string, string | string[]>
   /** replace a `pack.js` that has another `id` */
   force?: boolean
 }
 
-/** A pack that couldn't be built;  `problems` lists each SVG that failed verification. */
-export class IconPackError extends Error {
-  /** each SVG that failed verification;  empty for other failures */
-  readonly problems: IconPackProblem[]
-
-  constructor(message: string, problems: IconPackProblem[]) {
-    super(problems.length ? `${message}\n${problems.map((p) => `  ${p.file}:  ${p.reason}`).join("\n")}` : message)
-    this.name = "IconPackError"
-    this.problems = problems
-  }
+/** What `IconPackBuilder.check()` found in one SVG. */
+export type IconPackCheck = {
+  /** viewBox width / height;  `undefined` if broken */
+  size?: [width: number, height: number]
+  /** why it could run script or load a resource */
+  unsafe: string[]
+  /** why it can't be an icon at all */
+  broken: string[]
 }
+
+////////////////
+// ## Constants
+////////////////
+
+/** Elements that could run script or embed another document:  any one refuses the pack. */
+const FORBIDDEN_ELEMENTS = ["script", "foreignobject", "iframe", "embed", "object"]
 
 /** First lines of every generated `pack.js`. */
 const HEADER =
@@ -413,13 +419,3 @@ const CSS_URL = /url\(\s*["']?([^"')]*)/gi
 
 /** Between `viewBox` numbers. */
 const VIEWBOX_SEPARATOR = /[\s,]+/
-
-/** What `IconPackBuilder.check()` found in one SVG. */
-export type IconPackCheck = {
-  /** viewBox width / height;  `undefined` if broken */
-  size?: [width: number, height: number]
-  /** why it could run script or load a resource */
-  unsafe: string[]
-  /** why it can't be an icon at all */
-  broken: string[]
-}

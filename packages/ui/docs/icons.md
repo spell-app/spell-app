@@ -86,7 +86,7 @@ In `src/icons/icon-packs/`, copied to `dist/icon-packs/` by `emitIconPacks()` (`
 | `fa7-brands` | 572 | 4.1 KB | every Font Awesome 7 Free brand icon |
 | `fomantic` | 1,593 entries, 1,938 names | 18.2 KB | Fomantic-UI's names, pointing into the two FA folders |
 
-- The extras (`scripts/icon-extras.ts`, hand-picked, edit freely):  the brands our own examples use (`discord`,
+- The extras (`scripts/iconExtras.ts`, hand-picked, edit freely):  the brands our own examples use (`discord`,
   `github`, `medium`, `twitter`) and the Fomantic names they use (`help`, `mail`, `setting`, `linkify`, as
   aliases).  Everything else:  `<ui-root icons="fa7-brands">` / `<ui-root icons="fomantic">`.
 - FA's own aliases (`cog` -> `gear`, `contact book` -> `address book`) are aliases in both FA packs;  on a regular
@@ -253,7 +253,7 @@ yarn gen:icons
 ```
 
 - Downloads the pinned Font Awesome Free package (`FA_VERSION`, 7.3.1) from npm into the OS temp dir (override:
-  `FA_PACKAGE_DIR`), and reads names, aliases, codepoints and search terms from its `metadata/icon-families.json`,
+  `SPELL_UI_FA_PACKAGE_DIR`), and reads names, aliases, codepoints and search terms from its `metadata/icon-families.json`,
   so names and files come from the SAME release.
 - Copies FA's `svgs/<style>/<name>.svg` byte for byte (licence comment included), for canonical names only (the
   package's alias copies are skipped:  aliases are in the index).

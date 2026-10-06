@@ -2,7 +2,10 @@
   "extends": ["../tsconfig.node.json", "../../../tsconfig.base.json"],
   "compilerOptions": {
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": ["node", "vite/client"]
+    "types": ["node", "vite/client"],
+    // a vocabulary may `import type { E } from "$/ui/core"`, which reaches the element core's `.tsx` files
+    "jsx": "preserve",
+    "jsxImportSource": "@solidjs/web"
   },
   "include": ["*.ts"]
 }

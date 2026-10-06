@@ -22,10 +22,12 @@ const ELEMENTS = import.meta.glob<string>("/src/components/*/examples/elements/*
 /** Controller class files (`UIButton.tsx`), by path;  lazy, only `StaticFamilies`' are loaded. */
 const CLASSES = import.meta.glob<Record<string, unknown>>("/src/components/*/UI*.{ts,tsx}")
 
-/**
+/****************
+ * ### `StaticFixture`
  * The static page's two halves:  an example's body HTML and the stylesheet;  `StaticPages` wraps them in
  * `fixture.html`'s chrome.
- */
+ * - STATIC:  one per SSR module graph;  `defined` is that graph's, page-wide.
+ ****************/
 export class StaticFixture {
   /** `StaticFamilies`' classes, once defined */
   private static defined?: Promise<void>
@@ -37,9 +39,12 @@ export class StaticFixture {
   static async example(id: string): Promise<string> {
     await StaticFixture.define()
     const [family = "", name] = id.split("/")
-    if (!StaticFamilies.covers(family)) throw new Error(`"${family}" isn't in StaticFamilies (tools/visual)`)
+    if (!StaticFamilies.covers(family))
+      throw new Error(
+        `StaticFixture.example():  "${family}" isn't compared statically;  add it to tools/visual/StaticFamilies.ts`
+      )
     const load = ELEMENTS[`/src/components/${family}/examples/elements/${name}.html`]
-    if (!load) throw new Error(`no element example "${id}"`)
+    if (!load) throw new Error(`StaticFixture.example():  no element example "${id}"`)
     const source = await load()
     await StaticRender.prepare(source)
     const html = StaticRender.fragment(source)
@@ -75,7 +80,8 @@ export class StaticFixture {
         const path = StaticFamilies.classPath(family, name)
         const load = CLASSES[`${path}.tsx`] ?? CLASSES[`${path}.ts`]
         const Class = (await load?.())?.[name]
-        if (typeof Class !== "function") throw new Error(`StaticFamilies:  no class ${name} in ${path}.ts(x)`)
+        if (typeof Class !== "function")
+          throw new Error(`StaticFixture.load():  no class ${name} in ${path}.ts(x);  fix StaticFamilies.CLASSES`)
         classes.push(Class as UIElementClass)
       }
     }
@@ -97,7 +103,7 @@ export class StaticFixture {
     }
     const left = StaticFixture.definedTags(html)
     if (left.size) problems.push(`defined tags left unrendered:  ${[...left].join(", ")}`)
-    if (problems.length) throw new Error(`static render of ${id}:  ${problems.join(";  ")}`)
+    if (problems.length) throw new Error(`StaticFixture.verify():  static render of ${id}:  ${problems.join(";  ")}`)
   }
 
   /** Tags in `html` that `StaticRender` defines. */

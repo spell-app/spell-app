@@ -5,7 +5,8 @@ import { ElementManifests } from "./ElementManifests.ts"
 import type { SiteAttribute, SiteDataFile, SiteFamily, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import type { DesignExample, DesignFamily, DesignSource } from "./tools.types.ts"
 
-/**
+/****************
+ * ### `DesignComponents`
  * The component half of the design-system export (`DesignExport`):  for each family (one card per MAIN tag), its
  * `components/<Comp>/README.md` and `preview.html`, plus `components/index.d.ts` for every tag.
  * - All from the site data (`components.json`:  every vocabulary) and the families' element examples
@@ -13,7 +14,7 @@ import type { DesignExample, DesignFamily, DesignSource } from "./tools.types.ts
  * - Card groups:  a small fixed set (`GROUPS`), picked from each main tag's topics, in its own topic order.
  * - `sources`:  cards from outside Spell UI (the brand's `<ui-brand-*>`, `DesignBrand`):  their site data merged into
  *   `data`, every family of one in that source's group (after `GROUPS`), its examples and styles from the source.
- */
+ ****************/
 export class DesignComponents {
   /** site data, as `yarn site:data` builds it, with every source's merged in */
   readonly data: SiteDataFile
@@ -24,7 +25,7 @@ export class DesignComponents {
   /** every element example section, by family folder, read once (`examples()`) */
   private readonly sections = new Map<string, DesignExample[]>()
 
-  constructor(data: SiteDataFile, uiFolder: string, sources: readonly DesignSource[] = []) {
+  constructor({ data, uiFolder, sources = [] }: DesignComponentsProps) {
     this.data = DesignComponents.merge(data, sources)
     this.uiFolder = uiFolder
     this.sources = sources
@@ -32,7 +33,7 @@ export class DesignComponents {
 
   /**
    * Spell UI's site data with each source's added:  its tags after ours, its families and topics beside ours.
-   * - Throws on a tag or family folder both have:  a card would be lost.
+   * - Throws a `TypeError` on a tag or family folder both have:  a card would be lost.
    */
   static merge(data: SiteDataFile, sources: readonly DesignSource[]): SiteDataFile {
     if (!sources.length) return data
@@ -41,11 +42,15 @@ export class DesignComponents {
     const topics = [...data.topics]
     for (const source of sources) {
       for (const tag of source.data.components) {
-        if (components.some((entry) => entry.tag === tag.tag)) throw new Error(`<${tag.tag}> is in two sources`)
+        if (components.some((entry) => entry.tag === tag.tag)) {
+          throw new TypeError(`DesignComponents.merge():  <${tag.tag}> is in two sources;  rename one`)
+        }
         components.push(tag)
       }
       for (const [folder, family] of Object.entries(source.data.families)) {
-        if (families[folder]) throw new Error(`family ${folder} is in two sources`)
+        if (families[folder]) {
+          throw new TypeError(`DesignComponents.merge():  family ${folder} is in two sources;  rename one`)
+        }
         families[folder] = family
       }
       for (const topic of source.data.topics) if (!topics.some((entry) => entry.id === topic.id)) topics.push(topic)
@@ -54,7 +59,7 @@ export class DesignComponents {
   }
 
   /** The source family `folder` comes from, or `undefined` for Spell UI's own. */
-  sourceOf(folder: string): DesignSource | undefined {
+  sourceFor(folder: string): DesignSource | undefined {
     return this.sources.find((source) => folder in source.data.families)
   }
 
@@ -67,18 +72,22 @@ export class DesignComponents {
       return {
         comp: ElementManifests.pascal(main.tag),
         mainTag: main.tag,
-        group: this.sourceOf(main.folder)?.group ?? DesignComponents.groupOf(main),
+        group: this.sourceFor(main.folder)?.group ?? DesignComponents.groupFor(main),
         tags: [...tags],
         example
       }
     })
     const groups = [...GROUPS.map((group) => group.name), ...this.sources.map((source) => source.group)]
-    const order = (family: DesignFamily) => groups.indexOf(family.group)
-    return families.sort((a, b) => order(a) - order(b) || a.comp.localeCompare(b.comp))
+    return families.sort((a, b) => rank(a) - rank(b) || a.comp.localeCompare(b.comp))
+
+    /** A card's place by its group:  `GROUPS` order, then the sources'. */
+    function rank(family: DesignFamily): number {
+      return groups.indexOf(family.group)
+    }
   }
 
   /** The card group of a main tag:  the first of its topics `GROUPS` maps (its own topic order), else `Display`. */
-  static groupOf(tag: SiteTag): string {
+  static groupFor(tag: SiteTag): string {
     for (const topic of tag.topics) {
       const group = GROUPS.find((entry) => entry.topics.includes(topic))
       if (group) return group.name
@@ -100,20 +109,14 @@ export class DesignComponents {
     const tags = family.tags.map((name) => this.tag(name))
     const examples = this.previewExamples(this.tag(family.mainTag))
     for (const level of [0, 1, 2, 3]) {
-      const text = this.readmeText(family, site, tags, examples, level)
+      const text = this.readmeText({ family, site, tags, examples, level })
       if (Buffer.byteLength(text) <= README_CAP) return text
     }
-    return this.readmeText(family, site, tags, [], 3)
+    return this.readmeText({ family, site, tags, examples: [], level: 3 })
   }
 
   /** The README at trim `level`:  0 everything;  1 no parts / states;  2 no CSS tokens either;  3 one example. */
-  private readmeText(
-    family: DesignFamily,
-    site: SiteFamily | undefined,
-    tags: SiteTag[],
-    examples: DesignExample[],
-    level: number
-  ): string {
+  private readmeText({ family, site, tags, examples, level }: ReadmeTextParams): string {
     const main = tags[0]!
     const summary = DesignComponents.sentence(site?.summary || main.description || `${family.comp}.`)
     const lines = [`# ${family.comp}`, "", summary, ""]
@@ -232,11 +235,7 @@ export class DesignComponents {
    */
   preview(family: DesignFamily): string {
     const examples = this.previewExamples(this.tag(family.mainTag)).slice(0, PREVIEW_SECTIONS)
-    const subtitle =
-      family.tags
-        .slice(0, 4)
-        .map((tag) => tag)
-        .join(" · ") + (family.tags.length > 4 ? " ..." : "")
+    const subtitle = family.tags.slice(0, 4).join(" · ") + (family.tags.length > 4 ? " ..." : "")
     const heavy = examples.some((example) =>
       /<ui-(card|table|form|calendar|modal|feed|comment|step|grid|items)\b/.test(example.markup)
     )
@@ -253,7 +252,7 @@ export class DesignComponents {
           )
           .join("\n")
       : `      <${family.mainTag}>${family.comp}</${family.mainTag}>`
-    const style = this.sourceOf(this.tag(family.mainTag).folder)?.style(this.tag(family.mainTag).folder).trim()
+    const style = this.sourceFor(this.tag(family.mainTag).folder)?.style(this.tag(family.mainTag).folder).trim()
     const wrap = !examples.some((example) => example.markup.includes("<ui-root"))
     const open = wrap
       ? '    <ui-root>\n      <div style="display: grid; gap: 20px">'
@@ -346,7 +345,7 @@ export class DesignComponents {
    * - A source's family:  the source's examples only.
    */
   previewExamples(main: SiteTag): DesignExample[] {
-    const source = this.sourceOf(main.folder)
+    const source = this.sourceFor(main.folder)
     if (source) return source.examples(main.folder).filter((example) => !/\ssource="/.test(example.markup))
     const own = this.examples(main.folder)
     if (own.length) return own
@@ -377,7 +376,7 @@ export class DesignComponents {
           /<h\d[^>]*>([\s\S]*?)<\/h\d>/
             .exec(body)?.[1]
             ?.replace(/<[^>]+>/g, "")
-            .trim() || DesignComponents.titleOf(file)
+            .trim() || DesignComponents.titleFor(file)
         const markup = DesignComponents.dedent(body.replace(/^\s*<h\d[^>]*>[\s\S]*?<\/h\d>/, ""))
         if (markup.trim()) result.push({ title, markup, source })
       }
@@ -399,7 +398,7 @@ export class DesignComponents {
   /** The site data's entry for `tag`;  throws on a tag it doesn't have. */
   tag(tag: string): SiteTag {
     const found = this.data.components.find((entry) => entry.tag === tag)
-    if (!found) throw new Error(`no site data for <${tag}>:  run \`yarn site:data\``)
+    if (!found) throw new Error(`DesignComponents.tag():  no site data for <${tag}>;  run \`yarn site:data\``)
     return found
   }
 
@@ -448,10 +447,34 @@ export class DesignComponents {
   }
 
   /** An example file's name as a title:  `variations.html` => `Variations`. */
-  private static titleOf(file: string): string {
+  private static titleFor(file: string): string {
     const name = file.replace(/\.html$/, "").replace(/-/g, " ")
     return name.charAt(0).toUpperCase() + name.slice(1)
   }
+}
+
+/** Constructor props of `DesignComponents`. */
+export type DesignComponentsProps = {
+  /** site data, as `yarn site:data` builds it;  the sources' is merged in */
+  data: SiteDataFile
+  /** `packages/ui`, absolute */
+  uiFolder: string
+  /** cards from outside Spell UI, e.g. the brand's;  default none */
+  sources?: readonly DesignSource[]
+}
+
+/** `DesignComponents.readmeText()`'s inputs:  one card, and how much to trim. */
+type ReadmeTextParams = {
+  /** the card */
+  family: DesignFamily
+  /** its family's site data, when it has some */
+  site: SiteFamily | undefined
+  /** its tags' site data, main first */
+  tags: SiteTag[]
+  /** the example sections to show */
+  examples: DesignExample[]
+  /** trim level, 0..3 */
+  level: number
 }
 
 /** README size cap, bytes (the format's 64 KB). */
@@ -464,7 +487,12 @@ const PREVIEW_SECTIONS = 3
  * The card groups, in order, and the topics (`ValueSets.topics` ids) that file a family under each.
  * - A main tag goes in the group of its FIRST topic listed here, in the vocabulary's own topic order.
  */
-const GROUPS: readonly { name: string; topics: readonly string[] }[] = [
+const GROUPS: readonly {
+  /** the card group, e.g. `Actions` */
+  name: string
+  /** `ValueSets.topics` ids that file a family under it */
+  topics: readonly string[]
+}[] = [
   { name: "Actions", topics: ["buttons"] },
   { name: "Forms", topics: ["forms", "inputs", "selection", "date & time", "controls"] },
   { name: "Navigation", topics: ["navigation", "menus"] },

@@ -2,12 +2,13 @@
 
 import { defineConfig } from "@playwright/test"
 
-import type { VisualOs } from "./visual.types.ts"
+import { environment } from "../environment.ts"
 import { VisualSettings } from "./VisualSettings.ts"
 
 /**
  * Playwright config of `yarn test:visual`, separate from Vitest:  run it through the CLI (`tools/visual/cli.ts`),
- * which starts the dev server (and, for `--os linux`, the Docker browser server) and sets `VisualSettings.ENV`.
+ * which starts the dev server (and, for `--os linux`, the Docker browser server) and sets `VisualVariables`, read
+ * back here as `environment.visual` (`tools/environment.ts`).
  * - One project per browser;  the CLI picks them with `--project`.
  * - Baselines:  `test/visual/baselines/<os>/<browser>/ui-<family>/<file>.png` (`snapshotPathTemplate`), where
  *   `<os>` is `linux` or `local-<platform>` (`VisualSettings.osFolder()`).
@@ -17,11 +18,8 @@ import { VisualSettings } from "./VisualSettings.ts"
  *   rendered by Linux while our (macOS-native) toolchain stays on the host.
  * - No retries:  a flaky capture is fixed at its source (`docs/visual-testing.md`, "Troubleshooting").
  */
-const env = process.env
-const os: VisualOs = env[VisualSettings.ENV.os] === "linux" ? "linux" : "local"
+const { os, ws, workers, baseUrl } = environment.visual
 const folder = VisualSettings.osFolder(os)
-const ws = env[VisualSettings.ENV.ws]
-const workers = env[VisualSettings.ENV.workers]
 
 export default defineConfig({
   testDir: ".",
@@ -31,7 +29,7 @@ export default defineConfig({
   reporter: [["line"], ["html", { outputFolder: `${VisualSettings.RESULTS}/${folder}/report`, open: "never" }]],
   fullyParallel: true,
   retries: 0,
-  workers: workers ? (workers.endsWith("%") ? workers : Number(workers)) : "50%",
+  workers: workers ?? "50%",
   timeout: 90_000,
   expect: {
     timeout: 15_000,
@@ -43,7 +41,7 @@ export default defineConfig({
     }
   },
   use: {
-    baseURL: env[VisualSettings.ENV.baseUrl],
+    baseURL: baseUrl,
     viewport: VisualSettings.VIEWPORT,
     deviceScaleFactor: 1,
     colorScheme: "light",

@@ -6,9 +6,11 @@ import { NodePackage } from "../NodePackage.ts"
 import type { VisualBrowser, VisualOs } from "./visual.types.ts"
 
 /**
+ * ### `VisualSettings`
  * Constants of `yarn test:visual`, shared by the CLI (`VisualRunner`), the Playwright config and the spec.
- * - The CLI hands the per-run choices to Playwright through environment variables (`ENV`):  Playwright loads its
- *   config and spec in fresh worker processes, so nothing else reaches them.
+ * - The per-run choices travel to Playwright as environment variables instead:  `VisualVariables` and
+ *   `environment.visual` (`tools/environment.ts`).
+ * - STATIC only:  constants and two pure lookups, no state.
  * - See `docs/visual-testing.md`.
  */
 export class VisualSettings {
@@ -55,22 +57,6 @@ export class VisualSettings {
    * - `ratio` -- share of differing pixels over which a pair is listed as different
    */
   static readonly PARITY = { threshold: 32, ratio: 0.01 }
-
-  /** Environment variables the CLI sets for Playwright. */
-  static readonly ENV = {
-    /** `local` or `linux` */
-    os: "UI_VISUAL_OS",
-    /** the dev server's origin, e.g. `http://localhost:5391` */
-    baseUrl: "UI_VISUAL_BASE_URL",
-    /** `ws://...` of the Docker browser server (`linux` only) */
-    ws: "UI_VISUAL_WS",
-    /** `1`:  add the parity checks */
-    parity: "UI_VISUAL_PARITY",
-    /** `1`:  ONLY the static checks (static render vs elements), no captures against baselines */
-    static: "UI_VISUAL_STATIC",
-    /** Playwright workers, e.g. `4` or `50%` */
-    workers: "UI_VISUAL_WORKERS"
-  } as const
 
   /** Browser name on the command line => Playwright project name. */
   static readonly BROWSER_FLAGS: Record<string, readonly VisualBrowser[]> = {
