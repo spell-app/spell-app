@@ -126,7 +126,11 @@ export class CalendarText {
     const values: Partial<Record<DatePart, number>> = named === undefined ? {} : { month: named }
     // a number that can't be a day or month is the year, wherever it sits
     const yearIndex = numbers.findIndex((number) => number.length >= 3 || Number(number) > 31)
-    if (yearIndex >= 0 && wanted.includes("year")) values.year = Number(numbers.splice(yearIndex, 1)[0])
+    if (yearIndex >= 0 && wanted.includes("year")) {
+      const year = numbers.splice(yearIndex, 1)[0]!
+      // two digits over 31 (`75`) still follow the century rule, as a two-digit year in its usual place does
+      values.year = year.length <= 2 ? CalendarText.century(Number(year)) : Number(year)
+    }
     for (const part of wanted) {
       if (values[part] !== undefined) continue
       if (type === "month" && part === "day") continue

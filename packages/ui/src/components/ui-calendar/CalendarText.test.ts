@@ -53,8 +53,7 @@ describe("CalendarText.read()", () => {
   })
 
   // KNOWN BUG (epic `wwod-spell-ui`, I21):  a two-digit year over 31 is taken as "the year" before the century rule runs, so
-  // `9/30/75` reads as the year 75.  `test.fails` until `dateFields()` runs `century()` on it too.
-  test.fails("reads a two-digit year of 60+ as 19xx:  9/30/75 => 1975", () => {
+  test("reads a two-digit year of 60+ as 19xx:  9/30/75 => 1975", () => {
     expect(words("en-US").read("9/30/75", dates("date"))?.year).toBe(1975)
   })
 
