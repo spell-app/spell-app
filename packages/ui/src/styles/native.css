@@ -93,7 +93,7 @@
   }
 
   /*
-   * The same in a static server render (`$/ui/server`):  hosts are gone, each root marked `data-ui="<tag less ui->"`,
+   * The same in a static server render (`$/ui/static`):  hosts are gone, each root marked `data-ui="<tag less ui->"`,
    * the message's `state` a class, `:state(x)` a `data-state~="x"`.  The static stylesheet drops the rules above
    * (`:state()` is shadow-only there), and `ui-form.css`'s class-grammar rules stop at the slotted messages.
    * - Never matches in a browser:  elements never carry `data-ui` (their roots are in shadow roots).

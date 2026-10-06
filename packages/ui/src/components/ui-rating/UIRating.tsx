@@ -248,7 +248,7 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/server`):  radio `n` named for the form (the host's `name`) and `checked` when it is
+   * Server render only (`$/ui/static`):  radio `n` named for the form (the host's `name`) and `checked` when it is
    * the value, so a static form submits the rating;  `{}` in a browser, where the HOST submits
    * (`ElementInternals`) and the radios share a generated name.
    */

@@ -134,7 +134,7 @@ export class UIVisibility extends UIElement<VisibilityVocabulary> {
   }
 
   /**
-   * Static server render (`$/ui/server`):  nothing will observe, so each `<img data-src>` gets its source now, with
+   * Static server render (`$/ui/static`):  nothing will observe, so each `<img data-src>` gets its source now, with
    * `loading="lazy"` (unless it says otherwise):  crawlers and no-JS readers see the image, the browser defers it.
    * - SIDE EFFECT:  writes the host's light-DOM images, which the flattener then moves into the root.
    */

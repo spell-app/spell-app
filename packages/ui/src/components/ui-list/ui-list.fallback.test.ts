@@ -8,8 +8,12 @@ import { ItemFallback } from "$/ui/components/ui-item/ui-item.fallback"
 import { ListFallback } from "./ui-list.fallback"
 
 // the fallbacks key on the host's and its parent's tags, so the stubs take the real tags
-FallbackStub.define("ui-list", (host, root, internals) => ListFallback.render(host, root, new Error("boom"), internals))
-FallbackStub.define("ui-item", (host, root, internals) => ItemFallback.render(host, root, new Error("boom"), internals))
+FallbackStub.define("ui-list", (host, root, internals) =>
+  ListFallback.render({ host, root, error: new Error("boom"), internals })
+)
+FallbackStub.define("ui-item", (host, root, internals) =>
+  ItemFallback.render({ host, root, error: new Error("boom"), internals })
+)
 
 /** Axe without contrast:  the stub has no stylesheet. */
 const AXE = { rules: { "color-contrast": { enabled: false } } }

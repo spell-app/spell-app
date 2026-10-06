@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { MarkdownFallback } from "./ui-markdown.fallback"
 
 FallbackStub.define("x-fb-markdown", (host, root, internals) =>
-  MarkdownFallback.render(host, root, new Error("boom"), internals)
+  MarkdownFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

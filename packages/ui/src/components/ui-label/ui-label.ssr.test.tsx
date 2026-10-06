@@ -2,13 +2,13 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UILabel } from "$/ui/components/ui-label/UILabel"
 import { UILabels } from "$/ui/components/ui-label/UILabels"
 import { UIDetail } from "$/ui/components/ui-parts/UIDetail"
 
 /**
- * `<ui-label>` / `<ui-labels>` in the static server render (`$/ui/server`, seo plan P3):  light-DOM class grammar,
+ * `<ui-label>` / `<ui-labels>` in the static server render (`$/ui/static`, seo plan P3):  light-DOM class grammar,
  * as `examples/*.html` writes it.
  */
 describe("ui-label static render", () => {

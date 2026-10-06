@@ -9,7 +9,7 @@ import { BreadcrumbFallback } from "./ui-breadcrumb.fallback"
 // the fallback keys its vocabulary on the host's tag, so the stubs take the real tags
 for (const tag of ["ui-breadcrumb", "ui-breadcrumb-section"]) {
   FallbackStub.define(tag, (host, root, internals) =>
-    BreadcrumbFallback.render(host, root, new Error("boom"), internals)
+    BreadcrumbFallback.render({ host, root, error: new Error("boom"), internals })
   )
 }
 

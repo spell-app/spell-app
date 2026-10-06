@@ -11,7 +11,7 @@ import { SectionFallback } from "./ui-section.fallback"
 import "$/ui/components/ui-section"
 
 FallbackStub.define("x-fb-section", (host, root, internals) =>
-  SectionFallback.render(host, root, new Error("boom"), internals)
+  SectionFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

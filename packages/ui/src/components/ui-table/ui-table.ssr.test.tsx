@@ -2,11 +2,11 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UITable } from "$/ui/components/ui-table/UITable"
 
 /**
- * `<ui-table>` in the static server render (`$/ui/server`):  the author's `<table>` gets the class grammar the
+ * `<ui-table>` in the static server render (`$/ui/static`):  the author's `<table>` gets the class grammar the
  * element mirrors (`TableClassMirror`), and data mode renders its rows from the `rows` / `column-defs` attributes.
  */
 describe("ui-table, static", () => {

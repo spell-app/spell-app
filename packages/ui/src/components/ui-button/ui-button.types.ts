@@ -7,7 +7,7 @@
 export const DEFAULT_TYPE = "button"
 
 /**
- * The native submitter's attributes a server render (`$/ui/server`) copies from the host onto the inner `<button>`,
+ * The native submitter's attributes a server render (`$/ui/static`) copies from the host onto the inner `<button>`,
  * so a static form submits as the browser would with that button:  not vocabulary, read off the host as written.
  */
 export const FORM_ATTRIBUTES = ["form", "formaction", "formenctype", "formmethod", "formnovalidate", "formtarget"]

@@ -1,21 +1,13 @@
 import { createEffect, createMemo, type Accessor } from "solid-js"
 import { onFormReset } from "@spell-app/solid-element"
 
-// through the `core` ENTRY, never its leaves:  otherwise the bundler splits what `core` and `forms` share into a
-// third chunk instead of leaving it in `core.js`
-import {
-  proto,
-  UIElement,
-  type ComponentVocabulary,
-  type FieldValue,
-  type ValidationResult,
-  type ValidationRule
-} from "$/ui/core"
-
-import { Validator } from "./Validator"
+import { E } from "$/ui/core"
+// Import directly to avoid circular import
 import { FormHost } from "./FormHost"
+import { Validator } from "./Validator"
 
-/**
+/****************
+ * ### `FormElement`
  * Controller base of form-associated components:  form value, validity, reset, fieldset-disabled.
  * - The fork's `formAssociated` option makes the host a form control;  its host class is a `FormHost` (the
  *   form-control API).  Form callbacks arrive as the fork's hooks:  `onFormReset` => `formReset()`,
@@ -25,20 +17,21 @@ import { FormHost } from "./FormHost"
  *   into `setValidity()`.
  * - `:state(invalid)` follows `showsInvalid()` (default:  mirrors validity);  the anchor for the browser's bubble is
  *   `validationAnchor()`.
- */
-export abstract class FormElement<V extends ComponentVocabulary = ComponentVocabulary> extends UIElement<V> {
+ * - Part of the `forms` entry:  reaches the element core through the `$/ui/core` ENTRY (`E`), never its leaves, or the
+ *   build splits what `core` and `forms` share into a third chunk.  `E.UIElement` / `@E.proto` are safe while this
+ *   module evaluates:  the core never imports `forms`, so it has always finished loading first.  Its `forms` peers
+ *   `FormHost` / `Validator` come directly:  static initializers read them (WWOD §4 › "Circular imports").
+ ****************/
+export abstract class FormElement<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends E.UIElement<V> {
   /** Host with the form-control API. */
-  @proto static Host = FormHost
-  @proto static formAssociated = true
-
-  /** Fomantic rules;  shared, it's stateless. */
-  static validator = new Validator()
+  @E.proto static Host = FormHost
+  @E.proto static formAssociated = true
 
   /**
    * Result of `rules()` against `formValue()`.
    * - `lazy`:  it calls subclass hooks, which read subclass fields that don't exist yet here.
    */
-  readonly validation: Accessor<ValidationResult> = createMemo(
+  readonly validation: Accessor<E.ValidationResult> = createMemo(
     () => FormElement.validator.validate(this.formValue(), this.rules(), { label: this.validationLabel() }),
     { lazy: true }
   )
@@ -53,7 +46,7 @@ export abstract class FormElement<V extends ComponentVocabulary = ComponentVocab
   ////////////////
 
   /** Value to submit;  tracked.  `null` / `undefined` submits nothing. */
-  abstract formValue(): FieldValue
+  abstract formValue(): E.FieldValue
 
   /** Field name for `FormData` entries of a multi-value control. */
   protected abstract formName(): string | undefined
@@ -62,7 +55,7 @@ export abstract class FormElement<V extends ComponentVocabulary = ComponentVocab
   abstract formReset(): void
 
   /** Validation rules;  default none. */
-  protected rules(): ValidationRule[] {
+  protected rules(): E.ValidationRule[] {
     return []
   }
 
@@ -81,7 +74,7 @@ export abstract class FormElement<V extends ComponentVocabulary = ComponentVocab
    * - Default:  whenever invalid (`:invalid` semantics).  Text and check controls wait for the user, as
    *   `:user-invalid` does.
    */
-  protected showsInvalid(result: ValidationResult): boolean {
+  protected showsInvalid(result: E.ValidationResult): boolean {
     return !result.valid
   }
 
@@ -89,7 +82,7 @@ export abstract class FormElement<V extends ComponentVocabulary = ComponentVocab
    * What `setFormValue()` gets for `value`;  default `FormElement.submission()`.
    * - A file input overrides it to submit its `File`s.
    */
-  protected formSubmission(value: FieldValue, name: string | undefined): string | File | FormData | null {
+  protected formSubmission(value: E.FieldValue, name: string | undefined): string | File | FormData | null {
     return FormElement.submission(value, name)
   }
 
@@ -116,11 +109,23 @@ export abstract class FormElement<V extends ComponentVocabulary = ComponentVocab
     return super.mount()
   }
 
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * Fomantic's rules, for every form control (and `FormFields`, `UIRadio`'s group).
+   * - Static:  ONE for the page;  it's stateless, its data on the prototype (`Validator`).
+   */
+  static validator = new Validator()
+
   /**
    * What `setFormValue()` takes for `value`:  a string, a `FormData` of one entry per array item, or `null`.
+   * - `null`:  the platform's "submit nothing" (`setFormValue()` is a boundary that takes it).
+   * - Static:  pure;  `formSubmission()` is the per-element hook over it.
    * - NOTE: a `FormData` needs `name`;  unnamed controls submit nothing anyway.
    */
-  static submission(value: FieldValue, name: string | undefined): string | FormData | null {
+  static submission(value: E.FieldValue, name: string | undefined): string | FormData | null {
     if (value == null || value === false) return null
     if (!Array.isArray(value)) return String(value)
     if (!name) return null
@@ -132,6 +137,6 @@ export abstract class FormElement<V extends ComponentVocabulary = ComponentVocab
 
 /**
  * `:state()` for failed validation.
- * - NOTE: every form vocabulary names it `invalid`;  here, not per component, because the base sets it.
+ * - Every form vocabulary names it `invalid`:  here, not per component, because the base sets it.
  */
 const INVALID_STATE = "invalid"

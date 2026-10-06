@@ -497,23 +497,31 @@ export type ApiRequest = {
   responseType?: ApiResponseType
 }
 
+/** `cause` of an `ApiError`. */
+export type ApiErrorCause = {
+  /** the failed response, body unread */
+  response: Response
+}
+
 /**
  * Thrown by `Api.request()` for a non-2xx response.
- * - Keeps the `Response`, so callers can read a server error body.
+ * - Keeps the `Response` in `cause`, so callers can read a server error body.
+ * - `new ApiError(message, { cause: { response } })`
  */
 export class ApiError extends Error {
-  /** HTTP status, e.g. `404` */
-  readonly status: number
-  /** the failed response, body unread */
-  readonly response: Response
+  declare cause: ApiErrorCause | undefined
 
-  constructor(response: Response) {
-    super(`Server gave an error: ${response.status} ${response.statusText}`.trim())
-    this.name = "ApiError"
-    this.status = response.status
-    this.response = response
+  /** HTTP status, e.g. `404` */
+  get status() {
+    return this.cause?.response.status
+  }
+
+  /** the failed response, body unread */
+  get response() {
+    return this.cause?.response
   }
 }
+ApiError.prototype.name = "ApiError"
 
 ////////////////
 // ## Sources
@@ -576,11 +584,10 @@ export type SourceSaver = (request: SourceSaveRequest) => Promise<SourceSaveResu
  * - `conflict`:  the file changed since it was loaded (`If-Match` failed);  reload, then save again
  * - `no-saver`:  nothing registered `UI.sources.saver`
  * - `render`:  the text arrived but the element couldn't show it (bad markdown, unknown language ...)
+ * - NOTE: kebab-case, not English words:  pages read them (`ui-error`'s `detail.kind`, a saver's thrown `{ kind }`),
+ *   and the docs publish this spelling (AGENTS.md "Functions & types";  epic `wwod-spell-ui`, P3)
  */
-export type SourceErrorKind = "load" | "cross-origin" | "file-protocol" | "save" | "conflict" | "no-saver" | "render"
-
-/** Every `SourceErrorKind`, for checking one that arrives as data (a saver's thrown `{ kind }`). */
-export const SOURCE_ERROR_KINDS: readonly SourceErrorKind[] = [
+export const SourceErrorKinds = [
   "load",
   "cross-origin",
   "file-protocol",
@@ -588,25 +595,51 @@ export const SOURCE_ERROR_KINDS: readonly SourceErrorKind[] = [
   "conflict",
   "no-saver",
   "render"
-]
+] as const
+/** One of `SourceErrorKinds`. */
+export type SourceErrorKind = (typeof SourceErrorKinds)[number]
+
+/** `cause` of a `SourceError`. */
+export type SourceErrorCause = {
+  /** why, see `SourceErrorKind` */
+  kind: SourceErrorKind
+  /** HTTP status, when a response said no */
+  status?: number
+  /** what failed underneath:  a network error, a saver's own throw, a language's failed `load()` */
+  error?: unknown
+}
 
 /**
- * Thrown by `UI.sources` (and savers) when a source can't be loaded or saved;  `kind` says why.
- * - `status`:  the HTTP status, when there was a response.
+ * Thrown by `UI.sources` (and savers) when a source can't be loaded or saved;  `cause.kind` says why.
+ * - `new SourceError("Sources.load():  <problem>;  <fix>", { cause: { kind, status, error } })`
  */
 export class SourceError extends Error {
-  /** why, see `SourceErrorKind` */
-  readonly kind: SourceErrorKind
-  /** HTTP status, when a response said no */
-  readonly status?: number
+  declare cause: SourceErrorCause | undefined
 
-  constructor(kind: SourceErrorKind, message: string, status?: number) {
-    super(message)
-    this.name = "SourceError"
-    this.kind = kind
-    this.status = status
+  /** why, see `SourceErrorKind` */
+  get kind() {
+    return this.cause?.kind
+  }
+
+  /** HTTP status, when a response said no */
+  get status() {
+    return this.cause?.status
+  }
+
+  /**
+   * `error`'s kind when it's a `SourceError` that has one, else `otherwise`:  the `ui-error` `detail.kind` of
+   * whatever a load, render or save threw.
+   */
+  static kindFor(error: unknown, otherwise: SourceErrorKind): SourceErrorKind {
+    return (error instanceof SourceError && error.kind) || otherwise
+  }
+
+  /** Is `value` a `SourceErrorKind`?  For one that arrives as data (a saver's thrown `{ kind }`). */
+  static isKind(value: unknown): value is SourceErrorKind {
+    return SourceErrorKinds.includes(value as SourceErrorKind)
   }
 }
+SourceError.prototype.name = "SourceError"
 
 ////////////////
 // ## Code languages

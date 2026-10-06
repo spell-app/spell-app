@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
 import { breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
@@ -14,14 +14,8 @@ import { BreadcrumbDivider } from "./BreadcrumbDivider"
  *   host (internals)
  ****************/
 export class BreadcrumbFallback extends NativeFallback {
+  @proto static vocabularies = [breadcrumbVocabulary, breadcrumbSectionVocabulary]
   @proto static degraded = ["`divider-icon` (the text divider shows instead)", "translated `label` (English only)"]
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary =
-      host.localName === breadcrumbSectionVocabulary.tag ? breadcrumbSectionVocabulary : breadcrumbVocabulary
-  }
 
   protected override build() {
     return this.vocabulary === breadcrumbVocabulary ? [this.breadcrumb()] : this.section()

@@ -197,7 +197,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   }
 
   /**
-   * Server render only (`$/ui/server`):  what the native input needs to submit without JS -- `name`, `value`,
+   * Server render only (`$/ui/static`):  what the native input needs to submit without JS -- `name`, `value`,
    * `checked` -- and the `STATIC_CONTROL` mark;  `{}` in a browser, where the HOST submits (`ElementInternals`)
    * and an effect sets `checked`.
    */

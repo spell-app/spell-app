@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { FlagFallback } from "./ui-flag.fallback"
 
 FallbackStub.define("x-fb-flag", (host, root, internals) =>
-  FlagFallback.render(host, root, new Error("boom"), internals)
+  FlagFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

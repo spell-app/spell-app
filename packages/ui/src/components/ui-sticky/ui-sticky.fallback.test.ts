@@ -6,7 +6,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { StickyFallback } from "./ui-sticky.fallback"
 
 FallbackStub.define("x-fb-sticky", (host, root, internals) =>
-  StickyFallback.render(host, root, new Error("boom"), internals)
+  StickyFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("StickyFallback", () => {

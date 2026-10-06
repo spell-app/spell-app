@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { TransitionFallback } from "./ui-transition.fallback"
 
 FallbackStub.define("x-fb-transition", (host, root, internals) =>
-  TransitionFallback.render(host, root, new Error("boom"), internals)
+  TransitionFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Render a fallback transition;  returns the host and its box. */

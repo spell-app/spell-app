@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { PopupFallback } from "./ui-popup.fallback"
 
 FallbackStub.define("x-fb-popup", (host, root, internals) =>
-  PopupFallback.render(host, root, new Error("boom"), internals)
+  PopupFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

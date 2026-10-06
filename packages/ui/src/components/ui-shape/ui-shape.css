@@ -171,7 +171,7 @@
     display: none;
   }
   /*
-   * Its face too, for a server render (`$/ui/server`), whose root is host and face at once:  there the host rule's
+   * Its face too, for a server render (`$/ui/static`), whose root is host and face at once:  there the host rule's
    * `display` is dropped (it was the host box's).  In the element it changes nothing:  the host is already hidden.
    */
   :host(:state(inactive)) > .side {

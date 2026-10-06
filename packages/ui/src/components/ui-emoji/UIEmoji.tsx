@@ -49,7 +49,7 @@ export class UIEmoji extends UIElement<typeof emojiVocabulary> {
 
   /**
    * Load every emoji `html` names (`<ui-emoji name="...">`), so a static server render of it draws them.
-   * - MUST be awaited before `StaticRender.fragment(html)` / `page(html)` (`$/ui/server`):  that render is synchronous
+   * - MUST be awaited before `StaticRender.fragment(html)` / `page(html)` (`$/ui/static`):  that render is synchronous
    *   and draws only names already loaded (`EmojiData.peek()`);  a browser loads them after first paint instead.
    * - In every name set that ships:  which one an element uses depends on its `<ui-root emoji>`, unknown in markup.
    * - `tag`:  the tag the family is defined under, if not its own.

@@ -8,7 +8,7 @@ import { CheckboxFallback } from "./ui-checkbox.fallback"
 
 FallbackStub.define(
   "x-fb-checkbox",
-  (host, root, internals) => CheckboxFallback.render(host, root, new Error("boom"), internals),
+  (host, root, internals) => CheckboxFallback.render({ host, root, error: new Error("boom"), internals }),
   true
 )
 

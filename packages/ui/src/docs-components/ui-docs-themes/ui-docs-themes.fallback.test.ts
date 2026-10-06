@@ -10,7 +10,7 @@ import { DOCS_LOOK_KEYS } from "$/ui/docs-components/docs-components.types"
 import { DocsThemesFallback } from "./ui-docs-themes.fallback"
 
 FallbackStub.define("x-fb-docs-themes", (host, root, internals) =>
-  DocsThemesFallback.render(host, root, new Error("boom"), internals)
+  DocsThemesFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** `host`'s fallback wrapper. */

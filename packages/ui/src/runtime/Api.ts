@@ -12,7 +12,7 @@ import { ApiError, type ApiRequest, type ApiUrlData } from "./runtime.types"
  *   with the same `key` supersedes it -- still waiting, or already in flight -- and the older one rejects with
  *   an `AbortError`.  Callers typically ignore `AbortError`s.
  * - Abort:  the caller's `signal`, the throttle's and `timeout` are combined with `AbortSignal.any`.
- * - Errors:  a non-2xx response rejects with `ApiError` (response attached, body unread).
+ * - Errors:  a non-2xx response rejects with `ApiError` (`cause.response`, body unread).
  * - TODO: loading / error state on a context element (Fomantic's `stateContext`) lands with the first
  *   component that needs it.
  */
@@ -60,7 +60,10 @@ export class Api {
       if (method === "GET" || method === "HEAD") url = this.withQuery(url, options.data)
       else this.setBody(init, options.data)
       const response = await fetch(url, init)
-      if (!response.ok) throw new ApiError(response)
+      if (!response.ok) {
+        const answer = `${response.status} ${response.statusText}`.trim()
+        throw new ApiError(`Api.request():  ${method} ${url} answered ${answer}`, { cause: { response } })
+      }
       return (await this.read(response, method, responseType)) as T
     } finally {
       if (this.latest.get(key) === controller) this.latest.delete(key)

@@ -2,10 +2,10 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIProgress } from "$/ui/components/ui-progress/UIProgress"
 
-/** `<ui-progress>` in the static server render (`$/ui/server`, seo plan P3):  internals ARIA written out. */
+/** `<ui-progress>` in the static server render (`$/ui/static`, seo plan P3):  internals ARIA written out. */
 describe("ui-progress static render", () => {
   beforeAll(() => {
     StaticRender.define(UIProgress)

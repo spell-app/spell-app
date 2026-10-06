@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
+import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
 
 import { eventVocabulary } from "./ui-event.vocabulary.en"
 import { feedVocabulary } from "./ui-feed.vocabulary.en"
@@ -14,17 +14,12 @@ import { LABEL, ORDERED, Vocabulary } from "./ui-feed.types"
  *   `role=listitem` on the host inside a `<ui-feed>` parent.
  ****************/
 export class FeedFallback extends NativeFallback<Vocabulary> {
+  @proto static vocabularies = [feedVocabulary, eventVocabulary]
   @proto static degraded = [
     "the `icon` shorthand's glyph (the event's label box stays empty)",
     "a feed through translated or slotted parents (only a direct `<ui-feed>` parent counts)",
     "the content parts' feed context (`:state(in-feed)`)"
   ]
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = host.localName === eventVocabulary.tag ? eventVocabulary : feedVocabulary
-  }
 
   protected override build() {
     if (this.vocabulary === feedVocabulary) {

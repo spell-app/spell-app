@@ -15,7 +15,7 @@ export class MarkdownFallback extends NativeFallback<typeof markdownVocabulary> 
   ]
 
   protected override build() {
-    const text = this.create("pre", { class: "source" }, SourceElement.readInline(this.host))
+    const text = this.create("pre", { class: "source" }, SourceElement.inlineTextFor(this.host))
     return [this.decorate(this.create("article", { class: this.classes() }, text), "body")]
   }
 }

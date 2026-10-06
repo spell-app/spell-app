@@ -2,7 +2,7 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UICheckbox } from "$/ui/components/ui-checkbox/UICheckbox"
 import { UIInput } from "$/ui/components/ui-input/UIInput"
 import { UIField } from "$/ui/components/ui-form/UIField"
@@ -10,7 +10,7 @@ import { UIFields } from "$/ui/components/ui-form/UIFields"
 import { UIForm } from "$/ui/components/ui-form/UIForm"
 
 /**
- * `<ui-form>`, `<ui-fields>`, `<ui-field>` in a static server render (`$/ui/server`):  a slotted `<form>` merges
+ * `<ui-form>`, `<ui-fields>`, `<ui-field>` in a static server render (`$/ui/static`):  a slotted `<form>` merges
  * into the root, which becomes Fomantic's `<form class="ui form">`, and the controls submit natively.
  */
 describe("ui-form (static render)", () => {

@@ -123,7 +123,7 @@ export class EmojiData {
   /**
    * Load the chunks of every name in `names`, in each of `sets` (default:  every set that ships), so later `peek()`s
    * find them synchronously.  Never rejects.
-   * - For the static server render (`$/ui/server`), which is synchronous:  see `UIEmoji.preload()`.
+   * - For the static server render (`$/ui/static`), which is synchronous:  see `UIEmoji.preload()`.
    */
   static async preload(names: Iterable<string>, sets: Iterable<string> = SETS): Promise<void> {
     const list = [...new Set(names)]

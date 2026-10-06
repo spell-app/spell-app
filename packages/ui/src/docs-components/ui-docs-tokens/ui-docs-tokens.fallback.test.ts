@@ -8,7 +8,7 @@ import { SiteData, type SiteDataFile } from "$/ui/docs-components"
 import { DocsTokensFallback } from "./ui-docs-tokens.fallback"
 
 FallbackStub.define("x-fb-docs-tokens", (host, root, internals) =>
-  DocsTokensFallback.render(host, root, new Error("boom"), internals)
+  DocsTokensFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** One family with two tokens, one foundation group. */

@@ -8,7 +8,7 @@ import { RatingFallback } from "./ui-rating.fallback"
 
 FallbackStub.define(
   "x-fb-rating",
-  (host, root, internals) => RatingFallback.render(host, root, new Error("boom"), internals),
+  (host, root, internals) => RatingFallback.render({ host, root, error: new Error("boom"), internals }),
   true
 )
 

@@ -2,11 +2,11 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UINag } from "$/ui/components/ui-nag/UINag"
 
 /**
- * `<ui-nag>` in the static server render (`$/ui/server`, seo plan P3):  always shown -- a server can't read the
+ * `<ui-nag>` in the static server render (`$/ui/static`, seo plan P3):  always shown -- a server can't read the
  * reader's dismissal (plan C2).
  */
 describe("ui-nag static render", () => {

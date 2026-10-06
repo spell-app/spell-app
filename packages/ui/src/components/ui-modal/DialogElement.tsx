@@ -201,7 +201,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
   }
 
   /**
-   * The dialog's `aria-labelledby` in a server render (`$/ui/server`), where no effect applies and no element
+   * The dialog's `aria-labelledby` in a server render (`$/ui/static`), where no effect applies and no element
    * reflects:  the `header` shorthand's id, else the slotted heading's, unless the host has an `aria-label` (which
    * the static output moves onto the dialog).
    * - SIDE EFFECT:  gives the slotted heading (the render's parsed copy) an id if it has none.

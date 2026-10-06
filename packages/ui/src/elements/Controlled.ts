@@ -1,8 +1,9 @@
 import { createSignal, untrack, type Accessor } from "solid-js"
 
-import type { UIHost } from "./UIHost"
+import type { E } from "$/ui/core"
 
-/**
+/****************
+ * ### `Controlled`
  * One auto-controlled property (`value`, `open`, `active`):  the host's property / attribute is authoritative
  * when set;  until then an internal starting value stands in (e.g. a dropdown's `selected` items).
  * - `request(next, announce)` is every USER transition:  it dispatches the event first (`announce()`), then
@@ -16,13 +17,14 @@ import type { UIHost } from "./UIHost"
  * - "Set" ~== the converted value isn't `undefined`:  a boolean (`open`, `active`) is always the host's (its
  *   default is the same `false` the internal value would be);  `el.value = undefined` hands a dropdown back to
  *   its `selected` items.
- */
+ * - Made by `UIElement.controlled()`;  knows the host only by type, so it never loads `UIElement` / `UIHost`.
+ ****************/
 export class Controlled<T> {
   /** Current value:  host's when set, else internal. */
   readonly get: Accessor<T>
 
   /** The host. */
-  private readonly host: UIHost
+  private readonly host: E.UIHost
 
   /** Property on the host, e.g. `value` (`valor` on a translated tag). */
   private readonly property: string
@@ -74,7 +76,8 @@ export class Controlled<T> {
 
 /** Constructor props for `Controlled`. */
 export type ControlledProps<T> = {
-  host: UIHost
+  /** The element whose property this is. */
+  host: E.UIHost
   /** Definition key the fork's change callbacks name (camelCase canonical). */
   key: string
   /** Property on the host. */

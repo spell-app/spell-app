@@ -2,10 +2,10 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIVisibility } from "$/ui/components/ui-visibility/UIVisibility"
 
-/** `<ui-visibility>` in the static server render (`$/ui/server`, seo plan P3):  nothing observes. */
+/** `<ui-visibility>` in the static server render (`$/ui/static`, seo plan P3):  nothing observes. */
 describe("ui-visibility static render", () => {
   beforeAll(() => {
     StaticRender.define(UIVisibility)

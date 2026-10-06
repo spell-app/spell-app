@@ -3,11 +3,11 @@
 import { parseHTML } from "linkedom"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIDimmer } from "$/ui/components/ui-dimmer/UIDimmer"
 
 /**
- * `<ui-dimmer>` rendered statically (`$/ui/server`):  an element dimmer as its `<div>` (shown while `active`), a page
+ * `<ui-dimmer>` rendered statically (`$/ui/static`):  an element dimmer as its `<div>` (shown while `active`), a page
  * dimmer as a CLOSED `<dialog>` with its name.
  */
 describe("ui-dimmer static render", () => {

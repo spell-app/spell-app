@@ -2,11 +2,11 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIRoot } from "$/ui/components/ui-root/UIRoot"
 
 /**
- * `<ui-root>` in the static server render (`$/ui/server`):  a plain wrapper carrying its classes, theme / box states and
+ * `<ui-root>` in the static server render (`$/ui/static`):  a plain wrapper carrying its classes, theme / box states and
  * box style -- never hidden, no loader, no skeletons:  a static page has nothing to wait for.
  */
 describe("ui-root, static", () => {

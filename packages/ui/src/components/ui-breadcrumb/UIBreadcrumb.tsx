@@ -49,7 +49,7 @@ export class UIBreadcrumb extends UIElement<typeof breadcrumbVocabulary> {
 
   /**
    * `divider-icon`'s glyph as a CSS `url()`, once loaded;  tracked.
-   * - A server render (`$/ui/server`) has no `<svg>` template (`glyph.data` stays empty):  the url comes from the
+   * - A server render (`$/ui/static`) has no `<svg>` template (`glyph.data` stays empty):  the url comes from the
    *   icon's markup, read at once.
    */
   private dividerIcon(): string | undefined {

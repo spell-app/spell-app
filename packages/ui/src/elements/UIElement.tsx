@@ -13,31 +13,14 @@ import {
 import { isServer, type JSX } from "@solidjs/web"
 import { customElement, onConnect, onDisconnect, onFormDisabled } from "@spell-app/solid-element"
 
+// Import directly to avoid circular import
 import { proto } from "$/ui/util"
-import { RUNTIME_KEY, UI, type RuntimeGlobal } from "$/ui/runtime"
-import type { ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
-
-import {
-  ERROR_EVENT,
-  type ClassInput,
-  type NativeFallbackHandle,
-  type NativeFallbackRoot,
-  type AttributeName,
-  type AttributeValues,
-  type CamelCase,
-  type EventName,
-  type PartName,
-  type SlotName,
-  type StateName,
-  type TextKey
-} from "./elements.types"
-import { Cell } from "./Cell"
-import { Controlled } from "./Controlled"
-import { ElementDefinition } from "./ElementDefinition"
-import { PartContext } from "./PartContext"
+import { E, UI } from "$/ui/core"
+// Import directly to avoid circular import
 import { UIHost } from "./UIHost"
 
-/**
+/****************
+ * ### `UIElement`
  * Base CONTROLLER of every component:  one instance per element, created by the render function the fork
  * (`@spell-app/solid-element`) calls, holding the component's signals, memos and handlers as fields and methods.
  * - Why a class around a render function:  the library's unit is a function `(props, { element }) => JSX`;
@@ -55,77 +38,130 @@ import { UIHost } from "./UIHost"
  *   the shadow content -- see `renderFallback()`.
  * - NOTE: Solid 2 forbids signal writes inside an owned scope (component body, memo, effect compute).  Write
  *   from event handlers, promise callbacks or the fork's hooks (deferred, see `connected`).
- */
-export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabulary> {
+ * - Documents ONCE what subclasses fill in, so their plain overrides need no docstring (`AGENTS.md` "Comments &
+ *   docs"):
+ *   - the class config, set with `@proto static` ("Class config" below):  `vocabulary`, `styles`, `Fallback`,
+ *     `Host`, `isPart`, `delegatesFocus`, `slotAssignment`, `formAssociated`, `canRenderUnstyled`
+ *   - the hooks ("Hooks" below):  `render()`, `hostStates()`, `classValue()`, `extraClasses()`, `sheetNames()`,
+ *     `isDisabled()`;  a conditional owner adds `ownsPart()` (`ConditionalOwner`)
+ * - Import graph:  the top of the element core -- it uses `UIHost`, `E.PartContext`, `E.ElementDefinition`, `E.Cell`,
+ *   `E.Controlled`, the runtime's eager loader (`UI`) and the fork;  NEVER a component family, and never
+ *   `FormElement` / `FormHost` (they extend it, through `$/ui/core`).  `UIHost` and `proto` come directly:  the class
+ *   definition reads them (`@proto static Host = UIHost`).
+ ****************/
+export abstract class UIElement<V extends E.ComponentVocabulary = E.ComponentVocabulary> {
+  /**
+   * Wrap each element's render in the fork's error boundary (`errorBoundary`), so one element's error disables
+   * THAT element instead of halting reactivity for the page.
+   * - A measurement switch, set by hand:  `docs/report.md` measures the boundary's cost, `test/isolation.test.tsx`
+   *   what a page gets without it.  Read at `define()`.
+   */
+  static ISOLATE_ERRORS = true
+
+  ////////////////
+  // ## Class config
+  ////////////////
+
+  // Each is `@proto static` (defaults below the `declare`s):  ONE value per element CLASS, on its prototype, so
+  // `define()` / `register()` read a subclass's before any instance exists, and instances carry no copies.
+
+  /**
+   * EVERY name the tag uses:  tag, attributes, events, slots, parts, states, texts (`<tag>.vocabulary.en.ts`).
+   * - No default:  each element class sets its own (`@proto static vocabulary = buttonVocabulary`).
+   * - Static:  `define()`, `register()` and `describe()` read it off the class;  one object per tag, shared with
+   *   `UI.vocabulary`.
+   */
   declare vocabulary: V
+
+  /**
+   * Sheets to adopt after the foundation, by registry name => CSS text, in order.
+   * - Static:  registered with `UI.styles` ONCE per class (`adoptStyles()`);  every instance adopts the same sheets.
+   */
   declare styles: Readonly<Record<string, string>>
-  declare Host: typeof UIHost
-  declare isPart: boolean
-  declare delegatesFocus: boolean
-  declare slotAssignment: SlotAssignmentMode
-  declare formAssociated: boolean
+
+  /**
+   * Native fallback shown when this element fails (`$/ui/components/ui-<name>/ui-<name>.fallback.ts`);  none => a
+   * `<slot>`.
+   * - Static:  `defineTag()` hands it to the fork's `fallback` option;  it runs when the controller is gone.
+   */
   declare Fallback: FallbackClass | undefined
-  declare eager: boolean
 
-  /** Sheets to adopt after the foundation, by registry name => CSS text, in order. */
-  @proto static styles: Readonly<Record<string, string>> = {}
+  /**
+   * Host base class;  `FormElement` swaps in `FormHost` (the form-control API).
+   * - Static:  the fork extends it ONCE, at `define()` (`BaseElement`).
+   */
+  declare Host: typeof UIHost
 
-  /** Host base class;  `FormElement` swaps in `FormHost` (the form-control API). */
-  @proto static Host = UIHost
+  /**
+   * A generic content part:  transparent to other parts' owner lookups (`PartContext`).  `ContentPart` sets it.
+   * - Static:  `register()` records it page-wide, by tag, before any instance exists.
+   */
+  declare isPart: boolean
 
-  /** A generic content part:  transparent to other parts' owner lookups (`PartContext`).  `ContentPart` sets it. */
-  @proto static isPart = false
-
-  /** Shadow root `delegatesFocus`;  an element with nothing focusable inside (`<ui-item>`) turns it off. */
-  @proto static delegatesFocus = true
+  /**
+   * Shadow root `delegatesFocus`;  an element with nothing focusable inside (`<ui-item>`) turns it off.
+   * - Static:  a `shadowRootInit` option, read once at `define()`.
+   */
+  declare delegatesFocus: boolean
 
   /**
    * Shadow root `slotAssignment`:  `manual` lets an element hand CHOSEN children to chosen `<slot>`s
    * (`slot.assign()`), e.g. `<ui-accordion>` wrapping each title + content pair in its own `<details>`.
    * - NOTE: a `manual` root assigns nothing by itself:  every `<slot>` it renders stays empty until assigned.
+   * - Static:  a `shadowRootInit` option, read once at `define()`.
    */
-  @proto static slotAssignment: SlotAssignmentMode = "named"
+  declare slotAssignment: SlotAssignmentMode
 
-  /** Form-associated (the fork's `formAssociated` option):  `FormElement`, and `UIButton` for submit / reset. */
-  @proto static formAssociated = false
+  /**
+   * Form-associated (the fork's `formAssociated` option):  `FormElement`, and `UIButton` for submit / reset.
+   * - Static:  the platform reads `static formAssociated` once, when the tag is defined.
+   */
+  declare formAssociated: boolean
 
   /**
    * Render at once, before the runtime and this class's sheets arrive (`loaded()`), instead of waiting for them.
    * - For an element whose content must not wait:  `<ui-root>`'s slot (the page) shows the moment the root is
-   *   defined.  Its render must look right unstyled (inline styles only) until `loaded()`.
+   *   defined.  Its render MUST look right unstyled (inline styles only) until `loaded()`.
+   * - Static:  how the class's render is built (`mount()`), the same for every instance.
    */
-  @proto static eager = false
+  declare canRenderUnstyled: boolean
 
-  /** Native fallback shown when this element fails (`$/ui/components/ui-<name>/ui-<name>.fallback.ts`);  none => a `<slot>`. */
+  /** Default:  no sheets of its own. */
+  @proto static styles: Readonly<Record<string, string>> = {}
+
+  /** Default:  none -- a failed element shows a bare `<slot>`. */
   @proto static Fallback: FallbackClass | undefined = undefined
 
-  /**
-   * Wrap each element's render in the fork's error boundary (`errorBoundary`), so one element's error disables
-   * THAT element instead of halting reactivity for the page.  Read at `define()`;  a switch only so `docs/report.md`
-   * can measure the cost.
-   */
-  static isolateErrors = true
+  /** Default:  `UIHost`. */
+  @proto static Host = UIHost
 
-  /**
-   * A value the host APP may provide around any `ui-*` element (`<AppContext value={...}>`);  read by every
-   * controller as `app`.
-   * - Proves owner adoption across the custom-element boundary (the Solid host page's identity probe,
-   *   `tools/frameworks/solid/identity.js`).
-   * - `null` default:  Solid 2's `useContext` throws on a context with neither a default nor a provider.
-   */
-  static readonly AppContext = createContext<unknown>(null)
+  /** Default:  not a part. */
+  @proto static isPart = false
 
-  /** Definition per registered tag, canonical and translated. */
-  static readonly definitions = new Map<string, ElementDefinition>()
+  /** Default:  on. */
+  @proto static delegatesFocus = true
+
+  /** Default:  `named`, the platform's. */
+  @proto static slotAssignment: SlotAssignmentMode = "named"
+
+  /** Default:  not form-associated. */
+  @proto static formAssociated = false
+
+  /** Default:  wait for the sheets. */
+  @proto static canRenderUnstyled = false
+
+  ////////////////
+  // ## Instance
+  ////////////////
 
   /** The element. */
   readonly host: UIHost
 
   /** Names and converters for this tag. */
-  readonly definition: ElementDefinition
+  readonly definition: E.ElementDefinition
 
   /** Converted canonical attribute values (the fork's props);  reading one tracks it. */
-  readonly attrs: AttributeValues<V>
+  readonly attrs: E.AttributeValues<V>
 
   /** What the app provides as `UIElement.AppContext` above this element, else `null`. */
   readonly app: unknown
@@ -133,7 +169,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
   /** Fomantic class string of the component's root. */
   readonly classes: Accessor<string>
 
-  /** Runtime loaded and sheets adopted. */
+  /** Runtime loaded and sheets adopted;  tracked. */
   readonly loaded: Accessor<boolean>
 
   /**
@@ -141,21 +177,25 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
    * - Deferred:  the fork's hooks run inside `connectedCallback`, which may run inside a Solid render (an app
    *   inserting the element), where a signal write would throw.
    */
-  readonly connected: Cell<boolean>
+  readonly connected: E.Cell<boolean>
 
   /** Disabled by an ancestor `<fieldset disabled>` (form-associated elements only, the fork's hook);  tracked. */
-  readonly formDisabled = new Cell(false)
+  readonly formDisabled = new E.Cell(false)
 
   /** Sets `loaded`. */
   private readonly setLoaded: (value: boolean) => void
 
-  constructor(host: UIHost, definition: ElementDefinition, attrs: AttributeValues<V>) {
+  /**
+   * Called by the render function `defineTag()` hands the fork, once per element, under the element's owner.
+   * - Positional `(host, definition, attrs)`, not a props object:  the fork's call shape (`AGENTS.md` "Classes").
+   */
+  constructor(host: UIHost, definition: E.ElementDefinition, attrs: E.AttributeValues<V>) {
     this.host = host
     this.definition = definition
     this.attrs = attrs
     host.controller = this
     this.app = useContext(UIElement.AppContext)
-    this.connected = new Cell(isServer || host.isConnected)
+    this.connected = new E.Cell(isServer || host.isConnected)
     const classInput = this.classInput()
     // `lazy`:  memos compute EAGERLY in Solid 2, and this one calls overridable methods that read subclass
     // fields, which don't exist yet while this constructor runs
@@ -163,13 +203,14 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
       lazy: true
     })
     // on the server (the SSR probe) there are no sheets to adopt:  render at once
-    const loaded = isServer || (RUNTIME_KEY in globalThis && !!(globalThis as RuntimeGlobal)[RUNTIME_KEY])
-    const [isLoaded, setLoaded] = createSignal(loaded)
-    this.loaded = isLoaded
+    const isRuntimeLoaded =
+      isServer || (E.RUNTIME_KEY in globalThis && !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY])
+    const [loaded, setLoaded] = createSignal(isRuntimeLoaded)
+    this.loaded = loaded
     this.setLoaded = setLoaded
     if (isServer) return
     const root = host.renderRoot
-    const onSlotChange = (event: Event) => PartContext.slotChanged(event.target as HTMLSlotElement)
+    const onSlotChange = (event: Event) => E.PartContext.slotChanged(event.target as HTMLSlotElement)
     root.addEventListener("slotchange", onSlotChange)
     host.addReleaseCallback(() => root.removeEventListener("slotchange", onSlotChange))
     const sync = () => queueMicrotask(() => this.connected.set(host.isConnected))
@@ -183,15 +224,70 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
         else this.formDisabled.set(disabled)
       })
     }
-    if (!loaded) void UI.load().then(() => this.onLoaded())
+    if (!isRuntimeLoaded) void UI.load().then(() => this.onLoaded())
+  }
+
+  ////////////////
+  // ## Hooks
+  ////////////////
+
+  // What subclasses override, documented here once:  an override that only fills one needs no docstring.
+
+  /**
+   * Hook:  the component's shadow content (JSX).
+   * - Runs ONCE, under the element's owner, after its sheets are adopted (`loaded()`;  at once with
+   *   `canRenderUnstyled`):  what changes later is reactive inside the JSX, not a re-render.
+   * - An owned scope:  NEVER write a signal here.
+   */
+  abstract render(): JSX.Element
+
+  /**
+   * Hook:  custom states to set on the host (`:state(open)`), keyed by the vocabulary's state names;  default none.
+   * - Tracked:  a render effect sets and clears them as what it reads changes.  A throw reaches the fork's error
+   *   boundary, like a throw in `render()`.
+   */
+  protected hostStates(): Partial<Record<E.StateName<V>, boolean>> {
+    return {}
+  }
+
+  /**
+   * Hook:  extra classes after the noun in `classes()`, e.g. `icon` for an icon-only button;  default none.
+   * - Tracked, by the `classes()` memo.
+   */
+  protected extraClasses(): string | undefined {
+    return undefined
+  }
+
+  /**
+   * Hook:  the value `ClassBuilder` sees for canonical attribute `name`;  default the converted attribute.
+   * - Override for state the class string must follow instead of the attribute, e.g. a controlled `active`.
+   * - Tracked, by the `classes()` memo.
+   */
+  protected classValue(name: E.AttributeName<V>): unknown {
+    return this.attrs[this.definition.attribute(name).key as keyof E.AttributeValues<V>]
+  }
+
+  /**
+   * Hook:  registry names of the sheets to adopt now, in order;  default every `styles` entry.
+   * - Tracked:  an element whose sheets depend on context (a label owned by a statistic adds `ui-parts.css`)
+   *   overrides it, and the root re-adopts when it changes.
+   */
+  protected sheetNames(): string[] {
+    return Object.keys(this.styles)
+  }
+
+  /**
+   * Hook:  can't the element be used right now?  Default never.
+   * - The host swallows clicks while it says so (`UIHost`);  an element with a `disabled` attribute overrides it
+   *   (`<ui-card>`, `<ui-step>`, the form controls with `formDisabled`).
+   */
+  isDisabled(): boolean {
+    return false
   }
 
   ////////////////
   // ## Rendering
   ////////////////
-
-  /** The component's shadow content;  runs once, after styles are adopted. */
-  abstract render(): JSX.Element
 
   /**
    * Create the effects that call overridable methods, then return the content.  Called by the render function.
@@ -206,72 +302,49 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
     createRenderEffect(
       () => this.hostStates(),
       (states) => {
-        for (const [name, on] of Object.entries(states)) this.host.setState(name, !!on)
+        for (const [name, isOn] of Object.entries(states)) this.host.setState(name, !!isOn)
       }
     )
     createEffect(
       () => this.loaded(),
-      (loaded) => {
-        if (loaded) queueMicrotask(() => this.host.markReady())
+      (isLoaded) => {
+        if (isLoaded) queueMicrotask(() => this.host.markReady())
       }
     )
     // the APPLY uses the computed names:  calling `sheetNames()` there again would read its signals untracked
+    const separator = SHEET_SEPARATOR
     createEffect(
-      () => this.sheetNames().join(SHEET_SEPARATOR),
+      () => this.sheetNames().join(separator),
       (names) => {
-        if (untrack(this.loaded)) UI.styles.adoptInto(this.host.renderRoot, names ? names.split(SHEET_SEPARATOR) : [])
+        if (untrack(this.loaded)) UI.styles.adoptInto(this.host.renderRoot, names ? names.split(separator) : [])
       },
       { defer: true }
     )
-    return <Show when={this.eager || this.loaded()}>{this.render()}</Show>
-  }
-
-  /**
-   * Registry names of the sheets to adopt now, in order;  default every `styles` entry.
-   * - Tracked:  an element whose sheets depend on context (a label owned by a statistic adds `ui-parts.css`)
-   *   overrides it, and the root re-adopts when it changes.
-   */
-  protected sheetNames(): string[] {
-    return Object.keys(this.styles)
+    return <Show when={this.canRenderUnstyled || this.loaded()}>{this.render()}</Show>
   }
 
   /**
    * Registry names of the sheets this element adopts now (`sheetNames()`, untracked).
-   * - For the static render (`$/ui/server`):  an item adopts its owner's sheet (`ui-list.css`), so that sheet's
+   * - For the static render (`$/ui/static`):  an item adopts its owner's sheet (`ui-list.css`), so that sheet's
    *   static scope must include the item.
    */
   sheets(): string[] {
     return untrack(() => this.sheetNames())
   }
 
-  /** Extra classes after the noun, e.g. `icon` for an icon-only button. */
-  protected extraClasses(): string | undefined {
-    return undefined
-  }
-
-  /** Value `ClassBuilder` sees for canonical attribute `name`;  default the converted attribute. */
-  protected classValue(name: AttributeName<V>): unknown {
-    return this.attrs[this.definition.attribute(name).key as keyof AttributeValues<V>]
-  }
-
   /**
    * Classes for a SECOND root from chosen attribute values, e.g. the wrapper of a labeled button.
    * - Keys are canonical attribute names, type-checked against the vocabulary.
    */
-  protected buildClasses(values: Partial<Record<AttributeName<V>, unknown>>, extra?: string): string {
+  protected buildClasses(values: Partial<Record<E.AttributeName<V>, unknown>>, extra?: string): string {
     return this.definition.builder.build(values, { extra })
-  }
-
-  /** Custom states to set on the host;  default none. */
-  protected hostStates(): Partial<Record<StateName<V>, boolean>> {
-    return {}
   }
 
   /**
    * An effect that writes to the HOST (`internals.role`, ARIA, states):  `createEffect(compute, apply)`, except on
    * a server, where it applies once, now.
    * - Why:  the server build runs an effect's compute only, never its apply, so host ARIA a static render must
-   *   write out (`$/ui/server`) would never be set.
+   *   write out (`$/ui/static`) would never be set.
    * - MUST be called from a constructor or field initializer, like `createEffect`.
    */
   protected hostEffect<T>(compute: () => T, apply: (value: T) => void) {
@@ -279,36 +352,31 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
     else createEffect(compute, apply)
   }
 
-  /** True when the element can't be used;  the host swallows clicks then. */
-  isDisabled(): boolean {
-    return false
-  }
-
   /**
    * Auto-controlled state for attribute `name` (see `Controlled`):  the host's property when set, else internal.
    * - MUST be called from a field initializer or constructor (it creates a signal).
    */
-  protected controlled<N extends AttributeName<V>>(
+  protected controlled<N extends E.AttributeName<V>>(
     name: N,
-    initial: AttributeValues<V>[CamelCase<N> & keyof AttributeValues<V>]
-  ): Controlled<AttributeValues<V>[CamelCase<N> & keyof AttributeValues<V>]> {
+    initial: E.AttributeValues<V>[E.CamelCase<N> & keyof E.AttributeValues<V>]
+  ): E.Controlled<E.AttributeValues<V>[E.CamelCase<N> & keyof E.AttributeValues<V>]> {
     const { key, property } = this.definition.attribute(name)
-    type Value = AttributeValues<V>[CamelCase<N> & keyof AttributeValues<V>]
-    return new Controlled<Value>({
+    type Value = E.AttributeValues<V>[E.CamelCase<N> & keyof E.AttributeValues<V>]
+    return new E.Controlled<Value>({
       host: this.host,
       key,
       property,
-      value: () => this.attrs[key as keyof AttributeValues<V>] as Value | undefined,
+      value: () => this.attrs[key as keyof E.AttributeValues<V>] as Value | undefined,
       initial
     })
   }
 
   /** `ClassBuilder` input:  getters over `classValue()`, so the classes memo tracks exactly what it reads. */
-  private classInput(): ClassInput {
+  private classInput(): E.ClassInput {
     const input: Record<string, unknown> = {}
     for (const { spec } of this.definition.attributes) {
       Object.defineProperty(input, spec.name, {
-        get: () => this.classValue(spec.name as AttributeName<V>),
+        get: () => this.classValue(spec.name as E.AttributeName<V>),
         enumerable: true
       })
     }
@@ -320,12 +388,12 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
   ////////////////
 
   /** `part` attribute for canonical part `name`. */
-  part(name: PartName<V>): string {
+  part(name: E.PartName<V>): string {
     return this.definition.part(name)
   }
 
   /** Localized slot name for canonical `name`. */
-  slot(name: SlotName<V>): string {
+  slot(name: E.SlotName<V>): string {
     return this.definition.slot(name)
   }
 
@@ -333,7 +401,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
    * Text for `key` in the current locale, via `UI.i18n`, scoped to this component's canonical tag.
    * - Another family's text under the same key never leaks in (see `registerTexts()`).
    */
-  text(key: TextKey<V>, params?: Record<string, string | number>): string {
+  text(key: E.TextKey<V>, params?: Record<string, string | number>): string {
     return UI.i18n.t(key, params, this.vocabulary.tag)
   }
 
@@ -345,7 +413,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
    * Dispatch vocabulary event `name` from the host:  `bubbles`, `composed`, `cancelable` as the vocabulary says.
    * - Returns false when a cancelable event was vetoed (`preventDefault()`).
    */
-  emit(name: EventName<V>, detail: object): boolean {
+  emit(name: E.EventName<V>, detail: object): boolean {
     const spec = this.definition.vocabulary.events.find((event) => event.name === name)
     const event = new CustomEvent(this.definition.event(name), {
       bubbles: true,
@@ -368,8 +436,8 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
 
   /** Register this class's sheets once, then adopt foundation + sheets into the shadow root. */
   private adoptStyles() {
-    if (!SHEETS.has(this.styles)) {
-      SHEETS.add(this.styles)
+    if (!UIElement.registeredStyles.has(this.styles)) {
+      UIElement.registeredStyles.add(this.styles)
       for (const [name, css] of Object.entries(this.styles)) if (!UI.styles.has(name)) UI.styles.register(name, css)
     }
     UI.styles.adoptInto(
@@ -382,13 +450,35 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
   // ## Definition
   ////////////////
 
+  // Static:  called on the element CLASS (`UIButton.define()`), before any instance exists.
+
+  /**
+   * A value the host APP may provide around any `ui-*` element (`<AppContext value={...}>`);  read by every
+   * controller as `app`.
+   * - Proves owner adoption across the custom-element boundary (the Solid host page's identity probe,
+   *   `tools/frameworks/solid/identity.js`).
+   * - `null` default:  Solid 2's `useContext` throws on a context with neither a default nor a provider.
+   * - Static:  ONE context for the page, shared by every element and the app around it.
+   */
+  static readonly AppContext = createContext<unknown>(null)
+
+  /**
+   * Definition per registered tag, canonical and translated;  components read it to tell a child's kind by its tag
+   * (`UIElement.definitions.get(child.localName)?.vocabulary.noun`).
+   * - Static:  page-wide, like `customElements`, which it mirrors;  `reset()` leaves it, since a defined tag can't
+   *   be undefined.
+   */
+  static readonly definitions = new Map<string, E.ElementDefinition>()
+
   /**
    * Everything this component's markup can say, for introspection at runtime:  its whole vocabulary -- tag,
    * attributes (kinds, allowed values, defaults), events, slots, parts, states, text strings, descriptions, `topics`
    * and `aka`.  Live data:  the same object the element reads (`UIButton.describe().topics`).
    * - Every tag's summary at once:  `ComponentDefinitions` (`src/components/component-definitions.ts`).
    */
-  static describe<T extends { prototype: { vocabulary: ComponentVocabulary } }>(this: T): T["prototype"]["vocabulary"] {
+  static describe<T extends { prototype: { vocabulary: E.ComponentVocabulary } }>(
+    this: T
+  ): T["prototype"]["vocabulary"] {
     return this.prototype.vocabulary
   }
 
@@ -400,8 +490,8 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
    *   `keepAlive`, the error boundary and its `onError` / `fallback`.
    * - Idempotent per tag;  returns the element class.
    */
-  static define(this: UIElementClass, tag?: string, dictionary?: Dictionary): CustomElementConstructor {
-    const definition = new ElementDefinition(this.prototype.vocabulary, { tag, dictionary })
+  static define(this: UIElementClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
+    const definition = new E.ElementDefinition(this.prototype.vocabulary, { tag, dictionary })
     return customElements.get(definition.tag) ?? UIElement.defineTag.call(this, definition)
   }
 
@@ -411,7 +501,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
    * - For a tag already defined, the fork swaps the component in place (Vite dev only:  hot module replacement
    *   re-defines a new version of a class through here, see `HotDefinitions`).
    */
-  static defineTag(this: UIElementClass, definition: ElementDefinition): CustomElementConstructor {
+  static defineTag(this: UIElementClass, definition: E.ElementDefinition): CustomElementConstructor {
     const { Host, delegatesFocus, slotAssignment, formAssociated, Fallback } = this.prototype
     UIElement.register.call(this, definition)
     return customElement(
@@ -424,7 +514,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
         internals: true,
         formAssociated,
         keepAlive: true,
-        errorBoundary: UIElement.isolateErrors,
+        errorBoundary: UIElement.ISOLATE_ERRORS,
         onError: (element, error) => UIElement.failed(element as unknown as UIHost, error),
         fallback: (element, error) => UIElement.renderFallback(element as unknown as UIHost, error, Fallback)
       }
@@ -434,19 +524,21 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
   /**
    * Record `definition` page-wide WITHOUT defining an element:  `definitions`, the part registry
    * (`PartContext.define()`), its English texts.
-   * - `defineTag()` starts with it;  the server render (`$/ui/server`) calls it alone:  node has no
+   * - `defineTag()` starts with it;  the server render (`$/ui/static`) calls it alone:  node has no
    *   `customElements`.
    */
-  static register(this: UIElementClass, definition: ElementDefinition) {
+  static register(this: UIElementClass, definition: E.ElementDefinition) {
     const { vocabulary, isPart } = this.prototype
     UIElement.definitions.set(definition.tag, definition)
-    PartContext.define(vocabulary, definition.tag, isPart, "ownsPart" in this.prototype)
+    E.PartContext.define({ vocabulary, tag: definition.tag, isPart, isConditionalOwner: "ownsPart" in this.prototype })
     UIElement.registerTexts(vocabulary)
   }
 
   ////////////////
   // ## Errors
   ////////////////
+
+  // Static:  the fork calls these per HOST, after the controller broke (or was never built).
 
   /**
    * The fork's `onError`:  an error escaped this element's render, construction or an effect.
@@ -458,23 +550,23 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
     console.error(`<${host.localName}> failed:`, error)
     host.controller = undefined
     host.markReady()
-    const event = new CustomEvent(ERROR_EVENT, { bubbles: true, composed: true, cancelable: true, detail: { error } })
-    if (!host.dispatchEvent(event)) CANCELLED.add(host)
+    const event = new CustomEvent(E.ERROR_EVENT, { bubbles: true, composed: true, cancelable: true, detail: { error } })
+    if (!host.dispatchEvent(event)) UIElement.cancelledHosts.add(host)
   }
 
   /**
-   * The fork's `fallback`:  `Fallback.render(host, renderRoot, error, internals)` -- plain DOM, library-neutral
+   * The fork's `fallback`:  `Fallback.render({ host, root, error, internals })` -- plain DOM, library-neutral
    * markup -- or a bare `<slot>` for an element without one (a group keeps its children visible).
    * - Built a microtask LATER, into the render root directly:  the boundary's own insert would otherwise clear
    *   the root after us, and a fallback like the dropdown's must be attached to set its validity anchor.
    * - Skipped when an app cancelled `ui-error`;  its handle is disposed with the element.
    */
   private static renderFallback(host: UIHost, error: unknown, Fallback: FallbackClass | undefined): undefined {
-    if (CANCELLED.has(host)) return undefined
+    if (UIElement.cancelledHosts.has(host)) return undefined
     queueMicrotask(() => {
       const root = host.renderRoot
       const handle = Fallback
-        ? Fallback.render(host, root, error, host.internals)
+        ? Fallback.render({ host, root, error, internals: host.internals })
         : (root.replaceChildren(host.ownerDocument.createElement("slot")), undefined)
       if (handle) host.addReleaseCallback(() => handle.dispose())
     })
@@ -490,13 +582,14 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
    * - Loads the runtime if it isn't yet;  idempotent per vocabulary.
    * - Server:  never loads one (the real runtime needs `CSSStyleSheet`);  registers only into the one the server
    *   render installed first (`ServerRuntime`).
+   * - Static:  once per vocabulary, page-wide (`registeredVocabularies`).
    */
-  private static registerTexts(vocabulary: ComponentVocabulary) {
-    if (TEXTS.has(vocabulary)) return
-    const loaded = !!(globalThis as RuntimeGlobal)[RUNTIME_KEY]
-    if (isServer && !loaded) return
-    TEXTS.add(vocabulary)
-    if (loaded) register()
+  private static registerTexts(vocabulary: E.ComponentVocabulary) {
+    if (UIElement.registeredVocabularies.has(vocabulary)) return
+    const isRuntimeLoaded = !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]
+    if (isServer && !isRuntimeLoaded) return
+    UIElement.registeredVocabularies.add(vocabulary)
+    if (isRuntimeLoaded) register()
     else void UI.load().then(register)
 
     /** Hand the vocabulary and its English texts to the runtime. */
@@ -510,32 +603,44 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
       UI.i18n.registerDefaults(texts, vocabulary.tag)
     }
   }
+
+  ////////////////
+  // ## Page-wide registries
+  ////////////////
+
+  /**
+   * Forget which sheets, texts and cancelled hosts were registered, for tests.
+   * - Leaves `definitions` (it mirrors `customElements`) and the runtime's own registries (`UI.styles`,
+   *   `UI.i18n`):  the next element of each class registers again, idempotently.
+   */
+  static reset() {
+    UIElement.registeredStyles = new WeakSet()
+    UIElement.registeredVocabularies = new WeakSet()
+    UIElement.cancelledHosts = new WeakSet()
+  }
+
+  // Not `readonly`:  a `WeakSet` can't be cleared, so `reset()` replaces each.
+
+  /** `styles` maps whose sheets are registered with the runtime. */
+  private static registeredStyles = new WeakSet<object>()
+
+  /** Vocabularies whose texts are registered (or queued) with the runtime. */
+  private static registeredVocabularies = new WeakSet<E.ComponentVocabulary>()
+
+  /** Hosts whose `ui-error` an app cancelled:  no fallback. */
+  private static cancelledHosts = new WeakSet<UIHost>()
 }
 
 /** A concrete `UIElement` subclass, as `define()` sees it. */
 export type UIElementClass = {
-  new (host: UIHost, definition: ElementDefinition, attrs: any): UIElement<any>
+  new (host: UIHost, definition: E.ElementDefinition, attrs: any): UIElement<any>
   prototype: UIElement<any>
 }
 
 /** A per-family native fallback class (`ButtonFallback` ...), as `NativeFallback.render()` is called. */
 export type FallbackClass = {
-  render(
-    host: HTMLElement,
-    root: NativeFallbackRoot,
-    error?: unknown,
-    internals?: ElementInternals
-  ): NativeFallbackHandle
+  render(props: E.NativeFallbackProps): E.NativeFallbackHandle
 }
 
 /** Joins sheet registry names into one comparable value (names never contain it). */
 const SHEET_SEPARATOR = " "
-
-/** `styles` maps whose sheets are registered with the runtime. */
-const SHEETS = new WeakSet<object>()
-
-/** Vocabularies whose texts are registered (or queued) with the runtime. */
-const TEXTS = new WeakSet<ComponentVocabulary>()
-
-/** Hosts whose `ui-error` an app cancelled:  no fallback. */
-const CANCELLED = new WeakSet<UIHost>()

@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
+import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
 
 import { listVocabulary } from "./ui-list.vocabulary.en"
 import { PARENTS, LIST_TAG, ORDERED } from "./ui-list.types"
@@ -18,13 +18,8 @@ export class ListFallback extends NativeFallback<typeof listVocabulary> {
     "`ui-select`"
   ]
 
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    this.nested = PARENTS.has(host.parentElement?.localName ?? "")
-  }
-
   /** Inside another list:  the sub-list form. */
-  private readonly nested: boolean
+  private readonly nested = PARENTS.has(this.host.parentElement?.localName ?? "")
 
   protected override build() {
     const outer = this.nested ? this.host.parentElement?.closest(LIST_TAG) : null

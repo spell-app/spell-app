@@ -45,7 +45,7 @@ export class UIBreadcrumbSection extends UIElement<typeof breadcrumbSectionVocab
         </Show>
       </>
     )
-    // a server render (`$/ui/server`) has no host to be the list item:  ONE root, which the flattener makes the
+    // a server render (`$/ui/static`) has no host to be the list item:  ONE root, which the flattener makes the
     // `<li>` -- the class grammar's semantic form, `<li><span class="divider"></span><a class="section">`
     return isServer ? <span>{content}</span> : content
   }

@@ -2,11 +2,11 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UISlider } from "$/ui/components/ui-slider/UISlider"
 
 /**
- * `<ui-slider>` in a static server render (`$/ui/server`):  the track and APG thumbs at their positions, and the
+ * `<ui-slider>` in a static server render (`$/ui/static`):  the track and APG thumbs at their positions, and the
  * value as hidden inputs (no native control has two thumbs), so a no-JS form submits it.
  */
 describe("ui-slider (static render)", () => {

@@ -8,7 +8,9 @@ import { GridFallback } from "./ui-grid.fallback"
 
 // the fallback keys its vocabulary on the host's tag, so the stubs take the real tags
 for (const tag of ["ui-grid", "ui-row", "ui-column"]) {
-  FallbackStub.define(tag, (host, root, internals) => GridFallback.render(host, root, new Error("boom"), internals))
+  FallbackStub.define(tag, (host, root, internals) =>
+    GridFallback.render({ host, root, error: new Error("boom"), internals })
+  )
 }
 
 /** Axe without contrast:  the stub has no stylesheet. */

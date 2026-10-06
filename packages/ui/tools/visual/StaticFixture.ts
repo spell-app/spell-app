@@ -9,7 +9,7 @@
  */
 
 import type { UIElementClass } from "$/ui/elements"
-import { ServerRuntime, StaticRender, StaticStylesheet } from "$/ui/server"
+import { ServerRuntime, StaticRender, StaticStylesheet } from "$/ui/static"
 
 import { StaticFamilies } from "./StaticFamilies.ts"
 

@@ -8,7 +8,9 @@ import { ShapeFallback } from "./ui-shape.fallback"
 
 // the fallback keys on the host's tag, so the stubs take the real tags
 for (const tag of ["ui-shape", "ui-side"]) {
-  FallbackStub.define(tag, (host, root, internals) => ShapeFallback.render(host, root, new Error("boom"), internals))
+  FallbackStub.define(tag, (host, root, internals) =>
+    ShapeFallback.render({ host, root, error: new Error("boom"), internals })
+  )
 }
 
 /** Axe without contrast:  the stub has no stylesheet. */

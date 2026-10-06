@@ -14,7 +14,7 @@ const LOADER_SWITCHES: readonly AttributeName<typeof loaderVocabulary>[] = ["act
  * `UIRoot.Loading`, so an app swaps the look with one assignment or a subclass (`UIRoot.Loading = MyLoading`).
  * - The `ui-loader` family is imported STATICALLY, by the root's barrel (`index.ts`):  one of the two families a root
  *   never loads on demand (the other is `ui-placeholder`, for skeletons).  Not here:  this file is also loaded by the
- *   static server render (`$/ui/server`), where defining an element throws.
+ *   static server render (`$/ui/static`), where defining an element throws.
  * - Built with the DOM, not JSX:  Solid's JSX has no types for our tags.
  ****************/
 export class LoaderMessage {

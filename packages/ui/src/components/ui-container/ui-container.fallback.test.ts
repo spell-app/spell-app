@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { ContainerFallback } from "./ui-container.fallback"
 
 FallbackStub.define("x-fb-container", (host, root, internals) =>
-  ContainerFallback.render(host, root, new Error("boom"), internals)
+  ContainerFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("ContainerFallback", () => {

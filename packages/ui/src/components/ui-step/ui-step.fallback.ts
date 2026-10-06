@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
+import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
 
 import { stepsVocabulary } from "./ui-steps.vocabulary.en"
 import { stepVocabulary } from "./ui-step.vocabulary.en"
@@ -14,17 +14,12 @@ import { ACTIVE, VISUALLY_HIDDEN, LIST } from "$/ui/components/components.types"
  *   the `<slot>` and a visually hidden "Completed";  the host stays a `listitem` (internals)
  ****************/
 export class StepFallback extends NativeFallback {
+  @proto static vocabularies = [stepVocabulary, stepsVocabulary]
   @proto static degraded = [
     "the `icon` glyph and the completed check (an ordered step's CSS check stays)",
     "`link` steps without `href` (a plain box)",
     "translated `stepCompleted` text (English)"
   ]
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = host.localName === stepsVocabulary.tag ? stepsVocabulary : stepVocabulary
-  }
 
   protected override build() {
     if (this.vocabulary === stepsVocabulary) {

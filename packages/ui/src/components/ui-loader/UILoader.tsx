@@ -42,7 +42,7 @@ export class UILoader extends UIElement<typeof loaderVocabulary> {
 
   mount(): JSX.Element {
     // here, not in the constructor:  the name reads `UI.i18n` (via `text()`), which exists once the runtime loads;
-    // `hostEffect`:  a server render (`$/ui/server`) applies it too
+    // `hostEffect`:  a server render (`$/ui/static`) applies it too
     this.hostEffect(
       () => (this.loaded() && !this.hasText() ? this.text("loading") : null),
       (label) => {

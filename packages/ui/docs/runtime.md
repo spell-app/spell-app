@@ -33,7 +33,8 @@ class UIThing extends HTMLElement {
   Then `:state(ready)`, `ui-ready { failed }`, a cancelable `ui-error` per failure before it.
 - `display`:  `skeleton` (default;  `<ui-placeholder>`s from each tag's vocabulary `skeleton`, drawn in the root's
   shadow by `UIRoot.Skeleton`), `when-ready`, `immediately`;  `loading="..."` shows `UIRoot.Loading` (a `<ui-loader>`).
-  The root renders `eager`ly (`UIElement.eager`):  the slot is hidden by an inline style before any sheet loads.
+  The root renders at once, unstyled (`UIElement.canRenderUnstyled`):  the slot is hidden by an inline style before
+  any sheet loads.
 - Settings for everything inside, through `RootSettings` (`src/elements/RootSettings.ts`, in `core`):
   - `icons="fa7-free, /packs/lucide/pack.js"` -- a child icon set, `UI.icons.scope(packs, { assets, parent })`, over
     the outer root's (or the page's);  `parent` is a function, so it follows the outer root's current packs.  One
@@ -69,8 +70,8 @@ class UIThing extends HTMLElement {
 | `UI.modals` | `Modals` | `confirm` / `alert` / `prompt` delegate to the provider `ui-modal`'s barrel registers with `register(provider)` (`ModalDialogs`:  a `<ui-modal>` per call). Throws until then. |
 | `UI.visibility` / `UI.observeVisibility()` | `Visibility` | Fomantic's visibility callbacks on `IntersectionObserver`:  `observe(el, { onOnScreen, onTopVisible, onBottomPassed ..., once, continuous, offset, context })` returns the undo;  checks run at crossings (in / out, an edge crossing the screen top or bottom), not per scrolled pixel. `lazyImage(img, { transition, duration, onLoad })` sets `data-src` / `data-srcset` once on screen, then fades in. |
 | `UI.icons` | `IconPacks` | Icon packs and the page's SVG cache (`docs/icons.md`):  `use(source, { prefix, base, only })`, `reset()`, `remove(id)`, `resolve` / `peek` / `get(name)`, `register(name, svg)`;  `scope(packs, { assets, parent })` makes a `<ui-root icons>`'s child set. |
-| `UI.api` | `Api` | `url(template, data)` and `request({ url, urlData, method, data, throttle, key, signal, timeout, headers, responseType })`. |
-| `UI.sources` | `Sources` | Same-origin text files the source elements (`<ui-include>`, `<ui-code>`, `<ui-markdown>`) show and save:  `load(source, { fresh, signal })` (cached per URL, `ETag` kept), `resolve(source)` (refuses another origin / `file://`), `save({ url, text, etag, fragment })` through `saver`, the page's `SourceSaver` (none by default), `forget(source?)`.  Failures are `SourceError`s with a `kind`. |
+| `UI.api` | `Api` | `url(template, data)` and `request({ url, urlData, method, data, throttle, key, signal, timeout, headers, responseType })`;  a non-2xx answer rejects with `ApiError` (`status`, `response`, from its `cause`). |
+| `UI.sources` | `Sources` | Same-origin text files the source elements (`<ui-include>`, `<ui-code>`, `<ui-markdown>`) show and save:  `load(source, { fresh, signal })` (cached per URL, `ETag` kept), `resolve(source)` (refuses another origin / `file://`), `save({ url, text, etag, fragment })` through `saver`, the page's `SourceSaver` (none by default), `forget(source?)`.  Failures are `SourceError`s:  `kind` and `status` read from their `cause` (`{ kind, status, error }`). |
 
 ## Temporal
 

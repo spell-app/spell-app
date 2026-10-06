@@ -2,7 +2,7 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIFeed } from "$/ui/components/ui-feed/UIFeed"
 import { UIFeedEvent } from "$/ui/components/ui-feed/UIFeedEvent"
 import { UIContent } from "$/ui/components/ui-parts/UIContent"
@@ -10,7 +10,7 @@ import { UIDate } from "$/ui/components/ui-parts/UIDate"
 import { UISummary } from "$/ui/components/ui-parts/UISummary"
 
 /**
- * `<ui-feed>` in the static server render (`$/ui/server`):  a `<ul>` (`<ol>` when `ordered`) whose events' `<div>`
+ * `<ui-feed>` in the static server render (`$/ui/static`):  a `<ul>` (`<ol>` when `ordered`) whose events' `<div>`
  * roots become the `<li>`s -- the events' `listitem` role is a host effect, applied once on the server.
  */
 describe("ui-feed, static", () => {

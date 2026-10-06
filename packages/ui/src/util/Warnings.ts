@@ -16,7 +16,7 @@ export class Warnings {
    * - NEVER throws.
    */
   static warn(source: string, message: string, ...data: unknown[]) {
-    console.warn(`${Warnings.PREFIX} ${source}:  ${message}`, ...data)
+    console.warn(`${PREFIX} ${source}:  ${message}`, ...data)
   }
 
   /**
@@ -28,7 +28,7 @@ export class Warnings {
   static devWarn(source: string, message: string, ...data: unknown[]) {
     if (import.meta.env?.DEV) Warnings.warn(source, message, ...data)
   }
-
-  /** What every warning starts with, so `@spell-app/ui`'s are greppable in a busy console. */
-  static readonly PREFIX = "[@spell-app/ui]"
 }
+
+/** What every warning starts with, so `@spell-app/ui`'s are greppable in a busy console. */
+const PREFIX = "[@spell-app/ui]"

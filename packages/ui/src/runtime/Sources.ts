@@ -1,5 +1,4 @@
 import {
-  SOURCE_ERROR_KINDS,
   SourceError,
   type SourceLoadOptions,
   type SourceSaveRequest,
@@ -39,11 +38,15 @@ export class Sources {
    */
   resolve(source: string, base: string = document.baseURI): URL {
     if (location.protocol === "file:") {
-      throw new SourceError("file-protocol", `Can't load ${source}:  a page opened from disk can't fetch files`)
+      throw new SourceError(`Sources.resolve():  can't reach ${source} from a page opened from disk;  serve the page`, {
+        cause: { kind: "file-protocol" }
+      })
     }
     const url = new URL(source, base)
     if (url.origin !== location.origin) {
-      throw new SourceError("cross-origin", `Can't load ${url.href}:  only ${location.origin} may be loaded`)
+      throw new SourceError(`Sources.resolve():  ${url.href} is on another origin;  serve it from ${location.origin}`, {
+        cause: { kind: "cross-origin" }
+      })
     }
     return url
   }
@@ -83,20 +86,26 @@ export class Sources {
     else this.cache.delete(new URL(source, document.baseURI).href)
   }
 
-  /** GET `url` (no cache, no credentials beyond same-origin) as `SourceText`. */
+  /**
+   * GET `url` (no cache, no credentials beyond same-origin) as `SourceText`.
+   * - Throws a `load` `SourceError`, the network error (if any) as `cause.error`;  messages say `Sources.load()`,
+   *   the method its callers called.
+   */
   private async fetch(url: string): Promise<SourceText> {
     let response: Response
     try {
       response = await fetch(url, { cache: "no-cache" })
     } catch (error) {
-      throw new SourceError("load", `Can't load ${url}:  ${(error as Error).message}`)
+      const said = error instanceof Error ? error.message : String(error)
+      throw new SourceError(`Sources.load():  ${url} didn't answer (${said});  is its server up?`, {
+        cause: { kind: "load", error }
+      })
     }
     if (!response.ok) {
-      throw new SourceError(
-        "load",
-        `Can't load ${url}:  ${response.status} ${response.statusText}`.trim(),
-        response.status
-      )
+      const answer = `${response.status} ${response.statusText}`.trim()
+      throw new SourceError(`Sources.load():  ${url} answered ${answer};  check the path`, {
+        cause: { kind: "load", status: response.status }
+      })
     }
     return {
       url,
@@ -113,23 +122,30 @@ export class Sources {
   /**
    * Save `request.text` to `request.url` through `saver`;  resolves with the new version.
    * - Rejects with `SourceError`:  `no-saver`, `cross-origin` / `file-protocol` (checked again), or whatever the
-   *   saver threw (`conflict`, `save`);  any other error from a saver becomes `save`.
+   *   saver threw (`conflict`, `save`);  any other error from a saver becomes `save`, kept as `cause.error`.
    * - SIDE EFFECT:  a whole-file save replaces the cache entry with the saved text;  a `fragment` save drops it.
    */
   async save(request: SourceSaveRequest): Promise<SourceSaveResult> {
     const url = this.resolve(request.url).href
-    if (!this.saver) throw new SourceError("no-saver", `Can't save ${url}:  this page has no way to save`)
+    if (!this.saver) {
+      throw new SourceError(`Sources.save():  this page has no saver for ${url};  set \`UI.sources.saver\``, {
+        cause: { kind: "no-saver" }
+      })
+    }
     let result: SourceSaveResult
     try {
       result = await this.saver({ ...request, url })
     } catch (error) {
       if (error instanceof SourceError) throw error
       const { kind, message, status } = (error ?? {}) as { kind?: unknown; message?: unknown; status?: unknown }
-      const text = `Can't save ${url}:  ${typeof message === "string" ? message : error}`
-      if (SOURCE_ERROR_KINDS.includes(kind as never)) {
-        throw new SourceError(kind as SourceError["kind"], text, typeof status === "number" ? status : undefined)
-      }
-      throw new SourceError("save", text)
+      const said = typeof message === "string" ? message : String(error)
+      throw new SourceError(`Sources.save():  the saver failed for ${url}:  ${said}`, {
+        cause: {
+          kind: SourceError.isKind(kind) ? kind : "save",
+          status: typeof status === "number" ? status : undefined,
+          error
+        }
+      })
     }
     if (request.fragment) this.cache.delete(url)
     else this.cache.set(url, Promise.resolve({ url, text: request.text, etag: result.etag }))

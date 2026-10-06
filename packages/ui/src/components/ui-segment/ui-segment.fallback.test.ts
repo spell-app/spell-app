@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { SegmentFallback } from "./ui-segment.fallback"
 
 FallbackStub.define("x-fb-segment", (host, root, internals) =>
-  SegmentFallback.render(host, root, new Error("boom"), internals)
+  SegmentFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("SegmentFallback", () => {

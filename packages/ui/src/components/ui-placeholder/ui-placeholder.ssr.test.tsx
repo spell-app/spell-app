@@ -2,13 +2,13 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIPlaceholder } from "$/ui/components/ui-placeholder/UIPlaceholder"
 import { UIPlaceholderHeader } from "$/ui/components/ui-placeholder/UIPlaceholderHeader"
 import { UIPlaceholderLine } from "$/ui/components/ui-placeholder/UIPlaceholderLine"
 import { UIPlaceholderParagraph } from "$/ui/components/ui-placeholder/UIPlaceholderParagraph"
 
-/** `<ui-placeholder>` and its shapes in the static server render (`$/ui/server`, seo plan P3). */
+/** `<ui-placeholder>` and its shapes in the static server render (`$/ui/static`, seo plan P3). */
 describe("ui-placeholder static render", () => {
   beforeAll(() => {
     StaticRender.define(UIPlaceholder, UIPlaceholderHeader, UIPlaceholderLine, UIPlaceholderParagraph)

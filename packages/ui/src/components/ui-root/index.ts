@@ -3,7 +3,7 @@
  * - SIDE EFFECT:  defines `<ui-root>`, `<ui-loader>` (its loading message) and the `<ui-placeholder>`s (its
  *   skeletons).  Every other family is imported on demand, by what's inside a root.
  * - NOTE: the two families are imported HERE, not by `LoaderMessage` / `PlaceholderSkeleton`:  the static server
- *   render (`$/ui/server`) loads `UIRoot` from its own file, and defining an element throws in node.
+ *   render (`$/ui/static`) loads `UIRoot` from its own file, and defining an element throws in node.
  */
 
 import { UIRoot } from "./UIRoot"

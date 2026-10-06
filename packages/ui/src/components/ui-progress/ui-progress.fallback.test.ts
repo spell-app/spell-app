@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { ProgressFallback } from "./ui-progress.fallback"
 
 FallbackStub.define("x-fb-progress", (host, root, internals) =>
-  ProgressFallback.render(host, root, new Error("boom"), internals)
+  ProgressFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

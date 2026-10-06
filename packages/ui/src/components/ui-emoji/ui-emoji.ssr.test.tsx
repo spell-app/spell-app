@@ -2,11 +2,11 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIEmoji } from "$/ui/components/ui-emoji/UIEmoji"
 
 /**
- * `<ui-emoji>` in the static server render (`$/ui/server`, seo plan P3):  the render is synchronous, so the page's
+ * `<ui-emoji>` in the static server render (`$/ui/static`, seo plan P3):  the render is synchronous, so the page's
  * names are loaded first (`UIEmoji.preload()`).
  */
 describe("ui-emoji static render", () => {

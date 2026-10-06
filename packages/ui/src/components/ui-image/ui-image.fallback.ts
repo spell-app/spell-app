@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
+import { NativeFallback, proto } from "$/ui/core"
 
 import { imageVocabulary } from "./ui-image.vocabulary.en"
 import { imagesVocabulary } from "./ui-images.vocabulary.en"
@@ -12,13 +12,8 @@ import { NATIVE } from "./ui-image.types"
  * - `<ui-images>`:  `<div part="group" class="ui ... images"><slot></slot></div>`
  ****************/
 export class ImageFallback extends NativeFallback {
+  @proto static vocabularies = [imageVocabulary, imagesVocabulary]
   @proto static degraded = []
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = host.localName === imagesVocabulary.tag ? imagesVocabulary : imageVocabulary
-  }
 
   protected override build() {
     if (this.vocabulary === imagesVocabulary) {

@@ -2,11 +2,11 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UISearch } from "$/ui/components/ui-search/UISearch"
 
 /**
- * `<ui-search>` in a static server render (`$/ui/server`):  the input (a combobox holding the query) and its icon box;
+ * `<ui-search>` in a static server render (`$/ui/static`):  the input (a combobox holding the query) and its icon box;
  * the results popover empty and closed -- searching needs JS.
  */
 describe("ui-search (static render)", () => {

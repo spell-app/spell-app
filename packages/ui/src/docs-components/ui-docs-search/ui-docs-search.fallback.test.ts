@@ -8,7 +8,7 @@ import { SiteData } from "$/ui/docs-components"
 import { DocsSearchFallback } from "./ui-docs-search.fallback"
 
 FallbackStub.define("x-fb-docs-search", (host, root, internals) =>
-  DocsSearchFallback.render(host, root, new Error("boom"), internals)
+  DocsSearchFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** A data file with two components, as a blob URL. */

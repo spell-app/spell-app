@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { RevealFallback } from "./ui-reveal.fallback"
 
 FallbackStub.define("x-fb-reveal", (host, root, internals) =>
-  RevealFallback.render(host, root, new Error("boom"), internals)
+  RevealFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("RevealFallback", () => {

@@ -4,7 +4,7 @@
  * styles what's left, linked or inline.
  * - Loaded through Vite's SSR (`StaticRenderer`, `server.ssrLoadModule(StaticRenderer.DOCUMENT)`), NEVER by node
  *   directly:  the controllers' JSX must compile for the server, as for `visual/StaticFixture.ts`.
- * - Node only, like `$/ui/server`.
+ * - Node only, like `$/ui/static`.
  */
 
 import { existsSync, readFileSync } from "node:fs"
@@ -13,7 +13,7 @@ import { parseHTML } from "linkedom"
 import { transform } from "lightningcss"
 import postcss from "postcss"
 
-import { StaticCatalog, StaticPageStyles, StaticRender, StaticStylesheet } from "$/ui/server"
+import { StaticCatalog, StaticPageStyles, StaticRender, StaticStylesheet } from "$/ui/static"
 
 import type {
   StaticCoverage,

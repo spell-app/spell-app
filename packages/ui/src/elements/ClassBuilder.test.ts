@@ -174,12 +174,6 @@ describe("ClassBuilder width options", () => {
 })
 
 describe("ClassBuilder statics", () => {
-  it("converts numbers to words", () => {
-    expect(ClassBuilder.numberToWord(1)).toBe("one")
-    expect(ClassBuilder.numberToWord("16")).toBe("sixteen")
-    expect(ClassBuilder.numberToWord(17)).toBeUndefined()
-  })
-
   it("keeps grammar words on the prototype", () => {
     expect(widgets.grammar.aligned).toBe("aligned")
     expect(Object.hasOwn(widgets, "grammar")).toBe(false)

@@ -45,7 +45,7 @@ import rootCSS from "./ui-root.css?inline"
  * - Ready:  every family settled, then every `ui-*` element inside `ready` (a nested root:  its own `settled`), or the
  *   `timeout`.  Then `:state(ready)`, `ui-ready { failed }`, and the content shows.  Each tag that didn't load fires a
  *   cancelable `ui-error` first.  Content added later loads too, but is never hidden again.
- * - While loading (`display`, not `immediately`):  the slot is hidden by an INLINE style (the root renders `eager`ly,
+ * - While loading (`display`, not `immediately`):  the slot is hidden by an INLINE style (`canRenderUnstyled`,
  *   before any sheet), with its space kept (`when-ready`), or not drawn at all when the `loading` message or the
  *   skeletons show instead.
  * - `skeleton`:  every element inside whose tag describes a skeleton (`ComponentVocabulary.skeleton`, in the generated
@@ -60,7 +60,7 @@ import rootCSS from "./ui-root.css?inline"
  *   subtree's `--ui-scale` in the root's own sheet (`RootBox`).
  * - `stack-with`:  the subtree's `--ui-stack-with` token (also in `RootBox`), which every stacking element without a
  *   `stack-with` of its own follows (`UIT.STACK_WITH_TOKEN`).
- * - Static server render (`$/ui/server`):  nothing loads and nothing is hidden;  the root is a plain wrapper
+ * - Static server render (`$/ui/static`):  nothing loads and nothing is hidden;  the root is a plain wrapper
  *   (`serverRender()`).
  ****************/
 export class UIRoot extends UIElement<RootVocabulary> {
@@ -68,7 +68,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
   @proto static styles = { root: rootCSS }
   @proto static Fallback = RootFallback
   @proto static delegatesFocus = false
-  @proto static eager = true
+  @proto static canRenderUnstyled = true
 
   /** What shows with `loading`:  swap it for another look (`UIRoot.Loading = MyLoading`). */
   @proto static Loading: RootLoading = LoaderMessage
@@ -214,7 +214,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
   }
 
   /**
-   * Text `key` once the runtime is loaded (tracked), else `undefined`:  the root renders `eager`ly, before `UI.i18n`
+   * Text `key` once the runtime is loaded (tracked), else `undefined`:  the root renders at once (`canRenderUnstyled`), before `UI.i18n`
    * exists, and `text()` throws until then.
    */
   private runtimeText(key: Parameters<UIRoot["text"]>[0]): string | undefined {

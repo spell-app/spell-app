@@ -121,7 +121,7 @@
   }
   /*
    * Shadow DOM:  the root is always an only child, so the HOST's position decides.
-   * - `:not([data-ui])`:  in a static server render (`$/ui/server`) the root REPLACES the host, so this would zero
+   * - `:not([data-ui])`:  in a static server render (`$/ui/static`) the root REPLACES the host, so this would zero
    *   the host's own margin;  the root's `.ui.items` rules above give it there, as in static markup.
    */
   :host(:state(items)) > .ui.items:not([data-ui]) {

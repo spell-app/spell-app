@@ -45,7 +45,7 @@ export const DESCENDING: UIT.TableSortDirection = "descending"
 /** Tables the element rendered itself:  never mistaken for an author's. */
 export const GENERATED = new WeakSet<HTMLTableElement>()
 
-/** The static server render's component-root marker (`$/ui/server`'s flattener writes it on every root). */
+/** The static server render's component-root marker (`$/ui/static`'s flattener writes it on every root). */
 export const DATA_UI = "data-ui"
 
 /** Header attributes the element manages. */

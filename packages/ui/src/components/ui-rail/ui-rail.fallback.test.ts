@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { RailFallback } from "./ui-rail.fallback"
 
 FallbackStub.define("x-fb-rail", (host, root, internals) =>
-  RailFallback.render(host, root, new Error("boom"), internals)
+  RailFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("RailFallback", () => {

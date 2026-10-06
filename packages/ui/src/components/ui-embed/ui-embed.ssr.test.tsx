@@ -2,10 +2,10 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIEmbed } from "$/ui/components/ui-embed/UIEmbed"
 
-/** `<ui-embed>` in the static server render (`$/ui/server`, seo plan P3):  nothing third-party loads. */
+/** `<ui-embed>` in the static server render (`$/ui/static`, seo plan P3):  nothing third-party loads. */
 describe("ui-embed static render", () => {
   beforeAll(() => {
     StaticRender.define(UIEmbed)

@@ -1,13 +1,15 @@
 import { createSignal, type Accessor, type SignalOptions } from "solid-js"
 
-/**
- * A signal as one object (`cell.get()` / `cell.set(v)`), so a component can declare state as an ordinary class
+/****************
+ * ### `Cell`
+ * A signal as one object (`cell.get()` / `cell.set(value)`), so a component can declare state as an ordinary class
  * FIELD initializer.
+ * - A leaf of the element core:  imports only `solid-js`.
  * - Why:  Solid 2 memos compute EAGERLY on creation, and field initializers run in declaration order, BEFORE
  *   the subclass constructor body -- a memo field reading a signal assigned in the constructor sees
  *   `undefined`.  Declaring every signal as a field (above the memos that read it) keeps the order obvious.
  * - NOTE: `set()` from an owned scope (component body, memo, effect compute) throws in dev;  see `UIElement`.
- */
+ ****************/
 export class Cell<T> {
   /** Read (tracked). */
   readonly get: Accessor<T>

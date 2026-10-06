@@ -101,7 +101,7 @@ export class UITransition extends UIElement<TransitionVocabulary> {
         if (visible !== this.target) void this.queueVisibility(visible, this.animationName())
       }
     )
-    // a server render (`$/ui/server`) never calls `ref`:  first paint's `hidden` as an attribute
+    // a server render (`$/ui/static`) never calls `ref`:  first paint's `hidden` as an attribute
     if (isServer)
       return (
         <div class={this.classes()} part={this.part("transition")} hidden={!this.target || undefined}>

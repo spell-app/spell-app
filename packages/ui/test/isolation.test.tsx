@@ -55,15 +55,15 @@ beforeAll(() => {
 })
 
 /**
- * Define `tag` for `Element` with the fork's error boundary OFF:  `isolateErrors` is read at `define()`.
+ * Define `tag` for `Element` with the fork's error boundary OFF:  `ISOLATE_ERRORS` is read at `define()`.
  * - Restores the switch afterwards.
  */
 function defineBare(Element: UIElementClass & typeof UIElement, tag: string) {
-  UIElement.isolateErrors = false
+  UIElement.ISOLATE_ERRORS = false
   try {
     Element.define(tag)
   } finally {
-    UIElement.isolateErrors = true
+    UIElement.ISOLATE_ERRORS = true
   }
 }
 

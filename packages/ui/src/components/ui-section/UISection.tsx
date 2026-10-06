@@ -157,7 +157,7 @@ export class UISection extends UIElement<SectionVocabulary> {
   private sentinel?: HTMLDivElement
 
   /** Observes the stuck title and reserves its room. */
-  private readonly watch = new StickyWatch(({ edge }) => this.stuck.set(edge !== null))
+  private readonly watch = new StickyWatch(({ edge }) => this.stuck.set(edge !== undefined))
 
   ////////////////
   // ## Derived state
@@ -226,10 +226,10 @@ export class UISection extends UIElement<SectionVocabulary> {
   readonly folded = createMemo(() => this.collapsible() && !!this.collapsedState.get())
 
   /** Content box held closed while the `source` body is on its way (never in a server render:  nothing loads). */
-  readonly veiled = createMemo(() => !isServer && !!this.attrs.source && this.body.veiled())
+  readonly veiled = createMemo(() => !isServer && !!this.attrs.source && this.body.isVeiled)
 
   /** Busy:  `loading`, or a `source` body slow to arrive. */
-  readonly busy = createMemo(() => !!this.attrs.loading || this.body.busy())
+  readonly busy = createMemo(() => !!this.attrs.loading || this.body.isBusy)
 
   /** The error line's text, when the `source` body failed;  else `undefined`. */
   readonly bodyFailureText = createMemo(() => {
@@ -276,7 +276,7 @@ export class UISection extends UIElement<SectionVocabulary> {
    */
   protected extraClasses(): string | undefined {
     const scrolling = this.attrs.height && !this.attrs.scrolling ? SCROLLING : undefined
-    const loading = !this.attrs.loading && this.body.busy() ? LOADING : undefined
+    const loading = !this.attrs.loading && this.body.isBusy ? LOADING : undefined
     return [scrolling, loading].filter(Boolean).join(" ") || undefined
   }
 

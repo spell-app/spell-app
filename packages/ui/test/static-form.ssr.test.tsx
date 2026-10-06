@@ -3,7 +3,7 @@
 import { parseHTML } from "linkedom"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIButton } from "$/ui/components/ui-button/UIButton"
 import { UICalendar } from "$/ui/components/ui-calendar/UICalendar"
 import { UICheckbox } from "$/ui/components/ui-checkbox/UICheckbox"

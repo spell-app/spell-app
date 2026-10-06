@@ -3,13 +3,13 @@
 import { parseHTML } from "linkedom"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIContent } from "$/ui/components/ui-parts/UIContent"
 import { UITitle } from "$/ui/components/ui-parts/UITitle"
 import { UIAccordion } from "$/ui/components/ui-accordion/UIAccordion"
 
 /**
- * `<ui-accordion>` rendered statically (`$/ui/server`):  its `<details>` / `<summary>` pairs built from the light
+ * `<ui-accordion>` rendered statically (`$/ui/static`):  its `<details>` / `<summary>` pairs built from the light
  * children, each child inside its panel, open panels open, an exclusive accordion's `name` unique on the page.
  */
 describe("ui-accordion static render", () => {

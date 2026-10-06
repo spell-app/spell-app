@@ -196,7 +196,7 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
 
   /**
    * An unowned item's render:  just its content, the bare `<slot>`.
-   * - Server render (`$/ui/server`):  wrapped in a `<span>`, the host's stand-in (`:host`'s `display: contents`
+   * - Server render (`$/ui/static`):  wrapped in a `<span>`, the host's stand-in (`:host`'s `display: contents`
    *   reaches it as the root).  Why:  the flattener hands a host's `slot` to its render's FIRST element only, so a
    *   rich dropdown item (`<b>Bold</b> one`, assigned to its row's named slot) would lose the text beside its
    *   element (seo plan, I20).

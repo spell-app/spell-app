@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
+import { Converters, NativeFallback, proto } from "$/ui/core"
 
 import { tabsVocabulary } from "./ui-tabs.vocabulary.en"
 import { tabVocabulary } from "./ui-tab.vocabulary.en"
@@ -29,18 +29,13 @@ import { TRUE, FALSE, LABEL, BASIC, SELECTED, ACTIVE, ITEM } from "$/ui/componen
  *   while its own `selected` / `active` is set;  a `role=tabpanel` host inside a `<ui-tabs>` parent.
  ****************/
 export class TabFallback extends NativeFallback<TabFallbackVocabulary> {
+  @proto static vocabularies = [tabVocabulary, tabsVocabulary]
   @proto static degraded = [
     "switching panes:  the tab list is drawn, but a click selects nothing (the panes keep what they showed)",
     "the arrow keys, `ui-change`, `history`, View Transitions, tab icons",
     "a pane's owner-decided look (`attached`, `basic`, `inverted` edges), `lazy` templates, `ui-show`",
     "tabs through translated or slotted parents (only a direct `<ui-tabs>` parent counts)"
   ]
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = host.localName === tabsVocabulary.tag ? tabsVocabulary : tabVocabulary
-  }
 
   protected override build() {
     return this.vocabulary === tabsVocabulary ? this.tabs() : this.pane()

@@ -8,7 +8,9 @@ import { ImageFallback } from "./ui-image.fallback"
 
 // the fallback keys its vocabulary on the host's tag, so the stubs take the real tags
 for (const tag of ["ui-image", "ui-images"]) {
-  FallbackStub.define(tag, (host, root, internals) => ImageFallback.render(host, root, new Error("boom"), internals))
+  FallbackStub.define(tag, (host, root, internals) =>
+    ImageFallback.render({ host, root, error: new Error("boom"), internals })
+  )
 }
 
 /** Axe without contrast:  the stub has no stylesheet. */

@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
+import { NativeFallback, proto } from "$/ui/core"
 
 import { shapeVocabulary } from "./ui-shape.vocabulary.en"
 import { sideVocabulary } from "./ui-side.vocabulary.en"
@@ -13,16 +13,11 @@ import type { ShapeFallbackVocabulary } from "./ui-shape.types"
  *   on the host)
  ****************/
 export class ShapeFallback extends NativeFallback<ShapeFallbackVocabulary> {
+  @proto static vocabularies = [shapeVocabulary, sideVocabulary]
   @proto static degraded = [
     "a failed shape:  every side shows, stacked;  no flips, `ui-change` or `flip()` / `next()` / `previous()` " +
       "(they resolve `false`)"
   ]
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = host.localName === sideVocabulary.tag ? sideVocabulary : shapeVocabulary
-  }
 
   protected override build() {
     if (this.vocabulary === sideVocabulary) {

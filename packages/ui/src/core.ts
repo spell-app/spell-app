@@ -16,6 +16,10 @@
  *   by families that import it.
  * - NOTE: `$/ui/elements` LEAVES are re-exported, against `AGENTS.md`:  its barrel also exports the `forms` files, and
  *   an `export *` of it here would make them `core` exports, i.e. core bytes.
+ * - NOTE: those leaves import this entry back, as `E` / `UI` / `UIT`:  a cycle, on purpose (WWOD §4 › "ONE namespace
+ *   per sub-system").  What a leaf reads while it EVALUATES (a base class, `@proto`, a static initializer) comes from
+ *   its own file instead (WWOD §4 › "Circular imports"), and the order below puts each such file before its readers.
+ *   `src/elements/barrel.test.ts` checks every export is live.
  * - NOTE: `solid-js`, `@solidjs/web` and `@spell-app/solid-element` are NOT re-exported:  peer dependencies, external
  *   in the build (`vite.config.ts`).
  * - NOTE: nothing here may `import * as` a Solid package:  a namespace keeps every export alive, which pins ALL of

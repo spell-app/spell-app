@@ -1,15 +1,7 @@
-import {
-  ElementDefinition,
-  RUNTIME_KEY,
-  UI,
-  UIElement,
-  type ComponentVocabulary,
-  type Dictionary,
-  type RuntimeGlobal,
-  type UIElementClass
-} from "$/ui/core"
+import { E, UI } from "$/ui/core"
 
-/**
+/****************
+ * ### `HotDefinitions`
  * Dev-only glue between Vite's hot module replacement and `UIElement.define()`;  NEVER in a build.
  * - Loaded by `@spell-app/solid-element/vite` (the `setup` option, `vite.config.ts`) into every component barrel,
  *   before its `define()` calls run.  SIDE EFFECT:  `install()` wraps `UIElement.define`.
@@ -22,27 +14,24 @@ import {
  *   `updateStyle()` re-registers a component sheet whose `?inline` CSS changed.
  * - NOTE: a vocabulary whose tag was renamed defines the NEW tag;  instances of the old one keep the old class.
  * - `UI.vocabulary.replace()` swaps a changed vocabulary in, and re-resolves the runtime's translated names from it.
- */
+ * - Imports the core through `$/ui/core`, as a component file does:  it's loaded into component barrels, and NOTHING
+ *   in the core imports it (it's not in the `$/ui/elements` barrel).
+ * - STATIC and instance-free on purpose:  ONE record of definitions per page, as `customElements` is.
+ ****************/
 export class HotDefinitions {
-  /** Every tag defined so far, with what defined it;  by resolved tag. */
-  private static readonly tags = new Map<string, HotTag>()
-
-  /** `UIElement.define` as declared, once `install()` has run. */
-  private static original?: typeof UIElement.define
-
   /** Wrap `UIElement.define`;  idempotent. */
   static install() {
     if (HotDefinitions.original) return
-    HotDefinitions.original = UIElement.define
-    UIElement.define = function (this: UIElementClass, tag?: string, dictionary?: Dictionary) {
+    HotDefinitions.original = E.UIElement.define
+    E.UIElement.define = function (this: E.UIElementClass, tag?: string, dictionary?: E.Dictionary) {
       return HotDefinitions.define(this, tag, dictionary)
     }
   }
 
   /** The wrapped `define()`:  record, re-define on a new version of a class, else as declared. */
-  static define(Class: UIElementClass, tag?: string, dictionary?: Dictionary): CustomElementConstructor {
+  static define(Class: E.UIElementClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
     const original = HotDefinitions.original!
-    const resolved = new ElementDefinition(Class.prototype.vocabulary, { tag, dictionary }).tag
+    const resolved = new E.ElementDefinition(Class.prototype.vocabulary, { tag, dictionary }).tag
     const known = HotDefinitions.tags.get(resolved)
     if (!known) {
       HotDefinitions.tags.set(resolved, { Class, tag, dictionary })
@@ -60,7 +49,7 @@ export class HotDefinitions {
    * - The fork swaps each class's component, props and options (or records why it can't:  `hotUpdate()` then
    *   reloads the page).
    */
-  static replace(Previous: UIElementClass, Next: UIElementClass) {
+  static replace(Previous: E.UIElementClass, Next: E.UIElementClass) {
     const before = Previous.prototype.vocabulary
     const after = Next.prototype.vocabulary
     if (before !== after) {
@@ -74,8 +63,8 @@ export class HotDefinitions {
     for (const known of HotDefinitions.tags.values()) {
       if (known.Class !== Previous) continue
       known.Class = Next
-      const definition = new ElementDefinition(Next.prototype.vocabulary, known)
-      UIElement.defineTag.call(Next, definition)
+      const definition = new E.ElementDefinition(Next.prototype.vocabulary, known)
+      E.UIElement.defineTag.call(Next, definition)
     }
   }
 
@@ -93,34 +82,44 @@ export class HotDefinitions {
   }
 
   /**
-   * Run `fn` now if the runtime is loaded, else once it is.
+   * Run `task` now if the runtime is loaded, else once it is.
    * - Queued behind registrations `define()` already queued, ahead of the ones it queues next (same promise).
    */
-  private static whenRuntime(fn: () => void) {
-    if ((globalThis as RuntimeGlobal)[RUNTIME_KEY]) fn()
-    else void UI.load().then(fn)
+  private static whenRuntime(task: () => void) {
+    if ((globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]) task()
+    else void UI.load().then(task)
   }
 
   /**
-   * English texts `Next` changed, as its new defaults.
+   * English texts the `next` version of a vocabulary changed, as its new defaults.
    * - Defaults sit below every registered string (`I18n.registerDefaults()`), so a translation still wins.
    */
-  private static updateTexts(Previous: ComponentVocabulary, Next: ComponentVocabulary) {
-    const before = new Map(Previous.texts.map(({ key, text }) => [key, text]))
+  private static updateTexts(previous: E.ComponentVocabulary, next: E.ComponentVocabulary) {
+    const previousTexts = new Map(previous.texts.map(({ key, text }) => [key, text]))
     const changed: Record<string, string> = {}
-    for (const { key, text } of Next.texts) if (before.get(key) !== text) changed[key] = text
-    if (Object.keys(changed).length) UI.i18n.registerDefaults(changed, Next.tag)
+    for (const { key, text } of next.texts) if (previousTexts.get(key) !== text) changed[key] = text
+    if (Object.keys(changed).length) UI.i18n.registerDefaults(changed, next.tag)
   }
+
+  ////////////////
+  // ## Page-wide registry
+  ////////////////
+
+  /** Every tag defined so far, with what defined it;  by resolved tag. */
+  private static readonly tags = new Map<string, HotTag>()
+
+  /** `UIElement.define` as declared, once `install()` has run. */
+  private static original?: typeof E.UIElement.define
 }
 
 /** What defined one tag:  enough to define it again with a new version of the class. */
 type HotTag = {
   /** Current class. */
-  Class: UIElementClass
+  Class: E.UIElementClass
   /** `define()`'s `tag` argument, as passed. */
   tag?: string
   /** `define()`'s `dictionary` argument. */
-  dictionary?: Dictionary
+  dictionary?: E.Dictionary
 }
 
 HotDefinitions.install()

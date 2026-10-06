@@ -3,12 +3,12 @@
 import { parseHTML } from "linkedom"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIShape } from "$/ui/components/ui-shape/UIShape"
 import { UISide } from "$/ui/components/ui-shape/UISide"
 
 /**
- * `<ui-shape>` rendered statically (`$/ui/server`):  every side in the HTML, the `active-index` one shown (its state),
+ * `<ui-shape>` rendered statically (`$/ui/static`):  every side in the HTML, the `active-index` one shown (its state),
  * the rest `inactive`;  a `text` shape as `<span>`s, so it stays inside its paragraph.
  */
 describe("ui-shape static render", () => {

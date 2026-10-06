@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { TextFallback } from "./ui-text.fallback"
 
 FallbackStub.define("x-fb-text", (host, root, internals) =>
-  TextFallback.render(host, root, new Error("boom"), internals)
+  TextFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

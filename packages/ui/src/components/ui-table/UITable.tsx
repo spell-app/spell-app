@@ -54,7 +54,7 @@ import { ARIA_LABEL, BUTTON, TABINDEX, ENTER } from "$/ui/components/components.
  *     document;  a server renders the same `<table>` itself (first paint never needs the property).
  *   - NOTE: no virtualization (the plan's ~200-row threshold):  every row renders.
  * - NOTE: `sort-column` counts `colspan`s but not `rowspan`s (see `TableSort`).
- * - Static server render (`$/ui/server`):  no observers, effects or listeners;  `decorateStatic()` writes the author
+ * - Static server render (`$/ui/static`):  no observers, effects or listeners;  `decorateStatic()` writes the author
  *   table's classes, marker and `aria-sort` once, and data mode renders its table inside the scroller (the page's
  *   static stylesheet styles it there).
  ****************/

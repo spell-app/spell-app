@@ -2,11 +2,11 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UICalendar } from "$/ui/components/ui-calendar/UICalendar"
 
 /**
- * `<ui-calendar>` in a static server render (`$/ui/server`):  the text field showing the value as a browser formats
+ * `<ui-calendar>` in a static server render (`$/ui/static`):  the text field showing the value as a browser formats
  * it, the ISO value as a hidden input (so a no-JS form submits it), the popup closed.
  * - The picker needs `Temporal`, which a server render may not have:  these hold either way.
  */

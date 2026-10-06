@@ -15,7 +15,7 @@ export class Invoker {
    */
   static resolve(host: Element, id: string | undefined): Element | null {
     if (!id) return null
-    // duck-typed, not `instanceof Document / ShadowRoot`:  the static render resolves ids in node (`$/ui/server`)
+    // duck-typed, not `instanceof Document / ShadowRoot`:  the static render resolves ids in node (`$/ui/static`)
     const root = host.getRootNode() as Partial<Document>
     return typeof root.getElementById === "function" ? root.getElementById(id) : null
   }

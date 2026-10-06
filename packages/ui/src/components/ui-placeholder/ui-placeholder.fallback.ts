@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { placeholderVocabulary } from "./ui-placeholder.vocabulary.en"
 import { VOCABULARIES, SOLID } from "./ui-placeholder.types"
@@ -10,13 +10,8 @@ import { VOCABULARIES, SOLID } from "./ui-placeholder.types"
  * - `<ui-placeholder>` also keeps its host contract:  `aria-hidden` and `:state(placeholder)` (internals).
  ****************/
 export class PlaceholderFallback extends NativeFallback {
+  @proto static vocabularies = VOCABULARIES
   @proto static degraded = []
-
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = VOCABULARIES.find((vocabulary) => vocabulary.tag === host.localName) ?? placeholderVocabulary
-  }
 
   protected override build() {
     const { noun } = this.vocabulary

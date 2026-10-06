@@ -7,9 +7,11 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { CardFallback } from "./ui-card.fallback"
 
 // the fallback keys on the host's and its parent's tags, so the stubs take the real tags
-FallbackStub.define("ui-card", (host, root, internals) => CardFallback.render(host, root, new Error("boom"), internals))
+FallbackStub.define("ui-card", (host, root, internals) =>
+  CardFallback.render({ host, root, error: new Error("boom"), internals })
+)
 FallbackStub.define("ui-cards", (host, root, internals) =>
-  CardFallback.render(host, root, new Error("boom"), internals)
+  CardFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

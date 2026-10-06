@@ -15,7 +15,7 @@ import { SIDE } from "./ui-shape.types"
  * - Passive:  the HOST is the face that turns.  Its shape sets its states (`active`, `inactive`, `animating`,
  *   `leaving`) and, while flipping, its inline `transform` / `top` / `left`;  `ui-shape.css` does the rest.
  * - Outside a working shape (no `inactive` state) every side shows, stacked:  content is never lost.
- * - Server render (`$/ui/server`):  in a `text` shape the root is a `<span>` (`UIShape.serverInline()`).  Which side
+ * - Server render (`$/ui/static`):  in a `text` shape the root is a `<span>` (`UIShape.serverInline()`).  Which side
  *   shows goes by its states (`data-state`), not the class grammar's `active` class:  that one's rule (states layer)
  *   would beat a cube face's `display: flex`.
  ****************/

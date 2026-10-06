@@ -45,7 +45,12 @@ export class CodeHighlighter {
       return { html: guess.html, language: guess.language, detected: true }
     }
     const name = await engine.ensure(language)
-    if (!name) throw new SourceError("render", `No highlighting for "${language}"`)
+    if (!name) {
+      throw new SourceError(
+        `CodeHighlighter.highlight():  no highlighting for "${language}";  \`UI.code.register()\` it`,
+        { cause: { kind: "render" } }
+      )
+    }
     return { html: engine.highlight(code, name), language: name, detected: false }
   }
 
@@ -59,7 +64,12 @@ export class CodeHighlighter {
     const ready = language.load ? await CodeHighlighter.loadLanguage(name, language, variant) : language
     if (ready.highlight)
       return { html: CodeLines.fromSpans(code, await ready.highlight(code)), language: name, detected: false }
-    if (!ready.grammar) throw new SourceError("render", `"${name}" has neither a grammar nor a highlighter`)
+    if (!ready.grammar) {
+      throw new SourceError(
+        `CodeHighlighter.highlight():  "${name}" has neither a grammar nor a highlighter;  give it one`,
+        { cause: { kind: "render" } }
+      )
+    }
     const engine = await CodeHighlighter.load()
     engine.register(name, ready.grammar, { aliases: language.aliases, detect: language.detect })
     return { html: engine.highlight(code, name), language: name, detected: false }
@@ -75,9 +85,11 @@ export class CodeHighlighter {
     if (!pending) {
       pending = language.load!(variant).catch((error: unknown) => {
         CodeHighlighter.loaded.delete(name)
-        throw error instanceof SourceError
-          ? error
-          : new SourceError("render", `Can't load "${name}":  ${(error as Error)?.message ?? error}`)
+        if (error instanceof SourceError) throw error
+        const said = error instanceof Error ? error.message : String(error)
+        throw new SourceError(`CodeHighlighter.highlight():  "${name}" didn't load (${said});  check its \`load()\``, {
+          cause: { kind: "render", error }
+        })
       })
       CodeHighlighter.loaded.set(name, pending)
     }

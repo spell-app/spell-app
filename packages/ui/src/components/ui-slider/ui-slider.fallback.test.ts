@@ -8,7 +8,7 @@ import { SliderFallback } from "./ui-slider.fallback"
 
 FallbackStub.define(
   "x-fb-slider",
-  (host, root, internals) => SliderFallback.render(host, root, new Error("boom"), internals),
+  (host, root, internals) => SliderFallback.render({ host, root, error: new Error("boom"), internals }),
   true
 )
 

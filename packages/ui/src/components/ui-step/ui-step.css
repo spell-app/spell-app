@@ -182,7 +182,7 @@
 
   /* Group:  a bordered row of steps.
      - `container: none`:  the root is never the size container (its host is, or in static markup its parent);  a
-       static server render (`$/ui/server`) moves the host's `container` onto the root, where inline-size
+       static server render (`$/ui/static`) moves the host's `container` onto the root, where inline-size
        containment would shrink the inline-flex group to nothing. */
   .ui.steps {
     container: none;

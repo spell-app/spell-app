@@ -6,7 +6,9 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 
 import { AdFallback } from "./ui-ad.fallback"
 
-FallbackStub.define("x-fb-ad", (host, root, internals) => AdFallback.render(host, root, new Error("boom"), internals))
+FallbackStub.define("x-fb-ad", (host, root, internals) =>
+  AdFallback.render({ host, root, error: new Error("boom"), internals })
+)
 
 describe("AdFallback", () => {
   it("renders the class grammar, part and slot, with the test text", async () => {

@@ -7,9 +7,11 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { FeedFallback } from "./ui-feed.fallback"
 
 // the fallback keys on the host's and its parent's tags, so the stubs take the real tags
-FallbackStub.define("ui-feed", (host, root, internals) => FeedFallback.render(host, root, new Error("boom"), internals))
+FallbackStub.define("ui-feed", (host, root, internals) =>
+  FeedFallback.render({ host, root, error: new Error("boom"), internals })
+)
 FallbackStub.define("ui-event", (host, root, internals) =>
-  FeedFallback.render(host, root, new Error("boom"), internals)
+  FeedFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 /** Axe without contrast:  the stub has no stylesheet. */

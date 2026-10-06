@@ -86,7 +86,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
 
   /**
    * Options of a memo that reads OTHER elements' controllers:  `lazy` on a server only.
-   * - Why:  a server memo computes ONCE, and a static render (`$/ui/server`) builds controllers in document order,
+   * - Why:  a server memo computes ONCE, and a static render (`$/ui/static`) builds controllers in document order,
    *   so an eager memo here would see panes without controllers;  lazy, it first computes at render time.
    */
   static readonly serverLazy = { lazy: isServer }
@@ -257,7 +257,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
 
   /**
    * One tab:  a `<button role="tab">` in the menu's item grammar, controlling `pane`.
-   * - `aria-controls`:  element reflection in a browser;  in a server render (`$/ui/server`), the pane's id.
+   * - `aria-controls`:  element reflection in a browser;  in a server render (`$/ui/static`), the pane's id.
    *   SIDE EFFECT there:  gives the pane (the render's parsed copy) an id if it has none, which the static output
    *   keeps.
    */

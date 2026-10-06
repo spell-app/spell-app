@@ -45,7 +45,12 @@ export class SpellLanguage {
   /** The highlighter for translation `variant` (default English);  a `render` `SourceError` when there's none. */
   static async load(variant: string = SpellLanguage.DEFAULT): Promise<Omit<CodeLanguage, "load">> {
     const loading = SpellLanguage.bundleLoader(variant)
-    if (!loading) throw new SourceError("render", `No "${variant}" translation of spell to highlight with`)
+    if (!loading) {
+      throw new SourceError(
+        `SpellLanguage.load():  no "${variant}" translation of spell;  use one \`yarn gen:spell\` built`,
+        { cause: { kind: "render" } }
+      )
+    }
     return (await loading).default
   }
 }

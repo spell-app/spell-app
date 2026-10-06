@@ -6,7 +6,9 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { ItemFallback } from "./ui-item.fallback"
 
 // the fallback keys on its PARENT's canonical tag, so the parents are plain elements with the real tags
-FallbackStub.define("ui-item", (host, root, internals) => ItemFallback.render(host, root, new Error("boom"), internals))
+FallbackStub.define("ui-item", (host, root, internals) =>
+  ItemFallback.render({ host, root, error: new Error("boom"), internals })
+)
 
 describe("ItemFallback", () => {
   it("renders a bare slot outside a list or menu", () => {

@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { DocsTocFallback } from "./ui-docs-toc.fallback"
 
 FallbackStub.define("x-fb-docs-toc", (host, root, internals) =>
-  DocsTocFallback.render(host, root, new Error("boom"), internals)
+  DocsTocFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("DocsTocFallback", () => {

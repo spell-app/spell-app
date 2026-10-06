@@ -1,15 +1,19 @@
-// through the `core` ENTRY, see `FormElement.ts`
-import { UIHost } from "$/ui/core"
+import { E } from "$/ui/core"
 
-/**
- * Host base of form-associated components (`ui-dropdown`, and `ui-button` for `type=submit|reset`):  the usual
+/****************
+ * ### `FormHost`
+ * Host base of form-associated components (`<ui-dropdown>`, `<ui-input>`, `<ui-checkbox>` ...):  the usual
  * form-control API (`form`, `validity`, `checkValidity()` ...), read from `internals`.
  * - Form association itself is the fork's `formAssociated` option (`@proto static formAssociated`, passed by
  *   `UIElement.define()`);  form callbacks reach the controller through the fork's `onFormReset` /
  *   `onFormDisabled` hooks.
- */
-export class FormHost extends UIHost {
-  /** Form owner. */
+ * - `<ui-button type="submit|reset">` is form-associated too, but keeps `UIHost`:  it needs no value or validity.
+ * - Part of the `forms` entry:  extends `E.UIHost` through the `$/ui/core` ENTRY, never its leaf;  safe while this
+ *   module evaluates, since the core never imports `forms` (see `FormElement`).
+ * - `null` where the platform says it (`form`):  the same API as a native control.
+ ****************/
+export class FormHost extends E.UIHost {
+  /** Form owner;  `null` outside a form, as a native control's. */
   get form(): HTMLFormElement | null {
     return this.internals.form
   }

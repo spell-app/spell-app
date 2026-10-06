@@ -2,11 +2,11 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIButton } from "$/ui/components/ui-button/UIButton"
 
 /**
- * `<ui-button>` in a static server render (`$/ui/server`):  the inner `<button>` is the form's submitter, so a no-JS
+ * `<ui-button>` in a static server render (`$/ui/static`):  the inner `<button>` is the form's submitter, so a no-JS
  * form submits / resets with it as the element would (seo plan, I18).
  */
 describe("ui-button (static render)", () => {

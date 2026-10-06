@@ -18,7 +18,7 @@ import {
   UI,
   UIT
 } from "$/ui/core"
-import { FormElement, MenuOptions } from "$/ui/forms"
+import { FormElement, MenuOptions, type MenuOptionsProps } from "$/ui/forms"
 
 import { dropdownVocabulary } from "./ui-dropdown.vocabulary.en"
 import { DropdownFallback } from "./ui-dropdown.fallback"
@@ -54,7 +54,7 @@ import dropdownCSS from "./ui-dropdown.css?inline"
  * - Menu rows render only while open (`<For>` keyed by option identity);  `aria-activedescendant` points at
  *   the highlighted row.  Escape and outside clicks come from `UI.overlays`.
  * - Form-associated:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
- * - Static server render (`$/ui/server`):  the menu closed, its rows rendered (their text is in the page), the
+ * - Static server render (`$/ui/static`):  the menu closed, its rows rendered (their text is in the page), the
  *   `<ui-item>`s dropped, and the value as hidden inputs, so a static form submits it;  choosing needs JS.
  ****************/
 export class UIDropdown extends FormElement<Vocabulary> {
@@ -97,7 +97,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   private readonly initialValue = untrack(() => this.attrs.value)
 
   /** Search-key cache shared by every `MenuOptions` this element derives. */
-  private readonly keys = new WeakMap() as NonNullable<ConstructorParameters<typeof MenuOptions>[2]>
+  private readonly keys = new WeakMap() as NonNullable<MenuOptionsProps["keys"]>
 
   /** Stable DOM id per option. */
   private readonly optionIds = new WeakMap<MenuOption, string>()
@@ -171,7 +171,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   /** Options offered now:  minus chosen (multiple), filtered, plus the addition. */
   readonly visible = createMemo(() => {
     const query = this.effectiveQuery()
-    return new MenuOptions(this.all(), undefined, this.keys)
+    return new MenuOptions({ options: this.all(), keys: this.keys })
       .excludeSelected(this.attrs.multiple ? this.values() : [])
       .filter(query, { minCharacters: this.attrs.minCharacters ?? 0 })
       .withAdditions(query, { allowAdditions: this.attrs.allowAdditions && this.canAdd() })

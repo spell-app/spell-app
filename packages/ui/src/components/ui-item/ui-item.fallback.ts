@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
+import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
 
 import { itemVocabulary } from "./ui-item.vocabulary.en"
 import { OWNERS, LIST_OWNERS } from "./ui-item.types"
@@ -20,13 +20,8 @@ export class ItemFallback extends NativeFallback<typeof itemVocabulary> {
     "`link` / interactive items (a `<div>` unless `href`), `menuitem` roles, `aria-current`"
   ]
 
-  constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
-    super(host, root, error, internals)
-    this.owner = OWNERS.get(host.parentElement?.localName ?? "")
-  }
-
   /** Owner noun from the parent's tag, or `undefined`. */
-  private readonly owner: string | undefined
+  private readonly owner = OWNERS.get(this.host.parentElement?.localName ?? "")
 
   protected override build() {
     if (!this.owner) return [this.slot()]

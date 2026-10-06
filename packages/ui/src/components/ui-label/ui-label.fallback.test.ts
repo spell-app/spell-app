@@ -7,7 +7,7 @@ import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 import { LabelFallback } from "./ui-label.fallback"
 
 FallbackStub.define("x-fb-label", (host, root, internals) =>
-  LabelFallback.render(host, root, new Error("boom"), internals)
+  LabelFallback.render({ host, root, error: new Error("boom"), internals })
 )
 
 describe("LabelFallback", () => {

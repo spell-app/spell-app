@@ -43,7 +43,7 @@ import {
  * - `ui-valid` / `ui-invalid` fire per field validated;  `values` / `validate()` / `isValid()` / `reset()` /
  *   `clear()` are on the host (`UIFormHost`).
  * - `prevent-leaving`:  a `beforeunload` guard while the values differ from those at connect / reset / success.
- * - Static server render (`$/ui/server`):  a `<form>` slotted inside it MERGES into the root, which becomes
+ * - Static server render (`$/ui/static`):  a `<form>` slotted inside it MERGES into the root, which becomes
  *   `<form class="ui … form">` with the author's attributes (`mergedForm`):  Fomantic's own markup, so the form's
  *   rules reach its fields and messages, and the page still submits natively.  A form around it stays as it is.
  ****************/

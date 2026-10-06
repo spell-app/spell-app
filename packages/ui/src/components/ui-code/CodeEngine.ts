@@ -134,7 +134,12 @@ export class CodeEngine {
   /** Add (or replace) grammar `name`;  `detect` makes auto-detection consider it. */
   register(name: string, grammar: CodeGrammar, options: { aliases?: readonly string[]; detect?: boolean } = {}) {
     if (this.grammars.get(name) === grammar) return
-    if (typeof grammar !== "function") throw new SourceError("render", `"${name}" isn't a highlight.js grammar`)
+    if (typeof grammar !== "function") {
+      throw new SourceError(
+        `CodeEngine.register():  "${name}" isn't a highlight.js grammar;  pass \`(hljs) => Language\``,
+        { cause: { kind: "render" } }
+      )
+    }
     this.grammars.set(name, grammar)
     this.hljs.registerLanguage(name, grammar as LanguageFn)
     if (options.aliases?.length) this.hljs.registerAliases([...options.aliases], { languageName: name })
