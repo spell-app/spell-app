@@ -163,7 +163,9 @@ async function start() {
  *   - a plan item OPENS:  the address never follows items, so an item's `#q16` is a link someone followed
  *     (`spell dev docs link --hash q16 --show`), and a folded item shows nothing of what it pointed at
  * - else nowhere:  the top
- * - then the address starts following the scroll
+ * - then the address starts following the scroll;  after a `#hash`, only once the jump has landed:  a target in a
+ *   body not loaded yet (a split plan doc's part) lands a moment later, and following before that saw the top of
+ *   the page, and wrote the hash away (I3 of `windows-and-review`)
  */
 function land({ hash, scroll }, jump, follow) {
   if (scroll !== undefined) {
@@ -174,7 +176,7 @@ function land({ hash, scroll }, jump, follow) {
     }, SETTLE_MS)
     follow?.update()
   } else if (hash) {
-    jump(hash, { unfoldTarget: isPlanItem(hash) })
+    const landed = jump(hash, { unfoldTarget: isPlanItem(hash) })
     // the browser's own jump to the `#hash` can come AFTER ours and land the target under the stuck titles (an
     // item has no box of its own:  `display: contents`), so land once more when the page has settled, unless the
     // reader has moved meanwhile
@@ -182,6 +184,8 @@ function land({ hash, scroll }, jump, follow) {
     for (const type of ["wheel", "touchstart", "keydown", "pointerdown"])
       addEventListener(type, () => (moved = true), { once: true, passive: true })
     setTimeout(() => !moved && jump(hash, { unfoldTarget: false }), SETTLE_MS * 2)
+    void landed.then(() => follow?.followAddress())
+    return
   } else follow?.update()
   follow?.followAddress()
 
@@ -1788,7 +1792,8 @@ function wireAnchors(main, outline, sticky, follow, folds) {
   }
 
   /**
-   * Scroll to `id` and make its entry the current one;  once what it unfolded has drawn.
+   * Scroll to `id` and make its entry the current one;  once what it unfolded has drawn.  Returns a promise that
+   * settles once it has landed (or found nothing to land on).
    * - `id` inside a body not loaded yet (a split plan doc's part:  an Overview `h4`, an old `#d7` answer card):  its
    *   host loads the body first (`hostHolding()`, `load()`), then the jump goes on (caveat C8 of `claude-design`)
    */
@@ -1796,22 +1801,23 @@ function wireAnchors(main, outline, sticky, follow, folds) {
     const target = targetIn(id)
     if (!target) {
       const host = hostHolding(main, id)
-      if (host?.load)
-        void host.load().then(
-          () => targetIn(id) && jump(id, { unfoldTarget }),
-          () => undefined
-        )
-      return
+      if (!host?.load) return Promise.resolve()
+      return host.load().then(
+        () => (targetIn(id) ? jump(id, { unfoldTarget }) : undefined),
+        () => undefined
+      )
     }
     let landed = NaN
     // what a jump unfolds opens at once, without the fold animation, so the page gets there quickly (Owen,
     // 2026-10-04):  `spell-doc.css` zeroes `--ui-section-duration` under `data-spell-jumping`
     const root = document.documentElement
     root.setAttribute("data-spell-jumping", "")
-    if (folds.reveal(target, { self: unfoldTarget })) void nextFrames(UNFOLD_FRAMES).then(land)
-    else land()
+    const done = folds.reveal(target, { self: unfoldTarget })
+      ? nextFrames(UNFOLD_FRAMES).then(land)
+      : (land(), undefined)
     setTimeout(() => root.removeAttribute("data-spell-jumping"), SETTLE_MS)
     if (outline.sections) setTimeout(() => Math.abs(scrollY - landed) < 2 && land(), SETTLE_MS)
+    return done ?? Promise.resolve()
 
     /** Scroll to the target, pin its entry. */
     function land() {
