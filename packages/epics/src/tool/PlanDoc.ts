@@ -1,14 +1,6 @@
 import { parseHTML } from "linkedom"
 
-import {
-  Definitions,
-  FLOW,
-  OVERVIEW_PART_ID,
-  SectionIds,
-  type EpicData,
-  type EpicTag,
-  type PageSectionKind
-} from "$/epics/definitions"
+import { OVERVIEW_PART_ID, SectionIds, type EpicData, type EpicTag, type PageSectionKind } from "$/epics/definitions"
 import { Markup, type MarkupContent } from "$/epics/markup"
 
 import {
@@ -57,7 +49,7 @@ import { PlanTime } from "./PlanTime"
  * - Every edit makes or sets `<epic-*>` elements THROUGH `$/epics` `Markup`:  data in attributes, prose in children,
  *   checked against the definitions.  It never writes layout:  the elements draw their chrome (chips, labels, the
  *   step label, progress, the Plan changes box, the Plan hung? notice ...).
- * - Children go where their parent's content model lists them (`place()`):  a phase's Symptom before its Goal, an
+ * - Children go where their parent's content model lists them (`Markup.place()`):  a phase's Symptom before its Goal, an
  *   item's text before its Choices, answer, replies, Original Discussion and commits.
  * - Pure:  a parsed document in, changes on it;  no files, no git, no clock unless passed one.  The command line
  *   reads and writes the doc (its lock, its parts, links and formatting) and hands this the document.
@@ -137,7 +129,7 @@ export class PlanDoc extends PlanReader {
     const found = this.findSection(kind)
     if (found) return found
     const section = this.make("epic-section", { id: SectionIds[kind], kind })
-    this.place(this.page, section)
+    Markup.place(this.page, section)
     return section
   }
 
@@ -269,7 +261,7 @@ export class PlanDoc extends PlanReader {
    */
   addPhaseUpdate(n: number, html: string): void {
     const phase = this.phase(n)
-    this.place(phase, this.make("epic-updated", { at: PlanTime.clockTime(this.now), phase: this.activePhase }, html))
+    Markup.place(phase, this.make("epic-updated", { at: PlanTime.clockTime(this.now), phase: this.activePhase }, html))
     this.log(`P${n} plan updated`)
   }
 
@@ -402,7 +394,7 @@ export class PlanDoc extends PlanReader {
       { id, title: heading.title, status: spec.live, phase: this.activePhase, answered: kind === "decision" },
       heading.slot ? [heading.slot] : []
     )
-    for (const node of this.incoming(details)) this.place(item, node)
+    for (const node of this.incoming(details)) Markup.place(item, node)
     section.append(item)
     if (spec.prefix === KINDS.question.prefix) this.placeQuestion(item)
     this.stamp(item)
@@ -434,7 +426,7 @@ export class PlanDoc extends PlanReader {
       // the answer it replaces is kept (headed by its old decision's id, `D7`), unless it said the same
       if (!same) this.keepOriginal(question, [Markup.set(old, { id })])
       Markup.set(card, { id })
-    } else this.place(question, card)
+    } else Markup.place(question, card)
     if (option) this.chooseOption(question, option)
     Markup.set(question, { status: "decided", answered: true })
     this.placeQuestion(question)
@@ -738,9 +730,9 @@ export class PlanDoc extends PlanReader {
       const replaced = Array.from(item.childNodes).filter((node) => !isKept(node))
       for (const node of replaced) node.remove()
       this.keepOriginal(item, replaced)
-      for (const node of nodes) this.place(item, node)
+      for (const node of nodes) Markup.place(item, node)
       if (chosen && PlanItem.optionsOf(item).some((option) => option.letter === chosen)) this.chooseOption(item, chosen)
-    } else for (const node of nodes) this.place(item, node)
+    } else for (const node of nodes) Markup.place(item, node)
     this.stamp(item)
     this.markUpdate(item)
     return PlanItem.titleOf(item)
@@ -768,7 +760,7 @@ export class PlanDoc extends PlanReader {
       old.remove()
       this.keepOriginal(item, Array.from(old.childNodes))
     }
-    this.place(item, this.make("epic-more", {}, this.incoming(html, { cards: false })))
+    Markup.place(item, this.make("epic-more", {}, this.incoming(html, { cards: false })))
     this.stamp(item)
     this.markUpdate(item)
     return PlanItem.titleOf(item)
@@ -793,7 +785,7 @@ export class PlanDoc extends PlanReader {
     const reply = this.make("epic-reply", { from: "Owen", at: stamp, re: how }, `<p>${PlanMarkup.text(note)}</p>`)
     const next = replies.find((each) => (each.getAttribute("at") ?? "") >= stamp)
     if (next) next.before(reply)
-    else this.place(item, reply)
+    else Markup.place(item, reply)
     this.stamp(item)
 
     /** Is `reply` this note's already:  Owen's, at the same time, saying the same? */
@@ -829,7 +821,7 @@ export class PlanDoc extends PlanReader {
       return "unchanged"
     if (!original) {
       original = this.make("epic-original", {})
-      this.place(item, original)
+      Markup.place(item, original)
     }
     // oldest first:  the undated first version never sorts after a date
     const later = versions.find((other) => (other.getAttribute("as-of") ?? "") > when)
@@ -954,7 +946,7 @@ export class PlanDoc extends PlanReader {
       old.replaceWith(entry)
       return "replaced"
     }
-    this.place(host, entry)
+    Markup.place(host, entry)
     return "added"
   }
 
@@ -1118,31 +1110,6 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Put `node` into `parent` where its content model lists it (`childOrder: "listed"`):  after every child of its
-   * own kind or an earlier one, before the first of a later one;  at the end when the model has no order.
-   * - slotted children (a title) and blank text are never in the way;  blank text isn't placed
-   * - NOTE: a private reading of `MarkupCheck`'s matching:  `Markup` has no `place()` (yet)
-   */
-  place(parent: Element, node: Node): void {
-    if (PlanMarkup.isBlank(node)) return
-    const specs = Definitions.of(parent.localName)?.children.filter(
-      (spec) => !spec.slot && (!spec.when || spec.when.values.includes(parent.getAttribute(spec.when.attribute) ?? ""))
-    )
-    if (!specs || Definitions.of(parent.localName)?.childOrder !== "listed") {
-      parent.append(node)
-      return
-    }
-    const rank = (child: Node) => specs.findIndex((spec) => matches(spec, child))
-    const own = rank(node)
-    const next = Array.from(parent.childNodes).find(
-      (child) =>
-        !PlanMarkup.isBlank(child) && !(PlanMarkup.isElement(child) && child.hasAttribute("slot")) && rank(child) > own
-    )
-    if (next) next.before(node)
-    else parent.append(node)
-  }
-
-  /**
    * Set `phase`'s field `name` (`<epic-field name>`) to `html`:  replaces its children, or a new field in its place;
    * `""` removes it.
    */
@@ -1157,7 +1124,7 @@ export class PlanDoc extends PlanReader {
       Markup.append(old, html)
       return
     }
-    this.place(phase, this.make("epic-field", { name }, html))
+    Markup.place(phase, this.make("epic-field", { name }, html))
   }
 
   /** `html` (a command's) as nodes of this doc, old shapes turned into elements (`IncomingHtml`). */
@@ -1293,19 +1260,4 @@ function promptHTML(prompt: string | null | undefined): string {
     .filter((paragraph) => paragraph.trim())
     .map((paragraph) => `<p>${PlanMarkup.text(paragraph.trim()).replace(/\n/g, "<br>")}</p>`)
     .join("")
-}
-
-/**
- * Whether `child` is a child content-model `spec` describes:  its tag (or prose, for `FLOW`) and `where`.
- * - prose:  text, any element that isn't an `<epic-*>`, or a `flow` one (`<epic-update>`)
- */
-function matches(
-  spec: { tag: string; where?: { attribute: string; values: readonly string[] } },
-  child: Node
-): boolean {
-  if (!PlanMarkup.isElement(child)) return spec.tag === FLOW
-  const epic = child.localName.startsWith("epic-")
-  if (spec.tag === FLOW) return !epic || Boolean(Definitions.of(child.localName)?.flow)
-  if (child.localName !== spec.tag) return false
-  return !spec.where || spec.where.values.includes(child.getAttribute(spec.where.attribute) ?? "")
 }

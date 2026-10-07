@@ -8,11 +8,11 @@ import { fileURLToPath } from "node:url"
 import { parseHTML } from "linkedom"
 import { describe, expect, test } from "vite-plus/test"
 
+import { EpicParts } from "$/epics/tool/EpicParts"
 import { PlanParts } from "$/epics/tool/PlanParts"
 
 import { ConversionProof } from "./ConversionProof"
 import { Converter } from "./Converter"
-import { EpicParts } from "./EpicParts"
 
 /** The split fixture's skeleton. */
 const FIXTURE = fileURLToPath(new URL("fixtures/split/split.plan.html", import.meta.url))

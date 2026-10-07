@@ -1,13 +1,13 @@
 import { Definitions, type AnyEpicData, type EpicData, type EpicTag, type EpicVocabulary } from "$/epics/definitions"
 
-import type { MarkupContent, MarkupProblem, ValidateOptions } from "./markup.types"
+import { TEXT_NODE, type MarkupContent, type MarkupProblem, type ValidateOptions } from "./markup.types"
 import { MarkupCheck } from "./MarkupCheck"
 
 /****************
  * ### `Markup`
  * Reads and writes a plan doc's `<epic-*>` markup THROUGH THE DEFINITIONS:  data in attributes, prose in children.
- * - Make an element from data (`element()`), read its data back (`read()`), change it (`set()`), check a whole doc
- *   or a part (`validate()`).
+ * - Make an element from data (`element()`), read its data back (`read()`), change it (`set()`), put a child where
+ *   its parent's content model lists it (`place()`), check a whole doc or a part (`validate()`).
  * - Plain DOM, no globals:  works on linkedom documents (node:  the tool, the converter) and the browser's DOM
  *   alike.  Never defines an element:  `$/epics/definitions` is data.
  * - STATIC:  nothing to keep between calls.
@@ -90,6 +90,27 @@ export class Markup {
   }
 
   /**
+   * Put `node` into `parent` where its content model lists it (`childOrder: "listed"`):  after every child of its
+   * own kind or an earlier one, before the first of a later one;  at the end when the model has no order.  Returns
+   * `parent`.
+   * - matched as `validate()` matches (`MarkupCheck.matches()`):  slotted children (a title) and blank text are never
+   *   in the way;  blank text isn't placed
+   * - Not checked:  `validate()` checks children.
+   */
+  static place(parent: Element, node: Node): Element {
+    if (isBlank(node)) return parent
+    const vocabulary = Definitions.of(parent.localName)
+    if (!vocabulary || vocabulary.childOrder !== "listed") return this.append(parent, node)
+    const specs = MarkupCheck.childSpecs(vocabulary, parent).filter((spec) => !spec.slot)
+    const rank = (child: Node) => specs.findIndex((spec) => MarkupCheck.matches(spec, child))
+    const own = rank(node)
+    const next = Array.from(parent.childNodes).find((child) => !isBlank(child) && rank(child) > own)
+    if (next) next.before(node)
+    else parent.append(node)
+    return parent
+  }
+
+  /**
    * What's wrong with `root`'s `<epic-*>` markup:  unknown tags and attributes, bad values, missing attributes,
    * children out of place or order, wrong or duplicate ids.  Empty:  all well.
    * - `root`:  a document (its `<epic-page>`), an `<epic-*>` element (checked as itself), or with `as`, a part's body
@@ -153,4 +174,9 @@ export class Markup {
 
   /** `prependsAttributes()`' answer, per document. */
   private static readonly prepending = new WeakMap<Document, boolean>()
+}
+
+/** Is `node` text holding only whitespace (or nothing)? */
+function isBlank(node: Node): boolean {
+  return node.nodeType === TEXT_NODE && !node.textContent?.trim()
 }

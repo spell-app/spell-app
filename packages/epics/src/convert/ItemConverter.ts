@@ -1,9 +1,9 @@
 import { SectionIds, type EpicData, type ItemSectionKind } from "$/epics/definitions"
+import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
 import { Old } from "./convert.types"
 
 import type { Converter } from "./Converter"
-import { isBlank, isElement, takeChildren, titleOf } from "./domEdits"
 
 /****************
  * ### `ItemConverter`
@@ -26,13 +26,13 @@ export class ItemConverter {
   /** `<epic-section kind>` from a section of items. */
   section(section: Element, kind: ItemSectionKind): Element {
     const items: Element[] = []
-    for (const child of takeChildren(section)) {
-      if (isBlank(child) || (isElement(child) && child.matches("ui-icon[slot='icon']"))) continue
-      if (!isElement(child) || !child.matches(Old.items))
+    for (const child of PlanMarkup.takeChildren(section)) {
+      if (PlanMarkup.isBlank(child) || (PlanMarkup.isElement(child) && child.matches("ui-icon[slot='icon']"))) continue
+      if (!PlanMarkup.isElement(child) || !child.matches(Old.items))
         throw this.owner.error("an item section holds a non-list", section)
-      for (const item of takeChildren(child)) {
-        if (isBlank(item)) continue
-        if (!isElement(item) || item.localName !== "ui-item")
+      for (const item of PlanMarkup.takeChildren(child)) {
+        if (PlanMarkup.isBlank(item)) continue
+        if (!PlanMarkup.isElement(item) || item.localName !== "ui-item")
           throw this.owner.error("an item list holds a non-item", child)
         items.push(this.item(item))
       }
@@ -47,14 +47,14 @@ export class ItemConverter {
     const updates = [...this.updatesIn(line), ...(panel ? this.updatesIn(item) : [])]
     const titleSpan = line.querySelector(`:scope > ${Old.itemTitle}`)
     for (const child of [...Array.from(line.childNodes), ...(panel ? Array.from(item.childNodes) : [])]) {
-      if (child === panel || child === titleSpan || isBlank(child)) continue
-      if (isElement(child) && child.matches(`${Old.chip}, ${Old.reviewLabel}`)) child.remove()
+      if (child === panel || child === titleSpan || PlanMarkup.isBlank(child)) continue
+      if (PlanMarkup.isElement(child) && child.matches(`${Old.chip}, ${Old.reviewLabel}`)) child.remove()
       else throw this.owner.error("an item's line holds more than its chip, title and labels", item)
     }
     if (!titleSpan) throw this.owner.error("an item without its title", item)
-    const { title, slot } = titleOf(titleSpan, updates)
+    const { title, slot } = PlanMarkup.titleOf(titleSpan, updates)
     const content = panel?.querySelector(":scope > ui-content")
-    const details = content ? this.owner.cards.layout(item, takeChildren(content)) : []
+    const details = content ? this.owner.cards.layout(item, PlanMarkup.takeChildren(content)) : []
     return this.owner.element("epic-item", this.data(item, title), slot ? [slot, ...details] : details, item)
   }
 

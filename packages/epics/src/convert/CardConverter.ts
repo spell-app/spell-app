@@ -1,9 +1,9 @@
 import { Formats } from "$/epics/definitions"
+import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
 import { Chrome, isScriptUpdate, Old, replyTitleParts } from "./convert.types"
 
 import type { Converter } from "./Converter"
-import { isBlank, isElement, squeeze, stripEdges, takeChildren, titleOf } from "./domEdits"
 
 /****************
  * ### `CardConverter`
@@ -80,12 +80,12 @@ export class CardConverter {
       const link = line.querySelector(`:scope > ${Old.commitLink}`)
       const sha = line.getAttribute("data-sha") ?? /\/commit\/([0-9a-f]+)$/.exec(link?.getAttribute("href") ?? "")?.[1]
       if (!sha) throw this.owner.error("a commit without its sha", line)
-      if (link && squeeze(link.textContent ?? "") !== sha.slice(0, 7))
+      if (link && PlanMarkup.squeeze(link.textContent ?? "") !== sha.slice(0, 7))
         this.owner.note(
-          `commit ${sha.slice(0, 7)}:  shown as \`${squeeze(link.textContent ?? "")}\` before, drawn as its sha now`
+          `commit ${sha.slice(0, 7)}:  shown as \`${PlanMarkup.squeeze(link.textContent ?? "")}\` before, drawn as its sha now`
         )
       link?.remove()
-      return this.owner.element("epic-commit", { sha }, takeChildren(line), line)
+      return this.owner.element("epic-commit", { sha }, PlanMarkup.takeChildren(line), line)
     })
   }
 
@@ -96,10 +96,10 @@ export class CardConverter {
   /** What `node` is, among an item's details:  text, or a card (converted). */
   private classify(item: Element, node: ChildNode): Card[] {
     if (node.nodeType === 8 && /^\s*plan-doc part\b/.test(node.textContent ?? "")) return []
-    if (isBlank(node)) return []
-    if (!isElement(node)) return [{ kind: "flow", nodes: [node], elements: [] }]
+    if (PlanMarkup.isBlank(node)) return []
+    if (!PlanMarkup.isElement(node)) return [{ kind: "flow", nodes: [node], elements: [] }]
     if (node.matches(`${Old.question}, ${Old.first}`)) {
-      return [{ kind: "flow", nodes: takeChildren(node), elements: [] }]
+      return [{ kind: "flow", nodes: PlanMarkup.takeChildren(node), elements: [] }]
     }
     if (node.matches(Old.choices)) return [this.card("choices", this.accordionChoices(node))]
     if (node.matches(Old.grid) && item.id.startsWith("q")) return [this.card("choices", this.gridChoices(node))]
@@ -111,7 +111,11 @@ export class CardConverter {
     if (node.matches(Old.updateMessage) && isScriptUpdate(node)) {
       const phase = Number(node.getAttribute("data-phase"))
       return [
-        { kind: "flow", nodes: [this.owner.element("epic-update", { phase }, takeChildren(node), node)], elements: [] }
+        {
+          kind: "flow",
+          nodes: [this.owner.element("epic-update", { phase }, PlanMarkup.takeChildren(node), node)],
+          elements: []
+        }
       ]
     }
     if (node.matches(Old.updateLabel) && /^\d+$/.test(node.getAttribute("data-phase") ?? "")) {
@@ -138,7 +142,7 @@ export class CardConverter {
     for (const child of Array.from(options.children)) {
       if (child.localName === "ui-title")
         sources.push({ title: child, body: [], chosen: child.hasAttribute("data-chosen") })
-      else if (child.localName === "ui-content" && sources.length) sources.at(-1)!.body = takeChildren(child)
+      else if (child.localName === "ui-content" && sources.length) sources.at(-1)!.body = PlanMarkup.takeChildren(child)
       else throw this.owner.error("an option that isn't a title and its content", child)
     }
     return this.choices(sources, choices)
@@ -152,7 +156,7 @@ export class CardConverter {
       if (!segment || !label || column.children.length !== 1)
         throw this.owner.error("an option card of another shape", column)
       label.remove()
-      return { title: label, body: takeChildren(segment), chosen: column.hasAttribute("data-chosen") }
+      return { title: label, body: PlanMarkup.takeChildren(segment), chosen: column.hasAttribute("data-chosen") }
     })
     return this.choices(sources, grid)
   }
@@ -167,11 +171,11 @@ export class CardConverter {
     let lettered = 0
     const options = sources.map(({ title, body, chosen: isChosen }, index) => {
       const recommended = Chrome.recommended.test(title.lastChild?.nodeType === 3 ? title.lastChild.textContent! : "")
-      const match = stripEdges(title, { first: Chrome.optionLetter, last: Chrome.recommended })
+      const match = PlanMarkup.stripEdges(title, { first: Chrome.optionLetter, last: Chrome.recommended })
       const letter = match?.[1] ?? String.fromCharCode(65 + index)
       if (!match) lettered++
       if (isChosen) chosen = letter
-      const { title: text, slot } = titleOf(title)
+      const { title: text, slot } = PlanMarkup.titleOf(title)
       const data = { letter, title: text, recommended: recommended || undefined }
       return this.owner.element("epic-option", data, slot ? [slot, ...body] : body, title)
     })
@@ -196,21 +200,21 @@ export class CardConverter {
     if (titleBox) {
       titleBox.remove()
       const bold = titleBox.querySelector(":scope > b:first-child")
-      const word = squeeze(bold?.textContent ?? "")
+      const word = PlanMarkup.squeeze(bold?.textContent ?? "")
       if (bold && (word === "Answer" || (Chrome.answerWord.test(word) && word === block.id.toUpperCase())))
         bold.remove()
-      stripEdges(titleBox, { first: Chrome.answerSeparator })
-      title = titleOf(titleBox)
+      PlanMarkup.stripEdges(titleBox, { first: Chrome.answerSeparator })
+      title = PlanMarkup.titleOf(titleBox)
     }
     const data = { id: block.id || undefined, title: title.title }
-    const body = takeChildren(block)
+    const body = PlanMarkup.takeChildren(block)
     return this.owner.element("epic-answer", data, title.slot ? [title.slot, ...body] : body, block)
   }
 
   /** `<epic-more>` from the More Details card:  its content. */
   private more(more: Element): Element {
     const content = more.querySelector(":scope > ui-content")
-    return this.owner.element("epic-more", {}, content ? takeChildren(content) : [], more)
+    return this.owner.element("epic-more", {}, content ? PlanMarkup.takeChildren(content) : [], more)
   }
 
   /** `<epic-reply from at re>` from a reply:  its title line into attributes, when it's in the usual shape. */
@@ -220,21 +224,21 @@ export class CardConverter {
     const usable = parts && Formats.time.test(parts.at)
     if (usable) titleBox!.remove()
     else if (titleBox) this.owner.note("a reply's title line in another shape:  kept as its text")
-    return this.owner.element("epic-reply", usable ? parts : {}, takeChildren(reply), reply)
+    return this.owner.element("epic-reply", usable ? parts : {}, PlanMarkup.takeChildren(reply), reply)
   }
 
   /** `<epic-original>` from the Original Discussion:  an `<epic-version as-of>` per version, its heading dropped. */
   private original(original: Element): Element {
     const content = original.querySelector(":scope > ui-content")
     const versions: Element[] = []
-    for (const child of content ? takeChildren(content) : []) {
-      if (isBlank(child)) continue
-      if (!isElement(child) || !child.matches(Old.version))
+    for (const child of content ? PlanMarkup.takeChildren(content) : []) {
+      if (PlanMarkup.isBlank(child)) continue
+      if (!PlanMarkup.isElement(child) || !child.matches(Old.version))
         throw this.owner.error("Original Discussion holds a non-version", original)
       const heading = child.querySelector(":scope > h5:first-child")
-      if (heading && Chrome.versionHeading.test(squeeze(heading.textContent ?? ""))) heading.remove()
+      if (heading && Chrome.versionHeading.test(PlanMarkup.squeeze(heading.textContent ?? ""))) heading.remove()
       const asOf = child.getAttribute("data-as-of") || undefined
-      versions.push(this.owner.element("epic-version", { asOf }, takeChildren(child), child))
+      versions.push(this.owner.element("epic-version", { asOf }, PlanMarkup.takeChildren(child), child))
     }
     return this.owner.element("epic-original", {}, versions, original)
   }

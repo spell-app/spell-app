@@ -8,7 +8,7 @@
  *   1. `bundle-spell-ui.js` -- builds UI, bundles `_assets/spell-ui.js`
  *   2. `index.js` -- rewrites the docs index's lists
  *   3. finds the pages (`pages.js` `findPages()`)
- *   4. `doc-links.js --check` on the pages
+ *   4. `doc-links.js --check` on the pages, under `tsx` (`pages.js` `docLinksRun()`)
  *   5. `check-spell.js` on each page, screenshots in a temp folder -- checks every page, THEN fails if any did
  */
 import { spawnSync } from "node:child_process"
@@ -16,7 +16,7 @@ import { mkdtempSync, readFileSync, statSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, relative } from "node:path"
 
-import { ASSETS, ROOT, TOOLS, findPages } from "./pages.js"
+import { ASSETS, ROOT, TOOLS, docLinksRun, findPages } from "./pages.js"
 
 const args = process.argv.slice(2)
 const skipUiBuild = args.includes("--skip-ui-build")
@@ -37,7 +37,8 @@ const pages = findPages().map((path) => relative(ROOT, path))
 if (!pages.length) fail("find pages", "no .html pages")
 console.log(`\n== pages:  ${pages.join(", ")}`)
 
-step("check links", "node", [join(TOOLS, "doc-links.js"), "--check", ...pages])
+const links = docLinksRun(["--check", ...pages])
+step("check links", links.command, links.args, { env: links.env })
 
 const results = []
 if (check) {
@@ -76,12 +77,14 @@ if (failed.length) fail("check", `${failed.map((result) => result.output).join("
  * Run `command args` from the repo root;  on a non-zero exit print why and stop the whole update.
  * - `capture`:  pipe stdout (still echoed) so the caller can read it, e.g. check-spell's JSON summary
  * - `mayFail`:  return a failed run instead of stopping, so every doc gets checked before the update fails
+ * - `env`:  the child's environment (default:  this one's), e.g. `docLinksRun()`'s
  */
-function step(name, command, commandArgs, { capture = false, mayFail = false } = {}) {
+function step(name, command, commandArgs, { capture = false, mayFail = false, env } = {}) {
   console.log(`\n== ${name}:  ${command} ${commandArgs.join(" ")}`)
   const run = spawnSync(command, commandArgs, {
     cwd: ROOT,
     encoding: "utf8",
+    env,
     stdio: capture ? ["inherit", "pipe", "inherit"] : "inherit"
   })
   if (capture && run.stdout) process.stdout.write(run.stdout)

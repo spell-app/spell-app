@@ -28,9 +28,15 @@ export async function planDocCommand(args: string[]): Promise<number> {
 
 /**
  * The tool's modules, by alias (`tsx` resolves them at run time).
- * - HACK: specifiers in constants, so `tsc` here doesn't follow them:  the tool reaches `$/epics` definitions and
- *   `$/ui/core`'s types, which need ES2023 and Solid's JSX, not this package's settings (spell's).  The tool is
- *   type-checked in `packages/epics` (epic `epic-components`, P8)
+ * - HACK: specifiers in constants, so `tsc` here doesn't follow them;  the tool is type-checked in `packages/epics`
+ *   (epic `epic-components`, P8).  Literal specifiers fail this package's `tsc` (spell's settings) in two ways (I5,
+ *   2026-10-07):
+ *   - ES2023 (`toSorted()`, `findLast()`) in `Markup` and the converter:  this package's `lib` is ES2022
+ *   - Solid's JSX:  the definitions import the vocabularies, and `epic-item.vocabulary.en.ts` takes its `REVIEW_*`
+ *     data from `epic-item.types.ts`, which reaches `epic-page.types.ts` -> `$/ui/core` -> `ui`'s `.tsx` (2 errors
+ *     under React's JSX).  `import type` is followed too.
+ *   - REFACTOR: once the vocabularies' data lives clear of `$/ui/core` (and `lib` here is ES2023), import them
+ *     plainly
  */
 const COMMANDS = "$/epics/tool/PlanDocCommands"
 /** `COMMANDS`' twin:  the docs on disk. */

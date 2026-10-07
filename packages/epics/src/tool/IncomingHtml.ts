@@ -1,7 +1,7 @@
 import { Formats } from "$/epics/definitions"
 import { Markup } from "$/epics/markup"
-import { Chrome, replyTitleParts } from "$/epics/convert/convert.types"
-import { stripEdges, takeChildren, titleOf } from "$/epics/convert/domEdits"
+
+import { Chrome, replyTitleParts } from "./planDoc.types"
 
 import { PlanMarkup } from "./PlanMarkup"
 
@@ -9,7 +9,8 @@ import { PlanMarkup } from "./PlanMarkup"
  * ### `IncomingHtml`
  * HTML a command was handed (`add --details`, `decide --details`, `details --file`), as nodes for an `<epic-item>`:
  * written in `<epic-*>` markup it goes in as it is;  the two shapes agents wrote for the OLD markup become elements on
- * the way in, by the converter's own rules (`$/epics/convert`), so a doc never holds them:
+ * the way in, by the converter's own rules (`Chrome`, `replyTitleParts()`, `PlanMarkup`'s DOM edits:  shared, never
+ * imported from `$/epics/convert`), so a doc never holds them:
  * - an option grid (`ui-grid.spell-pros-cons`, each card's top label `A · Title (recommended)`) -> `<epic-choices>` of
  *   `<epic-option letter title recommended>`, `chosen` from a card's `data-chosen`
  * - a reply (`div.plan-reply`, its title line `<b>Claude</b> · <time>...</time> · re:  "..."`) -> `<epic-reply from
@@ -58,10 +59,10 @@ export class IncomingHtml {
       const label = segment.querySelector(":scope > ui-label:first-child")!
       label.remove()
       const recommended = Chrome.recommended.test(label.lastChild?.nodeType === 3 ? label.lastChild.textContent! : "")
-      const letter = stripEdges(label, { first: Chrome.optionLetter, last: Chrome.recommended })![1]!
+      const letter = PlanMarkup.stripEdges(label, { first: Chrome.optionLetter, last: Chrome.recommended })![1]!
       if (column.hasAttribute("data-chosen")) chosen = letter
-      const { title, slot } = titleOf(label)
-      const body = takeChildren(segment)
+      const { title, slot } = PlanMarkup.titleOf(label)
+      const body = PlanMarkup.takeChildren(segment)
       return Markup.element(
         document,
         "epic-option",
@@ -78,6 +79,6 @@ export class IncomingHtml {
     const parts = titleBox ? replyTitleParts(titleBox) : undefined
     const usable = parts && Formats.time.test(parts.at)
     if (usable) titleBox!.remove()
-    return Markup.element(reply.ownerDocument, "epic-reply", usable ? parts : {}, takeChildren(reply))
+    return Markup.element(reply.ownerDocument, "epic-reply", usable ? parts : {}, PlanMarkup.takeChildren(reply))
   }
 }

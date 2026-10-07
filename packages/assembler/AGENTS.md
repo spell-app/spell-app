@@ -27,8 +27,8 @@ house style every package shares.  Only what's local is below;  a section named 
 
 - As WWOD §4, plus ONE climb:  `format.ts` imports the repo root's `vite.lint.ts` (`fmtConfig`) as
   `../../../vite.lint.ts`, since no alias reaches the root (every `vite.config.ts` does the same).
-- `docs`' tools are JavaScript, some run with plain `node`:  `packages/docs/tools/doc-links.js` imports `$/assembler`
-  through `tsx`'s `tsImport()` when no loader maps the alias (its `loadAssembler()`).
+- `docs`' tools are JavaScript:  `packages/docs/tools/doc-links.js` imports `$/assembler` statically, so it runs
+  under `tsx` (`packages/docs/tools/pages.js` `docLinksRun()`), never plain `node`.
 
 ## Types / Exports
 

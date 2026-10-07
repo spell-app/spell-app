@@ -2,21 +2,22 @@
  * Link source references in `.html` docs:  one named target per destination, new tab.  See `packages/docs/AGENTS.md`
  * "Links".
  * Usage (from `packages/docs`):
- *   node tools/doc-links.js <folder>/<doc>.html ...           -- add links (idempotent)
- *   node tools/doc-links.js --check <folder>/<doc>.html ...   -- verify, exit 1 on problems
+ *   yarn tsx tools/doc-links.js <folder>/<doc>.html ...           -- add links (idempotent)
+ *   yarn tsx tools/doc-links.js --check <folder>/<doc>.html ...   -- verify, exit 1 on problems
  * - The rules (what becomes a link, how a link gets its target, what `--check` verifies) live in `$/assembler`'s
  *   `Linker` (epic `epic-components`, P7):  shared with the plan-doc tool, which may not import `docs`.  This file is
  *   its command line, on files.
- * - Runs under plain `node` too (`update.js`, `pages.js` `tidy()`, goals):  `loadAssembler()`.
+ * - Runs under `tsx`, which maps `$/assembler` through this package's `tsconfig.json`:  plain `node` can't.  The
+ *   tools that run it (`update.js`, `pages.js` `tidy()`, goals' check) go through `pages.js` `docLinksRun()`.
  * - NOTE:  ported from `doc-links.py` on 2026-10-03;  makes the same edits to every page.
  */
 import { readFileSync, writeFileSync } from "node:fs"
-import { basename, dirname, join, resolve as resolvePath } from "node:path"
+import { basename, dirname, resolve as resolvePath } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import { PACKAGE, ROOT } from "./pages.js"
+import { AS } from "$/assembler"
 
-const { AS } = await loadAssembler()
+import { ROOT } from "./pages.js"
 
 /** One linker for this checkout:  its bare-name index is built once per process. */
 const linker = new AS.Linker(ROOT)
@@ -60,25 +61,6 @@ export function checkText(text, docDir) {
 }
 
 ////////////////
-// ## Loading
-////////////////
-
-/**
- * `$/assembler`:  through the alias where a loader maps it (`tsx`, vitest), else through `tsx`'s scoped
- * `tsImport()`, with this package's `tsconfig.json`:  plain `node` can't resolve `$/...` or load TypeScript.
- * - REFACTOR:  once every caller runs this file under `tsx`, a plain static import
- */
-async function loadAssembler() {
-  try {
-    return await import("$/assembler")
-  } catch (error) {
-    if (error?.code !== "ERR_MODULE_NOT_FOUND") throw error
-    const { tsImport } = await import("tsx/esm/api")
-    return tsImport("$/assembler", { parentURL: import.meta.url, tsconfig: join(PACKAGE, "tsconfig.json") })
-  }
-}
-
-////////////////
 // ## Command line
 ////////////////
 
@@ -89,8 +71,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     console.error(
       [
         "usage (from packages/docs):",
-        "  node tools/doc-links.js ../../guides/<folder>/<doc>.html ...      -- add links (idempotent)",
-        "  node tools/doc-links.js --check ../../guides/<folder>/<doc>.html -- verify, exit 1 on problems"
+        "  yarn tsx tools/doc-links.js ../../guides/<folder>/<doc>.html ...      -- add links (idempotent)",
+        "  yarn tsx tools/doc-links.js --check ../../guides/<folder>/<doc>.html -- verify, exit 1 on problems"
       ].join("\n")
     )
     process.exit(1)

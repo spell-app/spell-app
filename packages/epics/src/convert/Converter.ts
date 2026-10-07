@@ -2,6 +2,7 @@ import { parseHTML } from "linkedom"
 
 import { SectionIds, type EpicData, type EpicTag, type ItemSectionKind } from "$/epics/definitions"
 import { Markup, type MarkupContent, type MarkupProblem } from "$/epics/markup"
+import { EpicParts } from "$/epics/tool/EpicParts"
 import { PART_EXT, PARTS_DIR, PlanParts, type PartReader } from "$/epics/tool/PlanParts"
 import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
@@ -9,8 +10,6 @@ import { ConvertError, OLD_LAYOUTS, type Conversion } from "./convert.types"
 
 import { CardConverter } from "./CardConverter"
 import { ConversionProof } from "./ConversionProof"
-import { escapeAmpersands, isBlank } from "./domEdits"
-import { EpicParts } from "./EpicParts"
 import { ItemConverter } from "./ItemConverter"
 import { LogConverter } from "./LogConverter"
 import { PageConverter } from "./PageConverter"
@@ -68,7 +67,7 @@ export class Converter {
     this.convertMarkup()
     const problems = Markup.validate(this.document).map(describeProblem)
     const docName = `${this.name}.plan.html`
-    escapeAmpersands(this.document)
+    PlanMarkup.escapeAmpersands(this.document)
     const rawParts = new EpicParts(this.document).split({ docName })
     const skeleton = await PlanParts.formatHTML(docName, PlanMarkup.serialize(this.document))
     const parts = new Map<string, string>()
@@ -144,7 +143,7 @@ export class Converter {
         `#${section.id || "(no id)"} has no place in <epic-page>:  kept ${before ? "before" : "after"} it, as it was`
       )
     }
-    for (const node of Array.from(main.childNodes)) if (isBlank(node)) node.remove()
+    for (const node of Array.from(main.childNodes)) if (PlanMarkup.isBlank(node)) node.remove()
     this.page.wrapBody()
   }
 

@@ -12,7 +12,7 @@ import type { PlanDocParts } from "./planDoc.types"
  * `PLAN-DOC.md` beside this, "Parts".
  * - the statics are the parts' FILES and URLS, whichever markup:  where a part lives (`partFile()`), reading one
  *   (`reader()`), rebasing a body's relative URLs to `parts/` and back (`rebase()`), formatting and writing
- *   (`formatHTML()`, `writeChanged()`).  `EpicParts` (`$/epics/convert`) splits and assembles an `<epic-*>` doc on
+ *   (`formatHTML()`, `writeChanged()`).  `EpicParts` beside this splits and assembles an `<epic-*>` doc on
  *   them;  so does the converter.
  * - an instance ASSEMBLES a skeleton in the OLD markup (`ui-section[source]`, `ui-accordion.plan-item[source]`):  for
  *   `OldPlanReader` and the converter.  REFACTOR: drop the instance half after the switch (P12):  no doc is in the
