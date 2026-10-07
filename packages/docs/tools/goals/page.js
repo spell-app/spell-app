@@ -2,12 +2,17 @@
  * A goals page as a document, and every edit the goals tools make to one:  items, thoughts, status, history.
  * - Pure:  HTML in (`GoalsPage.parse()`), changes on the parsed document, HTML out (`toString()`).  No files, no
  *   clock unless passed one.  `goals.js` does the reading, locking and writing;  `server.js` reuses the same edits.
- * - Markup and rules:  `goals/AGENTS.md`.  Item lists and their chips are `plan-doc.css`'s;  the rest is
- *   `packages/docs/tools/_assets/goals.css`.
+ * - Markup and rules:  `goals/AGENTS.md`.  The look:  `packages/docs/tools/_assets/goals.css`, on top of
+ *   `spell-doc.css`.
  */
 import { parseHTML } from "linkedom"
 
 import { serialize } from "../pages.js"
+
+/** A goals page's own stylesheet, in `packages/docs/tools/_assets/`. */
+const GOALS_CSS = "goals.css"
+/** The plan docs' stylesheet, which goals pages linked for their item lists before epic `epic-components` (Q8). */
+const PLAN_DOC_CSS = "plan-doc.css"
 
 /** Item kind -> its id prefix (`q3`), shown upper-cased (`Q3`). */
 export const KINDS = {
@@ -301,6 +306,22 @@ export class GoalsPage {
     const event = this.element("ui-event", { icon })
     event.innerHTML = `<ui-content><ui-summary>${inline(line)} <ui-date>${this.today}</ui-date></ui-summary></ui-content>`
     feed.prepend(event)
+  }
+
+  /**
+   * Link `goals.css` alone, not `plan-doc.css` too:  pages made before epic `epic-components` (Q8) link both.
+   * - drops the `plan-doc.css` link;  adds a `goals.css` link beside it if the page had none
+   * - returns whether the page changed
+   */
+  restyle() {
+    const planDoc = this.document.querySelector(`link[rel="stylesheet"][href$="/${PLAN_DOC_CSS}"]`)
+    if (!planDoc) return false
+    if (!this.document.querySelector(`link[rel="stylesheet"][href$="/${GOALS_CSS}"]`))
+      planDoc.after(
+        this.element("link", { rel: "stylesheet", href: planDoc.getAttribute("href").replace(PLAN_DOC_CSS, GOALS_CSS) })
+      )
+    planDoc.remove()
+    return true
   }
 
   /** Stamp "updated" with today. */
