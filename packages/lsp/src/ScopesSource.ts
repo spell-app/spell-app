@@ -31,14 +31,33 @@ export type ScopesSourceHooks = {
   loadSource?: (uri: string) => Promise<string | undefined>
   /** Compiled javascript of project `projectId`, e.g. `@system:examples:Solitaire` -- if it can be had. */
   loadCompiled?: (projectId: string) => Promise<string | undefined>
+  /**
+   * Project `projectId`'s declarations, its `<Project>.declarations.json` -- if it can be had:  where each
+   * declaration's code starts in its compiled javascript.
+   */
+  loadDeclarations?: (projectId: string) => Promise<CompiledDeclarations | undefined>
+}
+
+/**
+ * What `ScopesSource` reads of a project's declarations file -- see `SP.SpellDeclarationsData`.
+ * - NOT imported from there:  `$/spell` would pull the whole parser into the bundle.
+ */
+export type CompiledDeclarations = {
+  /** What each declaring statement declared. */
+  statements: MarkerDeclaration[]
+  /** Where each statement's code starts in the compiled javascript:  its line, from 0. */
+  codeLines?: number[]
 }
 
 /**
  * A `ScopesSource` of `packs` -- the built-ins' first.  See `LSP.scopeTreeFromPacks()`.
  * - A declaration's `spell` is its `line`s of its file, from `hooks.loadSource()`.
- * - Its `compiled` is what follows its `/*! SPELL: DECLARES ... *\/` marker in its project's compiled output,
- *   from `hooks.loadCompiled()` -- the marker in the same file which declares it, e.g. `of: "Card"` +
- *   `property: "suit"` for `.../type:Card/property:suit`.  So NO source needed.  See `declaredPaths()`.
+ * - Its `compiled` is its statement's code in its project's compiled output, from `hooks.loadCompiled()`:  found
+ *   by the project's declarations (`hooks.loadDeclarations()`), whose `codeLines` say where each statement starts --
+ *   the statement in the same file which declares it, e.g. `of: "Card"` + `property: "suit"` for
+ *   `.../type:Card/property:suit`.  So NO source needed.  See `declaredPaths()`.
+ *   - Compiled output from before declarations files has `/*! SPELL: DECLARES ... *\/` markers inline instead:
+ *     read from those.
  * - Each file's text, and each project's markers, are asked for once.
  */
 export function scopesFromPacks(packs: ScopePack[], hooks: ScopesSourceHooks = {}): ScopesSource {
@@ -76,7 +95,12 @@ export function scopesFromPacks(packs: ScopePack[], hooks: ScopesSourceHooks = {
     let found = markers.get(projectId)
     if (!found) {
       const compiled = hooks.loadCompiled?.(projectId).catch(() => undefined) ?? Promise.resolve(undefined)
-      markers.set(projectId, (found = compiled.then((text) => (text ? compiledMarkers(text) : []))))
+      const declared = hooks.loadDeclarations?.(projectId).catch(() => undefined) ?? Promise.resolve(undefined)
+      found = Promise.all([compiled, declared]).then(([text, declarations]) => {
+        if (!text) return []
+        return declarations?.codeLines ? declaredCode(text, declarations) : compiledMarkers(text)
+      })
+      markers.set(projectId, found)
     }
     return (await found).find((it) => it.file === filePath && it.declares.includes(declared))?.code
   }
@@ -158,6 +182,29 @@ function compiledMarkers(compiled: string): CompiledMarker[] {
   })
 }
 
+/**
+ * Each of `declarations`' statements, with its code from `compiled` -- as `compiledMarkers()` does with markers, but
+ * each statement starting at its `codeLines` line.
+ * - Up to the next statement at its indent or less, or the end of its file.
+ */
+function declaredCode(compiled: string, { statements, codeLines = [] }: CompiledDeclarations): CompiledMarker[] {
+  const lineStarts = [0]
+  for (let at = compiled.indexOf("\n"); at >= 0; at = compiled.indexOf("\n", at + 1)) lineStarts.push(at + 1)
+  const found = statements.map((declaration, index) => {
+    const from = lineStarts[codeLines[index] ?? -1] ?? compiled.length
+    return { declaration, from, indent: indentAt(compiled, from + /^[ \t]*/.exec(compiled.slice(from))![0].length) }
+  })
+  return found.flatMap(({ declaration, from, indent }, index) => {
+    const defined = typeof declaration.defined === "string" && /^(.+):\d+-\d+$/.exec(declaration.defined)
+    if (!defined || from >= compiled.length) return []
+    const next = found.slice(index + 1).find((it) => it.indent.length <= indent.length)?.from ?? compiled.length
+    const fileEnd = compiled.indexOf(FILE_SEPARATOR, from)
+    const to = fileEnd >= 0 && fileEnd < next ? fileEnd : next
+    const code = declarationCode(compiled.slice(from, to), indent)
+    return [{ file: defined[1]!, declares: declaredPaths(declaration), code }]
+  })
+}
+
 /** What marker `comment` says its statement declared -- `undefined` if it can't be read. */
 function parseMarker(comment: string): MarkerDeclaration | undefined {
   try {
@@ -215,7 +262,7 @@ function declaredPath(path: string): string | undefined {
  * What a `SPELL: DECLARES` marker says, as far as finding its entries goes -- see `SP.SpellDeclaration`.
  * - NOT imported from there:  `$/spell` would pull the whole parser into the bundle.
  */
-type MarkerDeclaration = {
+export type MarkerDeclaration = {
   type?: string
   of?: string
   property?: string

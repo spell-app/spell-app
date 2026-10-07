@@ -1,0 +1,6 @@
+174:22 TS2339 Property 'can_pick_up_$card' does not exist on type 'Pile'.
+555:43 TS2532 Object is possibly 'undefined'.
+568:16 TS2339 Property 'symbol' does not exist on type 'Foundation'.
+611:59 TS18048 'card.value' is possibly 'undefined'.
+684:61 TS2345 Argument of type 'Pile | undefined' is not assignable to parameter of type 'Pile'.
+749:71 TS2339 Property 'is_face_down' does not exist on type '{}'.

@@ -1101,7 +1101,6 @@ describe("matchJSXChild()", () => {
     const token = tokenizer.matchJSXChild("foo", " some text here <")! as JSXTextToken
     expect(token).toBeInstanceOf(JSXTextToken)
     expect(token.value).toBe(" some text here ")
-    expect(token.quotedText).toBe('"some text here"')
     expect(token.end).toEqual(16)
   })
 
@@ -1135,7 +1134,6 @@ describe("matchJSXChild()", () => {
     const token = tokenizer.matchJSXChild("foo", "...some text here <", 3)! as JSXTextToken
     expect(token).toBeInstanceOf(JSXTextToken)
     expect(token.value).toBe("some text here ")
-    expect(token.quotedText).toBe('"some text here"')
     expect(token.end).toEqual(18)
   })
 

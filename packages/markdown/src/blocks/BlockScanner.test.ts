@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { MD, type Block } from "$/markdown"
+import { MD } from "$/markdown"
 
 /** `block`'s tree as nested `kind[...]` strings, leaf lines in quotes. */
-function shape(block: Block): unknown {
+function shape(block: MD.Block): unknown {
   if (block.children.length) return { [block.kind]: block.children.map(shape) }
   return block.lines.length ? `${block.kind} ${JSON.stringify(block.lines.join("|"))}` : block.kind
 }

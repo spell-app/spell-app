@@ -396,10 +396,10 @@ class SpellJSXAttribute extends SpellJSXContent {
     } else if (value === undefined) {
       valueAST = new P.ASTBooleanLiteral(match, { value: true })
     } else if (value instanceof P.TextToken) {
-      valueAST = new P.ASTStringLiteral(match, { value: value.value })
+      valueAST = new P.ASTStringLiteral(match, { value: value.innerText, quote: '"', raw: value.value })
     } else if (!error) {
       console.warn("jsxAttribute.getAST: don't know how to render value", value, " for match ", match)
-      valueAST = new P.ASTUndefinedLiteral(match)
+      valueAST = new P.ASTNothingLiteral(match)
     }
     return new P.ASTJSXAttribute(match, {
       name: attribute!,
@@ -424,13 +424,14 @@ class SpellJSXText extends P.TokenType {
   @proto static alias = "jsxChild"
   @proto static tokenType = P.JSXTextToken
 
-  /** Build `P.ASTJSXText`; returns `undefined` for blank text since there's nothing to render. */
+  /** Build `P.ASTJSXText` of the trimmed text;  returns `undefined` for blank text since there's nothing to render. */
   getAST(match: P.MatchFor<this>) {
-    const { raw, quotedText } = match.matched[0] as P.JSXTextToken
+    const { raw, value } = match.matched[0] as P.JSXTextToken
+    const text = value.trim()
     // Blank text has nothing to render -- return `undefined` for "no AST" (`Rule.getAST()`'s return
     // type already permits this; `Match.AST` treats a falsy return as "no AST").
-    if (!quotedText) return undefined
-    return new P.ASTJSXText(match, { raw, value: quotedText })
+    if (!text) return undefined
+    return new P.ASTJSXText(match, { raw, value: text })
   }
 }
 JSX.addRule(SpellJSXText)

@@ -14,16 +14,16 @@ let options: CLI.DescribeTextOptions
 
 beforeAll(async () => {
   const session = new CLI.CliSession()
-  const target = await CLI.resolveTarget("@test/Solitaire")
-  if (target.kind !== "project") throw new Error("expected a project")
-  await session.parse(target.project)
-  tree = session.explorer.tree(target.project)
+  const resolved = await CLI.resolveProject("@test/Solitaire")
+  if (resolved.kind !== "project") throw new Error("expected a project")
+  await session.parse(resolved.project)
+  tree = session.explorer.tree(resolved.project)
   options = {
     width: 100,
-    detailsOf: (path) => session.explorer.details(target.project, path),
+    detailsOf: (path) => session.explorer.details(resolved.project, path),
     // just `file:line`, so the snapshots don't depend on the current folder
     whereIs: (path) => {
-      const at = session.declaredAt(target.project, tree, path)
+      const at = session.declaredAt(resolved.project, tree, path)
       return at && `${basename(fileURLToPath(at.uri))}:${at.line}`
     }
   }

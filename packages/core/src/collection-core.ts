@@ -8,7 +8,7 @@
  */
 import _ from "lodash"
 import { spellCore } from "./core"
-import { assert } from "$/core"
+import { assert, type List } from "$/core"
 import { defineSpellCoreModule } from "./spellCore.types"
 
 /**
@@ -42,6 +42,34 @@ export type CollectionLike = {
   /** Custom collection's own `[value, item, collection]` iterator factory. */
   iterator?(): Iterator<[unknown, string | number, unknown]>
 }
+
+/**
+ * ANY collection argument -- its items `T`, when TypeScript can tell:  a `List<T>` or a `T[]`.
+ * - Else `T` is `unknown`, e.g. for a `List` with no item type, a plain object, `unknown` or `any`.
+ * - `NonNullable<unknown> | null | undefined` is `unknown`, spelled out so `T` is still INFERRED from a list or an
+ *   array -- `this` in a `List<Card>` sub-class too, which a conditional type (`C extends List<infer T>`) leaves
+ *   unresolved.
+ * - A list as its `getItem()` only, NOT all of `List<T>`:  inferring from `this` in a sub-class's `draw()` would
+ *   read `draw()` itself, a circular inference (TS7023).
+ * - Taken by the helpers whose result or callback follows their collection, e.g. `getItemOf()`, `forEach()`.
+ */
+export type CollectionOf<T = unknown> =
+  | Pick<List<T>, "getItem">
+  | readonly T[]
+  | NonNullable<unknown>
+  | null
+  | undefined
+
+/**
+ * Key type of collection `C`, as `itemOf()` returns it:  a 1-based position for a `List` or an array.
+ * - Else a string key or a position, e.g. for a plain object.  `undefined` / `null` add nothing.
+ * - NOTE:  unresolved for `this` in a `List` sub-class, unlike `CollectionOf`.
+ */
+export type KeyOf<C> = C extends null | undefined
+  ? never
+  : C extends List | readonly unknown[]
+    ? number
+    : string | number
 
 /** Cast a genuinely-dynamic `collection` argument to its duck-typed shape. */
 function asCollection(collection: unknown): CollectionLike {
@@ -110,17 +138,18 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - For array: returns 1-based position or `undefined`.
    * - For object: returns string key or `undefined`.
    * - Compiles from `position of thing in my-list` -- see `lists.ts`.
+   * - Typed by `collection`:  a number for a `List` or an array -- see `KeyOf`.
    * TODO: `positionOf` ???
    */
-  itemOf(collection?: unknown, thing?: unknown): string | number | undefined {
+  itemOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined {
     if (!assert.isDefined(collection, "spellCore.itemOf(collection)")) return undefined
     const coll = asCollection(collection)
-    if (typeof coll.itemOf === "function") return coll.itemOf(thing)
+    if (typeof coll.itemOf === "function") return coll.itemOf(thing) as KeyOf<C> | undefined
     const iterator = spellCore.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
       const [value, item] = result.value
-      if (value === thing) return item
+      if (value === thing) return item as KeyOf<C>
       result = iterator.next()
     }
     return undefined
@@ -131,13 +160,14 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * - For array: `item` is 1-based position.
    * - For object: `item` is string key.
    * - Compiles from `item 1 of my-list` / `the first item of my-list` -- see `lists.ts`.
+   * - Typed by `collection`:  a `List<Card>`'s is a `Card`, if it has one -- see `CollectionOf`.
    */
-  getItemOf(collection?: unknown, item?: string | number): unknown {
+  getItemOf<T = unknown>(collection?: CollectionOf<T>, item?: string | number): T | undefined {
     if (!assert.isDefined(collection, "spellCore.getItemOf(collection)")) return undefined
     const coll = asCollection(collection)
-    if (typeof coll.getItem === "function") return coll.getItem(item as string | number)
-    if (spellCore.isArrayLike(collection)) return coll[(item as number) - 1]
-    return coll[item as string]
+    if (typeof coll.getItem === "function") return coll.getItem(item as string | number) as T | undefined
+    if (spellCore.isArrayLike(collection)) return coll[(item as number) - 1] as T | undefined
+    return coll[item as string] as T | undefined
   },
 
   /**
@@ -217,6 +247,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
   /**
    * Return an invoked iterator which yields `[value, item, collection]` for each item in the collection.
    * - Backs nearly every other iteration method here and in `collection-other.ts` (`forEach`, `map`, `all`, ...).
+   * - Typed by `collection`, so their callbacks are too -- see `CollectionOf`.
    * - e.g.
    *   ```
    *   iterator = spellCore.getIteratorFor(collection)
@@ -227,27 +258,27 @@ export const collectionCoreMethods = defineSpellCoreModule({
    *   }
    *   ```
    */
-  getIteratorFor(collection?: unknown): Iterator<[unknown, string | number, unknown]> {
+  getIteratorFor<T = unknown>(collection?: CollectionOf<T>): Iterator<[T, string | number, unknown]> {
     if (!assert.isDefined(collection, "spellCore.getIteratorFor(collection)")) {
       return (function* emptyIterator() {
         // THIS SPACE INTENTIONALLY LEFT BLANK
       })()
     }
     const coll = asCollection(collection)
-    if (typeof coll.iterator === "function") return coll.iterator()
+    if (typeof coll.iterator === "function") return coll.iterator() as Iterator<[T, string | number, unknown]>
 
     if (spellCore.isArrayLike(collection)) {
       return (function* numericIterator() {
         const count = spellCore.itemCountOf(collection)
         for (let position = 1; position <= count; position++) {
-          yield [spellCore.getItemOf(collection, position), position, collection] as [unknown, number, unknown]
+          yield [spellCore.getItemOf(collection, position), position, collection] as [T, number, unknown]
         }
       })()
     }
     const keys = spellCore.keysOf(collection)
     return (function* keyedIterator() {
       for (let i = 0; i < keys.length; i++) {
-        yield [spellCore.getItemOf(collection, keys[i]), keys[i], collection] as [unknown, string | number, unknown]
+        yield [spellCore.getItemOf(collection, keys[i]), keys[i], collection] as [T, string | number, unknown]
       }
     })()
   }

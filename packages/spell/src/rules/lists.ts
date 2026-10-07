@@ -1125,7 +1125,7 @@ class list_add_relative extends SpellStatement<"thing|list|operator|item"> {
     if (operator.value === "after") {
       position = new P.ASTInfixExpression(match, {
         lhs: position,
-        operator: "+",
+        operator: "plus",
         rhs: new P.ASTNumericLiteral(match, { value: 1 })
       })
     }

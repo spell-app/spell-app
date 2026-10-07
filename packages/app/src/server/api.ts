@@ -64,6 +64,8 @@ api.post("/projects/file/:projectId/:filePath*", projectUtils.request_saveFile)
 api.get("/projects/compiled/:projectId", projectUtils.request_getCompiled)
 // a project's scope pack, what its Type Explorer shows -- see `LSP.ScopePack`
 api.get("/projects/scopes/:projectId", projectUtils.request_getScopes)
+// a project's declarations, where its Type Explorer finds each one's code -- see `SP.SpellDeclarations`
+api.get("/projects/declarations/:projectId", projectUtils.request_getDeclarations)
 
 // Compile random source file, not tied to a project -- see `projectUtils.request_compileFile`.
 api.post("/compile/file", projectUtils.request_compileFile)

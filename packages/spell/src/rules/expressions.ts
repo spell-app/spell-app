@@ -85,8 +85,8 @@ export type SpellExpressionProps = Prettify<SpellStatementProps & { parenthesize
 /**
  * Base class for expression-suffix rules that take an explicit `rhs`, e.g. `is`, `and`, `includes`.
  * - Matched as part of `compound_expression`'s shunting-yard algorithm -- never parsed standalone.
- * - Override `compileASTExpression()` to control output AST, `getOutputOperator()` for the operator
- *   string, `shouldNegateOutput()` to negate the result, e.g. for `is not`.
+ * - Override `compileASTExpression()` to control output AST, `getOperator()` for what the operator MEANS
+ *   (`equals`, `and` ...), `shouldNegateOutput()` to negate the result, e.g. for `is not`.
  * - `getAST()` deliberately throws: compilation always goes through `compileAST()`/`compileASTExpression()`,
  *   called directly by `compound_expression`'s shunting-yard rather than through normal rule dispatch.
  */
@@ -138,12 +138,14 @@ export class InfixOperatorSuffix<
   }
 
   /**
-   * Return output operator from `operator` match.
-   * - Default just returns the input string of the operator, override for more complex logic.
-   * - NOTE: language-dependent!
+   * What `operator` MEANS, as a `P.ASTOperator`, e.g. `equals` for `is`:  each target's writer spells it.
+   * - Override in each rule using the default `compileASTExpression()`, which builds an `ASTInfixExpression`.
+   * - throws by default:  the words a rule matched aren't a meaning any writer knows
    */
-  getOutputOperator(operator: P.Match): string {
-    return String(operator.value)
+  getOperator(operator: P.Match): P.ASTOperator {
+    throw new TypeError(
+      `${this.constructor.name}.getOperator():  override it to say what \`${operator.value}\` means, e.g. "equals"`
+    )
   }
 
   /**
@@ -167,7 +169,7 @@ export class InfixOperatorSuffix<
       // `lhs`/`rhs` are always populated here: this base implementation is only reached for
       // `InfixOperatorSuffix` rules, which the shunting-yard algorithm always calls with both sides.
       lhs: lhs!,
-      operator: this.getOutputOperator(operator),
+      operator: this.getOperator(operator),
       rhs: rhs!
     })
   }
@@ -654,8 +656,8 @@ class and extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.and
   @proto static parenthesize = true
 
-  getOutputOperator(): string {
-    return "&&"
+  getOperator(): P.ASTOperator {
+    return "and"
   }
 }
 expressions.addRule(and, {
@@ -687,8 +689,8 @@ class or extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.or
   @proto static parenthesize = true
 
-  getOutputOperator(): string {
-    return "||"
+  getOperator(): P.ASTOperator {
+    return "or"
   }
 }
 expressions.addRule(or, {
@@ -715,8 +717,8 @@ class is_equal extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.equality
   @proto static parenthesize = true
 
-  getOutputOperator(operator: P.Match): string {
-    return operator.value === "is not" ? "!=" : "=="
+  getOperator(operator: P.Match): P.ASTOperator {
+    return operator.value === "is not" ? "not equals" : "equals"
   }
 }
 expressions.addRule(is_equal, {
@@ -746,8 +748,8 @@ class is_exactly extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.equality
   @proto static parenthesize = true
 
-  getOutputOperator(operator: P.Match): string {
-    return operator.value === "is not exactly" ? "!==" : "==="
+  getOperator(operator: P.Match): P.ASTOperator {
+    return operator.value === "is not exactly" ? "not exactly equals" : "exactly equals"
   }
 }
 expressions.addRule(is_exactly, {

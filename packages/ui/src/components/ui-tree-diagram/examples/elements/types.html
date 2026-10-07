@@ -1,0 +1,50 @@
+<!-- `src/components/ui-tree-diagram/examples/types.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Tree diagram</h4>
+    <ui-tree-diagram>
+      <script type="application/json">
+        {
+          "label": "If",
+          "title": "if number / 15 is an integer",
+          "children": [
+            {
+              "label": "IsA · integer",
+              "detail": "boolean",
+              "slot": "condition",
+              "children": [
+                {
+                  "label": "Divide",
+                  "detail": "number",
+                  "slot": "value",
+                  "children": [
+                    { "label": "Variable number", "detail": "number" },
+                    { "label": "Number 15", "detail": "number" }
+                  ]
+                }
+              ]
+            },
+            {
+              "label": "Print",
+              "slot": "body",
+              "children": [
+                { "label": "Variable number", "detail": "number" },
+                { "label": "Text \"fizzbuzz\"", "detail": "text" }
+              ]
+            },
+            { "label": "If …", "slot": "otherwise" }
+          ]
+        }
+      </script>
+    </ui-tree-diagram>
+  </section>
+
+  <section>
+    <h4>Labels only</h4>
+    <ui-tree-diagram>
+      <script type="application/json">
+        { "label": "Add", "children": [{ "label": "Number 1" }, { "label": "Number 2" }] }
+      </script>
+    </ui-tree-diagram>
+  </section>
+</div>
