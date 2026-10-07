@@ -49,7 +49,7 @@ import { LOOKS, Window } from "../../scripts/window.mjs"
  * `packages/cli/src/dev/sessions.ts` `TITLE_ICONS`:  change both.
  * - up here:  the hook runs as this file loads (below), and needs it then
  */
-export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅" }
+export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅", sleeping: "😴" }
 
 // run as the hook;  imported (by its tests), nothing runs
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
