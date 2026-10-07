@@ -5,18 +5,36 @@ import { expectAccessible } from "$/ui/test/a11y"
 
 import "$/epics/components/epic-commit"
 
-/** The slots in `host`'s `base` part, by name (`""`:  the default one). */
-function baseSlots(host: Element): string[] {
-  return Array.from(host.shadowRoot!.querySelectorAll(`[part~="base"] slot`), (slot) => slot.getAttribute("name") ?? "")
+/** Commits under a box that shows them (`--epic-commits-display`), as the page's git toggle does. */
+function shown(inner: string, repo = ""): string {
+  return `<epic-page epic="demo" title="Demo"${repo}><div style="--epic-commits-display: block">${inner}</div></epic-page>`
 }
 
 describe("<epic-commit>", () => {
-  test("shows its children through its `base` part's slots, and passes axe", async () => {
-    const element = await ElementFixture.render(
-      `<epic-commit sha="82d5106c165cbebf3922fd97793798e41f1b2760"><p>Hello</p></epic-commit>`
+  test("its short sha links to the commit through the page's `repo`;  the first of a run carries `Commits:`", async () => {
+    const root = await ElementFixture.render(
+      shown(
+        `<epic-commit sha="0123456789abcdef">First</epic-commit><epic-commit sha="fedcba9876543210">Second</epic-commit>`,
+        ` repo="https://github.com/spell-app/spell-app/"`
+      )
     )
-    expect(baseSlots(element)).toEqual([""])
-    expect(element.querySelector("p")!.textContent).toBe("Hello")
-    await expectAccessible(element)
+    const [first, second] = root.querySelectorAll("epic-commit")
+    const link = first!.shadowRoot!.querySelector<HTMLAnchorElement>('[part~="sha"]')!
+    expect({ text: link.textContent, href: link.getAttribute("href"), target: link.target }).toEqual({
+      text: "0123456",
+      href: "https://github.com/spell-app/spell-app/commit/0123456789abcdef",
+      target: "github"
+    })
+    const heading = (commit: Element) =>
+      getComputedStyle(commit.shadowRoot!.querySelector('[part~="heading"]')!).display
+    expect([heading(first!), heading(second!)]).toEqual(["grid", "none"])
+    expect(first!.shadowRoot!.querySelector('[part~="heading"]')!.textContent).toBe("Commits:")
+    await expectAccessible(first!)
+  })
+
+  test("without a `repo`:  the sha as code, no link;  hidden until something shows the commits", async () => {
+    const commit = await ElementFixture.render(`<epic-commit sha="0123456789abcdef">Only</epic-commit>`)
+    expect(commit.shadowRoot!.querySelector('[part~="sha"]')!.localName).toBe("code")
+    expect(getComputedStyle(commit).display).toBe("none")
   })
 })

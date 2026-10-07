@@ -26,8 +26,12 @@ export const epicReplyVocabulary = {
   ],
   events: [],
   slots: [{ name: "", description: "The reply." }],
-  parts: [{ name: "base", description: "The card." }],
+  parts: [
+    { name: "base", description: "The card:  Claude's violet, Owen's orange (`from`)." },
+    { name: "header", description: "Its heading band:  `<from> · <at> · re: <re>`." },
+    { name: "body", description: "The reply;  not drawn when empty." }
+  ],
   states: [],
-  texts: [],
+  texts: [{ key: "re", text: "re: {re}", description: "What the reply is about, in its heading." }],
   children: [{ tag: "flow", description: "The reply." }]
 } as const satisfies EpicVocabulary

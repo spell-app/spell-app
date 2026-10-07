@@ -1,16 +1,292 @@
 /*
- * `<epic-page>`:  a plan doc's page.  P4:  blocks, nothing drawn yet (P5 draws them).
- * - Public tokens (`--epic-page-*`) are never declared here:  read through private aliases
- *   (`--_epic-page-gap: var(--epic-page-gap, 1em)`).
+ * `<epic-page>` (EpicPage.tsx):  a plan doc's page -- the sticky header, the meta lines, a future epic's notice,
+ * then its blocks.
+ * - THE PACK'S TOKENS:  `:host` declares every `--epic-*` token the `<epic-*>` elements share (colours, bands, the
+ *   inset, the item states' colours, the chip);  each element below inherits them through the flat tree.  An
+ *   element drawn outside a page (a test) has none:  it reads each with a fallback, or looks plain.
+ *   - from the docs' own names (`--spell-ink` ...:  `spell-doc.css`), each falling back to Spell UI's intent tokens,
+ *     so a page without `spell-doc.css` still reads
+ *   - a page overrides one with `epic-page { --epic-inset: 8px }`:  the outer tree beats `:host`
+ * - Units:  px and em, never rem (WWOD §18).
  */
 
-@layer ui.components.epic-page.types;
+@layer ui.components.epic-page.types, ui.components.epic-page.content;
 
 @layer ui.components.epic-page.types {
   :host {
     display: block;
+
+    /* ## Colours */
+    --epic-ink: var(--spell-ink, var(--ui-text-color));
+    --epic-heading-ink: var(--spell-heading-ink, var(--ui-text-color));
+    --epic-muted: var(--spell-muted, var(--ui-text-muted));
+    --epic-rule: var(--spell-rule, var(--ui-border-color));
+    --epic-accent: var(--spell-doc-accent, var(--ui-link));
+    --epic-accent-soft: var(--spell-doc-accent-soft, var(--ui-primary-background));
+    --epic-bg: var(--spell-bg, var(--ui-background));
+    --epic-card: var(--spell-card, var(--ui-surface));
+    --epic-warm: var(--spell-warm, var(--ui-accent-background));
+    --epic-code-bg: var(--spell-code-bg, var(--ui-code-background));
+
+    /* ## Type */
+    --epic-sans: var(--spell-sans, var(--ui-font-family));
+    --epic-serif: var(--spell-serif, var(--ui-font-family-heading));
+    --epic-mono: var(--spell-mono, var(--ui-font-family-mono));
+
+    /* ## Layout:  everything inside a block sits `--epic-inset` in from the bands, which reach edge to edge */
+    --epic-inset: 16px;
+    /* title bands:  top-level sections on violet-50, nested ones (phases, Overview parts) and item rows on violet-25 */
+    --epic-band-section: light-dark(var(--spell-violet-50, #f7f7ff), rgb(184 180 255 / 0.1));
+    --epic-band-row: light-dark(var(--spell-violet-25, #fcfcff), rgb(184 180 255 / 0.05));
+    /* the page header's controls (git toggle, step label):  one height */
+    --epic-control-size: 28px;
+
+    /*
+     * ## Item states:  an item's id chip colours (and a To review link's), by `state`.
+     * - red keeps its light-mode hue in dark mode too:  dark's lighter red reads as the orange beside it
+     *   (the raw per-scheme base on purpose, as `plan-doc.css` had it)
+     */
+    --epic-state-attention: light-dark(var(--ui-red), var(--ui-red-on-light));
+    --epic-state-attention-on: light-dark(var(--ui-red-on), var(--ui-ink-on-dark));
+    --epic-state-open: var(--ui-blue);
+    --epic-state-open-on: var(--ui-blue-on);
+    --epic-state-progress: var(--ui-orange);
+    --epic-state-progress-on: var(--ui-orange-on);
+    --epic-state-recent: var(--ui-green);
+    --epic-state-recent-on: var(--ui-green-on);
+    --epic-state-old: var(--ui-grey-background);
+    --epic-state-old-on: var(--ui-grey-text);
+
+    /*
+     * ## The chip:  an item's id, a To review link, a commit's sha -- one height, its text centred.  In em:  each
+     * resolves where it's used, so a chip follows the text it sits in
+     */
+    --epic-chip-height: 1.6em;
+    --epic-chip-font-size: 0.8em;
+    --epic-chip-radius: 999px;
+
+    /* ## Inside items:  the gap between an item's parts (question, Choices, answer ...), and the asides' ivory */
+    --epic-part-gap: 8px;
+    --epic-aside: var(--epic-warm);
+
+    /*
+     * ## The sticky stack:  where an open item's line sticks, px from the viewport top.  Here, below the site
+     * header;  the page's box sets it below its own header too (measured), and every fold (section, phase) around
+     * its children, below its stuck title
+     */
+    --epic-stack: var(--spell-site-header-height, 0px);
   }
   :host([hidden]) {
     display: none;
+  }
+}
+
+@layer ui.components.epic-page.content {
+  [part~="base"] {
+    container: epic-page / inline-size;
+    color: var(--epic-ink);
+  }
+
+  /* ## The sticky header:  the h1, then its controls and labels at the right, each centred on the row */
+  .head {
+    position: sticky;
+    z-index: 5;
+    top: var(--spell-site-header-height, 0px);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 10px var(--epic-inset);
+    border-bottom: 1px solid var(--epic-rule);
+    background: var(--epic-bg);
+  }
+  .heading {
+    flex: 1 1 12em;
+    min-width: 0;
+    margin: 0;
+    color: var(--epic-heading-ink);
+    font: 700 32px/1.15 var(--epic-serif);
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+  .actions:empty {
+    display: none;
+  }
+  .status {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+  }
+  .status:empty {
+    display: none;
+  }
+  /* a label as tall as the git toggle, its icon and text on the row's middle */
+  .status ui-label::part(label) {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    height: var(--epic-control-size);
+    margin: 0;
+    line-height: 1;
+  }
+
+  /* the git toggle:  round, icon only, the accent while pressed */
+  .git {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    width: var(--epic-control-size);
+    height: var(--epic-control-size);
+    padding: 0;
+    border: 1px solid var(--epic-rule);
+    border-radius: 50%;
+    background: none;
+    color: var(--epic-muted);
+    cursor: pointer;
+  }
+  .git .icon {
+    height: auto;
+    color: inherit;
+  }
+  .git:hover {
+    color: var(--epic-accent);
+  }
+  .git[aria-pressed="true"] {
+    border-color: var(--epic-accent);
+    background: var(--epic-accent-soft);
+    color: var(--epic-accent);
+  }
+  .git:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+
+  /* ## Meta lines:  an icon column, the text wrapping beside it;  each icon centred on its line's first row */
+  .meta {
+    margin: 12px var(--epic-inset) 24px;
+    padding: 0;
+    color: var(--epic-muted);
+    font-size: 15px;
+    line-height: 1.5;
+    list-style: none;
+  }
+  .meta > li {
+    display: grid;
+    grid-template-columns: 1.25em minmax(0, 1fr);
+    column-gap: 8px;
+  }
+  .meta > li[hidden] {
+    display: none;
+  }
+  .meta > li > span {
+    min-width: 0;
+  }
+  .meta b {
+    color: var(--epic-ink);
+  }
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1lh;
+    color: var(--epic-accent);
+  }
+  .icon svg {
+    display: block;
+    width: auto;
+    height: 1em;
+    fill: currentColor;
+  }
+  code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--epic-code-bg);
+    color: var(--epic-ink);
+    font: 0.86em var(--epic-mono);
+  }
+  .path {
+    overflow-wrap: anywhere;
+  }
+  ::slotted(a[slot="durable"]) {
+    color: var(--epic-accent);
+  }
+
+  /* ## A future epic's notice */
+  .notice {
+    display: block;
+    margin: 0 var(--epic-inset) 24px;
+  }
+  /* ## A doc still planning:  the folded `Plan hung?` aside, on the ivory, as the Overview's Kickoff prompt */
+  .hung {
+    margin: 0 var(--epic-inset) 24px;
+    border-radius: 10px;
+    background: var(--epic-aside);
+  }
+  .hung > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    color: var(--epic-heading-ink);
+    font: italic 400 15px/1.4 var(--epic-serif);
+    cursor: pointer;
+    list-style: none;
+  }
+  .hung > summary::-webkit-details-marker {
+    display: none;
+  }
+  .hung > summary:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+  .chevron {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    color: var(--epic-muted);
+    transition: rotate 0.15s;
+  }
+  .chevron svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+  }
+  .hung[open] .chevron {
+    rotate: 90deg;
+  }
+  .aside {
+    padding: 0 12px 12px;
+    font-size: 15px;
+  }
+  .aside > p {
+    margin: 2px 0 8px;
+  }
+  .aside > ui-code {
+    display: block;
+  }
+  .notice a {
+    color: var(--epic-accent);
+  }
+
+  /* ## Narrow (VS Code's side bar, a phone):  a smaller h1, so the stuck header leaves room to read */
+  @container epic-page (max-width: 480px) {
+    .heading {
+      flex-basis: 100%;
+      font-size: 24px;
+    }
+    .meta {
+      font-size: 14px;
+    }
+    /* the bedtime label:  just its moon, its words in its tooltip */
+    .bedtime {
+      display: none;
+    }
   }
 }

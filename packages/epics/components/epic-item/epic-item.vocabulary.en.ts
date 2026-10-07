@@ -97,7 +97,9 @@ export const epicItemVocabulary = {
     {
       name: "source",
       kind: "string",
-      description: "Its details' part file (`parts/q7.htm`), loaded into its children when it opens."
+      description:
+        "Its details' part file (`parts/q7.htm`), loaded into its children the first time it opens (its children " +
+        "without a `slot` are a placeholder the part replaces)."
     },
     {
       name: "part-ids",
@@ -105,16 +107,101 @@ export const epicItemVocabulary = {
       format: "ids",
       description: "The ids inside its part file (an old `d7` answer):  a link to one loads the body first, then lands."
     },
-    { name: "commits", kind: "boolean", description: "Its details list commits (the page's git buttons)." }
+    { name: "commits", kind: "boolean", description: "Its details list commits (the page's git buttons)." },
+    {
+      name: "open",
+      kind: "boolean",
+      description:
+        "Unfolded:  a click on its line, a link to it (`#q7`, or an id in `part-ids`), find-in-page.  Page state " +
+        "only:  the script never writes it, so a doc opens folded."
+    }
   ],
-  events: [],
+  events: [
+    {
+      name: "ui-open",
+      detail: "{ open: boolean, item: Element, originalEvent?: Event }",
+      cancelable: true,
+      description:
+        "About to unfold:  its line was clicked;  after the fact (not cancelable) for a link or find-in-page.  " +
+        "Cancel to stay folded."
+    },
+    {
+      name: "ui-close",
+      detail: "{ open: boolean, item: Element, originalEvent?: Event }",
+      cancelable: true,
+      description: "About to fold:  its line was clicked.  Cancel to stay open."
+    },
+    {
+      name: "ui-load",
+      detail: "{ source: string, content: string }",
+      description: "Its `source` part arrived and is in its children (`content` is the file's text)."
+    },
+    {
+      name: "ui-error",
+      detail: "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }",
+      cancelable: true,
+      description:
+        "Its `source` part couldn't be loaded;  `kind` says why.  A note shows in its details unless cancelled;  " +
+        "opening it again tries again."
+    }
+  ],
   slots: [
     { name: "", description: "Its details." },
-    { name: "title", description: "A title with markup, in place of `title`." }
+    { name: "title", description: "A title with markup, in place of `title`." },
+    { name: "actions", description: "Controls at the end of its line:  the review buttons (P9).  Page state only." },
+    { name: "note", description: "Under its details, last:  the note box (P9).  Page state only." }
   ],
-  parts: [{ name: "base", description: "The item." }],
-  states: [],
-  texts: [],
+  parts: [
+    { name: "base", description: "The item." },
+    { name: "line", description: "Its line:  fold button, id chip, title, review label, actions;  sticky while open." },
+    { name: "toggle", description: "The fold `<button>` (the chevron), on an item with details." },
+    { name: "id", description: "The id chip (`Q7`), a link to the item, in its state's colour." },
+    { name: "title", description: "The title." },
+    { name: "review", description: "The review label:  `reviewed 10-06`, `deferred`, `to do`." },
+    { name: "actions", description: "The box at the end of the line around the `actions` slot." },
+    { name: "details", description: "Its details:  hidden while folded." },
+    { name: "label", description: "`Original question` / `Original reply` over its own text." },
+    { name: "error", description: "With `source`:  the line saying the part couldn't be loaded." }
+  ],
+  states: [
+    { name: "open", description: "Unfolded." },
+    { name: "loaded", description: "With `source`:  the part is in its children." },
+    { name: "error", description: "With `source`:  the part couldn't be loaded." }
+  ],
+  texts: [
+    { key: "fold", text: "Fold {id}", description: "Accessible name of the fold button while open." },
+    { key: "unfold", text: "Unfold {id}", description: "Accessible name of the fold button while folded." },
+    { key: "originalQuestion", text: "Original question", description: "Over an answered question's own text." },
+    { key: "originalReply", text: "Original reply", description: "Over an item's own text, above More Details." },
+    { key: "reviewTodo", text: "to do", description: "Review label:  a review decided on work (`queued`)." },
+    { key: "reviewDeferred", text: "deferred", description: "Review label:  put off (`deferred`)." },
+    { key: "reviewed", text: "reviewed {date}", description: "Review label:  `reviewed 10-06`." },
+    { key: "stateAttention", text: "Needs attention", description: "Id chip tooltip, `state=attention`." },
+    { key: "stateProgress", text: "In progress", description: "Id chip tooltip, `state=progress`." },
+    { key: "stateOpen", text: "Open, not urgent", description: "Id chip tooltip, `state=open`." },
+    { key: "stateRecent", text: "Decided or reviewed recently", description: "Id chip tooltip, `state=recent`." },
+    { key: "stateOld", text: "Decided or reviewed earlier", description: "Id chip tooltip, `state=old`." },
+    { key: "tipTodo", text: "to do:  {work}", description: "Id chip and review label tooltip:  the queued work." },
+    { key: "tipReviewed", text: "reviewed {date}", description: "Id chip tooltip:  reviewed." },
+    { key: "tipDeferred", text: "deferred {date}", description: "Id chip and review label tooltip:  deferred." },
+    { key: "tipNotReviewed", text: "not reviewed yet", description: "Id chip tooltip:  open, never reviewed." },
+    { key: "sourceLoadError", text: "Couldn't load {source}.", description: "The part's fetch failed." },
+    {
+      key: "sourceCrossOrigin",
+      text: "Can't load {source}:  only files from this site load.",
+      description: "`source` is on another origin."
+    },
+    {
+      key: "sourceFileProtocol",
+      text: "Loads from {source} when opened (needs the page server).",
+      description: "The page was opened from disk (`file://`):  parts need the page server, as today's docs say."
+    },
+    {
+      key: "sourceRenderError",
+      text: "Couldn't show {source}.",
+      description: "The part arrived, but couldn't be shown."
+    }
+  ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
     { tag: "flow", description: "Its text:  the question as asked, the call and why, the details." },

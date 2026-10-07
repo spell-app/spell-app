@@ -5,16 +5,29 @@ import { expectAccessible } from "$/ui/test/a11y"
 
 import "$/epics/components/epic-update"
 
-/** The slots in `host`'s `base` part, by name (`""`:  the default one). */
-function baseSlots(host: Element): string[] {
-  return Array.from(host.shadowRoot!.querySelectorAll(`[part~="base"] slot`), (slot) => slot.getAttribute("name") ?? "")
-}
-
 describe("<epic-update>", () => {
-  test("shows its children through its `base` part's slots, and passes axe", async () => {
-    const element = await ElementFixture.render(`<epic-update phase="2"><p>Hello</p></epic-update>`)
-    expect(baseSlots(element)).toEqual([""])
-    expect(element.querySelector("p")!.textContent).toBe("Hello")
-    await expectAccessible(element)
+  test("empty:  an inline orange UPDATE label, its phase in its tooltip", async () => {
+    const root = await ElementFixture.render(`<p>Changed <epic-update phase="5"></epic-update></p>`)
+    const update = root.querySelector("epic-update")!
+    const label = update.shadowRoot!.querySelector('[part~="label"]')!
+    expect({ text: label.textContent, tip: label.getAttribute("title") }).toEqual({
+      text: "UPDATE",
+      tip: "Changed during P5"
+    })
+    expect(update.matches(":state(note)")).toBe(false)
+    expect(getComputedStyle(update).display).toBe("inline-block")
+    await expectAccessible(root)
+  })
+
+  test("with children:  a note, its children through its slot;  back to a label when they go", async () => {
+    const update = await ElementFixture.render(`<epic-update phase="2"><p>What changed.</p></epic-update>`)
+    await ElementFixture.tick()
+    expect(update.matches(":state(note)")).toBe(true)
+    expect(getComputedStyle(update).display).toBe("block")
+    expect(update.querySelector("p")!.assignedSlot).not.toBeNull()
+    update.replaceChildren()
+    await new Promise(requestAnimationFrame)
+    await ElementFixture.tick()
+    expect(update.matches(":state(note)")).toBe(false)
   })
 })

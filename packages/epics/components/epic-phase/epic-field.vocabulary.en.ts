@@ -31,8 +31,20 @@ export const epicFieldVocabulary = {
   ],
   events: [],
   slots: [{ name: "", description: "The field's prose." }],
-  parts: [{ name: "base", description: "The field." }],
+  parts: [
+    { name: "base", description: "The field:  its icon column, then its label and prose." },
+    { name: "icon", description: "Its icon, centred on its first line." },
+    { name: "label", description: "Its label:  `Symptom:` ..." }
+  ],
   states: [],
-  texts: [],
+  texts: [
+    { key: "symptom", text: "Symptom:" },
+    { key: "changes", text: "Changes:" },
+    { key: "goal", text: "Goal:" },
+    { key: "done", text: "Done:" },
+    { key: "files", text: "Files:" },
+    { key: "verify", text: "Verify:" },
+    { key: "toReview", text: "To review:" }
+  ],
   children: [{ tag: "flow", description: "The field's prose." }]
 } as const satisfies EpicVocabulary

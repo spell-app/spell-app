@@ -1,10 +1,19 @@
 /**
  * Every name `<epic-phase>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type` only.
+ * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from `epic-section`'s types file, data too.
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
+
+// the fold pieces every folding block shares
+import {
+  FOLD_EVENTS,
+  FOLD_OPEN_ATTRIBUTE,
+  FOLD_PARTS,
+  FOLD_STATES,
+  FOLD_TEXTS
+} from "$/epics/components/epic-section/epic-section.types"
 
 /****************
  * ### `<epic-phase>`
@@ -60,16 +69,22 @@ export const epicPhaseVocabulary = {
       format: "ids",
       description: "The ids inside its part file:  a link to one loads the body first, then lands."
     },
-    { name: "commits", kind: "boolean", description: "Its body lists commits (the page's git buttons)." }
+    { name: "commits", kind: "boolean", description: "Its body lists commits (the page's git buttons)." },
+    FOLD_OPEN_ATTRIBUTE
   ],
-  events: [],
+  events: [...FOLD_EVENTS],
   slots: [
     { name: "", description: "Its fields, plan updates and commits." },
     { name: "title", description: "A title with markup, in place of `title`." }
   ],
-  parts: [{ name: "base", description: "The phase." }],
-  states: [],
-  texts: [],
+  parts: [...FOLD_PARTS, { name: "status", description: "Its status icon, in its status's colour." }],
+  states: [...FOLD_STATES],
+  texts: [
+    ...FOLD_TEXTS,
+    { key: "todo", text: "To do", description: "The status icon's name:  `todo`." },
+    { key: "active", text: "Under way", description: "The status icon's name:  `active`." },
+    { key: "done", text: "Done", description: "The status icon's name:  `done`." }
+  ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
     {

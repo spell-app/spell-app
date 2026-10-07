@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epic: Epic Components (page sample)</title>
+    <meta
+      name="description"
+      content="P5 demo:  every state of the page, overview, section, phase, commit, log and UPDATE elements."
+    />
+    <link rel="stylesheet" href="../../docs/tools/_assets/spell-doc.css" />
+  </head>
+  <!--
+    P5 demo (Drawing Elements):  a whole plan doc in <epic-*> markup -- page header, Overview with sub-sections, 13
+    phases in every status, every section kind, a log.  Items are plain <epic-item>s (another family).  Open it from the
+    page server (parts load) or from disk (the "Loads from ..." notes).  The shell is a plan doc's:  spell-doc.css, the
+    site header, `main.spell-doc-main` (its inline padding off, as plan-doc.css had it, so the bands reach edge to edge).
+  -->
+  <body class="spell-doc-page plan-doc" data-plan="epic-components">
+    <spell-site-header root="../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main" style="padding-inline: 0">
+        <ui-root>
+          <ui-components source="../pack/epics.pack.js"></ui-components>
+          <epic-page
+            epic="epic-components"
+            title="Epic Components"
+            branch="epic-components"
+            worktree="/Users/owen/www/spell-app/spell-app/.claude/worktrees/epic-components"
+            started="2026-10-06"
+            updated="2026-10-07"
+            bedtime="P5-P6"
+            recent-since="2026-10-06T22:56:42-04:00"
+            repo="https://github.com/spell-app/spell-app"
+          >
+            <a slot="durable" href="../../../guides/solid/solid-2.html">Plan docs as elements</a>
+
+            <epic-overview id="overview" estimate="20h-26h in all, 12h-15h left (P13 not estimated)">
+              <p slot="summary">
+                Plan docs drawn by <code>&lt;epic-*&gt;</code> elements: the markup says WHAT is there, the elements
+                draw HOW it looks. The prose stays plain HTML in the page, so find-in-page and <code>#links</code> work.
+              </p>
+              <blockquote slot="prompt">
+                <p>Owen's request of 2026-10-06: turn plan docs into a component pack.</p>
+                <p>
+                  Every element draws its own chrome in its shadow DOM; the prose stays in the page. Tidy the look a
+                  lot, centre the icons and text, and give a folded section no gap below it and a grey rule.
+                </p>
+              </blockquote>
+              <epic-section id="o1" kind="overview-part" title="What changes">
+                <p>Docs say what is there; the elements draw it. Nothing a doc says today is lost.</p>
+                <ul>
+                  <li>data in attributes: <code>status="decided"</code>, <code>state="old"</code>, dates</li>
+                  <li>prose in children: paragraphs, lists, code, as today</li>
+                </ul>
+              </epic-section>
+              <epic-section id="o2" kind="overview-part">
+                <span slot="title">The <code>&lt;epic-*&gt;</code> elements</span>
+                <p>Seventeen tags in eleven families, one description each (their vocabularies).</p>
+              </epic-section>
+              <epic-section
+                id="o3"
+                kind="overview-part"
+                title="Structure, from a part file"
+                source="page-sample/parts/o3.htm"
+                part-ids="o3-shadow"
+              ></epic-section>
+            </epic-overview>
+
+            <epic-section id="phases" kind="phases">
+              <epic-phase
+                id="p1"
+                title="Component Packs"
+                status="done"
+                estimate="3h"
+                commits
+                source="page-sample/parts/p1.htm"
+              ></epic-phase>
+              <epic-phase id="p2" title="Pack Commands" status="done" estimate="2h" commits></epic-phase>
+              <epic-phase id="p3" title="Epics Package" status="done" estimate="1h30m"></epic-phase>
+              <epic-phase id="p4" status="done" estimate="2-3h">
+                <span slot="title">Element <code>Definitions</code></span>
+                <epic-field name="symptom">The plan doc's markup rules live only in prose.</epic-field>
+              </epic-phase>
+              <epic-phase id="p5" title="Drawing Elements" status="active" estimate="4-6h">
+                <epic-field name="symptom">Nothing draws the new markup.</epic-field>
+                <epic-field name="changes">
+                  <p>
+                    Every <code>&lt;epic-*&gt;</code> element draws what today's markup draws, tidied.
+                    <epic-update phase="5"></epic-update>
+                  </p>
+                </epic-field>
+                <epic-updated at="2026-10-07T01:59-04:00" phase="5">
+                  Owen's look notes (Q16): tidy freely; icons and text centred everywhere; a collapsed section has no
+                  gap below it and a grey rule along its bottom.
+                </epic-updated>
+                <epic-updated at="2026-10-07T03:10-04:00" phase="5">Split between two agents, by element.</epic-updated>
+                <epic-field name="goal">
+                  <ul>
+                    <li>the chrome in each element's shadow DOM; the prose stays the page's, through slots</li>
+                    <li>
+                      a <code>source</code> body loads into the element's own children and fires <code>ui-load</code>
+                    </li>
+                    <li>looks right light and dark, at 280px and wide</li>
+                  </ul>
+                </epic-field>
+                <epic-update phase="5">
+                  <p>The page header's git toggle now also shows the commits of a phase still under way.</p>
+                </epic-update>
+                <epic-field name="done">
+                  <ul>
+                    <li>page, overview, sections, phases, fields, commits, log and UPDATE marker drawn</li>
+                    <li>
+                      a long path wraps anywhere: <code>packages/epics/components/epic-section/EpicFold.tsx</code>
+                    </li>
+                  </ul>
+                </epic-field>
+                <epic-commit sha="d99d8a66f5c4b1c0e0a5a3c4b0f2d1e9a8b7c6d5">P1: Component Packs</epic-commit>
+                <epic-commit sha="7698eb84a1b2c3d4e5f60718293a4b5c6d7e8f90"
+                  >P2 + P3: Pack Commands, Epics Package</epic-commit
+                >
+                <epic-field name="files">
+                  <code>packages/epics/components/epic-*/</code>, <code>packages/epics/components/index.ts</code>
+                </epic-field>
+                <epic-field name="verify"
+                  >vitest browser tests per element; a converted copy of a doc beside its original</epic-field
+                >
+                <epic-field name="to-review"
+                  ><a href="#j1">J1</a>, <a href="#j2">J2</a>, <a href="#q16">Q16</a>, <a href="#t8">T8</a></epic-field
+                >
+              </epic-phase>
+              <epic-phase id="p6" title="Doc Converter" status="todo" estimate="3-4h"></epic-phase>
+              <epic-phase id="p7" title="Shared Assembler" status="todo" estimate="2h"></epic-phase>
+              <epic-phase id="p8" title="Plan-doc Tool Moves In" status="todo" estimate="3h"></epic-phase>
+              <epic-phase id="p9" title="Review Buttons In" status="todo" estimate="3-4h"></epic-phase>
+              <epic-phase id="p10" title="Header Tools, Filters and Counts" status="todo" estimate="2-3h"></epic-phase>
+              <epic-phase id="p11" title="Live Update Learns the Tags" status="todo" estimate="2h"></epic-phase>
+              <epic-phase id="p12" title="The Switch" status="todo" estimate="1-2h"></epic-phase>
+              <epic-phase id="p13" title="Doc Review" status="todo"></epic-phase>
+            </epic-section>
+
+            <epic-section id="decisions" kind="questions">
+              <epic-item
+                id="q15"
+                title="Link targets and formatting move into a new shared package"
+                status="decided"
+                state="old"
+              ></epic-item>
+              <epic-item
+                id="q16"
+                title="Drawing Elements:  tidy the look freely;  centred icons and text"
+                status="decided"
+                state="recent"
+              ></epic-item>
+              <epic-item
+                id="q17"
+                title="Which colours for the item states?"
+                status="open"
+                state="attention"
+              ></epic-item>
+            </epic-section>
+
+            <epic-section id="judgements" kind="judgements">
+              <epic-item
+                id="j1"
+                title="P7 assembler:  namespace AS, a Linker class per checkout"
+                status="open"
+                state="attention"
+              ></epic-item>
+              <epic-item
+                id="j2"
+                title="P7 assembler:  doc-links.js loads $/assembler through tsx"
+                status="open"
+                state="progress"
+              ></epic-item>
+            </epic-section>
+
+            <epic-section id="caveats" kind="caveats"></epic-section>
+
+            <epic-section id="todos" kind="todos">
+              <epic-item
+                id="t8"
+                title="P5:  check a host's title attribute doesn't show as a tooltip"
+                status="open"
+                state="open"
+              ></epic-item>
+            </epic-section>
+
+            <epic-section id="issues" kind="issues">
+              <epic-item
+                id="i1"
+                title="Writing a doc needs doc-links.js and oxfmt"
+                status="done"
+                state="old"
+              ></epic-item>
+            </epic-section>
+
+            <epic-section id="tests" kind="tests"></epic-section>
+
+            <epic-section id="log" kind="log">
+              <epic-event at="2026-10-06T08:12-04:00">plan doc created</epic-event>
+              <epic-event at="2026-10-06T08:16-04:00">Q1 details rewritten</epic-event>
+              <epic-event at="2026-10-06T22:40-04:00" icon="circle check">
+                P4 done: 17 tags in 11 families, each a bare slot until P5; a long line of log text that wraps onto a
+                second line at narrow widths
+              </epic-event>
+              <epic-event at="2026-10-07T01:59-04:00" icon="flag">bedtime run started: P5-P6</epic-event>
+            </epic-section>
+          </epic-page>
+        </ui-root>
+      </main>
+    </div>
+    <script src="../../docs/tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

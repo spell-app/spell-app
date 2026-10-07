@@ -30,9 +30,15 @@ export const epicUpdateVocabulary = {
   ],
   events: [],
   slots: [{ name: "", description: "What changed;  none for a bare label." }],
-  parts: [{ name: "base", description: "The label or note." }],
-  states: [],
-  texts: [],
+  parts: [
+    { name: "base", description: "The label or note." },
+    { name: "label", description: "The orange `UPDATE` label:  alone when empty, the note's heading otherwise." }
+  ],
+  states: [{ name: "note", description: "It has children:  drawn as a note, not a bare label." }],
+  texts: [
+    { key: "label", text: "UPDATE", description: "The label." },
+    { key: "tip", text: "Changed during P{phase}", description: "The label's tooltip." }
+  ],
   children: [{ tag: "flow", description: "What changed." }],
   flow: true
 } as const satisfies EpicVocabulary

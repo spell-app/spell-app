@@ -30,8 +30,19 @@ export const epicVersionVocabulary = {
   ],
   events: [],
   slots: [{ name: "", description: "The text, as it was." }],
-  parts: [{ name: "base", description: "The version." }],
+  parts: [
+    { name: "base", description: "The version." },
+    { name: "heading", description: "`As first written` / `As of <as-of>`:  none on a lone first version." },
+    { name: "body", description: "The text, as it was." }
+  ],
   states: [],
-  texts: [],
+  texts: [
+    {
+      key: "firstWritten",
+      text: "As first written",
+      description: "The first version's heading, once there's a second."
+    },
+    { key: "asOf", text: "As of {asOf}", description: "A later version's heading:  when it was replaced." }
+  ],
   children: [{ tag: "flow", description: "The text, as it was." }]
 } as const satisfies EpicVocabulary

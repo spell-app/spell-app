@@ -23,8 +23,12 @@ export const epicOriginalVocabulary = {
   attributes: [],
   events: [],
   slots: [{ name: "", description: "The versions." }],
-  parts: [{ name: "base", description: "The folded aside." }],
-  states: [],
-  texts: [],
+  parts: [
+    { name: "base", description: "The aside." },
+    { name: "toggle", description: "Its `Original Discussion` `<button>`, which folds it." },
+    { name: "body", description: "The versions;  hidden while folded." }
+  ],
+  states: [{ name: "open", description: "Unfolded (it starts folded)." }],
+  texts: [{ key: "original", text: "Original Discussion", description: "The aside's heading." }],
   children: [{ tag: "epic-version", min: 1, description: "The versions, oldest first." }]
 } as const satisfies EpicVocabulary
