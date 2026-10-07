@@ -232,9 +232,9 @@ describe("Converter.convert():  older generations", () => {
     expect(data(document, "#q1 epic-choices")).toEqual({ chosen: "A" })
     expect(data(document, "#q2 epic-choices")).toEqual({ chosen: "C" })
     expect(data(document, "#q2 epic-option[letter='A']")).toEqual({ letter: "A", title: "A \\s marker" })
-    // a title with markup leads its answer, bold:  `<epic-answer>` takes no title slot
+    // a title with markup is its answer's `slot="title"`, first
     expect(data(document, "#d2")).toEqual({ id: "d2" })
-    expect(document.querySelector("#d2 > p:first-child > b")!.innerHTML).toBe(
+    expect(document.querySelector("#d2 > span[slot='title']:first-child")!.innerHTML).toBe(
       '<code>packages/markdown</code>, see <a href="#o1">1.1</a>'
     )
     expect(data(document, "#q2 epic-answer")).toEqual({ title: "As it looks" })

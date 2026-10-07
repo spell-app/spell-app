@@ -3,7 +3,7 @@ import { Formats } from "$/epics/definitions"
 import { Chrome, isScriptUpdate, Old, replyTitleParts } from "./convert.types"
 
 import type { Converter } from "./Converter"
-import { isBlank, isElement, squeeze, stripEdges, takeChildren, titleOf, wrap } from "./domEdits"
+import { isBlank, isElement, squeeze, stripEdges, takeChildren, titleOf } from "./domEdits"
 
 /****************
  * ### `CardConverter`
@@ -188,12 +188,11 @@ export class CardConverter {
 
   /**
    * `<epic-answer id title>` from an answer card:  its title without `Answer` / `D7` (its own id) and the `·`.
-   * - a title with markup can't be an attribute, and `<epic-answer>` takes no title slot:  it leads the answer, bold
+   * - a title with markup can't be an attribute:  it's a `slot="title"` child instead, first, as an option's
    */
   private answer(block: Element): Element {
     const titleBox = block.querySelector(`:scope > ${Old.answerTitle}`)
-    let title: string | undefined
-    const lead: Element[] = []
+    let title: { title?: string; slot?: Element } = {}
     if (titleBox) {
       titleBox.remove()
       const bold = titleBox.querySelector(":scope > b:first-child")
@@ -201,15 +200,11 @@ export class CardConverter {
       if (bold && (word === "Answer" || (Chrome.answerWord.test(word) && word === block.id.toUpperCase())))
         bold.remove()
       stripEdges(titleBox, { first: Chrome.answerSeparator })
-      if (titleBox.children.length) {
-        lead.push(wrap(block, "p", [wrap(block, "b", takeChildren(titleBox))]))
-        this.owner.note(
-          `answer ${block.id ? `#${block.id}` : "card"}:  its title has markup, so it leads the answer, bold`
-        )
-      } else title = titleOf(titleBox).title
+      title = titleOf(titleBox)
     }
-    const data = { id: block.id || undefined, title }
-    return this.owner.element("epic-answer", data, [...lead, ...takeChildren(block)], block)
+    const data = { id: block.id || undefined, title: title.title }
+    const body = takeChildren(block)
+    return this.owner.element("epic-answer", data, title.slot ? [title.slot, ...body] : body, block)
   }
 
   /** `<epic-more>` from the More Details card:  its content. */
