@@ -41,6 +41,34 @@ declare module "$/parser/scope/ScopeVariable" {
 export const classes = new SpellParser({ module: "classes" })
 
 ////////////////
+// ## `with_nested_statements` rule
+//    e.g. "where:", ending "a card is a thing where:"
+////////////////
+
+/**
+ * `where:`, `with:` or a bare `:` ending a line -- then the indented block under it is the statement's body,
+ * e.g. a type's outline body (plan doc `outline-spell` Q7).
+ * - A body keyword which matches words on the line (`leadIn`, see `BODY_KEYWORDS`):  it ends a statement's
+ *   `syntax`, e.g. `(a|an) {type} is (a|an) {superType:type} {with_nested_statements}?`, and the statement takes
+ *   the block only when this matched.
+ */
+class with_nested_statements extends P.Sequence {}
+classes.addRule(with_nested_statements, {
+  syntax: "(where|with)? :",
+  tests: [
+    {
+      // matched only:  its statement compiles, never this
+      compileAs: "with_nested_statements",
+      tests: [
+        ["where:", "where :"],
+        ["with:", "with :"],
+        [":", ":"]
+      ]
+    }
+  ]
+})
+
+////////////////
 // ## `TypeDeclaration` base class
 //    e.g. base for `create_type`, `create_list_type`:  "a card is a thing where:" + a bulleted body
 ////////////////
@@ -52,7 +80,7 @@ export const classes = new SpellParser({ module: "classes" })
  *   `subject_its` -- except inside a method or getter, where `it` is the instance.
  * - `flatBody`:  the body compiles beside the class, as if its lines were written out at the top level,
  *   so its members are hoisted into the class as usual.
- * - `where:`, `with:` and a bare `:` all open the body (plan doc Q7).  See `TYPE_BODY_SYNTAX`.
+ * - `where:`, `with:` and a bare `:` all open the body (plan doc Q7):  `{with_nested_statements}?`.
  */
 class TypeDeclaration<Groups extends string, MatchData extends P.AnyMatchData = P.AnyMatchData> extends SpellStatement<
   Groups,
@@ -70,9 +98,6 @@ class TypeDeclaration<Groups extends string, MatchData extends P.AnyMatchData = 
   }
 }
 
-/** How a type declaration ends when it takes an outline body:  `where:`, `with:` or `:`, then the body. */
-const TYPE_BODY_SYNTAX = "(where|with)? : {nested_statements}?"
-
 ////////////////
 // ## `create_type` rule
 //    e.g. "a card is a thing"
@@ -85,7 +110,7 @@ const TYPE_BODY_SYNTAX = "(where|with)? : {nested_statements}?"
  * - Compiles to an exported class declaration, e.g. `a card is a thing` => `export class Card extends Thing {}`.
  *   Another project reaches it by `import`ing it -- no globals.
  */
-class create_type extends TypeDeclaration<"type|superType|body?"> {
+class create_type extends TypeDeclaration<"type|superType|with_nested_statements?|body?"> {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "superType" }
 
   mutateScope(match: P.MatchFor<this>) {
@@ -116,7 +141,7 @@ class create_type extends TypeDeclaration<"type|superType|body?"> {
   }
 }
 classes.addRule(create_type, {
-  syntax: "(a|an) {type} is (a|an) {superType:type}",
+  syntax: "(a|an) {type} is (a|an) {superType:type} {with_nested_statements}?",
   tests: [
     {
       compileAs: "statement",
@@ -124,12 +149,7 @@ classes.addRule(create_type, {
         ["a card is a thing", "export class Card extends Thing {}"],
         ["a deck is a list", "export class Deck extends List {}"]
       ]
-    }
-  ]
-})
-classes.addRule(create_type, {
-  syntax: `(a|an) {type} is (a|an) {superType:type} ${TYPE_BODY_SYNTAX}`,
-  tests: [
+    },
     {
       compileAs: "block",
       tests: [
@@ -150,12 +170,11 @@ classes.addRule(create_type, {
   ]
 })
 classes.addRule(create_type, {
-  syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type}",
-  tests: [{ compileAs: "statement", tests: [['a "card" is a thing', "export class Card extends Thing {}"]] }]
-})
-classes.addRule(create_type, {
-  syntax: `(a|an) {type:quoted_type} is (a|an) {superType:type} ${TYPE_BODY_SYNTAX}`,
-  tests: [{ compileAs: "block", tests: [['a "card" is a thing where:', "export class Card extends Thing {}"]] }]
+  syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type} {with_nested_statements}?",
+  tests: [
+    { compileAs: "statement", tests: [['a "card" is a thing', "export class Card extends Thing {}"]] },
+    { compileAs: "block", tests: [['a "card" is a thing where:', "export class Card extends Thing {}"]] }
+  ]
 })
 
 ////////////////
@@ -173,7 +192,10 @@ classes.addRule(create_type, {
  *   e.g. `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
  * - A card in at most ONE pile at a time:  `a card belongs to one pile`, below.
  */
-class create_list_type extends TypeDeclaration<"type|instanceType|body?", { itemTypeBelow?: boolean }> {
+class create_list_type extends TypeDeclaration<
+  "type|instanceType|with_nested_statements?|body?",
+  { itemTypeBelow?: boolean }
+> {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
 
   /**
@@ -244,17 +266,12 @@ classes.addRule(create_list_type, {
 })
 // TODO: "{plural_type} are a list of ..."
 classes.addRule(create_list_type, {
-  syntax: "(a|an) {type} is (a|an) list of {instanceType:type}",
+  syntax: "(a|an) {type} is (a|an) list of {instanceType:type} {with_nested_statements}?",
   tests: [
     {
       compileAs: "statement",
       tests: [["a deck is a list of cards", ["export class Deck extends List {", "  static instanceType = Card", "}"]]]
-    }
-  ]
-})
-classes.addRule(create_list_type, {
-  syntax: `(a|an) {type} is (a|an) list of {instanceType:type} ${TYPE_BODY_SYNTAX}`,
-  tests: [
+    },
     {
       compileAs: "block",
       tests: [
@@ -264,19 +281,14 @@ classes.addRule(create_list_type, {
   ]
 })
 classes.addRule(create_list_type, {
-  syntax: "(a|an) {type:quoted_type} is (a|an) list of {instanceType:type}",
+  syntax: "(a|an) {type:quoted_type} is (a|an) list of {instanceType:type} {with_nested_statements}?",
   tests: [
     {
       compileAs: "statement",
       tests: [
         ['a "deck" is a list of cards', ["export class Deck extends List {", "  static instanceType = Card", "}"]]
       ]
-    }
-  ]
-})
-classes.addRule(create_list_type, {
-  syntax: `(a|an) {type:quoted_type} is (a|an) list of {instanceType:type} ${TYPE_BODY_SYNTAX}`,
-  tests: [
+    },
     {
       compileAs: "block",
       tests: [

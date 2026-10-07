@@ -58,6 +58,7 @@ export class SpellStatement<
 
   /**
    * If `rules` ends with a body keyword (or a choice of them), move it into `bodySpec` -- see `BODY_KEYWORDS`.
+   * - A `leadIn` keyword stays in `rules` too:  it matches the words opening the body, e.g. `where:`.
    * - SIDE EFFECT: sets `rules` / `bodySpec`.  Only call before the rule is frozen, i.e. from the constructor.
    */
   protected extractBodySpecFromRules() {
@@ -65,8 +66,21 @@ export class SpellStatement<
     const keywords = last instanceof P.Subrule ? [last] : last instanceof P.Choice ? last.rules : []
     const specs = keywords.map((keyword) => (keyword instanceof P.Subrule ? BODY_KEYWORDS[keyword.rule] : undefined))
     if (!last || !specs.length || specs.some((spec) => !spec)) return
-    this.rules = this.rules.slice(0, -1)
-    this.bodySpec = Object.assign({ syntaxRule: last }, ...specs) as StatementBodySpec
+    const bodySpec = Object.assign({ syntaxRule: last }, ...specs) as StatementBodySpec
+    if (!bodySpec.leadIn) this.rules = this.rules.slice(0, -1)
+    this.bodySpec = bodySpec
+  }
+
+  /**
+   * Do we take the indented block after `match` as our body?  Whenever we take a body -- but after a `leadIn`
+   * keyword, only when it matched, e.g. `a card is a thing where:`, not `a card is a thing`.
+   */
+  takesNestedBody(match: P.Match): boolean {
+    const { bodySpec } = this
+    if (!bodySpec) return false
+    if (!bodySpec.leadIn) return true
+    const keyword = bodySpec.syntaxRule as P.Subrule
+    return !!match.groups[keyword.matchGroup ?? keyword.rule]
   }
 
   /**
@@ -330,10 +344,11 @@ export class SpellStatement<
     return entries
   }
 
-  /** Echo our syntax back out as rulex, INCLUDING the body keyword we took out of `rules`. */
+  /** Echo our syntax back out as rulex, INCLUDING the body keyword we took out of `rules` (a `leadIn` one stayed). */
   toRulexSyntax() {
     const { matchGroup, optional } = this.getRulexFlags()
-    const rules = P.joinRulex([...this.rules, this.bodySpec?.syntaxRule].filter((rule): rule is P.Rule => !!rule))
+    const keyword = this.bodySpec?.leadIn ? undefined : this.bodySpec?.syntaxRule
+    const rules = P.joinRulex([...this.rules, keyword].filter((rule): rule is P.Rule => !!rule))
     if (optional || matchGroup) return `(${matchGroup}${rules})${optional}`
     return `${rules}${optional}`
   }
@@ -371,7 +386,7 @@ export function commitStatement(statement: P.Match, nextItem?: P.Token): Committ
 
   const committed: CommittedStatement = {}
   if (!(statement.rule instanceof SpellStatement)) return committed
-  if (statement.rule.bodySpec && nextItem instanceof P.BlockToken) {
+  if (nextItem instanceof P.BlockToken && statement.rule.takesNestedBody(statement)) {
     committed.bodyMark = statement.scope.parser?.journal?.mark()
     committed.body = statement.rule.parseNestedBlock(statement, nextItem)
   }
