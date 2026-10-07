@@ -132,7 +132,7 @@
     margin: 0;
   }
 
-  /* ## The note box:  the note, and Make Todo / Later / Do Now stacked at its right */
+  /* ## The note box:  the note, and Revisit Later / Do Now / Make Todo stacked at its right */
   .note-box {
     display: flex;
     gap: 6px;
@@ -196,7 +196,7 @@
     gap: 6px;
   }
   /*
-   * Make Todo (green, decided), Later (orange, pending), Do Now (blue:  Claude at once), the wand last:  a ring in its
+   * Revisit Later (orange, pending), Do Now (blue:  Claude at once), Make Todo (green, decided):  a ring in its
    * colour;  filled when pointed at, and for the element's mark (`data-mark`)
    */
   .note-actions > button {

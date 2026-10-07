@@ -161,7 +161,8 @@ export type ReviewButtonsProps = {
 /****************
  * ### `<NoteBox>`
  * The note box (Owen, 2026-10-06, Q8):  a note that grows as it's typed in, a small Saved mark in its corner, and three
- * round buttons stacked at its right:  Make Todo (green), Later (orange:  revisit soon), Do Now (blue:  revisit now).
+ * round buttons stacked at its right:  Revisit Later (orange:  revisit soon, the line's Revisit icon), Do Now (blue:
+ * revisit now), Make Todo (green).
  * - SAVED as typed:  to the inbox as a draft, `DRAFT_SAVE_MS` after the last key, and at once when the box loses focus
  *   or the page goes away;  the floppy says Saved (its tooltip:  when), or turns red with why not;  a localStorage
  *   backup too, for a save that fails (`ReviewClient.type()`)

@@ -133,11 +133,15 @@ export const REVIEW_BUTTONS: readonly ReviewButtonSpec[] = [
  */
 export const OVERVIEW_BUTTONS: readonly ReviewButtonSpec[] = REVIEW_BUTTONS.filter((spec) => spec.action !== "approve")
 
-/** The note box's three buttons:  Make Todo, Later (revisit soon), Do Now (revisit now), the wand last. */
+/**
+ * The note box's three buttons, in Owen's order (2026-10-07, J4):  Revisit Later (queued for the next send), Do Now
+ * (revisit now), Make Todo.
+ * - Revisit Later wears the line's Revisit icon:  both end in the same mark, a revisit
+ */
 export const NOTE_BUTTONS = [
-  { how: "todo", icon: "list check", label: "boxTodo", tip: "boxTodoTip" },
-  { how: "soon", icon: "comment dots", label: "boxSoon", tip: "boxSoonTip" },
-  { how: "now", icon: "wand magic sparkles", label: "boxNow", tip: "boxNowTip" }
+  { how: "soon", icon: "history", label: "boxSoon", tip: "boxSoonTip" },
+  { how: "now", icon: "wand magic sparkles", label: "boxNow", tip: "boxNowTip" },
+  { how: "todo", icon: "list check", label: "boxTodo", tip: "boxTodoTip" }
 ] as const
 
 /** A note box button's `how`. */
@@ -174,7 +178,7 @@ export const REVIEW_PARTS = [
       "The review buttons (P9):  the note bubble, a pick's letter, Approve / Make Todo / Revisit, Add Details Now.  " +
       "Only while the page is reviewed (served by the page server, its inbox answering)."
   },
-  { name: "note-box", description: "The note box:  the note, then Make Todo, Later and Do Now." },
+  { name: "note-box", description: "The note box:  the note, then Revisit Later, Do Now and Make Todo." },
   { name: "said", description: "A note marked and closed:  `You · revisit soon · sent 10:42`, the note, Edit." }
 ] as const
 
@@ -209,8 +213,8 @@ export const REVIEW_TEXTS = [
   { key: "noteLabel", text: "{id}:  your note", description: "The note box, for a screen reader." },
   { key: "boxTodo", text: "Make Todo", description: "Note box button:  its name." },
   { key: "boxTodoTip", text: "Make Todo:  follow it up later, with this note", description: "Note box:  Make Todo." },
-  { key: "boxSoon", text: "Later", description: "Note box button:  its name." },
-  { key: "boxSoonTip", text: "Later:  talk it over in the next batch", description: "Note box:  Later." },
+  { key: "boxSoon", text: "Revisit Later", description: "Note box button:  its name." },
+  { key: "boxSoonTip", text: "Revisit Later:  talk it over in the next batch", description: "Note box:  Later." },
   { key: "boxNow", text: "Do Now", description: "Note box button:  its name." },
   { key: "boxNowTip", text: "Do Now:  Claude looks into it at once", description: "Note box:  Do Now." },
   { key: "saved", text: "Saved {time}", description: "The note box's floppy:  its draft is saved." },

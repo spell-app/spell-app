@@ -14,6 +14,9 @@
  *   checked:  the page did NOT reload (a `window` marker survives), the item, the page and the Overview are the SAME
  *   elements (a marker on each), the item is still open, `<epic-page reviewing>` stays, the note's text and focus
  *   are kept, the scroll is where it was (2px)
+ * - and NO BLINK (I6):  from the reader's state on, the item's details box (in its shadow root) is never hidden, and
+ *   its note box never leaves the page or loses the focus, not even for a moment:  watched by a MutationObserver
+ *   (every change, however brief) and sampled on every animation frame (what the reader could have seen)
  *   1. the doc:  the item's `title` changes (an attribute patched in place)
  *   2. the item's PART (`parts/<id>.htm`):  a paragraph added (the part re-fetched in place:  `wireSourceBodies()`)
  *   3. the doc:  the Overview's summary text changes (a child of an `<epic-*>` element replaced, not the element)
@@ -99,6 +102,7 @@ try {
   }
   await page.waitForTimeout(400)
   await page.evaluate(readerState, itemId)
+  await page.evaluate(watchBlinks, itemId)
   const before = await page.evaluate(stateNow, itemId)
   summary.before = before
   if (!before.open) problems.push(`#${itemId} didn't open from a link to it`)
@@ -149,6 +153,8 @@ try {
     if (after.note !== before.note) lost.push(`typed text lost:  "${after.note}"`)
     if (before.focused && !after.focused) lost.push("the note box lost the focus")
     if (Math.abs(after.y - before.y) > 2) lost.push(`scroll moved:  ${before.y} -> ${after.y}`)
+    const blinks = await page.evaluate(takeBlinks)
+    if (blinks.length) lost.push(`blinked:  ${blinks.join(", ")}`)
     for (const problem of lost) problems.push(`${label}:  ${problem}`)
   }
 } catch (error) {
@@ -174,6 +180,36 @@ function readerState(id) {
     element.__checkLive = true
   const top = item.getBoundingClientRect().top
   scrollTo({ top: scrollY + top - innerHeight / 3, behavior: "instant" })
+}
+
+/**
+ * In the page:  note every moment item `id`'s details box is hidden, or its note box gone or unfocused (I6), in
+ * `window.__checkLiveBlinks`:  each change as it happens (a MutationObserver on its shadow root), and each animation
+ * frame (what a reader could have seen).
+ */
+function watchBlinks(id) {
+  const blinks = (window.__checkLiveBlinks = new Set())
+  const root = document.getElementById(id).shadowRoot
+  const note = root.querySelector("textarea")
+  const look = (when) => {
+    const details = root.getElementById("details")
+    if (!details || details.hasAttribute("hidden")) blinks.add(`details hidden (${when})`)
+    if (!note?.isConnected) blinks.add(`note box gone (${when})`)
+    else if (root.activeElement !== note) blinks.add(`note box unfocused (${when})`)
+  }
+  new MutationObserver(() => look("on a change")).observe(root, { attributes: true, childList: true, subtree: true })
+  const frame = () => {
+    look("on a frame")
+    requestAnimationFrame(frame)
+  }
+  requestAnimationFrame(frame)
+}
+
+/** In the page:  the blinks seen since the last call;  forgets them. */
+function takeBlinks() {
+  const blinks = [...(window.__checkLiveBlinks ?? [])]
+  window.__checkLiveBlinks?.clear()
+  return blinks
 }
 
 /**

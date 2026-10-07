@@ -316,6 +316,7 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
               aria-expanded={this.isOpen() ? UIT.TRUE : UIT.FALSE}
               aria-controls={DETAILS_ID}
               aria-label={this.text(this.isOpen() ? "fold" : "unfold", { id: this.label() })}
+              title={this.text(this.isOpen() ? "fold" : "unfold", { id: this.label() })}
             >
               <Chevron />
             </button>
