@@ -12,3 +12,6 @@ Naming any docs page in a reply:  `spell dev docs link <page> --hash <id> --show
 `(_browser_)` link.
 
 When a summary closes out the session's work (merged, worktree gone, `/isolate done`, a `/bedtime` night reviewed ...), end it with a line of its own, `*You can close this tab*`, if nothing is left for THIS session:  no uncommitted or unmerged work, no background task or agent still running, no question waiting on Owen.  Open items may remain only if they're recorded elsewhere (plan doc, `agents/CODE-DEBT.md` ...) and need no context from this session.  Otherwise leave the line out, and say what's keeping the tab open.
+- With the closing line, ALSO ask (AskUserQuestion) whether to run `/isolate done` when this session's worktree is
+  still there (or the worktrees it made and left:  `/isolate done`'s step 0 cleans those up):  options "Run
+  `/isolate done`" (recommended) and "Leave it" (Owen, 2026-10-07).

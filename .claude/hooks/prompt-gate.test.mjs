@@ -73,6 +73,12 @@ test("parseCommand:  a look right after the name is the window's, not the text; 
   // not a look:  part of the text
   assert.deepEqual(parseCommand("/epic x -verbose"), { skill: "epic", name: "x", text: "-verbose", color: null })
   assert.equal(parseCommand("/epic color teal"), null)
+  assert.deepEqual(parseCommand("/epic future foo-bar blah blah"), {
+    skill: "epic future",
+    name: "foo-bar",
+    text: "blah blah",
+    color: null
+  })
 })
 
 test("kebab", () => {
@@ -100,8 +106,14 @@ test("otherWorktree:  by cwd, else by window;  never the same name", () => {
 
 test("gate:  renames, unless already named", () => {
   const renamed = gate({ prompt: "/epic foo plan", cwd: ROOT }, PACKAGE_WINDOW)
-  assert.deepEqual(renamed, { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: "foo" } })
-  assert.equal(gate({ prompt: "/epic foo plan", cwd: ROOT, session_title: "foo" }, PACKAGE_WINDOW), null)
+  assert.deepEqual(renamed, { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: "🚧 foo" } })
+  assert.equal(gate({ prompt: "/epic foo plan", cwd: ROOT, session_title: "🚧 foo" }, PACKAGE_WINDOW), null)
+  // done (✅) or plain:  back to 🚧
+  for (const session_title of ["✅ foo", "foo"])
+    assert.equal(gate({ prompt: "/isolate foo", cwd: ROOT, session_title }, PACKAGE_WINDOW).hookSpecificOutput.sessionTitle, "🚧 foo")
+  // a future epic:  📅, even in plan mode or another worktree
+  const future = gate({ prompt: "/epic future bar an idea", cwd: ROOT, permission_mode: "plan" }, PACKAGE_WINDOW)
+  assert.equal(future.hookSpecificOutput.sessionTitle, "📅 bar")
   assert.equal(gate({ prompt: "fix the bug", cwd: ROOT }, PACKAGE_WINDOW), null)
 })
 
@@ -132,7 +144,7 @@ test("gate:  re-entering the same worktree, `/unpark` and `/epic resume` aren't 
   assert.equal(gate({ prompt: "/isolate other", cwd: WORKTREE }, null).decision, undefined)
   assert.equal(gate({ prompt: "/unpark foo", cwd: WORKTREE }, OTHER_WINDOW).decision, undefined)
   const resume = gate({ prompt: "/epic resume foo", cwd: WORKTREE, permission_mode: "plan" }, OTHER_WINDOW)
-  assert.equal(resume.hookSpecificOutput.sessionTitle, "foo")
+  assert.equal(resume.hookSpecificOutput.sessionTitle, "🚧 foo")
 })
 
 test("gate:  never loses an older saved text", () => {
@@ -152,9 +164,13 @@ test("gate:  never loses an older saved text", () => {
 test("hook:  stdin in, JSON out;  bad input exits 0, silent", () => {
   const hook = join(dirname(fileURLToPath(import.meta.url)), "prompt-gate.mjs")
   const input = JSON.stringify({ prompt: "/isolate foo", cwd: ROOT, session_id: "x" })
-  const ok = spawnSync(process.execPath, [hook], { input, encoding: "utf8" })
+  // no windows:  the window this test runs in (a worktree's, say) must not block the prompt
+  const windows = mkdtempSync(join(tmpdir(), "windows-"))
+  const env = { ...process.env, SPELL_WINDOWS_DIR: windows }
+  const ok = spawnSync(process.execPath, [hook], { input, encoding: "utf8", env })
+  rmSync(windows, { recursive: true, force: true })
   assert.equal(ok.status, 0)
-  assert.equal(JSON.parse(ok.stdout).hookSpecificOutput.sessionTitle, "foo")
+  assert.equal(JSON.parse(ok.stdout).hookSpecificOutput.sessionTitle, "🚧 foo")
   const bad = spawnSync(process.execPath, [hook], { input: "{not json", encoding: "utf8" })
   assert.equal(bad.status, 0)
   assert.equal(bad.stdout, "")

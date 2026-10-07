@@ -15,8 +15,8 @@ const ALTERNATE_SCREEN = { enter: "\u001B[?1049h\u001B[H", leave: "\u001B[?1049l
 const SETTLE_MS = 150
 
 /**
- * `spell explore [target]`:  full-screen Type Explorer for one project -- see `<ExplorerScreen>`.
- * - No target:  the project here -- or, outside one, asks.  See `CliSession.defaultTarget()`.
+ * `spell explore [project]`:  full-screen Type Explorer for one project -- see `<ExplorerScreen>`.
+ * - None named:  the project here -- or, outside one, asks.  See `CliSession.defaultProject()`.
  * - A `.spell` file starts on that file, open;  a project, on the project.
  * - `o` opens the selected thing's declaration in `$SPELL_EDITOR` (default `code`), as `-g path:line`.
  * - `e` edits its description, writing the file -- never in a test project.
@@ -32,13 +32,13 @@ export async function exploreCommand(
   if (!session.isInteractive || !process.stdout.isTTY) {
     throw new CLI.CliError("`spell explore` needs a terminal -- `spell describe` prints the same as text")
   }
-  const targets = await session.targets(args.slice(0, 1))
-  if (targets.length > 1) throw new CLI.CliError("Explore one project at a time")
-  const target = targets[0]!
-  const project = target.kind === "file" ? target.file.project : target.project
+  const resolvedProjects = await session.projects(args.slice(0, 1))
+  if (resolvedProjects.length > 1) throw new CLI.CliError("Explore one project at a time")
+  const resolved = resolvedProjects[0]!
+  const project = resolved.kind === "file" ? resolved.file.project : resolved.project
   let tree = await session.scopeTree(project)
   const start =
-    target.kind === "file" ? CLI.fileNodeFor(tree, session.workspace.uriFor(target.file)) : CLI.projectNodeOf(tree)
+    resolved.kind === "file" ? CLI.fileNodeFor(tree, session.workspace.uriFor(resolved.file)) : CLI.projectNodeOf(tree)
 
   let textOptions = session.describeOptions(project, tree, { ...options, width: 80 })
   process.stdout.write(ALTERNATE_SCREEN.enter)

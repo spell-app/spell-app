@@ -21,6 +21,9 @@ const REPLY_LIMIT = 3000
  *   applied on its next prompt;  with a name, every session titled `<name>` or that worked in worktree `<name>`,
  *   applied when each is next resumed or prompted (a hook applies a queued title:  nothing else can).  Reopening the
  *   work (`/isolate <name>`, `/epic <name>`, `/unpark <name>`) takes the ✅ off (`.claude/hooks/prompt-gate.mjs`)
+ * - `icons [--dry-run]`:  every named session of this repo given the icon its work's state calls for (`workIcon()`:
+ *   📅 a future epic, ✅ merged or its plan all done, 🚧 under way), queued, so each shows on that session's next
+ *   prompt or resume;  `--dry-run`:  only say what it would queue
  * - `window [pid]`:  the VS Code window id a process runs in (default this session's)
  * - `transcript <id prefix>`:  another session's prompts, last reply and waiting question
  * - `--json` (`list`, `find`, `transcript`):  the data instead of lines
@@ -43,6 +46,8 @@ export async function sessionCommand(
       return titleSession(session, rest.join(" ").trim())
     case "done":
       return markDone(session, rest.join(" ").trim())
+    case "icons":
+      return refreshIcons(session, Boolean(options.dryRun))
     case "window": {
       const window = CLI.windowOf(rest[0] ? Number(rest[0]) : CLI.thisPid())
       session.out(String(window ?? "none"))
@@ -51,7 +56,7 @@ export async function sessionCommand(
     case "transcript":
       return showTranscript(session, rest[0], options)
     default:
-      throw new CLI.CliError(`unknown verb '${verb}':  list, find, open, title, done, window or transcript`)
+      throw new CLI.CliError(`unknown verb '${verb}':  list, find, open, title, done, icons, window or transcript`)
   }
 }
 
@@ -115,7 +120,12 @@ function openSession(session: CLI.CliSession, key: string): number {
   const every = CLI.savedSessions({ everywhere: true })
   const byId = every.filter((it) => it.id.startsWith(key))
   const hits = [
-    ...new Map((byId.length ? byId : every.filter((it) => it.title === key)).map((it) => [it.id, it])).values()
+    ...new Map(
+      (byId.length ? byId : every.filter((it) => it.title === key || CLI.bareTitle(it.title) === key)).map((it) => [
+        it.id,
+        it
+      ])
+    ).values()
   ]
   if (hits.length !== 1)
     throw new CLI.CliError(`open:  ${hits.length} sessions match '${key}';  pass more of the id`, CLI.EXIT.ERRORS)
@@ -167,16 +177,77 @@ function markDone(session: CLI.CliSession, name: string): number {
     : [{ id: me!, title: currentTitle(me!) ?? "" }]
   if (!targets.length) session.out(`no session named or in worktree ${name}`)
   for (const { id, title } of targets) {
-    const bare = title.replace(/^✅\s*/, "") || name
+    // its work's name:  the title without its icon (🚧, 📅 or an older ✅);  the queued one first, it's newer
     const queued = CLI.queuedTitle(id)
-    if (title.startsWith("✅") || queued?.startsWith("✅")) {
-      session.out(`${id.slice(0, 8)} is already done:  "${queued ?? title}"`)
+    const bare = CLI.bareTitle(queued ?? title) || name
+    const done = `${CLI.TITLE_ICONS.done} ${bare}`
+    if ((queued ?? title) === done) {
+      session.out(`${id.slice(0, 8)} is already done:  "${done}"`)
       continue
     }
-    CLI.queueTitle(id, `✅ ${bare}`)
-    session.out(`queued "✅ ${bare}" for ${id.slice(0, 8)}:  applied on its next prompt or resume`)
+    CLI.queueTitle(id, done)
+    session.out(`queued "${done}" for ${id.slice(0, 8)}:  applied on its next prompt or resume`)
   }
   return CLI.EXIT.OK
+}
+
+/**
+ * `icons`:  queue the icon each named session's work calls for (`workIcon()`), when its title (or the one queued)
+ * isn't that already;  says what it did, or (`dryRun`) would do.
+ * - a session's work:  its title without its icon (`bareTitle()`);  sessions of one name are looked up once
+ * - a name with no worktree, branch or plan doc (a session titled "SVG from image") is left as it is
+ */
+function refreshIcons(session: CLI.CliSession, dryRun: boolean): number {
+  const byName = new Map<string, CLI.SessionSummary[]>()
+  for (const it of CLI.savedSessions()) {
+    if (!it.named) continue
+    const name = CLI.bareTitle(CLI.queuedTitle(it.id) ?? it.title)
+    byName.set(name, [...(byName.get(name) ?? []), it])
+  }
+  let queued = 0
+  for (const [name, sessions] of [...byName].sort(([a], [b]) => a.localeCompare(b))) {
+    const icon = workIcon(
+      name,
+      sessions.map((it) => it.id)
+    )
+    if (!icon) continue
+    const wanted = `${icon} ${name}`
+    for (const it of sessions) {
+      const now = CLI.queuedTitle(it.id) ?? it.title
+      if (now === wanted) continue
+      if (!dryRun) CLI.queueTitle(it.id, wanted)
+      queued++
+      session.out(`${dryRun ? "would queue" : "queued"} "${wanted}" for ${it.id.slice(0, 8)} (now "${now}")`)
+    }
+  }
+  session.out(
+    queued
+      ? `${queued} session${queued === 1 ? "" : "s"}${dryRun ? " to retitle" : " retitled"}:  each shows on its next prompt or resume`
+      : "every named session already has its icon"
+  )
+  return CLI.EXIT.OK
+}
+
+/**
+ * The icon work `name`'s state calls for (`TITLE_ICONS`), from its worktree, branch and plan doc (`nameStatus()`);
+ * `null` when `name` isn't work this repo knows.
+ * - 📅 its plan doc is a future epic (`<body data-future>`, `/epic future`);  🚧 a phase of it under way
+ * - 😴 sleeping:  no phase under way, but follow-ups open (`planFollowUps()`), merged or not
+ * - ✅ finished:  its branch merged into `main`, or every phase of its plan done with nothing left to merge
+ * - 🚧 under way:  a worktree, a branch with commits `main` lacks, or a plan with phases left
+ */
+function workIcon(name: string, ids: string[]): string | null {
+  const status = CLI.nameStatus(name, ids)
+  if (!status.worktree && !status.branch && !status.plan) return null
+  const file = status.plan && CLI.planFile(name, status.worktree ?? "", CLI.mainRoot())
+  const plan = file ? CLI.planFollowUps(file) : null
+  if (plan?.future) return CLI.TITLE_ICONS.future
+  if (plan?.active) return CLI.TITLE_ICONS.active
+  // nothing under way, follow-ups open:  asleep, whether merged or not
+  if (plan && plan.phases && plan.followUps) return CLI.TITLE_ICONS.sleeping
+  // a plan all done whose branch still has commits `main` lacks isn't finished:  it waits to merge
+  if (status.finished && status.ahead === 0) return CLI.TITLE_ICONS.done
+  return CLI.TITLE_ICONS.active
 }
 
 /** Session `id`'s title from its transcript, or `null`. */

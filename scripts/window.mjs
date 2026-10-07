@@ -93,7 +93,9 @@
  *   "Spell Docs" tab;  `--review`:  its "Review" tab), at id `<id>`;  in the window this session is moving to, once
  *   it has, while a `handoff` is pending
  * - `open <name> [--pkg <pkg>] [--color <look>]`:  write worktree `<name>`'s window file and open it in a new
- *   window;  `<pkg>` defaults to this session's window's package, its look to this session's window's.  `close <name>`:  close that window, delete the file.
+ *   window;  `<pkg>` (a package, or any `workspaces/<pkg>.code-workspace`) defaults to this session's window's
+ *   package, else `spell-app` (the whole repo's window);  its look:  `--pkg`'s window's when named, else this
+ *   session's window's.  `close <name>`:  close that window, delete the file.
  * - `handoff <name> [--back] [--prompt <text>]`:  move this session to worktree `<name>`'s window when its turn
  *   ends;  `--back`:  from it to its package's window, closing it after;  `--prompt`:  typed into the new tab.
  *   Needs `$CLAUDE_CODE_SESSION_ID` (Claude sets it in a session's commands).
@@ -134,6 +136,9 @@ const THEMES = {
 
 /** A package that isn't in `THEMES`. */
 const FALLBACK_THEME = "Default Dark+"
+
+/** `open`'s window file when this session's window isn't a package's:  `workspaces/spell-app.code-workspace`. */
+const DEFAULT_WINDOW = "spell-app"
 
 /** The MAIN checkout's marker file (git-ignored):  worktree windows hide what's beside it (`filesExclude()`). */
 const MAIN_MARKER = ".spell-main"
@@ -361,14 +366,16 @@ export class Window {
    *   (P5 of `windows-and-review`:  a probe opened green came up in an older probe's purple).  `colors` go in once
    *   the window is up (`applyColors()`), a live change
    */
-  static open(name, pkg, { color = null } = {}) {
+  static open(name, pkg, { color = null, fromCurrent = true } = {}) {
     if (!existsSync(join(MAIN_ROOT, ".claude", "worktrees", name))) throw new Error(`no worktree ${name}`)
-    if (!Window.packages.includes(pkg)) throw new Error(`no package ${pkg}`)
+    // a package, or any other window file (`spell-app`:  the whole repo's)
+    if (!Window.packages.includes(pkg) && !existsSync(join(MAIN_ROOT, "workspaces", `${pkg}.code-workspace`)))
+      throw new Error(`no package ${pkg}`)
     if (color) look(color)
     const file = Window.worktreeFile(name)
     mkdirSync(dirname(file), { recursive: true })
     Window.ensureMainMarker()
-    const from = Window.currentWorkspace()
+    const from = fromCurrent ? Window.currentWorkspace() : null
     const workspace = Window.worktreeWorkspace(pkg, name, { color, from })
     const colors = workspace.settings["workbench.colorCustomizations"] ?? null
     delete workspace.settings["workbench.colorCustomizations"]
@@ -786,10 +793,11 @@ export class Window {
         console.log(closed ? `closed the window of ${name}` : `no window of ${name} open;  its file is gone`)
         return 0
       }
-      const pkg = flags.pkg ?? Window.packageOf(Window.current())
-      if (!pkg) throw new Error("which package?  --pkg <pkg> (this session's window isn't a package window)")
+      // not a package window (a worktree's ...):  the whole repo's window, never a question (Owen, 2026-10-07)
+      const pkg = flags.pkg ?? Window.packageOf(Window.current()) ?? DEFAULT_WINDOW
       const color = typeof flags.color === "string" ? flags.color : null
-      const { file, colors } = Window.open(name, pkg, { color })
+      // `--pkg` named:  that window's look, not this one's
+      const { file, colors } = Window.open(name, pkg, { color, fromCurrent: !flags.pkg })
       console.log(`opened ${file}`)
       if (colors && !(await Window.applyColors(file, colors)))
         console.log("  (its window didn't show up in time:  colours written anyway;  a change to them applies them)")

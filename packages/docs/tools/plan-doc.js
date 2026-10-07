@@ -450,6 +450,11 @@ export class PlanDoc {
   addPhase(name, { symptom, changes, goal, files, verify, estimate } = {}) {
     const section = this.section("phases")
     this.document.querySelector(HUNG)?.remove()
+    // a future epic with a phase is planned:  no longer future (its meta lines stay until `new` promotes it)
+    if (this.future) {
+      this.document.body.removeAttribute("data-future")
+      this.document.querySelector("ui-message.plan-future")?.remove()
+    }
     const n = this.phases.length + 1
     const label = `P${n} · ${name}`
     this.addOldListEntry(n, label)
@@ -745,7 +750,7 @@ ${list}`
   /**
    * The step label in the sticky page header (`.plan-step`):  where the plan is, at a glance.
    * - the active phase (orange, links to it);  else "DONE" (green) once every phase is;  else the next one (grey)
-   * - hidden while there are no phases
+   * - hidden while there are no phases;  a future epic's (`future`):  "FUTURE" (violet)
    */
   updateStep() {
     const step = this.document.querySelector(".plan-step")
@@ -753,8 +758,8 @@ ${list}`
     const phases = this.phases
     const active = phases.find((phase) => phase.status === "active")
     const next = phases.find((phase) => phase.status === "todo")
-    toggle(step, "hidden", phases.length === 0)
-    if (!phases.length) step.innerHTML = ""
+    toggle(step, "hidden", phases.length === 0 && !this.future)
+    if (!phases.length) step.innerHTML = this.future ? `<ui-label color="violet" icon="seedling">FUTURE</ui-label>` : ""
     else if (active) step.innerHTML = stepLabel(active, "orange", "circle half stroke", "")
     else if (!next) step.innerHTML = `<ui-label color="green" icon="check">DONE</ui-label>`
     else step.innerHTML = stepLabel(next, "grey", "circle right", "Next:  ")
@@ -1911,8 +1916,70 @@ ${list}`
         ?.textContent.replace(/^Estimate:\s*/, "")
         .trim(),
       bedtime: this.bedtimeRun,
+      future: this.future,
       open
     }
+  }
+
+  ////////////////
+  // ## Future epics
+  ////////////////
+
+  /**
+   * Is this a FUTURE epic (`/epic future <name>`, epic `epic-future`):  an idea written down, not planned yet?
+   * `<body data-future>`:  no worktree, no phases;  its analysis page (`details/analysis.html`) holds the high-level
+   * open questions.  The first phase added (`addPhase()`), or `new` again (`promote()`), makes it an ordinary epic.
+   */
+  get future() {
+    return Boolean(this.document.body?.hasAttribute("data-future"))
+  }
+
+  /**
+   * Make this new doc a future epic:  `<body data-future>`, the "Future epic" notice in place of "Plan hung?" (`HUNG`:
+   * there's no plan to hang), and meta lines that say there's no branch or worktree yet.
+   */
+  makeFuture(name) {
+    this.document.body.setAttribute("data-future", "")
+    const notice = this.fragment(
+      `<ui-message class="plan-future" state="info" size="small" header="Future epic:  not planned yet">` +
+        `<p>No worktree, no phases yet.  Its high-level open questions are on its ` +
+        `<a href="details/analysis.html">analysis page</a>, answered in the side bar's Review tab;  the answers land ` +
+        `here as decided questions.  <code>/epic ${text(name)}</code> plans it, from the kickoff prompt and those ` +
+        `answers.</p></ui-message>`
+    ).firstElementChild
+    const hung = this.document.querySelector(HUNG)
+    if (hung) hung.replaceWith(notice)
+    else this.document.querySelector("ui-list.plan-meta")?.after(notice)
+    this.setMeta({ branch: null, worktree: null })
+    this.updateStep()
+  }
+
+  /**
+   * A future epic, planned at last (`/epic <name>` reusing it):  an ordinary epic;  the notice goes, the meta lines
+   * name `branch` and `worktree`.  Returns whether it was a future one.
+   */
+  promote({ branch, worktree }) {
+    if (!this.future) return false
+    this.document.body.removeAttribute("data-future")
+    this.document.querySelector("ui-message.plan-future")?.remove()
+    this.setMeta({ branch, worktree })
+    this.updateStep()
+    this.log("planned:  no longer a future epic")
+    return true
+  }
+
+  /** The meta lines' branch and worktree (`null`:  none yet, a future epic). */
+  setMeta({ branch, worktree }) {
+    const name = this.document.body.getAttribute("data-plan") ?? ""
+    const lines = this.document.querySelector("ui-list.plan-meta")
+    const branchLine = lines?.querySelector(':scope > ui-item[icon="code branch"]')
+    const folderLine = lines?.querySelector(':scope > ui-item[icon="folder"]')
+    if (branchLine)
+      branchLine.innerHTML = branch
+        ? `Plan doc for <code>/epic ${text(name)}</code>, branch <code>${text(branch)}</code>`
+        : `Future epic:  <code>/epic future ${text(name)}</code>, no branch yet`
+    if (folderLine)
+      folderLine.innerHTML = worktree ? `Worktree:  <code>${text(worktree)}</code>` : "Worktree:  none yet"
   }
 
   ////////////////
@@ -3216,8 +3283,10 @@ export function isoDate(date = new Date()) {
 
 /** Usage, printed with no command or a bad one. */
 const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
-  new <name> [--title "Title"] [--prompt "text" | --prompt-file path]
-                                                   copy the template, fill it in, update the docs index
+  new <name> [--title "Title"] [--prompt "text" | --prompt-file path] [--future]
+                                                   copy the template, fill it in, update the docs index;
+                                                   --future:  an epic not planned yet (/epic future);  new on
+                                                   a future epic's doc plans it:  promoted where it is
   add-phase <name> "Short Name" --symptom html --changes html [--goal html] [--files html] [--verify html]
             [--estimate 2h]                        a phase:  Symptom (one line), Changes (two or three), then
                                                    the details (goal, files, verify)
@@ -3607,16 +3676,21 @@ function listEpics() {
     return {
       name,
       title: docTitle(plan.document) ?? name,
-      status: phases.length && phases.every((phase) => phase.status === "done") ? "done" : "in progress",
+      status: plan.future
+        ? "future"
+        : phases.length && phases.every((phase) => phase.status === "done")
+          ? "done"
+          : "in progress",
       checkout: epicCheckout(name, main),
       notReviewed: sections.reduce((sum, section) => sum + section.notReviewed, 0),
       total: sections.reduce((sum, section) => sum + section.total, 0),
       file
     }
   })
+  // in progress, then future, then done
+  const rank = { "in progress": 0, future: 1, done: 2 }
   return epics.sort(
-    (a, b) =>
-      (a.status === "done") - (b.status === "done") || b.notReviewed - a.notReviewed || a.name.localeCompare(b.name)
+    (a, b) => rank[a.status] - rank[b.status] || b.notReviewed - a.notReviewed || a.name.localeCompare(b.name)
   )
 }
 
@@ -3687,8 +3761,17 @@ export async function writeDoc(file, plan, split) {
  * - the page's title and h1:  `Epic: <title>` (`TITLE_PREFIX`;  the template's h1 has it)
  * - refuses to overwrite:  the skill asks the user whether to reuse an existing doc
  */
-async function create(name, file, { title = titleCase(name), prompt, promptFile }) {
+async function create(name, file, { title = titleCase(name), prompt, promptFile, future = false }) {
   const found = planDocIn(dirname(file), name)
+  // a future epic, now planned (`/epic <name>`):  promoted where it is, its prompt and answers kept
+  if (found && !future) {
+    const branch = git("branch", "--show-current") || "(detached)"
+    const worktree = git("rev-parse", "--show-toplevel") || ROOT
+    if (await edit(found, (plan) => plan.promote({ branch, worktree }))) {
+      reindex()
+      return console.log(`${relative(process.cwd(), found)}:  was a future epic, now planned here`)
+    }
+  }
   if (found) throw new PlanDocError(`${relative(ROOT, found)} already exists`)
   const now = new Date()
   const today = isoDate(now)
@@ -3714,6 +3797,7 @@ async function create(name, file, { title = titleCase(name), prompt, promptFile 
   plan.foldHungNotice()
   // the prompt that started the plan, quoted at the top of the Overview;  none:  the empty quote goes
   plan.setPrompt(promptFile ? readFileSync(promptFile, "utf8") : (prompt ?? ""))
+  if (future) plan.makeFuture(name)
   mkdirSync(dirname(file), { recursive: true })
   // split from the start (J... of `claude-design`):  a doc being planned is the one edited most, so it gains most
   await writeDoc(file, plan, true)
@@ -4014,7 +4098,7 @@ async function splitDone({ dryRun }) {
 function printEpics(epics, json) {
   if (json) return console.log(JSON.stringify(epics, null, 2))
   const lines = []
-  for (const status of ["in progress", "done"]) {
+  for (const status of ["in progress", "future", "done"]) {
     const group = epics.filter((epic) => epic.status === status)
     if (!group.length) continue
     lines.push(`${status}:  (not reviewed / items)`)

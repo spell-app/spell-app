@@ -49,8 +49,9 @@ export class Observable<
    * On construction, assign `props` passed in to our instance.
    * - Through each key's setter, if it has one;  a key without one becomes a plain field.
    * - `props` here can include state keys too, since we don't distinguish them at the call site.
+   * - Optional:  compiled spell's `a new deck` is `new Deck()`.
    */
-  constructor(props: Partial<Props & State>) {
+  constructor(props?: Partial<Props & State>) {
     super()
     Object.assign(this, props)
   }

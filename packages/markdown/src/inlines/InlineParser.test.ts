@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { MD, type InlineNode } from "$/markdown"
+import { MD } from "$/markdown"
 
 /** `text`'s inline nodes as `kind[start,end)`, nested ones after `>`. */
 function spans(text: string) {
@@ -9,7 +9,7 @@ function spans(text: string) {
   return out
 
   /** Record `node`'s children. */
-  function visit(node: InlineNode, prefix: string) {
+  function visit(node: MD.InlineNode, prefix: string) {
     for (const child of node.children()) {
       out.push(`${prefix}${child.kind}[${child.start},${child.end})`)
       visit(child, `${prefix}${child.kind}>`)

@@ -15,9 +15,9 @@ let cardFilePath: string
 
 beforeAll(async () => {
   const session = new CLI.CliSession()
-  const target = await CLI.resolveTarget("@test/Solitaire")
-  if (target.kind !== "project") throw new Error("expected a project")
-  const { project } = target
+  const resolved = await CLI.resolveProject("@test/Solitaire")
+  if (resolved.kind !== "project") throw new Error("expected a project")
+  const { project } = resolved
   tree = await session.scopeTree(project)
   cardFilePath = CLI.projectNodeOf(tree).children.find((node) => node.name === "Card.spell")!.path
   describeNode = (node, flags) => {

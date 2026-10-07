@@ -40,7 +40,7 @@ The link points at `bin/spell.mjs` in this checkout.  Edit the source and the ne
 
 ### Naming what to work on
 
-Every command takes one or more targets:
+Every command takes one or more projects (a lone spell file counts as a one-file project):
 
 | You type | Means |
 |---|---|
@@ -59,7 +59,7 @@ Every command takes one or more targets:
 | Command | What it does |
 |---|---|
 | `spell help [command]` | Lists the commands, or shows one's options:  `spell help compile` ~== `spell compile --help`. |
-| `spell serve [target]` | Runs everything -- the spell app's editor (vite, hot reload) and this checkout's page server (`spell dev server`:  the app's `/api`, which saves files to disk, plus docs, epics, goals and Spell UI) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (the editor's;  default 3000), `--headless`. |
+| `spell serve [project]` | Runs everything -- the spell app's editor (vite, hot reload) and this checkout's page server (`spell dev server`:  the app's `/api`, which saves files to disk, plus docs, epics, goals and Spell UI) -- and opens the editor on `project` in your browser, until `Ctrl-C`.  `--port <n>` (the editor's;  default 3000), `--headless`. |
 | `spell dev commands [list\|check]` | Every yarn script, `spell` command and skill, against the commands page (`guides/dev/commands/commands.json`):  `list` marks each ✓ / ✗, `check` prints only the gaps and exits 1 on any.  `--json`.  The first of the repo-tool commands, `spell dev <noun> <verb>`:  the plan for the rest is that page's Roadmap. |
 | `spell dev agents [check] [files...]` | The agents' rules:  every `WWOD §N › "title"` citation names a real section and rule, and every backticked repo path exists, in WWOD (`agents/wwod/`), the `AGENTS.md` / `CLAUDE.md` files, `goals/AGENTS.md` and `solid-2.md`;  skills for citations only.  Exits 1 on a broken one.  `--json`.  Run it after editing WWOD or an `AGENTS.md`. |
 | `spell dev plan-doc <command> <name> ...` | Edits a plan doc (`epics/<name>/<name>.plan.html`) as the `/epic` skill does, from anywhere, in the nearest checkout (a worktree's, when run in one).  Alone, lists its commands, e.g. `summary <name>`, `phase <name> 2 done`.  Root `yarn plan-doc`;  `spell plan-doc` still works (deprecated). |
@@ -72,24 +72,24 @@ Every command takes one or more targets:
 | `spell dev vscode [build\|install]` | The VS Code extension:  `build` its `.vsix` (`yarn install`, `build`, `package` in `packages/vscode`), `install` it into VS Code, no verb both.  Root `yarn vscode`, `vscode:build`, `vscode:install`. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword:  name, pack, other names.  `--pack <id>`, `--json`.  `--open` shows them as pictures in your browser (click one to copy its name), until `Ctrl-C`. |
 | `spell static <pages...>` | `@spell-app/ui` pages as plain HTML for crawlers and no-JS readers:  each `ui-*` element rendered to light DOM (no shadow DOM), the scripts that load the elements removed.  Writes `page.static.html` beside `page.html`, and ONE minified stylesheet per output folder, `ui.static.css`, which every page there links (the browser caches it).  `-o <file>` (one page) or `-o <folder>` (several), `--css <file>` (one stylesheet elsewhere), `--inline-css` (each page's own `<style>` instead), `--no-minify`.  A folder:  every `.html` in it. |
-| `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  `--force` recompiles the projects it imports, too.  A `.spell` file prints its javascript. |
-| `spell check <targets...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
-| `spell describe <target> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
-| `spell explore [target]` | Full-screen Type Explorer.  `↑↓` move, `←→` fold, `Tab` switch pane, `/` filter, `c` compiled, `i` inherited, `o` open in editor, `e` edit its description, `q` quit.  Reloads as files change. |
-| `spell watch [targets...]` | Recompiles on every save, with a live list of errors.  `--check-only` re-checks and writes nothing.  `--test` runs tests after each clean rebuild (`--name` picks which).  Rebuilds a watched project when one it imports changes.  `q` / `Ctrl-C` stops it. |
-| `spell run [target]` | Compiles and runs the project under node.  Its `print`s show as they happen.  One that shows a UI then opens in your browser, until `Ctrl-C`.  `--browser` always, `--no-browser` never. |
-| `spell test [targets...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed.  `--verbose` shows every check.  `--name <text>` runs only tests whose names contain it.  `--watch` is `spell watch --test`. |
-| `spell format <targets...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does.  `--check` writes nothing, lists what would change, exits 1 if anything would.  Never writes into `projects/test/`. |
+| `spell compile <projects...>` | Writes each project's `<Project>.compiled.js` and `<Project>.declarations.json`, each other target's output (`--target <name>`, or `project.json`'s `"targets"`:  `SP.TARGETS`), and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  `--force` recompiles the projects it imports, too.  A `.spell` file prints its javascript. |
+| `spell check <projects...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
+| `spell describe <project> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
+| `spell explore [project]` | Full-screen Type Explorer.  `↑↓` move, `←→` fold, `Tab` switch pane, `/` filter, `c` compiled, `i` inherited, `o` open in editor, `e` edit its description, `q` quit.  Reloads as files change. |
+| `spell watch [projects...]` | Recompiles on every save, with a live list of errors.  `--check-only` re-checks and writes nothing.  `--test` runs tests after each clean rebuild (`--name` picks which).  Rebuilds a watched project when one it imports changes.  `q` / `Ctrl-C` stops it. |
+| `spell run [project]` | Compiles and runs the project under node.  Its `print`s show as they happen.  One that shows a UI then opens in your browser, until `Ctrl-C`.  `--browser` always, `--no-browser` never. |
+| `spell test [projects...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed.  `--verbose` shows every check.  `--name <text>` runs only tests whose names contain it.  `--watch` is `spell watch --test`. |
+| `spell format <projects...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does.  `--check` writes nothing, lists what would change, exits 1 if anything would.  Never writes into `projects/test/`. |
 | `spell projects [root]` | Lists the project roots, or one root's projects, with the names to type.  `--json`. |
 | `spell speed [module]` | Times the parser's rule tests (`SP.spellParser.speedTest()`), 3 fresh runs, as a markdown table.  `--against HEAD` times that commit too, in a temp worktree, and adds a Change row.  `--runs`, `--json`. |
-| `spell parse "<text>"` | How spell reads a line:  its match tree, then its javascript.  Tried as a `statement`, then an `expression`;  `--rule` for another.  `--in <target>` parses in that project's scope.  `--json`. |
-| `spell repl [target]` | `spell parse`, a line at a time;  what a line declares, later lines know.  `↑↓` earlier lines, `Esc` quits.  Piped, it reads stdin. |
-| `spell explain <word>` | Rules `word` names or starts (`print`, `repeat`):  syntax and an example.  `--in <target>`:  also what that project declares by that name, as the editor's hover.  `--json`. |
+| `spell parse "<text>"` | How spell reads a line:  its match tree, then its javascript.  Tried as a `statement`, then an `expression`;  `--rule` for another.  `--in <project>` parses in that project's scope.  `--json`. |
+| `spell repl [project]` | `spell parse`, a line at a time;  what a line declares, later lines know.  `↑↓` earlier lines, `Esc` quits.  Piped, it reads stdin. |
+| `spell explain <word>` | Rules `word` names or starts (`print`, `repeat`):  syntax and an example.  `--in <project>`:  also what that project declares by that name, as the editor's hover.  `--json`. |
 | `spell new <name>` | Makes `<name>/project.json` and a starter `<name>.spell` that prints a hello.  In `@user`'s folder, or `--in <folder>`.  Refuses a folder with anything in it. |
 
-- No target:  the project here, for every command.  Outside a project, in a terminal, `spell` asks -- completing as
+- No project named:  the project here, for every command.  Outside a project, in a terminal, `spell` asks -- completing as
   you type, like a shell:  `Tab` completes a root (`@examples/`), then a project, then "entire project" or one of
-  its files;  your last 3 picks come first (kept in `.recent-targets.json`, gitignored).  Piped, it says to name one.
+  its files;  your last 3 picks come first (kept in `.recent-projects.json`, gitignored).  Piped, it says to name one.
 - Names in `describe` ignore case, and spaces ~== `-` ~== `_`:  `stock pile` finds `Stock_Pile`.
 - Everywhere:  `--verbose` lets spell's own logging through, on stderr.  `NO_COLOR=1` turns colour off.
 - `o` in `explore` runs `$SPELL_EDITOR -g path:line`, `code` by default.  Cursor works too.

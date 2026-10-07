@@ -1,23 +1,15 @@
-/** AST classes.  These do not necessarily correspond do anyone else's AST. */
+/**
+ * AST classes.  These do not necessarily correspond do anyone else's AST.
+ * - They hold what was parsed;  a target's WRITER turns them into code -- `P.JSWriter` for javascript, which
+ *   `compile()` calls.  NEVER write output here.
+ */
 
-import { getSuperHierarchy, Assertable, OPTIONAL } from "$/util"
+import { Assertable, OPTIONAL } from "$/util"
 import { P } from "$/parser"
-
-import * as stringify from "./stringifyAST"
-import * as render from "./renderAST"
 
 ////////////////
 // ## Helpers
 ////////////////
-
-// TODO: define this in `constants` or some such?
-/** Regex for a string that is legal as a bare (unquoted) JS property identifier. */
-const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w$]*$/
-
-/** `true` if `value` can be used as a bare JS property/identifier name without quoting. */
-function isLegalIdentifier(value: string): boolean {
-  return LEGAL_PROPERTY_IDENTIFIER.test(value)
-}
 
 /**
  * Normalize `statements` (single `ASTStatement`, already-built `ASTStatementBlock`, or array) into one
@@ -77,16 +69,17 @@ export class ASTNode<Props extends object = object> extends Assertable {
   }
 
   ////////////////
-  // ## Rendering as JS text
+  // ## Writing as JS text
   ////////////////
 
   /**
-   * Compile this AST into Javascript.  MUST override in subclass.
-   * - Most subclasses return a `string` of Javascript source, but `ASTLiteral` subclasses
-   *   (e.g. `ASTNumericLiteral`) may return raw underlying value instead.
+   * This node as Javascript, written by `P.JSWriter` -- see its method for our class.
+   * - Most nodes write a `string` of Javascript source, but `ASTLiteral`s (e.g. `ASTNumericLiteral`) write their
+   *   raw value instead.
+   * - throws if no `JSWriter` method writes our class, or any class we extend
    */
   compile(): unknown {
-    throw new TypeError(`AST ${this.nodeType} must implement compile()`)
+    return P.JSWriter.instance.write(this)
   }
 
   /**
@@ -102,51 +95,10 @@ export class ASTNode<Props extends object = object> extends Assertable {
   }
 
   ////////////////
-  // ## Rendering as markup
-  ////////////////
-
-  /**
-   * Markup drawing this node as syntax-colored Javascript:  a `<span>` with our `className` around
-   * `renderChildren()` -- see `render.Node()`.
-   * - Plain data, not DOM:  the app's `<ASTViewer>` draws it with `render.toDOM()`.
-   */
-  /*@memoize*/
-  get markup(): P.MarkupElement {
-    return this.derived("markup", () => render.Node(this))
-  }
-
-  /**
-   * Css className as concatenation of all superclass method names.
-   * - Override in subclass to add special stuff, e.g.
-   *   `get className() { return super.className + "foo bar baz" }`
-   */
-  get className(): string {
-    const supers = (getSuperHierarchy(this, ASTNode) as Array<{ name: string }>).reverse()
-    return supers.map((constructor) => constructor.name).join(" ")
-  }
-
-  /**
-   * Markup to draw INSIDE our `markup`'s outer element, which has `node.className`
-   * (e.g. `ASTNode ASTExpression ASTStringLiteral`) set.
-   */
-  renderChildren(): P.Markup {
-    return null
-  }
-
-  // TEST: ensure that `compile()` output is the same as `render.toText(ast.markup)` -- modulo indentation, which
-  //  the app's viewer draws with CSS:  `toText()` lacks it.
-  // REFACTOR: was using enzyme to test component vs. compiled text, but enzyme was problematic
-  //  so we're not using it anymore -- always return `true`.
-  /** Always `true` -- see REFACTOR note above `test()`. */
-  test(): boolean {
-    return true
-  }
-
-  ////////////////
   // ## Debug
   ////////////////
 
-  /** Debug string, deliberately not including properties -- see subclasses for actual rendering. */
+  /** Debug string, deliberately not including properties. */
   toString(): string {
     return `${this.constructor.name} {...}`
   }
@@ -157,14 +109,7 @@ export class ASTNode<Props extends object = object> extends Assertable {
 ////////////////
 
 /** Blank line. */
-export class ASTBlankLine extends ASTNode {
-  compile(): string {
-    return "" // "\n"
-  }
-  renderChildren(): P.Markup {
-    return null // render.NEWLINE
-  }
-}
+export class ASTBlankLine extends ASTNode {}
 
 /** Base of all Expression types.  Useful for `instanceof`.
  *  - Try to figure out `datatype` if you can, either as a value or as a getter.
@@ -188,12 +133,6 @@ export class ASTExpressionWithComment extends ASTExpression {
     this.assertType("expression", ASTExpression)
     this.assertType("comment", ASTBlockComment)
   }
-  compile(): string {
-    return `${this.expression.compile()} ${this.comment.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(this.expression.markup, render.SPACE, this.comment.markup)
-  }
 }
 
 /** Generic Literal type.  Useful for `instanceof`.
@@ -203,12 +142,6 @@ export class ASTExpressionWithComment extends ASTExpression {
 export class ASTLiteral extends ASTExpression {
   declare value: unknown
   declare raw: string | undefined
-  compile(): unknown {
-    return this.value
-  }
-  renderChildren(): P.Markup {
-    return render.span("value", this.value as P.Markup)
-  }
 }
 
 /** NumericLiteral type.
@@ -230,22 +163,33 @@ export class ASTNumericLiteral extends ASTLiteral {
   }
 }
 
-/** StringLiteral type.
- *  - `value` is the string.
+/** A quote a text literal is written in:  double, single or a back tick. */
+export type ASTQuote = '"' | "'" | "`"
+
+/** StringLiteral type -- text.
+ *  - `quote` set:  a text VALUE.  `value` is the text itself, plain;  a writer quotes it in `quote` -- or, given
+ *    `raw` (how the spell source spelled it, e.g. `"a \"b\""`), may write that.
+ *  - `quote` unset:  a FRAGMENT of output, `value` written as is -- e.g. inside an `ASTQuotedExpression`, which
+ *    adds the quotes itself.
  *  - `raw` (optional) is original input string.
  */
-export type ASTStringLiteralProps = Prettify<{ value: string; raw?: string }>
+export type ASTStringLiteralProps = Prettify<{ value: string; quote?: ASTQuote; raw?: string }>
 
 export class ASTStringLiteral extends ASTLiteral {
   declare value: string
+  declare quote: ASTQuote | undefined
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "text"
   }
-  /** Constructor also accepts a bare `string` as shorthand for `{ value }`. */
+  /** Constructor also accepts a bare `string` as shorthand for `{ value }`:  a fragment. */
   constructor(match: P.AnyMatch, props: string | ASTStringLiteralProps) {
     if (typeof props === "string") props = { value: props }
     super(match, props)
     this.assertType("value", "string")
+    this.assert(
+      this.quote === undefined || ['"', "'", "`"].includes(this.quote),
+      `ASTStringLiteral: unknown quote '${this.quote}'`
+    )
   }
 }
 
@@ -267,23 +211,6 @@ export class ASTTemplateString extends ASTExpression {
     super(match, props)
     this.assertArrayType("parts", ["string", ASTExpression])
   }
-  compile(): string {
-    const body = this.parts
-      .map((part) =>
-        typeof part === "string" ? part.replace(/`/g, "\\`").replace(/\$\{/g, "\\${") : `\${${part.compile()}}`
-      )
-      .join("")
-    return `\`${body}\``
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      "`",
-      ...this.parts.map((part) =>
-        typeof part === "string" ? render.span("value", part) : render.Fragment("${", part.markup, "}")
-      ),
-      "`"
-    )
-  }
 }
 
 /** BooleanLiteral type.
@@ -303,12 +230,6 @@ export class ASTBooleanLiteral extends ASTLiteral {
     super(match, props)
     this.assertType("value", "boolean")
   }
-  compile(): string {
-    return this.value ? "true" : "false"
-  }
-  renderChildren(): P.Markup {
-    return this.value ? "true" : "false"
-  }
 }
 
 /** RegExpLiteral type.
@@ -327,9 +248,11 @@ export class ASTRegExpLiteral extends ASTLiteral {
   }
 }
 
-/** NullLiteral type.  TODO: ???? */
-export class ASTNullLiteral extends ASTLiteral {
-  // TODO: ???
+/**
+ * MissingExpression -- stands in for an expression that didn't parse, beside the error saying why, e.g. a JSX
+ * `{...}` with nothing usable in it.  `JSWriter` writes `null`.
+ */
+export class ASTMissingExpression extends ASTLiteral {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "nothing"
   }
@@ -337,16 +260,10 @@ export class ASTNullLiteral extends ASTLiteral {
     super(match, props)
     this.assertType("value", undefined)
   }
-  compile(): string {
-    return "null"
-  }
-  renderChildren(): P.Markup {
-    return render.span("value", "null")
-  }
 }
 
-/** UndefinedLiteral type.  TODO: ???? */
-export class ASTUndefinedLiteral extends ASTLiteral {
+/** NothingLiteral -- spell's `nothing`:  no value.  `JSWriter` writes `undefined`, a Python writer would `None`. */
+export class ASTNothingLiteral extends ASTLiteral {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "nothing"
   }
@@ -354,23 +271,10 @@ export class ASTUndefinedLiteral extends ASTLiteral {
     super(match, props)
     this.assertType("value", undefined)
   }
-  compile(): string {
-    return "undefined"
-  }
-  renderChildren(): P.Markup {
-    return render.span("value", "undefined")
-  }
 }
 
-/** ThisLiteral type -- represents JS `this`. */
-export class ASTThisLiteral extends ASTLiteral {
-  compile(): string {
-    return "this"
-  }
-  renderChildren(): P.Markup {
-    return render.span("value", "this")
-  }
-}
+/** SelfLiteral -- the thing a method runs on, e.g. the card in a card's `turn over`.  `JSWriter` writes `this`. */
+export class ASTSelfLiteral extends ASTLiteral {}
 
 /** KeywordLiteral type.
  *  - `value` is raw input converted into a JS-legal keyword.
@@ -415,13 +319,6 @@ export class ASTArrayLiteral extends ASTLiteral {
   set wrap(wrap: boolean) {
     this.override("wrap", wrap)
   }
-  compile(): string {
-    const { items, wrap } = this
-    return stringify.Array({ items, wrap })
-  }
-  renderChildren(): P.Markup {
-    return render.Array({ items: this.items, wrap: this.wrap })
-  }
 }
 
 /** Enumeration -- literal array where each item also has a plain string/number `value`.
@@ -437,12 +334,6 @@ export class ASTEnumeration extends ASTLiteral {
     super(match, props)
     this.assertArrayType("enumeration", ASTExpression)
     this.assertArrayType("values", ["string", "number"])
-  }
-  compile(): string {
-    return stringify.Array({ items: this.enumeration })
-  }
-  renderChildren(): P.Markup {
-    return render.Array({ items: this.enumeration })
   }
 }
 
@@ -469,12 +360,6 @@ export class ASTQuotedExpression extends ASTExpression {
     super(match, props)
     this.assertType("expression", ASTExpression)
   }
-  compile(): string {
-    return stringify.InSingleQuotes({ children: String(this.expression.compile()) })
-  }
-  renderChildren(): P.Markup {
-    return render.InSingleQuotes({ children: render.span("expression", this.expression.markup) })
-  }
 }
 
 /**
@@ -495,12 +380,6 @@ export class ASTBackTickExpression extends ASTExpression {
     if (typeof props === "string") props = { expression: new ASTStringLiteral(match, { value: props }) }
     super(match, props)
     this.assertType("expression", ASTExpression)
-  }
-  compile(): string {
-    return stringify.InBackTicks({ children: String(this.expression.compile()) })
-  }
-  renderChildren(): P.Markup {
-    return render.InBackTicks({ children: render.span("expression", this.expression.markup) })
   }
 }
 
@@ -523,16 +402,6 @@ export class ASTBacktickSubstitution extends ASTExpression {
     super(match, props)
     this.assertType("expression", ASTExpression)
   }
-  compile(): string {
-    return "${" + this.expression.compile() + "}"
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.span("literal", "${"),
-      render.span("expression", this.expression.markup),
-      render.span("literal", "}")
-    )
-  }
 }
 
 /**
@@ -553,12 +422,6 @@ export class ASTTripleBackTickExpression extends ASTExpression {
     if (typeof props === "string") props = { expression: new ASTStringLiteral(match, { value: props }) }
     super(match, props)
     this.assertType("expression", ASTExpression)
-  }
-  compile(): string {
-    return stringify.InTripleBackTicks({ children: String(this.expression.compile()) })
-  }
-  renderChildren(): P.Markup {
-    return render.InTripleBackTicks({ children: render.span("expression", this.expression.markup) })
   }
 }
 
@@ -584,18 +447,7 @@ export class ASTPropertyLiteral extends ASTLiteral {
   }
   /** `true` if `value` can be output bare, `false` if it needs quoting/bracket access. */
   get isLegalIdentifier(): boolean {
-    return isLegalIdentifier(this.value)
-  }
-  compile(): string {
-    if (this.isLegalIdentifier) return this.value
-    return stringify.InSingleQuotes({ children: this.value })
-  }
-  get className(): string {
-    return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
-  }
-  renderChildren(): P.Markup {
-    const value = render.span("property", this.value)
-    return this.isLegalIdentifier ? value : render.InSingleQuotes({ children: value })
+    return P.jsText.isLegalIdentifier(this.value)
   }
 }
 
@@ -614,19 +466,6 @@ export class ASTPropertyExpression extends ASTExpression {
     this.assertType("object", ASTExpression)
     if (typeof this.property === "string") this.property = new ASTPropertyLiteral(this.match, this.property)
     this.assertType("property", ASTPropertyLiteral)
-  }
-  /** Compiles as `object.property` when legal identifier, else `object['property']`. */
-  compile(): string {
-    const prop = this.property.compile()
-    if (this.property.isLegalIdentifier) return `${this.object.compile()}.${prop}`
-    return `${this.object.compile()}['${prop}']`
-  }
-  renderChildren(): P.Markup {
-    const object = render.span("object", this.object.markup)
-    if (this.property.isLegalIdentifier) {
-      return render.Fragment(object, render.PERIOD, this.property.markup)
-    }
-    return render.Fragment(object, render.InSquareBrackets({ children: this.property.markup }))
   }
 }
 
@@ -665,22 +504,6 @@ export class ASTVariableExpression extends ASTExpression {
     this.assertType("default", ASTExpression, OPTIONAL)
     this.assertType("raw", "string", OPTIONAL)
   }
-  /** Compiles as `name` alone, or `name = default` when a default value is set. */
-  compile(): string {
-    if (this.default) return `${this.name} = ${this.default.compile()}`
-    return this.name
-  }
-  /** Adds `type` and the scope variable's `kind` (e.g. `let`/`const`) as extra css classes. */
-  get className(): string {
-    const classes = [super.className]
-    if (this.type) classes.push(this.type)
-    if (this.variable?.kind && !classes.includes(this.variable.kind)) classes.push(this.variable.kind)
-    return classes.join(" ")
-  }
-  renderChildren(): P.Markup {
-    if (!this.default) return render.span("name", this.name)
-    return render.Fragment(render.span("name", this.name), render.EQUALS, render.span("default", this.default.markup))
-  }
 }
 
 /** AwaitExpression:  `await {expression}`.
@@ -695,12 +518,6 @@ export class ASTAwaitExpression extends ASTExpression {
   constructor(match: P.AnyMatch, props: ASTAwaitExpressionProps) {
     super(match, props)
     this.assertType("expression", ASTExpression)
-  }
-  compile(): string {
-    return `await ${this.expression.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.AWAIT, this.expression.markup)
   }
 }
 
@@ -728,26 +545,6 @@ export class ASTLineComment extends ASTComment {
     this.assertType("commentSymbol", "string", OPTIONAL)
     this.assertType("initialWhitespace", "string", OPTIONAL)
   }
-  /** Prefixes `commentSymbol` with `//` unless it already IS exactly `//`. */
-  compile(): string {
-    const { initialWhitespace = " ", value } = this
-    let { commentSymbol = "" } = this
-    if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
-    return `${commentSymbol}${initialWhitespace}${value}`
-  }
-  /** Adds `"header"` css class for non-plain comment symbols, e.g. section-banner comments. */
-  get className(): string {
-    return `${super.className}${this.commentSymbol !== "//" ? " header" : ""}`
-  }
-  renderChildren(): P.Markup {
-    let { commentSymbol = "" } = this
-    if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
-    return render.Fragment(
-      render.span("punctuation line-comment-symbol", commentSymbol),
-      render.span("whitespace", this.initialWhitespace || " "),
-      render.span("comment", this.value)
-    )
-  }
 }
 
 /** BlockComment type.
@@ -760,12 +557,6 @@ export class ASTBlockComment extends ASTComment {
   constructor(match: P.AnyMatch, props: ASTBlockCommentProps) {
     super(match, props)
     this.assertType("value", "string")
-  }
-  compile(): string {
-    return `/* ${this.value} */`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.OPEN_COMMENT, render.span("comment", this.value), render.CLOSE_COMMENT)
   }
 }
 
@@ -781,15 +572,6 @@ export class ASTDocComment extends ASTComment {
     super(match, props)
     this.assertArrayType("lines", "string")
   }
-  /** `/** text *\/` for one line;  one ` * ` line each for several. */
-  compile(): string {
-    const lines = this.lines.map((line) => line.replace(/\*\//g, "*\\/"))
-    if (lines.length === 1) return `/** ${lines[0]} */`
-    return ["/**", ...lines.map((line) => ` * ${line}`), " */"].join("\n")
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.OPEN_COMMENT, render.span("comment", this.lines.join("\n")), render.CLOSE_COMMENT)
-  }
 }
 
 /** PreservedComment type -- a `/*! ... *\/` comment, which minifiers keep:  data for tools reading compiled output.
@@ -804,14 +586,6 @@ export class ASTPreservedComment extends ASTComment {
   constructor(match: P.AnyMatch, props: ASTPreservedCommentProps) {
     super(match, props)
     this.assertArrayType("lines", "string")
-  }
-  /** `/*! first line`, then the rest, the last ending ` *\/`. */
-  compile(): string {
-    const lines = this.lines.map((line) => line.replace(/\*\//g, "*\\/"))
-    return `/*! ${lines.join("\n")} */`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.OPEN_COMMENT, render.span("comment", this.lines.join("\n")), render.CLOSE_COMMENT)
   }
 }
 
@@ -831,14 +605,6 @@ export class ASTBannerComment extends ASTComment {
     super(match, props)
     this.assertType("value", "string")
   }
-  compile(): string {
-    const heading = `// ## ${this.value}`
-    const rule = "/".repeat(heading.length)
-    return [rule, heading, rule].join("\n")
-  }
-  renderChildren(): P.Markup {
-    return render.span("comment", this.compile())
-  }
 }
 
 /** ParserAnnotation type, used for parser annotations injected into output.
@@ -851,17 +617,6 @@ export class ASTParserAnnotation extends ASTBlockComment {
   }
   set annotation(annotation: string) {
     this.override("annotation", annotation)
-  }
-  compile(): string {
-    return `/* ${this.annotation} ${this.value} */`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.OPEN_COMMENT,
-      render.span("annotation", this.annotation, " "),
-      render.span("comment", this.value),
-      render.CLOSE_COMMENT
-    )
   }
 }
 
@@ -901,12 +656,6 @@ export class ASTParenthesizedExpression extends ASTExpression {
   get datatype(): string | RegExpConstructor | undefined {
     return this.expression.datatype
   }
-  compile(): string {
-    return stringify.InParens({ children: String(this.expression.compile()) })
-  }
-  renderChildren(): P.Markup {
-    return render.InParens({ children: render.span("expression", this.expression.markup) })
-  }
 }
 
 /** Not expression.
@@ -924,36 +673,46 @@ export class ASTNotExpression extends ASTExpression {
     super(match, props)
     this.assertType("expression", ASTExpression)
   }
-  compile(): string {
-    return `!${this.expression.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.BANG, render.span("expression", this.expression.markup))
-  }
 }
 
-/** InfixExpression:  `<lhs> <operator> <rhs>`. */
-export type ASTInfixExpressionProps = Prettify<{ lhs: ASTExpression; operator: string; rhs: ASTExpression }>
+/**
+ * What an infix operator MEANS, in spell's words -- a writer spells it in its language, e.g. `JSWriter`:
+ * `equals` => `==`, `exactly equals` => `===`, `and` => `&&`.
+ * - `equals` is spell's `is`:  forgiving, `"2"` is `2`;  `exactly equals` is `is exactly`.
+ * - `plus` adds numbers or joins text:  which, a writer can tell from the sides' datatypes.
+ */
+export const AST_OPERATORS = [
+  "and",
+  "or",
+  "equals",
+  "not equals",
+  "exactly equals",
+  "not exactly equals",
+  "less than",
+  "greater than",
+  "at most",
+  "at least",
+  "plus",
+  "minus",
+  "times",
+  "divided by"
+] as const
+
+/** One of `AST_OPERATORS`, e.g. `exactly equals`. */
+export type ASTOperator = (typeof AST_OPERATORS)[number]
+
+/** InfixExpression:  `<lhs> <operator> <rhs>`, `operator` an `ASTOperator`, e.g. `equals`. */
+export type ASTInfixExpressionProps = Prettify<{ lhs: ASTExpression; operator: ASTOperator; rhs: ASTExpression }>
 
 export class ASTInfixExpression extends ASTExpression {
   declare lhs: ASTExpression
-  declare operator: string
+  declare operator: ASTOperator
   declare rhs: ASTExpression
   constructor(match: P.AnyMatch, props: ASTInfixExpressionProps) {
     super(match, props)
     this.assertType("lhs", ASTExpression)
-    this.assertType("operator", "string")
+    this.assert(AST_OPERATORS.includes(this.operator), `ASTInfixExpression: unknown operator '${this.operator}'`)
     this.assertType("rhs", ASTExpression)
-  }
-  compile(): string {
-    return `${this.lhs.compile()} ${this.operator} ${this.rhs.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.span("lhs", this.lhs.markup),
-      render.span("operator", " ", this.operator, " "),
-      render.span("rhs", this.rhs.markup)
-    )
   }
 }
 
@@ -967,7 +726,7 @@ export class ASTInfixExpression extends ASTExpression {
  */
 export function ASTMultiInfixExpression(
   match: P.AnyMatch,
-  { expressions, operator }: { expressions: ASTExpression[]; operator: string }
+  { expressions, operator }: { expressions: ASTExpression[]; operator: ASTOperator }
 ): ASTExpression | undefined {
   if (expressions.length < 2) return expressions[0]
   const remaining = [...expressions]
@@ -1013,13 +772,6 @@ export class ASTInvocationArgs extends ASTNode {
   set wrap(wrap: boolean) {
     this.override("wrap", wrap)
   }
-  compile(): string {
-    const { args, wrap } = this
-    return stringify.Args({ args, wrap })
-  }
-  renderChildren(): P.Markup {
-    return render.Args({ args: this.args, wrap: this.wrap })
-  }
 }
 
 /** MethodInvocation:  generic named method invocation, e.g. `methodName(args)`.
@@ -1056,12 +808,6 @@ export class ASTMethodInvocation extends ASTExpression {
     this.assertType("datatype", "string", OPTIONAL)
     this.args = new ASTInvocationArgs(match, { args, wrap })
   }
-  compile(): string {
-    return `${this.methodName}${this.args.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.span("method-name", this.methodName), this.args.markup)
-  }
 }
 
 /** Call a `method` on some `thing` with `args`, e.g. `thing.methodName(args)`.
@@ -1078,17 +824,6 @@ export class ASTScopedMethodInvocation extends ASTMethodInvocation {
     super(match, props)
     // `methodName`, `args`, wrap` and `datatype` are handled by MethodInvocation
     this.assertType("thing", ASTExpression)
-  }
-  compile(): string {
-    return `${this.thing.compile()}.${this.methodName}${this.args.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.span("method-scope", this.thing.markup),
-      render.span("operator period", "."),
-      render.span("method-name", this.methodName),
-      this.args.markup
-    )
   }
 }
 
@@ -1206,8 +941,8 @@ export class ASTExpectMethodInvocation extends ASTCoreMethodInvocation {
   /** Wraps `expressionString`/`valueString` as backtick `ASTStringLiteral`s and never wraps args. */
   constructor(match: P.AnyMatch, props: ASTExpectMethodInvocationProps) {
     const { expression, expressionString, value, valueString } = props
-    const args = [expression, new ASTStringLiteral(match, "`" + expressionString + "`")]
-    if (value) args.push(value, new ASTStringLiteral(match, "`" + valueString + "`"))
+    const args = [expression, new ASTStringLiteral(match, { value: expressionString, quote: "`" })]
+    if (value) args.push(value, new ASTStringLiteral(match, { value: String(valueString), quote: "`" }))
     super(match, { methodName: "expect", args, wrap: false })
   }
 }
@@ -1230,7 +965,7 @@ export class ASTEchoInvocation extends ASTCoreMethodInvocation {
   constructor(match: P.AnyMatch, props: ASTEchoInvocationProps) {
     const { methodName = "echo" } = props
     let { expression } = props
-    if (typeof expression === "string") expression = new ASTStringLiteral(match, "`" + expression + "`")
+    if (typeof expression === "string") expression = new ASTStringLiteral(match, { value: expression, quote: "`" })
     super(match, { methodName, args: [expression] })
   }
 }
@@ -1246,7 +981,7 @@ export type ASTHeadingInvocationProps = { heading: string }
 
 export class ASTHeadingInvocation extends ASTCoreMethodInvocation {
   constructor(match: P.AnyMatch, { heading }: ASTHeadingInvocationProps) {
-    super(match, { methodName: "heading", args: [new ASTStringLiteral(match, JSON.stringify(heading))] })
+    super(match, { methodName: "heading", args: [new ASTStringLiteral(match, { value: heading, quote: '"' })] })
   }
 }
 
@@ -1276,12 +1011,6 @@ export class ASTTypeExpression extends ASTExpression {
     super(match, props)
     this.assertType("name", "string")
     this.assertType("raw", "string", OPTIONAL)
-  }
-  compile(): string {
-    return this.name
-  }
-  renderChildren(): P.Markup {
-    return render.span("type", this.name)
   }
 
   /**
@@ -1315,13 +1044,6 @@ export class ASTPrototypeExpression extends ASTExpression {
     if (typeof this.type === "string") this.type = new ASTTypeExpression(match, { name: this.type })
     this.assertType("type", ASTTypeExpression)
   }
-  compile(): string {
-    const { type } = this
-    return `${type.compile()}.prototype`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(this.type.markup, render.PERIOD, render.PROTOTYPE)
-  }
 }
 
 /** ConstantExpression -- pointer to a Constant object.
@@ -1345,13 +1067,6 @@ export class ASTConstantExpression extends ASTExpression {
     super(match, props)
     this.assertType("name", "string")
     this.assertType("output", "string")
-  }
-  /** Just outputs pre-baked `output` string verbatim -- `compile()` doesn't re-derive it from `name`. */
-  compile(): string {
-    return this.output
-  }
-  renderChildren(): P.Markup {
-    return render.span("constant", this.output)
   }
 }
 
@@ -1446,95 +1161,6 @@ export class ASTMethodDefinition extends ASTExpression {
     if (typeof this.async === "boolean") return this.async
     return containsAwait(this.body)
   }
-  /** `methodName`, quoted when used `asProperty` with a non-legal-identifier name; `""` if unset. */
-  getMethodName(): string {
-    const { methodName } = this
-    if (!methodName) return ""
-    if (this.asProperty && !isLegalIdentifier(methodName)) return `'${methodName}'`
-    return methodName
-  }
-  /** SIDE EFFECT: `console.warn`s if `asProperty` is set but `methodName` is missing. */
-  compile(): string {
-    const async = this.isAsync ? "async " : ""
-    const args = stringify.Args({ args: this.args })
-    const error = this.error ? ` ${this.error.compile()}` : ""
-    const body = this.body.compile()
-
-    const methodName = this.getMethodName()
-    if (this.asProperty) {
-      if (!methodName) console.warn("MethodDef: property missing methodName", this)
-      if (this.inline) return `${async}${methodName}: ${args} => ${body}${error}`
-      return `${async}${methodName}${args} ${body}${error}`
-    }
-
-    // normal method
-    if (this.inline) return `${async}${args} => ${body}${error}`
-    const export_ = this.exported ? "export " : ""
-    return `${export_}${async}function ${methodName}${args} ${body}${error}`
-  }
-  /**
-   * Compile as method shorthand under `name`, whatever our own `methodName`, e.g. in a class body.
-   * - `name` is ready to print:  quoted if need be, and may lead with `get `, e.g. `get title` => `get title() {...}`.
-   */
-  compileNamed(name: string): string {
-    const async = this.isAsync ? "async " : ""
-    const error = this.error ? ` ${this.error.compile()}` : ""
-    return `${async}${name}${stringify.Args({ args: this.args })} ${this.body.compile()}${error}`
-  }
-  /** Compile as an anonymous `function (args) {...}` -- NOT an arrow, so `this` is whatever it's called on. */
-  compileAnonymous(): string {
-    const async = this.isAsync ? "async " : ""
-    const error = this.error ? ` ${this.error.compile()}` : ""
-    return `${async}function ${stringify.Args({ args: this.args })} ${this.body.compile()}${error}`
-  }
-  /** Draw as method shorthand under `name` -- see `compileNamed()`. */
-  renderNamed(name: P.Markup): P.Markup {
-    const async = this.isAsync && render.ASYNC
-    const methodName = render.span("method-name", name)
-    return render.Fragment(
-      async,
-      methodName,
-      render.Args({ args: this.args }),
-      render.SPACE,
-      this.body.markup,
-      this.renderError()
-    )
-  }
-  /** Draw as an anonymous `function (args) {...}` -- see `compileAnonymous()`. */
-  renderAnonymous(): P.Markup {
-    const async = this.isAsync && render.ASYNC
-    return render.Fragment(
-      async,
-      render.FUNCTION,
-      render.Args({ args: this.args }),
-      render.SPACE,
-      this.body.markup,
-      this.renderError()
-    )
-  }
-  /** Render `error` (if any) prefixed with a space -- `null` when there's no error. */
-  renderError(): P.Markup {
-    if (!this.error) return null
-    return render.Fragment(render.SPACE, this.error.markup)
-  }
-  /** SIDE EFFECT: `console.warn`s if `asProperty` is set but `methodName` is missing. */
-  renderChildren(): P.Markup {
-    const async = this.isAsync && render.ASYNC
-    const methodName = !!this.methodName && render.span("method-name", this.getMethodName())
-    const args = render.Args({ args: this.args })
-    const body = this.body.markup
-    const error = !!this.error && render.Fragment(render.SPACE, this.error.markup)
-    if (this.asProperty) {
-      if (!methodName) console.warn("MethodDef: property missing methodName", this)
-      if (this.inline)
-        return render.Fragment(async, methodName, render.COLON_AND_SPACE, args, render.FAT_ARROW, body, error)
-      return render.Fragment(async, methodName, args, render.SPACE, body, error)
-    }
-    // normal method
-    if (this.inline) return render.Fragment(async, args, render.FAT_ARROW, body, error)
-    const export_ = this.exported && render.EXPORT
-    return render.Fragment(export_, async, render.FUNCTION, methodName, args, render.SPACE, body, error)
-  }
 }
 
 ////////////////
@@ -1619,21 +1245,6 @@ export class ASTObjectLiteral extends ASTExpression {
     method.asProperty = true
     this.properties.push(method)
   }
-  compile(): string {
-    const { wrap } = this
-    const delimiter = wrap ? stringify.INDENTED_COMMA : stringify.SPACED_COMMA
-    return stringify.Block({
-      wrap,
-      space: !wrap,
-      children: stringify.List({ items: this.properties, delimiter })
-    })
-  }
-  renderChildren(): P.Markup {
-    if (!this.properties.length) return render.EMPTY_BLOCK
-    const { wrap } = this
-    const delimiter = wrap ? render.INDENTED_COMMA : render.SPACED_COMMA
-    return render.Block({ wrap, space: !wrap, children: render.List({ items: this.properties, delimiter }) })
-  }
 }
 
 /** ObjectLiteralProperty type.
@@ -1660,20 +1271,6 @@ export class ASTObjectLiteralProperty extends ASTNode {
     this.assertType("value", ASTExpression, OPTIONAL)
     this.assertType("error", ASTParseError, OPTIONAL)
     // this.assert(this.property.isLegalIdentifier || !!this.value, "Non-legal identifiers must specify a value!")
-  }
-  /** Compiles as shorthand `prop` when `value` is missing, else `prop: value`. */
-  compile(): string {
-    const error = this.error ? ` ${this.error.compile()}` : ""
-    const prop = this.property.compile()
-    // If no value, assume it's available as a local variable.
-    if (!this.value) return `${prop}${error}`
-    return `${prop}: ${this.value.compile()}${error}`
-  }
-  renderChildren(): P.Markup {
-    // If no value, assume it's available as a local variable.
-    const value = !!this.value && render.Fragment(render.COLON_AND_SPACE, render.span("value", this.value.markup))
-    const error = !!this.error && render.Fragment(render.SPACE, this.error.markup)
-    return render.Fragment(render.span("property", this.property.markup), value, error)
   }
 }
 
@@ -1706,12 +1303,6 @@ export class ASTStatementGroup extends ASTStatement {
     super(match, props)
     this.assertArrayType("statements", [ASTStatement, ASTExpression, ASTComment, ASTBlankLine], OPTIONAL)
   }
-  compile(): string {
-    return stringify.List({ items: this.statements, delimiter: stringify.NEWLINE })
-  }
-  renderChildren(): P.Markup {
-    return render.List({ items: this.statements, delimiter: render.NEWLINE })
-  }
 }
 
 /** StatementBlock -- set of statements which outputs with curly braces around.
@@ -1741,22 +1332,6 @@ export class ASTStatementBlock extends ASTNode {
   }
   set wrap(wrap: boolean) {
     this.override("wrap", wrap)
-  }
-  compile(): string {
-    return stringify.Block({
-      wrap: this.wrap,
-      children: stringify.List({
-        items: this.statements,
-        delimiter: stringify.NEWLINE
-      })
-    })
-  }
-  renderChildren(): P.Markup {
-    if (!this.statements || !this.statements.length) return render.EMPTY_BLOCK
-    return render.Block({
-      wrap: this.wrap,
-      children: render.List({ items: this.statements, delimiter: render.INDENTED_NEWLINE })
-    })
   }
 }
 
@@ -1806,20 +1381,6 @@ export class ASTTryCatchBlock extends ASTStatementGroup {
       this.finallyBlock.wrap = true
     }
   }
-  compile(): string {
-    const { body, errorArg, catchBlock, finallyBlock } = this
-    const output = [`try ${body.compile()}`]
-    if (catchBlock) output.push(`catch (${errorArg?.compile() ?? ""}) ${catchBlock.compile()}`)
-    if (finallyBlock) output.push(`finally ${finallyBlock.compile()}`)
-    return output.join("\n")
-  }
-  renderChildren(): P.Markup {
-    const { body, catchBlock, finallyBlock } = this
-    const output: P.Markup[] = [render.TRY, render.span("try-block", body.markup)]
-    if (catchBlock) output.push(render.NEWLINE, render.CATCH, render.span("catch-block", catchBlock.markup))
-    if (finallyBlock) output.push(render.NEWLINE, render.FINALLY, render.span("finally-block", finallyBlock.markup))
-    return render.Fragment(...output)
-  }
 }
 
 ////////////////
@@ -1847,46 +1408,6 @@ export class ASTAssignmentStatement extends ASTStatement {
     this.assertType("value", ASTExpression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
-  /** Should we `export` top-level vars?  Global toggle -- flip to `false` to disable entirely. */
-  static EXPORT_VARS = true
-  /**
-   * Names of top-level vars that we NEVER export:  `it`, e.g. Mocha's implicit `it`, and spell's numbered `it`s,
-   * `it_2`, `it_3`... -- temporaries, not something another file should use.
-   */
-  static EXPORT_BLACKLIST = /^it(_\d+)?$/
-  /** `true` only for a new-variable declaration at `ProjectScope`/`FileScope` whose name isn't blacklisted. */
-  get exportVar(): boolean {
-    if (!ASTAssignmentStatement.EXPORT_VARS || !this.isNewVariable) return false
-    const { scope } = this.match
-    if (!(scope instanceof P.ProjectScope || scope instanceof P.FileScope)) return false
-    const varName = String(this.thing.compile())
-    return !ASTAssignmentStatement.EXPORT_BLACKLIST.test(varName)
-  }
-  compile(): string {
-    const { thing, value, isNewVariable } = this
-    const export_ = this.exportVar ? "export " : ""
-    const declarator = isNewVariable ? "let " : ""
-    return `${export_}${declarator}${thing.compile()} = ${value.compile()}`
-  }
-  get className(): string {
-    return [
-      //
-      super.className,
-      this.exportVar && "export",
-      this.isNewVariable && "declaration"
-    ]
-      .filter(Boolean)
-      .join(" ")
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      this.exportVar && render.EXPORT,
-      !!this.isNewVariable && render.LET,
-      render.span("thing", this.thing.markup),
-      render.EQUALS,
-      render.span("value", this.value.markup)
-    )
-  }
 }
 
 /** DestructuredAssignment -- pull multiple variables with defaults out of a `thing`.
@@ -1910,28 +1431,6 @@ export class ASTDestructuredAssignment extends ASTStatement {
     this.assertArrayType("variables", ASTVariableExpression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
-  /** Compiles as `{ variables } = thing`, or `let { variables } = thing` when `isNewVariable`. */
-  compile(): string {
-    const declarator = this.isNewVariable ? "let " : ""
-    const vars = stringify.InCurlies({
-      space: true,
-      children: stringify.List({
-        items: this.variables
-      })
-    })
-    return `${declarator}${vars} = ${this.thing.compile()}`
-  }
-  get className(): string {
-    return `${super.className}${this.isNewVariable ? " declaration" : ""}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      !!this.isNewVariable && render.LET,
-      render.InCurlies({ space: true, children: render.List({ items: this.variables }) }),
-      render.EQUALS,
-      render.span("thing", this.thing.markup)
-    )
-  }
 }
 
 /** ReturnStatement -- return a value.
@@ -1944,15 +1443,6 @@ export class ASTReturnStatement extends ASTStatement {
   constructor(match: P.AnyMatch, props?: ASTReturnStatementProps) {
     super(match, props)
     this.assertType("value", ASTExpression, OPTIONAL)
-  }
-  /** Compiles as bare `return` when `value` is missing, else `return value`. */
-  compile(): string {
-    if (!this.value) return "return"
-    return `return ${this.value.compile()}`
-  }
-  renderChildren(): P.Markup {
-    const value = !!this.value && render.Fragment(render.SPACE, render.span("value", this.value.markup))
-    return render.Fragment(render.RETURN, value)
   }
 }
 
@@ -1989,43 +1479,6 @@ export class ASTClassDeclaration extends ASTStatement {
     const { match, type, superType } = this
     return new ASTClassDeclaration(match, { type, superType, members: [...(this.members ?? []), ...members] })
   }
-  /** NOTE: indents its members' non-blank lines only -- `stringify.Block()` would leave a tab on blank ones. */
-  compile(): string {
-    const { type, superType, members } = this
-    const superDeclarator = superType ? `extends ${superType.name} ` : ""
-    const declaration = `export class ${type.name} ${superDeclarator}`
-    if (!members?.length) return `${declaration}${stringify.EMPTY_BLOCK}`
-    const body = members
-      .map((member) => (member instanceof ASTClassMember ? member.compileAsMember() : member.compile()))
-      .join(stringify.NEWLINE)
-      .split(stringify.NEWLINE)
-      .map((line) => (line ? `${stringify.INDENT}${line}` : line))
-      .join(stringify.NEWLINE)
-    return `${declaration}${stringify.LEFT_CURLY}${stringify.NEWLINE}${body}${stringify.NEWLINE}${stringify.RIGHT_CURLY}`
-  }
-  renderChildren(): P.Markup {
-    const members = this.members?.length
-      ? render.Block({
-          wrap: true,
-          children: render.List({ items: this.members, delimiter: render.INDENTED_NEWLINE, DrawItem: ClassMemberItem })
-        })
-      : render.EMPTY_BLOCK
-    return render.Fragment(
-      render.EXPORT,
-      render.CLASS,
-      render.span("type", this.type.markup),
-      !!this.superType && render.EXTENDS,
-      !!this.superType && render.span("superType", this.superType.markup),
-      render.SPACE,
-      members
-    )
-  }
-}
-
-/** Draws one of `ASTClassDeclaration.members`:  a member as it looks in a class body, else as is. */
-function ClassMemberItem({ item }: render.ListItemProps): P.Markup {
-  if (item instanceof ASTClassMember) return item.memberMarkup
-  return item?.markup ?? null
 }
 
 /** NewInstanceExpression -- `new Type(props)`.
@@ -2042,15 +1495,6 @@ export class ASTNewInstanceExpression extends ASTExpression {
     this.assertType("type", ASTTypeExpression)
     this.assertType("props", ASTObjectLiteral, OPTIONAL)
   }
-  /** Compiles as `new Type()` (empty parens) when `props` is missing, else `new Type(props)`. */
-  compile(): string {
-    const props = stringify.InParens({ children: this.props?.compile() })
-    return `new ${this.type.compile()}${props}`
-  }
-  renderChildren(): P.Markup {
-    const props = this.props ? render.InParens({ children: this.props.markup }) : render.EMPTY_PARENS
-    return render.Fragment(render.NEW, render.span("type", this.type.markup), props)
-  }
 }
 
 /** ListExpression -- `[items]`.
@@ -2064,14 +1508,6 @@ export class ASTListExpression extends ASTExpression {
     super(match, props)
     this.assertArrayType("items", ASTExpression, OPTIONAL)
   }
-  compile(): string {
-    return stringify.InSquareBrackets({
-      children: stringify.List({ items: this.items })
-    })
-  }
-  renderChildren(): P.Markup {
-    return render.InSquareBrackets({ children: render.List({ items: this.items }) })
-  }
 }
 
 ////////////////
@@ -2080,10 +1516,11 @@ export class ASTListExpression extends ASTExpression {
 
 /**
  * ClassMember -- something a class declares:  a method, a getter, a property or a static.
- * - Compiles two ways:
- *   - `compileAsMember()`:  in its class's body, e.g. `get title() {...}` -- see `ASTClassDeclaration.members`
- *   - `compile()`:  patched onto its class from outside, e.g. `Card.prototype.play = function () {...}` --
- *     when its class isn't compiled with it, e.g. it's from another project, or a rule test compiles it alone
+ * - Written two ways (see `P.Writer`):
+ *   - `writer.writeAsMember()`:  in its class's body, e.g. `get title() {...}` -- see `ASTClassDeclaration.members`
+ *   - `writer.write()` (and `compile()`):  patched onto its class from outside, e.g.
+ *     `Card.prototype.play = function () {...}` -- when its class isn't compiled with it, e.g. it's from another
+ *     project, or a rule test compiles it alone
  * - `typeName` is its class, so `SP.hoistClassMembers()` can move it into that class's body.
  */
 export abstract class ASTClassMember extends ASTStatement {
@@ -2101,15 +1538,6 @@ export abstract class ASTClassMember extends ASTStatement {
   /** `Card.prototype`, for patching onto its class from outside. */
   get prototypeExpression(): ASTPrototypeExpression {
     return new ASTPrototypeExpression(this.match, { type: this.type })
-  }
-  /** JS for it in its class's body, e.g. `get title() {...}`. */
-  abstract compileAsMember(): string
-  /** Draws it in its class's body -- see `compileAsMember()`. */
-  abstract renderAsMember(): P.Markup
-  /** Markup for `renderAsMember()`, as `markup` is for `renderChildren()`. */
-  /*@memoize*/
-  get memberMarkup(): P.MarkupElement {
-    return this.derived("memberMarkup", () => render.span(`${this.className} as-member`, this.renderAsMember()))
   }
 }
 
@@ -2140,47 +1568,6 @@ export class ASTPropertyDefinition extends ASTClassMember {
     this.assertType("method", ASTMethodDefinition, OPTIONAL)
     this.assertType("get", ASTMethodDefinition, OPTIONAL)
     this.assert(!this.method !== !this.get, "ASTPropertyDefinition: pass exactly one of `method` or `get`", props)
-  }
-  /** `name(args) {...}` or `get name() {...}`. */
-  compileAsMember(): string {
-    const name = this.property.compile()
-    if (this.get) return this.get.compileNamed(`get ${name}`)
-    return this.method!.compileNamed(name)
-  }
-  /**
-   * `Type.prototype.name = function (args) {...}`, or for a getter
-   * `Object.defineProperty(Type.prototype, 'name', { get() {...}, configurable: true })`.
-   */
-  compile(): string {
-    const prototype = this.prototypeExpression.compile()
-    if (this.get) {
-      const descriptor = [`${this.get.compileNamed("get")},`, "configurable: true"].join(stringify.NEWLINE)
-      return `Object.defineProperty(${prototype}, ${quoted(this.property)}, ${stringify.Block({ wrap: true, children: descriptor })})`
-    }
-    return `${prototype}${propertyAccess(this.property)} = ${this.method!.compileAnonymous()}`
-  }
-  renderAsMember(): P.Markup {
-    const name = this.property.markup
-    if (this.get) return this.get.renderNamed(render.Fragment(render.GET, name))
-    return this.method!.renderNamed(name)
-  }
-  renderChildren(): P.Markup {
-    const prototype = this.prototypeExpression.markup
-    if (this.get) {
-      return render.Fragment(
-        "Object.defineProperty",
-        render.InParens({
-          children: [
-            render.Fragment(prototype, render.SPACED_COMMA, quoted(this.property), render.SPACED_COMMA),
-            render.Block({
-              wrap: true,
-              children: render.Fragment(this.get.renderNamed("get"), render.INDENTED_COMMA, "configurable: true")
-            })
-          ]
-        })
-      )
-    }
-    return render.Fragment(prototype, propertyAccess(this.property), render.EQUALS, this.method!.renderAnonymous())
   }
 }
 
@@ -2215,68 +1602,6 @@ export class ASTReactiveProperty extends ASTClassMember {
     this.assertType("check", ASTObjectLiteral, OPTIONAL)
     this.assertType("initializer", ASTExpression, OPTIONAL)
   }
-  /** `{ return this.getProp('name') }`:  its default, if any, is in its class's schema -- see `declaration`. */
-  get getterBody(): string {
-    return `{ return this.getProp(${quoted(this.property)}) }`
-  }
-  /** `{ this.setProp('name', value) }`:  its `check`, if any, is in its class's schema -- see `declaration`. */
-  get setterBody(): string {
-    return `{ this.setProp(${quoted(this.property)}, value) }`
-  }
-  /**
-   * What its class's schema declares about it -- its `check`'s keys, plus `init` for its `initializer` -- e.g.
-   * `{ type: 'text' }`, `{ init: () => new List() }`.  `undefined` if nothing:  then it's undeclared.
-   */
-  get declaration(): string | undefined {
-    const parts = (this.check?.properties ?? []).map((property) => property.compile())
-    if (this.initializer) parts.push(`init: () => ${this.initializer.compile()}`)
-    return parts.length ? `{ ${parts.join(", ")} }` : undefined
-  }
-  /** `declareProp('name', {...})` with `declaration`, called on `owner`, e.g. `this` in its class's body. */
-  declareCall(owner: string): string | undefined {
-    const { declaration } = this
-    return declaration && `${owner}.declareProp(${quoted(this.property)}, ${declaration})`
-  }
-  /** `static { this.declareProp(...) }` (if it declares anything), `get name() {...}` + `set name(value) {...}`. */
-  compileAsMember(): string {
-    const name = this.property.compile()
-    const declare = this.declareCall("this")
-    return [
-      declare && `static { ${declare} }`,
-      `get ${name}() ${this.getterBody}`,
-      `set ${name}(value) ${this.setterBody}`
-    ]
-      .filter(Boolean)
-      .join(stringify.NEWLINE)
-  }
-  /**
-   * `Type.declareProp(...)` (if it declares anything), then
-   * `Object.defineProperty(Type.prototype, 'name', { get() {...}, set(value) {...}, configurable: true })`.
-   */
-  compile(): string {
-    const descriptor = [`get() ${this.getterBody},`, `set(value) ${this.setterBody},`, "configurable: true"]
-    const block = stringify.Block({ wrap: true, children: descriptor.join(stringify.NEWLINE) })
-    const define = `Object.defineProperty(${this.prototypeExpression.compile()}, ${quoted(this.property)}, ${block})`
-    const declare = this.declareCall(this.type.compile())
-    return declare ? [declare, define].join(stringify.NEWLINE) : define
-  }
-  renderAsMember(): P.Markup {
-    const name = this.property.markup
-    const declare = this.declareCall("this")
-    return render.Fragment(
-      declare ? render.Fragment(render.STATIC, `{ ${declare} }`, render.NEWLINE) : undefined,
-      render.GET,
-      name,
-      `() ${this.getterBody}`,
-      render.NEWLINE,
-      render.SET,
-      name,
-      `(value) ${this.setterBody}`
-    )
-  }
-  renderChildren(): P.Markup {
-    return this.compile()
-  }
 }
 
 /**
@@ -2298,20 +1623,8 @@ export class ASTStaticDefinition extends ASTClassMember {
   constructor(match: P.AnyMatch, props: ASTStaticDefinitionProps) {
     super(match, props)
     this.assertType("name", "string")
-    this.assert(isLegalIdentifier(this.name), `ASTStaticDefinition: illegal name '${this.name}'`)
+    this.assert(P.jsText.isLegalIdentifier(this.name), `ASTStaticDefinition: illegal name '${this.name}'`)
     this.assertType("value", ASTExpression)
-  }
-  compileAsMember(): string {
-    return `static ${this.name} = ${this.value.compile()}`
-  }
-  compile(): string {
-    return `${this.type.compile()}.${this.name} = ${this.value.compile()}`
-  }
-  renderAsMember(): P.Markup {
-    return render.Fragment(render.STATIC, this.name, render.EQUALS, this.value.markup)
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(this.type.markup, render.PERIOD, this.name, render.EQUALS, this.value.markup)
   }
 }
 
@@ -2340,28 +1653,9 @@ export class ASTStaticMethod extends ASTClassMember {
   constructor(match: P.AnyMatch, props: ASTStaticMethodProps) {
     super(match, props)
     this.assertType("name", "string")
-    this.assert(isLegalIdentifier(this.name), `ASTStaticMethod: illegal name '${this.name}'`)
+    this.assert(P.jsText.isLegalIdentifier(this.name), `ASTStaticMethod: illegal name '${this.name}'`)
     this.assertType("method", ASTMethodDefinition)
     this.assertType("getter", "boolean", OPTIONAL)
-  }
-  compileAsMember(): string {
-    return this.method.compileNamed(this.getter ? `static get ${this.name}` : `static ${this.name}`)
-  }
-  compile(): string {
-    if (this.getter) {
-      const descriptor = [`${this.method.compileNamed("get")},`, "configurable: true"].join(stringify.NEWLINE)
-      return `Object.defineProperty(${this.type.compile()}, '${this.name}', ${stringify.Block({ wrap: true, children: descriptor })})`
-    }
-    return `${this.type.compile()}.${this.name} = ${this.method.compileAnonymous()}`
-  }
-  renderAsMember(): P.Markup {
-    const name = this.getter
-      ? render.Fragment(render.STATIC, render.GET, this.name)
-      : render.Fragment(render.STATIC, this.name)
-    return this.method.renderNamed(name)
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(this.type.markup, render.PERIOD, this.name, render.EQUALS, this.method.renderAnonymous())
   }
 }
 
@@ -2381,22 +1675,6 @@ export class ASTPatchedMember extends ASTStatement {
     super(match, props)
     this.assertType("member", ASTClassMember)
   }
-  compile(): unknown {
-    return this.member.compile()
-  }
-  renderChildren(): P.Markup {
-    return this.member.markup
-  }
-}
-
-/** `'name'`:  `property`'s name as a JS string, e.g. for `getProp()` or `Object.defineProperty()`. */
-function quoted(property: ASTPropertyLiteral): string {
-  return `'${property.value.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`
-}
-
-/** `.name`, or `['name']` if `property` isn't a legal identifier. */
-function propertyAccess(property: ASTPropertyLiteral): string {
-  return property.isLegalIdentifier ? `.${property.value}` : `[${quoted(property)}]`
 }
 
 ////////////////
@@ -2428,17 +1706,6 @@ export class ASTIfStatement extends ASTStatement {
     }
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
-  compile(): string {
-    return `if ${this.condition.compile()} ${this.statements.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.IF,
-      render.span("condition", this.condition.markup),
-      render.SPACE,
-      this.statements.markup
-    )
-  }
 }
 
 /** ElseIfStatement.
@@ -2466,18 +1733,6 @@ export class ASTElseIfStatement extends ASTStatement {
     }
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
-  compile(): string {
-    return `else if ${this.condition.compile()} ${this.statements.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(
-      render.ELSE,
-      render.IF,
-      render.span("condition", this.condition.markup),
-      render.SPACE,
-      this.statements.markup
-    )
-  }
 }
 
 /** ElseStatement.
@@ -2490,12 +1745,6 @@ export class ASTElseStatement extends ASTStatement {
   constructor(match: P.AnyMatch, props?: ASTElseStatementProps) {
     super(match, props)
     this.statements = convertStatementsToBlock(this.match, this.statements)
-  }
-  compile(): string {
-    return `else ${this.statements.compile()}`
-  }
-  renderChildren(): P.Markup {
-    return render.Fragment(render.ELSE, this.statements.markup)
   }
 }
 
@@ -2519,23 +1768,6 @@ export class ASTTernaryExpression extends ASTExpression {
     this.assertType("condition", ASTExpression)
     this.assertType("trueValue", ASTExpression)
     this.assertType("falseValue", ASTExpression)
-  }
-  compile(): string {
-    const { condition, trueValue, falseValue } = this
-    return stringify.InParens({
-      children: `${condition.compile()} ? ${trueValue.compile()} : ${falseValue.compile()}`
-    })
-  }
-  renderChildren(): P.Markup {
-    return render.InParens({
-      children: [
-        render.span("condition", this.condition.markup),
-        render.TERNARY_QUESTION,
-        this.trueValue.markup,
-        render.TERNARY_COLON,
-        this.falseValue.markup
-      ]
-    })
   }
 }
 
@@ -2621,7 +1853,7 @@ export class ASTJSXElement extends ASTExpression {
   }
   /**
    * Builds -- and memoizes -- `spellCore.element({ tag, props, children })` CoreMethodInvocation that
-   * `compile()`/`renderChildren()` delegate to.
+   * `P.JSWriter` writes it as.
    * - `props` key only appears when there's at least one attr; `children` key only when there's at
    *   least one child whose own `output` isn't falsy (e.g. `ASTJSXEndTag.output` is always `undefined`
    *   and gets filtered out).
@@ -2632,7 +1864,7 @@ export class ASTJSXElement extends ASTExpression {
       const properties: ASTObjectLiteralProperty[] = [
         new ASTObjectLiteralProperty(this.match, {
           property: "tag",
-          value: new ASTStringLiteral(this.match, `"${this.tagName}"`)
+          value: new ASTStringLiteral(this.match, { value: this.tagName, quote: '"' })
         })
       ]
 
@@ -2665,12 +1897,6 @@ export class ASTJSXElement extends ASTExpression {
         args: [new ASTObjectLiteral(this.match, { properties, wrap: (attrs && attrs.wrap) || false })]
       })
     })
-  }
-  compile(): string {
-    return this.output.compile()
-  }
-  renderChildren(): P.Markup {
-    return this.output.markup
   }
 }
 
@@ -2705,7 +1931,7 @@ export class ASTJSXAttribute extends ASTExpression {
       //  if we have a parse error, return `undefined`
       //  otherwise return `true` as per spec for an empty attribute
       const value: ASTExpression =
-        this.value || (this.error ? new ASTUndefinedLiteral(this.match) : new ASTBooleanLiteral(this.match, true))
+        this.value || (this.error ? new ASTNothingLiteral(this.match) : new ASTBooleanLiteral(this.match, true))
       if (value instanceof ASTMethodDefinition) {
         value.asProperty = true
         value.methodName = this.name
@@ -2739,7 +1965,7 @@ export class ASTJSXEndTag extends ASTExpression {
 }
 
 /** JSXText -- plain text content between tags.
- * - `value` is text content.
+ * - `value` is text content, trimmed:  plain, NOT quoted -- its `output` is a text value a writer quotes.
  * - `raw` (optional) is original unnormalized input string.
  */
 export type ASTJSXTextProps = Prettify<{ value: string; raw?: string }>
@@ -2756,7 +1982,7 @@ export class ASTJSXText extends ASTExpression {
   /*@memoize*/
   get output(): ASTStringLiteral {
     return this.derived("output", () => {
-      return new ASTStringLiteral(this.match, this.value)
+      return new ASTStringLiteral(this.match, { value: this.value, quote: '"' })
     })
   }
 }
@@ -2776,14 +2002,14 @@ export class ASTJSXExpression extends ASTExpression {
     this.assertType("error", ASTParseError, OPTIONAL)
   }
   /**
-   * `expression` as-is normally; when there's an `error`, wraps it (or an `ASTNullLiteral` placeholder if
+   * `expression` as-is normally; when there's an `error`, wraps it (or an `ASTMissingExpression` placeholder if
    * `expression` is also missing) in an `ASTExpressionWithComment` so error surfaces in compiled output.
    */
   /*@memoize*/
   get output(): ASTExpression | ASTExpressionWithComment | undefined {
     return this.derived("output", () => {
       if (this.error) {
-        const expression = this.expression || new ASTNullLiteral(this.match)
+        const expression = this.expression || new ASTMissingExpression(this.match)
         return new ASTExpressionWithComment(this.match, {
           expression,
           comment: this.error
