@@ -12,10 +12,10 @@ Naming any docs page in a reply:  `spell dev docs link <page> --hash <id> --show
 `(_browser_)` link.
 
 Delegated work (epic `skillz`, Owen, 2026-10-07):  every agent you start is NAMED and LISTED, as `/bg` does it
-(`.claude/skills/bg/SKILL.md`, "Names", "When its notice arrives").
+(`.claude/skills/bg/SKILL.md`, "Names", "When its notice arrives", "Redirects").
 - `spell dev agents add <name> "<task>"` before it starts (the full name it prints, `<epic>-<name>`, goes first in
   the `Agent` call's `description`), `spell dev agents done <name>` when it's back;  `spell dev agents` says what's
-  running.
+  running.  While any runs, a `spell dev agents wait` waits in the background for Owen's redirect notes.
 - Relaying what it found:  your reply's first line, bold, by itself:  `**Agent <full name> came back with:**`.
 - Plan-doc work (filling, updating, marking a phase done) goes to a background agent, as if Owen had typed `/bg
   "plan-doc" ...`:  the panel stays free.

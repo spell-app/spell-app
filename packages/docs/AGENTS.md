@@ -169,6 +169,11 @@ In `tools/`:
       there's anything to work through
     - re-reads the inbox on the page server's change event for `<name>.inbox.json`, else every 4s while visible;
       nothing it does scrolls the page
+  - running agents (`wireAgents()`, a plan doc served by the page server, epic `skillz` P3):  while any agent of the
+    epic runs, an "Agents running" panel (`div.plan-agents`, NOT a section:  the contents, rail and counts never see
+    it) right before the first section;  a row per agent, keyed by name and updated in place (name, status, age,
+    task, its redirects "You · 10:42 · told 10:43"), and a growing note box with Send that redirects it;  re-read on
+    the change event for `agents.json`, else every 4s while visible
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
   - the address follows the section being read (`#id`, replaced, not pushed), so a reload lands there
   - served by the page server, an edit to the page's file updates it IN PLACE (`wireLiveUpdate()`):  scroll,
@@ -371,13 +376,17 @@ In this order, from `packages/docs`:
 - `spell dev details` (`tools/details.js`) -- details pages (see "Details pages");  `tools/detailsRoutes.ts`, the
   page server's route module for their answers.
 - `tools/inbox.js`, `tools/reviewRoutes.ts` -- a plan doc's review inbox and its routes (see "Review inbox").
-- `spell dev agents add | set | done | list` (`tools/agents.ts`, over `tools/AgentList.ts`) -- the running-agents
-  list (epic `skillz`):  every background agent a Claude session started, by name, while it runs.
+- `spell dev agents add | set | done | list | wait | told` (`tools/agents.ts`, over `tools/AgentList.ts`) -- the
+  running-agents list (epic `skillz`):  every background agent a Claude session started, by name, while it runs.
   - the file:  `epics/<epic>/agents.json` in an epic (git-ignored in the shared repo), else
     `<checkout root>/.spell-agents.json` (git-ignored);  `--epic <name>`, any verb, picks the epic
   - names get a prefix:  the epic's, else the worktree's, else `main` (`add aaa` in epic `skillz` is `skillz-aaa`)
   - an entry leaves when its agent finishes (`done`);  empty, the file goes
   - every write under the file's lock (`SRV.FileLock`) and atomic, as `inbox.js`'s
+  - REDIRECTS (P3):  the plan doc's "Agents running" box (`spell-doc-runtime.js`) shows an epic's list, a note box
+    per agent;  Owen's note goes through `tools/agentRoutes.ts` (`GET /api/agents?page=`, `POST
+    /api/agents/redirect { page, name, note }`, guarded as the review routes) into the entry's `redirects`, untold,
+    until a session's background `wait` takes it, sends it to the agent and marks it `told`
   - the verbs and an example:  `tools/agents.ts`'s header
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through

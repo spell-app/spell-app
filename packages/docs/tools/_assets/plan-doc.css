@@ -1463,6 +1463,131 @@ button.plan-said-edit:focus-visible {
 }
 
 /*******************************
+        Running agents
+*******************************/
+
+/*
+ * The epic's running agents above the first section (`spell-doc-runtime.js` `wireAgents()`, epic `skillz` P3):
+ * `div.plan-agents`, a quiet panel, not a section:  a row per agent (name, status, age, task), its redirects so far,
+ * and a note box with Send.  Colors from the docs' tokens only:  light and dark alike.
+ */
+.plan-agents {
+  margin: 10px 0 14px;
+  overflow: hidden;
+  border: 1px solid var(--spell-rule);
+  border-radius: 10px;
+  background: var(--spell-tint);
+  font: 0.9em/1.4 var(--spell-sans);
+}
+.plan-agents-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--spell-doc-accent-soft);
+  color: var(--spell-heading-ink);
+  font-size: 0.9em;
+}
+.plan-agents-count:not(:empty) {
+  color: var(--spell-muted);
+  font-variant-numeric: tabular-nums;
+}
+.plan-agents-count:not(:empty)::before {
+  content: "· ";
+}
+.plan-agent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+}
+.plan-agent + .plan-agent {
+  border-top: 1px solid var(--spell-rule);
+}
+.plan-agent-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.plan-agent-name {
+  overflow-wrap: anywhere;
+}
+.plan-agent-age {
+  color: var(--spell-muted);
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+}
+.plan-agent-task {
+  margin: 0;
+  color: var(--spell-ink);
+}
+/* each redirect sent:  "You · 10:42 · told 10:43", the note under it */
+.plan-agent-redirects {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plan-agent-redirects[hidden] {
+  display: none;
+}
+.plan-agent-redirects > li {
+  display: flex;
+  flex-direction: column;
+  padding-inline-start: 8px;
+  border-inline-start: 2px solid var(--spell-rule);
+}
+.plan-agent-said {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--spell-muted);
+  font-size: 0.8em;
+}
+.plan-agent-said-note {
+  white-space: pre-wrap;
+}
+/* the note box and Send:  the box grows with its text (as the review note boxes), Send at its right */
+.plan-agent-redirect {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.plan-agent-note {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 2.2em;
+  max-height: 40vh;
+  field-sizing: content;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 6px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: inherit;
+  resize: vertical;
+}
+.plan-agent-note:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
+  outline-offset: 0;
+}
+ui-button.plan-agent-send {
+  flex: none;
+}
+.plan-agent-error {
+  margin: 0;
+  color: var(--ui-error-text);
+  font-size: 0.85em;
+}
+.plan-agent-error[hidden] {
+  display: none;
+}
+
+/*******************************
           Parts
 *******************************/
 

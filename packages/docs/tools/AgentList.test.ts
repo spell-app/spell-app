@@ -47,6 +47,30 @@ describe("where the list lives", () => {
   })
 })
 
+describe("redirects", () => {
+  test("forPlanDoc():  the list beside a plan doc, named for its epic", () => {
+    const root = checkout("doc", { epic: true })
+    const list = AgentList.forPlanDoc(join(root, "epics", "doc", "doc.plan.html"))
+    expect(list.file).toBe(join(root, "epics", "doc", "agents.json"))
+    expect(list.prefix).toBe("doc")
+  })
+
+  test("redirect() adds an untold note;  told() marks them;  empty and long notes, and unknown agents, throw", async () => {
+    const list = new AgentList(checkout("steer", { epic: true }))
+    list.add("aaa", "docstrings")
+    await list.redirect("aaa", "only the exported ones")
+    await list.redirect("steer-aaa", "and skip the tests")
+    expect(list.untold.map((it) => it.note)).toEqual(["only the exported ones", "and skip the tests"])
+    expect(list.told("aaa")).toBe(2)
+    expect(list.untold).toEqual([])
+    expect(list.told("aaa")).toBe(0)
+    await expect(list.redirect("aaa", " \n ")).rejects.toThrow(/empty note/)
+    await expect(list.redirect("aaa", "x".repeat(4001))).rejects.toThrow(/over 4000/)
+    await expect(list.redirect("bbb", "x")).rejects.toThrow(AgentListError)
+    list.done("aaa")
+  })
+})
+
 describe("names", () => {
   test("prefixed once", () => {
     const list = new AgentList(checkout("names"))

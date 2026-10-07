@@ -51,8 +51,10 @@ Quick:  the point is a free panel.  No exploring, no reading the files the task 
 4. ONE `Agent` call:  `subagent_type: "fork"` (a copy of this session:  it sees the conversation, so "fix the thing we
    just talked about" works), `run_in_background: true`, `description: "<full name>: <task gist>"`, `prompt`:  the
    template below.
-5. `spell dev agents set <name> --task-id <the agent's id>` (from the `Agent` result):  what `/bg stop` stops.
-6. Reply ONE line, then END THE TURN:  `started:  <full name> (<n> agent|agents)`.
+5. `spell dev agents set <name> --task-id <the agent's id>` (from the `Agent` result):  what `/bg stop` stops, and
+   where a redirect goes.
+6. No redirect waiter running in this session yet ("Redirects" below):  start one.
+7. Reply ONE line, then END THE TURN:  `started:  <full name> (<n> agent|agents)`.
 
 ### The helper's prompt
 
@@ -94,6 +96,22 @@ The helper's report reaches this session as a notice, between whatever else it's
 3. A question in its report that only Owen can answer:  AskUserQuestion, with the epic and what it's for.
 4. An agent `blocked on` this one:  `spell dev agents set <its name> --status active`, then start it (Start, steps
    4-6), in the same turn.
+
+## Redirects
+
+In an epic, the plan doc shows its running agents at the top ("Agents running"), each with a note box:  Owen types
+there to STEER an agent mid-task (P3 of epic `skillz`;  `packages/docs/tools/agentRoutes.ts`).  The note waits in the
+list, untold, until this session passes it on.
+- The waiter:  `spell dev agents wait`, with Bash `run_in_background: true`, ONE per session, while any agent this
+  session started runs.  Its exit wakes the session:
+  - 0:  it printed the untold notes, `skillz-aaa:  <note>` each.  Per note:  `SendMessage` to that agent (`to`:  its
+    `taskId` from `spell dev agents list --json`), "Owen redirects you, from the plan doc:  <note>";  then
+    `spell dev agents told <name>` (the page shows it told).  One line in the reply per note:  `redirected:  <name>`.
+    Start the waiter again.
+  - 3:  nothing runs any more:  don't start it again
+  - 2:  timed out (an hour):  start it again while agents run
+- The agent isn't this session's (another session's, same epic):  leave its notes untold:  that session's waiter
+  takes them.
 
 ## `/bg ?`
 
