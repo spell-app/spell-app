@@ -52,7 +52,9 @@ spellCore.heading("Definition of a card -- in the outline style:  a heading, the
 /** Definition of a card -- in the outline style:  a heading, then what's true of it */
 export class Card extends Thing {
   /** suit and rank */
-  static { this.declareProp('suit', { oneOf: () => Deck.Suits }) }
+  static { this.declareProp('suit', { oneOf: () => {
+    return Deck.Suits
+  } }) }
   get suit() { return this.getProp('suit') }
   set suit(value) { this.setProp('suit', value) }
 
@@ -65,7 +67,9 @@ export class Card extends Thing {
     return this.suit === suit
   }
 
-  static { this.declareProp('rank', { oneOf: () => Deck.Ranks }) }
+  static { this.declareProp('rank', { oneOf: () => {
+    return Deck.Ranks
+  } }) }
   get rank() { return this.getProp('rank') }
   set rank(value) { this.setProp('rank', value) }
 

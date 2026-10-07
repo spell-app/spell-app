@@ -32,11 +32,13 @@ describe("<ProjectPrompt>", () => {
 
   test("Tab completes as far as the choices agree", async () => {
     const { frame } = await prompt(["@te", KEY.tab])
-    expect(frame).toMatch(/^Which project or file\? {2}@test\/█\n❯ @test\/FizzBuzz\/\n {2}@test\/Solitaire\//)
+    expect(frame).toMatch(
+      /^Which project or file\? {2}@test\/█\n❯ @test\/FizzBuzz\/\n {2}@test\/OutlineSolitaire\/\n {2}@test\/Solitaire\//
+    )
   })
 
   test("Enter goes into a root, then a project -- entire project first -- and picks", async () => {
-    const { frame, onDone } = await prompt(["@test/", KEY.down, KEY.enter])
+    const { frame, onDone } = await prompt(["@test/", KEY.down, KEY.down, KEY.enter])
     expect(frame).toMatch(
       /@test\/Solitaire\/█\n❯ @test\/Solitaire {2}entire project\n {2}@test\/Solitaire\/Card\.spell/
     )

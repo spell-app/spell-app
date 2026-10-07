@@ -1097,7 +1097,11 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { v
     // the list's class names ours (`static instanceType = Card`), so one of the two is defined second
     else if (match.data.valueType?.valueKind) {
       const { listOn, listName } = match.data.valueType.valueKind
-      check.addProp("oneOf", `() => ${listOn}.${listName}`)
+      const list = new P.ASTPropertyExpression(match, {
+        object: new P.ASTTypeExpression(match, { name: listOn }),
+        property: listName
+      })
+      check.addProp("oneOf", new P.ASTMethodDefinition(match, { inline: true, body: list }))
     }
     // type
     else if (specifier) {
