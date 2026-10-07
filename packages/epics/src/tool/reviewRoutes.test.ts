@@ -38,6 +38,7 @@ const EPIC_PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-p
 <epic-overview id="overview"><epic-section id="o1" kind="overview-part" title="Structure"></epic-section></epic-overview>
 <epic-section id="phases" kind="phases"><epic-phase id="p1" title="Go" status="active"></epic-phase></epic-section>
 <epic-section id="decisions" kind="questions"><epic-item id="q7" title="which?" status="open"></epic-item></epic-section>
+<epic-section id="judgements" kind="judgements"><epic-item id="j4" title="a call" status="open"></epic-item></epic-section>
 </epic-page>`
 
 beforeAll(async () => {
@@ -260,4 +261,18 @@ test("writes need the token, our origin and our host", async () => {
   expect((await post("send", body, { origin: "http://evil.example" })).status).toBe(403)
   expect((await post("send", body, { host: "evil.example" })).status).toBe(403)
   expect(existsSync(inboxFile(PAGES.plan))).toBe(false)
+})
+
+test("urgency:  an id chip's calm set and dropped;  only a call or an issue of that doc", async () => {
+  const page = `/${PAGES.epic}`
+  const calm = await post("urgency", { page, id: "J4", calm: true })
+  expect(calm.status).toBe(200)
+  expect(calm.body.urgency.j4.calm).toBe(true)
+  expect(calm.body.marks).toEqual({})
+  expect((await post("urgency", { page, id: "q7", calm: true })).status).toBe(400)
+  expect((await post("urgency", { page, id: "j9", calm: true })).status).toBe(400)
+  expect((await post("urgency", { page, id: "j4", calm: "yes" })).status).toBe(400)
+  const dropped = await post("urgency", { page, id: "j4", calm: null })
+  expect(dropped.body.urgency).toEqual({})
+  expect(existsSync(inboxFile(PAGES.epic))).toBe(false)
 })

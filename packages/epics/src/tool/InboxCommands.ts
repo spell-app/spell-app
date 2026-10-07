@@ -4,6 +4,7 @@ import { setTimeout as sleep } from "node:timers/promises"
 
 import { PlanDocError, type KeptNote, type MarkResult, type OptionCard } from "./planDoc.types"
 
+import type { PlanDoc } from "./PlanDoc"
 import type { PlanReader } from "./PlanReader"
 import type { Flags, PlanDocCommands } from "./PlanDocCommands"
 import { PlanItem } from "./PlanItem"
@@ -14,6 +15,7 @@ import {
   LISTEN_STALE_MS,
   ReviewInbox,
   type ListedMark,
+  type ListedUrgency,
   type TakenWork
 } from "./ReviewInbox"
 
@@ -94,6 +96,7 @@ export class InboxCommands {
     const path = ReviewInbox.pathFor(file)
     const inbox = ReviewInbox.read(path)
     const unsent = new Set(inbox.unsentMarks.map((mark) => mark.id))
+    const unsentUrgency = new Set(inbox.unsentUrgency.map((entry) => entry.id))
     const marks = Object.fromEntries(ACTIONS.map((action) => [action, [] as PrintedMark[]]))
     for (const mark of inbox.markList) {
       const item = plan.findItem(mark.id)
@@ -107,6 +110,7 @@ export class InboxCommands {
       now: inbox.now,
       working: inbox.working,
       drafts: inbox.drafts,
+      urgency: inbox.urgencyList.map((entry) => ({ ...entry, sent: !unsentUrgency.has(entry.id) })),
       // `live:  false`:  its heartbeat stopped (`liveListener()`):  the session is gone, the page says nobody
       listening: inbox.listening && { ...inbox.listening, live: !!inbox.liveListener() }
     }
@@ -120,12 +124,21 @@ export class InboxCommands {
           ? `listening:  session ${listening.session}, since ${listening.since}`
           : `listening:  nobody (session ${listening.session} last seen ${listening.seen ?? listening.since}, over ${LISTEN_STALE_MS / 1000}s ago:  gone without \`unlisten\`)`
     )
-    lines.push(`sent:  ${inbox.sent ?? "never"};  ${unsent.size} unsent`)
+    lines.push(`sent:  ${inbox.sent ?? "never"};  ${unsent.size + unsentUrgency.size} unsent`)
     for (const action of ACTIONS) {
       if (!marks[action].length) continue
       lines.push(`${action} (${marks[action].length}):`)
       for (const mark of marks[action])
         lines.push(`  - ${mark.id.toUpperCase()}  ${mark.title ?? "(no such item)"}${extra(mark)}`)
+    }
+    const urgency = inbox.urgencyList
+    if (urgency.length) lines.push(`urgency, from the id chips (${urgency.length}):`)
+    for (const entry of urgency) {
+      const item = plan.findItem(entry.id)
+      const title = item ? PlanItem.titleOf(item) : "(no such item)"
+      lines.push(
+        `  - ${entry.id.toUpperCase()}  ${title}  · ${calmWords(entry.calm)}${unsentUrgency.has(entry.id) ? " · unsent" : ""}`
+      )
     }
     if (inbox.now.length) lines.push(`now (${inbox.now.length}):`)
     for (const each of inbox.now)
@@ -216,7 +229,11 @@ export class InboxCommands {
    */
   private printWork(name: string, plan: PlanReader, work: TakenWork, json: boolean): void {
     const now = work.now.map((each) => withItem(each))
-    const sent = work.sent && { at: work.sent.at, marks: work.sent.marks.map((mark) => withItem(mark)) }
+    const sent = work.sent && {
+      at: work.sent.at,
+      marks: work.sent.marks.map((mark) => withItem(mark)),
+      urgency: (work.sent.urgency ?? []).map((entry) => withItem(entry))
+    }
     const canceled = (work.canceled ?? []).map((each) => withItem(each))
     if (json) return this.owner.print(JSON.stringify({ now, sent, canceled }, null, 2))
     const lines: string[] = []
@@ -240,7 +257,8 @@ export class InboxCommands {
       }
     }
     if (sent) {
-      lines.push(`sent ${sent.at} (${sent.marks.length} mark${sent.marks.length === 1 ? "" : "s"}):`)
+      const urgency = sent.urgency.length ? `, ${sent.urgency.length} urgency` : ""
+      lines.push(`sent ${sent.at} (${sent.marks.length} mark${sent.marks.length === 1 ? "" : "s"}${urgency}):`)
       for (const action of ACTIONS) {
         const marks = sent.marks.filter((mark) => mark.action === action)
         if (!marks.length) continue
@@ -257,8 +275,10 @@ export class InboxCommands {
           }
         }
       }
+      if (sent.urgency.length) lines.push(`  urgency, from the id chips (${sent.urgency.length}):`)
+      for (const entry of sent.urgency) lines.push(`    - ${line(entry)}  · ${calmWords(entry.calm)}`)
       const talk = sent.marks.filter((mark) => mark.action === "revisit")
-      lines.push(`next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo)`)
+      lines.push(`next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo, urgency)`)
       if (talk.length)
         lines.push(
           `then talk over ${talk.map((mark) => mark.id).join(", ")} in the chat;  \`yarn plan-doc inbox ${name} clear <id>\` after each`
@@ -291,34 +311,45 @@ export class InboxCommands {
 
   /**
    * `inbox <name> apply [ids...]`:  apply the SENT mechanical marks (`PlanDoc.applyMark()`:  approve, pick, todo),
-   * all or those of `ids`, then clear them;  prints a line per item, and what it left.
+   * and the sent urgency (an id chip clicked:  `PlanDoc.setCalm()`), all or those of `ids`, then clear them;  prints
+   * a line per item, and what it left.
    * - a dry run on a parsed copy first:  the doc is written (`edit()`, its lock) only when something applies
-   * - marks cleared under the inbox's lock, only while still the ones applied (`clearApplied()`);  marks of items
-   *   gone from the doc are dropped too
+   * - marks cleared under the inbox's lock, only while still the ones applied (`clearApplied()`, `clearUrgency()`);
+   *   marks of items gone from the doc are dropped too
    * - `ids` without a sent mark:  named, left alone (unsent marks wait for Owen's send)
    */
   private async apply(name: string, file: string, ids: string[]): Promise<void> {
     const path = ReviewInbox.pathFor(file)
     const want = ids.length ? new Set(ids.map(ReviewInbox.toItemId)) : null
-    const marks = ReviewInbox.read(path).sentMarks.filter((mark) => !want || want.has(mark.id))
+    const inbox = ReviewInbox.read(path)
+    const marks = inbox.sentMarks.filter((mark) => !want || want.has(mark.id))
+    const urgency = inbox.sentUrgency.filter((entry) => !want || want.has(entry.id))
     const dry = this.owner.read(file)
     const planned: Applied[] = marks.map((mark) => ({ mark, ...dry.applyMark(mark) }))
-    const results = planned.some((each) => each.applied)
-      ? await this.owner.edit(file, (plan) => marks.map((mark): Applied => ({ mark, ...plan.applyMark(mark) })))
-      : planned
+    const plannedUrgency = urgency.map((entry) => urgencyOn(dry, entry))
+    const changes = planned.some((each) => each.applied) || plannedUrgency.some((each) => each.changed)
+    const { results, calmed } = changes
+      ? await this.owner.edit(file, (plan) => ({
+          results: marks.map((mark): Applied => ({ mark, ...plan.applyMark(mark) })),
+          calmed: urgency.map((entry) => urgencyOn(plan, entry))
+        }))
+      : { results: planned, calmed: plannedUrgency }
     const cleared = results.filter((each) => each.applied || each.gone).map((each) => each.mark)
     ReviewInbox.update(path, (box) => {
       box.clearApplied(cleared)
+      box.clearUrgency(calmed.map((each) => each.entry))
       box.touchListening()
     })
     const lines: string[] = []
     for (const each of results) if (each.applied) lines.push(`${each.mark.id.toUpperCase()}  ${each.did}`)
+    for (const each of calmed) lines.push(`${each.entry.id.toUpperCase()}  ${each.did}`)
     const left = results.filter((result) => !result.applied)
     if (left.length) lines.push("left:")
     for (const each of left)
       if (!each.applied) lines.push(`  ${each.mark.id.toUpperCase()}  ${each.mark.action}:  ${each.left}`)
     for (const id of want ?? [])
-      if (!marks.some((mark) => mark.id === id)) lines.push(`  ${id.toUpperCase()}:  no sent mark`)
+      if (!marks.some((mark) => mark.id === id) && !urgency.some((entry) => entry.id === id))
+        lines.push(`  ${id.toUpperCase()}:  no sent mark`)
     this.owner.print(
       lines.length ? lines.join("\n") : `nothing to apply:  no sent marks (\`yarn plan-doc inbox ${name}\`)`
     )
@@ -373,6 +404,26 @@ type PrintedMark = ListedMark & { title: string | null; sent: boolean }
 
 /** A sent mark and what `PlanDoc.applyMark()` did with it. */
 type Applied = { mark: ListedMark } & MarkResult
+
+/** A sent urgency and what `urgencyOn()` did with it:  `changed` when the doc changed. */
+type UrgencyApplied = { entry: ListedUrgency; did: string; changed: boolean }
+
+/**
+ * Apply sent urgency `entry` to `plan` (`PlanDoc.setCalm()`), logged;  an item gone from the doc, or already so,
+ * changes nothing (its entry is cleared all the same).
+ */
+function urgencyOn(plan: PlanDoc, entry: ListedUrgency): UrgencyApplied {
+  if (!plan.findItem(entry.id)) return { entry, did: "no such item:  urgency dropped", changed: false }
+  const did = plan.setCalm(entry.id, entry.calm)
+  if (!did) return { entry, did: `${calmWords(entry.calm)} already`, changed: false }
+  plan.log(`${entry.id.toUpperCase()} ${did} (Owen, from its id chip)`)
+  return { entry, did: `marked ${did}`, changed: true }
+}
+
+/** `not urgent` (calm) / `urgent`. */
+function calmWords(calm: boolean): string {
+  return calm ? "not urgent" : "urgent"
+}
 
 /** What an agent works on for a mark:  a revisit's answer, else details. */
 function workOf(mark: { action: string } | undefined): "revisit" | "details" {

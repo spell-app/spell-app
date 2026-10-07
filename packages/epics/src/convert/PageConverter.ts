@@ -1,4 +1,5 @@
 import { OVERVIEW_PART_ID, type EpicData } from "$/epics/definitions"
+import { TEXT_NODE } from "$/epics/markup"
 import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
 import { BODY_DATA, Chrome, COMMIT_URL, Old, PACK_SOURCE } from "./convert.types"
@@ -12,11 +13,16 @@ import type { Converter } from "./Converter"
  * `<epic-section kind="overview-part">`;  the body goes inside `<ui-root>`, which loads the pack.
  * - Dropped, as chrome `<epic-page>` draws:  the sticky h1 and step label, the meta lines (the durable doc's link
  *   is kept, slotted), the `Plan hung?` and future-epic notices.
+ * - Dropped too:  an older doc's Overnight report (`#overnight`, before 2026-10-05):  everything in it is in the
+ *   items and phases now;  the items it links are the night's (`overnight`, the bed icon:  epic `epic-components` I3).
  * - Works on its owner's document, IN PLACE.
  ****************/
 export class PageConverter {
   /** The converter it works for:  STATIC for its life. */
   readonly owner: Converter
+
+  /** The items an Overnight report linked (`takeOvernight()`):  `ItemConverter` marks them `overnight`. */
+  readonly overnight = new Set<string>()
 
   constructor(owner: Converter) {
     this.owner = owner
@@ -32,6 +38,7 @@ export class PageConverter {
    * was;  the header, meta lines and notices go.
    */
   convert(main: Element): Element {
+    this.takeOvernight(main)
     const body = this.document.body
     const meta = main.querySelector(`:scope > ${Old.meta}`)
     const data: EpicData<"epic-page"> = {
@@ -75,6 +82,29 @@ export class PageConverter {
     if (script) script.before(root)
     else body.append(root)
     root.append(components, ...content.filter((node) => !PlanMarkup.isBlank(node)))
+  }
+
+  /**
+   * Drop the Overnight report a `/bedtime` run wrote on top of older docs (`#overnight`, until 2026-10-05), noted;
+   * the items it links go into `overnight`.
+   * - a range (`<a href="#j10">J10</a>-<a href="#j12">J12</a>`) names every item between
+   */
+  private takeOvernight(main: Element): void {
+    const report = main.querySelector(`:scope > ${Old.overnight}`)
+    if (!report) return
+    for (const link of report.querySelectorAll('a[href^="#"]')) {
+      const id = link.getAttribute("href")!.slice(1)
+      if (!NIGHT_ITEM.test(id)) continue
+      this.overnight.add(id)
+      const to = rangeEnd(link)
+      if (!to) continue
+      const [letter, from] = [id[0], Number(id.slice(1))]
+      for (let n = from + 1; n < Number(to.slice(1)); n++) this.overnight.add(`${letter}${n}`)
+    }
+    report.remove()
+    this.owner.note(
+      `#overnight, the Overnight report:  dropped (I3:  what it said is in the doc);  ${this.overnight.size} item(s) it linked are \`overnight\``
+    )
   }
 
   ////////////////
@@ -211,3 +241,16 @@ export class PageConverter {
 
 /** The meta lines `<epic-page>` draws, by icon:  branch, worktree, dates, durable doc. */
 const KNOWN_META = ["code branch", "folder", "calendar", "book"]
+
+/** An item an Overnight report links:  a question, judgement call, caveat, todo, issue or test (not a phase). */
+const NIGHT_ITEM = /^[qjctiv]\d+$/
+
+/** The end of a range starting at `link` (`J10</a>-<a href="#j12"`):  its id, the same kind;  else `undefined`. */
+function rangeEnd(link: Element): string | undefined {
+  const dash = link.nextSibling
+  const next = dash?.nextSibling
+  if (!dash || dash.nodeType !== TEXT_NODE || !/^\s*[-\u2013]\s*$/.test(dash.textContent ?? "")) return undefined
+  if (!next || !PlanMarkup.isElement(next) || next.localName !== "a") return undefined
+  const id = next.getAttribute("href")?.slice(1) ?? ""
+  return NIGHT_ITEM.test(id) && id[0] === link.getAttribute("href")![1] ? id : undefined
+}

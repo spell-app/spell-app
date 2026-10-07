@@ -58,7 +58,7 @@ export const FOLD_PARTS = [
     description: "The `<ui-section>` drawing the title bar and fold:  its own parts through `::part()` from inside."
   },
   { name: "body", description: "Around its children:  sets `--epic-stack` for them." },
-  { name: "note", description: "The `Loads from parts/x.htm ...` line, when its part can't load." }
+  { name: "note", description: "The `Loads from parts/x.html ...` line, when its part can't load." }
 ] as const
 
 /** States of every folding element. */

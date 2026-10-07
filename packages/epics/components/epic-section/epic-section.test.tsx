@@ -103,7 +103,7 @@ describe("<epic-section>", () => {
   })
 
   test("loads its `source` part into its LIGHT children the first time it opens, and fires `ui-load`", async () => {
-    const host = await render(`<epic-section id="log" kind="log" source="${FIXTURES}/part.htm"></epic-section>`)
+    const host = await render(`<epic-section id="log" kind="log" source="${FIXTURES}/part.html"></epic-section>`)
     const loads: string[] = []
     host.addEventListener("ui-load", (event) => loads.push((event as CustomEvent<{ source: string }>).detail.source))
     expect(host.querySelector("p.body")).toBeNull()
@@ -111,20 +111,20 @@ describe("<epic-section>", () => {
     await host.load()
     await ElementFixture.tick()
     expect(host.querySelector(":scope > p.body")!.textContent).toBe("A body, from its part file.")
-    expect(loads).toEqual([`${FIXTURES}/part.htm`])
+    expect(loads).toEqual([`${FIXTURES}/part.html`])
     expect(host.matches(":state(loaded)")).toBe(true)
     expect(inner(host).hasAttribute("collapsed")).toBe(false)
   })
 
   test("a part that can't load says so, in place of the body", async () => {
-    const host = await render(`<epic-section id="log" kind="log" source="${FIXTURES}/missing.htm"></epic-section>`)
+    const host = await render(`<epic-section id="log" kind="log" source="${FIXTURES}/missing.html"></epic-section>`)
     host.addEventListener("ui-error", () => undefined)
     toggle(host).click()
     await host.load().catch(() => undefined)
     await ElementFixture.tick()
     await ElementFixture.tick()
     const note = host.shadowRoot!.querySelector('[part~="note"]')
-    expect(note?.textContent).toBe(`Couldn't load ${FIXTURES}/missing.htm.`)
+    expect(note?.textContent).toBe(`Couldn't load ${FIXTURES}/missing.html.`)
     expect(host.matches(":state(error)")).toBe(true)
   })
 
@@ -162,7 +162,7 @@ describe("<epic-section>", () => {
 
   test("a link into it (`#hash` on an id in its `part-ids`) opens it and loads its part", async () => {
     const host = await render(
-      `<epic-section id="o3" kind="overview-part" title="Linked" source="${FIXTURES}/part.htm" part-ids="deep"></epic-section>`
+      `<epic-section id="o3" kind="overview-part" title="Linked" source="${FIXTURES}/part.html" part-ids="deep"></epic-section>`
     )
     location.hash = "#deep"
     await new Promise((resolve) => window.addEventListener("hashchange", resolve, { once: true }))

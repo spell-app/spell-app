@@ -212,7 +212,7 @@ describe("<epic-page>", () => {
 
 /** The review routes, as `fetch`, over an inbox kept here:  each reply the whole inbox;  `posts` every POST. */
 class FakeRoutes {
-  inbox: Inbox = { marks: {}, drafts: {}, sent: null, now: [], working: {}, listening: null }
+  inbox: Inbox = { marks: {}, drafts: {}, urgency: {}, sent: null, now: [], working: {}, listening: null }
   posts: [string, Record<string, unknown>][] = []
 
   readonly fetch = vi.fn(async (input: string, init?: RequestInit): Promise<Response> => {

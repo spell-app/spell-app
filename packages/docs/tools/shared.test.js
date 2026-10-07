@@ -202,8 +202,16 @@ describe("reorgShared", () => {
       "reorg-ui/dev/epics/y/parts/c1.htm",
       '<a href="../../../packages/ui/site/README.md" target="src-packages-ui-site-readme-md">r</a>\n'
     )
+    // a part named `.html` (Q12 of `epic-components`) is still a part:  its links retargeted, no page repairs
+    put(
+      "reorg-ui/dev/epics/y/parts/c2.html",
+      '<a href="../../../packages/ui/site/README.md" target="src-packages-ui-site-readme-md">r</a>\n'
+    )
     const report = reorgShared(dir, checkout)
-    expect(report.rewritten).toEqual(["epics/y/parts/c1.htm", "guides/g.html"])
+    expect(report.rewritten).toEqual(["epics/y/parts/c1.htm", "epics/y/parts/c2.html", "guides/g.html"])
+    expect(readFileSync(join(dir, "epics/y/parts/c2.html"), "utf8")).toBe(
+      '<a href="../../../ui/README.md" target="src-ui-readme-md">r</a>\n'
+    )
     expect(readFileSync(join(dir, "guides/g.html"), "utf8")).toBe(
       '<a href="../ui/components/ui-card.html" target="src-ui-components-ui-card-html">c</a> ' +
         '<a href="../packages/ui/site/_assets/site.js">js</a> <a href="../packages/ui/site/">site</a> ' +

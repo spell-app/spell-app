@@ -60,6 +60,8 @@
   }
   /* open:  the line sticks below the section titles stuck above it, opaque, until the details' end */
   .item.unfolded > .line {
+    /* the band over the paper:  dark's band is see-through (5%), and the text scrolls under the stuck line */
+    background: linear-gradient(var(--_epic-item-band), var(--_epic-item-band)), var(--ui-background, Canvas);
     position: sticky;
     z-index: 1;
     top: var(--epic-stack, calc(var(--spell-site-header-height, 0px) + var(--spell-stack, 0px)));
@@ -130,6 +132,20 @@
     outline: 2px solid var(--ui-focus-color, Highlight);
     outline-offset: 1px;
   }
+  /* while the page is reviewed, an open judgement call's or issue's chip:  a button, urgent <-> not urgent */
+  button.chip {
+    margin: 0;
+    border: none;
+    cursor: pointer;
+  }
+  button.chip:hover {
+    filter: brightness(1.1);
+  }
+  /* its urgency changed, not sent yet:  a dashed ring, as a queued review button's */
+  button.chip[data-unsent] {
+    outline: 1.5px dashed var(--_epic-state);
+    outline-offset: 1.5px;
+  }
 
   .title {
     flex: 1 1 10em;
@@ -176,6 +192,21 @@
     display: block;
     width: auto;
     height: 14px;
+    fill: currentColor;
+  }
+  /* made overnight (`overnight`):  a quiet bed, the git icon's size */
+  .overnight {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    color: var(--ui-violet, #6550ca);
+    opacity: 0.75;
+  }
+  .overnight svg {
+    display: block;
+    width: auto;
+    height: 13px;
     fill: currentColor;
   }
   .review {
@@ -241,6 +272,16 @@
     letter-spacing: 0.04em;
     line-height: 1.4;
     text-transform: uppercase;
+  }
+  /*
+   * The note box, last in the details (Owen, 2026-10-07):  sticks to the window's bottom while the item is open and
+   * taller than the window;  a ring of paper hides the text scrolling past its rounded corners
+   */
+  .details > .note-box {
+    position: sticky;
+    z-index: 1;
+    bottom: 4px;
+    box-shadow: 0 0 0 4px var(--ui-background, Canvas);
   }
   .note {
     margin: 0 0 4px;

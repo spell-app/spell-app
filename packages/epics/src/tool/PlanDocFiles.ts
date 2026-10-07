@@ -32,7 +32,7 @@ import type { PlanReader } from "./PlanReader"
  *   it, changes it through `PlanDoc`, recolours every item (`updateStates()`), stamps "updated", checks it against the
  *   definitions (an edit that breaks the markup is refused), tidies it in memory (link targets, oxfmt) and writes
  *   each file once, atomically (`writeDoc()`)
- * - a doc may be SPLIT:  a skeleton plus part files, `parts/<id>.htm` (`EpicParts`).  Reading assembles it into one
+ * - a doc may be SPLIT:  a skeleton plus part files, `parts/<id>.html` (`EpicParts`).  Reading assembles it into one
  *   document, `writeDoc()` splits it again:  every command works on either shape, and a part file is written only
  *   when its body changed.
  * - Node only (`node:fs`, git, `$/server`'s lock, `$/assembler`'s linker and formatter):  NOT in the `$/epics`

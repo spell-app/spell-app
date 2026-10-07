@@ -19,7 +19,9 @@ import { Chevron } from "./Chevron"
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "./ReviewControls"
 import { ReviewState } from "./ReviewState"
 import {
+  BED_ICON,
   BEFORE_MATCH,
+  CALM_ID,
   CANCELED,
   CELL,
   CHIP,
@@ -39,6 +41,7 @@ import {
   LINE,
   MORE_TAG,
   NOTE,
+  OVERNIGHT,
   REVIEW,
   REVIEW_BUTTONS,
   STATE_TIP_KEYS,
@@ -60,9 +63,10 @@ import reviewCSS from "./review-controls.css?inline"
  * ### `<epic-item>`
  * One item -- question, judgement call, caveat, todo, issue or test -- its kind its id's letter (Q11).
  * - Its LINE, in the shadow root:  the fold chevron (only with details), the id chip (`Q7`, a link to `#q7`) in its
- *   state's colour, the title (`title`, or `slot="title"`), the git icon (with commits), the review label
- *   (`reviewed 10-06`, `deferred`, `to do`) and the review buttons.  Sticky while open, under the section titles
- *   stuck above it.
+ *   state's colour, the title (`title`, or `slot="title"`), the bed icon (`overnight`:  made overnight), the git icon
+ *   (with commits), the review label (`reviewed 10-06`, `deferred`, `to do`) and the review buttons.  Sticky while
+ *   open, under the section titles stuck above it.
+ * - `calm`:  an open judgement call or issue not reviewed yet is blue (`open`), not red (`attention`).
  * - Its COMMITS (`<epic-commit>` children, or `commits` while its part isn't in):  hidden until the page's git toggle
  *   shows every commit;  its git icon shows just its own (T17, the old runtime's `plan-git-hint`), opening it first,
  *   and hides them again.  Through the same custom property, set on its details:  off, it sets nothing, so the
@@ -71,13 +75,16 @@ import reviewCSS from "./review-controls.css?inline"
  *   see them (Q12);  hidden `until-found` while folded.  Over its own text, `Original question` (answered) or
  *   `Original reply` (with a More Details card);  under them the note box.
  * - Review (P9, `ReviewControls.tsx`):  only while the page is reviewed (served with a token, its inbox answering:
- *   `ReviewState`).  Approve, Make Todo, Revisit, Add Details Now at the line's end;  the note box docked at the
- *   end of its details (not once approved), or, without details, under its line once Revisit opens it;  a marked
- *   note under its line, with Edit.  All in the shadow root:  a part reloaded keeps a half-typed note.
+ *   `ReviewState`).  Approve, Make Todo, Revisit, Add Details Now at the line's end, the review label in their
+ *   tooltips (not beside them:  Owen, 2026-10-07);  the note box LAST in its details, whatever its state, sticky at
+ *   the window's bottom while it's open and taller than the window, or, without details, under its line once
+ *   Revisit opens it;  a marked note just above the box, with Edit.  The id chip of an item Owen may call urgent or
+ *   not (`canCalm`) is a button:  urgent <-> not urgent, through the inbox (`ReviewClient.toggleCalm()`).  All in
+ *   the shadow root:  a part reloaded keeps a half-typed note.
  * - Folding:  `open` (page state, never in the file);  a click on the line (not on a link or control in it) or
  *   Enter / Space on the chevron go through the cancelable `ui-open` / `ui-close`.  A link to the item, to an id
  *   in `part-ids`, or to an element inside it opens it, as does find-in-page.
- * - Source:  `source="parts/q7.htm"` is fetched the first time it opens (`SourceBody`, as `<ui-section source>`),
+ * - Source:  `source="parts/q7.html"` is fetched the first time it opens (`SourceBody`, as `<ui-section source>`),
  *   into its LIGHT children, replacing the placeholder;  `ui-load` then.  From `file://` it can't load:  the
  *   `Loads from ... (needs the page server)` note, as today.
  * - The host's own `title` would show as a tooltip over everything in it, prose included:  the shadow wrapper's
@@ -118,6 +125,9 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
   /** The git icon's glyph. */
   readonly gitGlyph = new IconGlyph(this, () => "git")
 
+  /** The bed icon's glyph:  made overnight. */
+  readonly bedGlyph = new IconGlyph(this, () => (this.attrs.overnight ? BED_ICON : undefined))
+
   /** Its details from `source`, loaded the first time it opens;  into the host's light DOM. */
   readonly body = new SourceBody({
     host: this.host,
@@ -131,12 +141,30 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
   // ## Derived state
   ////////////////
 
-  /** Where it stands:  `state` as the script wrote it, else `old` once closed, `open` before. */
+  /**
+   * May Owen call it urgent or not (its id chip, while the page is reviewed)?  An open judgement call or issue, not
+   * reviewed, nothing queued or under way:  the items red for want of a review (`PlanReader.itemState()`).
+   */
+  readonly canCalm = createMemo(() => {
+    const { id, status, reviewed, queued, working } = this.attrs
+    return CALM_ID.test(id ?? "") && status === "open" && !reviewed && !queued && !working
+  })
+
+  /**
+   * Where it stands:  `state` as the script wrote it, else `old` once closed, `open` before.
+   * - Owen's urgency, not applied yet (its id chip clicked):  `open` (blue) when not urgent, `attention` (red) when
+   *   urgent, at once
+   */
   readonly itemState = createMemo((): ItemState => {
+    const urgency = this.reviewState.urgency()
+    if (urgency && this.canCalm()) return urgency.calm ? "open" : "attention"
     const state = this.attrs.state
     if (state && (ITEM_STATES as readonly string[]).includes(state)) return state
     return (CLOSED_STATUSES as readonly string[]).includes(this.attrs.status ?? "") ? "old" : "open"
   })
+
+  /** Is its id chip a button (urgent <-> not urgent) now?  Only while the page is reviewed. */
+  readonly chipToggles = createMemo(() => this.reviewState.reviewing() && this.canCalm())
 
   /** Has details to fold:  a `source`, or children in the default slot. */
   readonly hasDetails = createMemo(() => !!this.attrs.source || this.slots.has(""))
@@ -167,13 +195,27 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
   /** Lists commits:  `commits` (its part not in yet), or `<epic-commit>` children. */
   readonly hasCommits = createMemo(() => !!this.attrs.commits || this.childScan.get().hasCommits)
 
-  /** Anything at the end of the line:  the git icon, a review label, or the review buttons. */
-  readonly hasExtras = createMemo(() => this.hasCommits() || !!this.review() || this.reviewState.reviewing())
+  /**
+   * The review label, in words, for the review buttons' tooltips (`Approve · reviewed 10-07`):  while the page is
+   * reviewed, the buttons say it, not a label beside them (Owen, 2026-10-07).
+   */
+  readonly reviewTip = createMemo((): string | undefined => {
+    const { queued, work, deferred, reviewed } = this.attrs
+    if (queued) return this.text("tipTodo", { work: work || queued })
+    if (deferred) return this.text("tipDeferred", { date: deferred.slice(5) })
+    if (reviewed) return this.text("reviewed", { date: reviewed.slice(5) })
+    return undefined
+  })
 
-  /** Approved:  its mark, else how Claude applied an earlier one (`review-as`).  Its note box goes. */
-  readonly approved = createMemo(() => (this.reviewState.mark()?.action ?? this.attrs.reviewAs) === "approve")
+  /** Anything at the end of the line:  the bed and git icons, a review label, or the review buttons. */
+  readonly hasExtras = createMemo(
+    () => !!this.attrs.overnight || this.hasCommits() || !!this.review() || this.reviewState.reviewing()
+  )
 
-  /** The id chip's tooltip:  where it stands, then its review marks (`Needs attention · not reviewed yet`). */
+  /**
+   * The id chip's tooltip:  where it stands, then its review marks (`Needs attention · not reviewed yet`);  while it
+   * toggles, what a click does (and an urgency not sent yet).
+   */
   readonly chipTip = createMemo(() => {
     const { queued, work, reviewed, deferred, status } = this.attrs
     const parts = [this.text(STATE_TIP_KEYS[this.itemState()])]
@@ -181,6 +223,11 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
     if (reviewed) parts.push(this.text("tipReviewed", { date: reviewed }))
     else if (deferred) parts.push(this.text("tipDeferred", { date: deferred }))
     else if (status === "open") parts.push(this.text("tipNotReviewed"))
+    if (this.chipToggles()) {
+      const urgency = this.reviewState.urgency()
+      if (urgency && !urgency.sent) parts.push(this.text("tipUrgencyUnsent"))
+      parts.push(this.text(this.itemState() === "attention" ? "tipMakeCalm" : "tipMakeUrgent"))
+    }
     return parts.join(" · ")
   })
 
@@ -267,15 +314,10 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
       // an EMPTY title:  the host's `title` would otherwise be a tooltip over all of it (T8)
       <div class={this.classes()} part={this.part("base")} title="">
         {this.renderLine()}
-        <Show when={this.reviewState.reviewing()}>
+        <Show when={this.reviewState.reviewing() && !this.hasDetails()}>
           <div class={UNDER_LINE}>
-            <SaidNote
-              review={this.reviewState}
-              text={this.reviewText}
-              part={this.part("said")}
-              onEdit={() => this.takeToNote(this.reviewState.mark()?.note)}
-            />
-            <Show when={!this.hasDetails() && this.reviewState.boxOpen()}>{this.noteBox()}</Show>
+            {this.saidNote()}
+            <Show when={this.reviewState.boxOpen()}>{this.noteBox()}</Show>
           </div>
         </Show>
         <div
@@ -297,7 +339,11 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
             </div>
           </Show>
           <slot />
-          <Show when={this.reviewState.reviewing() && this.hasDetails() && !this.approved()}>{this.noteBox()}</Show>
+          {/* last in every item, whatever its state (Owen, 2026-10-07):  what was noted, then the box */}
+          <Show when={this.reviewState.reviewing() && this.hasDetails()}>
+            {this.saidNote()}
+            {this.noteBox()}
+          </Show>
         </div>
       </div>
     )
@@ -323,16 +369,44 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
           </Show>
         </span>
         <span class={CELL}>
-          <a class={CHIP} part={this.part("id")} href={`#${this.attrs.id ?? ""}`} title={this.chipTip()}>
-            {this.label()}
-          </a>
+          <Show
+            when={this.chipToggles()}
+            fallback={
+              <a class={CHIP} part={this.part("id")} href={`#${this.attrs.id ?? ""}`} title={this.chipTip()}>
+                {this.label()}
+              </a>
+            }
+          >
+            <button
+              type={UIT.BUTTON}
+              class={CHIP}
+              part={this.part("id")}
+              aria-pressed={this.itemState() === "attention" ? UIT.TRUE : UIT.FALSE}
+              data-unsent={this.reviewState.urgency()?.sent === false ? "" : undefined}
+              title={this.chipTip()}
+              onClick={this.flipUrgency}
+            >
+              {this.label()}
+            </button>
+          </Show>
         </span>
         <span class={TITLE} part={this.part("title")}>
           <slot name={this.slot("title")}>{this.attrs.title}</slot>
         </span>
         <span class={[CELL, EXTRAS]} part={this.part("actions")} hidden={!this.hasExtras()}>
+          <Show when={this.attrs.overnight}>
+            <span
+              class={OVERNIGHT}
+              part={this.part("overnight")}
+              role="img"
+              aria-label={this.text("madeOvernight")}
+              title={this.text("madeOvernight")}
+            >
+              {this.bedGlyph.svg()}
+            </span>
+          </Show>
           <Show when={this.hasCommits()}>{this.gitButton()}</Show>
-          <Show when={this.review()}>
+          <Show when={!this.reviewState.reviewing() && this.review()}>
             {(review) => (
               <span class={[REVIEW, review().look]} part={this.part("review")} title={review().tip}>
                 {review().words}
@@ -346,6 +420,7 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
               label={this.label()}
               buttons={REVIEW_BUTTONS}
               appliedAs={this.attrs.reviewAs}
+              reviewTip={this.reviewTip()}
               part={this.part("review-buttons")}
               onOpenBox={() => this.takeToNote()}
             />
@@ -370,6 +445,18 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
       >
         {this.gitGlyph.svg()}
       </button>
+    )
+  }
+
+  /** A marked note, its box closed:  just above the note box. */
+  private saidNote(): JSX.Element {
+    return (
+      <SaidNote
+        review={this.reviewState}
+        text={this.reviewText}
+        part={this.part("said")}
+        onEdit={() => this.takeToNote(this.reviewState.mark()?.note)}
+      />
     )
   }
 
@@ -456,6 +543,13 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
     const on = !untrack(() => this.showCommits.get())
     this.showCommits.set(on)
     if (on) this.reveal()
+  }
+
+  /** The id chip clicked while it toggles:  urgent <-> not urgent;  the line doesn't fold. */
+  private readonly flipUrgency = (event: MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    this.reviewState.toggleCalm(!!untrack(() => this.attrs.calm))
   }
 
   /** A click on the line:  folds, unless it landed on a link or control (the id chip, P9's buttons). */

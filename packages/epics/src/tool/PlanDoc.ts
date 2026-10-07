@@ -4,6 +4,7 @@ import { OVERVIEW_PART_ID, SectionIds, type EpicData, type EpicTag, type PageSec
 import { Markup, type MarkupContent } from "$/epics/markup"
 
 import {
+  CALM_ID,
   CLOSED,
   ITEM_STATUSES,
   KINDS,
@@ -348,7 +349,8 @@ export class PlanDoc extends PlanReader {
       queued: data.queued,
       work: data.work,
       working: Boolean(data.working),
-      bedtime: Boolean(data.bedtime)
+      bedtime: Boolean(data.bedtime),
+      calm: Boolean(data.calm)
     }
   }
 
@@ -380,20 +382,28 @@ export class PlanDoc extends PlanReader {
    *   (D13):  the next `q` id, `decided`, `answered`, `title` its answer, among the answered ones;  everything else
    *   at the end
    * - while a phase is active:  `phase` (its "To review" line lists it) and an UPDATE marker
+   * - in bedtime mode (a `/bedtime` run):  `overnight`, for good (the bed icon on its line)
+   * - `calm`:  not urgent (blue, not red, until reviewed):  a judgement call or issue that simply follows WWOD
    * - stamped (`stamp()`)
-   * - throws on a kind not in `KINDS`
+   * - throws on a kind not in `KINDS`;  `calm` on a kind that's never urgent
    */
-  addItem(kind: string, title: string, { details, titleHTML = false }: AddItemOptions = {}): string {
+  addItem(kind: string, title: string, { details, titleHTML = false, calm = false }: AddItemOptions = {}): string {
     if (!isItemKind(kind)) throw new PlanDocError(`kind must be ${Object.keys(KINDS).join(" / ")}, not "${kind}"`)
     const spec = KINDS[kind]
-    const section = this.section(spec.section)
     const id = `${spec.prefix}${Math.max(0, ...this.items(kind).map((item) => PlanItem.idNumber(item.id))) + 1}`
+    if (calm && !CALM_ID.test(id)) throw new PlanDocError(`--calm is for a judgement call or an issue, not a ${kind}`)
+    const section = this.section(spec.section)
     const heading = titleHTML ? this.titleFromHTML(title) : { title }
-    const item = this.make(
-      "epic-item",
-      { id, title: heading.title, status: spec.live, phase: this.activePhase, answered: kind === "decision" },
-      heading.slot ? [heading.slot] : []
-    )
+    const data: EpicData<"epic-item"> = {
+      id,
+      title: heading.title,
+      status: spec.live,
+      phase: this.activePhase,
+      answered: kind === "decision",
+      ...(this.bedtime && { overnight: true }),
+      ...(calm && { calm: true })
+    }
+    const item = this.make("epic-item", data, heading.slot ? [heading.slot] : [])
     for (const node of this.incoming(details)) Markup.place(item, node)
     section.append(item)
     if (spec.prefix === KINDS.question.prefix) this.placeQuestion(item)
@@ -547,6 +557,21 @@ export class PlanDoc extends PlanReader {
     this.stamp(item, { at: date === this.today ? this.now : PlanTime.localDay(date), bedtime: false })
     Markup.set(item, { bedtime: undefined })
     return PlanItem.titleOf(item)
+  }
+
+  /**
+   * Item `id` is urgent (`calm` false) or not (`calm` true):  Owen's click on its id chip, applied (`plan-doc inbox
+   * apply`);  returns what it did, for the log (`not urgent`), or `undefined` when it already was.
+   * - only a judgement call or an issue:  throws for any other item, or an id the doc doesn't have
+   */
+  setCalm(id: string, calm: boolean): string | undefined {
+    const item = this.item(id)
+    if (!CALM_ID.test(item.id))
+      throw new PlanDocError(`${item.id.toUpperCase()} is never urgent:  only calls and issues`)
+    if (item.hasAttribute("calm") === calm) return undefined
+    Markup.set(item, { calm: calm || undefined })
+    this.stamp(item)
+    return calm ? "not urgent" : "urgent"
   }
 
   /** Put item `id` off (`deferred`, today):  still outstanding, shown as such next review;  returns its title. */

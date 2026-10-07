@@ -1,8 +1,8 @@
 /**
  * Plan docs' review marks, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo
  * root's `package.json` `"pageServer": { "routes": [...] }`.
- * - Owen marks a plan doc's items ON the page (`_assets/spell-doc-runtime.js`:  approve, todo, details, revisit,
- *   pick an option card);  the marks wait in the doc's INBOX FILE, `<name>.inbox.json` beside `<name>.plan.html`
+ * - Owen marks a plan doc's items ON the page (the elements' review controls, `$/epics/review`:  approve, todo,
+ *   details, revisit, pick an option card, an id chip's urgency);  the marks wait in the doc's INBOX FILE, `<name>.inbox.json` beside `<name>.plan.html`
  *   (`ReviewInbox`), until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
  * - `page`:  the plan doc's URL path, as it was served:  `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...`
  *   on the main checkout's server.  ONLY a plan doc:  anything else is a 403
@@ -18,6 +18,8 @@
  *   being worked on (`ReviewInbox.cancelNow()`)
  * - `POST /api/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it (`revisit` or
  *   `todo`;  empty or `null` drops it):  kept until the mark that uses it (`ReviewInbox.setDraft()`)
+ * - `POST /api/review/urgency` `{ page, id, calm }` -- Owen clicked an open judgement call's or issue's id chip:
+ *   `calm` true, not urgent;  false, urgent;  `null` drops it (`ReviewInbox.setUrgency()`)
  * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now;  `now: true` is "Review Now"
  *   (epic `windows-and-review` P4):  every revisit waiting becomes an immediate request too
  *   (`ReviewInbox.reviewNow()`)
@@ -76,6 +78,12 @@ const reviewRoutes: RouteModule = {
       const file = planDoc(web.files, body.page)
       const id = itemOf(file, body.id)
       reply.json(await update(file, (inbox) => inbox.setDraft(id, body.action, body.note ?? null)))
+    })
+    api.post("/urgency", async (request, reply) => {
+      const body = request.body as { page?: unknown; id?: unknown; calm?: unknown }
+      const file = planDoc(web.files, body.page)
+      const id = itemOf(file, body.id)
+      reply.json(await update(file, (inbox) => inbox.setUrgency(id, body.calm ?? null)))
     })
     api.post("/send", async (request, reply) => {
       const body = request.body as { page?: unknown; now?: unknown }

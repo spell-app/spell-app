@@ -47,6 +47,7 @@ class FakeServer {
     if (route === "now") this.inbox.requestNow(id, body.action, (body.note ?? "") as string)
     if (route === "cancel") this.inbox.cancelNow(id)
     if (route === "draft") this.inbox.setDraft(id, body.action, body.note ?? null)
+    if (route === "urgency") this.inbox.setUrgency(id, body.calm ?? null)
     if (route === "send" && body.now === true) this.inbox.reviewNow()
     else if (route === "send") this.inbox.markSent()
     return json(this.inbox.forPage())
@@ -252,5 +253,24 @@ describe("ReviewClient writes", () => {
     expect(client.unsentCount).toBe(0)
     expect(await client.send()).toBe(false)
     expect(notices).toEqual([`Saved.  ${NOBODY_LISTENING}`, "Sent already:  waiting for Claude"])
+  })
+})
+
+describe("ReviewClient.toggleCalm() (an id chip, Owen 2026-10-07)", () => {
+  test("urgent <-> not urgent, shown at once;  back to what the doc says, the inbox forgets it;  counted for Send", async () => {
+    const { client, server } = await started()
+    const write = client.toggleCalm("j2", false)
+    expect(client.calmOf("j2")).toBe(true)
+    await write
+    expect(server.inbox.urgency.j2?.calm).toBe(true)
+    expect(client.unsentCount).toBe(1)
+    await client.toggleCalm("j2", false)
+    expect(server.posts.at(-1)).toEqual(["urgency", { page: PAGE, id: "j2", calm: null }])
+    expect([client.calmOf("j2"), client.unsentCount]).toEqual([undefined, 0])
+    // a calm doc's call made urgent, then sent
+    await client.toggleCalm("j2", true)
+    expect(client.calmOf("j2")).toBe(false)
+    expect(await client.send()).toBe(true)
+    expect(client.unsentCount).toBe(0)
   })
 })

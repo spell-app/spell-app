@@ -8,7 +8,7 @@ import type { PlanDocParts } from "./planDoc.types"
 /****************
  * ### `PlanParts`
  * A plan doc in PARTS (epic `claude-design`, P3):  a SKELETON, `epics/<name>/<name>.plan.html`, plus one BODY file
- * per bulky section or item, `epics/<name>/parts/<id>.htm`, which the page loads the first time it's opened.  Rules:
+ * per bulky section or item, `epics/<name>/parts/<id>.html`, which the page loads the first time it's opened.  Rules:
  * `PLAN-DOC.md` beside this, "Parts".
  * - the statics are the parts' FILES and URLS, whichever markup:  where a part lives (`partFile()`), reading one
  *   (`reader()`), rebasing a body's relative URLs to `parts/` and back (`rebase()`), formatting and writing
@@ -17,8 +17,11 @@ import type { PlanDocParts } from "./planDoc.types"
  * - an instance ASSEMBLES a skeleton in the OLD markup (`ui-section[source]`, `ui-accordion.plan-item[source]`):  for
  *   `OldPlanReader` and the converter.  REFACTOR: drop the instance half after the switch (P12):  no doc is in the
  *   old markup then.  (Its `split()` went with the tool's old layout code, P8:  the tool writes `<epic-*>` docs only.)
- * - why `.htm`, not `.html`:  every page walker (`pages.js` `findPages()`:  the docs index, `docs update`, link
- *   repairs), in this checkout AND in checkouts on older code, takes `.html` files only:  a part is never a page
+ * - a part is told from a page by its FOLDER, `parts/`:  every page walker skips it (`pages.js` `findPages()`:  the
+ *   docs index, `docs update`;  `relocate.js`;  `spell static`), so a part is never taken for a page (Q12)
+ * - `.html` since Q12 (`.htm` before):  reading takes BOTH (`PART_SOURCE`, `reader()`), since the docs stay split as
+ *   `.htm` until the switch (P12) converts every doc and its parts at once;  writing is `.html` only.
+ *   REFACTOR: drop `.htm` (`OLD_PART_EXT`) after P12.
  * - Node only (`node:fs`, oxfmt through `$/assembler`):  NOT in the `$/epics` barrel, imported by path.
  ****************/
 export class PlanParts {
@@ -122,18 +125,23 @@ export class PlanParts {
   ////////////////
 
   /**
-   * The file of part `id` of the skeleton at `file`:  `<folder>/parts/<id>.htm`.
+   * The file of part `id` of the skeleton at `file`:  `<folder>/parts/<id>.html`.
    * - STATIC, as every file helper here:  they work on paths, not on a parsed document
    */
   static partFile(file: string, id: string): string {
     return join(dirname(file), PARTS_DIR, `${id}${PART_EXT}`)
   }
 
-  /** The part files of the skeleton at `file`, as a reader:  `id` -> its text, or `undefined`. */
+  /**
+   * The part files of the skeleton at `file`, as a reader:  `id` -> its text, or `undefined`.
+   * - `parts/<id>.html`, else the old `parts/<id>.htm` (a doc split before Q12)
+   */
   static reader(file: string): PartReader {
     return (id) => {
       const path = PlanParts.partFile(file, id)
-      return existsSync(path) ? readFileSync(path, "utf8") : undefined
+      const old = path.slice(0, -PART_EXT.length) + OLD_PART_EXT
+      for (const each of [path, old]) if (existsSync(each)) return readFileSync(each, "utf8")
+      return undefined
     }
   }
 
@@ -175,11 +183,20 @@ export type PartReader = (id: string) => string | undefined
 /** The parts folder, beside the skeleton:  `epics/<name>/parts/`. */
 export const PARTS_DIR = "parts"
 
-/** A part file's extension:  not `.html`, so no page walker takes it for a page (see the class's banner). */
-export const PART_EXT = ".htm"
+/** A part file's extension, as written:  a part is told from a page by its folder (see the class's banner). */
+export const PART_EXT = ".html"
 
-/** A part's `source`, as a skeleton writes it:  `parts/<id>.htm`, `id` a section's or item's. */
-export const PART_SOURCE = /^parts\/([\w-]+)\.htm$/
+/** A part file's extension before Q12:  still READ, never written.  REFACTOR: drop after the switch (P12). */
+export const OLD_PART_EXT = ".htm"
+
+/**
+ * A part's `source`, as a skeleton writes it:  `parts/<id>.html`, `id` a section's or item's;  the old
+ * `parts/<id>.htm` too, until the switch (`OLD_PART_EXT`).
+ */
+export const PART_SOURCE = /^parts\/([\w-]+)\.html?$/
+
+/** A file name in `parts/` that's a part, either extension:  `[, id]`. */
+export const PART_FILE = /^([\w-]+)\.html?$/
 
 /** The class of the placeholder line an old-markup host shows until its body loads. */
 const PLACEHOLDER = "plan-part-note"

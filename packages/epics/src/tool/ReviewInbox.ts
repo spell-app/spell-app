@@ -23,6 +23,9 @@ import { SRV } from "$/server"
  *       applied:  Claude talks it over (`toMark()`)
  *   - `drafts`:  `{ [id]: { action, note, at } }`, a note box's text as Owen types it (`setDraft()`), until the mark
  *     that uses it;  never sent or counted
+ *   - `urgency`:  `{ [id]: { calm, at } }`, Owen's click on an open judgement call's or issue's id chip
+ *     (`setUrgency()`):  `calm` true, not urgent (blue);  false, urgent (red) again.  Beside its mark, never one:
+ *     sent with the marks, written into the doc by `plan-doc inbox apply` (`<epic-item calm>`)
  *   - `sent`:  ISO time of the last "send to Claude", else `null`;  marks newer than it are unsent (`unsentMarks`)
  *   - `now`:  `[{ id, action, at, note?, pick? }]`, immediate requests (Add Details, revisit now) for Claude to take
  *   - `working`:  `{ [id]: { action, since } }`, Claude's agents at work on an item (the page shows a spinner)
@@ -45,6 +48,8 @@ export class ReviewInbox {
   marks: Record<string, InboxMark> = {}
   /** a note box's text as Owen types it, per item:  never sent or counted */
   drafts: Record<string, InboxDraft> = {}
+  /** Owen's urgency for an item (its id chip clicked), until applied */
+  urgency: Record<string, InboxUrgency> = {}
   /** ISO time of the last "send to Claude", else `null` */
   sent: string | null = null
   /** immediate requests (Add Details, revisit now), oldest first */
@@ -136,14 +141,15 @@ export class ReviewInbox {
   }
 
   /**
-   * Is there nothing in this inbox worth a file?  No marks, no drafts, no requests, no agents at work, nobody
-   * listening.
+   * Is there nothing in this inbox worth a file?  No marks, no drafts, no urgency, no requests, no agents at work,
+   * nobody listening.
    * - `sent` and `handedOver` alone don't count:  they only date marks, and there are none
    */
   get isEmpty(): boolean {
     return (
       !Object.keys(this.marks).length &&
       !Object.keys(this.drafts).length &&
+      !Object.keys(this.urgency).length &&
       !this.now.length &&
       !Object.keys(this.working).length &&
       !Object.keys(this.canceled).length &&
@@ -174,6 +180,66 @@ export class ReviewInbox {
     }
     this.drafts[key] = { action, note, at }
     return this.drafts[key]
+  }
+
+  ////////////////
+  // ## Urgency
+  ////////////////
+
+  /**
+   * Owen's urgency for item `id` (its id chip clicked while the page is reviewed):  `calm` true, not urgent (blue);
+   * false, urgent (red);  `null` drops it (clicked back to what the doc says).
+   * - not a mark:  an item may hold both (approve it AND say it's not urgent);  sent with the marks, as they are
+   *   (`sentUrgency`), and written into the doc by `plan-doc inbox apply` (`PlanDoc.setCalm()`)
+   * - only an open judgement call or issue is ever red for want of a review (`PlanReader.itemState()`):  only their
+   *   ids (`CALM_ID`);  an `InboxError` for any other
+   * - returns the entry set, or `null`
+   */
+  setUrgency(id: unknown, calm: unknown, at = isoTime()): InboxUrgency | null {
+    const key = ReviewInbox.toItemId(id)
+    if (!CALM_ID.test(key)) throw new InboxError(`only a judgement call or an issue is urgent or not:  ${key}`)
+    if (calm !== null && typeof calm !== "boolean") throw new InboxError("calm is true, false, or null")
+    if (calm === null) {
+      delete this.urgency[key]
+      return null
+    }
+    this.urgency[key] = { calm, at }
+    return this.urgency[key]
+  }
+
+  /** Every urgency as `[{ id, calm, at }]`, oldest first. */
+  get urgencyList(): ListedUrgency[] {
+    return Object.entries(this.urgency)
+      .map(([id, entry]) => ({ id, ...entry }))
+      .sort((a, b) => Date.parse(a.at) - Date.parse(b.at))
+  }
+
+  /** Urgency a "send to Claude" handed over:  set at or before `sent`;  none before the first send. */
+  get sentUrgency(): ListedUrgency[] {
+    if (!this.sent) return []
+    const sent = Date.parse(this.sent)
+    return this.urgencyList.filter((entry) => Date.parse(entry.at) <= sent)
+  }
+
+  /** Urgency waiting for Owen's "send to Claude":  newer than `sent` (all of it before the first send). */
+  get unsentUrgency(): ListedUrgency[] {
+    const sent = this.sent ? Date.parse(this.sent) : -Infinity
+    return this.urgencyList.filter((entry) => Date.parse(entry.at) > sent)
+  }
+
+  /**
+   * Remove the urgency Claude applied, `[{ id, at }]`, but only while each is still the one applied (as
+   * `clearApplied()`);  returns the ids cleared.
+   */
+  clearUrgency(entries: { id: string; at: string }[]): string[] {
+    const cleared: string[] = []
+    for (const { id, at } of entries) {
+      const key = ReviewInbox.toItemId(id)
+      if (this.urgency[key]?.at !== at) continue
+      delete this.urgency[key]
+      cleared.push(key)
+    }
+    return cleared
   }
 
   ////////////////
@@ -427,10 +493,10 @@ export class ReviewInbox {
    * TAKE the work waiting for a session:  `{ now, sent, canceled }`, or `null` when there's none.
    * - `now`:  the queued immediate requests (`takeNow()`), each item marked `working` (the page's spinner) until
    *   Claude's agent is done (`plan-doc inbox done`);  their marks stay till then
-   * - `sent`:  `{ at, marks }` for a send not handed over yet (`hasNewSend`), else `null`:  every sent mark
+   * - `sent`:  `{ at, marks, urgency }` for a send not handed over yet (`hasNewSend`), else `null`:  every sent mark
    *   (`sentMarks`), each `again: true` when an earlier send already handed it over (a revisit still being talked
-   *   over);  `handedOver` becomes `sent`, so a send is taken once
-   *   - a send with no marks left (all applied) is taken quietly:  nothing to wake for
+   *   over), and the sent urgency (`sentUrgency`);  `handedOver` becomes `sent`, so a send is taken once
+   *   - a send with nothing left (all applied) is taken quietly:  nothing to wake for
    * - `canceled`:  "nevermind"s for work a session took:  stop those agents (`cancelNow()`)
    * - call it under the lock (`update()`)
    */
@@ -441,8 +507,9 @@ export class ReviewInbox {
     if (this.hasNewSend) {
       const before = this.handedOver ? Date.parse(this.handedOver) : -Infinity
       const marks = this.sentMarks.map((mark) => ({ ...mark, again: Date.parse(mark.at) <= before }))
+      const urgency = this.sentUrgency
       this.handedOver = this.sent
-      if (marks.length) sent = { at: this.sent!, marks }
+      if (marks.length || urgency.length) sent = { at: this.sent!, marks, urgency }
     }
     const canceled = Object.entries(this.canceled)
       .filter(([, each]) => !each.told)
@@ -548,6 +615,7 @@ export type InboxRecord = {
   version: number
   marks: Record<string, InboxMark>
   drafts: Record<string, InboxDraft>
+  urgency: Record<string, InboxUrgency>
   sent: string | null
   now: NowRequest[]
   working: Record<string, WorkingEntry>
@@ -571,6 +639,12 @@ export type ListedMark = { id: string } & InboxMark
 /** A note box's text, as typed. */
 export type InboxDraft = { action: NoteAction; note: string; at: string }
 
+/** Owen's urgency for an item:  `calm` true, not urgent;  false, urgent again. */
+export type InboxUrgency = { calm: boolean; at: string }
+
+/** An urgency with its item id:  `urgencyList`, `sentUrgency`, `unsentUrgency`. */
+export type ListedUrgency = { id: string } & InboxUrgency
+
 /** An immediate request, queued on `now`. */
 export type NowRequest = { id: string; action: NowAction; at: string; note?: string; pick?: string }
 
@@ -586,7 +660,7 @@ export type InboxListener = { session: string; since: string; seen?: string }
 /** What `ReviewInbox.takeWork()` hands a waiting session. */
 export type TakenWork = {
   now: NowRequest[]
-  sent: { at: string; marks: (ListedMark & { again: boolean })[] } | null
+  sent: { at: string; marks: (ListedMark & { again: boolean })[]; urgency: ListedUrgency[] } | null
   canceled: { id: string; action: NowAction; at: string }[]
 }
 
@@ -638,6 +712,12 @@ const OPTION_LETTER = /^[A-Z]$/
 
 /** An item id:  a letter or two and a number (`q7`, `j12`). */
 const ITEM_ID = /^[a-z]{1,2}\d+$/
+
+/**
+ * The items Owen may call urgent or not (`setUrgency()`):  judgement calls and issues, the kinds red while open and
+ * not reviewed (`PlanReader.itemState()`, the same rule:  `CALM_ID` in `planDoc.types.ts`).
+ */
+const CALM_ID = /^[ij]\d+$/
 
 ////////////////
 // ## Helpers

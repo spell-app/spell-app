@@ -387,7 +387,7 @@ function isInert(script) {
 
 /**
  * Hosts whose body comes from a file (`<ui-section source>`, `<ui-accordion source>`;  a plan doc's parts,
- * `epics/<name>/parts/<id>.htm`, epic `claude-design` P3, on its `<epic-*>` blocks and items) in step with the files
+ * `epics/<name>/parts/<id>.html`, epic `claude-design` P3, on its `<epic-*>` blocks and items) in step with the files
  * and the page:
  * - a body loads (`ui-load`, the first open or a re-fetch):  the page is re-wired around it (`live.refresh()`):  the
  *   outline (headings inside), contents, counts, item filters, code colors

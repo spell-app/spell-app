@@ -44,7 +44,9 @@ import type { ReviewState } from "./ReviewState"
  * - an immediate request at work:  its button's spinner (`loading`);  queued with nobody listening:  a still,
  *   dashed ring.  Clicked while it spins:  "nevermind"
  * - Revisit asks the element to take the reader to the note box (`onOpenBox`)
- * - tooltips:  the plain browser ones (`title`), just the name (Q8);  a screen reader hears the state too
+ * - tooltips:  the plain browser ones (`title`), just the name (Q8), then the element's review label
+ *   (`Approve · reviewed 10-07`:  Owen, 2026-10-07, in place of the label beside them);  a screen reader hears the
+ *   state too
  ****************/
 export function ReviewButtons(props: ReviewButtonsProps) {
   const group = () => props.buttons.filter((spec) => spec.action !== "details")
@@ -98,9 +100,7 @@ export function ReviewButtons(props: ReviewButtonsProps) {
         data-sent={(chosen() && props.review.isSent()) || applied() ? "" : undefined}
         data-waiting={queued() ? "" : undefined}
         loading={spinning() && !queued() ? "" : undefined}
-        title={
-          spinning() && !queued() ? props.text("callOff", { label: props.text(spec.label) }) : props.text(spec.label)
-        }
+        title={spinning() && !queued() ? props.text("callOff", { label: props.text(spec.label) }) : name(spec)}
         aria-label={`${props.text(spec.label)} · ${state(spec, chosen(), applied(), spinning(), queued())}`}
         onClick={(event: MouseEvent) => {
           // the line's own click would fold it
@@ -110,6 +110,12 @@ export function ReviewButtons(props: ReviewButtonsProps) {
         }}
       />
     )
+  }
+
+  /** A button's plain tooltip:  its name, then the element's review label (`Approve · reviewed 10-07`). */
+  function name(spec: ReviewButtonSpec): string {
+    const label = props.text(spec.label)
+    return props.reviewTip ? `${label} · ${props.reviewTip}` : label
   }
 
   /** A button's state, for a screen reader. */
@@ -152,6 +158,8 @@ export type ReviewButtonsProps = {
   buttons: readonly ReviewButtonSpec[]
   /** how Claude applied an earlier mark (`review-as`):  that button stays outlined */
   appliedAs?: string
+  /** the element's review label in words (`reviewed 10-07`), after every button's name in its tooltip */
+  reviewTip?: string
   /** the `part` of the controls' box */
   part: string
   /** Revisit was pressed:  take the reader to the note box */

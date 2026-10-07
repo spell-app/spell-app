@@ -35,10 +35,10 @@ describe("EpicParts.split() / assemble()", () => {
       id: "o1",
       kind: "overview-part",
       title: "One",
-      source: "parts/o1.htm",
+      source: "parts/o1.html",
       partIds: "o1-deep"
     })
-    expect(Markup.read(doc.getElementById("p1")!)).toMatchObject({ source: "parts/p1.htm", commits: true })
+    expect(Markup.read(doc.getElementById("p1")!)).toMatchObject({ source: "parts/p1.html", commits: true })
     expect(doc.querySelector("#q1 > span[slot='title']")).not.toBeNull()
     expect(doc.querySelector("#q1 > p")).toBeNull()
     expect(doc.getElementById("q2")!.hasAttribute("source")).toBe(false)

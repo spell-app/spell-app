@@ -98,10 +98,25 @@ export const epicItemVocabulary = {
       description: "Changed during a `/bedtime` run:  `recent` until reviewed."
     },
     {
+      name: "overnight",
+      kind: "boolean",
+      description:
+        "Made during a `/bedtime` run (the converter:  an old doc's `data-bedtime` item, or one its Overnight report " +
+        "linked):  a small bed icon on its line, for good.  The tool sets it on every item added in bedtime mode."
+    },
+    {
+      name: "calm",
+      kind: "boolean",
+      description:
+        "Not urgent:  an open judgement call or issue not reviewed yet is `open` (blue), not `attention` (red).  " +
+        "For a call that simply follows WWOD (`plan-doc add ... --calm`);  Owen flips it by clicking the id chip " +
+        "while the page is reviewed (the inbox's `urgency`, applied by `plan-doc inbox apply`)."
+    },
+    {
       name: "source",
       kind: "string",
       description:
-        "Its details' part file (`parts/q7.htm`), loaded into its children the first time it opens (its children " +
+        "Its details' part file (`parts/q7.html`), loaded into its children the first time it opens (its children " +
         "without a `slot` are a placeholder the part replaces)."
     },
     {
@@ -156,9 +171,20 @@ export const epicItemVocabulary = {
     { name: "base", description: "The item." },
     { name: "line", description: "Its line:  fold button, id chip, title, review label, actions;  sticky while open." },
     { name: "toggle", description: "The fold `<button>` (the chevron), on an item with details." },
-    { name: "id", description: "The id chip (`Q7`), a link to the item, in its state's colour." },
+    {
+      name: "id",
+      description:
+        "The id chip (`Q7`), a link to the item, in its state's colour.  While the page is reviewed, an open " +
+        "judgement call's or issue's chip is a button instead:  urgent (red) <-> not urgent (blue)."
+    },
     { name: "title", description: "The title." },
-    { name: "review", description: "The review label:  `reviewed 10-06`, `deferred`, `to do`." },
+    {
+      name: "review",
+      description:
+        "The review label:  `reviewed 10-06`, `deferred`, `to do`.  Not while the page is reviewed:  the review " +
+        "buttons' tooltips say it then."
+    },
+    { name: "overnight", description: "With `overnight`:  the bed icon at the line's end, `made overnight`." },
     {
       name: "git",
       description:
@@ -203,6 +229,22 @@ export const epicItemVocabulary = {
     { key: "tipReviewed", text: "reviewed {date}", description: "Id chip tooltip:  reviewed." },
     { key: "tipDeferred", text: "deferred {date}", description: "Id chip and review label tooltip:  deferred." },
     { key: "tipNotReviewed", text: "not reviewed yet", description: "Id chip tooltip:  open, never reviewed." },
+    {
+      key: "tipMakeCalm",
+      text: "click:  not urgent",
+      description: "Id chip tooltip while reviewed, an urgent judgement call or issue:  what a click does."
+    },
+    {
+      key: "tipMakeUrgent",
+      text: "click:  urgent",
+      description: "Id chip tooltip while reviewed, a judgement call or issue that isn't urgent:  what a click does."
+    },
+    {
+      key: "tipUrgencyUnsent",
+      text: "not sent yet",
+      description: "Id chip tooltip:  Owen changed its urgency, not sent yet."
+    },
+    { key: "madeOvernight", text: "made overnight", description: "The bed icon's tooltip (`overnight`)." },
     { key: "sourceLoadError", text: "Couldn't load {source}.", description: "The part's fetch failed." },
     {
       key: "sourceCrossOrigin",

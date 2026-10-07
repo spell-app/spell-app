@@ -12,6 +12,7 @@ import {
   type Inbox,
   type InboxDraft,
   type InboxMark,
+  type InboxUrgency,
   type MarkInput,
   type NowAction,
   type ReviewAction,
@@ -26,7 +27,7 @@ import {
  * A page's REVIEW INBOX, as the page sees it:  the marks Owen leaves on its items and Overview sections, read from
  * and written to the page server's review routes (`$/epics/tool/reviewRoutes.ts`), one client per page
  * (`forPage()`).  `<epic-item>` and `<epic-section>` draw their controls from it (`ReviewControls.tsx`);  P10's
- * Send, Review Now and Choose pills call it too (`send()`, `choose()`).
+ * Send, Review Now and Choose pills call it too (`send()`, `choose()`), and an item's id chip (`toggleCalm()`).
  * - reviewing ONLY when the page is served with a token (`window.SPELL_SERVER`) and its inbox answers:  never from
  *   `file://`, nor from a server without the routes (`reviewing` stays false, and nothing is drawn)
  * - every route's reply is the whole inbox:  a write's answer replaces what's shown;  a failed write re-reads it,
@@ -262,9 +263,14 @@ export class ReviewClient {
     return this.typed.get(id) ?? this.inbox.drafts[id]?.note ?? ""
   }
 
-  /** How many marks wait for "Send to Claude". */
+  /** Item `id`'s urgency Owen set on the page, not applied yet:  `true` not urgent, `false` urgent;  else none. */
+  calmOf(id: string): boolean | undefined {
+    return this.inbox.urgency[id]?.calm
+  }
+
+  /** How many marks and urgencies wait for "Send to Claude". */
   get unsentCount(): number {
-    return Object.values(this.inbox.marks).filter((mark) => !this.isSent(mark)).length
+    return this.unsentMarks().length + this.unsentUrgency().length
   }
 
   ////////////////
@@ -302,6 +308,18 @@ export class ReviewClient {
     const mark = this.inbox.marks[id]
     if (mark?.action !== "revisit") return this.save(id, letter ? { action: "pick", pick: letter } : null)
     return this.save(id, { action: "revisit", when: "soon", note: mark.note ?? "", ...(letter && { pick: letter }) })
+  }
+
+  /**
+   * Item `id`'s id chip clicked:  urgent becomes not urgent, and back (`docCalm`:  what the doc says, `calm`), shown
+   * at once, then saved;  back to what the doc says, the inbox forgets it.
+   */
+  toggleCalm(id: string, docCalm: boolean): Promise<boolean> {
+    const calm = !(this.calmOf(id) ?? docCalm)
+    if (calm === docCalm) delete this.inbox.urgency[id]
+    else this.inbox.urgency[id] = { calm, at: new Date().toISOString() }
+    this.changed()
+    return this.write("urgency", { id, calm: calm === docCalm ? null : calm })
   }
 
   ////////////////
@@ -416,7 +434,10 @@ export class ReviewClient {
    */
   async send({ now = false }: { now?: boolean } = {}): Promise<boolean> {
     const marks = Object.values(this.inbox.marks)
-    const waiting = now ? marks.filter((mark) => !isImmediate(mark)) : marks.filter((mark) => !this.isSent(mark))
+    const waiting = [
+      ...(now ? marks.filter((mark) => !isImmediate(mark)) : this.unsentMarks()),
+      ...this.unsentUrgency()
+    ]
     if (!waiting.length) {
       this.notify(
         now
@@ -506,6 +527,18 @@ export class ReviewClient {
   ////////////////
   // ## Helpers
   ////////////////
+
+  /** The marks not sent yet. */
+  private unsentMarks(): InboxMark[] {
+    return Object.values(this.inbox.marks).filter((mark) => !this.isSent(mark))
+  }
+
+  /** The urgencies not sent yet:  set after the last send. */
+  private unsentUrgency(): InboxUrgency[] {
+    return Object.values(this.inbox.urgency).filter(
+      (entry) => !isSent({ action: "urgency", at: entry.at }, this.inbox.sent)
+    )
+  }
 
   /** Everyone told something changed. */
   private changed() {

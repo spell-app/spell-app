@@ -1,4 +1,5 @@
 import {
+  CALM_ID,
   CLOSED,
   KINDS,
   OLD_DECISION,
@@ -198,7 +199,8 @@ export abstract class PlanReader {
    * - closed (`CLOSED`, an old doc's `d7`):  `recent` when changed since the doc's "recent since", or during a
    *   `/bedtime` run, else `old`
    * - work under way (queued, working):  `progress`
-   * - waiting on Owen:  `attention`:  an open question;  an open judgement call or issue not reviewed
+   * - waiting on Owen:  `attention`:  an open question;  an open judgement call or issue not reviewed, unless it's
+   *   `calm` (not urgent:  it simply follows WWOD, or Owen said so from its id chip):  then `open`
    * - else `recent` when reviewed recently or touched by a `/bedtime` run;  else `open`
    */
   itemState(item: Element): ItemState {
@@ -209,7 +211,7 @@ export abstract class PlanReader {
     if (CLOSED.has(facts.status) || OLD_DECISION.test(facts.id)) return recent ? "recent" : "old"
     if (facts.queued !== undefined || facts.working) return "progress"
     if (QUESTION_ID.test(facts.id)) return "attention"
-    if (/^[ij]\d+$/.test(facts.id) && facts.reviewed === undefined) return "attention"
+    if (CALM_ID.test(facts.id) && facts.reviewed === undefined) return facts.calm ? "open" : "attention"
     if (recent && (facts.bedtime || facts.reviewed !== undefined)) return "recent"
     return "open"
   }

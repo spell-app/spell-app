@@ -108,8 +108,8 @@ function reorgEntry(name) {
  * - `details`:  details pages (`spell dev details`), questions for one session:  not in the index, not checked with the
  *   docs (scratch `details/`, and an epic's `epics/<name>/details/`);  NOT the `details` epic's own folder,
  *   `epics/details/` (`findPages()`)
- * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.htm`, `plan-parts.js`):  fragments its page loads.
- *   Their `.htm` already keeps them out (only `.html` is a page);  the folder too, in case one is ever `.html`
+ * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.html`, `plan-parts.js`):  fragments its page loads,
+ *   told from pages by this folder alone since they're `.html` (Q12 of `epic-components`;  `.htm` before)
  */
 const SKIP_DIRS = new Set(["node_modules", "experiments", "examples", "details", "parts"])
 
@@ -152,14 +152,16 @@ export function findPages(dir = AREAS) {
 }
 
 /**
- * The file holding the plan doc at `file`'s log:  its part, `parts/log.htm`, when the doc is split (`plan-parts.js`),
- * else the doc itself.  For the browser checks, which add a log line and take it out again by hand.
- * - either markup:  the log's host says `source="parts/log.htm"` in both (`<ui-section id="log">`, `<epic-section
+ * The file holding the plan doc at `file`'s log:  its part, `parts/log.html` (`parts/log.htm` before Q12 of
+ * `epic-components`), when the doc is split (`plan-parts.js`), else the doc itself.  For the browser checks, which
+ * add a log line and take it out again by hand.
+ * - either markup:  the log's host says `source="parts/log.html"` in both (`<ui-section id="log">`, `<epic-section
  *   kind="log">`)
  */
 export function planLogFile(file) {
-  const part = join(dirname(file), "parts", "log.htm")
-  return existsSync(part) && readFileSync(file, "utf8").includes('source="parts/log.htm"') ? part : file
+  const source = /\bsource="(parts\/log\.html?)"/.exec(readFileSync(file, "utf8"))?.[1]
+  const part = source && join(dirname(file), source)
+  return part && existsSync(part) ? part : file
 }
 
 /**
