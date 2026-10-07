@@ -279,9 +279,15 @@ describe("outline style", () => {
 
     test('a phrase with no body is an error, not an empty method (I6):  `it "can move"`', () => {
       expect(errorsOf([...DECK, ...CARD, '\t- it "can move"', 'a card "can fly"'])).toEqual([
-        `10:3 "can move" has no body:  write "can move" if ..., or end it with ":" and indent the lines below`,
-        `11:0 "can fly" has no body:  write "can fly" if ..., or end it with ":" and indent the lines below`
+        `10:3 "can move" has no body:  write "can move" always, or "can move" if ...`,
+        `11:0 "can fly" has no body:  write "can fly" always, or "can fly" if ...`
       ])
+    })
+
+    test("`always` / `never` is the body of a phrase true for every one of the type (I6, option A)", () => {
+      const js = compile([...DECK, ...CARD, '\t- it "can move" always', '\t- it "can fly" never'])
+      expect(js).toMatch(/get can_move\(\) \{\s+return true\s+\}/)
+      expect(js).toMatch(/get can_fly\(\) \{\s+return false\s+\}/)
     })
 
     test('a blank naming no property with a list of values is an error (J9):  `it "is a (color)"`', () => {

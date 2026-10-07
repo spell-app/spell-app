@@ -418,7 +418,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   (`quoted_type_expression.isPropertySlip()`).
 - A phrase and nothing more, `- it "can move"` or `a card "can fly"` (no `if` / `is` / `:`), is refused, saying to
   add a body (`quoted_type_expression.isBodiless()`, plan doc I6):  it'd compile to an empty method.  A dangling
-  `if` is fine:  its body may be the indented lines below.
+  `if` is fine:  its body may be the indented lines below.  A phrase true for every one of the type says so:
+  `- it "can move" always` (`always` / `never` are constants, read as its body).
 
 ## Value kinds:  `"suits" as one of clubs, diamonds, hearts or spades`
 
