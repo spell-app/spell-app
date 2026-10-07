@@ -282,6 +282,21 @@ export function markSent(inbox, at = isoTime()) {
 }
 
 /**
+ * "Review Now" (epic `windows-and-review` P4, Q2):  send every mark AND have the listening session work through the
+ * batch at once;  returns the ids it asked now.
+ * - each revisit waiting for a send, or sent and still being talked over, becomes an immediate request
+ *   (`requestNow()`, its note and its pick kept):  a background agent answers it INTO its item (Q3), the page's
+ *   spinner on it meanwhile
+ * - approvals, picks and todos go with the send (`markSent()`), as "send to Claude" sends them
+ */
+export function reviewNow(inbox, at = isoTime()) {
+  const revisits = markList(inbox).filter((mark) => mark.action === "revisit" && !isImmediate(mark))
+  for (const mark of revisits) requestNow(inbox, mark.id, "revisit", mark.note ?? "", at)
+  markSent(inbox, at)
+  return revisits.map((mark) => mark.id)
+}
+
+/**
  * Marks waiting for Owen's "send to Claude":  `[{ id, ...mark }]`, oldest first.
  * - newer than `sent` (all of them before the first send)
  * - NOT immediate ones (`details`, `revisit` `now`):  `requestNow()` already handed them over

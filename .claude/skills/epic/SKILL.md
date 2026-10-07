@@ -222,9 +222,12 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 
 Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items (each item's four
 buttons:  Approve, Make Todo, Revisit Now, Add Details Now;  Choose on option cards) and sends them with the page
-header's paper plane.  A running Add Details Now / Revisit Now clicked again is "nevermind" (`canceled`, 7.3).  This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at
-once, Add Details and "revisit now" by background agents, "revisit soon" talked over in chat.  No modal walk through
-items any more (epic `review-review`, 2026-10-04;  plan:  `epics/review-review/review-review.plan.html`, 1.1-1.2).
+header's paper plane, or with Review Now beside it (the wand:  every revisit waiting is asked now too, epic
+`windows-and-review` P4).  A running Add Details Now / Revisit Now clicked again is "nevermind" (`canceled`, 7.3).
+This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at once, Add
+Details and "revisit now" by background agents, "revisit soon" answered one at a time.  EVERY answer goes INTO its
+item, on the page;  the chat only links them (Q3 of `windows-and-review`).  No modal walk through items any more
+(epic `review-review`, 2026-10-04;  plan:  `epics/review-review/review-review.plan.html`, 1.1-1.2).
 
 - Runs from ANY window, `main` or a worktree:  the prompt hook lets `/epic review` through, never renames the session.
   No worktree, no plan mode.
@@ -277,7 +280,8 @@ Read what it printed.  Then, in this order:
 1b. CANCELED (Owen said "nevermind" on a running Add Details Now / Revisit Now, epic `windows-and-review` P2):  stop
    that item's background agent (`TaskStop`), then `spell dev plan-doc inbox <name> done <id>`.  An agent that
    finishes anyway is refused (`plan-doc details` errors:  "Owen called this request off"):  nothing lands.
-2. NOW requests (Add Details, revisit now) -- `wait` already marked them `working` (the page spins):  per item, a
+2. NOW requests (Add Details, revisit now;  after Review Now, every revisit Owen had marked) -- `wait` already
+   marked them `working` (the page spins):  per item, a
    BACKGROUND `Agent` (`run_in_background: true`), each prompt:
    - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net
      effect)
@@ -292,10 +296,12 @@ Read what it printed.  Then, in this order:
    - last:  `spell dev plan-doc inbox <name> done <id>`
    Up to 5 agents at once (root rules);  more:  the rest after.
 3. SENT marks:  `spell dev plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each).
-   Then each "to talk over" (revisit soon), one at a time, in chat:  the item in words, his note quoted, your
-   answer (short;  evidence when it matters).  A choice he must make:  write it into the item as a reply with option
-   cards (`details --append`) so he picks ON THE PAGE;  a quick yes / no:  a modal.  Done:  `inbox clear <id>` and
-   `review <name> <id> "<outcome>"`.
+   Then each "to talk over" (revisit soon), one at a time:  answer his note INTO the item, as a reply
+   (`details --append`, the reply markup of "revisit now" above:  his note quoted, the answer with evidence, option
+   cards when he must choose, so he picks ON THE PAGE), then `inbox clear <id>` and `review <name> <id>
+   "<outcome>"`.  In chat:  one line per item, its link (`spell dev docs link ... --hash <id>`), never the answer
+   itself (Q3 of `windows-and-review`:  a long review stays readable).  He answers on the page (Revisit again), or
+   says so in chat;  a quick yes / no:  a modal.
    - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  answer the note
      about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself
    - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do

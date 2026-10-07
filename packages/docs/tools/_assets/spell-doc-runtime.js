@@ -2904,6 +2904,10 @@ function outsideOriginal(elements) {
  *     (`.plan-act-pick`) beside the buttons
  * - the page header's round paper plane (`button.plan-send`, left of the git button):  grey with nothing to send,
  *   blue with unsent marks, outlined blue once sent while marks wait for Claude
+ * - beside it, Review Now (`button.plan-review-now`, the wand;  epic `windows-and-review` P4, Q2):  sends every
+ *   mark AND has the listening session work through them at once:  each revisit waiting becomes a request for now,
+ *   answered into its item (`POST send { now: true }`, `inbox.js` `reviewNow()`);  blue while there's anything
+ *   for Claude to work through
  * - nobody listening (`listening` null:  none, or its heartbeat stopped, as the routes answer it):  the send
  *   button's tooltip and the "now" actions say so (`NOBODY_LISTENING`, decision D6)
  * - re-reads the inbox when the page server says its file changed (the live client's `spell-server:file`), and every
@@ -2987,8 +2991,8 @@ async function wireReview(main) {
     const head = main.querySelector(".spell-page-head")
     if (head && !head.querySelector(":scope > .plan-send")) {
       const before = head.querySelector(":scope > :is(.plan-git-toggle, .plan-step)")
-      if (before) before.before(sendOf())
-      else head.append(sendOf())
+      if (before) before.before(sendOf(), reviewNowOf())
+      else head.append(sendOf(), reviewNowOf())
     }
     render()
   }
@@ -3063,6 +3067,16 @@ async function wireReview(main) {
         : "Nothing to send:  mark an item first (its buttons)"
     send.title = listening || !all.length ? tip : `${tip}.  ${NOBODY_LISTENING}`
     send.setAttribute("aria-label", tip)
+    const now = main.querySelector(".plan-review-now")
+    if (!now) return
+    // what Claude would work through:  every mark but the requests already on their way
+    const waiting = all.filter((mark) => !isImmediate(mark)).length
+    now.dataset.state = waiting ? "ready" : "idle"
+    const nowTip = waiting
+      ? `Review Now:  Claude works through ${waiting} mark${waiting === 1 ? "" : "s"} at once, answers in their items`
+      : "Review Now:  nothing to work through yet"
+    now.title = listening || !waiting ? nowTip : `${nowTip}.  ${NOBODY_LISTENING}`
+    now.setAttribute("aria-label", nowTip)
   }
 
   /**
@@ -3378,6 +3392,17 @@ async function wireReview(main) {
     return send
   }
 
+  /** The page header's "Review Now" button:  `button.plan-review-now`, a round wand, right of Send. */
+  function reviewNowOf() {
+    const now = document.createElement("button")
+    now.type = "button"
+    now.className = "plan-review-now"
+    now.dataset.spellAdded = ""
+    now.innerHTML = `<ui-icon name="wand magic sparkles"></ui-icon>`
+    now.addEventListener("click", () => void reviewMarksNow())
+    return now
+  }
+
   /** The notice line at the bottom of the window:  what can't be said on the item (D6, a failed write). */
   function buildNotice() {
     const element = document.createElement("div")
@@ -3557,6 +3582,22 @@ async function wireReview(main) {
   }
 
   /** "Send to Claude":  every unsent mark goes. */
+  /**
+   * Review Now:  send every mark, each revisit asked now (`POST send { now: true }`);  says what went, or why
+   * nothing did.
+   */
+  async function reviewMarksNow() {
+    const waiting = Object.values(inbox.marks).filter((mark) => !isImmediate(mark))
+    if (!waiting.length) return notify("Nothing to work through:  mark an item first")
+    if (!(await write("send", { now: true }))) return
+    render()
+    notify(
+      inbox.listening
+        ? `Claude is working through ${waiting.length} now:  answers land in the items`
+        : `Saved.  ${NOBODY_LISTENING}`
+    )
+  }
+
   async function sendMarks() {
     const unsent = Object.values(inbox.marks).filter((mark) => !isSent(mark, inbox.sent))
     if (!unsent.length)

@@ -1294,8 +1294,11 @@ ui-accordion.plan-options > ui-title[data-picked] {
   color: var(--ui-orange-text, var(--ui-orange, #f2711c));
 }
 
-/* the page header's "Send to Claude":  round, grey;  blue with unsent marks;  outlined blue once sent */
-button.plan-send {
+/*
+ * the page header's "Send to Claude":  round, grey;  blue with unsent marks;  outlined blue once sent.  Review Now
+ * beside it (the wand, P4 of `windows-and-review`):  the same circle, blue while there's anything to work through
+ */
+button:is(.plan-send, .plan-review-now) {
   display: inline-grid;
   flex: none;
   place-items: center;
@@ -1309,8 +1312,20 @@ button.plan-send {
   font-size: 0.85rem;
   cursor: pointer;
 }
-button.plan-send:hover {
+button:is(.plan-send, .plan-review-now):hover {
   color: var(--spell-doc-accent);
+}
+button.plan-review-now[data-state="ready"] {
+  border-color: var(--ui-blue, #1a67e0);
+  color: var(--ui-blue, #1a67e0);
+}
+button.plan-review-now[data-state="ready"]:hover {
+  background: var(--ui-blue, #1a67e0);
+  color: var(--ui-blue-on, #fff);
+}
+button:is(.plan-send, .plan-review-now) ui-icon::part(icon) {
+  width: auto;
+  margin: 0;
 }
 button.plan-send[data-state="unsent"] {
   border-color: var(--ui-blue, #2185d0);
@@ -1321,7 +1336,7 @@ button.plan-send[data-state="sent"] {
   border: 2px solid var(--ui-blue, #2185d0);
   color: var(--ui-blue, #2185d0);
 }
-button.plan-send:focus-visible {
+button:is(.plan-send, .plan-review-now):focus-visible {
   outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
   outline-offset: 1px;
 }
