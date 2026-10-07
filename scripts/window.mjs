@@ -58,13 +58,26 @@
  *   - the main root's files are hidden (`files.exclude` `*` beside its `.spell-main` marker):  the worktree's
  *     folder has the same ones.  The main root stays first for the Claude panel, and keeps its Source Control.
  *   - the package it's for (theme, `handoff --back`'s target) is kept in the file's own `spell.package`
- * - The package window's theme, title bar tinted in a colour of the worktree's own (from its name):  told apart at a
- *   glance from the package window, and from other worktrees.
+ * - Its look (epic `windows-and-review` P5):  `open <name> --color <look>` (`/epic <name> -<look>`), else the look of
+ *   the window it's opened from;  a window file from before (or a window without one):  the package window's theme,
+ *   the title bar tinted the worktree's own colour (`tint()`).
+ *
+ * ## Looks
+ * - A LOOK is the whole window in Tomorrow Night Blue's colours, its blues turned to another hue (`LOOKS`:  red,
+ *   orange, amber, green, teal, cyan, blue, indigo, purple, pink, brown, grey):  `workbench.colorTheme` set to it,
+ *   the re-hued colours scoped to it in `workbench.colorCustomizations`;  the rest of Owen's own colours stay.
+ * - `color <look>` (`/epic color <look>`) gives the window this session runs in a look:  written into its window
+ *   file, which VS Code applies at once, with no reload and its extensions (the Claude panel) untouched (tested on a
+ *   throwaway window:  Q11 of `windows-and-review`).  Only a window opened from a `.code-workspace` file.
  *
  * ## Staying put
  * - Instead of moving, a session may STAY in its window:  same tab, only its folder is the worktree.  Owen picks,
  *   each time, in `/isolate`'s, `/epic`'s or `/unpark`'s modal;  `stay-check` recommends one and says why.
- * - Its changes show in Source Control (`git.detectWorktrees`), not in Explorer, and the title bar isn't tinted.
+ * - Its changes show in Source Control (`git.detectWorktrees`), not in Explorer.
+ * - The window says so at once (`stay <name>`, epic `windows-and-review` P5):  titled `⎇ <name>`, its title bar
+ *   tinted the worktree's colour;  what that replaced is kept in the file's `spell.stay`, and `stay --end`
+ *   (`/isolate done`) puts it back.  Before, the window kept its old title (`docs-sidebar` while the session worked
+ *   in `quick-open`).
  * - Fine when it's the window's ONLY session.  Else the others share its doc preview (one doc at a time) and its
  *   Source Control, and a second worktree there is easy to mix up with the first.
  * - Later, it can still move:  `open <name>`, `handoff <name>`.
@@ -79,13 +92,15 @@
  * - `show <file> [--hash <id>] [--review]`:  show an `.html` doc in the window's doc preview (the right side bar's
  *   "Spell Docs" tab;  `--review`:  its "Review" tab), at id `<id>`;  in the window this session is moving to, once
  *   it has, while a `handoff` is pending
- * - `open <name> [--pkg <pkg>]`:  write worktree `<name>`'s window file and open it in a new window;  `<pkg>`
- *   defaults to this session's window's package.  `close <name>`:  close that window, delete the file.
+ * - `open <name> [--pkg <pkg>] [--color <look>]`:  write worktree `<name>`'s window file and open it in a new
+ *   window;  `<pkg>` defaults to this session's window's package, its look to this session's window's.  `close <name>`:  close that window, delete the file.
  * - `handoff <name> [--back] [--prompt <text>]`:  move this session to worktree `<name>`'s window when its turn
  *   ends;  `--back`:  from it to its package's window, closing it after;  `--prompt`:  typed into the new tab.
  *   Needs `$CLAUDE_CODE_SESSION_ID` (Claude sets it in a session's commands).
  * - `resume <record> [--title <title>]...`:  the move itself, run by the `Stop` hook:  `<record>` the handoff's
  *   file (deleted once read), each `<title>` a label the session's tab may show, tried in order
+ * - `color [<look>]`:  give this session's window a look (`LOOKS`);  no look:  list them
+ * - `stay <name>` / `stay --end`:  title and tint this session's window for worktree `<name>` it stays in / put back
  * - `stay-check [--epic] [--json]`:  should this session stay in its window when it isolates, or move?  Prints
  *   `recommend stay|window`, then a `- <reason>` line each
  * - No window (the extension isn't installed, or the window wasn't reloaded since):  exits 1, saying so.
@@ -272,21 +287,58 @@ export class Window {
    * - folder paths are relative to `workspaces/ongoing/`
    * - `spell.package`:  `pkg`, for `handoff --back`;  VS Code ignores a top-level key it doesn't know
    * - hides the main root's files (`filesExclude({ worktree: true })`):  the worktree's folder has the same ones
+   * - its look (epic `windows-and-review` P5, Q1):  `color`, a look's name (`LOOKS`);  else `from`'s, the window
+   *   file of the window it's opened from (its theme and colours, a staying session's tint left out);  else `pkg`'s
+   *   theme, the title bar tinted the worktree's own colour (`tint()`)
    */
-  static worktreeWorkspace(pkg, name) {
+  static worktreeWorkspace(pkg, name, { color = null, from = null } = {}) {
+    const settings = {
+      "workbench.colorTheme": Window.theme(pkg),
+      "files.exclude": Window.filesExclude({ worktree: true })
+    }
+    if (color) withLook(settings, color)
+    else if (from?.settings?.["workbench.colorTheme"]) {
+      const source = JSON.parse(JSON.stringify(from))
+      withoutStay(source)
+      settings["workbench.colorTheme"] = source.settings["workbench.colorTheme"]
+      if (source.settings["workbench.colorCustomizations"])
+        settings["workbench.colorCustomizations"] = source.settings["workbench.colorCustomizations"]
+    } else settings["workbench.colorCustomizations"] = tint(name)
     return {
       folders: [
         { path: "../..", name: "spell-app" },
         { path: `../../.claude/worktrees/${name}`, name: `⎇ ${name}` },
         ...Window.sharedFolder(join(MAIN_ROOT, "workspaces", "ongoing"))
       ],
-      settings: {
-        "workbench.colorTheme": Window.theme(pkg),
-        "files.exclude": Window.filesExclude({ worktree: true }),
-        "workbench.colorCustomizations": tint(name)
-      },
+      settings,
       spell: { package: pkg }
     }
+  }
+
+  /**
+   * Change the window file of the window this session runs in:  `change(workspace)` edits it in place (`refresh()`).
+   * VS Code takes a settings change at once:  no reload, its extensions (the Claude panel) untouched (Q11 of
+   * `windows-and-review`, tested on a throwaway window).  Returns `{ file, written }`;  throws without a window file.
+   */
+  static editCurrent(change) {
+    const file = Window.current()?.workspaceFile
+    if (!file) throw new Error("this window wasn't opened from a .code-workspace file:  nothing to write its look into")
+    return { file, written: refresh(file, change) }
+  }
+
+  /** `color <look>`:  give this session's window look `name` (`LOOKS`);  returns its file. */
+  static color(name) {
+    look(name)
+    return Window.editCurrent((workspace) => withLook((workspace.settings ??= {}), name)).file
+  }
+
+  /** `stay <name>` / `stay --end`:  retitle and tint this session's window for worktree `name` / put it back. */
+  static stay(name, { end = false } = {}) {
+    let changed = false
+    const { file } = Window.editCurrent((workspace) => {
+      changed = end ? withoutStay(workspace) : Boolean(withStay(workspace, name))
+    })
+    return { file, changed }
   }
 
   /** `pkg`'s theme:  from its window file in the main checkout (Owen may have changed it), else `THEMES`. */
@@ -302,19 +354,55 @@ export class Window {
   }
 
   /**
-   * `open`:  (re)write worktree `name`'s window file and open it with `code`;  returns the file.
+   * `open`:  (re)write worktree `name`'s window file and open it with `code`;  returns `{ file, colors }`.
    * - already open:  VS Code focuses that window
+   * - its colours (`workbench.colorCustomizations`) are NOT in the file yet:  a window starting up draws the theme's
+   *   colours VS Code cached from the last window that had them, and only a CHANGE to the setting makes it read them
+   *   (P5 of `windows-and-review`:  a probe opened green came up in an older probe's purple).  `colors` go in once
+   *   the window is up (`applyColors()`), a live change
    */
-  static open(name, pkg) {
+  static open(name, pkg, { color = null } = {}) {
     if (!existsSync(join(MAIN_ROOT, ".claude", "worktrees", name))) throw new Error(`no worktree ${name}`)
     if (!Window.packages.includes(pkg)) throw new Error(`no package ${pkg}`)
+    if (color) look(color)
     const file = Window.worktreeFile(name)
     mkdirSync(dirname(file), { recursive: true })
     Window.ensureMainMarker()
-    writeFileSync(file, `${JSON.stringify(Window.worktreeWorkspace(pkg, name), null, 2)}\n`)
+    const from = Window.currentWorkspace()
+    const workspace = Window.worktreeWorkspace(pkg, name, { color, from })
+    const colors = workspace.settings["workbench.colorCustomizations"] ?? null
+    delete workspace.settings["workbench.colorCustomizations"]
+    writeFileSync(file, `${JSON.stringify(workspace, null, 2)}\n`)
     const run = spawnSync("code", [file], { encoding: "utf8" })
     if (run.status !== 0) throw new Error(`\`code ${file}\` failed:  ${run.stderr || run.error?.message}`)
-    return file
+    return { file, colors }
+  }
+
+  /**
+   * Write `colors` into window file `file` once its window is up (its registry entry, `WINDOW_START_TIMEOUT` at
+   * most, then a moment for its settings to load):  a live change, which the window applies (`open()`).  Resolves
+   * to whether the window was seen;  the colours are written either way.
+   */
+  static async applyColors(file, colors, { wait = 1500 } = {}) {
+    const deadline = Date.now() + WINDOW_START_TIMEOUT
+    let seen = false
+    while (!(seen = Boolean(Window.windowOf(file))) && Date.now() < deadline) await delay(500)
+    if (seen) await delay(wait)
+    refresh(file, (workspace) => {
+      workspace.settings ??= {}
+      workspace.settings["workbench.colorCustomizations"] = colors
+    })
+    return seen
+  }
+
+  /** The window file of the window this session runs in, parsed;  `null` when there's none (or it's JSONC). */
+  static currentWorkspace() {
+    try {
+      const file = Window.current()?.workspaceFile
+      return file ? JSON.parse(readFileSync(file, "utf8")) : null
+    } catch {
+      return null
+    }
   }
 
   /**
@@ -571,10 +659,12 @@ export class Window {
       console.log(written.length ? `wrote ${written.join(", ")}` : "every window file is up to date")
       return 0
     }
-    if (!COMMANDS.includes(command) || (!["which", "stay-check", "reload-view"].includes(command) && !target)) {
+    const bare = ["which", "stay-check", "reload-view", "color"].includes(command) || (command === "stay" && flags.end)
+    if (!COMMANDS.includes(command) || (!bare && !target)) {
       console.error(USAGE)
       return 1
     }
+    if (command === "color" || command === "stay") return Window.lookCommand(command, target, flags)
     if (command === "stay-check") {
       const advice = Window.stayCheck({ epic: Boolean(flags.epic) })
       if (flags.json) console.log(JSON.stringify(advice, null, 2))
@@ -634,6 +724,34 @@ export class Window {
   }
 
   /**
+   * `color [<look>]` / `stay <name> | --end`:  this session's window's look and title;  returns the exit code.
+   * - `color` alone lists the looks
+   */
+  static lookCommand(command, target, flags) {
+    try {
+      if (command === "color" && !target) {
+        console.log(`looks:  ${Object.keys(LOOKS).join(", ")}  (Tomorrow Night Blue's look, in that hue)`)
+        return 0
+      }
+      if (command === "color") {
+        console.log(`${relative(MAIN_ROOT, Window.color(target))}:  look ${target.toLowerCase()}`)
+        return 0
+      }
+      const { file, changed } = Window.stay(target, { end: Boolean(flags.end) })
+      const what = flags.end
+        ? changed
+          ? "title and title bar put back"
+          : "wasn't retitled:  nothing to put back"
+        : `titled ⎇ ${target}`
+      console.log(`${relative(MAIN_ROOT, file)}:  ${what}`)
+      return 0
+    } catch (error) {
+      console.error(error.message)
+      return 1
+    }
+  }
+
+  /**
    * `open` / `close` / `handoff` worktree `name`'s window, or `resume` a handoff;  resolves to the exit code.
    * - `resume`'s `name` is the handoff record's file:  read, then deleted
    */
@@ -670,7 +788,11 @@ export class Window {
       }
       const pkg = flags.pkg ?? Window.packageOf(Window.current())
       if (!pkg) throw new Error("which package?  --pkg <pkg> (this session's window isn't a package window)")
-      console.log(`opened ${Window.open(name, pkg)}`)
+      const color = typeof flags.color === "string" ? flags.color : null
+      const { file, colors } = Window.open(name, pkg, { color })
+      console.log(`opened ${file}`)
+      if (colors && !(await Window.applyColors(file, colors)))
+        console.log("  (its window didn't show up in time:  colours written anyway;  a change to them applies them)")
       return 0
     } catch (error) {
       console.error(error.message)
@@ -691,7 +813,9 @@ const COMMANDS = [
   "close",
   "handoff",
   "resume",
-  "stay-check"
+  "stay-check",
+  "color",
+  "stay"
 ]
 
 /** Usage, printed for a bad command. */
@@ -707,7 +831,12 @@ const USAGE = `usage:  spell dev window <command>
                                (moving:  in the window this session moves to)
   reload-view [--review]       rebuild the "Spell Docs" view (--review:  "Review") from scratch, a new
                                frame at the page it shows:  for a view gone wrong (clicks lost ...)
-  open <name> [--pkg <pkg>]    open worktree <name> in a new window (default package:  this window's)
+  open <name> [--pkg <pkg>] [--color <look>]
+                               open worktree <name> in a new window (default package:  this window's;
+                               default look:  this window's)
+  color [<look>]               give this window a look:  Tomorrow Night Blue's, in a hue (no look:  list them)
+  stay <name> | --end          a session staying here for worktree <name>:  title the window ⎇ <name>, tint its
+                               title bar  /  put both back
   close <name>                 close that window, delete its file
   handoff <name> [--back] [--prompt <text>]
                                move this session to <name>'s window when this turn ends
@@ -790,6 +919,160 @@ export function tint(name) {
   }
 }
 
+/**
+ * The named LOOKS a window can take (epic `windows-and-review` P5, Q1:  Owen, 2026-10-06):  the WHOLE window in
+ * Tomorrow Night Blue's look, its blues turned to the look's hue.  `hue` in degrees;  `saturation`:  how much of the
+ * theme's colour it keeps (1, all).  `blue` is the theme itself.
+ */
+export const LOOKS = {
+  red: { hue: 356 },
+  orange: { hue: 24 },
+  amber: { hue: 42 },
+  green: { hue: 140 },
+  teal: { hue: 172 },
+  cyan: { hue: 190 },
+  blue: { hue: 213 },
+  indigo: { hue: 236 },
+  purple: { hue: 272 },
+  pink: { hue: 322 },
+  brown: { hue: 26, saturation: 0.45 },
+  grey: { hue: 213, saturation: 0.08 }
+}
+
+/** The theme every look is made from. */
+const LOOK_THEME = "Tomorrow Night Blue"
+
+/**
+ * Tomorrow Night Blue's own window colours that carry its blue (VS Code's built-in
+ * `extensions/theme-tomorrow-night-blue/themes/tomorrow-night-blue-color-theme.json`):  a look re-hues each.  Its
+ * greys, whites and the terminal's colours stay as they are.
+ */
+const LOOK_COLORS = {
+  focusBorder: "#bbdaff",
+  "input.background": "#001733",
+  "dropdown.background": "#001733",
+  "list.highlightForeground": "#bbdaff",
+  "pickerGroup.foreground": "#bbdaff",
+  "editor.background": "#002451",
+  "editor.selectionBackground": "#003f8e",
+  "minimap.selectionHighlight": "#003f8e",
+  "editor.lineHighlightBackground": "#00346e",
+  "editorWhitespace.foreground": "#404f7d",
+  "editorWidget.background": "#001c40",
+  "editorHoverWidget.background": "#001c40",
+  "editorGroup.border": "#404f7d",
+  "editorGroupHeader.tabsBackground": "#001733",
+  "editorGroup.dropBackground": "#25375daa",
+  "peekViewResult.background": "#001c40",
+  "tab.inactiveBackground": "#001c40",
+  "debugToolBar.background": "#001c40",
+  "titleBar.activeBackground": "#001126",
+  "titleBar.inactiveBackground": "#0e1926",
+  "statusBar.background": "#001126",
+  "statusBar.inactiveBackground": "#0e1926",
+  "statusBar.noFolderBackground": "#001126",
+  "statusBar.debuggingBackground": "#001126",
+  "activityBar.background": "#001733",
+  "progressBar.background": "#bbdaffcc",
+  "badge.background": "#bbdaffcc",
+  "badge.foreground": "#001733",
+  "panelSection.border": "#404f7d",
+  "sideBar.background": "#001c40",
+  "sideBarSectionHeader.border": "#404f7d",
+  "panel.background": "#002451",
+  "terminal.background": "#002451"
+}
+
+/** The title-bar keys a staying session's tint sets (`tint()`), and `stay --end` puts back. */
+const TINT_KEYS = Object.keys(tint(""))
+
+/**
+ * Look `name`'s settings:  `{ theme, colors }`, the colours for `workbench.colorCustomizations["[<theme>]"]`;
+ * throws for a name not in `LOOKS`, listing them.
+ */
+export function look(name) {
+  const chosen = LOOKS[String(name).toLowerCase()]
+  if (!chosen) throw new Error(`no look "${name}":  ${Object.keys(LOOKS).join(", ")}`)
+  const colors = {}
+  for (const [key, hex] of Object.entries(LOOK_COLORS)) colors[key] = rehue(hex, chosen.hue, chosen.saturation ?? 1)
+  return { theme: LOOK_THEME, colors }
+}
+
+/**
+ * Give window settings `settings` look `name` (in place):  the theme, and the look's colours scoped to it;  a global
+ * colour the look sets goes (it would fight the look), the rest of Owen's own colours stay.  Returns `settings`.
+ */
+export function withLook(settings, name) {
+  const { theme, colors } = look(name)
+  const custom = { ...(settings["workbench.colorCustomizations"] ?? {}) }
+  for (const key of Object.keys(colors)) delete custom[key]
+  custom[`[${theme}]`] = { ...(custom[`[${theme}]`] ?? {}), ...colors }
+  settings["workbench.colorTheme"] = theme
+  settings["workbench.colorCustomizations"] = custom
+  return settings
+}
+
+/**
+ * A session STAYS in window file `workspace` (parsed) while it works in worktree `name` (in place;  epic
+ * `windows-and-review` P5):  the window's title reads `⎇ <name>`, its title bar tinted the worktree's colour
+ * (`tint()`), scoped to its theme so it shows over a look.  What it replaces is kept in `spell.stay`, for
+ * `withoutStay()`;  staying again (another worktree) keeps the first one's.  Returns `workspace`.
+ */
+export function withStay(workspace, name) {
+  const settings = (workspace.settings ??= {})
+  const scope = `[${settings["workbench.colorTheme"] ?? FALLBACK_THEME}]`
+  const custom = { ...(settings["workbench.colorCustomizations"] ?? {}) }
+  const scoped = { ...(custom[scope] ?? {}) }
+  workspace.spell ??= {}
+  workspace.spell.stay ??= {
+    title: settings["window.title"] ?? null,
+    scope,
+    colors: Object.fromEntries(TINT_KEYS.map((key) => [key, scoped[key] ?? null]))
+  }
+  workspace.spell.stay.name = name
+  settings["window.title"] = `\${dirty}\${activeEditorShort}\${separator}⎇ ${name}\${separator}\${appName}`
+  custom[scope] = { ...scoped, ...tint(name) }
+  settings["workbench.colorCustomizations"] = custom
+  return workspace
+}
+
+/** The stay `withStay()` began, undone (in place):  the title and title bar as they were.  Returns whether it was. */
+export function withoutStay(workspace) {
+  const stay = workspace.spell?.stay
+  if (!stay) return false
+  const settings = (workspace.settings ??= {})
+  if (stay.title === null) delete settings["window.title"]
+  else settings["window.title"] = stay.title
+  const custom = { ...(settings["workbench.colorCustomizations"] ?? {}) }
+  const scoped = { ...(custom[stay.scope] ?? {}) }
+  for (const [key, value] of Object.entries(stay.colors)) {
+    if (value === null) delete scoped[key]
+    else scoped[key] = value
+  }
+  if (Object.keys(scoped).length) custom[stay.scope] = scoped
+  else delete custom[stay.scope]
+  if (Object.keys(custom).length) settings["workbench.colorCustomizations"] = custom
+  else delete settings["workbench.colorCustomizations"]
+  delete workspace.spell.stay
+  if (!Object.keys(workspace.spell).length) delete workspace.spell
+  return true
+}
+
+/**
+ * `#rrggbb` or `#rrggbbaa` with its hue set to `hue` and its saturation scaled by `saturation`;  lightness and
+ * alpha kept.
+ */
+function rehue(hex, hue, saturation) {
+  const [r, g, b] = [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16) / 255)
+  const alpha = hex.length === 9 ? hex.slice(7) : ""
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const lightness = (max + min) / 2
+  const delta = max - min
+  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1))
+  return `${hslHex(hue, Math.min(100, s * saturation * 100), lightness * 100)}${alpha}`
+}
+
 /** HSL (degrees, percents) -> `#rrggbb`. */
 function hslHex(hue, saturation, lightness) {
   const s = saturation / 100
@@ -805,6 +1088,11 @@ function hslHex(hue, saturation, lightness) {
       .toString(16)
       .padStart(2, "0")
   }
+}
+
+/** Resolve after `ms` milliseconds. */
+function delay(ms) {
+  return new Promise((done) => setTimeout(done, ms))
 }
 
 /** Every process's parent pid, by pid:  ONE `ps` call (empty if `ps` fails). */

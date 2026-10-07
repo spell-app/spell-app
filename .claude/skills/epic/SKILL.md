@@ -50,9 +50,14 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 - First word `review`:  NOT a new epic.  Go to "7. Review" and skip everything else here.  `review` is reserved:
   never an epic's name.
 - First word `resume`:  NOT a new epic either.  Go to "8. Resume".  Reserved too.
+- First word `color`:  `/epic color <look>` recolours the window it's typed in:  `spell dev window color <look>`
+  (no look:  it lists the 12), one line saying so, and nothing else.  Reserved too.
 - `<name>` is the first word of `$ARGUMENTS` (or a quoted phrase:  `"Docs Index"`), lower-kebab-cased
   (`Docs Index` -> `docs-index`).  The rest, if any, is the plan:  the prompt that kicks it off.  No argument:  ask
   for a name.
+  - a look right after the name (`/epic new-thing -purple`, one of `spell dev window color`'s 12):  the window's
+    colour, NOT the plan's:  `open <name> --color purple` in "2. Session" (or `color purple` when staying);  the
+    prompt hook leaves it out of the text it saves (epic `windows-and-review` P5)
   - "Make this a plan doc" (invoked mid-session):  propose a name from the work so far in AskUserQuestion,
     recommended first;  the user can type another in "Other".
 - Checks and rename, BEFORE anything else:  as `.claude/skills/isolate/SKILL.md` "Start", step 0.  A typed
@@ -106,7 +111,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
    there" (no plan yet:  "send the plan there").
 7. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
 
-Staying in this window (step 0):  skip steps 4 and 6.  Step 5's `plan-doc open` shows the doc in THIS window's side
+Staying in this window (step 0):  skip steps 4 and 6;  `spell dev window stay <name>` instead (the window titled
+`⎇ <name>`, tinted;  isolate's "Stay", step 0).  Step 5's `plan-doc open` shows the doc in THIS window's side
 bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  the last line asks for it, here.
 
 ## 3. Plan

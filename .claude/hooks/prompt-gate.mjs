@@ -12,8 +12,11 @@
  * ## What it does, in order
  * - stdin `{ prompt, cwd, session_id, permission_mode, ... }`
  * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...`),
- *   `/epic resume <name>` and `/unpark <name>`.  `review` and `resume` are reserved epic names:  a review runs from
- *   any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks its window itself).
+ *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume` and `color` are reserved epic names:  a review
+ *   runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks its
+ *   window itself);  `/epic color <look>` recolours the window it's typed in, nothing to gate.
+ *   A look right after the name (`/epic x -purple`, epic `windows-and-review` P5) is the window's, not the plan's:
+ *   left out of the text saved below.
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
  * 1. Plan mode, on `/isolate` or `/epic <name>`:  blocks the prompt.  Why:  plan mode lets Claude write only the
  *    harness plan file, so no worktree can be made, and `ExitPlanMode` would ask Owen to approve a half-made plan.
@@ -35,7 +38,7 @@ import { homedir } from "node:os"
 import { join, sep } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import { Window } from "../../scripts/window.mjs"
+import { LOOKS, Window } from "../../scripts/window.mjs"
 
 // run as the hook;  imported (by its tests), nothing runs
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -92,6 +95,7 @@ export function gate(input, window) {
  * - `skill`:  `"epic resume"` for `/epic resume <name>`
  * - `name`:  the first word, or a quoted phrase, lower-kebab-cased
  * - `text`:  the rest, trimmed (`""` when none)
+ * - `color`:  a look right after the name (`-purple`, `window.mjs` `LOOKS`), left out of `text`;  else `null`
  */
 export function parseCommand(prompt) {
   const match = /^\s*\/(isolate|epic|unpark)(?:\s+([\s\S]*))?$/.exec(prompt ?? "")
@@ -103,12 +107,16 @@ export function parseCommand(prompt) {
   if (!name || (skill === "isolate" && name === "done")) return null
   // `/epic review [<name>]` runs from any window and keeps the session's name:  nothing to gate
   if (skill === "epic" && name === "review") return null
+  // `/epic color <look>` recolours this window:  nothing to gate, no rename
+  if (skill === "epic" && name === "color") return null
   // `/epic resume <name>`:  renamed `<name>`, as `/unpark <name>` is;  alone, it asks which epic
   if (skill === "epic" && name === "resume") {
     const resumed = parseCommand(`/unpark ${rest}`)
     return resumed && { ...resumed, skill: "epic resume" }
   }
-  return { skill, name, text: rest.trim() }
+  const look = /^\s*-([a-z]+)(?=\s|$)([\s\S]*)$/i.exec(rest)
+  const color = look && look[1].toLowerCase() in LOOKS ? look[1].toLowerCase() : null
+  return { skill, name, text: (color ? look[2] : rest).trim(), color }
 }
 
 /**
