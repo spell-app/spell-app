@@ -32,7 +32,10 @@ house style every package shares.  Only what's local is below;  a section named 
   - `convert/` -- the one-time converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`), with a
     `ConversionProof` per doc:  every id, link target and word kept.  Never writes into `epics/` or `spell-app-dev`
     unless it's the switch (P12 of epic `epic-components`)
-  - `tool/` -- the plan-doc tool (`spell dev plan-doc`), node only, never bundled into the pack
+  - `tool/` -- the plan-doc tool (`spell dev plan-doc`), node only, never bundled into the pack.  It writes
+    `<epic-*>` markup through `Markup`, refuses to edit a doc still in the old markup ("convert it first"), and reads
+    both until the switch (`OldPlanReader`).  Its rules for a doc's DATA (ids, statuses, review marks, prose):
+    `tool/PLAN-DOC.md`;  its template:  `tool/templates/plan.html`
 - `pack/` -- GENERATED, committed (`spell dev pack build epics`, `yarn pack:build`).  NEVER edit:
   - `epics.catalog.ts` -- tag => family folder + skeleton, read from the vocabularies;  its second line records
     the hash of the sources it was built from

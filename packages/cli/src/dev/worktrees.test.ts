@@ -139,3 +139,36 @@ function git(...args: string[]) {
 function commit(message: string) {
   git("commit", "-q", "--allow-empty", "-m", message)
 }
+
+describe("planFollowUps()", () => {
+  /** A plan doc file in the throwaway repo holding `html`. */
+  function doc(name: string, html: string) {
+    const file = join(MAIN, `${name}.plan.html`)
+    writeFileSync(file, html)
+    return file
+  }
+
+  test("the old markup:  phases, the active one, open follow-ups (no caveats), future", () => {
+    const file = doc(
+      "old",
+      `<body class="plan-doc" data-future><ui-section id="p1" data-phase="1" data-status="active"></ui-section>
+<ui-item id="q1" data-status="open"></ui-item><ui-item id="c1" data-status="open"></ui-item>
+<ui-item id="i2" data-status="done"></ui-item><ui-item id="t3" data-status="open"></ui-item></body>`
+    )
+    expect(CLI.planFollowUps(file)).toEqual({ future: true, active: true, phases: 1, followUps: 2 })
+  })
+
+  test("the <epic-*> markup (epic-components P8):  the same, from its elements' attributes", () => {
+    const file = doc(
+      "new",
+      `<body class="plan-doc"><epic-page epic="new" title="New"
+  future><epic-section id="phases" kind="phases"><epic-phase id="p1" title="One" status="done"></epic-phase>
+<epic-phase id="p2" title="Two" status="todo"></epic-phase></epic-section>
+<epic-section id="decisions" kind="questions"><epic-item id="q1" title="a"
+  status="open"></epic-item><epic-item id="q2" title="b" status="decided" answered></epic-item></epic-section>
+<epic-section id="caveats" kind="caveats"><epic-item id="c1" title="c" status="open"></epic-item></epic-section>
+<epic-section id="tests" kind="tests"><epic-item id="v1" title="d" status="open"></epic-item></epic-section></epic-page></body>`
+    )
+    expect(CLI.planFollowUps(file)).toEqual({ future: true, active: false, phases: 2, followUps: 2 })
+  })
+})

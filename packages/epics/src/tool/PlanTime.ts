@@ -37,15 +37,11 @@ export class PlanTime {
   }
 
   /**
-   * `<time>` for `date`, local:  shows `YYYY-MM-DD HH:MM`, `datetime` carries the offset (`2026-09-30T23:30-07:00`).
+   * `date` as ISO local time with its offset, to the minute:  `2026-09-30T23:30-07:00`.
+   * - a log line's time (`<epic-event at>`), which the element shows as `2026-09-30 23:30`
    */
-  static timeTag(date = new Date()): string {
-    const clock = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
-    const minutes = -date.getTimezoneOffset()
-    const offset = `${minutes < 0 ? "-" : "+"}${String(Math.floor(Math.abs(minutes) / 60)).padStart(2, "0")}:${String(
-      Math.abs(minutes) % 60
-    ).padStart(2, "0")}`
-    return `<time datetime="${PlanTime.isoDate(date)}T${clock}${offset}">${PlanTime.isoDate(date)} ${clock}</time>`
+  static isoMinutes(date = new Date()): string {
+    return PlanTime.isoTime(date).replace(/:\d\d(?=[+-]\d\d:\d\d$)/, "")
   }
 
   /** `date`, local, as `YYYY-MM-DD HH:MM`:  an Original Discussion version's "As of". */

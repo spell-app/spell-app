@@ -115,16 +115,19 @@ const SKIP_DIRS = new Set(["node_modules", "experiments", "examples", "details",
 
 /**
  * Epic `name`'s plan doc in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html` when that is a
- * plan doc (`<body class="... plan-doc">`);  `undefined` when there's neither.
- * - why both:  plan docs were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree cut
- *   before then still has `<name>.html` until it merges `main`
+ * plan doc (`<body class="... plan-doc">`, or one in `<epic-*>` markup:  an `<epic-page>`);  `undefined` when
+ * there's neither.
+ * - why both names:  plan docs were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree
+ *   cut before then still has `<name>.html` until it merges `main`
+ * - `packages/epics/src/tool/PlanDocFiles.ts` `planDocIn()` is the same:  change both
  */
 export function planDocIn(dir, name) {
   const file = join(dir, `${name}.plan.html`)
   if (existsSync(file)) return file
   const old = join(dir, `${name}.html`)
   if (!existsSync(old)) return undefined
-  return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(readFileSync(old, "utf8")) ? old : undefined
+  const html = readFileSync(old, "utf8")
+  return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(html) || /<epic-page\b/.test(html) ? old : undefined
 }
 
 /**
@@ -151,6 +154,8 @@ export function findPages(dir = AREAS) {
 /**
  * The file holding the plan doc at `file`'s log:  its part, `parts/log.htm`, when the doc is split (`plan-parts.js`),
  * else the doc itself.  For the browser checks, which add a log line and take it out again by hand.
+ * - either markup:  the log's host says `source="parts/log.htm"` in both (`<ui-section id="log">`, `<epic-section
+ *   kind="log">`)
  */
 export function planLogFile(file) {
   const part = join(dirname(file), "parts", "log.htm")

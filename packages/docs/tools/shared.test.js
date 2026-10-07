@@ -15,8 +15,8 @@ import { join } from "node:path"
 
 import { afterAll, describe, expect, it } from "vite-plus/test"
 
-import { TEMPLATES, findPages } from "./pages.js"
-import { PlanDoc, sharedDocLog } from "./plan-doc.js"
+import { findPages } from "./pages.js"
+import { PlanDoc, PlanDocFiles, sharedDocLog } from "./plan-doc.js"
 import { reorgShared, repairCheckout } from "./relocate.js"
 
 /**
@@ -67,7 +67,8 @@ describe("sharedDocLog", () => {
     ])
       git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", subject)
 
-    const plan = PlanDoc.parse(readFileSync(join(TEMPLATES, "epics/plan.html"), "utf8"))
+    // the plan-doc tool's own template, in <epic-*> markup (epic `epic-components` P8)
+    const plan = PlanDoc.parse(readFileSync(new PlanDocFiles().template, "utf8"))
     plan.addPhase("Spike")
     plan.addPhase("Move Logic Out")
     const file = put("repo/packages/docs/content/epics/demo/demo.plan.html", plan.toString())

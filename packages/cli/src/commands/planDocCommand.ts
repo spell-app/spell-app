@@ -16,15 +16,25 @@ import { findCheckout } from "$/cli/findCheckout"
  *   its writes asynchronously.
  */
 export async function planDocCommand(args: string[]): Promise<number> {
-  const [{ PlanDocCommands }, { PlanDocFiles }] = await Promise.all([
-    import("$/epics/tool/PlanDocCommands"),
-    import("$/epics/tool/PlanDocFiles")
-  ])
+  const [{ PlanDocCommands }, { PlanDocFiles }] = (await Promise.all([import(COMMANDS), import(FILES)])) as [
+    { PlanDocCommands: new (props: { files: unknown }) => { run(argv: string[]): Promise<number> } },
+    { PlanDocFiles: new (props: { root: string }) => unknown }
+  ]
   const files = new PlanDocFiles({ root: findCheckout(CHECKOUT_MARKER) })
   const exitCode = await new PlanDocCommands({ files }).run(args)
   await flushed()
   return exitCode
 }
+
+/**
+ * The tool's modules, by alias (`tsx` resolves them at run time).
+ * - HACK: specifiers in constants, so `tsc` here doesn't follow them:  the tool reaches `$/epics` definitions and
+ *   `$/ui/core`'s types, which need ES2023 and Solid's JSX, not this package's settings (spell's).  The tool is
+ *   type-checked in `packages/epics` (epic `epic-components`, P8)
+ */
+const COMMANDS = "$/epics/tool/PlanDocCommands"
+/** `COMMANDS`' twin:  the docs on disk. */
+const FILES = "$/epics/tool/PlanDocFiles"
 
 /**
  * What marks a checkout the tool can work on (`findCheckout()`):  its docs tools, as when the tool ran from there.

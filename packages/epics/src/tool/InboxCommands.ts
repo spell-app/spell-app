@@ -4,7 +4,7 @@ import { setTimeout as sleep } from "node:timers/promises"
 
 import { PlanDocError, type KeptNote, type MarkResult, type OptionCard } from "./planDoc.types"
 
-import type { PlanDoc } from "./PlanDoc"
+import type { PlanReader } from "./PlanReader"
 import type { Flags, PlanDocCommands } from "./PlanDocCommands"
 import { PlanItem } from "./PlanItem"
 import {
@@ -47,7 +47,7 @@ export class InboxCommands {
     const path = ReviewInbox.pathFor(file)
     switch (what) {
       case undefined:
-        return this.print(this.owner.read(file), file, Boolean(flags.json))
+        return this.print(this.owner.readAny(file), file, Boolean(flags.json))
       case "listen": {
         const session = typeof flags.session === "string" ? flags.session : process.env.CLAUDE_CODE_SESSION_ID
         if (!session) throw new PlanDocError("listen as which session?  --session <id> (no $CLAUDE_CODE_SESSION_ID)")
@@ -90,7 +90,7 @@ export class InboxCommands {
    *   as sent:  `unsentMarks`)
    * - an item gone from the doc since it was marked:  title `null`, "(no such item)"
    */
-  private print(plan: PlanDoc, file: string, json: boolean): void {
+  private print(plan: PlanReader, file: string, json: boolean): void {
     const path = ReviewInbox.pathFor(file)
     const inbox = ReviewInbox.read(path)
     const unsent = new Set(inbox.unsentMarks.map((mark) => mark.id))
@@ -172,7 +172,7 @@ export class InboxCommands {
     for (;;) {
       let work = null as TakenWork | null
       if (peek(path).hasWork) ReviewInbox.update(path, (box) => (work = box.takeWork()))
-      if (work) return this.printWork(name, this.owner.read(file), work, Boolean(json))
+      if (work) return this.printWork(name, this.owner.readAny(file), work, Boolean(json))
       if (Date.now() >= end) break
       if (Date.now() - beat >= LISTEN_HEARTBEAT_MS) {
         beat = Date.now()
@@ -214,7 +214,7 @@ export class InboxCommands {
    * - plain lines for Claude to read, then what to run next;  `json`:  `{ now, sent, canceled }` with `item` (and
    *   `option`) on each
    */
-  private printWork(name: string, plan: PlanDoc, work: TakenWork, json: boolean): void {
+  private printWork(name: string, plan: PlanReader, work: TakenWork, json: boolean): void {
     const now = work.now.map((each) => withItem(each))
     const sent = work.sent && { at: work.sent.at, marks: work.sent.marks.map((mark) => withItem(mark)) }
     const canceled = (work.canceled ?? []).map((each) => withItem(each))
@@ -279,7 +279,7 @@ export class InboxCommands {
     }
 
     /** `Q7  question, open · <title>` */
-    function line(mark: { id: string; item: ReturnType<PlanDoc["describeItem"]> }) {
+    function line(mark: { id: string; item: ReturnType<PlanReader["describeItem"]> }) {
       if (!mark.item) return `${mark.id}  (no such item)`
       return `${mark.id}  ${mark.item.kind}, ${mark.item.status} · ${mark.item.title}`
     }
@@ -333,6 +333,8 @@ export class InboxCommands {
    */
   private async finish(file: string, what: "done" | "clear", ids: string[]): Promise<void> {
     if (!ids.length) throw new PlanDocError(`${what} which items?  ids`)
+    // before the inbox changes:  a note it drops must land in the doc, which an old-markup doc refuses
+    this.owner.files.requireNewMarkup(file)
     const path = ReviewInbox.pathFor(file)
     const keys = ids.map(ReviewInbox.toItemId)
     let had: string[] = []
@@ -350,7 +352,10 @@ export class InboxCommands {
     if (notes.length)
       await this.owner.edit(file, (plan) => {
         for (const { id, mark } of notes) plan.keepNote(id, mark)
-        for (const { id } of revisits) plan.reviewedAs(plan.item(id), "revisit")
+        for (const { id } of revisits) {
+          const item = plan.findItem(id)
+          if (item) plan.reviewedAs(item, "revisit")
+        }
       })
     const none = keys.filter((id) => !had.includes(id) && !kept.includes(id))
     const label = what === "done" ? "done" : "cleared"

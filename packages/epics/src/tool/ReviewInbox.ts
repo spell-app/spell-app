@@ -513,15 +513,23 @@ export class ReviewInbox {
   }
 
   /**
-   * The item ids in plan doc `html`:  every `<ui-item>` carrying both an `id` and a `data-status` (an item, not a
-   * phase step or a plain list entry).
-   * - text, not a DOM:  cheap enough to run on every request
+   * The ids a review mark may name in plan doc `html` (a skeleton:  every item's line is in it):
+   * - every `<epic-item id>`, and every Overview sub-section, `<epic-section kind="overview-part" id>` (Q14:  they
+   *   take review notes too)
+   * - in the OLD markup, every `<ui-item>` carrying both an `id` and a `data-status` (an item, not a phase step or a
+   *   plain list entry).  REFACTOR: drop old markup after the switch (P12)
+   * - text, not a DOM:  cheap enough to run on every request;  attributes in any order, across lines
    */
   static itemIds(html: string): Set<string> {
     const ids = new Set<string>()
-    for (const [tag] of html.matchAll(/<ui-item\b[^>]*>/g)) {
+    for (const [tag, name] of html.matchAll(/<(ui-item|epic-item|epic-section)\b[^>]*>/g)) {
       const id = /\sid="([^"]+)"/.exec(tag)?.[1]
-      if (id && /\sdata-status="/.test(tag)) ids.add(id.toLowerCase())
+      if (!id) continue
+      const markable =
+        name === "epic-item" ||
+        (name === "epic-section" && /\skind="overview-part"/.test(tag)) ||
+        (name === "ui-item" && /\sdata-status="/.test(tag))
+      if (markable) ids.add(id.toLowerCase())
     }
     return ids
   }
