@@ -1986,3 +1986,44 @@ describe("PlanDoc reading layout (P3 of windows-and-review)", () => {
     expect(plan.document.querySelector(".plan-hung")).toBeNull()
   })
 })
+
+describe("PlanDoc future epics (epic-future)", () => {
+  it("makeFuture:  data-future, the notice in place of Plan hung?, no branch or worktree, a FUTURE label", () => {
+    const plan = freshPlan()
+    plan.makeFuture("foo-bar")
+    expect(plan.future).toBe(true)
+    expect(plan.document.querySelector(".plan-hung")).toBeNull()
+    const notice = plan.document.querySelector("ui-message.plan-future")
+    expect(notice.querySelector('a[href="details/analysis.html"]')).not.toBeNull()
+    expect(notice.textContent).toContain("/epic foo-bar")
+    const folder = plan.document.querySelector('ui-list.plan-meta > ui-item[icon="folder"]')
+    expect(folder.textContent).toBe("Worktree:  none yet")
+    const step = plan.document.querySelector(".plan-step")
+    expect(step.hasAttribute("hidden")).toBe(false)
+    expect(step.textContent).toBe("FUTURE")
+    expect(plan.summary().future).toBe(true)
+  })
+
+  it("promote:  an ordinary epic, its meta lines naming the branch and worktree;  a second time does nothing", () => {
+    const plan = freshPlan()
+    plan.makeFuture("foo-bar")
+    plan.addItem("decision", "Main's code draws every doc")
+    expect(plan.promote({ branch: "foo-bar", worktree: "/w/foo-bar" })).toBe(true)
+    expect(plan.future).toBe(false)
+    expect(plan.document.querySelector("ui-message.plan-future")).toBeNull()
+    const branch = plan.document.querySelector('ui-list.plan-meta > ui-item[icon="code branch"]')
+    expect(branch.innerHTML).toContain("<code>foo-bar</code>")
+    expect(plan.document.querySelector(".plan-step").hasAttribute("hidden")).toBe(true)
+    // the decision stays
+    expect(plan.document.getElementById("q1")).not.toBeNull()
+    expect(plan.promote({ branch: "x", worktree: "y" })).toBe(false)
+  })
+
+  it("its first phase plans it too", () => {
+    const plan = freshPlan()
+    plan.makeFuture("foo-bar")
+    plan.addPhase("One", { symptom: "s", changes: "c" })
+    expect(plan.future).toBe(false)
+    expect(plan.document.querySelector("ui-message.plan-future")).toBeNull()
+  })
+})

@@ -195,7 +195,9 @@ function describe(path) {
   }))
   // a plan doc's "updated" stamp (`plan-doc.js` `touch()`):  how long since anyone worked on it
   const updated = document.getElementById("plan-updated")?.textContent.trim() || null
-  return { path, title, description, phases, updated }
+  // a future epic (`/epic future`, `plan-doc.js` `future`):  written down, not planned yet
+  const future = path.startsWith("epics/") && document.body?.hasAttribute("data-future")
+  return { path, title, description, phases, updated, future }
 }
 
 /** A phase section's title, whitespace collapsed:  its `header` (else `slot="header"`), or an old one's h3. */
@@ -407,10 +409,11 @@ ${body}
 </ui-section>`
 }
 
-/** Epic `pages` with the open ones first, each group in its own order (by name). */
+/** Epic `pages`:  the open ones first, then the future ones, then the done ones, each group in its own order (by name). */
 export function epicOrder(pages) {
-  const done = (page) => epicState(page.phases, page.updated).done
-  return [...pages.filter((page) => !done(page)), ...pages.filter(done)]
+  const done = (page) => epicState(page.phases, page.updated, page.future).done
+  const open = pages.filter((page) => !done(page))
+  return [...open.filter((page) => !page.future), ...open.filter((page) => page.future), ...pages.filter(done)]
 }
 
 /** Page `path` (from the checkout's root) as a link from folder `from` (a list page's):  `solid/solid-2.html`. */
@@ -436,7 +439,7 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
  * - SAME markup as `$/server/page` `RunningEpics`' cards:  change both
  */
 function epicCard(page, from) {
-  const state = epicState(page.phases, page.updated)
+  const state = epicState(page.phases, page.updated, page.future)
   const active = page.phases.find((phase) => phase.status === "active")
   return `<ui-card data-epic="${attr(page.path.split("/")[1])}" data-status="${state.done ? "done" : "open"}"><ui-content>
 <ui-header>${state.mark} <a href="${attr(href(page.path, from))}">${text(page.title)}</a></ui-header>
@@ -447,14 +450,17 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
 
 /**
  * An epic's state, from its phases and its "updated" date:  `{ done, mark }`, `mark` the HTML before its title.
+ * - future:  written down with `/epic future`, not planned yet (a violet seedling;  epic `epic-future`)
  * - planning:  no phases yet (a blue thought bubble)
  * - done:  every phase done (a green check)
  * - stalled:  phases left, and no update for more than `STALLED_DAYS` (a yellow pause;  the date on hover)
  * - in progress:  `[3/6]`, phases done of all
  * - SAME as `$/server/page` `RunningEpics`' `stateMark()`:  change both
  */
-function epicState(phases, updated) {
+function epicState(phases, updated, future = false) {
   const done = phases.filter((phase) => phase.status === "done").length
+  if (future && !phases.length)
+    return { done: false, mark: stateIcon("seedling", "violet", "future:  not planned yet") }
   if (!phases.length) return { done: false, mark: stateIcon("comment dots", "blue", "planning") }
   if (done === phases.length) return { done: true, mark: stateIcon("circle check", "green", "done") }
   const idle = updated ? (Date.now() - new Date(`${updated}T00:00`).getTime()) / 86_400_000 : 0
