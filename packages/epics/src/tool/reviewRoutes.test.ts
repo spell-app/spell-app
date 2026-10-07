@@ -23,7 +23,8 @@ const PAGES = {
   plan: "epics/big/big.plan.html",
   far: ".claude/worktrees/w/epics/far/far.plan.html",
   other: "epics/big/notes.html",
-  details: "packages/docs/details/pick.html"
+  details: "packages/docs/details/pick.html",
+  epic: "epics/neat/neat.plan.html"
 }
 
 /** the scratch plan doc's items */
@@ -32,12 +33,19 @@ const PLAN = `<!doctype html><title>x</title><body class="plan-doc">
 <ui-list class="plan-items"><ui-item data-state="open" id="j3" data-status="open"></ui-item>
 <ui-item id="q8" data-status="open"></ui-item><ui-item id="i2" data-status="open"></ui-item></ui-list>`
 
+/** a plan doc in `<epic-*>` markup:  an Overview sub-section, a phase, an item */
+const EPIC_PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-page epic="neat" title="Neat">
+<epic-overview id="overview"><epic-section id="o1" kind="overview-part" title="Structure"></epic-section></epic-overview>
+<epic-section id="phases" kind="phases"><epic-phase id="p1" title="Go" status="active"></epic-phase></epic-section>
+<epic-section id="decisions" kind="questions"><epic-item id="q7" title="which?" status="open"></epic-item></epic-section>
+</epic-page>`
+
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), "review-routes-"))
   mkdirSync(join(root, ".git"))
   for (const page of Object.values(PAGES)) {
     mkdirSync(dirname(join(root, page)), { recursive: true })
-    writeFileSync(join(root, page), PLAN)
+    writeFileSync(join(root, page), page === PAGES.epic ? EPIC_PLAN : PLAN)
   }
   server = new PageServer({ root })
   await reviewRoutes.setup({
@@ -230,6 +238,16 @@ test("unknown items and bad marks:  400, nothing written", async () => {
   expect((await post("mark", { page: PLAN_URL, id: "q8", mark: { action: "pick", pick: "b" } })).status).toBe(400)
   expect((await post("mark", { page: PLAN_URL, id: "j3" })).status).toBe(400)
   expect(existsSync(inboxFile(PAGES.plan))).toBe(false)
+})
+
+// epic `epic-components` P8:  the new markup's items, and the Overview's sub-sections (Q14)
+test("a doc in <epic-*> markup:  its items and Overview sub-sections take marks;  its phases don't", async () => {
+  const page = `/${PAGES.epic}`
+  expect((await post("mark", { page, id: "Q7", mark: { action: "approve" } })).status).toBe(200)
+  expect((await post("mark", { page, id: "o1", mark: { action: "todo", note: "more" } })).status).toBe(200)
+  expect((await post("mark", { page, id: "p1", mark: { action: "approve" } })).status).toBe(400)
+  expect(Object.keys(written(PAGES.epic).marks)).toEqual(["q7", "o1"])
+  rmSync(inboxFile(PAGES.epic), { force: true })
 })
 
 test("writes need the token, our origin and our host", async () => {

@@ -450,6 +450,17 @@ test("itemIds:  ui-items with an id and a status, not phases", () => {
   expect([...ReviewInbox.itemIds(html)]).toEqual(["t1", "q2"])
 })
 
+test("itemIds:  <epic-item>s and the Overview's sub-sections (Q14), not phases or the page's sections", () => {
+  const html = `<epic-overview id="overview"><epic-section
+      id="o2" title="Structure"
+      kind="overview-part" source="parts/o2.htm"></epic-section></epic-overview>
+    <epic-section id="phases" kind="phases"><epic-phase id="p1" title="One" status="done"></epic-phase></epic-section>
+    <epic-section id="decisions" kind="questions"><epic-item
+      id="Q7" title="which?"
+      status="open"></epic-item><epic-item id="q8" status="decided"><span slot="title">a <code>x</code></span></epic-item></epic-section>`
+  expect([...ReviewInbox.itemIds(html)]).toEqual(["o2", "q7", "q8"])
+})
+
 test("isoTime:  local time with its offset, to the millisecond", () => {
   expect(isoTime(new Date())).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}[+-]\d\d:\d\d$/)
   expect(Date.parse(isoTime(new Date(1_700_000_000_042)))).toBe(1_700_000_000_042)

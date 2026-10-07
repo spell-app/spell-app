@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, relative, resolve, sep } from "node:path"
 
+import { EpicParts } from "$/epics/convert/EpicParts"
+
 import { OPEN_KINDS, PlanDocError, REVIEW_SECTIONS, TITLE_PREFIX, type PlanSummary } from "./planDoc.types"
 
 import { InboxCommands } from "./InboxCommands"
@@ -9,7 +11,8 @@ import { ItemPicker } from "./ItemPicker"
 import { PlanDoc } from "./PlanDoc"
 import { EPIC_STATUSES, PlanDocFiles, type EpicListing } from "./PlanDocFiles"
 import { PlanMarkup } from "./PlanMarkup"
-import { PART_EXT, PARTS_DIR, PlanParts } from "./PlanParts"
+import { PART_EXT, PARTS_DIR } from "./PlanParts"
+import type { PlanReader } from "./PlanReader"
 import { PlanTime } from "./PlanTime"
 import { ReviewBackfill } from "./ReviewBackfill"
 import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox"
@@ -17,11 +20,15 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
 /****************
  * ### `PlanDocCommands`
  * `spell dev plan-doc <command> <name> ...`:  edit the structured parts of a plan doc,
- * `epics/<name>/<name>.plan.html`.  Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic`
- * skill and its agents.
+ * `epics/<name>/<name>.plan.html`.  What's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`.
+ * Used by the `/epic` skill and its agents.
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
- *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `check`, `open`, `migrate`, `relayout`, `split`,
- *   `join`, `inbox`, `details`, `original` (`spell dev plan-doc` with no command lists them:  `USAGE`).
+ *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `check`, `open`, `convert`, `split`, `join`,
+ *   `inbox`, `details`, `original` (`spell dev plan-doc` with no command lists them:  `USAGE`).
+ * - TWO markups until the switch (P12):  the commands that only READ (`summary`, `summaries`, `list`, `items`,
+ *   `check`, `open`, `inbox` listings) read either (`PlanDocFiles.readAny()`);  every command that EDITS takes the
+ *   `<epic-*>` markup only, and refuses an old doc before it writes anything:  `convert` it first
+ * - `migrate` and `relayout` are gone:  the converter (`convert`, `$/epics/convert`) replaced them
  * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`):
  *   printed, waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`),
  *   cleared (`InboxCommands`);  `details` writes an agent's details or reply into one item
@@ -72,7 +79,8 @@ export class PlanDocCommands {
     const [command, name, ...rest] = positional
     if (command === "list") return this.printEpics(this.files.listEpics(), Boolean(flags.json))
     if (command === "backfill") return this.backfill(name, flags)
-    if (command === "relayout") return this.relayout(name, flags)
+    if (command === "relayout" || command === "migrate") throw new PlanDocError(replaced(command))
+    if (command === "convert") return this.convert(positional.slice(1), flags)
     if (command === "split" && flags.done) return this.splitDone(flags)
     if (!command || !name) return this.usage()
     if (command === "summaries") return this.printSummaries(positional.slice(1))
@@ -177,7 +185,7 @@ export class PlanDocCommands {
           plan.log(`${id.toUpperCase()} off the to-do list:  ${plan.unqueue(id)}`)
         })
       case "items":
-        return this.printItems(this.read(file), file, flags)
+        return this.printItems(this.readAny(file), file, flags)
       case "log":
         return this.edit(file, (plan) => plan.log(need(rest[0], "the text")))
       case "bedtime":
@@ -188,16 +196,12 @@ export class PlanDocCommands {
         const prompt = flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[0], "the prompt text")
         return this.edit(file, (plan) => plan.setPrompt(prompt))
       }
-      case "migrate": {
-        const changes = await this.edit(file, (plan) => plan.migrate())
-        return this.print(changes.length ? changes.map((line) => `- ${line}`).join("\n") : "already current")
-      }
       case "split":
         return this.splitDoc(file, flags)
       case "join":
         return this.joinDoc(file)
       case "summary":
-        return this.printSummary(this.read(file).summary(), Boolean(flags.json))
+        return this.printSummary(this.readAny(file).summary(), Boolean(flags.json))
       case "check":
         return this.check(file, flags)
       case "open":
@@ -242,9 +246,14 @@ export class PlanDocCommands {
   // ## Reading and editing
   ////////////////
 
-  /** The plan doc at `file`, whole:  `PlanDocFiles.read()`. */
+  /** The plan doc at `file`, whole, to edit:  `PlanDocFiles.read()`;  refuses an old-markup doc. */
   read(file: string): PlanDoc {
     return this.files.read(file)
+  }
+
+  /** The plan doc at `file`, whole, to read only, either markup:  `PlanDocFiles.readAny()`. */
+  readAny(file: string): PlanReader {
+    return this.files.readAny(file)
   }
 
   /** Change the doc at `file` under its lock, and write it:  `PlanDocFiles.edit()`. */
@@ -257,8 +266,9 @@ export class PlanDocCommands {
   ////////////////
 
   /**
-   * `new`:  copy the template to `file`, fill in name, title, date, branch and worktree, then update the index.
-   * - the page's title and h1:  `Epic: <title>` (`TITLE_PREFIX`;  the template's h1 has it)
+   * `new`:  copy the tool's template (`templates/plan.html`, `<epic-*>` markup) to `file`, fill in name, title,
+   * dates, branch and worktree, then update the index.
+   * - `<title>`:  `Epic: <title>` (`TITLE_PREFIX`);  `<epic-page title>` holds the title alone (it draws the h1)
    * - refuses to overwrite:  the skill asks the user whether to reuse an existing doc
    * - a future epic, now planned (`/epic <name>`):  promoted where it is, its prompt and answers kept
    */
@@ -281,31 +291,20 @@ export class PlanDocCommands {
       name,
       title,
       date: today,
-      timestamp: PlanTime.timeTag(now),
+      at: PlanTime.isoMinutes(now),
       branch: files.git("branch", "--show-current") || "(detached)",
       worktree: files.git("rev-parse", "--show-toplevel") || files.root
     }
-    // `atDepth()`:  the template's asset paths and site header for the doc's own depth (`epics/<name>/`:  2)
+    // `atDepth()`:  the template's asset paths, pack and site header for the doc's own depth (`epics/<name>/`:  2)
     const html = atDepth(readFileSync(files.template, "utf8"), relative(files.root, file).split(sep).length - 1)
-      .replace(/\{\{(\w+)\}\}/g, (whole, key: string) =>
-        key === "timestamp"
-          ? fill.timestamp
-          : key in fill
-            ? PlanMarkup.escapeAll(fill[key])
-            : key === "prompt"
-              ? ""
-              : whole
-      )
+      .replace(/\{\{(\w+)\}\}/g, (whole, key: string) => (key in fill ? PlanMarkup.escapeAll(fill[key]) : whole))
       .replace(/\n\s*<!--\s*PLAN DOC TEMPLATE\.[\s\S]*?-->/, "")
     const plan = PlanDoc.parse(html, now)
     plan.document.querySelector("title")!.textContent = `${TITLE_PREFIX}${title}`
     plan.document.querySelector('meta[name="description"]')!.setAttribute("content", `Plan doc:  ${title}.`)
-    // folded here, not in the template:  the template is shared content, and older checkouts' scripts only know the
-    // `ui-message` (P3 of `windows-and-review`)
-    plan.foldHungNotice()
-    // the prompt that started the plan, quoted at the top of the Overview;  none:  the empty quote goes
+    // the prompt that started the plan, in the Overview's `prompt` slot;  none:  no quote
     plan.setPrompt(promptFile ? readFileSync(promptFile, "utf8") : (prompt ?? ""))
-    if (future) plan.makeFuture(name)
+    if (future) plan.makeFuture()
     mkdirSync(dirname(file), { recursive: true })
     // split from the start (J... of `claude-design`):  a doc being planned is the one edited most, so it gains most
     await files.writeDoc(file, plan, true)
@@ -400,7 +399,7 @@ export class PlanDocCommands {
     const sessionFinder = new ReviewBackfill()
     let total = 0
     for (const epic of epics) {
-      const plan = this.read(epic.file)
+      const plan = this.readAny(epic.file)
       const ids = plan.reviewSections().flatMap((section) => section.items.map((item) => item.id))
       if (!ids.length) continue
       const sessions = sessionFinder.sessionsOf(epic.name, main)
@@ -430,41 +429,30 @@ export class PlanDocCommands {
   }
 
   /**
-   * `relayout <name> | --all [--dry-run]`:  lay out every answered question in the order it happened
-   * (`PlanDoc.relayout()`), and print, per doc, the questions changed and those skipped, and why.
-   * - `--dry-run`:  read only;  else each doc with changes is written (`edit()`) and logged
-   * - a doc with nothing to change isn't written
+   * `convert <name> ... | --all [--dry-run] [--out <folder>] [--verbose]`:  rewrite docs from the old markup into
+   * `<epic-*>` markup, and prove nothing was lost (`$/epics/convert` `ConvertRun`);  prints its report;  exit code 1
+   * when any doc fails.
+   * - writes ONLY under `--out` (preview copies):  the real docs change at the switch (P12), with Owen
+   * - loaded on first use:  the converter is big, and no other command needs it
    */
-  private async relayout(name: string | undefined, { all, dryRun }: Flags): Promise<void> {
-    if (!name && !all) throw new PlanDocError(`relayout needs a name, or --all\n${USAGE}`)
-    const { files } = this
-    const epics = all ? files.listEpics() : [{ name: name!, file: files.findDoc(name!) }]
-    let total = 0
-    for (const epic of epics) {
-      const result = this.read(epic.file).relayout()
-      total += result.changed.length
-      this.print(`${epic.name}:  ${result.changed.length} to lay out, ${result.skipped.length} skipped`)
-      if (result.changed.length) this.print(`  changed:  ${result.changed.join(", ")}`)
-      for (const why of new Set(result.skipped.map((skip) => skip.why))) {
-        const ids = result.skipped.filter((skip) => skip.why === why).map((skip) => skip.id)
-        this.print(`  skipped, ${why}:  ${ids.join(", ")}`)
-      }
-      for (const { id, note } of result.notes) this.print(`  note:  ${id} ${note}`)
-      if (result.oldDecisions)
-        this.print(`  ${result.oldDecisions} old D items not merged:  \`plan-doc migrate ${epic.name}\` first`)
-      if (dryRun || !result.changed.length) continue
-      await this.edit(epic.file, (plan) => {
-        const done = plan.relayout()
-        plan.log(`answered questions laid out (question, Choices, answer):  ${done.changed.join(", ")}`)
-      })
-    }
-    this.print(dryRun ? `dry run:  ${total} to lay out;  without --dry-run, they're written` : `laid out ${total}`)
+  private async convert(names: string[], { all, dryRun, out, verbose }: Flags): Promise<number | void> {
+    if (!all && !names.length) throw new PlanDocError(`convert which docs?  <name> ... | --all\n${USAGE}`)
+    const { ConvertRun } = await import("$/epics/convert/ConvertRun")
+    const run = new ConvertRun({ root: this.files.root })
+    const results = await run.run({
+      names: all ? run.names : names,
+      out: dryRun || typeof out !== "string" ? undefined : out
+    })
+    for (const line of ConvertRun.report(results, { verbose: Boolean(verbose), root: this.files.root }))
+      this.print(line)
+    const failed = results.filter(({ conversion }) => !conversion?.proof.clean || conversion.problems.length)
+    this.print(`${results.length - failed.length} of ${results.length} docs converted cleanly`)
+    if (failed.length) return 1
   }
 
   /**
-   * `split <name> [--dry-run]`:  store the doc at `file` as a skeleton plus part files (`PlanParts`), logged;
+   * `split <name> [--dry-run]`:  store the doc at `file` as a skeleton plus part files (`EpicParts`), logged;
    * prints how many parts.  Already split:  says so, writes nothing.
-   * - refuses a doc not yet migrated (`section.s2` markup, a phase list):  `migrate` it first
    * - `dryRun`:  what it would make, nothing written
    */
   private async splitDoc(file: string, { dryRun }: Flags = {}): Promise<void> {
@@ -472,9 +460,7 @@ export class PlanDocCommands {
     const name = relative(files.root, file)
     const plan = this.read(file)
     if (plan.parts!.split) return this.print(`${name}:  already split (${plan.parts!.hosts.length} parts)`)
-    if (plan.document.querySelector("#phases-section, main section.s2, .plan-phases"))
-      throw new PlanDocError(`${name}:  not migrated yet:  \`plan-doc migrate\` first`)
-    const count = new PlanParts(plan.document).hosts.length
+    const count = new EpicParts(plan.document).hosts.length
     if (dryRun) return this.print(`${name}:  would split into a skeleton and up to ${count} parts`)
     await this.edit(
       file,
@@ -527,7 +513,7 @@ export class PlanDocCommands {
    */
   private check(file: string, { noBrowser, links: strictLinks }: Flags): number | void {
     const { files } = this
-    const plan = this.read(file)
+    const plan = this.readAny(file)
     const parts = plan.parts!
     const problems = plan.check()
     const links = files.linker.check(plan.toString(), dirname(file)).problems.map((problem) => `link:  ${problem}`)
@@ -561,7 +547,7 @@ export class PlanDocCommands {
 
   /** `open`:  show the doc rendered in VS Code, reusing its tab (`openInVSCode()`). */
   private open(file: string): void {
-    this.read(file)
+    this.readAny(file)
     this.openInVSCode(file)
   }
 
@@ -624,7 +610,7 @@ export class PlanDocCommands {
    * and the items `--filter` picks;  `--json`:  `{ file, status, sections }`.
    * - `--spec <file>`:  the review's item picker instead (`ItemPicker.spec()`), written to that file
    */
-  private printItems(plan: PlanDoc, file: string, { section, filter = "unreviewed", json, spec }: Flags): void {
+  private printItems(plan: PlanReader, file: string, { section, filter = "unreviewed", json, spec }: Flags): void {
     let sections = plan.reviewSections({ filter: spec ? "open" : (filter as string) })
     if (section) {
       const wanted = String(section).toLowerCase().replace(/s$/, "")
@@ -671,7 +657,7 @@ export class PlanDocCommands {
     const found: Record<string, PlanSummary | { error: string }> = {}
     for (const file of files) {
       try {
-        found[file] = this.read(resolve(file)).summary()
+        found[file] = this.readAny(resolve(file)).summary()
       } catch (error) {
         if (!(error instanceof PlanDocError)) throw error
         found[file] = { error: error.message }
@@ -740,16 +726,14 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    links (doc-links), failing only with --links;  then
                                                    check-spell.js
   open <name>                                      show in VS Code's doc preview (right side bar)
-  migrate <name>                                   bring an older doc (any layout) into the current one;
-                                                   its decisions (D items) merge into its questions
+  convert <name> ... | --all [--dry-run] [--out <folder>] [--verbose]
+                                                   rewrite docs from the old markup into <epic-*> markup and
+                                                   prove nothing was lost;  writes ONLY under --out (copies)
   split <name> [--dry-run]  /  split --done        store a doc as a skeleton plus part files (parts/<id>.htm,
                                                    loaded when opened);  --done:  every finished epic without
                                                    a worktree.  New docs start split;  every command reads and
                                                    writes either shape
   join <name>                                      a split doc back into one file
-  relayout <name> | --all [--dry-run]              answered questions in the order they happened:  the
-                                                   question, its options as a folded "Choices" accordion,
-                                                   then the answer card;  prints what changed and skipped
   inbox <name> [--json]                            the marks Owen left on the page (<name>.inbox.json), by
                                                    action, sent or not;  requests for now, agents at work,
                                                    the session listening
@@ -778,7 +762,14 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    Discussion:  as first written, or dated --as-of (when it was
                                                    replaced);  prints added / unchanged / empty
 Every checkout shares ONE copy of each doc (the epics link):  any checkout edits the same file.
+Until the switch (P12):  summary, summaries, list, items, check, open and the inbox's listings read a doc in the old
+markup too;  every other command refuses one:  convert it first.
 --here is no longer needed:  accepted and ignored.`
+
+/** What `migrate` and `relayout` say now:  the converter replaced them. */
+function replaced(command: string): string {
+  return `${command} is gone:  the converter replaced it, \`spell dev plan-doc convert <name>\` (old markup -> <epic-*>)`
+}
 
 /** `summary`'s mark for a phase's status. */
 const PHASE_MARKS = { todo: "[ ]", active: "[~]", done: "[x]" }
@@ -848,14 +839,15 @@ function titleCase(name: string): string {
 /**
  * A template's `html` fixed for a page `depth` folders below the checkout's root (`epics/a/a.plan.html` is 2).
  * - rewrites whatever depth the template assumed:  `_assets` paths (`<up>packages/docs/tools/_assets/`), the docs
- *   home's paths (`<up>pages/index.html`), the areas' list pages (`<up>epics/index.html` ...), and the site
- *   header's `root` (`<up>`:  the path up to the root)
+ *   home's paths (`<up>pages/index.html`), the areas' list pages (`<up>epics/index.html` ...), the site
+ *   header's `root` (`<up>`:  the path up to the root), and the epics pack (`<up>packages/epics/pack/`)
  * - drops the template's `TEMPLATE:` how-to comment
- * - a private copy of `packages/docs/tools/pages.js` `atDepth()`:  `epics` may not import `docs`
+ * - a private copy of `packages/docs/tools/pages.js` `atDepth()` (plus the pack):  `epics` may not import `docs`
  */
 function atDepth(html: string, depth: number): string {
   const up = "../".repeat(depth)
   return html
+    .replace(/(source=")(?:\.\.\/)*packages\/epics\/pack\//g, `$1${up}packages/epics/pack/`)
     .replace(
       /((?:href|src)=")(?:\.\.\/)*(?:packages\/docs\/)?(?:tools\/)?_assets\//g,
       `$1${up}packages/docs/tools/_assets/`

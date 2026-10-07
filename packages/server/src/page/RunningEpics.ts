@@ -212,20 +212,32 @@ function folders(dir: string): string[] {
 }
 
 /**
- * Title and phases of the plan doc at `file`, by pattern:  the server is a leaf, so no HTML parser or `plan-doc.js`.
- * - phases:  each `<ui-section ... data-phase="N" ... data-status="S" ... header="...">` tag (attributes in any
- *   order, across lines)
+ * Title and phases of the plan doc at `file`, by pattern:  the server is a leaf, so no HTML parser or plan-doc tool.
+ * - either markup (attributes in any order, across lines):
+ *   - `<epic-*>`:  each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`), `<epic-page
+ *     updated>`
+ *   - the old:  each `<ui-section ... data-phase="N" ... data-status="S" ... header="...">`, `#plan-updated`.
+ *     REFACTOR: drop old markup after the switch (P12)
  */
 function read(file: string): Pick<RunningEpic, "title" | "done" | "total" | "active" | "updated"> {
   const html = readFileSync(file, "utf8")
   // without the `Epic: ` plan docs' titles start with since 2026-10-04:  the card is in Epics already
   const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
-  const phases = [...html.matchAll(/<ui-section\b[^>]*\bdata-phase="\d+"[^>]*>/g)].map(([tag]) => ({
-    status: /\bdata-status="(\w+)"/.exec(tag)?.[1] ?? "todo",
-    header: /\bheader="([^"]*)"/.exec(tag)?.[1] ?? ""
-  }))
+  const attribute = (tag: string, name: string) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1]
+  const page = /<epic-page\b[^>]*>/.exec(html)?.[0]
+  const phases = page
+    ? [...html.matchAll(/<epic-phase\b[^>]*>/g)].map(([tag]) => ({
+        status: attribute(tag, "status") ?? "todo",
+        header: `${(attribute(tag, "id") ?? "").toUpperCase()} · ${attribute(tag, "title") ?? ""}`
+      }))
+    : [...html.matchAll(/<ui-section\b[^>]*\bdata-phase="\d+"[^>]*>/g)].map(([tag]) => ({
+        status: attribute(tag, "data-status") ?? "todo",
+        header: attribute(tag, "header") ?? ""
+      }))
   const active = phases.find((phase) => phase.status === "active")?.header
-  const updated = /\bid="plan-updated"[^>]*>\s*(\d{4}-\d\d-\d\d)/.exec(html)?.[1]
+  const updated = page
+    ? /^\d{4}-\d\d-\d\d$/.exec(attribute(page, "updated") ?? "")?.[0]
+    : /\bid="plan-updated"[^>]*>\s*(\d{4}-\d\d-\d\d)/.exec(html)?.[1]
   return {
     title: decode(title),
     done: phases.filter((phase) => phase.status === "done").length,

@@ -42,6 +42,30 @@ export class PlanMarkup {
   }
 
   /**
+   * A parsed (linkedom) document as page HTML, ready to write, `&` in attribute values ESCAPED:  what the tool writes.
+   * - `serialize()`, with the fix for linkedom (0.18), which writes `title="A &amp; B"`'s `&` bare, so a title
+   *   holding `&lt;` reads back as `<` (I2 of epic `epic-components`)
+   * - the document is left as it was:  each value is escaped for the write, then put back
+   * - NOTE: `$/epics/convert` `Converter` does the same with `escapeAmpersands()` (`domEdits.ts`) then
+   *   `serialize()`;  REFACTOR: it calls this instead, and `escapeAmpersands()` goes
+   */
+  static serializePage(document: Document): string {
+    const changed: [Element, string, string][] = []
+    for (const element of document.querySelectorAll("*")) {
+      for (const { name, value } of Array.from(element.attributes)) {
+        if (!value.includes("&")) continue
+        changed.push([element, name, value])
+        element.setAttribute(name, value.replaceAll("&", "&amp;"))
+      }
+    }
+    try {
+      return PlanMarkup.serialize(document)
+    } finally {
+      for (const [element, name, value] of changed) element.setAttribute(name, value)
+    }
+  }
+
+  /**
    * Serialized `html` (a document's, or a fragment's `innerHTML`) with boolean attributes bare (`styled`, not
    * `styled=""`), as `serialize()` writes a page;  a plan doc's part files too.
    * - repeated until stable:  one pass fixes one attribute per tag, and `ui-table` has four

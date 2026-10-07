@@ -2,9 +2,8 @@ import { basename, dirname, relative, resolve } from "node:path"
 
 import { STATE_COLORS, type ReviewItem, type ReviewSection, type ReviewStatus } from "./planDoc.types"
 
-import type { PlanDoc } from "./PlanDoc"
+import type { PlanReader } from "./PlanReader"
 import { PlanMarkup } from "./PlanMarkup"
-import { PlanSections } from "./PlanSections"
 
 /****************
  * ### `ItemPicker`
@@ -25,10 +24,10 @@ export class ItemPicker {
    * - the page:  no site header (`bare`), "Select all / none", "Open | All" (Open:  only the not-reviewed)
    * - `pageDir`:  where the page will live (the scratch `pages/details/`), so the item's links still work from there
    */
-  static spec(plan: PlanDoc, file: string, section: ReviewSection, status: ReviewStatus, pageDir: string) {
+  static spec(plan: PlanReader, file: string, section: ReviewSection, status: ReviewStatus, pageDir: string) {
     // `seo.plan.html` (an old doc:  `seo.html`) -> `seo`
     const name = basename(file).replace(/(?:\.plan)?\.html$/, "")
-    const title = PlanSections.docTitle(plan.document) ?? name
+    const title = plan.title || name
     const label = section.label.toLowerCase()
     const last = status.last
       ? `You last reviewed this epic on ${status.last}${status.queued.length ? `;  ${status.queued.length} decided to do, not done yet` : ""}.`

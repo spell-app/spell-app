@@ -1,11 +1,9 @@
 import type { ParsedCommit } from "./planDoc.types"
 
-import { PlanMarkup } from "./PlanMarkup"
-
 /****************
  * ### `PlanCommits`
  * Commits as a plan doc lists them:  what a commit subject says it did (`P3:  Name -- summary`, `Fix I3:  ...`), the
- * repo's GitHub page, and the markup of a commit list's entries.
+ * repo's GitHub page, and finding a listed one (`<epic-commit sha>`).
  * - STATIC and instance-free on purpose:  pure functions of their arguments;  never runs git (the command line does,
  *   and hands the log in).
  * - From `packages/docs/tools/plan-doc.js` (epic `epic-components`, P7).
@@ -43,27 +41,13 @@ export class PlanCommits {
   }
 
   /**
-   * One entry of a commit list, as HTML:  the short sha (a link to `base`'s commit page, else `<code>`) and
-   * `sentence`.
+   * The `<epic-commit>` for commit `sha` among `host`'s children (a phase, an item), if any:  by its `sha`, either one
+   * a prefix of the other (a short sha given, or listed).
    */
-  static commitEntry(sha: string, sentence: string, base: string | null): string {
-    const short = sha.slice(0, 7)
-    const link = base
-      ? `<a class="plan-commit" href="${PlanMarkup.escapeAll(`${base}/commit/${sha}`)}" target="github">${short}</a>`
-      : `<code class="plan-commit">${short}</code>`
-    return `<li data-sha="${PlanMarkup.escapeAll(sha)}">${link}  ${PlanMarkup.text(sentence)}</li>`
-  }
-
-  /**
-   * The entry for commit `sha` in commit list `list`, if any:  by its `data-sha`, else (written by hand) by its short
-   * sha.
-   */
-  static findCommit(list: Element, sha: string): Element | undefined {
-    return Array.from(list.children).find((entry) => {
-      const listed = entry.getAttribute("data-sha")
-      if (listed) return listed === sha || sha.startsWith(listed) || listed.startsWith(sha)
-      const short = entry.querySelector(".plan-commit")?.textContent?.trim()
-      return Boolean(short) && sha.startsWith(short!)
+  static findCommit(host: Element, sha: string): Element | undefined {
+    return Array.from(host.querySelectorAll(":scope > epic-commit")).find((commit) => {
+      const listed = commit.getAttribute("sha") ?? ""
+      return Boolean(listed) && (listed === sha || sha.startsWith(listed) || listed.startsWith(sha))
     })
   }
 

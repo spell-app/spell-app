@@ -1,6 +1,7 @@
+import { parseHTML } from "linkedom"
 import { describe, expect, it } from "vite-plus/test"
 
-import { END, LISTS, START, areaCards, epicOrder, listSection, skeleton } from "./index.js"
+import { END, LISTS, START, areaCards, epicOrder, listSection, planOf, skeleton } from "./index.js"
 
 /** A described epic page (`describe()`'s shape) with `phases`, each a status. */
 function epic(name, statuses, updated = new Date().toISOString().slice(0, 10)) {
@@ -88,5 +89,38 @@ describe("the list pages", () => {
     expect(html).toContain(`<h1>Guides</h1>`)
     expect(html.indexOf(START)).toBeLessThan(html.indexOf(END))
     expect(skeleton(LISTS.find((list) => list.id === "templates"))).toContain(`id="writing-docs"`)
+  })
+})
+
+describe("planOf():  a plan doc's card data, either markup (epic-components P8)", () => {
+  const expected = {
+    phases: [
+      { status: "done", label: "P1 · First Go" },
+      { status: "active", label: "P2 · Second" }
+    ],
+    updated: "2026-10-06",
+    future: false,
+    followUps: ["question", "issue"]
+  }
+
+  it("reads the <epic-*> markup:  phases, the page's updated and future, open items' kinds", () => {
+    const { document } = parseHTML(`<html><body><epic-page epic="x" title="X" updated="2026-10-06">
+<epic-section id="phases" kind="phases"><epic-phase id="p1" title="First Go" status="done"></epic-phase>
+<epic-phase id="p2" status="active"><span slot="title">Second</span></epic-phase></epic-section>
+<epic-section id="decisions" kind="questions"><epic-item id="q1" title="a" status="open"></epic-item>
+<epic-item id="q2" title="b" status="decided"></epic-item></epic-section>
+<epic-section id="caveats" kind="caveats"><epic-item id="c1" title="c" status="open"></epic-item></epic-section>
+<epic-section id="issues" kind="issues"><epic-item id="i1" title="d" status="open"></epic-item></epic-section>
+</epic-page></body></html>`)
+    expect(planOf(document)).toEqual(expected)
+  })
+
+  it("reads the old markup until the switch", () => {
+    const { document } = parseHTML(`<html><body><time id="plan-updated">2026-10-06</time>
+<ui-section id="phases"><ui-section data-phase="1" data-status="done" header="P1 · First Go"></ui-section>
+<ui-section data-phase="2" data-status="active" header="P2 · Second"></ui-section></ui-section>
+<ui-list class="plan-items"><ui-item id="q1" data-status="open"></ui-item><ui-item id="c1" data-status="open"></ui-item>
+<ui-item id="i1" data-status="open"></ui-item></ui-list></body></html>`)
+    expect(planOf(document)).toEqual(expected)
   })
 })
