@@ -197,12 +197,19 @@ export type StatementBodySpec = {
   nestedAs?: "block" | "expression"
   /** Body keyword rule from `syntax`, e.g. `{statement_body}?`, echoed back by `toRulexSyntax()`. */
   syntaxRule: P.Rule
+  /**
+   * `true`:  the keyword is ALSO a registered rule, matching the words which open the body at the end of our line,
+   * e.g. `{with_nested_statements}` matching `where:`.  It stays in `rules`, and we take a nested body only when it
+   * matched -- see `SpellStatement.takesNestedBody()`.
+   */
+  leadIn?: boolean
 }
 
 /**
  * Body keywords which may END a `SpellStatement`'s `syntax`, alone or as a choice,
  * e.g. `({inline_statement}|{nested_statements})?`.
  * - Not registered rules:  `SpellStatement` takes them out of `rules`, so they're never parsed as rules.
+ * - Except a `leadIn` one, which matches words on our line, e.g. `{with_nested_statements}`.
  */
 export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">> = {
   // Statement bodies, e.g. `if`, `for each`, method definitions.
@@ -212,6 +219,11 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
   inline_statement: { inlineAs: "statement" },
   /** Indented block of statements after the line, wrapped in `{}` when compiled. */
   nested_statements: { nestedAs: "block" },
+  /**
+   * `where:`, `with:` or `:` ending the line, then an indented block, e.g. a type's outline body.
+   * - A registered rule matching those words (`classes.ts`), so it stays in `rules` -- see `leadIn`.
+   */
+  with_nested_statements: { nestedAs: "block", leadIn: true },
 
   // Expression bodies, e.g. property getters, `where` clauses, `return`.
   /** Getter-style body:  `{expression_body}` ~== `({inline_expression}|{nested_statements})`. */

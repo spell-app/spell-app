@@ -573,7 +573,6 @@ class compound_expression extends SpellExpression<"lhs|rhsChain"> {
     return output[0] as P.ASTNode
   }
 
-  /** A suffix match's `precedence` -- every `expression_suffix` is an `InfixOperatorSuffix`, which must have one. */
   /**
    * What the next suffix follows, if known -- see `SuffixLeft`.
    * - The first suffix:  our operand, `lhs`.
@@ -589,6 +588,7 @@ class compound_expression extends SpellExpression<"lhs|rhsChain"> {
     return previous.groups.expression as P.Match | undefined
   }
 
+  /** A suffix match's `precedence` -- every `expression_suffix` is an `InfixOperatorSuffix`, which must have one. */
   private static precedenceOf(suffix: P.Match): number {
     return (suffix.rule as InfixOperatorSuffix).precedence
   }

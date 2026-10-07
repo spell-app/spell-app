@@ -124,6 +124,12 @@ describe("outline style", () => {
     expect(quoted).toBe(compile(["the card is a new card", "a card is a thing"]))
   })
 
+  test("no `where:` / `with:` / `:`, no body:  the indented lines under `a card is a thing` aren't its", () => {
+    expect(errorsOf(["a card is a thing", "\t- its rank is a number"])).toEqual([
+      `2:3 Don't understand "its rank is a number"`
+    ])
+  })
+
   describe('value kinds (P2):  `"suits" as one of ...` in a deck\'s body', () => {
     const DECK = [
       "a deck is a list of cards with:",

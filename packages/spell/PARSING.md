@@ -350,6 +350,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - A body keyword ending `syntax` -- `{statement_body}`, `{expression_body}`, etc, see `BODY_KEYWORDS` -- or a choice of them,
     is taken OUT of `rules` into `rule.bodySpec` at construction.
     A body is parsed in `match.nestedScope`, which needs the statement's match to exist first.
+  - A `leadIn` keyword, `{with_nested_statements}`, is ALSO a registered rule matching words on the line
+    (`where:`):  it stays in `rules`, and the statement takes a nested body only when it matched
+    (`takesNestedBody()`).
   - Inline body => after its sequence matches, `parse()` parses the rest of the line in `nestedScope`.
     Does NOT change scope -- this runs for every candidate, winners AND losers.
   - The inline statement OR nested block is recorded as `match.data.body`:  read it with `rule.getBody(match)`,
@@ -390,7 +393,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - compiles EXACTLY as the same lines in the sentence style do (`a card has a name as text` ...):
     `src/parserTests/outline.test.ts` pins it
 - `create_type` / `create_list_type` share `TypeDeclaration` (`classes.ts`):  a syntax ending
-  `(where|with)? : {nested_statements}?` (`TYPE_BODY_SYNTAX`) takes the body.
+  `{with_nested_statements}?` (`where:`, `with:` or `:`) takes the body;  without it, the same syntax declares the
+  type alone.
   - The body's scope is a `P.SubjectScope` (`packages/parser/src/scope/SubjectScope.ts`):  owns nothing, so what
     its lines declare lands where the same lines at the top level would;  `subject` names the type.
   - `flatBody` (`SpellStatement`):  the body is NOT `enclose`d;  `Block.getAST()` splices its statements in after
