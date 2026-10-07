@@ -174,6 +174,12 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 
 ## 4. Fill the doc (right after ExitPlanMode is approved)
 
+The filling (everything below but the plan file's name) goes to a background agent, `<name>-plan-doc`, as if Owen
+had typed `/bg "plan-doc" ...` (`.claude/skills/bg/SKILL.md`;  Owen, 2026-10-07):  its prompt has these steps, the
+approved plan's path, and the answers;  the session stays free meanwhile, and relays its report.  So does every
+later plan-doc edit bigger than one command:  a phase's Done list and items at its end, a reorder, Doc Review's
+pruning.
+
 - Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04):  in `~/.claude/plans/`,
   `mv <file>.md epic-<name>--<file>.md`, then `ln -s epic-<name>--<file>.md <file>.md` (the harness still reads
   the old name).
@@ -214,10 +220,12 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
    - changed a prose block:  put
      `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="N"><p>what changed</p></ui-message>`
      just before it (the script marks items itself)
-3. Subagents:  paste the cheat sheet below into their prompts, with "record caveats, issues and decisions in the
-   plan doc as you find them".
+3. Subagents:  named and listed (`spell dev agents add` / `done`, the root `CLAUDE.md`'s "Delegated work");  paste
+   the cheat sheet below into their prompts, with "record caveats, issues and decisions in the plan doc as you find
+   them".
 4. `spell dev plan-doc phase <name> <N> done --done "<ul><li>...</li></ul>"` (drops that phase's UPDATE markers, writes
-   its Done field, brings the doc forward), then `spell dev plan-doc summary <name>`.  Done:  what was BUILT, ordered by
+   its Done field, brings the doc forward), then `spell dev plan-doc summary <name>`:  with the phase's items, in a
+   background `<name>-plan-doc` agent ("4. Fill the doc"), while the reply below goes out.  Done:  what was BUILT, ordered by
    what Owen asks about first:  where to see it, what changed in how he works, what's rough or not yet tried by hand.
    - commit messages, so the doc can list them (its phase's and items' "Commits"):  a phase `P<n>:  <Name> --
      <summary>` (`P4 + P5:` for two;  `WIP P3:` for a parked part), an item fix `<name> I3:  ...` (MUST carry the
