@@ -1,4 +1,4 @@
-import { MD, type Block, type BlockKind, type ListData } from "$/markdown"
+import { MD } from "$/markdown"
 
 import { lineRules } from "./lineRules"
 
@@ -20,7 +20,7 @@ const MAYBE_SPECIAL = /^[#`~*+_=<>0-9|:-]/
  */
 export class BlockScanner {
   /** Scan `text` into its block tree. */
-  static parse(text: string): Block {
+  static parse(text: string): MD.Block {
     return new BlockScanner().parse(text)
   }
 
@@ -56,7 +56,7 @@ export class BlockScanner {
   partiallyConsumedTab = false
 
   /** Scan `text`:  every line in, then close everything still open. */
-  parse(text: string): Block {
+  parse(text: string): MD.Block {
     const lines = MD.normalize(text).split("\n")
     lines.pop()
     for (const line of lines) this.incorporateLine(line)
@@ -81,7 +81,7 @@ export class BlockScanner {
     this.line = text.replace(/\0/g, "�")
 
     // 1. which open blocks does this line continue?
-    for (let lastChild: Block | undefined; (lastChild = container.children.at(-1)) && lastChild.open;) {
+    for (let lastChild: MD.Block | undefined; (lastChild = container.children.at(-1)) && lastChild.open;) {
       container = lastChild
       this.findNextNonspace()
       const result = this.continueBlock(container)
@@ -131,7 +131,7 @@ export class BlockScanner {
         (kind === "code" && container.fence) ||
         (kind === "item" && !container.children.length && container.startLine === this.lineNumber)
       )
-    for (let block: Block | undefined = container; block; block = block.parent) block.lastLineBlank = lastLineBlank
+    for (let block: MD.Block | undefined = container; block; block = block.parent) block.lastLineBlank = lastLineBlank
 
     if (acceptsLines(kind)) {
       this.addLine()
@@ -145,7 +145,7 @@ export class BlockScanner {
   }
 
   /** Does this line continue `block`?  0:  yes, 1:  no, 2:  yes, and it used the whole line (a closing fence). */
-  continueBlock(block: Block): 0 | 1 | 2 {
+  continueBlock(block: MD.Block): 0 | 1 | 2 {
     switch (block.kind) {
       case "blockquote":
         if (this.indented || this.peek(this.nextNonspace) !== ">") return 1
@@ -257,7 +257,7 @@ export class BlockScanner {
   }
 
   /** `<div>`, `<!-- -->` ...:  the spec's 7 HTML block kinds;  kind 7 can't interrupt a paragraph. */
-  startHtmlBlock(container: Block): number {
+  startHtmlBlock(container: MD.Block): number {
     if (this.indented || this.peek(this.nextNonspace) !== "<") return 0
     const text = this.line.slice(this.nextNonspace)
     for (let type = 1; type <= 7; type++) {
@@ -277,7 +277,7 @@ export class BlockScanner {
    * `table_delimiter_row`) with as many cells.  The paragraph's other lines stay a paragraph.
    * - A `|` must be in one of them, so `a` over `---` stays a setext heading.
    */
-  startTable(container: Block): number {
+  startTable(container: MD.Block): number {
     if (container.kind !== "paragraph" || this.indented || !this.isLine("table_delimiter_row")) return 0
     const delimiter = this.line.slice(this.nextNonspace).trimEnd()
     const header = container.lines.at(-1)!.trim()
@@ -305,7 +305,7 @@ export class BlockScanner {
    * - Link reference definitions at the paragraph's start aren't heading text:  they stay a paragraph of their own
    *   (for `MD.extractReferences()`), and if that's ALL it was, the underline is just text.
    */
-  startSetextHeading(container: Block): number {
+  startSetextHeading(container: MD.Block): number {
     if (this.indented || container.kind !== "paragraph" || !this.isLine("setext_underline")) return 0
     const content = `${container.lines.join("\n")}\n`
     const definitions = referencesLength(content)
@@ -338,7 +338,7 @@ export class BlockScanner {
   }
 
   /** `- item`, `1. item`:  a list item, and its list if this starts one. */
-  startListItem(container: Block): number {
+  startListItem(container: MD.Block): number {
     if (this.indented && container.kind !== "list") return 0
     const data = this.parseListMarker(container)
     if (!data) return 0
@@ -361,13 +361,13 @@ export class BlockScanner {
    * A list marker at the next non-space (rulex `bullet_marker` / `ordered_marker`), and where its content starts.
    * - SIDE EFFECT:  on a match, advances past the marker and the spaces after it.
    */
-  parseListMarker(container: Block): ListData | undefined {
+  parseListMarker(container: MD.Block): MD.ListData | undefined {
     if (this.indent >= CODE_INDENT) return undefined
     const rest = this.line.slice(this.nextNonspace)
     // a marker is at most 9 digits + `.`, then a space:  no need to tokenize the whole line
     if (!/^(?:[-+*]|[0-9]{1,9}[.)])/.test(rest)) return undefined
     const tokens = lineRules.tokenizeLine(rest.slice(0, 12))
-    let data: ListData
+    let data: MD.ListData
     let markerLength: number
     if (lineRules.parse(tokens, "bullet_marker")?.length === 1) {
       data = { type: "bullet", bulletChar: rest[0], markerOffset: this.indent, padding: 0 }
@@ -415,7 +415,7 @@ export class BlockScanner {
   ////////////////
 
   /** Add a `kind` block under the innermost open block that can hold it, closing the ones that can't. */
-  addChild(kind: BlockKind): Block {
+  addChild(kind: MD.BlockKind): MD.Block {
     while (!canContain(this.tip.kind, kind)) this.finalize(this.tip)
     const child = MD.newBlock(kind, this.lineNumber, this.tip)
     this.tip.children.push(child)
@@ -444,7 +444,7 @@ export class BlockScanner {
   }
 
   /** Close `block`:  `tip` moves to its parent.  Fenced code splits off its info string;  lists decide tightness. */
-  finalize(block: Block) {
+  finalize(block: MD.Block) {
     block.open = false
     if (block.kind === "code") {
       if (block.fence) block.info = block.lines.shift()?.trim() ?? ""
@@ -559,19 +559,19 @@ const LINE_GUARDS: Record<string, RegExp> = {
 ////////////////
 
 /** Leaves that take lines of text. */
-function acceptsLines(kind: BlockKind) {
+function acceptsLines(kind: MD.BlockKind) {
   return kind === "paragraph" || kind === "code" || kind === "html" || kind === "table"
 }
 
 /** Can a `parent` block hold a `child`? */
-function canContain(parent: BlockKind, child: BlockKind) {
+function canContain(parent: MD.BlockKind, child: MD.BlockKind) {
   if (parent === "document" || parent === "blockquote" || parent === "item") return child !== "item"
   if (parent === "list") return child === "item"
   return false
 }
 
 /** Does `data` continue the list `list` started with:  same kind, bullet and delimiter? */
-function listsMatch(list: ListData, data: ListData) {
+function listsMatch(list: MD.ListData, data: MD.ListData) {
   return list.type === data.type && list.delimiter === data.delimiter && list.bulletChar === data.bulletChar
 }
 
@@ -581,7 +581,7 @@ function isSpaceOrTab(char: string) {
 }
 
 /** A tight list:  no blank line between its items, or between the blocks inside one. */
-function isTight(list: Block) {
+function isTight(list: MD.Block) {
   const items = list.children
   for (let i = 0; i < items.length; i++) {
     const item = items[i]!
@@ -595,7 +595,7 @@ function isTight(list: Block) {
 }
 
 /** Did `block`, or its last item / last child down the line, end with a blank line? */
-function endsWithBlankLine(block: Block | undefined) {
+function endsWithBlankLine(block: MD.Block | undefined) {
   for (; block; block = block.kind === "list" || block.kind === "item" ? block.children.at(-1) : undefined) {
     if (block.lastLineBlank) return true
   }
