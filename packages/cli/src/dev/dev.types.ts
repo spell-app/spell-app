@@ -313,6 +313,8 @@ export type SnapshotReview = { file: string; keys: string[] }
  *   - `fast-forward`:  the branch had nothing of its own, so it moved to `main`
  *   - `merged`:  a merge commit, generated files regenerated
  *   - `conflicts`:  stopped mid-merge on `conflicts`;  resolve them, `git add` them, then `--continue`
+ * - `untracked`:  conflicted files the merged `.gitignore` ignores (generated output no longer committed), taken out
+ *   of the index and left on disk
  * - `regenerated`:  each generator that ran, and the files it staged
  * - `review`:  snapshot entries to show Owen (`SnapshotReview`)
  * - `unstaged`:  files a generator changed outside its `outputs`, left for a person to look at
@@ -321,6 +323,7 @@ export type MergeMainReport = {
   branch: string
   result: "up-to-date" | "fast-forward" | "merged" | "conflicts"
   conflicts: string[]
+  untracked: string[]
   regenerated: { name: string; files: string[] }[]
   review: SnapshotReview[]
   unstaged: string[]

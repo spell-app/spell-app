@@ -2,16 +2,17 @@
  * `yarn site:dev`:  work on the Spell UI site live.  The page server (started if it isn't running) serves the pages
  * at `/ui/`;  the site bundle, `site/_assets/`, rebuilds on every source edit, and the page server's live reload
  * then reloads every open page.
- * - Why not a dev server:  the pages are static files loading ONE committed bundle (`yarn site:build`);  this is
- *   that same build, watched, so what you see is what gets committed.
+ * - Why not a dev server:  the pages are static files loading ONE bundle (`yarn site:bundle`, which the page server
+ *   runs when it starts, if stale);  this is that same build, watched, so what you see is what it builds.
  * - Starts with `yarn site:bundle` (clears `_assets/`, makes the `icon-packs` link, prints sizes), then Vite's watch
  *   build with the same config (`vite.site.config.ts`):  edits under `src/` or `site/_src/` rebuild in seconds.
  * - Page edits (the shared pages, `ui/`:  `*.html`, `_parts/`) and new data (`site/_data/`) need no rebuild:  the
  *   page server reloads them itself.
  * - NOT watched:  `site:data`, `site:index`, `site:kitchen` (a vocabulary, a family sheet's tokens, an example):
  *   rerun `yarn site:build` for those.
- * - A watch rebuild doesn't clear `_assets/`, so a chunk whose hash changed leaves its old file behind:  run
- *   `yarn site:build` before committing.
+ * - A watch rebuild doesn't clear `_assets/`, so a chunk whose hash changed leaves its old file behind:  harmless,
+ *   since `_assets/` isn't committed;  the page server's next start rebuilds it clean (its `site.js` is newer than
+ *   the last recorded build, `$/assembler` `Bundle`).
  * - `Ctrl-C` stops the watch;  the page server keeps running (`spell dev server stop`).
  */
 import { execFileSync } from "node:child_process"

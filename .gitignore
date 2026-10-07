@@ -13,6 +13,12 @@ __pycache__/
 .spell-server.*.json
 
 
+# bundles the page server builds when it starts, if stale (`spell dev bundles build --stale`;  `$/assembler` `BUNDLES`):
+# never committed, since their chunk names carry content hashes:  every Spell UI change deleted and re-added most of
+# their files in every diff and merge (epic epic-components, 2026-10-07)
+/packages/ui/site/_assets/
+/packages/brand/_assets/ui/
+
 # `/park`'s note on where parked work stopped:  never committed
 PARKED-*.md
 .vitest/

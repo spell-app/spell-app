@@ -5,6 +5,7 @@
  */
 export * from "./page.types"
 
+export * from "./BundleBuild"
 export * from "./PageEditor"
 export * from "./RunningEpics"
 export * from "./PageServer"
