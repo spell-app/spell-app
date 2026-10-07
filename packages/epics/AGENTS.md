@@ -29,6 +29,9 @@ house style every package shares.  Only what's local is below;  a section named 
   - `definitions/` -- the ONE description of every element:  `Definitions.all`, each vocabulary as data plus
     `children` (the content model).  Node-safe:  imports vocabulary files, never a family's barrel
   - `markup/` -- `Markup` (make, read, set, append) and `MarkupCheck` (validate a doc):  linkedom or the browser's DOM
+  - `convert/` -- the one-time converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`), with a
+    `ConversionProof` per doc:  every id, link target and word kept.  Never writes into `epics/` or `spell-app-dev`
+    unless it's the switch (P12 of epic `epic-components`)
   - `tool/` -- the plan-doc tool (`spell dev plan-doc`), node only, never bundled into the pack
 - `pack/` -- GENERATED, committed (`spell dev pack build epics`, `yarn pack:build`).  NEVER edit:
   - `epics.catalog.ts` -- tag => family folder + skeleton, read from the vocabularies;  its second line records

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Epic: Someday</title>
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="someday" data-future>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Epic: Someday</h1>
+            <span class="plan-step"><ui-label color="violet">FUTURE</ui-label></span>
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch">Future epic: <code>/epic future someday</code>, no branch yet</ui-item>
+          <ui-item icon="folder">Worktree: none yet</ui-item>
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-07</time>, updated
+            <time id="plan-updated">2026-10-07</time></ui-item
+          >
+        </ui-list>
+        <ui-message class="plan-future" state="info" size="small" header="Future epic:  not planned yet"
+          ><p>
+            No worktree, no phases yet. Its open questions are on its
+            <a href="details/analysis.html">analysis page</a>. <code>/epic someday</code> plans it.
+          </p></ui-message
+        >
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing collapsed>
+          <p class="plan-summary lede">An idea, written down.</p>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled>
+            <ui-title>Kickoff prompt</ui-title>
+            <ui-content
+              ><blockquote class="plan-prompt"><p>Someday, maybe.</p></blockquote></ui-content
+            >
+          </ui-accordion>
+        </ui-section>
+        <ui-section id="decisions" header="3. Questions" sticky collapsible dividing collapsed>
+          <ui-list class="plan-items" data-kind="decision"
+            ><ui-item data-answered data-state="recent" id="q1" data-status="decided"
+              ><a class="plan-id" href="#q1">Q1</a> <span class="plan-title">Start small</span></ui-item
+            ></ui-list
+          >
+        </ui-section>
+      </main>
+    </div>
+  </body>
+</html>
