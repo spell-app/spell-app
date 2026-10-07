@@ -1,0 +1,4 @@
+# Vitest browser mode's failure screenshots and attachments
+.vitest/
+
+dist/

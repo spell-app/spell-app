@@ -1,0 +1,16 @@
+import { NativeFallback, proto } from "$/ui/core"
+
+import { __vocab__Vocabulary } from "./__tag__.vocabulary.en"
+
+/****************
+ * ### `__Class__Fallback`
+ * The same box without Solid:  the classes and the content's slot, in the `base` part, so `__tag__.css` draws it
+ * unchanged.
+ ****************/
+export class __Class__Fallback extends NativeFallback<typeof __vocab__Vocabulary> {
+  @proto static vocabulary = __vocab__Vocabulary
+
+  protected override build() {
+    return [this.decorate(this.create("div", { class: this.classes() }, this.slot()), "base")]
+  }
+}

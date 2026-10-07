@@ -42,3 +42,6 @@ packages/app/static/semantic-ui-css/**                        linguist-vendored 
 
 # yarn.lock stays a LINE merge:  `yarn install` resolves its conflict markers itself
 yarn.lock                                                     linguist-generated
+
+# epics:  its component pack (`spell dev pack build epics`)
+packages/epics/pack/**                                        linguist-generated merge=binary -diff

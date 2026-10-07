@@ -28,6 +28,7 @@
     "test:watch": "vp test"
   },
   "devDependencies": {
+    "@spell-app/assembler": "workspace:*",
     "@spell-app/server": "workspace:*",
     "@spell-app/spell": "workspace:*",
     "@spell-app/ui": "workspace:*",

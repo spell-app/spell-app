@@ -7,6 +7,7 @@
  *   - pass-throughs (`plan-doc`, `goals`, `docs`, `details`, `design`, `server`, `window`, `vscode`):  a repo tool
  *     run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them directly, so they
  *     load no spell
+ *   - lean commands of our own (`pack`):  `(args, options) => Promise<exitCode>`, imported directly the same way
  *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);  run through the
  *     `runBarrel` each entry passes in
  * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
@@ -16,12 +17,13 @@ import chalk from "chalk"
 import { Command } from "commander"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
-import { CliError, EXIT, type GlobalOptions } from "$/cli/cli.types"
+import { CliError, EXIT, type GlobalOptions, type PackOptions } from "$/cli/cli.types"
 import { DESIGN_VERBS, DOCS_VERBS } from "$/cli/dev/passThrough"
 import { designCommand } from "$/cli/commands/designCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
 import { goalsCommand } from "$/cli/commands/goalsCommand"
+import { PACK_VERBS, packCommand } from "$/cli/commands/packCommand"
 import { planDocCommand } from "$/cli/commands/planDocCommand"
 import { serverCommand } from "$/cli/commands/serverCommand"
 import { vscodeCommand } from "$/cli/commands/vscodeCommand"
@@ -110,6 +112,20 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(windowCommand, rawArgs("window")))
+
+  dev
+    .command("pack")
+    .description(
+      "component packs:  another package's custom elements, loaded on demand by <ui-root> -- new, element, build, check"
+    )
+    .argument("<verb>", `${PACK_VERBS.join(" | ")}`)
+    .argument("[names...]", "new <name> | element <pack> <tag> | build <pack> | check [pack]")
+    .option("--prefix <prefix>", "new:  every tag's prefix, e.g. epic- (default the package's own, else <name>-)")
+    .option("--no-build", "new, element:  write the files, don't build the pack")
+    .option("--json", "print the report as JSON")
+    .action((verb: string, names: string[], options: PackOptions) =>
+      runLean((args) => packCommand(args, options), [verb, ...names])
+    )
 
   dev
     .command("vscode")

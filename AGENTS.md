@@ -56,6 +56,9 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - `packages/server/` (`@spell-app/server`, `$/server`, `SRV`) -- serving pages locally:  static folders, an
     Express-shaped router, live reload, ports, openers, a file lock, and the ONE page server per checkout
     (`spell dev server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
+  - `packages/assembler/` (`@spell-app/assembler`, `$/assembler`, `AS`) -- assembling pages, for every tool that
+    writes them:  link targets (`Linker`) and in-memory formatting (`formatHTML()`);  later, the page server's
+    assembly code.  See `packages/assembler/AGENTS.md`.
   - `packages/brand/` (`@spell-app/brand`, `$/brand`) -- Spell's brand:  Claude Design's pages and tokens (never edited), their
     Spell UI copies (`*.spell.html`), and the `<ui-brand-*>` elements those need.  The site header's Brand tab.
     See `packages/brand/AGENTS.md`.
@@ -66,6 +69,8 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
   `@spell-app/ui` lives on its own.
   - `server` is a LEAF (node built-ins only, imports no package):  ANY package may import it, `ui`'s tools too.
+  - `assembler` is node-only and imports no package (linkedom, oxfmt):  `docs` / `epics` -> `assembler`, and any
+    other node-side package or tool may import it too.
   - The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED, `packages/ui/src/languages/spell.<lang>.js`, a
     committed bundle `yarn gen:spell` (in `packages/ui`) builds from `packages/spell/src/highlight/browser.ts`.  `ui`'s
     source never imports `$/spell`;  regenerate after changing spell's grammar.

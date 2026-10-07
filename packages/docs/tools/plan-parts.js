@@ -21,11 +21,10 @@
  * - pure DOM in this file's first half (`plan-doc.test.js` drives it);  files and formatting in its second
  */
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
-import { basename, dirname, join } from "node:path"
+import { dirname, join } from "node:path"
 
-import { format } from "vite-plus/fmt"
+import { AS } from "$/assembler"
 
-import { fmtConfig } from "../../../vite.lint.ts"
 import { serializeHTML } from "./pages.js"
 
 /** The parts folder, beside the skeleton:  `epics/<name>/parts/`. */
@@ -267,19 +266,13 @@ export function partReader(file) {
   }
 }
 
-/** oxfmt's settings, as `vp fmt` reads them from the repo root's `vite.lint.ts` (minus what only the CLI uses). */
-const FORMAT = Object.fromEntries(
-  Object.entries(fmtConfig).filter(([key]) => !["ignorePatterns", "sortPackageJson"].includes(key))
-)
-
 /**
  * `html` formatted as `vp fmt` would format the file at `file` (its extension picks the parser), in this process:
- * no `yarn vp fmt` per write (about 0.5s each).  Throws on a parse error.
+ * `$/assembler`'s `formatHTML()`, shared with the plan-doc tool's TypeScript port (epic `epic-components`, P7).
+ * Throws on a parse error.
  */
-export async function formatHTML(file, html) {
-  const { code, errors } = await format(basename(file), html, FORMAT)
-  if (errors.length) throw new Error(`${basename(file)}:  ${errors.map((error) => error.message).join(";  ")}`)
-  return code
+export function formatHTML(file, html) {
+  return AS.formatHTML(file, html)
 }
 
 /**

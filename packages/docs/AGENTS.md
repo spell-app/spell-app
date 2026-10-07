@@ -334,6 +334,8 @@ In `tools/`:
     `#name/...` aliases.
   - `node tools/doc-links.js --check <page>` must pass:  every local link resolves, one target per destination,
     no nested links.
+  - The rules themselves (how a path resolves, which target a link gets) live in `$/assembler` (`AS.Linker`):
+    `doc-links.js` is its command line, and the plan-doc tool links through the same code.
 
 ## Finishing a page
 
@@ -404,7 +406,8 @@ In this order, from `packages/docs`:
 - `tools/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its
   `convertSections()` is also `plan-doc.js` `migrate`'s last step.  Idempotent;  refuses goals pages.
 - `tools/doc-links.js` -- see "Links".  Text and regexes, not a DOM:  it edits only what it links.  Its page
-  arguments are from where it runs:  from `packages/docs`, `../../guides/x.html`.
+  arguments are from where it runs:  from `packages/docs`, `../../guides/x.html`.  The linking itself is
+  `$/assembler`'s `Linker`;  `plan-parts.js` `formatHTML` is `$/assembler`'s too.
 - `tools/relocate.js` -- the docs' two moves (into `packages/docs/content/`, 2026-10-04;  out into the root folders,
   2026-10-05) and their repairs:  `spell dev shared repair` runs them, `spell dev shared commit` the reorg's
   (`reorgShared()`:  pages older code wrote at old paths move on, old-style links are fixed).

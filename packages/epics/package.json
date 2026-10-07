@@ -1,0 +1,35 @@
+{
+  "name": "@spell-app/epics",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A component pack:  <epic-*> elements a page loads on demand through <ui-root> (spell dev pack)",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "pack:build": "node ../cli/bin/spell.mjs dev pack build epics",
+    "pack:check": "node ../cli/bin/spell.mjs dev pack check epics",
+    "/////// CORRECTNESS": "",
+    "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
+    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && echo '<< TSC PASSED\n'",
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src components && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src components && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components vite.config.ts vitest.config.ts && echo '<< OXFMT PASSED\n'",
+    "/////// TESTING": "",
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'"
+  },
+  "devDependencies": {
+    "@solidjs/web": "2.0.0-rc.13",
+    "@types/node": "^22.20.4",
+    "solid-js": "2.0.0-rc.13",
+    "typescript": "^7.0.2",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.11"
+  },
+  "packageManager": "yarn@4.18.0",
+  "spellPack": {
+    "prefix": "epic-"
+  }
+}
