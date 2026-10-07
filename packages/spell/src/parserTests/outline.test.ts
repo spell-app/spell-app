@@ -277,6 +277,13 @@ describe("outline style", () => {
       ])
     })
 
+    test('a phrase with no body is an error, not an empty method (I6):  `it "can move"`', () => {
+      expect(errorsOf([...DECK, ...CARD, '\t- it "can move"', 'a card "can fly"'])).toEqual([
+        `10:3 "can move" has no body:  write "can move" if ..., or end it with ":" and indent the lines below`,
+        `11:0 "can fly" has no body:  write "can fly" if ..., or end it with ":" and indent the lines below`
+      ])
+    })
+
     test('a blank naming no property with a list of values is an error (J9):  `it "is a (color)"`', () => {
       expect(errorsOf([...DECK, ...CARD, '\t- it "is a (color)"'])).toEqual([
         `10:3 "(color)" names no property of a card with a list of values, ` +

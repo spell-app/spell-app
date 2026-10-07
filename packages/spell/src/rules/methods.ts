@@ -1700,8 +1700,27 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
         const name = (tokens[1] as P.TextToken).innerText
         return SpellStatement.refuse(whole, `A property starts "its":  write its "${name}" is ...`)
       }
+      if (quoted_type_expression.isBodiless(match, tokens)) {
+        const phrase = match.groups.signature.inputText.trim()
+        return SpellStatement.refuse(
+          match,
+          `${phrase} has no body:  write ${phrase} if ..., or end it with ":" and indent the lines below`
+        )
+      }
     }
     return match
+  }
+
+  /**
+   * Is `match` the quoted phrase and NOTHING more:  no `if` / `is` / `:`, no body, e.g. `- it "can move"` (plan doc
+   * `outline-spell` I6)?
+   * - Refused, saying so:  it'd compile to an empty method, `get can_move() {}`, always `undefined`.
+   * - A dangling `if` is fine:  its body may be the indented lines below.
+   */
+  private static isBodiless(match: P.MatchFor<quoted_type_expression>, tokens: P.Token[]): boolean {
+    const lastOfSignature = match.groups.signature.tokens.at(-1)
+    const after = tokens.slice(tokens.indexOf(lastOfSignature!) + 1)
+    return !after.join("").trim()
   }
 
   /**
