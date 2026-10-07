@@ -15,6 +15,7 @@ import {
   ITEM_TAG,
   PANELS,
   PANELS_ID,
+  STATUS,
   TOGGLE,
   type EpicChoicesVocabulary
 } from "./epic-choices.types"
@@ -104,16 +105,21 @@ export class EpicChoices extends UIElement<EpicChoicesVocabulary> {
     return element.closest(CHOICES_TAG)?.getAttribute(CHOSEN) || undefined
   }
 
+  /** The `status` of the item `element` sits in, or `undefined`. */
+  static itemStatusFor(element: Element): string | undefined {
+    return element.closest(ITEM_TAG)?.getAttribute(STATUS) ?? undefined
+  }
+
   /**
-   * Call `changed` whenever what `isAnswered()` / `chosenFor()` read changes:  `chosen`, the item's `answered`.
-   * Returns how to stop.
+   * Call `changed` whenever what `isAnswered()` / `chosenFor()` / `itemStatusFor()` read changes:  `chosen`, the
+   * item's `answered` and `status`.  Returns how to stop.
    */
   static watch(element: Element, changed: () => void): () => void {
     const observer = new MutationObserver(changed)
     const choices = element.closest(CHOICES_TAG)
     const item = element.closest(ITEM_TAG)
     if (choices) observer.observe(choices, { attributeFilter: [CHOSEN] })
-    if (item) observer.observe(item, { attributeFilter: [ANSWERED] })
+    if (item) observer.observe(item, { attributeFilter: [ANSWERED, STATUS] })
     changed()
     return () => observer.disconnect()
   }
