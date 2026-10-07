@@ -1702,10 +1702,7 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
       }
       if (quoted_type_expression.isBodiless(match, tokens)) {
         const phrase = match.groups.signature.inputText.trim()
-        return SpellStatement.refuse(
-          match,
-          `${phrase} has no body:  write ${phrase} if ..., or end it with ":" and indent the lines below`
-        )
+        return SpellStatement.refuse(match, `${phrase} has no body:  write ${phrase} always, or ${phrase} if ...`)
       }
     }
     return match
