@@ -182,8 +182,10 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     paths:  `spell dev shared commit` (every turn) runs the reorg's repair first, and `spell dev shared repair`
     does it by hand (`packages/docs/tools/relocate.js` `reorgShared()`).
 - Commits:  the shared repo is committed by itself after every Claude turn (`Stop` hook
-  `.claude/hooks/shared-commit.mjs` -> `spell dev shared commit`), as `auto: <checkout>` with `Session:` /
-  `Checkout:` trailers.  Nobody commits those files by hand.
+  `.claude/hooks/shared-commit.mjs` -> `spell dev shared commit`), one commit per place the files live:
+  `auto: epic <name>`, `auto: guides/<folder or file>`, `auto: goals/<set>`, `auto: agents` (`pages`, `templates`,
+  `ui`, `brand` likewise), else `auto: other`;  trailers `Turn-end: <checkout>` (whose turn swept them up, NOT their
+  author:  any turn commits every session's pending edits) and `Session:`.  Nobody commits those files by hand.
   - NEVER `git add` / `git checkout --` / `git restore` the shared paths in spell-app.
   - NEVER run git inside a shared folder (`epics/`, `guides/` ...:  it's the shared repo there):  run it in the
     spell-app checkout.
