@@ -32,6 +32,10 @@ PARKED-*.md
 # the old content link, in checkouts cut before 2026-10-05:  remove with the old-path links (claude-design T1)
 /packages/docs/content
 # shared:end
+
+# preview copies of the shared plan docs in <epic-*> markup (`spell dev plan-doc convert --all --out preview-epics`,
+# epic epic-components):  at the root so a copy's `../../packages/...` and `../../guides/...` links resolve
+/preview-epics/
 # the MAIN checkout's marker:  worktree windows hide its folder's files (scripts/window.mjs `filesExclude()`)
 /.spell-main
 *.code-workspace

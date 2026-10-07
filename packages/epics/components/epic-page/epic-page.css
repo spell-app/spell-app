@@ -1,0 +1,16 @@
+/*
+ * `<epic-page>`:  a plan doc's page.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-page-*`) are never declared here:  read through private aliases
+ *   (`--_epic-page-gap: var(--epic-page-gap, 1em)`).
+ */
+
+@layer ui.components.epic-page.types;
+
+@layer ui.components.epic-page.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}

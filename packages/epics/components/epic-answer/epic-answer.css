@@ -1,0 +1,16 @@
+/*
+ * `<epic-answer>`, `<epic-reply>`, `<epic-more>`:  an item's answer, replies and More Details cards.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-answer-*`) are never declared here:  read through private aliases
+ *   (`--_epic-answer-gap: var(--epic-answer-gap, 1em)`).
+ */
+
+@layer ui.components.epic-answer.types;
+
+@layer ui.components.epic-answer.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}

@@ -1,0 +1,16 @@
+/*
+ * `<epic-event>`:  a log line.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-event-*`) are never declared here:  read through private aliases
+ *   (`--_epic-event-gap: var(--epic-event-gap, 1em)`).
+ */
+
+@layer ui.components.epic-event.types;
+
+@layer ui.components.epic-event.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}

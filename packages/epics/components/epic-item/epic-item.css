@@ -1,0 +1,16 @@
+/*
+ * `<epic-item>`:  a plan doc's item.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-item-*`) are never declared here:  read through private aliases
+ *   (`--_epic-item-gap: var(--epic-item-gap, 1em)`).
+ */
+
+@layer ui.components.epic-item.types;
+
+@layer ui.components.epic-item.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}

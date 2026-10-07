@@ -1,0 +1,16 @@
+/*
+ * `<epic-original>`, `<epic-version>`:  an item's Original Discussion.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-original-*`) are never declared here:  read through private aliases
+ *   (`--_epic-original-gap: var(--epic-original-gap, 1em)`).
+ */
+
+@layer ui.components.epic-original.types;
+
+@layer ui.components.epic-original.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}
