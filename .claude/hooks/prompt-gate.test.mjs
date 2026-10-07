@@ -6,13 +6,13 @@
  */
 import assert from "node:assert/strict"
 import { spawnSync } from "node:child_process"
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { after, beforeEach, test } from "node:test"
 import { fileURLToPath } from "node:url"
 
-import { gate, kebab, otherWorktree, parseCommand } from "./prompt-gate.mjs"
+import { dropDoneTitle, gate, kebab, otherWorktree, parseCommand } from "./prompt-gate.mjs"
 
 /** The temp folders. */
 const prompts = mkdtempSync(join(tmpdir(), "spell-prompts-"))
@@ -46,11 +46,12 @@ test("parseCommand:  name, then the rest", () => {
     skill: "epic",
     name: "docs-index",
     text: "plan\nthe docs",
+    color: null
   })
-  assert.deepEqual(parseCommand(`/epic "Docs Index" x`), { skill: "epic", name: "docs-index", text: "x" })
-  assert.deepEqual(parseCommand("/isolate foo"), { skill: "isolate", name: "foo", text: "" })
-  assert.deepEqual(parseCommand("/unpark foo"), { skill: "unpark", name: "foo", text: "" })
-  assert.deepEqual(parseCommand("/epic resume Foo"), { skill: "epic resume", name: "foo", text: "" })
+  assert.deepEqual(parseCommand(`/epic "Docs Index" x`), { skill: "epic", name: "docs-index", text: "x", color: null })
+  assert.deepEqual(parseCommand("/isolate foo"), { skill: "isolate", name: "foo", text: "", color: null })
+  assert.deepEqual(parseCommand("/unpark foo"), { skill: "unpark", name: "foo", text: "", color: null })
+  assert.deepEqual(parseCommand("/epic resume Foo"), { skill: "epic resume", name: "foo", text: "", color: null })
 })
 
 test("parseCommand:  ignores other prompts, no name, `/isolate done`, `/epic review`, `/epic resume` alone", () => {
@@ -59,6 +60,19 @@ test("parseCommand:  ignores other prompts, no name, `/isolate done`, `/epic rev
   for (const prompt of prompts) {
     assert.equal(parseCommand(prompt), null, prompt)
   }
+})
+
+test("parseCommand:  a look right after the name is the window's, not the text;  `/epic color` passes", () => {
+  assert.deepEqual(parseCommand("/epic new-thing -purple plan this"), {
+    skill: "epic",
+    name: "new-thing",
+    text: "plan this",
+    color: "purple"
+  })
+  assert.equal(parseCommand("/isolate x -Teal").color, "teal")
+  // not a look:  part of the text
+  assert.deepEqual(parseCommand("/epic x -verbose"), { skill: "epic", name: "x", text: "-verbose", color: null })
+  assert.equal(parseCommand("/epic color teal"), null)
 })
 
 test("kebab", () => {
@@ -144,4 +158,21 @@ test("hook:  stdin in, JSON out;  bad input exits 0, silent", () => {
   const bad = spawnSync(process.execPath, [hook], { input: "{not json", encoding: "utf8" })
   assert.equal(bad.status, 0)
   assert.equal(bad.stdout, "")
+})
+
+test("dropDoneTitle:  a queued ✅ title goes when the work reopens;  any other queued title stays", () => {
+  const dir = mkdtempSync(join(tmpdir(), "titles-"))
+  process.env.SPELL_SESSION_TITLES_DIR = dir
+  try {
+    writeFileSync(join(dir, "s1"), "✅ seo")
+    writeFileSync(join(dir, "s2"), "seo")
+    dropDoneTitle("s1")
+    dropDoneTitle("s2")
+    dropDoneTitle("nope")
+    assert.equal(existsSync(join(dir, "s1")), false)
+    assert.equal(readFileSync(join(dir, "s2"), "utf8"), "seo")
+  } finally {
+    delete process.env.SPELL_SESSION_TITLES_DIR
+    rmSync(dir, { recursive: true, force: true })
+  }
 })

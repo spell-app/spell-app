@@ -17,6 +17,10 @@ const REPLY_LIMIT = 3000
  *   session's window (the extension's URI handler, routed by `windowId`)
  * - `title [<title>]`:  THIS session (`CLAUDE_CODE_SESSION_ID`):  alone, its title (`*` named by hand) and any queued one;
  *   with a title, queues it for the next prompt, unless it already has it
+ * - `done [<name>]`:  mark finished work's sessions `✅ <title>` (epic `windows-and-review` P6):  alone, THIS session,
+ *   applied on its next prompt;  with a name, every session titled `<name>` or that worked in worktree `<name>`,
+ *   applied when each is next resumed or prompted (a hook applies a queued title:  nothing else can).  Reopening the
+ *   work (`/isolate <name>`, `/epic <name>`, `/unpark <name>`) takes the ✅ off (`.claude/hooks/prompt-gate.mjs`)
  * - `window [pid]`:  the VS Code window id a process runs in (default this session's)
  * - `transcript <id prefix>`:  another session's prompts, last reply and waiting question
  * - `--json` (`list`, `find`, `transcript`):  the data instead of lines
@@ -37,6 +41,8 @@ export async function sessionCommand(
       return openSession(session, rest.join(" ").trim())
     case "title":
       return titleSession(session, rest.join(" ").trim())
+    case "done":
+      return markDone(session, rest.join(" ").trim())
     case "window": {
       const window = CLI.windowOf(rest[0] ? Number(rest[0]) : CLI.thisPid())
       session.out(String(window ?? "none"))
@@ -45,7 +51,7 @@ export async function sessionCommand(
     case "transcript":
       return showTranscript(session, rest[0], options)
     default:
-      throw new CLI.CliError(`unknown verb '${verb}':  list, find, open, title, window or transcript`)
+      throw new CLI.CliError(`unknown verb '${verb}':  list, find, open, title, done, window or transcript`)
   }
 }
 
@@ -147,6 +153,36 @@ function titleSession(session: CLI.CliSession, title: string): number {
   CLI.queueTitle(me, title)
   session.out(`queued "${title}" for ${me.slice(0, 8)} (was "${current ?? "?"}"):  applied on the next prompt`)
   return CLI.EXIT.OK
+}
+
+/**
+ * `done [<name>]`:  queue `✅ <title>` for this session, or for every session of `name` (`sessionsNamed()`);  one
+ * already ✅, or with a ✅ queued, is left.
+ */
+function markDone(session: CLI.CliSession, name: string): number {
+  const me = process.env.CLAUDE_CODE_SESSION_ID
+  if (!name && !me) throw new CLI.CliError("done:  needs a name, or CLAUDE_CODE_SESSION_ID")
+  const targets = name
+    ? CLI.sessionsNamed(name).map((it) => ({ id: it.id, title: it.title }))
+    : [{ id: me!, title: currentTitle(me!) ?? "" }]
+  if (!targets.length) session.out(`no session named or in worktree ${name}`)
+  for (const { id, title } of targets) {
+    const bare = title.replace(/^✅\s*/, "") || name
+    const queued = CLI.queuedTitle(id)
+    if (title.startsWith("✅") || queued?.startsWith("✅")) {
+      session.out(`${id.slice(0, 8)} is already done:  "${queued ?? title}"`)
+      continue
+    }
+    CLI.queueTitle(id, `✅ ${bare}`)
+    session.out(`queued "✅ ${bare}" for ${id.slice(0, 8)}:  applied on its next prompt or resume`)
+  }
+  return CLI.EXIT.OK
+}
+
+/** Session `id`'s title from its transcript, or `null`. */
+function currentTitle(id: string): string | null {
+  const transcript = CLI.transcriptOf(id)
+  return (transcript && CLI.summarizeSession(transcript)?.title) ?? null
 }
 
 /** `transcript <id prefix>`:  the digest, as markdown (or JSON). */

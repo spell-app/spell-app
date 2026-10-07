@@ -107,21 +107,21 @@ export class DocView implements vscode.WebviewViewProvider {
         )
       )
     }
-    context.subscriptions.push(
-      vscode.commands.registerCommand("spell.docView.home", () => DocView.goHome()),
-      vscode.commands.registerCommand("spell.docView.edit", (args: EditKey) => void DocView.of(args?.view).edit(args))
-    )
+    context.subscriptions.push(vscode.commands.registerCommand("spell.docView.home", () => DocView.goHome()))
   }
 
   /**
-   * An edit key pressed while this view has focus (`package.json` keybindings, `focusedView`;  epic
-   * `windows-and-review` I2):  done IN the page, since VS Code takes these keys before a page in a frame sees them.
+   * An edit command, done IN the page (epic `windows-and-review` I2).  Why:  VS Code's own Copy, Paste, Select All,
+   * Undo ... (its keys and menus) reach a focused webview as `document.execCommand(<command>)` on the VIEW's
+   * document, never the page framed in it;  the view's script catches that call (`html()`) and sends it here.
    * - copy / cut:  the page sends back its selection (`{ spell: "clipboard", text }`), which goes on the clipboard here
    *   (the page can't:  copying needs a key press IN it);  cut then deletes it there
    * - paste:  the clipboard's text, sent in, typed where the caret is
    * - select all, undo, redo:  the page does them (`document.execCommand()`)
+   * - Not keybindings (P2 tried them):  `focusedView` is never set while focus is in a webview view's page, so they
+   *   never fired
    */
-  async edit({ command }: EditKey): Promise<void> {
+  async edit({ command }: EditCommand): Promise<void> {
     if (!this.view) return
     const text = command === "paste" ? await vscode.env.clipboard.readText() : undefined
     void this.view.webview.postMessage({ spell: "edit", command, ...(text !== undefined && { text }) })
@@ -254,8 +254,9 @@ export class DocView implements vscode.WebviewViewProvider {
     view.onDidDispose(() => {
       if (this.view === view) this.view = undefined
     })
-    view.webview.onDidReceiveMessage((message: Place | OpenLink | Clipboard) => {
+    view.webview.onDidReceiveMessage((message: Place | OpenLink | EditCommand | Clipboard) => {
       if (message?.spell === "open") return void DocView.open(message)
+      if (message?.spell === "edit") return void this.edit(message)
       if (message?.spell === "clipboard") return void vscode.env.clipboard.writeText(message.text ?? "")
       if (message?.spell !== "place") return
       this.current = message.url
@@ -268,8 +269,10 @@ export class DocView implements vscode.WebviewViewProvider {
 
   /**
    * The view's html:  the page in a full-size iframe, or a line saying there's nothing to show.
-   * - its script relays messages:  the page's `place` / `open` to the extension;  the extension's `history` and
-   *   `go` to the page.  `navigate` points the iframe at a new URL, making it first if the view was empty.
+   * - its script relays messages:  the page's `place` / `open` to the extension;  the extension's `history`,
+   *   `go` and `edit` to the page.  `navigate` points the iframe at a new URL, making it first if the view was empty.
+   * - VS Code's edit commands (`document.execCommand()`, called on THIS document) go to the extension as `edit`
+   *   (`edit()`), while there's a page to send them to
    * - background:  the side bar's theme colour, on the body AND the iframe, so a page loading shows no white
    */
   html(url: string | undefined): string {
@@ -294,6 +297,13 @@ export class DocView implements vscode.WebviewViewProvider {
     <script nonce="${nonce}">
       const vscode = acquireVsCodeApi()
       let frame = document.querySelector("iframe")
+      const EDITS = ["copy", "cut", "paste", "selectAll", "undo", "redo"]
+      const execCommand = document.execCommand.bind(document)
+      document.execCommand = (command, ...rest) => {
+        if (!frame || !EDITS.includes(command)) return execCommand(command, ...rest)
+        vscode.postMessage({ spell: "edit", command })
+        return true
+      }
       addEventListener("message", (event) => {
         if (frame && event.source === frame.contentWindow) return vscode.postMessage(event.data)
         const data = event.data
@@ -417,8 +427,8 @@ type Place = { spell: "place"; url?: string; canGoBack?: boolean; canGoForward?:
  */
 type OpenLink = { spell: "open"; url?: string; kind?: "file" | "external" }
 
-/** A keybinding's args for `spell.docView.edit`:  which view, and what the key does (`package.json` keybindings). */
-type EditKey = { view?: DocViewName; command: "copy" | "cut" | "paste" | "selectAll" | "undo" | "redo" }
+/** VS Code's edit command on the view (`{ spell: "edit", command }`), for the page:  see `DocView.edit()`. */
+type EditCommand = { spell: "edit"; command: "copy" | "cut" | "paste" | "selectAll" | "undo" | "redo" }
 
 /** The page's selection, for the clipboard (an `edit` copy or cut):  `{ spell: "clipboard", text }`. */
 type Clipboard = { spell: "clipboard"; text?: string }

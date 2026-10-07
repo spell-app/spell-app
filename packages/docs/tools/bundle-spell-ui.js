@@ -106,6 +106,7 @@ const ICONS = {
   "solid/check": ["check", "checkmark"],
   "solid/chevron-down": ["chevron down"],
   "solid/chevron-right": ["chevron right"],
+  "solid/chevron-up": ["chevron up"], // a plan item's fold button (`spell-doc-runtime.js` `wireItemFolds()`)
   "solid/link": ["link"],
   "solid/copy": ["copy"],
   "solid/bars": ["bars"],
