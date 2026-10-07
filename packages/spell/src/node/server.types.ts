@@ -60,6 +60,8 @@ export type ProjectFileJSON = {
   version?: string
   /** Names it offers importers, e.g. `["Card", "Deck"]` -- default:  everything it declares. */
   exports?: string[]
+  /** Targets it compiles to, e.g. `["js/solid", "ts/solid"]` -- default `["js/solid"]`:  see `SP.TARGETS`. */
+  targets?: string[]
   /** Files it compiles, in order -- and, later, other projects it imports. */
   imports: ImportEntryJSON[]
 }
@@ -79,11 +81,12 @@ export type ManifestJSON = Record<string, ManifestEntryJSON>
  * the updated index) -- see `project-utils.getIndex()`.
  * - `manifest` -- current on-disk manifest -- NOT persisted, always freshly computed from file system.
  * - `imports` -- import list, synced with `manifest` and persisted back to `project.json` when it changes.
- * - `version` / `exports` -- straight from `project.json`, see `ProjectFileJSON`.
+ * - `version` / `exports` / `targets` -- straight from `project.json`, see `ProjectFileJSON`.
  */
 export type ProjectIndexJSON = {
   manifest: ManifestJSON
   imports: ImportEntryJSON[]
   version?: string
   exports?: string[]
+  targets?: string[]
 }

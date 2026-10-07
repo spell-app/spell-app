@@ -279,7 +279,7 @@ core.addRule(_boolean, {
 /**
  * Literal `text` string.
  * - NOTE: in spell you must use DOUBLE QUOTES (`"`) -- single quotes are treated as a single symbol.
- * - Returned value has original enclosing quotes.
+ * - Its AST is a text value:  the text inside the quotes, with the source's spelling, quotes and all, as `raw`.
  */
 class text extends P.TokenType {
   @proto static alias = "expression"
@@ -288,8 +288,21 @@ class text extends P.TokenType {
   @proto static tokenType = P.TextToken
 
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
-    const { value, raw } = match
-    return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
+    const raw = assert.string(match.value)
+    return new P.ASTStringLiteral(match, {
+      value: text.plainText(raw, match.matched[0] as P.TextToken),
+      quote: '"',
+      raw
+    })
+  }
+
+  /** The text `raw` spells, escapes undone (`"say \"hi\""` => `say "hi"`) where JSON can read it, else as typed. */
+  static plainText(raw: string, token: P.TextToken): string {
+    try {
+      return JSON.parse(raw) as string
+    } catch {
+      return token.innerText
+    }
   }
 }
 core.addRule(text, {
@@ -354,8 +367,8 @@ class undefined_literal extends P.Literal {
   @proto static alias = "expression"
   @proto static datatype = "nothing"
 
-  getAST(match: P.MatchFor<this>): P.ASTUndefinedLiteral {
-    return new P.ASTUndefinedLiteral(match)
+  getAST(match: P.MatchFor<this>): P.ASTNothingLiteral {
+    return new P.ASTNothingLiteral(match)
   }
 }
 core.addRule(undefined_literal, {

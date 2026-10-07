@@ -16,88 +16,52 @@
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:rank", line: 6,
       section: "properties of cards",
-      description: "card ranks",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      description: "card ranks"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/enumeration:Ranks", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:ace", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:jack", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:queen", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:king", line: 6,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Ranks", syntax: "(Card|card) (Ranks|ranks)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:suit", line: 9,
       section: "properties of cards",
-      description: "card suits",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      description: "card suits"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/enumeration:Suits", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:clubs", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:diamonds", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:hearts", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:spades", line: 9,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Suits", syntax: "(Card|card) (Suits|suits)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:color", line: 12,
@@ -114,37 +78,26 @@
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:value", line: 15,
+      detail: "number",
       section: "properties of cards",
       description: "value as a derivation of rank"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:direction", line: 18,
       section: "properties of cards",
-      description: "card direction:  up or down",
-      rules: [
-        { name: "Card_Directions", syntax: "(Card|card) (Directions|directions)" }
-      ]
+      description: "card direction:  up or down"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/enumeration:Directions", line: 18,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Directions", syntax: "(Card|card) (Directions|directions)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:up", line: 18,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Directions", syntax: "(Card|card) (Directions|directions)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/constant:down", line: 18,
-      section: "properties of cards",
-      rules: [
-        { name: "Card_Directions", syntax: "(Card|card) (Directions|directions)" }
-      ]
+      section: "properties of cards"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/method:is face up", line: 22,
@@ -195,27 +148,37 @@
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:name", line: 34,
+      detail: "text",
       section: "aliases",
       description: "name as a derivation of name/suit"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:short_suit", line: [36, 41],
+      name: "short-suit",
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:short_rank", line: [43, 46],
+      name: "short-rank",
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:short_direction", line: [48, 50],
+      name: "short-direction",
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:short_name", line: 52,
+      name: "short-name",
+      detail: "text",
       section: "aliases"
     },
     {
       path: "project:Solitaire/file:Card.spell/type:Card/property:state", line: 54,
+      detail: "text",
       section: "aliases"
     },
     {
@@ -258,6 +221,12 @@
       ]
     },
     {
+      path: "project:Solitaire/file:Card.spell/type:Card/property:pile", line: 17,
+      detail: "Pile",
+      section: "Pile of playing cards",
+      uri: "spell:/@test:fixtures:Solitaire/Pile.spell"
+    },
+    {
       path: "project:Solitaire/file:Card.spell/type:Card/method:play (a card)", line: [111, 138],
       section: "actions",
       uri: "spell:/@test:fixtures:Solitaire/Solitaire.spell",
@@ -290,6 +259,12 @@
       ]
     },
     {
+      path: "project:Solitaire/file:Deck.spell/type:Deck/property:is_set_up", line: 11,
+      name: "is-set-up",
+      detail: "choice",
+      section: "Deck:   US standard card deck (without jokers currently)"
+    },
+    {
       path: "project:Solitaire/file:Deck.spell/type:Deck/method:display (a deck)", line: [13, 17],
       section: "Deck:   US standard card deck (without jokers currently)",
       rules: [
@@ -319,11 +294,18 @@
     },
     {
       path: "project:Solitaire/file:Pile.spell/type:Pile/property:value", line: [8, 10],
+      detail: "number",
       section: "Pile of playing cards"
     },
     {
       path: "project:Solitaire/file:Pile.spell/type:Pile/property:state", line: [22, 26],
+      detail: "text",
       section: "Pile of playing cards"
+    },
+    {
+      path: "project:Solitaire/file:Pile.spell/type:Pile/property:name", line: 124,
+      section: "actions",
+      uri: "spell:/@test:fixtures:Solitaire/Solitaire.spell"
     },
     {
       path: "project:Solitaire/file:Solitaire.spell",
@@ -342,6 +324,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/type:Game/property:state", line: [66, 70],
+      detail: "list",
       section: "actions"
     },
     {
@@ -353,19 +336,23 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:game", line: 7,
+      detail: "Game",
       section: "Game bits"
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:all_piles", line: 11,
+      detail: "list of piles",
       section: "set up all piles",
       description: "## set up all piles"
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:foundations", line: 12,
+      detail: "list of piles",
       section: "set up all piles"
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:tableaus", line: 13,
+      detail: "list of piles",
       section: "set up all piles"
     },
     {
@@ -378,7 +365,7 @@
       path: "project:Solitaire/file:Solitaire.spell/type:Stock_Pile/method:can pick up (a card)", line: 17,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -390,6 +377,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:stock", line: 18,
+      detail: "Stock_Pile",
       section: "set up all piles"
     },
     {
@@ -402,7 +390,7 @@
       path: "project:Solitaire/file:Solitaire.spell/type:Discard_Pile/method:can pick up (a card)", line: 23,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
@@ -414,6 +402,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:discards", line: 24,
+      detail: "Discard_Pile",
       section: "set up all piles"
     },
     {
@@ -426,14 +415,14 @@
       path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:can pick up (a card)", line: 29,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/type:Foundation/method:can play (a card)", line: [30, 31],
       section: "set up all piles",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
@@ -445,6 +434,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:it", line: 38,
+      detail: "Foundation",
       section: "set up all piles"
     },
     {
@@ -457,14 +447,14 @@
       path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:can pick up (a card)", line: 45,
       section: "set up all piles",
       rules: [
-        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:simple_expression}" }
+        { name: "can_pick_up_$card", syntax: "{operator:can} pick up {expression:operand}" }
       ]
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/type:Tableau/method:can play (a card)", line: [46, 49],
       section: "set up all piles",
       rules: [
-        { name: "can_play_$card", syntax: "{operator:can} play {expression:simple_expression}" }
+        { name: "can_play_$card", syntax: "{operator:can} play {expression:operand}" }
       ]
     },
     {
@@ -476,6 +466,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/variable:deck", line: 57,
+      detail: "Deck",
       section: "set up all piles",
       description: "set up deck of cards"
     },

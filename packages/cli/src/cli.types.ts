@@ -11,23 +11,23 @@ import type {
 } from "$/ui/tools/tools.types"
 
 ////////////////
-// ## Targets
+// ## Projects
 ////////////////
 
 /**
- * What one command-line argument names -- see `resolveTarget()`.
+ * What one command-line argument names -- see `resolveProject()`.
  * - `arg`:  what was typed, for messages.
  * - `project`:  one spell project, e.g. `@library/cards`, a project folder, `@workspace`.
  * - `file`:  one `.spell` file, inside its project.
  * - `root`:  a whole project root, e.g. `@library` -- commands turn it into projects with `CliSession.projectsFor()`.
  */
-export type CliTarget =
+export type CliProject =
   | { kind: "project"; arg: string; project: SP.SpellProject }
   | { kind: "file"; arg: string; file: SP.SpellFile }
   | { kind: "root"; arg: string; title: string; projectIds: string[] }
 
-/** A `CliTarget` once any `root` has become the projects in it. */
-export type ResolvedTarget = Exclude<CliTarget, { kind: "root" }>
+/** A `CliProject` once any `root` has become the projects in it. */
+export type ResolvedProject = Exclude<CliProject, { kind: "root" }>
 
 ////////////////
 // ## Options
@@ -51,6 +51,8 @@ export type GlobalOptions = {
 export type CompileOptions = GlobalOptions & {
   stdout?: boolean
   force?: boolean
+  /** Compile to this target, this run, instead of `project.json`'s -- see `SP.TARGETS`. */
+  target?: string
 }
 
 /**
@@ -146,18 +148,22 @@ export type FormatOptions = GlobalOptions & {
 /**
  * `spell parse` flags.
  * - `rule`:  parse as this rule only, e.g. `expression`
- * - `in`:  parse inside this target's project, e.g. `@test/Solitaire`
+ * - `in`:  parse inside this project's scope, e.g. `@test/Solitaire`
  * - `json`:  print the result as JSON
+ * - `tree`:  print the spell tree (what it means), not the match tree
+ * - `html`:  with `tree`, print it as a `<ui-tree-diagram>` for a docs page
  */
 export type ParseOptions = GlobalOptions & {
   rule?: string
   in?: string
   json?: boolean
+  tree?: boolean
+  html?: boolean
 }
 
 /**
  * `spell explain` flags.
- * - `in`:  look in this target's project, too, e.g. `@test/Solitaire`
+ * - `in`:  look in this project, too, e.g. `@test/Solitaire`
  * - `json`:  print what was found as JSON
  */
 export type ExplainOptions = GlobalOptions & {
@@ -270,6 +276,7 @@ export type NewOptions = GlobalOptions & {
  * - `spellCore`:  URL of `core`'s `src/index.ts`, for `@spell/core`
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
  * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
+ * - `dom`:  run in a fake page, drawing what it draws, and print it -- see `fakeDom()` in `runProject.ts`
  */
 export type RunSpec = {
   mode: "run" | "test"
@@ -279,6 +286,7 @@ export type RunSpec = {
   spellCore: string
   verbose?: boolean
   filter?: string
+  dom?: boolean
 }
 
 /**

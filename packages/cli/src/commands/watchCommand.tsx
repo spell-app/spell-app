@@ -15,8 +15,8 @@ const SETTLE_MS = 150
 const MAX_LISTED = 12
 
 /**
- * `spell watch [target...]`:  recompile each project -- or `--check-only`, re-check it -- whenever its files change.
- * - No target:  the project here -- or, outside one, asks.  See `CliSession.defaultTarget()`.
+ * `spell watch [projects...]`:  recompile each project -- or `--check-only`, re-check it -- whenever its files change.
+ * - None named:  the project here -- or, outside one, asks.  See `CliSession.defaultProject()`.
  * - Watches each project's folder:  `.spell` and `.css` files, and `project.json`.  NOT `<Project>.compiled.js`
  *   or `<Project>.scopes.js`, which compiling writes -- the scope pack after each recompile with no errors.
  * - Changes go through the language server's workspace, so only what changed re-parses.
@@ -33,8 +33,8 @@ export async function watchCommand(
   options: CLI.WatchOptions
 ): Promise<number> {
   if (options.test && options.checkOnly) throw new CLI.CliError("--test runs what's compiled:  drop --check-only")
-  const targets = await session.targets(args)
-  const projects = [...new Set(targets.map((it) => (it.kind === "file" ? it.file.project : it.project)))]
+  const resolvedProjects = await session.projects(args)
+  const projects = [...new Set(resolvedProjects.map((it) => (it.kind === "file" ? it.file.project : it.project)))]
   const verb = options.checkOnly ? "re-checking" : "recompiling"
   const rows = new Map(
     projects.map((project) => [project, { label: project.projectId, state: "running" } as CLI.StatusRow])

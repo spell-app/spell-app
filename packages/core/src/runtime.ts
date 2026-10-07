@@ -30,8 +30,13 @@ export const runtimeMethods = defineSpellCoreModule({
   // ## Runtime State
   ////////////////
 
-  /** Global runtime state root. */
-  RUNTIME: undefined as SpellRuntimeState | undefined,
+  /**
+   * Global runtime state root.
+   * - Typed as always set:  every runner calls `resetRuntime()` before a program runs (`runCompiled()`, the
+   *   `cli`'s `runProject.ts`, tests), so compiled spell reads it bare, e.g. `spellCore.RUNTIME.trigger(...)`.
+   * - NOTE:  `undefined` until then, or after `clearRuntime()`:  `getRuntimeState()` / `clearRuntimeState()` check.
+   */
+  RUNTIME: undefined as unknown as SpellRuntimeState,
 
   /**
    * Reset `spellCore.RUNTIME`, e.g. when a project starts or a test is run.
@@ -45,10 +50,10 @@ export const runtimeMethods = defineSpellCoreModule({
     return spellCore.RUNTIME
   },
 
-  /** Clear `spellCore.RUNTIME`. */
+  /** Clear `spellCore.RUNTIME`:  unset again, as before the first `resetRuntime()` -- see `RUNTIME`. */
   clearRuntime(): void {
     if (spellCore.DEBUG_RUNTIME) console.info("Clearing spellCore.RUNTIME")
-    spellCore.RUNTIME = undefined
+    spellCore.RUNTIME = undefined as unknown as SpellRuntimeState
   },
 
   /**

@@ -3,11 +3,11 @@ import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 
 /**
- * `spell describe [target] [name] [member]`:  what the Type Explorer shows, as text -- see `describeText.ts`.
+ * `spell describe [project] [name] [member]`:  what the Type Explorer shows, as text -- see `describeText.ts`.
  * - No name:  an overview of the file or project -- each type with its members, each function and variable.
  * - `name`:  that ONE thing in full, e.g. `Card`, `test card setup`, `Suits`.  `member` picks one of its members,
  *   e.g. `spell describe Card.spell Card color`.
- * - Names match ignoring case, and spaces ~== `-` ~== `_`.  Looked for in the target first, then anywhere
+ * - Names match ignoring case, and spaces ~== `-` ~== `_`.  Looked for in the project first, then anywhere
  *   its project can see:  built-in types, imported projects.
  * - `--json` prints the explorer's own data:  the node, or the thing and its details.
  * - Returns the exit code.
@@ -18,18 +18,21 @@ export async function describeCommand(
   options: CLI.DescribeOptions
 ): Promise<number> {
   const [arg, ...names] = args
-  const targets = await session.targets(arg === undefined ? [] : [arg])
-  if (names.length && targets.length > 1) throw new CLI.CliError(`Name one project to look for '${names.join(" ")}' in`)
+  const resolvedProjects = await session.projects(arg === undefined ? [] : [arg])
+  if (names.length && resolvedProjects.length > 1)
+    throw new CLI.CliError(`Name one project to look for '${names.join(" ")}' in`)
 
   const width = process.stdout.columns || 100
   const sections: string[] = []
-  for (const target of targets) {
-    const project = target.kind === "file" ? target.file.project : target.project
+  for (const resolved of resolvedProjects) {
+    const project = resolved.kind === "file" ? resolved.file.project : resolved.project
     const tree = await session.scopeTree(project)
     const textOptions = session.describeOptions(project, tree, { ...options, width })
 
     const scope =
-      target.kind === "file" ? CLI.fileNodeFor(tree, session.workspace.uriFor(target.file)) : CLI.projectNodeOf(tree)
+      resolved.kind === "file"
+        ? CLI.fileNodeFor(tree, session.workspace.uriFor(resolved.file))
+        : CLI.projectNodeOf(tree)
     if (!scope) throw new CLI.CliError(`'${arg}' isn't parsed in its project -- is it active in ${SP.PROJECT_FILE}?`)
     if (!names.length) {
       sections.push(options.json ? JSON.stringify(scope, null, 2) : CLI.describeOverview(scope, textOptions).join("\n"))
