@@ -115,7 +115,12 @@ function openSession(session: CLI.CliSession, key: string): number {
   const every = CLI.savedSessions({ everywhere: true })
   const byId = every.filter((it) => it.id.startsWith(key))
   const hits = [
-    ...new Map((byId.length ? byId : every.filter((it) => it.title === key)).map((it) => [it.id, it])).values()
+    ...new Map(
+      (byId.length ? byId : every.filter((it) => it.title === key || CLI.bareTitle(it.title) === key)).map((it) => [
+        it.id,
+        it
+      ])
+    ).values()
   ]
   if (hits.length !== 1)
     throw new CLI.CliError(`open:  ${hits.length} sessions match '${key}';  pass more of the id`, CLI.EXIT.ERRORS)
@@ -167,14 +172,16 @@ function markDone(session: CLI.CliSession, name: string): number {
     : [{ id: me!, title: currentTitle(me!) ?? "" }]
   if (!targets.length) session.out(`no session named or in worktree ${name}`)
   for (const { id, title } of targets) {
-    const bare = title.replace(/^✅\s*/, "") || name
+    // its work's name:  the title without its icon (🚧, 📅 or an older ✅);  the queued one first, it's newer
     const queued = CLI.queuedTitle(id)
-    if (title.startsWith("✅") || queued?.startsWith("✅")) {
-      session.out(`${id.slice(0, 8)} is already done:  "${queued ?? title}"`)
+    const bare = CLI.bareTitle(queued ?? title) || name
+    const done = `${CLI.TITLE_ICONS.done} ${bare}`
+    if ((queued ?? title) === done) {
+      session.out(`${id.slice(0, 8)} is already done:  "${done}"`)
       continue
     }
-    CLI.queueTitle(id, `✅ ${bare}`)
-    session.out(`queued "✅ ${bare}" for ${id.slice(0, 8)}:  applied on its next prompt or resume`)
+    CLI.queueTitle(id, done)
+    session.out(`queued "${done}" for ${id.slice(0, 8)}:  applied on its next prompt or resume`)
   }
   return CLI.EXIT.OK
 }
