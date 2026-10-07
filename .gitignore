@@ -15,6 +15,8 @@ __pycache__/
 
 # `/park`'s note on where parked work stopped:  never committed
 PARKED-*.md
+# a checkout's running agents when it has no epic (`spell dev agents`;  an epic's:  `epics/<epic>/agents.json`)
+/.spell-agents.json
 .vitest/
 
 # `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json`):  ignored by the shared

@@ -4,9 +4,9 @@
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
- *   - pass-throughs (`plan-doc`, `goals`, `docs`, `details`, `design`, `server`, `window`, `vscode`):  a repo tool
- *     run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them directly, so they
- *     load no spell
+ *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `design`, `server`, `window`, `vscode`):
+ *     a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them directly,
+ *     so they load no spell
  *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);  run through the
  *     `runBarrel` each entry passes in
  * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
@@ -18,6 +18,7 @@ import { Command } from "commander"
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT, type GlobalOptions } from "$/cli/cli.types"
 import { DESIGN_VERBS, DOCS_VERBS } from "$/cli/dev/passThrough"
+import { agentsCommand } from "$/cli/commands/agentsCommand"
 import { designCommand } from "$/cli/commands/designCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
@@ -110,6 +111,15 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(windowCommand, rawArgs("window")))
+
+  dev
+    .command("agents")
+    .description("the running-agents list of this epic (else checkout):  what each background agent is doing")
+    .argument("[verb]", "list (default) [--json] | add <name> <task> | set <name> | done <name>")
+    .argument("[args...]", 'the verb\'s arguments, e.g. add aaa "docstrings in string.ts"')
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(agentsCommand, rawArgs("agents")))
 
   dev
     .command("vscode")
@@ -209,13 +219,15 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     )
 
   dev
-    .command("agents")
-    .description("the agents' rules:  check every WWOD citation and repo path in WWOD, AGENTS.md, CLAUDE.md and skills")
+    .command("wwod")
+    .description(
+      "WWOD, the agents' rules:  check every citation and repo path in WWOD, AGENTS.md, CLAUDE.md and skills"
+    )
     .argument("[verb]", "check (default)")
     .argument("[files...]", "check:  more files to check, beyond the default set")
     .option("--json", "check:  print the report as JSON")
     .action((verb: string | undefined, files: string[], _options, command) =>
-      runBarrel("agentsCommand", [verb ?? "check", ...files], command.optsWithGlobals())
+      runBarrel("wwodCommand", [verb ?? "check", ...files], command.optsWithGlobals())
     )
 
   return dev
@@ -255,7 +267,7 @@ export type BarrelCommand =
   | "parkCommand"
   | "stockCommand"
   | "sharedCommand"
-  | "agentsCommand"
+  | "wwodCommand"
 
 /** Runs `$/cli` command `name` for `args`, then exits with its code. */
 export type RunBarrel = (name: BarrelCommand, args: string[], options: GlobalOptions) => Promise<never>

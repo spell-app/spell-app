@@ -21,7 +21,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { SRV } from "$/server"
 
 import { Window } from "../../../scripts/window.mjs"
-import { ensurePageServer, pageFile, serverUrl } from "./pages.js"
+import { ensurePageServer, pageFile, parseArgs, serverUrl } from "./pages.js"
 
 const { positional, flags } = parseArgs(process.argv.slice(2))
 const file = positional[0] ? pageFile(positional[0]) : ""
@@ -95,16 +95,4 @@ function titleOf(file: string): string {
     .match(/<title>([^<]*)<\/title>/)?.[1]
     ?.trim()
   return (title || file.split("/").at(-1)!).replace(/[[\]]/g, "")
-}
-
-/** `--key value` flags (`--show` alone is `true`), plus everything else in order. */
-function parseArgs(argv: string[]) {
-  const positional: string[] = []
-  const flags: Record<string, string | true> = {}
-  for (let i = 0; i < argv.length; i++) {
-    if (!argv[i]!.startsWith("--")) positional.push(argv[i]!)
-    else if (i + 1 < argv.length && !argv[i + 1]!.startsWith("--")) flags[argv[i]!.slice(2)] = argv[++i]!
-    else flags[argv[i]!.slice(2)] = true
-  }
-  return { positional, flags }
 }
