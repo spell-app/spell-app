@@ -31,7 +31,11 @@ export const epicEventVocabulary = {
   ],
   events: [],
   slots: [{ name: "", description: "What happened, one line." }],
-  parts: [{ name: "base", description: "The line." }],
+  parts: [
+    { name: "base", description: "The line:  icon, time, text." },
+    { name: "icon", description: "Its icon, centred on its first line." },
+    { name: "time", description: "Its time, to the minute." }
+  ],
   states: [],
   texts: [],
   children: [{ tag: "flow", description: "What happened, one line." }]

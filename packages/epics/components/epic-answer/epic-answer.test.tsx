@@ -3,38 +3,69 @@ import { describe, expect, test } from "vite-plus/test"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { expectAccessible } from "$/ui/test/a11y"
 
+import { EpicAnswerFallback } from "./epic-answer.fallback"
+
 import "$/epics/components/epic-answer"
 
-/** The slots in `host`'s `base` part, by name (`""`:  the default one). */
-function baseSlots(host: Element): string[] {
-  return Array.from(host.shadowRoot!.querySelectorAll(`[part~="base"] slot`), (slot) => slot.getAttribute("name") ?? "")
+/** `element`'s shadow part `name`. */
+function part(element: Element, name: string): HTMLElement | null {
+  return element.shadowRoot!.querySelector<HTMLElement>(`[part~='${name}']`)
 }
 
 describe("<epic-answer>", () => {
-  test("shows its children through its `base` part's slots, and passes axe", async () => {
-    const element = await ElementFixture.render(`<epic-answer id="d1" title="Named palette"><p>Hello</p></epic-answer>`)
-    expect(baseSlots(element)).toEqual([""])
-    expect(element.querySelector("p")!.textContent).toBe("Hello")
-    await expectAccessible(element)
+  test("a card headed `Answer · <title>`, its body slotted;  passes axe", async () => {
+    const host = await ElementFixture.render(`<epic-answer title="Named palette"><p>Why</p></epic-answer>`)
+    expect(part(host, "header")!.textContent).toBe("Answer · Named palette")
+    expect(host.querySelector("p")!.assignedSlot).not.toBeNull()
+    expect(part(host, "body")!.classList.contains("empty")).toBe(false)
+    await expectAccessible(host)
+  })
+
+  test("keeps an old decision's id:  headed `D7 · ...`, and `#d7` lands on it;  no body:  the heading alone", async () => {
+    const host = await ElementFixture.render(`<epic-answer id="d7" title="Chrome"></epic-answer>`)
+    expect(part(host, "header")!.textContent).toBe("D7 · Chrome")
+    expect(document.getElementById("d7")).toBe(host)
+    expect(part(host, "body")!.classList.contains("empty")).toBe(true)
+  })
+
+  test("its native fallback draws the same heading and body, without Solid", () => {
+    const host = document.createElement("div")
+    host.setAttribute("id", "d8")
+    host.setAttribute("title", "Chrome")
+    const root = host.attachShadow({ mode: "open" })
+    EpicAnswerFallback.render(host, root)
+    expect(root.querySelector(".header")!.textContent).toBe("D8 · Chrome")
+    expect(root.querySelector(".body > slot")).not.toBeNull()
   })
 })
 
 describe("<epic-reply>", () => {
-  test("shows its children through its `base` part's slots, and passes axe", async () => {
-    const element = await ElementFixture.render(
-      `<epic-reply from="Claude" at="2026-10-06 23:55" re="as built"><p>Hello</p></epic-reply>`
+  test("headed `<from> · <at> · re: <re>`;  Owen's orange, anyone else's violet;  passes axe", async () => {
+    const claude = await ElementFixture.render(
+      `<epic-reply from="Claude" at="2026-10-06 23:55" re="as built"><p>Done</p></epic-reply>`
     )
-    expect(baseSlots(element)).toEqual([""])
-    expect(element.querySelector("p")!.textContent).toBe("Hello")
-    await expectAccessible(element)
+    const owen = await ElementFixture.render(`<epic-reply from="Owen" at="2026-10-06 10:42"><p>Why?</p></epic-reply>`)
+    expect([part(claude, "header")!.textContent, part(owen, "header")!.textContent]).toEqual([
+      "Claude · 2026-10-06 23:55 · re: as built",
+      "Owen · 2026-10-06 10:42"
+    ])
+    expect([part(claude, "base")!.className, part(owen, "base")!.className]).toEqual(["reply", "reply owen"])
+    await expectAccessible(claude)
   })
 })
 
 describe("<epic-more>", () => {
-  test("shows its children through its `base` part's slots, and passes axe", async () => {
-    const element = await ElementFixture.render(`<epic-more><p>Hello</p></epic-more>`)
-    expect(baseSlots(element)).toEqual([""])
-    expect(element.querySelector("p")!.textContent).toBe("Hello")
-    await expectAccessible(element)
+  test("a card headed More Details, open to start with;  its heading folds it;  passes axe", async () => {
+    const host = await ElementFixture.render(`<epic-more><p>More</p></epic-more>`)
+    const toggle = part(host, "toggle")!
+    expect([toggle.textContent, host.matches(":state(open)"), part(host, "body")!.hasAttribute("hidden")]).toEqual([
+      "More Details",
+      true,
+      false
+    ])
+    await expectAccessible(host)
+    toggle.click()
+    await ElementFixture.tick()
+    expect([host.matches(":state(open)"), part(host, "body")!.getAttribute("hidden")]).toEqual([false, "until-found"])
   })
 })

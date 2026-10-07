@@ -30,8 +30,15 @@ export const epicChoicesVocabulary = {
   ],
   events: [],
   slots: [{ name: "", description: "The options." }],
-  parts: [{ name: "base", description: "The cards." }],
-  states: [],
-  texts: [],
+  parts: [
+    { name: "base", description: "The cards side by side;  answered, the folded Choices aside." },
+    { name: "toggle", description: "Answered:  the `Choices` `<button>` that folds the options." },
+    { name: "panels", description: "Answered:  the box of option panels, hidden while folded." }
+  ],
+  states: [
+    { name: "answered", description: "Its question is answered (`chosen`, or `answered` on its item):  folded." },
+    { name: "open", description: "Answered, and its options unfolded." }
+  ],
+  texts: [{ key: "choices", text: "Choices", description: "The answered question's options' heading." }],
   children: [{ tag: "epic-option", min: 1, description: "The options, `A`, `B` ..." }]
 } as const satisfies EpicVocabulary

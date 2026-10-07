@@ -31,8 +31,15 @@ export const epicCommitVocabulary = {
   ],
   events: [],
   slots: [{ name: "", description: "What it did, one or two sentences." }],
-  parts: [{ name: "base", description: "The line." }],
+  parts: [
+    { name: "base", description: "The commit:  its heading (the first commit only), then its line." },
+    { name: "heading", description: "`Commits:` with its icon, over the first of a run of commits." },
+    { name: "sha", description: "The short sha:  a link when the page has a `repo`." }
+  ],
   states: [],
-  texts: [],
+  texts: [
+    { key: "heading", text: "Commits:", description: "Over the first commit of a run." },
+    { key: "open", text: "Open {sha} on GitHub", description: "The sha link's tooltip." }
+  ],
   children: [{ tag: "flow", description: "What it did, one or two sentences." }]
 } as const satisfies EpicVocabulary

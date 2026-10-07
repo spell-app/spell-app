@@ -1,16 +1,83 @@
 /*
- * `<epic-section>`:  a plan doc's section.  P4:  blocks, nothing drawn yet (P5 draws them).
- * - Public tokens (`--epic-section-*`) are never declared here:  read through private aliases
- *   (`--_epic-section-gap: var(--epic-section-gap, 1em)`).
+ * `<epic-section>` (EpicSection.tsx):  a plan doc's section, on top of the fold (`epic-fold.css`).
+ * - The page's sections:  titles on the section band, a roomy gap below an open one.
+ * - An Overview sub-section (`kind="overview-part"`):  a nested title on the row band, reaching past its parent's
+ *   inset, edge to edge;  a smaller gap below.
+ * - Public tokens (`--epic-section-*`) are never declared here:  read through private aliases.
  */
 
-@layer ui.components.epic-section.types;
+@layer ui.components.epic-section.content;
 
-@layer ui.components.epic-section.types {
+@layer ui.components.epic-section.content {
   :host {
-    display: block;
+    --_epic-fold-band: var(--epic-band-section, transparent);
+    --_epic-fold-gap: var(--epic-section-gap, 28px);
   }
-  :host([hidden]) {
-    display: none;
+  :host([kind="overview-part"]) {
+    --_epic-fold-band: var(--epic-band-row, transparent);
+    --_epic-fold-gap: 14px;
+    --_epic-fold-bleed: var(--epic-inset, 16px);
+  }
+  :host([kind="overview-part"]) ui-section {
+    --ui-section-title-padding: 8px var(--epic-inset, 16px);
+    --ui-section-content-padding: 8px var(--epic-inset, 16px) 0;
+  }
+  /* the phases' own bands reach edge to edge:  their section's content keeps no inset of its own around them */
+  :host([kind="phases"]) ui-section {
+    --ui-section-content-padding: 6px var(--epic-inset, 16px) 0;
+  }
+  /* the log:  one-liners, a size down */
+  :host([kind="log"]) .body {
+    font-size: 14px;
+  }
+
+  /* an Overview sub-section's number, quieter than its title */
+  .number {
+    color: var(--epic-muted, var(--ui-text-muted));
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ## The Phases title's toggles:  bare icons, square, muted;  the accent while pressed */
+  .tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .toggle {
+    display: inline-grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--epic-muted, var(--ui-text-muted));
+    cursor: pointer;
+  }
+  .toggle svg {
+    display: block;
+    width: auto;
+    height: 14px;
+    fill: currentColor;
+  }
+  .toggle:hover {
+    background: var(--epic-accent-soft, var(--ui-primary-background));
+  }
+  .toggle[aria-pressed="true"] {
+    color: var(--epic-accent, var(--ui-link));
+  }
+  .toggle:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+
+  /* ## An item section with no items */
+  .empty {
+    margin: 0 0 4px;
+    color: var(--epic-muted, var(--ui-text-muted));
+    font-size: 15px;
+    font-style: italic;
   }
 }

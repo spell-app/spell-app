@@ -39,8 +39,14 @@ export const epicAnswerVocabulary = {
   ],
   events: [],
   slots: [{ name: "", description: "The answer, and why." }],
-  parts: [{ name: "base", description: "The card." }],
+  parts: [
+    { name: "base", description: "The card." },
+    { name: "header", description: "Its heading band:  `Answer · <title>`." },
+    { name: "label", description: "`Answer`, or the old decision's id (`D7`)." },
+    { name: "title", description: "The title." },
+    { name: "body", description: "The answer, and why;  not drawn when empty." }
+  ],
   states: [],
-  texts: [],
+  texts: [{ key: "answer", text: "Answer", description: "The card's label, without an old decision's id." }],
   children: [{ tag: "flow", description: "The answer, and why." }]
 } as const satisfies EpicVocabulary

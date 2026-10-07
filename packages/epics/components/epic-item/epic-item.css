@@ -1,16 +1,257 @@
 /*
- * `<epic-item>`:  a plan doc's item.  P4:  blocks, nothing drawn yet (P5 draws them).
- * - Public tokens (`--epic-item-*`) are never declared here:  read through private aliases
- *   (`--_epic-item-gap: var(--epic-item-gap, 1em)`).
+ * `<epic-item>` (EpicItem.tsx):  a plan doc's item -- its line (chevron, id chip, title, review label, actions) and
+ * its details, the light-DOM prose and parts through the default slot.
+ * - Shared look from `<epic-page>`'s `:host` (custom properties inherit through shadow roots);  each read with a
+ *   private fallback, so an item draws right on its own:  `--epic-state-<state>` / `--epic-state-<state>-on` (the id
+ *   chip's colours), `--epic-chip-font-size`, `--epic-chip-height`, `--epic-band-row` (the line's band),
+ *   `--epic-stack` (how far below the window's top an open item's line sticks:  the stuck section titles).
+ * - Every box on the line sits in a `.cell` one line tall, centred in it:  so the chevron, chip and label centre on
+ *   the title's FIRST line, however many lines it wraps to.
+ * - Public tokens (`--epic-item-*`) are never declared here:  read through private aliases.
  */
 
-@layer ui.components.epic-item.types;
+@layer ui.components.epic-item.types, ui.components.epic-item.states;
 
 @layer ui.components.epic-item.types {
   :host {
+    /* the line's text:  rows to scan, a little under the page's prose */
+    --_epic-item-line-size: var(--epic-item-line-size, 0.92em);
+    --_epic-item-line-height: 1.45;
+    /* where the details start:  under the id chip (the chevron's 18px, the line's 2px padding, a 6px gap) */
+    --_epic-item-indent: var(--epic-item-indent, 26px);
+    --_epic-item-rule: var(--epic-rule, var(--ui-border-color, light-dark(#e3e0d8, #34343b)));
+    /* opaque:  the open line sticks, and the text scrolls under it */
+    --_epic-item-band: var(
+      --epic-band-row,
+      color-mix(in oklab, var(--ui-violet, #6550ca) 4%, var(--ui-background, Canvas))
+    );
+    --_epic-item-muted: var(--ui-text-muted, GrayText);
+    --_epic-chip-size: var(--epic-chip-font-size, 0.8em);
+    --_epic-chip-height: var(--epic-chip-height, 1.6em);
     display: block;
+    border-top: 1px solid var(--_epic-item-rule);
+  }
+  :host(:first-of-type) {
+    border-top: none;
   }
   :host([hidden]) {
     display: none;
+  }
+
+  .item {
+    /* the chip's colours, by state (below);  `open` until one applies */
+    --_epic-state: var(--epic-state-open, var(--ui-blue, #2185d0));
+    --_epic-state-on: var(--epic-state-open-on, var(--ui-blue-on, #fff));
+  }
+
+  /* ## The line:  its band fills the row, rule to rule, so the items read as rows */
+  .line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 6px;
+    padding: 5px 6px 5px 2px;
+    background: var(--_epic-item-band);
+    font-size: var(--_epic-item-line-size);
+    line-height: var(--_epic-item-line-height);
+  }
+  .item.has-details > .line {
+    cursor: pointer;
+  }
+  /* open:  the line sticks below the section titles stuck above it, opaque, until the details' end */
+  .item.unfolded > .line {
+    position: sticky;
+    z-index: 1;
+    top: var(--epic-stack, calc(var(--spell-site-header-height, 0px) + var(--spell-stack, 0px)));
+  }
+  /* one line tall, its box centred:  what sits in it centres on the title's first line */
+  .cell {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    height: calc(var(--_epic-item-line-height) * 1em);
+  }
+  .fold {
+    justify-content: center;
+    width: 18px;
+  }
+  .toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: var(--_epic-item-muted);
+    cursor: pointer;
+  }
+  .toggle:hover {
+    color: var(--ui-text-color, CanvasText);
+  }
+  .toggle:focus-visible {
+    outline: 2px solid var(--ui-focus-color, Highlight);
+    outline-offset: 0;
+  }
+  .toggle svg {
+    display: block;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: rotate 0.12s;
+  }
+  .item.unfolded .toggle svg {
+    rotate: 90deg;
+  }
+
+  /* the id chip:  a pill in its state's colour, its text centred both ways */
+  .chip {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.1em;
+    height: var(--_epic-chip-height);
+    padding: 0 0.6em;
+    border-radius: 999px;
+    background: var(--_epic-state);
+    color: var(--_epic-state-on);
+    font: 600 var(--_epic-chip-size) / 1 var(--ui-font-family-mono, ui-monospace, "SF Mono", Menlo, monospace);
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .chip:focus-visible {
+    outline: 2px solid var(--ui-focus-color, Highlight);
+    outline-offset: 1px;
+  }
+
+  .title {
+    flex: 1 1 10em;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  /* a title with markup:  its links read as text, as today's */
+  ::slotted(a) {
+    color: inherit;
+  }
+
+  /* the end of the line:  the review label, then P9's buttons;  wraps under the title, at the right, when narrow */
+  .extras {
+    gap: 4px;
+    margin-inline-start: auto;
+  }
+  .extras[hidden] {
+    display: none;
+  }
+  .review {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    height: 1.5em;
+    padding: 0 0.6em;
+    border: 1px solid var(--_epic-review-border);
+    border-radius: 999px;
+    color: var(--_epic-review-text);
+    font-size: 0.72em;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .review.todo {
+    --_epic-review-border: var(--ui-orange-border, var(--ui-orange));
+    --_epic-review-text: var(--ui-orange-text, var(--ui-orange));
+  }
+  .review.recent {
+    --_epic-review-border: var(--ui-green-border, var(--ui-green));
+    --_epic-review-text: var(--ui-green-text, var(--ui-green));
+  }
+  .review:is(.old, .deferred) {
+    --_epic-review-border: var(--ui-border-color-strong, var(--_epic-item-rule));
+    --_epic-review-text: var(--_epic-item-muted);
+  }
+
+  /* ## The details:  smaller type and tighter spacing than the page's prose, under the id chip */
+  .details {
+    padding: 6px 6px 10px var(--_epic-item-indent);
+    font-size: 0.9em;
+    line-height: 1.45;
+  }
+  .details[hidden] {
+    display: none;
+  }
+  .details[hidden="until-found"] {
+    display: block;
+    content-visibility: hidden;
+    padding: 0;
+  }
+  ::slotted(:is(p, ul, ol)) {
+    margin-block: 0.35em;
+  }
+  ::slotted(:is(ul, ol)) {
+    padding-inline-start: 1.3em;
+  }
+  /* the first of the details:  the first child that isn't headed for a named slot (`slot="title"`) */
+  ::slotted(:nth-child(1 of :not([slot]))) {
+    margin-top: 0;
+  }
+  ::slotted(:last-child) {
+    margin-bottom: 0;
+  }
+  /* "Original question" / "Original reply":  a small eyebrow over the item's own text */
+  .label {
+    margin-bottom: 2px;
+    color: var(--_epic-item-muted);
+    font-size: 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+  .note {
+    margin: 0 0 4px;
+    color: var(--_epic-item-muted);
+    font-size: 0.95em;
+    font-style: italic;
+  }
+}
+
+@layer ui.components.epic-item.states {
+  /*
+   * Where it stands, as its chip's colour (plan doc `review-review`, 1.4):  red needs Owen, orange in progress, blue
+   * open and not urgent, green decided or reviewed lately, grey earlier -- a quiet tint, as most of a long doc is
+   * history.  Red keeps its light hue in dark mode:  dark's lighter red reads as the orange beside it.
+   */
+  .item.attention {
+    --_epic-state: var(--epic-state-attention, light-dark(var(--ui-red), var(--ui-red-on-light)));
+    --_epic-state-on: var(--epic-state-attention-on, light-dark(var(--ui-red-on), var(--ui-ink-on-dark)));
+  }
+  .item.progress {
+    --_epic-state: var(--epic-state-progress, var(--ui-orange));
+    --_epic-state-on: var(--epic-state-progress-on, var(--ui-orange-on));
+  }
+  .item.recent {
+    --_epic-state: var(--epic-state-recent, var(--ui-green));
+    --_epic-state-on: var(--epic-state-recent-on, var(--ui-green-on));
+  }
+  .item.old {
+    --_epic-state: var(--epic-state-old, var(--ui-grey-background));
+    --_epic-state-on: var(--epic-state-old-on, var(--ui-grey-text));
+  }
+  /* still wants a look:  a bolder title;  decided or reviewed earlier:  a quieter one */
+  .item:is(.attention, .progress, .open) .title {
+    font-weight: 600;
+  }
+  .item.old .title {
+    color: var(--_epic-item-muted);
+  }
+  /* the ONE struck-through status:  `canceled`, made moot;  `done` stays unstruck */
+  .item.canceled .title {
+    text-decoration: line-through;
   }
 }

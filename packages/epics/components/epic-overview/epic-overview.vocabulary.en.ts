@@ -1,10 +1,19 @@
 /**
  * Every name `<epic-overview>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type` only.
+ * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from `epic-section`'s types file, data too.
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
+
+// the fold pieces every folding block shares
+import {
+  FOLD_EVENTS,
+  FOLD_OPEN_ATTRIBUTE,
+  FOLD_PARTS,
+  FOLD_STATES,
+  FOLD_TEXTS
+} from "$/epics/components/epic-section/epic-section.types"
 
 /****************
  * ### `<epic-overview>`
@@ -35,9 +44,10 @@ export const epicOverviewVocabulary = {
       description:
         "The total estimate, as the script adds it up from the phases (`4h-5h 30m in all, 2h-3h left (P5 not " +
         "estimated)`).  Absent before the first phase."
-    }
+    },
+    FOLD_OPEN_ATTRIBUTE
   ],
-  events: [],
+  events: [...FOLD_EVENTS],
   slots: [
     { name: "", description: 'The sub-sections:  `<epic-section kind="overview-part">`s.' },
     { name: "summary", description: 'The summary, two sentences:  `<p slot="summary">`.' },
@@ -46,9 +56,18 @@ export const epicOverviewVocabulary = {
       description: 'The prompt that started the plan, as typed:  `<blockquote slot="prompt">`;  drawn folded.'
     }
   ],
-  parts: [{ name: "base", description: "The section." }],
-  states: [],
-  texts: [],
+  parts: [
+    ...FOLD_PARTS,
+    { name: "prompt", description: "The folded Kickoff prompt:  a `<details>` around the `prompt` slot." },
+    { name: "estimate", description: "The estimate line." }
+  ],
+  states: [...FOLD_STATES],
+  texts: [
+    ...FOLD_TEXTS,
+    { key: "title", text: "Overview", description: "Its title, after its number." },
+    { key: "prompt", text: "Kickoff prompt", description: "The folded prompt's title." },
+    { key: "estimate", text: "Estimate:", description: "Before the estimate." }
+  ],
   children: [
     { tag: "flow", slot: "summary", max: 1, description: "The summary." },
     { tag: "flow", slot: "prompt", max: 1, description: "The kickoff prompt." },

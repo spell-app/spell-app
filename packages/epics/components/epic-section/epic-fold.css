@@ -1,0 +1,145 @@
+/*
+ * The FOLD every folding block shares (`EpicFold.tsx`):  `<epic-overview>`, `<epic-section>`, `<epic-phase>`.  Each
+ * adopts this sheet before its own.
+ * - The title bar and fold are a `<ui-section>` in the shadow root, styled from here through its PUBLIC tokens
+ *   (set on it:  they inherit into its shadow root) and `::part()`.
+ * - Owen's rule (Q16):  a FOLDED block has NO gap below it and a grey rule along its bottom;  an open one keeps
+ *   `--_epic-fold-gap` below its content.  So space is always BELOW a block, never above:  a folded block sits
+ *   right under the one before.
+ * - Per block, its own sheet sets:  `--_epic-fold-gap` (below it, open), `--_epic-fold-band` (its title's band),
+ *   `--_epic-fold-bleed` (how far it reaches past its parent's inset:  nested blocks' bands run edge to edge).
+ * - The pack's tokens (`--epic-*`) come from `<epic-page>`;  each has a fallback here, for a block outside a page.
+ */
+
+@layer ui.components.epic-fold.types, ui.components.epic-fold.content;
+
+@layer ui.components.epic-fold.types {
+  :host {
+    display: block;
+    margin-inline: calc(-1 * var(--_epic-fold-bleed, 0px));
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /* folded:  no gap, a grey rule along its bottom (before it's defined too:  no state yet reads as folded) */
+  :host(:not(:state(open))) {
+    border-bottom: 1px solid var(--epic-rule, var(--ui-border-color));
+  }
+  :host(:state(open)) {
+    margin-block-end: var(--_epic-fold-gap, 28px);
+  }
+}
+
+@layer ui.components.epic-fold.content {
+  ui-section {
+    --ui-section-margin: 0;
+    --ui-section-dividing-border: none;
+    --ui-section-title-padding: 10px var(--epic-inset, 16px);
+    --ui-section-title-gap: 10px;
+    --ui-section-title-color: var(--_epic-fold-title-color, var(--epic-heading-ink, var(--ui-text-color)));
+    --ui-section-title-line-height: 1.25;
+    --ui-section-h2: 1.5;
+    --ui-section-h3: 1.15;
+    --ui-section-h4: 1;
+    --ui-section-content-padding: 12px var(--epic-inset, 16px) 0;
+    /* the band, laid over the page's background:  a stuck title covers what scrolls under it */
+    --ui-section-sticky-background: linear-gradient(
+        var(--_epic-fold-band, transparent),
+        var(--_epic-fold-band, transparent)
+      )
+      var(--epic-bg, var(--ui-background));
+    --ui-section-stuck-shadow: none;
+    /* under the page header (5);  nested titles slide under their parents' (Spell UI subtracts the depth) */
+    --ui-section-z-index: 4;
+    --ui-section-fold-icon-size: 12px;
+    /* Material's convention (Owen, J5 of `review-review`):  open, the chevron points UP;  folded, DOWN */
+    --ui-section-fold-icon-rotate: 180deg;
+    --ui-section-fold-icon-folded-rotate: 0deg;
+    --ui-section-tip-width: 340px;
+    --ui-font-family-heading: var(--epic-serif, var(--ui-font-family-heading));
+    display: block;
+  }
+  ui-section::part(title) {
+    letter-spacing: -0.012em;
+  }
+  ui-section::part(toggle) {
+    align-items: center;
+  }
+  ui-section::part(icon) {
+    color: var(--epic-accent, var(--ui-link));
+  }
+  ui-section::part(fold-icon) {
+    color: var(--epic-muted, var(--ui-text-muted));
+  }
+  ui-section::part(header) {
+    overflow-wrap: break-word;
+  }
+  /* the estimate:  a small pill, its digits centred */
+  ui-section::part(badge) {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    box-sizing: border-box;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--epic-card, var(--ui-surface));
+    box-shadow: inset 0 0 0 1px var(--epic-rule, var(--ui-border-color));
+    color: var(--epic-muted, var(--ui-text-muted));
+    font: 600 12px/1 var(--epic-sans, var(--ui-font-family));
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+  }
+  ui-section::part(actions) {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+  }
+  /*
+   * the content clips its block edges (the fold animation):  a card's border drawn past its box would lose its
+   * bottom edge;  the clip reaches a few px past it (`spell-doc.css` did the same for every section)
+   */
+  ui-section::part(content) {
+    overflow: clip;
+    overflow-clip-margin: 6px;
+    line-height: 1.6;
+  }
+
+  /* the title's icon:  a slotted glyph, centred on the title's row */
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon svg {
+    display: block;
+    width: auto;
+    height: 0.9em;
+    fill: currentColor;
+  }
+  .header {
+    display: inline;
+  }
+
+  /* the children's box */
+  .body {
+    display: block;
+  }
+  /* the part can't load:  as today's placeholder line */
+  .note {
+    margin: 0 0 8px;
+    color: var(--epic-muted, var(--ui-text-muted));
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  /* ## Narrow (VS Code's side bar, a phone):  smaller titles, so a stuck stack leaves room to read */
+  @container epic-page (max-width: 480px) {
+    ui-section {
+      --ui-section-h2: 1.25;
+      --ui-section-h3: 1.05;
+      --ui-section-title-gap: 8px;
+      --ui-section-tip-width: 240px;
+    }
+  }
+}

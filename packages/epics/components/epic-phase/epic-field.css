@@ -1,0 +1,126 @@
+/*
+ * `<epic-field>` (EpicField.tsx) and `<epic-updated>` (EpicUpdated.tsx):  a phase's lines.
+ * - One shape for both:  an icon column, the icon centred on the FIRST line (`1lh` tall), then the label and the
+ *   prose wrapping beside it.  A field's prose starting with a `<p>` runs on after its label;  lists drop below.
+ * - Files and Verify hide until the Phases title's toggles show them:  `--epic-files-display` /
+ *   `--epic-verify-display`, inherited from the Phases section (`block`), else `none`.
+ * - `<epic-updated>`:  fenced, a dashed orange box (Owen, 2026-10-06:  never an "Updated" word buried in the text).
+ * - Public tokens (`--epic-field-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-field.types, ui.components.epic-field.content;
+
+@layer ui.components.epic-field.types {
+  :host {
+    display: block;
+    margin: 0 0 6px;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  :host([name="files"]) {
+    display: var(--epic-files-display, none);
+  }
+  :host([name="verify"]) {
+    display: var(--epic-verify-display, none);
+  }
+}
+
+@layer ui.components.epic-field.content {
+  .field,
+  .updated {
+    display: grid;
+    grid-template-columns: 1.25em minmax(0, 1fr);
+    column-gap: 8px;
+    line-height: 1.55;
+  }
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1lh;
+    color: var(--epic-muted, var(--ui-text-muted));
+  }
+  .icon svg {
+    display: block;
+    width: auto;
+    height: 0.95em;
+    fill: currentColor;
+  }
+  .text {
+    min-width: 0;
+  }
+  .label {
+    color: var(--epic-ink, var(--ui-text-color));
+  }
+
+  /* the prose:  a first paragraph runs on after the label;  lists and later paragraphs below, close under it */
+  ::slotted(p) {
+    margin: 4px 0 0;
+  }
+  ::slotted(p:first-child) {
+    display: inline;
+    margin: 0;
+  }
+  ::slotted(:is(ul, ol)) {
+    margin: 2px 0 4px;
+    padding-left: 1.2em;
+  }
+
+  /* ## To review:  each link a chip in its item's state colour (`data-spell-state`, set by the field) */
+  :host([name="to-review"]) ::slotted(a[href^="#"]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 2.6em;
+    height: var(--epic-chip-height, 1.6em);
+    padding: 0 6px;
+    border-radius: var(--epic-chip-radius, 999px);
+    background: var(--_epic-chip-background, var(--epic-accent-soft, var(--ui-primary-background)));
+    /* `!important`:  the page's link rules (`.spell-doc-main a`) are the outer tree, which beats `::slotted()`;  an
+       important declaration of the inner tree wins back */
+    color: var(--_epic-chip-color, var(--epic-accent, var(--ui-link))) !important;
+    font: 600 var(--epic-chip-font-size, 0.8em)/1 var(--epic-mono, var(--ui-font-family-mono));
+    text-decoration: none !important;
+    vertical-align: middle;
+  }
+  ::slotted(a[data-spell-state="attention"]) {
+    --_epic-chip-background: var(--epic-state-attention);
+    --_epic-chip-color: var(--epic-state-attention-on);
+  }
+  ::slotted(a[data-spell-state="open"]) {
+    --_epic-chip-background: var(--epic-state-open);
+    --_epic-chip-color: var(--epic-state-open-on);
+  }
+  ::slotted(a[data-spell-state="progress"]) {
+    --_epic-chip-background: var(--epic-state-progress);
+    --_epic-chip-color: var(--epic-state-progress-on);
+  }
+  ::slotted(a[data-spell-state="recent"]) {
+    --_epic-chip-background: var(--epic-state-recent);
+    --_epic-chip-color: var(--epic-state-recent-on);
+  }
+  ::slotted(a[data-spell-state="old"]) {
+    --_epic-chip-background: var(--epic-state-old);
+    --_epic-chip-color: var(--epic-state-old-on);
+  }
+
+  /* ## `<epic-updated>`:  the fence */
+  .updated {
+    margin: 0;
+    padding: 6px 10px;
+    border: 1px dashed color-mix(in srgb, var(--ui-orange) 60%, transparent);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--ui-orange) 6%, var(--epic-bg, var(--ui-background)));
+  }
+  .updated .icon {
+    color: var(--ui-orange-text, var(--ui-orange));
+  }
+  time,
+  .during {
+    margin-left: 4px;
+    color: var(--epic-muted, var(--ui-text-muted));
+    font: 0.85em var(--epic-mono, var(--ui-font-family-mono));
+  }
+}

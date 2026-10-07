@@ -23,8 +23,12 @@ export const epicMoreVocabulary = {
   attributes: [],
   events: [],
   slots: [{ name: "", description: "What the item's text left out." }],
-  parts: [{ name: "base", description: "The card." }],
-  states: [],
-  texts: [],
+  parts: [
+    { name: "base", description: "The card." },
+    { name: "toggle", description: "Its `More Details` `<button>`, which folds it." },
+    { name: "body", description: "What the item's text left out;  hidden while folded." }
+  ],
+  states: [{ name: "open", description: "Unfolded:  it starts so." }],
+  texts: [{ key: "more", text: "More Details", description: "The card's heading." }],
   children: [{ tag: "flow", description: "What the item's text left out." }]
 } as const satisfies EpicVocabulary

@@ -4,17 +4,16 @@ import { epicSectionVocabulary } from "./epic-section.vocabulary.en"
 
 /****************
  * ### `EpicSectionFallback`
- * The same box without Solid:  its slots, in the `base` part, so `epic-section.css` draws it unchanged.
+ * The section without Solid:  a plain, UNFOLDED heading (its title, or its kind), then its children -- no fold, no
+ * sticky line, nothing loaded from `source`.  In the `base` part, so the fold sheet's box rules still apply.
  ****************/
 export class EpicSectionFallback extends NativeFallback<typeof epicSectionVocabulary> {
   @proto static vocabulary = epicSectionVocabulary
 
   protected override build() {
-    return [
-      this.decorate(
-        this.create("div", { class: this.classes() }, this.create("slot", { name: "title" }), this.slot()),
-        "base"
-      )
-    ]
+    const nested = this.attr("kind") === "overview-part"
+    const words = this.attr("title") ?? this.attr("kind") ?? ""
+    const heading = this.create(nested ? "h3" : "h2", {}, this.create("slot", { name: "title" }, words))
+    return [this.decorate(this.create("div", { class: this.classes() }, heading, this.slot()), "base")]
   }
 }

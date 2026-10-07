@@ -1,16 +1,201 @@
 /*
- * `<epic-choices>`, `<epic-option>`:  a question's option cards.  P4:  blocks, nothing drawn yet (P5 draws them).
- * - Public tokens (`--epic-choices-*`) are never declared here:  read through private aliases
- *   (`--_epic-choices-gap: var(--epic-choices-gap, 1em)`).
+ * `<epic-choices>` (EpicChoices.tsx), `<epic-option>` (EpicOption.tsx):  a question's options -- cards side by side
+ * while it's open;  answered, folded under a `Choices` aside, a panel each, the chosen one green and open.
+ * - ONE sheet for both tags:  `:host(epic-choices)` / `:host(epic-option)` where the hosts differ.
+ * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:  `--epic-part-gap` (between an item's
+ *   parts), `--epic-aside` (the asides' warm fill), `--epic-rule`, `--epic-band-row`.
+ * - Public tokens (`--epic-choices-*`) are never declared here:  read through private aliases.
  */
 
-@layer ui.components.epic-choices.types;
+@layer ui.components.epic-choices.types, ui.components.epic-choices.states;
 
 @layer ui.components.epic-choices.types {
   :host {
+    --_epic-choices-rule: var(--epic-rule, var(--ui-border-color, light-dark(#e3e0d8, #34343b)));
+    --_epic-choices-muted: var(--ui-text-muted, GrayText);
+    --_epic-choices-aside: var(--epic-aside, var(--ui-accent-background, light-dark(#faf5ea, #2c2152)));
+    --_epic-choices-card: var(--ui-surface, Canvas);
+    --_epic-choices-band: color-mix(in oklab, var(--ui-text-color, CanvasText) 4%, var(--_epic-choices-card));
     display: block;
   }
   :host([hidden]) {
     display: none;
+  }
+  :host(epic-choices) {
+    margin-top: var(--epic-part-gap, 8px);
+  }
+  :host(epic-option) {
+    min-width: 0;
+  }
+
+  /* the fold chevron (`Chevron()`):  right while folded, down while open */
+  .chevron {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    margin-block: calc((1lh - 12px) / 2);
+    color: var(--_epic-choices-muted);
+    transition: rotate 0.12s;
+  }
+  button:focus-visible {
+    outline: 2px solid var(--ui-focus-color, Highlight);
+    outline-offset: -2px;
+  }
+
+  /* ## An open question:  the cards side by side, as many as fit at 14em;  one column when narrow */
+  .choices:not(.answered) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14em), 1fr));
+    gap: 8px;
+  }
+  .card {
+    box-sizing: border-box;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--_epic-choices-rule);
+    border-radius: 10px;
+    background: var(--_epic-choices-card);
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: 0.9em;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .card > .header {
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--_epic-choices-rule);
+    background: var(--_epic-choices-band);
+  }
+  /* the chevron and check centre on the title's FIRST line (`1lh`), however many lines it wraps to */
+  .toggle {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: flex-start;
+    gap: 6px;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    text-align: start;
+  }
+  .title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .recommended {
+    color: var(--_epic-choices-muted);
+    font-weight: 400;
+  }
+  /* P9's Choose pill:  at the header's end */
+  .actions {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    margin-inline-start: auto;
+  }
+  .actions[hidden] {
+    display: none;
+  }
+  .body {
+    padding: 8px 10px;
+  }
+  .body.empty {
+    display: none;
+  }
+  ::slotted(:is(p, ul, ol)) {
+    margin-block: 0.35em;
+  }
+  ::slotted(:is(ul, ol)) {
+    padding-inline-start: 1.2em;
+  }
+  /* the first of the body:  the first child that isn't headed for a named slot (`slot="title"`) */
+  ::slotted(:nth-child(1 of :not([slot]))) {
+    margin-top: 0;
+  }
+  ::slotted(:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* ## Answered:  a warm `Choices` aside, folded;  inside, one box of panels, a rule between them */
+  .choices.answered {
+    border-radius: 12px;
+    background: var(--_epic-choices-aside);
+  }
+  .choices.answered > .toggle {
+    width: 100%;
+    padding: 7px 12px;
+    border-radius: 12px;
+    color: var(--ui-text-dark, inherit);
+    font: 600 1em / 1.35 var(--ui-font-family-heading, inherit);
+    cursor: pointer;
+  }
+  .panels {
+    margin: 0 8px 8px;
+    overflow: hidden;
+    border: 1px solid var(--_epic-choices-rule);
+    border-radius: 10px;
+    background: var(--_epic-choices-card);
+  }
+  .panels[hidden] {
+    display: block;
+    content-visibility: hidden;
+    margin: 0;
+    border: none;
+  }
+  :host(epic-option:not(:first-of-type)) .panel {
+    border-top: 1px solid var(--_epic-choices-rule);
+  }
+  .panel > .header {
+    padding: 5px 8px;
+    background: var(--_epic-choices-band);
+  }
+  .panel .toggle {
+    cursor: pointer;
+  }
+  .panel > .body {
+    padding: 6px 10px 8px 26px;
+  }
+  .panel > .body[hidden] {
+    display: block;
+    content-visibility: hidden;
+    padding: 0;
+  }
+  .check {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    margin-block: calc((1lh - 12px) / 2);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+@layer ui.components.epic-choices.states {
+  .choices.answered:has(> .panels:not([hidden])) > .toggle .chevron,
+  .panel:has(> .body:not([hidden])) .chevron {
+    rotate: 90deg;
+  }
+  /* the chosen option:  a check in front, its header in green text, not a frame */
+  .panel.chosen > .header {
+    color: var(--ui-green-text, var(--ui-green));
+  }
+  .card.chosen {
+    border-color: var(--ui-green-border, var(--ui-green));
   }
 }

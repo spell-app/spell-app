@@ -32,8 +32,15 @@ export const epicUpdatedVocabulary = {
   ],
   events: [],
   slots: [{ name: "", description: "What changed in the plan, and why." }],
-  parts: [{ name: "base", description: "The fenced line." }],
+  parts: [
+    { name: "base", description: "The fence:  a dashed orange box." },
+    { name: "icon", description: "Its icon, centred on its first line." },
+    { name: "label", description: "`Updated`, then its time." }
+  ],
   states: [],
-  texts: [],
+  texts: [
+    { key: "updated", text: "Updated", description: "Its label." },
+    { key: "during", text: "during P{phase}", description: "After its time:  the phase under way then." }
+  ],
   children: [{ tag: "flow", description: "What changed in the plan, and why." }]
 } as const satisfies EpicVocabulary

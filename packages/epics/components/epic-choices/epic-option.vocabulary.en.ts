@@ -38,11 +38,25 @@ export const epicOptionVocabulary = {
   events: [],
   slots: [
     { name: "", description: "Its pros and cons." },
-    { name: "title", description: "A title with markup, in place of `title`." }
+    { name: "title", description: "A title with markup, in place of `title`." },
+    { name: "actions", description: "At the end of its header:  the Choose pill (P9).  Page state only." }
   ],
-  parts: [{ name: "base", description: "The card." }],
-  states: [],
-  texts: [],
+  parts: [
+    { name: "base", description: "The card;  answered, a panel." },
+    { name: "header", description: "Its header:  letter, title, `(recommended)`, actions." },
+    { name: "toggle", description: "Answered:  the `<button>` that folds the panel (its header's text)." },
+    { name: "check", description: "Answered and chosen:  the check before its letter." },
+    { name: "title", description: "`A · A named palette`." },
+    { name: "recommended", description: "`(recommended)`." },
+    { name: "actions", description: "The box around the `actions` slot." },
+    { name: "body", description: "Its pros and cons;  answered, hidden while folded." }
+  ],
+  states: [
+    { name: "answered", description: "Its question is answered:  a panel under Choices." },
+    { name: "chosen", description: "Its `letter` is its `<epic-choices chosen>`." },
+    { name: "open", description: "Answered, and unfolded (the chosen one starts so)." }
+  ],
+  texts: [{ key: "recommended", text: "(recommended)", description: "After the recommended option's title." }],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
     { tag: "flow", description: "Its pros and cons." }
