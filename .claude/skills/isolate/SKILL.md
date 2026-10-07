@@ -202,6 +202,9 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
      session may be working there.  Either fails:  say which and don't merge.
    - `git merge --ff-only <name>`.  Refused (`main` moved since step 2):  say so and don't merge;  `/isolate <name>`
      re-enters the worktree to merge `main` in again.
+   - merged:  `spell dev session done`:  this session's name gets a ✅ (`✅ <name>`), so the Claude panel tells
+     finished work from live work.  It shows after Owen's next message here (a hook applies it:  nothing else can);
+     `/isolate <name>`, `/epic <name>` or `/unpark <name>` takes it off again (epic `windows-and-review` P6)
 7b. Agents' worktrees, WITHOUT asking (Owen, 2026-10-05), now in the main checkout:  an agent this session started
    with `isolation: "worktree"` (an epic's phases) got `.claude/worktrees/<name>-agent-<id>` on branch
    `<name>-agent-<id>` (the `WorktreeCreate` hook names it for its owner).  It was kept when the agent finished
