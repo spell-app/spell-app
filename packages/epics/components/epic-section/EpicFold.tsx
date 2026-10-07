@@ -12,10 +12,23 @@ import {
   FOLD_TAGS,
   NOTE,
   STACK_PROPERTY,
+  type ContentsEntry,
   type FoldAttributes,
   type FoldToggleDetail,
   type SectionStack
 } from "./epic-section.types"
+
+/****************
+ * ### `EpicFoldHost`
+ * The host of a folding element:  `SourceBodyHost` (`load()`, `reload()`), plus `contentsEntry`, what the page's
+ * contents list and rail show for it.
+ * - Before its first render (no controller yet):  `undefined`;  the runtime falls back on its attributes.
+ ****************/
+export class EpicFoldHost extends SourceBodyHost {
+  get contentsEntry(): ContentsEntry | undefined {
+    return untrack(() => (this.controller as unknown as { contentsEntry?(): ContentsEntry })?.contentsEntry?.())
+  }
+}
 
 /****************
  * ### `EpicFold`
@@ -41,13 +54,15 @@ import {
  *   it itself.
  * - The host's own `title` (a phase's, a sub-section's) would be a browser tooltip over all its content:  the
  *   wrapper's EMPTY `title` stops it there (T8).
+ * - Contents:  its host's `contentsEntry` (`EpicFoldHost`) is what the page's contents list and rail show for it
+ *   (`spell-doc-runtime.js` reads it):  its title as drawn, its icon, a section's count.
  * - SIDE EFFECT:  with `source`, replaces its own light children (a placeholder) with the part;  listens for
  *   `hashchange` while connected.
  * - Position in the import graph:  `$/ui/core` and `EpicPage` (for the page's signals) only;  subclasses in other
  *   families import THIS file directly, never the `epic-section` barrel.
  ****************/
 export abstract class EpicFold<V extends ComponentVocabulary> extends UIElement<V> {
-  @proto static Host = SourceBodyHost
+  @proto static Host = EpicFoldHost
   // a container:  a click on its text must not jump to the fold button or a link inside
   @proto static delegatesFocus = false
 
@@ -198,6 +213,21 @@ export abstract class EpicFold<V extends ComponentVocabulary> extends UIElement<
   /** Inline style of the base box:  custom properties its children inherit;  none by default. */
   protected foldStyle(): Record<string, string> | undefined {
     return undefined
+  }
+
+  /**
+   * What the page's contents list and rail show for it (`EpicFoldHost.contentsEntry`):  by default its title, its
+   * id when it has none.  Read by the runtime, outside any render, right after a live update patched the page:  so
+   * from the page as it is NOW (attributes, children), never a memo that hasn't caught up.
+   */
+  contentsEntry(): ContentsEntry {
+    return { label: EpicFold.titleText(this.host) }
+  }
+
+  /** `host`'s title as text, as it is now:  its `slot="title"` child's text, else `title`, else its id. */
+  protected static titleText(host: Element): string {
+    const slotted = host.querySelector(':scope > [slot="title"]')?.textContent
+    return (slotted ?? host.getAttribute("title") ?? host.id).replace(/\s+/g, " ").trim()
   }
 
   ////////////////

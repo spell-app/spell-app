@@ -109,6 +109,21 @@ export type FoldToggleDetail = {
   originalEvent?: Event
 }
 
+/**
+ * What the page's contents list and rail show for a folding element (its host's `contentsEntry`, read by
+ * `spell-doc-runtime.js`):  read fresh each time, never tracked.
+ */
+export type ContentsEntry = {
+  /** its title as drawn, number and all:  `3. Questions`, `1.2 Why`, `P3 · Converter` */
+  label: string
+  /** its icon's name (Spell UI's):  a section's kind icon, a phase's status icon */
+  icon?: string
+  /** the icon's colour (Spell UI's `color`):  a phase's status */
+  color?: string
+  /** a section's count of its items or phases;  none for a kind that isn't counted, or with nothing in it */
+  count?: SectionCount
+}
+
 /** What a folding element's code reads of its attributes, whatever its vocabulary. */
 export type FoldAttributes = {
   id?: string

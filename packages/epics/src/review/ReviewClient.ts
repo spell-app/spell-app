@@ -3,6 +3,7 @@ import {
   REVIEW_POLL_MS,
   REVISIT_KEY_PREFIX,
   NOBODY_LISTENING,
+  PLAN_DOC_PAGE,
   SERVER_INFO,
   emptyInbox,
   inboxOf,
@@ -145,6 +146,7 @@ export class ReviewClient {
   /**
    * Read the inbox;  if it answers, the page is being reviewed:  backups handed over, drafts' boxes reopened.  True
    * when reviewing.  Once per client.
+   * - only a page the routes review (`PLAN_DOC_PAGE`), served with a token:  else it never asks
    * - NEVER throws
    */
   start(): Promise<boolean> {
@@ -154,7 +156,7 @@ export class ReviewClient {
 
   /** `start()`'s work. */
   private async begin(): Promise<boolean> {
-    if (!this.server?.token || this.options.protocol === "file:") return false
+    if (!this.server?.token || this.options.protocol === "file:" || !PLAN_DOC_PAGE.test(this.options.page)) return false
     if (!(await this.load())) return false
     this.reviewing = true
     await this.adoptBackups()

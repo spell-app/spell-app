@@ -21,6 +21,13 @@ import type {
 /** The review store's routes (`$/epics/tool/reviewRoutes.ts`):  every reply is the page's whole inbox. */
 export const REVIEW_API = "/api/review"
 
+/**
+ * The pages the routes review:  a plan doc's own path, `.../epics/<name>/<name>.plan.html` (`reviewRoutes.ts`
+ * `PLAN_DOC`, the same rule:  any other page gets a 403).  A copy anywhere else (`preview-epics/`) isn't reviewed,
+ * and doesn't ask.
+ */
+export const PLAN_DOC_PAGE = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html$/
+
 /** How often a VISIBLE page re-reads its inbox, so what Claude does to it shows. */
 export const REVIEW_POLL_MS = 4000
 

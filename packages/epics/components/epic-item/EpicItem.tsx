@@ -1,7 +1,17 @@
 import { Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, SlotContent, SOURCE_FAILURE_KEYS, SourceBody, SourceBodyHost, UIElement, UIT } from "$/ui/core"
+import {
+  Cell,
+  IconGlyph,
+  proto,
+  SlotContent,
+  SOURCE_FAILURE_KEYS,
+  SourceBody,
+  SourceBodyHost,
+  UIElement,
+  UIT
+} from "$/ui/core"
 
 import { epicItemVocabulary } from "./epic-item.vocabulary.en"
 import { EpicItemFallback } from "./epic-item.fallback"
@@ -14,12 +24,15 @@ import {
   CELL,
   CHIP,
   CLOSED_STATUSES,
+  COMMIT_TAG,
+  COMMITS_PROPERTY,
   DETAILS,
   DETAILS_ID,
   EPIC_TAG,
   EXTRAS,
   FLOW_TAGS,
   FOLD,
+  GIT,
   HAS_DETAILS,
   ITEM_STATES,
   LABEL,
@@ -47,8 +60,13 @@ import reviewCSS from "./review-controls.css?inline"
  * ### `<epic-item>`
  * One item -- question, judgement call, caveat, todo, issue or test -- its kind its id's letter (Q11).
  * - Its LINE, in the shadow root:  the fold chevron (only with details), the id chip (`Q7`, a link to `#q7`) in its
- *   state's colour, the title (`title`, or `slot="title"`), the review label (`reviewed 10-06`, `deferred`, `to do`)
- *   and the review buttons.  Sticky while open, under the section titles stuck above it.
+ *   state's colour, the title (`title`, or `slot="title"`), the git icon (with commits), the review label
+ *   (`reviewed 10-06`, `deferred`, `to do`) and the review buttons.  Sticky while open, under the section titles
+ *   stuck above it.
+ * - Its COMMITS (`<epic-commit>` children, or `commits` while its part isn't in):  hidden until the page's git toggle
+ *   shows every commit;  its git icon shows just its own (T17, the old runtime's `plan-git-hint`), opening it first,
+ *   and hides them again.  Through the same custom property, set on its details:  off, it sets nothing, so the
+ *   page's toggle still shows them.
  * - Its DETAILS:  its light-DOM children, through the default slot, so find-in-page, `#d7` links and the live update
  *   see them (Q12);  hidden `until-found` while folded.  Over its own text, `Original question` (answered) or
  *   `Original reply` (with a More Details card);  under them the note box.
@@ -93,6 +111,12 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
 
   /** The note box's `<textarea>`, once drawn:  Revisit and Edit focus it. */
   private noteInput: HTMLTextAreaElement | undefined
+
+  /** Its own commits show (its git icon pressed). */
+  readonly showCommits = new Cell(false)
+
+  /** The git icon's glyph. */
+  readonly gitGlyph = new IconGlyph(this, () => "git")
 
   /** Its details from `source`, loaded the first time it opens;  into the host's light DOM. */
   readonly body = new SourceBody({
@@ -140,8 +164,11 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
     return undefined
   })
 
-  /** Anything at the end of the line:  a review label, or the review buttons. */
-  readonly hasExtras = createMemo(() => !!this.review() || this.reviewState.reviewing())
+  /** Lists commits:  `commits` (its part not in yet), or `<epic-commit>` children. */
+  readonly hasCommits = createMemo(() => !!this.attrs.commits || this.childScan.get().hasCommits)
+
+  /** Anything at the end of the line:  the git icon, a review label, or the review buttons. */
+  readonly hasExtras = createMemo(() => this.hasCommits() || !!this.review() || this.reviewState.reviewing())
 
   /** Approved:  its mark, else how Claude applied an earlier one (`review-as`).  Its note box goes. */
   readonly approved = createMemo(() => (this.reviewState.mark()?.action ?? this.attrs.reviewAs) === "approve")
@@ -191,7 +218,12 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
 
   protected hostStates() {
     const status = this.body.status.get()
-    return { open: this.isOpen(), loaded: status === "loaded", error: status === "error" }
+    return {
+      open: this.isOpen(),
+      loaded: status === "loaded",
+      error: status === "error",
+      commits: this.showCommits.get() && this.hasCommits()
+    }
   }
 
   ////////////////
@@ -252,6 +284,7 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
           class={DETAILS}
           part={this.part("details")}
           hidden={!this.isOpen() || this.veiled() ? UNTIL_FOUND : undefined}
+          style={this.showCommits.get() ? { [COMMITS_PROPERTY]: "block" } : undefined}
         >
           <Show when={this.failureText()}>
             <p class={NOTE} part={this.part("error")}>
@@ -297,6 +330,7 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
           <slot name={this.slot("title")}>{this.attrs.title}</slot>
         </span>
         <span class={[CELL, EXTRAS]} part={this.part("actions")} hidden={!this.hasExtras()}>
+          <Show when={this.hasCommits()}>{this.gitButton()}</Show>
           <Show when={this.review()}>
             {(review) => (
               <span class={[REVIEW, review().look]} part={this.part("review")} title={review().tip}>
@@ -317,6 +351,24 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
           </Show>
         </span>
       </div>
+    )
+  }
+
+  /** The git icon:  shows or hides its own commits;  pressed while they show. */
+  private gitButton(): JSX.Element {
+    const words = () => this.text(this.showCommits.get() ? "hideCommits" : "showCommits")
+    return (
+      <button
+        type={UIT.BUTTON}
+        class={GIT}
+        part={this.part("git")}
+        aria-pressed={this.showCommits.get() ? UIT.TRUE : UIT.FALSE}
+        aria-label={words()}
+        title={words()}
+        onClick={this.flipCommits}
+      >
+        {this.gitGlyph.svg()}
+      </button>
     )
   }
 
@@ -398,6 +450,13 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
     this.openState.set(true)
   }
 
+  /** The git icon, clicked:  its commits shown (it opens, loading its part) or hidden again;  the line doesn't fold. */
+  private readonly flipCommits = () => {
+    const on = !untrack(() => this.showCommits.get())
+    this.showCommits.set(on)
+    if (on) this.reveal()
+  }
+
   /** A click on the line:  folds, unless it landed on a link or control (the id chip, P9's buttons). */
   private readonly onLineClick = (event: MouseEvent) => {
     for (const target of event.composedPath()) {
@@ -451,7 +510,11 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
       const tag = element.localName
       first = EPIC_TAG.test(tag) && !FLOW_TAGS.includes(tag) ? "part" : "prose"
     }
-    return { startsWithProse: first === "prose", hasMore: !!this.host.querySelector(`:scope > ${MORE_TAG}`) }
+    return {
+      startsWithProse: first === "prose",
+      hasMore: !!this.host.querySelector(`:scope > ${MORE_TAG}`),
+      hasCommits: !!this.host.querySelector(`:scope > ${COMMIT_TAG}`)
+    }
   }
 }
 
@@ -461,6 +524,8 @@ type ChildScan = {
   startsWithProse: boolean
   /** a More Details card is among its children */
   hasMore: boolean
+  /** a commit is among its children */
+  hasCommits: boolean
 }
 
 /** What, on the line, acts by itself:  a click there doesn't fold. */

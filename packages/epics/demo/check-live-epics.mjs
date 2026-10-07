@@ -3,7 +3,8 @@
  * browser:  the `<epic-*>` elements are patched, never replaced, and the reader's state stays.
  * Usage:  node demo/check-live-epics.mjs [epic name] [--item <id>] [--bundle <spell-ui.js>]   (from `packages/epics`)
  * - works on a COPY of a preview doc (`preview-epics/<name>/`, the converter's, git-ignored):
- *   `preview-epics/check-live-<name>/`, served by this checkout's page server;  deleted afterwards
+ *   `preview-epics/check-live/epics/<name>/` (a plan doc's own path:  the page asks the review routes only there),
+ *   served by this checkout's page server;  deleted afterwards
  * - the page is REVIEWED:  the review routes (`/api/review/...`) are answered here, an empty inbox with a session
  *   listening (the real routes refuse a page outside `epics/`), so the items draw their review controls
  * - the reader's state:  item `--item` (default `q2`:  one with a part, not approved) opened by a link to it (its
@@ -43,18 +44,22 @@ const name = args.find((arg, at) => !arg.startsWith("--") && !args[at - 1]?.star
 const itemId = valueOf("--item") ?? "q2"
 const bundle = valueOf("--bundle")
 const source = join(ROOT, "preview-epics", name)
-const copy = join(ROOT, "preview-epics", `check-live-${name}`)
+// under an `epics/<name>/` folder:  the page asks the review routes only on a plan doc's own path (`PLAN_DOC_PAGE`)
+const copyRoot = join(ROOT, "preview-epics", "check-live")
+const copy = join(copyRoot, "epics", name)
 const docFile = join(copy, `${name}.plan.html`)
 const partFile = join(copy, "parts", `${itemId}.htm`)
 if (!existsSync(join(source, `${name}.plan.html`))) {
   console.error(`check-live-epics:  no preview copy ${join(source, `${name}.plan.html`)}`)
   process.exit(2)
 }
-rmSync(copy, { recursive: true, force: true })
+rmSync(copyRoot, { recursive: true, force: true })
 cpSync(source, copy, { recursive: true })
-const url = pageUrl(`preview-epics/check-live-${name}/${name}.plan.html`)
+// a preview copy sits two folders under the root;  this one, four
+writeFileSync(docFile, readFileSync(docFile, "utf8").replaceAll('"../../', '"../../../../'))
+const url = pageUrl(`preview-epics/check-live/epics/${name}/${name}.plan.html`)
 if (!url) {
-  rmSync(copy, { recursive: true, force: true })
+  rmSync(copyRoot, { recursive: true, force: true })
   console.error("check-live-epics:  no page server (`spell dev server url` printed nothing)")
   process.exit(2)
 }
@@ -150,7 +155,7 @@ try {
   problems.push(`the check itself failed:  ${error.stack ?? error}`)
 } finally {
   await browser.close()
-  rmSync(copy, { recursive: true, force: true })
+  rmSync(copyRoot, { recursive: true, force: true })
 }
 
 for (const problem of problems) console.error(`PROBLEM:  ${problem}`)

@@ -55,6 +55,7 @@ export const TOGGLE = "toggle"
 export const CHIP = "chip"
 export const TITLE = "title"
 export const EXTRAS = "extras"
+export const GIT = "git"
 export const REVIEW = "review"
 export const DETAILS = "details"
 export const LABEL = "label"
@@ -87,6 +88,15 @@ export const FLOW_TAGS: readonly string[] = ["epic-update"]
 
 /** The More Details card's tag:  an item with one labels its own text "Original reply". */
 export const MORE_TAG = "epic-more"
+
+/** A commit's tag:  an item with one among its children gets the git icon (T17). */
+export const COMMIT_TAG = "epic-commit"
+
+/**
+ * The custom property `<epic-commit>` shows by (`block`):  the page's git toggle sets it for every commit, an item's
+ * git icon for its own (`epic-page.types.ts` `COMMITS_PROPERTY`, the same name).
+ */
+export const COMMITS_PROPERTY = "--epic-commits-display"
 
 ////////////////
 // ## Review controls (P9:  `ReviewControls.tsx`, shared with `<epic-section>`'s Overview parts)

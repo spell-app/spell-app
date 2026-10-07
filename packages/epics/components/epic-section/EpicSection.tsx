@@ -28,6 +28,7 @@ import {
   PHASE_TOGGLES_KEY,
   SECTION_LOOKS,
   TOGGLE,
+  type ContentsEntry,
   type EpicSectionVocabulary,
   type FilterState,
   type ItemStateName,
@@ -113,15 +114,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   /** Its number, by its place:  `3` for the third block of the page;  `1.2` for the Overview's second part. */
   readonly number = createMemo(() => {
     this.layout()
-    if (!this.connected.get()) return ""
-    const parent = this.host.parentElement
-    if (!parent) return ""
-    if (this.attrs.kind === "overview-part") {
-      const own = EpicSection.placeOf(this.host, ":scope > epic-section")
-      const overview = EpicSection.placeOf(parent, ":scope > epic-overview, :scope > epic-section") || 1
-      return `${overview}.${own}`
-    }
-    return String(EpicSection.placeOf(this.host, ":scope > epic-overview, :scope > epic-section"))
+    return this.connected.get() ? this.place(this.attrs.kind) : ""
   })
 
   /** An item section with nothing in it, and no part on its way. */
@@ -136,14 +129,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   })
 
   /** Its count:  `{ open, total }`;  `undefined` for a kind that isn't counted, or with nothing to count. */
-  readonly count = createMemo((): SectionCount | undefined => {
-    const children = this.counted()
-    if (!children.length) return undefined
-    const open = children.filter(
-      (child) => !(CLOSED_STATUSES as readonly string[]).includes(child.getAttribute("status") ?? "")
-    ).length
-    return { open, total: children.length }
-  })
+  readonly count = createMemo((): SectionCount | undefined => EpicSection.countOf(this.counted()))
 
   /** Each item's state, in page order (items only:  phases aren't filtered). */
   readonly itemStates = createMemo((): { item: Element; state: ItemStateName }[] =>
@@ -250,6 +236,22 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
         </>
       )
     })
+  }
+
+  /**
+   * The contents entry (`EpicFold.contentsEntry()`):  `3. Questions` with its kind's icon and its count, or an
+   * Overview sub-section's `1.2 <its title>`.  Read fresh from the page:  the count from its children now, never
+   * a memo a pending change hasn't reached yet (the live update re-reads the contents right after it patches).
+   */
+  contentsEntry(): ContentsEntry {
+    const kind = this.host.getAttribute("kind") ?? ""
+    const number = this.host.isConnected ? this.place(kind) : ""
+    if (kind === "overview-part" || !(kind in SECTION_LOOKS))
+      return { label: `${number} ${EpicSection.titleText(this.host)}`.trim() }
+    const look = SECTION_LOOKS[kind as keyof typeof SECTION_LOOKS]
+    const counted = kind === "phases" || (ITEM_KINDS as readonly string[]).includes(kind)
+    const children = counted ? Array.from(this.host.querySelectorAll(COUNTED)) : []
+    return { label: `${number}. ${this.text(look.title)}`, icon: look.icon, count: EpicSection.countOf(children) }
   }
 
   /** The title:  `3. Questions`, or an Overview sub-section's `1.2 <its title>`. */
@@ -509,9 +511,30 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     return (ITEM_KINDS as readonly string[]).includes(this.attrs.kind ?? "")
   }
 
+  /** Its number by its place now, as `kind`:  `3`, or an Overview sub-section's `1.2`;  "" unplaced. */
+  private place(kind: string | undefined): string {
+    const parent = this.host.parentElement
+    if (!parent) return ""
+    if (kind === "overview-part") {
+      const own = EpicSection.placeOf(this.host, ":scope > epic-section")
+      const overview = EpicSection.placeOf(parent, ":scope > epic-overview, :scope > epic-section") || 1
+      return `${overview}.${own}`
+    }
+    return String(EpicSection.placeOf(this.host, ":scope > epic-overview, :scope > epic-section"))
+  }
+
   /** A kind that's counted:  items, or phases.  A method:  memos above call it as they're made. */
   private counts(): boolean {
     return this.attrs.kind === "phases" || this.holdsItems()
+  }
+
+  /** The count of `children` (items, or phases):  open being any status but `CLOSED_STATUSES`';  none without any. */
+  private static countOf(children: readonly Element[]): SectionCount | undefined {
+    if (!children.length) return undefined
+    const open = children.filter(
+      (child) => !(CLOSED_STATUSES as readonly string[]).includes(child.getAttribute("status") ?? "")
+    ).length
+    return { open, total: children.length }
   }
 
   /** `element`'s place, from 1, among its parent's children matching `selector`;  0 when it isn't one. */
