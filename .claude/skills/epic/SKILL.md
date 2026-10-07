@@ -50,9 +50,14 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 - First word `review`:  NOT a new epic.  Go to "7. Review" and skip everything else here.  `review` is reserved:
   never an epic's name.
 - First word `resume`:  NOT a new epic either.  Go to "8. Resume".  Reserved too.
+- First word `color`:  `/epic color <look>` recolours the window it's typed in:  `spell dev window color <look>`
+  (no look:  it lists the 12), one line saying so, and nothing else.  Reserved too.
 - `<name>` is the first word of `$ARGUMENTS` (or a quoted phrase:  `"Docs Index"`), lower-kebab-cased
   (`Docs Index` -> `docs-index`).  The rest, if any, is the plan:  the prompt that kicks it off.  No argument:  ask
   for a name.
+  - a look right after the name (`/epic new-thing -purple`, one of `spell dev window color`'s 12):  the window's
+    colour, NOT the plan's:  `open <name> --color purple` in "2. Session" (or `color purple` when staying);  the
+    prompt hook leaves it out of the text it saves (epic `windows-and-review` P5)
   - "Make this a plan doc" (invoked mid-session):  propose a name from the work so far in AskUserQuestion,
     recommended first;  the user can type another in "Other".
 - Checks and rename, BEFORE anything else:  as `.claude/skills/isolate/SKILL.md` "Start", step 0.  A typed
@@ -106,7 +111,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
    there" (no plan yet:  "send the plan there").
 7. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
 
-Staying in this window (step 0):  skip steps 4 and 6.  Step 5's `plan-doc open` shows the doc in THIS window's side
+Staying in this window (step 0):  skip steps 4 and 6;  `spell dev window stay <name>` instead (the window titled
+`⎇ <name>`, tinted;  isolate's "Stay", step 0).  Step 5's `plan-doc open` shows the doc in THIS window's side
 bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  the last line asks for it, here.
 
 ## 3. Plan
@@ -136,9 +142,11 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 - Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04):  in `~/.claude/plans/`,
   `mv <file>.md epic-<name>--<file>.md`, then `ln -s epic-<name>--<file>.md <file>.md` (the harness still reads
   the old name).
-- `spell dev plan-doc add-phase <name> "Short Name" --goal "<ul><li>...</li></ul>" --files "..." --verify "..." --estimate
-  "1-2h"` per phase, in order:  the goal one bullet per outcome, in Owen's terms;  the estimate becomes the title's
-  badge, and the Overview's total (`p.plan-estimate`) follows by itself
+- `spell dev plan-doc add-phase <name> "Short Name" --symptom "..." --changes "..." --goal "<ul><li>...</li></ul>" --files
+  "..." --verify "..." --estimate "1-2h"` per phase, in order (Owen, 2026-10-06:  "Symptom, Changes, then the
+  details"):  the symptom ONE line (what's wrong today), the changes two or three (what changes), the goal the details,
+  one bullet per outcome, in Owen's terms;  the estimate becomes the title's badge, and the Overview's total
+  (`p.plan-estimate`) follows by itself
 - `spell dev plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
 - Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
 - Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
@@ -165,6 +173,9 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
      `cancel <name> <id> "why"` (struck through:  the one struck status, J16 of `review-review`)
    - an item talked through with Owen (he answered, accepted, or said leave it):  `review <name> <id> "outcome"`,
      so the next `/epic review` doesn't bring it up again ("7. Review")
+   - changed a phase's PLAN (Owen's feedback, or something found while building):  `updated <name> <N> "<p>what
+     changed, and why</p>"`, a dated line in its fenced Updated block under Symptom / Changes (never an "Updated" word
+     in the text);  then `phase-body <name> <N> --changes ...` (or `--goal` ...) to make the fields say the new plan
    - changed a prose block:  put
      `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="N"><p>what changed</p></ui-message>`
      just before it (the script marks items itself)
@@ -217,9 +228,12 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 
 Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items (each item's four
 buttons:  Approve, Make Todo, Revisit Now, Add Details Now;  Choose on option cards) and sends them with the page
-header's paper plane.  A running Add Details Now / Revisit Now clicked again is "nevermind" (`canceled`, 7.3).  This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at
-once, Add Details and "revisit now" by background agents, "revisit soon" talked over in chat.  No modal walk through
-items any more (epic `review-review`, 2026-10-04;  plan:  `epics/review-review/review-review.plan.html`, 1.1-1.2).
+header's paper plane, or with Review Now beside it (the wand:  every revisit waiting is asked now too, epic
+`windows-and-review` P4).  A running Add Details Now / Revisit Now clicked again is "nevermind" (`canceled`, 7.3).
+This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at once, Add
+Details and "revisit now" by background agents, "revisit soon" answered one at a time.  EVERY answer goes INTO its
+item, on the page;  the chat only links them (Q3 of `windows-and-review`).  No modal walk through items any more
+(epic `review-review`, 2026-10-04;  plan:  `epics/review-review/review-review.plan.html`, 1.1-1.2).
 
 - Runs from ANY window, `main` or a worktree:  the prompt hook lets `/epic review` through, never renames the session.
   No worktree, no plan mode.
@@ -237,7 +251,7 @@ spell dev plan-doc inbox <name> listen  /  unlisten      this session is (no lon
 spell dev plan-doc inbox <name> wait                     Bash run_in_background:  exits with work (or 2:  timeout)
 spell dev plan-doc inbox <name> apply [ids]              approve / pick / todo marks into the doc;  prints what's left
 spell dev plan-doc inbox <name> working <id> on|off      the page's spinner on an item
-spell dev plan-doc details <name> <id> --file f [--append]   an item's details replaced (Add Details) / a reply appended
+spell dev plan-doc details <name> <id> --file f --more | --append   a More Details card (Add Details) / a reply appended
 spell dev plan-doc inbox <name> done <id>  /  clear <ids>    an item's request finished  /  marks dropped after a talk
 spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or not
 ```
@@ -272,12 +286,15 @@ Read what it printed.  Then, in this order:
 1b. CANCELED (Owen said "nevermind" on a running Add Details Now / Revisit Now, epic `windows-and-review` P2):  stop
    that item's background agent (`TaskStop`), then `spell dev plan-doc inbox <name> done <id>`.  An agent that
    finishes anyway is refused (`plan-doc details` errors:  "Owen called this request off"):  nothing lands.
-2. NOW requests (Add Details, revisit now) -- `wait` already marked them `working` (the page spins):  per item, a
+2. NOW requests (Add Details, revisit now;  after Review Now, every revisit Owen had marked) -- `wait` already
+   marked them `working` (the page spins):  per item, a
    BACKGROUND `Agent` (`run_in_background: true`), each prompt:
    - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net
      effect)
-   - Add Details:  read the item, the code and docs it names, then write its FULL details again, nothing lost,
-     `spell dev plan-doc details <name> <id> --file <html>`
+   - Add Details:  read the item, the code and docs it names, then write what its text leaves out, as MORE
+     details:  `spell dev plan-doc details <name> <id> --more --file <html>`.  The item's text stays on top
+     ("Original Reply");  yours goes under it in a white "More Details" card (P3 of `windows-and-review`), so don't
+     repeat the text:  build on it
    - revisit now:  answer Owen's note (quote it), in the reply block markup (`plan-doc.md`, "Reply"):  what he asked,
      the answer with evidence (real code, the command and its output), option cards when he must choose (he picks
      on the page), a Net effect;  `spell dev plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
@@ -285,10 +302,12 @@ Read what it printed.  Then, in this order:
    - last:  `spell dev plan-doc inbox <name> done <id>`
    Up to 5 agents at once (root rules);  more:  the rest after.
 3. SENT marks:  `spell dev plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each).
-   Then each "to talk over" (revisit soon), one at a time, in chat:  the item in words, his note quoted, your
-   answer (short;  evidence when it matters).  A choice he must make:  write it into the item as a reply with option
-   cards (`details --append`) so he picks ON THE PAGE;  a quick yes / no:  a modal.  Done:  `inbox clear <id>` and
-   `review <name> <id> "<outcome>"`.
+   Then each "to talk over" (revisit soon), one at a time:  answer his note INTO the item, as a reply
+   (`details --append`, the reply markup of "revisit now" above:  his note quoted, the answer with evidence, option
+   cards when he must choose, so he picks ON THE PAGE), then `inbox clear <id>` and `review <name> <id>
+   "<outcome>"`.  In chat:  one line per item, its link (`spell dev docs link ... --hash <id>`), never the answer
+   itself (Q3 of `windows-and-review`:  a long review stays readable).  He answers on the page (Revisit again), or
+   says so in chat;  a quick yes / no:  a modal.
    - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  answer the note
      about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself
    - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
@@ -350,7 +369,9 @@ don't redo it.
 
 ```
 new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from the template, update the docs index
-add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
+add-phase <name> "Short Name" --symptom .. --changes .. [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
+phase-body <name> <N> [--symptom ..] [--changes ..] [--goal ..] [--files ..] [--verify ..]   set ("" removes) fields
+updated <name> <N> "<p>what changed</p>"            a change to phase N's plan:  fenced, dated, under Symptom / Changes
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)

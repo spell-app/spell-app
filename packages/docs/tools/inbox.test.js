@@ -26,6 +26,7 @@ import {
   liveListener,
   markList,
   markSent,
+  reviewNow,
   newSend,
   readInbox,
   requestNow,
@@ -277,6 +278,34 @@ describe("immediate requests", () => {
     expect(takeNow(inbox).map((each) => each.id)).toEqual(["i2"])
     expect(inbox.now).toEqual([])
     expect(inbox.marks.i2).toBeDefined()
+  })
+})
+
+describe("Review Now (windows-and-review P4)", () => {
+  test("every waiting revisit asked now, its note and pick kept;  the rest sent", () => {
+    const inbox = emptyInbox()
+    setMark(inbox, "j1", { action: "approve" }, T1)
+    setMark(inbox, "q7", { action: "revisit", when: "soon", note: "but?", pick: "B" }, T1)
+    setMark(inbox, "i2", { action: "revisit", when: "soon", note: "sent before" }, T1)
+    markSent(inbox, T2)
+    setMark(inbox, "t1", { action: "todo", note: "later" }, T2)
+    setMark(inbox, "c3", { action: "revisit", when: "soon", note: "fresh" }, T2)
+    requestNow(inbox, "i5", "details", "", T2)
+    expect(reviewNow(inbox, T3).sort((a, b) => a.localeCompare(b))).toEqual(["c3", "i2", "q7"])
+    expect(inbox.sent).toBe(T3)
+    expect(inbox.marks.q7).toEqual({ action: "revisit", when: "now", note: "but?", pick: "B", at: T3 })
+    expect(inbox.now.map((each) => each.id).sort((a, b) => a.localeCompare(b))).toEqual(["c3", "i2", "i5", "q7"])
+    // what the send hands over:  the approval and the todo, no revisit
+    expect(sentMarks(inbox).map((mark) => mark.id)).toEqual(["j1", "t1"])
+    expect(unsentMarks(inbox)).toEqual([])
+  })
+
+  test("nothing to revisit:  a plain send", () => {
+    const inbox = emptyInbox()
+    setMark(inbox, "j1", { action: "approve" }, T1)
+    expect(reviewNow(inbox, T2)).toEqual([])
+    expect(inbox.sent).toBe(T2)
+    expect(inbox.now).toEqual([])
   })
 })
 

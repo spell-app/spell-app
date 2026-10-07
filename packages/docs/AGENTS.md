@@ -126,16 +126,23 @@ In `tools/`:
     show all" under it;  remembered per page
   - commits (`.plan-commits`):  hidden until the git button in a plan doc's page header shows them (remembered
     per page);  an item with commits gets a git icon on its line that shows its own
+  - item folds (`wireItemFolds()`, epic `windows-and-review` Q6):  an open item's line sticks below its section's
+    stuck title while you read it (`plan-doc.css`, from the section's `--spell-stack`);  its details end in a small
+    round fold button (`ui-button.plan-fold`, chevron up, a plain browser tooltip) floating at the window's bottom
+    while any of them is on screen, in a gutter at their right:  never over their text or the note box's buttons.
+    Both stay in view down to the note box's end:  it's docked INSIDE the details (C3).  Folding an item you're
+    inside, from the button or its line, keeps the line where it was stuck
   - review actions (`wireReview()`, a plan doc served by the page server, once its inbox answers;  see "Review
     inbox"):
     - every item's line ends in its STATE buttons in a `<ui-buttons>` group (`.plan-act`, placed at the far right
       in room the line keeps free, so a title never wraps under them;  epic `windows-and-review` P2):  Approve, Make
       Todo, Revisit;  then Add Details Now, its own round button (an action, not a state).  Grey outlines until
       chosen;  chosen, filled in their color (Owen, 2026-10-06:  green = decided:  Approve, Make Todo;  orange =
-      pending:  Revisit, Add Details Now), outlined once sent, and still outlined after Claude applied it (the doc's
+      pending:  Revisit, Add Details Now) in the Spell UI theme's hues, each with its own ink, outlined once sent, and still outlined after Claude applied it (the doc's
       `data-review-as`);  plain browser tooltips, just the name.  The chosen one clicked again clears the mark
-    - the note box (Q8):  docked at the END of every opened item that isn't approved (bare items:  under the line,
-      opened by Revisit);  Make Todo, Do Now, Later stacked at its right;  saved 10s after the last key, and at once
+    - the note box (Q8):  docked at the END of every opened item's details that isn't approved, before the fold
+      button (bare items:  under the line, opened by Revisit);  the SAME box element comes back when the item's body
+      re-fetches from its part file, its text, focus and caret kept (`dock()`, `reloadBody()`);  Make Todo (list check), Later (comment dots), Do Now (the wand) stacked at its right, the line's order:  rings, filled when pointed at or for the item's mark, green, orange, blue (Spell UI's hues;  Owen, 2026-10-06);  saved 10s after the last key, and at once
       when you leave it, a floppy in its corner saying when
     - Add Details Now / revisit now:  `POST now`, that button spinning (`loading`) while it waits or `working[id]` is
       set;  queued with no session listening:  a still dashed ring, and a notice at the window's bottom (D6).
@@ -157,7 +164,9 @@ In `tools/`:
       pick;  the button orange with the letter;  the chosen pill again drops just the pick, Clear both
     - the page header's paper plane, left of the git button:  grey, blue with unsent marks, outlined once sent;  its
       tooltip says nobody is reviewing while no session listens, or its heartbeat stopped (the routes answer
-      `listening: null`)
+      `listening: null`);  beside it, Review Now (the wand, epic `windows-and-review` P4):  sends every mark and asks
+      each revisit waiting now, so the session works through the batch at once, answers into the items;  blue while
+      there's anything to work through
     - re-reads the inbox on the page server's change event for `<name>.inbox.json`, else every 4s while visible;
       nothing it does scrolls the page
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
@@ -263,7 +272,7 @@ In `tools/`:
   - absent until the first mark, deleted once empty;  git-ignored:  per-machine pending state, never the record
   - shape and helpers:  `tools/inbox.js` (`setMark()`, `requestNow()`, `markSent()`, `unsentMarks()`,
     `sentMarks()`, `takeNow()`, `takeWork()`, `setWorking()`, `setListening()`, `touchListening()`,
-    `liveListener()`, `clearMarks()`, `finishMarks()`, `clearApplied()`, `setDraft()`);  EVERY write through
+    `liveListener()`, `clearMarks()`, `finishMarks()`, `clearApplied()`, `setDraft()`, `reviewNow()`);  EVERY write through
     `updateInbox()` / `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
   - `drafts`:  a note box's text as Owen types it, kept until the mark that uses it;  never sent, counted, or work
     for a waiting session
@@ -276,7 +285,8 @@ In `tools/`:
 - The page writes through the page server's route module `tools/reviewRoutes.ts`, `/api/review/...`:
   `GET inbox?page=`, `POST mark { page, id, mark | null }`, `POST draft { page, id, action, note }` (a note box's
   text as typed), `POST now { page, id, action, note? }` (Add Details, revisit now, which keeps the item's pick:
-  queued on `now`), `POST cancel { page, id }` ("nevermind"), `POST send { page }`.
+  queued on `now`), `POST cancel { page, id }` ("nevermind"), `POST send { page, now? }` (`now: true`:  Review Now,
+  every revisit waiting asked now too, `reviewNow()`).
   - a page whose token is stale (its server restarted) takes the new one from the page as served now and retries
     once (`spell-doc-runtime.js` `refreshToken()`):  nothing typed is refused for a restart
   - `page`:  the doc's URL path (`/worktrees/<w>/...` too);  only `<name>.plan.html` (else 403), only ids of its
@@ -300,7 +310,7 @@ In `tools/`:
 ## Details pages
 
 - `/details` (`.claude/skills/details/`):  how and when Claude writes one.
-- `spell dev details new | show [--wait] | wait | answer | list | sweep` (`tools/details.js`).
+- `spell dev details new | show [--wait] | wait | answer | list | sweep` (`tools/details.js`);  `show` opens a page in the side bar's "Review" tab (epic `windows-and-review` P6).
 - Owen's answer:  the page posts it to the page server's route module `tools/detailsRoutes.ts`, which writes
   `<slug>.answer.json` beside the page;  `spell dev details wait`, run in the background, exits with it and so wakes the
   session.
@@ -373,7 +383,8 @@ In this order, from `packages/docs`:
 - `tools/check-spell.js <page> [outDir]` -- Playwright, from `file://` (from the page server when the page says
   `data-spell-needs-server`):  fails on console errors, undefined / unrendered `ui-*`, contents vs sections,
   phone-width overflow, top-level titles that don't stick, a section that won't fold / unfold or forgets its fold
-  on reload, a drawer that won't open;  writes screenshots.
+  on reload, a drawer that won't open, a plan doc's open item whose line won't stick or whose fold button won't
+  float clear of its text and fold it in place (Q6);  writes screenshots.
 - `node tools/check-live.js [epic]` -- Playwright, from the page server:  an edit to a plan doc (a log line it
   adds, then removes) must update it in place, keeping scroll, folds, typed text and focus;  the address must
   follow the scroll, and a fresh load of it land there.  Run it after touching `liveClient.ts` or the runtime's
@@ -385,7 +396,9 @@ In this order, from `packages/docs`:
   cards, then a revisit keeping the pick;  send;  `inbox wait` printing the pick with its note) and checks each on
   the page AND in the inbox;  a doc without such a question skips the Choose steps (and says so);  a stale
   `listening` must read as nobody;  marks
-  survive a reload and an in-place update;  nothing runs under a button at 280 / 700px, light and dark;  writes
+  survive a reload and an in-place update;  a docked box being typed in keeps its text, focus and caret through its
+  item's part re-fetching;  nothing runs under a button at 280 / 700px, light and dark, and no fold
+  button is drawn over one;  writes
   screenshots.  Refuses while the inbox file exists;  deletes it afterwards.  Run it after touching "Review
   actions".
 - `tools/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its

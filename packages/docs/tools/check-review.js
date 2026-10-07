@@ -34,7 +34,8 @@
  *   send button's states) AND lands in the inbox file (read back through `GET /api/review/inbox`);  after a reload
  *   every mark still shows;  an in-place update (a log line it adds with `spell dev plan-doc log <name> ...`, then
  *   removes) keeps the buttons, docked boxes and marks without reloading;  at 280px and 700px, light and dark, no
- *   item title runs under its buttons (an opened item too), and no review control runs past the window
+ *   item title runs under its buttons (an opened item too), no fold button (Q6) is drawn over the line's or the note
+ *   box's buttons, and no review control runs past the window
  * - screenshots (outDir, default a temp folder):  `review-marked.png`, `review-picked.png`, and
  *   `review-<width>-<scheme>.png` with an item opened, its docked box showing
  * - REFUSES to run while the inbox file exists (its marks, or a session listening, would be Owen's);  SIDE EFFECT:
@@ -43,9 +44,9 @@
  * - prints a JSON summary on stdout, problems on stderr
  */
 import { execFileSync } from "node:child_process"
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, relative } from "node:path"
+import { dirname, join, relative } from "node:path"
 
 import { chromium } from "playwright"
 
@@ -65,6 +66,8 @@ const pagePath = new URL(url).pathname
 const stamp = `check-review-${Date.now()}`
 const NOTE = "check-review:  why not reuse the details route?"
 const TODO_NOTE = "check-review:  follow up once the routes settle"
+/** Typed into a docked box while its item's body is re-fetched:  it must survive, focused, the caret kept. */
+const RELOAD_NOTE = "check-review:  typed while the part reloads"
 const PICK_NOTE = "check-review:  B, but only for plan docs?"
 /** Matches what the page says with nobody listening (`NOBODY_LISTENING` in the runtime). */
 const NOBODY = /No Claude session/
@@ -140,8 +143,9 @@ try {
       acts: all(".plan-act").length,
       states: all(".plan-act > ui-buttons.plan-act-group > ui-button[data-action]").length,
       details: all('.plan-act > ui-button.plan-act-details[data-action="details"]').length,
-      docked: items.filter((item) => item.querySelector(":scope > ui-accordion.plan-item + .plan-revisit[data-docked]"))
-        .length,
+      docked: items.filter((item) =>
+        item.querySelector(":scope > ui-accordion.plan-item > ui-content > .plan-revisit[data-docked]")
+      ).length,
       popups: all(".plan-act ui-popup").length,
       titles: Array.from(
         items[0]?.querySelectorAll(".plan-act ui-button[data-action]") ?? [],
@@ -195,14 +199,14 @@ try {
   // Revisit on an item with details:  the item opens, its docked box at the end;  the box grows as it's typed in;  its
   // Make Todo saves the todo WITH the note, and the box empties (it stays:  docked)
   await press(page, todo, "revisit")
-  const dock = `#${todo} > .plan-revisit[data-docked]`
+  const dock = `#${todo} .plan-revisit[data-docked]`
   const docked = await page.evaluate((id) => {
     const item = document.getElementById(id)
-    const box = item.querySelector(":scope > .plan-revisit[data-docked]")
-    const accordion = item.querySelector(":scope > ui-accordion.plan-item")
+    // docked INSIDE the details, last but the fold button (P3 of `windows-and-review`, C3)
+    const box = item.querySelector(":scope > ui-accordion.plan-item > ui-content > .plan-revisit[data-docked]")
     return {
-      shown: !!box?.getClientRects().length,
-      atEnd: !!box && box.getBoundingClientRect().top >= accordion.getBoundingClientRect().bottom - 1,
+      shown: !!box?.checkVisibility(),
+      atEnd: !!box && (!box.nextElementSibling || box.nextElementSibling.matches(".plan-fold")),
       focused: document.activeElement === box?.querySelector("textarea")
     }
   }, todo)
@@ -227,6 +231,33 @@ try {
   if (emptied !== "") problems.push(`the docked box didn't empty after its Make Todo ("${emptied}")`)
   const todoShown = await page.evaluate((id) => document.querySelector(`#${id} .plan-said-note`)?.textContent, todo)
   if (todoShown !== TODO_NOTE) problems.push(`the todo's note isn't shown under its item ("${todoShown}")`)
+
+  // a docked box being typed in, its item's body re-fetched from its part file (a split doc;  P3, C3:  the box sits
+  // inside the details, which a re-fetch empties):  the same box back, its text, focus and caret kept
+  const source = await page.$eval(`#${todo} > ui-accordion.plan-item`, (accordion) => accordion.getAttribute("source"))
+  if (source) {
+    await page.click(note)
+    await page.keyboard.type(RELOAD_NOTE)
+    await page.$eval(note, (box) => {
+      box.setSelectionRange(4, 4)
+      box.closest("ui-content").firstElementChild.dataset.checkProbe = ""
+    })
+    const now = new Date()
+    utimesSync(join(dirname(file), source), now, now)
+    await page.waitForFunction((id) => !document.querySelector(`#${id} [data-check-probe]`), todo, { timeout: 10_000 })
+    await page.waitForTimeout(300)
+    const kept = await page.$eval(note, (box) => ({
+      text: box.value,
+      focused: document.activeElement === box,
+      caret: box.selectionStart
+    }))
+    summary.reloadKeeps = kept
+    if (kept.text !== RELOAD_NOTE || !kept.focused || kept.caret !== 4)
+      problems.push(`a re-fetched body lost its docked box's text, focus or caret (${JSON.stringify(kept)})`)
+    await page.fill(note, "")
+    await page.$eval(note, (box) => box.blur())
+    await page.waitForTimeout(300)
+  } else summary.reloadKeeps = "skipped:  not a split doc"
 
   // an approved item opened:  no box at its end
   await page.evaluate((id) => (document.querySelector(`#${id} > ui-accordion.plan-item`).open = "0"), approve)
@@ -260,7 +291,7 @@ try {
   // measured before typing:  Playwright's `fill()` scrolls a box half out of the window into it, the page doesn't
   const afterBox = await page.evaluate(() => scrollY)
   if (afterBox !== scrolled) problems.push(`Revisit's opening the item scrolled (${scrolled} -> ${afterBox})`)
-  const soonNote = `#${soon} > .plan-revisit .plan-revisit-note`
+  const soonNote = `#${soon} .plan-revisit .plan-revisit-note`
   await page.fill(soonNote, NOTE)
   // leaving the box saves at once (else 10s after the last key):  the floppy says so, the inbox has it
   await page.press(soonNote, "Tab")
@@ -286,7 +317,7 @@ try {
   await open(page)
   for (const id of marked) await page.evaluate(unfold, id)
   await press(page, soon, "revisit")
-  await page.click(`#${soon} > .plan-revisit .plan-revisit-soon`)
+  await page.click(`#${soon} .plan-revisit .plan-revisit-soon`)
   await page.waitForTimeout(300)
   await expectButton(page, soon, "revisit", (mark) => mark.when === "soon" && mark.note === NOTE)
   if ((await page.evaluate((selector) => document.querySelector(selector)?.value, soonNote)) !== "")
@@ -299,7 +330,7 @@ try {
   await page.waitForTimeout(200)
   const editing = await page.evaluate((selector) => document.querySelector(selector)?.value, soonNote)
   if (editing !== NOTE) problems.push(`Edit didn't put the note back in the box ("${editing}")`)
-  await page.click(`#${soon} > .plan-revisit .plan-revisit-soon`)
+  await page.click(`#${soon} .plan-revisit .plan-revisit-soon`)
   await page.waitForTimeout(300)
 
   // Revisit now:  the request held a moment, so its button must spin
@@ -474,7 +505,7 @@ try {
     const items = document.querySelectorAll(".plan-items > [data-status][id]").length
     const acts = document.querySelectorAll(".plan-items > [data-status][id] .plan-act").length
     const buttons = document.querySelectorAll(".plan-items > [data-status][id] .plan-act ui-button[data-action]")
-    const docked = document.querySelectorAll(".plan-items > [data-status][id] > .plan-revisit[data-docked]").length
+    const docked = document.querySelectorAll(".plan-items > [data-status][id] .plan-revisit[data-docked]").length
     const detailed = document.querySelectorAll(".plan-items > [data-status][id] > ui-accordion.plan-item").length
     return (
       acts === items &&
@@ -501,6 +532,25 @@ try {
     if (left || cleared.letter || cleared.picked || cleared.chosen)
       problems.push(`un-picking B on ${Q} left ${JSON.stringify({ inbox: left, page: cleared })}`)
   }
+  // Review Now (P4 of `windows-and-review`):  blue while marks wait;  pressed, every revisit waiting (`soon`'s, sent
+  // and still to talk over) is asked now, its item spinning, and the rest sent
+  const nowBefore = await page.$eval(".plan-review-now", (button) => button.dataset.state)
+  if (nowBefore !== "ready") problems.push(`Review Now before:  "${nowBefore}", not ready (blue)`)
+  await page.click(".plan-review-now")
+  await page.waitForTimeout(500)
+  const reviewed = await inbox()
+  summary.reviewNow = { mark: reviewed.marks[soon], queued: reviewed.now.map((each) => each.id) }
+  if (reviewed.marks[soon]?.when !== "now" || !reviewed.now.some((each) => each.id === soon))
+    problems.push(`Review Now didn't ask ${soon}'s revisit now:  ${JSON.stringify(summary.reviewNow)}`)
+  const soonSpins = await page.$eval(
+    `#${soon} .plan-act ui-button[data-action="revisit"]`,
+    (button) => button.hasAttribute("loading") || button.hasAttribute("data-waiting")
+  )
+  if (!soonSpins) problems.push(`Review Now:  ${soon}'s Revisit isn't spinning`)
+  const nowNotice = await page.evaluate(() => document.querySelector(".plan-review-notice:not([hidden])")?.textContent)
+  if (!/^Claude is working through \d+ now/.test(nowNotice ?? ""))
+    problems.push(`a session listening, but Review Now said "${nowNotice}"`)
+
   if (errors.length) problems.push(`page errors:  ${errors.join(" | ")}`)
   await context.close()
 
@@ -610,7 +660,8 @@ async function chosenOn(page, id) {
 
 /** Is item `id`'s note box on screen (docked:  the item open and not approved;  else opened under its line)? */
 async function boxShown(page, id) {
-  return page.evaluate((item) => !!document.querySelector(`#${item} > .plan-revisit`)?.getClientRects().length, id)
+  // `checkVisibility()`:  a docked box sits in its item's details, laid out even while they're folded
+  return page.evaluate((item) => !!document.querySelector(`#${item} .plan-revisit`)?.checkVisibility(), id)
 }
 
 /** Item `id`'s `action` button as shown:  `{ color, chosen, sent, loading, waiting, title }`. */
@@ -766,7 +817,11 @@ function marksShown(pick) {
   return shown
 }
 
-/** In the page:  items whose title runs under their buttons, and a page wider than the window. */
+/**
+ * In the page:  items whose title runs under their buttons, an open item's fold button (epic `windows-and-review`
+ * Q6) drawn over its line's buttons or its note box's, and a page wider than the window.
+ * - the fold button may slide UNDER the item's stuck line as the details leave:  only drawn over counts
+ */
 function overlaps() {
   const found = []
   for (const item of document.querySelectorAll(".plan-items > [data-status][id]")) {
@@ -780,8 +835,26 @@ function overlaps() {
         break
       }
   }
+  for (const fold of document.querySelectorAll(".plan-fold")) {
+    const box = fold.getBoundingClientRect()
+    if (!box.width) continue
+    const item = fold.closest("[data-status][id]")
+    for (const control of item.querySelectorAll(".plan-act ui-button, .plan-revisit-buttons > button")) {
+      const other = control.getBoundingClientRect()
+      const left = Math.max(box.left, other.left)
+      const right = Math.min(box.right, other.right)
+      const top = Math.max(box.top, other.top)
+      const bottom = Math.min(box.bottom, other.bottom)
+      if (right <= left || bottom <= top) continue
+      const shown = document.elementFromPoint((left + right) / 2, (top + bottom) / 2)
+      if (shown && fold.contains(shown))
+        found.push(`${item.id}'s fold button covers ${control.title || control.className}`)
+    }
+  }
   // the review controls only:  at 280px the doc's own long `code` lines already run wide (from `file://` too)
-  for (const control of document.querySelectorAll(".plan-act, .plan-revisit, .plan-send, .plan-choose")) {
+  for (const control of document.querySelectorAll(
+    ".plan-act, .plan-revisit, .plan-send, .plan-review-now, .plan-choose, .plan-fold"
+  )) {
     const box = control.getBoundingClientRect()
     if (box.width && box.right > innerWidth + 1) found.push(`${control.className} runs past the window's edge`)
   }
