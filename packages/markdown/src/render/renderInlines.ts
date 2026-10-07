@@ -1,4 +1,4 @@
-import { MD, type InlineNode } from "$/markdown"
+import { MD } from "$/markdown"
 
 /**
  * An `MD.InlineNode` tree => `MD.Markup`, in plain HTML tags (`em`, `strong`, `del`, `a`, `img`, `code`, `br`).
@@ -6,17 +6,17 @@ import { MD, type InlineNode } from "$/markdown"
  * - A `strong` straight inside a `strong` draws no tag of its own, as cmark-gfm does:  `****foo****` is ONE bold.
  * - An image's `alt` is its children's plain text.
  */
-export function renderInlines(node: InlineNode, options: { tagfilter?: boolean; breaks?: boolean } = {}): MD.Markup {
+export function renderInlines(node: MD.InlineNode, options: { tagfilter?: boolean; breaks?: boolean } = {}): MD.Markup {
   const { tagfilter = true, breaks = false } = options
   return children(node)
 
   /** `node`'s children as markup. */
-  function children(node: InlineNode): MD.Markup {
+  function children(node: MD.InlineNode): MD.Markup {
     return node.children().map(draw)
   }
 
   /** One inline node as markup. */
-  function draw(node: InlineNode): MD.Markup {
+  function draw(node: MD.InlineNode): MD.Markup {
     switch (node.kind) {
       case "text":
         return node.text
@@ -45,7 +45,7 @@ export function renderInlines(node: InlineNode, options: { tagfilter?: boolean; 
 }
 
 /** `node`'s text without markup:  an image's `alt`. */
-export function plainText(node: InlineNode): string {
+export function plainText(node: MD.InlineNode): string {
   return node
     .children()
     .map((child) => {

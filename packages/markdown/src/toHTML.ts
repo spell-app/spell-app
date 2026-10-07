@@ -1,4 +1,4 @@
-import { MD, type MarkdownHeading, type MarkdownOptions, type RenderOptions } from "$/markdown"
+import { MD } from "$/markdown"
 
 /**
  * `MD.toHTML(markdown)` -- markdown to PLAIN HTML, as the GFM spec spells it.
@@ -6,12 +6,12 @@ import { MD, type MarkdownHeading, type MarkdownOptions, type RenderOptions } fr
  *   then each leaf's inlines (`MD.InlineParser`, GFM autolinks), drawn as `MD.Markup` and written as HTML.
  * - `options`:  GFM autolinks and tagfilter, both on unless turned off.
  */
-export function toHTML(markdown: string, options: MarkdownOptions = {}): string {
+export function toHTML(markdown: string, options: MD.MarkdownOptions = {}): string {
   return MD.markupToHTML(toMarkup(markdown, options))
 }
 
 /** `markdown` as plain-HTML `MD.Markup`. */
-export function toMarkup(markdown: string, options: MarkdownOptions = {}): MD.Markup {
+export function toMarkup(markdown: string, options: MD.MarkdownOptions = {}): MD.Markup {
   return render(markdown, { ...options, ui: false, headingIds: false }).markup
 }
 
@@ -20,7 +20,7 @@ export function toMarkup(markdown: string, options: MarkdownOptions = {}): MD.Ma
  * what `<ui-markdown>`'s engine returns (`{ fragment, headings }`), minus the DOM, which the caller makes from
  * `html` (and sanitizes).
  */
-export function render(markdown: string, options: RenderOptions = {}): MarkdownRender {
+export function render(markdown: string, options: MD.RenderOptions = {}): MarkdownRender {
   const {
     autolinks = true,
     tagfilter = true,
@@ -31,7 +31,7 @@ export function render(markdown: string, options: RenderOptions = {}): MarkdownR
   } = options
   const doc = MD.BlockScanner.parse(markdown)
   const refmap = MD.extractReferences(doc)
-  const headings: MarkdownHeading[] = []
+  const headings: MD.MarkdownHeading[] = []
   const inline = (text: string) => {
     const root = MD.InlineParser.parse(text, refmap)
     if (autolinks) MD.autolinkText(root)
@@ -48,5 +48,5 @@ export type MarkdownRender = {
   /** ... written as HTML. */
   html: string
   /** Every heading, in order. */
-  headings: MarkdownHeading[]
+  headings: MD.MarkdownHeading[]
 }

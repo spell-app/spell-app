@@ -6,6 +6,7 @@ import type { ThingExplorerState, TypeExplorerState } from "$/app/ui/ui.types"
 import { TypeExplorer } from "$/app/solid/TypeExplorer"
 import { ThingExplorer } from "$/app/solid/ThingExplorer"
 import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
+import { fetchJSON, fetchText } from "./fetchFresh"
 import { loadScopePack, scopesFromPacks, type CompiledDeclarations, type ScopesSource } from "$/lsp/ScopesSource"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
@@ -472,27 +473,6 @@ const DEFAULT_DEBUG_HEIGHT = 280
 
 /** Key in a run's compiled javascript for the program's own -- its project id isn't known until its pack is. */
 const MAIN_PROJECT = ""
-
-/** Text at `url`, fetched afresh -- throwing if it's not there. */
-async function fetchText(url: string): Promise<string> {
-  const response = await fetch(url, { cache: "no-cache" })
-  if (!response.ok) throw new Error(`Couldn't load ${url}:  ${response.status} ${response.statusText}`)
-  return response.text()
-}
-
-/**
- * JSON at `url` -- `undefined` if there's no `url`, or nothing there.
- * - NEVER throws:  what it's for, e.g. a project's declarations, is optional.
- */
-async function fetchJSON<T>(url: string | undefined): Promise<T | undefined> {
-  if (!url) return undefined
-  try {
-    const response = await fetch(url, { cache: "no-cache" })
-    return response.ok ? ((await response.json()) as T) : undefined
-  } catch {
-    return undefined
-  }
-}
 
 /** Message of `problem`, whatever was thrown. */
 function messageOf(problem: unknown): string {

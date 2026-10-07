@@ -1,4 +1,4 @@
-import { MD, type Block, type RefMap } from "$/markdown"
+import { MD } from "$/markdown"
 
 /**
  * Take the link reference definitions (`[label]: url "title"`) off the front of every paragraph in `doc`, into a
@@ -8,14 +8,14 @@ import { MD, type Block, type RefMap } from "$/markdown"
  * - NOTE: commonmark.js does this when a paragraph closes;  a paragraph that became a setext heading keeps its
  *   definitions as text here (a deferred edge case).
  */
-export function extractReferences(doc: Block): RefMap {
-  const refmap: RefMap = {}
+export function extractReferences(doc: MD.Block): MD.RefMap {
+  const refmap: MD.RefMap = {}
   const parser = new MD.InlineParser()
   visit(doc)
   return refmap
 
   /** Strip definitions from `block`'s paragraphs, depth first, in document order. */
-  function visit(block: Block) {
+  function visit(block: MD.Block) {
     for (const child of [...block.children]) {
       if (child.kind !== "paragraph") {
         visit(child)
