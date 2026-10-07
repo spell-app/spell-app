@@ -120,8 +120,9 @@ export class Observable<
    */
   protected checkPropType(property: string, value: unknown, info: PropInfo): void {
     if (import.meta.env?.PROD) return
-    if (info.oneOf && !info.oneOf.includes(value)) {
-      console.warn(`${this.constructor.name}.${property}:  expected one of ${info.oneOf.join(", ")}, got`, value)
+    const oneOf = typeof info.oneOf === "function" ? info.oneOf() : info.oneOf
+    if (oneOf && !oneOf.includes(value)) {
+      console.warn(`${this.constructor.name}.${property}:  expected one of ${oneOf.join(", ")}, got`, value)
     } else if (info.type && !isOfType(value, info.type)) {
       console.warn(`${this.constructor.name}.${property}:  expected ${info.type}, got`, value)
     }

@@ -131,6 +131,8 @@ describe("outline style", () => {
   })
 
   describe('value kinds (P2):  `"suits" as one of ...` in a deck\'s body', () => {
+    /** A card's suit is one of the deck's suits, read when set:  the deck's class may be defined after the card's. */
+    const LAZY_SUITS = /static \{ this\.declareProp\('suit', \{ oneOf: \(\) => \{\s+return Deck\.Suits\s+\} \}\) \}/
     const DECK = [
       "a deck is a list of cards with:",
       '\t- "suits" as one of clubs, diamonds, hearts or spades',
@@ -150,7 +152,7 @@ describe("outline style", () => {
       expect(js).toContain("Deck.Ranks = ['ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king']")
       expect(js).toMatch(/export class Suit \{\s+static color\(suit\) \{/)
       expect(js).toContain("if (spellCore.includes(['diamonds', 'hearts'], suit)) { return 'red' }")
-      expect(js).toContain("static { this.declareProp('suit', { oneOf: () => Deck.Suits }) }")
+      expect(js).toMatch(LAZY_SUITS)
       expect(js).toContain("return Suit.color(this.suit)")
     })
 
@@ -160,7 +162,7 @@ describe("outline style", () => {
         '\t- its "suit" is a suit of its deck',
         '\t- its "direction" is up or down'
       ])
-      expect(said).toContain("this.declareProp('suit', { oneOf: () => Deck.Suits })")
+      expect(said).toMatch(LAZY_SUITS)
       expect(said).toContain("static Directions = ['up', 'down']")
     })
 
@@ -177,7 +179,7 @@ describe("outline style", () => {
     test("the card may come first, above the deck whose kinds it uses (issue I3)", () => {
       const cardFirst = [...DECK.slice(6), ...DECK.slice(0, 6)]
       const js = compile(cardFirst)
-      expect(js).toContain("static { this.declareProp('suit', { oneOf: () => Deck.Suits }) }")
+      expect(js).toMatch(LAZY_SUITS)
       expect(js).toContain("return Suit.color(this.suit)")
       const run = runSpell([...cardFirst, "the queen is a new card with suit = hearts, rank = queen"])
       expect(run("queen")).toMatchObject({ queen: { color: "red" } })

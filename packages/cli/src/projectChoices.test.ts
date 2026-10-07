@@ -23,7 +23,7 @@ describe("projectChoices()", () => {
   })
 
   test("a root:  its projects, to go into", async () => {
-    expect(await values("@test/")).toEqual(["@test/FizzBuzz/", "@test/Solitaire/"])
+    expect(await values("@test/")).toEqual(["@test/FizzBuzz/", "@test/OutlineSolitaire/", "@test/Solitaire/"])
     expect(await values("@test/sol")).toEqual(["@test/Solitaire/"])
   })
 
