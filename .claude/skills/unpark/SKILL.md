@@ -45,7 +45,7 @@ this one.  AskUserQuestion:
     2. `spell dev window open <name>` (`--pkg <pkg>` when this isn't a package window), then
        `spell dev window handoff <name>`, both from the worktree's root, as `.claude/skills/isolate/SKILL.md`
        "Start" steps 4-5.  The session moves there when this turn ends.
-  - "Stay in this window":  step 1 only.
+  - "Stay in this window":  step 1, then `spell dev window stay <name>` (the window titled `⎇ <name>`, tinted).
 - Same:  `EnterWorktree` if not in it yet, and go on.
 
 ## 4. Resume
