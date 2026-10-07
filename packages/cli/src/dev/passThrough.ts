@@ -16,11 +16,10 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * - `design build`:  `packages/ui`'s `design:build`, under `tsx`, in the caller's folder (so `--out` is relative to it)
  * - `design bundle` / `design check`:  `packages/docs`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
  * - `design sync`:  `packages/docs/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
- * - `plan-doc`:  in the caller's folder, as `spell plan-doc` always ran it
- * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`)
+ * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`);  `plan-doc`
+ *   runs in this process (`planDocCommand()`, epic `epic-components` P7)
  */
 export const TOOLS = {
-  "plan-doc": { tool: "packages/docs/tools/plan-doc.js", tsx: "packages/docs/tsconfig.json" },
   "docs update": { tool: "packages/docs/tools/update.js", cwd: "packages/docs" },
   "docs index": { tool: "packages/docs/tools/index.js", cwd: "packages/docs" },
   "docs new": { tool: "packages/docs/tools/new-page.js", cwd: "packages/docs" },

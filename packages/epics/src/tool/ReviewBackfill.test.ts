@@ -2,15 +2,15 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { describe, expect, it } from "vite-plus/test"
+import { describe, expect, test } from "vite-plus/test"
 
-import { findEvidence, projectSlug, sessionsOf } from "./review-backfill.js"
+import { ReviewBackfill } from "./ReviewBackfill"
 
 /** The repo's main root, as the fixture's sessions name it. */
 const ROOT = "/Users/someone/repo"
 
 /** A transcript line:  a user entry saying `content`, plus `extra` fields. */
-function user(content, extra = {}) {
+function user(content: unknown, extra: Record<string, unknown> = {}) {
   return JSON.stringify({
     type: "user",
     timestamp: "2026-10-02T17:00:00.000Z",
@@ -21,7 +21,7 @@ function user(content, extra = {}) {
 }
 
 /** A projects folder holding `sessions` (`{ [folder]: { [id]: lines } }`);  returns its path. */
-function projects(sessions) {
+function projects(sessions: Record<string, Record<string, string[]>>) {
   const dir = mkdtempSync(join(tmpdir(), "backfill-"))
   for (const [folder, files] of Object.entries(sessions)) {
     mkdirSync(join(dir, folder))
@@ -30,10 +30,10 @@ function projects(sessions) {
   return dir
 }
 
-describe("review backfill", () => {
-  const slug = projectSlug(ROOT)
+describe("ReviewBackfill", () => {
+  const slug = ReviewBackfill.projectSlug(ROOT)
 
-  it("finds an epic's sessions:  by title, by its worktree, by its worktree's own project folder", () => {
+  test("finds an epic's sessions:  by title, by its worktree, by its worktree's own project folder", () => {
     const dir = projects({
       [slug]: {
         titled: [JSON.stringify({ type: "custom-title", customTitle: "seo" }), user("hi")],
@@ -43,11 +43,11 @@ describe("review backfill", () => {
       [`${slug}--claude-worktrees-seo`]: { old: [user("x")] },
       "-somewhere-else": { stray: [JSON.stringify({ type: "custom-title", customTitle: "seo" })] }
     })
-    const ids = sessionsOf("seo", ROOT, dir).map((session) => session.id)
+    const ids = new ReviewBackfill({ projects: dir }).sessionsOf("seo", ROOT).map((session) => session.id)
     expect(ids.sort()).toEqual(["moved", "old", "titled"])
   })
 
-  it("counts Owen's messages and modal answers;  never skill bodies, agent notices or summaries", () => {
+  test("counts Owen's messages and modal answers;  never skill bodies, agent notices or summaries", () => {
     const dir = projects({
       [slug]: {
         s: [
@@ -66,7 +66,14 @@ describe("review backfill", () => {
         ]
       }
     })
-    const evidence = findEvidence(sessionsOf("seo", ROOT, dir), ["I7", "I8", "T1", "C2", "C3", "C4"])
+    const evidence = ReviewBackfill.findEvidence(new ReviewBackfill({ projects: dir }).sessionsOf("seo", ROOT), [
+      "I7",
+      "I8",
+      "T1",
+      "C2",
+      "C3",
+      "C4"
+    ])
     expect(Object.keys(evidence).sort()).toEqual(["C4", "I7"])
     expect(evidence.I7[0]).toMatchObject({
       session: "s",
@@ -81,12 +88,16 @@ describe("review backfill", () => {
     )
   })
 
-  it("matches whole ids only, any case", () => {
+  test("matches whole ids only, any case", () => {
     const dir = projects({
       [slug]: {
         s: [JSON.stringify({ type: "custom-title", customTitle: "seo" }), user("see i7, not I7x, AI7 or I70x")]
       }
     })
-    expect(Object.keys(findEvidence(sessionsOf("seo", ROOT, dir), ["I7", "I70"]))).toEqual(["I7"])
+    expect(
+      Object.keys(
+        ReviewBackfill.findEvidence(new ReviewBackfill({ projects: dir }).sessionsOf("seo", ROOT), ["I7", "I70"])
+      )
+    ).toEqual(["I7"])
   })
 })

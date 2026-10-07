@@ -14,6 +14,7 @@
   //   `$/ui/tools/StaticRenderer` + `$/ui/tools/tools.types` (node-only:  `spell static`'s Vite server for `ui`'s
   //   static render, and its types),
   //   `$/ui/tools/RootCatalog` (node-only:  a `<ui-root>` catalog from vocabularies, for `spell dev pack build`),
+  //   `$/epics/tool/...` (node-only:  the plan-doc tool, for the `spell` CLI;  never in the `$/epics` barrel),
   //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` only:  the
   //   `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:

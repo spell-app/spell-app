@@ -18,6 +18,8 @@
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'"
   },
   "dependencies": {
+    "@spell-app/assembler": "workspace:*",
+    "@spell-app/server": "workspace:*",
     "linkedom": "^0.18.13"
   },
   "devDependencies": {

@@ -109,7 +109,8 @@ describe("CLI.newPack()", () => {
     expect(json.workspaces.at(-1)).toBe("packages/my-pack")
     expect(json.pageServer.watch.at(-1)).toBe("packages/my-pack/pack")
     expect(read("tsconfig.base.json")).toMatch(
-      /"\$\/brand\/components\/\*": \["\.\/packages\/brand\/components\/\*"\],\n\n {6}\/\/ ## `my-pack`.*\n.*\n {6}"\$\/my-pack": \["\.\/packages\/my-pack\/src\/index\.ts"\],/
+      // its own block after the last alias, whichever package that is (the real file grows)
+      /\],\n\n {6}\/\/ ## `my-pack`.*\n.*\n {6}"\$\/my-pack": \["\.\/packages\/my-pack\/src\/index\.ts"\],/
     )
     expect(read("tsconfig.base.json")).toContain(`"$/my-pack/components/*": ["./packages/my-pack/components/*"]\n    }`)
     const vitest = read("vitest.config.ts")
@@ -122,9 +123,10 @@ describe("CLI.newPack()", () => {
     expect(vitest).toContain(" * - `my-pack`:  a component pack (`spell dev pack`)")
     const lint = read("vite.lint.ts")
     expect(lint).toMatch(
-      /"packages\/vscode",\n {2}\/\/ `my-pack`'s component pack.*\n {2}"packages\/my-pack\/pack"\n\]/
+      // last in the list, whatever came before it (the real file grows)
+      /",\n {2}\/\/ `my-pack`'s component pack.*\n {2}"packages\/my-pack\/pack"\n\]/
     )
-    expect(lint).toMatch(/"\*\*\/tools\/results\/\*\*",\n {4}"\*\*\/packages\/my-pack\/pack\/\*\*"\n {2}\]/)
+    expect(lint).toMatch(/",\n {4}"\*\*\/packages\/my-pack\/pack\/\*\*"\n {2}\]/)
     expect(read(".gitattributes")).toMatch(
       /\n# my-pack:.*\npackages\/my-pack\/pack\/\*\* +linguist-generated merge=binary -diff\n$/
     )
