@@ -444,3 +444,13 @@ export type PackOptions = GlobalOptions & {
   build?: boolean
   json?: boolean
 }
+
+/**
+ * `spell dev bundles` flags.
+ * - `stale`:  `build`:  only the bundles that need it
+ * - `json`:  print the report as JSON
+ */
+export type BundlesOptions = GlobalOptions & {
+  stale?: boolean
+  json?: boolean
+}

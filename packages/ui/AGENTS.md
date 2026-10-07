@@ -125,10 +125,12 @@ house style every package shares.  Only what's local is below;  a section named 
     - `SITE_BUILD`, the BUILT half:  `site/`, tracked per branch (`site/README.md`:  its files);  the page server
       lays its `_assets/` and `_data/` over the pages at `/ui/`, so every page's relative `_assets/...` /
       `_data/...` links resolve unchanged:
-    - `site/_assets/` -- GENERATED, committed:  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what
-      every page loads:  `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module"
-      src="_assets/site.js">`, `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink
-      to `src/icons/icon-packs`.  NEVER edit
+    - `site/_assets/` -- GENERATED, NOT committed (git-ignored since 2026-10-07:  its hashed chunk names churned every
+      diff and merge):  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what every page loads:
+      `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module" src="_assets/site.js">`,
+      `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink to `src/icons/icon-packs`.
+      The page server builds it when it starts, if stale (`spell dev bundles build --stale`;  `$/assembler`
+      `Bundle`, `.bundle.json` records the sources' hash), and a page waits for that.  NEVER edit
     - `site/_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS
       (`site.css`);  config `vite.site.config.ts`
     - `site/_data/` -- `components.json` and `icons.json` (the icon browser's search terms), GENERATED, committed
@@ -179,12 +181,13 @@ house style every package shares.  Only what's local is below;  a section named 
     `ui/_data/search.json`) + `yarn site:index` (the component index's cards, `ui/components/index.html`;  `--check`)
     + `yarn site:kitchen` (the kitchen sink's examples, `ui/kitchen-sink.html`, from every family's
     `examples/elements/types.html`;  `--check`) + `yarn site:bundle` (`site/_assets/`, sizes printed):  rerun after
-    changing a vocabulary, a family sheet, an example or any source the site shows, and commit the output in `site/`
-    (`ui/` commits itself)
+    changing a vocabulary, a family sheet, an example or any source the site shows, and commit `site/_data/`
+    (`ui/` commits itself;  `site/_assets/` is git-ignored, and `spell dev bundles build ui-site` records its
+    sources' hash, so the page server doesn't build it again)
   - `yarn site:dev` -- `scripts/site-dev.ts`:  `yarn site:bundle`, then the page server (started if needed) serves
     `/ui/` while a Vite WATCH build rebuilds `site/_assets/` on every `src/` / `site/_src/` edit, and live reload
     reloads the open pages.  Not watched:  `site:data` / `site:index` / `site:kitchen`.  A watch rebuild leaves stale
-    hashed chunks:  `yarn site:build` before committing
+    hashed chunks (harmless:  not committed);  the page server's next start rebuilds the bundle clean
   - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
     (`templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `ui/components/<main tag>.html` for a
     tag (`<tag>.html` for a sub-tag its family's `pages` lists:  `ui-radio`), else `ui/<page>.html`;  title /

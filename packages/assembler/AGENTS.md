@@ -15,9 +15,18 @@ house style every package shares.  Only what's local is below;  a section named 
     per destination), and `check()` verifies them.  Was `packages/docs/tools/doc-links.js`, now its command line.
   - `format.ts` -- `formatHTML()`:  oxfmt on a page's text in memory, as `vp fmt` would format its file.  Was
     `packages/docs/tools/plan-parts.js`'s.
+  - `Bundle` -- the bundles only the page server serves, BUILT on demand instead of committed (`BUNDLES` in
+    `assembler.types.ts`:  `ui-site`, Spell UI's docs site;  `brand`, the brand pages):  `check()` (stale:  never
+    built, entry missing or rewritten, or its sources' hash changed), `build()` (runs its package's script, then
+    records the hash in `<output>/.bundle.json`).  Its command line:  `spell dev bundles build [<name>...] [--stale]`
+    / `check`;  the page server runs `build --stale` when it starts (`packages/server`, `BundleBuild`).
+    - Why (Owen, 2026-10-07):  their chunk names carry content hashes, so every Spell UI change deleted and re-added
+      most of their files in every diff and merge
+    - A new bundle:  a `BUNDLES` entry, its `output` in the root `.gitignore`, and in the page server's copy,
+      `BUNDLE_FOLDERS` (`packages/server/src/page/page.types.ts`;  `cli`'s `bundlesCommand.test.ts` compares them)
   - Next (Owen, 2026-10-07):  most of the page server's assembly code, so other assembly tools can be built on it
     (e.g. a redone goals package).  Grow it by capability:  one class per file, its types in `assembler.types.ts`.
-- Node only (`node:fs`, `git`, oxfmt, linkedom), and it imports NO other package:  `docs`, `epics` and any other
+- Node only (`node:fs`, `node:child_process`, `git`, oxfmt, linkedom), and it imports NO other package:  `docs`, `epics` and any other
   node-side package or tool may import it.  NEVER make it import `docs` or `epics`:  they import it.
 - It knows the checkout's LAYOUT as folder names (`packages/*/src`, the shared areas `pages/`, `guides/`, `epics/`,
   `templates/`, `packages/docs/tools`), never as imports:  `Linker` takes the checkout's root.

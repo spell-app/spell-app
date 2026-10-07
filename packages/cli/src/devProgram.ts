@@ -7,7 +7,8 @@
  *   - pass-throughs (`plan-doc`, `goals`, `docs`, `details`, `design`, `server`, `window`, `vscode`):  a repo tool
  *     run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them directly, so they
  *     load no spell
- *   - lean commands of our own (`pack`):  `(args, options) => Promise<exitCode>`, imported directly the same way
+ *   - lean commands of our own (`pack`, `bundles`):  `(args, options) => Promise<exitCode>`, imported directly the
+ *     same way
  *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);  run through the
  *     `runBarrel` each entry passes in
  * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
@@ -17,8 +18,9 @@ import chalk from "chalk"
 import { Command } from "commander"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
-import { CliError, EXIT, type GlobalOptions, type PackOptions } from "$/cli/cli.types"
+import { CliError, EXIT, type BundlesOptions, type GlobalOptions, type PackOptions } from "$/cli/cli.types"
 import { DESIGN_VERBS, DOCS_VERBS } from "$/cli/dev/passThrough"
+import { BUNDLES_VERBS, bundlesCommand } from "$/cli/commands/bundlesCommand"
 import { designCommand } from "$/cli/commands/designCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
@@ -125,6 +127,19 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .option("--json", "print the report as JSON")
     .action((verb: string, names: string[], options: PackOptions) =>
       runLean((args) => packCommand(args, options), [verb, ...names])
+    )
+
+  dev
+    .command("bundles")
+    .description(
+      "the bundles the page server serves, built on demand, never committed (Spell UI's docs site, the brand pages)"
+    )
+    .argument("<verb>", `${BUNDLES_VERBS.join(" | ")}`)
+    .argument("[names...]", "build [<name>...] [--stale] | check [<name>...];  no name:  every bundle")
+    .option("--stale", "build:  only the bundles whose sources changed since their last build")
+    .option("--json", "print the report as JSON")
+    .action((verb: string, names: string[], options: BundlesOptions) =>
+      runLean((args) => bundlesCommand(args, options), [verb, ...names])
     )
 
   dev

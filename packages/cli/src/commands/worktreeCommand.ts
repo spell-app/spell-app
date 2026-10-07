@@ -44,7 +44,7 @@ export async function worktreeCommand(
 
 /** `merge-main`'s report, for a person. */
 function mergeMainLines(report: CLI.MergeMainReport): string[] {
-  const { branch, result, conflicts, regenerated, review, unstaged } = report
+  const { branch, result, conflicts, untracked, regenerated, review, unstaged } = report
   if (result === "up-to-date") return [`${branch}:  main is already in it`]
   if (result === "fast-forward") return [`${branch}:  fast-forwarded to main`]
   if (result === "conflicts") {
@@ -55,6 +55,7 @@ function mergeMainLines(report: CLI.MergeMainReport): string[] {
   }
   return [
     `${branch}:  merged main`,
+    ...(untracked.length ? [`  untracked ${untracked.length} file(s) now git-ignored (kept on disk)`] : []),
     ...regenerated.map(({ name, files }) => `  regenerated ${name}:  ${files.length} file(s)`),
     ...review.flatMap(({ file, keys }) => [
       `  REVIEW ${file}:  neither side had these values`,

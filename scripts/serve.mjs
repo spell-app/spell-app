@@ -8,7 +8,8 @@
  *   once the page server listens;  this waits for its record, `.spell-server.editor.json`, to answer.
  * - SPELL UI's docs:  static pages the page server itself serves at `/ui/` (no dev server):  the shared
  *   pages, `ui/`, with this branch's built `packages/ui/site/_assets/` and `_data/` laid over them;  this checks its
- *   bundle answers (`/ui/_assets/site.js`, built by `yarn site:build` in `packages/ui`).
+ *   bundle answers (`/ui/_assets/site.js`:  not committed;  the page server builds it when it starts, if stale,
+ *   and the request waits for that).
  * - Prints one row per server:  name, port, URL, state.  Exit code 1 if any didn't come up.
  * - `node`, so it runs before `yarn install` too;  the page server itself needs this checkout's `node_modules`.
  */
@@ -29,8 +30,8 @@ const EDITOR_FILE = join(ROOT, ".spell-server.editor.json")
 /** How long the editor may take:  vite may be building its dependency cache. */
 const EDITOR_TIMEOUT_MS = 90_000
 
-/** How long the Spell UI check may take:  a static file from the page server. */
-const UI_TIMEOUT_MS = 10_000
+/** How long the Spell UI check may take:  a static file from the page server, which may wait for its build. */
+const UI_TIMEOUT_MS = 130_000
 
 const rows = []
 const page = ensurePageServer()
@@ -79,7 +80,7 @@ async function spellUIRow(base) {
     if (response.ok) return { ...row, state: "running" }
     return {
       ...row,
-      state: `its bundle answered ${response.status}:  run \`yarn site:build\` in packages/ui`,
+      state: `its bundle answered ${response.status}:  see .spell-server.log, or run \`spell dev bundles build ui-site\``,
       failed: true
     }
   } catch (error) {

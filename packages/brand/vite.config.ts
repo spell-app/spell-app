@@ -7,7 +7,7 @@ import { baseConfig } from "../ui/vite.config.ts"
 /** `packages/brand/`. */
 const ROOT = fileURLToPath(new URL("./", import.meta.url))
 
-/** Where the bundle goes:  `_assets/ui/`, COMMITTED (like Spell UI's site bundle). */
+/** Where the bundle goes:  `_assets/ui/`, git-ignored, built by the page server when stale (`spell dev bundles`). */
 export const BRAND_ASSETS = `${ROOT}_assets/ui`
 
 /** The pages' entry:  `src/brand-ui.ts`. */
@@ -27,8 +27,8 @@ export const DOCS_ENTRY = `${ROOT}src/brand-docs.ts`
  *   inline every theme, engine and emoji chunk).
  * - Aliases set here as well, as the site's config does:  files outside a `tsconfig.json`'s `include` may not get
  *   `tsconfigPaths`.  `@spell-app/solid-element` from SOURCE:  a fresh checkout has no `dist/`.
- * - Also `vp lint` / `vp fmt`:  the repo root's `vite.lint.ts`;  the committed bundle and the design build are
- *   not ours to lint.
+ * - Also `vp lint` / `vp fmt`:  the repo root's `vite.lint.ts`;  the built bundle and the design build are not
+ *   ours to lint.
  */
 export default defineConfig(() => {
   const base = baseConfig()
