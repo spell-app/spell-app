@@ -55,8 +55,8 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
      -purple`:  the 12 of `spell dev window color`;  epic `windows-and-review` P5).  Folders:  the MAIN root (so
      every session is listed), then the worktree's root, `⎇ <name>`.
      `<pkg>`:  this session's window's.
-   - "which package?" (this isn't a package window):  AskUserQuestion "Which package's window?", up to 4 packages
-     the work touches, most likely first and "(Recommended)";  then `open <name> --pkg <pkg>`.
+   - this isn't a package window (a worktree's ...):  `open` takes `spell-app`'s (the whole repo's window, its
+     look);  never ask which package (Owen, 2026-10-07).  `--pkg <pkg>` only when Owen names one.
    - `spell dev window` works before the worktree's `yarn install`:  the `spell` link runs the MAIN checkout's
      CLI, which has its packages (`yarn window` didn't:  yarn runs no script before `yarn install`)
    - fails otherwise:  say so in one line, skip step 5, and do "Continue" now, in this window.  NEVER
