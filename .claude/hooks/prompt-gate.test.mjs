@@ -57,6 +57,8 @@ test("parseCommand:  name, then the rest", () => {
 test("parseCommand:  ignores other prompts, no name, `/isolate done`, `/epic review`, `/epic resume` alone", () => {
   const prompts = ["hello", "/epic", "/isolate  ", "/isolate done", "/park foo", "/epicfoo", "/unpark ?", ""]
   prompts.push("/epic review", "/epic review seo", "/epic Review seo", "/epic resume", "/epic resume ?")
+  // this session's epic:  a phase added or started
+  prompts.push("/epic phase", "/epic phase J1 J5, t3\nfrom these", "/epic start P2", "/epic start J3 J4 T6 go")
   for (const prompt of prompts) {
     assert.equal(parseCommand(prompt), null, prompt)
   }
