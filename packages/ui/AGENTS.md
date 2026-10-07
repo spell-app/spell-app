@@ -315,6 +315,36 @@ As WWOD §18, plus:
   - An effect whose APPLY writes the host (`internals.role`, ARIA, states) is `this.hostEffect(compute, apply)`:  the
     server build never runs an apply, so a plain `createEffect` leaves the static output without it.
 
+## Component packs
+
+- A COMPONENT PACK is another package's custom elements (any tag prefix:  `epic-`, `x-`), loaded on demand by
+  `<ui-root>` like Spell UI's own (epic `epic-components`, P1):
+  `<ui-root><ui-components source="epics.pack.js"></ui-components><epic-page>...</epic-page></ui-root>`.
+- The pack is ONE classic script (works from `file://`), built by `spell dev pack build` (P2), that calls
+  `SpellUI.registerPack({ name, prefix, catalog, define })` as it runs.  `catalog` has `ROOT_CATALOG`'s shape
+  (`RootCatalogEntry`:  folder, skeleton);  `prefix` ends in `-`, is never `ui-`, and starts every catalog tag.
+- The `ui-components` family holds the runtime side:
+  - `<ui-components source>`:  invisible, no logic;  the root reads its `source`.  The root's barrel imports the
+    family, so it's always defined with the root
+  - `ComponentPacks` (static, one per page):  `load(source)` adds a `<script>` once per resolved URL (an already
+    registered name resolves at once);  `register()` finds its load by `document.currentScript`, else by the name the
+    file implies (`epics.pack.js` => `epics`), calls `define()`, then adds the catalog and prefix;  `entryOf()`,
+    `owns()` for the root
+  - `registerPack()`:  exported from `$/ui` (`@spell-app/ui`) and the family's barrel;  the docs bundle puts it on
+    `window.SpellUI`
+- The root (`UIRoot`, `RootLoader`):  its first settle round also waits for its packs;  `undefinedTags()` /
+  `entryOf()` know registered prefixes and catalogs;  skeletons are found again when a pack registers (its catalog
+  arrives WITH it:  nothing to draw before);  a pack that fails or times out is a `RootFailure`
+  `{ tag: "ui-components", reason, source }` (`ui-error`, `ui-ready`'s `failed`) and a `console.error` naming the
+  `source`, and the root still gets ready.
+- Modules a pack shares with the page:  `SpellUI.packModules`, the EXACT specifier its build leaves external =>
+  the page's module (`solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`).  Built in the docs bundle's entry
+  (`packages/docs/tools/_assets/spell-ui.entry.js`), NOT in `ui`:  the one place a Solid package is `import * as`'d,
+  on purpose ("One Solid per page" above:  a pack may use any export, so they must all stay).  A new specifier goes
+  there AND in the pack build's externals.
+- Tests:  `src/components/ui-components/ComponentPacks.test.ts`, on the classic fixtures in
+  `test/fixtures/component-packs/` (served by Vitest's dev server).
+
 ## Decorators
 
 As WWOD §12, plus:
