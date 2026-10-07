@@ -104,10 +104,6 @@
         "title": "Review:  Open Doc in Browser",
         "category": "Spell",
         "icon": "$(link-external)"
-      },
-      {
-        "command": "spell.docView.edit",
-        "title": "Spell Docs:  Edit Key in the Page"
       }
     ],
     "configuration": {
@@ -222,12 +218,6 @@
           "when": "view == spell.reviewView",
           "group": "navigation@5"
         }
-      ],
-      "commandPalette": [
-        {
-          "command": "spell.docView.edit",
-          "when": "false"
-        }
       ]
     },
     "configurationDefaults": {
@@ -337,129 +327,7 @@
           "name": "Review"
         }
       ]
-    },
-    "keybindings": [
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+c",
-        "mac": "cmd+c",
-        "when": "focusedView == spell.docView",
-        "args": {
-          "view": "docs",
-          "command": "copy"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+x",
-        "mac": "cmd+x",
-        "when": "focusedView == spell.docView",
-        "args": {
-          "view": "docs",
-          "command": "cut"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+v",
-        "mac": "cmd+v",
-        "when": "focusedView == spell.docView",
-        "args": {
-          "view": "docs",
-          "command": "paste"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+a",
-        "mac": "cmd+a",
-        "when": "focusedView == spell.docView",
-        "args": {
-          "view": "docs",
-          "command": "selectAll"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+z",
-        "mac": "cmd+z",
-        "when": "focusedView == spell.docView",
-        "args": {
-          "view": "docs",
-          "command": "undo"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+shift+z",
-        "mac": "cmd+shift+z",
-        "when": "focusedView == spell.docView",
-        "args": {
-          "view": "docs",
-          "command": "redo"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+c",
-        "mac": "cmd+c",
-        "when": "focusedView == spell.reviewView",
-        "args": {
-          "view": "review",
-          "command": "copy"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+x",
-        "mac": "cmd+x",
-        "when": "focusedView == spell.reviewView",
-        "args": {
-          "view": "review",
-          "command": "cut"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+v",
-        "mac": "cmd+v",
-        "when": "focusedView == spell.reviewView",
-        "args": {
-          "view": "review",
-          "command": "paste"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+a",
-        "mac": "cmd+a",
-        "when": "focusedView == spell.reviewView",
-        "args": {
-          "view": "review",
-          "command": "selectAll"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+z",
-        "mac": "cmd+z",
-        "when": "focusedView == spell.reviewView",
-        "args": {
-          "view": "review",
-          "command": "undo"
-        }
-      },
-      {
-        "command": "spell.docView.edit",
-        "key": "ctrl+shift+z",
-        "mac": "cmd+shift+z",
-        "when": "focusedView == spell.reviewView",
-        "args": {
-          "view": "review",
-          "command": "redo"
-        }
-      }
-    ]
+    }
   },
   "activationEvents": [
     "onStartupFinished",
