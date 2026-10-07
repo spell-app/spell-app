@@ -96,6 +96,10 @@
  *   window;  `<pkg>` (a package, or any `workspaces/<pkg>.code-workspace`) defaults to this session's window's
  *   package, else `spell-app` (the whole repo's window);  its look:  `--pkg`'s window's when named, else this
  *   session's window's.  `close <name>`:  close that window, delete the file.
+ * - `launch <name> [--pkg <pkg>] [--color <look>] [--prompt <text>]`:  make worktree `<name>` if needed, `open` it
+ *   (`<pkg>` default `spell-app`;  its look `--color`'s, else `<pkg>`'s, tinted:  never this window's), and start a
+ *   NEW Claude Code session in it, `<text>` typed in (default `/epic <name>`).  This session stays where it is:
+ *   `/epic <name>` typed in another epic's session (the `/epic` skill's "From another worktree")
  * - `handoff <name> [--back] [--prompt <text>]`:  move this session to worktree `<name>`'s window when its turn
  *   ends;  `--back`:  from it to its package's window, closing it after;  `--prompt`:  typed into the new tab.
  *   Needs `$CLAUDE_CODE_SESSION_ID` (Claude sets it in a session's commands).
@@ -424,6 +428,37 @@ export class Window {
     return Boolean(window)
   }
 
+  /**
+   * `launch`:  make worktree `name` if needed (the `WorktreeCreate` hook's own `create`, from the MAIN checkout), open
+   * its window, and start a NEW Claude Code session there, `prompt` typed in (not sent);  resolves to `{ file }`.
+   * - for `/epic <name>` typed in ANOTHER epic's session (Owen, 2026-10-07):  that session stays where it is
+   * - its look:  `color`, else `pkg`'s window's theme, the title bar tinted `name`'s own colour;  never the look of
+   *   the window it's launched from, another epic's
+   */
+  static async launch(name, pkg, { color = null, prompt = null } = {}) {
+    const hook = join(MAIN_ROOT, ".claude", "hooks", "worktree.mjs")
+    const input = JSON.stringify({ name, cwd: MAIN_ROOT })
+    const made = spawnSync(process.execPath, [hook, "create"], { input, encoding: "utf8" })
+    if (made.status !== 0) throw new Error(`worktree ${name} not made:  ${made.stderr.trim()}`)
+    const { file, colors } = Window.open(name, pkg, { color, fromCurrent: false })
+    const window = await Window.waitFor(file)
+    if (colors) await Window.applyColors(file, colors)
+    await Window.request("open-session", prompt ? { prompt } : {}, window)
+    return { file }
+  }
+
+  /** The registry entry of the window opened from `file`, once it's up;  throws after `WINDOW_START_TIMEOUT`. */
+  static async waitFor(file) {
+    const deadline = Date.now() + WINDOW_START_TIMEOUT
+    let window = Window.windowOf(file)
+    while (!window && Date.now() < deadline) {
+      await delay(500)
+      window = Window.windowOf(file)
+    }
+    if (!window) throw new Error(`${file} didn't open within ${WINDOW_START_TIMEOUT / 1000}s`)
+    return window
+  }
+
   /** The registry entry of worktree `name`'s window, or `null` when it isn't open. */
   static worktreeWindow(name) {
     return Window.windowOf(Window.worktreeFile(name))
@@ -492,14 +527,8 @@ export class Window {
     const { sessionId, to, from, close, remove, show, prompt } = handoff
     titles = [titles ?? []].flat().filter(Boolean)
     if (!SESSION_ID.test(sessionId ?? "")) throw new Error(`bad session id '${sessionId}'`)
-    let window = Window.windowOf(to)
-    if (!window) spawnSync("code", [to], { encoding: "utf8" })
-    const deadline = Date.now() + WINDOW_START_TIMEOUT
-    while (!window && Date.now() < deadline) {
-      await new Promise((done) => setTimeout(done, 500))
-      window = Window.windowOf(to)
-    }
-    if (!window) throw new Error(`${to} didn't open within ${WINDOW_START_TIMEOUT / 1000}s`)
+    if (!Window.windowOf(to)) spawnSync("code", [to], { encoding: "utf8" })
+    const window = await Window.waitFor(to)
     await Window.request("open-session", prompt ? { sessionId, prompt } : { sessionId }, window)
     let shown
     if (show) {
@@ -678,7 +707,7 @@ export class Window {
       else console.log([`recommend ${advice.recommend}`, ...advice.reasons.map((reason) => `- ${reason}`)].join("\n"))
       return 0
     }
-    if (["open", "close", "handoff", "resume"].includes(command)) return Window.worktreeCommand(command, target, flags)
+    if (["open", "launch", "close", "handoff", "resume"].includes(command)) return Window.worktreeCommand(command, target, flags)
     const window = Window.current()
     if (!window) {
       console.error("no window:  the spell extension's bridge isn't running in this session's VS Code window")
@@ -788,6 +817,14 @@ export class Window {
           console.log(`  left its old ${handoff.close} open (tabs per title:  ${JSON.stringify(matches ?? {})})`)
         return 0
       }
+      if (command === "launch") {
+        const pkg = flags.pkg ?? DEFAULT_WINDOW
+        const color = typeof flags.color === "string" ? flags.color : null
+        const prompt = typeof flags.prompt === "string" ? flags.prompt : `/epic ${name}`
+        const { file } = await Window.launch(name, pkg, { color, prompt })
+        console.log(`opened ${relative(MAIN_ROOT, file)}, a new session there:  ${prompt}`)
+        return 0
+      }
       if (command === "close") {
         const closed = await Window.close(name)
         console.log(closed ? `closed the window of ${name}` : `no window of ${name} open;  its file is gone`)
@@ -818,6 +855,7 @@ const COMMANDS = [
   "show",
   "reload-view",
   "open",
+  "launch",
   "close",
   "handoff",
   "resume",
@@ -842,6 +880,9 @@ const USAGE = `usage:  spell dev window <command>
   open <name> [--pkg <pkg>] [--color <look>]
                                open worktree <name> in a new window (default package:  this window's;
                                default look:  this window's)
+  launch <name> [--pkg <pkg>] [--color <look>] [--prompt <text>]
+                               make worktree <name> if needed, open its window, and start a NEW session
+                               there, <text> typed in (default:  /epic <name>);  this session stays put
   color [<look>]               give this window a look:  Tomorrow Night Blue's, in a hue (no look:  list them)
   stay <name> | --end          a session staying here for worktree <name>:  title the window ⎇ <name>, tint its
                                title bar  /  put both back
