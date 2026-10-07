@@ -447,7 +447,7 @@ export class PlanDoc {
    * - removes the "Plan hung?" notice (`HUNG`):  a plan with a phase has been written, so a hung session no longer
    *   means starting over from the kickoff prompt
    */
-  addPhase(name, { symptom, changes, goal, files, verify, estimate } = {}) {
+  addPhase(name, { symptom, changes, goal, files, verify, estimate, before } = {}) {
     const section = this.section("phases")
     this.document.querySelector(HUNG)?.remove()
     // a future epic with a phase is planned:  no longer future (its meta lines stay until `new` promotes it)
@@ -455,9 +455,9 @@ export class PlanDoc {
       this.document.body.removeAttribute("data-future")
       this.document.querySelector("ui-message.plan-future")?.remove()
     }
-    const n = this.phases.length + 1
+    const n = before === undefined ? this.phases.length + 1 : this.makeRoomForPhase(Number(before))
     const label = `P${n} · ${name}`
-    this.addOldListEntry(n, label)
+    if (before === undefined) this.addOldListEntry(n, label)
     const values = { Symptom: symptom, Changes: changes, Goal: goal, Files: files, Verify: verify, Estimate: estimate }
     const sections = section.localName === "ui-section"
     const framed = symptom !== undefined || changes !== undefined
@@ -482,7 +482,8 @@ export class PlanDoc {
       })
       // newlines around the parts:  oxfmt keeps a custom element's whitespace as it is
       phase.innerHTML = `\n${icon("todo", true)}\n${list}\n`
-      section.append(this.document.createTextNode("\n"), phase)
+      if (before === undefined) section.append(this.document.createTextNode("\n"), phase)
+      else this.phaseSection(n + 1).before(phase, this.document.createTextNode("\n"))
     } else {
       const phase = this.element("section", { class: "s3", "data-phase": n, "data-status": "todo" })
       phase.innerHTML = `<ui-sticky class="spell-h3"><h3 id="p${n}">${icon("todo")} ${text(label)}</h3></ui-sticky>
@@ -492,6 +493,45 @@ ${list}`
     this.updateProgress()
     this.updateEstimate()
     return n
+  }
+
+  /**
+   * Make room for a new phase `n`, before the one numbered `n` now (`add-phase --before n`, epic `skillz`):  it and
+   * every later phase move down one;  returns `n`.
+   * - each moved phase's id, number and title (`p5`, `data-phase="5"`, `P5 · Name` -> `p6` ...), and everything that
+   *   points at it:  links (`href="#p5"`, `P5` in their text), items and Updated lines carrying `data-phase="5"`
+   * - prose naming a phase without a link ("P5 tries it") isn't changed:  link phases to keep them right
+   * - the split doc's part files follow by themselves:  each is written back under its section's new id
+   * - throws if there's no phase `n`, a phase from `n` on has started (done or active:  its commits and log say its
+   *   number), or the doc is the old markup
+   */
+  makeRoomForPhase(n) {
+    const phases = this.phases
+    if (!Number.isInteger(n) || n < 1 || n > phases.length) {
+      throw new PlanDocError(`--before ${n}:  no such phase (1-${phases.length})`)
+    }
+    const started = phases.find((phase) => phase.n >= n && phase.status !== "todo")
+    if (started) throw new PlanDocError(`--before ${n}:  P${started.n} has started;  only to-do phases move down`)
+    if (this.phaseSection(n).localName !== "ui-section") {
+      throw new PlanDocError(`--before:  an old doc's phases;  \`plan-doc migrate\` it first`)
+    }
+    // last first, so a number is free before anything moves onto it
+    for (let k = phases.length; k >= n; k--) this.renumberPhase(k, k + 1)
+    return n
+  }
+
+  /** Phase `from` becomes phase `to`:  its section, and what points at it (`makeRoomForPhase()`). */
+  renumberPhase(from, to) {
+    const section = this.phaseSection(from)
+    section.id = `p${to}`
+    section.setAttribute("header", section.getAttribute("header").replace(/^P\d+/, `P${to}`))
+    for (const element of this.document.querySelectorAll(`[data-phase="${from}"]`)) {
+      element.setAttribute("data-phase", String(to))
+    }
+    for (const link of this.document.querySelectorAll(`[href="#p${from}"]`)) {
+      link.setAttribute("href", `#p${to}`)
+      link.innerHTML = link.innerHTML.replace(new RegExp(`\\bP${from}\\b`), `P${to}`)
+    }
   }
 
   /**
@@ -3288,8 +3328,9 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics/<name>
                                                    --future:  an epic not planned yet (/epic future);  new on
                                                    a future epic's doc plans it:  promoted where it is
   add-phase <name> "Short Name" --symptom html --changes html [--goal html] [--files html] [--verify html]
-            [--estimate 2h]                        a phase:  Symptom (one line), Changes (two or three), then
-                                                   the details (goal, files, verify)
+            [--estimate 2h] [--before N]           a phase:  Symptom (one line), Changes (two or three), then
+                                                   the details (goal, files, verify);  --before N:  inserted as
+                                                   PN, the to-do phases from N on (and links to them) move down
   phase-body <name> <N> [--symptom html] [--changes html] [--goal html] [--files html] [--verify html]
                                                    set (or "" removes) a phase's body fields
   updated <name> <N> "html" | --file path          a change to phase N's plan, in its fenced Updated block
@@ -3404,7 +3445,8 @@ async function main(argv) {
     case "add-phase": {
       const n = await edit(file, (plan) => {
         const added = plan.addPhase(need(rest[0], "a short name"), flags)
-        plan.log(`P${added} added:  ${rest[0]}`)
+        const moved = flags.before === undefined ? "" : `;  P${added}-P${plan.phases.length - 1} moved down one`
+        plan.log(`P${added} added:  ${rest[0]}${moved}`)
         return added
       })
       return console.log(`P${n}`)

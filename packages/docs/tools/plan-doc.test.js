@@ -104,6 +104,33 @@ describe("PlanDoc phases", () => {
     expect(plan.check()).toEqual([])
   })
 
+  it("--before inserts a phase, moving the later to-do phases and what points at them down one", () => {
+    const plan = freshPlan()
+    for (const name of ["One", "Two", "Three"]) plan.addPhase(name)
+    plan.setPhase(1, "done")
+    plan.addPhaseUpdate(3, "<p>three changed</p>")
+    const item = plan.addItem("todo", "after three", { details: '<p>see <a href="#p3">P3 · Three</a></p>' })
+    plan.document.getElementById(item).setAttribute("data-phase", "3")
+    expect(plan.addPhase("Inserted", { before: 2 })).toBe(2)
+    expect(plan.phases.map((phase) => `${phase.n} ${phase.name}`)).toEqual(["1 One", "2 Inserted", "3 Two", "4 Three"])
+    expect(plan.phaseSections.map((section) => section.id)).toEqual(["p1", "p2", "p3", "p4"])
+    expect(plan.document.getElementById("p4").getAttribute("header")).toBe("P4 · Three")
+    expect(plan.document.querySelector("#p4 .plan-updated").textContent).toContain("three changed")
+    const link = plan.document.querySelector(`#${item} a[href^="#p"]`)
+    expect([link.getAttribute("href"), link.textContent]).toEqual(["#p4", "P4 · Three"])
+    expect(plan.document.getElementById(item).getAttribute("data-phase")).toBe("4")
+    expect(plan.check()).toEqual([])
+  })
+
+  it("--before refuses a started phase, or one that isn't there", () => {
+    const plan = freshPlan()
+    for (const name of ["One", "Two"]) plan.addPhase(name)
+    plan.setPhase(2, "active")
+    expect(() => plan.addPhase("X", { before: 2 })).toThrow(/P2 has started/)
+    expect(() => plan.addPhase("X", { before: 3 })).toThrow(/no such phase/)
+    expect(plan.phases).toHaveLength(2)
+  })
+
   it("puts the estimate in the phase title's badge", () => {
     const plan = freshPlan()
     plan.addPhase("One", { estimate: "1-2h" })

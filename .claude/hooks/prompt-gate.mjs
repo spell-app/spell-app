@@ -16,6 +16,8 @@
  *   review runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks
  *   its window itself);  `/epic color <look>` recolours the window it's typed in:  nothing to gate;
  *   `/epic future <name> ...` writes an idea down as a future epic (no worktree):  only renamed, `📅 <name>`.
+ *   `phase` and `start` too (epic `skillz` P4):  `/epic phase [ids] ...` adds a phase to THIS session's epic,
+ *   `/epic start <phase | ids> ...` works one:  nothing to gate, no rename.
  *   A look right after the name (`/epic x -purple`, epic `windows-and-review` P5) is the window's, not the plan's:
  *   left out of the text saved below.
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
@@ -151,6 +153,9 @@ export function parseCommand(prompt) {
   if (skill === "epic" && name === "review") return null
   // `/epic color <look>` recolours this window:  nothing to gate, no rename
   if (skill === "epic" && name === "color") return null
+  // `/epic phase [ids] ...` / `/epic start <phase | ids> ...` act on THIS session's epic (epic `skillz` P4):  it's
+  // already named, isolated and planned:  nothing to gate, no rename
+  if (skill === "epic" && (name === "phase" || name === "start")) return null
   // `/epic future <name> ...` writes an idea down, from any window, no worktree:  renamed `📅 <name>`, never blocked
   if (skill === "epic" && name === "future") {
     const later = parseCommand(`/unpark ${rest}`)
