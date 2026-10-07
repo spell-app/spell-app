@@ -38,25 +38,38 @@ export const epicOptionVocabulary = {
   events: [],
   slots: [
     { name: "", description: "Its pros and cons." },
-    { name: "title", description: "A title with markup, in place of `title`." },
-    { name: "actions", description: "At the end of its header:  the Choose pill (P9).  Page state only." }
+    { name: "title", description: "A title with markup, in place of `title`." }
   ],
   parts: [
     { name: "base", description: "The card;  answered, a panel." },
-    { name: "header", description: "Its header:  letter, title, `(recommended)`, actions." },
+    { name: "header", description: "Its header:  letter, title, `(recommended)`, the Choose pill." },
     { name: "toggle", description: "Answered:  the `<button>` that folds the panel (its header's text)." },
     { name: "check", description: "Answered and chosen:  the check before its letter." },
     { name: "title", description: "`A · A named palette`." },
     { name: "recommended", description: "`(recommended)`." },
-    { name: "actions", description: "The box around the `actions` slot." },
+    { name: "actions", description: "While the page is reviewed:  the box at the header's end holding the pill." },
+    {
+      name: "choose",
+      description:
+        "The Choose pill (`<button aria-pressed>`):  marks its letter as the item's pick in the page's review inbox."
+    },
     { name: "body", description: "Its pros and cons;  answered, hidden while folded." }
   ],
   states: [
     { name: "answered", description: "Its question is answered:  a panel under Choices." },
     { name: "chosen", description: "Its `letter` is its `<epic-choices chosen>`." },
-    { name: "open", description: "Answered, and unfolded (the chosen one starts so)." }
+    { name: "open", description: "Answered, and unfolded (the chosen one starts so)." },
+    { name: "picked", description: "Its letter is the item's pick in the review inbox:  framed orange until applied." }
   ],
-  texts: [{ key: "recommended", text: "(recommended)", description: "After the recommended option's title." }],
+  texts: [
+    { key: "recommended", text: "(recommended)", description: "After the recommended option's title." },
+    { key: "choose", text: "Choose", description: "The Choose pill." },
+    { key: "chosen", text: "Chosen", description: "The Choose pill, its letter picked." },
+    { key: "tipChoose", text: "Pick {letter}", description: "The pill's tooltip." },
+    { key: "tipChosen", text: "{letter} is picked:  click to un-pick", description: "The picked pill's tooltip." },
+    { key: "tipSent", text: "sent", description: "The picked pill's tooltip, once its mark went to Claude." },
+    { key: "tipNotSent", text: "not sent yet", description: "The picked pill's tooltip, before Send." }
+  ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
     { tag: "flow", description: "Its pros and cons." }

@@ -33,6 +33,9 @@ export const BODY = "body"
 export const TOGGLE = "toggle"
 export const EMPTY = "empty"
 
+/** An answer's title slot (`slot="title"`, a title with markup):  the fallback's, which has no `this.slot()`. */
+export const TITLE_SLOT = "title"
+
 /** Class word on a reply box:  Owen's. */
 export const OWEN = "owen"
 

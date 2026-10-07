@@ -225,10 +225,25 @@ function highlight() {
 const ADDED = ".spell-item-filter, .spell-hidden-note, .plan-review, [data-spell-added]"
 
 /**
- * Attributes the reader's state lives in (folds, open panels, counts, the item filter, the phases' Files / Verify
- * toggles):  a patch keeps them (`isKept()`).
+ * The page state of an `<epic-*>` element (epic `epic-components`, P10):  folded or open (items, sections, phases,
+ * the Overview), and the page being reviewed (`<epic-page reviewing>`);  never in the file, so a patch keeps them
+ * (`KEPT_ATTRIBUTES`), and a replaced subtree carries them over (`carryEpicState()`).
+ * - NOTE: their review controls and note boxes are in their shadow roots (P9):  a patch never sees them
  */
-const KEPT_ATTRIBUTES = new Set(["collapsed", "open", "badge", "data-show", "data-show-files", "data-show-verify"])
+const EPIC_PAGE_STATE = ["open", "reviewing"]
+
+/**
+ * Attributes the reader's state lives in (folds, open panels, counts, the item filter, the phases' Files / Verify
+ * toggles, `EPIC_PAGE_STATE`):  a patch keeps them (`isKept()`).
+ */
+const KEPT_ATTRIBUTES = new Set([
+  "collapsed",
+  "badge",
+  "data-show",
+  "data-show-files",
+  "data-show-verify",
+  ...EPIC_PAGE_STATE
+])
 
 /** Does a patch keep attribute `name` of `element` (the reader's)?  Not a phase's `badge`:  its estimate, from the source. */
 function isKept(name, element) {
@@ -240,6 +255,12 @@ function isKept(name, element) {
  * element, its open panels carried over (`carryState()`).
  */
 const MANAGERS = "ui-accordion, ui-tabs, ui-select, ui-dropdown"
+
+/**
+ * A tag of the `epics` pack's elements (`<epic-page>`, `<epic-item>` ...):  NEVER replaced by a patch while its tag
+ * stays (`planMorph()`):  each keeps its fold, its loaded part and what's typed in it.
+ */
+const EPIC_TAG = /^epic-/
 
 /** `squash()`ed `outerHTML` of source nodes, computed once per patch. */
 const squashed = new WeakMap()
@@ -264,6 +285,9 @@ const squashed = new WeakMap()
  * - BODIES from files (`<ui-section source>`, `<ui-accordion source>`:  a split plan doc's parts) live their own
  *   life (`wireSourceBodies()`):  the patch leaves what a host loaded alone (`planHost()`), a changed body file
  *   re-fetches its open host in place, and each body that loads re-wires the page (`refresh()`)
+ * - a plan doc in `<epic-*>` markup (epic `epic-components`):  its elements are patched, never replaced
+ *   (`planMorph()`), their page state kept (`EPIC_PAGE_STATE`);  their parts (`<epic-item source>` ...) live the
+ *   bodies' life above
  * - returns `{ ready(page), refresh(changed) }`:  `start()` hands over what it wired;  a change waits for it.
  *   `refresh()` re-wires after `changed` elements changed under the runtime (a body loaded), in turn with updates
  */
@@ -310,16 +334,18 @@ function wireLiveUpdate(main) {
 }
 
 /**
- * Can this page be patched in place?  `<ui-section>` markup, no CHEATSHEET filter, and no script but the bundle,
- * highlight.js, what the page server injects, and inert data blocks (`isInert()`).
+ * Can this page be patched in place?  `<ui-section>` markup (or a plan doc in `<epic-*>` markup:  its
+ * `<epic-page>`), no CHEATSHEET filter, and no script but the bundle, highlight.js, what the page server injects,
+ * component packs (`<ui-components source="x.pack.js">`'s script, which only defines elements) and inert data
+ * blocks (`isInert()`).
  */
 function canPatch(main) {
-  if (!main.querySelector(":scope > ui-section")) return false
+  if (!main.querySelector(":scope > :is(ui-section, epic-page)")) return false
   if (document.querySelector("[data-spell-filter], [data-spell-filter-badge]")) return false
   return Array.from(document.scripts).every((script) => {
     const src = script.getAttribute("src")
     if (!src) return isInert(script) || script.textContent.includes("SPELL_SERVER")
-    return /^\/_server\//.test(src) || /(^|\/)(spell-ui|highlight(\.min)?)\.js$/.test(src)
+    return /^\/_server\//.test(src) || /(^|\/)(spell-ui|highlight(\.min)?|[\w-]+\.pack)\.js$/.test(src)
   })
 }
 
@@ -365,12 +391,13 @@ function wireSourceBodies(main, live, enqueue) {
 
   /**
    * Re-fetch `host`'s body, keeping the line being read where it is.
-   * - what had the focus inside it, a note box being typed in (`dock()`, which puts the same box back):  focused
-   *   again, its caret where it was
+   * - what had the focus inside it, a note box being typed in (`dock()`, which puts the same box back;  an
+   *   `<epic-item>`'s, in its shadow root, which the reload may hide for a moment):  focused again, its caret where
+   *   it was
    */
   async function reloadBody(host) {
     const anchor = readingAnchor(main)
-    const active = host.contains(document.activeElement) ? document.activeElement : null
+    const active = host.contains(document.activeElement) ? deepActiveElement() : null
     const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null
     // the body goes in on the host's `ui-load`, which can come after `reload()` resolves;  the runtime's pieces go
     // back on it (`live.refresh()`):  wait for it (2s at most), then for them
@@ -385,10 +412,19 @@ function wireSourceBodies(main, live, enqueue) {
     if (!active) return
     await loaded
     for (let frame = 0; frame < 60 && !active.isConnected; frame++) await nextFrames(1)
-    if (!active.isConnected || document.activeElement === active) return
+    // the host draws what it hid while loading (a frame):  hidden, the box can't take the focus
+    await nextFrames(1)
+    if (!active.isConnected || deepActiveElement() === active) return
     active.focus({ preventScroll: true })
     if (caret) active.setSelectionRange(...caret)
   }
+}
+
+/** The element with the focus, inside shadow roots too (`document.activeElement` stops at their hosts). */
+function deepActiveElement() {
+  let active = document.activeElement
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement
+  return active
 }
 
 /** Absolute URL of `host`'s `source`, when it's on this page's origin;  else null. */
@@ -516,21 +552,22 @@ function planBodyAttributes(before, after, plan) {
  * - REPLACED, its reader's state carried over (`carryState()`):  a tag change, text of its own (a paragraph, a
  *   title:  the smallest thing that holds the changed text), a `MANAGERS` element, or children the live page
  *   doesn't line up with
+ * - an `<epic-*>` element (`EPIC_TAG`) is NEVER replaced while its tag stays (P10 of `epic-components`):  it keeps
+ *   its fold, its loaded part and its controller.  Its attributes are patched in place (its page state kept:
+ *   `EPIC_PAGE_STATE`), its children morphed as above;  only where they can't be (text of its own changed, children
+ *   that don't line up) are its CHILDREN replaced (`planContent()`), never the element
  * - SIDE EFFECT:  pushes the live changes onto `plan.ops`, and what's new onto `plan.changed`
  */
 function planMorph(before, after, live, plan) {
   if (sameNode(before, after)) return live
   if (isHost(before, after, live)) return planHost(before, after, live, plan)
-  if (
-    live.localName !== after.localName ||
-    before.localName !== after.localName ||
-    live.matches(MANAGERS) ||
-    hasText(before) ||
-    hasText(after)
-  )
+  const sameTag = live.localName === after.localName && before.localName === after.localName
+  const epic = sameTag && EPIC_TAG.test(after.localName)
+  if (!sameTag || (!epic && (live.matches(MANAGERS) || hasText(before) || hasText(after))))
     return planReplace(after, live, plan)
   const was = Array.from(before.children)
   const kids = liveKids(was, live)
+  if (epic && (!kids || hasText(before) || hasText(after))) return planContent(before, after, live, plan)
   if (!kids) return planReplace(after, live, plan)
   planAttributes(before, after, live, plan)
   const now = Array.from(after.children)
@@ -644,6 +681,27 @@ function planAttributes(before, after, live, plan) {
   })
 }
 
+/**
+ * Plan giving `<epic-*>` element `live` the children of `after`, the element itself kept (`planMorph()`):  its source
+ * attributes patched, then its children replaced by copies of `after`'s, the reader's state carried over
+ * (`carryState()`);  what the runtime or the page's review controls added (`ADDED`) stays.  Returns `live`.
+ */
+function planContent(before, after, live, plan) {
+  planAttributes(before, after, live, plan)
+  const nodes = Array.from(after.childNodes, (node) => {
+    const copy = node.cloneNode(true)
+    if (copy.nodeType === Node.ELEMENT_NODE) carryState(live, copy)
+    return document.importNode(copy, true)
+  })
+  plan.weight += after.innerHTML.length
+  plan.changed.push(...nodes.filter((node) => node.nodeType === Node.ELEMENT_NODE))
+  plan.ops.push(() => {
+    const kept = Array.from(live.children).filter((kid) => kid.matches(ADDED))
+    live.replaceChildren(...nodes, ...kept)
+  })
+  return live
+}
+
 /** Plan replacing `live` with a copy of `after`, the reader's state carried over;  returns the copy. */
 function planReplace(after, live, plan) {
   const copy = after.cloneNode(true)
@@ -697,10 +755,12 @@ function placeChildren(parent, kids, slots) {
  * Carry the reader's state from `live` to `copy`, its replacement (not yet imported):
  * - folds:  every section keeps its fold, new ones fold as `carryFolds()` says
  * - open panels:  each accordion's, matched by its nearest ancestor with an `id` and its order under it
+ * - `<epic-*>` page state:  `carryEpicState()`
  * - typed text:  fields with an `id`
  */
 function carryState(live, copy) {
   carryFolds(copy)
+  carryEpicState(copy)
   const panels = accordionsOf(live)
   for (const [key, accordion] of accordionsOf(copy)) {
     const old = panels.get(key)
@@ -729,6 +789,23 @@ function carryFolds(copy) {
     if (old?.localName === "ui-section") section.toggleAttribute("collapsed", isCollapsed(old))
     else if (section.id && section.id in saved) section.toggleAttribute("collapsed", !!saved[section.id])
     else if (planDoc) section.setAttribute("collapsed", "")
+  }
+}
+
+/**
+ * Give every `<epic-*>` element with an `id` in `copy` the page state (`EPIC_PAGE_STATE`:  `open` ...) of the live one
+ * with that `id` and tag;  a new one starts as its markup says (folded:  `open` is never in the file).
+ */
+function carryEpicState(copy) {
+  for (const element of withSelf(copy, "[id]")) {
+    if (!EPIC_TAG.test(element.localName)) continue
+    const old = document.getElementById(element.id)
+    if (old?.localName !== element.localName) continue
+    for (const name of EPIC_PAGE_STATE) {
+      const value = old.getAttribute(name)
+      if (value === null) element.removeAttribute(name)
+      else element.setAttribute(name, value)
+    }
   }
 }
 

@@ -877,8 +877,11 @@ body.plan-doc .spell-doc-main {
     padding-inline-end: 0;
   }
 }
-/* what isn't a section (crumbs, meta lines, the review line, notices) keeps the inset */
-body.plan-doc .spell-doc-main > :not(ui-section, ui-sticky) {
+/*
+ * what isn't a section (crumbs, meta lines, the review line, notices) keeps the inset;  not `<epic-page>` (a
+ * converted doc, epic `epic-components` I4):  it draws its own bands edge to edge and insets inside them
+ */
+body.plan-doc .spell-doc-main > :not(ui-section, ui-sticky, epic-page) {
   margin-inline: var(--plan-inset);
 }
 /* a `ui-list` host is `display: contents`:  its list box takes the inset */

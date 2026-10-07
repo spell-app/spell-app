@@ -23,6 +23,7 @@ import answerCSS from "./epic-answer.css?inline"
  * An answered question's answer card, after its question and Choices:  a warm card, its heading band
  * `Answer · <title>` -- `D7 · <title>` when it keeps an old decision's id, so old `#d7` links land on it (the id is
  * the host's own) -- then the answer and why (its light children).
+ * - A title with markup:  a `slot="title"` child, in place of `title` (T12).
  * - No children:  the heading alone, a card one band tall.
  ****************/
 export class EpicAnswer extends UIElement<EpicAnswerVocabulary> {
@@ -40,6 +41,9 @@ export class EpicAnswer extends UIElement<EpicAnswerVocabulary> {
     return OLD_DECISION.test(id) ? id.toUpperCase() : this.text("answer")
   })
 
+  /** Has a title:  `title`, or a `slot="title"` child (a title with markup, T12). */
+  readonly hasTitle = createMemo(() => !!this.attrs.title || this.slots.has(this.slot("title")))
+
   render(): JSX.Element {
     return (
       <div class={this.classes()} part={this.part("base")}>
@@ -47,10 +51,10 @@ export class EpicAnswer extends UIElement<EpicAnswerVocabulary> {
           <b class={LABEL} part={this.part("label")}>
             {this.label()}
           </b>
-          <Show when={this.attrs.title}>
+          <Show when={this.hasTitle()}>
             {HEADING_SEPARATOR}
             <span class={TITLE} part={this.part("title")}>
-              {this.attrs.title}
+              <slot name={this.slot("title")}>{this.attrs.title}</slot>
             </span>
           </Show>
         </div>

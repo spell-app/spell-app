@@ -63,7 +63,8 @@
   ::slotted(:is(ul, ol)) {
     padding-inline-start: 1.2em;
   }
-  ::slotted(:first-child) {
+  /* the first of the body:  the first child that isn't headed for a named slot (an answer's `slot="title"`) */
+  ::slotted(:nth-child(1 of :not([slot]))) {
     margin-top: 0;
   }
   ::slotted(:last-child) {

@@ -34,11 +34,15 @@ export const epicAnswerVocabulary = {
       name: "title",
       property: "epicTitle",
       kind: "string",
-      description: "The answer in a few words (`Named palette`)."
+      description:
+        'The answer in a few words (`Named palette`).  A title with markup is a `slot="title"` child instead.'
     }
   ],
   events: [],
-  slots: [{ name: "", description: "The answer, and why." }],
+  slots: [
+    { name: "", description: "The answer, and why." },
+    { name: "title", description: "A title with markup (`The <code>x</code> API`), in place of `title`." }
+  ],
   parts: [
     { name: "base", description: "The card." },
     { name: "header", description: "Its heading band:  `Answer · <title>`." },
@@ -48,5 +52,8 @@ export const epicAnswerVocabulary = {
   ],
   states: [],
   texts: [{ key: "answer", text: "Answer", description: "The card's label, without an old decision's id." }],
-  children: [{ tag: "flow", description: "The answer, and why." }]
+  children: [
+    { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
+    { tag: "flow", description: "The answer, and why." }
+  ]
 } as const satisfies EpicVocabulary

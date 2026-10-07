@@ -28,6 +28,19 @@ describe("<epic-answer>", () => {
     expect(part(host, "body")!.classList.contains("empty")).toBe(true)
   })
 
+  test("a title with markup comes through its `title` slot (T12);  the body's first child keeps its place", async () => {
+    const host = await ElementFixture.render(
+      `<epic-answer><span slot="title">The <code>x</code> API</span><p>Why</p></epic-answer>`
+    )
+    const slot = part(host, "title")!.querySelector<HTMLSlotElement>("slot")!
+    expect([part(host, "header")!.textContent, slot.assignedElements()[0].textContent]).toEqual([
+      "Answer · ",
+      "The x API"
+    ])
+    expect(host.querySelector("p")!.assignedSlot!.name).toBe("")
+    await expectAccessible(host)
+  })
+
   test("its native fallback draws the same heading and body, without Solid", () => {
     const host = document.createElement("div")
     host.setAttribute("id", "d8")

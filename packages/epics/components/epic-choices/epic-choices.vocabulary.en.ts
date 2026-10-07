@@ -18,8 +18,8 @@ export const epicChoicesVocabulary = {
   noun: "choices",
   ui: false,
   description:
-    "A question's option cards, `<epic-option>`s:  side by side while the question is open (the Choose pills " +
-    "come later);  folded under Choices once it's answered, the chosen one marked.",
+    "A question's option cards, `<epic-option>`s:  side by side while the question is open, each with a Choose " +
+    "pill while the page is reviewed;  folded under Choices once it's answered, the chosen one marked.",
   attributes: [
     {
       name: "chosen",
