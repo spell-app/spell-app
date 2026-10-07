@@ -1,6 +1,7 @@
 /**
  * Tests of the review route module on a real page server, over HTTP, in a scratch checkout:  its own plan doc, a
  * worktree's (as the main checkout's server serves it), and pages that aren't plan docs.
+ * - From `packages/docs/tools/reviewRoutes.test.ts` (epic `epic-components`, P7):  every case.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -10,7 +11,7 @@ import { afterAll, beforeAll, beforeEach, expect, test } from "vite-plus/test"
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
-import { emptyInbox } from "./inbox.js"
+import { ReviewInbox } from "./ReviewInbox"
 import reviewRoutes from "./reviewRoutes"
 
 let root: string
@@ -96,7 +97,7 @@ const PLAN_URL = `/${PAGES.plan}`
 test("GET:  an empty inbox before any mark, and no file", async () => {
   const got = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
   expect(got.status).toBe(200)
-  expect(JSON.parse(got.text)).toEqual(emptyInbox())
+  expect(JSON.parse(got.text)).toEqual(new ReviewInbox())
   expect(existsSync(inboxFile(PAGES.plan))).toBe(false)
 })
 
@@ -172,13 +173,13 @@ test("a pick and a revisit together:  the mark carries both;  revisit now keeps 
 test("a stale listening answers null;  a live one as written;  the file keeps it", async () => {
   const old = new Date(Date.now() - 5 * 60_000).toISOString()
   const listening = { session: "gone", since: old, seen: old }
-  writeFileSync(inboxFile(PAGES.plan), JSON.stringify({ ...emptyInbox(), listening }))
+  writeFileSync(inboxFile(PAGES.plan), JSON.stringify({ ...new ReviewInbox().toRecord(), listening }))
   const stale = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
   expect(JSON.parse(stale.text).listening).toBeNull()
   expect((await post("send", { page: PLAN_URL })).body.listening).toBeNull()
   expect(written(PAGES.plan).listening).toEqual(listening)
   const fresh = { ...listening, seen: new Date().toISOString() }
-  writeFileSync(inboxFile(PAGES.plan), JSON.stringify({ ...emptyInbox(), listening: fresh }))
+  writeFileSync(inboxFile(PAGES.plan), JSON.stringify({ ...new ReviewInbox().toRecord(), listening: fresh }))
   const live = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
   expect(JSON.parse(live.text).listening).toEqual(fresh)
 })

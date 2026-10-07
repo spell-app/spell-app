@@ -3,11 +3,11 @@
  * root's `package.json` `"pageServer": { "routes": [...] }`.
  * - Owen marks a plan doc's items ON the page (`_assets/spell-doc-runtime.js`:  approve, todo, details, revisit,
  *   pick an option card);  the marks wait in the doc's INBOX FILE, `<name>.inbox.json` beside `<name>.plan.html`
- *   (`inbox.js`), until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
+ *   (`ReviewInbox`), until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
  * - `page`:  the plan doc's URL path, as it was served:  `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...`
  *   on the main checkout's server.  ONLY a plan doc:  anything else is a 403
- * - every answer is the whole inbox, as `inbox.js` keeps it (an empty one when there's no file), except a
- *   `listening` whose heartbeat stopped:  `null` (`inbox.js` `forPage()`), so the page warns nobody is reviewing
+ * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file), except a
+ *   `listening` whose heartbeat stopped:  `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing
  * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
  * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark (`{ action, when?, note?, pick? }`, `at`
  *   stamped here;  a revisit may carry a `pick` letter too), or remove it (`mark: null`);  `id` must be an item of
@@ -15,34 +15,24 @@
  * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request (`details`, or `revisit`, which
  *   keeps the item's pick):  queued on `now`, and the item's mark set
  * - `POST /api/review/cancel` `{ page, id }` -- "nevermind":  call off item `id`'s immediate request, queued or
- *   being worked on (`inbox.js` `cancelNow()`)
+ *   being worked on (`ReviewInbox.cancelNow()`)
  * - `POST /api/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it (`revisit` or
- *   `todo`;  empty or `null` drops it):  kept until the mark that uses it (`inbox.js` `setDraft()`)
+ *   `todo`;  empty or `null` drops it):  kept until the mark that uses it (`ReviewInbox.setDraft()`)
  * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now;  `now: true` is "Review Now"
- *   (epic `windows-and-review` P4):  every revisit waiting becomes an immediate request too (`inbox.js` `reviewNow()`)
- * - writes:  under the inbox's lock, atomic (`inbox.js` `updateInboxAsync()`);  each needs the page server's token
+ *   (epic `windows-and-review` P4):  every revisit waiting becomes an immediate request too
+ *   (`ReviewInbox.reviewNow()`)
+ * - writes:  under the inbox's lock, atomic (`ReviewInbox.updateAsync()`);  each needs the page server's token
  *   (`x-server-token`) and its own origin (`SRV.Guard`)
+ * - Loaded by the page server under `tsx` (`PageServer.loadRoutes()`), with `packages/server/tsconfig.json`'s
+ *   aliases.  Imports `ReviewInbox` only, never `PlanDoc`:  a request reads the doc's TEXT (`ReviewInbox.itemIds()`).
+ * - From `packages/docs/tools/reviewRoutes.ts` (epic `epic-components`, P7).
  */
 import { readFileSync } from "node:fs"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
-import {
-  InboxError,
-  cancelNow,
-  forPage,
-  inboxPath,
-  itemIds,
-  markSent,
-  reviewNow,
-  readInbox,
-  requestNow,
-  setDraft,
-  setMark,
-  toItemId,
-  updateInboxAsync
-} from "./inbox.js"
+import { InboxError, ReviewInbox, type InboxRecord } from "./ReviewInbox"
 
 /** Where the routes live. */
 const API = "/api/review"
@@ -58,8 +48,8 @@ const reviewRoutes: RouteModule = {
   setup({ router, guard, web }) {
     const api = new SRV.Router()
     api.get("/inbox", (request, reply) => {
-      const inbox = readInbox(inboxPath(planDoc(web.files, request.query.page)))
-      reply.set("Cache-Control", "no-store").json(forPage(inbox))
+      const inbox = ReviewInbox.read(ReviewInbox.pathFor(planDoc(web.files, request.query.page)))
+      reply.set("Cache-Control", "no-store").json(inbox.forPage())
     })
     api.use(guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }))
     api.post("/mark", async (request, reply) => {
@@ -67,30 +57,30 @@ const reviewRoutes: RouteModule = {
       const file = planDoc(web.files, body.page)
       const id = itemOf(file, body.id)
       if (body.mark === undefined) throw new SRV.HttpError(400, "no mark (null removes one)")
-      reply.json(await update(file, (inbox) => setMark(inbox, id, body.mark)))
+      reply.json(await update(file, (inbox) => inbox.setMark(id, body.mark)))
     })
     api.post("/now", async (request, reply) => {
       const body = request.body as { page?: unknown; id?: unknown; action?: unknown; note?: unknown }
       const file = planDoc(web.files, body.page)
       const id = itemOf(file, body.id)
-      reply.json(await update(file, (inbox) => requestNow(inbox, id, body.action, (body.note ?? "") as string)))
+      reply.json(await update(file, (inbox) => inbox.requestNow(id, body.action, (body.note ?? "") as string)))
     })
     api.post("/cancel", async (request, reply) => {
       const body = request.body as { page?: unknown; id?: unknown }
       const file = planDoc(web.files, body.page)
       const id = itemOf(file, body.id)
-      reply.json(await update(file, (inbox) => cancelNow(inbox, id)))
+      reply.json(await update(file, (inbox) => inbox.cancelNow(id)))
     })
     api.post("/draft", async (request, reply) => {
       const body = request.body as { page?: unknown; id?: unknown; action?: unknown; note?: unknown }
       const file = planDoc(web.files, body.page)
       const id = itemOf(file, body.id)
-      reply.json(await update(file, (inbox) => setDraft(inbox, id, body.action, body.note ?? null)))
+      reply.json(await update(file, (inbox) => inbox.setDraft(id, body.action, body.note ?? null)))
     })
     api.post("/send", async (request, reply) => {
       const body = request.body as { page?: unknown; now?: unknown }
       const file = planDoc(web.files, body.page)
-      reply.json(await update(file, (inbox) => (body.now === true ? reviewNow(inbox) : markSent(inbox))))
+      reply.json(await update(file, (inbox) => (body.now === true ? inbox.reviewNow() : inbox.markSent())))
     })
     router.use(API, api)
   }
@@ -117,18 +107,20 @@ export function planDoc(files: SRV.StaticHandler, page: unknown): string {
  * - reads the doc each time:  an item added a moment ago (Claude, `plan-doc add`) is markable at once
  */
 function itemOf(file: string, id: unknown): string {
-  const key = asHttp(() => toItemId(id))
-  if (!itemIds(readFileSync(file, "utf8")).has(key)) throw new SRV.HttpError(400, `no item ${String(id)} in that doc`)
+  const key = asHttp(() => ReviewInbox.toItemId(id))
+  if (!ReviewInbox.itemIds(readFileSync(file, "utf8")).has(key))
+    throw new SRV.HttpError(400, `no item ${String(id)} in that doc`)
   return key
 }
 
 /**
  * Change plan doc `file`'s inbox with `change`, under its lock;  the inbox after, as the page reads it
- * (`forPage()`).
+ * (`ReviewInbox.forPage()`).
  * - an `InboxError` (a bad mark, a bad action) is a 400
  */
-async function update(file: string, change: (inbox: Inbox) => unknown): Promise<Inbox> {
-  return forPage(await updateInboxAsync(inboxPath(file), (inbox: Inbox) => asHttp(() => change(inbox))))
+async function update(file: string, change: (inbox: ReviewInbox) => unknown): Promise<InboxRecord> {
+  const inbox = await ReviewInbox.updateAsync(ReviewInbox.pathFor(file), (each) => asHttp(() => change(each)))
+  return inbox.forPage()
 }
 
 /** Run `fn`;  an `InboxError` it throws becomes a 400. */
@@ -140,6 +132,3 @@ function asHttp<T>(fn: () => T): T {
     throw error
   }
 }
-
-/** A plan doc's review inbox, as `inbox.js` reads it (plain JS:  its shape is in that file's header). */
-type Inbox = ReturnType<typeof readInbox>

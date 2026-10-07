@@ -19,8 +19,9 @@
     "jsxImportSource": "@solidjs/web",
     "types": ["vite/client", "node"]
   },
-  // `../../types`:  the repo's ambient globals (`Prettify` ...), used bare (WWOD §9)
-  "include": ["../../types", "src", "components", "vite.config.ts", "vitest.config.ts"],
+  // `../../types/app.d.ts`:  the repo's ambient helper types (`Prettify` ...), used bare (WWOD §9).  Not all of
+  // `../../types`:  its `global.d.ts` pulls in spell, whose `util` doesn't compile at this target.
+  "include": ["../../types/app.d.ts", "src", "components", "vite.config.ts", "vitest.config.ts"],
   // `pack/` is generated (`spell dev pack build epics`):  not ours to check
   "exclude": ["pack", "node_modules"]
 }
