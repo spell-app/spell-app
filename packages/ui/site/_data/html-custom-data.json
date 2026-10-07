@@ -2654,6 +2654,22 @@
       ]
     },
     {
+      "name": "ui-components",
+      "description": {
+        "kind": "markdown",
+        "value": "Components name a pack of another package's elements, which the root around them loads on demand, once per page.\n\nAlso known as:  component pack, plugin, extension, custom elements, web components, element library."
+      },
+      "attributes": [
+        {
+          "name": "source",
+          "description": {
+            "kind": "markdown",
+            "value": "URL of the pack's script (`epics.pack.js`), relative to the page.  The root loads it once per page as a classic script (so it works from `file://`) and waits for it before showing its content.\n\nTakes:  text"
+          }
+        }
+      ]
+    },
+    {
       "name": "ui-container",
       "description": {
         "kind": "markdown",
