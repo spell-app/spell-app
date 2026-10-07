@@ -13,7 +13,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } 
 import { dirname, join, relative, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import { openInVSCode, tidy } from "../pages.js"
+import { docLinksRun, openInVSCode, tidy } from "../pages.js"
 import { Window } from "../../../../scripts/window.mjs"
 import { SRV } from "$/server"
 import { PageServer } from "$/server/page"
@@ -510,7 +510,8 @@ function check(text, prefs, { noBrowser }) {
   let failed = false
   for (const file of files.filter((it) => existsSync(it))) {
     const problems = readPage(file).check()
-    const links = spawnSync("node", ["tools/doc-links.js", "--check", file], { cwd: DOCS, encoding: "utf8" })
+    const linkCheck = docLinksRun(["--check", file])
+    const links = spawnSync(linkCheck.command, linkCheck.args, { cwd: DOCS, encoding: "utf8", env: linkCheck.env })
     if (links.status !== 0)
       problems.push(
         ...links.stdout

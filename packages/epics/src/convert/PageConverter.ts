@@ -1,9 +1,9 @@
 import { OVERVIEW_PART_ID, type EpicData } from "$/epics/definitions"
+import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
 import { BODY_DATA, Chrome, COMMIT_URL, Old, PACK_SOURCE } from "./convert.types"
 
 import type { Converter } from "./Converter"
-import { isBlank, isElement, squeeze, stripEdges, takeChildren, titleOf, wrap } from "./domEdits"
 
 /****************
  * ### `PageConverter`
@@ -68,11 +68,13 @@ export class PageConverter {
     const root = this.document.createElement("ui-root")
     const components = this.document.createElement("ui-components")
     components.setAttribute("source", PACK_SOURCE)
-    const content = Array.from(body.childNodes).filter((node) => !(isElement(node) && node.localName === "script"))
+    const content = Array.from(body.childNodes).filter(
+      (node) => !(PlanMarkup.isElement(node) && node.localName === "script")
+    )
     const script = body.querySelector(":scope > script")
     if (script) script.before(root)
     else body.append(root)
-    root.append(components, ...content.filter((node) => !isBlank(node)))
+    root.append(components, ...content.filter((node) => !PlanMarkup.isBlank(node)))
   }
 
   ////////////////
@@ -89,18 +91,18 @@ export class PageConverter {
     const parts: Element[] = []
     const slotted: Element[] = []
     let estimate: string | undefined
-    for (const child of takeChildren(section)) {
-      if (isBlank(child) || (isElement(child) && child.matches("ui-icon[slot='icon']"))) continue
+    for (const child of PlanMarkup.takeChildren(section)) {
+      if (PlanMarkup.isBlank(child) || (PlanMarkup.isElement(child) && child.matches("ui-icon[slot='icon']"))) continue
       if (
-        isElement(child) &&
+        PlanMarkup.isElement(child) &&
         child.matches(Old.summary) &&
         !slotted.some((it) => it.getAttribute("slot") === "summary")
       ) {
-        slotted.push(wrap(child, "p", takeChildren(child), { slot: "summary" }))
-      } else if (isElement(child) && child.matches(`${Old.promptPanel}, ${Old.prompt}`)) {
+        slotted.push(PlanMarkup.wrap(child, "p", PlanMarkup.takeChildren(child), { slot: "summary" }))
+      } else if (PlanMarkup.isElement(child) && child.matches(`${Old.promptPanel}, ${Old.prompt}`)) {
         slotted.push(this.prompt(child, flow))
-      } else if (isElement(child) && child.matches(Old.estimate)) estimate = this.estimate(child)
-      else if (isElement(child) && child.localName === "ui-section") parts.push(this.part(child))
+      } else if (PlanMarkup.isElement(child) && child.matches(Old.estimate)) estimate = this.estimate(child)
+      else if (PlanMarkup.isElement(child) && child.localName === "ui-section") parts.push(this.part(child))
       else if (parts.length) {
         parts.at(-1)!.append(child)
         this.owner.note(`overview:  prose after #${parts.at(-1)!.id} moved to its end`)
@@ -117,13 +119,15 @@ export class PageConverter {
     let title: { title?: string; slot?: Element } = {}
     if (header) {
       header.remove()
-      stripEdges(header, { first: Chrome.partNumber })
-      title = titleOf(header)
+      PlanMarkup.stripEdges(header, { first: Chrome.partNumber })
+      title = PlanMarkup.titleOf(header)
     } else {
-      const text = squeeze((section.getAttribute("header") ?? "").replace(Chrome.partNumber, ""))
+      const text = PlanMarkup.squeeze((section.getAttribute("header") ?? "").replace(Chrome.partNumber, ""))
       if (text) title = { title: text }
     }
-    const body = takeChildren(section).filter((node) => !(isElement(node) && node.matches("ui-icon[slot='icon']")))
+    const body = PlanMarkup.takeChildren(section).filter(
+      (node) => !(PlanMarkup.isElement(node) && node.matches("ui-icon[slot='icon']"))
+    )
     const children = title.slot ? [title.slot, ...body] : body
     return this.owner.element("epic-section", { id, kind: "overview-part", title: title.title }, children, section)
   }
@@ -134,12 +138,12 @@ export class PageConverter {
    */
   private prompt(element: Element, flow: Node[]): Element {
     const quote = element.matches(Old.prompt) ? element : element.querySelector(Old.prompt)
-    const slot = wrap(element, "blockquote", quote ? takeChildren(quote) : [], { slot: "prompt" })
+    const slot = PlanMarkup.wrap(element, "blockquote", quote ? PlanMarkup.takeChildren(quote) : [], { slot: "prompt" })
     if (quote !== element) {
       quote?.remove()
       const rest = element.querySelector(":scope > ui-content")
-      const left = rest ? takeChildren(rest) : []
-      if (left.some((node) => !isBlank(node))) {
+      const left = rest ? PlanMarkup.takeChildren(rest) : []
+      if (left.some((node) => !PlanMarkup.isBlank(node))) {
         flow.push(...left)
         this.owner.note("overview:  more than the quote in the Kickoff prompt panel:  kept as prose")
       }
@@ -151,7 +155,7 @@ export class PageConverter {
   private estimate(paragraph: Element): string | undefined {
     const label = paragraph.querySelector(":scope > b:first-child")
     if (label?.textContent?.trim() === "Estimate:") label.remove()
-    return squeeze(paragraph.textContent ?? "") || undefined
+    return PlanMarkup.squeeze(paragraph.textContent ?? "") || undefined
   }
 
   ////////////////
@@ -161,7 +165,7 @@ export class PageConverter {
   /** The epic's title:  the h1's (or `<title>`'s), without `Epic: `. */
   private title(main: Element): string {
     const text = main.querySelector(Old.title)?.textContent ?? this.document.title
-    const title = squeeze(text.replace(Chrome.titlePrefix, ""))
+    const title = PlanMarkup.squeeze(text.replace(Chrome.titlePrefix, ""))
     if (!title) throw this.owner.error("no title:  neither an h1 nor <title>")
     return title
   }
@@ -171,12 +175,12 @@ export class PageConverter {
     if (!meta) return {}
     const branchLine = meta.querySelector(':scope > ui-item[icon="code branch"]')
     const branch = /\bbranch\b/.test(branchLine?.textContent ?? "")
-      ? squeeze(branchLine!.querySelectorAll("code")[1]?.textContent ?? "")
+      ? PlanMarkup.squeeze(branchLine!.querySelectorAll("code")[1]?.textContent ?? "")
       : ""
     const folderLine = meta.querySelector(':scope > ui-item[icon="folder"]')
-    const worktree = squeeze(folderLine?.querySelector("code")?.textContent ?? "")
-    const started = squeeze(meta.querySelector("#plan-started")?.textContent ?? "")
-    const updated = squeeze(meta.querySelector("#plan-updated")?.textContent ?? "")
+    const worktree = PlanMarkup.squeeze(folderLine?.querySelector("code")?.textContent ?? "")
+    const started = PlanMarkup.squeeze(meta.querySelector("#plan-started")?.textContent ?? "")
+    const updated = PlanMarkup.squeeze(meta.querySelector("#plan-updated")?.textContent ?? "")
     for (const line of meta.querySelectorAll(":scope > ui-item")) {
       if (!KNOWN_META.includes(line.getAttribute("icon") ?? "")) {
         throw this.owner.error("a meta line <epic-page> doesn't draw", line)

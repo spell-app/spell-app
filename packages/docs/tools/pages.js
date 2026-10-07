@@ -173,17 +173,27 @@ export function planLogFile(file) {
  */
 export function tidy(files) {
   const paths = files.map((file) => resolve(ROOT, file))
-  for (const [command, args] of [
-    [process.execPath, [join(TOOLS, "doc-links.js"), ...paths]],
-    ["yarn", ["vp", "fmt", ...paths]]
-  ]) {
-    const run = spawnSync(command, args, { cwd: PACKAGE, encoding: "utf8" })
+  for (const { command, args, env } of [docLinksRun(paths), { command: "yarn", args: ["vp", "fmt", ...paths] }]) {
+    const run = spawnSync(command, args, { cwd: PACKAGE, encoding: "utf8", env })
     if (run.status !== 0) {
       process.stderr.write(`${run.stdout ?? ""}${run.stderr ?? ""}`)
       return false
     }
   }
   return true
+}
+
+/**
+ * How to run `doc-links.js` with `args` as a child `node`, for `spawnSync(command, args, { env })`:  under `tsx`,
+ * which maps its `$/assembler` import through this package's `tsconfig.json`, from whatever folder it runs in.
+ * - the one way the tools run it (`tidy()`, `update.js`, goals' check, its own test)
+ */
+export function docLinksRun(args) {
+  return {
+    command: process.execPath,
+    args: ["--import", "tsx", join(TOOLS, "doc-links.js"), ...args],
+    env: { ...process.env, TSX_TSCONFIG_PATH: join(PACKAGE, "tsconfig.json") }
+  }
 }
 
 /** Opens a doc in VS Code's doc preview:  the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`). */

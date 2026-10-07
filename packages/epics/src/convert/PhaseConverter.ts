@@ -1,5 +1,6 @@
 import type { EpicData } from "$/epics/definitions"
 import { PlanDoc } from "$/epics/tool/PlanDoc"
+import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
 import {
   Chrome,
@@ -13,7 +14,6 @@ import {
 } from "./convert.types"
 
 import type { Converter } from "./Converter"
-import { isBlank, isElement, squeeze, stripEdges, takeChildren, titleOf, wrap } from "./domEdits"
 
 /****************
  * ### `PhaseConverter`
@@ -39,9 +39,9 @@ export class PhaseConverter {
   /** `<epic-section kind="phases">` from `#phases`. */
   section(section: Element): Element {
     const phases: Element[] = []
-    for (const child of takeChildren(section)) {
-      if (!isElement(child)) {
-        if (isBlank(child)) continue
+    for (const child of PlanMarkup.takeChildren(section)) {
+      if (!PlanMarkup.isElement(child)) {
+        if (PlanMarkup.isBlank(child)) continue
         throw this.owner.error("text in Phases, outside any phase", section)
       }
       if (child.matches(`ui-icon[slot='icon'], ${Old.progress}, ${Old.planChanges}`)) continue
@@ -61,14 +61,14 @@ export class PhaseConverter {
     let title: { title?: string; slot?: Element }
     if (header) {
       header.remove()
-      stripEdges(header, { first: Chrome.phasePrefix })
-      title = titleOf(header)
+      PlanMarkup.stripEdges(header, { first: Chrome.phasePrefix })
+      title = PlanMarkup.titleOf(header)
     } else {
       const text = section.getAttribute("header") ?? ""
       const number = Chrome.phasePrefix.exec(text)?.[1]
       if (number !== undefined && `p${number}` !== id)
         this.owner.note(`#${id}:  titled \`P${number}\`, drawn as its id's`)
-      title = { title: squeeze(text.replace(Chrome.phasePrefix, "")) }
+      title = { title: PlanMarkup.squeeze(text.replace(Chrome.phasePrefix, "")) }
     }
     const data: EpicData<"epic-phase"> = {
       id,
@@ -86,13 +86,13 @@ export class PhaseConverter {
     const updated: Element[] = []
     const commits: Element[] = []
     const extras: Element[] = []
-    for (const child of takeChildren(section)) {
-      if (isBlank(child) || (isElement(child) && child.matches("ui-icon[slot='icon']"))) continue
-      if (!isElement(child) || !child.matches(Old.phaseBody))
+    for (const child of PlanMarkup.takeChildren(section)) {
+      if (PlanMarkup.isBlank(child) || (PlanMarkup.isElement(child) && child.matches("ui-icon[slot='icon']"))) continue
+      if (!PlanMarkup.isElement(child) || !child.matches(Old.phaseBody))
         throw this.owner.error("a phase holds more than its body", section)
-      for (const item of takeChildren(child)) {
-        if (isBlank(item)) continue
-        if (!isElement(item) || item.localName !== "ui-item")
+      for (const item of PlanMarkup.takeChildren(child)) {
+        if (PlanMarkup.isBlank(item)) continue
+        if (!PlanMarkup.isElement(item) || item.localName !== "ui-item")
           throw this.owner.error("a phase body holds a non-field", section)
         const label = item.querySelector(":scope > b:first-child")
         const name = Chrome.fieldLabel.exec(label?.textContent ?? "")?.[1]?.trim()
@@ -102,8 +102,8 @@ export class PhaseConverter {
           label!.remove()
           const field = FIELD_NAMES[name as FieldLabel]
           if (fields.has(field)) this.owner.note(`#${section.id}:  two \`${name}:\` fields, joined`)
-          fields.set(field, [...(fields.get(field) ?? []), ...takeChildren(item)])
-        } else extras.push(wrap(item, "div", takeChildren(item)))
+          fields.set(field, [...(fields.get(field) ?? []), ...PlanMarkup.takeChildren(item)])
+        } else extras.push(PlanMarkup.wrap(item, "div", PlanMarkup.takeChildren(item)))
       }
     }
     if (extras.length) this.placeExtras(section.id, fields, extras)
@@ -129,7 +129,7 @@ export class PhaseConverter {
     const host = EXTRA_FIELD_HOSTS.find((name) => fields.has(name)) ?? "goal"
     fields.set(host, [...(fields.get(host) ?? []), ...extras])
     const labels = extras.map(
-      (extra) => `\`${squeeze(extra.querySelector(":scope > b")?.textContent ?? "(no label)")}\``
+      (extra) => `\`${PlanMarkup.squeeze(extra.querySelector(":scope > b")?.textContent ?? "(no label)")}\``
     )
     this.owner.note(`#${id}:  ${labels.join(", ")} kept at the end of its ${host === "done" ? "Done" : "Goal"}`)
   }
@@ -147,8 +147,8 @@ export class PhaseConverter {
       if (!time) throw this.owner.error("an Updated line without its time", line)
       time.remove()
       const phase = line.getAttribute("data-phase")
-      const data = { at: squeeze(time.textContent ?? ""), phase: phase ? Number(phase) : undefined }
-      return this.owner.element("epic-updated", data, takeChildren(line), line)
+      const data = { at: PlanMarkup.squeeze(time.textContent ?? ""), phase: phase ? Number(phase) : undefined }
+      return this.owner.element("epic-updated", data, PlanMarkup.takeChildren(line), line)
     })
   }
 }

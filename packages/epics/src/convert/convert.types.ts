@@ -5,8 +5,8 @@
  *   `convert.types` <- `DocReading` <- `OldReading` / `NewReading` <- `ConversionProof`;
  *   `convert.types` <- `CardConverter` <- `ItemConverter` / `PhaseConverter` <- `Converter` <- `ConvertRun`.
  * - The OLD markup's selectors live here, once:  the converter reads them, and the proof's `OldReading` knows which
- *   of their text is chrome (`Chrome`).  Rules for that markup:  `templates/epics/plan-doc.md`, "Markup the script
- *   writes".
+ *   of their text is chrome (`Chrome`:  the tool's, `$/epics/tool/planDoc.types`, re-exported here).  Rules for that
+ *   markup:  `templates/epics/plan-doc.md`, "Markup the script writes".
  */
 
 ////////////////
@@ -188,52 +188,9 @@ export const EXTRA_FIELD_HOSTS: readonly FieldName[] = ["done", "goal"]
 // ## Chrome
 ////////////////
 
-/**
- * Text and markup the OLD markup wrote that the `<epic-*>` elements now DRAW, from their attributes or position:
- * the converter drops it, and the proof leaves it out of the comparison -- narrowly, by these patterns.
- * - each is checked against the element's own data where it can be (a chip's text is its item's id)
- */
-export const Chrome = {
-  /** The h1's `Epic: ` (`<epic-page title>` holds the rest). */
-  titlePrefix: /^\s*Epic:\s*/,
-  /** A phase's `P2 · ` before its title. */
-  phasePrefix: /^\s*P(\d+)\s*·\s*/,
-  /** An Overview sub-section's `1.3 ` before its title:  drawn from its position. */
-  partNumber: /^\s*\d+(\.\d+)+\.?\s+/,
-  /** An option's `A · ` (or `A. `, `A: `) before its title. */
-  optionLetter: /^\s*([A-Z])\s*[·.:)]\s+/,
-  /** An option's ` (recommended)` after its title:  `<epic-option recommended>`. */
-  recommended: /\s*\(recommended\)\s*$/i,
-  /** A field's label:  `Goal:`. */
-  fieldLabel: /^\s*([^:]+):\s*$/,
-  /** An answer card's heading word:  `Answer`, or its id, `D7`. */
-  answerWord: /^(Answer|D\d+)$/,
-  /** A reply's `re: ` before what it's about. */
-  replyRe: /^\s*re:\s*/,
-  /** An Original Discussion version's heading. */
-  versionHeading: /^As (first written|of .+)$/,
-  /** The separator between drawn pieces:  `Owen · 2026-10-06 · re: ...`. */
-  separator: "·",
-  /** An answer card's ` · ` between its `Answer` / `D7` and its title. */
-  answerSeparator: /^\s*·\s*/,
-  /** The default `<epic-event icon>`:  left out when it's this. */
-  defaultEventIcon: "pen to square"
-} as const
-
-/**
- * A reply's title (`div.plan-reply-title`) as `<epic-reply>`'s data:  `<b>Owen</b> · <time>2026-10-06 17:27</time> ·
- * re: "..."` => `{ from, at, re }`, `re: ` dropped.  `undefined` when it isn't in that shape:  then it stays prose.
- * - shared by the converter and the proof's `OldReading`:  the one rule for what of it is chrome
- * - flat text:  markup in what it's about (`<code>`) is read as its text
- */
-export function replyTitleParts(title: Element): { from: string; at: string; re: string } | undefined {
-  const from = title.querySelector(":scope > b")?.textContent?.trim()
-  const at = title.querySelector(":scope > time")?.textContent?.trim()
-  const pieces = (title.textContent ?? "").split(Chrome.separator)
-  if (!from || !at || pieces.length < 3) return undefined
-  const re = pieces.slice(2).join(Chrome.separator).replace(/\s+/g, " ").trim().replace(Chrome.replyRe, "")
-  return { from, at, re }
-}
+// What the old markup wrote that the elements now draw (`Chrome`), and a reply's title line (`replyTitleParts()`):
+// the tool's too (`IncomingHtml` turns old shapes into elements on the way in), so its types file holds them
+export { Chrome, replyTitleParts } from "$/epics/tool/planDoc.types"
 
 /**
  * Is `message` (`ui-message.plan-update`) the script's own UPDATE note, `header="UPDATE"` with its phase?  It becomes

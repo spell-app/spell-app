@@ -6,12 +6,11 @@ import { fileURLToPath } from "node:url"
 import { parseHTML } from "linkedom"
 
 import { AS } from "$/assembler"
-import { escapeAmpersands } from "$/epics/convert/domEdits"
-import { EpicParts } from "$/epics/convert/EpicParts"
 import { SRV } from "$/server"
 
 import { PlanDocError, type CommitLogEntry, type PlanDocOptions, type PlanDocParts } from "./planDoc.types"
 
+import { EpicParts } from "./EpicParts"
 import { OldPlanReader } from "./OldPlanReader"
 import { PlanCommits } from "./PlanCommits"
 import { PlanDoc } from "./PlanDoc"
@@ -252,7 +251,7 @@ export class PlanDocFiles {
     const { document } = parseHTML(linked)
     // linkedom writes `&` in attribute values bare (I2):  escaped in this throwaway copy, as the converter does,
     // since the parts are serialized inside `split()`
-    escapeAmpersands(document as unknown as Document)
+    PlanMarkup.escapeAmpersands(document as unknown as Document)
     const parts = new EpicParts(document as unknown as Document).split({ docName: basename(file) })
     const outputs = await Promise.all(
       [...parts].map(async ([id, html]): Promise<[string, string]> => {

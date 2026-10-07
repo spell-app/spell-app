@@ -510,3 +510,57 @@ export type PlanDocParts = {
   /** ids whose host held content of its own besides its part */
   inline: string[]
 }
+
+////////////////
+// ## The old markup's chrome
+////////////////
+
+/**
+ * Text and markup the OLD markup wrote that the `<epic-*>` elements now DRAW, from their attributes or position:
+ * the converter (`$/epics/convert`) drops it, the proof leaves it out of the comparison -- narrowly, by these
+ * patterns -- and `IncomingHtml` reads an old option card or reply by them.
+ * - each is checked against the element's own data where it can be (a chip's text is its item's id)
+ * - here, not in `convert.types` (which re-exports it):  the tool loads the converter only for `convert` (I5)
+ * - REFACTOR: drop with the converter and `IncomingHtml` after the switch (P12)
+ */
+export const Chrome = {
+  /** The h1's `Epic: ` (`<epic-page title>` holds the rest). */
+  titlePrefix: /^\s*Epic:\s*/,
+  /** A phase's `P2 · ` before its title. */
+  phasePrefix: /^\s*P(\d+)\s*·\s*/,
+  /** An Overview sub-section's `1.3 ` before its title:  drawn from its position. */
+  partNumber: /^\s*\d+(\.\d+)+\.?\s+/,
+  /** An option's `A · ` (or `A. `, `A: `) before its title. */
+  optionLetter: /^\s*([A-Z])\s*[·.:)]\s+/,
+  /** An option's ` (recommended)` after its title:  `<epic-option recommended>`. */
+  recommended: /\s*\(recommended\)\s*$/i,
+  /** A field's label:  `Goal:`. */
+  fieldLabel: /^\s*([^:]+):\s*$/,
+  /** An answer card's heading word:  `Answer`, or its id, `D7`. */
+  answerWord: /^(Answer|D\d+)$/,
+  /** A reply's `re: ` before what it's about. */
+  replyRe: /^\s*re:\s*/,
+  /** An Original Discussion version's heading. */
+  versionHeading: /^As (first written|of .+)$/,
+  /** The separator between drawn pieces:  `Owen · 2026-10-06 · re: ...`. */
+  separator: "·",
+  /** An answer card's ` · ` between its `Answer` / `D7` and its title. */
+  answerSeparator: /^\s*·\s*/,
+  /** The default `<epic-event icon>`:  left out when it's this. */
+  defaultEventIcon: "pen to square"
+} as const
+
+/**
+ * A reply's title (`div.plan-reply-title`) as `<epic-reply>`'s data:  `<b>Owen</b> · <time>2026-10-06 17:27</time> ·
+ * re: "..."` => `{ from, at, re }`, `re: ` dropped.  `undefined` when it isn't in that shape:  then it stays prose.
+ * - shared by the converter, the proof's `OldReading` and `IncomingHtml`:  the one rule for what of it is chrome
+ * - flat text:  markup in what it's about (`<code>`) is read as its text
+ */
+export function replyTitleParts(title: Element): { from: string; at: string; re: string } | undefined {
+  const from = title.querySelector(":scope > b")?.textContent?.trim()
+  const at = title.querySelector(":scope > time")?.textContent?.trim()
+  const pieces = (title.textContent ?? "").split(Chrome.separator)
+  if (!from || !at || pieces.length < 3) return undefined
+  const re = pieces.slice(2).join(Chrome.separator).replace(/\s+/g, " ").trim().replace(Chrome.replyRe, "")
+  return { from, at, re }
+}

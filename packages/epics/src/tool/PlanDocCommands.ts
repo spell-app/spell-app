@@ -2,10 +2,9 @@ import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, relative, resolve, sep } from "node:path"
 
-import { EpicParts } from "$/epics/convert/EpicParts"
-
 import { OPEN_KINDS, PlanDocError, REVIEW_SECTIONS, TITLE_PREFIX, type PlanSummary } from "./planDoc.types"
 
+import { EpicParts } from "./EpicParts"
 import { InboxCommands } from "./InboxCommands"
 import { ItemPicker } from "./ItemPicker"
 import { PlanDoc } from "./PlanDoc"

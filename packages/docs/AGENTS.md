@@ -242,9 +242,9 @@ In `tools/`:
 - Edit through `spell dev plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
 - SPLIT docs (P3 of `claude-design`;  new docs start split):  a skeleton plus part files, `parts/<id>.htm`
-  (`PlanParts`, `$/epics/tool/PlanParts`;  `EpicParts`, `$/epics/convert`, splits and assembles an `<epic-*>` doc;
-  rules:  `PLAN-DOC.md`, "Parts").  The tool reads either shape whole and writes it back split, each file once,
-  atomically, only when changed;  `split <name>` / `split --done` / `join <name>`.
+  (`PlanParts`, `$/epics/tool/PlanParts`;  `EpicParts`, `$/epics/tool/EpicParts`, splits and assembles an
+  `<epic-*>` doc;  rules:  `PLAN-DOC.md`, "Parts").  The tool reads either shape whole and writes it back split,
+  each file once, atomically, only when changed;  `split <name>` / `split --done` / `join <name>`.
   - a reader of the skeleton alone (the docs index, the main server's epic cards, `ReviewInbox.itemIds()`) sees
     every section, phase status and item line;  anything needing bodies reads the doc through the tool
     (`PlanDocFiles` `read()`)
@@ -324,21 +324,23 @@ In `tools/`:
 
 - Every reference to a file, folder or external page is a link that opens a NEW TAB with its own named target per
   destination (re-clicks reuse that tab).
-  - `node tools/doc-links.js <page>` links `<code>path</code>` references and targets existing links
+  - `yarn tsx tools/doc-links.js <page>` links `<code>path</code>` references and targets existing links
     (idempotent).  Paths resolve against the page's folder, its `experiments/`, the repo root, `packages/`, and
     `#name/...` aliases.
-  - `node tools/doc-links.js --check <page>` must pass:  every local link resolves, one target per destination,
-    no nested links.
+  - `yarn tsx tools/doc-links.js --check <page>` must pass:  every local link resolves, one target per
+    destination, no nested links.
   - The rules themselves (how a path resolves, which target a link gets) live in `$/assembler` (`AS.Linker`):
     `doc-links.js` is its command line, and the plan-doc tool links through the same code.
+  - Under `tsx`, never plain `node`:  it imports `$/assembler`.  The tools run it through `tools/pages.js`
+    `docLinksRun()`.
 
 ## Finishing a page
 
 In this order, from `packages/docs`:
 
-1. `node tools/doc-links.js <page>`
+1. `yarn tsx tools/doc-links.js <page>`
 2. `yarn vp fmt <page>` (`yarn format` would reformat it anyway)
-3. `node tools/doc-links.js --check <page>`
+3. `yarn tsx tools/doc-links.js --check <page>`
 4. `node tools/check-spell.js <page>` must pass -- and LOOK at its four screenshots:  the checks can't see
    overlap, clipping or bad wrapping
 5. `spell dev docs index` when the page is new, renamed, or its `<title>` / description changed

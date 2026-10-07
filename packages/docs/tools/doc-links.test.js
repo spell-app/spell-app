@@ -5,14 +5,15 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vite-plus/test"
 
-import { PACKAGE, TOOLS } from "./pages.js"
+import { PACKAGE, docLinksRun } from "./pages.js"
 
 // The rules themselves (what links, which target, what `--check` finds) are tested where they live:
-// `packages/assembler/src/Linker.test.ts`.  These run the command line, under plain `node` as `update.js` does.
+// `packages/assembler/src/Linker.test.ts`.  These run the command line, under `tsx` as the tools do (`docLinksRun()`).
 
-/** Run `node tools/doc-links.js args` from `packages/docs`. */
+/** Run `tools/doc-links.js args` from `packages/docs`, as the tools do. */
 function cli(...args) {
-  return spawnSync(process.execPath, [join(TOOLS, "doc-links.js"), ...args], { cwd: PACKAGE, encoding: "utf8" })
+  const { command, args: commandArgs, env } = docLinksRun(args)
+  return spawnSync(command, commandArgs, { cwd: PACKAGE, encoding: "utf8", env })
 }
 
 /** A page with `body`, written to a fresh temp folder:  its path. */

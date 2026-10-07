@@ -141,7 +141,7 @@ when it isn't `pen to square`.
 
 ## Parts
 
-As `plan-doc.md`, "Parts", with the elements as hosts (`$/epics/convert` `EpicParts`):  an Overview sub-section, a
+As `plan-doc.md`, "Parts", with the elements as hosts (`EpicParts`, beside this):  an Overview sub-section, a
 phase, an item with details, the log.  A host's body is every child but its slotted ones (the title stays in the
 skeleton);  in the skeleton it carries `source="parts/<id>.htm"`, `part-ids` and `commits`.  No placeholder line:
 the element loads its own body.

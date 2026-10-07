@@ -9,12 +9,12 @@ import { parseHTML } from "linkedom"
 import { describe, expect, test } from "vite-plus/test"
 
 import { Markup } from "$/epics/markup"
+import { EpicParts } from "$/epics/tool/EpicParts"
 import { PlanParts } from "$/epics/tool/PlanParts"
 
 import { ConvertError, type Conversion } from "./convert.types"
 
 import { Converter } from "./Converter"
-import { EpicParts } from "./EpicParts"
 
 ////////////////
 // ## Fixtures

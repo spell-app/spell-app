@@ -137,7 +137,7 @@ export class MarkupCheck {
   private checkChildren(parent: ParentNode, { tag, host }: { tag: string; host?: Element }) {
     const vocabulary = Definitions.of(tag)
     if (!vocabulary) return
-    const specs = vocabulary.children.filter((spec) => !spec.when || !host || passes(spec.when, host))
+    const specs = MarkupCheck.childSpecs(vocabulary, host)
     const counts = new Map<ChildSpec, number>()
     const ordered = vocabulary.childOrder === "listed"
     const subject = host ?? (isElement(parent) ? parent : undefined)
@@ -148,7 +148,7 @@ export class MarkupCheck {
         this.add("unknown tag", child, "no definition describes it")
         continue
       }
-      const candidates = specs.filter((spec) => matches(spec, child))
+      const candidates = specs.filter((spec) => MarkupCheck.matches(spec, child))
       if (!candidates.length) {
         this.add(
           "not allowed here",
@@ -229,6 +229,25 @@ export class MarkupCheck {
     )
   }
 
+  /**
+   * `vocabulary`'s child specs that apply in `host`:  those whose `when` its attributes pass;  every one with no
+   * host (a bare `as` tag).
+   */
+  static childSpecs(vocabulary: EpicVocabulary, host?: Element): ChildSpec[] {
+    return vocabulary.children.filter((spec) => !spec.when || !host || passes(spec.when, host))
+  }
+
+  /**
+   * Whether `child` is a child `spec` describes:  its slot, then its tag (or prose, for `FLOW`) and `where`.
+   * - prose:  text, any element that isn't an `<epic-*>`, or a `flow` one (`<epic-update>`)
+   */
+  static matches(spec: ChildSpec, child: Node): boolean {
+    if ((spec.slot ?? "") !== slotOf(child)) return false
+    if (spec.tag === FLOW) return isProse(child)
+    if (!isElement(child) || child.localName !== spec.tag) return false
+    return !spec.where || passes(spec.where, child)
+  }
+
   ////////////////
   // ## Helpers
   ////////////////
@@ -278,14 +297,6 @@ function slotted(element: Element, name: string): boolean {
 /** Whether `element`'s attribute passes `test`. */
 function passes(test: AttributeTest, element: Element): boolean {
   return test.values.includes(element.getAttribute(test.attribute) ?? "")
-}
-
-/** Whether `child` is a child `spec` describes. */
-function matches(spec: ChildSpec, child: Node): boolean {
-  if ((spec.slot ?? "") !== slotOf(child)) return false
-  if (spec.tag === FLOW) return isProse(child)
-  if (!isElement(child) || child.localName !== spec.tag) return false
-  return !spec.where || passes(spec.where, child)
 }
 
 /** Where to report a problem with `child`:  itself, or its parent for text. */
