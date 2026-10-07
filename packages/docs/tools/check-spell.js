@@ -1,7 +1,8 @@
 /**
  * Check a `.html` doc in a real browser.
  * Usage:  node scripts/check-spell.js <folder>/<doc>.html [outDir]
- * - screenshots:  desktop top, desktop mid-page, phone mid-page, phone contents drawer (outDir, default a temp folder)
+ * - screenshots:  desktop top, desktop mid-page, phone mid-page, phone contents drawer (outDir, default a temp folder);
+ *   a plan doc also a phone-width open item, its line stuck and its fold button at the bottom (`phone-item.png`)
  * - fails (exit 1) on:
  *   - console / page errors
  *   - a `ui-*` element that isn't defined, or never rendered (no shadow root)
@@ -13,6 +14,10 @@
  *   - no active contents link after scrolling
  *   - a `ui-accordion.spell-code` without a `<pre>`
  *   - a contents drawer that doesn't open at phone width
+ *   - a plan doc's open item (`ui-accordion.plan-item`, epic `windows-and-review` Q6) whose line doesn't stick
+ *     right under its section's stuck title while its details are read, whose fold button isn't at the window's
+ *     bottom (inside it, clear of every line of the details' text), or whose fold button doesn't fold it and keep
+ *     its line where it was stuck;  at desktop and phone width (`checkItemFold()`)
  * - loads the page from `file://`, or from the page server when its `<body>` says `data-spell-needs-server`
  * - reports, never fails on:  icons with no `<svg>` drawn in their shadow tree (no reliable "done loading" signal)
  * - prints a JSON summary on stdout (last thing written), problems on stderr
@@ -65,6 +70,7 @@ if (!stuck.active) problem("no active contents link after scrolling")
 
 const fold = await checkFold(desk)
 if (fold.problem) problem(`fold:  ${fold.problem}`)
+const itemFold = { desktop: await checkItemFold(desk) }
 
 const phone = await open({ width: 390, height: 844 })
 await phone.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2))
@@ -72,6 +78,8 @@ await phone.waitForTimeout(400)
 await phone.screenshot({ path: join(out, "phone-mid.png") })
 const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - innerWidth)
 if (overflow > 0) problem(`${overflow}px horizontal scroll at phone width`)
+itemFold.phone = await checkItemFold(phone, join(out, "phone-item.png"))
+await phone.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2))
 const mainWidth = await phone.evaluate(() => Math.round(document.querySelector("main").getBoundingClientRect().width))
 if (mainWidth < 390 - 40) problem(`content column only ${mainWidth}px wide at phone width (390px)`)
 const drawer = { opened: false }
@@ -105,6 +113,7 @@ const summary = {
   atTop: stuck.covering,
   active: stuck.active,
   fold,
+  itemFold,
   overflow,
   mainWidth,
   drawer,
@@ -213,6 +222,183 @@ async function checkFold(page) {
     if (state.contentVisible === folded)
       return `#${target.id} ${word}ed, but its content is ${folded ? "still" : "not"} visible`
     return undefined
+  }
+}
+
+/**
+ * The ITEM FOLD check (plan docs, epic `windows-and-review` Q6):  an open item's line sticks, and its fold button
+ * floats at the window's bottom and folds it in place.
+ * - target:  the first plan item with details;  its sections unfolded and it opened (a split doc's details loaded);
+ *   details shorter than two windows get filler paragraphs (`p[data-check-filler]`), and `main` room below, so
+ *   the page can scroll anywhere in it
+ * - scrolled to the middle of its details:  its line's top must be at its section's stuck title's bottom;  the
+ *   fold button inside the window, within 40px of its bottom, and clear of every line of the details' text
+ * - a click on the fold button:  the item folded, its line within 2px of where it was stuck
+ * - `shot`:  a screenshot of the stuck state, when given
+ * - returns `{ target, ...measures }`, or `{ target: null }` on a page without plan items;  records problems
+ * - SIDE EFFECT:  a reload afterwards drops the filler and the room
+ */
+async function checkItemFold(page, shot) {
+  const label = `${page.viewportSize().width}px`
+  const target = await page.evaluate(openItem)
+  if (!target) return { target: null }
+  // a split doc's details load from their part file when opened, replacing what was there:  pad them once they have
+  await page
+    .waitForFunction(
+      (id) =>
+        document.querySelector(`#${id} > ui-accordion.plan-item > ui-content > .plan-fold`) &&
+        !document.querySelector(`#${id} > ui-accordion.plan-item:state(loading)`),
+      target,
+      { timeout: 5000 }
+    )
+    .catch(() => {})
+  await page.waitForTimeout(400)
+  await page.evaluate(lengthenItem, target)
+  await page.waitForTimeout(400)
+  const stuck = await page.evaluate(itemStuck, target)
+  if (shot) await page.screenshot({ path: shot })
+  const result = { target, ...stuck }
+  if (!stuck.fold) problem(`item ${target} (${label}):  no fold button`)
+  else {
+    if (Math.abs(stuck.line - stuck.under) > 2)
+      problem(
+        `item ${target} (${label}):  its line at ${stuck.line}px, not stuck under its section's title (${stuck.under}px)`
+      )
+    if (stuck.fold.bottom > stuck.height || stuck.fold.bottom < stuck.height - 40 || stuck.fold.right > stuck.width)
+      problem(
+        `item ${target} (${label}):  its fold button isn't at the window's bottom (${JSON.stringify(stuck.fold)})`
+      )
+    if (stuck.covers) problem(`item ${target} (${label}):  its fold button covers its text ("${stuck.covers}")`)
+    // scrolled to the item's END, its note box all that's left on screen (C3):  the line still stuck, the button in
+    // view and clear of the box's buttons
+    const end = await page.evaluate(itemEnd, target)
+    Object.assign(result, { end })
+    if (Math.abs(end.line - end.under) > 2)
+      problem(`item ${target} (${label}):  at its end, its line at ${end.line}px, not stuck (${end.under}px)`)
+    if (!end.fold || end.fold.bottom > end.height || end.fold.top < end.under)
+      problem(`item ${target} (${label}):  at its end, its fold button is out of view (${JSON.stringify(end.fold)})`)
+    if (end.covers) problem(`item ${target} (${label}):  at its end, its fold button covers ${end.covers}`)
+    await page.evaluate(itemStuck, target)
+    await page.waitForTimeout(200)
+    await page.click(`#${target} .plan-fold`)
+    await page.waitForTimeout(700)
+    const folded = await page.evaluate(itemFolded, target)
+    Object.assign(result, { folded })
+    if (folded.open) problem(`item ${target} (${label}):  its fold button didn't fold it`)
+    if (Math.abs(folded.line - stuck.line) > 2)
+      problem(`item ${target} (${label}):  folding moved its line from ${stuck.line}px to ${folded.line}px`)
+  }
+  await page.reload()
+  await settle(page)
+  return result
+}
+
+/** In the page:  unfold the first plan item with details, and what holds it;  its id, or null. */
+function openItem() {
+  const accordion = document.querySelector(".plan-items > [data-status][id] > ui-accordion.plan-item")
+  if (!accordion) return null
+  const item = accordion.parentElement
+  for (let section = item.closest("ui-section"); section; section = section.parentElement.closest("ui-section"))
+    section.removeAttribute("collapsed")
+  accordion.open = "0"
+  return item.id
+}
+
+/** In the page:  item `id`'s details at least two windows tall (filler paragraphs), and room below `main`. */
+function lengthenItem(id) {
+  const accordion = document.getElementById(id).querySelector(":scope > ui-accordion.plan-item")
+  const details = accordion.querySelector(":scope > ui-content")
+  const fold = details.querySelector(":scope > .plan-fold")
+  for (let count = 0; count < 40 && accordion.getBoundingClientRect().height < 2 * innerHeight; count++) {
+    const filler = document.createElement("p")
+    filler.dataset.checkFiller = ""
+    filler.textContent = "Filler for the item fold check, a line of text long enough to reach the right edge. ".repeat(
+      3
+    )
+    details.insertBefore(filler, details.querySelector(":scope > .plan-revisit") ?? fold)
+  }
+  document.querySelector("main").style.paddingBottom = `${2 * innerHeight}px`
+}
+
+/**
+ * In the page, scrolled so item `id`'s details END halfway down the window:  only their last part on screen, the
+ * note box when there's one.  Where its line is (`line`), where its section's stuck title ends (`under`), its fold
+ * button's box, and what of the note box it covers (`covers`:  its text box or a button).
+ */
+function itemEnd(id) {
+  const accordion = document.getElementById(id).querySelector(":scope > ui-accordion.plan-item")
+  window.scrollBy(0, accordion.getBoundingClientRect().bottom - innerHeight / 2)
+  const line = accordion.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect()
+  const section = accordion.closest("ui-section[sticky]")
+  const under = section.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect().bottom
+  const fold = accordion.querySelector(":scope > ui-content > .plan-fold")?.getBoundingClientRect()
+  const box = accordion.querySelector(":scope > ui-content > .plan-revisit")
+  let covers = null
+  for (const part of box?.querySelectorAll("textarea, button") ?? []) {
+    const rect = part.getBoundingClientRect()
+    if (fold && rect.right > fold.left && rect.left < fold.right && rect.bottom > fold.top && rect.top < fold.bottom)
+      covers ??= part.className || part.localName
+  }
+  const round = (rect) => rect && { top: Math.round(rect.top), bottom: Math.round(rect.bottom) }
+  return {
+    line: Math.round(line.top),
+    under: Math.round(under),
+    fold: round(fold),
+    box: Boolean(box),
+    covers,
+    height: innerHeight
+  }
+}
+
+/**
+ * In the page, scrolled to the middle of item `id`'s details:  where its line is (`line`), where its section's
+ * stuck title ends (`under`), its fold button's box, and the first text it covers (`covers`).
+ */
+function itemStuck(id) {
+  const accordion = document.getElementById(id).querySelector(":scope > ui-accordion.plan-item")
+  const box = accordion.getBoundingClientRect()
+  window.scrollBy(0, box.top + box.height / 2 - innerHeight / 2)
+  const line = accordion.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect()
+  const section = accordion.closest("ui-section[sticky]")
+  const under = section.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect().bottom
+  const button = accordion.querySelector(":scope > ui-content > .plan-fold")
+  const fold = button?.getBoundingClientRect()
+  let covers = null
+  if (fold) {
+    const walker = document.createTreeWalker(accordion.querySelector(":scope > ui-content"), NodeFilter.SHOW_TEXT)
+    const range = document.createRange()
+    for (let node = walker.nextNode(); node && !covers; node = walker.nextNode()) {
+      if (!node.textContent.trim() || button.contains(node)) continue
+      range.selectNodeContents(node)
+      for (const rect of range.getClientRects())
+        if (rect.right > fold.left && rect.left < fold.right && rect.bottom > fold.top && rect.top < fold.bottom)
+          covers = node.textContent.trim().slice(0, 40)
+    }
+  }
+  const round = (rect) =>
+    rect && {
+      left: Math.round(rect.left),
+      top: Math.round(rect.top),
+      right: Math.round(rect.right),
+      bottom: Math.round(rect.bottom)
+    }
+  return {
+    line: Math.round(line.top),
+    under: Math.round(under),
+    fold: round(fold),
+    covers,
+    width: innerWidth,
+    height: innerHeight
+  }
+}
+
+/** In the page:  whether item `id` is still open, and where its line is. */
+function itemFolded(id) {
+  const accordion = document.getElementById(id).querySelector(":scope > ui-accordion.plan-item")
+  const details = accordion.shadowRoot.querySelector("details")
+  return {
+    open: !!details?.open,
+    line: Math.round(accordion.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect().top)
   }
 }
 

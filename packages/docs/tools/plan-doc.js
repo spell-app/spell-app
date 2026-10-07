@@ -176,6 +176,25 @@ const OPTIONS = "ui-accordion.plan-options"
 /** The Choices aside's title. */
 const CHOICES_TITLE = "Choices"
 
+/**
+ * Add Details (`details --more`, epic `windows-and-review` P3, Owen 2026-10-06):  the item's text stays on top, and
+ * the new text goes under it in a white "More Details" card, open and foldable (`addMore()`):
+ * - `FIRST`:  the item's text, labelled "Original Reply" on the page;  an answered question's is its `QUESTION`
+ *   already ("Original question"), never wrapped again
+ * - `MORE`:  `<ui-accordion class="plan-more" styled open="0"><ui-title>More Details</ui-title><ui-content>`
+ */
+const FIRST = "div.plan-first"
+const MORE = "ui-accordion.plan-more"
+
+/** The More Details card's title (`MORE`). */
+const MORE_TITLE = "More Details"
+
+/**
+ * The "Plan hung?" notice under the meta lines while planning:  how to restart, and the kickoff prompt to paste.
+ * Folded (P3 of `windows-and-review`):  a `ui-accordion.plan-hung.spell-aside`;  a `ui-message.plan-hung` before.
+ */
+const HUNG = ":is(ui-accordion, ui-message).plan-hung"
+
 /** The marks an item carries besides its status:  `mergeDecisions()` moves a decision's onto its question. */
 const ITEM_MARKS = [
   "data-phase",
@@ -300,10 +319,31 @@ const JUDGEMENTS_SECTION = `<ui-section id="judgements" header="4. Judgement cal
  *   `1h30m`, `1-2h`.  The Overview totals them (`updateEstimate()`).
  */
 const PHASE_FIELDS = [
+  ["Symptom", "circle exclamation"],
+  ["Changes", "wand magic sparkles"],
   ["Goal", "bullseye"],
   ["Files", "folder"],
   ["Verify", "flask"],
   ["Estimate", "clock"]
+]
+
+/**
+ * A phase body's fields, in the order they read (epic `windows-and-review` P3, Owen 2026-10-06:  "Symptom (one
+ * line), Changes (two or three lines), then the details"):  a field made later goes before the first one after it
+ * here (`insertField()`).
+ * - `Updated`:  the fenced block of changes to the plan (`addPhaseUpdate()`), right under Symptom / Changes
+ */
+const FIELD_ORDER = [
+  "Symptom",
+  "Changes",
+  "Updated",
+  "Goal",
+  "Done",
+  "Commits",
+  "Files",
+  "Verify",
+  "Estimate",
+  "To review"
 ]
 
 ////////////////
@@ -397,23 +437,29 @@ export class PlanDoc {
 
   /**
    * Append phase `name` (2-4 words) to `#phases` (and an old doc's phase list);  returns its number.
-   * - `goal` / `files` / `verify`:  its body's fields, as HTML (a `<ul>` of bullets for the goal);  omitted ones get
-   *   a placeholder to fill in
+   * - `symptom` / `changes` / `goal` / `files` / `verify`:  its body's fields, as HTML (`PHASE_FIELDS`):  the symptom
+   *   one line, the changes two or three, the goal a `<ul>` of bullets (the details);  omitted ones get a placeholder
+   *   to fill in, but the goal:  optional once there's a symptom or changes;  neither of those:  the shape before
+   *   P3 of `windows-and-review`, Goal / Files / Verify
    * - `estimate` (`1-2h`):  the phase title's BADGE, not a body field (Owen, 2026-10-04);  old markup:  the field
    * - `<ui-section id="p3" data-phase data-status header="P3 · Name" ...>`, its status icon slotted;  old markup:
    *   `section.s3` > `ui-sticky.spell-h3` > `h3#p3`
-   * - removes the "Plan hung?" notice (`ui-message.plan-hung`):  a plan with a phase has been written, so a hung
-   *   session no longer means starting over from the kickoff prompt
+   * - removes the "Plan hung?" notice (`HUNG`):  a plan with a phase has been written, so a hung session no longer
+   *   means starting over from the kickoff prompt
    */
-  addPhase(name, { goal, files, verify, estimate } = {}) {
+  addPhase(name, { symptom, changes, goal, files, verify, estimate } = {}) {
     const section = this.section("phases")
-    this.document.querySelector("ui-message.plan-hung")?.remove()
+    this.document.querySelector(HUNG)?.remove()
     const n = this.phases.length + 1
     const label = `P${n} · ${name}`
     this.addOldListEntry(n, label)
-    const values = { Goal: goal, Files: files, Verify: verify, Estimate: estimate }
+    const values = { Symptom: symptom, Changes: changes, Goal: goal, Files: files, Verify: verify, Estimate: estimate }
     const sections = section.localName === "ui-section"
-    const body = PHASE_FIELDS.filter(([field]) => !(sections && field === "Estimate")).map(
+    const framed = symptom !== undefined || changes !== undefined
+    const skip = (field) =>
+      (sections && field === "Estimate") ||
+      (framed ? field === "Goal" && goal === undefined : field === "Symptom" || field === "Changes")
+    const body = PHASE_FIELDS.filter(([field]) => !skip(field)).map(
       ([field, glyph]) => `<ui-item icon="${glyph}"><b>${field}:</b>  ${values[field] ?? "TBD"}</ui-item>`
     )
     const list = `<ui-list class="plan-phase-body">${body.join("")}</ui-list>`
@@ -549,14 +595,108 @@ ${list}`
    * replaces an earlier one.
    */
   setDone(n, html) {
+    const body = this.phaseBody(n)
+    const old = fieldOf(body, "Done")
+    const field = this.fragment(`<ui-item icon="circle check"><b>Done:</b>  ${html}</ui-item>`).firstElementChild
+    if (old) return old.replaceWith(field)
+    insertField(body, "Done", field)
+  }
+
+  /** Phase `n`'s body (`.plan-phase-body`);  throws when it has none. */
+  phaseBody(n) {
     const body = this.phaseSection(n).querySelector(":scope > .plan-phase-body")
     if (!body) throw new PlanDocError(`phase ${n} has no body (\`.plan-phase-body\`)`)
-    const old = Array.from(body.children).find((item) => /^Done:/.test(item.textContent.trim()))
-    const field = this.fragment(`<ui-item icon="circle check"><b>Done:</b>  ${html}</ui-item>`)
-    if (old) return old.replaceWith(field)
-    const goal = Array.from(body.children).find((item) => /^Goal:/.test(item.textContent.trim()))
-    if (goal) goal.after(field)
-    else body.prepend(field)
+    return body
+  }
+
+  /**
+   * Set phase `n`'s body fields (`PHASE_FIELDS`):  `{ symptom, changes, goal, files, verify }`, as HTML;  each one
+   * given replaces that field, or is made in its place (`FIELD_ORDER`);  returns the fields set.
+   * - for phases written before Symptom / Changes (epic `windows-and-review` P3), or a plan that changed
+   * - `""`:  removes the field
+   */
+  setPhaseFields(n, values) {
+    const body = this.phaseBody(n)
+    const set = []
+    for (const [field, glyph] of PHASE_FIELDS) {
+      const html = values[field.toLowerCase()]
+      if (html === undefined || field === "Estimate") continue
+      const old = fieldOf(body, field)
+      set.push(field)
+      if (html === "") {
+        old?.remove()
+        continue
+      }
+      const item = this.fragment(`<ui-item icon="${glyph}"><b>${field}:</b>  ${html}</ui-item>`).firstElementChild
+      if (old) old.replaceWith(item)
+      else insertField(body, field, item)
+    }
+    return set
+  }
+
+  /**
+   * A change to phase `n`'s plan, `html` (what changed, and why:  Owen's feedback), in its fenced "Updated" block,
+   * right under Symptom / Changes (Owen, 2026-10-06:  never an "Updated" word buried in the text).
+   * - `<ui-item icon="pen to square" class="plan-updated"><b>Updated:</b>  <ul><li data-phase="3"><time>2026-10-06
+   *   14:30</time>  what changed</li></ul></ui-item>`, one `li` per change, oldest first;  `data-phase`:  the phase
+   *   active when it was written, if any
+   * - it STAYS when a phase is done (unlike the UPDATE markers):  it's the record of how the plan moved;  the list at
+   *   the top of the phases names it while its phase is still to do (`updatePlanChanges()`)
+   * - SIDE EFFECT:  logs it
+   */
+  addPhaseUpdate(n, html) {
+    const body = this.phaseBody(n)
+    let field = fieldOf(body, "Updated")
+    if (!field) {
+      field = this.fragment(
+        `<ui-item icon="pen to square" class="plan-updated"><b>Updated:</b>  <ul class="plan-updated-list"></ul></ui-item>`
+      ).firstElementChild
+      insertField(body, "Updated", field)
+    }
+    const active = this.activePhase
+    const entry = this.element("li", active ? { "data-phase": active } : {})
+    entry.innerHTML = `<time>${text(clockTime(this.now))}</time>  ${html.trim()}`
+    field.querySelector(":scope > ul").append(entry)
+    this.log(`P${n} plan updated`)
+  }
+
+  /**
+   * The list of plan changes at the top of `#phases` (`ui-message.plan-changes`, after the progress bar):  every
+   * "Updated" entry (`addPhaseUpdate()`) of a phase not yet done, linked to its phase, oldest first;  none:  no list.
+   * Returns whether it changed.
+   * - so a re-review sees at a glance what moved (Owen, 2026-10-06), without opening every phase
+   * - run by the whole-doc pass (`updateStates()`):  the phase bodies are read whole there
+   */
+  updatePlanChanges() {
+    const section = this.document.getElementById("phases")
+    if (!section || section.localName !== "ui-section") return false
+    const old = section.querySelector(":scope > ui-message.plan-changes")
+    const lines = []
+    for (const phase of this.phases) {
+      if (phase.status === "done") continue
+      const body = this.phaseSection(phase.n).querySelector(":scope > .plan-phase-body")
+      const entries = body ? Array.from(fieldOf(body, "Updated")?.querySelectorAll(":scope > ul > li") ?? []) : []
+      for (const entry of entries) lines.push(`<li><a href="#p${phase.n}">P${phase.n}</a>  ${entry.innerHTML}</li>`)
+    }
+    if (!lines.length) {
+      old?.remove()
+      return Boolean(old)
+    }
+    const html = `<ul>${lines.join("")}</ul>`
+    if (old && bare(old.innerHTML) === bare(html)) return false
+    const list =
+      old ??
+      this.element("ui-message", { class: "plan-changes", state: "warning", size: "small", header: "Plan changes" })
+    list.innerHTML = html
+    stripIds(list)
+    if (!old) {
+      const above =
+        section.querySelector(":scope > ui-progress.plan-progress") ??
+        section.querySelector(':scope > ui-icon[slot="icon"]')
+      if (above) above.after(this.document.createTextNode("\n"), list)
+      else section.prepend(list)
+    }
+    return true
   }
 
   /**
@@ -757,7 +897,11 @@ ${list}`
       else if (node === question) body.push(...Array.from(question.childNodes))
       else if ([original, commits, choices].includes(node)) continue
       else if (node.nodeType === 3 && !node.textContent.trim()) node.remove()
-      else if (laidOut ? afterCard : node.nodeType === 1 && node.matches(".plan-reply")) tail.push(node)
+      // an open question's "Original Reply" (`addMore()`):  its text is the question's now
+      else if (node.nodeType === 1 && node.matches(FIRST)) {
+        body.push(...Array.from(node.childNodes))
+        node.remove()
+      } else if (laidOut ? afterCard : node.nodeType === 1 && node.matches(`.plan-reply, ${MORE}`)) tail.push(node)
       else body.push(node)
     }
     if (!choices) {
@@ -1390,6 +1534,46 @@ ${list}`
   }
 
   /**
+   * Add Details (`details --more`):  item `id`'s text stays on top, labelled "Original Reply", and `html` goes under
+   * it in a "More Details" card, open and foldable (`MORE`);  returns its title.
+   * - the item's text:  what its details hold but the answer card, Choices, replies, More Details, Original
+   *   Discussion and commits;  wrapped ONCE in `FIRST` (an answered question's `QUESTION` is labelled already)
+   * - the card goes after the text and the answer card, before replies, the Original Discussion and the commits
+   * - a second Add Details replaces the card:  the old card's text moves into the Original Discussion
+   *   (`keepOriginal()`), as a rewrite's does
+   * - an item without details gets a panel (`detailsOf()`);  stamped (`data-changed`) and flagged UPDATE
+   */
+  addMore(id, html) {
+    const item = this.item(id)
+    const content = this.detailsOf(item)
+    const old = content.querySelector(`:scope > ${MORE}`)
+    if (old) {
+      const oldContent = old.querySelector(":scope > ui-content")
+      old.remove()
+      this.keepOriginal(item, Array.from(oldContent?.childNodes ?? []))
+    }
+    const apart = `.plan-answer-block, ${CHOICES}, ${QUESTION}, ${FIRST}, .plan-reply, ${ORIGINAL}, .plan-commits`
+    const loose = Array.from(content.childNodes).filter((node) =>
+      node.nodeType === 1 ? !node.matches(apart) : node.nodeType === 3 && node.textContent.trim()
+    )
+    if (loose.length) {
+      const first = this.element("div", { class: "plan-first" })
+      loose[0].before(first)
+      first.append(...loose)
+      trimWhitespace(first)
+    }
+    const card = this.element("ui-accordion", { class: "plan-more", styled: "", open: "0" })
+    card.innerHTML = `<ui-title>${MORE_TITLE}</ui-title><ui-content></ui-content>`
+    card.querySelector("ui-content").append(this.fragment(html))
+    const next = content.querySelector(`:scope > :is(.plan-reply, ${ORIGINAL}, .plan-commits)`)
+    if (next) next.before(card)
+    else content.append(card)
+    this.stamp(item)
+    this.markUpdate(item)
+    return titleOf(item)
+  }
+
+  /**
    * Keep Owen's note -- `mark.note`, a mark Claude took and is clearing (`inbox done | clear`) -- in item `id`, as his
    * own reply card:  `div.plan-reply.plan-reply-owen`, "Owen · 2026-10-06 10:42 · revisit soon", then the note.
    * - placed before the first reply dated at or after the note (Claude's answer to it), else where an appended
@@ -1528,6 +1712,7 @@ ${list}`
       }
     }
     for (const section of this.phaseSections) if (this.updateToReview(section)) changed++
+    if (this.updatePlanChanges()) changed++
     return changed
   }
 
@@ -1649,7 +1834,7 @@ ${list}`
   }
 
   /**
-   * Phase `n`'s commit list, its "Commits" field made when there's none:  after Done, else after Goal, else first.
+   * Phase `n`'s commit list, its "Commits" field made when there's none, in its place (`FIELD_ORDER`).
    * - `<ui-item icon="code branch" class="plan-commits"><b>Commits:</b>  <ul class="plan-commit-list">`;  an old
    *   `ul` body:  an `li`
    */
@@ -1661,12 +1846,7 @@ ${list}`
     const tag = body.localName === "ul" ? "li" : "ui-item"
     const field = this.element(tag, { ...(tag === "ui-item" && { icon: "code branch" }), class: "plan-commits" })
     field.innerHTML = `<b>Commits:</b>  <ul class="plan-commit-list"></ul>`
-    const fields = Array.from(body.children)
-    const after =
-      fields.find((child) => /^Done:/.test(child.textContent.trim())) ??
-      fields.find((child) => /^Goal:/.test(child.textContent.trim()))
-    if (after) after.after(field)
-    else body.prepend(field)
+    insertField(body, "Commits", field)
     return field.querySelector(".plan-commit-list")
   }
 
@@ -1815,15 +1995,31 @@ ${list}`
    * - the text exact, in a `<script type="text/plain">`;  NOTE:  `</script` in it is written `<\/script`
    */
   setHungPrompt(prompt) {
-    const notice = this.document.querySelector("ui-message.plan-hung")
-    notice?.querySelector(":scope > ui-code.plan-hung-prompt")?.remove()
+    const notice = this.document.querySelector(HUNG)
+    notice?.querySelector("ui-code.plan-hung-prompt")?.remove()
     const text = (prompt ?? "").trim()
     if (!notice || !text) return
     const code = this.element("ui-code", { class: "plan-hung-prompt", language: "text", wrap: "", copy: "" })
     const script = this.element("script", { type: "text/plain" })
     script.textContent = text.replace(/<\/script/gi, "<\\/script")
     code.append(script)
-    notice.append(code)
+    ;(notice.querySelector(":scope > ui-content") ?? notice).append(code)
+  }
+
+  /**
+   * An old "Plan hung?" notice (`ui-message.plan-hung`, before P3 of `windows-and-review`) into the folded one
+   * (`HUNG`), its text and prompt kept;  folded?
+   */
+  foldHungNotice() {
+    const old = this.document.querySelector("ui-message.plan-hung")
+    if (!old) return false
+    const notice = this.fragment(
+      `<ui-accordion class="plan-hung spell-aside" styled><ui-title>Plan hung?</ui-title><ui-content></ui-content></ui-accordion>`
+    ).firstElementChild
+    notice.querySelector("ui-content").append(...Array.from(old.childNodes))
+    trimWhitespace(notice.querySelector("ui-content"))
+    old.replaceWith(notice)
+    return true
   }
 
   ////////////////
@@ -1856,6 +2052,7 @@ ${list}`
     if (this.migrateHeader()) changes.push("h1 in the sticky page header, with the step label")
     if (this.migrateTitle()) changes.push(`page title "${TITLE_PREFIX}<title>"`)
     if (this.foldPrompt()) changes.push('kickoff prompt folded into a "Kickoff prompt" aside')
+    if (this.foldHungNotice()) changes.push('"Plan hung?" notice folded')
     if (this.migratePlanSection()) changes.push("#plan dropped:  summary to Overview, progress bar to Phases")
     if (this.orderSections()) changes.push(`sections ordered ${SECTION_ORDER.join(", ")}, renumbered`)
     const items = this.migrateItems()
@@ -1867,6 +2064,8 @@ ${list}`
     if (this.addJudgements()) changes.push("#judgements (Judgement calls) added after Questions")
     const bodies = this.migratePhaseBodies()
     if (bodies) changes.push(`${bodies} phase bodies as ui-list`)
+    const framed = this.frameGoals()
+    if (framed) changes.push(`${framed} phase goals split into Symptom / Changes fields`)
     const sections = convertSections(this.document)
     if (sections.converted) {
       const dropped = sections.droppedIds.map((id) => `#${id}`).join(", ")
@@ -2331,6 +2530,37 @@ ${list}`
         replacement.append(item)
       }
       list.replaceWith(replacement)
+      count++
+    }
+    return count
+  }
+
+  /**
+   * Goals written as Symptom / Changes paragraphs (`<b>Goal:</b> <p><b>Symptom:</b> ...</p><p><b>Changes:</b>
+   * ...</p>`, before P3 of `windows-and-review`) into their own fields (`PHASE_FIELDS`);  the goal goes once nothing
+   * else is left in it.  How many phases.
+   */
+  frameGoals() {
+    let count = 0
+    for (const body of this.document.querySelectorAll("ui-list.plan-phase-body")) {
+      const goal = fieldOf(body, "Goal")
+      if (!goal || fieldOf(body, "Symptom") || fieldOf(body, "Changes")) continue
+      const parts = Array.from(goal.children).filter((child) =>
+        /^(Symptom|Changes):$/.test(child.querySelector(":scope > b:first-child")?.textContent.trim() ?? "")
+      )
+      if (!parts.length) continue
+      for (const part of parts) {
+        const label = part.querySelector(":scope > b:first-child")
+        const field = label.textContent.trim().replace(/:$/, "")
+        label.remove()
+        const glyph = Object.fromEntries(PHASE_FIELDS)[field]
+        const item = this.fragment(`<ui-item icon="${glyph}"><b>${field}:</b>  ${part.innerHTML.trim()}</ui-item>`)
+        part.remove()
+        insertField(body, field, item.firstElementChild)
+      }
+      const rest = goal.cloneNode(true)
+      rest.querySelector(":scope > b:first-child")?.remove()
+      if (!rest.textContent.trim() && !rest.querySelector("img, ui-code, pre")) goal.remove()
       count++
     }
     return count
@@ -2850,6 +3080,21 @@ function estimateField(section) {
   return Array.from(body?.children ?? []).find((item) => /^Estimate:/.test(item.textContent.trim()))
 }
 
+/** Phase body `body`'s field `label` (`Goal`, `Done` ...:  the item whose text starts `Goal:`), if any. */
+function fieldOf(body, label) {
+  return Array.from(body.children).find((item) => item.textContent.trim().startsWith(`${label}:`))
+}
+
+/** Field `field` (an element, out of the doc), labelled `label`, into phase body `body` in its place (`FIELD_ORDER`). */
+function insertField(body, label, field) {
+  const later = FIELD_ORDER.slice(FIELD_ORDER.indexOf(label) + 1)
+  const next = Array.from(body.children).find((item) =>
+    later.some((other) => item.textContent.trim().startsWith(`${other}:`))
+  )
+  if (next) next.before(field)
+  else body.append(field)
+}
+
 /**
  * Phase `section`'s estimate, as text:  its title's badge, else (old docs) its field;  `undefined` while missing or
  * `TBD`.
@@ -2973,7 +3218,13 @@ export function isoDate(date = new Date()) {
 const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
   new <name> [--title "Title"] [--prompt "text" | --prompt-file path]
                                                    copy the template, fill it in, update the docs index
-  add-phase <name> "Short Name" [--goal html] [--files html] [--verify html] [--estimate 2h]
+  add-phase <name> "Short Name" --symptom html --changes html [--goal html] [--files html] [--verify html]
+            [--estimate 2h]                        a phase:  Symptom (one line), Changes (two or three), then
+                                                   the details (goal, files, verify)
+  phase-body <name> <N> [--symptom html] [--changes html] [--goal html] [--files html] [--verify html]
+                                                   set (or "" removes) a phase's body fields
+  updated <name> <N> "html" | --file path          a change to phase N's plan, in its fenced Updated block
+                                                   (kept;  listed atop the phases while N is to do)
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--done html] [--no-open]
                                                    set a phase's status;  done drops its UPDATE markers, and
@@ -3041,9 +3292,12 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics/<name>
   inbox <name> done <id>...                        an agent finished an item:  its mark and spinner go (a mark
                                                    Owen changed meanwhile stays)
   inbox <name> clear <id>...                       drop marks (a revisit talked over)
-  details <name> <id> --file <html> [--append]     replace an item's details with the file's HTML, or (--append)
+  details <name> <id> --file <html> [--append | --more]
+                                                   replace an item's details with the file's HTML, or (--append)
                                                    add it, e.g. a reply:  between the answer card and commits;
-                                                   replacing moves the old text into its Original Discussion
+                                                   replacing moves the old text into its Original Discussion;
+                                                   --more (Add Details):  the text stays on top as "Original
+                                                   Reply", the file's HTML in a "More Details" card under it
   original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]
                                                    put earlier text (from git) into an item's Original
                                                    Discussion:  as first written, or dated --as-of (when it was
@@ -3095,6 +3349,20 @@ async function main(argv) {
       // page by the live client (it updates itself in place, `spell-doc-runtime.js` `wireLiveUpdate()`), and showing
       // the page the view already has only reveals it (`packages/vscode/src/DocView.ts`)
       return flags.noOpen ? undefined : openInVSCode(file)
+    case "phase-body":
+      return edit(file, (plan) => {
+        const n = Number(need(rest[0], "a phase number"))
+        const set = plan.setPhaseFields(n, flags)
+        if (!set.length) throw new PlanDocError(`phase-body what?  --symptom / --changes / --goal / --files / --verify`)
+        plan.log(`P${n} ${set.join(", ")} set`)
+      })
+    case "updated":
+      return edit(file, (plan) =>
+        plan.addPhaseUpdate(
+          Number(need(rest[0], "a phase number")),
+          flags.file ? readFileSync(flags.file, "utf8") : need(rest[1], "what changed (html)")
+        )
+      )
     case "estimate":
       return edit(file, (plan) => {
         const n = Number(need(rest[0], "a phase number"))
@@ -3189,9 +3457,13 @@ async function main(argv) {
           `${id.toUpperCase()}:  Owen called this request off on the page ("nevermind"):  nothing written.  ` +
             `\`plan-doc inbox ${name} done ${id}\` and stop.`
         )
+      if (flags.append && flags.more) throw new PlanDocError("--append or --more, not both")
       return edit(file, (plan) => {
-        plan.setDetails(id, html, { append: Boolean(flags.append) })
-        plan.log(`${id.toUpperCase()} ${flags.append ? "reply added" : "details rewritten"}`)
+        if (flags.more) plan.addMore(id, html)
+        else plan.setDetails(id, html, { append: Boolean(flags.append) })
+        plan.log(
+          `${id.toUpperCase()} ${flags.more ? "more details added" : flags.append ? "reply added" : "details rewritten"}`
+        )
       })
     }
     case "original": {
@@ -3437,6 +3709,9 @@ async function create(name, file, { title = titleCase(name), prompt, promptFile 
   const plan = PlanDoc.parse(html, now)
   plan.document.querySelector("title").textContent = `${TITLE_PREFIX}${title}`
   plan.document.querySelector('meta[name="description"]').setAttribute("content", `Plan doc:  ${title}.`)
+  // folded here, not in the template:  the template is shared content, and older checkouts' scripts only know the
+  // `ui-message` (P3 of `windows-and-review`)
+  plan.foldHungNotice()
   // the prompt that started the plan, quoted at the top of the Overview;  none:  the empty quote goes
   plan.setPrompt(promptFile ? readFileSync(promptFile, "utf8") : (prompt ?? ""))
   mkdirSync(dirname(file), { recursive: true })

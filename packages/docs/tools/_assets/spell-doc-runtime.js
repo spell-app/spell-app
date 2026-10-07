@@ -359,11 +359,31 @@ function wireSourceBodies(main, live, enqueue) {
     }
   })
 
-  /** Re-fetch `host`'s body, keeping the line being read where it is. */
+  /**
+   * Re-fetch `host`'s body, keeping the line being read where it is.
+   * - what had the focus inside it, a note box being typed in (`dock()`, which puts the same box back):  focused
+   *   again, its caret where it was
+   */
   async function reloadBody(host) {
     const anchor = readingAnchor(main)
+    const active = host.contains(document.activeElement) ? document.activeElement : null
+    const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null
+    // the body goes in on the host's `ui-load`, which can come after `reload()` resolves;  the runtime's pieces go
+    // back on it (`live.refresh()`):  wait for it (2s at most), then for them
+    const loaded =
+      active &&
+      new Promise((done) => {
+        host.addEventListener("ui-load", done, { once: true })
+        setTimeout(done, 2000)
+      })
     await host.reload?.()
     keepAnchor(anchor)
+    if (!active) return
+    await loaded
+    for (let frame = 0; frame < 60 && !active.isConnected; frame++) await nextFrames(1)
+    if (!active.isConnected || document.activeElement === active) return
+    active.focus({ preventScroll: true })
+    if (caret) active.setSelectionRange(...caret)
   }
 }
 
@@ -1664,10 +1684,14 @@ function trackStickyHeights(main, outline) {
 
   /**
    * How far below the viewport top a target lands:  the site header, then its own `scroll-margin-top` (CSS
-   * derives it from the sections).
+   * derives it from the sections);  inside a plan item's details, below its line too, which sticks there
+   * (`wireItemFolds()`)
    */
   function offsetFor(target) {
-    return siteHeaderHeight() + (parseFloat(getComputedStyle(target).scrollMarginTop) || 0)
+    const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0
+    const item = target.closest("ui-accordion.plan-item > ui-content")?.parentElement
+    const line = item?.shadowRoot?.querySelector('[part~="title"]')
+    return siteHeaderHeight() + margin + (line ? line.getBoundingClientRect().height : 0)
   }
 }
 
@@ -1932,6 +1956,9 @@ function stuckBottom(main) {
   for (const sticky of main.querySelectorAll("ui-sticky"))
     boxes.push(sticky.shadowRoot?.querySelector('[part~="sticky"]'))
   for (const section of main.querySelectorAll("ui-section[sticky]")) boxes.push(titleOf(section))
+  // an OPEN plan item's line sticks below them (`wireItemFolds()`);  a closed one has nothing to stick over
+  for (const item of main.querySelectorAll("ui-accordion.plan-item"))
+    boxes.push(item.shadowRoot?.querySelector('details[open] > [part~="title"]'))
   for (const box of boxes) {
     if (!box) continue
     const style = getComputedStyle(box)
@@ -2466,12 +2493,14 @@ function buildChrome() {
   if (!main) return
   buildReviewLine(main)
   wireOptions(main)
+  wireItemFolds(main)
   wirePhaseToggles(main)
   wireCommits(main)
   void wireTips(main)
   // after the git button:  the send button goes left of it
   void wireReview(main)
   addEventListener("spell-doc:updated", () => {
+    wireItemFolds(main)
     wirePhaseToggles(main)
     wireCommits(main)
     void wireTips(main)
@@ -2574,6 +2603,71 @@ function wireOptions(main) {
     if (column.hasAttribute("data-chosen")) column.toggleAttribute("data-shut", open)
     else column.toggleAttribute("data-open", !open)
   })
+}
+
+/** An open plan item's details, which end in its fold button (`wireItemFolds()`). */
+const ITEM_DETAILS = ".plan-items > [data-status] > ui-accordion.plan-item > ui-content"
+
+/**
+ * A plan doc's OPEN items fold from where you're reading them (epic `windows-and-review` Q6, P3):  in a long item,
+ * Owen had to scroll back up to its line to fold it.
+ * - a small round button ends every item's details (`ui-button.plan-fold`, chevron up, a plain browser tooltip as
+ *   the line's review buttons):  `plan-doc.css` sticks it to the window's bottom while any of the details is on
+ *   screen, in a gutter at their right that neither their text nor the note box docked before it reaches
+ * - the item's line sticks below the section titles stuck above it (`plan-doc.css` alone, from its section's
+ *   `--spell-stack`), so you always see which item you're reading;  it leaves with the details' end, the note box
+ *   included (`wireReview()` docks it inside them, C3)
+ * - folding an item you're INSIDE (its line stuck, its top scrolled past), from the button or the line:  the page
+ *   scrolls at once so the line stays where it's stuck, and the details fold away below it (`keepItemPut()`, as
+ *   `wireFolds()`' `keepTitlePut()` for a section);  else nothing moves
+ * - SIDE EFFECT:  adds the buttons (`data-spell-added`);  callable again (a page updated in place, a body loaded
+ *   from its part file, which replaces the details):  adds what's missing;  the `ui-close` listener once
+ */
+function wireItemFolds(main) {
+  if (!document.body.classList.contains("plan-doc")) return
+  if (!main.dataset.spellItemFolds) {
+    main.dataset.spellItemFolds = ""
+    // the reader folding an item from its line (the accordion's own click):  before it folds
+    main.addEventListener("ui-close", (event) => {
+      if (!event.defaultPrevented && event.target.matches?.("ui-accordion.plan-item")) keepItemPut(event.target)
+    })
+  }
+  for (const details of main.querySelectorAll(ITEM_DETAILS)) {
+    if (details.querySelector(":scope > .plan-fold")) continue
+    const accordion = details.parentElement
+    const id = accordion.parentElement.id
+    const button = document.createElement("ui-button")
+    button.className = "plan-fold"
+    button.dataset.spellAdded = ""
+    const label = id ? `Fold ${id.toUpperCase()}` : "Fold this item"
+    for (const [name, value] of Object.entries({ circular: "", basic: "", size: "mini", icon: "chevron up" }))
+      button.setAttribute(name, value)
+    button.title = label
+    button.setAttribute("aria-label", label)
+    button.addEventListener("click", (event) => {
+      event.preventDefault()
+      const title = accordion.querySelector(":scope > ui-title")
+      if (!title) return
+      keepItemPut(accordion)
+      setPanel(title, false)
+      // the button folds away with the details:  focus the line, where a second Enter opens it again
+      accordion.shadowRoot?.querySelector("summary")?.focus({ preventScroll: true })
+    })
+    details.append(button)
+  }
+}
+
+/**
+ * Folding an item whose line is stuck (its top scrolled past):  scroll at once so its top sits where the line is
+ * stuck now.  An item whose line is where it belongs doesn't move.
+ */
+function keepItemPut(accordion) {
+  const line = accordion.shadowRoot?.querySelector("[part~=title]")
+  if (!line) return
+  const stuckAt = line.getBoundingClientRect().top
+  const top = accordion.getBoundingClientRect().top
+  if (top >= stuckAt - 1) return
+  scrollTo({ top: scrollY + top - stuckAt, behavior: "instant" })
 }
 
 /** localStorage key prefix of a plan doc's Files / Verify toggles:  `spell-phase-fields:<path>`. */
@@ -2714,6 +2808,9 @@ const REVIEW_API = "/api/review"
 /** How often a VISIBLE plan doc re-reads its inbox, so what Claude does to it (P6 of `review-review`) shows. */
 const REVIEW_POLL_MS = 4000
 
+/** How long a note box opened for the reader keeps taking the focus while its item's body loads (`focusBox()`). */
+const FOCUS_HOLD_MS = 3000
+
 /**
  * localStorage key prefix of a plan doc's note-box backups:  `spell-revisit:<path>`, `{ [item id]: text }`.
  * - only a BACKUP since epic `windows-and-review` P1:  notes are kept in the inbox as drafts (`POST draft`), which
@@ -2826,6 +2923,10 @@ async function wireReview(main) {
   const asking = new Map()
   const calling = new Set()
   const boxes = new Set()
+  // docked note boxes, id -> the box:  kept across a body's reload (`dock()`);  the item whose box is to take the
+  // focus, until when (`openBox()`:  its body may still be on its way)
+  const docks = new Map()
+  let focusing = null
   // writes in flight:  a poll's answer can't overwrite what they're about to
   let writing = 0
   // the notice's timer, why the last write failed (`write()`)
@@ -2839,6 +2940,9 @@ async function wireReview(main) {
   for (const id of Object.keys(inbox.drafts)) boxes.add(id)
   decorate()
   addEventListener("spell-doc:updated", decorate)
+  // a body just in from its part file:  its docked note box back at once (`dock()`), before the page's own refresh,
+  // so a box being typed in keeps its focus (`wireSourceBodies()` `reloadBody()`)
+  main.addEventListener("ui-load", () => decorate())
   setInterval(() => {
     if (document.visibilityState === "visible" && !writing) void load().then((read) => read && render())
   }, REVIEW_POLL_MS)
@@ -2874,11 +2978,11 @@ async function wireReview(main) {
     for (const item of main.querySelectorAll(REVIEW_ITEMS)) {
       const line = item.querySelector(":scope > ui-accordion.plan-item > ui-title") ?? item
       if (!line.querySelector(":scope > .plan-act")) line.append(actOf(item))
-      if (item.querySelector(":scope > .plan-revisit")) continue
-      // an item with details:  its note box docked at its end, shown while it's open (Q8);  else only when opened
-      const accordion = item.querySelector(":scope > ui-accordion.plan-item")
-      if (accordion) accordion.after(boxOf(item, { docked: true }))
-      else if (boxes.has(item.id)) item.append(boxOf(item))
+      // an item with details:  its note box docked at the END of its details, shown while it's open (Q8);  else only
+      // when opened, under its line
+      const details = item.querySelector(":scope > ui-accordion.plan-item > ui-content")
+      if (details) dock(item, details)
+      else if (boxes.has(item.id) && !item.querySelector(":scope > .plan-revisit")) item.append(boxOf(item))
     }
     const head = main.querySelector(".spell-page-head")
     if (head && !head.querySelector(":scope > .plan-send")) {
@@ -2900,6 +3004,9 @@ async function wireReview(main) {
       const running = runningOf(item.id)
       // how Claude handled an earlier mark (`data-review-as`, kept in the doc):  that button stays outlined
       const applied = mark ? null : item.dataset.reviewAs
+      // the note box's button for the item's mark, filled in its color (`plan-doc.css`)
+      const box = boxIn(item)
+      if (box) box.dataset.mark = markButton(mark)
       for (const [action, color, , label, tip] of REVIEW_ACTIONS) {
         const button = act.querySelector(`ui-button[data-action="${action}"]`)
         const chosen = mark?.action === action || (action === "revisit" && mark?.action === "revisit")
@@ -2992,6 +3099,36 @@ async function wireReview(main) {
     said.querySelector(".plan-said-note").textContent = noted.note
   }
 
+  /**
+   * Dock `item`'s note box at the end of its `details` (its `ui-content`), before the fold button:  INSIDE the
+   * `<details>`, so the item's sticky line and its fold button stay in view down to the box's end (epic
+   * `windows-and-review` P3, C3).
+   * - the SAME element every time (`docks`):  a body re-fetched from its part file (`wireSourceBodies()`) empties the
+   *   details, and the box comes back as it was, what's typed in it and all
+   */
+  function dock(item, details) {
+    let box = docks.get(item.id)
+    if (!box) docks.set(item.id, (box = boxOf(item, { docked: true })))
+    if (box.parentElement === details) return
+    const fold = details.querySelector(":scope > .plan-fold")
+    if (fold) fold.before(box)
+    else details.append(box)
+    if (focusing?.id === item.id && performance.now() < focusing.until) requestAnimationFrame(() => focusBox(item))
+  }
+
+  /**
+   * Focus `item`'s note box (`openBox()`).  An item opened for it may still be loading its body from its part file,
+   * which takes the docked box out and puts it back (`dock()`):  `focusing` holds it a few seconds, so the box
+   * takes the focus again when it's back.  Details just opened may not be drawn yet, and a box in them can't take
+   * the focus:  tried again each frame while `focusing` holds.
+   */
+  function focusBox(item) {
+    const note = boxIn(item)?.querySelector("textarea")
+    note?.focus({ preventScroll: true })
+    if (document.activeElement !== note && focusing?.id === item.id && performance.now() < focusing.until)
+      requestAnimationFrame(() => focusBox(item))
+  }
+
   /** The block showing a sent (or saved) note under an item's line:  `div.plan-said`, with Edit. */
   function saidOf(item) {
     const said = document.createElement("div")
@@ -3005,7 +3142,7 @@ async function wireReview(main) {
       // the note back in the box, to change and mark again
       const note = inbox.marks[item.id]?.note ?? ""
       openBox(item)
-      const box = item.querySelector(":scope > .plan-revisit textarea")
+      const box = boxIn(item)?.querySelector("textarea")
       if (box && !box.value) box.value = note
     })
     return said
@@ -3117,7 +3254,7 @@ async function wireReview(main) {
    * An item's note box (Owen, 2026-10-06, Q8):  `div.plan-revisit`, a note that grows as it's typed in, a small Saved
    * mark in its corner, and three round buttons stacked at its right:  Make Todo (green), Do Now (orange:  revisit
    * now), Later (orange clock:  revisit soon).
-   * - `docked`:  an item WITH details gets one always, after its accordion, shown while the item is open and not
+   * - `docked`:  an item WITH details gets one always, at the end of its details (`dock()`), shown while it's open and not
    *   approved (`plan-doc.css`):  where you are when you've read it.  An item without details gets one under its line
    *   when Revisit opens it (`boxes`), closed again once used
    * - the note is SAVED as typed:  to the inbox as a draft (`POST draft`), `DRAFT_SAVE_MS` after the last key, and at
@@ -3138,8 +3275,8 @@ async function wireReview(main) {
       `<ui-icon class="plan-revisit-saved" name="floppy disk outline" hidden></ui-icon></span>` +
       `<span class="plan-revisit-buttons">` +
       `<button type="button" class="plan-revisit-todo"><ui-icon name="list check"></ui-icon></button>` +
-      `<button type="button" class="plan-revisit-now"><ui-icon name="paper plane"></ui-icon></button>` +
-      `<button type="button" class="plan-revisit-soon"><ui-icon name="clock outline"></ui-icon></button>` +
+      `<button type="button" class="plan-revisit-soon"><ui-icon name="comment dots"></ui-icon></button>` +
+      `<button type="button" class="plan-revisit-now"><ui-icon name="wand magic sparkles"></ui-icon></button>` +
       `</span>`
     const note = box.querySelector("textarea")
     const saved = box.querySelector(".plan-revisit-saved")
@@ -3147,7 +3284,7 @@ async function wireReview(main) {
     const draft = inbox.drafts[id]
     note.value = draft?.note ?? ""
     if (draft) showSaved(true, draft.at)
-    const [todo, now, soon] = box.querySelectorAll("button")
+    const [todo, soon, now] = box.querySelectorAll("button")
     label(todo, "Make Todo", "Make Todo:  follow it up later, with this note")
     label(now, "Do Now", `Do Now:  Claude looks into it at once${inbox.listening ? "" : `.  ${NOBODY_LISTENING}`}`)
     label(soon, "Later", "Later:  talk it over in the next batch")
@@ -3302,7 +3439,7 @@ async function wireReview(main) {
    */
   function openBox(item) {
     const accordion = item.querySelector(":scope > ui-accordion.plan-item")
-    let box = item.querySelector(":scope > .plan-revisit")
+    let box = boxIn(item)
     if (accordion) accordion.open = "0"
     else {
       boxes.add(item.id)
@@ -3310,7 +3447,20 @@ async function wireReview(main) {
     }
     // an answered question's Choices take their pills while it's revisited (`pills()`)
     render()
-    requestAnimationFrame(() => box?.querySelector("textarea").focus({ preventScroll: true }))
+    focusing = { id: item.id, until: performance.now() + FOCUS_HOLD_MS }
+    requestAnimationFrame(() => focusBox(item))
+  }
+
+  /** The note box button `mark` stands for:  `todo`, `soon` (Later), `now` (Do Now);  else "". */
+  function markButton(mark) {
+    if (mark?.action === "todo") return "todo"
+    if (mark?.action === "revisit") return mark.when === "now" ? "now" : "soon"
+    return ""
+  }
+
+  /** `item`'s note box:  under its line, or docked in its details (`dock()`);  none yet:  null. */
+  function boxIn(item) {
+    return item.querySelector(":scope > .plan-revisit") ?? docks.get(item.id) ?? null
   }
 
   /**
