@@ -201,8 +201,8 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
           <span class={STATUS} part={this.part("status")}>
             <Show when={this.attrs.bedtime}>
               {(phases) => (
-                <ui-label basic="" color="violet" title={this.text("bedtimeTip", { phases: phases() })}>
-                  🌙<span class="bedtime">{` ${this.text("bedtime", { phases: phases() })}`}</span>
+                <ui-label basic="" color="violet" icon="moon" title={this.text("bedtimeTip", { phases: phases() })}>
+                  <span class="bedtime">{this.text("bedtime", { phases: phases() })}</span>
                 </ui-label>
               )}
             </Show>

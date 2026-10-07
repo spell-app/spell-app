@@ -4,6 +4,7 @@
  */
 
 import type { epicItemVocabulary } from "./epic-item.vocabulary.en"
+import type { UIJSXAttributes } from "$/epics/components/epic-page/epic-page.types"
 
 /** `epicItemVocabulary`'s type. */
 export type EpicItemVocabulary = typeof epicItemVocabulary
@@ -59,6 +60,8 @@ export const DETAILS = "details"
 export const LABEL = "label"
 export const NOTE = "note"
 export const CELL = "cell"
+/** Under the line, over the details:  a marked note, and the note box of an item without details. */
+export const UNDER_LINE = "under-line"
 
 /** Class words on the item box:  it has details;  it's unfolded. */
 export const HAS_DETAILS = "has-details"
@@ -84,3 +87,146 @@ export const FLOW_TAGS: readonly string[] = ["epic-update"]
 
 /** The More Details card's tag:  an item with one labels its own text "Original reply". */
 export const MORE_TAG = "epic-more"
+
+////////////////
+// ## Review controls (P9:  `ReviewControls.tsx`, shared with `<epic-section>`'s Overview parts)
+////////////////
+
+/** One review button:  its action, colour once chosen, icon, and its name and tooltip texts. */
+export type ReviewButtonSpec = {
+  /** what it does (`ReviewClient.press()`) */
+  action: "approve" | "todo" | "revisit" | "details"
+  /** chosen:  green decided, orange pending (Owen, 2026-10-06, epic `windows-and-review` Q4) */
+  color: "green" | "orange"
+  /** its `ui-icon` */
+  icon: string
+  /** its name:  the plain tooltip */
+  label: "approve" | "todo" | "revisit" | "details"
+  /** what it does, for a screen reader */
+  tip: "approveTip" | "todoTip" | "revisitTip" | "detailsTip"
+}
+
+/**
+ * The line's four review buttons, in their order:  Approve, Make Todo, Revisit (the GROUP:  states an item can be in),
+ * then Add Details Now on its own (an action, not a state;  Owen, 2026-10-06, Q8).  Unchosen, all a grey outline.
+ */
+export const REVIEW_BUTTONS: readonly ReviewButtonSpec[] = [
+  { action: "approve", color: "green", icon: "check", label: "approve", tip: "approveTip" },
+  { action: "todo", color: "green", icon: "list check", label: "todo", tip: "todoTip" },
+  { action: "revisit", color: "orange", icon: "history", label: "revisit", tip: "revisitTip" },
+  { action: "details", color: "orange", icon: "magic", label: "details", tip: "detailsTip" }
+]
+
+/**
+ * An Overview sub-section's review buttons (decision Q14):  Make Todo, Revisit, Add Details Now -- notes on the plan's
+ * parts, not sign-off, so no Approve.
+ */
+export const OVERVIEW_BUTTONS: readonly ReviewButtonSpec[] = REVIEW_BUTTONS.filter((spec) => spec.action !== "approve")
+
+/** The note box's three buttons:  Make Todo, Later (revisit soon), Do Now (revisit now), the wand last. */
+export const NOTE_BUTTONS = [
+  { how: "todo", icon: "list check", label: "boxTodo", tip: "boxTodoTip" },
+  { how: "soon", icon: "comment dots", label: "boxSoon", tip: "boxSoonTip" },
+  { how: "now", icon: "wand magic sparkles", label: "boxNow", tip: "boxNowTip" }
+] as const
+
+/** A note box button's `how`. */
+export type NoteHow = (typeof NOTE_BUTTONS)[number]["how"]
+
+/** Class names of the review controls, inside the shadow root (`review-controls.css`). */
+export const REVIEW_CONTROLS = "review-controls"
+export const REVIEW_GROUP = "review-group"
+export const REVIEW_DETAILS = "review-details"
+export const REVIEW_NOTED = "review-noted"
+export const REVIEW_PICK = "review-pick"
+export const NOTE_BOX = "note-box"
+export const NOTE_TEXT = "note-text"
+export const NOTE_INPUT = "note-input"
+export const NOTE_SAVED = "note-saved"
+export const NOTE_ACTIONS = "note-actions"
+export const SAID = "said"
+export const SAID_TITLE = "said-title"
+export const SAID_WHAT = "said-what"
+export const SAID_EDIT = "said-edit"
+export const SAID_NOTE = "said-note"
+
+/** The tag of the page the review controls mark as being reviewed (its `reviewing` attribute). */
+export const PAGE_TAG = "epic-page"
+
+/** `<epic-page>`'s attribute while the page is being reviewed:  `body.plan-reviewing`'s heir. */
+export const REVIEWING = "reviewing"
+
+/** The review controls' parts:  in every vocabulary that draws them. */
+export const REVIEW_PARTS = [
+  {
+    name: "review-buttons",
+    description:
+      "The review buttons (P9):  the note bubble, a pick's letter, Approve / Make Todo / Revisit, Add Details Now.  " +
+      "Only while the page is reviewed (served by the page server, its inbox answering)."
+  },
+  { name: "note-box", description: "The note box:  the note, then Make Todo, Later and Do Now." },
+  { name: "said", description: "A note marked and closed:  `You · revisit soon · sent 10:42`, the note, Edit." }
+] as const
+
+/** The review controls' texts:  in every vocabulary that draws them. */
+export const REVIEW_TEXTS = [
+  { key: "reviewControls", text: "Review {id}", description: "The review buttons' group, for a screen reader." },
+  { key: "approve", text: "Approve", description: "Review button:  its name." },
+  { key: "approveTip", text: "Fine as it is", description: "Review button:  what Approve does." },
+  { key: "todo", text: "Make Todo", description: "Review button:  its name." },
+  { key: "todoTip", text: "Follow it up later, as a todo", description: "Review button:  what Make Todo does." },
+  { key: "revisit", text: "Revisit", description: "Review button:  its name." },
+  { key: "revisitTip", text: "Talk it over:  write in the box at its end", description: "Review button:  Revisit." },
+  { key: "details", text: "Add Details Now", description: "Review button:  its name." },
+  {
+    key: "detailsTip",
+    text: "Claude writes a fuller explanation into it, at once",
+    description: "Review button:  what Add Details Now does."
+  },
+  { key: "waiting", text: "waiting:  {why}", description: "A request queued with nobody listening." },
+  { key: "revisiting", text: "Claude is looking into this · click to call it off", description: "Revisit at work." },
+  { key: "detailing", text: "Claude is adding details · click to call it off", description: "Add Details at work." },
+  { key: "callOff", text: "{label}:  click to call it off", description: "A spinning button's tooltip." },
+  { key: "chosenSent", text: "sent · click to clear", description: "A chosen button, its mark sent." },
+  { key: "chosenUnsent", text: "not sent yet · click to clear", description: "A chosen button, its mark not sent." },
+  { key: "doneBefore", text: "done before", description: "How Claude applied an earlier mark (`review-as`)." },
+  { key: "pickedSent", text: "Picked {letter} · sent", description: "The pick's letter, sent." },
+  { key: "pickedUnsent", text: "Picked {letter} · not sent yet", description: "The pick's letter, not sent." },
+  { key: "noteDraft", text: "Your note, not sent yet (saved):  {note}", description: "The note bubble:  a draft." },
+  { key: "noteSent", text: "Your note, sent:  {note}", description: "The note bubble:  a mark's note, sent." },
+  { key: "noteUnsent", text: "Your note, not sent yet:  {note}", description: "The note bubble:  a mark's note." },
+  { key: "notePlaceholder", text: "Your note:  a question, instructions, why", description: "The empty note box." },
+  { key: "noteLabel", text: "{id}:  your note", description: "The note box, for a screen reader." },
+  { key: "boxTodo", text: "Make Todo", description: "Note box button:  its name." },
+  { key: "boxTodoTip", text: "Make Todo:  follow it up later, with this note", description: "Note box:  Make Todo." },
+  { key: "boxSoon", text: "Later", description: "Note box button:  its name." },
+  { key: "boxSoonTip", text: "Later:  talk it over in the next batch", description: "Note box:  Later." },
+  { key: "boxNow", text: "Do Now", description: "Note box button:  its name." },
+  { key: "boxNowTip", text: "Do Now:  Claude looks into it at once", description: "Note box:  Do Now." },
+  { key: "saved", text: "Saved {time}", description: "The note box's floppy:  its draft is saved." },
+  { key: "notSaved", text: "Not saved:  {why} (kept in this browser)", description: "The floppy, red:  not saved." },
+  { key: "you", text: "You", description: "Who wrote a marked note." },
+  { key: "howSoon", text: "revisit soon", description: "A marked note's kind." },
+  { key: "howNow", text: "revisit now", description: "A marked note's kind." },
+  { key: "howTodo", text: "todo", description: "A marked note's kind." },
+  { key: "saidSent", text: "{how} · sent {time}", description: "A marked note:  sent." },
+  { key: "saidUnsent", text: "{how} · not sent yet", description: "A marked note:  not sent." },
+  { key: "edit", text: "Edit", description: "A marked note's button:  back into the note box." }
+] as const
+
+/** A review control's text key. */
+export type ReviewTextKey = (typeof REVIEW_TEXTS)[number]["key"]
+
+/** How a review control asks its element for a text:  `UIElement.text()`, narrowed to the review keys. */
+export type ReviewText = (key: ReviewTextKey, params?: Record<string, string | number>) => string
+
+// the Spell UI tags the review controls draw (`ReviewControls.tsx`)
+declare module "@solidjs/web/types/jsx.js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "ui-button": UIJSXAttributes
+      "ui-buttons": UIJSXAttributes
+      "ui-icon": UIJSXAttributes
+    }
+  }
+}

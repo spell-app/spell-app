@@ -6,6 +6,8 @@ import { Cell, proto, SlotContent, SOURCE_FAILURE_KEYS, SourceBody, SourceBodyHo
 import { epicItemVocabulary } from "./epic-item.vocabulary.en"
 import { EpicItemFallback } from "./epic-item.fallback"
 import { Chevron } from "./Chevron"
+import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "./ReviewControls"
+import { ReviewState } from "./ReviewState"
 import {
   BEFORE_MATCH,
   CANCELED,
@@ -25,27 +27,35 @@ import {
   MORE_TAG,
   NOTE,
   REVIEW,
+  REVIEW_BUTTONS,
   STATE_TIP_KEYS,
   TITLE,
   TOGGLE,
+  UNDER_LINE,
   UNFOLDED,
   UNTIL_FOUND,
   type EpicItemVocabulary,
   type ItemState,
-  type ReviewLabel
+  type ReviewLabel,
+  type ReviewTextKey
 } from "./epic-item.types"
 
 import itemCSS from "./epic-item.css?inline"
+import reviewCSS from "./review-controls.css?inline"
 
 /****************
  * ### `<epic-item>`
  * One item -- question, judgement call, caveat, todo, issue or test -- its kind its id's letter (Q11).
  * - Its LINE, in the shadow root:  the fold chevron (only with details), the id chip (`Q7`, a link to `#q7`) in its
  *   state's colour, the title (`title`, or `slot="title"`), the review label (`reviewed 10-06`, `deferred`, `to do`)
- *   and the `actions` slot (P9's review buttons).  Sticky while open, under the section titles stuck above it.
+ *   and the review buttons.  Sticky while open, under the section titles stuck above it.
  * - Its DETAILS:  its light-DOM children, through the default slot, so find-in-page, `#d7` links and the live update
  *   see them (Q12);  hidden `until-found` while folded.  Over its own text, `Original question` (answered) or
- *   `Original reply` (with a More Details card);  under them the `note` slot (P9's note box).
+ *   `Original reply` (with a More Details card);  under them the note box.
+ * - Review (P9, `ReviewControls.tsx`):  only while the page is reviewed (served with a token, its inbox answering:
+ *   `ReviewState`).  Approve, Make Todo, Revisit, Add Details Now at the line's end;  the note box docked at the
+ *   end of its details (not once approved), or, without details, under its line once Revisit opens it;  a marked
+ *   note under its line, with Edit.  All in the shadow root:  a part reloaded keeps a half-typed note.
  * - Folding:  `open` (page state, never in the file);  a click on the line (not on a link or control in it) or
  *   Enter / Space on the chevron go through the cancelable `ui-open` / `ui-close`.  A link to the item, to an id
  *   in `part-ids`, or to an element inside it opens it, as does find-in-page.
@@ -59,7 +69,7 @@ import itemCSS from "./epic-item.css?inline"
  ****************/
 export class EpicItem extends UIElement<EpicItemVocabulary> {
   @proto static vocabulary = epicItemVocabulary
-  @proto static styles = { item: itemCSS }
+  @proto static styles = { item: itemCSS, review: reviewCSS }
   @proto static Fallback = EpicItemFallback
   @proto static Host = SourceBodyHost
   // a container:  a click on its text must not jump to the fold button or a link inside
@@ -77,6 +87,12 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
 
   /** What its light children start with, and whether a More Details card is among them:  for its label. */
   readonly childScan = new Cell(untrack(() => this.scanChildren()))
+
+  /** Its view of the page's review inbox. */
+  readonly reviewState = new ReviewState(() => this.attrs.id)
+
+  /** The note box's `<textarea>`, once drawn:  Revisit and Edit focus it. */
+  private noteInput: HTMLTextAreaElement | undefined
 
   /** Its details from `source`, loaded the first time it opens;  into the host's light DOM. */
   readonly body = new SourceBody({
@@ -124,8 +140,11 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
     return undefined
   })
 
-  /** Anything at the end of the line:  a review label, or P9's controls in `actions`. */
-  readonly hasExtras = createMemo(() => !!this.review() || this.slots.has(this.slot("actions")))
+  /** Anything at the end of the line:  a review label, or the review buttons. */
+  readonly hasExtras = createMemo(() => !!this.review() || this.reviewState.reviewing())
+
+  /** Approved:  its mark, else how Claude applied an earlier one (`review-as`).  Its note box goes. */
+  readonly approved = createMemo(() => (this.reviewState.mark()?.action ?? this.attrs.reviewAs) === "approve")
 
   /** The id chip's tooltip:  where it stands, then its review marks (`Needs attention · not reviewed yet`). */
   readonly chipTip = createMemo(() => {
@@ -191,6 +210,11 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
           if (source && open && connected) this.body.load().catch(() => undefined)
         }
       )
+      // the inbox's changes, while connected (kept alive, a removed item must stop listening)
+      createEffect(
+        () => this.connected.get(),
+        (connected) => (connected ? this.reviewState.connect() : undefined)
+      )
       onSettled(() => {
         const observer = new MutationObserver(() => this.childScan.set(this.scanChildren()))
         observer.observe(this.host, { childList: true, characterData: true, subtree: true })
@@ -211,6 +235,17 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
       // an EMPTY title:  the host's `title` would otherwise be a tooltip over all of it (T8)
       <div class={this.classes()} part={this.part("base")} title="">
         {this.renderLine()}
+        <Show when={this.reviewState.reviewing()}>
+          <div class={UNDER_LINE}>
+            <SaidNote
+              review={this.reviewState}
+              text={this.reviewText}
+              part={this.part("said")}
+              onEdit={() => this.takeToNote(this.reviewState.mark()?.note)}
+            />
+            <Show when={!this.hasDetails() && this.reviewState.boxOpen()}>{this.noteBox()}</Show>
+          </div>
+        </Show>
         <div
           ref={(element) => element.addEventListener(BEFORE_MATCH, this.onBeforeMatch)}
           id={DETAILS_ID}
@@ -229,7 +264,7 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
             </div>
           </Show>
           <slot />
-          <slot name={this.slot("note")} />
+          <Show when={this.reviewState.reviewing() && this.hasDetails() && !this.approved()}>{this.noteBox()}</Show>
         </div>
       </div>
     )
@@ -269,10 +304,60 @@ export class EpicItem extends UIElement<EpicItemVocabulary> {
               </span>
             )}
           </Show>
-          <slot name={this.slot("actions")} />
+          <Show when={this.reviewState.reviewing()}>
+            <ReviewButtons
+              review={this.reviewState}
+              text={this.reviewText}
+              label={this.label()}
+              buttons={REVIEW_BUTTONS}
+              appliedAs={this.attrs.reviewAs}
+              part={this.part("review-buttons")}
+              onOpenBox={() => this.takeToNote()}
+            />
+          </Show>
         </span>
       </div>
     )
+  }
+
+  /** The note box:  docked at the end of its details, or under its line (an item without details). */
+  private noteBox(): JSX.Element {
+    return (
+      <NoteBox
+        review={this.reviewState}
+        text={this.reviewText}
+        label={this.label()}
+        part={this.part("note-box")}
+        ref={(note) => (this.noteInput = note)}
+        onEscape={() => this.leaveNote()}
+        onUsed={() => this.leaveNote()}
+      />
+    )
+  }
+
+  ////////////////
+  // ## Review
+  ////////////////
+
+  /** Its texts, as the review controls ask for them. */
+  private readonly reviewText = (key: ReviewTextKey, params?: Record<string, string | number>) => this.text(key, params)
+
+  /** Take the reader to its note box (Revisit;  Edit, with the marked `note`):  unfolded first, if it has details. */
+  private takeToNote(note?: string) {
+    takeToNote(
+      this.reviewState,
+      () => this.reveal(),
+      () => this.noteInput,
+      note
+    )
+  }
+
+  /** Done with the note box:  closed under the line;  a docked one stays, but stops counting as written in. */
+  private leaveNote() {
+    const client = this.reviewState.client
+    if (!client) return
+    const docked = untrack(this.hasDetails)
+    if (!docked || !this.noteInput?.value.trim()) client.closeBox(untrack(this.reviewState.id), false)
   }
 
   ////////////////

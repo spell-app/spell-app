@@ -1,11 +1,15 @@
 /**
  * Every name `<epic-section>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from its types file, which is data too.
+ * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from its types file, which is data too, and the
+ *   review controls' parts and texts (`REVIEW_*`) from `epic-item`'s:  an Overview sub-section draws them (Q14).
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  * - `kind`'s values are `SectionIds`' keys plus `overview-part`:  `Definitions.test.ts` checks they agree.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
+
+// the review controls an Overview sub-section draws, as `<epic-item>` does
+import { REVIEW_PARTS, REVIEW_TEXTS } from "$/epics/components/epic-item/epic-item.types"
 
 import { FOLD_EVENTS, FOLD_OPEN_ATTRIBUTE, FOLD_PARTS, FOLD_STATES, FOLD_TEXTS } from "./epic-section.types"
 
@@ -74,10 +78,11 @@ export const epicSectionVocabulary = {
     {
       name: "tools",
       description:
-        "At the title's end:  the Phases section's Files / Verify toggles;  P10's open / all count and state " +
-        "filter go here too."
+        "At the title's end:  the Phases section's Files / Verify toggles;  an Overview sub-section's review " +
+        "buttons;  P10's open / all count and state filter go here too."
     },
-    { name: "empty", description: 'An item section with no items:  "None yet".' }
+    { name: "empty", description: 'An item section with no items:  "None yet".' },
+    ...REVIEW_PARTS
   ],
   states: [...FOLD_STATES],
   texts: [
@@ -112,7 +117,8 @@ export const epicSectionVocabulary = {
     { key: "showFiles", text: "Show each phase's Files", description: "The Phases title's Files toggle, off." },
     { key: "hideFiles", text: "Hide each phase's Files", description: "The Files toggle, on." },
     { key: "showVerify", text: "Show each phase's Verify", description: "The Phases title's Verify toggle, off." },
-    { key: "hideVerify", text: "Hide each phase's Verify", description: "The Verify toggle, on." }
+    { key: "hideVerify", text: "Hide each phase's Verify", description: "The Verify toggle, on." },
+    ...REVIEW_TEXTS
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
