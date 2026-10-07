@@ -297,7 +297,13 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
             </Show>
             <Show when={this.attrs.bedtime}>
               {(phases) => (
-                <ui-label basic="" color="violet" icon="moon" title={this.text("bedtimeTip", { phases: phases() })}>
+                <ui-label
+                  class="bedtime-label"
+                  basic=""
+                  color="violet"
+                  icon="bed"
+                  title={this.text("bedtimeTip", { phases: phases() })}
+                >
                   <span class="bedtime">{this.text("bedtime", { phases: phases() })}</span>
                 </ui-label>
               )}

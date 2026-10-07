@@ -410,9 +410,12 @@
     .meta {
       font-size: 14px;
     }
-    /* the bedtime label:  just its moon, its words in its tooltip */
+    /* the bedtime label:  just its bed, centred (no gap left for its words), its words in its tooltip */
     .bedtime {
       display: none;
+    }
+    .bedtime-label::part(icon) {
+      margin: 0;
     }
   }
 }
