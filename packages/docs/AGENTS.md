@@ -371,12 +371,20 @@ In this order, from `packages/docs`:
 - `spell dev details` (`tools/details.js`) -- details pages (see "Details pages");  `tools/detailsRoutes.ts`, the
   page server's route module for their answers.
 - `tools/inbox.js`, `tools/reviewRoutes.ts` -- a plan doc's review inbox and its routes (see "Review inbox").
+- `spell dev agents add | set | done | list` (`tools/agents.ts`, over `tools/AgentList.ts`) -- the running-agents
+  list (epic `skillz`):  every background agent a Claude session started, by name, while it runs.
+  - the file:  `epics/<epic>/agents.json` in an epic (git-ignored in the shared repo), else
+    `<checkout root>/.spell-agents.json` (git-ignored);  `--epic <name>`, any verb, picks the epic
+  - names get a prefix:  the epic's, else the worktree's, else `main` (`add aaa` in epic `skillz` is `skillz-aaa`)
+  - an entry leaves when its agent finishes (`done`);  empty, the file goes
+  - every write under the file's lock (`SRV.FileLock`) and atomic, as `inbox.js`'s
+  - the verbs and an example:  `tools/agents.ts`'s header
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
   `tools/showRoutes.ts` (`GET /api/docs/show`).
 - `tools/pages.js` -- shared by the scripts:  the areas (`EPICS`, `GUIDES`, `PAGES`, `TEMPLATES`, `BRAND`, `GOALS`, `HOME`, `LIST_PAGES`), `findPages()`,
   `pageFile()` (a page argument to its file), `atDepth()` (a template at a page's depth),
-  `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
+  `parseArgs()` (a tool's command line:  `--key value` flags and positionals), `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
   through the spell extension's `DocPreview`;  `{ view: "review" }`:  the "Review" tab).
 - `tools/plan-parts.js` -- a split plan doc:  `assembleParts()` / `splitParts()` (pure DOM), the part URLs'
   rebasing, `formatHTML()` (oxfmt in this process, as `vp fmt` would), `writeChanged()` (atomic, only what changed).
