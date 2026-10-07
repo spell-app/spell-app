@@ -8,8 +8,9 @@ import { APPLE_TOUCH_ICON_PNG, FAVICON_PNG_32, FAVICON_SVG } from "$/server/site
 
 /**
  * A local web server:  `node:http` + `Guard` + `Router` + `StaticHandler` (+ `LiveReload`), in that order.
- * - requests go:  host check -> `/_server/events` and `/_server/live.js` (when `live`) -> Spell's favicon
- *   (`FAVICONS`) -> `router` -> static files -> `/favicon.ico` -> `fallback` (e.g. an SPA's `index.html`) -> 404
+ * - requests go:  host check -> `/_server/live.js` (when `live`) -> Spell's favicon (`FAVICONS`) -> `router` ->
+ *   static files -> `/favicon.ico` -> `fallback` (e.g. an SPA's `index.html`) -> 404
+ * - websocket upgrades go:  host check -> `/_server/events` (when `live`:  live reload) -> `upgrade()`'s, in order
  * - `live`:  watches nothing by itself -- call `live.watch(dir)`;  every `.html` page gets Spell's favicon links
  *   (unless it links its own icon), `window.SPELL_SERVER` and the live client before `</head>`
  * - Spell's favicon on EVERY server, live or not;  `/favicon.ico` is its 32px PNG, after the static files so a
@@ -65,7 +66,7 @@ export class WebServer {
     const top = new SRV.Router()
     if (checkHost) top.use(this.guard.hostCheck)
     if (this.live) {
-      top.get("/_server/events", this.live.events)
+      this.upgrade(LIVE_EVENTS, this.live.events)
       top.get("/_server/live.js", (_request, reply) =>
         reply.type("text/javascript; charset=utf-8").set("Cache-Control", "no-store").send(SRV.liveClientScript())
       )
@@ -134,7 +135,7 @@ export class WebServer {
     return {
       port: this.port,
       token: this.guard.token,
-      events: "/_server/events",
+      events: LIVE_EVENTS,
       file,
       ...this.configure?.(served)
     }
@@ -175,6 +176,9 @@ export type WebServerProps = {
 
 /** Answers a websocket upgrade:  takes over `socket`. */
 export type UpgradeHandler = (raw: IncomingMessage, socket: Duplex, head: Buffer) => unknown
+
+/** Where a live page opens its live-reload websocket (`LiveReload.events`). */
+export const LIVE_EVENTS = "/_server/events"
 
 /** Where the 32px PNG favicon is;  `/favicon.ico` answers with it too. */
 export const FAVICON_PNG = "/_server/favicon-32.png"

@@ -11,12 +11,13 @@
  *
  * ## What it does, in order
  * - stdin `{ prompt, cwd, session_id, permission_mode, ... }`
- * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...`) and
- *   `/unpark <name>`.  `review` is a reserved epic name:  a review runs from any window, and keeps the session's name.
+ * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...`),
+ *   `/epic resume <name>` and `/unpark <name>`.  `review` and `resume` are reserved epic names:  a review runs from
+ *   any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks its window itself).
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
- * 1. Plan mode, on `/isolate` or `/epic`:  blocks the prompt.  Why:  plan mode lets Claude write only the harness
- *    plan file, so no worktree can be made, and `ExitPlanMode` would ask Owen to approve a half-made plan.
- * 2. In another worktree, on `/isolate` or `/epic`:  blocks the prompt.  "In" means either:
+ * 1. Plan mode, on `/isolate` or `/epic <name>`:  blocks the prompt.  Why:  plan mode lets Claude write only the
+ *    harness plan file, so no worktree can be made, and `ExitPlanMode` would ask Owen to approve a half-made plan.
+ * 2. In another worktree, on `/isolate` or `/epic <name>`:  blocks the prompt.  "In" means either:
  *    - `cwd` is under `.claude/worktrees/<other>`
  *    - the session's VS Code window is a worktree's (`workspaces/ongoing/<other>.code-workspace`).  A new session
  *      there starts at the MAIN root, so `cwd` alone misses it.
@@ -57,7 +58,7 @@ export function gate(input, window) {
   if (!command) return null
   const { skill, name, text } = command
 
-  if (skill !== "unpark") {
+  if (skill === "isolate" || skill === "epic") {
     if (input.permission_mode === "plan") {
       return block(
         name,
@@ -85,8 +86,10 @@ export function gate(input, window) {
 }
 
 /**
- * `{ skill, name, text }` for an `/isolate <name>`, `/epic <name> [text]` or `/unpark <name>` prompt;  `null`
- * for any other prompt, a missing name, `/isolate done` or `/unpark ?`.
+ * `{ skill, name, text }` for an `/isolate <name>`, `/epic <name> [text]`, `/epic resume <name>` or `/unpark <name>`
+ * prompt;  `null` for any other prompt, a missing name, `/isolate done`, `/epic review ...`, `/epic resume` alone or
+ * `/unpark ?`.
+ * - `skill`:  `"epic resume"` for `/epic resume <name>`
  * - `name`:  the first word, or a quoted phrase, lower-kebab-cased
  * - `text`:  the rest, trimmed (`""` when none)
  */
@@ -100,6 +103,11 @@ export function parseCommand(prompt) {
   if (!name || (skill === "isolate" && name === "done")) return null
   // `/epic review [<name>]` runs from any window and keeps the session's name:  nothing to gate
   if (skill === "epic" && name === "review") return null
+  // `/epic resume <name>`:  renamed `<name>`, as `/unpark <name>` is;  alone, it asks which epic
+  if (skill === "epic" && name === "resume") {
+    const resumed = parseCommand(`/unpark ${rest}`)
+    return resumed && { ...resumed, skill: "epic resume" }
+  }
   return { skill, name, text: rest.trim() }
 }
 

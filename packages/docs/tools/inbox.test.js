@@ -9,6 +9,7 @@ import { afterAll, describe, expect, test } from "vite-plus/test"
 
 import {
   InboxError,
+  cancelNow,
   LISTEN_HEARTBEAT_MS,
   LISTEN_STALE_MS,
   clearApplied,
@@ -18,6 +19,8 @@ import {
   forPage,
   hasWork,
   inboxPath,
+  isCanceled,
+  isEmpty,
   isoTime,
   itemIds,
   liveListener,
@@ -27,6 +30,7 @@ import {
   readInbox,
   requestNow,
   sentMarks,
+  setDraft,
   setListening,
   setMark,
   setWorking,
@@ -115,6 +119,108 @@ describe("marks", () => {
     expect(clearMarks(inbox, ["J1", "i2", "t9"])).toEqual(["j1", "i2"])
     expect(inbox.marks).toEqual({})
     expect(inbox.now).toEqual([])
+  })
+})
+
+// epic `windows-and-review` P2:  "nevermind" on a request Owen no longer wants
+describe("cancelNow", () => {
+  test("a queued request:  gone with its mark, nobody to tell;  a pick-carrying revisit's pick goes too", () => {
+    const inbox = emptyInbox()
+    requestNow(inbox, "i2", "details", "", T1)
+    expect(cancelNow(inbox, "I2", T2)).toEqual({ action: "details", at: T2, told: true })
+    expect(inbox.now).toEqual([])
+    expect(inbox.marks).toEqual({})
+    expect(isCanceled(inbox, "i2")).toBe(true)
+    expect(hasWork(inbox)).toBe(false)
+  })
+
+  test("work a session took:  its working goes, and the next take tells it once", () => {
+    const inbox = emptyInbox()
+    requestNow(inbox, "q3", "revisit", "why?", T1)
+    takeWork(inbox, T1)
+    cancelNow(inbox, "q3", T2)
+    expect(inbox.working).toEqual({})
+    expect(hasWork(inbox)).toBe(true)
+    expect(takeWork(inbox, T3)).toEqual({ now: [], sent: null, canceled: [{ id: "q3", action: "revisit", at: T2 }] })
+    expect(hasWork(inbox)).toBe(false)
+  })
+
+  test("nothing asked:  null, and a mark waiting for a send stays", () => {
+    const inbox = emptyInbox()
+    setMark(inbox, "j1", { action: "approve" }, T1)
+    expect(cancelNow(inbox, "j1")).toBe(null)
+    expect(inbox.marks.j1.action).toBe("approve")
+  })
+
+  test("asked again, or done with:  the cancel is over", () => {
+    const inbox = emptyInbox()
+    requestNow(inbox, "i2", "details", "", T1)
+    cancelNow(inbox, "i2", T2)
+    requestNow(inbox, "i2", "details", "", T3)
+    expect(isCanceled(inbox, "i2")).toBe(false)
+    cancelNow(inbox, "i2", T3)
+    clearMarks(inbox, ["i2"])
+    expect(isCanceled(inbox, "i2")).toBe(false)
+    expect(isEmpty(inbox)).toBe(true)
+  })
+})
+
+describe("todo notes", () => {
+  test("Make Todo keeps a note, trimmed, only when there is one;  it drops the draft", () => {
+    const inbox = emptyInbox()
+    setDraft(inbox, "q3", "todo", "check perf", T1)
+    expect(setMark(inbox, "q3", { action: "todo", note: "  check perf " }, T2)).toEqual({
+      action: "todo",
+      note: "check perf",
+      at: T2
+    })
+    expect(inbox.drafts).toEqual({})
+    expect(toMark({ action: "todo", note: "  " })).toEqual({ action: "todo" })
+  })
+})
+
+// epic `windows-and-review` P1:  a note box's text kept on the server, as typed, so no address loses it
+describe("drafts", () => {
+  test("kept as typed (not trimmed);  blank or null drops it;  an inbox with only a draft isn't empty", () => {
+    const inbox = emptyInbox()
+    expect(setDraft(inbox, "Q3", "revisit", "  why not B?\n", T1)).toEqual({
+      action: "revisit",
+      note: "  why not B?\n",
+      at: T1
+    })
+    expect(isEmpty(inbox)).toBe(false)
+    expect(setDraft(inbox, "q3", "revisit", "   ")).toBe(null)
+    expect(inbox.drafts).toEqual({})
+    setDraft(inbox, "q3", "todo", "later", T1)
+    setDraft(inbox, "q3", "todo", null)
+    expect(isEmpty(inbox)).toBe(true)
+  })
+
+  test("never a mark:  not counted, never work for a waiting session", () => {
+    const inbox = emptyInbox()
+    setDraft(inbox, "q3", "revisit", "why?", T1)
+    expect(unsentMarks(inbox)).toEqual([])
+    expect(hasWork(inbox)).toBe(false)
+  })
+
+  test("the mark that uses the note drops the draft:  revisit soon, revisit now, Clear;  approve doesn't", () => {
+    const inbox = emptyInbox()
+    setDraft(inbox, "q3", "revisit", "why?", T1)
+    setMark(inbox, "q3", { action: "approve" }, T2)
+    expect(inbox.drafts.q3).toBeDefined()
+    setMark(inbox, "q3", { action: "revisit", note: "why?" }, T2)
+    expect(inbox.drafts.q3).toBeUndefined()
+    setDraft(inbox, "i2", "revisit", "and this", T1)
+    requestNow(inbox, "i2", "revisit", "and this", T2)
+    expect(inbox.drafts.i2).toBeUndefined()
+    setDraft(inbox, "j1", "revisit", "hmm", T1)
+    setMark(inbox, "j1", null)
+    expect(inbox.drafts.j1).toBeUndefined()
+  })
+
+  test("only note actions, only item ids", () => {
+    expect(() => setDraft(emptyInbox(), "q3", "approve", "x")).toThrow(InboxError)
+    expect(() => setDraft(emptyInbox(), "nope", "revisit", "x")).toThrow(InboxError)
   })
 })
 
@@ -244,7 +350,7 @@ describe("waiting for work", () => {
     const inbox = emptyInbox()
     requestNow(inbox, "i2", "details", "", T1)
     expect(hasWork(inbox)).toBe(true)
-    expect(takeWork(inbox, T2)).toEqual({ now: [{ id: "i2", action: "details", at: T1 }], sent: null })
+    expect(takeWork(inbox, T2)).toEqual({ now: [{ id: "i2", action: "details", at: T1 }], sent: null, canceled: [] })
     expect(inbox.working).toEqual({ i2: { action: "details", since: T2 } })
     expect(inbox.marks.i2).toBeDefined()
     expect(hasWork(inbox)).toBe(false)

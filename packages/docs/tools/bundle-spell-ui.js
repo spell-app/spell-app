@@ -106,6 +106,7 @@ const ICONS = {
   "solid/check": ["check", "checkmark"],
   "solid/chevron-down": ["chevron down"],
   "solid/chevron-right": ["chevron right"],
+  "solid/chevron-up": ["chevron up"], // a plan item's fold button (`spell-doc-runtime.js` `wireItemFolds()`)
   "solid/link": ["link"],
   "solid/copy": ["copy"],
   "solid/bars": ["bars"],
@@ -177,6 +178,11 @@ const ICONS = {
   "solid/code": ["code"],
   // master plan:  live pages (thoughts, Claude sessions, setup)
   "regular/comment-dots": ["comment dots"],
+  // review notes:  an item Owen wrote in (outline:  a draft;  solid `comment`:  sent), and Edit on a sent note
+  "regular/comment": ["comment outline"],
+  // review note box (epic `windows-and-review` P2):  Later (revisit soon), and the note's Saved mark
+  "regular/clock": ["clock outline"],
+  "regular/floppy-disk": ["floppy disk outline"],
   "solid/arrows-rotate": ["arrows rotate", "refresh"],
   "solid/up-right-from-square": ["up right from square", "external alternate"],
   "solid/right-to-bracket": ["right to bracket", "sign in"],

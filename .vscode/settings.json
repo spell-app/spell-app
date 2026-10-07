@@ -40,6 +40,23 @@
     "./packages/brand/_data/html-custom-data.json"
   ],
 
+  // Quick Open (Cmd+P) and Find in Files skip these;  Explorer still shows them.  Generated files (the root's
+  // `.gitattributes` `linguist-generated` list), Spell UI's 2,000+ icon SVGs and visual-test screenshots, graphify's
+  // output.  A window's `files.exclude` (scripts/window.mjs `filesExclude()`) keeps each file to ONE folder.
+  "search.exclude": {
+    "**/__snapshots__/**": true,
+    "**/_assets/**": true,
+    "**/_data/**": true,
+    "**/graphify-out/**": true,
+    "packages/ui/src/icons/**": true,
+    "packages/ui/test/visual/**": true,
+    "packages/ui/src/languages/spell.*": true,
+    "packages/ui/src/components/ui-markdown/md.bundle.*": true,
+    "packages/ui/src/components/ui-emoji/data/**": true,
+    "packages/app/static/semantic-ui-css/**": true,
+    "yarn.lock": true
+  },
+
   // requires only if you use vetur plugin
   "vetur.validation.script": false,
   "js/ts.experimental.useTsgo": false
