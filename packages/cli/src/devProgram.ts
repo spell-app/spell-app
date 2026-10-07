@@ -132,10 +132,12 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 
   dev
     .command("session")
-    .description("Claude Code sessions:  list, find, open in VS Code, title this one, digest another's transcript")
+    .description(
+      "Claude Code sessions:  list, find, open in VS Code, title this one, mark finished ones ✅, digest a transcript"
+    )
     .argument(
       "[verb]",
-      "list (default) [words...] | find <name> | open <id|title> | title [title] | window [pid] | transcript <id>"
+      "list (default) [words...] | find <name> | open <id|title> | title [title] | done [name] | window [pid] | transcript <id>"
     )
     .argument("[args...]", "the verb's arguments")
     .option("--limit <n>", "list:  at most this many (default 15)")

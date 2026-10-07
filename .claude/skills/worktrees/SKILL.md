@@ -83,7 +83,9 @@ In the order Owen will want to see them:  quick looks (`wtf`, `open`, `answer`) 
   `--force` / `-D`.  Say why, and leave it for the next round.
 - Per action id:
   - `remove`:  its commands.  `-D` there means its commits are already in `main` (squashed):  run
-    `git cherry main <branch>` first and go on only if every line starts with `-`.
+    `git cherry main <branch>` first and go on only if every line starts with `-`.  A merged one removed:
+    `spell dev session done <name>`, so its sessions read `✅ <name>` once each is next opened (epic
+    `windows-and-review` P6)
   - `discard`:  ALWAYS a second AskUserQuestion first, "Throw away `<name>`?", listing what goes:
     `git log --oneline main..<branch>` and `git -C <worktree> status --short`.  Options "Throw it away" / "Keep it".
   - `merge`:  as `/isolate done` steps 2 and 6 (`.claude/skills/isolate/SKILL.md`):  the main checkout must be on

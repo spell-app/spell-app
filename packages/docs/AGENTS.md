@@ -310,7 +310,7 @@ In `tools/`:
 ## Details pages
 
 - `/details` (`.claude/skills/details/`):  how and when Claude writes one.
-- `spell dev details new | show [--wait] | wait | answer | list | sweep` (`tools/details.js`).
+- `spell dev details new | show [--wait] | wait | answer | list | sweep` (`tools/details.js`);  `show` opens a page in the side bar's "Review" tab (epic `windows-and-review` P6).
 - Owen's answer:  the page posts it to the page server's route module `tools/detailsRoutes.ts`, which writes
   `<slug>.answer.json` beside the page;  `spell dev details wait`, run in the background, exits with it and so wakes the
   session.

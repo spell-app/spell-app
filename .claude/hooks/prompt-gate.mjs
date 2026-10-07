@@ -25,7 +25,9 @@
  *    - the session's VS Code window is a worktree's (`workspaces/ongoing/<other>.code-workspace`).  A new session
  *      there starts at the MAIN root, so `cwd` alone misses it.
  *    - Re-entering the SAME `<name>` is fine.
- * 3. Otherwise:  renames the session `<name>` (`hookSpecificOutput.sessionTitle`), unless it already is.  That's
+ * 3. Otherwise:  renames the session `<name>` (`hookSpecificOutput.sessionTitle`), unless it already is.  A ✅ title
+ *    (its work merged, epic `windows-and-review` P6) isn't `<name>`, so reopening takes the ✅ off;  a ✅ still queued
+ *    for it is dropped (`dropDoneTitle()`).  That's
  *    what lets the move to a worktree's window find the old tab by its label (`.claude/hooks/handoff.mjs`).
  * - SIDE EFFECT:  before either block, any text after the name is saved to `<prompts>/<name>.md`, and quoted
  *   back in the reason, so it can be copied.  `/epic <name>` / `/isolate <name>` alone picks it up later.
@@ -33,7 +35,7 @@
  * - Never fails a prompt:  any error exits 0, the prompt untouched.
  * - Natural-language triggers ("isolate as foo") never reach here:  each skill's step 0 repeats these checks.
  */
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join, sep } from "node:path"
 import { pathToFileURL } from "node:url"
@@ -84,8 +86,24 @@ export function gate(input, window) {
     }
   }
 
+  // reopened:  a ✅ queued when its work merged (epic `windows-and-review` P6) and not yet applied must not land now
+  dropDoneTitle(input.session_id)
   if (input.session_title === name) return null
   return { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: name } }
+}
+
+/**
+ * Drop session `id`'s queued title (`~/.claude/session-titles/<id>`, `$SPELL_SESSION_TITLES_DIR` in tests) when it's
+ * a ✅ one:  the work it marked done is open again.  Any other queued title stays.
+ */
+export function dropDoneTitle(id) {
+  if (!id) return
+  const file = join(process.env.SPELL_SESSION_TITLES_DIR ?? join(homedir(), ".claude", "session-titles"), String(id).replace(/[^\w-]/g, ""))
+  try {
+    if (readFileSync(file, "utf8").trim().startsWith("✅")) rmSync(file)
+  } catch {
+    // none queued
+  }
 }
 
 /**

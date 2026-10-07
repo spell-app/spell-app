@@ -6,8 +6,8 @@ argument-hint: "[topic]"
 
 # /details
 
-A DETAILS PAGE:  a small page that explains one decision, shown in the "Spell Docs" view (VS Code's right side
-bar).  Owen picks on the page and clicks Send;  the page server writes his answer beside the page, and a waiter
+A DETAILS PAGE:  a small page that explains one decision, shown in the "Review" view (VS Code's right side
+bar, beside "Spell Docs":  where Owen answers things).  Owen picks on the page and clicks Send;  the page server writes his answer beside the page, and a waiter
 running in the background exits with it, which wakes this session.  Docs:  `guides/details.html`.
 
 - Explain as `templates/epics/plan-doc.md` "Explaining a question or issue" says:  plain words, coined words
