@@ -20,7 +20,7 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
    - in another worktree:  the session's folder is under `.claude/worktrees/<other>`, or its window is a worktree's
      (`spell dev window which`:  `workspace` under `workspaces/ongoing/`).  `<other>` isn't `<name>`:  stop,
      saying so in one line ("`/isolate done` first, or start from a package window").
-   - rename:  `spell dev session title <name>`.  It lands on the next prompt, or
+   - rename:  `spell dev session title "🚧 <name>"`.  It lands on the next prompt, or
      when the session opens in its new window.
    - a saved prompt `~/.spell/prompts/<name>.md` (the hook saved it while blocking an earlier `/isolate <name>
      ...`):  it's the task to carry on with once isolated.  Delete it once done.
@@ -93,17 +93,19 @@ The turn after step 6, whatever Owen sends (`continue`, typed in by the move, or
 
 ## Session name
 
-The session MUST stay titled `<name>`:  the handoff finds its old tab by title, and Owen finds it in the panel's
-list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hook never ran (a plain-words
+The session MUST stay titled `🚧 <name>` while its work is under way (`📅 <name>`:  a future epic written down;
+`✅ <name>`:  merged, `spell dev session done`;  Owen, 2026-10-07):  the handoff finds its old tab by title, and Owen
+finds it in the panel's list by name, its icon saying where it stands.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hook never ran (a plain-words
 "isolate as ...", a resumed or reopened session), or Owen renamed it.
 - Check, and rename if needed, whenever an isolated or epic session STARTS or RESUMES work:
   - "Continue" above (the first turn in the new window)
   - each `/epic` phase start ("5. Each phase", step 1;  Doc Review is a phase too)
   - `.claude/skills/park/SKILL.md` "Resume" (`/unpark`, `/wait-for`)
   - Owen reopening the session to carry on ("start P3", "continue")
-- How:  `spell dev session title <name>`.  It checks first:  already `<name>`
-  (or queued), it does nothing;  else it queues `<name>`, which lands on Owen's NEXT prompt.
-  - renamed:  one line, "session renamed `<name>` (was "<old>");  shows on your next message"
+- How:  `spell dev session title "🚧 <name>"`.  It checks first:  already `🚧 <name>`
+  (or queued), it does nothing;  else it queues it, which lands on Owen's NEXT prompt.  The prompt hook titles a
+  typed `/isolate`, `/epic`, `/unpark <name>` so by itself.
+  - renamed:  one line, "session renamed `🚧 <name>` (was "<old>");  shows on your next message"
   - `spell dev session title` alone shows the current title, and any queued one
 - `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the plan doc's.
 

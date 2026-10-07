@@ -162,7 +162,11 @@ export function repoSessions(main = CLI.mainRoot()): CLI.RunningSession[] {
   )
 }
 
-/** Whether running session `record` goes by `name`:  its title, its registry name, or its id's start. */
+/**
+ * Whether running session `record` goes by `name`:  its title (its icon left out:  `🚧 <name>`), its registry
+ * name, or its id's start.
+ */
 function goesBy(record: CLI.RunningSession, name: string): boolean {
-  return CLI.sessionTitle(record.sessionId) === name || record.name === name || record.sessionId.startsWith(name)
+  const title = CLI.sessionTitle(record.sessionId)
+  return (title !== null && CLI.bareTitle(title) === name) || record.name === name || record.sessionId.startsWith(name)
 }

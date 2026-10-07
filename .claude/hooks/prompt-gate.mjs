@@ -14,8 +14,8 @@
  * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...`),
  *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume`, `color` and `future` are reserved epic names:  a
  *   review runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks
- *   its window itself);  `/epic color <look>` recolours the window it's typed in, and `/epic future <name> ...`
- *   writes an idea down as a future epic (no worktree):  nothing to gate.
+ *   its window itself);  `/epic color <look>` recolours the window it's typed in:  nothing to gate;
+ *   `/epic future <name> ...` writes an idea down as a future epic (no worktree):  only renamed, `📅 <name>`.
  *   A look right after the name (`/epic x -purple`, epic `windows-and-review` P5) is the window's, not the plan's:
  *   left out of the text saved below.
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
@@ -26,7 +26,8 @@
  *    - the session's VS Code window is a worktree's (`workspaces/ongoing/<other>.code-workspace`).  A new session
  *      there starts at the MAIN root, so `cwd` alone misses it.
  *    - Re-entering the SAME `<name>` is fine.
- * 3. Otherwise:  renames the session `<name>` (`hookSpecificOutput.sessionTitle`), unless it already is.  A ✅ title
+ * 3. Otherwise:  renames the session `🚧 <name>` (`hookSpecificOutput.sessionTitle`), unless it already is;
+ *    `/epic future <name>`:  `📅 <name>`, and neither block above (it makes no worktree).  The icons:  `TITLE_ICONS`.  A ✅ title
  *    (its work merged, epic `windows-and-review` P6) isn't `<name>`, so reopening takes the ✅ off;  a ✅ still queued
  *    for it is dropped (`dropDoneTitle()`).  That's
  *    what lets the move to a worktree's window find the old tab by its label (`.claude/hooks/handoff.mjs`).
@@ -42,6 +43,13 @@ import { join, sep } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { LOOKS, Window } from "../../scripts/window.mjs"
+
+/**
+ * The session's icons (Owen, 2026-10-07):  🚧 work under way, 📅 a future epic written down, ✅ merged.  The same as
+ * `packages/cli/src/dev/sessions.ts` `TITLE_ICONS`:  change both.
+ * - up here:  the hook runs as this file loads (below), and needs it then
+ */
+export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅" }
 
 // run as the hook;  imported (by its tests), nothing runs
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -63,6 +71,8 @@ export function gate(input, window) {
   const command = parseCommand(input.prompt)
   if (!command) return null
   const { skill, name, text } = command
+  // a future epic is only written down:  no worktree, so nothing to block;  its own icon
+  if (skill === "epic future") return rename(input, `${TITLE_ICONS.future} ${name}`)
 
   if (skill === "isolate" || skill === "epic") {
     if (input.permission_mode === "plan") {
@@ -87,10 +97,18 @@ export function gate(input, window) {
     }
   }
 
-  // reopened:  a ✅ queued when its work merged (epic `windows-and-review` P6) and not yet applied must not land now
+  return rename(input, `${TITLE_ICONS.active} ${name}`)
+}
+
+
+/**
+ * Title the session `title` (`hookSpecificOutput.sessionTitle`), unless it already is;  `null`:  nothing to do.
+ * - reopened:  a ✅ queued when its work merged (epic `windows-and-review` P6) and not yet applied must not land now
+ */
+function rename(input, title) {
   dropDoneTitle(input.session_id)
-  if (input.session_title === name) return null
-  return { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: name } }
+  if (input.session_title === title) return null
+  return { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: title } }
 }
 
 /**
@@ -126,9 +144,13 @@ export function parseCommand(prompt) {
   if (!name || (skill === "isolate" && name === "done")) return null
   // `/epic review [<name>]` runs from any window and keeps the session's name:  nothing to gate
   if (skill === "epic" && name === "review") return null
-  // `/epic color <look>` recolours this window;  `/epic future <name> ...` writes an idea down, from any window, no
-  // worktree:  nothing to gate, no rename
-  if (skill === "epic" && (name === "color" || name === "future")) return null
+  // `/epic color <look>` recolours this window:  nothing to gate, no rename
+  if (skill === "epic" && name === "color") return null
+  // `/epic future <name> ...` writes an idea down, from any window, no worktree:  renamed `📅 <name>`, never blocked
+  if (skill === "epic" && name === "future") {
+    const later = parseCommand(`/unpark ${rest}`)
+    return later && { ...later, skill: "epic future" }
+  }
   // `/epic resume <name>`:  renamed `<name>`, as `/unpark <name>` is;  alone, it asks which epic
   if (skill === "epic" && name === "resume") {
     const resumed = parseCommand(`/unpark ${rest}`)

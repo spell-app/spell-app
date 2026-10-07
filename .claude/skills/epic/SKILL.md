@@ -345,7 +345,7 @@ don't redo it.
      (`spell dev worktree list`).  One:  use it, naming it in the reply.  Several:  AskUserQuestion "Which epic?",
      label `<name>`, description its next phase and checkout (`plan-doc summary`).
    - Rename this session `<name>`, first.  A typed `/epic resume <name>` already was, by the prompt hook
-     (`.claude/hooks/prompt-gate.mjs`);  else `spell dev session title <name>`.
+     (`.claude/hooks/prompt-gate.mjs`);  else `spell dev session title "🚧 <name>"`.
 2. Its own session still running (`spell dev worktree status <name>`, `sessions`, `running: true`, not this one):
    as `.claude/skills/unpark/SKILL.md`, step 2:  tell it, or resume here.
 3. Where:  the plan doc's checkout (`list --json`, `checkout`).
@@ -377,7 +377,7 @@ don't redo it.
 Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07):  a stub plan doc and an analysis page, NO
 plan, worktree, window or phases.  `/epic <name>` plans it later, from what this leaves.
 
-- Runs from ANY window, `main` or a worktree:  the prompt hook lets it through, never renames the session.  No
+- Runs from ANY window, `main` or a worktree:  the prompt hook lets it through and titles the session `📅 <name>`.  No
   worktree, no plan mode, no move.
 1. Name, collisions, kickoff prompt:  as "1. Name" (the rest of the text is the idea, kept verbatim in
    `~/.spell/prompts/<name>.md` until the doc holds it).  An existing epic of that name:  say so and stop.

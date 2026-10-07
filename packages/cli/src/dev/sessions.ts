@@ -152,7 +152,9 @@ export function sessionsNamed(name: string, home = claudeHome()): CLI.NamedSessi
         inWorktree ||= cwd.endsWith(worktree) || cwd.includes(`${worktree}/`)
       }
     }
-    if (title === name || inWorktree) found.push({ id: basename(path, ".jsonl"), title: title ?? "-", last, cwd })
+    // titled `<name>`, with or without its icon (`🚧 <name>`, `✅ <name>`:  `bareTitle()`)
+    const named = title !== null && bareTitle(title) === name
+    if (named || inWorktree) found.push({ id: basename(path, ".jsonl"), title: title ?? "-", last, cwd })
   }
   return found.sort((a, b) => b.last.localeCompare(a.last) || b.id.localeCompare(a.id))
 }
@@ -276,6 +278,19 @@ export function ancestorPids(): Set<number> {
 ////////////////
 // ## Titles and windows
 ////////////////
+
+/**
+ * The icon a session's title starts with, saying where its work stands (Owen, 2026-10-07):  🚧 under way
+ * (`/isolate`, `/epic <name>`, `/unpark`, `/epic resume`:  the prompt hook, `.claude/hooks/prompt-gate.mjs`, which
+ * keeps its own copy), 📅 a future epic written down (`/epic future`), ✅ merged (`spell dev session done`).
+ */
+export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅" } as const
+
+/** `title` without its leading icon (`TITLE_ICONS`):  `🚧 seo` -> `seo`;  the name its work goes by. */
+export function bareTitle(title: string): string {
+  const icons = Object.values(TITLE_ICONS).join("|")
+  return title.replace(new RegExp(`^(?:${icons})\\s*`, "u"), "")
+}
 
 /**
  * Queue `title` for session `id`:  `~/.claude/session-titles/<id>`.
