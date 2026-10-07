@@ -1457,6 +1457,31 @@ describe("PlanDoc review inbox", () => {
     expect(plan.document.querySelector("#c1 > ui-accordion > ui-content").innerHTML).toBe("<p>more</p>")
     expect(plan.document.getElementById("c1").getAttribute("data-changed")).toMatch(/^2026-10-01T09:05/)
   })
+
+  // epic `windows-and-review` P2 (Q8):  an applied mark leaves its trace on the item, so the page keeps the colour
+  it("applyMark records how the item was reviewed:  approve, todo;  a pick counts as approve", () => {
+    const plan = inboxPlan()
+    plan.applyMark({ id: "c1", action: "approve" })
+    expect(plan.document.getElementById("c1").getAttribute("data-review-as")).toBe("approve")
+    plan.applyMark({ id: "c1", action: "todo", note: "check perf" })
+    expect(plan.document.getElementById("c1").getAttribute("data-review-as")).toBe("todo")
+    expect(plan.document.querySelector("#t1, [id^='t']")?.textContent).toContain("check perf")
+  })
+
+  // epic `windows-and-review` P1:  what Owen wrote stays in the doc once Claude clears the mark
+  it("keepNote:  Owen's note as his reply card, before Claude's answer to it;  once", () => {
+    const plan = inboxPlan()
+    const reply =
+      '<div class="plan-reply"><div class="plan-reply-title"><b>Claude</b> · <time>2026-10-01 09:20</time></div><p>a</p></div>'
+    plan.setDetails("c1", reply, { append: true })
+    const mark = { action: "revisit", when: "soon", note: "why not B?\nreally", at: "2026-10-01T09:10:00" }
+    plan.keepNote("c1", mark)
+    plan.keepNote("c1", mark)
+    const cards = Array.from(plan.document.querySelectorAll("#c1 .plan-reply"))
+    expect(cards.map((card) => card.className)).toEqual(["plan-reply plan-reply-owen", "plan-reply"])
+    expect(cards[0].querySelector(".plan-reply-title").textContent).toBe("Owen · 2026-10-01 09:10 · revisit soon")
+    expect(cards[0].querySelector("p").textContent).toBe("why not B?\nreally")
+  })
 })
 
 describe("PlanDoc original discussion (I7)", () => {
@@ -1822,5 +1847,142 @@ describe("PlanDoc answered layout (I9)", () => {
     expect(parts(doc, "q1")).toEqual(["plan-question", "plan-answer-block", "spell-aside plan-original"])
     expect(doc.optionCards(doc.item("q1"))).toEqual([])
     expect(doc.document.querySelectorAll("#q1 .plan-original ui-title[data-chosen]").length).toBe(1)
+  })
+})
+
+describe("PlanDoc reading layout (P3 of windows-and-review)", () => {
+  /** Phase `n`'s body fields, by label (`Symptom`, `Goal` ...). */
+  function fields(plan, n) {
+    return Array.from(plan.document.querySelectorAll(`#p${n} > .plan-phase-body > *`), (field) =>
+      field.querySelector(":scope > b").textContent.replace(/:$/, "")
+    )
+  }
+
+  /** Item `id`'s details' parts, by class (or tag). */
+  function parts(doc, id) {
+    const content = doc.document.querySelector(`#${id} > ui-accordion > ui-content`)
+    return Array.from(content.children, (el) => el.className || el.localName)
+  }
+
+  it("add-phase:  Symptom, Changes, then the details;  the goal optional once framed", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { symptom: "notes get lost", changes: "saved as typed" })
+    expect(fields(plan, 1)).toEqual(["Symptom", "Changes", "Files", "Verify"])
+    plan.addPhase("Two", { symptom: "x", goal: "<ul><li>g</li></ul>" })
+    expect(fields(plan, 2)).toEqual(["Symptom", "Changes", "Goal", "Files", "Verify"])
+    expect(plan.document.querySelector("#p2 .plan-phase-body > :nth-child(2)").textContent).toContain("TBD")
+    // neither:  the shape before
+    plan.addPhase("Three", { goal: "g" })
+    expect(fields(plan, 3)).toEqual(["Goal", "Files", "Verify"])
+    // Done goes after the details' goal, Commits after it, both before Files
+    plan.setPhase(1, "done", { done: "<ul><li>built</li></ul>" })
+    plan.addCommit({ phase: 1 }, "cd6a9d7e1c5e0f6b0d7c5f3d0e8a7b6c5d4e3f2a", "it")
+    expect(fields(plan, 1)).toEqual(["Symptom", "Changes", "Done", "Commits", "Files", "Verify"])
+    expect(plan.check()).toEqual([])
+  })
+
+  it("phase-body:  sets fields in their place, replaces, removes with ''", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { goal: "g" })
+    expect(plan.setPhaseFields(1, { changes: "c", symptom: "s" })).toEqual(["Symptom", "Changes"])
+    expect(fields(plan, 1)).toEqual(["Symptom", "Changes", "Goal", "Files", "Verify"])
+    plan.setPhaseFields(1, { symptom: "s2", goal: "" })
+    expect(fields(plan, 1)).toEqual(["Symptom", "Changes", "Files", "Verify"])
+    expect(plan.document.querySelector("#p1 .plan-phase-body > :first-child").innerHTML).toBe("<b>Symptom:</b>  s2")
+  })
+
+  it("updated:  a fenced, dated line under Symptom / Changes, kept when done;  listed atop the phases while to do", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { symptom: "s", changes: "c" })
+    plan.addPhase("Two", { symptom: "s", changes: "c" })
+    plan.setPhase(1, "active")
+    plan.addPhaseUpdate(2, "<p>Make Todo dropped (Owen)</p>")
+    plan.addPhaseUpdate(2, "split in two")
+    expect(fields(plan, 2)).toEqual(["Symptom", "Changes", "Updated", "Files", "Verify"])
+    const entries = plan.document.querySelectorAll("#p2 .plan-updated > ul > li")
+    expect(Array.from(entries, (li) => li.getAttribute("data-phase"))).toEqual(["1", "1"])
+    expect(entries[0].innerHTML).toBe("<time>2026-10-01 09:05</time>  <p>Make Todo dropped (Owen)</p>")
+    plan.updateStates()
+    const list = () => plan.document.querySelector("#phases > ui-message.plan-changes")
+    expect(list().previousElementSibling.localName).toBe("ui-progress")
+    expect(Array.from(list().querySelectorAll("li > a"), (a) => a.getAttribute("href"))).toEqual(["#p2", "#p2"])
+    expect(list().textContent).toContain("split in two")
+    // P1 done:  its markers go, P2's update stays;  P2 done:  the list goes, the block stays
+    plan.setPhase(1, "done")
+    plan.setPhase(2, "done")
+    plan.updateStates()
+    expect(list()).toBeNull()
+    expect(plan.document.querySelectorAll("#p2 .plan-updated li").length).toBe(2)
+    expect(plan.check()).toEqual([])
+  })
+
+  it("migrate:  a goal written as Symptom / Changes paragraphs into its own fields", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { goal: "<p><b>Symptom:</b> notes get lost.</p><p><b>Changes:</b> saved as typed.</p>" })
+    plan.addPhase("Two", { goal: "<p><b>Symptom:</b> s</p><ul><li>a detail</li></ul>" })
+    expect(plan.migrate()).toContain("2 phase goals split into Symptom / Changes fields")
+    expect(fields(plan, 1)).toEqual(["Symptom", "Changes", "Files", "Verify"])
+    expect(plan.document.querySelector("#p1 .plan-phase-body > :nth-child(2)").innerHTML).toBe(
+      "<b>Changes:</b>  saved as typed."
+    )
+    // what else the goal held stays in it
+    expect(fields(plan, 2)).toEqual(["Symptom", "Goal", "Files", "Verify"])
+    expect(plan.migrate()).not.toContain("2 phase goals split into Symptom / Changes fields")
+  })
+
+  it("details --more:  the text on top as Original Reply, a More Details card under it, open", () => {
+    const plan = freshPlan()
+    plan.addItem("issue", "it breaks", { details: "<p>what breaks</p>" })
+    plan.keepNote("i1", { note: "why?", action: "revisit", when: "soon" })
+    plan.addMore("i1", "<p>more about it</p>")
+    expect(parts(plan, "i1")).toEqual(["plan-first", "plan-more", "plan-reply plan-reply-owen"])
+    expect(plan.document.querySelector("#i1 .plan-first").innerHTML).toBe("<p>what breaks</p>")
+    const card = plan.document.querySelector("#i1 ui-accordion.plan-more")
+    expect(card.getAttribute("open")).toBe("0")
+    expect(card.querySelector(":scope > ui-title").textContent).toBe("More Details")
+    // again:  the card replaced, the old one's text into the Original Discussion;  never wrapped twice
+    plan.addMore("i1", "<p>even more</p>")
+    expect(parts(plan, "i1")).toEqual([
+      "plan-first",
+      "plan-more",
+      "plan-reply plan-reply-owen",
+      "spell-aside plan-original"
+    ])
+    expect(plan.document.querySelector("#i1 .plan-more").textContent).toBe("More Detailseven more")
+    expect(plan.document.querySelector("#i1 .plan-original").textContent).toContain("more about it")
+    // an item with no details:  just the card
+    plan.addItem("todo", "bare")
+    plan.addMore("t1", "<p>x</p>")
+    expect(parts(plan, "t1")).toEqual(["plan-more"])
+    expect(plan.check()).toEqual([])
+  })
+
+  it("details --more on an open question:  its options still pick;  answered, the text is the question's again", () => {
+    const plan = freshPlan()
+    const option = (letter, title) =>
+      `<ui-column><ui-segment><ui-label attached="top">${letter} · ${title}</ui-label><p>${letter}</p></ui-segment></ui-column>`
+    plan.addItem("question", "which?", {
+      details: `<p>why</p><ui-grid class="spell-pros-cons" columns="2">${option("A", "Keep")}${option("B", "Drop")}</ui-grid>`
+    })
+    plan.addMore("q1", "<p>more</p>")
+    expect(parts(plan, "q1")).toEqual(["plan-first", "plan-more"])
+    expect(plan.optionCards(plan.item("q1")).map((card) => card.letter)).toEqual(["A", "B"])
+    plan.decide("q1", "Drop", { option: "B" })
+    expect(parts(plan, "q1")).toEqual(["plan-question", "spell-aside plan-choices", "plan-answer-block", "plan-more"])
+    expect(plan.document.querySelector("#q1 .plan-first")).toBeNull()
+    expect(plan.check()).toEqual([])
+  })
+
+  it('folds the "Plan hung?" notice;  the prompt goes inside it, and it goes with the first phase', () => {
+    const plan = freshPlan()
+    expect(plan.migrate()).toContain('"Plan hung?" notice folded')
+    const notice = plan.document.querySelector("ui-accordion.plan-hung.spell-aside")
+    expect(notice.hasAttribute("open")).toBe(false)
+    expect(notice.querySelector(":scope > ui-title").textContent).toBe("Plan hung?")
+    expect(notice.querySelector(":scope > ui-content > p").textContent).toContain("Reuse")
+    plan.setPrompt("make it so")
+    expect(notice.querySelector(":scope > ui-content > ui-code.plan-hung-prompt script").textContent).toBe("make it so")
+    plan.addPhase("First")
+    expect(plan.document.querySelector(".plan-hung")).toBeNull()
   })
 })

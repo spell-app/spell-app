@@ -6,6 +6,7 @@
 /**
  * What a served page knows about its server:  `window.SPELL_SERVER`, injected before `</head>`.
  * - `token`:  this run's write token (see `Guard`)
+ * - `events`:  URL path of the live-reload websocket (`LiveReload.events`)
  * - `file`:  URL path of the FILE served, e.g. `/guides/solid/index.html` for `/guides/solid/`
  * - `etag`:  the file's `ETag` when served, for `If-Match` on edits
  * - `root`:  absolute folder served;  `branch` / `worktree`:  of that checkout, when known
@@ -117,21 +118,16 @@ export function liveClient(): void {
     addEventListener("hashchange", reportPlace)
     addEventListener("spell-doc:place", reportPlace)
     addEventListener("message", (event) => {
-      const data = event.data as { spell?: string; go?: number } | null
-      if (event.source === window.parent && data?.spell === "history" && (data.go === -1 || data.go === 1))
-        history.go(data.go)
+      const data = event.data as { spell?: string; go?: number; command?: string; text?: string } | null
+      if (event.source !== window.parent) return
+      if (data?.spell === "history" && (data.go === -1 || data.go === 1)) history.go(data.go)
+      if (data?.spell === "edit" && typeof data.command === "string") edit(data.command, data.text)
     })
     addEventListener("click", followInFrame, true)
   }
   holder.__spellLiveChange = onChange
   // in a same-origin frame of a live page, the parent hands changes down:  no connection of our own
-  if (!liveParent()) {
-    const source = new EventSource(config.events)
-    source.addEventListener("change", (event) => {
-      const { path } = JSON.parse((event as MessageEvent<string>).data) as { path: string }
-      onChange(path)
-    })
-  }
+  if (!liveParent()) connect()
 
   let etag = config.etag
   config.editPage = async ({ id, html, inner, parent, etag: version = etag }) => {
@@ -183,9 +179,33 @@ export function liveClient(): void {
   }
 
   /**
+   * Open the live-reload websocket (`config.events`), and act on each change it reports.
+   * - a websocket, not an `EventSource`:  an event stream holds one of Chrome's 6 connections per host for good,
+   *   and every VS Code window shares them:  6 docs pages open anywhere, and every other page's requests waited
+   *   forever (`webSocket.ts`).  Websockets don't count toward those 6.
+   * - closed (the server restarted or stopped):  tries again, as `EventSource` did:  0.5s after an open socket
+   *   closes, then `wait` ms after each try that failed, doubling up to 10s
+   */
+  function connect(wait = 1000) {
+    const url = new URL(config!.events, location.href)
+    url.protocol = url.protocol === "https:" ? "wss:" : "ws:"
+    const socket = new WebSocket(url)
+    let opened = false
+    socket.addEventListener("open", () => (opened = true))
+    socket.addEventListener("message", (message: MessageEvent<string>) => {
+      const { event, data } = JSON.parse(message.data) as { event: string; data: { path: string } }
+      if (event === "change") onChange(data.path)
+    })
+    socket.addEventListener("close", () => {
+      const retry = opened ? 500 : wait
+      setTimeout(() => connect(Math.min(retry * 2, 10_000)), retry)
+    })
+  }
+
+  /**
    * Is this page in a same-origin frame whose page runs live reload?  Then the parent hands us its changes.
-   * - Why:  every connection stays open, and Chrome allows 6 per host:  a page framing 6 served pages (the brand
-   *   index's thumbnails) used them all, and its own scripts never loaded
+   * - Why:  one connection per page is enough.  (Before live reload moved to websockets, every connection took one
+   *   of Chrome's 6 per host:  a page framing 6 served pages, the brand index's thumbnails, used them all.)
    * - a cross-origin parent (VS Code's view) throws or has no `frameElement`:  we keep our own connection
    */
   function liveParent(): boolean {
@@ -313,6 +333,39 @@ export function liveClient(): void {
     if (!/\.html?$/.test(url.pathname) && link.target.startsWith("src-"))
       return window.parent.postMessage({ spell: "open", url: url.href, kind: "file" }, "*")
     location.assign(url.href)
+  }
+
+  /**
+   * An edit key, sent in by VS Code's docs view (`{ spell: "edit", command, text? }`, `packages/vscode/src/DocView.ts`
+   * `edit()`;  epic `windows-and-review` I2).  Why:  VS Code takes Cmd / Ctrl + C, X, V, A, Z as its own keys before
+   * a page in a frame sees them, so copy, paste and select all did nothing in the side bar.
+   * - copy / cut:  the selection (a field's, else the page's) goes back to the view, which puts it on the clipboard;
+   *   cut then deletes it here
+   * - paste:  `text` (the clipboard, read by the view), typed in where the caret is (the field's own undo keeps it)
+   * - selectAll, undo, redo:  `document.execCommand()`, on the focused field or the page
+   */
+  function edit(command: string, text?: string) {
+    if (command === "paste") {
+      if (text) document.execCommand("insertText", false, text)
+      return
+    }
+    if (command === "copy" || command === "cut") {
+      window.parent.postMessage({ spell: "clipboard", text: selectedText() }, "*")
+      if (command === "cut") document.execCommand("delete")
+      return
+    }
+    if (["selectAll", "undo", "redo"].includes(command)) document.execCommand(command)
+  }
+
+  /** What's selected:  in the focused field (through shadow roots:  `ui-textarea`'s own), else on the page. */
+  function selectedText(): string {
+    let focused = document.activeElement
+    while (focused?.shadowRoot?.activeElement) focused = focused.shadowRoot.activeElement
+    if (focused instanceof HTMLTextAreaElement || focused instanceof HTMLInputElement) {
+      const { selectionStart: start, selectionEnd: end, value } = focused
+      if (start !== null && end !== null && end > start) return value.slice(start, end)
+    }
+    return getSelection()?.toString() ?? ""
   }
 
   /**

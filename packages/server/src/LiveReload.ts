@@ -1,16 +1,19 @@
 import { statSync, watch, type FSWatcher } from "node:fs"
-import type { ServerResponse } from "node:http"
 import { join, relative, resolve, sep } from "node:path"
+import type { Duplex } from "node:stream"
 
-import type { Handler } from "$/server"
+import { SRV, type UpgradeHandler } from "$/server"
 
 /**
- * Live reload over server-sent events (SSE):  watches folders, and tells every open page which file changed.
- * - `events` is the `/_server/events` handler:  each page keeps one open (`EventSource`);  `liveClient()` offers
+ * Live reload over websockets:  watches folders, and tells every open page which file changed.
+ * - `events` answers the `/_server/events` websocket upgrade:  each page keeps one open;  `liveClient()` offers
  *   the page its own file's new version (the docs runtime patches itself in place, else it reloads), swaps a
  *   stylesheet it uses, and reloads for a script in the folder of one it loads
+ * - each message is JSON `{ event, data }`, e.g. `{ event: "change", data: { path: "/guides/x.html" } }`
+ * - websockets, not server-sent events:  an `EventSource` holds one of Chrome's 6 connections per host for good,
+ *   and every VS Code window shares them (see `webSocket.ts`)
  * - a write is often two (write, then a formatter), so each path waits `debounce` ms (250) for quiet
- * - a comment line every `heartbeat` ms (30s) keeps proxies and sleeping laptops from dropping the stream
+ * - a ping every `heartbeat` ms (30s) keeps proxies and sleeping laptops from dropping the socket
  * - never reports dot files, `node_modules`, lock files or editor temp files
  * - From the goals server's `/api/events`.
  */
@@ -21,8 +24,8 @@ export class LiveReload {
   /** ms a path must be quiet before it's reported */
   readonly debounce: number
 
-  /** open event streams, one per page */
-  private clients = new Set<ServerResponse>()
+  /** open websockets, one per page */
+  private clients = new Set<Duplex>()
 
   /** one per watched folder */
   private watchers: FSWatcher[] = []
@@ -30,14 +33,14 @@ export class LiveReload {
   /** pending reports, by URL path */
   private timers = new Map<string, NodeJS.Timeout>()
 
-  /** keeps streams alive */
+  /** keeps sockets alive */
   private beat?: NodeJS.Timeout
 
   constructor({ root, debounce = 250, heartbeat = 30_000 }: LiveReloadProps) {
     this.root = resolve(root)
     this.debounce = debounce
     if (heartbeat) {
-      this.beat = setInterval(() => this.write(": beat\n\n"), heartbeat)
+      this.beat = setInterval(() => this.write(SRV.pingFrame()), heartbeat)
       this.beat.unref()
     }
   }
@@ -47,16 +50,11 @@ export class LiveReload {
     return this.clients.size
   }
 
-  /** the `/_server/events` handler:  holds the response open and adds it to the clients */
-  events: Handler = (request, reply) => {
-    reply.raw.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-store",
-      Connection: "keep-alive"
-    })
-    reply.raw.write(": spell server\n\n")
-    this.clients.add(reply.raw)
-    request.raw.on("close", () => this.clients.delete(reply.raw))
+  /** the `/_server/events` upgrade:  accepts the websocket and adds it to the clients until it closes */
+  events: UpgradeHandler = (raw, socket) => {
+    if (!SRV.acceptWebSocket(raw, socket)) return
+    this.clients.add(socket)
+    socket.on("close", () => this.clients.delete(socket))
   }
 
   /**
@@ -106,23 +104,23 @@ export class LiveReload {
 
   /** send event `event` with JSON `data` to every page now */
   send(event: string, data: unknown): void {
-    this.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+    this.write(SRV.textFrame(JSON.stringify({ event, data })))
   }
 
-  /** stop watching, end every stream */
+  /** stop watching, close every socket */
   close(): void {
     for (const watcher of this.watchers) watcher.close()
     this.watchers = []
     for (const timer of this.timers.values()) clearTimeout(timer)
     this.timers.clear()
     clearInterval(this.beat)
-    for (const client of this.clients) client.end()
+    for (const client of this.clients) client.destroy()
     this.clients.clear()
   }
 
-  /** write raw `text` to every stream */
-  private write(text: string): void {
-    for (const client of this.clients) client.write(text)
+  /** write `frame` to every socket */
+  private write(frame: Buffer): void {
+    for (const client of this.clients) client.write(frame)
   }
 }
 

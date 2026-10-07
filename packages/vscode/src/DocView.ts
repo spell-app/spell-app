@@ -110,6 +110,23 @@ export class DocView implements vscode.WebviewViewProvider {
     context.subscriptions.push(vscode.commands.registerCommand("spell.docView.home", () => DocView.goHome()))
   }
 
+  /**
+   * An edit command, done IN the page (epic `windows-and-review` I2).  Why:  VS Code's own Copy, Paste, Select All,
+   * Undo ... (its keys and menus) reach a focused webview as `document.execCommand(<command>)` on the VIEW's
+   * document, never the page framed in it;  the view's script catches that call (`html()`) and sends it here.
+   * - copy / cut:  the page sends back its selection (`{ spell: "clipboard", text }`), which goes on the clipboard here
+   *   (the page can't:  copying needs a key press IN it);  cut then deletes it there
+   * - paste:  the clipboard's text, sent in, typed where the caret is
+   * - select all, undo, redo:  the page does them (`document.execCommand()`)
+   * - Not keybindings (P2 tried them):  `focusedView` is never set while focus is in a webview view's page, so they
+   *   never fired
+   */
+  async edit({ command }: EditCommand): Promise<void> {
+    if (!this.view) return
+    const text = command === "paste" ? await vscode.env.clipboard.readText() : undefined
+    void this.view.webview.postMessage({ spell: "edit", command, ...(text !== undefined && { text }) })
+  }
+
   /** The doc view called `name`;  `docs` for anything else. */
   static of(name: string | undefined): DocView {
     return DocView.all.get(name as DocViewName) ?? DocView.all.get("docs")!
@@ -174,6 +191,24 @@ export class DocView implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Rebuild the view from scratch:  new html, so a new iframe, at the page in view (fresh `?t=` stamp);  resolves to
+   * that URL, `undefined` when the view hasn't been shown yet (nothing to rebuild).
+   * - for a view gone wrong in a way a reload doesn't fix (clicks no longer reaching the page, PAPERCUTS `vscode`,
+   *   2026-10-06):  `spell dev window reload-view`.  The reload button only navigates the SAME iframe.
+   * - NOT a fix for pages stuck on their placeholders (6 docs pages holding every connection to a host):  live reload
+   *   moved to websockets for that (`packages/server/src/webSocket.ts`)
+   */
+  rebuild(): string | undefined {
+    if (!this.view) return undefined
+    const url = this.here && stamped(this.here)
+    this.url = url
+    this.current = undefined
+    this.view.webview.html = this.html(url)
+    this.view.show(true)
+    return url
+  }
+
+  /**
    * Restart the page server behind the page in view, then show the same page from it again.
    * - which checkout:  the server's own `/_server/ping` says (`root`)
    * - runs `spell dev server stop`, then `spell dev server ensure`, in a LOGIN shell (`$SHELL -lc`):  a GUI VS Code's
@@ -219,8 +254,10 @@ export class DocView implements vscode.WebviewViewProvider {
     view.onDidDispose(() => {
       if (this.view === view) this.view = undefined
     })
-    view.webview.onDidReceiveMessage((message: Place | OpenLink) => {
+    view.webview.onDidReceiveMessage((message: Place | OpenLink | EditCommand | Clipboard) => {
       if (message?.spell === "open") return void DocView.open(message)
+      if (message?.spell === "edit") return void this.edit(message)
+      if (message?.spell === "clipboard") return void vscode.env.clipboard.writeText(message.text ?? "")
       if (message?.spell !== "place") return
       this.current = message.url
       void vscode.commands.executeCommand("setContext", `${this.id}.canGoBack`, !!message.canGoBack)
@@ -232,8 +269,10 @@ export class DocView implements vscode.WebviewViewProvider {
 
   /**
    * The view's html:  the page in a full-size iframe, or a line saying there's nothing to show.
-   * - its script relays messages:  the page's `place` / `open` to the extension;  the extension's `history` and
-   *   `go` to the page.  `navigate` points the iframe at a new URL, making it first if the view was empty.
+   * - its script relays messages:  the page's `place` / `open` to the extension;  the extension's `history`,
+   *   `go` and `edit` to the page.  `navigate` points the iframe at a new URL, making it first if the view was empty.
+   * - VS Code's edit commands (`document.execCommand()`, called on THIS document) go to the extension as `edit`
+   *   (`edit()`), while there's a page to send them to
    * - background:  the side bar's theme colour, on the body AND the iframe, so a page loading shows no white
    */
   html(url: string | undefined): string {
@@ -258,11 +297,18 @@ export class DocView implements vscode.WebviewViewProvider {
     <script nonce="${nonce}">
       const vscode = acquireVsCodeApi()
       let frame = document.querySelector("iframe")
+      const EDITS = ["copy", "cut", "paste", "selectAll", "undo", "redo"]
+      const execCommand = document.execCommand.bind(document)
+      document.execCommand = (command, ...rest) => {
+        if (!frame || !EDITS.includes(command)) return execCommand(command, ...rest)
+        vscode.postMessage({ spell: "edit", command })
+        return true
+      }
       addEventListener("message", (event) => {
         if (frame && event.source === frame.contentWindow) return vscode.postMessage(event.data)
         const data = event.data
         if (data?.spell === "navigate") return navigate(data.url)
-        if (frame && (data?.spell === "history" || data?.spell === "go")) frame.contentWindow.postMessage(data, "*")
+        if (frame && ["history", "go", "edit"].includes(data?.spell)) frame.contentWindow.postMessage(data, "*")
       })
 
       /** Point the frame at url:  the same frame, so the old page stays until the new one paints. */
@@ -380,6 +426,12 @@ type Place = { spell: "place"; url?: string; canGoBack?: boolean; canGoForward?:
  * - `kind`:  `"file"` (on the page server:  the editor) or `"external"` (the browser)
  */
 type OpenLink = { spell: "open"; url?: string; kind?: "file" | "external" }
+
+/** VS Code's edit command on the view (`{ spell: "edit", command }`), for the page:  see `DocView.edit()`. */
+type EditCommand = { spell: "edit"; command: "copy" | "cut" | "paste" | "selectAll" | "undo" | "redo" }
+
+/** The page's selection, for the clipboard (an `edit` copy or cut):  `{ spell: "clipboard", text }`. */
+type Clipboard = { spell: "clipboard"; text?: string }
 
 /** `text` safe inside a double-quoted html attribute. */
 function escapeAttribute(text: string): string {
