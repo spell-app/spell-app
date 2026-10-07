@@ -123,6 +123,19 @@ describe("Converter.convert():  the newest layout, split", () => {
     expect(document.querySelector("#phases > ui-progress, #phases > ui-message")).toBeNull()
   })
 
+  test("the Plan changes box:  written anew, as the tool writes it (T14), from the lines of the phases to do", async () => {
+    const conversion = await convert("split/split.plan.html")
+    const document = whole(conversion)
+    const copies = document.querySelectorAll("#phases > epic-updated[slot='changes']")
+    expect(Array.from(copies, (copy) => [Markup.read(copy), copy.textContent!.trim()])).toEqual([
+      [{ at: "2026-10-06 14:30", phase: 1, of: 2 }, "moved the log first"]
+    ])
+    expect(document.querySelector("#phases")!.firstElementChild).toBe(copies[0])
+    // in the skeleton, not a part:  the box shows with the phases folded
+    expect(conversion.skeleton).toContain('slot="changes"')
+    expectClean(conversion)
+  })
+
   test("an answered question:  its text, Choices, the answer (keeping `d1`), replies, Original Discussion, commits", async () => {
     const document = whole(await convert("split/split.plan.html"))
     expect(data(document, "#q1")).toEqual({

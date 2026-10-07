@@ -76,6 +76,46 @@ export const GIT = "git"
 export const NOTICE = "notice"
 export const HUNG = "hung"
 
+export const ACTIONS = "actions"
+export const SEND = "send"
+export const REVIEW_NOW = "review-now"
+export const SLEEPING = "sleeping"
+export const REVIEW_LINE = "review-line"
+
+/** How long the review line flashes once copied, ms:  as the old runtime's (`FLASH_MS`). */
+export const FLASH_MS = 900
+
+/**
+ * The items a sleeping doc follows up on, by id letter:  everything open but caveats (limits accepted, open for
+ * good) -- each kind's words, one and many.  The same as the old runtime's `FOLLOW_UPS`, `tools/index.js`'s and
+ * `worktrees.ts` `planFollowUps()`.
+ */
+export const FOLLOW_UPS: Record<string, readonly [one: string, many: string]> = {
+  q: ["question", "questions"],
+  j: ["judgement call", "judgement calls"],
+  i: ["issue", "issues"],
+  t: ["todo", "todos"],
+  v: ["test", "tests"]
+}
+
+/** The open items of a page's sections:  what a sleeping doc counts. */
+export const OPEN_ITEMS = 'epic-section > epic-item[status="open"]'
+
+/** The Send button's look:  no marks, some not sent, all sent. */
+export type SendState = "idle" | "unsent" | "sent"
+
+/** What the header's review buttons show:  from the review inbox, while the page is reviewed. */
+export type HeaderMarks = {
+  /** Send's look */
+  send: SendState
+  /** marks not sent yet */
+  unsent: number
+  /** marks Review Now would have Claude work through:  all but the requests already on their way */
+  waiting: number
+  /** a Claude session is listening */
+  listening: boolean
+}
+
 /** The kickoff prompt, which the `Plan hung?` aside offers to copy. */
 export const PROMPT = 'epic-overview > [slot="prompt"]'
 export const ICON = "icon"

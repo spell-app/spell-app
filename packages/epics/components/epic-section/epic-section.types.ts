@@ -160,3 +160,59 @@ export const TOGGLE = "toggle"
 export const EMPTY = "empty"
 export const BODY = "body"
 export const NOTE = "note"
+
+////////////////
+// ## Counts and the state filter (P10)
+////////////////
+
+/**
+ * Statuses that DON'T count as open:  finished (`done`), made moot (`canceled`), answered (`decided`);  a phase's
+ * `done`.  The old runtime's `CLOSED`, and the tool's.
+ */
+export const CLOSED_STATUSES = ["done", "decided", "canceled"] as const
+
+/** The children a section counts:  its items, or its phases (`<epic-phase status>`). */
+export const COUNTED = ":scope > epic-item, :scope > epic-phase"
+
+/** The attributes of a counted child that change its count or its state:  a change re-counts. */
+export const COUNT_ATTRIBUTES = ["status", "state"]
+
+/**
+ * Where an item stands, in the filter's order:  its state, its chip's colour, its texts' keys (the tooltip's words).
+ * - the same five as `<epic-item state>` (`epic-item.types.ts` `ITEM_STATES`), in the old runtime's filter order
+ */
+export const FILTER_STATES = [
+  { state: "progress", color: "orange", words: "stateProgress" },
+  { state: "attention", color: "red", words: "stateAttention" },
+  { state: "open", color: "blue", words: "stateOpen" },
+  { state: "recent", color: "green", words: "stateRecent" },
+  { state: "old", color: "grey", words: "stateOld" }
+] as const
+
+/** One of `FILTER_STATES`. */
+export type FilterState = (typeof FILTER_STATES)[number]
+
+/** One of `FILTER_STATES`' state names. */
+export type ItemStateName = FilterState["state"]
+
+/**
+ * `localStorage` key prefix of the state filters, per page path:  `{ [section id]: [states shown] }`.
+ * - the old runtime's (`spell-doc-runtime.js` `ITEM_FILTER_KEY_PREFIX`), same shape:  a filter left on an old page
+ *   holds on its converted copy
+ */
+export const FILTER_KEY = "spell-item-state:"
+
+/** A section's count:  its counted children, and how many of them are open. */
+export type SectionCount = {
+  /** not closed (`CLOSED_STATUSES`) */
+  open: number
+  /** every one */
+  total: number
+}
+
+/** Classes of the filter's chips and its "hidden" line;  the Plan changes box and its heading. */
+export const FILTER = "filter"
+export const CHIP = "chip"
+export const HIDDEN_NOTE = "hidden-note"
+export const CHANGES = "changes"
+export const CHANGES_HEAD = "changes-head"

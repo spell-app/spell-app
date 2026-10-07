@@ -227,6 +227,38 @@ describe("PlanDoc phases", () => {
     expect(problems(plan)).toEqual([])
   })
 
+  test("Plan changes (T14):  the whole-doc pass copies every line of a phase still to do into the Phases section", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { symptom: "s", changes: "c" })
+    plan.addPhase("Two", { symptom: "s", changes: "c" })
+    plan.addPhase("Three", { symptom: "s", changes: "c" })
+    plan.setPhase(1, "active")
+    plan.addPhaseUpdate(1, '<p>Kept <a id="anchor" href="#q1">small</a></p>')
+    plan.addPhaseUpdate(3, "split in two")
+    plan.updateStates()
+    const section = plan.findSection("phases")!
+    const copies = () => Array.from(section.querySelectorAll(':scope > epic-updated[slot="changes"]'))
+    expect(copies().map((copy) => [Markup.read(copy), copy.textContent])).toEqual([
+      [{ at: "2026-10-01 09:05", phase: 1, of: 1 }, "Kept small"],
+      [{ at: "2026-10-01 09:05", phase: 1, of: 3 }, "split in two"]
+    ])
+    // first in the section;  an id inside isn't copied:  links land on the line in its phase
+    expect(section.firstElementChild).toBe(copies()[0])
+    expect(plan.document.querySelectorAll("#anchor")).toHaveLength(1)
+    expect(problems(plan)).toEqual([])
+    // the same again:  nothing to change
+    expect(plan.updatePlanChanges()).toBe(false)
+    // a phase done:  its changes are just the plan now;  none left:  no copies
+    plan.setPhase(1, "done")
+    plan.updateStates()
+    expect(copies().map((copy) => Markup.read(copy).of)).toEqual([3])
+    plan.setPhase(3, "done")
+    plan.updateStates()
+    expect(copies()).toEqual([])
+    const reread = PlanDoc.parse(plan.toString(), NOW)
+    expect(reread.updatePlanChanges()).toBe(false)
+  })
+
   test("UPDATE markers:  in an item's title while a phase is active;  done removes that phase's, the title back", () => {
     const plan = freshPlan()
     plan.addPhase("One")

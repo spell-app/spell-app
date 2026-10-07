@@ -1,4 +1,5 @@
 import type { EpicData } from "$/epics/definitions"
+import { PlanDoc } from "$/epics/tool/PlanDoc"
 
 import {
   Chrome,
@@ -22,7 +23,10 @@ import { isBlank, isElement, squeeze, stripEdges, takeChildren, titleOf, wrap } 
  * Goal, Done, Commits, Files, Verify, To review), whatever order the old body had.
  * - A field the vocabulary has no name for (`Judgement calls:`, `Outcome:`) is kept whole, label and all, at the end
  *   of the phase's Done (else its Goal):  `EXTRA_FIELD_HOSTS`.
- * - Dropped, as chrome:  the progress bar, the Plan changes box (a copy of the Updated lines), status icons.
+ * - Dropped, as chrome:  the progress bar, status icons.
+ * - The Plan changes box (a copy of the Updated lines of the phases still to do) is written anew from the converted
+ *   lines, as the plan-doc tool writes it on every edit (`PlanDoc.writePlanChanges()`, T14):  the same markup both
+ *   ways, never the old box's.
  ****************/
 export class PhaseConverter {
   /** The converter it works for:  STATIC for its life. */
@@ -45,7 +49,9 @@ export class PhaseConverter {
         throw this.owner.error("Phases holds something other than phases", child)
       phases.push(this.phase(child))
     }
-    return this.owner.element("epic-section", { id: "phases", kind: "phases" }, phases, section)
+    const converted = this.owner.element("epic-section", { id: "phases", kind: "phases" }, phases, section)
+    PlanDoc.writePlanChanges(converted)
+    return converted
   }
 
   /** `<epic-phase>` from a phase section. */

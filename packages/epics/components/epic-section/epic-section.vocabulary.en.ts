@@ -71,20 +71,38 @@ export const epicSectionVocabulary = {
   events: [...FOLD_EVENTS],
   slots: [
     { name: "", description: "Its phases, items, log events or prose." },
-    { name: "title", description: "A title with markup, in place of `title`." }
+    { name: "title", description: "A title with markup, in place of `title`." },
+    {
+      name: "changes",
+      description:
+        "The Phases section's Plan changes:  a copy of each `<epic-updated>` of a phase still to do " +
+        '(`<epic-updated slot="changes" of="3" at="...">`), written by the plan-doc tool on every edit;  drawn as a ' +
+        "box above the phases.  None:  no box."
+    }
   ],
   parts: [
     ...FOLD_PARTS,
     {
       name: "tools",
       description:
-        "At the title's end:  the Phases section's Files / Verify toggles;  an Overview sub-section's review " +
-        "buttons;  P10's open / all count and state filter go here too."
+        "At the title's end:  the Phases section's Files / Verify toggles;  an item section's state filter;  an " +
+        "Overview sub-section's review buttons."
     },
+    {
+      name: "filter",
+      description:
+        "An item section's state filter:  a grey filter chip (show all / only what needs you), then one round chip " +
+        "per state its items are in, filled while that state's items show."
+    },
+    { name: "hidden-note", description: 'Under a filtered list:  "3 hidden · show all".' },
+    { name: "changes", description: "The Phases section's Plan changes box, above its phases." },
     { name: "empty", description: 'An item section with no items:  "None yet".' },
     ...REVIEW_PARTS
   ],
-  states: [...FOLD_STATES],
+  states: [
+    ...FOLD_STATES,
+    { name: "tools", description: "Its title has tools:  the Phases toggles, or a state filter (items in it)." }
+  ],
   texts: [
     ...FOLD_TEXTS,
     { key: "phasesTitle", text: "Phases" },
@@ -118,10 +136,35 @@ export const epicSectionVocabulary = {
     { key: "hideFiles", text: "Hide each phase's Files", description: "The Files toggle, on." },
     { key: "showVerify", text: "Show each phase's Verify", description: "The Phases title's Verify toggle, off." },
     { key: "hideVerify", text: "Hide each phase's Verify", description: "The Verify toggle, on." },
+    { key: "count", text: "{open} open of {total}", description: "The count badge's tooltip:  `3/7` in words." },
+    { key: "filterLabel", text: "Show items by state", description: "The state filter's group, for a screen reader." },
+    { key: "showAll", text: "Show everything", description: "The filter chip:  what its click does." },
+    {
+      key: "showNeeds",
+      text: "Show only what needs you",
+      description: "The filter chip, everything showing and an item needing attention:  what its click does."
+    },
+    { key: "showing", text: "Showing:  {words}", description: "A state chip, pressed:  its items show." },
+    { key: "hiding", text: "Hiding:  {words}", description: "A state chip, not pressed:  its items are hidden." },
+    { key: "stateProgress", text: "in progress", description: "A state chip's words:  `progress` (orange)." },
+    { key: "stateAttention", text: "needs attention", description: "A state chip's words:  `attention` (red)." },
+    { key: "stateOpen", text: "open, not urgent", description: "A state chip's words:  `open` (blue)." },
+    { key: "stateRecent", text: "decided or reviewed recently", description: "A state chip's words:  `recent`." },
+    { key: "stateOld", text: "decided or reviewed earlier", description: "A state chip's words:  `old` (grey)." },
+    { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },
+    { key: "changesTitle", text: "Plan changes", description: "The Phases section's box of changes to phases to do." },
     ...REVIEW_TEXTS
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
+    {
+      tag: "epic-updated",
+      slot: "changes",
+      when: { attribute: "kind", values: ["phases"] },
+      description:
+        "The Plan changes:  a copy of each `<epic-updated>` of a phase still to do, its phase in `of`;  the tool " +
+        "rewrites them on every edit."
+    },
     {
       tag: "flow",
       when: { attribute: "kind", values: ["overview-part"] },

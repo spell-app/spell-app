@@ -273,6 +273,43 @@ export class PlanDoc extends PlanReader {
     this.log(`P${n} plan updated`)
   }
 
+  /**
+   * The Phases section's Plan changes (T14):  a COPY of each `<epic-updated>` of every phase still to do (not
+   * `done`), in phase order, as `<epic-updated slot="changes" of="N">` first in the section;  `<epic-section
+   * kind="phases">` draws them as a box above the phases.  Rewritten whole;  changed?
+   * - copies, not links:  a phase's lines are in its part file, which the page loads only when it's opened
+   * - a copy keeps the line's attributes (`at`, `phase`:  the phase under way then), adds `of` (whose plan it
+   *   changes);  ids inside are renamed (`PlanItem.stripIds()`):  a copy is never a link's target
+   * - STATIC:  the converter writes the same copies (`PhaseConverter`);  `section` must hold its phases' lines (an
+   *   ASSEMBLED doc:  a skeleton alone would read as no changes)
+   */
+  static writePlanChanges(section: Element): boolean {
+    const copies: Element[] = []
+    for (const phase of section.querySelectorAll(":scope > epic-phase")) {
+      if (phase.getAttribute("status") === "done") continue
+      const of = PlanItem.idNumber(phase.id)
+      for (const line of phase.querySelectorAll(":scope > epic-updated")) {
+        const data = { ...Markup.read<"epic-updated">(line), of }
+        const copy = Markup.element(section.ownerDocument, "epic-updated", data, line.innerHTML)
+        copy.setAttribute("slot", PLAN_CHANGES_SLOT)
+        PlanItem.stripIds(copy)
+        copies.push(copy)
+      }
+    }
+    const old = Array.from(section.querySelectorAll(`:scope > epic-updated[slot="${PLAN_CHANGES_SLOT}"]`))
+    const markupOf = (elements: Element[]) => PlanMarkup.bare(elements.map((it) => it.outerHTML).join(""))
+    if (markupOf(old) === markupOf(copies)) return false
+    for (const each of old) each.remove()
+    section.prepend(...copies)
+    return true
+  }
+
+  /** The Plan changes of this doc's Phases section (`writePlanChanges()`);  changed? */
+  updatePlanChanges(): boolean {
+    const section = this.findSection("phases")
+    return section ? PlanDoc.writePlanChanges(section) : false
+  }
+
   /** UPDATE markers of phase `n`:  every `<epic-update phase="N">`, labels and notes. */
   updateMarkers(n: number): Element[] {
     return Array.from(this.document.querySelectorAll(`epic-update[phase="${n}"]`))
@@ -849,6 +886,7 @@ export class PlanDoc extends PlanReader {
    * - the page's `recent-since`:  from `recentSince` when it was passed in
    * - each item's `state` (`itemState()`):  what the page colours its id chip by
    * - each phase's "To review" field (`updateToReview()`)
+   * - the Phases section's Plan changes (`updatePlanChanges()`)
    */
   updateStates(): number {
     let changed = 0
@@ -865,6 +903,7 @@ export class PlanDoc extends PlanReader {
       changed++
     }
     for (const phase of this.phaseElements) if (this.updateToReview(phase)) changed++
+    if (this.updatePlanChanges()) changed++
     return changed
   }
 
@@ -1242,6 +1281,9 @@ export class PlanDoc extends PlanReader {
 
 /** What a rewrite of an item's details (`PlanDoc.setDetails()`) leaves where it is. */
 const KEPT_ON_REWRITE = ["epic-answer", "epic-original", "epic-commit"]
+
+/** The Phases section's slot for its Plan changes copies (`PlanDoc.writePlanChanges()`). */
+const PLAN_CHANGES_SLOT = "changes"
 
 /** A prompt's text as `<p>`s:  blank lines split paragraphs, single newlines become `<br>`;  `""` for none. */
 function promptHTML(prompt: string | null | undefined): string {

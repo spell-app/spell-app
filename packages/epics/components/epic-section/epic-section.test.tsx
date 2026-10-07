@@ -173,3 +173,119 @@ describe("<epic-section>", () => {
     history.replaceState(null, "", location.pathname + location.search)
   })
 })
+
+////////////////
+// ## Counts, the state filter, Plan changes (P10)
+////////////////
+
+/** Questions in `states` (`status:state`), ids `q1`, `q2` ... */
+function questions(states: string[]): string {
+  const items = states.map((pair, at) => {
+    const [status, state] = pair.split(":")
+    return `<epic-item id="q${at + 1}" title="Q ${at + 1}" status="${status}"${state ? ` state="${state}"` : ""}></epic-item>`
+  })
+  return `<epic-section id="decisions" kind="questions" open>${items.join("")}</epic-section>`
+}
+
+/** `host`'s state chips, as drawn:  `state` => pressed. */
+function chips(host: Element): Record<string, boolean> {
+  const buttons = host.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part~="filter"] button')
+  return Object.fromEntries(
+    Array.from(buttons, (button) => [button.dataset.state!, button.getAttribute("aria-pressed") === "true"])
+  )
+}
+
+/** The ids of `host`'s items that show. */
+function shownIds(host: Element): string[] {
+  return Array.from(host.querySelectorAll("epic-item"))
+    .filter((item) => getComputedStyle(item).display !== "none")
+    .map((item) => item.id)
+}
+
+describe("<epic-section> counts and state filter", () => {
+  afterEach(() => {
+    localStorage.removeItem(`spell-item-state:${location.pathname}`)
+  })
+
+  test("its badge is `open/all`, and follows an item's status as it changes, and items coming", async () => {
+    const host = await render(questions(["open", "decided", "done", "open"]))
+    expect(inner(host).getAttribute("badge")).toBe("2/4")
+    host.querySelector("#q1")!.setAttribute("status", "decided")
+    await ElementFixture.tick()
+    await ElementFixture.tick()
+    expect(inner(host).getAttribute("badge")).toBe("1/4")
+    host.insertAdjacentHTML("beforeend", `<epic-item id="q5" title="Q 5" status="open"></epic-item>`)
+    await ElementFixture.tick()
+    await ElementFixture.tick()
+    expect(inner(host).getAttribute("badge")).toBe("2/5")
+  })
+
+  test("phases count too (open:  not done);  the log and an empty section have no badge", async () => {
+    const host = await render(
+      `<div><epic-section id="phases" kind="phases">` +
+        `<epic-phase id="p1" title="One" status="done"></epic-phase>` +
+        `<epic-phase id="p2" title="Two" status="active"></epic-phase></epic-section>` +
+        `<epic-section id="caveats" kind="caveats"></epic-section>` +
+        `<epic-section id="log" kind="log"></epic-section></div>`
+    )
+    const sections = host.parentElement!.querySelectorAll("epic-section")
+    expect(Array.from(sections, (section) => inner(section).getAttribute("badge"))).toEqual(["1/2", null, null])
+    expect(host.shadowRoot!.querySelector('[part~="filter"]')).toBeNull()
+  })
+
+  test("a chip per state its items are in, all pressed;  a click hides that state's items, and says how many", async () => {
+    const host = await render(questions(["open:attention", "open:open", "decided:old", "open"]))
+    expect(chips(host)).toEqual({ all: true, attention: true, open: true, old: true })
+    await expectAccessible(host)
+    host.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="open"]')!.click()
+    await ElementFixture.tick()
+    expect(chips(host)).toEqual({ all: false, attention: true, open: false, old: true })
+    expect(shownIds(host)).toEqual(["q1", "q3"])
+    const note = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="hidden-note"]')!
+    expect(note.textContent).toBe("2 hidden · show all")
+    expect(JSON.parse(localStorage.getItem(`spell-item-state:${location.pathname}`)!)).toEqual({
+      decisions: ["attention", "old"]
+    })
+    note.click()
+    await ElementFixture.tick()
+    expect(shownIds(host)).toEqual(["q1", "q2", "q3", "q4"])
+    expect(host.shadowRoot!.querySelector('[part~="hidden-note"]')).toBeNull()
+  })
+
+  test("the grey chip flips between everything and only what needs you;  a new state shows;  remembered", async () => {
+    const host = await render(questions(["open:attention", "open:open", "decided:recent"]))
+    const all = host.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="all"]')!
+    expect(all.title).toBe("Show only what needs you")
+    all.click()
+    await ElementFixture.tick()
+    expect(shownIds(host)).toEqual(["q1"])
+    expect(all.title).toBe("Show everything")
+    // an item turning red shows:  it's in a shown state
+    host.querySelector("#q2")!.setAttribute("state", "attention")
+    await ElementFixture.tick()
+    await ElementFixture.tick()
+    expect(shownIds(host)).toEqual(["q1", "q2"])
+    host.remove()
+    const again = await render(questions(["open:attention", "open:open"]))
+    expect(shownIds(again)).toEqual(["q1"])
+    again.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="all"]')!.click()
+    await ElementFixture.tick()
+    expect(shownIds(again)).toEqual(["q1", "q2"])
+  })
+
+  test("the Phases section draws its Plan changes box from the `changes` slot;  none without", async () => {
+    const host = await render(
+      `<epic-section id="phases" kind="phases" open>` +
+        `<epic-updated slot="changes" at="2026-10-07 10:00" phase="1" of="2">Split it.</epic-updated>` +
+        `<epic-phase id="p1" title="One" status="active"></epic-phase>` +
+        `<epic-phase id="p2" title="Two" status="todo"></epic-phase></epic-section>`
+    )
+    const box = host.shadowRoot!.querySelector('[part~="changes"]')!
+    expect(box.textContent).toContain("Plan changes")
+    expect(host.querySelector("epic-updated")!.assignedSlot?.name).toBe("changes")
+    host.querySelector("epic-updated")!.remove()
+    await ElementFixture.tick()
+    await ElementFixture.tick()
+    expect(host.shadowRoot!.querySelector('[part~="changes"]')).toBeNull()
+  })
+})

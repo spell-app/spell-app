@@ -13,6 +13,7 @@ import fieldCSS from "./epic-field.css?inline"
  * One dated change to a phase's plan, FENCED under its Symptom / Changes (a dashed orange box):  its icon, `Updated`
  * and the time (`at`, to the minute), the phase under way then, then what changed (its children).
  * - Kept once the phase is done:  the record of how the plan moved.
+ * - A copy in the Phases section's Plan changes box (`of`, the phase it changes) leads with a `P5` link to it.
  ****************/
 export class EpicUpdated extends UIElement<EpicUpdatedVocabulary> {
   @proto static vocabulary = epicUpdatedVocabulary
@@ -36,6 +37,13 @@ export class EpicUpdated extends UIElement<EpicUpdatedVocabulary> {
         </span>
         <div class={TEXT}>
           <span class={LABEL} part={this.part("label")}>
+            <Show when={this.attrs.of}>
+              {(of) => (
+                <a class="of" href={`#p${of()}`}>
+                  {this.text("of", { phase: of() })}
+                </a>
+              )}
+            </Show>
             <b>{this.text("updated")}</b> <time datetime={this.attrs.at}>{this.time()}</time>
             <Show when={this.attrs.phase}>
               {(phase) => <span class="during">{this.text("during", { phase: phase() })}</span>}

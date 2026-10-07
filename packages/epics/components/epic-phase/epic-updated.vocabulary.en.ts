@@ -28,7 +28,14 @@ export const epicUpdatedVocabulary = {
       format: "time",
       description: "When the plan changed:  `2026-10-06 14:30`."
     },
-    { name: "phase", kind: "number", description: "The phase active when it changed (`3`)." }
+    { name: "phase", kind: "number", description: "The phase active when it changed (`3`)." },
+    {
+      name: "of",
+      kind: "number",
+      description:
+        'A COPY in the Phases section\'s Plan changes box (`slot="changes"`):  the phase whose plan it changes (`5`), ' +
+        "drawn as a `P5` link before it.  The plan-doc tool writes the copies;  never on the line in its phase."
+    }
   ],
   events: [],
   slots: [{ name: "", description: "What changed in the plan, and why." }],
@@ -40,7 +47,8 @@ export const epicUpdatedVocabulary = {
   states: [],
   texts: [
     { key: "updated", text: "Updated", description: "Its label." },
-    { key: "during", text: "during P{phase}", description: "After its time:  the phase under way then." }
+    { key: "during", text: "during P{phase}", description: "After its time:  the phase under way then." },
+    { key: "of", text: "P{phase}", description: "A Plan changes copy:  the phase it changes, a link to it." }
   ],
   children: [{ tag: "flow", description: "What changed in the plan, and why." }]
 } as const satisfies EpicVocabulary
