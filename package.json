@@ -39,7 +39,7 @@
     "details": "node packages/cli/bin/spell.mjs dev details",
     "docs:link": "node packages/cli/bin/spell.mjs dev docs link",
     "goals": "node packages/cli/bin/spell.mjs dev goals",
-    "goals:test": "TSX_TSCONFIG_PATH=packages/docs/tsconfig.json node --import tsx --test packages/docs/tools/goals/goalsRoutes.test.ts",
+    "goals:test": "TSX_TSCONFIG_PATH=packages/docs/tsconfig.json node --import tsx --test packages/docs/tools/goals/goalsRoutes.test.ts packages/docs/tools/goals/page.test.js",
     "window": "node packages/cli/bin/spell.mjs dev window",
     "server": "node packages/cli/bin/spell.mjs dev server",
     "serve": "node packages/cli/bin/spell.mjs dev server start --all",
