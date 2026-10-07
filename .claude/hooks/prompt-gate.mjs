@@ -26,12 +26,15 @@
  *    - the session's VS Code window is a worktree's (`workspaces/ongoing/<other>.code-workspace`).  A new session
  *      there starts at the MAIN root, so `cwd` alone misses it.
  *    - Re-entering the SAME `<name>` is fine.
+ *    - `/epic <name>` there is NOT blocked (Owen, 2026-10-07):  typed in another epic's session, it means "open a
+ *      window for `<name>`".  Let through, the session NOT renamed (it stays `<other>`'s), with a note
+ *      (`additionalContext`) sending Claude to the `/epic` skill's "From another worktree", which asks first.
  * 3. Otherwise:  renames the session `🚧 <name>` (`hookSpecificOutput.sessionTitle`), unless it already is;
  *    `/epic future <name>`:  `📅 <name>`, and neither block above (it makes no worktree).  The icons:  `TITLE_ICONS`.  A ✅ title
  *    (its work merged, epic `windows-and-review` P6) isn't `<name>`, so reopening takes the ✅ off;  a ✅ still queued
  *    for it is dropped (`dropDoneTitle()`).  That's
  *    what lets the move to a worktree's window find the old tab by its label (`.claude/hooks/handoff.mjs`).
- * - SIDE EFFECT:  before either block, any text after the name is saved to `<prompts>/<name>.md`, and quoted
+ * - SIDE EFFECT:  before either block (and the note), any text after the name is saved to `<prompts>/<name>.md`, and quoted
  *   back in the reason, so it can be copied.  `/epic <name>` / `/isolate <name>` alone picks it up later.
  *   `<prompts>`:  `$SPELL_PROMPTS_DIR`, else `~/.spell/prompts`.  An older file is kept as `<name>.<time>.md`.
  * - Never fails a prompt:  any error exits 0, the prompt untouched.
@@ -85,6 +88,8 @@ export function gate(input, window) {
       )
     }
     const other = otherWorktree(input.cwd, window, name)
+    // `/epic <name>` in another epic's session means "open a window for `<name>`" (Owen, 2026-10-07):  Claude asks
+    if (other && skill === "epic") return launchNote(other, name, text)
     if (other) {
       return block(
         name,
@@ -185,6 +190,19 @@ export function otherWorktree(cwd, window, name) {
   const ongoing = /[\\/]workspaces[\\/]ongoing[\\/]([^\\/]+)\.code-workspace$/.exec(file)
   if (ongoing && ongoing[1] !== name) return ongoing[1]
   return null
+}
+
+/**
+ * The hook's answer to `/epic <name> [text]` typed in worktree `other`'s session:  let through, NOT renamed (the
+ * session stays `other`'s), with a note telling Claude to offer a new window for `<name>` instead.
+ * - SIDE EFFECT:  `text` saved first (`savePrompt()`), so the new window's `/epic <name>` picks it up
+ */
+function launchNote(other, name, text) {
+  const saved = text ? `  Its text is saved in ${savePrompt(name, text).replace(homedir(), "~")}.` : ""
+  const note =
+    `This session works in worktree \`${other}\`:  \`/epic ${name}\` must NOT run here.  Owen means "open a new ` +
+    `window for epic \`${name}\`".${saved}  Follow the /epic skill's "From another worktree":  ask him first.`
+  return { hookSpecificOutput: { hookEventName: "UserPromptSubmit", additionalContext: note } }
 }
 
 /**

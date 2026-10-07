@@ -64,7 +64,11 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
     recommended first;  the user can type another in "Other".
 - Checks and rename, BEFORE anything else:  as `.claude/skills/isolate/SKILL.md` "Start", step 0.  A typed
   `/epic <name> ...` got them from the repo's `UserPromptSubmit` hook (`.claude/hooks/prompt-gate.mjs`):  it
-  renamed the session `<name>`, or blocked the prompt (plan mode, another worktree) and saved its text.
+  renamed the session `<name>`, or blocked the prompt (plan mode) and saved its text.
+  - EXCEPT in another worktree (isolate's step 0 test;  the hook's note says so too):  NOT a failure, and NOT
+    this session's epic.  Go to "From another worktree" and skip everything else.
+  - In `<name>`'s OWN window, its worktree already made (`spell dev window which`:  `workspaces/ongoing/<name>`):
+    a session "From another worktree" launched.  See "Launched" there.
 - The kickoff prompt, SAFE before anything else:  the text after `<name>`, verbatim.  Write it to
   `~/.spell/prompts/<name>.md` at once (as the hook does when it blocks;  an older, different file there:  rename
   it `<name>.<time>.md` first).  No text, but that file exists:  it IS the kickoff prompt (the hook saved it);  say
@@ -91,6 +95,30 @@ When the session already has work under way ("make this a plan doc"), carry it o
 - Step 3:  start from the plan drafted so far (harness plan file, conversation), reshaped into the plan doc's
   shape;  explore only to fill gaps.  Decisions and questions already settled become `decision` items (questions
   born answered:  `Q7`).
+
+## From another worktree
+
+`/epic <name> ...` typed in a session working in ANOTHER worktree (`<other>`) means "open a window for epic
+`<name>`" (Owen, 2026-10-07).  This session stays `<other>`'s:  no rename, no `EnterWorktree`, no plan here.
+1. The text after `<name>`:  the hook saved it in `~/.spell/prompts/<name>.md` (natural-language trigger:  save it
+   yourself, as "1. Name" says).
+2. Collisions, as "1. Name" (not the future-epic case:  it goes on as usual in the new window).
+3. AskUserQuestion "Open epic `<name>` in a new window?", the question saying this session works in `<other>` and
+   stays there:
+   - "New window `⎇ <name>`" (Recommended):  step 4
+   - "Not now":  one line, where the text is saved, and that `/epic <name>` alone picks it up from any other window
+4. `spell dev window launch <name> [--color <look>]` (a look after the name, as "1. Name"):  makes the worktree,
+   opens its window, and starts a NEW session there with `/epic <name>` typed in.  One line:  "`⎇ <name>` is open:
+   press enter on `/epic <name>` there".  Then carry on with `<other>`'s work, if any was waiting.
+   - fails (no window bridge, an old extension:  `unknown op` / `bad session id`):  say so in one line;  the text
+     stays saved.
+
+**Launched:**  the new session's `/epic <name>` (worktree `.claude/worktrees/<name>` made, this window its own):
+- "1. Name" as usual, but the worktree and branch `<name>` are THIS epic's:  no "Reuse" modal for them (a plan
+  doc or guide already there still asks)
+- "2. Session" as "Staying in this window", with no question and no `window stay` (the window is already
+  `⎇ <name>`, tinted):  `EnterWorktree` with `path: ".claude/worktrees/<name>"`, then steps 2, 3 and 5, then
+  "3. Plan"
 
 ## 2. Session:  stub doc, then move
 
