@@ -204,6 +204,8 @@ export type CommandsOptions = GlobalOptions & {
 export type SessionOptions = GlobalOptions & {
   limit?: string
   json?: boolean
+  /** `icons`:  say what it would retitle, retitle nothing */
+  dryRun?: boolean
 }
 
 /**
