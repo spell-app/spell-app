@@ -159,7 +159,16 @@ export const epicItemVocabulary = {
     { name: "id", description: "The id chip (`Q7`), a link to the item, in its state's colour." },
     { name: "title", description: "The title." },
     { name: "review", description: "The review label:  `reviewed 10-06`, `deferred`, `to do`." },
-    { name: "actions", description: "The box at the end of the line:  the review label, then the review buttons." },
+    {
+      name: "git",
+      description:
+        "With commits (`commits`, or `<epic-commit>` children):  a git icon at the line's end that shows or hides " +
+        "this item's own commits, whatever the page's git toggle says (T17);  pressed while they show."
+    },
+    {
+      name: "actions",
+      description: "The box at the end of the line:  the git icon, the review label, then the review buttons."
+    },
     { name: "details", description: "Its details:  hidden while folded." },
     { name: "label", description: "`Original question` / `Original reply` over its own text." },
     { name: "error", description: "With `source`:  the line saying the part couldn't be loaded." },
@@ -168,11 +177,18 @@ export const epicItemVocabulary = {
   states: [
     { name: "open", description: "Unfolded." },
     { name: "loaded", description: "With `source`:  the part is in its children." },
-    { name: "error", description: "With `source`:  the part couldn't be loaded." }
+    { name: "error", description: "With `source`:  the part couldn't be loaded." },
+    { name: "commits", description: "Its own commits show:  its git icon pressed." }
   ],
   texts: [
     { key: "fold", text: "Fold {id}", description: "Accessible name of the fold button while open." },
     { key: "unfold", text: "Unfold {id}", description: "Accessible name of the fold button while folded." },
+    {
+      key: "showCommits",
+      text: "Show this item's commits",
+      description: "The git icon's tooltip, its commits hidden."
+    },
+    { key: "hideCommits", text: "Hide this item's commits", description: "The git icon's tooltip, its commits shown." },
     { key: "originalQuestion", text: "Original question", description: "Over an answered question's own text." },
     { key: "originalReply", text: "Original reply", description: "Over an item's own text, above More Details." },
     { key: "reviewTodo", text: "to do", description: "Review label:  a review decided on work (`queued`)." },

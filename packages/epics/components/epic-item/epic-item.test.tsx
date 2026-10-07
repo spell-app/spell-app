@@ -169,6 +169,29 @@ describe("<epic-item>", () => {
     expect(root.querySelector("[part~='id']")!.textContent).toBe("I1")
     expect(slotNames(host)).toEqual(["title", ""])
   })
+
+  test("with commits, a git icon on its line (T17):  a click opens it and shows its own commits, again hides them", async () => {
+    const { host, line, details } = await item(
+      `<epic-item id="i2" title="Fixed" status="done"><p>Why.</p><epic-commit sha="abc1234">Fix it</epic-commit></epic-item>`
+    )
+    const git = () => host.shadowRoot!.querySelector<HTMLButtonElement>("[part~='git']")
+    const shown = () => details.style.getPropertyValue("--epic-commits-display")
+    expect(git()?.getAttribute("aria-pressed")).toBe("false")
+    expect([host.open, shown()]).toEqual([false, ""])
+    git()!.click()
+    await ElementFixture.tick()
+    expect([host.open, shown(), git()!.getAttribute("aria-pressed")]).toEqual([true, "block", "true"])
+    expect(host.matches(":state(commits)")).toBe(true)
+    git()!.click()
+    await ElementFixture.tick()
+    // its own commits hidden again, the item still open:  the git icon never folds it
+    expect([host.open, shown(), git()!.getAttribute("title")]).toEqual([true, "", "Show this item's commits"])
+    expect(line.contains(git())).toBe(true)
+    const bare = await item(`<epic-item id="i3" title="No commits" status="open"><p>Why.</p></epic-item>`)
+    expect(bare.host.shadowRoot!.querySelector("[part~='git']")).toBeNull()
+    const marked = await item(`<epic-item id="i4" title="In its part" status="done" commits=""></epic-item>`)
+    expect(marked.host.shadowRoot!.querySelector("[part~='git']")).not.toBeNull()
+  })
 })
 
 describe("<epic-item source>", () => {

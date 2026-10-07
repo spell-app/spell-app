@@ -5,10 +5,11 @@ import { IconGlyph, proto } from "$/ui/core"
 
 // Import directly:  the fold base, not the `epic-section` barrel (which defines `<epic-section>`)
 import { EpicFold } from "$/epics/components/epic-section/EpicFold"
+import type { ContentsEntry } from "$/epics/components/epic-section/epic-section.types"
 
 import { epicPhaseVocabulary } from "./epic-phase.vocabulary.en"
 import { EpicPhaseFallback } from "./epic-phase.fallback"
-import { ICON, STATUS_ICONS, type EpicPhaseVocabulary, type PhaseStatus } from "./epic-phase.types"
+import { ICON, STATUS_COLORS, STATUS_ICONS, type EpicPhaseVocabulary, type PhaseStatus } from "./epic-phase.types"
 
 import foldCSS from "$/epics/components/epic-section/epic-fold.css?inline"
 import phaseCSS from "./epic-phase.css?inline"
@@ -36,6 +37,17 @@ export class EpicPhase extends EpicFold<EpicPhaseVocabulary> {
 
   /** Its status icon. */
   readonly glyph = new IconGlyph(this, () => STATUS_ICONS[this.status()])
+
+  /**
+   * The contents entry (`EpicFold.contentsEntry()`):  `P3 · <title>`, its status icon in its colour.
+   * - From the attributes as they are NOW, not the memos:  the live update reads it right after a patch
+   */
+  contentsEntry(): ContentsEntry {
+    const written = this.host.getAttribute("status") ?? ""
+    const status: PhaseStatus = written in STATUS_ICONS ? (written as PhaseStatus) : "todo"
+    const label = `${this.host.id.toUpperCase()} · ${EpicPhase.titleText(this.host)}`
+    return { label, icon: STATUS_ICONS[status], color: STATUS_COLORS[status] }
+  }
 
   render(): JSX.Element {
     return this.renderFold({

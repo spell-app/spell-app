@@ -220,6 +220,17 @@ describe("<epic-section> counts and state filter", () => {
     expect(inner(host).getAttribute("badge")).toBe("2/5")
   })
 
+  test("its host's `contentsEntry` (the page's contents and rail):  label, kind icon and count, read as they are NOW", async () => {
+    const host = await render(questions(["open", "decided", "done"]))
+    const entry = () => (host as FoldHost & { contentsEntry?: unknown }).contentsEntry
+    expect(entry()).toEqual({ label: "1. Questions", icon: "file circle question", count: { open: 1, total: 3 } })
+    // right after a change, before any memo or observer has caught up:  what the live update reads
+    host.querySelector("#q1")!.setAttribute("status", "decided")
+    expect(entry()).toMatchObject({ count: { open: 0, total: 3 } })
+    const part = await render(`<epic-section id="o2" kind="overview-part" title="Why"><p>Prose.</p></epic-section>`)
+    expect((part as FoldHost & { contentsEntry?: unknown }).contentsEntry).toEqual({ label: "1.1 Why" })
+  })
+
   test("phases count too (open:  not done);  the log and an empty section have no badge", async () => {
     const host = await render(
       `<div><epic-section id="phases" kind="phases">` +

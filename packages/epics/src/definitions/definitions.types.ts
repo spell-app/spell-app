@@ -8,9 +8,17 @@
  *   `definitions.types` <- `Definitions` <- `$/epics/markup`.
  */
 
-import type { AttributeSpec, CamelCase, ComponentVocabulary } from "$/ui/core"
+// NOTE:  Spell UI's vocabulary TYPES file, not `$/ui/core`:  core loads the element layer (JSX, Vite-only imports),
+// which a node tool's type check -- `docs`, through the plan-doc forwarders -- can't compile.
+import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary/vocabulary.types"
 
 import type { Definitions } from "./Definitions"
+
+/** `allow-additions` => `allowAdditions`, at the type level:  Spell UI's `CamelCase` (`$/ui/elements/elements.types`,
+ * behind the element layer), restated here so the definitions stay node-safe. */
+export type CamelCase<S extends string> = S extends `${infer Head}-${infer Tail}`
+  ? `${Head}${Capitalize<CamelCase<Tail>>}`
+  : S
 
 ////////////////
 // ## Vocabulary

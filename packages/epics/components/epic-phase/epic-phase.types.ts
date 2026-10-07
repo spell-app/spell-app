@@ -26,6 +26,13 @@ export const STATUS_ICONS = {
 /** A phase's status. */
 export type PhaseStatus = keyof typeof STATUS_ICONS
 
+/** A phase's status => its icon's colour in the page's contents list (Spell UI's `color`), as `epic-phase.css`'s. */
+export const STATUS_COLORS = {
+  todo: "grey",
+  active: "orange",
+  done: "green"
+} as const satisfies Record<PhaseStatus, string>
+
 /** A field's `name` => its icon and its label's text key, as today's phase bodies drew them. */
 export const FIELD_LOOKS = {
   symptom: { icon: "circle exclamation", label: "symptom" },

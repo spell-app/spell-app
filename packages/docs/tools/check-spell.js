@@ -2,22 +2,23 @@
  * Check a `.html` doc in a real browser.
  * Usage:  node scripts/check-spell.js <folder>/<doc>.html [outDir]
  * - screenshots:  desktop top, desktop mid-page, phone mid-page, phone contents drawer (outDir, default a temp folder);
- *   a plan doc also a phone-width open item, its line stuck and its fold button at the bottom (`phone-item.png`)
+ *   a plan doc also a phone-width open item, its line stuck (`phone-item.png`)
  * - fails (exit 1) on:
  *   - console / page errors
- *   - a `ui-*` element that isn't defined, or never rendered (no shadow root)
- *   - a contents list that doesn't match the sections / headings, or a `data-target` that points nowhere
+ *   - a `ui-*` or `epic-*` element (the `epics` pack's, a plan doc's) that isn't defined, or never rendered (no
+ *     shadow root)
+ *   - a contents list that doesn't match the sections / headings (a plan doc's:  its `<epic-*>` blocks), or a
+ *     `data-target` that points nowhere
  *   - horizontal scroll at phone width
  *   - a content column squeezed at phone width (a wide-screen grid rule leaking into the narrow layout)
- *   - a top-level section's title (`<ui-section>` pages) or h2 (`section.s2` pages) that doesn't stick when scrolled
- *     into its section, or sticks under the fixed site header
+ *   - a top-level section's title (`<ui-section>` pages, a plan doc's `<epic-*>` blocks) or h2 (`section.s2` pages)
+ *     that doesn't stick when scrolled into its section, or sticks under the fixed site header.  A plan doc's start
+ *     folded:  its largest item section is opened first (`openBiggestSection()`)
  *   - no active contents link after scrolling
  *   - a `ui-accordion.spell-code` without a `<pre>`
  *   - a contents drawer that doesn't open at phone width
- *   - a plan doc's open item (`ui-accordion.plan-item`, epic `windows-and-review` Q6) whose line doesn't stick
- *     right under its section's stuck title while its details are read, whose fold button isn't at the window's
- *     bottom (inside it, clear of every line of the details' text), or whose fold button doesn't fold it and keep
- *     its line where it was stuck;  at desktop and phone width (`checkItemFold()`)
+ *   - a plan doc's open item (`<epic-item>`, epic `windows-and-review` Q6) whose line doesn't stick right under its
+ *     section's stuck title while its details are read;  at desktop and phone width (`checkItemLine()`)
  * - loads the page from `file://`, or from the page server when its `<body>` says `data-spell-needs-server`
  * - reports, never fails on:  icons with no `<svg>` drawn in their shadow tree (no reliable "done loading" signal)
  * - prints a JSON summary on stdout (last thing written), problems on stderr
@@ -31,6 +32,12 @@ import { pathToFileURL } from "node:url"
 import { chromium } from "playwright"
 
 import { ensurePageServer, pageFile, serverUrl } from "./pages.js"
+
+/**
+ * Elements the page's packs define, as `ui-*` (Spell UI) and `epic-*` (the `epics` pack, plan docs):  a tag that
+ * looks like one of theirs must be defined and draw into a shadow root.
+ */
+const PACK_TAG = /^(ui|epic)-/
 
 const [docArg, outArg] = process.argv.slice(2)
 if (!docArg) {
@@ -58,6 +65,8 @@ if (desktop.missingFromToc.length) problem(`headings missing from contents:  ${d
 if (desktop.codeWithoutPre) problem(`${desktop.codeWithoutPre} ui-accordion.spell-code without a <pre>`)
 if (desktop.icons.blankCount) console.error(`NOTE: ${desktop.icons.blankCount} icon(s) with no <svg> drawn`)
 
+await desk.evaluate(openBiggestSection)
+await desk.waitForTimeout(800)
 const middle = await desk.evaluate(scrollToMiddleSection)
 await desk.waitForTimeout(600)
 await desk.screenshot({ path: join(out, "desk-mid.png") })
@@ -70,7 +79,7 @@ if (!stuck.active) problem("no active contents link after scrolling")
 
 const fold = await checkFold(desk)
 if (fold.problem) problem(`fold:  ${fold.problem}`)
-const itemFold = { desktop: await checkItemFold(desk) }
+const itemLine = { desktop: await checkItemLine(desk) }
 
 const phone = await open({ width: 390, height: 844 })
 await phone.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2))
@@ -78,7 +87,7 @@ await phone.waitForTimeout(400)
 await phone.screenshot({ path: join(out, "phone-mid.png") })
 const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - innerWidth)
 if (overflow > 0) problem(`${overflow}px horizontal scroll at phone width`)
-itemFold.phone = await checkItemFold(phone, join(out, "phone-item.png"))
+itemLine.phone = await checkItemLine(phone, join(out, "phone-item.png"))
 await phone.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2))
 const mainWidth = await phone.evaluate(() => Math.round(document.querySelector("main").getBoundingClientRect().width))
 if (mainWidth < 390 - 40) problem(`content column only ${mainWidth}px wide at phone width (390px)`)
@@ -113,7 +122,7 @@ const summary = {
   atTop: stuck.covering,
   active: stuck.active,
   fold,
-  itemFold,
+  itemLine,
   overflow,
   mainWidth,
   drawer,
@@ -146,7 +155,7 @@ function problem(text) {
   seen.set(line, (seen.get(line) ?? 0) + 1)
 }
 
-/** A page at `viewport`, collecting errors as problems, once every `ui-*` tag in it is defined (or 10s passed). */
+/** A page at `viewport`, collecting errors as problems, once every pack tag in it is defined (or 10s passed). */
 async function open(viewport) {
   const page = await browser.newPage({ viewport })
   const label = `${viewport.width}px`
@@ -157,15 +166,15 @@ async function open(viewport) {
   return page
 }
 
-/** Wait until every `ui-*` tag on `page` is defined (or 10s passed), then a second for the runtime. */
+/** Wait until every pack tag on `page` is defined (or 10s passed), then a second for the runtime. */
 async function settle(page) {
   await page
     .waitForFunction(
-      () =>
+      (pattern) =>
         [...document.querySelectorAll("*")].every(
-          (el) => !el.localName.startsWith("ui-") || customElements.get(el.localName)
+          (el) => !new RegExp(pattern).test(el.localName) || customElements.get(el.localName)
         ),
-      undefined,
+      PACK_TAG.source,
       { timeout: 10000 }
     )
     .catch(() => {})
@@ -226,28 +235,26 @@ async function checkFold(page) {
 }
 
 /**
- * The ITEM FOLD check (plan docs, epic `windows-and-review` Q6):  an open item's line sticks, and its fold button
- * floats at the window's bottom and folds it in place.
- * - target:  the first plan item with details;  its sections unfolded and it opened (a split doc's details loaded);
- *   details shorter than two windows get filler paragraphs (`p[data-check-filler]`), and `main` room below, so
- *   the page can scroll anywhere in it
- * - scrolled to the middle of its details:  its line's top must be at its section's stuck title's bottom;  the
- *   fold button inside the window, within 40px of its bottom, and clear of every line of the details' text
- * - a click on the fold button:  the item folded, its line within 2px of where it was stuck
+ * The ITEM LINE check (plan docs, epic `windows-and-review` Q6):  an open item's line sticks right under its
+ * section's stuck title while its details are read.
+ * - target:  the first `<epic-item>` with details (`source`, or children of its own) in a top-level item section;
+ *   its section and it opened, its part loaded;  details shorter than two windows get filler paragraphs
+ *   (`p[data-check-filler]`), and `main` room below, so the page can scroll anywhere in them
+ * - scrolled to the middle of its details:  its line's top within 2px of its section's stuck title's bottom
  * - `shot`:  a screenshot of the stuck state, when given
- * - returns `{ target, ...measures }`, or `{ target: null }` on a page without plan items;  records problems
+ * - returns `{ target, line, under }`, or `{ target: null }` on a page without plan items;  records problems
  * - SIDE EFFECT:  a reload afterwards drops the filler and the room
  */
-async function checkItemFold(page, shot) {
+async function checkItemLine(page, shot) {
   const label = `${page.viewportSize().width}px`
   const target = await page.evaluate(openItem)
   if (!target) return { target: null }
-  // a split doc's details load from their part file when opened, replacing what was there:  pad them once they have
   await page
     .waitForFunction(
-      (id) =>
-        document.querySelector(`#${id} > ui-accordion.plan-item > ui-content > .plan-fold`) &&
-        !document.querySelector(`#${id} > ui-accordion.plan-item:state(loading)`),
+      (id) => {
+        const item = document.getElementById(id)
+        return !item.hasAttribute("source") || item.matches(":state(loaded), :state(error)")
+      },
       target,
       { timeout: 5000 }
     )
@@ -257,157 +264,70 @@ async function checkItemFold(page, shot) {
   await page.waitForTimeout(400)
   const stuck = await page.evaluate(itemStuck, target)
   if (shot) await page.screenshot({ path: shot })
-  const result = { target, ...stuck }
-  if (!stuck.fold) problem(`item ${target} (${label}):  no fold button`)
-  else {
-    if (Math.abs(stuck.line - stuck.under) > 2)
-      problem(
-        `item ${target} (${label}):  its line at ${stuck.line}px, not stuck under its section's title (${stuck.under}px)`
-      )
-    if (stuck.fold.bottom > stuck.height || stuck.fold.bottom < stuck.height - 40 || stuck.fold.right > stuck.width)
-      problem(
-        `item ${target} (${label}):  its fold button isn't at the window's bottom (${JSON.stringify(stuck.fold)})`
-      )
-    if (stuck.covers) problem(`item ${target} (${label}):  its fold button covers its text ("${stuck.covers}")`)
-    // scrolled to the item's END, its note box all that's left on screen (C3):  the line still stuck, the button in
-    // view and clear of the box's buttons
-    const end = await page.evaluate(itemEnd, target)
-    Object.assign(result, { end })
-    if (Math.abs(end.line - end.under) > 2)
-      problem(`item ${target} (${label}):  at its end, its line at ${end.line}px, not stuck (${end.under}px)`)
-    if (!end.fold || end.fold.bottom > end.height || end.fold.top < end.under)
-      problem(`item ${target} (${label}):  at its end, its fold button is out of view (${JSON.stringify(end.fold)})`)
-    if (end.covers) problem(`item ${target} (${label}):  at its end, its fold button covers ${end.covers}`)
-    await page.evaluate(itemStuck, target)
-    await page.waitForTimeout(200)
-    await page.click(`#${target} .plan-fold`)
-    await page.waitForTimeout(700)
-    const folded = await page.evaluate(itemFolded, target)
-    Object.assign(result, { folded })
-    if (folded.open) problem(`item ${target} (${label}):  its fold button didn't fold it`)
-    if (Math.abs(folded.line - stuck.line) > 2)
-      problem(`item ${target} (${label}):  folding moved its line from ${stuck.line}px to ${folded.line}px`)
-  }
+  if (Math.abs(stuck.line - stuck.under) > 2)
+    problem(
+      `item ${target} (${label}):  its line at ${stuck.line}px, not stuck under its section's title (${stuck.under}px)`
+    )
   await page.reload()
   await settle(page)
-  return result
+  return { target, ...stuck }
 }
 
-/** In the page:  unfold the first plan item with details, and what holds it;  its id, or null. */
+/** In the page:  open the first plan item with details, and the blocks around it;  its id, or null. */
 function openItem() {
-  const accordion = document.querySelector(".plan-items > [data-status][id] > ui-accordion.plan-item")
-  if (!accordion) return null
-  const item = accordion.parentElement
-  for (let section = item.closest("ui-section"); section; section = section.parentElement.closest("ui-section"))
-    section.removeAttribute("collapsed")
-  accordion.open = "0"
+  const blocks = "epic-overview, epic-section, epic-phase"
+  const item = [...document.querySelectorAll("main epic-page > epic-section > epic-item")].find(
+    (it) => it.hasAttribute("source") || [...it.children].some((child) => !child.hasAttribute("slot"))
+  )
+  if (!item) return null
+  for (let block = item.parentElement.closest(blocks); block; block = block.parentElement?.closest(blocks))
+    block.open = true
+  item.open = true
   return item.id
 }
 
 /** In the page:  item `id`'s details at least two windows tall (filler paragraphs), and room below `main`. */
 function lengthenItem(id) {
-  const accordion = document.getElementById(id).querySelector(":scope > ui-accordion.plan-item")
-  const details = accordion.querySelector(":scope > ui-content")
-  const fold = details.querySelector(":scope > .plan-fold")
-  for (let count = 0; count < 40 && accordion.getBoundingClientRect().height < 2 * innerHeight; count++) {
+  const item = document.getElementById(id)
+  for (let count = 0; count < 40 && item.getBoundingClientRect().height < 2 * innerHeight; count++) {
     const filler = document.createElement("p")
     filler.dataset.checkFiller = ""
-    filler.textContent = "Filler for the item fold check, a line of text long enough to reach the right edge. ".repeat(
+    filler.textContent = "Filler for the item line check, a line of text long enough to reach the right edge. ".repeat(
       3
     )
-    details.insertBefore(filler, details.querySelector(":scope > .plan-revisit") ?? fold)
+    item.append(filler)
   }
   document.querySelector("main").style.paddingBottom = `${2 * innerHeight}px`
 }
 
 /**
- * In the page, scrolled so item `id`'s details END halfway down the window:  only their last part on screen, the
- * note box when there's one.  Where its line is (`line`), where its section's stuck title ends (`under`), its fold
- * button's box, and what of the note box it covers (`covers`:  its text box or a button).
+ * In the page, scrolled to the middle of item `id`'s details:  where its line is (`line`), and where its section's
+ * stuck title ends (`under`):  the title of the `<ui-section>` the section draws in its shadow root.
  */
-function itemEnd(id) {
-  const accordion = document.getElementById(id).querySelector(":scope > ui-accordion.plan-item")
-  window.scrollBy(0, accordion.getBoundingClientRect().bottom - innerHeight / 2)
-  const line = accordion.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect()
-  const section = accordion.closest("ui-section[sticky]")
-  const under = section.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect().bottom
-  const fold = accordion.querySelector(":scope > ui-content > .plan-fold")?.getBoundingClientRect()
-  const box = accordion.querySelector(":scope > ui-content > .plan-revisit")
-  let covers = null
-  for (const part of box?.querySelectorAll("textarea, button") ?? []) {
-    const rect = part.getBoundingClientRect()
-    if (fold && rect.right > fold.left && rect.left < fold.right && rect.bottom > fold.top && rect.top < fold.bottom)
-      covers ??= part.className || part.localName
-  }
-  const round = (rect) => rect && { top: Math.round(rect.top), bottom: Math.round(rect.bottom) }
-  return {
-    line: Math.round(line.top),
-    under: Math.round(under),
-    fold: round(fold),
-    box: Boolean(box),
-    covers,
-    height: innerHeight
-  }
+function itemStuck(id) {
+  const item = document.getElementById(id)
+  const box = item.getBoundingClientRect()
+  window.scrollBy(0, box.top + box.height / 2 - innerHeight / 2)
+  const line = item.shadowRoot.querySelector('[part~="line"]').getBoundingClientRect()
+  const section = item.parentElement.closest("epic-section")
+  const title = section.shadowRoot.querySelector("ui-section").shadowRoot.querySelector('[part~="title"]')
+  return { line: Math.round(line.top), under: Math.round(title.getBoundingClientRect().bottom) }
 }
 
 /**
- * In the page, scrolled to the middle of item `id`'s details:  where its line is (`line`), where its section's
- * stuck title ends (`under`), its fold button's box, and the first text it covers (`covers`).
+ * The section the fold check works on:  `{ id, kind }` (`ui-section`;  `epic` for a plan doc's top-level block;
+ * `section` for the old markup's h2 id).
  */
-function itemStuck(id) {
-  const accordion = document.getElementById(id).querySelector(":scope > ui-accordion.plan-item")
-  const box = accordion.getBoundingClientRect()
-  window.scrollBy(0, box.top + box.height / 2 - innerHeight / 2)
-  const line = accordion.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect()
-  const section = accordion.closest("ui-section[sticky]")
-  const under = section.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect().bottom
-  const button = accordion.querySelector(":scope > ui-content > .plan-fold")
-  const fold = button?.getBoundingClientRect()
-  let covers = null
-  if (fold) {
-    const walker = document.createTreeWalker(accordion.querySelector(":scope > ui-content"), NodeFilter.SHOW_TEXT)
-    const range = document.createRange()
-    for (let node = walker.nextNode(); node && !covers; node = walker.nextNode()) {
-      if (!node.textContent.trim() || button.contains(node)) continue
-      range.selectNodeContents(node)
-      for (const rect of range.getClientRects())
-        if (rect.right > fold.left && rect.left < fold.right && rect.bottom > fold.top && rect.top < fold.bottom)
-          covers = node.textContent.trim().slice(0, 40)
-    }
-  }
-  const round = (rect) =>
-    rect && {
-      left: Math.round(rect.left),
-      top: Math.round(rect.top),
-      right: Math.round(rect.right),
-      bottom: Math.round(rect.bottom)
-    }
-  return {
-    line: Math.round(line.top),
-    under: Math.round(under),
-    fold: round(fold),
-    covers,
-    width: innerWidth,
-    height: innerHeight
-  }
-}
-
-/** In the page:  whether item `id` is still open, and where its line is. */
-function itemFolded(id) {
-  const accordion = document.getElementById(id).querySelector(":scope > ui-accordion.plan-item")
-  const details = accordion.shadowRoot.querySelector("details")
-  return {
-    open: !!details?.open,
-    line: Math.round(accordion.shadowRoot.querySelector('[part~="title"]').getBoundingClientRect().top)
-  }
-}
-
-/** The section the fold check works on:  `{ id, kind }` (`ui-section`, or `section` for the old markup's h2 id). */
 function foldTarget() {
   // one with content to hide, open to start with, if there is one
+  const filled = (section) => [...section.children].some((child) => !child.hasAttribute("slot"))
+  const blocks = [...document.querySelectorAll("main epic-page > :is(epic-overview, epic-section)[id]")]
+  if (blocks.length) {
+    const best = blocks.find((block) => filled(block) && block.open) ?? blocks.find(filled) ?? blocks[0]
+    return { id: best.id, kind: "epic" }
+  }
   const sections = [...document.querySelectorAll("main > ui-section[collapsible][id]")]
   if (sections.length) {
-    const filled = (section) => [...section.children].some((child) => !child.hasAttribute("slot"))
     const best =
       sections.find((section) => filled(section) && !section.hasAttribute("collapsed")) ??
       sections.find(filled) ??
@@ -419,10 +339,14 @@ function foldTarget() {
   return h2 ? { id: h2.id, kind: "section" } : null
 }
 
-/** The element a reader clicks to fold the target:  the shadow toggle button, or the old chevron host. */
+/**
+ * The element a reader clicks to fold the target:  the shadow toggle button (a plan doc's block:  the one of the
+ * `<ui-section>` it draws in its shadow root), or the old chevron host.
+ */
 function foldToggle({ id, kind }) {
   const element = document.getElementById(id)
-  if (kind === "ui-section") return element?.shadowRoot?.querySelector('button[part~="toggle"]') ?? null
+  const section = kind === "epic" ? element?.shadowRoot?.querySelector("ui-section") : element
+  if (kind !== "section") return section?.shadowRoot?.querySelector('button[part~="toggle"]') ?? null
   return element?.querySelector(":scope > ui-button.spell-fold") ?? null
 }
 
@@ -430,11 +354,19 @@ function foldToggle({ id, kind }) {
  * The target's fold:  `{ folded, contentVisible }`.
  * - `<ui-section>`:  folded when its `collapsed` is true AND it says `:state(collapsed)`;  content:  its first
  *   unslotted child
+ * - a plan doc's block:  folded when it isn't `open` and doesn't say `:state(open)`;  content:  the same
  * - old markup:  `section.spell-folded`;  content:  the element after the heading's `ui-sticky`
  * - visible:  `checkVisibility()`, which sees `hidden="until-found"` (content-visibility) and `display: none`
  */
 function foldState({ id, kind }) {
   const element = document.getElementById(id)
+  if (kind === "epic") {
+    const content = [...element.children].find((child) => !child.hasAttribute("slot"))
+    return {
+      folded: !element.open && !element.matches(":state(open)"),
+      contentVisible: content ? content.checkVisibility({ visibilityProperty: true }) : null
+    }
+  }
   if (kind === "ui-section") {
     let state = !!element.collapsed
     try {
@@ -458,11 +390,13 @@ function foldState({ id, kind }) {
 
 /**
  * Static checks, run in the page:  element definitions and rendering, contents vs headings, code blocks, icons.
- * - "rendered" means has a shadow root:  every @spell-app/ui element renders into one.
+ * - the packs' elements:  `ui-*` (Spell UI) and `epic-*` (the `epics` pack:  `PACK_TAG`, written out here, as this
+ *   runs in the page)
+ * - "rendered" means has a shadow root:  every @spell-app/ui element renders into one, and so does every pack's.
  * - icons:  `<ui-icon>` plus any `ui-*` with an `icon` attribute, looked for an `<svg>` anywhere in its shadow tree.
  */
 function inspectPage() {
-  const all = [...document.querySelectorAll("*")].filter((el) => el.localName.startsWith("ui-"))
+  const all = [...document.querySelectorAll("*")].filter((el) => /^(ui|epic)-/.test(el.localName))
   const elements = {}
   const unrendered = {}
   for (const el of all) {
@@ -471,12 +405,16 @@ function inspectPage() {
       unrendered[el.localName] = (unrendered[el.localName] ?? 0) + 1
   }
   const undefinedTags = Object.keys(elements).filter((tag) => !customElements.get(tag))
-  // `<ui-section>` pages:  the sections are entries too (their headings are in their shadow roots)
-  const headingIds = [...document.querySelectorAll("main ui-section[id], main h2[id], main h3[id], main h4[id]")].map(
-    (h) => h.id
-  )
+  // `<ui-section>` pages:  the sections are entries too (their headings are in their shadow roots);  a plan doc's
+  // blocks too, but not the headings in an item's earlier versions (`<epic-original>`)
+  const entries = "main :is(ui-section, epic-overview, epic-section, epic-phase, h2, h3, h4)[id]"
+  const headingIds = [...document.querySelectorAll(entries)]
+    .filter((heading) => !heading.closest("epic-original"))
+    .map((heading) => heading.id)
   const targets = [...document.querySelectorAll("#spell-toc [data-target]")].map((a) => a.dataset.target)
-  const icons = all.filter((el) => el.localName === "ui-icon" || el.hasAttribute("icon"))
+  const icons = all.filter(
+    (el) => el.localName === "ui-icon" || (el.localName.startsWith("ui-") && el.hasAttribute("icon"))
+  )
   const blank = icons.filter((el) => !hasSvg(el.shadowRoot))
   return {
     elements,
@@ -507,19 +445,33 @@ function inspectPage() {
 }
 
 /**
- * Scroll into the middle top-level section (`main > ui-section`, or `section.s2`), part way down, and return its
- * id (the h2's, for `section.s2`) and what it is.
+ * In the page:  a plan doc starts folded, so nothing would be tall enough to stick over:  open its top-level item
+ * section with the most items (they're in the doc itself, never in a part), as a reader would to read it.  Not saved
+ * (no event):  the fold check starts from it.
+ */
+function openBiggestSection() {
+  const sections = [...document.querySelectorAll("main epic-page > epic-section[id]")]
+  const items = (section) => section.querySelectorAll(":scope > epic-item").length
+  const biggest = sections.sort((a, b) => items(b) - items(a))[0]
+  if (biggest && items(biggest) > 2) biggest.open = true
+}
+
+/**
+ * Scroll into the middle top-level section (`main > ui-section`, a plan doc's top-level block, or `section.s2`),
+ * part way down, and return its id (the h2's, for `section.s2`) and what it is.
  * - only sections that can scroll up to the top:  a short page's last section never sticks
  */
 function scrollToMiddleSection() {
   const room = document.documentElement.scrollHeight - innerHeight
   // a section barely taller than its title (an empty "Todos" in a new plan doc) has no middle to stick over:  skip it
-  const sections = [...document.querySelectorAll("main > ui-section, section.s2")].filter(
+  const top = "main > ui-section, main epic-page > :is(epic-overview, epic-section), section.s2"
+  const sections = [...document.querySelectorAll(top)].filter(
     (s) => s.getBoundingClientRect().top + scrollY + 200 < room && s.offsetHeight > 200
   )
   const middle = sections[Math.floor(sections.length / 2)]
   middle?.scrollIntoView()
   window.scrollBy(0, Math.min(600, (middle?.offsetHeight ?? 0) / 2))
+  if (middle?.localName.startsWith("epic-")) return { id: middle.id, tag: middle.localName }
   const section = middle?.localName === "ui-section"
   return { id: section ? middle.id : middle?.querySelector("h2")?.id, tag: section ? "ui-section" : "h2" }
 }
@@ -532,12 +484,19 @@ function scrollToMiddleSection() {
  *   is far above;  one stuck but covered, e.g. by an h3 sticking at the same offset, doesn't count.
  *   - `<ui-section>`:  its title is its shadow `title` part, and it must ALSO say `:state(stuck)`;  what shows
  *     there is the section host (the shadow retargets to it), not a nested section's
+ *   - a plan doc's block:  the same, of the `<ui-section>` it draws in its shadow root;  what shows there is the
+ *     block's host
  *   - h2:  one its short section's end pushed out (`:state(bound)`) counts:  it stuck, then left with its section
  * - active:  a selected `ui-item`, or a title `<a class="active">`
  */
 function stuckAndActive(id) {
   const element = id && document.getElementById(id)
-  const section = element?.localName === "ui-section" ? element : null
+  const epic = !!element?.localName.startsWith("epic-")
+  const section = epic
+    ? element.shadowRoot?.querySelector("ui-section")
+    : element?.localName === "ui-section"
+      ? element
+      : null
   const title = section ? section.shadowRoot?.querySelector('[part~="title"]') : element
   const left = document.querySelector("main").getBoundingClientRect().left + 40
   const rect = title?.getBoundingClientRect()
@@ -560,7 +519,10 @@ function stuckAndActive(id) {
     // a browser without custom states:  judge by position alone
     stuckState = true
   }
-  const ownTitle = section ? shown?.closest("ui-section") === section : shown?.closest("h2")?.id === id
+  const host = epic ? element : section
+  const ownTitle = section
+    ? shown?.closest(epic ? element.localName : "ui-section") === host
+    : shown?.closest("h2")?.id === id
   return {
     stuck: section ? stuckState && atTop && ownTitle : bound || (atTop && ownTitle),
     top: rect && Math.round(rect.top),

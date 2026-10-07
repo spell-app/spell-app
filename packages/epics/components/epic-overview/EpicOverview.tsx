@@ -5,10 +5,11 @@ import { IconGlyph, proto, SlotContent, UIT } from "$/ui/core"
 
 // Import directly:  the fold base, not the `epic-section` barrel (which defines `<epic-section>`)
 import { EpicFold } from "$/epics/components/epic-section/EpicFold"
+import type { ContentsEntry } from "$/epics/components/epic-section/epic-section.types"
 
 import { epicOverviewVocabulary } from "./epic-overview.vocabulary.en"
 import { EpicOverviewFallback } from "./epic-overview.fallback"
-import { ESTIMATE, PROMPT, type EpicOverviewVocabulary } from "./epic-overview.types"
+import { ESTIMATE, PROMPT, TITLE_ICON, type EpicOverviewVocabulary } from "./epic-overview.types"
 
 import foldCSS from "$/epics/components/epic-section/epic-fold.css?inline"
 import overviewCSS from "./epic-overview.css?inline"
@@ -29,7 +30,7 @@ export class EpicOverview extends EpicFold<EpicOverviewVocabulary> {
 
   /** Its icons:  the title's, the prompt's chevron, the estimate's. */
   readonly icons = {
-    title: new IconGlyph(this, () => "lightbulb"),
+    title: new IconGlyph(this, () => TITLE_ICON),
     chevron: new IconGlyph(this, () => "chevron right"),
     estimate: new IconGlyph(this, () => "clock outline")
   }
@@ -37,10 +38,20 @@ export class EpicOverview extends EpicFold<EpicOverviewVocabulary> {
   /** Its number, by its place among the page's blocks (always the first:  `1`). */
   readonly number = createMemo(() => {
     this.layout()
-    const parent = this.connected.get() ? this.host.parentElement : null
+    return this.place(this.connected.get())
+  })
+
+  /** The contents entry (`EpicFold.contentsEntry()`):  `1. Overview`, its lightbulb;  its place as it is now. */
+  contentsEntry(): ContentsEntry {
+    return { label: `${this.place(this.host.isConnected)}. ${this.text("title")}`, icon: TITLE_ICON }
+  }
+
+  /** Its place among the page's blocks, from 1;  1 when it isn't `connected`. */
+  private place(connected: boolean): number {
+    const parent = connected ? this.host.parentElement : null
     const blocks = Array.from(parent?.querySelectorAll(":scope > epic-overview, :scope > epic-section") ?? [])
     return blocks.indexOf(this.host) + 1 || 1
-  })
+  }
 
   render(): JSX.Element {
     return this.renderFold({
