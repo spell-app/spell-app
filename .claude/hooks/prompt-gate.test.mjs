@@ -131,13 +131,28 @@ test("gate:  plan mode, no text:  blocks, saves nothing", () => {
   assert.equal(existsSync(join(prompts, "foo.md")), false)
 })
 
-test("gate:  another worktree blocks, by cwd or window, saving the text", () => {
-  const byCwd = gate({ prompt: "/epic foo do it", cwd: WORKTREE }, null)
+test("gate:  another worktree blocks `/isolate`, by cwd or window, saving the text", () => {
+  const byCwd = gate({ prompt: "/isolate foo do it", cwd: WORKTREE }, null)
   assert.equal(byCwd.decision, "block")
   assert.match(byCwd.reason, /worktree `other`/)
   const byWindow = gate({ prompt: "/isolate foo", cwd: ROOT }, OTHER_WINDOW)
   assert.equal(byWindow.decision, "block")
   assert.equal(readFileSync(join(prompts, "foo.md"), "utf8"), "do it\n")
+})
+
+test("gate:  `/epic <name>` in another worktree:  through, not renamed, a note to ask;  text saved", () => {
+  for (const [cwd, window] of [[WORKTREE, null], [ROOT, OTHER_WINDOW]]) {
+    const out = gate({ prompt: "/epic foo do it", cwd }, window)
+    assert.equal(out.decision, undefined)
+    assert.equal(out.hookSpecificOutput.sessionTitle, undefined)
+    assert.match(out.hookSpecificOutput.additionalContext, /worktree `other`.*open a new window for epic `foo`/s)
+    assert.match(out.hookSpecificOutput.additionalContext, /saved in .*foo\.md/)
+  }
+  assert.equal(readFileSync(join(prompts, "foo.md"), "utf8"), "do it\n")
+  // no text:  nothing saved, nothing said about it
+  rmSync(join(prompts, "foo.md"))
+  assert.doesNotMatch(gate({ prompt: "/epic foo", cwd: WORKTREE }, null).hookSpecificOutput.additionalContext, /saved/)
+  assert.equal(existsSync(join(prompts, "foo.md")), false)
 })
 
 test("gate:  re-entering the same worktree, `/unpark` and `/epic resume` aren't blocked", () => {
