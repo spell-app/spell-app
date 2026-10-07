@@ -14,7 +14,7 @@ import "$/epics/components/epic-item"
 type ItemHost = UIHost & { open: boolean; load(): Promise<void>; reload(): Promise<void> }
 
 /** The part file the source tests serve. */
-const PART = "/demo/parts/items-q6.htm"
+const PART = "/demo/parts/items-q6.html"
 
 /** A part's markup, as the fetch answers it. */
 const PART_HTML = `<!-- part -->\n<p class="from-part">From the part.</p><epic-answer id="d9" title="Yes"></epic-answer>`
@@ -191,6 +191,24 @@ describe("<epic-item>", () => {
     expect(bare.host.shadowRoot!.querySelector("[part~='git']")).toBeNull()
     const marked = await item(`<epic-item id="i4" title="In its part" status="done" commits=""></epic-item>`)
     expect(marked.host.shadowRoot!.querySelector("[part~='git']")).not.toBeNull()
+  })
+
+  test("made overnight (`overnight`, I3):  a bed icon at the line's end, `made overnight`;  none by day", async () => {
+    const { host, line } = await item(`<epic-item id="j8" title="By night" status="open" overnight></epic-item>`)
+    const bed = host.shadowRoot!.querySelector<HTMLElement>("[part~='overnight']")!
+    expect([bed.title, bed.getAttribute("aria-label"), line.contains(bed)]).toEqual([
+      "made overnight",
+      "made overnight",
+      true
+    ])
+    await vi.waitFor(() => expect(bed.querySelector("svg")).not.toBeNull())
+    const day = await item(`<epic-item id="j9" title="By day" status="open"></epic-item>`)
+    expect(day.host.shadowRoot!.querySelector("[part~='overnight']")).toBeNull()
+  })
+
+  test("`calm`:  the chip follows the script's `state` (blue), and stays a link without a review", async () => {
+    const { chip } = await item(`<epic-item id="j10" title="Follows WWOD" status="open" state="open" calm></epic-item>`)
+    expect([chip.localName, chip.title]).toEqual(["a", "Open, not urgent · not reviewed yet"])
   })
 })
 

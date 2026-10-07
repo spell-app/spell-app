@@ -19,7 +19,7 @@ import { PhaseConverter } from "./PhaseConverter"
  * ### `Converter`
  * Converts ONE plan doc from today's markup (`ui-section`s, `ui-item[data-status]`, any generation still in use) to
  * `<epic-*>` markup, and proves it lost nothing.
- * - in:  the doc as it is on disk, split (a skeleton plus `parts/<id>.htm`) or one file;  assembled first
+ * - in:  the doc as it is on disk, split (a skeleton plus `parts/<id>.htm`, or `.html`) or one file;  assembled first
  *   (`PlanParts.assemble()`)
  * - out:  the same doc in `<epic-*>` markup, split again (`EpicParts`), each file formatted as `vp fmt` would;  its
  *   `Markup.validate()` problems (none allowed) and its `ConversionProof`

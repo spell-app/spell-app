@@ -41,7 +41,7 @@ export type Conversion = {
   name: string
   /** The skeleton, formatted:  `<name>.plan.html`. */
   skeleton: string
-  /** Its part files, formatted:  id => text (`parts/<id>.htm`), in page order. */
+  /** Its part files, formatted:  id => text (`parts/<id>.html`), in page order. */
   parts: Map<string, string>
   /** What the converter did that a reader should know about:  text moved, markup kept as it was. */
   notes: string[]
@@ -115,6 +115,7 @@ export const Old = {
   meta: "ui-list.plan-meta",
   hung: ":is(ui-accordion, ui-message).plan-hung",
   future: "ui-message.plan-future",
+  overnight: "ui-section#overnight",
   summary: "p.plan-summary",
   promptPanel: "ui-accordion.plan-prompt-panel",
   prompt: "blockquote.plan-prompt",
@@ -213,7 +214,8 @@ export const EXCLUSIONS = [
   "phase field labels (`Goal:`, `Updated:`, `Commits:` ...) and commit short shas and links (drawn from `name`, `sha` and <epic-page repo>)",
   "item chips (`Q7`, linking `#q7`), review labels (`reviewed 10-06`), `UPDATE` on a marker (drawn from the item's data)",
   "an option's `A · ` and ` (recommended)`, an answer's `Answer · ` / `D7 · `, a reply's title line's ` · ` and `re: ` (drawn from `letter`, `recommended`, the answer's id, `from` / `at` / `re`)",
-  "the `Plan hung?` and future-epic notices (drawn by <epic-page> while it has no phases / is `future`)"
+  "the `Plan hung?` and future-epic notices (drawn by <epic-page> while it has no phases / is `future`)",
+  "an older doc's Overnight report (`#overnight`, before 2026-10-05), its ids and links:  dropped (Owen, I3:  what it said is in the items and phases now);  the items it linked are `overnight`"
 ] as const
 
 ////////////////

@@ -14,6 +14,8 @@ import type { Converter } from "./Converter"
  *   `answered`, `status="decided"`, their text as it is.
  * - Dropped, as chrome:  the id chip (`Q7`), the review label, the panel around the details;  an UPDATE label
  *   becomes `<epic-update phase>` in the title.
+ * - `overnight` (the bed icon):  an item a `/bedtime` run touched (`data-bedtime`), or one the Overnight report
+ *   linked (`PageConverter.overnight`).
  ****************/
 export class ItemConverter {
   /** The converter it works for:  STATIC for its life. */
@@ -77,6 +79,8 @@ export class ItemConverter {
       else if (key === "phase") data[key] = Number(value)
       else data[key] = value
     }
+    // the night's items (I3):  changed in a `/bedtime` run and not reviewed since, or linked from the Overnight report
+    if (data.bedtime || this.owner.page.overnight.has(item.id)) data.overnight = true
     return data as EpicData<"epic-item">
   }
 }

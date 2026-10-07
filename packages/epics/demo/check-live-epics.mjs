@@ -18,7 +18,7 @@
  *   its note box never leaves the page or loses the focus, not even for a moment:  watched by a MutationObserver
  *   (every change, however brief) and sampled on every animation frame (what the reader could have seen)
  *   1. the doc:  the item's `title` changes (an attribute patched in place)
- *   2. the item's PART (`parts/<id>.htm`):  a paragraph added (the part re-fetched in place:  `wireSourceBodies()`)
+ *   2. the item's PART (`parts/<id>.html`):  a paragraph added (the part re-fetched in place:  `wireSourceBodies()`)
  *   3. the doc:  the Overview's summary text changes (a child of an `<epic-*>` element replaced, not the element)
  * - `--bundle`:  serve this file in place of the checkout's `spell-ui.js` (a runtime not yet built into it)
  * - prints a JSON summary on stdout, problems on stderr;  exit 1 on any problem, 2 without a preview copy or server
@@ -51,7 +51,7 @@ const source = join(ROOT, "preview-epics", name)
 const copyRoot = join(ROOT, "preview-epics", "check-live")
 const copy = join(copyRoot, "epics", name)
 const docFile = join(copy, `${name}.plan.html`)
-const partFile = join(copy, "parts", `${itemId}.htm`)
+const partFile = join(copy, "parts", `${itemId}.html`)
 if (!existsSync(join(source, `${name}.plan.html`))) {
   console.error(`check-live-epics:  no preview copy ${join(source, `${name}.plan.html`)}`)
   process.exit(2)
@@ -115,7 +115,7 @@ try {
     writeFileSync(docFile, changed)
     return (id) => document.getElementById(id)?.getAttribute("title")?.endsWith("(check-live)")
   })
-  await edit("the item's part (parts/<id>.htm)", "part", () => {
+  await edit("the item's part (parts/<id>.html)", "part", () => {
     writeFileSync(partFile, `${readFileSync(partFile, "utf8")}\n<p id="check-live-part">check-live</p>\n`)
     return () => !!document.getElementById("check-live-part")
   })

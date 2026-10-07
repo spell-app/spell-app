@@ -2,7 +2,7 @@ import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, rmSync 
 import { basename, dirname, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { PART_EXT, PARTS_DIR, PlanParts } from "$/epics/tool/PlanParts"
+import { PART_EXT, PART_FILE, PARTS_DIR, PlanParts } from "$/epics/tool/PlanParts"
 
 import { ConvertError, EXCLUSIONS, type Conversion } from "./convert.types"
 
@@ -45,7 +45,7 @@ export class ConvertRun {
 
   /**
    * Convert each of `names` and, unless it's a dry run (no `out`), write each that converted CLEANLY under `out`:
-   * `<out>/<name>/<name>.plan.html` and `<out>/<name>/parts/<id>.htm`.
+   * `<out>/<name>/<name>.plan.html` and `<out>/<name>/parts/<id>.html`.
    * - a doc that throws (`ConvertError`) is reported, and the rest go on
    * - throws `TypeError` for an unknown name, or an `out` inside `epics/`
    */
@@ -90,8 +90,9 @@ export class ConvertRun {
     const partsDir = join(folder, PARTS_DIR)
     if (existsSync(partsDir)) {
       for (const file of readdirSync(partsDir)) {
-        if (file.endsWith(PART_EXT) && !conversion.parts.has(file.slice(0, -PART_EXT.length)))
-          rmSync(join(partsDir, file))
+        // a part it no longer has, or one in the old `.htm` (every part is written `.html` now)
+        const id = PART_FILE.exec(file)?.[1]
+        if (id !== undefined && !(file.endsWith(PART_EXT) && conversion.parts.has(id))) rmSync(join(partsDir, file))
       }
     }
     return PlanParts.writeChanged([...outputs, [skeleton, conversion.skeleton]])

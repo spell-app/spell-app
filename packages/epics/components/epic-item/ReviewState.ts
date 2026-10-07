@@ -6,6 +6,7 @@ import { Cell } from "$/ui/core"
 import {
   NOTICE_MS,
   ReviewClient,
+  isSent,
   type InboxDraft,
   type InboxMark,
   type ReviewAction,
@@ -74,6 +75,13 @@ export class ReviewState {
   /** What's typed in its note box. */
   readonly typed = (): string => this.read((client, id) => client.typedOf(id)) ?? ""
 
+  /** Owen's urgency for it, not applied yet:  `calm` (true:  not urgent), and has it gone with a send?  Else none. */
+  readonly urgency = (): { calm: boolean; sent: boolean } | undefined =>
+    this.read((client, id) => {
+      const entry = client.inbox.urgency[id]
+      return entry && { calm: entry.calm, sent: isSent({ action: "urgency", at: entry.at }, client.inbox.sent) }
+    })
+
   /** Its id, as the inbox keys it. */
   readonly id = (): string => (this.idOf() ?? "").toLowerCase()
 
@@ -84,6 +92,11 @@ export class ReviewState {
   /** Its `action` button clicked:  `"open-box"` when the caller should take the reader to the note box. */
   press(action: ReviewAction): "open-box" | undefined {
     return this.client?.press(untrack(this.id), action)
+  }
+
+  /** Its id chip clicked:  urgent <-> not urgent (`docCalm`:  what the doc says). */
+  toggleCalm(docCalm: boolean) {
+    void this.client?.toggleCalm(untrack(this.id), docCalm)
   }
 
   /** A failed save's words:  the client's last write error. */

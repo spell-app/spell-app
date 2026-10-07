@@ -171,7 +171,8 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
 2. Do the work.  Record as you go, not at the end:
    - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision` (a
      question born answered);  a choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement`
-     (ids `J1` ...;  see `/bedtime`)
+     (ids `J1` ...;  see `/bedtime`);  one that simply follows WWOD gets `--calm` (last):  blue, not urgent, rather
+     than red (Owen flips it from its id chip while reviewing)
    - items added while the phase is active carry it:  the phase's "To review" line (written by the script on every
      edit) lists the ones Owen hasn't reviewed.  Never hand-write a "Judgement calls:" line
    - something only Owen can check (a live window, a click, a look):  `add ... test "<step>" --details "<p>what
@@ -413,7 +414,7 @@ phase-body <name> <N> [--symptom ..] [--changes ..] [--goal ..] [--files ..] [--
 updated <name> <N> "<p>what changed</p>"            a change to phase N's plan:  fenced, dated, under Symptom / Changes
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
-add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)
+add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"] [--calm]   prints the id (C3)
 decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
 commit <name> <sha> --phase N | --item <id> "..."   list a commit under a phase or an item
 commits <name> --backfill                           every phase / item commit (`P3:`, `<name> I3:`), once

@@ -264,11 +264,20 @@ describe("Converter.convert():  older generations", () => {
     })
   })
 
-  test("a section the page has no place for stays as it was, where it stood", async () => {
+  test("the Overnight report goes (I3):  its items, and those a night touched, are `overnight`;  proof clean", async () => {
     const conversion = await convert("one-file.plan.html")
+    expectClean(conversion)
     const document = whole(conversion)
-    expect(document.querySelector("main > ui-section#overnight + epic-page")).not.toBeNull()
-    expect(conversion.notes).toContain("#overnight has no place in <epic-page>:  kept before it, as it was")
+    expect(document.querySelector("#overnight")).toBeNull()
+    // q2:  `data-bedtime`, a night's change not reviewed since;  j1:  linked from the report
+    expect(Array.from(document.querySelectorAll("epic-item[overnight]"), (it) => it.id)).toEqual(["q2", "j1"])
+    expect(data(document, "#q2")).toMatchObject({ bedtime: true, overnight: true })
+    expect(conversion.notes).toContain(
+      "#overnight, the Overnight report:  dropped (I3:  what it said is in the doc);  1 item(s) it linked are `overnight`"
+    )
+    expect(conversion.proof.ids.excluded).toContain(
+      "#overnight (Overnight report, dropped:  its items are `overnight`)"
+    )
   })
 
   test("phase fields with no name:  kept whole, at the end of the Goal when there's no Done", async () => {

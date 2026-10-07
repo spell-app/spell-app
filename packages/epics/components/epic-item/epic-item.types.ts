@@ -19,6 +19,12 @@ export const ITEM_STATES = ["attention", "progress", "open", "recent", "old"] as
 /** One of `ITEM_STATES`. */
 export type ItemState = (typeof ITEM_STATES)[number]
 
+/**
+ * The items Owen may call urgent or not (`calm`, its id chip):  judgement calls and issues, the kinds red while open
+ * and not reviewed (`PlanReader.itemState()`;  the tool's `CALM_ID`, the same rule).
+ */
+export const CALM_ID = /^[ij]\d+$/
+
 /** Statuses that close an item:  without a `state`, its chip is `old` (grey), as the old runtime's `stateOf()`. */
 export const CLOSED_STATUSES = ["decided", "done", "canceled"] as const
 
@@ -56,6 +62,7 @@ export const CHIP = "chip"
 export const TITLE = "title"
 export const EXTRAS = "extras"
 export const GIT = "git"
+export const OVERNIGHT = "overnight"
 export const REVIEW = "review"
 export const DETAILS = "details"
 export const LABEL = "label"
@@ -88,6 +95,9 @@ export const FLOW_TAGS: readonly string[] = ["epic-update"]
 
 /** The More Details card's tag:  an item with one labels its own text "Original reply". */
 export const MORE_TAG = "epic-more"
+
+/** The icon of an item made overnight (`overnight`):  `<epic-page bedtime>`'s too (J28). */
+export const BED_ICON = "bed"
 
 /** A commit's tag:  an item with one among its children gets the git icon (T17). */
 export const COMMIT_TAG = "epic-commit"

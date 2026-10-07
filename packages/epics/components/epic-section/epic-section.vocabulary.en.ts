@@ -58,7 +58,7 @@ export const epicSectionVocabulary = {
     {
       name: "source",
       kind: "string",
-      description: "Its body's part file (`parts/o3.htm`, `parts/log.htm`), loaded into its children when it opens."
+      description: "Its body's part file (`parts/o3.html`, `parts/log.html`), loaded into its children when it opens."
     },
     {
       name: "part-ids",

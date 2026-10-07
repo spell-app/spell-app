@@ -10,7 +10,7 @@ import { ItemPicker } from "./ItemPicker"
 import { PlanDoc } from "./PlanDoc"
 import { EPIC_STATUSES, PlanDocFiles, type EpicListing } from "./PlanDocFiles"
 import { PlanMarkup } from "./PlanMarkup"
-import { PART_EXT, PARTS_DIR } from "./PlanParts"
+import { OLD_PART_EXT, PART_EXT, PARTS_DIR } from "./PlanParts"
 import type { PlanReader } from "./PlanReader"
 import { PlanTime } from "./PlanTime"
 import { ReviewBackfill } from "./ReviewBackfill"
@@ -525,7 +525,11 @@ export class PlanDocCommands {
       this.print(`NOTE:  #${id} has content beside its part:  the next edit moves it into the part`)
     const dir = join(dirname(file), PARTS_DIR)
     const orphans = existsSync(dir)
-      ? readdirSync(dir).filter((each) => each.endsWith(PART_EXT) && !parts.hosts.includes(basename(each, PART_EXT)))
+      ? readdirSync(dir).filter((each) => {
+          // a part split before Q12 is still `.htm`
+          const ext = [PART_EXT, OLD_PART_EXT].find((it) => each.endsWith(it))
+          return !!ext && !parts.hosts.includes(basename(each, ext))
+        })
       : []
     for (const orphan of orphans) this.print(`NOTE:  ${PARTS_DIR}/${orphan}:  nothing loads it`)
     for (const problem of problems) this.warn(`PROBLEM:  ${problem}`)
@@ -690,8 +694,10 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    set a phase's status;  done drops its UPDATE markers, and
                                                    --done writes its Done field (a <ul> of what was built);
                                                    brings the doc forward in VS Code (it updates itself)
-  add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html]    prints the new id
-                                                   (a decision:  a question born answered, Q7)
+  add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html] [--calm]
+                                                   prints the new id (a decision:  a question born answered,
+                                                   Q7);  --calm (last):  a judgement call or issue that simply
+                                                   follows WWOD, blue (not urgent) rather than red
   decide <name> <Q id> "answer" [--details html] [--option A]
                                                    answer a question:  the answer goes INTO it (an ivory card);
                                                    --option marks the chosen option card;  prints its id
@@ -728,7 +734,7 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   convert <name> ... | --all [--dry-run] [--out <folder>] [--verbose]
                                                    rewrite docs from the old markup into <epic-*> markup and
                                                    prove nothing was lost;  writes ONLY under --out (copies)
-  split <name> [--dry-run]  /  split --done        store a doc as a skeleton plus part files (parts/<id>.htm,
+  split <name> [--dry-run]  /  split --done        store a doc as a skeleton plus part files (parts/<id>.html,
                                                    loaded when opened);  --done:  every finished epic without
                                                    a worktree.  New docs start split;  every command reads and
                                                    writes either shape
@@ -743,7 +749,8 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    requests for now (taken;  their items marked working) and a
                                                    send not yet handed over (its marks by action);  timeout:  exit 2;
                                                    stamps the session's heartbeat every ${LISTEN_HEARTBEAT_MS / 1000}s (silent ${LISTEN_STALE_MS / 1000}s:  gone)
-  inbox <name> apply [ids...]                      apply the sent approve / pick / todo marks to the doc, clear
+  inbox <name> apply [ids...]                      apply the sent approve / pick / todo marks, and the sent
+                                                   urgency (an id chip clicked:  calm or not), to the doc, clear
                                                    them;  prints each, and what it left (revisits, a pick with a
                                                    revisit:  to talk over)
   inbox <name> working <id> on|off                 the page's spinner on an item

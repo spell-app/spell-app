@@ -72,11 +72,13 @@ export class OldReading extends DocReading {
   }
 
   protected idExclusion(element: Element): string | undefined {
+    if (element.closest(`main > ${Old.overnight}`)) return OVERNIGHT_WHY
     if (META_IDS.includes(element.id) && element.closest(`main > ${Old.meta}`)) return "meta line, drawn by <epic-page>"
     return undefined
   }
 
   protected linkExclusion(element: Element): string | undefined {
+    if (element.closest(`main > ${Old.overnight}`)) return OVERNIGHT_WHY
     if (element.closest(`main > ${Old.header}`)) return "step label, drawn by <epic-page>"
     if (element.closest(`main > ${Old.meta} > ui-item[icon="folder"]`))
       return "worktree meta line, drawn by <epic-page>"
@@ -124,6 +126,9 @@ export class OldReading extends DocReading {
 /** The ids of the page's own sections (the Overview, Phases ... Log):  their titles are drawn. */
 const STRUCTURAL = new Set<string>(["overview", ...Object.values(SectionIds)])
 
+/** Why an older doc's Overnight report isn't compared:  dropped (I3). */
+const OVERNIGHT_WHY = "Overnight report, dropped:  its items are `overnight`"
+
 /** An item's line:  its panel's title, or the item itself when it has no details. */
 const LINE = [`${Old.items} > ui-item > ${Old.itemPanel} > ui-title`, `${Old.items} > ui-item`]
 
@@ -138,6 +143,7 @@ const SKIPPED = [
   "ui-icon[slot='icon']",
   `main > ${Old.hung}`,
   `main > ${Old.future}`,
+  `main > ${Old.overnight}`,
   `#phases > ${Old.progress}`,
   `#phases > ${Old.planChanges}`,
   Old.partNote,

@@ -164,6 +164,13 @@ describe("staticPages()", () => {
     ])
   })
 
+  test("a folder:  its pages, never a plan doc's parts (`parts/<id>.html`)", () => {
+    const folder = resolve(TEMP, "epic")
+    mkdirSync(resolve(folder, "parts"), { recursive: true })
+    for (const name of ["epic.plan.html", "parts/q7.html"]) writeFileSync(resolve(folder, name), "")
+    expect(CLI.staticPages([folder], {}).map((it) => it.input)).toEqual([resolve(folder, "epic.plan.html")])
+  })
+
   test("refuses a missing page and overwriting a page", () => {
     expect(() => CLI.staticPages([resolve(TEMP, "nope.html")], {})).toThrow("No such page")
     const page = resolve(TEMP, "same.html")

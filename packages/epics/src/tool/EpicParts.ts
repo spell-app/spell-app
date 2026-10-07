@@ -2,16 +2,16 @@ import { Definitions, type EpicTag } from "$/epics/definitions"
 import { Markup } from "$/epics/markup"
 
 import { PlanMarkup } from "./PlanMarkup"
-import { PART_EXT, PARTS_DIR, PlanParts, type PartReader } from "./PlanParts"
+import { PART_EXT, PART_SOURCE, PARTS_DIR, PlanParts, type PartReader } from "./PlanParts"
 
 /****************
  * ### `EpicParts`
  * A plan doc in `<epic-*>` markup, in PARTS:  the skeleton, `<name>.plan.html`, plus one body file per bulky host,
- * `parts/<id>.htm` -- as `PlanParts` does for today's markup (`templates/epics/plan-doc.md`, "Parts"), with the
+ * `parts/<id>.html` -- as `PlanParts` does for today's markup (`templates/epics/plan-doc.md`, "Parts"), with the
  * elements as hosts.
  * - hosts (`HOSTS`):  an Overview sub-section, a phase, an item with details, the log.  A host's body is every child
  *   but its slotted ones (`slot="title"`):  the title stays in the skeleton, so the line shows without the body
- * - in the skeleton a host carries `source="parts/<id>.htm"`, `part-ids` (the ids inside, so a link to one loads the
+ * - in the skeleton a host carries `source="parts/<id>.html"`, `part-ids` (the ids inside, so a link to one loads the
  *   body first) and `commits` (its body lists commits):  set through `Markup`, never by hand.  No placeholder line:
  *   a `<p>` isn't allowed in a phase or the log, and the element loads its own body (Q12).
  * - a part file:  `PlanParts`' one-line comment, then the body;  relative URLs rebased to `parts/`
@@ -94,9 +94,6 @@ const HOSTS = [
   "epic-section > epic-item[id]",
   "epic-page > epic-section[kind='log'][id]"
 ].join(", ")
-
-/** A part's `source`:  `parts/<id>.htm`. */
-const PART_SOURCE = /^parts\/([\w-]+)\.htm$/
 
 /** The comment a part file starts with (`PlanParts`' too):  stripped when assembling. */
 const PART_COMMENT = /^\s*plan-doc part\b/

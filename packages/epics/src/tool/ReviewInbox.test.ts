@@ -397,6 +397,41 @@ describe("ReviewInbox.takeWork()", () => {
   })
 })
 
+describe("ReviewInbox urgency (an id chip clicked)", () => {
+  test("set, replaced, dropped by null;  only calls and issues;  never a mark", () => {
+    const inbox = new ReviewInbox()
+    expect(inbox.setUrgency("J1", true, T1)).toEqual({ calm: true, at: T1 })
+    expect(inbox.isEmpty).toBe(false)
+    expect(inbox.marks).toEqual({})
+    inbox.setMark("j1", { action: "approve" }, T1)
+    inbox.setUrgency("i2", false, T2)
+    expect(inbox.urgencyList).toEqual([
+      { id: "j1", calm: true, at: T1 },
+      { id: "i2", calm: false, at: T2 }
+    ])
+    expect(inbox.marks.j1.action).toBe("approve")
+    expect(inbox.setUrgency("j1", null)).toBeNull()
+    expect(Object.keys(inbox.urgency)).toEqual(["i2"])
+    expect(() => inbox.setUrgency("q7", true)).toThrow(InboxError)
+    expect(() => inbox.setUrgency("j1", "yes")).toThrow(InboxError)
+  })
+
+  test("sent with the marks:  handed over by takeWork, alone too;  cleared only while as applied", () => {
+    const inbox = new ReviewInbox()
+    inbox.setUrgency("j1", true, T1)
+    expect([inbox.unsentUrgency.length, inbox.sentUrgency.length]).toEqual([1, 0])
+    inbox.markSent(T2)
+    inbox.setUrgency("j2", true, T3)
+    expect(inbox.sentUrgency.map((entry) => entry.id)).toEqual(["j1"])
+    expect(inbox.unsentUrgency.map((entry) => entry.id)).toEqual(["j2"])
+    expect(inbox.takeWork()!.sent).toEqual({ at: T2, marks: [], urgency: [{ id: "j1", calm: true, at: T1 }] })
+    const applied = inbox.sentUrgency
+    inbox.setUrgency("j1", false, T3)
+    expect(inbox.clearUrgency(applied)).toEqual([])
+    expect(inbox.clearUrgency([{ id: "j2", at: T3 }])).toEqual(["j2"])
+  })
+})
+
 describe("ReviewInbox files", () => {
   const dir = mkdtempSync(join(tmpdir(), "inbox-"))
   const file = join(dir, "x.inbox.json")
@@ -453,7 +488,7 @@ test("itemIds:  ui-items with an id and a status, not phases", () => {
 test("itemIds:  <epic-item>s and the Overview's sub-sections (Q14), not phases or the page's sections", () => {
   const html = `<epic-overview id="overview"><epic-section
       id="o2" title="Structure"
-      kind="overview-part" source="parts/o2.htm"></epic-section></epic-overview>
+      kind="overview-part" source="parts/o2.html"></epic-section></epic-overview>
     <epic-section id="phases" kind="phases"><epic-phase id="p1" title="One" status="done"></epic-phase></epic-section>
     <epic-section id="decisions" kind="questions"><epic-item
       id="Q7" title="which?"

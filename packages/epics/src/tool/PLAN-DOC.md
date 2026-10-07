@@ -143,8 +143,10 @@ when it isn't `pen to square`.
 
 As `plan-doc.md`, "Parts", with the elements as hosts (`EpicParts`, beside this):  an Overview sub-section, a
 phase, an item with details, the log.  A host's body is every child but its slotted ones (the title stays in the
-skeleton);  in the skeleton it carries `source="parts/<id>.htm"`, `part-ids` and `commits`.  No placeholder line:
+skeleton);  in the skeleton it carries `source="parts/<id>.html"`, `part-ids` and `commits`.  No placeholder line:
 the element loads its own body.
+- `.html`, not `.htm` (Q12):  a part is told from a page by its folder, and every page walker skips `parts/`.  Until
+  the switch (P12) the tool READS a doc's old `.htm` parts too (`PlanParts` `OLD_PART_EXT`);  it writes `.html` only.
 
 ## Checking
 

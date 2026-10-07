@@ -528,6 +528,37 @@ describe("PlanDoc states", () => {
     expect(problems(plan)).toEqual([])
   })
 
+  test("calm (Owen, 2026-10-07):  an open call or issue is blue, not red;  the id chip's urgency, applied", () => {
+    const plan = freshPlan()
+    plan.addItem("judgement", "follows WWOD", { calm: true })
+    plan.addItem("judgement", "a real choice")
+    plan.addItem("issue", "minor", { calm: true })
+    expect(el(plan, "j1").hasAttribute("calm")).toBe(true)
+    expect(stateOf(plan, "j1", "j2", "i1")).toEqual(["open", "attention", "open"])
+    expect(() => plan.addItem("question", "calm?", { calm: true })).toThrow(PlanDocError)
+    // Owen's id chip, applied:  urgent again, and back;  the same twice changes nothing
+    expect(plan.setCalm("j1", false)).toBe("urgent")
+    expect(plan.setCalm("j2", true)).toBe("not urgent")
+    expect(plan.setCalm("j2", true)).toBeUndefined()
+    expect(stateOf(plan, "j1", "j2")).toEqual(["attention", "open"])
+    plan.addItem("question", "which?")
+    expect(() => plan.setCalm("q1", true)).toThrow(PlanDocError)
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("overnight:  every item added in bedtime mode, for good (I3);  none before", () => {
+    const plan = freshPlan()
+    plan.addItem("todo", "by day")
+    plan.startBedtime("P1")
+    plan.addItem("judgement", "by night")
+    plan.addItem("decision", "settled by night")
+    plan.finishBedtime()
+    plan.review("j1")
+    const overnight = (id: string) => el(plan, id).hasAttribute("overnight")
+    expect([overnight("t1"), overnight("j1"), overnight("q1")]).toEqual([false, true, true])
+    expect(problems(plan)).toEqual([])
+  })
+
   test("items added while a phase is active carry it;  each phase ends with what it raised that isn't reviewed", () => {
     const plan = freshPlan()
     plan.addPhase("One")

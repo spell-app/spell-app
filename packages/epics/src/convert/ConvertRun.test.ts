@@ -52,8 +52,9 @@ describe("ConvertRun", () => {
       ["one-file", true],
       ["split", true]
     ])
+    // the fixture's `q2` is still `parts/q2.htm` (as every doc split before Q12):  read, and written `.html`
     expect(readdirSync(join(out, "split", "parts")).sort()).toEqual(
-      ["j1", "log", "o1", "o2", "p1", "p2", "q1", "q2", "q4"].map((id) => `${id}.htm`)
+      ["j1", "log", "o1", "o2", "p1", "p2", "q1", "q2", "q4"].map((id) => `${id}.html`)
     )
     expect(readFileSync(join(out, "split", "split.plan.html"), "utf8")).toContain("<epic-page")
     // the docs themselves are untouched
@@ -62,15 +63,18 @@ describe("ConvertRun", () => {
     )
   })
 
-  test("a second run writes nothing new, and removes a part the doc no longer has", async () => {
+  test("a second run writes nothing new, and removes a part the doc no longer has, or an old `.htm` one", async () => {
     const root = checkout()
     const run = new ConvertRun({ root })
     const out = join(root, "preview")
     await run.run({ names: ["split"], out })
-    writeFileSync(join(out, "split", "parts", "gone.htm"), "stale")
+    const parts = join(out, "split", "parts")
+    for (const stale of ["gone.html", "p1.htm"]) writeFileSync(join(parts, stale), "stale")
     const [again] = await run.run({ names: ["split"], out })
     expect(again!.written).toEqual([])
-    expect(existsSync(join(out, "split", "parts", "gone.htm"))).toBe(false)
+    expect(existsSync(join(parts, "gone.html"))).toBe(false)
+    expect(existsSync(join(parts, "p1.htm"))).toBe(false)
+    expect(existsSync(join(parts, "p1.html"))).toBe(true)
   })
 
   test("refuses an output folder inside `epics/`, or through a link to it", async () => {

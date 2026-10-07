@@ -124,6 +124,12 @@ export const OLD_DECISION = /^d\d+$/
 export const QUESTION_ID = /^q\d+$/
 
 /**
+ * The items red while open and not reviewed (`PlanReader.itemState()`), so the ones `calm` makes blue:  judgement
+ * calls and issues (`i3`, `j7`).  `ReviewInbox`'s and `<epic-item>`'s `CALM_ID`, the same rule.
+ */
+export const CALM_ID = /^[ij]\d+$/
+
+/**
  * Item statuses that are closed:  not counted open, not on a "To review" line, coloured `recent` / `old`.
  * - `done`:  finished (fixed, passed, accepted)
  * - `decided`:  an answered question, in force
@@ -187,6 +193,8 @@ export type ItemFacts = {
   working: boolean
   /** changed during a `/bedtime` run */
   bedtime: boolean
+  /** not urgent:  blue while open and not reviewed, not red (`<epic-item calm>`) */
+  calm: boolean
 }
 
 /** One item (or an Overview sub-section), as `PlanReader.describeItem()` says it for `plan-doc inbox`. */
@@ -207,6 +215,8 @@ export type AddItemOptions = {
   details?: string
   /** `title` is HTML, not text:  with markup, it's a `slot="title"` child */
   titleHTML?: boolean
+  /** not urgent (`calm`):  a judgement call or issue that simply follows WWOD;  `--calm` */
+  calm?: boolean
 }
 
 /** `PlanDoc.decide()`'s options. */

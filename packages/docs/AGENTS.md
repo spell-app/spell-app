@@ -43,8 +43,9 @@ The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, 
 - `epics/<name>/<name>.plan.html` -- plan docs, one per `/epic` session (see "Plan docs").  `<name>.html` before
   2026-10-04:  the tools find either (`tools/pages.js` `planDocIn()`), a worktree cut before keeps the old name
   until it merges `main`, and the page server redirects the old URL;  `tools/plan-rename.js` did the rename.
-  - a SPLIT doc's bodies:  `epics/<name>/parts/<id>.htm`, loaded by the page when opened (see "Plan docs");
-    `.htm`, so no page walker takes them for pages (`findPages()` skips `parts/` too)
+  - a SPLIT doc's bodies:  `epics/<name>/parts/<id>.html` (`.htm` until the switch, P12 of `epic-components`),
+    loaded by the page when opened (see "Plan docs");  every page walker skips `parts/` folders (`findPages()`,
+    `relocate.js`, `spell static`), so a part is never taken for a page
 - `pages/details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page
   (`/details`, see "Details pages").  Scratch:  ignored by the shared repo's git, swept after 14 days.  An epic's go
   in `epics/<name>/details/`, kept (auto-committed with the shared repo).
@@ -241,7 +242,7 @@ In `tools/`:
     and refuses to edit them ("convert it first":  `spell dev plan-doc convert <name>`)
 - Edit through `spell dev plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
-- SPLIT docs (P3 of `claude-design`;  new docs start split):  a skeleton plus part files, `parts/<id>.htm`
+- SPLIT docs (P3 of `claude-design`;  new docs start split):  a skeleton plus part files, `parts/<id>.html`
   (`PlanParts`, `$/epics/tool/PlanParts`;  `EpicParts`, `$/epics/tool/EpicParts`, splits and assembles an
   `<epic-*>` doc;  rules:  `PLAN-DOC.md`, "Parts").  The tool reads either shape whole and writes it back split,
   each file once, atomically, only when changed;  `split <name>` / `split --done` / `join <name>`.

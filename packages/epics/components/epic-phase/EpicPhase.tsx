@@ -22,7 +22,7 @@ import phaseCSS from "./epic-phase.css?inline"
  * - Its children, in order:  `<epic-field>`s (Symptom, Changes, Goal, Done, Files, Verify, To review),
  *   `<epic-updated>` lines under Changes, `<epic-commit>`s.  Files and Verify show only while the Phases title's
  *   toggles say so;  commits while the page's git toggle does.
- * - Its body is usually a part (`source="parts/p3.htm"`), loaded the first time it opens.
+ * - Its body is usually a part (`source="parts/p3.html"`), loaded the first time it opens.
  ****************/
 export class EpicPhase extends EpicFold<EpicPhaseVocabulary> {
   @proto static vocabulary = epicPhaseVocabulary

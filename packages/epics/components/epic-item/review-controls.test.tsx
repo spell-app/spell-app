@@ -22,7 +22,7 @@ const PAGE = "/epics/sample/sample.plan.html"
  * - `posts`:  every POST's route and body
  */
 class FakeRoutes {
-  inbox: Inbox = { marks: {}, drafts: {}, sent: null, now: [], working: {}, listening: null }
+  inbox: Inbox = { marks: {}, drafts: {}, urgency: {}, sent: null, now: [], working: {}, listening: null }
   posts: [string, Record<string, unknown>][] = []
 
   readonly fetch = vi.fn(async (input: string, init?: RequestInit): Promise<Response> => {
@@ -39,6 +39,10 @@ class FakeRoutes {
     if (route === "mark") {
       if (body.mark) this.inbox.marks[id] = { ...(body.mark as Inbox["marks"][string]), at }
       else delete this.inbox.marks[id]
+    }
+    if (route === "urgency") {
+      if (body.calm === null) delete this.inbox.urgency[id]
+      else this.inbox.urgency[id] = { calm: body.calm as boolean, at }
     }
     if (route === "draft") {
       if (body.note) this.inbox.drafts[id] = { action: "revisit", note: body.note as string, at }
@@ -158,7 +162,7 @@ describe("<epic-item> review controls", () => {
     expect(host.shadowRoot!.querySelector(".under-line textarea")).toBeNull()
   })
 
-  test("a note box at the end of its details, saved as a draft when it loses focus;  none once approved", async () => {
+  test("a note box LAST in its details, saved as a draft when it loses focus;  still there once approved", async () => {
     await adoptClient()
     const host = await render(`<epic-item id="q1" title="A question" status="open" open><p>Text</p></epic-item>`)
     const note = host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
@@ -170,10 +174,12 @@ describe("<epic-item> review controls", () => {
     await vi.waitFor(() => expect(routes.inbox.drafts.q1?.note).toBe("half a thought"))
     button(host, "approve").click()
     await settle()
-    expect(host.shadowRoot!.querySelector("[part~='details'] textarea")).toBeNull()
+    const details = host.shadowRoot!.querySelector("[part~='details']")!
+    expect(details.lastElementChild!.matches("[part~='note-box']")).toBe(true)
+    expect(getComputedStyle(details.lastElementChild!).position).toBe("sticky")
   })
 
-  test("an answered item Claude approved (`review-as`):  Approve stays outlined, no note box", async () => {
+  test("an answered item Claude approved (`review-as`):  Approve stays outlined;  the note box stays", async () => {
     await adoptClient()
     const host = await render(
       `<epic-item id="q2" title="Done" status="decided" answered review-as="approve" open><p>Text</p></epic-item>`
@@ -182,7 +188,54 @@ describe("<epic-item> review controls", () => {
       button(host, "approve").hasAttribute("data-chosen"),
       button(host, "approve").hasAttribute("data-sent")
     ]).toEqual([true, true])
-    expect(host.shadowRoot!.querySelector("textarea")).toBeNull()
+    expect(host.shadowRoot!.querySelector("[part~='details'] textarea")).not.toBeNull()
+  })
+
+  test("a marked note shows ABOVE the note box, last in the details", async () => {
+    routes.inbox.marks.q3 = { action: "revisit", when: "soon", note: "why B?", at: new Date().toISOString() }
+    await adoptClient()
+    const host = await render(`<epic-item id="q3" title="A question" status="open" open><p>Text</p></epic-item>`)
+    await settle()
+    const parts = Array.from(host.shadowRoot!.querySelector("[part~='details']")!.children, (it) =>
+      it.getAttribute("part")
+    )
+    expect(parts.slice(-2)).toEqual(["said", "note-box"])
+  })
+
+  test("the review label goes:  each review button's tooltip says it (`Approve · reviewed 10-07`)", async () => {
+    await adoptClient()
+    const host = await render(
+      `<epic-item id="j5" title="A call" status="done" reviewed="2026-10-07"><p>Text</p></epic-item>`
+    )
+    expect(host.shadowRoot!.querySelector("[part~='review']")).toBeNull()
+    expect(button(host, "approve").getAttribute("title")).toBe("Approve · reviewed 10-07")
+    expect(button(host, "todo").getAttribute("title")).toBe("Make Todo · reviewed 10-07")
+  })
+
+  test("an open judgement call's id chip:  urgent (red) <-> not urgent (blue), through the inbox", async () => {
+    await adoptClient()
+    const host = await render(`<epic-item id="j6" title="A call" status="open" state="attention"></epic-item>`)
+    const chip = () => host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+    const box = () => host.shadowRoot!.querySelector("[part~='base']")!
+    expect(chip().localName).toBe("button")
+    expect(chip().title).toMatch(/click:  not urgent$/)
+    chip().click()
+    await settle()
+    expect(routes.inbox.urgency.j6?.calm).toBe(true)
+    expect([box().classList.contains("open"), box().classList.contains("attention")]).toEqual([true, false])
+    expect(chip().hasAttribute("data-unsent")).toBe(true)
+    expect(host.open).toBeFalsy()
+    chip().click()
+    await settle()
+    expect(routes.posts.at(-1)).toEqual(["urgency", { page: PAGE, id: "j6", calm: null }])
+    expect(box().classList.contains("attention")).toBe(true)
+  })
+
+  test("a question's chip, or a reviewed call's, stays a link", async () => {
+    await adoptClient()
+    const question = await render(`<epic-item id="q4" title="Which?" status="open"></epic-item>`)
+    const reviewed = await render(`<epic-item id="j7" title="Seen" status="open" reviewed="2026-10-07"></epic-item>`)
+    for (const host of [question, reviewed]) expect(host.shadowRoot!.querySelector("[part~='id']")!.localName).toBe("a")
   })
 })
 

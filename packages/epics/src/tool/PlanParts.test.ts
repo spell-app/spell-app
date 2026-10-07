@@ -2,15 +2,22 @@
  * Tests of `PlanParts`:  assembling an OLD-markup split doc (the converter's and `OldPlanReader`'s input until the
  * switch, P12), and rebasing a part's URLs.  Splitting and writing:  `PlanDocFiles.test.ts` (`EpicParts`).
  */
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+
 import { parseHTML } from "linkedom"
 import { describe, expect, test } from "vite-plus/test"
 
 import { PlanParts } from "./PlanParts"
 
-/** An old-markup skeleton:  a phase, an item panel and the log, each loading a part;  one host holding text of its own. */
+/**
+ * An old-markup skeleton:  a phase, an item panel and the log, each loading a part;  one host holding text of its own.
+ * Both extensions:  `.htm` (the docs today) and `.html` (since Q12).
+ */
 const SKELETON = `<!doctype html><html><body data-spell-needs-server><main>
 <ui-section id="phases"><ui-section id="p1" data-phase="1" data-status="todo" source="parts/p1.htm" data-commits><p class="plan-part-note">Loads from parts/p1.htm</p></ui-section></ui-section>
-<ui-list class="plan-items" data-kind="caveat"><ui-item id="c1" data-status="open"><ui-accordion class="plan-item" source="parts/c1.htm" data-part-ids="c1-x"><ui-title>C1</ui-title><ui-content><p class="plan-part-note">x</p><p>own</p></ui-content></ui-accordion></ui-item></ui-list>
+<ui-list class="plan-items" data-kind="caveat"><ui-item id="c1" data-status="open"><ui-accordion class="plan-item" source="parts/c1.html" data-part-ids="c1-x"><ui-title>C1</ui-title><ui-content><p class="plan-part-note">x</p><p>own</p></ui-content></ui-accordion></ui-item></ui-list>
 <ui-section id="log" source="parts/log.htm"></ui-section>
 </main></body></html>`
 
@@ -31,8 +38,24 @@ describe("PlanParts.assemble() (old markup)", () => {
     expect(document.body.hasAttribute("data-spell-needs-server")).toBe(false)
   })
 
+  test("reader():  `parts/<id>.html`, else the old `.htm` (until the switch, P12);  `undefined` for neither", () => {
+    const dir = mkdtempSync(join(tmpdir(), "plan-parts-"))
+    try {
+      mkdirSync(join(dir, "parts"))
+      writeFileSync(join(dir, "parts", "p1.html"), "new")
+      writeFileSync(join(dir, "parts", "c1.htm"), "old")
+      writeFileSync(join(dir, "parts", "q1.htm"), "older")
+      writeFileSync(join(dir, "parts", "q1.html"), "newer")
+      const read = PlanParts.reader(join(dir, "x.plan.html"))
+      expect(["p1", "c1", "q1", "log"].map(read)).toEqual(["new", "old", "newer", undefined])
+      expect(PlanParts.partFile(join(dir, "x.plan.html"), "p1")).toBe(join(dir, "parts", "p1.html"))
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
   test("rebasing to a part and back is exact", () => {
-    for (const url of ["a/b.html", "../../x.ts", "parts/q1.htm", "./y", "../z#h"])
+    for (const url of ["a/b.html", "../../x.ts", "parts/q1.html", "./y", "../z#h"])
       expect(PlanParts.toPage(PlanParts.toPart(url))).toBe(url)
     expect(PlanParts.toPart("../../guides/x.html")).toBe("../../../guides/x.html")
   })

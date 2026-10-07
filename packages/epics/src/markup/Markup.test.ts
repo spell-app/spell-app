@@ -23,13 +23,19 @@ const SAMPLES: { [T in EpicTag]: EpicData<T> } = {
     repo: "https://github.com/spell-app/spell-app"
   },
   "epic-overview": { id: "overview", estimate: "4h-5h in all, 2h left" },
-  "epic-section": { id: "o1", kind: "overview-part", title: "Structure", source: "parts/o1.htm", partIds: "o1-a o1-b" },
+  "epic-section": {
+    id: "o1",
+    kind: "overview-part",
+    title: "Structure",
+    source: "parts/o1.html",
+    partIds: "o1-a o1-b"
+  },
   "epic-phase": {
     id: "p2",
     title: "Review Buttons",
     status: "done",
     estimate: "3-4h",
-    source: "parts/p2.htm",
+    source: "parts/p2.html",
     partIds: "p2-notes",
     commits: true
   },
@@ -50,7 +56,7 @@ const SAMPLES: { [T in EpicTag]: EpicData<T> } = {
     work: "Skip short sections",
     working: true,
     bedtime: true,
-    source: "parts/q1.htm",
+    source: "parts/q1.html",
     partIds: "d1",
     commits: true
   },
@@ -331,7 +337,7 @@ describe("Markup.validate()", () => {
   })
 
   test("reports an epic element outside `<epic-page>`;  a part's body checks `as` its host", () => {
-    const part = documentOf(`<!-- parts/q7.htm -->
+    const part = documentOf(`<!-- parts/q7.html -->
       <p>the question</p><epic-choices><epic-option letter="A" title="a"></epic-option></epic-choices>`)
     expect(summary(Markup.validate(part))).toEqual(["not allowed here:  <epic-choices>"])
     expect(summary(Markup.validate(part.body, { as: "epic-item" }))).toEqual([])

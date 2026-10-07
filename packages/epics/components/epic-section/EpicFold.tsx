@@ -45,10 +45,10 @@ export class EpicFoldHost extends SourceBodyHost {
  * - Sticky line:  a top-level fold sticks below the page header (`EpicPage.signalsOf(page).top`);  a nested one
  *   below its parent's title (the inner sections stack themselves).  Its children get `--epic-stack`, the bottom of
  *   the stuck titles above them (px from the viewport top), for their own sticky lines (`<epic-item>`'s).
- * - Source:  `source="parts/p3.htm"` is fetched the first time it opens (`SourceBody`, as `<ui-section source>`),
+ * - Source:  `source="parts/p3.html"` is fetched the first time it opens (`SourceBody`, as `<ui-section source>`),
  *   into the host's LIGHT children, replacing any placeholder;  `ui-load` then.  The inner section stays folded
  *   while the part is on its way (`veiled()`), so it opens on the body.  From `file://` it can't load:  the
- *   `Loads from parts/x.htm when opened (needs the page server)` note, as today.
+ *   `Loads from parts/x.html when opened (needs the page server)` note, as today.
  * - Links:  the page's `#hash` naming it, an element inside it, or an id in its `part-ids` opens it (loading its
  *   part), then lands there, below the stuck titles -- unless a deeper folding element holds the target, which lands
  *   it itself.

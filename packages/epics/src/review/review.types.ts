@@ -9,6 +9,7 @@ import type {
   InboxListener,
   InboxMark,
   InboxRecord,
+  InboxUrgency,
   NowAction,
   NowRequest,
   WorkingEntry
@@ -69,7 +70,7 @@ export const SERVER_INFO = /window\.SPELL_SERVER = (\{.*?\})<\/script>/
 ////////////////
 
 /** The inbox as the page keeps it:  every field a route's reply has that the page reads. */
-export type Inbox = Pick<InboxRecord, "marks" | "drafts" | "sent" | "now" | "working" | "listening">
+export type Inbox = Pick<InboxRecord, "marks" | "drafts" | "urgency" | "sent" | "now" | "working" | "listening">
 
 /** A mark to set, before the route stamps it. */
 export type MarkInput = Omit<InboxMark, "at">
@@ -109,7 +110,7 @@ export type WriteOptions = {
   keepalive?: boolean
 }
 
-export type { InboxDraft, InboxListener, InboxMark, NowAction, NowRequest, WorkingEntry }
+export type { InboxDraft, InboxListener, InboxMark, InboxUrgency, NowAction, NowRequest, WorkingEntry }
 
 ////////////////
 // ## Helpers
@@ -121,6 +122,7 @@ export function inboxOf(reply: unknown): Inbox {
   return {
     marks: isObject(record.marks) ? (record.marks as Inbox["marks"]) : {},
     drafts: isObject(record.drafts) ? (record.drafts as Inbox["drafts"]) : {},
+    urgency: isObject(record.urgency) ? (record.urgency as Inbox["urgency"]) : {},
     sent: typeof record.sent === "string" ? record.sent : null,
     now: Array.isArray(record.now) ? (record.now as NowRequest[]) : [],
     working: isObject(record.working) ? (record.working as Inbox["working"]) : {},
