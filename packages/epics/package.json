@@ -17,6 +17,9 @@
     "/////// TESTING": "",
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'"
   },
+  "dependencies": {
+    "linkedom": "^0.18.13"
+  },
   "devDependencies": {
     "@solidjs/web": "2.0.0-rc.13",
     "@types/node": "^22.20.4",

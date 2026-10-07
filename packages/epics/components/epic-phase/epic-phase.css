@@ -1,0 +1,16 @@
+/*
+ * `<epic-phase>`, `<epic-field>`, `<epic-updated>`:  a phase, its fields and its plan updates.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-phase-*`) are never declared here:  read through private aliases
+ *   (`--_epic-phase-gap: var(--epic-phase-gap, 1em)`).
+ */
+
+@layer ui.components.epic-phase.types;
+
+@layer ui.components.epic-phase.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}

@@ -28,7 +28,10 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 | --- | --- |
 | `components/<tag>/` | one element family:  class, vocabulary, types, sheet, native fallback, test, barrel |
 | `components/index.ts` | `$/epics/components`:  every family barrel (defines every tag:  SIDE EFFECT) |
-| `src/index.ts` | `$/epics`:  code the elements share |
+| `src/index.ts` | `$/epics` (`EP`):  code the elements and the node tools share |
+| `src/definitions/` | the ONE description of every element:  its vocabulary as data, plus the children it takes |
+| `src/markup/` | read, write and check a plan doc's `<epic-*>` markup through the definitions (node and browser) |
+| `src/tool/` | the plan-doc tool (`spell dev plan-doc`), node only;  not in the pack |
 | `src/pack.test.ts` | runs `spell dev pack check epics`:  `pack/` is current |
 | `pack/` | GENERATED, committed:  `epics.catalog.ts`, `epics.entry.ts`, `epics.pack.js` |
 | `vite.config.ts` | lint and format only:  the build is the CLI's |

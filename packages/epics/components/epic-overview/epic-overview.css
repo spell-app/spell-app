@@ -1,0 +1,16 @@
+/*
+ * `<epic-overview>`:  a plan doc's Overview.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-overview-*`) are never declared here:  read through private aliases
+ *   (`--_epic-overview-gap: var(--epic-overview-gap, 1em)`).
+ */
+
+@layer ui.components.epic-overview.types;
+
+@layer ui.components.epic-overview.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}

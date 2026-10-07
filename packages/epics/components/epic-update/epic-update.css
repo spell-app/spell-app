@@ -1,0 +1,16 @@
+/*
+ * `<epic-update>`:  an UPDATE marker.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-update-*`) are never declared here:  read through private aliases
+ *   (`--_epic-update-gap: var(--epic-update-gap, 1em)`).
+ */
+
+@layer ui.components.epic-update.types;
+
+@layer ui.components.epic-update.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}

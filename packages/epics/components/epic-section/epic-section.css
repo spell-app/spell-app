@@ -1,0 +1,16 @@
+/*
+ * `<epic-section>`:  a plan doc's section.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-section-*`) are never declared here:  read through private aliases
+ *   (`--_epic-section-gap: var(--epic-section-gap, 1em)`).
+ */
+
+@layer ui.components.epic-section.types;
+
+@layer ui.components.epic-section.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}

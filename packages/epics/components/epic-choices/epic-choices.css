@@ -1,0 +1,16 @@
+/*
+ * `<epic-choices>`, `<epic-option>`:  a question's option cards.  P4:  blocks, nothing drawn yet (P5 draws them).
+ * - Public tokens (`--epic-choices-*`) are never declared here:  read through private aliases
+ *   (`--_epic-choices-gap: var(--epic-choices-gap, 1em)`).
+ */
+
+@layer ui.components.epic-choices.types;
+
+@layer ui.components.epic-choices.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}

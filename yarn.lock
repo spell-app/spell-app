@@ -1716,6 +1716,7 @@ __metadata:
   dependencies:
     "@solidjs/web": "npm:2.0.0-rc.13"
     "@types/node": "npm:^22.20.4"
+    linkedom: "npm:^0.18.13"
     solid-js: "npm:2.0.0-rc.13"
     typescript: "npm:^7.0.2"
     vite: "catalog:"

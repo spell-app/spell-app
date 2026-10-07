@@ -24,7 +24,12 @@ house style every package shares.  Only what's local is below;  a section named 
   family (`packages/ui/AGENTS.md`, "Solid authoring"):  `<Class>.tsx`, `<tag>.vocabulary.en.ts` (topics + aka),
   `<tag>.types.ts`, `<tag>.css`, `<tag>.fallback.ts`, `<tag>.test.tsx`, `index.ts` (defines its tags:  SIDE EFFECT).
   - A new one:  `spell dev pack element epics <tag>`, the tag starting `epic-`.
-- `src/` (`$/epics`) -- code the elements share, and `pack.test.ts`, which runs `spell dev pack check epics`.
+- `src/` (`$/epics`, `EP`) -- code the elements and the node tools share, and `pack.test.ts`, which runs
+  `spell dev pack check epics`:
+  - `definitions/` -- the ONE description of every element:  `Definitions.all`, each vocabulary as data plus
+    `children` (the content model).  Node-safe:  imports vocabulary files, never a family's barrel
+  - `markup/` -- `Markup` (make, read, set, append) and `MarkupCheck` (validate a doc):  linkedom or the browser's DOM
+  - `tool/` -- the plan-doc tool (`spell dev plan-doc`), node only, never bundled into the pack
 - `pack/` -- GENERATED, committed (`spell dev pack build epics`, `yarn pack:build`).  NEVER edit:
   - `epics.catalog.ts` -- tag => family folder + skeleton, read from the vocabularies;  its second line records
     the hash of the sources it was built from
