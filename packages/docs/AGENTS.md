@@ -164,7 +164,9 @@ In `tools/`:
       pick;  the button orange with the letter;  the chosen pill again drops just the pick, Clear both
     - the page header's paper plane, left of the git button:  grey, blue with unsent marks, outlined once sent;  its
       tooltip says nobody is reviewing while no session listens, or its heartbeat stopped (the routes answer
-      `listening: null`)
+      `listening: null`);  beside it, Review Now (the wand, epic `windows-and-review` P4):  sends every mark and asks
+      each revisit waiting now, so the session works through the batch at once, answers into the items;  blue while
+      there's anything to work through
     - re-reads the inbox on the page server's change event for `<name>.inbox.json`, else every 4s while visible;
       nothing it does scrolls the page
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
@@ -270,7 +272,7 @@ In `tools/`:
   - absent until the first mark, deleted once empty;  git-ignored:  per-machine pending state, never the record
   - shape and helpers:  `tools/inbox.js` (`setMark()`, `requestNow()`, `markSent()`, `unsentMarks()`,
     `sentMarks()`, `takeNow()`, `takeWork()`, `setWorking()`, `setListening()`, `touchListening()`,
-    `liveListener()`, `clearMarks()`, `finishMarks()`, `clearApplied()`, `setDraft()`);  EVERY write through
+    `liveListener()`, `clearMarks()`, `finishMarks()`, `clearApplied()`, `setDraft()`, `reviewNow()`);  EVERY write through
     `updateInbox()` / `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
   - `drafts`:  a note box's text as Owen types it, kept until the mark that uses it;  never sent, counted, or work
     for a waiting session
@@ -283,7 +285,8 @@ In `tools/`:
 - The page writes through the page server's route module `tools/reviewRoutes.ts`, `/api/review/...`:
   `GET inbox?page=`, `POST mark { page, id, mark | null }`, `POST draft { page, id, action, note }` (a note box's
   text as typed), `POST now { page, id, action, note? }` (Add Details, revisit now, which keeps the item's pick:
-  queued on `now`), `POST cancel { page, id }` ("nevermind"), `POST send { page }`.
+  queued on `now`), `POST cancel { page, id }` ("nevermind"), `POST send { page, now? }` (`now: true`:  Review Now,
+  every revisit waiting asked now too, `reviewNow()`).
   - a page whose token is stale (its server restarted) takes the new one from the page as served now and retries
     once (`spell-doc-runtime.js` `refreshToken()`):  nothing typed is refused for a restart
   - `page`:  the doc's URL path (`/worktrees/<w>/...` too);  only `<name>.plan.html` (else 403), only ids of its

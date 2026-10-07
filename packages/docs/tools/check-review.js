@@ -532,6 +532,25 @@ try {
     if (left || cleared.letter || cleared.picked || cleared.chosen)
       problems.push(`un-picking B on ${Q} left ${JSON.stringify({ inbox: left, page: cleared })}`)
   }
+  // Review Now (P4 of `windows-and-review`):  blue while marks wait;  pressed, every revisit waiting (`soon`'s, sent
+  // and still to talk over) is asked now, its item spinning, and the rest sent
+  const nowBefore = await page.$eval(".plan-review-now", (button) => button.dataset.state)
+  if (nowBefore !== "ready") problems.push(`Review Now before:  "${nowBefore}", not ready (blue)`)
+  await page.click(".plan-review-now")
+  await page.waitForTimeout(500)
+  const reviewed = await inbox()
+  summary.reviewNow = { mark: reviewed.marks[soon], queued: reviewed.now.map((each) => each.id) }
+  if (reviewed.marks[soon]?.when !== "now" || !reviewed.now.some((each) => each.id === soon))
+    problems.push(`Review Now didn't ask ${soon}'s revisit now:  ${JSON.stringify(summary.reviewNow)}`)
+  const soonSpins = await page.$eval(
+    `#${soon} .plan-act ui-button[data-action="revisit"]`,
+    (button) => button.hasAttribute("loading") || button.hasAttribute("data-waiting")
+  )
+  if (!soonSpins) problems.push(`Review Now:  ${soon}'s Revisit isn't spinning`)
+  const nowNotice = await page.evaluate(() => document.querySelector(".plan-review-notice:not([hidden])")?.textContent)
+  if (!/^Claude is working through \d+ now/.test(nowNotice ?? ""))
+    problems.push(`a session listening, but Review Now said "${nowNotice}"`)
+
   if (errors.length) problems.push(`page errors:  ${errors.join(" | ")}`)
   await context.close()
 
@@ -833,7 +852,9 @@ function overlaps() {
     }
   }
   // the review controls only:  at 280px the doc's own long `code` lines already run wide (from `file://` too)
-  for (const control of document.querySelectorAll(".plan-act, .plan-revisit, .plan-send, .plan-choose, .plan-fold")) {
+  for (const control of document.querySelectorAll(
+    ".plan-act, .plan-revisit, .plan-send, .plan-review-now, .plan-choose, .plan-fold"
+  )) {
     const box = control.getBoundingClientRect()
     if (box.width && box.right > innerWidth + 1) found.push(`${control.className} runs past the window's edge`)
   }

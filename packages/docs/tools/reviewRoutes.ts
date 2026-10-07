@@ -18,7 +18,8 @@
  *   being worked on (`inbox.js` `cancelNow()`)
  * - `POST /api/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it (`revisit` or
  *   `todo`;  empty or `null` drops it):  kept until the mark that uses it (`inbox.js` `setDraft()`)
- * - `POST /api/review/send` `{ page }` -- "send to Claude":  `sent` is now
+ * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now;  `now: true` is "Review Now"
+ *   (epic `windows-and-review` P4):  every revisit waiting becomes an immediate request too (`inbox.js` `reviewNow()`)
  * - writes:  under the inbox's lock, atomic (`inbox.js` `updateInboxAsync()`);  each needs the page server's token
  *   (`x-server-token`) and its own origin (`SRV.Guard`)
  */
@@ -34,6 +35,7 @@ import {
   inboxPath,
   itemIds,
   markSent,
+  reviewNow,
   readInbox,
   requestNow,
   setDraft,
@@ -86,8 +88,9 @@ const reviewRoutes: RouteModule = {
       reply.json(await update(file, (inbox) => setDraft(inbox, id, body.action, body.note ?? null)))
     })
     api.post("/send", async (request, reply) => {
-      const body = request.body as { page?: unknown }
-      reply.json(await update(planDoc(web.files, body.page), (inbox) => markSent(inbox)))
+      const body = request.body as { page?: unknown; now?: unknown }
+      const file = planDoc(web.files, body.page)
+      reply.json(await update(file, (inbox) => (body.now === true ? reviewNow(inbox) : markSent(inbox))))
     })
     router.use(API, api)
   }
