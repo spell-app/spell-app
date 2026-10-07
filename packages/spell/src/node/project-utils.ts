@@ -77,9 +77,12 @@ const DEFAULT_FILE = {
  * - Format: `[ "<project-path>"... ]`, e.g. `["@user:projects:myProject", ...]`.
  * - Lists (non-empty) subfolders of `domain`'s `serverPath` as project names -- so a "project" is just
  *   a folder on disk.
+ * - A root whose folder doesn't exist yet has no projects:  `[]`, e.g. `@system:guides` before its first guide.
+ *   Creating a project makes the folder.
  */
 export const getProjectList = async (domainId: string) => {
   const domain = SP.SpellLocation.getProjectRoot(domainId)
+  if (!(await fileUtils.pathExists(domain.serverPath))) return []
   const options = { includeFolders: true, includeFiles: false, namesOnly: true, ignoreEmptyFolders: true }
   const projectNames = await fileUtils.getFolderContents(domain.serverPath, options)
   return projectNames.map((projectName) => `${domain.owner}:${domain.domain}:${projectName}`)
@@ -138,7 +141,7 @@ export const loadProjectFile = async (projectId: string): Promise<ProjectFileJSO
 /**
  * Save a project's `project.json` file.
  * - SIDE EFFECT: overwrites file wholesale, no merge with disk -- pass what `loadProjectFile()` gave you,
- *   changed, so its `version` / `exports` survive.
+ *   changed, so its `version` / `exports` / `targets` survive.
  */
 export const saveProjectFile = async (projectId: string, contents: ProjectFileJSON) => {
   const location = getProjectFileLocation(projectId)
@@ -223,8 +226,8 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   )
 
   // return manifest and imports
-  const { version, exports } = importsFile
-  return { imports: importsFile.imports, manifest, version, exports }
+  const { version, exports, targets } = importsFile
+  return { imports: importsFile.imports, manifest, version, exports, targets }
 }
 
 /**
@@ -272,32 +275,33 @@ export const request_getFile = async (request: Request, response: Response) => {
  *   another's -- see `SP.SPELL_PROJECT_MODULE`, and `runCompiled()` in `src/app/runner/`.
  * - Not found => 404:  that project has never been compiled.
  */
-export const request_getCompiled = async (request: Request, response: Response) => {
-  const { projectId } = request.params
-  try {
-    const location = SP.SpellLocation.getProjectLocation(projectId)
-    const file = SP.SpellLocation.getFileLocation(projectId, `${location.projectName}${SP.COMPILED_JS_SUFFIX}`)
-    response.type("text/javascript")
-    await responseUtils.sendFile(response, file.serverPath)
-  } catch (error) {
-    // Can't send an error body once the file has started streaming -- the client sees a truncated response.
-    if (response.headersSent) return
-    responseUtils.sendError(response, 500, error as Error)
-  }
-}
+export const request_getCompiled = (request: Request, response: Response) =>
+  sendProjectFile(request, response, SP.COMPILED_JS_SUFFIX, "text/javascript")
 
 /**
  * Send project `projectId`'s scope pack, `<Project>.scopes.js`, as javascript -- 404 if it hasn't been written.
  * - A classic script, NOT a module:  `<spell-app>` loads it with a `<script>` tag.  See `LSP.ScopePack`.
  */
-export const request_getScopes = async (request: Request, response: Response) => {
+export const request_getScopes = (request: Request, response: Response) =>
+  sendProjectFile(request, response, SP.SCOPES_JS_SUFFIX, "text/javascript")
+
+/**
+ * Send project `projectId`'s declarations, `<Project>.declarations.json` -- 404 if it hasn't been compiled since
+ * they had a file of their own.  What a runner's Type Explorer finds each declaration's code by.
+ */
+export const request_getDeclarations = (request: Request, response: Response) =>
+  sendProjectFile(request, response, SP.DECLARATIONS_JSON_SUFFIX, "application/json")
+
+/** Send request's project's `<Project><suffix>` file as `type`. */
+async function sendProjectFile(request: Request, response: Response, suffix: string, type: string) {
   const { projectId } = request.params
   try {
     const location = SP.SpellLocation.getProjectLocation(projectId)
-    const file = SP.SpellLocation.getFileLocation(projectId, `${location.projectName}${SP.SCOPES_JS_SUFFIX}`)
-    response.type("text/javascript")
+    const file = SP.SpellLocation.getFileLocation(projectId, `${location.projectName}${suffix}`)
+    response.type(type)
     await responseUtils.sendFile(response, file.serverPath)
   } catch (error) {
+    // Can't send an error body once the file has started streaming -- the client sees a truncated response.
     if (response.headersSent) return
     responseUtils.sendError(response, 500, error as Error)
   }

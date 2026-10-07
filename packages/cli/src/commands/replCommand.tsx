@@ -4,16 +4,16 @@ import { createInterface } from "readline"
 import { CLI } from "$/cli"
 
 /**
- * `spell repl [target]`:  `spell parse`, a line at a time -- each line's match tree and javascript.
+ * `spell repl [project]`:  `spell parse`, a line at a time -- each line's match tree and javascript.
  * - Lines parse in one scope, so what a line declares, e.g. `x is 3`, later lines know.
- * - `target`:  parse inside that project's scope.  None:  only spell's own rules.
+ * - `project`:  parse inside that project's scope.  None:  only spell's own rules.
  * - In a terminal:  a live `<ReplScreen>`.  Otherwise, e.g. piped:  reads lines from stdin, and prints each
  *   result as `spell parse` does, with a blank line between.
  * - Returns the exit code:  piped, `EXIT.ERRORS` if any line failed.
  */
 export async function replCommand(session: CLI.CliSession, args: string[], _options: CLI.GlobalOptions) {
-  const [target] = args
-  const project = target ? await CLI.projectFor(session, target) : undefined
+  const [arg] = args
+  const project = arg ? await CLI.projectFor(session, arg) : undefined
   const scope = CLI.lineScope(project)
   const parse = (text: string) => CLI.parseText(text, scope, { commit: true })
 

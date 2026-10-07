@@ -1,0 +1,125 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Task",
+    "Todos_App",
+    "create_a_new_task"
+  ],
+  "statements": [
+    {
+      "type": "Task",
+      "superType": "Thing",
+      "defined": "/Todo.spell:20-37"
+    },
+    {
+      "property": "title",
+      "of": "Task",
+      "datatype": "text",
+      "defined": "/Todo.spell:38-64"
+    },
+    {
+      "property": "completed",
+      "of": "Task",
+      "datatype": "choice",
+      "defined": "/Todo.spell:65-109"
+    },
+    {
+      "syntax": "{operator:is} complete",
+      "output": "is_complete",
+      "rule": "method_postfix",
+      "of": "Task",
+      "kind": "method",
+      "name": "\"is complete\"",
+      "returns": "choice",
+      "defined": "/Todo.spell:110-154"
+    },
+    {
+      "syntax": "{operator:is} active",
+      "output": "is_active",
+      "rule": "method_postfix",
+      "of": "Task",
+      "kind": "method",
+      "name": "\"is active\"",
+      "returns": "choice",
+      "defined": "/Todo.spell:155-196"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Task",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a task)",
+      "defined": "/Todo.spell:667-1120"
+    },
+    {
+      "type": "Todos_App",
+      "superType": "App",
+      "defined": "/Todo.spell:198-219"
+    },
+    {
+      "property": "tasks",
+      "of": "Todos_App",
+      "datatype": "list",
+      "defined": "/Todo.spell:220-266"
+    },
+    {
+      "property": "filter",
+      "classVariable": "Filters",
+      "of": "Todos_App",
+      "enumeration": [
+        "'all'",
+        "'active'",
+        "'completed'"
+      ],
+      "defined": "/Todo.spell:267-326"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Todos_App",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a todos-app)",
+      "defined": "/Todo.spell:1122-2088"
+    },
+    {
+      "syntax": "create a new task (with {props:object_literal_properties})?",
+      "output": "create_a_new_task",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "name": "create a new task (with title as text)",
+      "params": [
+        {
+          "name": "props"
+        }
+      ],
+      "defined": "/Todo.spell:391-522"
+    }
+  ],
+  "codeLines": [
+    4,
+    5,
+    9,
+    13,
+    17,
+    21,
+    57,
+    58,
+    62,
+    67,
+    182
+  ]
+}

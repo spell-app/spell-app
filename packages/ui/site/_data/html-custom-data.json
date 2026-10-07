@@ -14238,6 +14238,14 @@
       ]
     },
     {
+      "name": "ui-tree-diagram",
+      "description": {
+        "kind": "markdown",
+        "value": "A tree diagram draws a tree top-down:  a box for each node, a line to each of its children.\n\nAlso known as:  tree, tree chart, hierarchy, hierarchy diagram, org chart, parse tree, syntax tree, AST, dendrogram."
+      },
+      "attributes": []
+    },
+    {
       "name": "ui-value",
       "description": {
         "kind": "markdown",

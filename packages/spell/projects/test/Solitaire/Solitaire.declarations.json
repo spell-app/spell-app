@@ -1,0 +1,750 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Card",
+    "Deck",
+    "Pile",
+    "Game",
+    "Stock_Pile",
+    "Discard_Pile",
+    "Foundation",
+    "Tableau",
+    "test_card_setup",
+    "test_deck_creation",
+    "debug_the_game",
+    "reset_the_stock_pile",
+    "play_from_the_stock_pile",
+    "deal_the_cards",
+    "auto_play",
+    "reset_the_game",
+    "cheat"
+  ],
+  "statements": [
+    {
+      "type": "Card",
+      "superType": "Thing",
+      "defined": "/Card.spell:70-87"
+    },
+    {
+      "property": "rank",
+      "classVariable": "Ranks",
+      "of": "Card",
+      "enumeration": [
+        "'ace'",
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        "'jack'",
+        "'queen'",
+        "'king'"
+      ],
+      "defined": "/Card.spell:126-206"
+    },
+    {
+      "property": "suit",
+      "classVariable": "Suits",
+      "of": "Card",
+      "enumeration": [
+        "'clubs'",
+        "'diamonds'",
+        "'hearts'",
+        "'spades'"
+      ],
+      "defined": "/Card.spell:222-283"
+    },
+    {
+      "property": "color",
+      "of": "Card",
+      "constants": [
+        "red",
+        "black"
+      ],
+      "defined": "/Card.spell:316-405"
+    },
+    {
+      "property": "value",
+      "of": "Card",
+      "datatype": "number",
+      "defined": "/Card.spell:440-501"
+    },
+    {
+      "property": "direction",
+      "classVariable": "Directions",
+      "of": "Card",
+      "enumeration": [
+        "'up'",
+        "'down'"
+      ],
+      "defined": "/Card.spell:534-577"
+    },
+    {
+      "syntax": "{operator:is} face up",
+      "output": "is_face_up",
+      "rule": "method_postfix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is face up\"",
+      "returns": "choice",
+      "defined": "/Card.spell:616-658"
+    },
+    {
+      "syntax": "{operator:is} face down",
+      "output": "is_face_down",
+      "rule": "method_postfix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is face down\"",
+      "returns": "choice",
+      "defined": "/Card.spell:659-705"
+    },
+    {
+      "syntax": "{operator:is} a face card",
+      "output": "is_a_face_card",
+      "rule": "method_postfix",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is a face card\"",
+      "returns": "choice",
+      "defined": "/Card.spell:731-796"
+    },
+    {
+      "syntax": "{operator:is} (a|an) (expression:club|diamond|heart|spade)",
+      "output": "is_a_$suit",
+      "rule": "quoted_property",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is a (suit)\"",
+      "values": {
+        "suit": [
+          "'clubs'",
+          "'diamonds'",
+          "'hearts'",
+          "'spades'"
+        ]
+      },
+      "defined": "/Card.spell:838-872"
+    },
+    {
+      "syntax": "{operator:is} (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
+      "output": "is_a_$rank",
+      "rule": "quoted_property",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is a (rank)\"",
+      "values": {
+        "rank": [
+          "'ace'",
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          "'jack'",
+          "'queen'",
+          "'king'"
+        ]
+      },
+      "defined": "/Card.spell:914-948"
+    },
+    {
+      "syntax": "{operator:is} the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
+      "output": "is_the_$rank_of_$suits",
+      "rule": "quoted_property",
+      "of": "Card",
+      "kind": "method",
+      "name": "\"is the (rank) of (suits)\"",
+      "values": {
+        "rank": [
+          "'ace'",
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          "'jack'",
+          "'queen'",
+          "'king'"
+        ],
+        "suits": [
+          "'clubs'",
+          "'diamonds'",
+          "'hearts'",
+          "'spades'"
+        ]
+      },
+      "defined": "/Card.spell:986-1047"
+    },
+    {
+      "property": "name",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1086-1137"
+    },
+    {
+      "property": "short_suit",
+      "asWritten": "short-suit",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1139-1300"
+    },
+    {
+      "property": "short_rank",
+      "asWritten": "short-rank",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1302-1466"
+    },
+    {
+      "property": "short_direction",
+      "asWritten": "short-direction",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1468-1548"
+    },
+    {
+      "property": "short_name",
+      "asWritten": "short-name",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1551-1611"
+    },
+    {
+      "property": "state",
+      "of": "Card",
+      "datatype": "text",
+      "defined": "/Card.spell:1613-1690"
+    },
+    {
+      "syntax": "turn {thisArg:expression} face up",
+      "output": "turn_face_up",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn (a card) face up",
+      "defined": "/Card.spell:1809-1879"
+    },
+    {
+      "syntax": "turn {thisArg:expression} face down",
+      "output": "turn_face_down",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn (a card) face down",
+      "defined": "/Card.spell:1880-1954"
+    },
+    {
+      "syntax": "turn {thisArg:expression} over",
+      "output": "turn_over",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "turn (a card) over",
+      "defined": "/Card.spell:2062-2174"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a card)",
+      "defined": "/Card.spell:2176-2652"
+    },
+    {
+      "syntax": "move {thisArg:expression} to {callArgs:expression}",
+      "output": "move_to_$pile",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "move (a card) to (a pile)",
+      "params": [
+        {
+          "name": "pile",
+          "datatype": "Pile"
+        }
+      ],
+      "defined": "/Pile.spell:403-581"
+    },
+    {
+      "syntax": "play {thisArg:expression}",
+      "output": "play",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "play (a card)",
+      "defined": "/Solitaire.spell:3337-4373"
+    },
+    {
+      "syntax": "test card setup",
+      "output": "test_card_setup",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "card setup",
+      "defined": "/Card.spell:2704-3822"
+    },
+    {
+      "type": "Deck",
+      "superType": "List",
+      "itemType": "Card",
+      "defined": "/Deck.spell:61-86"
+    },
+    {
+      "syntax": "set up {thisArg:expression}",
+      "output": "set_up",
+      "rule": "method_call",
+      "of": "Deck",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "set up (a deck)",
+      "returns": "nothing",
+      "defined": "/Deck.spell:88-313"
+    },
+    {
+      "syntax": "display {thisArg:expression}",
+      "output": "display",
+      "rule": "method_call",
+      "of": "Deck",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "display (a deck)",
+      "defined": "/Deck.spell:315-466"
+    },
+    {
+      "property": "is_set_up",
+      "asWritten": "is-set-up",
+      "of": "Deck",
+      "datatype": "choice",
+      "autoDeclared": true,
+      "defined": "/Deck.spell:277-313"
+    },
+    {
+      "syntax": "test deck creation",
+      "output": "test_deck_creation",
+      "rule": "method_call",
+      "alias": "statement",
+      "kind": "function",
+      "name": "deck creation",
+      "defined": "/Deck.spell:468-1036"
+    },
+    {
+      "property": "pile",
+      "of": "Card",
+      "datatype": "Pile",
+      "autoDeclared": true,
+      "defined": "/Pile.spell:500-536"
+    },
+    {
+      "type": "Pile",
+      "superType": "List",
+      "itemType": "Card",
+      "defined": "/Pile.spell:25-50"
+    },
+    {
+      "property": "color",
+      "of": "Pile",
+      "defined": "/Pile.spell:52-140"
+    },
+    {
+      "property": "value",
+      "of": "Pile",
+      "datatype": "number",
+      "defined": "/Pile.spell:142-225"
+    },
+    {
+      "property": "state",
+      "of": "Pile",
+      "datatype": "text",
+      "defined": "/Pile.spell:584-748"
+    },
+    {
+      "property": "name",
+      "of": "Pile",
+      "autoDeclared": true,
+      "defined": "/Solitaire.spell:3765-3824"
+    },
+    {
+      "type": "Game",
+      "superType": "App",
+      "defined": "/Solitaire.spell:149-165"
+    },
+    {
+      "property": "score",
+      "of": "Game",
+      "datatype": "number",
+      "defined": "/Solitaire.spell:166-196"
+    },
+    {
+      "property": "state",
+      "of": "Game",
+      "datatype": "list",
+      "defined": "/Solitaire.spell:2210-2329"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Game",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a game)",
+      "defined": "/Solitaire.spell:6805-8203"
+    },
+    {
+      "type": "Stock_Pile",
+      "superType": "Pile",
+      "defined": "/Solitaire.spell:410-432"
+    },
+    {
+      "syntax": "{operator:can} pick up {expression:operand}",
+      "output": "can_pick_up_$card",
+      "rule": "method_infix",
+      "of": "Stock_Pile",
+      "kind": "method",
+      "name": "\"can pick up (a card)\"",
+      "params": [
+        {
+          "name": "card",
+          "datatype": "Card"
+        }
+      ],
+      "returns": "choice",
+      "defined": "/Solitaire.spell:433-500"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Stock_Pile",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a stock-pile)",
+      "defined": "/Solitaire.spell:6496-6695"
+    },
+    {
+      "type": "Discard_Pile",
+      "superType": "Pile",
+      "defined": "/Solitaire.spell:666-690"
+    },
+    {
+      "syntax": "{operator:can} pick up {expression:operand}",
+      "output": "can_pick_up_$card",
+      "rule": "method_infix",
+      "of": "Discard_Pile",
+      "kind": "method",
+      "name": "\"can pick up (a card)\"",
+      "params": [
+        {
+          "name": "card",
+          "datatype": "Card"
+        }
+      ],
+      "returns": "choice",
+      "defined": "/Solitaire.spell:691-760"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Discard_Pile",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a discard-pile)",
+      "defined": "/Solitaire.spell:6697-6803"
+    },
+    {
+      "type": "Foundation",
+      "superType": "Pile",
+      "defined": "/Solitaire.spell:926-948"
+    },
+    {
+      "syntax": "{operator:can} pick up {expression:operand}",
+      "output": "can_pick_up_$card",
+      "rule": "method_infix",
+      "of": "Foundation",
+      "kind": "method",
+      "name": "\"can pick up (a card)\"",
+      "params": [
+        {
+          "name": "card",
+          "datatype": "Card"
+        }
+      ],
+      "returns": "choice",
+      "defined": "/Solitaire.spell:949-991"
+    },
+    {
+      "syntax": "{operator:can} play {expression:operand}",
+      "output": "can_play_$card",
+      "rule": "method_infix",
+      "of": "Foundation",
+      "kind": "method",
+      "name": "\"can play (a card)\"",
+      "params": [
+        {
+          "name": "card",
+          "datatype": "Card"
+        }
+      ],
+      "returns": "choice",
+      "defined": "/Solitaire.spell:992-1117"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Foundation",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a foundation)",
+      "defined": "/Solitaire.spell:6045-6394"
+    },
+    {
+      "type": "Tableau",
+      "superType": "Pile",
+      "defined": "/Solitaire.spell:1640-1659"
+    },
+    {
+      "syntax": "{operator:can} pick up {expression:operand}",
+      "output": "can_pick_up_$card",
+      "rule": "method_infix",
+      "of": "Tableau",
+      "kind": "method",
+      "name": "\"can pick up (a card)\"",
+      "params": [
+        {
+          "name": "card",
+          "datatype": "Card"
+        }
+      ],
+      "returns": "choice",
+      "defined": "/Solitaire.spell:1660-1716"
+    },
+    {
+      "syntax": "{operator:can} play {expression:operand}",
+      "output": "can_play_$card",
+      "rule": "method_infix",
+      "of": "Tableau",
+      "kind": "method",
+      "name": "\"can play (a card)\"",
+      "params": [
+        {
+          "name": "card",
+          "datatype": "Card"
+        }
+      ],
+      "returns": "choice",
+      "defined": "/Solitaire.spell:1717-1894"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Tableau",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a tableau)",
+      "defined": "/Solitaire.spell:6396-6494"
+    },
+    {
+      "syntax": "debug the game",
+      "output": "debug_the_game",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/Solitaire.spell:2331-2405"
+    },
+    {
+      "syntax": "reset the stock pile",
+      "output": "reset_the_stock_pile",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/Solitaire.spell:2407-2574"
+    },
+    {
+      "syntax": "play from the stock pile",
+      "output": "play_from_the_stock_pile",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/Solitaire.spell:2576-2763"
+    },
+    {
+      "syntax": "deal the cards",
+      "output": "deal_the_cards",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/Solitaire.spell:2765-3335"
+    },
+    {
+      "syntax": "auto-play",
+      "output": "auto_play",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/Solitaire.spell:4417-5501"
+    },
+    {
+      "syntax": "reset the game",
+      "output": "reset_the_game",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/Solitaire.spell:5503-5568"
+    },
+    {
+      "syntax": "cheat",
+      "output": "cheat",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "returns": "nothing",
+      "defined": "/Solitaire.spell:5570-5946"
+    }
+  ],
+  "codeLines": [
+    4,
+    9,
+    15,
+    21,
+    27,
+    32,
+    41,
+    45,
+    50,
+    55,
+    60,
+    65,
+    70,
+    74,
+    82,
+    88,
+    94,
+    98,
+    108,
+    113,
+    122,
+    128,
+    164,
+    171,
+    209,
+    258,
+    261,
+    272,
+    280,
+    287,
+    315,
+    323,
+    326,
+    331,
+    337,
+    346,
+    359,
+    360,
+    366,
+    374,
+    506,
+    507,
+    511,
+    530,
+    531,
+    535,
+    545,
+    546,
+    550,
+    559,
+    600,
+    601,
+    605,
+    610,
+    631,
+    637,
+    646,
+    662,
+    696,
+    738,
+    743
+  ]
+}

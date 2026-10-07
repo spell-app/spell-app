@@ -36,7 +36,9 @@ type EventfulTarget = { eventParent?: object }
  */
 export class SpellEvent {
   /** Event's `type` name -- always present, constructor throws if missing. */
-  declare type: string
+  declare type: string;
+  /** Whatever else it was made or triggered with, e.g. `card` for `spellCore.RUNTIME.trigger('card-click', { card })`. */
+  [key: string]: unknown
 
   /** Accepts a bare `type` string, or full `SpellEventProps` (which MUST include `type`). */
   constructor(props: string | SpellEventProps) {

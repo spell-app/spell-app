@@ -24,8 +24,11 @@ import type { PropCheck } from "$/core/spellCore.types"
  *   syntax, on top of `Observable`'s reactive `props`/`state` -- see `SpellEvent.ts`.
  */
 export class Thing extends Eventful(Observable) {
-  /** SIDE EFFECT:  registers itself in `spellCore.things`, for the Thing Explorer. */
-  constructor(props: Record<string, unknown>) {
+  /**
+   * SIDE EFFECT:  registers itself in `spellCore.things`, for the Thing Explorer.
+   * - `props` optional:  `a new game` compiles to `new Game()`.
+   */
+  constructor(props?: Record<string, unknown>) {
     super(props)
     spellCore.things.add(this)
     if (runsCreate(Thing, new.target)) this.create()

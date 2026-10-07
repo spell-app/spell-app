@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { MD, type SpecExample } from "$/markdown"
+import { MD } from "$/markdown"
 
 import { comparableHTML, specOptions } from "./spec.types"
 import spec from "./gfm-spec.json"
@@ -13,7 +13,7 @@ import spec from "./gfm-spec.json"
  * - `disabled` examples (cmark-gfm doesn't run them either) are left out.
  */
 describe("GFM spec", () => {
-  const examples = (spec.examples as SpecExample[]).filter((example) => example.extension !== "disabled")
+  const examples = (spec.examples as MD.SpecExample[]).filter((example) => example.extension !== "disabled")
 
   it("passes per section", () => {
     const sections: Record<string, string> = {}
@@ -34,7 +34,7 @@ describe("GFM spec", () => {
 })
 
 /** Does `MD.toHTML()` render `example` as the spec says?  A throw counts as a fail. */
-function passes(example: SpecExample) {
+function passes(example: MD.SpecExample) {
   try {
     return comparableHTML(MD.toHTML(example.markdown, specOptions(example))) === comparableHTML(example.html)
   } catch {

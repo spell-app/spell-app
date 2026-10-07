@@ -4,6 +4,7 @@ import "$/spell/node/packageVersion.node"
 import { existsSync, readFileSync } from "fs"
 import JSON5 from "json5"
 import { join } from "path"
+import { fileURLToPath } from "url"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
@@ -15,6 +16,8 @@ import { EDITOR_FILE, EditorServer } from "./EditorServer"
  * `package.json` `"pageServer": { "routes": [...] }`.  What `spell serve` runs everything on.
  * - `/api/...` -- the app's API, `./api` (as `index.ts` serves it alone, `yarn start:server`);  bodies as JSON5
  * - `/hello` -- liveness
+ * - `/element/...` -- `<spell-app>` / `<spell-editor>`'s bundles, `dist-element/` (`yarn build:element`), for the
+ *   demo pages, `/demo/spell-app.html` on the editor:  vite passes `/element` on to us, as it does `/api`
  * - the editor UI (`EditorServer`):  vite's dev server, started once the page server listens and stopped with it --
  *   the page server and the editor are ONE thing to start
  * - `/editor` -- the site header's "Editor":  redirects to the editor, from its record (`EDITOR_FILE`);  not up yet
@@ -30,6 +33,7 @@ const appRoutes: RouteModule = {
     onStop(() => editor.stop())
     router.use("/api", refuseForeignOrigins, SRV.parseBodies({ limit: 10 * 1024 * 1024, parseJson: JSON5.parse }), api)
     router.get("/hello", (_request, reply) => reply.json({ message: "Hello from the API!" }))
+    router.use(new SRV.StaticHandler({ mounts: [{ prefix: "/element", dir: ELEMENT_DIR }] }).handle)
     router.get("/editor", async (_request, reply) => {
       const url = await editorUrl(root)
       if (url) return void reply.redirect(url)
@@ -45,6 +49,9 @@ const appRoutes: RouteModule = {
 }
 
 export default appRoutes
+
+/** `yarn build:element`'s output:  `packages/app/dist-element/`. */
+const ELEMENT_DIR = fileURLToPath(new URL("../../dist-element", import.meta.url))
 
 /** The running editor's URL, from `EDITOR_FILE`, if it answers. */
 async function editorUrl(root: string): Promise<string | undefined> {

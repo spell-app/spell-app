@@ -83,7 +83,8 @@ export const COMPONENTS = [
   "ui-panel",
   "ui-include",
   "ui-code",
-  "ui-markdown"
+  "ui-markdown",
+  "ui-tree-diagram"
 ] as const
 
 /**

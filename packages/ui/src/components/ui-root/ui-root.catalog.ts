@@ -262,6 +262,7 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-title": { folder: "ui-parts" },
   "ui-toast": { folder: "ui-toast" },
   "ui-transition": { folder: "ui-transition" },
+  "ui-tree-diagram": { folder: "ui-tree-diagram", skeleton: { height: "12em" } },
   "ui-value": { folder: "ui-parts" },
   "ui-visibility": { folder: "ui-visibility" },
 };

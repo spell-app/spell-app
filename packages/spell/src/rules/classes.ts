@@ -271,7 +271,7 @@ class belongs_to_one extends SpellStatement<"type|list"> {
     const owner = new P.ASTScopedMethodInvocation(match, {
       thing: listAST,
       methodName: "ownerOf",
-      args: [new P.ASTThisLiteral(match)]
+      args: [new P.ASTSelfLiteral(match)]
     })
     return new P.ASTPatchedMember(match, {
       member: new P.ASTPropertyDefinition(match, {
@@ -562,7 +562,7 @@ class new_list extends SpellStatement<"instanceType?"> {
           properties: [
             new P.ASTObjectLiteralProperty(instanceType, {
               property: "instanceType",
-              value: new P.ASTStringLiteral(instanceType, { value: `"${instanceType.value}"` })
+              value: new P.ASTStringLiteral(instanceType, { value: String(instanceType.value), quote: '"' })
             })
           ]
         })
@@ -941,7 +941,8 @@ class define_property_has extends SpellStatement<"type|property|specifier?"> {
       // `type_specifier`'s `getAST()` can only be typed as returning `ASTNode` in general.
       const typeExpression = specifier as P.ASTTypeExpression
       // checked at runtime by its class's name -- see `P.ASTTypeExpression.runtimeName`
-      check.addProp("type", `'${typeExpression.runtimeName}'`)
+      // a text value, so a writer can read the type:  `P.TSWriter` types the property from it
+      check.addProp("type", new P.ASTStringLiteral(match, { value: typeExpression.runtimeName, quote: "'" }))
     }
 
     statements.push(
@@ -1607,10 +1608,10 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
       (variable, index) =>
         new P.ASTInfixExpression(match, {
           lhs: new P.ASTPropertyExpression(match, {
-            object: new P.ASTThisLiteral(match),
+            object: new P.ASTSelfLiteral(match),
             property: properties[index]
           }),
-          operator: "===",
+          operator: "exactly equals",
           rhs: variable
         })
     )
@@ -1621,7 +1622,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
         method: new P.ASTMethodDefinition(match, {
           args,
           body: new P.ASTReturnStatement(match, {
-            value: P.ASTMultiInfixExpression(match, { expressions, operator: "&&" })
+            value: P.ASTMultiInfixExpression(match, { expressions, operator: "and" })
           }),
           datatype: "choice"
         })
