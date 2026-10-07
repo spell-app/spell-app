@@ -42,6 +42,8 @@ import type { EventfulMethods } from "./SpellEvent"
  * Assembled type of the `spellCore` singleton -- built by accretion: each module below does
  * `Object.assign(spellCore, { ...methods })` at runtime (see `index.ts` for the side-effect import
  * order), so this is the intersection of every module's methods.
+ * - It's the CORE CONTRACT too:  what another target's core must have (Python's, later -- epic `output-targets`), and
+ *   what it must print is pinned by the `cli`'s `contract.test.ts`.
  */
 export type SpellCore = typeof coreMethods &
   typeof collectionCoreMethods &

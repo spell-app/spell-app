@@ -14758,6 +14758,83 @@
       "href": "components/ui-transition.html"
     },
     {
+      "tag": "ui-tree-diagram",
+      "name": "Tree diagram",
+      "folder": "ui-tree-diagram",
+      "topics": [
+        "data display",
+        "images",
+        "views"
+      ],
+      "aka": [
+        "tree",
+        "tree chart",
+        "hierarchy",
+        "hierarchy diagram",
+        "org chart",
+        "parse tree",
+        "syntax tree",
+        "AST",
+        "dendrogram"
+      ],
+      "description": "A tree diagram draws a tree top-down:  a box for each node, a line to each of its children.",
+      "noun": "tree diagram",
+      "attributes": [
+        {
+          "name": "tree",
+          "kind": "json",
+          "reflect": false,
+          "description": "The tree to draw, a `TreeDiagramNode`:  `label`, and optional `detail`, `slot`, `title` and `children`.  A JS property (JSON in the attribute);  wins over a `<script type=\"application/json\">` child.  Set a NEW tree to redraw."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "diagram",
+          "description": "The `<svg>`."
+        },
+        {
+          "name": "node",
+          "description": "Each node's `<g>`:  its box, label and detail."
+        },
+        {
+          "name": "root-node",
+          "description": "The root's `<g>`, also part `node`."
+        },
+        {
+          "name": "edge",
+          "description": "Each line from a parent to a child."
+        },
+        {
+          "name": "slot-label",
+          "description": "Each slot label, on its line."
+        }
+      ],
+      "states": [],
+      "texts": [
+        {
+          "key": "summary",
+          "text": "Tree:  {label}, with {count} children",
+          "description": "Name of a tree whose root has children."
+        },
+        {
+          "key": "summaryOne",
+          "text": "Tree:  {label}, with 1 child",
+          "description": "Name of a tree whose root has one child."
+        },
+        {
+          "key": "summaryLeaf",
+          "text": "Tree:  {label}",
+          "description": "Name of a tree of one node."
+        }
+      ],
+      "mainTag": "ui-tree-diagram",
+      "main": true,
+      "page": true,
+      "href": "components/ui-tree-diagram.html"
+    },
+    {
       "tag": "ui-value",
       "name": "Value",
       "folder": "ui-parts",
@@ -24277,6 +24354,84 @@
         {
           "name": "--ui-transition-inverted-pulse",
           "default": "oklch(0.97 0 0)",
+          "type": "color"
+        }
+      ]
+    },
+    "ui-tree-diagram": {
+      "folder": "ui-tree-diagram",
+      "mainTag": "ui-tree-diagram",
+      "title": "Tree diagram",
+      "summary": "A tree diagram draws a tree top-down:  a box for each node, a line to each of its children.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "ui-tree-diagram"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-tree-diagram-font-family",
+          "default": "var(--ui-font-family-mono)",
+          "type": "other"
+        },
+        {
+          "name": "--ui-tree-diagram-font-size",
+          "default": "0.8125em",
+          "type": "length"
+        },
+        {
+          "name": "--ui-tree-diagram-slot-font-family",
+          "default": "var(--ui-font-family)",
+          "type": "other"
+        },
+        {
+          "name": "--ui-tree-diagram-min-scale",
+          "default": "0.75",
+          "type": "number"
+        },
+        {
+          "name": "--ui-tree-diagram-radius",
+          "default": "var(--ui-radius-m)",
+          "type": "length"
+        },
+        {
+          "name": "--ui-tree-diagram-node-background",
+          "default": "var(--ui-surface-muted)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-tree-diagram-node-border-color",
+          "default": "var(--ui-border-color-strong)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-tree-diagram-root-background",
+          "default": "var(--ui-primary-background)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-tree-diagram-root-border-color",
+          "default": "var(--ui-primary)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-tree-diagram-label-color",
+          "default": "var(--ui-text-color)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-tree-diagram-detail-color",
+          "default": "var(--ui-text-muted)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-tree-diagram-edge-color",
+          "default": "var(--ui-text-light)",
+          "type": "color"
+        },
+        {
+          "name": "--ui-tree-diagram-slot-color",
+          "default": "var(--ui-text-muted)",
           "type": "color"
         }
       ]

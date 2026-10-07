@@ -1,0 +1,118 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Task",
+    "Todos_App",
+    "create_a_new_task"
+  ],
+  "statements": [
+    {
+      "type": "Task",
+      "superType": "Thing",
+      "defined": "/todo.spell:20-37"
+    },
+    {
+      "property": "title",
+      "of": "Task",
+      "datatype": "text",
+      "defined": "/todo.spell:38-64"
+    },
+    {
+      "property": "completed",
+      "of": "Task",
+      "datatype": "choice",
+      "defined": "/todo.spell:65-109"
+    },
+    {
+      "syntax": "{operator:is} complete",
+      "output": "is_complete",
+      "rule": "method_postfix",
+      "of": "Task",
+      "kind": "method",
+      "name": "\"is complete\"",
+      "returns": "choice",
+      "defined": "/todo.spell:110-154"
+    },
+    {
+      "syntax": "{operator:is} active",
+      "output": "is_active",
+      "rule": "method_postfix",
+      "of": "Task",
+      "kind": "method",
+      "name": "\"is active\"",
+      "returns": "choice",
+      "defined": "/todo.spell:155-196"
+    },
+    {
+      "type": "Todos_App",
+      "superType": "App",
+      "defined": "/todo.spell:198-219"
+    },
+    {
+      "property": "tasks",
+      "of": "Todos_App",
+      "datatype": "list",
+      "defined": "/todo.spell:220-266"
+    },
+    {
+      "property": "newTaskName",
+      "of": "Todos_App",
+      "defined": "/todo.spell:267-305"
+    },
+    {
+      "property": "filter",
+      "classVariable": "Filters",
+      "of": "Todos_App",
+      "enumeration": [
+        "'all'",
+        "'active'",
+        "'completed'"
+      ],
+      "defined": "/todo.spell:306-365"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Todos_App",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a todos-app)",
+      "defined": "/todo.spell:954-2619"
+    },
+    {
+      "syntax": "create a new task (with {props:object_literal_properties})?",
+      "output": "create_a_new_task",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "name": "create a new task (with title as text, completed as a choice)",
+      "params": [
+        {
+          "name": "props"
+        }
+      ],
+      "returns": "nothing",
+      "defined": "/todo.spell:467-792"
+    }
+  ],
+  "codeLines": [
+    4,
+    5,
+    9,
+    13,
+    17,
+    22,
+    23,
+    27,
+    30,
+    35,
+    159
+  ]
+}

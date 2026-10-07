@@ -319,7 +319,7 @@ export class EditorStore extends Observable {
   /**
    * Run already-`compiled` current `project` afresh, on the runtime programs run on -- logging how it went to
    * `runtimeConsole()`.  See `runCompiled()`.
-   * - Runs what it wrote to `<Project>.compiled.js`, declarations header and all.
+   * - Runs what it wrote to `<Project>.compiled.js`:  its declarations are in `<Project>.declarations.json`.
    * - Each project it imports is fetched afresh, so a recompiled library shows at once.
    * - An error's stack goes to devtools too -- `runCompiled()` logs it.
    */
@@ -670,16 +670,6 @@ export class EditorStore extends Observable {
   ////////////////
   // ## UI
   ////////////////
-
-  /** Whether `<MatchRoot>` shows rule names alongside matches. */
-  @prop({ type: "choice", default: true })
-  accessor showingMatchRuleNames!: boolean
-  /** Toggle (or force via `on`) `showingMatchRuleNames`. */
-  toggleMatchRuleNames(on?: boolean): void {
-    // NOTE: defaulted here rather than in the signature -- see `createApp()` above.
-    on ??= !editor.showingMatchRuleNames
-    editor.showingMatchRuleNames = on
-  }
 
   /** Single `notice` display. */
   @prop({ type: "text" })

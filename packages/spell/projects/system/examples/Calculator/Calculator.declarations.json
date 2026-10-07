@@ -1,0 +1,132 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Calculator"
+  ],
+  "statements": [
+    {
+      "type": "Calculator",
+      "superType": "App",
+      "defined": "/Calculator.spell:191-213"
+    },
+    {
+      "property": "input",
+      "of": "Calculator",
+      "defined": "/Calculator.spell:214-239"
+    },
+    {
+      "property": "output",
+      "of": "Calculator",
+      "defined": "/Calculator.spell:240-266"
+    },
+    {
+      "property": "left",
+      "of": "Calculator",
+      "defined": "/Calculator.spell:267-290"
+    },
+    {
+      "property": "right",
+      "of": "Calculator",
+      "defined": "/Calculator.spell:291-315"
+    },
+    {
+      "property": "total",
+      "of": "Calculator",
+      "defined": "/Calculator.spell:316-340"
+    },
+    {
+      "property": "operator",
+      "of": "Calculator",
+      "defined": "/Calculator.spell:341-369"
+    },
+    {
+      "syntax": "clear {thisArg:expression}",
+      "output": "clear",
+      "rule": "method_call",
+      "of": "Calculator",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "clear (a calculator)",
+      "defined": "/Calculator.spell:371-524"
+    },
+    {
+      "syntax": "update the total of {thisArg:expression}",
+      "output": "update_the_total_of",
+      "rule": "method_call",
+      "of": "Calculator",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "update the total of (a calculator)",
+      "defined": "/Calculator.spell:526-955"
+    },
+    {
+      "syntax": "append {callArgs:expression} to {thisArg:expression}",
+      "output": "append_$digit_to",
+      "rule": "method_call",
+      "of": "Calculator",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "append (digit) to (a calculator)",
+      "params": [
+        {
+          "name": "digit"
+        }
+      ],
+      "defined": "/Calculator.spell:957-1457"
+    },
+    {
+      "syntax": "set the operator of {thisArg:expression} to {callArgs:expression}",
+      "output": "set_the_operator_of_to_$op",
+      "rule": "method_call",
+      "of": "Calculator",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "set the operator of (a calculator) to (op)",
+      "params": [
+        {
+          "name": "op"
+        }
+      ],
+      "defined": "/Calculator.spell:1459-1701"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Calculator",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw (a calculator)",
+      "defined": "/Calculator.spell:1703-3629"
+    }
+  ],
+  "codeLines": [
+    10,
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    29,
+    38,
+    51,
+    64,
+    76
+  ]
+}
