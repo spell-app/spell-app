@@ -12,9 +12,10 @@
  * ## What it does, in order
  * - stdin `{ prompt, cwd, session_id, permission_mode, ... }`
  * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...`),
- *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume` and `color` are reserved epic names:  a review
- *   runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks its
- *   window itself);  `/epic color <look>` recolours the window it's typed in, nothing to gate.
+ *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume`, `color` and `future` are reserved epic names:  a
+ *   review runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks
+ *   its window itself);  `/epic color <look>` recolours the window it's typed in, and `/epic future <name> ...`
+ *   writes an idea down as a future epic (no worktree):  nothing to gate.
  *   A look right after the name (`/epic x -purple`, epic `windows-and-review` P5) is the window's, not the plan's:
  *   left out of the text saved below.
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
@@ -125,8 +126,9 @@ export function parseCommand(prompt) {
   if (!name || (skill === "isolate" && name === "done")) return null
   // `/epic review [<name>]` runs from any window and keeps the session's name:  nothing to gate
   if (skill === "epic" && name === "review") return null
-  // `/epic color <look>` recolours this window:  nothing to gate, no rename
-  if (skill === "epic" && name === "color") return null
+  // `/epic color <look>` recolours this window;  `/epic future <name> ...` writes an idea down, from any window, no
+  // worktree:  nothing to gate, no rename
+  if (skill === "epic" && (name === "color" || name === "future")) return null
   // `/epic resume <name>`:  renamed `<name>`, as `/unpark <name>` is;  alone, it asks which epic
   if (skill === "epic" && name === "resume") {
     const resumed = parseCommand(`/unpark ${rest}`)

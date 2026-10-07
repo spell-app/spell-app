@@ -73,6 +73,7 @@ test("parseCommand:  a look right after the name is the window's, not the text; 
   // not a look:  part of the text
   assert.deepEqual(parseCommand("/epic x -verbose"), { skill: "epic", name: "x", text: "-verbose", color: null })
   assert.equal(parseCommand("/epic color teal"), null)
+  assert.equal(parseCommand("/epic future foo-bar blah blah"), null)
 })
 
 test("kebab", () => {

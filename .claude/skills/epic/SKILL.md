@@ -1,7 +1,7 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its plan doc says it stopped ("resume the seo epic", "carry on with windows-and-review").
-argument-hint: <name> [what to plan] | review [<name>] | resume [<name>]
+description: Run a planning session against a live plan doc, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its plan doc says it stopped ("resume the seo epic", "carry on with windows-and-review").  `/epic future <name> [idea]`:  write an idea down as a FUTURE epic, not planned yet:  a stub plan doc and an analysis page of its high-level open questions, answered in the Review tab;  no worktree ("save this as a future epic", "an epic for later").
+argument-hint: <name> [what to plan] | review [<name>] | resume [<name>] | future <name> [idea] | color <look>
 ---
 
 # /epic
@@ -52,6 +52,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 - First word `resume`:  NOT a new epic either.  Go to "8. Resume".  Reserved too.
 - First word `color`:  `/epic color <look>` recolours the window it's typed in:  `spell dev window color <look>`
   (no look:  it lists the 12), one line saying so, and nothing else.  Reserved too.
+- First word `future`:  `/epic future <name> [text]` writes an idea down as a FUTURE epic, not planned yet:  go to
+  "9. Future".  Reserved too.
 - `<name>` is the first word of `$ARGUMENTS` (or a quoted phrase:  `"Docs Index"`), lower-kebab-cased
   (`Docs Index` -> `docs-index`).  The rest, if any, is the plan:  the prompt that kicks it off.  No argument:  ask
   for a name.
@@ -72,6 +74,11 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2
   - any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the
     user types it in "Other").  Never overwrite an existing plan doc.
+  - a FUTURE epic's doc (`plan-doc list --json`:  `status` `future`;  "9. Future"):  no modal, it's waiting to be
+    planned:  say so in one line, then go on.  In "2. Session", step 3, `plan-doc new <name>` PROMOTES it where it
+    is (its prompt, decided questions and analysis page kept;  the meta lines name the branch and worktree):  no
+    `--prompt-file`.  "3. Plan" starts from its kickoff prompt, its decided questions and its analysis page
+    (`epics/<name>/details/analysis.html`, answers in `spell dev details answer <name>/analysis`)
 - Name and nothing after it, nothing saved (and not mid-session):  the user sends the plan in the NEXT prompt, in
   the new window.  Do "2. Session" now anyway (a stub doc with no prompt, then the move);  its last line asks for
   the plan.  That next message is the kickoff prompt:  `spell dev plan-doc prompt <name> --file <file>` first, then
@@ -365,10 +372,42 @@ don't redo it.
      next turn, in the new window
    - Never start a phase without that pick:  Owen reviews each phase before the next.
 
+## 9. Future:  `/epic future <name> [text]`
+
+Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07):  a stub plan doc and an analysis page, NO
+plan, worktree, window or phases.  `/epic <name>` plans it later, from what this leaves.
+
+- Runs from ANY window, `main` or a worktree:  the prompt hook lets it through, never renames the session.  No
+  worktree, no plan mode, no move.
+1. Name, collisions, kickoff prompt:  as "1. Name" (the rest of the text is the idea, kept verbatim in
+   `~/.spell/prompts/<name>.md` until the doc holds it).  An existing epic of that name:  say so and stop.
+2. The stub:  `spell dev plan-doc new <name> --future --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md`,
+   then delete the prompt file, and hand-write its `p.plan-summary`:  the idea in two sentences, what changes for
+   Owen.  It's a plan doc with `<body data-future>`:  a violet FUTURE label, a "Future epic"
+   notice in place of "Plan hung?", no branch or worktree;  `plan-doc list` says `future`, the Epics index gives
+   it a seedling, between the open epics and the done ones.
+3. Explore, read-only (agents allowed, root rules):  just enough to see the problem, the options and the hard parts.
+   Not a plan:  no phases, no estimates.
+4. The ANALYSIS page:  `spell dev details new analysis --epic <name> --title "<Title>:  analysis"`, written as the
+   details skill says (`.claude/skills/details/SKILL.md`):
+   - "Where we are":  that it's a future epic, from which idea, and that answering shapes the plan, later
+   - Context:  the problem in plain words, what exists today (real code), the shape you'd propose (an example), what
+     goes away, the catch (what makes it hard), a rough size
+   - one question per HIGH-LEVEL open choice (what, where, how far, when):  options side by side, one recommended.
+     Not the small ones:  those are the plan's
+   - `yarn vp fmt <its real path>`, then `spell dev details show <name>/analysis --wait` (Bash, in the background;
+     it opens in the side bar's Review tab).  End the turn with its link pair (`spell dev docs link <page> --review`)
+5. The answer (the waiter wakes the session):  each question `spell dev plan-doc add <name> decision "<answer>"
+   --details "<p>the question, the pick, Owen's note, a link:  <a href=\"details/analysis.html#q2\">analysis
+   Q2</a></p>"`;  a note asking something:  answer it in the reply, and in the decision's details.
+6. Reply:  what the future epic is, what was decided, and that `/epic <name>` plans it;  the plan doc's link pair.
+
 ## Cheat sheet (`spell dev plan-doc ...`, from anywhere in the repo)
 
 ```
-new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from the template, update the docs index
+new <name> [--title "Title"] [--prompt "..." | --prompt-file f] [--future]
+                                                    create from the template, update the docs index;  --future:  a
+                                                    future epic (9.);  new on a future epic's doc plans it (promoted)
 add-phase <name> "Short Name" --symptom .. --changes .. [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
 phase-body <name> <N> [--symptom ..] [--changes ..] [--goal ..] [--files ..] [--verify ..]   set ("" removes) fields
 updated <name> <N> "<p>what changed</p>"            a change to phase N's plan:  fenced, dated, under Symptom / Changes
