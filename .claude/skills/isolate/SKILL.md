@@ -42,16 +42,18 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
    - "New window `⎇ <name>`":  tinted, Explorer and Source Control on the worktree;  this window keeps its
      other sessions.  Steps 3-6.
    - "Stay in this window":  no move, same tab;  its changes show in Source Control (each worktree is its own repo
-     there, `git.detectWorktrees`), not in Explorer;  no tint.  Step 3, then "Stay" below.
+     there, `git.detectWorktrees`), not in Explorer;  the window retitled `⎇ <name>` and tinted (`stay`).  Step
+     3, then "Stay" below.
    - Why ask:  staying is quicker and touches nothing else when this is the window's only session.  With others,
      they share its doc preview and Source Control (`scripts/window.mjs`, "Staying put").
 3. `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.  The repo's
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
 4. Open it in its own window (root `AGENTS.md` "Worktrees"), from the worktree's root:
-   - `spell dev window open <name>`:  a NEW window from `workspaces/ongoing/<name>.code-workspace` (main
-     checkout, git-ignored), the package window's theme with a tinted title bar.  Folders:  the MAIN root (so every
-     session is listed), then the worktree's root, `⎇ <name>`.
+   - `spell dev window open <name> [--color <look>]`:  a NEW window from `workspaces/ongoing/<name>.code-workspace`
+     (main checkout, git-ignored), in this window's look, or `<look>`'s (`/isolate <name> -purple`, `/epic <name>
+     -purple`:  the 12 of `spell dev window color`;  epic `windows-and-review` P5).  Folders:  the MAIN root (so
+     every session is listed), then the worktree's root, `⎇ <name>`.
      `<pkg>`:  this session's window's.
    - "which package?" (this isn't a package window):  AskUserQuestion "Which package's window?", up to 4 packages
      the work touches, most likely first and "(Recommended)";  then `open <name> --pkg <pkg>`.
@@ -72,6 +74,8 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
 ## Stay:  in this window
 
 After step 3, when Owen picked "Stay in this window":  no `open`, no `handoff`, no turn end.
+0. `spell dev window stay <name>`:  the window says so at once, titled `⎇ <name>`, its title bar tinted (no reload,
+   the Claude panel untouched);  `-<look>` given:  `spell dev window color <look>` too.
 1. "Continue" below, steps 2-4, at once, in this turn.
 2. One line:  "isolated in worktree `<name>` (branch `<name>`), staying in this window;  its changes are in Source
    Control under `<name>`".
@@ -189,6 +193,8 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
      (`workspaces/ongoing/<name>.code-workspace`) goes with `spell dev window close <name>` later, or
      `/worktrees` lists it.
    - NEVER `handoff <name> --back` from here.
+   - It STAYED in its window ("Stay" above):  `spell dev window stay --end` puts the window's title and title bar
+     back (it says "nothing to put back" when there's nothing)
 6. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
    Never `remove` unasked (and on a hook-made worktree `remove` refuses without `discard_changes`).
 7. Merging (only after "Merge now" got the branch ready), now in the main checkout:
@@ -196,6 +202,9 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
      session may be working there.  Either fails:  say which and don't merge.
    - `git merge --ff-only <name>`.  Refused (`main` moved since step 2):  say so and don't merge;  `/isolate <name>`
      re-enters the worktree to merge `main` in again.
+   - merged:  `spell dev session done`:  this session's name gets a ✅ (`✅ <name>`), so the Claude panel tells
+     finished work from live work.  It shows after Owen's next message here (a hook applies it:  nothing else can);
+     `/isolate <name>`, `/epic <name>` or `/unpark <name>` takes it off again (epic `windows-and-review` P6)
 7b. Agents' worktrees, WITHOUT asking (Owen, 2026-10-05), now in the main checkout:  an agent this session started
    with `isolation: "worktree"` (an epic's phases) got `.claude/worktrees/<name>-agent-<id>` on branch
    `<name>-agent-<id>` (the `WorktreeCreate` hook names it for its owner).  It was kept when the agent finished

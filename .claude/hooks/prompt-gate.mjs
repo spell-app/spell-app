@@ -12,8 +12,11 @@
  * ## What it does, in order
  * - stdin `{ prompt, cwd, session_id, permission_mode, ... }`
  * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...`),
- *   `/epic resume <name>` and `/unpark <name>`.  `review` and `resume` are reserved epic names:  a review runs from
- *   any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks its window itself).
+ *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume` and `color` are reserved epic names:  a review
+ *   runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks its
+ *   window itself);  `/epic color <look>` recolours the window it's typed in, nothing to gate.
+ *   A look right after the name (`/epic x -purple`, epic `windows-and-review` P5) is the window's, not the plan's:
+ *   left out of the text saved below.
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
  * 1. Plan mode, on `/isolate` or `/epic <name>`:  blocks the prompt.  Why:  plan mode lets Claude write only the
  *    harness plan file, so no worktree can be made, and `ExitPlanMode` would ask Owen to approve a half-made plan.
@@ -22,7 +25,9 @@
  *    - the session's VS Code window is a worktree's (`workspaces/ongoing/<other>.code-workspace`).  A new session
  *      there starts at the MAIN root, so `cwd` alone misses it.
  *    - Re-entering the SAME `<name>` is fine.
- * 3. Otherwise:  renames the session `<name>` (`hookSpecificOutput.sessionTitle`), unless it already is.  That's
+ * 3. Otherwise:  renames the session `<name>` (`hookSpecificOutput.sessionTitle`), unless it already is.  A ✅ title
+ *    (its work merged, epic `windows-and-review` P6) isn't `<name>`, so reopening takes the ✅ off;  a ✅ still queued
+ *    for it is dropped (`dropDoneTitle()`).  That's
  *    what lets the move to a worktree's window find the old tab by its label (`.claude/hooks/handoff.mjs`).
  * - SIDE EFFECT:  before either block, any text after the name is saved to `<prompts>/<name>.md`, and quoted
  *   back in the reason, so it can be copied.  `/epic <name>` / `/isolate <name>` alone picks it up later.
@@ -30,12 +35,12 @@
  * - Never fails a prompt:  any error exits 0, the prompt untouched.
  * - Natural-language triggers ("isolate as foo") never reach here:  each skill's step 0 repeats these checks.
  */
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join, sep } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import { Window } from "../../scripts/window.mjs"
+import { LOOKS, Window } from "../../scripts/window.mjs"
 
 // run as the hook;  imported (by its tests), nothing runs
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -81,8 +86,24 @@ export function gate(input, window) {
     }
   }
 
+  // reopened:  a ✅ queued when its work merged (epic `windows-and-review` P6) and not yet applied must not land now
+  dropDoneTitle(input.session_id)
   if (input.session_title === name) return null
   return { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: name } }
+}
+
+/**
+ * Drop session `id`'s queued title (`~/.claude/session-titles/<id>`, `$SPELL_SESSION_TITLES_DIR` in tests) when it's
+ * a ✅ one:  the work it marked done is open again.  Any other queued title stays.
+ */
+export function dropDoneTitle(id) {
+  if (!id) return
+  const file = join(process.env.SPELL_SESSION_TITLES_DIR ?? join(homedir(), ".claude", "session-titles"), String(id).replace(/[^\w-]/g, ""))
+  try {
+    if (readFileSync(file, "utf8").trim().startsWith("✅")) rmSync(file)
+  } catch {
+    // none queued
+  }
 }
 
 /**
@@ -92,6 +113,7 @@ export function gate(input, window) {
  * - `skill`:  `"epic resume"` for `/epic resume <name>`
  * - `name`:  the first word, or a quoted phrase, lower-kebab-cased
  * - `text`:  the rest, trimmed (`""` when none)
+ * - `color`:  a look right after the name (`-purple`, `window.mjs` `LOOKS`), left out of `text`;  else `null`
  */
 export function parseCommand(prompt) {
   const match = /^\s*\/(isolate|epic|unpark)(?:\s+([\s\S]*))?$/.exec(prompt ?? "")
@@ -103,12 +125,16 @@ export function parseCommand(prompt) {
   if (!name || (skill === "isolate" && name === "done")) return null
   // `/epic review [<name>]` runs from any window and keeps the session's name:  nothing to gate
   if (skill === "epic" && name === "review") return null
+  // `/epic color <look>` recolours this window:  nothing to gate, no rename
+  if (skill === "epic" && name === "color") return null
   // `/epic resume <name>`:  renamed `<name>`, as `/unpark <name>` is;  alone, it asks which epic
   if (skill === "epic" && name === "resume") {
     const resumed = parseCommand(`/unpark ${rest}`)
     return resumed && { ...resumed, skill: "epic resume" }
   }
-  return { skill, name, text: rest.trim() }
+  const look = /^\s*-([a-z]+)(?=\s|$)([\s\S]*)$/i.exec(rest)
+  const color = look && look[1].toLowerCase() in LOOKS ? look[1].toLowerCase() : null
+  return { skill, name, text: (color ? look[2] : rest).trim(), color }
 }
 
 /**

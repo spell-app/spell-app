@@ -163,7 +163,9 @@ async function start() {
  *   - a plan item OPENS:  the address never follows items, so an item's `#q16` is a link someone followed
  *     (`spell dev docs link --hash q16 --show`), and a folded item shows nothing of what it pointed at
  * - else nowhere:  the top
- * - then the address starts following the scroll
+ * - then the address starts following the scroll;  after a `#hash`, only once the jump has landed:  a target in a
+ *   body not loaded yet (a split plan doc's part) lands a moment later, and following before that saw the top of
+ *   the page, and wrote the hash away (I3 of `windows-and-review`)
  */
 function land({ hash, scroll }, jump, follow) {
   if (scroll !== undefined) {
@@ -174,7 +176,7 @@ function land({ hash, scroll }, jump, follow) {
     }, SETTLE_MS)
     follow?.update()
   } else if (hash) {
-    jump(hash, { unfoldTarget: isPlanItem(hash) })
+    const landed = jump(hash, { unfoldTarget: isPlanItem(hash) })
     // the browser's own jump to the `#hash` can come AFTER ours and land the target under the stuck titles (an
     // item has no box of its own:  `display: contents`), so land once more when the page has settled, unless the
     // reader has moved meanwhile
@@ -182,6 +184,8 @@ function land({ hash, scroll }, jump, follow) {
     for (const type of ["wheel", "touchstart", "keydown", "pointerdown"])
       addEventListener(type, () => (moved = true), { once: true, passive: true })
     setTimeout(() => !moved && jump(hash, { unfoldTarget: false }), SETTLE_MS * 2)
+    void landed.then(() => follow?.followAddress())
+    return
   } else follow?.update()
   follow?.followAddress()
 
@@ -1788,7 +1792,8 @@ function wireAnchors(main, outline, sticky, follow, folds) {
   }
 
   /**
-   * Scroll to `id` and make its entry the current one;  once what it unfolded has drawn.
+   * Scroll to `id` and make its entry the current one;  once what it unfolded has drawn.  Returns a promise that
+   * settles once it has landed (or found nothing to land on).
    * - `id` inside a body not loaded yet (a split plan doc's part:  an Overview `h4`, an old `#d7` answer card):  its
    *   host loads the body first (`hostHolding()`, `load()`), then the jump goes on (caveat C8 of `claude-design`)
    */
@@ -1796,22 +1801,23 @@ function wireAnchors(main, outline, sticky, follow, folds) {
     const target = targetIn(id)
     if (!target) {
       const host = hostHolding(main, id)
-      if (host?.load)
-        void host.load().then(
-          () => targetIn(id) && jump(id, { unfoldTarget }),
-          () => undefined
-        )
-      return
+      if (!host?.load) return Promise.resolve()
+      return host.load().then(
+        () => (targetIn(id) ? jump(id, { unfoldTarget }) : undefined),
+        () => undefined
+      )
     }
     let landed = NaN
     // what a jump unfolds opens at once, without the fold animation, so the page gets there quickly (Owen,
     // 2026-10-04):  `spell-doc.css` zeroes `--ui-section-duration` under `data-spell-jumping`
     const root = document.documentElement
     root.setAttribute("data-spell-jumping", "")
-    if (folds.reveal(target, { self: unfoldTarget })) void nextFrames(UNFOLD_FRAMES).then(land)
-    else land()
+    const done = folds.reveal(target, { self: unfoldTarget })
+      ? nextFrames(UNFOLD_FRAMES).then(land)
+      : (land(), undefined)
     setTimeout(() => root.removeAttribute("data-spell-jumping"), SETTLE_MS)
     if (outline.sections) setTimeout(() => Math.abs(scrollY - landed) < 2 && land(), SETTLE_MS)
+    return done ?? Promise.resolve()
 
     /** Scroll to the target, pin its entry. */
     function land() {
@@ -2904,6 +2910,10 @@ function outsideOriginal(elements) {
  *     (`.plan-act-pick`) beside the buttons
  * - the page header's round paper plane (`button.plan-send`, left of the git button):  grey with nothing to send,
  *   blue with unsent marks, outlined blue once sent while marks wait for Claude
+ * - beside it, Review Now (`button.plan-review-now`, the wand;  epic `windows-and-review` P4, Q2):  sends every
+ *   mark AND has the listening session work through them at once:  each revisit waiting becomes a request for now,
+ *   answered into its item (`POST send { now: true }`, `inbox.js` `reviewNow()`);  blue while there's anything
+ *   for Claude to work through
  * - nobody listening (`listening` null:  none, or its heartbeat stopped, as the routes answer it):  the send
  *   button's tooltip and the "now" actions say so (`NOBODY_LISTENING`, decision D6)
  * - re-reads the inbox when the page server says its file changed (the live client's `spell-server:file`), and every
@@ -2987,8 +2997,8 @@ async function wireReview(main) {
     const head = main.querySelector(".spell-page-head")
     if (head && !head.querySelector(":scope > .plan-send")) {
       const before = head.querySelector(":scope > :is(.plan-git-toggle, .plan-step)")
-      if (before) before.before(sendOf())
-      else head.append(sendOf())
+      if (before) before.before(sendOf(), reviewNowOf())
+      else head.append(sendOf(), reviewNowOf())
     }
     render()
   }
@@ -3063,6 +3073,16 @@ async function wireReview(main) {
         : "Nothing to send:  mark an item first (its buttons)"
     send.title = listening || !all.length ? tip : `${tip}.  ${NOBODY_LISTENING}`
     send.setAttribute("aria-label", tip)
+    const now = main.querySelector(".plan-review-now")
+    if (!now) return
+    // what Claude would work through:  every mark but the requests already on their way
+    const waiting = all.filter((mark) => !isImmediate(mark)).length
+    now.dataset.state = waiting ? "ready" : "idle"
+    const nowTip = waiting
+      ? `Review Now:  Claude works through ${waiting} mark${waiting === 1 ? "" : "s"} at once, answers in their items`
+      : "Review Now:  nothing to work through yet"
+    now.title = listening || !waiting ? nowTip : `${nowTip}.  ${NOBODY_LISTENING}`
+    now.setAttribute("aria-label", nowTip)
   }
 
   /**
@@ -3378,6 +3398,17 @@ async function wireReview(main) {
     return send
   }
 
+  /** The page header's "Review Now" button:  `button.plan-review-now`, a round wand, right of Send. */
+  function reviewNowOf() {
+    const now = document.createElement("button")
+    now.type = "button"
+    now.className = "plan-review-now"
+    now.dataset.spellAdded = ""
+    now.innerHTML = `<ui-icon name="wand magic sparkles"></ui-icon>`
+    now.addEventListener("click", () => void reviewMarksNow())
+    return now
+  }
+
   /** The notice line at the bottom of the window:  what can't be said on the item (D6, a failed write). */
   function buildNotice() {
     const element = document.createElement("div")
@@ -3557,6 +3588,22 @@ async function wireReview(main) {
   }
 
   /** "Send to Claude":  every unsent mark goes. */
+  /**
+   * Review Now:  send every mark, each revisit asked now (`POST send { now: true }`);  says what went, or why
+   * nothing did.
+   */
+  async function reviewMarksNow() {
+    const waiting = Object.values(inbox.marks).filter((mark) => !isImmediate(mark))
+    if (!waiting.length) return notify("Nothing to work through:  mark an item first")
+    if (!(await write("send", { now: true }))) return
+    render()
+    notify(
+      inbox.listening
+        ? `Claude is working through ${waiting.length} now:  answers land in the items`
+        : `Saved.  ${NOBODY_LISTENING}`
+    )
+  }
+
   async function sendMarks() {
     const unsent = Object.values(inbox.marks).filter((mark) => !isSent(mark, inbox.sent))
     if (!unsent.length)
