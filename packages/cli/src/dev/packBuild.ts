@@ -1,6 +1,6 @@
 import { createHash } from "crypto"
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "fs"
-import { join, relative } from "path"
+import { dirname, join, relative } from "path"
 import { pathToFileURL } from "url"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
@@ -106,18 +106,38 @@ export function packPrefix(dir: string): string | undefined {
 }
 
 /**
- * The hash of everything a pack's generated files are built from:  every file under `components/` and `src/` (not
- * tests or snapshots), with its path;  the pack's name and prefix;  `PACK_FORMAT`.  16 hex digits of sha-256.
+ * The hash of everything a pack's generated files are built from:  `packSources()`, each with its path;  the pack's
+ * name and prefix;  `PACK_FORMAT`.  16 hex digits of sha-256.
  */
 export function packHash(pack: PackInfo): string {
   const hash = createHash("sha256").update(`${PACK_FORMAT}\n${pack.name}\n${pack.prefix}\n`)
-  for (const folder of SOURCE_FOLDERS) {
-    for (const file of filesUnder(join(pack.dir, folder))) {
-      if (NOT_SOURCE.test(file)) continue
-      hash.update(`${relative(pack.dir, file)}\n`).update(readFileSync(file))
+  for (const file of packSources(pack)) hash.update(`${relative(pack.dir, file)}\n`).update(readFileSync(file))
+  return hash.digest("hex").slice(0, 16)
+}
+
+/**
+ * The files a pack's script is built from, absolute, sorted:  every file under `components/`, plus every file of the
+ * pack's own `components/` or `src/` they import, transitively.
+ * - Not the rest of `src/`:  node-only code there (a tool, its tests) never reaches the script, so editing it leaves
+ *   the pack current.
+ * - Imports are found by `IMPORT` (text, not a parse) and resolved as the build does:  relative, or the pack's own
+ *   `$/<pack>` aliases (`packAliases()`);  `?inline` and other queries dropped, extensions and `index` tried.
+ * - Tests and snapshots never count.
+ */
+export function packSources(pack: PackInfo): string[] {
+  const sources = new Set<string>()
+  const queue = filesUnder(join(pack.dir, COMPONENTS_FOLDER))
+  while (queue.length) {
+    const file = queue.pop()!
+    if (sources.has(file) || NOT_SOURCE.test(file) || !isPackSource(pack, file)) continue
+    sources.add(file)
+    if (!SCRIPT.test(file)) continue
+    for (const [, from, bare, dynamic] of readFileSync(file, "utf8").matchAll(IMPORT)) {
+      const imported = resolveImport(pack, file, from ?? bare ?? dynamic)
+      if (imported) queue.push(imported)
     }
   }
-  return hash.digest("hex").slice(0, 16)
+  return [...sources].sort()
 }
 
 /** The family folders of a pack:  each `components/<tag>/` with an `index.ts` barrel, sorted. */
@@ -154,11 +174,24 @@ const PACK_FOLDER = "pack"
 /** Its element families' folder. */
 const COMPONENTS_FOLDER = "components"
 
-/** Folders whose files a pack is built from. */
+/** Folders whose files a pack's script may be built from:  its elements, and code they share with node. */
 const SOURCE_FOLDERS = [COMPONENTS_FOLDER, "src"]
 
 /** Files under them that never reach the pack:  tests and their snapshots. */
 const NOT_SOURCE = /\.test\.[cm]?[jt]sx?$|[\\/]__snapshots__[\\/]/
+
+/** A file whose imports `packSources()` follows. */
+const SCRIPT = /\.[cm]?[jt]sx?$/
+
+/**
+ * An import's specifier:  `import ... from "x"` / `export ... from "x"` (1), `import "x"` (2), `import("x")` (3).
+ * - Text, not a parse:  an import in a comment counts too, which only hashes one more file.
+ */
+const IMPORT =
+  /\b(?:import|export)\s[^"'`;]*?\bfrom\s*["']([^"']+)["']|\bimport\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g
+
+/** What an import's path may leave off, tried in order after the path itself. */
+const RESOLVE_SUFFIXES = [".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx", "/index.js"]
 
 /** Where a generated file records the sources' hash:  `sources:  <hash>`. */
 const HASH_RECORD = /\bsources: {2}([0-9a-f]{16})\b/
@@ -302,6 +335,26 @@ function packAliases(pack: PackInfo) {
     { find: new RegExp(`^\\$/${name}$`), replacement: join(pack.dir, "src", "index.ts") },
     { find: new RegExp(`^\\$/${name}/`), replacement: `${join(pack.dir, "src")}/` }
   ]
+}
+
+/**
+ * The file import `specifier` in file `from` names, when it's the pack's own:  relative, or a `$/<pack>` alias.
+ * - `undefined` for anything else (Spell UI, Solid, npm), or a path that isn't a file.
+ */
+function resolveImport(pack: PackInfo, from: string, specifier: string): string | undefined {
+  const path = specifier.replace(/\?.*$/, "")
+  const alias = packAliases(pack).find((it) => it.find.test(path))
+  const base = path.startsWith(".") ? join(dirname(from), path) : alias && path.replace(alias.find, alias.replacement)
+  if (base === undefined) return undefined
+  const candidates = [base, ...RESOLVE_SUFFIXES.map((suffix) => base + suffix)]
+  // TS's ESM style:  `./x.js` for `./x.ts`
+  if (/\.[cm]?js$/.test(base)) candidates.push(base.replace(/js$/, "ts"), base.replace(/js$/, "tsx"))
+  return candidates.find((it) => existsSync(it) && statSync(it).isFile())
+}
+
+/** Whether `file` is under one of the pack's `SOURCE_FOLDERS`. */
+function isPackSource(pack: PackInfo, file: string): boolean {
+  return SOURCE_FOLDERS.some((folder) => !relative(join(pack.dir, folder), file).startsWith(".."))
 }
 
 /** The hash a generated file records, if any. */
