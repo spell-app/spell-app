@@ -115,7 +115,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
   dev
     .command("agents")
     .description("the running-agents list of this epic (else checkout):  what each background agent is doing")
-    .argument("[verb]", "list (default) [--json] | add <name> <task> | set <name> | done <name>")
+    .argument("[verb]", "list (default) [--json] | add <name> <task> | set <name> | done <name> | wait | told <name>")
     .argument("[args...]", 'the verb\'s arguments, e.g. add aaa "docstrings in string.ts"')
     .allowUnknownOption()
     .helpOption(false)

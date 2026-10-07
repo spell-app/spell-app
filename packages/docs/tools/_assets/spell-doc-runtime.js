@@ -25,6 +25,8 @@
  *   shows its own (`wireCommits()`)
  * - plan docs' review actions, served by the page server:  an ellipsis menu on every item, Revisit notes, "Choose"
  *   on option cards, and the header's "Send to Claude", all saved in the doc's inbox file (`wireReview()`)
+ * - plan docs' running agents, served by the page server:  a panel above the first section while any runs, each
+ *   with a note box that redirects it (`wireAgents()`)
  * - scroll-follow:  the current section's (heading's) contents link is highlighted and its panels open;  panels the
  *   scroll opened close again, panels the USER opened stay open
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
@@ -2506,6 +2508,7 @@ function buildChrome() {
   void wireTips(main)
   // after the git button:  the send button goes left of it
   void wireReview(main)
+  void wireAgents(main)
   addEventListener("spell-doc:updated", () => {
     wireItemFolds(main)
     wireFollowUps(main)
@@ -3631,7 +3634,6 @@ async function wireReview(main) {
     }
   }
 
-  /** "Send to Claude":  every unsent mark goes. */
   /**
    * Review Now:  send every mark, each revisit asked now (`POST send { now: true }`);  says what went, or why
    * nothing did.
@@ -3648,6 +3650,7 @@ async function wireReview(main) {
     )
   }
 
+  /** "Send to Claude":  every unsent mark goes. */
   async function sendMarks() {
     const unsent = Object.values(inbox.marks).filter((mark) => !isSent(mark, inbox.sent))
     if (!unsent.length)
@@ -3660,61 +3663,26 @@ async function wireReview(main) {
   }
 
   /**
-   * POST `body` (plus `page`) to `route`;  the reply is the new inbox.  True when written;  else says why
-   * (`notify()`, unless `quiet`:  the caller says it, from `lastWriteError`) and re-reads the inbox, undoing what
-   * was shown early.
-   * - the page server restarted since this page loaded (a 403 on the token):  takes its new token
-   *   (`refreshToken()`) and tries once more, so nothing typed is refused for it
+   * POST `body` (plus `page`) to `route` (`postToServer()`);  the reply is the new inbox.  True when written;  else
+   * says why (`notify()`, unless `quiet`:  the caller says it, from `lastWriteError`) and re-reads the inbox, undoing
+   * what was shown early.
    */
   async function write(route, body, { quiet = false, keepalive = false } = {}) {
     writing++
     let error = ""
     try {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const response = await fetch(`${REVIEW_API}/${route}`, {
-          method: "POST",
-          headers: { "content-type": "application/json", "x-server-token": server.token },
-          body: JSON.stringify({ page, ...body }),
-          keepalive
-        })
-        const reply = await response.json().catch(() => ({}))
-        if (response.ok) {
-          inbox = inboxOf(reply)
-          return true
-        }
-        const stale = response.status === 403 && /token/i.test(reply.error ?? "")
-        if (stale && attempt === 0 && (await refreshToken())) continue
-        error = stale
-          ? "the page server restarted since this page loaded:  reload the page"
-          : (reply.error ?? `couldn't save (${response.status})`)
-        break
-      }
+      inbox = inboxOf(await postToServer(server, `${REVIEW_API}/${route}`, { page, ...body }, { keepalive }))
+      return true
     } catch (failure) {
-      error = `couldn't reach the page server (${failure.message})`
+      error = failure.message
     } finally {
       writing--
     }
     lastWriteError = error
-    if (!quiet) notify(`${error[0].toUpperCase()}${error.slice(1)}.`)
+    if (!quiet) notify(sentence(error))
     await load()
     render()
     return false
-  }
-
-  /**
-   * Take the page server's CURRENT write token from the page as it serves it now (its `window.SPELL_SERVER`):  a
-   * restarted server has a new one.  True when it changed.
-   */
-  async function refreshToken() {
-    try {
-      const html = await (await fetch(location.pathname + location.search, { cache: "no-store" })).text()
-      const fresh = JSON.parse(/window\.SPELL_SERVER = (\{.*?\})<\/script>/.exec(html)?.[1] ?? "null")?.token
-      if (!fresh || fresh === server.token) return false
-      server.token = fresh
-      return true
-    } catch {
-      return false
-    }
   }
 
   /** Say `message` at the bottom of the window for a few seconds. */
@@ -3760,8 +3728,291 @@ function clockOf(iso) {
 }
 
 ////////////////
+// ## Running agents
+////////////////
+
+/** The running-agents routes (`tools/agentRoutes.ts`):  every reply is the epic's whole list, `{ agents }`. */
+const AGENTS_API = "/api/agents"
+
+/** The list's file, beside the plan doc (`tools/AgentList.ts`):  the page server announces its changes. */
+const AGENTS_FILE = "agents.json"
+
+/**
+ * The epic's RUNNING AGENTS at the top of its plan doc (epic `skillz`, P3), each with a note box that redirects it:
+ * `div.plan-agents`, "Agents running", right before the first section.
+ * - only a plan doc (`body.plan-doc`) served by the page server (`SPELL_SERVER.token`), once the list answers
+ *   (`GET /api/agents?page=`):  from `file://`, or a server without the route, nothing is added
+ * - shown only while an agent runs;  NOT a `<ui-section>`:  it isn't the record, and the contents, rail and counts
+ *   never see it
+ * - one row per agent, KEYED by name and updated in place (`rows`):  a poll or an in-place update never touches what's
+ *   typed in its box, nor its focus
+ *   - its name, status (`active` blue;  `blocked on <name>` orange), age (`2h 5m`, `ageOf()`, re-read each poll), task
+ *   - its redirects so far:  "You · 10:42 · told 10:43", or "waiting for the session" until it's been `told`
+ *   - a note box that grows as it's typed in, and Send (`POST redirect { page, name, note }`):  the box empties once
+ *     sent, or the error shows under it;  Cmd / Ctrl + Enter sends too
+ * - re-reads the list when the page server says its file changed (`agents.json`, the live client's
+ *   `spell-server:file`), and every `REVIEW_POLL_MS` while visible, as the review inbox does
+ * - NOTE: nothing here scrolls what's being read:  the panel growing or going while the reader is below it keeps
+ *   their place (`keepAnchor()`)
+ * - SIDE EFFECT:  adds the panel (`data-spell-added` inside `main`);  puts it back if an in-place update dropped it
+ *   (`spell-doc:updated`)
+ */
+async function wireAgents(main) {
+  const server = window.SPELL_SERVER
+  if (!document.body.classList.contains("plan-doc") || !server?.token) return
+  const page = location.pathname
+  // the list as last read or written;  each agent's row, by name;  writes in flight:  a poll can't undo them
+  let agents = []
+  const rows = new Map()
+  let writing = 0
+  if (!(await load())) return
+  const panel = panelOf()
+  render()
+  addEventListener("spell-doc:updated", () => render())
+  setInterval(() => {
+    if (document.visibilityState === "visible" && !writing) void load().then((read) => read && render())
+  }, REVIEW_POLL_MS)
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void load().then((read) => read && render())
+  })
+  const listFile = (server.file ?? page).replace(/[^/]*$/, AGENTS_FILE)
+  addEventListener("spell-server:file", (event) => {
+    if (!writing && event.detail?.path === listFile) void load().then((read) => read && render())
+  })
+
+  /** Read the list;  true when it answered (a write in flight wins:  its answer is newer). */
+  async function load() {
+    try {
+      const response = await fetch(`${AGENTS_API}?page=${encodeURIComponent(page)}`, { cache: "no-store" })
+      if (!response.ok) return false
+      const read = agentsOf(await response.json())
+      if (!writing) agents = read
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /** Show the list:  the panel while any agent runs, a row per agent in the list's order, rows of agents gone gone. */
+  function render() {
+    // the reader below the panel keeps their place as it comes, grows or goes
+    const next = main.querySelector(":scope > ui-section")
+    const was = next?.getBoundingClientRect().top
+    if (!agents.length) panel.remove()
+    else if (!panel.isConnected) {
+      if (next) next.before(panel)
+      else main.append(panel)
+    }
+    const names = new Set(agents.map((agent) => agent.name))
+    for (const [name, row] of rows) {
+      if (names.has(name)) continue
+      row.remove()
+      rows.delete(name)
+    }
+    const list = panel.querySelector(".plan-agents-list")
+    const now = Date.now()
+    agents.forEach((agent, at) => {
+      let row = rows.get(agent.name)
+      if (!row) rows.set(agent.name, (row = rowOf(agent.name)))
+      // moved only when out of place:  moving a row would take the focus from its box
+      if (list.children[at] !== row) list.insertBefore(row, list.children[at] ?? null)
+      fill(row, agent, now)
+    })
+    panel.querySelector(".plan-agents-count").textContent = agents.length > 1 ? String(agents.length) : ""
+    if (next && was < siteHeaderHeight()) keepAnchor({ element: next, top: was })
+  }
+
+  /** The panel:  its title ("Agents running", a robot) over the rows' list. */
+  function panelOf() {
+    const element = document.createElement("div")
+    element.className = "plan-agents"
+    element.dataset.spellAdded = ""
+    element.setAttribute("role", "region")
+    element.setAttribute("aria-label", "Agents running")
+    element.innerHTML =
+      `<div class="plan-agents-title"><ui-icon name="robot"></ui-icon><b>Agents running</b>` +
+      `<span class="plan-agents-count"></span></div>` +
+      `<div class="plan-agents-list"></div>`
+    return element
+  }
+
+  /**
+   * Agent `name`'s row, made once:  its line (name, status, age), task, redirects, and the note box with Send, which
+   * `fill()` never rebuilds.
+   */
+  function rowOf(name) {
+    const row = document.createElement("div")
+    row.className = "plan-agent"
+    row.dataset.name = name
+    row.innerHTML =
+      `<div class="plan-agent-line"><b><code class="plan-agent-name">${text(name)}</code></b>` +
+      `<ui-label class="plan-agent-status" size="mini" basic></ui-label>` +
+      `<span class="plan-agent-age"></span></div>` +
+      `<p class="plan-agent-task"></p>` +
+      `<ul class="plan-agent-redirects" hidden></ul>` +
+      `<div class="plan-agent-redirect">` +
+      `<textarea class="plan-agent-note" rows="1" placeholder="Redirect ${attr(name)} ..."></textarea>` +
+      `<ui-button class="plan-agent-send" circular primary icon="paper plane" size="mini" disabled>Send</ui-button>` +
+      `</div>` +
+      `<p class="plan-agent-error" role="alert" hidden></p>`
+    const note = row.querySelector("textarea")
+    const button = row.querySelector("ui-button")
+    note.setAttribute("aria-label", `Redirect ${name}:  your note`)
+    note.addEventListener("input", () => button.toggleAttribute("disabled", !note.value.trim()))
+    note.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault()
+        void send(row)
+      }
+    })
+    button.addEventListener("click", () => void send(row))
+    return row
+  }
+
+  /** Bring `row` up to date with `agent`:  everything but its note box.  `now`:  the time ages count to. */
+  function fill(row, agent, now) {
+    const status = row.querySelector(".plan-agent-status")
+    status.textContent = agent.status
+    status.setAttribute(
+      "color",
+      agent.status === "active" ? "blue" : /^blocked\b/.test(agent.status) ? "orange" : "grey"
+    )
+    const age = row.querySelector(".plan-agent-age")
+    age.textContent = ageOf(agent.started, now)
+    age.title = agent.started ? `Started ${clockOf(agent.started)}` : ""
+    row.querySelector(".plan-agent-task").textContent = agent.task
+    // redrawn only when they changed:  nothing in them is typed in
+    const redirects = row.querySelector(".plan-agent-redirects")
+    const key = JSON.stringify(agent.redirects)
+    if (redirects.dataset.key === key) return
+    redirects.dataset.key = key
+    redirects.hidden = !agent.redirects.length
+    redirects.innerHTML = agent.redirects
+      .map(
+        ({ note, at, told }) =>
+          `<li><span class="plan-agent-said"><ui-icon name="comment"></ui-icon><b>You</b> · ${clockOf(at)} · ` +
+          `${told ? `told ${clockOf(told)}` : "waiting for the session"}</span>` +
+          `<span class="plan-agent-said-note">${text(note)}</span></li>`
+      )
+      .join("")
+  }
+
+  /**
+   * Send `row`'s note to its agent (`POST redirect`):  the box empties once it's in the list (unless typed on
+   * meanwhile), else the error shows under it.  Nothing for an empty box, or one already sending.
+   */
+  async function send(row) {
+    const note = row.querySelector("textarea")
+    const button = row.querySelector("ui-button")
+    const error = row.querySelector(".plan-agent-error")
+    const typed = note.value.trim()
+    if (!typed || button.hasAttribute("loading")) return
+    button.setAttribute("loading", "")
+    error.hidden = true
+    writing++
+    try {
+      const body = { page, name: row.dataset.name, note: typed }
+      agents = agentsOf(await postToServer(server, `${AGENTS_API}/redirect`, body))
+      if (note.value.trim() === typed) note.value = ""
+    } catch (failure) {
+      error.textContent = sentence(failure.message)
+      error.hidden = false
+    } finally {
+      writing--
+      button.removeAttribute("loading")
+      button.toggleAttribute("disabled", !note.value.trim())
+    }
+    render()
+  }
+}
+
+/** A route's reply as the running agents, every field there (`tools/AgentList.ts` has their shape). */
+function agentsOf(reply) {
+  const agents = Array.isArray(reply?.agents) ? reply.agents : []
+  return agents
+    .filter((agent) => typeof agent?.name === "string")
+    .map((agent) => ({
+      name: agent.name,
+      task: String(agent.task ?? ""),
+      status: String(agent.status ?? "active"),
+      started: agent.started ?? "",
+      redirects: (Array.isArray(agent.redirects) ? agent.redirects : []).map((redirect) => ({
+        note: String(redirect?.note ?? ""),
+        at: redirect?.at ?? "",
+        told: redirect?.told ?? ""
+      }))
+    }))
+}
+
+/** How long ago ISO time `iso` was, to `now` (ms):  `<1m`, `3m`, `2h 5m`, `1d 4h`;  `""` for none. */
+function ageOf(iso, now) {
+  const minutes = Math.floor((now - Date.parse(iso)) / 60_000)
+  if (Number.isNaN(minutes)) return ""
+  if (minutes < 1) return "<1m"
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return minutes % 60 ? `${hours}h ${minutes % 60}m` : `${hours}h`
+  return hours % 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${Math.floor(hours / 24)}d`
+}
+
+////////////////
 // ## Helpers
 ////////////////
+
+/**
+ * POST `body` as JSON to page-server route `url`, with its write token (`SRV.Guard`:  the review and agents routes);
+ * returns the reply.
+ * - the page server restarted since this page loaded (a 403 on the token):  takes its new token (`refreshToken()`)
+ *   and tries once more, so nothing typed is refused for it
+ * - throws an `Error` saying why, for people:  the route's `error`, a stale token, no server
+ */
+async function postToServer(server, url, body, { keepalive = false } = {}) {
+  for (let attempt = 0; ; attempt++) {
+    let response
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-server-token": server.token },
+        body: JSON.stringify(body),
+        keepalive
+      })
+    } catch (failure) {
+      throw new Error(`couldn't reach the page server (${failure.message})`)
+    }
+    const reply = await response.json().catch(() => ({}))
+    if (response.ok) return reply
+    const stale = response.status === 403 && /token/i.test(reply.error ?? "")
+    if (stale && attempt === 0 && (await refreshToken(server))) continue
+    throw new Error(
+      stale
+        ? "the page server restarted since this page loaded:  reload the page"
+        : (reply.error ?? `couldn't save (${response.status})`)
+    )
+  }
+}
+
+/**
+ * Take the page server's CURRENT write token into `server` from the page as it serves it now (its
+ * `window.SPELL_SERVER`):  a restarted server has a new one.  True when it changed.
+ * - NEVER throws
+ */
+async function refreshToken(server) {
+  try {
+    const html = await (await fetch(location.pathname + location.search, { cache: "no-store" })).text()
+    const fresh = JSON.parse(/window\.SPELL_SERVER = (\{.*?\})<\/script>/.exec(html)?.[1] ?? "null")?.token
+    if (!fresh || fresh === server.token) return false
+    server.token = fresh
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** `message` as a sentence:  a capital first, a full stop last (unless it ends in one already). */
+function sentence(message) {
+  if (!message) return ""
+  return `${message[0].toUpperCase()}${message.slice(1)}${/[.!?]$/.test(message) ? "" : "."}`
+}
 
 /** Resolves after `count` animation frames:  long enough for UI's first render after its definitions. */
 async function nextFrames(count) {

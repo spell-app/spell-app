@@ -11,17 +11,26 @@
  * - `add <name> "<task>"`:  prints the full name (`skillz-aaa`);  exits 1 if it's running already
  * - `set <name> [--status active | "blocked on <name>"] [--task-id <id>]`, `done <name>`:  exit 1 if it isn't running
  * - `list [--json]` (default):  one line each, oldest first (`--json`:  the entries)
+ * - `wait [--every <s>] [--max <s>] [--json]`:  run in the BACKGROUND (Bash `run_in_background`) while agents run;
+ *   exits when Owen has sent one a note from the plan doc's Agents box (`agentRoutes.ts`), which wakes the session:
+ *   - 0:  untold redirects, printed `skillz-aaa:  <note>` (`--json`:  `[{ name, note, at }]`);  the session sends
+ *     each to its agent (`SendMessage`), then `told <name>`
+ *   - 3:  no agents running any more:  nothing to wait for
+ *   - 2:  `--max` seconds passed (default 3600);  polls every `--every` (default 2)
+ * - `told <name>`:  its redirects were passed on;  the page shows them "told"
  * - `--epic <name>`, any verb:  that epic's list, e.g. from the main checkout;  default:  the worktree's epic, if any
  * - Which checkout:  the one this file is in, which `spell dev` picks from the current folder (`runTool()`)
  */
-import { AgentList, AgentListError, type RunningAgent } from "./AgentList"
+import { setTimeout as sleep } from "node:timers/promises"
+
+import { AgentList, AgentListError, type RunningAgent, type Untold } from "./AgentList"
 import { ROOT, parseArgs } from "./pages.js"
 
 const { positional, flags } = parseArgs(process.argv.slice(2))
-process.exitCode = run(positional, flags)
+process.exitCode = await run(positional, flags)
 
 /** Run verb `positional[0]` with its arguments;  returns the exit code. */
-function run([verb = "list", name, task]: string[], flags: Record<string, string | true>): number {
+async function run([verb = "list", name, task]: string[], flags: Record<string, string | true>): Promise<number> {
   const list = new AgentList(ROOT, { epic: stringFlag(flags.epic) })
   const status = stringFlag(flags.status)
   const taskId = stringFlag(flags["task-id"])
@@ -33,10 +42,12 @@ function run([verb = "list", name, task]: string[], flags: Record<string, string
       else for (const agent of agents) console.log(agentLine(agent))
       return 0
     }
+    if (verb === "wait") return await waitForRedirects(list, flags)
     if (!name || (verb === "add" && !task)) return usage()
     if (verb === "add") console.log(list.add(name, task!, { status, taskId }).name)
     else if (verb === "set") list.set(name, { status, taskId })
     else if (verb === "done") list.done(name)
+    else if (verb === "told") list.told(name)
     else return usage()
     return 0
   } catch (error) {
@@ -44,6 +55,33 @@ function run([verb = "list", name, task]: string[], flags: Record<string, string
     console.error(error.message)
     return 1
   }
+}
+
+/**
+ * `wait`:  poll `list` until a redirect is untold (0, printed), no agent runs (3), or `--max` passes (2).
+ * - reads the file without its lock:  writes are atomic renames, so a read never sees half a file
+ */
+async function waitForRedirects(list: AgentList, flags: Record<string, string | true>): Promise<number> {
+  const every = Number(stringFlag(flags.every) ?? 2) * 1000
+  const deadline = Date.now() + Number(stringFlag(flags.max) ?? 3600) * 1000
+  for (;;) {
+    const untold = list.untold
+    if (untold.length) {
+      console.log(flags.json ? JSON.stringify(untold, null, 2) : untold.map(redirectLines).join("\n"))
+      return 0
+    }
+    if (!list.agents.length) {
+      console.log(`no agents running (${list.prefix}):  nothing to wait for`)
+      return 3
+    }
+    if (Date.now() > deadline) return 2
+    await sleep(every)
+  }
+}
+
+/** An untold redirect as `wait` prints it:  `skillz-aaa:  <note>`, a note's later lines indented. */
+function redirectLines({ name, note }: Untold): string {
+  return `${name}:  ${note.replace(/\n/g, "\n  ")}`
 }
 
 /** One agent as `list` prints it:  `skillz-aaa  active  3m  docstrings in string.ts`. */
@@ -68,7 +106,8 @@ function stringFlag(value: string | true | undefined): string | undefined {
 function usage(): number {
   console.error(
     'usage:  spell dev agents add <name> "<task>" [--status ...] [--task-id <id>] | set <name> [--status ...] ' +
-      "[--task-id <id>] | done <name> | list [--json]   (any verb:  [--epic <name>])"
+      "[--task-id <id>] | done <name> | list [--json] | wait [--every <s>] [--max <s>] [--json] | told <name>   " +
+      "(any verb:  [--epic <name>])"
   )
   return 1
 }
