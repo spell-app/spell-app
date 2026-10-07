@@ -29,6 +29,10 @@ house style every package shares.  Only what's local is below;  a section named 
   - `definitions/` -- the ONE description of every element:  `Definitions.all`, each vocabulary as data plus
     `children` (the content model).  Node-safe:  imports vocabulary files, never a family's barrel
   - `markup/` -- `Markup` (make, read, set, append) and `MarkupCheck` (validate a doc):  linkedom or the browser's DOM
+  - `review/` -- `ReviewClient`, one per page:  the review inbox's reads and writes (`/api/review/*`), token
+    refresh, polling, note-draft backups (the old runtime's localStorage keys).  Touches no browser global until
+    `forPage()` / `watch()`.  `<epic-item>`'s and `<epic-section>`'s `ReviewControls` and `<epic-option>`'s Choose
+    pill use it;  the controls show while `<epic-page reviewing>` is set
   - `convert/` -- the one-time converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`), with a
     `ConversionProof` per doc:  every id, link target and word kept.  Never writes into `epics/` or `spell-app-dev`
     unless it's the switch (P12 of epic `epic-components`)

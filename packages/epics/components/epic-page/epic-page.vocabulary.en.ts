@@ -68,6 +68,14 @@ export const epicPageVocabulary = {
       description:
         "The repo's web address (`https://github.com/spell-app/spell-app`):  `<epic-commit>` links are made from " +
         "it.  Absent:  commits show without links."
+    },
+    {
+      name: "reviewing",
+      kind: "boolean",
+      description:
+        "PAGE state, never in a doc:  the page is being reviewed -- served by the page server with a token, its " +
+        "review inbox answering -- so items and Overview parts show their review controls.  Set by them (P9, " +
+        "`ReviewState`);  the old runtime's `body.plan-reviewing`."
     }
   ],
   events: [],

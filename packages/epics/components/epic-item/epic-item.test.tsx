@@ -62,7 +62,7 @@ describe("<epic-item>", () => {
     )
     expect([chip.textContent, chip.getAttribute("href")]).toEqual(["Q1", "#q1"])
     expect(title.textContent).toBe("Which colour names?")
-    expect(slotNames(host)).toEqual(["title", "actions", "", "note"])
+    expect(slotNames(host)).toEqual(["title", ""])
     expect(host.querySelector("p")!.assignedSlot!.getAttribute("name")).toBeNull()
     expect(chip.title).toBe("Needs attention · not reviewed yet")
     await expectAccessible(host)

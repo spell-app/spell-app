@@ -1,10 +1,13 @@
 /**
  * Every name `<epic-item>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type` only.
+ * - Pure data:  `import type`, plus the review controls' parts and texts (`REVIEW_*`) from its types file, data too:
+ *   `<epic-section>`'s vocabulary spreads the same ones.
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
+
+import { REVIEW_PARTS, REVIEW_TEXTS } from "./epic-item.types"
 
 /****************
  * ### `<epic-item>`
@@ -19,8 +22,8 @@ export const epicItemVocabulary = {
   ui: false,
   description:
     "One item:  a question, judgement call, caveat, todo, issue or test -- ONE element for every kind, the kind " +
-    "its id's letter (Q11).  Its line (id chip in its state's colour, title, review label) is drawn;  its details, " +
-    "choices, answer, replies, earlier versions and commits are its children.",
+    "its id's letter (Q11).  Its line (id chip in its state's colour, title, review label, review buttons) and " +
+    "note box are drawn;  its details, choices, answer, replies, earlier versions and commits are its children.",
   attributes: [
     {
       name: "id",
@@ -147,9 +150,7 @@ export const epicItemVocabulary = {
   ],
   slots: [
     { name: "", description: "Its details." },
-    { name: "title", description: "A title with markup, in place of `title`." },
-    { name: "actions", description: "Controls at the end of its line:  the review buttons (P9).  Page state only." },
-    { name: "note", description: "Under its details, last:  the note box (P9).  Page state only." }
+    { name: "title", description: "A title with markup, in place of `title`." }
   ],
   parts: [
     { name: "base", description: "The item." },
@@ -158,10 +159,11 @@ export const epicItemVocabulary = {
     { name: "id", description: "The id chip (`Q7`), a link to the item, in its state's colour." },
     { name: "title", description: "The title." },
     { name: "review", description: "The review label:  `reviewed 10-06`, `deferred`, `to do`." },
-    { name: "actions", description: "The box at the end of the line around the `actions` slot." },
+    { name: "actions", description: "The box at the end of the line:  the review label, then the review buttons." },
     { name: "details", description: "Its details:  hidden while folded." },
     { name: "label", description: "`Original question` / `Original reply` over its own text." },
-    { name: "error", description: "With `source`:  the line saying the part couldn't be loaded." }
+    { name: "error", description: "With `source`:  the line saying the part couldn't be loaded." },
+    ...REVIEW_PARTS
   ],
   states: [
     { name: "open", description: "Unfolded." },
@@ -200,7 +202,8 @@ export const epicItemVocabulary = {
       key: "sourceRenderError",
       text: "Couldn't show {source}.",
       description: "The part arrived, but couldn't be shown."
-    }
+    },
+    ...REVIEW_TEXTS
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
