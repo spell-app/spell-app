@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Epic: Answer First</title>
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="answer-first">
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head"><h1>Epic: Answer First</h1></header></ui-sticky
+        >
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <p class="plan-summary lede">claude-design's layout before 2026-10-05: the answer card first.</p>
+        </ui-section>
+        <ui-section id="decisions" header="3. Questions" sticky collapsible dividing>
+          <ui-list class="plan-items" data-kind="decision"
+            ><ui-item
+              data-answered
+              data-state="old"
+              data-changed="2026-10-05T00:48:04-04:00"
+              id="q1"
+              data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a> <span class="plan-title">How do designs travel?</span></ui-title
+                ><ui-content>
+                  <div class="plan-answer-block">
+                    <div class="plan-answer-title"><b>Answer</b> · Claude Code carries them</div>
+                  </div>
+                  <p>How a design becomes a page (<a href="#o5">1.5</a>).</p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable="">
+                    <ui-column data-chosen=""
+                      ><ui-segment
+                        ><ui-label attached="top"
+                          >A · Claude Code carries them: <code>/design pull</code> (recommended)</ui-label
+                        >
+                        <ul>
+                          <li>two skill commands</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B · By hand</ui-label>
+                        <ul>
+                          <li>every trip is manual</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    >
+                  </ui-grid>
+                  <p><b>Net effect (A):</b></p>
+                  <ul>
+                    <li>two new commands</li>
+                  </ul>
+                </ui-content></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+      </main>
+    </div>
+  </body>
+</html>
