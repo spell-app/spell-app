@@ -76,6 +76,27 @@ export function nameStatus(name: string, ids?: string[], main = CLI.mainRoot()):
 }
 
 /**
+ * Plan doc `file`'s state from its skeleton's markup, with no parsing library:  `{ future, active, phases,
+ * followUps }`, `followUps` its OPEN questions, judgement calls, issues, todos and tests (caveats are limits
+ * accepted, open for good).  The same as `packages/docs/tools/index.js` `followUpsIn()` and the page runtime's
+ * `wireFollowUps()`:  a SLEEPING epic has follow-ups and no phase under way.
+ */
+export function planFollowUps(file: string): { future: boolean; active: boolean; phases: number; followUps: number } {
+  const html = readFileSync(file, "utf8")
+  const tags = (name: string) => [...html.matchAll(new RegExp(`<${name}\\b[^>]*>`, "g"))].map((match) => match[0])
+  const phases = tags("ui-section").filter((tag) => /\sdata-phase="/.test(tag))
+  const followUps = tags("ui-item").filter(
+    (tag) => /\sid="[qjitv]\d+"/.test(tag) && /\sdata-status="open"/.test(tag)
+  ).length
+  return {
+    future: /<body\b[^>]*\sdata-future\b/.test(html),
+    active: phases.some((tag) => /\sdata-status="active"/.test(tag)),
+    phases: phases.length,
+    followUps
+  }
+}
+
+/**
  * Plan doc `name`:  its folder, and whether every phase is done, from `planSummaries()`.
  * - its live copy:  the worktree's when it has one, else the main checkout's (`planFile()`)
  */

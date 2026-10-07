@@ -282,9 +282,10 @@ export function ancestorPids(): Set<number> {
 /**
  * The icon a session's title starts with, saying where its work stands (Owen, 2026-10-07):  🚧 under way
  * (`/isolate`, `/epic <name>`, `/unpark`, `/epic resume`:  the prompt hook, `.claude/hooks/prompt-gate.mjs`, which
- * keeps its own copy), 📅 a future epic written down (`/epic future`), ✅ merged (`spell dev session done`).
+ * keeps its own copy), 📅 a future epic written down (`/epic future`), ✅ merged (`spell dev session done`), 😴
+ * sleeping:  nothing under way, but follow-ups open (`spell dev session icons`;  `worktrees.ts` `planFollowUps()`).
  */
-export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅" } as const
+export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅", sleeping: "😴" } as const
 
 /** `title` without its leading icon (`TITLE_ICONS`):  `🚧 seo` -> `seo`;  the name its work goes by. */
 export function bareTitle(title: string): string {

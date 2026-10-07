@@ -1,5 +1,4 @@
 import { spawnSync } from "child_process"
-import { readFileSync } from "fs"
 import { relative } from "path"
 
 import { CLI } from "$/cli"
@@ -232,15 +231,20 @@ function refreshIcons(session: CLI.CliSession, dryRun: boolean): number {
 /**
  * The icon work `name`'s state calls for (`TITLE_ICONS`), from its worktree, branch and plan doc (`nameStatus()`);
  * `null` when `name` isn't work this repo knows.
- * - 📅 its plan doc is a future epic (`<body data-future>`, `/epic future`)
+ * - 📅 its plan doc is a future epic (`<body data-future>`, `/epic future`);  🚧 a phase of it under way
+ * - 😴 sleeping:  no phase under way, but follow-ups open (`planFollowUps()`), merged or not
  * - ✅ finished:  its branch merged into `main`, or every phase of its plan done with nothing left to merge
  * - 🚧 under way:  a worktree, a branch with commits `main` lacks, or a plan with phases left
  */
 function workIcon(name: string, ids: string[]): string | null {
   const status = CLI.nameStatus(name, ids)
   if (!status.worktree && !status.branch && !status.plan) return null
-  const plan = status.plan && CLI.planFile(name, status.worktree ?? "", CLI.mainRoot())
-  if (plan && /<body\b[^>]*\bdata-future\b/.test(readFileSync(plan, "utf8"))) return CLI.TITLE_ICONS.future
+  const file = status.plan && CLI.planFile(name, status.worktree ?? "", CLI.mainRoot())
+  const plan = file ? CLI.planFollowUps(file) : null
+  if (plan?.future) return CLI.TITLE_ICONS.future
+  if (plan?.active) return CLI.TITLE_ICONS.active
+  // nothing under way, follow-ups open:  asleep, whether merged or not
+  if (plan && plan.phases && plan.followUps) return CLI.TITLE_ICONS.sleeping
   // a plan all done whose branch still has commits `main` lacks isn't finished:  it waits to merge
   if (status.finished && status.ahead === 0) return CLI.TITLE_ICONS.done
   return CLI.TITLE_ICONS.active
