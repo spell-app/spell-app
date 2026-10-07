@@ -128,7 +128,9 @@ export const rootLintIgnore = [
   "packages/spell/projects",
   "packages/spell/vscode-extension/out",
   // its own yarn project, with its own tools
-  "packages/vscode"
+  "packages/vscode",
+  // `epics`'s component pack:  generated (`spell dev pack build epics`)
+  "packages/epics/pack"
 ]
 
 /**
@@ -225,6 +227,7 @@ export const fmtConfig = {
     "**/packages/*/.vitest/**",
     "**/packages/*/*results.json",
     "**/tools/frameworks/solid/dist/**",
-    "**/tools/results/**"
+    "**/tools/results/**",
+    "**/packages/epics/pack/**"
   ]
 } satisfies OxfmtConfig

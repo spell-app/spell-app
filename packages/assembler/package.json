@@ -1,0 +1,34 @@
+{
+  "name": "@spell-app/assembler",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Assembling pages:  link targets and in-memory formatting, shared by the docs and plan-doc tools",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "/////// CORRECTNESS": "",
+    "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
+    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p tsconfig.node.json && echo '<< TSC PASSED\n'",
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt . && echo '<< OXFMT PASSED\n'",
+    "format:check": "vp fmt --check .",
+    "/////// TESTING": "",
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'",
+    "test:watch": "vp test"
+  },
+  "dependencies": {
+    "linkedom": "^0.18.13",
+    "vite-plus": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "tsx": "4.20.3",
+    "typescript": "^7.0.2",
+    "vite": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.11"
+  },
+  "packageManager": "yarn@4.18.0"
+}

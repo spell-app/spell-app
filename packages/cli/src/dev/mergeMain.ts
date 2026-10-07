@@ -140,7 +140,8 @@ export const GENERATORS: Generator[] = [
     cwd: "packages/brand",
     run: ["yarn", "site:data"]
   },
-  { name: "brand bundle",             outputs: ["packages/brand/_assets/ui/**"],                        cwd: "packages/brand",  run: ["yarn", "build"] }
+  { name: "brand bundle",             outputs: ["packages/brand/_assets/ui/**"],                        cwd: "packages/brand",  run: ["yarn", "build"] },
+  { name: "epics pack",               outputs: ["packages/epics/pack/**"],                              cwd: "packages/epics",  run: ["yarn", "pack:build"] }
 ]
 
 /**

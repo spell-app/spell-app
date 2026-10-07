@@ -1619,6 +1619,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@spell-app/assembler@workspace:*, @spell-app/assembler@workspace:packages/assembler":
+  version: 0.0.0-use.local
+  resolution: "@spell-app/assembler@workspace:packages/assembler"
+  dependencies:
+    "@types/node": "npm:^22.20.4"
+    linkedom: "npm:^0.18.13"
+    tsx: "npm:4.20.3"
+    typescript: "npm:^7.0.2"
+    vite: "catalog:"
+    vite-plus: "catalog:"
+  languageName: unknown
+  linkType: soft
+
 "@spell-app/brand@workspace:packages/brand":
   version: 0.0.0-use.local
   resolution: "@spell-app/brand@workspace:packages/brand"
@@ -1684,6 +1697,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spell-app/docs@workspace:packages/docs"
   dependencies:
+    "@spell-app/assembler": "workspace:*"
     "@spell-app/server": "workspace:*"
     "@spell-app/spell": "workspace:*"
     "@spell-app/ui": "workspace:*"
@@ -1692,6 +1706,19 @@ __metadata:
     playwright: "npm:^1.63.0"
     tsx: "npm:4.20.3"
     typescript: "npm:^7.0.2"
+    vite-plus: "catalog:"
+  languageName: unknown
+  linkType: soft
+
+"@spell-app/epics@workspace:packages/epics":
+  version: 0.0.0-use.local
+  resolution: "@spell-app/epics@workspace:packages/epics"
+  dependencies:
+    "@solidjs/web": "npm:2.0.0-rc.13"
+    "@types/node": "npm:^22.20.4"
+    solid-js: "npm:2.0.0-rc.13"
+    typescript: "npm:^7.0.2"
+    vite: "catalog:"
     vite-plus: "catalog:"
   languageName: unknown
   linkType: soft

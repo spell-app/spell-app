@@ -5,6 +5,7 @@
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell-app",
   "workspaces": [
+    "packages/assembler",
     "packages/brand",
     "packages/cli",
     "packages/docs",
@@ -17,7 +18,8 @@
     "packages/core",
     "packages/server",
     "packages/ui",
-    "packages/util"
+    "packages/util",
+    "packages/epics"
   ],
   "type": "module",
   "scripts": {
@@ -77,7 +79,8 @@
       "templates",
       "brand",
       "packages/docs/tools/_assets",
-      "packages/brand"
+      "packages/brand",
+      "packages/epics/pack"
     ]
   },
   "shared": {

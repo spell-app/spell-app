@@ -1,0 +1,28 @@
+/**
+ * Every name `<__tag__>` uses.  Schema:  `ComponentVocabulary`.
+ * - Pure data:  `import type` only.
+ * - Change it, then `spell dev pack build __pack__`:  the pack's catalog is read from here.
+ */
+
+import type { ComponentVocabulary } from "$/ui/core"
+
+/****************
+ * ### `<__tag__>`
+ * DOCME:  what it is, for the docs.
+ ****************/
+export const __vocab__Vocabulary = {
+  tag: "__tag__",
+  // TODO: 2+ topics (`ValueSets.topics` ids) and `aka`, the other names people search for
+  topics: ["containers"],
+  aka: [],
+  skeleton: { height: "2em" },
+  noun: "__noun__",
+  ui: false,
+  description: "DOCME:  one sentence for the docs.",
+  attributes: [],
+  events: [],
+  slots: [{ name: "", description: "The content." }],
+  parts: [{ name: "base", description: "The box around the content." }],
+  states: [],
+  texts: []
+} as const satisfies ComponentVocabulary

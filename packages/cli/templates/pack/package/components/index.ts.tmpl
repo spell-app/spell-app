@@ -1,0 +1,8 @@
+/**
+ * `$/__pack__/components` barrel:  every `<__prefix__*>` element of the `__pack__` pack, each defined (SIDE EFFECT) as
+ * its folder's barrel is imported.
+ * - `spell dev pack element __pack__ <tag>` adds a family, and its line here.
+ * - The pack's script doesn't import this:  its generated entry (`pack/__pack__.entry.ts`) imports each family's
+ *   barrel from `define()`, when `<ui-root>` registers the pack.
+ */
+export {}

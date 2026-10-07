@@ -68,6 +68,7 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 | `spell dev details <command> ...` | The `/details` skill's tool, `packages/docs/tools/details.js`.  Root `yarn details`. |
 | `spell dev server <verb> ...` | This checkout's page server, its own verbs as they are:  `serve`, `start` / `ensure`, `stop`, `status`, `url <file>`.  `start --all`:  every web server of the checkout (page server, editor, Spell UI) and where each is, `scripts/serve.mjs`.  Root `yarn server`, `yarn serve`. |
 | `spell dev worktree merge-main [--continue]` | Merges `main` into this checkout's branch, regenerating every generated file both sides changed (bundles, site and brand assets, snapshots, `yarn.lock`;  the table:  `GENERATORS` in `src/dev/mergeMain.ts`), then commits "Merge main into `<branch>`".  Another file in conflict stops it mid-merge:  resolve, `git add`, then `--continue`.  Lists snapshot entries neither side had, to review.  `--json`.  `/isolate done` and park Resume use it. |
+| `spell dev pack <verb> ...` | Component packs:  another package's custom elements (`<epic-*>` ...), which a page loads on demand through `<ui-root>`.  `new <name> [--prefix x-]` makes `packages/<name>/` from `templates/pack/package/` (only the files it lacks;  `package.json` merged) and wires it into the checkout;  `element <pack> <tag>` adds one family from `templates/pack/element/`;  `build <pack>` writes `pack/`:  the catalog (from the vocabularies, by Spell UI's `tools/RootCatalog.ts`), the entry, and ONE classic script, `<pack>.pack.js`;  `check [<pack>]` exits 1 when `pack/` is stale (no pack:  every pack).  `new` / `element` build too, unless `--no-build`.  `--json`.  Each pack's `yarn pack:build` / `pack:check`. |
 | `spell dev window <command> ...` | VS Code windows per package and worktree, `scripts/window.mjs`:  `open`, `close`, `handoff`, `show`, `which`, `stay-check` ...  Works in a worktree before its `yarn install`.  Root `yarn window`. |
 | `spell dev vscode [build\|install]` | The VS Code extension:  `build` its `.vsix` (`yarn install`, `build`, `package` in `packages/vscode`), `install` it into VS Code, no verb both.  Root `yarn vscode`, `vscode:build`, `vscode:install`. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword:  name, pack, other names.  `--pack <id>`, `--json`.  `--open` shows them as pictures in your browser (click one to copy its name), until `Ctrl-C`. |
@@ -113,6 +114,26 @@ Every command takes one or more projects (a lone spell file counts as a one-file
   a `project.json` there (`projectUtils.getIndex()`).
 - Loading any project may still rewrite its `project.json` if its imports are out of step with its files.  That's
   `getIndex()`, the same as in the app.
+
+- `dev pack new` / `element` write a pack's files (never over one that's there) and edit the checkout's root files:
+  `package.json`, `tsconfig.base.json`, `vitest.config.ts`, `vite.lint.ts`, `.gitattributes`, `src/dev/mergeMain.ts`
+  and the shared commands page, `guides/dev/commands/commands.json`.  `dev pack build` writes the pack's `pack/`.
+
+### `dev pack`
+
+- Templates:  `templates/pack/`, every file `*.tmpl` (so no tool reads one as code), with `__token__`s filled in
+  (`__pack__`, `__prefix__`, `__tag__`, `__Class__` ...:  `PackTokens` in `src/dev/packNew.ts`).  A file named
+  `gitignore.tmpl` becomes `.gitignore`.
+- A pack is a package whose `package.json` has `"spellPack": { "prefix": "epic-" }`.
+- The build runs Vite in-process (`configFile: false`) on the checkout's Spell UI `baseConfig()`;  only `solid-js`,
+  `@solidjs/web`, `$/ui/core` and `$/ui/forms` stay external (`PACK_MODULES`), read from
+  `globalThis.SpellUI.packModules`;  any other Spell UI or Solid import fails the build.
+- `define()`, in the generated entry, imports every family barrel:  inlined in the one script, run when called;  it
+  returns that promise.
+- Staleness:  a hash of `components/` and `src/` (tests left out), recorded in the catalog's second line and the
+  script's banner;  the catalog's text is compared too.  Doesn't build, so each pack's test runs it.
+- `pack new` adds the pack's scripts to the commands page beside `brand`'s:  main's `spell dev commands check` names
+  them as missing until the branch merges.
 
 ### `run` / `test`
 
