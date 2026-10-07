@@ -2500,6 +2500,7 @@ function buildChrome() {
   buildReviewLine(main)
   wireOptions(main)
   wireItemFolds(main)
+  wireFollowUps(main)
   wirePhaseToggles(main)
   wireCommits(main)
   void wireTips(main)
@@ -2507,6 +2508,7 @@ function buildChrome() {
   void wireReview(main)
   addEventListener("spell-doc:updated", () => {
     wireItemFolds(main)
+    wireFollowUps(main)
     wirePhaseToggles(main)
     wireCommits(main)
     void wireTips(main)
@@ -2609,6 +2611,48 @@ function wireOptions(main) {
     if (column.hasAttribute("data-chosen")) column.toggleAttribute("data-shut", open)
     else column.toggleAttribute("data-open", !open)
   })
+}
+
+/**
+ * The item kinds a plan doc follows up on, by id letter:  everything open but caveats (limits accepted, open for
+ * good).  The same as `tools/index.js` `FOLLOW_UPS` and `packages/cli/src/dev/worktrees.ts` `planFollowUps()`.
+ */
+const FOLLOW_UPS = { q: "question", j: "judgement call", i: "issue", t: "todo", v: "test" }
+
+/**
+ * A SLEEPING plan doc says so in its page header (Owen, 2026-10-07:  "so I can see what I need to follow up on"):
+ * no phase under way, but open follow-ups (`FOLLOW_UPS`):  a 😴 before the step label (`span.plan-sleeping`,
+ * what's open on its tooltip).  Not on a future epic's (`data-future`), nor one still planning (no phases).
+ * - from the doc's own item lines, so every plan doc shows it, whatever its age, with no rewrite;  the Epics index
+ *   marks the same docs (`index.js` `epicState()`)
+ * - callable again (a page updated in place, an item closed):  redraws or removes it
+ */
+function wireFollowUps(main) {
+  if (!document.body.classList.contains("plan-doc")) return
+  const head = main.querySelector(".spell-page-head")
+  const old = head?.querySelector(":scope > .plan-sleeping")
+  const phases = main.querySelectorAll("ui-section[data-phase]")
+  const active = main.querySelector('ui-section[data-phase][data-status="active"]')
+  const open = Array.from(
+    main.querySelectorAll('.plan-items > [id][data-status="open"]'),
+    (item) => FOLLOW_UPS[item.id[0]]
+  ).filter(Boolean)
+  if (!head || !phases.length || active || !open.length || document.body.hasAttribute("data-future"))
+    return void old?.remove()
+  const counts = new Map()
+  for (const kind of open) counts.set(kind, (counts.get(kind) ?? 0) + 1)
+  const words = [...counts].map(([kind, n]) => `${n} ${kind}${n === 1 ? "" : "s"}`).join(", ")
+  const mark = old ?? document.createElement("span")
+  mark.className = "plan-sleeping"
+  mark.dataset.spellAdded = ""
+  mark.textContent = "😴"
+  mark.title = `Sleeping:  nothing under way, ${words} to follow up`
+  mark.setAttribute("aria-label", mark.title)
+  if (!old) {
+    const step = head.querySelector(":scope > .plan-step")
+    if (step) step.before(mark)
+    else head.append(mark)
+  }
 }
 
 /** An open plan item's details, which end in its fold button (`wireItemFolds()`). */

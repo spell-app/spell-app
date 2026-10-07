@@ -796,6 +796,6 @@ type ItsMatchData = {
 /** `it` as an object to read from:  the `it` we noted while parsing, else `this` -- see `ItsMatchData`. */
 function itsObject(match: P.Match<P.AnyGroups, ItsMatchData>): P.ASTExpression {
   const itVar = match.data.itVar === NONE ? undefined : match.data.itVar
-  if (!itVar) return new P.ASTThisLiteral(match)
+  if (!itVar) return new P.ASTSelfLiteral(match)
   return new P.ASTVariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
 }

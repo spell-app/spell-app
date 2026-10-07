@@ -137,11 +137,12 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     )
     .argument(
       "[verb]",
-      "list (default) [words...] | find <name> | open <id|title> | title [title] | done [name] | window [pid] | transcript <id>"
+      "list (default) [words...] | find <name> | open <id|title> | title [title] | done [name] | icons | window [pid] | transcript <id>"
     )
     .argument("[args...]", "the verb's arguments")
     .option("--limit <n>", "list:  at most this many (default 15)")
     .option("--json", "list, find, transcript:  print the data as JSON")
+    .option("--dry-run", "icons:  say what it would retitle, retitle nothing")
     .action((verb: string | undefined, args: string[], _options, command) =>
       runBarrel("sessionCommand", verb ? [verb, ...args] : [], command.optsWithGlobals())
     )

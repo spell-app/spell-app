@@ -1,4 +1,4 @@
-import { MD, type RefMap } from "$/markdown"
+import { MD } from "$/markdown"
 
 import { InlineNode } from "./InlineNode"
 // read at module evaluation, for the patterns below
@@ -49,19 +49,19 @@ export class InlineParser {
   /** Where we are in it. */
   pos = 0
   /** Link references, by normalized label. */
-  refmap: RefMap = {}
+  refmap: MD.RefMap = {}
   /** Top of the delimiter stack. */
   delimiters?: Delimiter
   /** Top of the bracket stack. */
   brackets?: Bracket
 
   /** Parse `text`'s inlines, links resolved against `refmap`. */
-  static parse(text: string, refmap: RefMap = {}): InlineNode {
+  static parse(text: string, refmap: MD.RefMap = {}): InlineNode {
     return new InlineParser().parse(text, refmap)
   }
 
   /** Parse `text` into a `root` node's children. */
-  parse(text: string, refmap: RefMap): InlineNode {
+  parse(text: string, refmap: MD.RefMap): InlineNode {
     const root = new InlineNode("root")
     this.subject = text.trim()
     this.pos = 0
@@ -539,7 +539,7 @@ export class InlineParser {
    * A link reference definition at the start of `text` (`[label]: destination "title"`):  added to `refmap` (the
    * first one of a label wins), and its length returned;  0 if there isn't one.
    */
-  parseReference(text: string, refmap: RefMap): number {
+  parseReference(text: string, refmap: MD.RefMap): number {
     this.subject = text
     this.pos = 0
     const labelLength = this.parseLinkLabel()

@@ -17,8 +17,8 @@
     "test:watch": "vp test",
     "test:ui": "vp test --ui",
     "test:coverage": "vp test run --coverage",
-    "test:fixtures": "vp test run src/test/fixtures.test.ts",
-    "test:fixtures:bless": "vp test run src/test/fixtures.test.ts --update=all"
+    "test:fixtures": "vp test run src/test/fixtures.test.ts src/test/typescript.test.ts",
+    "test:fixtures:bless": "vp test run src/test/fixtures.test.ts src/test/typescript.test.ts --update=all"
   },
   "dependencies": {
     "@spell-app/core": "workspace:*",

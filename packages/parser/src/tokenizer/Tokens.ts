@@ -269,17 +269,7 @@ export type JSXAttributeTokenProps = Prettify<P.TokenProps<JSXAttributeValue>> &
  * Loose text in the middle of a JSX block.
  * - `text.value` is the actual text matched (including whitespace).
  */
-export class JSXTextToken extends JSXToken<string> {
-  /**
-   * Trimmed `value` wrapped in double quotes, or `undefined` if blank.
-   * - TODO: escape quotes!
-   */
-  get quotedText() {
-    const trimmed = this.value.trim()
-    if (!trimmed) return undefined
-    return `"${trimmed}"`
-  }
-}
+export class JSXTextToken extends JSXToken<string> {}
 
 /** JSX expression, composed of inline tokens which should yield an `expression` or `statement`. */
 export class JSXExpressionToken extends JSXToken<string, JSXExpressionTokenProps> {

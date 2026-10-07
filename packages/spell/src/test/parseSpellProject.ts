@@ -81,14 +81,33 @@ export function fixtureProjectNames(): string[] {
 
 /**
  * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.compiled.js` -- parsed headlessly,
- * with `parseSpellProject()`:  declarations header, `import`s, then each file's code in `project.json` order.
- * - Files combine through the SAME `SP.SpellProject.combineCompiled()`, so a class gets members from every file.
+ * with `parseSpellProject()`:  `import`s, then each file's code in `project.json` order.
+ * - Its declarations, as its `<Project>.declarations.json`:  `fixtureDeclarations()`.
+ * - `target`:  compiled for that target, e.g. `ts/solid` -- see `SP.TARGETS`.
+ */
+export function compiledFixture(projectName: string, target = SP.RUNNING_TARGET): string {
+  return compileFixture(projectName, target).code
+}
+
+/** Fixture `projectName`'s declarations, as its `<Project>.declarations.json` would hold them -- see `compileFixture()`. */
+export function fixtureDeclarations(projectName: string): string {
+  return JSON.stringify(compileFixture(projectName).declarations, null, 2) + "\n"
+}
+
+/**
+ * Fixture `projectName` compiled as `SpellProject` would:  its `code` and its `declarations`.
+ * - Files combine through the SAME `SP.SpellProject.combineCompiled()`, so a class gets members from every file,
+ *   and split through the same `SP.SpellDeclarations.split()`.
  * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
- * - Parse errors lead it, as comments, so a snapshot of it shows them too.
+ * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
  * - NOT projects it imports:  a fixture is parsed on its own.
  * - `version` / `exports` from its `project.json`, as a compile would.
+ * - `target`'s writer writes it, `js/solid`'s by default.
  */
-export function compiledFixture(projectName: string): string {
+function compileFixture(
+  projectName: string,
+  target = SP.RUNNING_TARGET
+): { code: string; declarations: SP.SpellDeclarationsData } {
   const projectDir = fixturePath(projectName)
   const { version, exports, imports } = readProjectFile(projectDir)
   const { scope, files } = parseSpellProject(loadFixtureProject(projectName))
@@ -100,9 +119,10 @@ export function compiledFixture(projectName: string): string {
       const file = files.find((it) => it.path === path)!
       return file.match?.AST instanceof P.ASTStatementGroup ? file.match.AST : file.compiled
     })
-  const code = SP.SpellProject.combineCompiled(parts)
-  const header = SP.SpellDeclarations.header(scope, { version, exports })
-  return errors.join("") + header + SP.SpellProject.importHeaderFor(scope) + code + "\n"
+  const importLines = SP.SpellProject.importHeaderFor(scope)
+  const marked =
+    errors.join("") + importLines + SP.SpellProject.combineCompiled(parts, SP.targetFor(target).writer) + "\n"
+  return SP.SpellDeclarations.split(marked, scope, { version, exports })
 }
 
 /** `{ path, contents }` of each spell file in fixture `projectName`, in its `project.json` order -- see `FIXTURES_DIR`. */

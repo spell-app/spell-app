@@ -29,7 +29,7 @@ name to park this session under.
    - in a worktree (the session's folder is under `.claude/worktrees/`):  that worktree's name
    - else `$ARGUMENTS`, lower-kebab-cased;  none:  propose one from the work so far in AskUserQuestion
    - then rename the session `<name>` at once, before step 2:
-     `spell dev session title <name>`.  (Not done by the prompt hook:  `/park
+     `spell dev session title "🚧 <name>"`.  (Not done by the prompt hook:  `/park
      <name>` may name ANOTHER session.)
 2. In the MAIN checkout:  move the work into worktree `<name>`, following `.claude/skills/isolate/SKILL.md`
    "Start", with these changes:

@@ -12,7 +12,7 @@ const HOVER_RULE = "\n\n---\n\n"
  * `spell explain <word>`:  what `word` means to spell.
  * - Rules:  each spell rule named `word`, or whose syntax starts with it, e.g. `repeat` -- its syntax, and an
  *   example from its tests.  As the editor's hover shows a rule.
- * - With `--in <target>`, also what that project declares named `word` (ignoring case, and spaces ~== `-` ~== `_`)
+ * - With `--in <project>`, also what that project declares named `word` (ignoring case, and spaces ~== `-` ~== `_`)
  *   -- the editor's hover over its declaration.
  * - `--json`:  what was found, as JSON.
  * - Returns the exit code:  `EXIT.ERRORS` if nothing was found.

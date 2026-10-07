@@ -18,6 +18,20 @@
   flex: none;
 }
 /*
+ * a sleeping doc (no phase under way, follow-ups open:  `wireFollowUps()`):  a 😴 right before the step label,
+ * whatever the runtime adds to the header after it (Send, Review Now, git):  the two last, by `order`
+ */
+.spell-page-head > .plan-step {
+  order: 2;
+}
+.plan-sleeping {
+  order: 1;
+  flex: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: help;
+}
+/*
  * The review line under the header:  `button.plan-review-cmd`, "To review this doc, type `/epic review <name>`",
  * built by the runtime (`buildReviewLine()`).  Reads as a quiet line of text;  a click copies the command and
  * flashes it yellow (`.flash`, as long as the runtime's `FLASH_MS`).

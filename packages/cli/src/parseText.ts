@@ -14,6 +14,7 @@ const LINE_RULES = ["statement", "expression"]
  * What parsing `text` gave.
  * - `rule`:  the rule that matched, or the last one tried
  * - `tree`:  the match tree, one line per match -- see `matchTree()`
+ * - `spellTree`:  the spell tree its AST makes, as `<ui-tree-diagram>` draws it -- see `P.TreeWriter`
  * - `compiled`:  its javascript, unless it didn't match, or compiling threw
  * - `error`:  why not
  */
@@ -21,6 +22,7 @@ export type ParsedText = {
   text: string
   rule: string
   tree: string[]
+  spellTree?: P.TreeNode
   compiled?: string
   error?: string
 }
@@ -63,10 +65,29 @@ export function parseText(
   const tree = matchTree(match)
   try {
     if (commit) scope.parser?.commit(match)
-    return { text, rule: tried, tree, compiled: String(match.compile()) }
+    const spellTree = P.TreeWriter.treeOf(match.AST)
+    return { text, rule: tried, tree, spellTree, compiled: String(match.compile()) }
   } catch (error) {
     return { text, rule: tried, tree, error: error instanceof Error ? error.message : String(error) }
   }
+}
+
+/** `spellTree` as indented lines, one per box:  `slot: label  detail`, the slot and detail dim. */
+export function spellTreeLines(spellTree: P.TreeNode, depth = 0): string[] {
+  const slot = spellTree.slot ? chalk.dim(`${spellTree.slot}: `) : ""
+  const detail = spellTree.detail ? `  ${chalk.dim(spellTree.detail)}` : ""
+  const lines = [`${"  ".repeat(depth)}${slot}${spellTree.label}${detail}`]
+  for (const child of spellTree.children ?? []) lines.push(...spellTreeLines(child, depth + 1))
+  return lines
+}
+
+/**
+ * `spellTree` as a `<ui-tree-diagram>` for a docs page:  its data in a JSON `<script>` child, so it draws from
+ * `file://` too.  `<\/` escaped, so the text can't end the script early.
+ */
+export function spellTreeHTML(spellTree: P.TreeNode): string {
+  const json = JSON.stringify(spellTree, null, 2).replace(/<\//g, "<\\/")
+  return `<ui-tree-diagram>\n<script type="application/json">\n${json}\n</script>\n</ui-tree-diagram>`
 }
 
 /** `matchTree()` lines coloured for a terminal:  the text each matched, dim. */

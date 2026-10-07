@@ -141,6 +141,19 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     })
   }
 
+  /**
+   * File for this project's declarations, beside `outputFile`, e.g. `Solitaire.declarations.json`:  what it offers
+   * projects importing it -- see `SP.SpellDeclarations`.
+   * - A `SpellJSFile`:  any text file, loaded and saved the same way.
+   */
+  /*@memoize*/
+  get declarationsFile(): SP.SpellJSFile {
+    return this.derived("declarationsFile", () => {
+      const location = this.getFileLocation(`${this.projectName}${SP.DECLARATIONS_JSON_SUFFIX}`)!
+      return new SP.SpellJSFile(location.path)
+    })
+  }
+
   /** Reset our compiled state. */
   resetCompiled(): void {
     this.resetState("scope", "compiled")
@@ -192,11 +205,13 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * Compile project: cancel any in-flight parse/compile, then run `this.compiler` `TaskList`.
    * - `parser` is passed through as `parentScope`, same as `parse()`.
    * - `save: false` leaves our output in `outputFile.contents` WITHOUT writing it, e.g. `spell compile --stdout`.
+   * - `targets`:  compile to these, this run only, instead of our `project.json`'s -- see `targets`.
    */
-  compile(parser?: P.Scope, { save = true }: { save?: boolean } = {}): Promise<unknown> {
+  compile(parser?: P.Scope, { save = true, targets }: { save?: boolean; targets?: string[] } = {}): Promise<unknown> {
     this.parser.cancel()
     this.compiler.cancel()
     this.saveCompiled = save
+    this.targetsThisRun = targets
     return this.compiler.start(parser)
   }
 
@@ -205,6 +220,25 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * - NOTE: plain field, not state:  it only steers one run.
    */
   saveCompiled = true
+
+  /** Targets the running `compile()` was asked for, instead of `project.json`'s.  Plain field, as `saveCompiled`. */
+  targetsThisRun: string[] | undefined
+
+  /**
+   * Targets we compile to:  `js/solid` -- `SP.RUNNING_TARGET`, always, as it's what everything runs -- then the rest
+   * of `project.json`'s `targets` (or the running `compile()`'s), in order.
+   * - throws if one names no target -- see `SP.targetFor()`
+   */
+  get targets(): SP.Target[] {
+    const names = this.targetsThisRun ?? this.contents?.targets ?? []
+    return [...new Set([SP.RUNNING_TARGET, ...names])].map(SP.targetFor)
+  }
+
+  /** File for our compiled output for `target`:  `outputFile` for `js/solid`, else e.g. `Solitaire.compiled.ts`. */
+  outputFileFor(target: SP.Target): SP.SpellJSFile {
+    if (target.name === SP.RUNNING_TARGET) return this.outputFile
+    return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.suffix}`)!.path)
+  }
 
   /**
    * Return base `ProjectScope` for this project, given `parentScope`.
@@ -312,20 +346,34 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
               const parts = files.map((file, index) =>
                 file.AST instanceof P.ASTStatementGroup ? file.AST : (allCompiled as string[])[index]
               )
-              const compiled = this.importHeader() + SpellProject.combineCompiled(parts)
-              this.setState("compiled", compiled)
-              return compiled
+              const { version, exports } = this.contents ?? {}
+              // each target's code, through its writer -- `js/solid`'s first:  it's the one that runs
+              for (const target of this.targets) {
+                if (target.can.draw === false && SpellProject.draws(parts)) {
+                  throw new P.ParserError({
+                    message: `'${this.projectName}' draws a UI, which target '${target.name}' can't.`,
+                    activity: "SpellProject.compile",
+                    params: { target: target.name }
+                  })
+                }
+                const marked = this.importHeader() + SpellProject.combineCompiled(parts, target.writer)
+                // each declaring statement's marker comes out, into our declarations -- see `SP.SpellDeclarations`
+                const { code, declarations } = SP.SpellDeclarations.split(marked, this.scope!, { version, exports })
+                this.outputFileFor(target).contents = code
+                if (target.name !== SP.RUNNING_TARGET) continue
+                this.setState("compiled", code)
+                this.declarationsFile.contents = JSON.stringify(declarations, null, 2)
+              }
+              return this.compiled
             }
           }),
           new Task({
             name: "Saving compiled output",
-            run: async (compiled) => {
-              // our declarations header leads the file -- each statement's own are inline, above its code --
-              // so another project can import us WITHOUT our sources
-              const { version, exports } = this.contents ?? {}
-              const header = SP.SpellDeclarations.header(this.scope!, { version, exports })
-              this.outputFile.contents = header + (compiled as string)
+            run: async () => {
+              // our declarations go beside our code, so another project can import us WITHOUT our sources
               if (!this.saveCompiled) return this.outputFile.contents
+              await this.declarationsFile.save(undefined)
+              for (const target of this.targets.slice(1)) await this.outputFileFor(target).save(undefined)
               return await this.outputFile.save(undefined)
             }
           })
@@ -343,15 +391,27 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * - Each class gets its members from EVERY file, e.g. `Card.move_to_$pile` from `Pile.spell` goes in
    *   `Card.spell`'s `class Card` -- see `SP.hoistClassMembers()`.  Each file's own were moved in by `SP.Block`.
    * - Also how a fixture compiles -- see `compiledFixture()` in `$/spell/test`.
+   * - `writer`:  the target's, default javascript's -- see `SP.TARGETS`.
    */
-  static combineCompiled(parts: Array<P.ASTStatementGroup | string | undefined>): string {
+  static combineCompiled(
+    parts: Array<P.ASTStatementGroup | string | undefined>,
+    writer: P.Writer = P.JSWriter.instance
+  ): string {
     const hoisted = SP.hoistClassMembers(parts.map((part) => (typeof part === "object" ? (part.statements ?? []) : [])))
     return parts
       .map((part, index) => {
         if (typeof part !== "object") return part ?? ""
-        return new P.ASTStatementGroup(part.match, { statements: hoisted[index] }).compile()
+        return String(writer.write(new P.ASTStatementGroup(part.match, { statements: hoisted[index] })))
       })
       .join(SpellProject.FILE_SEPARATOR)
+  }
+
+  /**
+   * Does any of `parts` draw a UI -- hold a JSX element anywhere?  For a target that can't draw:  see
+   * `SP.TargetAbilities`.
+   */
+  static draws(parts: Array<P.ASTStatementGroup | string | undefined>): boolean {
+    return parts.some((part) => typeof part === "object" && containsJSX(part))
   }
 
   /**
@@ -562,7 +622,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * Import layer for our `projectImports`, under `parentScope` -- or `parentScope` itself if we import none.
-   * - A compiled import:  reads the declarations leading its `<Project>.compiled.js`, fresh each time.
+   * - A compiled import:  reads its `<Project>.declarations.json`, fresh each time -- see `declarationsOf()`.
    * - A `source` import:  loads that project, so its files parse ahead of ours -- see `sourceImportFiles`.
    *   It can't rename what it imports, e.g. `Card:Playingcard`:  its sources parse as they are.
    * - Throws `P.ParserError` if one can't be loaded, e.g. it's never been compiled -- see `SP.SpellDeclarations.load()`.
@@ -584,11 +644,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
         }
         continue
       }
-      const output = project.outputFile
-      // another project's compile may have changed it since we last looked
-      output.cacheDuration = 0
-      const compiled = await output.load(undefined).catch(() => undefined)
-      const declarations = compiled && SP.SpellDeclarations.read(compiled)
+      const declarations = await SpellProject.declarationsOf(project)
       if (!declarations) {
         throw new P.ParserError({
           message: `Can't import '${it.from}':  it has no compiled declarations -- compile it first.`,
@@ -607,6 +663,22 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
       })
     }
     return imports.length ? SP.SpellDeclarations.importScope(parentScope, imports) : parentScope
+  }
+
+  /**
+   * Compiled `project`'s declarations:  its `declarationsFile`, else -- compiled before that file existed -- the
+   * comments in its `outputFile`.  `undefined` if neither has any.
+   * - Fresh each time:  another project's compile may have changed them since we last looked.
+   */
+  static async declarationsOf(project: SpellProject): Promise<SP.SpellDeclarationsData | undefined> {
+    const { declarationsFile, outputFile } = project
+    declarationsFile.cacheDuration = 0
+    const json = await declarationsFile.load(undefined).catch(() => undefined)
+    const declarations = json && SP.SpellDeclarations.read(json)
+    if (declarations) return declarations
+    outputFile.cacheDuration = 0
+    const compiled = await outputFile.load(undefined).catch(() => undefined)
+    return compiled ? SP.SpellDeclarations.fromComments(compiled) : undefined
   }
 
   /**
@@ -877,4 +949,12 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   toString(): string {
     return `${this.constructor.name}: ${this.path}`
   }
+}
+
+/** Does AST `node` hold a JSX element, anywhere in its fields?  See `SpellProject.draws()`. */
+function containsJSX(node: unknown): boolean {
+  if (node instanceof P.ASTJSXElement) return true
+  if (Array.isArray(node)) return node.some(containsJSX)
+  if (!(node instanceof P.ASTNode)) return false
+  return Object.entries(node).some(([key, value]) => key !== "match" && containsJSX(value))
 }

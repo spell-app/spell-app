@@ -380,7 +380,7 @@ function measure(
 
 /**
  * `element`'s padding along a direction, px:  top + bottom when `vertical`, else left + right.
- * - NOT `$/util`'s `getPadding()`:  it read `NaN` in the browser test project (`agents/SUSPECTED-BUGS.md`, "util").
+ * - Read from `getComputedStyle()` directly:  `$/util`'s old `getPadding()` read `NaN` in the browser test project.
  */
 function padding(element: HTMLElement, vertical: boolean): number {
   const style = getComputedStyle(element)

@@ -28,6 +28,17 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
   static ruleName = "line"
 
   /**
+   * The innermost `line` match at `offset` in a file's `match`, e.g. the line the cursor is on -- `undefined` if none.
+   * - At the very end of a line the stack starts with the NEXT `line`:  back up one character and look again.
+   * - The app's spell tree pane and the language server's `spell/lineTree` both use it.
+   */
+  static lineAt(match: P.Match, offset: number): P.Match | undefined {
+    let stack = match.matchStackForOffset(offset).reverse()
+    if (stack[0]?.rule instanceof BlockLine) stack = match.matchStackForOffset(offset - 1).reverse()
+    return stack.find((each) => each.rule instanceof BlockLine)
+  }
+
+  /**
    * SIDE EFFECT: calls `statement.rule.mutateScope()` on the parsed statement (and on any nested block's
    * errors are folded in too), so a locked-in statement can e.g. add variables to `scope` as it's parsed.
    */

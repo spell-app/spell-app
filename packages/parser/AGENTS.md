@@ -18,9 +18,11 @@ house style every package shares.  Only what's local is below;  a section named 
 - `$/parser/test` (`src/test/`) holds the helpers language packages use to test their rules, e.g.
   `unitTestModuleRules()`.  Tests that need the SPELL grammar are not here:  they're `../spell/src/parserTests/`.
 - Depends only on `$/util` (and what that re-exports).  NEVER import `$/spell` or anything above it.
-- No UI framework, no JSX:  ASTs draw themselves as `P.Markup`, plain data (`src/ast/renderAST.ts`), which the
-  app's `ASTViewer` turns into DOM with `P.render.toDOM()`.  Why:  node tools run the parser's SOURCE through
-  `tsx` / esbuild / Vite's oxc, none of which compile Solid's JSX.
+- `src/writers/` writes ASTs out as a target's code:  `P.Writer` (one method per AST class, found by class
+  name -- so `keepNames`, below), `P.JSWriter` (javascript;  what `ASTNode.compile()` calls), `P.TSWriter`
+  (typescript:  javascript plus the types spell knows), `P.jsText` (their punctuation).  The AST classes never write output themselves.
+- No UI framework, no JSX, no DOM:  node tools run the parser's SOURCE through `tsx` / esbuild / Vite's oxc, none
+  of which compile Solid's JSX.  ASTs only write text (`compile()`);  the app shows compiled JavaScript in Monaco.
 - "Parser rules" (how to write a rule class + its `syntax` + `tests`) is in `../spell/AGENTS.md`:  the rules
   there are spell's, on this package's `Rule` -- see also the top docstring in `src/rules/Rule.ts`.
 - `keepNames`:  every prod build MUST keep `output.keepNames` (`../app/vite.config.ts`,
