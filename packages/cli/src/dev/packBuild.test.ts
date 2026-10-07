@@ -122,6 +122,52 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
     expect(spell("build", "demo").out).toContain("every tag must start 'demo-', but these don't:  x-card")
     writeFileSync(vocabulary, words)
   }, 60_000)
+
+  // The hash follows the elements' imports:  `src/` may hold node-only code (a tool, its tests) the script never bundles
+
+  test("a file under `src/` the elements don't import never makes the pack stale", () => {
+    const hash = CLI.packHash(CLI.readPack(ROOT, "demo"))
+    mkdirSync(join(PACK, "src", "tool"), { recursive: true })
+    writeFileSync(join(PACK, "src", "tool", "Tool.ts"), `export const TOOL = 1\n`)
+    expect(CLI.packHash(CLI.readPack(ROOT, "demo"))).toBe(hash)
+    writeFileSync(join(PACK, "src", "tool", "Tool.ts"), `export const TOOL = 2\n`)
+    expect(CLI.packHash(CLI.readPack(ROOT, "demo"))).toBe(hash)
+  })
+
+  test("a file under `src/` the elements DO import, directly or through another, or as `?inline` CSS, does", () => {
+    const pack = CLI.readPack(ROOT, "demo")
+    mkdirSync(join(PACK, "src", "shared"), { recursive: true })
+    writeFileSync(join(PACK, "src", "shared", "index.ts"), `export * from "./words"\n`)
+    writeFileSync(join(PACK, "src", "shared", "words.ts"), `export const WORDS = 1\n`)
+    writeFileSync(join(PACK, "src", "shared", "look.css"), `:host { color: red }\n`)
+    const element = join(CARD, "DemoCard.tsx")
+    const source = readFileSync(element, "utf8")
+    writeFileSync(
+      element,
+      `import { WORDS } from "$/demo/shared"\nimport look from "../../src/shared/look.css?inline"\n${source}`
+    )
+    const hashes = [CLI.packHash(pack)]
+    writeFileSync(join(PACK, "src", "shared", "index.ts"), `export * from "./words"\nexport const MORE = 1\n`)
+    hashes.push(CLI.packHash(pack))
+    writeFileSync(join(PACK, "src", "shared", "words.ts"), `export const WORDS = 2\n`)
+    hashes.push(CLI.packHash(pack))
+    writeFileSync(join(PACK, "src", "shared", "look.css"), `:host { color: blue }\n`)
+    hashes.push(CLI.packHash(pack))
+    expect(new Set(hashes).size).toBe(4)
+    expect(CLI.packSources(pack).map((file) => file.slice(PACK.length + 1))).toEqual([
+      "components/demo-card/DemoCard.tsx",
+      "components/demo-card/demo-card.css",
+      "components/demo-card/demo-card.fallback.ts",
+      "components/demo-card/demo-card.types.ts",
+      "components/demo-card/demo-card.vocabulary.en.ts",
+      "components/demo-card/index.ts",
+      "components/index.ts",
+      "src/shared/index.ts",
+      "src/shared/look.css",
+      "src/shared/words.ts"
+    ])
+    writeFileSync(element, source)
+  })
 })
 
 /** `spell dev pack <args>` run as a person would, in the throwaway pack's folder:  its exit code and output. */
