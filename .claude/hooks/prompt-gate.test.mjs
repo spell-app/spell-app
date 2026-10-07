@@ -46,11 +46,12 @@ test("parseCommand:  name, then the rest", () => {
     skill: "epic",
     name: "docs-index",
     text: "plan\nthe docs",
+    color: null
   })
-  assert.deepEqual(parseCommand(`/epic "Docs Index" x`), { skill: "epic", name: "docs-index", text: "x" })
-  assert.deepEqual(parseCommand("/isolate foo"), { skill: "isolate", name: "foo", text: "" })
-  assert.deepEqual(parseCommand("/unpark foo"), { skill: "unpark", name: "foo", text: "" })
-  assert.deepEqual(parseCommand("/epic resume Foo"), { skill: "epic resume", name: "foo", text: "" })
+  assert.deepEqual(parseCommand(`/epic "Docs Index" x`), { skill: "epic", name: "docs-index", text: "x", color: null })
+  assert.deepEqual(parseCommand("/isolate foo"), { skill: "isolate", name: "foo", text: "", color: null })
+  assert.deepEqual(parseCommand("/unpark foo"), { skill: "unpark", name: "foo", text: "", color: null })
+  assert.deepEqual(parseCommand("/epic resume Foo"), { skill: "epic resume", name: "foo", text: "", color: null })
 })
 
 test("parseCommand:  ignores other prompts, no name, `/isolate done`, `/epic review`, `/epic resume` alone", () => {
@@ -59,6 +60,19 @@ test("parseCommand:  ignores other prompts, no name, `/isolate done`, `/epic rev
   for (const prompt of prompts) {
     assert.equal(parseCommand(prompt), null, prompt)
   }
+})
+
+test("parseCommand:  a look right after the name is the window's, not the text;  `/epic color` passes", () => {
+  assert.deepEqual(parseCommand("/epic new-thing -purple plan this"), {
+    skill: "epic",
+    name: "new-thing",
+    text: "plan this",
+    color: "purple"
+  })
+  assert.equal(parseCommand("/isolate x -Teal").color, "teal")
+  // not a look:  part of the text
+  assert.deepEqual(parseCommand("/epic x -verbose"), { skill: "epic", name: "x", text: "-verbose", color: null })
+  assert.equal(parseCommand("/epic color teal"), null)
 })
 
 test("kebab", () => {
