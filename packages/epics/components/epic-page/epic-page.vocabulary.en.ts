@@ -74,8 +74,8 @@ export const epicPageVocabulary = {
       kind: "boolean",
       description:
         "PAGE state, never in a doc:  the page is being reviewed -- served by the page server with a token, its " +
-        "review inbox answering -- so items and Overview parts show their review controls.  Set by them (P9, " +
-        "`ReviewState`);  the old runtime's `body.plan-reviewing`."
+        "review inbox answering -- so items and Overview parts show their review controls, and the header Send and " +
+        "Review Now.  Set by them (P9, `ReviewState`);  the old runtime's `body.plan-reviewing`."
     }
   ],
   events: [],
@@ -91,9 +91,26 @@ export const epicPageVocabulary = {
     { name: "base", description: "The page." },
     { name: "header", description: "The sticky page header:  the h1, then the tools and labels at its right." },
     { name: "heading", description: "The h1, `Epic: <title>`." },
-    { name: "actions", description: "Empty for now:  P10's Send and Review Now go here." },
+    {
+      name: "actions",
+      description:
+        "While the page is reviewed:  Send (the paper plane:  grey, blue with unsent marks, outlined once sent) and " +
+        "Review Now (the wand:  blue while there's anything for Claude to work through)."
+    },
+    { name: "send", description: "The Send button:  every unsent mark to Claude." },
+    { name: "review-now", description: "The Review Now button:  every mark sent, each revisit asked now." },
     { name: "git", description: "The git toggle:  shows or hides every commit (only when the doc has some)." },
-    { name: "status", description: "The bedtime and step labels." },
+    {
+      name: "status",
+      description: "The sleeping mark (nothing under way, follow-ups open), then the bedtime and step labels."
+    },
+    { name: "sleeping", description: "😴:  no phase under way, but open questions, calls, issues, todos or tests." },
+    {
+      name: "review-line",
+      description:
+        "Under the header:  `To review this doc, type /epic review <name>`, copied on click;  while the page is " +
+        "reviewed with nobody listening, it says no session is reviewing."
+    },
     { name: "meta", description: "The meta lines:  branch, worktree, dates, durable doc." },
     { name: "notice", description: "A future epic's notice:  not planned yet." },
     {
@@ -138,6 +155,42 @@ export const epicPageVocabulary = {
     },
     { key: "analysisPage", text: "Open its analysis page", description: "The notice's link." },
     { key: "futurePlan", text: "plans it.", description: "The notice's last line, after `/epic <name>`." },
+    { key: "sendOne", text: "Send 1 mark to Claude", description: "Send, one mark unsent." },
+    { key: "sendMany", text: "Send {count} marks to Claude", description: "Send, marks unsent." },
+    { key: "sent", text: "Sent:  waiting for Claude", description: "Send, every mark sent." },
+    {
+      key: "sendIdle",
+      text: "Nothing to send:  mark an item first (its buttons)",
+      description: "Send, no marks."
+    },
+    {
+      key: "reviewNowOne",
+      text: "Review Now:  Claude works through 1 mark at once, answers in its item",
+      description: "Review Now, one mark to work through."
+    },
+    {
+      key: "reviewNowMany",
+      text: "Review Now:  Claude works through {count} marks at once, answers in their items",
+      description: "Review Now, marks to work through."
+    },
+    {
+      key: "reviewNowIdle",
+      text: "Review Now:  nothing to work through yet",
+      description: "Review Now, nothing to work through."
+    },
+    { key: "reviewLine", text: "To review this doc, type", description: "The review line, before the command." },
+    {
+      key: "reviewLineNobody",
+      text: "No Claude session is reviewing this doc.  To start one, type",
+      description: "The review line while the page is reviewed and nobody listens."
+    },
+    { key: "copyCommand", text: "Copy the command", description: "The review line's tooltip." },
+    { key: "copied", text: "copied", description: "The review line, just copied." },
+    {
+      key: "sleeping",
+      text: "Sleeping:  nothing under way, {words} to follow up",
+      description: "The sleeping mark's tooltip:  `2 questions, 1 todo`."
+    },
     { key: "hung", text: "Plan hung?", description: "The planning aside's title." },
     { key: "hungBefore", text: "Close its Claude tab, then run", description: "The aside, before `/epic <name>`." },
     { key: "hungAfter", text: "and pick \u201cReuse\u201d.", description: "The aside, after `/epic <name>`." }

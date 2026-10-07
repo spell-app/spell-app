@@ -123,4 +123,14 @@
     color: var(--epic-muted, var(--ui-text-muted));
     font: 0.85em var(--epic-mono, var(--ui-font-family-mono));
   }
+  /* a Plan changes copy:  the phase it changes, first, as a link (`of`) */
+  .of {
+    margin-right: 6px;
+    color: var(--epic-accent, var(--ui-link));
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .of:hover {
+    text-decoration: underline;
+  }
 }

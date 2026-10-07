@@ -23,9 +23,11 @@
  *     called off, the note back in its box as a draft
  *   - Add Details Now, its request held:  the spinner (`loading`) while it's on its way
  *   - a session listening (the inbox file's `listening`, written through `ReviewInbox.update()`):  no dashed ring
+ *   - the page header (P10):  Send blue with unsent marks (its tooltip:  nobody listening), a click sends them
+ *     (`inbox.sent`), then outlined;  listening:  no "nobody" in its tooltip;  Review Now asks each revisit now
  * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`);
  *   at 280px and 900px, light and dark, no review control runs past the window, none sits over its line's title, and
- *   every button's glyph is centred in it (within 1px)
+ *   every button's glyph is centred in it (within 1px);  the header's round buttons too
  * - screenshots (outDir, default `demo/shots/`):  `review-<width>-<scheme>.png`, `review-marked.png`
  * - REFUSES to run while the copy's inbox file exists (a run killed half way:  delete it);  deletes it afterwards
  * - re-runs itself under `tsx` (the page server and `ReviewInbox` are TypeScript)
@@ -237,6 +239,13 @@ async function run() {
     expect(`${section}'s box after calling off`, await noteValue(page, section), SECTION_NOTE)
   }
 
+  // the header (P10):  Send blue with unsent marks, its tooltip saying nobody listens;  a click sends, then outlined
+  expect("the header's buttons, marks unsent", await headerState(page), { send: "unsent", now: "ready", nobody: true })
+  await page.locator("epic-page button.send").click()
+  await waitInbox(page, (inbox) => !!inbox.sent, "Send:  the marks sent")
+  await page.waitForTimeout(200)
+  expect("the header's buttons, marks sent", await headerState(page), { send: "sent", now: "ready", nobody: true })
+
   // Add Details Now, held on its way:  the spinner
   await holdNext(page, "now")
   await press(page, question, "details")
@@ -250,6 +259,15 @@ async function run() {
   await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")))
   await page.waitForTimeout(500)
   expect("listening:  no dashed ring", (await buttonState(page, question, "details")).waiting, false)
+  expect("listening:  the header's tooltips", (await headerState(page)).nobody, false)
+
+  // Review Now (P10):  every mark sent, each revisit waiting asked now
+  await page.locator("epic-page button.review-now").click()
+  await waitInbox(
+    page,
+    (inbox) => inbox.now.some((each) => each.id === bare),
+    `Review Now:  ${bare}'s revisit asked now`
+  )
 
   await layouts(context)
   summary.inbox = await readInbox(page)
@@ -322,6 +340,18 @@ function measure(width) {
       if (dx > 1 || dy > 1)
         found.push(`${host.id}'s ${button.dataset.action} glyph off centre by ${dx.toFixed(1)}, ${dy.toFixed(1)}`)
     }
+  }
+  // the page header's round buttons (P10):  in the window, each glyph centred
+  const head = document.querySelector("epic-page")?.shadowRoot
+  for (const button of head?.querySelectorAll("button.send, button.review-now, button.git") ?? []) {
+    const outer = button.getBoundingClientRect()
+    const icon = button.querySelector("svg")?.getBoundingClientRect()
+    if (outer.right > width + 0.5) found.push(`the header's ${button.className} runs past the window`)
+    if (!icon) continue
+    const dx = Math.abs(outer.left + outer.width / 2 - (icon.left + icon.width / 2))
+    const dy = Math.abs(outer.top + outer.height / 2 - (icon.top + icon.height / 2))
+    if (dx > 1 || dy > 1)
+      found.push(`the header's ${button.className} glyph off centre by ${dx.toFixed(1)}, ${dy.toFixed(1)}`)
   }
   return { found: [...new Set(found)], measured }
 }
@@ -401,6 +431,20 @@ function buttonState(page, id, action) {
     )
 }
 
+/** The page header's Send and Review Now (P10), as drawn:  their states, and whether Send says nobody listens. */
+function headerState(page) {
+  return page.evaluate((nobody) => {
+    const root = document.querySelector("epic-page").shadowRoot
+    const send = root.querySelector("button.send")
+    const now = root.querySelector("button.review-now")
+    return {
+      send: send?.dataset.state ?? null,
+      now: now?.dataset.state ?? null,
+      nobody: new RegExp(nobody).test(send?.title ?? "")
+    }
+  }, NOBODY.source)
+}
+
 /** `id`'s note box's text;  none drawn:  `null`. */
 function noteValue(page, id) {
   return page.evaluate((id) => rootOf(id).querySelector("textarea")?.value ?? null, id)
@@ -474,7 +518,8 @@ async function stubRoutes(context) {
       if (path === "now") memory.requestNow(body.id, body.action, body.note ?? "")
       if (path === "cancel") memory.cancelNow(body.id)
       if (path === "draft") memory.setDraft(body.id, body.action, body.note ?? null)
-      if (path === "send") body.now === true ? memory.reviewNow() : memory.markSent()
+      if (path === "send" && body.now === true) memory.reviewNow()
+      else if (path === "send") memory.markSent()
     } catch (error) {
       return route.fulfill({ status: 400, json: { error: error.message } })
     }

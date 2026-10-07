@@ -131,6 +131,73 @@
     line-height: 1;
   }
 
+  /*
+   * ## Send and Review Now (while reviewed):  round, icon only, as tall as the git toggle beside them.  Send:  grey
+   * with nothing to send, blue with unsent marks, outlined blue once sent.  Review Now:  blue while there's anything
+   * for Claude to work through
+   */
+  .actions {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+  }
+  .send,
+  .review-now {
+    --_tint: var(--ui-blue, #2185d0);
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    width: var(--epic-control-size);
+    height: var(--epic-control-size);
+    padding: 0;
+    border: 1px solid var(--epic-rule);
+    border-radius: 50%;
+    background: none;
+    color: var(--epic-muted);
+    cursor: pointer;
+  }
+  :is(.send, .review-now) .icon {
+    height: auto;
+    color: inherit;
+  }
+  :is(.send, .review-now):hover {
+    color: var(--epic-accent);
+  }
+  .send[data-state="unsent"] {
+    border-color: var(--_tint);
+    background: var(--_tint);
+    color: var(--ui-blue-on, #fff);
+  }
+  .send[data-state="sent"] {
+    border: 2px solid var(--_tint);
+    color: var(--_tint);
+  }
+  .review-now[data-state="ready"] {
+    border-color: var(--_tint);
+    color: var(--_tint);
+  }
+  .review-now[data-state="ready"]:hover {
+    background: var(--_tint);
+    color: var(--ui-blue-on, #fff);
+  }
+  :is(.send, .review-now):focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+
+  /* ## The sleeping mark:  an emoji, its box as tall as the labels beside it, the glyph on their middle */
+  .sleeping {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    height: var(--epic-control-size);
+    font-size: 20px;
+    line-height: 1;
+    cursor: help;
+  }
+
   /* the git toggle:  round, icon only, the accent while pressed */
   .git {
     display: inline-grid;
@@ -163,9 +230,68 @@
     outline-offset: 1px;
   }
 
+  /*
+   * ## The review line, under the header:  a quiet line of text, the icon centred on its first row;  a click copies
+   * the command and flashes it yellow (`.flash`, `FLASH_MS`).  Nobody reviewing:  it says so, in the ink
+   */
+  .review-line {
+    display: grid;
+    grid-template-columns: 1.25em minmax(0, 1fr) auto;
+    column-gap: 8px;
+    align-items: start;
+    box-sizing: border-box;
+    width: calc(100% - 2 * var(--epic-inset) + 16px);
+    margin: 8px calc(var(--epic-inset) - 8px) 0;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--epic-muted);
+    font: 15px/1.5 var(--epic-sans);
+    text-align: start;
+    cursor: copy;
+  }
+  .review-line:hover {
+    background: var(--epic-accent-soft);
+    color: var(--epic-ink);
+  }
+  .review-line:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+  .review-line.nobody {
+    color: var(--epic-ink);
+  }
+  .review-line.nobody .icon {
+    color: var(--ui-orange-text, var(--ui-orange));
+  }
+  .review-line .done {
+    color: var(--epic-ink);
+    font-weight: 600;
+  }
+  .review-line.flash {
+    animation: epic-review-line-flash 0.9s ease-out;
+  }
+  @keyframes epic-review-line-flash {
+    from {
+      background: var(--ui-yellow-background, light-dark(#fff3c4, #4a3c10));
+      box-shadow: inset 0 0 0 1px var(--ui-yellow, #e0b000);
+    }
+    to {
+      background: transparent;
+      box-shadow: inset 0 0 0 1px transparent;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .review-line.flash {
+      animation: none;
+      background: var(--ui-yellow-background, light-dark(#fff3c4, #4a3c10));
+    }
+  }
+
   /* ## Meta lines:  an icon column, the text wrapping beside it;  each icon centred on its line's first row */
   .meta {
-    margin: 12px var(--epic-inset) 24px;
+    margin: 4px var(--epic-inset) 24px;
     padding: 0;
     color: var(--epic-muted);
     font-size: 15px;
