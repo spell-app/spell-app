@@ -15,6 +15,8 @@ import {
   ACTIVE,
   COMMITS_KEY,
   COMMITS_PROPERTY,
+  CRUMB_LINKS,
+  CRUMBS,
   DONE,
   FLASH_MS,
   FOLLOW_UPS,
@@ -28,6 +30,7 @@ import {
   LAYOUT_ATTRIBUTES,
   META,
   NOTICE,
+  OLD_CRUMBS,
   OPEN_ITEMS,
   PROMPT,
   REVIEW_LINE,
@@ -48,13 +51,15 @@ import {
 } from "./EpicPage.types"
 
 import pageCSS from "./EpicPage.css?inline"
+import crumbsCSS from "./Crumbs.css?inline"
 import agentsCSS from "./AgentsPanel.css?inline"
 
 /****************
  * ### `EpicPage`
  * The component behind `<epic-page>`:  a plan doc -- one epic's page, its data in attributes, its Overview and
  * sections as children.
- * - Draws the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;  at its right Send
+ * - Draws the crumbs (`Docs › Epics › <title>`, P14:  none while the doc still holds its old `.spell-crumbs` before
+ *   the page), the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;  at its right Send
  *   and Review Now while it's reviewed, the git toggle, the sleeping mark, the bedtime label and the step label), the
  *   review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`), a future
  *   epic's notice, then its children.
@@ -79,6 +84,8 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *   `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
  * - The page-wide signals its blocks read (`signalsOf()`):  `top`, where top-level titles stick (the site header's
  *   `--spell-site-header-height` plus this header's height, re-measured as either changes size), and `layout`.
+ * - EDGE TO EDGE (P14):  its `:host` breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`,
+ *   `spell-doc.css`), so the bands reach across;  everything inside insets itself by `--epic-inset`.
  * - SHARED LOOK:  `EpicPage.css` declares the pack's tokens (`--epic-*`:  colours, bands, the inset, item state
  *   colours, the chip) on its `:host`;  every `<epic-*>` below inherits them.
  * - SIDE EFFECT:  observes its subtree and the site header while connected;  follows the page's review and agents
@@ -86,7 +93,7 @@ import agentsCSS from "./AgentsPanel.css?inline"
  ****************/
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
-  @E.proto static styleSheets = { "epic-page": pageCSS, "epic-agents": agentsCSS }
+  @E.proto static styleSheets = { "epic-page": pageCSS, "epic-crumbs": crumbsCSS, "epic-agents": agentsCSS }
 
   /** Its tag:  what its blocks look for around them. */
   static readonly TAG = epicPageVocabulary.tag
@@ -172,6 +179,11 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     if (!next) return { color: "green", icon: "check", words: this.translationForKey("done") }
     return this.phaseLabel(next, "grey", "circle right", this.translationForKey("next"))
   })
+
+  /** Does the doc still hold its old crumbs before the page (`OLD_CRUMBS`)?  Then it draws none of its own. */
+  readonly hasOldCrumbs = createMemo(
+    () => this.isConnected && !!this.domElement.parentElement?.querySelector(OLD_CRUMBS)
+  )
 
   /** Still planning:  no phases yet, and not a future epic.  The `Plan hung?` aside shows. */
   readonly planning = createMemo(() => !this.future && this.phases().length === 0)
@@ -299,6 +311,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over the whole page (T8)
       <div class={this.rootClasses} part={this.partForName("base")} title="" style={this.pageStyle()}>
+        <Show when={!this.hasOldCrumbs()}>{this.crumbs()}</Show>
         <header ref={(element) => (this.header = element)} class={HEAD} part={this.partForName("header")}>
           <div class={TITLES}>
             <h1 class={HEADING} part={this.partForName("heading")}>
@@ -376,6 +389,26 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         />
         <slot />
       </div>
+    )
+  }
+
+  /** The crumbs:  `Docs › Epics › <title>`, the docs' eyebrow over the header. */
+  private crumbs(): JSX.Element {
+    return (
+      <ui-breadcrumb
+        class={CRUMBS}
+        part={this.partForName("crumbs")}
+        size="small"
+        aria-label={this.translationForKey("crumbs")}
+      >
+        <ui-breadcrumb-section href={CRUMB_LINKS.docs.href} target={CRUMB_LINKS.docs.target}>
+          {this.translationForKey("crumbDocs")}
+        </ui-breadcrumb-section>
+        <ui-breadcrumb-section href={CRUMB_LINKS.epics.href} target={CRUMB_LINKS.epics.target}>
+          {this.translationForKey("crumbEpics")}
+        </ui-breadcrumb-section>
+        <ui-breadcrumb-section active="">{this.title || this.epic}</ui-breadcrumb-section>
+      </ui-breadcrumb>
     )
   }
 

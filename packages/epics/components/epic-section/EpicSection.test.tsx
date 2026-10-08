@@ -55,6 +55,20 @@ afterEach(() => {
 })
 
 describe("<epic-section>", () => {
+  test("a REPORT:  titled its own, UNNUMBERED, on the section band;  the sections after it keep their numbers", async () => {
+    const host = await render(
+      `<div><epic-section id="overnight" kind="report" title="Overnight · 2026-10-04"><p>The night.</p></epic-section>` +
+        `<epic-section id="phases" kind="phases"></epic-section></div>`
+    )
+    const phases = host.parentElement!.querySelector<FoldHost>("#phases")!
+    expect([titleText(host), titleText(phases)]).toEqual(["Overnight · 2026-10-04", "1. Phases"])
+    expect((host as unknown as { contentsEntry: unknown }).contentsEntry).toEqual({ label: "Overnight · 2026-10-04" })
+    expect(getComputedStyle(host).getPropertyValue("--_epic-fold-band")).toBe(
+      getComputedStyle(phases).getPropertyValue("--_epic-fold-band")
+    )
+    await expectAccessible(host)
+  })
+
   test("draws its numbered title, no tooltip;  starts FOLDED, with a grey rule and no gap below", async () => {
     const host = await render(
       `<div><epic-section id="phases" kind="phases"></epic-section>` +

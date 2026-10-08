@@ -1,0 +1,75 @@
+/*
+ * `<epic-note>` (EpicNote.tsx):  a small UPDATE / DONE note in prose -- a card, its heading in the state's colour,
+ * then the note.
+ * - One meaning per colour (decision Q20):  `.update` orange (changed since you looked), `.done` green (decided or
+ *   done).  ONE card rule, switched by the private `--_epic-note-*` hue tokens.
+ * - The heading's text:  the hue's `-text` token, which Spell UI keeps readable on its `-background` (axe, both
+ *   schemes).
+ * - From `<epic-page>`'s `:host`, with a fallback:  `--epic-part-gap`, `--epic-sans`.
+ * - Public tokens (`--epic-note-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-note.types, ui.components.epic-note.variations;
+
+@layer ui.components.epic-note.types {
+  :host {
+    display: block;
+    margin-block: var(--epic-part-gap, 8px);
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  [part~="base"] {
+    overflow: hidden;
+    max-width: var(--epic-note-width, 44em);
+    border: 1px solid color-mix(in srgb, var(--_epic-note-hue) 40%, transparent);
+    border-radius: 8px;
+    background: var(--_epic-note-fill);
+    color: var(--epic-ink, var(--ui-text-color, CanvasText));
+  }
+  .header {
+    padding: 4px 10px 0;
+    color: var(--_epic-note-ink);
+    font: 400 13px/1.4 var(--epic-sans, var(--ui-font-family, inherit));
+    overflow-wrap: anywhere;
+  }
+  .label {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .body {
+    padding: 2px 10px 7px;
+  }
+  .body.empty {
+    display: none;
+  }
+  /* no body:  the heading alone, as tall as a line */
+  .header:has(+ .body.empty) {
+    padding-bottom: 4px;
+  }
+  ::slotted(:is(p, ul, ol)) {
+    margin-block: 0.35em;
+  }
+  ::slotted(:is(ul, ol)) {
+    padding-inline-start: 1.2em;
+  }
+  ::slotted(:first-child) {
+    margin-top: 0;
+  }
+  ::slotted(:last-child) {
+    margin-bottom: 0;
+  }
+}
+
+@layer ui.components.epic-note.variations {
+  .update {
+    --_epic-note-hue: var(--ui-orange, #f2711c);
+    --_epic-note-fill: var(--ui-orange-background, light-dark(#fff1e6, #3a2616));
+    --_epic-note-ink: var(--ui-orange-text, light-dark(#a3420b, #f6a46b));
+  }
+  .done {
+    --_epic-note-hue: var(--ui-green, #21ba45);
+    --_epic-note-fill: var(--ui-green-background, light-dark(#e8f7ec, #15301e));
+    --_epic-note-ink: var(--ui-green-text, light-dark(#17702b, #7fd99a));
+  }
+}

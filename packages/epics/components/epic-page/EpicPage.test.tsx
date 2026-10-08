@@ -13,6 +13,7 @@ import "$/ui/components/ui-section"
 import "$/ui/components/ui-label"
 import "$/ui/components/ui-message"
 import "$/ui/components/ui-code"
+import "$/ui/components/ui-breadcrumb"
 import "$/epics/components/epic-page"
 import "$/epics/components/epic-overview"
 import "$/epics/components/epic-section"
@@ -157,6 +158,45 @@ describe("<epic-page>", () => {
     const header = host.shadowRoot!.querySelector('[part~="header"]')!
     const phases = host.querySelector("#phases")!.shadowRoot!.querySelector("ui-section")!
     expect(Number(phases.getAttribute("offset"))).toBe(Math.round(header.getBoundingClientRect().height))
+  })
+
+  test("draws its crumbs, `Docs › Epics › <title>`;  NONE while the doc still holds its old crumbs before it", async () => {
+    const host = await render(page("", ["todo"]))
+    const crumbs = host.shadowRoot!.querySelector('[part~="crumbs"]')!
+    expect(
+      Array.from(crumbs.querySelectorAll("ui-breadcrumb-section"), (crumb) => [
+        crumb.textContent,
+        crumb.getAttribute("href"),
+        crumb.hasAttribute("active")
+      ])
+    ).toEqual([
+      ["Docs", "../../pages/index.html", false],
+      ["Epics", "../../epics/index.html", false],
+      ["Demo", null, true]
+    ])
+    expect(crumbs.compareDocumentPosition(host.shadowRoot!.querySelector('[part~="header"]')!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+
+    const old = await render(
+      `<main><ui-breadcrumb class="spell-crumbs"><ui-breadcrumb-section active>Demo</ui-breadcrumb-section></ui-breadcrumb>` +
+        `${page("", ["todo"])}</main>`
+    )
+    expect(old.querySelector("epic-page")!.shadowRoot!.querySelector('[part~="crumbs"]')).toBeNull()
+  })
+
+  test("runs EDGE TO EDGE:  out of `<main>`'s inline padding (`--spell-doc-pad-inline`), however wide", async () => {
+    for (const width of [900, 320]) {
+      const main = await render(
+        `<main style="--spell-doc-pad-inline: 16px; padding: 0 16px; width: ${width}px; box-sizing: border-box">` +
+          `${page("", ["todo"])}</main>`
+      )
+      const [outer, inside] = [main, main.querySelector("epic-page")!].map((box) => box.getBoundingClientRect())
+      expect([inside.left - outer.left, inside.width, main.scrollWidth]).toEqual([0, width, width])
+    }
+    // no token (a page without `spell-doc.css`):  no breakout
+    const plain = await render(`<main style="padding: 0 16px">${page("", ["todo"])}</main>`)
+    expect(getComputedStyle(plain.querySelector("epic-page")!).marginLeft).toBe("0px")
   })
 
   test("sleeping:  phases, none under way, open follow-ups:  😴 saying what's open;  gone once under way", async () => {

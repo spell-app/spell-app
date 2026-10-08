@@ -7,6 +7,7 @@ import {
   isScriptUpdate,
   META_IDS,
   Old,
+  PLAN_DOC_CSS,
   replyTitleParts,
   UPDATED_LABEL
 } from "./convert.types"
@@ -78,6 +79,7 @@ export class OldReading extends DocReading {
   }
 
   protected linkExclusion(element: Element): string | undefined {
+    if (element.matches(PLAN_DOC_CSS)) return "plan-doc.css, dropped:  the elements style themselves"
     if (element.closest(`main > ${Old.overnight}`)) return OVERNIGHT_WHY
     if (element.closest(`main > ${Old.header}`)) return "step label, drawn by <epic-page>"
     if (element.closest(`main > ${Old.meta} > ui-item[icon="folder"]`))
