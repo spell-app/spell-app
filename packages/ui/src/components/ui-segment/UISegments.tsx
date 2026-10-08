@@ -12,17 +12,22 @@ import segmentCSS from "./ui-segment.css?inline"
  ****************/
 export class UISegments extends E.UIElement<typeof segmentsVocabulary> {
   @E.proto static vocabulary = segmentsVocabulary
-  @E.proto static styles = { segment: segmentCSS }
+  @E.proto static styleSheets = { segment: segmentCSS }
 
-  protected hostStates() {
-    return { piled: this.attrs.piled }
+  /** Piled sheets (`piled`).  `:state(piled)`. */
+  @E.cssState("piled")
+  get isPiled(): boolean {
+    return !!this.piled
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("group")}>
+      <div class={this.rootClasses} part={this.partForName("group")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UISegments extends E.AttributeValues<typeof segmentsVocabulary> {}

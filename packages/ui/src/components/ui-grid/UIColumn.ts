@@ -12,3 +12,6 @@ import { GridPart } from "./GridPart"
 export class UIColumn extends GridPart<typeof columnVocabulary> {
   @E.proto static vocabulary = columnVocabulary
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIColumn extends E.AttributeValues<typeof columnVocabulary> {}

@@ -3348,7 +3348,7 @@ async function main(argv) {
       // a new stage:  bring the doc forward, unless told not to.  No reload, nor a second one:  the edit reaches the
       // page by the live client (it updates itself in place, `spell-doc-runtime.js` `wireLiveUpdate()`), and showing
       // the page the view already has only reveals it (`packages/vscode/src/DocView.ts`)
-      return flags.noOpen ? undefined : openInVSCode(file)
+      return flags.noOpen ? undefined : openInVSCode(file, { view: "review" })
     case "phase-body":
       return edit(file, (plan) => {
         const n = Number(need(rest[0], "a phase number"))
@@ -4534,8 +4534,8 @@ function check(file, { noBrowser, links: strictLinks }) {
   if (problems.length || !browserOk) process.exit(1)
 }
 
-/** `open`:  show the doc rendered in VS Code, reusing its tab (`pages.js` `openInVSCode()`). */
+/** `open`:  show the doc in VS Code's Review tab (Owen's rule, 2026-10-07), reusing it (`pages.js` `openInVSCode()`). */
 function open(file) {
   read(file)
-  return openInVSCode(file)
+  return openInVSCode(file, { view: "review" })
 }

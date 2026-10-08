@@ -63,7 +63,7 @@ How the runtime will use it (not built yet):
 3. `attributeChangedCallback` runs `canonicalize()` first, then the ordinary converters, so everything
    inside the element -- properties, `ClassBuilder`, CSS, `:state()`s -- is canonical.
 4. Rendering uses the inverse maps: the localized slot name on `<slot name>`, the localized event name in
-   `emit()`, the localized part ADDED next to the canonical one (`part="header encabezado"`).
+   `send()`, the localized part ADDED next to the canonical one (`part="header encabezado"`).
 
 ## Topics and other names
 

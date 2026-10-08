@@ -118,7 +118,7 @@
   - `Ids.ts`, `Toasts.ts` (`UI.toast({...})`), `Modals.ts` (`UI.modal.confirm/alert/prompt()`), `Api.ts` (fetch with URL templates, throttling, loading/error states)
   - `runtime.types.ts`, `index.ts` (`export const UI`)
 - `src/elements/` — base classes:
-  - `UIElement.ts`: shadow root (`delegatesFocus` per component), `attachInternals()`, sheet adoption, `emit()`, controlled properties, `:state()`s, vocabulary lookup, boolean/enum converters, upgrade-property backstop
+  - `UIElement.ts`: shadow root (`delegatesFocus` per component), `attachInternals()`, sheet adoption, `send()`, controlled properties, `:state()`s, vocabulary lookup, boolean/enum converters, upgrade-property backstop
   - `ClassBuilder.ts`: attribute kinds → canonical classes (keyOnly / valueAndKey / keyOrValueAndKey / width / multiple / textAlign / verticalAlign / size / color), `numberToWord`, fixed order
   - `ContentPart.ts`: base for generic part elements; detects its owning component on connect and exposes `:state(in-card)` etc.
   - `FormControl.ts`: `formAssociated` base (setFormValue / setValidity / reset / disabled callbacks, validation rules)
@@ -180,7 +180,7 @@
 - Forms (`FormControl`):
   - `formAssociated`: `ui-input`, `ui-textarea`, `ui-checkbox` / `ui-radio` (standard, radio, slider, toggle), `ui-dropdown` / `ui-select`, `ui-slider`, `ui-calendar`, `ui-rating`, `ui-search`
   - `setFormValue` (multi-value via `FormData`), `setValidity` from Fomantic's rules (`notEmpty checked email url regExp minValue maxValue integer range decimal number is isExactly not notExactly contains containsExactly doesntContain doesntContainExactly minLength exactLength maxLength size match different creditCard minCount exactCount maxCount`), `:user-invalid` + `:state(invalid)`
-  - `ui-form`: `rules`, `on="submit | blur | change"`, inline prompts, `errorFocus`, `preventLeaving`, events `ui-valid` / `ui-invalid` / `ui-success` / `ui-failure`; `ui-button type="submit"` calls `form.requestSubmit()`
+  - `ui-form`: `rules`, `validate-on="submit | blur | change"`, inline prompts, `errorFocus`, `preventLeaving`, events `ui-valid` / `ui-invalid` / `ui-success` / `ui-failure`; `ui-button type="submit"` calls `form.requestSubmit()`
   - `ui-select`: customizable `<select>` (`appearance: base-select`, `::picker(select)`, `<selectedcontent>`) under `@supports`, every option keeps real text so unsupported browsers degrade to the native picker
 - Accessibility (roles via ElementInternals, WAI-ARIA APG patterns, semantic shadow elements do most of the work):
   - button / toggle (`aria-pressed`); combobox + listbox/option (dropdown, search)

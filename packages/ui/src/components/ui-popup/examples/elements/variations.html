@@ -1,27 +1,27 @@
 <!--
   `src/components/ui-popup/examples/variations.html` as element markup.
-  `on="manual" open`:  shown from the start, and none closes another (`manual` popovers).
+  `open-on="manual" open`:  shown from the start, and none closes another (`manual` popovers).
 -->
 <div class="ui-stack">
   <section>
     <h4>Position</h4>
     <p class="ui-cluster" style="padding-block: 4em">
       <ui-button id="popup-variations-top">Top right</ui-button>
-      <ui-popup for="popup-variations-top" on="manual" open position="top right" content="Top right"></ui-popup>
+      <ui-popup for="popup-variations-top" open-on="manual" open position="top right" content="Top right"></ui-popup>
       <ui-button id="popup-variations-bottom">Bottom center</ui-button>
       <ui-popup
         for="popup-variations-bottom"
-        on="manual"
+        open-on="manual"
         open
         position="bottom center"
         content="Bottom center"
       ></ui-popup>
       <ui-button id="popup-variations-right">Right center</ui-button>
-      <ui-popup for="popup-variations-right" on="manual" open position="right center" content="Right"></ui-popup>
+      <ui-popup for="popup-variations-right" open-on="manual" open position="right center" content="Right"></ui-popup>
       <ui-button id="popup-variations-right-top">Right top</ui-button>
       <ui-popup
         for="popup-variations-right-top"
-        on="manual"
+        open-on="manual"
         open
         position="right top"
         content="Beside, top edges lined up"

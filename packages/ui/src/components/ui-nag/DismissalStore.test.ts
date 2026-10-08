@@ -22,22 +22,22 @@ afterEach(() => {
   document.cookie = `${KEY}=; expires=${new Date(0).toUTCString()}; path=/`
 })
 
-describe("DismissalStore.isDismissed()", () => {
+describe("DismissalStore.isDismissed", () => {
   test.each(["local", "session", "cookie"] as const)(
     "is false until `dismiss()`, true after;  `clear()` forgets it (%s)",
     (storage) => {
       const store = dismissals({ storage })
-      expect(store.isDismissed()).toBe(false)
+      expect(store.isDismissed).toBe(false)
       expect(store.dismiss()).toBe(true)
-      expect(store.isDismissed()).toBe(true)
+      expect(store.isDismissed).toBe(true)
       store.clear()
-      expect(store.isDismissed()).toBe(false)
+      expect(store.isDismissed).toBe(false)
     }
   )
 
   test("counts ONLY its own value", () => {
     localStorage.setItem(KEY, "other")
-    expect(dismissals({ value: "seen" }).isDismissed()).toBe(false)
+    expect(dismissals({ value: "seen" }).isDismissed).toBe(false)
   })
 
   test("drops a `local` dismissal once it has expired", () => {
@@ -48,9 +48,9 @@ describe("DismissalStore.isDismissed()", () => {
     vi.setSystemTime(START_TIME)
     const store = dismissals({ expires: 1 })
     store.dismiss()
-    expect(store.isDismissed()).toBe(true)
+    expect(store.isDismissed).toBe(true)
     vi.setSystemTime(TWO_DAYS_LATER)
-    expect(store.isDismissed()).toBe(false)
+    expect(store.isDismissed).toBe(false)
     expect([localStorage.getItem(KEY), localStorage.getItem(EXPIRY_KEY)]).toEqual([null, null])
   })
 
@@ -67,7 +67,7 @@ describe("DismissalStore.isDismissed()", () => {
     // restored before `afterEach`, which reads `localStorage`
     try {
       const store = dismissals()
-      expect(store.isDismissed()).toBe(false)
+      expect(store.isDismissed).toBe(false)
       expect(store.dismiss()).toBe(false)
       expect(() => store.clear()).not.toThrow()
     } finally {

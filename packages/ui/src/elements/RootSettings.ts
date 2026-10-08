@@ -1,6 +1,6 @@
 import { E } from "$/ui/core"
 // Import directly to avoid circular import
-import { Cell } from "./Cell"
+import { state } from "./Reactive"
 
 /****************
  * ### `RootSettings`
@@ -15,21 +15,21 @@ import { Cell } from "./Cell"
  ****************/
 export class RootSettings {
   /** Bumped on every change;  read it (tracked) to redraw when any root's settings change. */
-  static readonly generation = new Cell(0)
+  @state static accessor generation = 0
 
   /**
    * Set `root`'s settings (replacing its earlier ones) and bump `generation`.
-   * - A signal write:  call it from an event handler, a promise callback or an effect's APPLY.
+   * - A state write:  call it from an event handler, a promise callback or an effect's APPLY.
    */
   static set(root: Element, settings: RootSettingsValue) {
     RootSettings.byRoot.set(root, settings)
-    RootSettings.generation.set(RootSettings.generation.get() + 1)
+    RootSettings.generation += 1
   }
 
   /** Forget `root`'s settings (it left the page) and bump `generation`. */
   static delete(root: Element) {
     if (!RootSettings.byRoot.delete(root)) return
-    RootSettings.generation.set(RootSettings.generation.get() + 1)
+    RootSettings.generation += 1
   }
 
   /** `key` from the nearest root at or above `element` that sets it, else `undefined`. */
@@ -46,11 +46,11 @@ export class RootSettings {
 
   /**
    * Forget every root's settings, for tests;  bumps `generation`, so icons and emoji redraw.
-   * - A signal write, like `set()`.
+   * - A state write, like `set()`.
    */
   static reset() {
     RootSettings.byRoot = new WeakMap()
-    RootSettings.generation.set(RootSettings.generation.get() + 1)
+    RootSettings.generation += 1
   }
 
   ////////////////

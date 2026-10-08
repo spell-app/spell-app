@@ -8,8 +8,9 @@
  *   - from `$/ui/elements`, library-neutral:  `elements.types` (the element core's shared types and constants),
  *     `ClassBuilder`, `Shorthand`, `OwnerContext`, `NativeFallback` (the fallbacks' base), `StickyWatch`
  *     (`<ui-sticky>` and `<ui-section sticky>`)
- *   - from `$/ui/elements`, the Solid layer:  `Cell`, `ElementDefinition`, `UIHost`, `PartContext` + `ContentPart`
- *     (owner context), `Controlled`, `UIElement`, `SlotContent`, `HostAttribute`, `RootSettings` (what each
+ *   - from `$/ui/elements`, the Solid layer:  `Reactive` (the decorators:  `state`, `controlled`, `derived`,
+ *     `cssState`, `onChange`), `Cell`, `ElementDefinition`, `UIHost`, `PartContext` + `ContentPart` (owner context),
+ *     `Controlled` (compatibility, for `brand`), `UIElement`, `SlotContent`, `RootSettings` (what each
  *     `<ui-root>` sets for its subtree:  icon packs, emoji), `IconGlyph`, and the source layer:  `SourceHost` +
  *     `SourceElement` (the elements that show a text file), `SourceMarkup`, `SourceBody`, `SourceBodyHost`
  *     (`<ui-section source>` / `<ui-accordion source>`)
@@ -44,6 +45,7 @@ export * from "$/ui/runtime"
 export * from "$/ui/icons"
 export * as UIT from "$/ui/components/components.types"
 
+export * from "$/ui/elements/Reactive"
 export * from "$/ui/elements/Cell"
 export * from "$/ui/elements/ElementDefinition"
 export * from "$/ui/elements/UIHost"
@@ -52,7 +54,6 @@ export * from "$/ui/elements/Controlled"
 export * from "$/ui/elements/UIElement"
 export * from "$/ui/elements/ContentPart"
 export * from "$/ui/elements/SlotContent"
-export * from "$/ui/elements/HostAttribute"
 export * from "$/ui/elements/RootSettings"
 export * from "$/ui/elements/IconGlyph"
 export * from "$/ui/elements/SourceHost"

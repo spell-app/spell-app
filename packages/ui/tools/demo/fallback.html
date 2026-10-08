@@ -139,7 +139,7 @@
             throw new Error(`demo:  forced render failure in <${host.localName}>`)
           }
         })
-        const { attributes } = controller.definition
+        const { attributes } = controller.elementDefinition
         const flag = attributes.find(({ spec }) => spec.kind === "keyOnly") ?? attributes[0]
         const before = host[flag.property]
         host[flag.property] = !before

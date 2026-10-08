@@ -1,3 +1,5 @@
+import { untrack } from "solid-js"
+
 import { E } from "$/ui/core"
 import type { DocsSearchController } from "./ui-docs-search.types"
 
@@ -22,8 +24,11 @@ export class DocsSearchHost extends E.UIHost {
     return this.search?.summon() ?? this.ready.then(() => this.search?.summon())
   }
 
-  /** The text typed;  `""` before the controller exists. */
+  /**
+   * The text typed;  `""` before the controller exists.
+   * - Untracked, as before P14:  a page's Solid effect reading it doesn't re-run on every keystroke.
+   */
   get query(): string {
-    return this.search?.query ?? ""
+    return untrack(() => this.search?.query) ?? ""
   }
 }

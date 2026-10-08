@@ -1,4 +1,4 @@
-import { Show, createEffect, untrack } from "solid-js"
+import { Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -30,26 +30,71 @@ import sidebarCSS from "./ui-sidebar.css?inline"
  ****************/
 export class UISidebar extends E.UIElement<SidebarVocabulary> {
   @E.proto static vocabulary = sidebarVocabulary
-  @E.proto static styles = { sidebar: sidebarCSS }
-  @E.proto static Fallback = SidebarFallback
-  // a click on the panel's padding must not jump focus to its first link
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { sidebar: sidebarCSS }
+  @E.proto static elementSetup = {
+    Fallback: SidebarFallback,
+    // a click on the panel's padding must not jump focus to its first link
+    delegatesFocus: false
+  }
+
+  /** Always:  its `<ui-pushable>` finds it by `:state(sidebar)`. */
+  @E.cssState("sidebar")
+  get isSidebar(): boolean {
+    return true
+  }
+
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+    super(...args)
+    this.on(COMMAND, this.onCommand)
+  }
 
   ////////////////
-  // ## State
+  // ## Visible
   ////////////////
 
-  /** `visible`:  always the host's (a boolean). */
-  readonly visibleState = this.controlled("visible", false)
+  /** `visible`:  shown;  always the host's (a boolean). */
+  @E.cssState("visible")
+  @E.controlled("visible")
+  accessor isVisible = false
 
-  /** Host `aria-label`, forwarded to the panel. */
-  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
+  /** Modal (the default), or `persistent`. */
+  get isModal(): boolean {
+    return !this.persistent
+  }
+
+  /** Show for a person's action, dispatching the cancelable `ui-open` first;  true when applied. */
+  requestOpen(originalEvent?: Event): boolean {
+    if (untrack(() => this.isVisible)) return false
+    const detail: UIT.SidebarOpenDetail = { visible: true, originalEvent }
+    return this.requestChange("isVisible", true, () => this.send("ui-open", detail))
+  }
+
+  /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
+  requestClose(reason: UIT.SidebarCloseReason, originalEvent?: Event): boolean {
+    if (!untrack(() => this.isVisible)) return false
+    const detail: UIT.SidebarCloseDetail = { visible: false, reason, originalEvent }
+    return this.requestChange("isVisible", false, () => this.send("ui-close", detail))
+  }
+
+  /** An invoker command aimed at the host (`ToggleCommands`). */
+  private readonly onCommand = (event: Event) => {
+    const action = UIT.ToggleCommands.action(
+      event,
+      untrack(() => this.isVisible)
+    )
+    if (action === "show") this.requestOpen(event)
+    else if (action === "close") this.requestClose(UIT.CLOSE, event)
+  }
+
+  ////////////////
+  // ## Showing and hiding
+  ////////////////
 
   /** The panel:  a `<dialog>`, or an `<aside>` when `persistent`. */
   private box?: HTMLElement
 
   /** Undoes the focus trap of a modal sidebar. */
-  private untrap?: E.Disposer
+  private releaseFocusTrap?: E.Disposer
 
   /** Bumped on every show / hide, so a late `ui-show` / `ui-hide` of an earlier one is dropped. */
   private generation = 0
@@ -62,116 +107,15 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
     onDismiss: (reason: E.DismissReason) => void this.requestClose(reason)
   }
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
-    super(...args)
-    const listeners = new AbortController()
-    this.host.addEventListener(COMMAND, this.onCommand, { signal: listeners.signal })
-    this.host.addReleaseCallback(() => listeners.abort())
-  }
-
-  /** Shown now. */
-  isVisible(): boolean {
-    return this.visibleState.get()
-  }
-
-  /** Modal (the default), or `persistent`. */
-  isModal(): boolean {
-    return !this.attrs.persistent
-  }
-
-  /** `transition`, else Fomantic's default for the side:  `uncover` left / right, `overlay` top / bottom. */
-  transitionName(): string {
-    return this.attrs.transition ?? (VERTICAL.has(this.attrs.position ?? UIT.LEFT) ? OVERLAY : UNCOVER)
-  }
-
-  ////////////////
-  // ## Element hooks
-  ////////////////
-
-  /** A word width (`thin`) goes after the noun (`UIT.WordWidthClasses`). */
-  protected extraClasses(): string | undefined {
-    return UIT.WordWidthClasses.classFor(this.attrs.width)
-  }
-
-  protected classValue(name: E.AttributeName<SidebarVocabulary>): unknown {
-    if (name === "width" && UIT.WordWidthClasses.classFor(this.attrs.width)) return undefined
-    if (name === "visible") return this.isVisible()
-    if (name === "transition") return this.transitionName()
-    return super.classValue(name)
-  }
-
-  protected hostStates() {
-    return { sidebar: true, visible: this.isVisible() }
-  }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  render(): JSX.Element {
-    this.watchVisible()
-    const label = () => this.ariaLabel.get() ?? this.text("sidebar")
-    return (
-      <Show
-        when={this.isModal()}
-        fallback={
-          <aside
-            ref={(element) => (this.box = element)}
-            class={this.classes()}
-            part={this.part("sidebar")}
-            aria-label={label()}
-          >
-            <slot />
-          </aside>
-        }
-      >
-        <dialog
-          ref={(element) => (this.box = element)}
-          class={this.classes()}
-          part={this.part("sidebar")}
-          aria-label={label()}
-          aria-modal={this.isVisible() ? UIT.TRUE : undefined}
-          onCancel={this.onCancel}
-        >
-          <slot />
-        </dialog>
-      </Show>
-    )
-  }
-
-  ////////////////
-  // ## Effects
-  ////////////////
-
-  /** Showing / hiding while visible AND connected;  reporting the layout to the pushable. */
-  private watchVisible() {
-    createEffect(
-      () => ({ on: this.isConnected.get() && this.isVisible(), modal: this.isModal() }),
-      ({ on, modal }) => {
-        if (!on) return
-        this.show(modal)
-        return () => this.hide(modal)
-      }
-    )
-    createEffect(
-      () => ({
-        visible: this.isConnected.get() && this.isVisible(),
-        modal: this.isModal(),
-        position: this.attrs.position,
-        width: this.attrs.width,
-        transition: this.transitionName(),
-        blurring: this.attrs.blurring
-      }),
-      () => this.reportLayout()
-    )
-  }
-
-  /** Tell the pushable (if any) what this sidebar needs now;  called by it too, once it renders. */
-  reportLayout() {
-    const pushable = this.pushable()
-    if (!pushable) return
-    const visible = untrack(() => this.isConnected.get() && this.isVisible())
-    pushable.report(this.host, visible ? this.layout() : undefined)
+  /**
+   * Shown while visible AND connected, once the runtime is loaded (`isReady`, as the render waits for):  it acts on
+   * the rendered panel;  hidden by the cleanup.
+   */
+  @E.onChange("isReady", "isConnected", "isVisible", "isModal")
+  protected onShowingChanged(isReady: boolean, isConnected: boolean, isVisible: boolean, isModal: boolean) {
+    if (!(isReady && isConnected && isVisible)) return
+    this.show(isModal)
+    return () => this.hide(isModal)
   }
 
   /**
@@ -182,7 +126,7 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
     const box = this.box
     this.reportLayout()
     if (modal && box instanceof HTMLDialogElement) {
-      const closedBy = untrack(() => this.attrs.closedby) ?? ANY
+      const closedBy = untrack(() => this.closedby) ?? ANY
       this.overlay.closeOnEscape = closedBy !== UIT.NONE
       this.overlay.closeOnOutsideClick = closedBy === ANY
       // MUST `show()` BEFORE `UI.overlays.open()`:  `show()` gives the dialog its own close watcher, disabled
@@ -194,11 +138,11 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
         UI.focus.enter(box)
       }
       UI.overlays.open(this.overlay)
-      this.untrap = UI.focus.trap(this.host)
+      this.releaseFocusTrap = UI.focus.trap(this.host)
     }
     this.after(() => {
       const detail: UIT.SidebarOpenDetail = { visible: true }
-      if (untrack(() => this.isVisible())) this.emit("ui-show", detail)
+      if (untrack(() => this.isVisible)) this.send("ui-show", detail)
     })
   }
 
@@ -208,16 +152,16 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
    */
   private hide(modal: boolean) {
     const box = this.box
-    this.untrap?.()
-    this.untrap = undefined
-    this.pushable()?.report(this.host, undefined)
+    this.releaseFocusTrap?.()
+    this.releaseFocusTrap = undefined
+    this.pushable?.report(this.host, undefined)
     if (modal) {
       if (box instanceof HTMLDialogElement && box.open) box.close()
       UI.overlays.close(this.overlay)
     }
     this.after(() => {
       const detail: UIT.SidebarOpenDetail = { visible: false }
-      if (!untrack(() => this.isVisible()) && this.host.isConnected) this.emit("ui-hide", detail)
+      if (!untrack(() => this.isVisible) && this.host.isConnected) this.send("ui-hide", detail)
     })
   }
 
@@ -230,12 +174,48 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
     })
   }
 
+  /** A non-modal dialog gets no `cancel` from Escape;  a `CloseWatcher` request might:  always prevented. */
+  private readonly onCancel = (event: Event) => {
+    event.preventDefault()
+  }
+
   ////////////////
   // ## Layout
   ////////////////
 
+  /** `transition`, else Fomantic's default for the side:  `uncover` left / right, `overlay` top / bottom. */
+  get transitionName(): string {
+    return this.transition ?? (VERTICAL.has(this.position ?? UIT.LEFT) ? OVERLAY : UNCOVER)
+  }
+
+  /** A word width (`thin`) goes after the noun (`UIT.WordWidthClasses`). */
+  protected get extraClasses(): string | undefined {
+    return UIT.WordWidthClasses.classFor(this.width)
+  }
+
+  protected classValue(name: E.AttributeName<SidebarVocabulary>): unknown {
+    if (name === "width" && UIT.WordWidthClasses.classFor(this.width)) return undefined
+    if (name === "visible") return this.isVisible
+    if (name === "transition") return this.transitionName
+    return super.classValue(name)
+  }
+
+  /** What the pushable lays out changed:  report it, once the runtime is loaded (the panel is measured). */
+  @E.onChange("isReady", "isConnected", "isVisible", "isModal", "position", "width", "transitionName", "blurring")
+  protected onLayoutChanged(isReady: boolean) {
+    if (isReady) this.reportLayout()
+  }
+
+  /** Tell the pushable (if any) what this sidebar needs now;  called by it too, once it renders. */
+  reportLayout() {
+    const pushable = this.pushable
+    if (!pushable) return
+    const visible = untrack(() => this.isConnected && this.isVisible)
+    pushable.report(this.host, visible ? this.layout() : undefined)
+  }
+
   /** The parent `<ui-pushable>`'s controller, if that's where it is. */
-  private pushable(): UIPushable | undefined {
+  private get pushable(): UIPushable | undefined {
     const parent = this.host.parentElement
     if (!parent?.matches(`:state(${UIT.PUSHABLE_HOST_STATE})`)) return undefined
     return (parent as E.UIHost).controller as UIPushable | undefined
@@ -246,12 +226,13 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
    * - `overlay`:  stays;  `scale down`:  shrinks to 0.75 towards the far side
    * - `push`, `uncover`, `slide along`, `slide out`:  moves by the panel's measured width (height at the top /
    *   bottom), as Fomantic's script measured it
+   * - A method, not a getter:  it MEASURES the panel.
    */
   private layout(): UIT.SidebarLayout {
-    const position = untrack(() => this.attrs.position) ?? UIT.LEFT
-    const transition = untrack(() => this.transitionName())
-    const modal = untrack(() => this.isModal())
-    const blurring = untrack(() => !!this.attrs.blurring)
+    const position = untrack(() => this.position) ?? UIT.LEFT
+    const transition = untrack(() => this.transitionName)
+    const modal = untrack(() => this.isModal)
+    const blurring = untrack(() => !!this.blurring)
     if (transition === OVERLAY) return { transform: NONE_TRANSFORM, origin: CENTER, modal, blurring }
     if (transition === SCALE_DOWN) return { transform: SCALE, origin: SCALE_ORIGINS[position]!, modal, blurring }
     const box = this.box
@@ -263,42 +244,42 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
   }
 
   ////////////////
-  // ## Transitions
+  // ## Rendering
   ////////////////
 
-  /** Show for a person's action, dispatching the cancelable `ui-open` first;  true when applied. */
-  setVisible(originalEvent?: Event): boolean {
-    if (untrack(() => this.isVisible())) return false
-    const detail: UIT.SidebarOpenDetail = { visible: true, originalEvent }
-    return this.visibleState.request(true, () => this.emit("ui-open", detail))
-  }
-
-  /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
-  requestClose(reason: UIT.SidebarCloseReason, originalEvent?: Event): boolean {
-    if (!untrack(() => this.isVisible())) return false
-    const detail: UIT.SidebarCloseDetail = { visible: false, reason, originalEvent }
-    return this.visibleState.request(false, () => this.emit("ui-close", detail))
-  }
-
-  ////////////////
-  // ## Handlers
-  ////////////////
-
-  /** An invoker command aimed at the host (`ToggleCommands`). */
-  private readonly onCommand = (event: Event) => {
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isVisible())
+  render(): JSX.Element {
+    const label = () => this.attributes[UIT.ARIA_LABEL] ?? this.translationForKey("sidebar")
+    return (
+      <Show
+        when={this.isModal}
+        fallback={
+          <aside
+            ref={(element) => (this.box = element)}
+            class={this.rootClasses}
+            part={this.partForName("sidebar")}
+            aria-label={label()}
+          >
+            <slot />
+          </aside>
+        }
+      >
+        <dialog
+          ref={(element) => (this.box = element)}
+          class={this.rootClasses}
+          part={this.partForName("sidebar")}
+          aria-label={label()}
+          aria-modal={this.isVisible ? UIT.TRUE : undefined}
+          onCancel={this.onCancel}
+        >
+          <slot />
+        </dialog>
+      </Show>
     )
-    if (action === "show") this.setVisible(event)
-    else if (action === "close") this.requestClose(UIT.CLOSE, event)
-  }
-
-  /** A non-modal dialog gets no `cancel` from Escape;  a `CloseWatcher` request might:  always prevented. */
-  private readonly onCancel = (event: Event) => {
-    event.preventDefault()
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UISidebar extends E.AttributeValues<SidebarVocabulary> {}
 
 /** Top / bottom sidebars:  full width, move the pusher vertically. */
 const VERTICAL: ReadonlySet<string> = new Set([UIT.TOP, UIT.BOTTOM])

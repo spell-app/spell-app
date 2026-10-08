@@ -1,5 +1,5 @@
-import { createEffect, createMemo, untrack } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { untrack } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
 import { tabVocabulary } from "./ui-tab.vocabulary.en"
@@ -24,63 +24,90 @@ import tabCSS from "./ui-tab.css?inline"
  ****************/
 export class UITab extends E.UIElement<typeof tabVocabulary> {
   @E.proto static vocabulary = tabVocabulary
-  @E.proto static styles = { segment: segmentCSS, tab: tabCSS }
-  @E.proto static Fallback = TabFallback
-  // the HOST is the tabpanel and its focus stop;  nothing inside to delegate to
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { segment: segmentCSS, tab: tabCSS }
+  @E.proto static elementSetup = {
+    Fallback: TabFallback,
+    // the HOST is the tabpanel and its focus stop;  nothing inside to delegate to
+    delegatesFocus: false
+  }
+
+  /** Always:  `ui-tab.css` tells a pane's host from a tab set's by `:state(pane)`. */
+  @E.cssState("pane")
+  get isPane(): boolean {
+    return true
+  }
+
+  ////////////////
+  // ## The owner
+  ////////////////
 
   /** Owning tabs. */
   readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
-  /** Host `active`, the alias of `selected`. */
-  readonly activeAttribute = new E.HostAttribute({ host: this.host, name: UIT.ACTIVE })
-
-  /** Shown before (lazy content stamped, `first` spent). */
-  private hasShown = false
-
-  /** `tabindex` this element put on the host (so it only removes its own). */
-  private hasOwnTabIndex = false
-
-  ////////////////
-  // ## Derived state
-  ////////////////
-
   /** The owning tabs' controller, if it answers `paneState()`. */
-  readonly owner = createMemo((): TabOwner | undefined => {
+  get owner(): TabOwner | undefined {
     const controller = this.context.ownerController<Partial<TabOwner>>()
     return controller?.paneState ? (controller as TabOwner) : undefined
-  })
+  }
 
-  /**
-   * How to show:  the owner's say, else its own attributes.
-   * - `lazy` on a server:  the owner's answer reads every pane's controller, and a static render (`$/ui/static`)
-   *   builds this one before its later siblings';  a server memo computes once, so it waits for render time.
-   */
-  readonly state = createMemo(
-    (): TabPaneState => {
-      const owner = this.owner()
-      if (owner) return owner.paneState(this.host)
-      return {
-        selected: this.ownSelected(),
-        attached: this.attrs.attached,
-        basic: this.attrs.basic,
-        inverted: this.attrs.inverted
-      }
-    },
-    { lazy: isServer }
-  )
+  /** `tabindex` this element put on the host (so it only removes its own). */
+  private tabIndexIsOurs = false
 
-  /** Its own `selected` (or `active`):  the tabs read it for the first pane to show.  Tracked. */
-  ownSelected(): boolean {
-    return this.attrs.selected || E.Converters.boolean(this.activeAttribute.get(), UIT.ACTIVE)
+  /** Owned:  the host is a `tabpanel` and a Tab stop (unless the page set a `tabindex`);  alone, neither. */
+  @E.onChange("owner", { writesHost: true })
+  protected onOwnerChanged(owner: TabOwner | undefined) {
+    const { host } = this
+    const owned = !!owner
+    host.internals.role = owned ? TABPANEL : null
+    if (owned && !host.hasAttribute(UIT.TABINDEX)) {
+      host.tabIndex = 0
+      this.tabIndexIsOurs = true
+    } else if (!owned && this.tabIndexIsOurs) {
+      host.removeAttribute(UIT.TABINDEX)
+      this.tabIndexIsOurs = false
+    }
+  }
+
+  /** Owned:  the host is named by its `label`, else its `value`;  alone, unnamed. */
+  @E.onChange("owner", "label", "value", { writesHost: true })
+  protected onLabelChanged(owner: TabOwner | undefined, label: string | undefined, value: string | undefined) {
+    this.host.internals.ariaLabel = (owner ? (label ?? value) : undefined) ?? null
   }
 
   ////////////////
-  // ## Element hooks
+  // ## Selection
   ////////////////
 
+  /** Its own `selected` (or the `active` alias):  the tabs read it for the first pane to show. */
+  get isMarkedSelected(): boolean {
+    return this.selected || E.Converters.boolean(this.attributes[UIT.ACTIVE], UIT.ACTIVE)
+  }
+
+  /**
+   * How to show:  the owner's say, else its own attributes.
+   * - `@derived`:  the owner's answer looks the pane up among the tabs, and four readers share it.  Lazy by nature,
+   *   so a static render (`$/ui/static`), which builds this pane before its later siblings, asks at render time.
+   */
+  @E.derived
+  get paneState(): TabPaneState {
+    const owner = this.owner
+    if (owner) return owner.paneState(this.host)
+    return {
+      selected: this.isMarkedSelected,
+      attached: this.attached,
+      basic: this.basic,
+      inverted: this.inverted
+    }
+  }
+
+  /** The shown pane:  `:state(selected)`. */
+  @E.cssState("selected")
+  get isSelected(): boolean {
+    return this.paneState.selected
+  }
+
   protected classValue(name: E.AttributeName<typeof tabVocabulary>): unknown {
-    const state = this.state()
+    const state = this.paneState
     if (name === "selected") return state.selected
     if (name === "attached") return state.attached
     if (name === "basic") return state.basic
@@ -89,80 +116,58 @@ export class UITab extends E.UIElement<typeof tabVocabulary> {
   }
 
   /** Fomantic's pane is a segment:  `ui ... tab segment`. */
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     return SEGMENT
   }
 
-  protected hostStates() {
-    return { pane: true, selected: this.state().selected }
+  ////////////////
+  // ## Showing
+  ////////////////
+
+  /** Shown before (lazy content stamped, `first` spent). */
+  private wasShownBefore = false
+
+  /** On screen:  the shown pane, rendered and connected. */
+  protected get isShown(): boolean {
+    return this.isReady && this.isConnected && this.isSelected
+  }
+
+  /** Each time it BECOMES the shown pane:  `onShown()`. */
+  @E.onChange("isShown")
+  protected onShownChanged(isShown: boolean) {
+    if (isShown) this.onShown()
+  }
+
+  /** Became the shown pane:  stamp lazy content the first time, then `ui-show`. */
+  private onShown() {
+    const first = !this.wasShownBefore
+    this.wasShownBefore = true
+    if (first && untrack(() => this.lazy)) {
+      for (const template of this.host.querySelectorAll<HTMLTemplateElement>(TEMPLATES)) {
+        this.host.append(template.content.cloneNode(true))
+      }
+    }
+    const owner = untrack(() => this.owner)
+    const value = owner ? owner.valueFor(this.host) : (untrack(() => this.value) ?? "")
+    const detail: UIT.TabShowDetail = { value, first }
+    this.send("ui-show", detail)
   }
 
   ////////////////
   // ## Rendering
   ////////////////
 
-  mount(): JSX.Element {
-    this.effects()
-    return super.mount()
-  }
-
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("tab")} aria-busy={this.attrs.loading ? UIT.TRUE : undefined}>
+      <div class={this.rootClasses} part={this.partForName("tab")} aria-busy={this.loading ? UIT.TRUE : undefined}>
         <slot />
       </div>
     )
   }
-
-  /**
-   * Role, name and Tab stop while owned;  `ui-show` (and lazy content) each time it becomes the shown pane.
-   * - Created in `mount()`:  they read the owner and overridable state.
-   * - Role, name and Tab stop are host effects:  a static render (`$/ui/static`) writes them out.
-   */
-  private effects() {
-    const { host } = this
-    this.hostEffect(
-      () => !!this.owner(),
-      (owned) => {
-        host.internals.role = owned ? TABPANEL : null
-        if (owned && !host.hasAttribute(UIT.TABINDEX)) {
-          host.tabIndex = 0
-          this.hasOwnTabIndex = true
-        } else if (!owned && this.hasOwnTabIndex) {
-          host.removeAttribute(UIT.TABINDEX)
-          this.hasOwnTabIndex = false
-        }
-      }
-    )
-    this.hostEffect(
-      () => (this.owner() ? (this.attrs.label ?? this.attrs.value) : undefined),
-      (label) => {
-        host.internals.ariaLabel = label ?? null
-      }
-    )
-    createEffect(
-      () => this.isLoaded() && this.isConnected.get() && this.state().selected,
-      (shown) => {
-        if (shown) this.shown()
-      }
-    )
-  }
-
-  /** Became the shown pane:  stamp lazy content the first time, then `ui-show`. */
-  private shown() {
-    const first = !this.hasShown
-    this.hasShown = true
-    if (first && untrack(() => this.attrs.lazy)) {
-      for (const template of this.host.querySelectorAll<HTMLTemplateElement>(TEMPLATES)) {
-        this.host.append(template.content.cloneNode(true))
-      }
-    }
-    const owner = untrack(this.owner)
-    const value = owner ? owner.valueFor(this.host) : (untrack(() => this.attrs.value) ?? "")
-    const detail: UIT.TabShowDetail = { value, first }
-    this.emit("ui-show", detail)
-  }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UITab extends E.AttributeValues<typeof tabVocabulary> {}
 
 /** A lazy pane's templates:  direct children only. */
 const TEMPLATES = ":scope > template"

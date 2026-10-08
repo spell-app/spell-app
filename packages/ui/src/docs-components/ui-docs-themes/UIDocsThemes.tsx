@@ -1,4 +1,4 @@
-import { createEffect, createMemo, For, Show, untrack } from "solid-js"
+import { For, Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -26,7 +26,7 @@ import themesCSS from "./ui-docs-themes.css?inline"
  * ### `<ui-docs-themes>`
  * The docs site's look controls, `<div class="ui [size] [inverted] themes" part="controls">` holding, by `show`:
  * - `both` (default):  two round icon buttons, compact enough for a side column or a phone's top bar:
- *   - `<button part="palette">`:  opens `<ui-popup part="overlay" on="click">`, a small panel with the theme list
+ *   - `<button part="palette">`:  opens `<ui-popup part="overlay" open-on="click">`, a small panel with the theme list
  *     (`role=menu` of `menuitemradio`s:  Spell, Plain, Classic, then Fomantic's;  the chosen one checked) and a
  *     "Match system" switch (`role=switch`:  on while the scheme follows the OS)
  *   - `<button part="scheme">`:  a sun on a light page, a moon on a dark one -- the scheme the page SHOWS, the OS's
@@ -49,72 +49,84 @@ import themesCSS from "./ui-docs-themes.css?inline"
  ****************/
 export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
   @E.proto static vocabulary = docsThemesVocabulary
-  @E.proto static styles = { "docs-themes": themesCSS }
-  @E.proto static Fallback = DocsThemesFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { "docs-themes": themesCSS }
+  @E.proto static elementSetup = { Fallback: DocsThemesFallback, delegatesFocus: false }
 
-  /** The page's look, as last chosen by any picker. */
-  readonly look = new E.Cell<DocsLook>(isServer ? SERVER_LOOK : untrack(() => ThemePreference.look))
-
-  /** The scheme the OS asks for:  what the page shows while following it. */
-  readonly os = new E.Cell<DocsShownScheme>(isServer ? "light" : untrack(() => ThemePreference.osScheme()))
-
-  /** The overlay is open. */
-  readonly open = new E.Cell(false)
-
-  /** The theme row holding the list's one tab stop (roving `tabindex`):  a menu value;  `undefined`:  the chosen one. */
-  readonly active = new E.Cell<string | undefined>(undefined)
-
-  /** The site data, once loaded:  titles and `for`'s families.  `undefined` before, or if it failed. */
-  readonly data = new E.Cell<SiteDataFile | undefined>(undefined)
-
-  /** `text()` as a plain function, for `ThemeMenu`. */
-  readonly texts: DocsThemesText = (key, params) => this.text(key, params)
-
-  /**
-   * What the list / dropdown shows, for `for`.
-   * - `lazy`:  `UI.themes` exists once the runtime has loaded, which this constructor may run before;  only `render()`
-   *   reads it, and that waits for the runtime.
-   */
-  readonly menu = createMemo(
-    () => new ThemeMenu({ names: UI.themes.names, data: this.data.get(), forTag: this.attrs.for, text: this.texts }),
-    { lazy: true }
-  )
-
-  /** The scheme the page shows:  the chosen one, or the OS's while following it. */
-  readonly shown = createMemo((): DocsShownScheme => {
-    const { scheme } = this.look.get()
-    return scheme === "system" ? this.os.get() : scheme
-  })
-
-  /** The chosen theme's menu value (`DOCS_PLAIN_THEME`:  our own look). */
-  readonly chosen = createMemo(() => this.look.get().theme ?? DOCS_PLAIN_THEME)
-
-  /** Wired to the site data and `ThemePreference` (see `wire()`). */
-  readonly isWired: boolean = !isServer && this.wire()
-
-  protected override hostStates() {
-    const look = this.look.get()
-    return {
-      themed: look.theme !== undefined,
-      dark: this.shown() === "dark",
-      following: look.scheme === "system",
-      open: this.open.get()
-    }
-  }
-
-  render(): JSX.Element {
-    return (
-      <div class={this.classes()} part={this.part("controls")}>
-        <Show when={this.show() === "theme"}>{this.dropdown()}</Show>
-        <Show when={this.show() === "both"}>{this.palette()}</Show>
-        <Show when={this.show() !== "theme"}>{this.schemeButton()}</Show>
-      </div>
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+    super(...args)
+    if (isServer) return
+    // a promise callback writes it
+    SiteData.load().then(
+      (data) => (this.siteData = data),
+      () => undefined // no data:  the menu stays unfiltered, titled from sheet names
     )
   }
 
+  ////////////////
+  // ## The look
+  ////////////////
+
+  /**
+   * The page's look, as last chosen by any picker.
+   * - A copy of `ThemePreference.look`, kept in step by `follow()`:  that one isn't reactive.
+   */
+  @E.state accessor look: DocsLook = isServer ? SERVER_LOOK : untrack(() => ThemePreference.look)
+
+  /** The scheme the OS asks for:  what the page shows while following it.  A copy, as `look`. */
+  @E.state accessor osScheme: DocsShownScheme = isServer ? "light" : untrack(() => ThemePreference.osScheme())
+
+  /** The scheme the page shows:  the chosen one, or the OS's while following it. */
+  get shownScheme(): DocsShownScheme {
+    const { scheme } = this.look
+    return scheme === "system" ? this.osScheme : scheme
+  }
+
+  /** The chosen theme's menu value (`DOCS_PLAIN_THEME`:  our own look). */
+  get chosenTheme(): string {
+    return this.look.theme ?? DOCS_PLAIN_THEME
+  }
+
+  /** A theme other than our own look is applied:  `:state(themed)`. */
+  @E.cssState("themed")
+  get isThemed(): boolean {
+    return this.look.theme !== undefined
+  }
+
+  /** The page shows the dark scheme:  `:state(dark)`. */
+  @E.cssState("dark")
+  get isDark(): boolean {
+    return this.shownScheme === "dark"
+  }
+
+  /** The scheme follows the OS:  `:state(following)`. */
+  @E.cssState("following")
+  get followsSystem(): boolean {
+    return this.look.scheme === "system"
+  }
+
+  /**
+   * Follow `ThemePreference` while connected:  catch up on connect (another picker, or the OS, may have changed the
+   * look meanwhile), unsubscribe on disconnect.
+   */
+  @E.onChange("isConnected")
+  protected onConnectedChanged(isConnected: boolean) {
+    if (!isConnected) return undefined
+    this.follow(ThemePreference.look)
+    return ThemePreference.subscribe((look) => this.follow(look))
+  }
+
+  /** Take `look`, and the OS's scheme now. */
+  private follow(look: DocsLook): void {
+    this.look = look
+    this.osScheme = ThemePreference.osScheme()
+  }
+
+  ////////////////
+  // ## Choosing
+  ////////////////
+
   /** Choose theme `name` (`undefined`:  our own look), as the viewer did with `event`. */
-  async setTheme(name: string | undefined, event?: Event): Promise<void> {
+  async chooseTheme(name: string | undefined, event?: Event): Promise<void> {
     const applied = ThemePreference.setTheme(name)
     this.emitChange(event)
     await applied
@@ -135,19 +147,72 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
     this.emitChange(event)
   }
 
+  /** Fire `ui-change` with the look now. */
+  private emitChange(originalEvent?: Event): void {
+    const look = ThemePreference.look
+    this.send("ui-change", DocsThemesChanges.detailFor({ look, shown: ThemePreference.shownScheme(), originalEvent }))
+  }
+
+  ////////////////
+  // ## The theme menu
+  ////////////////
+
+  /** The site data, once loaded:  titles and `for`'s families.  `undefined` before, or if it failed. */
+  @E.state accessor siteData: SiteDataFile | undefined = undefined
+
+  /** `translationForKey()` as a plain function, for `ThemeMenu`. */
+  readonly texts: DocsThemesText = (key, params) => this.translationForKey(key, params)
+
+  /**
+   * What the list / dropdown shows, for `for`.
+   * - Read only once the runtime has loaded (`render()` waits for it):  `UI.themes` exists only then.
+   */
+  @E.derived
+  get themeMenu(): ThemeMenu {
+    return new ThemeMenu({ names: UI.themes.names, data: this.siteData, forTag: this.for, text: this.texts })
+  }
+
+  /** Display title of theme `theme` (`undefined`:  our own look, `Plain`). */
+  private titleFor(theme: string | undefined): string {
+    return theme === undefined ? this.translationForKey("default") : this.themeMenu.titleFor(theme)
+  }
+
+  /**
+   * Which controls show:  `show`, else `both`.
+   * - Not `this.show` alone:  an empty or unknown `show` converts to `undefined`, which shows `both`.
+   */
+  private get shownControls(): DocsThemesShow {
+    return (this.show as DocsThemesShow | undefined) ?? "both"
+  }
+
   ////////////////
   // ## Rendering
   ////////////////
 
+  render(): JSX.Element {
+    return (
+      <div class={this.rootClasses} part={this.partForName("controls")}>
+        <Show when={this.shownControls === "theme"}>{this.dropdown()}</Show>
+        <Show when={this.shownControls === "both"}>{this.palette()}</Show>
+        <Show when={this.shownControls !== "theme"}>{this.schemeButton()}</Show>
+      </div>
+    )
+  }
+
   /** The sun / moon button and its tooltip. */
   private schemeButton(): JSX.Element {
-    const next = () => (this.shown() === "dark" ? this.text("toLight") : this.text("toDark"))
+    const next = () =>
+      this.shownScheme === "dark" ? this.translationForKey("toLight") : this.translationForKey("toDark")
     return (
       <>
         <button
           type="button"
-          class={[SCHEME_CLASS, BUTTON_CLASS, { light: this.shown() === "light", dark: this.shown() === "dark" }]}
-          part={this.part("scheme")}
+          class={[
+            SCHEME_CLASS,
+            BUTTON_CLASS,
+            { light: this.shownScheme === "light", dark: this.shownScheme === "dark" }
+          ]}
+          part={this.partForName("scheme")}
           aria-label={next()}
           onClick={(event) => this.flipScheme(event)}
         >
@@ -159,7 +224,7 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
             )}
           </For>
         </button>
-        <ui-popup part={this.part("tip")} inverted="" size={MINI} position={TIP_POSITION}>
+        <ui-popup part={this.partForName("tip")} inverted="" size={MINI} position={TIP_POSITION}>
           {next()}
         </ui-popup>
       </>
@@ -168,68 +233,66 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
 
   /** The palette button, its tooltip and the overlay. */
   private palette(): JSX.Element {
-    const label = () => this.text("palette", { title: this.titleFor(this.look.get().theme) })
-    const isFollowing = () => this.look.get().scheme === "system"
+    const label = () => this.translationForKey("palette", { title: this.titleFor(this.look.theme) })
     return (
       <>
         <button
           type="button"
           id={IDS.palette}
           class={[PALETTE_CLASS, BUTTON_CLASS]}
-          part={this.part("palette")}
+          part={this.partForName("palette")}
           aria-label={label()}
         >
           <span class={GLYPH_CLASS} aria-hidden={UIT.TRUE}>
             <ui-icon name={PALETTE_ICON} fitted="" />
           </span>
         </button>
-        {/* `on` stays a literal:  Solid compiles an `on={...}` EXPRESSION as an event listener, not an attribute */}
         <ui-popup
-          part={this.part("overlay")}
+          part={this.partForName("overlay")}
           class={OVERLAY_CLASS}
-          on="click"
+          open-on="click"
           basic=""
           position="bottom right"
-          aria-label={this.text("overlayName")}
+          aria-label={this.translationForKey("overlayName")}
           ref={(popup: HTMLElement) => this.wireOverlay(popup)}
         >
           <div class={PANEL_CLASS}>
             <div class={HEADING_CLASS} id={IDS.heading}>
-              {this.text("themeName")}
+              {this.translationForKey("themeName")}
             </div>
             <div
               class={MENU_CLASS}
-              part={this.part("menu")}
+              part={this.partForName("menu")}
               role={MENU_ROLES.menu}
               aria-labelledby={IDS.heading}
               onKeyDown={(event) => this.onMenuKey(event)}
             >
-              <For each={this.menu().entries}>{(entry) => this.entry(entry)}</For>
+              <For each={this.themeMenu.entries}>{(entry) => this.entry(entry)}</For>
             </div>
             <div class={DIVIDER_CLASS} role={UIT.SEPARATOR} />
             <button
               type="button"
               class={SYSTEM_CLASS}
-              part={this.part("system")}
+              part={this.partForName("system")}
               role={MENU_ROLES.switch}
-              aria-checked={isFollowing() ? UIT.TRUE : UIT.FALSE}
-              onClick={(event) => this.chooseScheme(isFollowing() ? "shown" : "system", event)}
+              aria-checked={this.followsSystem ? UIT.TRUE : UIT.FALSE}
+              onClick={(event) => this.chooseScheme(this.followsSystem ? "shown" : "system", event)}
             >
               <span class={UIT.LABEL}>
-                <span class={NAME_CLASS}>{this.text("matchSystem")}</span>
-                <span class={UIT.DESCRIPTION}>{this.text("matchSystemDescription")}</span>
+                <span class={NAME_CLASS}>{this.translationForKey("matchSystem")}</span>
+                <span class={UIT.DESCRIPTION}>{this.translationForKey("matchSystemDescription")}</span>
               </span>
               <span class={TRACK_CLASS} aria-hidden={UIT.TRUE} />
             </button>
           </div>
         </ui-popup>
         <ui-popup
-          part={this.part("tip")}
+          part={this.partForName("tip")}
           for={IDS.palette}
           inverted=""
           size={MINI}
           position={TIP_POSITION}
-          hidden={this.open.get() ? "" : undefined}
+          hidden={this.isOpen ? "" : undefined}
         >
           {label()}
         </ui-popup>
@@ -246,17 +309,17 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
         <div class={UIT.HEADER}>{entry.text}</div>
       )
     }
-    const isChecked = () => this.chosen() === entry.value
+    const isChecked = () => this.chosenTheme === entry.value
     return (
       <button
         type="button"
         class={[OPTION_CLASS, { checked: isChecked() }]}
-        part={this.part("option")}
+        part={this.partForName("option")}
         role={MENU_ROLES.item}
         value={entry.value}
         aria-checked={isChecked() ? UIT.TRUE : UIT.FALSE}
-        tabindex={(this.active.get() ?? this.chosen()) === entry.value ? 0 : -1}
-        onClick={(event) => this.pickOption(entry.value, event)}
+        tabindex={(this.tabStopTheme ?? this.chosenTheme) === entry.value ? 0 : -1}
+        onClick={(event) => this.onOptionClick(entry.value, event)}
       >
         <span class={CHECK_CLASS} aria-hidden={UIT.TRUE}>
           <ui-icon name={CHECK_ICON} fitted="" />
@@ -273,19 +336,19 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
   private dropdown(): JSX.Element {
     return (
       <ui-dropdown
-        part={this.part("theme")}
+        part={this.partForName("theme")}
         floating=""
         scrolling=""
         button=""
-        basic={this.attrs.inverted ? undefined : ""}
-        inverted={this.attrs.inverted ? "" : undefined}
-        size={this.attrs.size}
-        text={this.text("themeName")}
-        value={this.chosen()}
-        ref={(dropdown: HTMLElement) => dropdown.addEventListener("ui-change", (event) => this.pickTheme(event))}
+        basic={this.inverted ? undefined : ""}
+        inverted={this.inverted ? "" : undefined}
+        size={this.size}
+        text={this.translationForKey("themeName")}
+        value={this.chosenTheme}
+        ref={(dropdown: HTMLElement) => dropdown.addEventListener("ui-change", (event) => this.onDropdownChange(event))}
       >
-        <span slot="trigger">{this.menu().labelFor(this.look.get().theme)}</span>
-        <For each={this.menu().entries}>
+        <span slot="trigger">{this.themeMenu.labelFor(this.look.theme)}</span>
+        <For each={this.themeMenu.entries}>
           {(entry) =>
             "type" in entry ? (
               <ui-item type={entry.type}>{entry.text}</ui-item>
@@ -300,36 +363,34 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
     )
   }
 
-  ////////////////
-  // ## Internals
-  ////////////////
-
-  /** `show`, defaulted. */
-  private show(): DocsThemesShow {
-    return (this.attrs.show as DocsThemesShow | undefined) ?? "both"
-  }
-
-  /** Display title of theme `theme` (`undefined`:  our own look, `Plain`). */
-  private titleFor(theme: string | undefined): string {
-    return theme === undefined ? this.text("default") : this.menu().titleFor(theme)
-  }
-
   /** The dropdown's `ui-change`:  stop it (the host fires its own), and choose its value. */
-  private pickTheme(event: Event): void {
+  private onDropdownChange(event: Event): void {
     event.stopPropagation()
     const { value } = (event as CustomEvent<{ value: string }>).detail
-    void this.setTheme(value === DOCS_PLAIN_THEME ? undefined : value, event)
+    void this.chooseTheme(value === DOCS_PLAIN_THEME ? undefined : value, event)
   }
+
+  ////////////////
+  // ## The overlay
+  ////////////////
+
+  /** The overlay is open:  `:state(open)`;  hides the palette's tooltip. */
+  @E.cssState("open")
+  @E.state
+  accessor isOpen = false
+
+  /** The theme row holding the list's one tab stop (roving `tabindex`):  a menu value;  `undefined`:  the chosen one. */
+  @E.state accessor tabStopTheme: string | undefined = undefined
 
   /**
    * A theme row's click (or Enter / Space):  choose it, keep the tab stop on it;  the overlay stays open.
-   * - Compared with `ThemePreference.look`, never `chosen()`:  a click right after another reads that one's value
+   * - Compared with `ThemePreference.look`, never `chosenTheme`:  a click right after another reads that one's value
    *   before the write lands.
    */
-  private pickOption(value: string, event: Event): void {
-    this.active.set(value)
+  private onOptionClick(value: string, event: Event): void {
+    this.tabStopTheme = value
     const theme = value === DOCS_PLAIN_THEME ? undefined : value
-    if (theme !== ThemePreference.look.theme) void this.setTheme(theme, event)
+    if (theme !== ThemePreference.look.theme) void this.chooseTheme(theme, event)
   }
 
   /** Arrow keys, Home and End in the theme list:  move focus (and the tab stop) between rows. */
@@ -352,61 +413,32 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
 
   /** Focus theme row `row`, and give it the tab stop. */
   private focusRow(row: HTMLButtonElement): void {
-    this.active.set(row.value)
+    this.tabStopTheme = row.value
     row.focus()
   }
 
   /**
-   * Follow the overlay:  `open` (a host state;  hides the palette's tooltip) from its `ui-open` / `ui-close`, and
-   * focus the chosen theme once it shows (`toggle`), its tab stop reset to it.
+   * Follow the overlay:  `isOpen` from its `ui-open` / `ui-close`, and focus the chosen theme once it shows
+   * (`toggle`), its tab stop reset to it.
    */
   private wireOverlay(popup: HTMLElement): void {
     popup.addEventListener("ui-open", (event) => {
-      if (!event.defaultPrevented) this.open.set(true)
+      if (!event.defaultPrevented) this.isOpen = true
     })
     popup.addEventListener("ui-close", (event) => {
-      if (!event.defaultPrevented) this.open.set(false)
+      if (!event.defaultPrevented) this.isOpen = false
     })
     popup.addEventListener("toggle", (event) => {
       if ((event as ToggleEvent).newState !== "open") return
-      this.active.set(undefined)
-      const row = this.rows().find((each) => each.value === untrack(this.chosen)) ?? this.rows()[0]
+      this.tabStopTheme = undefined
+      const row = this.rows().find((each) => each.value === untrack(() => this.chosenTheme)) ?? this.rows()[0]
       row?.focus()
     })
   }
-
-  /** Fire `ui-change` with the look now. */
-  private emitChange(originalEvent?: Event): void {
-    const look = ThemePreference.look
-    this.emit("ui-change", DocsThemesChanges.detailFor({ look, shown: ThemePreference.shownScheme(), originalEvent }))
-  }
-
-  /**
-   * Load the site data (a promise callback writes it), and follow `ThemePreference` while connected:  catch up
-   * on connect (another picker, or the OS, may have changed the look meanwhile), unsubscribe on disconnect.
-   */
-  private wire(): true {
-    SiteData.load().then(
-      (data) => this.data.set(data),
-      () => undefined // no data:  the menu stays unfiltered, titled from sheet names
-    )
-    createEffect(
-      () => this.isConnected.get(),
-      (isConnected) => {
-        if (!isConnected) return
-        this.follow(ThemePreference.look)
-        return ThemePreference.subscribe((look) => this.follow(look))
-      }
-    )
-    return true
-  }
-
-  /** Take `look`, and the OS's scheme now. */
-  private follow(look: DocsLook): void {
-    this.look.set(look)
-    this.os.set(ThemePreference.osScheme())
-  }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIDocsThemes extends E.AttributeValues<DocsThemesVocabulary> {}
 
 /**
  * What `chooseScheme()` does:

@@ -62,7 +62,7 @@ export const popupVocabulary = {
         "side when there's no room."
     },
     {
-      name: "on",
+      name: "open-on",
       kind: "enum",
       values: UIT.PopupTriggers,
       default: UIT.PopupTrigger.hover,

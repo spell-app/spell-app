@@ -13,22 +13,35 @@ import buttonCSS from "./ui-button.css?inline"
  ****************/
 export class UIButtons extends E.UIElement<typeof buttonsVocabulary> {
   @E.proto static vocabulary = buttonsVocabulary
-  @E.proto static styles = { button: buttonCSS }
+  @E.proto static styleSheets = { button: buttonCSS }
 
-  protected hostStates() {
-    const { attached, floated } = this.attrs
-    return {
-      fluid: this.attrs.fluid || !!this.attrs.width || attached === true || attached === "top" || attached === "bottom",
-      "left-floated": floated === "left",
-      "right-floated": floated === "right"
-    }
+  /** Full width:  `fluid`, a `width` (equal-width buttons), or attached as a whole row. */
+  @E.cssState("fluid")
+  get isFluid(): boolean {
+    const { attached } = this
+    return this.fluid || !!this.width || attached === true || attached === "top" || attached === "bottom"
+  }
+
+  /** `floated="left"`:  the host floats. */
+  @E.cssState("left-floated")
+  get floatsLeft(): boolean {
+    return this.floated === "left"
+  }
+
+  /** `floated="right"`:  the host floats. */
+  @E.cssState("right-floated")
+  get floatsRight(): boolean {
+    return this.floated === "right"
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} role={UIT.GROUP} part={this.part("group")}>
+      <div class={this.rootClasses} role={UIT.GROUP} part={this.partForName("group")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIButtons extends E.AttributeValues<typeof buttonsVocabulary> {}

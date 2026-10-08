@@ -13,7 +13,10 @@ import { contentVocabulary } from "./ui-content.vocabulary.en"
 export class UIContent extends PartElement<typeof contentVocabulary> {
   @E.proto static vocabulary = contentVocabulary
 
-  protected tabIndex(): number | undefined {
-    return this.attrs.scrolling ? 0 : undefined
+  protected get rootTabIndex(): number | undefined {
+    return this.scrolling ? 0 : undefined
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIContent extends E.AttributeValues<typeof contentVocabulary> {}

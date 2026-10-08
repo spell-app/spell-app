@@ -1,0 +1,496 @@
+import { createRoot, flush } from "solid-js"
+import { render, type JSX } from "@solidjs/web"
+import { describe, expect, it } from "vite-plus/test"
+
+import { E } from "$/ui/core"
+import { F } from "$/ui/forms"
+import type { UIElementClass, UIHost } from "$/ui/elements"
+import type { ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
+
+import { ElementFixture } from "$/ui/test/ElementFixture"
+
+/**
+ * The reactive members (`Reactive`):  `@state` and `@derived` on any class, then the controller side --
+ * vocabulary getters, `@controlled`, `@cssState`, `@onChange`, `attributes`, `$` -- on a stand-in element.
+ */
+
+/** A plain class with state and derived values;  counts its computes. */
+class Basket {
+  @E.state accessor items: readonly string[] = []
+  @E.state accessor discount = 0
+  @E.state({ equals: false }) accessor pokes = 0
+  @E.state static accessor openBaskets = 0
+
+  /** How many times `summary` computed. */
+  computes = 0
+
+  @E.derived
+  get summary(): string {
+    this.computes++
+    return `${this.items.length} items, ${this.discount}% off`
+  }
+
+  /** A `@derived` over a `@derived`. */
+  @E.derived
+  get shout(): string {
+    return this.summary.toUpperCase()
+  }
+
+  /** Every call of `onItemsChanged()`, with its cleanups. */
+  readonly calls: string[] = []
+
+  @E.onChange("items", "discount")
+  protected onItemsChanged(items: readonly string[], discount: number) {
+    this.calls.push(`${items.join("+")} @${discount}`)
+    return () => this.calls.push("cleanup")
+  }
+
+  /** A plain getter over two members:  its effect tracks both. */
+  get isBigOrder(): boolean {
+    return this.items.length * (100 - this.discount) >= 200
+  }
+
+  /** Every call of `onBigOrderChanged()`:  NOT idempotent (it counts). */
+  readonly bigOrders: boolean[] = []
+
+  @E.onChange("isBigOrder")
+  protected onBigOrderChanged(isBigOrder: boolean) {
+    this.bigOrders.push(isBigOrder)
+  }
+
+  /** The items minus `"bag"`, the same list while equal. */
+  @E.derived({ equals: E.isSameList })
+  get groceries(): readonly string[] {
+    return this.items.filter((item) => item !== "bag")
+  }
+
+  /** How many times `groceryCount` computed. */
+  groceryCounts = 0
+
+  /** A `@derived` over `groceries`. */
+  @E.derived
+  get groceryCount(): number {
+    this.groceryCounts++
+    return this.groceries.length
+  }
+}
+
+describe("Reactive:  @state", () => {
+  it("a read right after a write sees it, no flush", () => {
+    const basket = new Basket()
+    basket.items = ["apple"]
+    expect(basket.items).toEqual(["apple"])
+    basket.discount = 10
+    expect(basket.discount).toBe(10)
+  })
+
+  it("works on a static accessor (the class's record)", () => {
+    Basket.openBaskets += 1
+    expect(Basket.openBaskets).toBe(1)
+  })
+
+  it("a Solid computation follows it;  an equal write tells nobody, `equals: false` always does", () => {
+    const basket = new Basket()
+    const runs = { discount: 0, pokes: 0 }
+    const host = document.createElement("div")
+    const unmount = render(
+      () => (
+        <span>
+          {discount()}
+          {pokes()}
+        </span>
+      ),
+      host
+    )
+    expect(host.textContent).toBe("00")
+    basket.discount = 0
+    basket.pokes = 0
+    flush()
+    expect(runs).toEqual({ discount: 1, pokes: 2 })
+    basket.discount = 5
+    flush()
+    expect(host.textContent).toBe("50")
+    expect(runs).toEqual({ discount: 2, pokes: 2 })
+    unmount()
+
+    /** `discount`, counting the binding's runs. */
+    function discount() {
+      runs.discount++
+      return basket.discount
+    }
+
+    /** `pokes`, counting the binding's runs. */
+    function pokes() {
+      runs.pokes++
+      return basket.pokes
+    }
+  })
+})
+
+describe("Reactive:  writes in an owned scope", () => {
+  it("never throw:  the record is written at once, the notification a microtask later", async () => {
+    const basket = new Basket()
+    const host = document.createElement("div")
+    const unmount = render(() => <span>{basket.discount}</span>, host)
+    createRoot((dispose) => {
+      // a component body:  Solid 2 forbids a signal write here (`REACTIVE_WRITE_IN_OWNED_SCOPE`)
+      basket.discount = 7
+      expect(basket.discount).toBe(7)
+      dispose()
+    })
+    await Promise.resolve()
+    flush()
+    expect(host.textContent).toBe("7")
+    unmount()
+  })
+})
+
+describe("Reactive:  @derived", () => {
+  it("is fresh right after a write in a plain function", () => {
+    const basket = new Basket()
+    expect(basket.summary).toBe("0 items, 0% off")
+    basket.items = ["apple", "pear"]
+    expect(basket.summary).toBe("2 items, 0% off")
+    basket.discount = 20
+    expect(basket.shout).toBe("2 ITEMS, 20% OFF")
+  })
+
+  it("recomputes only when a dependency changed", () => {
+    const basket = new Basket()
+    void basket.summary
+    void basket.summary
+    expect(basket.computes).toBe(1)
+    basket.discount = 0
+    void basket.summary
+    expect(basket.computes).toBe(1)
+    basket.discount = 5
+    void basket.summary
+    void basket.shout
+    void basket.shout
+    expect(basket.computes).toBe(2)
+  })
+
+  it("JSX reading it re-renders on a change", () => {
+    const basket = new Basket()
+    const host = document.createElement("div")
+    const unmount = render(() => <p>{basket.shout}</p>, host)
+    expect(host.textContent).toBe("0 ITEMS, 0% OFF")
+    basket.items = ["fig"]
+    flush()
+    expect(host.textContent).toBe("1 ITEMS, 0% OFF")
+    basket.discount = 50
+    flush()
+    expect(host.textContent).toBe("1 ITEMS, 50% OFF")
+    unmount()
+  })
+})
+
+describe("Reactive:  @derived({ equals })", () => {
+  it("keeps the old value while equal:  same identity, and an outer @derived doesn't recompute", () => {
+    const basket = new Basket()
+    basket.items = ["apple"]
+    const first = basket.groceries
+    expect(basket.groceryCount).toBe(1)
+    basket.items = ["apple", "bag"]
+    expect(basket.groceries).toBe(first)
+    expect(basket.groceryCount).toBe(1)
+    expect(basket.groceryCounts).toBe(1)
+    basket.items = ["apple", "pear"]
+    expect(basket.groceries).toEqual(["apple", "pear"])
+    expect(basket.groceryCount).toBe(2)
+  })
+})
+
+describe("Reactive:  @onChange", () => {
+  it("calls the method with the members' values, now and on every change;  its return is the cleanup", () => {
+    const basket = new Basket()
+    const dispose = createRoot((dispose) => {
+      E.Reactive.startEffects(basket)
+      return dispose
+    })
+    flush()
+    expect(basket.calls).toEqual([" @0"])
+    basket.items = ["kiwi"]
+    flush()
+    expect(basket.calls).toEqual([" @0", "cleanup", "kiwi @0"])
+    dispose()
+    expect(basket.calls.at(-1)).toBe("cleanup")
+  })
+
+  it("over a getter, runs once per real change of its value, not on every change underneath", () => {
+    const basket = new Basket()
+    const dispose = createRoot((dispose) => {
+      E.Reactive.startEffects(basket)
+      return dispose
+    })
+    flush()
+    expect(basket.bigOrders).toEqual([false])
+    basket.items = ["a"]
+    flush()
+    basket.discount = 10
+    flush()
+    expect(basket.bigOrders).toEqual([false])
+    basket.items = ["a", "b", "c"]
+    flush()
+    expect(basket.bigOrders).toEqual([false, true])
+    basket.discount = 20
+    flush()
+    basket.items = ["a", "b", "c", "d"]
+    flush()
+    expect(basket.bigOrders).toEqual([false, true])
+    basket.discount = 90
+    flush()
+    expect(basket.bigOrders).toEqual([false, true, false])
+    dispose()
+  })
+
+  it("with several members, skips a re-run where none of their values changed", () => {
+    const basket = new Basket()
+    const dispose = createRoot((dispose) => {
+      E.Reactive.startEffects(basket)
+      return dispose
+    })
+    flush()
+    // both written, then back to the same values before the flush:  the effect re-runs, its values didn't change
+    const items = basket.items
+    basket.items = ["kiwi"]
+    basket.discount = 5
+    basket.items = items
+    basket.discount = 0
+    flush()
+    expect(basket.calls).toEqual([" @0"])
+    dispose()
+  })
+})
+
+////////////////
+// ## Controllers
+////////////////
+
+/** The stand-in element's vocabulary. */
+const VOCABULARY = {
+  tag: "x-reactive",
+  noun: "reactive",
+  attributes: [
+    { name: "label", kind: "string", description: "A label." },
+    { name: "open", kind: "boolean", description: "Open?" },
+    { name: "size", kind: "size", description: "Size." }
+  ],
+  events: [{ name: "ui-change", detail: "{ open: boolean }", description: "Open changed.", cancelable: true }],
+  slots: [],
+  parts: [{ name: "box", description: "The box." }],
+  states: [{ name: "open", description: "Open." }],
+  texts: []
+} as const satisfies ComponentVocabulary
+
+/** A controller on every decorator. */
+class ReactiveTest extends E.UIElement<typeof VOCABULARY> {
+  @E.cssState("open")
+  @E.controlled("open")
+  accessor isOpen = false
+
+  /** How many times `title` computed. */
+  computes = 0
+
+  @E.derived
+  get title(): string {
+    this.computes++
+    return `${this.label ?? "untitled"} (${this.size ?? "medium"})`
+  }
+
+  /** Host `aria-label`, raw. */
+  get ariaLabel(): string | null {
+    return this.attributes["aria-label"]
+  }
+
+  /** The `label` attribute's raw text, by its canonical name. */
+  get rawLabel(): string | null {
+    return this.attributes.label
+  }
+
+  /** `ping` events heard through `on()`. */
+  pings = 0
+
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+    super(...args)
+    this.on("ping", () => this.pings++)
+  }
+
+  /** `onOpenChanged()` calls. */
+  readonly opens: boolean[] = []
+
+  @E.onChange("isOpen")
+  protected onOpenChanged(isOpen: boolean) {
+    this.opens.push(isOpen)
+  }
+
+  /** A user toggle, through `requestChange()`. */
+  toggle(): boolean {
+    const next = !this.isOpen
+    return this.requestChange("isOpen", next, () => this.send("ui-change", { open: next }))
+  }
+
+  render(): JSX.Element {
+    return (
+      <div part={this.partForName("box")} aria-label={this.ariaLabel ?? undefined}>
+        {this.title}
+      </div>
+    )
+  }
+}
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+interface ReactiveTest extends E.AttributeValues<typeof VOCABULARY> {}
+Object.defineProperty(ReactiveTest.prototype, "vocabulary", { value: VOCABULARY })
+;(ReactiveTest as unknown as UIElementClass & typeof E.UIElement).define()
+
+/** The stand-in in Spanish:  `<x-reactivo etiqueta="..." abierto>`. */
+const SPANISH = { lang: "es", attributes: { label: "etiqueta", open: "abierto" } } as const satisfies Dictionary
+;(ReactiveTest as unknown as UIElementClass & typeof E.UIElement).define("x-reactivo", SPANISH)
+
+/** Render one stand-in element;  returns its host, controller and box. */
+async function reactive(html: string) {
+  const host = await ElementFixture.render<UIHost & Record<string, unknown>>(html)
+  const controller = host.controller as unknown as ReactiveTest
+  const box = () => host.shadowRoot!.querySelector<HTMLElement>("[part=box]")!
+  return { host, controller, box }
+}
+
+describe("Reactive:  controllers", () => {
+  it("vocabulary getters read the converted value fresh, right after a property write", async () => {
+    const { host, controller } = await reactive(`<x-reactive label="A" size="large"></x-reactive>`)
+    expect(controller.label).toBe("A")
+    host.label = "B"
+    expect(controller.label).toBe("B")
+    expect(controller.title).toBe("B (large)")
+  })
+
+  it("a @derived over vocabulary getters recomputes only on a change, and the view follows", async () => {
+    const { host, controller, box } = await reactive(`<x-reactive label="A"></x-reactive>`)
+    expect(box().textContent).toBe("A (medium)")
+    const before = controller.computes
+    void controller.title
+    expect(controller.computes).toBe(before)
+    host.setAttribute("size", "small")
+    expect(controller.title).toBe("A (small)")
+    await ElementFixture.tick()
+    expect(box().textContent).toBe("A (small)")
+  })
+
+  it("@controlled:  the host's property when set, else the starting value;  requestChange() writes the host", async () => {
+    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
+    expect(controller.isOpen).toBe(false)
+    expect(controller.toggle()).toBe(true)
+    expect(host.open).toBe(true)
+    expect(controller.isOpen).toBe(true)
+    expect(host.hasAttribute("open")).toBe(true)
+    host.addEventListener("ui-change", (event) => event.preventDefault(), { once: true })
+    expect(controller.toggle()).toBe(false)
+    expect(controller.isOpen).toBe(true)
+  })
+
+  it("requestChange():  a host re-setting the property during the event wins", async () => {
+    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
+    host.addEventListener("ui-change", () => (host.open = false), { once: true })
+    expect(controller.toggle()).toBe(false)
+    expect(controller.isOpen).toBe(false)
+  })
+
+  it("@cssState and @onChange follow the member", async () => {
+    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
+    expect(host.matches(":state(open)")).toBe(false)
+    host.open = true
+    await ElementFixture.tick()
+    expect(host.matches(":state(open)")).toBe(true)
+    expect(controller.opens).toEqual([false, true])
+  })
+
+  it("attributes:  raw strings, null when absent, tracked", async () => {
+    const { host, controller, box } = await reactive(`<x-reactive></x-reactive>`)
+    expect(controller.ariaLabel).toBeNull()
+    host.setAttribute("aria-label", "Name")
+    expect(controller.ariaLabel).toBe("Name")
+    await ElementFixture.tick()
+    await ElementFixture.tick()
+    expect(box().getAttribute("aria-label")).toBe("Name")
+  })
+
+  it("a vocabulary member's setter writes the host property:  it reflects, and the getter reads it back", async () => {
+    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
+    controller.label = "C"
+    expect(host.label).toBe("C")
+    expect(host.getAttribute("label")).toBe("C")
+    expect(controller.label).toBe("C")
+    controller.label = undefined
+    expect(host.hasAttribute("label")).toBe(false)
+  })
+
+  it("on a translated tag, the setter writes ITS property, and attributes take canonical names", async () => {
+    const { host, controller } = await reactive(`<x-reactivo etiqueta="A"></x-reactivo>`)
+    expect(controller.label).toBe("A")
+    expect(controller.rawLabel).toBe("A")
+    controller.label = "D"
+    expect(host.etiqueta).toBe("D")
+    expect(host.getAttribute("etiqueta")).toBe("D")
+    expect(host.hasAttribute("label")).toBe(false)
+    expect(controller.label).toBe("D")
+    expect(controller.rawLabel).toBe("D")
+  })
+
+  it("on():  hears the host until it's released, across a move", async () => {
+    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
+    host.dispatchEvent(new Event("ping"))
+    host.remove()
+    document.body.append(host)
+    host.dispatchEvent(new Event("ping"))
+    expect(controller.pings).toBe(2)
+    host.dispose()
+    host.dispatchEvent(new Event("ping"))
+    expect(controller.pings).toBe(2)
+  })
+
+  it("$:  an Accessor per member", async () => {
+    const { host, controller } = await reactive(`<x-reactive label="A"></x-reactive>`)
+    expect(controller.$.title()).toBe("A (medium)")
+    host.open = true
+    expect(controller.$.isOpen()).toBe(true)
+    expect(controller.$.title).toBe(controller.$.title)
+  })
+})
+
+describe("Reactive:  vocabulary getters vs base members", () => {
+  /** Every family's English vocabulary (components and docs elements). */
+  const vocabularies = Object.values(
+    import.meta.glob<Record<string, unknown>>(
+      ["/src/components/*/*.vocabulary.en.ts", "/src/docs-components/*/*.vocabulary.en.ts"],
+      { eager: true }
+    )
+  ).flatMap((module) =>
+    Object.values(module).filter(
+      (value): value is ComponentVocabulary =>
+        typeof value === "object" && value !== null && "tag" in value && "attributes" in value
+    )
+  )
+
+  it("no attribute is named like a member of UIElement or FormElement (the base would hide its getter)", async () => {
+    const { controller } = await reactive(`<x-reactive></x-reactive>`)
+    const standIn = new Set(["computes", "opens", "pings"])
+    const fields = Object.keys(controller).filter((key) => !standIn.has(key))
+    const taken = new Set([...fields, ...namesOf(E.UIElement.prototype), ...namesOf(F.FormElement.prototype)])
+    const clashes = vocabularies.flatMap(({ tag, attributes }) =>
+      attributes
+        .map(({ name }) => name.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()))
+        .filter((key) => taken.has(key))
+        .map((key) => `<${tag}> ${key}`)
+    )
+    expect(vocabularies.length).toBeGreaterThan(40)
+    expect(clashes).toEqual([])
+  })
+
+  /** Every member name on `prototype` and the prototypes above it, up to `Object`. */
+  function namesOf(prototype: object): string[] {
+    const names: string[] = []
+    for (let current = prototype; current !== Object.prototype; current = Object.getPrototypeOf(current))
+      names.push(...Object.getOwnPropertyNames(current))
+    return names
+  }
+})

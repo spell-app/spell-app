@@ -44,7 +44,7 @@ describe("PopupFallback", () => {
   it("never overwrites a title, and does nothing for a click popup", () => {
     const container = Fixture.render(
       `<div><button title="Mine">a</button><x-fb-popup content="Tip"></x-fb-popup>` +
-        `<button>b</button><x-fb-popup on="click" content="Menu"></x-fb-popup></div>`
+        `<button>b</button><x-fb-popup open-on="click" content="Menu"></x-fb-popup></div>`
     )
     const [first, second] = container.querySelectorAll("button")
     expect(first!.title).toBe("Mine")

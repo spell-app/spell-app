@@ -18,13 +18,10 @@ export type Vocabulary = typeof menuVocabulary
 
 /** What the menu reads from an item's controller (`UIItem`, not imported:  another family). */
 export type ItemController = {
-  /** the item's attributes the menu reads */
-  attrs: {
-    /** `item`, `header` or `divider`:  only `item`s join the roving set */
-    type?: string
-    /** what `ui-select` reports for the item (default its text) */
-    value?: string
-  }
+  /** `type` (its vocabulary getter):  `item`, `header` or `divider`;  only `item`s join the roving set */
+  readonly type?: string
+  /** `value` (its vocabulary getter):  what `ui-select` reports for the item (default its text) */
+  readonly value?: string
   /** the item's box that takes focus (its link or button), once rendered */
   focusTarget?: HTMLElement
 }

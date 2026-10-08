@@ -15,7 +15,7 @@
   <section>
     <h4>HTML content, on click</h4>
     <ui-button id="popup-types-plan">Choose a plan</ui-button>
-    <ui-popup for="popup-types-plan" on="click" position="bottom left" flowing header="Basic plan">
+    <ui-popup for="popup-types-plan" open-on="click" position="bottom left" flowing header="Basic plan">
       <p>Does not include upload or chat.</p>
       <ui-button size="small" primary>Choose</ui-button>
     </ui-popup>
@@ -24,7 +24,7 @@
   <section>
     <h4>Content parts</h4>
     <ui-button id="popup-types-parts">Parts</ui-button>
-    <ui-popup for="popup-types-parts" on="focus">
+    <ui-popup for="popup-types-parts" open-on="focus">
       <ui-header>Slotted header</ui-header>
       <ui-content>Slotted content, styled by the popup.</ui-content>
     </ui-popup>

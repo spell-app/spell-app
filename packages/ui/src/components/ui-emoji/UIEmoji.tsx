@@ -20,27 +20,29 @@ import emojiCSS from "./ui-emoji.css?inline"
  ****************/
 export class UIEmoji extends E.UIElement<typeof emojiVocabulary> {
   @E.proto static vocabulary = emojiVocabulary
-  @E.proto static styles = { emoji: emojiCSS }
-  @E.proto static Fallback = EmojiFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { emoji: emojiCSS }
+  @E.proto static elementSetup = { Fallback: EmojiFallback, delegatesFocus: false }
 
-  /** The glyph, `undefined` while loading or for an unknown name;  tracked. */
-  readonly emoji = new E.Cell(untrack(() => EmojiData.peek(this.attrs.name, EmojiData.setFor(this.host))))
+  /** The glyph, `undefined` while loading or for an unknown name. */
+  @E.state accessor emoji: string | undefined = untrack(() => EmojiData.peek(this.name, EmojiData.setFor(this.host)))
 
   /** Request counter, so a slower earlier load can't win. */
-  private request = 0
+  private latestRequest = 0
 
+  /**
+   * Loads the emoji again when connected (it may have moved under another root) and when any root's settings change.
+   * - An explicit effect, not `@E.onChange`:  it also follows a page-wide signal (`RootSettings.generation`).
+   */
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
-    // again when connected (it may have moved under another root) and when any root's settings change
     createEffect(
       () => ({
-        name: this.attrs.name,
-        connected: this.isConnected.get(),
-        generation: E.RootSettings.generation.get()
+        name: this.name,
+        connected: this.isConnected,
+        generation: E.RootSettings.generation
       }),
       ({ name, connected }) => {
-        if (connected || !this.request) void this.load(name)
+        if (connected || !this.latestRequest) void this.load(name)
       }
     )
   }
@@ -63,36 +65,50 @@ export class UIEmoji extends E.UIElement<typeof emojiVocabulary> {
     return EmojiData.preload(names)
   }
 
-  protected hostStates() {
-    return { disabled: this.attrs.disabled, loading: this.attrs.loading }
+  /**
+   * Looks disabled?  `:state(disabled)`.
+   * - A look only, NOT the base's `isDisabled`:  the host would swallow clicks meant for the `<button>` / `<a>` around
+   *   it.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return this.disabled
+  }
+
+  /** Busy?  `:state(loading)`. */
+  @E.cssState("loading")
+  get isLoading(): boolean {
+    return this.loading
   }
 
   render(): JSX.Element {
     return (
       <span
-        class={this.classes()}
-        part={this.part("emoji")}
-        role={this.isLabelled() ? UIT.IMG : undefined}
-        aria-label={this.isLabelled() ? this.attrs.label : undefined}
-        aria-hidden={this.attrs.label === "" ? UIT.TRUE : undefined}
+        class={this.rootClasses}
+        part={this.partForName("emoji")}
+        role={this.isLabelled ? UIT.IMG : undefined}
+        aria-label={this.isLabelled ? this.label : undefined}
+        aria-hidden={this.label === "" ? UIT.TRUE : undefined}
       >
-        {this.emoji.get()}
+        {this.emoji}
       </span>
     )
   }
 
-  /** Named by `label` (and there's a glyph to name)?  Tracked. */
-  private isLabelled(): boolean {
-    return !!this.attrs.label && !!this.emoji.get()
+  /** Named by `label` (and there's a glyph to name)? */
+  private get isLabelled(): boolean {
+    return !!this.label && !!this.emoji
   }
 
   /** Resolve `name` in the set this element sees;  writes only if it is still the latest request. */
   private async load(name: string | undefined) {
-    const request = ++this.request
+    const request = ++this.latestRequest
     const emoji = await EmojiData.get(name, EmojiData.setFor(this.host))
-    if (this.request === request && untrack(this.emoji.get) !== emoji) this.emoji.set(emoji)
+    if (this.latestRequest === request && untrack(() => this.emoji) !== emoji) this.emoji = emoji
   }
 }
+/** The vocabulary getters, typed. */
+export interface UIEmoji extends E.AttributeValues<typeof emojiVocabulary> {}
 
 /**
  * A start tag's `name="..."` attribute, any quoting:  `UIEmoji.preload()` reads the names a page uses from its markup.

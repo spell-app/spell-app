@@ -17,6 +17,8 @@ import type { E } from "$/ui/core"
  * - "Set" ~== the converted value isn't `undefined`:  a boolean (`open`, `active`) is always the host's (its
  *   default is the same `false` the internal value would be);  `el.value = undefined` hands a dropdown back to
  *   its `selected` items.
+ * - DEPRECATED (goes with `UIElement.controlled()`, until brand's controllers move to the decorators):  `@controlled("open") accessor isOpen` is the
+ *   same machinery on the record (`Reactive`).
  * - Made by `UIElement.controlled()`;  knows the host only by type, so it never loads `UIElement` / `UIHost`.
  ****************/
 export class Controlled<T> {

@@ -1,7 +1,7 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { HostAttribute, PartContext, proto, UIElement, UIT } from "$/ui/core"
+import { PartContext, proto, UIElement, UIT } from "$/ui/core"
 
 import { brandCheckVocabulary } from "./ui-brand-check.vocabulary.en"
 import { BrandChecklistFallback } from "./ui-brand-checklist.fallback"
@@ -48,9 +48,8 @@ import checkCSS from "./ui-brand-check.css?inline"
  ****************/
 export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   @proto static vocabulary = brandCheckVocabulary
-  @proto static styles = { brandCheck: checkCSS }
-  @proto static Host = BrandCheckHost
-  @proto static Fallback = BrandChecklistFallback
+  @proto static styleSheets = { brandCheck: checkCSS }
+  @proto static elementSetup = { Fallback: BrandChecklistFallback, Host: BrandCheckHost }
 
   ////////////////
   // ## State
@@ -60,7 +59,9 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   readonly selectedState = this.controlled("selected", false)
 
   /** Host `checked` attribute, the alias. */
-  readonly checkedAttribute = new HostAttribute({ host: this.host, name: CHECKED })
+  get checkedAttribute(): string | undefined {
+    return this.attributes[CHECKED] ?? undefined
+  }
 
   /** Owning checklist. */
   readonly context = new PartContext({ host: this.host, noun: CHECK_NOUN })
@@ -119,13 +120,13 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   ////////////////
 
   /** The state word, `checkable` and `serif`:  `check done checkable serif`. */
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     return [this.state(), this.isCheckable() ? CHECKABLE : "", this.font() === SERIF ? SERIF : ""]
       .filter(Boolean)
       .join(" ")
   }
 
-  protected hostStates() {
+  protected cssStates() {
     const state = this.state()
     return {
       done: state === DONE,
@@ -140,15 +141,15 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   ////////////////
 
   /** Adds the `checked` attribute alias:  setting or removing it later ticks or unticks. */
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     createEffect(
-      () => this.checkedAttribute.get(),
+      () => this.checkedAttribute,
       (checked) => {
         this.selectedState.set(checked !== undefined)
       },
       { defer: true }
     )
-    return super.mount()
+    return super.onMount()
   }
 
   render(): JSX.Element {
@@ -162,13 +163,13 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   /** A progress line:  the mark, the text and, done or active, what the mark means. */
   private renderLine(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("check")}>
+      <div class={this.rootClasses} part={this.partForName("check")}>
         {this.renderMarker()}
-        <span class="label" part={this.part("label")}>
+        <span class="label" part={this.partForName("label")}>
           <slot />
         </span>
         <Show when={this.state() !== PENDING}>
-          <span class={UIT.VISUALLY_HIDDEN}> {this.text(this.state() === DONE ? "done" : "active")}</span>
+          <span class={UIT.VISUALLY_HIDDEN}> {this.translationForKey(this.state() === DONE ? "done" : "active")}</span>
         </Show>
       </div>
     )
@@ -180,13 +181,13 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
       <button
         type="button"
         role={CHECKBOX}
-        class={this.classes()}
-        part={this.part("check")}
+        class={this.rootClasses}
+        part={this.partForName("check")}
         aria-checked={this.state() === DONE ? UIT.TRUE : UIT.FALSE}
         onClick={this.onToggle}
       >
         {this.renderMarker()}
-        <span class="label" part={this.part("label")}>
+        <span class="label" part={this.partForName("label")}>
           <slot />
         </span>
       </button>
@@ -196,7 +197,7 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   /** The round mark:  a check, shown once done (`ui-brand-check.css`). */
   private renderMarker(): JSX.Element {
     return (
-      <span class="marker" part={this.part("marker")} aria-hidden={UIT.TRUE}>
+      <span class="marker" part={this.partForName("marker")} aria-hidden={UIT.TRUE}>
         <svg viewBox={CHECK_VIEW_BOX}>
           <path d={CHECK_PATH} />
         </svg>
@@ -212,6 +213,6 @@ export class UIBrandCheck extends UIElement<BrandCheckVocabulary> {
   private readonly onToggle = (event: MouseEvent) => {
     const selected = !untrack(this.selectedState.get)
     const detail: BrandCheckChangeDetail = { selected, checked: selected, originalEvent: event }
-    this.selectedState.request(selected, () => this.emit("ui-change", detail))
+    this.selectedState.request(selected, () => this.send("ui-change", detail))
   }
 }

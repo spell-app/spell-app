@@ -1,4 +1,4 @@
-import { createEffect, createMemo, onCleanup, untrack, type Accessor } from "solid-js"
+import { onCleanup, untrack } from "solid-js"
 import { onConnect, onDisconnect, onFormAssociated } from "@spell-app/solid-element"
 
 import { E, UIT } from "$/ui/core"
@@ -23,11 +23,9 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
 
   readonly checkable = RADIO
 
-  /** `name`, as last written:  the prop signal lags a microtask behind a write. */
-  private groupName: string | undefined = untrack(() => this.attrs.name) ?? undefined
-
-  /** The group it's a member of right now;  `group` publishes it (a microtask late). */
-  private joined: RadioGroup | undefined = this.findGroup()
+  ////////////////
+  // ## The group
+  ////////////////
 
   /**
    * The group it's in, if named and connected;  tracked.
@@ -35,107 +33,112 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
    * - Then written ONLY by `joinGroup()`, together with the membership, so readers never see one without the other.
    * - `ownedWrite`:  `joinGroup()` runs from the fork's hooks, possibly inside a Solid render.
    */
-  readonly group = new E.Cell<RadioGroup | undefined>(this.joined, { ownedWrite: true })
-
-  /** Group-wide validation:  a choice required by any member. */
-  override readonly validation: Accessor<E.ValidationResult> = createMemo(
-    () => {
-      const group = this.group.get()
-      const required = group ? group.isRequired() : this.attrs.required
-      const chosen = group ? group.selected()?.chosenValue() : this.isSelected() ? this.chosenValue() : undefined
-      return F.FormElement.validator.validate(chosen ?? "", required ? [UIT.REQUIRED_RULE] : [], {
-        label: this.validationLabel()
-      })
-    },
-    { lazy: true }
-  )
+  @E.state({ ownedWrite: true }) accessor group: RadioGroup | undefined = this.findGroup()
 
   constructor(...args: ConstructorParameters<typeof CheckControl>) {
     super(...args)
-    this.joined?.join(this)
+    untrack(() => this.group)?.join(this)
     const join = () => this.joinGroup()
     onConnect(join)
     onDisconnect(join)
     onFormAssociated(join)
-    this.host.addPropertyChangedCallback((key: string, value: unknown) => {
-      if (key !== NAME) return
-      this.groupName = (value as string | null | undefined) ?? undefined
-      this.joinGroup()
+    // `name` reads fresh here:  the host's record has the new value before its callbacks run
+    this.host.addPropertyChangedCallback((key: string) => {
+      if (key === NAME) this.joinGroup()
     })
     // disposal (`host.dispose()`):  out of the group, without publishing into a dying root
-    onCleanup(() => this.joined?.leave(this))
-  }
-
-  /** Makes its group required?  Tracked. */
-  isRequired(): boolean {
-    return this.attrs.required
-  }
-
-  protected inputType(): typeof RADIO {
-    return RADIO
-  }
-
-  protected classValue(name: E.AttributeName<typeof radioVocabulary>): unknown {
-    if (name === "type") return this.attrs.type ?? RADIO
-    return super.classValue(name)
-  }
-
-  protected tabIndex(): number {
-    const group = this.group.get()
-    return !group || group.tabbable() === this ? 0 : -1
-  }
-
-  protected validationLabel(): string | undefined {
-    return this.attrs.name ?? super.validationLabel()
+    onCleanup(() => untrack(() => this.group)?.leave(this))
   }
 
   /**
    * Join the group its name, connection and form owner call for now (leaving the old one), and publish it.
    * - Called where those change:  construction, connect / disconnect, form association, a `name` write.  NEVER
    *   from an effect on a memo of them (see `RadioGroup`).
-   * - Reads the platform synchronously (`isConnected`, `internals.form`):  signals would be a microtask late.
+   * - Reads the platform synchronously (`isConnected`, `internals.form`), and its own members untracked:  it may run
+   *   inside someone else's Solid computation.
    */
   private joinGroup() {
     const next = this.findGroup()
-    if (next === this.joined) return
-    this.joined?.leave(this)
+    const current = untrack(() => this.group)
+    if (next === current) return
+    current?.leave(this)
     next?.join(this)
-    this.joined = next
-    this.group.set(next)
+    this.group = next
   }
 
   /** The group its name, connection and form owner call for now. */
   private findGroup(): RadioGroup | undefined {
-    const { host, groupName } = this
+    const { host } = this
+    const groupName = untrack(() => this.name)
     if (!groupName || !host.isConnected) return undefined
     return RadioGroup.of(host.internals.form ?? host.getRootNode(), groupName)
   }
 
-  /** Adds unchoosing the others when this one is chosen. */
-  mount() {
-    createEffect(
-      () => (this.isSelected() ? this.group.get() : undefined),
-      (group) => {
-        for (const other of group?.others(this) ?? []) if (untrack(() => other.isSelected())) other.setSelected(false)
-      }
-    )
-    return super.mount()
+  /** This one was chosen:  unchoose the others in its group (no events, as natively). */
+  @E.onChange("isSelected", "group")
+  protected onGroupChoiceChanged(isSelected: boolean, group: RadioGroup | undefined) {
+    if (!isSelected || !group) return
+    for (const other of group.others(this)) if (untrack(() => other.isSelected)) other.isSelected = false
   }
 
   /** Arrow keys move the choice through the group, focus following. */
-  protected keyDown(event: KeyboardEvent) {
+  protected onKeyDown(event: KeyboardEvent) {
     const delta = NEXT.has(event.key) ? 1 : PREVIOUS.has(event.key) ? -1 : 0
-    const group = untrack(() => this.group.get())
+    const group = untrack(() => this.group)
     if (!delta || !group) return
     event.preventDefault()
     // `readonly` never changes the choice, from either end of the move
-    if (untrack(() => this.common.readonly)) return
+    if (untrack(() => this.readonly)) return
     const target = group.step(this, delta) as UIRadio | undefined
-    if (!target || untrack(() => target.common.readonly)) return
+    if (!target || untrack(() => target.readonly)) return
     target.focus()
     target.choose(true, event)
   }
+
+  /** The group's tab stop is tabbable, the others aren't;  alone, it is. */
+  protected get inputTabIndex(): number {
+    const group = this.group
+    return !group || group.tabStop === this ? 0 : -1
+  }
+
+  ////////////////
+  // ## Validity
+  ////////////////
+
+  /**
+   * Group-wide validation:  a choice required by any member.
+   * - `@derived`:  runs the validator over the group, and every member's effects read it.
+   */
+  @E.derived
+  override get validation(): E.ValidationResult {
+    const group = this.group
+    const required = group ? group.isRequired : this.required
+    const chosen = group ? group.selectedMember?.chosenValue : this.isSelected ? this.chosenValue : undefined
+    return F.FormElement.validator.validate(chosen ?? "", required ? [UIT.REQUIRED_RULE] : [], {
+      label: this.validationLabel
+    })
+  }
+
+  protected get validationLabel(): string | undefined {
+    return this.name ?? super.validationLabel
+  }
+
+  ////////////////
+  // ## Element hooks
+  ////////////////
+
+  protected get inputType(): typeof RADIO {
+    return RADIO
+  }
+
+  protected classValue(name: E.AttributeName<typeof radioVocabulary>): unknown {
+    if (name === "type") return this.type ?? RADIO
+    return super.classValue(name)
+  }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIRadio extends E.AttributeValues<typeof radioVocabulary> {}
 
 /** The `name` prop's key, as the fork's change callback reports it. */
 const NAME: E.AttributeName<typeof radioVocabulary> = "name"

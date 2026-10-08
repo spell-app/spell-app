@@ -31,7 +31,7 @@ export class DocsNavHost extends E.UIHost {
 
   /** The starred tags, A-Z;  `[]` before the controller exists. */
   get favorites(): string[] {
-    return this.nav?.favoriteTags() ?? []
+    return this.nav?.favoriteTags ?? []
   }
 
   /** Resolves once the component list has loaded and rendered -- also on a load error:  then it shows the error. */

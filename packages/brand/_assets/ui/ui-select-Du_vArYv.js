@@ -1,0 +1,1 @@
+import{t as e}from"./ui-select-Cs4FOfuj.js";export{e as UISelect};

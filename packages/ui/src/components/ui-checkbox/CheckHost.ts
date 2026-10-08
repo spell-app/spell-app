@@ -26,14 +26,14 @@ export class CheckHost extends F.FormHost {
     return (this.controller as { checkable?: Checkable } | undefined)?.checkable ?? CHECKBOX
   }
 
-  /** Submitted while chosen:  `value`, else its class's `onValue`;  none before its controller exists. */
+  /** Submitted while chosen:  `value`, else its class's `defaultChosenValue`;  none before its controller exists. */
   get chosenValue(): string | undefined {
-    return (this.controller as CheckValues | undefined)?.chosenValue()
+    return (this.controller as CheckValues | undefined)?.chosenValue
   }
 
-  /** Submitted while unchosen:  `off-value`, else its class's `offValue`;  none ~== nothing. */
+  /** Submitted while unchosen:  `off-value`, else its class's `defaultUnchosenValue`;  none ~== nothing. */
   get unchosenValue(): string | undefined {
-    return (this.controller as CheckValues | undefined)?.unchosenValue()
+    return (this.controller as CheckValues | undefined)?.unchosenValue
   }
 }
 

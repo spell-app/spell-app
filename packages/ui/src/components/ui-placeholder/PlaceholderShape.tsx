@@ -13,20 +13,19 @@ import placeholderCSS from "./ui-placeholder.css?inline"
  * - No text, no focus:  the placeholder host is `aria-hidden`, and the shapes are its drawing.
  ****************/
 export abstract class PlaceholderShape<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends E.UIElement<V> {
-  @E.proto static styles = { placeholder: placeholderCSS }
-  @E.proto static Fallback = PlaceholderFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { placeholder: placeholderCSS }
+  @E.proto static elementSetup = { Fallback: PlaceholderFallback, delegatesFocus: false }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part(this.vocabulary.noun as E.PartName<V>)}>
-        {this.holdsShapes() ? <slot /> : undefined}
+      <div class={this.rootClasses} part={this.partForName(this.vocabulary.noun as E.PartName<V>)}>
+        {this.canHoldShapes ? <slot /> : undefined}
       </div>
     )
   }
 
-  /** Does the shape hold other shapes (a `<slot>`)?  Default yes. */
-  protected holdsShapes(): boolean {
+  /** Can the shape hold other shapes (a `<slot>`)?  Default yes. */
+  protected get canHoldShapes(): boolean {
     return true
   }
 }

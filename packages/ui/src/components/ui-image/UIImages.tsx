@@ -14,15 +14,17 @@ import imageCSS from "./ui-image.css?inline"
  ****************/
 export class UIImages extends E.UIElement<typeof imagesVocabulary> {
   @E.proto static vocabulary = imagesVocabulary
-  @E.proto static styles = { image: imageCSS }
-  @E.proto static Fallback = ImageFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { image: imageCSS }
+  @E.proto static elementSetup = { Fallback: ImageFallback, delegatesFocus: false }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("group")}>
+      <div class={this.rootClasses} part={this.partForName("group")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIImages extends E.AttributeValues<typeof imagesVocabulary> {}

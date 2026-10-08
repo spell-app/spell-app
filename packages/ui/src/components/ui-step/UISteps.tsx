@@ -16,36 +16,51 @@ import stepCSS from "./ui-step.css?inline"
  *   `stacked` below 768px of it unless `unstackable` -- or of the screen, with `stack-with="page"` (a private class
  *   after the noun).
  * - Numbering (`ordered`) is a CSS counter reset here and incremented by each step, across the shadow boundaries.
+ * - Host states:  `steps` always;  `block` while the root is block-level (`fluid`, or `circular` and not
+ *   `vertical`), `circular` while circular.  Why `block`:  the host is a size container (its own formatting
+ *   context), so a block-level root's outer margin sits on the HOST to collapse with the content above, as class
+ *   grammar's does;  an inline-flex root's never collapses, so it stays on the root (`ui-step.css`).
  ****************/
 export class UISteps extends E.UIElement<typeof stepsVocabulary> {
   @E.proto static vocabulary = stepsVocabulary
-  @E.proto static styles = { step: stepCSS }
-  @E.proto static Fallback = StepFallback
-  // the steps are the focus targets, each its own host
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { step: stepCSS }
+  @E.proto static elementSetup = {
+    Fallback: StepFallback,
+    // the steps are the focus targets, each its own host
+    delegatesFocus: false
+  }
 
-  /**
-   * `steps` always;  `block` while the root is block-level (`fluid`, or `circular` and not `vertical`), `circular`
-   * while circular.
-   * - Why:  the host is a size container (its own formatting context), so a block-level root's outer margin sits on
-   *   the HOST to collapse with the content above, as class grammar's does;  an inline-flex root's never collapses,
-   *   so it stays on the root (`ui-step.css`).
-   */
-  protected hostStates() {
-    const circular = !!this.attrs.circular
-    return { steps: true, block: !!this.attrs.fluid || (circular && !this.attrs.vertical), circular }
+  /** Always:  the size container `ui-steps` (`:state(steps)`). */
+  @E.cssState("steps")
+  get isStepGroup(): boolean {
+    return true
+  }
+
+  /** The root is block-level:  `fluid`, or `circular` and not `vertical` (`:state(block)`). */
+  @E.cssState("block")
+  get isBlockLevel(): boolean {
+    return !!this.fluid || (this.isCircular && !this.vertical)
+  }
+
+  /** `circular`:  `:state(circular)`. */
+  @E.cssState("circular")
+  get isCircular(): boolean {
+    return !!this.circular
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected extraClasses(): string | undefined {
-    return UIT.StackClasses.classFor(this.attrs.stackWith)
+  protected get extraClasses(): string | undefined {
+    return UIT.StackClasses.classFor(this.stackWith)
   }
 
   render(): JSX.Element {
     return (
-      <ol class={this.classes()} part={this.part("steps")} role={UIT.LIST}>
+      <ol class={this.rootClasses} part={this.partForName("steps")} role={UIT.LIST}>
         <slot />
       </ol>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UISteps extends E.AttributeValues<typeof stepsVocabulary> {}

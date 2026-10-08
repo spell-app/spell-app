@@ -1,4 +1,4 @@
-import { Show, createMemo } from "solid-js"
+import { Show } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -18,7 +18,7 @@ import stepCSS from "./ui-step.css?inline"
  *   `aria-current="step"` on the root.  A disabled step is `aria-disabled` (a link keeps its `<a>` without `href`),
  *   a disabled `<button>` is `disabled`:  its dimmed text is an INACTIVE component's (WCAG 1.4.3's exemption),
  *   and assistive tech says so.
- * - `selected` is canonical;  an `active` attribute is Fomantic's word for it, read through `HostAttribute`.
+ * - `selected` is canonical;  an `active` attribute is Fomantic's word for it, read raw (`attributes`).
  * - Completed:  a check replaces the icon (the `icon` glyph or the slotted `slot=icon`, which stays in the DOM,
  *   hidden);  an ordered step's number turns into a check in CSS.
  * - OWNER of the `content`, `title` and `description` parts (`ownsParts`):  slotted parts style themselves from
@@ -29,41 +29,8 @@ import stepCSS from "./ui-step.css?inline"
  ****************/
 export class UIStep extends E.UIElement<typeof stepVocabulary> {
   @E.proto static vocabulary = stepVocabulary
-  @E.proto static styles = { step: stepCSS, parts: partsCSS }
-  @E.proto static Fallback = StepFallback
-
-  /** Light-DOM slot occupancy. */
-  readonly slots = new E.SlotContent(this.host)
-
-  /** Fomantic's `active` attribute, an alias of `selected`. */
-  readonly activeAttribute = new E.HostAttribute({ host: this.host, name: UIT.ACTIVE })
-
-  /** Glyph of the `icon` shorthand. */
-  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
-
-  ////////////////
-  // ## Derived state
-  ////////////////
-
-  /** The current step:  `selected`, or the `active` alias. */
-  readonly isSelected = createMemo(
-    () => this.attrs.selected || E.Converters.boolean(this.activeAttribute.get(), UIT.ACTIVE)
-  )
-
-  /** Has an icon (shorthand or `icon` slot)? */
-  readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))
-
-  /** Has shorthand content? */
-  readonly hasShorthand = createMemo(() => !!this.attrs.header || !!this.attrs.description)
-
-  /** The check a completed step shows in place of its icon;  after `hasIcon`, which it reads at once. */
-  readonly checkGlyph = new E.IconGlyph({
-    owner: this,
-    name: () => (this.attrs.completed && this.hasIcon() ? CHECK : undefined)
-  })
-
-  /** Root element:  a link, a button (`link`), or a box. */
-  readonly tag = createMemo(() => (this.attrs.href ? UIT.ANCHOR_TAG : this.attrs.link ? UIT.BUTTON : BOX))
+  @E.proto static styleSheets = { step: stepCSS, parts: partsCSS }
+  @E.proto static elementSetup = { Fallback: StepFallback }
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
@@ -71,9 +38,67 @@ export class UIStep extends E.UIElement<typeof stepVocabulary> {
     this.host.internals.role = UIT.LISTITEM
   }
 
-  isDisabled(): boolean {
-    return this.attrs.disabled
+  ////////////////
+  // ## State
+  ////////////////
+
+  /** The current step:  `selected`, or the `active` alias;  `:state(selected)`. */
+  @E.cssState("selected")
+  get isSelected(): boolean {
+    return this.selected || E.Converters.boolean(this.attributes[UIT.ACTIVE], UIT.ACTIVE)
   }
+
+  /** `completed`:  `:state(completed)`. */
+  @E.cssState("completed")
+  get isCompleted(): boolean {
+    return !!this.completed
+  }
+
+  /** Disabled by its attribute;  `:state(disabled)`. */
+  @E.cssState("disabled")
+  get isDisabled(): boolean {
+    return !!this.disabled
+  }
+
+  ////////////////
+  // ## Content
+  ////////////////
+
+  /** Light-DOM slot occupancy. */
+  readonly slots = new E.SlotContent(this.host)
+
+  /** Has shorthand content? */
+  get hasShorthand(): boolean {
+    return !!this.header || !!this.description
+  }
+
+  /** Has content (shorthand or slotted):  `:state(content)`. */
+  @E.cssState("content")
+  get hasContent(): boolean {
+    return this.hasShorthand || this.slots.hasContent("")
+  }
+
+  ////////////////
+  // ## The icon
+  ////////////////
+
+  /** Glyph of the `icon` shorthand. */
+  readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
+
+  /** Has an icon (shorthand or `icon` slot)? */
+  get hasIcon(): boolean {
+    return !!this.icon || this.slots.hasContent(this.slotForName("icon"))
+  }
+
+  /** The check a completed step shows in place of its icon. */
+  readonly checkGlyph = new E.IconGlyph({
+    owner: this,
+    name: () => (this.completed && this.hasIcon ? CHECK : undefined)
+  })
+
+  ////////////////
+  // ## Classes
+  ////////////////
 
   /**
    * Extra class words:
@@ -81,70 +106,65 @@ export class UIStep extends E.UIElement<typeof stepVocabulary> {
    * - `ui-<color>` for a coloured step:  the generic colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`, and a
    *   step has no `ui`
    */
-  protected extraClasses(): string | undefined {
-    const color = this.attrs.color
+  protected get extraClasses(): string | undefined {
+    const color = this.color
     const extra = [
-      this.isSelected() && !this.attrs.selected ? UIT.ACTIVE : "",
+      this.isSelected && !this.selected ? UIT.ACTIVE : "",
       color ? `${UIT.COLOR_CLASS_PREFIX}${color}` : ""
     ]
     return extra.filter(Boolean).join(" ") || undefined
-  }
-
-  protected hostStates() {
-    return {
-      selected: this.isSelected(),
-      completed: this.attrs.completed,
-      disabled: this.attrs.disabled,
-      content: this.hasShorthand() || this.slots.has("")
-    }
   }
 
   ////////////////
   // ## Rendering
   ////////////////
 
+  /** Root element:  a link, a button (`link`), or a box. */
+  get rootTag(): string {
+    return this.href ? UIT.ANCHOR_TAG : this.link ? UIT.BUTTON : BOX
+  }
+
   render(): JSX.Element {
-    const { attrs } = this
     return (
       <Dynamic
-        component={this.tag()}
-        class={this.classes()}
-        part={this.part("step")}
-        href={this.tag() === UIT.ANCHOR_TAG && !attrs.disabled ? attrs.href : undefined}
-        target={this.tag() === UIT.ANCHOR_TAG ? attrs.target : undefined}
-        type={this.tag() === UIT.BUTTON ? UIT.BUTTON : undefined}
-        disabled={this.tag() === UIT.BUTTON && attrs.disabled ? true : undefined}
-        aria-disabled={this.tag() !== UIT.BUTTON && attrs.disabled ? UIT.TRUE : undefined}
-        aria-current={this.isSelected() ? CURRENT_STEP : undefined}
+        component={this.rootTag}
+        class={this.rootClasses}
+        part={this.partForName("step")}
+        href={this.rootTag === UIT.ANCHOR_TAG && !this.disabled ? this.href : undefined}
+        target={this.rootTag === UIT.ANCHOR_TAG ? this.target : undefined}
+        type={this.rootTag === UIT.BUTTON ? UIT.BUTTON : undefined}
+        disabled={this.rootTag === UIT.BUTTON && this.disabled ? true : undefined}
+        aria-disabled={this.rootTag !== UIT.BUTTON && this.disabled ? UIT.TRUE : undefined}
+        aria-current={this.isSelected ? CURRENT_STEP : undefined}
       >
-        <Show when={this.hasIcon()}>
-          <span class={UIT.ICON} part={this.part("icon")}>
+        <Show when={this.hasIcon}>
+          <span class={UIT.ICON} part={this.partForName("icon")}>
             {/* a server render (`$/ui/static`) swaps the slot for its content, `hidden` and all:  leave it out */}
-            <Show when={!(isServer && attrs.completed)}>
-              <slot name={this.slot("icon")} hidden={attrs.completed || undefined}>
-                {this.glyph.svg()}
+            <Show when={!(isServer && this.completed)}>
+              <slot name={this.slotForName("icon")} hidden={this.completed || undefined}>
+                {this.iconGlyph.svg}
               </slot>
             </Show>
-            {this.checkGlyph.svg()}
+            {this.checkGlyph.svg}
           </span>
         </Show>
-        <Show when={this.hasShorthand()}>
-          <div class={this.staticPart(UIT.CONTENT)} part={this.part("content")}>
-            <Show when={attrs.header}>
-              <div class={this.staticPart(TITLE_PART)} part={this.part("title")}>
-                {attrs.header}
+        <Show when={this.hasShorthand}>
+          <div class={this.staticPart(UIT.CONTENT)} part={this.partForName("content")}>
+            <Show when={this.header}>
+              <div class={this.staticPart(TITLE_PART)} part={this.partForName("title")}>
+                {this.header}
               </div>
             </Show>
-            <Show when={attrs.description}>
-              <div class={this.staticPart(UIT.DESCRIPTION)} part={this.part("description")}>
-                {attrs.description}
+            <Show when={this.description}>
+              <div class={this.staticPart(UIT.DESCRIPTION)} part={this.partForName("description")}>
+                {this.description}
               </div>
             </Show>
           </div>
         </Show>
         <slot />
-        <Show when={attrs.completed}>
-          <span class={UIT.VISUALLY_HIDDEN}>{this.text("stepCompleted")}</span>
+        <Show when={this.completed}>
+          <span class={UIT.VISUALLY_HIDDEN}>{this.translationForKey("stepCompleted")}</span>
         </Show>
       </Dynamic>
     )
@@ -155,6 +175,9 @@ export class UIStep extends E.UIElement<typeof stepVocabulary> {
     return `${noun} ${UIT.PART_STATIC_CLASS_PREFIX}${this.vocabulary.noun}`
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIStep extends E.AttributeValues<typeof stepVocabulary> {}
 
 /** Glyph of a completed step's icon. */
 const CHECK = "check"

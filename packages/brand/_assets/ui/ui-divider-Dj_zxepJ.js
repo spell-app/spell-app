@@ -1,0 +1,1 @@
+import{t as e}from"./ui-divider-Bh-GwnlS.js";export{e as UIDivider};

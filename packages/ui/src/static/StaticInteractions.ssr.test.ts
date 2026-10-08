@@ -22,7 +22,7 @@ describe("StaticInteractions.wire() with JavaScript off", { timeout: 30_000 }, (
         <ui-content>Body</ui-content>
         <ui-actions><ui-button id="ok" approve>OK</ui-button></ui-actions>
       </ui-modal>
-      <p><ui-button id="target">More</ui-button><ui-popup on="click" content="Popup text"></ui-popup></p>
+      <p><ui-button id="target">More</ui-button><ui-popup open-on="click" content="Popup text"></ui-popup></p>
       <p><ui-button id="hovered">Hover me</ui-button><ui-popup content="Tooltip text"></ui-popup></p>
       <ui-accordion>
         <ui-title id="q1">First</ui-title><ui-content>One</ui-content>

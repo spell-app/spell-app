@@ -1,4 +1,4 @@
-import { Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
+import { Show, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
@@ -26,115 +26,70 @@ import codeCSS from "./ui-code.css?inline"
  ****************/
 export class UICode extends E.SourceElement<typeof codeVocabulary> {
   @E.proto static vocabulary = codeVocabulary
-  @E.proto static styles = { code: codeCSS }
-  @E.proto static Fallback = CodeFallback
-  @E.proto static Host = UICodeHost
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { code: codeCSS }
+  @E.proto static elementSetup = { Fallback: CodeFallback, Host: UICodeHost, delegatesFocus: false }
 
   ////////////////
-  // ## State
+  // ## Colouring
   ////////////////
 
   /** The latest colouring, and the code it's for. */
-  readonly highlighted = new E.Cell<(Highlighted & { code: string }) | undefined>(undefined)
-
-  /** The copy button just copied. */
-  readonly isCopied = new E.Cell(false)
+  @E.state accessor highlighted: (Highlighted & { code: string }) | undefined = undefined
 
   /** Bumped when `UI.code` gets a language:  highlight again. */
-  readonly languages = new E.Cell(0)
-
-  /** The lines as HTML:  coloured once the colours for THIS text arrive, escaped plain text until then. */
-  readonly lines = createMemo(() => {
-    const text = this.contentText()
-    const highlighted = this.highlighted.get()
-    return CodeLines.split(highlighted?.code === text ? highlighted.html : CodeLines.escape(text))
-  })
-
-  /** `<code>`'s HTML:  a `.line` span per line. */
-  readonly markup = createMemo(() =>
-    this.lines()
-      .map((line) => `<span class="${LINE_CLASS}">${line}</span>`)
-      .join("")
-  )
-
-  /** The language shown, as asked for or guessed. */
-  readonly language = createMemo(() => this.highlighted.get()?.language ?? (this.attrs.language || undefined))
+  @E.state accessor languageCount = 0
 
   /** Highlights started;  only the latest one's result is shown. */
   private ticket = 0
 
-  /** Clears `isCopied`. */
-  private copiedTimer?: ReturnType<typeof setTimeout>
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  /** Highlight whenever the text, `language` or `UI.code`'s languages change. */
-  mount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() => {
-        const bump = () => this.languages.set(untrack(this.languages.get) + 1)
-        document.addEventListener(E.CODE_LANGUAGES_EVENT, bump)
-        return () => document.removeEventListener(E.CODE_LANGUAGES_EVENT, bump)
-      })
-      createEffect(
-        () => ({
-          code: this.contentText(),
-          language: this.attrs.language || undefined,
-          isLoaded: this.status.get() === "loaded",
-          languages: this.languages.get()
-        }),
-        ({ code, language, isLoaded }) => {
-          if (isLoaded) void this.highlight(code, language)
-        }
-      )
-    }
-    return super.mount()
+  /** The lines as HTML:  coloured once the colours for THIS text arrive, escaped plain text until then. */
+  @E.derived
+  get lines(): string[] {
+    const text = this.textToShow
+    const highlighted = this.highlighted
+    return CodeLines.split(highlighted?.code === text ? highlighted.html : CodeLines.escape(text))
   }
 
-  protected renderContent(): JSX.Element {
-    return (
-      <div class={this.classes()} part={this.part("box")}>
-        <Show when={this.attrs.copy}>
-          <button type="button" class={COPY_CLASS} part={this.part("copy")} onClick={this.onCopy}>
-            {this.isCopied.get() ? this.text("codeCopied") : this.text("codeCopy")}
-          </button>
-        </Show>
-        <pre
-          part={this.part("pre")}
-          tabindex="0"
-          aria-label={
-            this.language() ? this.text("codeLabel", { language: this.language()! }) : this.text("codeLabelPlain")
-          }
-          style={{ "counter-reset": `${LINE_COUNTER} ${(this.attrs.start ?? 1) - 1}` }}
-        >
-          <code part={this.part("code")} class={this.codeClass()} innerHTML={this.markup()} />
-        </pre>
-      </div>
-    )
+  /** `<code>`'s HTML:  a `.line` span per line. */
+  @E.derived
+  get markup(): string {
+    return this.lines.map((line) => `<span class="${LINE_CLASS}">${line}</span>`).join("")
+  }
+
+  /** The language shown:  as asked for (`language`), or guessed. */
+  get shownLanguage(): string | undefined {
+    return this.highlighted?.language ?? (this.language || undefined)
   }
 
   /** `hljs language-<name>`, or `hljs` for plain text. */
-  private codeClass(): string {
-    const language = this.language()
+  private get codeClass(): string {
+    const language = this.shownLanguage
     return language ? `${HLJS_CLASS} language-${language.replace("/", "-")}` : HLJS_CLASS
   }
 
-  protected hostStates() {
-    return { ...super.hostStates(), copied: this.isCopied.get() }
-  }
-
   /** What auto-detection picked, when it ran (`UICodeHost.detectedLanguage`). */
-  detectedLanguage(): string | undefined {
-    const highlighted = untrack(this.highlighted.get)
+  get detectedLanguage(): string | undefined {
+    const highlighted = this.highlighted
     return highlighted?.detected ? highlighted.language : undefined
   }
 
-  ////////////////
-  // ## Highlighting
-  ////////////////
+  /** Counts `UI.code`'s new languages (`languageCount`), then renders. */
+  onMount(): JSX.Element {
+    if (!isServer) {
+      onSettled(() => {
+        const bump = () => (this.languageCount += 1)
+        document.addEventListener(E.CODE_LANGUAGES_EVENT, bump)
+        return () => document.removeEventListener(E.CODE_LANGUAGES_EVENT, bump)
+      })
+    }
+    return super.onMount()
+  }
+
+  /** Highlight whenever the text, `language` or `UI.code`'s languages change, once the text has loaded. */
+  @E.onChange("textToShow", "language", "loadStatus", "languageCount")
+  protected onCodeChanged(code: string, language: string | undefined, loadStatus: E.SourceStatus) {
+    if (loadStatus === "loaded") void this.highlight(code, language || undefined)
+  }
 
   /** Colour `code` as `language`;  `ui-highlight` when done, a `render` `ui-error` (code left plain) when not. */
   private async highlight(code: string, language: string | undefined) {
@@ -143,30 +98,69 @@ export class UICode extends E.SourceElement<typeof codeVocabulary> {
       await UI.load()
       const result = await CodeHighlighter.highlight(code, language)
       if (ticket !== this.ticket) return
-      this.highlighted.set({ ...result, code })
-      this.emitSource("ui-highlight", { language: result.language, detected: result.detected })
+      this.highlighted = { ...result, code }
+      this.send("ui-highlight", { language: result.language, detected: result.detected })
     } catch (error) {
       if (ticket !== this.ticket) return
-      this.highlighted.set(undefined)
+      this.highlighted = undefined
       const kind = E.SourceError.kindFor(error, "render")
-      this.emitSource("ui-error", { kind, source: untrack(() => this.sourceAttribute()), error })
+      this.sendSourceEvent("ui-error", { kind, source: untrack(() => this.source || undefined), error })
     }
   }
 
   ////////////////
-  // ## Handlers
+  // ## Copying
   ////////////////
+
+  /** The copy button just copied (for `COPIED_MS`):  it says "Copied".  `:state(copied)`. */
+  @E.cssState("copied")
+  @E.state
+  accessor wasJustCopied = false
+
+  /** Clears `wasJustCopied`. */
+  private copiedTimer?: ReturnType<typeof setTimeout>
 
   /** The copy button:  the code to the clipboard, `ui-copy`, "Copied" for a moment. */
   private readonly onCopy = async () => {
     const { content } = this
     await navigator.clipboard.writeText(content)
-    this.isCopied.set(true)
-    this.emitSource("ui-copy", { content })
+    this.wasJustCopied = true
+    this.send("ui-copy", { content })
     clearTimeout(this.copiedTimer)
-    this.copiedTimer = setTimeout(() => this.isCopied.set(false), COPIED_MS)
+    this.copiedTimer = setTimeout(() => (this.wasJustCopied = false), COPIED_MS)
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
+  protected renderContent(): JSX.Element {
+    return (
+      <div class={this.rootClasses} part={this.partForName("box")}>
+        <Show when={this.copy}>
+          <button type="button" class={COPY_CLASS} part={this.partForName("copy")} onClick={this.onCopy}>
+            {this.wasJustCopied ? this.translationForKey("codeCopied") : this.translationForKey("codeCopy")}
+          </button>
+        </Show>
+        <pre
+          part={this.partForName("pre")}
+          tabindex="0"
+          aria-label={
+            this.shownLanguage
+              ? this.translationForKey("codeLabel", { language: this.shownLanguage })
+              : this.translationForKey("codeLabelPlain")
+          }
+          style={{ "counter-reset": `${LINE_COUNTER} ${(this.start ?? 1) - 1}` }}
+        >
+          <code part={this.partForName("code")} class={this.codeClass} innerHTML={this.markup} />
+        </pre>
+      </div>
+    )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UICode extends E.AttributeValues<typeof codeVocabulary> {}
 
 /** Class of each line's span inside `<code>`. */
 const LINE_CLASS = "line"

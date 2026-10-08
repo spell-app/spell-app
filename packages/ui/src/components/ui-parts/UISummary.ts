@@ -11,3 +11,6 @@ import { summaryVocabulary } from "./ui-summary.vocabulary.en"
 export class UISummary extends PartElement<typeof summaryVocabulary> {
   @E.proto static vocabulary = summaryVocabulary
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UISummary extends E.AttributeValues<typeof summaryVocabulary> {}

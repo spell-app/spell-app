@@ -5,7 +5,7 @@
  *   widths="3">` => `ui ordered right vertical three steps`;  `<ui-step selected completed>` => `completed active
  *   step` (a step has no `ui`, as Fomantic's `.ui.steps > .step`).  `ui-step.css` keys on those words.
  * - Chosen state:  `selected` is canonical (`AGENTS.md`), its class word Fomantic's `active`;  an `active`
- *   ATTRIBUTE is accepted as an alias (the element reads it through `HostAttribute`).  The selected step is the
+ *   ATTRIBUTE is accepted as an alias (the element reads it raw, through `attributes`).  The selected step is the
  *   CURRENT one:  `aria-current="step"`.
  * - Content is the generic parts, owned by the step (`ownsParts`):  `<ui-content>`, `<ui-title>`,
  *   `<ui-description>`;  or the shorthands `header` (the title -- NOT `title`, the global tooltip attribute and an

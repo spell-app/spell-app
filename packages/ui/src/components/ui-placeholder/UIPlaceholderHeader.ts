@@ -10,3 +10,4 @@ import { placeholderHeaderVocabulary } from "./ui-placeholder-header.vocabulary.
 export class UIPlaceholderHeader extends PlaceholderShape<typeof placeholderHeaderVocabulary> {
   @E.proto static vocabulary = placeholderHeaderVocabulary
 }
+export interface UIPlaceholderHeader extends E.AttributeValues<typeof placeholderHeaderVocabulary> {}

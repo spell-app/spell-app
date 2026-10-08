@@ -248,7 +248,7 @@ describe("<ui-{part}> owner context", () => {
     const header = card.querySelector("ui-header")!
     expect(ownerStates(content)).toEqual(["in-card"])
     expect(ownerStates(header)).toEqual(["in-card"])
-    expect(context(header).owner.get()).toMatchObject({ owner: card, ownerNoun: "card", depth: 1 })
+    expect(context(header).owner).toMatchObject({ owner: card, ownerNoun: "card", depth: 1 })
     // owned:  a bare `.header`, never the `in-card` class
     expect(root(header).className).toBe("header")
     expect(header.classList.contains("in-card")).toBe(false)
@@ -270,8 +270,8 @@ describe("<ui-{part}> owner context", () => {
     const [middle, inner] = outer.querySelectorAll("ui-header")
     expect(root(outer).className).toBe("ui header")
     expect(ownerStates(middle!)).toEqual(["in-header"])
-    expect(context(middle!).owner.get()!.owner).toBe(outer)
-    expect(context(inner!).owner.get()!.owner).toBe(middle)
+    expect(context(middle!).owner!.owner).toBe(outer)
+    expect(context(inner!).owner!.owner).toBe(middle)
     expect(root(middle!).className).toBe("header")
   })
 

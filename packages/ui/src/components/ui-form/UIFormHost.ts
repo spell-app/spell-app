@@ -1,3 +1,5 @@
+import { untrack } from "solid-js"
+
 import { E, UIT } from "$/ui/core"
 import type { FormController } from "./ui-form.types"
 
@@ -35,11 +37,11 @@ export class UIFormHost extends E.UIHost {
 
   /** Every field's value, by name (Fomantic's `get values`). */
   get values(): UIT.FormValues {
-    return this.form?.values() ?? {}
+    return this.form?.values ?? {}
   }
 
   /** The `<form>` it works with, if any. */
   get nativeForm(): HTMLFormElement | undefined {
-    return this.form?.nativeForm()
+    return untrack(() => this.form?.nativeForm)
   }
 }

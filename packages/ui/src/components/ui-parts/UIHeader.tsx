@@ -22,12 +22,12 @@ export class UIHeader extends PartElement<typeof headerVocabulary> {
   render(): JSX.Element {
     return (
       <Dynamic
-        component={this.tag()}
-        class={this.rootClass()}
-        part={this.part("header")}
-        href={this.attrs.href}
-        role={this.attrs.href && this.attrs.level ? HEADING : undefined}
-        aria-level={this.attrs.href ? this.attrs.level : undefined}
+        component={this.rootTag}
+        class={this.rootClasses}
+        part={this.partForName("header")}
+        href={this.href}
+        role={this.href && this.level ? HEADING : undefined}
+        aria-level={this.href ? this.level : undefined}
       >
         <slot />
       </Dynamic>
@@ -35,14 +35,17 @@ export class UIHeader extends PartElement<typeof headerVocabulary> {
   }
 
   /** `<a>` for `href`, `<hN>` for `level`, else `<div>`. */
-  protected tag(): string {
-    if (this.attrs.href) return UIT.ANCHOR_TAG
-    const level = this.attrs.level ? (Number(this.attrs.level) as UIT.HeaderLevel) : undefined
+  protected get rootTag(): string {
+    if (this.href) return UIT.ANCHOR_TAG
+    const level = this.level ? (Number(this.level) as UIT.HeaderLevel) : undefined
     return level ? `h${level}` : "div"
   }
 
   /** Standalone:  the class grammar;  owned:  the bare noun. */
-  protected rootClass(): string {
-    return this.context.ownerNoun() ? this.vocabulary.noun : this.classes()
+  get rootClasses(): string {
+    return this.context.ownerNoun ? this.vocabulary.noun : super.rootClasses
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIHeader extends E.AttributeValues<typeof headerVocabulary> {}

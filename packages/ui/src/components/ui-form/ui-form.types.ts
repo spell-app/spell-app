@@ -22,7 +22,7 @@ export const STATE_STATES = [
   { name: "warning", description: "In the warning state." }
 ] as const
 
-/** When `<ui-form>`'s fields validate (its `on`):  `submit` only, or also as one loses focus / changes. */
+/** When `<ui-form>`'s fields validate (its `validate-on`):  `submit` only, or also as one loses focus / changes. */
 export const ValidationTriggers = ["submit", "blur", "change"] as const
 /** One of `ValidationTriggers`, e.g. `"blur"`. */
 export type ValidationTrigger = (typeof ValidationTriggers)[number]
@@ -31,19 +31,19 @@ export type ValidationTrigger = (typeof ValidationTriggers)[number]
 // ## Form states
 ////////////////
 
+// Each is also the host state a form, field or fields carries for it (`:state(error)` ...;  `UIT.FormStates`).
+
 /** The validation state:  failed validation shows it over the author's `state`. */
 export const ERROR = "error"
 
-/**
- * The host states a form, field or fields carry for its `state` (`UIT.FormStates`).
- * - STATIC and instance-free:  one pure helper for three element classes.
- */
-export class StateFlags {
-  /** `{ error, info, success, warning }`, `true` for `state` alone. */
-  static flagsFor(state: string | undefined): Record<UIT.FormState, boolean> {
-    return Object.fromEntries(UIT.FormStates.map((it) => [it, it === state])) as Record<UIT.FormState, boolean>
-  }
-}
+/** The `info` state. */
+export const INFO = "info"
+
+/** The `success` state. */
+export const SUCCESS = "success"
+
+/** The `warning` state. */
+export const WARNING = "warning"
 
 ////////////////
 // ## Fields
@@ -93,7 +93,7 @@ export type FormController = {
   /** Every control emptied, prompts and states cleared. */
   clear(): void
   /** Every field's value, by name. */
-  values(): UIT.FormValues
-  /** The native form it works with, if any. */
-  nativeForm(): HTMLFormElement | undefined
+  readonly values: UIT.FormValues
+  /** The native form it works with, if any;  tracked. */
+  readonly nativeForm: HTMLFormElement | undefined
 }

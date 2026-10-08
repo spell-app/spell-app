@@ -528,8 +528,8 @@ describe("<ui-form> validation", () => {
     expect(host.matches(":state(error)")).toBe(false)
   })
 
-  it('on="blur" validates a field as it loses focus;  on="change" as it changes', async () => {
-    const { host, native } = await form(SIGN_UP.replace("<ui-form>", `<ui-form on="blur">`))
+  it('validate-on="blur" validates a field as it loses focus;  validate-on="change" as it changes', async () => {
+    const { host, native } = await form(SIGN_UP.replace("<ui-form>", `<ui-form validate-on="blur">`))
     fakeTimers()
     host.rules = { email: "email" }
     const input = native.querySelector("[name=email]")!.shadowRoot!.querySelector("input")!
@@ -540,7 +540,7 @@ describe("<ui-form> validation", () => {
     await userEvent.tab()
     await later()
     expect(prompt(field)).toBe("E-mail must be a valid e-mail")
-    host.setAttribute("on", "change")
+    host.setAttribute("validate-on", "change")
     host.rules = { name: "minLength[3]" }
     const name = native.querySelector("[name=name]")!.shadowRoot!.querySelector("input")!
     await userEvent.type(name, "A")

@@ -56,7 +56,7 @@ export const formVocabulary = {
         "`--ui-stack-with` token decides (`<ui-root stack-with>`)."
     },
     {
-      name: "on",
+      name: "validate-on",
       kind: "enum",
       values: ValidationTriggers,
       default: "submit",

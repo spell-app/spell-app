@@ -43,7 +43,7 @@ export const checkboxVocabulary = {
       name: "off-value",
       kind: "string",
       description:
-        'Value submitted while unchosen:  `value="open" off-value="closed"`;  default its class\'s `offValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen.'
+        'Value submitted while unchosen:  `value="open" off-value="closed"`;  default its class\'s `defaultUnchosenValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen.'
     }
   ],
   events: SHARED_EVENTS,

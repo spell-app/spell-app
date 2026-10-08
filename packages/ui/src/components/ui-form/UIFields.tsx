@@ -3,7 +3,7 @@ import type { JSX } from "@solidjs/web"
 import { E } from "$/ui/core"
 import { fieldsVocabulary } from "./ui-fields.vocabulary.en"
 import { FormFallback } from "./ui-form.fallback"
-import { StateFlags } from "./ui-form.types"
+import { ERROR, INFO, SUCCESS, WARNING } from "./ui-form.types"
 
 import formCSS from "./ui-form.css?inline"
 
@@ -16,19 +16,50 @@ import formCSS from "./ui-form.css?inline"
  ****************/
 export class UIFields extends E.UIElement<typeof fieldsVocabulary> {
   @E.proto static vocabulary = fieldsVocabulary
-  @E.proto static styles = { form: formCSS }
-  @E.proto static Fallback = FormFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { form: formCSS }
+  @E.proto static elementSetup = { Fallback: FormFallback, delegatesFocus: false }
 
-  protected hostStates() {
-    return { ...StateFlags.flagsFor(this.attrs.state), disabled: this.attrs.disabled }
+  /** `:state(error)`:  `state="error"`. */
+  @E.cssState("error")
+  get isError(): boolean {
+    return this.state === ERROR
+  }
+
+  /** `:state(info)`:  `state="info"`. */
+  @E.cssState("info")
+  get isInfo(): boolean {
+    return this.state === INFO
+  }
+
+  /** `:state(success)`:  `state="success"`. */
+  @E.cssState("success")
+  get isSuccess(): boolean {
+    return this.state === SUCCESS
+  }
+
+  /** `:state(warning)`:  `state="warning"`. */
+  @E.cssState("warning")
+  get isWarning(): boolean {
+    return this.state === WARNING
+  }
+
+  /**
+   * `:state(disabled)` while `disabled`:  the root is `inert`.
+   * - Not an `isDisabled` override:  that would make the host swallow clicks too.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return this.disabled
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("fields")} inert={this.attrs.disabled}>
+      <div class={this.rootClasses} part={this.partForName("fields")} inert={this.disabled}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIFields extends E.AttributeValues<typeof fieldsVocabulary> {}

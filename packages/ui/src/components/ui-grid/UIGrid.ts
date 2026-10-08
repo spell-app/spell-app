@@ -15,16 +15,20 @@ export class UIGrid extends GridPart<typeof gridVocabulary> {
   @E.proto static vocabulary = gridVocabulary
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected extraClasses(): string | undefined {
-    return UIT.StackClasses.classFor(this.attrs.stackWith)
+  protected get extraClasses(): string | undefined {
+    return UIT.StackClasses.classFor(this.stackWith)
   }
 
   /**
-   * `celled` while celled with its outer box (not `internally`).
+   * Celled with its outer box (`celled`, not `celled="internally"`):  `:state(celled)`.
    * - Why:  the host is a size container (its own formatting context), so that box's outer margin sits on the
    *   HOST, to collapse with the content above as class grammar's does (`ui-grid.css`).
    */
-  protected hostStates() {
-    return { celled: this.attrs.celled === true }
+  @E.cssState("celled")
+  get hasOuterCells(): boolean {
+    return this.celled === true
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIGrid extends E.AttributeValues<typeof gridVocabulary> {}

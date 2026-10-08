@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-tab-Df0N2aCb.js";export{e as UITab,t as UITabs};

@@ -23,14 +23,8 @@ import revealCSS from "./ui-reveal.css?inline"
  ****************/
 export class UIReveal extends E.UIElement<typeof revealVocabulary> {
   @E.proto static vocabulary = revealVocabulary
-  @E.proto static styles = { reveal: revealCSS }
-  @E.proto static Fallback = RevealFallback
-
-  /** The content (light DOM) has a natively focusable element of its own. */
-  readonly hasFocusable = new E.Cell(false)
-
-  /** Host `aria-label`, forwarded to the root while it is the tab stop. */
-  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
+  @E.proto static styleSheets = { reveal: revealCSS }
+  @E.proto static elementSetup = { Fallback: RevealFallback }
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
@@ -44,44 +38,62 @@ export class UIReveal extends E.UIElement<typeof revealVocabulary> {
     })
   }
 
-  isDisabled(): boolean {
-    return this.attrs.disabled
+  ////////////////
+  // ## The tab stop
+  ////////////////
+
+  /** The content (light DOM) has a natively focusable element of its own. */
+  @E.state accessor contentHasFocusable = false
+
+  /** Read the light DOM for focusable content now. */
+  private scanFocusable() {
+    this.contentHasFocusable = !!this.host.querySelector(FOCUSABLE)
   }
 
-  protected hostStates() {
-    return { active: this.attrs.active, disabled: this.attrs.disabled }
+  /** Is the root the tab stop?  Not when the content can take focus itself, nor when disabled.  Tracked. */
+  private get isTabStop(): boolean {
+    return !this.contentHasFocusable && !this.disabled
+  }
+
+  ////////////////
+  // ## States
+  ////////////////
+
+  /** Never reveals (`disabled`);  `:state(disabled)`. */
+  @E.cssState("disabled")
+  get isDisabled(): boolean {
+    return this.disabled
+  }
+
+  /** Revealed by `active`:  `:state(active)`. */
+  @E.cssState("active")
+  get isActive(): boolean {
+    return this.active
   }
 
   render(): JSX.Element {
     return (
       <div
-        class={this.classes()}
-        part={this.part("reveal")}
-        tabindex={this.isStop() ? 0 : undefined}
-        role={this.isStop() ? UIT.GROUP : undefined}
-        aria-label={this.isStop() ? this.ariaLabel.get() : undefined}
+        class={this.rootClasses}
+        part={this.partForName("reveal")}
+        tabindex={this.isTabStop ? 0 : undefined}
+        role={this.isTabStop ? UIT.GROUP : undefined}
+        aria-label={this.isTabStop ? (this.attributes[UIT.ARIA_LABEL] ?? undefined) : undefined}
       >
-        <div class={VISIBLE_CONTENT} part={this.part("visible")}>
-          <slot name={this.slot("visible")} />
+        <div class={VISIBLE_CONTENT} part={this.partForName("visible")}>
+          <slot name={this.slotForName("visible")} />
           <slot />
         </div>
-        <div class={HIDDEN_CONTENT} part={this.part("hidden")}>
-          <slot name={this.slot("hidden")} />
+        <div class={HIDDEN_CONTENT} part={this.partForName("hidden")}>
+          <slot name={this.slotForName("hidden")} />
         </div>
       </div>
     )
   }
-
-  /** Read the light DOM for focusable content now.  MUST NOT run in an owned scope (it writes a signal). */
-  private scanFocusable() {
-    this.hasFocusable.set(!!this.host.querySelector(FOCUSABLE))
-  }
-
-  /** Is the root the tab stop?  Not when the content can take focus itself, nor when disabled.  Tracked. */
-  private isStop(): boolean {
-    return !this.hasFocusable.get() && !this.attrs.disabled
-  }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIReveal extends E.AttributeValues<typeof revealVocabulary> {}
 
 /** Natively focusable content:  it reveals the reveal itself (`:focus-within`). */
 const FOCUSABLE =

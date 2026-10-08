@@ -2159,7 +2159,7 @@
         {
           "name": "value",
           "kind": "string",
-          "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`)."
+          "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `defaultChosenValue`)."
         },
         {
           "name": "name",
@@ -2179,7 +2179,7 @@
         {
           "name": "off-value",
           "kind": "string",
-          "description": "Value submitted while unchosen:  `value=\"open\" off-value=\"closed\"`;  default its class's `offValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen."
+          "description": "Value submitted while unchosen:  `value=\"open\" off-value=\"closed\"`;  default its class's `defaultUnchosenValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen."
         }
       ],
       "slots": [
@@ -3399,7 +3399,7 @@
           "description": "Its content at the `top` or `bottom` instead of the middle (`top aligned`)."
         },
         {
-          "name": "on",
+          "name": "show-on",
           "kind": "enum",
           "values": [
             "hover",
@@ -3431,7 +3431,7 @@
           "name": "ui-open",
           "detail": "{ active: true, originalEvent?: Event }",
           "cancelable": true,
-          "description": "About to show for a person's action (`on`, an invoker command);  `preventDefault()` keeps it hidden."
+          "description": "About to show for a person's action (`show-on`, an invoker command);  `preventDefault()` keeps it hidden."
         },
         {
           "name": "ui-show",
@@ -3475,7 +3475,7 @@
         },
         {
           "name": "on-hover",
-          "description": "`on=\"hover\"`:  laid out (transparent) while inactive, so Tab can reach it."
+          "description": "`show-on=\"hover\"`:  laid out (transparent) while inactive, so Tab can reach it."
         }
       ],
       "texts": [
@@ -5149,7 +5149,7 @@
           "description": "What its rows of fields stack by:  `container` (the default) -- the form's own width;  `page` -- the screen's, as in Fomantic.  Its `<ui-fields>` follow it.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
         },
         {
-          "name": "on",
+          "name": "validate-on",
           "kind": "enum",
           "values": [
             "submit",
@@ -9559,7 +9559,7 @@
           "description": "Where it sits against its target:  `top left` (default) ... `right center`, `left top` ... `right bottom` (beside, lined up with its top / bottom edge).  It flips to the other side when there's no room."
         },
         {
-          "name": "on",
+          "name": "open-on",
           "kind": "enum",
           "values": [
             "hover",
@@ -10088,7 +10088,7 @@
         {
           "name": "value",
           "kind": "string",
-          "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`)."
+          "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `defaultChosenValue`)."
         },
         {
           "name": "name",
@@ -15990,7 +15990,7 @@
         },
         {
           "name": "overlay",
-          "description": "The overlay, a `<ui-popup on=\"click\">`;  its box is `::part(popup)`."
+          "description": "The overlay, a `<ui-popup open-on=\"click\">`;  its box is `::part(popup)`."
         },
         {
           "name": "menu",

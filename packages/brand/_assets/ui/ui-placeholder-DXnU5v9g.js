@@ -1,1 +1,0 @@
-import{a as e,i as t,n,r,t as i}from"./ui-placeholder-DuR5ieRN.js";export{e as UIPlaceholder,t as UIPlaceholderHeader,i as UIPlaceholderImage,n as UIPlaceholderLine,r as UIPlaceholderParagraph};

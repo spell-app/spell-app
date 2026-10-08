@@ -24,11 +24,11 @@ export class UINagHost extends E.UIHost {
 
   /** Forget a stored dismissal (Fomantic's `clear`). */
   clear() {
-    this.nag?.clear()
+    this.nag?.clearDismissal()
   }
 
   /** A dismissal is stored (and not expired);  `false` without a `key`. */
   get dismissed(): boolean {
-    return this.nag?.isDismissed() ?? false
+    return this.nag?.isDismissed ?? false
   }
 }

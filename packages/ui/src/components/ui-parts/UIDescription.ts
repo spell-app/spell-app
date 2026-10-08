@@ -11,3 +11,6 @@ import { descriptionVocabulary } from "./ui-description.vocabulary.en"
 export class UIDescription extends PartElement<typeof descriptionVocabulary> {
   @E.proto static vocabulary = descriptionVocabulary
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIDescription extends E.AttributeValues<typeof descriptionVocabulary> {}

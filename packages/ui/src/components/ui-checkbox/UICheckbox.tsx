@@ -12,50 +12,50 @@ import { CHECKBOX, SWITCH } from "./ui-checkbox.types"
  *   natively, by writing `indeterminate = false` to the host.
  * - `required` => Fomantic's `checked` rule (`valueMissing`).
  * - `off-value`:  submitted while unchosen, so a box toggles between two values (`value="open" off-value="closed"`);
- *   a subclass sets both for every element it defines:
- *   `class UIDoor extends UICheckbox { @E.proto static onValue = "open";  @E.proto static offValue = "closed" }`.
+ *   a subclass sets both for every element it defines:  `class UIDoor extends UICheckbox {
+ *   @E.proto static defaultChosenValue = "open";  @E.proto static defaultUnchosenValue = "closed" }`.
  ****************/
 export class UICheckbox extends CheckControl<typeof checkboxVocabulary> {
   /**
    * Submitted while unchosen, when the element has no `off-value`;  left out:  nothing, as a native checkbox.
    * - `@proto`:  a subclass sets its own for every element it defines.
    */
-  declare readonly offValue?: string
+  declare readonly defaultUnchosenValue?: string
 
   @E.proto static vocabulary = checkboxVocabulary
 
   readonly checkable = CHECKBOX
 
-  protected inputType(): typeof CHECKBOX {
+  protected get inputType(): typeof CHECKBOX {
     return CHECKBOX
   }
 
-  protected role(): string | undefined {
-    return this.attrs.type ? SWITCH : undefined
+  protected get inputRole(): string | undefined {
+    return this.type ? SWITCH : undefined
   }
 
-  /** `off-value`, else the class's `offValue`. */
-  unchosenValue(): string | undefined {
-    return this.attrs.offValue ?? this.offValue
+  /** `off-value`, else the class's `defaultUnchosenValue`. */
+  get unchosenValue(): string | undefined {
+    return this.offValue ?? this.defaultUnchosenValue
   }
 
-  protected indeterminate(): boolean {
-    return this.attrs.indeterminate
+  @E.cssState("indeterminate")
+  protected get isIndeterminate(): boolean {
+    return this.indeterminate
   }
 
-  protected rules(): E.ValidationRule[] {
-    return this.attrs.required ? [CHECKED_RULE] : []
+  protected get validationRules(): E.ValidationRule[] {
+    return this.required ? [CHECKED_RULE] : []
   }
 
-  protected hostStates() {
-    return { ...super.hostStates(), indeterminate: this.attrs.indeterminate }
-  }
-
-  /** A click someone made ends `indeterminate`. */
-  protected chosen() {
-    if (this.attrs.indeterminate) (this.host as unknown as { indeterminate: boolean }).indeterminate = false
+  /** A click someone made ends `indeterminate` (writes the host property, so it reflects). */
+  protected onChosen() {
+    if (this.indeterminate) this.indeterminate = false
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UICheckbox extends E.AttributeValues<typeof checkboxVocabulary> {}
 
 /** `required` => Fomantic's `checked` rule. */
 const CHECKED_RULE: E.ValidationRule = "checked"

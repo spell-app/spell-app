@@ -28,7 +28,7 @@ export class UIHost extends BaseElement {
   /** Where the component renders:  the shadow root (the fork's `renderRoot`). */
   declare readonly renderRoot: ShadowRoot
 
-  /** The fork's:  call back on every write to a prop, equal or not (`Controlled`). */
+  /** The fork's:  call back on every write to a prop, equal or not (`@controlled`). */
   declare addPropertyChangedCallback: SolidElement["addPropertyChangedCallback"]
 
   /** The fork's:  call back when the element is released (`dispose()`), newest first. */
@@ -74,7 +74,7 @@ export class UIHost extends BaseElement {
 
   /** Swallow clicks while the controller says the element is disabled. */
   private readonly onClickCapture = (event: MouseEvent) => {
-    if (!this.controller?.isDisabled()) return
+    if (!this.controller?.isDisabled) return
     event.preventDefault()
     event.stopImmediatePropagation()
   }

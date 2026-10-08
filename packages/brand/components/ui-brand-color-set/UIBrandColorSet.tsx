@@ -43,9 +43,8 @@ import setCSS from "./ui-brand-color-set.css?inline"
  ****************/
 export class UIBrandColorSet extends UIElement<BrandColorSetVocabulary> {
   @proto static vocabulary = brandColorSetVocabulary
-  @proto static styles = { set: setCSS }
-  @proto static Fallback = BrandColorSetFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { set: setCSS }
+  @proto static elementSetup = { Fallback: BrandColorSetFallback, delegatesFocus: false }
 
   ////////////////
   // ## State
@@ -94,7 +93,7 @@ export class UIBrandColorSet extends UIElement<BrandColorSetVocabulary> {
   ////////////////
 
   /** `color brand`, and `grid` with `columns`. */
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     return this.columns() ? `${GRID} ${BRAND_COLOR}` : BRAND_COLOR
   }
 
@@ -103,7 +102,7 @@ export class UIBrandColorSet extends UIElement<BrandColorSetVocabulary> {
   ////////////////
 
   /** Adds the chips' sync:  chosen, choice and Tab stop. */
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     createEffect(
       () => ({
         chips: this.chips.get(),
@@ -115,12 +114,12 @@ export class UIBrandColorSet extends UIElement<BrandColorSetVocabulary> {
         this.syncChips(chips, chosen, selectable, valued)
       }
     )
-    return super.mount()
+    return super.onMount()
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("set")} style={this.layoutStyle()}>
+      <div class={this.rootClasses} part={this.partForName("set")} style={this.layoutStyle()}>
         <slot />
       </div>
     )
@@ -202,7 +201,7 @@ export class UIBrandColorSet extends UIElement<BrandColorSetVocabulary> {
     chip.chip.focus()
     if (index === untrack(this.chosen) && untrack(() => this.valueState.get())) return false
     const value = UIBrandColorSet.keyOf(chip)
-    return this.valueState.request(value, () => this.emit("ui-change", { value, originalEvent }))
+    return this.valueState.request(value, () => this.send("ui-change", { value, originalEvent }))
   }
 
   /** A click on a chip chooses it (`selectable`). */

@@ -363,11 +363,11 @@ describe("<ui-toast> life", () => {
 
   it("`auto` display time reads the text:  at least a second", async () => {
     const { host } = await toast(`<ui-toast display-time="auto" message="Short"></ui-toast>`)
-    const time = (host.controller as unknown as { displayTime(): number }).displayTime()
+    const time = (host.controller as unknown as { displayDuration: number }).displayDuration
     expect(time).toBe(1000)
     const words = Array.from({ length: 60 }, () => "word").join(" ")
     const { host: long } = await toast(`<ui-toast display-time="auto" message="${words}"></ui-toast>`)
-    expect((long.controller as unknown as { displayTime(): number }).displayTime()).toBe(30_000)
+    expect((long.controller as unknown as { displayDuration: number }).displayDuration).toBe(30_000)
   })
 
   it("`auto` display time counts the message, NEVER the slotted actions' labels", async () => {
@@ -375,7 +375,7 @@ describe("<ui-toast> life", () => {
     const { host } = await toast(
       `<ui-toast display-time="auto" message="Short"><button slot="actions">${words}</button></ui-toast>`
     )
-    expect((host.controller as unknown as { displayTime(): number }).displayTime()).toBe(1000)
+    expect((host.controller as unknown as { displayDuration: number }).displayDuration).toBe(1000)
   })
 
   it("closes from script:  host.close(), reason dismiss", async () => {

@@ -1,4 +1,3 @@
-import { createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -30,53 +29,62 @@ import visibilityCSS from "./ui-visibility.css?inline"
  ****************/
 export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
   @E.proto static vocabulary = visibilityVocabulary
-  @E.proto static styles = { visibility: visibilityCSS }
-  @E.proto static Fallback = VisibilityFallback
-  // a wrapper:  a click on its text must not jump to a link inside
-  @E.proto static delegatesFocus = false
-
-  /** On screen as of the last check. */
-  readonly isVisible = new E.Cell(false)
-
-  protected hostStates() {
-    return { visible: this.isVisible.get() }
+  @E.proto static styleSheets = { visibility: visibilityCSS }
+  @E.proto static elementSetup = {
+    Fallback: VisibilityFallback,
+    // a wrapper:  a click on its text must not jump to a link inside
+    delegatesFocus: false
   }
 
+  /** On screen as of the last check.  `:state(visible)`. */
+  @E.cssState("visible")
+  @E.state
+  accessor isOnScreen = false
+
   /** `image` after the noun for a lazy-image wrapper (`ui visibility image`), a hook for page CSS. */
-  protected extraClasses(): string | undefined {
-    return this.attrs.type === UIT.IMAGE ? UIT.IMAGE : undefined
+  protected get extraClasses(): string | undefined {
+    return this.type === UIT.IMAGE ? UIT.IMAGE : undefined
   }
 
   render(): JSX.Element {
-    this.watchScreen()
-    if (isServer && this.attrs.type === UIT.IMAGE) this.serverImages()
+    if (isServer && this.type === UIT.IMAGE) this.serverImages()
     return (
-      <div class={this.classes()} part={this.part("visibility")}>
+      <div class={this.rootClasses} part={this.partForName("visibility")}>
         <slot />
       </div>
     )
   }
 
-  /** Watch while connected;  anew when the settings change. */
-  private watchScreen() {
-    createEffect(
-      () => ({
-        connected: this.isConnected.get(),
-        once: this.attrs.once !== false,
-        continuous: !!this.attrs.continuous,
-        offset: this.attrs.offset ?? 0,
-        images: this.attrs.type === UIT.IMAGE,
-        transition: this.attrs.transition,
-        duration: this.attrs.duration ?? DEFAULT_DURATION
-      }),
-      (config) => (config.connected ? this.watch(config) : undefined)
-    )
+  /**
+   * Watch while connected, once rendered (`isReady`, as when the render started it);  anew when the settings change.
+   * - Returns the undo, run before the next watch.
+   */
+  @E.onChange("isReady", "isConnected", "once", "continuous", "offset", "type", "transition", "duration")
+  protected onWatchSettingsChanged(
+    isReady: boolean,
+    isConnected: boolean,
+    once: UIVisibility["once"],
+    continuous: UIVisibility["continuous"],
+    offset: UIVisibility["offset"],
+    type: UIVisibility["type"],
+    transition: UIVisibility["transition"],
+    duration: UIVisibility["duration"]
+  ): E.Disposer | undefined {
+    if (!isReady || !isConnected) return undefined
+    return this.watch({
+      once: once !== false,
+      continuous: !!continuous,
+      offset: offset ?? 0,
+      images: type === UIT.IMAGE,
+      transition,
+      duration: duration ?? DEFAULT_DURATION
+    })
   }
 
   /** Observe the host (and lazy images);  returns the undo. */
   private watch(config: VisibilityConfig): E.Disposer {
-    const emit = (name: Parameters<UIVisibility["emit"]>[0]) => (calculations: E.VisibilityCalculations) =>
-      void this.emit(name, calculations)
+    const emit = (name: Parameters<UIVisibility["send"]>[0]) => (calculations: E.VisibilityCalculations) =>
+      void this.send(name, calculations)
     const options: E.VisibilityOptions = {
       once: config.once,
       continuous: config.continuous,
@@ -88,7 +96,7 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
       onTopPassed: emit("ui-top-passed"),
       onBottomPassed: emit("ui-bottom-passed"),
       onPassing: emit("ui-passing"),
-      onUpdate: (calculations) => this.isVisible.set(calculations.onScreen)
+      onUpdate: (calculations) => (this.isOnScreen = calculations.onScreen)
     }
     const stop = UI.observeVisibility(this.host, options)
     const stopImages = config.images ? this.watchImages(config) : undefined
@@ -124,7 +132,7 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
 
   /** A lazy image has its `src`. */
   private readonly onImageLoad = (image: HTMLImageElement) => {
-    this.emit("ui-load", { image })
+    this.send("ui-load", { image })
   }
 
   /**
@@ -151,10 +159,11 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
   }
 }
 
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIVisibility extends E.AttributeValues<VisibilityVocabulary> {}
+
 /** What a watch depends on. */
 type VisibilityConfig = {
-  /** the host is in the document */
-  connected: boolean
   /** each event fires at most once (re-armed by a change here) */
   once: boolean
   /** events fire at every check while their condition holds */

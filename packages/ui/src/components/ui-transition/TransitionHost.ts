@@ -14,12 +14,12 @@ import type { UITransition } from "./UITransition"
 export class TransitionHost extends E.UIHost {
   /** Animate in (the `animation` attribute's), then `ui-show`. */
   show(): Promise<boolean> {
-    return this.transitionController?.setVisible(true) ?? Promise.resolve(false)
+    return this.transitionController?.animateTo(true) ?? Promise.resolve(false)
   }
 
   /** Animate out, then `ui-hide`. */
   hide(): Promise<boolean> {
-    return this.transitionController?.setVisible(false) ?? Promise.resolve(false)
+    return this.transitionController?.animateTo(false) ?? Promise.resolve(false)
   }
 
   /** `show()` when hidden, else `hide()`. */

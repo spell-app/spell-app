@@ -4,9 +4,10 @@
  *   (the base of the per-component `*.fallback.ts`, plain DOM when a render throws), `StickyWatch` (reports and
  *   reserves room for a `position: sticky` box).
  * - The Solid layer, on `@spell-app/solid-element`:  `UIHost` / `FormHost` (host bases), `UIElement` (the controller
- *   base), `ElementDefinition` (vocabulary => the fork's props), `FormElement`, `Controlled`, `Cell`,
- *   `SlotContent`, `HostAttribute`, `PartContext` + `ContentPart` (owner context), `RootSettings` (what a
- *   `<ui-root>` sets for its subtree), `IconGlyph`, `ControlLabels`,
+ *   base), `Reactive` (its reactive members' decorators), `ElementDefinition` (vocabulary => the fork's props),
+ *   `FormElement`, `Controlled` (compatibility, for `brand`), `Cell`, `SlotContent`, `PartContext` +
+ *   `ContentPart` (owner context), `RootSettings` (what a `<ui-root>` sets for its subtree), `IconGlyph`,
+ *   `ControlLabels`,
  *   `SourceElement` + `SourceHost` (elements showing a text file), `SourceMarkup` (fetched HTML made ready for the
  *   page), `SourceBody` + `SourceBodyHost` (content loaded from `source` the first time it opens).
  * - NOTE: components never import this barrel:  they import the `$/ui/core` / `$/ui/forms` ENTRIES (`src/core.ts`,
@@ -25,6 +26,7 @@ export * from "./OwnerContext"
 export * from "./Shorthand"
 export * from "./NativeFallback"
 export * from "./StickyWatch"
+export * from "./Reactive"
 export * from "./Cell"
 export * from "./ElementDefinition"
 export * from "./UIHost"
@@ -33,7 +35,6 @@ export * from "./Controlled"
 export * from "./UIElement"
 export * from "./ContentPart"
 export * from "./SlotContent"
-export * from "./HostAttribute"
 export * from "./RootSettings"
 export * from "./IconGlyph"
 export * from "./SourceHost"

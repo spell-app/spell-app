@@ -1,4 +1,4 @@
-import { createEffect, untrack } from "solid-js"
+import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -26,133 +26,112 @@ import shapeCSS from "./ui-shape.css?inline"
  ****************/
 export class UIShape extends E.UIElement<ShapeVocabulary> {
   @E.proto static vocabulary = shapeVocabulary
-  @E.proto static styles = { shape: shapeCSS }
-  @E.proto static Fallback = ShapeFallback
-  @E.proto static Host = ShapeHost
-  @E.proto static delegatesFocus = false
-
-  ////////////////
-  // ## State
-  ////////////////
-
-  /** `activeIndex`:  always the host's (a number with a default). */
-  readonly activeState = this.controlled("active-index", 0)
-
-  /** The side elements, in order. */
-  readonly sides = new E.Cell<E.UIHost[]>(this.findSides())
-
-  /** A flip is running. */
-  readonly isAnimating = new E.Cell(false)
-
-  /**
-   * Has had sides;  until then `current` is only a guess.
-   * - NOTE:  the barrel defines `<ui-shape>` BEFORE `<ui-side>`, so a parsed shape upgrades with no sides yet.
-   */
-  private hasHadSides = untrack(() => this.sides.get().length > 0)
-
-  /** Index of the side shown now;  follows the queue, not the attribute. */
-  private current = untrack(() => this.normalize(this.activeState.get() ?? 0, this.sides.get().length))
-
-  /** Where the queue is heading. */
-  private target = this.current
-
-  /** The queue:  each flip starts when the one before has finished. */
-  private queue: Promise<unknown> = Promise.resolve()
-
-  /** The stage:  the outer box, which keeps its size while the sides turn. */
-  private stage?: HTMLDivElement
-
-  /** The turning box of sides. */
-  private box?: HTMLDivElement
+  @E.proto static styleSheets = { shape: shapeCSS }
+  @E.proto static elementSetup = { Fallback: ShapeFallback, Host: ShapeHost, delegatesFocus: false }
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
-    const listeners = new AbortController()
-    const options = { signal: listeners.signal }
-    this.host.renderRoot.addEventListener("slotchange", () => this.sides.set(this.findSides()), options)
-    this.host.addEventListener("command", this.onCommand, options)
-    this.host.addReleaseCallback(() => listeners.abort())
+    this.on("slotchange", this.onSlotChange, { target: this.host.renderRoot })
+    this.on("command", this.onCommand)
   }
 
   ////////////////
-  // ## Element hooks
+  // ## Sides
   ////////////////
 
-  protected extraClasses(): string | undefined {
-    return this.isAnimating.get() ? UIT.ANIMATING : undefined
-  }
-
-  protected hostStates() {
-    return { animating: this.isAnimating.get() }
-  }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  render(): JSX.Element {
-    // a host effect:  a static render (`$/ui/static`) marks the sides once, before they render
-    this.hostEffect(
-      () => this.sides.get(),
-      (sides) => {
-        this.firstSides(sides)
-        this.mark(sides)
-      }
-    )
-    createEffect(
-      () => this.activeState.get() ?? 0,
-      (index) => {
-        const next = this.normalize(index, untrack(() => this.sides.get()).length)
-        if (next !== this.target) void this.enqueue(untrack(() => this.attrs.direction) ?? DEFAULT_FLIP, next)
-      }
-    )
-    if (this.isServerInline()) return this.inlineShape()
-    return (
-      <div ref={(element) => (this.stage = element)} class={this.classes()} part={this.part("shape")}>
-        <div ref={(element) => (this.box = element)} class={SIDES} part={this.part("sides")} aria-live={POLITE}>
-          <slot />
-        </div>
-      </div>
-    )
-  }
+  /** The side elements, in order. */
+  @E.state accessor sides: E.UIHost[] = this.findSides()
 
   /**
-   * A `text` shape in a server render (`$/ui/static`):  its static output is PHRASING content (`<span>`s, as the
-   * class grammar's), since the host it replaces sits in running text -- a `<div>` would close an open `<p>` when a
-   * browser parses the page.  Its sides follow (`UISide`).
+   * Has had sides;  until then `shownIndex` is only a guess.
+   * - NOTE:  the barrel defines `<ui-shape>` BEFORE `<ui-side>`, so a parsed shape upgrades with no sides yet.
    */
-  isServerInline(): boolean {
-    return isServer && untrack(() => !!this.attrs.text)
+  private hasHadSides = untrack(() => this.sides.length > 0)
+
+  /** The default slot's content changed:  find the sides again. */
+  private readonly onSlotChange = () => (this.sides = this.findSides())
+
+  /**
+   * The sides changed:  start at `activeIndex` the first time, then show the current side, hide the rest.
+   * - Once `isReady` (the sheets are in and the stage is drawn), as when this lived in `render()`.
+   * - Writes the host's sides:  a static render (`$/ui/static`) marks them once, before they render.
+   */
+  @E.onChange("isReady", "sides", { writesHost: true })
+  protected onSidesChanged(isReady: boolean, sides: E.UIHost[]) {
+    if (!isReady) return
+    this.firstSides(sides)
+    this.mark(sides)
   }
 
-  /** `render()`'s markup as `<span>`s (`isServerInline()`). */
-  private inlineShape(): JSX.Element {
-    return (
-      <span class={this.classes()} part={this.part("shape")}>
-        <span class={SIDES} part={this.part("sides")} aria-live={POLITE}>
-          <slot />
-        </span>
-      </span>
+  /** The first sides found after none (upgrade order, or content added later):  start at `activeIndex`, not 0. */
+  private firstSides(sides: readonly E.UIHost[]) {
+    if (this.hasHadSides || !sides.length) return
+    this.hasHadSides = true
+    this.shownIndex = this.queuedIndex = this.normalize(
+      untrack(() => this.activeSideIndex),
+      sides.length
+    )
+  }
+
+  /** Show the current side;  hide the rest. */
+  private mark(sides: readonly E.UIHost[]) {
+    sides.forEach((side, index) => {
+      side.setState(UIT.ACTIVE, index === this.shownIndex)
+      side.setState(INACTIVE, index !== this.shownIndex)
+    })
+  }
+
+  /** Child elements whose definition's noun is `side` (a `<ui-side>`, or a translated one). */
+  private findSides(): E.UIHost[] {
+    return [...this.host.children].filter(
+      (child): child is E.UIHost => E.UIElement.definitions.get(child.localName)?.vocabulary.noun === SIDE
     )
   }
 
   ////////////////
-  // ## API (through `ShapeHost`)
+  // ## The side shown (API through `ShapeHost`)
   ////////////////
+
+  /** `activeIndex`:  always the host's (a number with a default). */
+  @E.controlled("active-index") accessor activeSideIndex = 0
+
+  /**
+   * Index of the side shown now:  NOT a mirror of `activeSideIndex`, it follows the queue (it lags while a flip
+   * runs).
+   */
+  private shownIndex = untrack(() => this.normalize(this.activeSideIndex, this.sides.length))
+
+  /** Where the queue is heading. */
+  private queuedIndex = this.shownIndex
+
+  /** The queue:  each flip starts when the one before has finished. */
+  private flipQueue: Promise<unknown> = Promise.resolve()
+
+  /**
+   * `activeIndex` changed (the host's own write, or `flipTo()`'s):  flip there, unless the queue is heading there.
+   * - Once `isReady`, as when this lived in `render()`:  a change before the sheets load flips (animated) once the
+   *   stage is drawn, instead of swapping at once.
+   */
+  @E.onChange("isReady", "activeSideIndex")
+  protected onActiveSideIndexChanged(isReady: boolean, index: number) {
+    if (!isReady) return
+    const next = this.normalize(index, untrack(() => this.sides).length)
+    if (next !== this.queuedIndex) void this.enqueue(this.defaultFlip, next)
+  }
 
   /** Turn `direction` to side `index` (default the next one after where the queue is heading, wrapping). */
   flipTo(direction?: UIT.ShapeFlip, index?: number): Promise<boolean> {
-    const count = untrack(() => this.sides.get()).length
+    const count = untrack(() => this.sides).length
     if (!count) return Promise.resolve(false)
-    const to = this.normalize(index ?? this.target + 1, count)
-    const done = to === this.target ? Promise.resolve(false) : this.enqueue(direction ?? this.defaultFlip(), to)
-    this.activeState.set(to)
+    const to = this.normalize(index ?? this.queuedIndex + 1, count)
+    const done = to === this.queuedIndex ? Promise.resolve(false) : this.enqueue(direction ?? this.defaultFlip, to)
+    this.activeSideIndex = to
     return done
   }
 
   /** Turn `step` sides on (negative:  back), the `direction` attribute's way. */
   flipBy(step: number): Promise<boolean> {
-    return this.flipTo(undefined, this.target + step)
+    return this.flipTo(undefined, this.queuedIndex + step)
   }
 
   /** An invoker command aimed at the host (`UIT.ShapeCommands`):  `--next`, `--previous`, `--flip-<direction>`. */
@@ -166,35 +145,56 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
     }
   }
 
+  /** Queue a flip to `index`. */
+  private enqueue(direction: UIT.ShapeFlip, index: number): Promise<boolean> {
+    this.queuedIndex = index
+    const run = this.flipQueue.then(() => this.flip(direction, index))
+    this.flipQueue = run.catch(() => false)
+    return run
+  }
+
+  /** `index` wrapped into `0 .. count - 1`. */
+  private normalize(index: number, count: number): number {
+    if (!count) return 0
+    return ((Math.trunc(index) % count) + count) % count
+  }
+
   ////////////////
   // ## Flipping
   ////////////////
 
-  /** Queue a flip to `index`. */
-  private enqueue(direction: UIT.ShapeFlip, index: number): Promise<boolean> {
-    this.target = index
-    const run = this.queue.then(() => this.flip(direction, index))
-    this.queue = run.catch(() => false)
-    return run
+  /** A flip is running:  class `animating`, `:state(animating)`. */
+  @E.cssState("animating")
+  @E.state
+  accessor isFlipping = false
+
+  protected get extraClasses(): string | undefined {
+    return this.isFlipping ? UIT.ANIMATING : undefined
   }
+
+  /** The stage:  the outer box, which keeps its size while the sides turn. */
+  private stage?: HTMLDivElement
+
+  /** The turning box of sides. */
+  private box?: HTMLDivElement
 
   /**
    * One flip, Fomantic's `animate()`:  stage the next side, turn the box, wait for its transition, reset.
    * - Reduced motion, a hidden or disconnected shape:  swap at once.
    */
   private async flip(direction: UIT.ShapeFlip, index: number): Promise<boolean> {
-    const sides = untrack(() => this.sides.get())
-    const active = sides[this.current]
+    const sides = untrack(() => this.sides)
+    const active = sides[this.shownIndex]
     const next = sides[index]
-    if (!next || index === this.current) return false
+    if (!next || index === this.shownIndex) return false
     const { stage, box } = this
     const isInstant = !active || !stage || !box || !this.host.isConnected || UI.browser.isReducedMotion
     // `offsetParent` is the platform's:  `null` while hidden
     if (!isInstant && stage.offsetParent !== null) await this.animate({ direction, stage, box, active, next })
-    this.current = index
+    this.shownIndex = index
     this.mark(sides)
     const detail: UIT.ShapeChangeDetail = { activeIndex: index, side: next, flip: direction }
-    this.emit("ui-change", detail)
+    this.send("ui-change", detail)
     return true
   }
 
@@ -209,10 +209,10 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
     const staged = UIShape.staging(direction, sizes)
     Object.assign(active.style, { transform: staged.active })
     Object.assign(next.style, staged.next)
-    const duration = this.duration()
+    const duration = this.cssDuration
     if (duration) box.style.transitionDuration = duration
     void box.offsetWidth
-    this.isAnimating.set(true)
+    this.isFlipping = true
     stage.classList.add(UIT.ANIMATING)
     active.setState(LEAVING, true)
     box.style.transform = UIShape.turn(direction, sizes)
@@ -222,7 +222,7 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
     stage.classList.remove(UIT.ANIMATING)
     active.setState(LEAVING, false)
     next.setState(UIT.ANIMATING, false)
-    this.isAnimating.set(false)
+    this.isFlipping = false
   }
 
   /** Resolve on the box's `transitionend` (its own), or after its duration plus a fail-safe. */
@@ -245,24 +245,6 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
     })
   }
 
-  /** The first sides found after none (upgrade order, or content added later):  start at `activeIndex`, not 0. */
-  private firstSides(sides: readonly E.UIHost[]) {
-    if (this.hasHadSides || !sides.length) return
-    this.hasHadSides = true
-    this.current = this.target = this.normalize(
-      untrack(() => this.activeState.get() ?? 0),
-      sides.length
-    )
-  }
-
-  /** Show the current side;  hide the rest. */
-  private mark(sides: readonly E.UIHost[]) {
-    sides.forEach((side, index) => {
-      side.setState(UIT.ACTIVE, index === this.current)
-      side.setState(INACTIVE, index !== this.current)
-    })
-  }
-
   /** A side's margin box. */
   private sizeOf(side: HTMLElement): Size {
     const style = getComputedStyle(side)
@@ -277,33 +259,51 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
     }
   }
 
+  /** The `direction` attribute (or its default);  untracked. */
+  private get defaultFlip(): UIT.ShapeFlip {
+    return untrack(() => this.direction) ?? DEFAULT_FLIP
+  }
+
+  /** `duration` as CSS:  bare digits are ms;  untracked. */
+  private get cssDuration(): string | undefined {
+    const text = untrack(() => this.duration)?.trim()
+    if (!text) return undefined
+    return UIT.DIGITS.test(text) ? `${text}ms` : text
+  }
+
   ////////////////
-  // ## Reading
+  // ## Rendering
   ////////////////
 
-  /** Child elements whose definition's noun is `side` (a `<ui-side>`, or a translated one). */
-  private findSides(): E.UIHost[] {
-    return [...this.host.children].filter(
-      (child): child is E.UIHost => E.UIElement.definitions.get(child.localName)?.vocabulary.noun === SIDE
+  render(): JSX.Element {
+    if (this.rendersInlineOnServer) return this.inlineShape()
+    return (
+      <div ref={(element) => (this.stage = element)} class={this.rootClasses} part={this.partForName("shape")}>
+        <div ref={(element) => (this.box = element)} class={SIDES} part={this.partForName("sides")} aria-live={POLITE}>
+          <slot />
+        </div>
+      </div>
     )
   }
 
-  /** `index` wrapped into `0 .. count - 1`. */
-  private normalize(index: number, count: number): number {
-    if (!count) return 0
-    return ((Math.trunc(index) % count) + count) % count
+  /**
+   * A `text` shape in a server render (`$/ui/static`):  its static output is PHRASING content (`<span>`s, as the
+   * class grammar's), since the host it replaces sits in running text -- a `<div>` would close an open `<p>` when a
+   * browser parses the page.  Its sides follow (`UISide`).
+   */
+  get rendersInlineOnServer(): boolean {
+    return isServer && untrack(() => !!this.text)
   }
 
-  /** The `direction` attribute. */
-  private defaultFlip(): UIT.ShapeFlip {
-    return untrack(() => this.attrs.direction) ?? DEFAULT_FLIP
-  }
-
-  /** `duration` as CSS:  bare digits are ms. */
-  private duration(): string | undefined {
-    const text = untrack(() => this.attrs.duration)?.trim()
-    if (!text) return undefined
-    return UIT.DIGITS.test(text) ? `${text}ms` : text
+  /** `render()`'s markup as `<span>`s (`rendersInlineOnServer`). */
+  private inlineShape(): JSX.Element {
+    return (
+      <span class={this.rootClasses} part={this.partForName("shape")}>
+        <span class={SIDES} part={this.partForName("sides")} aria-live={POLITE}>
+          <slot />
+        </span>
+      </span>
+    )
   }
 
   ////////////////
@@ -366,6 +366,9 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
     return time.trim().endsWith("ms") ? value : value * 1000
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIShape extends E.AttributeValues<ShapeVocabulary> {}
 
 /** What one animated flip works on. */
 type FlipParams = {

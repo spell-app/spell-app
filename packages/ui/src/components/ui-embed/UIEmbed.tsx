@@ -1,4 +1,4 @@
-import { Show, createMemo, untrack } from "solid-js"
+import { Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -35,64 +35,84 @@ import embedCSS from "./ui-embed.css?inline"
  ****************/
 export class UIEmbed extends E.UIElement<Vocabulary> {
   @E.proto static vocabulary = embedVocabulary
-  @E.proto static styles = { embed: embedCSS }
-  @E.proto static Fallback = EmbedFallback
-  @E.proto static Host = UIEmbedHost
+  @E.proto static styleSheets = { embed: embedCSS }
+  @E.proto static elementSetup = { Fallback: EmbedFallback, Host: UIEmbedHost }
 
   ////////////////
-  // ## State
+  // ## Active
   ////////////////
 
-  /** `active`:  host-controlled, or internal. */
-  readonly activeState = this.controlled("active", false)
-
-  /** Glyph over the placeholder. */
-  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon || undefined })
-
-  /** The frame URL, `undefined` when there's nothing (safe) to load. */
-  readonly url = createMemo(() =>
-    EmbedSources.resolve({
-      source: (this.attrs.source ?? undefined) as UIT.EmbedSource | undefined,
-      id: this.attrs.videoId ?? undefined,
-      url: this.attrs.url ?? undefined,
-      autoplay: this.attrs.autoplay !== false,
-      brandedUI: !!this.attrs.brandedUi,
-      parameters: (this.attrs.parameters ?? undefined) as EmbedParameters | undefined
-    })
-  )
-
-  /** What it is:  `label`, else `alt`, else the default for a video / anything. */
-  readonly label = createMemo(() => {
-    const own = this.attrs.label || this.attrs.alt
-    if (own) return own
-    const video = this.attrs.source || EmbedSources.sourceFor(this.attrs.url ?? undefined)
-    return this.text(video ? "embedVideo" : "embedContent")
-  })
+  /** Is the frame loaded?  `active`:  host-controlled, or internal;  `:state(active)`. */
+  @E.cssState("active")
+  @E.controlled("active")
+  accessor isActive = false
 
   /** Move focus into the next frame (it was activated from the keyboard / a click). */
   private shouldFocusFrame = false
 
-  /** Is the frame loaded? */
-  isActive(): boolean {
-    return this.activeState.get()
+  /** Load the frame as an action of the page's reader:  the cancelable `ui-activate` first.  True when it loads. */
+  activate(originalEvent?: Event): boolean {
+    if (untrack(() => this.isActive)) return false
+    const url = untrack(() => this.frameUrl)
+    if (!url) return false
+    const detail: UIT.EmbedActivateDetail = { url, originalEvent }
+    const isApplied = this.requestChange("isActive", true, () => this.send("ui-activate", detail))
+    if (isApplied) this.shouldFocusFrame = true
+    return isApplied
+  }
+
+  /** Back to the placeholder (Fomantic's `reset`), with `ui-reset`. */
+  reset() {
+    if (!untrack(() => this.isActive)) return
+    this.isActive = false
+    this.send("ui-reset", {})
   }
 
   ////////////////
-  // ## Element hooks
+  // ## The frame
+  ////////////////
+
+  /** The frame URL, `undefined` when there's nothing (safe) to load. */
+  @E.derived
+  get frameUrl(): string | undefined {
+    return EmbedSources.resolve({
+      source: (this.source ?? undefined) as UIT.EmbedSource | undefined,
+      id: this.videoId ?? undefined,
+      url: this.url ?? undefined,
+      autoplay: this.autoplay !== false,
+      brandedUI: !!this.brandedUi,
+      parameters: (this.parameters ?? undefined) as EmbedParameters | undefined
+    })
+  }
+
+  /** What it is:  `label`, else `alt`, else the default for a video / anything. */
+  @E.derived
+  get accessibleName(): string {
+    const own = this.label || this.alt
+    if (own) return own
+    const video = this.source || EmbedSources.sourceFor(this.url ?? undefined)
+    return this.translationForKey(video ? "embedVideo" : "embedContent")
+  }
+
+  ////////////////
+  // ## The play button
+  ////////////////
+
+  /** Glyph over the placeholder. */
+  readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon || undefined })
+
+  ////////////////
+  // ## Classes
   ////////////////
 
   protected classValue(name: E.AttributeName<Vocabulary>): unknown {
-    if (name === "active") return this.isActive()
+    if (name === "active") return this.isActive
     return super.classValue(name)
   }
 
   /** The aspect-ratio word after the noun (`ui embed 4:3`). */
-  protected extraClasses(): string | undefined {
-    return this.attrs.aspectRatio ?? undefined
-  }
-
-  protected hostStates() {
-    return { active: this.isActive() }
+  protected get extraClasses(): string | undefined {
+    return this.aspectRatio ?? undefined
   }
 
   ////////////////
@@ -101,13 +121,13 @@ export class UIEmbed extends E.UIElement<Vocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("embed")}>
-        <Show when={this.isActive() && this.url()} fallback={this.placeholder()}>
-          <div class={FRAME_CLASS} part={this.part("frame")}>
+      <div class={this.rootClasses} part={this.partForName("embed")}>
+        <Show when={this.isActive && this.frameUrl} fallback={this.playButton()}>
+          <div class={FRAME_CLASS} part={this.partForName("frame")}>
             <iframe
               ref={this.onFrame}
-              src={this.url()}
-              title={this.label()}
+              src={this.frameUrl}
+              title={this.accessibleName}
               allow={ALLOW}
               allowfullscreen
               referrerpolicy={REFERRER_POLICY}
@@ -119,48 +139,26 @@ export class UIEmbed extends E.UIElement<Vocabulary> {
   }
 
   /** The play button:  placeholder image, icon, slot. */
-  private placeholder(): JSX.Element {
+  private playButton(): JSX.Element {
     return (
       <button
         type="button"
         class={PLAY_CLASS}
-        part={this.part("play")}
-        aria-label={this.text("embedPlay", { name: this.label() })}
+        part={this.partForName("play")}
+        aria-label={this.translationForKey("embedPlay", { name: this.accessibleName })}
         onClick={this.onPlay}
       >
-        <Show when={this.attrs.placeholder}>
-          <img class={PLACEHOLDER_CLASS} part={this.part("placeholder")} src={this.attrs.placeholder!} alt="" />
+        <Show when={this.placeholder}>
+          <img class={PLACEHOLDER_CLASS} part={this.partForName("placeholder")} src={this.placeholder!} alt="" />
         </Show>
-        <Show when={this.attrs.icon}>
-          <span class={UIT.ICON_CLASS} part={this.part("icon")}>
-            {this.glyph.svg()}
+        <Show when={this.icon}>
+          <span class={UIT.ICON_CLASS} part={this.partForName("icon")}>
+            {this.iconGlyph.svg}
           </span>
         </Show>
         <slot />
       </button>
     )
-  }
-
-  ////////////////
-  // ## Transitions
-  ////////////////
-
-  /** Load the frame as an action of the page's reader:  the cancelable `ui-activate` first.  True when it loads. */
-  activate(originalEvent?: Event): boolean {
-    if (untrack(() => this.isActive())) return false
-    const url = untrack(this.url)
-    if (!url) return false
-    const detail: UIT.EmbedActivateDetail = { url, originalEvent }
-    const isApplied = this.activeState.request(true, () => this.emit("ui-activate", detail))
-    if (isApplied) this.shouldFocusFrame = true
-    return isApplied
-  }
-
-  /** Back to the placeholder (Fomantic's `reset`), with `ui-reset`. */
-  reset() {
-    if (!untrack(() => this.isActive())) return
-    this.activeState.set(false)
-    this.emit("ui-reset", {})
   }
 
   ////////////////
@@ -181,3 +179,5 @@ export class UIEmbed extends E.UIElement<Vocabulary> {
     })
   }
 }
+/** The vocabulary getters, typed. */
+export interface UIEmbed extends E.AttributeValues<Vocabulary> {}

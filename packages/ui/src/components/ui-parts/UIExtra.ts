@@ -11,3 +11,6 @@ import { extraVocabulary } from "./ui-extra.vocabulary.en"
 export class UIExtra extends PartElement<typeof extraVocabulary> {
   @E.proto static vocabulary = extraVocabulary
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIExtra extends E.AttributeValues<typeof extraVocabulary> {}

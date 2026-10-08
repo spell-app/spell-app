@@ -1,5 +1,5 @@
-import { For, Show, createEffect, createMemo, untrack } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { For, Show, untrack } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 import { docsTocVocabulary } from "./ui-docs-toc.vocabulary.en"
@@ -38,50 +38,38 @@ import tocCSS from "./ui-docs-toc.css?inline"
  ****************/
 export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
   @E.proto static vocabulary = docsTocVocabulary
-  @E.proto static styles = { "docs-toc": tocCSS }
-  @E.proto static Fallback = DocsTocFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { "docs-toc": tocCSS }
+  @E.proto static elementSetup = { Fallback: DocsTocFallback, delegatesFocus: false }
 
   ////////////////
-  // ## State
+  // ## The sections
   ////////////////
 
   /** The listed sections, from the last scan. */
-  readonly sections = new E.Cell<readonly TocSection[]>([])
+  @E.state accessor sections: readonly TocSection[] = []
 
-  /** Id of the entry in view. */
-  readonly currentId = new E.Cell<string | undefined>(undefined)
-
-  /** Ids from the top-level section down to the entry in view:  the entries open on the way. */
-  readonly currentPath = createMemo(() => TocIndex.pathTo(this.sections.get(), this.currentId.get()))
-
-  /** Id of the top-level section holding the entry in view. */
-  readonly currentSection = createMemo(() => this.currentPath()[0])
-
-  /** Scheduled frame of a pending scan / follow, if any. */
-  private frame = 0
-
-  /** What the scheduled `frame` does:  a rescan wins over a follow. */
-  private queued: TocUpdate | undefined
-
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
-    super(...args)
-    if (isServer) return
-    // SIDE EFFECT:  page listeners and the observer, while connected
-    createEffect(
-      () => this.isConnected.get(),
-      (isConnected) => {
-        if (isConnected) return this.watch()
-      }
-    )
+  /** Nothing listed:  `:state(empty)`. */
+  @E.cssState("empty")
+  get isEmpty(): boolean {
+    return !this.sections.length
   }
 
   ////////////////
-  // ## Element hooks
+  // ## The entry in view
   ////////////////
 
-  protected override hostStates() {
-    return { empty: this.sections.get().length === 0 }
+  /** Id of the entry in view. */
+  @E.state accessor idInView: string | undefined = undefined
+
+  /** Ids from the top-level section down to the entry in view:  the entries open on the way. */
+  @E.derived
+  get pathInView(): string[] {
+    return TocIndex.pathTo(this.sections, this.idInView)
+  }
+
+  /** Id of the top-level section holding the entry in view. */
+  get sectionIdInView(): string | undefined {
+    return this.pathInView[0]
   }
 
   ////////////////
@@ -90,19 +78,19 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("toc")}>
-        <Show when={this.attrs.header}>
-          <ui-header part={this.part("header")}>{this.attrs.header}</ui-header>
+      <div class={this.rootClasses} part={this.partForName("toc")}>
+        <Show when={this.header}>
+          <ui-header part={this.partForName("header")}>{this.header}</ui-header>
         </Show>
         <ui-menu
-          part={this.part("menu")}
+          part={this.partForName("menu")}
           vertical=""
           text=""
           fluid=""
-          size={this.size()}
-          aria-label={this.text("label")}
+          size={this.menuSize}
+          aria-label={this.translationForKey("label")}
         >
-          <For each={this.sections.get()}>{(section) => this.section(section)}</For>
+          <For each={this.sections}>{(section) => this.section(section)}</For>
         </ui-menu>
       </div>
     )
@@ -113,10 +101,10 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
     return (
       <>
         <ui-item
-          part={this.part("section")}
+          part={this.partForName("section")}
           class={SECTION}
           href={`#${section.id}`}
-          selected={this.currentSection() === section.id ? "" : undefined}
+          selected={this.sectionIdInView === section.id ? "" : undefined}
         >
           {section.text}
         </ui-item>
@@ -130,18 +118,18 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
    * each followed by its own entries the same way (nested `<ui-section>`s).
    */
   private entries(parent: TocEntry): JSX.Element {
-    const isOpen = () => !!parent.entries.length && (!!this.attrs.expanded || this.currentPath().includes(parent.id))
+    const isOpen = () => !!parent.entries.length && (!!this.expanded || this.pathInView.includes(parent.id))
     return (
       <Show when={isOpen()}>
         <ui-item class={ENTRIES} fitted="vertically">
-          <ui-menu part={this.part("entries")} vertical="" text="" fluid="" size={this.size()}>
+          <ui-menu part={this.partForName("entries")} vertical="" text="" fluid="" size={this.menuSize}>
             <For each={parent.entries}>
               {(entry) => (
                 <>
                   <ui-item
-                    part={this.part("entry")}
+                    part={this.partForName("entry")}
                     href={`#${entry.id}`}
-                    selected={this.currentId.get() === entry.id ? "" : undefined}
+                    selected={this.idInView === entry.id ? "" : undefined}
                   >
                     {entry.text}
                   </ui-item>
@@ -155,14 +143,26 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
     )
   }
 
-  /** `size`, else the default. */
-  private size(): string {
-    return this.attrs.size || DEFAULT_SIZE
+  /** `size`, else the default (an empty or unknown `size` too). */
+  private get menuSize(): string {
+    return this.size || DEFAULT_SIZE
   }
 
   ////////////////
   // ## Following the page
   ////////////////
+
+  /** Scheduled frame of a pending scan / follow, if any. */
+  private scheduledFrame = 0
+
+  /** What the `scheduledFrame` does:  a rescan wins over a follow. */
+  private queuedUpdate: TocUpdate | undefined
+
+  /** SIDE EFFECT:  page listeners and the observers, while connected. */
+  @E.onChange("isConnected")
+  protected onConnectedChanged(isConnected: boolean) {
+    return isConnected ? this.watch() : undefined
+  }
 
   /** Start following:  the first scan, the hash, listeners and the observers;  returns their cleanup. */
   private watch(): () => void {
@@ -190,8 +190,8 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
       view.removeEventListener("scroll", onScroll)
       view.removeEventListener("resize", onScroll)
       view.removeEventListener("hashchange", onHash)
-      cancelAnimationFrame(this.frame)
-      this.frame = 0
+      cancelAnimationFrame(this.scheduledFrame)
+      this.scheduledFrame = 0
     }
   }
 
@@ -217,19 +217,19 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
 
   /** Do `update` on the next frame, once:  a rescan queued meanwhile wins over a follow. */
   private schedule(update: TocUpdate): void {
-    if (update === "rescan") this.queued = update
-    else this.queued ??= update
-    if (this.frame) return
-    this.frame = requestAnimationFrame(() => this.runQueued())
+    if (update === "rescan") this.queuedUpdate = update
+    else this.queuedUpdate ??= update
+    if (this.scheduledFrame) return
+    this.scheduledFrame = requestAnimationFrame(() => this.onFrame())
   }
 
   /** The scheduled frame:  do what's queued. */
-  private runQueued(): void {
-    this.frame = 0
-    const update = this.queued
-    this.queued = undefined
+  private onFrame(): void {
+    this.scheduledFrame = 0
+    const update = this.queuedUpdate
+    this.queuedUpdate = undefined
     if (update === "rescan") this.rescan()
-    else this.follow()
+    else this.followScroll()
   }
 
   /** Scan the followed content again, then follow the scroll. */
@@ -237,17 +237,17 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
     const followed = this.followedContent()
     const root = followed?.tabs ? TocIndex.shownPane(followed.tabs) : followed?.root
     const sections = root ? TocIndex.scan(root, UIDocsToc.reservedIdsFor(followed?.tabs)) : []
-    this.sections.set(sections)
-    this.emit("ui-render", { ids: TocIndex.flatten(sections).map((entry) => entry.id) })
-    this.follow(sections)
+    this.sections = sections
+    this.send("ui-render", { ids: TocIndex.flatten(sections).map((entry) => entry.id) })
+    this.followScroll(sections)
   }
 
   /** Mark the entry in view;  `ui-change` when it moved. */
-  private follow(sections = untrack(() => this.sections.get())): void {
+  private followScroll(sections = untrack(() => this.sections)): void {
     const id = TocIndex.current(sections, this.host.ownerDocument)
-    if (id === untrack(() => this.currentId.get())) return
-    this.currentId.set(id)
-    if (id) this.emit("ui-change", { value: id })
+    if (id === untrack(() => this.idInView)) return
+    this.idInView = id
+    if (id) this.send("ui-change", { value: id })
   }
 
   /**
@@ -273,7 +273,7 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
 
   /** What `for` names (else the page's `main`), and its tabs;  `undefined` while it doesn't exist. */
   private followedContent(): FollowedContent | undefined {
-    return TocIndex.followed(this.host.ownerDocument, this.attrs.for || undefined)
+    return TocIndex.followed(this.host.ownerDocument, this.for || undefined)
   }
 
   /** Ids a new heading id must not take:  the followed tabs' pane values (the URL hash names those too). */
@@ -282,6 +282,9 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
     return new Set([...tabs.children].map((pane, index) => pane.getAttribute("value") ?? String(index)))
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIDocsToc extends E.AttributeValues<DocsTocVocabulary> {}
 
 /** What a scheduled frame does:  scan the followed content again, or just re-follow the scroll. */
 type TocUpdate = "rescan" | "follow"

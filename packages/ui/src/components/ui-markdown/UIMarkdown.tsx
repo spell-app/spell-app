@@ -33,7 +33,7 @@ import markdownCSS from "./ui-markdown.css?inline"
  * - `editable`:  Write / Preview tabs (`role=tablist`, arrow keys), a `<textarea>` for the text and the article as
  *   the preview, drawn by spell's engine (`MarkdownRenderer.loadMD()`:  `ui-*` elements, `<ui-table>`'s sheet
  *   adopted here too).
- *   - each keystroke is `setContent()`:  `ui-change`, `:state(dirty)`, and `save()` writes it back to `source`
+ *   - each keystroke sets `content`:  `ui-change`, `:state(dirty)`, and `save()` writes it back to `source`
  *   - the preview renders while it's shown:  the WHOLE text each time (~2 ms for 32 kB), then only the top-level
  *     blocks whose markup changed are swapped (`patchBody()`), so unchanged `ui-*` elements keep their state
  * - SIDE EFFECTS:  listens to `window`'s `hashchange` while connected;  a revealed heading is put in the address
@@ -41,16 +41,12 @@ import markdownCSS from "./ui-markdown.css?inline"
  ****************/
 export class UIMarkdown extends E.SourceElement<Vocabulary> {
   @E.proto static vocabulary = markdownVocabulary
-  @E.proto static styles = { markdown: markdownCSS }
-  @E.proto static Fallback = MarkdownFallback
-  @E.proto static Host = UIMarkdownHost
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { markdown: markdownCSS }
+  @E.proto static elementSetup = { Fallback: MarkdownFallback, Host: UIMarkdownHost, delegatesFocus: false }
 
-  /** The headings of the last render. */
-  readonly headings = new E.Cell<MarkdownHeading[]>([])
-
-  /** `editable`'s shown tab. */
-  readonly tab = new E.Cell<MarkdownTab>(WRITE)
+  ////////////////
+  // ## Rendering
+  ////////////////
 
   /** The `<article>`, once rendered. */
   private body?: HTMLElement
@@ -58,79 +54,51 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
   /** Renders started;  only the latest one's result is shown. */
   private ticket = 0
 
-  /** A render has finished:  the address's `#id` was looked for once, after the first. */
-  private hasRendered = false
-
-  /** `editable`:  the text box. */
-  private textBox?: HTMLTextAreaElement
-
-  /** `editable`:  the tab buttons, by tab. */
-  private readonly tabButtons = new Map<MarkdownTab, HTMLButtonElement>()
-
   /** Markup of each top-level node `patchBody()` put in the article, to tell which blocks changed. */
   private readonly rendered = new WeakMap<Node, string>()
 
-  ////////////////
-  // ## Rendering
-  ////////////////
-
   /**
    * Render whenever the text or a rendering attribute changes;  `editable`, only while the preview shows.
-   * - `editable`:  the text box follows the content too (`host.content = ...`, a reload).
+   * - Stays an explicit effect:  its compute BUILDS the render's input (title stripped, options), not just reads.
    */
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     if (!isServer) {
       createEffect(
         () => ({
-          text: this.attrs.skipTitle ? this.contentText().replace(LEADING_TITLE, "") : this.contentText(),
-          isLoaded: this.status.get() === "loaded",
-          isEditable: this.isEditable(),
-          isShown: !this.isEditable() || this.tab.get() === PREVIEW,
+          text: this.skipTitle ? this.textToShow.replace(LEADING_TITLE, "") : this.textToShow,
+          isLoaded: this.loadStatus === "loaded",
+          isEditable: this.editable,
+          isShown: !this.editable || this.shownTab === PREVIEW,
           options: {
-            breaks: !!this.attrs.breaks,
-            headingOffset: Number(this.attrs.headingOffset) || 0,
-            sanitized: !!this.attrs.sanitized
+            breaks: !!this.breaks,
+            headingOffset: Number(this.headingOffset) || 0,
+            sanitized: !!this.sanitized
           }
         }),
         ({ text, isLoaded, isEditable, isShown, options }) => {
           if (isLoaded && isShown) void this.renderMarkdown({ text, options, isEditable })
         }
       )
-      createEffect(
-        () => this.contentText(),
-        (text) => {
-          if (this.textBox && this.textBox.value !== text) this.textBox.value = text
-        }
-      )
-      createEffect(
-        () => this.isConnected.get(),
-        (connected) => {
-          if (!connected) return
-          const listeners = new AbortController()
-          window.addEventListener(HASHCHANGE, () => this.revealHash(), { signal: listeners.signal })
-          return () => listeners.abort()
-        }
-      )
     }
-    return super.mount()
+    return super.onMount()
   }
 
   protected renderContent(): JSX.Element {
     return (
       <>
-        <Show when={this.isEditable()}>
+        <Show when={this.editable}>
           {this.tabs()}
           {this.editor()}
         </Show>
         <section
           id={UIMarkdown.panelId(PREVIEW)}
-          role={this.isEditable() ? TAB_ROLES.panel : undefined}
-          aria-labelledby={this.isEditable() ? UIMarkdown.tabId(PREVIEW) : undefined}
-          hidden={this.isEditable() && this.tab.get() !== PREVIEW ? true : undefined}
+          role={this.editable ? TAB_ROLES.panel : undefined}
+          aria-labelledby={this.editable ? UIMarkdown.tabId(PREVIEW) : undefined}
+          hidden={this.editable && this.shownTab !== PREVIEW ? true : undefined}
         >
           <article
-            class={this.classes()}
-            part={this.part("body")}
+            class={this.rootClasses}
+            part={this.partForName("body")}
             onClick={this.onClick}
             ref={(body: HTMLElement) => {
               this.body = body
@@ -142,31 +110,44 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
   }
 
   /** `editable`:  `<ui-table>`'s sheet too, since the preview draws tables with it (a page sheet:  `TABLE_SHEET`). */
-  protected sheetNames(): string[] {
-    const names = super.sheetNames()
-    return this.isEditable() ? [...names, TABLE_SHEET] : names
+  get styleSheetNames(): string[] {
+    const names = super.styleSheetNames
+    return this.editable ? [...names, TABLE_SHEET] : names
   }
+
+  ////////////////
+  // ## Editing (`editable`)
+  ////////////////
+
+  /** `editable`'s shown tab. */
+  @E.state accessor shownTab: MarkdownTab = WRITE
+
+  /** `editable`:  the text box. */
+  private textBox?: HTMLTextAreaElement
+
+  /** `editable`:  the tab buttons, by tab. */
+  private readonly tabButtons = new Map<MarkdownTab, HTMLButtonElement>()
 
   /** `editable`'s tab list:  Write, Preview. */
   private tabs(): JSX.Element {
     return (
-      <nav part={this.part("tabs")} role={TAB_ROLES.list} onKeyDown={this.onTabKey}>
+      <nav part={this.partForName("tabs")} role={TAB_ROLES.list} onKeyDown={this.onTabKeyDown}>
         <For each={MarkdownTabs}>
           {(tab) => (
             <button
               type="button"
               id={UIMarkdown.tabId(tab)}
               role={TAB_ROLES.tab}
-              part={this.part("tab")}
-              aria-selected={this.tab.get() === tab ? UIT.TRUE : UIT.FALSE}
+              part={this.partForName("tab")}
+              aria-selected={this.shownTab === tab ? UIT.TRUE : UIT.FALSE}
               aria-controls={UIMarkdown.panelId(tab)}
-              tabindex={this.tab.get() === tab ? 0 : -1}
-              onClick={() => this.tab.set(tab)}
+              tabindex={this.shownTab === tab ? 0 : -1}
+              onClick={() => (this.shownTab = tab)}
               ref={(button: HTMLButtonElement) => {
                 this.tabButtons.set(tab, button)
               }}
             >
-              {this.text(tab)}
+              {this.translationForKey(tab)}
             </button>
           )}
         </For>
@@ -181,34 +162,50 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
         id={UIMarkdown.panelId(WRITE)}
         role={TAB_ROLES.panel}
         aria-labelledby={UIMarkdown.tabId(WRITE)}
-        hidden={this.tab.get() !== WRITE ? true : undefined}
+        hidden={this.shownTab !== WRITE ? true : undefined}
       >
         <textarea
-          part={this.part("editor")}
-          aria-label={this.text("editor")}
+          part={this.partForName("editor")}
+          aria-label={this.translationForKey("editor")}
           onInput={this.onInput}
           ref={(textBox: HTMLTextAreaElement) => {
             this.textBox = textBox
-            textBox.value = untrack(this.contentText)
+            textBox.value = untrack(() => this.textToShow)
           }}
         />
       </section>
     )
   }
 
-  /** `editable` is set.  Tracked. */
-  private isEditable(): boolean {
-    return !!this.attrs.editable
+  /** `editable`:  the text box follows the content (`host.content = ...`, a reload). */
+  @E.onChange("textToShow")
+  protected onTextChanged(text: string) {
+    if (this.textBox && this.textBox.value !== text) this.textBox.value = text
+  }
+
+  /** `editable`:  each keystroke is an edit (`ui-change`, `dirty`). */
+  private readonly onInput = (event: InputEvent) => {
+    this.content = (event.currentTarget as HTMLTextAreaElement).value
+  }
+
+  /** `editable`'s tab list:  arrows move between the tabs (wrapping), Home / End to the ends;  focus follows. */
+  private readonly onTabKeyDown = (event: KeyboardEvent) => {
+    const to = UIMarkdown.tabAfter(this.shownTab, event.key)
+    if (!to) return
+    event.preventDefault()
+    this.shownTab = to
+    this.tabButtons.get(to)?.focus()
   }
 
   ////////////////
   // ## Headings
   ////////////////
 
-  /** The headings of the last render. */
-  getHeadings(): MarkdownHeading[] {
-    return untrack(this.headings.get)
-  }
+  /** The headings of the last render;  the host's `headings` reads it untracked. */
+  @E.state accessor headings: MarkdownHeading[] = []
+
+  /** A render has finished:  the address's `#id` was looked for once, after the first. */
+  private hasRendered = false
 
   /** Scroll to the rendered heading `id` and put `#id` in the address;  `false` when there's none. */
   reveal(id: string): boolean {
@@ -217,11 +214,21 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
     return true
   }
 
+  /** While connected, listen to `window`'s `hashchange`;  returns the listener's abort. */
+  @E.onChange("isConnected")
+  protected onConnectedChanged(isConnected: boolean) {
+    if (!isConnected) return
+    const listeners = new AbortController()
+    window.addEventListener(HASHCHANGE, () => this.onHashChange(), { signal: listeners.signal })
+    return () => listeners.abort()
+  }
+
   /**
-   * Scroll to the heading the address's `#id` names, if it's one of ours.
+   * Scroll to the heading the address's `#id` names, if it's one of ours:  on `hashchange`, and once after the first
+   * render.
    * - Not when the PAGE has that id:  the browser went there itself.
    */
-  private revealHash() {
+  private onHashChange() {
     const id = UIMarkdown.idForHash(location.hash)
     if (id && !this.host.ownerDocument.getElementById(id)) this.scrollTo(id)
   }
@@ -231,6 +238,13 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
     const target = this.body?.querySelector(`[id="${CSS.escape(id)}"]`)
     target?.scrollIntoView()
     return !!target
+  }
+
+  /** A `#id` link:  scroll to that heading here, in the shadow root, and put it in the address. */
+  private readonly onClick = (event: MouseEvent) => {
+    const link = (event.target as Element).closest?.(IN_PAGE_LINK)
+    const id = link && UIMarkdown.idForHash(link.getAttribute("href")!)
+    if (id && this.reveal(id)) event.preventDefault()
   }
 
   ////////////////
@@ -259,14 +273,14 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
       this.resolveUrls(fragment)
       if (isEditable) this.patchBody(this.body, fragment)
       else this.body.replaceChildren(fragment)
-      this.headings.set(headings)
-      this.emitSource("ui-render", { headings })
+      this.headings = headings
+      this.send("ui-render", { headings })
       if (!this.hasRendered) {
         this.hasRendered = true
-        this.revealHash()
+        this.onHashChange()
       }
     } catch (error) {
-      if (ticket === this.ticket) this.loadFailed(error, "render")
+      if (ticket === this.ticket) this.onLoadError(error, "render")
     }
   }
 
@@ -293,7 +307,7 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
 
   /** Point relative URLs in `fragment` where they point beside `source`;  in-page `#id`s are left alone. */
   private resolveUrls(fragment: DocumentFragment) {
-    const source = this.sourceAttribute()
+    const source = this.source || undefined
     if (!source) return
     const base = new URL(source, this.host.ownerDocument.baseURI)
     for (const name of LINK_ATTRIBUTES) {
@@ -341,31 +355,6 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
   }
 
   ////////////////
-  // ## Handlers
-  ////////////////
-
-  /** `editable`:  each keystroke is an edit (`ui-change`, `dirty`). */
-  private readonly onInput = (event: InputEvent) => {
-    this.setContent((event.currentTarget as HTMLTextAreaElement).value)
-  }
-
-  /** `editable`'s tab list:  arrows move between the tabs (wrapping), Home / End to the ends;  focus follows. */
-  private readonly onTabKey = (event: KeyboardEvent) => {
-    const to = UIMarkdown.tabAfter(untrack(this.tab.get), event.key)
-    if (!to) return
-    event.preventDefault()
-    this.tab.set(to)
-    this.tabButtons.get(to)?.focus()
-  }
-
-  /** A `#id` link:  scroll to that heading here, in the shadow root, and put it in the address. */
-  private readonly onClick = (event: MouseEvent) => {
-    const link = (event.target as Element).closest?.(IN_PAGE_LINK)
-    const id = link && UIMarkdown.idForHash(link.getAttribute("href")!)
-    if (id && this.reveal(id)) event.preventDefault()
-  }
-
-  ////////////////
   // ## Helpers:  static, as they're pure
   ////////////////
 
@@ -405,6 +394,9 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
     return undefined
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIMarkdown extends E.AttributeValues<Vocabulary> {}
 
 /** What `renderMarkdown()` renders. */
 type RenderParams = {

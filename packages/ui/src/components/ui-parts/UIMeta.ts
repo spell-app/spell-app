@@ -11,3 +11,6 @@ import { metaVocabulary } from "./ui-meta.vocabulary.en"
 export class UIMeta extends PartElement<typeof metaVocabulary> {
   @E.proto static vocabulary = metaVocabulary
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIMeta extends E.AttributeValues<typeof metaVocabulary> {}

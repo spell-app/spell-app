@@ -65,7 +65,7 @@ export class ProgressValues {
   }
 
   /** How many bars. */
-  get bars(): number {
+  get barCount(): number {
     return this.percents.length
   }
 

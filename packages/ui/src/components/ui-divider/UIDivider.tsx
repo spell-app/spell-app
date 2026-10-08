@@ -20,23 +20,23 @@ import dividerCSS from "./ui-divider.css?inline"
  ****************/
 export class UIDivider extends E.UIElement<typeof dividerVocabulary> {
   @E.proto static vocabulary = dividerVocabulary
-  @E.proto static styles = { divider: dividerCSS }
-  @E.proto static Fallback = DividerFallback
+  @E.proto static styleSheets = { divider: dividerCSS }
+  @E.proto static elementSetup = { Fallback: DividerFallback }
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
+  readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
 
   render(): JSX.Element {
     return (
       <div
-        class={this.classes()}
-        role={this.attrs.hidden ? UIT.NONE : SEPARATOR}
-        aria-orientation={this.attrs.vertical && !this.attrs.hidden ? UIT.VERTICAL : undefined}
-        part={this.part("divider")}
+        class={this.rootClasses}
+        role={this.hidden ? UIT.NONE : SEPARATOR}
+        aria-orientation={this.vertical && !this.hidden ? UIT.VERTICAL : undefined}
+        part={this.partForName("divider")}
       >
-        <Show when={this.attrs.icon}>
-          <span class={UIT.ICON} part={this.part("icon")}>
-            {this.glyph.svg()}
+        <Show when={this.icon}>
+          <span class={UIT.ICON} part={this.partForName("icon")}>
+            {this.iconGlyph.svg}
           </span>
         </Show>
         <slot />
@@ -44,3 +44,6 @@ export class UIDivider extends E.UIElement<typeof dividerVocabulary> {
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIDivider extends E.AttributeValues<typeof dividerVocabulary> {}

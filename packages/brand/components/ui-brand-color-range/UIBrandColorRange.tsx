@@ -30,10 +30,8 @@ import rangeCSS from "./ui-brand-color-range.css?inline"
  ****************/
 export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   @proto static vocabulary = brandColorRangeVocabulary
-  @proto static styles = { range: rangeCSS }
-  @proto static Host = BrandColorRangeHost
-  @proto static Fallback = BrandColorRangeFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { range: rangeCSS }
+  @proto static elementSetup = { Fallback: BrandColorRangeFallback, Host: BrandColorRangeHost, delegatesFocus: false }
 
   /** The ladder last announced (`null` before the first render's), for `ui-change`. */
   private announced: ColorLadder | undefined | null = null
@@ -65,7 +63,7 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     return BRAND_COLOR
   }
 
@@ -74,14 +72,14 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   ////////////////
 
   /** Adds `ui-change`, when the colours change after the first render. */
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     createEffect(
       () => this.ladder(),
       (ladder) => {
         this.announce(ladder)
       }
     )
-    return super.mount()
+    return super.onMount()
   }
 
   render(): JSX.Element {
@@ -97,12 +95,12 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   /** The ladder:  17 chips, the number under each. */
   private renderLadder(): JSX.Element {
     return (
-      <ol class={this.classes()} part={this.part("range")} aria-label={this.ladderName()}>
+      <ol class={this.rootClasses} part={this.partForName("range")} aria-label={this.ladderName()}>
         <For each={STEPS}>
           {(step) => (
-            <li class={CLASSES.step} part={this.part("step")}>
+            <li class={CLASSES.step} part={this.partForName("step")}>
               <ui-brand-color
-                part={this.part("chip")}
+                part={this.partForName("chip")}
                 value={this.ladder()?.scale[step]}
                 name={this.ladder()?.name(step)}
                 label={this.attrs.label}
@@ -112,7 +110,7 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
                 selected={UIBrandColorRange.flag(this.ladder()?.anchor === step)}
               />
               <Show when={this.attrs.numbers !== NO_NUMBERS}>
-                <span class={CLASSES.number} part={this.part("number")} aria-hidden="true">
+                <span class={CLASSES.number} part={this.partForName("number")} aria-hidden="true">
                   {step}
                 </span>
               </Show>
@@ -126,9 +124,9 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   /** The strip:  17 dots, one image. */
   private renderStrip(): JSX.Element {
     return (
-      <span class={this.classes()} part={this.part("range")} role="img" aria-label={this.ladderName()}>
+      <span class={this.rootClasses} part={this.partForName("range")} role="img" aria-label={this.ladderName()}>
         <For each={STEPS}>
-          {(step) => <span class={CLASSES.dot} part={this.part("dot")} style={this.dotStyle(step)} />}
+          {(step) => <span class={CLASSES.dot} part={this.partForName("dot")} style={this.dotStyle(step)} />}
         </For>
       </span>
     )
@@ -137,7 +135,7 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   /** The ladder's name:  "brand:  17 shades of #8E96B5". */
   private ladderName(): string {
     const ladder = this.ladder()
-    return ladder ? this.text("ladder", { name: ladder.prefix, seed: ladder.seed }) : ""
+    return ladder ? this.translationForKey("ladder", { name: ladder.prefix, seed: ladder.seed }) : ""
   }
 
   /** A strip dot's colour. */
@@ -156,7 +154,7 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
     const previous = this.announced
     this.announced = ladder
     if (first || !ladder || ladder.sameColors(previous ?? undefined)) return
-    this.emit("ui-change", { value: ladder.seed, scale: { ...ladder.scale }, anchor: ladder.anchor })
+    this.send("ui-change", { value: ladder.seed, scale: { ...ladder.scale }, anchor: ladder.anchor })
   }
 
   /** A boolean as a chip's attribute:  `""` (on) or absent. */

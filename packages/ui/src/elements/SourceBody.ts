@@ -1,4 +1,6 @@
 import { E, UI } from "$/ui/core"
+// Import directly to avoid circular import
+import { state } from "./Reactive"
 
 /****************
  * ### `SourceBody`
@@ -11,24 +13,24 @@ import { E, UI } from "$/ui/core"
  * - Insert:  replaces the target's PLACEHOLDER -- every child but an element with a `slot` attribute (a section's
  *   header, icon, badge ... stay) -- and, on `reload()`, the body it put there before.
  * - Events through the owner:  `ui-load` once the body is in;  the cancelable `ui-error` on failure, after which
- *   `failure` holds what to say (unless cancelled).  A failure isn't remembered:  the next `load()` tries again.
+ *   `loadError` holds what to say (unless cancelled).  A failure isn't remembered:  the next `load()` tries again.
  * - `isVeiled`:  the owner keeps its content box closed while it's true, so an opening section or panel shows the
  *   body, not the placeholder, and animates once;  it turns false when the body arrives, on failure, or after
- *   `SOURCE_BODY_HOLD_MS` (then `overdue`:  the owner shows its loading look over the placeholder).
+ *   `SOURCE_BODY_HOLD_MS` (then `isOverdue`:  the owner shows its loading look over the placeholder).
  * - The families of `ui-*` tags in the body are NOT loaded here:  light DOM is the page's, so whatever defines the
  *   page's tags (a `<ui-root>`, which watches its subtree, or a bundle) defines these too.
  * - NOTE: a cycle (a body holding a source of its own file) or nesting deeper than `MAX_DEPTH` is a `render` error.
  * - Knows its owner only as a `SourceBodyOwner` (`elements.types`):  NEVER imports a component.
  ****************/
 export class SourceBody {
-  /** Where the body is. */
-  readonly status = new E.Cell<E.SourceStatus>(E.SourceStatus.idle)
+  /** Where the body is (`SourceElement`'s name for the same). */
+  @state accessor loadStatus: E.SourceStatus = E.SourceStatus.idle
 
   /** The load has taken longer than `SOURCE_BODY_HOLD_MS`:  stop holding the content box closed. */
-  readonly overdue = new E.Cell(false)
+  @state accessor isOverdue = false
 
   /** What the error line says;  `undefined` when there's none to show. */
-  readonly failure = new E.Cell<E.SourceFailure | undefined>(undefined)
+  @state accessor loadError: E.SourceFailure | undefined = undefined
 
   /** The element whose body this is. */
   private readonly owner: E.SourceBodyOwner
@@ -54,15 +56,15 @@ export class SourceBody {
   // ## State
   ////////////////
 
-  /** Hold the content box closed?  True while the body is on its way and not `overdue`;  tracked. */
+  /** Hold the content box closed?  True while the body is on its way and not `isOverdue`;  tracked. */
   get isVeiled(): boolean {
-    const status = this.status.get()
-    return (status === E.SourceStatus.idle || status === E.SourceStatus.loading) && !this.overdue.get()
+    const status = this.loadStatus
+    return (status === E.SourceStatus.idle || status === E.SourceStatus.loading) && !this.isOverdue
   }
 
   /** Is a load in flight and past `SOURCE_BODY_HOLD_MS`?  The owner's loading look;  tracked. */
   get isBusy(): boolean {
-    return this.status.get() === E.SourceStatus.loading && this.overdue.get()
+    return this.loadStatus === E.SourceStatus.loading && this.isOverdue
   }
 
   ////////////////
@@ -93,11 +95,11 @@ export class SourceBody {
   private start(request: BodyLoad): Promise<void> {
     const generation = ++this.generation
     this.pendingKey = SourceBody.key(request.source, request.select)
-    this.status.set(E.SourceStatus.loading)
-    this.failure.set(undefined)
-    this.overdue.set(false)
+    this.loadStatus = E.SourceStatus.loading
+    this.loadError = undefined
+    this.isOverdue = false
     const timer = setTimeout(() => {
-      if (generation === this.generation) this.overdue.set(true)
+      if (generation === this.generation) this.isOverdue = true
     }, E.SOURCE_BODY_HOLD_MS)
     const load = this.fetch(request, generation).finally(() => clearTimeout(timer))
     this.pending = load
@@ -117,8 +119,8 @@ export class SourceBody {
       const loaded = await ui.sources.load(source, { fresh })
       if (generation !== this.generation) return
       this.insert(E.SourceMarkup.parse(loaded.text, { page: host.ownerDocument, source, select }))
-      this.status.set(E.SourceStatus.loaded)
-      this.owner.emit(E.SourceEvent.load, { source, content: loaded.text })
+      this.loadStatus = E.SourceStatus.loaded
+      this.owner.send(E.SourceEvent.load, { source, content: loaded.text })
     } catch (error) {
       if (generation !== this.generation) return
       this.fail(source, error)
@@ -138,9 +140,9 @@ export class SourceBody {
   /** Loading or showing failed:  `ui-error`, then the error line unless it was cancelled. */
   private fail(source: string, error: unknown) {
     const kind = E.SourceError.kindFor(error, "load")
-    this.status.set(E.SourceStatus.error)
-    const shown = this.owner.emit(E.SourceEvent.error, { kind, source, error })
-    this.failure.set(shown ? { kind, error } : undefined)
+    this.loadStatus = E.SourceStatus.error
+    const shown = this.owner.send(E.SourceEvent.error, { kind, source, error })
+    this.loadError = shown ? { kind, error } : undefined
   }
 
   ////////////////

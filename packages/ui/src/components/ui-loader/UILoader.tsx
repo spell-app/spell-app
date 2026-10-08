@@ -1,4 +1,3 @@
-import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -22,15 +21,8 @@ import loaderCSS from "./ui-loader.css?inline"
  ****************/
 export class UILoader extends E.UIElement<typeof loaderVocabulary> {
   @E.proto static vocabulary = loaderVocabulary
-  @E.proto static styles = { loader: loaderCSS }
-  @E.proto static Fallback = LoaderFallback
-  @E.proto static delegatesFocus = false
-
-  /** Light-DOM slot occupancy:  slotted text names the status. */
-  readonly slots = new E.SlotContent(this.host)
-
-  /** Has slotted text?  Tracked. */
-  readonly hasText = createMemo(() => this.slots.has(""))
+  @E.proto static styleSheets = { loader: loaderCSS }
+  @E.proto static elementSetup = { Fallback: LoaderFallback, delegatesFocus: false }
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
@@ -39,29 +31,61 @@ export class UILoader extends E.UIElement<typeof loaderVocabulary> {
     internals.ariaLive = POLITE
   }
 
-  /** Adds the host's accessible name:  the `loading` text while nothing is slotted. */
-  mount(): JSX.Element {
-    // here, not in the constructor:  the name reads `UI.i18n` (via `text()`), which exists once the runtime loads;
-    // `hostEffect`:  a server render (`$/ui/static`) applies it too
-    this.hostEffect(
-      () => (this.isLoaded() && !this.hasText() ? this.text("loading") : undefined),
-      (label) => {
-        // `null`:  `ariaLabel` is the platform's, and `null` removes it
-        this.host.internals.ariaLabel = label ?? null
-      }
-    )
-    return super.mount()
+  ////////////////
+  // ## The name
+  ////////////////
+
+  /** Light-DOM slot occupancy:  slotted text names the status. */
+  readonly slots = new E.SlotContent(this.host)
+
+  /** Has slotted text?  Tracked. */
+  get hasText(): boolean {
+    return this.slots.hasContent("")
   }
 
-  protected hostStates() {
-    return { active: this.attrs.active, disabled: this.attrs.disabled }
+  /**
+   * The host's accessible name:  the `loading` text while nothing is slotted.
+   * - Waits for `isReady`:  the text reads `UI.i18n` (via `translationForKey()`), which exists once the runtime
+   *   loads;  `writesHost`:  a server render (`$/ui/static`) applies it too.
+   */
+  @E.onChange("isReady", "hasText", { writesHost: true })
+  protected onNameChanged(isReady: boolean, hasText: boolean) {
+    const label = isReady && !hasText ? this.translationForKey("loading") : undefined
+    // `null`:  `ariaLabel` is the platform's, and `null` removes it
+    this.host.internals.ariaLabel = label ?? null
   }
+
+  ////////////////
+  // ## States
+  ////////////////
+
+  /** Shown (`active`).  `:state(active)`. */
+  @E.cssState("active")
+  get isActive(): boolean {
+    return !!this.active
+  }
+
+  /**
+   * Marked disabled (`disabled`, hides it again):  a look, not `isDisabled` -- the host's clicks aren't swallowed.
+   * `:state(disabled)`.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return !!this.disabled
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("loader")}>
+      <div class={this.rootClasses} part={this.partForName("loader")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UILoader extends E.AttributeValues<typeof loaderVocabulary> {}

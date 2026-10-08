@@ -14,19 +14,27 @@ import textCSS from "./ui-text.css?inline"
  ****************/
 export class UIText extends E.UIElement<typeof textVocabulary> {
   @E.proto static vocabulary = textVocabulary
-  @E.proto static styles = { text: textCSS }
-  @E.proto static Fallback = TextFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { text: textCSS }
+  @E.proto static elementSetup = { Fallback: TextFallback, delegatesFocus: false }
 
-  protected hostStates() {
-    return { disabled: this.attrs.disabled }
+  /**
+   * `disabled`:  `:state(disabled)`, for page styling only.
+   * - NOT an `isDisabled` override:  that would make the host swallow clicks (`UIHost`), and text has nothing to
+   *   disable.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return !!this.disabled
   }
 
   render(): JSX.Element {
     return (
-      <span class={this.classes()} part={this.part("text")}>
+      <span class={this.rootClasses} part={this.partForName("text")}>
         <slot />
       </span>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIText extends E.AttributeValues<typeof textVocabulary> {}

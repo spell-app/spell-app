@@ -1,11 +1,11 @@
-import { For, Show, createMemo, untrack } from "solid-js"
+import { For, Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
 import { fieldVocabulary } from "./ui-field.vocabulary.en"
 import { FormFallback } from "./ui-form.fallback"
 import { FieldHost } from "./FieldHost"
-import { ERROR, StateFlags } from "./ui-form.types"
+import { ERROR, INFO, SUCCESS, WARNING } from "./ui-form.types"
 
 import labelCSS from "$/ui/components/ui-label/ui-label.css?inline"
 import formCSS from "./ui-form.css?inline"
@@ -24,52 +24,97 @@ import formCSS from "./ui-form.css?inline"
  ****************/
 export class UIField extends E.UIElement<typeof fieldVocabulary> {
   @E.proto static vocabulary = fieldVocabulary
-  @E.proto static styles = { label: labelCSS, form: formCSS }
-  @E.proto static Host = FieldHost
-  @E.proto static Fallback = FormFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { label: labelCSS, form: formCSS }
+  @E.proto static elementSetup = { Fallback: FormFallback, Host: FieldHost, delegatesFocus: false }
 
-  /** Prompts `<ui-form>` asked to show. */
-  readonly errors = new E.Cell<readonly string[]>([])
+  ////////////////
+  // ## Prompts
+  ////////////////
 
-  /** The state shown:  `error` while prompting, else the attribute. */
-  readonly shownState = createMemo(() => (this.errors.get().length ? ERROR : this.attrs.state))
+  /** Prompts `<ui-form>` asked to show;  `FieldHost.errors` reads them untracked. */
+  @E.state accessor errors: readonly string[] = []
 
   /** Show `messages` (see `FieldHost`). */
   showErrors(messages: readonly string[]) {
-    const current = untrack(() => this.errors.get())
+    const current = untrack(() => this.errors)
     if (current.length !== messages.length || current.some((message, index) => message !== messages[index])) {
-      this.errors.set([...messages])
+      this.errors = [...messages]
     }
   }
 
-  /** Prompts shown now. */
-  shownErrors(): readonly string[] {
-    return untrack(() => this.errors.get())
+  ////////////////
+  // ## State and classes
+  ////////////////
+
+  /** The state shown:  `error` while prompting, else the attribute. */
+  get shownState(): UIT.FormState | undefined {
+    return this.errors.length ? ERROR : this.state
+  }
+
+  /** `:state(error)`:  the state shown is `error`. */
+  @E.cssState("error")
+  get isError(): boolean {
+    return this.shownState === ERROR
+  }
+
+  /** `:state(info)`:  the state shown is `info`. */
+  @E.cssState("info")
+  get isInfo(): boolean {
+    return this.shownState === INFO
+  }
+
+  /** `:state(success)`:  the state shown is `success`. */
+  @E.cssState("success")
+  get isSuccess(): boolean {
+    return this.shownState === SUCCESS
+  }
+
+  /** `:state(warning)`:  the state shown is `warning`. */
+  @E.cssState("warning")
+  get isWarning(): boolean {
+    return this.shownState === WARNING
+  }
+
+  /**
+   * `:state(disabled)` while `disabled`:  the root is `inert`.
+   * - Not an `isDisabled` override:  that would make the host swallow clicks too.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return this.disabled
+  }
+
+  /** Always `:state(field)`:  how `<ui-form>` finds a control's field. */
+  @E.cssState("field")
+  get isField(): boolean {
+    return true
   }
 
   protected classValue(name: E.AttributeName<typeof fieldVocabulary>): unknown {
-    if (name === "state") return this.shownState()
+    if (name === "state") return this.shownState
     return super.classValue(name)
   }
 
-  protected hostStates() {
-    return { field: true, ...StateFlags.flagsFor(this.shownState()), disabled: this.attrs.disabled }
-  }
+  ////////////////
+  // ## Rendering
+  ////////////////
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("field")} inert={this.attrs.disabled}>
+      <div class={this.rootClasses} part={this.partForName("field")} inert={this.disabled}>
         <slot />
-        <Show when={this.errors.get().length}>
-          <span class={this.attrs.inline ? INLINE_PROMPT : PROMPT} part={this.part("prompt")} role={UIT.ALERT}>
-            <For each={this.errors.get()}>{(message) => <span class={UIT.MESSAGE}>{message}</span>}</For>
+        <Show when={this.errors.length}>
+          <span class={this.inline ? INLINE_PROMPT : PROMPT} part={this.partForName("prompt")} role={UIT.ALERT}>
+            <For each={this.errors}>{(message) => <span class={UIT.MESSAGE}>{message}</span>}</For>
           </span>
         </Show>
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIField extends E.AttributeValues<typeof fieldVocabulary> {}
 
 /** Class words of the prompt (`ui-label.css` + `ui-form.css`). */
 const PROMPT = "ui basic pointing prompt label"

@@ -8,7 +8,7 @@ import { DEFAULT_POSITION, type Vocabulary } from "./ui-popup.types"
  * `header` / `content` shorthands and the slot, in a host that stays closed (`ui-popup.css` hides a host that isn't
  * `:popover-open`).
  * - Nothing harmful:  no positioning, no listeners on the page, no overlay.  What remains is the NATIVE tooltip:
- *   a tooltip-like popup (`on` isn't `click`) copies its text into the target's `title` when the target has
+ *   a tooltip-like popup (`open-on` isn't `click`) copies its text into the target's `title` when the target has
  *   none, removed again on dispose.
  ****************/
 export class PopupFallback extends E.NativeFallback<Vocabulary> {
@@ -16,7 +16,7 @@ export class PopupFallback extends E.NativeFallback<Vocabulary> {
   @E.proto static degraded = [
     "showing it:  no popover, positioning, triggers, invoker commands, `ui-open` / `ui-close` or Escape;  a tooltip's text becomes " +
       "the target's native `title`",
-    "click popups (`on=click`):  nothing at all"
+    "click popups (`open-on=click`):  nothing at all"
   ]
 
   /** Target whose `title` this fallback set, to undo on dispose. */
@@ -34,7 +34,7 @@ export class PopupFallback extends E.NativeFallback<Vocabulary> {
 
   /** Copies a tooltip's text into its target's `title`, which needs the host attached (its target is a sibling). */
   protected override attached() {
-    if (this.attr("on") === UIT.PopupTrigger.click) return
+    if (this.attr("open-on") === UIT.PopupTrigger.click) return
     const target = this.target()
     const text = [this.attr("header"), this.attr("content"), this.host.textContent?.trim()].filter(Boolean).join(" -- ")
     if (!target || !text || target.hasAttribute(UIT.TITLE)) return

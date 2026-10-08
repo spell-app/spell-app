@@ -1,4 +1,4 @@
-import { Match, Switch, createEffect, createMemo, onSettled, untrack } from "solid-js"
+import { Match, Switch, onSettled, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -7,6 +7,14 @@ import { MenuFallback } from "./ui-menu.fallback"
 import type { ChoosableItem, ItemController, Vocabulary } from "./ui-menu.types"
 
 import menuCSS from "./ui-menu.css?inline"
+
+/**
+ * Same item context, field by field:  items don't re-render for an equal one (`ownItemContext`'s `equals`).
+ * - Above the class:  `@derived({ equals })` reads it while the class is defined.
+ */
+function isSameContext(a: UIT.ItemContext, b: UIT.ItemContext): boolean {
+  return a.hostRole === b.hostRole && a.role === b.role && a.interactive === b.interactive && a.current === b.current
+}
 
 /****************
  * ### `<ui-menu>`
@@ -31,65 +39,66 @@ import menuCSS from "./ui-menu.css?inline"
  ****************/
 export class UIMenu extends E.UIElement<Vocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = menuVocabulary
-  @E.proto static styles = { menu: menuCSS }
-  @E.proto static Fallback = MenuFallback
-  /** A sub-menu is a part of its menu;  transparent to other parts' climbs (an item's header finds the menu). */
-  @E.proto static isPart = true
-  /** Nothing to delegate to:  the items are the focus targets. */
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { menu: menuCSS }
+  @E.proto static elementSetup = {
+    Fallback: MenuFallback,
+    // a sub-menu is a part of its menu:  an item's header looks past it to the menu
+    isAPart: true,
+    // nothing to delegate to:  the items are the focus targets
+    delegatesFocus: false
+  }
 
-  /** Owning menu, when this is a sub-menu. */
-  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
-
-  /** Host `aria-label`, forwarded to the landmark / menubar. */
-  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
-
-  /** Item hosts that asked THIS (top) menu for their context:  the roving candidates. */
-  private readonly asked = new WeakSet<Element>()
-
-  /** Live roving tabindex while `interactive`. */
-  private roving: E.RovingTabindex | undefined
-
-  /** The menubar root, while rendered. */
-  private bar: HTMLElement | undefined
-
-  /** A refresh of the roving set is queued. */
-  private isRefreshQueued = false
-
-  ////////////////
-  // ## Derived state
-  ////////////////
-
-  /** The owning menu's controller, when this is a sub-menu:  only menus own `menu` parts.  Tracked. */
-  readonly parent = createMemo(() => this.context.ownerController<UIMenu>())
-
-  /** What this menu's items render as (only the top menu's is read). */
-  readonly ownContext = createMemo(() => this.computeContext(), { equals: UIMenu.isSameContext })
-
-  /** The menubar is live:  top-level, `interactive`, rendered. */
-  readonly isMenubar = createMemo(() => !this.parent() && this.attrs.interactive && this.isLoaded())
-
-  /** Listens for clicks on the host (`ui-select`), and runs the roving tabindex while this is a menubar. */
+  /** Listens for clicks on the host (`ui-select`), and re-applies the roving tabindexes once settled. */
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     const onClick = (event: MouseEvent) => this.onClick(event)
     this.host.addEventListener("click", onClick)
     this.host.addReleaseCallback(() => this.host.removeEventListener("click", onClick))
-    // SIDE EFFECT:  roving tabindex over the item hosts while this is a menubar
-    createEffect(
-      () => (this.isMenubar() ? this.orientation() : undefined),
-      (orientation) => {
-        if (!orientation) return
-        queueMicrotask(() => this.startRoving(orientation))
-        return () => this.stopRoving()
-      }
-    )
     onSettled(() => this.queueRefresh())
   }
 
+  ////////////////
+  // ## The menu tree
+  ////////////////
+
+  /** Owning menu, when this is a sub-menu. */
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
+
+  /** The owning menu's controller, when this is a sub-menu:  only menus own `menu` parts. */
+  get parentMenu(): UIMenu | undefined {
+    return this.context.ownerController<UIMenu>()
+  }
+
   /** Top menu of a sub-menu tree. */
-  top(): UIMenu {
-    return this.parent()?.top() ?? this
+  get topMenu(): UIMenu {
+    return this.parentMenu?.topMenu ?? this
+  }
+
+  /** A sub-menu's classes:  `[position] menu`, no `ui`. */
+  private get subMenuClasses(): string {
+    return [this.position, this.vocabulary.noun].filter(Boolean).join(" ")
+  }
+
+  ////////////////
+  // ## Items
+  ////////////////
+
+  /** Item hosts that asked THIS (top) menu for their context:  the roving candidates. */
+  private readonly itemsThatAsked = new WeakSet<Element>()
+
+  /**
+   * What this menu's items render as (only the top menu's is read), from its attributes.
+   * - The same object while an equal one is computed (`isSameContext()`):  items don't re-render for it.
+   */
+  @E.derived({ equals: isSameContext })
+  get ownItemContext(): UIT.ItemContext {
+    const isInteractive = this.interactive
+    return {
+      hostRole: isInteractive ? UIT.NONE : undefined,
+      role: isInteractive ? MENUITEM_ROLE : undefined,
+      interactive: isInteractive || this.link || this.pagination,
+      current: UIT.PAGE
+    }
   }
 
   /**
@@ -98,87 +107,24 @@ export class UIMenu extends E.UIElement<Vocabulary> implements UIT.ItemOwner {
    *   (re-)rendered its box.
    */
   itemContext(item: Element): UIT.ItemContext {
-    const top = untrack(() => this.top())
-    top.asked.add(item)
+    const top = untrack(() => this.topMenu)
+    top.itemsThatAsked.add(item)
     top.queueRefresh()
-    return top.ownContext()
+    return top.ownItemContext
   }
-
-  /** What this (top) menu's items render as, from its attributes.  Tracked. */
-  private computeContext(): UIT.ItemContext {
-    const isInteractive = this.attrs.interactive
-    return {
-      hostRole: isInteractive ? UIT.NONE : undefined,
-      role: isInteractive ? MENUITEM_ROLE : undefined,
-      interactive: isInteractive || this.attrs.link || this.attrs.pagination,
-      current: UIT.PAGE
-    }
-  }
-
-  /** The menubar's arrow-key axis:  `vertical` menus go up and down.  Tracked. */
-  private orientation(): E.RovingOrientation {
-    return this.attrs.vertical ? UIT.VERTICAL : UIT.HORIZONTAL
-  }
-
-  protected hostStates() {
-    return { interactive: !this.parent() && this.attrs.interactive, vertical: this.attrs.vertical }
-  }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  /** The root for this shape:  sub-menu, menubar or landmark. */
-  render(): JSX.Element {
-    return (
-      <Switch>
-        <Match when={this.parent()}>
-          <div class={this.subClasses()} part={this.part("menu")}>
-            <slot />
-          </div>
-        </Match>
-        <Match when={this.attrs.interactive}>
-          <div
-            ref={(element: HTMLElement) => (this.bar = element)}
-            class={this.classes()}
-            part={this.part("menu")}
-            role={MENUBAR_ROLE}
-            aria-orientation={this.attrs.vertical ? UIT.VERTICAL : undefined}
-            aria-label={this.ariaLabel.get()}
-          >
-            <slot />
-          </div>
-        </Match>
-        <Match when={true}>
-          <nav class={this.classes()} part={this.part("menu")} aria-label={this.ariaLabel.get()}>
-            <slot />
-          </nav>
-        </Match>
-      </Switch>
-    )
-  }
-
-  /** A sub-menu's classes:  `[position] menu`, no `ui`. */
-  private subClasses(): string {
-    return [this.attrs.position, this.vocabulary.noun].filter(Boolean).join(" ")
-  }
-
-  ////////////////
-  // ## Behaviour
-  ////////////////
 
   /**
    * A click inside the menu:  `ui-select` when it activated a link / button item (Enter / Space on one click it
    * too).  Only the top menu dispatches;  a sub-menu's clicks bubble to it.
    */
   private onClick(event: MouseEvent) {
-    if (this.parent()) return
+    if (this.parentMenu) return
     const item = UIMenu.activatedItem(event)
     if (!item || item.matches(UIT.DISABLED_STATE)) return
     const controller = (item as E.UIHost).controller as ItemController | undefined
-    const value = controller?.attrs?.value ?? item.textContent?.trim() ?? ""
-    const isChosen = this.emit("ui-select", { value, item, originalEvent: event })
-    if (isChosen && this.attrs.appearance === SEGMENTED) this.choose(item)
+    const value = controller?.value ?? item.textContent?.trim() ?? ""
+    const isChosen = this.send("ui-select", { value, item, originalEvent: event })
+    if (isChosen && this.appearance === SEGMENTED) this.choose(item)
   }
 
   /**
@@ -188,10 +134,53 @@ export class UIMenu extends E.UIElement<Vocabulary> implements UIT.ItemOwner {
    */
   private choose(item: Element) {
     for (const element of this.host.querySelectorAll<ChoosableItem>("*")) {
-      if (!this.asked.has(element)) continue
+      if (!this.itemsThatAsked.has(element)) continue
       if (element !== item) element.removeAttribute(UIT.ACTIVE)
       element.selected = element === item
     }
+  }
+
+  ////////////////
+  // ## The menubar
+  ////////////////
+
+  /** Top-level and `interactive`?  `:state(interactive)`;  not `isMenubar`, which also waits for `isReady`. */
+  @E.cssState("interactive")
+  get isInteractiveMenubar(): boolean {
+    return !this.parentMenu && this.interactive
+  }
+
+  /** The menubar is live:  top-level, `interactive`, rendered. */
+  get isMenubar(): boolean {
+    return !this.parentMenu && this.interactive && this.isReady
+  }
+
+  /** `vertical`?  `:state(vertical)`. */
+  @E.cssState("vertical")
+  get isVertical(): boolean {
+    return this.vertical
+  }
+
+  /** The menubar's arrow-key axis:  `vertical` menus go up and down. */
+  private get orientation(): E.RovingOrientation {
+    return this.vertical ? UIT.VERTICAL : UIT.HORIZONTAL
+  }
+
+  /** Live roving tabindex while `interactive`. */
+  private rovingTabindex: E.RovingTabindex | undefined
+
+  /** The menubar root, while rendered. */
+  private bar: HTMLElement | undefined
+
+  /** A refresh of the roving set is queued. */
+  private refreshIsQueued = false
+
+  /** SIDE EFFECT:  a roving tabindex over the item hosts while this is a menubar;  returns its stop. */
+  @E.onChange("isMenubar", "orientation")
+  protected onMenubarChanged(isMenubar: boolean, orientation: E.RovingOrientation) {
+    if (!isMenubar) return
+    queueMicrotask(() => this.startRoving(orientation))
+    return () => this.stopRoving()
   }
 
   /** Start the roving tabindex on the menubar root, the selected item (or the first) as the tab stop. */
@@ -201,7 +190,7 @@ export class UIMenu extends E.UIElement<Vocabulary> implements UIT.ItemOwner {
     if (!bar || !this.host.isConnected) return
     const boxes = this.menuItems()
     const selected = boxes.findIndex((box) => (box.getRootNode() as ShadowRoot).host?.matches(SELECTED_STATE))
-    this.roving = UI.focus.roving({
+    this.rovingTabindex = UI.focus.roving({
       container: bar,
       items: () => this.menuItems(),
       orientation,
@@ -211,21 +200,21 @@ export class UIMenu extends E.UIElement<Vocabulary> implements UIT.ItemOwner {
 
   /** Stop roving;  the item boxes lose the `tabindex`es it set. */
   private stopRoving() {
-    if (!this.roving) return
-    this.roving.detach()
-    this.roving = undefined
+    if (!this.rovingTabindex) return
+    this.rovingTabindex.detach()
+    this.rovingTabindex = undefined
     for (const box of this.menuItems()) box.removeAttribute(UIT.TABINDEX)
   }
 
   /** Re-apply the roving `tabindex`es once, after the item set may have changed (restarting before any focus). */
   private queueRefresh() {
-    if (this.isRefreshQueued) return
-    this.isRefreshQueued = true
+    if (this.refreshIsQueued) return
+    this.refreshIsQueued = true
     queueMicrotask(() => {
-      this.isRefreshQueued = false
-      if (!this.roving) return
-      if (this.host.matches(FOCUS_WITHIN)) this.roving.refresh()
-      else this.startRoving(untrack(() => this.orientation()))
+      this.refreshIsQueued = false
+      if (!this.rovingTabindex) return
+      if (this.host.matches(FOCUS_WITHIN)) this.rovingTabindex.refresh()
+      else this.startRoving(untrack(() => this.orientation))
     })
   }
 
@@ -237,13 +226,51 @@ export class UIMenu extends E.UIElement<Vocabulary> implements UIT.ItemOwner {
     return untrack(() => {
       const boxes: HTMLElement[] = []
       for (const element of this.host.querySelectorAll<HTMLElement>("*")) {
-        if (!this.asked.has(element) || element.hidden) continue
+        if (!this.itemsThatAsked.has(element) || element.hidden) continue
         const item = (element as E.UIHost).controller as ItemController | undefined
         const box = item?.focusTarget
-        if (box && item.attrs.type === UIT.ITEM) boxes.push(box)
+        if (box && item.type === UIT.ITEM) boxes.push(box)
       }
       return boxes
     })
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
+  /** The root for this shape:  sub-menu, menubar or landmark;  the host's `aria-label` names the last two. */
+  render(): JSX.Element {
+    return (
+      <Switch>
+        <Match when={this.parentMenu}>
+          <div class={this.subMenuClasses} part={this.partForName("menu")}>
+            <slot />
+          </div>
+        </Match>
+        <Match when={this.interactive}>
+          <div
+            ref={(element: HTMLElement) => (this.bar = element)}
+            class={this.rootClasses}
+            part={this.partForName("menu")}
+            role={MENUBAR_ROLE}
+            aria-orientation={this.vertical ? UIT.VERTICAL : undefined}
+            aria-label={this.attributes[UIT.ARIA_LABEL] ?? undefined}
+          >
+            <slot />
+          </div>
+        </Match>
+        <Match when={true}>
+          <nav
+            class={this.rootClasses}
+            part={this.partForName("menu")}
+            aria-label={this.attributes[UIT.ARIA_LABEL] ?? undefined}
+          >
+            <slot />
+          </nav>
+        </Match>
+      </Switch>
+    )
   }
 
   ////////////////
@@ -265,15 +292,9 @@ export class UIMenu extends E.UIElement<Vocabulary> implements UIT.ItemOwner {
     }
     return undefined
   }
-
-  /**
-   * Same item context, field by field:  items don't re-render for an equal one.
-   * - STATIC:  pure, handed to `createMemo()`.
-   */
-  private static isSameContext(a: UIT.ItemContext, b: UIT.ItemContext): boolean {
-    return a.hostRole === b.hostRole && a.role === b.role && a.interactive === b.interactive && a.current === b.current
-  }
 }
+/** The vocabulary getters, typed. */
+export interface UIMenu extends E.AttributeValues<Vocabulary> {}
 
 ////////////////
 // ## Constants

@@ -44,8 +44,9 @@ house style every package shares.  Only what's local is below;  a section named 
   - `src/elements/` (`E`) -- the element core:
     - library-neutral:  `ClassBuilder`, `Validator`, `MenuOptions`, `OwnerContext`, `Shorthand`, `NativeFallback`
     - the Solid layer:  `UIHost` / `FormHost` (host base classes), `UIElement` (the CONTROLLER base:  one instance
-      per element, `render()` returns JSX), `ElementDefinition` (vocabulary => the fork's props), `FormElement`,
-      `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `PartContext` + `ContentPart` (owner context),
+      per element, `render()` returns JSX), `ElementDefinition` (vocabulary => the fork's props), `Reactive` (the
+      reactive members' decorators:  `@state`, `@controlled`, `@derived`, `@cssState`, `@onChange`), `FormElement`,
+      `Cell`, `SlotContent`, `PartContext` + `ContentPart` (owner context), `Controlled` (compatibility:  brand's controllers still use it),
       `IconGlyph`, `SourceElement` + `SourceHost` (the base of the elements that show a text file:  `source`, inline
       text, loading / error look, `save()`), and the dev-only `HotDefinitions` (NOT in the barrel)
   - `src/components/ui-<name>/` -- one folder per component FAMILY, named after its main tag (`ui-button/`);  the
@@ -304,9 +305,54 @@ As WWOD §18, plus:
 - Solid's own rules (no writes in an owned scope, staged writes, two-function effects, eager memos):  SEE:
   `guides/solid/solid-2.md`.  Below:  only what's `ui`'s own.
 - An element is a CONTROLLER class `UI<Name> extends UIElement<typeof nameVocabulary>` (or `FormElement`,
-  `ContentPart`):  `@proto static vocabulary` / `styles` / `Fallback` (/ `formAssociated`, `delegatesFocus`),
-  signals and memos as FIELDS, `render()` returning JSX.  The fork creates one per element on first connect and
-  keeps it (`keepAlive`) until `host.dispose()`.  `UI<Name>.define()` in the family's `index.ts` registers it.
+  `ContentPart`):  `@proto static vocabulary` / `styleSheets` / `elementSetup` (`{ Fallback: <Name>Fallback }`,
+  plus whatever else differs from its base:  `delegatesFocus: false` ...), reactive members (below), `render()`
+  returning JSX.  The fork creates one per element on first connect and keeps it (`keepAlive`) until
+  `host.dispose()`.  `UI<Name>.define()` in the family's `index.ts` registers it.
+- **Reactive members** (`src/elements/Reactive.ts`;  WWOD §12 › "Reactive members"):  decorators over ONE record per
+  instance, so `this.x` reads fresh right after `this.x = v` (no flush), and Solid follows the reads in JSX and
+  effects.  The decorator says how the member works:
+  - `@E.state accessor isOpen = false` -- the element's own state (`{ equals }`, `{ ownedWrite }` when needed).
+    Replaces a `Cell` field and its `.get()` / `.set()`.
+  - `@E.controlled("open") accessor isOpen = false` -- the host's property when set, else the starting value;  a
+    write goes to the host property.  A user change:  `this.requestChange("isOpen", next, () => this.send(...))`;
+    `isHostControlled("isOpen")`.  Replaces `this.controlled()` and `Controlled.request()`.
+  - attributes:  a getter per vocabulary attribute, `this.size` (converted, fresh), made by `register()`;  the class
+    declares them for TypeScript, below the class:  `export interface UIButton extends
+    E.AttributeValues<typeof buttonVocabulary> {}`.  A write (`this.indeterminate = false`) sets the HOST property
+    under the tag's own name for it (a translated tag's too), so it reflects.  A member with an attribute's name
+    wins over its getter (and TypeScript flags a type clash), so name members for what they are (`isOpen`, not
+    `open`);  a BASE class never takes a name any vocabulary uses (`elementDefinition`, `validationRules`:
+    `UIElement`'s doc, "Member names").  Attributes outside the vocabulary, or a vocabulary attribute's raw text:
+    `this.attributes["aria-label"]`, `this.attributes.value` -- the DOM string or `null`, by CANONICAL name (a
+    translated tag reads its own).  Replaces `this.attrs.x` and `HostAttribute`.
+  - `get x()` -- a derived value:  a plain getter, fresh by construction.  `@E.derived get x()` only for real work
+    (loops, parsing, class strings, new DOM):  a self-tracking cache, NOT a Solid memo (a memo hears of a change
+    through a staged signal, so it reads stale right after a write).  It records the version of every record
+    member it reads and recomputes on read when one moved.  It MUST read only record members (`@state`,
+    `@controlled`, attributes, other `@derived`):  a `Cell`, a memo, `UI.browser` or a module global can't be seen
+    changing outside Solid -- move it into the record, or keep a plain getter.
+    `@E.derived({ equals: E.isSameList })` keeps the old value while an equal one is computed (a filtered list keeps
+    its identity).
+  - `@E.cssState("open")` on a getter or accessor -- `:state(open)` follows it;  `cssStates()` only for a computed
+    set.  Replaces `hostStates()`.
+  - `@E.onChange("a", "b") onXChanged(a, b)` -- an effect reading the members, calling the method with their values;
+    a function it returns is the cleanup;  `{ writesHost: true }` applies once on a server (as `hostEffect()`).
+    Created in `onMount()`, after every field exists.  Runs only when a member's VALUE changed (`===`, member by
+    member):  a getter member tracks the sources under it, and Solid 2 applies an effect on every re-run of its
+    compute, so `startEffects()` puts a memo with `equals` in between.  An effect that used to live in `render()`
+    names `isReady` too and returns early until it's true, keeping that timing (`UIShape`, `UISidebar`).
+    Conditional, per-item or object-building effects stay explicit `createEffect`s in `onMount()`.
+  - `this.$.isOpen` -- an `Accessor` of any member, for Solid APIs that take one;  everyday code reads `this.isOpen`.
+  - `this.on("command", this.onCommand)` -- a listener on the host (or `{ target }`) for the element's whole
+    life, removed when the host is released.  So no vocabulary may name an attribute `on` (Fomantic's `on`
+    setting is `<ui-form validate-on>`, `<ui-dimmer show-on>`, `<ui-popup show-on>`).  One stopped by an effect
+    keeps its own `AbortController`, aborted in the cleanup.
+  - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `@E.cssState("disabled") get
+    looksDisabled()`, never an `isDisabled` override (the host swallows clicks while `isDisabled`).
+  - Element-core files import the decorators directly (`import { state } from "./Reactive"`:  their class
+    definitions read them);  component files use `@E.state` (and `@E.proto`).
+  - Measured (P14 step 1):  1,000 `<ui-divider>`s build in 33 ms (32 before), 1,000 `<ui-button>`s in 100 ms (130).
 - Imports in component files (element classes AND `ui-<name>.fallback.ts`):  shared code ONLY from `$/ui/core` (and
   `$/ui/forms` for form controls), never `$/ui/util`, `$/ui/vocabulary`, `$/ui/elements` ... directly;  the family's own
   vocabulary, fallback, helpers and sheet as peers (`./ui-button.vocabulary.en`, `./ui-button.css?inline`).  Why:  the
@@ -330,19 +376,21 @@ As WWOD §18, plus:
       (`FormElement`'s `FormHost`, `Validator`) is still direct.
     - `src/elements/barrel.test.ts` checks every export of both entries is live;  NEVER import an element-core leaf by
       path (`$/ui/elements/UIElement`):  entering the cycle there breaks it.
-- **Eager memos and overridables:**  base-class memos that call overridable methods take `{ lazy: true }`;
-  effects that call overridables are created in `mount()`, after every subclass field exists.
-- **`Cell` field order:**  class fields initialize in declaration order, before the subclass constructor body.
-  Declare every signal as a `Cell` field ABOVE the memos that read it;  compute a starting value into the initial
-  value (`new Cell(untrack(() => ...))`), never by writing during setup.
-- **Where writes go:**  `render()` is an owned scope (no signal writes there).  Write from event handlers,
-  `onSettled`, promise callbacks, the effect's APPLY function or the fork's hooks;  hooks that can run inside a
+- **Eager memos and overridables:**  a memo that calls overridable members takes `{ lazy: true }` (or is a getter);
+  effects that read them are created in `onMount()` (or are `@onChange`), after every subclass field exists.
+- **Field order:**  class fields (`accessor`s too) initialize in declaration order, before the subclass constructor
+  body.  Declare state ABOVE what reads it in an initializer;  compute a starting value into the initializer
+  (`@E.state accessor isDirty = this.wasEdited !== undefined`).
+- **Where writes go:**  `render()` is an owned scope:  no writes there.  Write from event handlers, `onSettled`,
+  promise callbacks, `@onChange` methods (an effect's APPLY) or the fork's hooks;  hooks that can run inside a
   Solid render (`onConnect`, the `onFormDisabled` replay) defer with `queueMicrotask`.  Element PROPERTY writes are
-  always legal.
-  - A read right after a write sees the old value:  keep the new value in a local.  Tests
-    `await ElementFixture.settle()` / `tick()` (which `flush()`), never sleep.
-- **Events:**  dispatch through `this.emit("ui-change", detail)` (vocabulary-checked, localized on translated
-  tags).  Inside a component, `onClick={...}` for native events (no `on:` namespace;  rich data as
+  always legal.  A reactive member's write never throws:  inside an owned scope its notification waits a microtask.
+  - A reactive member reads fresh right after a write;  a `Cell` (or a fork prop, `attrs.x`) still reads the OLD
+    value until the flush:  keep the new value in a local.  Tests `await ElementFixture.settle()` / `tick()` (which
+    `flush()`) before checking the DOM, never sleep.
+- **Events:**  dispatch through `this.send("ui-change", detail)` (vocabulary-checked, localized on translated
+  tags);  listen on the host (or its shadow root) through `this.on("command", this.onCommand)`, for the element's
+  whole life ("Reactive members").  Inside a component, `onClick={...}` for native events (no `on:` namespace;  rich data as
   `prop:options`:  `solid-2.md` "DOM and `@spell-app/ui` elements").
   - A THIRD-PARTY Solid app listening for `ui-*` events uses a `ref` callback + `addEventListener`
     (`tools/frameworks/solid/app.tsx`);  our app:  WWOD §17 › "Events:  `onClick`, or `on()` for `ui-*`".
@@ -355,7 +403,7 @@ As WWOD §18, plus:
 - **Slots carry no Solid context:**  an element's root is owned by whoever CREATED it, never by the `<slot>` it's
   assigned to (fork PR 11), so a `<slot>` may live in any `<Show>` / `<Dynamic>` branch, but context provided
   around it never reaches slotted elements.  Owner data goes through `PartContext` / `OwnerContext`.
-- **Native fallback:**  every family sets `@proto static Fallback = <Name>Fallback` (plain DOM on
+- **Native fallback:**  every family sets `Fallback: <Name>Fallback` in its `@proto static elementSetup` (plain DOM on
   `NativeFallback`, same class grammar, no Solid).  When a render throws, the element logs once, dispatches a
   cancelable `ui-error`, gets `:state(errored)` and shows the fallback;  siblings keep working
   (`docs/fallback.md`).
@@ -370,8 +418,9 @@ As WWOD §18, plus:
   - Static render (`$/ui/static`):  as WWOD §12 › "Brand checks only where `instanceof` can't work", plus:  hosts
     are linkedom elements, so NEVER `instanceof Element` / `Node` / `ShadowRoot` / `HTMLSlotElement` in shared code
     (node has no such globals):  `nodeType`, `localName`.
-  - An effect whose APPLY writes the host (`internals.role`, ARIA, states) is `this.hostEffect(compute, apply)`:  the
-    server build never runs an apply, so a plain `createEffect` leaves the static output without it.
+  - An effect whose APPLY writes the host (`internals.role`, ARIA, states) is `@E.onChange(..., { writesHost: true })`
+    or `this.hostEffect(compute, apply)`:  the server build never runs an apply, so a plain `createEffect` leaves the
+    static output without it.
 
 ## Decorators
 
@@ -381,6 +430,8 @@ As WWOD §12, plus:
   the site bundle's `vite.site.config.ts`).
 - The decorator pre-pass MUST run BEFORE the Solid plugin (both are `enforce: "pre"`;  `baseConfig()` orders them):
   the Solid compiler must see decorator-free code.
+- It lowers `accessor` fields too (`@E.state accessor x`), and keeps decorator metadata (`Symbol.metadata`, or
+  esbuild's `Symbol.for("Symbol.metadata")`), which `@cssState` / `@onChange` record their lists in.
 
 ## Types / Exports
 
@@ -426,11 +477,11 @@ wins), plus these deliberate EXCEPTIONS:
 
 As WWOD §6, plus:
 
-- An override that only FILLS a hook its base class documents (`render()`, `hostStates()`, a fallback's `build()`)
+- An override that only FILLS a hook its base class documents (`render()`, `cssStates()`, a fallback's `build()`)
   needs no docstring;  one that adds to the base's contract says what it adds:  `/** Disabled by its attribute, or by
   a disabled fieldset. */`.  The base class documents each hook once (epic `wwod-spell-ui`, Q3).
-- Likewise `@proto static vocabulary` / `vocabularies` / `styles` / `Fallback` / `degraded`:  documented once, with
-  why they're static, on `UIElement` / `NativeFallback`.
+- Likewise `@proto static vocabulary` / `vocabularies` / `styleSheets` / `elementSetup` / `degraded`:  documented
+  once, with why they're static, on `UIElement` / `NativeFallback`.
 
 ## Functions & types
 
@@ -452,8 +503,22 @@ As WWOD §9, plus:
 
 As WWOD §12, plus:
 
-- `@proto static` defaults stay at the TOP of the class:  they're its declared config (epic `wwod-spell-ui`, Q11).
-  Other statics go after the main methods;  constants go below the class (next bullet).
+- A class setting lives WITH ITS PROPERTY GROUP:  its `declare` and its `@proto static` default side by side, in the
+  `////` section of the code that uses it (`UIElement`:  `elementSetup` under "Element setup", `styleSheets` under
+  "StyleSheets").  Owen's "locate code near its siblings" (epic `wwod-spell-ui`, Q11), superseding "`@proto static`
+  defaults at the TOP".  A subclass that only SETS settings (`@proto static vocabulary = ...`) still lists them
+  first, before its members.
+  - Per-class settings of the custom element itself (form control, focus, slots, part, host class, fallback,
+    unstyled first paint) are keys of ONE setting, `elementSetup` (type `ElementSetup`), MERGED down the class
+    chain, base class first.  A subclass states only the keys it changes:
+    `@E.proto static elementSetup = { Fallback: NagFallback, Host: UINagHost }`.
+    Read the merged result through `setup` (or `UIElement.setupFor(Class)`), never `elementSetup` itself.
+    - A base class that others extend types its own as `Partial<E.ElementSetup>`:
+      otherwise a subclass stating other keys fails TypeScript's check of the class's static side.
+  - `vocabulary` and `styleSheets` stay settings of their own:  a subclass's `styleSheets` REPLACE its base's
+    (spread them to add:  `{ ...UISection.styleSheets, panel: panelCSS }`), they don't merge.
+  - Developer / debug switches (ALL-CAPS statics:  `UIElement.ISOLATE_ERRORS`) stay at the top.
+  - Other statics go after the main methods;  constants go below the class (next bullet).
 - Constants (epic `wwod-spell-ui`, Q18:  bundle size over WWOD §12's `static` constants):
   - Used by ONE class:  a module `const` (not exported) BELOW the class, with its other helpers (WWOD §8), each with
     its docstring.  Why:  a module `const` minifies to one letter;  a static's name (`t.LIST_SEPARATOR`) doesn't.
@@ -468,6 +533,16 @@ As WWOD §12, plus:
 - Render pieces of a controller class are private methods named for what they draw, no type word:  `thumb()`, not
   `renderThumb()` / `thumbElement()` (WWOD §17's inner functions are for function components;  epic
   `wwod-spell-ui`, Q12).
+- A controller reads close to English (Owen, 2026-10-06, epic `wwod-spell-ui` P14):
+  - its `////` sections are by PROPERTY or job, not by runtime phase:  a member's state, getter / setter, what's
+    derived from it, its handlers and `@onChange` methods together (`UIElement`:  "Readiness and style sheets",
+    "Classes", "Disabled";  `SourceElement`:  "The text", "Loading", "Errors", "Saving")
+  - the public API in code is getters / setters (`isDisabled`, `content`), not `getX()` / `setX()` functions;  a
+    method only when it takes arguments (`hasContent(name)`) or is an action that sends an event (`save()`,
+    `requestChange()`)
+  - booleans read as English (`isDirty`, `isSaving`, `delegatesFocus`, `isAFormControl`);  handlers and moment
+    callbacks are `on...` (`onMount()`, `onLoaded()`, `onError()`, `onFormReset()`);  the two event verbs are short:
+    `send()` an event, `on()` to listen
 - The constructor of `UIElement` stays `(host, definition, attrs)`:  the forked custom-element layer calls it.
 
 ## Logging

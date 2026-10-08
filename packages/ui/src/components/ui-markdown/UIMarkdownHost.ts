@@ -1,3 +1,5 @@
+import { untrack } from "solid-js"
+
 import { E } from "$/ui/core"
 import type { MarkdownController, MarkdownHeading } from "./ui-markdown.types"
 
@@ -10,9 +12,9 @@ import type { MarkdownController, MarkdownHeading } from "./ui-markdown.types"
  * - `reveal(id)` -- scroll to one of them from outside.
  ****************/
 export class UIMarkdownHost extends E.SourceHost {
-  /** Each heading of the last render;  `[]` before the first. */
+  /** Each heading of the last render;  `[]` before the first.  Untracked:  script API. */
   get headings(): MarkdownHeading[] {
-    return this.markdown?.getHeadings() ?? []
+    return untrack(() => this.markdown?.headings) ?? []
   }
 
   /**

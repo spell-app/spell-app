@@ -14,15 +14,18 @@ import { avatarVocabulary } from "./ui-avatar.vocabulary.en"
 export class UIAvatar extends PartElement<typeof avatarVocabulary> {
   @E.proto static vocabulary = avatarVocabulary
 
-  protected tag(): string {
+  protected get rootTag(): string {
     return "span"
   }
 
   protected content(): JSX.Element {
     return (
-      <Show when={this.attrs.src} fallback={<slot />}>
-        <img src={this.attrs.src} alt={this.attrs.alt ?? ""} part={this.part("image")} />
+      <Show when={this.src} fallback={<slot />}>
+        <img src={this.src} alt={this.alt ?? ""} part={this.partForName("image")} />
       </Show>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIAvatar extends E.AttributeValues<typeof avatarVocabulary> {}

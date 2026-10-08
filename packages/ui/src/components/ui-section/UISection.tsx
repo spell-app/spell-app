@@ -1,4 +1,4 @@
-import { Show, createEffect, createMemo, untrack } from "solid-js"
+import { Show, createEffect, untrack } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -47,7 +47,7 @@ import sectionCSS from "./ui-section.css?inline"
  *   (`aria-describedby`), else the heading.
  * - Level:  `level`, else the enclosing section's level + 1 (at most `h6`), else 2.  The enclosing section comes
  *   from `PartContext` (`ownsParts:  section`, `:state(in-section)`) WITHOUT barriers, so a section in a segment in
- *   a section still nests;  its level, depth and sticky stack are read from its controller (signals across
+ *   a section still nests;  its level, depth and sticky stack are read from its controller (reactive members across
  *   elements), so they follow its attributes and re-nesting.
  * - Folding (`collapsible`):  the toggle is a `<button>` (its accessible name is the header;  its `title`, the
  *   `fold` / `unfold` text by state, only a tooltip / description, as the fallback's);  click / Enter /
@@ -55,16 +55,16 @@ import sectionCSS from "./ui-section.css?inline"
  *   `open`).  Folded content is `hidden="until-found"`, so find-in-page reveals a match:  `beforematch` unfolds it
  *   and announces `ui-open` after the fact (not cancelable).  Not collapsible:  `collapsed` is ignored.
  * - Groups:  without its own `collapsible` attribute, a section folds when its nearest `<ui-sections>` (around it,
- *   or around an enclosing section) is `collapsing` (`group`, `collapsible()`).  The group also owns `section`
+ *   or around an enclosing section) is `collapsing` (`group`, `isCollapsible`).  The group also owns `section`
  *   parts, so `parent` climbs through it.
  * - Sticky:  the title bar is `position: sticky` inside the section box, at `top` ~== the top-level `offset`, or
- *   the bottom of the enclosing sticky titles (enclosing section's `stackBottom()`), so nested titles stack.  A
+ *   the bottom of the enclosing sticky titles (enclosing section's `stackBottom`), so nested titles stack.  A
  *   `scrolling` / `height` section's content starts a fresh stack (its own scroll box).  `StickyWatch` reports
  *   `:state(stuck)` and reserves the title's room for Page Down, exactly as `<ui-sticky>` does.
  * - Source (`source`, `select`):  the content comes from a file the first time the section unfolds -- by any route:
  *   a click, `collapsed` removed by the page (a `#id` link's unfold), or starting unfolded (then at once).
  *   `SourceBody` fetches it (`UI.sources`), and puts its `<body>` in the LIGHT DOM in place of the placeholder
- *   (children without a `slot`).  While it's on its way the content box stays hidden (`isVeiled()`, at most
+ *   (children without a `slot`).  While it's on its way the content box stays hidden (`isVeiled`, at most
  *   `SOURCE_BODY_HOLD_MS`, then the `loading` look over the placeholder), so the unfold shows the body.
  *   `load()` / `reload()` on the host (`SourceBodyHost`);  `:state(loaded)`, `:state(error)`.  Lives in the CLASS,
  *   so subclasses (`<ui-panel>`) get it with the vocabulary they reuse.
@@ -74,18 +74,20 @@ import sectionCSS from "./ui-section.css?inline"
  ****************/
 export class UISection extends E.UIElement<SectionVocabulary> {
   @E.proto static vocabulary = sectionVocabulary
-  @E.proto static styles = { section: sectionCSS }
-  @E.proto static Fallback = SectionFallback
-  @E.proto static Host = E.SourceBodyHost
-  // a container:  a click on its text must not jump to the fold button or a link inside
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { section: sectionCSS }
+  @E.proto static elementSetup: Partial<E.ElementSetup> = {
+    Fallback: SectionFallback,
+    Host: E.SourceBodyHost,
+    // a container:  a click on its text must not jump to the fold button or a link inside
+    delegatesFocus: false
+  }
   @E.proto static defaultFoldIcon: FoldIconPlace = FoldIconPlace.start
 
   /** Where the fold chevron sits without a `fold-icon` attribute:  `start`;  a subclass may move it. */
   declare defaultFoldIcon: FoldIconPlace
 
   ////////////////
-  // ## State
+  // ## Nesting
   ////////////////
 
   /** Enclosing section, when nested (`:state(in-section)`);  climbs through any other component. */
@@ -95,364 +97,73 @@ export class UISection extends E.UIElement<SectionVocabulary> {
     barrier: E.PartContext.noBarrier
   })
 
-  /** Light-DOM slot occupancy:  icon, badge, subhead, actions. */
-  readonly slots = new E.SlotContent(this.host)
-
-  /** Glyph of the `icon` shorthand. */
-  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
-
-  /**
-   * The host's `collapsible` attribute as written, `undefined` when absent;  tracked.
-   * - Why raw:  `attrs.collapsible` reads absent and `"false"` alike (false), but only absent takes the group's
-   *   default (`collapsible()`).
-   */
-  readonly collapsibleAttribute = new E.HostAttribute({
-    host: this.host,
-    name: this.definition.attribute("collapsible").attribute
-  })
-
-  /** `collapsed`:  the host's (a boolean is always the host's, see `Controlled`). */
-  readonly collapsedState = this.controlled("collapsed", false)
-
-  /** Title bar's height in pixels, while `sticky` (for the stack below it). */
-  readonly titleHeight = new E.Cell(0)
-
-  /** Title bar is stuck. */
-  readonly isStuck = new E.Cell(false)
-
-  /** The content from `source`, loaded on first unfold;  into the host's light DOM. */
-  readonly body = new E.SourceBody({
-    host: this.host,
-    source: () => untrack(() => this.attrs.source) || undefined,
-    select: () => untrack(() => this.attrs.select) || undefined,
-    target: () => this.host,
-    emit: (name, detail) => this.emit(name as never, detail)
-  })
-
-  /** The title bar. */
-  private title?: HTMLElement
-
-  /** Sentinel where the title bar's top would be, unstuck. */
-  private sentinel?: HTMLDivElement
-
-  /** Observes the stuck title and reserves its room. */
-  private readonly watch = new E.StickyWatch(({ edge }) => this.isStuck.set(edge !== undefined))
-
-  ////////////////
-  // ## Derived state
-  ////////////////
-
   /**
    * Enclosing section's controller, or `undefined` at the top (or before it has one).
    * - Climbs through `<ui-sections>` groups (owners of `section` parts too):  a section in a group in a section is
    *   still nested.
    */
-  readonly parent = createMemo((): UISection | undefined => {
+  @E.derived
+  get parent(): UISection | undefined {
     let owner = this.context.ownerController<UISection | UISections>()
     while (owner instanceof UISections) owner = owner.context.ownerController<UISection | UISections>()
     return owner instanceof UISection ? owner : undefined
-  })
+  }
 
   /** Nearest `<ui-sections>` group's controller, directly or through enclosing sections, or `undefined`. */
-  readonly group = createMemo((): UISections | undefined => {
+  get group(): UISections | undefined {
     const owner = this.context.ownerController<UISection | UISections>()
     if (owner instanceof UISections) return owner
-    return owner instanceof UISection ? owner.group() : undefined
-  })
-
-  /**
-   * Folds:  the host's own `collapsible` when written (`collapsible="false"` opts out), else the nearest group's
-   * `collapsing`.
-   * - NOTE: a PROPERTY write of `false` removes the attribute (booleans never reflect as `"false"`), which brings the
-   *   group's default back;  opt out from code with `setAttribute("collapsible", "false")`.
-   */
-  readonly collapsible = createMemo((): boolean => {
-    const own = this.collapsibleAttribute.get()
-    if (own !== undefined) return E.Converters.boolean(own, this.definition.attribute("collapsible").attribute)
-    return !!this.attrs.collapsible || !!this.group()?.attrs.collapsing
-  })
-
-  /** Glyph of the fold button, while `collapsible()`. */
-  readonly foldGlyph = new E.IconGlyph({ owner: this, name: () => (this.collapsible() ? FOLD_ICON : undefined) })
+    return owner instanceof UISection ? owner.group : undefined
+  }
 
   /** Heading level, 1 ... 6. */
-  readonly level = createMemo((): number => {
-    const own = Number(this.attrs.level)
+  get headingLevel(): number {
+    const own = Number(this.level)
     if (Number.isInteger(own) && own >= 1 && own <= MAX_LEVEL) return own
-    const parent = this.parent()
-    return parent ? Math.min(parent.level() + 1, MAX_LEVEL) : TOP_LEVEL
-  })
+    const parent = this.parent
+    return parent ? Math.min(parent.headingLevel + 1, MAX_LEVEL) : TOP_LEVEL
+  }
 
   /** Nesting depth:  0 at the top. */
-  readonly depth = createMemo((): number => {
-    const parent = this.parent()
-    return parent ? parent.depth() + 1 : 0
-  })
-
-  /** Pixels from the scroll container's top where the title sticks:  `offset` at the top, else the stack above. */
-  readonly stickTop = createMemo((): number => {
-    const parent = this.parent()
-    return parent ? parent.innerStackTop() : (this.attrs.offset ?? 0)
-  })
-
-  /** Bottom of the stack of stuck titles, through this one, in pixels. */
-  readonly stackBottom = createMemo((): number => this.stickTop() + (this.attrs.sticky ? this.titleHeight.get() : 0))
-
-  /** Where nested titles stick:  below the stack, or 0 in this section's own scroll box (`scrolling` / `height`). */
-  readonly innerStackTop = createMemo((): number => (this.scrolls() ? 0 : this.stackBottom()))
-
-  /** Folded:  `collapsible` and `collapsed`. */
-  readonly isCollapsed = createMemo(() => this.collapsible() && !!this.collapsedState.get())
-
-  /** Content box held closed while the `source` body is on its way (never in a server render:  nothing loads). */
-  readonly isVeiled = createMemo(() => !isServer && !!this.attrs.source && this.body.isVeiled)
-
-  /** Busy:  `loading`, or a `source` body slow to arrive. */
-  readonly isLoading = createMemo(() => !!this.attrs.loading || this.body.isBusy)
-
-  /** The error line's text, when the `source` body failed;  else `undefined`. */
-  readonly bodyFailureText = createMemo(() => {
-    const failure = this.body.failure.get()
-    if (!failure) return undefined
-    const key = E.SOURCE_FAILURE_KEYS[failure.kind] ?? E.SOURCE_FAILURE_KEYS.load
-    return this.text(key as never, { source: this.attrs.source ?? "" })
-  })
-
-  /** Has an icon (shorthand or `icon` slot)? */
-  readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))
-
-  /** Has a badge (shorthand or `badge` slot)? */
-  readonly hasBadge = createMemo(() => !!this.attrs.badge || this.slots.has(this.slot("badge")))
-
-  /** Has a subhead (shorthand or `subhead` slot)? */
-  readonly hasSubhead = createMemo(() => !!this.attrs.subhead || this.slots.has(this.slot("subhead")))
-
-  /** Has actions (`actions` slot)? */
-  readonly hasActions = createMemo(() => this.slots.has(this.slot("actions")))
-
-  /** Has an info tip (`info`, or `slot="info"`)? */
-  readonly hasInfo = createMemo(() => !!this.attrs.info || this.slots.has(this.slot("info")))
-
-  /** The fold chevron sits at the far end of the title bar:  `fold-icon`, else the class's `defaultFoldIcon`. */
-  readonly foldAtEnd = createMemo(() => (this.attrs.foldIcon ?? this.defaultFoldIcon) === FoldIconPlace.end)
-
-  /** Is the content its own scroll box? */
-  scrolls(): boolean {
-    return !!this.attrs.scrolling || !!this.attrs.height
-  }
-
-  isDisabled(): boolean {
-    return !!this.attrs.disabled
-  }
-
-  ////////////////
-  // ## Element hooks
-  ////////////////
-
-  /**
-   * Words after the noun:  `scrolling` for `height` without it (`height` implies it);  `loading` while a `source`
-   * body is slow to arrive (the `loading` look, over the placeholder).
-   */
-  protected extraClasses(): string | undefined {
-    const scrolling = this.attrs.height && !this.attrs.scrolling ? SCROLLING : undefined
-    const loading = !this.attrs.loading && this.body.isBusy ? LOADING : undefined
-    return [scrolling, loading].filter(Boolean).join(" ") || undefined
-  }
-
-  protected hostStates() {
-    const { inverted, disabled } = this.attrs
-    const status = this.body.status.get()
-    return {
-      collapsed: this.isCollapsed(),
-      stuck: !!this.attrs.sticky && this.isStuck.get(),
-      animated: this.isLoaded() && UI.browser.supports.interpolateSize,
-      inverted,
-      loading: this.isLoading(),
-      disabled,
-      loaded: status === E.SourceStatus.loaded,
-      error: status === E.SourceStatus.error
-    }
-  }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  /**
-   * Load the `source` body whenever the section is open, connected and has one (`SourceBody.load()` is once per
-   * `source` + `select`), then render.
-   * - In `mount()`, not `render()`:  a subclass drawing its own markup still loads its body.
-   */
-  mount(): JSX.Element {
-    if (!isServer) {
-      createEffect(
-        () => ({
-          source: this.attrs.source,
-          select: this.attrs.select,
-          open: !this.isCollapsed(),
-          connected: this.isConnected.get()
-        }),
-        ({ source, open, connected }) => {
-          if (source && open && connected) this.body.load().catch(() => undefined)
-        }
-      )
-    }
-    return super.mount()
-  }
-
-  render(): JSX.Element {
-    this.watchTitle()
-    return (
-      <section class={this.classes()} part={this.part("section")} aria-busy={this.isLoading() ? UIT.TRUE : undefined}>
-        <div ref={(element) => (this.sentinel = element)} class={SENTINEL} aria-hidden={UIT.TRUE} />
-        {this.titleBar()}
-        <Show when={this.hasSubhead()}>
-          <div class={SUBHEAD} part={this.part("subhead")}>
-            <slot name={this.slot("subhead")}>{this.attrs.subhead}</slot>
-          </div>
-        </Show>
-        <div
-          ref={(element) => element.addEventListener(BEFORE_MATCH, this.onBeforeMatch)}
-          id={CONTENT_ID}
-          class={UIT.CONTENT}
-          part={this.part("content")}
-          hidden={this.isCollapsed() || this.isVeiled() ? UNTIL_FOUND : undefined}
-          tabindex={this.scrolls() ? 0 : undefined}
-          style={this.attrs.height ? { [HEIGHT_PROPERTY]: this.attrs.height } : undefined}
-        >
-          <Show when={this.bodyFailureText()}>
-            <p class={SOURCE_ERROR} part={this.part("error")} role={UIT.ALERT}>
-              {this.bodyFailureText()}
-            </p>
-          </Show>
-          <slot />
-        </div>
-        <Show when={this.isLoading()}>
-          <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
-            {this.text("loading")}
-          </span>
-        </Show>
-      </section>
-    )
-  }
-
-  /**
-   * The title's inline tokens:  stick offset and nesting depth.
-   * - A method, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
-   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
-   */
-  private titleStyle(): Record<string, string> {
-    return { [STICK_TOP_PROPERTY]: `${this.stickTop()}px`, [DEPTH_PROPERTY]: String(this.depth()) }
-  }
-
-  /** `<header class="title">`:  the heading around the toggle, then the badge and actions. */
-  private titleBar(): JSX.Element {
-    return (
-      <header
-        ref={(element) => (this.title = element)}
-        class={UIT.TITLE}
-        part={this.part("title")}
-        style={this.titleStyle()}
-      >
-        <Dynamic
-          component={`${HEADING_TAG}${this.level()}`}
-          class={HEADING}
-          part={this.part("heading")}
-          aria-describedby={this.hasInfo() && !this.collapsible() ? TIP_ID : undefined}
-        >
-          <Dynamic
-            component={this.collapsible() ? UIT.BUTTON : STATIC_TOGGLE_TAG}
-            type={this.collapsible() ? UIT.BUTTON : undefined}
-            class={TOGGLE}
-            part={this.part("toggle")}
-            aria-expanded={this.collapsible() ? (this.isCollapsed() ? UIT.FALSE : UIT.TRUE) : undefined}
-            aria-controls={this.collapsible() ? CONTENT_ID : undefined}
-            title={this.collapsible() ? this.text(this.isCollapsed() ? "unfold" : "fold") : undefined}
-            disabled={this.collapsible() && this.attrs.disabled ? true : undefined}
-            aria-describedby={this.hasInfo() && this.collapsible() ? TIP_ID : undefined}
-            onClick={this.onToggleClick}
-          >
-            <Show when={this.collapsible() && !this.foldAtEnd()}>{this.foldIcon()}</Show>
-            <Show when={this.hasIcon()}>
-              <span class={UIT.ICON} part={this.part("icon")}>
-                <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
-              </span>
-            </Show>
-            <span class={UIT.HEADER} part={this.part("header")}>
-              <slot name={this.slot("header")}>{this.attrs.header}</slot>
-            </span>
-          </Dynamic>
-        </Dynamic>
-        <Show when={this.hasBadge()}>
-          <span class={BADGE} part={this.part("badge")}>
-            <slot name={this.slot("badge")}>{this.attrs.badge}</slot>
-          </span>
-        </Show>
-        <Show when={this.hasActions()}>
-          <span class={ACTIONS} part={this.part("actions")}>
-            <slot name={this.slot("actions")} />
-          </span>
-        </Show>
-        <Show when={this.collapsible() && this.foldAtEnd()}>{this.foldIcon(this.onFoldIconClick)}</Show>
-        <Show when={this.hasInfo()}>
-          <span id={TIP_ID} class={TIP} part={this.part("tip")} role={TOOLTIP}>
-            <slot name={this.slot("info")}>{this.attrs.info}</slot>
-          </span>
-        </Show>
-      </header>
-    )
-  }
-
-  /** The fold chevron, `aria-hidden` (the button is the control):  in the button, or at the bar's end with `onClick`. */
-  private foldIcon(onClick?: (event: MouseEvent) => void): JSX.Element {
-    return (
-      <span class={FOLD_ICON_CLASS} part={this.part("fold-icon")} aria-hidden={UIT.TRUE} onClick={onClick}>
-        {this.foldGlyph.svg()}
-      </span>
-    )
-  }
-
-  /**
-   * While connected and `sticky`:  measure the title (for the stack) and watch it stick, again whenever its
-   * `top` changes;  unstuck otherwise.
-   */
-  private watchTitle() {
-    createEffect(
-      () => ({ watching: this.isConnected.get() && !!this.attrs.sticky, offset: this.stickTop() }),
-      ({ watching, offset }) => {
-        const { title, sentinel } = this
-        if (!watching || !title || !sentinel) {
-          this.watch.reset()
-          return undefined
-        }
-        const resizes = new ResizeObserver(() => this.titleHeight.set(title.getBoundingClientRect().height))
-        resizes.observe(title)
-        const unwatch = this.watch.observe({ host: this.host, top: sentinel, box: title }, { offset })
-        return () => {
-          resizes.disconnect()
-          unwatch()
-        }
-      }
-    )
-  }
-
-  ////////////////
-  // ## Source (`SourceBodyHost`)
-  ////////////////
-
-  /** Fetch and insert the `source` body now, folded or not;  once per `source` + `select`. */
-  loadBody(): Promise<void> {
-    return this.body.load()
-  }
-
-  /** Fetch the `source` body again past the cache, and replace it. */
-  reloadBody(): Promise<void> {
-    return this.body.reload()
+  get depth(): number {
+    const parent = this.parent
+    return parent ? parent.depth + 1 : 0
   }
 
   ////////////////
   // ## Folding
   ////////////////
+
+  /** `collapsed`:  the host's (a boolean is always the host's, see `@controlled`);  folds only `isCollapsible`. */
+  @E.controlled("collapsed") accessor isCollapsed = false
+
+  /**
+   * Folds:  the host's own `collapsible` when written (`collapsible="false"` opts out), else the nearest group's
+   * `collapsing`.
+   * - The attribute raw:  its getter reads absent and `"false"` alike (false), but only absent takes the group's
+   *   default.
+   * - NOTE: a PROPERTY write of `false` removes the attribute (booleans never reflect as `"false"`), which brings the
+   *   group's default back;  opt out from code with `setAttribute("collapsible", "false")`.
+   */
+  get isCollapsible(): boolean {
+    const own = this.attributes.collapsible
+    if (own !== null) return E.Converters.boolean(own, this.elementDefinition.attribute("collapsible").attribute)
+    return !!this.collapsible || !!this.group?.collapsing
+  }
+
+  /** Folded:  `isCollapsible` and `isCollapsed`. */
+  @E.cssState("collapsed")
+  get isFolded(): boolean {
+    return this.isCollapsible && !!this.isCollapsed
+  }
+
+  /** Glyph of the fold button, while `isCollapsible`. */
+  readonly foldGlyph = new E.IconGlyph({ owner: this, name: () => (this.isCollapsible ? FOLD_ICON : undefined) })
+
+  /** The fold chevron sits at the far end of the title bar:  `fold-icon`, else the class's `defaultFoldIcon`. */
+  get foldIconIsAtEnd(): boolean {
+    return (this.foldIcon ?? this.defaultFoldIcon) === FoldIconPlace.end
+  }
 
   /**
    * Fold or unfold as a person would:  the cancelable `ui-open` / `ui-close` first, then `collapsed`.  True when
@@ -460,10 +171,10 @@ export class UISection extends E.UIElement<SectionVocabulary> {
    * - Does nothing unless `collapsible`, or while `disabled`.
    */
   toggle(originalEvent?: Event): boolean {
-    if (!untrack(this.collapsible) || untrack(() => this.isDisabled())) return false
-    const opening = untrack(this.isCollapsed)
+    if (!untrack(() => this.isCollapsible) || untrack(() => this.isDisabled)) return false
+    const opening = untrack(() => this.isFolded)
     const detail: UIT.SectionToggleDetail = { open: opening, section: this.host, originalEvent }
-    return this.collapsedState.request(!opening, () => this.emit(opening ? "ui-open" : "ui-close", detail))
+    return this.requestChange("isCollapsed", !opening, () => this.send(opening ? "ui-open" : "ui-close", detail))
   }
 
   /** A click on the toggle (Enter / Space on the button click it too). */
@@ -483,13 +194,343 @@ export class UISection extends E.UIElement<SectionVocabulary> {
    * after the fact (not cancelable) and adopt it.
    */
   private readonly onBeforeMatch = () => {
-    if (!untrack(this.isCollapsed)) return
+    if (!untrack(() => this.isFolded)) return
     const detail: UIT.SectionToggleDetail = { open: true, section: this.host }
     const init = { bubbles: true, composed: true, cancelable: false, detail }
-    this.host.dispatchEvent(new CustomEvent(this.definition.event("ui-open"), init))
-    this.collapsedState.set(false)
+    this.host.dispatchEvent(new CustomEvent(this.elementDefinition.event("ui-open"), init))
+    this.isCollapsed = false
+  }
+
+  ////////////////
+  // ## The sticky title
+  ////////////////
+
+  /** Title bar's height in pixels, while `sticky` (for the stack below it). */
+  @E.state accessor titleHeight = 0
+
+  /** Title bar is stuck. */
+  @E.state accessor isStuck = false
+
+  /** Stuck, and `sticky`. */
+  @E.cssState("stuck")
+  get titleIsStuck(): boolean {
+    return !!this.sticky && this.isStuck
+  }
+
+  /** The title bar. */
+  private title?: HTMLElement
+
+  /** Sentinel where the title bar's top would be, unstuck. */
+  private sentinel?: HTMLDivElement
+
+  /** Observes the stuck title and reserves its room. */
+  private readonly stickyWatch = new E.StickyWatch(({ edge }) => (this.isStuck = edge !== undefined))
+
+  /** Pixels from the scroll container's top where the title sticks:  `offset` at the top, else the stack above. */
+  get stickTop(): number {
+    const parent = this.parent
+    return parent ? parent.innerStackTop : (this.offset ?? 0)
+  }
+
+  /** Bottom of the stack of stuck titles, through this one, in pixels. */
+  get stackBottom(): number {
+    return this.stickTop + (this.sticky ? this.titleHeight : 0)
+  }
+
+  /** Where nested titles stick:  below the stack, or 0 in this section's own scroll box (`scrolling` / `height`). */
+  get innerStackTop(): number {
+    return this.contentScrolls ? 0 : this.stackBottom
+  }
+
+  /** Is the content its own scroll box? */
+  get contentScrolls(): boolean {
+    return !!this.scrolling || !!this.height
+  }
+
+  /**
+   * The title's inline tokens:  stick offset and nesting depth.
+   * - A getter, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
+   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   */
+  private get titleStyle(): Record<string, string> {
+    return { [STICK_TOP_PROPERTY]: `${this.stickTop}px`, [DEPTH_PROPERTY]: String(this.depth) }
+  }
+
+  /**
+   * While connected and `sticky`:  measure the title (for the stack) and watch it stick, again whenever its
+   * `top` changes;  unstuck otherwise.
+   * - Stays an explicit effect:  conditional, and it observes the DOM (`ResizeObserver`, `StickyWatch`).
+   */
+  private watchTitle() {
+    createEffect(
+      () => ({ watching: this.isConnected && !!this.sticky, offset: this.stickTop }),
+      ({ watching, offset }) => {
+        const { title, sentinel } = this
+        if (!watching || !title || !sentinel) {
+          this.stickyWatch.reset()
+          return undefined
+        }
+        const resizes = new ResizeObserver(() => (this.titleHeight = title.getBoundingClientRect().height))
+        resizes.observe(title)
+        const unwatch = this.stickyWatch.observe({ host: this.host, top: sentinel, box: title }, { offset })
+        return () => {
+          resizes.disconnect()
+          unwatch()
+        }
+      }
+    )
+  }
+
+  ////////////////
+  // ## Title bar pieces
+  ////////////////
+
+  /** Light-DOM slot occupancy:  icon, badge, subhead, actions. */
+  readonly slots = new E.SlotContent(this.host)
+
+  /** Glyph of the `icon` shorthand. */
+  readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
+
+  /** Has an icon (shorthand or `icon` slot)? */
+  get hasIcon(): boolean {
+    return !!this.icon || this.slots.hasContent(this.slotForName("icon"))
+  }
+
+  /** Has a badge (shorthand or `badge` slot)? */
+  get hasBadge(): boolean {
+    return !!this.badge || this.slots.hasContent(this.slotForName("badge"))
+  }
+
+  /** Has a subhead (shorthand or `subhead` slot)? */
+  get hasSubhead(): boolean {
+    return !!this.subhead || this.slots.hasContent(this.slotForName("subhead"))
+  }
+
+  /** Has actions (`actions` slot)? */
+  get hasActions(): boolean {
+    return this.slots.hasContent(this.slotForName("actions"))
+  }
+
+  /** Has an info tip (`info`, or `slot="info"`)? */
+  get hasInfo(): boolean {
+    return !!this.info || this.slots.hasContent(this.slotForName("info"))
+  }
+
+  ////////////////
+  // ## Source (`SourceBodyHost`)
+  ////////////////
+
+  /** The content from `source`, loaded on first unfold;  into the host's light DOM. */
+  readonly body = new E.SourceBody({
+    host: this.host,
+    source: () => untrack(() => this.source) || undefined,
+    select: () => untrack(() => this.select) || undefined,
+    target: () => this.host,
+    send: (name, detail) => this.send(name as never, detail)
+  })
+
+  /** Content box held closed while the `source` body is on its way (never in a server render:  nothing loads). */
+  get isVeiled(): boolean {
+    return !isServer && !!this.source && this.body.isVeiled
+  }
+
+  /** Busy:  `loading`, or a `source` body slow to arrive. */
+  @E.cssState("loading")
+  get isLoading(): boolean {
+    return !!this.loading || this.body.isBusy
+  }
+
+  /** The `source` body arrived. */
+  @E.cssState("loaded")
+  get bodyIsLoaded(): boolean {
+    return this.body.loadStatus === E.SourceStatus.loaded
+  }
+
+  /** The `source` body failed. */
+  @E.cssState("error")
+  get bodyFailed(): boolean {
+    return this.body.loadStatus === E.SourceStatus.error
+  }
+
+  /** The error line's text, when the `source` body failed;  else `undefined`. */
+  get bodyFailureText(): string | undefined {
+    const failure = this.body.loadError
+    if (!failure) return undefined
+    const key = E.SOURCE_FAILURE_KEYS[failure.kind] ?? E.SOURCE_FAILURE_KEYS.load
+    return this.translationForKey(key as never, { source: this.source ?? "" })
+  }
+
+  /**
+   * Load the `source` body whenever the section is unfolded, connected and has one (`SourceBody.load()` is once per
+   * `source` + `select`).
+   * - An effect, not in `render()`:  a subclass drawing its own markup still loads its body.
+   */
+  @E.onChange("source", "select", "isFolded", "isConnected")
+  protected onBodyWanted(
+    source: string | undefined,
+    _select: string | undefined,
+    isFolded: boolean,
+    isConnected: boolean
+  ) {
+    if (source && !isFolded && isConnected) this.body.load().catch(() => undefined)
+  }
+
+  /** Fetch and insert the `source` body now, folded or not;  once per `source` + `select`. */
+  loadBody(): Promise<void> {
+    return this.body.load()
+  }
+
+  /** Fetch the `source` body again past the cache, and replace it. */
+  reloadBody(): Promise<void> {
+    return this.body.reload()
+  }
+
+  ////////////////
+  // ## Looks
+  ////////////////
+
+  /** Transitions the fold:  styled, in a browser that animates to `auto` heights. */
+  @E.cssState("animated")
+  get isAnimated(): boolean {
+    return this.isReady && UI.browser.supports.interpolateSize
+  }
+
+  /** `inverted`, as a state. */
+  @E.cssState("inverted")
+  get isInverted(): boolean {
+    return !!this.inverted
+  }
+
+  /** Disabled by its attribute. */
+  @E.cssState("disabled")
+  get isDisabled(): boolean {
+    return !!this.disabled
+  }
+
+  /**
+   * Words after the noun:  `scrolling` for `height` without it (`height` implies it);  `loading` while a `source`
+   * body is slow to arrive (the `loading` look, over the placeholder).
+   */
+  protected get extraClasses(): string | undefined {
+    const scrolling = this.height && !this.scrolling ? SCROLLING : undefined
+    const loading = !this.loading && this.body.isBusy ? LOADING : undefined
+    return [scrolling, loading].filter(Boolean).join(" ") || undefined
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
+  render(): JSX.Element {
+    this.watchTitle()
+    return (
+      <section
+        class={this.rootClasses}
+        part={this.partForName("section")}
+        aria-busy={this.isLoading ? UIT.TRUE : undefined}
+      >
+        <div ref={(element) => (this.sentinel = element)} class={SENTINEL} aria-hidden={UIT.TRUE} />
+        {this.titleBar()}
+        <Show when={this.hasSubhead}>
+          <div class={SUBHEAD} part={this.partForName("subhead")}>
+            <slot name={this.slotForName("subhead")}>{this.subhead}</slot>
+          </div>
+        </Show>
+        <div
+          ref={(element) => element.addEventListener(BEFORE_MATCH, this.onBeforeMatch)}
+          id={CONTENT_ID}
+          class={UIT.CONTENT}
+          part={this.partForName("content")}
+          hidden={this.isFolded || this.isVeiled ? UNTIL_FOUND : undefined}
+          tabindex={this.contentScrolls ? 0 : undefined}
+          style={this.height ? { [HEIGHT_PROPERTY]: this.height } : undefined}
+        >
+          <Show when={this.bodyFailureText}>
+            <p class={SOURCE_ERROR} part={this.partForName("error")} role={UIT.ALERT}>
+              {this.bodyFailureText}
+            </p>
+          </Show>
+          <slot />
+        </div>
+        <Show when={this.isLoading}>
+          <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
+            {this.translationForKey("loading")}
+          </span>
+        </Show>
+      </section>
+    )
+  }
+
+  /** `<header class="title">`:  the heading around the toggle, then the badge and actions. */
+  private titleBar(): JSX.Element {
+    return (
+      <header
+        ref={(element) => (this.title = element)}
+        class={UIT.TITLE}
+        part={this.partForName("title")}
+        style={this.titleStyle}
+      >
+        <Dynamic
+          component={`${HEADING_TAG}${this.headingLevel}`}
+          class={HEADING}
+          part={this.partForName("heading")}
+          aria-describedby={this.hasInfo && !this.isCollapsible ? TIP_ID : undefined}
+        >
+          <Dynamic
+            component={this.isCollapsible ? UIT.BUTTON : STATIC_TOGGLE_TAG}
+            type={this.isCollapsible ? UIT.BUTTON : undefined}
+            class={TOGGLE}
+            part={this.partForName("toggle")}
+            aria-expanded={this.isCollapsible ? (this.isFolded ? UIT.FALSE : UIT.TRUE) : undefined}
+            aria-controls={this.isCollapsible ? CONTENT_ID : undefined}
+            title={this.isCollapsible ? this.translationForKey(this.isFolded ? "unfold" : "fold") : undefined}
+            disabled={this.isCollapsible && this.disabled ? true : undefined}
+            aria-describedby={this.hasInfo && this.isCollapsible ? TIP_ID : undefined}
+            onClick={this.onToggleClick}
+          >
+            <Show when={this.isCollapsible && !this.foldIconIsAtEnd}>{this.foldChevron()}</Show>
+            <Show when={this.hasIcon}>
+              <span class={UIT.ICON} part={this.partForName("icon")}>
+                <slot name={this.slotForName("icon")}>{this.iconGlyph.svg}</slot>
+              </span>
+            </Show>
+            <span class={UIT.HEADER} part={this.partForName("header")}>
+              <slot name={this.slotForName("header")}>{this.header}</slot>
+            </span>
+          </Dynamic>
+        </Dynamic>
+        <Show when={this.hasBadge}>
+          <span class={BADGE} part={this.partForName("badge")}>
+            <slot name={this.slotForName("badge")}>{this.badge}</slot>
+          </span>
+        </Show>
+        <Show when={this.hasActions}>
+          <span class={ACTIONS} part={this.partForName("actions")}>
+            <slot name={this.slotForName("actions")} />
+          </span>
+        </Show>
+        <Show when={this.isCollapsible && this.foldIconIsAtEnd}>{this.foldChevron(this.onFoldIconClick)}</Show>
+        <Show when={this.hasInfo}>
+          <span id={TIP_ID} class={TIP} part={this.partForName("tip")} role={TOOLTIP}>
+            <slot name={this.slotForName("info")}>{this.info}</slot>
+          </span>
+        </Show>
+      </header>
+    )
+  }
+
+  /** The fold chevron, `aria-hidden` (the button is the control):  in the button, or at the bar's end with `onClick`. */
+  private foldChevron(onClick?: (event: MouseEvent) => void): JSX.Element {
+    return (
+      <span class={FOLD_ICON_CLASS} part={this.partForName("fold-icon")} aria-hidden={UIT.TRUE} onClick={onClick}>
+        {this.foldGlyph.svg}
+      </span>
+    )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UISection extends E.AttributeValues<SectionVocabulary> {}
 
 /** Glyph of the fold button (rotated by CSS while folded). */
 const FOLD_ICON = "chevron down"

@@ -11,3 +11,6 @@ import { actionsVocabulary } from "./ui-actions.vocabulary.en"
 export class UIActions extends PartElement<typeof actionsVocabulary> {
   @E.proto static vocabulary = actionsVocabulary
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIActions extends E.AttributeValues<typeof actionsVocabulary> {}

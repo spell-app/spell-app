@@ -33,7 +33,7 @@ class UIThing extends HTMLElement {
   Then `:state(ready)`, `ui-ready { failed }`, a cancelable `ui-error` per failure before it.
 - `display`:  `skeleton` (default;  `<ui-placeholder>`s from each tag's vocabulary `skeleton`, drawn in the root's
   shadow by `UIRoot.Skeleton`), `when-ready`, `immediately`;  `loading="..."` shows `UIRoot.Loading` (a `<ui-loader>`).
-  The root renders at once, unstyled (`UIElement.canRenderUnstyled`):  the slot is hidden by an inline style before
+  The root renders at once, unstyled (`UIElement`'s `elementSetup.canRenderUnstyled`):  the slot is hidden by an inline style before
   any sheet loads.
 - Settings for everything inside, through `RootSettings` (`src/elements/RootSettings.ts`, in `core`):
   - `icons="fa7-free, /packs/lucide/pack.js"` -- a child icon set, `UI.icons.scope(packs, { assets, parent })`, over

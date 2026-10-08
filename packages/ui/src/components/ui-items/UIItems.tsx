@@ -21,32 +21,36 @@ import itemsCSS from "./ui-items.css?inline"
  ****************/
 export class UIItems extends E.UIElement<typeof itemsVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = itemsVocabulary
-  @E.proto static styles = { items: itemsCSS }
-  @E.proto static Fallback = ItemsFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { items: itemsCSS }
+  @E.proto static elementSetup = { Fallback: ItemsFallback, delegatesFocus: false }
+
+  /** Always:  the size container `ui-items` (`:state(items)`). */
+  @E.cssState("items")
+  get isItemsView(): boolean {
+    return true
+  }
 
   /** `ItemOwner`:  how items render -- the same object always, so items never re-render for it. */
   itemContext(): UIT.ItemContext {
     return ITEM_CONTEXT
   }
 
-  protected hostStates() {
-    return { items: true }
-  }
-
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected extraClasses(): string | undefined {
-    return UIT.StackClasses.classFor(this.attrs.stackWith)
+  protected get extraClasses(): string | undefined {
+    return UIT.StackClasses.classFor(this.stackWith)
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("items")} role={UIT.LIST}>
+      <div class={this.rootClasses} part={this.partForName("items")} role={UIT.LIST}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIItems extends E.AttributeValues<typeof itemsVocabulary> {}
 
 /** What every item gets:  a list item owning its parts, its `image` shorthand a bare `.image`. */
 const ITEM_CONTEXT: UIT.ItemContext = Object.freeze({

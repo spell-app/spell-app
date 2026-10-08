@@ -45,9 +45,8 @@ import composerCSS from "./ui-brand-composer.css?inline"
  ****************/
 export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
   @proto static vocabulary = brandComposerVocabulary
-  @proto static styles = { composer: composerCSS }
-  @proto static Fallback = BrandComposerFallback
-  @proto static Host = BrandComposerHost
+  @proto static styleSheets = { composer: composerCSS }
+  @proto static elementSetup = { Fallback: BrandComposerFallback, Host: BrandComposerHost }
 
   ////////////////
   // ## State
@@ -85,43 +84,43 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
     return !this.value().trim()
   }
 
-  isDisabled(): boolean {
-    return this.attrs.disabled || this.isFormDisabled.get()
+  get isDisabled(): boolean {
+    return this.attrs.disabled || this.formIsDisabled
   }
 
   /** Can't cast now:  blank, `casting` or disabled;  tracked. */
   isBlocked(): boolean {
-    return this.isBlank() || this.attrs.casting || this.isDisabled()
+    return this.isBlank() || this.attrs.casting || this.isDisabled
   }
 
   protected classValue(name: AttributeName<BrandComposerVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled()
+    if (name === "disabled") return this.isDisabled
     return super.classValue(name)
   }
 
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     return this.attrs.size === LARGE ? `${BRAND} ${LARGE}` : BRAND
   }
 
-  protected hostStates() {
-    return { empty: this.isBlank(), casting: this.attrs.casting, disabled: this.isDisabled() }
+  protected cssStates() {
+    return { empty: this.isBlank(), casting: this.attrs.casting, disabled: this.isDisabled }
   }
 
   ////////////////
   // ## Form
   ////////////////
 
-  formValue(): FieldValue {
+  get formValue(): FieldValue {
     return this.value()
   }
 
-  protected formName(): string | undefined {
+  protected get formName(): string | undefined {
     return this.attrs.name
   }
 
   /** Back to the `value` ATTRIBUTE (native `defaultValue`). */
-  formReset() {
-    const { attribute } = this.definition.attribute("value")
+  onFormReset() {
+    const { attribute } = this.elementDefinition.attribute("value")
     this.valueState.set(this.host.getAttribute(attribute) ?? "")
   }
 
@@ -130,20 +129,20 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
   ////////////////
 
   /** Adds the value sync (host value => text box, after DOM updates) and the labels' refresh. */
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     createEffect(
-      () => [this.value(), this.isLoaded()],
+      () => [this.value(), this.isReady],
       () => {
         this.syncControl()
       }
     )
     createEffect(
-      () => this.isConnected.get(),
+      () => this.isConnected,
       (connected) => {
         if (connected) this.labels.refresh()
       }
     )
-    return super.mount()
+    return super.onMount()
   }
 
   ////////////////
@@ -152,56 +151,60 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("composer")} aria-busy={this.attrs.casting ? "true" : undefined}>
-        <Show when={this.attrs.eyebrow || this.slots.has(this.slot("eyebrow"))}>
-          <div class={CLASSES.eyebrow} part={this.part("eyebrow")}>
-            <slot name={this.slot("eyebrow")}>{this.attrs.eyebrow}</slot>
+      <div
+        class={this.rootClasses}
+        part={this.partForName("composer")}
+        aria-busy={this.attrs.casting ? "true" : undefined}
+      >
+        <Show when={this.attrs.eyebrow || this.slots.hasContent(this.slotForName("eyebrow"))}>
+          <div class={CLASSES.eyebrow} part={this.partForName("eyebrow")}>
+            <slot name={this.slotForName("eyebrow")}>{this.attrs.eyebrow}</slot>
           </div>
         </Show>
         <textarea
           ref={(element) => (this.control = element)}
           class={CLASSES.textarea}
-          part={this.part("textarea")}
+          part={this.partForName("textarea")}
           rows={this.rows()}
           style={this.rowsStyle()}
-          placeholder={this.attrs.placeholder ?? this.text("placeholder")}
+          placeholder={this.attrs.placeholder ?? this.translationForKey("placeholder")}
           spellcheck="true"
           aria-label={this.boxName()}
           aria-describedby={this.hint() ? IDS.hint : undefined}
           aria-keyshortcuts={this.shortcut()}
-          disabled={this.isDisabled()}
+          disabled={this.isDisabled}
           onInput={this.onInput}
           onChange={this.onChange}
           onKeyDown={this.onKeyDown}
         />
-        <div class={CLASSES.bar} part={this.part("bar")}>
-          <Show when={this.slots.has(this.slot("tools"))}>
-            <div class={CLASSES.tools} part={this.part("tools")}>
-              <slot name={this.slot("tools")} />
+        <div class={CLASSES.bar} part={this.partForName("bar")}>
+          <Show when={this.slots.hasContent(this.slotForName("tools"))}>
+            <div class={CLASSES.tools} part={this.partForName("tools")}>
+              <slot name={this.slotForName("tools")} />
             </div>
           </Show>
           <Show when={this.hint()}>
-            <span id={IDS.hint} class={CLASSES.hint} part={this.part("hint")}>
+            <span id={IDS.hint} class={CLASSES.hint} part={this.partForName("hint")}>
               {this.hint()}
             </span>
           </Show>
           <button
             type="button"
             class={CLASSES.cast}
-            part={this.part("cast")}
-            aria-label={this.text("cast")}
+            part={this.partForName("cast")}
+            aria-label={this.translationForKey("cast")}
             aria-keyshortcuts={this.shortcut()}
             aria-disabled={this.isBlocked() ? "true" : undefined}
-            disabled={this.isDisabled()}
+            disabled={this.isDisabled}
             onClick={this.onCastClick}
           >
-            <Show when={this.attrs.casting} fallback={<span class={CLASSES.icon}>{this.glyphs.cast.svg()}</span>}>
-              <span class={[CLASSES.icon, CLASSES.spin]}>{this.glyphs.casting.svg()}</span>
+            <Show when={this.attrs.casting} fallback={<span class={CLASSES.icon}>{this.glyphs.cast.svg}</span>}>
+              <span class={[CLASSES.icon, CLASSES.spin]}>{this.glyphs.casting.svg}</span>
             </Show>
           </button>
         </div>
         <span class={CLASSES.status} role="status">
-          {this.attrs.casting ? this.text("casting") : ""}
+          {this.attrs.casting ? this.translationForKey("casting") : ""}
         </span>
       </div>
     )
@@ -223,12 +226,12 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
 
   /** The text box's name (see the class doc);  tracked. */
   private boxName(): string {
-    return this.attrs.label || this.labels.name() || this.attrs.eyebrow || this.text("label")
+    return this.attrs.label || this.labels.accessibleName || this.attrs.eyebrow || this.translationForKey("label")
   }
 
   /** The hint:  `hint`, else the platform's;  `""` hides it.  Tracked. */
   private hint(): string {
-    return this.attrs.hint ?? this.text(UI.browser.isApple ? "hintApple" : "hintOther")
+    return this.attrs.hint ?? this.translationForKey(UI.browser.isApple ? "hintApple" : "hintOther")
   }
 
   /** `aria-keyshortcuts` of the cast shortcut, the platform's. */
@@ -250,10 +253,10 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
    */
   cast(originalEvent?: Event): boolean {
     const value = this.current()
-    if (!value.trim() || this.hostFlag("casting") || this.hostFlag("disabled") || untrack(this.isFormDisabled.get)) {
+    if (!value.trim() || this.hostFlag("casting") || this.hostFlag("disabled") || untrack(() => this.formIsDisabled)) {
       return false
     }
-    if (!this.emit("ui-cast", { value, originalEvent })) return false
+    if (!this.send("ui-cast", { value, originalEvent })) return false
     this.formHost.internals.form?.requestSubmit()
     return true
   }
@@ -271,7 +274,7 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
 
   /** Attribute `name`'s host property, read synchronously (the fork's stored value, not the signal). */
   private hostProperty(name: AttributeName<BrandComposerVocabulary>): unknown {
-    const { property } = this.definition.attribute(name)
+    const { property } = this.elementDefinition.attribute(name)
     return (this.host as unknown as Record<string, unknown>)[property]
   }
 
@@ -289,13 +292,13 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
   /** Typing:  `ui-input` first, then the value (unless a handler took over). */
   private readonly onInput = (event: Event) => {
     const next = (event.currentTarget as HTMLTextAreaElement).value
-    const applied = this.valueState.request(next, () => this.emit("ui-input", { value: next, originalEvent: event }))
+    const applied = this.valueState.request(next, () => this.send("ui-input", { value: next, originalEvent: event }))
     if (!applied) queueMicrotask(() => this.syncControl())
   }
 
   /** Left the box edited:  `ui-change`. */
   private readonly onChange = (event: Event) => {
-    this.emit("ui-change", { value: this.current(), originalEvent: event })
+    this.send("ui-change", { value: this.current(), originalEvent: event })
   }
 
   /** Cmd / Ctrl+Enter casts;  plain Enter (and Enter while composing) types as usual. */

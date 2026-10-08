@@ -17,11 +17,11 @@ export class SearchData {
   static url: string | undefined
 
   /** The one fetch, once started. */
-  private static loading: Promise<SiteSearchFile> | undefined
+  private static fetched: Promise<SiteSearchFile> | undefined
 
   /** The search file, fetched once per page. */
   static load(): Promise<SiteSearchFile> {
-    return (SearchData.loading ??= SearchData.fetch())
+    return (SearchData.fetched ??= SearchData.fetch())
   }
 
   /**
@@ -29,7 +29,7 @@ export class SearchData {
    * - No `url`:  back to the default, beside the data file, as `SiteData.reset()` is.
    */
   static reset(url?: string): void {
-    SearchData.loading = undefined
+    SearchData.fetched = undefined
     SearchData.url = url
   }
 

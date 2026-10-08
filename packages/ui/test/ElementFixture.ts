@@ -34,22 +34,23 @@ export class ElementFixture {
 
   /**
    * Make `host`'s render throw NOW, as a bug in an update would, and wait for the native fallback.
-   * - How:  its controller's `extraClasses()` starts throwing, then an attribute (`keyOnly` first, else the
-   *   next that changes) is changed and changed back -- the classes memo reads every class-emitting attribute, so it recomputes inside the render
-   *   effect and the fork's error boundary catches the throw.  The host's attributes end as they were.
+   * - How:  its controller's `extraClasses` starts throwing, then an attribute (`keyOnly` first, else the next that
+   *   changes) is changed and changed back -- `rootClasses` reads every class-emitting attribute, so the root's
+   *   `class` binding re-reads it inside the render effect, and the fork's error boundary catches the throw.  The
+   *   host's attributes end as they were.
    * - The fallback is built a microtask after the error (`UIElement.renderFallback()`), hence two ticks.
    */
   static async breakRender(host: UIHost) {
     const controller = host.controller
     if (!controller) throw new Error(`<${host.localName}> has not rendered`)
     Object.defineProperty(controller, "extraClasses", {
-      value: () => {
+      get: () => {
         throw new Error(`forced render failure in <${host.localName}>`)
       }
     })
-    const { attributes } = controller.definition
+    const { attributes } = controller.elementDefinition
     const self = host as unknown as Record<string, unknown>
-    // a `keyOnly` attribute emits a class, so the classes memo surely tracks it;  the rest are tried in turn
+    // a `keyOnly` attribute emits a class, so `rootClasses` surely reads it;  the rest are tried in turn
     // (a write that converts to the SAME value recomputes nothing), until the error boundary has caught the throw
     const candidates = [...attributes].sort(
       (a, b) => Number(b.spec.kind === "keyOnly") - Number(a.spec.kind === "keyOnly")

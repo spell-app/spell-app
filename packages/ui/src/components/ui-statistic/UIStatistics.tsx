@@ -15,28 +15,38 @@ import statisticCSS from "./ui-statistic.css?inline"
  ****************/
 export class UIStatistics extends E.UIElement<typeof statisticsVocabulary> {
   @E.proto static vocabulary = statisticsVocabulary
-  @E.proto static styles = { statistic: statisticCSS }
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { statistic: statisticCSS }
+  @E.proto static elementSetup = { delegatesFocus: false }
+
+  /** Always `:state(statistics)`:  the size container `stackable` answers to. */
+  @E.cssState("statistics")
+  get isStatistics(): boolean {
+    return true
+  }
 
   /**
-   * `statistics` always;  `spaced` unless `horizontal` or `widths`, whose roots have no top margin.
+   * Spaced, unless `horizontal` or `widths`, whose roots have no top margin.
    * - Why:  the host is a size container (its own formatting context), so the group's top margin sits on the HOST
    *   to collapse with the content above, as class grammar's does (`ui-statistic.css`).
    */
-  protected hostStates() {
-    return { statistics: true, spaced: !this.attrs.horizontal && !this.attrs.widths }
+  @E.cssState("spaced")
+  get isSpaced(): boolean {
+    return !this.horizontal && !this.widths
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected extraClasses(): string | undefined {
-    return UIT.StackClasses.classFor(this.attrs.stackWith)
+  protected get extraClasses(): string | undefined {
+    return UIT.StackClasses.classFor(this.stackWith)
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("group")}>
+      <div class={this.rootClasses} part={this.partForName("group")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIStatistics extends E.AttributeValues<typeof statisticsVocabulary> {}

@@ -11,13 +11,24 @@ import buttonCSS from "./ui-button.css?inline"
  ****************/
 export class UIOr extends E.UIElement<typeof orVocabulary> {
   @E.proto static vocabulary = orVocabulary
-  @E.proto static styles = { button: buttonCSS }
+  @E.proto static styleSheets = { button: buttonCSS }
 
-  protected hostStates() {
-    return { or: true }
+  /** Always `:state(or)`. */
+  @E.cssState("or")
+  get isOr(): boolean {
+    return true
   }
 
   render(): JSX.Element {
-    return <span class={this.classes()} part={this.part("or")} data-text={this.attrs.text ?? this.text("or")} />
+    return (
+      <span
+        class={this.rootClasses}
+        part={this.partForName("or")}
+        data-text={this.text ?? this.translationForKey("or")}
+      />
+    )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIOr extends E.AttributeValues<typeof orVocabulary> {}

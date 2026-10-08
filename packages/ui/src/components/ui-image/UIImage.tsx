@@ -21,25 +21,23 @@ import imageCSS from "./ui-image.css?inline"
  ****************/
 export class UIImage extends E.UIElement<typeof imageVocabulary> {
   @E.proto static vocabulary = imageVocabulary
-  @E.proto static styles = { image: imageCSS }
-  @E.proto static Fallback = ImageFallback
+  @E.proto static styleSheets = { image: imageCSS }
+  @E.proto static elementSetup = { Fallback: ImageFallback }
 
-  isDisabled(): boolean {
-    return this.attrs.disabled
-  }
-
-  protected hostStates() {
-    return { disabled: this.attrs.disabled }
+  /** Disabled by its attribute;  `:state(disabled)`. */
+  @E.cssState("disabled")
+  get isDisabled(): boolean {
+    return this.disabled
   }
 
   render(): JSX.Element {
     return (
-      <Show when={this.attrs.href} fallback={this.image("image")}>
+      <Show when={this.href} fallback={this.image("image")}>
         <a
-          class={this.classes()}
-          part={this.part("image")}
-          href={this.attrs.disabled ? undefined : this.attrs.href}
-          aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}
+          class={this.rootClasses}
+          part={this.partForName("image")}
+          href={this.disabled ? undefined : this.href}
+          aria-disabled={this.disabled ? UIT.TRUE : undefined}
         >
           {this.image("img")}
         </a>
@@ -51,14 +49,17 @@ export class UIImage extends E.UIElement<typeof imageVocabulary> {
   private image(part: "image" | "img"): JSX.Element {
     return (
       <img
-        class={part === "image" ? this.classes() : undefined}
-        part={this.part(part)}
-        src={this.attrs.src}
-        alt={this.attrs.alt}
-        width={this.attrs.width}
-        height={this.attrs.height}
-        loading={this.attrs.loading as "eager" | "lazy" | undefined}
+        class={part === "image" ? this.rootClasses : undefined}
+        part={this.partForName(part)}
+        src={this.src}
+        alt={this.alt}
+        width={this.width}
+        height={this.height}
+        loading={this.loading as "eager" | "lazy" | undefined}
       />
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIImage extends E.AttributeValues<typeof imageVocabulary> {}

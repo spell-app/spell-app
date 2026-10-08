@@ -1,7 +1,9 @@
-import { createEffect, createMemo, untrack, type Accessor } from "solid-js"
+import { createEffect, untrack, type Accessor } from "solid-js"
 import { isServer, ssr } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
+// Import directly to avoid circular import
+import { derived, state } from "./Reactive"
 
 /****************
  * ### `IconGlyph`
@@ -12,46 +14,51 @@ import { E, UI } from "$/ui/core"
  * - Reloads when the name changes, when the element is (re)connected (it may have moved under another root), and
  *   when any root's settings change (`RootSettings.generation`).
  * - A later request wins over an earlier, slower load.
- * - `svg()` is a fresh `aria-hidden` clone per change;  the box around it is the caller's.
- * - MUST be created under the element's owner:  it creates a signal, a memo and an effect.
- * - Server render (`$/ui/static`):  `svg()` is the SVG as markup, read synchronously through `serverMarkup`;
- *   `data` stays empty.  It NEVER imports the server's code:  that reaches it through the hook.
+ * - `svg` is a fresh `aria-hidden` clone per change;  the box around it is the caller's.
+ * - MUST be created under the element's owner:  it creates an effect.
+ * - Server render (`$/ui/static`):  `svg` is the SVG as markup, read synchronously through `serverMarkup`;
+ *   `svgTemplate` stays empty.  It NEVER imports the server's code:  that reaches it through the hook.
  ****************/
 export class IconGlyph {
   /**
-   * The cached `<svg>` for the name, `undefined` until loaded (or for an unknown name);  tracked.
-   * - A shared TEMPLATE:  NEVER insert it -- `svg()` / `IconGlyph.draw()` clone it.
+   * The pack's `<svg>` for the name, `undefined` until loaded (or for an unknown name);  tracked.
+   * - A shared TEMPLATE:  NEVER insert it -- `svg` / `IconGlyph.draw()` clone it.
    */
-  readonly data: E.Cell<SVGSVGElement | undefined>
-
-  /** A fresh `<svg>` to insert, or `undefined`;  tracked. */
-  readonly svg: Accessor<SVGSVGElement | undefined>
+  @state accessor svgTemplate: SVGSVGElement | undefined = undefined
 
   /** The component drawing this icon. */
   private readonly owner: IconGlyphOwner
+
+  /** The icon name;  tracked. */
+  private readonly name: Accessor<string | undefined>
 
   /** Request counter, so a slower earlier load can't win. */
   private request = 0
 
   constructor({ owner, name }: IconGlyphProps) {
     this.owner = owner
-    if (isServer) {
-      // no DOM to clone into, and the render is synchronous:  the SVG as markup, read now
-      this.data = new E.Cell<SVGSVGElement | undefined>(undefined)
-      this.svg = () => IconGlyph.serverSvg(owner.host, name())
-      return
-    }
-    this.data = new E.Cell(untrack(() => IconGlyph.peek(owner.host, name())))
-    this.svg = createMemo(() => {
-      const template = this.data.get()
-      return template ? IconGlyph.draw(template) : undefined
-    })
+    this.name = name
+    if (isServer) return
+    this.svgTemplate = untrack(() => IconGlyph.peek(owner.host, name()))
+    // stays explicit:  it reads its OWNER's members and a page-wide static, not this record's
     createEffect(
-      () => ({ name: name(), connected: owner.isConnected.get(), generation: E.RootSettings.generation.get() }),
+      () => ({ name: name(), connected: owner.isConnected, generation: E.RootSettings.generation }),
       ({ name: nameNow, connected }) => {
         if (connected || !this.request) void this.load(nameNow)
       }
     )
+  }
+
+  /**
+   * A fresh `<svg>` to insert, or `undefined`;  tracked.
+   * - `@derived`, not plain:  it CLONES the template, and a plain getter would hand each reader a new `<svg>`.
+   * - Server:  the SVG as markup, read now (no DOM to clone into, and the render is synchronous).
+   */
+  @derived
+  get svg(): SVGSVGElement | undefined {
+    if (isServer) return IconGlyph.serverSvg(this.owner.host, untrack(this.name))
+    const template = this.svgTemplate
+    return template ? IconGlyph.draw(template) : undefined
   }
 
   /**
@@ -65,7 +72,7 @@ export class IconGlyph {
           .then((ui) => IconGlyph.packsFor(this.owner.host, ui.icons).get(name))
           .catch(() => undefined)
       : undefined
-    if (this.request === request && untrack(this.data.get) !== template) this.data.set(template)
+    if (this.request === request) this.svgTemplate = template
   }
 
   ////////////////
@@ -130,7 +137,7 @@ export type IconGlyphOwner = {
   /** its element:  where the climb to the nearest `<ui-root icons>` starts */
   readonly host: Element
   /** whether it's in the document (`UIElement.isConnected`):  a reconnect may mean another root */
-  readonly isConnected: E.Cell<boolean>
+  readonly isConnected: boolean
 }
 
 /** Hides a decorative icon from assistive technology. */

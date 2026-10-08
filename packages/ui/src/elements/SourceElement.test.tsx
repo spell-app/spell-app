@@ -13,7 +13,7 @@ import "$/ui/components/ui-message"
 /** Test-only source element:  shows its text in a `<pre part="text">`. */
 class XSource extends SourceElement<typeof X_SOURCE> {
   protected renderContent(): JSX.Element {
-    return <pre part="text">{this.contentText()}</pre>
+    return <pre part="text">{this.textToShow}</pre>
   }
 }
 

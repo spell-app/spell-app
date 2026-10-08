@@ -1,4 +1,3 @@
-import { createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -35,20 +34,55 @@ import stickyCSS from "./ui-sticky.css?inline"
  ****************/
 export class UISticky extends E.UIElement<StickyVocabulary> {
   @E.proto static vocabulary = stickyVocabulary
-  @E.proto static styles = { sticky: stickyCSS }
-  @E.proto static Fallback = StickyFallback
-  // a wrapper:  a click on its text must not jump to a link inside
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { sticky: stickyCSS }
+  @E.proto static elementSetup = {
+    Fallback: StickyFallback,
+    // a wrapper:  a click on its text must not jump to a link inside
+    delegatesFocus: false
+  }
 
   ////////////////
-  // ## State
+  // ## Stuck
   ////////////////
 
   /** Edge it's stuck to;  `undefined` when not stuck. */
-  readonly edge = new E.Cell<UIT.StickyEdge | undefined>(undefined)
+  @E.state accessor stuckEdge: UIT.StickyEdge | undefined = undefined
+
+  /** Stuck to an edge. */
+  @E.cssState("stuck")
+  get isStuck(): boolean {
+    return this.stuckEdge !== undefined
+  }
 
   /** Pushed out by the end of its container. */
-  readonly isBound = new E.Cell(false)
+  @E.cssState("bound")
+  @E.state
+  accessor isBound = false
+
+  /**
+   * The watcher's report:  publish `stuckEdge` / `isBound`, firing `ui-unstick` then `ui-stick` on a change.
+   * - Above `stickyWatch`, whose initializer reads it.
+   */
+  private readonly onStickChange = ({ edge, isBound, previous }: E.StickyWatchState) => {
+    this.isBound = isBound
+    if (edge === previous) return
+    this.stuckEdge = edge
+    if (previous) {
+      const detail: UIT.StickyDetail = { edge: previous }
+      this.send("ui-unstick", detail)
+    }
+    if (edge) {
+      const detail: UIT.StickyDetail = { edge }
+      this.send("ui-stick", detail)
+    }
+  }
+
+  ////////////////
+  // ## Watching
+  ////////////////
+
+  /** Observes the box and reserves its room while stuck. */
+  private readonly stickyWatch = new E.StickyWatch(this.onStickChange)
 
   /** Sentinel where the box's top would be. */
   private topSentinel?: HTMLDivElement
@@ -59,15 +93,27 @@ export class UISticky extends E.UIElement<StickyVocabulary> {
   /** The sticky box. */
   private box?: HTMLDivElement
 
-  /** Observes the box and reserves its room while stuck. */
-  private readonly watch = new E.StickyWatch((state) => this.report(state))
+  /**
+   * Observe while connected and drawn (`isReady`:  the sentinels exist), again whenever the offsets or `pushing`
+   * change;  unstuck once disconnected.
+   */
+  @E.onChange("isConnected", "isReady", "offset", "bottomOffset", "pushing")
+  protected onWatchSettingsChanged(isConnected: boolean) {
+    if (isConnected) return this.observe()
+    this.stickyWatch.reset()
+    return undefined
+  }
 
-  ////////////////
-  // ## Element hooks
-  ////////////////
-
-  protected hostStates() {
-    return { stuck: this.edge.get() !== undefined, bound: this.isBound.get() }
+  /** Watch the sentinels and the box against the scroll container;  returns the undo (the state stays). */
+  private observe(): () => void {
+    const { topSentinel, bottomSentinel, box } = this
+    if (!topSentinel || !bottomSentinel || !box) return () => undefined
+    const options: E.StickyWatchOptions = {
+      offset: this.offset ?? 0,
+      bottomOffset: this.bottomOffset ?? 0,
+      pushing: !!this.pushing
+    }
+    return this.stickyWatch.observe({ host: this.host, top: topSentinel, bottom: bottomSentinel, box }, options)
   }
 
   ////////////////
@@ -76,24 +122,23 @@ export class UISticky extends E.UIElement<StickyVocabulary> {
 
   /**
    * The box's inline tokens:  top and bottom offsets.
-   * - A method, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
+   * - A getter, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
    *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
    */
-  private boxStyle(): Record<string, string> {
+  private get boxStyle(): Record<string, string> {
     return {
-      [OFFSET_PROPERTY]: `${this.attrs.offset ?? 0}px`,
-      [BOTTOM_OFFSET_PROPERTY]: `${this.attrs.bottomOffset ?? 0}px`
+      [OFFSET_PROPERTY]: `${this.offset ?? 0}px`,
+      [BOTTOM_OFFSET_PROPERTY]: `${this.bottomOffset ?? 0}px`
     }
   }
 
   render(): JSX.Element {
-    this.watchBox()
     const box = (
       <div
         ref={(element) => (this.box = element)}
-        class={this.classes()}
-        part={this.part("sticky")}
-        style={this.boxStyle()}
+        class={this.rootClasses}
+        part={this.partForName("sticky")}
+        style={this.boxStyle}
       >
         <slot />
       </div>
@@ -108,53 +153,8 @@ export class UISticky extends E.UIElement<StickyVocabulary> {
       </>
     )
   }
-
-  /** Observe while connected, again whenever the offsets or `pushing` change;  unstuck once disconnected. */
-  private watchBox() {
-    createEffect(
-      () => ({
-        connected: this.isConnected.get(),
-        offset: this.attrs.offset ?? 0,
-        bottomOffset: this.attrs.bottomOffset ?? 0,
-        pushing: !!this.attrs.pushing
-      }),
-      (config) => {
-        if (config.connected) return this.observe(config)
-        this.watch.reset()
-        return undefined
-      }
-    )
-  }
-
-  ////////////////
-  // ## Observing
-  ////////////////
-
-  /** Watch the sentinels and the box against the scroll container;  returns the undo (the state stays). */
-  private observe(config: StickyWatchConfig): () => void {
-    const { topSentinel, bottomSentinel, box } = this
-    if (!topSentinel || !bottomSentinel || !box) return () => undefined
-    return this.watch.observe({ host: this.host, top: topSentinel, bottom: bottomSentinel, box }, config)
-  }
-
-  /** Publish `edge` / `bound`, firing `ui-unstick` then `ui-stick` on a change. */
-  private report({ edge, isBound, previous }: E.StickyWatchState) {
-    this.isBound.set(isBound)
-    if (edge === previous) return
-    this.edge.set(edge)
-    if (previous) {
-      const detail: UIT.StickyDetail = { edge: previous }
-      this.emit("ui-unstick", detail)
-    }
-    if (edge) {
-      const detail: UIT.StickyDetail = { edge }
-      this.emit("ui-stick", detail)
-    }
-  }
 }
-
-/** What an observation depends on:  `StickyWatch`'s options, while connected. */
-type StickyWatchConfig = E.Prettify<E.StickyWatchOptions & { connected: boolean }>
+export interface UISticky extends E.AttributeValues<StickyVocabulary> {}
 
 /** Class word of the sentinel where the box's top would be. */
 const SENTINEL = "sentinel"

@@ -19,9 +19,8 @@ import blobCSS from "./ui-brand-blob.css?inline"
  ****************/
 export class UIBrandBlob extends UIElement<BrandBlobVocabulary> {
   @proto static vocabulary = brandBlobVocabulary
-  @proto static styles = { blob: blobCSS }
-  @proto static Fallback = BrandBlobFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { blob: blobCSS }
+  @proto static elementSetup = { Fallback: BrandBlobFallback, delegatesFocus: false }
 
   render(): JSX.Element {
     return (
@@ -32,7 +31,7 @@ export class UIBrandBlob extends UIElement<BrandBlobVocabulary> {
           this.attrs.corner ?? "bottom-right",
           `tone-${this.attrs.tone ?? "blob"}`
         ]}
-        part={this.part("blob")}
+        part={this.partForName("blob")}
         aria-hidden={UIT.TRUE}
       />
     )

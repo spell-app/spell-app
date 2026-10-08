@@ -1,3 +1,5 @@
+import { untrack } from "solid-js"
+
 import { E } from "$/ui/core"
 import type { CodeController } from "./ui-code.types"
 
@@ -8,9 +10,9 @@ import type { CodeController } from "./ui-code.types"
 export class UICodeHost extends E.SourceHost {
   /**
    * What auto-detection picked (no `language` given);  `undefined` otherwise, or before the colours arrive
-   * (`ui-highlight` says when).
+   * (`ui-highlight` says when).  Untracked:  script API.
    */
   get detectedLanguage(): string | undefined {
-    return (this.controller as unknown as CodeController | undefined)?.detectedLanguage()
+    return untrack(() => (this.controller as unknown as CodeController | undefined)?.detectedLanguage)
   }
 }

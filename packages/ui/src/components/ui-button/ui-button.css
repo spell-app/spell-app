@@ -98,18 +98,23 @@
   /*
    * Tokens:  one per `button.variables` entry that still matters, from the global tokens -- each the private
    * alias of its public `--ui-button-*` token (never declare the public one:  it would block inherited values).
+   * - Read each line as "X is the page's `--ui-button-X`, else the default":
+   *   `--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`.  The rules below read only the `--_` alias.
    */
   .ui.button,
   .ui.buttons,
   .or {
+    /* ## Box */
     --_ui-button-padding-block: var(--ui-button-padding-block, var(--ui-space-s));
     --_ui-button-padding-inline: var(--ui-button-padding-inline, var(--ui-space-l));
     --_ui-button-margin-inline: var(--ui-button-margin-inline, var(--ui-space-2xs));
     --_ui-button-radius: var(--ui-button-radius, var(--ui-radius));
+    /* ## Type */
     --_ui-button-font-family: var(--ui-button-font-family, var(--ui-font-family));
     --_ui-button-font-size: var(--ui-button-font-size, var(--ui-font-size));
     --_ui-button-font-weight: var(--ui-button-font-weight, var(--ui-font-weight-semibold));
     --_ui-button-line-height: var(--ui-button-line-height, 1);
+    /* ## Colours:  rest, hover, down (pressed), active (on) */
     --_ui-button-background: var(--ui-button-background, oklch(from var(--ui-ink) l c h / 0.08));
     --_ui-button-background-hover: var(--ui-button-background-hover, oklch(from var(--ui-ink) l c h / 0.13));
     --_ui-button-background-down: var(--ui-button-background-down, oklch(from var(--ui-ink) l c h / 0.18));
@@ -118,9 +123,11 @@
     --_ui-button-color-hover: var(--ui-button-color-hover, var(--ui-text-hovered));
     --_ui-button-color-down: var(--ui-button-color-down, var(--ui-text-pressed));
     --_ui-button-color-active: var(--ui-button-color-active, var(--ui-text-selected));
+    /* ## Motion and the icon */
     --_ui-button-duration: var(--ui-button-duration, var(--ui-duration-fast));
     --_ui-button-icon-opacity: var(--ui-button-icon-opacity, 0.8);
     --_ui-button-icon-spacing: var(--ui-button-icon-spacing, var(--ui-space-xs));
+    /* ## Variations */
     --_ui-button-basic-border-width: var(--ui-button-basic-border-width, var(--ui-border-width));
     --_ui-button-basic-background-hover: var(--ui-button-basic-background-hover, var(--ui-surface));
     --_ui-button-basic-background-down: var(--ui-button-basic-background-down, var(--ui-surface-muted));
@@ -149,9 +156,11 @@
     --_ui-button-toggle-color: var(--ui-button-toggle-color, var(--ui-positive-on));
     --_ui-button-disabled-opacity: var(--ui-button-disabled-opacity, var(--ui-disabled-opacity));
     --_ui-button-animation-duration: var(--ui-button-animation-duration, var(--ui-duration-slow));
+    /* ## The loader (`loading`) */
     --_ui-button-loader-size: var(--ui-button-loader-size, 1.25em);
     --_ui-button-loader-width: var(--ui-button-loader-width, 0.2em);
     --_ui-button-loader-speed: var(--ui-button-loader-speed, 0.6s);
+    /* ## `<ui-or>` */
     --_ui-button-or-gap: var(--ui-button-or-gap, 0.3em);
     --_ui-button-or-size: var(--ui-button-or-size, calc(1em + var(--_ui-button-padding-block)));
     --_ui-button-or-background: var(--ui-button-or-background, var(--ui-surface));

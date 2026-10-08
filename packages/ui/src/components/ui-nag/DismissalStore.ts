@@ -37,8 +37,8 @@ export class DismissalStore {
     this.cookie = cookie
   }
 
-  /** Was it dismissed (and not expired)?  `false` when the storage can't be read. */
-  isDismissed(): boolean {
+  /** Was it dismissed (and not expired)?  `false` when the storage can't be read.  Reads the storage on every access. */
+  get isDismissed(): boolean {
     try {
       return this.read() === this.value
     } catch {

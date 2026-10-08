@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createMemo, untrack, type Accessor } from "solid-js"
+import { For, Show, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -22,7 +22,7 @@ import accordionCSS from "./ui-accordion.css?inline"
  * - Light children come in pairs:  a `<ui-title>` and the element after it (usually a `<ui-content>`), Fomantic's
  *   `.title` + `.content`.  The shadow root wraps each pair in `<details part="panel"><summary class="title">` +
  *   `<div class="content">`, handing the two children to that panel's `<slot>`s by hand
- *   (`slotAssignment: "manual"`).
+ *   (`elementSetup.assignSlots` `manually`, the platform's `slotAssignment: "manual"`).
  * - Why `<details>`:  the platform does the disclosure -- `<summary>` is a focusable button that announces its
  *   expanded state, Enter / Space toggle it, find-in-page opens a closed panel, and every `<details>` shares ONE
  *   `name` while `exclusive`, so the browser closes the others (all panels live in this one shadow root, the
@@ -39,28 +39,54 @@ import accordionCSS from "./ui-accordion.css?inline"
  * - Source (`source`, `select`):  the FIRST panel's content comes from a file the first time it opens (or at once
  *   when it starts open), through `SourceBody`:  into that panel's content child, a `<ui-content>` made after the
  *   title when there's none;  its children are the placeholder.  The `<details>` stays closed while the body is on
- *   its way (`isVeiled()`, at most `SOURCE_BODY_HOLD_MS`), so it opens on the body.  `load()` / `reload()` on the host
+ *   its way (`isVeiled`, at most `SOURCE_BODY_HOLD_MS`), so it opens on the body.  `load()` / `reload()` on the host
  *   (`SourceBodyHost`);  `:state(loading)`, `:state(loaded)`, `:state(error)`.
  * - SIDE EFFECT:  watches its own child list (a `MutationObserver`) to re-pair titles and contents.
  * - SIDE EFFECT:  with `source`, may add a `<ui-content>` child, and replaces its children with the file's body.
  ****************/
 export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
   @E.proto static vocabulary = accordionVocabulary
-  @E.proto static styles = { accordion: accordionCSS }
-  @E.proto static Fallback = AccordionFallback
-  @E.proto static Host = E.SourceBodyHost
-  @E.proto static slotAssignment: SlotAssignmentMode = "manual"
+  @E.proto static styleSheets = { accordion: accordionCSS }
+  @E.proto static elementSetup = {
+    Fallback: AccordionFallback,
+    Host: E.SourceBodyHost,
+    assignSlots: "manually" as const
+  }
+
+  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+    super(...args)
+    if (isServer) return
+    const { host } = this
+    const observer = new MutationObserver(() => this.onChildrenChanged())
+    observer.observe(host, { childList: true })
+    host.addReleaseCallback(() => observer.disconnect())
+  }
+
+  ////////////////
+  // ## Nesting
+  ////////////////
 
   /** Owning accordion, when nested. */
   readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
-  /** `open` (panel indexes as text):  host-controlled, or internal. */
-  readonly openState = this.controlled("open", undefined)
+  /** Inside another accordion:  no `ui`, the parent's look. */
+  get isNested(): boolean {
+    return !!this.context.owner
+  }
+
+  /** Root classes:  the class grammar;  nested, without `ui` (Fomantic's `.ui.accordion .accordion`). */
+  private get rootClass(): string {
+    const classes = this.rootClasses
+    return this.isNested ? classes.replace(UI_WORD, "") : classes
+  }
+
+  ////////////////
+  // ## Panels
+  ////////////////
 
   /** Title + content pairs from the light children. */
-  readonly panels = new E.Cell<readonly UIT.AccordionPanel[]>(AccordionPanels.read(this.host, UIAccordion.isTitle), {
-    equals: AccordionPanels.isSame
-  })
+  @E.state({ equals: AccordionPanels.isSame })
+  accessor panels: readonly UIT.AccordionPanel[] = AccordionPanels.read(this.host, UIAccordion.isTitle)
 
   /**
    * `name` of an exclusive accordion's `<details>`.
@@ -69,149 +95,34 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
    */
   readonly group = isServer ? UI.ids.next(DETAILS_GROUP) : DETAILS_GROUP
 
-  /** The first panel's content from `source`, loaded when it first opens. */
-  readonly body = new E.SourceBody({
-    host: this.host,
-    source: () => untrack(() => this.attrs.source) || undefined,
-    select: () => untrack(() => this.attrs.select) || undefined,
-    target: () => this.bodyTarget(),
-    emit: (name, detail) => this.emit(name as never, detail)
-  })
+  /** A child was added, removed or moved:  pair the panels again. */
+  private onChildrenChanged() {
+    this.panels = AccordionPanels.read(this.host, UIAccordion.isTitle, this.panels)
+  }
 
   ////////////////
-  // ## Derived state
+  // ## Open panels
   ////////////////
 
-  /** Inside another accordion:  no `ui`, the parent's look. */
-  readonly isNested = createMemo(() => !!this.context.owner.get())
+  /** `open`:  the open panel indexes as TEXT (`"0 2"`);  host-controlled, or internal. */
+  @E.controlled("open") accessor openText: string | undefined = undefined
 
   /** Open panel indexes (only the first while `exclusive`). */
-  readonly openIndexes = createMemo(() =>
-    AccordionPanels.parse(this.openState.get(), { exclusive: this.attrs.exclusive })
-  )
-
-  /** The `source` panel's `<details>` held closed while its body is on its way (never in a server render). */
-  readonly isVeiled = createMemo(() => !isServer && !!this.attrs.source && this.body.isVeiled)
-
-  /** The error line's text, when the `source` body failed;  else `undefined`. */
-  readonly bodyFailureText = createMemo(() => {
-    const failure = this.body.failure.get()
-    if (!failure) return undefined
-    const key = E.SOURCE_FAILURE_KEYS[failure.kind] ?? E.SOURCE_FAILURE_KEYS.load
-    return this.text(key as never, { source: this.attrs.source ?? "" })
-  })
-
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
-    super(...args)
-    if (isServer) return
-    const { host } = this
-    const observer = new MutationObserver(() => this.readPanels())
-    observer.observe(host, { childList: true })
-    host.addReleaseCallback(() => observer.disconnect())
+  @E.derived
+  get openIndexes(): number[] {
+    return AccordionPanels.parse(this.openText, { exclusive: this.exclusive })
   }
 
   /** Is panel `index` open?  Tracked. */
-  isOpen(index: number): boolean {
-    return this.openIndexes().includes(index)
+  panelIsOpen(index: number): boolean {
+    return this.openIndexes.includes(index)
   }
 
-  ////////////////
-  // ## Element hooks
-  ////////////////
-
-  protected hostStates() {
-    const status = this.body.status.get()
-    return {
-      open: this.openIndexes().some((index) => index < this.panels.get().length),
-      animated: this.isLoaded() && UI.browser.supports.interpolateSize,
-      loading: status === "loading",
-      loaded: status === "loaded",
-      error: status === "error"
-    }
+  /** At least one panel is open. */
+  @E.cssState("open")
+  get hasOpenPanel(): boolean {
+    return this.openIndexes.some((index) => index < this.panels.length)
   }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  /** Load the `source` body whenever its panel is open and the accordion connected, then render. */
-  mount(): JSX.Element {
-    if (!isServer) {
-      createEffect(
-        () => ({ source: this.attrs.source, open: this.isOpen(SOURCE_PANEL), connected: this.isConnected.get() }),
-        ({ source, open, connected }) => {
-          if (source && open && connected) this.body.load().catch(() => undefined)
-        }
-      )
-    }
-    return super.mount()
-  }
-
-  render(): JSX.Element {
-    return (
-      <div class={this.rootClass()} part={this.part("accordion")} onKeyDown={this.onKeyDown}>
-        <For each={this.panels.get()}>{(panel, index) => this.panel(panel, index)}</For>
-      </div>
-    )
-  }
-
-  /** Root classes:  the class grammar;  nested, without `ui` (Fomantic's `.ui.accordion .accordion`). */
-  private rootClass(): string {
-    const classes = this.classes()
-    return this.isNested() ? classes.replace(UI_WORD, "") : classes
-  }
-
-  /** One panel:  `<details>` > `<summary class="title">` + `<div class="content">`, each around its child. */
-  private panel(panel: UIT.AccordionPanel, index: Accessor<number>): JSX.Element {
-    const open = () => this.isOpen(index())
-    const source = () => index() === SOURCE_PANEL && !!this.attrs.source
-    return (
-      <details
-        part={this.part("panel")}
-        name={this.attrs.exclusive ? this.group : undefined}
-        open={open() && !(source() && this.isVeiled())}
-        onToggle={(event: Event) => this.onToggle(event)}
-      >
-        <summary
-          class={open() ? ACTIVE_TITLE : UIT.TITLE}
-          part={this.part("title")}
-          onClick={(event: MouseEvent) => this.onTitleClick(index(), event)}
-        >
-          <span class={DROPDOWN_ICON} part={this.part("icon")} aria-hidden="true" />
-          {this.panelSlot(panel.title, index, TITLE_PART)}
-        </summary>
-        <div class={open() ? ACTIVE_CONTENT : UIT.CONTENT} part={this.part("content")}>
-          <Show when={source() && this.bodyFailureText()}>
-            <p class={SOURCE_ERROR} part={this.part("error")} role={UIT.ALERT}>
-              {this.bodyFailureText()}
-            </p>
-          </Show>
-          {panel.content ? this.panelSlot(panel.content, index, CONTENT_PART) : undefined}
-        </div>
-      </details>
-    )
-  }
-
-  /**
-   * The `<slot>` showing `child` (a panel's title or content):  assigned by hand in a browser.
-   * - A server render can't assign by hand (no refs run, no shadow root):  the slot gets a NAME, and so does
-   *   `child` (its `slot` attribute), which the flattener (`$/ui/static`) matches and then drops.
-   * - SIDE EFFECT, server only:  sets `child`'s `slot` attribute (the render's own parsed copy of the page).
-   */
-  private panelSlot(
-    child: Element,
-    index: Accessor<number>,
-    part: typeof TITLE_PART | typeof CONTENT_PART
-  ): JSX.Element {
-    if (!isServer) return <slot ref={(slot: HTMLSlotElement) => slot.assign(child)} />
-    const name = `${part}-${untrack(index)}`
-    child.setAttribute(SLOT_ATTRIBUTE, name)
-    return <slot name={name} />
-  }
-
-  ////////////////
-  // ## Transitions
-  ////////////////
 
   /**
    * Open or close panel `index` as people do:  the cancelable `ui-open` / `ui-close` first, then `open`.
@@ -220,29 +131,25 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
    * - Returns true when applied.
    */
   toggle(index: number, originalEvent?: Event): boolean {
-    const current = untrack(this.openIndexes)
-    const exclusive = untrack(() => this.attrs.exclusive)
+    const current = untrack(() => this.openIndexes)
+    const exclusive = untrack(() => this.exclusive)
     const opening = !current.includes(index)
-    if (!opening && !untrack(() => this.attrs.collapsible)) return false
+    if (!opening && !untrack(() => this.collapsible)) return false
     const closing = opening ? (exclusive ? current : []) : [index]
     const next = opening ? (exclusive ? [index] : [...current, index]) : current.filter((open) => open !== index)
-    return this.openState.request(AccordionPanels.format(next.sort((a, b) => a - b)), () => {
-      if (opening && !this.emit("ui-open", this.detail({ index, open: true, originalEvent }))) return false
+    return this.requestChange("openText", AccordionPanels.format(next.sort((a, b) => a - b)), () => {
+      if (opening && !this.send("ui-open", this.detail({ index, open: true, originalEvent }))) return false
       return closing.every((closed) =>
-        this.emit("ui-close", this.detail({ index: closed, open: false, originalEvent }))
+        this.send("ui-close", this.detail({ index: closed, open: false, originalEvent }))
       )
     })
   }
 
   /** `detail` of `ui-open` / `ui-close` for panel `index`:  its title and content added. */
   private detail({ index, open, originalEvent }: AccordionDetailParams): UIT.AccordionToggleDetail {
-    const panel = untrack(this.panels.get)[index]
+    const panel = untrack(() => this.panels)[index]
     return { index, open, title: panel?.title as Element, content: panel?.content, originalEvent }
   }
-
-  ////////////////
-  // ## Handlers
-  ////////////////
 
   /**
    * A click on a title (Enter / Space on the focused `<summary>` click it too):  stop the native toggle and go
@@ -266,18 +173,18 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
     const panels = [...root.children].filter(
       (child): child is HTMLDetailsElement => child instanceof HTMLDetailsElement
     )
-    const before = untrack(this.openIndexes)
-    // the `source` panel held closed for its body (`isVeiled()`) is open all the same
-    const held = (index: number) => index === SOURCE_PANEL && before.includes(index) && untrack(this.isVeiled)
+    const before = untrack(() => this.openIndexes)
+    // the `source` panel held closed for its body (`isVeiled`) is open all the same
+    const held = (index: number) => index === SOURCE_PANEL && before.includes(index) && untrack(() => this.isVeiled)
     const now = panels.flatMap((details, index) => (details.open || held(index) ? [index] : []))
     if (AccordionPanels.format(now) === AccordionPanels.format(before)) return
     for (const index of now) {
-      if (!before.includes(index)) this.emit("ui-open", this.detail({ index, open: true, originalEvent: event }))
+      if (!before.includes(index)) this.send("ui-open", this.detail({ index, open: true, originalEvent: event }))
     }
     for (const index of before) {
-      if (!now.includes(index)) this.emit("ui-close", this.detail({ index, open: false, originalEvent: event }))
+      if (!now.includes(index)) this.send("ui-close", this.detail({ index, open: false, originalEvent: event }))
     }
-    this.openState.set(AccordionPanels.format(now))
+    this.openText = AccordionPanels.format(now)
   }
 
   /** ArrowDown / ArrowUp / Home / End on a title:  focus another title of THIS accordion. */
@@ -307,6 +214,52 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
   // ## Source (`SourceBodyHost`)
   ////////////////
 
+  /** The first panel's content from `source`, loaded when it first opens. */
+  readonly body = new E.SourceBody({
+    host: this.host,
+    source: () => untrack(() => this.source) || undefined,
+    select: () => untrack(() => this.select) || undefined,
+    target: () => this.bodyTarget(),
+    send: (name, detail) => this.send(name as never, detail)
+  })
+
+  /** The `source` panel's `<details>` held closed while its body is on its way (never in a server render). */
+  get isVeiled(): boolean {
+    return !isServer && !!this.source && this.body.isVeiled
+  }
+
+  /** Fetching the `source` body. */
+  @E.cssState("loading")
+  get bodyIsLoading(): boolean {
+    return this.body.loadStatus === "loading"
+  }
+
+  /** The `source` body arrived. */
+  @E.cssState("loaded")
+  get bodyIsLoaded(): boolean {
+    return this.body.loadStatus === "loaded"
+  }
+
+  /** The `source` body failed. */
+  @E.cssState("error")
+  get bodyFailed(): boolean {
+    return this.body.loadStatus === "error"
+  }
+
+  /** The error line's text, when the `source` body failed;  else `undefined`. */
+  get bodyFailureText(): string | undefined {
+    const failure = this.body.loadError
+    if (!failure) return undefined
+    const key = E.SOURCE_FAILURE_KEYS[failure.kind] ?? E.SOURCE_FAILURE_KEYS.load
+    return this.translationForKey(key as never, { source: this.source ?? "" })
+  }
+
+  /** Load the `source` body whenever its panel is open and the accordion connected. */
+  @E.onChange("source", "openIndexes", "isConnected")
+  protected onBodyWanted(source: string | undefined, openIndexes: number[], isConnected: boolean) {
+    if (source && openIndexes.includes(SOURCE_PANEL) && isConnected) this.body.load().catch(() => undefined)
+  }
+
   /** Fetch and insert the `source` body now, open or not;  once per `source` + `select`. */
   loadBody(): Promise<void> {
     return this.body.load()
@@ -334,9 +287,74 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
     return content
   }
 
-  /** Panels come from the children again (a child was added, removed or moved). */
-  private readPanels() {
-    this.panels.set(AccordionPanels.read(this.host, UIAccordion.isTitle, untrack(this.panels.get)))
+  ////////////////
+  // ## Looks
+  ////////////////
+
+  /** Panels open and close with a height transition:  styled, in a browser that animates to `auto` heights. */
+  @E.cssState("animated")
+  get isAnimated(): boolean {
+    return this.isReady && UI.browser.supports.interpolateSize
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
+  render(): JSX.Element {
+    return (
+      <div class={this.rootClass} part={this.partForName("accordion")} onKeyDown={this.onKeyDown}>
+        <For each={this.panels}>{(panel, index) => this.panel(panel, index)}</For>
+      </div>
+    )
+  }
+
+  /** One panel:  `<details>` > `<summary class="title">` + `<div class="content">`, each around its child. */
+  private panel(panel: UIT.AccordionPanel, index: Accessor<number>): JSX.Element {
+    const open = () => this.panelIsOpen(index())
+    const source = () => index() === SOURCE_PANEL && !!this.source
+    return (
+      <details
+        part={this.partForName("panel")}
+        name={this.exclusive ? this.group : undefined}
+        open={open() && !(source() && this.isVeiled)}
+        onToggle={(event: Event) => this.onToggle(event)}
+      >
+        <summary
+          class={open() ? ACTIVE_TITLE : UIT.TITLE}
+          part={this.partForName("title")}
+          onClick={(event: MouseEvent) => this.onTitleClick(index(), event)}
+        >
+          <span class={DROPDOWN_ICON} part={this.partForName("icon")} aria-hidden="true" />
+          {this.panelSlot(panel.title, index, TITLE_PART)}
+        </summary>
+        <div class={open() ? ACTIVE_CONTENT : UIT.CONTENT} part={this.partForName("content")}>
+          <Show when={source() && this.bodyFailureText}>
+            <p class={SOURCE_ERROR} part={this.partForName("error")} role={UIT.ALERT}>
+              {this.bodyFailureText}
+            </p>
+          </Show>
+          {panel.content ? this.panelSlot(panel.content, index, CONTENT_PART) : undefined}
+        </div>
+      </details>
+    )
+  }
+
+  /**
+   * The `<slot>` showing `child` (a panel's title or content):  assigned by hand in a browser.
+   * - A server render can't assign by hand (no refs run, no shadow root):  the slot gets a NAME, and so does
+   *   `child` (its `slot` attribute), which the flattener (`$/ui/static`) matches and then drops.
+   * - SIDE EFFECT, server only:  sets `child`'s `slot` attribute (the render's own parsed copy of the page).
+   */
+  private panelSlot(
+    child: Element,
+    index: Accessor<number>,
+    part: typeof TITLE_PART | typeof CONTENT_PART
+  ): JSX.Element {
+    if (!isServer) return <slot ref={(slot: HTMLSlotElement) => slot.assign(child)} />
+    const name = `${part}-${untrack(index)}`
+    child.setAttribute(SLOT_ATTRIBUTE, name)
+    return <slot name={name} />
   }
 
   ////////////////
@@ -351,6 +369,9 @@ export class UIAccordion extends E.UIElement<typeof accordionVocabulary> {
     return E.UIElement.definitions.get(element.localName)?.vocabulary.noun === TITLE_NOUN
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIAccordion extends E.AttributeValues<typeof accordionVocabulary> {}
 
 /** What `UIAccordion.detail()` builds a `ui-open` / `ui-close` detail from. */
 type AccordionDetailParams = {

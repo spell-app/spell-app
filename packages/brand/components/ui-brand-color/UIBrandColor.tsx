@@ -43,10 +43,8 @@ import colorCSS from "./ui-brand-color.css?inline"
  ****************/
 export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   @proto static vocabulary = brandColorVocabulary
-  @proto static styles = { color: colorCSS }
-  @proto static Host = BrandColorHost
-  @proto static Fallback = BrandColorFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { color: colorCSS }
+  @proto static elementSetup = { Fallback: BrandColorFallback, Host: BrandColorHost, delegatesFocus: false }
 
   /** The brand's ink, the dark text colour `Palette.ink()` picks:  what it picks for white. */
   private static readonly INK = Palette.ink(WHITE)
@@ -105,7 +103,7 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   /** The chip's accessible name:  name, colour and the AA mark when it shows. */
   readonly accessibleName = createMemo(() => {
     const words = [this.attrs.name, this.hex() ?? this.attrs.value]
-    if (this.attrs.contrast && this.passes()) words.push(this.text("aa"))
+    if (this.attrs.contrast && this.passes()) words.push(this.translationForKey("aa"))
     return words.filter(Boolean).join(" ")
   })
 
@@ -145,11 +143,11 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   ////////////////
 
   /** `brand`, and `labelled` while text shows inside (the AA mark moves up). */
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     return this.labelText() ? `${BRAND} ${LABELLED}` : BRAND
   }
 
-  protected hostStates() {
+  protected cssStates() {
     return { copied: !!this.copied.get(), choice: this.isChoice() }
   }
 
@@ -164,7 +162,7 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
           {this.renderButton()}
         </Show>
         <span class={CLASSES.status} role="status">
-          {this.copied.get() ? this.text("copied", { value: this.copied.get() }) : ""}
+          {this.copied.get() ? this.translationForKey("copied", { value: this.copied.get() }) : ""}
         </span>
         <Show when={this.attrs.details && this.facts()}>{this.renderTip()}</Show>
       </>
@@ -176,10 +174,10 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
     return (
       <button
         type="button"
-        class={this.classes()}
-        part={this.part("chip")}
+        class={this.rootClasses}
+        part={this.partForName("chip")}
         style={this.chipStyle()}
-        aria-label={this.text("copy", { name: this.displayName() })}
+        aria-label={this.translationForKey("copy", { name: this.displayName() })}
         aria-describedby={this.attrs.details ? TIP_ID : undefined}
         onClick={this.onCopy}
       >
@@ -192,8 +190,8 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   private renderImage(): JSX.Element {
     return (
       <span
-        class={this.classes()}
-        part={this.part("chip")}
+        class={this.rootClasses}
+        part={this.partForName("chip")}
         style={this.chipStyle()}
         role={this.isChoice() ? undefined : "img"}
         aria-label={this.isChoice() ? undefined : this.accessibleName() || undefined}
@@ -210,18 +208,18 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
     return (
       <>
         <Show when={this.labelText()}>
-          <span class={CLASSES.label} part={this.part("label")}>
+          <span class={CLASSES.label} part={this.partForName("label")}>
             {this.labelText()}
           </span>
         </Show>
         <Show when={this.attrs.contrast && this.passes()}>
-          <span class={CLASSES.mark} part={this.part("mark")} aria-hidden="true">
-            {this.text("aa")}
+          <span class={CLASSES.mark} part={this.partForName("mark")} aria-hidden="true">
+            {this.translationForKey("aa")}
           </span>
         </Show>
         <Show when={this.copied.get()}>
-          <span class={CLASSES.copied} part={this.part("copied")} aria-hidden="true">
-            {this.glyph.svg()}
+          <span class={CLASSES.copied} part={this.partForName("copied")} aria-hidden="true">
+            {this.glyph.svg}
           </span>
         </Show>
       </>
@@ -231,19 +229,19 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   /** The details tip:  name, hex, OKLCH, contrast of white and ink text, and what the shade is good for. */
   private renderTip(): JSX.Element {
     return (
-      <div id={TIP_ID} class={CLASSES.tip} part={this.part("tip")} role="tooltip">
+      <div id={TIP_ID} class={CLASSES.tip} part={this.partForName("tip")} role="tooltip">
         <div class={CLASSES.title}>
           <span class={CLASSES.swatch} style={this.chipStyle()} />
           <b>{this.displayName()}</b>
         </div>
         <dl class={CLASSES.rows}>
-          <dt>{this.text("hex")}</dt>
+          <dt>{this.translationForKey("hex")}</dt>
           <dd>{this.facts()?.hex}</dd>
-          <dt>{this.text("oklch")}</dt>
+          <dt>{this.translationForKey("oklch")}</dt>
           <dd>{this.facts()?.oklch}</dd>
-          <dt>{this.text("onWhite")}</dt>
+          <dt>{this.translationForKey("onWhite")}</dt>
           <dd>{this.ratioText(this.facts()?.onWhite)}</dd>
-          <dt>{this.text("onInk")}</dt>
+          <dt>{this.translationForKey("onInk")}</dt>
           <dd>{this.ratioText(this.facts()?.onInk)}</dd>
         </dl>
         <div class={CLASSES.note}>{this.note()}</div>
@@ -260,8 +258,8 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   /** `4.6:1`, plus ` AA` when it passes. */
   private ratioText(ratio: number | undefined): string {
     if (ratio === undefined) return ""
-    const text = this.text("ratio", { ratio: ratio.toFixed(1) })
-    return ratio >= AA_RATIO ? `${text} ${this.text("aa")}` : text
+    const text = this.translationForKey("ratio", { ratio: ratio.toFixed(1) })
+    return ratio >= AA_RATIO ? `${text} ${this.translationForKey("aa")}` : text
   }
 
   /** What the shade is good for, by the better of white and ink text (the Chooser's note). */
@@ -269,9 +267,9 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
     const facts = this.facts()
     if (!facts) return ""
     if (facts.ratio >= AA_RATIO) {
-      return this.text("goodText", { ink: this.text(facts.ink === WHITE ? "white" : "dark") })
+      return this.translationForKey("goodText", { ink: this.translationForKey(facts.ink === WHITE ? "white" : "dark") })
     }
-    return this.text(facts.ratio >= LARGE_RATIO ? "largeText" : "noText")
+    return this.translationForKey(facts.ratio >= LARGE_RATIO ? "largeText" : "noText")
   }
 
   ////////////////
@@ -302,7 +300,7 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
       return
     }
     this.copied.set(value)
-    this.emit("ui-copy", { value, originalEvent: event })
+    this.send("ui-copy", { value, originalEvent: event })
     clearTimeout(this.copiedTimer)
     this.copiedTimer = setTimeout(() => this.copied.set(""), COPIED_MS)
   }

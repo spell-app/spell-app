@@ -1,4 +1,4 @@
-import { onSettled, type Accessor } from "solid-js"
+import { onSettled } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -6,7 +6,7 @@ import { itemVocabulary } from "$/ui/components/ui-item/ui-item.vocabulary.en"
 
 /****************
  * ### `SlottedItems`
- * The options a dropdown's light-DOM `<ui-item>` children describe, as a signal of `MenuEntry`s -- shared by
+ * The options a dropdown's light-DOM `<ui-item>` children describe, as reactive `MenuEntry`s -- shared by
  * `<ui-dropdown>` and `<ui-select>`.
  * - Read on connect and on every mutation of the host's subtree (`MutationObserver`:  children, attributes,
  *   text) -- that also covers what `slotchange` would, and attribute / text edits it wouldn't.
@@ -20,17 +20,14 @@ import { itemVocabulary } from "$/ui/components/ui-item/ui-item.vocabulary.en"
  * - Option objects are cached per element and reused while unchanged, so keyed `<For>` keeps their rows.
  ****************/
 export class SlottedItems {
-  /** Entries in document order. */
-  readonly entries: Accessor<readonly E.MenuEntry[]>
+  /** Entries in document order;  tracked. */
+  @E.state accessor entries: readonly E.MenuEntry[] = []
 
   /** Generated slot name of each rich option. */
   readonly slots = new WeakMap<E.MenuOption, string>()
 
   /** The dropdown. */
   private readonly host: E.UIHost
-
-  /** Writable `entries`. */
-  private readonly cell: E.Cell<readonly E.MenuEntry[]>
 
   /** Last entry per element, reused while equal. */
   private readonly cache = new WeakMap<Element, E.MenuEntry>()
@@ -41,12 +38,11 @@ export class SlottedItems {
   /** Read `host`'s items now, and again on every change to its subtree once settled. */
   constructor(host: E.UIHost) {
     this.host = host
-    this.cell = new E.Cell<readonly E.MenuEntry[]>(this.read())
-    this.entries = this.cell.get
+    this.entries = this.read()
     onSettled(() => {
-      const observer = new MutationObserver(() => this.cell.set(this.read()))
+      const observer = new MutationObserver(() => (this.entries = this.read()))
       observer.observe(host, { childList: true, subtree: true, attributes: true, characterData: true })
-      this.cell.set(this.read())
+      this.entries = this.read()
       return () => observer.disconnect()
     })
   }

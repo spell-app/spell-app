@@ -25,7 +25,7 @@ describe("<ui-button> server render to Declarative Shadow DOM", () => {
     const definition = new ElementDefinition(buttonVocabulary)
     const attrs = { primary: true } as unknown as ConstructorParameters<typeof UIButton>[2]
     const host = stubHost()
-    const html = renderToString(() => new UIButton(host, definition, attrs).mount())
+    const html = renderToString(() => new UIButton(host, definition, attrs).onMount())
     const css = [...foundationCSS, buttonCSS].join("\n")
     const dsd =
       `<ui-button primary><template shadowrootmode="open" shadowrootdelegatesfocus>` +

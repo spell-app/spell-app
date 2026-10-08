@@ -54,7 +54,8 @@ export const SHARED_ATTRIBUTES = [
   {
     name: "value",
     kind: "string",
-    description: "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`)."
+    description:
+      "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `defaultChosenValue`)."
   },
   { name: "name", kind: "string", description: "Form field name." },
   { name: "required", kind: "boolean", description: "Form validation:  must be chosen (a radio:  one of its group)." },
@@ -88,48 +89,44 @@ export type CheckPartName = (typeof SHARED_PARTS)[number]["name"]
 /** Either element's vocabulary. */
 export type CheckVocabulary = typeof checkboxVocabulary | typeof radioVocabulary
 
-/** Converted attributes both elements have (`checkbox` and `radio`), see `CheckControl.common`. */
+/** Converted attributes both elements have (`checkbox` and `radio`):  their vocabulary getters on `CheckControl`. */
 export type CommonAttributes = {
-  /** `slider` / `toggle`;  none for the plain box */
-  readonly type: string | undefined
   /** chosen now */
-  readonly selected: boolean
+  selected: boolean
   /** submitted while chosen;  none ~== `on` */
-  readonly value: string | undefined
+  value: string | undefined
   /** form field name */
-  readonly name: string | undefined
+  name: string | undefined
   /** label text (the `label` shorthand) */
-  readonly label: string | undefined
+  label: string | undefined
   /** must be chosen to submit */
-  readonly required: boolean
+  required: boolean
   /** can't be used */
-  readonly disabled: boolean
+  disabled: boolean
   /** shows its state, can't be changed */
-  readonly readonly: boolean
+  readonly: boolean
 }
 
 /** What a group needs from each member (`UIRadio`);  structural, so this file never imports the element. */
 export type RadioMember = {
   /** The member's host element, for document order and focus. */
   readonly host: HTMLElement
-  /** Chosen now?  Tracked. */
-  isSelected(): boolean
+  /** Chosen now?  Tracked.  A write chooses / unchooses it without an event. */
+  isSelected: boolean
   /** Can't be used now?  Tracked. */
-  isDisabled(): boolean
+  readonly isDisabled: boolean
   /** Makes the group required?  Tracked. */
-  isRequired(): boolean
+  readonly required: boolean
   /** Its value;  tracked. */
-  chosenValue(): string
-  /** Choose / unchoose it without an event. */
-  setSelected(selected: boolean): void
+  readonly chosenValue: string
 }
 
 /** What `CheckHost` asks its controller for:  the values it submits (`CheckControl`). */
 export type CheckValues = {
   /** Submitted while chosen;  tracked. */
-  chosenValue(): string
+  readonly chosenValue: string
   /** Submitted while unchosen;  none ~== nothing.  Tracked. */
-  unchosenValue(): string | undefined
+  readonly unchosenValue: string | undefined
 }
 
 /** The part of a checkbox / radio host the fallback touches;  optional, the element may not have upgraded. */

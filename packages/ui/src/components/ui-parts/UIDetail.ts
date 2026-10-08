@@ -11,11 +11,14 @@ import { detailVocabulary } from "./ui-detail.vocabulary.en"
 export class UIDetail extends PartElement<typeof detailVocabulary> {
   @E.proto static vocabulary = detailVocabulary
 
-  protected tag(): string {
-    return this.attrs.href ? UIT.ANCHOR_TAG : "span"
+  protected get rootTag(): string {
+    return this.href ? UIT.ANCHOR_TAG : "span"
   }
 
-  protected href(): string | undefined {
-    return this.attrs.href
+  protected get rootHref(): string | undefined {
+    return this.href
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIDetail extends E.AttributeValues<typeof detailVocabulary> {}

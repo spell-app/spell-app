@@ -11,7 +11,7 @@ import { dimmerVocabulary } from "./ui-dimmer.vocabulary.en"
 export class DimmerFallback extends E.NativeFallback<typeof dimmerVocabulary> {
   @E.proto static vocabulary = dimmerVocabulary
   @E.proto static degraded = [
-    "`on` (hover / click), clicks on the dimmer, `closedby`, invoker commands, `ui-open` / `ui-close` / `ui-show`",
+    "`show-on` (hover / click), clicks on the dimmer, `closedby`, invoker commands, `ui-open` / `ui-close` / `ui-show`",
     "a page dimmer:  the browser's own Escape handling, no scroll lock or overlay stack, no fade;  " +
       "the translated `dimmedPage` name (English only)",
     "an element dimmer's parent isn't positioned for it (the page sheet is the element's)"
