@@ -299,7 +299,7 @@ export class SiteRouter {
     return (globalThis as { SPELL_SERVER?: { file?: string } }).SPELL_SERVER
   }
 
-  /** Load what defines `tag` (its family, or a component pack's module), if anything does. */
+  /** Load the family defining `tag`, if any. */
   private static loadFamily(tag: string): Promise<void> {
     return RootLoader.loadTag(tag) ?? Promise.resolve()
   }

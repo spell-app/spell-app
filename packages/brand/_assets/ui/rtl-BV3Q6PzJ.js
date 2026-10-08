@@ -1,1 +1,0 @@
-var e=`@layer ui.theme{:root{--ui-font-family:"Noto Kufi Arabic", "Droid Arabic Kufi", "Droid Sans", "Helvetica Neue", Arial, Helvetica, sans-serif;--ui-font-family-heading:var(--ui-font-family);direction:rtl}}`;export{e as default};

@@ -31,8 +31,8 @@ house style every package shares.  Only what's local is below;  a section named 
     (`core.ts` re-exports it), so keep it small
   - `src/vocabulary/` (`V` through the `api` entry) -- the naming layer:  vocabulary schema, value sets, `Vocabulary`
     (registry, translated names, `replace()` for hot reload), `Converters`;  `SkeletonText` (skeleton text <=>
-    `SkeletonSpec`) too, but reached by path, NOT through the barrel:  `core` re-exports the barrel, and only
-    `<ui-components>` parses at runtime
+    `SkeletonSpec`) too, but reached by path, NOT through the barrel:  `core` re-exports the barrel, and no page
+    parses skeleton text (node tools do:  `tools/RootCatalog.ts`)
   - `src/runtime/` (`UI`) -- the shared `UI` runtime, ONE instance per page (`globalThis.UI ??= new UIRuntime()`).
     Components call `UI.load()` on connect, which dynamic-imports this chunk once.  Services are classes:
     `Browser` (sniffing + `UI.browser.supports` flags), `Keyboard`, `Overlays`, `Focus`, `Styles`, `Vocabulary`,
@@ -89,8 +89,9 @@ house style every package shares.  Only what's local is below;  a section named 
       - and `skeleton`:  what `<ui-root display="skeleton">` draws for the tag, as SKELETON TEXT (`SkeletonText`,
         its grammar in its header):  `"inline 6 x 2.5"`, `"2 tall"`, `"18 wide: square image, header, 3 line
         paragraph"`;  LEFT OUT for none (never `"none"`, `null` or `false`:  an optional property left out, epic
-        `wwod-spell-ui` J26).  The same form as a component pack's.  `yarn gen:root` parses it into the catalog;
-        `test/vocabularies.test.ts` parses every one and fails on a typo or a stale catalog
+        `wwod-spell-ui` J26).  A component pack's vocabularies write it the same way.  `tools/RootCatalog.ts` parses it
+        into the catalog (`yarn gen:root`;  `spell dev pack build` for a pack);  `test/vocabularies.test.ts` parses
+        every one and fails on a typo or a stale catalog
     - `UI<Name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces, when SEVERAL of its
       files use them (a constant only one class uses is a module `const` below that class:  "Classes";  a types
       file left with one constant is folded away, no one-liner files);  a helper function becomes a private static
@@ -112,18 +113,14 @@ house style every package shares.  Only what's local is below;  a section named 
       visual tests (`docs/visual-testing.md`)
     - tools that look a family file up by name go through `tools/FamilyFiles.ts`;  the rest match suffixes
       (`*.en.ts`), whatever the file's name
-  - `src/components/ui-root/` also holds `<ui-components source="pack.json">` (`UIComponents`, `ComponentPack`):  a
-    COMPONENT PACK, a JSON array of `{ tag, source, load?, skeleton? }` (any custom-element tag;  `source` relative
-    to the pack;  `load` `on-demand` or `eager`;  `skeleton` as skeleton text), which every root on the page then
-    loads through `RootLoader.addTags()`.  In the root's family, defined BEFORE `<ui-root>`, so a root finds every
-    pack on its way and waits for it before calling a tag unknown (epic `wwod-spell-ui`, P12)
+  - `src/components/ui-components/` -- `<ui-components source>`, the component packs a `<ui-root>` loads:
+    "Component packs", below
   - `src/docs-components/ui-docs-<name>/` -- DOC-ONLY element families (`<ui-docs-example>`, `<ui-docs-api>` ...):  the
     widgets the docs site is built from, laid out and written EXACTLY like a component family (same files, same
     rules), but NOT components:  no lib entry, not in `ComponentDefinitions.all` / the component list
     (`ComponentDefinitions.docs`), every tag filed under the `documentation` topic.  `<ui-root>` knows them (`yarn gen:root`
     scans this folder too), but loads them only where the page's bundle called `DocsFamilies.add()` (the site's
-    does;  never the library's own `RootLoader`:  epic `wwod-spell-ui`, I12), or a component pack names them (the
-    site's layout reads `_assets/docs.components.json`, which `yarn site:bundle` writes).  A family that renders other widgets in
+    does;  never the library's own `RootLoader`:  epic `wwod-spell-ui`, I12).  A family that renders other widgets in
     its shadow root imports their families in its barrel, and adds their tags to `DocsJSXTags`.  They read the site's
     data through `SiteData` (`site/_data/components.json`), NEVER the vocabularies.  The barrel's header says how to
     add one
@@ -173,10 +170,12 @@ house style every package shares.  Only what's local is below;  a section named 
     - `SITE_BUILD`, the BUILT half:  `site/`, tracked per branch (`site/README.md`:  its files);  the page server
       lays its `_assets/` and `_data/` over the pages at `/ui/`, so every page's relative `_assets/...` /
       `_data/...` links resolve unchanged:
-    - `site/_assets/` -- GENERATED, committed:  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what
-      every page loads:  `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module"
-      src="_assets/site.js">`, `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink
-      to `src/icons/icon-packs`.  NEVER edit
+    - `site/_assets/` -- GENERATED, NOT committed (git-ignored since 2026-10-07:  its hashed chunk names churned every
+      diff and merge):  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what every page loads:
+      `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module" src="_assets/site.js">`,
+      `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink to `src/icons/icon-packs`.
+      The page server builds it when it starts, if stale (`spell dev bundles build --stale`;  `$/assembler`
+      `Bundle`, `.bundle.json` records the sources' hash), and a page waits for that.  NEVER edit
     - `site/_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS
       (`site.css`);  config `vite.site.config.ts`
     - `site/_data/` -- `components.json` and `icons.json` (the icon browser's search terms), GENERATED, committed
@@ -234,12 +233,13 @@ house style every package shares.  Only what's local is below;  a section named 
     `ui/_data/search.json`) + `yarn site:index` (the component index's cards, `ui/components/index.html`;  `--check`)
     + `yarn site:kitchen` (the kitchen sink's examples, `ui/kitchen-sink.html`, from every family's
     `examples/elements/types.html`;  `--check`) + `yarn site:bundle` (`site/_assets/`, sizes printed):  rerun after
-    changing a vocabulary, a family sheet, an example or any source the site shows, and commit the output in `site/`
-    (`ui/` commits itself)
+    changing a vocabulary, a family sheet, an example or any source the site shows, and commit `site/_data/`
+    (`ui/` commits itself;  `site/_assets/` is git-ignored, and `spell dev bundles build ui-site` records its
+    sources' hash, so the page server doesn't build it again)
   - `yarn site:dev` -- `scripts/site-dev.ts`:  `yarn site:bundle`, then the page server (started if needed) serves
     `/ui/` while a Vite WATCH build rebuilds `site/_assets/` on every `src/` / `site/_src/` edit, and live reload
     reloads the open pages.  Not watched:  `site:data` / `site:index` / `site:kitchen`.  A watch rebuild leaves stale
-    hashed chunks:  `yarn site:build` before committing
+    hashed chunks (harmless:  not committed);  the page server's next start rebuilds the bundle clean
   - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
     (`templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `ui/components/<main tag>.html` for a
     tag (`<tag>.html` for a sub-tag its family's `pages` lists:  `ui-radio`), else `ui/<page>.html`;  title /
@@ -373,7 +373,7 @@ As WWOD §18, plus:
   - `this.$.isOpen` -- an `Accessor` of any member, for Solid APIs that take one;  everyday code reads `this.isOpen`.
   - `this.on("command", this.onCommand)` -- a listener on the DOM element (or `{ target }`) for the element's
     whole life, removed when the DOM element is released.  So no vocabulary may name an attribute `on` (Fomantic's `on`
-    setting is `<ui-form validate-on>`, `<ui-dimmer show-on>`, `<ui-popup show-on>`).  One stopped by an effect
+    setting is `<ui-form validate-on>`, `<ui-dimmer show-on>`, `<ui-popup open-on>`).  One stopped by an effect
     keeps its own `AbortController`, aborted in the cleanup.
   - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `@E.cssState("disabled") get
     looksDisabled()`, never an `isDisabled` override (the DOM element swallows clicks while `isDisabled`).
@@ -452,6 +452,39 @@ As WWOD §18, plus:
   - An effect whose APPLY writes the DOM element (`internals.role`, ARIA, states) is
     `@E.onChange(..., { writesDOMElement: true })` or `this.domElementEffect(compute, apply)`:  the server build
     never runs an apply, so a plain `createEffect` leaves the static output without it.
+
+## Component packs
+
+- A COMPONENT PACK is another package's custom elements (any tag prefix:  `epic-`, `x-`), loaded on demand by
+  `<ui-root>` like Spell UI's own (epic `epic-components` P1;  restated in `wwod-spell-ui`'s names when `main` merged
+  in, 2026-10-08, in place of `wwod-spell-ui` P12's JSON packs):
+  `<ui-root><ui-components source="epics.pack.js"></ui-components><epic-page>...</epic-page></ui-root>`.
+- The pack is ONE classic script (works from `file://`), built by `spell dev pack build`
+  (`packages/cli/src/dev/packBuild.ts`), that calls `SpellUI.registerPack({ name, prefix, catalog, define })` as it runs.  `catalog` has `ROOT_CATALOG`'s
+  shape (`RootCatalogEntry`:  folder, parsed skeleton), read from the pack's `<Name>.en.ts` vocabularies by
+  `tools/RootCatalog.ts`, as `yarn gen:root` reads ours (skeleton text, "Overview");  `prefix` ends in `-`, is never
+  `ui-`, and starts every catalog tag.  A pack's families are written like ours (`packages/epics/AGENTS.md`).
+- The `ui-components` family (`src/components/ui-components/`) holds the runtime side:
+  - `<ui-components source>` (`UIComponents`):  invisible, no logic, no fallback;  the root reads its `source`.  The
+    root's barrel imports the family, so it's always defined with the root
+  - `ComponentPacks` (static, one per page):  `load(source)` adds a `<script>` once per resolved URL (an already
+    registered name resolves at once);  `register()` finds its load by `document.currentScript`, else by the name the
+    file implies (`epics.pack.js` => `epics`), calls `define()`, then adds the catalog and prefix;  `entryOf()`,
+    `owns()` for the root
+  - `registerPack()`:  exported from `$/ui` (`@spell-app/ui`) and the family's barrel;  the docs bundle puts it on
+    `window.SpellUI`
+- The root (`UIRoot`, `RootLoader`):  its first settle round also waits for its packs;  `RootLoader.undefinedTags()` /
+  `entryOf()` know registered prefixes and catalogs;  skeletons are found again when a pack registers (its catalog
+  arrives WITH it:  nothing to draw before);  a pack that fails or times out is a `RootFailure`
+  `{ tag: "ui-components", reason, source }` (`ui-error`, `ui-ready`'s `failed`) and a console ERROR naming the
+  `source` (`Warnings.error()`), and the root still gets ready.
+- Modules a pack shares with the page:  `SpellUI.packModules`, the EXACT specifier its build leaves external =>
+  the page's module (`solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`).  Built in the docs bundle's entry
+  (`packages/docs/tools/_assets/spell-ui.entry.js`), NOT in `ui`:  the one place a Solid package is `import * as`'d,
+  on purpose ("One Solid per page" above:  a pack may use any export, so they must all stay).  A new specifier goes
+  there AND in the pack build's externals.  So a pack's elements extend the page's own `UIComponent` / `DOMElement`.
+- Tests:  `src/components/ui-components/ComponentPacks.test.ts`, on the classic fixtures in
+  `test/fixtures/component-packs/` (served by Vitest's dev server).
 
 ## Decorators
 
@@ -595,7 +628,8 @@ component bundle (epic `wwod-spell-ui`, Q5).  Instead:
 - Every console warning goes through `Warnings` (`$/ui/util`):  `Warnings.warn(source, message, ...data)` for what
   the page's author must fix, `Warnings.devWarn(...)` for advice in development builds only.  ONE format:
   `[@spell-app/ui] <source>:  <what happened>`, then the data.  NEVER a bare `console.warn`.
-- The one `console.error`:  `UIComponent`'s when an element's render throws (WWOD §19 › "`console.*` is reserved for").
+- The two `console.error`s:  `UIComponent`'s when an element's render throws (WWOD §19 › "`console.*` is reserved for"),
+  and `<ui-root>`'s when a component pack didn't load (`Warnings.error()`:  a whole set of tags is missing).
 - `tools/` and `scripts/` are node CLIs:  their output goes to `process.stdout` / `stderr`.
 
 ## Tests

@@ -432,3 +432,25 @@ export type SharedOptions = GlobalOptions & {
 export type WwodOptions = GlobalOptions & {
   json?: boolean
 }
+
+/**
+ * `spell dev pack` flags.
+ * - `prefix`:  `new`:  every tag's prefix, e.g. `epic-`;  default the package's own, else `<name>-`
+ * - `build`:  `new`, `element`:  build the pack after writing the files;  `--no-build` sets it `false`
+ * - `json`:  print the report as JSON
+ */
+export type PackOptions = GlobalOptions & {
+  prefix?: string
+  build?: boolean
+  json?: boolean
+}
+
+/**
+ * `spell dev bundles` flags.
+ * - `stale`:  `build`:  only the bundles that need it
+ * - `json`:  print the report as JSON
+ */
+export type BundlesOptions = GlobalOptions & {
+  stale?: boolean
+  json?: boolean
+}

@@ -1,7 +1,8 @@
 /**
  * Entry of the Spell UI site's bundle, `site/_assets/site.js` (+ `site.css`):  the ONE script every page loads.
- * - Built by `yarn site:bundle` (`scripts/site-bundle.ts`, config `vite.site.config.ts`) into `site/_assets/`,
- *   COMMITTED:  viewing a page needs no build step.  Edit THIS (and the library source), never `_assets/`.
+ * - Built by `yarn site:bundle` (`scripts/site-bundle.ts`, config `vite.site.config.ts`) into `site/_assets/`, NOT
+ *   committed:  the page server builds it when it starts, if stale (`spell dev bundles`).  Edit THIS (and the
+ *   library source), never `_assets/`.
  * - A page loads it as (paths relative to the page;  `../` from `components/`):
  *     <link rel="stylesheet" href="_assets/site.css">
  *     <script type="module" src="_assets/site.js"></script>
@@ -11,9 +12,7 @@
  *      the site's layout glue (`./site.css`) -- extracted to `_assets/site.css`, which the page links
  *   3. `SiteData`, `BuiltInPacks`:  pointed at `_data/components.json` and `_assets/icon-packs/` from THIS file's
  *      URL, so a page at any depth finds them;  `DocsFamilies.add()`:  `<ui-root>` may load the `<ui-docs-*>`
- *      families (the library's root knows only the library's).  The layout's `<ui-components>` adds the same tags
- *      as a component pack (`_assets/docs.components.json`), with their skeletons;  this call stays for a page that
- *      mounts no layout
+ *      families (the library's root knows only the library's;  their skeletons are in its catalog already)
  *   4. `ThemePreference.restore()`:  the viewer's theme and colour scheme, re-applied (the scheme already was, by
  *      the page's inline `<head>` script, `ThemePreference.HEAD_SCRIPT`);  Spell unless the viewer picked another
  *   5. `defineSite()`:  the `<spell-site-header>` bar shared by every page the page server serves

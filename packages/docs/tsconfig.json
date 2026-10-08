@@ -7,7 +7,8 @@
   "compilerOptions": {
     "allowJs": true,
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // ES2023 (`findLast`, `toSorted` ...):  as `epics`, whose plan-doc tool the forwarders here compile;  Node 24 has them
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -16,9 +17,14 @@
     "noEmit": true,
     "skipLibCheck": true,
     "strict": true,
-    "types": ["node"]
+    // Solid's JSX and Vite's types:  the plan-doc forwarders reach `$/epics`, whose element vocabularies and types
+    // reach Spell UI's element layer (JSX, `?inline` CSS, `import.meta.glob` / `hot`)
+    "jsx": "preserve",
+    "jsxImportSource": "@solidjs/web",
+    "types": ["node", "vite/client"]
   },
-  "include": ["tools", "vitest.config.ts"],
+  // `../../types/app.d.ts`:  the repo's ambient helper types (`Prettify` ...), which `epics` uses bare
+  "include": ["../../types/app.d.ts", "tools", "vitest.config.ts"],
   // the page assets are browser code (`spell-ui.entry.js` pulls in UI source);  the goals tools aren't type-checked;
   // `tools/vendor` is minified third-party code (Claude Design's runtime, for `check-design-bundle.js`)
   "exclude": ["tools/_assets", "tools/goals", "tools/vendor"]

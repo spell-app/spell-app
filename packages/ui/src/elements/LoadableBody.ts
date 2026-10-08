@@ -16,7 +16,9 @@ import { state } from "./Reactive"
  *   `loadError` holds what to say (unless cancelled).  A failure isn't remembered:  the next `load()` tries again.
  * - `isVeiled`:  the owner keeps its content box closed while it's true, so an opening section or panel shows the
  *   body, not the placeholder, and animates once;  it turns false when the body arrives, on failure, or after
- *   `SOURCE_BODY_HOLD_MS` (then `isOverdue`:  the owner shows its loading look over the placeholder).
+ *   `SOURCE_BODY_HOLD_MS` (then `isOverdue`:  the owner shows its loading look over the placeholder).  Only before
+ *   the FIRST body:  a `reload()` (the live update) keeps the old body shown until the new one replaces it in place,
+ *   so an open section doesn't blink, and its controls keep the focus.
  * - The families of `ui-*` tags in the body are NOT loaded here:  light DOM is the page's, so whatever defines the
  *   page's tags (a `<ui-root>`, which watches its subtree, or a bundle) defines these too.
  * - NOTE: a cycle (a body holding a source of its own file) or nesting deeper than `MAX_DEPTH` is a `render` error.
@@ -31,6 +33,9 @@ export class LoadableBody {
 
   /** What the error line says;  `undefined` when there's none to show. */
   @state accessor loadError: E.SourceFailure | undefined = undefined
+
+  /** A body has been inserted:  nothing to hold closed for any more. */
+  @state accessor hasShownABody = false
 
   /** The element whose body this is. */
   private readonly owner: E.LoadableBodyOwner
@@ -56,8 +61,9 @@ export class LoadableBody {
   // ## State
   ////////////////
 
-  /** Hold the content box closed?  True while the body is on its way and not `isOverdue`;  tracked. */
+  /** Hold the content box closed?  True while the FIRST body is on its way and not `isOverdue`;  tracked. */
   get isVeiled(): boolean {
+    if (this.hasShownABody) return false
     const status = this.loadStatus
     return (status === E.SourceStatus.idle || status === E.SourceStatus.loading) && !this.isOverdue
   }
@@ -135,6 +141,7 @@ export class LoadableBody {
     for (const node of [...target.childNodes]) if (LoadableBody.isPlaceholder(node)) node.remove()
     this.inserted = [...fragment.childNodes]
     target.append(fragment)
+    this.hasShownABody = true
   }
 
   /** Loading or showing failed:  `ui-error`, then the error line unless it was cancelled. */

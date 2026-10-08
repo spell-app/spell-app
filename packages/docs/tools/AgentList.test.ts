@@ -100,6 +100,11 @@ describe("add, set, done", () => {
     expect(list.set("work-bbb", { taskId: "t2" }).taskId).toBe("t2")
   })
 
+  test("set leaves a field it isn't given alone, even passed as undefined (the CLI's missing flag)", () => {
+    const entry = list.set("aaa", { status: undefined, taskId: "t1" })
+    expect(entry).toMatchObject({ status: "active", taskId: "t1" })
+  })
+
   test("done takes it off;  an unknown name throws, naming the ones running", () => {
     expect(list.done("aaa").name).toBe("work-aaa")
     expect(() => list.done("aaa")).toThrow(/running:  work-bbb/)

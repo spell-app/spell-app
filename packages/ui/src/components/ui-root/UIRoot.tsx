@@ -2,17 +2,14 @@ import { Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
+import { ComponentPacks } from "$/ui/components/ui-components/ComponentPacks"
+import { componentsVocabulary } from "$/ui/components/ui-components/UIComponents.en"
+import { SOURCE } from "$/ui/components/ui-components/UIComponents.types"
 import { LoaderMessage, type RootLoading } from "./LoaderMessage"
 import { PlaceholderSkeleton, type RootSkeletonRenderer } from "./PlaceholderSkeleton"
 import { RootBox } from "./RootBox"
 import { RootLoader } from "./RootLoader"
-import {
-  RootTimeout,
-  type RootFailure,
-  type RootFailureReason,
-  type RootSkeleton,
-  type RootVocabulary
-} from "./UIRoot.types"
+import { RootTimeout, type RootFailure, type RootSkeleton, type RootVocabulary } from "./UIRoot.types"
 import { rootVocabulary } from "./UIRoot.en"
 
 import rootCSS from "./UIRoot.css?inline"
@@ -23,8 +20,11 @@ import rootCSS from "./UIRoot.css?inline"
  * a `<slot>` for the page, plus what shows while it loads.
  *
  * - Loads on demand:  every undefined `ui-*` tag inside (now, and as content is added) imports its family once
- *   (`RootLoader`);  nothing is imported up front.  So does every tag a component pack added (`<ui-components>`),
- *   whatever its name;  while a pack is on its way, a tag nobody knows yet waits for it before it's `unknown`.
+ *   (`RootLoader`);  nothing is imported up front.
+ * - Component packs:  each `<ui-components source>` inside loads its pack's script once per page
+ *   (`ComponentPacks`), which defines the pack's tags (`epic-*` ...);  then the root treats them as its own:
+ *   ready waits for them, skeletons come from the pack's catalog, unknown ones are reported.  A pack that fails to
+ *   load doesn't stop the root getting ready:  a console error names its `source`.
  * - Ready:  every family settled, then every `ui-*` element inside `ready` (a nested root:  its own `settled`),
  *   or the `timeout`.  Then `:state(ready)`, `ui-ready { failed }`, and the content shows.  Each tag that didn't load
  *   fires a cancelable `ui-error` first.  Content added later loads too, but is never hidden again.
@@ -32,8 +32,8 @@ import rootCSS from "./UIRoot.css?inline"
  *   before any sheet), with its space kept (`when-ready`),
  *   or not drawn at all when the `loading` message or the skeletons show instead.
  * - `skeleton`:  every element inside whose tag describes a skeleton (`E.ComponentVocabulary.skeleton`,
- *   in the generated catalog, or a pack's) gets a `<ui-placeholder>` in the root's shadow, in page order;
- *   one inside another is covered by it.  Found again once the packs on their way are in.
+ *   in the generated catalog, or a registered pack's catalog) gets a `<ui-placeholder>` in the root's shadow, in
+ *   page order;  one inside another is covered by it.  Found again when a pack registers (its catalog comes with it).
  *   Nothing described:  as `when-ready`.
  * - What shows while loading is swappable:
  *   `UIRoot.Loading` (`LoaderMessage`, a `<ui-loader>`) and `UIRoot.Skeleton` (`PlaceholderSkeleton`).
@@ -257,6 +257,12 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   /** Elements already awaited. */
   private readonly awaitedElements = new WeakSet<Element>()
 
+  /** `<ui-components>` whose pack load has started. */
+  private readonly packElements = new WeakSet<Element>()
+
+  /** `source`s of the packs still loading (for the timeout's report). */
+  private readonly packsLoading = new Set<string>()
+
   /** Started loading (on first connect). */
   private hasStarted = false
 
@@ -296,7 +302,10 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
     this.resolveSettled([...this.failures])
   }
 
-  /** Rounds of:  import every undefined tag's family, then await every element inside, until nothing new turns up. */
+  /**
+   * Rounds of:  load every pack and import every undefined tag's family, then await every element inside, until
+   * nothing new turns up.  A pack's tags are defined by the end of the first round, so the next one sees them.
+   */
   private async settle(): Promise<void> {
     for (let round = 0; round < MAX_ROUNDS; round++) {
       await this.loadUndefined()
@@ -306,11 +315,14 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
     }
   }
 
-  /** Each element inside whose tag describes a skeleton, in page order, skipping those inside another one. */
+  /**
+   * Each element inside whose tag describes a skeleton (Spell UI's catalog, or a registered pack's), in page order,
+   * skipping those inside another one.
+   */
   private findSkeletons(): RootSkeleton[] {
     const skeletons: RootSkeleton[] = []
     for (const element of this.domElement.querySelectorAll("*")) {
-      const spec = RootLoader.skeletonFor(element.localName)
+      const spec = RootLoader.entryOf(element.localName)?.skeleton
       if (!spec || skeletons.some((outer) => outer.element.contains(element))) continue
       skeletons.push({ element, spec })
     }
@@ -318,30 +330,46 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   }
 
   /**
-   * Import what defines every undefined tag inside (`RootLoader.undefinedTags()`);  resolves once each import settled.
-   * - A pack on its way (`RootLoader.whenAdded()`) may name a tag nobody knows yet, or one not named `ui-*`:
-   *   look again once it's in, before calling any tag `unknown`.
+   * Load every new pack inside, and import the family of every undefined `ui-*` tag;  resolves once each settled.
+   * - An undefined tag of a registered pack is `unknown` when its catalog doesn't list it, else `failed`:  the pack
+   *   defines every tag it lists as it registers.
    */
   private loadUndefined(): Promise<void> {
-    const loads: Promise<void>[] = []
-    const unknown: string[] = []
+    const loads = this.loadPacks()
     for (const tag of RootLoader.undefinedTags(this.domElement)) {
       const load = RootLoader.loadTag(tag)
-      if (load) loads.push(load.catch((error: unknown) => this.fail(tag, "failed", error)))
-      else unknown.push(tag)
+      if (load) loads.push(load.catch((error: unknown) => this.fail({ tag, reason: "failed", error })))
+      else if (RootLoader.entryOf(tag))
+        this.fail({ tag, reason: "failed", error: new Error("its pack didn't define it") })
+      else this.fail({ tag, reason: "unknown" })
     }
-    const added = RootLoader.whenAdded()
-    if (added) loads.push(added.then(() => this.packsAdded()))
-    else for (const tag of unknown) this.fail(tag, "unknown")
     return Promise.all(loads).then(() => undefined)
   }
 
-  /** The packs on their way are in:  find the skeletons again (their tags may have some), then load again. */
-  private packsAdded(): Promise<void> {
-    if (!untrack(() => this.contentIsReady) && untrack(() => this.displayMode) === DISPLAY.skeleton) {
-      this.skeletons = this.findSkeletons()
+  /**
+   * Start loading the pack of each `<ui-components source>` inside not seen yet (`ComponentPacks.load()`:  once per
+   * page);  each promise settles once its pack registered, or failed (reported).
+   */
+  private loadPacks(): Promise<void>[] {
+    const loads: Promise<void>[] = []
+    for (const element of this.domElement.querySelectorAll(`${componentsVocabulary.tag}[${SOURCE}]`)) {
+      const source = element.getAttribute(SOURCE)
+      if (!source || this.packElements.has(element)) continue
+      this.packElements.add(element)
+      this.packsLoading.add(source)
+      const load = ComponentPacks.load(source).then(
+        () => this.onPackLoaded(),
+        (error: unknown) => this.fail({ tag: componentsVocabulary.tag, reason: "failed", error, source })
+      )
+      loads.push(load.finally(() => this.packsLoading.delete(source)))
     }
-    return this.loadUndefined()
+    return loads
+  }
+
+  /** A pack registered:  while the skeletons still show, draw its tags' too (its catalog is known now). */
+  private onPackLoaded() {
+    if (untrack(() => this.contentIsReady) || untrack(() => this.displayMode) !== DISPLAY.skeleton) return
+    this.skeletons = this.findSkeletons()
   }
 
   /** Defined `ui-*` elements inside, not awaited yet. */
@@ -360,22 +388,28 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
     this.elementsNotReady.delete(element)
   }
 
-  /** The timeout passed:  report what's still undefined or not ready. */
+  /** The timeout passed:  report what's still undefined or not ready, and the packs still loading. */
   private timedOut() {
     for (const tag of RootLoader.undefinedTags(this.domElement)) {
-      if (RootLoader.knows(tag)) this.fail(tag, "timeout")
+      if (RootLoader.entryOf(tag)) this.fail({ tag, reason: "timeout" })
     }
-    for (const element of this.elementsNotReady) this.fail(element.localName, "timeout")
+    for (const element of this.elementsNotReady) this.fail({ tag: element.localName, reason: "timeout" })
+    for (const source of this.packsLoading) this.fail({ tag: componentsVocabulary.tag, reason: "timeout", source })
   }
 
-  /** Record that `tag` didn't load (once per tag and reason):  `ui-error`, then a console warning unless cancelled. */
-  private fail(tag: string, reason: RootFailureReason, error?: unknown) {
-    const key = `${tag} ${reason}`
+  /**
+   * Record what didn't load (once per tag, reason and pack):  `ui-error`, then, unless cancelled, a console warning
+   * -- an ERROR naming the `source` for a pack, whose whole set of tags is missing.
+   */
+  private fail(failure: RootFailure) {
+    const { tag, reason, error, source } = failure
+    const key = `${tag} ${reason} ${source ?? ""}`
     if (this.reportedFailures.has(key)) return
     this.reportedFailures.add(key)
-    const failure: RootFailure = error === undefined ? { tag, reason } : { tag, reason, error }
     this.failures.push(failure)
-    if (this.send("ui-error", failure)) E.Warnings.warn("<ui-root>", `<${tag}> didn't load (${reason}):`, error ?? "")
+    if (!this.send("ui-error", failure)) return
+    if (source) E.Warnings.error("<ui-root>", `component pack ${source} didn't load (${reason}):`, error ?? "")
+    else E.Warnings.warn("<ui-root>", `<${tag}> didn't load (${reason}):`, error ?? "")
   }
 
   ////////////////

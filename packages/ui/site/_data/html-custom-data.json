@@ -2664,14 +2664,14 @@
       "name": "ui-components",
       "description": {
         "kind": "markdown",
-        "value": "Components loads a component pack, so every root on the page can load the custom elements it lists on demand.\n\nAlso known as:  component pack, component manifest, component registry, import map, plugin, lazy loading.\n\n**Events:**  `ui-load`, `ui-error`"
+        "value": "Components name a pack of another package's elements, which the root around them loads on demand, once per page.\n\nAlso known as:  component pack, plugin, extension, custom elements, web components, element library."
       },
       "attributes": [
         {
           "name": "source",
           "description": {
             "kind": "markdown",
-            "value": "The pack:  a JSON array of `{ \"tag\", \"source\", \"load\"?, \"skeleton\"? }`, same origin.  Each `source` (the module that defines the tag) is relative to the pack;  `load` is `on-demand` (default:  when a root meets the tag) or `eager` (as soon as the pack is read);  `skeleton` is skeleton text (`inline 6 x 2.5`, `2 tall`, `18 wide: header, 3 line paragraph`;  left out:  none).  Any tag, not only `ui-*`.\n\nTakes:  text"
+            "value": "URL of the pack's script (`epics.pack.js`), relative to the page.  The root loads it once per page as a classic script (so it works from `file://`) and waits for it before showing its content.\n\nTakes:  text"
           }
         }
       ]

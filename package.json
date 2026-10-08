@@ -5,6 +5,7 @@
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell-app",
   "workspaces": [
+    "packages/assembler",
     "packages/brand",
     "packages/cli",
     "packages/docs",
@@ -17,7 +18,8 @@
     "packages/core",
     "packages/server",
     "packages/ui",
-    "packages/util"
+    "packages/util",
+    "packages/epics"
   ],
   "type": "module",
   "scripts": {
@@ -37,7 +39,7 @@
     "details": "node packages/cli/bin/spell.mjs dev details",
     "docs:link": "node packages/cli/bin/spell.mjs dev docs link",
     "goals": "node packages/cli/bin/spell.mjs dev goals",
-    "goals:test": "TSX_TSCONFIG_PATH=packages/docs/tsconfig.json node --import tsx --test packages/docs/tools/goals/goalsRoutes.test.ts",
+    "goals:test": "TSX_TSCONFIG_PATH=packages/docs/tsconfig.json node --import tsx --test packages/docs/tools/goals/goalsRoutes.test.ts packages/docs/tools/goals/page.test.js",
     "window": "node packages/cli/bin/spell.mjs dev window",
     "server": "node packages/cli/bin/spell.mjs dev server",
     "serve": "node packages/cli/bin/spell.mjs dev server start --all",
@@ -67,7 +69,7 @@
       "packages/docs/tools/goals/goalsRoutes.ts",
       "packages/docs/tools/detailsRoutes.ts",
       "packages/docs/tools/choicesRoutes.ts",
-      "packages/docs/tools/reviewRoutes.ts",
+      "packages/epics/src/tool/reviewRoutes.ts",
       "packages/docs/tools/agentRoutes.ts",
       "packages/docs/tools/showRoutes.ts",
       "packages/app/src/server/appRoutes.ts"
@@ -79,7 +81,8 @@
       "templates",
       "brand",
       "packages/docs/tools/_assets",
-      "packages/brand"
+      "packages/brand",
+      "packages/epics/pack"
     ]
   },
   "shared": {

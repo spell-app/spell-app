@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>epics pack: items sample</title>
+    <link rel="stylesheet" href="../../docs/tools/_assets/spell-doc.css" />
+    <style>
+      /* the demo's own scaffolding:  the item lists stand in for <epic-section> (drawn by the other P5 half) */
+      .demo-list {
+        margin: 6px 0 24px;
+        border-block: 1px solid var(--ui-border-color);
+      }
+    </style>
+  </head>
+  <!--
+    Every state of <epic-item>, <epic-choices> / <epic-option>, <epic-answer> / <epic-reply> / <epic-more> and
+    <epic-original> / <epic-version>, in the NEW markup, loaded through the epics pack as a converted plan doc will be.
+    Open it from the page server (`spell dev server url packages/epics/demo/items-sample.html`) and from disk:  #q6
+    loads its part only from the server.
+  -->
+  <body class="spell-doc-page plan-doc">
+    <ui-root>
+      <ui-components source="../pack/epics.pack.js"></ui-components>
+      <div class="spell-doc">
+        <main class="spell-doc-main">
+          <h1>Items sample</h1>
+          <p>
+            Every kind and state of an item, its option cards, answer, replies, More Details and Original Discussion.
+          </p>
+
+          <h2>Questions</h2>
+          <div class="demo-list">
+            <epic-item
+              id="q1"
+              title="Which colour names can a window take, and does the theme follow?"
+              status="open"
+              state="attention"
+              phase="2"
+            >
+              <p>
+                Which colour names <code>/epic &lt;name&gt; -&lt;color&gt;</code> accepts. The colour is the title
+                bar's; the theme stays the window's own.
+              </p>
+              <ul>
+                <li>Today a worktree's window gets a hue made from its name: every window different, none chosen.</li>
+                <li>The title bar needs a DARK shade, so its white text reads.</li>
+              </ul>
+              <p><b>Net effect:</b></p>
+              <ul>
+                <li><code>/epic new-thing -purple</code> opens a window with a dark purple title bar</li>
+              </ul>
+              <epic-choices>
+                <epic-option letter="A" title="A named palette" recommended>
+                  <ul>
+                    <li>12 names, each a dark title-bar shade</li>
+                    <li>an unknown name lists the 12</li>
+                  </ul>
+                  <p>Why: short to type, always readable.</p>
+                </epic-option>
+                <epic-option letter="B" title="Any CSS colour">
+                  <ul>
+                    <li>the 12 names, plus any hex</li>
+                    <li>a light colour makes white title text hard to read</li>
+                  </ul>
+                </epic-option>
+                <epic-option letter="C"
+                  ><span slot="title">The theme's own <code>titleBar</code> colour</span>
+                  <ul>
+                    <li>nothing to pick</li>
+                    <li>cost: every window looks alike</li>
+                  </ul>
+                </epic-option>
+              </epic-choices>
+            </epic-item>
+
+            <epic-item
+              id="q2"
+              title="Which four colours for the actions?"
+              status="decided"
+              state="recent"
+              answered
+              reviewed="2026-10-06"
+              part-ids="d2"
+            >
+              <p>The four action colours. Today's "don't feel right"; a proposal, to be shown as real buttons.</p>
+              <ul>
+                <li>Unchosen: all four a dark grey outline, as asked.</li>
+              </ul>
+              <epic-update phase="2"></epic-update>
+              <epic-choices chosen="B">
+                <epic-option letter="A" title="Fomantic's own: green, violet, blue, orange">
+                  <ul>
+                    <li>no work</li>
+                    <li>violet reads as a link</li>
+                  </ul>
+                </epic-option>
+                <epic-option letter="B" title="Calm colours, by meaning" recommended>
+                  <ul>
+                    <li>green = decided, orange = pending</li>
+                    <li>none reads as an error</li>
+                  </ul>
+                </epic-option>
+              </epic-choices>
+              <epic-answer id="d2" title="Calm colours, by meaning:  green = decided, orange = pending">
+                <p>Order: Approve, Make Todo, Revisit Now, Add Details Now. A tight button group.</p>
+              </epic-answer>
+              <epic-more>
+                <p>Seen on a details page of live button sets first; orange beat amber on a white page.</p>
+              </epic-more>
+              <epic-reply from="Owen" at="2026-10-06 10:42" re="revisit soon">
+                <p>Try them on a dark page too before we settle.</p>
+              </epic-reply>
+              <epic-reply from="Claude" at="2026-10-06 23:55" re="as built (Doc Review)">
+                <p>Checked dark: both read, the orange a little lighter.</p>
+              </epic-reply>
+              <epic-original>
+                <epic-version><p>Which colours for the review buttons?</p></epic-version>
+                <epic-version as-of="2026-10-04 20:49"><p>Which four colours for the review actions?</p></epic-version>
+              </epic-original>
+              <epic-commit sha="08683b6c165cbebf3922fd97793798e41f1b2760">names the palette</epic-commit>
+            </epic-item>
+
+            <epic-item
+              id="q3"
+              title="Which bottom pane do answers land in?"
+              status="decided"
+              state="old"
+              answered
+              reviewed="2026-10-01"
+            >
+              <epic-answer title="The Claude panel's, in the window the session runs in"></epic-answer>
+              <epic-original>
+                <epic-version><p>Which pane do answers go to?</p></epic-version>
+              </epic-original>
+            </epic-item>
+
+            <epic-item
+              id="q4"
+              title="Named palette, 12 names (born answered:  the title is the answer)"
+              status="decided"
+              state="old"
+            ></epic-item>
+
+            <epic-item
+              id="q5"
+              title="Nevermind:  clicking a running Add Details Now again calls it off"
+              status="canceled"
+              state="old"
+            ></epic-item>
+
+            <epic-item
+              id="q6"
+              title="When do parts load?  (its details come from a part file)"
+              status="decided"
+              state="recent"
+              answered
+              source="parts/items-q6.html"
+              part-ids="d6"
+            ></epic-item>
+
+            <epic-item
+              id="q7"
+              title="Open items:  a floating collapse button at their bottom"
+              status="open"
+              state="attention"
+            >
+              <p>A long open item's fold button sits at its end, off screen. Should it float?</p>
+              <epic-more>
+                <p>Measured on the longest item (Q8 of windows-and-review): 2.3 screens tall at 900px.</p>
+              </epic-more>
+            </epic-item>
+          </div>
+
+          <h2>Judgement calls</h2>
+          <div class="demo-list">
+            <epic-item
+              id="j1"
+              title="Kept the old ids on answer cards, so #d7 links still land"
+              status="open"
+              state="attention"
+              phase="1"
+            >
+              <p>Chose: the answer card keeps an old decision's id.</p>
+              <ul>
+                <li>over: a redirect table</li>
+              </ul>
+              <p><b>Net effect:</b></p>
+              <ul>
+                <li>old links land on the answer, unfolding its item</li>
+              </ul>
+            </epic-item>
+            <epic-item
+              id="j2"
+              title="Pack templates are .tmpl files, filled from __token__s"
+              status="open"
+              state="old"
+              reviewed="2026-10-03"
+              review-as="approve"
+            >
+              <p>Chose plain files over a template engine.</p>
+            </epic-item>
+            <epic-item
+              id="j3"
+              title="A define() per family, imported lazily"
+              status="open"
+              state="progress"
+              queued="2026-10-06"
+              work="Skip short sections"
+            >
+              <p>Queued by a review: work decided on, not started.</p>
+            </epic-item>
+            <epic-item
+              id="j4"
+              title="Staleness is a source hash, not a rebuild"
+              status="open"
+              state="open"
+              deferred="2026-10-05"
+            ></epic-item>
+            <epic-item
+              id="j5"
+              title="Changed during last night's /bedtime run, not reviewed yet"
+              status="open"
+              state="recent"
+              bedtime
+              reviewed="2026-10-07"
+            ></epic-item>
+          </div>
+
+          <h2>Caveats, todos, issues, tests</h2>
+          <div class="demo-list">
+            <epic-item
+              id="c1"
+              title="The branch lives long while other epics keep editing the real docs"
+              status="open"
+              state="open"
+            >
+              <p>Each merge of main brings their edits in; the converter runs again.</p>
+            </epic-item>
+            <epic-item id="t1" title="Goals pages on the elements" status="open" state="progress" working></epic-item>
+            <epic-item
+              id="i1"
+              title="Writing a doc needs doc-links.js and oxfmt, which packages/epics can't import"
+              status="done"
+              state="old"
+            >
+              <p>Fixed by loading them through <code>tsx</code>.</p>
+              <epic-commit sha="2c71ac57aa3922fd97793798e41f1b2760000000">loads doc-links.js through tsx</epic-commit>
+            </epic-item>
+            <epic-item id="v1" status="done" state="recent"
+              ><span slot="title"
+                >The <code>&lt;ui-root&gt;</code> loads the pack from <a href="#q6">disk</a> and the server</span
+              ></epic-item
+            >
+            <epic-item
+              id="t12"
+              title="A very long todo title that has to wrap onto several lines in a narrow side bar, so its id chip and its review label must stay centred on the first line"
+              status="open"
+              state="open"
+              reviewed="2026-10-02"
+            >
+              <p>Short body.</p>
+            </epic-item>
+          </div>
+        </main>
+      </div>
+    </ui-root>
+    <script src="../../docs/tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

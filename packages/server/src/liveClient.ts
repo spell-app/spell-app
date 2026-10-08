@@ -47,7 +47,7 @@ export type PageChange = { path: string; html: string; etag?: string; reload: ()
 /**
  * `detail` of `spell-server:file`, the event `liveClient()` fires on `window` when ANOTHER file changed:  not the
  * page's own, not a stylesheet or a script.  Nothing reloads:  the page decides.
- * - `path`:  its URL path, each segment URI-encoded, e.g. `/epics/x/parts/q2.htm`
+ * - `path`:  its URL path, each segment URI-encoded, e.g. `/epics/x/parts/q2.html`
  * - e.g. a body the page loaded from a file (`<ui-section source>`):  the docs runtime re-fetches it in place
  *   (`spell-doc-runtime.js` `wireSourceBodies()`:  a split plan doc's parts)
  */

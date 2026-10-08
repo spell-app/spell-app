@@ -85,9 +85,6 @@ function bucket(id: string): Bucket {
   if (/^(api\.ts|elements\/index\.ts|vocabulary\/vocabulary\.api\.ts)$/.test(src)) return "extra:api"
   if (/^components\/[\w-]+\/data\/|^languages\//.test(src)) return "data"
   if (src.startsWith("docs-components/")) return "docs"
-  // `$/ui/vocabulary`'s one module its barrel (and so `core`) leaves out:  only `<ui-root>`'s family parses skeleton
-  // text at runtime (`ComponentPack`), so it ships in that family's chunk
-  if (src === "vocabulary/SkeletonText.ts") return "own:ui-root:classes"
   const component = /^components\/([\w-]+)\/([\w.-]+)$/.exec(src)
   if (component) {
     const [, family, file] = component as unknown as [string, string, string]

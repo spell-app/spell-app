@@ -1,1 +1,0 @@
-import"./rolldown-runtime-CM1DJQSe.js";var e=`_data/components.json`,t=`ui-docs-data`,n=/`([^`]+)`/g,HeadingLevels=class{static levelFor(e,t){let n=Math.round(Number(e??t.fallback));return Number.isFinite(n)?Math.min(t.max,Math.max(t.min,n)):t.fallback}};export{e as i,HeadingLevels as n,t as r,n as t};

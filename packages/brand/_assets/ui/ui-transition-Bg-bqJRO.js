@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-transition-QXN0TNbA.js";export{t as DOMTransitionElement,e as UITransition};

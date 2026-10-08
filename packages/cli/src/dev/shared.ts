@@ -1,3 +1,4 @@
+import { spawnSync } from "child_process"
 import {
   closeSync,
   cpSync,
@@ -43,6 +44,9 @@ const LOCK_WAIT = 30_000
 
 /** A lock or git index lock older than this is a crashed holder's, ms. */
 const STALE = 120_000
+
+/** How long one git command may take in the shared repo, ms. */
+const GIT_WAIT = 30_000
 
 /**
  * The shared-content manifest of checkout `root` (any checkout).
@@ -179,28 +183,83 @@ export function initShared(config: SharedConfig, { importFrom }: { importFrom?: 
 
 /**
  * Commit whatever changed in the shared repo:  `spell dev shared commit`, run by the `Stop` hook after every turn.
- * Returns the new commit's short sha, or `""` when nothing changed.
+ * ONE commit per group of files (`sharedGroup()`):  any session's turn sweeps up every session's pending edits, so the
+ * message says WHAT changed (`auto: epic seo`), never whose turn it was.  Returns the new commits' short shas, in
+ * order;  `[]` when nothing changed.
  * - one at a time:  `<dir>/.git/spell-shared-commit.lock`, waited for up to 30s (never skipped:  the other
  *   session's changes would sit uncommitted until someone's next turn)
  * - a git `index.lock` older than 2 minutes is a crashed git's:  removed
- * - message `auto: <checkout>`, trailers `Session:` and `Checkout:`
+ * - the index is reset first (nobody stages here by hand;  a crashed run may have left some), then ONE
+ *   `git status` pass;  a rename is two paths:  the new one in its group, the deletion in the old one's
+ * - message `auto: <group>`, trailers `Turn-end:` (the checkout whose turn ended, `main` or the worktree's name:
+ *   NOT the author) and `Session:`
+ * - SIDE EFFECT:  `git add` / `git commit` in the shared repo, by pathspec (never `-A`)
  */
 export function commitShared(
   config: SharedConfig,
   { session, checkout }: { session?: string; checkout?: string } = {}
-): string {
-  if (!existsSync(join(config.dir, ".git"))) return ""
+): string[] {
+  if (!existsSync(join(config.dir, ".git"))) return []
   return withLock(join(config.dir, ".git", "spell-shared-commit.lock"), () => {
     const indexLock = join(config.dir, ".git", "index.lock")
     if (existsSync(indexLock) && Date.now() - statSync(indexLock).mtimeMs > STALE) rmSync(indexLock, { force: true })
-    gitOrThrow(["add", "-A"], config.dir)
-    if (!CLI.git(["status", "--porcelain"], config.dir).out) return ""
-    const where = checkout ? relative(config.main, checkout) || "main" : "main"
-    const trailers = [session && `Session: ${session}`, checkout && `Checkout: ${checkout}`].filter(Boolean)
-    const message = `auto: ${where}${trailers.length ? `\n\n${trailers.join("\n")}` : ""}`
-    gitOrThrow(["-c", "commit.gpgsign=false", "commit", "-q", "-m", message], config.dir)
-    return CLI.git(["rev-parse", "--short", "HEAD"], config.dir).out
+    gitOrThrow(["reset", "-q"], config.dir)
+    // `Object.groupBy()` needs lib `es2024`;  ours is older
+    const groups: Record<string, string[]> = {}
+    for (const path of pendingPaths(config.dir)) (groups[sharedGroup(path)] ??= []).push(path)
+    const trailers = [checkout && `Turn-end: ${checkoutName(config.main, checkout)}`, session && `Session: ${session}`]
+    const footer = trailers.filter(Boolean).join("\n")
+    return Object.keys(groups)
+      .sort()
+      .map((group) => {
+        gitOrThrow(["--literal-pathspecs", "add", "--pathspec-from-file=-", "--pathspec-file-nul"], config.dir, {
+          input: groups[group].join("\0")
+        })
+        const message = `auto: ${group}${footer ? `\n\n${footer}` : ""}`
+        gitOrThrow(["-c", "commit.gpgsign=false", "commit", "-q", "-m", message], config.dir)
+        return CLI.git(["rev-parse", "--short", "HEAD"], config.dir).out
+      })
   })
+}
+
+/**
+ * The commit group of shared-repo path `path` (`commitShared()`):  what the commit's message names.
+ * - `epics/<name>/...`:  `epic <name>`;  `goals/<set>/...`:  `goals/<set>`;  a file right under either:  the folder
+ * - `guides/<x>`, `<x>` a folder or a file:  `guides/<x>`
+ * - the other shared folders (`pages`, `templates`, `ui`, `brand`, `agents`):  the folder
+ * - anything else (the repo's own files, old-path links):  `other`
+ */
+export function sharedGroup(path: string): string {
+  const [top, next, ...rest] = path.split("/")
+  const inFolder = rest.length > 0
+  if (top === "epics") return inFolder ? `epic ${next}` : top
+  if (top === "goals") return inFolder ? `goals/${next}` : top
+  if (top === "guides") return next ? `guides/${next}` : top
+  return next && WHOLE_FOLDERS.has(top) ? top : "other"
+}
+
+/** Shared folders committed as one group each (`sharedGroup()`). */
+const WHOLE_FOLDERS = new Set(["pages", "templates", "ui", "brand", "agents"])
+
+/**
+ * Every path with a change in repo `dir`, untracked files one by one:  `git status --porcelain -z`.
+ * - a rename or copy (`R` / `C`, staged only) gives both paths
+ */
+function pendingPaths(dir: string): string[] {
+  const entries = gitOrThrow(["status", "--porcelain", "-z", "--untracked-files=all"], dir).split("\0").filter(Boolean)
+  const paths: string[] = []
+  for (let i = 0; i < entries.length; i++) {
+    const [code, path] = [entries[i].slice(0, 2), entries[i].slice(3)]
+    paths.push(path)
+    if (/[RC]/.test(code)) paths.push(entries[++i])
+  }
+  return paths
+}
+
+/** `checkout`'s short name:  `main`, a worktree's name, else its path relative to `main`. */
+function checkoutName(main: string, checkout: string): string {
+  const where = relative(main, checkout)
+  return where ? where.replace(/^\.claude[\\/]worktrees[\\/]/, "") : "main"
 }
 
 /** The shared repo's `.gitignore`. */
@@ -259,11 +318,17 @@ function files(dir: string, prefix = ""): string[] {
   return found.sort()
 }
 
-/** `git <args>` in `cwd`;  throws a `CliError` with git's message when it fails. */
-function gitOrThrow(args: string[], cwd: string): string {
-  const run = CLI.git(args, cwd)
-  if (!run.ok) throw new CLI.CliError(`git ${args.join(" ")} failed in ${cwd}:  ${run.err || run.out}`)
-  return run.out
+/**
+ * `git <args>` in `cwd`, `input` on its stdin;  its output UNTRIMMED (`git status --porcelain` starts with a space).
+ * - throws a `CliError` with git's message when it fails
+ */
+function gitOrThrow(args: string[], cwd: string, { input }: { input?: string } = {}): string {
+  const run = spawnSync("git", args, { cwd, input, encoding: "utf8", timeout: GIT_WAIT })
+  if (run.status !== 0) {
+    const why = (run.stderr || run.stdout || String(run.error ?? "")).trim()
+    throw new CLI.CliError(`git ${args.join(" ")} failed in ${cwd}:  ${why}`)
+  }
+  return run.stdout
 }
 
 /** Run `fn` holding lock file `lockFile` (`open(wx)`), waiting up to `LOCK_WAIT`;  a stale lock is taken over. */

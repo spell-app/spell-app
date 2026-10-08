@@ -16,6 +16,16 @@
  * - `$/...` aliases resolve through esbuild's own tsconfig `paths` support:  `packages/docs/tsconfig.json` extends
  *   the root's `tsconfig.base.json`.
  * - Exports become `window.SpellUI` (`UI`), for the page runtime's checks and for poking in DevTools.
+ * - Component packs (epic `epic-components`):  `<ui-components source="x.pack.js">` in a `<ui-root>` loads a pack's
+ *   classic script, which calls `SpellUI.registerPack(pack)` and imports the modules it shares with the page from
+ *   `SpellUI.packModules` (`spell dev pack build` maps each of their specifiers there), so a pack never brings a
+ *   second Solid or Spell UI.
+ *   - `packModules` is the EXACT specifier a pack's build leaves external => that module's namespace.  Add one here
+ *     AND to the pack build's externals, together.
+ *   - `import * as` a Solid package, against `packages/ui/AGENTS.md` ("One Solid per page"), on purpose and ONLY
+ *     here:  that rule keeps a library's bundles from pinning all of Solid, but this map exists so a pack can use any
+ *     export, which no tree-shaker can know ahead.  So the whole of `solid-js` / `@solidjs/web` stays in this bundle
+ *     (`ui`'s own code never holds such a map).
  * - The look:  UI's `spell-brand` theme (the Spell brand as Claude Design drew it), on every page, applied as soon
  *   as the bundle runs (epic `design-system`, P9;  `spell` before, which stays as it is for everything else).
  *   Its sheet is inlined like every other `import()`, so it registers a few microtasks after the bundle runs, not
@@ -27,12 +37,25 @@
 import "spell-ui:icons"
 import "spell-ui:emoji"
 import { UI } from "@spell-app/ui"
+import * as solidWeb from "@solidjs/web"
+import * as solid from "solid-js"
+import * as uiCore from "@spell-app/ui/core"
+import * as uiForms from "@spell-app/ui/forms"
 import "spell-ui:lazy"
 import "./spell-ui-sources.js"
 import "./spell-doc-runtime.js"
 import { defineSite } from "$/server/site"
 
 export { UI }
+export { registerPack } from "@spell-app/ui"
+
+/** What a component pack imports, by the specifier its build leaves external => the page's copy of that module. */
+export const packModules = Object.freeze({
+  "solid-js": solid,
+  "@solidjs/web": solidWeb,
+  "$/ui/core": uiCore,
+  "$/ui/forms": uiForms
+})
 
 void UI.load()
   .then((ui) => ui.themes.apply("spell-brand"))

@@ -108,23 +108,26 @@ function reorgEntry(name) {
  * - `details`:  details pages (`spell dev details`), questions for one session:  not in the index, not checked with the
  *   docs (scratch `details/`, and an epic's `epics/<name>/details/`);  NOT the `details` epic's own folder,
  *   `epics/details/` (`findPages()`)
- * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.htm`, `plan-parts.js`):  fragments its page loads.
- *   Their `.htm` already keeps them out (only `.html` is a page);  the folder too, in case one is ever `.html`
+ * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.html`, `plan-parts.js`):  fragments its page loads,
+ *   told from pages by this folder alone since they're `.html` (Q12 of `epic-components`;  `.htm` before)
  */
 const SKIP_DIRS = new Set(["node_modules", "experiments", "examples", "details", "parts"])
 
 /**
  * Epic `name`'s plan doc in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html` when that is a
- * plan doc (`<body class="... plan-doc">`);  `undefined` when there's neither.
- * - why both:  plan docs were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree cut
- *   before then still has `<name>.html` until it merges `main`
+ * plan doc (`<body class="... plan-doc">`, or one in `<epic-*>` markup:  an `<epic-page>`);  `undefined` when
+ * there's neither.
+ * - why both names:  plan docs were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree
+ *   cut before then still has `<name>.html` until it merges `main`
+ * - `packages/epics/src/tool/PlanDocFiles.ts` `planDocIn()` is the same:  change both
  */
 export function planDocIn(dir, name) {
   const file = join(dir, `${name}.plan.html`)
   if (existsSync(file)) return file
   const old = join(dir, `${name}.html`)
   if (!existsSync(old)) return undefined
-  return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(readFileSync(old, "utf8")) ? old : undefined
+  const html = readFileSync(old, "utf8")
+  return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(html) || /<epic-page\b/.test(html) ? old : undefined
 }
 
 /**
@@ -149,12 +152,16 @@ export function findPages(dir = AREAS) {
 }
 
 /**
- * The file holding the plan doc at `file`'s log:  its part, `parts/log.htm`, when the doc is split (`plan-parts.js`),
- * else the doc itself.  For the browser checks, which add a log line and take it out again by hand.
+ * The file holding the plan doc at `file`'s log:  its part, `parts/log.html` (`parts/log.htm` before Q12 of
+ * `epic-components`), when the doc is split (`plan-parts.js`), else the doc itself.  For the browser checks, which
+ * add a log line and take it out again by hand.
+ * - either markup:  the log's host says `source="parts/log.html"` in both (`<ui-section id="log">`, `<epic-section
+ *   kind="log">`)
  */
 export function planLogFile(file) {
-  const part = join(dirname(file), "parts", "log.htm")
-  return existsSync(part) && readFileSync(file, "utf8").includes('source="parts/log.htm"') ? part : file
+  const source = /\bsource="(parts\/log\.html?)"/.exec(readFileSync(file, "utf8"))?.[1]
+  const part = source && join(dirname(file), source)
+  return part && existsSync(part) ? part : file
 }
 
 /**
@@ -168,17 +175,27 @@ export function planLogFile(file) {
  */
 export function tidy(files) {
   const paths = files.map((file) => resolve(ROOT, file))
-  for (const [command, args] of [
-    [process.execPath, [join(TOOLS, "doc-links.js"), ...paths]],
-    ["yarn", ["vp", "fmt", ...paths]]
-  ]) {
-    const run = spawnSync(command, args, { cwd: PACKAGE, encoding: "utf8" })
+  for (const { command, args, env } of [docLinksRun(paths), { command: "yarn", args: ["vp", "fmt", ...paths] }]) {
+    const run = spawnSync(command, args, { cwd: PACKAGE, encoding: "utf8", env })
     if (run.status !== 0) {
       process.stderr.write(`${run.stdout ?? ""}${run.stderr ?? ""}`)
       return false
     }
   }
   return true
+}
+
+/**
+ * How to run `doc-links.js` with `args` as a child `node`, for `spawnSync(command, args, { env })`:  under `tsx`,
+ * which maps its `$/assembler` import through this package's `tsconfig.json`, from whatever folder it runs in.
+ * - the one way the tools run it (`tidy()`, `update.js`, goals' check, its own test)
+ */
+export function docLinksRun(args) {
+  return {
+    command: process.execPath,
+    args: ["--import", "tsx", join(TOOLS, "doc-links.js"), ...args],
+    env: { ...process.env, TSX_TSCONFIG_PATH: join(PACKAGE, "tsconfig.json") }
+  }
 }
 
 /** Opens a doc in VS Code's doc preview:  the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`). */

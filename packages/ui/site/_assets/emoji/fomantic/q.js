@@ -1,1 +1,0 @@
-var e=`❓`,t={question:`❓`};export{t as default,e as question};

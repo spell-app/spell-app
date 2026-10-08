@@ -7,8 +7,8 @@ import type { ComponentVocabulary } from "../src/vocabulary/vocabulary.types.ts"
 /****************
  * ### `VocabularyFiles`
  * Every English vocabulary of a folder of families (`src/components/`, `src/docs-components/`), read from its
- * `UI<Name>.en.ts` files in node:  what `yarn gen:root`, `yarn site:data` (`SiteDataBuilder`) and
- * `yarn site:bundle` (the docs' component pack) read.
+ * `<Name>.en.ts` files in node:  what `RootCatalog` (`yarn gen:root`, `spell dev pack build`) and `yarn site:data`
+ * (`SiteDataBuilder`) read.
  * - A vocabulary file is named for its component and its LANGUAGE:  `UIButton.en.ts`, a translation
  *   `UIButton.es.ts`.  `languageOf()` is the one rule for that name;  `yarn measure`'s buckets use it too.
  * - Imports each FILE (`import()`), never a family's `index.ts`:  nothing is defined, no Solid or CSS loads.

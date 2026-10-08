@@ -1,8 +1,9 @@
 /**
  * Entry of the brand pages' bundle, `_assets/ui/brand-ui.js` (+ `brand-ui.css`):  the ONE script a `.spell.html`
  * page loads.
- * - Built by `yarn build` here (`scripts/build.ts`, config `vite.config.ts`) into `_assets/ui/`, COMMITTED:  viewing
- *   a page needs no build step.  Edit THIS (and the sources), never `_assets/ui/`.
+ * - Built by `yarn build` here (`scripts/build.ts`, config `vite.config.ts`) into `_assets/ui/`, NOT committed:  the
+ *   page server builds it when it starts, if stale (`spell dev bundles`).  Edit THIS (and the sources), never
+ *   `_assets/ui/`.
  * - A page in the shared `brand/spell-design-system/` loads it as:
  *     <link rel="stylesheet" href="../../packages/brand/_assets/ui/brand-ui.css">
  *     <script type="module" src="../../packages/brand/_assets/ui/brand-ui.js"></script>

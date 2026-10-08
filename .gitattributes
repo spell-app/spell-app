@@ -16,21 +16,21 @@ packages/ui/src/components/ui-markdown/md.bundle.*            linguist-generated
 packages/ui/src/components/ui-markdown/md.bundle.js           -diff
 packages/ui/src/components/ui-markdown/MDBundle.ts            linguist-generated merge=binary
 
-# ui:  Spell UI site data and bundle (`yarn site:data`, `yarn site:bundle`);  `pages.json` is hand-kept
+# ui:  Spell UI site data (`yarn site:data`);  `pages.json` is hand-kept.  Its bundle, `_assets/`, isn't committed:
+# the page server builds it (root `.gitignore`)
 packages/ui/site/_data/components.json                        linguist-generated merge=binary
 packages/ui/site/_data/icons.json                             linguist-generated merge=binary -diff
 packages/ui/site/_data/custom-elements.json                   linguist-generated merge=binary
 packages/ui/site/_data/html-custom-data.json                  linguist-generated merge=binary
-packages/ui/site/_assets/**                                   linguist-generated merge=binary -diff
 
 # docs:  the single-file bundle for docs pages (`node tools/bundle-spell-ui.js`)
 packages/docs/tools/_assets/spell-ui.js                       linguist-generated merge=binary -diff
 packages/docs/tools/_assets/emoji/**                          linguist-generated merge=binary -diff
 packages/docs/tools/_assets/lazy/**                           linguist-generated merge=binary -diff
 
-# brand:  its pages' bundle and data (`yarn build`, `yarn site:data`);  `pages.json` is hand-kept
-packages/brand/_assets/ui/**                                  linguist-generated merge=binary -diff
-packages/brand/_data/components.json                          linguist-generated merge=binary
+# brand:  its pages' data (`yarn site:data`);  `pages.json` is hand-kept.  Its bundle, `_assets/ui/`, isn't
+# committed:  the page server builds it (root `.gitignore`)
+packages/brand/_data/components.json                         linguist-generated merge=binary
 packages/brand/_data/custom-elements.json                     linguist-generated merge=binary
 packages/brand/_data/html-custom-data.json                    linguist-generated merge=binary
 
@@ -42,3 +42,6 @@ packages/app/static/semantic-ui-css/**                        linguist-vendored 
 
 # yarn.lock stays a LINE merge:  `yarn install` resolves its conflict markers itself
 yarn.lock                                                     linguist-generated
+
+# epics:  its component pack (`spell dev pack build epics`)
+packages/epics/pack/**                                        linguist-generated merge=binary -diff

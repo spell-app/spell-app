@@ -1,1 +1,0 @@
-import"./rolldown-runtime-CM1DJQSe.js";var e=[`fa7-free`,`fa7-brands`,`fomantic`],t=`fa7-free`,n=`pack.js`,r=`:`,i=class BuiltInPacks{static base=import.meta.url;static has(t){return e.includes(t)}static url(e,t=BuiltInPacks.base){return new URL(`icon-packs/${e}/${n}`,t).href}};export{r as a,n as i,e as n,t as r,i as t};

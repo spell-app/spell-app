@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>epics pack: Choose pills</title>
+    <link rel="stylesheet" href="../../docs/tools/_assets/spell-doc.css" />
+    <style>
+      /* the demo's own scaffolding:  the item lists stand in for <epic-section> */
+      .demo-list {
+        margin: 6px 0 24px;
+        border-block: 1px solid var(--ui-border-color);
+      }
+    </style>
+  </head>
+  <!--
+    The Choose pills of <epic-option> (P10 of epic `epic-components`), in the NEW markup, through the epics pack.
+    The pills show only while the page is REVIEWED:  served by the page server with its review inbox answering.  A
+    demo page has no inbox of its own (the routes take only plan docs), so `demo/shots/p10/pills.mjs` answers the
+    review routes with the inbox below, then screenshots every state:
+    - q1, an open question, nothing picked:  every card has "Choose"
+    - q2, an open question, B picked, not sent:  B's pill filled "Chosen", its card framed orange
+    - q3, an open question, A picked and sent:  A's pill outlined "Chosen"
+    - q4, an answered question being revisited (a revisit mark):  pills on its panels but the chosen one;  B picked
+    - q5, an answered question, not revisited:  no pills
+    From disk, or a server without the routes:  no pills anywhere, the cards as P5 drew them.
+  -->
+  <body class="spell-doc-page plan-doc">
+    <ui-root>
+      <ui-components source="../pack/epics.pack.js"></ui-components>
+      <div class="spell-doc">
+        <main class="spell-doc-main">
+          <h1>Choose pills</h1>
+          <p>Each option card's Choose pill, in every state, while the page is reviewed.</p>
+
+          <div class="demo-list">
+            <epic-item id="q1" title="Nothing picked yet" status="open" state="attention" open>
+              <p>Which colour names should a window take?</p>
+              <epic-choices
+                ><epic-option letter="A" title="A named palette" recommended
+                  ><ul>
+                    <li>12 names, each a dark title-bar shade</li>
+                  </ul></epic-option
+                ><epic-option letter="B" title="Any CSS colour, including a long title that wraps to a second line"
+                  ><ul>
+                    <li>the 12 names, plus any hex</li>
+                  </ul></epic-option
+                ></epic-choices
+              >
+            </epic-item>
+            <epic-item id="q2" title="B picked, not sent yet" status="open" state="attention" open>
+              <epic-choices
+                ><epic-option letter="A" title="Keep the bottom pane"><p>As today.</p></epic-option
+                ><epic-option letter="B" title="Answers in the item"><p>Scales with many notes.</p></epic-option
+                ><epic-option letter="C" title="Both"><p>More to keep in step.</p></epic-option></epic-choices
+              >
+            </epic-item>
+            <epic-item id="q3" title="A picked and sent" status="open" state="progress" open>
+              <epic-choices
+                ><epic-option letter="A" title="One button per action"><p>Four icons.</p></epic-option
+                ><epic-option letter="B" title="One menu"><p>As today.</p></epic-option></epic-choices
+              >
+            </epic-item>
+            <epic-item id="q4" title="Answered, revisited:  pick B instead" status="decided" state="recent" answered open>
+              <p>Which bottom pane do answers land in?</p>
+              <epic-choices chosen="A"
+                ><epic-option letter="A" title="The bottom pane"><p>As today.</p></epic-option
+                ><epic-option letter="B" title="In the item"><p>Scales.</p></epic-option
+                ><epic-option letter="C" title="A side panel"><p>Room for long answers.</p></epic-option></epic-choices
+              ><epic-answer title="The bottom pane"><p>Kept as it was.</p></epic-answer>
+            </epic-item>
+            <epic-item id="q5" title="Answered, not revisited:  no pills" status="decided" state="old" answered open>
+              <epic-choices chosen="B"
+                ><epic-option letter="A" title="Polling"><p>Every 4s.</p></epic-option
+                ><epic-option letter="B" title="The live client"><p>On the file's change.</p></epic-option></epic-choices
+              ><epic-answer title="The live client"><p>No extra connection.</p></epic-answer>
+            </epic-item>
+          </div>
+        </main>
+      </div>
+    </ui-root>
+    <script src="../../docs/tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

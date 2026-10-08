@@ -2,8 +2,8 @@ import type { SkeletonPart, SkeletonSpec } from "./vocabulary.types"
 
 /****************
  * ### `SkeletonText`
- * A skeleton (`SkeletonSpec`) written as one line of text:  how vocabularies (`ComponentVocabulary.skeleton`) and
- * component packs (`<ui-components>`) say what `<ui-root display="skeleton">` draws for a tag.  Sizes are in `em`.
+ * A skeleton (`SkeletonSpec`) written as one line of text:  how vocabularies (`ComponentVocabulary.skeleton`), a
+ * component pack's too, say what `<ui-root display="skeleton">` draws for a tag.  Sizes are in `em`.
  *
  * ```
  * skeleton  := ["inline"] size | ["inline"] [size ":"] parts
@@ -16,13 +16,12 @@ import type { SkeletonPart, SkeletonSpec } from "./vocabulary.types"
  *
  * - `18 x 15` ~== `{ width: "18em", height: "15em" }`;  `inline 6 x 2.5` adds `display: "inline"`;  `2 tall` ~==
  *   `{ height: "2em" }`;  `18 wide: square image, header, 3 line paragraph` ~== a width over parts
- * - No `none`:  a tag with no skeleton of its own leaves the key OUT, in a vocabulary and in a pack alike (a pack's
- *   entry without one still wins over the catalog's:  `RootLoader.skeletonFor()`).  Epic `wwod-spell-ui`, J26.
- * - ONE parser for both writers:  `yarn gen:root` parses the vocabularies into `<ui-root>`'s catalog, a pack is
- *   parsed as it's read, and `test/vocabularies.test.ts` parses every vocabulary, so a typo fails a test, not a page.
- * - Pure data, at the bottom of `$/ui/vocabulary` (types only):  node imports it (`yarn gen:root`,
- *   `yarn site:bundle`).  NOT in the folder's barrel:  `core` re-exports that barrel, and only `<ui-components>`
- *   parses at runtime, so it'd cost every page bytes for nothing.  Reached by path.
+ * - No `none`:  a tag with no skeleton of its own leaves the key OUT.  Epic `wwod-spell-ui`, J26.
+ * - ONE parser, run in node, never in a page:  `tools/RootCatalog.ts` parses the vocabularies into `<ui-root>`'s
+ *   catalog (`yarn gen:root`) and into a component pack's (`spell dev pack build`), and `test/vocabularies.test.ts`
+ *   parses every vocabulary, so a typo fails a test, not a page.
+ * - Pure data, at the bottom of `$/ui/vocabulary` (types only).  NOT in the folder's barrel:  `core` re-exports that
+ *   barrel, and no page parses skeleton text, so it'd cost every page bytes for nothing.  Reached by path.
  * - Static:  pure text work, no state.
  ****************/
 export class SkeletonText {

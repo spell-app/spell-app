@@ -1,0 +1,93 @@
+/*
+ * `<epic-original>` (EpicOriginal.tsx), `<epic-version>` (EpicVersion.tsx):  an item's Original Discussion -- a warm
+ * aside folded under its heading, as Choices (`EpicChoices.css`), each version under a small heading.
+ * - ONE sheet for both tags:  `:host(epic-original)` / `:host(epic-version)` where the hosts differ.
+ * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:  `--epic-part-gap`, `--epic-aside`.
+ * - Public tokens (`--epic-original-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-original.types;
+
+@layer ui.components.epic-original.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  :host(epic-original) {
+    margin-top: var(--epic-part-gap, 8px);
+  }
+  :host(epic-version:not(:first-of-type)) {
+    margin-top: 10px;
+  }
+
+  .original {
+    border-radius: 12px;
+    background: var(--epic-aside, var(--ui-accent-background, light-dark(#faf5ea, #2c2152)));
+  }
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 7px 12px;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    color: var(--ui-text-dark, inherit);
+    font: 600 1em / 1.35 var(--ui-font-family-heading, inherit);
+    text-align: start;
+    cursor: pointer;
+  }
+  .toggle:focus-visible {
+    outline: 2px solid var(--ui-focus-color, Highlight);
+    outline-offset: -2px;
+  }
+  .chevron {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--ui-text-muted, GrayText);
+    transition: rotate 0.12s;
+  }
+  .original:has(> .body:not([hidden])) .chevron {
+    rotate: 90deg;
+  }
+  .original > .body {
+    padding: 0 12px 10px 30px;
+  }
+  .original > .body[hidden] {
+    display: block;
+    content-visibility: hidden;
+    padding: 0;
+  }
+
+  /* a version's heading:  a small muted eyebrow */
+  .heading {
+    margin-bottom: 2px;
+    color: var(--ui-text-muted, GrayText);
+    font-size: 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+  ::slotted(:is(p, ul, ol)) {
+    margin-block: 0.35em;
+  }
+  ::slotted(:is(ul, ol)) {
+    padding-inline-start: 1.2em;
+  }
+  ::slotted(:first-child) {
+    margin-top: 0;
+  }
+  ::slotted(:last-child) {
+    margin-bottom: 0;
+  }
+}

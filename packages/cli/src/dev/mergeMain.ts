@@ -10,8 +10,11 @@ import { CLI, type Generator, type MergeMainOptions, type MergeMainReport, type 
  *   no line merge of the two, is right.  Its generator, run on the merged source, is.
  * - The root `.gitattributes` marks the same files `merge=binary`, so git never interleaves two versions:  it keeps
  *   ours and marks the file conflicted.  `-diff` and `linguist-generated` there keep them out of diffs and PRs.
- * - "Both sides changed", not just "conflicted":  a bundle with hashed chunk names (`site/_assets/`) leaves each
- *   side's chunks behind in a clean merge, and only its generator, which clears the folder, removes them.
+ * - "Both sides changed", not just "conflicted":  a bundle with hashed chunk names leaves each side's chunks behind in
+ *   a clean merge, and only its generator, which clears the folder, removes them.
+ * - Generated output one side no longer commits (the bundles the page server builds since 2026-10-07:  `spell dev
+ *   bundles`):  a file `main` changed, or in conflict, that the merged `.gitignore` ignores and one side's tree lacks
+ *   leaves the index and stays on disk (`untracked`).
  * - Snapshots are regenerated with `vp test run --update`, then each entry is compared to both sides:  one NEITHER
  *   side had is new behaviour nobody reviewed, so it's reported (`review`), never hidden.
  * - Any OTHER file in conflict stops it mid-merge:  Claude resolves those, `git add`s them, and runs it again with
@@ -22,7 +25,15 @@ export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMa
   const { mode = "start", generators = GENERATORS, snapshotUpdate = SNAPSHOT_UPDATE } = options
   const branch = gitOut(root, ["branch", "--show-current"])
   if (!branch) throw new CLI.CliError("merge-main:  not on a branch;  check out the worktree's branch first")
-  const report: MergeMainReport = { branch, result: "merged", conflicts: [], regenerated: [], review: [], unstaged: [] }
+  const report: MergeMainReport = {
+    branch,
+    result: "merged",
+    conflicts: [],
+    untracked: [],
+    regenerated: [],
+    review: [],
+    unstaged: []
+  }
 
   const merging = CLI.git(["rev-parse", "-q", "--verify", "MERGE_HEAD"], root).ok
   if (mode === "continue") {
@@ -45,11 +56,23 @@ export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMa
   }
 
   ////////
-  // What to regenerate:  every generated file conflicted or changed on both sides;  anything else conflicted stops it
-  const unmerged = gitLines(root, ["diff", "--name-only", "--diff-filter=U"])
+  // Generated output one side no longer commits (the page server's bundles, since 2026-10-07):  a file `main` changed
+  // or in conflict, that the merged `.gitignore` ignores and ONE side's tree lacks, leaves the index, kept on disk.
+  // (A file both sides track, though ignored, stays:  the `workspaces/*.code-workspace` files)
   const base = gitOut(root, ["merge-base", "HEAD", "MERGE_HEAD"])
+  const conflicted = gitLines(root, ["diff", "--name-only", "--diff-filter=U"])
+  const theirs = gitLines(root, ["diff", "--name-only", base, "MERGE_HEAD"])
+  const ignored = new Set(gitLines(root, ["ls-files", "--cached", "--ignored", "--exclude-standard"]))
+  const dropped = [...new Set([...conflicted, ...theirs])].filter((file) => ignored.has(file))
+  const [inOurs, inTheirs] = [inTree(root, "HEAD", dropped), inTree(root, "MERGE_HEAD", dropped)]
+  report.untracked = dropped.filter((file) => !(inOurs.has(file) && inTheirs.has(file))).sort()
+  if (report.untracked.length) mustGit(root, ["rm", "-q", "--cached", "--", ...report.untracked])
+  const unmerged = conflicted.filter((file) => !report.untracked.includes(file))
+
+  ////////
+  // What to regenerate:  every generated file conflicted or changed on both sides;  anything else conflicted stops it
   const ours = new Set(gitLines(root, ["diff", "--name-only", base, "HEAD"]))
-  const touched = [...new Set([...unmerged, ...gitLines(root, ["diff", "--name-only", base, "MERGE_HEAD"])])]
+  const touched = [...new Set([...unmerged, ...theirs.filter((file) => !report.untracked.includes(file))])]
   const candidates = touched.filter((file) => unmerged.includes(file) || ours.has(file))
   const plan = generatorsFor(candidates, generators, snapshotUpdate)
   const planned = new Set(plan.flatMap((step) => step.files))
@@ -109,7 +132,8 @@ const SNAPSHOT_UPDATE = (tests: string[]) => ["yarn", "vp", "test", "run", ...te
  * - The docs bundle builds UI first, whose `<ui-code>` loads the spell highlighter, so `gen:spell` comes before it.
  * - Snapshots aren't here:  `generatorsFor()` makes one per package, after these.
  * - The same paths are `merge=binary` in the root `.gitattributes`:  keep the two in step.
- * - NOT here:  `pages.json` (hand-kept), emoji data (`gen:emoji` needs a reference clone).
+ * - NOT here:  `pages.json` (hand-kept), emoji data (`gen:emoji` needs a reference clone), and the bundles the page
+ *   server builds on demand (Spell UI's site, the brand pages:  `spell dev bundles`), which aren't committed.
  */
 // oxfmt-ignore
 export const GENERATORS: Generator[] = [
@@ -127,7 +151,6 @@ export const GENERATORS: Generator[] = [
     cwd: "packages/ui",
     run: ["yarn", "site:data"]
   },
-  { name: "Spell UI site bundle",     outputs: ["packages/ui/site/_assets/**"],                         cwd: "packages/ui",     run: ["yarn", "site:bundle"] },
   {
     name: "docs bundle",
     outputs: ["packages/docs/tools/_assets/spell-ui.js", "packages/docs/tools/_assets/{emoji,lazy}/**"],
@@ -140,7 +163,7 @@ export const GENERATORS: Generator[] = [
     cwd: "packages/brand",
     run: ["yarn", "site:data"]
   },
-  { name: "brand bundle",             outputs: ["packages/brand/_assets/ui/**"],                        cwd: "packages/brand",  run: ["yarn", "build"] }
+  { name: "epics pack",               outputs: ["packages/epics/pack/**"],                              cwd: "packages/epics",  run: ["yarn", "pack:build"] }
 ]
 
 /**
@@ -204,6 +227,12 @@ export function snapshotEntries(text: string): Map<string, string> {
 function changedFiles(root: string): string[] {
   const out = mustGit(root, ["ls-files", "-z", "--modified", "--others", "--exclude-standard"])
   return [...new Set(out.split("\0").filter(Boolean))]
+}
+
+/** Which of `files` commit `rev`'s tree has;  none asked:  none (`ls-tree` with no path lists every file). */
+function inTree(root: string, rev: string, files: string[]): Set<string> {
+  if (!files.length) return new Set()
+  return new Set(gitLines(root, ["ls-tree", "-r", "--name-only", rev, "--", ...files]))
 }
 
 /** `file` matches one of `globs`. */

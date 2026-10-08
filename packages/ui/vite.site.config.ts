@@ -6,7 +6,7 @@ import { baseConfig } from "./vite.config.ts"
 /** `packages/ui/`. */
 const ROOT = fileURLToPath(new URL("./", import.meta.url))
 
-/** Where the bundle goes:  `site/_assets/`, COMMITTED. */
+/** Where the bundle goes:  `site/_assets/`, git-ignored, built by the page server when stale (`spell dev bundles`). */
 export const SITE_ASSETS = `${ROOT}site/_assets`
 
 /** The entry:  `site/_src/site.ts`. */
@@ -22,7 +22,7 @@ export const SITE_ENTRY = `${ROOT}site/_src/site.ts`
  * - Stable names where the tree is stable, so a rebuild's diff is small:  `site.js`, `site.css`, one
  *   `<family>.js` per family barrel (`ui-button.js`, `ui-docs-example.js`), emoji data under `emoji/<set>/`;  every
  *   other chunk (shared code, the runtime, engines) `<name>-<hash>.js`.
- * - Minified, no sourcemaps:  it's committed.  `emptyOutDir: false`:  `scripts/site-bundle.ts` clears the folder
+ * - Minified, no sourcemaps:  as a deploy would ship it.  `emptyOutDir: false`:  `scripts/site-bundle.ts` clears the folder
  *   itself, keeping the `icon-packs` link.
  * - Aliases set here as well:  `site/` is outside `tsconfig.json`'s files, where `tsconfigPaths` may not apply.
  */

@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-label-BnkP_2-R.js";export{e as UILabel,t as UILabels};

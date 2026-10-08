@@ -13,6 +13,20 @@ describe("Warnings.warn()", () => {
   })
 })
 
+describe("Warnings.error()", () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  test("prints the same format as an error", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+    const error = new Error("404")
+    Warnings.error("<ui-root>", "component pack x.pack.js didn't load (failed):", error)
+    expect(consoleError).toHaveBeenCalledWith(
+      "[@spell-app/ui] <ui-root>:  component pack x.pack.js didn't load (failed):",
+      error
+    )
+  })
+})
+
 describe("Warnings.devWarn()", () => {
   afterEach(() => vi.restoreAllMocks())
 

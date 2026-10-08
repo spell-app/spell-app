@@ -1,1 +1,0 @@
-import{a as e,c as t,d as n,f as r,i,l as a,n as o,o as s,p as c,r as l,s as u,t as d,u as f}from"./ui-parts-DOpefM8f.js";export{t as UIActions,i as UIAuthor,l as UIAvatar,c as UIContent,e as UIDate,n as UIDescription,o as UIDetail,a as UIExtra,r as UIHeader,f as UIMeta,s as UISummary,u as UITitle,d as UIValue};
