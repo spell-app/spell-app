@@ -74,7 +74,9 @@ Owen runs 5+ epics at once, and reads a page cold, coming from another session. 
      - letters `A`, `B` ...;  the recommended one FIRST, with `data-recommended`
      - `data-title`:  2-5 words;  the summary:  one line;  everything longer in `.spell-option-details` (it folds)
      - pick several:  `data-multiple` on the section (checkboxes);  else pick one (radios)
-     - every question gets an "Other" box, and the page a notes box and Send:  `_assets/details.js` adds them
+     - every question gets an "Other" box, every other section with no section inside it a comment box, the page a
+       notes box, and its sticky header Send:  `_assets/details.js` adds them.  The page NEVER locks:  Owen sends
+       partial answers, and sends again whenever he likes (2026-10-08)
    - a picture page:  delete the question sections;  nothing to send
 3. Epic page:  `yarn vp fmt <page>` once it's written.
 
@@ -102,17 +104,26 @@ and paste what it prints.
 - The waiter exits 0:  its output IS the answer, as text:
 
   ```
-  Answer to "Card layout" (/.../details/card-layout.html), sent 2026-10-03T22:00:00.000Z:
-    Q1 · Which card layout?:  A · Stacked cards (recommended);  Other:  but collapsible
+  Answer to "Card layout" (/.../details/card-layout.html), sent 2026-10-03T22:00:00.000Z:  (sent 2×)
+    1 of 2 decided
+    Q1 · Which card layout?:  A · Stacked cards (recommended);  Other:  but collapsible  (new)
+    Q2 · Where does it live?:  (not decided yet)
+    Comments:
+      1.2 What exists today:  the table is confusing  (new)
     Notes:  use spell/ui
   ```
 
   Act on it.  Epic:  `spell dev plan-doc decide <name> Q<n> "..."` or `add <name> decision`, linking the page
   (`<a href="details/<slug>.html">`).
+  - "(not decided yet)":  Owen hasn't picked;  never read it as "no" or as the recommended one
+  - "(new)":  changed since his send before;  act on those, the rest you've seen
+  - comments:  answer each (in chat, or on the page when it's a fix to the page)
+- A PARTIAL answer (anything "not decided yet"):  act on what's there, then wait again at once
+  (`spell dev details wait <slug>`, Bash `run_in_background: true`):  every Send wakes you.  Stop once every question
+  is decided, or Owen says he's done.
 - Exit 2:  no answer in 8 hours.  One line saying so;  ask again only if it still matters.
 - Owen answered in chat instead:  stop the waiter (`TaskStop`), or it wakes you later with a stale answer.
-- Owen pressed "Change answer" and sent again:  `spell dev details answer <slug>` prints the latest;  wait again
-  (`spell dev details wait <slug>`, background) only if he says he's changing it.
+- He sent again while no waiter ran:  `spell dev details answer <slug>` prints the latest.
 
 ## 5. When it fails
 

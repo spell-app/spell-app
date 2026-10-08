@@ -313,15 +313,25 @@ export async function waitForAnswer(page, { since = Date.now(), timeout, poll = 
 }
 
 /**
- * `answer` to `page` as plain text, for Claude:  each question's title, the options picked (with their titles),
- * Other, then the notes.
+ * `answer` to `page` as plain text, for Claude:  how many questions are decided, each question's title, the options
+ * picked (with their titles), Other, the sections' comments, then the notes.
+ * - a question with nothing picked:  "(not decided yet)":  Owen sends partial answers, and decides the rest later
+ * - sent again:  what's new since the send before is marked "(new)" (`answer.changed`, the route's)
  */
 export function formatAnswer(page, answer) {
   const { document } = parseHTML(readFileSync(page, "utf8"))
   const title = document.querySelector("h1")?.textContent?.trim() ?? basename(page)
   const lines = [`Answer to "${title}" (${shown(page)}), sent ${answer.answered}:`]
-  if (answer.changes) lines[0] += `  (changed ${answer.changes}×)`
-  for (const question of document.querySelectorAll(".spell-question")) {
+  if (answer.changes) lines[0] += `  (sent ${answer.changes + 1}×)`
+  const changed = new Set(answer.changes ? (answer.changed ?? []) : [])
+  const isNew = (key) => (changed.has(key) ? "  (new)" : "")
+  const questions = [...document.querySelectorAll(".spell-question")]
+  const decided = questions.filter((question) => {
+    const got = answer.answers?.[question.id]
+    return got?.picked?.length || got?.other
+  })
+  lines.push(`  ${decided.length} of ${questions.length} decided`)
+  for (const question of questions) {
     const got = answer.answers?.[question.id] ?? { picked: [] }
     const picked = got.picked.map((letter) => {
       const option = question.querySelector(`.spell-option[data-option="${letter}"]`)
@@ -329,14 +339,23 @@ export function formatAnswer(page, answer) {
       return `${letter} · ${option?.getAttribute("data-title") ?? "?"}${recommended}`
     })
     if (got.other) picked.push(`Other:  ${got.other}`)
-    lines.push(`  ${question.getAttribute("header") ?? question.id}:  ${picked.join(";  ") || "(no answer)"}`)
+    const header = question.getAttribute("header") ?? question.id
+    lines.push(`  ${header}:  ${picked.join(";  ") || "(not decided yet)"}${isNew(question.id)}`)
   }
   // "Provide more details" (`moreDetails`):  `<question id>-more`, the options' letters
   for (const question of document.querySelectorAll(".spell-question[data-more]")) {
     const more = answer.answers?.[`${question.id}-more`]?.picked ?? []
-    if (more.length) lines.push(`  More details wanted on:  ${more.join(", ")}`)
+    if (more.length)
+      lines.push(`  More details wanted on ${question.id}:  ${more.join(", ")}${isNew(`${question.id}-more`)}`)
   }
-  if (answer.notes) lines.push(`  Notes:  ${answer.notes}`)
+  // the comment box under each section that isn't a question
+  const comments = Object.entries(answer.comments ?? {})
+  if (comments.length) lines.push("  Comments:")
+  for (const [id, text] of comments) {
+    const section = document.getElementById(id)
+    lines.push(`    ${section?.getAttribute("header") ?? id}:  ${text}${isNew(`comment:${id}`)}`)
+  }
+  if (answer.notes) lines.push(`  Notes:  ${answer.notes}${isNew("notes")}`)
   return lines.join("\n")
 }
 
