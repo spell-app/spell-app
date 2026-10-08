@@ -127,11 +127,17 @@
   margin-bottom: 0.75em;
 }
 
+/* each option's comment box:  one quiet line under the option, growing as it's typed in */
+.spell-option-comment {
+  display: block;
+  margin-top: 0.4em;
+}
+
 /*
  * Every box Owen types in grows with its text (2026-10-06, epic `windows-and-review`):  from its rows to a third of
  * the window (the Send bar's notes stay short enough to keep the page in view)
  */
-:is(.spell-other, .spell-notes)::part(control) {
+:is(.spell-other, .spell-notes, .spell-option-comment)::part(control) {
   field-sizing: content;
   min-height: 2.4em;
   max-height: 33vh;

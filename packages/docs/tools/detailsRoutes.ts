@@ -96,20 +96,36 @@ export function answerFile(page: string): string {
 
 /**
  * `answers` from the request, checked:  question id -> what was picked.
- * - 400 unless an object of `{ picked: string[], other?: string }`
- * - a blank `other` is dropped
+ * - 400 unless an object of `{ picked: string[], other?: string, comments?: { [letter]: string } }`
+ * - a blank `other`, or a blank comment, is dropped
  */
 function toAnswers(answers: unknown): DetailsAnswers {
   if (!answers || typeof answers !== "object" || Array.isArray(answers)) throw new SRV.HttpError(400, "no answers")
   const result: DetailsAnswers = {}
   for (const [id, value] of Object.entries(answers as Record<string, unknown>)) {
-    const { picked, other } = (value ?? {}) as { picked?: unknown; other?: unknown }
+    const { picked, other, comments } = (value ?? {}) as { picked?: unknown; other?: unknown; comments?: unknown }
     if (!Array.isArray(picked) || !picked.every((each) => typeof each === "string"))
       throw new SRV.HttpError(400, `bad answer to ${id}`)
     if (other !== undefined && typeof other !== "string") throw new SRV.HttpError(400, `bad answer to ${id}`)
-    result[id] = other?.trim() ? { picked, other: other.trim() } : { picked }
+    const answer: DetailsAnswers[string] = other?.trim() ? { picked, other: other.trim() } : { picked }
+    const said = toComments(id, comments)
+    if (said) answer.comments = said
+    result[id] = answer
   }
   return result
+}
+
+/** `comments` from the request:  option letter -> its comment, the blank ones dropped;  `undefined` for none. */
+function toComments(id: string, comments: unknown): Record<string, string> | undefined {
+  if (comments === undefined) return undefined
+  if (!comments || typeof comments !== "object" || Array.isArray(comments))
+    throw new SRV.HttpError(400, `bad comments on ${id}`)
+  const kept: Record<string, string> = {}
+  for (const [letter, text] of Object.entries(comments as Record<string, unknown>)) {
+    if (typeof text !== "string") throw new SRV.HttpError(400, `bad comment on ${id} ${letter}`)
+    if (text.trim()) kept[letter] = text.trim()
+  }
+  return Object.keys(kept).length ? kept : undefined
 }
 
 /**
@@ -132,5 +148,6 @@ export type DetailsAnswer = {
  * Answers by question id.
  * - `picked`:  the options' letters (`["B"]`;  several for a "pick several" question;  `[]` for none or only Other)
  * - `other`:  the "Other" box, when filled
+ * - `comments`:  each option's comment box, by letter, when filled (`{ B: "but collapsible" }`)
  */
-export type DetailsAnswers = Record<string, { picked: string[]; other?: string }>
+export type DetailsAnswers = Record<string, { picked: string[]; other?: string; comments?: Record<string, string> }>
