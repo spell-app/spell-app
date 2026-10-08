@@ -51,6 +51,9 @@ Quick:  the point is a free panel.  No exploring, no reading the files the task 
 4. ONE `Agent` call:  `subagent_type: "fork"` (a copy of this session:  it sees the conversation, so "fix the thing we
    just talked about" works), `run_in_background: true`, `description: "<full name>: <task gist>"`, `prompt`:  the
    template below.
+   - `Agent type 'fork' not found` (a session without forks:  the VS Code panel's, 2026-10-07, I3 of `skillz`):  the
+     same call with `subagent_type: "general-purpose"`.  It sees NOTHING of the conversation:  fill the template's
+     Context line with what the task leans on ("the thing we just talked about":  which thing, which files)
 5. `spell dev agents set <name> --task-id <the agent's id>` (from the `Agent` result):  what `/bg stop` stops, and
    where a redirect goes.
 6. No redirect waiter running in this session yet ("Redirects" below):  start one.
@@ -66,6 +69,7 @@ You are agent `<full name>`, working in the BACKGROUND for this session:  Owen i
 The task, word for word:
 <task>
 
+- Context:  <what the conversation said that the task leans on;  "none" when the task stands alone>
 - Checkout:  <the session's checkout root>  (<"worktree <name>, branch <branch>" | "the main checkout">)
 - Epic:  <name>, plan doc <epics/<name>/<name>.plan.html>   (or:  no epic)
 - Budget:  <n> agents IN ALL, you included:  a HARD cap.  You may start at most <n-1> helpers of your own:  ordinary

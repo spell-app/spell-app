@@ -80,7 +80,9 @@ export class AgentList {
    */
   set(name: string, change: { status?: string; taskId?: string }): RunningAgent {
     if (change.status) checkStatus(change.status)
-    return this.update((agents) => Object.assign(this.find(agents, name), change))
+    // Only the fields given:  `{ status: undefined }` (no `--status` flag) mustn't erase the status.
+    const given = Object.fromEntries(Object.entries(change).filter(([, value]) => value !== undefined))
+    return this.update((agents) => Object.assign(this.find(agents, name), given))
   }
 
   /**
