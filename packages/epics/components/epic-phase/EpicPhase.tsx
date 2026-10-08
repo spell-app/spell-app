@@ -86,7 +86,10 @@ const STATUS_ICONS = {
 /** A phase's status. */
 type PhaseStatus = keyof typeof STATUS_ICONS
 
-/** A phase's status => its icon's colour in the page's contents list (Spell UI's `color`), as `EpicPhase.css`'s. */
+/**
+ * A phase's status => its icon's colour (Spell UI's `color`), as `EpicPhase.css`'s:  its `contentsEntry`'s, which only
+ * the contents list drew (gone 2026-10-08).
+ */
 const STATUS_COLORS = {
   todo: "grey",
   active: "blue",

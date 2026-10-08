@@ -21,7 +21,7 @@ import {
 /****************
  * ### `DOMEpicFoldElement`
  * The DOM element of a folding component:  `DOMLoadableBodyElement` (`load()`, `reload()`), plus `contentsEntry`,
- * what the page's contents list and rail show for it.
+ * what the page's rail shows for it.
  * - Before its first render (no component yet):  `undefined`;  the runtime falls back on its attributes.
  * - Above `EpicFold`:  its `elementSetup` reads it while the class is defined.
  ****************/
@@ -55,8 +55,8 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement {
  *   it itself.
  * - The DOM element's own `title` (a phase's, a sub-section's) would be a browser tooltip over all its content:  the
  *   wrapper's EMPTY `title` stops it there (T8).
- * - Contents:  its DOM element's `contentsEntry` (`DOMEpicFoldElement`) is what the page's contents list and rail
- *   show for it (`spell-doc-runtime.js` reads it):  its title as drawn, its icon, a section's count.
+ * - The rail:  its DOM element's `contentsEntry` (`DOMEpicFoldElement`) is what the page's rail shows for it
+ *   (`spell-doc-runtime.js` reads it):  its title as drawn, its icon, a section's count.
  * - SIDE EFFECT:  with `source`, replaces its own light children (a placeholder) with the part;  listens for
  *   `hashchange` while connected.
  * - Position in the import graph:  `$/ui/core` and `EpicPage` (for the page's signals) only;  subclasses in other
@@ -289,7 +289,7 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   }
 
   /**
-   * What the page's contents list and rail show for it (`DOMEpicFoldElement.contentsEntry`):  by default its title,
+   * What the page's rail shows for it (`DOMEpicFoldElement.contentsEntry`):  by default its title,
    * its id when it has none.  Read by the runtime, outside any render, right after a live update patched the page:
    * so from the page as it is NOW (attributes, children), never a value that hasn't caught up.
    */

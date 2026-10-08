@@ -472,7 +472,7 @@ describe("<epic-page> Agents running", () => {
       ]
     ])
     expect(noteBox(host, "demo-aaa").note.placeholder).toBe("Redirect demo-aaa ...")
-    // the contents and counts read the light DOM:  the panel isn't there
+    // the rail and counts read the light DOM:  the panel isn't there
     expect(host.querySelector(".agents")).toBeNull()
     await expectAccessible(host)
   })
