@@ -122,6 +122,23 @@ test("formats an answer with the page's titles", () => {
   )
 })
 
+test("formats an option's comment with its question and title", () => {
+  const page = join(docs, "pages/details/pick-layout.html")
+  const answer = {
+    page: "/x",
+    answered: "2026-10-03T22:00:00.000Z",
+    changes: 0,
+    answers: { q1: { picked: [] } },
+    comments: { "q1-B": "too slow", "q9-Z": "lost" },
+    notes: ""
+  }
+  expect(formatAnswer(page, answer).split("\n").slice(-3)).toEqual([
+    "  Comments:",
+    "    Q1 · Short question, B · Second option:  too slow",
+    "    q9-Z:  lost"
+  ])
+})
+
 test("formats a partial answer:  the questions not decided yet say so", () => {
   const page = join(docs, "pages/details/pick-layout.html")
   const answer = { page: "/x", answered: "2026-10-03T22:00:00.000Z", changes: 0, answers: {}, notes: "" }

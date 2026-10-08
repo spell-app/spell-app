@@ -165,7 +165,8 @@ function toAnswers(answers: unknown): DetailsAnswers {
  * - `changes`:  how often Owen sent it again (0:  the first answer)
  * - `changed`:  what's new since the send before (`changedSince()`);  absent in answers from before 2026-10-08
  * - `answers`:  by question id (`q1` ...);  a question not decided yet is `{ picked: [] }`
- * - `comments`:  by section id, the comment box under each section that isn't a question
+ * - `comments`:  by section id, the comment box under each section that isn't a question;  an option's box is
+ *   `<question id>-<letter>` (`q1-B`)
  * - `notes`:  the page's notes box, trimmed
  */
 export type DetailsAnswer = {
@@ -178,7 +179,7 @@ export type DetailsAnswer = {
   notes: string
 }
 
-/** Comments by section id (`c-today`):  trimmed, none blank. */
+/** Comments by section id (`c-today`), or by option (`q1-B`):  trimmed, none blank. */
 export type DetailsComments = Record<string, string>
 
 /**

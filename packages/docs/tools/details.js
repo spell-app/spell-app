@@ -348,15 +348,26 @@ export function formatAnswer(page, answer) {
     if (more.length)
       lines.push(`  More details wanted on ${question.id}:  ${more.join(", ")}${isNew(`${question.id}-more`)}`)
   }
-  // the comment box under each section that isn't a question
+  // the comment box under each section that isn't a question, and under each option (`q1-B`)
   const comments = Object.entries(answer.comments ?? {})
   if (comments.length) lines.push("  Comments:")
-  for (const [id, text] of comments) {
-    const section = document.getElementById(id)
-    lines.push(`    ${section?.getAttribute("header") ?? id}:  ${text}${isNew(`comment:${id}`)}`)
-  }
+  for (const [id, text] of comments) lines.push(`    ${commentPlace(document, id)}:  ${text}${isNew(`comment:${id}`)}`)
   if (answer.notes) lines.push(`  Notes:  ${answer.notes}${isNew("notes")}`)
   return lines.join("\n")
+}
+
+/**
+ * Where comment `id` was written, for people:  a section's header (`1.2 What exists today`), or an option's question
+ * and title (`Q1 · Revisit's colour, A · Blue`) for `<question id>-<letter>`;  else the id itself.
+ */
+function commentPlace(document, id) {
+  const section = document.getElementById(id)
+  if (section) return section.getAttribute("header") ?? id
+  const [, question, letter] = /^(.+)-([A-Z])$/.exec(id) ?? []
+  const asked = question && document.getElementById(question)
+  const option = asked?.querySelector(`.spell-option[data-option="${letter}"]`)
+  if (!option) return id
+  return `${asked.getAttribute("header") ?? question}, ${letter} · ${option.getAttribute("data-title") ?? "?"}`
 }
 
 /** `wait`:  wait for `file`'s answer, print it;  exit code 0, or 2 on timeout. */

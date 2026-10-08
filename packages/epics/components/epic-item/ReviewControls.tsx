@@ -18,7 +18,6 @@ import {
   SAID,
   SAID_EDIT,
   SAID_NOTE,
-  SAID_TITLE,
   SAID_WHAT,
   type NoteHow,
   type ReviewButtonSpec,
@@ -324,8 +323,8 @@ export type NoteBoxProps = {
 
 /****************
  * ### `<SaidNote>`
- * A marked note, its box closed (epic `windows-and-review` P1:  a note must never seem lost):  "You · revisit soon ·
- * sent 10:42", the note, and Edit, which puts it back in the box;  a changed note is unsent again until the next
+ * A marked note, its box closed (epic `windows-and-review` P1:  a note must never seem lost):  ONE line, the note,
+ * then "revisit soon · sent 10:42" small at its end, then Edit (an icon), which puts it back in the box;  a changed note is unsent again until the next
  * send.  Draws nothing while there's no marked note, a draft, or the box is being written in.
  ****************/
 export function SaidNote(props: SaidNoteProps) {
@@ -334,18 +333,19 @@ export function SaidNote(props: SaidNoteProps) {
   return (
     <Show when={noted()}>
       {(mark) => (
-        <div class={SAID} part={props.part}>
-          <div class={SAID_TITLE}>
-            <ui-icon name="comment" />
-            <b>{props.text("you")}</b>
-            <span>·</span>
-            <span class={SAID_WHAT}>{what(mark())}</span>
-            <button type="button" class={SAID_EDIT} onClick={() => props.onEdit()}>
-              <ui-icon name="edit" />
-              {props.text("edit")}
-            </button>
-          </div>
+        <div class={SAID} part={props.part} aria-label={props.text("you")}>
+          <ui-icon name="comment" />
           <p class={SAID_NOTE}>{mark().note}</p>
+          <span class={SAID_WHAT}>{what(mark())}</span>
+          <button
+            type="button"
+            class={SAID_EDIT}
+            title={props.text("edit")}
+            aria-label={props.text("edit")}
+            onClick={() => props.onEdit()}
+          >
+            <ui-icon name="edit" />
+          </button>
         </div>
       )}
     </Show>
