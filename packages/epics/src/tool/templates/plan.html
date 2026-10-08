@@ -6,7 +6,6 @@
     <title>Plan Doc Template</title>
     <meta name="description" content="Plan doc template:  copied by `spell dev plan-doc new <name>`." />
     <link rel="stylesheet" href="../../packages/docs/tools/_assets/spell-doc.css" />
-    <link rel="stylesheet" href="../../packages/docs/tools/_assets/plan-doc.css" />
   </head>
   <body class="spell-doc-page plan-doc">
     <ui-root>
@@ -17,18 +16,9 @@
           <!--
             PLAN DOC TEMPLATE.  NEVER copy by hand:  `spell dev plan-doc new <name>` fills the {{placeholders}}.
             - The tool's own template, in <epic-*> markup (packages/epics/src/tool/PLAN-DOC.md):  data in attributes,
-              prose in children;  the elements draw the rest (header, meta lines, step label, chips ...).
+              prose in children;  the elements draw the rest (crumbs, header, meta lines, step label, chips ...).
             - Sections are fixed:  each <epic-section kind> once, in this order, with its id.
           -->
-          <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
-            <ui-breadcrumb-section href="../../pages/index.html" target="src-packages-docs-index-html"
-              >Docs</ui-breadcrumb-section
-            >
-            <ui-breadcrumb-section href="../../epics/index.html" target="src-epics-index-html"
-              >Epics</ui-breadcrumb-section
-            >
-            <ui-breadcrumb-section active>{{title}}</ui-breadcrumb-section>
-          </ui-breadcrumb>
           <epic-page
             epic="{{name}}"
             title="{{title}}"

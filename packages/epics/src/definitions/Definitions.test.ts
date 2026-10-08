@@ -7,6 +7,7 @@ import {
   FLOW,
   ItemLetters,
   OVERVIEW_PART,
+  REPORT,
   SectionIds,
   type EpicAttributeSpec,
   type EpicTag
@@ -94,8 +95,8 @@ describe("Definitions.all", () => {
     }
   })
 
-  test("`<epic-section kind>` is `SectionIds`' kinds plus `overview-part`;  `ItemLetters` names only those", () => {
-    expect(attributeNamed("epic-section", "kind")!.values).toEqual([OVERVIEW_PART, ...Object.keys(SectionIds)])
+  test("`<epic-section kind>` is `overview-part`, `SectionIds`' kinds, then `report`;  `ItemLetters` names only page kinds", () => {
+    expect(attributeNamed("epic-section", "kind")!.values).toEqual([OVERVIEW_PART, ...Object.keys(SectionIds), REPORT])
     for (const kind of Object.keys(ItemLetters)) expect(Object.keys(SectionIds)).toContain(kind)
   })
 })

@@ -215,12 +215,16 @@ export const EXCLUSIONS = [
   "item chips (`Q7`, linking `#q7`), review labels (`reviewed 10-06`), `UPDATE` on a marker (drawn from the item's data)",
   "an option's `A · ` and ` (recommended)`, an answer's `Answer · ` / `D7 · `, a reply's title line's ` · ` and `re: ` (drawn from `letter`, `recommended`, the answer's id, `from` / `at` / `re`)",
   "the `Plan hung?` and future-epic notices (drawn by <epic-page> while it has no phases / is `future`)",
+  "the `plan-doc.css` link in the head:  dropped (P14:  the elements style themselves)",
   "an older doc's Overnight report (`#overnight`, before 2026-10-05), its ids and links:  dropped (Owen, I3:  what it said is in the items and phases now);  the items it linked are `overnight`"
 ] as const
 
 ////////////////
 // ## The new page
 ////////////////
+
+/** The old plan-doc sheet's link, which a converted page drops (P14:  the elements style themselves). */
+export const PLAN_DOC_CSS = 'head > link[href$="/plan-doc.css"]'
 
 /** The pack a converted page loads, from `epics/<name>/`:  `<ui-components source>`. */
 export const PACK_SOURCE = "../../packages/epics/pack/epics.pack.js"

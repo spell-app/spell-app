@@ -1,94 +1,17 @@
 /*
- * Plan docs only (`epics/<name>/<name>.plan.html`), on top of `spell-doc.css`.
- * - A plan doc is `<epic-page>` markup:  its elements (the `epics` pack, `packages/epics`) draw the page header, the
- *   review line, the sections, phases and items, their bands, counts, filters, commits and review controls, each in
- *   its shadow root (epic `epic-components`).  So this sheet keeps only what's AROUND them:  the page running edge to
- *   edge, the inset of what isn't a section (crumbs, a section outside the page), and the few cards older prose
- *   still writes by hand (`.plan-update`, `.plan-answer-block`, `.plan-reply`).
- * - Goals pages link it until they're regenerated (todo T16 of `epic-components`):  every rule they used is in
- *   `goals.css` now.
+ * LEFTOVER, until every plan doc is migrated (epic `epic-components` P14, its second conversion pass):  then no doc
+ * links this sheet, and it is DELETED.  Nothing new links it:  not the plan-doc tool's template, not the converter.
+ * - What it did is the elements' now:  the page running edge to edge is `<epic-page>`'s `:host` (out of `<main>`'s
+ *   `--spell-doc-pad-inline`);  the crumbs are drawn by `<epic-page>`;  a section outside the page is
+ *   `<epic-section kind="report">`;  the UPDATE / DONE note is `<epic-note>`.
+ * - Kept here only:  the two cards a handful of older docs still write by hand, which the migration turns into
+ *   `<epic-answer>` (`div.plan-answer-block`, 2 docs) and `<epic-reply>` (`div.plan-reply`, 3).  No layout rule:
+ *   the old ones (main's padding off) would now push `<epic-page>` off the screen.
  */
 
 @layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;
 
-/*******************************
-     The page (bands)
-*******************************/
-
-/*
- * Section titles on a band instead of a rule under them (Owen, 2026-10-04):  top-level sections on purple-50,
- * sub-sections on purple-25;  dark mode:  the lilac wash, lighter for rows.  `<epic-page>` draws its own;  these
- * are for a `<ui-section>` outside it (markdown's `#overnight`, issue I3 of `epic-components`).
- * - the page runs edge to edge:  no outer padding, so the bands reach across;  everything inside a section is
- *   inset 16px (`--plan-inset`), except a sub-section's own band, which reaches across again
- * - a band is opaque (laid over the page's background), as a stuck title covers what scrolls under it
- */
-body.plan-doc {
-  --plan-band-section: light-dark(var(--spell-violet-50, #f7f7ff), rgb(184 180 255 / 0.1));
-  --plan-band-row: light-dark(var(--spell-violet-25, #fcfcff), rgb(184 180 255 / 0.05));
-  --plan-inset: 16px;
-}
-body.plan-doc .spell-doc-main {
-  padding-inline: 0;
-}
-@media (max-width: 1100px) {
-  body.plan-doc .spell-doc-main {
-    padding-inline-end: var(--spell-rail-width);
-  }
-}
-@media (max-width: 480px) {
-  body.plan-doc .spell-doc-main {
-    padding-inline-end: 0;
-  }
-}
-/*
- * what isn't a section (crumbs, meta lines, notices) keeps the inset;  not `<epic-page>` (epic `epic-components`
- * I4):  it draws its own bands edge to edge and insets inside them
- */
-body.plan-doc .spell-doc-main > :not(ui-section, ui-sticky, epic-page) {
-  margin-inline: var(--plan-inset);
-}
-/* a `ui-list` host is `display: contents`:  its list box takes the inset */
-body.plan-doc .spell-doc-main > ui-list::part(list) {
-  margin-inline: var(--plan-inset);
-}
-body.plan-doc .spell-doc-main ui-section {
-  --ui-section-dividing-border: none;
-  --ui-section-content-padding: 10px var(--plan-inset) 0;
-  --spell-fold-end: var(--plan-inset);
-}
-body.plan-doc .spell-doc-main ui-section::part(title) {
-  margin-inline: 0;
-  padding-inline-start: var(--plan-inset);
-  background: linear-gradient(var(--plan-band-section), var(--plan-band-section)) var(--spell-bg);
-}
-body.plan-doc .spell-doc-main ui-section ui-section {
-  --ui-section-content-padding: 6px var(--plan-inset) 0;
-  margin-inline: calc(-1 * var(--plan-inset));
-}
-body.plan-doc .spell-doc-main ui-section ui-section::part(title) {
-  background: linear-gradient(var(--plan-band-row), var(--plan-band-row)) var(--spell-bg);
-}
-
-/*******************************
-     Cards in older prose
-*******************************/
-
-/*
- * What docs from before `<epic-*>` wrote by hand in an item's or a section's prose, kept as prose by the converter
- * (judgement call J24 of `epic-components`):  the elements draw today's (`<epic-update>`, `<epic-answer>`,
- * `<epic-reply>`).
- */
-
-/* `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE">` */
-.spell-doc-main ui-message.plan-update {
-  margin: 8px 0;
-}
-
-/*
- * An answered question's answer:  an IVORY card (the brand's warm accent, as the rail), titled by the answer, its
- * reasons inside (Owen, 2026-10-04):  `div.plan-answer-block > div.plan-answer-title` + the details
- */
+/* An answered question's answer, by hand:  an IVORY card titled by the answer (`<epic-answer>`'s look, before it) */
 .plan-answer-block {
   margin: 2px 0 8px;
   padding: 0 10px 6px;
@@ -111,10 +34,7 @@ body.plan-doc .spell-doc-main ui-section ui-section::part(title) {
   margin-bottom: 0;
 }
 
-/*
- * Claude's reply to a revisit note (`div.plan-reply > div.plan-reply-title` + the answer):  a violet card, the
- * brand's action color, apart from the ivory answer card
- */
+/* Claude's reply, by hand (`div.plan-reply > div.plan-reply-title`):  a violet card (`<epic-reply>`'s, before it) */
 .plan-reply {
   margin: 8px 0;
   padding: 0 10px 6px;
@@ -134,13 +54,13 @@ body.plan-doc .spell-doc-main ui-section ui-section::part(title) {
 .plan-reply > :last-child {
   margin-bottom: 0;
 }
-/* Owen's own note, kept in the item once Claude took it:  the reply card's shape, in Revisit's orange */
+/* Owen's own note, by hand:  the reply card's shape, in his ivory (decision Q20) */
 .plan-reply.plan-reply-owen {
-  border-color: color-mix(in srgb, var(--ui-orange, #f2711c) 35%, transparent);
-  background: color-mix(in srgb, var(--ui-orange, #f2711c) 7%, var(--spell-bg));
+  border-color: color-mix(in srgb, var(--ui-brown, #a5673f) 35%, transparent);
+  background: var(--ui-brown-background, light-dark(#f7efe2, #2c2152));
 }
 .plan-reply.plan-reply-owen > .plan-reply-title {
-  background: color-mix(in srgb, var(--ui-orange, #f2711c) 14%, transparent);
+  background: color-mix(in srgb, var(--ui-brown, #a5673f) 14%, transparent);
 }
 .plan-reply-owen > p {
   white-space: pre-wrap;

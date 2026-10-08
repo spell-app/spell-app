@@ -86,9 +86,14 @@ body {
   justify-content: center;
   column-gap: 28px;
 }
+/*
+ * `--spell-doc-pad-inline`:  the inline padding, as a token, so a block may run edge to edge by breaking out of it
+ * (`<epic-page>`, epic `epic-components` P14)
+ */
 .spell-doc-main {
+  --spell-doc-pad-inline: 16px;
   min-width: 0;
-  padding: 32px 16px 96px;
+  padding: 32px var(--spell-doc-pad-inline) 96px;
 }
 
 /*******************************
@@ -1064,7 +1069,7 @@ body.spell-toc-hidden .spell-rail {
   display: flex;
 }
 body.spell-toc-hidden .spell-doc-main {
-  padding-right: calc(var(--spell-rail-width) + 16px);
+  padding-right: calc(var(--spell-rail-width) + var(--spell-doc-pad-inline));
 }
 @media (min-width: 1101px) {
   body.spell-toc-hidden .spell-doc {
@@ -1084,7 +1089,7 @@ body.spell-toc-hidden .spell-doc-main {
     display: flex;
   }
   .spell-doc-main {
-    padding-right: calc(var(--spell-rail-width) + 16px);
+    padding-right: calc(var(--spell-rail-width) + var(--spell-doc-pad-inline));
   }
   .spell-doc-toc {
     position: fixed;
@@ -1160,7 +1165,7 @@ body.spell-toc-hidden .spell-doc-main {
   }
   .spell-doc-main,
   body.spell-toc-hidden .spell-doc-main {
-    padding-right: 16px;
+    padding-right: var(--spell-doc-pad-inline);
   }
   /* `.spell-doc-main`:  outweighs the stuck headings' `padding-inline` rule (Sticky headings) */
   .spell-doc-main .spell-page-head {
