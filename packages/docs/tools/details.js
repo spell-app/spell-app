@@ -314,7 +314,7 @@ export async function waitForAnswer(page, { since = Date.now(), timeout, poll = 
 
 /**
  * `answer` to `page` as plain text, for Claude:  each question's title, the options picked (with their titles),
- * Other, then the notes.
+ * Other, each option's comment, then the notes.
  */
 export function formatAnswer(page, answer) {
   const { document } = parseHTML(readFileSync(page, "utf8"))
@@ -330,6 +330,10 @@ export function formatAnswer(page, answer) {
     })
     if (got.other) picked.push(`Other:  ${got.other}`)
     lines.push(`  ${question.getAttribute("header") ?? question.id}:  ${picked.join(";  ") || "(no answer)"}`)
+    for (const [letter, comment] of Object.entries(got.comments ?? {})) {
+      const option = question.querySelector(`.spell-option[data-option="${letter}"]`)
+      lines.push(`    ${letter} · ${option?.getAttribute("data-title") ?? "?"}, comment:  ${comment}`)
+    }
   }
   // "Provide more details" (`moreDetails`):  `<question id>-more`, the options' letters
   for (const question of document.querySelectorAll(".spell-question[data-more]")) {

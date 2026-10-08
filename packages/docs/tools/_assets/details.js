@@ -7,7 +7,7 @@
  *   - one `ui-segment` card per option:  a `ui-radio` (or `ui-checkbox` under `data-multiple`) labelled
  *     `A · title`, ticked to start with under `data-checked`, a Recommended label (`data-recommended`), the
  *     one-line summary, and its
- *     `.spell-option-details` folded in a `ui-accordion`
+ *     `.spell-option-details` folded in a `ui-accordion`, then a comment box (`<question id>`'s `comments`, by letter)
  *   - an "Other" box per question
  *   - a Send section:  notes, Send, the answer once sent, Change answer
  * - Answer:  `POST /api/details/answer` (`scripts/detailsRoutes.ts`) writes `<slug>.answer.json` beside the page;
@@ -220,6 +220,16 @@
       fold.append(el("ui-title", {}, more.dataset.title ?? "Details"), el("ui-content", {}, ...more.childNodes))
       main.append(fold)
     }
+    // a comment box per option (Owen, 2026-10-08):  feedback on THIS option, picked or not
+    main.append(
+      el("ui-textarea", {
+        class: "spell-option-comment",
+        name: `${id}-${letter}-comment`,
+        rows: "1",
+        placeholder: `Comment on ${letter}`,
+        "aria-label": `Comment on ${letter} · ${title}`
+      })
+    )
     // the grid in a wrapper:  the segment slots its children, so it can't lay them out itself
     card.append(el("div", { class: "spell-option-grid" }, side, main))
     return card
@@ -270,8 +280,8 @@
   async function submit() {
     const answers = collect()
     const notes = String(send.notes.value ?? "").trim()
-    const empty = Object.values(answers).every((each) => !each.picked.length && !each.other)
-    if (empty && !notes) return fail("Pick an option (or write in Other, or a note) first.")
+    const empty = Object.values(answers).every((each) => !each.picked.length && !each.other && !each.comments)
+    if (empty && !notes) return fail("Pick an option (or write in Other, a comment or a note) first.")
     const server = window.SPELL_SERVER
     if (!server?.token) return fail("This page isn't on the page server, so it can't send:  answer in chat instead.")
     send.button.setAttribute("loading", "")
@@ -295,7 +305,7 @@
     }
   }
 
-  /** What's picked, by question id:  `{ picked: ["B"], other?: "..." }`. */
+  /** What's picked, by question id:  `{ picked: ["B"], other?: "...", comments?: { A: "..." } }`. */
   function collect() {
     const answers = {}
     for (const question of questions) {
@@ -304,6 +314,12 @@
         .map((control) => control.getAttribute("value"))
       const other = String(question.querySelector(".spell-other")?.value ?? "").trim()
       answers[question.id] = other ? { picked, other } : { picked }
+      const comments = {}
+      for (const card of question.querySelectorAll(".spell-option-card")) {
+        const text = String(card.querySelector(".spell-option-comment")?.value ?? "").trim()
+        if (text) comments[card.dataset.option] = text
+      }
+      if (Object.keys(comments).length) answers[question.id].comments = comments
       // "Provide more details" (`wireMore()`):  the cards asked for, as their own answer key
       if (question.hasAttribute("data-more")) {
         const more = [...question.querySelectorAll(".spell-option-card[data-more]")].map((card) => card.dataset.option)
@@ -341,6 +357,8 @@
       if (other) other.value = got.other ?? ""
       const more = answer.answers?.[`${question.id}-more`]?.picked ?? []
       for (const card of question.querySelectorAll(".spell-option-card")) {
+        const comment = card.querySelector(".spell-option-comment")
+        if (comment) comment.value = got.comments?.[card.dataset.option] ?? ""
         const on = more.includes(card.dataset.option)
         card.toggleAttribute("data-more", on)
         card.querySelector(".spell-more-details")?.toggleAttribute("active", on)
@@ -382,7 +400,7 @@
   /** Lock (or unlock, to change the answer) every control;  the Send row and the "Sent" message trade places. */
   function lock(locked) {
     for (const control of document.querySelectorAll(
-      ".spell-question ui-radio, .spell-question ui-checkbox, .spell-other, .spell-notes, .spell-more-details"
+      ".spell-question ui-radio, .spell-question ui-checkbox, .spell-other, .spell-option-comment, .spell-notes, .spell-more-details"
     ))
       control.toggleAttribute("disabled", locked)
     document.body.classList.toggle("spell-details-answered", locked)
