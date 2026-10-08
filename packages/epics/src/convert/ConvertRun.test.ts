@@ -95,16 +95,31 @@ describe("ConvertRun", () => {
     expect(line).toMatch(/^ok {4}split:  ids \d+, links \d+, words \d+;  split -> 9 parts/)
   })
 
-  test("a doc already converted is skipped:  nothing written, a `skip` line", async () => {
+  test("a converted doc takes the second pass;  once through it, it's skipped:  nothing written, a `skip` line", async () => {
     const root = checkout()
+    cpSync(join(FIXTURES, "converted"), join(root, "epics", "converted"), { recursive: true })
     const run = new ConvertRun({ root })
     const out = join(root, "preview")
-    await run.run({ names: ["split"], out })
-    cpSync(join(out, "split"), join(root, "epics", "split"), { recursive: true, force: true })
-    const results = await run.run({ names: ["split"], out: join(root, "again") })
-    expect(results).toEqual([{ name: "split", skipped: true, written: [] }])
-    expect(existsSync(join(root, "again", "split"))).toBe(false)
-    expect(ConvertRun.report(results)).toEqual(["skip  split:  already in <epic-page> markup"])
+    const [upgraded] = await run.run({ names: ["converted"], out })
+    expect(upgraded!.conversion).toMatchObject({ pass: 2, problems: [], proof: { clean: true } })
+    expect(upgraded!.written.length).toBe(11)
+    expect(ConvertRun.report([upgraded!])).toEqual([
+      expect.stringMatching(
+        /^ok {4}converted \(second pass\):  ids \d+, links \d+, words \d+;  split -> 10 parts;  \d+ notes;  wrote 11$/
+      ),
+      expect.stringMatching(/^ {6}5 net effect, 3 question, .*;  kept:  2 net effect in other words, /),
+      "",
+      "Second pass, in all:",
+      ...Object.entries(ConvertRun.totals([upgraded!])).map(([key, count]) => `  ${String(count).padStart(5)}  ${key}`)
+    ])
+    rmSync(join(root, "epics", "converted"), { recursive: true })
+    cpSync(join(out, "converted"), join(root, "epics", "converted"), { recursive: true })
+    const results = await run.run({ names: ["converted"], out: join(root, "again") })
+    expect(results).toMatchObject([{ name: "converted", skipped: true, written: [] }])
+    expect(existsSync(join(root, "again", "converted"))).toBe(false)
+    expect(ConvertRun.report(results)[0]).toMatch(
+      /^skip {2}converted: {2}already in P14's <epic-\*> markup; {2}kept: {2}2 net effect in other words, 1 code in another shape, 1 note in other words, 1 hand-written card where its element can't go/
+    )
   })
 
   test("an unknown doc is refused", async () => {

@@ -1,0 +1,26 @@
+<!-- plan-doc part:  #i1's details in converted.plan.html, loaded when it opens (templates/epics/plan-doc.md, "Parts") -->
+<p>
+  Found answering <a href="#j1">J1</a>. <code>- it "is my color"</code> is read as a quoted phrase with an EMPTY body.
+</p>
+<p><b>Where:</b> the outline parser's phrase rule</p>
+<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE · partly fixed by J1, 2026-10-06"
+  ><p>A phrase starting <code>is</code>, with nothing after it, is now an error.</p></ui-message
+>
+<ui-message class="plan-update" state="positive" size="tiny" header="DONE · 2026-10-06"
+  ><p>Fixed on <code>outline-spell</code>: a phrase with no body is an error on its line.</p></ui-message
+>
+<p><b>Net effect:</b> still open until <code>spell dev worktree merge-main</code> has run once more.</p>
+<p><b>Net effect (once fixed):</b></p>
+<ul>
+  <li>a question can carry your pick and your question about it in one send</li>
+</ul>
+<ui-accordion class="spell-code" styled
+  ><ui-title>What works today, compiled · 4 lines</ui-title
+  ><ui-content>
+    <pre><code class="language-spell">a card is a thing where:
+	- its "suit" is a suit</code></pre>
+    <pre><code class="language-js">is_a_$suit(suit) {
+  return this.suit === suit
+}</code></pre>
+  </ui-content></ui-accordion
+>

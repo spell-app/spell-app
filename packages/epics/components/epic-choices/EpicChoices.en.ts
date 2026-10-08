@@ -41,5 +41,6 @@ export const epicChoicesVocabulary = {
   ],
   texts: [{ key: "choices", text: "Choices", description: "The answered question's options' heading." }],
   children: [{ tag: "epic-option", min: 1, description: "The options, `A`, `B` ..." }],
+  // P14:  options in any prose too -- a reply's, a judgement call's text (`Upgrader`, the old prose option grids)
   flow: true
 } as const satisfies EpicVocabulary
