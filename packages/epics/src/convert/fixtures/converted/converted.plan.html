@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epic: Converted</title>
+    <meta name="description" content="Plan doc:  Converted." />
+    <link rel="stylesheet" href="../../packages/docs/tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../packages/docs/tools/_assets/plan-doc.css" />
+  </head>
+  <body data-spell-needs-server class="spell-doc-page plan-doc">
+    <ui-root
+      ><ui-components source="../../packages/epics/pack/epics.pack.js"></ui-components
+      ><spell-site-header root="../.."></spell-site-header>
+      <div class="spell-doc">
+        <main class="spell-doc-main">
+          <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+            <ui-breadcrumb-section href="../../pages/index.html" target="src-packages-docs-index-html"
+              >Docs</ui-breadcrumb-section
+            >
+            <ui-breadcrumb-section href="../../epics/index.html" target="src-epics-index-html"
+              >Epics</ui-breadcrumb-section
+            >
+            <ui-breadcrumb-section active>Converted</ui-breadcrumb-section> </ui-breadcrumb
+          ><epic-page
+            epic="converted"
+            title="Converted"
+            branch="converted"
+            started="2026-10-02"
+            updated="2026-10-08"
+            repo="https://github.com/spell-app/spell-app"
+            ><epic-overview id="overview" estimate="2h in all, 1h left"
+              ><p slot="summary">
+                Moved the repo to Vite+ 1.0.0 (<code>vite-plus</code>, command <code>vp</code>, MIT) with its pinned
+                tool versions (<a href="#q2">Q2</a>).
+              </p>
+              <blockquote slot="prompt">
+                <p>Upgrade to new vite+ latest. What gets better? Any reasons not to?</p>
+              </blockquote>
+              <epic-section
+                id="o1"
+                kind="overview-part"
+                title="What Vite+ is"
+                source="parts/o1.html"
+              ></epic-section></epic-overview
+            ><epic-section id="phases" kind="phases"
+              ><epic-phase
+                id="p1"
+                title="Spike Migrate"
+                status="done"
+                estimate="1h"
+                source="parts/p1.html"
+              ></epic-phase></epic-section
+            ><epic-section id="decisions" kind="questions"
+              ><epic-item
+                id="q1"
+                title="Which colour names can a window take?"
+                status="open"
+                state="attention"
+                source="parts/q1.html"
+              ></epic-item
+              ><epic-item
+                id="q2"
+                title="Templates: one file each, or one JSON file?"
+                status="decided"
+                state="old"
+                answered
+                source="parts/q2.html"
+                part-ids="d2"
+              ></epic-item
+              ><epic-item
+                id="q3"
+                title="Overview sections get the same review controls as items"
+                status="decided"
+                state="old"
+                answered
+                source="parts/q3.html"
+              ></epic-item
+              ><epic-item
+                id="q4"
+                title="Where do the writing rules go?"
+                status="decided"
+                state="old"
+                answered
+                source="parts/q4.html"
+              ></epic-item
+              ><epic-item
+                id="q5"
+                title="Bedtime run: all phases"
+                status="decided"
+                state="old"
+                answered
+                source="parts/q5.html"
+                part-ids="d5"
+              ></epic-item></epic-section
+            ><epic-section id="judgements" kind="judgements"
+              ><epic-item
+                id="j1"
+                title="The Javascript Output pane is a read-only Monaco now"
+                status="open"
+                state="open"
+                source="parts/j1.html"
+              ></epic-item></epic-section
+            ><epic-section id="issues" kind="issues"
+              ><epic-item
+                id="i1"
+                title="A phrase with no if compiles to an empty getter"
+                status="open"
+                state="open"
+                source="parts/i1.html"
+              ></epic-item
+              ><epic-item id="i2" title="Bare item, no details" status="open" state="open"></epic-item></epic-section
+            ><epic-section id="log" kind="log" source="parts/log.html"></epic-section
+          ></epic-page>
+          <ui-section id="overnight" header="Overnight · 2026-10-04">
+            <ui-icon slot="icon" name="bed"></ui-icon>
+            <p>While you slept: <a href="#q1">Q1</a> got its options, and <a href="#j1">J1</a> was built.</p>
+          </ui-section>
+        </main>
+      </div></ui-root
+    >
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../packages/docs/tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

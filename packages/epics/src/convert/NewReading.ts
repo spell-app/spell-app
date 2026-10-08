@@ -39,7 +39,11 @@ export class NewReading extends DocReading {
       case "epic-answer":
         return { pieces: [text("title")] }
       case "epic-section":
-        return { pieces: [data.kind === "overview-part" ? text("title") : undefined] }
+        return { pieces: [data.kind === "overview-part" || data.kind === "report" ? text("title") : undefined] }
+      case "epic-code":
+      case "epic-aside":
+      case "epic-note":
+        return { pieces: [text("title")] }
       case "epic-overview":
         return { pieces: [text("estimate")] }
       case "epic-phase":
