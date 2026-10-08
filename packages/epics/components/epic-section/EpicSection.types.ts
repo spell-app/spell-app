@@ -110,7 +110,7 @@ export type FoldToggleDetail = {
 }
 
 /**
- * What the page's contents list and rail show for a folding element (its DOM element's `contentsEntry`, read by
+ * What the page's rail shows for a folding element (its DOM element's `contentsEntry`, read by
  * `spell-doc-runtime.js`):  read fresh each time, never tracked.
  */
 export type ContentsEntry = {
@@ -118,7 +118,11 @@ export type ContentsEntry = {
   label: string
   /** its icon's name (Spell UI's):  a section's kind icon, a phase's status icon */
   icon?: string
-  /** the icon's colour (Spell UI's `color`):  a phase's status */
+  /**
+   * the icon's colour (Spell UI's `color`):  a phase's status.
+   * - REFACTOR: drawn by nothing since the contents list went (the rail shows only top-level sections, never a
+   *   phase):  drop it, and rename `contentsEntry` to `railEntry`
+   */
   color?: string
   /** a section's count of its items or phases;  none for a kind that isn't counted, or with nothing in it */
   count?: SectionCount
@@ -233,7 +237,7 @@ export type SectionCount = {
   /** every one */
   total: number
   /**
-   * the items that need Owen (`state="attention"`, red):  what the contents and the rail count (decision Q20:  red,
+   * the items that need Owen (`state="attention"`, red):  what the rail counts (decision Q20:  red,
    * only what needs him;  no pill for none)
    */
   attention: number

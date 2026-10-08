@@ -127,6 +127,17 @@ export type ReviewColor = "green" | "blue"
  */
 export type ReviewFill = "none" | "dashed" | "outline" | "solid"
 
+/**
+ * Owen's mark on an item, as its id chip wears it (Owen, 2026-10-08:  the chip matches the chosen button):  the
+ * chosen button's colour and fill, and its name for the chip's tooltip.  Only a LIVE mark:  dashed or outlined.
+ */
+export type ChipMark = {
+  color: ReviewColor
+  fill: Exclude<ReviewFill, "none" | "solid">
+  /** the chosen button's name (`approve`), or a pick's letter */
+  label: ReviewButtonSpec["label"] | { pick: string }
+}
+
 /** One review button:  its action, colour, icon, and its name and tooltip texts. */
 export type ReviewButtonSpec = {
   /** what it does (`ReviewClient.press()`;  `details` is Do Now, the inbox's name for an immediate request) */

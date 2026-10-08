@@ -80,7 +80,7 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *   goes to the notice line at the window's bottom (`ReviewState`'s).
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`), only
  *   while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs;  each row a
- *   note box that redirects that agent.  In the shadow root:  not a section, so the contents and counts never see it.
+ *   note box that redirects that agent.  In the shadow root:  not a section, so the rail and counts never see it.
  * - The git toggle (only when the doc lists commits) shows or hides every `<epic-commit>` below, through
  *   `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
  * - The page-wide signals its blocks read (`signalsOf()`):  `top`, where top-level titles stick (the site header's

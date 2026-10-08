@@ -40,6 +40,7 @@ import {
   TOGGLE,
   UNDER_LINE,
   UNFOLDED,
+  type ChipMark,
   type EpicItemVocabulary,
   type ItemState,
   type ReviewLabel,
@@ -70,6 +71,8 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   tooltips (not beside them:  Owen, 2026-10-07);  the note box LAST in its details, whatever its state, sticky at
  *   the window's bottom while it's open and taller than the window, or, without details, under its line once
  *   Revisit opens it;  a marked note just above the box, with Edit, and Claude's status cards between the two.
+ *   While it carries a mark (a button dashed or outlined, or a pick), its id chip MATCHES the chosen button:  that
+ *   button's colour and fill (`chipMark`, Owen, 2026-10-08);  without one, its state's colour, solid.
  *   The id chip of an item Owen may call urgent or not (`canCalm`) is a button:  urgent <-> not urgent, through the
  *   inbox (`ReviewClient.toggleCalm()`).  All in the shadow root:  a part reloaded keeps a half-typed note.
  * - Folding:  `open` (page state, never in the file);  a click on the line (not on a link or control in it) or
@@ -158,6 +161,22 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     return (CLOSED_STATUSES as readonly string[]).includes(this.status ?? "") ? "old" : "open"
   })
 
+  /**
+   * Owen's live mark, as its id chip wears it:  the chosen review button's colour and fill (dashed until sent, then
+   * outlined), or a pick's (green);  `undefined` without one, so the chip shows its state.
+   * - NOTE: a mark Claude handled (`review-as`, its button solid) is history, not a choice still in play:  the chip
+   *   shows the state then, so long-reviewed items stay grey and a reply that needs Owen stays red.
+   */
+  readonly chipMark = createMemo((): ChipMark | undefined => {
+    for (const spec of REVIEW_BUTTONS) {
+      const fill = this.reviewState.fillOf(spec.action)
+      if (fill === "dashed" || fill === "outline") return { color: spec.color, fill, label: spec.label }
+    }
+    const pick = this.reviewState.mark()?.pick
+    if (!pick) return undefined
+    return { color: "green", fill: this.reviewState.isSent() ? "outline" : "dashed", label: { pick } }
+  })
+
   /** Is its id chip a button (urgent <-> not urgent) now?  Only while the page is reviewed. */
   readonly chipToggles = createMemo(() => this.reviewState.reviewing() && this.canCalm())
 
@@ -217,6 +236,15 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   readonly chipTip = createMemo(() => {
     const { queued, work, reviewed, deferred, status } = this
     const parts = [this.translationForKey(STATE_TIP_KEYS[this.itemState()])]
+    const mark = this.chipMark()
+    if (mark) {
+      const { label } = mark
+      const chosen =
+        typeof label === "string"
+          ? this.translationForKey(label)
+          : this.translationForKey("tipPick", { letter: label.pick })
+      parts.push(this.translationForKey(mark.fill === "dashed" ? "tipMarkUnsent" : "tipMarkSent", { chosen }))
+    }
     if (queued) parts.push(this.translationForKey("tipTodo", { work: work || queued }))
     if (reviewed) parts.push(this.translationForKey("tipReviewed", { date: PlanDates.format(reviewed) }))
     else if (deferred) parts.push(this.translationForKey("tipDeferred", { date: PlanDates.format(deferred) }))
@@ -370,7 +398,14 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
           <Show
             when={this.chipToggles()}
             fallback={
-              <a class={CHIP} part={this.partForName("id")} href={`#${this.id ?? ""}`} title={this.chipTip()}>
+              <a
+                class={CHIP}
+                part={this.partForName("id")}
+                href={`#${this.id ?? ""}`}
+                data-color={this.chipMark()?.color}
+                data-fill={this.chipMark()?.fill}
+                title={this.chipTip()}
+              >
                 {this.label()}
               </a>
             }
@@ -379,6 +414,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
               type="button"
               class={CHIP}
               part={this.partForName("id")}
+              data-color={this.chipMark()?.color}
+              data-fill={this.chipMark()?.fill}
               aria-pressed={this.itemState() === "attention" ? "true" : "false"}
               data-unsent={this.reviewState.urgency()?.sent === false ? "" : undefined}
               title={this.chipTip()}

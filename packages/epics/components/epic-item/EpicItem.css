@@ -314,6 +314,27 @@
     --_epic-state: var(--epic-state-old, var(--ui-grey-background));
     --_epic-state-on: var(--epic-state-old-on, var(--ui-grey-text));
   }
+  /*
+   * Owen's mark (`chipMark`):  the chip MATCHES the chosen review button (Owen, 2026-10-08) -- its colour, and its
+   * fill (Q20):  dashed until sent, outlined once sent;  the letters in the colour's readable ink, over the line's band
+   */
+  .chip[data-color="green"] {
+    --_epic-mark: var(--ui-green, #00853a);
+    --_epic-mark-text: var(--ui-green-text, var(--_epic-mark));
+  }
+  .chip[data-color="blue"] {
+    --_epic-mark: var(--ui-blue, #1a67e0);
+    --_epic-mark-text: var(--ui-blue-text, var(--_epic-mark));
+  }
+  .chip[data-fill] {
+    border: 1.5px solid var(--_epic-mark);
+    background: transparent;
+    color: var(--_epic-mark-text);
+  }
+  .chip[data-fill="dashed"] {
+    border-style: dashed;
+  }
+
   /* still wants a look:  a bolder title;  decided or reviewed earlier:  a quieter one */
   .item:is(.attention, .progress, .open) .title {
     font-weight: 600;

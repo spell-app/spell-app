@@ -34,19 +34,12 @@
   // ## Start
   ////////////////
 
-  /** Wire the page:  the buttons, once the runtime has built the contents. */
+  /** Wire the page:  the buttons. */
   function start() {
     if (!SET) return
     addHeadingTools()
     addItemTools()
-    whenPresent(".spell-toc-head", addSidebarTools)
-  }
-
-  /** Run `fn(element)` once `selector` exists:  the runtime builds the contents sidebar after load. */
-  function whenPresent(selector, fn, tries = 40) {
-    const found = document.querySelector(selector)
-    if (found) return fn(found)
-    if (tries > 0) setTimeout(() => whenPresent(selector, fn, tries - 1), 50)
+    addPageTools()
   }
 
   ////////////////
@@ -54,14 +47,16 @@
   ////////////////
 
   /**
-   * The contents sidebar's goals buttons:  Talk, Thought and Update under its head, and a round VS Code button
-   * beside its own.
+   * The page's goals buttons, a row at the end of its hero (the top card):  Talk, Thought and Update, then a round
+   * VS Code button.  They lived in the contents sidebar until it went (epic `epic-components`, 2026-10-08).
    * - Update shows how many thoughts wait on the page
    */
-  function addSidebarTools(head) {
+  function addPageTools() {
+    const hero = document.querySelector("main header.goals-hero")
+    if (!hero) return
     const waiting = document.querySelectorAll('li.goals-thought[data-status="new"]').length
     const tools = document.createElement("div")
-    tools.className = "goals-toc-tools"
+    tools.className = "goals-page-tools"
     tools.innerHTML =
       pill("talk", "comments", "Talk", `Talk ${NAME} through with Claude:  /goals ${BASE}`, true) +
       pill("thought", "comment dots", "Thought", `Jot a thought about ${NAME}, for Claude to digest later`) +
@@ -70,23 +65,15 @@
         "wand magic sparkles",
         waiting ? `Update <span class="goals-count">${waiting}</span>` : "Update",
         `Have Claude work the new thoughts into ${NAME}:  /goals-update ${BASE}`
-      )
-    head.after(tools)
-    // VS Code is a round tool, beside expand / collapse / code
-    head
-      .querySelector(".spell-toc-tools")
-      ?.insertAdjacentHTML(
-        "beforeend",
-        `<span class="goals-tool-gap"></span>` +
-          circle("vscode", "up right from square", "Open in VS Code", "Show this page in VS Code, beside your code")
-      )
-    head.addEventListener("click", (event) => {
-      if (event.target.closest('[data-goals="vscode"]')) void openVSCode(BASE)
-    })
+      ) +
+      `<span class="goals-tool-gap"></span>` +
+      circle("vscode", "up right from square", "Open in VS Code", "Show this page in VS Code, beside your code")
+    hero.append(tools)
     tools.addEventListener("click", (event) => {
       const button = event.target.closest("[data-goals]")
       if (!button) return
       const action = button.dataset.goals
+      if (action === "vscode") return void openVSCode(BASE)
       if (action === "talk") return run("goals", BASE)
       if (action === "thought") return openThought(BASE, NAME)
       if (action === "update") return run("goals-update", BASE)

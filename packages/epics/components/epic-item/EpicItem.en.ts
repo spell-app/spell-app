@@ -251,6 +251,17 @@ export const epicItemVocabulary = {
       text: "not sent yet",
       description: "Id chip tooltip:  Owen changed its urgency, not sent yet."
     },
+    {
+      key: "tipMarkUnsent",
+      text: "you chose {chosen} · not sent yet",
+      description: "Id chip tooltip:  Owen's mark (the chosen button, `{chosen}`), not sent:  the chip dashed."
+    },
+    {
+      key: "tipMarkSent",
+      text: "you chose {chosen} · sent",
+      description: "Id chip tooltip:  Owen's mark (the chosen button, `{chosen}`), sent:  the chip outlined."
+    },
+    { key: "tipPick", text: "pick {letter}", description: "Id chip tooltip:  Owen's pick, as `{chosen}`." },
     { key: "madeOvernight", text: "made overnight", description: "The bed icon's tooltip (`overnight`)." },
     { key: "sourceLoadError", text: "Couldn't load {source}.", description: "The part's fetch failed." },
     {
