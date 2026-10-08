@@ -78,9 +78,9 @@ describe("<epic-page>", () => {
     await expectAccessible(host)
   })
 
-  test("the step label follows the phases:  the active one, else the next, else DONE;  none without phases", async () => {
+  test("the step label follows the phases:  the active one (blue), else the next (grey), else DONE (green);  none without phases", async () => {
     const host = await render(page("", ["done", "active", "todo"]))
-    expect(step(host)).toEqual({ words: "P2", color: "orange", href: "#p2", tip: "P2 · Phase 2" })
+    expect(step(host)).toEqual({ words: "P2", color: "blue", href: "#p2", tip: "P2 · Phase 2" })
     host.querySelector("#p2")!.setAttribute("status", "done")
     await ElementFixture.tick()
     await ElementFixture.tick()
@@ -88,7 +88,7 @@ describe("<epic-page>", () => {
     host.querySelector("#p3")!.setAttribute("status", "done")
     await ElementFixture.tick()
     await ElementFixture.tick()
-    expect(step(host)?.words).toBe("DONE")
+    expect(step(host)).toMatchObject({ words: "DONE", color: "green" })
     for (const phase of host.querySelectorAll("epic-phase")) phase.remove()
     await ElementFixture.tick()
     await ElementFixture.tick()
@@ -97,7 +97,7 @@ describe("<epic-page>", () => {
 
   test("a future epic:  FUTURE, meta lines without a branch, and its notice;  bedtime:  its label", async () => {
     const future = await render(page("future", []))
-    expect(step(future)?.words).toBe("FUTURE")
+    expect(step(future)).toMatchObject({ words: "FUTURE", color: "grey" })
     expect(future.matches(":state(future)")).toBe(true)
     expect(future.shadowRoot!.querySelector('[part~="meta"] li')!.textContent!.replace(/\s+/g, " ")).toContain(
       "Future epic: /epic future demo, no branch yet"
@@ -276,7 +276,7 @@ describe("<epic-page> Send and Review Now", () => {
     expect(headerButtons(host)).toEqual({ send: null, now: null })
   })
 
-  test("blue with unsent marks;  a click sends them, then outlined;  nobody listening:  the tooltips say so", async () => {
+  test("dashed blue with unsent marks;  a click sends them, then outlined;  nobody listening:  the tooltips say so, the review line in orange", async () => {
     const routes = new FakeRoutes()
     const at = new Date().toISOString()
     routes.inbox.marks = { q1: { action: "approve", at }, q2: { action: "revisit", when: "soon", note: "hm", at } }
@@ -287,10 +287,16 @@ describe("<epic-page> Send and Review Now", () => {
       send: ["unsent", `Send 2 marks to Claude${NOBODY}`],
       now: ["ready", `Review Now:  Claude works through 2 marks at once, answers in their items${NOBODY}`]
     })
-    expect(host.shadowRoot!.querySelector('[part~="review-line"]')!.textContent).toContain("No Claude session")
-    host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="send"]')!.click()
+    const send = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="send"]')!
+    // the fill rule (Q20):  pressed marks not sent, dashed;  sent, outlined
+    expect(getComputedStyle(send).borderTopStyle).toBe("dashed")
+    const line = host.shadowRoot!.querySelector<HTMLElement>('[part~="review-line"]')!
+    expect(line.textContent).toContain("No Claude session")
+    expect(getComputedStyle(line).backgroundColor).not.toMatch(/^rgba\(0, 0, 0, 0\)$|^transparent$/)
+    send.click()
     await vi.waitFor(() => expect(routes.posts.map(([route]) => route)).toEqual(["send"]))
     await vi.waitFor(() => expect(headerButtons(host).send?.[0]).toBe("sent"))
+    expect(getComputedStyle(send).borderTopStyle).toBe("solid")
     routes.inbox.listening = { session: "s1", since: at, seen: at }
     await client.refresh()
     await ElementFixture.tick()

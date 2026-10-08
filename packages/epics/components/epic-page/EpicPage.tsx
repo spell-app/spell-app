@@ -58,19 +58,20 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *   and Review Now while it's reviewed, the git toggle, the sleeping mark, the bedtime label and the step label), the
  *   review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`), a future
  *   epic's notice, then its children.
- * - The step label follows the phases:  the active one (orange, links to it);  else DONE (green) once every phase
- *   is done;  else the next one (grey);  none without phases, FUTURE (violet) for a future epic.  Read from the
+ * - The step label follows the phases, in the colours of decision Q20:  the active one (outlined blue:  Claude is on
+ *   it;  links to it);  else DONE (solid green) once every phase is done;  else the next one (grey);  none without
+ *   phases, FUTURE (grey:  not started) for a future epic.  Read from the
  *   `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`.
  * - The sleeping mark (😴, Owen 2026-10-07:  "so I can see what I need to follow up on"):  phases, none under way,
  *   but open follow-ups (`FOLLOW_UPS`:  questions, calls, issues, todos, tests);  what's open in its tooltip.  Not on
  *   a future epic, nor one still planning.  From the items below, so it follows the live update too.
  * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it
  *   flashes);  on every plan doc, as today:  it's how a review starts.  While the page is reviewed with no session
- *   listening, it says so first.
+ *   listening, it says so first, in solid orange (a warning).
  * - REVIEW (P10), only while the page is reviewed (served with a token, its inbox answering:  `ReviewClient`,
- *   through a `ReviewState` of its own):  Send (paper plane:  grey with nothing to send, blue with unsent marks,
- *   outlined blue once sent) and Review Now (wand:  every mark sent and each revisit asked now;  blue while there's
- *   anything to work through).  Nobody listening:  their tooltips say so (`NOBODY_LISTENING`);  what a click did
+ *   through a `ReviewState` of its own), blue and wearing the fill rule (Q20):  Send (paper plane:  a grey outline
+ *   with nothing to send, dashed blue with marks not sent, outlined blue once sent) and Review Now (wand:  every mark
+ *   sent and each revisit asked now;  outlined blue while there's anything to work through).  Nobody listening:  their tooltips say so (`NOBODY_LISTENING`);  what a click did
  *   goes to the notice line at the window's bottom (`ReviewState`'s).
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`), only
  *   while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs;  each row a
@@ -164,10 +165,10 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   readonly step = createMemo((): StepLabel | undefined => {
     const phases = this.phases()
     if (!phases.length) {
-      return this.future ? { color: "violet", icon: "seedling", words: this.translationForKey("future") } : undefined
+      return this.future ? { color: "grey", icon: "seedling", words: this.translationForKey("future") } : undefined
     }
     const active = phases.find((phase) => phase.status === ACTIVE)
-    if (active) return this.phaseLabel(active, "orange", "circle half stroke", "")
+    if (active) return this.phaseLabel(active, "blue", "circle half stroke", "")
     const next = phases.find((phase) => phase.status !== DONE)
     if (!next) return { color: "green", icon: "check", words: this.translationForKey("done") }
     return this.phaseLabel(next, "grey", "circle right", this.translationForKey("next"))
@@ -352,7 +353,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
             <Show when={this.step()}>
               {(step) => (
                 <ui-label
-                  basic={step().color === "green" || step().color === "violet" ? undefined : ""}
+                  basic={step().color === "green" ? undefined : ""}
                   color={step().color}
                   icon={step().icon}
                   href={step().href}

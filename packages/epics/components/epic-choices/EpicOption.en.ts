@@ -41,11 +41,14 @@ export const epicOptionVocabulary = {
   ],
   parts: [
     { name: "base", description: "The card;  answered, a panel." },
-    { name: "header", description: "Its header:  letter, title, `(recommended)`, the Choose pill." },
+    { name: "header", description: "Its header:  letter, title, the recommended thumbs-up, the Choose pill." },
     { name: "toggle", description: "Answered:  the `<button>` that folds the panel (its header's text)." },
     { name: "check", description: "Answered and chosen:  the check before its letter." },
     { name: "title", description: "`A · A named palette`." },
-    { name: "recommended", description: "`(recommended)`." },
+    {
+      name: "recommended",
+      description: "The recommended one's violet thumbs-up, after its title, labelled `Recommended`."
+    },
     { name: "actions", description: "While the page is reviewed:  the box at the header's end holding the pill." },
     {
       name: "choose",
@@ -58,10 +61,18 @@ export const epicOptionVocabulary = {
     { name: "answered", description: "Its question is answered:  a panel under Choices." },
     { name: "chosen", description: "Its `letter` is its `<epic-choices chosen>`." },
     { name: "open", description: "Answered, and unfolded (the chosen one starts so)." },
-    { name: "picked", description: "Its letter is the item's pick in the review inbox:  framed orange until applied." }
+    {
+      name: "picked",
+      description:
+        "Its letter is the item's pick in the review inbox:  framed green:  dashed until sent, then outlined."
+    }
   ],
   texts: [
-    { key: "recommended", text: "(recommended)", description: "After the recommended option's title." },
+    {
+      key: "recommended",
+      text: "Recommended",
+      description: "The thumbs-up after the recommended option's title:  its label and tooltip."
+    },
     { key: "choose", text: "Choose", description: "The Choose pill." },
     { key: "chosen", text: "Chosen", description: "The Choose pill, its letter picked." },
     { key: "tipChoose", text: "Pick {letter}", description: "The pill's tooltip." },

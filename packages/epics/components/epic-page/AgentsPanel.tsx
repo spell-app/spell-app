@@ -175,7 +175,7 @@ function AgentRow(props: AgentRowProps) {
         <ui-button
           class={AGENT_SEND}
           circular=""
-          primary=""
+          color="blue"
           icon="paper plane"
           size="mini"
           disabled={canSend() ? undefined : ""}

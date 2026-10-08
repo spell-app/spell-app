@@ -17,8 +17,8 @@ export const epicStatusVocabulary = {
   noun: "status",
   ui: false,
   description:
-    "Claude's status card on an item or an Overview sub-section (P13):  `Claude • Underway` (orange) with Claude's " +
-    "reading of the task, then the same card `Claude • Done` (violet), the reading kept, a summary added when " +
+    "Claude's status card on an item or an Overview sub-section (P13):  `Claude • Underway` (blue) with Claude's " +
+    "reading of the task, then the same card `Claude • Done` (green), the reading kept, a summary added when " +
     "there's something worth saying.  The heading and the date at its right are drawn;  the reading and the summary " +
     "are its children.",
   attributes: [
@@ -28,7 +28,7 @@ export const epicStatusVocabulary = {
       values: ["underway", "done"],
       // NOT `required`:  `<epic-item state>` is optional, and a key required on one tag and optional on another
       // makes `Markup.set()`'s untyped data `never`.  The tool always writes it
-      description: "`underway` (orange:  Claude is on it;  absent too), `done` (violet:  finished)."
+      description: "`underway` (blue:  Claude is on it;  absent too), `done` (green:  finished)."
     },
     {
       name: "at",
@@ -52,7 +52,7 @@ export const epicStatusVocabulary = {
     { name: "summary", description: "Once done, and only when worth saying:  what Owen should know about it." }
   ],
   parts: [
-    { name: "base", description: "The card:  orange underway, violet done." },
+    { name: "base", description: "The card:  blue underway, green done." },
     { name: "header", description: "Its heading band, a flex row:  `who` left, `date` right." },
     { name: "who", description: "The heading's left:  `Claude • Underway` / `Claude • Done`." },
     { name: "date", description: "The heading's right:  `done-at`, else `at`, as `10/8/26 14:34`;  never wraps." },

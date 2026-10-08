@@ -32,7 +32,7 @@ export const epicReplyVocabulary = {
   events: [],
   slots: [{ name: "", description: "The reply." }],
   parts: [
-    { name: "base", description: "The card:  Claude's violet, Owen's orange (`from`)." },
+    { name: "base", description: "The card:  Claude's violet, Owen's ivory (`from`)." },
     { name: "header", description: "Its heading band, a flex row:  `who` left, `date` right." },
     { name: "who", description: "The heading's left:  `<from> · re: <re>`;  wraps within itself." },
     { name: "date", description: "The heading's right:  `at`, `10/6/26 23:55`, on the top line;  never wraps." },

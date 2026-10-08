@@ -58,8 +58,11 @@ export const REVISIT_KEY_PREFIX = "spell-revisit:"
  */
 export const NOBODY_LISTENING = "No Claude session is reviewing this doc:  this waits for the next /epic review"
 
-/** The four review actions of an item's line, in their order. */
-export const REVIEW_ACTIONS = ["approve", "todo", "revisit", "details"] as const
+/**
+ * The four review actions of an item's line, in their order:  Approve, Revisit, Make Todo, then Do Now (`details`:
+ * the inbox's name for an immediate request, kept from Add Details Now;  decision Q20).
+ */
+export const REVIEW_ACTIONS = ["approve", "revisit", "todo", "details"] as const
 
 /** One of `REVIEW_ACTIONS`. */
 export type ReviewAction = (typeof REVIEW_ACTIONS)[number]

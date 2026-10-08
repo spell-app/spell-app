@@ -534,7 +534,7 @@ describe("PlanDoc states", () => {
     expect(changed("q1")).toBe(PlanTime.isoTime(new Date(2026, 8, 20)))
   })
 
-  test("colours items:  attention, progress, open, recent, old", () => {
+  test("colours items:  attention, progress (Claude on it), open (queued work too), recent, old", () => {
     const plan = freshPlan()
     Markup.set(plan.page, { recentSince: PlanTime.isoTime(new Date(2026, 8, 30)) })
     plan.addItem("question", "open?")
@@ -546,22 +546,29 @@ describe("PlanDoc states", () => {
     plan.addItem("todo", "later")
     plan.addItem("test", "click it")
     plan.addItem("decision", "settled")
+    plan.addItem("todo", "underway")
     plan.review("j2")
     plan.queue("i1", "fix it")
     plan.setItem("i2", "done")
     el(plan, "i2").setAttribute("changed", PlanTime.isoTime(new Date(2026, 8, 1)))
     Markup.set(el(plan, "t1"), { working: true })
-    expect(stateOf(plan, "q1", "j1", "j2", "i1", "i2", "c1", "t1", "v1", "q2")).toEqual([
+    plan.addStatus("t2", "Do it.")
+    plan.addStatus("q2", "Look again at the decision.")
+    expect(stateOf(plan, "q1", "j1", "j2", "i1", "i2", "c1", "t1", "v1", "t2", "q2")).toEqual([
       "attention",
       "attention",
       "recent",
-      "progress",
+      "open",
       "old",
       "open",
       "progress",
       "open",
-      "recent"
+      "progress",
+      "progress"
     ])
+    plan.finishStatus("t2")
+    plan.finishStatus("q2")
+    expect(stateOf(plan, "t2", "q2")).toEqual(["open", "recent"])
     Markup.set(plan.page, { recentSince: PlanTime.isoTime(new Date(2026, 9, 2)) })
     expect(stateOf(plan, "j2", "q2")).toEqual(["open", "old"])
     // no git history:  only a /bedtime run makes green
@@ -767,7 +774,8 @@ describe("PlanDoc review", () => {
     expect(spec.where.epic).toBe("Demo Plan (<code>demo</code>)")
     const issues = plan.reviewSections({ filter: "open" }).find((s) => s.kind === "issue")!
     const picker = ItemPicker.spec(plan, "/r/x.plan.html", issues, plan.reviewStatus(), "/r")
-    expect(picker.questions[0]!.options.map((option) => option.state.color)).toEqual(["orange"])
+    // queued work is open (yellow), not in progress (Q20)
+    expect(picker.questions[0]!.options.map((option) => option.state.color)).toEqual(["yellow"])
   })
 })
 
