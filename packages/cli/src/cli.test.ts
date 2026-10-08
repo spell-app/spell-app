@@ -140,6 +140,7 @@ process.exit(3)
       "scripts/serve.mjs",
       "packages/docs/tools/open.js",
       "packages/docs/tools/link.ts",
+      "packages/docs/tools/fuss.ts",
       "packages/docs/tools/details.js",
       "packages/docs/tools/choices.js",
       "packages/server/src/page/cli.ts"
@@ -173,6 +174,13 @@ process.exit(3)
     const link = passThrough(["docs", "link", "a.html", "--hash", "b"])
     expect(link).toMatchObject({ status: 3, tool: "packages/docs/tools/link.ts", args: ["a.html", "--hash", "b"] })
     expect(link.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
+  })
+
+  test("docs fuss:  under tsx, in THIS folder, so its paths are from here", () => {
+    const fuss = passThrough(["docs", "fuss", "src", "--json"])
+    expect(fuss).toMatchObject({ status: 3, tool: "packages/docs/tools/fuss.ts", args: ["src", "--json"] })
+    expect(realpathSync(fuss.cwd)).toBe(INSIDE)
+    expect(fuss.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
   })
 
   test("details, choices", () => {

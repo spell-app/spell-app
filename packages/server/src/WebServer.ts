@@ -8,13 +8,15 @@ import { APPLE_TOUCH_ICON_PNG, FAVICON_PNG_32, FAVICON_SVG } from "$/server/site
 
 /**
  * A local web server:  `node:http` + `Guard` + `Router` + `StaticHandler` (+ `LiveReload`), in that order.
- * - requests go:  host check -> `/_server/live.js` (when `live`) -> Spell's favicon (`FAVICONS`) -> `router` ->
- *   static files -> `/favicon.ico` -> `fallback` (e.g. an SPA's `index.html`) -> 404
+ * - requests go:
+ *   host check -> `/_server/live.js` (when `live`) -> Spell's favicon (`FAVICONS`) -> `router`
+ *   -> static files -> `/favicon.ico` -> `fallback` (e.g. an SPA's `index.html`) -> 404
  * - websocket upgrades go:  host check -> `/_server/events` (when `live`:  live reload) -> `upgrade()`'s, in order
- * - `live`:  watches nothing by itself -- call `live.watch(dir)`;  every `.html` page gets Spell's favicon links
- *   (unless it links its own icon), `window.SPELL_SERVER` and the live client before `</head>`
- * - Spell's favicon on EVERY server, live or not;  `/favicon.ico` is its 32px PNG, after the static files so a
- *   folder's own `favicon.ico` wins
+ * - `live`:  watches nothing by itself -- call `live.watch(dir)`
+ *   - every `.html` page gets, before `</head>`:  Spell's favicon links (unless it links its own icon),
+ *     `window.SPELL_SERVER` and the live client
+ * - Spell's favicon on EVERY server, live or not
+ *   - `/favicon.ico` is its 32px PNG, after the static files, so a folder's own `favicon.ico` wins
  * - loopback only (`127.0.0.1`) unless `listen()` says otherwise
  */
 export class WebServer {
@@ -79,9 +81,10 @@ export class WebServer {
   }
 
   /**
-   * Answer websocket upgrades under `prefix` (or that `claims()` accepts) with `handle`, e.g. `SRV.proxyUpgrade` to
-   * a dev server.
-   * - the host check applies;  an upgrade nothing claims is refused
+   * Answer websocket upgrades under `prefix` (or that `claims()` accepts) with `handle`,
+   * e.g. `SRV.proxyUpgrade` to a dev server.
+   * - the host check applies
+   * - an upgrade nothing claims is refused
    */
   upgrade(prefix: string | ((request: SRV.Request) => boolean), handle: UpgradeHandler): this {
     const claims = typeof prefix === "string" ? (request: SRV.Request) => SRV.underPrefix(request.path, prefix) : prefix
@@ -142,8 +145,10 @@ export class WebServer {
   }
 
   /**
-   * `page` with Spell's favicon links (unless its `<head>` links its own icon), `window.SPELL_SERVER` and the live
-   * client, before `</head>` (or first, without one)
+   * `page`, with these added before `</head>` (or first, without one):
+   * - Spell's favicon links, unless its `<head>` links its own icon
+   * - `window.SPELL_SERVER`
+   * - the live client
    */
   private inject(page: string, served: ServedFile): string {
     const config = JSON.stringify(this.config(served)).replace(/</g, "\\u003c")
@@ -158,8 +163,10 @@ export class WebServer {
  * `new WebServer()` props.
  * - `mounts` / `html` / `transforms`:  as `StaticHandler`
  * - `root`:  folder pages are reported relative to;  default the `/` mount's
- * - `live`:  live reload + `window.SPELL_SERVER` on every page;  `configure`:  more fields for it
- * - `token`:  the guard's (default:  random);  `checkHost`:  refuse foreign `Host` headers (default `true`)
+ * - `live`:  live reload + `window.SPELL_SERVER` on every page
+ * - `configure`:  more fields for `window.SPELL_SERVER`
+ * - `token`:  the guard's (default:  random)
+ * - `checkHost`:  refuse foreign `Host` headers (default `true`)
  * - `onError`:  told of 5xx failures (default:  `console.error`)
  */
 export type WebServerProps = {

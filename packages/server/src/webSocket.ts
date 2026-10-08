@@ -3,11 +3,13 @@ import type { IncomingMessage } from "node:http"
 import type { Duplex } from "node:stream"
 
 /**
- * The server's half of a websocket, as far as live reload needs it (RFC 6455):  accept one, send it text, ping it,
- * and notice when it closes.  Messages FROM the page are read only to answer a close;  their data is dropped.
- * - Why not `EventSource`:  Chrome allows 6 HTTP/1.1 connections per host, and an event stream holds one for good.
- *   VS Code's windows share ONE network process, so 6 docs pages open anywhere took them all, and every other page
- *   on that server waited forever (its parts, its scripts).  Websockets don't count toward those 6.
+ * The server's half of a websocket, as far as live reload needs it (RFC 6455):
+ * accept one, send it text, ping it, and notice when it closes.
+ * - messages FROM the page are read only to answer a close;  their data is dropped
+ * - why not `EventSource`:  Chrome allows 6 HTTP/1.1 connections per host, and an event stream holds one for good
+ *   - VS Code's windows share ONE network process, so 6 docs pages open anywhere took them all,
+ *     and every other page on that server waited forever (its parts, its scripts)
+ *   - websockets don't count toward those 6
  */
 
 /** RFC 6455's key suffix:  `Sec-WebSocket-Accept` is the SHA-1 of the page's key plus this. */
@@ -69,8 +71,8 @@ function bigEndian64(length: number): Buffer {
 }
 
 /**
- * Read the page's frames off `socket`:  a close frame is answered with one, then the socket ends.  Anything else
- * (a pong, a text the page shouldn't send) is skipped.
+ * Read the page's frames off `socket`:  a close frame is answered with one, then the socket ends.
+ * - anything else (a pong, a text the page shouldn't send) is skipped
  * - frames may arrive split over chunks, or several to a chunk:  bytes wait in `pending` until a frame is whole
  */
 function readFrames(socket: Duplex): void {

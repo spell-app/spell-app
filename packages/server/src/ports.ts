@@ -1,7 +1,7 @@
 /**
  * Choosing ports:  probe one, find a free one, or listen on a preferred one and fall back.
- * - Was three styles:  fixed from env (`app`), port 0 (`cli`, `ui`, DocPreview), and an `isFree` probe
- *   (`spell serve`).
+ * - Was three styles:  fixed from env (`app`), port 0 (`cli`, `ui`, DocPreview),
+ *   and an `isFree` probe (`spell serve`).
  */
 import { createServer, type Server } from "node:net"
 

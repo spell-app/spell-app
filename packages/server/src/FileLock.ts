@@ -3,13 +3,13 @@ import { closeSync, openSync, rmSync, statSync } from "node:fs"
 import { SRV } from "$/server"
 
 /**
- * A lock on one file, held as `<file>.lock`, so tools that write the same file take turns:  the page server's
- * page edits, `spell dev plan-doc`, `spell dev goals`, the app's saves.
+ * A lock on one file, held as `<file>.lock`, so tools that write the same file take turns:
+ * the page server's page edits, `spell dev plan-doc`, `spell dev goals`, the app's saves.
  * - created with `open(wx)`:  atomic, so exactly one holder
  * - waits up to `wait` ms (default 20s), then throws a `FileLockError`
  * - a lock older than `stale` ms (default 60s) is a crashed holder's, and is taken over
- * - writers that don't lock (VS Code, an agent's edit tool) aren't stopped:  the page server's `If-Match` check
- *   catches those
+ * - writers that don't lock (VS Code, an agent's edit tool) aren't stopped:
+ *   the page server's `If-Match` check catches those
  * - From goals' `withLock()` (also copied into `plan-doc.js`).
  */
 export class FileLock {
@@ -99,6 +99,7 @@ export class FileLock {
 
 /**
  * `new FileLock()` props.
- * - `wait`:  longest wait, ms;  `stale`:  age at which a lock is taken over, ms
+ * - `wait`:  longest wait, ms
+ * - `stale`:  age at which a lock is taken over, ms
  */
 export type FileLockProps = { wait?: number; stale?: number }

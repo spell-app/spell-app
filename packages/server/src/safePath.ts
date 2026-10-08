@@ -1,7 +1,7 @@
 /**
  * Turn a URL path into a file under a root folder -- never anything outside it.
- * - Was three slightly different checks (`relative().startsWith("..")`, `normalize` + `startsWith`,
- *   `startsWith(root + sep)`), one of them without a dot-file block.
+ * - Was three slightly different checks, one of them without a dot-file block:
+ *   `relative().startsWith("..")`, `normalize` + `startsWith`, `startsWith(root + sep)`.
  */
 import { existsSync, statSync, type Stats } from "node:fs"
 import { isAbsolute, join, relative, resolve, sep } from "node:path"
@@ -9,8 +9,8 @@ import { isAbsolute, join, relative, resolve, sep } from "node:path"
 /**
  * Where a URL path led:
  * - `file`:  serve it (`stat` is its stats)
- * - `redirect`:  a folder asked for without its trailing `/`;  answer 301 to this path, so the page's relative
- *   links resolve inside the folder
+ * - `redirect`:  a folder asked for without its trailing `/`:
+ *   answer 301 to this path, so the page's relative links resolve inside the folder
  * - `status`:  answer this error instead -- 400 bad encoding, 403 hidden or outside, 404 missing
  */
 export type Resolved =
