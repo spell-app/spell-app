@@ -1,17 +1,17 @@
 import type { E, UIT } from "$/ui/core"
 import { CalendarDates } from "./CalendarDates"
-import type { DatePart, Moment, MomentFields, MomentLike } from "./ui-calendar.types"
+import type { DatePart, Moment, MomentFields, MomentLike } from "./UICalendar.types"
 
 /****************
  * ### `CalendarText`
  * The words of one calendar in one locale:  the field's text, cell and title texts, weekday / month names (all
  * `Intl`, through `UI.i18n`), and reading back what a person TYPES.
- * - Formatting passes `timeZone: "UTC"` with `CalendarDates.epoch()`:  a moment's fields print as they are, with
- *   no zone shift, whichever `Temporal` made them.
+ * - Formatting passes `timeZone: "UTC"` with `CalendarDates.epoch()`:  a moment's fields print as they are,
+ *   with no zone shift, whichever `Temporal` made them.
  * - 12 / 24 hours:  whatever the locale's `Intl` clock is (`en-US` `2:30 PM`, `de-DE` `14:30`).
- * - Parsing (`read()`):  ISO first;  else a forgiving read in the spirit of Fomantic's `parser.date`, with the
- *   LOCALE's field order (`9/30/2026` in `en-US`, `30.9.2026` in `de-DE`), its month names (long or a 3+ letter
- *   prefix) and day periods (`PM`, plus English `am` / `pm`).  It reads its own output back.
+ * - Parsing (`read()`):  ISO first;  else a forgiving read in the spirit of Fomantic's `parser.date`,
+ *   with the LOCALE's field order (`9/30/2026` in `en-US`, `30.9.2026` in `de-DE`), its month names (long or a 3+
+ *   letter prefix) and day periods (`PM`, plus English `am` / `pm`).  It reads its own output back.
  ****************/
 export class CalendarText {
   /** Where `Intl` lives, and its formatter cache. */
@@ -113,8 +113,8 @@ export class CalendarText {
 
   /**
    * Year / month / day from the date part of typed text, or `undefined`.
-   * - A 4+ digit first number means year-first (ISO-ish order);  a month NAME takes the month;  otherwise the
-   *   locale's numeric order.  Two-digit years:  under 60 => 20xx, else 19xx (Fomantic's `centuryBreak`).
+   * - A 4+ digit first number means year-first (ISO-ish order);  a month NAME takes the month;
+   *   otherwise the locale's numeric order.  Two-digit years:  under 60 => 20xx, else 19xx (Fomantic's `centuryBreak`).
    */
   private dateFields(text: string, type: UIT.CalendarType): MomentFields | undefined {
     const numbers = text.match(DIGITS) ?? []

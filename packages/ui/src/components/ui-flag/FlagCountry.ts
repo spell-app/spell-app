@@ -1,14 +1,14 @@
 import { E, UIT } from "$/ui/core"
-import { FLAG_ALIASES } from "./ui-flag.types"
+import { FLAG_ALIASES } from "./UIFlag.types"
 
 /****************
  * ### `FlagCountry`
- * A `country` attribute resolved to a flag:  its code, its Unicode emoji and how to name it -- shared by
- * `<ui-flag>` and its native fallback, so both draw the same glyph.
- * - Rules:  `ui-flag.vocabulary.en.ts`:  normalize, then a name of `FLAG_ALIASES` => its code, then the code =>
+ * A `country` attribute resolved to a flag:  its code, its Unicode emoji and how to name it.
+ * - For `UIFlag`, and for pages that want the emoji or the code alone (the family's barrel exports it).
+ * - Rules:  `UIFlag.vocabulary.en.ts`:  normalize, then a name of `FLAG_ALIASES` => its code, then the code =>
  *   its emoji through `UIT.Flags`, the rule menu options' flags use too.
- * - Plain data, no DOM and no runtime:  naming a code (`Intl.DisplayNames`) is the caller's, since the element
- *   goes through `UI.i18n` and the fallback can't count on the runtime.
+ * - Plain data, no DOM and no runtime:  naming a code (`Intl.DisplayNames`) is the caller's
+ *   (the component goes through `UI.i18n`).
  ****************/
 export class FlagCountry {
   /** Normalized code:  ISO 3166-1 alpha-2 (`fr`) or a `UIT.SpecialFlags` key (`gb-eng`);  `""` when unknown. */

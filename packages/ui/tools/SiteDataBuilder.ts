@@ -27,7 +27,7 @@ import { VocabularyFiles } from "./VocabularyFiles.ts"
  * sheet, and keeps `site/_data/pages.json` (`SitePagesFile`, the hand-kept per-family facts) complete.
  * - Run by `yarn site:data` (`scripts/site-data.ts`), which writes both;  `tools/SiteDataBuilder.test.ts` fails
  *   while either is stale.
- * - Reads the vocabulary FILES (`import()` each `<tag>.vocabulary.en.ts`), as `yarn gen:root` does:
+ * - Reads the vocabulary FILES (`import()` each `UI<Name>.vocabulary.en.ts`), as `yarn gen:root` does:
  *   `ComponentDefinitions` needs Vite's `import.meta.glob`.  Components from `src/components/`, doc-only elements
  *   from `src/docs-components/`.
  * - pages.json:  a family missing from it is SEEDED, once, from its vocabulary (title from the tag, summary its
@@ -198,7 +198,7 @@ export class SiteDataBuilder {
   // ## Tags
   ////////////////
 
-  /** Every tag of every family under `folder`, from its `<tag>.vocabulary.en.ts` files (`VocabularyFiles`). */
+  /** Every tag of every family under `folder`, from its `UI<Name>.vocabulary.en.ts` files (`VocabularyFiles`). */
   private async readTags(folder: string): Promise<RawTag[]> {
     const vocabularies = await VocabularyFiles.read(folder)
     return vocabularies.map(({ folder: family, vocabulary }) => SiteDataBuilder.tagFor(vocabulary, family))
@@ -362,7 +362,7 @@ export class SiteDataBuilder {
 export type SiteDataBuilderProps = {
   /** `packages/ui/`, with a trailing slash;  default:  this checkout's */
   root?: string
-  /** a folder of families laid out as `src/components/` (`<family>/<tag>.vocabulary.en.ts` + sheet) */
+  /** a folder of families laid out as `src/components/` (`<family>/UI<Name>.vocabulary.en.ts` + sheet) */
   components?: string
   /** doc-only families, as `src/docs-components/`;  `false`:  none */
   docs?: string | false

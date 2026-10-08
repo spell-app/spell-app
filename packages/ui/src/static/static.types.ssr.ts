@@ -34,7 +34,7 @@ export const SLOTTED_ATTRIBUTE = "data-ui-slotted"
 /** Marks the `<li>` the flattener wraps a list item in (`display: contents` in the static stylesheet). */
 export const LIST_ITEM_ATTRIBUTE = "data-ui-li"
 
-/** Every custom state the host had, space-separated:  what `:state(x)` becomes, `[data-state~="x"]`. */
+/** Every custom state the DOM element had, space-separated:  what `:state(x)` becomes, `[data-state~="x"]`. */
 export const STATE_ATTRIBUTE = "data-state"
 
 /** Any component root. */
@@ -47,19 +47,19 @@ export const SLOTTED = `[${SLOTTED_ATTRIBUTE}]`
 export const LIST_ITEM = `[${LIST_ITEM_ATTRIBUTE}]`
 
 /**
- * What page CSS could reach:  outside every component, component roots (were hosts), slotted author content.
+ * What page CSS could reach:  outside every component, component roots (were DOM elements), slotted author content.
  * - Zero specificity (`:where()`).  NOTE:  approximate:  a component rendered inside slotted content is reachable too.
  * - Used on page sheets (`StaticPageStyles`) and the page-only foundation sheets (`StaticStylesheet.page()`).
  */
 export const REACH = `:where(:not(${ROOT} *), ${ROOT}, ${SLOTTED}, ${SLOTTED} *)`
 
 ////////////////
-// ## Hosts
+// ## DOM elements
 ////////////////
 
-/** What a render left on a stand-in host (`ServerHost`), for the flattener. */
-export type ServerHostState = {
-  /** Custom states set on the host (`:state(x)`), e.g. `in-card`. */
+/** What a render left on a stand-in DOM element (`ServerDOMElement`), for the flattener. */
+export type ServerDOMElementState = {
+  /** Custom states set on the DOM element (`:state(x)`), e.g. `in-card`. */
   states: Set<string>
   /** Values the render wrote to `internals`, e.g. `role`, `ariaLabel`. */
   internals: Record<string, unknown>
@@ -69,10 +69,10 @@ export type ServerHostState = {
 // ## Rendering
 ////////////////
 
-/** One family the static render knows:  its controller class and definition, by tag. */
+/** One family the static render knows:  its component class and definition, by tag. */
 export type StaticFamily = {
-  /** Controller class, e.g. `UIButton`. */
-  Class: E.UIElementClass
+  /** Component class, e.g. `UIButton`. */
+  Class: E.UIComponentClass
   /** Its definition under the tag it renders as. */
   definition: E.ElementDefinition
   /**
@@ -112,7 +112,7 @@ export type StaticSheetUsage = {
 
 /** One rendered element, before flattening. */
 export type StaticView = {
-  /** The page element (`<ui-button>`), a stand-in host. */
+  /** The page element (`<ui-button>`), a stand-in DOM element. */
   element: Element
   /** Its family. */
   family: StaticFamily
@@ -128,7 +128,7 @@ export type StaticView = {
 export type StaticSelectorResult = {
   /** Rewritten selectors (one, or two for a host-descendant rule). */
   selectors: string[]
-  /** A rule on the host box alone (`:host(X)`):  `display` there is the host's, never the root's. */
+  /** A rule on the DOM element box alone (`:host(X)`):  `display` there is the DOM element's, never the root's. */
   hostOnly: boolean
   /**
    * From `::slotted()`:  in a shadow root such a rule lost to the page's CSS and to the slotted component's own

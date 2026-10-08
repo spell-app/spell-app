@@ -2,70 +2,79 @@ import { Show, untrack } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { itemVocabulary } from "./ui-item.vocabulary.en"
-import { ItemFallback } from "./ui-item.fallback"
+import { itemVocabulary } from "./UIItem.vocabulary.en"
 
-import itemCSS from "./ui-item.css?inline"
+import itemCSS from "./UIItem.css?inline"
 
 /****************
- * ### `<ui-item>`
- * ONE generic item for every owner that has items -- Fomantic's `.item` is shared by dropdown, list and menu --
- * rendered by OWNER context (`PartContext`), never `ui-list-item` / `ui-menu-item`.
- * - No owner (a dropdown option, or loose):  renders only `<slot>`.  A dropdown reads its items as DATA
- *   (`SlottedItems`) and draws its own `.item[role=option]` rows;  a RICH item is projected into its row, where
- *   this slot shows the content live.  The dropdown is a barrier, so its items never find an outer menu.
- * - Owned (`<ui-list>`, `<ui-menu>`:  their vocabularies `ownsParts` `item`):  asks the owner's controller for an
- *   `ItemContext` (`ItemOwner.itemContext()`, tracked) and renders the item box, in order:
- *   `<a class="[color] [position] [keyOnly ...] item" part="item" href>` (with `href`), a `<button type="button">`
- *   (`link`, or the owner says items are interactive), or a `<div>`;  a `type="header"` item is a `<div class="item
- *   header">`, a `divider` a `<div class="divider" role="separator">`.  Inside:  the `image` shorthand's
- *   `<img class="ui avatar image" part="image" alt="">`, the icon box (`icon` shorthand or `icon` slot), the slot.
- * - Styles:  `ui-item.css` (host, generic resets) + the OWNER'S sheets (its `styleSheets`), which hold the item rules
- *   keyed on `:host(:state(in-list)) > .item` beside the static `.ui.list > .item`.  They're registered here if
- *   the owner hasn't yet, and re-adopted when the owner changes.
- * - Semantics:  host role from the owner (`listitem`);  root role from the owner (`menuitem` in a menubar);
- *   selected => `aria-current` (the owner's value, `page`, on a link;  `true` otherwise);  the host's
- *   `aria-label` names the box (an icon-only item);  its `aria-expanded` goes to a `<button>` box (a disclosure:  a
- *   menu item that opens a group below it).
- * - `active` is an ALIAS of `selected` (Fomantic's word), read from the host attribute.
+ * ### `UIItem`
+ * The component behind `<ui-item>`:  ONE generic item for every owner that has items,
+ * as Fomantic's `.item` is shared by the dropdown, the list and the menu.
+ * It draws itself for its OWNER (`PartContext`):  there is no `ui-list-item` or `ui-menu-item`.
+ *
+ * - No owner (a dropdown option, or a loose item):  it draws only a `<slot>`.
+ *   - A dropdown reads its items as DATA (`SlottedItems`) and draws its own `.item[role=option]` rows;
+ *     a RICH item is projected into its row, where this slot shows the content live.
+ *   - The dropdown is a barrier, so its items never find an outer menu.
+ *
+ * - Owned (by `<ui-list>` or `<ui-menu>`, whose vocabularies `ownsParts` `item`):
+ *   it asks the owner's component for an `ItemContext` (`ItemOwner.itemContext()`, tracked) and draws the item box:
+ *   - `<a class="[color] [position] [keyOnly ...] item" part="item" href>` with `href`,
+ *     a `<button type="button">` with `link` (or when the owner says its items are interactive), else a `<div>`;
+ *   - a `type="header"` item is a `<div class="item header">`, a `divider` a `<div class="divider" role="separator">`;
+ *   - inside the box:  the `image` shorthand's `<img class="ui avatar image" part="image" alt="">`,
+ *     the icon box (the `icon` shorthand or the `icon` slot), then the default slot.
+ *
+ * - Styles:  `UIItem.css` (the DOM element and generic resets), then the OWNER's sheets (its `styleSheets`),
+ *   which hold the item rules keyed on `:host(:state(in-list)) > .item`, beside the static `.ui.list > .item`.
+ *   The item registers them if the owner hasn't yet, and adopts them again when the owner changes.
+ *
+ * - Semantics:
+ *   - the DOM element's role comes from the owner (`listitem`), and so does the box's (`menuitem` in a menubar);
+ *   - selected => `aria-current` (the owner's value, `page`, on a link;  `true` otherwise);
+ *   - the DOM element's `aria-label` names the box (an icon-only item),
+ *     and its `aria-expanded` goes to a `<button>` box (a disclosure:  a menu item that opens a group below it).
+ *
+ * - `active` is an ALIAS of `selected` (Fomantic's word), read from the DOM element's attribute.
+ *
  * - A part (`elementSetup.isAPart`):  transparent to other parts' climbs,
  *   so a `<ui-header>` inside an item in a list is the LIST's header (`.ui.list > .item > .content > .header`).
- * - Except in the Items view (`<ui-items>`):  there the owner's `ItemContext.ownsParts` makes the item OWN its
- *   content parts (`ConditionalOwner`, `isOwnerOf()`), so they get `:state(in-item)` -- Fomantic's
- *   `.ui.items > .item > .content > .header`.  Its `image` shorthand takes the owner's `imageClass`.
+ *   - Except in the Items view (`<ui-items>`):  there the owner's `ItemContext.ownsParts` makes the item OWN its
+ *     content parts (`ConditionalOwner`, `isOwnerOf()`), so they get `:state(in-item)`,
+ *     as Fomantic's `.ui.items > .item > .content > .header`.  Its `image` shorthand takes the owner's `imageClass`.
  ****************/
-export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.ConditionalOwner {
+export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.ConditionalOwner {
   @E.proto static vocabulary = itemVocabulary
   @E.proto static styleSheets = { item: itemCSS }
-  @E.proto static elementSetup = { Fallback: ItemFallback, isAPart: true }
+  @E.proto static elementSetup = { isAPart: true } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Owner
   ////////////////
 
   /** Owner (list, menu), if any. */
-  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
+  readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
 
-  /** Owner's controller, when it renders items (`ItemOwner`). */
-  get owner(): Required<ItemOwnerController> | undefined {
-    const controller = this.context.ownerController<ItemOwnerController>()
-    return controller?.itemContext ? (controller as Required<ItemOwnerController>) : undefined
+  /** The owner's component, when it renders items (`ItemOwner`). */
+  get owner(): Required<ItemOwnerComponent> | undefined {
+    const component = this.context.ownerComponent<ItemOwnerComponent>()
+    return component?.itemContext ? (component as Required<ItemOwnerComponent>) : undefined
   }
 
   /**
    * What the owner wants, or `undefined` when unowned (data only).
-   * - `@derived`:  the owner's `itemContext()` has a SIDE EFFECT (a menu records the item and queues a refresh), so
-   *   it runs once per change, not per read.
+   * - `@derived`:  the owner's `itemContext()` has a SIDE EFFECT (a menu records the item and queues a refresh),
+   *   so it runs once per change, not per read.
    */
   @E.derived
   get itemContext(): UIT.ItemContext | undefined {
-    return this.owner?.itemContext(this.host)
+    return this.owner?.itemContext(this.domElement)
   }
 
-  /** The host role follows the owner (`listitem` in a list). */
-  @E.onChange("itemContext", { writesHost: true })
+  /** The DOM element's role follows the owner (`listitem` in a list). */
+  @E.onChange("itemContext", { writesDOMElement: true })
   protected onItemContextChanged(context: UIT.ItemContext | undefined) {
-    this.host.internals.role = context?.hostRole ?? null
+    this.domElement.internals.role = context?.domElementRole ?? null
   }
 
   /**
@@ -75,11 +84,11 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
    *   before this item's own `owner` has landed.
    */
   isOwnerOf(): boolean {
-    const owner = E.PartContext.controllerFor<ItemOwnerController>(this.context.resolve())
-    return !!owner?.itemContext && !!untrack(() => owner.itemContext!(this.host)).ownsParts
+    const owner = E.PartContext.componentFor<ItemOwnerComponent>(this.context.resolve())
+    return !!owner?.itemContext && !!untrack(() => owner.itemContext!(this.domElement)).ownsParts
   }
 
-  /** `ui-item.css`, then the owner's sheets (registered here if the owner hasn't yet). */
+  /** `UIItem.css`, then the owner's sheets (registered here if the owner hasn't yet). */
   get styleSheetNames(): string[] {
     const names = Object.keys(this.styleSheets)
     const styles = this.owner?.styleSheets ?? {}
@@ -95,7 +104,7 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
   // ## Selected and disabled
   ////////////////
 
-  /** `selected`, or its alias, the host's `active` attribute. */
+  /** `selected`, or its alias, the DOM element's `active` attribute. */
   @E.cssState("selected")
   get isSelected(): boolean {
     return this.selected || E.Converters.boolean(this.attributes[UIT.ACTIVE], UIT.ACTIVE)
@@ -132,9 +141,9 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
   private boxElement: HTMLElement | undefined
 
   /**
-   * The item box (`<a>` / `<button>` / `<div>` in the shadow root), or `undefined` while unowned -- what an owner
-   * moves focus between (a menubar's roving tabindex:  the host stays untabbable, so assistive tech and axe see
-   * the owner's role pattern through it).
+   * The item box (`<a>` / `<button>` / `<div>` in the shadow root), or `undefined` while unowned --
+   * what an owner moves focus between (a menubar's roving tabindex:  the DOM element stays untabbable,
+   * so assistive tech and axe see the owner's role pattern through it).
    */
   get focusTarget(): HTMLElement | undefined {
     return this.boxElement?.isConnected ? this.boxElement : undefined
@@ -155,7 +164,7 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
   ////////////////
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new E.SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** Glyph of the `icon` shorthand;  only loaded once rendered by an owner. */
   readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => (this.itemContext ? this.icon : undefined) })
@@ -190,9 +199,9 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
 
   /**
    * An unowned item's render:  just its content, the bare `<slot>`.
-   * - Server render (`$/ui/static`):  wrapped in a `<span>`, the host's stand-in (`:host`'s `display: contents`
-   *   reaches it as the root).  Why:  the flattener hands a host's `slot` to its render's FIRST element only, so a
-   *   rich dropdown item (`<b>Bold</b> one`, assigned to its row's named slot) would lose the text beside its
+   * - Server render (`$/ui/static`):  wrapped in a `<span>`, the DOM element's stand-in (`:host`'s `display: contents`
+   *   reaches it as the root).  Why:  the flattener hands a DOM element's `slot` to its render's FIRST element only,
+   *   so a rich dropdown item (`<b>Bold</b> one`, assigned to its row's named slot) would lose the text beside its
    *   element (seo plan, I20).
    */
   private unowned(): JSX.Element {
@@ -207,7 +216,7 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
 
   /**
    * The owned item box, around the default slot.
-   * - The host's `aria-label` names it (an icon-only item);  its `aria-expanded` goes to a `<button>` box.
+   * - The DOM element's `aria-label` names it (an icon-only item);  its `aria-expanded` goes to a `<button>` box.
    */
   private box(): JSX.Element {
     const isDisabledButton = () => this.rootTag === UIT.BUTTON && this.disabled
@@ -251,11 +260,11 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIItem extends E.AttributeValues<typeof itemVocabulary> {}
 
-/** An owner's controller as the item first sees it:  `itemContext` only when it renders items (`ItemOwner`). */
-type ItemOwnerController = E.UIElement & Partial<UIT.ItemOwner>
+/** An owner's component as the item first sees it:  `itemContext` only when it renders items (`ItemOwner`). */
+type ItemOwnerComponent = E.UIComponent & Partial<UIT.ItemOwner>
 
 /** Root element names. */
 type RootTag = typeof UIT.ANCHOR_TAG | typeof UIT.BUTTON | typeof DIV

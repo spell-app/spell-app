@@ -2,9 +2,9 @@
  * `UIT` -- what several component families share:  event details, the CSS contracts every implementation of a
  * component (the element and its native fallback) must honour, vocabulary pieces, and the words more than one family
  * reads (`UIT.ACTIVE`, `UIT.Key`).
- * - Read as `UIT.X`:  element and fallback files `import { E, UI, UIT } from "$/ui/core"`;  vocabularies and types
- *   files, which node imports (`yarn site:data`, `yarn gen:root`), value-import this file directly,
- *   `import * as UIT from "$/ui/components/components.types"` (`AGENTS.md` "Imports").
+ * - Read as `UIT.X`:  element and fallback files `import { E, UI, UIT } from "$/ui/core"`;
+ *   vocabularies and types files, which node imports (`yarn site:data`, `yarn gen:root`),
+ *   value-import this file directly, `import * as UIT from "$/ui/components/components.types"` (`AGENTS.md` "Imports").
  * - PURE DATA, at the bottom of the import graph:  `import type` only, so node loads it and it never pulls in the
  *   element layer.  Its small helper classes (`Flags`, `StackClasses`, `ToggleCommands`) read only what's here.
  * - A constant ONE family reads stays in that family's types file;  it moves here once a second family needs it.
@@ -74,8 +74,8 @@ export type DropdownItemDetail = {
  * ### `Flags`
  * Flag code => Unicode flag emoji:  ONE rule for `<ui-flag>` (`FlagCountry`, after its names) and the `flag` of a
  * menu option (`<ui-dropdown>`, `<ui-select>`), so a flag draws the same everywhere (epic `wwod-spell-ui`, I6).
- * - A two-letter code (ISO 3166-1 alpha-2, any case) => its regional-indicator pair (`fr` => `🇫🇷`);  a code of
- *   `SpecialFlags` (`rainbow`, `gb-eng` ...) => its emoji sequence;  anything else => `""`.
+ * - A two-letter code (ISO 3166-1 alpha-2, any case) => its regional-indicator pair (`fr` => `🇫🇷`);
+ *   a code of `SpecialFlags` (`rainbow`, `gb-eng` ...) => its emoji sequence;  anything else => `""`.
  * - Here, not in the `flag` family:  a menu importing that family's files would split a chunk both entries share.
  *   Fomantic's country NAMES (`FLAG_ALIASES`, ~250 of them) stay there, out of `core`:  a menu option takes codes.
  * - STATIC and instance-free:  pure lookups.
@@ -134,12 +134,12 @@ export type ItemType = "item" | "header" | "divider"
 /**
  * How an OWNER wants its generic `<ui-item>`s rendered, from `ItemOwner.itemContext()`.
  * - The item finds its owner through `PartContext` (the owner's vocabulary `ownsParts` has `item`) and reads
- *   this in a memo, so an owner attribute change (`<ui-list selection>`, `<ui-menu interactive>`) re-renders
- *   every item.
+ *   this in a memo, so an owner attribute change (`<ui-list selection>`,
+ *   `<ui-menu interactive>`) re-renders every item.
  */
 export type ItemContext = {
-  /** Role of the item HOST (internals), e.g. `listitem`;  `undefined` for none. */
-  hostRole?: string
+  /** Role of the item's DOM element (internals), e.g. `listitem`;  `undefined` for none. */
+  domElementRole?: string
   /** Role of the item's ROOT, e.g. `menuitem` in a menubar;  `undefined` keeps the native element's. */
   role?: ItemRole
   /** An item without `href` renders a `<button>` (selection list, menubar);  else a `<div>` (unless `link`). */
@@ -159,16 +159,16 @@ export type ItemContext = {
 export type ItemRole = "menuitem" | "menuitemradio" | "menuitemcheckbox" | "option" | "treeitem"
 
 /**
- * What an owner of `<ui-item>`s (`<ui-list>`, `<ui-menu>`, `<ui-items>`) implements on its CONTROLLER;  the item
- * reaches it through `PartContext.ownerController()` and calls `itemContext(item)`, tracked.
+ * What an owner of `<ui-item>`s (`<ui-list>`, `<ui-menu>`, `<ui-items>`) implements on its COMPONENT;
+ * the item reaches it through `PartContext.ownerComponent()` and calls `itemContext(item)`, tracked.
  * - The item also adopts the owner's `styles`:  the owner's sheet holds its item rules
  *   (`:host(:state(in-list)) > .item`), next to the static class-grammar ones (`.ui.list > .item`).
  */
 export type ItemOwner = {
   /**
-   * How `item` (the `<ui-item>` host) renders;  tracked, so an owner attribute change re-renders it.
-   * - MUST read only reactive members (`@state`, `@controlled`, vocabulary getters, `@derived`):  `UIItem` caches
-   *   it in a `@derived`, which can't see a `Cell` or a Solid memo change.
+   * How `item` (the `<ui-item>`) renders;  tracked, so an owner attribute change re-renders it.
+   * - MUST read only reactive members (`@state`, `@controlled`, vocabulary getters, `@derived`):
+   *   `UIItem` caches it in a `@derived`, which can't see a `Cell` or a Solid memo change.
    */
   itemContext(item: Element): ItemContext
 }
@@ -178,9 +178,9 @@ export type ItemOwner = {
 ////////////////
 
 /**
- * Custom property `ui-dropdown.css` reads for the anchor name, e.g. `--_ui-dropdown-anchor: --ui-dropdown-7`.
- * - The element sets it INLINE on its root, to a per-instance dashed ident (`UI.ids`);  the root's
- *   `anchor-name` and the menu's `position-anchor` both read it.
+ * Custom property `UIDropdown.css` reads for the anchor name, e.g. `--_ui-dropdown-anchor: --ui-dropdown-7`.
+ * - The element sets it INLINE on its root, to a per-instance dashed ident (`UI.ids`);
+ *   the root's `anchor-name` and the menu's `position-anchor` both read it.
  * - PRIVATE (`--_ui-`):  a switch the element decides, never a theming surface.
  * - Falls back to `--ui-dropdown`, which is enough inside one shadow root.
  */
@@ -191,8 +191,8 @@ export const DROPDOWN_ANCHOR_PROPERTY = "--_ui-dropdown-anchor"
 ////////////////
 
 /**
- * Custom property an owner sets on itself to steer a slotted `<ui-icon>` (a `display: contents` host takes no box
- * styles from `::slotted()`), e.g. `--_ui-icon-owner-margin: 0 0.75em 0 0` on a label root.  See `ui-icon.css`.
+ * Custom property an owner sets on itself to steer a slotted `<ui-icon>` (a `display: contents` element takes no box
+ * styles from `::slotted()`), e.g. `--_ui-icon-owner-margin: 0 0.75em 0 0` on a label root.  See `UIIcon.css`.
  * - PRIVATE (`--_ui-`):  an internal switch between components, never a theming surface
  *   (`docs/theming.md` "Owner tokens").
  */
@@ -221,13 +221,13 @@ export type LabelRemoveDetail = {
 export type HeaderLevel = 1 | 2 | 3 | 4 | 5 | 6
 
 /**
- * Inherited tokens OWNERS set on their root for the generic content parts, which style-query them
- * (`@container style(...)`).  See the "Owner tokens" table in `ui-parts.css`.
+ * Inherited tokens OWNERS set on their root for the generic content parts,
+ * which style-query them (`@container style(...)`).  See the "Owner tokens" table in `UIParts.css`.
  * - Switches are PRIVATE (`--_ui-`):  what the owner's attributes decide, never a theming surface.
  * - `--ui-inverted` is the shared remap.
  * - The look tokens (`modalHeaderSize`, `statisticValueSize`) name the owner's private ALIAS of a public token
- *   (`--_ui-modal-header-size: var(--ui-modal-header-size, 1.42857em)`):  the page sets the public one, the
- *   owner's variations write the alias, and parts read only the alias (`docs/theming.md` "Owner tokens").
+ *   (`--_ui-modal-header-size: var(--ui-modal-header-size, 1.42857em)`):  the page sets the public one,
+ *   the owner's variations write the alias, and parts read only the alias (`docs/theming.md` "Owner tokens").
  * - MUST be declared on EVERY root of the owner, default value included, so a nested owner never inherits an
  *   outer owner's layout.
  * - `inverted` owners also set `color-scheme: dark`;  the token is only for looks the dark scheme doesn't give.
@@ -259,15 +259,15 @@ export const PartOwnerTokens = {
 
 /**
  * Class a STATIC part carries in place of the `:state(in-<owner>)` its element sets, e.g. `in-card`.
- * - Elements NEVER set it:  it exists for static markup (examples, SSR without scripts);  see `ui-parts.css`.
+ * - Elements NEVER set it:  it exists for static markup (examples, SSR without scripts);  see `UIParts.css`.
  * - Same text as `OwnerContext.stateName(ownerNoun)`.
  */
 export const PART_STATIC_CLASS_PREFIX = "in-"
 
 /**
- * Marks the NATIVE control in a static server render (`$/ui/static`), for the flattener:  the host's `id` and ARIA
- * names belong there, so a `<label for>` the host's id labels the control.
- * - Elements NEVER set it in a browser;  `StaticFlattener` moves the host's `id` / `aria-label*` /
+ * Marks the NATIVE control in a static server render (`$/ui/static`), for the flattener:  the DOM element's `id`
+ * and ARIA names belong there, so a `<label for>` the DOM element's id labels the control.
+ * - Elements NEVER set it in a browser;  `StaticFlattener` moves the DOM element's `id` / `aria-label*` /
  *   `aria-describedby` there, then drops the mark (seo plan, T5).
  */
 export const STATIC_CONTROL = "data-ui-control"
@@ -285,7 +285,7 @@ export const STATIC_ROOT = "data-ui"
 ////////////////
 
 /**
- * Size container a top-level `<ui-grid>` HOST establishes (`container: ui-grid / inline-size`), see `ui-grid.css`.
+ * Size container a top-level `<ui-grid>` establishes (`container: ui-grid / inline-size`), see `UIGrid.css`.
  * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport (unless
  *   `stack-with="page"`, see "Stacking").
  * - Page CSS may query it too, e.g. `@container ui-grid (width < 768px) { ... }` inside a column.
@@ -317,8 +317,8 @@ export const STACK_WITH_TOKEN = "--ui-stack-with"
 
 /**
  * Prefix of the private class an element's `stack-with` adds after the noun:  `ui stackable grid stack-with-page`.
- * - A class, not a host state:  `:state()` rules left WebKit with stale viewport media queries (`ui-table.css`'s
- *   `stack-by`, the same mechanism)
+ * - A class, not a `:state()` of the DOM element:
+ *   `:state()` rules left WebKit with stale viewport media queries (`UITable.css`'s `stack-by`, the same mechanism)
  * - From the CANONICAL value, so a translated attribute still works
  */
 export const STACK_WITH_CLASS = "stack-with-"
@@ -355,8 +355,8 @@ export type MenuAppearance = (typeof MenuAppearances)[number]
 /**
  * `alignment` of `<ui-menu>` and `<ui-tabs>`:  where the items sit along the bar, emitted as `<value> aligned`.
  * - `fluid`:  the items fill the bar (each grows from its own width;  with `equal`, every item the same share)
- * - `left` / `center` / `right`:  the items pack at that end;  the bar itself spans the row, except a `segmented`
- *   one, which IS its items and moves as a whole
+ * - `left` / `center` / `right`:  the items pack at that end;  the bar itself spans the row,
+ *   except a `segmented` one, which IS its items and moves as a whole
  * - Unset:  as before (packed left, the bar as its look makes it)
  */
 export const ItemAlignments = ["fluid", "left", "center", "right"] as const
@@ -380,12 +380,12 @@ export type MessageDismissDetail = {
 
 /**
  * Inherited tokens a `<ui-breadcrumb>` sets INLINE on its root, which every `<ui-breadcrumb-section>` draws as
- * its leading divider.  See "Dividers" in `ui-breadcrumb.css`.
+ * its leading divider.  See "Dividers" in `UIBreadcrumb.css`.
  * - `text` -- a CSS STRING (`"›"`), from `divider`;  quote and escape it as CSS (`\"`, `\\`, `\A `), not JSON
  * - `icon` -- an `<image>`, `url("data:image/svg+xml,...")` of the `divider-icon` SVG;  painted as a mask in
  *   `currentColor`
- * - `layout` -- `icon` while `divider-icon` is set;  removed otherwise.  PRIVATE (`--_ui-`):  a switch the
- *   element decides;  static markup sets it by hand
+ * - `layout` -- `icon` while `divider-icon` is set;  removed otherwise.  PRIVATE (`--_ui-`):
+ *   a switch the element decides;  static markup sets it by hand
  */
 export const BreadcrumbDividerTokens = {
   text: "--ui-breadcrumb-divider",
@@ -398,9 +398,9 @@ export const BreadcrumbDividerTokens = {
 ////////////////
 
 /**
- * Custom state every `<ui-placeholder>` host MUST carry, always:  `ui-placeholder.css` spaces consecutive
- * placeholders with `:host(:nth-child(n + 2 of :state(placeholder)))`, since a shadow root can't see its host's
- * previous sibling.
+ * Custom state every `<ui-placeholder>` MUST carry, always:
+ * `UIPlaceholder.css` spaces consecutive placeholders with `:host(:nth-child(n + 2 of :state(placeholder)))`,
+ * since a shadow root can't see its host's previous sibling.
  */
 export const PLACEHOLDER_HOST_STATE = "placeholder"
 
@@ -417,8 +417,8 @@ export type InputChangeDetail = {
 }
 
 /**
- * Inherited tokens an OWNER sets for the text controls inside it (`ui-input.css`), e.g. `<ui-field>` on its root.
- * - `width` -- the host's inline size (`100%` in a field, `auto` in an inline one)
+ * Inherited tokens an OWNER sets for the text controls inside it (`UIInput.css`), e.g. `<ui-field>` on its root.
+ * - `width` -- the DOM element's inline size (`100%` in a field, `auto` in an inline one)
  * - `color` / `background` / `border` -- a field's state, RESOLVED colours (declared where the state's remap
  *   runs), so a control's own `state` still wins
  */
@@ -515,7 +515,7 @@ export type FormFailureDetail = FormSuccessDetail & {
 }
 
 /**
- * Custom state every `<ui-field>` host carries, always:  `<ui-form>` finds a control's field with
+ * Custom state every `<ui-field>` carries, always:  `<ui-form>` finds a control's field with
  * `control.closest(":state(field)")`, whatever the field's tag is called in a translation.
  */
 export const FIELD_HOST_STATE = "field"
@@ -573,7 +573,7 @@ export const TABLE_SORT_KEY = "data-key"
 export type ListSelectDetail = {
   /** the item's `value`, else its `text`, else its trimmed text content */
   value: string
-  /** the `<ui-item>` host */
+  /** the `<ui-item>` */
   item: Element
   /** click (or the click Enter / Space made) on the item's link / button */
   originalEvent?: Event
@@ -652,10 +652,10 @@ export type ModalActionDetail = {
 }
 
 /**
- * Which activated elements inside a `<ui-modal>` approve or deny it:  Fomantic's `.actions` classes, plus the
- * `positive` / `negative` attributes of a `<ui-button>`.
- * - Matched against the light-DOM elements on a click's composed path, innermost first;  the native fallback
- *   uses the same selectors.
+ * Which activated elements inside a `<ui-modal>` approve or deny it:  Fomantic's `.actions` classes,
+ * plus the `positive` / `negative` attributes of a `<ui-button>`.
+ * - Matched against the light-DOM elements on a click's composed path, innermost first;
+ *   the native fallback uses the same selectors.
  */
 export const ModalActionSelectors = {
   approve: `.approve, .ok, .positive, [positive]:not([positive="false"], [positive="no"])`,
@@ -783,7 +783,7 @@ export type SearchChangeDetail = {
 }
 
 /**
- * Custom property `ui-search.css` reads for the anchor name, e.g. `--_ui-search-anchor: --ui-search-3`.
+ * Custom property `UISearch.css` reads for the anchor name, e.g. `--_ui-search-anchor: --ui-search-3`.
  * - The element sets it inline on its root, as the dropdown does (`DROPDOWN_ANCHOR_PROPERTY`).
  * - PRIVATE (`--_ui-`):  a switch the element decides, never a theming surface.
  */
@@ -800,7 +800,7 @@ export const SEARCH_ANCHOR_PROPERTY = "--_ui-search-anchor"
  * - `click` -- a click on it (`close-on-click`)
  * - `escape` -- Escape with focus inside it
  * - `approve` / `deny` / `action` -- an action button (after its own `ui-approve` / `ui-deny`)
- * - `dismiss` -- script:  `host.close()`, `UI.toasts.dismiss(id)`
+ * - `dismiss` -- script:  `element.close()`, `UI.toasts.dismiss(id)`
  * - `close-all` -- `UI.overlays.closeAll("toast")`
  */
 export type ToastCloseReason =
@@ -847,7 +847,7 @@ export type NagStorage = "local" | "session" | "cookie"
  * Why a `<ui-nag>` is closing, in `ui-close` / `ui-hide`'s `detail.reason`.
  * - `close` -- its close icon (the dismissal is stored)
  * - `timeout` -- its display time ran out (nothing stored)
- * - `dismiss` -- script:  `host.close()` (stored)
+ * - `dismiss` -- script:  `element.close()` (stored)
  */
 export type NagCloseReason = "close" | "timeout" | "dismiss"
 
@@ -973,10 +973,10 @@ export type SidebarCloseDetail = {
 
 /****************
  * ### `ToggleCommands`
- * Invoker commands a `<ui-modal>`, `<ui-flyout>`, `<ui-sidebar>`, `<ui-dimmer>`, `<ui-popup>`, `<ui-dropdown>` and
- * `<ui-toast>` (`--close` only) answer (`<button commandfor="id" command="--toggle">`):  custom commands, since a
- * custom element gets no built-in ones (`show-modal` only reaches a real `<dialog>`).  All are user actions (the
- * cancelable `ui-open` / `ui-close` first).
+ * Invoker commands a `<ui-modal>`, `<ui-flyout>`, `<ui-sidebar>`, `<ui-dimmer>`, `<ui-popup>`,
+ * `<ui-dropdown>` and `<ui-toast>` (`--close` only) answer (`<button commandfor="id" command="--toggle">`):
+ * custom commands, since a custom element gets no built-in ones (`show-modal` only reaches a real `<dialog>`).
+ * All are user actions (the cancelable `ui-open` / `ui-close` first).
  * - The words, `ToggleCommands.show` ... (as `TransitionCommands` / `ShapeCommands` hold theirs), and `action()`,
  *   the shared first step of every family's `onCommand`.
  * - Static:  one set of words per page.
@@ -1003,24 +1003,24 @@ export class ToggleCommands {
   }
 }
 
-/** Custom state every `<ui-pusher>` host carries:  `<ui-pushable>` finds and moves it by this, whatever its tag. */
+/** Custom state every `<ui-pusher>` carries:  `<ui-pushable>` finds and moves it by this, whatever its tag. */
 export const PUSHER_HOST_STATE = "pusher"
 
-/** Custom state every `<ui-sidebar>` host carries:  `<ui-pushable>` finds its sidebars by this. */
+/** Custom state every `<ui-sidebar>` carries:  `<ui-pushable>` finds its sidebars by this. */
 export const SIDEBAR_HOST_STATE = "sidebar"
 
-/** Custom state every `<ui-pushable>` host carries:  a `<ui-sidebar>` finds its pushable by this. */
+/** Custom state every `<ui-pushable>` carries:  a `<ui-sidebar>` finds its pushable by this. */
 export const PUSHABLE_HOST_STATE = "pushable"
 
 /**
- * Inherited tokens a `<ui-pushable>` sets INLINE on its root for its `<ui-pusher>`s (`ui-sidebar.css`), from the
- * visible sidebar:
+ * Inherited tokens a `<ui-pushable>` sets INLINE on its root for its `<ui-pusher>`s (`UISidebar.css`),
+ * from the visible sidebar:
  * - `transform` -- where the pusher moves (`translate3d(260px, 0, 0)`, `scale(0.75)`), `none` when nothing is open
  * - `origin` -- its `transform-origin` (scale down)
  * - `dimmed` -- `1` while a modal sidebar is open:  the pusher's dimmer shows
  * - `blurring` -- `1` while that sidebar is `blurring`:  the dimmer blurs the pusher
- * - PRIVATE (`--_ui-`):  switches the pushable decides, never a theming surface;  `ui-sidebar.css` declares their
- *   defaults on the pushable box, which the inline values beat
+ * - PRIVATE (`--_ui-`):  switches the pushable decides, never a theming surface;
+ *   `UISidebar.css` declares their defaults on the pushable box, which the inline values beat
  */
 export const PusherTokens = {
   transform: "--_ui-pusher-transform",
@@ -1049,13 +1049,13 @@ export type WordWidth = (typeof WordWidths)[number]
 
 /****************
  * ### `WordWidthClasses`
- * The word a `width` adds after the noun (`ui left sidebar thin`), shared by `<ui-sidebar>`, `<ui-flyout>` and their
- * fallbacks:  `ClassBuilder`'s `width` kind only knows columns.
+ * The word a `width` adds after the noun (`ui left sidebar thin`), shared by `<ui-sidebar>`,
+ * `<ui-flyout>` and their fallbacks:  `ClassBuilder`'s `width` kind only knows columns.
  ****************/
 export class WordWidthClasses {
   /**
-   * `width` as one of `WordWidths`, its words joined by spaces or dashes (`very-thin` ~== `very thin`);  `undefined`
-   * for columns or nothing.
+   * `width` as one of `WordWidths`, its words joined by spaces or dashes (`very-thin` ~== `very thin`);
+   * `undefined` for columns or nothing.
    * - Takes `null`:  a fallback passes `getAttribute()`'s.
    */
   static classFor(width: string | number | null | undefined): WordWidth | undefined {
@@ -1094,7 +1094,7 @@ export type ShapeChangeDetail = {
   flip: ShapeFlip
 }
 
-/** Custom state every `<ui-side>` host carries:  `<ui-shape>` finds its sides by this, whatever their tag. */
+/** Custom state every `<ui-side>` carries:  `<ui-shape>` finds its sides by this, whatever their tag. */
 export const SIDE_HOST_STATE = "side"
 
 ////////////////
@@ -1116,7 +1116,7 @@ export type AccordionPanel = {
 export type SectionToggleDetail = {
   /** state the section is ABOUT to enter:  `true` unfolding */
   open: boolean
-  /** the `<ui-section>` host */
+  /** the `<ui-section>` */
   section: Element
   /** the click / key event on the toggle;  none for a browser-made change (find-in-page) */
   originalEvent?: Event
@@ -1137,16 +1137,16 @@ export type AccordionToggleDetail = {
 }
 
 /**
- * What acts on its own inside a title that folds (a `<ui-accordion>` panel's, a collapsible `<ui-section>`'s):  a
- * click on one never folds it.
+ * What acts on its own inside a title that folds (a `<ui-accordion>` panel's, a collapsible `<ui-section>`'s):
+ * a click on one never folds it.
  */
 export const TITLE_CONTROLS = "a[href], button, input, select, textarea, label, [contenteditable], [tabindex]"
 
 /** Tells a click on a folding title from a click on a control inside it (`TITLE_CONTROLS`). */
 export class TitleControls {
   /**
-   * Did `event` land on a control inside the title, before reaching its toggle (`toggle`, a selector:  the
-   * accordion's `summary`, the section's fold button)?
+   * Did `event` land on a control inside the title, before reaching its toggle (`toggle`, a selector:
+   * the accordion's `summary`, the section's fold button)?
    * - Climbs `composedPath()`, so a control slotted into the title counts.
    */
   static isClicked(event: Event, toggle: string): boolean {
@@ -1199,8 +1199,8 @@ export type CalendarMode = "year" | "month" | "day" | "hour" | "minute"
 /** `detail` of the cancelable `ui-change`, from a `<ui-calendar>`. */
 export type CalendarChangeDetail = {
   /**
-   * the new value, ISO by `type`:  `2026-09-30`, `14:30`, `2026-09-30T14:30`, `2026-09`, `2026`;  `""` when
-   * cleared
+   * the new value, ISO by `type`:  `2026-09-30`, `14:30`, `2026-09-30T14:30`, `2026-09`, `2026`;
+   * `""` when cleared
    */
   value: string
   /** the click / key / `change` event */
@@ -1246,7 +1246,7 @@ export type Key = (typeof Key)[keyof typeof Key]
 // ## ARIA:  attributes, roles and values
 ////////////////
 
-/** The `aria-label` attribute:  a host's label, forwarded to its inner element. */
+/** The `aria-label` attribute:  a DOM element's label, forwarded to its inner element. */
 export const ARIA_LABEL = "aria-label"
 
 /** The `aria-invalid` attribute, set on a failing control. */
@@ -1427,8 +1427,8 @@ export const CLOSE_ICON = "xmark"
 export const CLOSE_TEXT = "×"
 
 /**
- * Prefix of the colour remap class a coloured box adds without the `ui` word (`ui-red`):  an item, a step, a feed
- * event.  Why:  the generic remap (`colors.css`) keys on `.ui.red` or `.ui-red`.
+ * Prefix of the colour remap class a coloured box adds without the `ui` word (`ui-red`):  an item, a step,
+ * a feed event.  Why:  the generic remap (`colors.css`) keys on `.ui.red` or `.ui-red`.
  */
 export const COLOR_CLASS_PREFIX = "ui-"
 
@@ -1462,7 +1462,7 @@ export const WHITESPACE = /\s+/
 export const DIGITS = /^\d+(\.\d+)?$/
 
 ////////////////
-// ## Sources:  shared by ui-include, ui-code, ui-markdown (`SourceElement`)
+// ## Sources:  shared by ui-include, ui-code, ui-markdown (`LoadableComponent`)
 ////////////////
 
 /** When a `source` is fetched:  now, once scrolled into view, or when the browser is idle (Astro's islands). */
@@ -1542,7 +1542,7 @@ export const SourceStates = [
 
 /**
  * Error messages of a failed load;  `{source}` is the URL as written.
- * - Spread on their own by `<ui-section>` / `<ui-accordion>`, whose `source` body shows them (`SourceBody`).
+ * - Spread on their own by `<ui-section>` / `<ui-accordion>`, whose `source` body shows them (`LoadableBody`).
  */
 export const SourceFailureTexts = [
   { key: "sourceLoadError", text: "Couldn't load {source}.", description: "The fetch failed." },
@@ -1608,12 +1608,13 @@ export type SourceErrorDetail = {
 }
 
 ////////////////
-// ## Source bodies:  shared by ui-section and ui-accordion (`SourceBody`)
+// ## Source bodies:  shared by ui-section and ui-accordion (`LoadableBody`)
 ////////////////
 
 /**
- * Attributes of an element whose BODY can come from a file, loaded the first time it opens;  spread into its
- * vocabulary's `attributes` (`<ui-section>`, and so every subclass reusing its vocabulary, `<ui-accordion>`).
+ * Attributes of an element whose BODY can come from a file, loaded the first time it opens;
+ * spread into its vocabulary's `attributes` (`<ui-section>`, and so every subclass reusing its vocabulary,
+ * `<ui-accordion>`).
  */
 export const SourceBodyAttributes = [
   {

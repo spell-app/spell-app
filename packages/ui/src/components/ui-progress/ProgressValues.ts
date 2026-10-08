@@ -1,9 +1,9 @@
-import { LIST_SPLIT } from "./ui-progress.types"
+import { LIST_SPLIT } from "./UIProgress.types"
 
 /****************
  * ### `ProgressValues`
  * The numbers of a progress bar, from its attributes:  Fomantic's `progress.js` arithmetic, without jQuery or Solid,
- * so the element and its native fallback agree.
+ * so the component and an app agree.
  * - `percent` wins;  else `value` is a share of `total`, or a percentage when there is no `total`.
  * - Each percentage is kept within 0 ... 100 (Fomantic's `limitValues`);  several bars that add up to more than 100
  *   are scaled down to fit (Fomantic refused the update with an error).
@@ -115,7 +115,7 @@ export class ProgressValues {
   }
 }
 
-/** Constructor props for `ProgressValues`:  the host's converted attributes. */
+/** Constructor props for `ProgressValues`:  the element's attributes, converted. */
 export type ProgressValuesProps = {
   /** `value`:  one number or a comma list. */
   value?: string | number

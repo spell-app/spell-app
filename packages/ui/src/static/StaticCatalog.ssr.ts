@@ -95,7 +95,7 @@ import { UISide } from "$/ui/components/ui-shape/UISide"
 
 /****************
  * ### `StaticCatalog`
- * Every family the static render supports, as controller classes:  `StaticRender.define(...StaticCatalog.classes)`.
+ * Every family the static render supports, as component classes:  `StaticRender.define(...StaticCatalog.classes)`.
  * - Imported from their own files, never a family's `index.ts` (it calls `customElements.define()`).
  * - Keep in step with `tools/visual/StaticFamilies.ts` (the visual tests' list);  `StaticCatalog.ssr.test.ts`
  *   checks it.
@@ -104,8 +104,8 @@ import { UISide } from "$/ui/components/ui-shape/UISide"
  *   what it's given), and the list changes for a different reason (a family becoming server-ready) than the engine.
  ****************/
 export class StaticCatalog {
-  /** Controller classes;  `define()` order doesn't matter.  Static:  ONE supported set per build, no instances. */
-  static readonly classes: readonly E.UIElementClass[] = [
+  /** Component classes;  `define()` order doesn't matter.  Static:  ONE supported set per build, no instances. */
+  static readonly classes: readonly E.UIComponentClass[] = [
     UIButton,
     UIButtons,
     UIOr,

@@ -1,23 +1,23 @@
 /**
  * `forms` lib entry (`@spell-app/ui/forms`):  what only form controls with a VALUE need, split from `core` so a page
  * without one never loads it.
- * - `FormElement` (form value, validity, reset) on a `FormHost` (the form-control API), `Validator` (Fomantic's
+ * - `FormComponent` (form value, validity, reset) on a `DOMFormControlElement` (the form-control API), `Validator` (Fomantic's
  *   rules), `MenuOptions` (search, additions, keyboard navigation of an option list) and `ControlLabels` (the
- *   host's `<label>`s as the inner control's name).
+ *   DOM element's `<label>`s as the inner control's name).
  * - Imported by the families with a value:  `checkbox`, `dropdown`, `form`, `input`, `select`, `search`, `calendar`,
- *   `rating` and `slider`.  `ui-button` is form-associated too (submit / reset), but through the fork's
+ *   `rating` and `slider`.  `ui-button` is form-associated too (submit / reset), but through solid-element's
  *   `formAssociated` option alone:  it needs no value, validity or form API, so it stays on `core`.
  * - NOTE: `$/ui/elements` leaves directly, for the reason given in `core.ts`;  and every `forms` file imports the
  *   element core through the `$/ui/core` ENTRY (`E`), never its leaves, or Rolldown hoists what `core` and `forms`
  *   share into a third, hashed chunk.  They reach each other through `F`, except what a class definition reads
- *   (`FormElement`'s `FormHost`, `Validator`):  directly (WWOD §4 › "Circular imports").
+ *   (`FormComponent`'s `DOMFormControlElement`, `Validator`):  directly (WWOD §4 › "Circular imports").
  */
 
 export * from "$/ui/elements/Validator"
 export * from "$/ui/elements/MenuOptions"
-export * from "$/ui/elements/FormHost"
-export * from "$/ui/elements/FormElement"
+export * from "$/ui/elements/DOMFormControlElement"
+export * from "$/ui/elements/FormComponent"
 export * from "$/ui/elements/ControlLabels"
 
-/** The `forms` namespace:  `import { F } from "$/ui/forms"`, then `F.FormElement` (`AGENTS.md`). */
+/** The `forms` namespace:  `import { F } from "$/ui/forms"`, then `F.FormComponent` (`AGENTS.md`). */
 export * as F from "$/ui/forms"

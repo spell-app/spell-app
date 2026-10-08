@@ -3,7 +3,7 @@
  * beside its element markup in `examples/elements/`, for every family that has examples.
  * - The originals need the component sheets on the PAGE (`FamilySheets`);  the runtime already puts the foundation
  *   there.
- * - `item` has no examples of its own:  its look is its owners' (`ui-list.css`, `ui-menu.css`, `ui-items.css`).
+ * - `item` has no examples of its own:  its look is its owners' (`UIList.css`, `UIMenu.css`, `UIItems.css`).
  * - The parts' own examples use `stub-*` owners (`StubOwner`) only where the real owner is a hidden overlay
  *   (modal, popup) or owns no parts yet (accordion, toast, search).
  * - `?only=<family>` shows one family's pairs, `ui-button` or `button` (`yarn screenshots`).

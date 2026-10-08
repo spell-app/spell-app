@@ -1,6 +1,7 @@
 /**
- * Barrel for the label components -- also the `label` lib entry (`@spell-app/ui/ui-label`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-label>` and `<ui-labels>`.
+ * The label family:  defines `<ui-label>` and `<ui-labels>`, and exports their components, `UILabel` and `UILabels`.
+ * - SIDE EFFECT:  importing it defines the tags.
+ * - Also the library's `@spell-app/ui/ui-label` entry (its size is in `docs/report.md`).
  */
 
 import { UILabel } from "./UILabel"

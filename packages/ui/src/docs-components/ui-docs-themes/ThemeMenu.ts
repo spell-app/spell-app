@@ -1,17 +1,16 @@
 import type { E } from "$/ui/core"
 import { DOCS_PLAIN_THEME, type SiteDataFile } from "$/ui/docs-components/docs-components.types"
 import { SiteData } from "$/ui/docs-components/SiteData"
-import { CLASSIC, SPELL, SPELL_BRAND, type DocsThemesText } from "./ui-docs-themes.types"
+import { CLASSIC, SPELL, SPELL_BRAND, type DocsThemesText } from "./UIDocsThemes.types"
 
 /****************
  * ### `ThemeMenu`
- * What `<ui-docs-themes>`' dropdown lists, and its text:  plain data, no Solid, so the element and the native
- * fallback share it.
+ * What `<ui-docs-themes>`' dropdown lists, and its text:  plain data, no Solid, which tests drive directly.
  * - Entries:  Spell (our own theme, the docs' default), Plain (our own look, no theme:  `DOCS_PLAIN_THEME`), Classic,
  *   then a `Fomantic themes` header over every Fomantic theme (`UI.themes.names`, A-Z by title).
- * - `forTag`:  only the Fomantic themes whose `SiteTheme.families` hold that tag's family;  Spell, Plain and Classic
- *   stay.  Until the site data arrives (or if it can't, or doesn't know the tag), the list is unfiltered;  titles
- *   fall back to the sheet name.
+ * - `forTag`:  only the Fomantic themes whose `SiteTheme.families` hold that tag's family;  Spell,
+ *   Plain and Classic stay.  Until the site data arrives (or if it can't, or doesn't know the tag),
+ *   the list is unfiltered;  titles fall back to the sheet name.
  * - One per state of its inputs:  the element remakes it when the data or `for` changes.
  ****************/
 export class ThemeMenu {
@@ -24,7 +23,7 @@ export class ThemeMenu {
   /** `for`:  a tag whose family's themes to list. */
   readonly forTag: string | undefined
 
-  /** Looks up the element's strings (English in the fallback). */
+  /** Looks up the component's strings. */
   readonly text: DocsThemesText
 
   constructor({ names, data, forTag, text }: ThemeMenuProps) {
@@ -63,9 +62,9 @@ export class ThemeMenu {
   }
 
   /**
-   * The dropdown's text for chosen theme `theme` (`undefined`:  our own look):  `GitHub theme`;  with `forTag`, while
-   * the chosen theme isn't one of the family's, how many are (`3 themes`, `1 theme`), as Fomantic's per-page dropdown
-   * says.
+   * The dropdown's text for chosen theme `theme` (`undefined`:  our own look):  `GitHub theme`;  with `forTag`,
+   * while the chosen theme isn't one of the family's, how many are (`3 themes`, `1 theme`),
+   * as Fomantic's per-page dropdown says.
    * - A family no Fomantic theme touches shows the chosen look, never `0 themes`.
    */
   labelFor(theme: string | undefined): string {
@@ -95,6 +94,6 @@ export type ThemeMenuProps = {
   data: SiteDataFile | undefined
   /** `for`:  a tag whose family's themes to list;  `""` ~== none */
   forTag?: string
-  /** the element's `text()`, or the fallback's English */
+  /** the component's texts (`translationForKey()`) */
   text: DocsThemesText
 }

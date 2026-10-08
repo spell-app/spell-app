@@ -28,7 +28,7 @@ import { LIST_ITEM, ROOT, SLOTTED } from "./static.types.ssr"
  *     markup), its insides aren't
  *   - NOTE: a slotted COMPONENT's root carries `data-ui-slotted` too, so the first clause skips `[data-ui]`:
  *     otherwise its own scope would end at its own children
- * - A sheet shared by several families (`ui-parts.css`) is emitted once, scoped to all their kinds.
+ * - A sheet shared by several families (`UIParts.css`) is emitted once, scoped to all their kinds.
  * - Node only (`$/ui/static`, postcss):  reads the families' sheet TEXT (`styles`), never renders;  NEVER imported
  *   by a component or `$/ui`.
  ****************/
@@ -72,7 +72,7 @@ export class StaticStylesheet {
       const listItems = [...kinds].some((kind) => LIST_OWNERS.has(kind))
       parts.push(`/* ${name} */\n${StaticStylesheet.scope(css, `:is(${roots})`, { listItems, tags })}`)
     }
-    // page sheets components registered while rendering (`ui-dimmer.page.css`):  page CSS, unscoped
+    // page sheets components registered while rendering (`UIDimmer.page.css`):  page CSS, unscoped
     for (const [name, css] of SSR.ServerRuntime.pageSheets) {
       if (!sheets.has(name)) parts.push(`/* ${name} (page) */\n${SSR.StaticPageStyles.rewrite(css, tags)}`)
     }
@@ -134,8 +134,9 @@ export class StaticStylesheet {
 
   /**
    * `css` rewritten for light DOM, its rules wrapped in `@scope (<root>) to (<limit>)`.
-   * - Host-only rules move to `@layer ui.reset`, the first `ui` layer:  what the host set (token resets, `color`),
-   *   the root's own rules overrode, being another element;  on the SAME element now, any later layer must still win.
+   * - Host-only rules move to `@layer ui.reset`, the first `ui` layer:  what the DOM element set (token resets,
+   *   `color`), the root's own rules overrode, being another element;  on the SAME element now,
+   *   any later layer must still win.
    * - `::slotted()` rules move to `@layer ui-slotted`, before `page`:  in a shadow root they lost to the page's CSS
    *   and to the slotted component's own rules.
    */
@@ -167,7 +168,7 @@ export class StaticStylesheet {
 
   /**
    * Rewrite one rule's selectors.
-   * - Host-only selectors (`:host(X)` alone) go to a copy of the rule without `display` (that was the host
+   * - Host-only selectors (`:host(X)` alone) go to a copy of the rule without `display` (that was the DOM element
    *   box's, never the root's, and the class-grammar twins beside them keep theirs), for `ui.reset`.
    * - `::slotted()` selectors go to a copy for `ui-slotted`.
    * - Both collected in `moved`, by layer.
@@ -193,7 +194,9 @@ export class StaticStylesheet {
     else rule.remove()
   }
 
-  /** A copy of `rule` for `selectors` (if any) into `into`;  `boxless`:  without `display` (a host's, a slot's). */
+  /**
+   * A copy of `rule` for `selectors` (if any) into `into`;  `boxless`:  without `display` (a DOM element's, a slot's).
+   */
   private static move({ rule, selectors, into, boxless = false }: MoveParams) {
     if (!selectors.length) return
     const copy = rule.clone({ selectors: [...new Set(selectors)] })
@@ -251,7 +254,7 @@ type MoveParams = {
   selectors: readonly string[]
   /** The layer's list it joins. */
   into: MovedRule[]
-  /** Drop `display`:  the selectors match a box that had none of its own (a host's, a slot's). */
+  /** Drop `display`:  the selectors match a box that had none of its own (a DOM element's, a slot's). */
   boxless?: boolean
 }
 
@@ -275,8 +278,8 @@ const PAGE_LAYERS = `@layer ${SLOTTED_LAYER}, page, ui;`
 const LIMIT = `${SLOTTED}:not(${ROOT}) > *, :scope ${ROOT} > *`
 
 /**
- * Groups whose items the flattener wraps in `<li data-ui-li>` (the items' host role is `listitem`):  their sheets
- * reach items through the wrapper.
+ * Groups whose items the flattener wraps in `<li data-ui-li>` (the items' DOM element role is `listitem`):
+ * their sheets reach items through the wrapper.
  */
 const LIST_OWNERS = new Set(["cards", "list", "feed", "steps", "items"])
 

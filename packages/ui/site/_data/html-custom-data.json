@@ -3120,7 +3120,7 @@
           "name": "hidden",
           "description": {
             "kind": "markdown",
-            "value": "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so it doesn't shadow `HTMLElement.hidden` -- `ui-divider.css` overrides the UA `[hidden] { display: none }` so the host keeps contributing its margin.\n\nTakes:  flag (present / absent)"
+            "value": "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so it doesn't shadow `HTMLElement.hidden` -- `UIDivider.css` overrides the UA `[hidden] { display: none }` so the host keeps contributing its margin.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -3332,7 +3332,7 @@
           "name": "button",
           "description": {
             "kind": "markdown",
-            "value": "Looks like a button (`ui-button.css`).\n\nTakes:  flag (present / absent)"
+            "value": "Looks like a button (`UIButton.css`).\n\nTakes:  flag (present / absent)"
           }
         },
         {

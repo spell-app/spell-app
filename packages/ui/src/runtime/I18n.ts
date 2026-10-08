@@ -15,12 +15,12 @@ import type { Browser } from "./Browser"
  * - Strings:  packs per locale (`register("de", {...})`);  `t(key)` looks up the exact locale (`pt-BR`),
  *   then its language (`pt`), then `en`, then the English DEFAULTS, then returns the key itself -- a missing
  *   string is visible, not blank.
- * - SCOPED strings:  `t(key, params, scope)` with a component's canonical tag (`ui-table`), as `UIElement.text()`
+ * - SCOPED strings:  `t(key, params, scope)` with a component's canonical tag (`ui-table`), as `UIComponent.text()`
  *   calls it.  Per locale it tries that component's strings (`register("es", {...}, "ui-table")`), then the
  *   shared ones (`register("es", {...})`):  a shared translation covers every component using the key, a scoped
  *   one overrides it for one component.  Why:  two families may share a key (`label`) with different text.
  * - DEFAULTS are the English source texts, below every registered string:  `EN_STRINGS` and each component's
- *   vocabulary texts (`registerDefaults()`, by `UIElement.define()`).  A component's own default beats another
+ *   vocabulary texts (`registerDefaults()`, by `UIComponent.define()`).  A component's own default beats another
  *   family's;  an unscoped `t(key)` gets the FIRST default registered for the key.
  * - Formatting via `Intl`, with formatters cached per locale + options (they're costly to build).
  * - Temporal:  `temporal` is the browser's own when `UI.browser.supports.temporal`, else `temporal-polyfill`'s

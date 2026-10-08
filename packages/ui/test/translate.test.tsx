@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import type { UIHost } from "$/ui/elements"
+import type { DOMElement } from "$/ui/elements"
 import { UIButton } from "$/ui/components/ui-button"
 import { UIDropdown } from "$/ui/components/ui-dropdown"
 import { es } from "$/ui/test/dictionary.es"
@@ -9,9 +9,9 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 UIButton.define("ie-boton", es)
 UIDropdown.define("ie-desplegable", es)
 
-describe("UIElement.define(tag, dictionary)", () => {
+describe("UIComponent.define(tag, dictionary)", () => {
   it("maps Spanish attribute names and values onto the canonical grammar", async () => {
-    const host = await ElementFixture.render<UIHost>(
+    const host = await ElementFixture.render<DOMElement>(
       `<ie-boton primario color="rojo" tamano="pequeno">Guardar</ie-boton>`
     )
     expect(host.shadowRoot!.querySelector("button")!.className).toBe("ui small red primary button")
@@ -19,7 +19,7 @@ describe("UIElement.define(tag, dictionary)", () => {
   })
 
   it("reflects canonical values back in Spanish", async () => {
-    const host = await ElementFixture.render<UIHost & { color: string }>(`<ie-boton>Guardar</ie-boton>`)
+    const host = await ElementFixture.render<DOMElement & { color: string }>(`<ie-boton>Guardar</ie-boton>`)
     host.color = "azul"
     await ElementFixture.tick()
     expect(host.shadowRoot!.querySelector("button")!.className).toBe("ui blue button")
@@ -27,13 +27,13 @@ describe("UIElement.define(tag, dictionary)", () => {
   })
 
   it("dispatches translated events", async () => {
-    const button = await ElementFixture.render<UIHost>(`<ie-boton alternable>Votar</ie-boton>`)
+    const button = await ElementFixture.render<DOMElement>(`<ie-boton alternable>Votar</ie-boton>`)
     const toggles: unknown[] = []
     button.addEventListener("ie-alternar", (event) => toggles.push((event as CustomEvent).detail.active))
     button.shadowRoot!.querySelector("button")!.click()
     expect(toggles).toEqual([true])
 
-    const dropdown = await ElementFixture.render<UIHost>(`<ie-desplegable seleccion marcador="Género">
+    const dropdown = await ElementFixture.render<DOMElement>(`<ie-desplegable seleccion marcador="Género">
       <ui-item value="f">Femenino</ui-item><ui-item value="m">Masculino</ui-item>
     </ie-desplegable>`)
     const changes: unknown[] = []

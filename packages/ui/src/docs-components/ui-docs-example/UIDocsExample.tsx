@@ -2,42 +2,43 @@ import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { CODE_SPAN, HeadingLevels } from "$/ui/docs-components/docs-components.types"
+import { CODE_SPAN, HeadingLevels, type HeadingBounds } from "$/ui/docs-components/docs-components.types"
 import { ExampleSource } from "./ExampleSource"
-import { DocsExampleFallback } from "./ui-docs-example.fallback"
-import { CODE_PANE_ID, LEVELS, type DocsExampleVocabulary } from "./ui-docs-example.types"
-import { docsExampleVocabulary } from "./ui-docs-example.vocabulary.en"
+import { docsExampleVocabulary } from "./UIDocsExample.vocabulary.en"
 
-import exampleCSS from "./ui-docs-example.css?inline"
+import exampleCSS from "./UIDocsExample.css?inline"
 
 /****************
- * ### `<ui-docs-example>`
- * Fomantic's docs example:  `<section class="ui [bare] [variation] example" part="example">` holding the header row
- * (`<ui-header>` + the code `<ui-button>`), the description, `<ui-segment part="demo">` around the default slot (the
- * live example:  the host's own children) and, while `code` is on, `<ui-segment part="code">` with the markup in a
- * `<ui-code>`.
- * - The markup shown is read ONCE, on first connect (`ExampleSource.of()`):  a `<template>` child, else the page
- *   snapshot the site entry took before any family loaded, else the live children minus runtime attributes.  See
- *   `ExampleSource` for why and its limits.
- * - A `<template>` child is also stamped out live, once, right after it (on a microtask:  never inside this render,
- *   so the stamped elements upgrade under their own owners).
+ * ### `UIDocsExample`
+ * The component behind `<ui-docs-example>`:  Fomantic's docs example block.
+ * A header and description, its own children LIVE, and their source in a code pane the code button shows and hides.
+ *
+ * - Its shadow DOM:  `<section class="ui [bare] [variation] example" part="example">` holding
+ *   - the header row (`<ui-header>` + the code `<ui-button>`), then the description
+ *   - `<ui-segment part="demo">` around the default slot (the live example:  the element's own children)
+ *   - while `code` is on, `<ui-segment part="code">`, with the markup in a `<ui-code>`.
+ * - The markup shown is read ONCE, on first connect (`ExampleSource.of()`):  a `<template>` child,
+ *   else the page snapshot the site entry took before any family loaded,
+ *   else the live children minus runtime attributes.  See `ExampleSource` for why, and its limits.
+ * - A `<template>` child is also stamped out live, once,
+ *   right after it (on a microtask:  never inside this render, so the stamped elements upgrade under their own owners).
  * - `code` is the open state (auto-controlled, reflected):  the button flips it and fires `ui-toggle { open }`;
  *   `:state(open)` follows it.
- * - A doc-only element (`src/docs-components/`):  its shadow composes other families' widgets, which its barrel
- *   imports.
+ * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of other families' widgets,
+ *   which its barrel imports.
  ****************/
-export class UIDocsExample extends E.UIElement<DocsExampleVocabulary> {
+export class UIDocsExample extends E.UIComponent<typeof docsExampleVocabulary> {
   @E.proto static vocabulary = docsExampleVocabulary
   @E.proto static styleSheets = { "docs-example": exampleCSS }
-  @E.proto static elementSetup = { Fallback: DocsExampleFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** The markup to show, read once before anything here touches the light DOM. */
-  readonly sourceMarkup: string = isServer ? "" : ExampleSource.of(this.host)
+  readonly sourceMarkup: string = isServer ? "" : ExampleSource.of(this.domElement)
 
   /** Which slots have content:  the description shows only when there is one. */
-  readonly slots = new E.SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     // after `sourceMarkup` is read:  the fields initialize first
     if (!isServer) this.stamp()
@@ -83,7 +84,7 @@ export class UIDocsExample extends E.UIElement<DocsExampleVocabulary> {
    * - On a microtask:  this runs while the element renders, and the new elements must upgrade outside it.
    */
   private stamp() {
-    const template = ExampleSource.template(this.host)
+    const template = ExampleSource.template(this.domElement)
     if (template) queueMicrotask(() => template.after(template.content.cloneNode(true)))
   }
 
@@ -149,8 +150,8 @@ export class UIDocsExample extends E.UIElement<DocsExampleVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
-export interface UIDocsExample extends E.AttributeValues<DocsExampleVocabulary> {}
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
+export interface UIDocsExample extends E.AttributeValues<typeof docsExampleVocabulary> {}
 
 /** Class word of the header row:  the title and the code button. */
 const HEADING_CLASS = "heading"
@@ -160,3 +161,9 @@ const CODE_ICON = "code"
 
 /** `language` when unset (the vocabulary's default):  the source is markup. */
 const DEFAULT_LANGUAGE = "html"
+
+/** Id of the code pane inside the shadow root, for the button's `aria-controls`. */
+const CODE_PANE_ID = "code"
+
+/** `level`:  any heading level;  unset, `4`:  Fomantic's examples are `h4`. */
+const LEVELS: HeadingBounds = { min: 1, max: 6, fallback: 4 }

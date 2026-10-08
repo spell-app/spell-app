@@ -4,8 +4,8 @@ import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { calendarVocabulary } from "./ui-calendar.vocabulary.en"
-import { CalendarFallback } from "./ui-calendar.fallback"
+import { calendarVocabulary } from "./UICalendar.vocabulary.en"
+import { CalendarFallback } from "./UICalendar.fallback"
 import { CalendarDates } from "./CalendarDates"
 import { CalendarText } from "./CalendarText"
 import { CalendarView } from "./CalendarView"
@@ -16,44 +16,54 @@ import {
   type Moment,
   type ViewInput,
   type Vocabulary
-} from "./ui-calendar.types"
+} from "./UICalendar.types"
 
-import inputCSS from "$/ui/components/ui-input/ui-input.css?inline"
-import calendarCSS from "./ui-calendar.css?inline"
+import inputCSS from "$/ui/components/ui-input/UIInput.css?inline"
+import calendarCSS from "./UICalendar.css?inline"
 
 /****************
- * ### `<ui-calendar>`
- * A date / time picker:  a text field (`ui left icon input`) whose icon button opens a popover dialog with the
- * picker, or the picker `inline`.  The picker is a header (previous / title / next) over a `<table role=grid>` in
- * Fomantic's class grammar (`ui celled center aligned unstackable seven column table day`), then an optional
- * Today / Now button.
+ * ### `UICalendar`
+ * The component behind `<ui-calendar>`:  a date and / or time picker.
+ *
+ * - Its shadow DOM:  a text field (`ui left icon input`) whose icon button opens a popover dialog with the picker;
+ *   or, with `inline`, the picker itself.
+ *   The picker is a header (previous / title / next) over a `<table role=grid>` in Fomantic's class grammar
+ *   (`ui celled center aligned unstackable seven column table day`), then an optional Today / Now button.
+ *
  * - Views (Fomantic's modes):  years => months => days => hours => minutes, as far as `type` goes
- *   (`CalendarDates.modes()`).  Choosing a cell in a coarser view opens the next finer one;  the finest sets the
- *   value.  The title button goes back up.  Pages, cells and bounds are `CalendarView`'s.
- * - Dates are `Temporal` (`UI.i18n.temporal`):  the browser's own, else `temporal-polyfill`, loaded lazily -- the
- *   picker renders once it's here.  Names, formats and the 12 / 24 hour clock are the locale's `Intl`
- *   (`CalendarText`).
- * - Keyboard (WAI-ARIA APG date picker dialog):  real focus on ONE gridcell (`tabindex=0`, the focus moment);
- *   arrows, Home / End, PageUp / PageDown (+ Shift) move it (`CalendarView.move()`), across pages;  Enter / Space
- *   choose.  ArrowDown in the field (or the icon button) opens the popup with focus in the grid;  Escape (from
- *   `UI.overlays`) closes it and focus returns to where it was.  NOT `UI.focus.roving`:  the tab stop is a DATE
- *   that pages the grid, not an item of a fixed list.
- * - Typing:  the field's text is read on `change` / Enter (`CalendarText.read()`);  unreadable or out-of-range
- *   text reverts to the value's.
- * - `value` and `open` are auto-controlled (`@controlled`):  `ui-change` / `ui-open` / `ui-close` come first and
- *   are cancelable.  The `value` ATTRIBUTE is the starting (and form-reset) value.
- * - Ranges (Fomantic's `startCalendar` / `endCalendar`):  `start-calendar="id"` makes this the END -- the partner's
- *   value is its minimum -- and `end-calendar="id"` the START;  the span between them is highlighted.  The partner
- *   is read through its controller, so its changes are live.
- * - Form-associated:  submits the ISO value;  `required`;  reset;  fieldset-disabled;  restores a saved state.
+ *   (`CalendarDates.modes()`).
+ *   Choosing a cell in a coarser view opens the next finer one;  the finest sets the value.
+ *   The title button goes back up.  Pages, cells and bounds are `CalendarView`'s.
+ *
+ * - Dates are `Temporal` (`UI.i18n.temporal`):  the browser's own, else `temporal-polyfill`, loaded lazily;
+ *   the picker renders once it's here.
+ *   Names, formats and the 12 / 24 hour clock are the locale's `Intl` (`CalendarText`).
+ *
+ * - Keyboard (the WAI-ARIA APG's date picker dialog):
+ *   - real focus on ONE gridcell (`tabindex=0`, the focus moment)
+ *   - arrows, Home / End, PageUp / PageDown (+ Shift) move it (`CalendarView.move()`), across pages;
+ *     Enter / Space choose
+ *   - ArrowDown in the field (or on the icon button) opens the popup, with focus in the grid;
+ *     Escape (from `UI.overlays`) closes it, and focus returns to where it was
+ *   - NOT `UI.focus.roving`:  the tab stop is a DATE that pages the grid, not an item of a fixed list.
+ *
+ * - Typing:  the field's text is read on `change` / Enter (`CalendarText.read()`);
+ *   unreadable or out-of-range text goes back to the value's.
+ * - `value` and `open` are controlled (`@controlled`):  `ui-change` / `ui-open` / `ui-close` go first,
+ *   and are cancelable.  The `value` ATTRIBUTE is the starting (and form-reset) value.
+ * - Ranges (Fomantic's `startCalendar` / `endCalendar`):
+ *   `start-calendar="id"` makes this the END (the partner's value is its minimum),
+ *   and `end-calendar="id"` the START;  the span between them is highlighted.
+ *   The partner is read through its component, so its changes are live.
+ * - A form control:  it submits the ISO value;  `required`, reset, a disabled fieldset;  restores a saved state.
  ****************/
-export class UICalendar extends F.FormElement<Vocabulary> {
+export class UICalendar extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = calendarVocabulary
   @E.proto static styleSheets = { input: inputCSS, calendar: calendarCSS }
-  @E.proto static elementSetup = { Fallback: CalendarFallback }
+  @E.proto static elementSetup = { Fallback: CalendarFallback } satisfies Partial<E.ElementSetup>
 
-  /** Host `<label>`s and `aria-label`, as the field's name. */
-  readonly labels = new F.ControlLabels(this.formHost)
+  /** The DOM element's `<label>`s and `aria-label`, as the field's name. */
+  readonly labels = new F.ControlLabels(this.domFormElement)
 
   /** The popup button's glyph:  `icon`, else `calendar` (`clock` for `time`). */
   readonly iconGlyph = new E.IconGlyph({
@@ -79,7 +89,7 @@ export class UICalendar extends F.FormElement<Vocabulary> {
   /** The `<table role=grid>`, once the picker shows. */
   private grid?: HTMLTableElement
 
-  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
+  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
     // SSR renders the field only:  no runtime, no Temporal
     if (!isServer && !untrack(() => this.temporal)) {
@@ -92,7 +102,7 @@ export class UICalendar extends F.FormElement<Vocabulary> {
     onFormStateRestore((state) => {
       this.value = typeof state === "string" ? state : ""
     })
-    this.host.addEventListener("focusout", this.onFocusOut)
+    this.domElement.addEventListener("focusout", this.onFocusOut)
   }
 
   ////////////////
@@ -127,7 +137,7 @@ export class UICalendar extends F.FormElement<Vocabulary> {
   // ## The value
   ////////////////
 
-  /** `value`, the ISO string:  host-controlled, or internal (`""`). */
+  /** `value`, the ISO string:  set by the page, or picked (`""` to start). */
   @E.controlled("value") accessor value = ""
 
   /** The chosen moment, or `undefined`. */
@@ -199,7 +209,7 @@ export class UICalendar extends F.FormElement<Vocabulary> {
   // ## The popup
   ////////////////
 
-  /** `open`, as asked:  host-controlled, or internal. */
+  /** `open`, as asked:  set by the page, or opened and closed by a person. */
   @E.controlled("open") accessor isOpen = false
 
   /** The popup is open now (never `inline`). */
@@ -210,7 +220,7 @@ export class UICalendar extends F.FormElement<Vocabulary> {
 
   /** This element's `UI.overlays` entry. */
   private readonly overlay: E.OverlayEntry = {
-    element: this.host,
+    element: this.domElement,
     kind: "popover",
     onDismiss: () => void this.requestOpen(false)
   }
@@ -269,10 +279,10 @@ export class UICalendar extends F.FormElement<Vocabulary> {
     this.requestOpen(!popupIsOpen, event)
   }
 
-  /** Focus leaving the host (to something else that takes focus) closes the popup. */
+  /** Focus leaving the DOM element (to something else that takes focus) closes the popup. */
   private readonly onFocusOut = (event: FocusEvent) => {
     const next = event.relatedTarget as Node | null
-    if (!next || this.host.contains(next) || this.host.renderRoot.contains(next)) return
+    if (!next || this.domElement.contains(next) || this.domElement.renderRoot.contains(next)) return
     this.requestOpen(false, event)
   }
 
@@ -455,18 +465,18 @@ export class UICalendar extends F.FormElement<Vocabulary> {
     void this.resolvePartner(end, "endPartner")
   }
 
-  /** Find the calendar `id` names in this one's tree, wait for it to render, keep its controller in `which`. */
+  /** Find the calendar `id` names in this one's tree, wait for it to render, keep its component in `which`. */
   private async resolvePartner(id: string | undefined, which: "startPartner" | "endPartner") {
     const found = id
-      ? ((this.host.getRootNode() as Document | ShadowRoot).getElementById?.(id) ?? undefined)
+      ? ((this.domElement.getRootNode() as Document | ShadowRoot).getElementById?.(id) ?? undefined)
       : undefined
     if (!found || !("ready" in found)) {
       this[which] = undefined
       return
     }
-    await (found as E.UIHost).ready
-    const controller = (found as E.UIHost).controller
-    this[which] = controller instanceof UICalendar ? controller : undefined
+    await (found as E.DOMElement).ready
+    const component = (found as E.DOMElement).component
+    this[which] = component instanceof UICalendar ? component : undefined
   }
 
   ////////////////
@@ -562,7 +572,7 @@ export class UICalendar extends F.FormElement<Vocabulary> {
   }
 
   /**
-   * Server render only:  the ISO value as a hidden input, so a static form submits it as the HOST would
+   * Server render only:  the ISO value as a hidden input, so a static form submits it as the DOM element would
    * (`ElementInternals`) -- the field shows it formatted.
    */
   private staticValue(): JSX.Element {
@@ -791,10 +801,10 @@ export class UICalendar extends F.FormElement<Vocabulary> {
   ////////////////
 
   /**
-   * Load `Temporal` before a static server render, so its pickers render in full (header, grid, cells):  the render
-   * is synchronous, and node has no `Temporal`, so `UI.i18n` loads `temporal-polyfill` (`loadTemporal()`).
-   * - Called by `StaticRender.prepare(html)` (`$/ui/static`) for a page with this tag;  NEVER in a browser, where
-   *   the constructor loads it after first paint, as before.
+   * Load `Temporal` before a static server render, so its pickers render in full (header, grid, cells):
+   * the render is synchronous, and node has no `Temporal`, so `UI.i18n` loads `temporal-polyfill` (`loadTemporal()`).
+   * - Called by `StaticRender.prepare(html)` (`$/ui/static`) for a page with this tag;  NEVER in a browser,
+   *   where the constructor loads it after first paint, as before.
    * - STATIC:  it runs before any calendar exists (`SSR.StaticPreload`).
    * - NOTE: "today" (highlight, starting page) is then the RENDER's day.
    */
@@ -854,16 +864,18 @@ export class UICalendar extends F.FormElement<Vocabulary> {
     return Array.isArray(value) ? value : []
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UICalendar extends E.AttributeValues<Vocabulary> {}
 
 ////////////////
 // ## Markup
-// Class words of the markup contract (`ui-calendar.css`) -- grammar, not attributes, so not in the vocabulary.
+// Class words of the markup contract (`UICalendar.css`) -- grammar, not attributes, so not in the vocabulary.
 // Fomantic's cell classes:  `active` === chosen, `focus` === the keyboard's cell, `adjacent` === another month's
 // day, `range` === inside a range.
 ////////////////
 
-/** The field's box (`ui-input.css`'s grammar). */
+/** The field's box (`UIInput.css`'s grammar). */
 const INPUT_CLASS = "ui left icon input"
 
 /** The popover, before its `position` words. */
@@ -927,7 +939,7 @@ const ID_PREFIX = "ui-calendar"
 /** Hidden input carrying an inline calendar's value in a static server render:  `type`. */
 const HIDDEN = "hidden"
 
-/** Inline custom property naming the field's anchor (`ui-calendar.css`). */
+/** Inline custom property naming the field's anchor (`UICalendar.css`). */
 const ANCHOR_PROPERTY = "--_ui-calendar-anchor"
 
 /** Glyph of the popup button of a date calendar. */

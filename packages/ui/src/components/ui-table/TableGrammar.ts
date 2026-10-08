@@ -1,15 +1,15 @@
 import { E, type UIT } from "$/ui/core"
-import { tableVocabulary } from "./ui-table.vocabulary.en"
+import { tableVocabulary } from "./UITable.vocabulary.en"
 
 /****************
  * ### `TableGrammar`
  * Class strings a table needs besides its own root's:  the shadow `.scroller`'s, and a data-mode cell's.
  * - Scroller:  `ClassBuilder` over the table vocabulary's scroller-shaped attributes (`resizable`,
  *   `attached`, `scrolling`, `overflowing`) with the noun `scroller` and no `ui`, e.g.
- *   `resizable top attached short scrolling scroller`.  Same grammar as the table, so `ui-table.css` keys the
+ *   `resizable top attached short scrolling scroller`.  Same grammar as the table, so `UITable.css` keys the
  *   scroller on the same phrases (`[class*="very short"]`).
  * - Cell:  a `TableColumn`'s `textAlign` / `width` as Fomantic's cell classes (`right aligned four wide`).
- * - Shared by the element and its native fallback;  plain functions of their input, no DOM.
+ * - Plain functions of their input, no DOM.
  * - STATIC and instance-free on purpose:  nothing to hold but the one cached builder.
  ****************/
 export class TableGrammar {

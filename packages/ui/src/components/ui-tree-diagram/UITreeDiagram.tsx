@@ -2,59 +2,54 @@ import { For, Show, onSettled, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { treeDiagramVocabulary } from "./ui-tree-diagram.vocabulary.en"
+import { treeDiagramVocabulary } from "./UITreeDiagram.vocabulary.en"
 import { TreeData } from "./TreeData"
 import { TreeLayout } from "./TreeLayout"
-import { TreeDiagramFallback } from "./ui-tree-diagram.fallback"
 import {
-  BOX_CLASS,
-  DETAIL_CLASS,
-  EDGE_CLASS,
-  EMPTY,
-  LABEL_CLASS,
-  NATURAL_WIDTH,
-  NODE_CLASS,
-  ROOT_CLASS,
-  SLOT_CLASS,
   TREE_DIAGRAM_METRICS,
   type TreeDiagramBox,
   type TreeDiagramEdge,
   type TreeDiagramLayout,
   type TreeDiagramNode
-} from "./ui-tree-diagram.types"
+} from "./UITreeDiagram.types"
 
-import treeDiagramCSS from "./ui-tree-diagram.css?inline"
+import treeDiagramCSS from "./UITreeDiagram.css?inline"
 
 /****************
- * ### `<ui-tree-diagram>`
- * A tree drawn top-down as an SVG:  a box per node, a line from each parent to each child, a slot label on the line.
- * - GENERIC:  draws any tree from plain data (`TreeDiagramNode`);  first drawn for spell's parse trees, but `ui` never
- *   imports spell or the parser.
- * - The tree:  the `tree` property (`prop:tree` in Solid), else the JSON of a `<script type="application/json">`
- *   child (static pages, `file://` too), which it follows as it changes.  The property wins.  Invalid JSON draws
- *   nothing and warns once.  Redraws when `tree` is set again:  set a NEW tree (one changed in place isn't seen).
- * - Layout:  `TreeLayout` (pure);  drawn at its natural size in em (`--_ui-tree-diagram-natural-width`), shrinking to
- *   fit its container down to `--ui-tree-diagram-min-scale`, scrolling sideways below that (the sheet).
- * - Nothing to draw:  the `<svg>` is `ui tree diagram empty`, hidden;  the host has no height.
- * - Accessibility:  the `<svg>` is `role="img"`, named by a summary ("Tree:  If, with 3 children");  each node's
- *   `title` is its box's `<title>` (hover text).
+ * ### `UITreeDiagram`
+ * The component behind `<ui-tree-diagram>`:  a tree drawn top-down as an SVG,
+ * with a box per node, a line from each parent to each child, and a slot label on the line.
+ *
+ * - GENERIC:  it draws any tree from plain data (`TreeDiagramNode`).
+ *   It was first drawn for spell's parse trees, but `ui` never imports spell or the parser.
+ * - The tree:  the `tree` property (`prop:tree` in Solid),
+ *   else the JSON of a `<script type="application/json">` child (static pages, `file://` too),
+ *   which it follows as it changes.
+ *   - The property wins.
+ *   - Invalid JSON draws nothing, and warns once.
+ *   - It redraws when `tree` is set again:  set a NEW tree (one changed in place isn't seen).
+ * - Layout:  `TreeLayout` (pure).  Drawn at its natural size in em (`--_ui-tree-diagram-natural-width`),
+ *   shrinking to fit its container down to `--ui-tree-diagram-min-scale`, and scrolling sideways below that.
+ * - Nothing to draw:  the `<svg>` is `ui tree diagram empty`, hidden;  the DOM element has no height.
+ * - Accessibility:  the `<svg>` is `role="img"`, named by a summary ("Tree:  If, with 3 children");
+ *   each node's `title` is its box's `<title>` (hover text).
  ****************/
-export class UITreeDiagram extends E.UIElement<typeof treeDiagramVocabulary> {
+export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
   @E.proto static vocabulary = treeDiagramVocabulary
   @E.proto static styleSheets = { "tree-diagram": treeDiagramCSS }
-  @E.proto static elementSetup = { Fallback: TreeDiagramFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** JSON text of the `<script type="application/json">` child;  `undefined` without one.  Followed in `onMount()`. */
   @E.state accessor scriptText: string | undefined = isServer
     ? undefined
-    : untrack(() => TreeData.scriptText(this.host))
+    : untrack(() => TreeData.scriptText(this.domElement))
 
   /** Follow the script child as the page changes it. */
   onMount(): JSX.Element {
     if (!isServer) {
       onSettled(() => {
-        const observer = new MutationObserver(() => (this.scriptText = TreeData.scriptText(this.host)))
-        observer.observe(this.host, { childList: true, characterData: true, subtree: true })
+        const observer = new MutationObserver(() => (this.scriptText = TreeData.scriptText(this.domElement)))
+        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
         return () => observer.disconnect()
       })
     }
@@ -94,8 +89,8 @@ export class UITreeDiagram extends E.UIElement<typeof treeDiagramVocabulary> {
 
   /**
    * `empty` with nothing to draw.
-   * - Reads `tree` itself, not just `drawnTree`:  so the classes follow EVERY write to it, as
-   *   `ElementFixture.breakRender()` needs (the only attribute is a non-class one).
+   * - Reads `tree` itself, not just `drawnTree`:  so the classes follow EVERY write to it,
+   *   as `ElementFixture.breakRender()` needs (the only attribute is a non-class one).
    */
   protected override get extraClasses(): string | undefined {
     return TreeData.node(this.tree) || this.scriptTree ? undefined : EMPTY
@@ -203,7 +198,8 @@ export class UITreeDiagram extends E.UIElement<typeof treeDiagramVocabulary> {
     try {
       return TreeData.parse(text)
     } catch (error) {
-      if (text !== this.warnedText) console.warn(`<${this.host.localName}>:  invalid JSON in its script child`, error)
+      if (text !== this.warnedText)
+        console.warn(`<${this.domElement.localName}>:  invalid JSON in its script child`, error)
       this.warnedText = text
       return undefined
     }
@@ -216,5 +212,20 @@ export class UITreeDiagram extends E.UIElement<typeof treeDiagramVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UITreeDiagram extends E.AttributeValues<typeof treeDiagramVocabulary> {}
+
+/** Class word after the noun when there's nothing to draw (`ui tree diagram empty`):  the `<svg>` hides. */
+const EMPTY = "empty"
+
+/** Class of each node's `<g>`, its box, its texts;  each edge;  each slot label. */
+const NODE_CLASS = "node"
+const ROOT_CLASS = "root"
+const BOX_CLASS = "box"
+const LABEL_CLASS = "label"
+const DETAIL_CLASS = "detail"
+const EDGE_CLASS = "edge"
+const SLOT_CLASS = "slot"
+
+/** Private custom property the sheet sizes the `<svg>` with:  the layout's natural width, in label `em`s. */
+const NATURAL_WIDTH = "--_ui-tree-diagram-natural-width"

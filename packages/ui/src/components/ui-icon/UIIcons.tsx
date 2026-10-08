@@ -1,27 +1,28 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { iconsVocabulary } from "./ui-icons.vocabulary.en"
-import { IconLabels } from "./ui-icon.types"
+import { iconsVocabulary } from "./UIIcons.vocabulary.en"
+import { IconLabels } from "./UIIcon.types"
 
-import iconCSS from "./ui-icon.css?inline"
+import iconCSS from "./UIIcon.css?inline"
 
 /****************
- * ### `<ui-icons>`
- * Several icons stacked into one glyph:  `<span class="ui … icons" part="icons"><slot></slot></span>`.
- * - Owns `icon` (`ownsParts`):  each child `<ui-icon>` sets `:state(in-icons)` and positions its own root.
- * - Accessible name as for `<ui-icon>` (`IconLabels`):  `label` => one `role=img` for the combined glyph, else
- *   hidden.
- * - NOTE: no native fallback of its own (`elementSetup.Fallback`):  a render that throws shows nothing.
+ * ### `UIIcons`
+ * The component behind `<ui-icons>`:  several icons stacked into one glyph.
+ *
+ * - Its shadow DOM is one box, `<span class="ui … icons" part="icons">`, around a slot for the icons.
+ * - It owns `icon` (`ownsParts`):  each child `<ui-icon>` sets `:state(in-icons)` and positions its own box.
+ * - The accessible name, as for `<ui-icon>` (`IconLabels`):
+ *   `label` => one `role=img` for the combined glyph;  else hidden.
  ****************/
-export class UIIcons extends E.UIElement<typeof iconsVocabulary> {
+export class UIIcons extends E.UIComponent<typeof iconsVocabulary> {
   @E.proto static vocabulary = iconsVocabulary
   @E.proto static styleSheets = { icon: iconCSS }
 
-  /** SIDE EFFECT:  the host's accessible name follows `label`. */
-  @E.onChange("label", { writesHost: true })
+  /** SIDE EFFECT:  the element's accessible name follows `label`. */
+  @E.onChange("label", { writesDOMElement: true })
   protected onLabelChanged(label: string | undefined) {
-    IconLabels.applyTo(this.host.internals, label)
+    IconLabels.applyTo(this.domElement.internals, label)
   }
 
   render(): JSX.Element {
@@ -33,5 +34,5 @@ export class UIIcons extends E.UIElement<typeof iconsVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIIcons extends E.AttributeValues<typeof iconsVocabulary> {}

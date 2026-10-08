@@ -10,22 +10,22 @@ import {
   type SearchHit,
   SearchKinds,
   type SearchKind
-} from "./ui-docs-search.types"
+} from "./UIDocsSearch.types"
 
 /****************
  * ### `SearchIndex`
  * What `<ui-docs-search>` searches, and how it ranks:  every component tag, every attribute, every page and every
  * page's sections, built once from the site's data (`components.json` + `search.json`);  the page shown's sections
  * come live, per search (`PageOutline`).
- * - Matching is blind to case and accents.  The WHOLE query is tried against the title (exact, start, a word's
- *   start, inside), then against each term (a tag, another name, a topic ...);  failing those, every WORD of the
- *   query must start a word somewhere (title or terms), so `button circular` finds `circular` on `<ui-button>`.
- *   Inside-a-word matches need `INSIDE_MIN` characters:  `or` finds `Or`, never every `color`.
+ * - Matching is blind to case and accents.  The WHOLE query is tried against the title (exact, start,
+ *   a word's start, inside), then against each term (a tag, another name, a topic ...);  failing those,
+ *   every WORD of the query must start a word somewhere (title or terms), so `button circular` finds `circular` on
+ *   `<ui-button>`. Inside-a-word matches need `INSIDE_MIN` characters:  `or` finds `Or`, never every `color`.
  * - Ranking:  `SCORES` by how it matched, times `KIND_WEIGHT`, plus the entry's `boost`, minus a little per title
  *   character (the shorter title wins a tie).  Groups show their best `GROUP_LIMIT`;  the group with the best hit
  *   comes first (ties:  `SearchKinds` order).
- * - The page shown:  its own sections come from the DOM, so the search file's copy of that page is skipped;  its
- *   attributes get a small boost.
+ * - The page shown:  its own sections come from the DOM, so the search file's copy of that page is skipped;
+ *   its attributes get a small boost.
  * - Plain data, no Solid:  the element keeps the query in a signal and asks `search()`.
  ****************/
 export class SearchIndex {
@@ -87,8 +87,8 @@ export class SearchIndex {
   /**
    * The groups `query` finds, best first.
    * - `here`:  the page shown's sections (`PageOutline.read()`), searched like the rest
-   * - `current`:  the page shown's path from the site root (`components/ui-divider.html`):  its search-file sections
-   *   are skipped (`here` has them, live), its attributes boosted
+   * - `current`:  the page shown's path from the site root (`components/ui-divider.html`):
+   *   its search-file sections are skipped (`here` has them, live), its attributes boosted
    */
   search(query: string, here: readonly SearchEntry[] = [], current?: string): SearchGroup[] {
     const words = SearchIndex.words(query)
@@ -203,8 +203,8 @@ export class SearchIndex {
   }
 
   /**
-   * Ranges of `title` (folded:  same length as shown, `fold()` keeps every character's place) to highlight:  each
-   * needle at its first word start, else its first place inside a word.
+   * Ranges of `title` (folded:  same length as shown, `fold()` keeps every character's place) to highlight:
+   * each needle at its first word start, else its first place inside a word.
    */
   static marks(title: string, needles: readonly string[]): [number, number][] {
     const ranges: [number, number][] = []

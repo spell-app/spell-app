@@ -1,16 +1,17 @@
 import { E } from "$/ui/core"
-import { PartElement } from "./PartElement"
-import { extraVocabulary } from "./ui-extra.vocabulary.en"
+import { extraVocabulary } from "./UIExtra.vocabulary.en"
 
 /****************
- * ### `<ui-extra>`
- * Extra content:  `<div class="[text] extra">`.
- * - Set apart from the main content, e.g. a card's footer;  `text` in a feed.
- * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
+ * ### `UIExtra`
+ * The component behind `<ui-extra>`:  extra content, `<div class="[text] extra">`,
+ * set apart from the main content, such as a card's footer.
+ *
+ * - `text`:  a feed event's extra text.
+ * - Finding its owner, the markup and the sheet all come from `PartComponent`.
  ****************/
-export class UIExtra extends PartElement<typeof extraVocabulary> {
+export class UIExtra extends E.PartComponent<typeof extraVocabulary> {
   @E.proto static vocabulary = extraVocabulary
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIExtra extends E.AttributeValues<typeof extraVocabulary> {}

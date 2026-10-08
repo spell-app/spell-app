@@ -1,13 +1,14 @@
 /**
- * Barrel for the generic item -- also the `item` lib entry (`@spell-app/ui/ui-item`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-item>`.  Every family with items (`dropdown`, `list`, `menu`) imports this barrel
- *   first, so a page never has to.
- * - Exports the vocabulary too:  the dropdown reads items as data and recognizes them by it (`SlottedItems`).
+ * The generic item family:  defines `<ui-item>` and exports its component, `UIItem`, and its vocabulary.
+ * - SIDE EFFECT:  importing it defines the tag.
+ *   Every family with items (dropdown, list, menu) imports this barrel first, so a page never has to.
+ * - The vocabulary is exported too:  the dropdown reads its items as data, and recognizes them by it (`SlottedItems`).
+ * - Also the library's `@spell-app/ui/ui-item` entry (its size is in `docs/report.md`).
  */
 
 import { UIItem } from "./UIItem"
 
 UIItem.define()
 
-export { itemVocabulary } from "./ui-item.vocabulary.en"
+export { itemVocabulary } from "./UIItem.vocabulary.en"
 export { UIItem }

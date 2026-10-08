@@ -1,27 +1,27 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, UIT } from "$/ui/core"
+import { Cell, proto, UIComponent, UIT, type ElementSetup } from "$/ui/core"
 
-import { brandLogoVocabulary } from "./ui-brand-logo.vocabulary.en"
-import { BrandLogoFallback } from "./ui-brand-logo.fallback"
-import { LOCKUP_OF, type BrandLogoVocabulary } from "./ui-brand-logo.types"
+import { brandLogoVocabulary } from "./UIBrandLogo.vocabulary.en"
 
-import logoCSS from "./ui-brand-logo.css?inline"
+import logoCSS from "./UIBrandLogo.css?inline"
 
 /****************
- * ### `<ui-brand-logo>`
- * The Spell logo as an inline `<svg part="logo">`, outlined from P052 (no font needed), `fill: currentColor`, so
- * `tone` (or the page's `color`, with `tone="current"`) colours it.
+ * ### `UIBrandLogo`
+ * The component behind `<ui-brand-logo>`:  the Spell logo, the hat mark or a lockup (mark + wordmark).
+ *
+ * - Its shadow DOM is an inline `<svg part="logo">`, outlined from P052 (no font needed),
+ *   with `fill: currentColor`, so `tone` (or the page's `color`, with `tone="current"`) colours it.
  * - Height:  `--ui-brand-logo-height` (default `2em`);  the width follows the outline's proportions.
- * - The outlines are their own module (`logoPaths.ts`, ~58 KB), `import()`ed on first use:  the element draws
- *   nothing until it lands (a frame).
+ * - The outlines are their own module (`logoPaths.ts`, ~58 KB), `import()`ed on first use:
+ *   the component draws nothing until it lands (a frame).
  * - Named `Spell` / `Spell App` (`role="img"`);  `label=""` makes it decorative (`aria-hidden`).
  ****************/
-export class UIBrandLogo extends UIElement<BrandLogoVocabulary> {
+export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
   @proto static vocabulary = brandLogoVocabulary
   @proto static styleSheets = { logo: logoCSS }
-  @proto static elementSetup = { Fallback: BrandLogoFallback, delegatesFocus: false }
+  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
 
   /** The outlines, once loaded:  `undefined` until then. */
   readonly paths = new Cell<typeof import("./logoPaths") | undefined>(undefined)
@@ -68,4 +68,11 @@ export class UIBrandLogo extends UIElement<BrandLogoVocabulary> {
       </Show>
     )
   }
+}
+
+/** A `variant` -> its lockup in `logoPaths.ts` (`mark` draws `MARK` instead). */
+const LOCKUP_OF: Readonly<Record<string, string>> = {
+  lockup: "spell-lockup",
+  tagline: "spell-lockup-tagline",
+  app: "spell-app-lockup"
 }

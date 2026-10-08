@@ -10,7 +10,7 @@ import {
   DOCS_LOOK_KEYS,
   DOCS_SCHEME_SWITCHING
 } from "./docs-components.types"
-import { SPELL } from "./ui-docs-themes/ui-docs-themes.types"
+import { SPELL } from "./ui-docs-themes/UIDocsThemes.types"
 
 beforeEach(async () => {
   // the real OS's scheme never matters

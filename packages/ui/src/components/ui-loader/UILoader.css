@@ -1,0 +1,299 @@
+/*
+ * The style sheet of `<ui-loader>`:  a port of Fomantic's `loader.less` + `loader.variables`
+ * (and the loader entries of `site.variables`:  speeds, line width, fill and line colours).
+ * - It styles the component's shadow DOM, in Fomantic's class names on a semantic element:
+ *   `<div class="ui [size] [color] [speed] [keyOnly ...] loader" part="loader"><slot></slot></div>`
+ *   - the default slot is a `text` loader's text;  the spinner is the box's `::before` (track)
+ *     and `::after` (arc), both decorative
+ *   - `speed` writes its value alone (`slow` / `fast`), so its vocabulary kind is `color`
+ *     (as the dropdown's `state`);  `ClassBuilder` puts it right after the hue
+ *
+ * - Accessibility (the COMPONENT's job, noted here because the sheet can't do it):
+ *   the ELEMENT has `role="status"` and `aria-live="polite"`, through its `internals`;
+ *   `aria-busy` isn't needed (the loader IS the busy indicator).
+ *   With no slotted text, the element's accessible name is the `loading` text ("Loading…").
+ *
+ * - The DOM element is `display: contents` (`:host`):  the inner box IS the loader.
+ *   So a centred loader is absolutely positioned against the nearest positioned ancestor in the flat tree,
+ *   across shadow boundaries, exactly where Fomantic's `<div class="ui loader">` would sit.
+ *
+ * - Visibility:  Fomantic's rule, kept.  A loader shows only when `active` (or inside an active dimmer);
+ *   `disabled` hides it again.  `display` is a private token,
+ *   so `inline` / `centered` pick the shown display without fighting the `states` sublayer.
+ * - `:state(active)` and `:state(disabled)`, set by the component, are for the PAGE's styles only;
+ *   this sheet keys on the box's classes.
+ *
+ * - Colours:  the arc reads `--ui-color` (the hue remap), with `--ui-loader-line-color` as its fallback;
+ *   `inverted` switches to the dark scheme and the `-inverted` roles.  One generic rule set, no per-hue rules.
+ * - Sizes:  ONE ladder, the shared `--ui-scale` ratios.
+ *   The spinner is `--ui-loader-size` (2em) of the scaled font size, so it's 20 … 64px at a 16px base,
+ *   where Fomantic's exact px ladder was 14 … 64px;  the text scales with it.
+ * - Speeds are RATIOS of `--ui-loader-speed` (`--ui-loader-slow` / `--ui-loader-fast`),
+ *   so one switch (`--_loader-pace`) scales the plain spin, `indeterminate` and `elastic` alike.
+ *
+ * - The public tokens (`--ui-loader-*`) are NEVER declared here.
+ *   The token block gives each a private alias, `--_ui-loader-size: var(--ui-loader-size, 2em)`,
+ *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
+ *   `::part(loader)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *
+ * - The keyframes are this sheet's OWN (`ui-loader-spin`, `ui-loader-elastic`), not the transition catalogue.
+ * - Reduced motion:  in static markup the spin slows to a third (`--_loader-motion`) rather than stopping,
+ *   since the motion IS the message.
+ *   Inside shadow roots, `reset.css`'s blanket reduced-motion block wins (it's `!important` in the FIRST layer),
+ *   so a component's spinner shows a still arc there;  the `status` role and the text still carry the message.
+ *
+ * - Fomantic's `.ui.dimmer > .loader` rules are kept for STATIC markup
+ *   (a dimmer shows its loader and inverts it;  an `inverted` dimmer keeps it light).
+ *   A component can't see its parent, so `<ui-dimmer>` MUST make its loader `active` itself,
+ *   and hand it the scheme (`color-scheme` inherits).
+ *
+ * - Left out, on purpose:
+ *   - the `visible` / `hidden` class synonyms:  `active` and the element's `hidden` attribute cover them
+ *   - the `.loading` rules for OTHER components (buttons, inputs, icons, segments, cards, forms):
+ *     those sheets draw their own spinners
+ *   - Firefox's `-moz-animation` `currentcolor-elastic-loader` workaround:
+ *     `currentColor` in keyframes works everywhere now, so there's one elastic keyframe
+ *   - `indeterminate` keeps pace with `slow` / `fast` (2x the speed) instead of Fomantic's fixed 1.2s
+ */
+
+@layer ui.components.loader.types, ui.components.loader.content, ui.components.loader.variations, ui.components.loader.states;
+
+/* One turn:  the arc, and an empty elastic inline root. */
+@keyframes ui-loader-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/* Elastic:  the arc grows along the left, then the bottom, and shrinks back while turning. */
+@keyframes ui-loader-elastic {
+  0%,
+  1% {
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+  }
+  1.1%,
+  50% {
+    border-left-color: currentColor;
+  }
+  10%,
+  35.1% {
+    border-bottom-color: transparent;
+  }
+  10.1%,
+  35% {
+    border-bottom-color: currentColor;
+  }
+  50.1% {
+    border-left-color: transparent;
+  }
+  100% {
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+    rotate: 1turn;
+  }
+}
+
+/*******************************
+            Loader
+*******************************/
+
+@layer ui.components.loader.types {
+  /* The DOM element:  no box of its own;  the inner box is the loader. */
+  :host {
+    display: contents;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /*
+   * Tokens:  one per `loader.variables` / `site.variables` loader entry that still matters,
+   * each the private alias of its public token.
+   */
+  .ui.loader {
+    --_ui-loader-size: var(--ui-loader-size, 2em);
+    --_ui-loader-line-width: var(--ui-loader-line-width, 0.2em);
+    --_ui-loader-speed: var(--ui-loader-speed, 0.6s);
+    --_ui-loader-slow: var(--ui-loader-slow, 1.5);
+    --_ui-loader-fast: var(--ui-loader-fast, 0.5);
+    --_ui-loader-indeterminate-ratio: var(--ui-loader-indeterminate-ratio, 2);
+    --_ui-loader-elastic-speed: var(--ui-loader-elastic-speed, 1s);
+    --_ui-loader-elastic-easing: var(--ui-loader-elastic-easing, cubic-bezier(0.27, 1.05, 0.92, 0.61));
+    --_ui-loader-fill-color: var(--ui-loader-fill-color, oklch(from var(--ui-ink) l c h / 0.1));
+    --_ui-loader-line-color: var(--ui-loader-line-color, var(--ui-text-muted));
+    --_ui-loader-text-color: var(--ui-loader-text-color, var(--ui-text-color));
+    --_ui-loader-inverted-fill-color: var(
+      --ui-loader-inverted-fill-color,
+      oklch(from var(--ui-ink-on-dark) l c h / 0.15)
+    );
+    --_ui-loader-inverted-line-color: var(--ui-loader-inverted-line-color, var(--ui-ink-on-dark));
+    --_ui-loader-inverted-text-color: var(--ui-loader-inverted-text-color, var(--ui-text-inverted-color));
+    --_ui-loader-text-distance: var(--ui-loader-text-distance, var(--ui-space-s));
+    --_ui-loader-offset: var(--ui-loader-offset, 50%);
+    --_ui-loader-z-index: var(--ui-loader-z-index, var(--ui-z-dimmer));
+    --_ui-loader-inline-margin: var(--ui-loader-inline-margin, 0);
+    --_ui-loader-inline-vertical-align: var(--ui-loader-inline-vertical-align, middle);
+
+    /* Private switches:  colours (inverted, dimmer), shown display (inline), pace (speeds), reduced motion. */
+    --_loader-fill: var(--_ui-loader-fill-color);
+    --_loader-line: var(--ui-color, var(--_ui-loader-line-color));
+    --_loader-duration: calc(var(--_ui-loader-speed) * var(--_loader-pace, 1) * var(--_loader-motion, 1));
+    --_loader-elastic-duration: calc(
+      var(--_ui-loader-elastic-speed) * var(--_loader-pace, 1) * var(--_loader-motion, 1)
+    );
+
+    position: absolute;
+    top: var(--_ui-loader-offset);
+    left: var(--_ui-loader-offset);
+    z-index: var(--_ui-loader-z-index);
+    box-sizing: border-box;
+    display: none;
+    width: var(--_ui-loader-size);
+    height: var(--_ui-loader-size);
+    margin: 0;
+    translate: -50% -50%;
+    color: var(--_ui-loader-text-color);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    font-style: normal;
+    text-align: center;
+  }
+
+  /* Track (`::before`) and arc (`::after`):  two rings, the arc a quarter-circle pair that turns. */
+  .ui.loader::before,
+  .ui.loader::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    box-sizing: border-box;
+    width: var(--_ui-loader-size);
+    height: var(--_ui-loader-size);
+    margin: 0 0 0 calc(var(--_ui-loader-size) / -2);
+    border: var(--_ui-loader-line-width) solid var(--_loader-fill);
+    border-radius: var(--ui-radius-circle);
+  }
+  .ui.loader::after {
+    border-color: var(--_loader-line) transparent transparent;
+    box-shadow: 0 0 0 1px transparent;
+    animation: ui-loader-spin var(--_loader-duration) linear infinite;
+  }
+
+  /* Coupling (static markup):  a dimmer shows its loader, in the dark scheme unless the dimmer is inverted. */
+  .ui.dimmer > .ui.loader {
+    display: var(--_loader-display, block);
+  }
+}
+
+/*******************************
+             Types
+*******************************/
+
+@layer ui.components.loader.content {
+  /* Text:  the slotted text below the spinner. */
+  .ui.text.loader {
+    width: auto;
+    min-width: var(--_ui-loader-size);
+    height: auto;
+    padding-top: calc(var(--_ui-loader-size) + var(--_ui-loader-text-distance));
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.loader.variations {
+  /* Inline:  in the text flow, not centred over its container. */
+  .ui.inline.loader {
+    --_loader-display: inline-block;
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: var(--_ui-loader-inline-margin);
+    translate: none;
+    vertical-align: var(--_ui-loader-inline-vertical-align);
+  }
+  /* Centered inline:  a block of its own, centred. */
+  .ui.centered.inline.loader {
+    --_loader-display: block;
+    margin-inline: auto;
+  }
+
+  /* Speeds */
+  .ui.slow.loader {
+    --_loader-pace: var(--_ui-loader-slow);
+  }
+  .ui.fast.loader {
+    --_loader-pace: var(--_ui-loader-fast);
+  }
+
+  /* Indeterminate:  unsure how long -- turns backwards, at half speed. */
+  .ui.indeterminate.loader::after {
+    animation-duration: calc(var(--_loader-duration) * var(--_ui-loader-indeterminate-ratio));
+    animation-direction: reverse;
+  }
+
+  /* Double:  two opposite arcs. */
+  .ui.double.loader::after {
+    border-bottom-color: var(--_loader-line);
+  }
+
+  /* Elastic:  the track becomes a second arc that stretches and shrinks;  the first chases it. */
+  .ui.elastic.loader::before {
+    border-color: var(--_loader-line);
+    border-right-color: transparent;
+    color: var(--_loader-line);
+    animation: ui-loader-elastic var(--_loader-elastic-duration) var(--_ui-loader-elastic-easing) infinite;
+  }
+  .ui.elastic.loader::after {
+    animation: ui-loader-spin var(--_loader-elastic-duration) var(--_ui-loader-elastic-easing) infinite;
+    animation-delay: calc(var(--_loader-elastic-duration) * 0.3);
+  }
+  /* An elastic inline loader with no text turns as a whole, slowly. */
+  .ui.elastic.inline.loader:empty,
+  :host(:empty) > .ui.elastic.inline.loader {
+    animation: ui-loader-spin calc(var(--_ui-loader-elastic-speed) * 8 * var(--_loader-motion, 1)) linear infinite;
+  }
+
+  /* Inverted (and in a dimmer):  the dark scheme, a white arc (or the hue's inverted role) on a faint track. */
+  .ui.inverted.loader,
+  .ui.dimmer > .ui.loader {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    --_loader-fill: var(--_ui-loader-inverted-fill-color);
+    --_loader-line: var(--ui-color-inverted, var(--_ui-loader-inverted-line-color));
+    color-scheme: dark;
+    color: var(--_ui-loader-inverted-text-color);
+  }
+  /* An inverted (white) dimmer keeps its loader light. */
+  .ui.inverted.dimmer > .ui.loader:not(.inverted) {
+    --ui-inverted: 0;
+    --ui-scheme: light;
+    --_loader-fill: var(--_ui-loader-fill-color);
+    --_loader-line: var(--ui-color, var(--_ui-loader-line-color));
+    color-scheme: light;
+    color: var(--_ui-loader-text-color);
+  }
+
+  /* Reduced motion:  slower, not stopped -- see the header for shadow roots. */
+  @media (prefers-reduced-motion: reduce) {
+    .ui.loader {
+      --_loader-motion: 3;
+    }
+  }
+}
+
+/*******************************
+            States
+*******************************/
+
+@layer ui.components.loader.states {
+  /* Active:  shown.  Disabled:  hidden again. */
+  .ui.active.loader {
+    display: var(--_loader-display, block);
+  }
+  .ui.disabled.loader {
+    display: none;
+  }
+}

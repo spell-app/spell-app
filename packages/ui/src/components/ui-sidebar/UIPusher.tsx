@@ -1,21 +1,23 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { pusherVocabulary } from "./ui-pusher.vocabulary.en"
-import { SidebarFallback } from "./ui-sidebar.fallback"
+import { pusherVocabulary } from "./UIPusher.vocabulary.en"
 
-import sidebarCSS from "./ui-sidebar.css?inline"
+import sidebarCSS from "./UISidebar.css?inline"
 
 /****************
- * ### `<ui-pusher>`
- * The page content beside a sidebar (Fomantic's `.pusher`):  `<div class="pusher" part="pusher"><slot>`.
- * - Passive:  `ui-sidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`PusherTokens`), and the
- *   pushable makes the HOST `inert` beside a modal sidebar.  Its `::after` is the dimmer.
+ * ### `UIPusher`
+ * The component behind `<ui-pusher>`:
+ * the page content beside a sidebar (Fomantic's `.pusher`), `<div class="pusher" part="pusher"><slot>`.
+ *
+ * - Passive:  `UISidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`UIT.PusherTokens`),
+ *   and the pushable makes the DOM element `inert` beside a modal sidebar.
+ * - Its `::after` is the dimmer.
  ****************/
-export class UIPusher extends E.UIElement<typeof pusherVocabulary> {
+export class UIPusher extends E.UIComponent<typeof pusherVocabulary> {
   @E.proto static vocabulary = pusherVocabulary
   @E.proto static styleSheets = { sidebar: sidebarCSS }
-  @E.proto static elementSetup = { Fallback: SidebarFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Always:  `:state(pusher)`. */
   @E.cssState("pusher")
@@ -32,8 +34,8 @@ export class UIPusher extends E.UIElement<typeof pusherVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIPusher extends E.AttributeValues<typeof pusherVocabulary> {}
 
-/** Class word of the root (`ui-sidebar.css`). */
+/** Class word of the root (`UISidebar.css`). */
 const PUSHER = "pusher"

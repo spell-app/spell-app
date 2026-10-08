@@ -1,54 +1,90 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, SlotContent, state, UIElement, UIT, type AttributeName } from "$/ui/core"
-
-import { brandFieldVocabulary } from "./ui-brand-field.vocabulary.en"
-import { BrandFieldFallback } from "./ui-brand-field.fallback"
-import { BrandFieldHost } from "./BrandFieldHost"
 import {
-  BRAND,
-  CLASSES,
-  ERROR,
-  INFO_ICON,
-  NAMED_ATTRIBUTES,
-  TIP_ID,
-  type BrandFieldVocabulary
-} from "./ui-brand-field.types"
+  DOMElement,
+  IconGlyph,
+  proto,
+  SlotContent,
+  state,
+  UIComponent,
+  UIT,
+  type AttributeName,
+  type ElementSetup
+} from "$/ui/core"
 
-import fieldCSS from "./ui-brand-field.css?inline"
+import { brandFieldVocabulary } from "./UIBrandField.vocabulary.en"
+
+import fieldCSS from "./UIBrandField.css?inline"
 
 /****************
- * ### `<ui-brand-field>`
- * One property of an inspector, or one field of a form:
- * `<div class="brand field" part="field">` > the label row (`.row`:  label, actions, value, info icon + tip), the
- * control (`.control`, the default slot), then help and error text.
- * - Rows without actions, value or info:  their wrappers aren't rendered (`SlotContent` watches the light children).
- * - Names the control:  a slotted control with no `aria-label` / `aria-labelledby` of its own gets `aria-label` =
- *   `label` (a `<label for>` can't reach across the shadow boundary).  A click on the label focuses it.
- * - Errors:  `error`, or what `<ui-form>` asked for through `showErrors()` (the host's), which wins;  either shows the
- *   `error` state.  `<ui-form>` finds the field by `:state(field)`, as a `<ui-field>`.
+ * ### `DOMBrandFieldElement`
+ * The DOM element of `<ui-brand-field>`:  it adds `showErrors()`, which `<ui-form>` calls on the field it finds
+ * through `:state(field)`, as on a `<ui-field>` (whose DOM element, `DOMFieldElement`, has the same two members).
+ *
+ * - `errors`:  the messages `<ui-form>` asked to show.
+ * - solid-element checks a DOM element's prototype members against prop names;  neither of these is one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
+ ****************/
+export class DOMBrandFieldElement extends DOMElement {
+  /** Show `messages` under the control (and the `error` state);  `[]` clears. */
+  showErrors(messages: readonly string[]) {
+    this.field?.showErrors(messages)
+  }
+
+  /** Messages `<ui-form>` asked to show;  untracked. */
+  get errors(): readonly string[] {
+    return untrack(() => this.field?.formErrors) ?? []
+  }
+
+  /** The field's component, once it exists. */
+  private get field(): UIBrandField | undefined {
+    return this.component as UIBrandField | undefined
+  }
+}
+
+/****************
+ * ### `UIBrandField`
+ * The component behind `<ui-brand-field>`:  one property of an inspector, or one field of a form.
+ * `<div class="brand field" part="field">` holds the label row
+ * (`.row`:  the label, actions, value, and the info icon with its tip),
+ * the control (`.control`, the default slot), then help and error text.
+ *
+ * - A row without actions, value or info doesn't draw their wrappers (`SlotContent` watches the light children).
+ *
+ * - It names the control:  a slotted control with no `aria-label` or `aria-labelledby` of its own
+ *   gets `aria-label` = `label` (a `<label for>` can't reach across the shadow boundary).
+ *   A click on the label focuses it.
+ *
+ * - Errors:  `error`, or what `<ui-form>` asked for through the DOM element's `showErrors()`, which wins;
+ *   either shows the `error` state.  `<ui-form>` finds the field by `:state(field)`, as a `<ui-field>`.
+ *
  * - The info tip:  a CSS tooltip under the icon, shown on hover and keyboard focus;  the icon is described by it.
  *   `info` is the short form, `slot="info"` the rich one (bold words, line breaks).
- * - Actions keep the label row's height:  a pill taller than the row overhangs it, so showing a Reset button never
- *   moves the control.
+ *
+ * - Actions keep the label row's height:  a pill taller than the row overhangs it,
+ *   so showing a Reset button never moves the control.
+ *
  * - `disabled` makes the box `inert`.
  * - SIDE EFFECT:  writes `aria-label` on slotted controls (only ones that had no name).
  ****************/
-export class UIBrandField extends UIElement<BrandFieldVocabulary> {
+export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   @proto static vocabulary = brandFieldVocabulary
   @proto static styleSheets = { field: fieldCSS }
-  @proto static elementSetup = { Fallback: BrandFieldFallback, Host: BrandFieldHost, delegatesFocus: false }
+  @proto static elementSetup = {
+    DOMElement: DOMBrandFieldElement,
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State
   ////////////////
 
-  /** Messages `<ui-form>` asked to show;  `BrandFieldHost.errors` reads them untracked. */
+  /** Messages `<ui-form>` asked to show;  `DOMBrandFieldElement.errors` reads them untracked. */
   @state accessor formErrors: readonly string[] = []
 
   /** Light-DOM slot occupancy:  label, actions, value, help. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new SlotContent(this.domElement)
 
   /** Has an info tip:  `info`, or `slot="info"`. */
   readonly hasInfo = createMemo(() => !!this.attrs.info || this.slots.hasContent(this.slotForName("info")))
@@ -85,7 +121,7 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
   // ## `<ui-form>`
   ////////////////
 
-  /** Show `messages` (see `BrandFieldHost`). */
+  /** Show `messages` (see `DOMBrandFieldElement`). */
   showErrors(messages: readonly string[]) {
     const current = untrack(() => this.formErrors)
     if (current.length !== messages.length || current.some((message, index) => message !== messages[index])) {
@@ -97,7 +133,7 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<BrandFieldVocabulary>): unknown {
+  protected classValue(name: AttributeName<typeof brandFieldVocabulary>): unknown {
     if (name === "state") return this.shownState()
     return super.classValue(name)
   }
@@ -215,3 +251,31 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
     control?.focus()
   }
 }
+
+/** Class word the component adds after the noun:  `field brand`. */
+const BRAND = "brand"
+
+/** The `error` state, shown while there's an error message. */
+const ERROR = "error"
+
+/** Icon of the info tip. */
+const INFO_ICON = "circle info"
+
+/** Shadow-root id of the info tip, which the icon is described by. */
+const TIP_ID = "tip"
+
+/** Controls the field names (`aria-label`) when they have no name of their own. */
+const NAMED_ATTRIBUTES = ["aria-label", "aria-labelledby"] as const
+
+/** Shadow classes, one per part (the vocabulary's part names). */
+const CLASSES = {
+  row: "row",
+  label: "label",
+  actions: "actions",
+  value: "value",
+  info: "info",
+  tip: "tip",
+  control: "control",
+  help: "help",
+  error: "error message"
+} as const

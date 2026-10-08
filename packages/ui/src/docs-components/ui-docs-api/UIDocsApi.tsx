@@ -2,48 +2,48 @@ import { For, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { HeadingLevels, type SiteDataFile, type SiteTag } from "$/ui/docs-components/docs-components.types"
+import {
+  HeadingLevels,
+  type HeadingBounds,
+  type SiteDataFile,
+  type SiteTag
+} from "$/ui/docs-components/docs-components.types"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { ApiModel } from "./ApiModel"
 import { InlineCode } from "./InlineCode"
-import { DocsApiFallback } from "./ui-docs-api.fallback"
-import {
-  LEVELS,
-  type ApiCell,
-  type ApiItem,
-  type ApiMessage,
-  type ApiSection,
-  type DocsApiVocabulary
-} from "./ui-docs-api.types"
-import { docsApiVocabulary } from "./ui-docs-api.vocabulary.en"
+import { type ApiCell, type ApiItem, type ApiMessage, type ApiSection, type DocsApiVocabulary } from "./UIDocsApi.types"
+import { docsApiVocabulary } from "./UIDocsApi.vocabulary.en"
 
-import tableCSS from "$/ui/components/ui-table/ui-table.css?inline"
-import apiCSS from "./ui-docs-api.css?inline"
+import tableCSS from "$/ui/components/ui-table/UITable.css?inline"
+import apiCSS from "./UIDocsApi.css?inline"
 
 /****************
- * ### `<ui-docs-api>`
- * The API reference of a tag (`tag="ui-button"`), or of every tag of a family (`family="ui-button"`), as Fomantic
- * tables:  `<ui-table celled compact definition>` per section -- attributes, properties, events, slots, parts,
- * states, texts -- each under a `<ui-header>` title, only those the tag has.
- * - Data:  `components.json`, through `SiteData` (fetched once per page);  NEVER the vocabularies.  The tables'
- *   content is `ApiModel`'s, shared with the native fallback.
- * - `family`:  each tag in its own `<section part="tag">` under a `dividing` `<ui-header>` whose id is the tag, its
- *   text a link to itself:  an `<a>` INSIDE the heading, not `<ui-header href>` (its `<a role="heading">` fails axe:
- *   plan-doc gap).  Fragment links can't reach ids inside a shadow root, so the element scrolls to
- *   `location.hash` itself:  once its tables are drawn, and on every `hashchange` while connected.
+ * ### `UIDocsApi`
+ * The component behind `<ui-docs-api>`:  the API reference of a tag (`tag="ui-button"`),
+ * or of every tag of a family (`family="ui-button"`), as Fomantic tables.
+ *
+ * - One `<ui-table celled compact definition>` per section (attributes, properties, events, slots, parts, states,
+ *   texts), each under a `<ui-header>` title;  only the sections the tag has.
+ * - Data:  `components.json`, through `SiteData` (fetched once per page);  NEVER the vocabularies.
+ *   What the tables hold comes from `ApiModel`.
+ * - `family`:  each tag in its own `<section part="tag">`, under a `dividing` `<ui-header>`
+ *   whose id is the tag and whose text links to itself.
+ *   - The link is an `<a>` INSIDE the heading, not `<ui-header href>` (its `<a role="heading">` fails axe).
+ *   - Fragment links can't reach ids inside a shadow root, so the component scrolls to `location.hash` itself:
+ *     once its tables are drawn, and on every `hashchange` while connected.
  * - Descriptions:  `` `code` `` spans become `<code>` (`InlineCode`), as text nodes, never HTML.
  * - Values:  compact `<ui-labels size="mini">`;  hues painted in their own colour, a numeric run as one label.
- * - Phone width:  every table is `stackable` by its OWN width (`stack-by="container"`):  rows become blocks in a
- *   narrow column, whatever the viewport.
- * - Sheets:  `ui-table.css` is adopted HERE too:  `<ui-table>` styles its light-DOM `<table>` with a PAGE sheet,
- *   which never reaches a table inside this shadow root (plan-doc gap).
- * - A doc-only element (`src/docs-components/`):  its shadow composes other families' widgets, which its barrel
- *   imports.
+ * - Phone width:  every table is `stackable` by its OWN width (`stack-by="container"`):
+ *   rows become blocks in a narrow column, whatever the viewport.
+ * - Sheets:  `UITable.css` is adopted HERE too:  `<ui-table>` styles its light-DOM `<table>` with a PAGE sheet,
+ *   which never reaches a table inside this shadow root.
+ * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of other families' widgets,
+ *   which its barrel imports.
  ****************/
-export class UIDocsApi extends E.UIElement<DocsApiVocabulary> {
+export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
   @E.proto static vocabulary = docsApiVocabulary
   @E.proto static styleSheets = { table: tableCSS, "docs-api": apiCSS }
-  @E.proto static elementSetup = { Fallback: DocsApiFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The data
@@ -265,15 +265,15 @@ export class UIDocsApi extends E.UIElement<DocsApiVocabulary> {
    * Scroll the tag header `hash` names into view, if it's in this shadow root.
    * - Waits for the widgets in the shadow root to render first (`ready`):  until they do, the tables above it
    *   are still growing, and the scroll would land short.
-   * - Scrolls the header's `<section>` when the header host draws no box of its own (`display: contents`).
+   * - Scrolls the header's `<section>` when the `<ui-header>` draws no box of its own (`display: contents`).
    */
   private async reveal(hash: string): Promise<void> {
     const id = UIDocsApi.idForHash(hash)
-    const root = this.host.renderRoot
+    const root = this.domElement.renderRoot
     const header = id ? (root as ShadowRoot).getElementById?.(id) : undefined
     if (!header) return
-    const hosts = [...root.querySelectorAll("*")].filter((element) => "ready" in element)
-    await Promise.all(hosts.map((element) => (element as Element & { ready: Promise<void> }).ready))
+    const elements = [...root.querySelectorAll("*")].filter((element) => "ready" in element)
+    await Promise.all(elements.map((element) => (element as Element & { ready: Promise<void> }).ready))
     requestAnimationFrame(() => (header.getClientRects().length ? header : header.parentElement)?.scrollIntoView())
   }
 
@@ -290,8 +290,8 @@ export class UIDocsApi extends E.UIElement<DocsApiVocabulary> {
   }
 
   /**
-   * What `tag` / `family` name in `data`:  a family's tags in its order (grouped, each with a header), else the one
-   * tag (no header);  `[]` when neither is set or the data has no such tag.
+   * What `tag` / `family` name in `data`:  a family's tags in its order (grouped, each with a header),
+   * else the one tag (no header);  `[]` when neither is set or the data has no such tag.
    * - Static:  pure.
    */
   private static itemsFor(data: SiteDataFile, { tag, family }: ItemsParams): ApiItem[] {
@@ -307,7 +307,7 @@ export class UIDocsApi extends E.UIElement<DocsApiVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UIDocsApi extends E.AttributeValues<DocsApiVocabulary> {}
 
 /** What `itemsFor()` draws:  the `tag` and `family` attributes. */
@@ -338,3 +338,9 @@ const NEGATIVE = "negative"
 
 /** `<ui-message>` `state` of a missing or unknown tag. */
 const WARNING = "warning"
+
+/**
+ * `level`:  a heading level, leaving room for the table titles one level deeper;  unset, `3`,
+ * under the page's `h2` "API" section.
+ */
+const LEVELS: HeadingBounds = { min: 1, max: 5, fallback: 3 }

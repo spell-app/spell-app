@@ -1,0 +1,94 @@
+/*
+ * The style sheet of `<ui-item>`:  the generic item's OWN sheet,
+ * the DOM element's rules and the resets every owner builds on.
+ * - The item's LOOK is the owner's:  a list, menu or Items view item adopts its owner's sheet after this one
+ *   (`UIList.css`, `UIMenu.css`, `UIItems.css`),
+ *   whose item rules key on `:host(:state(in-<owner>)) > .item` beside the static `.ui.<owner> > .item`.
+ * - Shadow markup contract:
+ *   - unowned (a dropdown option, or loose):  `<slot></slot>` only
+ *   - owned:  `<a | button | div class="[color] [position] [keyOnly ...] item [header]" part="item">` holding the
+ *     `image` `<img class="ui avatar image" part="image" alt="">`, the icon box `<span class="icon" part="icon">
+ *     <slot name="icon"><svg></slot></span>`, then the default `<slot>`;  a divider is
+ *     `<div class="divider" part="item" role="separator">`
+ * - DOM elements are `display: contents`:  the root IS the item, so the owner's flex / table layout applies to it and
+ *   the DOM element's position (`:host(:first-child)`) stands in for Fomantic's `.item:first-child`.
+ * - Owner token the ITEM declares on its root, for the parts inside:
+ *
+ *   | Token             | Values  | Set when                              | Read by                                   |
+ *   | ----------------- | ------- | ------------------------------------- | ----------------------------------------- |
+ *   | `--_ui-item-media` | `0`/`1` | the item renders an icon or image box | a list's `<ui-content>`:  a table cell    |
+ *   |                   |         |                                       | beside the media (`UIParts.css`)             |
+ *
+ * - Sublayers come BEFORE the owners' (this sheet is adopted first), so an owner's item rules win.
+ */
+
+@layer ui.components.item.types, ui.components.item.content, ui.components.item.variations, ui.components.item.states;
+
+/*******************************
+              Item
+*******************************/
+
+@layer ui.components.item.types {
+  /* DOM elements:  no box of their own;  the root is the item. */
+  :host {
+    display: contents;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Every owned root says whether it shows media, so a `<ui-content>` beside it becomes a table cell. */
+  .item {
+    --_ui-item-media: 0;
+    box-sizing: border-box;
+  }
+  .item:has(> .icon, > .image) {
+    --_ui-item-media: 1;
+  }
+
+  /* A `<button>` item looks like its owner's item, never like a native button. */
+  button.item {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    letter-spacing: inherit;
+    background: none;
+    border: none;
+    border-radius: 0;
+    appearance: none;
+    cursor: pointer;
+  }
+  button.item:disabled {
+    cursor: default;
+  }
+  a.item {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.item.content {
+  /*
+   * The icon box:  the glyph at text size in the text colour;  owners set spacing and alignment.
+   * - The shorthand's `<svg>` is the FALLBACK of `<slot name="icon">` (a child of the `<slot>`), so a descendant of
+   *   `.icon`, not a child:  `.icon svg`, NEVER `.icon > svg` alone, which matched only static markup and left
+   *   element glyphs sized by their box (a list's 1.55em cell:  20px wide, a tall glyph 27px high;
+   *   a menu's flex box:  0 x 0).  As in `UIButton.css`.
+   */
+  .item > .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .item > .icon ::slotted(svg),
+  .item > .icon svg {
+    width: auto;
+    height: 1em;
+    fill: currentColor;
+  }
+}

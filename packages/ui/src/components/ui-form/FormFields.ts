@@ -1,37 +1,40 @@
 import { E, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { FIELD_SELECTOR, type Field, type FieldSpec } from "./ui-form.types"
+import { FIELD_SELECTOR, type Field, type FieldSpec } from "./UIForm.types"
 
 /****************
  * ### `FormFields`
- * What `<ui-form>` validates:  its controls grouped by name (else id), their values and labels, and one field's
- * errors.
- * - Plain DOM, no Solid, so it reads light-DOM natives and `ui-*` hosts alike.
- * - Controls:  the native form's `elements` (which include form-associated `ui-*` hosts), those inside the
- *   `<ui-form>` when the form is outside it;  without a form, every control inside.  Buttons are skipped;  a
- *   `ui-*` host counts when it has the form-control API (`validity`), so `<ui-button>` doesn't.
+ * What `<ui-form>` validates, read from the DOM:  its controls grouped by name (else id),
+ * their values and labels, and one field's errors.
+ * - Plain DOM, no Solid, so it reads light-DOM natives and `ui-*` elements alike.
+ * - Controls:  the native form's `elements` (which include form-associated `ui-*` elements),
+ *   those inside the `<ui-form>` when the form is outside it;  without a form, every control inside.
+ *   Buttons are skipped;  a `ui-*` element counts when it has the form-control API (`validity`),
+ *   so `<ui-button>` doesn't.
  * - Values, Fomantic's `get.values()` shape:
- *   - checkboxes (`ui-checkbox` / native):  one => its value (`true` for the native default, `on`, with no `value`
- *     attribute) when chosen, else its `off-value` or `false`;  several of one name => what each submits, the
- *     chosen values and the unchosen ones' off-values
- *   - a `ui-*` host's values come from the host (`chosenValue` / `unchosenValue`), so its class's defaults count
+ *   - checkboxes (`ui-checkbox` / native):  one => its value (`true` for the native default, `on`,
+ *     with no `value` attribute) when chosen, else its `off-value` or `false`;  several of one name => what each
+ *     submits, the chosen values and the unchosen ones' off-values
+ *   - a `ui-*` element's values come from the element (`chosenValue` / `unchosenValue`),
+ *     so its class's defaults count
  *   - radios:  the chosen one's value, else `null` (Fomantic's, kept:  pages read it, and JSON keeps it)
  *   - anything else:  its `value` (`string`, or `string[]` for a multiple dropdown / select);  several => a list
- * - Errors of a field:  its `rules` through `Validator` (with every value for `match` / `different`, and every
- *   label for their prompts), THEN each control's own constraint validation (`validationMessage`), de-duplicated.
+ * - Errors of a field:  its `rules` through `Validator` (with every value for `match` / `different`,
+ *   and every label for their prompts), THEN each control's own constraint validation (`validationMessage`),
+ *   de-duplicated.
  ****************/
 export class FormFields {
   /**
-   * The `<ui-form>` host.
-   * - STATIC for the object's life:  a different host is a different `FormFields`.
+   * The `<ui-form>`'s DOM element.
+   * - STATIC for the object's life:  a different DOM element is a different `FormFields`.
    */
-  private readonly host: HTMLElement
+  private readonly domElement: HTMLElement
 
   /** The native form, when there is one;  read on every call, as the form comes and goes. */
   private readonly form: () => HTMLFormElement | undefined
 
-  constructor({ host, form }: FormFieldsProps) {
-    this.host = host
+  constructor({ domElement, form }: FormFieldsProps) {
+    this.domElement = domElement
     this.form = form
   }
 
@@ -44,8 +47,9 @@ export class FormFields {
     const form = this.form()
     const candidates = form
       ? [...form.elements]
-      : [...this.host.querySelectorAll(CONTROL_SELECTOR), ...this.customControls()]
-    const inside = !form || !form.contains(this.host) ? candidates : candidates.filter((el) => this.host.contains(el))
+      : [...this.domElement.querySelectorAll(CONTROL_SELECTOR), ...this.customControls()]
+    const inside =
+      !form || !form.contains(this.domElement) ? candidates : candidates.filter((el) => this.domElement.contains(el))
     return [...new Set(inside)].filter(FormFields.isControl).sort(E.byDocumentOrder)
   }
 
@@ -113,7 +117,7 @@ export class FormFields {
     const flags = new Set<string>()
     const spec = FormFields.specFor(rules, field.identifier)
     if (spec && !(spec.depends && FormFields.isBlank(values[spec.depends]))) {
-      const result = F.FormElement.validator.validate(values[field.identifier], spec.rules, {
+      const result = F.FormComponent.validator.validate(values[field.identifier], spec.rules, {
         name: field.identifier,
         label: labels[field.identifier],
         fieldValues: values,
@@ -140,9 +144,9 @@ export class FormFields {
   // ## Helpers
   ////////////////
 
-  /** Form-associated custom elements inside the host:  no selector reaches them. */
+  /** Form-associated custom elements inside the `<ui-form>`:  no selector reaches them. */
   private customControls(): Element[] {
-    return [...this.host.querySelectorAll("*")].filter(
+    return [...this.domElement.querySelectorAll("*")].filter(
       (element) => (element.constructor as { formAssociated?: boolean }).formAssociated
     )
   }
@@ -208,7 +212,7 @@ export class FormFields {
     return value == null || value === false || value === "" || (Array.isArray(value) && !value.length)
   }
 
-  /** A control `<ui-form>` reads:  native value controls, and `ui-*` hosts with the form-control API. */
+  /** A control `<ui-form>` reads:  native value controls, and `ui-*` elements with the form-control API. */
   private static isControl(element: Element): boolean {
     if (element instanceof HTMLInputElement) return !BUTTON_TYPES.has(element.type)
     if (element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) return true
@@ -222,13 +226,13 @@ export class FormFields {
     return (typeof name === "string" && name) || control.getAttribute("name") || control.id || undefined
   }
 
-  /** A checkbox (native, or a `ui-*` host saying so). */
+  /** A checkbox (native, or a `ui-*` element saying so). */
   private static isCheckable(control: Element): boolean {
     if (control instanceof HTMLInputElement) return control.type === "checkbox" || control.type === "radio"
     return !!(control as { checkable?: string }).checkable
   }
 
-  /** A radio (native, or a `ui-*` host saying so). */
+  /** A radio (native, or a `ui-*` element saying so). */
   private static isRadio(control: Element): boolean {
     if (control instanceof HTMLInputElement) return control.type === "radio"
     return (control as { checkable?: string }).checkable === "radio"
@@ -240,14 +244,16 @@ export class FormFields {
     return !!(control as { selected?: boolean }).selected
   }
 
-  /** What a chosen checkable submits:  a `ui-*` host's `chosenValue`, else its `value` attribute, else `on` (native). */
+  /**
+   * What a chosen checkable submits:  a `ui-*` element's `chosenValue`, else its `value` attribute, else `on` (native).
+   */
   private static chosenValueFor(control: Element): string {
-    return (control as CheckableHost).chosenValue ?? control.getAttribute(VALUE) ?? UIT.CHECKBOX_DEFAULT_VALUE
+    return (control as CheckableElement).chosenValue ?? control.getAttribute(VALUE) ?? UIT.CHECKBOX_DEFAULT_VALUE
   }
 
-  /** What an unchosen checkable submits:  a `ui-*` host's `unchosenValue` (`off-value`);  a native:  nothing. */
+  /** What an unchosen checkable submits:  a `ui-*` element's `unchosenValue` (`off-value`);  a native:  nothing. */
   private static unchosenValueFor(control: Element): string | undefined {
-    return (control as CheckableHost).unchosenValue
+    return (control as CheckableElement).unchosenValue
   }
 
   /** The value of a non-checkable control. */
@@ -274,15 +280,18 @@ export class FormFields {
 
 /** What `new FormFields()` reads:  the collaborators it works over. */
 export type FormFieldsProps = {
-  /** The `<ui-form>` host. */
-  host: HTMLElement
+  /** The `<ui-form>`'s DOM element. */
+  domElement: HTMLElement
   /** The native form, when there is one;  read on every call. */
   form: () => HTMLFormElement | undefined
 }
 
-/** What a checkable `ui-*` host says it submits (`CheckHost`);  structural, so this file never imports that family. */
-type CheckableHost = Element & {
-  /** submitted while chosen;  none before its controller exists */
+/**
+ * What a checkable `ui-*` element says it submits (`DOMCheckElement`);  structural,
+ * so this file never imports that family.
+ */
+type CheckableElement = Element & {
+  /** submitted while chosen;  none before its component exists */
   chosenValue?: string
   /** submitted while unchosen;  none ~== nothing */
   unchosenValue?: string

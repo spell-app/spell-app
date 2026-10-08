@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vite-plus/test"
 
 import { TocIndex } from "./TocIndex"
-import type { TocEntry } from "./ui-docs-toc.types"
+import type { TocEntry } from "./UIDocsToc.types"
 
 /** Two sections:  `types` holding `button` and `group` (holding `or`), and `states` with nothing under it. */
 const TREE: TocEntry[] = [entryOf("types", [entryOf("button"), entryOf("group", [entryOf("or")])]), entryOf("states")]

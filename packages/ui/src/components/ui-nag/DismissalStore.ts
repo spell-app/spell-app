@@ -2,8 +2,8 @@ import type { UIT } from "$/ui/core"
 
 /****************
  * ### `DismissalStore`
- * Where a `<ui-nag>` remembers that it was dismissed (Fomantic's nag `storage`):  `localStorage`, `sessionStorage`
- * or a cookie, holding `value` under `key`.
+ * Where a `<ui-nag>` remembers that it was dismissed (Fomantic's nag `storage`):  `localStorage`,
+ * `sessionStorage` or a cookie, holding `value` under `key`.
  * - Plain DOM, no Solid:  `UINag` makes one per access, from its current attributes.
  * - EVERY access is guarded:  storage can be missing (SSR), blocked (privacy settings throw a `SecurityError` on
  *   the mere `localStorage` getter) or full.  A failed read counts as "not dismissed", a failed write is dropped:
@@ -37,7 +37,9 @@ export class DismissalStore {
     this.cookie = cookie
   }
 
-  /** Was it dismissed (and not expired)?  `false` when the storage can't be read.  Reads the storage on every access. */
+  /**
+   * Was it dismissed (and not expired)?  `false` when the storage can't be read.  Reads the storage on every access.
+   */
   get isDismissed(): boolean {
     try {
       return this.read() === this.value

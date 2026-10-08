@@ -3,7 +3,7 @@ import { describe, expect, onTestFinished, test } from "vite-plus/test"
 import { Invoker } from "./Invoker"
 
 describe("Invoker.resolve()", () => {
-  test("finds the id in the host's own root:  the document, or the shadow root it lives in", () => {
+  test("finds the id in the element's own root:  the document, or the shadow root it lives in", () => {
     const page = attached(`<span id="source"></span><dialog id="target"></dialog>`)
     expect(Invoker.resolve(page.querySelector("#source")!, "target")).toBe(page.querySelector("#target"))
     const shadow = page.querySelector("#source")!.attachShadow({ mode: "open" })
@@ -11,7 +11,7 @@ describe("Invoker.resolve()", () => {
     expect(Invoker.resolve(shadow.querySelector("#inner")!, "target")).toBe(shadow.querySelector("#target"))
   })
 
-  test("is undefined for no id, an unknown id, or a detached host", () => {
+  test("is undefined for no id, an unknown id, or a detached element", () => {
     const page = attached(`<span id="source"></span>`)
     const source = page.querySelector("#source")!
     expect(Invoker.resolve(source, undefined)).toBeUndefined()

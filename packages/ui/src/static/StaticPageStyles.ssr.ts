@@ -5,13 +5,13 @@ import { SSR } from "$/ui/static"
 /****************
  * ### `StaticPageStyles`
  * A PAGE's own CSS (its `<style>` elements, later its linked sheets) rewritten for the flattened output, so what
- * it said about elements still applies once the hosts are gone:
- * - `H::part(p)` => `H[part~="p"]` (the part is the root, which replaced the host) and `H [part~="p"]` (deeper)
- * - `:state(x)` => `[data-state~="x"]`, the flattener's attribute for host states
+ * it said about elements still applies once the DOM elements are gone:
+ * - `H::part(p)` => `H[part~="p"]` (the part is the root, which replaced the DOM element) and `H [part~="p"]` (deeper)
+ * - `:state(x)` => `[data-state~="x"]`, the flattener's attribute for DOM element states
  * - `ui-card` (a rendered family's tag) => `[data-ui="card"]`:  the tag is gone, its root carries the kind
  * - every other subject gets `REACH`:  page CSS never reached a component's own markup (the shadow boundary kept it
- *   out), only roots (the hosts), slotted author content, and everything outside components.  `h2 { border }` must
- *   not draw on a section's internal heading.
+ *   out), only roots (the DOM elements), slotted author content, and everything outside components.
+ *   `h2 { border }` must not draw on a section's internal heading.
  * - Layers, order and specificity otherwise as written:  a `::part()` rule beat the shadow sheets, and an
  *   unlayered page rule beats every `ui.*` layer.
  * - NOTE: approximate for `::part()`:  the shadow boundary limited it to H's own parts, `H [part~="p"]` also

@@ -6,14 +6,15 @@
 
 import { UI } from "$/ui/runtime"
 
-import popupAnchoredCSS from "$/ui/components/ui-popup/ui-popup.anchored.css?raw"
+import popupAnchoredCSS from "$/ui/components/ui-popup/UIPopup.anchored.css?raw"
 
 /****************
  * ### `FamilySheets`
- * Registers every `ui-<family>/ui-<family>.css` on the page, by its bare name (`button`):  the class-grammar
- * originals and the light-DOM `<button class="ui button">` triggers of element examples need them there.
+ * Registers every family's main sheet (`ui-button/UIButton.css`) on the page, by its bare name (`button`):
+ * the class-grammar originals and the light-DOM `<button class="ui button">` triggers of element examples
+ * need them there.
  * - Globbed (`import.meta.glob`), so a new family needs no edit here.
- * - The other sheets of a family (`ui-dimmer.page.css`, `ui-toast.container.css`) are the components' own,
+ * - The other sheets of a family (`UIDimmer.page.css`, `UIToast.container.css`) are the components' own,
  *   registered when used.
  * - STATIC:  a page has one set of sheets.
  ****************/
@@ -22,18 +23,34 @@ export class FamilySheets {
   static register(): void {
     for (const [path, css] of Object.entries(SHEETS)) {
       const [, family, file] = FAMILY_SHEET.exec(path) ?? []
-      if (family && family === file) UI.styles.register(family.replace(/^ui-/, ""), css, { page: true })
+      if (family && FamilySheets.isMainSheet(family, file!)) {
+        UI.styles.register(family.replace(/^ui-/, ""), css, { page: true })
+      }
     }
     UI.styles.register("popup-anchored", popupAnchoredCSS, { page: true })
+  }
+
+  /**
+   * Is `file` (no `.css`) the main sheet of the family in folder `family`?
+   * - Named for the family's component:  `UIButton` in `ui-button/` (the rule of `tools/FamilyFiles.ts`,
+   *   which a page script can't import:  it's node code).
+   */
+  private static isMainSheet(family: string, file: string): boolean {
+    const stem = `UI${family
+      .replace(/^ui-/, "")
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("")}`
+    return file === stem
   }
 }
 
 /**
  * Every component sheet, by path.
- * - NOTE: `ui-popup.anchored.css` is excluded:  Lightning CSS can't parse its `@container anchored(...)`
+ * - NOTE: `UIPopup.anchored.css` is excluded:  Lightning CSS can't parse its `@container anchored(...)`
  *   (`agents/CODE-DEBT.md`), so it's imported `?raw` above.
  */
-const SHEETS = import.meta.glob<string>(["/src/components/*/*.css", "!**/ui-popup.anchored.css"], {
+const SHEETS = import.meta.glob<string>(["/src/components/*/*.css", "!**/UIPopup.anchored.css"], {
   query: "?inline",
   import: "default",
   eager: true

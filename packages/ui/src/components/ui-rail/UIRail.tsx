@@ -1,22 +1,23 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { railVocabulary } from "./ui-rail.vocabulary.en"
-import { RailFallback } from "./ui-rail.fallback"
+import { railVocabulary } from "./UIRail.vocabulary.en"
 
-import railCSS from "./ui-rail.css?inline"
+import railCSS from "./UIRail.css?inline"
 
 /****************
- * ### `<ui-rail>`
- * A rail:  `<div class="ui ... rail" part="rail"><slot></slot></div>`, absolutely positioned against the nearest
- * positioned box around it (a `<ui-segment>`'s root).
- * - No role:  a `<div>`, not an `<aside>` -- see `ui-rail.css`.  The content decides the semantics.
+ * ### `UIRail`
+ * The component behind `<ui-rail>`:  content set beside a box, outside its edge,
+ * `<div class="ui … rail" part="rail"><slot></slot></div>`,
+ * absolutely positioned against the nearest positioned box around it (a `<ui-segment>`'s root).
+ *
+ * - No role:  a `<div>`, not an `<aside>` (see `UIRail.css`).  The content decides the semantics.
  * - `delegatesFocus` off:  the rail itself takes no focus;  its content keeps its own tab stops.
  ****************/
-export class UIRail extends E.UIElement<typeof railVocabulary> {
+export class UIRail extends E.UIComponent<typeof railVocabulary> {
   @E.proto static vocabulary = railVocabulary
   @E.proto static styleSheets = { rail: railCSS }
-  @E.proto static elementSetup = { Fallback: RailFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (

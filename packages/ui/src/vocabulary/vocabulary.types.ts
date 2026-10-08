@@ -1,7 +1,7 @@
 import type { ValueSets } from "./ValueSets"
 
 /**
- * Shared types for `$/ui/vocabulary` -- the schema every `ui-<name>.vocabulary.en.ts` follows, the shared value sets,
+ * Shared types for `$/ui/vocabulary` -- the schema every `UI<Name>.vocabulary.en.ts` follows, the shared value sets,
  * and the translation `Dictionary` contract.
  * - Why a schema:  vocabulary files own EVERY name a component uses (tag, attributes, values, events, slots,
  *   parts, states, texts), so templates and `ClassBuilder` never hold string literals, and a translation can
@@ -97,7 +97,7 @@ export type AttributeSpec = {
    * - NOTE: aliases are English muscle memory;  translations don't rename them.
    * - NOTE: DECLARATIVE only:  `Vocabulary` keeps them reachable by name (translation, docs), but
    *   `ElementDefinition` makes no observed attribute or property for an alias -- the family reads it itself
-   *   (`<ui-item active>`, checkbox `checked`, `<ui-tab active>`, read raw through the controller's `attributes`).
+   *   (`<ui-item active>`, checkbox `checked`, `<ui-tab active>`, read raw through the component's `attributes`).
    */
   aliases?: readonly string[]
   /** What it does, for docs and the custom-elements manifest. */
@@ -163,7 +163,7 @@ export type TextSpec = {
 ////////////////
 
 /**
- * Everything a component names -- the contents of `ui-<name>.vocabulary.en.ts`.
+ * Everything a component names -- the contents of `UI<Name>.vocabulary.en.ts`.
  * - Write it as `export const cardVocabulary = { ... } as const satisfies ComponentVocabulary`,
  *   so templates get literal types.
  */

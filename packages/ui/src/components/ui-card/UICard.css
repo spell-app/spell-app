@@ -1,0 +1,819 @@
+/*
+ * The style sheet of `<ui-card>` and `<ui-cards>`:  a port of Fomantic's `card.less` + `card.variables`.
+ * - ONE sheet for both elements;  each adopts it after the foundation.  A card also adopts `UIParts.css` (after
+ *   this sheet), which styles its shorthand blocks.
+ * - Shadow markup contract (class grammar on semantic elements):
+ *   - `<ui-card>`:  `<article class="ui [size] [color] [keyOnly ...] card" part="card">` (an `<a href>` with
+ *     `href`), holding in order the `image` shorthand's `<div class="image" part="image"><img alt></div>`,
+ *     the shorthand content block `<div class="content in-card" part="content">` (its `<div class="header in-card"
+ *     part="header">`, `meta`, `description`), the default `<slot>`, the `extra` shorthand's
+ *     `<div class="extra content in-card" part="extra">`, and while `loading` a visually hidden `role=status`
+ *   - `<ui-cards>`:  `<div class="ui [size] [color] [keyOnly ...] [count] cards" part="group" role="list">
+ *     <slot></slot></div>`
+ * - The shorthand blocks are STATIC parts (`in-card` classes, as the class-grammar examples write them),
+ *   so `UIParts.css` styles them exactly like slotted `<ui-content>` / `<ui-header>` ... elements.
+ * - DOM elements:  a card's is `display: contents` -- its root is the box, so a group's flex row lays it out
+ *   directly.  A GROUP's (`:state(cards)`) is a block and the size container `ui-cards`,
+ *   which `doubling` and `stackable` answer to (container queries, not the viewport);  static markup makes the group's
+ *   parent the container (`:has(> .ui.cards)`).
+ * - Every rule pairs Fomantic's static selectors (`.ui.card` and the ui-less `.ui.cards > .card`) with the
+ *   element's, where they differ:  a card in a group carries `:state(in-cards)`
+ *   (`:host(:state(in-cards)) > .card`) and takes the group's variations as its own classes (`UICard`),
+ *   so `.ui.raised.card` covers `<ui-cards raised>`.
+ * - Public tokens (`--ui-card-*`, `--ui-cards-*`) are NEVER declared here:  the token blocks read each through a
+ *   private alias (`--_ui-card-radius: var(--ui-card-radius, var(--ui-radius))`) and rules read the alias,
+ *   so a value set on `:root`, an ancestor, the DOM element or `::part(card)` reaches the box (`docs/theming.md`
+ *   "Component tokens").
+ * - Private tokens:  `--_card-*` (a card's own variations) and `--_cards-*` (the group's count,
+ *   spacing and width, read by its cards) -- every card root resets both for its content, so nested cards and groups
+ *   never inherit them.  NEVER set them (or `--_ui-*`) from outside;  theme with `--ui-card-*` / `--ui-cards-*`.
+ * - OWNER side (what the content parts read, `UIParts.css` "Owner tokens"):  EVERY card root declares
+ *   `--ui-inverted` (`0`, `1` when inverted), `--_ui-card-layout` (`vertical`,
+ *   `horizontal`) and `--_ui-card-leading` (`1` while a shorthand renders before the slot);
+ *   `inverted` also sets `color-scheme: dark`, so every `light-dark()` token inside re-resolves.  A plain card does NOT
+ *   force the light scheme:  its surface follows the page, dark theme included.
+ *   - the switches are private (`--_ui-`):  the card's attributes decide them
+ *   - the parts' LOOK tokens (`--ui-card-header-color`, `--ui-card-content-padding` ...) are public and declared
+ *     nowhere:  `UIParts.css` reads them with Fomantic's defaults, so they're set on the card, above it,
+ *     or on the part itself
+ * - The card root's `<slot>` resets the generic colour (`--ui-color*`) and size (`--ui-scale`) tokens, so a red or
+ *   small card doesn't recolour / rescale the components inside it;  the group's slot does the same.
+ * - Colours by remap:  a coloured card's line along its bottom edge is `--ui-color` (`colors.css`), one generic shadow.
+ * - NOTE: left out, on purpose:
+ *   - star / like icons (`.star.icon`, `.like.icon`) and `.dimmer` inside cards:  icon and dimmer looks
+ *   - buttons attached to the card's edge (`.ui.card > .button`):  a `<ui-button>`'s DOM element has no box to widen;
+ *     the static rule stays
+ *   - paragraphs straight inside a `<ui-content>` (`.content p`):  out of reach;  a description's are spaced
+ *     (`UIParts.css`), and the static rule stays
+ *   - `.ui.cards ~ .ui.cards` (consecutive groups):  a shadow root can't see its DOM element's previous sibling;
+ *     the static rule stays
+ *   - the clearing `::after` of cards and groups:  both are flex containers, which contain their floats
+ *   - a slotted `<ui-image>` as the card's image (its root sizes itself):  slot a plain `<img>`, or use `image`
+ *   - `!important`:  Fomantic's rounded-edge, extra-divider and stackable overrides win by layer and specificity
+ */
+
+@layer ui.components.card.types, ui.components.card.content, ui.components.card.variations, ui.components.card.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time:  `stack-with="page"`. */
+@import "../../styles/media.css";
+
+/* Loader spin, shared by `loading` cards. */
+@keyframes ui-card-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/*******************************
+             Card
+*******************************/
+
+@layer ui.components.card.types {
+  /* DOM elements:  a card has no box of its own;  a group is a block and the size container its cards answer to. */
+  :host {
+    display: contents;
+  }
+  :host(:state(cards)) {
+    display: block;
+    container: ui-cards / inline-size;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /* Static markup:  the group's parent is the container. */
+  :has(> .ui.cards) {
+    container: ui-cards / inline-size;
+  }
+
+  /*
+   * Tokens:  one per `card.variables` entry that still matters, from the global tokens -- each the private alias
+   * of its public token (never declare the public one:  it would block inherited values).
+   */
+  .ui.card,
+  .ui.cards,
+  .ui.cards > .card {
+    --_ui-card-width: var(--ui-card-width, calc(var(--ui-font-size) * 18.125));
+    --_ui-card-margin-block: var(--ui-card-margin-block, 1em);
+    --_ui-card-background: var(--ui-card-background, var(--ui-surface));
+    --_ui-card-color: var(--ui-card-color, var(--ui-text-color));
+    --_ui-card-radius: var(--ui-card-radius, var(--ui-radius));
+    --_ui-card-border-color: var(--ui-card-border-color, var(--ui-border-color));
+    --_ui-card-hover-border-color: var(--ui-card-hover-border-color, var(--ui-border-color-selected));
+    --_ui-card-border-shadow: var(--ui-card-border-shadow, 0 0 0 var(--ui-border-width) var(--_ui-card-border-color));
+    --_ui-card-shadow: var(--ui-card-shadow, 0 1px 3px 0 var(--_ui-card-border-color));
+    --_ui-card-hover-shadow: var(--ui-card-hover-shadow, 0 1px 3px 0 var(--_ui-card-hover-border-color));
+    --_ui-card-raised-shadow: var(--ui-card-raised-shadow, var(--ui-shadow-floating));
+    --_ui-card-raised-hover-shadow: var(--ui-card-raised-hover-shadow, var(--ui-shadow-floating-hover));
+    --_ui-card-colored-width: var(--ui-card-colored-width, 2px);
+    --_ui-card-link-raise: var(--ui-card-link-raise, 3px);
+    --_ui-card-image-background: var(--ui-card-image-background, oklch(from var(--ui-ink) l c h / 0.05));
+    --_ui-card-horizontal-width: var(--ui-card-horizontal-width, calc(var(--ui-font-size) * 25));
+    --_ui-card-horizontal-min-width: var(--ui-card-horizontal-min-width, calc(var(--ui-font-size) * 16.875));
+    --_ui-card-horizontal-image-width: var(--ui-card-horizontal-image-width, calc(var(--ui-font-size) * 9.375));
+    --_ui-card-disabled-opacity: var(--ui-card-disabled-opacity, var(--ui-disabled-opacity));
+    --_ui-card-loader-size: var(--ui-card-loader-size, 3em);
+    --_ui-card-loader-width: var(--ui-card-loader-width, 0.2em);
+    --_ui-card-loader-speed: var(--ui-card-loader-speed, 0.6s);
+    --_ui-card-loader-color: var(--ui-card-loader-color, var(--ui-text-muted));
+    --_ui-card-loader-track: var(--ui-card-loader-track, oklch(from var(--ui-ink) l c h / 0.1));
+    --_ui-card-loader-dimmer: var(--ui-card-loader-dimmer, oklch(from var(--ui-surface) l c h / 0.8));
+    --_ui-card-focus-width: var(--ui-card-focus-width, var(--ui-focus-width, 2px));
+  }
+  .ui.cards {
+    --_ui-cards-row-spacing: var(--ui-cards-row-spacing, 1.75em);
+    --_ui-cards-spacing: var(--ui-cards-spacing, 1em);
+    --_ui-cards-wide-spacing: var(--ui-cards-wide-spacing, 1em);
+    --_ui-cards-narrow-spacing: var(--ui-cards-narrow-spacing, 0.75em);
+    --_ui-cards-small-spacing: var(--ui-cards-small-spacing, 0.5em);
+    --_ui-cards-stackable-spacing: var(--ui-cards-stackable-spacing, 1em);
+    /* The group's layout, read by its cards:  a fixed card width until a count is given. */
+    --_cards-spacing: calc(var(--_ui-cards-spacing) / 2);
+    --_cards-row-spacing: var(--_ui-cards-row-spacing);
+    --_cards-width: initial;
+    --_cards-font-size: initial;
+  }
+
+  /*
+   * `none` for a shadow token:  the card draws ONE `box-shadow` list (ring, coloured edge, drop shadow),
+   * where a `none` item makes the whole list invalid -- the ring would go too.  So `none` (set on the DOM element or
+   * above: the query reads the card's parent) becomes an empty shadow.
+   */
+  @container style(--ui-card-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-shadow: 0 0 #0000;
+    }
+  }
+  @container style(--ui-card-hover-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-hover-shadow: 0 0 #0000;
+    }
+  }
+  @container style(--ui-card-raised-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-raised-shadow: 0 0 #0000;
+    }
+  }
+  @container style(--ui-card-raised-hover-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-raised-hover-shadow: 0 0 #0000;
+    }
+  }
+  @container style(--ui-card-border-shadow: none) {
+    .ui.card,
+    .ui.cards > .card {
+      --_ui-card-border-shadow: 0 0 #0000;
+    }
+  }
+
+  /*
+   * Owner tokens, ALWAYS declared (never left to inherit):  a plain card nested in an inverted one resets
+   * `--ui-inverted` to `0` and its layout to `vertical`.  Variations below override them in a later layer.
+   * - `--_ui-card-leading`:  `1` while the element renders a shorthand image / content block BEFORE its slot,
+   *   so the first slotted `<ui-content>` isn't the card's first child and keeps its rule (`UIParts.css`).
+   */
+  .ui.card,
+  .ui.cards > .card {
+    --ui-inverted: 0;
+    --_ui-card-layout: vertical;
+    --_ui-card-leading: 0;
+  }
+  :host > .ui.card:has(> .image, > .content) {
+    --_ui-card-leading: 1;
+  }
+
+  /* Card:  a flex column of images and content blocks. */
+  .ui.card,
+  .ui.cards > .card {
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: var(--_card-width, var(--_ui-card-width));
+    max-width: var(--_card-max-width, 100%);
+    min-width: var(--_card-min-width, 0);
+    min-height: 0;
+    margin: var(--_card-margin-top, var(--_ui-card-margin-block)) var(--_card-margin-inline, 0)
+      var(--_card-margin-bottom, var(--_ui-card-margin-block));
+    padding: 0;
+    border: none;
+    border-radius: var(--_ui-card-radius);
+    background: var(--_card-bg, var(--_ui-card-background));
+    /* Border, the coloured bottom line (transparent unless coloured), then the drop shadow. */
+    box-shadow:
+      var(--_card-border-shadow, var(--_ui-card-border-shadow)),
+      0 var(--_ui-card-colored-width) 0 0 var(--_card-accent, var(--ui-color, transparent)),
+      var(--_card-shadow, var(--_ui-card-shadow));
+    color: var(--_ui-card-color);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    overflow-wrap: break-word;
+    transition:
+      box-shadow var(--ui-duration-fast) var(--ui-ease),
+      transform var(--ui-duration-fast) var(--ui-ease);
+  }
+  /* Spacing between neighbours:  none before the first, none after the last. */
+  .ui.card:first-child {
+    --_card-margin-top: 0;
+  }
+  .ui.card:last-child {
+    --_card-margin-bottom: 0;
+  }
+  /* Shadow DOM:  the root is always an only child, so the DOM element's position decides. */
+  :host(:not(:first-child)) > .ui.card {
+    --_card-margin-top: initial;
+  }
+  :host(:not(:last-child)) > .ui.card {
+    --_card-margin-bottom: initial;
+  }
+  .ui.card a,
+  .ui.cards > .card a {
+    cursor: pointer;
+  }
+  /* A link card:  the whole card is the link;  its text keeps the card's colours. */
+  a.ui.card,
+  .ui.cards > a.card {
+    color: var(--_ui-card-color);
+    text-decoration: none;
+  }
+  a.ui.card:focus-visible,
+  .ui.cards > a.card:focus-visible {
+    outline: var(--_ui-card-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--_ui-card-focus-width);
+  }
+
+  /*
+   * What the card hands its content:  none of its own or its group's private tokens (they'd resize a nested
+   * card), no colour, no scale (see the header).
+   */
+  :is(.ui.card, .ui.cards > .card) > * {
+    --_card-width: initial;
+    --_card-max-width: initial;
+    --_card-min-width: initial;
+    --_card-margin-top: initial;
+    --_card-margin-bottom: initial;
+    --_card-margin-inline: initial;
+    --_card-bg: initial;
+    --_card-accent: initial;
+    --_card-border-shadow: initial;
+    --_card-shadow: initial;
+    --_cards-spacing: initial;
+    --_cards-row-spacing: initial;
+    --_cards-width: initial;
+    --_cards-font-size: initial;
+  }
+  .ui.card > slot,
+  .ui.cards > slot {
+    --ui-color: initial;
+    --ui-color-text: initial;
+    --ui-color-header: initial;
+    --ui-color-border: initial;
+    --ui-color-background: initial;
+    --ui-color-inverted: initial;
+    --ui-color-hover: initial;
+    --ui-color-focus: initial;
+    --ui-color-down: initial;
+    --ui-color-active: initial;
+    --ui-color-on: initial;
+    --ui-color-inverted-on: initial;
+    --ui-scale: initial;
+  }
+
+  /*******************************
+              Cards
+  *******************************/
+
+  /* A wrapping row;  negative margins take up the cards' outer spacing. */
+  .ui.cards {
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    margin: calc(var(--_cards-row-spacing) / -2) calc(var(--_cards-spacing) * -1);
+    padding: 0;
+  }
+
+  /* A card in a group:  the group's spacing and width. */
+  .ui.cards > .card,
+  :host(:state(in-cards)) > .ui.card {
+    margin: calc(var(--_cards-row-spacing) / 2) var(--_cards-spacing);
+    width: var(--_cards-width, var(--_card-width, var(--_ui-card-width)));
+    font-size: var(--_cards-font-size, calc(var(--ui-font-size) * var(--ui-scale, 1)));
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.card.content {
+  /* Images:  the `image` shorthand's box, a slotted `<img>`, static `.image`. */
+  .ui.card > .image,
+  .ui.cards > .card > .image {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    padding: 0;
+    background: var(--_ui-card-image-background);
+  }
+  .ui.card > .image > img,
+  .ui.cards > .card > .image > img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: none;
+    border-radius: inherit;
+  }
+  .ui.card > ::slotted(img) {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    background: var(--_ui-card-image-background);
+  }
+
+  /* Rounded edges:  the first box takes the top corners, the last the bottom ones. */
+  .ui.card > .image:first-child,
+  .ui.cards > .card > .image:first-child,
+  .ui.card > ::slotted(img:first-child) {
+    border-radius: var(--_ui-card-radius) var(--_ui-card-radius) 0 0;
+  }
+  .ui.card > .image:last-child,
+  .ui.cards > .card > .image:last-child,
+  .ui.card > ::slotted(img:last-child) {
+    border-radius: 0 0 var(--_ui-card-radius) var(--_ui-card-radius);
+  }
+  .ui.card > .image:only-child,
+  .ui.cards > .card > .image:only-child,
+  .ui.card > ::slotted(img:only-child) {
+    border-radius: var(--_ui-card-radius);
+  }
+
+  /* Static markup:  images inside content sit inline;  Fomantic's avatars. */
+  :is(.ui.card, .ui.cards > .card) .content img {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  :is(.ui.card, .ui.cards > .card) img.avatar,
+  :is(.ui.card, .ui.cards > .card) .avatar img {
+    width: 2em;
+    height: 2em;
+    border-radius: var(--ui-radius-circle);
+  }
+
+  /* Static markup:  paragraphs inside content. */
+  :is(.ui.card, .ui.cards > .card) > .content p {
+    margin: 0 0 0.5em;
+  }
+  :is(.ui.card, .ui.cards > .card) > .content p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Static markup:  floated and aligned content (elements carry their own `floated` / `text-align`). */
+  :is(.ui.card, .ui.cards > .card) [class*="left floated"] {
+    float: left;
+  }
+  :is(.ui.card, .ui.cards > .card) [class*="right floated"] {
+    float: right;
+  }
+  :is(.ui.card, .ui.cards > .card) [class*="left aligned"] {
+    text-align: left;
+  }
+  :is(.ui.card, .ui.cards > .card) [class*="center aligned"] {
+    text-align: center;
+  }
+  :is(.ui.card, .ui.cards > .card) [class*="right aligned"] {
+    text-align: right;
+  }
+
+  /* Static markup:  buttons along the card's edge. */
+  :is(.ui.card, .ui.cards > .card) > :is(.button, .buttons) {
+    width: calc(100% + 2 * var(--ui-border-width));
+    margin: 0 calc(var(--ui-border-width) * -1);
+  }
+  :is(.ui.card, .ui.cards > .card) > :is(.button, .buttons):last-child {
+    margin-bottom: calc(var(--ui-border-width) * -1);
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.card.variations {
+  /* Horizontal:  image and content side by side, the extra content spanning the bottom. */
+  .ui.horizontal.card,
+  .ui.horizontal.cards > .card,
+  .ui.cards > .horizontal.card {
+    --_ui-card-layout: horizontal;
+    --_card-width: var(--_ui-card-horizontal-width);
+    --_card-min-width: var(--_ui-card-horizontal-min-width);
+    flex-flow: row wrap;
+  }
+  :is(.ui.horizontal.card, .ui.horizontal.cards > .card, .ui.cards > .horizontal.card) > .image {
+    width: var(--_ui-card-horizontal-image-width);
+    border-radius: var(--_ui-card-radius) 0 0 var(--_ui-card-radius);
+  }
+  :is(.ui.horizontal.card, .ui.horizontal.cards > .card, .ui.cards > .horizontal.card) > .image > img {
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--_ui-card-radius) 0 0 var(--_ui-card-radius);
+  }
+  :is(.ui.horizontal.card, .ui.horizontal.cards > .card, .ui.cards > .horizontal.card) > .image:last-child > img {
+    border-radius: 0 var(--_ui-card-radius) var(--_ui-card-radius) 0;
+  }
+  .ui.horizontal.card > ::slotted(img) {
+    width: var(--_ui-card-horizontal-image-width);
+    object-fit: cover;
+    border-radius: var(--_ui-card-radius) 0 0 var(--_ui-card-radius);
+  }
+  .ui.horizontal.card > ::slotted(img:last-child) {
+    border-radius: 0 var(--_ui-card-radius) var(--_ui-card-radius) 0;
+  }
+
+  /* Raised:  lifted off the page. */
+  .ui.raised.card,
+  .ui.raised.cards > .card,
+  .ui.cards > .raised.card {
+    --_card-shadow: var(--_ui-card-raised-shadow);
+  }
+
+  /* Basic:  no border or shadow (unless raised). */
+  .ui.basic.card:not(.raised),
+  .ui.basic.cards:not(.raised) > .card:not(.raised),
+  .ui.cards:not(.raised) > .basic.card:not(.raised) {
+    --_card-border-shadow: 0 0 #0000;
+    --_card-shadow: 0 0 #0000;
+    --_card-accent: transparent;
+  }
+  :is(.ui.basic.card, .ui.basic.cards > .card, .ui.cards > .basic.card) > :is(.button, .buttons) {
+    width: 100%;
+    margin: 0;
+  }
+  .ui.basic.raised.card,
+  .ui.basic.raised.cards > .card,
+  .ui.basic.cards > .raised.card,
+  .ui.raised.cards > .basic.card {
+    --_card-border-shadow: 0 0 #0000;
+  }
+  /* A coloured basic card:  a tinted fill (an uncoloured one keeps the card background). */
+  .ui.basic.card,
+  .ui.basic.cards > .card,
+  .ui.cards > .basic.card {
+    --_card-bg: var(--ui-color-background, var(--_ui-card-background));
+  }
+
+  /* Centered */
+  .ui.centered.card {
+    --_card-margin-inline: auto;
+  }
+  .ui.centered.cards {
+    justify-content: center;
+  }
+
+  /* Fluid:  the container's width. */
+  .ui.fluid.card {
+    --_card-width: 100%;
+    --_card-max-width: none;
+  }
+
+  /* Link:  rises on hover. */
+  .ui.link.card:hover,
+  a.ui.card:hover,
+  .ui.link.cards > .card:hover,
+  .ui.cards > a.card:hover {
+    --_card-border-shadow: 0 0 0 var(--ui-border-width) var(--_ui-card-hover-border-color);
+    --_card-shadow: var(--_ui-card-hover-shadow);
+    --_card-accent: var(--ui-color-hover, transparent);
+    z-index: 5;
+    cursor: pointer;
+    transform: translateY(calc(var(--_ui-card-link-raise) * -1));
+  }
+  .ui.link.raised.card:hover,
+  a.ui.raised.card:hover,
+  .ui.link.raised.cards > .card:hover,
+  .ui.raised.cards > a.card:hover,
+  .ui.link.cards > .raised.card:hover {
+    --_card-shadow: var(--_ui-card-raised-hover-shadow);
+  }
+  :is(.ui.link.basic.card, a.ui.basic.card, .ui.link.basic.cards > .card):not(.raised):hover {
+    --_card-border-shadow: 0 0 #0000;
+    --_card-shadow: 0 0 #0000;
+    --_card-bg: oklch(from var(--ui-color-background, var(--_ui-card-background)) calc(l - 0.03) c h);
+  }
+
+  /*
+   * Dashed (ours, not Fomantic's):  a placeholder.  The ring is a box-shadow, which can't dash, so a dashed OUTLINE
+   * takes its place (outside the box, as the ring is) and the drop shadow goes, unless `raised`:  flat,
+   * a link card's hover included (it still rises).  Focus keeps its own outline.
+   */
+  .ui.dashed.card:not(.raised) {
+    --_card-shadow: 0 0 #0000;
+  }
+  .ui.dashed.card:is(*, :hover) {
+    --_card-border-shadow: 0 0 #0000;
+  }
+  .ui.dashed.card:not(:focus-visible) {
+    outline: var(--ui-border-width) dashed var(--_ui-card-border-color);
+  }
+
+  /* Inverted:  the dark scheme, for the card and everything in it. */
+  .ui.inverted.card,
+  .ui.inverted.cards > .card,
+  .ui.cards > .inverted.card {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    color-scheme: dark;
+  }
+  :is(.ui.inverted.basic.card, .ui.inverted.basic.cards > .card) {
+    --_card-bg: var(--ui-color, var(--_ui-card-background));
+  }
+
+  /* Card count:  N cards to a row, spacing by count (Fomantic's `@wideCardSpacing` ... `@smallCardSpacing`). */
+  .ui.one.cards {
+    --_cards-spacing: 0px;
+    --_cards-width: 100%;
+  }
+  .ui.two.cards {
+    --_cards-spacing: var(--_ui-cards-wide-spacing);
+    --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+  }
+  .ui.three.cards {
+    --_cards-spacing: var(--_ui-cards-wide-spacing);
+    --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+  }
+  .ui.four.cards {
+    --_cards-spacing: var(--_ui-cards-narrow-spacing);
+    --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
+  }
+  .ui.five.cards {
+    --_cards-spacing: var(--_ui-cards-narrow-spacing);
+    --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+  }
+  .ui.six.cards {
+    --_cards-spacing: var(--_ui-cards-narrow-spacing);
+    --_cards-width: calc(100% / 6 - 2 * var(--_cards-spacing));
+  }
+  .ui.seven.cards {
+    --_cards-spacing: var(--_ui-cards-small-spacing);
+    --_cards-width: calc(100% / 7 - 2 * var(--_cards-spacing));
+  }
+  .ui.eight.cards {
+    --_cards-spacing: var(--_ui-cards-small-spacing);
+    --_cards-width: calc(100% / 8 - 2 * var(--_cards-spacing));
+    --_cards-font-size: calc(var(--ui-font-size) * 0.6875);
+  }
+  .ui.nine.cards {
+    --_cards-spacing: var(--_ui-cards-small-spacing);
+    --_cards-width: calc(100% / 9 - 2 * var(--_cards-spacing));
+    --_cards-font-size: calc(var(--ui-font-size) * 0.625);
+  }
+  .ui.ten.cards {
+    --_cards-spacing: var(--_ui-cards-small-spacing);
+    --_cards-width: calc(100% / 10 - 2 * var(--_cards-spacing));
+  }
+
+  /*
+   * Responsive, by the GROUP's width (`ui-cards` container):  mobile < 768px, tablet 768..991px.
+   * - Doubling:  fewer cards to a row (Fomantic's counts per range);  stackable:  one card to a row.
+   */
+  @container ui-cards (width < 768px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.doubling.two.cards:not(.stack-with-page) {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four, .five, .six).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.seven, .eight, .nine, .ten).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      /* `.ui.ui`:  stackable beats doubling (Fomantic's `!important`). */
+      .ui.ui.stackable.cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-stackable-spacing);
+        --_cards-row-spacing: calc(var(--_ui-cards-stackable-spacing) * 2);
+        --_cards-width: calc(100% - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.doubling.two.cards.stack-with-container {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four, .five, .six).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.seven, .eight, .nine, .ten).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.ui.stackable.cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-stackable-spacing);
+        --_cards-row-spacing: calc(var(--_ui-cards-stackable-spacing) * 2);
+        --_cards-width: calc(100% - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+    }
+  }
+  @media (--ui-mobile) {
+    @container style(--ui-stack-with: page) {
+      .ui.doubling.two.cards:not(.stack-with-container) {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four, .five, .six).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.seven, .eight, .nine, .ten).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.ui.stackable.cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-stackable-spacing);
+        --_cards-row-spacing: calc(var(--_ui-cards-stackable-spacing) * 2);
+        --_cards-width: calc(100% - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.doubling.two.cards.stack-with-page {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four, .five, .six).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.seven, .eight, .nine, .ten).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.ui.stackable.cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-stackable-spacing);
+        --_cards-row-spacing: calc(var(--_ui-cards-stackable-spacing) * 2);
+        --_cards-width: calc(100% - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+    }
+  }
+  @container ui-cards (768px <= width < 992px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.doubling.two.cards:not(.stack-with-page) {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.five, .six).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.eight, .nine).cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.doubling.ten.cards:not(.stack-with-page) {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.doubling.two.cards.stack-with-container {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.five, .six).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.eight, .nine).cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.doubling.ten.cards.stack-with-container {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+      }
+    }
+  }
+  @media (--ui-tablet) {
+    @container style(--ui-stack-with: page) {
+      .ui.doubling.two.cards:not(.stack-with-container) {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.five, .six).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.eight, .nine).cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.doubling.ten.cards:not(.stack-with-container) {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.doubling.two.cards.stack-with-page {
+        --_cards-spacing: 0px;
+        --_cards-width: 100%;
+      }
+      .ui.doubling:is(.three, .four).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 2 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.five, .six).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-wide-spacing);
+        --_cards-width: calc(100% / 3 - 2 * var(--_cards-spacing));
+      }
+      .ui.doubling:is(.eight, .nine).cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 4 - 2 * var(--_cards-spacing));
+        --_cards-font-size: initial;
+      }
+      .ui.doubling.ten.cards.stack-with-page {
+        --_cards-spacing: var(--_ui-cards-narrow-spacing);
+        --_cards-width: calc(100% / 5 - 2 * var(--_cards-spacing));
+      }
+    }
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.card.states {
+  /* Disabled:  faded and inert. */
+  .ui.disabled.card,
+  .ui.cards > .disabled.card {
+    color: var(--ui-text-disabled);
+    opacity: var(--_ui-card-disabled-opacity);
+    pointer-events: none;
+  }
+
+  /* Loading:  dimmed under a spinner. */
+  .ui.loading.card,
+  .ui.cards > .loading.card {
+    cursor: default;
+    pointer-events: none;
+    transition: none;
+  }
+  :is(.ui.loading.card, .ui.cards > .loading.card)::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--_ui-card-radius);
+    background: var(--_ui-card-loader-dimmer);
+  }
+  :is(.ui.loading.card, .ui.cards > .loading.card)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 101;
+    box-sizing: border-box;
+    width: var(--_ui-card-loader-size);
+    height: var(--_ui-card-loader-size);
+    margin: calc(var(--_ui-card-loader-size) / -2) 0 0 calc(var(--_ui-card-loader-size) / -2);
+    border: var(--_ui-card-loader-width) solid var(--_ui-card-loader-track);
+    border-top-color: var(--_ui-card-loader-color);
+    border-radius: var(--ui-radius-circle);
+    animation: ui-card-spin var(--_ui-card-loader-speed) linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :is(.ui.loading.card, .ui.cards > .loading.card)::after {
+      animation-duration: calc(var(--_ui-card-loader-speed) * 4);
+    }
+  }
+}

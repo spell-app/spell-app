@@ -1,30 +1,32 @@
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { flagVocabulary } from "./ui-flag.vocabulary.en"
+import { flagVocabulary } from "./UIFlag.vocabulary.en"
 import { FlagCountry } from "./FlagCountry"
-import { FlagFallback } from "./ui-flag.fallback"
-import { REGION } from "./ui-flag.types"
 
-import flagCSS from "./ui-flag.css?inline"
+import flagCSS from "./UIFlag.css?inline"
 
 /****************
- * ### `<ui-flag>`
- * A country flag:  `<span class="ui [size] flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`.
- * - The glyph is the Unicode flag emoji of `country` (`FlagCountry`);  no sprite, no per-country CSS.
- * - The resolved code is also a class word after the noun (`fr`, `gb-eng`;  none when unknown):  Fomantic's own
- *   `fr flag` grammar, which a page's own CSS may select on.
- * - Name:  `UI.i18n.displayName("region", …)` for a country, which follows `UI.i18n.locale`;  the vocabulary's
- *   texts for the rainbow, pirate, England ... flags.
- * - Unknown country:  an EMPTY root with no role (an unnamed `role=img` fails axe), which keeps its line box.
- * - Host is `display: contents`:  the span IS the inline box, where Fomantic's `<i class="fr flag">` sat.
+ * ### `UIFlag`
+ * The component behind `<ui-flag>`:  a country's flag, drawn as its Unicode emoji.
+ *
+ * - Its shadow DOM is one span:
+ *   `<span class="ui [size] flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`.
+ *   The element is `display: contents`:  the span IS the inline box, where Fomantic's `<i class="fr flag">` sat.
+ *
+ * - The glyph is the Unicode flag emoji of `country` (`FlagCountry`):  no sprite, no per-country CSS.
+ * - The resolved code is also a class word after the noun (`fr`, `gb-eng`;  none when unknown):
+ *   Fomantic's own `fr flag` grammar, which a page's own CSS may select on.
+ * - The name:  `UI.i18n.displayName("region", …)` for a country, which follows `UI.i18n.locale`;
+ *   the vocabulary's texts for the rainbow, pirate, England … flags.
+ * - An unknown country:  an EMPTY box with no role (an unnamed `role=img` fails axe), which keeps its line box.
  ****************/
-export class UIFlag extends E.UIElement<typeof flagVocabulary> {
+export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
   @E.proto static vocabulary = flagVocabulary
   @E.proto static styleSheets = { flag: flagCSS }
-  @E.proto static elementSetup = { Fallback: FlagFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  /** `country` resolved. */
+  /** `country`, resolved. */
   @E.derived
   get resolvedCountry(): FlagCountry {
     return new FlagCountry(this.country)
@@ -32,8 +34,8 @@ export class UIFlag extends E.UIElement<typeof flagVocabulary> {
 
   /**
    * Accessible name, `undefined` when unknown.
-   * - Computed on first read:  reads `UI.i18n`, which exists only once the runtime has loaded -- i.e. by first
-   *   render.
+   * - Computed on first read:  reads `UI.i18n`, which exists only once the runtime has loaded -- i.e.
+   *   by first render.
    */
   @E.derived
   get accessibleName(): string | undefined {
@@ -61,5 +63,8 @@ export class UIFlag extends E.UIElement<typeof flagVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIFlag extends E.AttributeValues<typeof flagVocabulary> {}
+
+/** The `Intl.DisplayNames` type of a country code. */
+const REGION = "region"

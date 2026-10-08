@@ -1,1 +1,0 @@
-import{t as e}from"./ui-ad-CXAmfwy-.js";export{e as UIAd};

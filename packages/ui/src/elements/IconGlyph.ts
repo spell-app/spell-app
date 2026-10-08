@@ -39,7 +39,7 @@ export class IconGlyph {
     this.owner = owner
     this.name = name
     if (isServer) return
-    this.svgTemplate = untrack(() => IconGlyph.peek(owner.host, name()))
+    this.svgTemplate = untrack(() => IconGlyph.peek(owner.domElement, name()))
     // stays explicit:  it reads its OWNER's members and a page-wide static, not this record's
     createEffect(
       () => ({ name: name(), connected: owner.isConnected, generation: E.RootSettings.generation }),
@@ -56,7 +56,7 @@ export class IconGlyph {
    */
   @derived
   get svg(): SVGSVGElement | undefined {
-    if (isServer) return IconGlyph.serverSvg(this.owner.host, untrack(this.name))
+    if (isServer) return IconGlyph.serverSvg(this.owner.domElement, untrack(this.name))
     const template = this.svgTemplate
     return template ? IconGlyph.draw(template) : undefined
   }
@@ -69,7 +69,7 @@ export class IconGlyph {
     const request = ++this.request
     const template = name
       ? await UI.load()
-          .then((ui) => IconGlyph.packsFor(this.owner.host, ui.icons).get(name))
+          .then((ui) => IconGlyph.packsFor(this.owner.domElement, ui.icons).get(name))
           .catch(() => undefined)
       : undefined
     if (this.request === request) this.svgTemplate = template
@@ -117,7 +117,9 @@ export class IconGlyph {
     return ssr([markup.replace(SVG_OPEN, `<svg ${ARIA_HIDDEN}="${TRUE}"`)]) as unknown as SVGSVGElement
   }
 
-  /** Cached template for `name` as `element` sees it, or `undefined` -- also before the runtime loads (or on a server). */
+  /**
+   * Cached template for `name` as `element` sees it, or `undefined` -- also before the runtime loads (or on a server).
+   */
   private static peek(element: Element, name: string | undefined): SVGSVGElement | undefined {
     const page = (globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]?.icons
     return name && page ? IconGlyph.packsFor(element, page).peek(name) : undefined
@@ -135,8 +137,8 @@ export type IconGlyphProps = {
 /** What an `IconGlyph` needs of the component drawing it. */
 export type IconGlyphOwner = {
   /** its element:  where the climb to the nearest `<ui-root icons>` starts */
-  readonly host: Element
-  /** whether it's in the document (`UIElement.isConnected`):  a reconnect may mean another root */
+  readonly domElement: Element
+  /** whether it's in the document (`UIComponent.isConnected`):  a reconnect may mean another root */
   readonly isConnected: boolean
 }
 

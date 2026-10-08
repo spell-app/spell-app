@@ -12,7 +12,7 @@ export class Viewport {
   static async resize(width: number, height = 900) {
     const [previousWidth, previousHeight] = [window.innerWidth, window.innerHeight]
     // a frame first, so what the test just rendered has been styled:  WebKit kept a just-inserted grid's `@media`
-    // results from BEFORE the resize when its style had never been resolved (measured, `ui-grid.test.tsx`)
+    // results from BEFORE the resize when its style had never been resolved (measured, `UIGrid.test.tsx`)
     await Viewport.frame()
     await page.viewport(width, height)
     onTestFinished(() => page.viewport(previousWidth, previousHeight))

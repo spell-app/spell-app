@@ -77,7 +77,7 @@ describe("AccordionPanels.format()", () => {
   })
 })
 
-/** A detached host holding `html`. */
+/** A detached `<div>` holding `html`. */
 function hostOf(html: string): HTMLElement {
   const host = document.createElement("div")
   host.innerHTML = html

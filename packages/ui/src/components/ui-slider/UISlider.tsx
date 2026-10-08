@@ -4,47 +4,61 @@ import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { sliderVocabulary } from "./ui-slider.vocabulary.en"
-import { SliderFallback } from "./ui-slider.fallback"
+import { sliderVocabulary } from "./UISlider.vocabulary.en"
+import { SliderFallback } from "./UISlider.fallback"
 import { SliderScale } from "./SliderScale"
-import { DEFAULT_MAX, DEFAULT_MIN, DEFAULT_STEP } from "./ui-slider.types"
+import { DEFAULT_MAX, DEFAULT_MIN, DEFAULT_STEP } from "./UISlider.types"
 
-import sliderCSS from "./ui-slider.css?inline"
+import sliderCSS from "./UISlider.css?inline"
 
 /****************
- * ### `<ui-slider>`
- * A slider in Fomantic's markup:  `<div class="ui … slider" part="slider">` around `<div class="inner">` (track,
- * track fill, one or two `thumb`s) and, when `labeled` or `ticked`, `<ul class="auto labels">` (empty labels when only
- * `ticked`:  the sheet draws their ticks).  Labels come every `tick-step` (default `step`).
- * - Thumbs are APG sliders (`role=slider`, `aria-value*`, `aria-orientation`):  no native element has two thumbs or
- *   Fomantic's parts.  A `range`'s thumbs are "Minimum" / "Maximum" inside a `group` named for the host, and each
- *   bounds the other (`preventCrossover`).  The labels are `aria-hidden`:  the thumbs speak their values.
- * - Keys (on a thumb):  arrows step in the direction they point, as Fomantic's (so a `reversed` or `vertical`
- *   slider's arrows follow the thumb, not "right / up increases");  PageUp / PageDown take 2 steps (Fomantic's
- *   `pageMultiplier`);  Home / End go to the thumb's lowest / highest value.  Each key is `ui-input` then `ui-change`.
- * - Pointer:  pressing the track moves the nearest thumb there, dragging follows (pointer capture);  `ui-input` per
- *   new value, `ui-change` once when the drag ends somewhere new.  `smooth` lets the thumb glide between steps.
- * - `value` / `end` are auto-controlled (`@controlled`):  a handler of `ui-input` that re-sets them wins.  The
- *   ATTRIBUTES are the starting (and reset) values.
- * - Positions are CSS:  the element writes ratios (`--_slider-at` per thumb and label, `--_slider-from` /
- *   `--_slider-to` on the inner box) and `ui-slider.css` places everything, `reversed` / `vertical` included.
- * - Form:  `value`;  a `range` submits TWO entries under `name` (`FormData.getAll(name)` ~== `[value, end]`), per
- *   `FormElement`'s multi-value convention.  Restores a saved state (back / forward cache, autofill).
+ * ### `UISlider`
+ * The component behind `<ui-slider>`:  a slider, to choose a number (or, with `range`, two) by dragging a thumb.
+ *
+ * - Its shadow DOM, in Fomantic's markup:
+ *   `<div class="ui … slider" part="slider">` around `<div class="inner">` (the track, its fill, one or two `thumb`s)
+ *   and, when `labeled` or `ticked`, `<ul class="auto labels">` (empty labels when only `ticked`:
+ *   the sheet draws their ticks).  Labels come every `tick-step` (default `step`).
+ *
+ * - The thumbs are APG sliders (`role=slider`, `aria-value*`, `aria-orientation`):
+ *   no native element has two thumbs, or Fomantic's parts.
+ *   A `range`'s thumbs are "Minimum" / "Maximum", inside a `group` named for the DOM element,
+ *   and each bounds the other (`preventCrossover`).
+ *   The labels are `aria-hidden`:  the thumbs speak their values.
+ *
+ * - Keys (on a thumb):
+ *   - arrows step in the direction they point,
+ *     as Fomantic's (so a `reversed` or `vertical` slider's arrows follow the thumb, not "right / up increases")
+ *   - PageUp / PageDown take 2 steps (Fomantic's `pageMultiplier`)
+ *   - Home / End go to the thumb's lowest / highest value
+ *   - each key sends `ui-input`, then `ui-change`.
+ * - Pointer:  pressing the track moves the nearest thumb there, and dragging follows (pointer capture);
+ *   `ui-input` for each new value, `ui-change` once when the drag ends somewhere new.
+ *   `smooth` lets the thumb glide between steps.
+ *
+ * - `value` / `end` are controlled (`@controlled`):  a `ui-input` handler that sets them again wins.
+ *   The ATTRIBUTES are the starting (and reset) values.
+ * - Positions are CSS:  the component writes ratios (`--_slider-at` per thumb and label,
+ *   `--_slider-from` / `--_slider-to` on the inner box), and `UISlider.css` places everything,
+ *   `reversed` / `vertical` included.
+ * - A form control:  it submits `value`;  a `range` submits TWO entries under `name`
+ *   (`FormData.getAll(name)` ~== `[value, end]`), per `FormComponent`'s multi-value convention.
+ *   It restores a saved state (back / forward cache, autofill).
  ****************/
-export class UISlider extends F.FormElement<typeof sliderVocabulary> {
+export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   @E.proto static vocabulary = sliderVocabulary
   @E.proto static styleSheets = { slider: sliderCSS }
-  @E.proto static elementSetup = { Fallback: SliderFallback }
+  @E.proto static elementSetup = { Fallback: SliderFallback } satisfies Partial<E.ElementSetup>
 
-  /** Host `<label>`s and `aria-label`, as the thumb's (or range group's) name. */
-  readonly labels = new F.ControlLabels(this.formHost)
+  /** The DOM element's `<label>`s and `aria-label`, as the thumb's (or range group's) name. */
+  readonly labels = new F.ControlLabels(this.domFormElement)
 
   /** The inner box:  track, fill, thumbs. */
   private inner?: HTMLElement
 
-  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
+  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
-    this.host.addEventListener("click", this.onHostClick)
+    this.domElement.addEventListener("click", this.onDOMElementClick)
     onFormStateRestore((state) => this.onFormStateRestored(state))
   }
 
@@ -52,10 +66,10 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
   // ## Values
   ////////////////
 
-  /** `value`:  the host's property, else `min`. */
+  /** `value`:  set by the page, or moved;  `min` until either. */
   @E.controlled("value") accessor value: number | undefined = undefined
 
-  /** `end`:  the host's property, else `max`. */
+  /** `end`:  set by the page, or moved;  `max` until either. */
   @E.controlled("end") accessor end: number | undefined = undefined
 
   /** The number line. */
@@ -106,8 +120,9 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
   }
 
   /**
-   * Move `thumb` to `value` (within its bounds) as a person would:  `ui-input` first, then the host property, unless a
-   * handler re-set it.  Returns true when the value changed.
+   * Move `thumb` to `value` (within its bounds) as a person would:  send `ui-input`,
+   * then set the DOM element's property, unless a handler set it first.
+   * - Returns true when the value changed.
    */
   private move(thumb: Thumb, value: number, originalEvent: Event): boolean {
     const [low, high] = untrack(() => this.bounds(thumb))
@@ -164,7 +179,7 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
     this.end = E.Converters.number(this.attributes.end)
   }
 
-  /** A saved state:  one value, or a range's two entries.  `null`:  the fork's callback, a platform boundary. */
+  /** A saved state:  one value, or a range's two entries.  `null`:  solid-element's callback, a platform boundary. */
   private onFormStateRestored(state: File | string | FormData | null) {
     const values =
       state instanceof FormData ? [...state.values()].map(String) : typeof state === "string" ? [state] : []
@@ -176,7 +191,7 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
   // ## Track and labels
   ////////////////
 
-  /** Length of the track in px, for label spacing;  `0` until measured. */
+  /** The length of the track in px, for label spacing;  `0` until measured. */
   @E.state accessor trackLength = 0
 
   /** Adds the track measurement (label spacing) while `labeled`. */
@@ -186,22 +201,22 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
       (labeled) => {
         if (!labeled) return
         const observer = new ResizeObserver(() => this.measure())
-        observer.observe(this.host)
+        observer.observe(this.domElement)
         return () => observer.disconnect()
       }
     )
     return super.onMount()
   }
 
-  /** Connected:  refresh the name from the host's labels. */
+  /** Connected:  read the name from the DOM element's labels again. */
   @E.onChange("isConnected")
   protected onConnectedChanged(isConnected: boolean) {
     if (isConnected) this.labels.refresh()
   }
 
   /**
-   * Track length from the HOST's box (always there, unlike the inner box before the first render):  its size less
-   * the slider's padding and a thumb, read from the rendered root when there is one.
+   * Track length from the DOM element's box (always there, unlike the inner box before the first render):
+   * its size less the slider's padding and a thumb, read from the rendered root when there is one.
    */
   private measure() {
     const vertical = untrack(() => this.vertical)
@@ -211,8 +226,8 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
         ? inner.clientHeight
         : inner.clientWidth
       : vertical
-        ? this.host.clientHeight
-        : this.host.clientWidth
+        ? this.domElement.clientHeight
+        : this.domElement.clientWidth
     this.trackLength = length
   }
 
@@ -295,8 +310,8 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/static`):  the `STATIC_CONTROL` mark on `target` when the host's name belongs to it --
-   * a single slider's thumb, a range's group;  `{}` in a browser.
+   * Server render only (`$/ui/static`):  the `STATIC_CONTROL` mark on `target`,
+   * when the DOM element's name belongs to it (a single slider's thumb, a range's group);  `{}` in a browser.
    */
   private staticMark(target: Thumb | typeof UIT.GROUP): Record<string, unknown> {
     if (!isServer) return {}
@@ -305,8 +320,8 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/static`):  the value as hidden inputs (two for a `range`), so a static form submits
-   * it without JS;  in a browser the HOST submits (`ElementInternals`).
+   * Server render only (`$/ui/static`):  the value as hidden inputs (two for a `range`),
+   * so a static form submits it without script;  in a browser the DOM element submits (`ElementInternals`).
    */
   private staticValues(): JSX.Element {
     const name = this.name
@@ -319,7 +334,10 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
     )
   }
 
-  /** A single thumb is named for the host;  a range's are "Minimum" / "Maximum" (the group has the host's name). */
+  /**
+   * A single thumb is named for the DOM element;
+   * a range's are "Minimum" / "Maximum" (the group has the DOM element's name).
+   */
   private thumbName(thumb: Thumb): string | undefined {
     if (!this.range) return this.labels.accessibleName
     return this.translationForKey(thumb === SECOND ? "sliderMaximum" : "sliderMinimum")
@@ -480,12 +498,14 @@ export class UISlider extends F.FormElement<typeof sliderVocabulary> {
     return 0
   }
 
-  /** A click aimed at the HOST itself (its `<label for>`) focuses the first thumb. */
-  private readonly onHostClick = (event: MouseEvent) => {
-    if (event.composedPath()[0] !== this.host || this.isDisabled) return
+  /** A click aimed at the DOM element itself (its `<label for>`) focuses the first thumb. */
+  private readonly onDOMElementClick = (event: MouseEvent) => {
+    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
     this.inner?.querySelector<HTMLElement>(THUMB_SELECTOR)?.focus()
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UISlider extends E.AttributeValues<typeof sliderVocabulary> {}
 
 /** A thumb:  the first (`value`) or, in a range, the second (`end`);  also its index among the thumbs. */
@@ -530,7 +550,7 @@ const LABELS = "auto labels"
 /** Classes of a label too crowded to show in full:  a half tick. */
 const HALF_TICK_LABEL = "halftick label"
 
-/** Custom property `ui-slider.css` places a thumb or label by:  its ratio along the track. */
+/** Custom property `UISlider.css` places a thumb or label by:  its ratio along the track. */
 const AT = "--_slider-at"
 
 /** Custom property of the fill's start ratio. */

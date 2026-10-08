@@ -3,25 +3,25 @@ import { Marked, type Tokens } from "marked"
 // Import directly:  see the class docs
 import { SourceError } from "$/ui/runtime/runtime.types"
 
-import type { MarkdownHeading, MarkdownOptions, MarkdownResult } from "./ui-markdown.types"
+import type { MarkdownHeading, MarkdownOptions, MarkdownResult } from "./UIMarkdown.types"
 
 /****************
  * ### `MarkdownEngine`
  * marked, in `<ui-markdown>`'s LAZY chunk:  imported by `MarkdownRenderer` on the first render, so a page pays for it
  * only when it shows markdown.
  * - GitHub-flavoured (`gfm`):  tables, task lists, strikethrough, autolinks.
- * - Headings get GitHub's ids (`slug()`:  lowercase, punctuation dropped, spaces to `-`, repeats numbered), so
- *   `[see](#setup)` links work;  `headingOffset` shifts their levels.
+ * - Headings get GitHub's ids (`slug()`:  lowercase, punctuation dropped, spaces to `-`, repeats numbered),
+ *   so `[see](#setup)` links work;  `headingOffset` shifts their levels.
  * - Returns MARKUP, never sanitized:  the element sanitizes it when `sanitized`, in a chunk of its own
  *   (`MarkdownSanitizer`).
  * - The element turns code blocks into `<ui-code>` and resolves URLs.
  * - NEVER a value import but marked and `SourceError`:  the docs bundler builds this file ALONE into a
  *   classic script (`MarkdownRenderer.engineLoader`).
- * - Imports `SourceError` straight from `$/ui/runtime/runtime.types` (built into `core.js`), and USES it:  a lazy
- *   chunk that needs Rolldown's helpers (`__name`, from `keepNames`) without depending on core makes Rolldown split
- *   them into a `rolldown-runtime-<hash>.js` EVERY page loads (`yarn measure`'s `runtimeChunks`;  see
- *   `runtime/TemporalPolyfill.ts`).  Straight, not through `$/ui/core`:  the docs bundler builds this file alone, and
- *   `runtime.types` is all it may pull in.
+ * - Imports `SourceError` straight from `$/ui/runtime/runtime.types` (built into `core.js`), and USES it:
+ *   a lazy chunk that needs Rolldown's helpers (`__name`, from `keepNames`) without depending on core makes Rolldown
+ *   split them into a `rolldown-runtime-<hash>.js` EVERY page loads (`yarn measure`'s `runtimeChunks`;
+ *   see `runtime/TemporalPolyfill.ts`).  Straight, not through `$/ui/core`:  the docs bundler builds this file alone,
+ *   and `runtime.types` is all it may pull in.
  ****************/
 export class MarkdownEngine {
   /** The one engine:  static, as it keeps no state and every element shares it. */

@@ -1,16 +1,15 @@
 import type { SiteDataFile, SiteToken } from "$/ui/docs-components/docs-components.types"
 import { SiteData } from "$/ui/docs-components/SiteData"
-import type { TokenPattern, TokenRowsText, TokenTable, TokenView, TokenViewParams } from "./ui-docs-tokens.types"
+import type { TokenPattern, TokenRowsText, TokenTable, TokenView, TokenViewParams } from "./UIDocsTokens.types"
 
 /****************
  * ### `TokenRows`
- * What `<ui-docs-tokens>` shows, from the site's data and its attributes:  the tables and their rows, or the message
- * to show instead.  Pure (no DOM, no Solid), so the element and the native fallback share it and tests drive it
- * directly.
+ * What `<ui-docs-tokens>` shows, from the site's data and its attributes:
+ * the tables and their rows, or the message to show instead.
+ * - Pure and STATIC (no DOM, no Solid), so tests drive it directly.
  * - A family:  `families[folder].tokens`, as one table;  `tag` finds the folder through `SiteData.family()`.
  * - `global`:  `foundation`, one table per group, `groups` picking some.
  * - Then `tokens` (names, `prefix*`) and the filter text narrow the rows;  a table left with none is dropped.
- * - Static:  pure, and shared by the element and its fallback.
  ****************/
 export class TokenRows {
   /**

@@ -57,7 +57,7 @@ describe("ComponentDefinitions", () => {
   })
 })
 
-describe("UIElement.describe()", () => {
+describe("UIComponent.describe()", () => {
   it("exposes the whole vocabulary live on the class", () => {
     expect(library.UIButton.describe().tag).toBe("ui-button")
     expect(library.UIButton.describe().topics).toContain("buttons")

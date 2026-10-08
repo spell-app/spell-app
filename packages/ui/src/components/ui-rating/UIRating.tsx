@@ -4,41 +4,71 @@ import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { ratingVocabulary } from "./ui-rating.vocabulary.en"
-import { RatingFallback } from "./ui-rating.fallback"
-import { RatingHost } from "./RatingHost"
-import { DEFAULT_MAX, RADIO, RADIOGROUP } from "./ui-rating.types"
+import { ratingVocabulary } from "./UIRating.vocabulary.en"
+import { RatingFallback } from "./UIRating.fallback"
+import { DEFAULT_MAX, RADIO, RADIOGROUP } from "./UIRating.types"
 
-import ratingCSS from "./ui-rating.css?inline"
+import ratingCSS from "./UIRating.css?inline"
 
 /****************
- * ### `<ui-rating>`
- * A rating as an APG radio group:  `<fieldset class="ui … rating" part="rating" role="radiogroup">` holding one
- * `<label class="[active] [partial] [selected] icon" part="icon">` per point, each around a native radio
- * (`part="control"`, invisible, over the glyph) and the icon's `<svg>`.
- * - Why native radios in one shadow root:  they ARE a radio group -- one Tab stop (the chosen one, else the first),
- *   arrows move and choose (wrapping, as APG), Space chooses -- and each carries its own name ("3 of 5").  Home /
- *   End choose the first / last;  Backspace / Delete clear when `clearable`.
- * - `value` is auto-controlled (`@controlled`):  a choice dispatches `ui-change` first;  a handler that re-sets
- *   `el.value` wins and the radios show the host's value again.  The ATTRIBUTE is the starting (and reset) value.
- * - Fractions (`value="3.5"`) fill part of the next icon (Fomantic's `partial`, `--full`) -- display:  no radio is
- *   chosen, and the group's `aria-description` says "Rated 3.5 of 5".  A person's choice is always whole.
- * - `clearable`:  choosing the current rating again clears it (Fomantic's `clearable`;  `auto` ~== one icon).
- * - Hover previews a choice (`selected` icons, `selected` root), as Fomantic's JS did.
- * - `readonly` (Fomantic's `interactive: false`):  focusable, announced read-only, nothing changes it.  `disabled`:
- *   a disabled fieldset -- out of the tab order and the form.
- * - Form:  `value` while above 0;  `required` needs one.  Named by the host's `<label for>` / `aria-label`
- *   (`ControlLabels`).
+ * ### `DOMRatingElement`
+ * The DOM element of `<ui-rating>`:  a form control's DOM element (`DOMFormControlElement`),
+ * whose `focus()` goes to the group's TAB STOP.
+ *
+ * - Why:  `delegatesFocus` hands a plain `focus()` to the shadow root's FIRST focusable element (radio 1),
+ *   even when radio 3 is chosen.  Tab and `<label for>` already reach the chosen one.
+ * - solid-element refuses a DOM element member named like a prop:  `focus` is not one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIRating extends F.FormElement<typeof ratingVocabulary> {
+export class DOMRatingElement extends F.DOMFormControlElement {
+  /** Focus the chosen radio, else the first. */
+  override focus(options?: FocusOptions) {
+    if (!this.rating?.focus(options)) super.focus(options)
+  }
+
+  /** The component, once it exists. */
+  private get rating(): UIRating | undefined {
+    return this.component as UIRating | undefined
+  }
+}
+
+/****************
+ * ### `UIRating`
+ * The component behind `<ui-rating>`:  a rating of one to `max-rating` icons, as an APG radio group.
+ *
+ * - Its shadow DOM:  `<fieldset class="ui … rating" part="rating" role="radiogroup">` holding one
+ *   `<label class="[active] [partial] [selected] icon" part="icon">` per point,
+ *   each around a native radio (`part="control"`, invisible, over the glyph) and the icon's `<svg>`.
+ *
+ * - Why native radios in one shadow root:  they ARE a radio group, and each carries its own name ("3 of 5").
+ *   - one Tab stop:  the chosen one, else the first
+ *   - arrows move and choose (wrapping, as in the APG);  Space chooses
+ *   - Home / End choose the first / last;  Backspace / Delete clear when `clearable`.
+ *
+ * - `value` is controlled (`@controlled`):  a choice sends `ui-change` first;
+ *   a handler that sets `el.value` again wins, and the radios show that value.
+ *   The ATTRIBUTE is the starting (and reset) value.
+ * - Fractions (`value="3.5"`) fill part of the next icon (Fomantic's `partial`, `--full`).  Only a display:
+ *   no radio is chosen, and the group's `aria-description` says "Rated 3.5 of 5".  A person's choice is always whole.
+ * - `clearable`:  choosing the current rating again clears it (Fomantic's `clearable`;  `auto` ~== one icon).
+ * - Hover previews a choice (`selected` icons, `selected` root), as Fomantic's script did.
+ * - `readonly` (Fomantic's `interactive: false`):  focusable, announced read-only, and nothing changes it.
+ *   `disabled`:  a disabled fieldset, out of the tab order and the form.
+ * - A form control:  it submits `value` while above 0;  `required` needs one.
+ *   Named by the DOM element's `<label for>` / `aria-label` (`ControlLabels`).
+ ****************/
+export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   @E.proto static vocabulary = ratingVocabulary
   @E.proto static styleSheets = { rating: ratingCSS }
-  @E.proto static elementSetup = { Fallback: RatingFallback, Host: RatingHost }
+  @E.proto static elementSetup = {
+    Fallback: RatingFallback,
+    DOMElement: DOMRatingElement
+  } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
+  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
-    this.host.addEventListener("invalid", this.onInvalid)
-    this.host.addEventListener("click", this.onHostClick)
+    this.domElement.addEventListener("invalid", this.onInvalid)
+    this.domElement.addEventListener("click", this.onDOMElementClick)
     onFormStateRestore((state) => {
       this.value = Number(state) || 0
     })
@@ -48,7 +78,7 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   // ## The rating
   ////////////////
 
-  /** `value`:  the host's property, else `0`. */
+  /** `value`:  set by the page, or chosen;  `0` until either. */
   @E.controlled("value") accessor value: number | undefined = 0
 
   /** How many icons. */
@@ -88,7 +118,8 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   }
 
   /**
-   * A person's choice of `value`:  `ui-change`, then the host property, unless a handler re-set it.
+   * A person's choice of `value`:  send `ui-change`, then set the DOM element's property,
+   * unless a handler set it first.
    * - Returns true when applied.
    */
   choose(value: number, originalEvent?: Event): boolean {
@@ -149,8 +180,8 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   // ## Name
   ////////////////
 
-  /** Host `<label>`s and `aria-label`, as the group's name. */
-  readonly labels = new F.ControlLabels(this.formHost)
+  /** The DOM element's `<label>`s and `aria-label`, as the group's name. */
+  readonly labels = new F.ControlLabels(this.domFormElement)
 
   /** Connected:  read the labels again (they may have changed while it was away). */
   @E.onChange("isConnected")
@@ -277,9 +308,10 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/static`):  the radio of `point` named for the form (the host's `name`) and
-   * `checked` when it is the rating, so a static form submits it;  `{}` in a browser, where the HOST submits
-   * (`ElementInternals`) and the radios share a generated name.
+   * Server render only (`$/ui/static`):  the radio of `point` named for the form (the DOM element's `name`),
+   * and `checked` when it is the rating, so a static form submits it.
+   * - `{}` in a browser, where the DOM element submits (`ElementInternals`)
+   *   and the radios share a generated name.
    */
   private staticRadio(point: number): Record<string, unknown> {
     if (!isServer) return {}
@@ -356,30 +388,30 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   }
 
   /**
-   * Which way an arrow key would run off the end of the group:  -1 before the first radio, 1 past the last, 0 when
-   * it is not that (the browser moves, or wraps, on its own).
+   * Which way an arrow key would run off the end of the group:  -1 before the first radio, 1 past the last,
+   * 0 when it is not that (the browser moves, or wraps, on its own).
    */
   private wrapStep(event: KeyboardEvent): -1 | 0 | 1 {
     let step = ARROW_STEPS[event.key]
     if (!step || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return 0
     // a right-to-left group runs the horizontal arrows backwards
     const isHorizontal = event.key === UIT.Key.arrowLeft || event.key === UIT.Key.arrowRight
-    if (isHorizontal && getComputedStyle(this.host).direction === RTL) step = -step
+    if (isHorizontal && getComputedStyle(this.domElement).direction === RTL) step = -step
     const radios = this.radios().filter((radio) => !radio.disabled)
-    const active = this.host.shadowRoot?.activeElement
+    const active = this.domElement.shadowRoot?.activeElement
     if (step < 0 && active === radios[0]) return -1
     if (step > 0 && active === radios.at(-1)) return 1
     return 0
   }
 
-  /** A click aimed at the HOST itself (its `<label for>`) focuses the group's tab stop. */
-  private readonly onHostClick = (event: MouseEvent) => {
-    if (event.composedPath()[0] !== this.host || this.isDisabled) return
+  /** A click aimed at the DOM element itself (its `<label for>`) focuses the group's tab stop. */
+  private readonly onDOMElementClick = (event: MouseEvent) => {
+    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
     this.focus()
   }
 
   /**
-   * Focus the group's tab stop:  the chosen radio, else the first (`RatingHost.focus()`).
+   * Focus the group's tab stop:  the chosen radio, else the first (`DOMRatingElement.focus()`).
    * - Returns false when there is nothing to focus yet (not rendered, disabled).
    */
   focus(options?: FocusOptions): boolean {
@@ -391,7 +423,7 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIRating extends E.AttributeValues<typeof ratingVocabulary> {}
 
 /** Class word of a partly filled icon. */

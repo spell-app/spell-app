@@ -2,54 +2,102 @@ import { createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { formVocabulary } from "./ui-form.vocabulary.en"
-import { FormFallback } from "./ui-form.fallback"
+import { formVocabulary } from "./UIForm.vocabulary.en"
 import { FormFields } from "./FormFields"
-import { UIFormHost } from "./UIFormHost"
-import {
-  ERROR,
-  FIELD_SELECTOR,
-  INFO,
-  SUCCESS,
-  WARNING,
-  type Field,
-  type FieldElement,
-  type Vocabulary
-} from "./ui-form.types"
+import type { DOMFieldElement } from "./UIField"
+import { ERROR, FIELD_SELECTOR, INFO, SUCCESS, WARNING, type Field } from "./UIForm.types"
 
-import formCSS from "./ui-form.css?inline"
+import formCSS from "./UIForm.css?inline"
 
 /****************
- * ### `<ui-form>`
- * A form's look (`<div class="ui … form" part="form"><slot></slot></div>`) and its VALIDATION, over a NATIVE form.
- * - Why not a form of its own:  a form-associated control belongs to the nearest `<form>` ANCESTOR in its own
- *   tree, so a `<form>` in this shadow root would never own the slotted controls, and a custom element can't
- *   BE a form.  So `<ui-form>` works with a light-DOM `<form>`:  one slotted INSIDE it (`<ui-form><form>…`,
- *   preferred), else the one AROUND it (`<form><ui-form>…`).  It never creates or moves one:  frameworks own
- *   that DOM.  Without any, it still validates (`validate()`, `validate-on="blur|change"`), but nothing submits.
- * - SIDE EFFECT:  sets `noValidate` on that form while connected (restored after), so the browser's bubbles
- *   don't pre-empt Fomantic's prompts;  constraint validation still counts -- see `FormFields.errors()`.
- * - Submit (capture, on the form):  every field validates;  invalid => `preventDefault()` +
- *   `stopImmediatePropagation()` (the page's own submit handlers never see an invalid form, as natively),
- *   prompts, the `error` state, `ui-failure`, focus on the first invalid field (`error-focus`);  valid =>
- *   the cancelable `ui-success` (cancelled => no native submission).
- * - Prompts:  each field's first control's `<ui-field>` (`:state(field)`) gets `showErrors()`;  failing controls
- *   get `aria-invalid="true"` (removed when they pass).  A field that shows an error re-validates as it
- *   changes, whatever `validate-on` says.
- * - `ui-valid` / `ui-invalid` fire per field validated;  `values` / `validate()` / `isValid()` / `reset()` /
- *   `clear()` are on the host (`UIFormHost`).
- * - `prevent-leaving`:  a `beforeunload` guard while the values differ from those at connect / reset / success.
- * - Static server render (`$/ui/static`):  a `<form>` slotted inside it MERGES into the root, which becomes
- *   `<form class="ui … form">` with the author's attributes (`mergedForm`):  Fomantic's own markup, so the form's
- *   rules reach its fields and messages, and the page still submits natively.  A form around it stays as it is.
+ * ### `DOMFormElement`
+ * The DOM element of `<ui-form>`, as `HTMLFormElement` is `<form>`'s:  it adds the form's script API
+ * (`validate()`, `isValid()`, `reset()`, `clear()`, `values`, `nativeForm`), each handed to the component.
+ *
+ * - Before the component exists, it answers as an empty form:  valid, no values, no native form.
+ * - solid-element checks a DOM element's prototype members against prop names;  none of these is one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIForm extends E.UIElement<Vocabulary> {
+export class DOMFormElement extends E.DOMElement {
+  /** Validate every field, show prompts and states;  true when valid. */
+  validate(): boolean {
+    return this.form?.validate() ?? true
+  }
+
+  /** The same verdict as `validate()`, showing nothing. */
+  isValid(): boolean {
+    return this.form?.isValid() ?? true
+  }
+
+  /** The native form's reset (controls back to their starting values), then prompts cleared. */
+  reset() {
+    this.form?.reset()
+  }
+
+  /** Every control emptied (text `""`, checkboxes unchosen), then prompts cleared. */
+  clear() {
+    this.form?.clear()
+  }
+
+  /** Every field's value, by name (Fomantic's `get values`). */
+  get values(): UIT.FormValues {
+    return this.form?.values ?? {}
+  }
+
+  /** The `<form>` it works with, if any. */
+  get nativeForm(): HTMLFormElement | undefined {
+    return untrack(() => this.form?.nativeForm)
+  }
+
+  /** The form's component, once it exists. */
+  private get form(): UIForm | undefined {
+    return this.component as UIForm | undefined
+  }
+}
+
+/****************
+ * ### `UIForm`
+ * The component behind `<ui-form>`:  a form's look, `<div class="ui … form" part="form"><slot></slot></div>`,
+ * and its VALIDATION, over a NATIVE form.
+ *
+ * - Why not a form of its own:  a form-associated control belongs to the nearest `<form>` ANCESTOR in its own tree,
+ *   so a `<form>` in this shadow root would never own the slotted controls, and a custom element can't BE a form.
+ *   - So `<ui-form>` works with a light-DOM `<form>`:  one slotted INSIDE it (`<ui-form><form>…`, preferred),
+ *     else the one AROUND it (`<form><ui-form>…`).
+ *   - It never creates or moves one:  frameworks own that DOM.
+ *   - Without any, it still validates (`validate()`, `validate-on="blur|change"`), but nothing submits.
+ *
+ * - SIDE EFFECT:  sets `noValidate` on that form while connected (restored after),
+ *   so the browser's bubbles don't pre-empt Fomantic's prompts;
+ *   constraint validation still counts (see `FormFields.errors()`).
+ *
+ * - Submit (in the capture phase, on the form):  every field validates.
+ *   - Invalid:  `preventDefault()` and `stopImmediatePropagation()` (the page's own submit handlers never see
+ *     an invalid form, as natively), the prompts, the `error` state, `ui-failure`,
+ *     and focus on the first invalid field (`error-focus`).
+ *   - Valid:  the cancelable `ui-success` (cancelled => no native submission).
+ *
+ * - Prompts:  each field's first control's `<ui-field>` (`:state(field)`) gets `showErrors()`;
+ *   failing controls get `aria-invalid="true"` (removed when they pass).
+ *   A field that shows an error validates again as it changes, whatever `validate-on` says.
+ *
+ * - `ui-valid` / `ui-invalid` fire per field validated.
+ * - The script API (`values`, `validate()`, `isValid()`, `reset()`, `clear()`) is the DOM element's, `DOMFormElement`.
+ *
+ * - `prevent-leaving`:  a `beforeunload` guard while the values differ from those at connect, reset or success.
+ *
+ * - Static server render (`$/ui/static`):  a `<form>` slotted inside it MERGES into the root,
+ *   which becomes `<form class="ui … form">` with the author's attributes (`mergedForm`).
+ *   That's Fomantic's own markup, so the form's rules reach its fields and messages,
+ *   and the page still submits natively.  A form around it stays as it is.
+ ****************/
+export class UIForm extends E.UIComponent<typeof formVocabulary> {
   @E.proto static vocabulary = formVocabulary
   @E.proto static styleSheets = { form: formCSS }
-  @E.proto static elementSetup = { Fallback: FormFallback, Host: UIFormHost, delegatesFocus: false }
+  @E.proto static elementSetup = { DOMElement: DOMFormElement, delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Controls, values, labels, errors. */
-  readonly fields = new FormFields({ host: this.host, form: () => this.nativeForm })
+  readonly fields = new FormFields({ domElement: this.domElement, form: () => this.nativeForm })
 
   /** Fields showing an error now. */
   private readonly fieldsShowingErrors = new Set<string>()
@@ -62,9 +110,9 @@ export class UIForm extends E.UIElement<Vocabulary> {
 
   /**
    * Server render only:  attributes of the author's `<form>` merged into the root, `undefined` when there's none.
-   * - SIDE EFFECT:  unwraps that form in the host's light DOM, so its children fill the root's slot.
+   * - SIDE EFFECT:  unwraps that form in the DOM element's light DOM, so its children fill the root's slot.
    */
-  private readonly mergedForm = isServer ? UIForm.unwrapForm(this.host) : undefined
+  private readonly mergedForm = isServer ? UIForm.unwrapForm(this.domElement) : undefined
 
   ////////////////
   // ## State and classes
@@ -110,7 +158,7 @@ export class UIForm extends E.UIElement<Vocabulary> {
 
   /**
    * `:state(disabled)` while `disabled`:  the root is `inert`.
-   * - Not an `isDisabled` override:  that would make the host swallow clicks too.
+   * - Not an `isDisabled` override:  that would make the DOM element swallow clicks too.
    */
   @E.cssState("disabled")
   get looksDisabled(): boolean {
@@ -123,7 +171,7 @@ export class UIForm extends E.UIElement<Vocabulary> {
     return true
   }
 
-  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
+  protected classValue(name: E.AttributeName<typeof formVocabulary>): unknown {
     if (name === "state") return this.shownState
     return super.classValue(name)
   }
@@ -175,7 +223,7 @@ export class UIForm extends E.UIElement<Vocabulary> {
   @E.state accessor nativeForm: HTMLFormElement | undefined = undefined
 
   /**
-   * Adds the form discovery, and the host's own listeners, while connected.
+   * Adds the form discovery, and the DOM element's own listeners, while connected.
    * - Stays an explicit effect:  it watches the DOM (a `MutationObserver`) while connected.
    */
   onMount() {
@@ -184,18 +232,18 @@ export class UIForm extends E.UIElement<Vocabulary> {
       (connected) => {
         if (!connected || isServer) return
         const observer = new MutationObserver(() => this.findForm())
-        observer.observe(this.host, { childList: true, subtree: true })
+        observer.observe(this.domElement, { childList: true, subtree: true })
         this.findForm()
-        const { host } = this
-        for (const type of CHANGE_EVENTS) host.addEventListener(type, this.onChange)
-        host.addEventListener(FOCUS_OUT, this.onFocusOut)
+        const { domElement } = this
+        for (const type of CHANGE_EVENTS) domElement.addEventListener(type, this.onChange)
+        domElement.addEventListener(FOCUS_OUT, this.onFocusOut)
         window.addEventListener(BEFORE_UNLOAD, this.onBeforeUnload)
         queueMicrotask(() => this.saveValues())
         return () => {
           this.nativeForm = undefined
           observer.disconnect()
-          for (const type of CHANGE_EVENTS) host.removeEventListener(type, this.onChange)
-          host.removeEventListener(FOCUS_OUT, this.onFocusOut)
+          for (const type of CHANGE_EVENTS) domElement.removeEventListener(type, this.onChange)
+          domElement.removeEventListener(FOCUS_OUT, this.onFocusOut)
           window.removeEventListener(BEFORE_UNLOAD, this.onBeforeUnload)
         }
       }
@@ -205,7 +253,7 @@ export class UIForm extends E.UIElement<Vocabulary> {
 
   /** The native form:  one inside, else the one around. */
   private findForm() {
-    const form = this.host.querySelector(FORM) ?? this.host.parentElement?.closest(FORM) ?? undefined
+    const form = this.domElement.querySelector(FORM) ?? this.domElement.parentElement?.closest(FORM) ?? undefined
     if (form !== untrack(() => this.nativeForm)) this.nativeForm = form
   }
 
@@ -225,7 +273,7 @@ export class UIForm extends E.UIElement<Vocabulary> {
   }
 
   ////////////////
-  // ## API (see `UIFormHost`)
+  // ## Script API (the DOM element's:  `DOMFormElement`)
   ////////////////
 
   /** Validate every field, show the results;  true when all pass. */
@@ -405,7 +453,7 @@ export class UIForm extends E.UIElement<Vocabulary> {
    */
   private identifierFor(event: Event): string | undefined {
     const fields = this.fields.fields()
-    for (let node = event.target as Element | null; node && node !== this.host; node = node.parentElement) {
+    for (let node = event.target as Element | null; node && node !== this.domElement; node = node.parentElement) {
       const field = fields.find((candidate) => candidate.controls.includes(node!))
       if (field) return field.identifier
     }
@@ -419,12 +467,12 @@ export class UIForm extends E.UIElement<Vocabulary> {
   }
 
   /**
-   * Server render:  the author's `<form>`, when it is the host's only element child, unwrapped (its children take
-   * its place);  returns its attributes, else `undefined`.
-   * - STATIC:  it runs from a field initializer, before the instance is ready, and needs only the host.
+   * Server render:  the author's `<form>`, when it is the DOM element's only element child,
+   * unwrapped (its children take its place);  returns its attributes, else `undefined`.
+   * - STATIC:  it runs from a field initializer, before the instance is ready, and needs only the DOM element.
    */
-  private static unwrapForm(host: Element): Record<string, string> | undefined {
-    const [form, ...others] = host.children
+  private static unwrapForm(domElement: Element): Record<string, string> | undefined {
+    const [form, ...others] = domElement.children
     if (!form || others.length || form.localName !== FORM) return undefined
     const attributes = Object.fromEntries([...form.attributes].map(({ name, value }) => [name, value]))
     form.replaceWith(...form.childNodes)
@@ -435,8 +483,8 @@ export class UIForm extends E.UIElement<Vocabulary> {
    * The `<ui-field>` of a field's first control, if any:  where its prompt shows.
    * - STATIC:  pure, reads only the controls.
    */
-  private static fieldElementFor(controls: readonly Element[]): FieldElement | undefined {
-    return (controls[0]?.closest(FIELD_SELECTOR) as FieldElement | null) ?? undefined
+  private static fieldElementFor(controls: readonly Element[]): DOMFieldElement | undefined {
+    return (controls[0]?.closest(FIELD_SELECTOR) as DOMFieldElement | null) ?? undefined
   }
 
   /**
@@ -450,7 +498,7 @@ export class UIForm extends E.UIElement<Vocabulary> {
     } else if (control instanceof HTMLTextAreaElement) control.value = control.defaultValue
     else if (control instanceof HTMLSelectElement) {
       for (const option of control.options) option.selected = option.defaultSelected
-    } else (control as { controller?: { formReset?(): void } }).controller?.formReset?.()
+    } else (control as { component?: { formReset?(): void } }).component?.formReset?.()
   }
 
   /**
@@ -466,14 +514,14 @@ export class UIForm extends E.UIElement<Vocabulary> {
     else if ((control as { checkable?: string }).checkable)
       (control as unknown as { selected: boolean }).selected = false
     else {
-      const host = control as unknown as { value: unknown }
-      host.value = Array.isArray(host.value) ? [] : ""
+      const element = control as unknown as { value: unknown }
+      element.value = Array.isArray(element.value) ? [] : ""
     }
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
-export interface UIForm extends E.AttributeValues<Vocabulary> {}
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIForm extends E.AttributeValues<typeof formVocabulary> {}
 
 /** How `UIForm.check()` reports:  `"show"` prompts, states and events, or `"silently"` the verdict alone. */
 type CheckMode = "show" | "silently"

@@ -3,7 +3,7 @@
  * rendered to light DOM (`StaticRender.page()`), the scripts that load the elements removed, and the stylesheet that
  * styles what's left, linked or inline.
  * - Loaded through Vite's SSR (`StaticRenderer`, `server.ssrLoadModule(StaticRenderer.DOCUMENT)`), NEVER by node
- *   directly:  the controllers' JSX must compile for the server, as for `visual/StaticFixture.ts`.
+ *   directly:  the components' JSX must compile for the server, as for `visual/StaticFixture.ts`.
  * - Node only, like `$/ui/static`, which it reaches through `SSR`:  the Vite server resolves the alias.
  */
 
@@ -122,7 +122,7 @@ export class StaticDocument {
    */
   static minify(css: string): Omit<StaticStylesheetResult, "fullSize" | "coverage"> {
     // sheet by sheet (`StaticStylesheet` heads each with `/* name */`):  one rule Lightning CSS can't parse
-    // (`ui-popup.anchored.css`'s `@container anchored(...)`) falls back for ITS sheet only, not the whole page's
+    // (`UIPopup.anchored.css`'s `@container anchored(...)`) falls back for ITS sheet only, not the whole page's
     const failures: string[] = []
     const parts = css.split(SHEET_START).map((part) => {
       try {

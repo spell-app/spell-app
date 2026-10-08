@@ -96,7 +96,9 @@ class VisualPage {
           .map((element) => VisualPage.within(customElements.whenDefined(element.localName), DEFINE_TIMEOUT))
       )
       const elements = VisualPage.deep(document)
-      await Promise.all(elements.filter(VisualPage.isHost).map((host) => VisualPage.within(host.ready, READY_TIMEOUT)))
+      await Promise.all(
+        elements.filter(VisualPage.isDOMElement).map((element) => VisualPage.within(element.ready, READY_TIMEOUT))
+      )
       await Promise.all(
         elements
           .filter((element): element is HTMLImageElement => element instanceof HTMLImageElement)
@@ -125,8 +127,8 @@ class VisualPage {
     }
   }
 
-  /** A `UIHost` (has a `ready` promise). */
-  static isHost(element: Element): element is Element & { ready: Promise<void> } {
+  /** A `DOMElement` (has a `ready` promise). */
+  static isDOMElement(element: Element): element is Element & { ready: Promise<void> } {
     return "ready" in element && element.ready instanceof Promise
   }
 

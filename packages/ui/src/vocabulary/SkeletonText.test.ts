@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vite-plus/test"
 
-import { ROOT_CATALOG } from "$/ui/components/ui-root/ui-root.catalog"
+import { ROOT_CATALOG } from "$/ui/components/ui-root/UIRoot.catalog"
 
 import { SkeletonText } from "./SkeletonText"
 

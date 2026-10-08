@@ -1,20 +1,21 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { PlaceholderFallback } from "./ui-placeholder.fallback"
 
-import placeholderCSS from "./ui-placeholder.css?inline"
+import placeholderCSS from "./UIPlaceholder.css?inline"
 
 /****************
  * ### `PlaceholderShape`
- * Base of the placeholder's skeleton shapes:  `<div class="[keyOnly ...] <noun>" part="<noun>">`, with a
- * `<slot>` for the shapes that hold lines (header, paragraph) and none for the solid ones (line, image).
+ * The base of the placeholder's skeleton shapes:  `<div class="[keyOnly ...] <noun>" part="<noun>">`,
+ * with a `<slot>` for the shapes that hold lines (header, paragraph), and none for the solid ones (line, image).
  * - `ui: false` vocabularies:  Fomantic styles the shapes only inside a placeholder, which they MUST sit in.
- * - No text, no focus:  the placeholder host is `aria-hidden`, and the shapes are its drawing.
+ * - No text, no focus:  the `<ui-placeholder>` is `aria-hidden`, and the shapes are its drawing.
  ****************/
-export abstract class PlaceholderShape<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends E.UIElement<V> {
+export abstract class PlaceholderShape<
+  V extends E.ComponentVocabulary = E.ComponentVocabulary
+> extends E.UIComponent<V> {
   @E.proto static styleSheets = { placeholder: placeholderCSS }
-  @E.proto static elementSetup = { Fallback: PlaceholderFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (

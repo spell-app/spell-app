@@ -1,6 +1,6 @@
 /****************
  * ### `StaticFamilies`
- * Families `yarn test:visual --static` compares, and the controller classes `StaticRender.define()`s for them.
+ * Families `yarn test:visual --static` compares, and the component classes `StaticRender.define()`s for them.
  * - Grows as families become server-ready (epic `seo`, P3:  `epics/seo/seo.plan.html`):  add the family folder and
  *   the classes that render cleanly in node;  nothing else changes.
  * - PURE DATA, no imports:  the CLI and the Playwright spec (no Vite) read it for WHICH examples to compare,
@@ -11,7 +11,7 @@
  ****************/
 export class StaticFamilies {
   /**
-   * Family folder => controller classes, defined together for every page (a card example needs the parts).
+   * Family folder => component classes, defined together for every page (a card example needs the parts).
    * - A family without `examples/elements/` (`ui-item`) only lends its classes.
    */
   static readonly CLASSES: Readonly<Record<string, readonly string[]>> = {

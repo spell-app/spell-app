@@ -189,7 +189,7 @@ render or to be captured (with its error;  Firefox can't capture a page over 327
 
 - ONLY the static tests run:  no baselines, nothing to `--update`, never fails.  `--os` defaults to `local` (Docker not
   needed);  about 20 s for chromium.
-- Families:  `tools/visual/StaticFamilies.ts`, family folder => the controller classes `StaticRender.define()`s.  It
+- Families:  `tools/visual/StaticFamilies.ts`, family folder => the component classes `StaticRender.define()`s.  It
   grows as families become server-ready (plan P3);  a family's examples are compared once it's listed.
 - The static page:  `/static/<family>/<example>.html` on the visual dev server (`tools/visual/StaticPages.ts`):
   `fixture.html`'s chrome (body class, `#example` box, viewport) around the rendered example, linking

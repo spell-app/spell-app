@@ -8,13 +8,13 @@ import {
   type ComponentLoadPolicy,
   type ComponentPackEntry,
   type RootPackTag
-} from "./ui-root.types"
+} from "./UIRoot.types"
 
 /****************
  * ### `ComponentPack`
- * A component pack:  a JSON file listing tags a page's roots may meet, each with the module that defines it, when to
- * load it and what to draw until then (`ComponentPackEntry`).  `<ui-components source>` reads one;  so can a script
- * (`ComponentPack.load()`).
+ * A component pack:  a JSON file listing tags a page's roots may meet, each with the module that defines it,
+ * when to load it and what to draw until then (`ComponentPackEntry`).  `<ui-components source>` reads one;
+ * so can a script (`ComponentPack.load()`).
  *
  * ```json
  * [
@@ -32,8 +32,8 @@ import {
 export class ComponentPack {
   /**
    * Read the pack at `source` (against the document), check it, and add its tags to every root on the page.
-   * - SIDE EFFECTS:  `RootLoader.adding()` at once (so roots wait for it), then `RootLoader.addTags()`;  `eager` tags
-   *   start loading.
+   * - SIDE EFFECTS:  `RootLoader.adding()` at once (so roots wait for it), then `RootLoader.addTags()`;
+   *   `eager` tags start loading.
    * - Rejects with a `SourceError`:  `load` / `cross-origin` / `file-protocol` when it can't be fetched (`UI.sources`),
    *   `render` when it isn't a pack (`entries()`).
    */
@@ -44,10 +44,10 @@ export class ComponentPack {
   }
 
   /**
-   * The tags of a pack's text, `text` fetched from `url`:  each checked, its `source` made absolute against `url`,
-   * its skeleton parsed.
-   * - Throws a `render` `SourceError` naming the pack (and the entry) when it isn't a JSON array of entries, an entry
-   *   isn't one, or a skeleton isn't skeleton text (its `TypeError` as `cause.error`).
+   * The tags of a pack's text, `text` fetched from `url`:
+   * each checked, its `source` made absolute against `url`, its skeleton parsed.
+   * - Throws a `render` `SourceError` naming the pack (and the entry) when it isn't a JSON array of entries,
+   *   an entry isn't one, or a skeleton isn't skeleton text (its `TypeError` as `cause.error`).
    * - Static:  pure, so tests check packs without a server.
    */
   static entries(text: string, url: string): RootPackTag[] {

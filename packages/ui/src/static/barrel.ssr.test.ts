@@ -25,7 +25,7 @@ const VALUES = [
   "REACH",
   // classes
   "ServerIds",
-  "ServerHost",
+  "ServerDOMElement",
   "StaticSelectors",
   "ServerRuntime",
   "StaticFlattener",
@@ -43,7 +43,7 @@ const ENTRIES = [
   "$/ui/static",
   "$/ui/static/static.types.ssr",
   "$/ui/static/ServerIds.ssr",
-  "$/ui/static/ServerHost.ssr",
+  "$/ui/static/ServerDOMElement.ssr",
   "$/ui/static/StaticSelectors.ssr",
   "$/ui/static/ServerRuntime.ssr",
   "$/ui/static/StaticFlattener.ssr",

@@ -2,32 +2,58 @@ import { Show, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
-import { codeVocabulary } from "./ui-code.vocabulary.en"
-import { CodeFallback } from "./ui-code.fallback"
+import { codeVocabulary } from "./UICode.vocabulary.en"
 import { CodeHighlighter } from "./CodeHighlighter"
 import { CodeLines } from "./CodeLines"
-import { UICodeHost } from "./UICodeHost"
-import type { Highlighted } from "./ui-code.types"
+import type { Highlighted } from "./UICode.types"
 
-import codeCSS from "./ui-code.css?inline"
+import codeCSS from "./UICode.css?inline"
 
 /****************
- * ### `<ui-code>`
- * A block of code, coloured by language:  `<div class="ui [numbered] [wrapping] code" part="box">` around an
- * optional copy `<button>` and `<pre><code class="hljs language-x">`, one `<span class="line">` per line.
- * - Text:  the element's own (`<script type="text/plain">` keeps `<` and `&` exact), or a `source` file -- see
- *   `SourceElement`.
- * - Colours:  highlight.js, loaded with the first highlight (`CodeHighlighter` -> `CodeEngine`, the lazy chunk);
- *   `language` absent => guessed among the detect set;  `text` => none;  a `UI.code` language (spell) => its own
- *   highlighter.  Shown plain until the colours arrive.  An unknown language stays plain, with a `render`
- *   `ui-error` (no message:  the code is still there).
- * - `line-numbers` (from `start`) and `wrap` are CSS:  counters and a hanging indent per `.line`.
+ * ### `DOMCodeElement`
+ * The DOM element of `<ui-code>`:
+ * it adds `detectedLanguage` to the source API it inherits from `DOMLoadableElement` (`content`, `save()` ...).
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
+ ****************/
+export class DOMCodeElement extends E.DOMLoadableElement {
+  /**
+   * What auto-detection picked (when no `language` is given);  `undefined` otherwise,
+   * or before the colours arrive (`ui-highlight` says when).
+   * - Untracked:  it's for scripts.
+   */
+  get detectedLanguage(): string | undefined {
+    return untrack(() => this.code?.detectedLanguage)
+  }
+
+  /** This element's component, once it has one. */
+  private get code(): UICode | undefined {
+    return this.component as UICode | undefined
+  }
+}
+
+/****************
+ * ### `UICode`
+ * The component behind `<ui-code>`:  a block of code, coloured by language.
+ *
+ * - Its shadow DOM:
+ *   `<div class="ui [numbered] [wrapping] code" part="box">` around an optional copy `<button>` and
+ *   `<pre><code class="hljs language-x">`, one `<span class="line">` per line.
+ * - The text:  the element's own (`<script type="text/plain">` keeps `<` and `&` exact),
+ *   or a `source` file (see `LoadableComponent`).
+ * - The colours come from highlight.js, loaded with the first highlight
+ *   (`CodeHighlighter` -> `CodeEngine`, the lazy chunk):
+ *   - no `language`:  guessed among the detect set
+ *   - `text`:  none
+ *   - a language `UI.code` knows (spell):  its own highlighter.
+ *   The code shows plain until the colours arrive.
+ *   An unknown language stays plain, with a `render` `ui-error` (no message:  the code is still there).
+ * - `line-numbers` (from `start`) and `wrap` are CSS:  counters, and a hanging indent per `.line`.
  * - The `<pre>` is a tab stop, named "`<language>` code", so a keyboard can scroll it.
  ****************/
-export class UICode extends E.SourceElement<typeof codeVocabulary> {
+export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
   @E.proto static vocabulary = codeVocabulary
   @E.proto static styleSheets = { code: codeCSS }
-  @E.proto static elementSetup = { Fallback: CodeFallback, Host: UICodeHost, delegatesFocus: false }
+  @E.proto static elementSetup = { DOMElement: DOMCodeElement, delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Colouring
@@ -67,7 +93,7 @@ export class UICode extends E.SourceElement<typeof codeVocabulary> {
     return language ? `${HLJS_CLASS} language-${language.replace("/", "-")}` : HLJS_CLASS
   }
 
-  /** What auto-detection picked, when it ran (`UICodeHost.detectedLanguage`). */
+  /** What auto-detection picked, when it ran (`DOMCodeElement.detectedLanguage`). */
   get detectedLanguage(): string | undefined {
     const highlighted = this.highlighted
     return highlighted?.detected ? highlighted.language : undefined
@@ -159,13 +185,13 @@ export class UICode extends E.SourceElement<typeof codeVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UICode extends E.AttributeValues<typeof codeVocabulary> {}
 
 /** Class of each line's span inside `<code>`. */
 const LINE_CLASS = "line"
 
-/** The CSS counter that numbers the lines (`ui-code.css`);  `start` sets where it begins. */
+/** The CSS counter that numbers the lines (`UICode.css`);  `start` sets where it begins. */
 const LINE_COUNTER = "line"
 
 /** highlight.js's class on `<code>`. */

@@ -10,13 +10,14 @@ import { SSR } from "$/ui/static"
 /****************
  * ### `StaticRender`
  * A page of `ui-*` elements => plain light-DOM HTML:  no shadow DOM, no scripts, for crawlers and no-JS readers.
- * - Server-side (node, `@solidjs/web`'s server build):  the controllers render with `renderToString`.
+ * - Server-side (node, `@solidjs/web`'s server build):  the components render with `renderToString`.
  * - Steps:
- *   1. parse the page (linkedom);  every element of a `define()`d family becomes a stand-in host (`ServerHost`)
- *   2. build EVERY controller, in document order (owners first), before any renders:  items need their list, tab
+ *   1. parse the page (linkedom);  every element of a `define()`d family becomes a stand-in DOM element
+ *   (`ServerDOMElement`) 2. build EVERY component, in document order (owners first), before any renders:
+ *   items need their list, tab
  *      buttons their panes, a section's heading level its parent
- *   3. render each controller's view to HTML
- *   4. flatten (`StaticFlattener`):  hosts replaced by their roots, slots by their children
+ *   3. render each component's view to HTML
+ *   4. flatten (`StaticFlattener`):  DOM elements replaced by their roots, slots by their children
  *   5. wire what works without scripts (`StaticInteractions`:  dialogs, popovers, unique ids);  then the page's own
  *      `<style>`s are rewritten for that (`StaticPageStyles`:  `::part()`, `:state()`, `ui-*` tags)
  * - Families are opt-in (`define()`):  a `ui-*` tag without one stays as it is.
@@ -44,14 +45,14 @@ export class StaticRender {
   /**
    * Make `classes` renderable, under their vocabularies' tags.
    * - SIDE EFFECT:  installs the server runtime first (`ServerRuntime`), then records each definition page-wide
-   *   (`UIElement.register()`) as `define()` would in a browser.  Idempotent per tag.
+   *   (`UIComponent.register()`) as `define()` would in a browser.  Idempotent per tag.
    */
-  static define(...classes: E.UIElementClass[]) {
+  static define(...classes: E.UIComponentClass[]) {
     SSR.ServerRuntime.install()
     for (const Class of classes) {
       const definition = new E.ElementDefinition(Class.prototype.vocabulary)
       if (StaticRender.families.has(definition.tag)) continue
-      E.UIElement.register.call(Class, definition)
+      E.UIComponent.register.call(Class, definition)
       StaticRender.families.set(definition.tag, { Class, definition, kind: StaticRender.kindFor(definition.tag) })
     }
   }
@@ -115,20 +116,20 @@ export class StaticRender {
       StaticRender.families.has(element.localName)
     )
     StaticRender.lastTags = new Set(elements.map((element) => element.localName))
-    const { hosts, dispose } = createRoot((dispose) => ({
-      hosts: elements.map((element) => StaticRender.build(element)),
+    const { built, dispose } = createRoot((dispose) => ({
+      built: elements.map((element) => StaticRender.build(element)),
       dispose
     }))
     try {
-      for (const { host, family } of hosts) StaticRender.recordSheets(host, family)
-      const views: SSR.StaticView[] = hosts.map(({ host, family }) => ({
-        element: host as unknown as Element,
+      for (const { domElement, family } of built) StaticRender.recordSheets(domElement, family)
+      const views: SSR.StaticView[] = built.map(({ domElement, family }) => ({
+        element: domElement as unknown as Element,
         family,
         // `NoHydration`:  nothing hydrates a static page, so no `_hk` keys
         html: renderToString(() =>
           createComponent(NoHydration, {
             get children() {
-              return ServerElement.run(host, () => host.controller!.onMount())
+              return ServerElement.run(domElement, () => domElement.component!.onMount())
             }
           })
         )
@@ -141,20 +142,20 @@ export class StaticRender {
     }
   }
 
-  /** Stand-in host + controller for one element;  MUST run under the render's root. */
-  private static build(element: Element): { host: E.UIHost & SolidElement; family: SSR.StaticFamily } {
+  /** Stand-in DOM element + component for one element;  MUST run under the render's root. */
+  private static build(element: Element): { domElement: E.DOMElement & SolidElement; family: SSR.StaticFamily } {
     const family = StaticRender.families.get(element.localName)!
     const { Class, definition } = family
-    const host = SSR.ServerHost.attach(element, definition)
+    const domElement = SSR.ServerDOMElement.attach(element, definition)
     const attrs = createProps(ServerElement.props(element, definition.props))
-    ServerElement.run(host, () => new Class(host, definition, attrs))
-    return { host, family }
+    ServerElement.run(domElement, () => new Class(domElement, definition, attrs))
+    return { domElement, family }
   }
 
-  /** Add `host`'s adopted sheets to `sheetUsage`:  under its family's kind, and their order. */
-  private static recordSheets(host: E.UIHost, family: SSR.StaticFamily) {
+  /** Add `domElement`'s adopted sheets to `sheetUsage`:  under its family's kind, and their order. */
+  private static recordSheets(domElement: E.DOMElement, family: SSR.StaticFamily) {
     const { users, orders } = StaticRender.sheetUsage
-    const names = untrack(() => host.controller?.styleSheetNames) ?? []
+    const names = untrack(() => domElement.component?.styleSheetNames) ?? []
     for (const name of names) {
       let kinds = users.get(name)
       if (!kinds) users.set(name, (kinds = new Set()))

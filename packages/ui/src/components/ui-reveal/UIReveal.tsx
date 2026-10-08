@@ -2,37 +2,37 @@ import { onSettled } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { revealVocabulary } from "./ui-reveal.vocabulary.en"
-import { RevealFallback } from "./ui-reveal.fallback"
-import { HIDDEN_CONTENT, VISIBLE_CONTENT } from "./ui-reveal.types"
+import { revealVocabulary } from "./UIReveal.vocabulary.en"
 
-import revealCSS from "./ui-reveal.css?inline"
+import revealCSS from "./UIReveal.css?inline"
 
 /****************
- * ### `<ui-reveal>`
- * A reveal:  `<div class="ui ... reveal" part="reveal">` holding `<div class="visible content" part="visible">`
+ * ### `UIReveal`
+ * The component behind `<ui-reveal>`:  content that gives way to other content on hover or focus.
+ * `<div class="ui … reveal" part="reveal">` holding `<div class="visible content" part="visible">`
  * (`slot=visible`, then the default slot) over `<div class="hidden content" part="hidden">` (`slot=hidden`).
- * - Revealed on hover, on `active`, and on FOCUS (`:focus-within`, `ui-reveal.css`):  the root is a tab stop
- *   (`tabindex=0`, `role=group`, named by the host's `aria-label`) unless the content holds a natively focusable
- *   element (a link, a button, a field, `[tabindex]`), whose own focus reveals it -- no second stop.
- *   - NOTE: a focusable CUSTOM element in the content (`<ui-button>`) isn't detected (its control renders later,
- *     in its own shadow root):  the reveal keeps its stop then.
+ *
+ * - Revealed on hover, on `active`, and on FOCUS (`:focus-within`, `UIReveal.css`).
+ *   - The root is a tab stop (`tabindex=0`, `role=group`, named by the DOM element's `aria-label`),
+ *     unless the content holds a natively focusable element (a link, a button, a field, `[tabindex]`),
+ *     whose own focus reveals it:  no second stop.
+ *   - NOTE: a focusable CUSTOM element in the content (`<ui-button>`) isn't detected
+ *     (its control draws later, in its own shadow root):  the reveal keeps its stop then.
  * - Both contents stay in the accessibility tree:  "hidden" is visual only (the hidden content is under the
  *   visible one), so assistive tech reads both, in order, at any time.
- * - `prefers-reduced-motion`:  the swap is instant (`ui-reveal.css`).
+ * - `prefers-reduced-motion`:  the swap is instant (`UIReveal.css`).
  ****************/
-export class UIReveal extends E.UIElement<typeof revealVocabulary> {
+export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   @E.proto static vocabulary = revealVocabulary
   @E.proto static styleSheets = { reveal: revealCSS }
-  @E.proto static elementSetup = { Fallback: RevealFallback }
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     if (isServer) return
     // SIDE EFFECT:  watches the light DOM for focusable content, from the first settle on
     onSettled(() => {
       const observer = new MutationObserver(() => this.scanFocusable())
-      observer.observe(this.host, { childList: true, subtree: true, attributeFilter: WATCHED })
+      observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: WATCHED })
       this.scanFocusable()
       return () => observer.disconnect()
     })
@@ -47,7 +47,7 @@ export class UIReveal extends E.UIElement<typeof revealVocabulary> {
 
   /** Read the light DOM for focusable content now. */
   private scanFocusable() {
-    this.contentHasFocusable = !!this.host.querySelector(FOCUSABLE)
+    this.contentHasFocusable = !!this.domElement.querySelector(FOCUSABLE)
   }
 
   /** Is the root the tab stop?  Not when the content can take focus itself, nor when disabled.  Tracked. */
@@ -92,8 +92,14 @@ export class UIReveal extends E.UIElement<typeof revealVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIReveal extends E.AttributeValues<typeof revealVocabulary> {}
+
+/** The class words of the visible content box (part and slot `visible`:  `UIT.VISIBLE`). */
+const VISIBLE_CONTENT = "visible content"
+
+/** The class words of the hidden content box. */
+const HIDDEN_CONTENT = "hidden content"
 
 /** Natively focusable content:  it reveals the reveal itself (`:focus-within`). */
 const FOCUSABLE =

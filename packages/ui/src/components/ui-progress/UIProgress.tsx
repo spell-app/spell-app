@@ -3,41 +3,52 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { ProgressValues } from "./ProgressValues"
-import { ProgressFallback } from "./ui-progress.fallback"
-import { LIST_SPLIT } from "./ui-progress.types"
-import { progressVocabulary } from "./ui-progress.vocabulary.en"
+import { LIST_SPLIT } from "./UIProgress.types"
+import { progressVocabulary } from "./UIProgress.vocabulary.en"
 
-import progressCSS from "./ui-progress.css?inline"
+import progressCSS from "./UIProgress.css?inline"
 
 /****************
- * ### `<ui-progress>`
- * A progress bar in Fomantic's markup:  `<div class="ui … progress" part="progress" data-percent>` holding one
- * `<div class="bar" part="bar">` per value (with `<div class="progress" part="bar-text">` inside when `bar-text` is
- * set) and `<div class="label" part="label">` around the slot.
- * - Numbers:  `value` (a share of `total`, else a percentage) or `percent`;  a comma list makes several bars
- *   (`ProgressValues`).  Widths and `data-percent` are written as Fomantic's JS wrote them.
- * - Accessibility:  the HOST is the `progressbar`, through internals -- a native `<progress>` can't hold Fomantic's
- *   bars, their texts, several values or the indeterminate looks, and styles differently per engine.  Range
- *   `0 ... total` (else `0 ... 100`), `aria-valuenow` (none while indeterminate), `aria-valuetext` in the
- *   `bar-text` format (percent by default).  Named by the host's `aria-label` / `aria-labelledby`, else the label
- *   (`label` shorthand or slotted text);  its children are presentational, as the role says.
- * - `state` is `success` / `warning` / `error`;  unset, a single bar at 100% shows `success` (Fomantic's
- *   `autoSuccess`).  `active` is only what the author sets:  Fomantic's JS pulsed every bar between 0 and 100%.
- * - Events:  `ui-change` when the percentage changes, `ui-complete` when it reaches 100 -- both after the first
- *   render, whatever wrote the numbers (there is no user input).
+ * ### `UIProgress`
+ * The component behind `<ui-progress>`:  a bar showing how far along a task is.
+ *
+ * - Its shadow DOM is Fomantic's markup:  `<div class="ui … progress" part="progress" data-percent>`, holding
+ *   - one `<div class="bar" part="bar">` per value
+ *     (with `<div class="progress" part="bar-text">` inside, when `bar-text` is set)
+ *   - and `<div class="label" part="label">` around the slot.
+ *
+ * - The numbers:  `value` (a share of `total`, else a percentage) or `percent`.
+ *   A comma list makes several bars (`ProgressValues`).
+ *   The widths and `data-percent` are written as Fomantic's JS wrote them.
+ *
+ * - Accessibility:  the DOM ELEMENT is the `progressbar`, through `internals`.
+ *   A native `<progress>` can't hold Fomantic's bars, their texts, several values or the indeterminate looks,
+ *   and it looks different in every engine.
+ *   - The range is `0 … total` (else `0 … 100`), with `aria-valuenow` (none while indeterminate),
+ *     and `aria-valuetext` in the `bar-text` format (the percentage by default).
+ *   - It's named by the element's `aria-label` / `aria-labelledby`, else by the label
+ *     (the `label` shorthand or the slotted text).
+ *   - Its children are presentational, as the role says.
+ *
+ * - `state` is `success`, `warning` or `error`.
+ *   Unset, a single bar at 100% shows `success` (Fomantic's `autoSuccess`).
+ * - `active` is only what the author sets:  Fomantic's JS pulsed every bar between 0 and 100%.
+ *
+ * - Events:  `ui-change` when the percentage changes, `ui-complete` when it reaches 100.
+ *   Both only after the first render, whatever wrote the numbers (there is no user input).
  ****************/
-export class UIProgress extends E.UIElement<typeof progressVocabulary> {
+export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   @E.proto static vocabulary = progressVocabulary
   @E.proto static styleSheets = { progress: progressCSS }
-  @E.proto static elementSetup = { Fallback: ProgressFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.host.internals.role = PROGRESSBAR
+    this.domElement.internals.role = PROGRESSBAR
     if (isServer) return
     onSettled(() => {
-      const observer = new MutationObserver(() => (this.hostText = (this.host.textContent ?? "").trim()))
-      observer.observe(this.host, { childList: true, characterData: true, subtree: true })
+      const observer = new MutationObserver(() => (this.elementText = (this.domElement.textContent ?? "").trim()))
+      observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
       return () => observer.disconnect()
     })
   }
@@ -103,7 +114,8 @@ export class UIProgress extends E.UIElement<typeof progressVocabulary> {
   }
 
   /**
-   * Marked disabled (`disabled`, dimmed):  a look, not `isDisabled` -- the host's clicks aren't swallowed.
+   * Marked disabled (`disabled`, dimmed):  only a look, not `isDisabled`,
+   * so the element's clicks aren't swallowed.
    * `:state(disabled)`.
    */
   @E.cssState("disabled")
@@ -126,8 +138,8 @@ export class UIProgress extends E.UIElement<typeof progressVocabulary> {
   // ## Texts
   ////////////////
 
-  /** Host text (slotted label), re-read when it changes. */
-  @E.state accessor hostText = (this.host.textContent ?? "").trim()
+  /** The element's text (its slotted label), read again when it changes. */
+  @E.state accessor elementText = (this.domElement.textContent ?? "").trim()
 
   /** `value` in the page's number format, to `precision` decimals. */
   private readonly format = (value: number): string =>
@@ -165,15 +177,15 @@ export class UIProgress extends E.UIElement<typeof progressVocabulary> {
       max: String(total ?? 100),
       now: isIndeterminate ? null : String(total !== undefined ? numbers.value : numbers.percent),
       text: isIndeterminate ? null : texts.join(LIST_SEPARATOR),
-      label: this.labelText || this.hostText || null
+      label: this.labelText || this.elementText || null
     }
   }
 
-  /** The internals follow `ariaValues`;  `writesHost`:  a server render (`$/ui/static`) applies it too. */
-  @E.onChange("ariaValues", { writesHost: true })
+  /** The internals follow `ariaValues`;  `writesDOMElement`:  a server render (`$/ui/static`) applies it too. */
+  @E.onChange("ariaValues", { writesDOMElement: true })
   protected onAriaValuesChanged(aria: UIProgress["ariaValues"]) {
     if (!aria) return
-    const { internals } = this.host
+    const { internals } = this.domElement
     internals.ariaValueMin = "0"
     internals.ariaValueMax = aria.max
     internals.ariaValueNow = aria.now
@@ -229,8 +241,8 @@ export class UIProgress extends E.UIElement<typeof progressVocabulary> {
   }
 
   /**
-   * Width, and corners of several bars (Fomantic's `set.barWidth()`):  a zero bar among several is hidden;  only
-   * the first and last shown bars keep their outer corners.  None while indeterminate (the CSS fills the track).
+   * Width, and corners of several bars (Fomantic's `set.barWidth()`):  a zero bar among several is hidden;
+   * only the first and last shown bars keep their outer corners.  None while indeterminate (the CSS fills the track).
    */
   private barStyle(index: number): JSX.CSSProperties {
     if (this.isIndeterminate) return {}
@@ -249,10 +261,10 @@ export class UIProgress extends E.UIElement<typeof progressVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIProgress extends E.AttributeValues<typeof progressVocabulary> {}
 
-/** Host role. */
+/** The DOM element's ARIA role. */
 const PROGRESSBAR = "progressbar"
 
 /** The automatic outcome at 100%. */

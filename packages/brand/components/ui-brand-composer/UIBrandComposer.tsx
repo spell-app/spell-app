@@ -1,12 +1,11 @@
 import { Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, SlotContent, UI, type AttributeName, type FieldValue } from "$/ui/core"
-import { ControlLabels, FormElement } from "$/ui/forms"
+import { IconGlyph, proto, SlotContent, UI, type AttributeName, type FieldValue, type ElementSetup } from "$/ui/core"
+import { ControlLabels, DOMFormControlElement, FormComponent } from "$/ui/forms"
 
-import { brandComposerVocabulary } from "./ui-brand-composer.vocabulary.en"
-import { BrandComposerFallback } from "./ui-brand-composer.fallback"
-import { BrandComposerHost } from "./BrandComposerHost"
+import { brandComposerVocabulary } from "./UIBrandComposer.vocabulary.en"
+import { BrandComposerFallback } from "./UIBrandComposer.fallback"
 import {
   BRAND,
   CAST_ICON,
@@ -19,47 +18,79 @@ import {
   ROWS_VAR,
   SHORTCUTS,
   type BrandComposerVocabulary
-} from "./ui-brand-composer.types"
+} from "./UIBrandComposer.types"
 
-import composerCSS from "./ui-brand-composer.css?inline"
+import composerCSS from "./UIBrandComposer.css?inline"
 
 /****************
- * ### `<ui-brand-composer>`
- * The brand's "describe your app" box (Spell App's Build form, Spell Marketing's "Try a spell"):
- * `<div class="composer brand" part="composer">` > the eyebrow (`eyebrow` slot or attribute), a borderless serif
- * `<textarea part="textarea">`, then the bar:  the `tools` slot (chips), the hint, the round Cast button.
- * - Value:  auto-controlled (`Controlled`), as `<ui-textarea>`'s:  typing dispatches `ui-input` first, and a handler
- *   that re-sets `el.value` wins;  the ATTRIBUTE is the starting value, restored by form reset;  no reflection.
- *   Leaving the box edited is `ui-change`.
- * - Cast:  the button, Cmd / Ctrl+Enter in the box (either key, on any platform), or the host's `cast()`.  Plain
- *   Enter types a newline.  Nothing happens with blank text, while `casting` or `disabled`:  the button stays
- *   focusable then, `aria-disabled`.  `ui-cast` is CANCELABLE:  unless vetoed, a host inside a `<form>` submits it
- *   (`requestSubmit()`), so `name` / `value` reach the form's `submit` handler.
- * - `casting`:  the PAGE sets it while it builds and clears it;  the button spins (still, with reduced motion), the
- *   card is `aria-busy`, and "Casting your spell…" is announced.  The text stays editable.
- * - Grows with its text (`field-sizing: content`, where the browser has it) from `rows` lines, up to
- *   `--ui-brand-composer-max-height`;  elsewhere it stays `rows` tall and scrolls.
- * - Name of the box:  `label`, else what names the host (`aria-label`, `<label for>`), else `eyebrow`, else
- *   "Your spell";  the hint is its description (`aria-describedby`), the shortcut its `aria-keyshortcuts`.
- * - Form:  `value` under `name`.
+ * ### `DOMBrandComposerElement`
+ * The DOM element of `<ui-brand-composer>`:  a form control's DOM element (`DOMFormControlElement`), plus `cast()`,
+ * so a page can cast what it just put in `value` (the marketing hero's idea chips fill the box and cast at once).
+ *
+ * - solid-element refuses a DOM element member named like a prop:  `cast` is no attribute (`casting` is).
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
+export class DOMBrandComposerElement extends DOMFormControlElement {
+  /**
+   * Cast the current text, as the Cast button does:  `ui-cast`, then the form's submit.
+   * - Returns false when nothing was cast:  empty text, `casting`, `disabled`, not rendered yet, or cancelled.
+   */
+  cast(): boolean {
+    return this.composer?.cast() ?? false
+  }
+
+  /** The component, once it exists. */
+  private get composer(): UIBrandComposer | undefined {
+    return this.component as UIBrandComposer | undefined
+  }
+}
+
+/****************
+ * ### `UIBrandComposer`
+ * The component behind `<ui-brand-composer>`:  the brand's "describe your app" box
+ * (Spell App's Build form, Spell Marketing's "Try a spell").
+ *
+ * - Its shadow DOM:  `<div class="composer brand" part="composer">` > the eyebrow (`eyebrow` slot or attribute),
+ *   a borderless serif `<textarea part="textarea">`, then the bar:
+ *   the `tools` slot (chips), the hint, the round Cast button.
+ *
+ * - `value` is controlled (`Controlled`), as `<ui-textarea>`'s:  typing sends `ui-input` first,
+ *   and a handler that sets `el.value` again wins.  The ATTRIBUTE is the starting value, which a form reset restores;
+ *   no reflection.  Leaving the box edited sends `ui-change`.
+ *
+ * - Cast:  the button, Cmd / Ctrl+Enter in the box (either key, on any platform), or the DOM element's `cast()`.
+ *   Plain Enter types a new line.
+ *   Nothing happens with blank text, while `casting`, or `disabled`:  the button stays focusable then, `aria-disabled`.
+ *   `ui-cast` is CANCELABLE:  unless cancelled, a composer inside a `<form>` submits it (`requestSubmit()`),
+ *   so `name` / `value` reach the form's `submit` handler.
+ * - `casting`:  the PAGE sets it while it builds and clears it;  the button spins (still, with reduced motion),
+ *   the card is `aria-busy`, and "Casting your spell…" is announced.  The text stays editable.
+ * - Grows with its text (`field-sizing: content`, where the browser has it) from `rows` lines,
+ *   up to `--ui-brand-composer-max-height`;  elsewhere it stays `rows` tall and scrolls.
+ * - The box's name:  `label`, else what names the DOM element (`aria-label`, `<label for>`), else `eyebrow`,
+ *   else "Your spell".  The hint is its description (`aria-describedby`), the shortcut its `aria-keyshortcuts`.
+ * - A form control:  it submits `value` under `name`.
+ ****************/
+export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   @proto static vocabulary = brandComposerVocabulary
   @proto static styleSheets = { composer: composerCSS }
-  @proto static elementSetup = { Fallback: BrandComposerFallback, Host: BrandComposerHost }
+  @proto static elementSetup = {
+    Fallback: BrandComposerFallback,
+    DOMElement: DOMBrandComposerElement
+  } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State
   ////////////////
 
-  /** `value`:  the host's property, else `""`. */
+  /** `value`:  set by the page, or typed in;  `""` until either. */
   readonly valueState = this.controlled("value", "")
 
-  /** Light-DOM slot occupancy:  `eyebrow`, `tools`. */
-  readonly slots = new SlotContent(this.host)
+  /** Which slots have light-DOM children:  `eyebrow`, `tools`. */
+  readonly slots = new SlotContent(this.domElement)
 
-  /** Host `<label>`s and `aria-label`, as the text box's name. */
-  readonly labels = new ControlLabels(this.formHost)
+  /** The DOM element's `<label>`s and `aria-label`, as the text box's name. */
+  readonly labels = new ControlLabels(this.domFormElement)
 
   /** The Cast button's arrow, and the spinner it shows while `casting`;  loaded up front, so neither flashes in. */
   readonly glyphs = {
@@ -121,14 +152,14 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
   /** Back to the `value` ATTRIBUTE (native `defaultValue`). */
   onFormReset() {
     const { attribute } = this.elementDefinition.attribute("value")
-    this.valueState.set(this.host.getAttribute(attribute) ?? "")
+    this.valueState.set(this.domElement.getAttribute(attribute) ?? "")
   }
 
   ////////////////
   // ## Wiring
   ////////////////
 
-  /** Adds the value sync (host value => text box, after DOM updates) and the labels' refresh. */
+  /** Adds the value sync (`value` => the text box, after DOM updates) and the labels' refresh. */
   onMount(): JSX.Element {
     createEffect(
       () => [this.value(), this.isReady],
@@ -244,41 +275,41 @@ export class UIBrandComposer extends FormElement<BrandComposerVocabulary> {
   ////////////////
 
   /**
-   * Cast the current text (the button, Cmd / Ctrl+Enter, the host's `cast()`):  `ui-cast`, then, unless vetoed, the
-   * host's form is submitted.
-   * - Reads the host's PROPERTIES, not the signals:  a page may set `value` (or `casting`) and cast in one go, before
-   *   the signals' writes land.
-   * - Returns false when nothing was cast (see the class doc), or `ui-cast` was vetoed.
-   * - SIDE EFFECT:  `requestSubmit()` on the host's form.
+   * Cast the current text (the button, Cmd / Ctrl+Enter, the DOM element's `cast()`):  send `ui-cast`,
+   * then, unless cancelled, submit the form.
+   * - Reads the DOM element's PROPERTIES, not the signals:
+   *   a page may set `value` (or `casting`) and cast in one go, before the signals' writes land.
+   * - Returns false when nothing was cast (see the class doc), or `ui-cast` was cancelled.
+   * - SIDE EFFECT:  `requestSubmit()` on the DOM element's form.
    */
   cast(originalEvent?: Event): boolean {
     const value = this.current()
-    if (!value.trim() || this.hostFlag("casting") || this.hostFlag("disabled") || untrack(() => this.formIsDisabled)) {
+    if (!value.trim() || this.flagNow("casting") || this.flagNow("disabled") || untrack(() => this.formIsDisabled)) {
       return false
     }
     if (!this.send("ui-cast", { value, originalEvent })) return false
-    this.formHost.internals.form?.requestSubmit()
+    this.domFormElement.internals.form?.requestSubmit()
     return true
   }
 
-  /** The text now:  the host's `value` property (synchronous), else `""`. */
+  /** The text now:  the DOM element's `value` property (synchronous), else `""`. */
   private current(): string {
-    const value = this.hostProperty("value")
+    const value = this.propertyNow("value")
     return typeof value === "string" ? value : ""
   }
 
-  /** Boolean attribute `name`'s host property, now. */
-  private hostFlag(name: "casting" | "disabled"): boolean {
-    return !!this.hostProperty(name)
+  /** Boolean attribute `name`'s DOM element property, now. */
+  private flagNow(name: "casting" | "disabled"): boolean {
+    return !!this.propertyNow(name)
   }
 
-  /** Attribute `name`'s host property, read synchronously (the fork's stored value, not the signal). */
-  private hostProperty(name: AttributeName<BrandComposerVocabulary>): unknown {
+  /** Attribute `name`'s DOM element property, read synchronously (solid-element's stored value, not the signal). */
+  private propertyNow(name: AttributeName<BrandComposerVocabulary>): unknown {
     const { property } = this.elementDefinition.attribute(name)
-    return (this.host as unknown as Record<string, unknown>)[property]
+    return (this.domElement as unknown as Record<string, unknown>)[property]
   }
 
-  /** The text box shows the host's value again, e.g. after a vetoed `ui-input` or an outside set. */
+  /** The text box shows `value` again, e.g. after a cancelled `ui-input`, or a set from outside. */
   private syncControl() {
     const { control } = this
     const value = this.current()

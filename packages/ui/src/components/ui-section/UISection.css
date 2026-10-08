@@ -1,0 +1,818 @@
+/*
+ * The style sheet of `<ui-section>` and `<ui-sections>`:  ours, after Fomantic's header (`dividing`, `block`),
+ * segment (the box, `padded`, `attached`, `scrolling`, `loading`) and styled accordion (`styled`).
+ * No Fomantic `.less` of its own.
+ * - It styles the component's shadow DOM, in Fomantic's class names on semantic elements:
+ *
+ *     <section class="ui [size] [color] [keyOnly ...] [valueAndKey ...] [text-align] section [scrolling]"
+ *              part="section" [aria-busy="true"]>
+ *       <div class="sentinel" aria-hidden="true"></div>                          (what `sticky` is measured by)
+ *       <header class="title" part="title" style="--_ui-section-top: Npx; --_ui-section-depth: N">
+ *         <hN class="heading" part="heading">                                    (N = level)
+ *           <button type="button" class="toggle" part="toggle" aria-expanded aria-controls="content">
+ *                                                                (not collapsible:  <span class="toggle">)
+ *             <span class="fold icon" part="fold-icon" aria-hidden="true"><svg/></span>   (collapsible only)
+ *             <span class="icon" part="icon"><slot name="icon"><svg/></slot></span>        (icon only)
+ *             <span class="header" part="header"><slot name="header">text</slot></span>
+ *           </button>
+ *         </hN>
+ *         <span class="badge" part="badge"><slot name="badge">text</slot></span>         (badge only)
+ *         <span class="actions" part="actions"><slot name="actions"></slot></span>       (actions only)
+ *         <span class="fold icon" part="fold-icon" aria-hidden="true"><svg/></span>  (`fold-icon="end"`:  not in the
+ *                                                                                     toggle, here)
+ *         <span id="tip" class="tip" part="tip" role="tooltip"><slot name="info">text</slot></span>   (info only)
+ *       </header>
+ *       <div class="subhead" part="subhead"><slot name="subhead">text</slot></div>       (subhead only)
+ *       <div id="content" class="content" part="content" [hidden="until-found"]
+ *            [style="--_ui-section-height: <height>"]>
+ *         <p class="source error" part="error" role="alert">Couldn't load …</p>       (failed `source` only)
+ *         <slot></slot>
+ *       </div>
+ *       <span class="ui-visually-hidden-force" role="status">Loading…</span>   (loading, or a slow `source`)
+ *     </section>
+ *
+ * - The DOM element is `display: block`, NOT `contents`:  its `id` is an anchor target, and pages scroll to its box.
+ * - Static markup (the examples) gets every look;  the element adds behaviour:  folding, find-in-page,
+ *   the sticky stack, `:state(stuck)`.  Folded is `hidden="until-found"` on `.content`;  the fold icon turns by the
+ *   toggle's `aria-expanded="false"`.
+ * - `size` scales the CONTENT only (`--ui-scale` from `sizes.css`, read by `.content`);  each level keeps its title
+ *   size (`--ui-section-h1` ... `-h6`, relative to `--ui-font-size`, as `<ui-header level>`'s).
+ * - `color` (the `--ui-color*` remap) tints the title, the dividing rule and a box's top edge;
+ *   every `<slot>` resets the remap and `--ui-scale`, so slotted content (nested sections included) isn't tinted or
+ *   rescaled.
+ * - Sticky:  `.title` is `position: sticky` inside the section box, at `--_ui-section-top` (inline:
+ *   the top-level `offset`, or the bottom of the enclosing stuck titles) and `z-index` `--ui-section-z-index` minus the
+ *   nesting depth (`--_ui-section-depth`, inline), so a nested title slides UNDER its parent's.  It needs an opaque
+ *   background (`--ui-section-sticky-background`).
+ * - Animated folds (`:state(animated)`:  `interpolate-size`), dropped under `prefers-reduced-motion`.
+ * - `<ui-sections>` shares this sheet:
+ *
+ *     <div class="ui [collapsing] sections" part="group"><slot></slot></div>
+ *
+ *   `collapsing` sets the private switch `--_ui-sections-stack` (0px), inherited by every section below it,
+ *   which then stacks ("Stacked");  a plain group resets it.
+ * - End chevron (`fold-icon="end"`):  the fold icon sits after the badge and actions, at the far end of the bar;
+ *   it turns as the start one does, by the toggle's `aria-expanded` (`:has()`).
+ * - Info tip (`info`):  under the title bar at its start edge, shown while the pointer is on the heading or the end
+ *   chevron, or the toggle has keyboard focus;  the title is its positioned box.
+ *
+ * ## Tokens
+ * Public tokens (`--ui-section-*`, the theming surface) are NEVER declared here:  the root reads each through a
+ * private alias (`--_ui-section-radius: var(--ui-section-radius, var(--ui-radius))`) and the rules read only those,
+ * so a value set on `:root`, an ancestor, the DOM element, `::part(section)` or in the app stylesheet reaches the box
+ * (`docs/theming.md` "Component tokens").  Variations write private `--_section-*` switches, never the aliases.
+ *
+ * | Token                                                 | What                                          |
+ * | ----------------------------------------------------- | --------------------------------------------- |
+ * | `--ui-section-margin`                                 | space above / below a section                 |
+ * | `--ui-section-title-padding` / `-weight` / `-gap`     | title bar spacing, weight, gap between pieces |
+ * | `--ui-section-title-color`                            | title text (a `color` wins)                   |
+ * | `--ui-section-title-background`                       | `block` / `styled` title bar                  |
+ * | `--ui-section-title-line-height`                      | title lines                                   |
+ * | `--ui-section-h1` ... `-h6`                           | title size per level, x `--ui-font-size`      |
+ * | `--ui-section-dividing-border`                        | `dividing` rule                               |
+ * | `--ui-section-background` / `-border` / `-radius`     | `bordered` / `styled` box                     |
+ * | `--ui-section-shadow` / `-raised-shadow`              | box shadow, `raised`                          |
+ * | `--ui-section-colored-width`                          | a coloured box's top edge                     |
+ * | `--ui-section-box-padding`                            | inside a `bordered` box                       |
+ * | `--ui-section-content-padding`                        | content spacing                               |
+ * | `--ui-section-padded` / `-very-padded`                | `padded` / `padded="very"` content            |
+ * | `--ui-section-badge-background` / `-color` / `-font-size` | the badge pill                            |
+ * | `--ui-section-subhead-color` / `-font-size`           | the subhead                                   |
+ * | `--ui-section-fold-icon-size`                         | the fold chevron                              |
+ * | `--ui-section-fold-icon-rotate` / `-folded-rotate`    | chevron turn open / folded (RTL negates)      |
+ * | `--ui-section-tip-background` / `-color` / `-width`   | the `info` tip (width:  its widest)           |
+ * | `--ui-section-scrolling-height`                       | `scrolling` cap (default grows with viewport) |
+ * | `--ui-section-z-index`                                | a sticky title's stacking (minus its depth)   |
+ * | `--ui-section-sticky-background` / `-stuck-shadow`    | sticky title fill, shadow while stuck         |
+ * | `--ui-section-duration`                               | fold animation, chevron turn                  |
+ * | `--ui-section-loader-*`, `--ui-section-disabled-opacity` | `loading` spinner / dimmer, `disabled`     |
+ *
+ * - NOTE: left out, on purpose:
+ *   - Fomantic header extras (`sub header`, `icon header` layout, floated content):  a section's title is one line
+ *   - `attached` neighbours other than sections (menus, segments):  only the box's own corners and margins change
+ */
+
+@layer ui.components.section.types, ui.components.section.content, ui.components.section.variations, ui.components.section.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time. */
+@import "../../styles/media.css";
+
+/* Loader spin, shared by `loading` sections. */
+@keyframes ui-section-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/*******************************
+            Section
+*******************************/
+
+@layer ui.components.section.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  each the private alias of its public token. */
+  .ui.section {
+    --_ui-section-margin: var(--ui-section-margin, 1.5em);
+    --_ui-section-title-padding: var(--ui-section-title-padding, 0.25em 0);
+    --_ui-section-title-weight: var(--ui-section-title-weight, var(--ui-font-weight-bold));
+    --_ui-section-title-gap: var(--ui-section-title-gap, 0.5em);
+    --_ui-section-title-color: var(--ui-section-title-color, var(--ui-text-color));
+    --_ui-section-title-background: var(--ui-section-title-background, var(--ui-surface-strong));
+    --_ui-section-title-line-height: var(--ui-section-title-line-height, 1.28571);
+    --_ui-section-h1: var(--ui-section-h1, 2);
+    --_ui-section-h2: var(--ui-section-h2, 1.71428);
+    --_ui-section-h3: var(--ui-section-h3, 1.28571);
+    --_ui-section-h4: var(--ui-section-h4, 1.07142);
+    --_ui-section-h5: var(--ui-section-h5, 1);
+    --_ui-section-h6: var(--ui-section-h6, 0.85714);
+    --_ui-section-dividing-border: var(
+      --ui-section-dividing-border,
+      var(--ui-border-width) solid var(--ui-border-color)
+    );
+    --_ui-section-background: var(--ui-section-background, var(--ui-surface));
+    --_ui-section-border: var(--ui-section-border, var(--ui-border-width) solid var(--ui-border-color));
+    --_ui-section-radius: var(--ui-section-radius, var(--ui-radius));
+    --_ui-section-shadow: var(--ui-section-shadow, var(--ui-shadow-subtle));
+    --_ui-section-raised-shadow: var(--ui-section-raised-shadow, var(--ui-shadow-floating));
+    --_ui-section-colored-width: var(--ui-section-colored-width, 2px);
+    --_ui-section-box-padding: var(--ui-section-box-padding, 1em);
+    --_ui-section-content-padding: var(--ui-section-content-padding, 0.5em 0 0);
+    --_ui-section-padded: var(--ui-section-padded, 1.5em);
+    --_ui-section-very-padded: var(--ui-section-very-padded, 3em);
+    --_ui-section-badge-background: var(--ui-section-badge-background, var(--ui-surface-strong));
+    --_ui-section-badge-color: var(--ui-section-badge-color, var(--ui-text-muted));
+    --_ui-section-badge-font-size: var(--ui-section-badge-font-size, 0.75em);
+    --_ui-section-subhead-color: var(--ui-section-subhead-color, var(--ui-text-muted));
+    --_ui-section-subhead-font-size: var(--ui-section-subhead-font-size, 0.92857em);
+    --_ui-section-fold-icon-size: var(--ui-section-fold-icon-size, 0.75em);
+    /* the glyph points DOWN:  open keeps it so, folded turns it toward the text;  a theme can flip the pair
+       (`180deg` / `0deg`:  up while open, down while folded) */
+    --_ui-section-fold-icon-rotate: var(--ui-section-fold-icon-rotate, 0deg);
+    --_ui-section-fold-icon-folded-rotate: var(--ui-section-fold-icon-folded-rotate, -90deg);
+    --_ui-section-tip-background: var(--ui-section-tip-background, var(--ui-ink));
+    --_ui-section-tip-color: var(--ui-section-tip-color, var(--ui-surface));
+    --_ui-section-tip-width: var(--ui-section-tip-width, 16.25em);
+    --_ui-section-z-index: var(--ui-section-z-index, var(--ui-z-sticky));
+    --_ui-section-sticky-background: var(--ui-section-sticky-background, var(--ui-surface));
+    --_ui-section-stuck-shadow: var(--ui-section-stuck-shadow, var(--ui-shadow-bottom));
+    --_ui-section-duration: var(--ui-section-duration, var(--ui-duration-slow));
+    --_ui-section-loader-size: var(--ui-section-loader-size, 3em);
+    --_ui-section-loader-width: var(--ui-section-loader-width, 0.2em);
+    --_ui-section-loader-speed: var(--ui-section-loader-speed, 0.6s);
+    --_ui-section-loader-color: var(--ui-section-loader-color, var(--ui-text-muted));
+    --_ui-section-loader-track: var(--ui-section-loader-track, oklch(from var(--ui-ink) l c h / 0.1));
+    --_ui-section-loader-dimmer: var(--ui-section-loader-dimmer, oklch(from var(--ui-surface) l c h / 0.8));
+    --_ui-section-disabled-opacity: var(--ui-section-disabled-opacity, var(--ui-disabled-opacity));
+    /* Cap of a `scrolling` section's content;  its default grows with the viewport (below), a value set from
+       outside wins at every width. */
+    --_ui-section-scrolling-height: var(--ui-section-scrolling-height, var(--_section-scrolling-default, 15em));
+  }
+
+  /* The section box:  plain by default;  `bordered` / `styled` make it a box. */
+  .ui.section {
+    box-sizing: border-box;
+    display: block;
+    /* `--_section-stack-*`:  set only inside `<ui-sections collapsing>` (see "Stacked") */
+    margin-block: var(--_section-stack-top, var(--_section-margin-top, var(--_ui-section-margin)))
+      var(--_section-stack-bottom, var(--_section-margin-bottom, var(--_ui-section-margin)));
+    margin-inline: 0;
+    padding: var(--_section-padding, 0);
+    border: var(--_section-border, none);
+    border-top-color: var(--_section-accent, var(--ui-color, var(--_section-border-color, transparent)));
+    border-radius: var(--_section-radius, 0);
+    background: var(--_section-background, none);
+    box-shadow:
+      inset 0 calc(var(--_section-accent-width, 0px)) 0 0 var(--_section-accent-line, var(--ui-color, transparent)),
+      var(--_section-shadow, 0 0 #0000);
+    color: var(--ui-text-color);
+    font-size: var(--ui-font-size);
+    line-height: var(--ui-line-height);
+  }
+  /* Spacing between neighbours:  none before the first, none after the last. */
+  .ui.section:first-child {
+    --_section-margin-top: 0;
+  }
+  .ui.section:last-child {
+    --_section-margin-bottom: 0;
+  }
+  /* Shadow DOM:  the root is the shadow's only box, so the DOM ELEMENT's position decides. */
+  :host(:not(:first-child)) > .ui.section {
+    --_section-margin-top: initial;
+  }
+  :host(:not(:last-child)) > .ui.section {
+    --_section-margin-bottom: initial;
+  }
+
+  /* What the section hands its slotted content:  none of its colour remap or scale (see the header). */
+  .ui.section slot {
+    --ui-color: initial;
+    --ui-color-text: initial;
+    --ui-color-header: initial;
+    --ui-color-border: initial;
+    --ui-color-background: initial;
+    --ui-color-inverted: initial;
+    --ui-color-hover: initial;
+    --ui-color-focus: initial;
+    --ui-color-down: initial;
+    --ui-color-active: initial;
+    --ui-color-on: initial;
+    --ui-color-inverted-on: initial;
+    --ui-scale: initial;
+  }
+
+  /* The 1px sentinel `sticky` is measured by:  no room, never seen. */
+  .ui.section > .sentinel {
+    display: block;
+    height: 1px;
+    margin-block-end: -1px;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+/*******************************
+            Sections
+*******************************/
+
+@layer ui.components.section.types {
+  /*
+   * `<ui-sections>`:  a block spaced as one section would be (its first section's top margin and its last one's
+   * bottom margin are 0).  Plain, it resets the stacking switch, so a plain group inside a collapsing one turns
+   * stacking off again for the sections in it.
+   */
+  .ui.sections {
+    --_ui-section-margin: var(--ui-section-margin, 1.5em);
+    --_ui-sections-stack: initial;
+    box-sizing: border-box;
+    display: block;
+    margin-block: var(--_sections-margin-top, var(--_ui-section-margin))
+      var(--_sections-margin-bottom, var(--_ui-section-margin));
+    margin-inline: 0;
+    padding: 0;
+  }
+  .ui.sections:first-child {
+    --_sections-margin-top: 0;
+  }
+  .ui.sections:last-child {
+    --_sections-margin-bottom: 0;
+  }
+  :host(:not(:first-child)) > .ui.sections {
+    --_sections-margin-top: initial;
+  }
+  :host(:not(:last-child)) > .ui.sections {
+    --_sections-margin-bottom: initial;
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.section.content {
+  /* ## Title bar:  the heading, then the badge and actions, in a row. */
+  .ui.section > .title {
+    display: flex;
+    align-items: center;
+    gap: var(--_ui-section-title-gap);
+    margin: 0;
+    padding: var(--_section-title-padding, var(--_ui-section-title-padding));
+    border-bottom: var(--_section-title-border, none);
+    border-bottom-color: var(--_section-title-border-color, var(--ui-color, var(--ui-border-color)));
+    border-radius: var(--_section-title-radius, 0);
+    background: var(--_section-title-background, none);
+    color: var(--ui-color-header, var(--_ui-section-title-color));
+  }
+  .ui.section > .title > .heading {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    font-family: var(--ui-font-family-heading);
+    font-size: calc(var(--ui-font-size) * var(--_section-level, var(--_ui-section-h2)));
+    font-weight: var(--_ui-section-title-weight);
+    line-height: var(--_ui-section-title-line-height);
+    color: inherit;
+  }
+  .ui.section > .title > h1.heading {
+    --_section-level: var(--_ui-section-h1);
+  }
+  .ui.section > .title > h3.heading {
+    --_section-level: var(--_ui-section-h3);
+  }
+  .ui.section > .title > h4.heading {
+    --_section-level: var(--_ui-section-h4);
+  }
+  .ui.section > .title > h5.heading {
+    --_section-level: var(--_ui-section-h5);
+  }
+  .ui.section > .title > h6.heading {
+    --_section-level: var(--_ui-section-h6);
+  }
+
+  /* The toggle fills the heading:  a plain box, or a reset `<button>` the whole row clicks. */
+  .ui.section > .title > .heading > .toggle {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: var(--_section-title-justify, flex-start);
+    gap: var(--_ui-section-title-gap);
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: var(--ui-radius-s);
+    background: none;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: var(--_section-title-align, start);
+  }
+  .ui.section > .title > .heading > button.toggle {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ui.section > .title > .heading > button.toggle:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-offset);
+  }
+  .ui.section > .title > .heading > .toggle > .header {
+    min-width: 0;
+  }
+
+  /* Icon:  the shorthand's glyph, or a slotted icon. */
+  .ui.section > .title > .heading > .toggle > .icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+  }
+  .ui.section > .title > .heading > .toggle > .icon svg {
+    display: block;
+    width: auto;
+    height: 1em;
+    fill: currentColor;
+  }
+
+  /* Fold chevron:  points down while open, turns toward the text while folded (by default:  the two
+     `--ui-section-fold-icon-*rotate` tokens;  right to left, each turn is negated, so it mirrors). */
+  .ui.section > .title > .heading > .toggle > .fold.icon {
+    width: var(--_ui-section-fold-icon-size);
+    height: var(--_ui-section-fold-icon-size);
+    rotate: var(--_ui-section-fold-icon-rotate);
+    transition: rotate var(--_ui-section-duration) var(--ui-ease);
+  }
+  .ui.section > .title > .heading > .toggle > .fold.icon:dir(rtl) {
+    rotate: calc(-1 * var(--_ui-section-fold-icon-rotate));
+  }
+  .ui.section > .title > .heading > .toggle > .fold.icon svg {
+    width: 100%;
+    height: 100%;
+  }
+  .ui.section > .title > .heading > .toggle[aria-expanded="false"] > .fold.icon {
+    rotate: var(--_ui-section-fold-icon-folded-rotate);
+  }
+  .ui.section > .title > .heading > .toggle[aria-expanded="false"] > .fold.icon:dir(rtl) {
+    rotate: calc(-1 * var(--_ui-section-fold-icon-folded-rotate));
+  }
+
+  /* End chevron (`fold-icon="end"`):  after the badge and actions, at the far end of the bar;  turns the same way. */
+  .ui.section > .title > .fold.icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    width: var(--_ui-section-fold-icon-size);
+    height: var(--_ui-section-fold-icon-size);
+    cursor: pointer;
+    rotate: var(--_ui-section-fold-icon-rotate);
+    transition: rotate var(--_ui-section-duration) var(--ui-ease);
+  }
+  .ui.section > .title > .fold.icon:dir(rtl) {
+    rotate: calc(-1 * var(--_ui-section-fold-icon-rotate));
+  }
+  .ui.section > .title > .fold.icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+  }
+  .ui.section > .title:has(> .heading > .toggle[aria-expanded="false"]) > .fold.icon {
+    rotate: var(--_ui-section-fold-icon-folded-rotate);
+  }
+  .ui.section > .title:has(> .heading > .toggle[aria-expanded="false"]) > .fold.icon:dir(rtl) {
+    rotate: calc(-1 * var(--_ui-section-fold-icon-folded-rotate));
+  }
+
+  /* ## Info tip (`info`):  a bubble under the bar's start edge, on hover of the heading / end chevron, or focus. */
+  .ui.section > .title:has(> .tip) {
+    position: relative;
+  }
+  .ui.section > .title > .tip {
+    position: absolute;
+    inset-block-start: calc(100% + 0.5em);
+    inset-inline-start: 0;
+    z-index: var(--ui-z-popup);
+    box-sizing: border-box;
+    width: max-content;
+    max-width: min(var(--_ui-section-tip-width), 100vw);
+    padding: 0.75em 1em;
+    border-radius: var(--ui-radius);
+    background: var(--_ui-section-tip-background);
+    box-shadow: var(--ui-shadow-floating);
+    color: var(--_ui-section-tip-color);
+    font-family: var(--ui-font-family);
+    font-size: 0.875em;
+    font-weight: var(--ui-font-weight-normal);
+    letter-spacing: normal;
+    line-height: 1.4;
+    text-align: start;
+    text-transform: none;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity var(--ui-duration-fast) var(--ui-ease),
+      visibility var(--ui-duration-fast);
+  }
+  .ui.section > .title > :is(.heading:hover, .heading:has(:focus-visible), .fold.icon:hover) ~ .tip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Badge:  a small pill after the heading. */
+  .ui.section > .title > .badge {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    padding: 0.25em 0.625em;
+    border-radius: var(--ui-radius-pill);
+    background: var(--_ui-section-badge-background);
+    color: var(--_ui-section-badge-color);
+    font-size: var(--_ui-section-badge-font-size);
+    font-weight: var(--ui-font-weight-bold);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* Actions:  at the far end of the title bar. */
+  .ui.section > .title > .actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.25em;
+    margin-inline-start: auto;
+    color: var(--ui-text-color);
+  }
+
+  /* ## Subhead:  smaller text under the title;  never sticks. */
+  .ui.section > .subhead {
+    margin: 0;
+    padding: var(--_section-subhead-padding, 0.25em 0 0);
+    color: var(--_ui-section-subhead-color);
+    font-size: var(--_ui-section-subhead-font-size);
+  }
+
+  /* ## Content:  `size` scales it (and only it). */
+  .ui.section > .content {
+    box-sizing: border-box;
+    padding: var(--_section-content-padding, var(--_ui-section-content-padding));
+    font-size: calc(1em * var(--ui-scale, 1));
+  }
+  /* Folded (`hidden="until-found"` keeps the box, sized by containment):  no padding or border shows. */
+  .ui.section > .content[hidden] {
+    block-size: 0;
+    padding-block: 0;
+    border-block-width: 0;
+    overflow-y: clip;
+  }
+  /* Edge margins of the content don't add to its padding. */
+  .ui.section > .content > :first-child,
+  .ui.section > .content > ::slotted(:first-child) {
+    margin-top: 0;
+  }
+  .ui.section > .content > :last-child,
+  .ui.section > .content > ::slotted(:last-child) {
+    margin-bottom: 0;
+  }
+}
+
+/*******************************
+          Variations
+*******************************/
+
+@layer ui.components.section.variations {
+  /* ## Dividing:  a rule under the title (in the colour, when coloured). */
+  .ui.dividing.section {
+    --_section-title-border: var(--_ui-section-dividing-border);
+  }
+
+  /* ## Block:  the title bar in a tinted box. */
+  .ui.block.section {
+    --_section-title-background: var(--_ui-section-title-background);
+    --_section-title-padding: 0.5em 1em;
+    --_section-title-radius: var(--_ui-section-radius);
+  }
+
+  /* ## Bordered:  a box around the section, as a segment;  its top edge takes the colour. */
+  .ui.bordered.section {
+    --_section-border: var(--_ui-section-border);
+    --_section-radius: var(--_ui-section-radius);
+    --_section-background: var(--_ui-section-background);
+    --_section-shadow: var(--_ui-section-shadow);
+    --_section-padding: var(--_ui-section-box-padding);
+    --_section-accent-width: calc(var(--_ui-section-colored-width) - var(--ui-border-width));
+    --_section-border-color: var(--ui-border-color);
+  }
+
+  /* ## Styled:  boxed as a styled accordion -- a tinted title bar over padded content. */
+  .ui.styled.section {
+    --_section-border: var(--_ui-section-border);
+    --_section-radius: var(--_ui-section-radius);
+    --_section-background: var(--_ui-section-background);
+    --_section-shadow: var(--_ui-section-shadow);
+    --_section-accent-width: calc(var(--_ui-section-colored-width) - var(--ui-border-width));
+    --_section-border-color: var(--ui-border-color);
+    --_section-title-background: var(--_ui-section-title-background);
+    --_section-title-padding: 0.75em 1em;
+    --_section-title-border: var(--ui-border-width) solid;
+    --_section-title-border-color: var(--ui-border-color);
+    --_section-title-radius: var(--_ui-section-radius) var(--_ui-section-radius) 0 0;
+    --_section-subhead-padding: 0.5em 1em 0;
+    --_section-content-padding: 0.5em 1em 1em;
+  }
+
+  /*
+   * ## Collapsing group (`<ui-sections collapsing>`):  the stacking switch every section below reads, at any depth
+   * (it inherits through slots):  the margin between stacked sections.
+   */
+  .ui.collapsing.sections {
+    --_ui-sections-stack: 0px;
+  }
+
+  /* ## Raised:  a box lifted with a shadow. */
+  .ui.raised:is(.bordered, .styled).section {
+    --_section-shadow: var(--_ui-section-raised-shadow);
+  }
+
+  /* ## Compact:  less padding around the title and in the content. */
+  .ui.compact.section {
+    --_section-title-padding: 0.125em 0;
+    --_section-content-padding: 0.25em 0 0;
+  }
+  .ui.compact.block.section {
+    --_section-title-padding: 0.25em 0.625em;
+  }
+  .ui.compact.bordered.section {
+    --_section-padding: 0.5em;
+  }
+  .ui.compact.styled.section {
+    --_section-title-padding: 0.375em 0.625em;
+    --_section-subhead-padding: 0.25em 0.625em 0;
+    --_section-content-padding: 0.25em 0.625em 0.5em;
+  }
+
+  /* ## Padded / very padded content. */
+  .ui.padded.section {
+    --_section-content-padding: var(--_ui-section-padded);
+  }
+  .ui[class*="very padded"].section {
+    --_section-content-padding: var(--_ui-section-very-padded);
+  }
+
+  /* ## Attached:  a box joined edge to edge with the box above / below. */
+  .ui.attached.section {
+    --_section-margin-top: 0;
+    --_section-margin-bottom: 0;
+    --_section-radius: 0;
+  }
+  .ui.attached.section:not(.top) {
+    border-top-width: 0;
+  }
+  .ui[class*="top attached"].section {
+    --_section-margin-top: var(--_ui-section-margin);
+    --_section-radius: var(--_ui-section-radius) var(--_ui-section-radius) 0 0;
+  }
+  .ui[class*="top attached"].section:first-child {
+    --_section-margin-top: 0;
+  }
+  :host(:first-child) > .ui[class*="top attached"].section {
+    --_section-margin-top: 0;
+  }
+  .ui[class*="bottom attached"].section {
+    --_section-margin-bottom: var(--_ui-section-margin);
+    --_section-radius: 0 0 var(--_ui-section-radius) var(--_ui-section-radius);
+  }
+  .ui[class*="bottom attached"].section:last-child {
+    --_section-margin-bottom: 0;
+  }
+  :host(:last-child) > .ui[class*="bottom attached"].section {
+    --_section-margin-bottom: 0;
+  }
+
+  /*
+   * ## Stacked:  in `<ui-sections collapsing>` (its inherited `--_ui-sections-stack`;  unset elsewhere, so none of
+   * this applies), a FOLDABLE section starts flush under the one above, and a FOLDED one keeps no space below:
+   * a run of folded titles reads as one accordion.  An open one keeps its usual space below its content,
+   * never above its title, so a title never moves when it's clicked.  Boxes (`bordered`,
+   * `styled`) overlap their edges by the border width, so two never draw a doubled line;  not `attached` ones,
+   * which join already.
+   */
+  .ui.section:has(> .title > .heading > button.toggle) {
+    --_section-stack-top: var(--_ui-sections-stack);
+  }
+  .ui.section:has(> .content[hidden]) {
+    --_section-stack-bottom: var(--_ui-sections-stack);
+  }
+  .ui:is(.bordered, .styled):not(.basic, .attached).section:not(:first-child):has(> .title > .heading > button.toggle),
+  :host(:not(:first-child))
+    > .ui:is(.bordered, .styled):not(.basic, .attached).section:has(> .title > .heading > button.toggle) {
+    --_section-stack-top: calc(var(--_ui-sections-stack) - var(--ui-border-width));
+  }
+
+  /* ## Scrolling:  the content has a capped height (per breakpoint, `short` ... `very long`, or `height`). */
+  .ui.scrolling.section > .content {
+    --_section-scroll: var(
+      --_ui-section-height,
+      calc(var(--_ui-section-scrolling-height) * var(--_section-scroll-ratio, 1))
+    );
+    max-height: var(--_section-scroll);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .ui.scrolling.section > .content:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: calc(var(--ui-focus-width) * -1);
+  }
+  .ui.short.scrolling.section {
+    --_section-scroll-ratio: 0.75;
+  }
+  .ui[class*="very short scrolling"].section {
+    --_section-scroll-ratio: 0.5;
+  }
+  .ui.long.scrolling.section {
+    --_section-scroll-ratio: 2;
+  }
+  .ui[class*="very long scrolling"].section {
+    --_section-scroll-ratio: 3;
+  }
+  @media (--ui-tablet), (--ui-computer) {
+    .ui.scrolling.section {
+      --_section-scrolling-default: 18em;
+    }
+  }
+  @media (--ui-computer) {
+    .ui.scrolling.section {
+      --_section-scrolling-default: 24em;
+    }
+  }
+  @media (--ui-widescreen) {
+    .ui.scrolling.section {
+      --_section-scrolling-default: 30em;
+    }
+  }
+
+  /* ## Text alignment:  the TITLE only. */
+  .ui.left.aligned.section {
+    --_section-title-justify: flex-start;
+    --_section-title-align: start;
+  }
+  .ui.center.aligned.section {
+    --_section-title-justify: center;
+    --_section-title-align: center;
+  }
+  .ui.right.aligned.section {
+    --_section-title-justify: flex-end;
+    --_section-title-align: end;
+  }
+
+  /* ## Inverted:  the dark scheme;  every `light-dark()` token (text, surface, border) follows. */
+  .ui.inverted.section {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    color-scheme: dark;
+  }
+
+  /*
+   * ## Sticky:  the title bar sticks within the section box, at the stack top (inline `--_ui-section-top`);
+   * deeper titles stack lower (inline `--_ui-section-depth`), so they slide under their parents'.
+   */
+  .ui.sticky.section > .title {
+    position: sticky;
+    top: var(--_ui-section-top, 0px);
+    z-index: calc(var(--_ui-section-z-index) - var(--_ui-section-depth, 0));
+    background: var(--_section-title-background, var(--_ui-section-sticky-background));
+  }
+
+  /* ## Basic:  no box, rule or tint, whatever else is set (last, so it wins over the looks above). */
+  .ui.basic.section {
+    --_section-border: none;
+    --_section-radius: 0;
+    --_section-background: none;
+    --_section-shadow: 0 0 #0000;
+    --_section-padding: 0;
+    --_section-accent-width: 0px;
+    --_section-title-border: none;
+    --_section-title-background: none;
+    --_section-title-radius: 0;
+    --_section-title-padding: var(--_ui-section-title-padding);
+    --_section-subhead-padding: 0.25em 0 0;
+    --_section-content-padding: var(--_ui-section-content-padding);
+  }
+  .ui.basic.sticky.section > .title {
+    background: var(--_ui-section-sticky-background);
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.section.states {
+  /* Stuck (the element's `:state(stuck)`):  a shadow under the title, over the content sliding beneath. */
+  :host(:state(stuck)) .ui.sticky.section > .title {
+    box-shadow: var(--_ui-section-stuck-shadow);
+  }
+
+  /* Disabled:  dimmed and inert. */
+  .ui.disabled.section {
+    opacity: var(--_ui-section-disabled-opacity);
+    color: var(--ui-text-disabled);
+    pointer-events: none;
+    user-select: none;
+  }
+  .ui.disabled.section > .title > .heading > button.toggle {
+    cursor: default;
+  }
+
+  /* Loading:  a dimmer over the content and a spinner in the middle. */
+  .ui.loading.section > .content {
+    position: relative;
+    min-height: calc(var(--_ui-section-loader-size) * 1.5);
+    cursor: default;
+    pointer-events: none;
+    user-select: none;
+  }
+  .ui.loading.section > .content::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: block;
+    border-radius: inherit;
+    background: var(--_ui-section-loader-dimmer);
+  }
+  .ui.loading.section > .content::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 101;
+    display: block;
+    width: var(--_ui-section-loader-size);
+    height: var(--_ui-section-loader-size);
+    margin: calc(var(--_ui-section-loader-size) / -2) 0 0 calc(var(--_ui-section-loader-size) / -2);
+    box-sizing: border-box;
+    border: var(--_ui-section-loader-width) solid var(--_ui-section-loader-track);
+    border-top-color: var(--_ui-section-loader-color);
+    border-radius: var(--ui-radius-circle);
+    animation: ui-section-spin var(--_ui-section-loader-speed) linear infinite;
+  }
+  .ui.loading.section > .content[hidden] {
+    min-height: 0;
+  }
+
+  /* A `source` body that failed:  one line in the content, above the placeholder. */
+  .ui.section > .content > .source.error {
+    margin: 0 0 1em;
+    color: var(--ui-negative-text);
+  }
+
+  /* Animated (`:state(animated)`:  the browser can grow to `auto`):  content folds and unfolds by height. */
+  @media (prefers-reduced-motion: no-preference) {
+    :host(:state(animated)) .ui.section {
+      interpolate-size: allow-keywords;
+    }
+    :host(:state(animated)) .ui.section > .content {
+      transition:
+        block-size var(--_ui-section-duration) var(--ui-ease-out),
+        padding-block var(--_ui-section-duration) var(--ui-ease-out),
+        content-visibility var(--_ui-section-duration) allow-discrete;
+    }
+    :host(:state(animated)) .ui.section:not(.scrolling) > .content {
+      overflow-y: clip;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ui.section > .title > .heading > .toggle > .fold.icon,
+    .ui.section > .title > .fold.icon,
+    .ui.section > .title > .tip {
+      transition: none;
+    }
+  }
+}

@@ -2,17 +2,17 @@ import { onSettled } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { itemVocabulary } from "$/ui/components/ui-item/ui-item.vocabulary.en"
+import { itemVocabulary } from "$/ui/components/ui-item/UIItem.vocabulary.en"
 
 /****************
  * ### `SlottedItems`
- * The options a dropdown's light-DOM `<ui-item>` children describe, as reactive `MenuEntry`s -- shared by
- * `<ui-dropdown>` and `<ui-select>`.
- * - Read on connect and on every mutation of the host's subtree (`MutationObserver`:  children, attributes,
- *   text) -- that also covers what `slotchange` would, and attribute / text edits it wouldn't.
+ * The options a dropdown's light-DOM `<ui-item>` children describe, as reactive `MenuEntry`s:
+ * shared by `<ui-dropdown>` and `<ui-select>`.
+ * - Read on connect, and on every change to the DOM element's subtree (a `MutationObserver`:  children,
+ *   attributes, text).  That covers what `slotchange` would, and the attribute and text edits it wouldn't.
  * - Plain items become `MenuOption`s:  `value` (default `text`), `text` (default the text content), `description`,
- *   `icon`, `image`, `flag`, `disabled`, `selected` (or its alias `active`, as `UIItem` reads it).  The dropdown
- *   renders them in ITS shadow root, because the listbox must share a tree with the combobox for
+ *   `icon`, `image`, `flag`, `disabled`, `selected` (or its alias `active`, as `UIItem` reads it).
+ *   The dropdown renders them in ITS shadow root, because the listbox must share a tree with the combobox for
  *   `aria-activedescendant`.
  * - RICH items (element children) keep their markup:  the item gets a generated `slot` name and the dropdown
  *   projects it into its menu row, so the content stays live (listeners, framework-rendered children).
@@ -26,8 +26,8 @@ export class SlottedItems {
   /** Generated slot name of each rich option. */
   readonly slots = new WeakMap<E.MenuOption, string>()
 
-  /** The dropdown. */
-  private readonly host: E.UIHost
+  /** The dropdown's DOM element. */
+  private readonly domElement: E.DOMElement
 
   /** Last entry per element, reused while equal. */
   private readonly cache = new WeakMap<Element, E.MenuEntry>()
@@ -35,13 +35,13 @@ export class SlottedItems {
   /** Counter for generated slot names. */
   private counter = 0
 
-  /** Read `host`'s items now, and again on every change to its subtree once settled. */
-  constructor(host: E.UIHost) {
-    this.host = host
+  /** Read `domElement`'s items now, and again on every change to its subtree once settled. */
+  constructor(domElement: E.DOMElement) {
+    this.domElement = domElement
     this.entries = this.read()
     onSettled(() => {
       const observer = new MutationObserver(() => (this.entries = this.read()))
-      observer.observe(host, { childList: true, subtree: true, attributes: true, characterData: true })
+      observer.observe(domElement, { childList: true, subtree: true, attributes: true, characterData: true })
       this.entries = this.read()
       return () => observer.disconnect()
     })
@@ -50,8 +50,8 @@ export class SlottedItems {
   /** Every item child (`<ui-item>`, or a translated alias of it), read now. */
   private read(): E.MenuEntry[] {
     const entries: E.MenuEntry[] = []
-    for (const element of this.host.children) {
-      const definition = E.UIElement.definitions.get(element.localName)
+    for (const element of this.domElement.children) {
+      const definition = E.UIComponent.definitions.get(element.localName)
       if (element.localName !== itemVocabulary.tag && definition?.vocabulary !== itemVocabulary) continue
       entries.push(this.entry(element, definition))
     }
@@ -94,9 +94,9 @@ export class SlottedItems {
   /**
    * Converted value of item attribute `name`:  the (already converted) property once the item has upgraded,
    * else its attribute, converted here.
-   * - On a server, always the attribute:  linkedom has no `:defined`, and the items' stand-in hosts are built after
-   *   the dropdown's.
-   * - STATIC:  pure, needs no instance.
+   * - On a server, always the attribute:  linkedom has no `:defined`,
+   *   and the items' stand-in DOM elements are built after the dropdown's.
+   * - Static:  pure, it needs no instance.
    */
   private static valueFor(element: Element, definition: E.ElementDefinition | undefined, name: string): unknown {
     if (!definition) {

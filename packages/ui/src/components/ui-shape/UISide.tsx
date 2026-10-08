@@ -2,26 +2,28 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 import { UIShape } from "./UIShape"
-import { ShapeFallback } from "./ui-shape.fallback"
-import { SIDE } from "./ui-shape.types"
-import { sideVocabulary } from "./ui-side.vocabulary.en"
+import { SIDE } from "./UIShape.types"
+import { sideVocabulary } from "./UISide.vocabulary.en"
 
-import shapeCSS from "./ui-shape.css?inline"
+import shapeCSS from "./UIShape.css?inline"
 
 /****************
- * ### `<ui-side>`
- * One side of a `<ui-shape>` (Fomantic's `.side`):  `<div class="side" part="side"><slot>`.
- * - Passive:  the HOST is the face that turns.  Its shape sets its states (`active`, `inactive`, `animating`,
- *   `leaving`) and, while flipping, its inline `transform` / `top` / `left`;  `ui-shape.css` does the rest.
+ * ### `UISide`
+ * The component behind `<ui-side>`:
+ * one side of a `<ui-shape>` (Fomantic's `.side`), `<div class="side" part="side"><slot>`.
+ *
+ * - Passive:  the DOM element is the face that turns.
+ *   Its shape sets its states (`active`, `inactive`, `animating`, `leaving`)
+ *   and, while flipping, its inline `transform` / `top` / `left`;  `UIShape.css` does the rest.
  * - Outside a working shape (no `inactive` state) every side shows, stacked:  content is never lost.
- * - Server render (`$/ui/static`):  in a `text` shape the root is a `<span>` (`UIShape.rendersInlineOnServer`).
- *   Which side shows goes by its states (`data-state`), not the class grammar's `active` class:  that one's rule
- *   (states layer) would beat a cube face's `display: flex`.
+ * - A server render (`$/ui/static`):  in a `text` shape the root is a `<span>` (`UIShape.rendersInlineOnServer`).
+ *   Which side shows goes by its states (`data-state`), not the class grammar's `active` class:
+ *   that one's rule (states layer) would beat a cube face's `display: flex`.
  ****************/
-export class UISide extends E.UIElement<typeof sideVocabulary> {
+export class UISide extends E.UIComponent<typeof sideVocabulary> {
   @E.proto static vocabulary = sideVocabulary
   @E.proto static styleSheets = { shape: shapeCSS }
-  @E.proto static elementSetup = { Fallback: ShapeFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Always a side:  `:state(side)`. */
   @E.cssState("side")
@@ -42,7 +44,7 @@ export class UISide extends E.UIElement<typeof sideVocabulary> {
   private get isInline(): boolean {
     if (!isServer) return false
     // `parentElement` is the platform's:  `null` at the top
-    const shape = (this.host.parentElement as E.UIHost | null)?.controller
+    const shape = (this.domElement.parentElement as E.DOMElement | null)?.component
     return shape instanceof UIShape && shape.rendersInlineOnServer
   }
 
@@ -56,5 +58,5 @@ export class UISide extends E.UIElement<typeof sideVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UISide extends E.AttributeValues<typeof sideVocabulary> {}

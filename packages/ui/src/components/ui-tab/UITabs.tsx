@@ -2,56 +2,57 @@ import { For, Show, flush, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { tabsVocabulary } from "./ui-tabs.vocabulary.en"
-import { tabVocabulary } from "./ui-tab.vocabulary.en"
-import { TabFallback } from "./ui-tab.fallback"
+import { tabsVocabulary } from "./UITabs.vocabulary.en"
+import { tabVocabulary } from "./UITab.vocabulary.en"
 import { UITab } from "./UITab"
-import { MENU, TAB, TABLIST, type TabOwner, type TabPaneState } from "./ui-tab.types"
+import { MENU, type TabOwner, type TabPaneState } from "./UITab.types"
 
-import menuCSS from "$/ui/components/ui-menu/ui-menu.css?inline"
-import tabCSS from "./ui-tab.css?inline"
+import menuCSS from "$/ui/components/ui-menu/UIMenu.css?inline"
+import tabCSS from "./UITab.css?inline"
 
 /****************
- * ### `<ui-tabs>`
- * A tab set (WAI-ARIA APG tabs) over `<ui-tab>` panes -- Fomantic's tab MENU plus `.ui.tab` panes, as one element:
+ * ### `UITabs`
+ * The component behind `<ui-tabs>`:  a tab set (WAI-ARIA APG tabs) over `<ui-tab>` panes,
+ * Fomantic's tab MENU plus its `.ui.tab` panes, as one element:
  *
- *     <div class="ui ... tabs" part="tabs">
- *       <div class="ui ... menu" part="menu" role="tablist" aria-label aria-orientation>
+ *     <div class="ui … tabs" part="tabs">
+ *       <div class="ui … menu" part="menu" role="tablist" aria-label aria-orientation>
  *         <button type="button" class="[active] [disabled] item" part="tab" role="tab" aria-selected>label</button>
  *       </div>
  *       <slot></slot>                                   (the panes;  before the menu when `attached="bottom"`)
  *     </div>
  *
- * - The tab list is drawn from the panes' `label` / `icon` in THIS shadow root, styled by `ui-menu.css` (adopted as is:
- *   the static `.ui.menu .item` rules), so the look words (`appearance`, or the boolean aliases `tabular`, `pointing
- *   secondary`, `text`;  `vertical`, `inverted`, `alignment`, `equal`, sizes, colours) are the menu's, one class
- *   grammar, no second copy of the menu sheet.
- * - Owner of the panes (`ownsParts:  tab`, `TabOwner`):  each asks `paneState()` whether it's shown, which edge it
- *   joins, and how it looks.
- * - Selection:  `value` is auto-controlled -- a click (or, `automatic`, an arrow key) dispatches the cancelable
- *   `ui-change` first.  Without a `value`, the first `selected` pane, else the first enabled one;  a `value` that
- *   names no pane falls back the same way.
- * - Keyboard (APG):  ONE Tab stop, the selected tab (`UI.focus.roving`);  ArrowLeft / ArrowRight (ArrowUp /
- *   ArrowDown when `vertical`), Home, End;  disabled tabs are skipped.  `activation="manual"`:  arrows move focus
- *   only, Enter / Space select;  focus returning to the list lands on the selected tab.
+ * - The tab list is drawn from the panes' `label` / `icon` in THIS shadow root,
+ *   styled by `UIMenu.css` (adopted as is:  the static `.ui.menu .item` rules).
+ *   So the look words are the menu's, one class grammar, no second copy of the menu sheet:
+ *   `appearance` (or the boolean aliases `tabular`, `pointing secondary`, `text`),
+ *   `vertical`, `inverted`, `alignment`, `equal`, sizes, colours.
+ * - The owner of the panes (`ownsParts:  tab`, `TabOwner`):  each asks `paneState()` whether it shows,
+ *   which edge it joins, and how it looks.
+ * - Selection:  `value` is controlled.  A click (or, `automatic`, an arrow key) dispatches the cancelable
+ *   `ui-change` first.  Without a `value`:  the first `selected` pane, else the first enabled one;
+ *   a `value` that names no pane falls back the same way.
+ * - Keyboard (APG):  ONE Tab stop, the selected tab (`UI.focus.roving`);
+ *   ArrowLeft / ArrowRight (ArrowUp / ArrowDown when `vertical`), Home, End;  disabled tabs are skipped.
+ *   `activation="manual"`:  the arrows move focus only, Enter / Space select;
+ *   focus coming back to the list lands on the selected tab.
  * - ARIA:  each tab `aria-controls` its pane (element reflection:  the pane is light DOM, a tree this shadow root
  *   may point into);  the pane is a `tabpanel` named by its label (it can't point back into this shadow root).
- * - The swap:  a View Transition (`document.startViewTransition`) when `UI.browser.supports.viewTransitions` and
- *   the person doesn't prefer reduced motion, else instant.  The tab list follows the selection at once;  the panes
- *   swap inside the transition (`shownValue`).
+ * - The swap:  a View Transition (`document.startViewTransition`) when `UI.browser.supports.viewTransitions`
+ *   and the person doesn't prefer reduced motion, else instant.
+ *   The tab list follows the selection at once;  the panes swap inside the transition (`shownValue`).
  * - `history`:  the selected value mirrors `location.hash` (see the vocabulary).
- * - SIDE EFFECTS:  `history` pushes history entries and listens to its window's `hashchange` / `popstate` while
- *   connected.  The page globals (`window`, `document`, `location`, `history`) are the HOST's document's, so a
- *   tab set in an iframe follows its own frame.
+ * - SIDE EFFECTS:  `history` pushes history entries, and listens to its window's `hashchange` / `popstate`
+ *   while connected.  The page globals (`window`, `document`, `location`, `history`) are the DOM element's
+ *   document's, so a tab set in an iframe follows its own frame.
  ****************/
-export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwner {
+export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabOwner {
   @E.proto static vocabulary = tabsVocabulary
   @E.proto static styleSheets = { menu: menuCSS, tab: tabCSS }
   @E.proto static elementSetup = {
-    Fallback: TabFallback,
     // the tabs are the focus targets;  a click on a pane must not jump to one
     delegatesFocus: false
-  }
+  } satisfies Partial<E.ElementSetup>
 
   /** Builds the tab list's classes:  this vocabulary's words, Fomantic's noun `menu`. */
   @E.proto static menuClassBuilder = new E.ClassBuilder({ ...tabsVocabulary, noun: MENU })
@@ -61,22 +62,22 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   // ## The panes
   ////////////////
 
-  /** Pane hosts among the children (upgraded or not);  every write notifies (a re-read of the children). */
-  @E.state({ equals: false }) accessor panes: readonly E.UIHost[] = this.readPanes()
+  /** Pane DOM elements among the children (upgraded or not);  every write notifies (a re-read of the children). */
+  @E.state({ equals: false }) accessor panes: readonly E.DOMElement[] = this.readPanes()
 
   /**
    * Upgraded panes, in order:  the tabs.
    * - `@derived`:  a filter, read by the tab list, every pane and the selection.
    */
   @E.derived({ equals: E.isSameList })
-  get tabs(): readonly E.UIHost[] {
-    return this.panes.filter((pane) => pane.controller instanceof UITab)
+  get tabs(): readonly E.DOMElement[] {
+    return this.panes.filter((pane) => pane.component instanceof UITab)
   }
 
   /** Each tab's value:  its `value`, else its index. */
   @E.derived
   get values(): string[] {
-    return this.tabs.map((pane, index) => UITabs.controllerOf(pane).value ?? String(index))
+    return this.tabs.map((pane, index) => UITabs.componentOf(pane).value ?? String(index))
   }
 
   /** A pane re-read is queued. */
@@ -99,8 +100,8 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   }
 
   /** The pane children, in order, upgraded or not. */
-  private readPanes(): E.UIHost[] {
-    return [...this.host.children].filter(UITabs.isPane) as E.UIHost[]
+  private readPanes(): E.DOMElement[] {
+    return [...this.domElement.children].filter(UITabs.isPane) as E.DOMElement[]
   }
 
   ////////////////
@@ -112,7 +113,7 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
    * - SIDE EFFECT:  a pane not among the tabs yet (it upgraded after the last read) queues a re-read.
    */
   paneState(pane: Element): TabPaneState {
-    const index = this.tabs.indexOf(pane as E.UIHost)
+    const index = this.tabs.indexOf(pane as E.DOMElement)
     if (index < 0) this.queueRefresh()
     const edge = this.menuEdge
     return {
@@ -125,14 +126,14 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
 
   /** `TabOwner`:  `pane`'s value.  Untracked. */
   valueFor(pane: Element): string {
-    return untrack(() => this.values[this.tabs.indexOf(pane as E.UIHost)]) ?? ""
+    return untrack(() => this.values[this.tabs.indexOf(pane as E.DOMElement)]) ?? ""
   }
 
   ////////////////
   // ## The selection
   ////////////////
 
-  /** `value`:  host-controlled, or internal;  `selectedValue` is the one in effect. */
+  /** `value`:  the DOM element's `value` property when set, else kept here;  `selectedValue` is the one in effect. */
   @E.controlled("value") accessor value: string | undefined = undefined
 
   /** The selected value (see class docs):  `value` when it names a tab, else the first `selected` or enabled one. */
@@ -141,7 +142,7 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
     const values = this.values
     const value = this.value
     if (value !== undefined && values.includes(value)) return value
-    const tabs = this.tabs.map(UITabs.controllerOf)
+    const tabs = this.tabs.map(UITabs.componentOf)
     const chosen = tabs.findIndex((tab) => tab.isMarkedSelected && !tab.disabled)
     const first = chosen >= 0 ? chosen : tabs.findIndex((tab) => !tab.disabled)
     return first >= 0 ? values[first] : undefined
@@ -154,11 +155,11 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   }
 
   /**
-   * Select `pane` as a person would:  the cancelable `ui-change` first, then `value` (and, with `history`, a new
-   * history entry).  True when applied;  false for a disabled or already selected pane, or a veto.
+   * Select `pane` as a person would:  the cancelable `ui-change` first, then `value` (and, with `history`,
+   * a new history entry).  True when applied;  false for a disabled or already selected pane, or a veto.
    */
   select(pane: Element, originalEvent?: Event): boolean {
-    const tab = (pane as E.UIHost).controller
+    const tab = (pane as E.DOMElement).component
     if (!(tab instanceof UITab) || untrack(() => tab.disabled)) return false
     const value = this.valueFor(pane)
     if (value === untrack(() => this.selectedValue)) return false
@@ -187,10 +188,10 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   }
 
   /**
-   * Put the pane for `value` on screen:  inside a View Transition when the browser has them, the person doesn't
-   * prefer reduced motion and another pane was showing;  else at once.
-   * - Runs in an effect's APPLY function (a write is allowed there);  the transition's callback runs later, outside
-   *   any owner, and flushes so the new panes are in the DOM when it returns.
+   * Put the pane for `value` on screen:  inside a View Transition when the browser has them,
+   * the person doesn't prefer reduced motion and another pane was showing;  else at once.
+   * - Runs in an effect's APPLY function (a write is allowed there);  the transition's callback runs later,
+   *   outside any owner, and flushes so the new panes are in the DOM when it returns.
    */
   private show(value: string | undefined) {
     const before = untrack(() => this.shownValue)
@@ -198,7 +199,7 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
       this.shownValue = value
       return
     }
-    const transition = this.host.ownerDocument.startViewTransition(() => {
+    const transition = this.domElement.ownerDocument.startViewTransition(() => {
       this.shownValue = value
       flush()
     })
@@ -208,8 +209,12 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
 
   /** Animate the swap?  See `show()`. */
   private get canTransition(): boolean {
-    const { host } = this
-    if (!untrack(() => this.isReady) || !host.isConnected || host.ownerDocument.visibilityState !== UIT.VISIBLE)
+    const { domElement } = this
+    if (
+      !untrack(() => this.isReady) ||
+      !domElement.isConnected ||
+      domElement.ownerDocument.visibilityState !== UIT.VISIBLE
+    )
       return false
     return UI.browser.supports.viewTransitions && !UI.browser.isReducedMotion
   }
@@ -292,7 +297,7 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
 
   /**
    * The roving tabindex, (re)started once rendered and connected, and whenever `vertical`, the tabs or the selected
-   * index change (`tabs` keeps its identity while the same hosts are in it).
+   * index change (`tabs` keeps its identity while the same DOM elements are in it).
    */
   @E.onChange("isReady", "isConnected", "isVertical", "tabs", "selectedIndex")
   protected onRovingChanged(isReady: boolean, isConnected: boolean) {
@@ -305,7 +310,7 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   private startRoving() {
     this.stopRoving()
     const bar = this.bar
-    if (!bar || !this.host.isConnected) return
+    if (!bar || !this.domElement.isConnected) return
     this.rovingTabindex = UI.focus.roving({
       container: bar,
       items: () => this.buttons(),
@@ -377,9 +382,9 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
     else this.value = value
   }
 
-  /** The host's window:  its document's, for `history` and its events. */
+  /** The DOM element's window:  its document's, for `history` and its events. */
   private get view(): Window {
-    return this.host.ownerDocument.defaultView ?? window
+    return this.domElement.ownerDocument.defaultView ?? window
   }
 
   ////////////////
@@ -411,11 +416,11 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   /**
    * One tab:  a `<button role="tab">` in the menu's item grammar, controlling `pane`.
    * - `aria-controls`:  element reflection in a browser;  in a server render (`$/ui/static`), the pane's id.
-   *   SIDE EFFECT there:  gives the pane (the render's parsed copy) an id if it has none, which the static output
-   *   keeps.
+   *   SIDE EFFECT there:
+   *   gives the pane (the render's parsed copy) an id if it has none, which the static output keeps.
    */
-  private tab(pane: E.UIHost, index: Accessor<number>): JSX.Element {
-    const tab = UITabs.controllerOf(pane)
+  private tab(pane: E.DOMElement, index: Accessor<number>): JSX.Element {
+    const tab = UITabs.componentOf(pane)
     const isSelected = () => index() === this.selectedIndex
     const glyph = new E.IconGlyph({ owner: this, name: () => tab.icon })
     return (
@@ -446,17 +451,17 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   // ## Helpers
   ////////////////
 
-  // Static:  pure, passed around as values (`filter`, `map`);  page globals come in as arguments, defaulting to this
-  // window's.
+  // Static:  pure, passed around as values (`filter`, `map`);
+  // page globals come in as arguments, defaulting to this window's.
 
   /** A pane child:  an element DEFINED with the pane's noun (`<ui-tab>`, or its translated tag). */
   private static isPane(this: void, element: Element): boolean {
-    return E.UIElement.definitions.get(element.localName)?.vocabulary.noun === tabVocabulary.noun
+    return E.UIComponent.definitions.get(element.localName)?.vocabulary.noun === tabVocabulary.noun
   }
 
-  /** The `UITab` controller of an (upgraded) pane host. */
-  private static controllerOf(this: void, pane: E.UIHost): UITab {
-    return pane.controller as UITab
+  /** The `UITab` component of an (upgraded) pane. */
+  private static componentOf(this: void, pane: E.DOMElement): UITab {
+    return pane.component as UITab
   }
 
   /** The pane value in `location.hash`, or `undefined`. */
@@ -478,11 +483,17 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UITabs extends E.AttributeValues<typeof tabsVocabulary> {}
 
 /** Where the tab list sits when `attached`. */
 type MenuEdge = typeof UIT.TOP | typeof UIT.BOTTOM
+
+/** A tab in the list:  its role and part. */
+const TAB = "tab"
+
+/** The role of the tab list. */
+const TABLIST = "tablist"
 
 /** The tab buttons in the tab list. */
 const TAB_SELECTOR = `:scope > [role=${TAB}]`

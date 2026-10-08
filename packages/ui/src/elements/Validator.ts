@@ -13,7 +13,7 @@ import { E } from "$/ui/core"
  *   - an empty range bound is open, so `minValue` / `maxValue` work (see `bounds()`)
  * - Data is `@proto static` so `UI.i18n` can swap `prompts` / `text` per instance, and a subclass can add rules.
  * - Fomantic's names stay where they're its API (`prompts`, `text`, `regExp`, `rules`, a rule's `(value, ruleValue)`);
- *   the steps rules share (`range()`, `normalize()`, `count()`:  `RuleHost`) are ours.
+ *   the steps rules share (`range()`, `normalize()`, `count()`:  `RuleValidator`) are ours.
  * - Library-neutral:  no DOM, no Solid;  of the core (`E`), it uses only `E.proto`, `E.suggest()`, `E.Warnings` and
  *   the folder's types.  Part of the `forms` entry:  reaches the core through the `$/ui/core` ENTRY, never its leaves
  *   (`forms.ts`).

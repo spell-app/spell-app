@@ -1,16 +1,18 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { segmentsVocabulary } from "./ui-segments.vocabulary.en"
+import { segmentsVocabulary } from "./UISegments.vocabulary.en"
 
-import segmentCSS from "./ui-segment.css?inline"
+import segmentCSS from "./UISegment.css?inline"
 
 /****************
- * ### `<ui-segments>`
- * A group of segments in one box:  `<div class="ui ... segments" part="group"><slot></slot></div>`.
- * - `ui-segment.css` hands the group look to slotted segments through `--_ui-segments-*` tokens.
+ * ### `UISegments`
+ * The component behind `<ui-segments>`:  a group of segments in one box.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … segments" part="group">`, around a slot for the segments.
+ * - `UISegment.css` hands the group's look to the slotted segments, through `--_ui-segments-*` tokens.
  ****************/
-export class UISegments extends E.UIElement<typeof segmentsVocabulary> {
+export class UISegments extends E.UIComponent<typeof segmentsVocabulary> {
   @E.proto static vocabulary = segmentsVocabulary
   @E.proto static styleSheets = { segment: segmentCSS }
 
@@ -29,5 +31,5 @@ export class UISegments extends E.UIElement<typeof segmentsVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UISegments extends E.AttributeValues<typeof segmentsVocabulary> {}

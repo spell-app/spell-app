@@ -2,30 +2,34 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { StatisticFallback } from "./ui-statistic.fallback"
-import { VALUE } from "./ui-statistic.types"
-import { statisticVocabulary } from "./ui-statistic.vocabulary.en"
+import { statisticVocabulary } from "./UIStatistic.vocabulary.en"
 
-import statisticCSS from "./ui-statistic.css?inline"
+import statisticCSS from "./UIStatistic.css?inline"
 
 /****************
- * ### `<ui-statistic>`
- * A statistic:  `<div class="ui … statistic" part="statistic">` holding the `value` shorthand, the slot, then the
- * `label` shorthand -- so either shorthand can pair with a slotted part and still read value-over-label.
- * - OWNER of the `value` and `label` parts (`ownsParts`):  a slotted `<ui-value>` / `<ui-label>` finds it through
- *   `PartContext`, sets `:state(in-statistic)` and styles itself from `ui-parts.css`, reading the owner tokens
- *   `ui-statistic.css` declares on the root (layout, value sizes, `--ui-inverted`).  Registered by `define()`.
- * - Shorthands are the SAME parts, drawn in this shadow root:  `<div class="value in-statistic">` and `<div
- *   class="label in-statistic">` -- the static part classes `ui-parts.css` keys on (they ARE children of this root),
- *   which is why this element adopts `ui-parts.css` too (`E.ContentPart.styleSheets`).  `text` makes the value shorthand
- *   a word value.
- * - No role:  a statistic is text;  the page names a group of them where it matters (a heading, `aria-label` on a
- *   region).
+ * ### `UIStatistic`
+ * The component behind `<ui-statistic>`:  a number with a label,
+ * `<div class="ui … statistic" part="statistic">` holding the `value` shorthand, the slot, then the `label` shorthand,
+ * so either shorthand can pair with a slotted part and still read value over label.
+ *
+ * - It OWNS the `value` and `label` parts (`ownsParts`):  a slotted `<ui-value>` or `<ui-label>` finds it
+ *   through `PartContext`, sets `:state(in-statistic)` and styles itself from `UIParts.css`,
+ *   reading the owner tokens `UIStatistic.css` declares on the root (layout, value sizes, `--ui-inverted`).
+ *   `define()` registers it as their owner.
+ *
+ * - The shorthands are the SAME parts, drawn in this shadow root:
+ *   `<div class="value in-statistic">` and `<div class="label in-statistic">`,
+ *   the static part classes `UIParts.css` keys on (they ARE children of this root),
+ *   which is why this component adopts `UIParts.css` too (`E.PartComponent.styleSheets`).
+ *   `text` makes the value shorthand a word value.
+ *
+ * - No role:  a statistic is text;  the page names a group of them where it matters
+ *   (a heading, `aria-label` on a region).
  ****************/
-export class UIStatistic extends E.UIElement<typeof statisticVocabulary> {
+export class UIStatistic extends E.UIComponent<typeof statisticVocabulary> {
   @E.proto static vocabulary = statisticVocabulary
-  @E.proto static styleSheets = { statistic: statisticCSS, ...E.ContentPart.styleSheets }
-  @E.proto static elementSetup = { Fallback: StatisticFallback, delegatesFocus: false }
+  @E.proto static styleSheets = { statistic: statisticCSS, ...E.PartComponent.styleSheets }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Always `:state(statistic)`. */
   @E.cssState("statistic")
@@ -70,5 +74,8 @@ export class UIStatistic extends E.UIElement<typeof statisticVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIStatistic extends E.AttributeValues<typeof statisticVocabulary> {}
+
+/** The `value` shorthand:  its attribute, part noun and class word. */
+const VALUE = "value"

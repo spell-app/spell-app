@@ -1,22 +1,22 @@
 import type { SiteSearchSection } from "$/ui/docs-components/docs-components.types"
 import { SearchIndex } from "./SearchIndex"
-import { TRAIL, type SearchEntry } from "./ui-docs-search.types"
+import { TRAIL, type SearchEntry } from "./UIDocsSearch.types"
 
 /****************
  * ### `PageOutline`
  * A page's sections:  what `<ui-docs-search>`'s "On this page" searches, read LIVE from the page shown (`read()`),
- * and what `yarn site:data` writes into the search file for every page (`tools/SiteSearchBuilder.ts`, through
- * `sections()`, on linkedom), so a page reads the same either way:
- * - a section:  a `<ui-section id>`, or a level 2-4 header with an id (`<ui-header level id>`, `<h2 id>` ...), so a
- *   page not nested into sections yet (the overview) still lists its headings;  never one inside an example, a
- *   `<template>` or a `<script>`
- * - its title:  the section's `header`, else its `slot="header"` child's text;  a header's own text, without its sub
- *   header or icon
+ * and what `yarn site:data` writes into the search file for every page (`tools/SiteSearchBuilder.ts`,
+ * through `sections()`, on linkedom), so a page reads the same either way:
+ * - a section:  a `<ui-section id>`, or a level 2-4 header with an id (`<ui-header level id>`, `<h2 id>` ...),
+ *   so a page not nested into sections yet (the overview) still lists its headings;  never one inside an example,
+ *   a `<template>` or a `<script>`
+ * - its title:  the section's `header`, else its `slot="header"` child's text;  a header's own text,
+ *   without its sub header or icon
  * - its `parent`:  the section around it;  a top-level one in a `<ui-tabs id="site-tabs">` pane names its `tab`
  * - every tab's sections, the hidden panes' too:  landing on one selects its tab (the site's router)
  * - Its links are `#id`:  the page shown, whatever its URL.
- * - Plain DOM, no Solid, no globals (node's linkedom runs it too):  NEVER imports a value from `$/ui/core`, which
- *   node can't load;  cheap enough to read on every search.
+ * - Plain DOM, no Solid, no globals (node's linkedom runs it too):  NEVER imports a value from `$/ui/core`,
+ *   which node can't load;  cheap enough to read on every search.
  * - Static only:  pure reads of the DOM it's given.
  ****************/
 export class PageOutline {

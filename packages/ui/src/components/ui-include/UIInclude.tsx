@@ -3,37 +3,63 @@ import type { JSX } from "@solidjs/web"
 
 import { E, type UIT } from "$/ui/core"
 import { RootLoader } from "$/ui/components/ui-root"
-import { includeVocabulary } from "./ui-include.vocabulary.en"
-import { IncludeFallback } from "./ui-include.fallback"
-import { UIIncludeHost } from "./UIIncludeHost"
-import type { IncludeInsertDetail, Vocabulary } from "./ui-include.types"
+import { includeVocabulary } from "./UIInclude.vocabulary.en"
 
-import includeCSS from "./ui-include.css?inline"
+import includeCSS from "./UIInclude.css?inline"
 
 /****************
- * ### `<ui-include>`
- * Another page of this site, shown in this one -- like an Astro island:  the page loads, and the include fills in
- * when `load` says (`eager`, `visible`, `idle`).  Its children are a placeholder until then.
- * - What's shown:  `source`'s `<body>` content, or just the first `select` match;  `<head>` (title, styles,
- *   scripts) is left out.
- * - Where it goes:  a shadow root by default (`<div part="content">`):  the page's CSS stays out, inherited values
- *   (fonts, colours, `--ui-*` tokens) come in.  `page-styles` puts it in the LIGHT DOM instead, where the page's CSS
- *   (and `<ui-root>`) see it.
- * - Scripts in the included markup do NOT run (parsed by `DOMParser`).
- * - `ui-insert` fires just before the markup goes in, with the fragment:  a listener may read or change it.
- * - `ui-*` tags inside are loaded on demand, as `<ui-root>` loads them (`RootLoader`):  a shadow root is out of a
- *   root's sight.
- * - Relative `href` / `src` / `action` / `poster` / `source` are rewritten against `source`, so links, images and
- *   nested includes point where they did there;  the originals are kept (`data-ui-include-*`) for saving.
- * - Nesting:  an include inside an include of the same file, or nested deeper than `MAX_DEPTH`, shows an error.
- * - `content` (and so `save()`) is the FILE:  the source text as fetched while the markup is untouched;  once it's
- *   edited in place, the live markup spliced back into the file's `<body>` (byte-exact outside it).  With
- *   `select`, the matched element's markup alone, saved by its `id` (`fragment`).
+ * ### `DOMIncludeElement`
+ * The DOM element of `<ui-include>`:  it adds `contentRoot`, where the included markup lives,
+ * to the source API it inherits from `DOMLoadableElement` (`content`, `save()` ...).
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIInclude extends E.SourceElement<Vocabulary> {
+export class DOMIncludeElement extends E.DOMLoadableElement {
+  /**
+   * Where the included markup lives:  the shadow box (`[part~=content]`), or the DOM element itself with
+   * `page-styles`;  `undefined` before it loads.
+   * - For editors:  edit there, then `save()`.
+   */
+  get contentRoot(): HTMLElement | undefined {
+    return this.include?.contentRoot
+  }
+
+  /** This element's component, once it has one. */
+  private get include(): UIInclude | undefined {
+    return this.component as UIInclude | undefined
+  }
+}
+
+/****************
+ * ### `UIInclude`
+ * The component behind `<ui-include>`:  another page of this site, shown in this one.
+ *
+ * - Like an Astro island:  the page loads, and the include fills in when `load` says
+ *   (`eager`, `visible`, `idle`).  Its children are a placeholder until then.
+ * - What's shown:  `source`'s `<body>` content, or just the first `select` match.
+ *   The `<head>` (title, styles, scripts) is left out.
+ * - Where it goes:  a shadow root by default (`<div part="content">`),
+ *   so the page's CSS stays out, while inherited values (fonts, colours, `--ui-*` tokens) come in.
+ *   `page-styles` puts it in the LIGHT DOM instead, where the page's CSS (and `<ui-root>`) see it.
+ * - Scripts in the included markup do NOT run (it's parsed by `DOMParser`).
+ * - `ui-insert` fires just before the markup goes in, with the fragment:  a listener may read or change it.
+ * - `ui-*` tags inside are loaded on demand, as `<ui-root>` loads them (`RootLoader`):
+ *   a shadow root is out of a root's sight.
+ * - Relative `href` / `src` / `action` / `poster` / `source` are rewritten against `source`,
+ *   so links, images and nested includes point where they did there.
+ *   The originals are kept (`data-ui-include-*`), for saving.
+ * - Nesting:  an include inside an include of the same file, or nested deeper than `MAX_DEPTH`, shows an error.
+ * - `content` (and so `save()`) is the FILE:
+ *   - the source text as fetched, while the markup is untouched
+ *   - once it's edited in place, the live markup spliced back into the file's `<body>` (byte-exact outside it)
+ *   - with `select`, the matched element's markup alone, saved by its `id` (`fragment`).
+ ****************/
+export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
   @E.proto static vocabulary = includeVocabulary
   @E.proto static styleSheets = { include: includeCSS }
-  @E.proto static elementSetup = { Fallback: IncludeFallback, Host: UIIncludeHost, delegatesFocus: false }
+  @E.proto static elementSetup = {
+    DOMElement: DOMIncludeElement,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
   @E.proto static wantsInlineContent = false
 
   /** Markup is in place:  the placeholder slot goes (shadow mode). */
@@ -42,7 +68,7 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
   /** The shadow box the markup goes in, once rendered. */
   private box?: HTMLElement
 
-  /** Where the markup is now:  `box`, or the host (`page-styles`). */
+  /** Where the markup is now:  `box`, or the DOM element (`page-styles`). */
   private root?: HTMLElement
 
   /** The element `select` matched, in the live markup. */
@@ -99,19 +125,19 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
     )
   }
 
-  /** Where the included markup lives:  the shadow box, or the host with `page-styles`. */
+  /** Where the included markup lives:  the shadow box, or the DOM element with `page-styles`. */
   get contentRoot(): HTMLElement | undefined {
     return this.root
   }
 
   /**
    * Put `text`'s markup in place:  parsed, `select`ed, URLs rewritten;  then load the `ui-*` families it uses.
-   * - `pageStyles`:  into the host's light DOM, else the shadow box.
+   * - `pageStyles`:  into the DOM element's light DOM, else the shadow box.
    * - SIDE EFFECT:  `ui-insert` first, with the fragment, while it's still out of the page.
    * - A selector that's invalid or matches nothing is a `render` failure.
    */
   private insert({ text, select, pageStyles }: { text: string; select?: string; pageStyles: boolean }) {
-    const target = pageStyles ? this.host : this.box
+    const target = pageStyles ? this.domElement : this.box
     if (!target) return
     let markup: DocumentFragment
     try {
@@ -136,13 +162,13 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
    * - Throws a `render` `SourceError` for a selector that's invalid or matches nothing.
    */
   private parse(text: string, select: string | undefined): DocumentFragment {
-    return E.SourceMarkup.parse(text, { page: this.host.ownerDocument, source: this.source || undefined, select })
+    return E.SourceMarkup.parse(text, { page: this.domElement.ownerDocument, source: this.source || undefined, select })
   }
 
   /** The live markup (or the `select`ed element's), with every rewritten URL back as written;  none before insert. */
   private liveMarkup(): string | undefined {
     if (!this.root) return undefined
-    const holder = this.host.ownerDocument.createElement("template")
+    const holder = this.domElement.ownerDocument.createElement("template")
     const nodes = this.selected ? [this.selected] : [...this.root.childNodes]
     for (const node of nodes) holder.content.append(node.cloneNode(true))
     E.SourceMarkup.restoreUrls(holder.content)
@@ -165,7 +191,7 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
     return this.selected ? live : UIInclude.spliceBody(text, live)
   }
 
-  /** As `SourceElement`'s:  a getter override hides the inherited setter, so it's repeated here. */
+  /** As `LoadableComponent`'s:  a getter override hides the inherited setter, so it's repeated here. */
   set content(text: string) {
     super.content = text
   }
@@ -184,7 +210,7 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
 
   /** A cycle (inside an include of the same file) or nesting deeper than `MAX_DEPTH`. */
   protected checkSource(source: string) {
-    E.SourceMarkup.checkNesting(this.host, source, (node) => node.localName === this.host.localName)
+    E.SourceMarkup.checkNesting(this.domElement, source, (node) => node.localName === this.domElement.localName)
   }
 
   ////////////////
@@ -192,8 +218,8 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
   ////////////////
 
   /**
-   * Load what defines every undefined tag under `root` (its family, or a component pack's module), as `<ui-root>`
-   * would.
+   * Load what defines every undefined tag under `root` (its family, or a component pack's module),
+   * as `<ui-root>` would.
    * - STATIC:  needs nothing of the include, only `root`.
    * - NEVER throws:  a tag that fails to load is a warning.
    */
@@ -217,8 +243,8 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
-export interface UIInclude extends E.AttributeValues<Vocabulary> {}
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
+export interface UIInclude extends E.AttributeValues<typeof includeVocabulary> {}
 
 /** The default `load` mode:  no class word. */
 const EAGER: UIT.SourceLoadMode = "eager"
@@ -231,3 +257,11 @@ const BODY_OPEN = /<body\b[^>]*>/i
 
 /** The `</body>` closing tag of a page, as `BODY_OPEN`. */
 const BODY_CLOSE = /<\/body\s*>/i
+
+/** The `detail` of `ui-insert`. */
+export type IncludeInsertDetail = {
+  /** The markup about to go in:  parsed, `select`ed, URLs rewritten;  not yet in the page. */
+  fragment: DocumentFragment
+  /** `source` as written. */
+  source?: string
+}

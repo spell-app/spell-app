@@ -1,9 +1,9 @@
-import { NavGroups, NavViews, STORAGE_KEYS, type NavGroup, type NavView } from "./ui-docs-nav.types"
+import { NavGroups, NavViews, STORAGE_KEYS, type NavGroup, type NavView } from "./UIDocsNav.types"
 
 /****************
  * ### `NavPreferences`
- * The viewer's nav preferences in `localStorage`:  favourites, the view, the open topics, the folded groups.  Replaces
- * the Astro site's `SiteStorage` (same keys, `STORAGE_KEYS`, so a viewer keeps theirs).
+ * The viewer's nav preferences in `localStorage`:  favourites, the view, the open topics, the folded groups.
+ * Replaces the Astro site's `SiteStorage` (same keys, `STORAGE_KEYS`, so a viewer keeps theirs).
  * - Every access is wrapped:  private windows and blocked storage THROW, and then a preference just doesn't persist.
  * - Per viewer and browser only;  NOT the search text.
  * - Static only:  the storage is one per page, and holds no state of its own.

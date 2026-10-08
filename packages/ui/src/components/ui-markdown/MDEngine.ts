@@ -1,13 +1,13 @@
 import engine from "./MDBundle"
-import type { MarkdownOptions, MarkdownRendering, MarkdownResult } from "./ui-markdown.types"
+import type { MarkdownOptions, MarkdownRendering, MarkdownResult } from "./UIMarkdown.types"
 
 /****************
  * ### `MDEngine`
  * Spell's markdown engine (`@spell-app/markdown`, on the parser), for `<ui-markdown editable>`:  in a LAZY chunk of
  * its own, imported by `MarkdownRenderer.loadMD()` on the first preview.  Same contract as `MarkdownEngine`.
  * - Draws with `ui-*` elements (`ui-header`, `ui-list`, `ui-table`, `ui-message` alerts, `ui-checkbox` tasks ...),
- *   whose families `MarkdownRenderer.loadMD()` imports beside this chunk (`mdFamilies()`), NEVER this file:  a lazy
- *   chunk that imports families imports the core through them, and splits core's modules out of `core.js`
+ *   whose families `MarkdownRenderer.loadMD()` imports beside this chunk (`mdFamilies()`), NEVER this file:
+ *   a lazy chunk that imports families imports the core through them, and splits core's modules out of `core.js`
  *   (epic `wwod-spell-ui`, I12).
  * - The engine is the PRE-COMPILED bundle (`MDBundle`, `yarn gen:markdown`):  `ui` never imports `$/markdown`.
  * - Returns MARKUP, never sanitized, as marked's engine does:  the element sanitizes it when `sanitized`

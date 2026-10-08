@@ -1,8 +1,10 @@
 /**
- * `ui-brand-field` family barrel:  defines `<ui-brand-field>` (SIDE EFFECT) and exports its class.
+ * The brand field family:  defines `<ui-brand-field>` and exports its component, `UIBrandField`,
+ * and its DOM element class, `DOMBrandFieldElement`.
+ * - SIDE EFFECT:  importing it defines the tag.
  */
-import { UIBrandField } from "./UIBrandField"
+import { DOMBrandFieldElement, UIBrandField } from "./UIBrandField"
 
 UIBrandField.define()
 
-export { UIBrandField }
+export { UIBrandField, DOMBrandFieldElement }

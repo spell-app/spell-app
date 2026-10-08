@@ -1,7 +1,8 @@
 /**
- * Barrel for the select -- also the `select` lib entry (`@spell-app/ui/ui-select`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-item>` (through `$/ui/components/ui-item`, first, so the select can read upgraded items)
- *   and `<ui-select>`.
+ * The select family:  defines `<ui-select>`, and exports its component.
+ * - Also the `select` lib entry (`@spell-app/ui/ui-select`), measured in `docs/report.md`.
+ * - SIDE EFFECT:  importing it defines `<ui-item>` (through `$/ui/components/ui-item`, first,
+ *   so the select can read upgraded items), then `<ui-select>`.
  */
 
 import { UISelect } from "./UISelect"

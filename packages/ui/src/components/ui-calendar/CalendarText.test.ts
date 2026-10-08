@@ -52,7 +52,8 @@ describe("CalendarText.read()", () => {
     expect(words(locale).read(typed, dates(type))?.toString({ smallestUnit: "minute" })).toBe(expected)
   })
 
-  // KNOWN BUG (epic `wwod-spell-ui`, I21):  a two-digit year over 31 is taken as "the year" before the century rule runs, so
+  // KNOWN BUG (epic `wwod-spell-ui`, I21):  a two-digit year over 31 is taken as "the year"
+  // before the century rule runs, so
   test("reads a two-digit year of 60+ as 19xx:  9/30/75 => 1975", () => {
     expect(words("en-US").read("9/30/75", dates("date"))?.year).toBe(1975)
   })

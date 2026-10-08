@@ -1,23 +1,25 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { textareaVocabulary } from "./ui-textarea.vocabulary.en"
-import { InputFallback } from "./ui-input.fallback"
+import { textareaVocabulary } from "./UITextarea.vocabulary.en"
+import { InputFallback } from "./UIInput.fallback"
 import { TextControl } from "./TextControl"
-import type { CommonAttributes } from "./ui-input.types"
+import type { CommonAttributes } from "./UIInput.types"
 
-import inputCSS from "./ui-input.css?inline"
+import inputCSS from "./UIInput.css?inline"
 
 /****************
- * ### `<ui-textarea>`
- * A multi-line field:  `<div class="ui … input" part="input">` around a native `<textarea part="control">`.
- * - Form-associated like `<ui-input>` (see `TextControl`);  Enter types a newline, never submits.
- * - Without `rows` it takes Fomantic's form textarea height (`ui-input.css`).
+ * ### `UITextarea`
+ * The component behind `<ui-textarea>`:  a text field of several lines.
+ *
+ * - Its shadow DOM:  `<div class="ui … input" part="input">` around a native `<textarea part="control">`.
+ * - A form control like `<ui-input>` (see `TextControl`);  Enter types a new line, and never submits.
+ * - Without `rows`, it takes the height of Fomantic's form textarea (`UIInput.css`).
  ****************/
 export class UITextarea extends TextControl<typeof textareaVocabulary> {
   @E.proto static vocabulary = textareaVocabulary
   @E.proto static styleSheets = { input: inputCSS }
-  @E.proto static elementSetup = { Fallback: InputFallback }
+  @E.proto static elementSetup = { Fallback: InputFallback } satisfies Partial<E.ElementSetup>
 
   protected get constraints(): Record<string, unknown> {
     return { required: this.required, minlength: this.minlength, maxlength: this.maxlength }
@@ -46,6 +48,7 @@ export class UITextarea extends TextControl<typeof textareaVocabulary> {
     )
   }
 }
+
 /** The vocabulary getters, typed;  `TextControl` types the shared ones, and owns `value`. */
 export interface UITextarea extends Omit<
   E.AttributeValues<typeof textareaVocabulary>,

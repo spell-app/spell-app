@@ -1,0 +1,270 @@
+/*
+ * `<ui-brand-color>`:  the brand's colour chip (Color Palette's swatches, Color Set Chooser's variants and presets).
+ * - Markup:  `.color.brand` (a `<button>` with `copy`, else a `<span>`) > `.label`, `.mark`, `.copied`;
+ *   then the hidden `.status` line and the `.tip`.
+ * - Always square (the brand's rule):  `aspect-ratio: 1`, 8px radius (never more than ~a fifth of the chip,
+ *   so tiny chips stay square-ish).  Text inside is 9.5px mono, bottom-left;  the AA mark 10px,
+ *   bottom centre (top corner when a label shows).  Selected:  the Chooser's double ring.
+ * - Size:  `--ui-brand-color-size` (3em);  `size` scales the chip's font, so the chip, its text and the mark scale
+ *   together.  Owners make chips fill their cell with the private `--_ui-brand-color-fit: 100%` on the host.
+ * - Public tokens (`--ui-brand-color-*`) are never declared here:  read through private aliases on `:host` (the tip
+ *   is the chip's sibling).  Defaults:  the `spell-brand` roles, else plain `--ui-*` tokens.
+ */
+
+@layer ui.components.brand-color.types, ui.components.brand-color.content, ui.components.brand-color.variations, ui.components.brand-color.states;
+
+@layer ui.components.brand-color.types {
+  :host {
+    --_ui-brand-color-size: var(--ui-brand-color-size, var(--_ui-brand-color-fit, 3em));
+    --_ui-brand-color-radius: var(--ui-brand-color-radius, min(var(--ui-radius-s, 0.5em), 22%));
+    --_ui-brand-color-border: var(--ui-brand-color-border, light-dark(rgb(43 47 63 / 0.08), rgb(255 255 255 / 0.12)));
+    --_ui-brand-color-ring-color: var(--ui-brand-color-ring-color, var(--spell-text-strong, var(--ui-text-dark)));
+    --_ui-brand-color-ring-gap: var(--ui-brand-color-ring-gap, var(--ui-surface));
+    --_ui-brand-color-tip-background: var(
+      --ui-brand-color-tip-background,
+      var(--spell-surface-inverse, var(--ui-text-dark))
+    );
+    --_ui-brand-color-tip-color: var(--ui-brand-color-tip-color, var(--spell-text-inverse, var(--ui-surface)));
+    --_ui-brand-color-tip-width: var(--ui-brand-color-tip-width, 18em);
+
+    display: inline-block;
+    vertical-align: middle;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /* a choice is focused on the host:  the chip draws the ring */
+  :host(:focus-visible) {
+    outline: none;
+  }
+
+  .brand.color {
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    width: var(--_ui-brand-color-size);
+    max-width: 100%;
+    aspect-ratio: 1;
+    margin: 0;
+    padding: 0.3125em 0.375em;
+    border: 0;
+    border-radius: var(--_ui-brand-color-radius);
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--_ui-brand-color-border);
+    overflow: hidden;
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--_brand-color-scale, 1));
+    line-height: 1;
+    text-align: start;
+    anchor-name: --chip;
+  }
+  button.brand.color {
+    appearance: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer ui.components.brand-color.content {
+  /* ## Label:  bottom-left, small mono */
+  .brand.color > .label {
+    max-width: 100%;
+    overflow: hidden;
+    font-family: var(--ui-font-family-mono);
+    font-size: 0.59375em;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    opacity: 0.9;
+  }
+
+  /* ## AA mark:  bottom centre;  top corner when a label shows */
+  .brand.color > .mark {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0.4em;
+    font-size: 0.625em;
+    font-weight: 600;
+    text-align: center;
+  }
+  .brand.color.labelled > .mark {
+    inset-block: 0.5em auto;
+    inset-inline: auto 0.6em;
+  }
+
+  /* ## The check after a copy */
+  .brand.color > .copied {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+  .brand.color > .copied > svg {
+    width: 40%;
+    height: 40%;
+    fill: currentColor;
+  }
+
+  /* ## Status line:  announced, never shown */
+  .status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* ## Details tip:  under the chip (above it near the bottom edge), as the Chooser's popover */
+  .tip {
+    position: fixed;
+    position-anchor: --chip;
+    position-area: bottom;
+    position-try-fallbacks:
+      bottom span-right,
+      bottom span-left,
+      top,
+      top span-right,
+      top span-left;
+    z-index: var(--ui-z-popup, 30);
+    box-sizing: border-box;
+    width: var(--_ui-brand-color-tip-width);
+    margin-block: 0.5em;
+    padding: 0.75em 1em;
+    border-radius: var(--ui-radius-m, 0.75em);
+    background: var(--_ui-brand-color-tip-background);
+    box-shadow: var(--spell-shadow-lg, var(--ui-shadow-floating));
+    color: var(--_ui-brand-color-tip-color);
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * 0.8125);
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: start;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity var(--ui-duration-fast) var(--ui-ease),
+      visibility var(--ui-duration-fast);
+  }
+  .tip > .title {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-block-end: 0.5em;
+    font-size: calc(14em / 13);
+    line-height: 1;
+  }
+  .tip > .title > .swatch {
+    flex: none;
+    width: 1em;
+    height: 1em;
+    border-radius: 0.25em;
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, currentColor 25%, transparent);
+  }
+  .tip > .rows {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 0.375em 0.75em;
+    margin: 0;
+    font-family: var(--ui-font-family-mono);
+    font-size: calc(12em / 13);
+    line-height: 1;
+  }
+  .tip > .rows > dt {
+    white-space: nowrap;
+    font-size: calc(11em / 12);
+    font-weight: 600;
+    opacity: 0.7;
+  }
+  .tip > .rows > dd {
+    margin: 0;
+    white-space: nowrap;
+  }
+  .tip > .note {
+    margin-block-start: 0.625em;
+    padding-block-start: 0.5em;
+    border-block-start: 1px solid color-mix(in oklab, currentColor 14%, transparent);
+    font-size: calc(12em / 13);
+    line-height: 1.45;
+    opacity: 0.9;
+  }
+}
+
+@layer ui.components.brand-color.variations {
+  /* ## Sizes:  the chip's font, so the box, text and mark scale together */
+  .brand.color.mini {
+    --_brand-color-scale: var(--ui-size-mini, 0.625);
+  }
+  .brand.color.tiny {
+    --_brand-color-scale: var(--ui-size-tiny, 0.75);
+  }
+  .brand.color.small {
+    --_brand-color-scale: var(--ui-size-small, 0.875);
+  }
+  .brand.color.large {
+    --_brand-color-scale: var(--ui-size-large, 1.125);
+  }
+  .brand.color.big {
+    --_brand-color-scale: var(--ui-size-big, 1.25);
+  }
+  .brand.color.huge {
+    --_brand-color-scale: var(--ui-size-huge, 1.5);
+  }
+  .brand.color.massive {
+    --_brand-color-scale: var(--ui-size-massive, 2);
+  }
+
+  /* ## Clickable (a copy button, a choice):  grows a little under the pointer */
+  button.brand.color,
+  :host(:state(choice)) > .brand.color {
+    cursor: pointer;
+    transition:
+      transform var(--ui-duration-fast) var(--ui-ease),
+      box-shadow var(--ui-duration-fast) var(--ui-ease);
+  }
+  button.brand.color:hover,
+  :host(:state(choice)) > .brand.color:hover {
+    transform: scale(1.06);
+  }
+  button.brand.color:active,
+  :host(:state(choice)) > .brand.color:active {
+    transform: scale(0.97);
+  }
+}
+
+@layer ui.components.brand-color.states {
+  /* Selected:  the Chooser's double ring (a gap in the surface's colour, then the ring) */
+  .brand.color.selected {
+    box-shadow:
+      0 0 0 2px var(--_ui-brand-color-ring-gap),
+      0 0 0 3.5px var(--_ui-brand-color-ring-color);
+  }
+
+  /* Keyboard focus:  on the chip, or on the host of a choice */
+  .brand.color:focus-visible,
+  :host(:focus-visible) > .brand.color {
+    outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color);
+    outline-offset: 2px;
+  }
+  .brand.color.selected:focus-visible,
+  :host(:focus-visible) > .brand.color.selected {
+    outline-offset: 5px;
+  }
+
+  /* Just copied:  the check replaces the text */
+  :host(:state(copied)) .brand.color > :is(.label, .mark) {
+    visibility: hidden;
+  }
+
+  /* The tip shows on hover and keyboard focus */
+  .brand.color:is(:hover, :focus-visible) ~ .tip,
+  :host(:focus-visible) > .tip {
+    opacity: 1;
+    visibility: visible;
+  }
+}

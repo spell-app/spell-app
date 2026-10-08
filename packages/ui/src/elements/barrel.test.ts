@@ -10,7 +10,7 @@ import * as elements from "$/ui/elements"
  *   purpose.  A binding the cycle leaves `undefined` slips past `tsc` and the bundler alike;  this catches it.
  * - Entered through `$/ui/core`, as every component file does;  the folder's other tests enter through the
  *   `$/ui/elements` barrel (whose first class file is `ClassBuilder`), so both routes run.
- * - NOTE: entering at a leaf the core reads while it evaluates -- `$/ui/elements/UIElement`, which `ContentPart`
+ * - NOTE: entering at a leaf the core reads while it evaluates -- `$/ui/elements/UIComponent`, which `PartComponent`
  *   extends -- would throw:  that leaf is still mid-load when the core reaches its reader.  Nothing imports one by
  *   path but `core.ts` / `forms.ts`, and nothing may.
  */
@@ -36,20 +36,20 @@ describe("$/ui/core and $/ui/forms load order", () => {
   })
 
   it("base classes are the real ones, not a half-loaded binding", () => {
-    expect(core.ContentPart.prototype).toBeInstanceOf(core.UIElement)
-    expect(core.SourceElement.prototype).toBeInstanceOf(core.UIElement)
-    expect(forms.FormElement.prototype).toBeInstanceOf(core.UIElement)
-    expect(core.SourceHost.prototype).toBeInstanceOf(core.UIHost)
-    expect(core.SourceBodyHost.prototype).toBeInstanceOf(core.UIHost)
-    expect(forms.FormHost.prototype).toBeInstanceOf(core.UIHost)
+    expect(core.PartComponent.prototype).toBeInstanceOf(core.UIComponent)
+    expect(core.LoadableComponent.prototype).toBeInstanceOf(core.UIComponent)
+    expect(forms.FormComponent.prototype).toBeInstanceOf(core.UIComponent)
+    expect(core.DOMLoadableElement.prototype).toBeInstanceOf(core.DOMElement)
+    expect(core.DOMLoadableBodyElement.prototype).toBeInstanceOf(core.DOMElement)
+    expect(forms.DOMFormControlElement.prototype).toBeInstanceOf(core.DOMElement)
   })
 
   it("static initializers ran:  their values exist", () => {
     expect(core.RootSettings.generation).toBeTypeOf("number")
-    expect(forms.FormElement.validator).toBeInstanceOf(forms.Validator)
-    expect(core.UIElement.setupFor(core.UIElement).Host).toBe(core.UIHost)
-    expect(core.UIElement.setupFor(forms.FormElement).Host).toBe(forms.FormHost)
-    expect(core.UIElement.setupFor(core.SourceElement).Host).toBe(core.SourceHost)
+    expect(forms.FormComponent.validator).toBeInstanceOf(forms.Validator)
+    expect(core.UIComponent.setupFor(core.UIComponent).DOMElement).toBe(core.DOMElement)
+    expect(core.UIComponent.setupFor(forms.FormComponent).DOMElement).toBe(forms.DOMFormControlElement)
+    expect(core.UIComponent.setupFor(core.LoadableComponent).DOMElement).toBe(core.DOMLoadableElement)
   })
 
   it("$/ui/elements hands out the same objects as the entries", () => {

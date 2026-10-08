@@ -1,16 +1,16 @@
 import type { Temporal } from "temporal-polyfill"
 
 import type { E, UIT } from "$/ui/core"
-import { MINUTE_STEP, type ModeOptions, type Moment, type MomentFields, type MomentLike } from "./ui-calendar.types"
+import { MINUTE_STEP, type ModeOptions, type Moment, type MomentFields, type MomentLike } from "./UICalendar.types"
 
 /****************
  * ### `CalendarDates`
- * The date arithmetic of one calendar, on `Temporal`:  values in and out (ISO by `type`), a cell's unit
- * (`floor()` / `same()` / `compare()`), paging (`step()`) and the views a type walks through (`modes()`).
+ * The date arithmetic of one calendar, on `Temporal`:  values in and out (ISO by `type`),
+ * a cell's unit (`floor()` / `same()` / `compare()`), paging (`step()`) and the views a type walks through (`modes()`).
  * - Every type is held as a `PlainDateTime`, so one comparison serves all:  a `date` at midnight, a `month` on its
  *   first day, a `year` on January 1st, a `time` on TODAY (`anchor`, read once).
- * - `temporal` is whichever `Temporal` the page has (`UI.i18n.temporal`):  native, or the polyfill;  values from one
- *   are never mixed with the other's, since everything here goes through `temporal`.
+ * - `temporal` is whichever `Temporal` the page has (`UI.i18n.temporal`):  native, or the polyfill;
+ *   values from one are never mixed with the other's, since everything here goes through `temporal`.
  * - Minute cells are `MINUTE_STEP` apart (Fomantic's `minTimeGap`):  a minute's unit is its 5-minute slot.
  ****************/
 export class CalendarDates {
@@ -48,8 +48,8 @@ export class CalendarDates {
 
   /**
    * `value` as a moment, or `undefined` when empty or unreadable.
-   * - Takes an ISO string of the calendar's type (a `datetime` also takes a bare date, a `date` a date-time), a
-   *   `Date` (its LOCAL fields), or a Temporal object (through its ISO `toString()`).
+   * - Takes an ISO string of the calendar's type (a `datetime` also takes a bare date, a `date` a date-time),
+   *   a `Date` (its LOCAL fields), or a Temporal object (through its ISO `toString()`).
    * - NEVER throws.
    */
   parse(value: unknown): Moment | undefined {
@@ -115,8 +115,8 @@ export class CalendarDates {
   ////////////////
 
   /**
-   * Start of the `mode` unit holding `moment`:  its year's January 1st, its month's 1st, its day's midnight, its
-   * hour, its minute slot (`step` minutes, default `MINUTE_STEP`).
+   * Start of the `mode` unit holding `moment`:  its year's January 1st, its month's 1st, its day's midnight,
+   * its hour, its minute slot (`step` minutes, default `MINUTE_STEP`).
    */
   floor(moment: Moment, mode: UIT.CalendarMode, step = MINUTE_STEP): Moment {
     const time = { second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }
@@ -173,8 +173,8 @@ export class CalendarDates {
 
   /**
    * The views this type walks through, coarse to fine;  the LAST one picks the value.
-   * - `date` year => month => day;  `datetime` ... => hour => minute;  `time` hour => minute;  `month` year =>
-   *   month;  `year` year.
+   * - `date` year => month => day;  `datetime` ... => hour => minute;  `time` hour => minute;
+   *   `month` year => month;  `year` year.
    * - `disable-minute` drops the minute view;  `disable-month` / `disable-year` drop those views unless the type
    *   picks them.
    */
@@ -231,8 +231,8 @@ export class CalendarDates {
   }
 
   /**
-   * Server render:  the fields of ISO `text` for `type`, read by hand, for FORMATTING only;  `undefined` when it
-   * isn't that type's ISO form.  Unused parts are zero (a time's date:  1970-01-01).
+   * Server render:  the fields of ISO `text` for `type`, read by hand, for FORMATTING only;
+   * `undefined` when it isn't that type's ISO form.  Unused parts are zero (a time's date:  1970-01-01).
    * - STATIC:  a server render has no `Temporal`, so no `CalendarDates`.
    */
   static isoFields(text: string, type: UIT.CalendarType): MomentLike | undefined {

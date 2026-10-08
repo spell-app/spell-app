@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-transition-C2-Lv_Je.js";export{t as DOMTransitionElement,e as UITransition};

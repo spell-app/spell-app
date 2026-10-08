@@ -1,27 +1,28 @@
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { PlaceholderFallback } from "./ui-placeholder.fallback"
-import { placeholderVocabulary } from "./ui-placeholder.vocabulary.en"
+import { placeholderVocabulary } from "./UIPlaceholder.vocabulary.en"
 
-import placeholderCSS from "./ui-placeholder.css?inline"
+import placeholderCSS from "./UIPlaceholder.css?inline"
 
 /****************
- * ### `<ui-placeholder>`
- * A skeleton of content still loading:  `<div class="ui … placeholder" part="placeholder"><slot></slot></div>`
- * around the shapes (`<ui-placeholder-header>`, `-paragraph`, `-line`, `-image`).
- * - `:state(placeholder)`, ALWAYS (`UIT.PLACEHOLDER_HOST_STATE`):  `ui-placeholder.css` finds placeholder siblings by
- *   it, for the gap between consecutive placeholders.
- * - Decorative:  the host is `aria-hidden` (internals);  whatever is loading announces itself, once.
+ * ### `UIPlaceholder`
+ * The component behind `<ui-placeholder>`:  a grey skeleton of content that is still loading.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … placeholder" part="placeholder">`, around a slot for the shapes
+ *   (`<ui-placeholder-header>`, `-paragraph`, `-line`, `-image`).
+ * - `:state(placeholder)`, ALWAYS (`UIT.PLACEHOLDER_HOST_STATE`):
+ *   `UIPlaceholder.css` finds placeholder siblings by it, for the gap between consecutive placeholders.
+ * - Decorative:  the element is `aria-hidden` (through `internals`);  whatever is loading announces itself, once.
  ****************/
-export class UIPlaceholder extends E.UIElement<typeof placeholderVocabulary> {
+export class UIPlaceholder extends E.UIComponent<typeof placeholderVocabulary> {
   @E.proto static vocabulary = placeholderVocabulary
   @E.proto static styleSheets = { placeholder: placeholderCSS }
-  @E.proto static elementSetup = { Fallback: PlaceholderFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.host.internals.ariaHidden = UIT.TRUE
+    this.domElement.internals.ariaHidden = UIT.TRUE
   }
 
   /** A placeholder:  always (`:state(placeholder)`). */
@@ -38,4 +39,5 @@ export class UIPlaceholder extends E.UIElement<typeof placeholderVocabulary> {
     )
   }
 }
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIPlaceholder extends E.AttributeValues<typeof placeholderVocabulary> {}

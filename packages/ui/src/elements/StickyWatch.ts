@@ -49,12 +49,12 @@ export class StickyWatch {
    * - Call again (after the undo) whenever the offsets change:  they are the observer's root margins.
    */
   observe(targets: E.StickyWatchTargets, options: E.StickyWatchOptions): () => void {
-    const { host, top, bottom, box } = targets
+    const { domElement, top, bottom, box } = targets
     this.box = box
-    const scroller = StickyWatch.scrollContainer(host)
-    this.scrollRoot = (scroller as HTMLElement | undefined) ?? host.ownerDocument.documentElement
+    const scroller = StickyWatch.scrollContainer(domElement)
+    this.scrollRoot = (scroller as HTMLElement | undefined) ?? domElement.ownerDocument.documentElement
     const observer = new IntersectionObserver(() => this.measure(targets, scroller, options), {
-      root: scroller ?? host.ownerDocument,
+      root: scroller ?? domElement.ownerDocument,
       rootMargin: `${-options.offset}px 0px ${-(options.bottomOffset ?? 0)}px 0px`,
       threshold: [0, 1]
     })
@@ -77,8 +77,8 @@ export class StickyWatch {
 
   /** Work out the edge and `isBound` from where the sentinels and the box are now. */
   private measure(targets: E.StickyWatchTargets, scroller: Element | undefined, options: E.StickyWatchOptions) {
-    const { host, top, bottom, box } = targets
-    const area = StickyWatch.area(scroller, host.ownerDocument)
+    const { domElement, top, bottom, box } = targets
+    const area = StickyWatch.area(scroller, domElement.ownerDocument)
     const topLine = area.top + options.offset
     const bottomLine = area.bottom - (options.bottomOffset ?? 0)
     const boxRect = box.getBoundingClientRect()

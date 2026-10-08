@@ -11,7 +11,7 @@
  * - The character comes from emojibase's HEX CODE, with U+FE0F where the emoji would otherwise show as TEXT:
  *   emojibase's hex codes already have it in sequences (keycaps, ZWJ);  for a text-default emoji (`type` 0, `2600`
  *   sunny, `00a9` copyright) the generator adds it after the first code point.  No hand-written presentation
- *   ranges:  the data says.  `ui-emoji.css`'s `font-variant-emoji: emoji` covers any the data misses, where the
+ *   ranges:  the data says.  `UIEmoji.css`'s `font-variant-emoji: emoji` covers any the data misses, where the
  *   browser supports it.
  * - Output is COMMITTED (like the icon data):  installs and CI need neither the reference clone nor this
  *   dependency.  The `fmt` settings (`vite.lint.ts`) ignore it, so formatting never inflates it.

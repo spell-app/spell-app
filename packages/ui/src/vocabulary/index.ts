@@ -1,7 +1,7 @@
 /**
  * Barrel for `$/ui/vocabulary` -- the library-neutral naming layer:  vocabulary schema, shared value sets,
  * the registry / translation resolver, and attribute converters.
- * - No DOM and no base library:  `UIElement` (Solid) and the native fallbacks read the same names.
+ * - No DOM and no base library:  `UIComponent` (Solid) and the native fallbacks read the same names.
  * - Its place in the import graph:  BELOW the element core, above `$/ui/util` only.  Node loads it with the
  *   vocabularies (`yarn site:data`, `yarn gen:root`), so it MUST NEVER import `$/ui/core`, `$/ui/elements` or
  *   `$/ui/runtime`.

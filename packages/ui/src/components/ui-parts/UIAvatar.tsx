@@ -2,16 +2,16 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { PartElement } from "./PartElement"
-import { avatarVocabulary } from "./ui-avatar.vocabulary.en"
+import { avatarVocabulary } from "./UIAvatar.vocabulary.en"
 
 /****************
- * ### `<ui-avatar>`
- * A small picture of a person:  `<span class="avatar"><img part="image" alt=""></span>` from `src`, else the
- * default slot (a slotted `<img>`).
+ * ### `UIAvatar`
+ * The component behind `<ui-avatar>`:  a small picture of a person,
+ * `<span class="avatar"><img part="image" alt=""></span>` from `src`, else the default slot (a slotted `<img>`).
+ *
  * - `alt` defaults to `""`:  the person's name is almost always right next to it.
  ****************/
-export class UIAvatar extends PartElement<typeof avatarVocabulary> {
+export class UIAvatar extends E.PartComponent<typeof avatarVocabulary> {
   @E.proto static vocabulary = avatarVocabulary
 
   protected get rootTag(): string {
@@ -27,5 +27,5 @@ export class UIAvatar extends PartElement<typeof avatarVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIAvatar extends E.AttributeValues<typeof avatarVocabulary> {}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import type { UIElement, UIHost } from "$/ui/elements"
+import type { UIComponent, DOMElement } from "$/ui/elements"
 import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
@@ -10,10 +10,10 @@ import "$/ui/components/ui-breadcrumb"
 
 /** Text `key` as the element `host` resolves it. */
 function textOf(host: Element, key: string): string {
-  return ((host as UIHost).controller as UIElement).translationForKey(key as never)
+  return ((host as DOMElement).component as UIComponent).translationForKey(key as never)
 }
 
-describe("UIElement.translationForKey()", () => {
+describe("UIComponent.translationForKey()", () => {
   it("gives two families sharing a key each their own English text", async () => {
     const breadcrumb = await ElementFixture.render(`<ui-breadcrumb><a href="#a">A</a></ui-breadcrumb>`)
     expect(breadcrumb.shadowRoot!.querySelector("nav")!.getAttribute("aria-label")).toBe("Breadcrumb")

@@ -68,7 +68,7 @@ export type SharedEntry = {
 
 /**
  * The kinds of a family's own modules, in report order:  its classes, sheet, vocabulary and native fallback
- * (`ui-<name>.fallback.ts`).
+ * (`UI<Name>.fallback.ts`).
  */
 export const OwnKinds = ["classes", "css", "vocabulary", "fallback"] as const
 /** One of `OwnKinds`. */

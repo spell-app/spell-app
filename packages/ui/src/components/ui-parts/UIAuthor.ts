@@ -1,13 +1,14 @@
 import { E, UIT } from "$/ui/core"
-import { PartElement } from "./PartElement"
-import { authorVocabulary } from "./ui-author.vocabulary.en"
+import { authorVocabulary } from "./UIAuthor.vocabulary.en"
 
 /****************
- * ### `<ui-author>`
- * An author:  `<span class="author">`, or `<a class="author">` with `href` (a profile link).
- * - Fomantic's comment `.author` and feed `.user`.
+ * ### `UIAuthor`
+ * The component behind `<ui-author>`:  who wrote something, `<span class="author">`,
+ * or `<a class="author">` with `href` (a link to their profile).
+ *
+ * - Fomantic's comment `.author`, and its feed `.user`.
  ****************/
-export class UIAuthor extends PartElement<typeof authorVocabulary> {
+export class UIAuthor extends E.PartComponent<typeof authorVocabulary> {
   @E.proto static vocabulary = authorVocabulary
 
   protected get rootTag(): string {
@@ -23,5 +24,5 @@ export class UIAuthor extends PartElement<typeof authorVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIAuthor extends E.AttributeValues<typeof authorVocabulary> {}

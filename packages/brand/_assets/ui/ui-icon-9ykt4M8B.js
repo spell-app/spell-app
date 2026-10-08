@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-icon-CFX6o6iy.js";export{e as UIIcon,t as UIIcons};

@@ -3,42 +3,88 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { CheckboxFallback } from "./ui-checkbox.fallback"
-import { CheckHost } from "./CheckHost"
-import { CHECKBOX, CHECKED, type CheckValues, type CheckVocabulary, type CommonAttributes } from "./ui-checkbox.types"
+import { CheckboxFallback } from "./UICheckbox.fallback"
+import { CHECKBOX, CHECKED, type CheckVocabulary, type CommonAttributes } from "./UICheckbox.types"
 
-import checkboxCSS from "./ui-checkbox.css?inline"
+import checkboxCSS from "./UICheckbox.css?inline"
+
+/****************
+ * ### `DOMCheckElement`
+ * The DOM element of `<ui-checkbox>` and `<ui-radio>`:  a form control's DOM element (`DOMFormControlElement`),
+ * plus `checked` as another name for `selected`.
+ *
+ * - `selected` is the word for "chosen" on every `ui-*` element;  checkbox and radio also accept `checked`.
+ * - `checked` is a property here, not a vocabulary attribute:  `el.checked = true` sets `el.selected`.
+ *   The `checked` ATTRIBUTE in markup is read by the component, as a native checkbox reads its own.
+ * - `checkable` tells `<ui-form>` how to read the value (`"checkbox"` / `"radio"`) without importing this family;
+ *   `chosenValue` / `unchosenValue` what it submits, with the class defaults no attribute shows.
+ * - solid-element refuses a DOM element member named like a prop:  none of these names is one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
+ ****************/
+export class DOMCheckElement extends F.DOMFormControlElement {
+  /** Another name for `selected`. */
+  get checked(): boolean {
+    return !!(this as unknown as { selected?: boolean }).selected
+  }
+
+  set checked(value: boolean) {
+    ;(this as unknown as { selected?: boolean }).selected = value
+  }
+
+  /** How a form reads it:  `"radio"` for `<ui-radio>`, else `"checkbox"`. */
+  get checkable(): CheckControl["checkable"] {
+    return this.check?.checkable ?? CHECKBOX
+  }
+
+  /** Submitted while chosen:  `value`, else its class's `defaultChosenValue`;  none before its component exists. */
+  get chosenValue(): string | undefined {
+    return this.check?.chosenValue
+  }
+
+  /** Submitted while unchosen:  `off-value`, else its class's `defaultUnchosenValue`;  none ~== nothing. */
+  get unchosenValue(): string | undefined {
+    return this.check?.unchosenValue
+  }
+
+  /** The component, once it exists. */
+  private get check(): CheckControl | undefined {
+    return this.component as CheckControl | undefined
+  }
+}
 
 /****************
  * ### `CheckControl`
- * Controller base of `<ui-checkbox>` and `<ui-radio>`:  Fomantic's markup -- a native `<input>` (invisible, over the
- * box) and a `<label for>` that draws the box and holds the text -- with the chosen state, value and validity on
- * the HOST.
- * - `selected` is auto-controlled (`isSelected`):  the input's `change` dispatches `ui-change` first;  a handler that
- *   re-sets `el.selected` wins (the input shows the host's state again).  `checked` is its alias:  the host property
- *   (`CheckHost`) and the `checked` ATTRIBUTE, which selects it like markup selects a native checkbox.
- * - Form value:  `chosenValue` while chosen -- `value`, else the class's `defaultChosenValue` (`on`) -- and
- *   `unchosenValue` otherwise (`<ui-checkbox>`'s `off-value`;  none:  nothing);  reset restores the starting state.
- *   - A subclass changes both for every element it defines:  `@E.proto static defaultChosenValue = "open"`
- *     (`defaultUnchosenValue` on `UICheckbox`).
+ * The base component of `<ui-checkbox>` and `<ui-radio>`, in Fomantic's markup:
+ * a native `<input>` (invisible, over the box) and a `<label for>` that draws the box and holds the text.
+ * The chosen state, value and validity belong to the DOM element.
+ *
+ * - `selected` is controlled (`isSelected`):  the input's `change` sends `ui-change` first;
+ *   a handler that sets `el.selected` again wins (the input shows that state).
+ *   `checked` is another name for it:  the DOM element's property (`DOMCheckElement`),
+ *   and the `checked` ATTRIBUTE, which selects it as markup selects a native checkbox.
+ *
+ * - The form value:  `chosenValue` while chosen (`value`, else the class's `defaultChosenValue`, `on`),
+ *   and `unchosenValue` otherwise (`<ui-checkbox>`'s `off-value`;  none:  nothing).
+ *   A form reset restores the starting state.
+ *   - A subclass changes both for every element it defines:
+ *     `@E.proto static defaultChosenValue = "open"` (`defaultUnchosenValue` on `UICheckbox`).
  *   - `required` reads the chosen state only:  an off-value never counts as chosen.
- * - Role comes from the input (checkbox / radio;  `switch` for toggles and sliders), its name from the slotted
- *   label -- else from the host's `<label for>` / `aria-label` (`ControlLabels`), for a `fitted` box.
- * - A click aimed at the HOST (its `<label for>`, `host.click()`) clicks the input.
- * - `readonly`:  clicks are cancelled, so the state never changes;  still submitted.
- * - `:state(invalid)` only after interaction, as `TextControl`.
+ *
+ * - Its role comes from the input (checkbox / radio;  `switch` for toggles and sliders).
+ *   Its name comes from the slotted label, else (for a `fitted` box)
+ *   from the DOM element's `<label for>` / `aria-label` (`ControlLabels`).
+ * - A click aimed at the DOM element itself (its `<label for>`, its `click()`) clicks the input.
+ * - `readonly`:  clicks are cancelled, so the state never changes;  it's still submitted.
+ * - `:state(invalid)` shows only after interaction, as in `TextControl`.
  ****************/
-export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
-  extends F.FormElement<V>
-  implements CheckValues
-{
+export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> extends F.FormComponent<V> {
   /**
    * Submitted while chosen, when the element has no `value`.
    * - `@proto`:  a subclass sets its own for every element it defines.
    */
   declare readonly defaultChosenValue: string
 
-  @E.proto static elementSetup: Partial<E.ElementSetup> = { Fallback: CheckboxFallback, Host: CheckHost }
+  @E.proto static elementSetup: Partial<E.ElementSetup> = { Fallback: CheckboxFallback, DOMElement: DOMCheckElement }
   @E.proto static styleSheets = { checkbox: checkboxCSS }
 
   /** Default:  `on`, as a native checkbox. */
@@ -47,11 +93,12 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   /** How a form reads it. */
   abstract readonly checkable: "checkbox" | "radio"
 
-  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
+  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
-    this.host.addEventListener(CLICK, this.onHostClick)
-    this.host.addEventListener(INVALID, this.onInvalid)
-    // `checked` in markup selects, a microtask later:  outside the component body, where the host write may notify
+    this.domElement.addEventListener(CLICK, this.onDOMElementClick)
+    this.domElement.addEventListener(INVALID, this.onInvalid)
+    // `checked` in markup selects, a microtask later:
+    // outside the component's body, where the write to the DOM element may notify
     if (this.wasInitiallySelected && !untrack(() => this.selectedProperty)) {
       queueMicrotask(() => (this.isSelected = true))
     }
@@ -63,8 +110,9 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
 
   /**
    * Chosen now?  Tracked;  a write chooses / unchooses it without an event.
-   * - The host's `selected` (`selectedProperty`).  Server render:  `checked` in markup counts at once (a browser
-   *   applies it a microtask late, and a server host has no property to write).
+   * - The DOM element's `selected` (`selectedProperty`).
+   * - In a server render, `checked` in markup counts at once:
+   *   a browser applies it a microtask late, and a server's DOM element has no property to write.
    */
   @E.cssState("selected")
   get isSelected(): boolean {
@@ -75,7 +123,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
     this.selectedProperty = selected
   }
 
-  /** The host's `selected` property (a boolean is always the host's);  a write goes to it. */
+  /** The DOM element's `selected` property (a boolean is always the DOM element's);  a write goes to it. */
   @E.controlled("selected") private accessor selectedProperty = false
 
   /** Chosen at first, for form reset:  `selected` or `checked` in markup. */
@@ -95,10 +143,10 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   }
 
   /**
-   * A transition to `selected` someone made (a click, a key):  `ui-change`, then the host property, unless a handler
-   * re-set it.
-   * - `detail.value`:  what it stands for after the change -- `chosenValue`, or once unchosen, `unchosenValue` when
-   *   there is one.
+   * Someone chose or unchose it (a click, a key):  send `ui-change`, then set the DOM element's property,
+   * unless a handler set it first.
+   * - `detail.value`:  what it stands for after the change:
+   *   `chosenValue`, or once unchosen, `unchosenValue` when there is one.
    * - Returns true when applied.
    */
   choose(selected: boolean, originalEvent?: Event): boolean {
@@ -161,18 +209,18 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   // ## Label
   ////////////////
 
-  /** Light-DOM slot occupancy:  label text. */
-  readonly slots = new E.SlotContent(this.host)
+  /** Which slots have light-DOM children:  the label text. */
+  readonly slots = new E.SlotContent(this.domElement)
 
-  /** Host `<label>`s and `aria-label`, as the input's name when there's no text. */
-  readonly labels = new F.ControlLabels(this.formHost)
+  /** The DOM element's `<label>`s and `aria-label`, as the input's name when there's no text. */
+  readonly labels = new F.ControlLabels(this.domFormElement)
 
   /** Has label text (slot or shorthand)? */
   protected get hasLabelText(): boolean {
     return this.slots.hasContent("") || !!this.label
   }
 
-  /** Connected:  read the host's `<label>`s again. */
+  /** Connected:  read the DOM element's `<label>`s again. */
   @E.onChange("isConnected")
   protected onConnectedChanged(isConnected: boolean) {
     if (isConnected) this.labels.refresh()
@@ -202,7 +250,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   }
 
   protected get validationLabel(): string | undefined {
-    return this.label ?? (this.host.textContent?.trim() || undefined) ?? this.labels.accessibleName ?? this.name
+    return this.label ?? (this.domElement.textContent?.trim() || undefined) ?? this.labels.accessibleName ?? this.name
   }
 
   protected get validationAnchor(): HTMLElement | undefined {
@@ -228,10 +276,10 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   /** The native input. */
   protected control?: HTMLInputElement
 
-  /** Id tying the `<label>` to the input. */
+  /** The id tying the `<label>` to the input. */
   protected inputId = ""
 
-  /** Input `type`. */
+  /** The input's `type`. */
   protected abstract get inputType(): "checkbox" | "radio"
 
   /** The input's tab stop:  `0`, or `-1` for a radio that isn't its group's tab stop. */
@@ -245,9 +293,9 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   }
 
   /**
-   * Server render only (`$/ui/static`):  what the native input needs to submit without JS -- `name`, `value`,
-   * `checked` -- and the `STATIC_CONTROL` mark;  `{}` in a browser, where the HOST submits (`ElementInternals`)
-   * and an effect sets `checked`.
+   * The native input's extra attributes in a server render (`$/ui/static`).
+   * - What it needs to submit without script:  `name`, `value`, `checked`;  and the `STATIC_CONTROL` mark.
+   * - `{}` in a browser, where the DOM element submits (`ElementInternals`) and an effect sets `checked`.
    * - `value` left out when it's the native default.
    * - No off-value:  a native box can't submit one, and a hidden input of the same name would send both while
    *   chosen (epic `wwod-spell-ui`, J44).
@@ -264,8 +312,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   }
 
   render(): JSX.Element {
-    // server render:  the host's id, so its `<label for>`s label the input (the flattener moves it there)
-    this.inputId = (isServer && this.host.id) || UI.ids.next(ID_PREFIX)
+    // server render:  the DOM element's id, so its `<label for>`s label the input (the flattener moves it there)
+    this.inputId = (isServer && this.domElement.id) || UI.ids.next(ID_PREFIX)
     return (
       <div class={this.rootClasses} part={this.partForName("checkbox" as never)}>
         <input
@@ -306,9 +354,9 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   /** A key on the input:  arrow keys, for radios;  nothing for a checkbox. */
   protected onKeyDown(_event: KeyboardEvent) {}
 
-  /** A click aimed at the HOST itself clicks the input;  retargeted clicks from inside are left alone. */
-  private readonly onHostClick = (event: MouseEvent) => {
-    if (event.composedPath()[0] !== this.host || this.isDisabled) return
+  /** A click aimed at the DOM element itself clicks the input;  retargeted clicks from inside are left alone. */
+  private readonly onDOMElementClick = (event: MouseEvent) => {
+    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
     this.control?.click()
   }
 
@@ -318,13 +366,16 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   }
 }
 
-/** The attributes both vocabularies declare:  their getters, typed once for this base (`UIElement`'s doc). */
+/**
+ * The attributes both vocabularies declare:  their getters, typed once for this base
+ * (see "Attributes" in `UIComponent`).
+ */
 export interface CheckControl<V extends CheckVocabulary = CheckVocabulary> extends CommonAttributes {}
 
 /** `UI.ids` prefix of the input's id. */
 const ID_PREFIX = "ui-checkbox"
 
-/** Clicks aimed at the host. */
+/** Clicks aimed at the DOM element. */
 const CLICK = "click"
 
 /** A submit or `reportValidity()` found it invalid. */

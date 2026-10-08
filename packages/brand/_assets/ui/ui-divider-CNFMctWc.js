@@ -1,0 +1,1 @@
+import{t as e}from"./ui-divider-Dn-Kifwo.js";export{e as UIDivider};

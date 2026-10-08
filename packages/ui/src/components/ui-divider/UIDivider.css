@@ -1,0 +1,211 @@
+/*
+ * The style sheet of `<ui-divider>`:  a port of Fomantic's `divider.less` + `divider.variables`.
+ * - It styles the component's shadow DOM, in Fomantic's class names on a semantic element:
+ *   `<div class="ui [size] [color] [keyOnly ...] [text-align] divider" role="separator" part="divider">`,
+ *   holding `<span class="icon" part="icon">svg</span>` for the `icon` shorthand, then `<slot></slot>`.
+ *
+ * - The DOM element itself is `display: contents` (`:host`):  the inner box IS the divider.
+ *   So a `vertical` divider positions against its owner (a `position: relative` segment or grid),
+ *   and `clearing` clears the floats in the owner's flow.
+ *
+ * - A horizontal divider is a flex row:  its `::before` and `::after` draw the lines either side of the text,
+ *   in place of Fomantic's `display: table` cells and base64 PNG line.
+ *   `left aligned` / `right aligned` drop one of them.
+ *
+ * - `inverted` switches the box to `color-scheme: dark`, so the line and text tokens take their dark values:
+ *   one rule set, no table of inverted colours.
+ * - A `color` recolours the line (`--ui-color`) and the text (`--ui-color-text`).
+ *
+ * - The public tokens (`--ui-divider-*`) are NEVER declared here.
+ *   The token block gives each a private alias, `--_ui-divider-margin: var(--ui-divider-margin, 1em)`,
+ *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
+ *   `::part(divider)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *
+ * - No `:state()`s:  the rules key on the inner box's classes.
+ *
+ * - `hidden` keeps its own attribute name, though its DOM property is `dividerHidden`
+ *   (so it doesn't hide `HTMLElement.hidden`).
+ *   `:host([hidden])` turns the browser's `display: none` back into `display: contents`,
+ *   so a hidden divider keeps its spacing.
+ *
+ * - Left out, on purpose:
+ *   - a stackable grid turning a vertical divider horizontal on a phone, and the grid's column rules
+ *     (`.ui.grid > .column + .divider`):  `UIGrid.css` owns those, when it has them
+ *   - the second (highlight) line under a plain divider:  kept as `--ui-divider-highlight`, transparent by default
+ */
+
+@layer ui.components.divider.types, ui.components.divider.content, ui.components.divider.variations, ui.components.divider.states;
+
+/*******************************
+            Divider
+*******************************/
+
+@layer ui.components.divider.types {
+  /* The DOM element:  no box of its own;  the inner box is the divider. */
+  :host {
+    display: contents;
+  }
+  /*
+   * `hidden` is Fomantic's OWN divider word:  a "hidden divider" keeps its spacing, only the line goes.
+   * Not a way to hide it, so this overrides the browser's `[hidden] { display: none }`,
+   * which would take the element, and its margin, out of the layout.
+   */
+  :host([hidden]) {
+    display: contents;
+  }
+
+  /* Tokens:  one per `divider.variables` entry that still matters, each the private alias of its public token. */
+  .ui.divider {
+    --_ui-divider-margin: var(--ui-divider-margin, 1em);
+    --_ui-divider-section-margin: var(--ui-divider-section-margin, 2em);
+    --_ui-divider-line-width: var(--ui-divider-line-width, var(--ui-border-width));
+    --_ui-divider-line-color: var(--ui-divider-line-color, var(--ui-border-color));
+    --_ui-divider-highlight: var(--ui-divider-highlight, transparent);
+    --_ui-divider-text-color: var(--ui-divider-text-color, var(--ui-text-dark));
+    --_ui-divider-font-weight: var(--ui-divider-font-weight, var(--ui-font-weight-bold));
+    --_ui-divider-letter-spacing: var(--ui-divider-letter-spacing, 0.05em);
+    --_ui-divider-text-transform: var(--ui-divider-text-transform, uppercase);
+    --_ui-divider-text-gap: var(--ui-divider-text-gap, 1em);
+    --_ui-divider-vertical-gap: var(--ui-divider-vertical-gap, 1em);
+    --_ui-divider-icon-size: var(--ui-divider-icon-size, 1em);
+  }
+
+  /* Divider:  a hairline with space around it. */
+  .ui.divider {
+    --_ui-icon-owner-margin: 0;
+    --_ui-icon-owner-align: middle;
+    --_ui-icon-owner-size: initial;
+    --_ui-icon-owner-display: initial;
+    box-sizing: border-box;
+    display: block;
+    height: 0;
+    margin: var(--_ui-divider-margin) 0;
+    border-top: var(--_ui-divider-line-width) solid var(--ui-color, var(--_ui-divider-line-color));
+    border-bottom: var(--_ui-divider-line-width) solid var(--_ui-divider-highlight);
+    color: var(--ui-color-text, var(--_ui-divider-text-color));
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    font-weight: var(--_ui-divider-font-weight);
+    letter-spacing: var(--_ui-divider-letter-spacing);
+    line-height: 1;
+    text-transform: var(--_ui-divider-text-transform);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Horizontal:  text (or an icon) between two rules. */
+  .ui.horizontal.divider {
+    display: flex;
+    align-items: center;
+    gap: var(--_ui-divider-text-gap);
+    height: auto;
+    border: none;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .ui.horizontal.divider::before,
+  .ui.horizontal.divider::after {
+    content: "";
+    flex: 1 1 0;
+    border-top: var(--_ui-divider-line-width) solid var(--ui-color, var(--_ui-divider-line-color));
+    border-bottom: var(--_ui-divider-line-width) solid var(--_ui-divider-highlight);
+  }
+  .ui[class*="center aligned"].horizontal.divider {
+    justify-content: center;
+  }
+  .ui[class*="left aligned"].horizontal.divider::before,
+  .ui[class*="right aligned"].horizontal.divider::after {
+    display: none;
+  }
+
+  /* Vertical:  text between two vertical rules, centred in a `position: relative` owner. */
+  .ui.vertical.divider {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: auto;
+    height: 50%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    line-height: 0;
+    text-align: center;
+    translate: -50% 0;
+  }
+  .ui.vertical.divider::before,
+  .ui.vertical.divider::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    z-index: 3;
+    width: 0;
+    height: calc(100% - var(--_ui-divider-vertical-gap));
+    border-left: var(--_ui-divider-line-width) solid var(--ui-color, var(--_ui-divider-line-color));
+    border-right: var(--_ui-divider-line-width) solid var(--_ui-divider-highlight);
+  }
+  .ui.vertical.divider::before {
+    top: -100%;
+  }
+  .ui.vertical.divider::after {
+    top: auto;
+    bottom: 0;
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.divider.content {
+  /* Icon:  sits on the text line between the rules. */
+  .ui.divider > .icon {
+    display: inline-block;
+    height: 1em;
+    margin: 0;
+    font-size: var(--_ui-divider-icon-size);
+    vertical-align: middle;
+  }
+  .ui.divider > .icon svg {
+    display: block;
+    width: auto;
+    height: 100%;
+    fill: currentColor;
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.divider.variations {
+  /* Inverted:  for dark backgrounds -- the dark scheme's line and text colours. */
+  .ui.inverted.divider {
+    color-scheme: dark;
+    --ui-scheme: dark;
+  }
+
+  /* Fitted:  no space around it. */
+  .ui.fitted.divider {
+    margin: 0;
+  }
+
+  /* Clearing:  clears floats above it. */
+  .ui.clearing.divider {
+    clear: both;
+  }
+
+  /* Section:  more space, between sections. */
+  .ui.section.divider {
+    margin-block: var(--_ui-divider-section-margin);
+  }
+
+  /* Hidden:  the space without the line;  last, so it beats colours and `inverted`. */
+  .ui.hidden.divider {
+    border-color: transparent;
+  }
+  .ui.hidden.divider::before,
+  .ui.hidden.divider::after {
+    display: none;
+  }
+}

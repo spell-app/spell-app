@@ -1,27 +1,27 @@
 import { E, UIT } from "$/ui/core"
 // Import the modal's FILE, not its barrel:  a server render loads this class without `customElements` (`index.ts`)
-import { DialogElement } from "$/ui/components/ui-modal/DialogElement"
-import { FlyoutFallback } from "./ui-flyout.fallback"
-import { WIDTH, type Vocabulary } from "./ui-flyout.types"
-import { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
+import { DialogComponent } from "$/ui/components/ui-modal/DialogComponent"
+import { flyoutVocabulary } from "./UIFlyout.vocabulary.en"
 
-import flyoutCSS from "./ui-flyout.css?inline"
+import flyoutCSS from "./UIFlyout.css?inline"
 
 /****************
- * ### `<ui-flyout>`
- * Fomantic's flyout -- a side modal:  a shadow `<dialog class="ui [position] ... flyout" part="flyout">` shown with
- * `showModal()`, sliding in from `position` (left by default) over a `::backdrop` dimmer.
- * - Behaviour is `<ui-modal>`'s, through the shared `DialogElement` (modal family):  `open`, `closedby`, the
- *   `closable` icon, approve / deny, `--show` / `--close` invoker commands, `ui-open` / `ui-close` / `ui-show` /
- *   `ui-hide`, naming by `aria-label` / `header` / a slotted `<ui-header>`, `UI.overlays` (kind `flyout`:  scroll
- *   lock, keyboard scope, focus restore).  This class adds its names, looks and word widths.
- * - A flyout is always page-level (the top layer);  it never pushes content -- that's `<ui-sidebar>` in a
- *   `<ui-pushable>`.
+ * ### `UIFlyout`
+ * The component behind `<ui-flyout>`:  Fomantic's flyout, a side modal.
+ * A shadow `<dialog class="ui [position] … flyout" part="flyout">` shown with `showModal()`,
+ * sliding in from `position` (left by default) over a `::backdrop` dimmer.
+ *
+ * - Its behaviour is `<ui-modal>`'s, through the shared `DialogComponent` (modal family):
+ *   `open`, `closedby`, the `closable` icon, approve / deny, `--show` / `--close` invoker commands,
+ *   `ui-open` / `ui-close` / `ui-show` / `ui-hide`, its name (`aria-label`, `header` or a slotted `<ui-header>`),
+ *   `UI.overlays` (kind `flyout`:  scroll lock, keyboard scope, focus restore).
+ *   This class adds its names, its looks and the word widths (`thin`, `very wide`, as `<ui-sidebar>` has).
+ * - A flyout is always page-level (the top layer);  it never pushes content:
+ *   that's `<ui-sidebar>` in a `<ui-pushable>`.
  ****************/
-export class UIFlyout extends DialogElement<Vocabulary> {
+export class UIFlyout extends DialogComponent<Vocabulary> {
   @E.proto static vocabulary = flyoutVocabulary
   @E.proto static styleSheets = { flyout: flyoutCSS }
-  @E.proto static elementSetup = { Fallback: FlyoutFallback }
   @E.proto static rootPart = "flyout"
   @E.proto static overlayKind = "flyout" as const
 
@@ -37,5 +37,11 @@ export class UIFlyout extends DialogElement<Vocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIFlyout extends E.AttributeValues<Vocabulary> {}
+
+/** The flyout's vocabulary type, for brevity. */
+type Vocabulary = typeof flyoutVocabulary
+
+/** The attribute taking word widths beside columns. */
+const WIDTH = "width"

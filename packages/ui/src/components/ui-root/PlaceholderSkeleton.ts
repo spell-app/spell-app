@@ -2,20 +2,20 @@ import { createRenderEffect, type Accessor } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { placeholderHeaderVocabulary } from "$/ui/components/ui-placeholder/ui-placeholder-header.vocabulary.en"
-import { placeholderImageVocabulary } from "$/ui/components/ui-placeholder/ui-placeholder-image.vocabulary.en"
-import { placeholderLineVocabulary } from "$/ui/components/ui-placeholder/ui-placeholder-line.vocabulary.en"
-import { placeholderParagraphVocabulary } from "$/ui/components/ui-placeholder/ui-placeholder-paragraph.vocabulary.en"
-import { placeholderVocabulary } from "$/ui/components/ui-placeholder/ui-placeholder.vocabulary.en"
-import type { RootSkeleton } from "./ui-root.types"
+import { placeholderHeaderVocabulary } from "$/ui/components/ui-placeholder/UIPlaceholderHeader.vocabulary.en"
+import { placeholderImageVocabulary } from "$/ui/components/ui-placeholder/UIPlaceholderImage.vocabulary.en"
+import { placeholderLineVocabulary } from "$/ui/components/ui-placeholder/UIPlaceholderLine.vocabulary.en"
+import { placeholderParagraphVocabulary } from "$/ui/components/ui-placeholder/UIPlaceholderParagraph.vocabulary.en"
+import { placeholderVocabulary } from "$/ui/components/ui-placeholder/UIPlaceholder.vocabulary.en"
+import type { RootSkeleton } from "./UIRoot.types"
 
 /****************
  * ### `PlaceholderSkeleton`
  * What `<ui-root display="skeleton">` draws while its components load:  one `<ui-placeholder>` per described element
- * (`E.ComponentVocabulary.skeleton`), in page order, stacked (inline ones side by side).  `UIRoot.Skeleton`, so an
- * app swaps the look with one assignment or a subclass (`UIRoot.Skeleton = MySkeleton`).
- * - The `ui-placeholder` family is imported STATICALLY, by the root's barrel (`index.ts`;  with `ui-loader`, the only
- *   families a root never loads on demand).  Here, its vocabularies only:  pure data.
+ * (`E.ComponentVocabulary.skeleton`), in page order, stacked (inline ones side by side).  `UIRoot.Skeleton`,
+ * so an app swaps the look with one assignment or a subclass (`UIRoot.Skeleton = MySkeleton`).
+ * - The `ui-placeholder` family is imported STATICALLY, by the root's barrel (`index.ts`;  with `ui-loader`,
+ *   the only families a root never loads on demand).  Here, its vocabularies only:  pure data.
  * - Built with the DOM, not JSX:  Solid's JSX has no types for our tags.  Sizes go through the placeholder's public
  *   tokens (`--ui-placeholder-max-width`, `--ui-placeholder-image-height`), so its own sheet draws them.
  * - The element's `size` scales its skeleton (`--ui-scale`), and `fluid` fills the width.

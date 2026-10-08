@@ -3,18 +3,18 @@ import { SSR } from "$/ui/static"
 
 /****************
  * ### `StaticFlattener`
- * Replaces each rendered `ui-*` element with its shadow content in the light DOM:  no shadow roots, no hosts.
+ * Replaces each rendered `ui-*` element with its shadow content in the light DOM:  no shadow roots, no DOM elements.
  * - Innermost first, so a parent's slots receive children that are already flat.
  * - Per element:
  *   - each `<slot>` becomes the children assigned to it (by `slot` attribute), else its fallback content
- *   - the host's non-vocabulary attributes (`id`, `class`, `style`, `title`, `data-*`, `aria-*` ...) move to the
+ *   - the DOM element's non-vocabulary attributes (`id`, `class`, `style`, `title`, `data-*`, `aria-*` ...) move to the
  *     root;  vocabulary attributes are already in the root's classes
  *   - owner states (`:state(in-card)`) become classes (`in-card`), the parts' documented static form
- *   - internals ARIA becomes attributes;  a `listitem` host is wrapped in `<li>` instead
+ *   - internals ARIA becomes attributes;  a `listitem` DOM element is wrapped in `<li>` instead
  *   - `data-ui="<kind>"` marks the root:  the static stylesheet's `@scope` boundary
- * - NOTE: the host's `slot` attribute moves to the outermost replacement node, for its parent's slots.
- * - Node only (`$/ui/static`), plain DOM on linkedom:  reads `ServerHost`'s state, imports no Solid;  NEVER imported
- *   by a component or `$/ui`.
+ * - NOTE: the DOM element's `slot` attribute moves to the outermost replacement node, for its parent's slots.
+ * - Node only (`$/ui/static`), plain DOM on linkedom:  reads `ServerDOMElement`'s state, imports no Solid;
+ *   NEVER imported by a component or `$/ui`.
  ****************/
 export class StaticFlattener {
   /** Flatten every view into `document`, innermost first. */
@@ -42,11 +42,11 @@ export class StaticFlattener {
     let root = content.firstElementChild
     if (root) root = StaticFlattener.listRoot(document, root)
     // a `<div>` where only phrasing content may go (`<p>`, `<a>` ...) would end the paragraph when a browser parses
-    // the page:  a `<span>` (the element was an inline-level host there)
+    // the page:  a `<span>` (the element was an inline-level DOM element there)
     if (root?.localName === "div" && PHRASING_ONLY.has(element.parentElement?.localName ?? "")) {
       root = StaticFlattener.retag(document, root, "span")
     }
-    let listItem = SSR.ServerHost.stateFor(element)?.internals.role === "listitem"
+    let listItem = SSR.ServerDOMElement.stateFor(element)?.internals.role === "listitem"
     // a `<div>` item root BECOMES the `<li>`:  no wrapper, so `:first-child` / `.item + .item` still see the items
     if (root && listItem && RETAGGABLE.has(root.localName)) {
       root = StaticFlattener.retag(document, root, "li")
@@ -92,10 +92,10 @@ export class StaticFlattener {
     return replacement
   }
 
-  /** Replace `slot` with the nodes of `host` assigned to it, else keep its fallback content. */
-  private static fill(slot: Element, host: Element) {
+  /** Replace `slot` with the nodes of `domElement` assigned to it, else keep its fallback content. */
+  private static fill(slot: Element, domElement: Element) {
     const name = slot.getAttribute("name") ?? ""
-    const assigned = [...host.childNodes].filter((node) => StaticFlattener.slotFor(node) === name)
+    const assigned = [...domElement.childNodes].filter((node) => StaticFlattener.slotFor(node) === name)
     const nodes = assigned.length ? assigned : [...slot.childNodes]
     for (const node of assigned) {
       if (node.nodeType !== E.NodeType.element) continue
@@ -117,19 +117,19 @@ export class StaticFlattener {
   }
 
   /**
-   * Move what the host carried onto the root:  author attributes (`vocabulary` names skipped), owner states as
+   * Move what the DOM element carried onto the root:  author attributes (`vocabulary` names skipped), owner states as
    * classes, internals ARIA as attributes.
    */
-  private static decorate(root: Element, host: Element, vocabulary: readonly string[]) {
+  private static decorate(root: Element, domElement: Element, vocabulary: readonly string[]) {
     const skip = new Set([...vocabulary, "slot"])
     // a form control's native element (marked by its render):  ids and names belong there, so `<label for>` and
     // `aria-labelledby` reach the control a browser submits and focuses
     const control = root.hasAttribute(UIT.STATIC_CONTROL) ? root : root.querySelector(`[${UIT.STATIC_CONTROL}]`)
-    for (const { name, value } of [...host.attributes]) {
+    for (const { name, value } of [...domElement.attributes]) {
       if (skip.has(name)) continue
       if (control && CONTROL_ATTRIBUTES.has(name)) {
         const current = control.getAttribute(name)
-        // the control's own id / label wins;  id lists merge (the host's hint AND the control's own text)
+        // the control's own id / label wins;  id lists merge (the DOM element's hint AND the control's own text)
         if (current === null) control.setAttribute(name, value)
         else if (ID_LISTS.has(name))
           control.setAttribute(name, [...new Set(`${value} ${current}`.split(/\s+/))].join(" "))
@@ -140,10 +140,10 @@ export class StaticFlattener {
       } else if (!root.hasAttribute(name)) root.setAttribute(name, value)
     }
     control?.removeAttribute(UIT.STATIC_CONTROL)
-    const state = SSR.ServerHost.stateFor(host)
+    const state = SSR.ServerDOMElement.stateFor(domElement)
     if (!state) return
     for (const name of state.states) if (name.startsWith(UIT.PART_STATIC_CLASS_PREFIX)) root.classList.add(name)
-    // every host state, for the static stylesheet's `[data-state~="x"]` (was `:state(x)`)
+    // every DOM element state, for the static stylesheet's `[data-state~="x"]` (was `:state(x)`)
     if (state.states.size) root.setAttribute(SSR.STATE_ATTRIBUTE, [...state.states].join(" "))
     for (const [key, value] of Object.entries(state.internals)) {
       if (value === null || value === undefined || typeof value === "object") continue
@@ -160,10 +160,10 @@ export class StaticFlattener {
   }
 }
 
-/** Host attributes that name or label the control, so they move to it rather than the root. */
+/** DOM element attributes that name or label the control, so they move to it rather than the root. */
 const CONTROL_ATTRIBUTES = new Set(["id", "aria-label", "aria-labelledby", "aria-describedby"])
 
-/** Of those, the ones holding id lists:  merged when both the host and the control have one. */
+/** Of those, the ones holding id lists:  merged when both the DOM element and the control have one. */
 const ID_LISTS = new Set(["aria-labelledby", "aria-describedby"])
 
 /** List item roots that become the `<li>` itself;  others (`<article>`, `<a>`, `<button>`) are wrapped in one. */

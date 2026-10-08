@@ -1,14 +1,14 @@
 /**
- * Barrel for the toast -- also the `toast` lib entry (`@spell-app/ui/ui-toast`), measured in `docs/report.md`.
+ * The toast family:  defines `<ui-toast>` and exports its component, `UIToast`, and its DOM element, `DOMToastElement`.
  * - SIDE EFFECTS:
- *   - defines `<ui-button>` / `<ui-buttons>` (through `$/ui/components/ui-button`:  `UI.toast()` builds its actions from
- *     them) and `<ui-toast>`
- *   - registers `ToastStack` as `UI.toasts`' provider once the runtime has loaded, so `UI.toast({...})` works
+ *   - defines `<ui-toast>`, and `<ui-button>` / `<ui-buttons>` too
+ *     (through `$/ui/components/ui-button`:  `UI.toast()` builds its actions from them)
+ *   - registers `ToastStack` as `UI.toasts`' provider once the runtime has loaded, so `UI.toast({…})` works
+ * - Also the library's `@spell-app/ui/ui-toast` entry (its size is in `docs/report.md`).
  */
 
 import { E, UI } from "$/ui/core"
-import { UIToast } from "./UIToast"
-import { UIToastHost } from "./UIToastHost"
+import { DOMToastElement, UIToast } from "./UIToast"
 import { ToastStack } from "./ToastStack"
 
 import "$/ui/components/ui-button"
@@ -16,4 +16,4 @@ import "$/ui/components/ui-button"
 UIToast.define()
 if (E.isBrowser()) void UI.load().then(() => UI.toasts.register(new ToastStack()))
 
-export { UIToast, UIToastHost, ToastStack }
+export { UIToast, DOMToastElement, ToastStack }

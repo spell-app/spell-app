@@ -1,0 +1,1 @@
+import{t as e}from"./ui-panel-DfSCclKg.js";export{e as UIPanel};

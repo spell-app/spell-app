@@ -6,17 +6,18 @@ import { writeFile, mkdir } from "node:fs/promises"
 import { resolve } from "node:path"
 
 import { foundationCSS } from "$/ui/styles"
-import { buttonVocabulary } from "$/ui/components/ui-button/ui-button.vocabulary.en"
-import { ElementDefinition, type UIHost } from "$/ui/elements"
+import { buttonVocabulary } from "$/ui/components/ui-button/UIButton.vocabulary.en"
+import { ElementDefinition, type DOMElement } from "$/ui/elements"
 import { UIButton } from "$/ui/components/ui-button/UIButton"
 
-import buttonCSS from "$/ui/components/ui-button/ui-button.css?inline"
+import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 
 /**
  * SSR probe:  can `<ui-button primary>Save</ui-button>` be rendered to a Declarative Shadow DOM string?
  * - `@spell-app/solid-element` (like `@solidjs/element`) has no server render yet (it needs a live `HTMLElement`), so
- *   this drives the CONTROLLER directly under `@solidjs/web`'s server `renderToString`, with a stub host standing
- *   in for the element (no internals, no observers) and converted attributes as the fork would hand them over,
+ *   this drives the COMPONENT directly under `@solidjs/web`'s server `renderToString`,
+ *   with a stub DOM element standing in for the element (no internals, no observers)
+ *   and converted attributes as solid-element would hand them over,
  *   then wraps the result in `<template shadowrootmode>`.
  * - SIDE EFFECT:  writes the string to `.cache/ssr-button.html` for the browser check (`dsd.test.ts`).
  */
@@ -39,8 +40,8 @@ describe("<ui-button> server render to Declarative Shadow DOM", () => {
   })
 })
 
-/** The least of `UIHost` the controller touches while rendering on the server. */
-function stubHost(): UIHost {
+/** The least of `DOMElement` the component touches while rendering on the server. */
+function stubHost(): DOMElement {
   return {
     childNodes: [],
     shadowRoot: null,
@@ -50,5 +51,5 @@ function stubHost(): UIHost {
     setState() {},
     markReady() {},
     internals: {}
-  } as unknown as UIHost
+  } as unknown as DOMElement
 }

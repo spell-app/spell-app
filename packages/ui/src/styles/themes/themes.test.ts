@@ -517,7 +517,7 @@ describe("basic.css", () => {
     expect(style.backgroundColor).toBe("rgba(0, 0, 0, 0)")
     expect(getComputedStyle(box.querySelector(".label")!).fontWeight).toBe("400")
     const card = await ThemeHarness.inner(`<ui-card><ui-content>Post</ui-content></ui-card>`, ".ui.card")
-    // the theme's `none` shadow tokens each become an empty layer (`ui-card.css`), so every layer is transparent
+    // the theme's `none` shadow tokens each become an empty layer (`UICard.css`), so every layer is transparent
     const layers = card.style.boxShadow.split(/,(?![^(]*\))/).map((layer) => layer.trim())
     expect(layers.every((layer) => layer === "none" || layer.startsWith("rgba(0, 0, 0, 0)"))).toBe(true)
     expect(card.style.backgroundColor).toBe("rgba(0, 0, 0, 0)")

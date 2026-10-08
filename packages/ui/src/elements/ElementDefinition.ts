@@ -6,7 +6,7 @@ import { E } from "$/ui/core"
  * so a component never spells an attribute, event, slot or part name.
  * - `props`:  the `@spell-app/solid-element` prop definitions, one per vocabulary attribute, keyed by camelCase
  *   CANONICAL name (what the component reads, `attrs.allowAdditions`), with the (localized) attribute and
- *   property names and a `Converters`-based converter.  The fork does the rest:  prototype accessors, the upgrade
+ *   property names and a `Converters`-based converter.  solid-element does the rest:  prototype accessors, the upgrade
  *   step, removals, synchronous reflection.
  * - Values:  localized values (`rojo`) are canonicalized on the way IN, from attributes and property writes
  *   alike (`fromProperty`), so `ClassBuilder` and the component only ever see canonical English (`red`);
@@ -185,8 +185,8 @@ export class ElementDefinition {
   ////////////////
 
   /**
-   * The fork's definition for one attribute.
-   * - `property` only when it differs from the key (a vocabulary rename, a translated name):  a key the fork
+   * solid-element's definition for one attribute.
+   * - `property` only when it differs from the key (a vocabulary rename, a translated name):  a key solid-element
    *   finds on `HTMLElement` (`hidden`, `title`) then throws at definition instead of silently shadowing it.
    * - `json` kinds (`options`) keep observing their attribute (first paint MUST NOT need the property), but
    *   never reflect.

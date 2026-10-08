@@ -1,7 +1,8 @@
 /**
- * Barrel for the list -- also the `list` lib entry (`@spell-app/ui/ui-list`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-list>`, and `<ui-item>` through the item barrel, so a page never has to import
- *   the items it lists.
+ * The list family:  defines `<ui-list>` and exports its component, `UIList`.
+ * - SIDE EFFECT:  importing it defines the tag, and `<ui-item>` through the item barrel,
+ *   so a page never has to import the items it lists.
+ * - Also the library's `@spell-app/ui/ui-list` entry (its size is in `docs/report.md`).
  */
 
 import { UIList } from "./UIList"

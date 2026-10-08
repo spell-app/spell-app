@@ -4,11 +4,12 @@ import { UIT } from "$/ui/core"
 
 /****************
  * ### `RootBox`
- * One root's own sheet:  `:host { width; height; --ui-scale; --ui-stack-with }` from its `width`, `height`, `size`
- * and `stack-with`.
- * - A constructed sheet adopted into the root's shadow (`UI.styles.adoptInto()` keeps sheets it didn't make), not an
- *   inline `style`:  the host's `style` attribute is the author's.  Not a host state either:  the token is read by
- *   style queries inside `@media`, which a `:state()` rule left stale in WebKit (`UIT.STACK_WITH_CLASS`).
+ * One root's own sheet:
+ * `:host { width; height; --ui-scale; --ui-stack-with }` from its `width`, `height`, `size` and `stack-with`.
+ * - A constructed sheet adopted into the root's shadow (`UI.styles.adoptInto()` keeps sheets it didn't make),
+ *   not an inline `style`:  the DOM element's `style` attribute is the author's.  Not a custom state either:
+ *   the token is read by style queries inside `@media`,
+ *   which a `:state()` rule left stale in WebKit (`UIT.STACK_WITH_CLASS`).
  * - Lengths are checked with `CSS.supports()`, `stack-with` against its values, so an attribute can never inject
  *   other declarations;  a static server render (no `CSS` in node) checks lengths against `SERVER_LENGTH` instead.
  * - `css()` / `isBox()` are static:  pure, and the static server render needs them with no sheet to write.
@@ -39,7 +40,7 @@ export class RootBox {
     return RootBox.lengths({ width, height }).length > 0
   }
 
-  /** Apply `declarations` to the host. */
+  /** Apply `declarations` to the DOM element. */
   set(declarations: string) {
     if (!declarations && !this.sheet) return
     if (!this.sheet) {

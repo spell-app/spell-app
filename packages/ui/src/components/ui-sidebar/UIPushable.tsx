@@ -2,27 +2,29 @@ import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { pushableVocabulary } from "./ui-pushable.vocabulary.en"
-import { SidebarFallback } from "./ui-sidebar.fallback"
-import { CENTER, NONE_TRANSFORM, type PushableVocabulary } from "./ui-sidebar.types"
+import { pushableVocabulary } from "./UIPushable.vocabulary.en"
+import { CENTER, NONE_TRANSFORM, type PushableVocabulary } from "./UISidebar.types"
 
-import sidebarCSS from "./ui-sidebar.css?inline"
+import sidebarCSS from "./UISidebar.css?inline"
 
 /****************
- * ### `<ui-pushable>`
- * The context sidebars appear in (Fomantic's `.pushable`):  `<div class="pushable" part="pushable"><slot>` -- a
- * clipping, positioned box holding `<ui-sidebar>`s and a `<ui-pusher>`.
- * - Its visible sidebars REPORT what they need (`report()`, a `SidebarLayout`);  it turns that into inherited
- *   tokens on its root (`PusherTokens`:  where the pusher moves, dimmed, blurred), which `ui-sidebar.css` reads in
- *   each `<ui-pusher>`.
- * - One pushing sidebar moves the pusher;  two at once (opposite sides) leave it in place, as Fomantic.
- * - SIDE EFFECT on the light DOM:  while a MODAL sidebar is visible, every other child (the pusher, other sidebars)
- *   gets `inert`, removed again when it hides -- only the `inert`s it added.
+ * ### `UIPushable`
+ * The component behind `<ui-pushable>`:  the box sidebars slide in (Fomantic's `.pushable`),
+ * `<div class="pushable" part="pushable"><slot>`, a clipping,
+ * positioned box holding `<ui-sidebar>`s and a `<ui-pusher>`.
+ *
+ * - Its visible sidebars REPORT what they need (`report()`, a `UIT.SidebarLayout`).
+ *   It turns that into inherited tokens on its root (`UIT.PusherTokens`:  where the pusher moves, dimmed, blurred),
+ *   which `UISidebar.css` reads in each `<ui-pusher>`.
+ * - One pushing sidebar moves the pusher;  two at once (opposite sides) leave it in place, as Fomantic's do.
+ * - SIDE EFFECT on the light DOM:  while a MODAL sidebar is visible,
+ *   every other child (the pusher, other sidebars) gets `inert`;  removed again when it hides
+ *   (only the `inert`s it added).
  ****************/
-export class UIPushable extends E.UIElement<PushableVocabulary> {
+export class UIPushable extends E.UIComponent<PushableVocabulary> {
   @E.proto static vocabulary = pushableVocabulary
   @E.proto static styleSheets = { sidebar: sidebarCSS }
-  @E.proto static elementSetup = { Fallback: SidebarFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Always:  its sidebars find it by `:state(pushable)`. */
   @E.cssState("pushable")
@@ -75,7 +77,7 @@ export class UIPushable extends E.UIElement<PushableVocabulary> {
     root.style.setProperty(UIT.PusherTokens.dimmed, modal ? ON : OFF)
     root.style.setProperty(UIT.PusherTokens.blurring, modal?.blurring ? ON : OFF)
     const keep = new Set([...layouts].filter(([, layout]) => layout.modal).map(([sidebar]) => sidebar))
-    for (const child of this.host.children) {
+    for (const child of this.domElement.children) {
       const inert = !!modal && !keep.has(child) && !this.isHiddenSidebar(child)
       if (inert && !child.hasAttribute(INERT)) {
         child.setAttribute(INERT, "")
@@ -83,7 +85,7 @@ export class UIPushable extends E.UIElement<PushableVocabulary> {
       } else if (!inert && this.childrenMadeInert.delete(child)) child.removeAttribute(INERT)
     }
     for (const child of this.childrenMadeInert) {
-      if (child.parentElement === this.host) continue
+      if (child.parentElement === this.domElement) continue
       child.removeAttribute(INERT)
       this.childrenMadeInert.delete(child)
     }
@@ -94,10 +96,10 @@ export class UIPushable extends E.UIElement<PushableVocabulary> {
     return child.matches(`:state(${UIT.SIDEBAR_HOST_STATE}):not(:state(${UIT.VISIBLE}))`)
   }
 
-  /** Sidebars that rendered (and reported) before this element had a controller:  ask them again. */
+  /** The sidebars that drew (and reported) before this element had a component:  ask them again. */
   private askSidebars() {
-    for (const child of this.host.children) {
-      const sidebar = (child as E.UIHost).controller as { reportLayout?: () => void } | undefined
+    for (const child of this.domElement.children) {
+      const sidebar = (child as E.DOMElement).component as { reportLayout?: () => void } | undefined
       sidebar?.reportLayout?.()
     }
   }
@@ -117,10 +119,10 @@ export class UIPushable extends E.UIElement<PushableVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIPushable extends E.AttributeValues<PushableVocabulary> {}
 
-/** Class word of the root (`ui-sidebar.css`). */
+/** Class word of the root (`UISidebar.css`). */
 const PUSHABLE = "pushable"
 
 /** A `PusherTokens` switch on:  dimmed, blurring. */

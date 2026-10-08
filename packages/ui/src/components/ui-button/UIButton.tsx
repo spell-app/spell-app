@@ -2,50 +2,61 @@ import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { buttonVocabulary } from "./ui-button.vocabulary.en"
-import { DEFAULT_TYPE, HostPress, RESET } from "./ui-button.types"
-import { ButtonFallback } from "./ui-button.fallback"
+import { buttonVocabulary } from "./UIButton.vocabulary.en"
+import { DEFAULT_TYPE, DOMElementClick, RESET } from "./UIButton.types"
+import { ButtonFallback } from "./UIButton.fallback"
 import { Invoker } from "./Invoker"
 
-import buttonCSS from "./ui-button.css?inline"
+import buttonCSS from "./UIButton.css?inline"
 
 /****************
- * ### `<ui-button>`
- * A button:  a semantic `<button>` (or `<a>` with `href`) in the shadow root, in Fomantic's class grammar.
- * - Form-associated (the fork's `formAssociated`) only so `type=submit|reset` can reach `internals.form`;  it
- *   submits no value of its own except while it is the submitter (see `submit()`).  No `FormHost`:  a page with
- *   buttons only never loads the `forms` entry.
- * - `active` is auto-controlled (`isActive`):  `toggle` flips it on click and dispatches `ui-toggle` first.
- * - Fomantic's `state` behaviour is two attributes, not an element:  `active-text` / `inactive-text` replace the
- *   content while `active` is on / off (`Follow` => `Following`).  A label that SAYS the state must not also be
- *   `aria-pressed` (WAI-ARIA APG, toggle button), so a toggle with a state text leaves it off.
- * - Invoker commands:  `commandfor` / `command` go to the inner `<button>`, whose `commandForElement` is the element
- *   `commandfor` names in the host's own tree (re-resolved when the attribute changes, and at click time, for a
- *   target that arrived late).  Browsers without invokers (`UI.browser.supports.invokers`) get `Invoker.run()`.
- * - Icons come from the page's icon packs (`IconGlyph`) asynchronously;  the `.icon` box is sized by CSS, so the SVG
- *   arriving shifts nothing.  `icon-position="right"` puts the box after the text, as Fomantic's
- *   `<i class="right ... icon">`.
- * - `host.click()` (a click dispatched at the HOST, e.g. `<ui-input>`'s implicit submission) presses the inner
- *   control, as `click()` on a native button does;  the page sees only the host's click (`onHostClick`).
- * - Static server render (`$/ui/static`):  the inner `<button>` IS the submitter -- the host's `type`, `name`,
- *   `value`, `form*` attributes -- so a no-JS form submits as the element would (`nativeType`, `staticControl`).
+ * ### `UIButton`
+ * The component behind `<ui-button>`:  a button, drawn as a native `<button>` (or an `<a>` with `href`)
+ * in Fomantic's class grammar.
+ *
+ * - A form control only so `type="submit"` / `"reset"` can reach its form (`internals.form`).
+ *   It sends no value of its own, except while it is the submitter (`submit()`).
+ *   It doesn't use `DOMFormControlElement`, so a page with only buttons never loads the `forms` entry.
+ *
+ * - `active` (`isActive`) is controlled:  `toggle` flips it on click, sending `ui-toggle` first.
+ *
+ * - Fomantic's `state` behaviour is two attributes here, not an element:
+ *   `active-text` / `inactive-text` replace the content while `active` is on / off (`Follow` => `Following`).
+ *   A label that SAYS the state must not also be `aria-pressed` (WAI-ARIA APG, toggle button),
+ *   so a toggle with a state text leaves it off.
+ *
+ * - Invoker commands:  `commandfor` / `command` go to the inner `<button>`,
+ *   whose `commandForElement` is the element `commandfor` names in the DOM element's own tree.
+ *   It's found again when the attribute changes, and at click time, for a target that arrived late.
+ *   Browsers without invokers (`UI.browser.supports.invokers`) get `Invoker.run()`.
+ *
+ * - Icons come from the page's icon packs (`IconGlyph`), asynchronously.
+ *   CSS sizes the `.icon` box, so the SVG arriving shifts nothing.
+ *   `icon-position="right"` puts the box after the text, as Fomantic's `<i class="right … icon">`.
+ *
+ * - `click()` on the DOM element (`<ui-input>`'s implicit submission sends one) presses the inner control,
+ *   as `click()` on a native button does;  the page sees only the DOM element's own click (`onDOMElementClick`).
+ *
+ * - In a static server render (`$/ui/static`), the inner `<button>` IS the submitter:
+ *   it carries the DOM element's `type`, `name`, `value` and `form*` attributes,
+ *   so a form without script submits as the element would (`nativeType`, `staticControl`).
  ****************/
-export class UIButton extends E.UIElement<typeof buttonVocabulary> {
+export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
   @E.proto static vocabulary = buttonVocabulary
   @E.proto static styleSheets = { button: buttonCSS }
-  @E.proto static elementSetup = { Fallback: ButtonFallback, isAFormControl: true }
+  @E.proto static elementSetup = { Fallback: ButtonFallback, isAFormControl: true } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     if (isServer) return
-    this.on("click", this.onHostClick)
+    this.on("click", this.onDOMElementClick)
   }
 
   ////////////////
   // ## Pressed (`active`)
   ////////////////
 
-  /** `active`:  host-controlled, or toggled internally (`toggle`). */
+  /** `active`:  set by the page, or toggled by a click (`toggle`). */
   @E.cssState("active")
   @E.controlled("active")
   accessor isActive = false
@@ -64,13 +75,13 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
   // ## Content
   ////////////////
 
-  /** Light-DOM slot occupancy. */
-  readonly slots = new E.SlotContent(this.host)
+  /** Which slots have light-DOM children. */
+  readonly slots = new E.SlotContent(this.domElement)
 
-  /** Glyph of the `icon` attribute;  starts from the cache, so a known icon draws at once. */
+  /** The glyph of the `icon` attribute;  starts from the cache, so a known icon draws at once. */
   readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
 
-  /** Host `aria-label`, forwarded to the inner control (an icon-only button's name). */
+  /** The DOM element's `aria-label`, passed on to the inner control (an icon-only button's name). */
   private get ariaLabel(): string | undefined {
     return this.attributes[UIT.ARIA_LABEL] ?? undefined
   }
@@ -113,13 +124,13 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
     return this.fluid || attached === true || attached === "top" || attached === "bottom"
   }
 
-  /** `floated="left"`:  the host floats. */
+  /** `floated="left"`:  the whole element floats left. */
   @E.cssState("left-floated")
   get floatsLeft(): boolean {
     return this.floated === "left"
   }
 
-  /** `floated="right"`:  the host floats. */
+  /** `floated="right"`:  the whole element floats right. */
   @E.cssState("right-floated")
   get floatsRight(): boolean {
     return this.floated === "right"
@@ -217,20 +228,23 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
   private innerControl?: HTMLElement
 
   /**
-   * The inner `<button>`'s `type`:  `button` in a browser, where a click submits / resets through `internals.form`
-   * (`onClick`);  the host's `type` in a server render (`$/ui/static`), where no script runs, so a static form's
-   * `<button type="submit">` submits it natively.
+   * The inner `<button>`'s `type`.
+   * - In a browser, `button`:  a click submits or resets through `internals.form` (`onClick`).
+   * - In a server render (`$/ui/static`), the DOM element's own `type`:  no script runs there,
+   *   so a static form's `<button type="submit">` submits it natively.
    */
   private get nativeType(): "button" | "submit" | "reset" {
     return isServer ? (this.type ?? DEFAULT_TYPE) : DEFAULT_TYPE
   }
 
   /**
-   * Server render only:  what a native submitter carries -- `name`, `value`, the host's own `form` / `formaction` ...
-   * (`FORM_ATTRIBUTES`) -- and the `STATIC_CONTROL` mark (the host's `id` and ARIA names go there, under a joined
-   * label too);  `{}` in a browser, where the HOST submits (`submit()`).
-   * - Also `commandfor` as written (with `command`, rendered on a server too):  a static page's invoker, for the
-   *   server's no-JS pass (`$/ui/static`) to point at its target;  a browser sets `commandForElement` instead.
+   * The inner `<button>`'s extra attributes in a server render:  what a native submitter carries.
+   * - `name`, `value`, and the DOM element's own `form` / `formaction` ... (`FORM_ATTRIBUTES`).
+   * - The `STATIC_CONTROL` mark:  the DOM element's `id` and ARIA names go there, under a joined label too.
+   * - `commandfor` as written (`command` renders on a server too):  a static page's invoker,
+   *   for the server's no-script pass (`$/ui/static`) to point at its target.
+   *   A browser sets `commandForElement` instead.
+   * - `{}` in a browser, where the DOM element itself submits (`submit()`).
    */
   private get staticControl(): Record<string, unknown> {
     if (!isServer) return {}
@@ -241,7 +255,7 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
       commandfor: this.commandfor
     }
     for (const name of FORM_ATTRIBUTES) {
-      const value = this.host.getAttribute(name)
+      const value = this.domElement.getAttribute(name)
       if (value !== null) native[name] = value
     }
     return native
@@ -273,7 +287,7 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
 
   /**
    * The icon box:  the `icon` slot, falling back to the `icon` attribute's SVG.
-   * - `classes`:  `right icon` for a trailing box, which `ui-button.css` spaces on its start side.
+   * - `classes`:  `right icon` for a trailing box, which `UIButton.css` spaces on its start side.
    */
   private iconBox(classes: string = UIT.ICON_CLASS): JSX.Element {
     return (
@@ -287,9 +301,10 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
   // ## Invoker commands
   ////////////////
 
-  // The platform's Invoker Commands API (`<button commandfor="dialog-id" command="show-modal">`), not shortcut
-  // keys:  a button that opens, closes or toggles another element with no script.  A shadow `<button>` can't name a
-  // light-DOM id, so the element points the inner button's `commandForElement` at the element itself.
+  // The platform's Invoker Commands API (`<button commandfor="dialog-id" command="show-modal">`),
+  // not shortcut keys:  a button that opens, closes or toggles another element with no script.
+  // A shadow `<button>` can't name a light-DOM id, so the element points the inner button's `commandForElement` at the
+  // element itself.
 
   /**
    * Native invokers?  `undefined` until the runtime is loaded (`UI.browser` throws before that), and on the server.
@@ -310,22 +325,22 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
 
   /**
    * Point the inner `<button>` at the element `commandfor` names.
-   * - Native invokers only;  no target clears it.  The browser's activation runs AFTER the click event, so the
-   *   click handler can call this again for a target that arrived after the last attribute change.
+   * - Native invokers only;  no target clears it.  The browser's activation runs AFTER the click event,
+   *   so the click handler can call this again for a target that arrived after the last attribute change.
    */
   private resolveInvoker() {
     const control = this.innerControl
     if (!control || !this.hasNativeInvokers || !(control instanceof HTMLButtonElement)) return
     // `null`:  the platform's "no target"
-    control.commandForElement = Invoker.resolve(this.host, this.commandfor) ?? null
+    control.commandForElement = Invoker.resolve(this.domElement, this.commandfor) ?? null
   }
 
   /** Browsers without invokers:  run the command on the target, as the browser would. */
   private runInvoker(event: MouseEvent) {
     const { command, commandfor } = this
     if (this.hasNativeInvokers !== false || !command || event.defaultPrevented) return
-    const target = Invoker.resolve(this.host, commandfor)
-    if (target) Invoker.run(target, command, this.host)
+    const target = Invoker.resolve(this.domElement, commandfor)
+    if (target) Invoker.run(target, command, this.domElement)
   }
 
   ////////////////
@@ -344,27 +359,27 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
       const next = !this.isActive
       this.requestChange("isActive", next, () => this.send("ui-toggle", { active: next, originalEvent: event }))
     }
-    const { form } = this.host.internals
+    const { form } = this.domElement.internals
     if (!form) return
     if (this.type === UIT.SUBMIT) this.submit(form)
     else if (this.type === RESET) form.reset()
   }
 
   /**
-   * A click dispatched at the HOST itself (`host.click()`:  `<ui-input>`'s implicit submission, a modal's Enter):
+   * A click sent at the DOM element itself (`click()`:  `<ui-input>`'s implicit submission, a modal's Enter):
    * press the inner control too, so it submits, toggles, invokes or follows its link as a real click would.
-   * - The control's click stays INSIDE the shadow root (`HostPress.press()`), so the page sees ONE click:  the
-   *   host's own, whatever order its listeners were added in.  Clicks from inside (the control, a joined label)
-   *   start below the host and are left alone.
-   * - A disabled host never gets here:  `click()` on a disabled form-associated element does nothing.  A listener
-   *   that ran first and called `preventDefault()` vetoes the press.
+   * - The control's click stays INSIDE the shadow root (`DOMElementClick.press()`),
+   *   so the page sees ONE click:  the DOM element's own, whatever order its listeners were added in.
+   * - Clicks from inside (the control, a joined label) start below the DOM element, and are left alone.
+   * - A disabled button never gets here:  `click()` on a disabled form-associated element does nothing.
+   *   A listener that ran first and called `preventDefault()` cancels the press.
    * - No connected control (the render threw):  left to the native fallback's own listener.
    */
-  private readonly onHostClick = (event: MouseEvent) => {
+  private readonly onDOMElementClick = (event: MouseEvent) => {
     const control = this.innerControl
-    if (event.composedPath()[0] !== this.host || !control?.isConnected) return
+    if (event.composedPath()[0] !== this.domElement || !control?.isConnected) return
     if (this.isDisabled || event.defaultPrevented) return
-    HostPress.press(control)
+    DOMElementClick.press(control)
   }
 
   /**
@@ -374,7 +389,7 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
    */
   private submit(form: HTMLFormElement) {
     const { name, value } = this
-    const { internals } = this.host
+    const { internals } = this.domElement
     if (name) internals.setFormValue(value ?? "")
     try {
       form.requestSubmit()
@@ -389,12 +404,13 @@ export class UIButton extends E.UIElement<typeof buttonVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIButton extends E.AttributeValues<typeof buttonVocabulary> {}
 
 /**
- * The native submitter's attributes a server render (`$/ui/static`) copies from the host onto the inner `<button>`,
- * so a static form submits as the browser would with that button:  not vocabulary, read off the host as written.
+ * The native submitter's attributes, which a server render (`$/ui/static`) copies from the DOM element
+ * onto the inner `<button>`, so a static form submits as the browser would with that button.
+ * - Not in the vocabulary:  read off the DOM element as written.
  */
 const FORM_ATTRIBUTES = ["form", "formaction", "formenctype", "formmethod", "formnovalidate", "formtarget"] as const
 

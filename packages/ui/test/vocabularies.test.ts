@@ -2,7 +2,7 @@ import { describe, expect, it } from "vite-plus/test"
 
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 import { SkeletonText } from "$/ui/vocabulary/SkeletonText"
-import { ROOT_CATALOG } from "$/ui/components/ui-root/ui-root.catalog"
+import { ROOT_CATALOG } from "$/ui/components/ui-root/UIRoot.catalog"
 
 /** Every family's English vocabulary module, by path:  the components' and the doc-only elements'. */
 const MODULES = import.meta.glob<Record<string, unknown>>(

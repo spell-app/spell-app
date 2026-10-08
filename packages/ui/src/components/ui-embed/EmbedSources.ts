@@ -1,18 +1,18 @@
 import { E, type UIT } from "$/ui/core"
-import type { EmbedSourceSpec, EmbedUrlOptions } from "./ui-embed.types"
+import type { EmbedSourceSpec, EmbedUrlOptions } from "./UIEmbed.types"
 
 /****************
  * ### `EmbedSources`
- * The frame URL of a `<ui-embed>`:  Fomantic's embed `sources` (YouTube, Vimeo) and URL building, as data plus one
- * pure method.
+ * Builds the frame URL of a `<ui-embed>`:  Fomantic's embed `sources` (YouTube, Vimeo) and URL building,
+ * as data plus one pure method.
  * - `source` + `id` fill the source's URL template;  a bare `url` is used as given, its source recognised by domain
  *   (so its player parameters still apply).
  * - Parameters:  the source's own (autoplay, branding), then the caller's `parameters` on top.  Values are `1` /
  *   `0` for booleans (the players' documented form), written with `URLSearchParams`.
- * - Only `http:` / `https:` URLs come out:  anything else (`javascript:`, `data:`) is refused with a dev warning, so a
- *   page can't be made to run script through an embed's `url`.
+ * - Only `http:` / `https:` URLs come out:  anything else (`javascript:`, `data:`) is refused with a dev warning,
+ *   so a page can't be made to run script through an embed's `url`.
  * - YouTube plays from `youtube-nocookie.com` (its privacy-enhanced mode);  Fomantic used `youtube.com`.
- * - STATIC, instance-free on purpose:  the element and its native fallback share it, and neither holds one.
+ * - STATIC, instance-free on purpose:  nothing needs to hold one.
  ****************/
 export class EmbedSources {
   /** Known sources:  where their player lives, how a domain is recognised, their parameters. */

@@ -3,30 +3,31 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 import { ComponentPack } from "./ComponentPack"
-import { ComponentsFallback } from "./ui-components.fallback"
-import { componentsVocabulary } from "./ui-components.vocabulary.en"
-import type { ComponentsVocabulary } from "./ui-root.types"
+import { componentsVocabulary } from "./UIComponents.vocabulary.en"
+import type { ComponentsVocabulary } from "./UIRoot.types"
 
-import rootCSS from "./ui-root.css?inline"
+import rootCSS from "./UIRoot.css?inline"
 
 /****************
- * ### `<ui-components>`
- * A component pack for the whole page:  `source` names a JSON list of tags, each with the module that defines it,
+ * ### `UIComponents`
+ * The component behind `<ui-components>`:  a component pack for the whole page.
+ * `source` names a JSON list of tags, each with the module that defines it,
  * when to load it and its skeleton (`ComponentPack`);  every `<ui-root>` on the page then loads those tags as it
  * loads its own.  Draws nothing.
  * - Asks for the pack AS IT CONNECTS (in `render()`, which runs then:  `canRenderUnstyled`), so a root upgraded
- *   after it finds the pack on its way and waits for it before calling a tag unknown.  The barrel defines it before
- *   `<ui-root>` for this reason.
+ *   after it finds the pack on its way and waits for it before calling a tag unknown.
+ *   The barrel defines it before `<ui-root>` for this reason.
  * - A new `source` reads that pack too;  tags are added, never taken back.
  * - `:state(loading | loaded | error)`;  `ui-load { source, tags }`, or a cancelable `ui-error { kind, source,
  *   error }` and a console warning.
  * - Static server render:  nothing is read.
- * - Adopts the family's sheet (`ui-root.css`) for its host's `display: contents`:  nothing in the shadow root to show.
+ * - Adopts the family's sheet (`UIRoot.css`) for its DOM element's `display: contents`:
+ *   nothing in the shadow root to show.
  ****************/
-export class UIComponents extends E.UIElement<ComponentsVocabulary> {
+export class UIComponents extends E.UIComponent<ComponentsVocabulary> {
   @E.proto static vocabulary = componentsVocabulary
   @E.proto static styleSheets = { root: rootCSS }
-  @E.proto static elementSetup = { Fallback: ComponentsFallback, delegatesFocus: false, canRenderUnstyled: true }
+  @E.proto static elementSetup = { delegatesFocus: false, canRenderUnstyled: true } satisfies Partial<E.ElementSetup>
 
   /** Where the latest pack stands;  `undefined` before one is asked for. */
   @E.state accessor loadStatus: PackStatus | undefined = undefined
@@ -54,8 +55,8 @@ export class UIComponents extends E.UIElement<ComponentsVocabulary> {
 
   /**
    * Reads the pack at once, then each new `source`.
-   * - An explicit effect, `defer`red:  the first read must happen synchronously here, as it connects, before any root
-   *   looks;  `@E.onChange` would read it only after the render.
+   * - An explicit effect, `defer`red:  the first read must happen synchronously here, as it connects,
+   *   before any root looks;  `@E.onChange` would read it only after the render.
    */
   render(): JSX.Element {
     if (isServer) return undefined
@@ -97,10 +98,10 @@ export class UIComponents extends E.UIElement<ComponentsVocabulary> {
     )
   }
 }
-/** The vocabulary getters, typed. */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIComponents extends E.AttributeValues<ComponentsVocabulary> {}
 
-/** Where a pack stands:  its host states. */
+/** Where a pack stands:  its DOM element states. */
 const STATUS = { loading: "loading", loaded: "loaded", error: "error" } as const
 
 /** One of `STATUS`. */

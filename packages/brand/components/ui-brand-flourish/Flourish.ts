@@ -1,9 +1,9 @@
-import type { FlourishColors, FlourishVariant, Point } from "./ui-brand-flourish.types"
+import type { FlourishColors, FlourishVariant, Point } from "./UIBrandFlourish.types"
 
 /****************
  * ### `Flourish`
- * The brand's procedural "swoops and blobs" (Claude Design's `lib/spell-flourish.js`, `<spell-flourish>`):  SVG markup
- * for a box `width` x `height`, from a variant and a seed.
+ * The brand's procedural "swoops and blobs" (Claude Design's `lib/spell-flourish.js`, `<spell-flourish>`):
+ * SVG markup for a box `width` x `height`, from a variant and a seed.
  * - Seeded (mulberry32):  the same seed draws the same flourish;  another seed, another one.
  * - Curves through points:  Catmull-Rom turned into cubic Béziers (`smooth()`).
  * - Variants:  `blobs` (soft shapes in two corners), `swoop` (a wave with a loop), `edge-curls` (lines curling in

@@ -1,12 +1,13 @@
 /**
- * Barrel for the embed -- also the `embed` lib entry (`@spell-app/ui/ui-embed`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-embed>`.
+ * The embed family:  defines `<ui-embed>` and exports its component, `UIEmbed`, its DOM element, `DOMEmbedElement`,
+ * and `EmbedSources`, which builds the frame's URL.
+ * - SIDE EFFECT:  importing it defines the tag.
+ * - Also the library's `@spell-app/ui/ui-embed` entry (its size is in `docs/report.md`).
  */
 
-import { UIEmbed } from "./UIEmbed"
-import { UIEmbedHost } from "./UIEmbedHost"
+import { DOMEmbedElement, UIEmbed } from "./UIEmbed"
 import { EmbedSources } from "./EmbedSources"
 
 UIEmbed.define()
 
-export { UIEmbed, UIEmbedHost, EmbedSources }
+export { UIEmbed, DOMEmbedElement, EmbedSources }

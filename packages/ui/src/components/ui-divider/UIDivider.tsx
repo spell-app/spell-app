@@ -2,35 +2,41 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { dividerVocabulary } from "./ui-divider.vocabulary.en"
-import { DividerFallback } from "./ui-divider.fallback"
-import { SEPARATOR } from "./ui-divider.types"
+import { dividerVocabulary } from "./UIDivider.vocabulary.en"
 
-import dividerCSS from "./ui-divider.css?inline"
+import dividerCSS from "./UIDivider.css?inline"
 
 /****************
- * ### `<ui-divider>`
- * A divider:  `<div class="ui … divider" role="separator" part="divider">` holding the `icon` shorthand's box,
- * then the default slot for text.
- * - `role="separator"`, not `<hr>`:  a horizontal / vertical divider carries text, which `<hr>` can't hold;
- *   `aria-orientation="vertical"` for `vertical`;  a `hidden` divider is `role="none"` (spacing only).
- * - `hidden` is property `dividerHidden` (the vocabulary's `property`):  `hidden` is the host's own boolean.  The
- *   ATTRIBUTE keeps its name;  `ui-divider.css`'s `:host([hidden]) { display: contents }` overrides the UA's
- *   `display: none`, so a hidden divider keeps its spacing.
+ * ### `UIDivider`
+ * The component behind `<ui-divider>`:  a line that splits content into groups,
+ * optionally with text or an icon on it.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … divider" role="separator" part="divider">`,
+ *   holding the `icon` shorthand's box, then the default slot for the text.
+ *
+ * - A `role="separator"` box, not an `<hr>`:
+ *   a horizontal or vertical divider carries text, which an `<hr>` can't hold.
+ *   - `aria-orientation="vertical"` for a `vertical` divider.
+ *   - A `hidden` divider is `role="none"`:  it keeps the spacing, without the line.
+ *
+ * - `hidden` is Fomantic's word for "the spacing without the line",
+ *   so the attribute keeps its name, but its DOM property is `dividerHidden`:
+ *   `hidden` is already every element's own boolean.
+ *   `UIDivider.css` turns the browser's `[hidden] { display: none }` back into `display: contents`,
+ *   so a hidden divider still takes up its space.
  ****************/
-export class UIDivider extends E.UIElement<typeof dividerVocabulary> {
+export class UIDivider extends E.UIComponent<typeof dividerVocabulary> {
   @E.proto static vocabulary = dividerVocabulary
   @E.proto static styleSheets = { divider: dividerCSS }
-  @E.proto static elementSetup = { Fallback: DividerFallback }
 
-  /** Glyph of the `icon` shorthand. */
+  /** The glyph of the `icon` shorthand. */
   readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
 
   render(): JSX.Element {
     return (
       <div
         class={this.rootClasses}
-        role={this.hidden ? UIT.NONE : SEPARATOR}
+        role={this.hidden ? UIT.NONE : UIT.SEPARATOR}
         aria-orientation={this.vertical && !this.hidden ? UIT.VERTICAL : undefined}
         part={this.partForName("divider")}
       >
@@ -45,5 +51,5 @@ export class UIDivider extends E.UIElement<typeof dividerVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIDivider extends E.AttributeValues<typeof dividerVocabulary> {}
