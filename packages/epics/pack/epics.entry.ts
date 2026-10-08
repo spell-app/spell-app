@@ -15,11 +15,14 @@ SpellUI.registerPack({
   define: () =>
     Promise.all([
       import("../components/epic-answer"),
+      import("../components/epic-aside"),
       import("../components/epic-choices"),
+      import("../components/epic-code"),
       import("../components/epic-commit"),
       import("../components/epic-event"),
       import("../components/epic-item"),
       import("../components/epic-net-effect"),
+      import("../components/epic-note"),
       import("../components/epic-original"),
       import("../components/epic-overview"),
       import("../components/epic-page"),

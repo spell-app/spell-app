@@ -150,7 +150,8 @@ export type FormatName = keyof typeof Formats
 /**
  * Every `<epic-section kind>` that sits in `<epic-page>`, in page order => its FIXED id, which every link to it
  * uses (`#decisions`:  "Questions" kept its old id).
- * - `overview-part`, the Overview's sub-sections, isn't here:  its ids are `o1`, `o2` ... (`OVERVIEW_PART_ID`).
+ * - `overview-part`, the Overview's sub-sections, isn't here:  its ids are `o1`, `o2` ... (`OVERVIEW_PART_ID`);  nor
+ *   `report` (`REPORT`), whose ids are its own.
  */
 export const SectionIds = {
   phases: "phases",
@@ -169,8 +170,14 @@ export type PageSectionKind = keyof typeof SectionIds
 /** The Overview's sub-sections' kind (Q14:  they get review notes too, so they're `<epic-section>`s). */
 export const OVERVIEW_PART = "overview-part"
 
+/**
+ * A REPORT section's kind:  what a run wrote for Owen to read (an overnight `/bedtime` report), its own title,
+ * its id free;  in `<epic-page>` right after the Overview, unnumbered (epic `epic-components` P14).
+ */
+export const REPORT = "report"
+
 /** Every `<epic-section kind>`. */
-export type SectionKind = PageSectionKind | typeof OVERVIEW_PART
+export type SectionKind = PageSectionKind | typeof OVERVIEW_PART | typeof REPORT
 
 /** An Overview sub-section's id:  `o1`, `o2` ... */
 export const OVERVIEW_PART_ID = /^o\d+$/

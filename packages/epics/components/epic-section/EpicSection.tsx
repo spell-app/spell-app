@@ -23,8 +23,10 @@ import {
   FILTER_STATES,
   HIDDEN_NOTE,
   ITEM_KINDS,
+  NUMBERED_BLOCKS,
   PHASE_TOGGLES,
   PHASE_TOGGLES_KEY,
+  REPORT,
   SECTION_LOOKS,
   TOGGLE,
   type ContentsEntry,
@@ -58,6 +60,9 @@ import sectionCSS from "./EpicSection.css?inline"
  *   through `--epic-files-display` / `--epic-verify-display`, which the fields read;  remembered per page.  Its
  *   Plan changes box (T14):  the `slot="changes"` copies the tool writes, above the phases;  nothing without one.
  * - An item section with no items says "None yet".
+ * - A REPORT (`kind="report"`, P14):  prose a run wrote for Owen to read (an overnight `/bedtime` report), right after
+ *   the Overview, on the page's section band;  titled its own (`title`), never numbered, so the sections after it
+ *   keep theirs.
  * - An Overview sub-section is reviewed as an item is (decision Q14;  `ReviewControls.tsx`):  Make Todo, Revisit,
  *   Add Details Now in `tools` (no Approve:  Q14 asks for notes, not sign-off), its note box at the end of its body, a
  *   marked note at its top;  only while the page is reviewed.  Claude's status cards (`slot="status"`, P13) just
@@ -99,16 +104,19 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   // ## Derived state
   ////////////////
 
-  /** The kind's look:  icon and title key;  `undefined` for an Overview sub-section. */
+  /** The kind's look:  icon and title key;  `undefined` for an Overview sub-section or a report (titled their own). */
   readonly look = createMemo((): SectionLook | undefined => {
     const kind = this.kind
-    return kind && kind !== "overview-part" ? SECTION_LOOKS[kind] : undefined
+    return kind && kind in SECTION_LOOKS ? SECTION_LOOKS[kind as keyof typeof SECTION_LOOKS] : undefined
   })
 
   /** Its icon (after `look`, which it reads:  memos compute as they're made). */
   readonly glyph = new E.IconGlyph({ owner: this, name: () => this.look()?.icon })
 
-  /** Its number, by its place:  `3` for the third block of the page;  `1.2` for the Overview's second part. */
+  /**
+   * Its number, by its place:  `3` for the third block of the page;  `1.2` for the Overview's second part;  "" for a
+   * report, which isn't numbered.
+   */
   readonly number = createMemo(() => {
     void this.layout
     return this.isConnected ? this.place(this.kind) : ""
@@ -255,13 +263,16 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     }
   }
 
-  /** The title:  `3. Questions`, or an Overview sub-section's `1.2 <its title>`. */
+  /** The title:  `3. Questions`, an Overview sub-section's `1.2 <its title>`, or a report's own. */
   private heading(): JSX.Element {
     const look = this.look()
     if (look) return `${this.number()}. ${this.translationForKey(look.title)}`
     return (
       <>
-        <span class="number">{this.number()}</span> <slot name={this.slotForName("title")}>{this.title}</slot>
+        <Show when={this.number()}>
+          <span class="number">{this.number()}</span>{" "}
+        </Show>
+        <slot name={this.slotForName("title")}>{this.title}</slot>
       </>
     )
   }
@@ -519,16 +530,16 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     return (ITEM_KINDS as readonly string[]).includes(this.kind ?? "")
   }
 
-  /** Its number by its place now, as `kind`:  `3`, or an Overview sub-section's `1.2`;  "" unplaced. */
+  /** Its number by its place now, as `kind`:  `3`, or an Overview sub-section's `1.2`;  "" unplaced, or a report. */
   private place(kind: string | undefined): string {
     const parent = this.domElement.parentElement
-    if (!parent) return ""
+    if (!parent || kind === REPORT) return ""
     if (kind === "overview-part") {
       const own = EpicSection.placeOf(this.domElement, ":scope > epic-section")
-      const overview = EpicSection.placeOf(parent, ":scope > epic-overview, :scope > epic-section") || 1
+      const overview = EpicSection.placeOf(parent, NUMBERED_BLOCKS) || 1
       return `${overview}.${own}`
     }
-    return String(EpicSection.placeOf(this.domElement, ":scope > epic-overview, :scope > epic-section"))
+    return String(EpicSection.placeOf(this.domElement, NUMBERED_BLOCKS))
   }
 
   /** A kind that's counted:  items, or phases.  A method:  memos above call it as they're made. */

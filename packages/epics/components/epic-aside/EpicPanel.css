@@ -1,0 +1,93 @@
+/*
+ * The shape of every folded panel in prose (`EpicPanel.tsx`):  `<epic-aside>`, `<epic-code>`, each adopting this
+ * sheet beside its own (the fill and the heading's type, through the private `--_epic-panel-*` below).
+ * - The heading:  a full-width `<button>`, the fold chevron then the words, the chevron turned down while open.
+ * - The body, folded:  `hidden="until-found"` (find-in-page reveals it), drawn as nothing.
+ * - Shared look from `<epic-page>`'s `:host`, each with a fallback:  `--epic-part-gap`, `--epic-accent`.
+ */
+
+@layer ui.components.epic-panel.types, ui.components.epic-panel.content;
+
+@layer ui.components.epic-panel.types {
+  :host {
+    --_epic-panel-fill: transparent;
+    --_epic-panel-ink: var(--epic-ink, var(--ui-text-color, CanvasText));
+    --_epic-panel-radius: 12px;
+    --_epic-panel-heading-ink: inherit;
+    --_epic-panel-heading-font: inherit;
+    --_epic-panel-heading-padding: 7px 12px;
+    --_epic-panel-body-padding: 0 12px 12px;
+    display: block;
+    margin-block: var(--epic-part-gap, 8px);
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}
+
+@layer ui.components.epic-panel.content {
+  [part~="base"] {
+    min-width: 0;
+    border-radius: var(--_epic-panel-radius);
+    background: var(--_epic-panel-fill);
+    color: var(--_epic-panel-ink);
+  }
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--_epic-panel-heading-padding);
+    border: none;
+    border-radius: var(--_epic-panel-radius);
+    background: none;
+    color: var(--_epic-panel-heading-ink);
+    font: var(--_epic-panel-heading-font);
+    text-align: start;
+    cursor: pointer;
+  }
+  .toggle:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent, Highlight));
+    outline-offset: -2px;
+  }
+  .heading {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .chevron {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: rotate 0.12s;
+  }
+  :host(:state(open)) .chevron {
+    rotate: 90deg;
+  }
+  .body {
+    min-width: 0;
+    padding: var(--_epic-panel-body-padding);
+  }
+  /* folded:  nothing drawn, but find-in-page still reaches the text (`until-found`) */
+  .body[hidden] {
+    display: block;
+    content-visibility: hidden;
+    padding: 0;
+  }
+  ::slotted(:first-child) {
+    margin-top: 0;
+  }
+  ::slotted(:last-child) {
+    margin-bottom: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chevron {
+      transition: none;
+    }
+  }
+}

@@ -1,18 +1,21 @@
 /* GENERATED -- do not edit:  `spell dev pack build epics`, from every vocabulary, `<Name>.en.ts` */
-// sources:  29ac772ae20c2a9c
+// sources:  94e9c4ada4709d8d
 
 import type { RootCatalogEntry } from "$/ui"
 
 /** Every tag of the `epics` pack => what `<ui-root>` needs before its family loads. */
 export const CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "epic-answer": {"folder":"epic-answer"},
+  "epic-aside": {"folder":"epic-aside"},
   "epic-choices": {"folder":"epic-choices"},
+  "epic-code": {"folder":"epic-code"},
   "epic-commit": {"folder":"epic-commit"},
   "epic-event": {"folder":"epic-event"},
   "epic-field": {"folder":"epic-phase"},
   "epic-item": {"folder":"epic-item"},
   "epic-more": {"folder":"epic-answer"},
   "epic-net-effect": {"folder":"epic-net-effect"},
+  "epic-note": {"folder":"epic-note"},
   "epic-option": {"folder":"epic-choices"},
   "epic-original": {"folder":"epic-original"},
   "epic-overview": {"folder":"epic-overview"},

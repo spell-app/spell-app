@@ -1,12 +1,15 @@
 import { epicAnswerVocabulary } from "$/epics/components/epic-answer/EpicAnswer.en"
 import { epicMoreVocabulary } from "$/epics/components/epic-answer/EpicMore.en"
 import { epicReplyVocabulary } from "$/epics/components/epic-answer/EpicReply.en"
+import { epicAsideVocabulary } from "$/epics/components/epic-aside/EpicAside.en"
 import { epicChoicesVocabulary } from "$/epics/components/epic-choices/EpicChoices.en"
 import { epicOptionVocabulary } from "$/epics/components/epic-choices/EpicOption.en"
+import { epicCodeVocabulary } from "$/epics/components/epic-code/EpicCode.en"
 import { epicCommitVocabulary } from "$/epics/components/epic-commit/EpicCommit.en"
 import { epicEventVocabulary } from "$/epics/components/epic-event/EpicEvent.en"
 import { epicItemVocabulary } from "$/epics/components/epic-item/EpicItem.en"
 import { epicNetEffectVocabulary } from "$/epics/components/epic-net-effect/EpicNetEffect.en"
+import { epicNoteVocabulary } from "$/epics/components/epic-note/EpicNote.en"
 import { epicOriginalVocabulary } from "$/epics/components/epic-original/EpicOriginal.en"
 import { epicVersionVocabulary } from "$/epics/components/epic-original/EpicVersion.en"
 import { epicOverviewVocabulary } from "$/epics/components/epic-overview/EpicOverview.en"
@@ -56,7 +59,10 @@ export class Definitions {
     "epic-commit": epicCommitVocabulary,
     "epic-event": epicEventVocabulary,
     "epic-update": epicUpdateVocabulary,
-    "epic-net-effect": epicNetEffectVocabulary
+    "epic-net-effect": epicNetEffectVocabulary,
+    "epic-note": epicNoteVocabulary,
+    "epic-aside": epicAsideVocabulary,
+    "epic-code": epicCodeVocabulary
   } as const
 
   /** Every tag, in `all`'s order. */

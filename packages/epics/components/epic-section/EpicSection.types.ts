@@ -154,6 +154,15 @@ export const SECTION_LOOKS = {
 /** A page section's look:  `SECTION_LOOKS`' values. */
 export type SectionLook = (typeof SECTION_LOOKS)[keyof typeof SECTION_LOOKS]
 
+/**
+ * A report's kind (an overnight `/bedtime` report, P14):  titled its own, unnumbered.  `$/epics/definitions`' `REPORT`,
+ * restated:  the components never value-import the definitions.
+ */
+export const REPORT = "report"
+
+/** The page's NUMBERED blocks, as siblings:  the Overview and the sections, but a report. */
+export const NUMBERED_BLOCKS = `:scope > epic-overview, :scope > epic-section:not([kind="${REPORT}"])`
+
 /** The kinds that hold items:  an empty one says "none yet". */
 export const ITEM_KINDS = ["questions", "judgements", "caveats", "todos", "issues", "tests"] as const
 

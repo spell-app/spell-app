@@ -2,7 +2,7 @@ import { OVERVIEW_PART_ID, type EpicData } from "$/epics/definitions"
 import { TEXT_NODE } from "$/epics/markup"
 import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
-import { BODY_DATA, Chrome, COMMIT_URL, Old, PACK_SOURCE } from "./convert.types"
+import { BODY_DATA, Chrome, COMMIT_URL, Old, PACK_SOURCE, PLAN_DOC_CSS } from "./convert.types"
 
 import type { Converter } from "./Converter"
 
@@ -15,6 +15,7 @@ import type { Converter } from "./Converter"
  *   is kept, slotted), the `Plan hung?` and future-epic notices.
  * - Dropped too:  an older doc's Overnight report (`#overnight`, before 2026-10-05):  everything in it is in the
  *   items and phases now;  the items it links are the night's (`overnight`, the bed icon:  epic `epic-components` I3).
+ * - Dropped from the head:  the `plan-doc.css` link (P14:  the elements style themselves).
  * - Works on its owner's document, IN PLACE.
  ****************/
 export class PageConverter {
@@ -38,6 +39,7 @@ export class PageConverter {
    * was;  the header, meta lines and notices go.
    */
   convert(main: Element): Element {
+    this.document.querySelector(PLAN_DOC_CSS)?.remove()
     this.takeOvernight(main)
     const body = this.document.body
     const meta = main.querySelector(`:scope > ${Old.meta}`)

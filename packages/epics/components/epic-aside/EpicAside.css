@@ -1,0 +1,27 @@
+/*
+ * `<epic-aside>` (EpicAside.tsx):  a folded aside, on the panel's shape (`EpicPanel.css`).
+ * - The brand's IVORY panel (as the docs' `ui-accordion.spell-aside`, and the page's `Plan hung?` aside):  warm,
+ *   rounded, no border;  its heading an italic serif in the headings' ink, so it reads as an aside, not a section.
+ * - From `<epic-page>`'s `:host`, each with a fallback:  `--epic-aside`, `--epic-heading-ink`, `--epic-serif`.
+ * - Public tokens (`--epic-aside-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-aside.types;
+
+@layer ui.components.epic-aside.types {
+  :host {
+    --_epic-panel-fill: var(
+      --epic-aside-fill,
+      var(--epic-aside, var(--spell-warm, var(--ui-accent-background, light-dark(#faf5ea, #2c2152))))
+    );
+    --_epic-panel-radius: 14px;
+    --_epic-panel-heading-ink: var(--epic-heading-ink, var(--ui-text-color, CanvasText));
+    --_epic-panel-heading-font: italic 400 1em/1.4 var(--epic-serif, var(--ui-font-family-heading, serif));
+    --_epic-panel-heading-padding: 8px 14px;
+    --_epic-panel-body-padding: 0 14px 12px;
+  }
+  /* the aside's text a step down from the page's, as the docs' asides */
+  .body {
+    font-size: 0.95em;
+  }
+}
