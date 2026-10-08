@@ -8,7 +8,8 @@
  *     `A · title`, ticked to start with under `data-checked`, a Recommended label (`data-recommended`), the
  *     one-line summary, and its
  *     `.spell-option-details` folded in a `ui-accordion`
- *   - an "Other" box per question;  a comment box under every other section with no sections inside it
+ *   - an "Other" box per question, and a comment box under each option;  a comment box under every other section
+ *     with no sections inside it
  *   - Send in the sticky page header, with where the answer stands ("Not sent", "Sent 10/8/26 14:34 · 5 of 17
  *     decided", "Changes not sent");  a notes box at the page's end
  * - Answer:  `POST /api/details/answer` (`tools/detailsRoutes.ts`) writes `<slug>.answer.json` beside the page;
@@ -254,6 +255,19 @@
       main.append(fold)
     }
     // the grid in a wrapper:  the segment slots its children, so it can't lay them out itself
+    // a comment box per option (Owen, 2026-10-08):  feedback on THIS option, picked or not;  a `.spell-comment`, so
+    // it's sent and shown with the sections' ones, keyed `<question id>-<letter>` (`q1-B`)
+    main.append(
+      el("ui-textarea", {
+        class: "spell-comment spell-option-comment",
+        name: `comment-${id}-${letter}`,
+        "data-section": `${id}-${letter}`,
+        rows: "1",
+        placeholder: `Comment on ${letter}`,
+        "aria-label": `Comment on ${letter} · ${title}`,
+        fluid: ""
+      })
+    )
     card.append(el("div", { class: "spell-option-grid" }, side, main))
     return card
   }
