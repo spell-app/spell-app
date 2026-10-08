@@ -23,7 +23,7 @@ const DONE =
   `</epic-status>`
 
 describe("<epic-status>", () => {
-  test("underway:  `Claude • Underway` left, `at` right as `10/8/26 14:20`, the reading;  orange;  passes axe", async () => {
+  test("underway:  `Claude • Underway` left, `at` right as `10/8/26 14:20`, the reading;  blue (Claude on it, Q20);  passes axe", async () => {
     const host = await ElementFixture.render(UNDERWAY)
     expect({
       who: part(host, "who")!.textContent,
@@ -46,7 +46,7 @@ describe("<epic-status>", () => {
     await expectAccessible(host)
   })
 
-  test("done:  `Claude • Done`, the done time right (taken in its tooltip), the reading kept, the summary under it;  violet;  passes axe", async () => {
+  test("done:  `Claude • Done`, the done time right (taken in its tooltip), the reading kept, the summary under it;  green (done, Q20);  passes axe", async () => {
     const host = await ElementFixture.render(DONE)
     const summary = host.querySelector('[slot="summary"]')!
     expect({
@@ -80,7 +80,7 @@ describe("<epic-status>", () => {
     ])
   })
 
-  test("the two fills differ (orange, violet), and each stays readable in the DARK scheme too (axe)", async () => {
+  test("the two fills differ (blue, green), and each stays readable in the DARK scheme too (axe)", async () => {
     const wrap = await ElementFixture.render(
       `<div style="color-scheme: dark; background: #1b1c1d; padding: 4px">${UNDERWAY}${DONE}</div>`
     )

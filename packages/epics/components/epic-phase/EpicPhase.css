@@ -26,7 +26,7 @@
     color: var(--ui-grey-text, var(--ui-text-muted));
   }
   .icon.active {
-    color: var(--ui-orange-text, var(--ui-orange));
+    color: var(--ui-blue-text, var(--ui-blue));
   }
   .icon.done {
     color: var(--ui-green-text, var(--ui-green));

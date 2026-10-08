@@ -37,7 +37,8 @@ export type PhaseLine = {
 
 /** The step label:  its look, its words, where it links. */
 export type StepLabel = {
-  color: "orange" | "green" | "grey" | "violet"
+  /** `blue` the active phase (outlined:  Claude is on it), `green` DONE (solid), `grey` the next one, or FUTURE */
+  color: "blue" | "green" | "grey"
   icon: string
   /** what it says:  `P4`, `DONE`, `FUTURE` */
   words: string

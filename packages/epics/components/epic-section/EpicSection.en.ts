@@ -146,9 +146,13 @@ export const epicSectionVocabulary = {
     },
     { key: "showing", text: "Showing:  {words}", description: "A state chip, pressed:  its items show." },
     { key: "hiding", text: "Hiding:  {words}", description: "A state chip, not pressed:  its items are hidden." },
-    { key: "stateProgress", text: "in progress", description: "A state chip's words:  `progress` (orange)." },
+    {
+      key: "stateProgress",
+      text: "Claude is working on it",
+      description: "A state chip's words:  `progress` (blue)."
+    },
     { key: "stateAttention", text: "needs attention", description: "A state chip's words:  `attention` (red)." },
-    { key: "stateOpen", text: "open, not urgent", description: "A state chip's words:  `open` (blue)." },
+    { key: "stateOpen", text: "open, still undecided", description: "A state chip's words:  `open` (yellow)." },
     { key: "stateRecent", text: "decided or reviewed recently", description: "A state chip's words:  `recent`." },
     { key: "stateOld", text: "decided or reviewed earlier", description: "A state chip's words:  `old` (grey)." },
     { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },

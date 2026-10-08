@@ -49,7 +49,7 @@ export const epicPhaseVocabulary = {
       kind: "enum",
       values: ["todo", "active", "done"],
       required: true,
-      description: "`todo`, `active` (one at a time, orange) or `done` (green)."
+      description: "`todo`, `active` (one at a time, blue:  under way) or `done` (green)."
     },
     {
       name: "estimate",

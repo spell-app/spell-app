@@ -67,8 +67,8 @@ export class ItemPicker {
    * A picker option's review state, as the icon under its tick box:  `{ icon, color, label }` (`label` on hover).
    * - the icon says the review state:  not reviewed, an empty circle;  deferred, a pause;  reviewed, a check;  to
    *   do, a list
-   * - the color is the item's on the plan doc (`docState`, `STATE_COLORS`):  red waits on Owen, orange in progress,
-   *   blue open, green recent, grey older
+   * - the color is the item's on the plan doc (`docState`, `STATE_COLORS`):  red waits on Owen, blue Claude is on
+   *   it, yellow open, green recent, grey older
    * - every icon in `bundle-spell-ui.js` `ICONS`
    */
   private static stateOf(item: ReviewItem): { icon: string; color: string; label: string } {

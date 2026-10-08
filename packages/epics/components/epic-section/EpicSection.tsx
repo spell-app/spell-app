@@ -547,13 +547,17 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     return this.kind === "phases" || this.holdsItems()
   }
 
-  /** The count of `children` (items, or phases):  open being any status but `CLOSED_STATUSES`';  none without any. */
+  /**
+   * The count of `children` (items, or phases):  open being any status but `CLOSED_STATUSES`',  `attention` the items
+   * that need Owen;  none without any.
+   */
   private static countOf(children: readonly Element[]): SectionCount | undefined {
     if (!children.length) return undefined
     const open = children.filter(
       (child) => !(CLOSED_STATUSES as readonly string[]).includes(child.getAttribute("status") ?? "")
     ).length
-    return { open, total: children.length }
+    const attention = children.filter((child) => child.getAttribute("state") === "attention").length
+    return { open, total: children.length, attention }
   }
 
   /** `element`'s place, from 1, among its parent's children matching `selector`;  0 when it isn't one. */

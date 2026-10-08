@@ -1,4 +1,5 @@
 import {
+  REVIEW_ACTIONS,
   REVIEW_API,
   REVISIT_KEY_PREFIX,
   NOBODY_LISTENING,
@@ -228,6 +229,23 @@ export class ReviewClient {
     return { action, queued: !this.asking.has(id) && !this.inbox.listening }
   }
 
+  /**
+   * The review button whose work on item `id` is on its way or under way (it spins;  a click calls it off);  else
+   * `null`.  The mark's own button (Approve, Make Todo, Revisit:  Claude took a sent mark), else Do Now (`details`:
+   * Add Details, a revisit now).
+   */
+  busyButtonOf(id: string): ReviewAction | null {
+    if (!this.runningOf(id)) return null
+    const mark = this.inbox.marks[id]
+    const own = mark && !isImmediate(mark) && REVIEW_ACTIONS.find((action) => action === mark.action)
+    return own || "details"
+  }
+
+  /** Has Claude taken item `id`'s request (`working`), rather than it waiting to be taken? */
+  isWorkedOn(id: string): boolean {
+    return !!this.inbox.working[id]
+  }
+
   /** Is `id`'s note box open by itself (an item without details), or being written in? */
   isBoxOpen(id: string): boolean {
     return this.boxes.has(id)
@@ -258,16 +276,21 @@ export class ReviewClient {
    * - running (it spins):  "nevermind", called off (`cancel()`)
    * - chosen already:  cleared, back to no action;  a revisit carrying a pick keeps the pick ("pick B, but ..."
    *   without the "but")
-   * - else:  Approve and Make Todo mark it;  Add Details Now asks at once;  Revisit opens the note box
+   * - else:  Approve and Make Todo mark it;  Revisit opens the note box;  Do Now (`details`, decision Q20) asks at
+   *   once:  with a note in the box, Claude answers it now (a revisit now, as the note box's Do Now was);  without,
+   *   Claude adds details
    */
   press(id: string, action: ReviewAction): "open-box" | undefined {
     const mark = this.inbox.marks[id]
-    if (this.runningOf(id)?.action === action) return void this.cancel(id)
-    if (mark?.action === action) {
+    if (this.busyButtonOf(id) === action) return void this.cancel(id)
+    if (action === "details") {
+      const note = this.typedOf(id).trim()
+      return void (note ? this.useNote(id, "now", note) : this.askNow(id, "details"))
+    }
+    if (mark?.action === action && !isImmediate(mark)) {
       const pick = action === "revisit" ? mark.pick : undefined
       return void this.save(id, pick ? { action: "pick", pick } : null)
     }
-    if (action === "details") return void this.askNow(id, "details")
     if (action === "revisit") return "open-box"
     void this.save(id, { action })
     return undefined

@@ -103,14 +103,21 @@ function part(element: Element, name: string): HTMLElement | null {
 }
 
 describe("<epic-choices>", () => {
-  test("an open question:  cards side by side, each headed `A · title`, `(recommended)` after;  passes axe", async () => {
+  test("an open question:  cards side by side, each headed `A · title`, a violet thumbs-up after the recommended one, no word;  passes axe", async () => {
     const { host, options } = await choices(`<epic-choices>${OPTIONS}</epic-choices>`)
     expect(host.matches(":state(answered)")).toBe(false)
     expect(getComputedStyle(part(host, "base")!).display).toBe("grid")
-    expect(options.map((option) => part(option, "title")!.textContent)).toEqual([
+    expect(options.map((option) => part(option, "title")!.textContent!.trim())).toEqual([
       "A · A named palette",
-      "B · Any CSS colour (recommended)"
+      "B · Any CSS colour"
     ])
+    const thumb = part(options[1]!, "recommended")!
+    expect([part(options[0]!, "recommended"), thumb.getAttribute("aria-label"), thumb.title]).toEqual([
+      null,
+      "Recommended",
+      "Recommended"
+    ])
+    await vi.waitFor(() => expect(thumb.querySelector("svg")).not.toBeNull())
     expect(options.map((option) => part(option, "base")!.className)).toEqual(["option card", "option card"])
     expect(part(host, "toggle")).toBeNull()
     await expectAccessible(host)
@@ -199,6 +206,12 @@ describe("<epic-option>'s Choose pill (P10)", () => {
       true
     ])
     expect(pillOf(options[1])!.title).toBe("B is picked:  click to un-pick · not sent yet")
+    // the fill rule (Q20):  a pick not sent is DASHED green, pill and card
+    expect([
+      getComputedStyle(pillOf(options[1])!).borderTopStyle,
+      getComputedStyle(part(options[1], "base")!).borderTopStyle,
+      getComputedStyle(pillOf(options[0])!).borderTopStyle
+    ]).toEqual(["dashed", "dashed", "solid"])
     await expectAccessible(host)
     pillOf(options[1])!.click()
     await settle()
@@ -209,7 +222,7 @@ describe("<epic-option>'s Choose pill (P10)", () => {
     ])
   })
 
-  test("a pick once sent:  the pill outlined (`sent`), its tooltip says so", async () => {
+  test("a pick once sent:  the pill and card outlined, no longer dashed (`sent`), its tooltip says so", async () => {
     const { client } = await reviewing()
     const { options } = await choices(
       `<epic-item id="q1" title="Which?" status="open"><epic-choices>${OPTIONS}</epic-choices></epic-item>`
@@ -223,6 +236,11 @@ describe("<epic-option>'s Choose pill (P10)", () => {
       true,
       "A is picked:  click to un-pick · sent"
     ])
+    expect([
+      part(options[0], "base")!.classList.contains("sent"),
+      getComputedStyle(pillOf(options[0])!).borderTopStyle,
+      getComputedStyle(part(options[0], "base")!).borderTopStyle
+    ]).toEqual([true, "solid", "solid"])
   })
 
   test("an answered question's panels:  none, until it's revisited;  then all but the chosen one", async () => {

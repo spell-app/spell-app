@@ -62,6 +62,12 @@ export class ReviewState {
   /** Its immediate request at work, if any. */
   readonly running = (): Running | null => this.read((client, id) => client.runningOf(id)) ?? null
 
+  /** The review button whose work is on its way or under way (it spins), if any. */
+  readonly busyButton = (): ReviewAction | null => this.read((client, id) => client.busyButtonOf(id)) ?? null
+
+  /** Has Claude taken its request (an agent at work on it), rather than it waiting to be taken? */
+  readonly workedOn = (): boolean => this.read((client, id) => client.isWorkedOn(id)) ?? false
+
   /** Has its mark gone to Claude? */
   readonly isSent = (): boolean =>
     this.read((client, id) => !!client.markOf(id) && client.isSent(client.markOf(id)!)) ?? false

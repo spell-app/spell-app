@@ -16,11 +16,9 @@
     --_epic-choices-aside: var(--epic-aside, var(--ui-accent-background, light-dark(#faf5ea, #2c2152)));
     --_epic-choices-card: var(--ui-surface, Canvas);
     --_epic-choices-band: color-mix(in oklab, var(--ui-text-color, CanvasText) 4%, var(--_epic-choices-card));
-    /* a pick in review:  pending, so orange (the review buttons' colours, epic `windows-and-review` Q4) */
-    --_epic-choices-pick: var(--ui-orange-border, var(--ui-orange, #f2711c));
-    --_epic-choices-pick-fill: var(--ui-orange, #f2711c);
-    --_epic-choices-pick-on: var(--ui-orange-on, #fff);
-    --_epic-choices-pick-text: var(--ui-orange-text, var(--ui-orange, #f2711c));
+    /* a pick in review:  a decision, so green (decision Q20), wearing the fill rule */
+    --_epic-choices-pick: var(--ui-green-border, var(--ui-green, #21ba45));
+    --_epic-choices-pick-text: var(--ui-green-text, var(--ui-green, #21ba45));
     display: block;
   }
   :host([hidden]) {
@@ -99,13 +97,22 @@
     min-width: 0;
     overflow-wrap: anywhere;
   }
+  /* the recommended one:  a violet thumbs-up after its title, no word (Owen, 2026-10-08:  Claude's suggestion) */
   .recommended {
-    color: var(--_epic-choices-muted);
-    font-weight: 400;
+    display: inline-flex;
+    vertical-align: -0.1em;
+    color: var(--ui-violet-text, var(--ui-violet, #6550ca));
+  }
+  .recommended svg {
+    display: block;
+    width: auto;
+    height: 0.95em;
+    fill: currentColor;
   }
   /*
    * The Choose pill (P10), at the header's end:  its box one line of the header tall and on its FIRST line
-   * (`align-self`), so the pill centres on the title's first line however many lines it wraps to
+   * (`align-self`), so the pill centres on the title's first line however many lines it wraps to.  A grey outline,
+   * available;  picked:  the fill rule's green (below)
    */
   .actions {
     display: inline-flex;
@@ -121,15 +128,16 @@
     box-sizing: border-box;
     height: 1.6em;
     padding: 0 0.75em;
-    border: 1px solid var(--_epic-choices-pick);
+    border: 1px solid var(--ui-border-color-strong, var(--_epic-choices-rule));
     border-radius: 999px;
     background: var(--_epic-choices-card);
-    color: var(--_epic-choices-pick-text);
+    color: var(--_epic-choices-muted);
     font: 600 0.8em / 1 var(--ui-font-family, inherit);
     cursor: pointer;
   }
   .choose:hover {
-    background: color-mix(in oklab, var(--_epic-choices-pick) 12%, var(--_epic-choices-card));
+    border-color: var(--_epic-choices-pick);
+    color: var(--_epic-choices-pick-text);
   }
   .choose:focus-visible {
     outline: 2px solid var(--ui-focus-color, Highlight);
@@ -225,21 +233,26 @@
     border-color: var(--ui-green-border, var(--ui-green));
   }
 
-  /* picked in review:  the pill filled, `Chosen`;  outlined again once sent.  The card framed orange (2px:  its
-     border, and an outline just inside it, drawn over the header's band), an answered panel's title orange */
+  /*
+   * Picked in review, the fill rule (decision Q20):  `Chosen`, DASHED green until sent, outlined green once sent;
+   * applied, the question is answered and the chosen panel is green (above).  The card framed to match (2px:  its
+   * border, and an outline just inside it, drawn over the header's band), an answered panel's title green
+   */
   .choose[aria-pressed="true"] {
-    border-color: var(--_epic-choices-pick-fill);
-    background: var(--_epic-choices-pick-fill);
-    color: var(--_epic-choices-pick-on);
-  }
-  .choose[aria-pressed="true"].sent {
-    background: var(--_epic-choices-card);
+    border: 1.5px dashed var(--_epic-choices-pick);
     color: var(--_epic-choices-pick-text);
   }
+  .choose[aria-pressed="true"].sent {
+    border-style: solid;
+  }
   .card.picked {
-    border-color: var(--_epic-choices-pick);
-    outline: 1px solid var(--_epic-choices-pick);
+    border: 1px dashed var(--_epic-choices-pick);
+    outline: 1px dashed var(--_epic-choices-pick);
     outline-offset: -2px;
+  }
+  .card.picked.sent {
+    border-style: solid;
+    outline-style: solid;
   }
   .panel.picked > .header .toggle {
     color: var(--_epic-choices-pick-text);
