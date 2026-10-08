@@ -6,9 +6,11 @@ import { SRV, type UpgradeHandler } from "$/server"
 
 /**
  * Live reload over websockets:  watches folders, and tells every open page which file changed.
- * - `events` answers the `/_server/events` websocket upgrade:  each page keeps one open;  `liveClient()` offers
- *   the page its own file's new version (the docs runtime patches itself in place, else it reloads), swaps a
- *   stylesheet it uses, and reloads for a script in the folder of one it loads
+ * - `events` answers the `/_server/events` websocket upgrade:  each page keeps one open
+ * - `liveClient()`, in the page, acts on each change:
+ *   - the page's own file:  offers it the new version (the docs runtime patches itself in place, else it reloads)
+ *   - a stylesheet it uses:  swaps it
+ *   - a script in the folder of one it loads:  reloads
  * - each message is JSON `{ event, data }`, e.g. `{ event: "change", data: { path: "/guides/x.html" } }`
  * - websockets, not server-sent events:  an `EventSource` holds one of Chrome's 6 connections per host for good,
  *   and every VS Code window shares them (see `webSocket.ts`)
@@ -60,9 +62,10 @@ export class LiveReload {
   /**
    * Watch `dir` (recursively) and report its changes.
    * - `ignore`:  more paths (relative to `dir`, `/`-separated) never to report, e.g. `/(^|\/)experiments\//`
-   * - `servedAt`:  the URL path the folder is served at, when that isn't its path from `root` (a folder laid over
-   *   another, `StaticHandler.overlays`):  its changes are reported there, e.g. `/ui/` for `packages/ui/site/`, so a
-   *   page loading `/ui/_assets/site.js` sees its script change
+   * - `servedAt`:  the URL path the folder is served at, when that isn't its path from `root`
+   *   (a folder laid over another, `StaticHandler.overlays`)
+   *   - its changes are reported there, e.g. `/ui/` for `packages/ui/site/`,
+   *     so a page loading `/ui/_assets/site.js` sees its script change
    * - a missing folder is skipped
    * - SIDE EFFECT:  an `fs.watch` per call, closed by `close()`
    */
@@ -126,7 +129,8 @@ export class LiveReload {
 
 /**
  * `new LiveReload()` props.
- * - `root`:  paths are reported relative to it;  `debounce` / `heartbeat`:  ms (see the class)
+ * - `root`:  paths are reported relative to it
+ * - `debounce` / `heartbeat`:  ms (see the class)
  */
 export type LiveReloadProps = { root: string; debounce?: number; heartbeat?: number }
 

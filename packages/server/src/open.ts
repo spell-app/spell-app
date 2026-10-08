@@ -1,13 +1,16 @@
 /**
  * Showing a URL to a person:  the default browser, a new browser window, a reused Chrome tab, or VS Code.
- * - Gathered from `cli`'s `serve.ts` (`openBrowser`), goals' `launch.js` (`openInBrowser`, `openInVSCode`) and the
- *   docs' `pages.js` (`openInChrome`).
  * - macOS first:  `open` / `osascript`.  Elsewhere:  `xdg-open`, or `start` on Windows.
  * - `SPELL_NO_BROWSER=1`:  nothing opens (tests, CI, a remote shell);  each says so by returning `false` / `"none"`.
+ * - Gathered from `cli`'s `serve.ts` (`openBrowser`), goals' `launch.js` (`openInBrowser`, `openInVSCode`)
+ *   and the docs' `pages.js` (`openInChrome`).
  */
 import { spawn, spawnSync } from "node:child_process"
 
-/** Opens a page in VS Code's Simple Browser:  the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`). */
+/**
+ * The URI that opens a page in VS Code's Simple Browser:
+ * the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`).
+ */
 export const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
 
 /** Whether opening is turned off:  `SPELL_NO_BROWSER` set. */
@@ -31,8 +34,8 @@ export function openBrowser(url: string): boolean {
 }
 
 /**
- * Show `url` in a NEW window of `browser` ("Google Chrome" or "Safari", macOS only, by AppleScript), else in the
- * default browser.  Returns which.
+ * Show `url` in a NEW window of `browser`, else in the default browser.  Returns which.
+ * - `browser`:  "Google Chrome" or "Safari", macOS only, by AppleScript
  */
 export function openInNewWindow(url: string, browser?: string): string {
   if (noBrowser()) return "none"
@@ -57,9 +60,10 @@ end tell`
 
 /**
  * Show `url` in Chrome, in ONE tab per `key`, IN THE BACKGROUND.  Returns how:  `reused`, `new tab`, `launched`.
- * - `key`:  a stable part of the URL, e.g. the repo path `/epics/x/x.plan.html`, so the same page
- *   from another checkout or port reuses the tab:  re-pointed if the URL differs, else reloaded
- * - never brings Chrome forward:  the tab is made active in ITS window only;  a new tab goes in the front window
+ * - `key`:  a stable part of the URL, e.g. the repo path `/epics/x/x.plan.html`,
+ *   so the same page from another checkout or port reuses the tab:  re-pointed if the URL differs, else reloaded
+ * - never brings Chrome forward:  the tab is made active in ITS window only
+ * - a new tab goes in the front window
  * - Chrome not running, or AppleScript refused:  `open -g -a "Google Chrome"`, which can't reuse a tab
  * - NOTE: `key` is an AppleScript keyword:  the variable is `pageKey`
  */
@@ -98,7 +102,8 @@ end tell`
 
 /**
  * Show a page in VS Code's Simple Browser, beside the editor, through the spell extension (`spell dev vscode`).
- * - `url`:  a page a local server serves (preferred:  it live-reloads);  `file`:  a file the extension serves itself
+ * - `url`:  a page a local server serves (preferred:  it live-reloads)
+ * - `file`:  a file the extension serves itself
  * - returns whether `open` handed the URI over;  without the extension, VS Code says it can't handle it
  */
 export function openInVSCode({ url, file }: { url?: string; file?: string }): boolean {

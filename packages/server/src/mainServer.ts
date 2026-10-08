@@ -8,10 +8,12 @@ import { resolve, sep } from "node:path"
 import { SRV } from "$/server"
 
 /**
- * `file`'s URL on the main checkout's page server, when `file` is in a worktree (`<main>/.claude/worktrees/<w>/...`)
- * and that server is running and serves worktrees;  else `undefined`.
- * - "serves worktrees":  `/_server/epics` answers, so a main server started before it learned to (an older
- *   checkout, not yet restarted) is never handed a URL it would 404
+ * `file`'s URL on the main checkout's page server;  else `undefined`.
+ * - only when `file` is in a worktree (`<main>/.claude/worktrees/<w>/...`),
+ *   and that server is running and serves worktrees
+ * - "serves worktrees":  `/_server/epics` answers
+ *   - so a main server started before it learned to (an older checkout, not yet restarted)
+ *     is never handed a URL it would 404
  */
 export async function mainServerUrl(file: string): Promise<string | undefined> {
   const at = worktreePath(file)
@@ -28,8 +30,10 @@ export async function mainServerUrl(file: string): Promise<string | undefined> {
 }
 
 /**
- * Where `file` sits, when it's inside a worktree of a main checkout:  the main checkout, the worktree's name, and
- * the path inside the worktree (segments);  else `undefined`.
+ * Where `file` sits, when it's inside a worktree of a main checkout;  else `undefined`.
+ * - `main`:  the main checkout
+ * - `worktree`:  the worktree's name
+ * - `path`:  the path inside the worktree, as segments
  */
 export function worktreePath(file: string): { main: string; worktree: string; path: string[] } | undefined {
   const parts = resolve(file).split(sep)

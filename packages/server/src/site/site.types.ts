@@ -6,10 +6,12 @@
 /**
  * One PROPERTY of the site:  a part with its own home page, switched between in the site header.
  * - `path`:  home page, relative to the repo root (`pages/index.html`), or server-absolute (`/ui/`)
- * - `serverOnly`:  only exists when served by the page server (`/ui/`:  the shared pages with the branch's built
- *   bundle laid over them, `UI_SITE`;  `/editor/` is the app)
- * - `ownTab`:  always opens in its own browser tab (`target`), never in place:  the app is a whole program, too big
- *   for VS Code's side bar, and a frame that left the page server can't step back (`liveClient.ts`)
+ * - `serverOnly`:  only exists when served by the page server
+ *   - `/ui/`:  the shared pages with the branch's built bundle laid over them (`UI_SITE`)
+ *   - `/editor/`:  the app
+ * - `ownTab`:  always opens in its own browser tab (`target`), never in place
+ *   - the app is a whole program, too big for VS Code's side bar
+ *   - a frame that left the page server can't step back (`liveClient.ts`)
  * - `match`:  whether a page path (`location.pathname`) belongs to this property;  the FIRST match wins
  */
 export type SiteProperty = {
@@ -21,16 +23,20 @@ export type SiteProperty = {
 }
 
 /**
- * The docs home, relative to the repo root:  a routing page, a card per property (claude-design P5).  The header's
- * Spell logo goes there;  no tab is lit on it.
+ * The docs home, relative to the repo root:  a routing page, a card per property (claude-design P5).
+ * - the header's Spell logo goes there;  no tab is lit on it
  */
 export const SITE_HOME = "pages/index.html"
 
 /**
- * Every property, in header order (Owen, 2026-10-05, Q6 of epic `claude-design`):  Epics · Guides · Brand · Spell UI
- * · Templates · Goals · App.  The home's cards are in the same order (`packages/docs/tools/index.js` `areaCards()`).
- * - each docs area lights on its own pages (`docsArea()`):  a plan doc Epics, a guide Guides, a template (the plan
- *   template under `templates/epics/` too) Templates;  the home and the scratch details pages, none
+ * Every property, in header order (Owen, 2026-10-05, Q6 of epic `claude-design`):
+ * Epics · Guides · Brand · Spell UI · Templates · Goals · App.
+ * - the home's cards are in the same order (`packages/docs/tools/index.js` `areaCards()`)
+ * - each docs area's tab lights on its own pages (`docsArea()`):
+ *   - a plan doc:  Epics
+ *   - a guide:  Guides
+ *   - a template (the plan template under `templates/epics/` too):  Templates
+ *   - the home and the scratch details pages:  none
  * - each area's list page is its tab's home (`<area>/index.html`)
  */
 export const PROPERTIES: SiteProperty[] = [
@@ -53,13 +59,18 @@ export const PROPERTIES: SiteProperty[] = [
 export type DocsArea = "epics" | "guides" | "brand" | "templates" | "goals"
 
 /**
- * Which docs area page path `path` (`location.pathname`:  served, or a `file://` path) is in;  `undefined` for the
- * home (`pages/`) and anything else.
+ * Which docs area page path `path` is in (`location.pathname`:  served, or a `file://` path).
+ * `undefined` for the home (`pages/`) and anything else.
  * - the area is the FIRST area folder in the path:  `templates/epics/plan.html` is a template, not an epic
- * - a worktree's page served from the main checkout (`/worktrees/<w>/...`) or opened from disk
- *   (`.claude/worktrees/<w>/...`):  from inside the worktree, so a worktree named `goals` isn't the Goals area
- * - older checkouts' paths still land:  `packages/docs/content/<x>` (2026-10-04 .. 10-05) and `packages/docs/<x>`
- *   (before):  `epics/` (or `plans/`) Epics, `templates/` Templates, the home and `details/` none, the rest Guides
+ * - a worktree's page, served from the main checkout (`/worktrees/<w>/...`) or opened from disk
+ *   (`.claude/worktrees/<w>/...`):  read from inside the worktree,
+ *   so a worktree named `goals` isn't the Goals area
+ * - older checkouts' paths still land:
+ *   `packages/docs/content/<x>` (2026-10-04 .. 10-05) and `packages/docs/<x>` (before)
+ *   - `epics/` (or `plans/`):  Epics
+ *   - `templates/`:  Templates
+ *   - the home and `details/`:  none
+ *   - the rest:  Guides
  * - any other package's files (`packages/ui/...`):  none
  */
 export function docsArea(path: string): DocsArea | undefined {
@@ -78,15 +89,16 @@ export function docsArea(path: string): DocsArea | undefined {
 
 /**
  * `localStorage` key of the chosen color scheme:  `light`, `dark`, or absent for the OS's.
- * - ONE key for every doc site:  Spell UI's `ThemePreference` reads and writes it too, as
- *   `DOCS_LOOK_KEYS.scheme` (`packages/ui/src/docs-components/docs-components.types.ts`), so a switch on one site
- *   holds on the others.  MUST stay equal:  `ui`'s `UIDocsThemes.test.tsx` pins it.
+ * - ONE key for every doc site, so a switch on one site holds on the others:
+ *   Spell UI's `ThemePreference` reads and writes it too, as `DOCS_LOOK_KEYS.scheme`
+ *   (`packages/ui/src/docs-components/docs-components.types.ts`)
+ * - MUST stay equal:  `ui`'s `UIDocsThemes.test.tsx` pins it
  */
 export const SCHEME_KEY = "spell-site:scheme"
 
 /**
- * Keys the scheme lived under before `SCHEME_KEY` (2026-10-04):  read once while `SCHEME_KEY` is absent, copied to
- * it, then removed.  First valid one wins.
+ * Keys the scheme lived under before `SCHEME_KEY` (2026-10-04).
+ * Read once while `SCHEME_KEY` is absent, copied to it, then removed;  the first valid one wins.
  * - `spell-site:theme`:  this header's
  * - `spell-ui-site:scheme`:  Spell UI's site
  * - MUST equal `DOCS_LEGACY_SCHEME_KEYS` in `ui`'s `docs-components.types.ts`
@@ -100,8 +112,8 @@ export const DARK_QUERY = "(prefers-color-scheme: dark)"
 export type SiteScheme = "light" | "dark"
 
 /**
- * Classes on `<html>` that force a scheme:  Spell UI's (`ThemePreference`), which the site header sets too, and so
- * does a page with its own light / dark switch (Spell App's pill).
+ * Classes on `<html>` that force a scheme:  Spell UI's (`ThemePreference`).
+ * - the site header sets them too, and so does a page with its own light / dark switch (Spell App's pill)
  */
 export const SCHEME_CLASSES = { light: "ui-light", dark: "ui-dark" } as const satisfies Record<SiteScheme, string>
 

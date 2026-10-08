@@ -5,11 +5,12 @@ import { join, resolve } from "node:path"
 import { SRV, type ServerInfo } from "$/server"
 
 /**
- * Where a background server says where it is:  `<root>/<name>` (default `.spell-server.json`), its `ServerInfo`.
- * - running means:  the file's server answers `/_server/ping` for THIS root;  a pid file left by a crash, or by a
- *   server on another checkout's root, is not running
- * - `ensure()` starts one detached if none runs, or restarts one older than its `sources`;  `stop()` sends it
- *   `SIGTERM`
+ * The file where a background server says where it is, holding its `ServerInfo`:
+ * `<root>/<name>` (default `.spell-server.json`).
+ * - running means:  the file's server answers `/_server/ping` for THIS root
+ *   - a pid file left by a crash, or by a server on another checkout's root, is not running
+ * - `ensure()` starts one detached if none runs, or restarts one older than its `sources`
+ * - `stop()` sends it `SIGTERM`
  * - From the goals tools' `launch.js` (`ensureServer`, `serverStatus`, `stopServer`).
  */
 export class PidFile {
@@ -109,9 +110,12 @@ export type RunningServer = ServerInfo & { base: string }
 
 /**
  * `PidFile.ensure()` options.
- * - `command`:  argv to run;  `env`:  added to ours;  `log`:  output file;  `timeout`:  ms to wait
- * - `sources`:  folders of the server's code:  a running server that started before a `.ts` / `.js` file in them
- *   last changed is restarted
+ * - `command`:  argv to run
+ * - `env`:  added to ours
+ * - `log`:  output file
+ * - `timeout`:  ms to wait
+ * - `sources`:  folders of the server's code
+ *   - a running server that started before a `.ts` / `.js` file in them last changed is restarted
  */
 export type EnsureOptions = {
   command: string[]
@@ -123,8 +127,9 @@ export type EnsureOptions = {
 
 /**
  * The newest modification time (ms) of the code files under `folders`, all the way down;  0 for none.
- * - code:  `.ts`, `.js`, `.mjs`;  skips `node_modules`, `_assets` (built pages' assets, not the server's code) and
- *   dot folders;  a missing folder counts as nothing
+ * - code:  `.ts`, `.js`, `.mjs`
+ * - skips `node_modules`, `_assets` (built pages' assets, not the server's code) and dot folders
+ * - a missing folder counts as nothing
  */
 export function newestChange(folders: string[]): number {
   let newest = 0

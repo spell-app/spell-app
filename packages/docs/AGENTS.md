@@ -422,6 +422,12 @@ In this order, from `packages/docs`:
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
   `tools/showRoutes.ts` (`GET /api/docs/show`).
+- `spell dev docs fuss <paths...> | --branch [--json]` (`tools/fuss.ts`) -- the writing checker under `/fussbudget`
+  (epic `skillz`, P7):  lists the misses of WWOD §6 a tool can find, by file and line.
+  - kinds:  `phrase-split` (a line ending in a new phrase's first 1-4 words), `dense` (3+ sentences in one
+    paragraph or bullet), `jargon` (a package's banned words, `Fuss.JARGON`)
+  - reads comments and docstrings in code, and Markdown;  in `.html` pages only `dense` and `jargon`
+  - exits 1 on any miss;  runs in the caller's folder, so its paths are from there
 - `tools/pages.js` -- shared by the scripts:  the areas (`EPICS`, `GUIDES`, `PAGES`, `TEMPLATES`, `BRAND`, `GOALS`, `HOME`, `LIST_PAGES`), `findPages()`,
   `pageFile()` (a page argument to its file), `atDepth()` (a template at a page's depth),
   `parseArgs()` (a tool's command line:  `--key value` flags and positionals), `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview

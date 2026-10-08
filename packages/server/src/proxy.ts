@@ -1,6 +1,7 @@
 /**
  * Pass requests on to another local server:  plain HTTP, and websocket upgrades (a dev server's HMR).
- * - The path is forwarded unchanged:  the server behind must expect it (e.g. a Vite dev server's `base: "/ui"` for `/ui/...`).
+ * - The path is forwarded unchanged:  the server behind must expect it
+ *   (e.g. a Vite dev server's `base: "/ui"` for `/ui/...`).
  * - `Host` is rewritten to the target's, so its own host check (Vite's `allowedHosts`) accepts it.
  */
 import { request as httpRequest, type IncomingMessage } from "node:http"

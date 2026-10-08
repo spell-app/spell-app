@@ -3,11 +3,12 @@ import { randomBytes } from "node:crypto"
 import { SRV, type Handler } from "$/server"
 
 /**
- * Keeps a local server's writes to pages it served itself.
- * - `checkHost`:  every request's `Host` must be this server's own (`127.0.0.1:<port>`, `localhost:<port>`):  a
- *   web page elsewhere can't reach us by pointing its own name at 127.0.0.1 (DNS rebinding)
- * - `checkWrite`:  a write must carry this run's `token` (header `x-server-token`), which only pages we served
- *   know (`window.SPELL_SERVER.token`), and, if it says, a same-origin `Origin`
+ * Guards a local server:  only pages it served itself may write to it.
+ * - `checkHost`:  every request's `Host` must be this server's own (`127.0.0.1:<port>`, `localhost:<port>`),
+ *   so a web page elsewhere can't reach us by pointing its own name at 127.0.0.1 (DNS rebinding)
+ * - `checkWrite`:  a write must carry this run's `token` (header `x-server-token`),
+ *   which only pages we served know (`window.SPELL_SERVER.token`)
+ *   - and, if it sends an `Origin`, a same-origin one
  * - the token changes every run:  a page served by an older run must reload
  * - From the goals server's POST checks.
  */

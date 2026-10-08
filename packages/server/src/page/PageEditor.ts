@@ -6,23 +6,24 @@ import { SRV } from "$/server"
 
 /**
  * Edits pages IN PLACE, for the page server:  `/_server/page`.
- * - `GET ?path=<url path>[&id=<id>][&parent=<tag>][&inner=1]`:  the page's source (or one element's), and its
- *   `ETag`
+ * - `GET ?path=<url path>[&id=<id>][&parent=<tag>][&inner=1]`:
+ *   the page's source (or one element's), and its `ETag`
  * - `PUT ?path=`:  the whole file;  body `text/*` (`text/html`, `text/plain` ...), or JSON `{ html }`
- *   - a page, or any TEXT file (`TEXT_FILE`:  `.md`, `.ts`, `.css`, `.spell` ...;  not `.json`):  what `<ui-code>` /
- *     `<ui-markdown>` save through `SPELL_SERVER.saveFile()`
+ *   - a page, or any TEXT file (`TEXT_FILE`:  `.md`, `.ts`, `.css`, `.spell` ...;  not `.json`)
+ *   - what `<ui-code>` / `<ui-markdown>` save through `SPELL_SERVER.saveFile()`
  * - `PATCH ?path=`:  one element by `id`;  body JSON `{ id, html, inner?, parent? }`
- * - `parent`:  a tag name, e.g. `section`:  the nearest such ANCESTOR of `#id` instead -- a docs section has no
- *   `id` of its own, but its heading does
+ * - `parent`:  a tag name, e.g. `section`:  the nearest such ANCESTOR of `#id` instead
+ *   - a docs section has no `id` of its own, but its heading does
  * - writes the ORIGINAL file in the checkout, and never commits:  that's for whoever reviews the change
- * - a section edit splices the element's exact byte range (parse5 source locations):  every other byte of the
- *   file stays as it was, so diffs show only the edit
+ * - a section edit replaces only the element's exact byte range (parse5 source locations)
+ *   - every other byte of the file stays as it was, so diffs show only the edit
  * - safety:
  *   - writes need the `Guard` token and same origin
- *   - under the root only, through `resolveInside()` (no dot files, no `..`):  `.html` for `PATCH`, any
- *     `TEXT_FILE` for `GET` / `PUT`
- *   - `If-Match` MUST be the `ETag` the page was served with:  if the file changed since (an editor, an agent),
- *     409, and the caller reloads;  missing:  428
+ *   - under the root only, through `resolveInside()` (no dot files, no `..`)
+ *   - which files:  `.html` for `PATCH`, any `TEXT_FILE` for `GET` / `PUT`
+ *   - `If-Match` MUST be the `ETag` the page was served with
+ *     - the file changed since (an editor, an agent):  409, and the caller reloads
+ *     - missing:  428
  *   - written under `FileLock`, atomically (temp file + rename)
  */
 export class PageEditor {
@@ -117,8 +118,8 @@ export class PageEditor {
 export type ElementRange = { start: number; end: number; innerStart?: number; innerEnd?: number }
 
 /**
- * The range of the ONE element with `id="<id>"` in `source` -- or, with `parent` (a tag name), of its nearest
- * `<parent>` ancestor.
+ * The range of the ONE element with `id="<id>"` in `source`,
+ * or, with `parent` (a tag name), of its nearest `<parent>` ancestor.
  * - none:  `HttpError(404)`;  several:  `HttpError(409)` -- an edit must name exactly one
  * - looks inside `<template>`s too
  */

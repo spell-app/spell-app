@@ -42,8 +42,8 @@ describe("RunningEpics", () => {
         ["todo", "P3 · Doc Review"]
       ])
     )
-    // a worktree cut before the rename to `<name>.plan.html` and the move into `content/`:  its plan doc under the old
-    // name and folder still counts;  a page of that name that isn't a plan doc doesn't
+    // a worktree cut before the rename to `<name>.plan.html` and the move into `content/`:
+    // its plan doc under the old name and folder still counts;  a page of that name that isn't a plan doc doesn't
     put(root, ".claude/worktrees/vite/packages/docs/epics/vite/vite.html", planDoc("Vite"))
     put(root, ".claude/worktrees/vite/packages/docs/epics/notes/notes.html", "<html><body>notes</body></html>\n")
     server = await new PageServer({ root }).start({ port: 0, routes: false })
@@ -205,8 +205,8 @@ describe("RunningEpics", () => {
   })
 })
 
-// shared content (epics `shared-content`, `claude-design` P4):  every checkout's `epics` is a link to the same
-// folder;  a checkout on older code reaches it through its `packages/docs/content` link and the old-path links
+// shared content (epics `shared-content`, `claude-design` P4):  every checkout's `epics` is a link to the same folder;
+// a checkout on older code reaches it through its `packages/docs/content` link and the old-path links
 describe("RunningEpics, shared content", () => {
   const temp = mkdtempSync(join(tmpdir(), "srv-epics-shared-"))
   afterAll(() => rmSync(temp, { recursive: true, force: true }))
