@@ -543,7 +543,7 @@ describe("spell projects", () => {
   test("lists the roots, with the name to type for each", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +2 projects$/m)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +3 projects$/m)
     expect(stdout).toMatch(/^@user +@user:projects /m)
   })
 
@@ -551,6 +551,7 @@ describe("spell projects", () => {
     const { stdout } = spell(["projects", "@test", "--json"])
     expect(JSON.parse(stdout)).toEqual([
       { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },
+      { name: "@test/OutlineSolitaire", id: "@test:fixtures:OutlineSolitaire" },
       { name: "@test/Solitaire", id: "@test:fixtures:Solitaire" }
     ])
   })

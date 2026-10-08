@@ -14,6 +14,7 @@ import {
   InfixOperatorSuffix,
   Negatable,
   Precedence,
+  SuffixLeft,
   type SpellExpressionProps
 } from "./expressions"
 
@@ -200,6 +201,10 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
 
   /** Generated method to read, e.g. `is_face_up`. */
   declare methodName: string
+  /** A value kind's phrase:  the kind whose static method it calls, e.g. `Rank` -- see `MethodRuleDeclared`. */
+  declare staticOf: string | undefined
+  /** Our method's owner, e.g. `Card`, if known -- see `parse()`. */
+  declare thisType: P.Datatype | undefined
   /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
   declare readonly Props: MethodOperatorRuleProps
 
@@ -207,17 +212,31 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
   declare static readonly SpecializeWith: MethodRuleDeclared
   /** Reads generated method `output`, e.g. `is_face_up` -- also our `ruleName`.  See `DynamicMethodRule.specialize()`. */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output } = declared as MethodRuleDeclared
-    const statics: P.RuleStatics<MethodPostfixRule> = { ruleName: output, methodName: output }
+    const { output, staticOf, of } = declared as MethodRuleDeclared
+    const statics: P.RuleStatics<MethodPostfixRule> = { ruleName: output, methodName: output, staticOf, thisType: of }
     return super.specialize(statics, declared) as unknown as T
   }
 
+  /**
+   * Match, unless what we follow is KNOWN, and can't be our method's owner (`thisType`), e.g. a deck's
+   * `a rank "is a face card"` on `the card is a face card` -- see `SuffixLeft`.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    if (!SuffixLeft.couldBeA(scope, this.thisType)) return undefined
+    return super.parse(scope, tokens)
+  }
+
   /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
-  static declarationProps({ output }: MethodRuleDeclared, syntax: string | undefined) {
-    return { syntax, output }
+  static declarationProps({ output, staticOf }: MethodRuleDeclared, syntax: string | undefined) {
+    return staticOf ? { syntax, output, staticOf } : { syntax, output }
   }
 
   compileASTExpression(match: P.Match, { lhs }: OperatorOperands): P.ASTExpression {
+    // a value kind's phrase:  `Rank.is_a_face_card(card.rank)`
+    if (this.staticOf) {
+      const thing = new P.ASTTypeExpression(match, { name: this.staticOf })
+      return new P.ASTScopedMethodInvocation(match, { thing, methodName: this.methodName, args: [lhs!] })
+    }
     return new P.ASTPropertyExpression(match, {
       object: lhs!,
       property: new P.ASTPropertyLiteral(match, this.methodName)
@@ -227,7 +246,12 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
 
 /** Props bag accepted by `MethodPostfixRule` / `MethodInfixRule` -- the generated method, and what it takes. */
 type MethodOperatorRuleProps = Prettify<
-  SpellExpressionProps & { methodName: string; paramTypes?: Array<P.Datatype | undefined> }
+  SpellExpressionProps & {
+    methodName: string
+    paramTypes?: Array<P.Datatype | undefined>
+    staticOf?: string
+    thisType?: P.Datatype
+  }
 >
 
 /**
@@ -236,7 +260,7 @@ type MethodOperatorRuleProps = Prettify<
  * - `of` / `params`:  its owner and parameters, as its `P.ScopeMethod` record --
  *   loading passes the whole declaration, which holds the record's too
  */
-type MethodRuleDeclared = { output: string; of?: string; params?: P.ScopeParam[] }
+type MethodRuleDeclared = { output: string; of?: string; params?: P.ScopeParam[]; staticOf?: string }
 
 ////////////////
 // ## `MethodInfixRule` base class
@@ -262,6 +286,8 @@ export class MethodInfixRule extends InfixOperatorSuffix {
   declare methodName: string
   /** Datatype of its one parameter, if the signature says -- see `parse()`. */
   declare paramTypes: Array<P.Datatype | undefined> | undefined
+  /** Our method's owner, e.g. `Card`, if known -- see `parse()`. */
+  declare thisType: P.Datatype | undefined
   /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
   declare readonly Props: MethodOperatorRuleProps
 
@@ -269,23 +295,25 @@ export class MethodInfixRule extends InfixOperatorSuffix {
   declare static readonly SpecializeWith: MethodRuleDeclared
   /**
    * Calls generated method `output` -- also our `ruleName`.
-   * - Its `params` are our `paramTypes`.  See `DynamicMethodRule.specialize()`.
+   * - Its `of` / `params` are our `thisType` / `paramTypes`.  See `DynamicMethodRule.specialize()`.
    */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
-    const { output, params } = declared as MethodRuleDeclared
+    const { output, of, params } = declared as MethodRuleDeclared
     const statics: P.RuleStatics<MethodInfixRule> = {
       ruleName: output,
       methodName: output,
+      thisType: of,
       paramTypes: params?.map((param) => param.datatype)
     }
     return super.specialize(statics, declared) as unknown as T
   }
 
   /**
-   * Match, unless our right side is KNOWN to be the wrong type -- as `DynamicMethodRule.parse()`.
-   * - NOTE: our LEFT side isn't checked:  a suffix can't see it while parsing.
+   * Match, unless a side is KNOWN to be the wrong type -- as `DynamicMethodRule.parse()`.
+   * - Our left side, when `compound_expression` knows it:  see `SuffixLeft`.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    if (!SuffixLeft.couldBeA(scope, this.thisType)) return undefined
     const match = super.parse(scope, tokens)
     const rhs = (match?.groups as { expression?: P.Match } | undefined)?.expression
     if (match && rhs && !scope.couldBeA(rhs.datatype, this.paramTypes?.[0])) return undefined
@@ -407,9 +435,21 @@ export class MethodDefinition<
    *   var-name alias) directly onto the new scope's `variables`.
    */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    const { methodName, args, extraVars, instanceType } = this.getSignature(match)!
+    const { methodName, args, extraVars, instanceType, valueKindOf } = this.getSignature(match)!
     // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
     const declaredBy = match as P.Match
+    // a value kind's phrase:  `it` / `the rank` are its argument, the value -- see `MethodSignatureData.valueKindOf`
+    if (valueKindOf && instanceType) {
+      const datatype = SP.typeName(valueKindOf)
+      return new P.MethodScope({
+        parentScope: match.scope,
+        name: methodName,
+        args: [new P.ScopeVariable({ name: instanceType, datatype })],
+        mapItTo: instanceType,
+        itDatatype: datatype,
+        declaredBy
+      })
+    }
     const methodScope = new P.MethodScope({
       parentScope: match.scope,
       name: methodName,
@@ -552,7 +592,8 @@ export class MethodDefinition<
    */
   getRule(match: P.MatchFor<this>): void {
     const { asTest } = match.groups as { asTest?: P.Match }
-    const { methodName = "", syntax = "", asPostfixExpression, asInfixExpression } = this.getSignature(match)!
+    const signature = this.getSignature(match)!
+    const { methodName = "", syntax = "", asPostfixExpression, asInfixExpression, valueKindOf } = signature
     const { scope } = match
     // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
     const declaredBy = match as P.Match
@@ -560,11 +601,12 @@ export class MethodDefinition<
     const output = methodName
     const { of, params } = this.getOwnerAndParams(match)
     if (asPostfixExpression) {
-      scope.addRule(MethodPostfixRule.specialize({ output }), { syntax }, declaredBy)
+      const declared = valueKindOf ? { output, of, staticOf: valueKindOf } : { output, of }
+      scope.addRule(MethodPostfixRule.specialize(declared), { syntax }, declaredBy)
       return
     }
     if (asInfixExpression) {
-      scope.addRule(MethodInfixRule.specialize({ output, params }), { syntax }, declaredBy)
+      scope.addRule(MethodInfixRule.specialize({ output, of, params }), { syntax }, declaredBy)
       return
     }
     const alias = asTest ? "statement" : ["statement", "expression"]
@@ -654,7 +696,18 @@ export class MethodDefinition<
     }
 
     if (instanceType) {
-      if (asPostfixExpression) {
+      // a value kind's phrase:  its static method, given the value -- see `MethodSignatureData.valueKindOf`
+      if (asPostfixExpression && signature.valueKindOf) {
+        const value = new P.ASTVariableExpression(match, { name: instanceType })
+        const { body } = method
+        output.push(
+          new P.ASTStaticMethod(match, {
+            type: signature.valueKindOf,
+            name: methodName,
+            method: new P.ASTMethodDefinition(match, { args: [value], body, datatype: "choice" })
+          })
+        )
+      } else if (asPostfixExpression) {
         // console.warn("APE:", method)
         output.push(
           new P.ASTPropertyDefinition(match, {
@@ -1640,8 +1693,48 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
         }
         return undefined
       }
+      const refused = SpellStatement.refuseUnknownType(match, match.groups.type)
+      if (refused !== match) return refused
+      if (quoted_type_expression.isPropertySlip(scope, tokens)) {
+        const whole = match.clone({ matched: tokens, tokens: [...tokens] })
+        const name = (tokens[1] as P.TextToken).innerText
+        return SpellStatement.refuse(whole, `A property starts "its":  write its "${name}" is ...`)
+      }
+      if (quoted_type_expression.isBodiless(match, tokens)) {
+        const phrase = match.groups.signature.inputText.trim()
+        return SpellStatement.refuse(match, `${phrase} has no body:  write ${phrase} always, or ${phrase} if ...`)
+      }
     }
     return match
+  }
+
+  /**
+   * Is `match` the quoted phrase and NOTHING more:  no `if` / `is` / `:`, no body, e.g. `- it "can move"` (plan doc
+   * `outline-spell` I6)?
+   * - Refused, saying so:  it'd compile to an empty method, `get can_move() {}`, always `undefined`.
+   * - A dangling `if` is fine:  its body may be the indented lines below.
+   */
+  private static isBodiless(match: P.MatchFor<quoted_type_expression>, tokens: P.Token[]): boolean {
+    const lastOfSignature = match.groups.signature.tokens.at(-1)
+    const after = tokens.slice(tokens.indexOf(lastOfSignature!) + 1)
+    return !after.join("").trim()
+  }
+
+  /**
+   * Is `tokens` a property written with `it` for `its` in an outline body, e.g. `- it "rank" is a number`
+   * (plan doc `outline-spell`, todo T3)?
+   * - `it`, a quoted member name (no verb, so not a phrase like `"is face up"`), then `is`.
+   * - Refused, saying so:  read as a phrase, it'd make an empty `get rank() {}`, and say only
+   *   "Don't understand `a number`".
+   */
+  private static isPropertySlip(scope: P.Scope, tokens: P.Token[]): boolean {
+    const [subject, name, is] = tokens
+    return (
+      `${subject?.value}`.toLowerCase() === "it" &&
+      !!name &&
+      !!scope.getRuleOrDie("quoted_member").test(scope, [name]) &&
+      `${is?.value}`.toLowerCase() === "is"
+    )
   }
 
   /**
@@ -1667,6 +1760,9 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
     signature.instanceType = groups.type.raw
     if (signature.args.length === 0) {
       signature.asPostfixExpression = true
+      // a value kind's phrase:  its static method -- see `MethodSignatureData.valueKindOf`
+      const { scopeType } = groups.type.data as { scopeType?: unknown }
+      if (scopeType instanceof P.TypeScope && scopeType.valueKind) signature.valueKindOf = scopeType.name
     } else if (signature.args.length === 1) {
       signature.asInfixExpression = true
       signature.syntaxBits = signature.syntaxBits.map((bit) => (bit.startsWith("{") ? "{expression:operand}" : bit))
@@ -1896,6 +1992,10 @@ methods.addRule(quoted_type_expression, {
     }
   ]
 })
+// in an outline body:  `- it "is face up" if its direction is up` -- tests in `parserTests/outline.test.ts`
+methods.addRule(quoted_type_expression, {
+  syntax: "{type:subject_it} {signature:quoted_method_signature} (if|is)? :? {expression_body}?"
+})
 
 ////////////////
 // ## Method-signature data types
@@ -1940,6 +2040,12 @@ type MethodSignatureData = {
   /** `true` when it compiles to an infix expression (e.g. `card.nerds_out_with_$another(thing)`) -- set by
    *  `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`. */
   asInfixExpression?: boolean
+  /**
+   * A phrase on a VALUE kind, e.g. `Rank` for `a rank "is a face card" if ...` (plan doc `outline-spell`, P3):
+   * its values are plain text, so the method is the kind's STATIC one, given the value -- `Rank.is_a_face_card(r)`.
+   * Set by `quoted_type_expression.processSignature()`;  postfix only.
+   */
+  valueKindOf?: string
 }
 
 /**

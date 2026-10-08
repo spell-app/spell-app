@@ -193,6 +193,26 @@ export class ASTStringLiteral extends ASTLiteral {
   }
 }
 
+/**
+ * TemplateString -- text with values inside, e.g. spell's `"images/[rank]-of-[suit].png"`:
+ * `` `images/${this.rank}-of-${this.suit}.png` ``.
+ * - `parts` (required):  in order, each plain text (as written between the quotes, its escapes kept) or an
+ *   Expression whose value goes there.
+ * - Escapes what a javascript template would read:  a backtick, and `${`.
+ */
+export type ASTTemplateStringProps = Prettify<{ parts: Array<string | ASTExpression> }>
+
+export class ASTTemplateString extends ASTExpression {
+  declare parts: Array<string | ASTExpression>
+  /*@readonly*/ /*@proto*/ get datatype(): string {
+    return "text"
+  }
+  constructor(match: P.AnyMatch, props: ASTTemplateStringProps) {
+    super(match, props)
+    this.assertArrayType("parts", ["string", ASTExpression])
+  }
+}
+
 /** BooleanLiteral type.
  *  - `value` is the boolean.
  *  - `raw` (optional) is original input string.
@@ -1605,6 +1625,37 @@ export class ASTStaticDefinition extends ASTClassMember {
     this.assertType("name", "string")
     this.assert(P.jsText.isLegalIdentifier(this.name), `ASTStaticDefinition: illegal name '${this.name}'`)
     this.assertType("value", ASTExpression)
+  }
+}
+
+/**
+ * StaticMethod -- a method of the class itself, e.g. a property of a VALUE kind, which works on a value it's
+ * given:  `static color(suit) {...}`, read as `Suit.color(card.suit)`.
+ * - `type` (required) is its class, as a TypeExpression or bare name.
+ * - `name` (required) is its name, a legal identifier.
+ * - `method` (required) is its MethodDefinition:  its args and body.
+ * - `getter` (optional):  a static GETTER, read when used, e.g. `static get instanceType() { return Card }` for a
+ *   class defined below its list's.
+ * - `static color(suit) {...}` in its class, else `Suit.color = function (suit) {...}` -- or for a getter
+ *   `Object.defineProperty(Deck, 'instanceType', { get() {...}, configurable: true })`.
+ */
+export type ASTStaticMethodProps = Prettify<{
+  type: string | ASTTypeExpression
+  name: string
+  method: ASTMethodDefinition
+  getter?: boolean
+}>
+
+export class ASTStaticMethod extends ASTClassMember {
+  declare name: string
+  declare method: ASTMethodDefinition
+  declare getter: boolean | undefined
+  constructor(match: P.AnyMatch, props: ASTStaticMethodProps) {
+    super(match, props)
+    this.assertType("name", "string")
+    this.assert(P.jsText.isLegalIdentifier(this.name), `ASTStaticMethod: illegal name '${this.name}'`)
+    this.assertType("method", ASTMethodDefinition)
+    this.assertType("getter", "boolean", OPTIONAL)
   }
 }
 

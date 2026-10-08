@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { NONE, proto } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 // Import directly to avoid circular import -- rules are constructed while the `SP` barrel is still loading.
@@ -35,6 +35,14 @@ export class SpellStatement<
   declare operandInExpressions: boolean
   @proto static operandInExpressions = false
   /**
+   * `true`:  a nested block body compiles FLAT -- its statements beside ours, in the block holding us, NOT
+   * wrapped in `{}` -- e.g. an outline-style type's bulleted body, `a card is a thing where:`.
+   * - So its members are hoisted into the class like any top-level line's (`SP.hoistClassMembers()`).
+   * - `parseNestedBlock()` leaves the body un-`enclose`d;  `Block.getAST()` splices its statements in after ours.
+   */
+  declare flatBody: boolean
+  @proto static flatBody = false
+  /**
    * In the expression twin `operandInExpressions` makes:  the statement rule it's the twin of,
    * the one `scope.addRule()` recorded.  See `SpellStatement.statementRuleOf()`.
    */
@@ -50,6 +58,7 @@ export class SpellStatement<
 
   /**
    * If `rules` ends with a body keyword (or a choice of them), move it into `bodySpec` -- see `BODY_KEYWORDS`.
+   * - A `leadIn` keyword stays in `rules` too:  it matches the words opening the body, e.g. `where:`.
    * - SIDE EFFECT: sets `rules` / `bodySpec`.  Only call before the rule is frozen, i.e. from the constructor.
    */
   protected extractBodySpecFromRules() {
@@ -57,8 +66,21 @@ export class SpellStatement<
     const keywords = last instanceof P.Subrule ? [last] : last instanceof P.Choice ? last.rules : []
     const specs = keywords.map((keyword) => (keyword instanceof P.Subrule ? BODY_KEYWORDS[keyword.rule] : undefined))
     if (!last || !specs.length || specs.some((spec) => !spec)) return
-    this.rules = this.rules.slice(0, -1)
-    this.bodySpec = Object.assign({ syntaxRule: last }, ...specs) as StatementBodySpec
+    const bodySpec = Object.assign({ syntaxRule: last }, ...specs) as StatementBodySpec
+    if (!bodySpec.leadIn) this.rules = this.rules.slice(0, -1)
+    this.bodySpec = bodySpec
+  }
+
+  /**
+   * Do we take the indented block after `match` as our body?  Whenever we take a body -- but after a `leadIn`
+   * keyword, only when it matched, e.g. `a card is a thing where:`, not `a card is a thing`.
+   */
+  takesNestedBody(match: P.Match): boolean {
+    const { bodySpec } = this
+    if (!bodySpec) return false
+    if (!bodySpec.leadIn) return true
+    const keyword = bodySpec.syntaxRule as P.Subrule
+    return !!match.groups[keyword.matchGroup ?? keyword.rule]
   }
 
   /**
@@ -67,15 +89,18 @@ export class SpellStatement<
    * - For a `parse()` which understood what it read, but mustn't accept it:  return this, NOT `undefined`,
    *   so the error says why, instead of "Don't understand ...".
    * - `BlockLine` reports it as its line's error, and commits nothing:  the line compiles to the error.
+   * - It competes with `match`'s priority (`P.Match.priority`):  a plainer rule which merely fits the same words
+   *   can't take the line instead, e.g. `quoted_type_expression` taking `it "is a suit"` as an empty method.
    */
   static refuse(match: P.Match, message: string): P.Match {
-    const { scope, tokens } = match
+    const { scope, tokens, rule } = match
     return new P.Match({
       scope,
       rule: scope.getRuleOrDie("parse_error"),
       matched: tokens,
       tokens: [...tokens],
-      message
+      message,
+      priority: rule.priority
     })
   }
 
@@ -97,6 +122,20 @@ export class SpellStatement<
       match,
       `Can't add ${words} to ${typeName}:  it's built in, and every project shares it`
     )
+  }
+
+  /**
+   * `match`, a statement adding to `type` -- or, when spell knows NO type of that name, a parse error saying so,
+   * e.g. `the color of a suit is ...` with no `suit` declared anywhere in the project.
+   * - Why:  it'd compile against a class nobody defines, `Suit.prototype`, and throw when run
+   *   (was `agents/SUSPECTED-BUGS.md`;  plan doc `outline-spell`, P2).
+   * - A type declared further down is known:  every declaration is stubbed before a project parses.
+   * - A lookup:  call it WHILE PARSING.
+   */
+  static refuseUnknownType(match: P.Match, type: P.Match): P.Match {
+    const { scopeType } = type.data as { scopeType?: unknown }
+    if (scopeType !== NONE) return match
+    return SpellStatement.refuse(match, `There's no type "${type.raw}":  declare it, e.g. "a ${type.raw} is a thing"`)
   }
 
   /**
@@ -149,7 +188,7 @@ export class SpellStatement<
    * Attempt to parse `nestedBlock` as our nested body, if we take one.
    * - Returns the nested body match if successful.
    * - `bodySpec.nestedAs` ~== `"block"` => parses the whole nested block via `statement.nestedScope` and marks
-   *   the result `enclose`d (wrapped in `{}` when compiled).  Otherwise, only a single-line nested block
+   *   the result `enclose`d (wrapped in `{}` when compiled), unless we're `flatBody`.  Otherwise, only a single-line nested block
    *   can be parsed, as `nestedAs` directly (e.g. an `expression`).
    * - SIDE EFFECT: on success, adds it to `statement.groups` as `body`,
    *   and records it as `statement.data.body` -- see `getBody()`.
@@ -162,8 +201,8 @@ export class SpellStatement<
     if (parseAs === "block") {
       const { nestedScope } = statement
       result = nestedScope.parser?.parse([nestedBlock], "block", nestedScope)
-      // wrap output in braces
-      if (result?.is(Block)) result.data.enclose = true
+      // wrap output in braces -- or not, see `flatBody`
+      if (result?.is(Block) && !this.flatBody) result.data.enclose = true
     } else {
       // if parsing as anything else, we can only handle a single line
       if (nestedBlock.tokens.length > 1) return undefined
@@ -173,9 +212,10 @@ export class SpellStatement<
       // Only a `LineToken` (not a nested `BlockToken`) can be parsed as a single rule here.
       if (!(first instanceof P.LineToken)) return undefined
       const { tokens } = first
-      // TODO: `statement.scope` or `statement.nestedScope` ???
-      const { scope } = statement
-      result = scope.parser?.parse(tokens, parseAs, scope)
+      // the body's scope, as an inline body's (`parseInlineStatement()`):  e.g. `draw_side`'s markup, where `[rank]`
+      // is the card's.  The same as `statement.scope` for a rule with no scope of its own, e.g. `return`
+      const { nestedScope } = statement
+      result = nestedScope.parser?.parse(tokens, parseAs, nestedScope)
       // forget it if we didn't parse the entire line
       if (result?.length !== tokens.length) return undefined
     }
@@ -194,6 +234,55 @@ export class SpellStatement<
    */
   mutateScopeFromBody(_match: P.Match): string | undefined {
     return undefined
+  }
+
+  /**
+   * `match`, an outline body's line, as the sentence style would say it -- what editors show as "Reads as"
+   * (plan doc `outline-spell`, Q1:  hover teaches the long form).  `undefined` for any other line.
+   * - Default:  a line whose subject (its `type` group) is the body's `it` / `its`, with the subject spelled out:
+   *   - `it has a deck` => `a card has a deck`
+   *   - `its "color" is red if ...` => `the "color" of a card is red if ...`
+   * - Override where the sentence style says it differently, e.g. `define_property_has`'s `has ... as ...`.
+   * - Its FIRST line only:  a body stays as written.
+   */
+  getLongForm(match: P.Match): string | undefined {
+    const { subject, property } = SpellStatement.subjectOf(match)
+    const typeWords = SpellStatement.subjectWords(match)
+    if (!subject || !typeWords) return undefined
+    const text = SpellStatement.firstLineOf(match)
+    const at = subject.start! - match.start!
+    const after = text.slice(at + subject.inputText.trimEnd().length).trimStart()
+    if (/^it$/i.test(subject.inputText.trim())) return `${text.slice(0, at)}a ${typeWords} ${after}`
+    // `its <property> ...` => `the <property> of a <type> ...`
+    const propertyText = property?.inputText.trimEnd()
+    if (!propertyText || !after.startsWith(propertyText)) return undefined
+    return `${text.slice(0, at)}the ${propertyText} of a ${typeWords}${after.slice(propertyText.length)}`
+  }
+
+  /**
+   * The words for the type an outline body is about, e.g. `card`, if `match`'s subject is that body's `it` / `its`
+   * -- else `undefined`.  See `getLongForm()`.
+   */
+  static subjectWords(match: P.Match): string | undefined {
+    const { subject } = SpellStatement.subjectOf(match)
+    if (!subject || !P.SubjectScope.of(match.scope) || !/^its?$/i.test(subject.inputText.trim())) return undefined
+    return `${subject.raw}`
+  }
+
+  /**
+   * `match`'s subject and property:  its `type` and `property` groups, or its `type_property`'s, e.g.
+   * `property_value_either`'s `its "color"`.
+   */
+  static subjectOf(match: P.Match): { subject?: P.Match; property?: P.Match } {
+    type Groups = { type?: P.Match; property?: P.Match; type_property?: P.Match }
+    const groups = match.groups as Groups
+    const holder = groups.type ? groups : ((groups.type_property?.groups as Groups | undefined) ?? groups)
+    return { subject: holder.type, property: holder.property }
+  }
+
+  /** `match`'s source text, up to the end of its first line. */
+  static firstLineOf(match: P.Match): string {
+    return match.inputText.split("\n")[0]!.trimEnd()
   }
 
   /**
@@ -255,10 +344,11 @@ export class SpellStatement<
     return entries
   }
 
-  /** Echo our syntax back out as rulex, INCLUDING the body keyword we took out of `rules`. */
+  /** Echo our syntax back out as rulex, INCLUDING the body keyword we took out of `rules` (a `leadIn` one stayed). */
   toRulexSyntax() {
     const { matchGroup, optional } = this.getRulexFlags()
-    const rules = P.joinRulex([...this.rules, this.bodySpec?.syntaxRule].filter((rule): rule is P.Rule => !!rule))
+    const keyword = this.bodySpec?.leadIn ? undefined : this.bodySpec?.syntaxRule
+    const rules = P.joinRulex([...this.rules, keyword].filter((rule): rule is P.Rule => !!rule))
     if (optional || matchGroup) return `(${matchGroup}${rules})${optional}`
     return `${rules}${optional}`
   }
@@ -296,7 +386,7 @@ export function commitStatement(statement: P.Match, nextItem?: P.Token): Committ
 
   const committed: CommittedStatement = {}
   if (!(statement.rule instanceof SpellStatement)) return committed
-  if (statement.rule.bodySpec && nextItem instanceof P.BlockToken) {
+  if (nextItem instanceof P.BlockToken && statement.rule.takesNestedBody(statement)) {
     committed.bodyMark = statement.scope.parser?.journal?.mark()
     committed.body = statement.rule.parseNestedBlock(statement, nextItem)
   }

@@ -273,6 +273,8 @@ const GITIGNORE = `# written by \`spell dev shared init\`
 pages/details/
 # /epic review inboxes:  a review's pending marks, never committed
 epics/*/*.inbox.json*
+# an epic's running agents (\`spell dev agents\`):  what's running now, never committed
+epics/*/agents.json
 `
 
 /** The shared repo's `README.md`. */

@@ -99,16 +99,24 @@ export class TSWriter extends JSWriter {
 
   /**
    * What `node` holds, in TypeScript, from its `check`:  `{ type: 'text' }` => `string`;  `{ oneOf: Card.Suits }` =>
-   * `(typeof Card.Suits)[number]`.  Else its initializer's datatype.  `undefined` if unknown.
+   * `(typeof Card.Suits)[number]`, as for a list read when set, `{ oneOf: () => { return Deck.Suits } }`.  Else its
+   * initializer's datatype.  `undefined` if unknown.
    */
   propertyType(node: P.ASTReactiveProperty): string | undefined {
     for (const property of node.check?.properties ?? []) {
       if (!(property instanceof P.ASTObjectLiteralProperty) || !property.value) continue
       const key = property.property.value
       if (key === "type" && property.value instanceof P.ASTStringLiteral) return this.typeFor(property.value.value)
-      if (key === "oneOf") return `(typeof ${this.write(property.value)})[number]`
+      if (key === "oneOf") return `(typeof ${this.write(TSWriter.listOf(property.value))})[number]`
     }
     return this.typeFor(node.initializer?.datatype)
+  }
+
+  /** The list a `oneOf` check names:  `value` itself, or what it returns when it's read when set, `() => Deck.Suits`. */
+  static listOf(value: P.ASTExpression): P.ASTExpression {
+    if (!(value instanceof P.ASTMethodDefinition)) return value
+    const [returned] = value.body.statements ?? []
+    return returned instanceof P.ASTReturnStatement && returned.value ? returned.value : value
   }
 
   /** From outside its class:  first an `interface` merged with its class, so TypeScript knows it's there. */

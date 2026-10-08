@@ -144,8 +144,11 @@ export function spellTypeOf(value: unknown): string {
 export type PropInfo = {
   /** Declared type, as the runtime names it, e.g. `text`, `number`, `choice`, `Card`. */
   type?: string
-  /** Legal values, e.g. `Card.Suits`. */
-  oneOf?: readonly unknown[]
+  /**
+   * Legal values, e.g. `Card.Suits` -- or a function returning them, read when set, e.g. `() => Deck.Suits` for a
+   * list on a class defined after ours.
+   */
+  oneOf?: readonly unknown[] | (() => readonly unknown[])
   /** Its value while unset -- NOT stored, so it isn't one of `keys()`.  Primitives only:  objects use `init`. */
   default?: unknown
   /**

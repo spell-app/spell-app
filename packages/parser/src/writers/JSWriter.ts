@@ -67,6 +67,16 @@ export class JSWriter extends Writer {
     return node.raw ?? jsText.inQuotes(node.value, node.quote)
   }
 
+  /** `` `images/${this.rank}-of-${this.suit}.png` ``:  its text as written, with a backtick and `${` escaped. */
+  ASTTemplateString(node: P.ASTTemplateString): string {
+    const body = node.parts
+      .map((part) =>
+        typeof part === "string" ? part.replace(/`/g, "\\`").replace(/\$\{/g, "\\${") : `\${${this.write(part)}}`
+      )
+      .join("")
+    return `\`${body}\``
+  }
+
   ASTBooleanLiteral(node: P.ASTBooleanLiteral): string {
     return node.value ? "true" : "false"
   }
@@ -489,6 +499,24 @@ export class JSWriter extends Writer {
   declareCall(node: P.ASTReactiveProperty, owner: string): string | undefined {
     const declaration = this.declaration(node)
     return declaration && `${owner}.declareProp(${jsText.quoted(node.property.value)}, ${declaration})`
+  }
+
+  /** In its class's body:  `static name(args) {...}`, or `static get name() {...}`. */
+  ASTStaticMethodAsMember(node: P.ASTStaticMethod): string {
+    return this.methodNamed(node.method, node.getter ? `static get ${node.name}` : `static ${node.name}`)
+  }
+
+  /**
+   * From outside its class:  `Type.name = function (args) {...}`, or for a getter
+   * `Object.defineProperty(Type, 'name', { get() {...}, configurable: true })`.
+   */
+  ASTStaticMethod(node: P.ASTStaticMethod): string {
+    const type = this.write(node.type)
+    if (node.getter) {
+      const descriptor = [`${this.methodNamed(node.method, "get")},`, "configurable: true"].join(jsText.NEWLINE)
+      return `Object.defineProperty(${type}, ${jsText.quoted(node.name)}, ${jsText.Block({ wrap: true, children: descriptor })})`
+    }
+    return `${type}.${node.name} = ${this.anonymousFunction(node.method)}`
   }
 
   ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {

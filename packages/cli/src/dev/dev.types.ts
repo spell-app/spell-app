@@ -364,7 +364,7 @@ export type ToolSpec = { tool: string; tsx?: string; cwd?: string }
  */
 export type AgentRulesProblem = { file: string; line: number; cite: string; problem: string }
 
-/** `spell dev agents check`'s answer:  WWOD's size, how many files were read, and what's broken. */
+/** `spell dev wwod check`'s answer:  WWOD's size, how many files were read, and what's broken. */
 export type AgentRulesReport = { sections: number; rules: number; files: number; problems: AgentRulesProblem[] }
 
 ////////////////

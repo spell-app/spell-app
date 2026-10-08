@@ -140,6 +140,8 @@ In `tools/`:
       contents and the rail, from each host's `contentsEntry` (label, icon, count), after waiting for them to draw
       (`EPIC_WAIT_MS`, 5s at most:  a pack that won't load doesn't hold up the page);  remembers their folds;  and
       lands links inside them (a link to an `<epic-item>` opens it)
+    - running agents (epic `skillz` P3):  `<epic-page>` draws the "Agents running" panel above its first section
+      while any agent of the epic runs, each with a note box that redirects it (`packages/epics/AGENTS.md`)
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
   - the address follows the section being read (`#id`, replaced, not pushed), so a reload lands there
   - served by the page server, an edit to the page's file updates it IN PLACE (`wireLiveUpdate()`):  scroll,
@@ -373,12 +375,24 @@ In this order, from `packages/docs`:
 - `tools/plan-doc.js`, `plan-parts.js`, `inbox.js`, `review-backfill.js` -- forwarders to the plan-doc tool in
   `packages/epics/src/tool/` (`PlanDoc`, `PlanParts`, `ReviewInbox`, `ReviewBackfill`), for old imports and callers
   on older code (see "Plan docs").  The review routes are `packages/epics/src/tool/reviewRoutes.ts`.
+- `spell dev agents add | set | done | list | wait | told` (`tools/agents.ts`, over `tools/AgentList.ts`) -- the
+  running-agents list (epic `skillz`):  every background agent a Claude session started, by name, while it runs.
+  - the file:  `epics/<epic>/agents.json` in an epic (git-ignored in the shared repo), else
+    `<checkout root>/.spell-agents.json` (git-ignored);  `--epic <name>`, any verb, picks the epic
+  - names get a prefix:  the epic's, else the worktree's, else `main` (`add aaa` in epic `skillz` is `skillz-aaa`)
+  - an entry leaves when its agent finishes (`done`);  empty, the file goes
+  - every write under the file's lock (`SRV.FileLock`) and atomic, as the review inbox's
+  - REDIRECTS (P3):  a plan doc's "Agents running" panel (`<epic-page>`, `packages/epics`) shows an epic's list, a
+    note box per agent;  Owen's note goes through `tools/agentRoutes.ts` (`GET /api/agents?page=`, `POST
+    /api/agents/redirect { page, name, note }`, guarded as the review routes) into the entry's `redirects`, untold,
+    until a session's background `wait` takes it, sends it to the agent and marks it `told`
+  - the verbs and an example:  `tools/agents.ts`'s header
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
   `tools/showRoutes.ts` (`GET /api/docs/show`).
 - `tools/pages.js` -- shared by the scripts:  the areas (`EPICS`, `GUIDES`, `PAGES`, `TEMPLATES`, `BRAND`, `GOALS`, `HOME`, `LIST_PAGES`), `findPages()`,
   `pageFile()` (a page argument to its file), `atDepth()` (a template at a page's depth),
-  `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
+  `parseArgs()` (a tool's command line:  `--key value` flags and positionals), `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
   through the spell extension's `DocPreview`;  `{ view: "review" }`:  the "Review" tab).
 - `tools/check-spell.js <page> [outDir]` -- Playwright, from `file://` (from the page server when the page says
   `data-spell-needs-server`):  fails on console errors, an undefined or unrendered `ui-*` or `epic-*` element (a

@@ -48,6 +48,7 @@ describe("priority and precedence", () => {
         "divided_by:  Precedence.product",
         "does_not_include:  Precedence.comparison",
         "draw_items:  Priority.specific",
+        "draw_side:  Priority.declaration",
         "draw_thing:  Priority.preferred",
         "else_if:  Priority.preferred",
         "ends_with:  Precedence.comparison",
@@ -81,6 +82,9 @@ describe("priority and precedence", () => {
         "round_number:  Priority.preferred",
         "starts_with:  Precedence.comparison",
         "times:  Precedence.product",
+        "value_if:  Priority.overridable",
+        "value_kind:  Priority.declaration",
+        "value_otherwise:  Priority.overridable",
       ]
     `)
   })

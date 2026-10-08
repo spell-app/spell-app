@@ -34,12 +34,19 @@ class identifier_list extends P.Repeat {
   @proto static datatype = "list"
 
   getAST(match: P.MatchFor<this>): P.ASTListExpression {
-    const { items } = match
-    return new P.ASTListExpression(match, { items: items.map((item) => P.matchAST(item)) })
+    return new P.ASTListExpression(match, { items: identifier_list.itemASTs(match as P.Match) })
+  }
+
+  /** Each item's AST, a `number_range` spread out into its numbers, e.g. `2 ... 4` => `2`, `3`, `4`. */
+  static itemASTs(match: P.Match): P.ASTExpression[] {
+    return match.items.flatMap((item) => {
+      const AST = P.matchAST<P.ASTExpression>(item)
+      return AST instanceof P.ASTListExpression ? (AST.items ?? []) : [AST]
+    })
   }
 }
 lists.addRule(identifier_list, {
-  syntax: "[({known_variable}|{constant}|{number}) (,|or|and|nor)]",
+  syntax: "[({number_range}|{known_variable}|{constant}|{number}) (,|or|and|nor)]",
   tests: [
     {
       tests: [
@@ -47,7 +54,93 @@ lists.addRule(identifier_list, {
         ["red and black", "['red', 'black']"],
         ["back nor forth", "['back', 'forth']"],
         ["clubs, diamonds, hearts, spades", "['clubs', 'diamonds', 'hearts', 'spades']"],
-        ["ace, 2, 3, 4, jack, queen or king", "['ace', 2, 3, 4, 'jack', 'queen', 'king']"]
+        ["ace, 2, 3, 4, jack, queen or king", "['ace', 2, 3, 4, 'jack', 'queen', 'king']"],
+        ["ace, 2 ... 5, jack, queen or king", "['ace', 2, 3, 4, 5, 'jack', 'queen', 'king']"]
+      ]
+    }
+  ]
+})
+
+////////////////
+// ## `number_range` rule
+//    e.g. "2 ... 5", in a list of values
+////////////////
+
+/**
+ * Whole numbers from one to another, e.g. `2 ... 10` in `ace, 2 ... 10, jack, queen or king`
+ * (plan doc `outline-spell`, P2).
+ * - Compiles to the list of them, `[2, 3, ... 10]`, which `identifier_list` spreads into its own.
+ * - Only counting up, by 1, from a whole number to a bigger one, at most `MAX_RANGE` of them.
+ */
+class number_range extends P.Sequence<"start|end"> {
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match) return undefined
+    const start = Number(match.groups.start.value)
+    const end = Number(match.groups.end.value)
+    const isWhole = Number.isInteger(start) && Number.isInteger(end)
+    return isWhole && end > start && end - start < MAX_RANGE ? match : undefined
+  }
+
+  getAST(match: P.MatchFor<this>): P.ASTListExpression {
+    const start = Number(match.groups.start.value)
+    const end = Number(match.groups.end.value)
+    const items = Array.from(
+      { length: end - start + 1 },
+      (_, index) => new P.ASTNumericLiteral(match, { value: start + index, raw: `${start + index}` })
+    )
+    return new P.ASTListExpression(match, { items })
+  }
+}
+lists.addRule(number_range, {
+  syntax: "{start:number} ... {end:number}",
+  tests: [
+    {
+      tests: [
+        ["2 ... 4", "[2, 3, 4]"],
+        ["4 ... 2", undefined],
+        ["1.5 ... 3", undefined]
+      ]
+    }
+  ]
+})
+
+/** Most numbers a `number_range` spells out. */
+const MAX_RANGE = 1000
+
+////////////////
+// ## `value_choices` rule
+//    e.g. "diamonds or hearts", "jack, queen or king", when they're known values
+////////////////
+
+/**
+ * Two or more KNOWN values joined by `or`, e.g. `diamonds or hearts`, `jack, queen or king` -- for
+ * `it is diamonds or hearts` (`is_in`):  the same as `it is one of diamonds or hearts`.
+ * - Only known constants and numbers:  `x is red or y is 2` stays two comparisons.
+ * - Fixes `its suit is diamonds or hearts`, which compiled to `(this.suit == 'diamonds') || 'hearts'`:  always
+ *   true (plan doc `outline-spell`, P2;  was `agents/SUSPECTED-BUGS.md`).
+ */
+class value_choices extends identifier_list {
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens)
+    if (!match || match.items.length < 2) return undefined
+    const lastDelimiter = match.tokens.at(-(match.items.at(-1)!.tokens.length + 1))
+    return `${lastDelimiter?.value}`.toLowerCase() === "or" ? match : undefined
+  }
+}
+lists.addRule(value_choices, {
+  syntax: "[({known_constant}|{number}) (,|or)]",
+  tests: [
+    {
+      beforeEach(scope: P.Scope) {
+        for (const name of ["jack", "queen", "king"]) scope.constants?.add(name)
+      },
+      tests: [
+        ["jack or queen", "['jack', 'queen']"],
+        ["jack, queen or king", "['jack', 'queen', 'king']"],
+        ["2 or 3", "[2, 3]"],
+        ["jack, queen", undefined],
+        ["jack or red", undefined]
       ]
     }
   ]

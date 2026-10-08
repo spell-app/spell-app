@@ -350,6 +350,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - A body keyword ending `syntax` -- `{statement_body}`, `{expression_body}`, etc, see `BODY_KEYWORDS` -- or a choice of them,
     is taken OUT of `rules` into `rule.bodySpec` at construction.
     A body is parsed in `match.nestedScope`, which needs the statement's match to exist first.
+  - A `leadIn` keyword, `{with_nested_statements}`, is ALSO a registered rule matching words on the line
+    (`where:`):  it stays in `rules`, and the statement takes a nested body only when it matched
+    (`takesNestedBody()`).
   - Inline body => after its sequence matches, `parse()` parses the rest of the line in `nestedScope`.
     Does NOT change scope -- this runs for every candidate, winners AND losers.
   - The inline statement OR nested block is recorded as `match.data.body`:  read it with `rule.getBody(match)`,
@@ -366,10 +369,130 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - Refused statements:  a `parse()` which understood a statement but mustn't take it
   returns `SpellStatement.refuse(match, message)`, NOT `undefined`, which would say only "Don't understand ...".
   - a `parse_error` match over its tokens, with `message`:  `BlockLine` reports it
+  - it competes with the REFUSING rule's priority (`P.Match.priority`), so a plainer rule matching the same words
+    can't take the line instead;  refuse only what the rule matched to the line's end, or it beats a longer match
   - used by the property declarations (`SpellStatement.refuseBuiltInType()`) and `assignment_statement` --
     see "Built-in types"
   - errors inside JSX `{...}` live in the JSX rules' `match.data`, not `matched`;  `BlockLine` gathers them from
     anywhere in its statement (`SpellJSX.parseErrorsIn()`) into `data.errors` too -- reported, but compiled in place
+
+## Outline bodies:  `a card is a thing where:`
+
+- The OUTLINE style (epic `outline-spell`):  a type's heading, then indented lines all about that type,
+  `it` / `its` meaning it, e.g.
+
+  ```spell
+  a card is a thing where:
+  	- it has a name as text
+  	- its "suit" is one of clubs, diamonds, hearts or spades
+  	- it "is a (suit)" for its suits
+  	- its "color" is red if its suit is either diamonds or hearts otherwise it is black
+  	- it belongs to a pile
+  ```
+
+  - compiles EXACTLY as the same lines in the sentence style do (`a card has a name as text` ...):
+    `src/parserTests/outline.test.ts` pins it
+- `create_type` / `create_list_type` share `TypeDeclaration` (`classes.ts`):  a syntax ending
+  `{with_nested_statements}?` (`where:`, `with:` or `:`) takes the body;  without it, the same syntax declares the
+  type alone.
+  - The body's scope is a `P.SubjectScope` (`packages/parser/src/scope/SubjectScope.ts`):  owns nothing, so what
+    its lines declare lands where the same lines at the top level would;  `subject` names the type.
+  - `flatBody` (`SpellStatement`):  the body is NOT `enclose`d;  `Block.getAST()` splices its statements in after
+    the type's, so `SP.hoistClassMembers()` moves its members into the class as usual.
+- `subject_it` / `subject_its` (`types.ts`, `SubjectRule`):  `it` / `its` as a line's SUBJECT, a `SpellType` match
+  for the type (`value` its name, `raw` its instance name, `data.scopeType`).  Only directly in a `SubjectScope`:
+  inside a getter or method in the body, `it` is the instance, as anywhere.
+  - Each member rule gets a second syntax with `{type:subject_it}` where it says `(a|an) {type}`:
+    `define_property_has`, `property_value_getter`, `belongs_to_one`, `quoted_type_expression`,
+    `quoted_property_formula`, and `its_quoted_property` (a `type_property` for `property_value_either`).
+- Quoted names, "quotes teach a new word":  `quoted_type` (`a "card" is a thing`, any type declaration) and
+  `quoted_member` (`its "short rank" is ...`, in a body).  `its "x" is` takes an `outline_specifier`:
+  a `type_specifier` without its `as` (`one of ...`, `a number`, `yes or no`).
+  - A declaration names them without quotes:  `Rule.declaredText()`, which `SubjectRule` also overrides (`card`,
+    not `it`).
+- Bullets:  a line starting `- ` (`BlockLine.isBullet()`) drops the `-` before the statement is read, on ANY line.
+  It stays a token of the line's match, so editors see it.
+- Editors:  hovering an outline line shows **Reads as**, the sentence style's words for it -- each rule's
+  `SpellStatement.getLongForm()` (default:  the subject spelled out, `it has a deck` => `a card has a deck`;
+  `define_property_has`, `belongs_to_one`, `quoted_property_formula`, `draw_side` say theirs).  Compiling the long
+  forms gives the same javascript as the outline (`outline.test.ts`).
+- `it` / `its` starting a line OUTSIDE a type's body says so (`BlockLine.isOutlineLineOutsideBody()`).
+- A property's quotes are optional, `- its rank is a number` (plan doc Q4);  quoted names work in the sentence style
+  too, `a card has a "suit" as ...` (J3, option C).  `- it "rank" is ...` is refused, saying to write `its`
+  (`quoted_type_expression.isPropertySlip()`).
+- A phrase and nothing more, `- it "can move"` or `a card "can fly"` (no `if` / `is` / `:`), is refused, saying to
+  add a body (`quoted_type_expression.isBodiless()`, plan doc I6):  it'd compile to an empty method.  A dangling
+  `if` is fine:  its body may be the indented lines below.  A phrase true for every one of the type says so:
+  `- it "can move" always` (`always` / `never` are constants, read as its body).
+
+## Value kinds:  `"suits" as one of clubs, diamonds, hearts or spades`
+
+- In a type's outline body, `value_kind` (`classes.ts`) makes a list of values a KIND of thing, `Suit`, its list kept
+  by the body's type:  the class variable `Deck.Suits` (and its instance twin), each value a constant, and the
+  kind's `P.TypeScope` with `valueKind` (`{ values, listOn, listName }`).  The name must be quoted.
+  - Compiles to `Deck.Suits = [...]` + `export class Suit {}`, where the line is.
+  - Values stay plain text and numbers when the code runs (plan doc Q10).
+- `its "suit" is a suit` (or `a suit of its deck`):  `define_property_has` notes the kind (`data.valueList`), and
+  its setter checks `{ oneOf: () => Deck.Suits }` -- a FUNCTION (`core`'s `checkProp()`), as the deck's class
+  names the card's (`static instanceType = Card`), so one of them is defined second.
+- A kind's property, `the "color" of a suit is:` + an indented body:  `property_value_getter` with `data.valueKind`
+  compiles a STATIC method, `static color(suit) {...}` (`P.ASTStaticMethod`), `it` / `the suit` its argument;  and
+  records the property's `readAs` as `Suit.color({it})`, so `the color of its suit` compiles to
+  `Suit.color(this.suit)` (`MemberReadExpression`, the `static` form of `SP.parseReadAsTemplate()`).
+- A value-per-line body:  `value_if` (`red if it is diamonds or hearts` => `if (...) { return 'red' }`) and
+  `value_otherwise` (`black otherwise` => `return 'black'`), in `if.ts`, at `Priority.overridable`.
+- `it is diamonds or hearts` / `is jack, queen or king`:  `is_in` with `value_choices` (`lists.ts`), two or more
+  KNOWN constants or numbers joined by `or` => `spellCore.includes([...], it)`.  Was `(it == 'diamonds') || 'hearts'`.
+- Ranges in a list of values:  `2 ... 10` (`number_range`, spread by `identifier_list`).
+- A value kind may be used ABOVE its declaration, e.g. the card above the deck (issue I3):
+  - `SpellParser.declaredTypes()` finds `"suits" as one of ...` lines too (`VALUE_KIND_DECLARATION`), so `Suit` is
+    a stub before the project parses
+  - what depends on it reads the kind's RECORD when compiling, as a call reads `data.method.returns`:
+    `define_property_has`'s `data.valueType.valueKind` (its `oneOf`), and a member read's `data.ownerType.valueKind`
+    (`the color of its suit` => `Suit.color(...)`, though `color` wasn't declared yet when it parsed)
+- A list type whose item type is declared BELOW it (a stub when it parses) reads it when used:
+  `static get instanceType() { return Card }` (`create_list_type`).
+- A property, alias or phrase on a type nobody declares is refused (`SpellStatement.refuseUnknownType()`).
+
+## Inferred phrases:  `- it "is a (suit)"`
+
+- `quoted_property_formula` with no `for its ...` (an outline body's `{type:subject_it} {alias:text}`, the whole
+  line):  `parse()` INFERS what each blank reads (`inferPlaceholders()`).  A blank is a word in parens, naming by its
+  singular a property of the type with a list of values -- its own (`as one of`), or a value kind's -- e.g. `is the
+  (rank) of (suits)`, sources `rank`, `suit`.  A bare word is always just a word (plan doc J9).
+  - More after the phrase:  not ours, so `it "is face up" if ...` stays a `quoted_type_expression`.
+  - No parens (`it "is a suit"`), or a blank naming no such property (`it "is a (color)"`):  REFUSED, saying why.
+    A refused match competes with its rule's priority (`P.Match.priority`, read by `Choice.getBestMatch()`), so
+    `quoted_type_expression` can't take the line as an empty method instead.
+- A value kind declared FURTHER DOWN (a stub here, e.g. the card above the deck):  its placeholder's syntax is
+  `(expression:{constant}|{number})`, and `QuotedPropertyRule` is specialized with `kinds: { suit: "Suit" }`;  its
+  `parse()` checks the word against the kind's values WHERE THE PHRASE IS USED (`kindValue()`, into
+  `data.kindArgs`).
+- A phrase ON a value kind, `a rank "is a face card" if ...`:  `quoted_type_expression.processSignature()` sets
+  `signature.valueKindOf`;  it compiles to the kind's static method (`static is_a_face_card(rank)`), and its
+  `MethodPostfixRule` (`staticOf`) to `Rank.is_a_face_card(card.rank)`.  Postfix phrases only.
+- A user's phrase checks WHOSE it is:  `compound_expression` tells the first suffix after an operand what that
+  operand is (`SuffixLeft`, `expressions.ts`:  a side channel, set while that suffix parses, restored after).
+  `MethodPostfixRule`, `MethodInfixRule` and `QuotedPropertyRule` (each `specialize()`d with its owner `of`, as
+  `thisType`) refuse an operand KNOWN not to be their owner (`scope.couldBeA()`), e.g. a deck's `a rank "is a face
+  card"` on `the card is a face card`, where the card has its own.  Unknown:  anything fits.  A suffix after `and` /
+  `or` is told the operand after it (`the game` in `... and the game is red`, plan doc I7);  after anything else,
+  it isn't (what it follows is the chain so far, e.g. a sum).
+- `draw_side` (`classes.ts`):  `- to "draw its front":` + one line of markup => `get front() {...}`;  front AND back
+  also give the type `draw()`, by its direction (plan doc Q14).
+- A one-line indented body (`{nested_expression}`, e.g. `return` + markup, `draw_side`'s) parses in the statement's
+  `nestedScope`, as an inline body does (`SpellStatement.parseNestedBlock()`).
+
+## Fill-ins:  `"images/[rank]-of-[suit].png"`
+
+- `[x]` inside text ALWAYS fills in (plan doc Q2):  `parseFillIns()` (`core.ts`) splits the text into plain pieces
+  and fill-ins, each parsed as an expression where the text is -- `its x` when `x` is a property of `it`'s type,
+  so `[rank]` in a card's getter is the card's.  A real bracket:  `[[` or `\[`, and `]]` (Q15).
+- Three places use it:  the `text` rule, a markup attribute's text value (`SpellJSXAttribute`), and markup text
+  (`SpellJSXText`, as one `{...}` child).  Each keeps the parts in `data.fillIns`, and compiles them to a javascript
+  template string, `P.ASTTemplateString`:  `` `images/${this.rank}-of-${this.suit}.png` ``.
+- A fill-in that doesn't parse:  the text doesn't match ("Don't understand"), or the attribute is a parse error.
+- Each fill-in parses on its own, so its tokens don't map back onto the file:  no hover or go-to inside one yet.
 
 ## Scope:  what's stored where
 
@@ -387,6 +510,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
       with super-types, e.g. `integer` is a `number`
     - their members, from `SP.BUILT_IN_TYPE_TABLE`
 - `MethodScope` adds args, plus `this` / `it` alias variables (of type `itDatatype`).
+- `SubjectScope` owns nothing, and names the type its lines are about -- see "Outline bodies".
 - `TypeScope` holds:
   - instance + class variables
   - instance methods' records
