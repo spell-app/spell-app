@@ -1516,8 +1516,9 @@ function itemsOf(list) {
 /**
  * The rail:  a narrow strip at the right edge, the contents button (bars) on top, then one icon per top-level
  * section that jumps to it -- for when the contents column isn't shown (narrow screens, or the reader hid it).
- * - a section's mark:  the item id its label starts with (`Q3 · When?` shows `Q3`), else its own `<ui-icon>` (or
- *   `icon`), else its number (`2.`), else its first letter
+ * - a section's mark:  for an item (its label starts with an id, `Q3 · When?`), the id's number in a round badge,
+ *   coloured by the section's `data-state` (`spell-doc.css`;  a details page's questions set it, `details.js`);
+ *   else its own `<ui-icon>` (or `icon`), else its number (`2.`), else its first letter
  * - the section's open items (`counts`) sit on its icon's corner as a small pill, inside the strip
  * - every entry carries its section's label, shown when the rail widens (hover, keyboard focus:  CSS), so no
  *   tooltips
@@ -1534,16 +1535,17 @@ function buildRail(outline, counts) {
   const groups = outline.sections ? outline.groups : outline.groups.filter((group) => headingSection(group.element))
   const entries = groups.map(({ element, id, label, glyph }) => {
     // an item id first in the label (`Q3 · When?`) says more than any icon:  every question's would be the same
-    const itemId = label.match(/^[A-Z]\d+\b/)?.[0]
-    const mark = itemId
-      ? `<b>${text(itemId)}</b>`
+    const itemNumber = label.match(/^[A-Z](\d+)\b/)?.[1]
+    const mark = itemNumber
+      ? `<b class="spell-rail-number">${text(itemNumber)}</b>`
       : glyph
         ? `<ui-icon name="${attr(glyph)}"></ui-icon>`
         : `<b>${text((label.match(/^\d+/) ?? [label.charAt(0)])[0])}</b>`
     const count = counts.get(element)
     const badge = count?.open ? `<span class="spell-rail-count" title="${count.open} open">${count.open}</span>` : ""
+    const state = element.dataset.state ? ` data-state="${attr(element.dataset.state)}"` : ""
     return (
-      `<a class="spell-rail-item" href="#${attr(id)}" data-rail="${attr(id)}">` +
+      `<a class="spell-rail-item" href="#${attr(id)}" data-rail="${attr(id)}"${state}>` +
       `<span class="spell-rail-label">${text(label)}</span><span class="spell-rail-icon">${mark}${badge}</span></a>`
     )
   })
