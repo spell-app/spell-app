@@ -109,7 +109,7 @@ describe("Upgrader.upgrade():  a converted doc", () => {
       [Counted.keptNote]: 1,
       [Counted.keptNetEffect]: 2,
       [Counted.keptCode]: 1,
-      [Counted.keptCard]: 1,
+      [Counted.answer]: 1,
       ...(HAS_LABEL ? { [Counted.field]: 1 } : { [Counted.keptLabel]: 1 })
     })
     expect(Upgrader.changed(counts)).toBe(true)
@@ -221,9 +221,10 @@ describe("Upgrader.upgrade():  a converted doc", () => {
     expect(document.querySelector("ui-grid")).toBeNull()
   })
 
-  test("a hand-written answer in a version stays prose:  <epic-version> doesn't take <epic-answer>", async () => {
+  test("a hand-written answer in a version becomes <epic-answer>:  <epic-version> takes it (P14)", async () => {
     const document = whole(await upgrade())
-    expect(document.querySelector("#q5 epic-version > div.plan-answer-block")).not.toBeNull()
+    expect(document.querySelector("#q5 epic-version > div.plan-answer-block")).toBeNull()
+    expect(document.querySelector("#q5 epic-version > epic-answer")).not.toBeNull()
   })
 
   test("a second run over its output has nothing to do, but what it keeps", async () => {
