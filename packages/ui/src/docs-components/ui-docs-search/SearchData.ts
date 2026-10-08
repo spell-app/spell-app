@@ -5,34 +5,41 @@ import { SITE_SEARCH_PATH, type SiteSearchFile } from "$/ui/docs-components/docs
  * ### `SearchData`
  * The site's search file, `site/_data/search.json` (`yarn site:data`):  every page's sections, fetched once per page,
  * on the first search (~170 KB, ~25 KB compressed:  never on load).
+ * - `SiteData`'s twin, the same surface:  `url`, `load()`, `reset(url?)`;  fetched through `SiteData.request()`.
  * - Where it is:  `SearchData.url`, else beside the data file:  `_data/search.json` under `SiteData.root()`.
  * - Fails loudly, like `SiteData`:  `load()` rejects (until `reset()`);  the search then finds the other pages' TITLES
  *   only through their components, never their sections.
  * - Plain fetch, no Solid.
+ * - Static only:  the file is one per page.
  ****************/
 export class SearchData {
   /** URL of `search.json`, absolute or against the page;  unset:  beside the data file. */
   static url: string | undefined
 
   /** The one fetch, once started. */
-  private static loading: Promise<SiteSearchFile> | undefined
+  private static fetched: Promise<SiteSearchFile> | undefined
 
   /** The search file, fetched once per page. */
   static load(): Promise<SiteSearchFile> {
-    return (SearchData.loading ??= SearchData.fetch())
+    return (SearchData.fetched ??= SearchData.fetch())
   }
 
-  /** Forget the fetch (tests, a rebuilt file):  the next `load()` fetches again. */
+  /**
+   * Forget the fetch and set `url` (tests, a rebuilt file):  the next `load()` fetches again.
+   * - No `url`:  back to the default, beside the data file, as `SiteData.reset()` is.
+   */
   static reset(url?: string): void {
-    SearchData.loading = undefined
+    SearchData.fetched = undefined
     SearchData.url = url
   }
 
   /** Fetch and parse the file;  rejects with what went wrong (an unresolvable URL included). */
   private static async fetch(): Promise<SiteSearchFile> {
     const url = new URL(SearchData.url ?? SITE_SEARCH_PATH, SearchData.url ? document.baseURI : SiteData.root()).href
-    const response = await fetch(url)
-    if (!response.ok) throw new Error(`SearchData:  ${url} answered ${response.status}`)
+    const response = await SiteData.request(url, {
+      method: "SearchData.load()",
+      fix: "run `yarn site:data` in packages/ui, or check `SearchData.url`"
+    })
     return (await response.json()) as SiteSearchFile
   }
 }

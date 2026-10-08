@@ -6,15 +6,15 @@ const WAIT = "x-visual-wait"
 /**
  * States of `skeleton.html` for `yarn test:visual`:  `loading`, the root held before ready (an element inside that
  * never gets ready, an hour's timeout), so its `<ui-placeholder>` skeletons are what's captured.
- * - `UIHost` is imported IN the state (the page):  the spec also loads this file in node to list its states, where
+ * - `DOMElement` is imported IN the state (the page):  the spec also loads this file in node to list its states, where
  *   the element layer can't load.
  */
 export default {
   states: {
     loading: {
       open: async (root) => {
-        const { UIHost } = await import("$/ui/elements")
-        if (!customElements.get(WAIT)) customElements.define(WAIT, class extends UIHost {})
+        const { DOMElement } = await import("$/ui/elements")
+        if (!customElements.get(WAIT)) customElements.define(WAIT, class extends DOMElement {})
         const old = root.querySelector("ui-root")!
         const held = document.createElement("ui-root")
         held.setAttribute("timeout", "3600s")

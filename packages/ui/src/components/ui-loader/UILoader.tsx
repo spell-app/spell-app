@@ -1,66 +1,95 @@
-import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, SlotContent, UIElement, UIT } from "$/ui/core"
+import { E } from "$/ui/core"
+import { loaderVocabulary } from "./UILoader.en"
 
-import { loaderVocabulary } from "./ui-loader.vocabulary.en"
-import { LoaderFallback } from "./ui-loader.fallback"
-
-import loaderCSS from "./ui-loader.css?inline"
-import { POLITE } from "./ui-loader.types"
+import loaderCSS from "./UILoader.css?inline"
 
 /****************
- * ### `<ui-loader>`
- * A spinner, with optional text:  `<div class="ui … loader" part="loader"><slot></slot></div>`;  the spinner is
- * the root's `::before` / `::after`, decorative.
- * - The HOST is the live region, through internals:  `role=status`, `aria-live=polite` -- so it's announced
- *   wherever it's put, with nothing in the shadow root to find.  With no slotted text it's named by the
- *   `loading` text ("Loading…");  slotted text names it otherwise (a status takes its name from content).
- * - Shown only while `active` (Fomantic's rule, in `ui-loader.css`);  `:state(active)` / `:state(disabled)` are
- *   for page styling.
- * - Host is `display: contents`:  a centred loader is positioned against the nearest positioned ancestor in the
- *   flat tree, as Fomantic's `<div class="ui loader">` was.
+ * ### `UILoader`
+ * The component behind `<ui-loader>`:  a spinner, with optional text, showing that something is loading.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … loader" part="loader">`, around a slot for the text.
+ *   The spinner is the box's `::before` / `::after`, decorative.
+ * - The element is `display: contents`:  a centred loader is positioned against the nearest positioned ancestor
+ *   in the flat tree, as Fomantic's `<div class="ui loader">` was.
+ *
+ * - The ELEMENT is the live region, through `internals`:  `role=status`, `aria-live=polite`,
+ *   so it's announced wherever it's put, with nothing in the shadow root to find.
+ *   - With no slotted text, it's named by the `loading` text ("Loading…");
+ *     slotted text names it otherwise (a status takes its name from its content).
+ *
+ * - It shows only while `active` (Fomantic's rule, in `UILoader.css`);
+ *   `:state(active)` and `:state(disabled)` are for the page's styles.
  ****************/
-export class UILoader extends UIElement<typeof loaderVocabulary> {
-  @proto static vocabulary = loaderVocabulary
-  @proto static styles = { loader: loaderCSS }
-  @proto static Fallback = LoaderFallback
-  @proto static delegatesFocus = false
+export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
+  @E.proto static vocabulary = loaderVocabulary
+  @E.proto static styleSheets = { loader: loaderCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  /** Light-DOM slot occupancy:  slotted text names the status. */
-  readonly slots = new SlotContent(this.host)
-
-  /** Has slotted text? */
-  readonly hasText = createMemo(() => this.slots.has(""))
-
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    const { internals } = this.host
-    internals.role = UIT.STATUS
-    internals.ariaLive = POLITE
+    const { internals } = this.domElement
+    internals.role = "status"
+    internals.ariaLive = "polite"
   }
 
-  mount(): JSX.Element {
-    // here, not in the constructor:  the name reads `UI.i18n` (via `text()`), which exists once the runtime loads;
-    // `hostEffect`:  a server render (`$/ui/server`) applies it too
-    this.hostEffect(
-      () => (this.loaded() && !this.hasText() ? this.text("loading") : null),
-      (label) => {
-        this.host.internals.ariaLabel = label
-      }
-    )
-    return super.mount()
+  ////////////////
+  // ## The name
+  ////////////////
+
+  /** Which of its slots have content in the light DOM:  slotted text names the status. */
+  readonly slots = new E.SlotContent(this.domElement)
+
+  /** Has slotted text?  Tracked. */
+  get hasText(): boolean {
+    return this.slots.hasContent("")
   }
 
-  protected hostStates() {
-    return { active: this.attrs.active, disabled: this.attrs.disabled }
+  /**
+   * The element's accessible name:  the `loading` text while nothing is slotted.
+   * - Waits for `isReady`:  the text reads `UI.i18n` (via `translationForKey()`), which exists once the runtime
+   *   loads;  `writesDOMElement`:  a server render (`$/ui/static`) applies it too.
+   */
+  @E.onChange("isReady", "hasText", { writesDOMElement: true })
+  protected onNameChanged(isReady: boolean, hasText: boolean) {
+    const label = isReady && !hasText ? this.translationForKey("loading") : undefined
+    // `null`:  `ariaLabel` is the platform's, and `null` removes it
+    this.domElement.internals.ariaLabel = label ?? null
   }
+
+  ////////////////
+  // ## States
+  ////////////////
+
+  /** Shown (`active`).  `:state(active)`. */
+  @E.cssState("active")
+  get isActive(): boolean {
+    return !!this.active
+  }
+
+  /**
+   * Marked disabled (`disabled`, which hides it again):  only a look, not `isDisabled`,
+   * so the element's clicks aren't swallowed.
+   * `:state(disabled)`.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return !!this.disabled
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("loader")}>
+      <div class={this.rootClasses} part={this.partForName("loader")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UILoader extends E.AttributeValues<typeof loaderVocabulary> {}

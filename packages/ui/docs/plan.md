@@ -27,7 +27,7 @@
 | Platform | Assume anchor positioning (no JS fallback), style container queries (widely supported features only), Temporal via polyfill, customizable `<select>` with clean fallback (it only reached Safari in 27.0). |
 | Libraries | `lodash-es` is fine (tree-shakes). |
 | Icons | **SVG files in packs** (2026-09-30):  a pack is a folder of SVGs + a `pack.js` index;  the page's packs live in the runtime (`UI.icons`), added per subtree with `<ui-root icons>` / page-wide with `UI.icons.use()`;  the last pack added wins a name, `prefix:name` picks one.  Default pack:  **Font Awesome 7 Free** solid + regular (`bell outline`) + a few extras, shipped in `dist`;  `fa7-brands` and `fomantic` (Fomantic's names, which give Fomantic's meaning to the 27 clashes like `x`, `warning`) are opt-in packs.  One name per icon, spaces ~== dashes;  no word-order guessing.  Any folder of SVGs becomes a pack with `yarn icons:pack`.  See `docs/icons.md`. |
-| Vocabulary | Per component, own file: `ui-<name>.vocabulary.en.ts` (translations become `ui-<name>.vocabulary.<lang>.ts`). Attribute **values** (colours, sizes, positions) are translatable too. |
+| Vocabulary | Per component, own file: `UI<Name>.en.ts` (translations become `UI<Name>.<lang>.ts`). Attribute **values** (colours, sizes, positions) are translatable too. |
 | Docs | Base every component page on Fomantic's docs for presentation, style and content. |
 | Conventions | Carry over `spell/parser`'s agentic files and coding conventions, with `$` as the import alias (see "Conventions"). |
 
@@ -107,7 +107,7 @@
 - `src/util/`: `decorators.ts` (`@proto`), `class.ts`, `dom.ts`, `string.ts`, `util.types.ts`.
 - `src/runtime/` — the shared `UI` runtime (one instance per page: `globalThis.UI ??= new UIRuntime()`; components call `UI.load()` which dynamic-imports this chunk once):
   - `UIRuntime.ts`: singleton, `load()`, `ready` promise, service registry
-  - `Browser.ts`: browser sniffing + feature flags (`supports.anchor`, `supports.baseSelect`, `supports.closedby`, `supports.popoverHint`, `isSafari`, `reducedMotion`, `touch`)
+  - `Browser.ts`: browser sniffing + feature flags (`supports.anchor`, `supports.baseSelect`, `supports.closedby`, `supports.popoverHint`, `isSafari`, `isReducedMotion`, `touch`)
   - `Keyboard.ts`: global shortcut registry with scopes (page, overlay stack, component), `Mod+K` style parsing, conflict detection
   - `Overlays.ts`: top-layer stack with named pools (only the top overlay handles Escape / outside click), nested modals / `allowMultiple`, scroll lock, focus restore, dimmer coordination
   - `Focus.ts`: roving tabindex, focus trap helpers (for non-dialog cases), `restoreFocus`
@@ -118,14 +118,14 @@
   - `Ids.ts`, `Toasts.ts` (`UI.toast({...})`), `Modals.ts` (`UI.modal.confirm/alert/prompt()`), `Api.ts` (fetch with URL templates, throttling, loading/error states)
   - `runtime.types.ts`, `index.ts` (`export const UI`)
 - `src/elements/` — base classes:
-  - `UIElement.ts`: shadow root (`delegatesFocus` per component), `attachInternals()`, sheet adoption, `emit()`, controlled properties, `:state()`s, vocabulary lookup, boolean/enum converters, upgrade-property backstop
+  - `UIComponent.ts`: shadow root (`delegatesFocus` per component), `attachInternals()`, sheet adoption, `send()`, controlled properties, `:state()`s, vocabulary lookup, boolean/enum converters, upgrade-property backstop
   - `ClassBuilder.ts`: attribute kinds → canonical classes (keyOnly / valueAndKey / keyOrValueAndKey / width / multiple / textAlign / verticalAlign / size / color), `numberToWord`, fixed order
-  - `ContentPart.ts`: base for generic part elements; detects its owning component on connect and exposes `:state(in-card)` etc.
+  - `PartComponent.ts`: base for generic part elements; detects its owning component on connect and exposes `:state(in-card)` etc.
   - `FormControl.ts`: `formAssociated` base (setFormValue / setValidity / reset / disabled callbacks, validation rules)
   - `OverlayElement.ts`: base for dialog- and popover-backed components
   - `elements.types.ts`, `index.ts` (`export * as E`)
 - `src/styles/`: `layers.css`, `tokens.css`, `colors.css`, `sizes.css`, `reset.css`, `typography.css`, `animations.css`, `utilities.css`, `native.css`, `themes/classic.css`, `themes/dark.css`.
-- `src/components/ui-<name>/`: `<name>.ts`, `ui-<name>.css`, `ui-<name>.vocabulary.en.ts`, `<name>.test.ts`, `<name>.visual.test.ts`, `ui-<name>.a11y.test.ts`, `examples/*.html`.
+- `src/components/ui-<name>/`: `<name>.ts`, `UI<Name>.css`, `UI<Name>.en.ts`, `<name>.test.ts`, `<name>.visual.test.ts`, `UI<Name>.a11y.test.ts`, `examples/*.html`.
 - `src/icons/`: FA7 Free path data as JSON chunks (+ a short Fomantic alias list).
 - `site/`: the docs site (plain HTML pages on `ui-*` widgets since 2026-10;  Astro before). `docs/`: `spike-lit-vs-solid.md`, `grammar.md`, `theming.md`, `translation.md`. `test/`: shared test utils.
 
@@ -148,7 +148,7 @@
   - `<button class="ui small primary button">`, `<dialog class="ui modal">`, `<input class="…">`, `<nav class="ui breadcrumb">`, `<ul class="ui list">`
   - why: mechanical port of `.less`; override language for the app stylesheet and `::part` is the known vocabulary; translated names never touch CSS
 - Context for generic parts:
-  - `ContentPart` sets `:state(in-<owner>)`; each part's own CSS has `:host(:state(in-card))`, `:host(:state(in-item))`… blocks ported from Fomantic's `.ui.card > .content > .header` rules
+  - `PartComponent` sets `:state(in-<owner>)`; each part's own CSS has `:host(:state(in-card))`, `:host(:state(in-item))`… blocks ported from Fomantic's `.ui.card > .content > .header` rules
   - owners also publish inherited tokens (`ui-segment[inverted] { --ui-inverted: 1; color-scheme: dark }`) and style container queries (`@container style(--ui-inverted: 1)`) for boolean switches
   - never `:host-context`
 - `native.css` (what it is): the light-side sheet the runtime injects into the document. It styles native markup that users slot into components (`ui-table > table td`, native inputs inside `ui-form`, `ui-list > ul`), CSS-only tooltips (`[data-tooltip]`), and Web Awesome-style native element styling opt-ins. Nothing for the user to include.
@@ -167,20 +167,20 @@
 - Build outputs: ESM per component with its CSS inlined as a constructable sheet; `ui.css` (tokens + utilities + native + animations) for no-runtime pages; `themes/*.css`. Budget: lazy runtime chunk < 50 KB gzip (raised from 20 KB by Owen, 2026-09-29); average component ≤ 8 KB gzip (raised from 4 KB by Owen, 2026-10-01).
 
 ### Component runtime
-- `UIElement` base:
+- `UIComponent` base:
   - `connectedCallback` → `UI.load()` (first caller triggers the dynamic import; all await `UI.ready`), then adopt sheets, apply vocabulary
   - `@proto static vocabulary`, `@proto static parts`, `@proto static defaults` install per-class data on the prototype
   - attribute kinds via `ClassBuilder`: `keyOnly` (`basic`), `valueAndKey` (`floated="left"` → `left floated`), `keyOrValueAndKey` (`pointing` / `pointing="left"`), `width` (`width="4"` / `"1/4"` / `"25%"`), `multiple` (`only="mobile tablet"`), `textAlign`, `verticalAlign`, `size`, `color`
   - class order: `ui`, size, color, keyOnly (alphabetical), keyOrValue, noun; `medium` emits nothing
   - converters: booleans (`yes`/`no` accepted), enums validated against the vocabulary with a dev-time "did you mean" (Levenshtein, as in SUI React)
   - `:state()` custom states: `open`, `active`, `loading`, `disabled`, `invalid`, `selected`, `in-<owner>`
-- Generic content parts (`ContentPart`): `ui-content`, `ui-header`, `ui-description`, `ui-meta`, `ui-extra`, `ui-actions`, `ui-title`, `ui-summary`, `ui-date`, `ui-author`, `ui-avatar`, `ui-detail`, `ui-value`, `ui-image`; Fomantic's `<div class="content"><div class="header">` maps 1:1 to `<ui-content><ui-header>`. Shorthand attributes on owners (`<ui-card header="…" meta="…">`, `<ui-modal header="…">`) render the same parts; slotted parts win over shorthand.
+- Generic content parts (`PartComponent`): `ui-content`, `ui-header`, `ui-description`, `ui-meta`, `ui-extra`, `ui-actions`, `ui-title`, `ui-summary`, `ui-date`, `ui-author`, `ui-avatar`, `ui-detail`, `ui-value`, `ui-image`; Fomantic's `<div class="content"><div class="header">` maps 1:1 to `<ui-content><ui-header>`. Shorthand attributes on owners (`<ui-card header="…" meta="…">`, `<ui-modal header="…">`) render the same parts; slotted parts win over shorthand.
 - Events: `CustomEvent`s, `bubbles: true, composed: true`, lowercase kebab names (`ui-change`, `ui-input`, `ui-open`, `ui-close` (cancelable), `ui-select`, `ui-add`, `ui-remove`, `ui-search`, `ui-approve`, `ui-deny`, `ui-show`, `ui-hide`, `ui-visible`, `ui-hidden`); `detail` carries computed state (`{ value }`, `{ selected }`, `{ open }`, `{ activeIndex }`) plus `originalEvent`. `@spell-app/ui/react` ships a typed `@lit/react` wrapper if Lit wins.
 - State: `value`, `open`, `selected`, `activeIndex`, `rating`, `activePage` are auto-controlled (host-set property/attribute is authoritative, else internal); every transition dispatches its event first; cancelable ones can veto.
 - Forms (`FormControl`):
   - `formAssociated`: `ui-input`, `ui-textarea`, `ui-checkbox` / `ui-radio` (standard, radio, slider, toggle), `ui-dropdown` / `ui-select`, `ui-slider`, `ui-calendar`, `ui-rating`, `ui-search`
   - `setFormValue` (multi-value via `FormData`), `setValidity` from Fomantic's rules (`notEmpty checked email url regExp minValue maxValue integer range decimal number is isExactly not notExactly contains containsExactly doesntContain doesntContainExactly minLength exactLength maxLength size match different creditCard minCount exactCount maxCount`), `:user-invalid` + `:state(invalid)`
-  - `ui-form`: `rules`, `on="submit | blur | change"`, inline prompts, `errorFocus`, `preventLeaving`, events `ui-valid` / `ui-invalid` / `ui-success` / `ui-failure`; `ui-button type="submit"` calls `form.requestSubmit()`
+  - `ui-form`: `rules`, `validate-on="submit | blur | change"`, inline prompts, `errorFocus`, `preventLeaving`, events `ui-valid` / `ui-invalid` / `ui-success` / `ui-failure`; `ui-button type="submit"` calls `form.requestSubmit()`
   - `ui-select`: customizable `<select>` (`appearance: base-select`, `::picker(select)`, `<selectedcontent>`) under `@supports`, every option keeps real text so unsupported browsers degrade to the native picker
 - Accessibility (roles via ElementInternals, WAI-ARIA APG patterns, semantic shadow elements do most of the work):
   - button / toggle (`aria-pressed`); combobox + listbox/option (dropdown, search)
@@ -198,12 +198,12 @@
 - Transitions: `animations.css` ports the catalogue (fade, scale, fly, slide, swing, flip, browse, drop, zoom; flash, shake, bounce, tada, pulse, jiggle, glow); `UI.transitions` runs in/out with `@starting-style` / `allow-discrete`; `ui-transition` element for user content; View Transitions for tab/accordion swaps.
 - Data-heavy components: `ui-dropdown` / `ui-select` / `ui-search` / `ui-table` accept `options` / `rows` properties; keyed rendering; virtualize above ~200 rows.
 - Translation readiness (design now, build later):
-  - `ui-<name>.vocabulary.en.ts` declares tag, attributes (kind + allowed values), attribute values (hues, sizes, positions, alignments), events, slots, parts, states, text strings; templates and `ClassBuilder` read names through it, never literals
+  - `UI<Name>.en.ts` declares tag, attributes (kind + allowed values), attribute values (hues, sizes, positions, alignments), events, slots, parts, states, text strings; templates and `ClassBuilder` read names through it, never literals
   - `UI.vocabulary.defineComponents({ prefix: "ui" })` registers canonical names; a future `defineComponents({ prefix: "ie", dictionary: es })` creates subclasses with translated `attribute:` names, value maps (`rojo` → `red`), slot/event names, all mapping to the same canonical internal classes; `docs/translation.md` records the contract
 
 ## Milestone 0: base-library code spike (decides Lit vs Solid)
 
-- Build the same two components twice on the shared foundation (tokens, `ui-button.css`, `ui-dropdown.css`, `ClassBuilder`, vocabulary files, `UI.overlays`, anchor CSS):
+- Build the same two components twice on the shared foundation (tokens, `UIButton.css`, `UIDropdown.css`, `ClassBuilder`, vocabulary files, `UI.overlays`, anchor CSS):
   - `ui-button`: types primary/secondary/basic/tertiary/icon/labeled icon/animated; states active/disabled/loading; toggle with `aria-pressed`; `type=submit`; `ui-buttons` group; semantic inner `<button>`
   - `ui-dropdown`: selection, search, multiple with labels, `options` property + slotted `ui-item`s, combobox keyboard pattern, anchor-positioned popover menu with flip, `formAssociated`, `clearable`, `allowAdditions`, 1000-option filtering
 - Implementations: `spike/lit/` (lit 3.3.3, standard decorators + `accessor`) and `spike/solid/` (`@solidjs/element@next`, `solid-js@next`, `@solidjs/web@next`, pinned exact RCs).
@@ -258,7 +258,7 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
   - `section` (ours, not Fomantic's;  added 2026-10-02):  a titled `<section>` with a real heading (`level`),
     `collapsible` (cancelable, find-in-page unfolds), `sticky` titles that stack when nested
   - source elements (ours, not Fomantic's;  added 2026-10-02, plan doc `epics/ui-import/`):  content from
-    inline text or a same-origin `source` (`UI.sources`), loading / error looks, a `save()` hook (`SourceElement`):
+    inline text or a same-origin `source` (`UI.sources`), loading / error looks, a `save()` hook (`LoadableComponent`):
     - `include`:  another page of the site shown here (shadow root, or light DOM with `page-styles`), `select`,
       `load="visible|idle"` (islands)
     - `code`:  highlighted code (highlight.js, lazy;  auto-detect;  `UI.code.register()` for more, spell's own),
@@ -268,8 +268,8 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
 
 ## Definition of done for a component
 
-1. `ui-<name>.css`: complete port of the `.less` definition and `.variables` (every type/content/state/variation in `variation.variables`, Fomantic-only ones included); per-component tokens; no `!important` unless documented; colours/sizes via remap; no `rem`.
-2. `ui-<name>.vocabulary.en.ts` + `<name>.ts`: element(s) with typed attributes/properties, events, slots, parts, `:state()`s, shorthand, semantic shadow markup, docstrings for the manifest.
+1. `UI<Name>.css`: complete port of the `.less` definition and `.variables` (every type/content/state/variation in `variation.variables`, Fomantic-only ones included); per-component tokens; no `!important` unless documented; colours/sizes via remap; no `rem`.
+2. `UI<Name>.en.ts` + `<name>.ts`: element(s) with typed attributes/properties, events, slots, parts, `:state()`s, shorthand, semantic shadow markup, docstrings for the manifest.
 3. Accessibility: role/ARIA via internals, keyboard per APG, focus management, reduced motion.
 4. Tests: unit (class output from attributes, pure logic), integration (interaction, keyboard, events, form participation), a11y (axe on each example + keyboard walkthrough).  Visual (`toMatchScreenshot` per example, light and dark) is DEFERRED to Phase D for all families.
 5. Docs page modelled on Fomantic's: Types / Content / States / Variations / Behaviour (API, events, slots, parts, tokens) / Accessibility; live examples with code panes; API tables generated from the custom-elements manifest.
@@ -278,7 +278,7 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
 
 - yarn, Node 22, TypeScript 7, Vite 8 (library mode, multiple entries, `css.transformer: "lightningcss"` with `drafts.customMedia`), `vite-plugin-dts`, `vite.decorators.ts`, `lodash-es`, `temporal-polyfill`.
 - oxlint + oxfmt with Owen's config; `yarn review` = tsc + lint:fix + format + test.
-- Vitest 5 browser mode + `@vitest/browser-playwright` (chromium default; webkit/firefox in `test:all`); axe-core via `test/a11y.ts`; `toMatchScreenshot` for visual.
+- Vitest 5 browser mode + `@vitest/browser-playwright` (chromium default; webkit/firefox in `test:all`); axe-core via `test/A11y.ts`; `toMatchScreenshot` for visual.
 - `@custom-elements-manifest/analyzer` → `custom-elements.json` → VS Code custom data, JetBrains web-types, JSX types (`@wc-toolkit/jsx-types`), docs API tables.
 - (Superseded 2026-10 by plain HTML pages in Fomantic's docs style, epic `spell-ui-pages`.)  Astro 7 + MDX in `site/`; components loaded client-side from the built package; Fomantic-like layout (left nav by component, sticky section index, example/code toggles, theme switcher, editable playground); framework smoke pages under `site/playground`.
 - `git init` at start; conventional commits; GitHub Actions later.

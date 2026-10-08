@@ -1,55 +1,55 @@
 import { ComponentPacks } from "$/ui/components/ui-components/ComponentPacks"
-
-import { ROOT_CATALOG } from "./ui-root.catalog"
-import { TAG_PREFIX, type RootCatalogEntry } from "./ui-root.types"
+import { ROOT_CATALOG } from "./UIRoot.catalog"
+import type { RootCatalogEntry } from "./UIRoot.types"
 
 /**
  * Every family's barrel, loaded on demand (`import.meta.glob`, lazy):  `../ui-card/index.ts` => `import()` of it.
  * - A LITERAL glob, so each becomes a literal `import()`:  the lib build reuses each family's own entry chunk
  *   (`ui-card.js`), and the docs' single-file bundle (`packages/docs/tools/bundle-spell-ui.js`) inlines them.
+ * - Relative on purpose, the one `../` in `ui`'s components:  Vite resolves a glob's literal pattern, not an alias,
+ *   and its keys (`../ui-card/index.ts`) are what `load()` looks up.
  * - The root's own folder is left out:  it is loaded already.
- * - The doc-only `<ui-docs-*>` families (`src/docs-components/`) are a second literal glob, `DOCS_FAMILIES`;  the
- *   catalog names a family by folder alone (`folder: "ui-docs-example"`), so `load()` tries both.
+ * - ONLY the library's families.  The doc-only `<ui-docs-*>` ones (`src/docs-components/`) are added by the docs
+ *   site's bundle (`add()`, `DocsFamilies`).  Why:  a glob of them HERE made each a dynamic entry of the lib build
+ *   that imports the core and other families, and Rolldown then moved core's modules out of `core.js` into shared
+ *   chunks every page loads (epic `wwod-spell-ui`, I12;  `yarn measure`'s `coreOutsideCore`).
+ * - Above the class:  a module-level call, made once as the module loads.
  */
 const FAMILIES = import.meta.glob(["../*/index.ts", "!../ui-root/index.ts"])
-
-/** The doc-only families' barrels, lazy like `FAMILIES`:  `../../docs-components/ui-docs-example/index.ts` => its `import()`. */
-const DOCS_FAMILIES = import.meta.glob("../../docs-components/*/index.ts")
 
 /****************
  * ### `RootLoader`
  * Tag => family => `import()`, once per family for the whole page (every root shares the loads).
- * - Which family defines a tag comes from `ROOT_CATALOG` (generated from the vocabularies, `yarn gen:root`), never
- *   from guessing at the tag's name.
+ * - Which family defines a tag comes from `ROOT_CATALOG` (generated from the vocabularies, `yarn gen:root`),
+ *   never from guessing at the tag's name.
+ * - The catalog knows the `<ui-docs-*>` tags too;  they load only on a page whose bundle `add()`ed their families
+ *   (the docs site's), and fail like any unknown family elsewhere.
  * - Component packs' tags (`<ui-components source>`) aren't imported here:  a pack defines them all as its script
  *   registers it (`ComponentPacks`);  this only answers for them (`entryOf()`, `undefinedTags()`).
+ * - Static:  the loads are page-wide, shared by every root (and the docs site's router).
  ****************/
 export class RootLoader {
-  /** Folder => its import, started once. */
+  /** Folder => its import, started once.  Page-wide, never reset:  a family defines its tags once per page. */
   private static readonly loads = new Map<string, Promise<void>>()
 
+  /** Folder => importer of its barrel, for the families a bundle added (`add()`).  Page-wide. */
+  private static readonly added = new Map<string, () => Promise<unknown>>()
+
+  ////////////////
+  // ## Tags
+  ////////////////
+
   /** The folder (family) that defines `tag`;  `undefined` for a tag no family defines. */
-  static folderOf(tag: string): string | undefined {
+  static folderFor(tag: string): string | undefined {
     return Object.hasOwn(ROOT_CATALOG, tag) ? ROOT_CATALOG[tag].folder : undefined
   }
 
-  /** Import `folder`'s family (which defines its tags), once;  rejects if it can't be imported. */
-  static load(folder: string): Promise<void> {
-    let load = RootLoader.loads.get(folder)
-    if (!load) {
-      const importer = FAMILIES[`../${folder}/index.ts`] ?? DOCS_FAMILIES[`../../docs-components/${folder}/index.ts`]
-      load = importer ? importer().then(() => undefined) : Promise.reject(new Error(`no family "${folder}"`))
-      RootLoader.loads.set(folder, load)
-    }
-    return load
-  }
-
-  /** What `<ui-root>` knows about `tag` before it's defined:  Spell UI's catalog, else a registered pack's. */
+  /** What a root knows about `tag` before it's defined:  Spell UI's catalog, else a registered pack's. */
   static entryOf(tag: string): RootCatalogEntry | undefined {
     return Object.hasOwn(ROOT_CATALOG, tag) ? ROOT_CATALOG[tag] : ComponentPacks.entryOf(tag)
   }
 
-  /** The distinct tags under `root` that aren't defined yet, and are ours:  `ui-*`, or a registered pack's prefix. */
+  /** The distinct undefined tags under `root` that a root loads:  every `ui-*` one, and a registered pack's. */
   static undefinedTags(root: ParentNode): Set<string> {
     const tags = new Set<string>()
     for (const { localName } of root.querySelectorAll(":not(:defined)")) {
@@ -57,4 +57,65 @@ export class RootLoader {
     }
     return tags
   }
+
+  ////////////////
+  // ## Loading
+  ////////////////
+
+  /**
+   * Import the family that defines `tag`, once;  `undefined` when no family does (a pack's tag:  its pack defines it).
+   * - The promise rejects if the import fails, and stays rejected:  a failed tag stays failed.
+   */
+  static loadTag(tag: string): Promise<void> | undefined {
+    const folder = RootLoader.folderFor(tag)
+    return folder === undefined ? undefined : RootLoader.load(folder)
+  }
+
+  /**
+   * Import `folder`'s family (which defines its tags), once.
+   * - Rejects if it can't be imported, or no glob or `add()` knows the folder.
+   */
+  static load(folder: string): Promise<void> {
+    let load = RootLoader.loads.get(folder)
+    if (!load) {
+      const importer = FAMILIES[`../${folder}/index.ts`] ?? RootLoader.added.get(folder)
+      load = importer ? importer().then(() => undefined) : Promise.reject(RootLoader.noFamily(folder))
+      RootLoader.loads.set(folder, load)
+    }
+    return load
+  }
+
+  ////////////////
+  // ## Adding
+  ////////////////
+
+  /**
+   * Let roots load more families:  `barrels`, a literal `import.meta.glob()` of family barrels
+   * (`".../ui-docs-example/index.ts" => import()`), each keyed by its folder.
+   * - Call it BEFORE a root needs one:  a tag whose family failed to load stays failed.
+   */
+  static add(barrels: Record<string, () => Promise<unknown>>): void {
+    for (const [path, importer] of Object.entries(barrels)) {
+      const folder = BARREL.exec(path)?.[1]
+      if (folder) RootLoader.added.set(folder, importer)
+    }
+  }
+
+  ////////////////
+  // ## Internal
+  ////////////////
+
+  /** The error for a folder no glob or `add()` knows. */
+  private static noFamily(folder: string): Error {
+    return new Error(`RootLoader.load():  no family "${folder}";  add() its barrel before a root needs its tags`)
+  }
 }
+
+/** A family barrel's path:  its folder. */
+const BARREL = /([\w-]+)\/index\.ts$/
+
+/**
+ * Prefix of the catalog's tags:  any other undefined tag (an app's own element) is not ours, unless a registered
+ * pack's prefix starts it (`ComponentPacks.owns()`).
+ */
+const TAG_PREFIX = "ui-"

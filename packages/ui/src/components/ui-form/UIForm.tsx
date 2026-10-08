@@ -1,113 +1,184 @@
 import { createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, type AttributeName, UIT } from "$/ui/core"
-
-import { formVocabulary } from "./ui-form.vocabulary.en"
-import { FormFallback } from "./ui-form.fallback"
+import { E, UIT } from "$/ui/core"
+import { formVocabulary } from "./UIForm.en"
 import { FormFields } from "./FormFields"
-import { UIFormHost } from "./UIFormHost"
+import type { DOMFieldElement } from "./UIField"
+import { ERROR, FIELD_SELECTOR, INFO, SUCCESS, WARNING, type Field } from "./UIForm.types"
 
-import formCSS from "./ui-form.css?inline"
-import {
-  FIELD_SELECTOR,
-  ERROR,
-  CHANGE,
-  BLUR,
-  CHANGE_EVENTS,
-  RESET,
-  FOCUS_OUT,
-  BEFORE_UNLOAD,
-  FORM,
-  type Vocabulary,
-  type FieldElement
-} from "./ui-form.types"
+import formCSS from "./UIForm.css?inline"
 
 /****************
- * ### `<ui-form>`
- * A form's look (`<div class="ui … form" part="form"><slot></slot></div>`) and its VALIDATION, over a NATIVE form.
- * - Why not a form of its own:  a form-associated control belongs to the nearest `<form>` ANCESTOR in its own
- *   tree, so a `<form>` in this shadow root would never own the slotted controls, and a custom element can't
- *   BE a form.  So `<ui-form>` works with a light-DOM `<form>`:  one slotted INSIDE it (`<ui-form><form>…`,
- *   preferred), else the one AROUND it (`<form><ui-form>…`).  It never creates or moves one:  frameworks own
- *   that DOM.  Without any, it still validates (`validate()`, `on="blur|change"`), but nothing submits.
- * - SIDE EFFECT:  sets `noValidate` on that form while connected (restored after), so the browser's bubbles
- *   don't pre-empt Fomantic's prompts;  constraint validation still counts -- see `FormFields.errors()`.
- * - Submit (capture, on the form):  every field validates;  invalid => `preventDefault()` +
- *   `stopImmediatePropagation()` (the page's own submit handlers never see an invalid form, as natively),
- *   prompts, the `error` state, `ui-failure`, focus on the first invalid field (`error-focus`);  valid =>
- *   the cancelable `ui-success` (cancelled => no native submission).
- * - Prompts:  each field's first control's `<ui-field>` (`:state(field)`) gets `showErrors()`;  failing controls
- *   get `aria-invalid="true"` (removed when they pass).  A field that shows an error re-validates as it
- *   changes, whatever `on` says.
- * - `ui-valid` / `ui-invalid` fire per field validated;  `values` / `validate()` / `isValid()` / `reset()` /
- *   `clear()` are on the host (`UIFormHost`).
- * - `prevent-leaving`:  a `beforeunload` guard while the values differ from those at connect / reset / success.
- * - Static server render (`$/ui/server`):  a `<form>` slotted inside it MERGES into the root, which becomes
- *   `<form class="ui … form">` with the author's attributes (`mergedForm`):  Fomantic's own markup, so the form's
- *   rules reach its fields and messages, and the page still submits natively.  A form around it stays as it is.
+ * ### `DOMFormElement`
+ * The DOM element of `<ui-form>`, as `HTMLFormElement` is `<form>`'s:  it adds the form's script API
+ * (`validate()`, `isValid()`, `reset()`, `clear()`, `values`, `nativeForm`), each handed to the component.
+ *
+ * - Before the component exists, it answers as an empty form:  valid, no values, no native form.
+ * - solid-element checks a DOM element's prototype members against prop names;  none of these is one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIForm extends UIElement<Vocabulary> {
-  @proto static vocabulary = formVocabulary
-  @proto static styles = { form: formCSS }
-  @proto static Host = UIFormHost
-  @proto static Fallback = FormFallback
-  @proto static delegatesFocus = false
+export class DOMFormElement extends E.DOMElement {
+  /** Validate every field, show prompts and states;  true when valid. */
+  validate(): boolean {
+    return this.form?.validate() ?? true
+  }
 
-  /** The native form it works with. */
-  readonly form = new Cell<HTMLFormElement | null>(null)
+  /** The same verdict as `validate()`, showing nothing. */
+  isValid(): boolean {
+    return this.form?.isValid() ?? true
+  }
 
-  /** The last submit / `validate()` failed:  `error` shows. */
-  readonly failed = new Cell(false)
+  /** The native form's reset (controls back to their starting values), then prompts cleared. */
+  reset() {
+    this.form?.reset()
+  }
+
+  /** Every control emptied (text `""`, checkboxes unchosen), then prompts cleared. */
+  clear() {
+    this.form?.clear()
+  }
+
+  /** Every field's value, by name (Fomantic's `get values`). */
+  get values(): UIT.FormValues {
+    return this.form?.values ?? {}
+  }
+
+  /** The `<form>` it works with, if any. */
+  get nativeForm(): HTMLFormElement | undefined {
+    return untrack(() => this.form?.nativeForm)
+  }
+
+  /** The form's component, once it exists. */
+  private get form(): UIForm | undefined {
+    return this.component as UIForm | undefined
+  }
+}
+
+/****************
+ * ### `UIForm`
+ * The component behind `<ui-form>`:  a form's look, `<div class="ui … form" part="form"><slot></slot></div>`,
+ * and its VALIDATION, over a NATIVE form.
+ *
+ * - Why not a form of its own:  a form-associated control belongs to the nearest `<form>` ANCESTOR in its own tree,
+ *   so a `<form>` in this shadow root would never own the slotted controls, and a custom element can't BE a form.
+ *   - So `<ui-form>` works with a light-DOM `<form>`:  one slotted INSIDE it (`<ui-form><form>…`, preferred),
+ *     else the one AROUND it (`<form><ui-form>…`).
+ *   - It never creates or moves one:  frameworks own that DOM.
+ *   - Without any, it still validates (`validate()`, `validate-on="blur|change"`), but nothing submits.
+ *
+ * - SIDE EFFECT:  sets `noValidate` on that form while connected (restored after),
+ *   so the browser's bubbles don't pre-empt Fomantic's prompts;
+ *   constraint validation still counts (see `FormFields.errors()`).
+ *
+ * - Submit (in the capture phase, on the form):  every field validates.
+ *   - Invalid:  `preventDefault()` and `stopImmediatePropagation()` (the page's own submit handlers never see
+ *     an invalid form, as natively), the prompts, the `error` state, `ui-failure`,
+ *     and focus on the first invalid field (`error-focus`).
+ *   - Valid:  the cancelable `ui-success` (cancelled => no native submission).
+ *
+ * - Prompts:  each field's first control's `<ui-field>` (`:state(field)`) gets `showErrors()`;
+ *   failing controls get `aria-invalid="true"` (removed when they pass).
+ *   A field that shows an error validates again as it changes, whatever `validate-on` says.
+ *
+ * - `ui-valid` / `ui-invalid` fire per field validated.
+ * - The script API (`values`, `validate()`, `isValid()`, `reset()`, `clear()`) is the DOM element's, `DOMFormElement`.
+ *
+ * - `prevent-leaving`:  a `beforeunload` guard while the values differ from those at connect, reset or success.
+ *
+ * - Static server render (`$/ui/static`):  a `<form>` slotted inside it MERGES into the root,
+ *   which becomes `<form class="ui … form">` with the author's attributes (`mergedForm`).
+ *   That's Fomantic's own markup, so the form's rules reach its fields and messages,
+ *   and the page still submits natively.  A form around it stays as it is.
+ ****************/
+export class UIForm extends E.UIComponent<typeof formVocabulary> {
+  @E.proto static vocabulary = formVocabulary
+  @E.proto static styleSheets = { form: formCSS }
+  @E.proto static elementSetup = { DOMElement: DOMFormElement, delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Controls, values, labels, errors. */
-  readonly fields = new FormFields(this.host, () => this.form.get())
+  readonly fields = new FormFields({ domElement: this.domElement, form: () => this.nativeForm })
 
   /** Fields showing an error now. */
-  private readonly shown = new Set<string>()
+  private readonly fieldsShowingErrors = new Set<string>()
 
   /** Values at connect / reset / success, for `prevent-leaving`. */
-  private snapshot = ""
+  private savedValues = ""
 
   /** Validation deferred to after the controls settle, by field. */
-  private readonly pending = new Set<string>()
+  private readonly fieldsAwaitingCheck = new Set<string>()
 
   /**
    * Server render only:  attributes of the author's `<form>` merged into the root, `undefined` when there's none.
-   * - SIDE EFFECT:  unwraps that form in the host's light DOM, so its children fill the root's slot.
+   * - SIDE EFFECT:  unwraps that form in the DOM element's light DOM, so its children fill the root's slot.
    */
-  private readonly mergedForm = isServer ? UIForm.unwrapForm(this.host) : undefined
+  private readonly mergedForm = isServer ? UIForm.unwrapForm(this.domElement) : undefined
 
   ////////////////
-  // ## Element hooks
+  // ## State and classes
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
-    if (name === "state") return this.shownState()
+  /** The last submit / `validate()` failed:  `error` shows. */
+  @E.state accessor lastCheckFailed = false
+
+  /** `error` after a failed submit, else the attribute. */
+  private get shownState(): UIT.FormState | undefined {
+    return this.lastCheckFailed ? ERROR : this.state
+  }
+
+  /** `:state(error)`:  the state shown is `error`. */
+  @E.cssState("error")
+  get isError(): boolean {
+    return this.shownState === ERROR
+  }
+
+  /** `:state(info)`:  the state shown is `info`. */
+  @E.cssState("info")
+  get isInfo(): boolean {
+    return this.shownState === INFO
+  }
+
+  /** `:state(success)`:  the state shown is `success`. */
+  @E.cssState("success")
+  get isSuccess(): boolean {
+    return this.shownState === SUCCESS
+  }
+
+  /** `:state(warning)`:  the state shown is `warning`. */
+  @E.cssState("warning")
+  get isWarning(): boolean {
+    return this.shownState === WARNING
+  }
+
+  /** Waiting (`loading`):  the root is `inert` and `aria-busy`. */
+  @E.cssState("loading")
+  get isLoading(): boolean {
+    return this.loading
+  }
+
+  /**
+   * `:state(disabled)` while `disabled`:  the root is `inert`.
+   * - Not an `isDisabled` override:  that would make the DOM element swallow clicks too.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return this.disabled
+  }
+
+  /** Always `:state(root)`. */
+  @E.cssState("root")
+  get isRoot(): boolean {
+    return true
+  }
+
+  protected classValue(name: E.AttributeName<typeof formVocabulary>): unknown {
+    if (name === "state") return this.shownState
     return super.classValue(name)
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`):  sets the switch its rows stack by. */
-  protected extraClasses(): string | undefined {
-    return UIT.StackClasses.of(this.attrs.stackWith)
-  }
-
-  protected hostStates() {
-    const state = this.shownState()
-    return {
-      error: state === ERROR,
-      info: state === "info",
-      success: state === "success",
-      warning: state === "warning",
-      loading: this.attrs.loading,
-      disabled: this.attrs.disabled,
-      root: true
-    }
-  }
-
-  /** `error` after a failed submit, else the attribute. */
-  private shownState() {
-    return this.failed.get() ? ERROR : this.attrs.state
+  protected get extraClasses(): string | undefined {
+    return UIT.StackClasses.classFor(this.stackWith)
   }
 
   ////////////////
@@ -118,10 +189,10 @@ export class UIForm extends UIElement<Vocabulary> {
     if (this.mergedForm) return this.formRoot(this.mergedForm)
     return (
       <div
-        class={this.classes()}
-        part={this.part("form")}
-        inert={this.attrs.disabled || this.attrs.loading}
-        aria-busy={this.attrs.loading ? "true" : undefined}
+        class={this.rootClasses}
+        part={this.partForName("form")}
+        inert={this.disabled || this.loading}
+        aria-busy={this.loading ? "true" : undefined}
       >
         <slot />
       </div>
@@ -134,65 +205,75 @@ export class UIForm extends UIElement<Vocabulary> {
     return (
       <form
         {...rest}
-        class={[this.classes(), authorClass]}
-        part={this.part("form")}
-        inert={this.attrs.disabled || this.attrs.loading}
-        aria-busy={this.attrs.loading ? "true" : undefined}
+        class={[this.rootClasses, authorClass]}
+        part={this.partForName("form")}
+        inert={this.disabled || this.loading}
+        aria-busy={this.loading ? "true" : undefined}
       >
         <slot />
       </form>
     )
   }
 
-  /** Adds the form discovery, its listeners, and the host's own listeners while connected. */
-  mount() {
+  ////////////////
+  // ## The native form
+  ////////////////
+
+  /** The native form it works with (`findForm()`). */
+  @E.state accessor nativeForm: HTMLFormElement | undefined = undefined
+
+  /**
+   * Adds the form discovery, and the DOM element's own listeners, while connected.
+   * - Stays an explicit effect:  it watches the DOM (a `MutationObserver`) while connected.
+   */
+  onMount() {
     createEffect(
-      () => this.connected.get(),
+      () => this.isConnected,
       (connected) => {
         if (!connected || isServer) return
         const observer = new MutationObserver(() => this.findForm())
-        observer.observe(this.host, { childList: true, subtree: true })
+        observer.observe(this.domElement, { childList: true, subtree: true })
         this.findForm()
-        const { host } = this
-        for (const type of CHANGE_EVENTS) host.addEventListener(type, this.onChange)
-        host.addEventListener(FOCUS_OUT, this.onBlur)
-        window.addEventListener(BEFORE_UNLOAD, this.onBeforeUnload)
-        queueMicrotask(() => this.takeSnapshot())
+        const { domElement } = this
+        for (const type of CHANGE_EVENTS) domElement.addEventListener(type, this.onChange)
+        domElement.addEventListener("focusout", this.onFocusOut)
+        window.addEventListener("beforeunload", this.onBeforeUnload)
+        queueMicrotask(() => this.saveValues())
         return () => {
-          this.form.set(null)
+          this.nativeForm = undefined
           observer.disconnect()
-          for (const type of CHANGE_EVENTS) host.removeEventListener(type, this.onChange)
-          host.removeEventListener(FOCUS_OUT, this.onBlur)
-          window.removeEventListener(BEFORE_UNLOAD, this.onBeforeUnload)
+          for (const type of CHANGE_EVENTS) domElement.removeEventListener(type, this.onChange)
+          domElement.removeEventListener("focusout", this.onFocusOut)
+          window.removeEventListener("beforeunload", this.onBeforeUnload)
         }
       }
     )
-    createEffect(
-      () => this.form.get(),
-      (form) => {
-        if (!form) return
-        const noValidate = form.noValidate
-        form.noValidate = true
-        form.addEventListener(UIT.SUBMIT, this.onSubmit, { capture: true })
-        form.addEventListener(RESET, this.onReset)
-        return () => {
-          form.noValidate = noValidate
-          form.removeEventListener(UIT.SUBMIT, this.onSubmit, { capture: true })
-          form.removeEventListener(RESET, this.onReset)
-        }
-      }
-    )
-    return super.mount()
+    return super.onMount()
   }
 
   /** The native form:  one inside, else the one around. */
   private findForm() {
-    const form = this.host.querySelector(FORM) ?? this.host.parentElement?.closest(FORM) ?? null
-    if (form !== untrack(() => this.form.get())) this.form.set(form)
+    const form = this.domElement.querySelector("form") ?? this.domElement.parentElement?.closest("form") ?? undefined
+    if (form !== untrack(() => this.nativeForm)) this.nativeForm = form
+  }
+
+  /** A native form to work with:  `noValidate` on, its submit and reset listened to;  all undone when it goes. */
+  @E.onChange("nativeForm")
+  protected onNativeFormChanged(form: HTMLFormElement | undefined) {
+    if (!form) return undefined
+    const noValidate = form.noValidate
+    form.noValidate = true
+    form.addEventListener("submit", this.onSubmit, { capture: true })
+    form.addEventListener("reset", this.onReset)
+    return () => {
+      form.noValidate = noValidate
+      form.removeEventListener("submit", this.onSubmit, { capture: true })
+      form.removeEventListener("reset", this.onReset)
+    }
   }
 
   ////////////////
-  // ## API (see `UIFormHost`)
+  // ## Script API (the DOM element's:  `DOMFormElement`)
   ////////////////
 
   /** Validate every field, show the results;  true when all pass. */
@@ -202,38 +283,33 @@ export class UIForm extends UIElement<Vocabulary> {
 
   /** Validate and show every field, set the failed state;  errors by field. */
   private validateAll(): Record<string, string[]> {
-    const errors = this.check(true)
-    this.failed.set(!!Object.keys(errors).length)
+    const errors = this.check("show")
+    this.lastCheckFailed = !!Object.keys(errors).length
     return errors
   }
 
   /** Would every field pass?  Shows nothing. */
   isValid(): boolean {
-    return !Object.keys(this.check(false)).length
+    return !Object.keys(this.check("silently")).length
   }
 
   /** The native reset, then prompts and states cleared. */
   reset() {
-    const form = untrack(() => this.form.get())
+    const form = untrack(() => this.nativeForm)
     if (form) form.reset()
     else for (const control of this.fields.controls()) UIForm.resetControl(control)
-    this.clearShown()
+    this.clearErrors()
   }
 
   /** Every control emptied, prompts and states cleared. */
   clear() {
     for (const control of this.fields.controls()) UIForm.clearControl(control)
-    this.clearShown()
+    this.clearErrors()
   }
 
-  /** Every field's value, by name. */
-  values(): UIT.FormValues {
+  /** Every field's value, by name;  read from the DOM, untracked. */
+  get values(): UIT.FormValues {
     return this.fields.values()
-  }
-
-  /** The native form, if any. */
-  nativeForm(): HTMLFormElement | null {
-    return untrack(() => this.form.get())
   }
 
   ////////////////
@@ -242,18 +318,19 @@ export class UIForm extends UIElement<Vocabulary> {
 
   /**
    * Validate every field;  errors by field.
-   * - `show`:  prompts, `aria-invalid` and per-field events;  the first invalid field is focused by the caller.
+   * - `"show"`:  prompts, `aria-invalid` and per-field events too;  the caller focuses the first invalid field.
+   * - `"silently"`:  the verdict alone.
    */
-  private check(show: boolean): Record<string, string[]> {
+  private check(mode: CheckMode): Record<string, string[]> {
     const fields = this.fields.fields()
     const values = this.fields.values(fields)
     const labels = this.fields.labels(fields)
-    const rules = this.rules()
+    const rules = this.formRules
     const errors: Record<string, string[]> = {}
     for (const field of fields) {
-      const messages = this.fields.errors(field, rules, values, labels)
+      const messages = this.fields.errors({ field, rules, values, labels })
       if (messages.length) errors[field.identifier] = messages
-      if (show) this.show(field.identifier, field.controls, messages, values)
+      if (mode === "show") this.show({ field, messages, values })
     }
     return errors
   }
@@ -264,67 +341,63 @@ export class UIForm extends UIElement<Vocabulary> {
     const field = fields.find((candidate) => candidate.identifier === identifier)
     if (!field) return
     const values = this.fields.values(fields)
-    const messages = this.fields.errors(field, this.rules(), values, this.fields.labels(fields))
-    this.show(identifier, field.controls, messages, values)
-    if (!this.shown.size && untrack(() => this.failed.get())) this.failed.set(false)
+    const labels = this.fields.labels(fields)
+    const messages = this.fields.errors({ field, rules: this.formRules, values, labels })
+    this.show({ field, messages, values })
+    if (!this.fieldsShowingErrors.size && this.lastCheckFailed) this.lastCheckFailed = false
   }
 
   /** Show `messages` for a field (or clear it), and dispatch `ui-valid` / `ui-invalid`. */
-  private show(identifier: string, controls: readonly Element[], messages: string[], values: UIT.FormValues) {
-    const field = controls[0]?.closest(FIELD_SELECTOR) as FieldElement | null
-    field?.showErrors?.(messages)
+  private show({ field: { identifier, controls }, messages, values }: ShownField) {
+    UIForm.fieldElementFor(controls)?.showErrors?.(messages)
     for (const control of controls) {
-      if (messages.length) control.setAttribute(UIT.ARIA_INVALID, "true")
-      else if (control.getAttribute(UIT.ARIA_INVALID) === "true") control.removeAttribute(UIT.ARIA_INVALID)
+      if (messages.length) control.setAttribute("aria-invalid", "true")
+      else if (control.getAttribute("aria-invalid") === "true") control.removeAttribute("aria-invalid")
     }
-    if (messages.length) this.shown.add(identifier)
-    else this.shown.delete(identifier)
+    if (messages.length) this.fieldsShowingErrors.add(identifier)
+    else this.fieldsShowingErrors.delete(identifier)
     const value = values[identifier]
     if (messages.length) {
       const detail: UIT.FormInvalidDetail = { field: identifier, value, errors: messages, values }
-      this.emit("ui-invalid", detail)
+      this.send("ui-invalid", detail)
     } else {
       const detail: UIT.FormValidDetail = { field: identifier, value, values }
-      this.emit("ui-valid", detail)
+      this.send("ui-valid", detail)
     }
   }
 
   /** Forget every prompt, `aria-invalid` and the failed state. */
-  private clearShown() {
-    for (const identifier of this.shown) {
+  private clearErrors() {
+    for (const identifier of this.fieldsShowingErrors) {
       const field = this.fields.field(identifier)
       if (!field) continue
-      ;(field.controls[0]?.closest(FIELD_SELECTOR) as FieldElement | null)?.showErrors?.([])
-      for (const control of field.controls) control.removeAttribute(UIT.ARIA_INVALID)
+      UIForm.fieldElementFor(field.controls)?.showErrors?.([])
+      for (const control of field.controls) control.removeAttribute("aria-invalid")
     }
-    this.shown.clear()
-    this.failed.set(false)
-    queueMicrotask(() => this.takeSnapshot())
+    this.fieldsShowingErrors.clear()
+    this.lastCheckFailed = false
+    queueMicrotask(() => this.saveValues())
   }
 
-  /**
-   * The `rules` property, as an object.
-   * - Read from the HOST property, whose value is stored at once, not from `attrs` (a signal:  a `validate()`
-   *   right after `el.rules = …` would see the old rules).
-   */
-  private rules(): UIT.FormRules | undefined {
-    const rules = (this.host as unknown as Record<string, unknown>)[this.definition.attribute("rules").property]
+  /** The `rules` property, as an object;  fresh, so a `validate()` right after `el.rules = …` sees the new rules. */
+  private get formRules(): UIT.FormRules | undefined {
+    const { rules } = this
     return rules && typeof rules === "object" && !Array.isArray(rules) ? (rules as UIT.FormRules) : undefined
   }
 
   /** Validate `identifier` once the controls have settled (their value and validity land on a microtask). */
-  private later(identifier: string) {
-    if (this.pending.has(identifier)) return
-    this.pending.add(identifier)
+  private checkFieldSoon(identifier: string) {
+    if (this.fieldsAwaitingCheck.has(identifier)) return
+    this.fieldsAwaitingCheck.add(identifier)
     setTimeout(() => {
-      this.pending.delete(identifier)
+      this.fieldsAwaitingCheck.delete(identifier)
       this.checkField(identifier)
     })
   }
 
   /** Remember the values now. */
-  private takeSnapshot() {
-    this.snapshot = JSON.stringify(this.fields.values())
+  private saveValues() {
+    this.savedValues = JSON.stringify(this.values)
   }
 
   ////////////////
@@ -337,39 +410,40 @@ export class UIForm extends UIElement<Vocabulary> {
     if (Object.keys(errors).length) {
       event.preventDefault()
       event.stopImmediatePropagation()
-      const detail: UIT.FormFailureDetail = { values: this.values(), errors, originalEvent: event }
-      this.emit("ui-failure", detail)
-      if (untrack(() => this.attrs.errorFocus)) this.focusFirst(Object.keys(errors))
+      const detail: UIT.FormFailureDetail = { values: this.values, errors, originalEvent: event }
+      this.send("ui-failure", detail)
+      if (untrack(() => this.errorFocus)) this.focusFirst(Object.keys(errors))
       return
     }
-    const detail: UIT.FormSuccessDetail = { values: this.values(), originalEvent: event }
-    if (!this.emit("ui-success", detail)) event.preventDefault()
-    else this.takeSnapshot()
+    const detail: UIT.FormSuccessDetail = { values: this.values, originalEvent: event }
+    if (!this.send("ui-success", detail)) event.preventDefault()
+    else this.saveValues()
   }
 
   /** Native reset:  prompts go once the controls have reset. */
   private readonly onReset = () => {
-    queueMicrotask(() => this.clearShown())
+    queueMicrotask(() => this.clearErrors())
   }
 
-  /** A control changed:  validate it for `on="change"`, or while it shows an error. */
+  /** A control changed:  validate it for `validate-on="change"`, or while it shows an error. */
   private readonly onChange = (event: Event) => {
-    const identifier = this.identifierOf(event)
+    const identifier = this.identifierFor(event)
     if (!identifier) return
-    if (this.shown.has(identifier) || untrack(() => this.attrs.on) === CHANGE) this.later(identifier)
+    if (this.fieldsShowingErrors.has(identifier) || untrack(() => this.validateOn) === "change")
+      this.checkFieldSoon(identifier)
   }
 
-  /** A control lost focus:  validate it for `on="blur"`. */
-  private readonly onBlur = (event: FocusEvent) => {
-    if (untrack(() => this.attrs.on) !== BLUR) return
-    const identifier = this.identifierOf(event)
-    if (identifier) this.later(identifier)
+  /** A control lost focus:  validate it for `validate-on="blur"`. */
+  private readonly onFocusOut = (event: FocusEvent) => {
+    if (untrack(() => this.validateOn) !== "blur") return
+    const identifier = this.identifierFor(event)
+    if (identifier) this.checkFieldSoon(identifier)
   }
 
   /** `prevent-leaving`:  ask while the values changed. */
   private readonly onBeforeUnload = (event: BeforeUnloadEvent) => {
-    if (!untrack(() => this.attrs.preventLeaving)) return
-    if (JSON.stringify(this.fields.values()) === this.snapshot) return
+    if (!untrack(() => this.preventLeaving)) return
+    if (JSON.stringify(this.values) === this.savedValues) return
     event.preventDefault()
   }
 
@@ -377,9 +451,9 @@ export class UIForm extends UIElement<Vocabulary> {
    * Field identifier of the control an event came from:  the first control at or above its `target`.
    * - `target` is already retargeted to the form's tree:  typing into a `<ui-input>` gives the `<ui-input>`.
    */
-  private identifierOf(event: Event): string | undefined {
+  private identifierFor(event: Event): string | undefined {
     const fields = this.fields.fields()
-    for (let node = event.target as Element | null; node && node !== this.host; node = node.parentElement) {
+    for (let node = event.target as Element | null; node && node !== this.domElement; node = node.parentElement) {
       const field = fields.find((candidate) => candidate.controls.includes(node!))
       if (field) return field.identifier
     }
@@ -393,18 +467,30 @@ export class UIForm extends UIElement<Vocabulary> {
   }
 
   /**
-   * Server render:  the author's `<form>`, when it is the host's only element child, unwrapped (its children take
-   * its place);  returns its attributes, else `undefined`.
+   * Server render:  the author's `<form>`, when it is the DOM element's only element child,
+   * unwrapped (its children take its place);  returns its attributes, else `undefined`.
+   * - STATIC:  it runs from a field initializer, before the instance is ready, and needs only the DOM element.
    */
-  private static unwrapForm(host: Element): Record<string, string> | undefined {
-    const [form, ...others] = host.children
-    if (!form || others.length || form.localName !== FORM) return undefined
+  private static unwrapForm(domElement: Element): Record<string, string> | undefined {
+    const [form, ...others] = domElement.children
+    if (!form || others.length || form.localName !== "form") return undefined
     const attributes = Object.fromEntries([...form.attributes].map(({ name, value }) => [name, value]))
     form.replaceWith(...form.childNodes)
     return attributes
   }
 
-  /** Put a control back to its starting value (no native form to reset it). */
+  /**
+   * The `<ui-field>` of a field's first control, if any:  where its prompt shows.
+   * - STATIC:  pure, reads only the controls.
+   */
+  private static fieldElementFor(controls: readonly Element[]): DOMFieldElement | undefined {
+    return (controls[0]?.closest(FIELD_SELECTOR) as DOMFieldElement | null) ?? undefined
+  }
+
+  /**
+   * Put a control back to its starting value (no native form to reset it).
+   * - STATIC:  works on the control alone, no instance state.
+   */
   private static resetControl(control: Element) {
     if (control instanceof HTMLInputElement) {
       if (control.type === "checkbox" || control.type === "radio") control.checked = control.defaultChecked
@@ -412,10 +498,13 @@ export class UIForm extends UIElement<Vocabulary> {
     } else if (control instanceof HTMLTextAreaElement) control.value = control.defaultValue
     else if (control instanceof HTMLSelectElement) {
       for (const option of control.options) option.selected = option.defaultSelected
-    } else (control as { controller?: { formReset?(): void } }).controller?.formReset?.()
+    } else (control as { component?: { formReset?(): void } }).component?.formReset?.()
   }
 
-  /** Empty a control. */
+  /**
+   * Empty a control.
+   * - STATIC:  works on the control alone, no instance state.
+   */
   private static clearControl(control: Element) {
     if (control instanceof HTMLInputElement) {
       if (control.type === "checkbox" || control.type === "radio") control.checked = false
@@ -425,8 +514,27 @@ export class UIForm extends UIElement<Vocabulary> {
     else if ((control as { checkable?: string }).checkable)
       (control as unknown as { selected: boolean }).selected = false
     else {
-      const host = control as unknown as { value: unknown }
-      host.value = Array.isArray(host.value) ? [] : ""
+      const element = control as unknown as { value: unknown }
+      element.value = Array.isArray(element.value) ? [] : ""
     }
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIForm extends E.AttributeValues<typeof formVocabulary> {}
+
+/** How `UIForm.check()` reports:  `"show"` prompts, states and events, or `"silently"` the verdict alone. */
+type CheckMode = "show" | "silently"
+
+/** What `UIForm.show()` shows:  one field's prompts. */
+type ShownField = {
+  /** The field checked. */
+  field: Field
+  /** Its prompts;  `[]` clears it. */
+  messages: string[]
+  /** Every field's value, for the events' `detail`. */
+  values: UIT.FormValues
+}
+
+/** Events that mean "a control changed":  native ones from light-DOM controls, `ui-*` ones from elements. */
+const CHANGE_EVENTS = ["change", "input", "ui-change"] as const

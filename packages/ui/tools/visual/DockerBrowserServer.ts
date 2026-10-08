@@ -6,10 +6,12 @@ import { existsSync } from "node:fs"
 import { SRV } from "$/server"
 
 import { NodePackage } from "../NodePackage.ts"
+import { Terminal } from "../Terminal.ts"
 import { VisualError } from "./visual.types.ts"
 import { VisualSettings } from "./VisualSettings.ts"
 
-/**
+/****************
+ * ### `DockerBrowserServer`
  * A Playwright browser server in the OFFICIAL Playwright Docker image, for `yarn test:visual --os linux`:  the
  * tests run on the host and connect to it, so Linux renders the pixels.
  * - Why only the browsers:  our `node_modules` hold macOS-native binaries (rolldown, lightningcss, oxc), so the dev
@@ -24,17 +26,8 @@ import { VisualSettings } from "./VisualSettings.ts"
  *   - the image is pulled on first use
  * - SIDE EFFECT: one container per run (`--rm`), named `spell-ui-visual-<pid>`;  `stop()` removes it.  The runner
  *   calls `stop()` on success, failure, Ctrl-C and exit.
- */
+ ****************/
 export class DockerBrowserServer {
-  /** How long to wait for a starting Docker daemon, ms. */
-  static readonly DAEMON_TIMEOUT = 180_000
-  /** How long to wait for the browser server to listen, ms. */
-  static readonly SERVER_TIMEOUT = 60_000
-  /** Docker Desktop on macOS. */
-  static readonly DESKTOP_APP = "/Applications/Docker.app"
-  /** The CLI inside Docker Desktop, used when `docker` isn't on `PATH`. */
-  static readonly DESKTOP_CLI = `${DockerBrowserServer.DESKTOP_APP}/Contents/Resources/bin/docker`
-
   /** Playwright version:  image tag and server. */
   readonly version: string
   /** container name */
@@ -42,7 +35,7 @@ export class DockerBrowserServer {
   /** the `docker` executable, once found */
   private docker = "docker"
   /** a container is (probably) running */
-  private running = false
+  private isRunning = false
 
   constructor(version = VisualSettings.playwrightVersion()) {
     this.version = version
@@ -62,7 +55,7 @@ export class DockerBrowserServer {
     this.locate()
     await this.ensureDaemon()
     this.ensureImage()
-    const port = await DockerBrowserServer.freePort()
+    const port = await SRV.freePort()
     const core = NodePackage.need("playwright-core")
     const run = this.exec([
       "run",
@@ -73,7 +66,7 @@ export class DockerBrowserServer {
       "--name",
       this.name,
       "--publish",
-      `127.0.0.1:${port}:3000`,
+      `127.0.0.1:${port}:${CONTAINER_PORT}`,
       "--volume",
       `${core}:/opt/playwright-core:ro`,
       "--workdir",
@@ -85,12 +78,12 @@ export class DockerBrowserServer {
       "/opt/playwright-core/cli.js",
       "run-server",
       "--port",
-      "3000",
+      String(CONTAINER_PORT),
       "--host",
       "0.0.0.0"
     ])
     if (run.status !== 0) throw new VisualError(`docker run failed:\n${run.stderr}`)
-    this.running = true
+    this.isRunning = true
     await this.waitListening()
     return `ws://127.0.0.1:${port}/`
   }
@@ -100,8 +93,8 @@ export class DockerBrowserServer {
    * - Idempotent.
    */
   stop(): void {
-    if (!this.running) return
-    this.running = false
+    if (!this.isRunning) return
+    this.isRunning = false
     this.exec(["rm", "--force", this.name])
   }
 
@@ -115,8 +108,8 @@ export class DockerBrowserServer {
    */
   private locate() {
     if (DockerBrowserServer.works(spawnSync("docker", ["--version"], { encoding: "utf8" }))) return
-    if (existsSync(DockerBrowserServer.DESKTOP_CLI)) {
-      this.docker = DockerBrowserServer.DESKTOP_CLI
+    if (existsSync(DESKTOP_CLI)) {
+      this.docker = DESKTOP_CLI
       return
     }
     throw new VisualError(
@@ -130,22 +123,22 @@ export class DockerBrowserServer {
    * - Elsewhere (Linux) a stopped daemon is left to the person:  starting it needs root.
    */
   private async ensureDaemon() {
-    if (this.daemonUp()) return
+    if (this.isDaemonUp()) return
     if (process.platform !== "darwin") {
       throw new VisualError("The Docker daemon isn't running.  Start it (e.g. `sudo systemctl start docker`).")
     }
-    console.log("[visual] Docker isn't running:  starting Docker Desktop ...")
+    Terminal.out("[visual] Docker isn't running:  starting Docker Desktop ...")
     spawnSync("open", ["-a", "Docker"])
-    const deadline = Date.now() + DockerBrowserServer.DAEMON_TIMEOUT
+    const deadline = Date.now() + DAEMON_TIMEOUT
     while (Date.now() < deadline) {
-      await DockerBrowserServer.sleep(2000)
-      if (this.daemonUp()) {
-        console.log("[visual] Docker is up")
+      await DockerBrowserServer.sleep(DAEMON_POLL)
+      if (this.isDaemonUp()) {
+        Terminal.out("[visual] Docker is up")
         return
       }
     }
     throw new VisualError(
-      `Docker Desktop didn't start within ${DockerBrowserServer.DAEMON_TIMEOUT / 1000}s ` +
+      `Docker Desktop didn't start within ${DAEMON_TIMEOUT / 1000}s ` +
         "(`docker info` still fails).  Open Docker Desktop and look for an error or an update prompt, " +
         'then run again.  See `docs/visual-testing.md`, "Troubleshooting".'
     )
@@ -154,22 +147,22 @@ export class DockerBrowserServer {
   /** Pull the image unless it's there;  progress goes to the terminal. */
   private ensureImage() {
     if (this.exec(["image", "inspect", this.image]).status === 0) return
-    console.log(`[visual] pulling ${this.image} (once) ...`)
+    Terminal.out(`[visual] pulling ${this.image} (once) ...`)
     const pull = spawnSync(this.docker, ["pull", this.image], { stdio: "inherit" })
     if (pull.status !== 0) throw new VisualError(`docker pull ${this.image} failed`)
   }
 
   /** Wait for the server's "Listening on" line;  a container that exits early fails with its logs. */
   private async waitListening() {
-    const deadline = Date.now() + DockerBrowserServer.SERVER_TIMEOUT
+    const deadline = Date.now() + SERVER_TIMEOUT
     while (Date.now() < deadline) {
       const logs = this.exec(["logs", this.name])
       if (/Listening on/.test(`${logs.stdout}${logs.stderr}`)) return
       if (logs.status !== 0) {
-        this.running = false
+        this.isRunning = false
         throw new VisualError(`the browser server container exited:\n${logs.stderr}`)
       }
-      await DockerBrowserServer.sleep(250)
+      await DockerBrowserServer.sleep(SERVER_POLL)
     }
     const logs = this.exec(["logs", this.name])
     this.stop()
@@ -177,7 +170,7 @@ export class DockerBrowserServer {
   }
 
   /** The daemon answers `docker info`. */
-  private daemonUp(): boolean {
+  private isDaemonUp(): boolean {
     return this.exec(["info"]).status === 0
   }
 
@@ -190,18 +183,34 @@ export class DockerBrowserServer {
   // ## Helpers
   ////////////////
 
-  /** A spawn that ran and exited 0. */
+  /** A spawn that ran and exited 0.  Static:  a pure check of its argument. */
   private static works(result: SpawnSyncReturns<string>): boolean {
     return !result.error && result.status === 0
   }
 
-  /** A free TCP port on the loopback. */
-  private static freePort(): Promise<number> {
-    return SRV.freePort()
-  }
-
-  /** Wait `ms`. */
+  /** Wait `ms`:  between polls of a process outside ours, which has no event to wait on.  Static:  no state. */
   private static sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 }
+
+/** How long to wait for a starting Docker daemon, ms. */
+const DAEMON_TIMEOUT = 180_000
+
+/** How often to ask a starting daemon (`docker info`), ms:  it takes tens of seconds, so no need to ask faster. */
+const DAEMON_POLL = 2000
+
+/** How long to wait for the browser server to listen, ms. */
+const SERVER_TIMEOUT = 60_000
+
+/** How often to read the container's logs for "Listening on", ms. */
+const SERVER_POLL = 250
+
+/** The browser server's port INSIDE the container;  published on a free loopback port of the host. */
+const CONTAINER_PORT = 3000
+
+/** Docker Desktop on macOS. */
+const DESKTOP_APP = "/Applications/Docker.app"
+
+/** The CLI inside Docker Desktop, used when `docker` isn't on `PATH`. */
+const DESKTOP_CLI = `${DESKTOP_APP}/Contents/Resources/bin/docker`

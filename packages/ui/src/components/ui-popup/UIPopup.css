@@ -1,0 +1,429 @@
+/*
+ * `<ui-popup>`:  port of Fomantic's `popup.less` + `popup.variables` (the CSS-only `[data-tooltip]` rules live in
+ * `native.css`, a page sheet:  they style light-DOM markup).
+ * - Shadow markup contract (class grammar;  a popup has no better element than `<div>`):
+ *   `<div class="ui [size] [color] [keyOnly ...] [very] [wide] popup [position]" part="popup">` holding, in order,
+ *   `<div class="header" part="header">` (the `header` shorthand),
+ *   `<div class="content" part="content">` (the `content` shorthand) and the default `<slot>`.
+ *   The position words (`top left` ... `right center`) come after the noun, as Fomantic's script added them;
+ *   `visible` while open.
+ * - The DOM element is the positioned box:  a popover (`popover="hint"` for hover / focus popups where supported,
+ *   else `manual`) in the top layer, anchored to its target.  The element sets on it, inline:
+ *   - `position-anchor`:  the target's `anchor-name` (a per-instance dashed ident it adds to the target's inline
+ *     `anchor-name` list), or `auto` -- the implicit anchor `showPopover({ source })` sets -- when the target has
+ *     no box of its own (`display: contents`, e.g. `<ui-icon>`, `<ui-label>`):  it's then anchored to the
+ *     target's first shadow box, which a tree-scoped `anchor-name` can't name across the shadow boundary
+ *   - `position-area`:  from `position` (`top left` => `top span-right` ...)
+ *   - this sheet adds `position-try-fallbacks: flip-block, flip-inline` (no JS positioning,
+ *     ever) and `container-type: anchored`, so the arrow and the gap follow a flip where anchored queries exist
+ * - Distance:  Fomantic's margin on the popup box (`.ui.top.popup { margin-bottom }`):
+ *   the DOM element shrink-wraps it, so the margin is the gap to the target.
+ * - The inner box's `position: absolute` / `display: none` are STATIC-markup rules;  inside the shadow root the
+ *   box is always a block and the DOM element's popover state decides visibility.
+ * - Motion:  the box scales and fades in from `@starting-style` and out while the DOM element's `display` / `overlay`
+ *   transition (`allow-discrete`) keeps it in the top layer;  `reset.css` shortens it under reduced motion.
+ * - Colours:  `color` remaps (`colors.css`) fill the box and arrow with `--ui-color` and write
+ *   `--ui-color-on`;  the arrow's edge takes `--ui-color` too, so it disappears into a coloured box (no per-hue
+ *   rules).  `inverted` swaps in the opposite scheme's ink, and a coloured inverted popup the hue's `-inverted`
+ *   variant (Fomantic's "light" hue).  The DOM element resets the remap and `--ui-scale`, so a popup opened from inside
+ *   a red message or a large button isn't red or large.
+ * - Public tokens (`--ui-popup-*`, the theming surface) are NEVER declared here:  the token block reads each
+ *   through a private alias, `--_ui-popup-radius: var(--ui-popup-radius, var(--ui-radius))` (the duration on the
+ *   DOM element, which transitions too), and every rule reads the alias, `UIPopup.anchored.css` included.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(popup)` or in the app stylesheet reaches the box
+ *   (`docs/theming.md` "Component tokens").  `wide` / `very wide` swap the max width for `--ui-popup-wide-width` /
+ *   `--ui-popup-very-wide-width`, back to the base on phones.
+ * - OWNER side:  slotted `<ui-header>` / `<ui-content>` style themselves from `UIParts.css` (context `in-popup`),
+ *   reading the aliases `--_ui-popup-header-font-size` / `--_ui-popup-header-distance`, declared on every root.
+ * - NOTE: left out, on purpose:
+ *   - `.ui.invisible.popup` / `.ui.animating.popup`:  script states the popover replaces
+ *   - the nested-grid coupling's `rem` margins:  `.ui.popup > .ui.grid` gets the same inset in `em`
+ *   - Fomantic's per-position arrow BACKGROUND variables (all the same colour in the default theme)
+ */
+
+@layer ui.components.popup.types, ui.components.popup.content, ui.components.popup.variations, ui.components.popup.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time. */
+@import "../../styles/media.css";
+
+/*******************************
+             Popup
+*******************************/
+
+@layer ui.components.popup.types {
+  /* DOM element:  the popover in the top layer, shrink-wrapped around the box;  the UA popover look reset. */
+  :host {
+    --ui-color: initial;
+    --ui-color-text: initial;
+    --ui-color-header: initial;
+    --ui-color-border: initial;
+    --ui-color-background: initial;
+    --ui-color-inverted: initial;
+    --ui-color-on: initial;
+    --ui-color-inverted-on: initial;
+    --ui-scale: initial;
+    --_ui-popup-duration: var(--ui-popup-duration, var(--ui-duration-normal));
+    position: absolute;
+    inset: auto;
+    z-index: var(--ui-z-popup);
+    display: block;
+    box-sizing: border-box;
+    width: max-content;
+    height: max-content;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    position-try-fallbacks: flip-block, flip-inline;
+    container-type: anchored;
+    transition-property: display, overlay;
+    transition-duration: var(--_ui-popup-duration);
+    transition-behavior: allow-discrete;
+  }
+  :host(:not(:popover-open)) {
+    display: none;
+  }
+  :host(:state(fluid)) {
+    width: anchor-size(width);
+  }
+
+  /* Tokens:  one private alias per `popup.variables` entry that still matters, from the global tokens. */
+  .ui.popup {
+    --_ui-popup-background: var(--ui-popup-background, var(--ui-surface));
+    --_ui-popup-color: var(--ui-popup-color, var(--ui-text-color));
+    --_ui-popup-border-color: var(--ui-popup-border-color, var(--ui-border-color-strong));
+    --_ui-popup-shadow: var(--ui-popup-shadow, var(--ui-shadow-floating));
+    --_ui-popup-radius: var(--ui-popup-radius, var(--ui-radius));
+    --_ui-popup-padding: var(--ui-popup-padding, 0.833em 1em);
+    --_ui-popup-max-width: var(--ui-popup-max-width, 250px);
+    --_ui-popup-wide-width: var(--ui-popup-wide-width, 350px);
+    --_ui-popup-very-wide-width: var(--ui-popup-very-wide-width, 550px);
+    --_ui-popup-arrow-size: var(--ui-popup-arrow-size, 0.71428em);
+    --_ui-popup-arrow-edge-distance: var(--ui-popup-arrow-edge-distance, 1em);
+    --_ui-popup-arrow-offset: var(--ui-popup-arrow-offset, calc(var(--_ui-popup-arrow-size) / -2 + 0.05em));
+    --_ui-popup-arrow-edge: var(--ui-popup-arrow-edge, var(--ui-border-color-strong));
+    --_ui-popup-distance: var(--ui-popup-distance, var(--_ui-popup-arrow-size));
+    --_ui-popup-inverted-background: var(--ui-popup-inverted-background, var(--ui-ink));
+    --_ui-popup-inverted-color: var(--ui-popup-inverted-color, var(--ui-surface));
+    --_ui-popup-loading-opacity: var(--ui-popup-loading-opacity, 0.3);
+    /* Also declared on `:host` (which transitions too);  static markup has no shadow host, so the box needs its own. */
+    --_ui-popup-duration: var(--ui-popup-duration, var(--ui-duration-normal));
+    /* ## Owner tokens (`UIParts.css`):  declared on every root. */
+    --_ui-popup-header-font-size: var(--ui-popup-header-font-size, 1.14285em);
+    --_ui-popup-header-distance: var(--ui-popup-header-distance, 0.5em);
+    /* Arrow placement, set per position below. */
+    --_popup-arrow-shadow: 1px 1px 0 0 var(--_popup-arrow-edge);
+    --_popup-arrow-edge: var(--ui-color, var(--_ui-popup-arrow-edge));
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: var(--ui-z-popup);
+    box-sizing: border-box;
+    display: none;
+    min-width: min-content;
+    max-width: var(--_ui-popup-max-width);
+    margin: 0;
+    padding: var(--_ui-popup-padding);
+    border: var(--ui-border-width) solid var(--ui-color, var(--_ui-popup-border-color));
+    border-radius: var(--_ui-popup-radius);
+    background: var(--ui-color, var(--_ui-popup-background));
+    box-shadow: var(--_ui-popup-shadow);
+    color: var(--ui-color-on, var(--_ui-popup-color));
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    font-style: normal;
+    font-weight: var(--ui-font-weight-normal);
+    line-height: var(--ui-line-height);
+    text-align: start;
+  }
+
+  /* Inside the shadow root:  always a block in flow;  the DOM element decides whether it shows. */
+  :host > .ui.popup {
+    position: relative;
+    top: auto;
+    right: auto;
+    display: block;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--_ui-popup-duration) var(--ui-ease),
+      transform var(--_ui-popup-duration) var(--ui-ease);
+  }
+  :host(:not(:popover-open)) > .ui.popup {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  @starting-style {
+    :host(:popover-open) > .ui.popup {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+
+  /* Arrow:  a rotated square under the edge facing the target. */
+  .ui.popup::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    width: var(--_ui-popup-arrow-size);
+    height: var(--_ui-popup-arrow-size);
+    background: inherit;
+    box-shadow: var(--_popup-arrow-shadow);
+    transform: rotate(45deg);
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.popup.content {
+  /* Header (the shorthand, or static `.header`);  a block even as a server render's `<span>` (`UIPopup`). */
+  .ui.popup > .header {
+    display: block;
+    padding: 0;
+    font-family: var(--ui-font-family-heading);
+    font-size: var(--_ui-popup-header-font-size);
+    font-weight: var(--ui-font-weight-bold);
+    line-height: 1.2;
+  }
+  .ui.popup > .header + .content {
+    padding-top: var(--_ui-popup-header-distance);
+  }
+  /* The `content` shorthand:  a block, for the same reason. */
+  .ui.popup > .content {
+    display: block;
+  }
+
+  /* Coupling:  a grid right inside a popup sits flush with its padding. */
+  .ui.popup > .ui.grid:not(.padded),
+  .ui.popup > ::slotted(ui-grid:not([padded])) {
+    width: calc(100% + 2em);
+    margin: -0.7em -1em;
+  }
+}
+
+/*******************************
+          Variations
+*******************************/
+
+@layer ui.components.popup.variations {
+  /* ## Position:  the gap on the side facing the target, and the arrow on that edge. */
+  .ui.top.popup {
+    margin: 0 0 var(--_ui-popup-distance);
+  }
+  .ui.bottom.popup {
+    margin: var(--_ui-popup-distance) 0 0;
+    --_popup-arrow-shadow: -1px -1px 0 0 var(--_popup-arrow-edge);
+  }
+  .ui.left.center.popup {
+    margin: 0 var(--_ui-popup-distance) 0 0;
+    transform-origin: right 50%;
+    --_popup-arrow-shadow: 1px -1px 0 0 var(--_popup-arrow-edge);
+  }
+  .ui.right.center.popup {
+    margin: 0 0 0 var(--_ui-popup-distance);
+    transform-origin: left 50%;
+    --_popup-arrow-shadow: -1px 1px 0 0 var(--_popup-arrow-edge);
+  }
+  .ui.top.left.popup {
+    transform-origin: left bottom;
+  }
+  .ui.top.center.popup {
+    transform-origin: center bottom;
+  }
+  .ui.top.right.popup {
+    transform-origin: right bottom;
+  }
+  .ui.bottom.left.popup {
+    transform-origin: left top;
+  }
+  .ui.bottom.center.popup {
+    transform-origin: center top;
+  }
+  .ui.bottom.right.popup {
+    transform-origin: right top;
+  }
+
+  /* Below */
+  .ui.bottom.center.popup::before {
+    inset: var(--_ui-popup-arrow-offset) auto auto 50%;
+    margin-left: var(--_ui-popup-arrow-offset);
+  }
+  .ui.bottom.left.popup::before {
+    inset: var(--_ui-popup-arrow-offset) auto auto var(--_ui-popup-arrow-edge-distance);
+  }
+  .ui.bottom.right.popup::before {
+    inset: var(--_ui-popup-arrow-offset) var(--_ui-popup-arrow-edge-distance) auto auto;
+  }
+
+  /* Above */
+  .ui.top.center.popup::before {
+    inset: auto auto var(--_ui-popup-arrow-offset) 50%;
+    margin-left: var(--_ui-popup-arrow-offset);
+  }
+  .ui.top.left.popup::before {
+    inset: auto auto var(--_ui-popup-arrow-offset) var(--_ui-popup-arrow-edge-distance);
+  }
+  .ui.top.right.popup::before {
+    inset: auto var(--_ui-popup-arrow-edge-distance) var(--_ui-popup-arrow-offset) auto;
+  }
+
+  /* Beside */
+  .ui.left.center.popup::before {
+    inset: 50% var(--_ui-popup-arrow-offset) auto auto;
+    margin-top: var(--_ui-popup-arrow-offset);
+  }
+  .ui.right.center.popup::before {
+    inset: 50% auto auto var(--_ui-popup-arrow-offset);
+    margin-top: var(--_ui-popup-arrow-offset);
+  }
+
+  /*
+   * Beside, lined up with the target's top / bottom edge (ours, not Fomantic's).  Class words have no order,
+   * so `left top` carries the same words as `top left`:  these match the PHRASE (`[class*="left top"]`,
+   * Fomantic's `very wide` idiom) plus the side word, which ties `.ui.top.left.popup` on specificity and wins by coming
+   * later. They set everything the above / below rules set (margin, arrow edge and inset, transform origin).
+   */
+  .ui[class*="left top"].left.popup,
+  .ui[class*="left bottom"].left.popup {
+    margin: 0 var(--_ui-popup-distance) 0 0;
+    --_popup-arrow-shadow: 1px -1px 0 0 var(--_popup-arrow-edge);
+  }
+  .ui[class*="right top"].right.popup,
+  .ui[class*="right bottom"].right.popup {
+    margin: 0 0 0 var(--_ui-popup-distance);
+    --_popup-arrow-shadow: -1px 1px 0 0 var(--_popup-arrow-edge);
+  }
+  .ui[class*="left top"].left.popup {
+    transform-origin: right top;
+  }
+  .ui[class*="left bottom"].left.popup {
+    transform-origin: right bottom;
+  }
+  .ui[class*="right top"].right.popup {
+    transform-origin: left top;
+  }
+  .ui[class*="right bottom"].right.popup {
+    transform-origin: left bottom;
+  }
+  .ui[class*="left top"].left.popup::before {
+    inset: var(--_ui-popup-arrow-edge-distance) var(--_ui-popup-arrow-offset) auto auto;
+  }
+  .ui[class*="left bottom"].left.popup::before {
+    inset: auto var(--_ui-popup-arrow-offset) var(--_ui-popup-arrow-edge-distance) auto;
+  }
+  .ui[class*="right top"].right.popup::before {
+    inset: var(--_ui-popup-arrow-edge-distance) auto auto var(--_ui-popup-arrow-offset);
+  }
+  .ui[class*="right bottom"].right.popup::before {
+    inset: auto auto var(--_ui-popup-arrow-edge-distance) var(--_ui-popup-arrow-offset);
+  }
+
+  /* Flipped by `position-try-fallbacks`:  see `UIPopup.anchored.css`. */
+
+  /* ## Basic:  no arrow. */
+  .ui.basic.popup::before {
+    display: none;
+  }
+
+  /* ## Widths */
+  .ui.fixed.popup {
+    width: var(--_ui-popup-max-width);
+  }
+  .ui.wide.popup {
+    --_ui-popup-max-width: var(--_ui-popup-wide-width);
+  }
+  .ui[class*="very wide"].popup {
+    --_ui-popup-max-width: var(--_ui-popup-very-wide-width);
+  }
+  @media (--ui-mobile) {
+    .ui.wide.popup,
+    .ui[class*="very wide"].popup {
+      --_ui-popup-max-width: var(--ui-popup-max-width, 250px);
+    }
+  }
+  .ui.fluid.popup {
+    width: 100%;
+    max-width: none;
+  }
+  .ui.flowing.popup {
+    max-width: none;
+  }
+  /*
+   * A slotted grid is a size container (`UIGrid.css`), so its inline size ignores its content and a popup sized
+   * BY its content collapses to a sliver.  Drop the containment here:  this outer tree's `::slotted()` beats the
+   * grid's own `:host` rule.  Its stackable / device ranges then follow the nearest container above.
+   */
+  .ui.flowing.popup > ::slotted(ui-grid) {
+    container-type: normal;
+  }
+
+  /* ## Inverted:  the opposite scheme's ink;  a coloured one takes the hue's light variant. */
+  .ui.inverted.popup {
+    --ui-inverted: 1;
+    --_popup-arrow-shadow: none;
+    border-color: transparent;
+    background: var(--ui-color-inverted, var(--_ui-popup-inverted-background));
+    box-shadow: none;
+    color: var(--ui-color-inverted-on, var(--_ui-popup-inverted-color));
+  }
+  .ui.inverted.popup > .header {
+    background: none;
+    color: inherit;
+  }
+}
+
+/*******************************
+            States
+*******************************/
+
+@layer ui.components.popup.states {
+  /* Shown (static markup;  on the element, its DOM element is the popover). */
+  .ui.visible.popup {
+    display: block;
+  }
+
+  /*
+   * Static markup whose box IS the popover (a server render's, `$/ui/static`):  hidden until open,
+   * as the DOM element is.
+   * Never matches inside the element's shadow root, where the DOM element carries `popover`.
+   */
+  .ui.popup[popover]:not(:popover-open) {
+    display: none;
+  }
+
+  /* Loading:  faded content under a spinner;  not interactive. */
+  .ui.loading.popup {
+    cursor: default;
+    pointer-events: none;
+    user-select: none;
+  }
+  .ui.loading.popup > *,
+  .ui.loading.popup > ::slotted(*) {
+    opacity: var(--_ui-popup-loading-opacity);
+  }
+  .ui.loading.popup::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: 2em;
+    height: 2em;
+    margin: -1em 0 0 -1em;
+    border: 0.2em solid oklch(from currentColor l c h / 0.15);
+    border-top-color: currentColor;
+    border-radius: var(--ui-radius-circle);
+    animation: ui-popup-spin 0.6s linear infinite;
+  }
+}
+
+/* Loader spin. */
+@keyframes ui-popup-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

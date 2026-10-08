@@ -2,7 +2,40 @@
  * Small DOM helpers that know about shadow roots and custom element upgrade timing.
  * - Every helper is safe to IMPORT outside a browser (SSR, node tooling);  only calling them needs a DOM,
  *   except `isBrowser()` which exists to ask.
+ * - NEVER `instanceof Node` / `Element` / `ShadowRoot`:  `ui`'s server render calls these on linkedom elements in
+ *   node, which has no such globals.  Compare `nodeType` against `NodeType` instead.
  */
+
+////////////////
+// ## Node types
+////////////////
+
+/**
+ * `Node.nodeType` values we test, without the `Node` global (node has none):  `node.nodeType === NodeType.text`.
+ */
+export const NodeType = {
+  element: 1,
+  text: 3,
+  documentFragment: 11
+} as const
+/** One of `NodeType`'s values, e.g. `3`. */
+export type NodeType = (typeof NodeType)[keyof typeof NodeType]
+
+////////////////
+// ## Order
+////////////////
+
+/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global (node has none). */
+const DOCUMENT_POSITION_FOLLOWING = 4
+
+/**
+ * Sort comparator for document order:  `elements.sort(byDocumentOrder)`.
+ * - Negative when `a` comes first, else positive:  never `0`, as a sort never compares a node with itself.
+ * - The one comparator `ui`'s radio groups, form fields and control labels share.
+ */
+export function byDocumentOrder(a: Node, b: Node): number {
+  return a.compareDocumentPosition(b) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+}
 
 ////////////////
 // ## Environment
@@ -53,16 +86,21 @@ export function whenDefined(tag: string): Promise<CustomElementConstructor> {
  * - NOTE: closed shadow roots hide `assignedSlot`, so a slotted element climbs through its light parent instead.
  */
 export function closestAcrossShadow<T extends Element = Element>(element: Element, selector: string): T | null {
-  let current: Element | null = element
-  while (current) {
+  for (let current: Element | undefined = element; current; current = flatParentFor(current)) {
     if (current.matches(selector)) return current as T
-    current = current.assignedSlot ?? current.parentElement ?? hostOf(current)
   }
   return null
+}
 
-  /** Host of the shadow root `node` lives in, or `null` at the document. */
-  function hostOf(node: Element): Element | null {
-    const root = node.getRootNode()
-    return root instanceof ShadowRoot ? root.host : null
-  }
+/**
+ * `element`'s parent in the FLAT tree:  its slot when it's slotted, else its parent element, else its shadow root's
+ * host;  `undefined` at the top.
+ * - The one climb `closestAcrossShadow()`, `ui`'s owner and settings lookups and `<ui-sticky>` share.
+ * - NOTE: a closed shadow root hides `assignedSlot`, so a slotted element climbs through its light parent instead.
+ */
+export function flatParentFor(element: Element): Element | undefined {
+  if (element.assignedSlot) return element.assignedSlot
+  if (element.parentElement) return element.parentElement
+  const root = element.getRootNode() as Partial<ShadowRoot>
+  return root.nodeType === NodeType.documentFragment && root.host ? root.host : undefined
 }

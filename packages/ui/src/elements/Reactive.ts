@@ -1,0 +1,798 @@
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  getObserver,
+  getOwner,
+  untrack,
+  type Accessor,
+  type Signal
+} from "solid-js"
+import { isServer } from "@solidjs/web"
+import { STATE } from "@spell-app/solid-element"
+
+import type { E } from "$/ui/core"
+
+/****************
+ * ### `Reactive`
+ * The reactive members of a component (or of any class):  decorators over ONE record per instance, so a member reads
+ * and writes like a plain property, fresh at once, and Solid still follows it.
+ * - `@state accessor isOpen = false`:  the value lives in the instance's record, read and written synchronously
+ *   (`this.isOpen = true;  this.isOpen` is `true`, no flush).  A Solid listener reading it (JSX, an effect, a memo)
+ *   also reads a NOTIFIER signal, made on the first tracked read, which every real change sets.
+ * - `@controlled("open") accessor isOpen = false`:  the DOM element's property when set, else the starting value;
+ *   writes go to the DOM element's property (and reflect).  A user change is `requestChange("isOpen", next, announce)`.
+ * - `@derived get rows()`:  a self-tracking cache, NOT a Solid memo (a memo hears of a change through a staged
+ *   signal, so a read right after a write would give the OLD value).  While it computes, every record member it
+ *   reads registers with the version it saw;  a read checks those versions and recomputes only when one moved.
+ *   - It MUST read only record members:  `@state`, `@controlled`, vocabulary getters, `this.attributes`, other
+ *     `@derived`.  Anything else (a `Cell`, a Solid signal, `UI.browser`, a module global) can't be seen changing
+ *     outside Solid:  move it into the record, or make the member a plain getter.
+ *   - `@derived({ equals })`:  an equal result keeps the old value (`isSameList` for a filtered list).
+ * - `@cssState("open")` on a getter or accessor:  `UIComponent` keeps `:state(open)` in step with it.
+ * - `@onChange("a", "b") onXChanged(a, b)`:  an effect reading the named members, calling the method with their
+ *   values;  a function it returns is the cleanup.  Created by `Reactive.startEffects()`, after every field exists;
+ *   the method runs only when a member's value changed.
+ * - `Reactive.accessorsOf(instance)` (a component's `$`):  `$.isOpen` is an `Accessor` of `this.isOpen`, for
+ *   Solid APIs that take one.
+ * - Vocabulary getters (`installAttributeGetters()`;  their setters write the DOM element's property) and raw
+ *   attributes (`attributesOf()`) are record members too:  versions bumped when solid-element's record or the DOM
+ *   attribute changes, notifiers solid-element's prop signals and a `MutationObserver`.
+ * - Writes never throw:  a notifier set inside an owned scope (a render, a memo), which Solid 2 forbids, is
+ *   deferred to a microtask;  the record is written at once either way.
+ * - A leaf of the element core:  imports only Solid and solid-element, so element-core classes import its decorators
+ *   directly (their class definitions read them) without entering the `E` cycle.  Knows components only by shape
+ *   (`ComponentShape`).
+ ****************/
+export class Reactive {
+  ////////////////
+  // ## The record
+  ////////////////
+
+  /** `instance`'s record, made on first use. */
+  static recordOf(instance: object): ReactiveRecord {
+    return ((instance as Recorded)[RECORD] ??= { values: {}, sources: new Map(), caches: new Map() })
+  }
+
+  /**
+   * A `$` for `instance`:  `$.x` is an `Accessor` of `instance.x` (tracked, as `instance.x` is), made once per name.
+   * - For Solid APIs that take an accessor:  `createMemo(this.$.isOpen)`, `new E.IconGlyph({ name: this.$.icon })`.
+   */
+  static accessorsOf<T extends object>(instance: T): Accessors<T> {
+    const record = Reactive.recordOf(instance)
+    return (record.accessors ??= new Proxy({} as Record<PropertyKey, Accessor<unknown>>, {
+      get: (cache, name) => (cache[name] ??= () => (instance as Record<PropertyKey, unknown>)[name])
+    })) as Accessors<T>
+  }
+
+  ////////////////
+  // ## Attributes
+  ////////////////
+
+  /**
+   * Give `prototype` a getter and a setter per attribute (keyed by its camelCase canonical `key`):
+   * - the getter reads the CONVERTED value fresh from the DOM element's record
+   *   (`component.attrs[key]` until solid-element has one, and on a server)
+   * - the setter writes the DOM ELEMENT's PROPERTY under this tag's name for it (`el.indeterminate`, a translated tag's own
+   *   property), which reflects and converts like any property write;  `undefined` clears it
+   * - Skips a name the prototype chain already has (a method, a getter, `isOpen` ...):  the class's own member wins.
+   *   An instance field of that name shadows both instead.
+   * - Idempotent per prototype.
+   */
+  static installAttributeGetters(prototype: object, attributes: readonly AttributeNames[]) {
+    if (Reactive.withGetters.has(prototype)) return
+    Reactive.withGetters.add(prototype)
+    for (const { key, name } of attributes) {
+      if (key in prototype) continue
+      Object.defineProperty(prototype, key, {
+        get(this: ComponentShape) {
+          return Reactive.attributeValue(this, key)
+        },
+        set(this: ComponentShape, value: unknown) {
+          ;(this.domElement as unknown as Record<string, unknown>)[this.elementDefinition.attribute(name).property] =
+            value
+        },
+        configurable: true
+      })
+    }
+  }
+
+  /** Converted value of attribute `key` on `component`'s DOM element, fresh;  tracked as a record member. */
+  static attributeValue(component: ComponentShape, key: string): unknown {
+    if (collecting || getObserver()) {
+      const record = Reactive.recordOf(component)
+      let source = record.sources.get(ATTRIBUTE_PREFIX + key) as AttributeSource | undefined
+      if (!source) record.sources.set(ATTRIBUTE_PREFIX + key, (source = new AttributeSource(component, key)))
+      reading(source)
+    }
+    return attributeValueNow(component, key)
+  }
+
+  /**
+   * The DOM element's attributes as the DOM has them:  raw strings, `null` when absent (a platform boundary);
+   * tracked as record members (a `MutationObserver` watches the DOM element,
+   * made on the first tracked read in a browser).
+   * - Internal:  for attributes outside the vocabulary (`aria-label`, `title`);  vocabulary attributes have getters.
+   * - `rename(name)`:  the attribute to read for `name`, e.g. a translated tag's own name for a canonical one
+   *   (`attributes.value` reads `valor`);  default `name` itself.
+   * - Watches for the element's whole life (`keepAlive`), until the DOM element is released.
+   */
+  static attributesOf(
+    owner: object,
+    domElement: AttributeElement,
+    rename: (name: string) => string = sameName
+  ): Readonly<Record<string, string | null>> {
+    const record = Reactive.recordOf(owner)
+    return (record.attributes ??= new Proxy({} as Record<string, string | null>, {
+      get: (_target, name) => {
+        if (typeof name !== "string") return undefined
+        const attribute = rename(name)
+        if (collecting || getObserver()) reading(rawAttributeSource(record, domElement, attribute))
+        return domElement.getAttribute(attribute)
+      }
+    }))
+  }
+
+  ////////////////
+  // ## Effects
+  ////////////////
+
+  /**
+   * Create `instance`'s `@onChange` effects, most-derived class first (as `onMount()` overrides ran before).
+   * - MUST run under the instance's owner, once every field exists:  `UIComponent.onMount()`, or a helper class's
+   *   constructor (`PartContext`).
+   * - Server:  an effect marked `writesDOMElement` applies once, now (the server build never runs an effect's apply);
+   *   the rest aren't created.
+   * - The method runs only when a member's VALUE changed (`===`, member by member):  a memo with `equals` sits
+   *   between the reads and the effect.  Why:  Solid 2 (rc.13) runs an effect's apply on EVERY re-run of its
+   *   compute, equal value or not, and a getter or `@derived` member tracks the sources UNDER it, so its effect
+   *   re-runs whenever any of them moves.  Skipping inside the apply would be too late:  Solid has run the
+   *   previous cleanup by then.
+   */
+  static startEffects(instance: object) {
+    for (const { method, members, writesDOMElement } of Reactive.listFor<OnChangeEntry>(instance, ON_CHANGE)) {
+      const self = instance as Record<PropertyKey, unknown>
+      const compute = () => members.map((member) => self[member])
+      const apply = (values: unknown[]) => {
+        const cleanup = (self[method] as (...values: unknown[]) => unknown)(...values)
+        return typeof cleanup === "function" ? (cleanup as () => void) : undefined
+      }
+      if (isServer) {
+        if (writesDOMElement) apply(untrack(compute))
+      } else createEffect(createMemo(compute, { equals: isSameList }), apply)
+    }
+  }
+
+  /** `@cssState` members of `instance`'s class chain:  `{ member, state }`, most-derived first. */
+  static cssStatesOf(instance: object): readonly CssStateEntry[] {
+    return Reactive.listFor<CssStateEntry>(instance, CSS_STATES)
+  }
+
+  ////////////////
+  // ## `@controlled`
+  ////////////////
+
+  /** Is the DOM element controlling `@controlled` member `member` right now (its property set)?  Untracked. */
+  static isPageControlled(component: ComponentShape, member: string): boolean {
+    const { key } = Reactive.controlledAttribute(component, member)
+    return untrack(() => attributeValueNow(component, key)) !== undefined
+  }
+
+  /**
+   * A user change of `@controlled` member `member` to `next`:  `announce()` dispatches the event first, then
+   *   - a vetoed (cancelable) event changes nothing
+   *   - if the DOM element set the property DURING the event (re-set the old value in a `ui-change` handler),
+   *     the DOM element's value stands
+   *   - otherwise `next` is written to the DOM element's property (and reflects)
+   * - Returns true when `next` was applied.
+   */
+  static requestChange(component: ComponentShape, member: string, next: unknown, announce: () => boolean): boolean {
+    const { key } = Reactive.controlledAttribute(component, member)
+    const writes = Reactive.recordOf(component).propertyWrites!
+    const before = writes[key] ?? 0
+    if (!announce() || (writes[key] ?? 0) !== before) return false
+    ;(component as unknown as Record<string, unknown>)[member] = next
+    return true
+  }
+
+  /** `@controlled` member `member`'s attribute, resolved against the component's definition. */
+  private static controlledAttribute(component: ComponentShape, member: string): E.ResolvedAttribute {
+    const name = Reactive.recordOf(component).controlled?.[member]
+    if (!name) {
+      throw new TypeError(`Reactive:  \`${member}\` isn't a @controlled member;  declare it @controlled("<attribute>")`)
+    }
+    return component.elementDefinition.attribute(name)
+  }
+
+  ////////////////
+  // ## Internals
+  ////////////////
+
+  /**
+   * Entries under `key` in `instance`'s class metadata, own class first, then each base class.
+   * - Walked once per class and key (`lists`):  each class's metadata object inherits its base class's.
+   */
+  private static listFor<T>(instance: object, key: symbol): readonly T[] {
+    const metadata = (instance.constructor as unknown as Record<symbol, Metadata | undefined>)[METADATA]
+    if (!metadata) return []
+    let byKey = Reactive.lists.get(metadata)
+    if (!byKey) Reactive.lists.set(metadata, (byKey = new Map()))
+    let list = byKey.get(key)
+    if (!list) {
+      list = []
+      for (let current: Metadata | null = metadata; current; current = Object.getPrototypeOf(current)) {
+        if (Object.hasOwn(current, key)) list.push(...(current[key] as unknown[]))
+      }
+      byKey.set(key, list)
+    }
+    return list as T[]
+  }
+
+  /**
+   * `listFor()`'s lists, by class metadata, then key.
+   * - Static:  per class, page-wide;  a class's decorators never change after it's defined.
+   */
+  private static readonly lists = new WeakMap<object, Map<symbol, unknown[]>>()
+
+  /**
+   * Prototypes given attribute getters already.
+   * - Static:  page-wide, one entry per component class (and per hot-reloaded version of one).
+   */
+  private static readonly withGetters = new WeakSet<object>()
+}
+
+/****************
+ * ### Decorators
+ ****************/
+
+/**
+ * `@state accessor x = v`:  reactive state, in the instance's record -- see `Reactive`.
+ * - `@state({ equals, ownedWrite })`:  `equals(old, next)` true skips the write (default `===`;  `false`:  every
+ *   write notifies);  `ownedWrite` lets a write inside an owned scope notify at once instead of a microtask later
+ *   (Solid's option, for state written by design while a render runs).
+ * - Works on `static accessor` too (`RootSettings.generation`):  the record is the class's.
+ */
+export function state<This extends object, T>(
+  target: ClassAccessorDecoratorTarget<This, T>,
+  context: ClassAccessorDecoratorContext<This, T>
+): ClassAccessorDecoratorResult<This, T>
+export function state(options: StateOptions): typeof state
+export function state<This extends object, T>(
+  targetOrOptions: ClassAccessorDecoratorTarget<This, T> | StateOptions,
+  context?: ClassAccessorDecoratorContext<This, T>
+): ClassAccessorDecoratorResult<This, T> | typeof state {
+  if (!context) {
+    const options = targetOrOptions as StateOptions
+    return ((target: ClassAccessorDecoratorTarget<This, T>, inner: ClassAccessorDecoratorContext<This, T>) =>
+      stateAccessor(inner, options)) as typeof state
+  }
+  return stateAccessor(context, {})
+}
+
+/**
+ * `@controlled("open") accessor isOpen = false`:  auto-controlled state for attribute `open` --
+ * the DOM element's property when set (its converted value isn't `undefined`), else the starting value.
+ * - A write goes to the DOM element's PROPERTY (and reflects), so `el.open` is always current, like a native control;
+ *   `undefined` hands control back to the starting value.  A silent write, e.g. a form reset.
+ * - A user change:  `this.requestChange("isOpen", next, () => this.send(...))` (`UIComponent`).
+ * - Why watch the property instead of comparing values:  a DOM element re-setting the SAME value is still a decision.
+ * - Components only (`ComponentShape`):  it reads the definition and the DOM element.
+ */
+export function controlled(attribute: string) {
+  return function <This extends ComponentShape, T>(
+    _target: ClassAccessorDecoratorTarget<This, T>,
+    context: ClassAccessorDecoratorContext<This, T>
+  ): ClassAccessorDecoratorResult<This, T> {
+    const member = context.name as string
+    return {
+      get(this: This): T {
+        const { key } = this.elementDefinition.attribute(attribute)
+        const pageValue = Reactive.attributeValue(this, key)
+        return (pageValue === undefined ? Reactive.recordOf(this).values[member] : pageValue) as T
+      },
+      set(this: This, next: T) {
+        const { property } = this.elementDefinition.attribute(attribute)
+        ;(this.domElement as unknown as Record<string, unknown>)[property] = next
+      },
+      init(this: This, initial: T): T {
+        const record = Reactive.recordOf(this)
+        record.values[member] = initial
+        ;(record.controlled ??= {})[member] = attribute
+        if (!record.propertyWrites) {
+          const writes: Record<string, number> = (record.propertyWrites = {})
+          this.domElement.addPropertyChangedCallback((key: string) => {
+            writes[key] = (writes[key] ?? 0) + 1
+          })
+        }
+        return initial
+      }
+    }
+  }
+}
+
+/**
+ * `@derived get x()`:  a self-tracking cache -- see `Reactive`.  For a getter doing real work (loops, parsing, new
+ * DOM);  a cheap one stays a plain getter, already fresh.
+ * - Recomputes on read when a record member it read last time changed;  else returns the same value (`===`).
+ * - `@derived({ equals })`:  `equals(old, next)` true keeps the OLD value (same identity, and readers -- an outer
+ *   `@derived`, an `@onChange` -- see no change), e.g. `{ equals: E.isSameList }` for a filtered list.
+ */
+export function derived<This extends object, T>(
+  getter: (this: This) => T,
+  context: ClassGetterDecoratorContext<This, T>
+): (this: This) => T
+export function derived(options: DerivedOptions): typeof derived
+export function derived<This extends object, T>(
+  getterOrOptions: ((this: This) => T) | DerivedOptions,
+  context?: ClassGetterDecoratorContext<This, T>
+): ((this: This) => T) | typeof derived {
+  if (!context) {
+    const { equals } = getterOrOptions as DerivedOptions
+    return ((getter: (this: This) => T, inner: ClassGetterDecoratorContext<This, T>) =>
+      derivedGetter(getter, inner.name, equals)) as typeof derived
+  }
+  return derivedGetter(getterOrOptions as (this: This) => T, context.name)
+}
+
+/** `@derived`'s getter for member `name`. */
+function derivedGetter<This extends object, T>(
+  getter: (this: This) => T,
+  name: PropertyKey,
+  equals: (a: any, b: any) => boolean = isSame
+): (this: This) => T {
+  return function (this: This): T {
+    const record = Reactive.recordOf(this)
+    let cache = record.caches.get(name)
+    if (!cache) record.caches.set(name, (cache = new DerivedCache(() => getter.call(this), equals)))
+    return cache.read() as T
+  }
+}
+
+/**
+ * `@cssState("open")` on a getter or an accessor:  `:state(open)` on the DOM element follows its truthiness.
+ * - `UIComponent.onMount()` sets them all in ONE render effect (a throw reaches the error boundary);  a dynamic set
+ *   of states is the `cssStates()` hook instead.
+ */
+export function cssState(stateName: string) {
+  return function (_target: unknown, context: ClassGetterDecoratorContext | ClassAccessorDecoratorContext) {
+    ownList<CssStateEntry>(context.metadata, CSS_STATES).push({ member: context.name, state: stateName })
+  }
+}
+
+/**
+ * `@onChange("a", "b") onXChanged(a, b)`:  an effect reading members `a` and `b`, calling the method with their
+ * values on start and on every change;  a function it returns is the cleanup, run before the next call and on
+ * disposal.
+ * - A trailing `{ writesDOMElement: true }`:  the method writes the DOM element (ARIA, `:state()`),
+ *   so a server render applies it once, as `UIComponent.domElementEffect()` does.
+ * - Created by `Reactive.startEffects()` (`UIComponent.onMount()`), after every subclass field exists.
+ */
+export function onChange(...members: (string | OnChangeOptions)[]) {
+  const last = members[members.length - 1]
+  const options = typeof last === "object" ? (members.pop() as OnChangeOptions) : {}
+  return function (_method: unknown, context: ClassMethodDecoratorContext) {
+    ownList<OnChangeEntry>(context.metadata, ON_CHANGE).push({
+      method: context.name,
+      members: members as string[],
+      writesDOMElement: !!options.writesDOMElement
+    })
+  }
+}
+
+/****************
+ * ### Sources and caches
+ ****************/
+
+/** A member's change source:  a version a cache compares, and the Solid signal a listener reads. */
+type Source = {
+  /** Bumped on every real change. */
+  version: number
+  /** Bring `version` up to date first, for sources read from outside (attributes, caches). */
+  refresh?(): void
+  /** Have the current Solid listener (if any) follow it. */
+  track(): void
+}
+
+/** A `@state` / `@controlled` member's source:  `changed()` on every real write. */
+class Notifier implements Source {
+  version = 0
+
+  /** Made on the first tracked read;  nobody listened before it. */
+  private signal?: Signal<undefined>
+
+  /** Solid's `ownedWrite`:  see `StateOptions`. */
+  private readonly ownedWrite: boolean
+
+  constructor(ownedWrite: boolean) {
+    this.ownedWrite = ownedWrite
+  }
+
+  track() {
+    if (!getObserver()) return
+    ;(this.signal ??= createSignal<undefined>(undefined, { equals: false, ownedWrite: this.ownedWrite }))[0]()
+  }
+
+  /** The value changed:  bump, and tell Solid. */
+  changed() {
+    this.version++
+    const signal = this.signal
+    if (signal) notify(() => signal[1]())
+  }
+}
+
+/** A vocabulary attribute's source:  its version follows the converted value in the DOM element's record. */
+class AttributeSource implements Source {
+  version = 0
+
+  /** The component whose DOM element has the attribute. */
+  private readonly component: ComponentShape
+
+  /** The attribute's key (camelCase canonical). */
+  private readonly key: string
+
+  /** Value at the last refresh. */
+  private last: unknown
+
+  constructor(component: ComponentShape, key: string) {
+    this.component = component
+    this.key = key
+    this.last = attributeValueNow(component, key)
+  }
+
+  refresh() {
+    const value = attributeValueNow(this.component, this.key)
+    if (value === this.last) return
+    this.last = value
+    this.version++
+  }
+
+  track() {
+    // solid-element's prop signal:  reading it tracks
+    if (getObserver()) void (this.component.attrs as Record<string, unknown>)[this.key]
+  }
+}
+
+/**
+ * A raw attribute's source:  its version follows `getAttribute()`;  its signal is set by the DOM element's observer.
+ */
+class RawAttributeSource extends Notifier {
+  /** The element. */
+  private readonly domElement: AttributeElement
+
+  /** The attribute. */
+  private readonly name: string
+
+  /** Starts the DOM element's observer (once). */
+  private readonly startWatching: () => void
+
+  /** Text at the last refresh. */
+  private last: string | null
+
+  constructor(domElement: AttributeElement, name: string, startWatching: () => void) {
+    super(false)
+    this.domElement = domElement
+    this.name = name
+    this.startWatching = startWatching
+    this.last = domElement.getAttribute(name)
+  }
+
+  refresh() {
+    const text = this.domElement.getAttribute(this.name)
+    if (text === this.last) return
+    this.last = text
+    this.changed()
+  }
+
+  track() {
+    if (!getObserver()) return
+    this.startWatching()
+    super.track()
+  }
+}
+
+/**
+ * A `@derived` member's cache:  its value, and the version each source had when it was computed.
+ * - A source too:  an outer `@derived` reading it depends on it, through its `version`.
+ */
+class DerivedCache implements Source {
+  version = 0
+
+  /** Last computed value. */
+  private value: unknown
+
+  /** Computed at least once? */
+  private isComputed = false
+
+  /** What the last compute read, with the version it saw. */
+  private dependencies = new Map<Source, number>()
+
+  /** The getter's body, bound to its instance. */
+  private readonly compute: () => unknown
+
+  /** `equals(old, next)` true keeps the old value. */
+  private readonly equals: (a: unknown, b: unknown) => boolean
+
+  constructor(compute: () => unknown, equals: (a: unknown, b: unknown) => boolean) {
+    this.compute = compute
+    this.equals = equals
+  }
+
+  /** The value, recomputed first when a dependency changed;  registers with an outer cache and Solid. */
+  read(): unknown {
+    this.refresh()
+    collecting?.set(this, this.version)
+    if (getObserver()) this.track()
+    return this.value
+  }
+
+  refresh() {
+    if (this.isComputed && !this.isStale()) return
+    const outer = collecting
+    const dependencies = new Map<Source, number>()
+    collecting = dependencies
+    let next: unknown
+    try {
+      next = this.compute()
+    } finally {
+      collecting = outer
+    }
+    this.dependencies = dependencies
+    if (!this.isComputed || !this.equals(this.value, next)) {
+      this.value = next
+      this.version++
+    }
+    this.isComputed = true
+  }
+
+  track() {
+    for (const source of this.dependencies.keys()) source.track()
+  }
+
+  /** Did a dependency move since the last compute? */
+  private isStale(): boolean {
+    for (const [source, seen] of this.dependencies) {
+      source.refresh?.()
+      if (source.version !== seen) return true
+    }
+    return false
+  }
+}
+
+/** The dependencies the `@derived` computing right now collects, if any. */
+let collecting: Map<Source, number> | undefined
+
+/** `source` was read:  bring it up to date, register it with the computing cache, and with Solid's listener. */
+function reading(source: Source) {
+  source.refresh?.()
+  collecting?.set(source, source.version)
+  source.track()
+}
+
+/**
+ * Run a Solid signal write;  inside an owned scope, where Solid 2 throws (`REACTIVE_WRITE_IN_OWNED_SCOPE`), a
+ * microtask later.
+ * - NEVER throws:  the record is already written, only the notification waits.
+ */
+function notify(write: () => void) {
+  if (!getOwner()) return write()
+  try {
+    write()
+  } catch {
+    queueMicrotask(write)
+  }
+}
+
+/** `@state`'s accessor for member `context.name`. */
+function stateAccessor<This extends object, T>(
+  context: ClassAccessorDecoratorContext<This, T>,
+  { equals = isSame, ownedWrite = false }: StateOptions
+): ClassAccessorDecoratorResult<This, T> {
+  const name = context.name
+  const isEqual = equals === false ? isNever : equals
+  return {
+    get(this: This): T {
+      const record = Reactive.recordOf(this)
+      if (collecting || getObserver()) reading(notifierFor(record, name, ownedWrite))
+      return record.values[name] as T
+    },
+    set(this: This, next: T) {
+      const record = Reactive.recordOf(this)
+      if (isEqual(record.values[name], next)) return
+      record.values[name] = next
+      ;(record.sources.get(name) as Notifier | undefined)?.changed()
+    },
+    init(this: This, initial: T): T {
+      Reactive.recordOf(this).values[name] = initial
+      return initial
+    }
+  }
+}
+
+/** Member `name`'s notifier in `record`, made on first use. */
+function notifierFor(record: ReactiveRecord, name: PropertyKey, ownedWrite: boolean): Notifier {
+  let source = record.sources.get(name) as Notifier | undefined
+  if (!source) record.sources.set(name, (source = new Notifier(ownedWrite)))
+  return source
+}
+
+/**
+ * Raw attribute `name`'s source in `record`, made on first use;
+ * the DOM element's observer starts on the first tracked read.
+ */
+function rawAttributeSource(record: ReactiveRecord, domElement: AttributeElement, name: string): RawAttributeSource {
+  const key = RAW_PREFIX + name
+  let source = record.sources.get(key) as RawAttributeSource | undefined
+  if (!source)
+    record.sources.set(
+      key,
+      (source = new RawAttributeSource(domElement, name, () => watchAttributes(record, domElement)))
+    )
+  return source
+}
+
+/** Watch `domElement`'s attributes for `record`'s raw sources, once, until the DOM element is released.  Browser only. */
+function watchAttributes(record: ReactiveRecord, domElement: AttributeElement) {
+  if (isServer || record.attributeObserver) return
+  const observer = (record.attributeObserver = new MutationObserver((mutations) => {
+    for (const { attributeName } of mutations) {
+      ;(record.sources.get(RAW_PREFIX + attributeName) as RawAttributeSource | undefined)?.refresh()
+    }
+  }))
+  observer.observe(domElement as unknown as Node, { attributes: true })
+  domElement.addReleaseCallback?.(() => observer.disconnect())
+}
+
+/**
+ * Converted value of attribute `key`:  the DOM element's record (fresh),
+ * else solid-element's prop (before one, and on a server).
+ */
+function attributeValueNow(component: ComponentShape, key: string): unknown {
+  const values = (component.domElement as unknown as { [STATE]?: { values: Record<string, unknown> } })[STATE]?.values
+  if (values && key in values) return values[key]
+  return untrack(() => (component.attrs as Record<string, unknown>)[key])
+}
+
+/**
+ * The class's own list under `key` in decorator `metadata`, made on first use (a subclass never adds to its base's).
+ */
+function ownList<T>(metadata: DecoratorMetadataObject | undefined, key: symbol): T[] {
+  const own = metadata as Metadata
+  if (!Object.hasOwn(own, key)) own[key] = []
+  return own[key] as T[]
+}
+
+/** Default `equals`. */
+function isSame(a: unknown, b: unknown): boolean {
+  return a === b
+}
+
+/** `attributesOf()`'s default `rename`. */
+function sameName(name: string): string {
+  return name
+}
+
+/** `equals: false`:  never equal. */
+function isNever(): boolean {
+  return false
+}
+
+/** Same items (`===`), in the same order:  `startEffects()`'s cut-off, and `@derived`'s `isSameList`. */
+export function isSameList(a: readonly unknown[], b: readonly unknown[]): boolean {
+  return a.length === b.length && a.every((item, index) => item === b[index])
+}
+
+/****************
+ * ### Types
+ ****************/
+
+/** Options of `@state`. */
+export type StateOptions = {
+  /** `equals(old, next)` true skips the write;  `false`:  every write notifies.  Default `===`. */
+  equals?: false | ((a: any, b: any) => boolean)
+  /** Notify at once even inside an owned scope (Solid's `ownedWrite`).  Default:  a microtask later there. */
+  ownedWrite?: boolean
+}
+
+/** Options of `@derived`. */
+export type DerivedOptions = {
+  /** `equals(old, next)` true keeps the old value.  Default `===`. */
+  equals?: (a: any, b: any) => boolean
+}
+
+/** Options of `@onChange`, after the member names. */
+export type OnChangeOptions = {
+  /** The method writes the DOM element:  a server render applies it once. */
+  writesDOMElement?: boolean
+}
+
+/** `$`:  an `Accessor` per member, same name and type. */
+export type Accessors<T> = { readonly [K in keyof T]: Accessor<T[K]> }
+
+/** What the decorators and helpers ask of a component. */
+export type ComponentShape = {
+  /** the element */
+  readonly domElement: E.DOMElement
+  /** its names:  `attribute(name)` resolves `@controlled`'s */
+  readonly elementDefinition: E.ElementDefinition
+  /** solid-element's props:  a vocabulary getter's Solid signal */
+  readonly attrs: object
+}
+
+/** An attribute's two canonical names, for `installAttributeGetters()`. */
+export type AttributeNames = {
+  /** camelCase:  the member's name */
+  key: string
+  /** kebab-case, as the vocabulary has it:  resolved against each instance's definition */
+  name: string
+}
+
+/** The DOM element `attributesOf()` reads:  any element;  `addReleaseCallback` when it's a `DOMElement`. */
+export type AttributeElement = {
+  getAttribute(name: string): string | null
+  addReleaseCallback?(callback: () => void): void
+}
+
+/** One instance's reactive record -- see `Reactive`. */
+export type ReactiveRecord = {
+  /** `@state` / `@controlled` values by member name:  the truth, read and written synchronously */
+  readonly values: Record<PropertyKey, unknown>
+  /** each member's source, made on its first tracked read */
+  readonly sources: Map<PropertyKey, Source>
+  /** each `@derived` member's cache */
+  readonly caches: Map<PropertyKey, DerivedCache>
+  /** `@controlled` member => its canonical attribute name */
+  controlled?: Record<PropertyKey, string>
+  /** DOM element's property writes per attribute key, for `requestChange()` */
+  propertyWrites?: Record<string, number>
+  /** `$` */
+  accessors?: object
+  /** `attributes` */
+  attributes?: Readonly<Record<string, string | null>>
+  /** the DOM element's attribute observer, for `attributes` */
+  attributeObserver?: MutationObserver
+}
+
+/** One `@cssState` member. */
+export type CssStateEntry = {
+  /** the getter / accessor */
+  member: PropertyKey
+  /** the `:state()` name */
+  state: string
+}
+
+/** One `@onChange` method. */
+type OnChangeEntry = {
+  /** the method called */
+  method: PropertyKey
+  /** the members its effect reads */
+  members: string[]
+  /** apply once on a server */
+  writesDOMElement: boolean
+}
+
+/** Decorator metadata, as we use it. */
+type Metadata = Record<PropertyKey, unknown>
+
+/** An instance holding a record. */
+type Recorded = { [RECORD]?: ReactiveRecord }
+
+/** Key of an instance's record. */
+const RECORD = Symbol("reactive")
+
+/** Metadata key of the `@cssState` list. */
+const CSS_STATES = Symbol("cssStates")
+
+/** Metadata key of the `@onChange` list. */
+const ON_CHANGE = Symbol("onChange")
+
+/**
+ * Where lowered decorators keep a class's metadata:  `Symbol.metadata`, or esbuild's fallback when the engine has
+ * none (`$/util`'s `Schema.ts` polyfills it with the same symbol).
+ */
+const METADATA: symbol = (Symbol as { metadata?: symbol }).metadata ?? Symbol.for("Symbol.metadata")
+
+/** Prefix of a vocabulary attribute's key in `ReactiveRecord.sources`. */
+const ATTRIBUTE_PREFIX = "attribute:"
+
+/** Prefix of a raw attribute's key in `ReactiveRecord.sources`. */
+const RAW_PREFIX = "raw:"

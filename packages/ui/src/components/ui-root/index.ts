@@ -1,10 +1,12 @@
 /**
- * Barrel for the root component -- also the `root` lib entry (`@spell-app/ui/ui-root`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-root>`, `<ui-loader>` (its loading message), the `<ui-placeholder>`s (its
- *   skeletons) and `<ui-components>` (the component packs it loads, with `ComponentPacks` / `registerPack()`).
+ * The root family:  defines `<ui-root>` and exports its component, `UIRoot`, with what a root is built from.
+ * - SIDE EFFECT:  importing it defines `<ui-root>`, `<ui-loader>` (a root's loading message), the `<ui-placeholder>`s
+ *   (its skeletons) and `<ui-components>` (the component packs it loads, with `ComponentPacks` / `registerPack()`).
  *   Every other family is imported on demand, by what's inside a root.
- * - NOTE: the three families are imported HERE, not by `LoaderMessage` / `PlaceholderSkeleton` / `UIRoot`:  the
- *   static server render (`$/ui/server`) loads `UIRoot` from its own file, and defining an element throws in node.
+ * - NOTE: the three families are imported HERE, not by `LoaderMessage` / `PlaceholderSkeleton` / `UIRoot`:
+ *   the static server render (`$/ui/static`) loads `UIRoot` from its own file, and defining an element throws in node.
+ * - `RootCatalogEntry` is exported for component packs:  `spell dev pack build` writes a catalog of them.
+ * - Also the library's `@spell-app/ui/ui-root` entry (its size is in `docs/report.md`).
  */
 
 import { UIRoot } from "./UIRoot"
@@ -18,4 +20,4 @@ UIRoot.define()
 export { UIRoot }
 export { LoaderMessage, type RootLoading } from "./LoaderMessage"
 export { RootLoader } from "./RootLoader"
-export type { RootFailure, RootFailureReason } from "./ui-root.types"
+export type { RootCatalogEntry, RootFailure, RootFailureReason } from "./UIRoot.types"

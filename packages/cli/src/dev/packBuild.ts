@@ -10,8 +10,8 @@ import { RootCatalog } from "$/ui/tools/RootCatalog"
 
 /**
  * `spell dev pack build <pack>`:  a component pack's generated files, in `packages/<pack>/pack/`, from its sources.
- * - `<pack>.catalog.ts`:  tag => family folder + skeleton, read from every `<tag>.vocabulary.en.ts` in
- *   `components/` by Spell UI's own `RootCatalog` (as `yarn gen:root` builds `ui-root.catalog.ts`);  its second line
+ * - `<pack>.catalog.ts`:  tag => family folder + skeleton, read from every vocabulary (`<Name>.en.ts`) in
+ *   `components/` by Spell UI's own `RootCatalog` (as `yarn gen:root` builds `UIRoot.catalog.ts`);  its second line
  *   records the sources' hash (`packHash()`), which `checkPack()` compares
  * - `<pack>.entry.ts`:  `SpellUI.registerPack({ name, prefix, catalog, define })`, `define()` importing every family
  *   barrel (`import()`:  inlined in the script, but run only when called;  it returns that promise)
@@ -229,7 +229,7 @@ async function catalogFor(pack: PackInfo) {
 /** The text of `<pack>.catalog.ts`. */
 function catalogSource(pack: PackInfo, catalog: Awaited<ReturnType<typeof catalogFor>>, hash: string): string {
   const lines = RootCatalog.lines(catalog)
-  return `/* GENERATED -- do not edit:  \`spell dev pack build ${pack.name}\`, from every \`<tag>.vocabulary.en.ts\` */
+  return `/* GENERATED -- do not edit:  \`spell dev pack build ${pack.name}\`, from every vocabulary, \`<Name>.en.ts\` */
 // sources:  ${hash}
 
 import type { RootCatalogEntry } from "$/ui"

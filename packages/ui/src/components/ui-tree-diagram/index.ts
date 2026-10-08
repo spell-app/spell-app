@@ -1,8 +1,9 @@
 /**
- * Barrel for the tree diagram -- also the `tree-diagram` lib entry (`@spell-app/ui/ui-tree-diagram`).
- * - SIDE EFFECT:  defines `<ui-tree-diagram>`.
- * - NOTE: `TreeLayout` (the pure layout) and `TreeData` (reading and checking a tree) are exported too, for a page
- *   that wants the numbers alone;  `TreeDiagramNode` is the data contract.
+ * The tree diagram family:  defines `<ui-tree-diagram>` and exports its component, `UITreeDiagram`.
+ * - SIDE EFFECT:  importing it defines the tag.
+ * - Also the library's `@spell-app/ui/ui-tree-diagram` entry (its size is in `docs/report.md`).
+ * - `TreeLayout` (the pure layout) and `TreeData` (reading and checking a tree) are exported too,
+ *   for a page that wants the numbers alone;  `TreeDiagramNode` is the data contract.
  */
 
 import { TreeData } from "./TreeData"
@@ -20,4 +21,4 @@ export type {
   TreeDiagramNode,
   TreeDiagramPoint,
   TreeDiagramSlot
-} from "./ui-tree-diagram.types"
+} from "./UITreeDiagram.types"

@@ -1,0 +1,218 @@
+/*
+ * `<epic-section>` (EpicSection.tsx):  a plan doc's section, on top of the fold (`EpicFold.css`).
+ * - The page's sections:  titles on the section band, a roomy gap below an open one.
+ * - An Overview sub-section (`kind="overview-part"`):  a nested title on the row band, reaching past its parent's
+ *   inset, edge to edge;  a smaller gap below.
+ * - Public tokens (`--epic-section-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-section.content;
+
+@layer ui.components.epic-section.content {
+  :host {
+    --_epic-fold-band: var(--epic-band-section, transparent);
+    --_epic-fold-gap: var(--epic-section-gap, 28px);
+  }
+  :host([kind="overview-part"]) {
+    --_epic-fold-band: var(--epic-band-row, transparent);
+    --_epic-fold-gap: 14px;
+    --_epic-fold-bleed: var(--epic-inset, 16px);
+  }
+  :host([kind="overview-part"]) ui-section {
+    --ui-section-title-padding: 8px var(--epic-inset, 16px);
+    --ui-section-content-padding: 8px var(--epic-inset, 16px) 0;
+  }
+  /* the phases' own bands reach edge to edge:  their section's content keeps no inset of its own around them */
+  :host([kind="phases"]) ui-section {
+    --ui-section-content-padding: 6px var(--epic-inset, 16px) 0;
+  }
+  /* the log:  one-liners, a size down */
+  :host([kind="log"]) .body {
+    font-size: 14px;
+  }
+
+  /* an Overview sub-section's number, quieter than its title */
+  .number {
+    color: var(--epic-muted, var(--ui-text-muted));
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ## The Phases title's toggles:  bare icons, square, muted;  the accent while pressed */
+  .tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .toggle {
+    display: inline-grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--epic-muted, var(--ui-text-muted));
+    cursor: pointer;
+  }
+  .toggle svg {
+    display: block;
+    width: auto;
+    height: 14px;
+    fill: currentColor;
+  }
+  .toggle:hover {
+    background: var(--epic-accent-soft, var(--ui-primary-background));
+  }
+  .toggle[aria-pressed="true"] {
+    color: var(--epic-accent, var(--ui-link));
+  }
+  .toggle:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+
+  /* ## An item section with no items */
+  .empty {
+    margin: 0 0 4px;
+    color: var(--epic-muted, var(--ui-text-muted));
+    font-size: 15px;
+    font-style: italic;
+  }
+
+  /* ## The title's end:  its tools (toggles, the state filter), then the count badge, then the chevron */
+  ui-section::part(actions) {
+    order: 1;
+  }
+  ui-section::part(badge) {
+    order: 2;
+  }
+  ui-section::part(fold-icon) {
+    order: 3;
+  }
+  /*
+   * Narrow (VS Code's side bar, a phone):  a section with tools (Phases, the item sections) puts its title on a row
+   * of its own, and the tools, badge and chevron together on the next, at the right:  squeezed onto one row, the
+   * title broke inside its words ("Questio / ns"), and wrapping item by item split the badge from the tools
+   */
+  @container epic-page (max-width: 480px) {
+    :host(:state(tools)) ui-section::part(title) {
+      flex-wrap: wrap;
+      row-gap: 2px;
+    }
+    :host(:state(tools)) ui-section::part(heading) {
+      flex-basis: 100%;
+    }
+    ui-section::part(actions) {
+      margin-inline-start: auto;
+    }
+  }
+
+  /*
+   * ## The state filter:  round chips in their state's colour, filled while its items show, outlined while hidden;
+   * the grey filter chip first, a size up, filled while everything shows.  Each centred on the title's row
+   */
+  .filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .chip {
+    --_chip: var(--ui-grey, #767676);
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 2px solid var(--_chip);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--_chip);
+    cursor: pointer;
+  }
+  .chip[data-state="all"] {
+    width: 22px;
+    height: 22px;
+    border-width: 1.5px;
+  }
+  .chip svg {
+    display: block;
+    width: 10px;
+    height: 10px;
+    fill: currentColor;
+  }
+  .chip[data-color="orange"] {
+    --_chip: var(--epic-state-progress, var(--ui-orange));
+  }
+  .chip[data-color="red"] {
+    --_chip: var(--epic-state-attention, var(--ui-red));
+  }
+  .chip[data-color="blue"] {
+    --_chip: var(--epic-state-open, var(--ui-blue));
+  }
+  .chip[data-color="green"] {
+    --_chip: var(--epic-state-recent, var(--ui-green));
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--_chip);
+    color: var(--epic-bg, var(--ui-background));
+  }
+  .chip:hover {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--_chip) 25%, transparent);
+  }
+  .chip:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+
+  /* under a filtered list:  a quiet line, a link to show all */
+  .hidden-note {
+    display: block;
+    margin: 6px 0 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--epic-muted, var(--ui-text-muted));
+    font: 14px/1.4 var(--epic-sans, var(--ui-font-family));
+    cursor: pointer;
+  }
+  .hidden-note:hover {
+    color: var(--epic-accent, var(--ui-link));
+    text-decoration: underline;
+  }
+  .hidden-note:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+
+  /*
+   * ## The Plan changes box (T14):  above the phases, each change to a phase still to do as its own fence (the
+   * copies draw themselves), on a faint orange ground, as the old box's warning message
+   */
+  .changes {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 12px;
+    padding: 8px 10px 10px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--ui-orange) 8%, var(--epic-bg, var(--ui-background)));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-orange) 35%, transparent);
+  }
+  .changes-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--ui-orange-text, var(--ui-orange));
+    font: 700 14px/1.3 var(--epic-sans, var(--ui-font-family));
+  }
+  .changes-head svg {
+    display: block;
+    width: auto;
+    height: 13px;
+    fill: currentColor;
+  }
+}

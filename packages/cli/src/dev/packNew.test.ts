@@ -188,26 +188,22 @@ describe("CLI.newElement()", () => {
     const report = await CLI.newElement(root, "epics", "epic-page-header", { build: false })
     const family = "packages/epics/components/epic-page-header"
     expect(report.created.sort()).toEqual(
-      [
-        "EpicPageHeader.tsx",
-        "epic-page-header.css",
-        "epic-page-header.fallback.ts",
-        "epic-page-header.test.tsx",
-        "epic-page-header.types.ts",
-        "epic-page-header.vocabulary.en.ts",
-        "index.ts"
-      ].map((file) => `${family}/${file}`)
+      ["EpicPageHeader.css", "EpicPageHeader.en.ts", "EpicPageHeader.test.tsx", "EpicPageHeader.tsx", "index.ts"].map(
+        (file) => `${family}/${file}`
+      )
     )
     expect(report.updated).toEqual(["packages/epics/components/index.ts (exports epic-page-header)"])
     expect(read(`${family}/EpicPageHeader.tsx`)).toContain(
-      "export class EpicPageHeader extends UIElement<EpicPageHeaderVocabulary>"
+      "export class EpicPageHeader extends E.UIComponent<typeof epicPageHeaderVocabulary>"
     )
-    expect(read(`${family}/EpicPageHeader.tsx`)).toContain("@proto static styles = { pageHeader: pageHeaderCSS }")
-    expect(read(`${family}/epic-page-header.vocabulary.en.ts`)).toMatch(
+    expect(read(`${family}/EpicPageHeader.tsx`)).toContain(
+      "@E.proto static styleSheets = { pageHeader: pageHeaderCSS }"
+    )
+    expect(read(`${family}/EpicPageHeader.en.ts`)).toMatch(
       /export const epicPageHeaderVocabulary = \{\n {2}tag: "epic-page-header",[\s\S]*noun: "page-header",/
     )
-    expect(read(`${family}/epic-page-header.css`)).toContain("--_epic-page-header-gap: var(--epic-page-header-gap")
-    expect(read(`${family}/epic-page-header.test.tsx`)).toContain(`import "$/epics/components/epic-page-header"`)
+    expect(read(`${family}/EpicPageHeader.css`)).toContain("--_epic-page-header-gap: var(--epic-page-header-gap")
+    expect(read(`${family}/EpicPageHeader.test.tsx`)).toContain(`import "$/epics/components/epic-page-header"`)
     const barrel = read("packages/epics/components/index.ts")
     expect(barrel).not.toContain("export {}")
     expect(barrel.endsWith(`*/\nexport * from "./epic-page-header"\n`)).toBe(true)

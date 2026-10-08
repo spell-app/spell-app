@@ -1,9 +1,9 @@
 import type { JSX } from "@solidjs/web"
 
 import { proto } from "$/ui/util"
-import { PART_VOCABULARIES } from "$/ui/components/ui-parts/ui-parts.types"
+import { PartVocabularies } from "$/ui/components/ui-parts/UIParts.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
-import { UIElement, type UIElementClass } from "$/ui/elements"
+import { UIComponent, type UIComponentClass } from "$/ui/elements"
 
 /** Host layout of a stub:  a block, like the static `<div class="ui card">` it replaces. */
 const STUB_CSS = ":host { display: block }"
@@ -17,12 +17,12 @@ const STUB_CSS = ":host { display: block }"
  * - `StubOwner.defineFor(vocabulary)` defines one tag;  its vocabulary's `ownsParts` registers it as an owner.
  * - NOTE: test / demo scaffolding, not a component.
  */
-export class StubOwner extends UIElement {
-  @proto static styles = { "stub-owner": STUB_CSS }
+export class StubOwner extends UIComponent {
+  @proto static styleSheets = { "stub-owner": STUB_CSS }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.vocabulary.noun} style={{ display: "contents" }}>
+      <div class={this.rootClasses} part={this.vocabulary.noun} style={{ display: "contents" }}>
         <slot />
       </div>
     )
@@ -34,7 +34,7 @@ export class StubOwner extends UIElement {
     if (existing) return existing
     const Stub = class extends StubOwner {}
     Object.defineProperty(Stub.prototype, "vocabulary", { value: vocabulary })
-    return (Stub as unknown as UIElementClass & typeof StubOwner).define(vocabulary.tag)
+    return (Stub as unknown as UIComponentClass & typeof StubOwner).define(vocabulary.tag)
   }
 
   /**
@@ -43,7 +43,7 @@ export class StubOwner extends UIElement {
    */
   static defineFomanticOwners() {
     const owned = new Map<string, Set<string>>()
-    for (const vocabulary of PART_VOCABULARIES) {
+    for (const vocabulary of PartVocabularies) {
       for (const { name } of vocabulary.states) {
         const owner = name.slice(IN.length)
         if (!name.startsWith(IN) || REAL_OWNERS.has(owner)) continue

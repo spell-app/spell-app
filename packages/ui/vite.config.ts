@@ -10,6 +10,7 @@ import { standardDecorators } from "../../vite.decorators.ts"
 // import external, so Node would load the package's `dist/vite.js`, which a fresh checkout doesn't have yet
 // (Node 22.17 can't load the `.ts`).  A relative import is bundled into the config instead.  See `AGENTS.md`.
 import { solidElementHot } from "../solid-element/src/vite.ts"
+import { environment } from "./tools/environment.ts"
 
 /** Absolute path of `src/`. */
 const SRC = fileURLToPath(new URL("./src", import.meta.url))
@@ -129,15 +130,15 @@ export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
  *   `resolve.tsconfigPaths`.  A FUNCTION, so every caller gets its own plugin instances.
  * - `standardDecorators()` MUST come first:  both it and the Solid plugin are `enforce: "pre"`, and the Solid
  *   compiler must see decorator-free code.
- * - `UI_SOLID_PROD=1`:  Solid's PRODUCTION runtime under `vite dev` (no dev diagnostics, no performance tracks),
- *   for timing `tools/demo/perf.html`.
+ * - `SPELL_UI_SOLID_PROD=1` (`environment.isSolidProduction`, `tools/environment.ts`):  Solid's PRODUCTION runtime
+ *   under `vite dev` (no dev diagnostics, no performance tracks), for timing `tools/demo/perf.html`.
  * - `optimizeDeps`:  `axe-core`, `temporal-polyfill` (only a Temporal-less page imports it), highlight.js, marked and
  *   DOMPurify (only the lazy `CodeEngine` / `MarkdownEngine` import them) pre-bundled up front, so the first test run doesn't reload mid-run;  NOT
  *   `@spell-app/solid-element`:  it's linked TypeScript source (its `development` export), compiled by the Solid
  *   plugin like our own files.
  */
 export function baseConfig() {
-  const production = process.env.UI_SOLID_PROD ? { dev: false, performanceTracks: false } : {}
+  const production = environment.isSolidProduction ? { dev: false, performanceTracks: false } : {}
   return {
     plugins: [standardDecorators(), solid(production)],
     resolve: {
@@ -228,9 +229,9 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  *   specifiers to relative ones.  `pathsToAliases: false`:  the plugin's own rewrite measures from the layout
  *   BEFORE the move, and gets `../packages/ui/src/...`.
  * - `?inline` CSS imports (`styles/index.ts`) become `declare const x: string`:  only `vite/client` types them.
- * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIElement` is copied into every
+ * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIComponent` is copied into every
  *   entry that reaches it, and a class with private members is a DIFFERENT type in each copy.  Per-file
- *   declarations keep one `UIElement` for `@spell-app/ui/core` and `@spell-app/ui/ui-button` alike.
+ *   declarations keep one `UIComponent` for `@spell-app/ui/core` and `@spell-app/ui/ui-button` alike.
  * - `util` is not published on its own, so its GENERIC declarations ship inside `@spell-app/ui`.  NOT `util/src/spell/` or
  *   `util`'s barrel (which flattens it in):  `exclude` lists them, and `src/util/index.ts` imports file by file.
  * - MUST end with NO `$/` alias in `dist/**.d.ts` and no path outside `dist/`;  `yarn smoke` checks.
@@ -305,7 +306,7 @@ function rewriteDeclaration(filePath: string, content: string) {
  * - Boundaries:  the component barrels (`src/components/ui-<name>/index.ts`), the modules that call `define()`.
  *   An edit to a component class, vocabulary or fallback re-runs its barrel;  `HotDefinitions` turns the barrel's
  *   `define()` of a new version of a class into a re-definition of every tag it had.
- * - `?inline` component CSS (`src/components/ui-<name>/ui-<name>.css`) re-registers its sheet:  no re-render.
+ * - `?inline` component CSS (`src/components/ui-<name>/UI<Name>.css`) re-registers its sheet:  no re-render.
  * - Shared code (`core`, `forms`, the runtime) reaches several barrels:  full reload.
  * - `HotDefinitions` is injected by FILE PATH, not `$/ui/elements/HotDefinitions`:  `resolve.tsconfigPaths` only
  *   resolves aliases for TS / JS importers, and the sheets' handler import lives in a `.css?inline` module.

@@ -1,7 +1,8 @@
 /**
- * Types shared by the package tooling (`tools/`):  the package config, and the measurement / smoke / LOC result
- * shapes.
- * - Runtime-light:  `import type` only.
+ * Types shared by the package tooling (`tools/`):  the package config, the measurement / smoke / LOC result
+ * shapes, the site's two folders, the static pages' and the design export's shapes, and `IconPackError`.
+ * - At the BOTTOM of the tools' import graph:  `import type` only, so every tool (and `packages/cli`, through
+ *   `$/ui/tools/tools.types`) imports it without loading another.
  * - Every `tools/results/*-results.json` has one of these shapes;  `ReportTables` reads them.
  * - The perf shapes (`PerfRecord` ...) live beside the benchmark, in `test/PerfRun.ts` (it runs in the browser).
  */
@@ -65,8 +66,13 @@ export type SharedEntry = {
   description?: string
 }
 
-/** Which kind of an own family module it is;  `fallback` ~== its native fallback (`ui-<name>.fallback.ts`). */
-export type OwnKind = "classes" | "css" | "vocabulary" | "fallback"
+/**
+ * The kinds of a family's own modules, in report order:  its classes, sheet, vocabulary and native fallback
+ * (`UI<Name>.fallback.ts`).
+ */
+export const OwnKinds = ["classes", "css", "vocabulary", "fallback"] as const
+/** One of `OwnKinds`. */
+export type OwnKind = (typeof OwnKinds)[number]
 
 /**
  * Bucket a module's bytes are counted in.
@@ -77,6 +83,7 @@ export type OwnKind = "classes" | "css" | "vocabulary" | "fallback"
  * - `data` -- a family's lazily imported data files (`components/ui-<family>/data/`, e.g. the emoji chunks)
  * - `own:<family>:<kind>` -- one family's classes, sheet, vocabulary or fallback
  * - `extra:<name>` -- a module only `PackageConfig.extra` entry `<name>` holds (`extra:api` => `api.js`)
+ * - `docs` -- the doc-only `<ui-docs-*>` families and their helpers:  never part of the library's build (a check flags it)
  * - `other` -- unattributed;  reported by a check so nothing is silently dropped
  */
 export type Bucket =
@@ -86,6 +93,7 @@ export type Bucket =
   | "runtime"
   | "icons"
   | "data"
+  | "docs"
   | "other"
   | `own:${string}:${OwnKind}`
   | `extra:${string}`
@@ -99,13 +107,32 @@ export type Bucket =
  * - `min` -- esbuild `transform({ minify: true })`
  * - `gzip` -- gzip level 9 of `min`
  */
-export type Size = { min: number; gzip: number }
+export type Size = {
+  /** minified */
+  min: number
+  /** minified, then gzipped */
+  gzip: number
+}
 
-/** One family's own cost, split by kind. */
-export type OwnSize = Size & { classes: Size; css: Size; vocabulary: Size; fallback: Size; modules: string[] }
+/** `bytes` as kB (1000 bytes), two decimals:  how every report and summary prints a `Size`. */
+export function kB(bytes: number): string {
+  return (bytes / 1000).toFixed(2)
+}
+
+/** One family's own cost:  the whole, then split by kind (`OwnKinds`). */
+export type OwnSize = Size &
+  Record<OwnKind, Size> & {
+    /** its modules, short ids (`src/components/ui-button/UIButton.tsx`) */
+    modules: string[]
+  }
 
 /** One shared entry's cost. */
-export type SharedSize = Size & { entry: string; description?: string }
+export type SharedSize = Size & {
+  /** its source file, relative to the root */
+  entry: string
+  /** what it holds (`SharedEntry.description`) */
+  description?: string
+}
 
 /** What one family loads besides its own code. */
 export type FamilyNeeds = {
@@ -125,6 +152,7 @@ export type Scenario = {
 
 /** One emitted chunk. */
 export type ChunkSize = Size & {
+  /** its file name in the build, e.g. `core.js` */
   file: string
   /** only reachable through dynamic `import()` */
   lazy: boolean
@@ -134,8 +162,11 @@ export type ChunkSize = Size & {
 
 /** Everything `BundleMeasure` writes. */
 export type MeasureResults = {
+  /** `PackageConfig.name` */
   package: string
+  /** day of the run, `YYYY-MM-DD` */
   date: string
+  /** what the numbers mean, in words, for a reader of the JSON */
   units: string
   /** installed versions of the peer packages and the measuring toolchain */
   versions: Record<string, string>
@@ -149,6 +180,7 @@ export type MeasureResults = {
   libraryFull: Size
   /** every shared entry, by name, in load order */
   shared: Record<string, SharedSize>
+  /** per family:  its own code */
   own: Record<string, OwnSize>
   /** per family:  which shared entries it imports */
   families: Record<string, FamilyNeeds>
@@ -162,12 +194,16 @@ export type MeasureResults = {
   lazy: { runtime: Size; icons: Size; data?: Size }
   /** each `PackageConfig.extra` entry's own code (`extra:<name>` buckets), e.g. `api` */
   extra: Record<string, Size>
+  /** every chunk the build emitted */
   chunks: ChunkSize[]
+  /** structural checks of the build */
   checks: MeasureChecks
 }
 
-/** Scenario keys, in report order. */
-export type ScenarioName = "page with one button" | "all families" | "app already ships the library"
+/** The page scenarios, in report order. */
+export const ScenarioNames = ["page with one button", "all families", "app already ships the library"] as const
+/** One of `ScenarioNames`. */
+export type ScenarioName = (typeof ScenarioNames)[number]
 
 /** Structural checks of `dist/`:  each is `[]` when healthy. */
 export type MeasureChecks = {
@@ -182,6 +218,8 @@ export type MeasureChecks = {
   coreOutsideCore: string[]
   /** `library`-bucket module ids found anywhere in the build (should be external) */
   libraryBundled: string[]
+  /** `docs`-bucket module ids found anywhere in the build:  only the docs site's bundle may hold them */
+  docsBundled: string[]
   /** `runtime` / `icons` / `data` module ids found in an eager chunk */
   lazyInEager: string[]
   /** `other`-bucket module ids */
@@ -199,8 +237,12 @@ export type MeasureChecks = {
 // ## Smoke results (`smoke-results.json`)
 ////////////////
 
-/** What each smoke page leaves in `window.smokeResult`. */
+/**
+ * What each smoke page leaves in `window.smokeResult`.
+ * - `ok` is the page's VERDICT, reported data, not an error union (WWOD §5):  nothing here throws or is thrown.
+ */
 export type PageResult = {
+  /** every check passed */
   ok: boolean
   /** e.g. `react 19.2.0` */
   label: string
@@ -210,30 +252,48 @@ export type PageResult = {
   perf?: PerfResult
 }
 
-/** One page, as the runner saw it. */
+/**
+ * One page, as the runner saw it.
+ * - `ok`:  the page's own verdict, AND no uncaught or blocked-request error (`SmokeRunner.visit()`).
+ */
 export type SmokePage = PageResult & {
   /** served path, e.g. `/tools/frameworks/react.html` */
   path: string
+  /** its `<title>` */
   title: string
-  /** `host` (a framework page), `compat` (a COMPATIBILITY check), `check` (extra page), `perf` */
+  /** how it's reported (`SmokePageKinds`) */
   kind: SmokePageKind
+  /** console errors, uncaught errors (`uncaught: ...`) and blocked requests (`blocked (offline): ...`) */
   errors: string[]
+  /** console warnings */
   warnings: string[]
 }
 
-/** How a smoke page is reported. */
-export type SmokePageKind = "host" | "compat" | "check" | "perf"
+/**
+ * How a smoke page is reported:  `host` (a framework page), `compat` (a COMPATIBILITY check), `check` (an extra page),
+ * `perf` (the perf page).
+ */
+export const SmokePageKinds = ["host", "compat", "check", "perf"] as const
+/** One of `SmokePageKinds`. */
+export type SmokePageKind = (typeof SmokePageKinds)[number]
 
 /** `smoke-results.json`. */
 export type SmokeResults = {
+  /** `PackageConfig.name` */
   package: string
+  /** day of the run, `YYYY-MM-DD` */
   date: string
+  /** e.g. `chromium 141.0.7390.37` */
   browser: string
+  /** every page, in run order */
   pages: SmokePage[]
 }
 
 /** An `<script type="importmap">` body. */
-export type ImportMap = { imports: Record<string, string> }
+export type ImportMap = {
+  /** specifier => URL */
+  imports: Record<string, string>
+}
 
 ////////////////
 // ## Spell UI site
@@ -257,6 +317,13 @@ export const SITE_PAGES = "../../ui"
  * - `_data/`:  the data (`yarn site:data`), and the hand-kept `pages.json` it's built from
  */
 export const SITE_BUILD = "site"
+
+/**
+ * Thrown by `SiteCheck` when a check can't START:  no such page, or no page server serving the site.
+ * - `yarn site:check` prints its message and exits 2;  a page's own problems are its `PageReport`, never thrown.
+ */
+export class SiteCheckError extends Error {}
+SiteCheckError.prototype.name = "SiteCheckError"
 
 ////////////////
 // ## Solid host app
@@ -288,6 +355,7 @@ export type SolidIdentityHook = {
 export type LocFile = {
   /** relative to the root */
   path: string
+  /** the group it counted in (its first) */
   group: string
   /** every line */
   lines: number
@@ -297,8 +365,11 @@ export type LocFile = {
 
 /** `LocCount.count()` result. */
 export type LocResults = {
+  /** `PackageConfig.name` */
   package: string
+  /** every counted file, by group, then path */
   files: LocFile[]
+  /** per group, in report order:  files, lines and code lines */
   groups: Record<string, { files: number; lines: number; code: number }>
 }
 
@@ -332,6 +403,36 @@ export type IconPackReport = {
   skipped: IconPackProblem[]
   /** unsafe files indexed anyway (`unsafe: "allow"`), with why */
   allowed: IconPackProblem[]
+}
+
+/**
+ * What `IconPackBuilder` does with an SVG that still fails verification (`IconPackBuilderProps.unsafe`):
+ * - `refuse` (default):  the whole pack
+ * - `skip`:  leave the file out of the index (a broken one too)
+ * - `allow`:  index an unsafe file anyway;  a broken one still refuses the pack
+ */
+export const IconPackUnsafePolicies = ["refuse", "skip", "allow"] as const
+/** One of `IconPackUnsafePolicies`. */
+export type IconPackUnsafePolicy = (typeof IconPackUnsafePolicies)[number]
+
+/**
+ * Thrown by `IconPackBuilder.build()` when a pack can't be built:  an SVG failed verification (each listed in
+ * `cause.problems`, and in the message), or the folder's `pack.js` is another pack.
+ * - `yarn icons:pack` prints its message and exits 1;  anything else thrown is a bug, and keeps its stack.
+ */
+export class IconPackError extends Error {
+  declare cause: IconPackErrorCause | undefined
+  /** each SVG that failed verification;  empty for other failures */
+  get problems(): IconPackProblem[] {
+    return this.cause?.problems ?? []
+  }
+}
+IconPackError.prototype.name = "IconPackError"
+
+/** `IconPackError.cause`. */
+export type IconPackErrorCause = {
+  /** each SVG that failed verification;  empty for other failures */
+  problems: IconPackProblem[]
 }
 
 ////////////////
@@ -384,10 +485,24 @@ export type StaticDocumentResult = {
  *   Solid JSX.
  */
 export type StaticDocumentModule = {
+  /** the class's static API */
   StaticDocument: {
+    /** `StaticDocument.render()` */
     render(html: string, options?: StaticDocumentOptions): Promise<StaticDocumentResult>
-    stylesheet(tags: Iterable<string>, minify?: boolean, coverage?: StaticCoverage): StaticStylesheetResult
+    /** `StaticDocument.stylesheet()` */
+    stylesheet(tags: Iterable<string>, options?: StaticStylesheetOptions): StaticStylesheetResult
   }
+}
+
+/** How `StaticDocument.stylesheet()` builds a sheet. */
+export type StaticStylesheetOptions = {
+  /** Minify it (`StaticDocument.minify()`);  default `true`. */
+  minify?: boolean
+  /**
+   * What an earlier run's sheet covered (its tags, what they adopted):  merged in, so the sheet keeps styling pages
+   * this run didn't render.
+   */
+  coverage?: StaticCoverage
 }
 
 /** A static stylesheet, as `StaticDocument.stylesheet()` built it. */
@@ -425,31 +540,56 @@ export type StaticCoverage = {
  * - Families after `shadow` are the format's "any other `{ tokens }` key":  a section each, titled from the key.
  */
 export type DesignTokensFile = {
+  /** the system's name, e.g. `Spell UI` */
   name: string
+  /** the format's version */
   version: number
   /** provenance (the format's from-code step 8):  a note the page keeps, never an input */
   meta: Record<string, unknown>
+  /** the themes (`light`, `dark`), and every colour, valued per theme */
   color: { themes: { id: string; name: string }[]; tokens: DesignTokenRow[] }
+  /** fonts, font stacks and text styles */
   type: {
+    /** font files shipped;  `[]` for us (the serif is the installed Palatino) */
     fonts: { family: string; file: string; weight: string; style: string }[]
     /** family key => CSS font stack */
     families: Record<string, string>
+    /** text styles, grouped:  each group's default family key, and its styles */
     groups: { name: string; family: string; styles: DesignTypeStyle[] }[]
   }
+  /** `--ui-space-*`, in px */
   spacing: DesignTokenFamily
+  /** `--ui-radius*`, in px */
   radius: DesignTokenFamily
+  /** `--ui-shadow-*`, valued per theme */
   shadow: DesignTokenFamily
+  /** `--ui-size-*` ratios */
   size: DesignTokenFamily
+  /** `--ui-duration-*`, `--ui-ease*` */
   motion: DesignTokenFamily
+  /** `--ui-z-*` */
   zIndex: DesignTokenFamily
+  /** `--ui-breakpoint-*` */
   breakpoint: DesignTokenFamily
 }
 
 /** One `{ note, tokens }` family of `tokens.json`. */
-export type DesignTokenFamily = { note: string; tokens: DesignTokenRow[] }
+export type DesignTokenFamily = {
+  /** what the family is, shown above its tokens */
+  note: string
+  /** its rows, in sheet order */
+  tokens: DesignTokenRow[]
+}
 
 /** One token row:  its name, value (per theme for colours and shadows) and what it's for. */
-export type DesignTokenRow = { name: string; value: ThemedValue; usage?: string }
+export type DesignTokenRow = {
+  /** the exported name (`DesignTokens.exportName()`), e.g. `primary` */
+  name: string
+  /** one value, or one per theme */
+  value: ThemedValue
+  /** the custom property it mirrors, and what it's for */
+  usage?: string
+}
 
 /**
  * A token value:  one string for every theme, or one per theme id.
@@ -459,15 +599,23 @@ export type ThemedValue = string | Record<string, string>
 
 /** One text style of a `type.groups` entry;  lengths as CSS (`40px`), line heights unitless. */
 export type DesignTypeStyle = {
+  /** e.g. `h1`, `lede`, `eyebrow` */
   name: string
   /** family key, when not the group's */
   family?: string
+  /** CSS length, e.g. `32px` */
   fontSize: string
+  /** unitless */
   lineHeight?: number
+  /** e.g. `700` */
   fontWeight?: number
+  /** CSS `font-style` */
   fontStyle?: "normal" | "italic"
+  /** CSS length, e.g. `-0.012em` */
   letterSpacing?: string
+  /** text the system's type view shows */
   sample?: string
+  /** where the style is used */
   usage?: string
 }
 
@@ -477,11 +625,17 @@ export type DesignSkip = {
   name: string
   /** the family it would have gone in:  `color`, `shadow`, `length` ... */
   family: string
+  /** why it was left out, in words */
   reason: string
 }
 
 /** One file of the export:  its path under `project/`, and its text. */
-export type DesignFile = { path: string; text: string }
+export type DesignFile = {
+  /** `project/`-relative, e.g. `components/Button/README.md` */
+  path: string
+  /** the whole file */
+  text: string
+}
 
 /** One component card of the export:  a family, by its main tag. */
 export type DesignFamily = {
@@ -533,6 +687,7 @@ export type DesignExportResult = {
   families: DesignFamily[]
   /** token count per `tokens.json` family */
   tokenCounts: Record<string, number>
+  /** what the export left out, and why (the README's "Not synced" note) */
   skipped: DesignSkip[]
 }
 
@@ -542,14 +697,19 @@ export type DesignExportResult = {
 
 /** A Custom Elements Manifest (schema 2.1):  only the fields we write. */
 export type CustomElementsManifest = {
+  /** `2.1.0` */
   schemaVersion: string
+  /** one line on what the package is */
   readme: string
+  /** one per family:  its barrel, the classes it declares, and what it exports and defines */
   modules: { kind: string; path: string; declarations: Record<string, unknown>[]; exports: Record<string, unknown>[] }[]
 }
 
 /** VS Code's HTML custom data, version 1.1:  only the fields we write. */
 export type HtmlCustomData = {
+  /** `1.1` */
   version: number
+  /** every component tag:  its docs, and its attributes' docs and values */
   tags: {
     name: string
     description: { kind: "markdown"; value: string }

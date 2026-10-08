@@ -1,15 +1,14 @@
 import { Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, UIElement, UIT } from "$/ui/core"
+import { E } from "$/ui/core"
 
 import { PlanDates } from "$/epics/dates"
 import { AgentsClient, NOBODY_LISTENING, isImmediate } from "$/epics/review"
 // the page's view of the review inbox, as an item's:  its file, not `epic-item`'s barrel (which would define it here)
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
 
-import { epicPageVocabulary } from "./epic-page.vocabulary.en"
-import { EpicPageFallback } from "./epic-page.fallback"
+import { epicPageVocabulary } from "./EpicPage.en"
 import { AgentsPanel } from "./AgentsPanel"
 import {
   ACTIONS,
@@ -46,17 +45,19 @@ import {
   type PageText,
   type PhaseLine,
   type StepLabel
-} from "./epic-page.types"
+} from "./EpicPage.types"
 
-import pageCSS from "./epic-page.css?inline"
-import agentsCSS from "./agents-panel.css?inline"
+import pageCSS from "./EpicPage.css?inline"
+import agentsCSS from "./AgentsPanel.css?inline"
 
 /****************
- * ### `<epic-page>`
- * A plan doc:  one epic's page, its data in attributes, its Overview and sections as children.
- * - Draws the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;  at its right Send and Review Now while it's reviewed, the git
- *   toggle, the sleeping mark, the bedtime label and the step label), the review line, the meta lines (branch,
- *   worktree, dates, the durable doc's link from `slot="durable"`), a future epic's notice, then its children.
+ * ### `EpicPage`
+ * The component behind `<epic-page>`:  a plan doc -- one epic's page, its data in attributes, its Overview and
+ * sections as children.
+ * - Draws the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;  at its right Send
+ *   and Review Now while it's reviewed, the git toggle, the sleeping mark, the bedtime label and the step label), the
+ *   review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`), a future
+ *   epic's notice, then its children.
  * - The step label follows the phases:  the active one (orange, links to it);  else DONE (green) once every phase
  *   is done;  else the next one (grey);  none without phases, FUTURE (violet) for a future epic.  Read from the
  *   `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`.
@@ -78,20 +79,19 @@ import agentsCSS from "./agents-panel.css?inline"
  *   `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
  * - The page-wide signals its blocks read (`signalsOf()`):  `top`, where top-level titles stick (the site header's
  *   `--spell-site-header-height` plus this header's height, re-measured as either changes size), and `layout`.
- * - SHARED LOOK:  `epic-page.css` declares the pack's tokens (`--epic-*`:  colours, bands, the inset, item state
+ * - SHARED LOOK:  `EpicPage.css` declares the pack's tokens (`--epic-*`:  colours, bands, the inset, item state
  *   colours, the chip) on its `:host`;  every `<epic-*>` below inherits them.
  * - SIDE EFFECT:  observes its subtree and the site header while connected;  follows the page's review and agents
  *   clients.
  ****************/
-export class EpicPage extends UIElement<EpicPageVocabulary> {
-  @proto static vocabulary = epicPageVocabulary
-  @proto static styles = { "epic-page": pageCSS, "epic-agents": agentsCSS }
-  @proto static Fallback = EpicPageFallback
+export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
+  @E.proto static vocabulary = epicPageVocabulary
+  @E.proto static styleSheets = { "epic-page": pageCSS, "epic-agents": agentsCSS }
 
   /** Its tag:  what its blocks look for around them. */
   static readonly TAG = epicPageVocabulary.tag
 
-  /** The signals of each page host (`signalsOf()`). */
+  /** The signals of each page's DOM element (`signalsOf()`). */
   private static readonly pageSignals = new WeakMap<Element, PageSignals>()
 
   ////////////////
@@ -99,40 +99,42 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   ////////////////
 
   /** Light-DOM slot occupancy:  the durable doc's link. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** Every commit shows. */
-  readonly showCommits = new Cell(untrack(() => EpicPage.savedCommits()))
+  @E.cssState("commits")
+  @E.state
+  accessor showCommits = EpicPage.savedCommits()
 
   /** The page-wide signals. */
-  readonly signals = EpicPage.signalsOf(this.host)
+  readonly signals = EpicPage.signalsOf(this.domElement)
 
   /**
    * The page's view of the review inbox:  only `reviewing()` and the client are read here (it's keyed by the epic's
    * name, never an item's:  no mark is ever the page's).
    */
-  readonly review = new ReviewState(() => this.attrs.epic)
+  readonly review = new ReviewState(() => this.epic)
 
   /** The epic's running agents, for the panel;  none in a server render. */
   readonly agents = isServer ? undefined : AgentsClient.forPage()
 
   /** The review line, just copied:  it flashes and says so. */
-  readonly copied = new Cell(false)
+  @E.state accessor isCopied = false
 
   /** The heading, just copied:  it says so. */
-  readonly headingCopied = new Cell(false)
+  @E.state accessor isHeadingCopied = false
 
   /** The meta lines', the header buttons' and the review line's icons. */
   readonly icons = {
-    branch: new IconGlyph(this, () => "code branch"),
-    folder: new IconGlyph(this, () => "folder"),
-    calendar: new IconGlyph(this, () => "calendar"),
-    book: new IconGlyph(this, () => "book"),
-    git: new IconGlyph(this, () => "git"),
-    chevron: new IconGlyph(this, () => "chevron right"),
-    send: new IconGlyph(this, () => "paper plane"),
-    reviewNow: new IconGlyph(this, () => "wand magic sparkles"),
-    copy: new IconGlyph(this, () => "copy")
+    branch: new E.IconGlyph({ owner: this, name: () => "code branch" }),
+    folder: new E.IconGlyph({ owner: this, name: () => "folder" }),
+    calendar: new E.IconGlyph({ owner: this, name: () => "calendar" }),
+    book: new E.IconGlyph({ owner: this, name: () => "book" }),
+    git: new E.IconGlyph({ owner: this, name: () => "git" }),
+    chevron: new E.IconGlyph({ owner: this, name: () => "chevron right" }),
+    send: new E.IconGlyph({ owner: this, name: () => "paper plane" }),
+    reviewNow: new E.IconGlyph({ owner: this, name: () => "wand magic sparkles" }),
+    copy: new E.IconGlyph({ owner: this, name: () => "copy" })
   }
 
   /** The review line's flash timer. */
@@ -151,7 +153,7 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   /** The phases below, read again on every layout change. */
   readonly phases = createMemo((): PhaseLine[] => {
     this.signals.layout.get()
-    return Array.from(this.host.querySelectorAll("epic-phase"), (phase) => ({
+    return Array.from(this.domElement.querySelectorAll("epic-phase"), (phase) => ({
       id: phase.id,
       status: phase.getAttribute("status") ?? TODO,
       title: phase.getAttribute("title") ?? phase.querySelector(":scope > [slot=title]")?.textContent?.trim() ?? ""
@@ -162,17 +164,17 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   readonly step = createMemo((): StepLabel | undefined => {
     const phases = this.phases()
     if (!phases.length) {
-      return this.attrs.future ? { color: "violet", icon: "seedling", words: this.text("future") } : undefined
+      return this.future ? { color: "violet", icon: "seedling", words: this.translationForKey("future") } : undefined
     }
     const active = phases.find((phase) => phase.status === ACTIVE)
     if (active) return this.phaseLabel(active, "orange", "circle half stroke", "")
     const next = phases.find((phase) => phase.status !== DONE)
-    if (!next) return { color: "green", icon: "check", words: this.text("done") }
-    return this.phaseLabel(next, "grey", "circle right", this.text("next"))
+    if (!next) return { color: "green", icon: "check", words: this.translationForKey("done") }
+    return this.phaseLabel(next, "grey", "circle right", this.translationForKey("next"))
   })
 
   /** Still planning:  no phases yet, and not a future epic.  The `Plan hung?` aside shows. */
-  readonly planning = createMemo(() => !this.attrs.future && this.phases().length === 0)
+  readonly planning = createMemo(() => !this.future && this.phases().length === 0)
 
   /**
    * The kickoff prompt as typed, for the `Plan hung?` aside to copy:  the Overview's `slot="prompt"`, a paragraph
@@ -180,7 +182,7 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
    */
   readonly prompt = createMemo(() => {
     this.signals.layout.get()
-    const quote = this.host.querySelector(PROMPT)
+    const quote = this.domElement.querySelector(PROMPT)
     if (!quote) return ""
     const paragraphs = quote.querySelectorAll("p")
     const blocks = paragraphs.length ? Array.from(paragraphs) : [quote]
@@ -196,7 +198,7 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   /** Does the doc list commits?  Then the git toggle shows. */
   readonly hasCommits = createMemo(() => {
     this.signals.layout.get()
-    return !!this.host.querySelector(HAS_COMMITS)
+    return !!this.domElement.querySelector(HAS_COMMITS)
   })
 
   /**
@@ -206,9 +208,9 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   readonly sleeping = createMemo(() => {
     this.signals.layout.get()
     const phases = this.phases()
-    if (this.attrs.future || !phases.length || phases.some((phase) => phase.status === ACTIVE)) return ""
+    if (this.future || !phases.length || phases.some((phase) => phase.status === ACTIVE)) return ""
     const counts = new Map<string, number>()
-    for (const item of this.host.querySelectorAll(OPEN_ITEMS)) {
+    for (const item of this.domElement.querySelectorAll(OPEN_ITEMS)) {
       const letter = item.id[0] ?? ""
       if (FOLLOW_UPS[letter]) counts.set(letter, (counts.get(letter) ?? 0) + 1)
     }
@@ -240,8 +242,10 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected hostStates() {
-    return { future: !!this.attrs.future, commits: this.showCommits.get() }
+  /** A future epic:  not planned yet. */
+  @E.cssState("future")
+  get isFuture(): boolean {
+    return !!this.future
   }
 
   ////////////////
@@ -252,10 +256,10 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
    * Watch the subtree (numbers, step label) and the headers' heights (`top`) while connected;  follow the review
    * inbox while connected (kept alive:  a removed page stops).
    */
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     if (!isServer) {
       createEffect(
-        () => this.connected.get(),
+        () => this.isConnected,
         (connected) => (connected ? this.review.connect() : undefined)
       )
       onSettled(() => {
@@ -269,7 +273,7 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
           })
         }
         const mutations = new MutationObserver(bump)
-        mutations.observe(this.host, {
+        mutations.observe(this.domElement, {
           subtree: true,
           childList: true,
           attributes: true,
@@ -288,60 +292,60 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
         }
       })
     }
-    return super.mount()
+    return super.onMount()
   }
 
   render(): JSX.Element {
     return (
-      // an EMPTY title:  the host's `title` would otherwise be a tooltip over the whole page (T8)
-      <div class={this.classes()} part={this.part("base")} title="" style={this.pageStyle()}>
-        <header ref={(element) => (this.header = element)} class={HEAD} part={this.part("header")}>
+      // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over the whole page (T8)
+      <div class={this.rootClasses} part={this.partForName("base")} title="" style={this.pageStyle()}>
+        <header ref={(element) => (this.header = element)} class={HEAD} part={this.partForName("header")}>
           <div class={TITLES}>
-            <h1 class={HEADING} part={this.part("heading")}>
+            <h1 class={HEADING} part={this.partForName("heading")}>
               <button
-                type={UIT.BUTTON}
-                class={[HEADING_COPY, { flash: this.headingCopied.get() }]}
-                title={this.text("copyHeading", { command: this.headingCommand() })}
+                type="button"
+                class={[HEADING_COPY, { flash: this.isHeadingCopied }]}
+                title={this.translationForKey("copyHeading", { command: this.headingCommand() })}
                 onClick={() => void this.copyHeading()}
               >
                 {this.headingCommand()}
               </button>
               <span class="done" aria-live="polite">
-                {this.headingCopied.get() ? this.text("copied") : ""}
+                {this.isHeadingCopied ? this.translationForKey("copied") : ""}
               </span>
             </h1>
-            <Show when={this.attrs.title}>
-              <p class={SUBHEAD} part={this.part("subhead")}>
-                {this.attrs.title}
+            <Show when={this.title}>
+              <p class={SUBHEAD} part={this.partForName("subhead")}>
+                {this.title}
               </p>
             </Show>
           </div>
           <Show when={this.marks()}>{(marks) => this.reviewButtons(marks)}</Show>
           <Show when={this.hasCommits()}>{this.gitToggle()}</Show>
-          <span class={STATUS} part={this.part("status")}>
+          <span class={STATUS} part={this.partForName("status")}>
             <Show when={this.sleeping()}>
               {(words) => (
                 <span
                   class={SLEEPING}
-                  part={this.part("sleeping")}
+                  part={this.partForName("sleeping")}
                   role="img"
-                  aria-label={this.text("sleeping", { words: words() })}
-                  title={this.text("sleeping", { words: words() })}
+                  aria-label={this.translationForKey("sleeping", { words: words() })}
+                  title={this.translationForKey("sleeping", { words: words() })}
                 >
                   😴
                 </span>
               )}
             </Show>
-            <Show when={this.attrs.bedtime}>
+            <Show when={this.bedtime}>
               {(phases) => (
                 <ui-label
                   class="bedtime-label"
                   basic=""
                   color="violet"
                   icon="bed"
-                  title={this.text("bedtimeTip", { phases: phases() })}
+                  title={this.translationForKey("bedtimeTip", { phases: phases() })}
                 >
-                  <span class="bedtime">{this.text("bedtime", { phases: phases() })}</span>
+                  <span class="bedtime">{this.translationForKey("bedtime", { phases: phases() })}</span>
                 </ui-label>
               )}
             </Show>
@@ -362,11 +366,11 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
         </header>
         {this.reviewLine()}
         {this.metaLines()}
-        <Show when={this.attrs.future}>{this.futureNotice()}</Show>
+        <Show when={this.future}>{this.futureNotice()}</Show>
         <Show when={this.planning()}>{this.hungNotice()}</Show>
         <AgentsPanel
           client={this.agents}
-          connected={this.connected.get()}
+          connected={this.isConnected}
           top={this.signals.top.get()}
           text={this.pageText}
         />
@@ -378,50 +382,53 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   /** The meta lines:  branch, worktree, dates, durable doc. */
   private metaLines(): JSX.Element {
     return (
-      <ul class={META} part={this.part("meta")}>
+      <ul class={META} part={this.partForName("meta")}>
         <li>
           {this.icon(this.icons.branch)}
           <span>
             <Show
-              when={this.attrs.branch}
+              when={this.branch}
               fallback={
                 <>
-                  {this.text("futureEpic")} <code>/epic future {this.attrs.epic}</code>, {this.text("noBranch")}
+                  {this.translationForKey("futureEpic")} <code>/epic future {this.epic}</code>,{" "}
+                  {this.translationForKey("noBranch")}
                 </>
               }
             >
-              {this.text("planDoc")} <code>/epic {this.attrs.epic}</code>, {this.text("branch")}{" "}
-              <code>{this.attrs.branch}</code>
+              {this.translationForKey("planDoc")} <code>/epic {this.epic}</code>, {this.translationForKey("branch")}{" "}
+              <code>{this.branch}</code>
             </Show>
           </span>
         </li>
         <li>
           {this.icon(this.icons.folder)}
           <span>
-            {this.text("worktree")}{" "}
-            <Show when={this.attrs.worktree} fallback={this.text("noWorktree")}>
-              <code class="path">{this.attrs.worktree}</code>
+            {this.translationForKey("worktree")}{" "}
+            <Show when={this.worktree} fallback={this.translationForKey("noWorktree")}>
+              <code class="path">{this.worktree}</code>
             </Show>
           </span>
         </li>
-        <Show when={this.attrs.started || this.attrs.updated}>
+        <Show when={this.started || this.updated}>
           <li>
             {this.icon(this.icons.calendar)}
             <span>
-              <Show when={this.attrs.started}>
-                {this.text("started")} <time datetime={this.attrs.started}>{PlanDates.format(this.attrs.started)}</time>
+              <Show when={this.started}>
+                {this.translationForKey("started")}{" "}
+                <time datetime={this.started}>{PlanDates.format(this.started)}</time>
               </Show>
-              <Show when={this.attrs.started && this.attrs.updated}>, </Show>
-              <Show when={this.attrs.updated}>
-                {this.text("updated")} <time datetime={this.attrs.updated}>{PlanDates.format(this.attrs.updated)}</time>
+              <Show when={this.started && this.updated}>, </Show>
+              <Show when={this.updated}>
+                {this.translationForKey("updated")}{" "}
+                <time datetime={this.updated}>{PlanDates.format(this.updated)}</time>
               </Show>
             </span>
           </li>
         </Show>
-        <li class="durable" hidden={!this.slots.has(this.slot("durable"))}>
+        <li class="durable" hidden={!this.slots.hasContent(this.slotForName("durable"))}>
           {this.icon(this.icons.book)}
           <span>
-            <b>{this.text("durable")}</b> <slot name={this.slot("durable")} />
+            <b>{this.translationForKey("durable")}</b> <slot name={this.slotForName("durable")} />
           </span>
         </li>
       </ul>
@@ -431,11 +438,11 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   /** Send and Review Now:  round icon buttons, coloured by what waits (`marks`). */
   private reviewButtons(marks: () => HeaderMarks): JSX.Element {
     return (
-      <span class={ACTIONS} part={this.part("actions")}>
+      <span class={ACTIONS} part={this.partForName("actions")}>
         <button
-          type={UIT.BUTTON}
+          type="button"
           class={SEND}
-          part={this.part("send")}
+          part={this.partForName("send")}
           data-state={marks().send}
           aria-label={this.sendWords(marks())}
           title={this.withNobody(this.sendWords(marks()), marks(), marks().send !== "idle")}
@@ -444,9 +451,9 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
           {this.icon(this.icons.send)}
         </button>
         <button
-          type={UIT.BUTTON}
+          type="button"
           class={REVIEW_NOW}
-          part={this.part("review-now")}
+          part={this.partForName("review-now")}
           data-state={marks().waiting ? "ready" : "idle"}
           aria-label={this.reviewNowWords(marks())}
           title={this.withNobody(this.reviewNowWords(marks()), marks(), !!marks().waiting)}
@@ -461,15 +468,19 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   /** Send's words:  what a click sends, or why it sends nothing. */
   private sendWords(marks: HeaderMarks): string {
     if (marks.send === "unsent") {
-      return marks.unsent === 1 ? this.text("sendOne") : this.text("sendMany", { count: marks.unsent })
+      return marks.unsent === 1
+        ? this.translationForKey("sendOne")
+        : this.translationForKey("sendMany", { count: marks.unsent })
     }
-    return this.text(marks.send === "sent" ? "sent" : "sendIdle")
+    return this.translationForKey(marks.send === "sent" ? "sent" : "sendIdle")
   }
 
   /** Review Now's words:  what Claude would work through. */
   private reviewNowWords(marks: HeaderMarks): string {
-    if (!marks.waiting) return this.text("reviewNowIdle")
-    return marks.waiting === 1 ? this.text("reviewNowOne") : this.text("reviewNowMany", { count: marks.waiting })
+    if (!marks.waiting) return this.translationForKey("reviewNowIdle")
+    return marks.waiting === 1
+      ? this.translationForKey("reviewNowOne")
+      : this.translationForKey("reviewNowMany", { count: marks.waiting })
   }
 
   /** A button's tooltip:  `words`, then that nobody is reviewing when nobody listens and there's something waiting. */
@@ -485,18 +496,18 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
     const nobody = () => !!this.marks() && !this.marks()!.listening
     return (
       <button
-        type={UIT.BUTTON}
-        class={[REVIEW_LINE, { flash: this.copied.get(), nobody: nobody() }]}
-        part={this.part("review-line")}
-        title={this.text("copyCommand")}
+        type="button"
+        class={[REVIEW_LINE, { flash: this.isCopied, nobody: nobody() }]}
+        part={this.partForName("review-line")}
+        title={this.translationForKey("copyCommand")}
         onClick={() => void this.copyCommand()}
       >
         {this.icon(this.icons.copy)}
         <span>
-          {this.text(nobody() ? "reviewLineNobody" : "reviewLine")} <code>{this.command()}</code>
+          {this.translationForKey(nobody() ? "reviewLineNobody" : "reviewLine")} <code>{this.command()}</code>
         </span>
         <span class="done" aria-live="polite">
-          {this.copied.get() ? this.text("copied") : ""}
+          {this.isCopied ? this.translationForKey("copied") : ""}
         </span>
       </button>
     )
@@ -504,24 +515,24 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
 
   /** `/epic <name>`:  the heading, which a click copies. */
   private headingCommand(): string {
-    return `/epic ${this.attrs.epic ?? ""}`
+    return `/epic ${this.epic ?? ""}`
   }
 
   /** `/epic review <name>`:  what the review line copies. */
   private command(): string {
-    return `/epic review ${this.attrs.epic ?? ""}`
+    return `/epic review ${this.epic ?? ""}`
   }
 
   /** The git toggle:  a round icon button, pressed while every commit shows. */
   private gitToggle(): JSX.Element {
     return (
       <button
-        type={UIT.BUTTON}
+        type="button"
         class={GIT}
-        part={this.part("git")}
-        aria-pressed={this.showCommits.get() ? UIT.TRUE : UIT.FALSE}
-        aria-label={this.text(this.showCommits.get() ? "hideCommits" : "showCommits")}
-        title={this.text(this.showCommits.get() ? "hideCommits" : "showCommits")}
+        part={this.partForName("git")}
+        aria-pressed={this.showCommits ? "true" : "false"}
+        aria-label={this.translationForKey(this.showCommits ? "hideCommits" : "showCommits")}
+        title={this.translationForKey(this.showCommits ? "hideCommits" : "showCommits")}
         onClick={this.toggleCommits}
       >
         {this.icon(this.icons.git)}
@@ -532,16 +543,16 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   /** A doc still planning:  the folded `Plan hung?` aside -- how to restart the session, and the prompt to copy. */
   private hungNotice(): JSX.Element {
     return (
-      <details class={HUNG} part={this.part("hung")}>
+      <details class={HUNG} part={this.partForName("hung")}>
         <summary>
-          <span class="chevron" aria-hidden={UIT.TRUE}>
-            {this.icons.chevron.svg()}
+          <span class="chevron" aria-hidden="true">
+            {this.icons.chevron.svg}
           </span>
-          {this.text("hung")}
+          {this.translationForKey("hung")}
         </summary>
         <div class="aside">
           <p>
-            {this.text("hungBefore")} <code>/epic {this.attrs.epic}</code> {this.text("hungAfter")}
+            {this.translationForKey("hungBefore")} <code>/epic {this.epic}</code> {this.translationForKey("hungAfter")}
           </p>
           <Show when={this.prompt()}>
             <ui-code language="text" wrap="" copy="">
@@ -558,24 +569,25 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
     return (
       <ui-message
         class={NOTICE}
-        part={this.part("notice")}
+        part={this.partForName("notice")}
         state="info"
         size="small"
-        header={this.text("futureHeader")}
+        header={this.translationForKey("futureHeader")}
       >
         <p>
-          {this.text("futureBody")} <a href="details/analysis.html">{this.text("analysisPage")}</a>.{" "}
-          <code>/epic {this.attrs.epic}</code> {this.text("futurePlan")}
+          {this.translationForKey("futureBody")}{" "}
+          <a href="details/analysis.html">{this.translationForKey("analysisPage")}</a>. <code>/epic {this.epic}</code>{" "}
+          {this.translationForKey("futurePlan")}
         </p>
       </ui-message>
     )
   }
 
   /** An icon's box:  its glyph centred on the first line of what follows. */
-  private icon(glyph: IconGlyph): JSX.Element {
+  private icon(glyph: E.IconGlyph): JSX.Element {
     return (
-      <span class={ICON} aria-hidden={UIT.TRUE}>
-        {glyph.svg()}
+      <span class={ICON} aria-hidden="true">
+        {glyph.svg}
       </span>
     )
   }
@@ -586,7 +598,7 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
    */
   private pageStyle(): Record<string, string> {
     const style: Record<string, string> = { [STACK_PROPERTY]: `${this.signals.top.get()}px` }
-    if (this.showCommits.get()) style[COMMITS_PROPERTY] = "block"
+    if (this.showCommits) style[COMMITS_PROPERTY] = "block"
     return style
   }
 
@@ -596,8 +608,8 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
 
   /** The git toggle, clicked:  show or hide every commit, and remember it. */
   private readonly toggleCommits = () => {
-    const on = !untrack(() => this.showCommits.get())
-    this.showCommits.set(on)
+    const on = !this.showCommits
+    this.showCommits = on
     try {
       localStorage.setItem(COMMITS_KEY + location.pathname, on ? "1" : "")
     } catch {
@@ -609,22 +621,22 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   private async copyCommand() {
     if (!(await EpicPage.copyText(untrack(() => this.command())))) return
     // off first, so a second click flashes again
-    this.copied.set(false)
+    this.isCopied = false
     clearTimeout(this.flashTimer)
-    requestAnimationFrame(() => this.copied.set(true))
-    this.flashTimer = window.setTimeout(() => this.copied.set(false), FLASH_MS + 600)
+    requestAnimationFrame(() => (this.isCopied = true))
+    this.flashTimer = window.setTimeout(() => (this.isCopied = false), FLASH_MS + 600)
   }
 
   /** The heading, clicked:  copy `/epic <name>`, then say so for a moment. */
   private async copyHeading() {
     if (!(await EpicPage.copyText(untrack(() => this.headingCommand())))) return
-    this.headingCopied.set(true)
+    this.isHeadingCopied = true
     clearTimeout(this.headingTimer)
-    this.headingTimer = window.setTimeout(() => this.headingCopied.set(false), FLASH_MS + 600)
+    this.headingTimer = window.setTimeout(() => (this.isHeadingCopied = false), FLASH_MS + 600)
   }
 
-  /** `text()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */
-  private readonly pageText: PageText = (key, params) => this.text(key, params)
+  /** `translationForKey()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */
+  private readonly pageText: PageText = (key, params) => this.translationForKey(key, params)
 
   /** Measure where top-level titles stick:  the site header's height plus this header's. */
   private readonly measure = () => {
@@ -645,14 +657,14 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   ////////////////
 
   /**
-   * The page-wide signals of page host `host`, made the first time anyone asks:  its blocks may connect before its
-   * controller exists.
+   * The page-wide signals of page element `page`, made the first time anyone asks:  its blocks may connect before
+   * its component exists.
    */
-  static signalsOf(host: Element): PageSignals {
-    let signals = EpicPage.pageSignals.get(host)
+  static signalsOf(page: Element): PageSignals {
+    let signals = EpicPage.pageSignals.get(page)
     if (!signals) {
-      signals = { top: new Cell(0), layout: new Cell(0) }
-      EpicPage.pageSignals.set(host, signals)
+      signals = { top: new E.Cell(0), layout: new E.Cell(0) }
+      EpicPage.pageSignals.set(page, signals)
     }
     return signals
   }
@@ -701,3 +713,6 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
     }
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface EpicPage extends E.AttributeValues<EpicPageVocabulary> {}

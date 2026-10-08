@@ -1,34 +1,41 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { E } from "$/ui/core"
+import { pusherVocabulary } from "./UIPusher.en"
 
-import { pusherVocabulary } from "./ui-pusher.vocabulary.en"
-import { SidebarFallback } from "./ui-sidebar.fallback"
-
-import sidebarCSS from "./ui-sidebar.css?inline"
-import { PUSHER } from "./ui-sidebar.types"
+import sidebarCSS from "./UISidebar.css?inline"
 
 /****************
- * ### `<ui-pusher>`
- * The page content beside a sidebar (Fomantic's `.pusher`):  `<div class="pusher" part="pusher"><slot>`.
- * - Passive:  `ui-sidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`PUSHER_TOKENS`), and the
- *   pushable makes the HOST `inert` beside a modal sidebar.  Its `::after` is the dimmer.
+ * ### `UIPusher`
+ * The component behind `<ui-pusher>`:
+ * the page content beside a sidebar (Fomantic's `.pusher`), `<div class="pusher" part="pusher"><slot>`.
+ *
+ * - Passive:  `UISidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`UIT.PusherTokens`),
+ *   and the pushable makes the DOM element `inert` beside a modal sidebar.
+ * - Its `::after` is the dimmer.
  ****************/
-export class UIPusher extends UIElement<typeof pusherVocabulary> {
-  @proto static vocabulary = pusherVocabulary
-  @proto static styles = { sidebar: sidebarCSS }
-  @proto static Fallback = SidebarFallback
-  @proto static delegatesFocus = false
+export class UIPusher extends E.UIComponent<typeof pusherVocabulary> {
+  @E.proto static vocabulary = pusherVocabulary
+  @E.proto static styleSheets = { sidebar: sidebarCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  protected hostStates() {
-    return { pusher: true }
+  /** Always:  `:state(pusher)`. */
+  @E.cssState("pusher")
+  get isPusher(): boolean {
+    return true
   }
 
   render(): JSX.Element {
     return (
-      <div class={PUSHER} part={this.part("pusher")}>
+      <div class={PUSHER} part={this.partForName("pusher")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIPusher extends E.AttributeValues<typeof pusherVocabulary> {}
+
+/** Class word of the root (`UISidebar.css`). */
+const PUSHER = "pusher"

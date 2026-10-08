@@ -7,8 +7,10 @@ import type { InlineConfig } from "vite"
 
 import type { ImportMap } from "./tools.types.ts"
 import { BundleMeasure } from "./BundleMeasure.ts"
+import { Terminal } from "./Terminal.ts"
 
-/**
+/****************
+ * ### `PeerVendor`
  * Vendors the peer set for import-map pages:  ONE ES module per peer specifier (`solid-js`, `@solidjs/web`,
  * `@spell-app/solid-element`), so a page maps each specifier to a local file and runs offline and deterministically.
  * - One Vite build with every specifier as its own entry:  modules they share (`@solidjs/signals`) land in shared
@@ -24,7 +26,8 @@ import { BundleMeasure } from "./BundleMeasure.ts"
  *   binding the vendored file lacks fails to load ("does not provide an export named ...").
  * - Writes `<outDir>/<specifier>.js` (+ `chunks/`), and `<outDir>/importmap.json` mapping each specifier to
  *   `<urlPrefix><file>`.
- */
+ * - Node only;  reuses `BundleMeasure`'s static helpers (specifiers, bindings, virtual entries).
+ ****************/
 export class PeerVendor {
   /** package root the specifiers resolve from, absolute */
   private readonly root: string
@@ -86,7 +89,7 @@ export class PeerVendor {
     mkdirSync(this.outDir, { recursive: true })
     writeFileSync(join(this.outDir, "importmap.json"), `${JSON.stringify(map, null, 2)}\n`)
     const shaken = specifiers.filter((specifier) => used?.[specifier] && !used[specifier].includes("*")).length
-    console.log(
+    Terminal.out(
       `vendored ${specifiers.length} specifiers (${shaken} tree-shaken to the bindings used) into ${this.outDir}`
     )
     return map
@@ -101,20 +104,16 @@ export class PeerVendor {
   private used(): Record<string, string[]> | undefined {
     const code: string[] = []
     for (const path of this.usedBy.filter((item) => existsSync(item))) {
-      if (PeerVendor.SCANNED.test(path)) {
+      if (SCANNED.test(path)) {
         code.push(readFileSync(path, "utf8"))
         continue
       }
       for (const file of readdirSync(path, { recursive: true, encoding: "utf8" })) {
-        if (PeerVendor.SCANNED.test(file) && !file.startsWith("icon-packs/"))
-          code.push(readFileSync(join(path, file), "utf8"))
+        if (SCANNED.test(file) && !file.startsWith("icon-packs/")) code.push(readFileSync(join(path, file), "utf8"))
       }
     }
     return code.length ? BundleMeasure.importedBindings(code) : undefined
   }
-
-  /** Files `used()` reads. */
-  static readonly SCANNED = /\.(js|html)$/
 
   /** npm packages of `specifiers`, once each:  `["solid-js", "solid-js/web"]` => `["solid-js"]`. */
   static packages(specifiers: string[]): string[] {
@@ -154,3 +153,6 @@ export type PeerVendorOptions = {
    */
   usedBy?: string[] | false
 }
+
+/** Files `PeerVendor.used()` reads:  ES modules and pages (their inline module scripts). */
+const SCANNED = /\.(js|html)$/

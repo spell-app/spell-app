@@ -16,7 +16,7 @@ const OWNER: ComponentVocabulary = {
   texts: []
 }
 
-describe("ElementDefinition tag", () => {
+describe("ElementDefinition.tag", () => {
   it("keeps the vocabulary's own tag, prefix included, when none is passed", () => {
     expect(new ElementDefinition(OWNER).tag).toBe("x-def-owner")
   })

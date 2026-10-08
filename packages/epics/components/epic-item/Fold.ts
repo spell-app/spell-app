@@ -1,8 +1,6 @@
-import { untrack, type Accessor } from "solid-js"
+import type { Accessor } from "solid-js"
 
-import { Cell } from "$/ui/core"
-
-import { BEFORE_MATCH, UNTIL_FOUND } from "./epic-item.types"
+import { E } from "$/ui/core"
 
 /****************
  * ### `Fold`
@@ -13,27 +11,26 @@ import { BEFORE_MATCH, UNTIL_FOUND } from "./epic-item.types"
  *   is the chosen one.
  * - The content box takes `hidden()` and `watch` as its ref:  folded, it's `hidden="until-found"`, so find-in-page
  *   reaches the text and unfolds it (`beforematch`).
- * - MUST be created under the element's owner (field initializer):  it creates a signal.
  ****************/
 export class Fold {
   /** The reader's choice, once made;  `undefined` until then. */
-  private readonly toggled = new Cell<boolean | undefined>(undefined)
+  @E.state private accessor toggled: boolean | undefined = undefined
 
   constructor(private readonly initial: Accessor<boolean>) {}
 
   /** Open?  Tracked. */
-  readonly isOpen = (): boolean => this.toggled.get() ?? this.initial()
+  readonly isOpen = (): boolean => this.toggled ?? this.initial()
 
   /** The content box's `hidden`:  `until-found` while folded;  tracked. */
-  readonly hidden = (): typeof UNTIL_FOUND | undefined => (this.isOpen() ? undefined : UNTIL_FOUND)
+  readonly hidden = (): "until-found" | undefined => (this.isOpen() ? undefined : "until-found")
 
   /** Open if folded, fold if open:  a click on its header. */
   readonly toggle = () => {
-    this.toggled.set(!untrack(this.isOpen))
+    this.toggled = !this.isOpen()
   }
 
   /** The content box's ref:  find-in-page matched inside the folded box, which the browser has revealed. */
   readonly watch = (content: HTMLElement) => {
-    content.addEventListener(BEFORE_MATCH, () => this.toggled.set(true))
+    content.addEventListener("beforematch", () => (this.toggled = true))
   }
 }

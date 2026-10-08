@@ -7,28 +7,32 @@ import { transform } from "esbuild"
 import * as vite from "vite"
 import type { InlineConfig, Plugin, PluginOption, Rolldown, UserConfig } from "vite"
 
-import type {
-  Bucket,
-  ChunkSize,
-  FamilyNeeds,
-  MeasureChecks,
-  MeasureResults,
-  OwnKind,
-  OwnSize,
-  Scenario,
-  ScenarioName,
-  PackageConfig,
-  SharedEntry,
-  SharedSize,
-  Size
+import {
+  kB,
+  OwnKinds,
+  type Bucket,
+  type ChunkSize,
+  type FamilyNeeds,
+  type MeasureChecks,
+  type MeasureResults,
+  type OwnKind,
+  type OwnSize,
+  type PackageConfig,
+  type Scenario,
+  type ScenarioName,
+  type SharedEntry,
+  type SharedSize,
+  type Size
 } from "./tools.types.ts"
 import { NodePackage } from "./NodePackage.ts"
+import { Terminal } from "./Terminal.ts"
 
-/**
+/****************
+ * ### `BundleMeasure`
  * Bundle measurer of the package:  what each tier, family and page scenario costs, min and min+gz.
  * - Builds the library IN MEMORY (`write: false`) with the repo's Vite config, entries overridden to the shared
- *   entries (`core`, `forms`) + one per family + the `extra` ones (`api`), and attributes every emitted module to a
- *   bucket (`PackageConfig.groups`).
+ *   entries (`core`, `forms`) + one per family + the `extra` ones (`api`, `styles`), and attributes every emitted
+ *   module to a bucket (`PackageConfig.groups`).
  * - Sizes:  esbuild `transform({ minify: true })`, then gzip level 9;  kB = 1000 bytes.  Each tier is minified
  *   and gzipped ON ITS OWN, as a page fetches them as separate files, so a scenario is a sum of tiers.
  * - Tiers:
@@ -36,30 +40,20 @@ import { NodePackage } from "./NodePackage.ts"
  *     ONCE and tree-shaken (it's external in the build);  what the scenarios add
  *   - `libraryFull` -- every export of the peer set (`peerEntry` bundled as is), for comparison
  *   - `shared[name]` -- each shared entry:  `core` (element core + foundation JS), e.g. `forms`
- *   - `own[family]` -- that family's classes + `ui-<name>.css` + vocabulary + native fallback
+ *   - `own[family]` -- that family's classes + `UI<Name>.css` + vocabulary + native fallback
  *   - lazy chunks (`UIRuntime`, icon data) listed apart
  *   - `standalone` -- each family built ALONE with the library bundled, for comparison
  * - Scenarios add, per family, only the shared entries its chunk actually imports (`families`):  a page with a
  *   button pays for `core`, a page with a dropdown for `core` + `forms`.
  * - Also checks `dist/`'s structure (`MeasureChecks`):  every family imports core, no Rolldown runtime chunk, no
- *   shared-entry / library code elsewhere, nothing unattributed.
+ *   shared-entry / library code elsewhere, no doc-only code, nothing unattributed.
  * - `yarn measure`:  `await new BundleMeasure(PACKAGE).write()`, into `tools/results/measure-results.json`.
  * - Plugins that only matter for a real build (`vite:dts`, `spell-emit-icon-packs`) are dropped from the measured
  *   builds:  they'd write declaration files or copy 2,000 icon files per build.
- */
+ * - Node only;  imports `tools.types`, `NodePackage` and `Terminal`.  `PeerVendor` reuses its static helpers.
+ ****************/
 export class BundleMeasure {
-  /** what the report says the numbers mean */
-  static readonly UNITS = "bytes;  min = esbuild minify, gzip = gzip level 9 of min;  kB = 1000 bytes"
-
-  /** plugins left out of the measured builds, by name */
-  static readonly SKIPPED_PLUGINS = new Set(["vite:dts", "spell-emit-icon-packs"])
-
-  /** id of Rolldown's runtime module (`__name`, `__exportAll` ...);  `RUNTIME_MODULE_ID` in its types */
-  static readonly RUNTIME_MODULE = "\0rolldown/runtime.js"
-
-  /** What Lightning CSS writes when it lowers `light-dark()` for an old target (`MeasureChecks.lightDarkLowered`). */
-  static readonly LOWERED_LIGHT_DARK = "--lightningcss-light"
-
+  /** how the package is laid out:  entries, buckets, peers */
   readonly config: PackageConfig
   /** the Vite config file, loaded once */
   private fileConfig: Promise<UserConfig> | undefined
@@ -78,16 +72,17 @@ export class BundleMeasure {
     const folder = this.path(this.config.results)
     mkdirSync(folder, { recursive: true })
     writeFileSync(join(folder, file), `${JSON.stringify(results, null, 2)}\n`)
-    const kB = (bytes: number) => (bytes / 1000).toFixed(2)
     const shared = Object.entries(results.shared ?? {}).map(([name, size]) => `${name} ${kB(size.gzip)}`)
     const full = results.libraryFull ? ` (full ${kB(results.libraryFull.gzip)})` : ""
-    console.log(`${this.config.name}:  library ${kB(results.library.gzip)}${full}  ${shared.join("  ")} kB`)
+    Terminal.out(`${this.config.name}:  library ${kB(results.library.gzip)}${full}  ${shared.join("  ")} kB`)
     for (const [family, own] of Object.entries(results.own)) {
-      console.log(`  own ${family} ${kB(own.gzip)} kB  (+ ${results.families?.[family]?.shared.join(" + ")})`)
+      Terminal.out(`  own ${family} ${kB(own.gzip)} kB  (+ ${results.families?.[family]?.shared.join(" + ")})`)
     }
-    for (const [name, scenario] of Object.entries(results.scenarios)) console.log(`  ${name}:  ${kB(scenario.gzip)} kB`)
+    for (const [name, scenario] of Object.entries(results.scenarios)) {
+      Terminal.out(`  ${name}:  ${kB(scenario.gzip)} kB`)
+    }
     const failed = Object.entries(results.checks).filter(([, value]) => (value as string[]).length)
-    for (const [check, ids] of failed) console.warn(`  CHECK ${check}:`, ids)
+    for (const [check, ids] of failed) Terminal.err(`  CHECK ${check}:  ${(ids as string[]).join(", ")}`)
     return results
   }
 
@@ -102,7 +97,11 @@ export class BundleMeasure {
     const sharedChunks = new Map<string, Rolldown.OutputChunk>()
     for (const { name } of sharedEntries) {
       const chunk = chunks.find((item) => item.isEntry && item.name === name)
-      if (!chunk) throw new Error(`BundleMeasure:  the build emitted no \`${name}\` entry chunk`)
+      if (!chunk) {
+        throw new Error(
+          `BundleMeasure.measure():  the build emitted no \`${name}\` entry chunk;  check \`PackageConfig.shared\``
+        )
+      }
       sharedChunks.set(name, chunk)
     }
     const core = sharedChunks.get(sharedEntries[0]!.name)!
@@ -113,6 +112,7 @@ export class BundleMeasure {
       runtimeChunks: [],
       coreOutsideCore: [],
       libraryBundled: [],
+      docsBundled: [],
       lazyInEager: [],
       unattributed: [],
       peersMissing: [],
@@ -120,16 +120,18 @@ export class BundleMeasure {
     }
     for (const chunk of chunks) {
       const lazy = lazyFiles.has(chunk.fileName)
-      if (chunk !== core && BundleMeasure.RUNTIME_MODULE in chunk.modules) checks.runtimeChunks.push(chunk.fileName)
-      if (chunk.code.includes(BundleMeasure.LOWERED_LIGHT_DARK)) checks.lightDarkLowered.push(chunk.fileName)
+      if (chunk !== core && RUNTIME_MODULE in chunk.modules) checks.runtimeChunks.push(chunk.fileName)
+      if (chunk.code.includes(LOWERED_LIGHT_DARK)) checks.lightDarkLowered.push(chunk.fileName)
       for (const [id, module] of Object.entries(chunk.modules)) {
         const code = module.code ?? ""
         if (!code.trim()) continue
         const bucket = this.bucket(id)
         byBucket.set(bucket, [...(byBucket.get(bucket) ?? []), code])
-        const shared = bucket.startsWith("shared:") ? sharedChunks.get(bucket.slice("shared:".length)) : undefined
-        if (bucket.startsWith("shared:") && chunk !== shared) checks.coreOutsideCore.push(id)
+        const isShared = bucket.startsWith(SHARED_PREFIX)
+        const shared = isShared ? sharedChunks.get(bucket.slice(SHARED_PREFIX.length)) : undefined
+        if (isShared && chunk !== shared) checks.coreOutsideCore.push(id)
         if (bucket === "library") checks.libraryBundled.push(id)
+        if (bucket === "docs") checks.docsBundled.push(id)
         if ((bucket === "runtime" || bucket === "icons" || bucket === "data") && !lazy) checks.lazyInEager.push(id)
         if (bucket === "other") checks.unattributed.push(id)
       }
@@ -144,8 +146,8 @@ export class BundleMeasure {
     for (const family of families) {
       const kinds = {} as Record<OwnKind, Size>
       const all: string[] = []
-      for (const kind of ["classes", "css", "vocabulary", "fallback"] as const) {
-        const code = byBucket.get(`own:${family}:${kind}`) ?? []
+      for (const kind of OwnKinds) {
+        const code = byBucket.get(`${OWN_PREFIX}${family}:${kind}`) ?? []
         all.push(...code)
         kinds[kind] = await this.size(code)
       }
@@ -153,7 +155,7 @@ export class BundleMeasure {
     }
     for (const chunk of chunks) {
       for (const id of Object.keys(chunk.modules)) {
-        const match = /^own:([^:]+):/.exec(this.bucket(id))
+        const match = OWN_BUCKET.exec(this.bucket(id))
         if (match && own[match[1]!]) own[match[1]!]!.modules.push(BundleMeasure.shortId(id))
       }
     }
@@ -165,20 +167,20 @@ export class BundleMeasure {
     checks.peersMissing = [...external].filter((specifier) => !library.specifiers.includes(specifier)).sort()
     const shared: Record<string, SharedSize> = {}
     for (const { name, entry, description } of sharedEntries) {
-      shared[name] = { ...(await size(`shared:${name}`)), entry, ...(description ? { description } : {}) }
+      shared[name] = { ...(await size(`${SHARED_PREFIX}${name}`)), entry, ...(description ? { description } : {}) }
     }
-    const needs = this.families(chunks, sharedChunks, library, shared, own)
+    const needs = this.families({ chunks, sharedChunks, library, shared, own })
     const results: MeasureResults = {
       package: config.name,
       date: new Date().toISOString().slice(0, 10),
-      units: BundleMeasure.UNITS,
+      units: UNITS,
       versions: this.versions(library.specifiers),
       library,
       libraryFull: peers.full,
       shared,
       own,
       families: needs,
-      scenarios: this.scenarios(library, shared, own, needs),
+      scenarios: this.scenarios({ library, shared, own, needs }),
       standalone: await this.standalone(),
       lazy: { runtime: await size("runtime"), icons: await size("icons"), data: await size("data") },
       extra: Object.fromEntries(
@@ -209,7 +211,7 @@ export class BundleMeasure {
    */
   private async build(
     entry: Record<string, string>,
-    bundlePeers = false
+    { bundlePeers = false }: { bundlePeers?: boolean } = {}
   ): Promise<(Rolldown.OutputChunk | Rolldown.OutputAsset)[]> {
     const { config } = this
     this.fileConfig ??= this.loadFileConfig()
@@ -241,7 +243,7 @@ export class BundleMeasure {
     const { config } = this
     const file = this.path(config.configFile ?? "vite.config.ts")
     const loaded = await vite.loadConfigFromFile({ command: "build", mode: "production" }, file, config.root)
-    if (!loaded) throw new Error(`BundleMeasure:  can't load ${file}`)
+    if (!loaded) throw new Error(`BundleMeasure.measure():  can't load ${file};  check \`PackageConfig.configFile\``)
     return loaded.config
   }
 
@@ -251,17 +253,19 @@ export class BundleMeasure {
     return { ...Object.fromEntries(shared), ...this.config.entries, ...this.config.extra }
   }
 
-  /** `config.shared`;  throws when empty. */
+  /** `config.shared`;  throws a `TypeError` when empty. */
   sharedEntries(): SharedEntry[] {
     const { shared } = this.config
-    if (!shared.length) throw new Error("BundleMeasure:  the package config needs `shared` entries")
+    if (!shared.length) {
+      throw new TypeError("BundleMeasure.sharedEntries():  the package config has no `shared` entries;  add `core`")
+    }
     return shared
   }
 
   /** `config.groups(id)`, with `core` normalized to the first shared entry's bucket (`shared:core`). */
   private bucket(id: string): Bucket {
     const bucket = this.config.groups(id)
-    return bucket === "core" ? `shared:${this.sharedEntries()[0]!.name}` : bucket
+    return bucket === "core" ? `${SHARED_PREFIX}${this.sharedEntries()[0]!.name}` : bucket
   }
 
   /**
@@ -279,7 +283,7 @@ export class BundleMeasure {
       ["all families", this.config.entries]
     ]
     for (const [name, entry] of builds) {
-      const chunks = (await this.build(entry, true)).filter(
+      const chunks = (await this.build(entry, { bundlePeers: true })).filter(
         (item): item is Rolldown.OutputChunk => item.type === "chunk"
       )
       const lazy = BundleMeasure.lazyFiles(chunks)
@@ -353,13 +357,7 @@ export class BundleMeasure {
    * Per family:  the shared entries its chunk statically reaches (directly, or through a sibling family's chunk),
    * and the cost of a page with only that family.
    */
-  private families(
-    chunks: Rolldown.OutputChunk[],
-    sharedChunks: Map<string, Rolldown.OutputChunk>,
-    library: Size,
-    shared: Record<string, SharedSize>,
-    own: Record<string, OwnSize>
-  ): Record<string, FamilyNeeds> {
+  private families({ chunks, sharedChunks, library, shared, own }: FamiliesParams): Record<string, FamilyNeeds> {
     const needs: Record<string, FamilyNeeds> = {}
     for (const family of Object.keys(this.config.entries)) {
       const entry = chunks.find((chunk) => chunk.isEntry && chunk.name === family)
@@ -377,28 +375,26 @@ export class BundleMeasure {
    * - `all families` -- library + every shared entry any family imports + every own
    * - `app already ships the library` -- the same without the library
    */
-  private scenarios(
-    library: Size,
-    shared: Record<string, SharedSize>,
-    own: Record<string, OwnSize>,
-    needs: Record<string, FamilyNeeds>
-  ): Record<ScenarioName, Scenario> {
+  private scenarios({ library, shared, own, needs }: ScenariosParams): Record<ScenarioName, Scenario> {
     const page = this.config.pageFamily ?? "ui-button"
     const families = Object.keys(own)
-    const sum = (parts: string[]) =>
-      parts.reduce((total, part) => {
-        if (part === "library") return total + library.gzip
-        if (part.startsWith("own:")) return total + (own[part.slice("own:".length)]?.gzip ?? 0)
-        return total + (shared[part]?.gzip ?? 0)
-      }, 0)
-    const scenario = (parts: string[]): Scenario => ({ parts, gzip: sum(parts) })
     const used = new Set(families.flatMap((family) => needs[family]?.shared ?? []))
     const allShared = Object.keys(shared).filter((name) => used.has(name))
-    const allOwn = families.map((family) => `own:${family}`)
+    const allOwn = families.map((family) => `${OWN_PREFIX}${family}`)
     return {
-      "page with one button": scenario(["library", ...(needs[page]?.shared ?? []), `own:${page}`]),
+      "page with one button": scenario(["library", ...(needs[page]?.shared ?? []), `${OWN_PREFIX}${page}`]),
       "all families": scenario(["library", ...allShared, ...allOwn]),
       "app already ships the library": scenario([...allShared, ...allOwn])
+    }
+
+    /** `parts` and their summed gzip size:  each `library`, `own:<family>` or a shared entry's name. */
+    function scenario(parts: string[]): Scenario {
+      const gzip = parts.reduce((total, part) => {
+        if (part === "library") return total + library.gzip
+        if (part.startsWith(OWN_PREFIX)) return total + (own[part.slice(OWN_PREFIX.length)]?.gzip ?? 0)
+        return total + (shared[part]?.gzip ?? 0)
+      }, 0)
+      return { parts, gzip }
     }
   }
 
@@ -426,7 +422,7 @@ export class BundleMeasure {
   /** `plugins` flattened, without the ones a measured build skips (`SKIPPED_PLUGINS`). */
   static measuredPlugins(plugins: PluginOption[] | undefined): PluginOption[] {
     const flat = (plugins ?? []).flat(Infinity as 1) as PluginOption[]
-    return flat.filter((plugin) => !(plugin && "name" in plugin && BundleMeasure.SKIPPED_PLUGINS.has(plugin.name)))
+    return flat.filter((plugin) => !(plugin && "name" in plugin && SKIPPED_PLUGINS.has(plugin.name)))
   }
 
   /** Peer specifiers `peerEntry` re-exports (`export * as x from "<spec>"`), in file order. */
@@ -522,6 +518,47 @@ export class BundleMeasure {
     return id.replace(/^.*?\/(src|packages)\//, "$1/").split("?")[0]!
   }
 }
+
+/** `BundleMeasure.families()`'s inputs:  the build's chunks, and the sizes measured so far. */
+type FamiliesParams = {
+  /** every chunk of the build */
+  chunks: Rolldown.OutputChunk[]
+  /** shared entry name => its chunk */
+  sharedChunks: Map<string, Rolldown.OutputChunk>
+  /** the peer set as used */
+  library: Size
+  /** every shared entry's size */
+  shared: Record<string, SharedSize>
+  /** every family's own size */
+  own: Record<string, OwnSize>
+}
+
+/** `BundleMeasure.scenarios()`'s inputs:  the tiers a scenario adds up. */
+type ScenariosParams = Pick<FamiliesParams, "library" | "shared" | "own"> & {
+  /** per family:  the shared entries it imports */
+  needs: Record<string, FamilyNeeds>
+}
+
+/** What `MeasureResults.units` says the numbers mean. */
+const UNITS = "bytes;  min = esbuild minify, gzip = gzip level 9 of min;  kB = 1000 bytes"
+
+/** Plugins left out of the measured builds, by name. */
+const SKIPPED_PLUGINS = new Set(["vite:dts", "spell-emit-icon-packs"])
+
+/** Id of Rolldown's runtime module (`__name`, `__exportAll` ...);  `RUNTIME_MODULE_ID` in its types. */
+const RUNTIME_MODULE = "\0rolldown/runtime.js"
+
+/** What Lightning CSS writes when it lowers `light-dark()` for an old target (`MeasureChecks.lightDarkLowered`). */
+const LOWERED_LIGHT_DARK = "--lightningcss-light"
+
+/** Prefix of a shared entry's bucket, `shared:<name>`. */
+const SHARED_PREFIX = "shared:"
+
+/** Prefix of a family's buckets (`own:<family>:<kind>`) and of its part in a scenario (`own:<family>`). */
+const OWN_PREFIX = "own:"
+
+/** A family's bucket, `own:<family>:<kind>`:  the family in group 1. */
+const OWN_BUCKET = /^own:([^:]+):/
 
 /** Prefix of `BundleMeasure.virtualEntries()` module ids. */
 const VIRTUAL = "spell-virtual:"

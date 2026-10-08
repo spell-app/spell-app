@@ -1,6 +1,7 @@
 /**
- * Barrel for the loader -- also the `loader` lib entry (`@spell-app/ui/ui-loader`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-loader>`.
+ * The loader family:  defines `<ui-loader>` and exports its component, `UILoader`.
+ * - SIDE EFFECT:  importing it defines the tag.
+ * - Also the library's `@spell-app/ui/ui-loader` entry (its size is in `docs/report.md`).
  */
 
 import { UILoader } from "./UILoader"

@@ -1,15 +1,14 @@
 import { For, Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, UIT } from "$/ui/core"
+import { E } from "$/ui/core"
 
 // the review controls, shared with `<epic-item>`:  its files, not its barrel (which would define `<epic-item>` here)
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "$/epics/components/epic-item/ReviewControls"
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
-import { OVERVIEW_BUTTONS, STATUS_SLOT, type ReviewTextKey } from "$/epics/components/epic-item/epic-item.types"
+import { OVERVIEW_BUTTONS, STATUS_SLOT, type ReviewTextKey } from "$/epics/components/epic-item/EpicItem.types"
 
-import { epicSectionVocabulary } from "./epic-section.vocabulary.en"
-import { EpicSectionFallback } from "./epic-section.fallback"
+import { epicSectionVocabulary } from "./EpicSection.en"
 import { EpicFold } from "./EpicFold"
 import {
   CHANGES,
@@ -35,15 +34,15 @@ import {
   type PhaseToggle,
   type SectionCount,
   type SectionLook
-} from "./epic-section.types"
+} from "./EpicSection.types"
 
-import reviewCSS from "$/epics/components/epic-item/review-controls.css?inline"
-import foldCSS from "./epic-fold.css?inline"
-import sectionCSS from "./epic-section.css?inline"
+import reviewCSS from "$/epics/components/epic-item/ReviewControls.css?inline"
+import foldCSS from "./EpicFold.css?inline"
+import sectionCSS from "./EpicSection.css?inline"
 
 /****************
- * ### `<epic-section>`
- * One section of a plan doc, by `kind`:  Phases, Questions ... Log, or one of the Overview's sub-sections.
+ * ### `EpicSection`
+ * The component behind `<epic-section>`:  one section of a plan doc, by `kind`:  Phases, Questions ... Log, or one of the Overview's sub-sections.
  * - A fold (`EpicFold`):  its numbered title (`3. Questions`, by its place among the page's blocks;  `1.2 Why` for
  *   an Overview sub-section, its title its own), the kind's icon (fixed per kind:  from the vocabulary),
  *   then its children:  phases, items, log events or prose.
@@ -66,38 +65,35 @@ import sectionCSS from "./epic-section.css?inline"
  * - SIDE EFFECT:  observes its own children while connected (counted kinds only).
  ****************/
 export class EpicSection extends EpicFold<EpicSectionVocabulary> {
-  @proto static vocabulary = epicSectionVocabulary
-  @proto static styles = { "epic-fold": foldCSS, "epic-section": sectionCSS, review: reviewCSS }
-  @proto static Fallback = EpicSectionFallback
+  @E.proto static vocabulary = epicSectionVocabulary
+  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-section": sectionCSS, review: reviewCSS }
 
   ////////////////
   // ## State
   ////////////////
 
   /** Light-DOM slot occupancy:  has it children (items, phases ...)?  Plan changes? */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** The Phases section's toggles:  which fields show. */
-  readonly shown = new Cell<Record<string, boolean>>(untrack(() => EpicSection.savedToggles()))
+  @E.state accessor shown: Record<string, boolean> = EpicSection.savedToggles()
 
   /** Bumped when a counted child comes, goes or changes its status or state:  the count and filter follow. */
-  readonly childChanges = new Cell(0)
+  @E.state accessor childChanges = 0
 
   /** The states the reader chose to show, as last left on this page;  `undefined`:  every state. */
-  readonly chosen = new Cell<readonly string[] | undefined>(
-    untrack(() => EpicSection.savedFilters()[this.attrs.id ?? ""])
-  )
+  @E.state accessor chosen: readonly string[] | undefined = EpicSection.savedFilters()[untrack(() => this.id) ?? ""]
 
   /** An Overview sub-section's view of the review inbox (other kinds:  no id, never reviewed). */
-  readonly reviewState = new ReviewState(() => (this.attrs.kind === "overview-part" ? this.attrs.id : undefined))
+  readonly reviewState = new ReviewState(() => (this.kind === "overview-part" ? this.id : undefined))
 
   /** An Overview sub-section's note box `<textarea>`, once drawn:  Revisit and Edit focus it. */
   private noteInput: HTMLTextAreaElement | undefined
 
   /** The toggles' icons, in `PHASE_TOGGLES`' order;  the filter chip's;  the Plan changes box's. */
-  readonly toggleGlyphs = PHASE_TOGGLES.map((toggle) => new IconGlyph(this, () => toggle.icon))
-  readonly filterGlyph = new IconGlyph(this, () => "filter")
-  readonly changesGlyph = new IconGlyph(this, () => "pen to square")
+  readonly toggleGlyphs = PHASE_TOGGLES.map((toggle) => new E.IconGlyph({ owner: this, name: () => toggle.icon }))
+  readonly filterGlyph = new E.IconGlyph({ owner: this, name: () => "filter" })
+  readonly changesGlyph = new E.IconGlyph({ owner: this, name: () => "pen to square" })
 
   ////////////////
   // ## Derived state
@@ -105,28 +101,28 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /** The kind's look:  icon and title key;  `undefined` for an Overview sub-section. */
   readonly look = createMemo((): SectionLook | undefined => {
-    const kind = this.attrs.kind
+    const kind = this.kind
     return kind && kind !== "overview-part" ? SECTION_LOOKS[kind] : undefined
   })
 
   /** Its icon (after `look`, which it reads:  memos compute as they're made). */
-  readonly glyph = new IconGlyph(this, () => this.look()?.icon)
+  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.look()?.icon })
 
   /** Its number, by its place:  `3` for the third block of the page;  `1.2` for the Overview's second part. */
   readonly number = createMemo(() => {
-    this.layout()
-    return this.connected.get() ? this.place(this.attrs.kind) : ""
+    void this.layout
+    return this.isConnected ? this.place(this.kind) : ""
   })
 
   /** An item section with nothing in it, and no part on its way. */
-  readonly empty = createMemo(() => this.holdsItems() && !this.slots.has("") && !this.attrs.source)
+  readonly empty = createMemo(() => this.holdsItems() && !this.slots.hasContent("") && !this.source)
 
   /** Its counted children (items, or phases), read again on every change to them. */
   readonly counted = createMemo((): Element[] => {
-    this.childChanges.get()
-    this.slots.occupied()
+    void this.childChanges
+    void this.slots.filledSlots
     if (!this.counts() || isServer) return []
-    return Array.from(this.host.querySelectorAll(COUNTED))
+    return Array.from(this.domElement.querySelectorAll(COUNTED))
   })
 
   /** Its count:  `{ open, total }`;  `undefined` for a kind that isn't counted, or with nothing to count. */
@@ -153,7 +149,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
    */
   readonly showing = createMemo((): ReadonlySet<string> => {
     const present = this.present().map((it) => it.state as string)
-    const chosen = (this.chosen.get() ?? present).filter((state) => present.includes(state))
+    const chosen = (this.chosen ?? present).filter((state) => present.includes(state))
     return new Set(chosen.length ? chosen : present)
   })
 
@@ -167,10 +163,10 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   // ## Element hooks
   ////////////////
 
-  /** The fold's states, and `tools`:  the Phases toggles, or a state filter with chips. */
-  protected hostStates() {
-    const tools = this.attrs.kind === "phases" || this.present().length > 0
-    return { ...(super.hostStates() as Record<string, boolean>), tools } as never
+  /** Its title has tools:  the Phases toggles, or a state filter with chips. */
+  @E.cssState("tools")
+  get hasTools(): boolean {
+    return this.kind === "phases" || this.present().length > 0
   }
 
   ////////////////
@@ -181,32 +177,32 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
    * Count its children again as they change (counted kinds);  an Overview sub-section follows the review inbox while
    * connected (kept alive:  a removed one stops).
    */
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     if (!isServer && untrack(() => this.counts())) {
       onSettled(() => {
-        const bump = () => this.childChanges.set(untrack(() => this.childChanges.get()) + 1)
+        const bump = () => this.childChanges++
         const observer = new MutationObserver(bump)
-        observer.observe(this.host, { childList: true, subtree: true, attributeFilter: COUNT_ATTRIBUTES })
+        observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: COUNT_ATTRIBUTES })
         bump()
         return () => observer.disconnect()
       })
     }
-    if (!isServer && untrack(() => this.attrs.kind) === "overview-part") {
+    if (!isServer && untrack(() => this.kind) === "overview-part") {
       createEffect(
-        () => this.connected.get(),
+        () => this.isConnected,
         (connected) => (connected ? this.reviewState.connect() : undefined)
       )
     }
-    return super.mount()
+    return super.onMount()
   }
 
   render(): JSX.Element {
     // read once:  a section never changes its kind
     const look = untrack(this.look)
-    const kind = untrack(() => this.attrs.kind)
+    const kind = untrack(() => this.kind)
     return this.renderFold({
-      title: () => this.title(),
-      icon: look ? () => this.glyph.svg() : undefined,
+      title: () => this.heading(),
+      icon: look ? () => this.glyph.svg : undefined,
       badge: () => {
         const count = this.count()
         return count ? `${count.open}/${count.total}` : undefined
@@ -224,14 +220,14 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
       after: () => (
         <>
           <Show when={this.empty()}>
-            <p class={EMPTY} part={this.part("empty")}>
-              {this.text("noneYet")}
+            <p class={EMPTY} part={this.partForName("empty")}>
+              {this.translationForKey("noneYet")}
             </p>
           </Show>
           <Show when={this.hidden().length}>{this.hiddenNote()}</Show>
           {/* Claude's status cards (P13):  at the end of its body, above the note box */}
           <Show when={kind === "overview-part"}>
-            <slot name={this.slot(STATUS_SLOT)} />
+            <slot name={this.slotForName(STATUS_SLOT)} />
           </Show>
           <Show when={kind === "overview-part" && this.reviewState.reviewing()}>{this.noteBox()}</Show>
         </>
@@ -245,23 +241,27 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
    * a memo a pending change hasn't reached yet (the live update re-reads the contents right after it patches).
    */
   contentsEntry(): ContentsEntry {
-    const kind = this.host.getAttribute("kind") ?? ""
-    const number = this.host.isConnected ? this.place(kind) : ""
+    const kind = this.domElement.getAttribute("kind") ?? ""
+    const number = this.domElement.isConnected ? this.place(kind) : ""
     if (kind === "overview-part" || !(kind in SECTION_LOOKS))
-      return { label: `${number} ${EpicSection.titleText(this.host)}`.trim() }
+      return { label: `${number} ${EpicSection.titleText(this.domElement)}`.trim() }
     const look = SECTION_LOOKS[kind as keyof typeof SECTION_LOOKS]
     const counted = kind === "phases" || (ITEM_KINDS as readonly string[]).includes(kind)
-    const children = counted ? Array.from(this.host.querySelectorAll(COUNTED)) : []
-    return { label: `${number}. ${this.text(look.title)}`, icon: look.icon, count: EpicSection.countOf(children) }
+    const children = counted ? Array.from(this.domElement.querySelectorAll(COUNTED)) : []
+    return {
+      label: `${number}. ${this.translationForKey(look.title)}`,
+      icon: look.icon,
+      count: EpicSection.countOf(children)
+    }
   }
 
   /** The title:  `3. Questions`, or an Overview sub-section's `1.2 <its title>`. */
-  private title(): JSX.Element {
+  private heading(): JSX.Element {
     const look = this.look()
-    if (look) return `${this.number()}. ${this.text(look.title)}`
+    if (look) return `${this.number()}. ${this.translationForKey(look.title)}`
     return (
       <>
-        <span class="number">{this.number()}</span> <slot name={this.slot("title")}>{this.attrs.title}</slot>
+        <span class="number">{this.number()}</span> <slot name={this.slotForName("title")}>{this.title}</slot>
       </>
     )
   }
@@ -274,29 +274,35 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   private filter(): JSX.Element {
     return (
       <Show when={this.present().length}>
-        <span class={FILTER} part={this.part("filter")} role="group" aria-label={this.text("filterLabel")}>
+        <span
+          class={FILTER}
+          part={this.partForName("filter")}
+          role="group"
+          aria-label={this.translationForKey("filterLabel")}
+        >
           <button
-            type={UIT.BUTTON}
+            type="button"
             class={CHIP}
             data-state="all"
-            aria-pressed={this.showingAll() ? UIT.TRUE : UIT.FALSE}
+            aria-pressed={this.showingAll() ? "true" : "false"}
             aria-label={this.allWords()}
             title={this.allWords()}
             onClick={this.toggleAll}
           >
-            {this.filterGlyph.svg()}
+            {this.filterGlyph.svg}
           </button>
           <For each={this.present()}>
             {(state) => {
               const on = () => this.showing().has(state.state)
-              const words = () => this.text(on() ? "showing" : "hiding", { words: this.text(state.words) })
+              const words = () =>
+                this.translationForKey(on() ? "showing" : "hiding", { words: this.translationForKey(state.words) })
               return (
                 <button
-                  type={UIT.BUTTON}
+                  type="button"
                   class={CHIP}
                   data-state={state.state}
                   data-color={state.color}
-                  aria-pressed={on() ? UIT.TRUE : UIT.FALSE}
+                  aria-pressed={on() ? "true" : "false"}
                   aria-label={words()}
                   title={words()}
                   onClick={() => this.flipState(state.state)}
@@ -314,15 +320,15 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   /** Under a filtered list:  `3 hidden · show all`;  a click shows everything. */
   private hiddenNote(): JSX.Element {
     return (
-      <button type={UIT.BUTTON} class={HIDDEN_NOTE} part={this.part("hidden-note")} onClick={this.showAll}>
-        {this.text("hiddenNote", { count: this.hidden().length })}
+      <button type="button" class={HIDDEN_NOTE} part={this.partForName("hidden-note")} onClick={this.showAll}>
+        {this.translationForKey("hiddenNote", { count: this.hidden().length })}
       </button>
     )
   }
 
   /** The grey chip's words:  what its click does. */
   private allWords(): string {
-    return this.text(this.showingAll() && this.needsYou() ? "showNeeds" : "showAll")
+    return this.translationForKey(this.showingAll() && this.needsYou() ? "showNeeds" : "showAll")
   }
 
   /** Some item needs Owen (red):  the grey chip can show only those. */
@@ -347,18 +353,18 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     return (
       <For each={PHASE_TOGGLES}>
         {(toggle, index) => {
-          const on = () => !!this.shown.get()[toggle.field]
-          const label = () => this.text(on() ? toggle.hide : toggle.show)
+          const on = () => !!this.shown[toggle.field]
+          const label = () => this.translationForKey(on() ? toggle.hide : toggle.show)
           return (
             <button
-              type={UIT.BUTTON}
+              type="button"
               class={TOGGLE}
-              aria-pressed={on() ? UIT.TRUE : UIT.FALSE}
+              aria-pressed={on() ? "true" : "false"}
               aria-label={label()}
               title={label()}
               onClick={() => this.flip(toggle)}
             >
-              {this.toggleGlyphs[index()]!.svg()}
+              {this.toggleGlyphs[index()]!.svg}
             </button>
           )
         }}
@@ -369,15 +375,15 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   /** The Plan changes box (T14):  the tool's copies of each change to a phase still to do;  nothing without one. */
   private planChanges(): JSX.Element {
     return (
-      <Show when={this.slots.has(this.slot("changes"))}>
-        <div class={CHANGES} part={this.part("changes")}>
+      <Show when={this.slots.hasContent(this.slotForName("changes"))}>
+        <div class={CHANGES} part={this.partForName("changes")}>
           <p class={CHANGES_HEAD}>
-            <span class="icon" aria-hidden={UIT.TRUE}>
-              {this.changesGlyph.svg()}
+            <span class="icon" aria-hidden="true">
+              {this.changesGlyph.svg}
             </span>
-            {this.text("changesTitle")}
+            {this.translationForKey("changesTitle")}
           </p>
-          <slot name={this.slot("changes")} />
+          <slot name={this.slotForName("changes")} />
         </div>
       </Show>
     )
@@ -385,8 +391,8 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /** The Phases section's fields to show:  each toggle's custom property, `block` while it's on. */
   protected foldStyle(): Record<string, string> | undefined {
-    if (this.attrs.kind !== "phases") return undefined
-    const shown = this.shown.get()
+    if (this.kind !== "phases") return undefined
+    const shown = this.shown
     const style: Record<string, string> = {}
     for (const toggle of PHASE_TOGGLES) if (shown[toggle.field]) style[toggle.property] = "block"
     return style
@@ -405,7 +411,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
           text={this.reviewText}
           label={this.idLabel()}
           buttons={OVERVIEW_BUTTONS}
-          part={this.part("review-buttons")}
+          part={this.partForName("review-buttons")}
           onOpenBox={() => this.takeToNote()}
         />
       </Show>
@@ -419,7 +425,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
         <SaidNote
           review={this.reviewState}
           text={this.reviewText}
-          part={this.part("said")}
+          part={this.partForName("said")}
           onEdit={() => this.takeToNote(this.reviewState.mark()?.note)}
         />
       </Show>
@@ -433,7 +439,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
         review={this.reviewState}
         text={this.reviewText}
         label={this.idLabel()}
-        part={this.part("note-box")}
+        part={this.partForName("note-box")}
         ref={(note) => (this.noteInput = note)}
         onEscape={() => this.leaveNote()}
         onUsed={() => this.leaveNote()}
@@ -443,11 +449,12 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /** Its id as shown:  `O1`. */
   private idLabel(): string {
-    return (this.attrs.id ?? "").toUpperCase()
+    return (this.id ?? "").toUpperCase()
   }
 
   /** Its texts, as the review controls ask for them. */
-  private readonly reviewText = (key: ReviewTextKey, params?: Record<string, string | number>) => this.text(key, params)
+  private readonly reviewText = (key: ReviewTextKey, params?: Record<string, string | number>) =>
+    this.translationForKey(key, params)
 
   /** Take the reader to its note box (Revisit;  Edit, with the marked `note`):  unfolded first. */
   private takeToNote(note?: string) {
@@ -470,9 +477,9 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /** A toggle, clicked:  show or hide its field in every phase, and remember it. */
   private flip(toggle: PhaseToggle) {
-    const shown = { ...untrack(() => this.shown.get()) }
+    const shown = { ...untrack(() => this.shown) }
     shown[toggle.field] = !shown[toggle.field]
-    this.shown.set(shown)
+    this.shown = shown
     EpicSection.save(PHASE_TOGGLES_KEY, shown)
   }
 
@@ -497,8 +504,8 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /** The reader chose to show `states`:  shown, and remembered for this page. */
   private choose(states: string[]) {
-    this.chosen.set(states)
-    const id = untrack(() => this.attrs.id)
+    this.chosen = states
+    const id = untrack(() => this.id)
     if (!id) return
     EpicSection.save(FILTER_KEY, { ...EpicSection.savedFilters(), [id]: states })
   }
@@ -509,24 +516,24 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /** A kind that holds items (Questions ... To test). */
   private holdsItems(): boolean {
-    return (ITEM_KINDS as readonly string[]).includes(this.attrs.kind ?? "")
+    return (ITEM_KINDS as readonly string[]).includes(this.kind ?? "")
   }
 
   /** Its number by its place now, as `kind`:  `3`, or an Overview sub-section's `1.2`;  "" unplaced. */
   private place(kind: string | undefined): string {
-    const parent = this.host.parentElement
+    const parent = this.domElement.parentElement
     if (!parent) return ""
     if (kind === "overview-part") {
-      const own = EpicSection.placeOf(this.host, ":scope > epic-section")
+      const own = EpicSection.placeOf(this.domElement, ":scope > epic-section")
       const overview = EpicSection.placeOf(parent, ":scope > epic-overview, :scope > epic-section") || 1
       return `${overview}.${own}`
     }
-    return String(EpicSection.placeOf(this.host, ":scope > epic-overview, :scope > epic-section"))
+    return String(EpicSection.placeOf(this.domElement, ":scope > epic-overview, :scope > epic-section"))
   }
 
   /** A kind that's counted:  items, or phases.  A method:  memos above call it as they're made. */
   private counts(): boolean {
-    return this.attrs.kind === "phases" || this.holdsItems()
+    return this.kind === "phases" || this.holdsItems()
   }
 
   /** The count of `children` (items, or phases):  open being any status but `CLOSED_STATUSES`';  none without any. */
@@ -587,3 +594,6 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     }
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface EpicSection extends E.AttributeValues<EpicSectionVocabulary> {}

@@ -1,0 +1,127 @@
+/*
+ * The style sheet of `<ui-emoji>`:  a port of Fomantic's `emoji.less` + `emoji.variables`
+ * (the box, size and state rules).
+ * - It styles the component's shadow DOM, in Fomantic's class names on a semantic element:
+ *   `<span class="ui [size] [keyOnly ...] emoji" part="emoji" [role=img aria-label | aria-hidden]>😄</span>`
+ *   - the glyph is the Unicode emoji `EmojiData` resolves from `name`;
+ *     an unknown name draws an EMPTY box, which keeps its line box
+ *   - a `<span>`, where Fomantic used `<em>`:  an emoji isn't stress emphasis
+ * - The DOM element is `display: contents` (`:host`):  the span IS the inline box.
+ *
+ * - The drawing depends on the platform's EMOJI FONT (as with `<ui-flag>`):
+ *   `--ui-emoji-font-family` puts the colour emoji fonts first,
+ *   and `font-variant-emoji: emoji` asks for emoji presentation even without U+FE0F.
+ *
+ * - Sizes are relative to the SURROUNDING text (em), with Fomantic's emoji ladder
+ *   (`1.5em * n`:  `small` 1.5em, `large` 6em, `big` 7.5em):
+ *   the box points `--ui-size-*` at `--ui-emoji-size-*`, so the generic `.ui.large { --ui-scale }` remap
+ *   picks the emoji ratio.  The element resets `--ui-scale`, so an emoji in a large button isn't scaled twice.
+ *   - `medium`:  the grammar makes `size="medium"` a no-op (the unsized 1em emoji),
+ *     whereas Fomantic's medium emoji is 3em.
+ *     The `.medium` rule is ported for STATIC markup;  the component never writes it.
+ *
+ * - The public tokens (`--ui-emoji-*`) are NEVER declared here.
+ *   The token block gives each a private alias, `--_ui-emoji-opacity: var(--ui-emoji-opacity, 1)`,
+ *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
+ *   `::part(emoji)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *
+ * - `loading` spins the glyph;  under `prefers-reduced-motion`, the foundation (`reset.css`) stops it.
+ *
+ * - Left out, on purpose:
+ *   - Fomantic's 3,800 per-emoji `background-image` rules and the Twemoji CDN:
+ *     the glyph is text, so there's no request and no per-emoji CSS.
+ *     (An SVG set, the same everywhere, could come back as an opt-in registry.)
+ *   - `em[data-emoji]` selectors:  Fomantic's markup draws nothing without its sprites, so it isn't supported
+ *   - `speak: none`:  obsolete;  the component decides what assistive tech hears (see the vocabulary)
+ */
+
+@layer ui.components.emoji.types, ui.components.emoji.content, ui.components.emoji.variations, ui.components.emoji.states;
+
+@keyframes ui-emoji-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/*******************************
+             Emoji
+*******************************/
+
+@layer ui.components.emoji.types {
+  /* The DOM element:  no box of its own;  the inner span is the inline box. */
+  :host {
+    display: contents;
+    /* Don't inherit a parent component's scale:  emoji follow the surrounding TEXT. */
+    --ui-scale: initial;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  one per `emoji.variables` entry that still matters, each the private alias of its public token. */
+  .ui.emoji {
+    --_ui-emoji-font-family: var(--ui-emoji-font-family, var(--ui-font-family-emoji), var(--ui-font-family));
+    --_ui-emoji-opacity: var(--ui-emoji-opacity, 1);
+    --_ui-emoji-line-height: var(--ui-emoji-line-height, 1);
+    --_ui-emoji-loading-duration: var(--ui-emoji-loading-duration, 2s);
+    --_ui-emoji-disabled-opacity: var(--ui-emoji-disabled-opacity, var(--ui-disabled-opacity));
+    /* Fomantic's emoji ladder (`1.5em * n`), relative to the surrounding text. */
+    --_ui-emoji-size-small: var(--ui-emoji-size-small, 1.5);
+    /* Private on purpose:  the element never emits `medium` (the default size), only static class grammar reads it. */
+    --_ui-emoji-size-medium: 3;
+    --_ui-emoji-size-large: var(--ui-emoji-size-large, 6);
+    --_ui-emoji-size-big: var(--ui-emoji-size-big, 7.5);
+    /* The generic size remap (`sizes.css`) resolves `--ui-size-<size>` HERE, so it picks the emoji ladder. */
+    --ui-size-small: var(--_ui-emoji-size-small);
+    --ui-size-large: var(--_ui-emoji-size-large);
+    --ui-size-big: var(--_ui-emoji-size-big);
+  }
+
+  /* Emoji:  one glyph, one line tall. */
+  .ui.emoji {
+    display: inline-block;
+    font-family: var(--_ui-emoji-font-family);
+    font-size: calc(1em * var(--ui-scale, 1));
+    font-style: normal;
+    font-weight: var(--ui-font-weight-normal);
+    font-variant-emoji: emoji;
+    line-height: var(--_ui-emoji-line-height);
+    text-decoration: none;
+    white-space: nowrap;
+    opacity: var(--_ui-emoji-opacity);
+    backface-visibility: hidden;
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.emoji.variations {
+  /* Sizes:  a sized emoji centres on the text. */
+  .ui:is(.small, .medium, .large, .big).emoji {
+    vertical-align: middle;
+  }
+  /* Static markup only:  `sizes.css` makes `.medium` a no-op;  Fomantic's medium emoji is 3em. */
+  .ui.medium.emoji {
+    --ui-scale: var(--_ui-emoji-size-medium);
+  }
+
+  /* Link:  a clickable look, unless disabled. */
+  .ui.link.emoji:not(.disabled) {
+    cursor: pointer;
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.emoji.states {
+  .ui.disabled.emoji {
+    opacity: var(--_ui-emoji-disabled-opacity);
+  }
+  .ui.loading.emoji {
+    animation: ui-emoji-spin var(--_ui-emoji-loading-duration) linear infinite;
+  }
+}

@@ -1,13 +1,15 @@
 import { configDefaults, defineConfig, type TestProjectConfiguration } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
+import { environment } from "./tools/environment.ts"
 import { baseConfig } from "./vite.config.ts"
 
 /**
  * Browsers the `browser` project runs in:  chromium only by default, so `yarn review` stays quick.
- * - `UI_TEST_ALL=1` (`yarn test:all`) adds firefox and webkit -- run `yarn test:browsers` once first.
+ * - `SPELL_UI_TEST_ALL=1` (`yarn test:all`;  `environment.isAllBrowsers`) adds firefox and webkit -- run
+ *   `yarn test:browsers` once first.
  */
-const BROWSERS = process.env.UI_TEST_ALL ? (["chromium", "firefox", "webkit"] as const) : (["chromium"] as const)
+const BROWSERS = environment.isAllBrowsers ? (["chromium", "firefox", "webkit"] as const) : (["chromium"] as const)
 
 /** Server-render tests:  `*.ssr.test.ts(x)`, anywhere. */
 const SSR_TESTS = ["src/**/*.ssr.test.{ts,tsx}", "test/**/*.ssr.test.{ts,tsx}"]
@@ -59,9 +61,10 @@ export function uiProjects({ prefix = "", root }: { prefix?: string; root?: stri
         // Test files of one browser run in parallel iframes of ONE page, which has ONE focus:  firefox and webkit hand it
         // to whichever iframe asked last, so `focus()` / Tab / Escape tests of another file fail.  Chromium fakes focus
         // for every frame, so the quick single-browser run keeps its parallelism.
-        fileParallelism: !process.env.UI_TEST_ALL,
-        // `inject("ci")` in a test:  timing budgets are skipped on a shared CI runner (`test/test.types.ts`)
-        provide: { ci: Boolean(process.env.CI) },
+        fileParallelism: !environment.isAllBrowsers,
+        // `inject("ci")` in a test:  timing budgets are skipped on a shared CI runner (`test/test.types.ts`);
+        // `CI=false` / `CI=0` count as not CI
+        provide: { ci: environment.isCI },
         browser: {
           enabled: true,
           provider: playwright(),

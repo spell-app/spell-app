@@ -26,7 +26,7 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 
 | Path | What |
 | --- | --- |
-| `components/<tag>/` | one element family:  class, vocabulary, types, sheet, native fallback, test, barrel |
+| `components/<tag>/` | one element family:  component, vocabulary, sheet, test, barrel |
 | `components/index.ts` | `$/__pack__/components`:  every family barrel (defines every tag:  SIDE EFFECT) |
 | `src/index.ts` | `$/__pack__`:  code the elements share |
 | `src/pack.test.ts` | runs `spell dev pack check __pack__`:  `pack/` is current |

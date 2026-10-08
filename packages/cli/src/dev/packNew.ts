@@ -52,8 +52,9 @@ export async function newPack(root: string, name: string, options: NewPackOption
 
 /**
  * `spell dev pack element <pack> <tag>`:  one element family, `packages/<pack>/components/<tag>/`, from
- * `templates/pack/element/` -- class, vocabulary (topics + aka), types, sheet, native fallback, test, barrel -- as
- * `packages/brand`'s `<ui-brand-*>` families are written;  then its line in `components/index.ts`.
+ * `templates/pack/element/` -- `<Name>.tsx` (the component), `<Name>.en.ts` (its vocabulary:  topics + aka, skeleton
+ * text), `<Name>.css`, `<Name>.test.tsx`, `index.ts` -- every file named for its component, as Spell UI's families
+ * are written (no native fallback:  only form controls have one);  then its line in `components/index.ts`.
  * - Files already there are left alone (`skipped`);  idempotent.
  * - Then builds the pack, unless `build: false`.
  * - Throws `CliError` when `pack` isn't a pack, or `tag` isn't a custom element name starting with its prefix.
@@ -140,8 +141,8 @@ const CORE_PACKAGES = [
  * What a template's `__token__`s become.
  * - pack:  `pack` (`epics`), `packCamel` (`epics`;  `my-pack` => `myPack`), `prefix` (`epic-`), `solid` (Solid's
  *   pinned version, from the root `package.json`'s `resolutions`)
- * - element:  `tag` (`epic-page`), `Class` (`EpicPage`), `vocab` (`epicPage`, as in `epicPageVocabulary`), `noun`
- *   (`page`:  the tag less the prefix), `nounCamel`
+ * - element:  `tag` (`epic-page`), `Class` (`EpicPage`:  the component, and every file's name), `vocab` (`epicPage`,
+ *   as in `epicPageVocabulary`), `noun` (`page`:  the tag less the prefix), `nounCamel`
  */
 export type PackTokens = Record<string, string>
 

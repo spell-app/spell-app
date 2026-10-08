@@ -1,0 +1,190 @@
+/*
+ * The style sheet of `<ui-rating>`:  a port of Fomantic's `rating.less` + `rating.variables`.
+ * - The shadow markup it expects (class grammar on semantic elements):
+ *
+ *     <fieldset class="ui [size color] [disabled read-only] rating [selected]" part="rating" role="radiogroup">
+ *       <label class="[active] [partial] [selected] icon" part="icon" style="--full: 50%">   (one per point)
+ *         <input type="radio" part="control">      (invisible, over the icon)
+ *         <svg>…</svg>                             (the glyph)
+ *         <svg class="fill">…</svg>                (a partial icon only:  the glyph again, clipped to `--full`)
+ *       </label>
+ *     </fieldset>
+ *
+ *   - static markup may use Fomantic's `<div class="ui rating"><i class="active icon"><svg>` for a display-only
+ *     rating:  every rule keys on `.ui.rating .icon`, whatever the elements
+ * - The DOM element:  `inline-block`, as Fomantic's root.
+ *   `:state(disabled)` / `:state(invalid)` are for PAGE styling only.
+ * - Glyphs are SVG (`currentColor`), so a colour is `color` and a partial icon is the glyph twice,
+ *   the filled copy clipped (`clip-path`) -- Fomantic clipped a gradient to the icon font's text
+ *   (`background-clip: text`).
+ * - Colours by remap:  filled icons take `--ui-color` (hover previews `--ui-color-hover`);
+ *   uncoloured ones are Fomantic's dark grey.  Fomantic's text-shadow outline of coloured icons is left out (an
+ *   icon-font trick).
+ * - Focus:  keyboard focus rings the focused icon (`:focus-visible` on its radio), for WCAG 2.4.7.
+ * - Sizes:  `--ui-scale` (from `sizes.css`) scales the whole group.
+ * - Public tokens (`--ui-rating-*`, the theming surface) are NEVER declared here:  the token block reads each
+ *   through a private alias, `--_ui-rating-icon-width: var(--ui-rating-icon-width, 1.25em)`, and every rule reads
+ *   the alias.  So a value set on `:root`, an ancestor, the DOM element, `::part(rating)` or in the app stylesheet
+ *   reaches the box (`docs/theming.md` "Component tokens").
+ */
+
+@layer ui.components.rating.types, ui.components.rating.content, ui.components.rating.variations, ui.components.rating.states;
+
+/*******************************
+           Rating
+*******************************/
+
+@layer ui.components.rating.types {
+  :host {
+    display: inline-block;
+    vertical-align: baseline;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /* `delegatesFocus`:  the icon draws the focus ring, never the DOM element. */
+  :host(:focus-visible) {
+    outline: none;
+  }
+
+  /*
+   * Tokens:  one per `rating.variables` entry that still matters, from the global tokens -- each the private alias
+   * of its public token (never declare the public one:  it would block inherited values).
+   */
+  .ui.rating {
+    --_ui-rating-margin: var(--ui-rating-margin, 0 0.14285em);
+    --_ui-rating-icon-width: var(--ui-rating-icon-width, 1.25em);
+    --_ui-rating-icon-size: var(--ui-rating-icon-size, 1em);
+    --_ui-rating-inactive-color: var(--ui-rating-inactive-color, oklch(from var(--ui-ink) l c h / 0.15));
+    --_ui-rating-active-color: var(--ui-rating-active-color, var(--ui-text-dark));
+    --_ui-rating-selected-color: var(--ui-rating-selected-color, var(--ui-text-color));
+    --_ui-rating-duration: var(--ui-rating-duration, var(--ui-duration-fast));
+    --_ui-rating-focus-width: var(--ui-rating-focus-width, var(--ui-focus-width, 2px));
+    --_ui-rating-focus-color: var(--ui-rating-focus-color, var(--ui-focus-color));
+
+    display: inline-flex;
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: var(--_rating-margin, var(--_ui-rating-margin));
+    padding: 0;
+    border: none;
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    line-height: 1;
+    white-space: nowrap;
+    vertical-align: baseline;
+  }
+  .ui.rating:last-child {
+    margin-right: 0;
+  }
+  /* Shadow DOM:  the root is always an only child, so the DOM element's position decides. */
+  :host(:not(:last-child)) > .ui.rating {
+    margin-right: 0.14285em;
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.rating.content {
+  /* Icon:  a box around the glyph;  its radio lies invisible over it. */
+  .ui.rating .icon {
+    position: relative;
+    display: inline-flex;
+    flex: 1 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--_ui-rating-icon-width);
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--ui-radius-s);
+    background: transparent;
+    color: var(--_rating-icon-color, var(--_ui-rating-inactive-color));
+    font-style: normal;
+    font-weight: var(--ui-font-weight-normal);
+    line-height: 1;
+    text-align: center;
+    cursor: pointer;
+    backface-visibility: hidden;
+    transition:
+      opacity var(--_ui-rating-duration) var(--ui-ease),
+      color var(--_ui-rating-duration) var(--ui-ease);
+  }
+  .ui.rating .icon > svg {
+    display: block;
+    width: var(--_ui-rating-icon-size);
+    height: var(--_ui-rating-icon-size);
+    fill: currentColor;
+    pointer-events: none;
+  }
+  .ui.rating .icon > input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+  .ui.rating .icon:has(> input:focus-visible) {
+    outline: var(--_ui-rating-focus-width) solid var(--_ui-rating-focus-color);
+    outline-offset: 1px;
+  }
+}
+
+/*******************************
+             Types
+*******************************/
+
+@layer ui.components.rating.types {
+  /* Active (filled) icons. */
+  .ui.rating .active.icon {
+    --_rating-icon-color: var(--ui-color, var(--_ui-rating-active-color));
+  }
+
+  /* Partly filled:  the base glyph stays inactive, the clipped copy over it is active. */
+  .ui.rating .icon.partial.active {
+    --_rating-icon-color: var(--_ui-rating-inactive-color);
+  }
+  .ui.rating .icon > .fill {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    color: var(--ui-color, var(--_ui-rating-active-color));
+    clip-path: inset(0 calc(100% - var(--full, 0%)) 0 0);
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.rating.states {
+  /* Selected:  the pointer previews a choice. */
+  .ui.rating .icon.selected,
+  .ui.rating .icon.selected.active,
+  .ui.rating .icon.selected.partial.active {
+    --_rating-icon-color: var(--ui-color-hover, var(--_ui-rating-selected-color));
+  }
+  .ui.rating .icon.selected > .fill {
+    display: none;
+  }
+  .ui.rating.selected .active.icon,
+  .ui.rating .icon.selected {
+    opacity: 1;
+  }
+
+  /* Disabled:  shows its value, takes no pointer. */
+  .ui.disabled.rating .icon {
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* Read-only:  shows its value, focusable, but no pointer affordance. */
+  .ui.read-only.rating .icon {
+    cursor: default;
+  }
+}

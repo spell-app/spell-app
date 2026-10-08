@@ -6,7 +6,7 @@ import {
   type TreeDiagramBox,
   type TreeDiagramLayout,
   type TreeDiagramNode
-} from "./ui-tree-diagram.types"
+} from "./UITreeDiagram.types"
 
 ////////////////
 // ## Fixtures

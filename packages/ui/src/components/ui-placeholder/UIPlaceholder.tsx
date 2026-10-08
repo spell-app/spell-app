@@ -1,41 +1,43 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
+import { placeholderVocabulary } from "./UIPlaceholder.en"
 
-import { placeholderVocabulary } from "./ui-placeholder.vocabulary.en"
-import { PlaceholderFallback } from "./ui-placeholder.fallback"
-
-import placeholderCSS from "./ui-placeholder.css?inline"
-import { TRUE } from "$/ui/components/components.types"
+import placeholderCSS from "./UIPlaceholder.css?inline"
 
 /****************
- * ### `<ui-placeholder>`
- * A skeleton of content still loading:  `<div class="ui … placeholder" part="placeholder"><slot></slot></div>`
- * around the shapes (`<ui-placeholder-header>`, `-paragraph`, `-line`, `-image`).
- * - `:state(placeholder)`, ALWAYS (`PLACEHOLDER_HOST_STATE`):  `ui-placeholder.css` finds placeholder siblings by it,
- *   for the gap between consecutive placeholders.
- * - Decorative:  the host is `aria-hidden` (internals);  whatever is loading announces itself, once.
+ * ### `UIPlaceholder`
+ * The component behind `<ui-placeholder>`:  a grey skeleton of content that is still loading.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … placeholder" part="placeholder">`, around a slot for the shapes
+ *   (`<ui-placeholder-header>`, `-paragraph`, `-line`, `-image`).
+ * - `:state(placeholder)`, ALWAYS (`UIT.PLACEHOLDER_HOST_STATE`):
+ *   `UIPlaceholder.css` finds placeholder siblings by it, for the gap between consecutive placeholders.
+ * - Decorative:  the element is `aria-hidden` (through `internals`);  whatever is loading announces itself, once.
  ****************/
-export class UIPlaceholder extends UIElement<typeof placeholderVocabulary> {
-  @proto static vocabulary = placeholderVocabulary
-  @proto static styles = { placeholder: placeholderCSS }
-  @proto static Fallback = PlaceholderFallback
-  @proto static delegatesFocus = false
+export class UIPlaceholder extends E.UIComponent<typeof placeholderVocabulary> {
+  @E.proto static vocabulary = placeholderVocabulary
+  @E.proto static styleSheets = { placeholder: placeholderCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.host.internals.ariaHidden = TRUE
+    this.domElement.internals.ariaHidden = "true"
   }
 
-  protected hostStates() {
-    return { [UIT.PLACEHOLDER_HOST_STATE]: true }
+  /** A placeholder:  always (`:state(placeholder)`). */
+  @E.cssState(UIT.PLACEHOLDER_HOST_STATE)
+  get isPlaceholder(): boolean {
+    return true
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("placeholder")}>
+      <div class={this.rootClasses} part={this.partForName("placeholder")}>
         <slot />
       </div>
     )
   }
 }
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIPlaceholder extends E.AttributeValues<typeof placeholderVocabulary> {}

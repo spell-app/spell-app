@@ -8,13 +8,13 @@
 
 import { flush } from "solid-js"
 
-import type { UIHost } from "$/ui/elements"
+import type { E } from "$/ui/core"
 import { PerfRun } from "$/ui/test/PerfRun"
 
 import "$/ui/components/ui-dropdown"
 
-const host = document.getElementById("perf") as UIHost
-await host.ready
-const result = await PerfRun.run(host as Parameters<typeof PerfRun.run>[0], { settle: () => flush() })
+const domElement = document.getElementById("perf") as E.DOMElement
+await domElement.ready
+const result = await PerfRun.run(domElement as Parameters<typeof PerfRun.run>[0], { settle: () => flush() })
 ;(window as unknown as { perfResult: unknown }).perfResult = result
 document.getElementById("result")!.textContent = JSON.stringify(result, null, 2)

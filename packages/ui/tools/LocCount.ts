@@ -5,14 +5,15 @@ import { relative } from "node:path"
 
 import type { LocFile, LocResults } from "./tools.types.ts"
 
-/**
- * Lines of code per file.
+/****************
+ * ### `LocCount`
+ * Lines of code per file, for `yarn report`'s `loc` tables (`loc-results.json`).
  * - `lines` -- every line, the trailing newline not counted as an extra one
  * - `code` -- lines that are neither blank nor comment-only:  `//` lines, `/* ... *\/` blocks (docstrings
  *   included) and HTML `<!-- -->` blocks don't count;  a line with code AND a comment does
  * - groups are glob lists relative to the root;  `!glob` excludes;  a file counts in its FIRST group
  * - Count after `oxfmt` (`yarn review` formats), so line breaks are comparable between runs.
- */
+ ****************/
 export class LocCount {
   /** package name, for the results */
   readonly name: string
@@ -21,7 +22,7 @@ export class LocCount {
   /** group => globs, in report order */
   readonly groups: Record<string, string[]>
 
-  constructor(name: string, root: string, groups: Record<string, string[]>) {
+  constructor({ name, root, groups }: LocCountProps) {
     this.name = name
     this.root = root
     this.groups = groups
@@ -96,3 +97,6 @@ export class LocCount {
     return { lines: rows.length, code }
   }
 }
+
+/** Constructor props of `LocCount`. */
+export type LocCountProps = Pick<LocCount, "name" | "root" | "groups">

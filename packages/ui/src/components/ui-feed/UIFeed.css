@@ -1,0 +1,388 @@
+/*
+ * The style sheet of `<ui-feed>` and `<ui-event>`:  a port of Fomantic's `feed.less` + `feed.variables`.
+ * - ONE sheet for both elements;  each adopts it after the foundation.
+ * - Shadow markup contract (class grammar on semantic elements):
+ *   - `<ui-feed>`:  `<ul class="ui [size] [color] [keyOnly ...] feed" part="feed" role="list"><slot></slot></ul>`,
+ *     an `<ol>` when ordered;  `role="list"` because `list-style: none` drops list semantics in Safari
+ *   - `<ui-event>`:  `<div class="[color] [keyOnly ...] event" part="event">` holding the label box
+ *     `<div class="label" part="label" [data-text]>` (the `image` shorthand's `<img part="image" alt="">`,
+ *     the `icon` shorthand's `<span class="icon" part="icon"><svg></span>`, the `label` slot),
+ *     then the default `<slot>`;  the DOM element is `role=listitem` with `:state(in-feed)` in a feed.
+ *     A coloured event adds `ui-<color>`.
+ * - Every EVENT rule has two selectors sharing one body:  `:host > .event` (the element's own root, in a feed or
+ *   not) and the static `.ui.feed > .event`.
+ *   The DOM element's position replaces Fomantic's `:first-child` / `:last-child`.
+ * - The FEED owns the content parts:  `<ui-content>`, `<ui-summary>`, `<ui-date>`, `<ui-meta>`, `<ui-extra>`,
+ *   `<ui-author>` inside an event style themselves `:state(in-feed)` (`UIParts.css`).  The event root declares
+ *   `--_ui-event-label` (`1` while it has a label box), which puts the content beside the label.
+ * - Public tokens (`--ui-feed-*`, the theming surface) are NEVER declared here:  the FEED root reads each through a
+ *   private alias (`--_ui-feed-label-width: var(--ui-feed-label-width, 2.5em)`), which its events inherit and
+ *   read;  `inverted` writes one.  So a value set on `:root`, an ancestor,
+ *   the DOM element or `::part(feed)` reaches every event (`docs/theming.md` "Component tokens").
+ *   An event IN a feed never re-declares them (it would drop the feed's variation);
+ *   a LONE `<ui-event>` outside a feed (`:host(:not(:state(in-feed)))`) declares its own.
+ *   - the parts' look tokens (`--ui-feed-summary-color` ...) are declared nowhere:  `UIParts.css` reads them
+ * - Feed variations reach the events as inherited private tokens (`--_feed-connected`, `--_feed-ordered`,
+ *   `--_feed-divided`, `--_feed-basic`), which the event rules style-query;  NEVER set them from outside.
+ * - Colour by remap:  `--ui-color` (the feed's or the event's own) colours the number circles and the connecting
+ *   line;  the feed hands it on (no reset on its slot), each EVENT's slot resets it for the content.
+ * - Numbering is CSS counters:  `counter-reset` on the ordered feed root, `counter-increment` on each label's
+ *   `::before`;  counters cross shadow boundaries.
+ * - `inverted` sets `color-scheme: dark` (+ `--ui-inverted: 1`) on the feed;  events and parts follow.
+ * - NOTE: left out, on purpose:
+ *   - like icons (`.meta .like`) and their colours:  icon looks
+ *   - images inside a summary, a user or an `extra images` block (`.summary img`, `.extra.images img`):
+ *     out of this sheet's reach inside the parts;  use `<ui-image>` / `<ui-images size="tiny">`, static rules stay
+ *   - a `<ui-label>` in the label box (`.label > .ui.label`):  its own look
+ *   - `multiline` text labels:  a Fomantic-only nudge of `.label > .text`
+ */
+
+@layer ui.components.feed.types, ui.components.feed.content, ui.components.feed.variations, ui.components.feed.states;
+
+/*******************************
+             Feed
+*******************************/
+
+@layer ui.components.feed.types {
+  /* DOM elements:  no box of their own;  the roots are the feed and its events. */
+  :host {
+    display: contents;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  one private alias per `feed.variables` entry that still matters, from the global tokens.
+     Declared on the feed root AND on a LONE event (outside a feed), which has no list to inherit them from;
+     an event in a feed declares none, so it keeps the feed's (`inverted` writes some). */
+  .ui.feed,
+  :host(:not(:state(in-feed))) {
+    --_ui-feed-margin: var(--ui-feed-margin, 1em);
+    --_ui-feed-event-padding: var(--ui-feed-event-padding, 0.21428em);
+    --_ui-feed-label-width: var(--ui-feed-label-width, 2.5em);
+    --_ui-feed-icon-size: var(--ui-feed-icon-size, 1.5em);
+    --_ui-feed-icon-padding: var(--ui-feed-icon-padding, 0.25em);
+    --_ui-feed-icon-color: var(--ui-feed-icon-color, var(--ui-text-muted));
+    --_ui-feed-label-radius: var(--ui-feed-label-radius, var(--ui-radius-circle));
+    --_ui-feed-number-background: var(--ui-feed-number-background, var(--ui-text-light));
+    --_ui-feed-number-color: var(--ui-feed-number-color, var(--ui-ink-on-dark));
+    --_ui-feed-number-border: var(--ui-feed-number-border, 2px);
+    --_ui-feed-connected-width: var(--ui-feed-connected-width, 2px);
+    --_ui-feed-connected-color: var(--ui-feed-connected-color, var(--ui-border-color));
+    --_ui-feed-divided-border: var(--ui-feed-divided-border, var(--ui-border-width) solid var(--ui-border-color));
+    --_ui-feed-disabled-opacity: var(--ui-feed-disabled-opacity, var(--ui-disabled-opacity));
+  }
+  .ui.feed {
+    /* The feed's variations, read by its events. */
+    --_feed-connected: 0;
+    --_feed-ordered: 0;
+    --_feed-divided: 0;
+    --_feed-basic: 0;
+    /* Owner token, ALWAYS declared:  a plain feed nested in an inverted one resets it. */
+    --ui-inverted: 0;
+  }
+
+  /* Feed:  a list without markers. */
+  .ui.feed {
+    box-sizing: border-box;
+    display: block;
+    margin: var(--_feed-margin-top, var(--_ui-feed-margin)) 0 var(--_feed-margin-bottom, var(--_ui-feed-margin));
+    padding: 0;
+    color: var(--ui-text-color);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    list-style: none;
+  }
+  .ui.feed:first-child {
+    --_feed-margin-top: 0;
+  }
+  .ui.feed:last-child {
+    --_feed-margin-bottom: 0;
+  }
+  /* Shadow DOM:  the root is always an only child, so the DOM element's position decides. */
+  :host(:not(:first-child)) > .ui.feed {
+    --_feed-margin-top: initial;
+  }
+  :host(:not(:last-child)) > .ui.feed {
+    --_feed-margin-bottom: initial;
+  }
+  /* Components inside don't scale twice;  the colour goes on to the events, which reset it. */
+  .ui.feed > slot {
+    --ui-scale: initial;
+  }
+
+  /*******************************
+              Event
+  *******************************/
+
+  /* Event:  the label beside the content;  says whether it has a label, for the content (`UIParts.css`). */
+  :host > .event,
+  .ui.feed > .event {
+    --_ui-event-label: 0;
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    margin: 0;
+    padding: var(--_ui-feed-event-padding) 0;
+    background: none;
+  }
+  :host > .event:has(> .label),
+  .ui.feed > .event:has(> .label) {
+    --_ui-event-label: 1;
+  }
+  :host(:first-child) > .event,
+  .ui.feed > .event:first-child {
+    padding-top: 0;
+  }
+  :host(:last-child) > .event,
+  .ui.feed > .event:last-child {
+    padding-bottom: 0;
+  }
+  /* What the event hands its content:  no colour (the number circle and line use it). */
+  .event > slot {
+    --ui-color: initial;
+    --ui-color-text: initial;
+    --ui-color-header: initial;
+    --ui-color-border: initial;
+    --ui-color-background: initial;
+    --ui-color-inverted: initial;
+    --ui-color-hover: initial;
+    --ui-color-focus: initial;
+    --ui-color-down: initial;
+    --ui-color-active: initial;
+    --ui-color-on: initial;
+    --ui-color-inverted-on: initial;
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.feed.content {
+  /* Label:  a column as wide as the picture, icon or number in it. */
+  :host > .event > .label,
+  .ui.feed > .event > .label {
+    --_ui-icon-owner-size: var(--_ui-feed-icon-size);
+    --_ui-icon-owner-margin: 0;
+    --_ui-icon-owner-display: flex;
+    --_ui-icon-owner-align: middle;
+    display: block;
+    flex: 0 0 auto;
+    align-self: stretch;
+    width: var(--_ui-feed-label-width);
+    height: auto;
+    text-align: start;
+  }
+
+  /* An image label:  round, as wide as the label. */
+  :host > .event > .label > img,
+  :host > .event > .label > ::slotted(img),
+  .ui.feed > .event > .label img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--_ui-feed-label-radius);
+  }
+
+  /* An icon label:  a big muted glyph, centred in the label. */
+  :host > .event > .label > .icon,
+  .ui.feed > .event > .label .icon {
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: var(--_ui-feed-icon-padding);
+    font-size: var(--_ui-feed-icon-size);
+    color: var(--_ui-feed-icon-color);
+    opacity: 1;
+  }
+  :host > .event > .label > .icon > svg,
+  .ui.feed > .event > .label .icon > svg {
+    width: auto;
+    height: 1em;
+    fill: currentColor;
+  }
+  :host > .event > .label > ::slotted(:not(img)) {
+    color: var(--_ui-feed-icon-color);
+  }
+
+  /* A text label (`data-text`, and every label of an ordered feed):  a number / initial in a circle. */
+  :host > .event > .label[data-text]::before,
+  .ui.feed > .event > .label[data-text]::before,
+  .ui.ordered.feed > .event > .label::before {
+    box-sizing: border-box;
+    position: relative;
+    display: block;
+    height: var(--_ui-feed-label-width);
+    margin-bottom: 0.3em;
+    padding-top: 0.6em;
+    border: var(--_ui-feed-number-border) solid var(--_feed-number-outline, transparent);
+    border-radius: 50%;
+    background: var(--_feed-number-fill, var(--ui-color, var(--_ui-feed-number-background)));
+    color: var(--_feed-number-ink, var(--ui-color-on, var(--_ui-feed-number-color)));
+    line-height: 1;
+    text-align: center;
+  }
+  /* Static markup:  links, floats. */
+  .ui.feed > .event > .content a {
+    cursor: pointer;
+  }
+  .ui.feed .right.floated {
+    float: right;
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.feed.variations {
+  /* Connected:  a line from each event's label down to the next. */
+  .ui.connected.feed {
+    --_feed-connected: 1;
+  }
+  .ui.connected.feed > .event:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 2.1em;
+    left: 1.2em;
+    height: calc(100% - var(--_ui-feed-icon-size));
+    border-left: var(--_ui-feed-connected-width) solid var(--ui-color, var(--_ui-feed-connected-color));
+  }
+  /*
+   * Elements:  the feed's flags (`--_feed-connected`, `--_feed-ordered`, `--_feed-basic`) are style-queried on REAL
+   * elements only, which set private values the pseudo-elements read through `var()`.  WebKit doesn't re-evaluate a
+   * style query on a `::before` when the container's token changes after first style (a feed made `ordered` later).
+   * - `content` defaults to `none`:  no pseudo-element unless a flag turned it on.
+   */
+  :host(:not(:last-child)) > .event::before {
+    content: var(--_feed-line, none);
+    position: absolute;
+    top: var(--_feed-line-top, 2.1em);
+    left: 1.2em;
+    height: var(--_feed-line-height, calc(100% - var(--_ui-feed-icon-size)));
+    border-left: var(--_ui-feed-connected-width) solid var(--ui-color, var(--_ui-feed-connected-color));
+  }
+  @container style(--_feed-connected: 1) {
+    :host > .event {
+      --_feed-line: "";
+    }
+    :host > .event > .label {
+      position: relative;
+    }
+  }
+  .ui.connected.feed > .event > .label {
+    position: relative;
+  }
+
+  /* Ordered:  numbers in the label circles;  the line starts below the circle. */
+  .ui.ordered.feed {
+    --_feed-ordered: 1;
+    counter-reset: ordered;
+  }
+  .ui.ordered.feed > .event > .label::before {
+    content: counter(ordered);
+    counter-increment: ordered;
+  }
+  :host > .event > .label::before {
+    box-sizing: border-box;
+    position: relative;
+    display: block;
+    height: var(--_ui-feed-label-width);
+    margin-bottom: 0.3em;
+    padding-top: 0.6em;
+    border: var(--_ui-feed-number-border) solid var(--_feed-number-outline, transparent);
+    border-radius: 50%;
+    background: var(--_feed-number-fill, var(--ui-color, var(--_ui-feed-number-background)));
+    color: var(--_feed-number-ink, var(--ui-color-on, var(--_ui-feed-number-color)));
+    line-height: 1;
+    text-align: center;
+    content: var(--_feed-number, none);
+    counter-increment: var(--_feed-number-step, none);
+  }
+  @container style(--_feed-ordered: 1) {
+    :host > .event > .label {
+      --_feed-number: counter(ordered);
+      --_feed-number-step: ordered;
+    }
+  }
+  /* A text label's own text, even in an ordered feed (Fomantic's `.ui.ui.feed` beats the counter). */
+  :host > .event > .label[data-text]::before,
+  .ui.ui.feed > .event > .label[data-text]::before {
+    content: attr(data-text);
+  }
+  .ui.ordered.connected.feed > .event:not(:last-child)::before {
+    top: 2.7em;
+    height: calc(100% - 2.5em);
+  }
+  @container style(--_feed-connected: 1) and style(--_feed-ordered: 1) {
+    :host > .event {
+      --_feed-line-top: 2.7em;
+      --_feed-line-height: calc(100% - 2.5em);
+    }
+  }
+
+  /* Basic:  outlined circles in the text colour (or the feed's / event's colour). */
+  .ui.basic.feed {
+    --_feed-basic: 1;
+  }
+  .ui.basic.feed > .event > .label::before,
+  .ui.feed > .basic.event > .label::before,
+  :host > .basic.event > .label::before {
+    border-color: currentColor;
+    background: transparent;
+    color: var(--ui-color, inherit);
+  }
+  @container style(--_feed-basic: 1) {
+    :host > .event > .label {
+      --_feed-number-outline: currentColor;
+      --_feed-number-fill: transparent;
+      --_feed-number-ink: var(--ui-color, currentColor);
+    }
+  }
+
+  /* Divided:  a rule between events. */
+  .ui.divided.feed {
+    --_feed-divided: 1;
+  }
+  .ui.divided.feed > .event:not(:first-child) {
+    border-top: var(--_ui-feed-divided-border);
+  }
+  @container style(--_feed-divided: 1) {
+    :host(:not(:first-child)) > .event {
+      border-top: var(--_ui-feed-divided-border);
+    }
+  }
+
+  /* Inverted:  the dark scheme, and a dark surface behind each event. */
+  .ui.inverted.feed {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    --_ui-feed-number-color: var(--ui-ink-on-light);
+    color-scheme: dark;
+  }
+  @container style(--ui-inverted: 1) {
+    :host(:state(in-feed)) > .event {
+      background: var(--ui-surface);
+    }
+  }
+  .ui.inverted.feed > .event {
+    background: var(--ui-surface);
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.feed.states {
+  /* Disabled:  faded and inert. */
+  .ui.disabled.feed,
+  .ui.feed > .disabled.event,
+  :host > .disabled.event {
+    opacity: var(--_ui-feed-disabled-opacity);
+    pointer-events: none;
+  }
+}

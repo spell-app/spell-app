@@ -29,10 +29,12 @@
   <body>
     <h1>Native fallbacks, from <code>dist/</code></h1>
     <p>
-      Each row shows one family twice: working, and the same markup after its render was made to throw. The failed
+      Each row shows one form control twice: working, and the same markup after its render was made to throw. The failed
       element logs one console error, dispatches <code>ui-error</code>, gets <code>:state(errored)</code> and renders
-      its family's native fallback (<code>src/components/ui-&lt;name&gt;/ui-&lt;name&gt;.fallback.ts</code>) -- plain
-      DOM with the same class grammar, so the component's own sheet still styles it. Served by <code>yarn serve</code> /
+      its family's native fallback (<code>src/components/ui-&lt;name&gt;/UI&lt;Name&gt;.fallback.ts</code>): plain DOM
+      with the same class grammar, so the component's own sheet still styles it, and the control still submits,
+      validates and resets. Only form controls have one (<code>docs/fallback.md</code>); any other element shows its
+      children through a bare <code>&lt;slot&gt;</code>. Served by <code>yarn serve</code> /
       <code>yarn smoke</code> (import map: <code>dist/</code> + the vendored Solid).
     </p>
     <table>
@@ -46,25 +48,36 @@
       <tbody id="rows"></tbody>
     </table>
     <p>Submitted: <output id="submitted">(nothing yet)</output></p>
+    <p>
+      An icon from the default pack, beside <code>core.js</code>:
+      <ui-icon id="icon" name="house" label="Home"></ui-icon>
+    </p>
     <pre id="result">checking...</pre>
     <script type="module">
       import { flush } from "solid-js"
       import "@spell-app/ui"
 
-      /** Family => markup (also used for the failed copy) and the fallback root's selector. */
+      /** Family => markup (also used for the failed copy) and the fallback root's selector (`test/fallback.cases.ts`). */
       const FAMILIES = {
         button: [`<form><ui-button type="submit" name="action" value="save" primary>Save</ui-button></form>`, "button"],
         dropdown: [
           `<form><ui-dropdown name="fruit" selection placeholder="Fruit"><ui-item value="a">Apple</ui-item>` +
             `<ui-item value="b" selected>Banana</ui-item><ui-item value="c">Cherry</ui-item></ui-dropdown></form>`,
-          "select"
+          "select[part~=trigger]"
         ],
-        icon: [`<ui-icon name="house" size="large" color="blue" label="Home"></ui-icon>`, "[part~=icon]"],
-        label: [`<ui-label color="red" icon="tag" detail="3">Tag</ui-label>`, "[part~=label]"],
-        segment: [`<ui-segment raised>A raised segment</ui-segment>`, "[part~=segment]"],
-        container: [`<ui-container text>Text container</ui-container>`, "[part~=container]"],
-        divider: [`<ui-divider horizontal>Or</ui-divider>`, "[part~=divider]"],
-        parts: [`<ui-header size="large">A header</ui-header>`, "[part~=header]"]
+        input: [`<ui-input placeholder="Search" aria-label="Search"></ui-input>`, "[part~=input]"],
+        checkbox: [`<ui-checkbox>Agree</ui-checkbox>`, "[part~=checkbox]"],
+        select: [
+          `<ui-select placeholder="Fruit"><ui-item value="a">Apple</ui-item></ui-select>`,
+          "select[part~=select]"
+        ],
+        search: [`<ui-search placeholder="Fruit"></ui-search>`, "input[part~=prompt]"],
+        rating: [`<ui-rating value="2" aria-label="Rating"></ui-rating>`, "fieldset[role=radiogroup][part~=rating]"],
+        slider: [`<ui-slider value="4" aria-label="Slider"></ui-slider>`, "input[type=range][part~=thumb]"],
+        calendar: [
+          `<ui-calendar type="date" value="2026-09-30" placeholder="Date"></ui-calendar>`,
+          "[part~=calendar] input[type=date][part~=control]"
+        ]
       }
 
       const rows = document.querySelector("#rows")
@@ -79,28 +92,28 @@
         event.preventDefault()
         output.textContent = JSON.stringify([...new FormData(event.target).entries()])
       })
-      const hosts = (cell) =>
-        [...cell.querySelectorAll("*")].filter((element) => "controller" in element && element.localName !== "ui-item")
+      /** The `ui-*` elements in `cell` that have a component, not counting the dropdown's items. */
+      const domElements = (cell) =>
+        [...cell.querySelectorAll("*")].filter((element) => "component" in element && element.localName !== "ui-item")
       await Promise.all(
-        [...document.querySelectorAll("tbody *")]
-          .filter((element) => "ready" in element)
-          .map((element) => element.ready)
+        [...document.querySelectorAll("body *")].filter((element) => "ready" in element).map((element) => element.ready)
       )
       flush()
 
       const errors = []
       const log = console.error
       console.error = (...args) => (errors.push(args.map(String).join(" ")), log(...args))
-      for (const cell of document.querySelectorAll("td.failed")) for (const host of hosts(cell)) breakRender(host)
-      flush()
+      for (const cell of document.querySelectorAll("td.failed")) {
+        for (const domElement of domElements(cell)) await breakRender(domElement)
+      }
       await new Promise((resolve) => setTimeout(resolve, 50))
       console.error = log
 
       const checks = {}
       for (const [family, [, root]] of Object.entries(FAMILIES)) {
         const row = document.querySelector(`tr[data-family="${family}"]`)
-        const [working] = hosts(row.querySelector(".working"))
-        const [failed] = hosts(row.querySelector(".failed"))
+        const [working] = domElements(row.querySelector(".working"))
+        const [failed] = domElements(row.querySelector(".failed"))
         checks[family] =
           !!failed.shadowRoot.querySelector(root) &&
           failed.matches(":state(errored)") &&
@@ -111,11 +124,11 @@
       const failedButton = document.querySelector(`tr[data-family="button"] .failed ui-button`)
       failedButton.shadowRoot.querySelector("button").click()
       checks.fallbackSubmits = output.textContent === '[["action","save"]]'
-      // the working icon draws its SVG:  the default pack from `dist/icon-packs/fa7-free/`, beside `core.js` (`BuiltInPacks`)
-      const icon = document.querySelector(`tr[data-family="icon"] .working ui-icon`)
+      // the icon draws its SVG:  the default pack from `dist/icon-packs/fa7-free/`, beside `core.js` (`BuiltInPacks`)
+      const icon = document.querySelector("#icon")
       checks.iconGlyph = await eventually(() => !!icon.shadowRoot.querySelector("svg path[d]"))
       const ok = Object.values(checks).every(Boolean)
-      window.smokeResult = { ok, label: "every family, working + failed", checks }
+      window.smokeResult = { ok, label: "every form control, working + failed", checks }
       document.querySelector("#result").textContent = `${ok ? "PASS" : "FAIL"} ${JSON.stringify(checks)}`
 
       /** `true` once `test()` holds, `false` after 3 s. */
@@ -129,21 +142,30 @@
       }
 
       /**
-       * Make `host`'s render throw (see `ElementFixture.breakRender()`):  its classes memo starts throwing, and one
-       * flag flipped and back makes it recompute inside the render effect.
+       * Make `domElement`'s render throw, as `ElementFixture.breakRender()` does:
+       * its component's `extraClasses` starts throwing, then attributes are flipped and back (`keyOnly` first)
+       * until one makes the classes recompute inside the render effect.
        */
-      function breakRender(host) {
-        const { controller } = host
-        Object.defineProperty(controller, "extraClasses", {
-          value: () => {
-            throw new Error(`demo:  forced render failure in <${host.localName}>`)
+      async function breakRender(domElement) {
+        const { component } = domElement
+        Object.defineProperty(component, "extraClasses", {
+          get: () => {
+            throw new Error(`demo:  forced render failure in <${domElement.localName}>`)
           }
         })
-        const { attributes } = controller.definition
-        const flag = attributes.find(({ spec }) => spec.kind === "keyOnly") ?? attributes[0]
-        const before = host[flag.property]
-        host[flag.property] = !before
-        host[flag.property] = before
+        const candidates = [...component.elementDefinition.attributes].sort(
+          (a, b) => Number(b.spec.kind === "keyOnly") - Number(a.spec.kind === "keyOnly")
+        )
+        for (const { spec, property } of candidates) {
+          const before = domElement[property]
+          domElement[property] = spec.kind === "keyOnly" ? !before : before === "x" ? "y" : "x"
+          domElement[property] = before
+          flush()
+          await Promise.resolve()
+          flush()
+          if (domElement.matches(":state(errored)")) break
+        }
+        await Promise.resolve()
       }
     </script>
   </body>

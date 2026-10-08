@@ -1,19 +1,29 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { E, V } from "$/ui/api"
-import * as elements from "$/ui/elements"
+import { E, F, V } from "$/ui/api"
+import * as core from "$/ui/core"
+import * as forms from "$/ui/forms"
 import * as vocabulary from "$/ui/vocabulary"
 
 /**
- * `@spell-app/ui/api`:  `E` / `V` MUST stay the whole `$/ui/elements` / `$/ui/vocabulary` surface, although `V` goes through
- * `vocabulary.api.ts` (see `api.ts`), and survive the circular barrels (`AGENTS.md`:  `barrel.test.ts`).
+ * `@spell-app/ui/api`:  `E` / `F` MUST be the very namespaces component files import from `$/ui/core` / `$/ui/forms`,
+ * and `V` the whole `$/ui/vocabulary` surface, although it goes through `vocabulary.api.ts` (see `api.ts`);  all three
+ * survive the circular barrels (`AGENTS.md`:  `barrel.test.ts`).
  */
-describe("api entry", () => {
-  it("E ~== the $/ui/elements barrel, forms bases included", () => {
-    expect(Object.keys(E).sort()).toEqual(Object.keys(elements).sort())
-    expect(E.UIElement).toBe(elements.UIElement)
-    expect(E.FormElement).toBeTypeOf("function")
-    expect(E.ClassBuilder).toBeTypeOf("function")
+describe("$/ui/api", () => {
+  it("E is $/ui/core's own namespace:  element core and foundation", () => {
+    expect(E).toBe(core.E)
+    expect(E).toMatchObject({
+      UIComponent: core.UIComponent,
+      ClassBuilder: expect.any(Function),
+      proto: expect.any(Function)
+    })
+  })
+
+  it("F is $/ui/forms' own namespace:  the form bases", () => {
+    expect(F).toBe(forms.F)
+    expect(F.FormComponent).toBe(forms.FormComponent)
+    expect(F.MenuOptions).toBeTypeOf("function")
   })
 
   it("V ~== the $/ui/vocabulary barrel", () => {

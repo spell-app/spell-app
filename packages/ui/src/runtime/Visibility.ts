@@ -1,21 +1,28 @@
-import type {
-  Disposer,
-  LazyImageOptions,
-  VisibilityCalculations,
-  VisibilityCallbacks,
-  VisibilityOptions
+import { Warnings } from "$/ui/util"
+import * as UIT from "$/ui/components/components.types"
+
+import {
+  CssDisplay,
+  VisibilityDirection,
+  type Disposer,
+  type LazyImageOptions,
+  type VisibilityCalculations,
+  type VisibilityCallbacks,
+  type VisibilityOptions
 } from "./runtime.types"
 import type { Transitions } from "./Transitions"
 
-/**
+/****************
+ * ### `Visibility`
  * Scroll position callbacks for elements, as `UI.visibility` (and the `UI.observeVisibility()` shortcut):  Fomantic's
  * visibility behaviour on `IntersectionObserver` -- no scroll listener.
+ * - In the runtime's lazy chunk (`UIRuntime` builds it);  fades lazy images through `Transitions`.
  * - `observe(element, { onTopVisible, onBottomPassed, onOnScreen ..., once, continuous, offset, context })`
  *   returns the undo.  See `VisibilityCallbacks` for the names;  the calculations are Fomantic's.
  * - Checks happen when something CROSSES:  the element entering / leaving the screen, and its top or bottom edge
  *   crossing the screen top or bottom (two 1px "line" observers).  So `continuous` fires at each crossing, not on
  *   every scrolled pixel, and `onUpdate` likewise.
- * - Measures the element's first BOX:  a `display: contents` element (`<ui-segment>`, `<ui-sticky>` ... hosts) has
+ * - Measures the element's first BOX:  a `display: contents` element (`<ui-segment>`, `<ui-sticky>` ...) has
  *   none, so it measures the first rendered descendant with one -- its shadow root's root element, else its first
  *   boxed child.  NOTE:  only that one box, not the union of every child's.  Nothing to measure warns once in dev.
  * - `once` (default, as Fomantic's):  each callback fires at most once;  `once: false`:  again each time its condition
@@ -23,7 +30,7 @@ import type { Transitions } from "./Transitions"
  * - `lazyImage(img)`:  Fomantic's `type: 'image'` -- an `<img data-src>` (and `data-srcset`) gets its source once on
  *   screen, preloaded then faded in (`UI.transitions`).  Native `loading="lazy"` needs none of this;  this is for the
  *   fade and the callback.
- */
+ ****************/
 export class Visibility {
   /** runs the fade of `lazyImage()` */
   private readonly transitions: Pick<Transitions, "animate">
@@ -34,7 +41,7 @@ export class Visibility {
 
   /** Watch `element` against the screen;  see class docs.  Returns the undo. */
   observe(element: Element, options: VisibilityOptions = {}): Disposer {
-    const watch = new VisibilityWatch(element, options)
+    const watch = new VisibilityWatch({ element, options })
     return () => watch.dispose()
   }
 
@@ -43,7 +50,7 @@ export class Visibility {
    * - Returns the undo;  a no-op (and a no-op undo) without `data-src`.
    */
   lazyImage(image: HTMLImageElement, options: LazyImageOptions = {}): Disposer {
-    const src = image.getAttribute(DATA_SRC)
+    const src = image.getAttribute(LAZY_IMAGE_ATTRIBUTES.src)
     if (!src) return () => undefined
     // the callback runs a task after `observe()` returns (checks are queued), so `stop` is set by then
     const stop: Disposer = this.observe(image, {
@@ -60,7 +67,8 @@ export class Visibility {
 
   /** Preload `src`, set it, run the transition, report. */
   private async load(image: HTMLImageElement, src: string, options: LazyImageOptions) {
-    const srcset = image.getAttribute(DATA_SRCSET)
+    const { transition = LAZY_IMAGE_DEFAULTS.transition, duration = LAZY_IMAGE_DEFAULTS.duration } = options
+    const srcset = image.getAttribute(LAZY_IMAGE_ATTRIBUTES.srcset)
     const probe = new Image()
     if (srcset) probe.srcset = srcset
     probe.src = src
@@ -71,10 +79,8 @@ export class Visibility {
     }
     if (srcset) image.srcset = srcset
     image.src = src
-    if (options.transition !== false) {
-      await this.transitions.animate(image, options.transition ?? FADE, IN, {
-        duration: options.duration ?? DEFAULT_DURATION
-      })
+    if (transition !== false) {
+      await this.transitions.animate({ element: image, name: transition, direction: UIT.IN, duration })
     }
     options.onLoad?.(image)
   }
@@ -82,6 +88,7 @@ export class Visibility {
 
 /** Constructor props for `Visibility`. */
 export type VisibilityProps = {
+  /** runs `lazyImage()`'s fade;  tests pass a stub */
   transitions: Pick<Transitions, "animate">
 }
 
@@ -93,16 +100,17 @@ export type VisibilityProps = {
  * - The line observers' margins are px (a root margin can't say "all but 1px"), so they're rebuilt when the
  *   screen resizes.
  * - Observes `target`, the element's first box (see `Visibility`), re-found when it's gone or boxless at a check:
- *   a host observed before it renders gets its box after its `ready` promise.
+ *   a DOM element observed before it renders gets its box after its `ready` promise.
  ****************/
 class VisibilityWatch {
   /** watched element */
   private readonly element: Element
   /** what's measured:  `element`, or its first boxed descendant when it has no box */
   private target: Element
-  /** already waited for `element`'s `ready`, or warned there's nothing to measure */
-  private waited = false
-  private warned = false
+  /** already waited for `element`'s `ready` */
+  private hasWaited = false
+  /** already warned there's nothing to measure */
+  private hasWarned = false
   /** callbacks and options */
   private readonly options: VisibilityOptions
   /** live observers */
@@ -113,12 +121,12 @@ class VisibilityWatch {
   private previous?: VisibilityCalculations
   /** element top at the last check, for `direction` */
   private lastTop?: number
-  /** a check is queued */
-  private pending = false
+  /** a check is queued, see `checkSoon()` */
+  private isCheckQueued = false
   /** stops watching the screen size */
   private readonly unwatchSize: () => void
 
-  constructor(element: Element, options: VisibilityOptions) {
+  constructor({ element, options }: VisibilityWatchProps) {
     this.element = element
     this.options = options
     this.target = VisibilityWatch.boxOf(element) ?? element
@@ -131,8 +139,8 @@ class VisibilityWatch {
     } else {
       const view = element.ownerDocument.defaultView
       const onResize = () => this.build()
-      view?.addEventListener(RESIZE, onResize)
-      this.unwatchSize = () => view?.removeEventListener(RESIZE, onResize)
+      view?.addEventListener("resize", onResize)
+      this.unwatchSize = () => view?.removeEventListener("resize", onResize)
     }
   }
 
@@ -150,7 +158,7 @@ class VisibilityWatch {
   private build() {
     for (const observer of this.observers.splice(0)) observer.disconnect()
     const { element, target } = this
-    const context = this.options.context ?? null
+    const context = this.options.context
     const offset = this.options.offset ?? 0
     const height = context ? context.clientHeight : element.ownerDocument.documentElement.clientHeight
     const root = context ?? element.ownerDocument
@@ -161,18 +169,18 @@ class VisibilityWatch {
       [`${-offset}px 0px ${-lineBelowTop}px 0px`, [0]],
       [`${-lineAboveBottom}px 0px 0px 0px`, [0]]
     ] as const) {
-      const observer = new IntersectionObserver(() => this.schedule(), { root, rootMargin, threshold: [...threshold] })
+      const observer = new IntersectionObserver(() => this.checkSoon(), { root, rootMargin, threshold: [...threshold] })
       observer.observe(target)
       this.observers.push(observer)
     }
   }
 
-  /** Queue one check for this task. */
-  private schedule() {
-    if (this.pending) return
-    this.pending = true
+  /** Queue ONE check for this task, however many observers report the crossing. */
+  private checkSoon() {
+    if (this.isCheckQueued) return
+    this.isCheckQueued = true
     setTimeout(() => {
-      this.pending = false
+      this.isCheckQueued = false
       if (this.observers.length) this.check()
     })
   }
@@ -199,7 +207,7 @@ class VisibilityWatch {
   /**
    * Make sure `target` is still the box to measure;  true to measure it now.
    * - A new box:  observe it instead (its observers queue the next check).
-   * - No box yet:  wait once for the element's `ready` (a `UIHost` that hasn't rendered), else warn once in dev.
+   * - No box yet:  wait once for the element's `ready` (a `DOMElement` that hasn't rendered), else warn once in dev.
    */
   private retarget(): boolean {
     const target = this.target
@@ -210,39 +218,20 @@ class VisibilityWatch {
       this.build()
       return false
     }
-    if (box || !this.element.isConnected || getComputedStyle(this.element).display !== CONTENTS) return true
+    if (box || !this.element.isConnected || getComputedStyle(this.element).display !== CssDisplay.contents) return true
     const ready = (this.element as { ready?: unknown }).ready
-    if (!this.waited && ready instanceof Promise) {
-      this.waited = true
-      void ready.then(() => this.observers.length && this.schedule())
-    } else if (import.meta.env.DEV && !this.warned) {
-      this.warned = true
-      console.warn(
-        `UI.observeVisibility():  <${this.element.localName}> is \`display: contents\` with no rendered box inside;` +
-          `  nothing will fire.  Observe an element with a box.`
+    if (!this.hasWaited && ready instanceof Promise) {
+      this.hasWaited = true
+      void ready.then(() => this.observers.length && this.checkSoon())
+    } else if (import.meta.env.DEV && !this.hasWarned) {
+      this.hasWarned = true
+      Warnings.warn(
+        "UI.observeVisibility()",
+        `<${this.element.localName}> is \`display: contents\` with no rendered box inside;  nothing will fire.  ` +
+          `Observe an element with a box.`
       )
     }
     return false
-  }
-
-  /**
-   * First element with a box at or inside `element`, in rendered order;  `undefined` for none.
-   * - `display: contents`:  a shadow host's shadow root children, a `<slot>`'s assigned (else fallback) elements,
-   *   else its children.  `display: none` has no box and none inside.
-   */
-  private static boxOf(element: Element): Element | undefined {
-    const display = getComputedStyle(element).display
-    if (display === NONE) return undefined
-    if (display !== CONTENTS) return element
-    const children =
-      element instanceof HTMLSlotElement
-        ? element.assignedElements({ flatten: true })
-        : [...(element.shadowRoot ?? element).children]
-    for (const child of children) {
-      const box = VisibilityWatch.boxOf(child)
-      if (box) return box
-    }
-    return undefined
   }
 
   /** Fomantic's calculations for `rect`. */
@@ -260,7 +249,11 @@ class VisibilityWatch {
     const onScreen = (topVisible || passing) && !bottomPassed
     const last = this.lastTop
     this.lastTop = rect.top
-    const direction = last === undefined || last === rect.top ? STATIC : rect.top < last ? DOWN : UP
+    // oxfmt-ignore
+    const direction =
+      last === undefined || last === rect.top ? VisibilityDirection.static
+      : rect.top < last ? VisibilityDirection.down
+      : VisibilityDirection.up
     return {
       topPassed,
       bottomPassed,
@@ -293,6 +286,39 @@ class VisibilityWatch {
     this.occurred.add(key)
     this.options[key]?.(calculations)
   }
+
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * First element with a box at or inside `element`, in rendered order;  `undefined` for none.
+   * - `display: contents`:  a shadow host's shadow root children, a `<slot>`'s assigned (else fallback) elements,
+   *   else its children.  `display: none` has no box and none inside.
+   * - STATIC:  pure, recursive over the tree, and the constructor needs it before `target` is set.
+   */
+  private static boxOf(element: Element): Element | undefined {
+    const display = getComputedStyle(element).display
+    if (display === CssDisplay.none) return undefined
+    if (display !== CssDisplay.contents) return element
+    const children =
+      element instanceof HTMLSlotElement
+        ? element.assignedElements({ flatten: true })
+        : [...(element.shadowRoot ?? element).children]
+    for (const child of children) {
+      const box = VisibilityWatch.boxOf(child)
+      if (box) return box
+    }
+    return undefined
+  }
+}
+
+/** Constructor props for `VisibilityWatch`:  one `observe()` call's arguments. */
+type VisibilityWatchProps = {
+  /** watched element */
+  element: Element
+  /** callbacks and options */
+  options: VisibilityOptions
 }
 
 /** Conditions with a forward callback, in Fomantic's order. */
@@ -329,23 +355,8 @@ const REVERSE_KEYS: Record<(typeof EDGES)[number], keyof VisibilityCallbacks> = 
   bottomPassed: "onBottomPassedReverse"
 }
 
-/** Directions. */
-const UP = "up"
-const DOWN = "down"
-const STATIC = "static"
+/** Lazy image attributes (Fomantic's `metadata.src` / `metadata.srcset`). */
+const LAZY_IMAGE_ATTRIBUTES = { src: "data-src", srcset: "data-srcset" } as const
 
-/** `display` values without a box of their own. */
-const CONTENTS = "contents"
-const NONE = "none"
-
-/** Screen resize event. */
-const RESIZE = "resize"
-
-/** Lazy image attributes (Fomantic's `metadata.src`). */
-const DATA_SRC = "data-src"
-const DATA_SRCSET = "data-srcset"
-
-/** Lazy image transition (Fomantic's `fade in`, 1000ms). */
-const FADE = "fade"
-const IN = "in"
-const DEFAULT_DURATION = 1000
+/** Lazy image transition, unless `lazyImage()`'s options say otherwise (Fomantic's `fade in`, 1000ms). */
+const LAZY_IMAGE_DEFAULTS = { transition: "fade", duration: 1000 } as const satisfies LazyImageOptions

@@ -5,6 +5,7 @@ import { ColorContrast } from "./ColorContrast"
 import type {
   ColorRecipe,
   ColorShift,
+  GeneratedDeclaration,
   GeneratedSheetName,
   HueDefinition,
   HueStates,
@@ -41,13 +42,16 @@ import {
   spacing,
   textAlphas,
   zIndices
-} from "./styles.vocabulary.en"
+} from "./styles.en"
 
-/**
+/****************
+ * ### `StyleGenerator`
  * Writes the GENERATED foundation sheets -- `tokens.css`, `colors.css`, `sizes.css` -- from
- * `styles.vocabulary.en.ts`.
+ * `styles.en.ts`.
  * - Pure:  returns CSS text and touches no file system, so it runs both in node (`scripts/gen-styles.ts`,
  *   `yarn gen:styles`) and in the browser test that checks the committed sheets are current.
+ * - Imports only its own folder (the vocabulary, `ColorContrast`, types) and `$/ui/util`'s `kebabCase`:  never the
+ *   element layer, which node can't load.  Build-time only, so left out of the `$/ui/styles` barrel.
  * - Output is close to oxfmt's CSS style;  the script runs oxfmt afterwards, and the staleness test
  *   compares with whitespace stripped, so line breaking never matters.
  * - Token declarations go on `:root`, plus a `:host` copy guarded by
@@ -64,11 +68,8 @@ import {
  *   type-checked, document-wide initial values).
  * - Text ON a solid colour is DATA:  `--ui-<name>-on` (white or ink) is picked here by WCAG contrast
  *   (`ColorContrast`) against the colour and its states, per scheme -- see `onColors`.
- */
+ ****************/
 export class StyleGenerator {
-  /** First line of every generated sheet. */
-  static readonly banner = "/* GENERATED -- do not edit, run `yarn gen:styles` (source: styles.vocabulary.en.ts) */"
-
   /** Every generated sheet:  file name inside `src/styles/` => CSS text. */
   sheets(): Record<GeneratedSheetName, string> {
     return {
@@ -88,41 +89,44 @@ export class StyleGenerator {
    *   breakpoints.
    */
   tokensCSS(): string {
-    const declarations: Declaration[] = [
+    const declarations: GeneratedDeclaration[] = [
       ["--ui-font-size", `${fontSize}px`],
-      ...this.entries(fonts).map(([name, stack]): Declaration => [
+      ...this.entries(fonts).map(([name, stack]): GeneratedDeclaration => [
         this.token("font-family", name),
         this.fontStack(stack)
       ]),
-      ...this.entries(fontWeights).map(([name, weight]): Declaration => [`--ui-font-weight-${name}`, String(weight)]),
-      ...this.entries(lineHeights).map(([name, height]): Declaration => [
+      ...this.entries(fontWeights).map(([name, weight]): GeneratedDeclaration => [
+        `--ui-font-weight-${name}`,
+        String(weight)
+      ]),
+      ...this.entries(lineHeights).map(([name, height]): GeneratedDeclaration => [
         this.token("line-height", name),
         String(height)
       ]),
       ["--ui-heading-ratio", String(headingRatio)],
       ["--ui-caption-ratio", String(captionRatio)],
-      ...this.entries(spacing).map(([name, em]): Declaration => [`--ui-space-${name}`, `${em}em`]),
-      ...this.entries(radii).map(([name, radius]): Declaration => [`--ui-radius-${name}`, radius]),
+      ...this.entries(spacing).map(([name, em]): GeneratedDeclaration => [`--ui-space-${name}`, `${em}em`]),
+      ...this.entries(radii).map(([name, radius]): GeneratedDeclaration => [`--ui-radius-${name}`, radius]),
       ["--ui-radius", "var(--ui-radius-m)"],
       ["--ui-ink-on-light", this.oklch(neutrals.ink.onLight)],
       ["--ui-ink-on-dark", this.oklch(neutrals.ink.onDark)],
       ["--ui-ink", "light-dark(var(--ui-ink-on-light), var(--ui-ink-on-dark))"],
-      ...this.entries(textAlphas).map(([name, alpha]): Declaration => [
+      ...this.entries(textAlphas).map(([name, alpha]): GeneratedDeclaration => [
         name === "default" ? "--ui-text-color" : `--ui-text-${name}`,
         this.inkAlpha(alpha.onLight, alpha.onDark)
       ]),
-      ...this.entries(textAlphas).map(([name, alpha]): Declaration => [
+      ...this.entries(textAlphas).map(([name, alpha]): GeneratedDeclaration => [
         name === "default" ? "--ui-text-inverted-color" : `--ui-text-inverted-${name}`,
         this.inkAlpha(undefined, alpha.onDark)
       ]),
       ["--ui-border-width", `${borderWidth}px`],
-      ...this.entries(borderAlphas).map(([name, alpha]): Declaration => [
+      ...this.entries(borderAlphas).map(([name, alpha]): GeneratedDeclaration => [
         this.token("border-color", name),
         this.inkAlpha(alpha.onLight, alpha.onDark)
       ]),
       ["--ui-border", "var(--ui-border-width) solid var(--ui-border-color)"],
       ["--ui-shadow-ink", "light-dark(var(--ui-ink-on-light), oklch(0 0 0))"],
-      ...this.entries(shadows).map(([name, layers]): Declaration => [
+      ...this.entries(shadows).map(([name, layers]): GeneratedDeclaration => [
         `--ui-shadow-${name}`,
         layers
           .map(
@@ -135,10 +139,13 @@ export class StyleGenerator {
       ["--ui-focus-width", `${focusRing.width}px`],
       ["--ui-focus-offset", `${focusRing.offset}px`],
       ["--ui-disabled-opacity", String(disabledOpacity)],
-      ...this.entries(durations).map(([name, ms]): Declaration => [`--ui-duration-${name}`, `${ms}ms`]),
-      ...this.entries(easings).map(([name, curve]): Declaration => [this.token("ease", name), curve]),
-      ...this.entries(zIndices).map(([name, z]): Declaration => [`--ui-z-${name}`, String(z)]),
-      ...this.entries(breakpoints).map(([name, px]): Declaration => [`--ui-breakpoint-${kebabCase(name)}`, `${px}px`])
+      ...this.entries(durations).map(([name, ms]): GeneratedDeclaration => [`--ui-duration-${name}`, `${ms}ms`]),
+      ...this.entries(easings).map(([name, curve]): GeneratedDeclaration => [this.token("ease", name), curve]),
+      ...this.entries(zIndices).map(([name, z]): GeneratedDeclaration => [`--ui-z-${name}`, String(z)]),
+      ...this.entries(breakpoints).map(([name, px]): GeneratedDeclaration => [
+        `--ui-breakpoint-${kebabCase(name)}`,
+        `${px}px`
+      ])
     ]
     return this.sheet([...this.layer("ui.tokens", this.tokenBlock("tokens", declarations))])
   }
@@ -173,8 +180,8 @@ export class StyleGenerator {
   }
 
   /** Declarations of the `:root` colour block. */
-  private colorDeclarations(): Declaration[] {
-    const declarations: Declaration[] = [
+  private colorDeclarations(): GeneratedDeclaration[] {
+    const declarations: GeneratedDeclaration[] = [
       ["color-scheme", "light dark"],
       ["--ui-scheme", "light"]
     ]
@@ -188,15 +195,15 @@ export class StyleGenerator {
         [`--ui-${name}-on-light`, this.oklch(hue.onLight)],
         [`--ui-${name}-on-dark`, this.oklch(hue.onDark)],
         [`--ui-${name}`, `light-dark(var(--ui-${name}-on-light), var(--ui-${name}-on-dark))`],
-        ...this.derived(`var(--ui-${name})`, name, this.statesOf(name), hueRoles),
+        ...this.derived({ base: `var(--ui-${name})`, name, states: this.statesFor(name), roles: hueRoles }),
         [`--ui-${name}-inverted`, inverted ? this.oklch(inverted) : `var(--ui-${name}-on-dark)`],
-        ...this.onDeclarations(name, hue, this.statesOf(name), inverted)
+        ...this.onDeclarations({ name, color: hue, states: this.statesFor(name), inverted })
       )
     }
     for (const [name, target] of this.entries(hueAliases)) {
       declarations.push(
         [`--ui-${name}`, `var(--ui-${target})`],
-        ...this.derived(`var(--ui-${name})`, name, this.statesOf(target), hueRoles),
+        ...this.derived({ base: `var(--ui-${name})`, name, states: this.statesFor(target), roles: hueRoles }),
         [`--ui-${name}-inverted`, `var(--ui-${target}-inverted)`],
         ...this.onAliases(name, target)
       )
@@ -214,10 +221,10 @@ export class StyleGenerator {
           [`--ui-${name}-on-dark`, this.oklch(semantic.onDark)],
           [`--ui-${name}`, `light-dark(var(--ui-${name}-on-light), var(--ui-${name}-on-dark))`],
           [`--ui-${name}-inverted`, `var(--ui-${name}-on-dark)`],
-          ...this.onDeclarations(name, semantic, hueStates)
+          ...this.onDeclarations({ name, color: semantic, states: hueStates })
         )
       }
-      declarations.push(...this.derived(`var(--ui-${name})`, name, hueStates, semanticRoles))
+      declarations.push(...this.derived({ base: `var(--ui-${name})`, name, states: hueStates, roles: semanticRoles }))
     }
     for (const [name, target] of this.entries(semanticAliases)) {
       for (const suffix of ["", "-inverted", ...ON_SUFFIXES, ...this.derivedSuffixes()]) {
@@ -266,7 +273,7 @@ export class StyleGenerator {
       lines.push(
         ...this.rule(
           this.remapSelectors(name),
-          suffixes.map((suffix): Declaration => [`--ui-color${suffix}`, `var(--ui-${name}${suffix})`])
+          suffixes.map((suffix): GeneratedDeclaration => [`--ui-color${suffix}`, `var(--ui-${name}${suffix})`])
         )
       )
     }
@@ -285,7 +292,7 @@ export class StyleGenerator {
       lines.push(
         ...this.rule(
           [`[data-variation~="${name}"]`],
-          ["", "-inverted", ...ON_SUFFIXES].map((suffix): Declaration => [
+          ["", "-inverted", ...ON_SUFFIXES].map((suffix): GeneratedDeclaration => [
             `--ui-variation-color${suffix}`,
             `var(--ui-${name}${suffix})`
           ])
@@ -320,7 +327,10 @@ export class StyleGenerator {
    * - `medium` emits `--ui-scale: 1`, a no-op that also resets a size inherited from a wrapper.
    */
   sizesCSS(): string {
-    const declarations = this.entries(sizes).map(([name, ratio]): Declaration => [`--ui-size-${name}`, String(ratio)])
+    const declarations = this.entries(sizes).map(([name, ratio]): GeneratedDeclaration => [
+      `--ui-size-${name}`,
+      String(ratio)
+    ])
     const remaps: string[] = []
     for (const [name] of this.entries(sizes)) {
       const selectors = [`.ui.${name}`, `.ui-${name}`, `.ui-body-${name}`, `.ui-heading-${name}`, `.ui-caption-${name}`]
@@ -377,18 +387,21 @@ export class StyleGenerator {
   }
 
   /** State + role tokens of `base`, named `--ui-<name>-<suffix>`. */
-  private derived(base: string, name: string, states: HueStates, roles: Record<string, SchemeRecipe>): Declaration[] {
+  private derived({ base, name, states, roles }: DerivedParams): GeneratedDeclaration[] {
     return [...this.stateDeclarations(base, name, states), ...this.roleDeclarations(base, name, roles)]
   }
 
   /** `--ui-<name>-hover` ... as relative colours of `base`. */
-  private stateDeclarations(base: string, name: string, states: HueStates): Declaration[] {
-    return this.entries(states).map(([state, shift]): Declaration => [`--ui-${name}-${state}`, this.shift(base, shift)])
+  private stateDeclarations(base: string, name: string, states: HueStates): GeneratedDeclaration[] {
+    return this.entries(states).map(([state, shift]): GeneratedDeclaration => [
+      `--ui-${name}-${state}`,
+      this.shift(base, shift)
+    ])
   }
 
   /** `--ui-<name>-text` ... as `light-dark()` of per-scheme relative colours of `base`. */
-  private roleDeclarations(base: string, name: string, roles: Record<string, SchemeRecipe>): Declaration[] {
-    return Object.entries(roles).map(([role, recipe]): Declaration => [
+  private roleDeclarations(base: string, name: string, roles: Record<string, SchemeRecipe>): GeneratedDeclaration[] {
+    return Object.entries(roles).map(([role, recipe]): GeneratedDeclaration => [
       `--ui-${name}-${role}`,
       this.lightDark(this.recipe(base, recipe.light), this.recipe(base, recipe.dark))
     ])
@@ -412,7 +425,7 @@ export class StyleGenerator {
   }
 
   /** Interaction-state recipe for a palette hue. */
-  private statesOf(name: keyof typeof hues): HueStates {
+  private statesFor(name: keyof typeof hues): HueStates {
     const hue: HueDefinition = hues[name]
     return hue.states ?? hueStates
   }
@@ -420,7 +433,7 @@ export class StyleGenerator {
   /** Does colour `name` lighten for its states, like `black` (and aliases of it)? */
   private lightens(name: string): boolean {
     const target: string = name in hueAliases ? hueAliases[name as keyof typeof hueAliases] : name
-    return target in hues && this.statesOf(target as keyof typeof hues) !== hueStates
+    return target in hues && this.statesFor(target as keyof typeof hues) !== hueStates
   }
 
   /** Every colour name components accept:  hues, aliases, semantic colours and their aliases. */
@@ -452,7 +465,7 @@ export class StyleGenerator {
    * - Each is the `onColors` candidate `onColor()` picks for that colour + `states`.
    * - `inverted` ~== the hue's own `inverted` override;  default `onDark`, as `--ui-<name>-inverted` is.
    */
-  private onDeclarations(name: string, color: SchemeColor, states: HueStates, inverted?: Oklch): Declaration[] {
+  private onDeclarations({ name, color, states, inverted }: OnDeclarationsParams): GeneratedDeclaration[] {
     const light = this.onColor(color.onLight, states)
     const dark = this.onColor(color.onDark, states)
     return [
@@ -462,8 +475,8 @@ export class StyleGenerator {
   }
 
   /** `-on` / `-inverted-on` of an alias:  its target's. */
-  private onAliases(name: string, target: string): Declaration[] {
-    return ON_SUFFIXES.map((suffix): Declaration => [`--ui-${name}${suffix}`, `var(--ui-${target}${suffix})`])
+  private onAliases(name: string, target: string): GeneratedDeclaration[] {
+    return ON_SUFFIXES.map((suffix): GeneratedDeclaration => [`--ui-${name}${suffix}`, `var(--ui-${target}${suffix})`])
   }
 
   /**
@@ -502,16 +515,20 @@ export class StyleGenerator {
 
   /** Join `lines` into a sheet with the banner. */
   private sheet(lines: string[]): string {
-    return [StyleGenerator.banner, "", ...lines, ""].join("\n")
+    return [BANNER, "", ...lines, ""].join("\n")
   }
 
   /**
    * Token rules for sheet `name`:  `:root`, plus the guarded `:host` fallback (see class docs).
    * - `media` optionally adds a `[condition, declarations]` block to both, e.g. the dark `--ui-scheme`.
    */
-  private tokenBlock(name: string, declarations: Declaration[], media?: [string, Declaration[]]): string[] {
+  private tokenBlock(
+    name: string,
+    declarations: GeneratedDeclaration[],
+    media?: [string, GeneratedDeclaration[]]
+  ): string[] {
     const marker = `--ui-sheet-${name}`
-    const all: Declaration[] = [[marker, "loaded"], ...declarations]
+    const all: GeneratedDeclaration[] = [[marker, "loaded"], ...declarations]
     const scoped = (selector: string) => [
       ...this.rule([selector], all),
       ...(media ? this.block(media[0], this.rule([selector], media[1])) : [])
@@ -535,7 +552,7 @@ export class StyleGenerator {
   }
 
   /** One rule, one selector per line. */
-  private rule(selectors: string[], declarations: Declaration[]): string[] {
+  private rule(selectors: string[], declarations: GeneratedDeclaration[]): string[] {
     const head = selectors.map((selector, index) => (index < selectors.length - 1 ? `${selector},` : `${selector} {`))
     return [...head, ...declarations.map(([property, value]) => `  ${property}: ${value};`), "}"]
   }
@@ -571,8 +588,32 @@ export class StyleGenerator {
   }
 }
 
-/** One `property: value` pair. */
-type Declaration = [property: string, value: string]
+/** What `derived()` takes. */
+type DerivedParams = {
+  /** the colour the tokens derive from, e.g. `var(--ui-red)` */
+  base: string
+  /** the colour's name in token names:  `red` => `--ui-red-hover`, `--ui-red-text` */
+  name: string
+  /** interaction-state recipe */
+  states: HueStates
+  /** role recipes, by role */
+  roles: Record<string, SchemeRecipe>
+}
+
+/** What `onDeclarations()` takes. */
+type OnDeclarationsParams = {
+  /** the colour's name in token names:  `red` => `--ui-red-on` */
+  name: string
+  /** its concrete per-scheme values */
+  color: SchemeColor
+  /** its interaction-state recipe:  the foreground must read on every state too */
+  states: HueStates
+  /** the hue's own `inverted` override;  default `color.onDark`, as `--ui-<name>-inverted` is */
+  inverted?: Oklch
+}
+
+/** First line of every generated sheet. */
+const BANNER = "/* GENERATED -- do not edit, run `yarn gen:styles` (source: styles.en.ts) */"
 
 /** Foreground suffixes every colour gets:  on the colour, and on its `-inverted` variant. */
 const ON_SUFFIXES = ["-on", "-inverted-on"] as const

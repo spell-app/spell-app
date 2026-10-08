@@ -1,6 +1,7 @@
 /**
  * Native-fallback test cases (`docs/fallback.md`):  when a `ui-*` element's render throws, it shows its family's
- * native fallback (`src/components/ui-<name>/ui-<name>.fallback.ts`) and the page keeps working.
+ * native fallback (`src/components/ui-<name>/UI<Name>.fallback.ts`), or a bare `<slot>` if it has none,
+ * and the page keeps working.
  * - Runtime-agnostic:  DOM, ARIA and forms only.  The Solid-specific parts come in through `FallbackAdapter`
  *   (how to mount and wait, how to make one element's render throw, axe), from `fallback.test.tsx`.
  * - Test-runner-agnostic:  no `vitest` import;  a failed check throws.  Run as
@@ -9,7 +10,7 @@
  * - What the element base MUST do on failure:
  *   - one `console.error` naming the tag (`<ui-button>`) with the cause
  *   - a cancelable, bubbling, composed `ui-error`, `detail: { error }`;  not cancelled => the fallback renders
- *   - `:state(errored)` on the host
+ *   - `:state(errored)` on the DOM element
  */
 
 /** What the test provides to run the cases. */
@@ -32,16 +33,24 @@ export type FallbackAdapter = {
 
 /** One case:  `run()` resolves when it passes, throws when it fails. */
 export type FallbackCase = {
+  /** the test's name */
   name: string
+  /** check the case on `adapter`'s elements */
   run(adapter: FallbackAdapter): Promise<void>
 }
 
 /** The error event name every element dispatches (`E.ERROR_EVENT`).  NOTE: no vocabulary names it yet. */
 export const ERROR_EVENT = "ui-error"
 
+////////////////
+// ## Families
+////////////////
+
 /**
- * Per family:  markup of one element, and the selector of its fallback's root inside the shadow root.
+ * Per family WITH a fallback:  markup of one element, and the selector of its fallback's root inside the shadow root.
  * - The root carries the family's `part`, like the real element's.
+ * - Only the form controls keep a fallback (`docs/fallback.md`);  the rest show a bare `<slot>` when they break
+ *   (the case "a family without a fallback ...").
  */
 export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: string }[] = [
   { family: "ui-button", html: `<ui-button primary>Save</ui-button>`, root: "button[part~=button]" },
@@ -50,97 +59,14 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
     html: `<ui-dropdown selection placeholder="Fruit"><ui-item value="a">Apple</ui-item></ui-dropdown>`,
     root: "select[part~=trigger]"
   },
-  { family: "ui-icon", html: `<ui-icon name="house" label="Home"></ui-icon>`, root: "[part~=icon]" },
-  { family: "ui-label", html: `<ui-label color="red">Tag</ui-label>`, root: "[part~=label]" },
-  { family: "ui-segment", html: `<ui-segment raised>Box</ui-segment>`, root: "[part~=segment]" },
-  { family: "ui-container", html: `<ui-container text>Text</ui-container>`, root: "[part~=container]" },
-  { family: "ui-divider", html: `<ui-divider horizontal>Or</ui-divider>`, root: "[role=separator][part~=divider]" },
-  { family: "ui-parts", html: `<ui-header size="large">Title</ui-header>`, root: "[part~=header]" },
-  { family: "ui-grid", html: `<ui-grid columns="2"><ui-column>A</ui-column></ui-grid>`, root: "[part~=grid]" },
-  { family: "ui-image", html: `<ui-image size="small" src="data:," alt="Photo"></ui-image>`, root: "img[part~=image]" },
-  { family: "ui-text", html: `<ui-text color="red">Red</ui-text>`, root: "span[part~=text]" },
-  { family: "ui-flag", html: `<ui-flag country="fr"></ui-flag>`, root: "[role=img][part~=flag]" },
-  { family: "ui-loader", html: `<ui-loader active inline></ui-loader>`, root: "[role=status][part~=loader]" },
-  {
-    family: "ui-placeholder",
-    html: `<ui-placeholder><ui-placeholder-line></ui-placeholder-line></ui-placeholder>`,
-    root: "[part~=placeholder]"
-  },
-  { family: "ui-message", html: `<ui-message header="Saved" dismissible>Done</ui-message>`, root: "[part~=message]" },
-  {
-    family: "ui-breadcrumb",
-    html: `<ui-breadcrumb><ui-breadcrumb-section active>Home</ui-breadcrumb-section></ui-breadcrumb>`,
-    root: "nav[part~=breadcrumb]"
-  },
   { family: "ui-input", html: `<ui-input placeholder="Search" aria-label="Search"></ui-input>`, root: "[part~=input]" },
   { family: "ui-checkbox", html: `<ui-checkbox>Agree</ui-checkbox>`, root: "[part~=checkbox]" },
-  { family: "ui-form", html: `<ui-form><form></form></ui-form>`, root: "[part~=form]" },
-  {
-    family: "ui-list",
-    html: `<ui-list divided ordered><ui-item>One</ui-item><ui-item>Two</ui-item></ui-list>`,
-    root: "ol.ui.divided.ordered.list[part=list][role=list]"
-  },
-  {
-    family: "ui-menu",
-    html: `<ui-menu secondary aria-label="Fallback menu"><ui-item href="#a" selected>A</ui-item></ui-menu>`,
-    root: "nav[part~=menu]"
-  },
-  {
-    family: "ui-table",
-    html:
-      `<ui-table celled scrolling><table><caption>People</caption><thead><tr><th>Name</th></tr></thead>` +
-      `<tbody><tr><td>Jill</td></tr></tbody></table></ui-table>`,
-    root: "[role=region][part~=scroller]"
-  },
-  { family: "ui-popup", html: `<ui-popup content="Tip" on="manual"></ui-popup>`, root: "[part~=popup]" },
-  { family: "ui-modal", html: `<ui-modal header="Saved" closable>Done</ui-modal>`, root: "dialog[part~=modal]" },
-  { family: "ui-transition", html: `<ui-transition visible>Shown</ui-transition>`, root: "[part~=transition]" },
-  { family: "ui-dimmer", html: `<ui-dimmer active>Dimmed</ui-dimmer>`, root: "div[part~=dimmer]" },
-  { family: "ui-flyout", html: `<ui-flyout header="Saved" closable>Done</ui-flyout>`, root: "dialog[part~=flyout]" },
-  { family: "ui-sidebar", html: `<ui-sidebar aria-label="Site">Links</ui-sidebar>`, root: "aside[part~=sidebar]" },
-  { family: "ui-shape", html: `<ui-shape><ui-side>One</ui-side></ui-shape>`, root: "[part~=shape]" },
-  { family: "ui-card", html: `<ui-card header="Kristy" raised>Card</ui-card>`, root: "article[part~=card]" },
-  { family: "ui-items", html: `<ui-items divided><ui-item>One</ui-item></ui-items>`, root: "[role=list][part~=items]" },
-  {
-    family: "ui-feed",
-    html: `<ui-feed ordered><ui-event label="A">Joined</ui-event></ui-feed>`,
-    root: "ol[part~=feed]"
-  },
-  {
-    family: "ui-comment",
-    html: `<ui-comments threaded><ui-comment>Hi</ui-comment></ui-comments>`,
-    root: "[part~=comments]"
-  },
-  {
-    family: "ui-statistic",
-    html: `<ui-statistic value="5" label="Flights"></ui-statistic>`,
-    root: "[part~=statistic]"
-  },
-  {
-    family: "ui-step",
-    html: `<ui-steps><ui-step selected header="Billing"></ui-step></ui-steps>`,
-    root: "ol[part~=steps]"
-  },
-  { family: "ui-rail", html: `<ui-rail position="left">Rail</ui-rail>`, root: "[part~=rail]" },
-  { family: "ui-root", html: `<ui-root display="immediately" size="small">Page</ui-root>`, root: "slot" },
-  {
-    family: "ui-reveal",
-    html: `<ui-reveal fade><span slot="visible">Front</span><span slot="hidden">Back</span></ui-reveal>`,
-    root: "[part~=reveal]"
-  },
-  { family: "ui-ad", html: `<ui-ad unit="small rectangle" test></ui-ad>`, root: "[part~=ad]" },
-  {
-    family: "ui-emoji",
-    html: `<ui-emoji name="grinning_face_with_smiling_eyes" label="Happy"></ui-emoji>`,
-    root: "[part~=emoji]"
-  },
   {
     family: "ui-select",
     html: `<ui-select placeholder="Fruit"><ui-item value="a">Apple</ui-item></ui-select>`,
     root: "select[part~=select]"
   },
   { family: "ui-search", html: `<ui-search placeholder="Fruit"></ui-search>`, root: "input[part~=prompt]" },
-  { family: "ui-progress", html: `<ui-progress value="40" label="Upload"></ui-progress>`, root: "progress[part~=bar]" },
   {
     family: "ui-rating",
     html: `<ui-rating value="2" aria-label="Fallback rating"></ui-rating>`,
@@ -152,49 +78,17 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
     root: "input[type=range][part~=thumb]"
   },
   {
-    family: "ui-accordion",
-    html: `<ui-accordion styled open="0"><ui-title>Dogs</ui-title><ui-content>Loyal</ui-content></ui-accordion>`,
-    root: "[part~=accordion] > details[open]"
-  },
-  {
-    family: "ui-tab",
-    html: `<ui-tabs tabular aria-label="Fallback tabs"><ui-tab label="One">A</ui-tab></ui-tabs>`,
-    root: "[part~=tabs] > [role=tablist]"
-  },
-  { family: "ui-toast", html: `<ui-toast header="Saved" message="Done" closable></ui-toast>`, root: "[part~=box]" },
-  { family: "ui-nag", html: `<ui-nag color="teal">Updated</ui-nag>`, root: "[part~=nag]" },
-  { family: "ui-sticky", html: `<ui-sticky offset="8">Stuck</ui-sticky>`, root: "[part~=sticky]" },
-  { family: "ui-visibility", html: `<ui-visibility><p>Seen</p></ui-visibility>`, root: "[part~=visibility]" },
-  {
-    family: "ui-embed",
-    html: `<ui-embed source="youtube" video-id="x" label="Intro"></ui-embed>`,
-    root: "button[part~=play]"
-  },
-  {
     family: "ui-calendar",
     html: `<ui-calendar type="date" value="2026-09-30" placeholder="Fallback date"></ui-calendar>`,
     root: "[part~=calendar] input[type=date][part~=control]"
-  },
-  { family: "ui-section", html: `<ui-section header="Details" collapsible>Body</ui-section>`, root: "[part~=section]" },
-  {
-    family: "ui-panel",
-    html: `<ui-panel header="Theme" collapsible>Fields</ui-panel>`,
-    root: "section.panel[part~=section]"
-  },
-  {
-    family: "ui-include",
-    html: `<ui-include source="/test/fixtures/sources/part.html">Placeholder</ui-include>`,
-    root: "[part~=content]"
-  },
-  { family: "ui-code", html: `<ui-code language="text">let x = 1</ui-code>`, root: "[part~=box]" },
-  { family: "ui-markdown", html: `<ui-markdown size="small"># Title</ui-markdown>`, root: "[part~=body]" },
-  {
-    family: "ui-tree-diagram",
-    html: `<ui-tree-diagram><script type="application/json">{"label": "If", "children": [{"label": "Print", "slot": "body"}]}</script></ui-tree-diagram>`,
-    root: "figure[part~=diagram] ul"
   }
 ]
 
+////////////////
+// ## Cases
+////////////////
+
+/** Every case, in the order `fallback.test.tsx` runs them. */
 export const FALLBACK_CASES: readonly FallbackCase[] = [
   {
     name: "a throw in render shows the native fallback:  one console error, one ui-error, :state(errored)",
@@ -247,6 +141,21 @@ export const FALLBACK_CASES: readonly FallbackCase[] = [
     }
   },
   {
+    name: "a family without a fallback shows its children through a bare slot",
+    async run(adapter) {
+      const container = await adapter.mount(`<ui-divider horizontal>Or</ui-divider>`)
+      const host = container.querySelector<HTMLElement>("ui-divider")!
+      await captureErrors(() => adapter.breakRender(host))
+      check(host.matches(":state(errored)"), ":state(errored) (did the render really fail?)")
+      const children = [...host.shadowRoot!.children]
+      check(
+        children.length === 1 && children[0]!.localName === "slot",
+        `only a <slot> in the shadow root, got ${children.map((child) => `<${child.localName}>`).join(" ")}`
+      )
+      check(host.textContent === "Or", "its text is still there to show")
+    }
+  },
+  {
     name: "a sibling of a failed element still updates",
     async run(adapter) {
       const container = await adapter.mount(`<ui-button>Broken</ui-button><ui-label>Sibling</ui-label>`)
@@ -285,7 +194,7 @@ export const FALLBACK_CASES: readonly FallbackCase[] = [
     }
   },
   {
-    name: "the fallback select changes the host's form value and fires ui-change",
+    name: "the fallback select changes the DOM element's form value and fires ui-change",
     async run(adapter) {
       const container = await adapter.mount(
         `<form><ui-dropdown name="fruit" selection placeholder="Fruit">` +

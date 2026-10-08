@@ -4,7 +4,14 @@
 declare const engine: {
   render(
     text: string,
-    options?: { ui?: boolean; headingIds?: boolean; headingOffset?: number; breaks?: boolean; autolinks?: boolean; tagfilter?: boolean }
+    options?: {
+      ui?: boolean
+      headingIds?: boolean
+      headingOffset?: number
+      breaks?: boolean
+      autolinks?: boolean
+      tagfilter?: boolean
+    }
   ): { html: string; headings: { level: number; text: string; id: string }[] }
 }
 export default engine

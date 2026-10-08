@@ -1,10 +1,15 @@
+// Import directly to avoid circular import
 import { proto } from "$/ui/util"
+import { type Prettify } from "$/ui/util"
+import * as UIT from "$/ui/components/components.types"
 
-import type { AnimateOptions, AnimationDirection, AnimationName } from "./runtime.types"
+import { CssDisplay, type AnimateOptions, type AnimationDirection, type AnimationName } from "./runtime.types"
 import type { Browser } from "./Browser"
 
-/**
+/****************
+ * ### `Transitions`
  * Runs the keyframe catalogue on elements, as `UI.transitions`.
+ * - In the runtime's lazy chunk (`UIRuntime` builds it);  `Visibility` fades lazy images through it.
  * - JS owns only the PROTOCOL;  `animations.css` owns the keyframes:
  *   - sets `data-ui-animation="<name> <direction>"`, e.g. `"fade-up in"`, which `animations.css` matches
  *     (`[data-ui-animation="fade-up in"]` or `~=` token selectors) to apply the animation
@@ -21,9 +26,13 @@ import type { Browser } from "./Browser"
  *   (Fomantic's `failSafeDelay`).
  * - NOTE: CSS-only transitions (`@starting-style` + `allow-discrete` on popovers / dialogs) need no JS;
  *   `whenTransitionEnds()` is for code that must wait for them.
- */
+ ****************/
 export class Transitions {
-  /** ms added to the computed duration before giving up on `animationend` */
+  /**
+   * ms added to the computed duration before giving up on `animationend`
+   * - `@proto` default (on the prototype, not per instance), as is `forcedDisplayAttribute`:  an instance or
+   *   subclass overrides it
+   */
   declare failSafeDelay: number
   @proto static failSafeDelay = 100
 
@@ -31,8 +40,8 @@ export class Transitions {
   declare forcedDisplayAttribute: string
   @proto static forcedDisplayAttribute = "data-ui-hidden-by-animation"
 
-  /** `reducedMotion` */
-  private readonly browser: Pick<Browser, "reducedMotion">
+  /** `isReducedMotion` */
+  private readonly browser: Pick<Browser, "isReducedMotion">
   /** element -> its running animation */
   private readonly running = new WeakMap<Element, RunningAnimation>()
 
@@ -44,17 +53,12 @@ export class Transitions {
    * Run animation `name` in `direction` on `element` -- see class docs for the protocol.
    * - SIDE EFFECTS:  `data-ui-animation`, `hidden`, inline `display` / custom properties on `element`.
    */
-  animate(
-    element: HTMLElement,
-    name: AnimationName,
-    direction: AnimationDirection,
-    options: AnimateOptions = {}
-  ): Promise<boolean> {
+  animate({ element, name, direction, ...options }: AnimateParams): Promise<boolean> {
     this.running.get(element)?.finish(false)
-    if (direction === "in") this.show(element)
-    if (this.browser.reducedMotion) {
+    if (direction === UIT.IN) this.show(element)
+    if (this.browser.isReducedMotion) {
       element.removeAttribute(ANIMATION_ATTRIBUTE)
-      if (direction === "out") this.hide(element)
+      if (direction === UIT.OUT) this.hide(element)
       return Promise.resolve(true)
     }
     this.setOptions(element, options)
@@ -71,6 +75,7 @@ export class Transitions {
       return Promise.resolve(true)
     }
     return new Promise<boolean>((resolve) => {
+      const listeners = new AbortController()
       const onEnd = (event: AnimationEvent) => {
         if (event.target === element) finish(true)
       }
@@ -79,16 +84,14 @@ export class Transitions {
         if (this.running.get(element) !== run) return
         this.running.delete(element)
         clearTimeout(timer)
-        element.removeEventListener("animationend", onEnd)
-        element.removeEventListener("animationcancel", onEnd)
+        listeners.abort()
         // an interrupted run leaves the element to its successor
         if (completed) this.cleanup(element, direction, options)
         resolve(completed)
       }
       const run: RunningAnimation = { direction, finish }
       this.running.set(element, run)
-      element.addEventListener("animationend", onEnd)
-      element.addEventListener("animationcancel", onEnd)
+      for (const type of END_EVENTS) element.addEventListener(type, onEnd, { signal: listeners.signal })
     })
   }
 
@@ -123,8 +126,8 @@ export class Transitions {
   /** Hide after an `out`, forcing `display: none` when CSS overrides `[hidden]`. */
   private hide(element: HTMLElement) {
     element.hidden = true
-    if (element.isConnected && getComputedStyle(element).display !== "none") {
-      element.style.setProperty("display", "none")
+    if (element.isConnected && getComputedStyle(element).display !== CssDisplay.none) {
+      element.style.setProperty("display", CssDisplay.none)
       element.setAttribute(this.forcedDisplayAttribute, "")
     }
   }
@@ -139,7 +142,7 @@ export class Transitions {
 
   /** After a completed run:  drop the attribute and option properties, hide after `out`. */
   private cleanup(element: HTMLElement, direction: AnimationDirection, options: AnimateOptions) {
-    if (direction === "out") this.hide(element)
+    if (direction === UIT.OUT) this.hide(element)
     element.removeAttribute(ANIMATION_ATTRIBUTE)
     if (options.duration !== undefined) element.style.removeProperty(DURATION_PROPERTY)
     if (options.easing !== undefined) element.style.removeProperty(EASING_PROPERTY)
@@ -177,9 +180,21 @@ export class Transitions {
 
 /** Constructor props for `Transitions`. */
 export type TransitionsProps = {
-  /** only `reducedMotion` is read -- tests pass a stub */
-  browser: Pick<Browser, "reducedMotion">
+  /** only `isReducedMotion` is read -- tests pass a stub */
+  browser: Pick<Browser, "isReducedMotion">
 }
+
+/** What `Transitions.animate()` takes:  the element, the animation and its direction, plus `AnimateOptions`. */
+export type AnimateParams = Prettify<
+  AnimateOptions & {
+    /** element to animate;  `in` / `out` also show / hide it */
+    element: HTMLElement
+    /** one of `ANIMATION_NAMES` */
+    name: AnimationName
+    /** `in`, `out`, or `static` (attention animations) */
+    direction: AnimationDirection
+  }
+>
 
 /** A running `animate()`. */
 type RunningAnimation = {
@@ -197,3 +212,6 @@ const DURATION_PROPERTY = "--ui-animation-duration"
 
 /** Custom property for the `easing` option. */
 const EASING_PROPERTY = "--ui-animation-easing"
+
+/** Events that end a run:  finished, or cancelled (its keyframes went away). */
+const END_EVENTS = ["animationend", "animationcancel"] as const

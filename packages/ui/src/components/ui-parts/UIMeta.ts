@@ -1,14 +1,16 @@
-import { proto } from "$/ui/core"
-
-import { metaVocabulary } from "./ui-meta.vocabulary.en"
-import { PartElement } from "./PartElement"
+import { E } from "$/ui/core"
+import { metaVocabulary } from "./UIMeta.en"
 
 /****************
- * ### `<ui-meta>`
- * Metadata:  `<div class="meta">`.
- * - A date or a category;  Fomantic's comment `metadata`.
- * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
+ * ### `UIMeta`
+ * The component behind `<ui-meta>`:  metadata, `<div class="meta">`, such as a date or a category.
+ *
+ * - Fomantic's comment `.metadata`.
+ * - Finding its owner, the markup and the sheet all come from `PartComponent`.
  ****************/
-export class UIMeta extends PartElement<typeof metaVocabulary> {
-  @proto static vocabulary = metaVocabulary
+export class UIMeta extends E.PartComponent<typeof metaVocabulary> {
+  @E.proto static vocabulary = metaVocabulary
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIMeta extends E.AttributeValues<typeof metaVocabulary> {}

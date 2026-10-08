@@ -1,39 +1,76 @@
 import { For, Show, createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
-import { STEPS, type Step } from "$/brand"
+import { DOMElement, proto, UIComponent, type ElementSetup } from "$/ui/core"
+import { STEPS, type Scale, type Step } from "$/brand"
 
-import { brandColorRangeVocabulary } from "./ui-brand-color-range.vocabulary.en"
-import { BrandColorRangeFallback } from "./ui-brand-color-range.fallback"
-import { BrandColorRangeHost } from "./BrandColorRangeHost"
+import { brandColorRangeVocabulary } from "./UIBrandColorRange.en"
 import { ColorLadder } from "./ColorLadder"
-import { BRAND_COLOR, CLASSES, NO_NUMBERS, type BrandColorRangeVocabulary } from "./ui-brand-color-range.types"
+import type { BrandColorRangeVocabulary, CssFormat, LadderInput } from "./UIBrandColorRange.types"
 
 import "$/brand/components/ui-brand-color"
 
-import rangeCSS from "./ui-brand-color-range.css?inline"
+import rangeCSS from "./UIBrandColorRange.css?inline"
 
 /****************
- * ### `<ui-brand-color-range>`
- * A 17-step ladder from ONE base colour (`Palette.generateScale()`), as the Color Set Chooser's Variants row:
- * `<ol class="range color brand" part="range">`, one `<li part="step">` per step holding a `<ui-brand-color>` (named
- * `<name>-<step>`) and the step's number under it (`numbers="none"`:  no numbers, nor their row).  The base colour's
- * chip is `selected` (the double ring).
- * - `label`, `contrast`, `copy` and `details` are handed to every chip;  chips fill their cells
- *   (`--_ui-brand-color-fit`).
+ * ### `DOMBrandColorRangeElement`
+ * The DOM element of `<ui-brand-color-range>`:  it adds the ladder as read-only properties, and `css()`.
+ *
+ * - Worked out from the DOM element's CURRENT properties (`value`, `anchor`, `vibrancy`, `hueShift`, `name`),
+ *   not the component's memo, so a read straight after a write sees the new ladder
+ *   (Solid applies writes a microtask late).
+ * - solid-element refuses a DOM element member named like a prop:  none of these is one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
+ ****************/
+export class DOMBrandColorRangeElement extends DOMElement {
+  /** Step => `#RRGGBB` (a copy), or `undefined` without a base colour. */
+  get scale(): Scale | undefined {
+    const ladder = this.ladder()
+    return ladder && { ...ladder.scale }
+  }
+
+  /** The step the base colour sits at (`anchor="auto"`:  the one picked), or `undefined`. */
+  get anchorStep(): Step | undefined {
+    return this.ladder()?.anchor
+  }
+
+  /** The ladder as CSS custom properties on `:root` (the Chooser's CSS panel), or `""`. */
+  css(format: CssFormat = "hex"): string {
+    return this.ladder()?.css(format) ?? ""
+  }
+
+  /** The ladder the current properties make. */
+  private ladder(): ColorLadder | undefined {
+    const { value, anchor, vibrancy, hueShift, name } = this as unknown as LadderInput
+    return ColorLadder.from({ value, anchor, vibrancy, hueShift, name })
+  }
+}
+
+/****************
+ * ### `UIBrandColorRange`
+ * The component behind `<ui-brand-color-range>`:  a 17-step ladder from ONE base colour
+ * (`Palette.generateScale()`), as the Color Set Chooser's Variants row.
+ *
+ * - Its shadow DOM:  `<ol class="range color brand" part="range">`, one `<li part="step">` per step,
+ *   holding a `<ui-brand-color>` (named `<name>-<step>`) and the step's number under it
+ *   (`numbers="none"`:  no numbers, nor their row).
+ *   The base colour's chip is `selected` (the double ring).
+ *
+ * - `label`, `contrast`, `copy` and `details` are handed to every chip;
+ *   the chips fill their cells (`--_ui-brand-color-fit`).
  * - `strip`:  17 small dots instead (the Chooser's folded Variants header), one image named for the ladder.
  * - No base colour (or one it can't read):  nothing is drawn.
- * - `ui-change` (`{ value, scale, anchor }`) when the ladder's colours change after the first render;  a new `name`
- *   alone renames the chips and changes `css()`, without one.
- * - The host (`BrandColorRangeHost`) has `scale`, `anchorStep` and `css(format)`.
+ * - `ui-change` (`{ value, scale, anchor }`) when the ladder's colours change after the first render;
+ *   a new `name` alone renames the chips and changes `css()`, without one.
+ * - The DOM element (`DOMBrandColorRangeElement`) has `scale`, `anchorStep` and `css(format)`.
  ****************/
-export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
+export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
   @proto static vocabulary = brandColorRangeVocabulary
-  @proto static styles = { range: rangeCSS }
-  @proto static Host = BrandColorRangeHost
-  @proto static Fallback = BrandColorRangeFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { range: rangeCSS }
+  @proto static elementSetup = {
+    DOMElement: DOMBrandColorRangeElement,
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   /** The ladder last announced (`null` before the first render's), for `ui-change`. */
   private announced: ColorLadder | undefined | null = null
@@ -62,10 +99,10 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   })
 
   ////////////////
-  // ## Element hooks
+  // ## Classes
   ////////////////
 
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     return BRAND_COLOR
   }
 
@@ -74,14 +111,14 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   ////////////////
 
   /** Adds `ui-change`, when the colours change after the first render. */
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     createEffect(
       () => this.ladder(),
       (ladder) => {
         this.announce(ladder)
       }
     )
-    return super.mount()
+    return super.onMount()
   }
 
   render(): JSX.Element {
@@ -97,12 +134,12 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   /** The ladder:  17 chips, the number under each. */
   private renderLadder(): JSX.Element {
     return (
-      <ol class={this.classes()} part={this.part("range")} aria-label={this.ladderName()}>
+      <ol class={this.rootClasses} part={this.partForName("range")} aria-label={this.ladderName()}>
         <For each={STEPS}>
           {(step) => (
-            <li class={CLASSES.step} part={this.part("step")}>
+            <li class={CLASSES.step} part={this.partForName("step")}>
               <ui-brand-color
-                part={this.part("chip")}
+                part={this.partForName("chip")}
                 value={this.ladder()?.scale[step]}
                 name={this.ladder()?.name(step)}
                 label={this.attrs.label}
@@ -112,7 +149,7 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
                 selected={UIBrandColorRange.flag(this.ladder()?.anchor === step)}
               />
               <Show when={this.attrs.numbers !== NO_NUMBERS}>
-                <span class={CLASSES.number} part={this.part("number")} aria-hidden="true">
+                <span class={CLASSES.number} part={this.partForName("number")} aria-hidden="true">
                   {step}
                 </span>
               </Show>
@@ -126,9 +163,9 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   /** The strip:  17 dots, one image. */
   private renderStrip(): JSX.Element {
     return (
-      <span class={this.classes()} part={this.part("range")} role="img" aria-label={this.ladderName()}>
+      <span class={this.rootClasses} part={this.partForName("range")} role="img" aria-label={this.ladderName()}>
         <For each={STEPS}>
-          {(step) => <span class={CLASSES.dot} part={this.part("dot")} style={this.dotStyle(step)} />}
+          {(step) => <span class={CLASSES.dot} part={this.partForName("dot")} style={this.dotStyle(step)} />}
         </For>
       </span>
     )
@@ -137,7 +174,7 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
   /** The ladder's name:  "brand:  17 shades of #8E96B5". */
   private ladderName(): string {
     const ladder = this.ladder()
-    return ladder ? this.text("ladder", { name: ladder.prefix, seed: ladder.seed }) : ""
+    return ladder ? this.translationForKey("ladder", { name: ladder.prefix, seed: ladder.seed }) : ""
   }
 
   /** A strip dot's colour. */
@@ -156,7 +193,7 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
     const previous = this.announced
     this.announced = ladder
     if (first || !ladder || ladder.sameColors(previous ?? undefined)) return
-    this.emit("ui-change", { value: ladder.seed, scale: { ...ladder.scale }, anchor: ladder.anchor })
+    this.send("ui-change", { value: ladder.seed, scale: { ...ladder.scale }, anchor: ladder.anchor })
   }
 
   /** A boolean as a chip's attribute:  `""` (on) or absent. */
@@ -164,3 +201,16 @@ export class UIBrandColorRange extends UIElement<BrandColorRangeVocabulary> {
     return on ? "" : undefined
   }
 }
+
+/** The class words the component adds after the noun:  `range color brand`. */
+const BRAND_COLOR = "color brand"
+
+/** The `numbers` value that leaves the step numbers out. */
+const NO_NUMBERS = "none"
+
+/** The shadow classes, one per part. */
+const CLASSES = {
+  step: "step",
+  number: "number",
+  dot: "dot"
+} as const

@@ -1,63 +1,98 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
+import { segmentVocabulary } from "./UISegment.en"
 
-import { segmentVocabulary } from "./ui-segment.vocabulary.en"
-import { SegmentFallback } from "./ui-segment.fallback"
-
-import segmentCSS from "./ui-segment.css?inline"
-import { TRUE, VISUALLY_HIDDEN, STATUS } from "$/ui/components/components.types"
+import segmentCSS from "./UISegment.css?inline"
 
 /****************
- * ### `<ui-segment>`
- * A segment:  `<div class="ui … segment" part="segment"><slot></slot></div>`.
- * - OWNER side:  declares `--ui-inverted` on its root, default included (`0`), so parts inside a plain segment
- *   nested in an inverted one don't inherit the outer segment's `1` (`ui-parts.css` "Owner tokens").  Inline only
- *   when `inverted` (`1`):  the sheet declares the `0`, or `1` for a member of an `<ui-segments inverted>`, which an
- *   inline `0` would beat.  `inverted` itself (`color-scheme: dark`) comes from `ui-segment.css`.
- * - `:state(piled)`:  the host becomes the stacking context the rotated sheets sit behind.
- * - `scrolling`:  the root is a keyboard stop (`tabindex=0`), as every scrollable region must be.
- * - `loading`:  `aria-busy` (internals) and a visually hidden `role=status` "Loading…";  `disabled`:
- *   `aria-disabled`.
+ * ### `UISegment`
+ * The component behind `<ui-segment>`:  a box that groups related content on a page.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … segment" part="segment">`, around a slot for the content.
+ *
+ * - As an OWNER, it declares `--ui-inverted` on its box, `0` included,
+ *   so the parts inside a plain segment nested in an inverted one don't inherit the outer segment's `1`
+ *   (`UIParts.css`, "Owner tokens").
+ *   - Inline only when `inverted` (`1`):  the sheet declares the `0`,
+ *     or `1` for a member of an `<ui-segments inverted>`, which an inline `0` would beat.
+ *   - `inverted` itself (`color-scheme: dark`) comes from `UISegment.css`.
+ *
+ * - `:state(piled)`:  the element becomes the stacking context the rotated sheets sit behind.
+ * - `scrolling`:  the box is a keyboard stop (`tabindex=0`), as every scrollable region must be.
+ * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
+ * - `disabled`:  `aria-disabled`.
  ****************/
-export class UISegment extends UIElement<typeof segmentVocabulary> {
-  @proto static vocabulary = segmentVocabulary
-  @proto static styles = { segment: segmentCSS }
-  @proto static Fallback = SegmentFallback
+export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
+  @E.proto static vocabulary = segmentVocabulary
+  @E.proto static styleSheets = { segment: segmentCSS }
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
-    super(...args)
-    const { internals } = this.host
-    this.hostEffect(
-      () => [this.attrs.loading, this.attrs.disabled] as const,
-      ([loading, disabled]) => {
-        internals.ariaBusy = loading ? TRUE : null
-        internals.ariaDisabled = disabled ? TRUE : null
-      }
-    )
+  ////////////////
+  // ## States
+  ////////////////
+
+  /** Piled sheets (`piled`).  `:state(piled)`. */
+  @E.cssState("piled")
+  get isPiled(): boolean {
+    return !!this.piled
   }
 
-  protected hostStates() {
-    const { piled, inverted, loading, disabled } = this.attrs
-    return { piled, inverted, loading, disabled }
+  /** The dark scheme (`inverted`).  `:state(inverted)`. */
+  @E.cssState("inverted")
+  get isInverted(): boolean {
+    return !!this.inverted
   }
+
+  /** Loading (`loading`).  `:state(loading)`. */
+  @E.cssState("loading")
+  get isLoading(): boolean {
+    return !!this.loading
+  }
+
+  /**
+   * Marked disabled (`disabled`):  only a look, not `isDisabled`,
+   * so the element still takes clicks (its content's links).
+   * `:state(disabled)`.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return !!this.disabled
+  }
+
+  /** SIDE EFFECT:  busy / disabled for assistive tech. */
+  @E.onChange("loading", "disabled", { writesDOMElement: true })
+  protected onBusyOrDisabledChanged(isLoading: boolean | undefined, isDisabled: boolean | undefined) {
+    const { internals } = this.domElement
+    internals.ariaBusy = isLoading ? "true" : null
+    internals.ariaDisabled = isDisabled ? "true" : null
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
 
   render(): JSX.Element {
     return (
       <div
-        class={this.classes()}
-        part={this.part("segment")}
-        tabindex={this.attrs.scrolling ? 0 : undefined}
-        style={this.attrs.inverted ? { [UIT.PART_OWNER_TOKENS.inverted]: "1" } : undefined}
+        class={this.rootClasses}
+        part={this.partForName("segment")}
+        tabindex={this.scrolling ? 0 : undefined}
+        style={this.inverted ? { [UIT.PartOwnerTokens.inverted]: INVERTED } : undefined}
       >
         <slot />
-        <Show when={this.attrs.loading}>
-          <span class={VISUALLY_HIDDEN} role={STATUS}>
-            {this.text("loading")}
+        <Show when={this.loading}>
+          <span class={UIT.VISUALLY_HIDDEN} role="status">
+            {this.translationForKey("loading")}
           </span>
         </Show>
       </div>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UISegment extends E.AttributeValues<typeof segmentVocabulary> {}
+
+/** `UIT.PartOwnerTokens.inverted` of an `inverted` segment, inline:  its parts take the dark scheme. */
+const INVERTED = "1"

@@ -2,24 +2,19 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/server"
+import { StaticRender } from "$/ui/static"
 import { UIInput } from "$/ui/components/ui-input/UIInput"
 import { UIRating } from "$/ui/components/ui-rating/UIRating"
 import { UISlider } from "$/ui/components/ui-slider/UISlider"
 
 /**
- * `ControlLabels` in a static server render (`$/ui/server`):  the inner control's name is read once from the parsed
+ * `ControlLabels` in a static server render (`$/ui/static`):  the inner control's name is read once from the parsed
  * page (seo plan, T6) -- what a `<label for>` can't reach on the static page either (a slider thumb, a rating group).
  */
-describe("ControlLabels (static render)", () => {
+describe("ControlLabels.name in a static render", () => {
   beforeAll(() => {
     StaticRender.define(UIInput, UIRating, UISlider)
   })
-
-  /** The first `<tag ...>` in `html` whose attributes match `pattern`. */
-  function element(html: string, pattern: RegExp): string {
-    return html.match(new RegExp(`<\\w+ [^>]*${pattern.source}[^>]*>`))?.[0] ?? ""
-  }
 
   it("names the control from the page's <label for>, minus the host's own text", () => {
     const html = StaticRender.fragment(
@@ -55,3 +50,8 @@ describe("ControlLabels (static render)", () => {
     expect(element(html, /role="slider"/)).not.toContain("aria-label")
   })
 })
+
+/** The first `<tag ...>` in `html` whose attributes match `pattern`. */
+function element(html: string, pattern: RegExp): string {
+  return html.match(new RegExp(`<\\w+ [^>]*${pattern.source}[^>]*>`))?.[0] ?? ""
+}

@@ -1,0 +1,77 @@
+/*
+ * The toast CONTAINERS `UI.toast()` puts its toasts in:  port of the `.ui.toast-container` rules of Fomantic's
+ * `toast.less`.  A PAGE sheet (`ToastStack` registers it once, `page: true`):  containers are light DOM.
+ * - Markup contract:  `<div popover="manual" class="ui [position] toast-container [horizontal]" role="region"
+ *   aria-label="...">` in `<body>`, one per position, holding `<ui-toast>` DOM elements.
+ *   - positions:
+ *     `top right` (default), `top left`, `top center`, `bottom right`, `bottom left`, `bottom center`, `centered`
+ * - A `manual` popover, so it sits in the TOP LAYER above dialogs shown before it, with no light dismiss;
+ *   `ToastStack` re-shows it for each new toast to lift it above anything shown since.  The UA popover box (inset,
+ *   margin, border, padding, background) is undone here.
+ * - `--ui-toast-container-distance` (the gap to the viewport's edge) is read through a private alias,
+ *   never declared, so a value set on `:root` reaches the containers (`docs/theming.md` "Component tokens").
+ * - Toasts stack in a column (a row when `horizontal`), aligned to the container's side.
+ * - NOTE: left out:  `absolute` containers (Fomantic's `context` setting) and `attached` full-width containers.
+ */
+
+@layer ui.components {
+  .ui.toast-container {
+    --_ui-toast-container-distance: var(--ui-toast-container-distance, 12px);
+    position: fixed;
+    inset: auto;
+    z-index: var(--ui-z-toast);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: max-content;
+    max-width: calc(100vw - 2 * var(--_ui-toast-container-distance));
+    max-height: calc(100vh - 2 * var(--_ui-toast-container-distance));
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    color: var(--ui-text-color);
+    font-size: var(--ui-font-size);
+  }
+  .ui.toast-container:not(:popover-open) {
+    display: none;
+  }
+  .ui.toast-container > * {
+    max-width: 100%;
+  }
+
+  /* Positions. */
+  .ui.top.toast-container {
+    top: var(--_ui-toast-container-distance);
+  }
+  .ui.bottom.toast-container {
+    bottom: var(--_ui-toast-container-distance);
+  }
+  .ui.right.toast-container {
+    right: var(--_ui-toast-container-distance);
+    align-items: flex-end;
+  }
+  .ui.left.toast-container {
+    left: var(--_ui-toast-container-distance);
+  }
+  .ui.center.toast-container {
+    left: 50%;
+    align-items: center;
+    transform: translate(-50%, 0);
+  }
+  .ui.centered.toast-container {
+    top: 50%;
+    left: 50%;
+    align-items: center;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Horizontal:  toasts side by side. */
+  .ui.horizontal.toast-container {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.5em;
+  }
+}

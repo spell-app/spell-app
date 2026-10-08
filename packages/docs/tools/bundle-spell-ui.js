@@ -46,7 +46,7 @@
  * - The brand's `<ui-brand-*>` elements too (P11):  `@spell-app/brand/design` is the brand's own build of them,
  *   `packages/brand/dist/brand-design.js` (`vite.design.config.ts`:  Solid JSX needs the Solid compiler, which esbuild
  *   isn't), run first unless `--skip-ui-build`.  Its `$/ui/core` / `$/ui/forms` imports resolve to UI's `dist/`, the
- *   modules UI's own elements use, so there's one `UIElement` and one `ValueSets`.
+ *   modules UI's own elements use, so there's one `UIComponent` and one `ValueSets`.
  */
 
 import { build } from "esbuild"

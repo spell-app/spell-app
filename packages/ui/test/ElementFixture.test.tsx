@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { UIHost } from "$/ui/elements"
+import type { DOMElement } from "$/ui/elements"
 
 import "$/ui/index"
 
@@ -11,7 +11,7 @@ describe("ElementFixture.breakRender()", () => {
     ["a vocabulary with a keyOnly attribute", `<ui-button primary>Save</ui-button>`],
     ["a vocabulary with no keyOnly attribute", `<ui-flag country="fr"></ui-flag>`]
   ])("breaks %s, leaving its attributes as they were", async (_name, html) => {
-    const host = await ElementFixture.render<UIHost>(html)
+    const host = await ElementFixture.render<DOMElement>(html)
     const before = host
       .getAttributeNames()
       .sort()

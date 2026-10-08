@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { A11y, expectAccessible } from "./a11y"
-import { Fixture } from "./fixture"
+import { A11y, expectAccessible } from "./A11y"
+import { Fixture } from "./Fixture"
 
 /**
  * Smoke test for the harness itself:  browser mode, custom elements with shadow roots, `Fixture`, axe.
@@ -17,7 +17,7 @@ class HarnessGreeting extends HTMLElement {
 }
 customElements.define("harness-greeting", HarnessGreeting)
 
-describe("test harness", () => {
+describe("Fixture.render()", () => {
   it("renders into the live document", () => {
     const element = Fixture.render(`<p>Hello</p>`)
     expect(element.isConnected).toBe(true)
@@ -37,7 +37,9 @@ describe("test harness", () => {
     expect(greeting).toBeInstanceOf(HarnessGreeting)
     expect(greeting.shadowRoot?.querySelector("button")).not.toBeNull()
   })
+})
 
+describe("A11y.check()", () => {
   it("passes axe on an accessible element", async () => {
     const greeting = Fixture.render(`<harness-greeting>Hi there</harness-greeting>`)
     await expectAccessible(greeting)

@@ -1,11 +1,12 @@
-import { STORAGE_KEYS, type NavView } from "./ui-docs-nav.types"
+import { NavGroups, NavViews, STORAGE_KEYS, type NavGroup, type NavView } from "./UIDocsNav.types"
 
 /****************
  * ### `NavPreferences`
- * The viewer's nav preferences in `localStorage`:  favourites, the view, the open topics, the folded groups.  Replaces
- * the Astro site's `SiteStorage` (same keys, `STORAGE_KEYS`, so a viewer keeps theirs).
+ * The viewer's nav preferences in `localStorage`:  favourites, the view, the open topics, the folded groups.
+ * Replaces the Astro site's `SiteStorage` (same keys, `STORAGE_KEYS`, so a viewer keeps theirs).
  * - Every access is wrapped:  private windows and blocked storage THROW, and then a preference just doesn't persist.
  * - Per viewer and browser only;  NOT the search text.
+ * - Static only:  the storage is one per page, and holds no state of its own.
  ****************/
 export class NavPreferences {
   /** Starred tags, as stored (a hand-edited or stale entry included:  the element drops unknown tags). */
@@ -21,7 +22,7 @@ export class NavPreferences {
   /** The remembered view, or `undefined`. */
   static view(): NavView | undefined {
     const view = NavPreferences.read(STORAGE_KEYS.view)
-    return view === "topics" || view === "az" ? view : undefined
+    return NavViews.find((each) => each === view)
   }
 
   /**
@@ -42,13 +43,14 @@ export class NavPreferences {
     NavPreferences.writeList(STORAGE_KEYS.openTopics, ids)
   }
 
-  /** Groups the viewer folded away (unknown names included:  the element only asks about its own). */
-  static closedGroups(): string[] {
-    return NavPreferences.readList(STORAGE_KEYS.closedGroups)
+  /** Groups the viewer folded away;  unknown names (a renamed group, a hand-edited value) are dropped. */
+  static closedGroups(): NavGroup[] {
+    const stored = NavPreferences.readList(STORAGE_KEYS.closedGroups)
+    return NavGroups.filter((group) => stored.includes(group))
   }
 
   /** Store the folded groups;  none removes the key. */
-  static setClosedGroups(groups: Iterable<string>) {
+  static setClosedGroups(groups: Iterable<NavGroup>) {
     NavPreferences.writeList(STORAGE_KEYS.closedGroups, groups)
   }
 

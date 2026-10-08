@@ -3,12 +3,15 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test"
 import { mkdirSync, writeFileSync } from "node:fs"
 
+import type { VisualState } from "../../test/test.types.ts"
+import { environment } from "../environment.ts"
 import type {
   ParityKind,
   ParityResult,
   ParitySize,
   VisualBrowser,
   VisualExample,
+  VisualMarkup,
   VisualScheme
 } from "./visual.types.ts"
 import { ParityReport } from "./ParityReport.ts"
@@ -20,11 +23,12 @@ import { VisualSettings } from "./VisualSettings.ts"
  * `yarn test:visual`'s tests, generated from the examples on disk (`VisualExamples`).  Per element example:
  * - `closed` -- the example as written, light then dark, captured as `#example` (its content box)
  * - one test per open state of its `.visual.ts` hooks, light then dark
- * - `parity` (with `--parity`, `UI_VISUAL_PARITY=1`) -- the class-grammar original vs the element markup, compared
- *   in the browser and REPORTED (`tools/results/visual/parity.md`), never failed
- * - `static` (with `--static`, `UI_VISUAL_STATIC=1`, families in `StaticFamilies` only) -- the example rendered
+ * - `parity` (with `--parity`, `SPELL_UI_VISUAL_PARITY=1`) -- the class-grammar original vs the element markup,
+ *   compared in the browser and REPORTED (`tools/results/visual/parity.md`), never failed
+ * - `static` (with `--static`, `SPELL_UI_VISUAL_STATIC=1`, families in `StaticFamilies` only) -- the example rendered
  *   statically (`/static/<family>/<name>.html`, no scripts) vs the element markup, light then dark, REPORTED
  *   (`tools/results/visual/static-parity.md`), never failed.  `--static` runs ONLY these:  no baselines.
+ * - The run's choices come from `environment.visual` (`tools/environment.ts`), set by `VisualRunner`.
  * - Each capture loads `fixture.html` fresh (`VisualFixture.open()`), in its scheme:  `prefers-color-scheme`
  *   emulation set BEFORE the load, which the tokens follow (`color-scheme: light dark` on `:root`).
  *   - NEVER switch the scheme on a loaded page:  Chromium then repaints only some raster tiles of a top-layer
@@ -34,51 +38,64 @@ import { VisualSettings } from "./VisualSettings.ts"
  */
 
 const EXAMPLES = await VisualExamples.load()
-const PARITY = process.env[VisualSettings.ENV.parity] === "1"
-const STATIC = process.env[VisualSettings.ENV.static] === "1"
+const { isParity, isStatic } = environment.visual
 
 for (const example of EXAMPLES) {
   test.describe(example.id, () => {
-    if (!STATIC) {
+    if (!isStatic) {
       test("closed", async ({ page }, testInfo) => {
+        const fixture = new VisualFixture({ page, testInfo })
         for (const scheme of VisualSettings.SCHEMES) {
-          await VisualFixture.open(page, testInfo, example.id, scheme)
-          await VisualFixture.capture(page, example, scheme)
+          await fixture.open({ id: example.id, scheme })
+          await fixture.capture({ example, scheme })
         }
       })
 
       for (const [state, hook] of Object.entries(example.hooks.states ?? {})) {
         test(state, async ({ page }, testInfo) => {
+          const fixture = new VisualFixture({ page, testInfo })
           for (const scheme of VisualSettings.SCHEMES) {
-            await VisualFixture.open(page, testInfo, example.id, scheme)
+            await fixture.open({ id: example.id, scheme })
             await page.evaluate(`window.visual.open(${JSON.stringify(state)})`)
-            await VisualFixture.settle(page)
-            await VisualFixture.capture(page, example, scheme, state, hook.capture)
+            await fixture.settle()
+            await fixture.capture({ example, scheme, state, target: hook.capture })
           }
         })
       }
     }
 
-    if (PARITY && example.hasClasses) {
+    if (isParity && example.hasClasses) {
       test("parity", async ({ page }, testInfo) => {
-        await VisualFixture.parity(page, testInfo, example)
+        await new VisualFixture({ page, testInfo }).parity(example)
       })
     }
 
-    if (STATIC && StaticFamilies.covers(example.family)) {
+    if (isStatic && StaticFamilies.covers(example.family)) {
       test("static", async ({ page }, testInfo) => {
-        for (const scheme of VisualSettings.SCHEMES) await VisualFixture.static(page, testInfo, example, scheme)
+        const fixture = new VisualFixture({ page, testInfo })
+        for (const scheme of VisualSettings.SCHEMES) await fixture.static(example, scheme)
       })
     }
   })
 }
 
-/**
- * What every test does to a page:  open the fixture on one example, settle it, capture it.
- */
+/****************
+ * ### `VisualFixture`
+ * What every test does to its page:  open the fixture on one example, settle it, capture it.
+ * - One per test:  its `page` and `testInfo` are STATIC for its life.
+ ****************/
 class VisualFixture {
-  /** pages whose errors are already recorded (parity opens one page twice) */
-  static readonly watched = new WeakSet<Page>()
+  /** the test's page */
+  private readonly page: Page
+  /** the test's info:  annotations, project (browser) */
+  private readonly testInfo: TestInfo
+  /** the page's errors are being recorded (parity opens one page twice) */
+  private isWatching = false
+
+  constructor({ page, testInfo }: { page: Page; testInfo: TestInfo }) {
+    this.page = page
+    this.testInfo = testInfo
+  }
 
   ////////////////
   // ## Page
@@ -90,32 +107,32 @@ class VisualFixture {
    * - Page errors and console errors are recorded as annotations (the HTML report shows them), not failures:  the
    *   picture is what this suite judges.
    */
-  static async open(
-    page: Page,
-    testInfo: TestInfo,
-    id: string,
-    scheme: VisualScheme,
-    kind: "elements" | "classes" = "elements"
-  ) {
-    if (!VisualFixture.watched.has(page)) {
-      VisualFixture.watched.add(page)
-      page.on("pageerror", (error) => testInfo.annotations.push({ type: "pageerror", description: error.message }))
-      page.on("console", (message) => {
-        if (message.type() === "error") testInfo.annotations.push({ type: "console", description: message.text() })
-      })
-    }
-    await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" })
-    await page.clock.setFixedTime(new Date(VisualSettings.TIME))
-    await page.goto(`${VisualSettings.FIXTURE}?example=${encodeURIComponent(id)}&kind=${kind}`)
-    await page.waitForFunction("window.visual !== undefined")
-    await page.evaluate("window.visual.ready")
-    await VisualFixture.settle(page)
+  async open({ id, scheme, kind = "elements" }: { id: string; scheme: VisualScheme; kind?: VisualMarkup }) {
+    this.watch()
+    await this.page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" })
+    await this.page.clock.setFixedTime(new Date(VisualSettings.TIME))
+    await this.page.goto(`${VisualSettings.FIXTURE}?example=${encodeURIComponent(id)}&kind=${kind}`)
+    await this.page.waitForFunction("window.visual !== undefined")
+    await this.page.evaluate("window.visual.ready")
+    await this.settle()
   }
 
   /** No requests in flight, then the fixture's own settle (a lazy chunk can add elements). */
-  static async settle(page: Page) {
-    await page.waitForLoadState("networkidle")
-    await page.evaluate("window.visual.settle()")
+  async settle() {
+    await this.page.waitForLoadState("networkidle")
+    await this.page.evaluate("window.visual.settle()")
+  }
+
+  /** Record the page's errors and console errors as annotations, once. */
+  private watch() {
+    if (this.isWatching) return
+    this.isWatching = true
+    this.page.on("pageerror", (error) =>
+      this.testInfo.annotations.push({ type: "pageerror", description: error.message })
+    )
+    this.page.on("console", (message) => {
+      if (message.type() === "error") this.testInfo.annotations.push({ type: "console", description: message.text() })
+    })
   }
 
   ////////////////
@@ -124,12 +141,12 @@ class VisualFixture {
 
   /**
    * Capture the page as it is against its baseline.
-   * - `capture: "viewport"` shoots the viewport (top-layer overlays), else `#example`.
+   * - `target: "viewport"` shoots the viewport (top-layer overlays), else `#example`.
    */
-  static async capture(page: Page, example: VisualExample, scheme: VisualScheme, state?: string, capture = "example") {
-    const mask = (example.hooks.mask ?? []).map((selector) => page.locator(selector))
-    const target = capture === "viewport" ? page : page.locator("#example")
-    await expect.soft(target).toHaveScreenshot(VisualExamples.baselineName(example, scheme, state), { mask })
+  async capture({ example, scheme, state, target = "example" }: CaptureParams) {
+    const mask = (example.hooks.mask ?? []).map((selector) => this.page.locator(selector))
+    const subject = target === "viewport" ? this.page : this.page.locator("#example")
+    await expect.soft(subject).toHaveScreenshot(VisualExamples.baselineName(example, scheme, state), { mask })
   }
 
   ////////////////
@@ -137,13 +154,12 @@ class VisualFixture {
   ////////////////
 
   /** Capture the class-grammar original and the element markup (light), and compare them (`compare()`). */
-  static async parity(page: Page, testInfo: TestInfo, example: VisualExample) {
-    const shots: Buffer[] = []
-    for (const kind of ["classes", "elements"] as const) {
-      await VisualFixture.open(page, testInfo, example.id, "light", kind)
-      shots.push(await VisualFixture.shoot(page))
-    }
-    await VisualFixture.compare(page, testInfo, example, "parity", "light", shots[0], shots[1]!)
+  async parity(example: VisualExample) {
+    await this.open({ id: example.id, scheme: "light", kind: "classes" })
+    const classes = await this.shoot()
+    await this.open({ id: example.id, scheme: "light", kind: "elements" })
+    const elements = await this.shoot()
+    await this.compare({ example, kind: "parity", scheme: "light", other: classes, elements })
   }
 
   /**
@@ -154,51 +170,42 @@ class VisualFixture {
    * - Reported with its error, never thrown:  a page that failed to render (HTTP 500, the error as text), or one the
    *   browser can't capture (Firefox stops at 32767px).
    */
-  static async static(page: Page, testInfo: TestInfo, example: VisualExample, scheme: VisualScheme) {
-    await VisualFixture.open(page, testInfo, example.id, scheme)
-    const elements = await VisualFixture.shoot(page)
-    const response = await page.goto(`${VisualSettings.STATIC_PAGES}${example.id}.html`)
+  async static(example: VisualExample, scheme: VisualScheme) {
+    await this.open({ id: example.id, scheme })
+    const elements = await this.shoot()
+    const response = await this.page.goto(`${VisualSettings.STATIC_PAGES}${example.id}.html`)
     let error = response?.ok() ? undefined : ((await response?.text())?.split("\n")[0] ?? "no response")
-    let shot: Buffer | undefined
+    let other: Buffer | undefined
     let leftover: string[] = []
     if (!error) {
-      await page.waitForLoadState("networkidle")
-      await page.evaluate(STATIC_SETTLE)
-      leftover = (await page.evaluate(LEFTOVER)) as string[]
+      await this.page.waitForLoadState("networkidle")
+      await this.page.evaluate(STATIC_SETTLE)
+      leftover = (await this.page.evaluate(LEFTOVER)) as string[]
       try {
-        shot = await VisualFixture.shoot(page)
+        other = await this.shoot()
       } catch (caught) {
-        const height = await page.evaluate(`Math.round(document.getElementById("example").offsetHeight)`)
+        const height = await this.page.evaluate(`Math.round(document.getElementById("example").offsetHeight)`)
         error = `capture failed (${height}px tall):  ${(caught as Error).message.split("\n")[0]}`
       }
     }
-    if (error) testInfo.annotations.push({ type: "static", description: error })
-    await VisualFixture.compare(page, testInfo, example, "static", scheme, shot, elements, { leftover, error })
+    if (error) this.testInfo.annotations.push({ type: "static", description: error })
+    await this.compare({ example, kind: "static", scheme, other, elements, leftover, error })
   }
 
   /** `#example` as it is:  animations finished, caret hidden, CSS pixel scale. */
-  static shoot(page: Page): Promise<Buffer> {
-    return page.locator("#example").screenshot({ animations: "disabled", caret: "hide", scale: "css" })
+  private shoot(): Promise<Buffer> {
+    return this.page.locator("#example").screenshot({ animations: "disabled", caret: "hide", scale: "css" })
   }
 
   /**
    * Compare `other` (class grammar or static) with `elements` in the browser, and write a `ParityResult` (plus a
    * diff image when they differ) for `ParityReport`.
-   * - `other` missing (`extra.error`):  written as a failure, `ratio` 1.
+   * - `other` missing (`error`):  written as a failure, `ratio` 1.
    * - SIDE EFFECT:  navigates to `about:blank` to compare.
    */
-  static async compare(
-    page: Page,
-    testInfo: TestInfo,
-    example: VisualExample,
-    kind: ParityKind,
-    scheme: VisualScheme,
-    other: Buffer | undefined,
-    elements: Buffer,
-    extra: Pick<ParityResult, "leftover" | "error"> = {}
-  ) {
-    const browser = testInfo.project.name as VisualBrowser
-    const relative = `${ParityReport.relativeFolder(VisualFixture.os(), kind)}/${browser}`
+  private async compare({ example, kind, scheme, other, elements, leftover, error }: CompareParams) {
+    const browser = this.testInfo.project.name as VisualBrowser
+    const relative = `${ParityReport.relativeFolder(environment.visual.os, kind)}/${browser}`
     const folder = `${VisualSettings.RESULTS}/${relative}`
     mkdirSync(folder, { recursive: true })
     const file = `${example.family}-${example.name}-${scheme}`
@@ -213,10 +220,10 @@ class VisualFixture {
       ratio: 1
     }
     if (other) {
-      await page.goto("about:blank")
-      const arg = { a: other.toString("base64"), b: elements.toString("base64") }
-      const compared = (await page.evaluate(
-        `(${COMPARE})(${JSON.stringify({ ...arg, threshold: VisualSettings.PARITY.threshold })})`
+      await this.page.goto("about:blank")
+      const images = { a: other.toString("base64"), b: elements.toString("base64") }
+      const compared = (await this.page.evaluate(
+        `(${COMPARE})(${JSON.stringify({ ...images, threshold: VisualSettings.PARITY.threshold })})`
       )) as Compared
       Object.assign(result, { other: compared.a, elements: compared.b, diffPixels: compared.diffPixels })
       result.ratio = compared.diffPixels / (compared.width * compared.height)
@@ -225,16 +232,37 @@ class VisualFixture {
         result.diff = `${relative}/${file}.png`
       }
     }
-    if (extra.leftover?.length) result.leftover = extra.leftover
-    if (extra.error) result.error = extra.error
+    if (leftover?.length) result.leftover = leftover
+    if (error) result.error = error
     writeFileSync(`${folder}/${file}.json`, `${JSON.stringify(result, null, 2)}\n`)
   }
-
-  /** The run's OS (`VisualSettings.ENV.os`). */
-  static os() {
-    return process.env[VisualSettings.ENV.os] === "linux" ? "linux" : "local"
-  }
 }
+
+/** What `VisualFixture.capture()` takes. */
+type CaptureParams = {
+  /** the example on the page */
+  example: VisualExample
+  /** the scheme it was opened in */
+  scheme: VisualScheme
+  /** the open state it's in;  none:  closed */
+  state?: string
+  /** what to shoot:  `#example` (default), or the viewport */
+  target?: VisualState["capture"]
+}
+
+/** What `VisualFixture.compare()` takes. */
+type CompareParams = {
+  /** the example compared */
+  example: VisualExample
+  /** what's set against the elements */
+  kind: ParityKind
+  /** the scheme both were captured in */
+  scheme: VisualScheme
+  /** the class-grammar or static capture;  missing when it failed (`error`) */
+  other: Buffer | undefined
+  /** the element capture */
+  elements: Buffer
+} & Pick<ParityResult, "leftover" | "error">
 
 /** What `COMPARE` returns. */
 type Compared = {
@@ -254,16 +282,9 @@ type Compared = {
  * - Pixels past the smaller image count as different.
  */
 const COMPARE = `async ({ a, b, threshold }) => {
-  const load = async (base64) => createImageBitmap(await (await fetch("data:image/png;base64," + base64)).blob())
   const [imageA, imageB] = await Promise.all([load(a), load(b)])
   const width = Math.max(imageA.width, imageB.width)
   const height = Math.max(imageA.height, imageB.height)
-  const pixels = (image) => {
-    const canvas = new OffscreenCanvas(width, height)
-    const context = canvas.getContext("2d")
-    context.drawImage(image, 0, 0)
-    return context.getImageData(0, 0, width, height).data
-  }
   const [dataA, dataB] = [pixels(imageA), pixels(imageB)]
   const canvas = new OffscreenCanvas(width, height)
   const context = canvas.getContext("2d")
@@ -298,6 +319,19 @@ const COMPARE = `async ({ a, b, threshold }) => {
     height,
     diffPixels,
     diff
+  }
+
+  /** A PNG (base64) as an image. */
+  async function load(base64) {
+    return createImageBitmap(await (await fetch("data:image/png;base64," + base64)).blob())
+  }
+
+  /** \`image\`'s RGBA pixels on a canvas of the larger size. */
+  function pixels(image) {
+    const canvas = new OffscreenCanvas(width, height)
+    const context = canvas.getContext("2d")
+    context.drawImage(image, 0, 0)
+    return context.getImageData(0, 0, width, height).data
   }
 }`
 

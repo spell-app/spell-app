@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import { Transitions } from "./Transitions"
 
 /** Stand-in for `animations.css`:  a short `fade` in / out, driven by `data-ui-animation`. */
@@ -13,21 +13,21 @@ const KEYFRAMES = `
   .block { display: block }
 `
 
-describe("Transitions", () => {
-  const sheet = new CSSStyleSheet()
-  const transitions = new Transitions({ browser: { reducedMotion: false } })
+const sheet = new CSSStyleSheet()
+const transitions = new Transitions({ browser: { isReducedMotion: false } })
 
-  beforeAll(() => {
-    sheet.replaceSync(KEYFRAMES)
-    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
-  })
-  afterAll(() => {
-    document.adoptedStyleSheets = document.adoptedStyleSheets.filter((each) => each !== sheet)
-  })
+beforeAll(() => {
+  sheet.replaceSync(KEYFRAMES)
+  document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
+})
+afterAll(() => {
+  document.adoptedStyleSheets = document.adoptedStyleSheets.filter((each) => each !== sheet)
+})
 
+describe("Transitions.animate()", () => {
   it("runs in:  un-hides, sets the attribute, resolves on animationend and cleans up", async () => {
     const element = Fixture.render(`<p hidden>hi</p>`)
-    const done = transitions.animate(element, "fade", "in")
+    const done = transitions.animate({ element, name: "fade", direction: "in" })
     expect(element.hidden).toBe(false)
     expect(element.getAttribute("data-ui-animation")).toBe("fade in")
     expect(transitions.isAnimating(element, "in")).toBe(true)
@@ -38,18 +38,18 @@ describe("Transitions", () => {
 
   it("runs out:  hides afterwards, forcing display:none when CSS overrides [hidden]", async () => {
     const element = Fixture.render(`<p class="block">bye</p>`)
-    await expect(transitions.animate(element, "fade", "out", { duration: 20 })).resolves.toBe(true)
+    await expect(transitions.animate({ element, name: "fade", direction: "out", duration: 20 })).resolves.toBe(true)
     expect(element.hidden).toBe(true)
     expect(getComputedStyle(element).display).toBe("none")
     expect(element.style.getPropertyValue("--ui-animation-duration")).toBe("")
-    await transitions.animate(element, "fade", "in", { duration: 20 })
+    await transitions.animate({ element, name: "fade", direction: "in", duration: 20 })
     expect(getComputedStyle(element).display).toBe("block")
   })
 
   it("an opposite animation interrupts the running one", async () => {
     const element = Fixture.render(`<p>x</p>`)
-    const out = transitions.animate(element, "fade", "out", { duration: 500 })
-    const back = transitions.animate(element, "fade", "in", { duration: 20 })
+    const out = transitions.animate({ element, name: "fade", direction: "out", duration: 500 })
+    const back = transitions.animate({ element, name: "fade", direction: "in", duration: 20 })
     await expect(out).resolves.toBe(false)
     await expect(back).resolves.toBe(true)
     expect(element.hidden).toBe(false)
@@ -57,25 +57,27 @@ describe("Transitions", () => {
 
   it("static animations leave visibility alone", async () => {
     const element = Fixture.render(`<p>x</p>`)
-    await expect(transitions.animate(element, "shake", "static")).resolves.toBe(true)
+    await expect(transitions.animate({ element, name: "shake", direction: "static" })).resolves.toBe(true)
     expect(element.hidden).toBe(false)
   })
 
   it("resolves immediately when no keyframes apply", async () => {
     const element = Fixture.render(`<p>x</p>`)
-    await expect(transitions.animate(element, "zoom", "out")).resolves.toBe(true)
+    await expect(transitions.animate({ element, name: "zoom", direction: "out" })).resolves.toBe(true)
     expect(element.hidden).toBe(true)
   })
 
   it("honours reduced motion", async () => {
-    const reduced = new Transitions({ browser: { reducedMotion: true } })
+    const reduced = new Transitions({ browser: { isReducedMotion: true } })
     const element = Fixture.render(`<p>x</p>`)
-    await expect(reduced.animate(element, "fade", "out")).resolves.toBe(true)
+    await expect(reduced.animate({ element, name: "fade", direction: "out" })).resolves.toBe(true)
     expect(element.hidden).toBe(true)
     expect(element.hasAttribute("data-ui-animation")).toBe(false)
   })
+})
 
-  it("whenTransitionEnds() waits for running animations", async () => {
+describe("Transitions.whenTransitionEnds()", () => {
+  it("waits for running animations", async () => {
     const element = Fixture.render(`<p>x</p>`)
     const animation = element.animate([{ opacity: 0 }, { opacity: 1 }], 30)
     await transitions.whenTransitionEnds(element)

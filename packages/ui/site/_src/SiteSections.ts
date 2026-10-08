@@ -1,5 +1,7 @@
 import { SiteData } from "$/ui/docs-components/SiteData"
+// A leaf, not the barrel:  the barrel defines `<ui-docs-toc>`, which `<ui-root>` does on first use
 import { TocIndex } from "$/ui/docs-components/ui-docs-toc/TocIndex"
+import { FOLDS_KEY } from "./site.types"
 
 /****************
  * ### `SiteSections`
@@ -11,9 +13,9 @@ import { TocIndex } from "$/ui/docs-components/ui-docs-toc/TocIndex"
  *   and `--site-top` (resolved through a hidden probe), again whenever the bar or the window resizes.  Nested titles
  *   stack below their parents' (the element does that).  The same line goes on `main` as `--site-sections-top`, for
  *   the browser's own anchor scrolling (`scroll-margin-top`).  A page's own sticky bar (`PAGE_BAR`) stacks between.
- * - Folds:  remembered per page (`localStorage`, `{ [section id]: folded }`):  the reader's (`ui-open` / `ui-close`
- *   that can be cancelled) are saved, and restored on every visit;  everything else starts OPEN.  An unfold made by a
- *   landing, or by find-in-page, is never saved.
+ * - Folds:  remembered per page (`localStorage`, `FOLDS_KEY` + the path:  `{ [section id]: folded }`):  the reader's
+ *   (`ui-open` / `ui-close` that can be cancelled) are saved, and restored on every visit;  everything else starts
+ *   OPEN.  An unfold made by a landing, or by find-in-page, is never saved.
  * - Landing (`land()`):  the target's pane selected (the first word of a section id IS its tab:  `#usage-keyboard`),
  *   every section around it (and itself) unfolded without animation, then scrolled so its title sits just below the
  *   stuck ones;  once more after `SETTLE_MS` (late layout, the toc's own first scroll), unless the reader scrolled,
@@ -23,34 +25,7 @@ import { TocIndex } from "$/ui/docs-components/ui-docs-toc/TocIndex"
  *   `history.replaceState()` of an old hash to the id it found.
  ****************/
 export class SiteSections {
-  /** `localStorage` key prefix of a page's folds, + its path. */
-  static readonly FOLDS_KEY = "spell-ui-site:folds:"
-
-  /** Frames a section takes to draw what an unfold revealed (the write lands on a microtask, the render next frame). */
-  static readonly UNFOLD_FRAMES = 3
-
-  /** Frames to wait at most for a target to get a box (its pane swapping in, inside a View Transition). */
-  static readonly SHOW_FRAMES = 30
-
-  /** Land once more after this long, ms:  late layout (images, a fold's last frame) moves the target a little. */
-  static readonly SETTLE_MS = 400
-
-  /** Gap between the stuck titles and a target that isn't a section (an example, a heading), px. */
-  static readonly GAP = 8
-
-  /** Wait at most this long for `<ui-docs-api>` to draw the tag a hash names, ms. */
-  static readonly API_WAIT_MS = 5000
-
-  /**
-   * A page's own sticky bar above its sections (a `<ui-sticky>`:  the kitchen sink's theme picker):  its `offset` is
-   * set to stick below the site's top, and the section titles stick below it.  One per page.
-   */
-  static readonly PAGE_BAR = "ui-sticky.site-sticky-bar"
-
-  /** What can't be a page section:  a demo inside an example, a template. */
-  static readonly NOT_PAGE = "ui-docs-example, template"
-
-  /** The one instance, made on first use. */
+  /** The one instance, made on first use:  static, as the page has one set of sections and one scroll. */
   static get instance(): SiteSections {
     return (SiteSections.only ??= new SiteSections())
   }
@@ -72,7 +47,7 @@ export class SiteSections {
   private landings = 0
 
   /** The reader scrolled, clicked or typed since the last landing began:  its settle doesn't land again. */
-  private readerMoved = false
+  private hasReaderMoved = false
 
   private constructor() {
     this.probe = document.createElement("div")
@@ -84,7 +59,7 @@ export class SiteSections {
     window.addEventListener("hashchange", () => this.onHash())
     // the reader moving on:  a landing's second try must not pull the page back
     for (const type of ["wheel", "touchstart", "keydown", "pointerdown"])
-      window.addEventListener(type, () => (this.readerMoved = true), { capture: true, passive: true })
+      window.addEventListener(type, () => (this.hasReaderMoved = true), { capture: true, passive: true })
     window.addEventListener("resize", () => this.measure(), { passive: true })
   }
 
@@ -95,18 +70,18 @@ export class SiteSections {
   /**
    * `main` is the page shown (its first load, or a swap):  restore its folds, set the sticky offsets, and again once
    * its `<ui-root>` is ready (the tabs' bar has drawn).
-   * - `first`:  before the sections are defined, so a restored fold just starts folded;  after a swap they have
+   * - `isFirst`:  before the sections are defined, so a restored fold just starts folded;  after a swap they have
    *   drawn, so it folds without its animation.
    */
-  show(main: HTMLElement, first: boolean): void {
+  show(main: HTMLElement, { isFirst = false }: { isFirst?: boolean } = {}): void {
     this.main = main
-    this.restoreFolds(main, !first)
+    this.restoreFolds(main, { isInstant: !isFirst })
     this.measure()
     TocIndex.whenReady(main, () => {
       if (this.main !== main) return
       this.measure()
       this.resized.disconnect()
-      const bar = SiteSections.bar(main)
+      const bar = SiteSections.barOf(main)
       if (bar) this.resized.observe(bar)
     })
   }
@@ -119,42 +94,37 @@ export class SiteSections {
     const main = this.main
     if (!main?.isConnected) return
     const siteTop = parseFloat(getComputedStyle(this.probe).top) || 0
-    const bar = SiteSections.bar(main)
+    const bar = SiteSections.barOf(main)
     const band = parseFloat(getComputedStyle(main).getPropertyValue("--site-tabs-band")) || 0
     let top = siteTop + (bar ? bar.getBoundingClientRect().height + band : 0)
     // a page's own sticky bar (the kitchen sink's theme picker):  stuck below that, the titles below it
-    const pageBar = main.querySelector<HTMLElement>(SiteSections.PAGE_BAR)
+    const pageBar = main.querySelector<HTMLElement>(PAGE_BAR)
     if (pageBar) {
-      const offset = String(Math.round(top))
-      if (pageBar.getAttribute("offset") !== offset) pageBar.setAttribute("offset", offset)
+      SiteSections.setOffset(pageBar, String(Math.round(top)))
       top += SiteSections.heightOf(pageBar)
     }
     this.top = Math.round(top)
     const value = `${this.top}px`
-    if (main.style.getPropertyValue("--site-sections-top") !== value)
-      main.style.setProperty("--site-sections-top", value)
+    if (main.style.getPropertyValue(SECTIONS_TOP) !== value) main.style.setProperty(SECTIONS_TOP, value)
     const offset = String(this.top)
-    for (const section of SiteSections.topSections(main)) {
-      // re-setting the same value would restart the section's sticky observer for nothing
-      if (section.getAttribute("offset") !== offset) section.setAttribute("offset", offset)
-    }
+    for (const section of SiteSections.topSections(main)) SiteSections.setOffset(section, offset)
   }
 
   ////////////////
   // ## Folds
   ////////////////
 
-  /** Fold or unfold `main`'s sections as the reader left them on this page;  `instant`:  without the animation. */
-  private restoreFolds(main: HTMLElement, instant: boolean): void {
+  /** Fold or unfold `main`'s sections as the reader left them on this page;  `isInstant`:  without the animation. */
+  private restoreFolds(main: HTMLElement, { isInstant }: { isInstant: boolean }): void {
     const saved = SiteSections.readFolds()
-    let changed = false
+    let hasChanged = false
     for (const section of SiteSections.pageSections(main)) {
       if (!section.hasAttribute("collapsible") || !(section.id in saved)) continue
-      const folded = !!saved[section.id]
-      if (section.hasAttribute("collapsed") === folded) continue
-      if (instant && !changed) SiteSections.instantly(main)
-      section.toggleAttribute("collapsed", folded)
-      changed = true
+      const isCollapsed = !!saved[section.id]
+      if (section.hasAttribute(COLLAPSED) === isCollapsed) continue
+      if (isInstant && !hasChanged) SiteSections.instantly(main)
+      section.toggleAttribute(COLLAPSED, isCollapsed)
+      hasChanged = true
     }
   }
 
@@ -165,8 +135,8 @@ export class SiteSections {
    */
   private onToggle(event: CustomEvent<{ open: boolean }>): void {
     const section = event.target as HTMLElement
-    if (section.localName !== "ui-section" || !section.id || !this.main?.contains(section)) return
-    if (!event.cancelable || event.defaultPrevented || section.parentElement?.closest(SiteSections.NOT_PAGE)) return
+    if (section.localName !== SECTION_TAG || !section.id || !this.main?.contains(section)) return
+    if (!event.cancelable || event.defaultPrevented || section.parentElement?.closest(NOT_PAGE)) return
     const saved = SiteSections.readFolds()
     saved[section.id] = !event.detail.open
     SiteSections.writeFolds(saved)
@@ -174,17 +144,17 @@ export class SiteSections {
 
   /** Unfold every section around `target` (and `target`, a section), without the animation;  true if any was. */
   private static unfold(main: HTMLElement, target: Element): boolean {
-    let unfolded = false
-    for (let section = target.closest("ui-section"); section && main.contains(section);) {
-      if (section.hasAttribute("collapsed")) {
-        if (!unfolded) SiteSections.instantly(main)
+    let hasUnfolded = false
+    for (let section = target.closest(SECTION_TAG) ?? undefined; section && main.contains(section);) {
+      if (section.hasAttribute(COLLAPSED)) {
+        if (!hasUnfolded) SiteSections.instantly(main)
         // controlled:  writing it announces nothing, so it isn't saved
-        section.removeAttribute("collapsed")
-        unfolded = true
+        section.removeAttribute(COLLAPSED)
+        hasUnfolded = true
       }
-      section = section.parentElement?.closest("ui-section") ?? null
+      section = SiteSections.sectionAround(section)
     }
-    return unfolded
+    return hasUnfolded
   }
 
   ////////////////
@@ -199,13 +169,13 @@ export class SiteSections {
   land(main: HTMLElement, hash: string): boolean {
     const id = TocIndex.decode(hash.replace(/^#/, ""))
     if (!id) return false
-    const tabs = SiteSections.tabs(main)
+    const tabs = SiteSections.tabsOf(main)
     if (tabs && SiteSections.paneValues(tabs).includes(id)) return false
     const found = SiteSections.resolve(main, id)
     if (!found) return false
     // an old link:  the URL names what it found
     if ("id" in found && found.id !== id) history.replaceState(history.state, "", `#${encodeURIComponent(found.id)}`)
-    this.readerMoved = false
+    this.hasReaderMoved = false
     void this.go(main, found, ++this.landings)
     return true
   }
@@ -221,7 +191,7 @@ export class SiteSections {
   private static resolve(main: HTMLElement, id: string): Found | undefined {
     const own = document.getElementById(id)
     if (own && main.contains(own)) return { target: own, id }
-    const tabs = SiteSections.tabs(main)
+    const tabs = SiteSections.tabsOf(main)
     for (const value of tabs ? SiteSections.paneValues(tabs) : []) {
       const section = document.getElementById(`${value}-${id}`)
       if (section && main.contains(section)) return { target: section, id: section.id }
@@ -234,7 +204,7 @@ export class SiteSections {
     )
     if (single) return { target: single, id }
     const api = main.querySelector<HTMLElement>("ui-docs-api[family]")
-    if (api && /^[a-z][a-z0-9]*(-[a-z0-9]+)+$/.test(id)) return { api, tag: id }
+    if (api && TAG_NAME.test(id)) return { api, tag: id }
     return undefined
   }
 
@@ -245,37 +215,35 @@ export class SiteSections {
     const target = "api" in found ? await SiteSections.apiHeader(found.api, found.tag) : found.target
     if (!target || landing !== this.landings) return
     const holder = "api" in found ? found.api : target
-    const tabs = SiteSections.tabs(main)
+    const tabs = SiteSections.tabsOf(main)
     const pane = tabs && TocIndex.paneOf(tabs, holder)
     if (tabs && pane && TocIndex.shownPane(tabs) !== pane)
       (tabs as HTMLElement & { value?: string }).value = TocIndex.paneValue(tabs, pane)
-    const unfolded = SiteSections.unfold(main, holder)
-    for (let frame = 0; frame < SiteSections.SHOW_FRAMES && !SiteSections.boxOf(target); frame++)
-      await SiteSections.frames(1)
+    const hasUnfolded = SiteSections.unfold(main, holder)
+    for (let frame = 0; frame < SHOW_FRAMES && !SiteSections.boxOf(target); frame++) await SiteSections.frames(1)
     // after the toc's own first-load scroll (`<ui-docs-toc>` lands a hash a frame after the root is ready)
-    await SiteSections.frames(unfolded ? SiteSections.UNFOLD_FRAMES : 2)
+    await SiteSections.frames(hasUnfolded ? UNFOLD_FRAMES : 2)
     if (landing !== this.landings) return
     this.measure()
     this.scrollTo(target, holder)
     setTimeout(() => {
-      if (landing === this.landings && !this.readerMoved) this.scrollTo(target, holder)
-    }, SiteSections.SETTLE_MS)
+      if (landing === this.landings && !this.hasReaderMoved) this.scrollTo(target, holder)
+    }, SETTLE_MS)
   }
 
   /**
    * Scroll so `target`'s top sits on its line:  below the stuck bar and the titles of the sections around `holder`
-   * (`target` itself, or the host whose shadow root holds it);  a section's own title sits right on the line, where
+   * (`target` itself, or the element whose shadow root holds it);  a section's own title sits right on the line, where
    * it sticks.
    */
   private scrollTo(target: Element, holder: Element): void {
     const box = SiteSections.boxOf(target)
     if (!box) return
     let line = this.top
-    for (let section = holder.parentElement?.closest("ui-section"); section;) {
+    for (let section = SiteSections.sectionAround(holder); section; section = SiteSections.sectionAround(section)) {
       if (section.hasAttribute("sticky")) line += SiteSections.titleHeight(section)
-      section = section.parentElement?.closest("ui-section") ?? null
     }
-    if (target.localName !== "ui-section") line += SiteSections.GAP
+    if (target.localName !== SECTION_TAG) line += GAP
     window.scrollTo({ top: Math.max(0, scrollY + box.top - line), behavior: "instant" })
   }
 
@@ -294,7 +262,7 @@ export class SiteSections {
     const data = await SiteData.load().catch(() => undefined)
     const family = api.getAttribute("family") ?? ""
     if (!data || !SiteData.family(data, family)?.tags.includes(tag)) return undefined
-    const deadline = performance.now() + SiteSections.API_WAIT_MS
+    const deadline = performance.now() + API_WAIT_MS
     while (performance.now() < deadline) {
       const header = api.shadowRoot?.getElementById(tag)
       if (header) return header
@@ -305,10 +273,10 @@ export class SiteSections {
 
   /**
    * Where `target`'s top is now, unstuck:  a section's sentinel (where its title would be, even while stuck), else
-   * its box;  a box-less host (`display: contents`):  its parent's.  `undefined` while it has none (a hidden pane).
+   * its box;  a box-less element (`display: contents`):  its parent's.  `undefined` while it has none (a hidden pane).
    */
   private static boxOf(target: Element): DOMRect | undefined {
-    const sentinel = target.localName === "ui-section" ? target.shadowRoot?.querySelector(".sentinel") : undefined
+    const sentinel = target.localName === SECTION_TAG ? target.shadowRoot?.querySelector(".sentinel") : undefined
     for (const element of [sentinel, target, target.parentElement]) {
       if (element?.getClientRects().length) return element.getBoundingClientRect()
     }
@@ -316,8 +284,9 @@ export class SiteSections {
   }
 
   /**
-   * Height of `element`'s box, px;  a box-less host (`display: contents`, as `<ui-sticky>` and many hosts are):  the
-   * tallest box in its shadow root, else among its children, looking through box-less ones the same way.
+   * Height of `element`'s box, px.
+   * - A box-less element (`display: contents`, as `<ui-sticky>` and many `ui-*` elements are):
+   *   the tallest box in its shadow root, else among its children, looking through box-less ones the same way.
    */
   private static heightOf(element: Element): number {
     const height = element.getBoundingClientRect().height
@@ -332,49 +301,59 @@ export class SiteSections {
   }
 
   /** The page's tabs (`#site-tabs`), if any. */
-  private static tabs(main: HTMLElement): HTMLElement | undefined {
+  private static tabsOf(main: HTMLElement): HTMLElement | undefined {
     return main.querySelector<HTMLElement>("ui-tabs#site-tabs") ?? undefined
   }
 
   /** The values of `tabs`' panes. */
   private static paneValues(tabs: HTMLElement): string[] {
-    return [...tabs.children].filter((pane) => pane.localName !== "template").map((p) => TocIndex.paneValue(tabs, p))
+    return [...tabs.children]
+      .filter((pane) => pane.localName !== "template")
+      .map((pane) => TocIndex.paneValue(tabs, pane))
   }
 
   /** The tabs' bar (its `menu` part), once drawn. */
-  private static bar(main: HTMLElement): HTMLElement | undefined {
-    return SiteSections.tabs(main)?.shadowRoot?.querySelector<HTMLElement>('[part~="menu"]') ?? undefined
+  private static barOf(main: HTMLElement): HTMLElement | undefined {
+    return SiteSections.tabsOf(main)?.shadowRoot?.querySelector<HTMLElement>('[part~="menu"]') ?? undefined
   }
 
   /** `main`'s page sections:  every `<ui-section>` but the demos inside examples. */
   private static pageSections(main: HTMLElement): HTMLElement[] {
-    return [...main.querySelectorAll<HTMLElement>("ui-section")].filter(
-      (section) => !section.parentElement?.closest(SiteSections.NOT_PAGE)
+    return [...main.querySelectorAll<HTMLElement>(SECTION_TAG)].filter(
+      (section) => !section.parentElement?.closest(NOT_PAGE)
     )
   }
 
   /** `main`'s TOP-LEVEL page sections:  inside no other. */
   private static topSections(main: HTMLElement): HTMLElement[] {
-    return SiteSections.pageSections(main).filter((section) => !section.parentElement?.closest("ui-section"))
+    return SiteSections.pageSections(main).filter((section) => !SiteSections.sectionAround(section))
+  }
+
+  /** The `<ui-section>` around `element` (not `element` itself), if any. */
+  private static sectionAround(element: Element): Element | undefined {
+    return element.parentElement?.closest(SECTION_TAG) ?? undefined
+  }
+
+  /** Set `element`'s `offset` to `offset`, unless it has it:  re-setting would restart its sticky watch for nothing. */
+  private static setOffset(element: Element, offset: string): void {
+    if (element.getAttribute(OFFSET) !== offset) element.setAttribute(OFFSET, offset)
   }
 
   /** Folds and unfolds in `main` skip their animation for a few frames:  a landing measures right after. */
   private static instantly(main: HTMLElement): void {
-    main.style.setProperty("--ui-section-duration", "0s")
-    void SiteSections.frames(SiteSections.UNFOLD_FRAMES + 1).then(() =>
-      main.style.removeProperty("--ui-section-duration")
-    )
+    main.style.setProperty(SECTION_DURATION, "0s")
+    void SiteSections.frames(UNFOLD_FRAMES + 1).then(() => main.style.removeProperty(SECTION_DURATION))
   }
 
   /** Resolves after `count` animation frames. */
   private static async frames(count: number): Promise<void> {
-    for (let i = 0; i < count; i++) await new Promise((resolve) => requestAnimationFrame(resolve))
+    for (let frame = 0; frame < count; frame++) await new Promise((resolve) => requestAnimationFrame(resolve))
   }
 
   /** This page's saved folds, `{}` when none (or storage is blocked). */
   private static readFolds(): Record<string, boolean> {
     try {
-      const saved = JSON.parse(localStorage.getItem(SiteSections.FOLDS_KEY + location.pathname) ?? "{}") as unknown
+      const saved = JSON.parse(localStorage.getItem(FOLDS_KEY + location.pathname) ?? "{}") as unknown
       return saved && typeof saved === "object" ? (saved as Record<string, boolean>) : {}
     } catch {
       return {}
@@ -384,7 +363,7 @@ export class SiteSections {
   /** Save this page's folds;  silently not, where storage is blocked. */
   private static writeFolds(folds: Record<string, boolean>): void {
     try {
-      localStorage.setItem(SiteSections.FOLDS_KEY + location.pathname, JSON.stringify(folds))
+      localStorage.setItem(FOLDS_KEY + location.pathname, JSON.stringify(folds))
     } catch {
       // private window, blocked storage:  folds last until the next visit only
     }
@@ -396,3 +375,45 @@ export class SiteSections {
  * `<ui-docs-api>` in its shadow root.
  */
 type Found = { target: Element; id: string } | { api: HTMLElement; tag: string }
+
+/** Frames a section takes to draw what an unfold revealed (the write lands on a microtask, the render next frame). */
+const UNFOLD_FRAMES = 3
+
+/** Frames to wait at most for a target to get a box (its pane swapping in, inside a View Transition). */
+const SHOW_FRAMES = 30
+
+/** Land once more after this long, ms:  late layout (images, a fold's last frame) moves the target a little. */
+const SETTLE_MS = 400
+
+/** Gap between the stuck titles and a target that isn't a section (an example, a heading), px. */
+const GAP = 8
+
+/** Wait at most this long for `<ui-docs-api>` to draw the tag a hash names, ms. */
+const API_WAIT_MS = 5000
+
+/**
+ * A page's own sticky bar above its sections (a `<ui-sticky>`:  the kitchen sink's theme picker):  its `offset` is
+ * set to stick below the site's top, and the section titles stick below it.  One per page.
+ */
+const PAGE_BAR = "ui-sticky.site-sticky-bar"
+
+/** What can't be a page section:  a demo inside an example, a template. */
+const NOT_PAGE = "ui-docs-example, template"
+
+/** The section tag. */
+const SECTION_TAG = "ui-section"
+
+/** A section's folded attribute (controlled:  writing it announces nothing). */
+const COLLAPSED = "collapsed"
+
+/** The sticky offset attribute of a section or `<ui-sticky>`, px. */
+const OFFSET = "offset"
+
+/** `main`'s custom property:  the line below the stuck bar, for anchor scrolling (`site.css`). */
+const SECTIONS_TOP = "--site-sections-top"
+
+/** `<ui-section>`'s fold duration token:  `0s` while folds go instantly. */
+const SECTION_DURATION = "--ui-section-duration"
+
+/** A tag name, as `<ui-docs-api>` gives each tag's header its id (`ui-or`). */
+const TAG_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)+$/

@@ -1,0 +1,192 @@
+/*
+ * The style sheet of `<ui-container>`:  a port of Fomantic's `container.less` + `container.variables`.
+ * - It styles the component's shadow DOM, in Fomantic's class names on a semantic element:
+ *   `<div class="ui [keyOnly ...] [text-align] container" part="container"><slot></slot></div>`
+ * - The DOM element is `display: contents` (`:host`):  the inner box IS the container,
+ *   so its auto margins centre it in the page.
+ *
+ * - Widths follow the PAGE (viewport) breakpoints, as in Fomantic:  a container is page layout,
+ *   so this is the one component that uses `@media (--ui-*)` (`media.css`, inlined at build time)
+ *   instead of container queries.
+ *   - on a phone:  full width with a `1em` gutter;  tablet, computer, large monitor:  a fixed width, centred
+ *   - the fixed widths are Fomantic's (the breakpoint minus gutters and a scrollbar), as `--ui-container-width-*`
+ *   - `wide` multiplies them by `--ui-container-wide-ratio`;
+ *     a `grid` container adds the grid's negative gutters back (wider ones for `relaxed` / `very relaxed`)
+ *   - `--_ui-container-width` is the private switch holding the current breakpoint's width;
+ *     theme the widths with `--ui-container-width-tablet` / `-computer` / `-large-monitor`
+ *   - `scrolling` heights step up per breakpoint:  `--ui-container-scrolling-height` is the PHONE height,
+ *     and the wider breakpoints swap in `--ui-container-scrolling-height-tablet` / `-computer` / `-widescreen`
+ *     (18em / 24em / 30em), whatever `--ui-container-scrolling-height` the page sets
+ *
+ * - The public tokens (`--ui-container-*`) are NEVER declared here.
+ *   The token block gives each a private alias,
+ *   `--_ui-container-text-width: var(--ui-container-text-width, 700px)`, and every rule reads the alias.
+ *   So a value set on `:root`, an ancestor, the element, `::part(container)` or in the app's style sheet
+ *   reaches the box (`docs/theming.md`, "Component tokens").
+ *
+ * - No `:state()`s:  this sheet keys on the box's classes.
+ *
+ * - Left out, on purpose:
+ *   - nothing structural;  Fomantic's widths assume a 14px root, these keep its px values at the 16px default
+ */
+
+@layer ui.components.container.types, ui.components.container.content, ui.components.container.variations, ui.components.container.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time. */
+@import "../../styles/media.css";
+
+/*******************************
+           Container
+*******************************/
+
+@layer ui.components.container.types {
+  /* The DOM element:  no box of its own;  the inner box is the container. */
+  :host {
+    display: contents;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  one per `container.variables` entry that still matters, each the private alias of its public token. */
+  .ui.container {
+    --_ui-container-mobile-gutter: var(--ui-container-mobile-gutter, 1em);
+    --_ui-container-width-tablet: var(--ui-container-width-tablet, 723px);
+    --_ui-container-width-computer: var(--ui-container-width-computer, 933px);
+    --_ui-container-width-large-monitor: var(--ui-container-width-large-monitor, 1127px);
+    --_ui-container-wide-ratio: var(--ui-container-wide-ratio, 1.2);
+    --_ui-container-grid-gutter: var(--ui-container-grid-gutter, 2em);
+    --_ui-container-relaxed-grid-gutter: var(--ui-container-relaxed-grid-gutter, 3em);
+    --_ui-container-very-relaxed-grid-gutter: var(--ui-container-very-relaxed-grid-gutter, 5em);
+    --_ui-container-text-width: var(--ui-container-text-width, 700px);
+    --_ui-container-text-font-ratio: var(--ui-container-text-font-ratio, var(--ui-size-large));
+    --_ui-container-text-line-height: var(--ui-container-text-line-height, 1.5);
+    --_ui-container-scrolling-height: var(--ui-container-scrolling-height, 15em);
+    --_ui-container-scrolling-height-tablet: var(--ui-container-scrolling-height-tablet, 18em);
+    --_ui-container-scrolling-height-computer: var(--ui-container-scrolling-height-computer, 24em);
+    --_ui-container-scrolling-height-widescreen: var(--ui-container-scrolling-height-widescreen, 30em);
+  }
+
+  /* Container:  mobile first -- the page width, less a gutter. */
+  .ui.container {
+    box-sizing: border-box;
+    display: block;
+    max-width: 100%;
+  }
+  .ui.container:not(.fluid) {
+    width: auto;
+    margin-inline: var(--_ui-container-mobile-gutter);
+  }
+
+  /* Tablet and up:  a fixed width, centred. */
+  @media (--ui-tablet), (--ui-computer) {
+    .ui.container {
+      --_ui-container-width: var(--_ui-container-width-tablet);
+    }
+    .ui.container:not(.fluid) {
+      width: calc(var(--_ui-container-width) * var(--_container-wide, 1) + var(--_container-grid-gutter, 0px));
+      margin-inline: auto;
+    }
+  }
+  @media (--ui-computer) {
+    .ui.container {
+      --_ui-container-width: var(--_ui-container-width-computer);
+    }
+  }
+  @media (--ui-large-monitor) {
+    .ui.container {
+      --_ui-container-width: var(--_ui-container-width-large-monitor);
+    }
+  }
+
+  /* Text:  a narrower reading column with larger type. */
+  .ui.text.container {
+    max-width: var(--_ui-container-text-width);
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--_ui-container-text-font-ratio));
+    line-height: var(--_ui-container-text-line-height);
+  }
+
+  /* Wide:  a fifth wider than the default. */
+  .ui.wide.container {
+    --_container-wide: var(--_ui-container-wide-ratio);
+  }
+
+  /* Fluid:  always the full width. */
+  .ui.fluid.container {
+    width: 100%;
+  }
+
+  /* Grid:  make room for a grid's negative gutters. */
+  .ui.grid.container {
+    --_container-grid-gutter: var(--_ui-container-grid-gutter);
+  }
+  .ui.relaxed.grid.container {
+    --_container-grid-gutter: var(--_ui-container-relaxed-grid-gutter);
+  }
+  .ui.very.relaxed.grid.container {
+    --_container-grid-gutter: var(--_ui-container-very-relaxed-grid-gutter);
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.container.variations {
+  /* Aligned */
+  .ui[class*="left aligned"].container {
+    text-align: left;
+  }
+  .ui[class*="center aligned"].container {
+    text-align: center;
+  }
+  .ui[class*="right aligned"].container {
+    text-align: right;
+  }
+  .ui.justified.container {
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  /* Scrolling:  a capped height (per breakpoint, `short` ... `very long`) that scrolls. */
+  .ui.scrolling.container {
+    --_container-scroll: calc(var(--_ui-container-scrolling-height) * var(--_container-scroll-ratio, 1));
+    max-height: var(--_container-scroll);
+    overflow: auto;
+    overscroll-behavior: none;
+  }
+  .ui.short.scrolling.container {
+    --_container-scroll-ratio: 0.75;
+  }
+  .ui[class*="very short scrolling"].short.container {
+    --_container-scroll-ratio: 0.5;
+  }
+  .ui.long.scrolling.container {
+    --_container-scroll-ratio: 2;
+  }
+  .ui[class*="very long scrolling"].long.container {
+    --_container-scroll-ratio: 3;
+  }
+  @media (--ui-tablet), (--ui-computer) {
+    .ui.scrolling.container {
+      --_ui-container-scrolling-height: var(--_ui-container-scrolling-height-tablet);
+    }
+  }
+  @media (--ui-computer) {
+    .ui.scrolling.container {
+      --_ui-container-scrolling-height: var(--_ui-container-scrolling-height-computer);
+    }
+  }
+  @media (--ui-widescreen) {
+    .ui.scrolling.container {
+      --_ui-container-scrolling-height: var(--_ui-container-scrolling-height-widescreen);
+    }
+  }
+  /* Resizable:  starts at the capped height, the user drags it taller or shorter. */
+  .ui.resizable.scrolling.container {
+    height: var(--_container-scroll);
+    max-height: none;
+    resize: vertical;
+  }
+}

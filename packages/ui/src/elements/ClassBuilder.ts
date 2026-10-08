@@ -1,9 +1,9 @@
-import { numberToWord, proto } from "$/ui/util"
-import { type AttributeSpec, type ComponentVocabulary, Converters, ValueSets } from "$/ui/vocabulary"
+// Import directly to avoid circular import
+import { proto } from "$/ui/util"
+import { E } from "$/ui/core"
 
-import type { ClassBuildOptions, ClassGrammar, ClassInput } from "./elements.types"
-
-/**
+/****************
+ * ### `ClassBuilder`
  * Turns a component's property values into its canonical Fomantic class string, e.g. `ui small red basic button`.
  * - Why:  shadow markup keeps Fomantic's class grammar (`<button class="ui small primary button">`) so the
  *   CSS is a mechanical port of the `.less`, and multi-word phrases (`[class*="four wide"]`) need a fixed order.
@@ -14,12 +14,15 @@ import type { ClassBuildOptions, ClassGrammar, ClassInput } from "./elements.typ
  * - The constructor sorts the vocabulary ONCE;  `build()` only walks that list and fills one array.
  * - Reads attribute names and CSS keys from the vocabulary, never literals;  the grammar's own
  *   connective words (`aligned`, `wide` ...) are `@proto static grammar`.
- */
+ * - Library-neutral:  no DOM, no Solid.  Of the core (`E`), it uses only the foundation (`E.ValueSets`,
+ *   `E.Warnings`), NEVER an element class.
+ ****************/
 export class ClassBuilder {
-  declare grammar: ClassGrammar
-
   /** Fomantic's connective words -- grammar, not vocabulary, so they never translate. */
-  @proto static grammar: ClassGrammar = {
+  declare grammar: E.ClassGrammar
+
+  /** The grammar's English words;  `@proto static`:  the same for every builder, and on the prototype once. */
+  @proto static grammar: E.ClassGrammar = {
     ui: "ui",
     medium: "medium",
     aligned: "aligned",
@@ -30,15 +33,15 @@ export class ClassBuilder {
   }
 
   /** Vocabulary it builds for. */
-  readonly vocabulary: ComponentVocabulary
+  readonly vocabulary: E.ComponentVocabulary
 
   /** Class-emitting attributes in output order. */
-  private readonly specs: readonly AttributeSpec[]
+  private readonly specs: readonly E.AttributeSpec[]
 
   /** CSS key per entry of `specs`, e.g. `pointing`, `very basic`. */
   private readonly keys: readonly string[]
 
-  constructor(vocabulary: ComponentVocabulary) {
+  constructor(vocabulary: E.ComponentVocabulary) {
     this.vocabulary = vocabulary
     this.specs = [
       ...byKind("size"),
@@ -53,7 +56,7 @@ export class ClassBuilder {
     this.keys = this.specs.map((spec) => spec.key ?? spec.name.replaceAll("-", " "))
 
     /** `vocabulary`'s attributes of `kind`, in vocabulary order. */
-    function byKind(kind: AttributeSpec["kind"]) {
+    function byKind(kind: E.AttributeSpec["kind"]) {
       return vocabulary.attributes.filter((spec) => spec.kind === kind)
     }
   }
@@ -67,7 +70,7 @@ export class ClassBuilder {
    * - Missing / falsy values emit nothing;  `size: "medium"` emits nothing.
    * - SIDE EFFECT (dev only): warns on unusable widths, and on widths that aren't whole columns.
    */
-  build(values: ClassInput, options: ClassBuildOptions = {}): string {
+  build(values: E.ClassInput, options: E.ClassBuildOptions = {}): string {
     const { grammar, specs, keys } = this
     const classes: string[] = this.vocabulary.ui === false ? [] : [grammar.ui]
     for (let index = 0; index < specs.length; index++) {
@@ -116,25 +119,8 @@ export class ClassBuilder {
   }
 
   ////////////////
-  // ## Number words
-  ////////////////
-
-  /** Fomantic's word for 1..16, e.g. `4` => `four`;  `undefined` otherwise. */
-  static numberToWord(value: number | string): string | undefined {
-    return numberToWord(value)
-  }
-
-  ////////////////
   // ## Internals
   ////////////////
-
-  /** `value` as class text:  strings as-is, numbers stringified, arrays space-joined;  else `undefined`. */
-  private static text(value: unknown): string | undefined {
-    if (typeof value === "string") return value
-    if (typeof value === "number") return String(value)
-    if (Array.isArray(value)) return value.map((item) => ClassBuilder.text(item) ?? "").join(" ")
-    return undefined
-  }
 
   /**
    * `useMultipleProp`:  `"mobile tablet"` + `only` => `mobile only tablet only`.
@@ -142,7 +128,7 @@ export class ClassBuilder {
    * - An array of tokens arrives space-joined (`text()`).
    */
   private pushMultiple(classes: string[], text: string, key: string) {
-    const words = text.trim().split(WHITESPACE)
+    const words = text.trim().split(E.WHITESPACE)
     for (let index = 0; index < words.length; index++) {
       let token = words[index]
       if (token === "large" && words[index + 1] === "screen") token = `${token} ${words[++index]}`
@@ -158,28 +144,35 @@ export class ClassBuilder {
    * - `"equal"` => `equal width` when the spec allows it (`canEqual`).
    * - Inexact values snap to the nearest column, with a dev warning.
    */
-  private pushWidth(classes: string[], value: string, spec: AttributeSpec) {
+  private pushWidth(classes: string[], value: string, spec: E.AttributeSpec) {
     const { grammar } = this
     if (value === grammar.equal && spec.canEqual) {
       classes.push(grammar.equalWidth)
       return
     }
-    const columns = ValueSets.columns(value)
+    const columns = E.ValueSets.columns(value)
     const rounded = columns === undefined ? 0 : Math.round(columns)
-    if (!ValueSets.isColumnCount(rounded)) {
-      Converters.warn(`<${this.vocabulary.tag} ${spec.name}>: ${JSON.stringify(value)} is not a width of 1..16 columns`)
+    const source = `<${this.vocabulary.tag} ${spec.name}>`
+    if (!E.ValueSets.isColumnCount(rounded)) {
+      E.Warnings.devWarn(source, `${JSON.stringify(value)} is not a width of 1..16 columns`)
       return
     }
     if (rounded !== columns) {
-      Converters.warn(
-        `<${this.vocabulary.tag} ${spec.name}>: ${JSON.stringify(value)} is ${columns!.toFixed(2)} of 16 columns, using ${rounded}`
-      )
+      E.Warnings.devWarn(source, `${JSON.stringify(value)} is ${columns!.toFixed(2)} of 16 columns;  using ${rounded}`)
     }
-    const word = numberToWord(rounded)!
+    const word = E.numberToWord(rounded)!
     const widthClass = spec.widthClass ?? grammar.wide
     classes.push(widthClass ? `${word} ${widthClass}` : word)
   }
-}
 
-/** Runs of whitespace. */
-const WHITESPACE = /\s+/
+  /**
+   * `value` as class text:  strings as-is, numbers stringified, arrays space-joined;  else `undefined`.
+   * - Static:  pure, no builder state.
+   */
+  private static text(value: unknown): string | undefined {
+    if (typeof value === "string") return value
+    if (typeof value === "number") return String(value)
+    if (Array.isArray(value)) return value.map((item) => ClassBuilder.text(item) ?? "").join(" ")
+    return undefined
+  }
+}

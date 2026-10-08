@@ -1,10 +1,13 @@
 import { readdirSync, readFileSync } from "node:fs"
-import { join } from "node:path"
+import { basename, join } from "node:path"
 
 import { ComponentTokens } from "../src/styles/ComponentTokens.ts"
 import type { SiteToken, SiteTokenSeed, SiteTokenType } from "../src/docs-components/docs-components.types.ts"
 
-/**
+import { FamilyFiles } from "./FamilyFiles.ts"
+
+/****************
+ * ### `FamilyTokens`
  * The public CSS tokens of one family, read from its sheets:  the token table of its docs page (`yarn site:data`).
  * - Ported from the old Astro site's `CssTokens` table (deleted with it, epic `spell-ui-pages` P7):  the same rows,
  *   plus a `type` for each.
@@ -18,7 +21,7 @@ import type { SiteToken, SiteTokenSeed, SiteTokenType } from "../src/docs-compon
  *   so the family's seed (`site/_data/pages.json`) may pass readable text (`defaults`), other prefixes, or a whole
  *   hand-written `list`.
  * - Foundation names that share a prefix (`--ui-text-muted` for `text`) are left out.
- */
+ ****************/
 export class FamilyTokens {
   /** Every `--ui-*` name the foundation sheets (`src/styles/*.css`) declare. */
   readonly foundation: Set<string>
@@ -34,13 +37,14 @@ export class FamilyTokens {
 
   /**
    * The tokens of the family in `folder` (its path), named `name` (`ui-button`), as `seed` says.
-   * - Sheets:  `<name>.css` first, then the rest A-Z;  first row of a name wins (aliases before reads).
+   * - Sheets:  the family's main sheet first (`UIButton.css`, `FamilyFiles`), then the rest A-Z;
+   *   the first row of a name wins (aliases before reads).
    */
   read(folder: string, name: string, seed: SiteTokenSeed = {}): SiteToken[] {
-    if (seed.list) return seed.list.map((row) => ({ ...row, type: FamilyTokens.typeOf(row.name, row.default) }))
+    if (seed.list) return seed.list.map((row) => ({ ...row, type: FamilyTokens.typeFor(row.name, row.default) }))
     const prefixes = seed.prefixes ?? [`--${name}-`]
     const defaults = seed.defaults ?? {}
-    const main = `${name}.css`
+    const main = basename(FamilyFiles.path(folder, ".css"))
     const sheets = readdirSync(folder)
       .filter((file) => file.endsWith(".css"))
       .sort((a, b) => Number(b === main) - Number(a === main) || a.localeCompare(b))
@@ -61,7 +65,7 @@ export class FamilyTokens {
         name: row.name,
         default: value,
         ...(description && { description }),
-        type: FamilyTokens.typeOf(row.name, row.default)
+        type: FamilyTokens.typeFor(row.name, row.default)
       }
     })
   }
@@ -71,7 +75,7 @@ export class FamilyTokens {
    * - `color`:  a colour function or keyword in the default, or a name ending in a colour word
    * - `time`:  `ms` / `s` values;  `length`:  a length or a `calc()` of them;  `number`:  a bare number
    */
-  static typeOf(name: string, value: string): SiteTokenType {
+  static typeFor(name: string, value: string): SiteTokenType {
     const text = value.trim()
     if (SHADOW_NAME.test(name)) return "other"
     if (COLOR_NAME.test(name) || COLOR_VALUE.test(text)) return "color"
@@ -129,7 +133,14 @@ export class FamilyTokens {
 }
 
 /** One token row before its type is guessed. */
-type Row = { name: string; default: string; description?: string }
+type Row = {
+  /** the public token, `--ui-*` */
+  name: string
+  /** its default, as the sheet writes it */
+  default: string
+  /** the comment above it, whitespace collapsed */
+  description?: string
+}
 
 /** A colour in a default value. */
 const COLOR_VALUE =

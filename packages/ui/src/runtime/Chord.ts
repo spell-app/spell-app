@@ -1,7 +1,9 @@
-import { APPLE_PLATFORM } from "./runtime.types"
+import { Browser } from "./Browser"
 
-/**
+/****************
+ * ### `Chord`
  * One keyboard shortcut, e.g. `Mod+Shift+K`, `Escape`, `Alt+ArrowUp`, `?`.
+ * - In the runtime's lazy chunk, with `Keyboard`;  imports only `Browser` (its platform sniff), so tests use it alone.
  * - Parse once with `Chord.parse()`, then test events with `matches()`.
  * - Syntax:  modifiers then one key, joined by `+`, case-insensitive:
  *   - modifiers:  `Mod` (Meta on Apple, Ctrl elsewhere), `Ctrl` / `Control`, `Meta` / `Cmd` / `Command`,
@@ -12,7 +14,7 @@ import { APPLE_PLATFORM } from "./runtime.types"
  *   - Exception:  a symbol key without `Shift` in the chord ignores Shift, since `?` / `+` need it on most layouts.
  * - Letters and digits also match by `event.code` (`KeyK`, `Digit1`), so `Alt+K` still fires on macOS,
  *   where Option turns `event.key` into `˚`.
- */
+ ****************/
 export class Chord {
   /** normalized key:  lowercased, aliases resolved, e.g. `"k"`, `"arrowdown"`, `" "` */
   readonly key: string
@@ -25,33 +27,12 @@ export class Chord {
   /** Shift must be down */
   readonly shift: boolean
 
-  constructor(key: string, modifiers: { ctrl?: boolean; meta?: boolean; alt?: boolean; shift?: boolean } = {}) {
+  constructor({ key, ctrl = false, meta = false, alt = false, shift = false }: ChordProps) {
     this.key = Chord.normalizeKey(key)
-    this.ctrl = !!modifiers.ctrl
-    this.meta = !!modifiers.meta
-    this.alt = !!modifiers.alt
-    this.shift = !!modifiers.shift
-  }
-
-  /**
-   * Parse `text` like `"Mod+Shift+K"`.
-   * - `apple` decides what `Mod` means;  defaults to sniffing `navigator` (the runtime passes `UI.browser.isApple`).
-   * - Throws on an unknown modifier or a missing key, so a typo in a shortcut fails at registration,
-   *   not silently never firing.
-   */
-  static parse(text: string, { apple = Chord.defaultApple() }: { apple?: boolean } = {}): Chord {
-    const parts = text.endsWith("++") ? [...text.slice(0, -2).split("+"), "+"] : text.split("+")
-    const key = parts.pop()?.trim()
-    if (!key) throw new SyntaxError(`Chord.parse(): no key in ${JSON.stringify(text)}`)
-    const modifiers = { ctrl: false, meta: false, alt: false, shift: false }
-    for (const part of parts) {
-      const modifier = MODIFIER_ALIASES[part.trim().toLowerCase()]
-      if (!modifier)
-        throw new SyntaxError(`Chord.parse(): unknown modifier ${JSON.stringify(part)} in ${JSON.stringify(text)}`)
-      if (modifier === "mod") modifiers[apple ? "meta" : "ctrl"] = true
-      else modifiers[modifier] = true
-    }
-    return new Chord(key, modifiers)
+    this.ctrl = ctrl
+    this.meta = meta
+    this.alt = alt
+    this.shift = shift
   }
 
   /** True when any of Ctrl / Meta / Alt is part of the chord -- such chords fire inside editable fields. */
@@ -89,17 +70,59 @@ export class Chord {
     return undefined
   }
 
-  /** Lowercase `key` and resolve aliases (`Esc` -> `escape`, `Space` -> `" "`). */
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * Parse `text` like `"Mod+Shift+K"`.
+   * - STATIC:  the factory, called before there's a chord to call it on.
+   * - `isApple` decides what `Mod` means;  defaults to sniffing `navigator` (the runtime passes `UI.browser.isApple`).
+   * - Throws a `SyntaxError` on an unknown modifier or a missing key, so a typo in a shortcut fails at registration,
+   *   not silently never firing.
+   */
+  static parse(text: string, { isApple = Browser.isApplePlatform() }: { isApple?: boolean } = {}): Chord {
+    const parts = text.endsWith("++") ? [...text.slice(0, -2).split("+"), "+"] : text.split("+")
+    const key = parts.pop()?.trim()
+    if (!key) throw new SyntaxError(`Chord.parse():  no key in ${JSON.stringify(text)};  end it with one, e.g. "Mod+K"`)
+    const modifiers = { ctrl: false, meta: false, alt: false, shift: false }
+    for (const part of parts) {
+      const modifier = MODIFIER_ALIASES[part.trim().toLowerCase()]
+      if (!modifier) {
+        throw new SyntaxError(
+          `Chord.parse():  unknown modifier ${JSON.stringify(part)} in ${JSON.stringify(text)};  ` +
+            `use Mod, Ctrl, Meta, Alt or Shift`
+        )
+      }
+      if (modifier === "mod") modifiers[isApple ? "meta" : "ctrl"] = true
+      else modifiers[modifier] = true
+    }
+    return new Chord({ key, ...modifiers })
+  }
+
+  /**
+   * Lowercase `key` and resolve aliases (`Esc` -> `escape`, `Space` -> `" "`).
+   * - STATIC:  pure, and the constructor needs it before the fields it would read exist.
+   */
   private static normalizeKey(key: string): string {
     if (key === " ") return key
     const lower = key.toLowerCase()
     return KEY_ALIASES[lower] ?? lower
   }
+}
 
-  /** Sniff Apple platforms when the caller didn't say. */
-  private static defaultApple(): boolean {
-    return typeof navigator !== "undefined" && APPLE_PLATFORM.test(navigator.platform || navigator.userAgent)
-  }
+/** Constructor props for `Chord`:  the key, and which modifiers must be down (default none). */
+export type ChordProps = {
+  /** any `KeyboardEvent.key`, or an alias (`Esc`, `Space` ...);  normalized by the constructor */
+  key: string
+  /** Ctrl must be down */
+  ctrl?: boolean
+  /** Meta (Cmd / Windows key) must be down */
+  meta?: boolean
+  /** Alt (Option) must be down */
+  alt?: boolean
+  /** Shift must be down */
+  shift?: boolean
 }
 
 /** Modifier words accepted by `Chord.parse()`, lowercased -> canonical. */

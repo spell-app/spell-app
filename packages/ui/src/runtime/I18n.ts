@@ -1,23 +1,32 @@
-import { EN_STRINGS, type I18nKey, type I18nParams, type StringPack, type TemporalAPI } from "./runtime.types"
+import {
+  EN_STRINGS,
+  type I18nKey,
+  type I18nParams,
+  type NameStyle,
+  type StringPack,
+  type TemporalAPI
+} from "./runtime.types"
 import type { Browser } from "./Browser"
 
-/**
+/****************
+ * ### `I18n`
  * Text strings and locale-aware formatting, as `UI.i18n`.
+ * - In the runtime's lazy chunk;  `temporal-polyfill` is a lazy chunk of its own (`./TemporalPolyfill`).
  * - Strings:  packs per locale (`register("de", {...})`);  `t(key)` looks up the exact locale (`pt-BR`),
  *   then its language (`pt`), then `en`, then the English DEFAULTS, then returns the key itself -- a missing
  *   string is visible, not blank.
- * - SCOPED strings:  `t(key, params, scope)` with a component's canonical tag (`ui-table`), as `UIElement.text()`
+ * - SCOPED strings:  `t(key, params, scope)` with a component's canonical tag (`ui-table`), as `UIComponent.text()`
  *   calls it.  Per locale it tries that component's strings (`register("es", {...}, "ui-table")`), then the
  *   shared ones (`register("es", {...})`):  a shared translation covers every component using the key, a scoped
  *   one overrides it for one component.  Why:  two families may share a key (`label`) with different text.
  * - DEFAULTS are the English source texts, below every registered string:  `EN_STRINGS` and each component's
- *   vocabulary texts (`registerDefaults()`, by `UIElement.define()`).  A component's own default beats another
+ *   vocabulary texts (`registerDefaults()`, by `UIComponent.define()`).  A component's own default beats another
  *   family's;  an unscoped `t(key)` gets the FIRST default registered for the key.
  * - Formatting via `Intl`, with formatters cached per locale + options (they're costly to build).
  * - Temporal:  `temporal` is the browser's own when `UI.browser.supports.temporal`, else `temporal-polyfill`'s
  *   once `loadTemporal()` has loaded it -- a dynamic import, so a lazy chunk only browsers without Temporal
  *   fetch, and NEVER installed on `globalThis`.
- */
+ ****************/
 export class I18n {
   /** BCP 47 locale for lookups and formatting;  default the browser's */
   locale: string
@@ -39,7 +48,7 @@ export class I18n {
   private readonly formatters = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat>()
 
   constructor({ locale, browser }: I18nProps = {}) {
-    this.locale = locale ?? (typeof navigator === "undefined" ? "en" : navigator.language) ?? "en"
+    this.locale = locale ?? globalThis.navigator?.language ?? ENGLISH
     this.browser = browser
   }
 
@@ -111,16 +120,15 @@ export class I18n {
    * Weekday names, Sunday first (index === `Date.getDay()`).
    * - Rotate by `firstDayOfWeek()` for calendar headers.
    */
-  weekdays(style: "long" | "short" | "narrow" = "long", locale = this.locale): string[] {
+  weekdays(style: NameStyle = "long", locale = this.locale): string[] {
     const format = this.dateFormat({ weekday: style, timeZone: "UTC" }, locale)
-    // 2023-01-01 was a Sunday
-    return Array.from({ length: 7 }, (_, day) => format.format(Date.UTC(2023, 0, 1 + day)))
+    return Array.from({ length: 7 }, (_, day) => format.format(Date.UTC(SUNDAY_YEAR, 0, 1 + day)))
   }
 
   /** Month names, January first (index === `Date.getMonth()`). */
-  months(style: "long" | "short" | "narrow" = "long", locale = this.locale): string[] {
+  months(style: NameStyle = "long", locale = this.locale): string[] {
     const format = this.dateFormat({ month: style, timeZone: "UTC" }, locale)
-    return Array.from({ length: 12 }, (_, month) => format.format(Date.UTC(2023, month, 1)))
+    return Array.from({ length: 12 }, (_, month) => format.format(Date.UTC(SUNDAY_YEAR, month, 1)))
   }
 
   /**
@@ -129,8 +137,8 @@ export class I18n {
    */
   firstDayOfWeek(locale = this.locale): number {
     try {
-      const intl = new Intl.Locale(locale) as Intl.Locale & WeekInfoLocale
-      const info = intl.getWeekInfo?.() ?? intl.weekInfo
+      const localeInfo = new Intl.Locale(locale) as Intl.Locale & WeekInfoLocale
+      const info = localeInfo.getWeekInfo?.() ?? localeInfo.weekInfo
       return info ? info.firstDay % 7 : 0
     } catch {
       return 0
@@ -165,7 +173,7 @@ export class I18n {
   /** Localized name of a language / region / currency code via `Intl.DisplayNames`, e.g. `("region", "DE")`. */
   displayName(type: Intl.DisplayNamesType, code: string): string {
     try {
-      return new Intl.DisplayNames([this.locale, "en"], { type }).of(code) ?? code
+      return new Intl.DisplayNames([this.locale, ENGLISH], { type }).of(code) ?? code
     } catch {
       return code
     }
@@ -191,25 +199,37 @@ export class I18n {
   /** Locales to try, most specific first:  `pt-BR`, `pt`, `en`. */
   private chain(): string[] {
     const language = this.locale.split("-")[0] ?? this.locale
-    return [...new Set([this.locale, language, "en"])]
+    return [...new Set([this.locale, language, ENGLISH])]
   }
 
   /** Cached `Intl.DateTimeFormat`. */
   private dateFormat(options: Intl.DateTimeFormatOptions, locale = this.locale): Intl.DateTimeFormat {
-    const key = `date|${locale}|${JSON.stringify(options)}`
-    let format = this.formatters.get(key) as Intl.DateTimeFormat | undefined
-    if (!format) this.formatters.set(key, (format = new Intl.DateTimeFormat(locale, options)))
-    return format
+    return this.cachedFormat(Intl.DateTimeFormat, locale, options)
   }
 
   /** Cached `Intl.NumberFormat`. */
   private numberFormat(options: Intl.NumberFormatOptions): Intl.NumberFormat {
-    const key = `number|${this.locale}|${JSON.stringify(options)}`
-    let format = this.formatters.get(key) as Intl.NumberFormat | undefined
-    if (!format) this.formatters.set(key, (format = new Intl.NumberFormat(this.locale, options)))
+    return this.cachedFormat(Intl.NumberFormat, this.locale, options)
+  }
+
+  /** The `Format` for `locale` + `options`, built once (`Intl` formatters are costly to build). */
+  private cachedFormat<O, F extends Intl.DateTimeFormat | Intl.NumberFormat>(
+    Format: new (locale: string, options: O) => F,
+    locale: string,
+    options: O
+  ): F {
+    const key = `${Format.name}|${locale}|${JSON.stringify(options)}`
+    let format = this.formatters.get(key) as F | undefined
+    if (!format) this.formatters.set(key, (format = new Format(locale, options)))
     return format
   }
 }
+
+/** The locale every lookup ends at, and the last resort for the page's own. */
+const ENGLISH = "en"
+
+/** A year whose January 1st was a Sunday (2023), so day `n` of its January is weekday `n`. */
+const SUNDAY_YEAR = 2023
 
 /** Constructor props for `I18n`. */
 export type I18nProps = {

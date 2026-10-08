@@ -5,10 +5,11 @@ import { DesignColor, type Oklch } from "./DesignColor.ts"
 import type { SiteFoundationGroup } from "../src/docs-components/docs-components.types.ts"
 import type { DesignSkip, DesignTokenRow, DesignTokensFile, DesignTypeStyle, ThemedValue } from "./tools.types.ts"
 
-/**
+/****************
+ * ### `DesignTokens`
  * The design system's `tokens.json` (claude.ai's Design System format, LIST shape), from the `spell-brand` theme as
  * it ships:  every `:root` custom property of the foundation sheets, then `themes/classic.css`, then
- * `themes/spell-brand.css` (the order `ThemeSheets.apply("spell-brand")` stacks them), each resolved for a light and a
+ * `themes/spell-brand.css` (the order `UI.themes.apply("spell-brand")` stacks them), each resolved for a light and a
  * dark theme.
  * - Why `spell-brand`, not `spell`:  it's the brand (epic `claude-design`, P11):  the docs wear it, the design bundle
  *   applies it, and the `<ui-brand-*>` cards read its brand roles (`--spell-surface-warm` ...).
@@ -22,7 +23,7 @@ import type { DesignSkip, DesignTokenRow, DesignTokensFile, DesignTypeStyle, The
  *   leave the live elements alone.  Each row's `usage` names the property it mirrors.
  * - What can't be resolved (`currentColor`, an unknown function) is left out and listed in `skipped`, for the
  *   README's "Not synced" note.
- */
+ ****************/
 export class DesignTokens {
   /** `src/styles/`, absolute. */
   readonly stylesFolder: string
@@ -35,7 +36,7 @@ export class DesignTokens {
   /** export names that aren't `exportName()`'s:  a `--spell-*` brand role whose plain name a `--ui-*` token has */
   private readonly renamed = new Map<string, string>()
 
-  constructor(stylesFolder: string, foundation: readonly SiteFoundationGroup[]) {
+  constructor({ stylesFolder, foundation }: DesignTokensProps) {
     this.stylesFolder = stylesFolder
     this.foundation = foundation
     for (const sheet of SHEETS) {
@@ -170,10 +171,8 @@ export class DesignTokens {
   type(): DesignTokensFile["type"] {
     const base = parseFloat(this.values.get("--ui-font-size") ?? "16") || 16
     const ratio = (name: string, fallback: number) => parseFloat(this.values.get(name) ?? "") || fallback
-    const px = (multiple: number) => `${Math.round(base * multiple * 10) / 10}px`
     const lineHeight = ratio("--ui-line-height", 1.5)
     const headingLine = ratio("--ui-line-height-heading", 1.25)
-    const style = (name: string, fields: Omit<DesignTypeStyle, "name">): DesignTypeStyle => ({ name, ...fields })
     return {
       fonts: [],
       families: {
@@ -276,6 +275,16 @@ export class DesignTokens {
           ]
         }
       ]
+    }
+
+    /** `multiple` of the base font size, in px (one decimal). */
+    function px(multiple: number): string {
+      return `${Math.round(base * multiple * 10) / 10}px`
+    }
+
+    /** A text style named `name`. */
+    function style(name: string, fields: Omit<DesignTypeStyle, "name">): DesignTypeStyle {
+      return { name, ...fields }
     }
   }
 
@@ -499,11 +508,19 @@ export class DesignTokens {
   }
 }
 
+/** Constructor props of `DesignTokens`. */
+export type DesignTokensProps = {
+  /** `src/styles/`, absolute */
+  stylesFolder: string
+  /** foundation groups from the site data:  descriptions for `usage`, and the order rows appear in */
+  foundation: readonly SiteFoundationGroup[]
+}
+
 /** A theme of the export:  `light-dark()`'s first or second branch. */
 export type Theme = (typeof THEMES)[number]
 
 /** The two themes, light FIRST (the format reads a plain string, and anything missing, from the first). */
 const THEMES = ["light", "dark"] as const
 
-/** The sheets `ThemeSheets.apply("spell-brand")` stacks, in cascade order (later wins), relative to `src/styles/`. */
+/** The sheets `UI.themes.apply("spell-brand")` stacks, in cascade order (later wins), relative to `src/styles/`. */
 const SHEETS = ["tokens.css", "sizes.css", "colors.css", "themes/classic.css", "themes/spell-brand.css"] as const

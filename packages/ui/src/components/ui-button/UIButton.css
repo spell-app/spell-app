@@ -1,0 +1,946 @@
+/*
+ * The style sheet of `<ui-button>`, `<ui-buttons>` and `<ui-or>`:  a port of Fomantic's `button.less` +
+ * `button.variables`.
+ * - ONE sheet for all three elements, as Fomantic keeps groups and `or` in `button.less`.
+ *   Each adopts it after the foundation.
+ * - `<ui-dropdown>` adopts it too, BEFORE `UIDropdown.css`, for its `button` variant.
+ * - The shadow markup it expects (class grammar on semantic elements):
+ *   - `<ui-button>`:  `<button class="ui ... button" part="button">` (`<a>` when `href`),
+ *     holding `<span class="icon" part="icon"><slot name="icon">svg</slot></span>` and the default slot.
+ *     - NOTE:  `<slot>` breaks a CHILD (`>`) selector -- fallback content sits one level DEEPER,
+ *       as a descendant of `.icon`, not a direct child.  So the icon's sizing rule reads `.icon svg` (descendant,
+ *       reaches the fallback `<svg>` through the `<slot>`) plus `.icon ::slotted(svg)` /
+ *       `.icon ::slotted(ui-icon)` for a real slotted replacement -- NEVER `.icon > svg`.
+ *       `.icon` itself carries the token-driven box size (`1.18em` by default, `1em` for `circular`,
+ *       the labeled-icon block width ...);  the inner rule just fills that box (`width/height: 100%`).
+ *     - `animated`:  default slot in `<span class="visible content">`, icon slot in `<span class="hidden content">`
+ *     - `label`:  a `<div class="ui labeled button">` ROOT wrapping the `<button class="ui button">` and a
+ *       `<span class="ui basic label" part="label">`;  CSS orders the label first for `labeled="left"`
+ *     - `icon` class (as `ClassBuilder` `extra`) when there's an icon and no text;  `labeled` + icon =>
+ *       `labeled icon`
+ *     - `active` / `disabled` / `loading` / `toggle` are keyOnly attributes, so `ClassBuilder` emits them
+ *   - `<ui-buttons>`:  `<div class="ui ... buttons" role="group" part="group"><slot></slot></div>`
+ *   - `<ui-or>`:  `<span class="or" part="or" data-text="or">` -- `data-text` from the vocabulary text `or`
+ * - The `:state()`s the components must set (the DOM element's own layout can't come from inside):
+ *   - `:state(fluid)` -- the DOM element is block-level:  `fluid`, bare / `top` / `bottom` `attached`,
+ *     and groups with `width` (equal width) or `fluid`
+ *   - `:state(left-floated)` / `:state(right-floated)` -- mirrors `floated`
+ *   - `:state(or)` on `<ui-or>` -- so a group doesn't stretch its separators
+ *   - `:state(active)` / `:state(disabled)` / `:state(loading)` -- for PAGE styling only;
+ *     this sheet keys on the root's classes
+ * - Public tokens (`--ui-button-*`, the theming surface) are NEVER declared here:  the token block reads each
+ *   through a private alias, `--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`,
+ *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the DOM element,
+ *   `::part(button)` or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
+ * - Looks are TOKEN driven, so groups need no help from the elements:
+ *   - a type / variation class (`basic`, `inverted`, `tertiary`, `icon`, `labeled icon`, `compact`,
+ *     `circular`, `toggle`) declares private `--_button-*` tokens on `.button` OR `.buttons`;
+ *     buttons read them in front of the alias (`var(--_button-radius, var(--_ui-button-radius))`),
+ *     so `<div class="ui basic buttons">` makes its children basic by inheritance, through `<slot>` and into each
+ *     child's shadow
+ *     - why not write the alias:  every button box re-declares `--_ui-button-*` from the public token,
+ *       so a group's write would never reach its members
+ *     - values derived from a public token (`compact`'s ratio, tertiary's margin) read its alias,
+ *       so the page's base value flows through
+ *   - colours (`--ui-color*`) and sizes (`--ui-scale`) inherit the same way
+ *   - `.ui.buttons` sets position tokens on each child (light DOM `> *`, shadow `::slotted(*)`):
+ *     `--_ui-buttons-{ss,se,es,ee}` (corner factors 0 / 1), `--_ui-buttons-flex`, `--_ui-buttons-margin`,
+ *     `--_ui-buttons-divider` (a box-shadow drawing the separator line);  `UIInput.css` sets the corner ones too
+ *   - NEVER set `--_button-*` or `--_ui-*` from outside;  theme with `--ui-button-*`
+ * - NOTE: left out, on purpose:
+ *   - social buttons (`facebook`, `twitter` ...):  colour a button with `color` / `--ui-color` instead
+ *   - `wrapped` groups (a corner tweak for multi-row basic groups) and the stacked-border tricks of
+ *     basic / inverted groups (overlapping negative margins):  groups draw one border plus dividers instead
+ *   - pointing / tag / corner shapes of the `labeled` button's label -- they belong to `label.less`
+ *   - a child's OWN colour inside a basic / inverted / tertiary GROUP:  the group resolves those looks where
+ *     it declares them, so colour the group (Fomantic's docs only colour groups)
+ *   - RTL-aware animated buttons:  the slide runs left-to-right as in Fomantic
+ */
+
+@layer ui.components.button.types, ui.components.button.content, ui.components.button.variations, ui.components.button.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time:  `stackable` groups. */
+@import "../../styles/media.css";
+
+/* Loader spin, shared by `loading` buttons. */
+@keyframes ui-button-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/*******************************
+             Types
+*******************************/
+
+@layer ui.components.button.types {
+  /* The DOM element:  layout only;  the look lives on the semantic root inside. */
+  :host {
+    display: inline-flex;
+    vertical-align: baseline;
+  }
+  :host(:state(fluid)) {
+    display: flex;
+  }
+  :host(:state(left-floated)) {
+    float: left;
+  }
+  :host(:state(right-floated)) {
+    float: right;
+  }
+  /* The `hidden` attribute:  the DOM element's own `display` would beat the browser's `[hidden]` rule. */
+  :host([hidden]) {
+    display: none;
+  }
+  /* `delegatesFocus`:  the inner `<button>` draws the ring, never the DOM element. */
+  :host(:focus-visible) {
+    outline: none;
+  }
+
+  /*
+   * Tokens:  one per `button.variables` entry that still matters, from the global tokens --
+   * each the private alias of its public `--ui-button-*` token (never declare the public one:
+   * it would block inherited values).
+   * - Read each line as "X is the page's `--ui-button-X`, else the default":
+   *   `--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`.  The rules below read only the `--_` alias.
+   */
+  .ui.button,
+  .ui.buttons,
+  .or {
+    /* ## Box */
+    --_ui-button-padding-block: var(--ui-button-padding-block, var(--ui-space-s));
+    --_ui-button-padding-inline: var(--ui-button-padding-inline, var(--ui-space-l));
+    --_ui-button-margin-inline: var(--ui-button-margin-inline, var(--ui-space-2xs));
+    --_ui-button-radius: var(--ui-button-radius, var(--ui-radius));
+    /* ## Type */
+    --_ui-button-font-family: var(--ui-button-font-family, var(--ui-font-family));
+    --_ui-button-font-size: var(--ui-button-font-size, var(--ui-font-size));
+    --_ui-button-font-weight: var(--ui-button-font-weight, var(--ui-font-weight-semibold));
+    --_ui-button-line-height: var(--ui-button-line-height, 1);
+    /* ## Colours:  rest, hover, down (pressed), active (on) */
+    --_ui-button-background: var(--ui-button-background, oklch(from var(--ui-ink) l c h / 0.08));
+    --_ui-button-background-hover: var(--ui-button-background-hover, oklch(from var(--ui-ink) l c h / 0.13));
+    --_ui-button-background-down: var(--ui-button-background-down, oklch(from var(--ui-ink) l c h / 0.18));
+    --_ui-button-background-active: var(--ui-button-background-active, oklch(from var(--ui-ink) l c h / 0.16));
+    --_ui-button-color: var(--ui-button-color, var(--ui-text-muted));
+    --_ui-button-color-hover: var(--ui-button-color-hover, var(--ui-text-hovered));
+    --_ui-button-color-down: var(--ui-button-color-down, var(--ui-text-pressed));
+    --_ui-button-color-active: var(--ui-button-color-active, var(--ui-text-selected));
+    /* ## Motion and the icon */
+    --_ui-button-duration: var(--ui-button-duration, var(--ui-duration-fast));
+    --_ui-button-icon-opacity: var(--ui-button-icon-opacity, 0.8);
+    --_ui-button-icon-spacing: var(--ui-button-icon-spacing, var(--ui-space-xs));
+    /* ## Variations */
+    --_ui-button-basic-border-width: var(--ui-button-basic-border-width, var(--ui-border-width));
+    --_ui-button-basic-background-hover: var(--ui-button-basic-background-hover, var(--ui-surface));
+    --_ui-button-basic-background-down: var(--ui-button-basic-background-down, var(--ui-surface-muted));
+    --_ui-button-basic-background-active: var(
+      --ui-button-basic-background-active,
+      oklch(from var(--ui-ink) l c h / 0.05)
+    );
+    --_ui-button-inverted-border-width: var(--ui-button-inverted-border-width, 2px);
+    --_ui-button-tertiary-padding: var(--ui-button-tertiary-padding, var(--ui-space-xs));
+    --_ui-button-tertiary-line: var(--ui-button-tertiary-line, 0.2em);
+    --_ui-button-labeled-icon-width: var(
+      --ui-button-labeled-icon-width,
+      calc(1em + 2 * var(--_ui-button-padding-block))
+    );
+    --_ui-button-labeled-icon-background: var(
+      --ui-button-labeled-icon-background,
+      oklch(from var(--ui-shadow-ink) l c h / 0.06)
+    );
+    --_ui-button-compact-ratio: var(--ui-button-compact-ratio, 0.75);
+    --_ui-button-circular-min-width: var(--ui-button-circular-min-width, 2.5em);
+    --_ui-button-attached-padding-inline: var(--ui-button-attached-padding-inline, var(--ui-space-s));
+    --_ui-button-floated-margin: var(--ui-button-floated-margin, var(--ui-space-2xs));
+    --_ui-button-spaced-margin: var(--ui-button-spaced-margin, var(--ui-space-m));
+    --_ui-button-toggle-background: var(--ui-button-toggle-background, var(--ui-positive));
+    --_ui-button-toggle-background-hover: var(--ui-button-toggle-background-hover, var(--ui-positive-hover));
+    --_ui-button-toggle-color: var(--ui-button-toggle-color, var(--ui-positive-on));
+    --_ui-button-disabled-opacity: var(--ui-button-disabled-opacity, var(--ui-disabled-opacity));
+    --_ui-button-animation-duration: var(--ui-button-animation-duration, var(--ui-duration-slow));
+    /* ## The loader (`loading`) */
+    --_ui-button-loader-size: var(--ui-button-loader-size, 1.25em);
+    --_ui-button-loader-width: var(--ui-button-loader-width, 0.2em);
+    --_ui-button-loader-speed: var(--ui-button-loader-speed, 0.6s);
+    /* ## `<ui-or>` */
+    --_ui-button-or-gap: var(--ui-button-or-gap, 0.3em);
+    --_ui-button-or-size: var(--ui-button-or-size, calc(1em + var(--_ui-button-padding-block)));
+    --_ui-button-or-background: var(--ui-button-or-background, var(--ui-surface));
+    --_ui-button-or-color: var(--ui-button-or-color, var(--ui-text-light));
+  }
+
+  /* Button */
+  .ui.button {
+    position: relative;
+    box-sizing: border-box;
+    display: inline-block;
+    flex: var(--_ui-buttons-flex, 0 1 auto);
+    min-width: var(--_button-min-width, auto);
+    min-height: 1em;
+    margin: var(--_ui-buttons-margin, var(--_button-margin, 0 var(--_ui-button-margin-inline) 0 0));
+    padding-block: calc(var(--_button-pad-block, var(--_ui-button-padding-block)) * var(--_button-density, 1));
+    padding-inline-start: calc(
+      var(--_button-pad-inline, var(--_ui-button-padding-inline)) * var(--_button-density, 1) +
+        var(--_button-pad-start, 0em)
+    );
+    padding-inline-end: calc(
+      var(--_button-pad-inline, var(--_ui-button-padding-inline)) * var(--_button-density, 1) +
+        var(--_button-pad-end, 0em)
+    );
+    overflow: var(--_button-overflow, visible);
+    border: none;
+    border-start-start-radius: calc(var(--_button-radius, var(--_ui-button-radius)) * var(--_ui-buttons-ss, 1));
+    border-start-end-radius: calc(var(--_button-radius, var(--_ui-button-radius)) * var(--_ui-buttons-se, 1));
+    border-end-start-radius: calc(var(--_button-radius, var(--_ui-button-radius)) * var(--_ui-buttons-es, 1));
+    border-end-end-radius: calc(var(--_button-radius, var(--_ui-button-radius)) * var(--_ui-buttons-ee, 1));
+    background-color: var(--_button-bg, var(--ui-color, var(--_ui-button-background)));
+    background-image: none;
+    color: var(--_button-fg, var(--ui-color-on, var(--_ui-button-color)));
+    box-shadow: var(--_button-edge, 0 0 #0000), var(--_ui-buttons-divider, 0 0 #0000);
+    font-family: var(--_ui-button-font-family);
+    font-size: calc(var(--_ui-button-font-size) * var(--ui-scale, 1));
+    font-style: normal;
+    font-weight: var(--_button-weight, var(--_ui-button-font-weight));
+    line-height: var(--_ui-button-line-height);
+    text-align: center;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: none;
+    vertical-align: baseline;
+    cursor: pointer;
+    user-select: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    transition-property: opacity, background-color, color, box-shadow;
+    transition-duration: var(--_ui-button-duration);
+    transition-timing-function: var(--ui-ease);
+  }
+
+  /* Basic:  transparent, a hairline ring, normal weight. */
+  .ui.basic:is(.button, .buttons) {
+    --_button-bg: transparent;
+    --_button-bg-hover: var(--_ui-button-basic-background-hover);
+    --_button-bg-down: var(--_ui-button-basic-background-down);
+    --_button-bg-active: var(--_ui-button-basic-background-active);
+    --_button-fg: var(--ui-color-text, var(--_ui-button-color));
+    --_button-fg-hover: var(--ui-color-text, var(--_ui-button-color-hover));
+    --_button-fg-down: var(--ui-color-text, var(--_ui-button-color-down));
+    --_button-fg-active: var(--ui-color-text, var(--_ui-button-color-active));
+    --_button-weight: var(--ui-font-weight-normal);
+  }
+  .ui.basic.button {
+    --_button-edge: inset 0 0 0 var(--_ui-button-basic-border-width) var(--ui-color-border, var(--ui-border-color));
+    --_button-edge-hover: inset 0 0 0 var(--_ui-button-basic-border-width)
+      var(--ui-color-hover, var(--ui-border-color-selected));
+    --_button-edge-down: inset 0 0 0 var(--_ui-button-basic-border-width)
+      var(--ui-color-down, var(--ui-border-color-selected-strong));
+    --_button-edge-active: inset 0 0 0 var(--_ui-button-basic-border-width)
+      var(--ui-color-active, var(--ui-border-color-selected));
+  }
+
+  /* Tertiary:  text only, an underline on interaction. */
+  .ui.tertiary:is(.button, .buttons) {
+    --_button-bg: transparent;
+    --_button-bg-hover: transparent;
+    --_button-bg-down: transparent;
+    --_button-bg-active: transparent;
+    --_button-fg: var(--ui-color-text, var(--ui-text-color));
+    --_button-fg-hover: var(--ui-color-text, var(--ui-text-hovered));
+    --_button-fg-down: var(--ui-color-text, var(--ui-text-pressed));
+    --_button-fg-active: var(--ui-color-text, var(--ui-text-selected));
+    --_button-edge-hover: inset 0 calc(var(--_ui-button-tertiary-line) * -1) 0
+      var(--ui-color, color-mix(in oklab, currentColor 40%, transparent));
+    --_button-edge-active: inset 0 calc(var(--_ui-button-tertiary-line) * -1) 0 var(--ui-color-active, currentColor);
+    --_button-radius: 0px;
+    --_button-pad-block: var(--_ui-button-tertiary-padding);
+    --_button-pad-inline: var(--_ui-button-tertiary-padding);
+    --_button-margin: calc(var(--_ui-button-padding-block) - var(--_ui-button-tertiary-padding))
+      var(--_ui-button-margin-inline) calc(var(--_ui-button-padding-block) - var(--_ui-button-tertiary-padding)) 0;
+  }
+
+  /* Inverted:  for dark surfaces -- an outline that fills on interaction, in the `onDark` colour. */
+  .ui.inverted:is(.button, .buttons) {
+    --_button-inverted: var(--ui-color-inverted, var(--ui-ink-on-dark));
+    --_button-bg: transparent;
+    --_button-bg-hover: var(--_button-inverted);
+    --_button-bg-down: oklch(from var(--_button-inverted) calc(l - 0.08) c h);
+    --_button-bg-active: oklch(from var(--_button-inverted) calc(l - 0.04) c h);
+    --_button-fg: var(--ui-color-inverted, var(--ui-text-inverted-color));
+    --_button-fg-hover: var(--ui-color-inverted-on, var(--ui-ink-on-light));
+    --_button-edge: inset 0 0 0 var(--_ui-button-inverted-border-width) var(--_button-inverted);
+  }
+  .ui.basic.inverted:is(.button, .buttons) {
+    --_button-bg-hover: transparent;
+    --_button-bg-down: oklch(from var(--ui-ink-on-dark) l c h / 0.08);
+    --_button-bg-active: oklch(from var(--ui-ink-on-dark) l c h / 0.08);
+    --_button-fg: var(--ui-text-inverted-color);
+    --_button-fg-hover: var(--ui-color-inverted, var(--ui-text-inverted-hovered));
+    --_button-edge: inset 0 0 0 var(--_ui-button-inverted-border-width) oklch(from var(--ui-ink-on-dark) l c h / 0.5);
+    --_button-edge-hover: inset 0 0 0 var(--_ui-button-inverted-border-width) var(--_button-inverted);
+    --_button-edge-down: inset 0 0 0 var(--_ui-button-inverted-border-width)
+      oklch(from var(--_button-inverted) l c h / 0.9);
+    --_button-edge-active: inset 0 0 0 var(--_ui-button-inverted-border-width)
+      oklch(from var(--_button-inverted) l c h / 0.7);
+  }
+
+  /* Icon only:  square padding. */
+  .ui.icon:is(.button, .buttons) {
+    --_button-pad-inline: var(--_ui-button-padding-block);
+    --_button-icon-margin: 0;
+    --_button-icon-opacity: 0.9;
+    --_button-icon-align: top;
+  }
+
+  /* Labeled icon:  the icon sits in its own tinted block on the start (or `right labeled`:  end) side. */
+  .ui.labeled.icon:is(.button, .buttons) {
+    --_button-pad-inline: var(--_ui-button-padding-inline);
+    --_button-pad-start: var(--_ui-button-labeled-icon-width);
+    --_button-pad-end: 0em;
+    --_button-overflow: hidden;
+    --_button-icon-position: absolute;
+    --_button-icon-start: 0;
+    --_button-icon-end: auto;
+    --_button-icon-width: var(--_ui-button-labeled-icon-width);
+    --_button-icon-height: 100%;
+    --_button-icon-pad: calc(var(--_ui-button-padding-block) * var(--_button-density, 1));
+    --_button-icon-bg: var(--_ui-button-labeled-icon-background);
+  }
+  .ui[class*="right labeled"].icon:is(.button, .buttons) {
+    --_button-pad-start: 0em;
+    --_button-pad-end: var(--_ui-button-labeled-icon-width);
+    --_button-icon-start: auto;
+    --_button-icon-end: 0;
+  }
+
+  /* Labeled (with a label):  the root is a transparent wrapper around a button and a label. */
+  .ui.labeled.button:not(.icon) {
+    display: inline-flex;
+    flex-direction: row;
+    padding: 0;
+    cursor: default;
+  }
+  .ui.labeled.button > .button {
+    margin: 0;
+  }
+  .ui.labeled.button:not([class*="left labeled"]) > .button {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+  .ui[class*="left labeled"].button > .button {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+
+  /* Animated:  hidden content slides (or fades) in over the visible content on hover / focus. */
+  .ui.animated.button {
+    --_button-pad-inline: var(--_ui-button-padding-inline);
+    overflow: hidden;
+    padding-inline-end: 0;
+    vertical-align: middle;
+    z-index: 1;
+  }
+  .ui.animated.button > .content {
+    display: block;
+    will-change: transform, opacity;
+  }
+  .ui.animated.button > .visible.content {
+    position: relative;
+    margin-inline-end: var(--_ui-button-padding-inline);
+  }
+  .ui.animated.button > .hidden.content {
+    position: absolute;
+    width: 100%;
+  }
+  .ui.animated.button > :is(.visible, .hidden).content {
+    transition: right var(--_ui-button-animation-duration) var(--ui-ease) 0s;
+  }
+  .ui.animated.button > .visible.content {
+    left: auto;
+    right: 0;
+  }
+  .ui.animated.button > .hidden.content {
+    top: 50%;
+    left: auto;
+    right: -100%;
+    margin-top: -0.5em;
+  }
+  .ui.vertical.animated.button > :is(.visible, .hidden).content {
+    transition:
+      top var(--_ui-button-animation-duration) var(--ui-ease),
+      transform var(--_ui-button-animation-duration) var(--ui-ease);
+  }
+  .ui.vertical.animated.button > .visible.content {
+    right: auto;
+    transform: translateY(0);
+  }
+  .ui.vertical.animated.button > .hidden.content {
+    top: -50%;
+    left: 0;
+    right: auto;
+  }
+  .ui.fade.animated.button > :is(.visible, .hidden).content {
+    transition:
+      opacity var(--_ui-button-animation-duration) var(--ui-ease),
+      transform var(--_ui-button-animation-duration) var(--ui-ease);
+  }
+  .ui.fade.animated.button > .visible.content {
+    left: auto;
+    right: auto;
+    opacity: 1;
+    transform: scale(1);
+  }
+  .ui.fade.animated.button > .hidden.content {
+    left: 0;
+    right: auto;
+    opacity: 0;
+    transform: scale(1.5);
+  }
+
+  /*******************************
+              Groups
+  *******************************/
+
+  .ui.buttons {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex-direction: row;
+    margin: 0 var(--_ui-button-margin-inline) 0 0;
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    vertical-align: baseline;
+  }
+
+  /* Every child:  square corners, no gap.  Light-DOM children are the buttons;  slotted ones are `<ui-button>`s. */
+  .ui.buttons > *,
+  .ui.buttons > ::slotted(*) {
+    --_ui-buttons-margin: 0;
+    --_ui-buttons-ss: 0;
+    --_ui-buttons-se: 0;
+    --_ui-buttons-es: 0;
+    --_ui-buttons-ee: 0;
+  }
+  /* Buttons (not `or`s) share the free space. */
+  .ui.buttons > :not(.or),
+  .ui.buttons > ::slotted(:not(:state(or))) {
+    --_ui-buttons-flex: 1 0 auto;
+    flex: 1 0 auto;
+  }
+  /* Outer corners stay round. */
+  .ui.buttons > :first-child,
+  .ui.buttons > ::slotted(:first-child) {
+    --_ui-buttons-ss: 1;
+    --_ui-buttons-es: 1;
+  }
+  .ui.buttons > :last-child,
+  .ui.buttons > ::slotted(:last-child) {
+    --_ui-buttons-se: 1;
+    --_ui-buttons-ee: 1;
+  }
+
+  /* Or:  a round "or" badge between two buttons. */
+  .or {
+    position: relative;
+    flex: none;
+    box-sizing: border-box;
+    width: var(--_ui-button-or-gap);
+    height: calc(1em + 2 * var(--_ui-button-padding-block));
+    z-index: 3;
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+  }
+  .or::before {
+    content: "or";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--_ui-button-or-size);
+    height: var(--_ui-button-or-size);
+    margin: calc(var(--_ui-button-or-size) / -2) 0 0 calc(var(--_ui-button-or-size) / -2);
+    border-radius: var(--ui-radius-circle);
+    background-color: var(--_ui-button-or-background);
+    color: var(--_ui-button-or-color);
+    font-style: normal;
+    font-weight: var(--ui-font-weight-bold);
+    line-height: var(--_ui-button-or-size);
+    text-align: center;
+    text-shadow: none;
+  }
+  .or[data-text]::before {
+    content: attr(data-text);
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.button.content {
+  /* Icon:  a glyph box;  an `<svg>` (or a wrapper around one) fills it with `currentColor`. */
+  .ui.button > .icon:not(.button),
+  .ui.button > .content > .icon {
+    position: var(--_button-icon-position, static);
+    top: 0;
+    bottom: 0;
+    inset-inline-start: var(--_button-icon-start, auto);
+    inset-inline-end: var(--_button-icon-end, auto);
+    box-sizing: border-box;
+    display: inline-block;
+    width: var(--_button-icon-width, 1.18em);
+    height: var(--_button-icon-height, 1em);
+    margin-block: 0;
+    margin-inline: var(--_button-icon-margin, calc(var(--_ui-button-icon-spacing) / -2) var(--_ui-button-icon-spacing));
+    padding-block: var(--_button-icon-pad, 0);
+    background: var(--_button-icon-bg, none);
+    fill: currentColor;
+    opacity: var(--_button-icon-opacity, var(--_ui-button-icon-opacity));
+    vertical-align: var(--_button-icon-align, -0.125em);
+    transition: opacity var(--_ui-button-duration) var(--ui-ease);
+  }
+  .ui.button:not(.icon) > .right.icon {
+    margin-inline: var(--_ui-button-icon-spacing) calc(var(--_ui-button-icon-spacing) / -2);
+  }
+  .ui.button .icon svg,
+  .ui.button .icon ::slotted(svg),
+  .ui.button .icon ::slotted(ui-icon) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+  }
+  .ui.animated.button > .content > .icon {
+    position: static;
+    margin: 0;
+    vertical-align: top;
+  }
+
+  /* Label of a `labeled` button:  a basic label joined to the button's edge. */
+  .ui.labeled.button > .label {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    margin: 0;
+    margin-inline-start: calc(var(--ui-border-width) * -1);
+    padding: 0 var(--ui-space-m);
+    border: var(--ui-border-width) solid var(--ui-color-border, var(--ui-border-color));
+    border-radius: 0 var(--_ui-button-radius) var(--_ui-button-radius) 0;
+    background-color: var(--ui-surface);
+    color: var(--ui-color-text, var(--ui-text-color));
+    font-size: 1em;
+    font-weight: var(--_ui-button-font-weight);
+    line-height: 1;
+    text-decoration: none;
+  }
+  .ui.labeled.button > .label:not(.basic) {
+    border-color: transparent;
+    background-color: var(--ui-color, var(--_ui-button-background));
+    color: var(--ui-color-on, var(--_ui-button-color));
+  }
+  .ui[class*="left labeled"].button > .label {
+    order: -1;
+    margin-inline: 0 calc(var(--ui-border-width) * -1);
+    border-radius: var(--_ui-button-radius) 0 0 var(--_ui-button-radius);
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.button.variations {
+  /* Compact:  three quarters of the padding. */
+  .ui.compact:is(.button, .buttons) {
+    --_button-density: var(--_ui-button-compact-ratio);
+  }
+
+  /* Circular:  pill shaped, never narrower than it is tall. */
+  .ui.circular:is(.button, .buttons) {
+    --_button-radius: var(--ui-radius-pill);
+    --_button-min-width: var(--_ui-button-circular-min-width);
+    --_button-icon-width: 1em;
+  }
+
+  /* Toggle:  `active` means "on", in the positive colour. */
+  .ui.toggle:is(.button, .buttons) {
+    --_button-bg-active: var(--_ui-button-toggle-background);
+    --_button-bg-active-hover: var(--_ui-button-toggle-background-hover);
+    --_button-fg-active: var(--_ui-button-toggle-color);
+    --_button-edge-active: 0 0 #0000;
+  }
+
+  /* Fluid:  full width. */
+  .ui.fluid.button {
+    display: block;
+    width: 100%;
+  }
+  .ui.fluid.buttons {
+    display: flex;
+    width: 100%;
+  }
+  .ui.fluid.buttons > .or,
+  .ui.fluid.buttons > ::slotted(:state(or)) {
+    width: 0;
+  }
+
+  /* Floated */
+  .ui[class*="left floated"]:is(.button, .buttons) {
+    float: left;
+    margin-left: 0;
+    margin-right: var(--_ui-button-floated-margin);
+  }
+  .ui[class*="right floated"]:is(.button, .buttons) {
+    float: right;
+    margin-left: var(--_ui-button-floated-margin);
+    margin-right: 0;
+  }
+
+  /* Attached:  a single button joined to the edge of a segment (or another attached element). */
+  .ui.attached.button {
+    --_button-edge: 0 0 0 var(--ui-border-width) var(--ui-border-color);
+    display: block;
+    margin: 0;
+    border-radius: 0;
+  }
+  .ui.top.attached.button {
+    border-start-start-radius: var(--_ui-button-radius);
+    border-start-end-radius: var(--_ui-button-radius);
+  }
+  .ui.bottom.attached.button {
+    border-end-start-radius: var(--_ui-button-radius);
+    border-end-end-radius: var(--_ui-button-radius);
+  }
+  .ui.left.attached.button {
+    display: inline-block;
+    padding-inline-end: var(--_ui-button-attached-padding-inline);
+    border-start-start-radius: var(--_ui-button-radius);
+    border-end-start-radius: var(--_ui-button-radius);
+    text-align: end;
+  }
+  .ui.right.attached.button {
+    display: inline-block;
+    padding-inline-start: var(--_ui-button-attached-padding-inline);
+    border-start-end-radius: var(--_ui-button-radius);
+    border-end-end-radius: var(--_ui-button-radius);
+    text-align: start;
+  }
+
+  /* Vertical group */
+  .ui.vertical.buttons {
+    display: inline-flex;
+    flex-direction: column;
+  }
+  .ui.vertical.buttons > *,
+  .ui.vertical.buttons > ::slotted(*) {
+    --_ui-buttons-ss: 0;
+    --_ui-buttons-se: 0;
+    --_ui-buttons-es: 0;
+    --_ui-buttons-ee: 0;
+  }
+  .ui.vertical.buttons > :first-child,
+  .ui.vertical.buttons > ::slotted(:first-child) {
+    --_ui-buttons-ss: 1;
+    --_ui-buttons-se: 1;
+  }
+  .ui.vertical.buttons > :last-child,
+  .ui.vertical.buttons > ::slotted(:last-child) {
+    --_ui-buttons-es: 1;
+    --_ui-buttons-ee: 1;
+  }
+  .ui.vertical.buttons > .button {
+    display: block;
+  }
+
+  /* Equal width:  `width="3"` => `three buttons`, `width="equal"` => `equal width buttons`. */
+  .ui.buttons:is(.two, .three, .four, .five, .six, .seven, .eight, .nine, .ten, .eleven, .twelve, .equal.width) {
+    width: 100%;
+  }
+  .ui.buttons:is(.two, .three, .four, .five, .six, .seven, .eight, .nine, .ten, .eleven, .twelve, .equal.width)
+    > :not(.or),
+  .ui.buttons:is(.two, .three, .four, .five, .six, .seven, .eight, .nine, .ten, .eleven, .twelve, .equal.width)
+    > ::slotted(:not(:state(or))) {
+    --_ui-buttons-flex: 1 1 0%;
+    flex: 1 1 0%;
+  }
+
+  /*
+   * Equal (`equal`, no count):  every child as wide as the widest -- a grid of equal columns, so the group hugs them;
+   * with `fluid`, an equal share of the row each (as `width`, whose `equal width` is left out here).
+   * - NOTE: a packed group's `<ui-or>` takes a column of its own:  use `fluid` (or `width`) with `or`s
+   */
+  .ui.equal.buttons:not(.width, .fluid, .vertical) {
+    display: inline-grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+  }
+  .ui.equal.fluid.buttons:not(.width, .vertical) > :not(.or),
+  .ui.equal.fluid.buttons:not(.width, .vertical) > ::slotted(:not(:state(or))) {
+    --_ui-buttons-flex: 1 1 0%;
+    flex: 1 1 0%;
+  }
+
+  /* Basic group:  one outer border, hairline dividers between children. */
+  .ui.basic.buttons {
+    border: var(--_ui-button-basic-border-width) solid var(--ui-color-border, var(--ui-border-color));
+    border-radius: var(--_ui-button-radius);
+  }
+  .ui.basic.buttons > :not(:first-child),
+  .ui.basic.buttons > ::slotted(:not(:first-child)) {
+    --_ui-buttons-divider: inset var(--_ui-button-basic-border-width) 0 0 0
+      var(--ui-color-border, var(--ui-border-color));
+  }
+  .ui.basic.vertical.buttons > :not(:first-child),
+  .ui.basic.vertical.buttons > ::slotted(:not(:first-child)) {
+    --_ui-buttons-divider: inset 0 var(--_ui-button-basic-border-width) 0 0
+      var(--ui-color-border, var(--ui-border-color));
+  }
+
+  /* Inverted group:  neighbouring outlines overlap instead of doubling. */
+  .ui.inverted.buttons:not(.basic) > :not(:first-child),
+  .ui.inverted.buttons:not(.basic) > ::slotted(:not(:first-child)) {
+    --_ui-buttons-margin: 0 0 0 calc(var(--_ui-button-inverted-border-width) * -1);
+  }
+  .ui.inverted.vertical.buttons:not(.basic) > :not(:first-child),
+  .ui.inverted.vertical.buttons:not(.basic) > ::slotted(:not(:first-child)) {
+    --_ui-buttons-margin: calc(var(--_ui-button-inverted-border-width) * -1) 0 0 0;
+  }
+
+  /* Circular / spaced groups:  separate round buttons. */
+  .ui.circular.buttons > *,
+  .ui.circular.buttons > ::slotted(*) {
+    --_ui-buttons-ss: 1;
+    --_ui-buttons-se: 1;
+    --_ui-buttons-es: 1;
+    --_ui-buttons-ee: 1;
+    --_ui-buttons-margin: 0 var(--_ui-button-margin-inline) 0 0;
+  }
+  .ui.circular.vertical.buttons > *,
+  .ui.circular.vertical.buttons > ::slotted(*) {
+    --_ui-buttons-margin: 0 0 var(--_ui-button-margin-inline) 0;
+  }
+  .ui.spaced.buttons > *,
+  .ui.spaced.buttons > ::slotted(*) {
+    --_ui-buttons-ss: 1;
+    --_ui-buttons-se: 1;
+    --_ui-buttons-es: 1;
+    --_ui-buttons-ee: 1;
+    --_ui-buttons-margin: 0 var(--_ui-button-spaced-margin) var(--_ui-button-spaced-margin) 0;
+  }
+
+  /* Wrapping:  children wrap onto more rows. */
+  .ui.wrapping.buttons {
+    flex-wrap: wrap;
+  }
+  .ui.compact.wrapping.buttons > :not(.or),
+  .ui.compact.wrapping.buttons > ::slotted(:not(:state(or))) {
+    --_ui-buttons-flex: none;
+    flex: none;
+  }
+
+  /* Attached group:  full width, joined to a segment's top or bottom edge. */
+  .ui.attached.buttons {
+    position: relative;
+    display: flex;
+    margin-inline: calc(var(--ui-border-width) * -1);
+    border-radius: 0;
+  }
+  .ui.attached.buttons > *,
+  .ui.attached.buttons > ::slotted(*) {
+    --_ui-buttons-ss: 0;
+    --_ui-buttons-se: 0;
+    --_ui-buttons-es: 0;
+    --_ui-buttons-ee: 0;
+  }
+  .ui[class*="top attached"].buttons > :first-child,
+  .ui[class*="top attached"].buttons > ::slotted(:first-child) {
+    --_ui-buttons-ss: 1;
+  }
+  .ui[class*="top attached"].buttons > :last-child,
+  .ui[class*="top attached"].buttons > ::slotted(:last-child) {
+    --_ui-buttons-se: 1;
+  }
+  .ui[class*="bottom attached"].buttons {
+    margin-top: calc(var(--ui-border-width) * -1);
+  }
+  .ui[class*="bottom attached"].buttons > :first-child,
+  .ui[class*="bottom attached"].buttons > ::slotted(:first-child) {
+    --_ui-buttons-es: 1;
+  }
+  .ui[class*="bottom attached"].buttons > :last-child,
+  .ui[class*="bottom attached"].buttons > ::slotted(:last-child) {
+    --_ui-buttons-ee: 1;
+  }
+  .ui[class*="left attached"].buttons,
+  .ui[class*="right attached"].buttons {
+    display: inline-flex;
+    margin-inline: 0;
+  }
+  .ui[class*="left attached"].buttons > :first-child,
+  .ui[class*="left attached"].buttons > ::slotted(:first-child) {
+    --_ui-buttons-se: 1;
+  }
+  .ui[class*="left attached"].buttons > :last-child,
+  .ui[class*="left attached"].buttons > ::slotted(:last-child) {
+    --_ui-buttons-ee: 1;
+  }
+  .ui[class*="right attached"].buttons > :first-child,
+  .ui[class*="right attached"].buttons > ::slotted(:first-child) {
+    --_ui-buttons-ss: 1;
+  }
+  .ui[class*="right attached"].buttons > :last-child,
+  .ui[class*="right attached"].buttons > ::slotted(:last-child) {
+    --_ui-buttons-es: 1;
+  }
+
+  /* Stackable:  horizontal groups stack on mobile. */
+  @media (--ui-mobile) {
+    .ui.stackable.buttons {
+      flex-direction: column;
+    }
+    .ui.stackable.buttons > *,
+    .ui.stackable.buttons > ::slotted(*) {
+      --_ui-buttons-ss: 0;
+      --_ui-buttons-se: 0;
+      --_ui-buttons-es: 0;
+      --_ui-buttons-ee: 0;
+    }
+    .ui.stackable.buttons > :first-child,
+    .ui.stackable.buttons > ::slotted(:first-child) {
+      --_ui-buttons-ss: 1;
+      --_ui-buttons-se: 1;
+    }
+    .ui.stackable.buttons > :last-child,
+    .ui.stackable.buttons > ::slotted(:last-child) {
+      --_ui-buttons-es: 1;
+      --_ui-buttons-ee: 1;
+    }
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.button.states {
+  /* Hover */
+  .ui.button:hover {
+    background-color: var(--_button-bg-hover, var(--ui-color-hover, var(--_ui-button-background-hover)));
+    color: var(--_button-fg-hover, var(--ui-color-on, var(--_ui-button-color-hover)));
+    box-shadow: var(--_button-edge-hover, var(--_button-edge, 0 0 #0000)), var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  .ui.button:is(:hover, :focus-visible) > .icon:not(.button) {
+    opacity: var(--_button-icon-opacity, 0.85);
+  }
+
+  /* Focus:  the ring comes from `reset.css`;  the fill mirrors hover. */
+  .ui.button:focus-visible {
+    background-color: var(
+      --_button-bg-focus,
+      var(--_button-bg-hover, var(--ui-color-focus, var(--_ui-button-background-hover)))
+    );
+    color: var(--_button-fg-hover, var(--ui-color-on, var(--_ui-button-color-hover)));
+    box-shadow:
+      var(--_button-edge-focus, var(--_button-edge-hover, var(--_button-edge, 0 0 #0000))),
+      var(--_ui-buttons-divider, 0 0 #0000);
+  }
+
+  /* Down (pressed) */
+  .ui.button:active {
+    background-color: var(--_button-bg-down, var(--ui-color-down, var(--_ui-button-background-down)));
+    color: var(--_button-fg-down, var(--_button-fg-hover, var(--ui-color-on, var(--_ui-button-color-down))));
+    box-shadow:
+      var(--_button-edge-down, var(--_button-edge-hover, var(--_button-edge, 0 0 #0000))),
+      var(--_ui-buttons-divider, 0 0 #0000);
+  }
+
+  /* Active (on) */
+  .ui.active.button {
+    background-color: var(--_button-bg-active, var(--ui-color-active, var(--_ui-button-background-active)));
+    color: var(--_button-fg-active, var(--_button-fg-hover, var(--ui-color-on, var(--_ui-button-color-active))));
+    box-shadow: var(--_button-edge-active, var(--_button-edge, 0 0 #0000)), var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  .ui.active.button:hover {
+    background-color: var(
+      --_button-bg-active-hover,
+      var(--_button-bg-active, var(--ui-color-active, var(--_ui-button-background-active)))
+    );
+  }
+  .ui.active.button:active {
+    background-color: var(--_button-bg-active, var(--ui-color-active, var(--_ui-button-background-active)));
+  }
+
+  /* Animated:  swap the contents. */
+  .ui.animated.button:is(:hover, :focus-visible) > .visible.content {
+    left: auto;
+    right: 200%;
+  }
+  .ui.animated.button:is(:hover, :focus-visible) > .hidden.content {
+    left: auto;
+    right: 0;
+  }
+  .ui.vertical.animated.button:is(:hover, :focus-visible) > .visible.content {
+    right: auto;
+    transform: translateY(200%);
+  }
+  .ui.vertical.animated.button:is(:hover, :focus-visible) > .hidden.content {
+    top: 50%;
+    right: auto;
+  }
+  .ui.fade.animated.button:is(:hover, :focus-visible) > .visible.content {
+    left: auto;
+    right: auto;
+    opacity: 0;
+    transform: scale(0.75);
+  }
+  .ui.fade.animated.button:is(:hover, :focus-visible) > .hidden.content {
+    left: 0;
+    right: auto;
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Labeled wrapper:  never paints, whatever the state -- its button and label do. */
+  .ui.labeled.button:not(.icon):is(*, :hover, :active, :focus-visible, .active) {
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  /* Loading:  text goes transparent, a spinner takes its place. */
+  .ui.loading.button:is(*, :hover, :active, :focus-visible, .active) {
+    color: transparent;
+    cursor: default;
+    transition:
+      all 0s linear,
+      opacity var(--_ui-button-duration) var(--ui-ease);
+  }
+  .ui.loading.button::before,
+  .ui.loading.button::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    box-sizing: border-box;
+    width: var(--_ui-button-loader-size);
+    height: var(--_ui-button-loader-size);
+    margin: calc(var(--_ui-button-loader-size) / -2) 0 0 calc(var(--_ui-button-loader-size) / -2);
+    border: var(--_ui-button-loader-width) solid transparent;
+    border-radius: var(--ui-radius-circle);
+  }
+  .ui.loading.button::before {
+    border-color: color-mix(in oklab, var(--_button-fg, var(--ui-color-on, var(--_ui-button-color))) 20%, transparent);
+  }
+  .ui.loading.button::after {
+    border-top-color: var(--_button-fg, var(--ui-color-on, var(--_ui-button-color)));
+    animation: ui-button-spin var(--_ui-button-loader-speed) linear infinite;
+  }
+  .ui.loading.button > :is(.icon, .label) {
+    visibility: hidden;
+  }
+
+  /* Disabled */
+  .ui.button:is(:disabled, .disabled):is(*, :hover, :active, .active) {
+    cursor: default;
+    opacity: var(--_ui-button-disabled-opacity);
+    background-image: none;
+    box-shadow: none;
+    pointer-events: none;
+  }
+}

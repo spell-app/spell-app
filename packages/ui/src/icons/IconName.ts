@@ -1,16 +1,18 @@
 // `.ts` extension:  node tooling loads this file directly (`tools/IconPackBuilder.ts`)
 import { ICON_PREFIX_SEPARATOR } from "./icons.types.ts"
 
-/**
+/****************
+ * ### `IconName`
  * Icon names:  ONE name per icon, lowercase words separated by single spaces (`address book outline`).
  * - Plain functions of strings, no DOM:  shared by the runtime (`UI.icons`) and the node pack builder, which
- *   imports this file by relative path.
+ *   imports this file by relative path.  So it imports nothing but `icons.types`.
+ * - STATIC and instance-free on purpose:  a name is a string, with nothing to hold.
  * - Within one pack, who gets a name (`IconName.claim()`):
  *   - an explicit `alias` beats a name derived from a file name
  *   - otherwise the FIRST entry to claim it keeps it
  *   - Why aliases win:  a hand-edit (or the Fomantic pack) must be able to take a word from a file name, e.g.
  *     alias `shield` on `solid/shield-halved` over the file `solid/shield`.
- */
+ ****************/
 export class IconName {
   /**
    * `name` as the one canonical spelling:  lowercase, dashes / underscores -> spaces, whitespace collapsed.
@@ -32,7 +34,9 @@ export class IconName {
   }
 
   /**
-   * `prefix:name` split, both normalized;  `prefix` is `undefined` without a separator.
+   * `prefix:name` split, both normalized.
+   * - `prefix`:  the pack id or prefix before the separator (`lucide`);  `undefined` without a separator
+   * - `name`:  the icon's name, normalized (`bell`)
    * - Only the FIRST separator splits, so a name itself never contains one.
    */
   static split(name: string): { prefix?: string; name: string } {

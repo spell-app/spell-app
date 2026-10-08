@@ -12,7 +12,7 @@
  * - Dark scheme:  Fomantic had none.  Fills are `light-dark()` pairs whose dark half is the surface / default
  *   recipe;  the ring is ink at an alpha in both.
  * - NOT ported:
- *   - `@iconMargin` / `@iconVerticalAlign: top`:  the icon box is sized and aligned by `ui-button.css`'s own tokens
+ *   - `@iconMargin` / `@iconVerticalAlign: top`:  the icon box is sized and aligned by `UIButton.css`'s own tokens
  *   - `@loadingBackgroundColor`, `@verticalBoxShadow`:  no box draws them here
  *   - the basic hover / down ring alphas (`@basicHoverBoxShadow` ...):  the basic ring keeps our selected-border
  *     colours, a near match

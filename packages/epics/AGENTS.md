@@ -21,8 +21,10 @@ house style every package shares.  Only what's local is below;  a section named 
 - Made by `spell dev pack new epics --prefix epic-`;  its tooling is the CLI's (`spell dev pack`,
   `packages/cli/src/dev/pack*.ts`), so every pack builds and checks the same way.
 - `components/<tag>/` (`$/epics/components`) -- one folder per element family, written exactly like a Spell UI
-  family (`packages/ui/AGENTS.md`, "Solid authoring"):  `<Class>.tsx`, `<tag>.vocabulary.en.ts` (topics + aka),
-  `<tag>.types.ts`, `<tag>.css`, `<tag>.fallback.ts`, `<tag>.test.tsx`, `index.ts` (defines its tags:  SIDE EFFECT).
+  family (`packages/ui/AGENTS.md`, "Overview" and "Solid authoring"), every file named for its COMPONENT:
+  `<Name>.tsx` (the component, on `E.UIComponent`), `<Name>.en.ts` (its tag's vocabulary:  topics + aka, skeleton
+  text), `<Name>.css`, `<Name>.test.tsx`, `<Name>.types.ts` (only what several of its files share), `index.ts`
+  (defines its tags:  SIDE EFFECT).  No native fallback:  only form controls have one.
   - A new one:  `spell dev pack element epics <tag>`, the tag starting `epic-`.
 - `src/` (`$/epics`, `EP`) -- code the elements and the node tools share, and `pack.test.ts`, which runs
   `spell dev pack check epics`:
@@ -53,7 +55,7 @@ house style every package shares.  Only what's local is below;  a section named 
     `define()` imports every family barrel
   - `epics.pack.js` -- the CLASSIC script (an IIFE) a page loads, minified;  Solid and Spell UI's shared
     modules (`solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`) are NOT in it:  it takes them from
-    `globalThis.SpellUI.packModules`, the docs bundle's, so a page has ONE Solid and one `UIElement`
+    `globalThis.SpellUI.packModules`, the docs bundle's, so a page has ONE Solid and one `UIComponent`
 
 ## Rules
 

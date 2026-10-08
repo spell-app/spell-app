@@ -1,0 +1,33 @@
+/*
+ * The style sheet of `<ui-brand-checklist>`:  `.checklist` (`part="list"`),
+ * a column of its slotted `<ui-brand-check>`s, then the hidden live region.
+ * - Public tokens (`--ui-brand-checklist-*`) are never declared here:  read where they paint, each with its SANS
+ *   default as the fallback (what the docs' Theming table shows);  `font="serif"` reads them again with its own.
+ *   - `-spacing`:  between lines (sans 12px, serif 10px)
+ *   - the checks' own (`-font-family`, `-font-size`, `-marker-size`, `-gap`, `-align`, colours):
+ *     see `UIBrandCheck.css`;  set on the list, they inherit
+ * - `font`:  each check without its own `font` asks the list's (`checkState()`) and switches to the serif defaults
+ *   itself (`.check.serif`).
+ */
+
+@layer ui.components.brand-checklist.types;
+
+@layer ui.components.brand-checklist.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* space between lines */
+    gap: var(--ui-brand-checklist-spacing, 12px);
+  }
+  :host([font="serif"]) > .checklist {
+    gap: var(--ui-brand-checklist-spacing, 10px);
+  }
+}

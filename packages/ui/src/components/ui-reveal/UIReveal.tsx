@@ -1,86 +1,110 @@
 import { onSettled } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, HostAttribute, proto, UIElement } from "$/ui/core"
+import { E } from "$/ui/core"
+import { revealVocabulary } from "./UIReveal.en"
 
-import { revealVocabulary } from "./ui-reveal.vocabulary.en"
-import { RevealFallback } from "./ui-reveal.fallback"
-
-import revealCSS from "./ui-reveal.css?inline"
-import { WATCHED, FOCUSABLE, VISIBLE, HIDDEN } from "./ui-reveal.types"
-import { ARIA_LABEL, GROUP } from "$/ui/components/components.types"
+import revealCSS from "./UIReveal.css?inline"
 
 /****************
- * ### `<ui-reveal>`
- * A reveal:  `<div class="ui … reveal" part="reveal">` holding `<div class="visible content" part="visible">`
+ * ### `UIReveal`
+ * The component behind `<ui-reveal>`:  content that gives way to other content on hover or focus.
+ * `<div class="ui … reveal" part="reveal">` holding `<div class="visible content" part="visible">`
  * (`slot=visible`, then the default slot) over `<div class="hidden content" part="hidden">` (`slot=hidden`).
- * - Revealed on hover, on `active`, and on FOCUS (`:focus-within`, `ui-reveal.css`):  the root is a tab stop
- *   (`tabindex=0`, `role=group`, named by the host's `aria-label`) unless the content holds a natively focusable
- *   element (a link, a button, a field, `[tabindex]`), whose own focus reveals it -- no second stop.
- *   - NOTE: a focusable CUSTOM element in the content (`<ui-button>`) isn't detected (its control renders later,
- *     in its own shadow root):  the reveal keeps its stop then.
+ *
+ * - Revealed on hover, on `active`, and on FOCUS (`:focus-within`, `UIReveal.css`).
+ *   - The root is a tab stop (`tabindex=0`, `role=group`, named by the DOM element's `aria-label`),
+ *     unless the content holds a natively focusable element (a link, a button, a field, `[tabindex]`),
+ *     whose own focus reveals it:  no second stop.
+ *   - NOTE: a focusable CUSTOM element in the content (`<ui-button>`) isn't detected
+ *     (its control draws later, in its own shadow root):  the reveal keeps its stop then.
  * - Both contents stay in the accessibility tree:  "hidden" is visual only (the hidden content is under the
  *   visible one), so assistive tech reads both, in order, at any time.
- * - `prefers-reduced-motion`:  the swap is instant (`ui-reveal.css`).
+ * - `prefers-reduced-motion`:  the swap is instant (`UIReveal.css`).
  ****************/
-export class UIReveal extends UIElement<typeof revealVocabulary> {
-  @proto static vocabulary = revealVocabulary
-  @proto static styles = { reveal: revealCSS }
-  @proto static Fallback = RevealFallback
+export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
+  @E.proto static vocabulary = revealVocabulary
+  @E.proto static styleSheets = { reveal: revealCSS }
 
-  /** The content (light DOM) has a natively focusable element of its own. */
-  readonly hasFocusable = new Cell(false)
-
-  /** Host `aria-label`, forwarded to the root while it is the tab stop. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
-
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     if (isServer) return
     // SIDE EFFECT:  watches the light DOM for focusable content, from the first settle on
     onSettled(() => {
       const observer = new MutationObserver(() => this.scanFocusable())
-      observer.observe(this.host, { childList: true, subtree: true, attributeFilter: WATCHED })
+      observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: WATCHED })
       this.scanFocusable()
       return () => observer.disconnect()
     })
   }
 
-  isDisabled(): boolean {
-    return this.attrs.disabled
-  }
+  ////////////////
+  // ## The tab stop
+  ////////////////
 
-  protected hostStates() {
-    return { active: this.attrs.active, disabled: this.attrs.disabled }
-  }
+  /** The content (light DOM) has a natively focusable element of its own. */
+  @E.state accessor contentHasFocusable = false
 
-  /** Read the light DOM for focusable content now.  MUST NOT run in an owned scope (it writes a signal). */
+  /** Read the light DOM for focusable content now. */
   private scanFocusable() {
-    this.hasFocusable.set(!!this.host.querySelector(FOCUSABLE))
+    this.contentHasFocusable = !!this.domElement.querySelector(FOCUSABLE)
   }
 
   /** Is the root the tab stop?  Not when the content can take focus itself, nor when disabled.  Tracked. */
-  private isStop(): boolean {
-    return !this.hasFocusable.get() && !this.attrs.disabled
+  private get isTabStop(): boolean {
+    return !this.contentHasFocusable && !this.disabled
+  }
+
+  ////////////////
+  // ## States
+  ////////////////
+
+  /** Never reveals (`disabled`);  `:state(disabled)`. */
+  @E.cssState("disabled")
+  get isDisabled(): boolean {
+    return this.disabled
+  }
+
+  /** Revealed by `active`:  `:state(active)`. */
+  @E.cssState("active")
+  get isActive(): boolean {
+    return this.active
   }
 
   render(): JSX.Element {
     return (
       <div
-        class={this.classes()}
-        part={this.part("reveal")}
-        tabindex={this.isStop() ? 0 : undefined}
-        role={this.isStop() ? GROUP : undefined}
-        aria-label={this.isStop() ? (this.ariaLabel.get() ?? undefined) : undefined}
+        class={this.rootClasses}
+        part={this.partForName("reveal")}
+        tabindex={this.isTabStop ? 0 : undefined}
+        role={this.isTabStop ? "group" : undefined}
+        aria-label={this.isTabStop ? (this.attributes["aria-label"] ?? undefined) : undefined}
       >
-        <div class={VISIBLE} part={this.part("visible")}>
-          <slot name={this.slot("visible")} />
+        <div class={VISIBLE_CONTENT} part={this.partForName("visible")}>
+          <slot name={this.slotForName("visible")} />
           <slot />
         </div>
-        <div class={HIDDEN} part={this.part("hidden")}>
-          <slot name={this.slot("hidden")} />
+        <div class={HIDDEN_CONTENT} part={this.partForName("hidden")}>
+          <slot name={this.slotForName("hidden")} />
         </div>
       </div>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIReveal extends E.AttributeValues<typeof revealVocabulary> {}
+
+/** The class words of the visible content box (part and slot `visible`:  `UIT.VISIBLE`). */
+const VISIBLE_CONTENT = "visible content"
+
+/** The class words of the hidden content box. */
+const HIDDEN_CONTENT = "hidden content"
+
+/** Natively focusable content:  it reveals the reveal itself (`:focus-within`). */
+const FOCUSABLE =
+  "a[href], area[href], button:not([disabled]), input:not([disabled], [type=hidden]), select:not([disabled]), " +
+  "textarea:not([disabled]), summary, [contenteditable]:not([contenteditable=false]), [tabindex]:not([tabindex='-1'])"
+
+/** Attributes that change what's focusable. */
+const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]

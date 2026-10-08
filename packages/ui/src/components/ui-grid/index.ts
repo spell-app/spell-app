@@ -1,6 +1,8 @@
 /**
- * Barrel for the grid components -- also the `grid` lib entry (`@spell-app/ui/ui-grid`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-grid>`, `<ui-row>` and `<ui-column>`.
+ * The grid family:  defines `<ui-grid>`, `<ui-row>` and `<ui-column>`,
+ * and exports their components, `UIGrid`, `UIRow` and `UIColumn`.
+ * - SIDE EFFECT:  importing it defines the tags.
+ * - Also the library's `@spell-app/ui/ui-grid` entry (its size is in `docs/report.md`).
  * - NOTE: `GridPart` (the three's base) is internal.
  */
 

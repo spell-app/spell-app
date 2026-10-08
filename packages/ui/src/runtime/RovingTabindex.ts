@@ -1,7 +1,12 @@
+import { type Prettify } from "$/ui/util"
+import * as UIT from "$/ui/components/components.types"
+
 import type { Disposer, RovingItems, RovingOptions, RovingOrientation } from "./runtime.types"
 
-/**
+/****************
+ * ### `RovingTabindex`
  * Roving tabindex for composite widgets:  menus, tabs, listboxes, toolbars, radio-like groups.
+ * - In the runtime's lazy chunk;  components reach it through `UI.focus.roving()`, never by import.
  * - The WAI-ARIA APG pattern:  the group is ONE tab stop (active item `tabindex="0"`, the rest `-1`),
  *   arrow keys move between items, Home / End jump to the ends.
  * - Items come from a selector under `container`, or a function (for slotted or computed items).
@@ -9,7 +14,7 @@ import type { Disposer, RovingItems, RovingOptions, RovingOrientation } from "./
  *   `tabindex`es eagerly after a change.
  * - Disabled items (`:disabled`, `aria-disabled="true"`, `hidden`) are skipped.
  * - Horizontal arrows flip in right-to-left layouts.
- */
+ ****************/
 export class RovingTabindex {
   /** element holding the items;  listens for `keydown` / `focusin` */
   readonly container: HTMLElement
@@ -21,23 +26,19 @@ export class RovingTabindex {
   private readonly wrap: boolean
   /** told when the active item moves */
   private readonly onChange?: RovingOptions["onChange"]
-  /** index into `items` of the current tab stop */
-  private current = 0
+  /** removes the container's listeners */
+  private readonly listeners = new AbortController()
 
-  /** Create and start a roving tabindex on `container` -- see class docs. */
-  static attach(container: HTMLElement, items: RovingItems, options: RovingOptions = {}): RovingTabindex {
-    return new RovingTabindex(container, items, options)
-  }
-
-  constructor(container: HTMLElement, items: RovingItems, options: RovingOptions = {}) {
+  constructor({ container, items, orientation = "vertical", wrap = true, activeIndex, onChange }: RovingTabindexProps) {
     this.container = container
     this.source = items
-    this.orientation = options.orientation ?? "vertical"
-    this.wrap = options.wrap ?? true
-    this.onChange = options.onChange
-    this.current = options.activeIndex ?? this.initialIndex()
-    container.addEventListener("keydown", this.onKeyDown)
-    container.addEventListener("focusin", this.onFocusIn)
+    this.orientation = orientation
+    this.wrap = wrap
+    this.onChange = onChange
+    this._activeIndex = activeIndex ?? this.initialIndex()
+    const { signal } = this.listeners
+    container.addEventListener("keydown", this.onKeyDown, { signal })
+    container.addEventListener("focusin", this.onFocusIn, { signal })
     this.refresh()
   }
 
@@ -48,14 +49,15 @@ export class RovingTabindex {
       : Array.from(this.container.querySelectorAll<HTMLElement>(this.source))
   }
 
-  /** Index of the current tab stop. */
+  /** Index into `items` of the current tab stop. */
   get activeIndex(): number {
-    return this.current
+    return this._activeIndex
   }
+  private _activeIndex = 0
 
   /** The current tab stop, if any items exist. */
   get activeItem(): HTMLElement | undefined {
-    return this.items[this.current]
+    return this.items[this._activeIndex]
   }
 
   /** Make item `index` the tab stop and focus it. */
@@ -69,15 +71,12 @@ export class RovingTabindex {
   /** Re-apply `tabindex`es, e.g. after items were added or removed. */
   refresh() {
     const items = this.items
-    if (this.current >= items.length) this.current = Math.max(0, items.length - 1)
-    items.forEach((item, index) => item.setAttribute("tabindex", index === this.current ? "0" : "-1"))
+    if (this._activeIndex >= items.length) this._activeIndex = Math.max(0, items.length - 1)
+    items.forEach((item, index) => item.setAttribute("tabindex", index === this._activeIndex ? "0" : "-1"))
   }
 
   /** Stop listening.  Leaves `tabindex`es as they are. */
-  readonly detach: Disposer = () => {
-    this.container.removeEventListener("keydown", this.onKeyDown)
-    this.container.removeEventListener("focusin", this.onFocusIn)
-  }
+  readonly detach: Disposer = () => this.listeners.abort()
 
   ////////////////
   // ## Internals
@@ -99,7 +98,7 @@ export class RovingTabindex {
   private readonly onFocusIn = (event: FocusEvent) => {
     const items = this.items
     const index = this.indexOfEvent(event, items)
-    if (index >= 0 && index !== this.current) this.setActive(index)
+    if (index >= 0 && index !== this._activeIndex) this.setActive(index)
   }
 
   /** Where `key` moves from `from`, or `undefined` if it isn't a navigation key for this orientation. */
@@ -108,12 +107,12 @@ export class RovingTabindex {
     const horizontal = this.orientation !== "vertical"
     const vertical = this.orientation !== "horizontal"
     let step = 0
-    if (vertical && key === "ArrowDown") step = 1
-    else if (vertical && key === "ArrowUp") step = -1
-    else if (horizontal && key === "ArrowRight") step = rtl ? -1 : 1
-    else if (horizontal && key === "ArrowLeft") step = rtl ? 1 : -1
-    else if (key === "Home") return this.seek(-1, 1, items)
-    else if (key === "End") return this.seek(items.length, -1, items)
+    if (vertical && key === UIT.Key.arrowDown) step = 1
+    else if (vertical && key === UIT.Key.arrowUp) step = -1
+    else if (horizontal && key === UIT.Key.arrowRight) step = rtl ? -1 : 1
+    else if (horizontal && key === UIT.Key.arrowLeft) step = rtl ? 1 : -1
+    else if (key === UIT.Key.home) return this.seek(-1, 1, items)
+    else if (key === UIT.Key.end) return this.seek(items.length, -1, items)
     else return undefined
     return this.seek(from, step, items)
   }
@@ -130,13 +129,13 @@ export class RovingTabindex {
     for (let tries = 0; tries < count; tries++) {
       index += step
       if (index < 0 || index >= count) {
-        if (offEnd) return this.current
+        if (offEnd) return this._activeIndex
         if (!this.wrap) return from
         index = (index + count) % count
       }
       if (this.isEnabled(items[index]!)) return index
     }
-    return offEnd ? this.current : from
+    return offEnd ? this._activeIndex : from
   }
 
   /** Index of the item the event came from (composed path, so events from inside items count). */
@@ -152,7 +151,7 @@ export class RovingTabindex {
 
   /** Make `index` the tab stop and tell `onChange`. */
   private setActive(index: number) {
-    this.current = index
+    this._activeIndex = index
     this.refresh()
     const item = this.items[index]
     if (item) this.onChange?.(item, index)
@@ -160,10 +159,31 @@ export class RovingTabindex {
 
   /** Starting tab stop:  an item already marked current, else the first. */
   private initialIndex(): number {
-    const items = this.items
-    const marked = items.findIndex(
+    const marked = this.items.findIndex(
       (item) => item.getAttribute("tabindex") === "0" || item.getAttribute("aria-selected") === "true"
     )
     return Math.max(0, marked)
   }
+
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * Create and start a roving tabindex -- see class docs.
+   * - STATIC:  the factory `UI.focus.roving()` calls;  ~== `new RovingTabindex(props)`, which already starts it.
+   */
+  static attach(props: RovingTabindexProps): RovingTabindex {
+    return new RovingTabindex(props)
+  }
 }
+
+/** Constructor props for `RovingTabindex` (and `UI.focus.roving()`):  where the items are, plus `RovingOptions`. */
+export type RovingTabindexProps = Prettify<
+  RovingOptions & {
+    /** element holding the items;  listens for `keydown` / `focusin` */
+    container: HTMLElement
+    /** a selector under `container`, or a function for slotted / computed items */
+    items: RovingItems
+  }
+>

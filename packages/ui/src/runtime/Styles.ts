@@ -1,8 +1,10 @@
-import type { StyleRegisterOptions, StyleSource } from "./runtime.types"
+import { UTILITIES_SHEET, type StyleRegisterOptions, type StyleSource } from "./runtime.types"
 import { AppStylesheet } from "./AppStylesheet"
 
-/**
+/****************
+ * ### `Styles`
  * Registry of named constructable stylesheets, and the one place that sets `adoptedStyleSheets`, as `UI.styles`.
+ * - In the runtime's lazy chunk;  `UIRuntime` registers the foundation here, components adopt through it.
  * - Why a registry:  every component instance shares ONE `CSSStyleSheet` per name (no per-instance `<style>`),
  *   and re-registering a name updates it everywhere at once.
  * - Order inside every shadow root (`adoptInto()`):
@@ -15,7 +17,7 @@ import { AppStylesheet } from "./AppStylesheet"
  * - Unregistered names are skipped, not errors:  foundation / utilities may be registered after components
  *   connect, and every adopted root is re-pushed when they are.
  * - Roots are held WEAKLY, so a disconnected component's shadow root can be collected.
- */
+ ****************/
 export class Styles {
   /** name -> sheet */
   private readonly sheets = new Map<string, CSSStyleSheet>()
@@ -32,13 +34,13 @@ export class Styles {
   /** foundation names, in order */
   private foundation: string[] = []
   /** utility names, in order */
-  private utilities: string[] = ["utilities"]
+  private utilities: string[] = [UTILITIES_SHEET]
   /** every root `adoptInto()` has seen */
   private readonly roots = new Set<WeakRef<ShadowRoot>>()
   /** component sheet names per root */
   private readonly rootNames = new WeakMap<ShadowRoot, string[]>()
-  /** the `#ui-app-stylesheet` mirror, created on first `adoptInto()` / `appSheetReady` */
-  private app?: AppStylesheet
+  /** `load` listener armed, so page sheets get re-evaluated once late `<link>`s are in */
+  private isWatchingLoad = false
 
   ////////////////
   // ## Registry
@@ -50,7 +52,7 @@ export class Styles {
    *   so every root already using it updates with no re-push.
    * - A `CSSStyleSheet`:  used as-is;  a different object for an existing name is swapped into every root.
    * - `page: true`:  also pushed onto `document.adoptedStyleSheets`, once;  with `linked: true` too, only while
-   *   the page doesn't link `ui.css` (see `StyleRegisterOptions`).
+   *   the page doesn't link `ui.css` (see `StyleRegisterOptions`) -- also when `linked` comes on a later call.
    * - `shadow: true`:  also adopted into EVERY shadow root `adoptInto()` knows, now and later, after utilities
    *   (themes:  their class-grammar overrides must reach component markup).
    * - `""` UNREGISTERS `name`:  dropped from the page, every shadow root and the registry (`has()` turns false),
@@ -65,7 +67,7 @@ export class Styles {
   ): CSSStyleSheet {
     if (css === "") return this.unregister(name)
     let sheet = this.sheets.get(name)
-    let swapped = false
+    let isSwapped = false
     if (typeof css === "string") {
       if (!sheet) sheet = new CSSStyleSheet()
       if (this.texts.get(name) !== css) {
@@ -76,23 +78,22 @@ export class Styles {
         this.texts.set(name, css)
       }
     } else if (css !== sheet) {
-      swapped = !!sheet
+      isSwapped = !!sheet
       sheet = css
       this.texts.delete(name)
     }
-    const added = !this.sheets.has(name)
+    const isAdded = !this.sheets.has(name)
     this.sheets.set(name, sheet)
     this.owned.add(sheet)
-    if (page && linked) this.linkedNames.add(name)
-    if (page && !this.pageNames.has(name)) {
-      this.pageNames.add(name)
-      this.refreshPage()
-    } else if (swapped && this.pageNames.has(name)) {
-      this.refreshPage()
-    }
-    const newShadow = shadow && !this.shadowNames.has(name)
-    if (newShadow) this.shadowNames.add(name)
-    if (added || swapped || newShadow) this.refreshRoots()
+    const isNewPage = page && !this.pageNames.has(name)
+    const isNewLinked = page && linked && !this.linkedNames.has(name)
+    if (isNewPage) this.pageNames.add(name)
+    if (isNewLinked) this.linkedNames.add(name)
+    // a page sheet that just became `linked` may have to come OFF the page (epic `wwod-spell-ui`, I2)
+    if (isNewPage || isNewLinked || (isSwapped && this.pageNames.has(name))) this.refreshPage()
+    const isNewShadow = shadow && !this.shadowNames.has(name)
+    if (isNewShadow) this.shadowNames.add(name)
+    if (isAdded || isSwapped || isNewShadow) this.refreshRoots()
     return sheet
   }
 
@@ -103,12 +104,12 @@ export class Styles {
    * - Returns an empty sheet nothing adopts, so `register()` keeps its return type.
    */
   private unregister(name: string): CSSStyleSheet {
-    const known = this.sheets.delete(name)
+    const isKnown = this.sheets.delete(name)
     this.texts.delete(name)
     this.linkedNames.delete(name)
     this.shadowNames.delete(name)
     if (this.pageNames.delete(name)) this.refreshPage()
-    if (known) this.refreshRoots()
+    if (isKnown) this.refreshRoots()
     return new CSSStyleSheet()
   }
 
@@ -123,13 +124,13 @@ export class Styles {
   }
 
   /** Set the foundation sheet names, in cascade order;  re-pushes every adopted root. */
-  setFoundation(names: string[]) {
+  setFoundation(names: readonly string[]) {
     this.foundation = [...names]
     this.refreshRoots()
   }
 
   /** Set the utility sheet names (adopted after component sheets);  re-pushes every adopted root. */
-  setUtilities(names: string[]) {
+  setUtilities(names: readonly string[]) {
     this.utilities = [...names]
     this.refreshRoots()
   }
@@ -146,9 +147,9 @@ export class Styles {
    * - SIDE EFFECT:  first call starts watching `#ui-app-stylesheet`.
    */
   adoptInto(root: ShadowRoot, names: string[]) {
-    const known = this.rootNames.has(root)
+    const isKnown = this.rootNames.has(root)
     this.rootNames.set(root, [...names])
-    if (!known) this.roots.add(new WeakRef(root))
+    if (!isKnown) this.roots.add(new WeakRef(root))
     void this.startApp()
     this.push(root)
   }
@@ -165,6 +166,8 @@ export class Styles {
   get appSheet(): CSSStyleSheet | undefined {
     return this.app?.sheet
   }
+  /** the `#ui-app-stylesheet` mirror, created on first `adoptInto()` / `appSheetReady` */
+  private app?: AppStylesheet
 
   /** Stop watching `#ui-app-stylesheet`, forget every root;  for tests and teardown. */
   dispose() {
@@ -224,23 +227,20 @@ export class Styles {
     const foreign = document.adoptedStyleSheets.filter((sheet) => !this.owned.has(sheet))
     // a page that links `ui.css` already has ITS sheets -- adopting them again just doubles the CSS;  component
     // page sheets (`table`, `scroll-lock`) aren't in it
-    const linked = this.pageIsLinked
-    const ours = this.lookup([...this.pageNames].filter((name) => !linked || !this.linkedNames.has(name)))
+    const isLinked = this.isPageLinked
+    const ours = this.lookup([...this.pageNames].filter((name) => !isLinked || !this.linkedNames.has(name)))
     document.adoptedStyleSheets = [...foreign, ...ours]
-    if (!linked && !this.watchingLoad && document.readyState !== "complete") {
+    if (!isLinked && !this.isWatchingLoad && document.readyState !== "complete") {
       // a `<link>` still loading may bring the marker;  re-check once the page has settled
-      this.watchingLoad = true
+      this.isWatchingLoad = true
       window.addEventListener("load", () => this.refreshPage(), { once: true })
     }
   }
 
   /** Has the page linked `ui.css` (which sets `--ui-page-sheet: linked` on `:root`)? */
-  private get pageIsLinked(): boolean {
-    return getComputedStyle(document.documentElement).getPropertyValue("--ui-page-sheet").trim() === "linked"
+  private get isPageLinked(): boolean {
+    return getComputedStyle(document.documentElement).getPropertyValue(PAGE_SHEET_PROPERTY).trim() === LINKED
   }
-
-  /** `load` listener armed, so page sheets get re-evaluated once late `<link>`s are in. */
-  private watchingLoad = false
 
   /** Registered sheets for `names`, skipping unregistered ones. */
   private lookup(names: Iterable<string>): CSSStyleSheet[] {
@@ -252,3 +252,9 @@ export class Styles {
     return found
   }
 }
+
+/** Custom property `ui.css` sets on `:root`, so the runtime knows the page links it. */
+const PAGE_SHEET_PROPERTY = "--ui-page-sheet"
+
+/** `PAGE_SHEET_PROPERTY`'s value on a page that links `ui.css`. */
+const LINKED = "linked"

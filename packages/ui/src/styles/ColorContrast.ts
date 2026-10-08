@@ -1,14 +1,16 @@
 import type { Oklch } from "./styles.types"
 
-/**
+/****************
+ * ### `ColorContrast`
  * WCAG 2 contrast of OKLCH colours, in plain JS.
  * - Why data, not CSS:  `contrast-color()` is Chromium-only, and a lightness step function
  *   (`clamp(0, (0.72 - l) * 1000, 1)`) guesses wrong for mid-lightness hues (white on L 0.66 green is 2.9:1).
  *   So `StyleGenerator` picks each colour's `--ui-<name>-on` foreground HERE, at generation time.
  * - Out-of-gamut colours are CLIPPED per sRGB channel, as axe-core does (`toGamut({ method: "clip" })`) --
  *   so a ratio computed here is the ratio axe reports.
- * - Pure and static:  runs in node (`yarn gen:styles`) and in the browser tests.
- */
+ * - Pure and STATIC (math on its arguments, no state):  imports only `styles.types` (types), so it runs in node
+ *   (`yarn gen:styles`) and in the browser tests.
+ ****************/
 export class ColorContrast {
   /** WCAG AA minimum for body text (1.4.3). */
   static readonly text = 4.5
@@ -42,14 +44,14 @@ export class ColorContrast {
     const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3
     const s = (lightness - 0.0894841775 * a - 1.291485548 * b) ** 3
     return [
-      clip(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
-      clip(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
-      clip(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s)
+      ColorContrast.clip(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+      ColorContrast.clip(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+      ColorContrast.clip(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s)
     ]
   }
-}
 
-/** `value` clamped to `0..1`. */
-function clip(value: number): number {
-  return Math.min(1, Math.max(0, value))
+  /** `value` clamped to `0..1`. */
+  private static clip(value: number): number {
+    return Math.min(1, Math.max(0, value))
+  }
 }

@@ -1,12 +1,10 @@
 import { Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, UIElement } from "$/ui/core"
+import { Cell, DOMElement, IconGlyph, proto, UIComponent, type ElementSetup } from "$/ui/core"
 import { Palette } from "$/brand"
 
-import { brandColorVocabulary } from "./ui-brand-color.vocabulary.en"
-import { BrandColorFallback } from "./ui-brand-color.fallback"
-import { BrandColorHost } from "./BrandColorHost"
+import { brandColorVocabulary } from "./UIBrandColor.en"
 import {
   AA_RATIO,
   BRAND,
@@ -15,38 +13,70 @@ import {
   COPIED_MS,
   LABELLED,
   LARGE_RATIO,
-  RADIO,
   TIP_ID,
   WHITE,
   type BrandColorVocabulary,
   type CopyFormat
-} from "./ui-brand-color.types"
+} from "./UIBrandColor.types"
 
-import colorCSS from "./ui-brand-color.css?inline"
+import colorCSS from "./UIBrandColor.css?inline"
 
 /****************
- * ### `<ui-brand-color>`
- * A square colour CHIP (the brand's rule:  aspect-ratio 1, 8px radius), as the Color Palette and Color Set Chooser
- * pages draw them:  `<button class="... color brand" part="chip">` with `copy`, else `<span role="img">`, holding the
- * label, the AA mark and, after a copy, a check;  then a hidden status line and the details tip.
- * - `value`:  any colour `Palette.parse()` reads;  drawn as `#RRGGBB`.  Text inside is white or the brand's ink,
- *   whichever contrasts more (`Palette.ink()`).
- * - `copy`:  a click copies (`navigator.clipboard`), dispatches `ui-copy`, shows a check for `COPIED_MS` and
- *   announces "Copied ..." (a status line).  A failed write (no permission) does nothing.
- * - `details`:  a CSS tip under the chip on hover and keyboard focus (anchor-positioned, flipping at the window's
- *   edges), describing the chip;  a chip with no `copy` becomes focusable for it.
- * - A CHOICE of a selectable `<ui-brand-color-set>` (`BrandColorHost.choice`):  the host is the radio (role,
- *   checked, name through internals;  the set moves focus), and the chip inside is plain:  no button, no `copy`.
- * - Tokens (`--ui-brand-color-*`, read through private aliases on `:host`):  size, radius, border, ring colour and
- *   gap, the tip's background, colour and width.  Owners make chips fill their cell with the private
- *   `--_ui-brand-color-fit: 100%` on the host, which a page's `--ui-brand-color-size` still beats.
+ * ### `DOMBrandColorElement`
+ * The DOM element of `<ui-brand-color>`:  it adds `choice`,
+ * which a selectable `<ui-brand-color-set>` sets on the chips it holds.
+ *
+ * - A choice is a RADIO, and the DOM element is that radio:
+ *   it takes the role, the checked state and the name (through `internals`),
+ *   and the set moves focus between its chips (a roving `tabindex`).
+ *   The chip inside draws no button of its own and ignores `copy`,
+ *   so nothing clickable sits inside the radio.
+ *
+ * - On the DOM element, not the component:  the set may reach a chip before the chip has drawn.
+ * - `choice` is not an attribute:  solid-element refuses a member named like one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIBrandColor extends UIElement<BrandColorVocabulary> {
+export class DOMBrandColorElement extends DOMElement {
+  /** Is this chip one choice of a selectable set?  Written by the set;  reading it in JSX follows it. */
+  readonly choice = new Cell(false)
+}
+
+/****************
+ * ### `UIBrandColor`
+ * The component behind `<ui-brand-color>`:  a square colour CHIP, as the brand's Color Palette and
+ * Color Set Chooser pages draw them (the brand's rule:  `aspect-ratio: 1`, an 8px radius).
+ *
+ * - Its shadow DOM:  `<button class="… color brand" part="chip">` with `copy`, else `<span role="img">`,
+ *   holding the label, the AA mark and, after a copy, a check;
+ *   then a hidden status line, and the details tip.
+ *
+ * - `value`:  any colour `Palette.parse()` reads, drawn as `#RRGGBB`.
+ *   The text inside is white or the brand's ink, whichever contrasts more (`Palette.ink()`).
+ *
+ * - `copy`:  a click copies the colour (`navigator.clipboard`) and sends `ui-copy`.
+ *   A check shows for `COPIED_MS`, and a status line announces "Copied …".
+ *   If the browser refuses the write (no permission), nothing happens.
+ *
+ * - `details`:  a tip under the chip on hover and keyboard focus,
+ *   describing the colour (CSS only:  anchor-positioned, flipping at the window's edges).
+ *   A chip without `copy` becomes focusable for it.
+ *
+ * - A CHOICE of a selectable `<ui-brand-color-set>` (`DOMBrandColorElement.choice`):
+ *   the DOM element is the radio (its role, checked state and name, through `internals`;  the set moves focus),
+ *   and the chip inside is plain:  no button, no `copy`.
+ *
+ * - Tokens (`--ui-brand-color-*`, read through private aliases on `:host`):
+ *   the size, radius, border, ring colour and gap, and the tip's background, colour and width.
+ *   - An owner makes its chips fill their cell with the private `--_ui-brand-color-fit: 100%` on each chip,
+ *     which a page's `--ui-brand-color-size` still beats.
+ ****************/
+export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
   @proto static vocabulary = brandColorVocabulary
-  @proto static styles = { color: colorCSS }
-  @proto static Host = BrandColorHost
-  @proto static Fallback = BrandColorFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { color: colorCSS }
+  @proto static elementSetup = {
+    DOMElement: DOMBrandColorElement,
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   /** The brand's ink, the dark text colour `Palette.ink()` picks:  what it picks for white. */
   private static readonly INK = Palette.ink(WHITE)
@@ -68,8 +98,8 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   /** `value` as `#RRGGBB`, or `undefined` when it isn't a colour. */
   readonly hex = createMemo(() => Palette.parse(this.attrs.value ?? ""))
 
-  /** One choice of a selectable set?  (The set writes the host's `choice`.) */
-  readonly isChoice = createMemo(() => (this.host as BrandColorHost).choice?.get() ?? false)
+  /** Is it one choice of a selectable set?  (The set writes `choice` on the DOM element.) */
+  readonly isChoice = createMemo(() => (this.domElement as DOMBrandColorElement).choice?.get() ?? false)
 
   /** What a click copies, or `undefined`:  not copyable, or a choice (the set takes the click). */
   readonly copyFormat = createMemo((): CopyFormat | undefined => {
@@ -79,7 +109,7 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   })
 
   /** The check shown after a copy;  loaded once the chip can copy. */
-  readonly glyph = new IconGlyph(this, () => (this.copyFormat() ? COPIED_ICON : undefined))
+  readonly glyph = new IconGlyph({ owner: this, name: () => (this.copyFormat() ? COPIED_ICON : undefined) })
 
   /** The colour's facts:  ink, contrast of white and ink text, OKLCH;  `undefined` without a colour. */
   readonly facts = createMemo(() => {
@@ -105,7 +135,7 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   /** The chip's accessible name:  name, colour and the AA mark when it shows. */
   readonly accessibleName = createMemo(() => {
     const words = [this.attrs.name, this.hex() ?? this.attrs.value]
-    if (this.attrs.contrast && this.passes()) words.push(this.text("aa"))
+    if (this.attrs.contrast && this.passes()) words.push(this.translationForKey("aa"))
     return words.filter(Boolean).join(" ")
   })
 
@@ -126,14 +156,14 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
     }
   })
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof UIComponent>) {
     super(...args)
-    // SIDE EFFECT:  a choice's host is the radio:  role, checked and name through internals
-    this.hostEffect(
+    // SIDE EFFECT:  a choice's DOM element is the radio:  its role, checked state and name, through internals
+    this.domElementEffect(
       () => (this.isChoice() ? { checked: this.attrs.selected, label: this.accessibleName() } : undefined),
       (choice) => {
-        const { internals } = this.host
-        internals.role = choice ? RADIO : null
+        const { internals } = this.domElement
+        internals.role = choice ? "radio" : null
         internals.ariaChecked = choice ? String(choice.checked) : null
         internals.ariaLabel = choice ? choice.label : null
       }
@@ -145,11 +175,11 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   ////////////////
 
   /** `brand`, and `labelled` while text shows inside (the AA mark moves up). */
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     return this.labelText() ? `${BRAND} ${LABELLED}` : BRAND
   }
 
-  protected hostStates() {
+  protected cssStates() {
     return { copied: !!this.copied.get(), choice: this.isChoice() }
   }
 
@@ -164,7 +194,7 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
           {this.renderButton()}
         </Show>
         <span class={CLASSES.status} role="status">
-          {this.copied.get() ? this.text("copied", { value: this.copied.get() }) : ""}
+          {this.copied.get() ? this.translationForKey("copied", { value: this.copied.get() }) : ""}
         </span>
         <Show when={this.attrs.details && this.facts()}>{this.renderTip()}</Show>
       </>
@@ -176,10 +206,10 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
     return (
       <button
         type="button"
-        class={this.classes()}
-        part={this.part("chip")}
+        class={this.rootClasses}
+        part={this.partForName("chip")}
         style={this.chipStyle()}
-        aria-label={this.text("copy", { name: this.displayName() })}
+        aria-label={this.translationForKey("copy", { name: this.displayName() })}
         aria-describedby={this.attrs.details ? TIP_ID : undefined}
         onClick={this.onCopy}
       >
@@ -188,12 +218,12 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
     )
   }
 
-  /** The chip as an image (a choice:  plain, the host is the radio). */
+  /** The chip as an image;  plain for a choice, whose DOM element is the radio. */
   private renderImage(): JSX.Element {
     return (
       <span
-        class={this.classes()}
-        part={this.part("chip")}
+        class={this.rootClasses}
+        part={this.partForName("chip")}
         style={this.chipStyle()}
         role={this.isChoice() ? undefined : "img"}
         aria-label={this.isChoice() ? undefined : this.accessibleName() || undefined}
@@ -210,18 +240,18 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
     return (
       <>
         <Show when={this.labelText()}>
-          <span class={CLASSES.label} part={this.part("label")}>
+          <span class={CLASSES.label} part={this.partForName("label")}>
             {this.labelText()}
           </span>
         </Show>
         <Show when={this.attrs.contrast && this.passes()}>
-          <span class={CLASSES.mark} part={this.part("mark")} aria-hidden="true">
-            {this.text("aa")}
+          <span class={CLASSES.mark} part={this.partForName("mark")} aria-hidden="true">
+            {this.translationForKey("aa")}
           </span>
         </Show>
         <Show when={this.copied.get()}>
-          <span class={CLASSES.copied} part={this.part("copied")} aria-hidden="true">
-            {this.glyph.svg()}
+          <span class={CLASSES.copied} part={this.partForName("copied")} aria-hidden="true">
+            {this.glyph.svg}
           </span>
         </Show>
       </>
@@ -231,19 +261,19 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   /** The details tip:  name, hex, OKLCH, contrast of white and ink text, and what the shade is good for. */
   private renderTip(): JSX.Element {
     return (
-      <div id={TIP_ID} class={CLASSES.tip} part={this.part("tip")} role="tooltip">
+      <div id={TIP_ID} class={CLASSES.tip} part={this.partForName("tip")} role="tooltip">
         <div class={CLASSES.title}>
           <span class={CLASSES.swatch} style={this.chipStyle()} />
           <b>{this.displayName()}</b>
         </div>
         <dl class={CLASSES.rows}>
-          <dt>{this.text("hex")}</dt>
+          <dt>{this.translationForKey("hex")}</dt>
           <dd>{this.facts()?.hex}</dd>
-          <dt>{this.text("oklch")}</dt>
+          <dt>{this.translationForKey("oklch")}</dt>
           <dd>{this.facts()?.oklch}</dd>
-          <dt>{this.text("onWhite")}</dt>
+          <dt>{this.translationForKey("onWhite")}</dt>
           <dd>{this.ratioText(this.facts()?.onWhite)}</dd>
-          <dt>{this.text("onInk")}</dt>
+          <dt>{this.translationForKey("onInk")}</dt>
           <dd>{this.ratioText(this.facts()?.onInk)}</dd>
         </dl>
         <div class={CLASSES.note}>{this.note()}</div>
@@ -260,8 +290,8 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
   /** `4.6:1`, plus ` AA` when it passes. */
   private ratioText(ratio: number | undefined): string {
     if (ratio === undefined) return ""
-    const text = this.text("ratio", { ratio: ratio.toFixed(1) })
-    return ratio >= AA_RATIO ? `${text} ${this.text("aa")}` : text
+    const text = this.translationForKey("ratio", { ratio: ratio.toFixed(1) })
+    return ratio >= AA_RATIO ? `${text} ${this.translationForKey("aa")}` : text
   }
 
   /** What the shade is good for, by the better of white and ink text (the Chooser's note). */
@@ -269,9 +299,9 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
     const facts = this.facts()
     if (!facts) return ""
     if (facts.ratio >= AA_RATIO) {
-      return this.text("goodText", { ink: this.text(facts.ink === WHITE ? "white" : "dark") })
+      return this.translationForKey("goodText", { ink: this.translationForKey(facts.ink === WHITE ? "white" : "dark") })
     }
-    return this.text(facts.ratio >= LARGE_RATIO ? "largeText" : "noText")
+    return this.translationForKey(facts.ratio >= LARGE_RATIO ? "largeText" : "noText")
   }
 
   ////////////////
@@ -302,7 +332,7 @@ export class UIBrandColor extends UIElement<BrandColorVocabulary> {
       return
     }
     this.copied.set(value)
-    this.emit("ui-copy", { value, originalEvent: event })
+    this.send("ui-copy", { value, originalEvent: event })
     clearTimeout(this.copiedTimer)
     this.copiedTimer = setTimeout(() => this.copied.set(""), COPIED_MS)
   }

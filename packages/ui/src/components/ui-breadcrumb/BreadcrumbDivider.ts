@@ -1,10 +1,10 @@
 /****************
  * ### `BreadcrumbDivider`
- * Values of the divider tokens a breadcrumb publishes (`BREADCRUMB_DIVIDER_TOKENS`), as CSS text -- shared by
- * `<ui-breadcrumb>` and its native fallback, so plain DOM, no Solid.
+ * The values of the divider tokens a breadcrumb publishes (`UIT.BreadcrumbDividerTokens`), as CSS text,
+ * for `UIBreadcrumb`.
+ * - Imports nothing:  plain DOM, no Solid, so a static server render uses it too.
+ * - STATIC and instance-free:  pure conversions.
  ****************/
-
-import { LINE_BREAK, SVG_NS, SVG_START, XMLNS } from "./ui-breadcrumb.types"
 export class BreadcrumbDivider {
   /** `text` as a CSS string:  quoted, with `\`, `"` and line breaks escaped (`\A `), e.g. `›` => `"›"`. */
   static cssString(text: string): string {
@@ -17,17 +17,17 @@ export class BreadcrumbDivider {
    */
   static svgUrl(svg: SVGSVGElement): string {
     const copy = svg.cloneNode(true) as SVGSVGElement
-    copy.setAttribute(XMLNS, SVG_NS)
+    copy.setAttribute("xmlns", "http://www.w3.org/2000/svg")
     return BreadcrumbDivider.dataUrl(new XMLSerializer().serializeToString(copy))
   }
 
   /**
-   * The same from an icon's SVG MARKUP, for a static server render (`$/ui/server`:  no DOM to clone or serialize).
+   * The same from an icon's SVG MARKUP, for a static server render (`$/ui/static`:  no DOM to clone or serialize).
    * - Adds the SVG namespace when the markup lacks it.
    */
   static markupUrl(markup: string): string {
     const standalone = markup.replace(SVG_START, (tag, attributes: string) =>
-      new RegExp(`\\s${XMLNS}=`).test(attributes) ? tag : `<svg ${XMLNS}="${SVG_NS}"${attributes}>`
+      HAS_XMLNS.test(attributes) ? tag : `<svg xmlns="http://www.w3.org/2000/svg"${attributes}>`
     )
     return BreadcrumbDivider.dataUrl(standalone)
   }
@@ -37,3 +37,12 @@ export class BreadcrumbDivider {
     return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
   }
 }
+
+/** An `<svg>` start tag:  group 1 is the rest of the tag, its attributes. */
+const SVG_START = /^\s*<svg\b([^>]*)>/
+
+/** Attributes that declare `xmlns` already. */
+const HAS_XMLNS = /\sxmlns=/
+
+/** Line breaks, escaped in a CSS string. */
+const LINE_BREAK = /\r\n|\r|\n/g

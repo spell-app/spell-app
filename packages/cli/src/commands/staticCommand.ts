@@ -14,7 +14,7 @@ const RUNNER = resolve(CLI_SRC_DIR, "runner", "renderStatic.ts")
 /**
  * `spell static <pages...>`:  each `ui-*` page as plain HTML for crawlers and no-JS readers -- no shadow DOM, no
  * scripts that load the elements -- and the stylesheet that styles it.  `@spell-app/ui`'s static render
- * (`$/ui/server`), through `ui/tools/StaticDocument.ts`.
+ * (`$/ui/static`), through `ui/tools/StaticDocument.ts`.
  * - A page:  an `.html` file;  a folder:  every `.html` in it, at any depth, except `*.static.html` (what this
  *   writes), `node_modules` and dot folders.
  * - Writes, for `page.html`:

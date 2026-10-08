@@ -1,0 +1,47 @@
+/*
+ * The style sheet of `<ui-brand-logo>`:  the outlined logo, in one colour (`fill: currentColor`).
+ * - The public tokens (`--ui-brand-logo-*`) are never declared here:  they're read through private aliases.
+ */
+
+@layer ui.components.brand-logo.types, ui.components.brand-logo.variations;
+
+@layer ui.components.brand-logo.types {
+  :host {
+    --_ui-brand-logo-height: var(--ui-brand-logo-height, 2em);
+    display: inline-block;
+    height: var(--_ui-brand-logo-height);
+    line-height: 0;
+    vertical-align: middle;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  .logo {
+    display: block;
+    height: 100%;
+    width: auto;
+    overflow: visible;
+    fill: currentColor;
+  }
+}
+
+@layer ui.components.brand-logo.variations {
+  .logo.ink {
+    color: var(--ui-brand-logo-color, var(--spell-text-strong, var(--ui-text-dark)));
+  }
+  .logo.purple {
+    color: var(--spell-accent, var(--ui-primary));
+  }
+  .logo.lilac {
+    color: var(--spell-violet-300, #b8b4ff);
+  }
+  .logo.aubergine {
+    color: var(--spell-violet-900, #2a1d60);
+  }
+  .logo.white {
+    color: #fff;
+  }
+  .logo.current {
+    color: currentColor;
+  }
+}

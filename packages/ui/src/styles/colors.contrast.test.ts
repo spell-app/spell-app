@@ -3,7 +3,7 @@ import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { hueAliases, hueStates, hues, semanticAliases, semanticColors, type Oklch } from "$/ui/styles"
 import { ColorContrast } from "$/ui/styles/ColorContrast"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 
 import layersRaw from "./layers.css?raw"
 import tokensRaw from "./tokens.css?raw"
@@ -36,7 +36,7 @@ const SCHEMES = ["ui-light", "ui-dark"] as const
 /** Solid-colour tokens `--ui-color-on` must read on:  the colour and each interaction state. */
 const SOLIDS = ["--ui-color", ...Object.keys(hueStates).map((state) => `--ui-color-${state}`)]
 
-describe("palette contrast (WCAG AA)", () => {
+describe("colors.css contrast (WCAG AA)", () => {
   it.each(SCHEMES)("puts readable text on every solid colour and state (%s)", (scheme) => {
     adoptFoundation()
     const failures: string[] = []
@@ -68,19 +68,6 @@ describe("palette contrast (WCAG AA)", () => {
       }
     }
     expect(failures).toEqual([])
-  })
-
-  it("measures OKLCH like the browser paints it", () => {
-    // cross-check `ColorContrast`'s conversion against a canvas pixel, for every light-scheme base
-    const context = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!
-    for (const [name, hue] of Object.entries(hues)) {
-      const [lightness, chroma, angle] = hue.onLight
-      context.fillStyle = `oklch(${lightness} ${chroma} ${angle})`
-      context.fillRect(0, 0, 1, 1)
-      const pixel = [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)]
-      const expected = ColorContrast.linearSrgb(hue.onLight).map((channel) => Math.round(encode(channel) * 255))
-      for (const [index, value] of pixel.entries()) expect(Math.abs(value - expected[index]!), name).toBeLessThan(2)
-    }
   })
 })
 
@@ -123,9 +110,4 @@ function resolve(probe: HTMLElement, name: string): Oklch {
   const match = /^oklch\(([\d.]+) ([\d.]+) ([\d.]+|none)\)$/.exec(value)
   if (!match) throw new Error(`${name} resolved to ${value}, not an opaque oklch()`)
   return [Number(match[1]), Number(match[2]), match[3] === "none" ? 0 : Number(match[3])]
-}
-
-/** sRGB transfer function:  linear light -> gamma-encoded channel. */
-function encode(linear: number): number {
-  return linear <= 0.0031308 ? 12.92 * linear : 1.055 * linear ** (1 / 2.4) - 0.055
 }

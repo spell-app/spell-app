@@ -2,7 +2,11 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { I18n } from "./I18n"
 
-describe("I18n", () => {
+////////////////
+// ## Strings
+////////////////
+
+describe("I18n.t()", () => {
   it("ships the en pack and interpolates {name}", () => {
     const i18n = new I18n({ locale: "en-US" })
     expect(i18n.t("noResults")).toBe("No results found.")
@@ -21,14 +25,18 @@ describe("I18n", () => {
     expect(i18n.t("unknown.key")).toBe("unknown.key")
     expect(i18n.has("unknown.key")).toBe(false)
   })
+})
 
-  it("register() merges into an existing pack", () => {
+describe("I18n.register()", () => {
+  it("merges into an existing pack", () => {
     const i18n = new I18n({ locale: "en" })
     i18n.register("en", { close: "Dismiss" })
     expect(i18n.t("close")).toBe("Dismiss")
     expect(i18n.t("cancel")).toBe("Cancel")
   })
+})
 
+describe("I18n.registerDefaults()", () => {
   it("scopes component texts:  two defaults under one key don't collide", () => {
     const i18n = new I18n({ locale: "es" })
     i18n.registerDefaults({ label: "Table" }, "ui-table")
@@ -57,7 +65,13 @@ describe("I18n", () => {
     i18n.registerDefaults({ dismiss: "Hide" }, "ui-label")
     expect(i18n.t("dismiss", undefined, "ui-label")).toBe("Hide")
   })
+})
 
+////////////////
+// ## Locale formatting
+////////////////
+
+describe("I18n.formatNumber() / formatDate()", () => {
   it("formats dates and numbers for the locale", () => {
     const i18n = new I18n({ locale: "de-DE" })
     expect(i18n.formatNumber(1234.5)).toBe("1.234,5")
@@ -65,14 +79,18 @@ describe("I18n", () => {
       "28.09.26"
     )
   })
+})
 
+describe("I18n.weekdays() / months()", () => {
   it("lists weekdays (Sunday first) and months", () => {
     const i18n = new I18n({ locale: "en-US" })
     expect(i18n.weekdays()).toEqual(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
     expect(i18n.months("short").slice(0, 3)).toEqual(["Jan", "Feb", "Mar"])
     expect(new I18n({ locale: "fr" }).months()[0]).toBe("janvier")
   })
+})
 
+describe("I18n.firstDayOfWeek() / displayName()", () => {
   it("knows the first day of the week and display names", () => {
     expect(new I18n({ locale: "en-US" }).firstDayOfWeek()).toBe(0)
     expect(new I18n({ locale: "en-GB" }).firstDayOfWeek()).toBe(1)

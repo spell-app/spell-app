@@ -1,7 +1,8 @@
 /**
- * Barrel for the flag -- also the `flag` lib entry (`@spell-app/ui/ui-flag`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-flag>`.
- * - NOTE: `FlagCountry` (the `country` resolver) is exported too, for pages that want the emoji or code alone.
+ * The flag family:  defines `<ui-flag>` and exports its component, `UIFlag`.
+ * - SIDE EFFECT:  importing it defines the tag.
+ * - Also the library's `@spell-app/ui/ui-flag` entry (its size is in `docs/report.md`).
+ * - It exports `FlagCountry` (the `country` resolver) too, for pages that want the emoji or the code alone.
  */
 
 import { FlagCountry } from "./FlagCountry"

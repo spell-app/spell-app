@@ -1,3 +1,4 @@
+import { E } from "$/ui/core"
 import {
   SITE_DATA_META,
   SITE_DATA_PATH,
@@ -16,6 +17,9 @@ import {
  * - Fails loudly:  a missing or broken file rejects `load()` (and stays rejected until `reset()`);  an element shows
  *   its error, it never guesses.
  * - Plain fetch, no Solid:  elements wrap `load()` in their own async memo.
+ * - The site's other files go through `request()` too (`SearchData`, the layout's `SiteShell`):  one way to fail.
+ * - Imports `$/ui/core` for `E.SourceError` only:  every bundle that loads this already has the core.
+ * - Static only:  the data is one per page.
  ****************/
 export class SiteData {
   /** URL of `components.json`, absolute or against the page;  see the class. */
@@ -29,10 +33,13 @@ export class SiteData {
     return (SiteData.loading ??= SiteData.fetch(SiteData.resolve()))
   }
 
-  /** Forget the fetch (tests, a rebuilt file):  the next `load()` fetches again. */
+  /**
+   * Forget the fetch and set `url` (tests, a rebuilt file):  the next `load()` fetches again.
+   * - No `url`:  back to the page's own (`<meta>`, else `SITE_DATA_PATH`), as `SearchData.reset()` is.
+   */
   static reset(url?: string): void {
     SiteData.loading = undefined
-    if (url !== undefined) SiteData.url = url
+    SiteData.url = url
   }
 
   /** `tag`'s entry (a component or a docs tag), or `undefined`. */
@@ -54,16 +61,48 @@ export class SiteData {
     return new URL("../", SiteData.resolve()).href
   }
 
+  /**
+   * GET `url` for `method`;  resolves with the response, which answered 2xx.
+   * - Throws a `load` `E.SourceError` when it doesn't answer (the network error as `cause.error`) or answers
+   *   anything else (`cause.status`);  the message names `method`, the URL, and `fix`.
+   * - Not `UI.sources`:  that refuses `data:` URLs (tests point `url` at one), caches the text, and needs the
+   *   runtime chunk, which the layout's fetch (`SiteShell`) mustn't wait for.
+   */
+  static async request(url: string, { method, fix }: SiteRequest): Promise<Response> {
+    let response: Response
+    try {
+      response = await fetch(url)
+    } catch (error) {
+      const said = error instanceof Error ? error.message : String(error)
+      throw new E.SourceError(`${method}:  ${url} didn't answer (${said});  ${fix}`, { cause: { kind: "load", error } })
+    }
+    if (response.ok) return response
+    const answer = `${response.status} ${response.statusText}`.trim()
+    throw new E.SourceError(`${method}:  ${url} answered ${answer};  ${fix}`, {
+      cause: { kind: "load", status: response.status }
+    })
+  }
+
   /** Where to fetch from:  `url`, else the page's `<meta name="ui-docs-data">`, else `SITE_DATA_PATH`. */
   private static resolve(): string {
     const meta = document.querySelector<HTMLMetaElement>(`meta[name="${SITE_DATA_META}"]`)?.content
     return new URL(SiteData.url ?? meta ?? SITE_DATA_PATH, document.baseURI).href
   }
 
-  /** Fetch and parse `url`;  rejects with what went wrong. */
+  /** Fetch and parse `url`;  rejects with what went wrong (`request()`). */
   private static async fetch(url: string): Promise<SiteDataFile> {
-    const response = await fetch(url)
-    if (!response.ok) throw new Error(`SiteData:  ${url} answered ${response.status}`)
+    const response = await SiteData.request(url, { method: "SiteData.load()", fix: REBUILD })
     return (await response.json()) as SiteDataFile
   }
 }
+
+/** What `SiteData.request()` says when a file doesn't come. */
+export type SiteRequest = {
+  /** the method its caller called, e.g. `SiteData.load()` */
+  method: string
+  /** how to fix it, e.g. ``run `yarn site:data` `` */
+  fix: string
+}
+
+/** The fix for a missing or unreadable data file. */
+const REBUILD = "run `yarn site:data` in packages/ui, or check `SiteData.url`"

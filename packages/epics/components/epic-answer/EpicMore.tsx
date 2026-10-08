@@ -1,50 +1,65 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
+import { E } from "$/ui/core"
 
 import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 
-import { epicMoreVocabulary } from "./epic-more.vocabulary.en"
-import { BODY, BODY_ID, TOGGLE, type EpicMoreVocabulary } from "./epic-answer.types"
+import { epicMoreVocabulary } from "./EpicMore.en"
+import { BODY } from "./EpicAnswer.types"
 
-import answerCSS from "./epic-answer.css?inline"
+import answerCSS from "./EpicAnswer.css?inline"
 
 /****************
- * ### `<epic-more>`
- * More Details (Add Details Now) on an item:  a plain card under its text and answer, open to start with, folded by
- * its `More Details` heading.  The item labels its own text above it `Original reply` (`<epic-item>`).
+ * ### `EpicMore`
+ * The component behind `<epic-more>`:  More Details (Add Details Now) on an item -- a plain card under its text and
+ * answer, open to start with, folded by its `More Details` heading.  The item labels its own text above it
+ * `Original reply` (`<epic-item>`).
  ****************/
-export class EpicMore extends UIElement<EpicMoreVocabulary> {
-  @proto static vocabulary = epicMoreVocabulary
-  @proto static styles = { answer: answerCSS }
-  @proto static delegatesFocus = false
+export class EpicMore extends E.UIComponent<typeof epicMoreVocabulary> {
+  @E.proto static vocabulary = epicMoreVocabulary
+  @E.proto static styleSheets = { answer: answerCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Open to start with:  it's what was just added. */
   readonly fold = new Fold(() => true)
 
-  protected hostStates() {
-    return { open: this.fold.isOpen() }
+  /** Unfolded. */
+  @E.cssState("open")
+  get isOpen(): boolean {
+    return this.fold.isOpen()
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("base")}>
+      <div class={this.rootClasses} part={this.partForName("base")}>
         <button
-          type={UIT.BUTTON}
+          type="button"
           class={TOGGLE}
-          part={this.part("toggle")}
-          aria-expanded={this.fold.isOpen() ? UIT.TRUE : UIT.FALSE}
+          part={this.partForName("toggle")}
+          aria-expanded={this.isOpen ? "true" : "false"}
           aria-controls={BODY_ID}
           onClick={this.fold.toggle}
         >
           <Chevron />
-          {this.text("more")}
+          {this.translationForKey("more")}
         </button>
-        <div ref={this.fold.watch} id={BODY_ID} class={BODY} part={this.part("body")} hidden={this.fold.hidden()}>
+        <div
+          ref={this.fold.watch}
+          id={BODY_ID}
+          class={BODY}
+          part={this.partForName("body")}
+          hidden={this.fold.hidden()}
+        >
           <slot />
         </div>
       </div>
     )
   }
 }
+
+/** Class of its heading, the `<button>` that folds it. */
+const TOGGLE = "toggle"
+
+/** `id` of its body, which its toggle controls. */
+const BODY_ID = "body"

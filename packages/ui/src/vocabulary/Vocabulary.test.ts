@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { type ComponentVocabulary, type Dictionary, Vocabulary } from "$/ui/vocabulary"
 
-/** Cut-down card vocabulary, shaped like a real `ui-card.vocabulary.en.ts`. */
-const card = {
+/** Cut-down card vocabulary, shaped like a real `UICard.en.ts`. */
+const CARD = {
   tag: "ui-card",
   noun: "card",
   plural: "cards",
@@ -27,7 +27,7 @@ const card = {
 } as const satisfies ComponentVocabulary
 
 /** Second component, to prove `define()` covers everything registered. */
-const button = {
+const BUTTON = {
   tag: "ui-button",
   noun: "button",
   attributes: [
@@ -42,7 +42,7 @@ const button = {
 } as const satisfies ComponentVocabulary
 
 /** Fake Spanish dictionary. */
-const spanish: Dictionary = {
+const SPANISH: Dictionary = {
   lang: "es",
   tags: { "ui-card": "tarjeta", "ui-button": "boton" },
   attributes: { size: "tamano", only: "solo" },
@@ -64,51 +64,57 @@ const spanish: Dictionary = {
 /** Fresh registry with both components. */
 function registry() {
   const vocabulary = new Vocabulary()
-  vocabulary.register(card)
-  vocabulary.register(button)
+  vocabulary.register(CARD)
+  vocabulary.register(BUTTON)
   return vocabulary
 }
 
-describe("Vocabulary registry", () => {
+////////////////
+// ## The registry
+////////////////
+
+describe("Vocabulary.register() / get()", () => {
   it("registers and gets by canonical tag", () => {
     const vocabulary = registry()
-    expect(vocabulary.get("ui-card")).toBe(card)
+    expect(vocabulary.get("ui-card")).toBe(CARD)
     expect(vocabulary.get("ui-nope")).toBeUndefined()
   })
 
   it("ignores registering the same vocabulary twice", () => {
     const vocabulary = registry()
-    expect(vocabulary.register(card)).toBe(card)
+    expect(vocabulary.register(CARD)).toBe(CARD)
   })
 
   it("refuses a second vocabulary for the same tag", () => {
     const vocabulary = registry()
-    expect(() => vocabulary.register({ ...card })).toThrow(/already registered/)
+    expect(() => vocabulary.register({ ...CARD })).toThrow(/already registered/)
   })
+})
 
+describe("Vocabulary.replace()", () => {
   it("replaces a registered vocabulary with a new version of it", () => {
     const vocabulary = registry()
-    const next = { ...card }
+    const next = { ...CARD }
     expect(vocabulary.replace(next)).toBe(next)
     expect(vocabulary.get("ui-card")).toBe(next)
     // afterwards, the new version is the registered one:  registering it again is a no-op
     expect(vocabulary.register(next)).toBe(next)
-    expect(() => vocabulary.register(card)).toThrow(/already registered/)
+    expect(() => vocabulary.register(CARD)).toThrow(/already registered/)
   })
 
-  it("registers an unknown tag through replace()", () => {
+  it("registers an unknown tag", () => {
     const vocabulary = new Vocabulary()
-    expect(vocabulary.replace(button)).toBe(button)
-    expect(vocabulary.get("ui-button")).toBe(button)
+    expect(vocabulary.replace(BUTTON)).toBe(BUTTON)
+    expect(vocabulary.get("ui-button")).toBe(BUTTON)
   })
 
   it("re-resolves localized vocabularies of the old version, same prefix and dictionary", () => {
     const vocabulary = registry()
-    vocabulary.define("ie", spanish)
-    expect(vocabulary.localizedFor("ui-card")?.vocabulary).toBe(card)
+    vocabulary.define("ie", SPANISH)
+    expect(vocabulary.localizedFor("ui-card")?.vocabulary).toBe(CARD)
     const next = {
-      ...card,
-      attributes: [...card.attributes, { name: "raised", kind: "keyOnly", description: "Raised." }]
+      ...CARD,
+      attributes: [...CARD.attributes, { name: "raised", kind: "keyOnly", description: "Raised." }]
     } as const satisfies ComponentVocabulary
     vocabulary.replace(next)
     const tarjeta = vocabulary.localizedFor("ie-tarjeta")!
@@ -118,9 +124,11 @@ describe("Vocabulary registry", () => {
     expect(vocabulary.canonicalize("ie-tarjeta", "raised")).toEqual({ attribute: "raised", value: undefined })
     expect(vocabulary.localizedFor("ui-card")!.vocabulary).toBe(next)
     // other components untouched
-    expect(vocabulary.localizedFor("ie-boton")!.vocabulary).toBe(button)
+    expect(vocabulary.localizedFor("ie-boton")!.vocabulary).toBe(BUTTON)
   })
+})
 
+describe("Vocabulary.prefix / dictionary", () => {
   it("keeps defaults on the prototype", () => {
     const vocabulary = new Vocabulary()
     expect(vocabulary.prefix).toBe("ui")
@@ -128,6 +136,10 @@ describe("Vocabulary registry", () => {
     expect(Object.hasOwn(vocabulary, "prefix")).toBe(false)
   })
 })
+
+////////////////
+// ## Defining a language
+////////////////
 
 describe("Vocabulary.define() with the English identity dictionary", () => {
   const defined = registry().define()
@@ -149,7 +161,7 @@ describe("Vocabulary.define() with the English identity dictionary", () => {
       "selected",
       "checked"
     ])
-    expect(localized.attributes.get("checked")).toBe(card.attributes[5])
+    expect(localized.attributes.get("checked")).toBe(CARD.attributes[5])
     expect([...localized.events.keys()]).toEqual(["ui-change"])
     expect([...localized.slots.keys()]).toEqual(["", "header"])
     expect([...localized.parts.keys()]).toEqual(["header"])
@@ -164,13 +176,13 @@ describe("Vocabulary.define() with the English identity dictionary", () => {
 
 describe("Vocabulary.define() with a Spanish dictionary", () => {
   const vocabulary = registry()
-  const defined = vocabulary.define("ie", spanish)
+  const defined = vocabulary.define("ie", SPANISH)
   const tarjeta = defined.get("ui-card")!
 
   it("prefixes and translates tags", () => {
     expect(tarjeta.tag).toBe("ie-tarjeta")
     expect(defined.get("ui-button")!.tag).toBe("ie-boton")
-    expect(tarjeta.vocabulary).toBe(card)
+    expect(tarjeta.vocabulary).toBe(CARD)
   })
 
   it("translates attribute names, keeping untranslated ones canonical", () => {
@@ -205,9 +217,34 @@ describe("Vocabulary.define() with a Spanish dictionary", () => {
   })
 })
 
+describe("Vocabulary.define() collisions", () => {
+  it("throws when two attributes translate to the same name", () => {
+    const vocabulary = registry()
+    expect(() => vocabulary.define("ie", { lang: "es", attributes: { size: "color" } })).toThrow(/used twice/)
+  })
+
+  it("throws when two values translate to the same word", () => {
+    const vocabulary = registry()
+    expect(() => vocabulary.define("ie", { lang: "es", values: { hues: { red: "rojo", orange: "rojo" } } })).toThrow(
+      /used twice/
+    )
+  })
+
+  it("throws when two components translate to the same tag", () => {
+    const vocabulary = registry()
+    expect(() => vocabulary.define("ie", { lang: "es", tags: { "ui-card": "cosa", "ui-button": "cosa" } })).toThrow(
+      /would name both/
+    )
+  })
+})
+
+////////////////
+// ## Translating
+////////////////
+
 describe("Vocabulary.canonicalize() / localize()", () => {
   const vocabulary = registry()
-  vocabulary.define("ie", spanish)
+  vocabulary.define("ie", SPANISH)
 
   it("canonicalizes a translated attribute and value", () => {
     expect(vocabulary.canonicalize("ie-tarjeta", "color", "rojo")).toEqual({ attribute: "color", value: "red" })
@@ -263,26 +300,5 @@ describe("Vocabulary.canonicalize() / localize()", () => {
     const fresh = registry()
     expect(fresh.canonicalize("ui-card", "color", "red")).toEqual({ attribute: "color", value: "red" })
     expect(fresh.localize("ui-card", "size")).toEqual({ attribute: "size", value: undefined })
-  })
-})
-
-describe("Vocabulary collisions", () => {
-  it("throws when two attributes translate to the same name", () => {
-    const vocabulary = registry()
-    expect(() => vocabulary.define("ie", { lang: "es", attributes: { size: "color" } })).toThrow(/used twice/)
-  })
-
-  it("throws when two values translate to the same word", () => {
-    const vocabulary = registry()
-    expect(() => vocabulary.define("ie", { lang: "es", values: { hues: { red: "rojo", orange: "rojo" } } })).toThrow(
-      /used twice/
-    )
-  })
-
-  it("throws when two components translate to the same tag", () => {
-    const vocabulary = registry()
-    expect(() => vocabulary.define("ie", { lang: "es", tags: { "ui-card": "cosa", "ui-button": "cosa" } })).toThrow(
-      /would name both/
-    )
   })
 })

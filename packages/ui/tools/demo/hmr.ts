@@ -1,5 +1,5 @@
 /**
- * Hot module replacement demo, and the page `test/hmr.e2e.ts` drives (`yarn test:hmr`).
+ * Hot module replacement demo, and the page `tools/hmr.e2e.ts` drives (`yarn test:hmr`).
  * - A translated alias (`<ie-boton>`), a dropdown whose `options` and `value` are PROPERTIES (rich data a hot
  *   update must keep), a segment that no button edit may touch.
  * - `window.hmr`:  counters of Vite's HMR events, so the test can wait for "the update was applied".

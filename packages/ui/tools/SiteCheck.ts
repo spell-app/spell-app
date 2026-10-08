@@ -4,24 +4,31 @@ import { execFileSync } from "node:child_process"
 import { existsSync, mkdirSync, readdirSync, realpathSync, statSync } from "node:fs"
 import { basename, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath } from "node:url"
+import { parseArgs } from "node:util"
 
 import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright"
 
+import { FOLDS_KEY } from "../site/_src/site.types.ts"
 import { TocIndex } from "../src/docs-components/ui-docs-toc/TocIndex.ts"
-import { SITE_PAGES } from "./tools.types.ts"
+import { SITE_PAGES, SiteCheckError } from "./tools.types.ts"
+import { environment } from "./environment.ts"
+import { Terminal } from "./Terminal.ts"
 
-/**
- * Checks the plain-HTML Spell UI docs pages (`ui/*.html`, `ui/components/ui-<name>.html`:  the shared
- * pages, `SITE_PAGES`) in headless chromium, served by this checkout's page server at `/ui/`.
+/****************
+ * ### `SiteCheck`
+ * Checks the plain-HTML Spell UI docs pages (`ui/*.html`, `ui/components/ui-<name>.html`:  the shared pages,
+ * `SITE_PAGES`) in headless chromium, served by this checkout's page server at `/ui/`.
  * - Run:  `yarn site:check <page...>` (in `packages/ui`), or `yarn site:check --all`;  `--out <dir>` for the
- *   screenshots (default `tools/results/site-check/`, git-ignored).
+ *   screenshots (default `tools/results/site-check/`, git-ignored).  `scripts/site-check.ts` is the command, which
+ *   hands its arguments to `SiteCheck.main()`:  a class file runs nothing when imported.
  * - A page is a path (absolute, from the cwd, or from `ui/`), a tag (`ui-button` =>
- *   `ui/components/ui-button.html`) or a name (`index` => `ui/index.html`).
- * - Problems (exit 1):
+ *   `ui/components/ui-button.html`) or a name (`index` => `ui/index.html`):  `resolvePage()`.
+ * - Problems (`PageReport.problems`;  exit 1):
  *   - console errors, page errors, failed requests and responses >= 400 (the favicon too:  the page server has one)
  *   - `ui-*` / `spell-*` elements still undefined once settled;  defined `ui-*` with no shadow root
- *   - component pages (`components/ui-*.html`, not the index):  not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming` (`theming` optional);  a pane
- *     that isn't the shown one when loaded with its `#hash`, or shows under 50px
+ *   - component pages (`components/ui-*.html`, not the index):  not exactly one `ui-tabs.site-tabs` with panes
+ *     `examples`, `usage`, `api`, `theming` (`theming` optional);  a pane that isn't the shown one when loaded with
+ *     its `#hash`, or shows under 50px
  *   - `ui-docs-toc`:  hidden or empty on desktop, visible on phone
  *   - sections (`yarn site:sections`):  an id that doesn't follow its nesting, a flat level 2 header left, a deep link
  *     to the first nested section that doesn't land (pane shown, unfolded, its title on its line below the stuck ones)
@@ -30,59 +37,11 @@ import { SITE_PAGES } from "./tools.types.ts"
  * - Every page is checked, whatever failed before it.  Problems go to stderr, with each page's URL, counts and
  *   screenshots;  a JSON summary is the last thing on stdout.
  * - Look at the screenshots too:  the checks can't see overlap, clipping or ugly wrapping.
+ * - Throws `SiteCheckError` when it can't start:  no such page, or no page server serving the site (exit 2).
  * - Replaces the Astro site's `check` script.  Model:  the docs' checker, `packages/docs/tools/check-spell.js`.
- */
+ * - Node only;  reads the site's `FOLDS_KEY` (`site/_src/site.types.ts`, pure data) and `TocIndex.slug()`.
+ ****************/
 export class SiteCheck {
-  /** `packages/ui/`. */
-  static readonly PACKAGE = fileURLToPath(new URL("..", import.meta.url))
-
-  /** The site's pages, the checkout's `ui/` (`SITE_PAGES`):  what the page server serves at `/ui/`. */
-  static readonly SITE = join(SiteCheck.PACKAGE, SITE_PAGES)
-
-  /** Repo root (of this worktree):  where `spell dev server ensure` runs. */
-  static readonly REPO = resolve(SiteCheck.PACKAGE, "..", "..")
-
-  /** This checkout's own `spell` CLI:  run with `node`, never the `spell` on `PATH` (maybe another checkout's). */
-  static readonly SPELL = join(SiteCheck.REPO, "packages", "cli", "bin", "spell.mjs")
-
-  /** Default screenshot folder;  `tools/results` is git-ignored. */
-  static readonly OUT = join(SiteCheck.PACKAGE, "tools", "results", "site-check")
-
-  /**
-   * Component pages' tab panes, in order.
-   * - `theming` may be left out:  a page whose tag has no tokens of its own (`ui-meta`, styled by its owners)
-   */
-  static readonly TABS = ["examples", "usage", "api", "theming"]
-
-  /** Panes a component page may leave out (the last of `TABS`). */
-  static readonly OPTIONAL_TABS = ["theming"]
-
-  /** Desktop viewport. */
-  static readonly DESKTOP: BrowserContextOptions = { viewport: { width: 1440, height: 900 } }
-
-  /** Phone viewport:  an iPhone 14-ish, touch, retina. */
-  static readonly PHONE: BrowserContextOptions = {
-    viewport: { width: 390, height: 844 },
-    isMobile: true,
-    hasTouch: true,
-    deviceScaleFactor: 2
-  }
-
-  /** How long a page may take to define its elements;  past it, the undefined ones are reported, not waited on. */
-  static readonly SETTLE_MS = 15000
-
-  /** The same page's later loads, once one didn't settle:  it won't settle now either, so don't wait it out again. */
-  static readonly RESETTLE_MS = 3000
-
-  /** Pane shorter than this counts as empty. */
-  static readonly MIN_PANE_HEIGHT = 50
-
-  /** `localStorage` key prefix of a page's folds, + its path (`site/_src/SiteSections.ts` `FOLDS_KEY`). */
-  static readonly FOLDS_KEY = "spell-ui-site:folds:"
-
-  /** How long a deep link may take to land after the page settles (the landing's settle is 400ms), ms. */
-  static readonly LAND_MS = 900
-
   /** Page files to check, absolute. */
   readonly files: string[]
 
@@ -95,37 +54,47 @@ export class SiteCheck {
   /** The one browser every page shares;  set by `run()`. */
   private browser?: Browser
 
-  constructor(files: string[], out: string = SiteCheck.OUT) {
+  constructor({ files, out = DEFAULT_OUT }: SiteCheckProps) {
     this.files = files
     this.out = out
   }
 
   /**
-   * Parse the command line, check every page, print, and exit.
-   * - SIDE EFFECT:  `process.exit()`:  0 all clean, 1 any problem, 2 bad arguments or no server
+   * `yarn site:check`:  parse the command line, check every page, print, and exit.
+   * - SIDE EFFECT:  `process.exit()`:  0 all clean, 1 any problem, 2 bad arguments, no such page or no server
    */
   static async main(argv: string[] = process.argv.slice(2)): Promise<never> {
-    // `yarn site:check` runs in `packages/ui`;  paths the user typed are relative to where they typed them
-    const cwd = process.env.INIT_CWD ?? process.cwd()
-    let out = SiteCheck.OUT
-    let all = false
-    const names: string[] = []
-    for (let i = 0; i < argv.length; i++) {
-      const arg = argv[i]!
-      if (arg === "--all") all = true
-      else if (arg === "--out") out = resolve(cwd, argv[++i] ?? SiteCheck.fail("--out needs a folder"))
-      else if (arg === "--keep-going") continue
-      else if (arg === "--help" || arg === "-h") SiteCheck.fail(USAGE, 0)
-      else if (arg.startsWith("--")) SiteCheck.fail(`unknown option ${arg}\n${USAGE}`)
-      else names.push(arg)
+    // `yarn site:check` runs in `packages/ui`;  paths the person typed are relative to where they typed them
+    const cwd = environment.invocationDir
+    let parsed: ReturnType<typeof parseCommandLine>
+    try {
+      parsed = parseCommandLine(argv)
+    } catch (error) {
+      return exit(`${(error as Error).message}\n${USAGE}`, 2)
     }
-    const files = all ? SiteCheck.allPages() : names.map((name) => SiteCheck.resolvePage(name, cwd))
-    if (!files.length) SiteCheck.fail(USAGE)
-    const check = new SiteCheck([...new Set(files)], out)
-    const reports = await check.run()
-    const ok = reports.every((report) => report.ok)
-    console.log(JSON.stringify({ ok, base: check.base, out: check.out, pages: reports }, null, 2))
-    process.exit(ok ? 0 : 1)
+    const { values, positionals } = parsed
+    if (values.help) return exit(USAGE, 0)
+    try {
+      const names = values.all ? SiteCheck.allPages() : positionals.map((name) => SiteCheck.resolvePage(name, cwd))
+      if (!names.length) return exit(USAGE, 2)
+      const check = new SiteCheck({
+        files: [...new Set(names)],
+        out: values.out === undefined ? undefined : resolve(cwd, values.out)
+      })
+      const reports = await check.run()
+      const ok = reports.every((report) => report.ok)
+      Terminal.out(JSON.stringify({ ok, base: check.base, out: check.out, pages: reports }, null, 2))
+      return exit("", ok ? 0 : 1)
+    } catch (error) {
+      if (!(error instanceof SiteCheckError)) throw error
+      return exit(error.message, 2)
+    }
+
+    /** Print `message` (stdout for `--help`, else stderr) and exit with `code`. */
+    function exit(message: string, code: number): never {
+      if (message) (code ? Terminal.err : Terminal.out)(message)
+      process.exit(code)
+    }
   }
 
   /**
@@ -135,8 +104,8 @@ export class SiteCheck {
    * - relative to `ui/`
    * - a tag, `ui-button` => `ui/components/ui-button.html`
    * - a name, `index` => `ui/index.html`
-   * - a file under the shared repo's `ui/` (`../spell-app-dev/ui/...`) is the same page:  returned under `SITE`
-   * - SIDE EFFECT:  exits (2) when nothing matches, or the page isn't under `ui/` (the server wouldn't serve it)
+   * - a file under the shared repo's `ui/` (`../spell-app-dev/ui/...`) is the same page:  returned under `ui/`
+   * - throws `SiteCheckError` when nothing matches, or the page isn't under `ui/` (the server wouldn't serve it)
    */
   static resolvePage(name: string, cwd: string): string {
     const html = name.endsWith(".html") ? name : `${name}.html`
@@ -144,29 +113,26 @@ export class SiteCheck {
       ? [name]
       : [
           resolve(cwd, name),
-          join(SiteCheck.SITE, name),
-          ...(/^[a-z]+(-[a-z0-9]+)+$/.test(name) ? [join(SiteCheck.SITE, "components", html)] : []),
-          join(SiteCheck.SITE, html)
+          join(SITE, name),
+          ...(TAG_NAME.test(name) ? [join(SITE, "components", html)] : []),
+          join(SITE, html)
         ]
     const file = candidates.find((path) => existsSync(path) && statSync(path).isFile())
-    if (!file) return SiteCheck.fail(`no page "${name}";  tried:\n  ${candidates.join("\n  ")}`)
-    const inside = relative(realpathSync(SiteCheck.SITE), realpathSync(file))
-    if (inside.startsWith("..") || isAbsolute(inside)) return SiteCheck.fail(`${file} is not under ${SiteCheck.SITE}`)
-    return join(SiteCheck.SITE, inside)
-  }
-
-  /**
-   * A page's screenshot prefix:  its file name (`ui-button`, `grammar`), or its path for a folder's `index.html`
-   * (`components/index.html` => `components-index`), which would else overwrite the home page's shots.
-   */
-  static shotName(path: string): string {
-    const name = basename(path, ".html")
-    return name === "index" && path.includes("/") ? path.replace(/\.html$/, "").replaceAll("/", "-") : name
+    if (!file) {
+      throw new SiteCheckError(`SiteCheck.resolvePage():  no page "${name}";  tried:\n  ${candidates.join("\n  ")}`)
+    }
+    const inside = relative(realpathSync(SITE), realpathSync(file))
+    if (inside.startsWith("..") || isAbsolute(inside)) {
+      throw new SiteCheckError(
+        `SiteCheck.resolvePage():  ${file} is not under ${SITE};  the page server serves only that`
+      )
+    }
+    return join(SITE, inside)
   }
 
   /** Every page:  `ui/*.html` and `ui/components/*.html`, minus `_`-prefixed ones (smoke pages, partials). */
   static allPages(): string[] {
-    return [SiteCheck.SITE, join(SiteCheck.SITE, "components")].flatMap((folder) =>
+    return [SITE, join(SITE, "components")].flatMap((folder) =>
       existsSync(folder)
         ? readdirSync(folder)
             .filter((file) => file.endsWith(".html") && !file.startsWith("_"))
@@ -176,15 +142,20 @@ export class SiteCheck {
     )
   }
 
-  /** Print `message` to stderr and exit (`code`, default 2). */
-  static fail(message: string, code = 2): never {
-    ;(code ? console.error : console.log)(message)
-    process.exit(code)
+  /**
+   * A page's screenshot prefix:  its file name (`ui-button`, `grammar`), or its path for a folder's `index.html`
+   * (`components/index.html` => `components-index`), which would else overwrite the home page's shots.
+   */
+  static shotNameFor(path: string): string {
+    const name = basename(path, ".html")
+    return name === "index" && path.includes("/") ? path.replace(/\.html$/, "").replaceAll("/", "-") : name
   }
 
   /**
    * Find the page server, then check every page in one browser.
-   * - SIDE EFFECT:  `spell dev server ensure` starts the server if it isn't running;  writes screenshots to `out`
+   * - SIDE EFFECT:  `spell dev server ensure` starts the server if it isn't running;  writes screenshots to `out`;
+   *   prints each page's result to stderr
+   * - throws `SiteCheckError` when there's no page server serving the site
    */
   async run(): Promise<PageReport[]> {
     this.base = await this.ensureServer()
@@ -207,36 +178,41 @@ export class SiteCheck {
    * The page server's origin, once it serves the site bundle.
    * - `spell dev server ensure` prints `{ base, port, ... }` as JSON, maybe after other lines:  parsed from the first
    *   `{`
-   * - SIDE EFFECT:  exits (2) when there's no server, or it doesn't serve `/ui/_assets/site.js`
+   * - throws `SiteCheckError` when there's no server, or it doesn't serve `/ui/_assets/site.js`
    */
   async ensureServer(): Promise<string> {
     let base: string
     try {
-      const text = execFileSync(process.execPath, [SiteCheck.SPELL, "dev", "server", "ensure"], {
-        cwd: SiteCheck.REPO,
+      const text = execFileSync(process.execPath, [SPELL, "dev", "server", "ensure"], {
+        cwd: REPO,
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
-        timeout: 60000
+        timeout: SERVER_START_MS
       })
       base = (JSON.parse(text.slice(text.indexOf("{"))) as { base: string }).base.replace(/\/$/, "")
     } catch (error) {
-      return SiteCheck.fail(
-        `can't start or find the page server (\`spell dev server ensure\` in ${SiteCheck.REPO}):  ${error}`
+      throw new SiteCheckError(
+        `SiteCheck.ensureServer():  can't start or find the page server (\`spell dev server ensure\` in ${REPO}):  ` +
+          `${error};  start it by hand and read its output`
       )
     }
     const probe = `${base}/ui/_assets/site.js`
-    const status = await fetch(probe, { signal: AbortSignal.timeout(10000) }).then(
+    const status = await fetch(probe, { signal: AbortSignal.timeout(PROBE_MS) }).then(
       (response) => response.status,
       (error: unknown) => String(error)
     )
-    if (status !== 200)
-      SiteCheck.fail(`the page server doesn't serve the site bundle:  ${probe} => ${status}.  Run \`yarn site:build\`?`)
+    if (status !== 200) {
+      throw new SiteCheckError(
+        `SiteCheck.ensureServer():  the page server doesn't serve the site bundle (${probe} => ${status});  ` +
+          "run `yarn site:build`"
+      )
+    }
     return base
   }
 
-  /** Check one page at desktop, phone and dark;  never throws:  a crash is one more problem. */
+  /** Check one page at desktop, phone and dark;  NEVER throws:  a crash is one more problem. */
   async checkPage(file: string): Promise<PageReport> {
-    const path = relative(SiteCheck.SITE, file).split(sep).join("/")
+    const path = relative(SITE, file).split(sep).join("/")
     const report: PageReport = {
       page: path,
       url: `${this.base}/ui/${path}`,
@@ -247,7 +223,14 @@ export class SiteCheck {
       screenshots: []
     }
     const seen = new Map<string, number>()
-    const context: CheckContext = { file, path, name: SiteCheck.shotName(path), report, problem, unsettled: false }
+    const context: CheckContext = {
+      file,
+      path,
+      name: SiteCheck.shotNameFor(path),
+      report,
+      problem,
+      isUnsettled: false
+    }
     for (const step of [this.checkDesktop, this.checkSections, this.checkPhone, this.checkDark]) {
       try {
         await step.call(this, context)
@@ -280,7 +263,7 @@ export class SiteCheck {
    */
   private async checkDesktop(check: CheckContext): Promise<void> {
     const { report, problem, name } = check
-    const page = await this.open(check, SiteCheck.DESKTOP, "desktop")
+    const page = await this.open(check, DESKTOP, "desktop")
     try {
       await this.load(page, report.url, check)
       const elements = await page.evaluate(inspectElements)
@@ -291,21 +274,21 @@ export class SiteCheck {
 
       const tabs = await page.evaluate(tabsState)
       // a component page (`components/ui-<tag>.html`:  a family's or a sub-tag's), NOT `components/index.html`
-      const component = check.path.startsWith("components/ui-")
+      const isComponent = check.path.startsWith("components/ui-")
       report.counts.tabs = tabs.values
       let values: string[] = []
-      if (component) {
+      if (isComponent) {
         if (tabs.count !== 1) problem(`${tabs.count} ui-tabs.site-tabs (a component page needs exactly one)`)
-        const required = SiteCheck.TABS.filter((value) => !SiteCheck.OPTIONAL_TABS.includes(value))
-        if (tabs.values.join() !== SiteCheck.TABS.join() && tabs.values.join() !== required.join())
-          problem(`tab panes [${tabs.values.join(", ")}], expected [${SiteCheck.TABS.join(", ")}]`)
-        values = tabs.values.filter((value) => SiteCheck.TABS.includes(value))
+        const required = TABS.filter((value) => !OPTIONAL_TABS.includes(value))
+        if (tabs.values.join() !== TABS.join() && tabs.values.join() !== required.join())
+          problem(`tab panes [${tabs.values.join(", ")}], expected [${TABS.join(", ")}]`)
+        values = tabs.values.filter((value) => TABS.includes(value))
       } else if (tabs.count) values = tabs.values.filter(Boolean)
 
       if (!values.length) {
-        await this.tocCheck(page, check, "the page", true)
+        await this.tocCheck(page, check, { where: "the page", isRequired: true })
         await this.shoot(page, check, `${name}-desk-top.png`)
-        await this.shoot(page, check, `${name}-desk-full.png`, true)
+        await this.shoot(page, check, `${name}-desk-full.png`, { fullPage: true })
         return
       }
       report.counts.toc = {}
@@ -321,10 +304,10 @@ export class SiteCheck {
         report.counts.paneHeights[value] = height
         if (state.shown.join() !== value)
           problem(`#${value} loaded, but the shown pane is [${state.shown.join(", ") || "none"}]`)
-        if (height <= SiteCheck.MIN_PANE_HEIGHT) problem(`pane "${value}" is ${height}px tall:  no visible content`)
-        await this.tocCheck(page, check, `#${value}`, value === values[0])
+        if (height <= MIN_PANE_HEIGHT) problem(`pane "${value}" is ${height}px tall:  no visible content`)
+        await this.tocCheck(page, check, { where: `#${value}`, isRequired: value === values[0] })
         await this.shoot(page, check, `${name}-desk-${value}.png`)
-        if (value === values[0]) await this.shoot(page, check, `${name}-desk-full.png`, true)
+        if (value === values[0]) await this.shoot(page, check, `${name}-desk-full.png`, { fullPage: true })
       }
     } finally {
       await page.context().close()
@@ -344,7 +327,7 @@ export class SiteCheck {
    */
   private async checkSections(check: CheckContext): Promise<void> {
     const { report, problem, name } = check
-    const page = await this.open(check, SiteCheck.DESKTOP, "sections")
+    const page = await this.open(check, DESKTOP, "sections")
     try {
       await this.load(page, report.url, check)
       const state = await page.evaluate(sectionsState)
@@ -360,21 +343,21 @@ export class SiteCheck {
       const target = state.sections.find((section) => section.parent) ?? state.sections[0]
       if (!target?.id) return
       // fold its top-level section first:  the landing must unfold it (and not save that)
-      const outer = SiteCheck.outermost(state.sections, target)
-      const key = `${SiteCheck.FOLDS_KEY}${new URL(report.url).pathname}`
+      const outer = SiteCheck.outermostFor(state.sections, target)
+      const key = `${FOLDS_KEY}${new URL(report.url).pathname}`
       await page.evaluate(([key, id]) => localStorage.setItem(key!, JSON.stringify({ [id!]: true })), [key, outer.id])
       await page.goto("about:blank")
       await this.load(page, `${report.url}#${target.id}`, check)
-      await page.waitForTimeout(SiteCheck.LAND_MS)
+      await page.waitForTimeout(LAND_MS)
       const landed = await page.evaluate(landedState, target.id)
       report.counts.deepLink = { id: target.id, ...landed }
       if (!landed) problem(`deep link #${target.id}:  no such element once loaded`)
       else {
-        if (!landed.shown) problem(`deep link #${target.id}:  its pane isn't the shown one`)
-        if (landed.folded) problem(`deep link #${target.id}:  still folded (it or a section around it)`)
+        if (!landed.isShown) problem(`deep link #${target.id}:  its pane isn't the shown one`)
+        if (landed.isFolded) problem(`deep link #${target.id}:  still folded (it or a section around it)`)
         // a short page can't scroll its last sections up to the line:  below it, at the bottom, is as far as it goes
-        const clamped = landed.bottom && landed.top > landed.line
-        if (Math.abs(landed.top - landed.line) > 3 && !clamped)
+        const isClamped = landed.isAtBottom && landed.top > landed.line
+        if (Math.abs(landed.top - landed.line) > 3 && !isClamped)
           problem(`deep link #${target.id}:  its title at ${landed.top}px, not on its line ${landed.line}px`)
       }
       await this.shoot(page, check, `${name}-desk-deep.png`)
@@ -390,7 +373,7 @@ export class SiteCheck {
    */
   private async checkPhone(check: CheckContext): Promise<void> {
     const { report, problem, name } = check
-    const page = await this.open(check, SiteCheck.PHONE, "phone")
+    const page = await this.open(check, PHONE, "phone")
     try {
       await this.load(page, report.url, check)
       const width = await page.evaluate(overflowState)
@@ -404,12 +387,12 @@ export class SiteCheck {
         )
       }
       const toc = await page.evaluate(tocState)
-      if (toc?.visible) problem("ui-docs-toc visible at phone width (should be hidden)")
+      if (toc?.isVisible) problem("ui-docs-toc visible at phone width (should be hidden)")
       await this.shoot(page, check, `${name}-phone-top.png`)
       await page.evaluate(() => window.scrollTo(0, (document.documentElement.scrollHeight - window.innerHeight) / 2))
-      await page.waitForTimeout(400)
+      await page.waitForTimeout(SCROLL_SETTLE_MS)
       await this.shoot(page, check, `${name}-phone-mid.png`)
-      await this.shoot(page, check, `${name}-phone-full.png`, true)
+      await this.shoot(page, check, `${name}-phone-full.png`, { fullPage: true })
 
       await page.evaluate(() => window.scrollTo(0, 0))
       const menu = page.locator("ui-button.site-menu-button").first()
@@ -419,14 +402,17 @@ export class SiteCheck {
       }
       let error = ""
       try {
-        await menu.click({ timeout: 3000 })
+        await menu.click({ timeout: CLICK_MS })
       } catch (thrown) {
         error = `:  ${String(thrown).split("\n")[0]}`
       }
-      await page.waitForTimeout(600)
-      const nav = await page.evaluate(navState)
-      report.counts.navOpen = nav
-      if (!nav) problem(`nav flyout didn't open from ui-button.site-menu-button${error}`)
+      const isOpen = await page.waitForFunction(navState, undefined, { timeout: NAV_OPEN_MS }).then(
+        () => true,
+        () => false
+      )
+      if (isOpen) await page.waitForTimeout(NAV_SLIDE_MS)
+      report.counts.navOpen = isOpen
+      if (!isOpen) problem(`nav flyout didn't open from ui-button.site-menu-button${error}`)
       await this.shoot(page, check, `${name}-phone-nav.png`)
     } finally {
       await page.context().close()
@@ -435,7 +421,7 @@ export class SiteCheck {
 
   /** Dark scheme:  one desktop screenshot (errors still count). */
   private async checkDark(check: CheckContext): Promise<void> {
-    const page = await this.open(check, { ...SiteCheck.DESKTOP, colorScheme: "dark" }, "dark")
+    const page = await this.open(check, { ...DESKTOP, colorScheme: "dark" }, "dark")
     try {
       await this.load(page, check.report.url, check)
       await this.shoot(page, check, `${check.name}-desk-dark.png`)
@@ -462,7 +448,7 @@ export class SiteCheck {
     // `__name(...)`, a helper the page doesn't have (as `hmr.e2e.ts`)
     await context.addInitScript("globalThis.__name = (fn) => fn")
     const page = await context.newPage()
-    page.setDefaultTimeout(20000)
+    page.setDefaultTimeout(STEP_MS)
     const { problem, report } = check
     page.on("pageerror", (error) => problem(`page error (${label}):  ${error}`))
     page.on("console", (message) => {
@@ -482,57 +468,51 @@ export class SiteCheck {
 
   /**
    * Go to `url` and let it settle:  every `ui-*` / `spell-*` element defined (at most `SETTLE_MS`), the network idle,
-   * then half a second for the runtime.
+   * then `RUNTIME_SETTLE_MS` for the runtime.
    * - a page that doesn't settle is NOT a problem here:  `inspectElements` reports what stayed undefined
-   * - SIDE EFFECT:  sets `check.unsettled` when it doesn't, so later loads wait only `RESETTLE_MS`
+   * - SIDE EFFECT:  sets `check.isUnsettled` when it doesn't, so later loads wait only `RESETTLE_MS`
    */
   private async load(page: Page, url: string, check: CheckContext): Promise<void> {
-    await page.goto(url, { timeout: 30000 })
-    const timeout = check.unsettled ? SiteCheck.RESETTLE_MS : SiteCheck.SETTLE_MS
-    const settled = await page.waitForFunction(allDefined, undefined, { timeout }).then(
+    await page.goto(url, { timeout: LOAD_MS })
+    const timeout = check.isUnsettled ? RESETTLE_MS : SETTLE_MS
+    const isSettled = await page.waitForFunction(allDefined, undefined, { timeout }).then(
       () => true,
       () => false
     )
-    if (!settled) {
-      check.unsettled = true
+    if (!isSettled) {
+      check.isUnsettled = true
       check.report.notes.push(`${url}:  not every element defined after ${timeout / 1000}s`)
     }
-    await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {})
-    await page.waitForTimeout(500)
+    await page.waitForLoadState("networkidle", { timeout: NETWORK_IDLE_MS }).catch(() => {})
+    await page.waitForTimeout(RUNTIME_SETTLE_MS)
   }
 
   /**
    * The contents list (`ui-docs-toc`), if the page has one:  visible on desktop while it has entries.
-   * - `where` labels the problem;  `required` makes zero entries a problem (the first pane), else a note.
+   * - `where` labels the problem;  `isRequired` makes zero entries a problem (the first pane), else a note.
    */
-  private async tocCheck(page: Page, check: CheckContext, where: string, required: boolean): Promise<void> {
+  private async tocCheck(page: Page, check: CheckContext, { where, isRequired }: TocCheckParams): Promise<void> {
     const toc = await page.evaluate(tocState)
     if (!toc) return
     const counts = (check.report.counts.toc ??= {})
     counts[where] = toc.entries
     // an EMPTY toc's rail is hidden on purpose (site.css:  the content takes its room, e.g. the API tab)
-    if (!toc.visible && toc.entries) check.problem(`ui-docs-toc hidden on desktop (${where})`)
+    if (!toc.isVisible && toc.entries) check.problem(`ui-docs-toc hidden on desktop (${where})`)
     if (!toc.entries) {
-      if (required) check.problem(`ui-docs-toc has no entries (${where})`)
+      if (isRequired) check.problem(`ui-docs-toc has no entries (${where})`)
       else check.report.notes.push(`ui-docs-toc has no entries (${where})`)
     }
   }
 
-  /** The top-level section holding `section` (or `section` itself), from `sectionsState()`'s list. */
-  static outermost(sections: readonly SectionState[], section: SectionState): SectionState {
-    let outer = section
-    while (outer.parent) {
-      const parent = sections.find((other) => other.id === outer.parent)
-      if (!parent) break
-      outer = parent
-    }
-    return outer
-  }
-
-  /** Screenshot `page` to `out/<file>`:  the viewport, or the full page;  listed in the report. */
-  private async shoot(page: Page, check: CheckContext, file: string, fullPage = false): Promise<void> {
+  /** Screenshot `page` to `out/<file>`:  the viewport, or the whole page;  listed in the report. */
+  private async shoot(
+    page: Page,
+    check: CheckContext,
+    file: string,
+    { fullPage = false }: { fullPage?: boolean } = {}
+  ): Promise<void> {
     const path = join(this.out, file)
-    await page.screenshot({ path, fullPage, timeout: 30000 })
+    await page.screenshot({ path, fullPage, timeout: SCREENSHOT_MS })
     check.report.screenshots.push(path)
   }
 
@@ -544,15 +524,34 @@ export class SiteCheck {
     lines.push(`  counts:  ${JSON.stringify(report.counts)}`)
     lines.push(`  screenshots:  ${this.out}`)
     for (const path of report.screenshots) lines.push(`    ${basename(path)}`)
-    console.error(lines.join("\n"))
+    Terminal.err(lines.join("\n"))
+  }
+
+  /** The top-level section holding `section` (or `section` itself), from `sectionsState()`'s list. */
+  private static outermostFor(sections: readonly SectionState[], section: SectionState): SectionState {
+    let outer = section
+    while (outer.parent) {
+      const parent = sections.find((other) => other.id === outer.parent)
+      if (!parent) break
+      outer = parent
+    }
+    return outer
   }
 }
 
-////////////////
-// ## Types
-////////////////
+/** Constructor props of `SiteCheck`. */
+export type SiteCheckProps = {
+  /** page files to check, absolute (`SiteCheck.resolvePage()`, `allPages()`) */
+  files: string[]
+  /** screenshot folder, absolute;  default `tools/results/site-check/` */
+  out?: string
+}
 
-/** One page's result, as printed and in the JSON summary. */
+/**
+ * One page's result, as printed and in the JSON summary.
+ * - `ok` is the page's VERDICT, reported data, not an error union (WWOD §5):  a check that can't START throws
+ *   `SiteCheckError` instead.
+ */
 export type PageReport = {
   /** path under `ui/`, e.g. `components/ui-button.html` */
   page: string
@@ -564,10 +563,36 @@ export type PageReport = {
   problems: string[]
   /** worth knowing, never fails */
   notes: string[]
-  /** element counts, tab values, pane heights, contents entries, phone overflow ... */
-  counts: Record<string, any>
+  /** what the steps measured */
+  counts: PageCounts
   /** absolute PNG paths */
   screenshots: string[]
+}
+
+/** What `SiteCheck`'s steps measured on one page (`PageReport.counts`);  each only once its step got that far. */
+export type PageCounts = {
+  /** `ui-*` / `spell-*` elements, light DOM and shadow roots */
+  elements?: number
+  /** distinct tags among them */
+  tags?: number
+  /** the site tabs' pane values */
+  tabs?: string[]
+  /** contents list entries, by where they were counted (`the page`, `#usage` ...) */
+  toc?: Record<string, number>
+  /** each pane's height when shown, px */
+  paneHeights?: Record<string, number>
+  /** page sections */
+  sections?: number
+  /** where the deep link landed (`landedState()`) */
+  deepLink?: { id: string } & Partial<LandedState>
+  /** horizontal scroll at phone width, px */
+  phoneOverflow?: number
+  /** the deepest elements past the edge */
+  phoneOffenders?: string[]
+  /** the outermost elements past the edge */
+  phoneOutermost?: string[]
+  /** the nav flyout opened */
+  navOpen?: boolean
 }
 
 /** One page section, as `sectionsState()` reads it. */
@@ -576,10 +601,24 @@ type SectionState = {
   id: string
   /** its title:  `header`, else its `slot="header"` child's text */
   text: string
-  /** the id of the section it's in, `null` at the top */
-  parent: string | null
-  /** the value of the site tab pane it's in, `null` on a page without tabs */
-  pane: string | null
+  /** the id of the section it's in;  `undefined` at the top */
+  parent?: string
+  /** the value of the site tab pane it's in;  `undefined` on a page without tabs */
+  pane?: string
+}
+
+/** Where a deep link landed, as `landedState()` reads it. */
+type LandedState = {
+  /** its title's top, px from the viewport's */
+  top: number
+  /** where its title should be:  below the stuck titles of the sections around it */
+  line: number
+  /** it, or a section around it, is still folded */
+  isFolded: boolean
+  /** its tab pane is the shown one (or it's in none) */
+  isShown: boolean
+  /** the page is scrolled to its bottom */
+  isAtBottom: boolean
 }
 
 /** What the viewport steps share for one page. */
@@ -595,12 +634,139 @@ type CheckContext = {
   /** record a problem;  deduped by its first line */
   problem: (text: string) => void
   /** a load timed out waiting for definitions:  later loads wait less */
-  unsettled: boolean
+  isUnsettled: boolean
+}
+
+/** `SiteCheck.tocCheck()`'s inputs. */
+type TocCheckParams = {
+  /** labels the problem:  `the page`, `#usage` */
+  where: string
+  /** zero entries is a problem (the first pane), else a note */
+  isRequired: boolean
 }
 
 ////////////////
+// ## Command line
+////////////////
+
+/** `yarn site:check`'s flags (`SiteCheck.main()`);  throws a `TypeError` on an unknown one. */
+function parseCommandLine(argv: string[]) {
+  return parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: {
+      all: { type: "boolean" },
+      out: { type: "string" },
+      help: { type: "boolean", short: "h" }
+    }
+  })
+}
+
+////////////////
+// ## Constants
+////////////////
+
+/** `packages/ui/`. */
+const PACKAGE = fileURLToPath(new URL("..", import.meta.url))
+
+/** The site's pages, the checkout's `ui/` (`SITE_PAGES`):  what the page server serves at `/ui/`. */
+const SITE = join(PACKAGE, SITE_PAGES)
+
+/** Repo root (of this worktree):  where `spell dev server ensure` runs. */
+const REPO = resolve(PACKAGE, "..", "..")
+
+/** This checkout's own `spell` CLI:  run with `node`, never the `spell` on `PATH` (maybe another checkout's). */
+const SPELL = join(REPO, "packages", "cli", "bin", "spell.mjs")
+
+/** Default screenshot folder;  `tools/results` is git-ignored. */
+const DEFAULT_OUT = join(PACKAGE, "tools", "results", "site-check")
+
+/** Printed on bad arguments and `--help`. */
+const USAGE = `usage:  yarn site:check <page...> | --all  [--out <dir>]
+  page:  a path (absolute, from here, or from ui/), a tag (ui-button), or a name (index)
+  --all:  ui/*.html + ui/components/*.html, minus _-prefixed files
+  --out:  screenshot folder (default ${DEFAULT_OUT})`
+
+/** A name typed as a tag (`ui-button`):  its page is `components/<tag>.html`. */
+const TAG_NAME = /^[a-z]+(-[a-z0-9]+)+$/
+
+/**
+ * Component pages' tab panes, in order.
+ * - `theming` may be left out:  a page whose tag has no tokens of its own (`ui-meta`, styled by its owners)
+ */
+const TABS = ["examples", "usage", "api", "theming"]
+
+/** Panes a component page may leave out (the last of `TABS`). */
+const OPTIONAL_TABS = ["theming"]
+
+/** Desktop viewport. */
+const DESKTOP: BrowserContextOptions = { viewport: { width: 1440, height: 900 } }
+
+/** Phone viewport:  an iPhone 14-ish, touch, retina. */
+const PHONE: BrowserContextOptions = {
+  viewport: { width: 390, height: 844 },
+  isMobile: true,
+  hasTouch: true,
+  deviceScaleFactor: 2
+}
+
+/** Pane shorter than this counts as empty, px. */
+const MIN_PANE_HEIGHT = 50
+
+/** How long a page may take to define its elements;  past it, the undefined ones are reported, not waited on. */
+const SETTLE_MS = 15000
+
+/** The same page's later loads, once one didn't settle:  it won't settle now either, so don't wait it out again. */
+const RESETTLE_MS = 3000
+
+/**
+ * How long a deep link may take to land after the page settles.
+ * - A SLEEP, deliberately:  the landing scrolls after its own 400ms settle timer (`SiteSections`), and nothing on
+ *   the page says it's done;  900ms covers that and the scroll.
+ */
+const LAND_MS = 900
+
+/**
+ * After a load settles, for the runtime:  late work after the elements are defined (a reveal, a lazy family, the
+ * section folds restored).
+ * - A SLEEP:  no one event says the page is done;  `document.getAnimations()` doesn't see the shadow roots' motion
+ *   (tried, 2026-10-06:  the nav flyout's slide went unseen).
+ */
+const RUNTIME_SETTLE_MS = 500
+
+/** After scrolling the phone page halfway, for what scrolling starts (lazy images, sticky headers) to draw;  a SLEEP. */
+const SCROLL_SETTLE_MS = 400
+
+/** How long the nav flyout may take to report itself open after its button's click (`navState()`). */
+const NAV_OPEN_MS = 3000
+
+/** The nav flyout's slide-in, once it's open, so its screenshot shows it whole;  a SLEEP (no event ends it). */
+const NAV_SLIDE_MS = 600
+
+/** A page load (`goto()`). */
+const LOAD_MS = 30000
+
+/** The network going idle after a load:  past it, the checks go on (a long poll would never let it). */
+const NETWORK_IDLE_MS = 10000
+
+/** Every other Playwright step (a locator, an `evaluate()`). */
+const STEP_MS = 20000
+
+/** Clicking the nav button. */
+const CLICK_MS = 3000
+
+/** One screenshot (a full page can be tall). */
+const SCREENSHOT_MS = 30000
+
+/** `spell dev server ensure`, which may start the server. */
+const SERVER_START_MS = 60000
+
+/** Fetching the site bundle from the server, to see it's served. */
+const PROBE_MS = 10000
+
+////////////////
 // ## In-page probes
-// Serialized into the page by `page.evaluate()`:  self-contained, no closures over this module.
+// Serialized into the page by `page.evaluate()` / `waitForFunction()`:  self-contained, no closures over this module.
 ////////////////
 
 /**
@@ -663,18 +829,20 @@ function tabsState() {
  * The page's sections (every `ui-section` in `main` but the demos inside examples), and the level 2 headers left
  * flat:  any in a site tab pane outside an example, or straight inside a page's article.
  */
-function sectionsState() {
+function sectionsState(): { sections: SectionState[]; flat: string[] } {
   const main = document.querySelector("main#main")
   const tabs = main?.querySelector("ui-tabs.site-tabs")
   const page = (element: Element) => !element.parentElement?.closest("ui-docs-example, template")
   const sections = [...(main?.querySelectorAll("ui-section") ?? [])].filter(page).map((section) => {
     const pane = section.closest("ui-tab")
     const slotted = section.querySelector(':scope > [slot="header"]')
+    // `getAttribute()` is the platform's:  `null` when absent
+    const paneValue = tabs && pane?.parentElement === tabs ? pane.getAttribute("value") : undefined
     return {
       id: section.id,
       text: (section.getAttribute("header") || slotted?.textContent || "").replace(/\s+/g, " ").trim(),
-      parent: section.parentElement?.closest("ui-section")?.id ?? null,
-      pane: tabs && pane?.parentElement === tabs ? pane.getAttribute("value") : null
+      parent: section.parentElement?.closest("ui-section")?.id,
+      pane: paneValue ?? undefined
     }
   })
   const flat: string[] = []
@@ -692,11 +860,11 @@ function sectionsState() {
 /**
  * Where the section `id` landed:  its title's top (its sentinel's:  where it is unstuck), the line it should be on
  * (its top-level section's `offset` + the titles of the sections around it), folded (it or one around it), its
- * pane shown;  null if there's no such element.
+ * pane shown;  `undefined` if there's no such element.
  */
-function landedState(id: string) {
+function landedState(id: string): LandedState | undefined {
   const target = document.getElementById(id)
-  if (!target) return null
+  if (!target) return undefined
   const around: Element[] = []
   let section = target.parentElement?.closest("ui-section")
   while (section) {
@@ -707,9 +875,9 @@ function landedState(id: string) {
   for (const section of around)
     line += section.shadowRoot?.querySelector('[part~="title"]')?.getBoundingClientRect().height ?? 0
   const pane = target.closest("ui-tab")
-  let shown = true
+  let isShown = true
   try {
-    shown = !pane || pane.matches(":state(selected)")
+    isShown = !pane || pane.matches(":state(selected)")
   } catch {
     // a browser without custom states:  not checked
   }
@@ -717,20 +885,20 @@ function landedState(id: string) {
   return {
     top: Math.round(box.getBoundingClientRect().top),
     line: Math.round(line),
-    folded: [target, ...around].some((section) => section.hasAttribute("collapsed")),
-    shown,
-    bottom: scrollY >= document.documentElement.scrollHeight - innerHeight - 2
+    isFolded: [target, ...around].some((section) => section.hasAttribute("collapsed")),
+    isShown,
+    isAtBottom: scrollY >= document.documentElement.scrollHeight - innerHeight - 2
   }
 }
 
-/** The `ui-docs-toc`, or null:  whether it has a box, and its entries (`ui-item` / `a` in its shadow root). */
+/** The `ui-docs-toc`, or `undefined`:  whether it has a box, and its entries (`ui-item` / `a` in its shadow root). */
 function tocState() {
   const toc = document.querySelector("ui-docs-toc")
-  if (!toc) return null
+  if (!toc) return undefined
   const rect = toc.getBoundingClientRect()
   const style = getComputedStyle(toc)
   return {
-    visible: rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden",
+    isVisible: rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden",
     entries: toc.shadowRoot?.querySelectorAll("ui-item, a").length ?? 0
   }
 }
@@ -817,15 +985,3 @@ function navState() {
     return el.hasAttribute("open") || el.hasAttribute("visible") || !!el.shadowRoot?.querySelector("dialog[open]")
   })
 }
-
-////////////////
-// ## Command line
-////////////////
-
-/** Printed on bad arguments and `--help`. */
-const USAGE = `usage:  yarn site:check <page...> | --all  [--out <dir>]
-  page:  a path (absolute, from here, or from ui/), a tag (ui-button), or a name (index)
-  --all:  ui/*.html + ui/components/*.html, minus _-prefixed files
-  --out:  screenshot folder (default ${SiteCheck.OUT})`
-
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await SiteCheck.main()

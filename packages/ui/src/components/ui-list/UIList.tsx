@@ -1,76 +1,92 @@
-import { createMemo } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { PartContext, proto, UIElement, type UIHost, UIT } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
+import { listVocabulary } from "./UIList.en"
 
-import { listVocabulary } from "./ui-list.vocabulary.en"
-import { ListFallback } from "./ui-list.fallback"
-
-import listCSS from "./ui-list.css?inline"
-import { UL, OL, INTERACTIVE } from "./ui-list.types"
+import listCSS from "./UIList.css?inline"
 
 /****************
- * ### `<ui-list>`
- * A list:  `<ul class="ui [size] [keyOnly ...] [relaxed] [floated] [aligned] list" part="list" role="list">`
- * around the `<slot>` (`<ol>` when `ordered`);  its children are GENERIC `<ui-item>`s.
- * - Owner of items (`ItemOwner`):  every `<ui-item>` inside finds this list (`PartContext`) and asks
- *   `itemContext()` how to render -- a `role=listitem` host;  a `<button>` in a `selection` list (a link with
- *   `href`, a `<button>` with the item's own `link`, a `<div>` otherwise).  Items adopt THIS class's `styles`,
- *   so `ui-list.css` holds the item rules too, and the list's variations reach them as inherited tokens.
- * - A part too (`isPart`, noun `list`):  a `<ui-list>` inside a list is Fomantic's sub-list.  It renders
- *   `<ul class="list">` (no `ui`, no variations of its own) and inherits the outer list's look;  it's an `<ol>` when
- *   it or an outer list is `ordered`, and its items are interactive when an outer list's are.
- * - `role="list"` explicitly:  `list-style: none` drops list semantics in Safari.
- * - Numbering is CSS:  `counter-reset` on this root, `counter-increment` on each item root (`ui-list.css`);  counters
- *   cross the shadow boundaries and nest (`1.2`).
- * - Events:  `ui-select` when an interactive item of THIS list (not of a sub-list) is activated -- one click
- *   listener on the host;  Enter / Space on a link / button click natively, so keyboard needs nothing more.
+ * ### `UIList`
+ * The component behind `<ui-list>`:  a list of GENERIC `<ui-item>`s,
+ * `<ul class="ui [size] [keyOnly ...] [relaxed] [floated] [aligned] list" part="list" role="list">`
+ * around the `<slot>` (an `<ol>` when `ordered`).
+ *
+ * - It owns its items (`ItemOwner`):  every `<ui-item>` inside finds this list (`PartContext`)
+ *   and asks `itemContext()` how to draw itself:
+ *   - a DOM element with `role=listitem`;
+ *   - in a `selection` list, an interactive box:  a link with `href`, a `<button>` with the item's own `link`,
+ *     a `<div>` otherwise.
+ *   - Items adopt THIS class's `styleSheets`, so `UIList.css` holds the item rules too,
+ *     and the list's variations reach them as inherited tokens.
+ *
+ * - A part too (`elementSetup.isAPart`, noun `list`):  a `<ui-list>` inside a list is Fomantic's sub-list.
+ *   - It draws `<ul class="list">` (no `ui`, no variations of its own) and inherits the outer list's look.
+ *   - It's an `<ol>` when it or an outer list is `ordered`, and its items are interactive when an outer list's are.
+ *
+ * - `role="list"` is explicit:  `list-style: none` drops list semantics in Safari.
+ *
+ * - Numbering is CSS:  `counter-reset` on this root, `counter-increment` on each item's root (`UIList.css`).
+ *   Counters cross the shadow boundaries and nest (`1.2`).
+ *
+ * - Events:  `ui-select` when an interactive item of THIS list (not of a sub-list) is activated,
+ *   from one click listener on the DOM element.
+ *   Enter and Space on a link or a button click natively, so the keyboard needs nothing more.
  ****************/
-export class UIList extends UIElement<typeof listVocabulary> implements UIT.ItemOwner {
-  @proto static vocabulary = listVocabulary
-  @proto static styles = { list: listCSS }
-  @proto static Fallback = ListFallback
-  @proto static isPart = true
-  @proto static delegatesFocus = false
+export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.ItemOwner {
+  @E.proto static vocabulary = listVocabulary
+  @E.proto static styleSheets = { list: listCSS }
+  @E.proto static elementSetup = { isAPart: true, delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  /** Outer list, when nested. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun)
-
-  ////////////////
-  // ## Derived state
-  ////////////////
-
-  /** Outer list's controller:  only a list owns the `list` part.  Tracked. */
-  readonly outer = createMemo(
-    () => (this.context.owner.get()?.owner as UIHost | undefined)?.controller as UIList | undefined
-  )
-
-  /** Nested in another list:  the sub-list form. */
-  readonly nested = createMemo(() => !!this.context.owner.get())
-
-  /** Numbered:  `ordered`, or inside an ordered list. */
-  readonly isOrdered = createMemo((): boolean => this.attrs.ordered || !!this.outer()?.isOrdered())
-
-  /** Items are `<button>`s:  `selection`, or inside a selection list. */
-  readonly isInteractive = createMemo((): boolean => this.attrs.selection || !!this.outer()?.isInteractive())
-
-  /** What every item gets;  one object while nothing changes, so items don't re-render. */
-  readonly items = createMemo((): UIT.ItemContext => ({
-    hostRole: UIT.LISTITEM,
-    interactive: this.isInteractive(),
-    current: UIT.PAGE
-  }))
-
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     // SIDE EFFECT:  one listener for every item's activation
-    this.host.addEventListener(UIT.CLICK, this.onClick)
-    this.host.addReleaseCallback(() => this.host.removeEventListener(UIT.CLICK, this.onClick))
+    this.domElement.addEventListener("click", this.onClick)
+    this.domElement.addReleaseCallback(() => this.domElement.removeEventListener("click", this.onClick))
+  }
+
+  ////////////////
+  // ## Nesting
+  ////////////////
+
+  /** Outer list, when nested. */
+  readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
+
+  /** The outer list's component:  only a list owns the `list` part.  Tracked. */
+  get outerList(): UIList | undefined {
+    return this.context.ownerComponent<UIList>()
+  }
+
+  /** Nested in another list:  the sub-list form. */
+  get isNested(): boolean {
+    return !!this.context.owner
+  }
+
+  /** Numbered:  `ordered`, or inside an ordered list. */
+  get isOrdered(): boolean {
+    return !!this.ordered || !!this.outerList?.isOrdered
+  }
+
+  /** Items are `<button>`s:  `selection`, or inside a selection list. */
+  get isInteractive(): boolean {
+    return !!this.selection || !!this.outerList?.isInteractive
+  }
+
+  ////////////////
+  // ## Items
+  ////////////////
+
+  /**
+   * What every item gets.
+   * - `@derived`:  one object while nothing it reads changes, so items don't re-render.
+   */
+  @E.derived
+  get ownItemContext(): UIT.ItemContext {
+    return { domElementRole: "listitem", interactive: this.isInteractive, current: "page" }
   }
 
   /** `ItemOwner`:  how items render.  Tracked. */
   itemContext(): UIT.ItemContext {
-    return this.items()
+    return this.ownItemContext
   }
 
   ////////////////
@@ -80,10 +96,10 @@ export class UIList extends UIElement<typeof listVocabulary> implements UIT.Item
   render(): JSX.Element {
     return (
       <Dynamic
-        component={this.isOrdered() ? OL : UL}
-        class={this.nested() ? this.vocabulary.noun : this.classes()}
-        part={this.part("list")}
-        role={UIT.LIST}
+        component={this.isOrdered ? "ol" : "ul"}
+        class={this.isNested ? this.vocabulary.noun : this.rootClasses}
+        part={this.partForName("list")}
+        role="list"
       >
         <slot />
       </Dynamic>
@@ -98,37 +114,46 @@ export class UIList extends UIElement<typeof listVocabulary> implements UIT.Item
   private readonly onClick = (event: MouseEvent) => {
     const item = this.activatedItem(event)
     if (!item) return
-    const detail: UIT.ListSelectDetail = { value: UIList.valueOf(item), item, originalEvent: event }
-    this.emit("ui-select", detail)
+    const detail: UIT.ListSelectDetail = { value: UIList.valueFor(item), item, originalEvent: event }
+    this.send("ui-select", detail)
   }
 
   /**
    * The item of this list whose link / button `event` went through, or `undefined`.
    * - Walks `composedPath()` inward-out:  the first ITEM on it decides;  an item of a sub-list means the sub-list
    *   handles it.
-   * - Only through the item's own root (`<a>` / `<button>` in its shadow):  a click on a plain `<div>` item, or on
-   *   a link inside its content, doesn't select it.
+   * - Only through the item's own root (`<a>` / `<button>` in its shadow):  a click on a plain `<div>` item,
+   *   or on a link inside its content, doesn't select it.
    */
-  private activatedItem(event: Event): UIHost | undefined {
+  private activatedItem(event: Event): E.DOMElement | undefined {
     let root: Element | undefined
     for (const target of event.composedPath()) {
-      if (target === this.host) return undefined
+      if (target === this.domElement) return undefined
       if (!(target instanceof Element)) continue
-      const context = ((target as UIHost).controller as { context?: PartContext } | undefined)?.context
+      const context = ((target as E.DOMElement).component as { context?: E.PartContext } | undefined)?.context
       if (context?.noun !== UIT.ITEM) {
         root = target
         continue
       }
-      const ours = context.owner.get()?.owner === this.host
-      const interactive = !!root && root.parentNode === target.shadowRoot && INTERACTIVE.has(root.localName)
-      return ours && interactive && !target.matches(UIT.DISABLED_STATE) ? (target as UIHost) : undefined
+      const isOurs = context.owner?.owner === this.domElement
+      const isInteractive = !!root && root.parentNode === target.shadowRoot && INTERACTIVE_ROOTS.has(root.localName)
+      return isOurs && isInteractive && !target.matches(UIT.DISABLED_STATE) ? (target as E.DOMElement) : undefined
     }
     return undefined
   }
 
-  /** `ui-select`'s value:  the item's `value`, else its `text`, else its trimmed text. */
-  private static valueOf(item: UIHost): string {
-    const { value, text } = item as UIHost & { value?: string; text?: string }
+  /**
+   * `ui-select`'s value for `item`:  its `value`, else its `text`, else its trimmed text.
+   * - Static:  a pure lookup on the item.
+   */
+  private static valueFor(item: E.DOMElement): string {
+    const { value, text } = item as E.DOMElement & { value?: string; text?: string }
     return value || text || (item.textContent ?? "").trim()
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIList extends E.AttributeValues<typeof listVocabulary> {}
+
+/** Item roots that can be activated:  a link, a button. */
+const INTERACTIVE_ROOTS: ReadonlySet<string> = new Set(["a", "button"])

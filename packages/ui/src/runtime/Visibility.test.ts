@@ -1,52 +1,26 @@
 import { describe, expect, it, vi } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { nextFrame } from "$/ui/util"
+import { Fixture } from "$/ui/test/Fixture"
 import { Visibility } from "./Visibility"
 import type { VisibilityCalculations, VisibilityCallbacks } from "./runtime.types"
 
 /** A 1x1 GIF, so image tests never touch the network. */
 const PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
 
+/**
+ * How long, after a frame, the observers get to report a scroll:  a REAL wait, on purpose.
+ * - `IntersectionObserver` delivers after the browser's next rendering update, and `Visibility` then coalesces its
+ *   reports with a `setTimeout`:  fake timers drive neither, and "nothing fired" can't be polled for.
+ */
+const OBSERVER_SETTLE_MS = 30
+
 /** Runs no animation. */
 const visibility = new Visibility({ transitions: { animate: async () => true } })
 
-/**
- * A 200px scroll frame:  300px of space, a 100px target, 600px more.
- * - Returns the frame and the target.
- */
-function frame() {
-  const context = Fixture.render(
-    `<div style="height: 200px; overflow: auto"><div style="height: 300px"></div>` +
-      `<div id="target" style="height: 100px"></div><div style="height: 600px"></div></div>`
-  )
-  return { context, target: context.querySelector<HTMLElement>("#target")! }
-}
-
-/** Every callback, recording `name` into `calls`. */
-function recorder(calls: string[]): VisibilityCallbacks {
-  const names = [
-    "onOnScreen",
-    "onOffScreen",
-    "onTopVisible",
-    "onBottomVisible",
-    "onTopPassed",
-    "onBottomPassed",
-    "onPassing",
-    "onTopVisibleReverse",
-    "onBottomVisibleReverse",
-    "onTopPassedReverse",
-    "onBottomPassedReverse",
-    "onPassingReverse"
-  ] as const
-  return Object.fromEntries(names.map((name) => [name, () => calls.push(name)]))
-}
-
-/** Set `context`'s scroll and wait for the observers (and the coalesced check). */
-async function scrollTo(context: HTMLElement, top: number) {
-  context.scrollTop = top
-  await new Promise((resolve) => requestAnimationFrame(resolve))
-  await new Promise((resolve) => setTimeout(resolve, 30))
-}
+////////////////
+// ## Observing
+////////////////
 
 describe("Visibility.observe()", () => {
   it("checks at once:  a target below the fold is off screen", async () => {
@@ -69,11 +43,12 @@ describe("Visibility.observe()", () => {
     expect(calls.slice(3)).toEqual(["onBottomVisible"])
     await scrollTo(context, 350)
     expect(calls.slice(4)).toEqual(["onTopVisibleReverse", "onPassing", "onTopPassed"])
-    const passing = updates.at(-1)!
-    expect(passing.passing).toBe(true)
-    expect(passing.pixelsPassed).toBeCloseTo(50, 0)
-    expect(passing.percentagePassed).toBeCloseTo(0.5, 1)
-    expect(passing.direction).toBe("down")
+    expect(updates.at(-1)).toMatchObject({
+      passing: true,
+      pixelsPassed: expect.closeTo(50, 0),
+      percentagePassed: expect.closeTo(0.5, 1),
+      direction: "down"
+    })
     await scrollTo(context, 500)
     expect(calls.slice(7)).toEqual(["onPassingReverse", "onBottomVisibleReverse", "onBottomPassed"])
     await scrollTo(context, 350)
@@ -157,6 +132,10 @@ describe("Visibility.observe() on an element with no box", () => {
   })
 })
 
+////////////////
+// ## Lazy images
+////////////////
+
 describe("Visibility.lazyImage()", () => {
   it("sets data-src (and data-srcset) once on screen, then reports", async () => {
     const image = Fixture.render<HTMLImageElement>(
@@ -176,7 +155,7 @@ describe("Visibility.lazyImage()", () => {
     )
     const image = context.querySelector("img")!
     const stop = visibility.lazyImage(image, { context })
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    await observersSettle()
     expect(image.hasAttribute("src")).toBe(false)
     await scrollTo(context, 450)
     await expect.poll(() => image.getAttribute("src")).toBe(PIXEL)
@@ -190,3 +169,50 @@ describe("Visibility.lazyImage()", () => {
     expect(image.hasAttribute("src")).toBe(false)
   })
 })
+
+////////////////
+// ## Helpers
+////////////////
+
+/**
+ * A 200px scroll frame:  300px of space, a 100px target, 600px more.
+ * - Returns the frame and the target.
+ */
+function frame() {
+  const context = Fixture.render(
+    `<div style="height: 200px; overflow: auto"><div style="height: 300px"></div>` +
+      `<div id="target" style="height: 100px"></div><div style="height: 600px"></div></div>`
+  )
+  return { context, target: context.querySelector<HTMLElement>("#target")! }
+}
+
+/** Every callback, recording `name` into `calls`. */
+function recorder(calls: string[]): VisibilityCallbacks {
+  const names = [
+    "onOnScreen",
+    "onOffScreen",
+    "onTopVisible",
+    "onBottomVisible",
+    "onTopPassed",
+    "onBottomPassed",
+    "onPassing",
+    "onTopVisibleReverse",
+    "onBottomVisibleReverse",
+    "onTopPassedReverse",
+    "onBottomPassedReverse",
+    "onPassingReverse"
+  ] as const
+  return Object.fromEntries(names.map((name) => [name, () => calls.push(name)]))
+}
+
+/** Set `context`'s scroll and wait for the observers (and the coalesced check). */
+async function scrollTo(context: HTMLElement, top: number) {
+  context.scrollTop = top
+  await observersSettle()
+}
+
+/** A frame, then `OBSERVER_SETTLE_MS`:  long enough for the observers to report and `Visibility` to check. */
+async function observersSettle() {
+  await nextFrame()
+  await new Promise((resolve) => setTimeout(resolve, OBSERVER_SETTLE_MS))
+}

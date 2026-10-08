@@ -1,10 +1,13 @@
 /**
  * Types of `yarn test:visual` (`tools/visual/`).
- * - Runtime-light:  `import type` only;  `VisualError` is the one class.
+ * - At the bottom of the folder's import graph, and runtime-light:  `import type` only;  its values are the error
+ *   classes and `VisualMarkups`, so the fixture page (`Fixture.ts`, in the browser) can import it too.
  */
 
 import type { VisualHooks } from "../../test/test.types.ts"
 import type { VisualSettings } from "./VisualSettings.ts"
+
+export type { VisualOs } from "../environment.ts"
 
 ////////////////
 // ## Run
@@ -12,9 +15,11 @@ import type { VisualSettings } from "./VisualSettings.ts"
 
 /** A setup problem the person has to fix (no Docker, a bad flag):  the CLI prints the message alone, no stack. */
 export class VisualError extends Error {}
+VisualError.prototype.name = "VisualError"
 
-/** Where the browsers run:  the host's own, or Linux ones in Docker. */
-export type VisualOs = "local" | "linux"
+/** A bad flag value:  the CLI prints the message with the usage. */
+export class FlagError extends VisualError {}
+FlagError.prototype.name = "FlagError"
 
 /** A Playwright project:  one browser. */
 export type VisualBrowser = (typeof VisualSettings.BROWSERS)[number]
@@ -25,6 +30,15 @@ export type VisualScheme = (typeof VisualSettings.SCHEMES)[number]
 ////////////////
 // ## Examples
 ////////////////
+
+/**
+ * Which markup of an example the fixture renders (`fixture.html?kind=`):
+ * - `elements` -- `examples/elements/<name>.html`, the baselined render
+ * - `classes` -- the class-grammar original `examples/<name>.html`, for `--parity` only
+ */
+export const VisualMarkups = ["elements", "classes"] as const
+/** One of `VisualMarkups`. */
+export type VisualMarkup = (typeof VisualMarkups)[number]
 
 /** One element example, found by `VisualExamples`. */
 export type VisualExample = {

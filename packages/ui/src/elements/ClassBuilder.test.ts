@@ -8,7 +8,7 @@ afterEach(() => {
 })
 
 /** One attribute of every class kind, deliberately out of output order. */
-const widget = {
+const WIDGET = {
   tag: "ui-widget",
   noun: "widget",
   attributes: [
@@ -37,7 +37,7 @@ const widget = {
 } as const satisfies ComponentVocabulary
 
 /** Grid-ish vocabulary exercising `widthClass` / `canEqual` and `ui: false`. */
-const column = {
+const COLUMN = {
   tag: "ui-column",
   noun: "column",
   ui: false,
@@ -54,8 +54,12 @@ const column = {
   texts: []
 } as const satisfies ComponentVocabulary
 
-const widgets = new ClassBuilder(widget)
-const columns = new ClassBuilder(column)
+const widgets = new ClassBuilder(WIDGET)
+const columns = new ClassBuilder(COLUMN)
+
+////////////////
+// ## Building
+////////////////
 
 describe("ClassBuilder.build() per kind", () => {
   it.each<[string, ClassInput, string]>([
@@ -129,7 +133,7 @@ describe("ClassBuilder.build() order", () => {
 
   it("puts valueOnly with color, in vocabulary order:  each emits its value alone", () => {
     const panel = new ClassBuilder({
-      ...widget,
+      ...WIDGET,
       attributes: [
         { name: "basic", kind: "keyOnly", description: "" },
         { name: "position", kind: "valueOnly", values: ["left", "right"], description: "" },
@@ -144,7 +148,11 @@ describe("ClassBuilder.build() order", () => {
   })
 })
 
-describe("ClassBuilder width options", () => {
+////////////////
+// ## Widths
+////////////////
+
+describe("ClassBuilder.build() widths", () => {
   it.each<[string, ClassInput, string]>([
     ["no ui class", {}, "column"],
     ["default widthClass is wide", { width: 4 }, "four wide column"],
@@ -169,23 +177,23 @@ describe("ClassBuilder width options", () => {
     expect(columns.build({ width: "1/3" })).toBe("five wide column")
     expect(columns.build({ width: "33%" })).toBe("five wide column")
     expect(warn).toHaveBeenCalledTimes(2)
-    expect(warn.mock.calls[0][0]).toMatch(/5\.33 of 16 columns, using 5/)
+    expect(warn.mock.calls[0][0]).toMatch(/5\.33 of 16 columns;  using 5/)
   })
 })
 
-describe("ClassBuilder statics", () => {
-  it("converts numbers to words", () => {
-    expect(ClassBuilder.numberToWord(1)).toBe("one")
-    expect(ClassBuilder.numberToWord("16")).toBe("sixteen")
-    expect(ClassBuilder.numberToWord(17)).toBeUndefined()
-  })
+////////////////
+// ## Grammar and speed
+////////////////
 
+describe("ClassBuilder.grammar", () => {
   it("keeps grammar words on the prototype", () => {
     expect(widgets.grammar.aligned).toBe("aligned")
     expect(Object.hasOwn(widgets, "grammar")).toBe(false)
   })
+})
 
-  it("builds quickly", () => {
+describe("ClassBuilder.build() performance", () => {
+  it("builds 10,000 class lists in under 100ms", () => {
     const values: ClassInput = { size: "small", color: "red", basic: true, pointing: "left", width: "1/4" }
     const start = performance.now()
     for (let index = 0; index < 10_000; index++) widgets.build(values)

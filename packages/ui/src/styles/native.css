@@ -4,9 +4,9 @@
  *   the light DOM, where the component's shadow CSS can only reach the top level (`::slotted(form)`), never the
  *   controls inside.  These rules give that markup its base look.
  * - NOT here:
- *   - slotted tables:  `ui-table.css` styles `<ui-table>`'s light-DOM `<table>` itself (the element registers it as
+ *   - slotted tables:  `UITable.css` styles `<ui-table>`'s light-DOM `<table>` itself (the element registers it as
  *     a page sheet too), base look included
- *   - lists:  a `<ui-list>`'s items are `<ui-item>`s, styled from `ui-list.css` in their own shadow roots
+ *   - lists:  a `<ui-list>`'s items are `<ui-item>`s, styled from `UIList.css` in their own shadow roots
  * - Also:  Fomantic's CSS-only tooltip (`[data-tooltip]`, from `popup.less`), and `.ui-native` -- opt-in
  *   token styling for plain HTML elements (Web Awesome's "native styles").
  * - Selectors are wrapped in `:where()` where they could otherwise out-rank an app's own element rules.
@@ -81,7 +81,7 @@
 
   /*
    * A `<ui-message state="…">` inside a `<ui-form>` shows only while its form, fields or field has that state
-   * (Fomantic's `.ui.form .error.message`).  Here, not in `ui-message.css`:  the message's box is in its own shadow
+   * (Fomantic's `.ui.form .error.message`).  Here, not in `UIMessage.css`:  the message's box is in its own shadow
    * root, and the states are on the ancestors' hosts (`:state(error)` ...).
    * - NOTE: canonical names only (`ui-message`, `state`);  a translated message tag isn't hidden.
    */
@@ -93,9 +93,9 @@
   }
 
   /*
-   * The same in a static server render (`$/ui/server`):  hosts are gone, each root marked `data-ui="<tag less ui->"`,
+   * The same in a static server render (`$/ui/static`):  hosts are gone, each root marked `data-ui="<tag less ui->"`,
    * the message's `state` a class, `:state(x)` a `data-state~="x"`.  The static stylesheet drops the rules above
-   * (`:state()` is shadow-only there), and `ui-form.css`'s class-grammar rules stop at the slotted messages.
+   * (`:state()` is shadow-only there), and `UIForm.css`'s class-grammar rules stop at the slotted messages.
    * - Never matches in a browser:  elements never carry `data-ui` (their roots are in shadow roots).
    */
   :where([data-ui="form"]) :where([data-ui="message"].error):not(:where([data-state~="error"]) *),

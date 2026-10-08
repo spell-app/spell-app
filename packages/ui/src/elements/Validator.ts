@@ -1,24 +1,7 @@
-import { proto, suggest } from "$/ui/util"
-import { Converters } from "$/ui/vocabulary"
+import { E } from "$/ui/core"
 
-import type {
-  CreditCardSpec,
-  FieldValue,
-  ParsedRule,
-  RuleContext,
-  RuleFunction,
-  RuleValue,
-  ValidateOptions,
-  ValidationError,
-  ValidationResult,
-  ValidationRule,
-  ValidatorRegExps,
-  ValidatorText,
-  ValidityFlag,
-  ValidityFlagMap
-} from "./elements.types"
-
-/**
+/****************
+ * ### `Validator`
  * Fomantic's form validation rules (`form.js` `settings.rules`) as pure functions, with its English prompts.
  * - Why a port rather than native constraints alone:  Fomantic's rule vocabulary (`minLength[6]`, `match[password]`,
  *   `creditCard[visa,amex]`) is what `ui-form rules` and authors already speak.
@@ -29,21 +12,32 @@ import type {
  *   - `range[a..b]` prompts interpolate `{min}` / `{max}` (Fomantic leaves them literal)
  *   - an empty range bound is open, so `minValue` / `maxValue` work (see `bounds()`)
  * - Data is `@proto static` so `UI.i18n` can swap `prompts` / `text` per instance, and a subclass can add rules.
- */
+ * - Fomantic's names stay where they're its API (`prompts`, `text`, `regExp`, `rules`, a rule's `(value, ruleValue)`);
+ *   the steps rules share (`range()`, `normalize()`, `count()`:  `RuleValidator`) are ours.
+ * - Library-neutral:  no DOM, no Solid;  of the core (`E`), it uses only `E.proto`, `E.suggest()`, `E.Warnings` and
+ *   the folder's types.  Part of the `forms` entry:  reaches the core through the `$/ui/core` ENTRY, never its leaves
+ *   (`forms.ts`).
+ ****************/
 export class Validator {
+  /** Prompt per rule type, `{name}` ... interpolated;  see `@proto static prompts`. */
   declare prompts: Readonly<Record<string, string>>
-  declare text: ValidatorText
-  declare regExp: ValidatorRegExps
-  declare cards: Readonly<Record<string, CreditCardSpec>>
-  declare flags: ValidityFlagMap
-  declare rules: Readonly<Record<string, RuleFunction>>
+  /** Words the prompts use;  see `@proto static text`. */
+  declare text: E.ValidatorText
+  /** Patterns the rules test;  see `@proto static regExp`. */
+  declare regExp: E.ValidatorRegExps
+  /** Card brands for `creditCard`;  see `@proto static cards`. */
+  declare cards: Readonly<Record<string, E.CreditCardSpec>>
+  /** Constraint Validation flag per rule;  see `@proto static flags`. */
+  declare flags: E.ValidityFlagMap
+  /** The rules by type;  see `@proto static rules`. */
+  declare rules: Readonly<Record<string, E.RuleFunction>>
 
   ////////////////
   // ## Data
   ////////////////
 
   /** Fomantic's `settings.prompt`, verbatim.  `{name}`, `{value}`, `{ruleValue}`, `{min}`, `{max}`, `{identifier}`. */
-  @proto static prompts: Readonly<Record<string, string>> = {
+  @E.proto static prompts: Readonly<Record<string, string>> = {
     range: "{name} must be in a range from {min} to {max}",
     maxValue: "{name} must have a maximum value of {ruleValue}",
     minValue: "{name} must have a minimum value of {ruleValue}",
@@ -76,14 +70,14 @@ export class Validator {
   }
 
   /** Fomantic's `settings.text` entries prompts use. */
-  @proto static text: ValidatorText = {
+  @E.proto static text: E.ValidatorText = {
     and: "and",
     unspecifiedRule: "Please enter a valid value",
     unspecifiedField: "This field"
   }
 
   /** Fomantic's `settings.regExp`, verbatim. */
-  @proto static regExp: ValidatorRegExps = {
+  @E.proto static regExp: E.ValidatorRegExps = {
     decimal: /^\d+\.?\d*$/,
     email: /^[\w!#$%&'*+./=?^`{|}~-]+@[\da-z]([\da-z-]*[\da-z])?(\.[\da-z]([\da-z-]*[\da-z])?)*$/i,
     integer: /^-?\d+$/,
@@ -93,7 +87,7 @@ export class Validator {
   }
 
   /** Card brands for `creditCard[visa,amex]`, from Fomantic's `rules.creditCard`. */
-  @proto static cards: Readonly<Record<string, CreditCardSpec>> = {
+  @E.proto static cards: Readonly<Record<string, E.CreditCardSpec>> = {
     visa: { pattern: /^4/, length: [16] },
     amex: { pattern: /^3[47]/, length: [15] },
     mastercard: { pattern: /^5[1-5]/, length: [16] },
@@ -111,7 +105,7 @@ export class Validator {
    * - `"auto"` rules pick by value:  type failure => `typeMismatch`, else under / over the range.
    * - Rules with no native equivalent (`is`, `match` ...) => `customError`.
    */
-  @proto static flags: ValidityFlagMap = {
+  @E.proto static flags: E.ValidityFlagMap = {
     notEmpty: "valueMissing",
     checked: "valueMissing",
     email: "typeMismatch",
@@ -147,7 +141,7 @@ export class Validator {
    * The rules, as methods called with `this` ~== the validator.
    * - `value` is normalized (see `normalize()`);  `context.raw` has the original.
    */
-  @proto static rules: Readonly<Record<string, RuleFunction>> = {
+  @E.proto static rules: Readonly<Record<string, E.RuleFunction>> = {
     /** Not blank;  an empty array or unchecked (`false`) checkbox is blank. */
     notEmpty(value) {
       return value !== ""
@@ -170,26 +164,26 @@ export class Validator {
       return value.match(parts ? new RegExp(parts[1], parts[2] ?? "") : new RegExp(text)) !== null
     },
     minValue(value, min) {
-      return this.range(value, `${String(min)}..`, this.regExp.number)
+      return this.range(value, { range: `${String(min)}..`, pattern: this.regExp.number })
     },
     maxValue(value, max) {
-      return this.range(value, `..${String(max)}`, this.regExp.number)
+      return this.range(value, { range: `..${String(max)}`, pattern: this.regExp.number })
     },
     /** Integer, optionally in `integer[min..max]`. */
     integer(value, range) {
-      return this.range(value, range, this.regExp.integer)
+      return this.range(value, { range, pattern: this.regExp.integer })
     },
     /** Integer in `range[min..max]`. */
     range(value, range) {
-      return this.range(value, range, this.regExp.integer)
+      return this.range(value, { range, pattern: this.regExp.integer })
     },
     /** Unsigned decimal, optionally in range.  NOTE: Fomantic's pattern rejects negatives. */
     decimal(value, range) {
-      return this.range(value, range, this.regExp.decimal)
+      return this.range(value, { range, pattern: this.regExp.decimal })
     },
     /** Number, optionally in range.  NOTE: Fomantic's pattern accepts `""`;  pair with `notEmpty`. */
     number(value, range) {
-      return this.range(value, range, this.regExp.number)
+      return this.range(value, { range, pattern: this.regExp.number })
     },
     is(value, text) {
       return value.toLowerCase() === String(text ?? "").toLowerCase()
@@ -216,17 +210,18 @@ export class Validator {
       return !value.includes(String(text ?? ""))
     },
     minLength(value, min) {
-      return this.range(value, `${String(min)}..`, this.regExp.integer, true)
+      return this.range(value, { range: `${String(min)}..`, pattern: this.regExp.integer, measure: "length" })
     },
     exactLength(value, length) {
-      return this.range(value, `${String(length)}..${String(length)}`, this.regExp.integer, true)
+      const range = `${String(length)}..${String(length)}`
+      return this.range(value, { range, pattern: this.regExp.integer, measure: "length" })
     },
     maxLength(value, max) {
-      return this.range(value, `..${String(max)}`, this.regExp.integer, true)
+      return this.range(value, { range: `..${String(max)}`, pattern: this.regExp.integer, measure: "length" })
     },
     /** Length in `size[min..max]`. */
     size(value, range) {
-      return this.range(value, range, this.regExp.integer, true)
+      return this.range(value, { range, pattern: this.regExp.integer, measure: "length" })
     },
     /** Equal to field `match[other]`;  false when that field is missing. */
     match(value, other, { fieldValues }) {
@@ -280,18 +275,23 @@ export class Validator {
    * - `optional` skips everything when the value is blank.
    * - SIDE EFFECT (dev only): warns about unknown rule types, with a suggestion, and skips them.
    */
-  validate(value: FieldValue, rules: readonly ValidationRule[], options: ValidateOptions = {}): ValidationResult {
-    const text = this.normalize(value, options.trim ?? true)
-    const errors: ValidationError[] = []
+  validate(
+    value: E.FieldValue,
+    rules: readonly E.ValidationRule[],
+    options: E.ValidateOptions = {}
+  ): E.ValidationResult {
+    const text = this.normalize(value, options)
+    const errors: E.ValidationError[] = []
     if (!(options.optional && text === "")) {
-      const context: RuleContext = { raw: value, fieldValues: options.fieldValues }
+      const context: E.RuleContext = { raw: value, fieldValues: options.fieldValues }
       for (const rule of rules) {
         const parsed = this.parseRule(rule)
         const test = this.rules[parsed.type]
         if (!test) {
-          const guess = suggest(parsed.type, Object.keys(this.rules))
-          Converters.warn(
-            `Validator: unknown rule ${JSON.stringify(parsed.type)}${guess ? `, did you mean "${guess}"?` : ""}`
+          const guess = E.suggest(parsed.type, Object.keys(this.rules))
+          E.Warnings.devWarn(
+            "Validator",
+            `unknown rule ${JSON.stringify(parsed.type)}${guess ? `;  did you mean "${guess}"?` : ""}`
           )
           continue
         }
@@ -313,7 +313,7 @@ export class Validator {
    * True if `value` passes the single `rule`, e.g. `validator.test("minLength[6]", "secret")`.
    * - Unknown rules pass.
    */
-  test(rule: ValidationRule, value: FieldValue, fieldValues?: ValidateOptions["fieldValues"]): boolean {
+  test(rule: E.ValidationRule, value: E.FieldValue, fieldValues?: E.ValidateOptions["fieldValues"]): boolean {
     return this.validate(value, [rule], { fieldValues }).valid
   }
 
@@ -322,7 +322,7 @@ export class Validator {
    * - Bracket runs from the FIRST `[` to the final `]`, so `regExp[/^[a-z]+$/]` keeps its inner brackets.
    * - An object's own `value` wins over a bracket in its `type`.
    */
-  parseRule(rule: ValidationRule): ParsedRule {
+  parseRule(rule: E.ValidationRule): E.ParsedRule {
     const source = typeof rule === "string" ? rule : rule.type
     const bracket = source.indexOf("[")
     const hasBracket = bracket > 0 && source.endsWith("]")
@@ -339,7 +339,7 @@ export class Validator {
    *   "Age must be an integer and must be in a range from 1 to 10".
    * - `match` / `different` name the OTHER field by its label.
    */
-  prompt(rule: ParsedRule, value: string, options: ValidateOptions = {}): string {
+  prompt(rule: E.ParsedRule, value: string, options: E.ValidateOptions = {}): string {
     const { prompts, text } = this
     const ruleValue = rule.value === undefined ? "" : String(rule.value)
     let prompt =
@@ -374,33 +374,35 @@ export class Validator {
   ////////////////
 
   /**
-   * Fomantic's `rules.range()`:  `value` matches `regExp` and lies within `range` (`"min..max"`, `"n"`, `"..max"`).
-   * - `testLength` tests `value.length` instead of the value.
-   * - Bounds that don't match `regExp` are ignored, as Fomantic.
+   * `value` (or, `measure: "length"`, its length) matches `pattern` and lies within `range` (`"min..max"`, `"n"`,
+   * `"..max"`):  Fomantic's `rules.range()`, as a shared step.
+   * - Ours:  Fomantic's takes `(value, range, regExp, testLength)`, a positional boolean;  rules call this one
+   *   with a `RangeTest`.
+   * - Bounds that don't match `pattern` are ignored, as Fomantic.
    */
-  range(value: string, range: RuleValue, regExp: RegExp, testLength = false): boolean {
-    const bounds = this.bounds(range, regExp)
-    const subject = testLength ? String(value.length) : value
+  range(value: string, { range, pattern, measure = "value" }: E.RangeTest): boolean {
+    const bounds = this.bounds(range, pattern)
+    const subject = measure === "length" ? String(value.length) : value
     const number = Number(subject)
     return (
-      regExp.test(subject) &&
+      pattern.test(subject) &&
       (bounds.min === undefined || number >= bounds.min) &&
       (bounds.max === undefined || number <= bounds.max)
     )
   }
 
   /**
-   * A field value as the rules see it:  a string, trimmed unless `trim` is false.
+   * A field value as the rules see it:  a string, trimmed unless `trim` is false (`ValidateOptions.trim`).
    * - `null` / `undefined` / `false` => `""`;  `true` => `"true"`;  arrays comma-joined.
    */
-  normalize(value: FieldValue, trim = true): string {
+  normalize(value: E.FieldValue, { trim = true }: Pick<E.ValidateOptions, "trim"> = {}): string {
     if (value == null || value === false) return ""
     const text = typeof value === "string" ? value : Array.isArray(value) ? value.join(",") : String(value)
     return trim ? text.trim() : text
   }
 
   /** Number of choices:  the array's length, else comma-separated entries of `value`. */
-  count(value: string, raw: FieldValue): number {
+  count(value: string, raw: E.FieldValue): number {
     if (Array.isArray(raw)) return raw.length
     return value === "" ? 0 : value.split(",").length
   }
@@ -414,7 +416,7 @@ export class Validator {
    * - An EMPTY bound is open.  Fomantic tests it against the pattern, and its `number` pattern matches `""`,
    *   so its `minValue[5]` (`"5.."`) gets `max = 0` and rejects everything positive.
    */
-  private bounds(range: RuleValue, regExp: RegExp): { min?: number; max?: number } {
+  private bounds(range: E.RuleValue, regExp: RegExp): { min?: number; max?: number } {
     const text = range === undefined ? "" : String(range)
     if (text === "" || text === "..") return {}
     if (!text.includes("..")) return regExp.test(text) ? { min: Number(text), max: Number(text) } : {}
@@ -426,7 +428,7 @@ export class Validator {
   }
 
   /** Constraint Validation flag for a failed `rule`, resolving `"auto"` from the value. */
-  private flagFor(rule: ParsedRule, value: string, raw: FieldValue): ValidityFlag {
+  private flagFor(rule: E.ParsedRule, value: string, raw: E.FieldValue): E.ValidityFlag {
     const flag = this.flags[rule.type] ?? "customError"
     if (flag !== "auto") return flag
     switch (rule.type) {
@@ -448,11 +450,11 @@ export class Validator {
   }
 }
 
-/** Rules whose `{min}` / `{max}` come from a `min..max` bracket. */
-const RANGE_PROMPT_RULES = new Set(["integer", "decimal", "number", "size", "range"])
+/** Rules whose `{min}` / `{max}` come from a `min..max` bracket.  Fomantic's. */
+const RANGE_PROMPT_RULES: ReadonlySet<string> = new Set(["integer", "decimal", "number", "size", "range"])
 
 /** Rules whose default prompt gets Fomantic's range suffix appended. */
-const RANGE_SUFFIX_RULES = new Set(["integer", "decimal", "number"])
+const RANGE_SUFFIX_RULES: ReadonlySet<string> = new Set(["integer", "decimal", "number"])
 
 /** Luhn:  digit => doubled digit's digit sum. */
-const LUHN_DOUBLED = [0, 2, 4, 6, 8, 1, 3, 5, 7, 9]
+const LUHN_DOUBLED: readonly number[] = [0, 2, 4, 6, 8, 1, 3, 5, 7, 9]

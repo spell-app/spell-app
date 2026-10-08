@@ -1,11 +1,11 @@
-import type { RootCatalogEntry } from "$/ui/components/ui-root/ui-root.types"
-
-import { PACK_FILE_SUFFIX, PACK_PREFIX, UI_PREFIX, type ComponentPack, type PendingPack } from "./ui-components.types"
+import { E } from "$/ui/core"
+import type { RootCatalogEntry } from "$/ui/components/ui-root/UIRoot.types"
+import type { ComponentPack } from "./UIComponents.types"
 
 /****************
  * ### `ComponentPacks`
  * The page's component packs:  their catalogs and tag prefixes, and the loads of their scripts, once per page.
- * - STATIC:  one registry per page, shared by every `<ui-root>`, like `RootLoader`'s family loads.
+ * - Static:  one registry per page, shared by every `<ui-root>`, like `RootLoader`'s family loads.
  * - A pack is a CLASSIC script (`<script src>`, so it works from `file://`):  `load()` adds one, and the script
  *   calls `registerPack()` as it runs, which finds the load by `document.currentScript` (else by the name its file
  *   implies), defines the pack's tags and resolves it.
@@ -27,11 +27,15 @@ export class ComponentPacks {
   /** Loads whose script hasn't registered its pack yet. */
   private static readonly pending = new Set<PendingPack>()
 
+  ////////////////
+  // ## Registering and loading
+  ////////////////
+
   /**
    * Register `pack`:  define its tags (`pack.define()`), add its catalog and prefix, and resolve the load of the
    * script calling this (if `load()` started it).
    * - A second pack with a registered name is ignored, with a console warning:  its tags are defined already.
-   * - throws `TypeError` on a malformed pack;  rethrows what `define()` throws, after failing the load
+   * - Throws a `TypeError` on a malformed pack;  rethrows what `define()` throws, after failing the load.
    */
   static register(pack: ComponentPack): void {
     ComponentPacks.check(pack)
@@ -39,7 +43,7 @@ export class ComponentPacks {
     if (pending) ComponentPacks.pending.delete(pending)
     const known = ComponentPacks.packs.get(pack.name)
     if (known) {
-      console.warn(`registerPack():  a pack named "${pack.name}" is registered already;  this one is ignored`)
+      E.Warnings.warn("registerPack()", `a pack named "${pack.name}" is registered already;  this one is ignored`)
       pending?.resolve(known)
       return
     }
@@ -78,12 +82,16 @@ export class ComponentPacks {
     return load
   }
 
+  ////////////////
+  // ## What a root asks
+  ////////////////
+
   /** The catalog entry of `tag`, from the registered packs;  `undefined` for a tag no pack lists. */
   static entryOf(tag: string): RootCatalogEntry | undefined {
     return ComponentPacks.catalog.get(tag)
   }
 
-  /** `tag` has a registered pack's prefix:  a root loads (or reports) it, as it does `ui-*` tags. */
+  /** Does `tag` have a registered pack's prefix?  Then a root loads (or reports) it, as it does `ui-*` tags. */
   static owns(tag: string): boolean {
     for (const prefix of ComponentPacks.prefixes) if (tag.startsWith(prefix)) return true
     return false
@@ -96,7 +104,7 @@ export class ComponentPacks {
   }
 
   ////////////////
-  // ## Helpers
+  // ## Internal
   ////////////////
 
   /** Add a `<script>` for `url`;  resolves when it registers its pack, rejects when it fails to. */
@@ -153,3 +161,24 @@ export class ComponentPacks {
 export function registerPack(pack: ComponentPack): void {
   ComponentPacks.register(pack)
 }
+
+/** A pack load waiting for its script to call `registerPack()`. */
+type PendingPack = {
+  /** The `<script>` loading it:  `document.currentScript` while it runs. */
+  readonly script: HTMLScriptElement
+  /** The name its URL implies (`ComponentPacks.nameFor()`):  the match when `document.currentScript` is gone. */
+  readonly name: string
+  /** Resolve the load with the registered pack. */
+  readonly resolve: (pack: ComponentPack) => void
+  /** Fail the load. */
+  readonly reject: (error: Error) => void
+}
+
+/** A pack's tag prefix:  lowercase words joined by `-`, ending in `-` (`epic-`, `x-`, `my-app-`). */
+const PACK_PREFIX = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-$/
+
+/** Spell UI's own prefix, which no pack may take. */
+const UI_PREFIX = "ui-"
+
+/** What a pack's file name ends in, after its name:  `epics.pack.js`, else plain `.js`. */
+const PACK_FILE_SUFFIX = /(?:\.pack)?\.js$/

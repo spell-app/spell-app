@@ -489,7 +489,7 @@
              Motion
   *******************************/
 
-  /* Buttons press in;  the property list restates the button's own (`ui-button.css`) plus `scale` */
+  /* Buttons press in;  the property list restates the button's own (`UIButton.css`) plus `scale` */
   @media (prefers-reduced-motion: no-preference) {
     .ui.button:not(.loading) {
       transition-property: opacity, background-color, color, box-shadow, scale;

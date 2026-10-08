@@ -36,7 +36,7 @@
 
 import "spell-ui:icons"
 import "spell-ui:emoji"
-import { ThemeSheets } from "@spell-app/ui"
+import { UI } from "@spell-app/ui"
 import * as solidWeb from "@solidjs/web"
 import * as solid from "solid-js"
 import * as uiCore from "@spell-app/ui/core"
@@ -46,7 +46,8 @@ import "./spell-ui-sources.js"
 import "./spell-doc-runtime.js"
 import { defineSite } from "$/server/site"
 
-export { UI, registerPack } from "@spell-app/ui"
+export { UI }
+export { registerPack } from "@spell-app/ui"
 
 /** What a component pack imports, by the specifier its build leaves external => the page's copy of that module. */
 export const packModules = Object.freeze({
@@ -56,5 +57,7 @@ export const packModules = Object.freeze({
   "$/ui/forms": uiForms
 })
 
-void ThemeSheets.apply("spell-brand")
+void UI.load()
+  .then((ui) => ui.themes.apply("spell-brand"))
+  .catch((error) => console.error("spell-ui:  the spell-brand theme", error))
 defineSite()
