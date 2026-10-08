@@ -54,6 +54,26 @@
   --spell-eyebrow-font: 500 11px/1.2 var(--spell-mono);
   --spell-eyebrow-tracking: var(--spell-tracking-eyebrow, 0.14em);
   --spell-toc-width: 300px;
+
+  /*
+   * ## Item states (the colour scheme, Q20 of epic `epic-components`, Owen 2026-10-08:  the table is in
+   * `templates/epics/plan-doc.md`, "Colours"):  a state's fill, and `-on` for what's drawn on it.  The goals pages'
+   * id chips, the Epics index's filter, the contents and rail counts, a details page's question badges.
+   * - red needs you;  yellow open, still undecided (DARK ink on it:  `--ui-yellow-on`);  blue Claude is working on
+   *   it;  green decided or done lately;  grey older
+   * - the same values as `<epic-page>`'s `--epic-state-*` (`packages/epics`, `EpicPage.css`):  change both
+   * - red keeps its light-mode hue in dark mode:  dark's lighter red reads as orange
+   */
+  --spell-state-attention: light-dark(var(--ui-red, #db2828), var(--ui-red-on-light, #db2828));
+  --spell-state-attention-on: light-dark(var(--ui-red-on, #fff), var(--ui-ink-on-dark, #fff));
+  --spell-state-progress: var(--ui-blue, #2185d0);
+  --spell-state-progress-on: var(--ui-blue-on, #fff);
+  --spell-state-open: var(--ui-yellow, #fbbd08);
+  --spell-state-open-on: var(--ui-yellow-on, #1b1c1d);
+  --spell-state-recent: var(--ui-green, #21ba45);
+  --spell-state-recent-on: var(--ui-green-on, #fff);
+  --spell-state-old: var(--ui-grey-background, light-dark(#eeeeee, #34343b));
+  --spell-state-old-on: var(--ui-grey-text, GrayText);
 }
 
 * {
@@ -494,11 +514,13 @@ pre code {
   gap: 3px;
 }
 /*
- * The state buttons:  round, in their state's color, filled while its items show, outlined while hidden;  the grey
- * one first, a filter icon, filled while everything shows
+ * The state buttons:  round, in their state's colour (`--spell-state-*`), filled while its items show, outlined
+ * while hidden;  the grey one first, a filter icon, filled while everything shows.  `old` is the plain grey:  its
+ * chips' pale grey is too faint for a ring.
  */
 .spell-doc-main button.spell-state-toggle {
   --_state: var(--ui-grey, #767676);
+  --_state-on: var(--ui-grey-on, #fff);
   display: inline-grid;
   place-items: center;
   width: 16px;
@@ -515,21 +537,25 @@ pre code {
   width: 20px;
   height: 20px;
 }
-.spell-doc-main button.spell-state-toggle[data-color="orange"] {
-  --_state: var(--ui-orange, #f2711c);
+.spell-doc-main button.spell-state-toggle[data-state="attention"] {
+  --_state: var(--spell-state-attention);
+  --_state-on: var(--spell-state-attention-on);
 }
-.spell-doc-main button.spell-state-toggle[data-color="red"] {
-  --_state: var(--ui-red, #db2828);
+.spell-doc-main button.spell-state-toggle[data-state="progress"] {
+  --_state: var(--spell-state-progress);
+  --_state-on: var(--spell-state-progress-on);
 }
-.spell-doc-main button.spell-state-toggle[data-color="blue"] {
-  --_state: var(--ui-blue, #2185d0);
+.spell-doc-main button.spell-state-toggle[data-state="open"] {
+  --_state: var(--spell-state-open);
+  --_state-on: var(--spell-state-open-on);
 }
-.spell-doc-main button.spell-state-toggle[data-color="green"] {
-  --_state: var(--ui-green, #21ba45);
+.spell-doc-main button.spell-state-toggle[data-state="recent"] {
+  --_state: var(--spell-state-recent);
+  --_state-on: var(--spell-state-recent-on);
 }
 .spell-doc-main button.spell-state-toggle[aria-pressed="true"] {
   background: var(--_state);
-  color: var(--ui-surface, Canvas);
+  color: var(--_state-on);
 }
 .spell-doc-main button.spell-state-toggle:focus-visible {
   outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
@@ -851,16 +877,17 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 }
 
 /*
- * Open-item counts (`span.spell-toc-count` after a contents link, `span.spell-rail-count` beside a rail icon):  small
- * ORANGE pills, apart from the ivory and the icons' brown (Owen, 2026-10-04)
+ * What needs Owen (`span.spell-toc-count` after a contents link, `span.spell-rail-count` beside a rail icon):  small
+ * RED pills counting only the items that need him;  none, no pill (Q20 of epic `epic-components`, 2026-10-08:  it
+ * was orange, counting every open item)
  */
 :is(.spell-toc-count, .spell-rail-count) {
   display: inline-block;
   min-width: 1.6em;
   padding: 0 0.4em;
   border-radius: 999px;
-  background: var(--ui-orange, #f2711c);
-  color: var(--ui-orange-on, #fff);
+  background: var(--spell-state-attention);
+  color: var(--spell-state-attention-on);
   font: 700 0.72rem/1.5 var(--spell-sans);
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -876,9 +903,9 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 
 /*
  * The rail (`nav.spell-rail`, built by the runtime):  a strip at the right edge -- the contents button (bars) on
- * top, then one icon per top-level section, its open items beside the icon.  Shown while the contents column
- * isn't:  narrow screens, or `body.spell-toc-hidden` (the contents' hide button).  Below the fixed site header,
- * as the drawer.
+ * top, then one icon per top-level section, how many of its items need you beside the icon.  Shown while the
+ * contents column isn't:  narrow screens, or `body.spell-toc-hidden` (the contents' hide button).  Below the fixed
+ * site header, as the drawer.
  * - the brand's IVORY (Polished Ivory, the warm accent:  UI's `--ui-brown-background` / `--ui-brown-text`, a warm
  *   surface in dark mode) for the strip, its flyout and the contents drawer;  the current section a deeper ivory,
  *   hover a step between (Owen, 2026-10-04)
@@ -888,8 +915,8 @@ ui-accordion.spell-toc ui-accordion::part(title) {
  * - every entry is `icon | label`:  the strip shows only the icons;  hovering it (or tabbing into it) widens it
  *   LEFTWARD over the page to `--spell-rail-open`, the icons riding its left edge and the labels showing to
  *   their right.  A short delay first, so crossing it on the way to the scrollbar doesn't
- * - a section needing attention (open items) gets a thick ORANGE bar at its entry's left edge;  its count shows
- *   only when the strip is widened, as an orange pill at the entry's right end (Owen, 2026-10-04)
+ * - a section with items that need you gets a thick RED bar at its entry's left edge;  their count shows only when
+ *   the strip is widened, as a red pill at the entry's right end (Owen, 2026-10-04;  red, Q20, 2026-10-08)
  * - very narrow (`max-width: 480px`, VS Code's side bar;  Owen, J3):  only the bars button, floating at the top right
  */
 :root {
@@ -991,7 +1018,7 @@ ui-accordion.spell-toc ui-accordion::part(title) {
   height: 34px;
   font-size: 0.95rem;
 }
-/* needs attention:  a thick orange bar at the entry's left edge */
+/* needs you:  a thick red bar at the entry's left edge */
 .spell-rail-item:has(.spell-rail-count)::before {
   content: "";
   position: absolute;
@@ -999,7 +1026,7 @@ ui-accordion.spell-toc ui-accordion::part(title) {
   inset-inline-start: 0;
   width: 4px;
   border-radius: 0;
-  background: var(--ui-orange, #f2711c);
+  background: var(--spell-state-attention);
 }
 .spell-rail-item:has(.spell-rail-count) .spell-rail-label {
   padding-inline-end: 36px;
@@ -1009,7 +1036,8 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 }
 /*
  * an item's number (`Q3` shows 3):  a round badge, its colour the item's state (`data-state` on the entry, from its
- * section):  red needs an answer, green answered, orange asked for more;  no state:  plain
+ * section;  a details page's questions, `details.js` `markState()`):  red nothing picked yet, green picked, blue
+ * Claude has more to do (more details asked for, or only Other written);  no state:  plain
  */
 .spell-rail-icon > b.spell-rail-number {
   display: inline-flex;
@@ -1023,19 +1051,19 @@ ui-accordion.spell-toc ui-accordion::part(title) {
   font-variant-numeric: tabular-nums;
   background: var(--spell-rail-hover);
 }
-.spell-rail-item[data-state] .spell-rail-number {
-  color: #fff;
-}
 .spell-rail-item[data-state="attention"] .spell-rail-number {
-  background: var(--ui-red, #db2828);
+  background: var(--spell-state-attention);
+  color: var(--spell-state-attention-on);
 }
 .spell-rail-item[data-state="done"] .spell-rail-number {
-  background: var(--ui-green, #21ba45);
+  background: var(--spell-state-recent);
+  color: var(--spell-state-recent-on);
 }
 .spell-rail-item[data-state="working"] .spell-rail-number {
-  background: var(--ui-orange, #f2711c);
+  background: var(--spell-state-progress);
+  color: var(--spell-state-progress-on);
 }
-/* the count:  hidden in the strip (the bar says it), an orange pill at the entry's right end once widened */
+/* the count:  hidden in the strip (the bar says it), a red pill at the entry's right end once widened */
 .spell-rail-count {
   display: none;
   position: absolute;
