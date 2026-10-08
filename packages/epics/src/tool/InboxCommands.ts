@@ -370,7 +370,8 @@ export class InboxCommands {
    * `finishMarks()`;  `clear` drops it), and their `working` too.
    * - a mark leaving with Owen's note in it:  the note is kept IN the item first, as his own reply card
    *   (`PlanDoc.keepNote()`, epic `windows-and-review` P1):  what he wrote is never lost from the page
-   * - a revisit taken care of (talked over, or answered now) stays marked as reviewed that way on the page
+   * - a request taken care of stays marked as handled that way on the page (`review-as`, its button solid):  an
+   *   immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as `revisit`
    */
   private async finish(file: string, what: "done" | "clear", ids: string[]): Promise<void> {
     if (!ids.length) throw new PlanDocError(`${what} which items?  ids`)
@@ -381,21 +382,26 @@ export class InboxCommands {
     let had: string[] = []
     let kept: string[] = []
     let notes: { id: string; mark: KeptNote }[] = []
+    let handled: { id: string; as: "now" | "revisit" }[] = []
     ReviewInbox.update(path, (box) => {
       const before = { ...box.marks }
       if (what === "done") ({ had, kept } = box.finishMarks(keys))
       else had = box.clearMarks(keys)
       notes = had.filter((id) => before[id]?.note).map((id) => ({ id, mark: before[id] as KeptNote }))
+      handled = had.flatMap((id): { id: string; as: "now" | "revisit" }[] => {
+        const mark = before[id]
+        if (mark && ReviewInbox.isImmediate(mark)) return [{ id, as: "now" }]
+        return mark?.action === "revisit" ? [{ id, as: "revisit" }] : []
+      })
       for (const id of keys) box.setWorking(id, null)
       box.touchListening()
     })
-    const revisits = notes.filter(({ mark }) => mark.action === "revisit")
-    if (notes.length)
+    if (notes.length || handled.length)
       await this.owner.edit(file, (plan) => {
         for (const { id, mark } of notes) plan.keepNote(id, mark)
-        for (const { id } of revisits) {
+        for (const { id, as } of handled) {
           const item = plan.findItem(id)
-          if (item) plan.reviewedAs(item, "revisit")
+          if (item) plan.reviewedAs(item, as)
         }
       })
     const none = keys.filter((id) => !had.includes(id) && !kept.includes(id))

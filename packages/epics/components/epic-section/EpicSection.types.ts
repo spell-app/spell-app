@@ -197,9 +197,9 @@ export const COUNT_ATTRIBUTES = ["status", "state"]
  * - the same five as `<epic-item state>` (`EpicItem.types.ts` `ITEM_STATES`), in the old runtime's filter order
  */
 export const FILTER_STATES = [
-  { state: "progress", color: "orange", words: "stateProgress" },
+  { state: "progress", color: "blue", words: "stateProgress" },
   { state: "attention", color: "red", words: "stateAttention" },
-  { state: "open", color: "blue", words: "stateOpen" },
+  { state: "open", color: "yellow", words: "stateOpen" },
   { state: "recent", color: "green", words: "stateRecent" },
   { state: "old", color: "grey", words: "stateOld" }
 ] as const
@@ -217,12 +217,17 @@ export type ItemStateName = FilterState["state"]
  */
 export const FILTER_KEY = "spell-item-state:"
 
-/** A section's count:  its counted children, and how many of them are open. */
+/** A section's count:  its counted children, how many of them are open, and how many need Owen. */
 export type SectionCount = {
   /** not closed (`CLOSED_STATUSES`) */
   open: number
   /** every one */
   total: number
+  /**
+   * the items that need Owen (`state="attention"`, red):  what the contents and the rail count (decision Q20:  red,
+   * only what needs him;  no pill for none)
+   */
+  attention: number
 }
 
 /** Classes of the filter's chips and its "hidden" line;  the Plan changes box and its heading. */

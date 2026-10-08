@@ -1,10 +1,9 @@
 /*
  * `<epic-status>` (EpicStatus.tsx):  Claude's status card, on top of the answer family's card sheet
  * (`EpicAnswer.css`, adopted first):  its box, its dated band (`.header.dated`:  who left, the date right), its body.
- * Only the fills are here:
- * - underway:  orange (Owen's choice, 2026-10-08;  a colour clean-up comes later, todo T22), its border solid enough
- *   to tell it from Owen's own orange reply card
- * - done:  violet, Claude's reply colour, the border as strong
+ * Only the fills are here, in the colours of decision Q20 (Owen, 2026-10-08):
+ * - underway:  blue, Claude is working on it
+ * - done:  green, done;  both with a border solid enough to tell them from the reply cards around them
  * - the summary under the reading, across a rule
  * - Public tokens (`--epic-status-*`) are never declared here:  read through private aliases.
  */
@@ -16,12 +15,12 @@
     --_epic-card-rule: color-mix(in oklab, var(--_epic-card-accent) 55%, transparent);
   }
   .status.underway {
-    --_epic-card-fill: var(--ui-orange-background, light-dark(#fff1e5, #3a2614));
-    --_epic-card-accent: var(--ui-orange-text, var(--ui-orange, #f2711c));
+    --_epic-card-fill: var(--ui-blue-background, light-dark(#e8f1fc, #14243a));
+    --_epic-card-accent: var(--ui-blue-text, var(--ui-blue, #1a67e0));
   }
   .status.done {
-    --_epic-card-fill: var(--ui-violet-background, light-dark(#eaeaff, #2a2747));
-    --_epic-card-accent: var(--ui-violet-text, var(--ui-violet, #6550ca));
+    --_epic-card-fill: var(--ui-green-background, light-dark(#e6f6ec, #13301f));
+    --_epic-card-accent: var(--ui-green-text, var(--ui-green, #00853a));
   }
   .summary {
     border-top: 1px solid var(--_epic-card-rule);

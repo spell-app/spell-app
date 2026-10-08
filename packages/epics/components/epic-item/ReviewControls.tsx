@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createSignal, onSettled, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { DRAFT_SAVE_MS, FOCUS_HOLD_MS, NOBODY_LISTENING, clockOf, type InboxMark } from "$/epics/review"
+import { DRAFT_SAVE_MS, FOCUS_HOLD_MS, NOBODY_LISTENING, clockOf, isImmediate, type InboxMark } from "$/epics/review"
 
 import {
   NOTE_ACTIONS,
@@ -11,7 +11,7 @@ import {
   NOTE_SAVED,
   NOTE_TEXT,
   REVIEW_CONTROLS,
-  REVIEW_DETAILS,
+  REVIEW_DO_NOW,
   REVIEW_GROUP,
   REVIEW_NOTED,
   REVIEW_PICK,
@@ -21,6 +21,7 @@ import {
   SAID_WHAT,
   type NoteHow,
   type ReviewButtonSpec,
+  type ReviewFill,
   type ReviewText
 } from "./EpicItem.types"
 import type { ReviewState } from "./ReviewState"
@@ -35,19 +36,22 @@ import type { ReviewState } from "./ReviewState"
 /****************
  * ### `<ReviewButtons>`
  * The controls at the end of a line:  the note bubble (what Owen wrote, its words as the tooltip), a pick's letter,
- * the state buttons in a group (Approve, Make Todo, Revisit), then Add Details Now on its own.
- * - unchosen:  a grey outline;  chosen:  filled in its colour (green decided, orange pending);  sent:  outlined in
- *   it;  the button of an earlier mark Claude applied (`appliedAs`) stays outlined
- * - an immediate request at work:  its button's spinner (`loading`);  queued with nobody listening:  a still,
- *   dashed ring.  Clicked while it spins:  "nevermind"
- * - Revisit asks the element to take the reader to the note box (`onOpenBox`)
+ * the group (Approve, Revisit, Make Todo), then Do Now apart (decision Q20).
+ * - every button shows at every step, its FILL saying how far its mark has got (`ReviewFill`, `fillOf()`):  a grey
+ *   outline available;  dashed in its colour pressed, not sent;  outlined sent (a Do Now:  taken);  solid done (the
+ *   item's `review-as`, `appliedAs`).  Colours:  green decided (Approve, Make Todo), blue an ask of Claude (Revisit,
+ *   Do Now)
+ * - work on its way or under way (`ReviewState.busyButton()`):  that button's icon turns while Claude is on it
+ *   (`data-busy`);  queued with nobody listening, it stays dashed.  Clicked then:  "nevermind"
+ * - Revisit asks the element to take the reader to the note box (`onOpenBox`);  Do Now takes the note in it along
+ *   (`ReviewClient.press()`)
  * - tooltips:  the plain browser ones (`title`), just the name (Q8), then the element's review label
  *   (`Approve · reviewed 10/7/26`:  Owen, 2026-10-07, in place of the label beside them);  a screen reader hears the
  *   state too
  ****************/
 export function ReviewButtons(props: ReviewButtonsProps) {
   const group = () => props.buttons.filter((spec) => spec.action !== "details")
-  const details = () => props.buttons.find((spec) => spec.action === "details")
+  const doNow = () => props.buttons.find((spec) => spec.action === "details")
   return (
     <span
       class={REVIEW_CONTROLS}
@@ -64,8 +68,7 @@ export function ReviewButtons(props: ReviewButtonsProps) {
         {(pick) => (
           <span
             class={REVIEW_PICK}
-            data-color={props.review.mark()?.action === "revisit" ? "orange" : "green"}
-            data-sent={props.review.isSent() ? "" : undefined}
+            data-fill={props.review.isSent() ? "outline" : "dashed"}
             title={props.text(props.review.isSent() ? "pickedSent" : "pickedUnsent", { letter: pick() })}
           >
             {pick()}
@@ -75,16 +78,13 @@ export function ReviewButtons(props: ReviewButtonsProps) {
       <ui-buttons class={REVIEW_GROUP} basic="" icon="" size="mini">
         <For each={group()}>{(spec) => button(spec)}</For>
       </ui-buttons>
-      <Show when={details()}>{(spec) => button(spec(), REVIEW_DETAILS)}</Show>
+      <Show when={doNow()}>{(spec) => button(spec(), REVIEW_DO_NOW)}</Show>
     </span>
   )
 
   /** One review button, as its action stands. */
   function button(spec: ReviewButtonSpec, extra?: string): JSX.Element {
-    const chosen = () => props.review.mark()?.action === spec.action
-    const applied = () => !props.review.mark() && props.appliedAs === spec.action
-    const spinning = () => props.review.running()?.action === spec.action
-    const queued = () => spinning() && !!props.review.running()?.queued
+    const busy = () => props.review.busyButton() === spec.action
     return (
       <ui-button
         class={extra}
@@ -93,12 +93,10 @@ export function ReviewButtons(props: ReviewButtonsProps) {
         icon={spec.icon}
         data-action={spec.action}
         data-color={spec.color}
-        data-chosen={chosen() || applied() ? "" : undefined}
-        data-sent={(chosen() && props.review.isSent()) || applied() ? "" : undefined}
-        data-waiting={queued() ? "" : undefined}
-        loading={spinning() && !queued() ? "" : undefined}
-        title={spinning() && !queued() ? props.text("callOff", { label: props.text(spec.label) }) : name(spec)}
-        aria-label={`${props.text(spec.label)} · ${state(spec, chosen(), applied(), spinning(), queued())}`}
+        data-fill={fillOf(spec)}
+        data-busy={busy() && props.review.workedOn() ? "" : undefined}
+        title={busy() ? props.text("callOff", { label: props.text(spec.label) }) : name(spec)}
+        aria-label={`${props.text(spec.label)} · ${state(spec)}`}
         onClick={(event: MouseEvent) => {
           // the line's own click would fold it
           event.preventDefault()
@@ -109,6 +107,23 @@ export function ReviewButtons(props: ReviewButtonsProps) {
     )
   }
 
+  /**
+   * How far `spec`'s mark has got:  its fill.
+   * - Do Now:  dashed while its request waits to be taken, outlined while Claude is on it, solid once done (`now`)
+   * - the rest:  their mark dashed until sent, then outlined;  solid once Claude handled it (`appliedAs`), until a
+   *   new mark
+   */
+  function fillOf(spec: ReviewButtonSpec): ReviewFill {
+    const review = props.review
+    const mark = review.mark()
+    if (spec.action === "details") {
+      if (review.busyButton() === spec.action) return review.workedOn() ? "outline" : "dashed"
+      return !mark && props.appliedAs === "now" ? "solid" : "none"
+    }
+    if (mark?.action === spec.action && !isImmediate(mark)) return review.isSent() ? "outline" : "dashed"
+    return !mark && props.appliedAs === spec.action ? "solid" : "none"
+  }
+
   /** A button's plain tooltip:  its name, then the element's review label (`Approve · reviewed 10/7/26`). */
   function name(spec: ReviewButtonSpec): string {
     const label = props.text(spec.label)
@@ -116,13 +131,18 @@ export function ReviewButtons(props: ReviewButtonsProps) {
   }
 
   /** A button's state, for a screen reader. */
-  function state(spec: ReviewButtonSpec, chosen: boolean, applied: boolean, spinning: boolean, queued: boolean) {
-    if (queued) return props.text("waiting", { why: NOBODY_LISTENING })
-    if (spinning) return props.text(spec.action === "revisit" ? "revisiting" : "detailing")
-    if (chosen) return props.text(props.review.isSent() ? "chosenSent" : "chosenUnsent")
-    if (applied) return props.text("doneBefore")
+  function state(spec: ReviewButtonSpec): string {
+    const review = props.review
+    if (review.busyButton() === spec.action) {
+      if (review.running()?.queued) return props.text("waiting", { why: NOBODY_LISTENING })
+      return props.text(review.workedOn() ? "working" : "asked")
+    }
+    const fill = fillOf(spec)
+    if (fill === "dashed") return props.text("chosenUnsent")
+    if (fill === "outline") return props.text("chosenSent")
+    if (fill === "solid") return props.text("doneBefore")
     const tip = props.text(spec.tip)
-    return spec.action === "details" && !props.review.listening() ? `${tip}.  ${NOBODY_LISTENING}` : tip
+    return spec.action === "details" && !review.listening() ? `${tip}.  ${NOBODY_LISTENING}` : tip
   }
 
   /** What Owen wrote:  the draft, else the mark's note;  `""` for none. */
@@ -153,7 +173,7 @@ export type ReviewButtonsProps = {
   label: string
   /** which buttons, in their order:  an item's four;  an Overview section's, without Approve */
   buttons: readonly ReviewButtonSpec[]
-  /** how Claude applied an earlier mark (`review-as`):  that button stays outlined */
+  /** how Claude handled an earlier mark (`review-as`;  `now`:  Do Now):  that button is solid, done */
   appliedAs?: string
   /** the element's review label in words (`reviewed 10/7/26`), after every button's name in its tooltip */
   reviewTip?: string
@@ -165,14 +185,15 @@ export type ReviewButtonsProps = {
 
 /****************
  * ### `<NoteBox>`
- * The note box (Owen, 2026-10-06, Q8):  a note that grows as it's typed in, a small Saved mark in its corner, and three
- * round buttons stacked at its right:  Revisit Later (orange:  revisit soon, the line's Revisit icon), Do Now (blue:
- * revisit now), Make Todo (green).
+ * The note box (Owen, 2026-10-06, Q8):  Owen's voice, on ivory -- a note that grows as it's typed in, a small Saved
+ * mark in its corner, and two round buttons stacked at its right:  Revisit Later (blue:  revisit soon, the line's
+ * Revisit icon), Make Todo (green).  Do Now is the line's (decision Q20):  it takes the note along.
  * - SAVED as typed:  to the inbox as a draft, `DRAFT_SAVE_MS` after the last key, and at once when the box loses focus
  *   or the page goes away;  the floppy says Saved (its tooltip:  when), or turns red with why not;  a localStorage
  *   backup too, for a save that fails (`ReviewClient.type()`)
  * - a button makes the note a mark, then empties the box;  Escape leaves it, the draft kept (`onEscape`)
- * - the button for the element's mark is filled (`data-mark`)
+ * - the button for the element's mark wears the fill rule (`data-mark`, `data-sent`):  dashed until sent, outlined
+ *   once sent;  the rest a grey outline
  * - SIDE EFFECT:  listens for `pagehide` while drawn
  ****************/
 export function NoteBox(props: NoteBoxProps) {
@@ -198,7 +219,12 @@ export function NoteBox(props: NoteBoxProps) {
     }
   })
   return (
-    <div class={NOTE_BOX} part={props.part} data-mark={markButton(review.mark())}>
+    <div
+      class={NOTE_BOX}
+      part={props.part}
+      data-mark={markButton(review.mark())}
+      data-sent={markButton(review.mark()) && review.isSent() ? "" : undefined}
+    >
       <span class={NOTE_TEXT}>
         <textarea
           ref={(element) => {
@@ -230,8 +256,9 @@ export function NoteBox(props: NoteBoxProps) {
             <button
               type="button"
               data-how={spec.how}
+              data-color={spec.color}
               title={props.text(spec.label)}
-              aria-label={tip(spec.how, props.text(spec.tip))}
+              aria-label={props.text(spec.tip)}
               onClick={() => use(spec.how)}
             >
               <ui-icon name={spec.icon} />
@@ -295,11 +322,6 @@ export function NoteBox(props: NoteBoxProps) {
     if (!state) return ""
     if (state.ok) return props.text("saved", { time: clockOf(state.at) })
     return props.text("notSaved", { why: review.lastWriteError })
-  }
-
-  /** A note box button's spoken label:  Do Now says when nobody is listening. */
-  function tip(how: NoteHow, words: string): string {
-    return how === "now" && !review.listening() ? `${words}.  ${NOBODY_LISTENING}` : words
   }
 }
 
@@ -404,9 +426,9 @@ export function takeToNote(
   requestAnimationFrame(focus)
 }
 
-/** The note box button `mark` stands for:  `todo`, `soon` (Later), `now` (Do Now);  else none. */
+/** The note box button `mark` stands for:  `todo`, `soon` (Later);  else none (a Do Now is the line's). */
 function markButton(mark: InboxMark | undefined): NoteHow | undefined {
   if (mark?.action === "todo") return "todo"
-  if (mark?.action === "revisit") return mark.when === "now" ? "now" : "soon"
+  if (mark?.action === "revisit" && !isImmediate(mark)) return "soon"
   return undefined
 }

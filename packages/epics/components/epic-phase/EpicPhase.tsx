@@ -16,7 +16,7 @@ import phaseCSS from "./EpicPhase.css?inline"
  * ### `EpicPhase`
  * The component behind `<epic-phase>`:  one phase of the plan, in the Phases section -- a fold (`EpicFold`) titled
  * `P3 · <title>`.
- * - Its title line:  the status icon in its colour (grey to do, orange under way, green done), `P3 · <title>`
+ * - Its title line:  the status icon in its colour (grey to do, blue under way, green done), `P3 · <title>`
  *   (`title`, or `slot="title"`), the estimate as a badge;  a done phase's title reads quieter.
  * - Its children, in order:  `<epic-field>`s (Symptom, Changes, Goal, Done, Files, Verify, To review),
  *   `<epic-updated>` lines under Changes, `<epic-commit>`s.  Files and Verify show only while the Phases title's
@@ -89,6 +89,6 @@ type PhaseStatus = keyof typeof STATUS_ICONS
 /** A phase's status => its icon's colour in the page's contents list (Spell UI's `color`), as `EpicPhase.css`'s. */
 const STATUS_COLORS = {
   todo: "grey",
-  active: "orange",
+  active: "blue",
   done: "green"
 } as const satisfies Record<PhaseStatus, string>

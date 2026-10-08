@@ -144,14 +144,15 @@
     height: 10px;
     fill: currentColor;
   }
-  .chip[data-color="orange"] {
-    --_chip: var(--epic-state-progress, var(--ui-orange));
+  /* the item states' colours (decision Q20):  blue Claude is on it, red needs Owen, yellow open, green done lately */
+  .chip[data-color="blue"] {
+    --_chip: var(--epic-state-progress, var(--ui-blue));
   }
   .chip[data-color="red"] {
     --_chip: var(--epic-state-attention, var(--ui-red));
   }
-  .chip[data-color="blue"] {
-    --_chip: var(--epic-state-open, var(--ui-blue));
+  .chip[data-color="yellow"] {
+    --_chip: var(--epic-state-open, var(--ui-yellow));
   }
   .chip[data-color="green"] {
     --_chip: var(--epic-state-recent, var(--ui-green));

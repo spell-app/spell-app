@@ -100,12 +100,30 @@ test("apply:  a sent todo gets a status card born done, saying what was filed (Q
   expect(plan.findItem("j2")!.querySelector("epic-status")).toBeNull()
 })
 
+test("done:  a Do Now request done is `review-as=now` (its button solid);  a revisit talked over, `revisit`", async () => {
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.requestNow("j1", "details", "", T1)
+    inbox.setMark("j2", { action: "revisit", when: "soon", note: "why?" }, T1)
+  })
+  await commands().inbox.run("x", file, ["done", "j1"], {})
+  await commands().inbox.run("x", file, ["clear", "j2"], {})
+  const plan = PlanDoc.parse(readFileSync(file, "utf8"))
+  expect([plan.findItem("j1")!.getAttribute("review-as"), plan.findItem("j2")!.getAttribute("review-as")]).toEqual([
+    "now",
+    "revisit"
+  ])
+})
+
 test("status:  underway writes the card AND turns the page's spinner on;  done turns both;  done again is refused", async () => {
   const owner = commands()
   vi.spyOn(owner, "warn").mockImplementation(() => undefined)
   expect(await owner.run(["status", "x", "j1", "underway", "Weigh it, and answer here."])).toBe(0)
   expect(Object.keys(ReviewInbox.read(inboxFile).working)).toEqual(["j1"])
+  // Claude is on it:  the item is `progress` (blue) until the card is done (Q20)
+  const state = () => PlanDoc.parse(readFileSync(file, "utf8")).findItem("j1")!.getAttribute("state")
+  expect(state()).toBe("progress")
   expect(await owner.run(["status", "x", "j1", "done", "Answered:  keep it."])).toBe(0)
+  expect(state()).toBe("attention")
   const card = PlanDoc.parse(readFileSync(file, "utf8")).findItem("j1")!.querySelector("epic-status")!
   // as written to disk, formatted:  whitespace aside
   expect([card.getAttribute("state"), card.hasAttribute("done-at"), card.innerHTML.replace(/\s+/g, " ")]).toEqual([

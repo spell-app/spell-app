@@ -126,6 +126,8 @@ export class OldPlanReader extends PlanReader {
       queued: mark("queued"),
       work: mark("work"),
       working: item.hasAttribute("data-working"),
+      // the old markup has no status cards
+      underway: false,
       bedtime: item.hasAttribute("data-bedtime"),
       // the old markup has no urgency:  every open call is urgent
       calm: false

@@ -168,7 +168,19 @@ describe("ReviewClient.press()", () => {
     await vi.waitFor(() => expect(server.inbox.marks.q1).toMatchObject({ action: "pick", pick: "B" }))
   })
 
-  test("Add Details Now spins while asked, waits QUEUED with nobody listening, and says so", async () => {
+  test("Do Now with a note in the box asks a revisit NOW with it (the box closes, emptied);  without, details", async () => {
+    const { client, server } = await started()
+    client.openBox("j2")
+    client.type("j2", "look at this now")
+    client.press("j2", "details")
+    await vi.waitFor(() => expect(server.inbox.now.map(({ id, action }) => [id, action])).toEqual([["j2", "revisit"]]))
+    expect(server.inbox.marks.j2).toMatchObject({ action: "revisit", when: "now", note: "look at this now" })
+    expect([client.isBoxOpen("j2"), client.typedOf("j2"), client.busyButtonOf("j2")]).toEqual([false, "", "details"])
+    client.press("q1", "details")
+    await vi.waitFor(() => expect(server.inbox.marks.q1?.action).toBe("details"))
+  })
+
+  test("Do Now (no note:  details) spins while asked, waits QUEUED with nobody listening, and says so", async () => {
     const { client, server } = await started()
     const notices: string[] = []
     client.onNotice((message) => notices.push(message))
@@ -183,11 +195,11 @@ describe("ReviewClient.press()", () => {
     expect(client.runningOf("o1")).toEqual({ action: "details", queued: false })
   })
 
-  test("a running request pressed again is called off;  a revisit's note comes back as a draft, its box open", async () => {
+  test("a running request's button (a revisit now is Do Now's) pressed again calls it off;  its note comes back as a draft, its box open", async () => {
     const { client, server } = await started()
     await client.useNote("j2", "now", "look at this now")
-    expect(client.runningOf("j2")?.action).toBe("revisit")
-    client.press("j2", "revisit")
+    expect([client.runningOf("j2")?.action, client.busyButtonOf("j2")]).toEqual(["revisit", "details"])
+    client.press("j2", "details")
     expect(client.runningOf("j2")).toBeNull()
     await vi.waitFor(() => expect(server.inbox.canceled.j2).toBeDefined())
     await vi.waitFor(() => expect(server.inbox.drafts.j2?.note).toBe("look at this now"))
