@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-icon-DxlXnvB8.js";export{e as UIIcon,t as UIIcons};

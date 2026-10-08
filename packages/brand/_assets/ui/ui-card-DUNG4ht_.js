@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-card-D3UnfIxv.js";export{e as UICard,t as UICards};

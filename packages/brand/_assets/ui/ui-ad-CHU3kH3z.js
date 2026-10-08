@@ -1,0 +1,1 @@
+import{t as e}from"./ui-ad-D8moJGl8.js";export{e as UIAd};

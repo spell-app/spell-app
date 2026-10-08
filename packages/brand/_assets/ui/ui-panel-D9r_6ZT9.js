@@ -1,0 +1,1 @@
+import{t as e}from"./ui-panel-CF6BM8Fg.js";export{e as UIPanel};

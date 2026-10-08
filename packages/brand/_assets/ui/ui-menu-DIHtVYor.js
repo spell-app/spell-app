@@ -1,0 +1,1 @@
+import{t as e}from"./ui-menu-xW4Tocdc.js";export{e as UIMenu};

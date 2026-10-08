@@ -498,6 +498,36 @@ describe("<ui-section> sticky", () => {
       .toBeLessThan(1.5)
   })
 
+  /*
+   * A positioned child with a z-index (a step's arrow, a table's stuck header) scrolls under the stuck title:  the
+   * title still covers it, even when the page sets the title's z-index low (the docs:  4) or to nothing.
+   */
+  it.each(["", "--ui-section-z-index: 2", "--ui-section-z-index: 0"])(
+    "covers what scrolls under the stuck title, whatever its z-index (%s)",
+    async (style) => {
+      const scroller = await ElementFixture.render(
+        `<div style="height: 200px; overflow: auto; ${style}">` +
+          `<ui-section header="Sticky" sticky>` +
+          `<div style="height: 100px"></div>` +
+          `<div id="climber" style="position: relative; z-index: 50; height: 100px; background: red"></div>` +
+          `<div style="height: 600px"></div>` +
+          `</ui-section></div>`
+      )
+      const host = scroller.querySelector<SectionElement>("ui-section")!
+      const climber = scroller.querySelector("#climber")!
+      await ElementFixture.settle(scroller)
+      // the climber's top at the frame's top:  it fills the stuck title's whole box
+      scroller.scrollTop = climber.getBoundingClientRect().top - scroller.getBoundingClientRect().top
+      await expect.poll(() => host.matches(":state(stuck)")).toBe(true)
+      const { title } = parts(host)
+      const bar = title.getBoundingClientRect()
+      expect(climber.getBoundingClientRect().top).toBeCloseTo(bar.top, 0)
+      const [x, y] = [bar.left + bar.width / 2, bar.top + bar.height / 2]
+      expect(document.elementFromPoint(x, y)).toBe(host)
+      expect(title.contains(host.shadowRoot!.elementFromPoint(x, y))).toBe(true)
+    }
+  )
+
   it("never sticks the subhead", async () => {
     const { subhead } = await section(`<ui-section header="H" subhead="S" sticky>Body</ui-section>`)
     expect(getComputedStyle(subhead!).position).not.toBe("sticky")
