@@ -5,6 +5,7 @@
  *   node-only inbox never reaches the pack, and a reply can't drift from what the server writes.
  */
 
+import { PlanDates } from "$/epics/dates"
 import type {
   InboxDraft,
   InboxListener,
@@ -198,11 +199,15 @@ export function isImmediate(mark: { action: string; when?: string }): boolean {
   return mark.action === "details" || (mark.action === "revisit" && mark.when === "now")
 }
 
-/** ISO time `iso` as the reader's clock time, `10:42`;  `""` for none. */
+/**
+ * ISO time `iso` as the reader's clock time, 24-hour, `14:42`;  `""` for none.
+ * - a time shown alone (`saved 14:42`, a redirect's `told 14:43`):  `PlanDates`' time half, never the locale's
+ *   `2:42 PM`
+ */
 export function clockOf(iso: string | null | undefined): string {
   const date = iso ? new Date(iso) : null
   if (!date || isNaN(date.getTime())) return ""
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  return PlanDates.clock(date)
 }
 
 /** A route's reply as the running agents, every field there (`AgentList.ts` has their shape);  `[]` for none. */

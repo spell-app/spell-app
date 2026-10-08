@@ -331,11 +331,6 @@
           "type": "webview",
           "id": "spell.docView",
           "name": "Spell Docs"
-        },
-        {
-          "type": "webview",
-          "id": "spell.treeView",
-          "name": "Spell Tree"
         }
       ],
       "spell-review": [

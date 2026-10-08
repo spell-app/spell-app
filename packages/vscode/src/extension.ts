@@ -24,7 +24,6 @@ import {
 
 import { DocPreview } from "./DocPreview"
 import { RunnerPanel } from "./RunnerPanel"
-import { TreeView } from "./TreeView"
 import { WindowBridge } from "./WindowBridge"
 
 /** Scheme of the read-only documents showing a spell file's compiled javascript -- see `CompiledProvider`. */
@@ -88,7 +87,6 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
   }
   client = new LanguageClient("spell", "Spell", serverOptions, clientOptions)
   RunnerPanel.register(context, client, repoRoot)
-  TreeView.register(context, client, repoRoot)
 
   const compiled = new CompiledProvider(client)
   context.subscriptions.push(

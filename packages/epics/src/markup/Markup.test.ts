@@ -65,6 +65,7 @@ const SAMPLES: { [T in EpicTag]: EpicData<T> } = {
   "epic-answer": { id: "d1", title: "Named palette" },
   "epic-more": {},
   "epic-reply": { from: "Owen", at: "2026-10-06 10:42", re: "revisit soon" },
+  "epic-status": { state: "done", at: "2026-10-08 14:20", doneAt: "2026-10-08 14:34" },
   "epic-original": {},
   "epic-version": { asOf: "2026-10-04 20:49" },
   "epic-commit": { sha: "82d5106c165cbebf3922fd97793798e41f1b2760" },

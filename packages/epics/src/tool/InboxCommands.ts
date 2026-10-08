@@ -67,10 +67,7 @@ export class InboxCommands {
         const id = ReviewInbox.toItemId(this.owner.need(args[0], "an item id"))
         const on = this.owner.need(args[1], "on | off")
         if (!["on", "off"].includes(on)) throw new PlanDocError(`working ${id} on | off, not '${on}'`)
-        ReviewInbox.update(path, (box) => {
-          box.setWorking(id, on === "on" ? workOf(box.marks[id]) : null)
-          box.touchListening()
-        })
+        this.setWorking(file, id, on === "on")
         return this.owner.print(`${id.toUpperCase()} working:  ${on}`)
       }
       case "done":
@@ -79,6 +76,19 @@ export class InboxCommands {
       default:
         throw new PlanDocError(`inbox what?  listen | unlisten | wait | apply | working | done | clear (not '${what}')`)
     }
+  }
+
+  /**
+   * The page's spinner on item `id` of the doc at `file`, on or off (`inbox working`;  `status` too):  the inbox's
+   * `working` entry, and the session's heartbeat.
+   * - SIDE EFFECT:  writes the inbox, under its lock
+   */
+  setWorking(file: string, id: string, on: boolean): void {
+    const key = ReviewInbox.toItemId(id)
+    ReviewInbox.update(ReviewInbox.pathFor(file), (box) => {
+      box.setWorking(key, on ? workOf(box.marks[key]) : null)
+      box.touchListening()
+    })
   }
 
   ////////////////

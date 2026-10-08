@@ -3,6 +3,8 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
+import { PlanDates } from "$/epics/dates"
+
 import { epicItemVocabulary } from "./EpicItem.en"
 import { Chevron } from "./Chevron"
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "./ReviewControls"
@@ -33,6 +35,7 @@ import {
   REVIEW,
   REVIEW_BUTTONS,
   STATE_TIP_KEYS,
+  STATUS_SLOT,
   TITLE,
   TOGGLE,
   UNDER_LINE,
@@ -51,7 +54,7 @@ import reviewCSS from "./ReviewControls.css?inline"
  * The component behind `<epic-item>`:  one item -- question, judgement call, caveat, todo, issue or test -- its kind its id's letter (Q11).
  * - Its LINE, in the shadow root:  the fold chevron (only with details), the id chip (`Q7`, a link to `#q7`) in its
  *   state's colour, the title (`title`, or `slot="title"`), the bed icon (`overnight`:  made overnight), the git icon
- *   (with commits), the review label (`reviewed 10-06`, `deferred`, `to do`) and the review buttons.  Sticky while
+ *   (with commits), the review label (`reviewed 10/6/26`, `deferred`, `to do`) and the review buttons.  Sticky while
  *   open, under the section titles stuck above it.
  * - `calm`:  an open judgement call or issue not reviewed yet is blue (`open`), not red (`attention`).
  * - Its COMMITS (`<epic-commit>` children, or `commits` while its part isn't in):  hidden until the page's git toggle
@@ -60,14 +63,15 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   page's toggle still shows them.
  * - Its DETAILS:  its light-DOM children, through the default slot, so find-in-page, `#d7` links and the live update
  *   see them (Q12);  hidden `until-found` while folded.  Over its own text, `Original question` (answered) or
- *   `Original reply` (with a More Details card);  under them the note box.
+ *   `Original reply` (with a More Details card);  under them Claude's status cards (`<epic-status slot="status">`,
+ *   P13), then the note box.
  * - Review (P9, `ReviewControls.tsx`):  only while the page is reviewed (served with a token, its inbox answering:
  *   `ReviewState`).  Approve, Make Todo, Revisit, Add Details Now at the line's end, the review label in their
  *   tooltips (not beside them:  Owen, 2026-10-07);  the note box LAST in its details, whatever its state, sticky at
  *   the window's bottom while it's open and taller than the window, or, without details, under its line once
- *   Revisit opens it;  a marked note just above the box, with Edit.  The id chip of an item Owen may call urgent or
- *   not (`canCalm`) is a button:  urgent <-> not urgent, through the inbox (`ReviewClient.toggleCalm()`).  All in
- *   the shadow root:  a part reloaded keeps a half-typed note.
+ *   Revisit opens it;  a marked note just above the box, with Edit, and Claude's status cards between the two.
+ *   The id chip of an item Owen may call urgent or not (`canCalm`) is a button:  urgent <-> not urgent, through the
+ *   inbox (`ReviewClient.toggleCalm()`).  All in the shadow root:  a part reloaded keeps a half-typed note.
  * - Folding:  `open` (page state, never in the file);  a click on the line (not on a link or control in it) or
  *   Enter / Space on the chevron go through the cancelable `ui-open` / `ui-close`.  A link to the item, to an id
  *   in `part-ids`, or to an element inside it opens it, as does find-in-page.
@@ -154,8 +158,10 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /** Is its id chip a button (urgent <-> not urgent) now?  Only while the page is reviewed. */
   readonly chipToggles = createMemo(() => this.reviewState.reviewing() && this.canCalm())
 
-  /** Has details to fold:  a `source`, or children in the default slot. */
-  readonly hasDetails = createMemo(() => !!this.source || this.slots.hasContent(""))
+  /** Has details to fold:  a `source`, or children in the default slot or the status cards' (`slot="status"`). */
+  readonly hasDetails = createMemo(
+    () => !!this.source || this.slots.hasContent("") || this.slots.hasContent(this.slotForName(STATUS_SLOT))
+  )
 
   /** Unfolded. */
   readonly isOpen = createMemo(() => !!this.isMarkedOpen && this.hasDetails())
@@ -166,20 +172,17 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /** Its id as shown:  `Q7`. */
   readonly label = createMemo(() => (this.id ?? "").toUpperCase())
 
-  /** The review label, from its marks:  `to do`, else `deferred`, else `reviewed 10-06`;  none when unmarked. */
+  /** The review label, from its marks:  `to do`, else `deferred`, else `reviewed 10/6/26`;  none when unmarked. */
   readonly review = createMemo((): ReviewLabel | undefined => {
     const { queued, deferred, reviewed, work } = this
     if (queued) return { words: this.translationForKey("reviewTodo"), look: "todo", tip: work || undefined }
     if (deferred) {
-      return {
-        words: this.translationForKey("reviewDeferred"),
-        look: "deferred",
-        tip: this.translationForKey("tipDeferred", { date: deferred })
-      }
+      const tip = this.translationForKey("tipDeferred", { date: PlanDates.format(deferred) })
+      return { words: this.translationForKey("reviewDeferred"), look: "deferred", tip }
     }
     if (reviewed) {
       const look = this.itemState() === "recent" ? "recent" : "old"
-      return { words: this.translationForKey("reviewed", { date: reviewed.slice(5) }), look }
+      return { words: this.translationForKey("reviewed", { date: PlanDates.format(reviewed) }), look }
     }
     return undefined
   })
@@ -188,14 +191,14 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   readonly hasCommits = createMemo(() => !!this.commits || this.childScan.hasCommits)
 
   /**
-   * The review label, in words, for the review buttons' tooltips (`Approve · reviewed 10-07`):  while the page is
+   * The review label, in words, for the review buttons' tooltips (`Approve · reviewed 10/7/26`):  while the page is
    * reviewed, the buttons say it, not a label beside them (Owen, 2026-10-07).
    */
   readonly reviewTip = createMemo((): string | undefined => {
     const { queued, work, deferred, reviewed } = this
     if (queued) return this.translationForKey("tipTodo", { work: work || queued })
-    if (deferred) return this.translationForKey("tipDeferred", { date: deferred.slice(5) })
-    if (reviewed) return this.translationForKey("reviewed", { date: reviewed.slice(5) })
+    if (deferred) return this.translationForKey("tipDeferred", { date: PlanDates.format(deferred) })
+    if (reviewed) return this.translationForKey("reviewed", { date: PlanDates.format(reviewed) })
     return undefined
   })
 
@@ -212,8 +215,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     const { queued, work, reviewed, deferred, status } = this
     const parts = [this.translationForKey(STATE_TIP_KEYS[this.itemState()])]
     if (queued) parts.push(this.translationForKey("tipTodo", { work: work || queued }))
-    if (reviewed) parts.push(this.translationForKey("tipReviewed", { date: reviewed }))
-    else if (deferred) parts.push(this.translationForKey("tipDeferred", { date: deferred }))
+    if (reviewed) parts.push(this.translationForKey("tipReviewed", { date: PlanDates.format(reviewed) }))
+    else if (deferred) parts.push(this.translationForKey("tipDeferred", { date: PlanDates.format(deferred) }))
     else if (status === "open") parts.push(this.translationForKey("tipNotReviewed"))
     if (this.chipToggles()) {
       const urgency = this.reviewState.urgency()
@@ -331,11 +334,11 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
             </div>
           </Show>
           <slot />
-          {/* last in every item, whatever its state (Owen, 2026-10-07):  what was noted, then the box */}
-          <Show when={this.reviewState.reviewing() && this.hasDetails()}>
-            {this.saidNote()}
-            {this.noteBox()}
-          </Show>
+          {/* last in every item, whatever its state (Owen, 2026-10-07):  what was noted, Claude's status cards under
+              it ("under my input", Owen, 2026-10-08, P13), then the box */}
+          <Show when={this.reviewState.reviewing() && this.hasDetails()}>{this.saidNote()}</Show>
+          <slot name={this.slotForName(STATUS_SLOT)} />
+          <Show when={this.reviewState.reviewing() && this.hasDetails()}>{this.noteBox()}</Show>
         </div>
       </div>
     )

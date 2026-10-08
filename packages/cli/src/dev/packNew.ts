@@ -42,7 +42,7 @@ export async function newPack(root: string, name: string, options: NewPackOption
   mergePackageJson(
     root,
     join(dir, "package.json"),
-    fillTokens(readTemplate("package/package.json.tmpl"), tokens),
+    fillTokens(readTemplate("package/package.json.template"), tokens),
     report
   )
   wirePack(root, pack, report)
@@ -77,7 +77,7 @@ export async function newElement(
   writeTemplates(root, join(TEMPLATES, "element"), join(pack.dir, "components", tag), tokens, report)
   const barrel = join(pack.dir, "components", "index.ts")
   if (!existsSync(barrel)) {
-    writeFileSync(barrel, fillTokens(readTemplate("package/components/index.ts.tmpl"), tokens))
+    writeFileSync(barrel, fillTokens(readTemplate("package/components/index.ts.template"), tokens))
     report.created.push(relative(root, barrel))
   }
   const text = readFileSync(barrel, "utf8")
@@ -105,10 +105,10 @@ export type NewElementOptions = { build?: boolean }
 const TEMPLATES = join(REPO_ROOT, "packages", "cli", "templates", "pack")
 
 /** A template file's suffix, dropped from the file it writes:  so no tool (tsc, lint, vitest) reads a template. */
-const TEMPLATE_SUFFIX = ".tmpl"
+const TEMPLATE_SUFFIX = ".template"
 
 /** Template files written another way:  `package.json` is merged (`mergePackageJson()`). */
-const NOT_COPIED = ["package.json.tmpl"]
+const NOT_COPIED = ["package.json.template"]
 
 /** A pack's name:  lowercase words joined by dashes, as a folder under `packages/`. */
 const PACK_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
@@ -171,7 +171,7 @@ function fillTokens(text: string, tokens: PackTokens): string {
 }
 
 /**
- * Write every template under `from` into `to`, `.tmpl` dropped and tokens filled in (in paths too;  `gitignore`
+ * Write every template under `from` into `to`, `.template` dropped and tokens filled in (in paths too;  `gitignore`
  * becomes `.gitignore`), skipping files already there.
  */
 function writeTemplates(root: string, from: string, to: string, tokens: PackTokens, report: PackScaffoldReport) {

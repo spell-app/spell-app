@@ -25,7 +25,7 @@ export const epicUpdatedVocabulary = {
       kind: "string",
       required: true,
       format: "time",
-      description: "When the plan changed:  `2026-10-06 14:30`."
+      description: "When the plan changed:  `2026-10-06 14:30`, drawn `10/6/26 14:30`."
     },
     { name: "phase", kind: "number", description: "The phase active when it changed (`3`)." },
     {

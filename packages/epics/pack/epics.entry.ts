@@ -24,6 +24,7 @@ SpellUI.registerPack({
       import("../components/epic-page"),
       import("../components/epic-phase"),
       import("../components/epic-section"),
+      import("../components/epic-status"),
       import("../components/epic-update")
     ]).then(() => undefined)
 })

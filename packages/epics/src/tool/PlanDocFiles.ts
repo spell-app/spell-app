@@ -51,8 +51,7 @@ export class PlanDocFiles {
 
   /**
    * the template `new` copies:  the tool's OWN, in `<epic-*>` markup (`templates/plan.html` beside this), tracked
-   * with the code that writes it.  NOT the shared `templates/epics/plan.html`, which `main`'s tool still copies until
-   * the switch (P12)
+   * with the code that writes it (the shared `templates/epics/plan.html` retired at the switch, P12)
    */
   readonly template: string
 

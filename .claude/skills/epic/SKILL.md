@@ -298,6 +298,8 @@ spell dev plan-doc inbox <name> listen  /  unlisten      this session is (no lon
 spell dev plan-doc inbox <name> wait                     Bash run_in_background:  exits with work (or 2:  timeout)
 spell dev plan-doc inbox <name> apply [ids]              approve / pick / todo marks into the doc;  prints what's left
 spell dev plan-doc inbox <name> working <id> on|off      the page's spinner on an item
+spell dev plan-doc status <name> <id> underway "<reading>"   Claude's orange status card on an item, spinner on
+spell dev plan-doc status <name> <id> done ["<summary>"]    that card violet (Done), the summary under it;  spinner off
 spell dev plan-doc details <name> <id> --file f --more | --append   a More Details card (Add Details) / a reply appended
 spell dev plan-doc inbox <name> done <id>  /  clear <ids>    an item's request finished  /  marks dropped after a talk
 spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or not
@@ -331,11 +333,14 @@ spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or
 Read what it printed.  Then, in this order:
 1. Exit 2 (timeout, nothing happened):  arm `wait` again, end the turn with one line ("still listening").
 1b. CANCELED (Owen said "nevermind" on a running Add Details Now / Revisit Now, epic `windows-and-review` P2):  stop
-   that item's background agent (`TaskStop`), then `spell dev plan-doc inbox <name> done <id>`.  An agent that
+   that item's background agent (`TaskStop`), then `spell dev plan-doc status <name> <id> done "Called off on the
+   page:  nothing written."` and `spell dev plan-doc inbox <name> done <id>`.  An agent that
    finishes anyway is refused (`plan-doc details` errors:  "Owen called this request off"):  nothing lands.
 2. NOW requests (Add Details, revisit now;  after Review Now, every revisit Owen had marked) -- `wait` already
-   marked them `working` (the page spins):  per item, a
-   BACKGROUND `Agent` (`run_in_background: true`), each prompt:
+   marked them `working` (the page spins):  per item, FIRST its status card, `spell dev plan-doc status <name> <id>
+   underway "<reading>"`:  what you take the task to be, one or two sentences, plain words, no file names (P13 of
+   `epic-components`:  Owen sees it at once, orange, under his note);  THEN a BACKGROUND `Agent`
+   (`run_in_background: true`), each prompt:
    - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net
      effect)
    - Add Details:  read the item, the code and docs it names, then write what its text leaves out, as MORE
@@ -346,22 +351,26 @@ Read what it printed.  Then, in this order:
      the answer with evidence (real code, the command and its output), option cards when he must choose (he picks
      on the page), a Net effect;  `spell dev plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
      · ..., asks:  ..."):  answer about THAT option;  never decide the question (he confirms with a plain pick)
-   - last:  `spell dev plan-doc inbox <name> done <id>`
+   - last:  `spell dev plan-doc status <name> <id> done ["<summary>"]` (the card turns violet;  a summary only when
+     there's something worth saying:  a surprise, a choice made, something left undone), then
+     `spell dev plan-doc inbox <name> done <id>`
    Up to 5 agents at once (root rules);  more:  the rest after.
-3. SENT marks:  `spell dev plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each).
-   Then each "to talk over" (revisit soon), one at a time:  answer his note INTO the item, as a reply
+3. SENT marks:  `spell dev plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each);
+   each pick and todo gets its violet Done card from `apply` itself ("Chose B · ...", "Made todo T23 ...":  Q19),
+   an approval none.  Then each "to talk over" (revisit soon), one at a time:  `status ... underway "<reading>"` as you
+   take it up, answer his note INTO the item, as a reply
    (`details --append`, the reply markup of "revisit now" above:  his note quoted, the answer with evidence, option
-   cards when he must choose, so he picks ON THE PAGE), then `inbox clear <id>` and `review <name> <id>
-   "<outcome>"`.  In chat:  one line per item, its link (`spell dev docs link ... --hash <id>`), never the answer
+   cards when he must choose, so he picks ON THE PAGE), then `status ... done ["<summary>"]`, `inbox clear <id>` and
+   `review <name> <id> "<outcome>"`.  In chat:  one line per item, its link (`spell dev docs link ... --hash <id>`), never the answer
    itself (Q3 of `windows-and-review`:  a long review stays readable).  He answers on the page (Revisit again), or
    says so in chat;  a quick yes / no:  a modal.
    - a call made name by name (he wants each name's context before a rule's renames go in):  a SYNTAX-CHOICES page,
      `spell dev choices new <slug> --epic <name> --rows <rows.json>` then `show <slug> --wait` in the background
      (`guides/syntax-choices.html`)
-   - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  answer the note
-     about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself
+   - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  `status ...
+     underway`, then answer the note about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself, then `status ... done`
    - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
-     `inbox apply`, `done`, `clear` and `working`;  a long talk without them shows "nobody is reviewing" until `wait`
+     `inbox apply`, `done`, `clear`, `working` and `status`;  a long talk without them shows "nobody is reviewing" until `wait`
      runs again
 4. Arm `wait` again (always, unless he said stop), then reply:  what landed (bullets, items in words, ids after),
    what's being worked on in the background, what needs him;  the doc's link pair last.

@@ -6,7 +6,7 @@ import { E } from "$/ui/core"
 // the review controls, shared with `<epic-item>`:  its files, not its barrel (which would define `<epic-item>` here)
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "$/epics/components/epic-item/ReviewControls"
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
-import { OVERVIEW_BUTTONS, type ReviewTextKey } from "$/epics/components/epic-item/EpicItem.types"
+import { OVERVIEW_BUTTONS, STATUS_SLOT, type ReviewTextKey } from "$/epics/components/epic-item/EpicItem.types"
 
 import { epicSectionVocabulary } from "./EpicSection.en"
 import { EpicFold } from "./EpicFold"
@@ -44,7 +44,7 @@ import sectionCSS from "./EpicSection.css?inline"
  * ### `EpicSection`
  * The component behind `<epic-section>`:  one section of a plan doc, by `kind`:  Phases, Questions ... Log, or one of the Overview's sub-sections.
  * - A fold (`EpicFold`):  its numbered title (`3. Questions`, by its place among the page's blocks;  `1.2 Why` for
- *   an Overview sub-section, its title its own), the kind's icon and tooltip (fixed per kind:  from the vocabulary),
+ *   an Overview sub-section, its title its own), the kind's icon (fixed per kind:  from the vocabulary),
  *   then its children:  phases, items, log events or prose.
  * - Its COUNT (P10), on the title's badge:  `open/all` of its items (or phases), open being any status but `done`,
  *   `decided` or `canceled`;  none without any.  Counted again whenever a child comes, goes, or changes its `status`
@@ -60,7 +60,8 @@ import sectionCSS from "./EpicSection.css?inline"
  * - An item section with no items says "None yet".
  * - An Overview sub-section is reviewed as an item is (decision Q14;  `ReviewControls.tsx`):  Make Todo, Revisit,
  *   Add Details Now in `tools` (no Approve:  Q14 asks for notes, not sign-off), its note box at the end of its body, a
- *   marked note at its top;  only while the page is reviewed.
+ *   marked note at its top;  only while the page is reviewed.  Claude's status cards (`slot="status"`, P13) just
+ *   above the note box.
  * - SIDE EFFECT:  observes its own children while connected (counted kinds only).
  ****************/
 export class EpicSection extends EpicFold<EpicSectionVocabulary> {
@@ -98,7 +99,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   // ## Derived state
   ////////////////
 
-  /** The kind's look:  icon, title and tooltip keys;  `undefined` for an Overview sub-section. */
+  /** The kind's look:  icon and title key;  `undefined` for an Overview sub-section. */
   readonly look = createMemo((): SectionLook | undefined => {
     const kind = this.kind
     return kind && kind !== "overview-part" ? SECTION_LOOKS[kind] : undefined
@@ -206,10 +207,6 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
         const count = this.count()
         return count ? `${count.open}/${count.total}` : undefined
       },
-      info: () => {
-        const tip = this.look()?.tip
-        return tip ? this.translationForKey(tip) : undefined
-      },
       tools:
         kind === "phases"
           ? () => this.toggles()
@@ -228,6 +225,10 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
             </p>
           </Show>
           <Show when={this.hidden().length}>{this.hiddenNote()}</Show>
+          {/* Claude's status cards (P13):  at the end of its body, above the note box */}
+          <Show when={kind === "overview-part"}>
+            <slot name={this.slotForName(STATUS_SLOT)} />
+          </Show>
           <Show when={kind === "overview-part" && this.reviewState.reviewing()}>{this.noteBox()}</Show>
         </>
       )

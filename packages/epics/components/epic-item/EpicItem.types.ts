@@ -42,7 +42,7 @@ export type ReviewLook = "todo" | "deferred" | "recent" | "old"
 
 /** The review label on an item's line:  its words, look and tooltip. */
 export type ReviewLabel = {
-  /** what it says:  `to do`, `deferred`, `reviewed 10-06` */
+  /** what it says:  `to do`, `deferred`, `reviewed 10/6/26` */
   words: string
   /** its colour */
   look: ReviewLook
@@ -80,6 +80,12 @@ export const CANCELED = "canceled"
 
 /** `id` of the details box, which the toggle controls. */
 export const DETAILS_ID = "details"
+
+/**
+ * The slot of Claude's status cards (`<epic-status slot="status">`, P13):  drawn under Owen's marked note, above
+ * the note box (an Overview sub-section's too).
+ */
+export const STATUS_SLOT = "status"
 
 /** Children that aren't prose:  the item's parts, drawn by their own elements. */
 export const EPIC_TAG = /^epic-/

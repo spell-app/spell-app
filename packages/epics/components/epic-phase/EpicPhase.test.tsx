@@ -101,10 +101,10 @@ describe("<epic-field>", () => {
 })
 
 describe("<epic-updated>", () => {
-  test("fenced:  its icon, `Updated`, its time to the minute and the phase, then its prose", async () => {
-    const host = await render(`<epic-updated at="2026-10-06T14:30:12-04:00" phase="3"><p>Changed.</p></epic-updated>`)
+  test("fenced:  its icon, `Updated`, its time to the minute (`10/6/26 14:30`) and the phase, then its prose", async () => {
+    const host = await render(`<epic-updated at="2026-10-06T14:30:12" phase="3"><p>Changed.</p></epic-updated>`)
     const label = host.shadowRoot!.querySelector('[part~="label"]')!
-    expect(label.textContent!.replace(/\s+/g, " ").trim()).toBe("Updated 2026-10-06 14:30during P3")
+    expect(label.textContent!.replace(/\s+/g, " ").trim()).toBe("Updated 10/6/26 14:30during P3")
     expect(getComputedStyle(host.shadowRoot!.querySelector('[part~="base"]')!).borderTopStyle).toBe("dashed")
     expect(host.querySelector("p")!.assignedSlot).not.toBeNull()
     await expectAccessible(host)

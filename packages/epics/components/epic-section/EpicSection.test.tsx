@@ -55,7 +55,7 @@ afterEach(() => {
 })
 
 describe("<epic-section>", () => {
-  test("draws its numbered title and its kind's tooltip;  starts FOLDED, with a grey rule and no gap below", async () => {
+  test("draws its numbered title, no tooltip;  starts FOLDED, with a grey rule and no gap below", async () => {
     const host = await render(
       `<div><epic-section id="phases" kind="phases"></epic-section>` +
         `<epic-section id="decisions" kind="questions"><p>An item</p></epic-section></div>`
@@ -63,7 +63,7 @@ describe("<epic-section>", () => {
     const questions = host.parentElement!.querySelector<FoldHost>("#decisions")!
     expect(titleText(host)).toBe("1. Phases")
     expect(titleText(questions)).toBe("2. Questions")
-    expect(inner(questions).getAttribute("info")).toMatch(/^Open questions first/)
+    expect(inner(questions).hasAttribute("info")).toBe(false)
     expect(host.matches(":state(open)")).toBe(false)
     expect(inner(host).hasAttribute("collapsed")).toBe(true)
     const style = getComputedStyle(host)
@@ -98,6 +98,19 @@ describe("<epic-section>", () => {
     )
     expect(titleText(host)).toBe("1.1 The x API")
     expect(host.querySelector("p")!.assignedSlot).not.toBeNull()
+  })
+
+  test("an Overview sub-section's status cards from Claude (P13) go to its `status` slot, after its prose", async () => {
+    const host = await render(
+      `<epic-section id="o2" kind="overview-part" title="Why" open>` +
+        `<epic-status slot="status" state="done" at="2026-10-08 14:20"><p>Said more</p></epic-status><p>Prose</p>` +
+        `</epic-section>`
+    )
+    const [prose, card] = [host.querySelector(":scope > p")!, host.querySelector("epic-status")!]
+    expect(card.assignedSlot!.name).toBe("status")
+    expect(
+      prose.assignedSlot!.compareDocumentPosition(card.assignedSlot!) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   })
 
   test("loads its `source` part into its LIGHT children the first time it opens, and fires `ui-load`", async () => {

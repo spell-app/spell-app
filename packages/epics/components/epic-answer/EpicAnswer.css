@@ -2,8 +2,9 @@
  * `<epic-answer>` (EpicAnswer.tsx), `<epic-reply>` (EpicReply.tsx), `<epic-more>` (EpicMore.tsx):  an item's answer,
  * reply and More Details cards -- ONE card shape (a heading band, then the slotted body), three fills:
  * - answer:  warm (the brand's ivory, as the rail:  `--ui-brown-*`)
- * - reply:  violet (Claude's), or orange (Owen's, `.owen`)
+ * - reply:  violet (Claude's), or orange (Owen's, `.owen`);  its band a flex row, the date at its right (`.dated`)
  * - More Details:  plain, its heading a small muted eyebrow that folds it
+ * - also `<epic-status>`'s card (`.status`, P13), which adopts this sheet:  its fills in `EpicStatus.css`
  * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:  `--epic-part-gap` (between an item's
  *   parts), `--epic-rule`.
  * - Public tokens (`--epic-answer-*`) are never declared here:  read through private aliases.
@@ -26,7 +27,8 @@
   /* the band and rule mix the fill and accent ON the card box, where `.reply` / `.more` set theirs */
   .answer,
   .reply,
-  .more {
+  .more,
+  .status {
     --_epic-card-band: color-mix(in oklab, var(--_epic-card-accent) 12%, var(--_epic-card-fill));
     --_epic-card-rule: color-mix(in oklab, var(--_epic-card-accent) 24%, transparent);
     overflow: hidden;
@@ -44,6 +46,24 @@
     font-weight: 600;
     line-height: 1.4;
     overflow-wrap: anywhere;
+  }
+  /* a band with a date (`<epic-reply>`):  who and what about on the left, free to wrap within it;  the date pinned
+     right on the TOP line (first baselines), never wrapping under them, at any width */
+  .header.dated {
+    display: flex;
+    align-items: baseline;
+    gap: 2px 12px;
+  }
+  .who {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .date {
+    flex: none;
+    margin-inline-start: auto;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   .header[hidden] {
     display: none;
