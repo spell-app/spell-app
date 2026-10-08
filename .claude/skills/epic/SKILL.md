@@ -378,8 +378,9 @@ Read what it printed.  Then, in this order:
      `spell dev plan-doc inbox <name> done <id>`
    Up to 5 agents at once (root rules);  more:  the rest after.
 3. SENT marks:  `spell dev plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each);
-   each pick and todo gets its green Done card from `apply` itself ("Chose B · ...", "Made todo T23 ...":  Q19),
-   an approval none.  Then each "to talk over" (revisit soon), one at a time:  `status ... underway "<reading>"` as you
+   a pick works on ANY item's cards, a reply's too (I8 of `epic-components`):  a question answered with it, any other
+   item approved with it;  each pick and todo gets its green Done card from `apply` itself ("Chose B · ...", "Made
+   todo T23 ...":  Q19), an approval none.  Then each "to talk over" (revisit soon), one at a time:  `status ... underway "<reading>"` as you
    take it up, answer his note INTO the item, as a reply
    (`details --append`, the reply markup of "revisit now" above:  his note quoted, the answer with evidence, option
    cards when he must choose, so he picks ON THE PAGE), then `status ... done ["<summary>"]`, `inbox clear <id>` and
@@ -390,7 +391,7 @@ Read what it printed.  Then, in this order:
      `spell dev choices new <slug> --epic <name> --rows <rows.json>` then `show <slug> --wait` in the background
      (`guides/syntax-choices.html`)
    - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  `status ...
-     underway`, then answer the note about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself, then `status ... done`
+     underway`, then answer the note about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself (a question;  any other item:  he confirms with a plain pick), then `status ... done`
    - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
      `inbox apply`, `done`, `clear`, `working` and `status`;  a long talk without them shows "nobody is reviewing" until `wait`
      runs again

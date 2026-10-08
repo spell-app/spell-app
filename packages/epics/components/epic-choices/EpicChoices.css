@@ -235,8 +235,8 @@
 
   /*
    * Picked in review, the fill rule (decision Q20):  `Chosen`, DASHED green until sent, outlined green once sent;
-   * applied, the question is answered and the chosen panel is green (above).  The card framed to match (2px:  its
-   * border, and an outline just inside it, drawn over the header's band), an answered panel's title green
+   * applied, its set `chosen`:  the pill SOLID green, the chosen panel green (above).  The card framed to match
+   * (2px:  its border, and an outline just inside it, drawn over the header's band), an answered panel's title green
    */
   .choose[aria-pressed="true"] {
     border: 1.5px dashed var(--_epic-choices-pick);
@@ -244,6 +244,13 @@
   }
   .choose[aria-pressed="true"].sent {
     border-style: solid;
+  }
+  /* applied (its set's `chosen`):  solid green, done;  a click does nothing */
+  .choose.applied {
+    border: 1.5px solid var(--_epic-choices-pick);
+    background: var(--_epic-choices-pick);
+    color: var(--ui-green-on, #fff);
+    cursor: default;
   }
   .card.picked {
     border: 1px dashed var(--_epic-choices-pick);

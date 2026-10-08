@@ -3,14 +3,14 @@ import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
-import { NOBODY_LISTENING, ReviewClient } from "$/epics/review"
+import { NOBODY_LISTENING, ReviewClient, picks } from "$/epics/review"
 import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 import { CLOSED_STATUSES } from "$/epics/components/epic-item/EpicItem.types"
 
 import { epicOptionVocabulary } from "./EpicOption.en"
 import { EpicChoices } from "./EpicChoices"
-import { ITEM_TAG, TOGGLE } from "./EpicChoices.types"
+import { ITEM_TAG, ORIGINAL_TAG, TOGGLE, type CardSet } from "./EpicChoices.types"
 
 import choicesCSS from "./EpicChoices.css?inline"
 
@@ -26,9 +26,12 @@ import choicesCSS from "./EpicChoices.css?inline"
  *   "Choose" pill at the header's end (`pill()`) marks its letter as the item's pick through the client
  *   (`ReviewClient.choose()`);  again, un-picks it.  A pick is a decision, so green, wearing the fill rule (decision
  *   Q20):  the pill a grey outline, available;  picked, `Chosen`, the pill and the card's frame DASHED green (an
- *   answered panel:  its title green);  once sent, outlined green;  applied, the question is answered with it.
- *   - on an OPEN question's cards;  on an ANSWERED one's panels, but the chosen one, only while it's revisited
- *     (its note box open, a draft, a revisit or a pick):  "pick B instead, because ..."
+ *   answered panel:  its title green);  once sent, outlined green;  applied (its set's `chosen`), the pill SOLID
+ *   green:  a question answered with it, any other item approved with it (`plan-doc inbox apply`)
+ *   - WHEREVER its cards are (I8):  an item's text, a reply, More Details;  the pick names its card set by position
+ *     (`EpicChoices.setOf()`), as an item may hold several
+ *   - on an OPEN item's cards;  on a CLOSED one's (an answered question, an accepted call), but the chosen one,
+ *     only while it's revisited (its note box open, a draft, a revisit or a pick):  "pick B instead, because ..."
  *   - never in an Original Discussion (`<epic-original>`):  history, not a choice
  * - SIDE EFFECT:  the first one connected makes the page's `ReviewClient` (`forPage()`), which reads the inbox
  ****************/
@@ -102,21 +105,31 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     const client = this.review
     const id = this.itemId
     const letter = this.letter
-    if (!client?.reviewing || !id || !letter || this.inOriginal) return undefined
+    const set = this.cardSet()
+    if (!client?.reviewing || !id || !letter || !set) return undefined
+    const listening = client.listening
+    // applied:  its set's `chosen`, solid (the fill rule's done)
+    if (this.isChosen) return { picked: true, sent: true, applied: true, listening }
     const mark = client.markOf(id)
     const closed = (CLOSED_STATUSES as readonly string[]).includes(this.itemStatus ?? "")
-    const revisiting =
-      this.questionIsAnswered &&
-      (client.isBoxOpen(id) || !!client.draftOf(id) || mark?.action === "revisit" || !!mark?.pick)
-    if (closed && !(revisiting && !this.isChosen)) return undefined
-    const picked = mark?.pick === letter
-    return { picked, sent: picked && !!mark && client.isSent(mark), listening: client.listening }
+    const revisiting = client.isBoxOpen(id) || !!client.draftOf(id) || mark?.action === "revisit" || !!mark?.pick
+    if (closed && !revisiting) return undefined
+    const picked = picks(mark, letter, set.index, set.own)
+    return { picked, sent: picked && !!mark && client.isSent(mark), applied: false, listening }
   }
 
-  /** Its letter is the item's pick, in review (P10). */
+  /**
+   * Which card set of its item it's in (`EpicChoices.setOf()`):  what its pick names (I8);  `undefined` in an
+   * Original Discussion (history:  never a pill), or outside an item.
+   */
+  private cardSet(): CardSet | undefined {
+    return this.inOriginal ? undefined : EpicChoices.setOf(this.domElement)
+  }
+
+  /** Its letter is the item's pick, in review (P10), not applied yet (applied:  `chosen`). */
   @E.cssState("picked")
   get isPicked(): boolean {
-    return !!this.pill?.picked
+    return !!this.pill?.picked && !this.pill.applied
   }
 
   /** Words after the noun:  card or panel, `chosen`, `picked` in review, and `sent` once that pick has gone. */
@@ -205,7 +218,8 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
 
   /**
    * The Choose pill, at the header's end:  `Choose`, a grey outline;  picked, `Chosen`, dashed green;  sent,
-   * outlined green.  Its tooltip says what a click does, and whether the pick has gone to Claude.
+   * outlined green;  applied (its set's `chosen`), solid green, and a click does nothing.  Its tooltip says what a
+   * click does, and whether the pick has gone to Claude.
    * - `pill`:  `<Show>`'s accessor, read in each binding:  the callback's body runs once, so a value read there
    *   would never change
    */
@@ -214,9 +228,10 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
       <span class={ACTIONS} part={this.partForName("actions")}>
         <button
           type="button"
-          class={[CHOOSE, { [SENT]: pill().sent }]}
+          class={[CHOOSE, { [SENT]: pill().sent && !pill().applied, [APPLIED]: pill().applied }]}
           part={this.partForName("choose")}
           aria-pressed={pill().picked ? "true" : "false"}
+          aria-disabled={pill().applied ? "true" : undefined}
           title={this.pillTip(pill())}
           onClick={this.onChoose}
         >
@@ -226,9 +241,13 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     )
   }
 
-  /** The pill's tooltip:  `Pick B`;  picked, `B is picked:  click to un-pick · sent` (or `not sent yet`). */
+  /**
+   * The pill's tooltip:  `Pick B`;  picked, `B is picked:  click to un-pick · sent` (or `not sent yet`);  applied,
+   * `B is the chosen option`.
+   */
   private pillTip(pill: PillState): string {
     const letter = this.letter ?? ""
+    if (pill.applied) return this.translationForKey("tipApplied", { letter })
     if (!pill.picked) return this.translationForKey("tipChoose", { letter })
     const where = this.translationForKey(pill.sent ? "tipSent" : "tipNotSent")
     const tip = `${this.translationForKey("tipChosen", { letter })} · ${where}`
@@ -244,16 +263,20 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     if (this.questionIsAnswered) this.fold.toggle()
   }
 
-  /** A click on its Choose pill:  pick its letter, or un-pick it when it's the pick. */
+  /**
+   * A click on its Choose pill:  pick its letter in its card set (by the set's position:  I8), or un-pick it when
+   * it's the pick;  applied already (its set's `chosen`), nothing.
+   */
   private readonly onChoose = (event: MouseEvent) => {
     // a panel's header folds on a click;  the item's line would too
     event.stopPropagation()
     const id = this.itemId
     const letter = this.letter
-    if (!this.review || !id || !letter) return
-    const picked = !!this.pill?.picked
+    const set = this.cardSet()
+    const pill = this.pill
+    if (!this.review || !id || !letter || !set || pill?.applied) return
     // a failed write is the client's own notice, and re-reads the inbox:  nothing to do here
-    void this.review.choose(id, picked ? null : letter).catch((error: unknown) => console.error(error))
+    void this.review.choose(id, pill?.picked ? null : letter, set.index).catch((error: unknown) => console.error(error))
   }
 
   /**
@@ -279,12 +302,11 @@ export type PillState = {
   picked: boolean
   /** picked, and the mark carrying the pick has gone to Claude */
   sent: boolean
+  /** its letter is its set's `chosen`:  the pick applied (solid, and a click does nothing) */
+  applied: boolean
   /** a Claude session waits on the inbox */
   listening: boolean
 }
-
-/** An item's Original Discussion:  history, not a choice, so its options never take a Choose pill. */
-const ORIGINAL_TAG = "epic-original"
 
 /** Class names inside the shadow root. */
 const HEADER = "header"
@@ -306,6 +328,9 @@ const PICKED = "picked"
 
 /** Class word on a picked pill whose mark has gone to Claude:  outlined, not filled. */
 const SENT = "sent"
+
+/** Class word on the pill of its set's chosen option:  the pick applied, solid. */
+const APPLIED = "applied"
 
 /** The body's class word with no pros and cons:  not drawn. */
 const EMPTY = "empty"

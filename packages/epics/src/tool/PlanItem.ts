@@ -50,14 +50,42 @@ export class PlanItem {
   // ## Options
   ////////////////
 
-  /** Question `item`'s `<epic-choices>`, or `null`:  its own, never one in its Original Discussion. */
+  /**
+   * `item`'s OWN `<epic-choices>` (a question's options), or `null`:  the first that's its child, never one in a
+   * reply, More Details or its Original Discussion.  What a pick names when it doesn't say which card set (a mark
+   * from before I8).
+   */
   static choicesOf(item: Element): Element | null {
     return item.querySelector(":scope > epic-choices")
   }
 
+  /**
+   * EVERY card set of `item` a pick may name, in page order:  its text's, a reply's, More Details' (`flow`, P14),
+   * never one in its Original Discussion (history).  A pick names one by its position here (`choices`, I8);  the
+   * page counts the same way (`<epic-option>`'s `choicesIndex`).
+   */
+  static choiceSets(item: Element): Element[] {
+    return Array.from(item.querySelectorAll(CHOICES_TAG)).filter(
+      (choices) => choices.parentElement?.closest(`${ORIGINAL_TAG}, ${ITEM_TAG}`) === item
+    )
+  }
+
+  /**
+   * The card set a pick names:  `choiceSets()`' `index`;  none given, `item`'s own (`choicesOf()`), else its first.
+   * `null` when there's no such set.
+   */
+  static choiceSet(item: Element, index?: number): Element | null {
+    if (index !== undefined) return PlanItem.choiceSets(item)[index] ?? null
+    return PlanItem.choicesOf(item) ?? PlanItem.choiceSets(item)[0] ?? null
+  }
+
   /** Question `item`'s options, in order:  each `<epic-option>` with its letter, title and whether it's recommended. */
   static optionsOf(item: Element): (OptionCard & { option: Element })[] {
-    const choices = PlanItem.choicesOf(item)
+    return PlanItem.optionsIn(PlanItem.choicesOf(item))
+  }
+
+  /** The options of card set `choices` (an `<epic-choices>`), in order;  none for `null`. */
+  static optionsIn(choices: Element | null): (OptionCard & { option: Element })[] {
     return Array.from(choices?.querySelectorAll(":scope > epic-option") ?? [], (option) => {
       const data = Markup.read<"epic-option">(option)
       return {
@@ -209,6 +237,11 @@ export class PlanItem {
 
 /** The mark an option's title (or a prose option's label) carries. */
 const RECOMMENDED = /\(recommended\)/i
+
+/** The tags `choiceSets()` reads:  card sets, and what they may sit in. */
+const CHOICES_TAG = "epic-choices"
+const ITEM_TAG = "epic-item"
+const ORIGINAL_TAG = "epic-original"
 
 /** Each card's heading as prose (`PlanItem.asProse()`):  what its element draws from its data. */
 const CARD_HEADINGS: Record<string, (element: Element) => string | undefined> = {

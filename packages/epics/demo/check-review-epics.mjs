@@ -22,18 +22,21 @@
  *     a revisit soon, shown under the line, and Edit puts it back in the box
  *   - Do Now WITH a note (an Overview sub-section):  a revisit now, dashed while nobody listens, the tooltip saying
  *     so;  clicked again:  called off, the note back in its box
+ *   - a pick on a judgement call's REPLY cards (I8:  picks work anywhere;  the call added to the copy, its text and
+ *     a reply each holding cards):  the mark names that set (`choices: 1`), its pill dashed, the text's untouched
  *   - Send:  the header's button unsent -> sent;  the marks outlined
  * - Claude's side, by the plan-doc tool on the copy (`PlanDocCommands`), the page reloaded after each:
  *   - Do Now without a note on an item:  `inbox listen`, `inbox wait` takes it:  its button outlined, its icon
  *     turning (`data-busy`);  `status underway`:  a blue Underway card, the item `progress`;  `status done`:  the
  *     card green;  `inbox done`:  Do Now SOLID (`review-as="now"`)
- *   - `inbox apply`:  the sent Approve SOLID (`review-as="approve"`)
+ *   - `inbox apply`:  the sent Approve SOLID (`review-as="approve"`);  the pick approves its call (closed, the
+ *     reply's set `chosen`, a Done card `Chose C · ...`), its pill SOLID
  *   - Review Now:  the revisit waiting asked now
  * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`);
  *   at 280px and 900px, light and dark, no review control runs past the window, none sits over its line's title, and
  *   every button's glyph is centred in it (within 1px);  the header's round buttons too
  * - screenshots (outDir, default `demo/shots/`):  `review-<width>-<scheme>.png`, `review-marked.png`,
- *   `review-done.png`
+ *   `review-done.png`, `review-picked.png` / `review-picked-dark.png` (the pick applied)
  * - REFUSES to run while the copy's inbox file exists (a run killed half way:  delete it);  deletes it afterwards
  * - re-runs itself under `tsx` (the page server, `ReviewInbox` and the tool are TypeScript)
  */
@@ -105,6 +108,9 @@ const tool = new PlanDocCommands({ files: new PlanDocFiles({ root: SHOTS }) })
 const said = []
 tool.print = (text) => void said.push(text)
 tool.warn = (text) => void said.push(`! ${text}`)
+
+/** A judgement call to pick on (I8):  its text's cards, and a reply's;  the pick is the reply's `C`. */
+const pickCall = await addPickCall()
 
 const server = await new PageServer({ root: ROOT }).start({
   port: 47_600 + Math.floor(Math.random() * 300),
@@ -178,13 +184,15 @@ async function run() {
   )
 
   const { question, approved, withDetails, bare } = pickItems(
-    await page.evaluate(() =>
-      Array.from(document.querySelectorAll("epic-item"), (item) => ({
-        id: item.id,
-        open: item.getAttribute("status") === "open",
-        details: item.hasAttribute("source") || Array.from(item.children).some((child) => !child.hasAttribute("slot"))
-      }))
-    )
+    (
+      await page.evaluate(() =>
+        Array.from(document.querySelectorAll("epic-item"), (item) => ({
+          id: item.id,
+          open: item.getAttribute("status") === "open",
+          details: item.hasAttribute("source") || Array.from(item.children).some((child) => !child.hasAttribute("slot"))
+        }))
+      )
+    ).filter((item) => item.id !== pickCall)
   )
   const section = sections[0]
   summary.picked = { question, approved, withDetails, bare, section }
@@ -306,6 +314,20 @@ async function run() {
     expect(`${section}'s box after calling off`, await noteValue(page, section), SECTION_NOTE)
   }
 
+  // a pick on the judgement call's REPLY cards (I8):  its set named by position, the pill dashed;  the text's untouched
+  await page.evaluate((id) => (document.getElementById(id).open = true), pickCall)
+  await page.waitForTimeout(400)
+  expect(`${pickCall}'s pills, text then reply`, await pickPills(page, pickCall), [
+    ["choose", "choose"],
+    ["choose", "choose", "choose"]
+  ])
+  await page.locator(`#${pickCall} epic-reply epic-option[letter="C"] button[part~="choose"]`).click()
+  await expectMark(page, pickCall, { action: "pick", pick: "C", choices: 1 }, "a pick on a reply's cards")
+  expect(`${pickCall}'s pills, C picked`, await pickPills(page, pickCall), [
+    ["choose", "choose"],
+    ["choose", "choose", "dashed"]
+  ])
+
   // the header:  Send with unsent marks, its tooltip saying nobody listens;  a click sends;  the marks outlined
   expect("the header's buttons, marks unsent", await headerState(page), { send: "unsent", now: "ready", nobody: true })
   await page.locator("epic-page button.send").click()
@@ -314,6 +336,7 @@ async function run() {
   expect("the header's buttons, marks sent", await headerState(page), { send: "sent", now: "ready", nobody: true })
   expect(`${approved}'s Approve, sent:  outlined`, (await buttonState(page, approved, "approve")).fill, "outline")
   expect(`${bare}'s Revisit, sent:  outlined`, (await buttonState(page, bare, "revisit")).fill, "outline")
+  expect(`${pickCall}'s pick, sent:  outlined`, (await pickPills(page, pickCall))[1][2], "outline")
 
   // Do Now without a note, held on its way:  asked;  queued, nobody listening:  dashed
   await holdNext(page, "now")
@@ -362,6 +385,36 @@ async function run() {
   expect(`${approved}'s review-as`, await attribute(page, approved, "review-as"), "approve")
   expect(`${approved}'s Approve, applied:  solid`, (await buttonState(page, approved, "approve")).fill, "solid")
   expect(`${withDetails}:  the todo filed, a Done card`, (await statusOf(page, withDetails)).cards.at(-1), "done")
+  // the pick:  the call approved with the reply's C (closed), that set chosen, a Done card, the pill solid
+  expect(
+    `${pickCall}, picked C from its reply`,
+    await page.evaluate((id) => {
+      const item = document.getElementById(id)
+      return {
+        status: item.getAttribute("status"),
+        reviewAs: item.getAttribute("review-as"),
+        chosen: Array.from(item.querySelectorAll("epic-choices"), (set) => set.getAttribute("chosen")),
+        card: item.querySelector(':scope > epic-status[slot="status"]')?.textContent.trim()
+      }
+    }, pickCall),
+    { status: "done", reviewAs: "approve", chosen: [null, "C"], card: "Chose C · Option C" }
+  )
+  await page.evaluate((id) => {
+    const item = document.getElementById(id)
+    item.open = true
+    // the reply's Choices aside, unfolded:  its panels drawn
+    item.querySelector("epic-reply epic-choices").shadowRoot.querySelector("[part~='toggle']").click()
+  }, pickCall)
+  await page.waitForTimeout(400)
+  expect(`${pickCall}'s pills, applied`, await pickPills(page, pickCall), [
+    [null, null],
+    [null, null, "solid"]
+  ])
+  await page.locator(`#${pickCall} epic-reply`).scrollIntoViewIfNeeded()
+  await page.screenshot({ path: join(out, "review-picked.png") })
+  await page.emulateMedia({ colorScheme: "dark" })
+  await page.screenshot({ path: join(out, "review-picked-dark.png") })
+  await page.emulateMedia({ colorScheme: "light" })
   await page.locator(`#${question}`).scrollIntoViewIfNeeded()
   await page.screenshot({ path: join(out, "review-done.png") })
 
@@ -567,6 +620,43 @@ function buttonState(page, id, action) {
     },
     { id, action }
   )
+}
+
+/**
+ * Item `id`'s Choose pills, per card set (`<epic-choices>`, in page order), as the fill rule draws them:  `choose`
+ * (a grey outline), `dashed` (picked, unsent), `outline` (sent), `solid` (applied);  `null` with no pill.
+ */
+function pickPills(page, id) {
+  return page.evaluate(
+    (id) =>
+      Array.from(document.getElementById(id).querySelectorAll("epic-choices"), (set) =>
+        Array.from(set.querySelectorAll(":scope > epic-option"), (option) => {
+          const pill = option.shadowRoot.querySelector("[part~='choose']")
+          if (!pill) return null
+          if (pill.classList.contains("applied"))
+            return getComputedStyle(pill).backgroundColor === getComputedStyle(pill).borderTopColor
+              ? "solid"
+              : "applied, not solid"
+          if (pill.getAttribute("aria-pressed") !== "true") return "choose"
+          return getComputedStyle(pill).borderTopStyle === "dashed" ? "dashed" : "outline"
+        })
+      ),
+    id
+  )
+}
+
+/**
+ * Add to the copy, by the tool, a judgement call whose text holds option cards and whose reply holds three more
+ * (`A`-`C`, `Option C` ...);  returns its id.
+ */
+async function addPickCall() {
+  const cards = (letters) =>
+    `<epic-choices>${letters.map((letter) => `<epic-option letter="${letter}" title="Option ${letter}"><p>why ${letter}</p></epic-option>`).join("")}</epic-choices>`
+  const details =
+    `<p>Two ways to store it.</p>${cards(["A", "B"])}` +
+    `<epic-reply from="Claude" at="2026-10-08 10:00"><p>Or a third.</p>${cards(["A", "B", "C"])}</epic-reply>`
+  await tool.run(["add", docName, "judgement", "check-review-epics:  which store?", "--details", details])
+  return said.at(-1).toLowerCase()
 }
 
 /** `id`'s status cards (their `state`, in order) and its chip's state. */

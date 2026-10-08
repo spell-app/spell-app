@@ -16,7 +16,7 @@ import "$/epics/components/epic-choices"
 const PAGE = "/epics/sample/sample.plan.html"
 
 /** A mark as the fake routes keep it. */
-type FakeMark = { action: string; pick?: string; note?: string; when?: string; at: string }
+type FakeMark = { action: string; pick?: string; choices?: number; note?: string; when?: string; at: string }
 
 /**
  * The page server's review routes, as `fetch`:  `GET inbox`, `POST mark` and `POST send`, every reply the whole
@@ -196,7 +196,8 @@ describe("<epic-option>'s Choose pill (P10)", () => {
     ])
     pillOf(options[1])!.click()
     await settle()
-    expect(routes.posts).toEqual([["mark", { page: PAGE, id: "q1", mark: { action: "pick", pick: "B" } }]])
+    // the pick names its card set by position (I8):  the item's first
+    expect(routes.posts).toEqual([["mark", { page: PAGE, id: "q1", mark: { action: "pick", pick: "B", choices: 0 } }]])
     expect(pills(options)).toEqual([
       ["Choose", "false"],
       ["Chosen", "true"]
@@ -243,16 +244,31 @@ describe("<epic-option>'s Choose pill (P10)", () => {
     ]).toEqual([true, "solid", "solid"])
   })
 
-  test("an answered question's panels:  none, until it's revisited;  then all but the chosen one", async () => {
-    const { client } = await reviewing()
+  test("an answered question's panels:  the chosen one's pill SOLID (applied), no other until it's revisited", async () => {
+    const { client, routes } = await reviewing()
     const { options } = await choices(
       `<epic-item id="q1" title="Which?" status="decided" answered><epic-choices chosen="A">${OPTIONS}</epic-choices></epic-item>`
     )
     await settle()
-    expect(pills(options)).toEqual([null, null])
+    expect(pills(options)).toEqual([["Chosen", "true"], null])
+    const applied = pillOf(options[0])!
+    // the fill rule's done:  solid green, a click does nothing;  the panel isn't framed as a pick
+    expect([
+      applied.classList.contains("applied"),
+      applied.getAttribute("aria-disabled"),
+      applied.title,
+      getComputedStyle(applied).backgroundColor === getComputedStyle(applied).borderTopColor,
+      options[0].matches(":state(picked)")
+    ]).toEqual([true, "true", "A is the chosen option", true, false])
+    applied.click()
+    await settle()
+    expect(routes.posts).toEqual([])
     await client.save("q1", { action: "revisit", when: "soon", note: "but why?" })
     await settle()
-    expect(pills(options)).toEqual([null, ["Choose", "false"]])
+    expect(pills(options)).toEqual([
+      ["Chosen", "true"],
+      ["Choose", "false"]
+    ])
   })
 
   test("never in an Original Discussion:  history, not a choice", async () => {
@@ -262,5 +278,78 @@ describe("<epic-option>'s Choose pill (P10)", () => {
     )
     await settle()
     expect(pills(Array.from(item.querySelectorAll("epic-option")))).toEqual([null, null])
+  })
+})
+
+describe("<epic-option>'s Choose pill, anywhere (I8)", () => {
+  /**
+   * An open judgement call holding two card sets:  its text's, and a reply's;  an Original Discussion's set before
+   * both (never counted).  Returns each set's options.
+   */
+  async function twoSets() {
+    const item = await ElementFixture.render(
+      `<epic-item id="j2" title="Which store?" status="open">` +
+        `<epic-original><epic-choices>${OPTIONS}</epic-choices></epic-original>` +
+        `<p>weighed</p><epic-choices>${OPTIONS}</epic-choices>` +
+        `<epic-reply from="Claude"><p>or:</p><epic-choices>${OPTIONS}</epic-choices></epic-reply></epic-item>`
+    )
+    const [, own, reply] = Array.from(item.querySelectorAll("epic-choices"), (set) =>
+      Array.from(set.querySelectorAll("epic-option"))
+    )
+    return { item, own: own!, reply: reply! }
+  }
+
+  test("a judgement call's cards and a reply's each take pills;  a pick in the reply names ITS set, and marks only it", async () => {
+    const { routes } = await reviewing()
+    const { own, reply } = await twoSets()
+    await settle()
+    expect([pills(own), pills(reply)]).toEqual([
+      [
+        ["Choose", "false"],
+        ["Choose", "false"]
+      ],
+      [
+        ["Choose", "false"],
+        ["Choose", "false"]
+      ]
+    ])
+    pillOf(reply[0])!.click()
+    await settle()
+    expect(routes.posts).toEqual([["mark", { page: PAGE, id: "j2", mark: { action: "pick", pick: "A", choices: 1 } }]])
+    expect([pills(own)[0], pills(reply)[0]]).toEqual([
+      ["Choose", "false"],
+      ["Chosen", "true"]
+    ])
+    // dashed until sent, wherever the cards are
+    expect(getComputedStyle(pillOf(reply[0])!).borderTopStyle).toBe("dashed")
+  })
+
+  test("an old mark, `{ pick }` with no card set:  the item's own set's option, never the reply's", async () => {
+    const routes = new FakeRoutes()
+    routes.inbox.marks.j2 = { action: "pick", pick: "B", at: new Date().toISOString() }
+    await reviewing(routes)
+    const { own, reply } = await twoSets()
+    await settle()
+    expect([pills(own)[1], pills(reply)[1]]).toEqual([
+      ["Chosen", "true"],
+      ["Choose", "false"]
+    ])
+  })
+
+  test("applied in a reply (its set `chosen`, the call accepted):  that option's pill solid;  the rest none", async () => {
+    await reviewing()
+    const item = await ElementFixture.render(
+      `<epic-item id="j2" title="Which store?" status="done"><p>weighed</p><epic-choices>${OPTIONS}</epic-choices>` +
+        `<epic-reply from="Claude"><epic-choices chosen="B">${OPTIONS}</epic-choices></epic-reply></epic-item>`
+    )
+    await settle()
+    const [own, reply] = Array.from(item.querySelectorAll("epic-choices"), (set) =>
+      Array.from(set.querySelectorAll("epic-option"))
+    )
+    expect([pills(own!), pills(reply!)]).toEqual([
+      [null, null],
+      [null, ["Chosen", "true"]]
+    ])
+    expect(pillOf(reply![1])!.classList.contains("applied")).toBe(true)
   })
 })
