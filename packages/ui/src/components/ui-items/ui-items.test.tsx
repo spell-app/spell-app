@@ -113,8 +113,8 @@ describe("<ui-item> owns its parts in the Items view", () => {
     for (const tag of ["ui-content", "ui-header", "ui-meta", "ui-description", "ui-extra"]) {
       const part = item.querySelector<UIHost>(tag)!
       expect(part.matches(":state(in-item)"), tag).toBe(true)
-      const context = (part.controller as unknown as { context: { owner: { get(): { owner: Element } } } }).context
-      expect(context.owner.get().owner, tag).toBe(item)
+      const context = (part.controller as unknown as { context: { owner: { owner: Element } } }).context
+      expect(context.owner.owner, tag).toBe(item)
     }
     const header = partRoot(item.querySelector("ui-header")!)
     expect(header.className).toBe("header")

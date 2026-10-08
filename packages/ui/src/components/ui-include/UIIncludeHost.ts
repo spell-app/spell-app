@@ -12,6 +12,6 @@ export class UIIncludeHost extends E.SourceHost {
    * - For editors:  edit there, then `save()`.
    */
   get contentRoot(): HTMLElement | undefined {
-    return (this.controller as unknown as IncludeController | undefined)?.contentRoot()
+    return (this.controller as unknown as IncludeController | undefined)?.contentRoot
   }
 }

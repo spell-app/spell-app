@@ -27,7 +27,7 @@ export class ToastStack implements E.ToastProvider {
   readonly document: Document
 
   /** Showing toasts by id, with what settles their `closed`. */
-  private readonly toasts = new Map<string, ToastRecord>()
+  private readonly showingToasts = new Map<string, ToastRecord>()
 
   /** Containers by position key. */
   private readonly containers = new Map<string, HTMLElement>()
@@ -47,14 +47,14 @@ export class ToastStack implements E.ToastProvider {
     ToastStack.raise(container)
     let settle!: () => void
     const closed = new Promise<void>((resolve) => (settle = resolve))
-    this.toasts.set(id, { element: toast, settle })
+    this.showingToasts.set(id, { element: toast, settle })
     toast.addEventListener(HIDE_EVENT, () => this.remove(id), { once: true })
     return { id, closed, element: toast }
   }
 
   /** Close toast `id` as `host.close()` does (the cancelable `ui-close` first);  nothing for an unknown id. */
   dismiss(id: string) {
-    const record = this.toasts.get(id)
+    const record = this.showingToasts.get(id)
     ;(record?.element as { close?: () => boolean } | undefined)?.close?.()
   }
 
@@ -196,9 +196,9 @@ export class ToastStack implements E.ToastProvider {
 
   /** Forget toast `id`:  remove its element, settle its `closed`, drop an emptied container. */
   private remove(id: string) {
-    const record = this.toasts.get(id)
+    const record = this.showingToasts.get(id)
     if (!record) return
-    this.toasts.delete(id)
+    this.showingToasts.delete(id)
     const container = record.element.parentElement
     record.element.remove()
     record.settle()

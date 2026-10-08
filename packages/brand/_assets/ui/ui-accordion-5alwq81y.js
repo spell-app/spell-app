@@ -1,1 +1,0 @@
-import{t as e}from"./ui-accordion-CbS4-aEA.js";export{e as UIAccordion};

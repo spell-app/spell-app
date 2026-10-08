@@ -15,13 +15,12 @@ import railCSS from "./ui-rail.css?inline"
  ****************/
 export class UIRail extends E.UIElement<typeof railVocabulary> {
   @E.proto static vocabulary = railVocabulary
-  @E.proto static styles = { rail: railCSS }
-  @E.proto static Fallback = RailFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { rail: railCSS }
+  @E.proto static elementSetup = { Fallback: RailFallback, delegatesFocus: false }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("rail")}>
+      <div class={this.rootClasses} part={this.partForName("rail")}>
         <slot />
       </div>
     )

@@ -1,11 +1,11 @@
-import { Show, createMemo } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
 import { inputVocabulary } from "./ui-input.vocabulary.en"
 import { InputFallback } from "./ui-input.fallback"
 import { TextControl } from "./TextControl"
-import { FILE, LABEL_CLASSES, type LabelPlace, type Vocabulary } from "./ui-input.types"
+import { FILE, LABEL_CLASSES, type CommonAttributes, type LabelPlace, type Vocabulary } from "./ui-input.types"
 
 import labelCSS from "$/ui/components/ui-label/ui-label.css?inline"
 import inputCSS from "./ui-input.css?inline"
@@ -22,74 +22,69 @@ import inputCSS from "./ui-input.css?inline"
  ****************/
 export class UIInput extends TextControl<Vocabulary> {
   @E.proto static vocabulary = inputVocabulary
-  @E.proto static styles = { label: labelCSS, input: inputCSS }
-  @E.proto static Fallback = InputFallback
+  @E.proto static styleSheets = { label: labelCSS, input: inputCSS }
+  @E.proto static elementSetup = { Fallback: InputFallback }
 
   /** Light-DOM slot occupancy (`label`, `action`, `icon`). */
   readonly slots = new E.SlotContent(this.host)
 
-  /** Files chosen in a `file` input. */
-  readonly files = new E.Cell<readonly File[]>([])
-
   ////////////////
-  // ## Derived
+  // ## The label
   ////////////////
 
   /** Where the joined label goes, if there is one. */
-  readonly labelPlace = createMemo((): LabelPlace | undefined => {
-    const { labeled, label } = this.attrs
+  get labelPlace(): LabelPlace | undefined {
+    const { labeled } = this
     if (labeled === "corner" || labeled === "left corner") return "corner"
-    if (!labeled && !label && !this.slots.has(this.slot("label"))) return undefined
+    if (!labeled && !this.label && !this.slots.hasContent(this.slotForName("label"))) return undefined
     return labeled === "right" ? "end" : "start"
-  })
-
-  /** Where the action slot goes, if anything is in it. */
-  readonly actionPlace = createMemo((): "start" | "end" | undefined => {
-    const { action } = this.attrs
-    if (!action && !this.slots.has(this.slot("action"))) return undefined
-    return action === "left" ? "start" : "end"
-  })
-
-  /** Shows the icon box:  an icon, or the spinner. */
-  readonly hasIconBox = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")) || this.attrs.loading)
-
-  /** `type="file"`? */
-  readonly isFile = createMemo(() => this.attrs.type === FILE)
-
-  /** Glyph of the `icon` attribute. */
-  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
+  }
 
   /** Glyph of a corner label (its `label` is an icon name). */
   readonly cornerGlyph = new E.IconGlyph({
     owner: this,
-    name: () => (this.labelPlace() === "corner" ? this.attrs.label : undefined)
+    name: () => (this.labelPlace === "corner" ? this.label : undefined)
   })
 
   ////////////////
-  // ## Element hooks
+  // ## The action
   ////////////////
 
-  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
-    if (name === "labeled") return this.labelPlace() ? this.attrs.labeled || true : false
-    if (name === "action") return this.actionPlace() ? this.attrs.action || true : false
-    if (name === "icon-position") return this.hasIconBox() ? this.attrs.iconPosition : undefined
-    return super.classValue(name)
+  /** Where the action slot goes, if anything is in it. */
+  get actionPlace(): "start" | "end" | undefined {
+    const { action } = this
+    if (!action && !this.slots.hasContent(this.slotForName("action"))) return undefined
+    return action === "left" ? "start" : "end"
   }
 
-  protected extraClasses(): string | undefined {
-    const extra = [this.hasIconBox() && this.attrs.iconPosition !== UIT.LEFT ? UIT.ICON : "", this.isFile() ? FILE : ""]
-    return extra.filter(Boolean).join(" ") || undefined
+  ////////////////
+  // ## The icon
+  ////////////////
+
+  /** Shows the icon box:  an icon, or the spinner. */
+  get hasIconBox(): boolean {
+    return !!this.icon || this.slots.hasContent(this.slotForName("icon")) || !!this.loading
   }
 
-  protected constraints(): Record<string, unknown> {
-    const { required, pattern, min, max, step, minlength, maxlength, multiple, accept } = this.attrs
-    return { required, pattern, min, max, step, minlength, maxlength, multiple, accept }
+  /** Glyph of the `icon` attribute. */
+  readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
+
+  ////////////////
+  // ## Files
+  ////////////////
+
+  /** `type="file"`? */
+  get isFileInput(): boolean {
+    return this.type === FILE
   }
+
+  /** Files chosen in a `file` input. */
+  @E.state accessor files: readonly File[] = []
 
   /** Files submit themselves:  one entry per file. */
   protected formSubmission(value: E.FieldValue, name: string | undefined): string | File | FormData | null {
-    if (!this.isFile()) return super.formSubmission(value, name)
-    const files = this.files.get()
+    if (!this.isFileInput) return super.formSubmission(value, name)
+    const files = this.files
     if (!name || !files.length) return null
     const data = new FormData()
     for (const file of files) data.append(name, file)
@@ -97,10 +92,50 @@ export class UIInput extends TextControl<Vocabulary> {
   }
 
   /** Also clears a file input's chosen files, which only script can. */
-  formReset() {
-    super.formReset()
-    if (this.control && this.isFile()) this.control.value = ""
-    this.files.set([])
+  onFormReset() {
+    super.onFormReset()
+    if (this.control && this.isFileInput) this.control.value = ""
+    this.files = []
+  }
+
+  /** `change`:  a file input's value and files arrive here too. */
+  private readonly onFileOrChange = (event: Event) => {
+    if (this.isFileInput) {
+      const control = event.currentTarget as HTMLInputElement
+      this.files = [...(control.files ?? [])]
+      this.requestChange("value", control.value, () => true)
+    }
+    this.onChange(event)
+  }
+
+  ////////////////
+  // ## Classes and constraints
+  ////////////////
+
+  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
+    if (name === "labeled") return this.labelPlace ? this.labeled || true : false
+    if (name === "action") return this.actionPlace ? this.action || true : false
+    if (name === "icon-position") return this.hasIconBox ? this.iconPosition : undefined
+    return super.classValue(name)
+  }
+
+  protected get extraClasses(): string | undefined {
+    const extra = [this.hasIconBox && this.iconPosition !== UIT.LEFT ? UIT.ICON : "", this.isFileInput ? FILE : ""]
+    return extra.filter(Boolean).join(" ") || undefined
+  }
+
+  protected get constraints(): Record<string, unknown> {
+    return {
+      required: this.required,
+      pattern: this.pattern,
+      min: this.min,
+      max: this.max,
+      step: this.step,
+      minlength: this.minlength,
+      maxlength: this.maxlength,
+      multiple: this.multiple,
+      accept: this.accept
+    }
   }
 
   ////////////////
@@ -109,76 +144,66 @@ export class UIInput extends TextControl<Vocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("input")}>
-        <Show when={this.labelPlace() === "start"}>{this.label()}</Show>
-        <Show when={this.actionPlace() === "start"}>
-          <slot name={this.slot("action")} />
+      <div class={this.rootClasses} part={this.partForName("input")}>
+        <Show when={this.labelPlace === "start"}>{this.labelBox()}</Show>
+        <Show when={this.actionPlace === "start"}>
+          <slot name={this.slotForName("action")} />
         </Show>
         <input
           ref={(element) => (this.control = element)}
-          part={this.part("control")}
-          type={this.attrs.type ?? "text"}
-          placeholder={this.attrs.placeholder}
-          autocomplete={this.attrs.autocomplete as never}
-          inputmode={this.attrs.inputmode}
-          disabled={this.isDisabled()}
-          readonly={this.attrs.readonly}
-          aria-busy={this.attrs.loading ? UIT.TRUE : undefined}
-          {...this.constraints()}
-          {...this.controlAria()}
-          {...this.staticControl()}
+          part={this.partForName("control")}
+          type={this.type ?? "text"}
+          placeholder={this.placeholder}
+          autocomplete={this.autocomplete as never}
+          inputmode={this.inputmode}
+          disabled={this.isDisabled}
+          readonly={this.readonly}
+          aria-busy={this.loading ? UIT.TRUE : undefined}
+          {...this.constraints}
+          {...this.controlAria}
+          {...this.staticControl}
           onInput={this.onInput}
           onChange={this.onFileOrChange}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
           onKeyDown={this.onKeyDown}
         />
-        <Show when={this.hasIconBox()}>
-          <span class={UIT.ICON} part={this.part("icon")}>
-            <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
+        <Show when={this.hasIconBox}>
+          <span class={UIT.ICON} part={this.partForName("icon")}>
+            <slot name={this.slotForName("icon")}>{this.iconGlyph.svg}</slot>
           </span>
         </Show>
-        <Show when={this.labelPlace() === "end"}>{this.label()}</Show>
-        <Show when={this.labelPlace() === "corner"}>
+        <Show when={this.labelPlace === "end"}>{this.labelBox()}</Show>
+        <Show when={this.labelPlace === "corner"}>
           <span
-            class={this.attrs.labeled === "left corner" ? LEFT_CORNER_LABEL : CORNER_LABEL}
-            part={this.part("label")}
+            class={this.labeled === "left corner" ? LEFT_CORNER_LABEL : CORNER_LABEL}
+            part={this.partForName("label")}
             aria-hidden="true"
           >
             <span class={UIT.ICON}>
-              <slot name={this.slot("label")}>{this.cornerGlyph.svg()}</slot>
+              <slot name={this.slotForName("label")}>{this.cornerGlyph.svg}</slot>
             </span>
           </span>
         </Show>
-        <Show when={this.actionPlace() === "end"}>
-          <slot name={this.slot("action")} />
+        <Show when={this.actionPlace === "end"}>
+          <slot name={this.slotForName("action")} />
         </Show>
       </div>
     )
   }
 
   /** The joined label box, around the `label` slot / shorthand. */
-  private label(): JSX.Element {
+  private labelBox(): JSX.Element {
     return (
-      <span class={LABEL_CLASSES} part={this.part("label")}>
-        <slot name={this.slot("label")}>{this.attrs.label}</slot>
+      <span class={LABEL_CLASSES} part={this.partForName("label")}>
+        <slot name={this.slotForName("label")}>{this.label}</slot>
       </span>
     )
   }
 
   ////////////////
-  // ## Handlers
+  // ## Submitting
   ////////////////
-
-  /** `change`:  a file input's value and files arrive here too. */
-  private readonly onFileOrChange = (event: Event) => {
-    if (this.isFile()) {
-      const control = event.currentTarget as HTMLInputElement
-      this.files.set([...(control.files ?? [])])
-      this.valueState.request(control.value as never, () => true)
-    }
-    this.onChange(event)
-  }
 
   /** Enter submits the form, as a native field would. */
   private readonly onKeyDown = (event: KeyboardEvent) => {
@@ -186,7 +211,7 @@ export class UIInput extends TextControl<Vocabulary> {
     const form = this.formHost.form
     if (!form) return
     event.preventDefault()
-    this.isTouched.set(true)
+    this.isTouched = true
     const submitter = [...form.elements].find(UIInput.isSubmitter) as HTMLElement | undefined
     if (submitter) submitter.click()
     else form.requestSubmit()
@@ -205,6 +230,8 @@ export class UIInput extends TextControl<Vocabulary> {
     return element.getAttribute(TYPE) === UIT.SUBMIT && !element.matches(DISABLED_PSEUDO)
   }
 }
+/** The vocabulary getters, typed;  `TextControl` types the shared ones, and owns `value`. */
+export interface UIInput extends Omit<E.AttributeValues<Vocabulary>, keyof CommonAttributes | "value"> {}
 
 /** Attribute saying a `<ui-button>` submits (`type="submit"`). */
 const TYPE = "type"

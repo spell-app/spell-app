@@ -2565,7 +2565,7 @@
             },
             {
               "name": "value",
-              "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`).",
+              "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `defaultChosenValue`).",
               "type": {
                 "text": "string"
               },
@@ -2597,7 +2597,7 @@
             },
             {
               "name": "off-value",
-              "description": "Value submitted while unchosen:  `value=\"open\" off-value=\"closed\"`;  default its class's `offValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen.",
+              "description": "Value submitted while unchosen:  `value=\"open\" off-value=\"closed\"`;  default its class's `defaultUnchosenValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen.",
               "type": {
                 "text": "string"
               },
@@ -2930,7 +2930,7 @@
             },
             {
               "name": "value",
-              "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`).",
+              "description": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `defaultChosenValue`).",
               "type": {
                 "text": "string"
               },
@@ -3805,12 +3805,12 @@
               "fieldName": "verticalAlign"
             },
             {
-              "name": "on",
+              "name": "show-on",
               "description": "Shows by itself:  `hover` while the pointer is over its parent (or focus is inside), `click` when the parent is clicked.  Default:  only `active` shows it.",
               "type": {
                 "text": "\"hover\" | \"click\""
               },
-              "fieldName": "on"
+              "fieldName": "showOn"
             },
             {
               "name": "closedby",
@@ -3826,7 +3826,7 @@
           "events": [
             {
               "name": "ui-open",
-              "description": "About to show for a person's action (`on`, an invoker command);  `preventDefault()` keeps it hidden.  Cancelable:  `preventDefault()` vetoes it.",
+              "description": "About to show for a person's action (`show-on`, an invoker command);  `preventDefault()` keeps it hidden.  Cancelable:  `preventDefault()` vetoes it.",
               "type": {
                 "text": "CustomEvent<{ active: true, originalEvent?: Event }>"
               }
@@ -3884,7 +3884,7 @@
             },
             {
               "name": "on-hover",
-              "description": "`on=\"hover\"`:  laid out (transparent) while inactive, so Tab can reach it."
+              "description": "`show-on=\"hover\"`:  laid out (transparent) while inactive, so Tab can reach it."
             }
           ],
           "cssProperties": [
@@ -6141,13 +6141,13 @@
               "fieldName": "stackWith"
             },
             {
-              "name": "on",
+              "name": "validate-on",
               "description": "When fields validate:  on `submit` only, or also when one loses focus (`blur`) or changes (`change`).  A field showing an error always re-validates as it changes.",
               "type": {
                 "text": "\"submit\" | \"blur\" | \"change\""
               },
               "default": "\"submit\"",
-              "fieldName": "on"
+              "fieldName": "validateOn"
             },
             {
               "name": "error-focus",
@@ -14324,13 +14324,13 @@
               "fieldName": "position"
             },
             {
-              "name": "on",
+              "name": "open-on",
               "description": "What opens it:  `hover` (also keyboard focus), `focus`, `click` (toggles;  a non-modal dialog), or `manual` (only `open`).",
               "type": {
                 "text": "\"hover\" | \"focus\" | \"click\" | \"manual\""
               },
               "default": "\"hover\"",
-              "fieldName": "on"
+              "fieldName": "openOn"
             },
             {
               "name": "for",

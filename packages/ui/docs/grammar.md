@@ -159,7 +159,7 @@ but the FORM itself has to be a real `<form>` in the light DOM:
 - `<ui-form>` sets `noValidate` on the form (restored on disconnect) and validates on `submit` itself:  its
   `rules` (Fomantic's `fields` shape) plus each control's own constraint validation.  An invalid submit is
   stopped before the page's submit handlers run;  a valid one fires the cancelable `ui-success` first.
-- Without a native form, `<ui-form>` still validates (`validate()`, `on="blur|change"`), but nothing submits.
+- Without a native form, `<ui-form>` still validates (`validate()`, `validate-on="blur|change"`), but nothing submits.
 - Prompts render inside each `<ui-field>`'s shadow root (a basic pointing `prompt` label, `role="alert"`);
   `<ui-form>` finds a control's field with `closest(":state(field)")`.  A form / field in a state shows the
   `<ui-message>`s of that state (`native.css`).
@@ -275,7 +275,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 <ui-popup for="save" header="Saving" content="Stores a draft;  nothing is published."></ui-popup>
 
 <ui-button>Plan</ui-button>                                   <!-- no `for`:  the previous sibling -->
-<ui-popup on="click" position="bottom left" flowing header="Basic plan"><ui-button primary>Choose</ui-button></ui-popup>
+<ui-popup open-on="click" position="bottom left" flowing header="Basic plan"><ui-button primary>Choose</ui-button></ui-popup>
 
 <button data-tooltip="Add users" data-position="bottom left" data-inverted>+</button>   <!-- CSS only -->
 ```
@@ -295,11 +295,11 @@ first paint never needs the property.  No virtualization yet:  every row renders
   `position-anchor`) when the target has a box;  a `display: contents` target (`<ui-icon>`, `<ui-label>`, most
   hosts) has none, and a tree-scoped name can't reach into its shadow root, so the popup then anchors to the
   target's first shadow box IMPLICITLY (`showPopover({ source })`, `position-anchor: auto`).
-- `on`:  `hover` (+ keyboard focus;  `show-delay` / `hide-delay`, Fomantic's 50 / 70 ms), `focus`, `click`,
+- `open-on`:  `hover` (+ keyboard focus;  `show-delay` / `hide-delay`, Fomantic's 50 / 70 ms), `focus`, `click`,
   `manual`.  A hovered popup stays open while the pointer is over it (WCAG 1.4.13), where Fomantic defaulted to
   `hoverable: false`;  `hoverable="false"` (boolean, default true) gives Fomantic's behaviour back:  it closes as
   the pointer leaves the target (after `hide-delay`).
-- Accessibility follows `on`:  tooltip-like (`role=tooltip`, the target `aria-describedby` it) or, for `click`, a
+- Accessibility follows `open-on`:  tooltip-like (`role=tooltip`, the target `aria-describedby` it) or, for `click`, a
   non-modal dialog (`role=dialog` named by `header`, the target `aria-haspopup=dialog` / `aria-expanded` /
   `aria-controls`).  The ARIA goes on the element that takes focus -- a `<ui-button>`'s inner `<button>`, by
   element reflection.  Escape and outside clicks come from `UI.overlays`.
@@ -406,7 +406,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   <p>Content</p>
   <ui-dimmer active blurring><ui-header level="4">Saved</ui-header></ui-dimmer>
 </ui-segment>
-<div class="card-image"><img src="..." alt="" /><ui-dimmer on="hover"><ui-button inverted>Add</ui-button></ui-dimmer></div>
+<div class="card-image"><img src="..." alt="" /><ui-dimmer show-on="hover"><ui-button inverted>Add</ui-button></ui-dimmer></div>
 <ui-dimmer id="busy" page aria-label="Loading"><ui-loader>Loading</ui-loader></ui-dimmer>
 ```
 
@@ -419,8 +419,8 @@ first paint never needs the property.  No virtualization yet:  every row renders
   `UI.overlays` (kind `dimmer`).  Named by the host's `aria-label`, else "Dimmed page".
 - `active` (Fomantic's word and class) is auto-controlled:  cancelable `ui-open` / `ui-close` (`reason`:  `click`,
   `escape`, `hover`, `close-all`) for user actions, then `ui-show` / `ui-hide` after the fade.
-- `on="hover"`:  shown while the pointer is over the parent OR focus is inside it;  an inactive hover dimmer stays
-  laid out (transparent, click-through), so Tab reaches its buttons -- Fomantic's was mouse-only.  `on="click"`:  a
+- `show-on="hover"`:  shown while the pointer is over the parent OR focus is inside it;  an inactive hover dimmer stays
+  laid out (transparent, click-through), so Tab reaches its buttons -- Fomantic's was mouse-only.  `show-on="click"`:  a
   click on the parent shows it.
 - `closedby` as on `<ui-modal>`:  `any` (a click on the dimmer, not its content;  Escape on a page dimmer),
   `closerequest`, `none`;  a hover dimmer ignores clicks (Fomantic's `closable: 'auto'`).
@@ -901,7 +901,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   after it (usually a `<ui-content>`, any element works) is its content.  No panel element.
 - The shadow root wraps each pair in `<details part="panel">` > `<summary class="[active] title">` (an arrow, then the
   title's slot) + `<div class="[active] content">`, handing the two children to their `<slot>`s BY HAND
-  (`slotAssignment: "manual"`, `UIElement`'s `@proto static slotAssignment`).  So the platform does the disclosure:
+  (`slotAssignment: "manual"`, `UIElement`'s `elementSetup.assignSlots`).  So the platform does the disclosure:
   `<summary>` is a focusable button exposing its expanded state, Enter / Space toggle, find-in-page opens a panel,
   and `exclusive` (the default) is one shared `<details name>` group.  ArrowDown / ArrowUp / Home / End move between
   titles.

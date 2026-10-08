@@ -19,29 +19,33 @@ import cardCSS from "./ui-card.css?inline"
  ****************/
 export class UICards extends E.UIElement<typeof cardsVocabulary> {
   @E.proto static vocabulary = cardsVocabulary
-  @E.proto static styles = { card: cardCSS }
-  @E.proto static Fallback = CardFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { card: cardCSS }
+  @E.proto static elementSetup = { Fallback: CardFallback, delegatesFocus: false }
 
   /** The group's value of variation `name`, which its cards take when they don't set it.  Tracked. */
   variationFor(name: UIT.CardSharedVariation): unknown {
-    return this.attrs[name]
+    return this[name]
   }
 
-  protected hostStates() {
-    return { cards: true }
+  /** Always on:  the host is the `ui-cards` size container (`:state(cards)`). */
+  @E.cssState("cards")
+  get isCards(): boolean {
+    return true
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected extraClasses(): string | undefined {
-    return UIT.StackClasses.classFor(this.attrs.stackWith)
+  protected get extraClasses(): string | undefined {
+    return UIT.StackClasses.classFor(this.stackWith)
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("group")} role={UIT.LIST}>
+      <div class={this.rootClasses} part={this.partForName("group")} role={UIT.LIST}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UICards extends E.AttributeValues<typeof cardsVocabulary> {}

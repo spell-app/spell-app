@@ -17,8 +17,11 @@ import modalCSS from "./ui-modal.css?inline"
  ****************/
 export class UIModal extends DialogElement<Vocabulary> {
   @E.proto static vocabulary = modalVocabulary
-  @E.proto static styles = { modal: modalCSS }
-  @E.proto static Fallback = ModalFallback
+  @E.proto static styleSheets = { modal: modalCSS }
+  @E.proto static elementSetup = { Fallback: ModalFallback }
   @E.proto static rootPart = "modal"
   @E.proto static overlayKind = "modal" as const
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIModal extends E.AttributeValues<typeof modalVocabulary> {}

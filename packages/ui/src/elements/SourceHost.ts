@@ -44,16 +44,19 @@ export class SourceHost extends UIHost {
    * - Before the controller exists:  kept, and shown once it does.
    */
   set content(text: string) {
-    if (this.sourceController) this.sourceController.setContent(text)
+    if (this.sourceController) this.sourceController.content = text
     else this.pendingContent = text
   }
 
   /** Version of the last load / save (the response's `ETag`);  `undefined` before one, or when there was none. */
   get etag(): string | undefined {
-    return this.sourceController?.etag
+    return this.sourceController?.lastETag
   }
 
-  /** Changed since loaded / saved?  Before the controller exists:  whether `content` was set early. */
+  /**
+   * Changed since loaded / saved?  The controller's `isDirty`.
+   * - Before the controller exists:  whether `content` was set early.
+   */
   get dirty(): boolean {
     return this.sourceController?.isDirty ?? this.pendingContent !== undefined
   }

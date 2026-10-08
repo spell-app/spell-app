@@ -4,7 +4,7 @@ import { E } from "$/ui/core"
  * ### `FormHost`
  * Host base of form-associated components (`<ui-dropdown>`, `<ui-input>`, `<ui-checkbox>` ...):  the usual
  * form-control API (`form`, `validity`, `checkValidity()` ...), read from `internals`.
- * - Form association itself is the fork's `formAssociated` option (`@proto static formAssociated`, passed by
+ * - Form association itself is the fork's `formAssociated` option (`elementSetup.isAFormControl`, passed by
  *   `UIElement.define()`);  form callbacks reach the controller through the fork's `onFormReset` /
  *   `onFormDisabled` hooks.
  * - `<ui-button type="submit|reset">` is form-associated too, but keeps `UIHost`:  it needs no value or validity.

@@ -12,13 +12,16 @@ import labelCSS from "./ui-label.css?inline"
  ****************/
 export class UILabels extends E.UIElement<typeof labelsVocabulary> {
   @E.proto static vocabulary = labelsVocabulary
-  @E.proto static styles = { label: labelCSS }
+  @E.proto static styleSheets = { label: labelCSS }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("group")}>
+      <div class={this.rootClasses} part={this.partForName("group")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UILabels extends E.AttributeValues<typeof labelsVocabulary> {}

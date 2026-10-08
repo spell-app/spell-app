@@ -24,5 +24,5 @@ export type Highlighted = {
 /** What the host (`UICodeHost`) asks of its controller (`UICode`). */
 export type CodeController = {
   /** what auto-detection picked, when it ran */
-  detectedLanguage(): string | undefined
+  readonly detectedLanguage: string | undefined
 }

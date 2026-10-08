@@ -1,4 +1,4 @@
-import { Repeat, Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
+import { Repeat, Show, createEffect, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -28,162 +28,173 @@ import progressCSS from "./ui-progress.css?inline"
  ****************/
 export class UIProgress extends E.UIElement<typeof progressVocabulary> {
   @E.proto static vocabulary = progressVocabulary
-  @E.proto static styles = { progress: progressCSS }
-  @E.proto static Fallback = ProgressFallback
-  @E.proto static delegatesFocus = false
-
-  /** Host text (slotted label), re-read when it changes. */
-  readonly hostText = new E.Cell((this.host.textContent ?? "").trim())
-
-  /** The numbers, from `value` / `total` / `percent` / `precision`. */
-  readonly numbers = createMemo(
-    () =>
-      new ProgressValues({
-        value: this.attrs.value,
-        total: this.attrs.total,
-        percent: this.attrs.percent,
-        precision: this.attrs.precision
-      })
-  )
-
-  /** Hue per bar, from `bar-colors`;  unknown words dropped. */
-  readonly barColors = createMemo(() =>
-    (this.attrs.barColors ?? "").split(LIST_SPLIT).map((hue) => (E.ValueSets.has("hues", hue) ? hue : undefined))
-  )
-
-  /** Percentage when the last `ui-change` went out, to tell when it reaches 100. */
-  private lastPercent = untrack(() => this.numbers().percent)
+  @E.proto static styleSheets = { progress: progressCSS }
+  @E.proto static elementSetup = { Fallback: ProgressFallback, delegatesFocus: false }
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     this.host.internals.role = PROGRESSBAR
     if (isServer) return
     onSettled(() => {
-      const observer = new MutationObserver(() => this.hostText.set((this.host.textContent ?? "").trim()))
+      const observer = new MutationObserver(() => (this.hostText = (this.host.textContent ?? "").trim()))
       observer.observe(this.host, { childList: true, characterData: true, subtree: true })
       return () => observer.disconnect()
     })
   }
 
-  ////////////////
-  // ## State
-  ////////////////
-
-  /** Unknown progress?  Tracked. */
-  isIndeterminate(): boolean {
-    return !!this.attrs.indeterminate
+  /** Adds the change events. */
+  onMount(): JSX.Element {
+    // stays explicit:  `defer`, no event for the first render
+    createEffect(() => this.numbers, this.onNumbersChanged, { defer: true })
+    return super.onMount()
   }
 
-  /** Every bar together at 100%, and determinate?  Tracked. */
-  isComplete(): boolean {
-    return !this.isIndeterminate() && this.numbers().percent >= 100
+  ////////////////
+  // ## The numbers
+  ////////////////
+
+  /**
+   * The numbers, from `value` / `total` / `percent` / `precision`.
+   * - `@derived`:  parses comma lists into a new object;  the change effect compares it by identity.
+   */
+  @E.derived
+  get numbers(): ProgressValues {
+    return new ProgressValues({
+      value: this.value,
+      total: this.total,
+      percent: this.percent,
+      precision: this.precision
+    })
+  }
+
+  /** Percentage when the last `ui-change` went out, to tell when it reaches 100. */
+  private lastAnnouncedPercent = untrack(() => this.numbers.percent)
+
+  /** The numbers changed:  `ui-change`, and `ui-complete` when it just reached 100. */
+  private readonly onNumbersChanged = (numbers: ProgressValues) => {
+    if (numbers.percent === this.lastAnnouncedPercent) return
+    const hasReached = numbers.percent >= 100 && this.lastAnnouncedPercent < 100
+    this.lastAnnouncedPercent = numbers.percent
+    const { percent, shown, value, total } = numbers
+    this.send("ui-change", { percent, percents: [...shown], value, total })
+    if (hasReached) this.send("ui-complete", { value, total })
+  }
+
+  ////////////////
+  // ## States
+  ////////////////
+
+  /** Shows activity (`active`).  `:state(active)`. */
+  @E.cssState("active")
+  get isActive(): boolean {
+    return !!this.active
+  }
+
+  /** Unknown progress?  `:state(indeterminate)`. */
+  @E.cssState("indeterminate")
+  get isIndeterminate(): boolean {
+    return !!this.indeterminate
+  }
+
+  /** Every bar together at 100%, and determinate?  `:state(complete)`. */
+  @E.cssState("complete")
+  get isComplete(): boolean {
+    return !this.isIndeterminate && this.numbers.percent >= 100
+  }
+
+  /**
+   * Marked disabled (`disabled`, dimmed):  a look, not `isDisabled` -- the host's clicks aren't swallowed.
+   * `:state(disabled)`.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return !!this.disabled
   }
 
   /** `state`, else `success` for a single complete bar (Fomantic's `autoSuccess`). */
-  state(): string | undefined {
-    if (this.attrs.state) return this.attrs.state
-    return this.isComplete() && this.numbers().bars === 1 ? SUCCESS : undefined
+  get shownState(): string | undefined {
+    if (this.state) return this.state
+    return this.isComplete && this.numbers.barCount === 1 ? SUCCESS : undefined
   }
 
   protected classValue(name: E.AttributeName<typeof progressVocabulary>): unknown {
-    if (name === "state") return this.state()
+    if (name === "state") return this.shownState
     return super.classValue(name)
-  }
-
-  protected hostStates() {
-    return {
-      active: this.attrs.active,
-      indeterminate: this.isIndeterminate(),
-      complete: this.isComplete(),
-      disabled: this.attrs.disabled
-    }
   }
 
   ////////////////
   // ## Texts
   ////////////////
 
+  /** Host text (slotted label), re-read when it changes. */
+  @E.state accessor hostText = (this.host.textContent ?? "").trim()
+
   /** `value` in the page's number format, to `precision` decimals. */
   private readonly format = (value: number): string =>
-    UI.i18n.formatNumber(value, { maximumFractionDigits: this.numbers().precision })
+    UI.i18n.formatNumber(value, { maximumFractionDigits: this.numbers.precision })
 
   /** Text for bar `index` (every bar together without one), in the `bar-text` format. */
-  barText(index?: number): string {
-    const numbers = this.numbers()
-    const isRatio = this.attrs.barText === RATIO && numbers.total !== undefined
-    return numbers.fill(this.text(isRatio ? "progressRatio" : "progressPercent"), index, this.format)
+  barTextFor(index?: number): string {
+    const numbers = this.numbers
+    const isRatio = this.barText === RATIO && numbers.total !== undefined
+    return numbers.fill(this.translationForKey(isRatio ? "progressRatio" : "progressPercent"), index, this.format)
   }
 
   /** The `label` shorthand with its placeholders filled in. */
-  labelText(): string | undefined {
-    const label = this.attrs.label
-    return label ? this.numbers().fill(label, undefined, this.format) : undefined
+  get labelText(): string | undefined {
+    const label = this.label
+    return label ? this.numbers.fill(label, undefined, this.format) : undefined
+  }
+
+  ////////////////
+  // ## ARIA
+  ////////////////
+
+  /**
+   * ARIA values for the internals, once ready (`undefined` before:  the texts read `UI.i18n`);  tracked.
+   * - `null`, not `undefined`:  what `ElementInternals` takes to clear one, a platform boundary.
+   * - Protected, not private:  only `@onChange` reads it, by name.
+   */
+  protected get ariaValues() {
+    if (!this.isReady) return undefined
+    const numbers = this.numbers
+    const isIndeterminate = this.isIndeterminate
+    const total = numbers.total
+    const texts = Array.from({ length: numbers.barCount }, (_, index) => this.barTextFor(index))
+    return {
+      max: String(total ?? 100),
+      now: isIndeterminate ? null : String(total !== undefined ? numbers.value : numbers.percent),
+      text: isIndeterminate ? null : texts.join(LIST_SEPARATOR),
+      label: this.labelText || this.hostText || null
+    }
+  }
+
+  /** The internals follow `ariaValues`;  `writesHost`:  a server render (`$/ui/static`) applies it too. */
+  @E.onChange("ariaValues", { writesHost: true })
+  protected onAriaValuesChanged(aria: UIProgress["ariaValues"]) {
+    if (!aria) return
+    const { internals } = this.host
+    internals.ariaValueMin = "0"
+    internals.ariaValueMax = aria.max
+    internals.ariaValueNow = aria.now
+    internals.ariaValueText = aria.text
+    internals.ariaLabel = aria.label
   }
 
   ////////////////
   // ## Rendering
   ////////////////
 
-  /** Adds the internals (ARIA value, range, name) and the change events. */
-  mount(): JSX.Element {
-    // `hostEffect`:  a server render (`$/ui/static`) applies it too
-    this.hostEffect(
-      () => (this.isLoaded() ? this.aria() : undefined),
-      (aria) => {
-        if (!aria) return
-        const { internals } = this.host
-        internals.ariaValueMin = "0"
-        internals.ariaValueMax = aria.max
-        internals.ariaValueNow = aria.now
-        internals.ariaValueText = aria.text
-        internals.ariaLabel = aria.label
-      }
-    )
-    createEffect(
-      () => this.numbers(),
-      (numbers) => this.changed(numbers),
-      { defer: true }
-    )
-    return super.mount()
-  }
-
-  /**
-   * ARIA values for the internals;  tracked.
-   * - `null`, not `undefined`:  what `ElementInternals` takes to clear one, a platform boundary.
-   */
-  private aria() {
-    const numbers = this.numbers()
-    const isIndeterminate = this.isIndeterminate()
-    const total = numbers.total
-    const texts = Array.from({ length: numbers.bars }, (_, index) => this.barText(index))
-    return {
-      max: String(total ?? 100),
-      now: isIndeterminate ? null : String(total !== undefined ? numbers.value : numbers.percent),
-      text: isIndeterminate ? null : texts.join(LIST_SEPARATOR),
-      label: this.labelText() || this.hostText.get() || null
-    }
-  }
-
-  /** The numbers changed:  `ui-change`, and `ui-complete` when it just reached 100. */
-  private changed(numbers: ProgressValues) {
-    if (numbers.percent === this.lastPercent) return
-    const hasReached = numbers.percent >= 100 && this.lastPercent < 100
-    this.lastPercent = numbers.percent
-    const { percent, shown, value, total } = numbers
-    this.emit("ui-change", { percent, percents: [...shown], value, total })
-    if (hasReached) this.emit("ui-complete", { value, total })
-  }
-
   render(): JSX.Element {
     return (
       <div
-        class={this.classes()}
-        part={this.part("progress")}
-        data-percent={this.isIndeterminate() ? undefined : String(Math.round(this.numbers().percent))}
+        class={this.rootClasses}
+        part={this.partForName("progress")}
+        data-percent={this.isIndeterminate ? undefined : String(Math.round(this.numbers.percent))}
       >
-        <Repeat count={this.numbers().bars}>{(index) => this.bar(index)}</Repeat>
-        <div class={UIT.LABEL} part={this.part("label")}>
-          <slot>{this.labelText()}</slot>
+        <Repeat count={this.numbers.barCount}>{(index) => this.bar(index)}</Repeat>
+        <div class={UIT.LABEL} part={this.partForName("label")}>
+          <slot>{this.labelText}</slot>
         </div>
       </div>
     )
@@ -192,19 +203,28 @@ export class UIProgress extends E.UIElement<typeof progressVocabulary> {
   /** Bar `index`:  its width and corners, its hue, its text. */
   private bar(index: number): JSX.Element {
     return (
-      <div class={this.barClass(index)} part={this.part("bar")} style={this.barStyle(index)}>
-        <Show when={this.attrs.barText}>
-          <div class={BAR_TEXT} part={this.part("bar-text")}>
-            {this.barText(index)}
+      <div class={this.barClass(index)} part={this.partForName("bar")} style={this.barStyle(index)}>
+        <Show when={this.barText}>
+          <div class={BAR_TEXT} part={this.partForName("bar-text")}>
+            {this.barTextFor(index)}
           </div>
         </Show>
       </div>
     )
   }
 
+  /**
+   * Hue per bar, from `bar-colors`;  unknown words dropped.
+   * - `@derived`:  split / map.
+   */
+  @E.derived
+  get barHues(): (string | undefined)[] {
+    return (this.barColors ?? "").split(LIST_SPLIT).map((hue) => (E.ValueSets.has("hues", hue) ? hue : undefined))
+  }
+
   /** `bar`, with `ui-<hue>` (the colour remap) from `bar-colors`. */
   private barClass(index: number): string {
-    const hue = this.barColors()[index]
+    const hue = this.barHues[index]
     return hue ? `${UIT.COLOR_CLASS_PREFIX}${hue} ${UIT.BAR}` : UIT.BAR
   }
 
@@ -213,11 +233,11 @@ export class UIProgress extends E.UIElement<typeof progressVocabulary> {
    * the first and last shown bars keep their outer corners.  None while indeterminate (the CSS fills the track).
    */
   private barStyle(index: number): JSX.CSSProperties {
-    if (this.isIndeterminate()) return {}
-    const { percents, bars } = this.numbers()
+    if (this.isIndeterminate) return {}
+    const { percents, barCount } = this.numbers
     const percent = percents[index] ?? 0
-    const isMultiple = bars > 1
-    const shown = percents.map((value, at) => value > 0 || (at === bars - 1 && percents.every((it) => it === 0)))
+    const isMultiple = barCount > 1
+    const shown = percents.map((value, at) => value > 0 || (at === barCount - 1 && percents.every((it) => it === 0)))
     if (isMultiple && !shown[index]) return { display: "none" }
     const first = shown.indexOf(true)
     const last = shown.lastIndexOf(true)
@@ -228,6 +248,9 @@ export class UIProgress extends E.UIElement<typeof progressVocabulary> {
     return style
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIProgress extends E.AttributeValues<typeof progressVocabulary> {}
 
 /** Host role. */
 const PROGRESSBAR = "progressbar"

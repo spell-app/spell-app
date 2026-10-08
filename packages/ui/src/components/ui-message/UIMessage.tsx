@@ -1,4 +1,4 @@
-import { Show, createMemo } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -23,31 +23,35 @@ import messageCSS from "./ui-message.css?inline"
  ****************/
 export class UIMessage extends E.UIElement<typeof messageVocabulary> {
   @E.proto static vocabulary = messageVocabulary
-  @E.proto static styles = { message: messageCSS }
-  @E.proto static Fallback = MessageFallback
+  @E.proto static styleSheets = { message: messageCSS }
+  @E.proto static elementSetup = { Fallback: MessageFallback }
 
   /** Light-DOM slot occupancy:  a slotted icon. */
   readonly slots = new E.SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
+  readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
 
   /** Glyph of the close button. */
   readonly closeGlyph = new E.IconGlyph({
     owner: this,
-    name: () => (this.attrs.dismissible ? UIT.CLOSE_ICON : undefined)
+    name: () => (this.dismissible ? UIT.CLOSE_ICON : undefined)
   })
 
   /** Has an icon (shorthand or `icon` slot)? */
-  readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot(UIT.ICON)))
-
-  /** The `icon` class after the noun while it shows an icon:  the sheet's icon layout. */
-  protected extraClasses(): string | undefined {
-    return this.hasIcon() ? UIT.ICON_CLASS : undefined
+  get hasIcon(): boolean {
+    return !!this.icon || this.slots.hasContent(this.slotForName(UIT.ICON))
   }
 
-  protected hostStates() {
-    return { inverted: this.attrs.inverted }
+  /** The `icon` class after the noun while it shows an icon:  the sheet's icon layout. */
+  protected get extraClasses(): string | undefined {
+    return this.hasIcon ? UIT.ICON_CLASS : undefined
+  }
+
+  /** For dark backgrounds?  `:state(inverted)`. */
+  @E.cssState("inverted")
+  get isInverted(): boolean {
+    return this.inverted
   }
 
   ////////////////
@@ -56,29 +60,29 @@ export class UIMessage extends E.UIElement<typeof messageVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("message")}>
-        <Show when={this.hasIcon()}>
-          <span class={UIT.ICON} part={this.part("icon")}>
-            <slot name={this.slot(UIT.ICON)}>{this.glyph.svg()}</slot>
+      <div class={this.rootClasses} part={this.partForName("message")}>
+        <Show when={this.hasIcon}>
+          <span class={UIT.ICON} part={this.partForName("icon")}>
+            <slot name={this.slotForName(UIT.ICON)}>{this.iconGlyph.svg}</slot>
           </span>
         </Show>
-        <div class={UIT.CONTENT} part={this.part("content")}>
-          <Show when={this.attrs.header}>
-            <div class={UIT.HEADER} part={this.part("header")}>
-              {this.attrs.header}
+        <div class={UIT.CONTENT} part={this.partForName("content")}>
+          <Show when={this.header}>
+            <div class={UIT.HEADER} part={this.partForName("header")}>
+              {this.header}
             </div>
           </Show>
           <slot />
         </div>
-        <Show when={this.attrs.dismissible}>
+        <Show when={this.dismissible}>
           <button
             type="button"
             class={UIT.CLOSE_CLASS}
-            part={this.part("close")}
-            aria-label={this.text("dismiss")}
+            part={this.partForName("close")}
+            aria-label={this.translationForKey("dismiss")}
             onClick={this.onDismiss}
           >
-            {this.closeGlyph.svg()}
+            {this.closeGlyph.svg}
           </button>
         </Show>
       </div>
@@ -92,6 +96,8 @@ export class UIMessage extends E.UIElement<typeof messageVocabulary> {
   /** Close button:  announce, then hide unless a handler cancelled. */
   private readonly onDismiss = (event: MouseEvent) => {
     const detail: UIT.MessageDismissDetail = { originalEvent: event }
-    if (this.emit("ui-dismiss", detail)) this.host.hidden = true
+    if (this.send("ui-dismiss", detail)) this.host.hidden = true
   }
 }
+/** The vocabulary getters, typed. */
+export interface UIMessage extends E.AttributeValues<typeof messageVocabulary> {}

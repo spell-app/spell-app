@@ -18,11 +18,11 @@ const STUB_CSS = ":host { display: block }"
  * - NOTE: test / demo scaffolding, not a component.
  */
 export class StubOwner extends UIElement {
-  @proto static styles = { "stub-owner": STUB_CSS }
+  @proto static styleSheets = { "stub-owner": STUB_CSS }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.vocabulary.noun} style={{ display: "contents" }}>
+      <div class={this.rootClasses} part={this.vocabulary.noun} style={{ display: "contents" }}>
         <slot />
       </div>
     )

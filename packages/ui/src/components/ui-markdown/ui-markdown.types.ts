@@ -59,7 +59,7 @@ export type MarkdownRendering = {
 /** What the host asks of its controller (`UIMarkdown`). */
 export type MarkdownController = {
   /** the headings of the last render */
-  getHeadings(): MarkdownHeading[]
+  readonly headings: MarkdownHeading[]
   /** scroll to heading `id` and put it in the address;  `false` when there's no such heading */
   reveal(id: string): boolean
 }

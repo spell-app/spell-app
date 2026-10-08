@@ -1,4 +1,4 @@
-import { Show, createEffect, untrack } from "solid-js"
+import { Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -9,8 +9,7 @@ import {
   DialogActions,
   OPEN,
   type DialogAttributes,
-  type DialogEventName,
-  type OpenValue
+  type DialogEventName
 } from "./ui-modal.types"
 
 /****************
@@ -25,9 +24,9 @@ import {
  * - Vocabulary contract (checked by each family's tests, not by types):  attributes `open`, `closable`, `closedby`,
  *   `header`, `content`;  events `ui-open`, `ui-show`, `ui-close`, `ui-hide`, `ui-approve`, `ui-deny`;  parts
  *   `rootPart`, `header`, `content`, `close`;  state `open`;  text `close`.
- * - `open` is auto-controlled:  `ui-open` / `ui-close` (with a `reason`) come first and can veto;  `ui-show` /
- *   `ui-hide` follow once the CSS transition has finished.
- * - Dismissal, by `closedby` (read when it opens;  see `closedBy()` for what an absent one means):
+ * - `open` is auto-controlled (`isOpen`):  `ui-open` / `ui-close` (with a `reason`) come first and can veto;
+ *   `ui-show` / `ui-hide` follow once the CSS transition has finished.
+ * - Dismissal, by `closedby` (read when it opens;  see `closedBy` for what an absent one means):
  *   - Escape:  through `UI.overlays` (kind `overlayKind`:  scroll lock, keyboard scope, focus restore), so only the
  *     topmost overlay closes and `ui-close` can veto;  the dialog's own `cancel` is always prevented
  *   - a click on the `::backdrop`:  the browser's light dismiss (`<dialog closedby>`) when
@@ -53,49 +52,29 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
   /** `UI.overlays` kind:  `modal` or `flyout`. */
   declare overlayKind: E.OverlayKind
 
-  ////////////////
-  // ## State
-  ////////////////
+  // The dialog attributes this base reads (see the class docs):  each vocabulary's getters, declared here since `V`
+  // is unknown to this class.
 
-  /** `open`:  host-controlled, or internal. */
-  readonly openState = this.controlled(OPEN as E.AttributeName<V>, false as OpenValue<V>)
+  /** `closable`:  the close icon;  `false` (written) is also Fomantic's `closable: false`. */
+  declare closable: boolean
 
-  /** Glyph of the close icon. */
-  readonly closeGlyph = new E.IconGlyph({
-    owner: this,
-    name: () => (this.dialogAttrs.closable ? UIT.CLOSE_ICON : undefined)
-  })
+  /** `closedby`:  what dismisses it, as written;  see `closedBy` for what it means. */
+  declare closedby: DialogAttributes["closedby"] | undefined
 
-  /** Host `aria-label`, forwarded to the dialog. */
-  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
+  /** `header`:  the header shorthand. */
+  declare header: string | undefined
 
-  /**
-   * First slotted `<ui-header>` (any tag whose noun is `header`), which names the dialog.
-   * - Read on the server too, NO `isServer` guard:  the static render (`$/ui/static`, linkedom hosts) names the
-   *   dialog by it (`serverLabelledBy()`).
-   */
-  readonly heading = new E.Cell<Element | undefined>(this.findHeading())
+  /** `content`:  the content shorthand. */
+  declare content: string | undefined
 
   /** The dialog. */
   protected dialog?: HTMLDialogElement
-
-  /** Id of the `header` shorthand, from `UI.ids` once rendering. */
-  private headerId = ""
-
-  /** Bumped on every show / hide, so a late `ui-show` / `ui-hide` of an earlier one is dropped. */
-  private generation = 0
-
-  /** A dismissal was asked for in this task:  the dialog's own `cancel` for the same key press is ignored. */
-  private isDismissing = false
-
-  /** The last press started on the `::backdrop`. */
-  private isBackdropPress = false
 
   /**
    * This element's `UI.overlays` entry;  its Escape / outside options follow `closedby` when it opens.
    * - `kind` is the subclass's `overlayKind`, set in the constructor (a prototype value TypeScript can't see here).
    */
-  private readonly overlay: E.OverlayEntry = {
+  private readonly overlayEntry: E.OverlayEntry = {
     element: this.host,
     kind: "modal",
     onDismiss: (reason: E.DismissReason) => void this.requestClose(reason)
@@ -103,152 +82,54 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
-    this.overlay.kind = this.overlayKind
+    this.overlayEntry.kind = this.overlayKind
     if (isServer) return
-    const { host } = this
-    const listeners = new AbortController()
-    const options = { signal: listeners.signal }
-    host.renderRoot.addEventListener("slotchange", () => this.heading.set(this.findHeading()), options)
-    host.addEventListener("command", this.onCommand, options)
-    host.addReleaseCallback(() => listeners.abort())
-  }
-
-  /** Open now.  Tracked. */
-  isOpen(): boolean {
-    return this.openState.get() as boolean
-  }
-
-  /** The dialog attributes this base reads, whatever the subclass's vocabulary (see the class docs). */
-  protected get dialogAttrs(): DialogAttributes {
-    return this.attrs as unknown as DialogAttributes
+    this.on("slotchange", this.onSlotChange, { target: this.host.renderRoot })
+    this.on("command", this.onCommand)
   }
 
   ////////////////
-  // ## Element hooks
+  // ## Open
   ////////////////
+
+  /** `open`:  shown;  host-controlled, or internal. */
+  @E.cssState("open")
+  @E.controlled("open")
+  accessor isOpen = false
+
+  /** Bumped on every show / hide, so a late `ui-show` / `ui-hide` of an earlier one is dropped. */
+  private generation = 0
 
   protected classValue(name: E.AttributeName<V>): unknown {
-    if (name === OPEN) return this.isOpen()
+    if (name === OPEN) return this.isOpen
     return super.classValue(name)
   }
 
-  protected hostStates() {
-    return { open: this.isOpen() } as ReturnType<E.UIElement<V>["hostStates"]>
+  /** Show, dispatching the cancelable `ui-open` first;  true when applied. */
+  requestOpen(originalEvent?: Event): boolean {
+    if (untrack(() => this.isOpen)) return false
+    const detail: UIT.ModalOpenDetail = { open: true, originalEvent }
+    return this.requestChange("isOpen", true, () => this.fire("ui-open", detail))
   }
 
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  /** Adds the naming and show / hide effects (`effects()`):  they call `isOpen()`, which a subclass may override. */
-  mount(): JSX.Element {
-    this.effects()
-    return super.mount()
-  }
-
-  render(): JSX.Element {
-    this.headerId = UI.ids.next(`ui-${this.definition.vocabulary.noun}`)
-    return (
-      <dialog
-        ref={(element) => (this.dialog = element)}
-        class={this.classes()}
-        part={this.dialogPart(this.rootPart)}
-        aria-labelledby={isServer ? this.serverLabelledBy() : undefined}
-        onCancel={this.onCancel}
-        onClose={this.onClose}
-        onPointerDown={this.onPointerDown}
-        onClick={this.onDialogClick}
-      >
-        <Show when={this.dialogAttrs.header}>
-          <div id={this.headerId} class={UIT.HEADER} part={this.dialogPart(UIT.HEADER)}>
-            {this.dialogAttrs.header}
-          </div>
-        </Show>
-        <Show when={this.dialogAttrs.content}>
-          <div class={UIT.CONTENT} part={this.dialogPart(UIT.CONTENT)}>
-            {this.dialogAttrs.content}
-          </div>
-        </Show>
-        <slot />
-        <Show when={this.dialogAttrs.closable}>
-          <button
-            type="button"
-            class={UIT.CLOSE_CLASS}
-            part={this.dialogPart(UIT.CLOSE)}
-            aria-label={this.closeText()}
-            onClick={this.onCloseIcon}
-          >
-            {this.closeGlyph.svg()}
-          </button>
-        </Show>
-      </dialog>
-    )
+  /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
+  requestClose(reason: UIT.ModalCloseReason, originalEvent?: Event): boolean {
+    if (!untrack(() => this.isOpen)) return false
+    this.isDismissing = true
+    setTimeout(() => (this.isDismissing = false))
+    const detail: UIT.ModalCloseDetail = { open: false, reason, originalEvent }
+    return this.requestChange("isOpen", false, () => this.fire("ui-close", detail))
   }
 
   /**
-   * `part` value of one of the parts every dialog vocabulary names (see the class docs).
-   * - A method, not a cast in the JSX:  Solid's SSR compile (`hoistProps`) hoists a `<Show>`'s children into a
-   *   module-level constructor and passes it every free identifier they use -- the type parameter `V` of a
-   *   `PartName<V>` cast too, as a VALUE ("V is not defined").
+   * Shown while open AND connected, once the runtime is loaded (`isReady`, as the render waits for):  it acts on
+   * the rendered `<dialog>`;  hidden by the cleanup.
    */
-  private dialogPart(name: string): string {
-    return this.part(name as E.PartName<V>)
-  }
-
-  /**
-   * The dialog's `aria-labelledby` in a server render (`$/ui/static`), where no effect applies and no element
-   * reflects:  the `header` shorthand's id, else the slotted heading's, unless the host has an `aria-label` (which
-   * the static output moves onto the dialog).
-   * - SIDE EFFECT:  gives the slotted heading (the render's parsed copy) an id if it has none.
-   */
-  private serverLabelledBy(): string | undefined {
-    if (this.ariaLabel.get()) return undefined
-    if (this.dialogAttrs.header) return this.headerId
-    const heading = this.heading.get()
-    return heading ? UI.ids.ensure(heading, `ui-${this.definition.vocabulary.noun}-heading`) : undefined
-  }
-
-  /** Label of the close icon (`text("close")`);  a method for the reason `dialogPart()` is. */
-  private closeText(): string {
-    return this.text(UIT.CLOSE as E.TextKey<V>)
-  }
-
-  ////////////////
-  // ## Effects
-  ////////////////
-
-  /**
-   * The dialog's name, and showing / hiding it while open AND connected.
-   * - Both wait for the runtime (`isLoaded`), as the render does:  they act on the rendered `<dialog>`.
-   */
-  private effects() {
-    createEffect(
-      () => ({
-        isRendered: this.isLoaded(),
-        label: this.ariaLabel.get(),
-        hasHeader: !!this.dialogAttrs.header,
-        heading: this.heading.get()
-      }),
-      ({ label, hasHeader, heading }) => {
-        const dialog = this.dialog
-        if (!dialog) return
-        const reflected = dialog as unknown as { ariaLabelledByElements: Element[] | null }
-        if (label) dialog.setAttribute(UIT.ARIA_LABEL, label)
-        else dialog.removeAttribute(UIT.ARIA_LABEL)
-        // NOTE: setting the reflected list (even to `null`, the platform's "none") rewrites the attribute, so it
-        // goes first
-        reflected.ariaLabelledByElements = !label && !hasHeader && heading ? [heading] : null
-        if (!label && hasHeader) dialog.setAttribute(ARIA_LABELLEDBY, this.headerId)
-      }
-    )
-    createEffect(
-      () => this.isConnected.get() && this.isLoaded() && this.isOpen(),
-      (isShowing) => {
-        if (!isShowing) return
-        this.show()
-        return () => this.hide()
-      }
-    )
+  @E.onChange("isConnected", "isReady", "isOpen")
+  protected onOpenChanged(isConnected: boolean, isReady: boolean, isOpen: boolean) {
+    if (!(isConnected && isReady && isOpen)) return
+    this.show()
+    return () => this.hide()
   }
 
   /**
@@ -259,20 +140,20 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
   private show() {
     const dialog = this.dialog
     if (!dialog) return
-    const closedBy = this.closedBy()
+    const closedBy = this.closedBy
     const isNative = UI.browser.supports.dialogClosedBy
     if (isNative) dialog.setAttribute(CLOSEDBY, closedBy)
     else dialog.removeAttribute(CLOSEDBY)
-    this.overlay.closeOnEscape = closedBy !== UIT.NONE
-    this.overlay.closeOnOutsideClick = !isNative && closedBy === ANY
+    this.overlayEntry.closeOnEscape = closedBy !== UIT.NONE
+    this.overlayEntry.closeOnOutsideClick = !isNative && closedBy === ANY
     if (!dialog.open) {
       dialog.showModal()
       UI.focus.enter(dialog)
     }
-    UI.overlays.open(this.overlay)
+    UI.overlays.open(this.overlayEntry)
     this.after(() => {
       const detail: UIT.ModalOpenDetail = { open: true }
-      if (untrack(() => this.isOpen())) this.fire("ui-show", detail)
+      if (untrack(() => this.isOpen)) this.fire("ui-show", detail)
     })
   }
 
@@ -283,10 +164,10 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
   private hide() {
     const dialog = this.dialog
     if (dialog?.open) dialog.close()
-    UI.overlays.close(this.overlay)
+    UI.overlays.close(this.overlayEntry)
     this.after(() => {
       const detail: UIT.ModalOpenDetail = { open: false }
-      if (!untrack(() => this.isOpen()) && this.host.isConnected) this.fire("ui-hide", detail)
+      if (!untrack(() => this.isOpen) && this.host.isConnected) this.fire("ui-hide", detail)
     })
   }
 
@@ -299,70 +180,50 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
     })
   }
 
-  ////////////////
-  // ## Transitions
-  ////////////////
-
-  /** Show, dispatching the cancelable `ui-open` first;  true when applied. */
-  requestOpen(originalEvent?: Event): boolean {
-    if (untrack(() => this.isOpen())) return false
-    const detail: UIT.ModalOpenDetail = { open: true, originalEvent }
-    return this.openState.request(true as OpenValue<V>, () => this.fire("ui-open", detail))
-  }
-
-  /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
-  requestClose(reason: UIT.ModalCloseReason, originalEvent?: Event): boolean {
-    if (!untrack(() => this.isOpen())) return false
-    this.isDismissing = true
-    setTimeout(() => (this.isDismissing = false))
-    const detail: UIT.ModalCloseDetail = { open: false, reason, originalEvent }
-    return this.openState.request(false as OpenValue<V>, () => this.fire("ui-close", detail))
-  }
-
-  /** `emit()` one of the events every dialog vocabulary names (see the class docs). */
+  /** `send()` one of the events every dialog vocabulary names (see the class docs). */
   private fire(name: DialogEventName, detail: object): boolean {
-    return this.emit(name as E.EventName<V>, detail)
+    return this.send(name as E.EventName<V>, detail)
   }
+
+  /** An invoker command aimed at the host (`ToggleCommands`). */
+  private readonly onCommand = (event: Event) => {
+    const action = UIT.ToggleCommands.action(
+      event,
+      untrack(() => this.isOpen)
+    )
+    if (action === "show") this.requestOpen(event)
+    else if (action === "close") this.requestClose("close", event)
+  }
+
+  ////////////////
+  // ## Dismissal
+  ////////////////
+
+  /** A dismissal was asked for in this task:  the dialog's own `cancel` for the same key press is ignored. */
+  private isDismissing = false
+
+  /** The last press started on the `::backdrop`. */
+  private pressStartedOnBackdrop = false
 
   /**
    * What dismisses it:  an explicit `closedby` wins;  else `none` for `closable="false"` (Fomantic's `closable:
    * false`), else `any`.
    * - NOTE: `closedby` has a vocabulary default, so presence is read off the host.
    */
-  private closedBy(): NonNullable<DialogAttributes["closedby"]> {
-    if (this.host.hasAttribute(CLOSEDBY)) return untrack(() => this.dialogAttrs.closedby) ?? ANY
+  private get closedBy(): NonNullable<DialogAttributes["closedby"]> {
+    if (this.host.hasAttribute(CLOSEDBY)) return untrack(() => this.closedby) ?? ANY
     // NOTE: an absent boolean also converts to `false`, so `closable` must be present to mean "closable: false"
-    const isOff = this.host.hasAttribute(CLOSABLE) && !untrack(() => this.dialogAttrs.closable)
+    const isOff = this.host.hasAttribute(CLOSABLE) && !untrack(() => this.closable)
     return isOff ? UIT.NONE : ANY
-  }
-
-  ////////////////
-  // ## Handlers
-  ////////////////
-
-  /** An invoker command aimed at the host (`ToggleCommands`). */
-  private readonly onCommand = (event: Event) => {
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isOpen())
-    )
-    if (action === "show") this.requestOpen(event)
-    else if (action === "close") this.requestClose("close", event)
-  }
-
-  /** Close icon. */
-  private readonly onCloseIcon = (event: MouseEvent) => {
-    event.stopPropagation()
-    this.requestClose("close", event)
   }
 
   /** Remember whether a press started on the `::backdrop` (the dialog itself, outside its box). */
   private readonly onPointerDown = (event: PointerEvent) => {
     const dialog = this.dialog
-    if (!dialog || event.target !== dialog) return void (this.isBackdropPress = false)
+    if (!dialog || event.target !== dialog) return void (this.pressStartedOnBackdrop = false)
     const box = dialog.getBoundingClientRect()
     const { clientX: x, clientY: y } = event
-    this.isBackdropPress = x < box.left || x > box.right || y < box.top || y > box.bottom
+    this.pressStartedOnBackdrop = x < box.left || x > box.right || y < box.top || y > box.bottom
   }
 
   /**
@@ -371,10 +232,10 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
    */
   private readonly onCancel = (event: Event) => {
     event.preventDefault()
-    const reason = this.isBackdropPress ? "outside" : "escape"
-    this.isBackdropPress = false
+    const reason = this.pressStartedOnBackdrop ? "outside" : "escape"
+    this.pressStartedOnBackdrop = false
     if (this.isDismissing) return
-    const closedBy = this.closedBy()
+    const closedBy = this.closedBy
     if (closedBy === UIT.NONE || (reason === "outside" && closedBy !== ANY)) return
     this.requestClose(reason, event)
   }
@@ -385,10 +246,31 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
    *   open again -- ignored.
    */
   private readonly onClose = (event: Event) => {
-    if (this.dialog?.open || !this.host.isConnected || !untrack(() => this.isOpen())) return
+    if (this.dialog?.open || !this.host.isConnected || !untrack(() => this.isOpen)) return
     const detail: UIT.ModalCloseDetail = { open: false, reason: "escape", originalEvent: event }
     this.fire("ui-close", detail)
-    this.openState.set(false as OpenValue<V>)
+    this.isOpen = false
+  }
+
+  ////////////////
+  // ## Buttons
+  ////////////////
+
+  /** Glyph of the close icon. */
+  readonly closeGlyph = new E.IconGlyph({
+    owner: this,
+    name: () => (this.closable ? UIT.CLOSE_ICON : undefined)
+  })
+
+  /** Label of the close icon (`translationForKey("close")`);  not a cast in the JSX, for the reason `dialogPart()` is. */
+  private get closeText(): string {
+    return this.translationForKey(UIT.CLOSE as E.TextKey<V>)
+  }
+
+  /** Close icon. */
+  private readonly onCloseIcon = (event: MouseEvent) => {
+    event.stopPropagation()
+    this.requestClose("close", event)
   }
 
   /** A click inside:  an approve / deny element asks, then closes. */
@@ -402,8 +284,26 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
   }
 
   ////////////////
-  // ## Reading the light DOM
+  // ## The name
   ////////////////
+
+  /** Host `aria-label`, forwarded to the dialog. */
+  get ariaLabel(): string | undefined {
+    return this.attributes[UIT.ARIA_LABEL] ?? undefined
+  }
+
+  /**
+   * First slotted `<ui-header>` (any tag whose noun is `header`), which names the dialog.
+   * - Read on the server too, NO `isServer` guard:  the static render (`$/ui/static`, linkedom hosts) names the
+   *   dialog by it (`serverLabelledBy()`).
+   */
+  @E.state accessor heading: Element | undefined = this.findHeading()
+
+  /** Id of the `header` shorthand, from `UI.ids` once rendering. */
+  private headerId = ""
+
+  /** The light DOM's slotted children changed:  look for the heading again. */
+  private readonly onSlotChange = () => (this.heading = this.findHeading())
 
   /** First child element whose definition's noun is `header` (a `<ui-header>`, or a translated one). */
   private findHeading(): Element | undefined {
@@ -411,6 +311,92 @@ export abstract class DialogElement<V extends E.ComponentVocabulary = E.Componen
       if (E.UIElement.definitions.get(child.localName)?.vocabulary.noun === UIT.HEADER) return child
     }
     return undefined
+  }
+
+  /** The dialog's name:  its `aria-label`, else `aria-labelledby` the `header` shorthand, else the slotted heading. */
+  @E.onChange("isReady", "ariaLabel", "header", "heading")
+  protected onNameChanged(
+    _isReady: boolean,
+    label: string | undefined,
+    header: string | undefined,
+    heading: Element | undefined
+  ) {
+    const dialog = this.dialog
+    if (!dialog) return
+    const hasHeader = !!header
+    const reflected = dialog as unknown as { ariaLabelledByElements: Element[] | null }
+    if (label) dialog.setAttribute(UIT.ARIA_LABEL, label)
+    else dialog.removeAttribute(UIT.ARIA_LABEL)
+    // NOTE: setting the reflected list (even to `null`, the platform's "none") rewrites the attribute, so it
+    // goes first
+    reflected.ariaLabelledByElements = !label && !hasHeader && heading ? [heading] : null
+    if (!label && hasHeader) dialog.setAttribute(ARIA_LABELLEDBY, this.headerId)
+  }
+
+  /**
+   * The dialog's `aria-labelledby` in a server render (`$/ui/static`), where no effect applies and no element
+   * reflects:  the `header` shorthand's id, else the slotted heading's, unless the host has an `aria-label` (which
+   * the static output moves onto the dialog).
+   * - SIDE EFFECT:  gives the slotted heading (the render's parsed copy) an id if it has none.
+   */
+  private serverLabelledBy(): string | undefined {
+    if (this.ariaLabel) return undefined
+    if (this.header) return this.headerId
+    const heading = this.heading
+    return heading ? UI.ids.ensure(heading, `ui-${this.elementDefinition.vocabulary.noun}-heading`) : undefined
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
+  render(): JSX.Element {
+    this.headerId = UI.ids.next(`ui-${this.elementDefinition.vocabulary.noun}`)
+    return (
+      <dialog
+        ref={(element) => (this.dialog = element)}
+        class={this.rootClasses}
+        part={this.dialogPart(this.rootPart)}
+        aria-labelledby={isServer ? this.serverLabelledBy() : undefined}
+        onCancel={this.onCancel}
+        onClose={this.onClose}
+        onPointerDown={this.onPointerDown}
+        onClick={this.onDialogClick}
+      >
+        <Show when={this.header}>
+          <div id={this.headerId} class={UIT.HEADER} part={this.dialogPart(UIT.HEADER)}>
+            {this.header}
+          </div>
+        </Show>
+        <Show when={this.content}>
+          <div class={UIT.CONTENT} part={this.dialogPart(UIT.CONTENT)}>
+            {this.content}
+          </div>
+        </Show>
+        <slot />
+        <Show when={this.closable}>
+          <button
+            type="button"
+            class={UIT.CLOSE_CLASS}
+            part={this.dialogPart(UIT.CLOSE)}
+            aria-label={this.closeText}
+            onClick={this.onCloseIcon}
+          >
+            {this.closeGlyph.svg}
+          </button>
+        </Show>
+      </dialog>
+    )
+  }
+
+  /**
+   * `part` value of one of the parts every dialog vocabulary names (see the class docs).
+   * - A method, not a cast in the JSX:  Solid's SSR compile (`hoistProps`) hoists a `<Show>`'s children into a
+   *   module-level constructor and passes it every free identifier they use -- the type parameter `V` of a
+   *   `PartName<V>` cast too, as a VALUE ("V is not defined").
+   */
+  private dialogPart(name: string): string {
+    return this.partForName(name as E.PartName<V>)
   }
 }
 

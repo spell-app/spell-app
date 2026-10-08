@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-breadcrumb-BLE2HYBX.js";export{e as UIBreadcrumb,t as UIBreadcrumbSection};

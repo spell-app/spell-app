@@ -1,4 +1,4 @@
-import { Repeat, Show, createEffect, untrack } from "solid-js"
+import { Repeat, Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 import { onFormStateRestore } from "@spell-app/solid-element"
 
@@ -19,7 +19,7 @@ import ratingCSS from "./ui-rating.css?inline"
  * - Why native radios in one shadow root:  they ARE a radio group -- one Tab stop (the chosen one, else the first),
  *   arrows move and choose (wrapping, as APG), Space chooses -- and each carries its own name ("3 of 5").  Home /
  *   End choose the first / last;  Backspace / Delete clear when `clearable`.
- * - `value` is auto-controlled (`Controlled`):  a choice dispatches `ui-change` first;  a handler that re-sets
+ * - `value` is auto-controlled (`@controlled`):  a choice dispatches `ui-change` first;  a handler that re-sets
  *   `el.value` wins and the radios show the host's value again.  The ATTRIBUTE is the starting (and reset) value.
  * - Fractions (`value="3.5"`) fill part of the next icon (Fomantic's `partial`, `--full`) -- display:  no radio is
  *   chosen, and the group's `aria-description` says "Rated 3.5 of 5".  A person's choice is always whole.
@@ -32,24 +32,182 @@ import ratingCSS from "./ui-rating.css?inline"
  ****************/
 export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   @E.proto static vocabulary = ratingVocabulary
-  @E.proto static styles = { rating: ratingCSS }
-  @E.proto static Fallback = RatingFallback
-  @E.proto static Host = RatingHost
+  @E.proto static styleSheets = { rating: ratingCSS }
+  @E.proto static elementSetup = { Fallback: RatingFallback, Host: RatingHost }
+
+  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
+    super(...args)
+    this.host.addEventListener("invalid", this.onInvalid)
+    this.host.addEventListener("click", this.onHostClick)
+    onFormStateRestore((state) => {
+      this.value = Number(state) || 0
+    })
+  }
+
+  ////////////////
+  // ## The rating
+  ////////////////
 
   /** `value`:  the host's property, else `0`. */
-  readonly valueState = this.controlled("value", 0)
+  @E.controlled("value") accessor value: number | undefined = 0
+
+  /** How many icons. */
+  get iconCount(): number {
+    return Math.max(1, Math.floor(this.maxRating ?? DEFAULT_MAX))
+  }
+
+  /** The rating shown, `value` clamped to `0 ... iconCount`. */
+  get rating(): number {
+    return Math.min(this.iconCount, Math.max(0, Number(this.value) || 0))
+  }
+
+  /** Is `point` the partly filled one? */
+  isPartlyFilled(point: number): boolean {
+    const rating = this.rating
+    return rating % 1 !== 0 && point === Math.ceil(rating)
+  }
+
+  /** "Rated 3.5 of 5" for a fractional rating, which no radio can show. */
+  @E.derived
+  private get fractionDescription(): string | undefined {
+    const rating = this.rating
+    if (rating % 1 === 0) return undefined
+    return this.translationForKey("ratingValue", { value: UI.i18n.formatNumber(rating), max: this.iconCount })
+  }
+
+  /** The radios show the rating:  on a change, and once rendered. */
+  @E.onChange("rating", "iconCount", "isReady")
+  protected onRatingChanged() {
+    this.syncRadios()
+  }
+
+  /** Check exactly the radio of the current rating (none for 0 or a fraction). */
+  private syncRadios() {
+    const rating = untrack(() => this.rating)
+    for (const radio of this.radios()) radio.checked = Number(radio.value) === rating
+  }
+
+  /**
+   * A person's choice of `value`:  `ui-change`, then the host property, unless a handler re-set it.
+   * - Returns true when applied.
+   */
+  choose(value: number, originalEvent?: Event): boolean {
+    this.isTouched = true
+    const applied = this.requestChange("value", value, () => this.send("ui-change", { value, originalEvent }))
+    if (!applied) queueMicrotask(() => this.syncRadios())
+    return applied
+  }
+
+  ////////////////
+  // ## Interaction
+  ////////////////
 
   /** Point under the pointer, `0` for none. */
-  readonly hovered = new E.Cell(0)
+  @E.state accessor hoveredPoint = 0
 
-  /** A person has interacted:  only then does it show as invalid. */
-  readonly isTouched = new E.Cell(false)
+  /** Can a person change it? */
+  get isInteractive(): boolean {
+    return !this.isDisabled && !this.readonly
+  }
+
+  /** Does choosing the current rating clear it?  `clearable`, or a single icon. */
+  get isClearable(): boolean {
+    return this.clearable || this.iconCount === 1
+  }
+
+  /** `selected` while the pointer previews a choice. */
+  protected get extraClasses(): string | undefined {
+    return this.hoveredPoint ? UIT.SELECTED : undefined
+  }
+
+  /** Preview choice `point` while pointing at it. */
+  private hover(point: number) {
+    if (untrack(() => this.isInteractive)) this.hoveredPoint = point
+  }
+
+  /** The pointer left the group:  no preview. */
+  private readonly onPointerLeave = () => {
+    this.hoveredPoint = 0
+  }
+
+  ////////////////
+  // ## Disabled
+  ////////////////
+
+  /** Disabled by its attribute, or by a disabled fieldset. */
+  @E.cssState("disabled")
+  get isDisabled(): boolean {
+    return this.disabled || this.formIsDisabled
+  }
+
+  protected classValue(name: E.AttributeName<typeof ratingVocabulary>): unknown {
+    if (name === "disabled") return this.isDisabled
+    return super.classValue(name)
+  }
+
+  ////////////////
+  // ## Name
+  ////////////////
 
   /** Host `<label>`s and `aria-label`, as the group's name. */
   readonly labels = new F.ControlLabels(this.formHost)
 
+  /** Connected:  read the labels again (they may have changed while it was away). */
+  @E.onChange("isConnected")
+  protected onConnectedChanged(isConnected: boolean) {
+    if (isConnected) this.labels.refresh()
+  }
+
+  ////////////////
+  // ## Form
+  ////////////////
+
+  /** A person has interacted:  only then does it show as invalid. */
+  @E.state accessor isTouched = false
+
+  /** The rating while above `0`;  `null` (`setFormValue()`'s "no value") at `0`. */
+  get formValue(): E.FieldValue {
+    const rating = this.rating
+    return rating > 0 ? String(rating) : null
+  }
+
+  protected get formName(): string | undefined {
+    return this.name
+  }
+
+  /** Back to the `value` ATTRIBUTE;  forgets the interaction. */
+  onFormReset() {
+    this.value = E.Converters.number(this.attributes.value)
+    this.isTouched = false
+  }
+
+  protected get validationRules(): E.ValidationRule[] {
+    return this.required ? [UIT.REQUIRED_RULE] : []
+  }
+
+  protected get validationLabel(): string | undefined {
+    return this.labels.accessibleName ?? this.name
+  }
+
+  protected get validationAnchor(): HTMLElement | undefined {
+    return this.radios()[0]
+  }
+
+  protected shouldShowInvalid(result: E.ValidationResult): boolean {
+    return !result.valid && this.isTouched
+  }
+
+  /** A submit or `reportValidity()` found it invalid:  show it. */
+  private readonly onInvalid = () => {
+    this.isTouched = true
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
   /** The icon, by name. */
-  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.icon })
+  readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
 
   /** The radio group. */
   private group?: HTMLFieldSetElement
@@ -57,203 +215,88 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   /** Name tying the radios into one native group. */
   private groupName = ""
 
-  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
-    super(...args)
-    this.host.addEventListener("invalid", this.onInvalid)
-    this.host.addEventListener("click", this.onHostClick)
-    onFormStateRestore((state) => this.valueState.set(Number(state) || 0))
-  }
-
-  ////////////////
-  // ## State
-  ////////////////
-
-  /** How many icons;  tracked. */
-  max(): number {
-    return Math.max(1, Math.floor(this.attrs.maxRating ?? DEFAULT_MAX))
-  }
-
-  /** Current rating, `0 ... max()`;  tracked. */
-  value(): number {
-    return Math.min(this.max(), Math.max(0, Number(this.valueState.get()) || 0))
-  }
-
-  isDisabled(): boolean {
-    return this.attrs.disabled || this.isFormDisabled.get()
-  }
-
-  /** Can a person change it?  Tracked. */
-  isInteractive(): boolean {
-    return !this.isDisabled() && !this.attrs.readonly
-  }
-
-  /** Does choosing the current rating clear it?  Tracked. */
-  isClearable(): boolean {
-    return this.attrs.clearable || this.max() === 1
-  }
-
-  /** Is `point` the partly filled one?  Tracked. */
-  isPartial(point: number): boolean {
-    const value = this.value()
-    return value % 1 !== 0 && point === Math.ceil(value)
-  }
-
-  protected classValue(name: E.AttributeName<typeof ratingVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled()
-    return super.classValue(name)
-  }
-
-  /** `selected` while the pointer previews a choice. */
-  protected extraClasses(): string | undefined {
-    return this.hovered.get() ? UIT.SELECTED : undefined
-  }
-
-  protected hostStates() {
-    return { disabled: this.isDisabled() }
-  }
-
-  ////////////////
-  // ## Form
-  ////////////////
-
-  /** The rating while above `0`;  `null` (`setFormValue()`'s "no value") at `0`. */
-  formValue(): E.FieldValue {
-    const value = this.value()
-    return value > 0 ? String(value) : null
-  }
-
-  protected formName(): string | undefined {
-    return this.attrs.name
-  }
-
-  /** Back to the `value` ATTRIBUTE;  forgets the interaction. */
-  formReset() {
-    const attribute = this.definition.attribute("value").attribute
-    this.valueState.set(E.Converters.number(this.host.getAttribute(attribute)) as never)
-    this.isTouched.set(false)
-  }
-
-  protected rules(): E.ValidationRule[] {
-    return this.attrs.required ? [UIT.REQUIRED_RULE] : []
-  }
-
-  protected validationLabel(): string | undefined {
-    return this.labels.name() ?? this.attrs.name
-  }
-
-  protected validationAnchor(): HTMLElement | undefined {
-    return this.radios()[0]
-  }
-
-  protected showsInvalid(result: E.ValidationResult): boolean {
-    return !result.valid && this.isTouched.get()
-  }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  /** Adds the radio sync (host value => radios) and label refresh on connect. */
-  mount(): JSX.Element {
-    createEffect(
-      () => [this.value(), this.max(), this.isLoaded()] as const,
-      () => this.syncRadios()
-    )
-    createEffect(
-      () => this.isConnected.get(),
-      (connected) => {
-        if (connected) this.labels.refresh()
-      }
-    )
-    return super.mount()
-  }
-
   render(): JSX.Element {
     this.groupName = UI.ids.next(ID_PREFIX)
     return (
       <fieldset
         ref={(element) => (this.group = element)}
-        class={this.classes()}
-        part={this.part("rating")}
+        class={this.rootClasses}
+        part={this.partForName("rating")}
         role={RADIOGROUP}
-        disabled={this.isDisabled()}
-        aria-label={this.labels.name()}
-        aria-readonly={this.attrs.readonly ? UIT.TRUE : undefined}
-        aria-required={this.attrs.required ? UIT.TRUE : undefined}
-        aria-invalid={this.isTouched.get() && !this.validation().valid ? UIT.TRUE : undefined}
-        aria-description={this.description()}
-        onPointerLeave={this.onLeave}
+        disabled={this.isDisabled}
+        aria-label={this.labels.accessibleName}
+        aria-readonly={this.readonly ? UIT.TRUE : undefined}
+        aria-required={this.required ? UIT.TRUE : undefined}
+        aria-invalid={this.isTouched && !this.validation.valid ? UIT.TRUE : undefined}
+        aria-description={this.fractionDescription}
+        onPointerLeave={this.onPointerLeave}
         onKeyDown={this.onKeyDown}
       >
-        <Repeat count={this.max()}>{(index) => this.icon(index + 1)}</Repeat>
+        <Repeat count={this.iconCount}>{(index) => this.pointIcon(index + 1)}</Repeat>
       </fieldset>
     )
   }
 
-  /** One point:  its label, radio and glyph (twice when partly filled:  the fill is clipped over the base). */
-  private icon(point: number): JSX.Element {
+  /**
+   * One point:  its label, radio and glyph (twice when partly filled:  the fill is clipped over the base).
+   * - Not `icon()`:  `icon` is the attribute's.
+   */
+  private pointIcon(point: number): JSX.Element {
     return (
       <label
         class={this.iconClass(point)}
-        part={this.part("icon")}
-        style={this.isPartial(point) ? { [FULL]: `${Math.round((this.value() % 1) * 100)}%` } : undefined}
+        part={this.partForName("icon")}
+        style={this.isPartlyFilled(point) ? { [FULL]: `${Math.round((this.rating % 1) * 100)}%` } : undefined}
         onPointerEnter={() => this.hover(point)}
       >
         <input
           type={RADIO}
-          part={this.part("control")}
+          part={this.partForName("control")}
           name={this.groupName}
           value={String(point)}
-          aria-label={this.text("ratingItem", { value: point, max: this.max() })}
+          aria-label={this.translationForKey("ratingItem", { value: point, max: this.iconCount })}
           {...this.staticRadio(point)}
           onClick={this.onClick}
           onChange={this.onChange}
         />
         {this.svg()}
-        <Show when={this.isPartial(point)}>{this.svg(FILL)}</Show>
+        <Show when={this.isPartlyFilled(point)}>{this.svg(FILL)}</Show>
       </label>
     )
   }
 
   /** `[active] [partial] [selected] icon` for `point`. */
   private iconClass(point: number): string {
-    const value = this.value()
+    const rating = this.rating
     const words = []
-    if (point <= Math.ceil(value)) words.push(UIT.ACTIVE)
-    if (this.isPartial(point)) words.push(PARTIAL)
-    if (point <= this.hovered.get()) words.push(UIT.SELECTED)
+    if (point <= Math.ceil(rating)) words.push(UIT.ACTIVE)
+    if (this.isPartlyFilled(point)) words.push(PARTIAL)
+    if (point <= this.hoveredPoint) words.push(UIT.SELECTED)
     words.push(UIT.ICON)
     return words.join(" ")
   }
 
   /**
    * Server render only (`$/ui/static`):  the radio of `point` named for the form (the host's `name`) and
-   * `checked` when it is the value, so a static form submits the rating;  `{}` in a browser, where the HOST submits
+   * `checked` when it is the rating, so a static form submits it;  `{}` in a browser, where the HOST submits
    * (`ElementInternals`) and the radios share a generated name.
    */
   private staticRadio(point: number): Record<string, unknown> {
     if (!isServer) return {}
-    return { name: this.attrs.name ?? this.groupName, checked: this.value() === point }
+    return { name: this.name ?? this.groupName, checked: this.rating === point }
   }
 
   /**
    * A fresh glyph `<svg>` (with class `extra`), or nothing until the icon has loaded;  tracked.
-   * - Server render:  the glyph as markup (`IconGlyph.svg()`), which takes no class:  no partial `fill` copy.
+   * - Server render:  the glyph as markup (`IconGlyph.svg`), which takes no class:  no partial `fill` copy.
    */
   private svg(extra?: string): SVGSVGElement | undefined {
-    if (isServer) return extra ? undefined : this.glyph.svg()
-    const template = this.glyph.data.get()
+    if (isServer) return extra ? undefined : this.iconGlyph.svg
+    const template = this.iconGlyph.svgTemplate
     if (!template) return undefined
     const svg = E.IconGlyph.draw(template)
     if (extra) svg.classList.add(extra)
     return svg
-  }
-
-  /** "Rated 3.5 of 5" for a fractional rating, which no radio can show. */
-  private description(): string | undefined {
-    const value = this.value()
-    if (value % 1 === 0) return undefined
-    return this.text("ratingValue", { value: UI.i18n.formatNumber(value), max: this.max() })
   }
 
   /** The radios, in order. */
@@ -261,45 +304,18 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
     return [...(this.group?.querySelectorAll<HTMLInputElement>(RADIO_SELECTOR) ?? [])]
   }
 
-  /** Check exactly the radio of the current value (none for 0 or a fraction). */
-  private syncRadios() {
-    const value = untrack(() => this.value())
-    for (const radio of this.radios()) radio.checked = Number(radio.value) === value
-  }
-
   ////////////////
   // ## Handlers
   ////////////////
 
-  /**
-   * A person's choice of `value`:  `ui-change`, then the host property, unless a handler re-set it.
-   * - Returns true when applied.
-   */
-  choose(value: number, originalEvent?: Event): boolean {
-    this.isTouched.set(true)
-    const applied = this.valueState.request(value as never, () => this.emit("ui-change", { value, originalEvent }))
-    if (!applied) queueMicrotask(() => this.syncRadios())
-    return applied
-  }
-
-  /** Preview choice `point` while pointing at it. */
-  private hover(point: number) {
-    if (untrack(() => this.isInteractive())) this.hovered.set(point)
-  }
-
-  /** The pointer left the group:  no preview. */
-  private readonly onLeave = () => {
-    this.hovered.set(0)
-  }
-
   /** `readonly`:  cancel the click (the radio reverts);  the current rating clicked again clears a clearable one. */
   private readonly onClick = (event: MouseEvent) => {
-    if (untrack(() => this.attrs.readonly)) {
+    if (untrack(() => this.readonly)) {
       event.preventDefault()
       return
     }
     const point = Number((event.currentTarget as HTMLInputElement).value)
-    if (point === untrack(() => this.value()) && untrack(() => this.isClearable())) this.choose(0, event)
+    if (point === untrack(() => this.rating) && untrack(() => this.isClearable)) this.choose(0, event)
   }
 
   /** A radio was chosen (click, arrows, Space). */
@@ -310,11 +326,11 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
   /** `readonly` blocks the native keys;  Home / End jump;  Backspace / Delete clear a clearable rating. */
   private readonly onKeyDown = (event: KeyboardEvent) => {
     const { key } = event
-    if (untrack(() => this.attrs.readonly)) {
+    if (untrack(() => this.readonly)) {
       if (CHOICE_KEYS.has(key)) event.preventDefault()
       return
     }
-    if (!untrack(() => this.isInteractive())) return
+    if (!untrack(() => this.isInteractive)) return
     if (key === UIT.Key.home || key === UIT.Key.end) {
       event.preventDefault()
       const radios = this.radios()
@@ -333,7 +349,7 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
       if (target && !target.checked) this.choose(Number(target.value), event)
       return
     }
-    if (CLEAR_KEYS.has(key) && untrack(() => this.isClearable())) {
+    if (CLEAR_KEYS.has(key) && untrack(() => this.isClearable)) {
       event.preventDefault()
       this.choose(0, event)
     }
@@ -356,14 +372,9 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
     return 0
   }
 
-  /** A submit or `reportValidity()` found it invalid:  show it. */
-  private readonly onInvalid = () => {
-    this.isTouched.set(true)
-  }
-
   /** A click aimed at the HOST itself (its `<label for>`) focuses the group's tab stop. */
   private readonly onHostClick = (event: MouseEvent) => {
-    if (event.composedPath()[0] !== this.host || this.isDisabled()) return
+    if (event.composedPath()[0] !== this.host || this.isDisabled) return
     this.focus()
   }
 
@@ -379,6 +390,9 @@ export class UIRating extends F.FormElement<typeof ratingVocabulary> {
     return true
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIRating extends E.AttributeValues<typeof ratingVocabulary> {}
 
 /** Class word of a partly filled icon. */
 const PARTIAL = "partial"

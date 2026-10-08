@@ -14,13 +14,13 @@ import checkboxCSS from "./ui-checkbox.css?inline"
  * Controller base of `<ui-checkbox>` and `<ui-radio>`:  Fomantic's markup -- a native `<input>` (invisible, over the
  * box) and a `<label for>` that draws the box and holds the text -- with the chosen state, value and validity on
  * the HOST.
- * - `selected` is auto-controlled:  the input's `change` dispatches `ui-change` first;  a handler that re-sets
- *   `el.selected` wins (the input shows the host's state again).  `checked` is its alias:  the host property
+ * - `selected` is auto-controlled (`isSelected`):  the input's `change` dispatches `ui-change` first;  a handler that
+ *   re-sets `el.selected` wins (the input shows the host's state again).  `checked` is its alias:  the host property
  *   (`CheckHost`) and the `checked` ATTRIBUTE, which selects it like markup selects a native checkbox.
- * - Form value:  `chosenValue()` while chosen -- `value`, else the class's `onValue` (`on`) -- and `unchosenValue()`
- *   otherwise (`<ui-checkbox>`'s `off-value`;  none:  nothing);  reset restores the starting state.
- *   - A subclass changes both for every element it defines:  `@E.proto static onValue = "open"` (`offValue` on
- *     `UICheckbox`).
+ * - Form value:  `chosenValue` while chosen -- `value`, else the class's `defaultChosenValue` (`on`) -- and
+ *   `unchosenValue` otherwise (`<ui-checkbox>`'s `off-value`;  none:  nothing);  reset restores the starting state.
+ *   - A subclass changes both for every element it defines:  `@E.proto static defaultChosenValue = "open"`
+ *     (`defaultUnchosenValue` on `UICheckbox`).
  *   - `required` reads the chosen state only:  an off-value never counts as chosen.
  * - Role comes from the input (checkbox / radio;  `switch` for toggles and sliders), its name from the slotted
  *   label -- else from the host's `<label for>` / `aria-label` (`ControlLabels`), for a `fitted` box.
@@ -36,20 +36,130 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
    * Submitted while chosen, when the element has no `value`.
    * - `@proto`:  a subclass sets its own for every element it defines.
    */
-  declare readonly onValue: string
+  declare readonly defaultChosenValue: string
 
-  @E.proto static Host = CheckHost
-  @E.proto static styles = { checkbox: checkboxCSS }
-  @E.proto static Fallback = CheckboxFallback
+  @E.proto static elementSetup: Partial<E.ElementSetup> = { Fallback: CheckboxFallback, Host: CheckHost }
+  @E.proto static styleSheets = { checkbox: checkboxCSS }
 
   /** Default:  `on`, as a native checkbox. */
-  @E.proto static onValue = UIT.CHECKBOX_DEFAULT_VALUE
+  @E.proto static defaultChosenValue = UIT.CHECKBOX_DEFAULT_VALUE
 
   /** How a form reads it. */
   abstract readonly checkable: "checkbox" | "radio"
 
-  /** `selected`:  the host's property (a boolean is always controlled, see `Controlled`). */
-  readonly selectedState = this.controlled("selected" as E.AttributeName<V>, false as never)
+  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
+    super(...args)
+    this.host.addEventListener(CLICK, this.onHostClick)
+    this.host.addEventListener(INVALID, this.onInvalid)
+    // `checked` in markup selects, a microtask later:  outside the component body, where the host write may notify
+    if (this.wasInitiallySelected && !untrack(() => this.selectedProperty)) {
+      queueMicrotask(() => (this.isSelected = true))
+    }
+  }
+
+  ////////////////
+  // ## Chosen
+  ////////////////
+
+  /**
+   * Chosen now?  Tracked;  a write chooses / unchooses it without an event.
+   * - The host's `selected` (`selectedProperty`).  Server render:  `checked` in markup counts at once (a browser
+   *   applies it a microtask late, and a server host has no property to write).
+   */
+  @E.cssState("selected")
+  get isSelected(): boolean {
+    return this.selectedProperty || (isServer && this.wasInitiallySelected)
+  }
+
+  set isSelected(selected: boolean) {
+    this.selectedProperty = selected
+  }
+
+  /** The host's `selected` property (a boolean is always the host's);  a write goes to it. */
+  @E.controlled("selected") private accessor selectedProperty = false
+
+  /** Chosen at first, for form reset:  `selected` or `checked` in markup. */
+  private readonly wasInitiallySelected = untrack(() => this.selectedProperty || this.attributes[CHECKED] !== null)
+
+  /** Neither on nor off?  Checkbox only;  tracked. */
+  protected get isIndeterminate(): boolean {
+    return false
+  }
+
+  /** The input shows the chosen state (once rendered). */
+  @E.onChange("isSelected", "isReady", "isIndeterminate")
+  protected onSelectedChanged(isSelected: boolean, _isReady: boolean, isIndeterminate: boolean) {
+    if (!this.control) return
+    this.control.checked = isSelected
+    this.control.indeterminate = isIndeterminate
+  }
+
+  /**
+   * A transition to `selected` someone made (a click, a key):  `ui-change`, then the host property, unless a handler
+   * re-set it.
+   * - `detail.value`:  what it stands for after the change -- `chosenValue`, or once unchosen, `unchosenValue` when
+   *   there is one.
+   * - Returns true when applied.
+   */
+  choose(selected: boolean, originalEvent?: Event): boolean {
+    this.isTouched = true
+    const value = (selected ? undefined : this.unchosenValue) ?? this.chosenValue
+    // `E.Reactive`'s own:  `requestChange()` names public members only, and `selectedProperty` is private
+    const applied = E.Reactive.requestChange(this, "selectedProperty", selected, () =>
+      this.send("ui-change" as never, { selected, value, originalEvent })
+    )
+    if (!applied) queueMicrotask(() => this.control && (this.control.checked = untrack(() => this.isSelected)))
+    this.onChosen(applied)
+    return applied
+  }
+
+  /** After a transition someone made;  checkbox clears `indeterminate`. */
+  protected onChosen(_applied: boolean) {}
+
+  /** Adds the `checked` attribute alias:  a LATER edit of it selects (the first is `wasInitiallySelected`'s). */
+  onMount() {
+    createEffect(
+      () => this.attributes[CHECKED],
+      (checked) => {
+        this.isSelected = checked !== null
+      },
+      { defer: true }
+    )
+    return super.onMount()
+  }
+
+  ////////////////
+  // ## Values
+  ////////////////
+
+  /** Submitted while chosen:  `value`, else the class's `defaultChosenValue`;  tracked. */
+  get chosenValue(): string {
+    return this.value ?? this.defaultChosenValue
+  }
+
+  /** Submitted while unchosen;  none ~== nothing (a radio:  always none, its group submits).  Tracked. */
+  get unchosenValue(): string | undefined {
+    return undefined
+  }
+
+  ////////////////
+  // ## Disabled
+  ////////////////
+
+  /** Can't be used now:  `disabled`, or a disabled fieldset / form;  tracked. */
+  @E.cssState("disabled")
+  get isDisabled(): boolean {
+    return this.disabled || this.formIsDisabled
+  }
+
+  protected classValue(name: E.AttributeName<V>): unknown {
+    if (name === "disabled") return this.isDisabled
+    return super.classValue(name)
+  }
+
+  ////////////////
+  // ## Label
+  ////////////////
 
   /** Light-DOM slot occupancy:  label text. */
   readonly slots = new E.SlotContent(this.host)
@@ -57,14 +167,63 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   /** Host `<label>`s and `aria-label`, as the input's name when there's no text. */
   readonly labels = new F.ControlLabels(this.formHost)
 
+  /** Has label text (slot or shorthand)? */
+  protected get hasLabelText(): boolean {
+    return this.slots.hasContent("") || !!this.label
+  }
+
+  /** Connected:  read the host's `<label>`s again. */
+  @E.onChange("isConnected")
+  protected onConnectedChanged(isConnected: boolean) {
+    if (isConnected) this.labels.refresh()
+  }
+
+  ////////////////
+  // ## Form
+  ////////////////
+
+  /** `chosenValue` while chosen, else `unchosenValue`. */
+  get formValue(): E.FieldValue {
+    return this.isSelected ? this.chosenValue : this.unchosenValue
+  }
+
+  /** The chosen state only:  an off-value never satisfies `required`. */
+  protected get validationValue(): E.FieldValue {
+    return this.isSelected ? this.chosenValue : undefined
+  }
+
+  protected get formName(): string | undefined {
+    return this.name
+  }
+
+  onFormReset() {
+    this.isSelected = this.wasInitiallySelected
+    this.isTouched = false
+  }
+
+  protected get validationLabel(): string | undefined {
+    return this.label ?? (this.host.textContent?.trim() || undefined) ?? this.labels.accessibleName ?? this.name
+  }
+
+  protected get validationAnchor(): HTMLElement | undefined {
+    return this.control
+  }
+
   /** Someone has interacted with it:  only then does it show `:state(invalid)`. */
-  readonly isTouched = new E.Cell(false)
+  @E.state accessor isTouched = false
 
-  /** Host `checked` attribute, the alias. */
-  readonly checkedAttribute = new E.HostAttribute({ host: this.host, name: CHECKED })
+  protected shouldShowInvalid(result: E.ValidationResult): boolean {
+    return !result.valid && this.isTouched
+  }
 
-  /** Chosen at first, for form reset:  `selected` or `checked` in markup. */
-  private readonly initial: boolean = untrack(() => !!this.common.selected) || this.host.hasAttribute(CHECKED)
+  /** A submit or `reportValidity()` found it invalid:  show it. */
+  private readonly onInvalid = () => {
+    this.isTouched = true
+  }
+
+  ////////////////
+  // ## The input
+  ////////////////
 
   /** The native input. */
   protected control?: HTMLInputElement
@@ -72,144 +231,17 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
   /** Id tying the `<label>` to the input. */
   protected inputId = ""
 
-  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
-    super(...args)
-    this.host.addEventListener(CLICK, this.onHostClick)
-    this.host.addEventListener(INVALID, this.onInvalid)
-    if (this.initial && !untrack(() => this.common.selected)) queueMicrotask(() => this.setSelected(true))
-  }
-
-  ////////////////
-  // ## State
-  ////////////////
-
-  /** The attributes both vocabularies declare, typed once for this base. */
-  protected get common(): CommonAttributes {
-    return this.attrs as unknown as CommonAttributes
-  }
-
-  /**
-   * Chosen now?  Tracked.
-   * - Server render:  `checked` in markup counts at once (a browser applies it a microtask late).
-   */
-  isSelected(): boolean {
-    return !!this.selectedState.get() || (isServer && this.initial)
-  }
-
-  /** Can't be used now:  `disabled`, or a disabled fieldset / form;  tracked. */
-  isDisabled(): boolean {
-    return this.common.disabled || this.isFormDisabled.get()
-  }
-
-  /** Submitted while chosen:  `value`, else the class's `onValue`;  tracked. */
-  chosenValue(): string {
-    return this.common.value ?? this.onValue
-  }
-
-  /** Submitted while unchosen;  none ~== nothing (a radio:  always none, its group submits).  Tracked. */
-  unchosenValue(): string | undefined {
-    return undefined
-  }
-
-  /** Has label text (slot or shorthand)? */
-  protected hasText(): boolean {
-    return this.slots.has("") || !!this.common.label
-  }
-
   /** Input `type`. */
-  protected abstract inputType(): "checkbox" | "radio"
+  protected abstract get inputType(): "checkbox" | "radio"
 
-  /** Tab stop:  `0`, or `-1` for a radio that isn't its group's tab stop. */
-  protected tabIndex(): number {
+  /** The input's tab stop:  `0`, or `-1` for a radio that isn't its group's tab stop. */
+  protected get inputTabIndex(): number {
     return 0
   }
 
   /** `role` override for the input (`switch`);  default the input's own. */
-  protected role(): string | undefined {
+  protected get inputRole(): string | undefined {
     return undefined
-  }
-
-  /** Write the host's `selected` property (no event), e.g. unchoosing a radio's siblings. */
-  setSelected(selected: boolean) {
-    this.selectedState.set(selected as never)
-  }
-
-  protected classValue(name: E.AttributeName<V>): unknown {
-    if (name === "disabled") return this.isDisabled()
-    return super.classValue(name)
-  }
-
-  protected hostStates(): Partial<Record<E.StateName<V>, boolean>> {
-    const states = { selected: this.isSelected(), disabled: this.isDisabled() }
-    return states as Partial<Record<E.StateName<V>, boolean>>
-  }
-
-  ////////////////
-  // ## Form
-  ////////////////
-
-  /** `chosenValue()` while chosen, else `unchosenValue()`. */
-  formValue(): E.FieldValue {
-    return this.isSelected() ? this.chosenValue() : this.unchosenValue()
-  }
-
-  /** The chosen state only:  an off-value never satisfies `required`. */
-  protected validationValue(): E.FieldValue {
-    return this.isSelected() ? this.chosenValue() : undefined
-  }
-
-  protected formName(): string | undefined {
-    return this.common.name
-  }
-
-  formReset() {
-    this.setSelected(this.initial)
-    this.isTouched.set(false)
-  }
-
-  protected validationLabel(): string | undefined {
-    return this.common.label ?? (this.host.textContent?.trim() || undefined) ?? this.labels.name() ?? this.common.name
-  }
-
-  protected validationAnchor(): HTMLElement | undefined {
-    return this.control
-  }
-
-  protected showsInvalid(result: E.ValidationResult): boolean {
-    return !result.valid && this.isTouched.get()
-  }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  /** Adds the input sync (host state => input) and the `checked` attribute alias. */
-  mount() {
-    createEffect(
-      () => [this.isSelected(), this.isLoaded(), this.indeterminate()] as const,
-      ([selected, , indeterminate]) => {
-        if (!this.control) return
-        this.control.checked = selected
-        this.control.indeterminate = indeterminate
-      }
-    )
-    createEffect(
-      () => this.checkedAttribute.get(),
-      (checked) => this.setSelected(checked !== undefined),
-      { defer: true }
-    )
-    createEffect(
-      () => this.isConnected.get(),
-      (connected) => {
-        if (connected) this.labels.refresh()
-      }
-    )
-    return super.mount()
-  }
-
-  /** Neither on nor off?  Checkbox only;  tracked. */
-  protected indeterminate(): boolean {
-    return false
   }
 
   /**
@@ -220,14 +252,14 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
    * - No off-value:  a native box can't submit one, and a hidden input of the same name would send both while
    *   chosen (epic `wwod-spell-ui`, J44).
    */
-  protected staticControl(): Record<string, unknown> {
+  protected get staticControl(): Record<string, unknown> {
     if (!isServer) return {}
-    const value = this.chosenValue()
+    const value = this.chosenValue
     return {
       [UIT.STATIC_CONTROL]: "",
-      name: this.common.name,
+      name: this.name,
       value: value === UIT.CHECKBOX_DEFAULT_VALUE ? undefined : value,
-      checked: this.isSelected()
+      checked: this.isSelected
     }
   }
 
@@ -235,38 +267,34 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
     // server render:  the host's id, so its `<label for>`s label the input (the flattener moves it there)
     this.inputId = (isServer && this.host.id) || UI.ids.next(ID_PREFIX)
     return (
-      <div class={this.classes()} part={this.part("checkbox" as never)}>
+      <div class={this.rootClasses} part={this.partForName("checkbox" as never)}>
         <input
           ref={(element) => (this.control = element)}
           id={this.inputId}
-          type={this.inputType()}
-          part={this.part("control" as never)}
-          role={this.role() as never}
-          tabindex={this.tabIndex()}
-          disabled={this.isDisabled()}
-          required={this.common.required}
-          aria-readonly={this.common.readonly && this.inputType() === CHECKBOX ? "true" : undefined}
-          aria-label={this.hasText() ? undefined : this.labels.name()}
-          aria-invalid={this.isTouched.get() && !this.validation().valid ? "true" : undefined}
-          {...this.staticControl()}
+          type={this.inputType}
+          part={this.partForName("control" as never)}
+          role={this.inputRole as never}
+          tabindex={this.inputTabIndex}
+          disabled={this.isDisabled}
+          required={this.required}
+          aria-readonly={this.readonly && this.inputType === CHECKBOX ? "true" : undefined}
+          aria-label={this.hasLabelText ? undefined : this.labels.accessibleName}
+          aria-invalid={this.isTouched && !this.validation.valid ? "true" : undefined}
+          {...this.staticControl}
           onClick={this.onClick}
           onChange={this.onChange}
-          onKeyDown={this.onKeyDown}
+          onKeyDown={(event) => this.onKeyDown(event)}
         />
-        <label for={this.inputId} part={this.part("label" as never)}>
-          <slot>{this.common.label}</slot>
+        <label for={this.inputId} part={this.partForName("label" as never)}>
+          <slot>{this.label}</slot>
         </label>
       </div>
     )
   }
 
-  ////////////////
-  // ## Handlers
-  ////////////////
-
   /** `readonly`:  cancel the click, so the input never changes. */
   private readonly onClick = (event: MouseEvent) => {
-    if (this.common.readonly) event.preventDefault()
+    if (this.readonly) event.preventDefault()
   }
 
   /** The input changed:  `ui-change` first, then the state (unless a handler took over). */
@@ -275,42 +303,12 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
     this.choose(selected, event)
   }
 
-  /** Arrow keys, for radios;  nothing for a checkbox. */
-  protected readonly onKeyDown = (event: KeyboardEvent) => {
-    this.keyDown(event)
-  }
-
-  /** Key handling hook. */
-  protected keyDown(_event: KeyboardEvent) {}
-
-  /**
-   * A transition to `selected` someone made (a click, a key):  `ui-change`, then the host property, unless a handler re-set it.
-   * - `detail.value`:  what it stands for after the change -- `chosenValue()`, or once unchosen, `unchosenValue()`
-   *   when there is one.
-   * - Returns true when applied.
-   */
-  choose(selected: boolean, originalEvent?: Event): boolean {
-    this.isTouched.set(true)
-    const value = (selected ? undefined : this.unchosenValue()) ?? this.chosenValue()
-    const applied = this.selectedState.request(selected as never, () =>
-      this.emit("ui-change" as never, { selected, value, originalEvent })
-    )
-    if (!applied) queueMicrotask(() => this.control && (this.control.checked = untrack(() => this.isSelected())))
-    this.chosen(applied)
-    return applied
-  }
-
-  /** After a transition someone made;  checkbox clears `indeterminate`. */
-  protected chosen(_applied: boolean) {}
-
-  /** A submit or `reportValidity()` found it invalid:  show it. */
-  private readonly onInvalid = () => {
-    this.isTouched.set(true)
-  }
+  /** A key on the input:  arrow keys, for radios;  nothing for a checkbox. */
+  protected onKeyDown(_event: KeyboardEvent) {}
 
   /** A click aimed at the HOST itself clicks the input;  retargeted clicks from inside are left alone. */
   private readonly onHostClick = (event: MouseEvent) => {
-    if (event.composedPath()[0] !== this.host || this.isDisabled()) return
+    if (event.composedPath()[0] !== this.host || this.isDisabled) return
     this.control?.click()
   }
 
@@ -319,6 +317,9 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary>
     this.control?.focus(options)
   }
 }
+
+/** The attributes both vocabularies declare:  their getters, typed once for this base (`UIElement`'s doc). */
+export interface CheckControl<V extends CheckVocabulary = CheckVocabulary> extends CommonAttributes {}
 
 /** `UI.ids` prefix of the input's id. */
 const ID_PREFIX = "ui-checkbox"

@@ -20,19 +20,22 @@ import flyoutCSS from "./ui-flyout.css?inline"
  ****************/
 export class UIFlyout extends DialogElement<Vocabulary> {
   @E.proto static vocabulary = flyoutVocabulary
-  @E.proto static styles = { flyout: flyoutCSS }
-  @E.proto static Fallback = FlyoutFallback
+  @E.proto static styleSheets = { flyout: flyoutCSS }
+  @E.proto static elementSetup = { Fallback: FlyoutFallback }
   @E.proto static rootPart = "flyout"
   @E.proto static overlayKind = "flyout" as const
 
   /** A word width (`thin`) goes after the noun (`UIT.WordWidthClasses`). */
-  protected extraClasses(): string | undefined {
-    return UIT.WordWidthClasses.classFor(this.attrs.width)
+  protected get extraClasses(): string | undefined {
+    return UIT.WordWidthClasses.classFor(this.width)
   }
 
   /** A word width emits nothing through `ClassBuilder`:  its `width` kind only knows columns. */
   protected classValue(name: E.AttributeName<Vocabulary>): unknown {
-    if (name === WIDTH && UIT.WordWidthClasses.classFor(this.attrs.width)) return undefined
+    if (name === WIDTH && UIT.WordWidthClasses.classFor(this.width)) return undefined
     return super.classValue(name)
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIFlyout extends E.AttributeValues<Vocabulary> {}

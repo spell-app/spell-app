@@ -1,4 +1,3 @@
-import { createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -24,57 +23,61 @@ import breadcrumbCSS from "./ui-breadcrumb.css?inline"
  ****************/
 export class UIBreadcrumb extends E.UIElement<typeof breadcrumbVocabulary> {
   @E.proto static vocabulary = breadcrumbVocabulary
-  @E.proto static styles = { breadcrumb: breadcrumbCSS }
-  @E.proto static Fallback = BreadcrumbFallback
-  @E.proto static delegatesFocus = false
-
-  /** Host `aria-label`, forwarded to the `<nav>`:  two breadcrumbs on one page need distinct names. */
-  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
-
-  /** Glyph of `divider-icon`. */
-  readonly glyph = new E.IconGlyph({ owner: this, name: () => this.attrs.dividerIcon || undefined })
-
-  /** Inline divider tokens for the root;  `undefined` values are removed. */
-  readonly tokens = createMemo(() => {
-    const divider = this.attrs.divider
-    const icon = this.attrs.dividerIcon ? this.dividerIcon() : undefined
-    return {
-      [UIT.BreadcrumbDividerTokens.text]: divider === undefined ? undefined : BreadcrumbDivider.cssString(divider),
-      [UIT.BreadcrumbDividerTokens.icon]: icon,
-      [UIT.BreadcrumbDividerTokens.layout]: icon ? ICON_LAYOUT : undefined
-    }
-  })
+  @E.proto static styleSheets = { breadcrumb: breadcrumbCSS }
+  @E.proto static elementSetup = { Fallback: BreadcrumbFallback, delegatesFocus: false }
 
   render(): JSX.Element {
     return (
       <nav
-        class={this.classes()}
-        part={this.part("breadcrumb")}
-        aria-label={this.ariaLabel.get() ?? this.text("label")}
-        style={this.tokens()}
+        class={this.rootClasses}
+        part={this.partForName("breadcrumb")}
+        aria-label={this.attributes[UIT.ARIA_LABEL] ?? this.translationForKey("label")}
+        style={this.dividerTokens}
       >
-        <ol part={this.part("list")}>
+        <ol part={this.partForName("list")}>
           <slot />
         </ol>
       </nav>
     )
   }
 
+  ////////////////
+  // ## Dividers
+  ////////////////
+
+  /** Glyph of `divider-icon`. */
+  readonly dividerIconGlyph = new E.IconGlyph({ owner: this, name: () => this.dividerIcon || undefined })
+
+  /** Inline divider tokens for the root;  `undefined` values are removed. */
+  @E.derived
+  get dividerTokens(): Record<string, string | undefined> {
+    const { divider } = this
+    const icon = this.dividerIcon ? this.dividerIconUrl : undefined
+    return {
+      [UIT.BreadcrumbDividerTokens.text]: divider === undefined ? undefined : BreadcrumbDivider.cssString(divider),
+      [UIT.BreadcrumbDividerTokens.icon]: icon,
+      [UIT.BreadcrumbDividerTokens.layout]: icon ? ICON_LAYOUT : undefined
+    }
+  }
+
   /**
    * `divider-icon`'s glyph as a CSS `url()`, once loaded;  tracked.
-   * - A server render (`$/ui/static`) has no `<svg>` template (`glyph.data` stays empty):  the url comes from the
-   *   icon's markup, read at once.
+   * - A server render (`$/ui/static`) has no `<svg>` template (`svgTemplate` stays empty):  the url comes from
+   *   the icon's markup, read at once.
    */
-  private dividerIcon(): string | undefined {
+  private get dividerIconUrl(): string | undefined {
     if (isServer) {
-      const name = this.attrs.dividerIcon
+      const name = this.dividerIcon
       const markup = name && E.IconGlyph.serverMarkup?.(E.IconGlyph.packsFor(this.host, UI.icons), name)
       return markup ? BreadcrumbDivider.markupUrl(markup) : undefined
     }
-    const data = this.glyph.data.get()
+    const data = this.dividerIconGlyph.svgTemplate
     return data ? BreadcrumbDivider.svgUrl(data) : undefined
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIBreadcrumb extends E.AttributeValues<typeof breadcrumbVocabulary> {}
 
 /** `--_ui-breadcrumb-divider-layout` while an icon divider is set. */
 const ICON_LAYOUT = "icon"

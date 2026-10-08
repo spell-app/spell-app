@@ -21,24 +21,26 @@ import breadcrumbCSS from "./ui-breadcrumb.css?inline"
  ****************/
 export class UIBreadcrumbSection extends E.UIElement<typeof breadcrumbSectionVocabulary> {
   @E.proto static vocabulary = breadcrumbSectionVocabulary
-  @E.proto static styles = { breadcrumb: breadcrumbCSS }
-  @E.proto static Fallback = BreadcrumbFallback
+  @E.proto static styleSheets = { breadcrumb: breadcrumbCSS }
+  @E.proto static elementSetup = { Fallback: BreadcrumbFallback }
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     this.host.internals.role = UIT.LISTITEM
   }
 
-  protected hostStates() {
-    return { active: this.attrs.active }
+  /** The current page (`active`)? */
+  @E.cssState("active")
+  get isActive(): boolean {
+    return this.active
   }
 
   render(): JSX.Element {
     const content = (
       <>
-        <span class={DIVIDER} part={this.part("divider")} aria-hidden={UIT.TRUE} />
-        <Show when={this.attrs.href && !this.attrs.active} fallback={this.plainSection()}>
-          <a class={this.classes()} part={this.part("section")} href={this.attrs.href} target={this.attrs.target}>
+        <span class={DIVIDER} part={this.partForName("divider")} aria-hidden={UIT.TRUE} />
+        <Show when={this.href && !this.active} fallback={this.plainSection()}>
+          <a class={this.rootClasses} part={this.partForName("section")} href={this.href} target={this.target}>
             <slot />
           </a>
         </Show>
@@ -52,9 +54,16 @@ export class UIBreadcrumbSection extends E.UIElement<typeof breadcrumbSectionVoc
   /** The section as text:  the current page (`aria-current`), or a level without a link. */
   private plainSection(): JSX.Element {
     return (
-      <span class={this.classes()} part={this.part("section")} aria-current={this.attrs.active ? UIT.PAGE : undefined}>
+      <span
+        class={this.rootClasses}
+        part={this.partForName("section")}
+        aria-current={this.active ? UIT.PAGE : undefined}
+      >
         <slot />
       </span>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIBreadcrumbSection extends E.AttributeValues<typeof breadcrumbSectionVocabulary> {}

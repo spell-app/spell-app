@@ -1,7 +1,7 @@
 import { createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, HostAttribute, proto, UIElement, type UIHost, UIT } from "$/ui/core"
+import { Cell, proto, UIElement, type UIHost, UIT } from "$/ui/core"
 
 import { brandChecklistVocabulary } from "./ui-brand-checklist.vocabulary.en"
 import { BrandChecklistFallback } from "./ui-brand-checklist.fallback"
@@ -34,10 +34,12 @@ import checklistCSS from "./ui-brand-checklist.css?inline"
  ****************/
 export class UIBrandChecklist extends UIElement<BrandChecklistVocabulary> implements ChecklistOwner {
   @proto static vocabulary = brandChecklistVocabulary
-  @proto static styles = { brandChecklist: checklistCSS }
-  @proto static Fallback = BrandChecklistFallback
-  // the checks are the focus targets
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { brandChecklist: checklistCSS }
+  @proto static elementSetup = {
+    Fallback: BrandChecklistFallback,
+    // the checks are the focus targets
+    delegatesFocus: false
+  }
 
   ////////////////
   // ## State
@@ -50,7 +52,9 @@ export class UIBrandChecklist extends UIElement<BrandChecklistVocabulary> implem
   readonly announcement = new Cell("")
 
   /** Host `aria-label`, forwarded to the list. */
-  readonly ariaLabel = new HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
+  get ariaLabel(): string | undefined {
+    return this.attributes[UIT.ARIA_LABEL] ?? undefined
+  }
 
   /** A check re-read is queued. */
   private refreshQueued = false
@@ -87,18 +91,18 @@ export class UIBrandChecklist extends UIElement<BrandChecklistVocabulary> implem
   // ## Rendering
   ////////////////
 
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     this.effects()
-    return super.mount()
+    return super.onMount()
   }
 
   render(): JSX.Element {
     return (
       <>
-        <div class={this.classes()} part={this.part("list")} role={UIT.LIST} aria-label={this.ariaLabel.get()}>
+        <div class={this.rootClasses} part={this.partForName("list")} role={UIT.LIST} aria-label={this.ariaLabel}>
           <slot onSlotChange={() => this.refreshChecks()} />
         </div>
-        <span class={UIT.VISUALLY_HIDDEN} part={this.part("status")} role={STATUS}>
+        <span class={UIT.VISUALLY_HIDDEN} part={this.partForName("status")} role={STATUS}>
           {this.announcement.get()}
         </span>
       </>
@@ -127,9 +131,9 @@ export class UIBrandChecklist extends UIElement<BrandChecklistVocabulary> implem
   /** What to say on reaching `step`:  "All done" at the end, else "<text> done" for the check before it. */
   private announce(step: number): string {
     const checks = untrack(this.checks.get)
-    if (step >= checks.length) return this.text("allDone")
+    if (step >= checks.length) return this.translationForKey("allDone")
     const label = checks[step - 1]?.textContent?.trim() ?? ""
-    return label ? this.text("stepDone", { label }) : ""
+    return label ? this.translationForKey("stepDone", { label }) : ""
   }
 
   ////////////////

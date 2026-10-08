@@ -165,7 +165,11 @@ export type ItemRole = "menuitem" | "menuitemradio" | "menuitemcheckbox" | "opti
  *   (`:host(:state(in-list)) > .item`), next to the static class-grammar ones (`.ui.list > .item`).
  */
 export type ItemOwner = {
-  /** How `item` (the `<ui-item>` host) renders;  tracked, so an owner attribute change re-renders it. */
+  /**
+   * How `item` (the `<ui-item>` host) renders;  tracked, so an owner attribute change re-renders it.
+   * - MUST read only reactive members (`@state`, `@controlled`, vocabulary getters, `@derived`):  `UIItem` caches
+   *   it in a `@derived`, which can't see a `Cell` or a Solid memo change.
+   */
   itemContext(item: Element): ItemContext
 }
 
@@ -441,8 +445,8 @@ export type CheckboxChangeDetail = {
 
 /**
  * What a chosen checkbox / radio submits without a `value`:  the native default.
- * - Shared by `ui-checkbox` (`CheckControl`'s `@proto static onValue`, the fallback) and `ui-form` (`values` of
- *   native and `ui-*` checkables).
+ * - Shared by `ui-checkbox` (`CheckControl`'s `@proto static defaultChosenValue`, the fallback) and `ui-form`
+ *   (`values` of native and `ui-*` checkables).
  */
 export const CHECKBOX_DEFAULT_VALUE = "on"
 
@@ -590,14 +594,14 @@ export type CardSharedVariation = "size" | "color" | "horizontal" | "raised" | "
 ////////////////
 
 /**
- * What opens a `<ui-popup>` (`on`):  Fomantic's names;  `hover` also opens on keyboard focus.
+ * What opens a `<ui-popup>` (`open-on`):  Fomantic's names;  `hover` also opens on keyboard focus.
  * - A const object (the `Key` shape), so the element compares `trigger === UIT.PopupTrigger.click`.
  */
 export const PopupTrigger = { hover: "hover", focus: "focus", click: "click", manual: "manual" } as const
 /** One of `PopupTrigger`'s values, e.g. `"click"`. */
 export type PopupTrigger = (typeof PopupTrigger)[keyof typeof PopupTrigger]
 
-/** Every `PopupTrigger`, in Fomantic's order:  the vocabulary's `on` values. */
+/** Every `PopupTrigger`, in Fomantic's order:  the vocabulary's `open-on` values. */
 export const PopupTriggers = [PopupTrigger.hover, PopupTrigger.focus, PopupTrigger.click, PopupTrigger.manual] as const
 
 /** `detail` of the cancelable `ui-open` / `ui-close`, from a `<ui-popup>`. */
@@ -915,7 +919,7 @@ export const TransitionCommands = {
  * Why a `<ui-dimmer>` is hiding, in `ui-close`'s `detail.reason`.
  * - `escape` / `close-all` -- as `UI.overlays` asks (a page dimmer)
  * - `click` -- a click on the dimmer itself, outside its content (`closedby="any"`)
- * - `hover` -- the pointer and focus left an `on="hover"` dimmer's target
+ * - `hover` -- the pointer and focus left a `show-on="hover"` dimmer's target
  */
 export type DimmerCloseReason = "escape" | "close-all" | "click" | "hover"
 
@@ -1334,7 +1338,7 @@ export const AUTO = "auto"
 /** The `manual` value:  left to script (`popover="manual"`, a tab list's `activation`). */
 export const MANUAL = "manual"
 
-/** The `click` event, and the trigger value meaning it (a popup's `on`, the one with interactive content). */
+/** The `click` event, and the trigger value meaning it (a popup's `open-on`, the one with interactive content). */
 export const CLICK = "click"
 
 /** The `close` word:  the close reason of a close icon or command, the close button's part and text key. */

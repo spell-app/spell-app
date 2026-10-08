@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createMemo, flush, untrack, type Accessor } from "solid-js"
+import { For, Show, flush, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -38,7 +38,7 @@ import tabCSS from "./ui-tab.css?inline"
  *   may point into);  the pane is a `tabpanel` named by its label (it can't point back into this shadow root).
  * - The swap:  a View Transition (`document.startViewTransition`) when `UI.browser.supports.viewTransitions` and
  *   the person doesn't prefer reduced motion, else instant.  The tab list follows the selection at once;  the panes
- *   swap inside the transition (`shown`).
+ *   swap inside the transition (`shownValue`).
  * - `history`:  the selected value mirrors `location.hash` (see the vocabulary).
  * - SIDE EFFECTS:  `history` pushes history entries and listens to its window's `hashchange` / `popstate` while
  *   connected.  The page globals (`window`, `document`, `location`, `history`) are the HOST's document's, so a
@@ -46,108 +46,62 @@ import tabCSS from "./ui-tab.css?inline"
  ****************/
 export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwner {
   @E.proto static vocabulary = tabsVocabulary
-  @E.proto static styles = { menu: menuCSS, tab: tabCSS }
-  @E.proto static Fallback = TabFallback
-  // the tabs are the focus targets;  a click on a pane must not jump to one
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { menu: menuCSS, tab: tabCSS }
+  @E.proto static elementSetup = {
+    Fallback: TabFallback,
+    // the tabs are the focus targets;  a click on a pane must not jump to one
+    delegatesFocus: false
+  }
 
   /** Builds the tab list's classes:  this vocabulary's words, Fomantic's noun `menu`. */
-  @E.proto static menuBuilder = new E.ClassBuilder({ ...tabsVocabulary, noun: MENU })
-  declare menuBuilder: E.ClassBuilder
+  @E.proto static menuClassBuilder = new E.ClassBuilder({ ...tabsVocabulary, noun: MENU })
+  declare menuClassBuilder: E.ClassBuilder
 
   ////////////////
-  // ## State
+  // ## The panes
   ////////////////
 
-  /** `value`:  host-controlled, or internal. */
-  readonly valueState = this.controlled("value", undefined)
-
-  /** Host `aria-label`, forwarded to the tab list. */
-  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
-
-  /** Pane hosts among the children (upgraded or not);  notifies on every read of the children. */
-  readonly panes = new E.Cell<readonly E.UIHost[]>(this.readPanes(), { equals: false })
-
-  /** Value of the pane ON SCREEN:  follows `selectedValue()`, inside a View Transition when there is one. */
-  readonly shownValue = new E.Cell<string | undefined>(undefined)
-
-  /** Live roving tabindex over the tabs. */
-  private roving: E.RovingTabindex | undefined
-
-  /** The tab list, while rendered. */
-  private bar: HTMLElement | undefined
-
-  /** A pane re-read is queued. */
-  private isRefreshQueued = false
-
-  /** The key that is moving the roving focus right now (`automatic` selects on it). */
-  private key: KeyboardEvent | undefined
-
-  ////////////////
-  // ## Derived state
-  ////////////////
+  /** Pane hosts among the children (upgraded or not);  every write notifies (a re-read of the children). */
+  @E.state({ equals: false }) accessor panes: readonly E.UIHost[] = this.readPanes()
 
   /**
    * Upgraded panes, in order:  the tabs.
-   * - `lazy` on a server, as are the memos below that read the panes' controllers (`SERVER_LAZY`).
+   * - `@derived`:  a filter, read by the tab list, every pane and the selection.
    */
-  readonly tabs = createMemo(() => this.panes.get().filter((pane) => pane.controller instanceof UITab), {
-    equals: UITabs.sameList,
-    ...SERVER_LAZY
-  })
+  @E.derived({ equals: E.isSameList })
+  get tabs(): readonly E.UIHost[] {
+    return this.panes.filter((pane) => pane.controller instanceof UITab)
+  }
 
   /** Each tab's value:  its `value`, else its index. */
-  readonly values = createMemo(
-    () => this.tabs().map((pane, index) => UITabs.controllerOf(pane).attrs.value ?? String(index)),
-    SERVER_LAZY
-  )
+  @E.derived
+  get values(): string[] {
+    return this.tabs.map((pane, index) => UITabs.controllerOf(pane).value ?? String(index))
+  }
 
-  /** The selected value (see class docs). */
-  readonly selectedValue = createMemo((): string | undefined => {
-    const values = this.values()
-    const value = this.valueState.get()
-    if (value !== undefined && values.includes(value)) return value
-    const tabs = this.tabs().map(UITabs.controllerOf)
-    const chosen = tabs.findIndex((tab) => tab.ownSelected() && !tab.attrs.disabled)
-    const first = chosen >= 0 ? chosen : tabs.findIndex((tab) => !tab.attrs.disabled)
-    return first >= 0 ? values[first] : undefined
-  }, SERVER_LAZY)
+  /** A pane re-read is queued. */
+  private refreshIsQueued = false
 
-  /** Index of the selected tab, or -1. */
-  readonly selectedIndex = createMemo(() => this.values().indexOf(this.selectedValue() ?? NO_VALUE), SERVER_LAZY)
+  /** Read the panes again (a slot change, or a pane that upgraded late). */
+  private refreshPanes() {
+    this.panes = this.readPanes()
+  }
 
-  /** The pane on screen. */
-  readonly displayed = createMemo(() => this.shownValue.get() ?? this.selectedValue(), SERVER_LAZY)
-
-  /** The tab list's edge:  `top` / `bottom` when `attached` (bare ~== `top`);  never while `vertical`. */
-  readonly menuEdge = createMemo((): MenuEdge | undefined => {
-    const attached = this.attrs.attached
-    if (!attached || this.attrs.vertical) return undefined
-    return attached === UIT.BOTTOM ? UIT.BOTTOM : UIT.TOP
-  })
-
-  /** Where the tabs sit (`alignment`);  none while `vertical`, whose tabs fill their column. */
-  readonly alignment = createMemo(() => (this.attrs.vertical ? undefined : this.attrs.alignment))
-
-  /** Tab list classes:  the look words with the noun `menu`. */
-  readonly menuClasses = createMemo(() =>
-    this.menuBuilder.build({
-      size: this.attrs.size,
-      color: this.attrs.color,
-      appearance: this.attrs.appearance,
-      tabular: this.attrs.tabular,
-      pointing: this.attrs.pointing,
-      secondary: this.attrs.secondary,
-      text: this.attrs.text,
-      inverted: this.attrs.inverted,
-      vertical: this.attrs.vertical,
-      fluid: this.attrs.fluid,
-      compact: this.attrs.compact,
-      equal: this.attrs.equal,
-      alignment: this.alignment(),
-      attached: this.menuEdge()
+  /** Queue `refreshPanes()` once:  it writes a member, so never from the tracked scope that asked. */
+  private queueRefresh() {
+    // a server render reads every pane before it renders, and writes nothing after
+    if (isServer || this.refreshIsQueued) return
+    this.refreshIsQueued = true
+    queueMicrotask(() => {
+      this.refreshIsQueued = false
+      this.refreshPanes()
     })
-  )
+  }
+
+  /** The pane children, in order, upgraded or not. */
+  private readPanes(): E.UIHost[] {
+    return [...this.host.children].filter(UITabs.isPane) as E.UIHost[]
+  }
 
   ////////////////
   // ## TabOwner
@@ -158,104 +112,46 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
    * - SIDE EFFECT:  a pane not among the tabs yet (it upgraded after the last read) queues a re-read.
    */
   paneState(pane: Element): TabPaneState {
-    const index = this.tabs().indexOf(pane as E.UIHost)
+    const index = this.tabs.indexOf(pane as E.UIHost)
     if (index < 0) this.queueRefresh()
-    const edge = this.menuEdge()
+    const edge = this.menuEdge
     return {
-      selected: index >= 0 && this.values()[index] === this.displayed(),
+      selected: index >= 0 && this.values[index] === this.displayedValue,
       attached: edge ? (edge === UIT.TOP ? UIT.BOTTOM : UIT.TOP) : undefined,
-      basic: this.attrs.basic,
-      inverted: this.attrs.inverted
+      basic: this.basic,
+      inverted: this.inverted
     }
   }
 
   /** `TabOwner`:  `pane`'s value.  Untracked. */
   valueFor(pane: Element): string {
-    return untrack(() => this.values()[this.tabs().indexOf(pane as E.UIHost)]) ?? ""
+    return untrack(() => this.values[this.tabs.indexOf(pane as E.UIHost)]) ?? ""
   }
 
   ////////////////
-  // ## Element hooks
+  // ## The selection
   ////////////////
 
-  protected classValue(name: E.AttributeName<typeof tabsVocabulary>): unknown {
-    if (name === "attached") return this.menuEdge()
-    if (name === "alignment") return this.alignment()
-    return super.classValue(name)
+  /** `value`:  host-controlled, or internal;  `selectedValue` is the one in effect. */
+  @E.controlled("value") accessor value: string | undefined = undefined
+
+  /** The selected value (see class docs):  `value` when it names a tab, else the first `selected` or enabled one. */
+  @E.derived
+  get selectedValue(): string | undefined {
+    const values = this.values
+    const value = this.value
+    if (value !== undefined && values.includes(value)) return value
+    const tabs = this.tabs.map(UITabs.controllerOf)
+    const chosen = tabs.findIndex((tab) => tab.isMarkedSelected && !tab.disabled)
+    const first = chosen >= 0 ? chosen : tabs.findIndex((tab) => !tab.disabled)
+    return first >= 0 ? values[first] : undefined
   }
 
-  protected hostStates() {
-    return { vertical: this.attrs.vertical }
+  /** Index of the selected tab, or -1. */
+  @E.derived
+  get selectedIndex(): number {
+    return this.values.indexOf(this.selectedValue ?? NO_VALUE)
   }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  mount(): JSX.Element {
-    this.effects()
-    return super.mount()
-  }
-
-  render(): JSX.Element {
-    const menu = (
-      <div
-        ref={(element: HTMLElement) => this.attachBar(element)}
-        class={this.menuClasses()}
-        part={this.part("menu")}
-        role={TABLIST}
-        aria-label={this.ariaLabel.get()}
-        aria-orientation={this.attrs.vertical ? UIT.VERTICAL : undefined}
-        onFocusOut={this.onFocusOut}
-      >
-        <For each={this.tabs()}>{(pane, index) => this.tab(pane, index)}</For>
-      </div>
-    )
-    const panes = <slot onSlotChange={() => this.refreshPanes()} />
-    return (
-      <div class={this.classes()} part={this.part("tabs")}>
-        {this.menuEdge() === UIT.BOTTOM ? [panes, menu] : [menu, panes]}
-      </div>
-    )
-  }
-
-  /**
-   * One tab:  a `<button role="tab">` in the menu's item grammar, controlling `pane`.
-   * - `aria-controls`:  element reflection in a browser;  in a server render (`$/ui/static`), the pane's id.
-   *   SIDE EFFECT there:  gives the pane (the render's parsed copy) an id if it has none, which the static output
-   *   keeps.
-   */
-  private tab(pane: E.UIHost, index: Accessor<number>): JSX.Element {
-    const tab = UITabs.controllerOf(pane)
-    const isSelected = () => index() === this.selectedIndex()
-    const glyph = new E.IconGlyph({ owner: this, name: () => tab.attrs.icon })
-    return (
-      <button
-        ref={(button: HTMLButtonElement) => (button.ariaControlsElements = [pane])}
-        type="button"
-        role={TAB}
-        class={[isSelected() && UIT.ACTIVE, tab.attrs.disabled && UIT.DISABLED, UIT.ITEM].filter(Boolean).join(" ")}
-        part={this.part("tab")}
-        aria-selected={isSelected() ? UIT.TRUE : UIT.FALSE}
-        aria-disabled={tab.attrs.disabled ? UIT.TRUE : undefined}
-        aria-controls={isServer ? UI.ids.ensure(pane, PANE_ID) : undefined}
-        onClick={(event: MouseEvent) => this.select(pane, event)}
-      >
-        <Show when={glyph.svg()}>
-          {(svg) => (
-            <i class={UIT.ICON} part={this.part("icon")}>
-              {svg()}
-            </i>
-          )}
-        </Show>
-        {tab.attrs.label ?? this.values()[index()]}
-      </button>
-    )
-  }
-
-  ////////////////
-  // ## Transitions
-  ////////////////
 
   /**
    * Select `pane` as a person would:  the cancelable `ui-change` first, then `value` (and, with `history`, a new
@@ -263,64 +159,47 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
    */
   select(pane: Element, originalEvent?: Event): boolean {
     const tab = (pane as E.UIHost).controller
-    if (!(tab instanceof UITab) || untrack(() => tab.attrs.disabled)) return false
+    if (!(tab instanceof UITab) || untrack(() => tab.disabled)) return false
     const value = this.valueFor(pane)
-    if (value === untrack(this.selectedValue)) return false
+    if (value === untrack(() => this.selectedValue)) return false
     const detail: UIT.TabChangeDetail = { value, tab: pane, originalEvent }
-    const applied = this.valueState.request(value, () => this.emit("ui-change", detail))
-    if (applied && untrack(() => this.attrs.history)) UITabs.pushHash(value, this.view)
+    const applied = this.requestChange("value", value, () => this.send("ui-change", detail))
+    if (applied && untrack(() => this.history)) UITabs.pushHash(value, this.view)
     return applied
   }
 
   ////////////////
-  // ## Effects
+  // ## The pane on screen
   ////////////////
 
-  /**
-   * The pane swap, the roving tabindex and `history` -- all once the runtime is loaded (`UI`).
-   * - Created in `mount()`:  they read overridable methods and every field.
-   */
-  private effects() {
-    if (isServer) return
-    createEffect(
-      () => this.selectedValue(),
-      (value) => this.show(value)
-    )
-    createEffect(
-      () =>
-        this.isLoaded() && this.isConnected.get()
-          ? { vertical: this.attrs.vertical, count: this.tabs().length, index: this.selectedIndex() }
-          : undefined,
-      (roving) => {
-        if (!roving) return
-        queueMicrotask(() => this.startRoving())
-        return () => this.stopRoving()
-      }
-    )
-    createEffect(
-      () => this.isLoaded() && this.isConnected.get() && this.attrs.history,
-      (history) => {
-        if (!history) return
-        const listeners = new AbortController()
-        const onNavigate = (event: Event) => this.fromHash(event)
-        for (const type of HISTORY_EVENTS) this.view.addEventListener(type, onNavigate, { signal: listeners.signal })
-        queueMicrotask(() => this.fromHash())
-        return () => listeners.abort()
-      }
-    )
+  /** Value of the pane ON SCREEN:  follows `selectedValue`, inside a View Transition when there is one. */
+  @E.state accessor shownValue: string | undefined = undefined
+
+  /** The pane on screen:  `shownValue`, else the selected one (before the first swap). */
+  get displayedValue(): string | undefined {
+    return this.shownValue ?? this.selectedValue
+  }
+
+  /** The selection changed:  swap the panes. */
+  @E.onChange("selectedValue")
+  protected onSelectedValueChanged(value: string | undefined) {
+    this.show(value)
   }
 
   /**
    * Put the pane for `value` on screen:  inside a View Transition when the browser has them, the person doesn't
    * prefer reduced motion and another pane was showing;  else at once.
-   * - Runs in an effect's APPLY function (a signal write is allowed there);  the transition's callback runs later,
-   *   outside any owner, and flushes so the new panes are in the DOM when it returns.
+   * - Runs in an effect's APPLY function (a write is allowed there);  the transition's callback runs later, outside
+   *   any owner, and flushes so the new panes are in the DOM when it returns.
    */
   private show(value: string | undefined) {
-    const before = untrack(this.shownValue.get)
-    if (before === undefined || before === value || !this.canTransition()) return this.shownValue.set(value)
+    const before = untrack(() => this.shownValue)
+    if (before === undefined || before === value || !this.canTransition) {
+      this.shownValue = value
+      return
+    }
     const transition = this.host.ownerDocument.startViewTransition(() => {
-      this.shownValue.set(value)
+      this.shownValue = value
       flush()
     })
     // a newer swap skips this one, which rejects `ready`:  expected, not an error
@@ -328,31 +207,64 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   }
 
   /** Animate the swap?  See `show()`. */
-  private canTransition(): boolean {
+  private get canTransition(): boolean {
     const { host } = this
-    if (!untrack(this.isLoaded) || !host.isConnected || host.ownerDocument.visibilityState !== UIT.VISIBLE) return false
+    if (!untrack(() => this.isReady) || !host.isConnected || host.ownerDocument.visibilityState !== UIT.VISIBLE)
+      return false
     return UI.browser.supports.viewTransitions && !UI.browser.isReducedMotion
   }
 
-  /** (Re)start the roving tabindex on the tab list, the selected tab as the Tab stop. */
-  private startRoving() {
-    this.stopRoving()
-    const bar = this.bar
-    if (!bar || !this.host.isConnected) return
-    this.roving = UI.focus.roving({
-      container: bar,
-      items: () => this.buttons(),
-      orientation: untrack(() => this.attrs.vertical) ? UIT.VERTICAL : UIT.HORIZONTAL,
-      activeIndex: Math.max(0, untrack(this.selectedIndex)),
-      onChange: (_item, index) => this.onRovingChange(index)
+  ////////////////
+  // ## The tab list
+  ////////////////
+
+  /** In a column:  `:state(vertical)`. */
+  @E.cssState("vertical")
+  get isVertical(): boolean {
+    return !!this.vertical
+  }
+
+  /** The tab list's edge:  `top` / `bottom` when `attached` (bare ~== `top`);  never while `vertical`. */
+  get menuEdge(): MenuEdge | undefined {
+    const attached = this.attached
+    if (!attached || this.vertical) return undefined
+    return attached === UIT.BOTTOM ? UIT.BOTTOM : UIT.TOP
+  }
+
+  /** Where the tabs sit (`alignment`);  none while `vertical`, whose tabs fill their column. */
+  get menuAlignment() {
+    return this.vertical ? undefined : this.alignment
+  }
+
+  /** Tab list classes:  the look words with the noun `menu`. */
+  @E.derived
+  get menuClasses(): string {
+    return this.menuClassBuilder.build({
+      size: this.size,
+      color: this.color,
+      appearance: this.appearance,
+      tabular: this.tabular,
+      pointing: this.pointing,
+      secondary: this.secondary,
+      text: this.text,
+      inverted: this.inverted,
+      vertical: this.vertical,
+      fluid: this.fluid,
+      compact: this.compact,
+      equal: this.equal,
+      alignment: this.menuAlignment,
+      attached: this.menuEdge
     })
   }
 
-  /** Stop roving (the tabs keep their `tabindex`es until the next start). */
-  private stopRoving() {
-    this.roving?.detach()
-    this.roving = undefined
+  protected classValue(name: E.AttributeName<typeof tabsVocabulary>): unknown {
+    if (name === "attached") return this.menuEdge
+    if (name === "alignment") return this.menuAlignment
+    return super.classValue(name)
   }
+
+  /** The tab list, while rendered. */
+  private bar: HTMLElement | undefined
 
   /**
    * The tab list rendered:  keep it, and hear its keys in the CAPTURE phase -- before the roving tabindex's own
@@ -369,8 +281,48 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   }
 
   ////////////////
-  // ## Handlers
+  // ## The roving tabindex
   ////////////////
+
+  /** Live roving tabindex over the tabs. */
+  private rovingTabindex: E.RovingTabindex | undefined
+
+  /** The key that is moving the roving focus right now (`automatic` selects on it). */
+  private focusMovingKey: KeyboardEvent | undefined
+
+  /**
+   * The roving tabindex, (re)started once rendered and connected, and whenever `vertical`, the tabs or the selected
+   * index change (`tabs` keeps its identity while the same hosts are in it).
+   */
+  @E.onChange("isReady", "isConnected", "isVertical", "tabs", "selectedIndex")
+  protected onRovingChanged(isReady: boolean, isConnected: boolean) {
+    if (!isReady || !isConnected) return
+    queueMicrotask(() => this.startRoving())
+    return () => this.stopRoving()
+  }
+
+  /** (Re)start the roving tabindex on the tab list, the selected tab as the Tab stop. */
+  private startRoving() {
+    this.stopRoving()
+    const bar = this.bar
+    if (!bar || !this.host.isConnected) return
+    this.rovingTabindex = UI.focus.roving({
+      container: bar,
+      items: () => this.buttons(),
+      orientation: untrack(() => this.vertical) ? UIT.VERTICAL : UIT.HORIZONTAL,
+      activeIndex: Math.max(
+        0,
+        untrack(() => this.selectedIndex)
+      ),
+      onChange: (_item, index) => this.onRovingChange(index)
+    })
+  }
+
+  /** Stop roving (the tabs keep their `tabindex`es until the next start). */
+  private stopRoving() {
+    this.rovingTabindex?.detach()
+    this.rovingTabindex = undefined
+  }
 
   /**
    * A key on the tab list:  remember it, so the roving move it causes can select.
@@ -379,15 +331,15 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
    *   is still being dispatched instead.
    */
   private readonly onKeyDown = (event: KeyboardEvent) => {
-    this.key = event
+    this.focusMovingKey = event
   }
 
   /** The roving focus moved to tab `index`:  select it when a key moved it and activation is `automatic`. */
   private onRovingChange(index: number) {
-    const key = this.key
+    const key = this.focusMovingKey
     // a click's focus also moves the roving stop:  only a key still being dispatched counts
-    if (!key || key.eventPhase === Event.NONE || untrack(() => this.attrs.activation) === UIT.MANUAL) return
-    const pane = untrack(this.tabs)[index]
+    if (!key || key.eventPhase === Event.NONE || untrack(() => this.activation) === UIT.MANUAL) return
+    const pane = untrack(() => this.tabs)[index]
     if (pane) this.select(pane, key)
   }
 
@@ -396,42 +348,33 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
     // `relatedTarget`:  `null` when focus left the page
     const next = event.relatedTarget as Node | null
     if (next && this.bar?.contains(next)) return
-    if (this.roving && this.roving.activeIndex !== untrack(this.selectedIndex)) this.startRoving()
+    const roving = this.rovingTabindex
+    if (roving && roving.activeIndex !== untrack(() => this.selectedIndex)) this.startRoving()
+  }
+
+  ////////////////
+  // ## History
+  ////////////////
+
+  /** `history`, once rendered and connected:  follow the window's `hashchange` / `popstate`, and the hash now. */
+  @E.onChange("isReady", "isConnected", "history")
+  protected onHistoryChanged(isReady: boolean, isConnected: boolean, history: boolean | undefined) {
+    if (!(isReady && isConnected && history)) return
+    const listeners = new AbortController()
+    const onNavigate = (event: Event) => this.onHashChange(event)
+    for (const type of HISTORY_EVENTS) this.view.addEventListener(type, onNavigate, { signal: listeners.signal })
+    queueMicrotask(() => this.onHashChange())
+    return () => listeners.abort()
   }
 
   /** The URL hash changed (or, `event`-less, the page opened on one):  select the pane it names. */
-  private fromHash(event?: Event) {
+  private onHashChange(event?: Event) {
     const value = UITabs.hashValue(this.view.location)
-    const index = untrack(this.values).indexOf(value ?? NO_VALUE)
-    const pane = untrack(this.tabs)[index]
-    if (!pane || value === untrack(this.selectedValue)) return
+    const index = untrack(() => this.values).indexOf(value ?? NO_VALUE)
+    const pane = untrack(() => this.tabs)[index]
+    if (!pane || value === untrack(() => this.selectedValue)) return
     if (event) this.select(pane, event)
-    else this.valueState.set(value)
-  }
-
-  ////////////////
-  // ## Panes
-  ////////////////
-
-  /** Read the panes again (a slot change, or a pane that upgraded late). */
-  private refreshPanes() {
-    this.panes.set(this.readPanes())
-  }
-
-  /** Queue `refreshPanes()` once:  it writes a signal, so never from the tracked scope that asked. */
-  private queueRefresh() {
-    // a server render reads every pane before it renders, and writes nothing after
-    if (isServer || this.isRefreshQueued) return
-    this.isRefreshQueued = true
-    queueMicrotask(() => {
-      this.isRefreshQueued = false
-      this.refreshPanes()
-    })
-  }
-
-  /** The pane children, in order, upgraded or not. */
-  private readPanes(): E.UIHost[] {
-    return [...this.host.children].filter(UITabs.isPane) as E.UIHost[]
+    else this.value = value
   }
 
   /** The host's window:  its document's, for `history` and its events. */
@@ -440,11 +383,71 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
   }
 
   ////////////////
+  // ## Rendering
+  ////////////////
+
+  render(): JSX.Element {
+    const menu = (
+      <div
+        ref={(element: HTMLElement) => this.attachBar(element)}
+        class={this.menuClasses}
+        part={this.partForName("menu")}
+        role={TABLIST}
+        aria-label={this.attributes[UIT.ARIA_LABEL] ?? undefined}
+        aria-orientation={this.vertical ? UIT.VERTICAL : undefined}
+        onFocusOut={this.onFocusOut}
+      >
+        <For each={this.tabs}>{(pane, index) => this.tab(pane, index)}</For>
+      </div>
+    )
+    const panes = <slot onSlotChange={() => this.refreshPanes()} />
+    return (
+      <div class={this.rootClasses} part={this.partForName("tabs")}>
+        {this.menuEdge === UIT.BOTTOM ? [panes, menu] : [menu, panes]}
+      </div>
+    )
+  }
+
+  /**
+   * One tab:  a `<button role="tab">` in the menu's item grammar, controlling `pane`.
+   * - `aria-controls`:  element reflection in a browser;  in a server render (`$/ui/static`), the pane's id.
+   *   SIDE EFFECT there:  gives the pane (the render's parsed copy) an id if it has none, which the static output
+   *   keeps.
+   */
+  private tab(pane: E.UIHost, index: Accessor<number>): JSX.Element {
+    const tab = UITabs.controllerOf(pane)
+    const isSelected = () => index() === this.selectedIndex
+    const glyph = new E.IconGlyph({ owner: this, name: () => tab.icon })
+    return (
+      <button
+        ref={(button: HTMLButtonElement) => (button.ariaControlsElements = [pane])}
+        type="button"
+        role={TAB}
+        class={[isSelected() && UIT.ACTIVE, tab.disabled && UIT.DISABLED, UIT.ITEM].filter(Boolean).join(" ")}
+        part={this.partForName("tab")}
+        aria-selected={isSelected() ? UIT.TRUE : UIT.FALSE}
+        aria-disabled={tab.disabled ? UIT.TRUE : undefined}
+        aria-controls={isServer ? UI.ids.ensure(pane, PANE_ID) : undefined}
+        onClick={(event: MouseEvent) => this.select(pane, event)}
+      >
+        <Show when={glyph.svg}>
+          {(svg) => (
+            <i class={UIT.ICON} part={this.partForName("icon")}>
+              {svg()}
+            </i>
+          )}
+        </Show>
+        {tab.label ?? this.values[index()]}
+      </button>
+    )
+  }
+
+  ////////////////
   // ## Helpers
   ////////////////
 
-  // Static:  pure, passed around as values (`filter`, `map`, `equals`);  page globals come in as arguments, defaulting
-  // to this window's.
+  // Static:  pure, passed around as values (`filter`, `map`);  page globals come in as arguments, defaulting to this
+  // window's.
 
   /** A pane child:  an element DEFINED with the pane's noun (`<ui-tab>`, or its translated tag). */
   private static isPane(this: void, element: Element): boolean {
@@ -473,22 +476,13 @@ export class UITabs extends E.UIElement<typeof tabsVocabulary> implements TabOwn
     const { history, location } = view
     if (location.hash !== hash) history.pushState(history.state, "", hash)
   }
-
-  /** Same hosts, in the same order. */
-  private static sameList(a: readonly Element[], b: readonly Element[]): boolean {
-    return a.length === b.length && a.every((element, index) => element === b[index])
-  }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UITabs extends E.AttributeValues<typeof tabsVocabulary> {}
 
 /** Where the tab list sits when `attached`. */
 type MenuEdge = typeof UIT.TOP | typeof UIT.BOTTOM
-
-/**
- * Options of a memo that reads OTHER elements' controllers:  `lazy` on a server only.
- * - Why:  a server memo computes ONCE, and a static render (`$/ui/static`) builds controllers in document order,
- *   so an eager memo here would see panes without controllers;  lazy, it first computes at render time.
- */
-const SERVER_LAZY = { lazy: isServer }
 
 /** The tab buttons in the tab list. */
 const TAB_SELECTOR = `:scope > [role=${TAB}]`

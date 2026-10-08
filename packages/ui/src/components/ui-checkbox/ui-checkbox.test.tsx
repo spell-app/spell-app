@@ -31,8 +31,8 @@ type Check = FormHost & {
 
 /** A subclass with class defaults for both values:  `<x-door>`, as the docs show it. */
 class Door extends UICheckbox {
-  @E.proto static onValue = "open"
-  @E.proto static offValue = "closed"
+  @E.proto static defaultChosenValue = "open"
+  @E.proto static defaultUnchosenValue = "closed"
 }
 Door.define("x-door")
 

@@ -11,7 +11,8 @@ export class UIPlaceholderLine extends PlaceholderShape<typeof placeholderLineVo
   @E.proto static vocabulary = placeholderLineVocabulary
 
   /** Solid:  nothing inside. */
-  protected holdsShapes(): boolean {
+  protected get canHoldShapes(): boolean {
     return false
   }
 }
+export interface UIPlaceholderLine extends E.AttributeValues<typeof placeholderLineVocabulary> {}

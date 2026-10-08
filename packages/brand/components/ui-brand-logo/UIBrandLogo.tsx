@@ -20,9 +20,8 @@ import logoCSS from "./ui-brand-logo.css?inline"
  ****************/
 export class UIBrandLogo extends UIElement<BrandLogoVocabulary> {
   @proto static vocabulary = brandLogoVocabulary
-  @proto static styles = { logo: logoCSS }
-  @proto static Fallback = BrandLogoFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { logo: logoCSS }
+  @proto static elementSetup = { Fallback: BrandLogoFallback, delegatesFocus: false }
 
   /** The outlines, once loaded:  `undefined` until then. */
   readonly paths = new Cell<typeof import("./logoPaths") | undefined>(undefined)
@@ -46,7 +45,7 @@ export class UIBrandLogo extends UIElement<BrandLogoVocabulary> {
   /** The accessible name:  `label`, else the logo's;  `""`:  none (decorative). */
   readonly name = createMemo(() => {
     if (this.attrs.label !== undefined) return this.attrs.label
-    return this.text(this.attrs.variant === "app" ? "spellApp" : "spell")
+    return this.translationForKey(this.attrs.variant === "app" ? "spellApp" : "spell")
   })
 
   render(): JSX.Element {
@@ -55,7 +54,7 @@ export class UIBrandLogo extends UIElement<BrandLogoVocabulary> {
         {(shape) => (
           <svg
             class={["logo", this.attrs.tone ?? "ink"]}
-            part={this.part("logo")}
+            part={this.partForName("logo")}
             viewBox={shape().vb}
             role={this.name() ? "img" : undefined}
             aria-label={this.name() || undefined}

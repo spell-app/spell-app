@@ -18,7 +18,7 @@
  * - A dark dimmer is the DARK scheme for its content (`color-scheme: dark`, `--ui-inverted: 1`);  `inverted` the
  *   light one.  So a plain `<ui-header>` reads light on the default dimmer, where Fomantic needed `inverted header`.
  * - Motion:  fades in from `@starting-style` and out while `display` / `overlay` transition (`allow-discrete`).
- * - An inactive `on="hover"` dimmer (`:host(:state(on-hover))`) stays laid out, transparent and click-through, so
+ * - An inactive `show-on="hover"` dimmer (`:host(:state(on-hover))`) stays laid out, transparent and click-through, so
  *   keyboard focus can reach its content (which shows it).
  * - Blurring:  `backdrop-filter` on the dimmer blurs what's behind it -- Fomantic's own choice where supported;  its
  *   filter on the dimmable's children (`.blurring.dimmable > :not(.dimmer)`) is left out:  a shadow root can't reach

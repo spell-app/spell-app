@@ -25,27 +25,43 @@ import rootCSS from "./ui-root.css?inline"
  ****************/
 export class UIComponents extends E.UIElement<ComponentsVocabulary> {
   @E.proto static vocabulary = componentsVocabulary
-  @E.proto static styles = { root: rootCSS }
-  @E.proto static Fallback = ComponentsFallback
-  @E.proto static delegatesFocus = false
-  @E.proto static canRenderUnstyled = true
+  @E.proto static styleSheets = { root: rootCSS }
+  @E.proto static elementSetup = { Fallback: ComponentsFallback, delegatesFocus: false, canRenderUnstyled: true }
 
   /** Where the latest pack stands;  `undefined` before one is asked for. */
-  private readonly status = new E.Cell<PackStatus | undefined>(undefined)
+  @E.state accessor loadStatus: PackStatus | undefined = undefined
 
-  /** Packs asked for, so a slower earlier one can't set the state. */
-  private request = 0
-
-  protected hostStates() {
-    const status = this.status.get()
-    return { loading: status === STATUS.loading, loaded: status === STATUS.loaded, error: status === STATUS.error }
+  /** Is the latest pack loading?  `:state(loading)`. */
+  @E.cssState("loading")
+  get isLoading(): boolean {
+    return this.loadStatus === STATUS.loading
   }
 
+  /** Has the latest pack loaded?  `:state(loaded)`. */
+  @E.cssState("loaded")
+  get hasLoaded(): boolean {
+    return this.loadStatus === STATUS.loaded
+  }
+
+  /** Did the latest pack fail?  `:state(error)`. */
+  @E.cssState("error")
+  get hasFailed(): boolean {
+    return this.loadStatus === STATUS.error
+  }
+
+  /** Packs asked for, so a slower earlier one can't set the state. */
+  private latestRequest = 0
+
+  /**
+   * Reads the pack at once, then each new `source`.
+   * - An explicit effect, `defer`red:  the first read must happen synchronously here, as it connects, before any root
+   *   looks;  `@E.onChange` would read it only after the render.
+   */
   render(): JSX.Element {
     if (isServer) return undefined
-    this.read(untrack(() => this.attrs.source))
+    this.read(untrack(() => this.source))
     createEffect(
-      () => this.attrs.source,
+      () => this.source,
       (source) => {
         this.read(source)
       },
@@ -60,27 +76,29 @@ export class UIComponents extends E.UIElement<ComponentsVocabulary> {
    */
   private read(source: string | undefined) {
     if (!source) return
-    const request = ++this.request
+    const request = ++this.latestRequest
     queueMicrotask(() => {
-      if (request === this.request) this.status.set(STATUS.loading)
+      if (request === this.latestRequest) this.loadStatus = STATUS.loading
     })
     void ComponentPack.load(source).then(
       (tags) => {
-        if (request !== this.request) return
-        this.status.set(STATUS.loaded)
-        this.emit("ui-load", { source, tags: tags.map((it) => it.tag) })
+        if (request !== this.latestRequest) return
+        this.loadStatus = STATUS.loaded
+        this.send("ui-load", { source, tags: tags.map((it) => it.tag) })
       },
       (error: unknown) => {
-        if (request !== this.request) return
-        this.status.set(STATUS.error)
+        if (request !== this.latestRequest) return
+        this.loadStatus = STATUS.error
         const kind = E.SourceError.kindFor(error, "load")
-        if (this.emit("ui-error", { kind, source, error })) {
+        if (this.send("ui-error", { kind, source, error })) {
           E.Warnings.warn("<ui-components>", `the pack ${source} didn't load (${kind}):`, error)
         }
       }
     )
   }
 }
+/** The vocabulary getters, typed. */
+export interface UIComponents extends E.AttributeValues<ComponentsVocabulary> {}
 
 /** Where a pack stands:  its host states. */
 const STATUS = { loading: "loading", loaded: "loaded", error: "error" } as const

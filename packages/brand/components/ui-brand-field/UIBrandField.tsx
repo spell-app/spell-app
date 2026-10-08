@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, UIElement, UIT, type AttributeName } from "$/ui/core"
+import { IconGlyph, proto, SlotContent, state, UIElement, UIT, type AttributeName } from "$/ui/core"
 
 import { brandFieldVocabulary } from "./ui-brand-field.vocabulary.en"
 import { BrandFieldFallback } from "./ui-brand-field.fallback"
@@ -37,23 +37,21 @@ import fieldCSS from "./ui-brand-field.css?inline"
  ****************/
 export class UIBrandField extends UIElement<BrandFieldVocabulary> {
   @proto static vocabulary = brandFieldVocabulary
-  @proto static styles = { field: fieldCSS }
-  @proto static Host = BrandFieldHost
-  @proto static Fallback = BrandFieldFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { field: fieldCSS }
+  @proto static elementSetup = { Fallback: BrandFieldFallback, Host: BrandFieldHost, delegatesFocus: false }
 
   ////////////////
   // ## State
   ////////////////
 
-  /** Messages `<ui-form>` asked to show. */
-  readonly formErrors = new Cell<readonly string[]>([])
+  /** Messages `<ui-form>` asked to show;  `BrandFieldHost.errors` reads them untracked. */
+  @state accessor formErrors: readonly string[] = []
 
   /** Light-DOM slot occupancy:  label, actions, value, help. */
   readonly slots = new SlotContent(this.host)
 
   /** Has an info tip:  `info`, or `slot="info"`. */
-  readonly hasInfo = createMemo(() => !!this.attrs.info || this.slots.has(this.slot("info")))
+  readonly hasInfo = createMemo(() => !!this.attrs.info || this.slots.hasContent(this.slotForName("info")))
 
   /** Glyph of the info icon, while there's a tip. */
   readonly infoGlyph = new IconGlyph({ owner: this, name: () => (this.hasInfo() ? INFO_ICON : undefined) })
@@ -70,7 +68,7 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
 
   /** Error messages shown:  `<ui-form>`'s, else `error`. */
   readonly errors = createMemo((): readonly string[] => {
-    const fromForm = this.formErrors.get()
+    const fromForm = this.formErrors
     if (fromForm.length) return fromForm
     return this.attrs.error ? [this.attrs.error] : []
   })
@@ -78,10 +76,10 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
   /** The state shown:  `error` while there's an error, else the attribute. */
   readonly shownState = createMemo(() => (this.errors().length ? ERROR : this.attrs.state))
 
-  readonly hasActions = createMemo(() => this.slots.has(this.slot("actions")))
-  readonly hasValue = createMemo(() => !!this.attrs.value || this.slots.has(this.slot("value")))
-  readonly hasHelp = createMemo(() => !!this.attrs.help || this.slots.has(this.slot("help")))
-  readonly hasLabel = createMemo(() => !!this.attrs.label || this.slots.has(this.slot("label")))
+  readonly hasActions = createMemo(() => this.slots.hasContent(this.slotForName("actions")))
+  readonly hasValue = createMemo(() => !!this.attrs.value || this.slots.hasContent(this.slotForName("value")))
+  readonly hasHelp = createMemo(() => !!this.attrs.help || this.slots.hasContent(this.slotForName("help")))
+  readonly hasLabel = createMemo(() => !!this.attrs.label || this.slots.hasContent(this.slotForName("label")))
 
   ////////////////
   // ## `<ui-form>`
@@ -89,15 +87,10 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
 
   /** Show `messages` (see `BrandFieldHost`). */
   showErrors(messages: readonly string[]) {
-    const current = untrack(() => this.formErrors.get())
+    const current = untrack(() => this.formErrors)
     if (current.length !== messages.length || current.some((message, index) => message !== messages[index])) {
-      this.formErrors.set([...messages])
+      this.formErrors = [...messages]
     }
-  }
-
-  /** Messages `<ui-form>` asked to show. */
-  shownErrors(): readonly string[] {
-    return untrack(() => this.formErrors.get())
   }
 
   ////////////////
@@ -109,11 +102,11 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
     return super.classValue(name)
   }
 
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     return BRAND
   }
 
-  protected hostStates() {
+  protected cssStates() {
     return { field: true, error: this.shownState() === ERROR, disabled: this.attrs.disabled }
   }
 
@@ -124,18 +117,18 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
   render(): JSX.Element {
     this.effects()
     return (
-      <div class={this.classes()} part={this.part("field")} inert={this.attrs.disabled}>
+      <div class={this.rootClasses} part={this.partForName("field")} inert={this.attrs.disabled}>
         <Show when={this.hasLabel() || this.hasActions() || this.hasValue() || this.hasInfo()}>{this.renderRow()}</Show>
-        <div class={CLASSES.control} part={this.part("control")}>
+        <div class={CLASSES.control} part={this.partForName("control")}>
           <slot ref={(element) => (this.controlSlot = element)} onSlotChange={this.onControlChange} />
         </div>
         <Show when={this.hasHelp()}>
-          <div class={CLASSES.help} part={this.part("help")}>
-            <slot name={this.slot("help")}>{this.attrs.help}</slot>
+          <div class={CLASSES.help} part={this.partForName("help")}>
+            <slot name={this.slotForName("help")}>{this.attrs.help}</slot>
           </div>
         </Show>
         <Show when={this.errors().length}>
-          <div class={CLASSES.error} part={this.part("error")} role="alert">
+          <div class={CLASSES.error} part={this.partForName("error")} role="alert">
             <For each={this.errors()}>{(message) => <div>{message}</div>}</For>
           </div>
         </Show>
@@ -146,32 +139,32 @@ export class UIBrandField extends UIElement<BrandFieldVocabulary> {
   /** The label row:  label, then (at its far end) actions, value and the info icon with its tip. */
   private renderRow(): JSX.Element {
     return (
-      <div class={CLASSES.row} part={this.part("row")}>
-        <span class={CLASSES.label} part={this.part("label")} onClick={this.onLabelClick}>
-          <slot name={this.slot("label")}>{this.attrs.label}</slot>
+      <div class={CLASSES.row} part={this.partForName("row")}>
+        <span class={CLASSES.label} part={this.partForName("label")} onClick={this.onLabelClick}>
+          <slot name={this.slotForName("label")}>{this.attrs.label}</slot>
         </span>
         <Show when={this.hasActions()}>
-          <span class={CLASSES.actions} part={this.part("actions")}>
-            <slot name={this.slot("actions")} />
+          <span class={CLASSES.actions} part={this.partForName("actions")}>
+            <slot name={this.slotForName("actions")} />
           </span>
         </Show>
         <Show when={this.hasValue()}>
-          <span class={CLASSES.value} part={this.part("value")}>
-            <slot name={this.slot("value")}>{this.attrs.value}</slot>
+          <span class={CLASSES.value} part={this.partForName("value")}>
+            <slot name={this.slotForName("value")}>{this.attrs.value}</slot>
           </span>
         </Show>
         <Show when={this.hasInfo()}>
           <span
             class={CLASSES.info}
-            part={this.part("info")}
+            part={this.partForName("info")}
             tabindex="0"
             role="img"
-            aria-label={this.text("info", { label: this.attrs.label ?? "" })}
+            aria-label={this.translationForKey("info", { label: this.attrs.label ?? "" })}
             aria-describedby={TIP_ID}
           >
-            {this.infoGlyph.svg()}
-            <span id={TIP_ID} class={CLASSES.tip} part={this.part("tip")} role="tooltip">
-              <slot name={this.slot("info")}>{this.attrs.info}</slot>
+            {this.infoGlyph.svg}
+            <span id={TIP_ID} class={CLASSES.tip} part={this.partForName("tip")} role="tooltip">
+              <slot name={this.slotForName("info")}>{this.attrs.info}</slot>
             </span>
           </span>
         </Show>

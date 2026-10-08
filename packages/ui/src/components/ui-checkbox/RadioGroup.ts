@@ -11,7 +11,7 @@ import type { RadioMember } from "./ui-checkbox.types"
  *   connect, move and rename -- from the member's lifecycle and attribute callbacks, NEVER from an effect.
  * - Everything a member renders from is tracked (`version`), so tabbability and group validity follow joins,
  *   leaves and selections.  Reads see the live set, so a member renders against its own membership at once.
- * - Why not an effect relaying `group()` into `join()`:  readers ran once against the stale membership and again
+ * - Why not an effect relaying `group` into `join()`:  readers ran once against the stale membership and again
  *   after the effect's write -- Solid dev's `EFFECT_RELAY_TEAR`, a wasted frame per radio.
  ****************/
 export class RadioGroup {
@@ -26,7 +26,7 @@ export class RadioGroup {
    * Bumped on every join / leave:  tracked reads of the members go through it.
    * - `ownedWrite`:  a member joins from its constructor and the fork's hooks, which may run inside a Solid render.
    */
-  private readonly version = new E.Cell(0, { ownedWrite: true })
+  @E.state({ ownedWrite: true }) private accessor version = 0
 
   /**
    * Members right now -- read LIVE, not from a published copy.
@@ -34,9 +34,6 @@ export class RadioGroup {
    *   (every radio's first render against a membership without itself).
    */
   private readonly current = new Set<RadioMember>()
-
-  /** Joins + leaves so far:  `version`'s next value. */
-  private changes = 0
 
   /**
    * The group for `name` in `scope`, created on first use.
@@ -54,18 +51,18 @@ export class RadioGroup {
   join(member: RadioMember) {
     if (this.current.has(member)) return
     this.current.add(member)
-    this.version.set(++this.changes)
+    this.version++
   }
 
   /** Remove `member`. */
   leave(member: RadioMember) {
     if (!this.current.delete(member)) return
-    this.version.set(++this.changes)
+    this.version++
   }
 
-  /** Current members, unordered;  tracked. */
-  members(): RadioMember[] {
-    this.version.get()
+  /** Current members, unordered;  tracked (the `version` read). */
+  get members(): RadioMember[] {
+    void this.version
     return [...this.current]
   }
 
@@ -75,34 +72,37 @@ export class RadioGroup {
   }
 
   /** Members in document order;  tracked. */
-  ordered(): RadioMember[] {
-    return this.members().sort(RadioGroup.byHostOrder)
+  @E.derived
+  get membersInOrder(): RadioMember[] {
+    return this.members.sort(RadioGroup.byHostOrder)
   }
 
   /** The chosen member, if any;  tracked. */
-  selected(): RadioMember | undefined {
-    return this.ordered().find((member) => member.isSelected())
+  @E.derived
+  get selectedMember(): RadioMember | undefined {
+    return this.membersInOrder.find((member) => member.isSelected)
   }
 
   /** Is any member required?  Tracked. */
-  isRequired(): boolean {
-    return this.members().some((member) => member.isRequired())
+  get isRequired(): boolean {
+    return this.members.some((member) => member.required)
   }
 
   /**
    * The ONE member in the tab order:  the chosen one when it's enabled, else the first enabled one (native radio
    * group behaviour);  tracked.
    */
-  tabbable(): RadioMember | undefined {
-    const chosen = this.selected()
-    if (chosen && !chosen.isDisabled()) return chosen
-    return this.ordered().find((member) => !member.isDisabled())
+  @E.derived
+  get tabStop(): RadioMember | undefined {
+    const chosen = this.selectedMember
+    if (chosen && !chosen.isDisabled) return chosen
+    return this.membersInOrder.find((member) => !member.isDisabled)
   }
 
   /** The enabled member `delta` steps from `from` in document order, wrapping;  reads the live set, untracked. */
   step(from: RadioMember, delta: number): RadioMember | undefined {
     const ordered = [...this.current].sort(RadioGroup.byHostOrder)
-    const enabled = ordered.filter((member) => member === from || !member.isDisabled())
+    const enabled = ordered.filter((member) => member === from || !member.isDisabled)
     if (enabled.length < 2) return undefined
     const index = enabled.indexOf(from)
     return enabled[(index + delta + enabled.length) % enabled.length]

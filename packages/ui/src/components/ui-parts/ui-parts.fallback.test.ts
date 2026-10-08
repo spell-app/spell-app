@@ -16,9 +16,9 @@ for (const tag of ["ui-meta", "ui-header", "ui-content", "ui-description"]) {
   )
 }
 // the owner registry, as `UIElement.define()` fills it:  the parts, a card (an owner) and a segment (a barrier)
-for (const vocabulary of PartVocabularies) PartContext.define({ vocabulary, tag: vocabulary.tag, isPart: true })
-PartContext.define({ vocabulary: cardVocabulary, tag: cardVocabulary.tag, isPart: false })
-PartContext.define({ vocabulary: segmentVocabulary, tag: segmentVocabulary.tag, isPart: false })
+for (const vocabulary of PartVocabularies) PartContext.define({ vocabulary, tag: vocabulary.tag, isAPart: true })
+PartContext.define({ vocabulary: cardVocabulary, tag: cardVocabulary.tag, isAPart: false })
+PartContext.define({ vocabulary: segmentVocabulary, tag: segmentVocabulary.tag, isAPart: false })
 
 describe("ContentPartFallback", () => {
   it("renders a bare noun div, keyed by the host's tag", async () => {

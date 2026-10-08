@@ -1,0 +1,1 @@
+import{t as e}from"./ui-message-A8902Vm4.js";export{e as UIMessage};

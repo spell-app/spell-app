@@ -97,7 +97,7 @@ export type AttributeSpec = {
    * - NOTE: aliases are English muscle memory;  translations don't rename them.
    * - NOTE: DECLARATIVE only:  `Vocabulary` keeps them reachable by name (translation, docs), but
    *   `ElementDefinition` makes no observed attribute or property for an alias -- the family reads it itself
-   *   (`<ui-item active>`, checkbox `checked`, `<ui-tab active>` through a `HostAttribute`).
+   *   (`<ui-item active>`, checkbox `checked`, `<ui-tab active>`, read raw through the controller's `attributes`).
    */
   aliases?: readonly string[]
   /** What it does, for docs and the custom-elements manifest. */

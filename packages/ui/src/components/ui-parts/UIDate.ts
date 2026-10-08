@@ -10,14 +10,17 @@ import { dateVocabulary } from "./ui-date.vocabulary.en"
 export class UIDate extends PartElement<typeof dateVocabulary> {
   @E.proto static vocabulary = dateVocabulary
 
-  protected tag(): string {
+  protected get rootTag(): string {
     return TIME
   }
 
-  protected datetime(): string | undefined {
-    return this.attrs.datetime
+  protected get rootDatetime(): string | undefined {
+    return this.datetime
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIDate extends E.AttributeValues<typeof dateVocabulary> {}
 
 /** Root element. */
 const TIME = "time"

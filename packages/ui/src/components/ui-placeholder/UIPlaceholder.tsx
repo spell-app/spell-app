@@ -16,24 +16,26 @@ import placeholderCSS from "./ui-placeholder.css?inline"
  ****************/
 export class UIPlaceholder extends E.UIElement<typeof placeholderVocabulary> {
   @E.proto static vocabulary = placeholderVocabulary
-  @E.proto static styles = { placeholder: placeholderCSS }
-  @E.proto static Fallback = PlaceholderFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { placeholder: placeholderCSS }
+  @E.proto static elementSetup = { Fallback: PlaceholderFallback, delegatesFocus: false }
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
     this.host.internals.ariaHidden = UIT.TRUE
   }
 
-  protected hostStates() {
-    return { [UIT.PLACEHOLDER_HOST_STATE]: true }
+  /** A placeholder:  always (`:state(placeholder)`). */
+  @E.cssState(UIT.PLACEHOLDER_HOST_STATE)
+  get isPlaceholder(): boolean {
+    return true
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("placeholder")}>
+      <div class={this.rootClasses} part={this.partForName("placeholder")}>
         <slot />
       </div>
     )
   }
 }
+export interface UIPlaceholder extends E.AttributeValues<typeof placeholderVocabulary> {}

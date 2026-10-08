@@ -67,7 +67,7 @@ export const docsThemesVocabulary = {
     { name: "controls", description: "The wrapper around the controls." },
     { name: "scheme", description: "The light / dark `<button>`:  a sun or a moon, the scheme the page shows." },
     { name: "palette", description: "The `<button>` opening the overlay." },
-    { name: "overlay", description: 'The overlay, a `<ui-popup on="click">`;  its box is `::part(popup)`.' },
+    { name: "overlay", description: 'The overlay, a `<ui-popup open-on="click">`;  its box is `::part(popup)`.' },
     { name: "menu", description: "The overlay's theme list (`role=menu`)." },
     { name: "option", description: "One theme in the list (`role=menuitemradio`)." },
     { name: "system", description: 'The overlay\'s "Match system" switch (`role=switch`).' },

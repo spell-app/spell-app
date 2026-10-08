@@ -10,11 +10,14 @@ import { titleVocabulary } from "./ui-title.vocabulary.en"
 export class UITitle extends PartElement<typeof titleVocabulary> {
   @E.proto static vocabulary = titleVocabulary
 
-  protected tag(): string {
-    return this.attrs.href ? UIT.ANCHOR_TAG : "div"
+  protected get rootTag(): string {
+    return this.href ? UIT.ANCHOR_TAG : "div"
   }
 
-  protected href(): string | undefined {
-    return this.attrs.href
+  protected get rootHref(): string | undefined {
+    return this.href
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UITitle extends E.AttributeValues<typeof titleVocabulary> {}

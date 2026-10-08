@@ -1,4 +1,4 @@
-import { onSettled, type Accessor } from "solid-js"
+import { onSettled } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -12,7 +12,7 @@ import { LabelWatch } from "./LabelWatch"
  * its HOST.
  * - Why:  `<label for="email">` + `<ui-input id="email">` labels the host (`ElementInternals.labels`), but the
  *   focusable element inside has no name of its own, and `aria-labelledby` can't point across the shadow boundary.
- *   The element hands `name()` to its inner control as `aria-label`.
+ *   The element hands `accessibleName` to its inner control as `aria-label`.
  * - Sources, first wins:
  *   - host `aria-label`
  *   - host `aria-labelledby`:  ids resolved in the host's tree, their text joined
@@ -27,19 +27,19 @@ import { LabelWatch } from "./LabelWatch"
  * - Server render (`$/ui/static`):  read ONCE, in the constructor, from the parsed page (`serverLabels()`);
  *   nothing is watched.  Why:  a slider thumb, a rating's radio group, an inline calendar's group can't be named by
  *   a `<label for>` on the static page either.
- * - MUST be created under the element's owner (it creates a signal and an `onSettled`).
+ * - MUST be created under the element's owner (it creates an `onSettled`).
  * - Part of the `forms` entry:  reaches the core through the `$/ui/core` ENTRY (`E`), never its leaves, and its
- *   `forms` peers through `F` (`forms.ts`);  `LabelWatch` directly, its own helper, in neither entry.
+ *   `forms` peers through `F` (`forms.ts`);  `LabelWatch` directly, its own helper, in neither entry.  `@E.state` is
+ *   safe while this module evaluates:  the core never imports `forms`.
  ****************/
 export class ControlLabels {
-  /** Name for the inner control, `undefined` when nothing names the host;  tracked. */
-  readonly name: Accessor<string | undefined>
+  /**
+   * The inner control's accessible name (the platform's term), `undefined` when nothing names the host;  tracked.
+   */
+  @E.state accessor accessibleName: string | undefined = undefined
 
   /** The host. */
   private readonly host: F.FormHost
-
-  /** Writes `name`. */
-  private readonly cell: E.Cell<string | undefined>
 
   /** Watches the labels found last. */
   private labelObserver?: MutationObserver
@@ -51,9 +51,10 @@ export class ControlLabels {
   constructor(host: F.FormHost) {
     this.host = host
     // a server render (`$/ui/static`) reads the page once:  nothing changes, nothing is watched
-    this.cell = new E.Cell<string | undefined>(isServer ? this.nameFor(this.serverLabels()) : undefined)
-    this.name = this.cell.get
-    if (isServer) return
+    if (isServer) {
+      this.accessibleName = this.nameFor(this.serverLabels())
+      return
+    }
     onSettled(() => {
       const refresh = () => this.refresh()
       const hostObserver = new MutationObserver(refresh)
@@ -92,7 +93,7 @@ export class ControlLabels {
         this.labelObserver.observe(label, { childList: true, characterData: true, subtree: true })
       }
     }
-    this.cell.set(this.nameFor(labels))
+    this.accessibleName = this.nameFor(labels)
   }
 
   ////////////////

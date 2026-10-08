@@ -365,8 +365,8 @@ export type PartDefinition = {
   vocabulary: E.ComponentVocabulary
   /** the tag it was defined as, canonical or translated */
   tag: string
-  /** a generic content part:  transparent to other parts' climbs (`UIElement.isPart`) */
-  isPart: boolean
+  /** a generic content part:  transparent to other parts' climbs (`UIElement`'s `elementSetup.isAPart`) */
+  isAPart: boolean
   /** owns its parts only while its controller says so (`ConditionalOwner`) */
   isConditionalOwner?: boolean
 }
@@ -511,13 +511,13 @@ export type InlineValues<S extends E.AttributeSpec> = S["values"] extends readon
   : string
 
 /**
- * Every attribute of `V` as a converted, read-only property, keyed by camelCase canonical name:
- * `attrs.allowAdditions`, `attrs.size`.
- * - These ARE the fork's props:  one signal each, converted on the way in (attribute AND property writes), so
- *   reading one inside JSX, a memo or an effect TRACKS it with no memo layer of our own.
+ * Every attribute of `V` as a converted property, keyed by camelCase canonical name:  `allowAdditions`, `size`.
+ * - A controller's vocabulary members (`export interface UIButton extends E.AttributeValues<...> {}`):  reading
+ *   one is fresh and tracked;  writing one writes the host PROPERTY (`Reactive.installAttributeGetters()`).
+ * - `Readonly<>`, the fork's props (`UIElement.attrs`):  one signal each, converted on the way in.
  */
 export type AttributeValues<V extends E.ComponentVocabulary> = {
-  readonly [S in V["attributes"][number] as CamelCase<S["name"]>]: SpecValue<S>
+  [S in V["attributes"][number] as CamelCase<S["name"]>]: SpecValue<S>
 }
 
 ////////////////
@@ -581,14 +581,18 @@ export type SourceFailure = {
   error: unknown
 }
 
+/**
+ * A URL as written in markup (`source="docs/intro.md"`):  maybe relative, resolved against the page by whoever
+ * fetches it.
+ */
+export type URLString = string
+
 /** What `SourceHost` asks of its controller (`SourceElement`). */
 export type SourceController = {
-  /** the text now shown, edits included */
-  readonly content: string
-  /** show `text` instead, `dirty` until saved */
-  setContent(text: string): void
+  /** the text now shown, edits included;  set it to show other text, `dirty` until saved */
+  content: string
   /** version of the last load / save */
-  readonly etag: string | undefined
+  readonly lastETag: string | undefined
   /** changed since loaded / saved? */
   readonly isDirty: boolean
   /** save, see `SourceElement.save()` */
@@ -651,7 +655,7 @@ export type SourceBodyOwner = {
   /** where the body goes:  the host (a section), or a panel's `<ui-content>` (an accordion) */
   target(): Element
   /** dispatch vocabulary event `name` (`ui-load`, `ui-error`);  false when a cancelable one was vetoed */
-  emit(name: string, detail: object): boolean
+  send(name: string, detail: object): boolean
 }
 
 /** What `SourceBodyHost` asks of its controller (`<ui-section>`, `<ui-accordion>`). */
@@ -677,6 +681,8 @@ export const SourceEvent = {
   saved: "ui-saved",
   error: ERROR_EVENT
 } as const
+/** One of `SourceEvent`'s names, e.g. `"ui-load"`. */
+export type SourceEventName = (typeof SourceEvent)[keyof typeof SourceEvent]
 
 ////////////////
 // ## Dropdown

@@ -387,7 +387,7 @@ describe("<ui-brand-check> native fallback", () => {
 function breakOnUpdate(check: Element) {
   const controller = (check as unknown as { controller: object }).controller
   Object.defineProperty(controller, "extraClasses", {
-    value: () => {
+    get: () => {
       throw new Error("forced render failure")
     }
   })

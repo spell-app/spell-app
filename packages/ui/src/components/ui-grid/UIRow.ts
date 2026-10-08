@@ -10,3 +10,6 @@ import { GridPart } from "./GridPart"
 export class UIRow extends GridPart<typeof rowVocabulary> {
   @E.proto static vocabulary = rowVocabulary
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIRow extends E.AttributeValues<typeof rowVocabulary> {}

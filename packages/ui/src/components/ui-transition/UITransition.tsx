@@ -1,4 +1,4 @@
-import { createEffect, untrack } from "solid-js"
+import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -31,79 +31,68 @@ import transitionCSS from "./ui-transition.css?inline"
  ****************/
 export class UITransition extends E.UIElement<Vocabulary> {
   @E.proto static vocabulary = transitionVocabulary
-  @E.proto static styles = { transition: transitionCSS }
-  @E.proto static Fallback = TransitionFallback
-  @E.proto static Host = TransitionHost
-  // a click on animated text must not jump focus to a link inside it
-  @E.proto static delegatesFocus = false
-
-  ////////////////
-  // ## State
-  ////////////////
-
-  /** `visible`:  always the host's (a boolean), written by the host methods so it reflects. */
-  readonly visibleState = this.controlled("visible", false)
-
-  /** Shown, or on its way in;  follows the queue, not the attribute. */
-  readonly isVisible = new E.Cell(untrack(() => !!this.attrs.visible))
-
-  /** An animation is running. */
-  readonly isAnimating = new E.Cell(false)
-
-  /** The animated box. */
-  private box?: HTMLDivElement
-
-  /** Where the queue is heading:  visible once every queued step has run. */
-  private isHeadingVisible = untrack(() => !!this.attrs.visible)
-
-  /** Steps waiting to run, in order. */
-  private readonly queue: TransitionStep[] = []
-
-  /** The step running now. */
-  private running?: TransitionStep
+  @E.proto static styleSheets = { transition: transitionCSS }
+  @E.proto static elementSetup = {
+    Fallback: TransitionFallback,
+    Host: TransitionHost,
+    // a click on animated text must not jump focus to a link inside it
+    delegatesFocus: false
+  }
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
-    const listeners = new AbortController()
-    this.host.addEventListener("command", this.onCommand, { signal: listeners.signal })
-    this.host.addReleaseCallback(() => listeners.abort())
+    this.on("command", this.onCommand)
   }
 
   ////////////////
-  // ## Element hooks
+  // ## Visibility
   ////////////////
+
+  /** Shown, or on its way in;  follows the queue, not the `visible` attribute.  `:state(visible)`. */
+  @E.cssState("visible")
+  @E.state
+  accessor isShowing = untrack(() => !!this.visible)
+
+  /** An animation is running.  `:state(animating)`. */
+  @E.cssState("animating")
+  @E.state
+  accessor isAnimating = false
+
+  /** Where the queue is heading:  visible once every queued step has run. */
+  private willBeVisible = untrack(() => !!this.visible)
+
+  /**
+   * `visible` changed:  queue an `in` / `out`.
+   * - Once rendered (`isReady`), as when the render created it:  only then can the box animate.
+   */
+  @E.onChange("visible", "isReady")
+  protected onVisibleChanged(visible: boolean, isReady: boolean) {
+    if (isReady && visible !== this.willBeVisible) void this.queueVisibility(visible, this.animationName)
+  }
 
   /** Its state after the noun, as Fomantic's script added it:  `visible`, `animating`. */
-  protected extraClasses(): string | undefined {
-    const words = [this.isVisible.get() ? UIT.VISIBLE : undefined, this.isAnimating.get() ? UIT.ANIMATING : undefined]
+  protected get extraClasses(): string | undefined {
+    const words = [this.isShowing ? UIT.VISIBLE : undefined, this.isAnimating ? UIT.ANIMATING : undefined]
     return words.filter(Boolean).join(" ") || undefined
-  }
-
-  protected hostStates() {
-    return { visible: this.isVisible.get(), animating: this.isAnimating.get() }
   }
 
   ////////////////
   // ## Rendering
   ////////////////
 
+  /** The animated box. */
+  private box?: HTMLDivElement
+
   render(): JSX.Element {
-    // in the render, not `mount()`:  it calls nothing a subclass overrides, and only runs once the box can animate
-    createEffect(
-      () => !!this.attrs.visible,
-      (isVisible) => {
-        if (isVisible !== this.isHeadingVisible) void this.queueVisibility(isVisible, this.animationName())
-      }
-    )
     // a server render (`$/ui/static`) never calls `ref`:  first paint's `hidden` as an attribute
     if (isServer)
       return (
-        <div class={this.classes()} part={this.part("transition")} hidden={!this.isHeadingVisible || undefined}>
+        <div class={this.rootClasses} part={this.partForName("transition")} hidden={!this.willBeVisible || undefined}>
           <slot />
         </div>
       )
     return (
-      <div ref={(element) => this.attach(element)} class={this.classes()} part={this.part("transition")}>
+      <div ref={(element) => this.attach(element)} class={this.rootClasses} part={this.partForName("transition")}>
         <slot />
       </div>
     )
@@ -112,7 +101,7 @@ export class UITransition extends E.UIElement<Vocabulary> {
   /** First paint:  hidden unless `visible`, with no animation. */
   private attach(box: HTMLDivElement) {
     this.box = box
-    box.hidden = !this.isHeadingVisible
+    box.hidden = !this.willBeVisible
   }
 
   ////////////////
@@ -120,15 +109,15 @@ export class UITransition extends E.UIElement<Vocabulary> {
   ////////////////
 
   /** Animate to `visible`;  writes the host's `visible` so it reflects. */
-  setVisible(visible: boolean, animation = this.animationName()): Promise<boolean> {
-    const done = visible === this.isHeadingVisible ? this.lastDone() : this.queueVisibility(visible, animation)
-    this.visibleState.set(visible)
+  animateTo(visible: boolean, animation = this.animationName): Promise<boolean> {
+    const done = visible === this.willBeVisible ? this.lastDone() : this.queueVisibility(visible, animation)
+    this.visible = visible
     return done
   }
 
   /** Flip visibility. */
   toggle(): Promise<boolean> {
-    return this.setVisible(!this.isHeadingVisible)
+    return this.animateTo(!this.willBeVisible)
   }
 
   /**
@@ -136,7 +125,7 @@ export class UITransition extends E.UIElement<Vocabulary> {
    * toggling visibility.
    * - Takes Fomantic's names (`fade up`) or the runtime's (`fade-up`);  an unknown one warns and resolves `false`.
    */
-  transition(animation = this.animationName()): Promise<boolean> {
+  transition(animation = this.animationName): Promise<boolean> {
     const name = UITransition.fomanticNameFor(animation)
     if (!name) {
       E.Warnings.warn(
@@ -147,14 +136,14 @@ export class UITransition extends E.UIElement<Vocabulary> {
       return Promise.resolve(false)
     }
     if (UITransition.isAttention(name)) return this.enqueue(STATIC, name)
-    return this.setVisible(!this.isHeadingVisible, name)
+    return this.animateTo(!this.willBeVisible, name)
   }
 
   /** An invoker command aimed at the host (`TransitionCommands`). */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
-    if (command === UIT.TransitionCommands.show) void this.setVisible(true)
-    else if (command === UIT.TransitionCommands.close) void this.setVisible(false)
+    if (command === UIT.TransitionCommands.show) void this.animateTo(true)
+    else if (command === UIT.TransitionCommands.close) void this.animateTo(false)
     else if (command === UIT.TransitionCommands.toggle) void this.toggle()
     else if (command === UIT.TransitionCommands.transition) void this.transition()
   }
@@ -163,9 +152,15 @@ export class UITransition extends E.UIElement<Vocabulary> {
   // ## Queue
   ////////////////
 
+  /** Steps waiting to run, in order. */
+  private readonly queue: TransitionStep[] = []
+
+  /** The step running now. */
+  private runningStep?: TransitionStep
+
   /** Queue an `in` / `out` of `animation`, heading for `visible`. */
   private queueVisibility(visible: boolean, animation: string): Promise<boolean> {
-    this.isHeadingVisible = visible
+    this.willBeVisible = visible
     return this.enqueue(visible ? UIT.IN : UIT.OUT, animation)
   }
 
@@ -175,33 +170,33 @@ export class UITransition extends E.UIElement<Vocabulary> {
    *   promise is returned instead.
    */
   private enqueue(direction: E.AnimationDirection, animation: string): Promise<boolean> {
-    const last = this.queue.at(-1) ?? this.running
+    const last = this.queue.at(-1) ?? this.runningStep
     const isRepeat = last?.animation === animation && last.direction === direction
-    if (isRepeat && !untrack(() => this.attrs.allowRepeats)) return last.done
-    const isInterrupting = untrack(() => !!this.attrs.interrupt)
+    if (isRepeat && !untrack(() => this.allowRepeats)) return last.done
+    const isInterrupting = untrack(() => !!this.interrupt)
     if (isInterrupting) for (const dropped of this.queue.splice(0)) dropped.resolve(false)
     let resolve!: (isCompleted: boolean) => void
     const done = new Promise<boolean>((settle) => (resolve = settle))
     this.queue.push({ direction, animation, done, resolve })
-    if (!this.running || isInterrupting) this.next()
+    if (!this.runningStep || isInterrupting) this.next()
     return done
   }
 
   /** Promise of the last queued (or running) step;  resolved `true` when idle. */
   private lastDone(): Promise<boolean> {
-    return (this.queue.at(-1) ?? this.running)?.done ?? Promise.resolve(true)
+    return (this.queue.at(-1) ?? this.runningStep)?.done ?? Promise.resolve(true)
   }
 
   /** Start the next step, if any;  a step superseded (`interrupt`) resolves `false` and starts nothing. */
   private next() {
     const step = this.queue.shift()
-    this.running = step
-    this.isAnimating.set(!!step)
+    this.runningStep = step
+    this.isAnimating = !!step
     if (!step) return
-    if (step.direction === UIT.IN) this.isVisible.set(true)
+    if (step.direction === UIT.IN) this.isShowing = true
     void this.run(step).then((isCompleted) => {
-      if (this.running !== step) return step.resolve(false)
-      if (step.direction === UIT.OUT) this.isVisible.set(false)
+      if (this.runningStep !== step) return step.resolve(false)
+      if (step.direction === UIT.OUT) this.isShowing = false
       this.announce(step)
       step.resolve(isCompleted)
       this.next()
@@ -223,18 +218,18 @@ export class UITransition extends E.UIElement<Vocabulary> {
       box.hidden = step.direction === UIT.OUT
       return Promise.resolve(true)
     }
-    return UI.transitions.animate({ element: box, name, direction: step.direction, ...this.animateOptions() })
+    return UI.transitions.animate({ element: box, name, direction: step.direction, ...this.animateOptions })
   }
 
   /** `ui-show` / `ui-hide` after an `in` / `out`, then `ui-complete`. */
   private announce(step: TransitionStep) {
     const detail: UIT.TransitionDetail = {
-      visible: step.direction === STATIC ? this.isHeadingVisible : step.direction === UIT.IN,
+      visible: step.direction === STATIC ? this.willBeVisible : step.direction === UIT.IN,
       animation: step.animation
     }
-    if (step.direction === UIT.IN) this.emit("ui-show", detail)
-    else if (step.direction === UIT.OUT) this.emit("ui-hide", detail)
-    this.emit("ui-complete", detail)
+    if (step.direction === UIT.IN) this.send("ui-show", detail)
+    else if (step.direction === UIT.OUT) this.send("ui-hide", detail)
+    this.send("ui-complete", detail)
   }
 
   ////////////////
@@ -242,13 +237,13 @@ export class UITransition extends E.UIElement<Vocabulary> {
   ////////////////
 
   /** The `animation` attribute, untracked. */
-  private animationName(): string {
-    return untrack(() => this.attrs.animation) ?? DEFAULT_ANIMATION
+  private get animationName(): string {
+    return untrack(() => this.animation) ?? DEFAULT_ANIMATION
   }
 
   /** `duration` as `UI.transitions` takes it:  bare digits are ms. */
-  private animateOptions(): E.AnimateOptions {
-    const duration = untrack(() => this.attrs.duration)?.trim()
+  private get animateOptions(): E.AnimateOptions {
+    const duration = untrack(() => this.duration)?.trim()
     if (!duration) return {}
     return { duration: UIT.DIGITS.test(duration) ? Number(duration) : duration }
   }
@@ -278,6 +273,9 @@ export class UITransition extends E.UIElement<Vocabulary> {
     return (AttentionAnimations as readonly string[]).includes(animation)
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UITransition extends E.AttributeValues<Vocabulary> {}
 
 /** One queued animation. */
 type TransitionStep = {

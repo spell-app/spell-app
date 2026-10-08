@@ -1,0 +1,1 @@
+import{t as e}from"./ui-list-C15_dZXx.js";export{e as UIList};

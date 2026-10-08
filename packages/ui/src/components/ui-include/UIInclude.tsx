@@ -1,5 +1,5 @@
-import { Show, createEffect } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Show } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E, type UIT } from "$/ui/core"
 import { RootLoader } from "$/ui/components/ui-root"
@@ -32,14 +32,12 @@ import includeCSS from "./ui-include.css?inline"
  ****************/
 export class UIInclude extends E.SourceElement<Vocabulary> {
   @E.proto static vocabulary = includeVocabulary
-  @E.proto static styles = { include: includeCSS }
-  @E.proto static Fallback = IncludeFallback
-  @E.proto static Host = UIIncludeHost
-  @E.proto static inlineContent = false
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { include: includeCSS }
+  @E.proto static elementSetup = { Fallback: IncludeFallback, Host: UIIncludeHost, delegatesFocus: false }
+  @E.proto static wantsInlineContent = false
 
   /** Markup is in place:  the placeholder slot goes (shadow mode). */
-  readonly inserted = new E.Cell(false)
+  @E.state accessor markupIsInserted = false
 
   /** The shadow box the markup goes in, once rendered. */
   private box?: HTMLElement
@@ -60,31 +58,25 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
   // ## Rendering
   ////////////////
 
-  /** Insert the markup whenever the text, `select` or `page-styles` change. */
-  mount(): JSX.Element {
-    if (!isServer) {
-      createEffect(
-        () => ({
-          text: this.contentText(),
-          isLoaded: this.status.get() === E.SourceStatus.loaded,
-          select: this.attrs.select || undefined,
-          pageStyles: !!this.attrs.pageStyles
-        }),
-        ({ text, isLoaded, select, pageStyles }) => {
-          if (isLoaded) this.insert({ text, select, pageStyles })
-        }
-      )
-    }
-    return super.mount()
+  /** Insert the markup whenever the text, `select` or `page-styles` change, once loaded. */
+  @E.onChange("textToShow", "loadStatus", "select", "pageStyles")
+  protected onMarkupChanged(
+    text: string,
+    loadStatus: E.SourceStatus,
+    select: string | undefined,
+    pageStyles: boolean | undefined
+  ) {
+    if (loadStatus === E.SourceStatus.loaded)
+      this.insert({ text, select: select || undefined, pageStyles: !!pageStyles })
   }
 
   /**
    * Words after the noun, hooks for page CSS:  a deferred `load` mode (`ui include visible`:  e.g. reserve room for a
    * lazy island), and `loading` while `source` loads.
    */
-  protected extraClasses(): string | undefined {
-    const mode = this.attrs.load && this.attrs.load !== EAGER ? this.attrs.load : undefined
-    const loading = this.status.get() === E.SourceStatus.loading ? LOADING_CLASS : undefined
+  protected get extraClasses(): string | undefined {
+    const mode = this.load && this.load !== EAGER ? this.load : undefined
+    const loading = this.loadStatus === E.SourceStatus.loading ? LOADING_CLASS : undefined
     return [mode, loading].filter(Boolean).join(" ") || undefined
   }
 
@@ -92,13 +84,13 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
   protected renderContent(): JSX.Element {
     return (
       <>
-        <Show when={this.attrs.pageStyles || !this.inserted.get()}>
+        <Show when={this.pageStyles || !this.markupIsInserted}>
           <slot />
         </Show>
         <div
-          class={this.classes()}
-          part={this.part("content")}
-          hidden={!!this.attrs.pageStyles}
+          class={this.rootClasses}
+          part={this.partForName("content")}
+          hidden={!!this.pageStyles}
           ref={(box: HTMLDivElement) => {
             this.box = box
           }}
@@ -108,7 +100,7 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
   }
 
   /** Where the included markup lives:  the shadow box, or the host with `page-styles`. */
-  contentRoot(): HTMLElement | undefined {
+  get contentRoot(): HTMLElement | undefined {
     return this.root
   }
 
@@ -125,17 +117,17 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
     try {
       markup = this.parse(text, select)
     } catch (error) {
-      this.loadFailed(error, "render")
+      this.onLoadError(error, "render")
       return
     }
     if (this.root && this.root !== target) this.root.replaceChildren()
-    this.emit("ui-insert", { fragment: markup, source: this.sourceAttribute() } satisfies IncludeInsertDetail)
+    this.send("ui-insert", { fragment: markup, source: this.source || undefined } satisfies IncludeInsertDetail)
     target.replaceChildren(markup)
     this.root = target
     this.selected = select ? (target.firstElementChild ?? undefined) : undefined
     this.insertedFrom = text
     this.insertedMarkup = this.liveMarkup()
-    this.inserted.set(true)
+    this.markupIsInserted = true
     UIInclude.loadFamilies(target)
   }
 
@@ -144,7 +136,7 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
    * - Throws a `render` `SourceError` for a selector that's invalid or matches nothing.
    */
   private parse(text: string, select: string | undefined): DocumentFragment {
-    return E.SourceMarkup.parse(text, { page: this.host.ownerDocument, source: this.sourceAttribute(), select })
+    return E.SourceMarkup.parse(text, { page: this.host.ownerDocument, source: this.source || undefined, select })
   }
 
   /** The live markup (or the `select`ed element's), with every rewritten URL back as written;  none before insert. */
@@ -173,12 +165,17 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
     return this.selected ? live : UIInclude.spliceBody(text, live)
   }
 
+  /** As `SourceElement`'s:  a getter override hides the inherited setter, so it's repeated here. */
+  set content(text: string) {
+    super.content = text
+  }
+
   /** With `select`:  the matched element's `id`, so only it is replaced;  it MUST have one. */
   protected saveFragment(): string | undefined {
-    if (!this.attrs.select) return undefined
+    if (!this.select) return undefined
     const id = this.selected?.id
     if (!id) {
-      throw new E.SourceError(`UIInclude.save():  "${this.attrs.select}" matched an element with no id;  give it one`, {
+      throw new E.SourceError(`UIInclude.save():  "${this.select}" matched an element with no id;  give it one`, {
         cause: { kind: "save" }
       })
     }
@@ -219,6 +216,9 @@ export class UIInclude extends E.SourceElement<Vocabulary> {
     return file.slice(0, open.index + open[0].length) + body + file.slice(close.index)
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIInclude extends E.AttributeValues<Vocabulary> {}
 
 /** The default `load` mode:  no class word. */
 const EAGER: UIT.SourceLoadMode = "eager"

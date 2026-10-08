@@ -21,9 +21,8 @@ import commentCSS from "./ui-comment.css?inline"
  ****************/
 export class UIComment extends E.UIElement<typeof commentVocabulary> {
   @E.proto static vocabulary = commentVocabulary
-  @E.proto static styles = { comment: commentCSS }
-  @E.proto static Fallback = CommentFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { comment: commentCSS }
+  @E.proto static elementSetup = { Fallback: CommentFallback, delegatesFocus: false }
 
   /** Its comment list, if any. */
   readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
@@ -31,28 +30,33 @@ export class UIComment extends E.UIElement<typeof commentVocabulary> {
   /** Light-DOM slot occupancy. */
   readonly slots = new E.SlotContent(this.host)
 
-  isDisabled(): boolean {
-    return this.attrs.disabled
+  /** Faded and inert:  its `disabled` attribute. */
+  @E.cssState("disabled")
+  get isDisabled(): boolean {
+    return this.disabled
   }
 
-  protected hostStates() {
-    return { collapsed: this.attrs.collapsed, disabled: this.attrs.disabled }
+  /** Folded away:  its `collapsed` attribute. */
+  @E.cssState("collapsed")
+  get isCollapsed(): boolean {
+    return this.collapsed
   }
 
   render(): JSX.Element {
     return (
       <article
-        class={this.classes()}
-        part={this.part("comment")}
-        aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}
+        class={this.rootClasses}
+        part={this.partForName("comment")}
+        aria-disabled={this.disabled ? UIT.TRUE : undefined}
       >
         <slot />
-        <Show when={this.slots.has(this.slot("reply"))}>
-          <div class={REPLY} part={this.part("reply")}>
-            <slot name={this.slot("reply")} />
+        <Show when={this.slots.hasContent(this.slotForName("reply"))}>
+          <div class={REPLY} part={this.partForName("reply")}>
+            <slot name={this.slotForName("reply")} />
           </div>
         </Show>
       </article>
     )
   }
 }
+export interface UIComment extends E.AttributeValues<typeof commentVocabulary> {}

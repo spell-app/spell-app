@@ -10,7 +10,8 @@ export class UIPlaceholderImage extends PlaceholderShape<typeof placeholderImage
   @E.proto static vocabulary = placeholderImageVocabulary
 
   /** Solid:  nothing inside. */
-  protected holdsShapes(): boolean {
+  protected get canHoldShapes(): boolean {
     return false
   }
 }
+export interface UIPlaceholderImage extends E.AttributeValues<typeof placeholderImageVocabulary> {}

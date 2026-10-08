@@ -21,45 +21,73 @@ import segmentCSS from "./ui-segment.css?inline"
  ****************/
 export class UISegment extends E.UIElement<typeof segmentVocabulary> {
   @E.proto static vocabulary = segmentVocabulary
-  @E.proto static styles = { segment: segmentCSS }
-  @E.proto static Fallback = SegmentFallback
+  @E.proto static styleSheets = { segment: segmentCSS }
+  @E.proto static elementSetup = { Fallback: SegmentFallback }
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
-    super(...args)
+  ////////////////
+  // ## States
+  ////////////////
+
+  /** Piled sheets (`piled`).  `:state(piled)`. */
+  @E.cssState("piled")
+  get isPiled(): boolean {
+    return !!this.piled
+  }
+
+  /** The dark scheme (`inverted`).  `:state(inverted)`. */
+  @E.cssState("inverted")
+  get isInverted(): boolean {
+    return !!this.inverted
+  }
+
+  /** Loading (`loading`).  `:state(loading)`. */
+  @E.cssState("loading")
+  get isLoading(): boolean {
+    return !!this.loading
+  }
+
+  /**
+   * Marked disabled (`disabled`):  a look, not `isDisabled` -- the host still takes clicks (its content's links).
+   * `:state(disabled)`.
+   */
+  @E.cssState("disabled")
+  get looksDisabled(): boolean {
+    return !!this.disabled
+  }
+
+  /** SIDE EFFECT:  busy / disabled for assistive tech. */
+  @E.onChange("loading", "disabled", { writesHost: true })
+  protected onBusyOrDisabledChanged(isLoading: boolean | undefined, isDisabled: boolean | undefined) {
     const { internals } = this.host
-    // SIDE EFFECT:  busy / disabled for assistive tech
-    this.hostEffect(
-      () => [this.attrs.loading, this.attrs.disabled] as const,
-      ([isLoading, isDisabled]) => {
-        internals.ariaBusy = isLoading ? UIT.TRUE : null
-        internals.ariaDisabled = isDisabled ? UIT.TRUE : null
-      }
-    )
+    internals.ariaBusy = isLoading ? UIT.TRUE : null
+    internals.ariaDisabled = isDisabled ? UIT.TRUE : null
   }
 
-  protected hostStates() {
-    const { piled, inverted, loading, disabled } = this.attrs
-    return { piled, inverted, loading, disabled }
-  }
+  ////////////////
+  // ## Rendering
+  ////////////////
 
   render(): JSX.Element {
     return (
       <div
-        class={this.classes()}
-        part={this.part("segment")}
-        tabindex={this.attrs.scrolling ? 0 : undefined}
-        style={this.attrs.inverted ? { [UIT.PartOwnerTokens.inverted]: INVERTED } : undefined}
+        class={this.rootClasses}
+        part={this.partForName("segment")}
+        tabindex={this.scrolling ? 0 : undefined}
+        style={this.inverted ? { [UIT.PartOwnerTokens.inverted]: INVERTED } : undefined}
       >
         <slot />
-        <Show when={this.attrs.loading}>
+        <Show when={this.loading}>
           <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
-            {this.text("loading")}
+            {this.translationForKey("loading")}
           </span>
         </Show>
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UISegment extends E.AttributeValues<typeof segmentVocabulary> {}
 
 /** `UIT.PartOwnerTokens.inverted` of an `inverted` segment, inline:  its parts take the dark scheme. */
 const INVERTED = "1"

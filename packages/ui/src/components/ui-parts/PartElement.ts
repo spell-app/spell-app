@@ -8,5 +8,5 @@ import { ContentPartFallback } from "./ui-parts.fallback"
  * - Why a family base:  the fallback belongs in the `parts` chunk, not in `core` with `ContentPart`.
  ****************/
 export abstract class PartElement<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends E.ContentPart<V> {
-  @E.proto static Fallback = ContentPartFallback
+  @E.proto static elementSetup: Partial<E.ElementSetup> = { Fallback: ContentPartFallback }
 }

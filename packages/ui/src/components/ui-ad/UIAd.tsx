@@ -16,20 +16,19 @@ import adCSS from "./ui-ad.css?inline"
  ****************/
 export class UIAd extends E.UIElement<typeof adVocabulary> {
   @E.proto static vocabulary = adVocabulary
-  @E.proto static styles = { ad: adCSS }
-  @E.proto static Fallback = AdFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { ad: adCSS }
+  @E.proto static elementSetup = { Fallback: AdFallback, delegatesFocus: false }
 
-  protected extraClasses(): string | undefined {
-    return this.isTest() ? TEST : undefined
+  protected get extraClasses(): string | undefined {
+    return this.isTest ? TEST : undefined
   }
 
   render(): JSX.Element {
     return (
       <div
-        class={this.classes()}
-        part={this.part("ad")}
-        data-text={this.isTest() ? this.attrs.test || this.text("adTest") : undefined}
+        class={this.rootClasses}
+        part={this.partForName("ad")}
+        data-text={this.isTest ? this.test || this.translationForKey("adTest") : undefined}
       >
         <slot />
       </div>
@@ -37,7 +36,10 @@ export class UIAd extends E.UIElement<typeof adVocabulary> {
   }
 
   /** `test` present, bare or with text? */
-  private isTest(): boolean {
-    return this.attrs.test !== undefined
+  private get isTest(): boolean {
+    return this.test !== undefined
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIAd extends E.AttributeValues<typeof adVocabulary> {}

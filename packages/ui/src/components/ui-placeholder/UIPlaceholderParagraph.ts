@@ -9,3 +9,4 @@ import { placeholderParagraphVocabulary } from "./ui-placeholder-paragraph.vocab
 export class UIPlaceholderParagraph extends PlaceholderShape<typeof placeholderParagraphVocabulary> {
   @E.proto static vocabulary = placeholderParagraphVocabulary
 }
+export interface UIPlaceholderParagraph extends E.AttributeValues<typeof placeholderParagraphVocabulary> {}

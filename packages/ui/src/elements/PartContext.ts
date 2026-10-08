@@ -1,8 +1,17 @@
-import { createEffect, onSettled, untrack } from "solid-js"
-import { isServer } from "@solidjs/web"
+import { onSettled, untrack } from "solid-js"
 import { onConnect } from "@spell-app/solid-element"
 
 import { E } from "$/ui/core"
+// Import directly to avoid circular import
+import { onChange, state } from "./Reactive"
+
+/**
+ * Same owner element, noun and depth:  no state change (`PartContext.owner`'s `equals`).
+ * - Above the class:  `@state({ equals })` reads it while the class is defined.
+ */
+function isSameOwner(a: E.OwnerMatch | undefined, b: E.OwnerMatch | undefined) {
+  return a?.owner === b?.owner && a?.ownerNoun === b?.ownerNoun && a?.depth === b?.depth
+}
 
 /****************
  * ### `PartContext`
@@ -14,8 +23,8 @@ import { E } from "$/ui/core"
  *   (`.ui.icons > .icon`).
  * - CONDITIONAL owners (`ConditionalOwner`, a part whose controller has `isOwnerOf()`):  asked during the climb,
  *   transparent while they say no -- `<ui-item>` owns its content parts in the Items view only.
- * - SIDE EFFECT:  keeps `:state(in-<owner>)` on the host in step with `owner`, via an effect;  NEVER the static
- *   `in-<owner>` class.
+ * - SIDE EFFECT:  keeps `:state(in-<owner>)` on the host in step with `owner` (`onOwnerChanged()`);  NEVER the
+ *   static `in-<owner>` class.
  * - Re-resolves on:
  *   - every connect after the first (`keepAlive` keeps the controller across moves, so a part re-parented into
  *     another owner hears it through the fork's `onConnect`), a microtask late:  the hook may run inside a
@@ -25,12 +34,12 @@ import { E } from "$/ui/core"
  *   - once after the first settle, for owners whose shadow rendered after this part connected
  * - NOTE: no platform event says "my assigned slot changed";  a FOREIGN component re-slotting a part
  *   isn't seen until the part reconnects.
- * - MUST be created under the element's owner (field initializer / constructor):  it creates a signal and an effect.
+ * - MUST be created under the element's owner (field initializer / constructor):  it creates an effect.
  * - Knows `UIHost` / `UIElement` by type only:  `UIElement` imports this file (for `define()` and `slotChanged()`).
  ****************/
 export class PartContext {
-  /** Nearest owner, or `undefined` when standalone;  tracked. */
-  readonly owner: E.Cell<E.OwnerMatch | undefined>
+  /** Nearest owner, or `undefined` when standalone;  tracked.  A re-resolve to the same owner changes nothing. */
+  @state({ equals: isSameOwner }) accessor owner: E.OwnerMatch | undefined = undefined
 
   /** The element. */
   readonly host: E.UIHost
@@ -49,22 +58,9 @@ export class PartContext {
     this.noun = noun
     this.isDirect = isDirect
     this.barrier = barrier
-    this.owner = new E.Cell(this.resolve(), { equals: PartContext.isSameOwner })
+    this.owner = this.resolve()
     PartContext.contexts.set(host, this)
-    // the server build runs an effect's compute only, never its apply:  set the state now
-    if (isServer) {
-      const ownerNoun = untrack(() => this.ownerNoun())
-      if (ownerNoun) host.setState(E.OwnerContext.stateName(ownerNoun), true)
-    }
-    createEffect(
-      () => this.owner.get()?.ownerNoun,
-      (ownerNoun) => {
-        if (!ownerNoun) return
-        const state = E.OwnerContext.stateName(ownerNoun)
-        host.setState(state, true)
-        return () => host.setState(state, false)
-      }
-    )
+    E.Reactive.startEffects(this)
     onSettled(() => {
       this.refresh()
       return () => {
@@ -79,22 +75,35 @@ export class PartContext {
   }
 
   /** Owner noun (`card`), or `undefined`;  tracked. */
-  ownerNoun(): string | undefined {
-    return this.owner.get()?.ownerNoun
+  get ownerNoun(): string | undefined {
+    return this.owner?.ownerNoun
+  }
+
+  /**
+   * The owner changed:  `:state(in-<owner noun>)` on the host, undone when it changes again.
+   * - `writesHost`:  a server render sets it too.
+   */
+  @onChange("ownerNoun", { writesHost: true })
+  protected onOwnerChanged(ownerNoun: string | undefined) {
+    if (!ownerNoun) return
+    const name = E.OwnerContext.stateName(ownerNoun)
+    this.host.setState(name, true)
+    return () => this.host.setState(name, false)
   }
 
   /**
    * The owner's CONTROLLER (a card's `UICards`, an item's list), or `undefined` when standalone;  tracked.
    * - `C` is the caller's word for what the owner is, NOT checked:  owners are registered by tag, not class.
+   * - A method, not a getter:  a getter can't take the type parameter.
    */
   ownerController<C extends object = E.UIElement>(): C | undefined {
-    return PartContext.controllerFor<C>(this.owner.get())
+    return PartContext.controllerFor<C>(this.owner)
   }
 
   /**
    * Resolve again, e.g. after re-slotting;  cascades to part descendants in the light DOM, which climb through
    * this element.
-   * - MUST NOT run in an owned scope (it writes a signal).
+   * - Writes `owner`:  call it from a handler, `onSettled` or a microtask, not a render.
    */
   refresh() {
     this.update()
@@ -118,7 +127,7 @@ export class PartContext {
 
   /** Resolve again, this element only. */
   private update() {
-    this.owner.set(this.resolve())
+    this.owner = this.resolve()
   }
 
   ////////////////
@@ -132,9 +141,9 @@ export class PartContext {
    * - Called by `UIElement.register()` for every tag, translated aliases included.
    * - Static:  the registry is page-wide, filled before any instance exists.
    */
-  static define({ vocabulary, tag, isPart, isConditionalOwner = false }: E.PartDefinition) {
+  static define({ vocabulary, tag, isAPart, isConditionalOwner = false }: E.PartDefinition) {
     PartContext.definedTags.add(tag)
-    if (isPart) PartContext.partTags.add(tag)
+    if (isAPart) PartContext.partTags.add(tag)
     if (isConditionalOwner) PartContext.conditionalTags.add(tag)
     for (const noun of vocabulary.ownsParts ?? []) {
       let owners = PartContext.owners.get(noun)
@@ -227,11 +236,6 @@ export class PartContext {
       const controller = (element as E.UIHost).controller as Partial<E.ConditionalOwner> | undefined
       return controller?.isOwnerOf?.(noun) ? ownerNoun : undefined
     }
-  }
-
-  /** Same owner element, noun and depth:  no state change. */
-  private static isSameOwner(this: void, a: E.OwnerMatch | undefined, b: E.OwnerMatch | undefined) {
-    return a?.owner === b?.owner && a?.ownerNoun === b?.ownerNoun && a?.depth === b?.depth
   }
 
   ////////////////

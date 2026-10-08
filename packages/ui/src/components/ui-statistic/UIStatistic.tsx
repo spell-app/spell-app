@@ -17,33 +17,40 @@ import statisticCSS from "./ui-statistic.css?inline"
  *   `ui-statistic.css` declares on the root (layout, value sizes, `--ui-inverted`).  Registered by `define()`.
  * - Shorthands are the SAME parts, drawn in this shadow root:  `<div class="value in-statistic">` and `<div
  *   class="label in-statistic">` -- the static part classes `ui-parts.css` keys on (they ARE children of this root),
- *   which is why this element adopts `ui-parts.css` too (`E.ContentPart.styles`).  `text` makes the value shorthand
+ *   which is why this element adopts `ui-parts.css` too (`E.ContentPart.styleSheets`).  `text` makes the value shorthand
  *   a word value.
  * - No role:  a statistic is text;  the page names a group of them where it matters (a heading, `aria-label` on a
  *   region).
  ****************/
 export class UIStatistic extends E.UIElement<typeof statisticVocabulary> {
   @E.proto static vocabulary = statisticVocabulary
-  @E.proto static styles = { statistic: statisticCSS, ...E.ContentPart.styles }
-  @E.proto static Fallback = StatisticFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { statistic: statisticCSS, ...E.ContentPart.styleSheets }
+  @E.proto static elementSetup = { Fallback: StatisticFallback, delegatesFocus: false }
 
-  protected hostStates() {
-    return { statistic: true, inverted: this.attrs.inverted }
+  /** Always `:state(statistic)`. */
+  @E.cssState("statistic")
+  get isStatistic(): boolean {
+    return true
+  }
+
+  /** For a dark background (`inverted`)? */
+  @E.cssState("inverted")
+  get isInverted(): boolean {
+    return this.inverted
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("statistic")}>
-        <Show when={this.attrs.value}>
-          <div class={this.valueClass()} part={this.part("value")}>
-            {this.attrs.value}
+      <div class={this.rootClasses} part={this.partForName("statistic")}>
+        <Show when={this.value}>
+          <div class={this.valueClasses} part={this.partForName("value")}>
+            {this.value}
           </div>
         </Show>
         <slot />
-        <Show when={this.attrs.label}>
-          <div class={this.staticPart(UIT.LABEL)} part={this.part("label")}>
-            {this.attrs.label}
+        <Show when={this.label}>
+          <div class={this.staticPart(UIT.LABEL)} part={this.partForName("label")}>
+            {this.label}
           </div>
         </Show>
       </div>
@@ -51,9 +58,10 @@ export class UIStatistic extends E.UIElement<typeof statisticVocabulary> {
   }
 
   /** Classes of the value shorthand:  `[text] value in-statistic`. */
-  private valueClass(): string {
+  @E.derived
+  private get valueClasses(): string {
     const value = this.staticPart(VALUE)
-    return this.attrs.text ? `${UIT.TEXT} ${value}` : value
+    return this.text ? `${UIT.TEXT} ${value}` : value
   }
 
   /** Classes of a shorthand:  the part noun and the static owner class, e.g. `label in-statistic`. */
@@ -61,3 +69,6 @@ export class UIStatistic extends E.UIElement<typeof statisticVocabulary> {
     return `${noun} ${UIT.PART_STATIC_CLASS_PREFIX}${this.vocabulary.noun}`
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIStatistic extends E.AttributeValues<typeof statisticVocabulary> {}

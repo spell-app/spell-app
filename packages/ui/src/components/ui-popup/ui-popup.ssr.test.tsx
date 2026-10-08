@@ -42,7 +42,7 @@ describe("<ui-popup> static render", () => {
   it("renders a click popup as an auto popover dialog the target controls", () => {
     const html = StaticRender.fragment(
       `<ui-button id="plan">Plan</ui-button>` +
-        `<ui-popup for="plan" on="click" header="Basic" id="plans"><p>Details</p></ui-popup>`
+        `<ui-popup for="plan" open-on="click" header="Basic" id="plans"><p>Details</p></ui-popup>`
     )
     const [button, popup] = [...fragment(html).children]
     expect(popup!.id).toBe("plans")

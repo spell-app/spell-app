@@ -1,4 +1,4 @@
-import { Show, createMemo, untrack } from "solid-js"
+import { Show, untrack } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -20,7 +20,7 @@ import itemCSS from "./ui-item.css?inline"
  *   (`link`, or the owner says items are interactive), or a `<div>`;  a `type="header"` item is a `<div class="item
  *   header">`, a `divider` a `<div class="divider" role="separator">`.  Inside:  the `image` shorthand's
  *   `<img class="ui avatar image" part="image" alt="">`, the icon box (`icon` shorthand or `icon` slot), the slot.
- * - Styles:  `ui-item.css` (host, generic resets) + the OWNER'S sheets (its `styles`), which hold the item rules
+ * - Styles:  `ui-item.css` (host, generic resets) + the OWNER'S sheets (its `styleSheets`), which hold the item rules
  *   keyed on `:host(:state(in-list)) > .item` beside the static `.ui.list > .item`.  They're registered here if
  *   the owner hasn't yet, and re-adopted when the owner changes.
  * - Semantics:  host role from the owner (`listitem`);  root role from the owner (`menuitem` in a menubar);
@@ -28,81 +28,108 @@ import itemCSS from "./ui-item.css?inline"
  *   `aria-label` names the box (an icon-only item);  its `aria-expanded` goes to a `<button>` box (a disclosure:  a
  *   menu item that opens a group below it).
  * - `active` is an ALIAS of `selected` (Fomantic's word), read from the host attribute.
- * - A part (`isPart`):  transparent to other parts' climbs, so a `<ui-header>` inside an item in a list is the
- *   LIST's header (`.ui.list > .item > .content > .header`).
+ * - A part (`elementSetup.isAPart`):  transparent to other parts' climbs,
+ *   so a `<ui-header>` inside an item in a list is the LIST's header (`.ui.list > .item > .content > .header`).
  * - Except in the Items view (`<ui-items>`):  there the owner's `ItemContext.ownsParts` makes the item OWN its
  *   content parts (`ConditionalOwner`, `isOwnerOf()`), so they get `:state(in-item)` -- Fomantic's
  *   `.ui.items > .item > .content > .header`.  Its `image` shorthand takes the owner's `imageClass`.
  ****************/
 export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.ConditionalOwner {
   @E.proto static vocabulary = itemVocabulary
-  @E.proto static styles = { item: itemCSS }
-  @E.proto static Fallback = ItemFallback
-  @E.proto static isPart = true
+  @E.proto static styleSheets = { item: itemCSS }
+  @E.proto static elementSetup = { Fallback: ItemFallback, isAPart: true }
+
+  ////////////////
+  // ## Owner
+  ////////////////
 
   /** Owner (list, menu), if any. */
   readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
 
-  /** Light-DOM slot occupancy. */
-  readonly slots = new E.SlotContent(this.host)
-
-  /** Host `active` attribute:  the alias of `selected`. */
-  readonly activeAttribute = new E.HostAttribute({ host: this.host, name: UIT.ACTIVE })
-
-  /** Host `aria-label`, forwarded to the item box:  an icon-only item needs a name. */
-  readonly ariaLabel = new E.HostAttribute({ host: this.host, name: UIT.ARIA_LABEL })
-
-  /** Host `aria-expanded`, forwarded to a `<button>` box:  an item that shows and hides something (a disclosure). */
-  readonly ariaExpanded = new E.HostAttribute({ host: this.host, name: UIT.ARIA_EXPANDED })
-
-  ////////////////
-  // ## Derived state
-  ////////////////
-
-  /** Owner's controller, when it renders items (`ItemOwner`).  Tracked. */
-  readonly owner = createMemo(() => {
+  /** Owner's controller, when it renders items (`ItemOwner`). */
+  get owner(): Required<ItemOwnerController> | undefined {
     const controller = this.context.ownerController<ItemOwnerController>()
     return controller?.itemContext ? (controller as Required<ItemOwnerController>) : undefined
-  })
+  }
 
-  /** What the owner wants, or `undefined` when unowned (data only).  Tracked. */
-  readonly itemContext = createMemo<UIT.ItemContext | undefined>(() => this.owner()?.itemContext(this.host))
+  /**
+   * What the owner wants, or `undefined` when unowned (data only).
+   * - `@derived`:  the owner's `itemContext()` has a SIDE EFFECT (a menu records the item and queues a refresh), so
+   *   it runs once per change, not per read.
+   */
+  @E.derived
+  get itemContext(): UIT.ItemContext | undefined {
+    return this.owner?.itemContext(this.host)
+  }
 
-  /** `selected`, or its alias `active`. */
-  readonly isSelected = createMemo(
-    () => this.attrs.selected || E.Converters.boolean(this.activeAttribute.get(), UIT.ACTIVE)
-  )
+  /** The host role follows the owner (`listitem` in a list). */
+  @E.onChange("itemContext", { writesHost: true })
+  protected onItemContextChanged(context: UIT.ItemContext | undefined) {
+    this.host.internals.role = context?.hostRole ?? null
+  }
+
+  /**
+   * `ConditionalOwner`:  does this item own its content parts (any noun) now?  Only when its owner's `ItemContext`
+   * says so (the Items view).
+   * - Reads the DOM (`PartContext.resolve()`), untracked:  other parts ask during their climbs, right after moves,
+   *   before this item's own `owner` has landed.
+   */
+  isOwnerOf(): boolean {
+    const owner = E.PartContext.controllerFor<ItemOwnerController>(this.context.resolve())
+    return !!owner?.itemContext && !!untrack(() => owner.itemContext!(this.host)).ownsParts
+  }
+
+  /** `ui-item.css`, then the owner's sheets (registered here if the owner hasn't yet). */
+  get styleSheetNames(): string[] {
+    const names = Object.keys(this.styleSheets)
+    const styles = this.owner?.styleSheets ?? {}
+    const isLoaded = !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]
+    for (const [name, css] of Object.entries(styles)) {
+      if (isLoaded && !UI.styles.has(name)) UI.styles.register(name, css)
+      names.push(name)
+    }
+    return names
+  }
+
+  ////////////////
+  // ## Selected and disabled
+  ////////////////
+
+  /** `selected`, or its alias, the host's `active` attribute. */
+  @E.cssState("selected")
+  get isSelected(): boolean {
+    return this.selected || E.Converters.boolean(this.attributes[UIT.ACTIVE], UIT.ACTIVE)
+  }
+
+  @E.cssState("disabled")
+  get isDisabled(): boolean {
+    return this.disabled
+  }
+
+  protected classValue(name: E.AttributeName<typeof itemVocabulary>): unknown {
+    return name === UIT.SELECTED ? this.isSelected : super.classValue(name)
+  }
+
+  /** `aria-current` while selected:  the owner's value on a link (`page`), else `true`. */
+  private get ariaCurrent(): UIT.ItemContext["current"] | undefined {
+    if (!this.isSelected || this.type !== UIT.ITEM) return undefined
+    return this.rootTag === UIT.ANCHOR_TAG ? (this.itemContext?.current ?? UIT.PAGE) : UIT.TRUE
+  }
+
+  ////////////////
+  // ## The box
+  ////////////////
 
   /** Root element:  link, button, or plain box. */
-  readonly tag = createMemo((): RootTag => {
-    const context = this.itemContext()
-    if (this.attrs.type !== UIT.ITEM) return DIV
-    if (this.attrs.href) return UIT.ANCHOR_TAG
-    return this.attrs.link || context?.interactive ? UIT.BUTTON : DIV
-  })
-
-  /** Glyph of the `icon` shorthand;  only loaded once rendered by an owner. */
-  readonly glyph = new E.IconGlyph({ owner: this, name: () => (this.itemContext() ? this.attrs.icon : undefined) })
-
-  /** Has an icon (shorthand or `icon` slot)? */
-  readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))
-
-  /** `image` as a URL. */
-  readonly imageSrc = createMemo(() => this.attrs.image?.trim() || undefined)
+  get rootTag(): RootTag {
+    const context = this.itemContext
+    if (this.type !== UIT.ITEM) return DIV
+    if (this.href) return UIT.ANCHOR_TAG
+    return this.link || context?.interactive ? UIT.BUTTON : DIV
+  }
 
   /** The rendered item box, while owned. */
   private boxElement: HTMLElement | undefined
-
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
-    super(...args)
-    // SIDE EFFECT:  host role follows the owner (`listitem` in a list)
-    this.hostEffect(
-      () => this.itemContext()?.hostRole,
-      (role) => {
-        this.host.internals.role = role ?? null
-      }
-    )
-  }
 
   /**
    * The item box (`<a>` / `<button>` / `<div>` in the shadow root), or `undefined` while unowned -- what an owner
@@ -113,49 +140,34 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
     return this.boxElement?.isConnected ? this.boxElement : undefined
   }
 
-  isDisabled(): boolean {
-    return this.attrs.disabled
-  }
-
-  /**
-   * `ConditionalOwner`:  does this item own its content parts (any noun) now?  Only when its owner's `ItemContext`
-   * says so (the Items view).
-   * - Reads the DOM (`PartContext.resolve()`), untracked:  other parts ask during their climbs, right after moves,
-   *   before this item's own `owner` signal has landed.
-   */
-  isOwnerOf(): boolean {
-    const owner = E.PartContext.controllerFor<ItemOwnerController>(this.context.resolve())
-    return !!owner?.itemContext && !!untrack(() => owner.itemContext!(this.host)).ownsParts
-  }
-
-  protected classValue(name: E.AttributeName<typeof itemVocabulary>): unknown {
-    return name === UIT.SELECTED ? this.isSelected() : super.classValue(name)
-  }
-
   /**
    * `header` for a header item;  `ui-<color>` for a coloured one -- the generic colour remap (`colors.css`) keys on
    * `.ui.red` / `.ui-red`, and an item has no `ui`.
    */
-  protected extraClasses(): string | undefined {
-    const color = this.attrs.color
-    const extra = [this.attrs.type === UIT.HEADER ? UIT.HEADER : "", color ? `${UIT.COLOR_CLASS_PREFIX}${color}` : ""]
+  protected get extraClasses(): string | undefined {
+    const color = this.color
+    const extra = [this.type === UIT.HEADER ? UIT.HEADER : "", color ? `${UIT.COLOR_CLASS_PREFIX}${color}` : ""]
     return extra.filter(Boolean).join(" ") || undefined
   }
 
-  protected hostStates() {
-    return { selected: this.isSelected(), disabled: this.attrs.disabled }
+  ////////////////
+  // ## Icon and image
+  ////////////////
+
+  /** Light-DOM slot occupancy. */
+  readonly slots = new E.SlotContent(this.host)
+
+  /** Glyph of the `icon` shorthand;  only loaded once rendered by an owner. */
+  readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => (this.itemContext ? this.icon : undefined) })
+
+  /** Has an icon (shorthand or `icon` slot)? */
+  get hasIcon(): boolean {
+    return !!this.icon || this.slots.hasContent(this.slotForName("icon"))
   }
 
-  /** `ui-item.css`, then the owner's sheets (registered here if the owner hasn't yet).  Tracked. */
-  protected sheetNames(): string[] {
-    const names = Object.keys(this.styles)
-    const styles = this.owner()?.styles ?? {}
-    const isLoaded = !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]
-    for (const [name, css] of Object.entries(styles)) {
-      if (isLoaded && !UI.styles.has(name)) UI.styles.register(name, css)
-      names.push(name)
-    }
-    return names
+  /** `image` as a URL. */
+  get imageUrl(): string | undefined {
+    return this.image?.trim() || undefined
   }
 
   ////////////////
@@ -165,10 +177,10 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
   /** The slot alone (unowned), a divider, or the item box. */
   render(): JSX.Element {
     return (
-      <Show when={this.itemContext()} fallback={this.unowned()}>
+      <Show when={this.itemContext} fallback={this.unowned()}>
         <Show
-          when={this.attrs.type !== DIVIDER}
-          fallback={<div class={DIVIDER} part={this.part("item")} role={UIT.SEPARATOR} />}
+          when={this.type !== DIVIDER}
+          fallback={<div class={DIVIDER} part={this.partForName("item")} role={UIT.SEPARATOR} />}
         >
           {this.box()}
         </Show>
@@ -193,52 +205,54 @@ export class UIItem extends E.UIElement<typeof itemVocabulary> implements E.Cond
     )
   }
 
-  /** The owned item box, around the default slot. */
+  /**
+   * The owned item box, around the default slot.
+   * - The host's `aria-label` names it (an icon-only item);  its `aria-expanded` goes to a `<button>` box.
+   */
   private box(): JSX.Element {
-    const isDisabledButton = () => this.tag() === UIT.BUTTON && this.attrs.disabled
+    const isDisabledButton = () => this.rootTag === UIT.BUTTON && this.disabled
     return (
       <Dynamic
         ref={(element: HTMLElement) => (this.boxElement = element)}
-        component={this.tag()}
-        class={this.classes()}
-        part={this.part("item")}
-        href={this.tag() === UIT.ANCHOR_TAG && !this.attrs.disabled ? this.attrs.href : undefined}
-        target={this.tag() === UIT.ANCHOR_TAG ? this.attrs.target : undefined}
-        type={this.tag() === UIT.BUTTON ? UIT.BUTTON : undefined}
-        role={this.attrs.type === UIT.ITEM ? this.itemContext()?.role : undefined}
-        disabled={isDisabledButton() && !this.itemContext()?.role ? true : undefined}
-        aria-disabled={this.attrs.disabled && !(isDisabledButton() && !this.itemContext()?.role) ? UIT.TRUE : undefined}
-        aria-current={this.current()}
-        aria-label={this.ariaLabel.get()}
+        component={this.rootTag}
+        class={this.rootClasses}
+        part={this.partForName("item")}
+        href={this.rootTag === UIT.ANCHOR_TAG && !this.disabled ? this.href : undefined}
+        target={this.rootTag === UIT.ANCHOR_TAG ? this.target : undefined}
+        type={this.rootTag === UIT.BUTTON ? UIT.BUTTON : undefined}
+        role={this.type === UIT.ITEM ? this.itemContext?.role : undefined}
+        disabled={isDisabledButton() && !this.itemContext?.role ? true : undefined}
+        aria-disabled={this.disabled && !(isDisabledButton() && !this.itemContext?.role) ? UIT.TRUE : undefined}
+        aria-current={this.ariaCurrent}
+        aria-label={this.attributes[UIT.ARIA_LABEL] ?? undefined}
         aria-expanded={
-          this.tag() === UIT.BUTTON ? (this.ariaExpanded.get() as "true" | "false" | undefined) : undefined
+          this.rootTag === UIT.BUTTON
+            ? ((this.attributes[UIT.ARIA_EXPANDED] ?? undefined) as "true" | "false" | undefined)
+            : undefined
         }
-        data-value={this.attrs.value}
+        data-value={this.value}
       >
-        <Show when={this.imageSrc()}>
+        <Show when={this.imageUrl}>
           <img
-            class={this.itemContext()?.imageClass ?? IMAGE_CLASS}
-            part={this.part("image")}
-            src={this.imageSrc()}
+            class={this.itemContext?.imageClass ?? IMAGE_CLASS}
+            part={this.partForName("image")}
+            src={this.imageUrl}
             alt=""
           />
         </Show>
-        <Show when={this.hasIcon()}>
-          <span class={UIT.ICON} part={this.part("icon")}>
-            <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
+        <Show when={this.hasIcon}>
+          <span class={UIT.ICON} part={this.partForName("icon")}>
+            <slot name={this.slotForName("icon")}>{this.iconGlyph.svg}</slot>
           </span>
         </Show>
         <slot />
       </Dynamic>
     )
   }
-
-  /** `aria-current` while selected:  the owner's value on a link (`page`), else `true`. */
-  private current(): UIT.ItemContext["current"] | undefined {
-    if (!this.isSelected() || this.attrs.type !== UIT.ITEM) return undefined
-    return this.tag() === UIT.ANCHOR_TAG ? (this.itemContext()?.current ?? UIT.PAGE) : UIT.TRUE
-  }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIItem extends E.AttributeValues<typeof itemVocabulary> {}
 
 /** An owner's controller as the item first sees it:  `itemContext` only when it renders items (`ItemOwner`). */
 type ItemOwnerController = E.UIElement & Partial<UIT.ItemOwner>

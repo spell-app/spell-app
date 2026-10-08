@@ -21,9 +21,8 @@ import phoneCSS from "./ui-brand-phone.css?inline"
  ****************/
 export class UIBrandPhone extends UIElement<BrandPhoneVocabulary> {
   @proto static vocabulary = brandPhoneVocabulary
-  @proto static styles = { phone: phoneCSS }
-  @proto static Fallback = BrandPhoneFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { phone: phoneCSS }
+  @proto static elementSetup = { Fallback: BrandPhoneFallback, delegatesFocus: false }
 
   /** The status bar's icons. */
   readonly signal = new IconGlyph({ owner: this, name: () => STATUS_ICONS.signal })
@@ -31,24 +30,24 @@ export class UIBrandPhone extends UIElement<BrandPhoneVocabulary> {
   readonly battery = new IconGlyph({ owner: this, name: () => STATUS_ICONS.battery })
 
   /** The region's accessible name:  `label`, else `App preview`;  `""`:  none (no region). */
-  readonly name = createMemo(() => this.attrs.label ?? this.text("appPreview"))
+  readonly name = createMemo(() => this.attrs.label ?? this.translationForKey("appPreview"))
 
   render(): JSX.Element {
     return (
       <section
-        class={this.classes()}
-        part={this.part("phone")}
+        class={this.rootClasses}
+        part={this.partForName("phone")}
         aria-label={this.name() || undefined}
         aria-busy={this.attrs.dimmed ? UIT.TRUE : undefined}
       >
-        <div class={CLASSES.status} part={this.part("status")} aria-hidden={UIT.TRUE}>
-          <span class={CLASSES.time} part={this.part("time")}>
+        <div class={CLASSES.status} part={this.partForName("status")} aria-hidden={UIT.TRUE}>
+          <span class={CLASSES.time} part={this.partForName("time")}>
             {this.attrs.time ?? DEFAULT_TIME}
           </span>
-          <span class={CLASSES.icons} part={this.part("icons")}>
-            {this.signal.svg()}
-            {this.wifi.svg()}
-            {this.battery.svg()}
+          <span class={CLASSES.icons} part={this.partForName("icons")}>
+            {this.signal.svg}
+            {this.wifi.svg}
+            {this.battery.svg}
           </span>
         </div>
         <slot />

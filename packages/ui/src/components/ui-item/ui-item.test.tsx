@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 import { describe, expect, it } from "vite-plus/test"
 
 import type { ItemContext, ItemOwner } from "$/ui/components/components.types"
-import { UIElement, type UIElementClass, type UIHost } from "$/ui/elements"
+import { UIElement, type AttributeValues, type UIElementClass, type UIHost } from "$/ui/elements"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/A11y"
@@ -41,23 +41,25 @@ const OWNER_CSS = ":host(:state(in-owner)) > .item { letter-spacing: 3px }"
 class ItemTestOwner extends UIElement<typeof OWNER_VOCABULARY> implements ItemOwner {
   itemContext(): ItemContext {
     return {
-      hostRole: this.attrs.hostRole,
-      role: this.attrs.itemRole as ItemContext["role"],
-      interactive: this.attrs.interactive,
+      hostRole: this.hostRole,
+      role: this.itemRole as ItemContext["role"],
+      interactive: this.interactive,
       current: "page"
     }
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()}>
+      <div class={this.rootClasses}>
         <slot />
       </div>
     )
   }
 }
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+interface ItemTestOwner extends AttributeValues<typeof OWNER_VOCABULARY> {}
 Object.defineProperty(ItemTestOwner.prototype, "vocabulary", { value: OWNER_VOCABULARY })
-Object.defineProperty(ItemTestOwner.prototype, "styles", { value: { "x-item-owner": OWNER_CSS } })
+Object.defineProperty(ItemTestOwner.prototype, "styleSheets", { value: { "x-item-owner": OWNER_CSS } })
 ;(ItemTestOwner as unknown as UIElementClass & typeof UIElement).define(OWNER_VOCABULARY.tag)
 
 /** Render items inside a stand-in owner;  returns the owner and the item hosts. */

@@ -45,11 +45,11 @@ describe("$/ui/core and $/ui/forms load order", () => {
   })
 
   it("static initializers ran:  their values exist", () => {
-    expect(core.RootSettings.generation).toBeInstanceOf(core.Cell)
+    expect(core.RootSettings.generation).toBeTypeOf("number")
     expect(forms.FormElement.validator).toBeInstanceOf(forms.Validator)
-    expect(core.UIElement.prototype.Host).toBe(core.UIHost)
-    expect(forms.FormElement.prototype.Host).toBe(forms.FormHost)
-    expect(core.SourceElement.prototype.Host).toBe(core.SourceHost)
+    expect(core.UIElement.setupFor(core.UIElement).Host).toBe(core.UIHost)
+    expect(core.UIElement.setupFor(forms.FormElement).Host).toBe(forms.FormHost)
+    expect(core.UIElement.setupFor(core.SourceElement).Host).toBe(core.SourceHost)
   })
 
   it("$/ui/elements hands out the same objects as the entries", () => {

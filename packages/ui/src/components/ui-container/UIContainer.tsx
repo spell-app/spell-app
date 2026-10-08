@@ -13,14 +13,17 @@ import containerCSS from "./ui-container.css?inline"
  ****************/
 export class UIContainer extends E.UIElement<typeof containerVocabulary> {
   @E.proto static vocabulary = containerVocabulary
-  @E.proto static styles = { container: containerCSS }
-  @E.proto static Fallback = ContainerFallback
+  @E.proto static styleSheets = { container: containerCSS }
+  @E.proto static elementSetup = { Fallback: ContainerFallback }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("container")} tabindex={this.attrs.scrolling ? 0 : undefined}>
+      <div class={this.rootClasses} part={this.partForName("container")} tabindex={this.scrolling ? 0 : undefined}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIContainer extends E.AttributeValues<typeof containerVocabulary> {}

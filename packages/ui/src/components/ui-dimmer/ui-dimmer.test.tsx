@@ -231,13 +231,13 @@ describe("<ui-dimmer> tokens from outside", () => {
 })
 
 ////////////////
-// ## `on`
+// ## `show-on`
 ////////////////
 
 describe("<ui-dimmer> on", () => {
-  it("on=hover:  shows while the pointer is over the parent", async () => {
+  it("show-on=hover:  shows while the pointer is over the parent", async () => {
     const { host, wrapper } = await dimmer(
-      `<div id="card" style="width: 10em; height: 6em"><ui-dimmer on="hover"><button>Add</button></ui-dimmer></div>` +
+      `<div id="card" style="width: 10em; height: 6em"><ui-dimmer show-on="hover"><button>Add</button></ui-dimmer></div>` +
         `<p id="away">Away</p>`
     )
     await userEvent.hover(wrapper.querySelector("#card")!)
@@ -248,10 +248,10 @@ describe("<ui-dimmer> on", () => {
     expect(host.active).toBe(false)
   })
 
-  it("on=hover:  keyboard focus reaches the content (laid out while inactive), which shows it", async () => {
+  it("show-on=hover:  keyboard focus reaches the content (laid out while inactive), which shows it", async () => {
     const { host, box, wrapper } = await dimmer(
       `<button id="before">Before</button>` +
-        `<div style="width: 10em; height: 6em"><ui-dimmer on="hover"><button id="add">Add</button></ui-dimmer></div>` +
+        `<div style="width: 10em; height: 6em"><ui-dimmer show-on="hover"><button id="add">Add</button></ui-dimmer></div>` +
         `<button id="after">After</button>`
     )
     expect(getComputedStyle(box).opacity).toBe("0")
@@ -266,9 +266,9 @@ describe("<ui-dimmer> on", () => {
     expect(host.active).toBe(false)
   })
 
-  it("on=click:  a click on the parent shows it", async () => {
+  it("show-on=click:  a click on the parent shows it", async () => {
     const { host, wrapper } = await dimmer(
-      `<div id="card" style="width: 10em; height: 6em">Card<ui-dimmer on="click"></ui-dimmer></div>`
+      `<div id="card" style="width: 10em; height: 6em">Card<ui-dimmer show-on="click"></ui-dimmer></div>`
     )
     await userEvent.click(wrapper.querySelector("#card")!)
     await settle()

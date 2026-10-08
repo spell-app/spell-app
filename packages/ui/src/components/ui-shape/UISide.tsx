@@ -14,43 +14,47 @@ import shapeCSS from "./ui-shape.css?inline"
  * - Passive:  the HOST is the face that turns.  Its shape sets its states (`active`, `inactive`, `animating`,
  *   `leaving`) and, while flipping, its inline `transform` / `top` / `left`;  `ui-shape.css` does the rest.
  * - Outside a working shape (no `inactive` state) every side shows, stacked:  content is never lost.
- * - Server render (`$/ui/static`):  in a `text` shape the root is a `<span>` (`UIShape.isServerInline()`).  Which
- *   side shows goes by its states (`data-state`), not the class grammar's `active` class:  that one's rule (states
- *   layer) would beat a cube face's `display: flex`.
+ * - Server render (`$/ui/static`):  in a `text` shape the root is a `<span>` (`UIShape.rendersInlineOnServer`).
+ *   Which side shows goes by its states (`data-state`), not the class grammar's `active` class:  that one's rule
+ *   (states layer) would beat a cube face's `display: flex`.
  ****************/
 export class UISide extends E.UIElement<typeof sideVocabulary> {
   @E.proto static vocabulary = sideVocabulary
-  @E.proto static styles = { shape: shapeCSS }
-  @E.proto static Fallback = ShapeFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { shape: shapeCSS }
+  @E.proto static elementSetup = { Fallback: ShapeFallback, delegatesFocus: false }
 
-  protected hostStates() {
-    return { side: true }
+  /** Always a side:  `:state(side)`. */
+  @E.cssState("side")
+  get isSide(): boolean {
+    return true
   }
 
   render(): JSX.Element {
-    if (this.isInline()) return this.inlineSide()
+    if (this.isInline) return this.inlineSide()
     return (
-      <div class={SIDE} part={this.part("side")}>
+      <div class={SIDE} part={this.partForName("side")}>
         <slot />
       </div>
     )
   }
 
   /** A side of a `text` shape in a server render (see class docs). */
-  private isInline(): boolean {
+  private get isInline(): boolean {
     if (!isServer) return false
     // `parentElement` is the platform's:  `null` at the top
     const shape = (this.host.parentElement as E.UIHost | null)?.controller
-    return shape instanceof UIShape && shape.isServerInline()
+    return shape instanceof UIShape && shape.rendersInlineOnServer
   }
 
-  /** `render()`'s markup as a `<span>` (`isInline()`). */
+  /** `render()`'s markup as a `<span>` (`isInline`). */
   private inlineSide(): JSX.Element {
     return (
-      <span class={SIDE} part={this.part("side")}>
+      <span class={SIDE} part={this.partForName("side")}>
         <slot />
       </span>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UISide extends E.AttributeValues<typeof sideVocabulary> {}

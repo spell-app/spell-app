@@ -18,7 +18,7 @@ export type Vocabulary = typeof includeVocabulary
 /** What the host asks of its controller (`UIInclude`). */
 export type IncludeController = {
   /** where the included markup lives */
-  contentRoot(): HTMLElement | undefined
+  readonly contentRoot: HTMLElement | undefined
 }
 
 ////////////////

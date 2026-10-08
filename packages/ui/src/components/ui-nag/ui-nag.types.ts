@@ -16,11 +16,11 @@ export type NagController = {
   close(): boolean
   /** show it again, unless a stored dismissal says not;  true when it shows */
   show(): boolean
-  /** forget a stored dismissal */
-  clear(): void
+  /** forget a stored dismissal (the host's `clear()`) */
+  clearDismissal(): void
   /** a dismissal is stored (and not expired) */
-  isDismissed(): boolean
+  readonly isDismissed: boolean
 }
 
-/** Closed, the host `hidden`:  the event the fallback fires (the element's goes through `emit()`). */
+/** Closed, the host `hidden`:  the event the fallback fires (the element's goes through `send()`). */
 export const HIDE_EVENT: E.EventName<Vocabulary> = "ui-hide"

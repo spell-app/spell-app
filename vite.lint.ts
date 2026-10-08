@@ -49,6 +49,10 @@ export const lintBase = {
     "typescript/no-explicit-any": "off",
 
     "prefer-const": ["error", { destructuring: "all" }],
+    // `ui`'s controllers type their vocabulary getters by merging an interface into the class
+    // (`export interface UIButton extends E.AttributeValues<typeof buttonVocabulary> {}`);  the getters are real,
+    // installed on the prototype by `UIElement.register()` (epic `wwod-spell-ui`, P14).
+    "typescript/no-unsafe-declaration-merging": "off",
 
     ////////////////
     // ## Type-aware

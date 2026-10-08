@@ -10,7 +10,7 @@ An EPIC is a planning session and the work it plans;  its live record is the PLA
 2026-10-02;  its tool keeps that name, `spell dev plan-doc`, since it edits the plan doc.)
 
 Plan, then build, in worktree `<name>`, keeping `epics/<name>/<name>.plan.html` (the PLAN DOC) current
-the whole time.  The plan doc is the user's view of the work:  they read it in VS Code's doc preview (the right side bar's "Spell Docs" view) while you work.
+the whole time.  The plan doc is the user's view of the work:  they read it in the right side bar's REVIEW tab (the checkbox icon;  never the "Spell Docs" hat tab:  Owen's rule, 2026-10-07) while you work.
 
 - Shared content:  the plan doc lives in `epics/`, which spell-app doesn't track:  in every
   checkout it's a link into ONE shared repo, `../spell-app-dev` (epic `shared-content`, 2026-10-04).
@@ -30,7 +30,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
     moves its body into `parts/<id>.htm`.  Nothing is dropped:  content beside a part is kept, after the part's.
   - `plan-doc.md`, "Parts", has the rules;  `plan-doc split <name>` / `join <name>` switch a doc's shape.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
-  doc review):  `spell dev plan-doc open <name>` reloads it in the side bar's doc preview.  `spell dev plan-doc phase` does it for you.
+  doc review):  `spell dev plan-doc open <name>` reloads it in the side bar's Review tab.  `spell dev plan-doc phase` does it for you.
 - Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):  a plain lead sentence, then
   bullets (never a list run together in a sentence), full words, a concrete example for anything tricky, ids
   explained, and a **Net effect** list closing every question, issue, judgement call and decision.  NOT caveman
@@ -97,8 +97,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
      a hang.  Plan again from its prompt ("3. Plan");  explore only what the doc doesn't say.
 4. Isolate "Start", steps 4-5:  the worktree's own window, then `handoff <name> --prompt continue` (name alone, no
    plan yet:  no `--prompt`).
-5. `spell dev plan-doc open <name>`, AFTER the handoff:  shown in VS Code's doc preview (the right side bar's "Spell
-   Docs" view) of the window the session moves to, once it has (one tab, reloaded on every later `open`).  Needs
+5. `spell dev plan-doc open <name>`, AFTER the handoff:  shown in the right side bar's Review tab (the checkbox icon)
+   of the window the session moves to, once it has (one tab, reloaded on every later `open`).  Needs
    the spell extension (`spell dev vscode`).
    - MUST print "... shows in ... once this session moves there".  Why:  only a PENDING move defers it;  before
      the handoff it shows in THIS window's side bar, the one being left.
@@ -379,7 +379,7 @@ migrate <name>                                      an older doc (any layout) in
                                                     items merge into its questions
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
-open <name>                                         show in VS Code's doc preview (right side bar)
+open <name>                                         show in the side bar's Review tab
 review <name> <id> ["outcome"]                      mark reviewed today (outcome to the log)
 defer <name> <id>                                   deferred:  dated, still not reviewed
 queue <name> <id> "work"  /  unqueue <name> <id>    work a review decided on, waiting  /  started or dropped

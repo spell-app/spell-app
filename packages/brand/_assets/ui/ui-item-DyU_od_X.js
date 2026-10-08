@@ -1,1 +1,0 @@
-import{n as e,t}from"./ui-item-DOiWwcPX.js";export{t as UIItem,e as itemVocabulary};

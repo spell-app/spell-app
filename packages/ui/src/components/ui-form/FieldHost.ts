@@ -1,3 +1,5 @@
+import { untrack } from "solid-js"
+
 import { E } from "$/ui/core"
 
 /****************
@@ -16,6 +18,6 @@ export class FieldHost extends E.UIHost {
 
   /** Prompts shown now. */
   get errors(): readonly string[] {
-    return (this.controller as { shownErrors?(): readonly string[] } | undefined)?.shownErrors?.() ?? []
+    return untrack(() => (this.controller as { errors?: readonly string[] } | undefined)?.errors) ?? []
   }
 }

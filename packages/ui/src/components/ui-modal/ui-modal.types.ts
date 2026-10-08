@@ -37,10 +37,6 @@ export type DialogAttributeName = keyof DialogAttributes | typeof OPEN
 /** Events every dialog vocabulary names. */
 export type DialogEventName = "ui-open" | "ui-show" | "ui-close" | "ui-hide" | "ui-approve" | "ui-deny"
 
-/** The converted type of `V`'s `open`. */
-export type OpenValue<V extends E.ComponentVocabulary> = E.AttributeValues<V>[E.CamelCase<E.AttributeName<V>> &
-  keyof E.AttributeValues<V>]
-
 /** The controlled attribute:  shown. */
 export const OPEN = "open"
 

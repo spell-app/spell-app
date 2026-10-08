@@ -202,7 +202,7 @@ export type DocsNavController = {
   /** scroll the current page's item into view inside the panel */
   revealCurrent(): void
   /** the starred tags, A-Z */
-  favoriteTags(): string[]
+  readonly favoriteTags: string[]
   /** resolves once the component list (or its error) has rendered */
   readonly listed: Promise<void>
 }

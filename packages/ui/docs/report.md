@@ -719,13 +719,13 @@ Counted by `LocCount` (non-blank, non-comment lines as "code").  The fork is not
 
 The rules are in `AGENTS.md`, "Solid authoring".
 - **Eager memos:**  Solid 2 memos compute at creation;  base-class memos that call overridables are
-  `{ lazy: true }`, and effects that call overridables are created in `mount()`, after subclass fields exist.
+  `{ lazy: true }`, and effects that call overridables are created in `onMount()`, after subclass fields exist.
 - **No signal writes in owned scopes:**  the fork's hooks can run inside a Solid render, so `isConnected` and the
-  fieldset `isFormDisabled` replay are deferred a microtask.
+  fieldset `formIsDisabled` replay are deferred a microtask.
 - **Writes land on a microtask:**  tests `flush()` (`ElementFixture.settle()` / `tick()`).
 - **`keepAlive` has a cost:**  a removed element keeps its reactive root until `dispose()` or garbage collection;
   anything page-wide (overlay entries) must follow `isConnected`, not disposal.
-- **Dev diagnostics** flag the `classes()` memo as `WIDE_SCOPE_DEPS` (it reads every attribute);  the production
+- **Dev diagnostics** flagged the `classes()` memo (now the `rootClasses` getter) as `WIDE_SCOPE_DEPS` (it reads every attribute);  the production
   build drops them.
 
 ## Hot module replacement
@@ -855,7 +855,7 @@ other than esm.sh / unpkg are blocked.  Each host mounts ONE `<ui-dropdown>` wit
 ## Forms & accessibility
 
 - **Form association** is the fork's `formAssociated` option;  form callbacks arrive as hooks:  `onFormReset` =>
-  `FormElement.formReset()`, `onFormDisabled` => `UIElement.formDisabled`.  `FormHost` is the form-control API
+  `FormElement.onFormReset()`, `onFormDisabled` => `UIElement.formDisabled`.  `FormHost` is the form-control API
   (`form`, `validity`, `checkValidity()` ...).
 - `FormElement`:  `formValue()` feeds `internals.setFormValue()` (a `string[]` becomes a `FormData`);  `required`
   runs `Validator` into `setValidity(flags, message, anchor)` with `:state(invalid)`;  reset restores the
@@ -893,7 +893,7 @@ defines the element:  the fork ADOPTS the declarative root and empties it before
   `[REACTIVITY_HALTED]` and the sibling freezes (tested, `test/isolation.test.tsx`).
 - **Hook:**  `UIElement.define()` passes the fork's `onError` (ONE `console.error` naming the tag, a cancelable,
   bubbling, composed `ui-error` with `detail: { error }`;  the fork sets `:state(errored)`) and `fallback`:
-  unless `ui-error` was cancelled, the family's `@proto static Fallback` builds its native DOM into the shadow
+  unless `ui-error` was cancelled, the family's `elementSetup.Fallback` builds its native DOM into the shadow
   root a microtask later.  An element without one (groups, `ui-item`, `ui-or`) gets a bare `<slot>`.
 - **What degrades** is listed per family in `docs/fallback.md`;  in short:  button loses `ui-toggle`, the glyph
   and the spinner;  the dropdown becomes a native `<select>` (form value, validity, `host.value` and `ui-change`

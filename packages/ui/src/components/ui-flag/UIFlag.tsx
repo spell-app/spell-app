@@ -1,4 +1,3 @@
-import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -22,41 +21,45 @@ import flagCSS from "./ui-flag.css?inline"
  ****************/
 export class UIFlag extends E.UIElement<typeof flagVocabulary> {
   @E.proto static vocabulary = flagVocabulary
-  @E.proto static styles = { flag: flagCSS }
-  @E.proto static Fallback = FlagFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { flag: flagCSS }
+  @E.proto static elementSetup = { Fallback: FlagFallback, delegatesFocus: false }
 
   /** `country` resolved. */
-  readonly country = createMemo(() => new FlagCountry(this.attrs.country))
+  @E.derived
+  get resolvedCountry(): FlagCountry {
+    return new FlagCountry(this.country)
+  }
 
   /**
    * Accessible name, `undefined` when unknown.
-   * - `lazy`:  reads `UI.i18n`, which exists only once the runtime has loaded -- i.e. by first render.
+   * - Computed on first read:  reads `UI.i18n`, which exists only once the runtime has loaded -- i.e. by first
+   *   render.
    */
-  readonly label = createMemo(
-    () => {
-      const { textKey, region } = this.country()
-      if (textKey) return this.text(textKey as E.TextKey<typeof flagVocabulary>)
-      return region ? UI.i18n.displayName(REGION, region) : undefined
-    },
-    { lazy: true }
-  )
+  @E.derived
+  get accessibleName(): string | undefined {
+    const { textKey, region } = this.resolvedCountry
+    if (textKey) return this.translationForKey(textKey as E.TextKey<typeof flagVocabulary>)
+    return region ? UI.i18n.displayName(REGION, region) : undefined
+  }
 
   /** The resolved code as a class word (Fomantic's `fr flag`), for a page's own CSS. */
-  protected override extraClasses(): string | undefined {
-    return this.country().code || undefined
+  protected override get extraClasses(): string | undefined {
+    return this.resolvedCountry.code || undefined
   }
 
   render(): JSX.Element {
     return (
       <span
-        class={this.classes()}
-        part={this.part("flag")}
-        role={this.label() ? UIT.IMG : undefined}
-        aria-label={this.label()}
+        class={this.rootClasses}
+        part={this.partForName("flag")}
+        role={this.accessibleName ? UIT.IMG : undefined}
+        aria-label={this.accessibleName}
       >
-        {this.country().emoji}
+        {this.resolvedCountry.emoji}
       </span>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIFlag extends E.AttributeValues<typeof flagVocabulary> {}

@@ -18,21 +18,15 @@ import feedCSS from "./ui-feed.css?inline"
  ****************/
 export class UIFeed extends E.UIElement<typeof feedVocabulary> {
   @E.proto static vocabulary = feedVocabulary
-  @E.proto static styles = { feed: feedCSS }
-  @E.proto static Fallback = FeedFallback
-  @E.proto static delegatesFocus = false
-
-  /** Numbered:  every event renders a label box for its number.  Tracked. */
-  isOrdered(): boolean {
-    return this.attrs.ordered
-  }
+  @E.proto static styleSheets = { feed: feedCSS }
+  @E.proto static elementSetup = { Fallback: FeedFallback, delegatesFocus: false }
 
   render(): JSX.Element {
     return (
       <Dynamic
-        component={this.attrs.ordered ? UIT.OL : UIT.UL}
-        class={this.classes()}
-        part={this.part("feed")}
+        component={this.ordered ? UIT.OL : UIT.UL}
+        class={this.rootClasses}
+        part={this.partForName("feed")}
         role={UIT.LIST}
       >
         <slot />
@@ -40,3 +34,6 @@ export class UIFeed extends E.UIElement<typeof feedVocabulary> {
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc):  `ordered` is public, events read it. */
+export interface UIFeed extends E.AttributeValues<typeof feedVocabulary> {}

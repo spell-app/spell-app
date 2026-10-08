@@ -86,6 +86,14 @@ export class ElementDefinition {
     return attribute
   }
 
+  /**
+   * The attribute authors write for `name`:  a vocabulary attribute's localized name (`value` => `valor`), else
+   * `name` itself (`aria-label`, an alias, an already-localized name).
+   */
+  localAttribute(name: string): string {
+    return this.byName.get(name)?.attribute ?? name
+  }
+
   /** Localized event name, e.g. `ui-change` => `ie-cambio`. */
   event(name: string): string {
     return this.localized.names.events.get(name) ?? name

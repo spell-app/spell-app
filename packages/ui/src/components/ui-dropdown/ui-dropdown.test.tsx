@@ -442,10 +442,10 @@ describe("<ui-dropdown> value", () => {
     const { host } = await dropdown(
       `<ui-dropdown selection placeholder="Pick"><ui-item value="a" icon="true">A</ui-item></ui-dropdown>`
     )
-    const controller = host.controller as unknown as { items: { entries(): readonly { icon?: unknown }[] } }
-    expect(controller.items.entries()[0]!.icon).toBeUndefined()
+    const controller = host.controller as unknown as { items: { entries: readonly { icon?: unknown }[] } }
+    expect(controller.items.entries[0]!.icon).toBeUndefined()
     await ElementFixture.settle(host)
-    expect(controller.items.entries()[0]!.icon).toBeUndefined()
+    expect(controller.items.entries[0]!.icon).toBeUndefined()
   })
 
   it("clears with the clear button", async () => {

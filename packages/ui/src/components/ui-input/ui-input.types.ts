@@ -14,24 +14,25 @@ import type { inputVocabulary } from "./ui-input.vocabulary.en"
 /** Vocabulary type, for brevity. */
 export type Vocabulary = typeof inputVocabulary
 
-/** Converted attributes every text control has (`input` and `textarea`), see `TextControl.common`. */
+/**
+ * Vocabulary getters every text control has (`input` and `textarea`), typed once for `TextControl`.
+ * - Not `value`:  `TextControl`'s `@controlled` member.
+ */
 export type CommonAttributes = {
-  /** host value, as converted */
-  readonly value: string | undefined
   /** form field name */
-  readonly name: string | undefined
+  name: string | undefined
   /** hint shown while empty */
-  readonly placeholder: string | undefined
-  /** `disabled` attribute (a disabled fieldset is `isFormDisabled`) */
-  readonly disabled: boolean
+  placeholder: string | undefined
+  /** `disabled` attribute (a disabled fieldset is `formIsDisabled`) */
+  disabled: boolean
   /** shows its value, can't be edited */
-  readonly readonly: boolean
+  readonly: boolean
   /** takes the full width */
-  readonly fluid: boolean
+  fluid: boolean
   /** busy:  `<ui-input>` only */
-  readonly loading?: boolean
-  /** the `rules` property:  one `ValidationRule`, a list, or nothing */
-  readonly rules: unknown
+  loading?: boolean
+  /** Fomantic validation rules, as set:  one rule, a list, or nothing (`TextControl.validationRules`) */
+  rules: unknown
 }
 
 /** Where a `<ui-input>`'s joined label sits. */

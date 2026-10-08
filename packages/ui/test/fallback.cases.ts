@@ -98,7 +98,7 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
       `<tbody><tr><td>Jill</td></tr></tbody></table></ui-table>`,
     root: "[role=region][part~=scroller]"
   },
-  { family: "ui-popup", html: `<ui-popup content="Tip" on="manual"></ui-popup>`, root: "[part~=popup]" },
+  { family: "ui-popup", html: `<ui-popup content="Tip" open-on="manual"></ui-popup>`, root: "[part~=popup]" },
   { family: "ui-modal", html: `<ui-modal header="Saved" closable>Done</ui-modal>`, root: "dialog[part~=modal]" },
   { family: "ui-transition", html: `<ui-transition visible>Shown</ui-transition>`, root: "[part~=transition]" },
   { family: "ui-dimmer", html: `<ui-dimmer active>Dimmed</ui-dimmer>`, root: "div[part~=dimmer]" },

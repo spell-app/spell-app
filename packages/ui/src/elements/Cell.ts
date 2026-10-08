@@ -4,6 +4,8 @@ import { createSignal, type Accessor, type SignalOptions } from "solid-js"
  * ### `Cell`
  * A signal as one object (`cell.get()` / `cell.set(value)`), so a component can declare state as an ordinary class
  * FIELD initializer.
+ * - In a controller (or any class), state is `@state accessor x = v` (`Reactive`) instead:  fresh right after a
+ *   write.  `Cell` stays for a lone signal outside one (a closure), and for `brand`'s controllers, until they move to the decorators.
  * - A leaf of the element core:  imports only `solid-js`.
  * - Why:  Solid 2 memos compute EAGERLY on creation, and field initializers run in declaration order, BEFORE
  *   the subclass constructor body -- a memo field reading a signal assigned in the constructor sees

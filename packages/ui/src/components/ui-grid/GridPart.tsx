@@ -19,13 +19,12 @@ import gridCSS from "./ui-grid.css?inline"
  * - Nothing focusable in the shadow root:  no `delegatesFocus`.
  ****************/
 export abstract class GridPart<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends E.UIElement<V> {
-  @E.proto static styles = { grid: gridCSS }
-  @E.proto static Fallback = GridFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { grid: gridCSS }
+  @E.proto static elementSetup = { Fallback: GridFallback, delegatesFocus: false }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part(this.vocabulary.noun as E.PartName<V>)}>
+      <div class={this.rootClasses} part={this.partForName(this.vocabulary.noun as E.PartName<V>)}>
         <slot />
       </div>
     )

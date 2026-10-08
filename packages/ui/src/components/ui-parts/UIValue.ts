@@ -11,3 +11,6 @@ import { valueVocabulary } from "./ui-value.vocabulary.en"
 export class UIValue extends PartElement<typeof valueVocabulary> {
   @E.proto static vocabulary = valueVocabulary
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIValue extends E.AttributeValues<typeof valueVocabulary> {}

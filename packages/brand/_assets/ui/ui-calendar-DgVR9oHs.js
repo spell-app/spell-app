@@ -1,0 +1,1 @@
+import{t as e}from"./ui-calendar-CbDq8-xU.js";export{e as UICalendar};

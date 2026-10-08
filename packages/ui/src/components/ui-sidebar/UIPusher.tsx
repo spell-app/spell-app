@@ -14,22 +14,26 @@ import sidebarCSS from "./ui-sidebar.css?inline"
  ****************/
 export class UIPusher extends E.UIElement<typeof pusherVocabulary> {
   @E.proto static vocabulary = pusherVocabulary
-  @E.proto static styles = { sidebar: sidebarCSS }
-  @E.proto static Fallback = SidebarFallback
-  @E.proto static delegatesFocus = false
+  @E.proto static styleSheets = { sidebar: sidebarCSS }
+  @E.proto static elementSetup = { Fallback: SidebarFallback, delegatesFocus: false }
 
-  protected hostStates() {
-    return { pusher: true }
+  /** Always:  `:state(pusher)`. */
+  @E.cssState("pusher")
+  get isPusher(): boolean {
+    return true
   }
 
   render(): JSX.Element {
     return (
-      <div class={PUSHER} part={this.part("pusher")}>
+      <div class={PUSHER} part={this.partForName("pusher")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIPusher extends E.AttributeValues<typeof pusherVocabulary> {}
 
 /** Class word of the root (`ui-sidebar.css`). */
 const PUSHER = "pusher"

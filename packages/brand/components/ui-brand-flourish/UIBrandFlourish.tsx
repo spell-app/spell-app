@@ -29,9 +29,8 @@ import flourishCSS from "./ui-brand-flourish.css?inline"
  ****************/
 export class UIBrandFlourish extends UIElement<BrandFlourishVocabulary> {
   @proto static vocabulary = brandFlourishVocabulary
-  @proto static styles = { flourish: flourishCSS }
-  @proto static Fallback = BrandFlourishFallback
-  @proto static delegatesFocus = false
+  @proto static styleSheets = { flourish: flourishCSS }
+  @proto static elementSetup = { Fallback: BrandFlourishFallback, delegatesFocus: false }
 
   /** The host's size, px, as last measured. */
   readonly size = new Cell<{ width: number; height: number }>(FALLBACK_SIZE)
@@ -54,7 +53,7 @@ export class UIBrandFlourish extends UIElement<BrandFlourishVocabulary> {
     return (
       <svg
         class="art"
-        part={this.part("art")}
+        part={this.partForName("art")}
         viewBox={`0 0 ${this.size.get().width} ${this.size.get().height}`}
         aria-hidden={UIT.TRUE}
         innerHTML={this.art()}
@@ -65,7 +64,7 @@ export class UIBrandFlourish extends UIElement<BrandFlourishVocabulary> {
   /** While connected:  measure the host, again on every resize. */
   private effects() {
     createEffect(
-      () => this.isConnected.get(),
+      () => this.isConnected,
       (connected) => {
         if (!connected) return undefined
         const resizes = new ResizeObserver(() => {

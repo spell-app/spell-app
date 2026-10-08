@@ -1,4 +1,4 @@
-import { createComponent, createRoot } from "solid-js"
+import { createComponent, createRoot, untrack } from "solid-js"
 import { NoHydration, renderToString } from "@solidjs/web"
 import { createProps, type SolidElement } from "@spell-app/solid-element"
 import { ServerElement } from "@spell-app/solid-element/server"
@@ -128,7 +128,7 @@ export class StaticRender {
         html: renderToString(() =>
           createComponent(NoHydration, {
             get children() {
-              return ServerElement.run(host, () => host.controller!.mount())
+              return ServerElement.run(host, () => host.controller!.onMount())
             }
           })
         )
@@ -154,7 +154,7 @@ export class StaticRender {
   /** Add `host`'s adopted sheets to `sheetUsage`:  under its family's kind, and their order. */
   private static recordSheets(host: E.UIHost, family: SSR.StaticFamily) {
     const { users, orders } = StaticRender.sheetUsage
-    const names = host.controller?.sheets() ?? []
+    const names = untrack(() => host.controller?.styleSheetNames) ?? []
     for (const name of names) {
       let kinds = users.get(name)
       if (!kinds) users.set(name, (kinds = new Set()))

@@ -97,7 +97,7 @@ describe("<ui-popup> classes", () => {
     ['position="right center"', "ui popup right center"],
     ['position="left top"', "ui popup left top"],
     ['position="bottom centre"', "ui popup top left"],
-    ['on="manual" open', "ui visible popup top left"]
+    ['open-on="manual" open', "ui visible popup top left"]
   ])("<ui-popup %s>", async (attributes, classes) => {
     const { root } = await popup(`<button>t</button><ui-popup ${attributes}>Text</ui-popup>`)
     expect(root.localName).toBe("div")
@@ -105,7 +105,7 @@ describe("<ui-popup> classes", () => {
   })
 
   it("sets :state(open) and :state(fluid)", async () => {
-    const { host } = await popup(`<button>t</button><ui-popup on="manual" open fluid>x</ui-popup>`)
+    const { host } = await popup(`<button>t</button><ui-popup open-on="manual" open fluid>x</ui-popup>`)
     expect(host.matches(":state(open)")).toBe(true)
     expect(host.matches(":state(fluid)")).toBe(true)
   })
@@ -183,7 +183,7 @@ describe("<ui-popup> tokens from outside", () => {
     // Render first, THEN resize:  WebKit keeps a shared adopted sheet's media results stale when no element using it
     // is alive at the resize, so an OPEN popup must already be in the page
     const { root } = await popup(
-      `<button>t</button><ui-popup wide on="manual" open style="--ui-popup-max-width: 100px">x</ui-popup>`
+      `<button>t</button><ui-popup wide open-on="manual" open style="--ui-popup-max-width: 100px">x</ui-popup>`
     )
     const [previousWidth, previousHeight] = [window.innerWidth, window.innerHeight]
     await page.viewport(1000, 800)
@@ -198,7 +198,7 @@ describe("<ui-popup> tokens from outside", () => {
 
   it("`flowing`:  a slotted grid sizes the popup by its content, not to a sliver (no size containment)", async () => {
     const columns = ["Basic Plan", "Business Plan", "Premium Plan"].map((text) => `<ui-column>${text}</ui-column>`)
-    const html = `<button>t</button><ui-popup flowing on="manual" open><ui-grid columns="3">${columns.join("")}</ui-grid></ui-popup>`
+    const html = `<button>t</button><ui-popup flowing open-on="manual" open><ui-grid columns="3">${columns.join("")}</ui-grid></ui-popup>`
     const { host, root } = await popup(html)
     await settle()
     expect(getComputedStyle(host.querySelector("ui-grid")!).containerType).toBe("normal")
@@ -363,7 +363,9 @@ describe("<ui-popup> hover", () => {
 describe("<ui-popup> focus", () => {
   it("opens on focus only, not on hover", async () => {
     fakeTimers()
-    const { host, wrapper } = await popup(`<button>Target</button><ui-popup on="focus" show-delay="0">Tip</ui-popup>`)
+    const { host, wrapper } = await popup(
+      `<button>Target</button><ui-popup open-on="focus" show-delay="0">Tip</ui-popup>`
+    )
     const button = wrapper.querySelector("button")!
     await userEvent.hover(button)
     await advance(20)
@@ -383,7 +385,7 @@ describe("<ui-popup> focus", () => {
 
 describe("<ui-popup> click", () => {
   /** A click popup with a control inside. */
-  const CLICK = `<button id="t">Target</button><ui-popup for="t" on="click" header="Plan"><button>Choose</button></ui-popup>`
+  const CLICK = `<button id="t">Target</button><ui-popup for="t" open-on="click" header="Plan"><button>Choose</button></ui-popup>`
 
   it("is a non-modal dialog:  role, name, and aria-haspopup / -expanded / -controls on the target", async () => {
     const { host, wrapper } = await popup(CLICK)
@@ -444,7 +446,9 @@ describe("<ui-popup> click", () => {
   })
 
   it("the target's ARIA goes on a <ui-button>'s inner button, by element reflection", async () => {
-    const { host, wrapper } = await popup(`<ui-button id="t">Go</ui-button><ui-popup for="t" on="click">x</ui-popup>`)
+    const { host, wrapper } = await popup(
+      `<ui-button id="t">Go</ui-button><ui-popup for="t" open-on="click">x</ui-popup>`
+    )
     const inner = wrapper.querySelector("ui-button")!.shadowRoot!.querySelector("button")!
     expect((inner as unknown as { ariaControlsElements: Element[] }).ariaControlsElements).toEqual([host])
     expect(inner.getAttribute("aria-expanded")).toBe("false")
@@ -461,7 +465,7 @@ describe("<ui-popup> click", () => {
 
 describe("<ui-popup> manual", () => {
   it("shows and hides with `open` only, as a `manual` popover, without events", async () => {
-    const { host, wrapper } = await popup(`<button>Target</button><ui-popup on="manual">Tip</ui-popup>`)
+    const { host, wrapper } = await popup(`<button>Target</button><ui-popup open-on="manual">Tip</ui-popup>`)
     const opens = record(host, "ui-open")
     expect(host.popover).toBe("manual")
     wrapper.querySelector("button")!.focus()
@@ -477,7 +481,7 @@ describe("<ui-popup> manual", () => {
   })
 
   it("follows the browser when it dismisses the popover itself:  a ui-close, `open` off", async () => {
-    const { host } = await popup(`<button>Target</button><ui-popup on="manual" open>Tip</ui-popup>`)
+    const { host } = await popup(`<button>Target</button><ui-popup open-on="manual" open>Tip</ui-popup>`)
     const closes = record(host, "ui-close")
     const toggled = nextToggle(host)
     host.hidePopover()
@@ -488,7 +492,7 @@ describe("<ui-popup> manual", () => {
   })
 
   it("hides when removed, and shows again when put back", async () => {
-    const { host, wrapper } = await popup(`<button>Target</button><ui-popup on="manual" open>Tip</ui-popup>`)
+    const { host, wrapper } = await popup(`<button>Target</button><ui-popup open-on="manual" open>Tip</ui-popup>`)
     expect(UI.overlays.isOpen(UI.overlays.entries.find((entry) => entry.element === host)!)).toBe(true)
     host.remove()
     await settle()
@@ -515,7 +519,7 @@ describe("<ui-popup> positioning", () => {
 
   it("top left:  above the target, left edges lined up, one arrow's size away", async () => {
     const { box, anchor, host } = await rects(
-      `<button data-target>Target</button><ui-popup on="manual" open>Tip</ui-popup>`
+      `<button data-target>Target</button><ui-popup open-on="manual" open>Tip</ui-popup>`
     )
     expect(host.style.getPropertyValue("position-area")).toBe("span-right top")
     expect(Math.round(box.left)).toBe(Math.round(anchor.left))
@@ -527,7 +531,7 @@ describe("<ui-popup> positioning", () => {
   it("bottom center:  below the target, centred on it", async () => {
     const { box, anchor } = await rects(
       `<button data-target style="width: 200px">Target</button>` +
-        `<ui-popup on="manual" open position="bottom center">Tip</ui-popup>`
+        `<ui-popup open-on="manual" open position="bottom center">Tip</ui-popup>`
     )
     expect(box.top).toBeGreaterThan(anchor.bottom)
     expect(Math.abs(box.left + box.width / 2 - (anchor.left + anchor.width / 2))).toBeLessThan(1)
@@ -536,7 +540,7 @@ describe("<ui-popup> positioning", () => {
   it("left top:  beside the target, top edges lined up, the arrow on its right edge near the top", async () => {
     const { box, anchor, host, root } = await rects(
       `<button data-target style="margin-left: 300px; height: 4em">Target</button>` +
-        `<ui-popup on="manual" open position="left top">Tip</ui-popup>`
+        `<ui-popup open-on="manual" open position="left top">Tip</ui-popup>`
     )
     expect(host.style.getPropertyValue("position-area")).toBe("left span-bottom")
     expect(box.right).toBeLessThan(anchor.left)
@@ -549,7 +553,7 @@ describe("<ui-popup> positioning", () => {
   it("right bottom:  beside the target, bottom edges lined up", async () => {
     const { box, anchor, host } = await rects(
       `<button data-target style="height: 4em">Target</button>` +
-        `<ui-popup on="manual" open position="right bottom">Tip</ui-popup>`
+        `<ui-popup open-on="manual" open position="right bottom">Tip</ui-popup>`
     )
     expect(host.style.getPropertyValue("position-area")).toBe("right span-top")
     expect(box.left).toBeGreaterThan(anchor.right)
@@ -558,7 +562,7 @@ describe("<ui-popup> positioning", () => {
 
   it("right center:  beside the target, centred on it vertically", async () => {
     const { box, anchor } = await rects(
-      `<button data-target>Target</button><ui-popup on="manual" open position="right center">Tip</ui-popup>`
+      `<button data-target>Target</button><ui-popup open-on="manual" open position="right center">Tip</ui-popup>`
     )
     expect(box.left).toBeGreaterThan(anchor.right)
     expect(Math.abs(box.top + box.height / 2 - (anchor.top + anchor.height / 2))).toBeLessThan(1)
@@ -566,7 +570,7 @@ describe("<ui-popup> positioning", () => {
 
   it("flips to the other side when there's no room (and the arrow follows)", async () => {
     const { host, wrapper } = await popup(
-      `<button style="position: fixed; top: 0; left: 50px">Target</button><ui-popup on="manual" open>Tip</ui-popup>`
+      `<button style="position: fixed; top: 0; left: 50px">Target</button><ui-popup open-on="manual" open>Tip</ui-popup>`
     )
     await settle()
     const root = host.shadowRoot!.querySelector<HTMLElement>("[part~=popup]")!
@@ -581,7 +585,7 @@ describe("<ui-popup> positioning", () => {
 
   it("anchors to the inner box of a target without one (display: contents, e.g. <ui-icon>)", async () => {
     const { host, wrapper, root } = await popup(
-      `<ui-icon id="i" name="circle-info" label="Info"></ui-icon><ui-popup for="i" on="manual" open>Tip</ui-popup>`
+      `<ui-icon id="i" name="circle-info" label="Info"></ui-icon><ui-popup for="i" open-on="manual" open>Tip</ui-popup>`
     )
     await settle()
     await Promise.all(root.getAnimations().map((animation) => animation.finished))
@@ -636,7 +640,7 @@ describe("<ui-popup> invoker commands", () => {
   const NATIVE = "commandForElement" in HTMLButtonElement.prototype
 
   /** A manual popup at its own target, and buttons elsewhere that command it. */
-  const MARKUP = `<button id="t">Target</button><ui-popup id="p" for="t" on="manual">Tip</ui-popup>
+  const MARKUP = `<button id="t">Target</button><ui-popup id="p" for="t" open-on="manual">Tip</ui-popup>
     <button id="show" commandfor="p" command="--show">Show</button>
     <button id="flip" commandfor="p" command="--toggle">Flip</button>
     <button id="hide" commandfor="p" command="--close">Hide</button>`
@@ -651,7 +655,7 @@ describe("<ui-popup> invoker commands", () => {
     async () => {
       for (const on of ["manual", "click"]) {
         // ids per pass:  the first pass's popup is still on the page, and `commandfor` finds the FIRST `id`
-        const markup = MARKUP.replace('on="manual"', `on="${on}"`)
+        const markup = MARKUP.replace('open-on="manual"', `open-on="${on}"`)
           .replaceAll('"p"', `"p-${on}"`)
           .replaceAll('id="flip"', `id="flip-${on}"`)
         const { host, wrapper } = await popup(markup)
@@ -707,7 +711,7 @@ describe("<ui-popup> invoker commands", () => {
     supports.invokers = false
     try {
       const { host, wrapper } = await popup(
-        `<button id="t">Target</button><ui-popup id="p" for="t" on="manual">Tip</ui-popup>
+        `<button id="t">Target</button><ui-popup id="p" for="t" open-on="manual">Tip</ui-popup>
          <ui-button id="flip" commandfor="p" command="--toggle">Flip</ui-button>`
       )
       const flip = wrapper.querySelector<HTMLElement>("#flip")!.shadowRoot!.querySelector<HTMLButtonElement>("button")!

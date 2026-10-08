@@ -138,7 +138,7 @@ describe("<ui-docs-themes> markup", () => {
     expect(part(host, "palette").getAttribute("aria-label")).toBe("Theme:  Spell")
     const overlay = part(host, "overlay")
     expect(overlay.localName).toBe("ui-popup")
-    expect(overlay.getAttribute("on")).toBe("click")
+    expect(overlay.getAttribute("open-on")).toBe("click")
     const scheme = part(host, "scheme")
     expect(scheme.className).toBe("scheme button light")
     expect(scheme.getAttribute("aria-label")).toBe("Switch to dark")

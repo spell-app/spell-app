@@ -12,27 +12,26 @@ import iconCSS from "./ui-icon.css?inline"
  * - Owns `icon` (`ownsParts`):  each child `<ui-icon>` sets `:state(in-icons)` and positions its own root.
  * - Accessible name as for `<ui-icon>` (`IconLabels`):  `label` => one `role=img` for the combined glyph, else
  *   hidden.
- * - NOTE: no native fallback of its own (`@proto static Fallback`):  a render that throws shows nothing.
+ * - NOTE: no native fallback of its own (`elementSetup.Fallback`):  a render that throws shows nothing.
  ****************/
 export class UIIcons extends E.UIElement<typeof iconsVocabulary> {
   @E.proto static vocabulary = iconsVocabulary
-  @E.proto static styles = { icon: iconCSS }
+  @E.proto static styleSheets = { icon: iconCSS }
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
-    super(...args)
-    const { internals } = this.host
-    // SIDE EFFECT:  the host's accessible name follows `label`
-    this.hostEffect(
-      () => this.attrs.label,
-      (label) => IconLabels.applyTo(internals, label)
-    )
+  /** SIDE EFFECT:  the host's accessible name follows `label`. */
+  @E.onChange("label", { writesHost: true })
+  protected onLabelChanged(label: string | undefined) {
+    IconLabels.applyTo(this.host.internals, label)
   }
 
   render(): JSX.Element {
     return (
-      <span class={this.classes()} part={this.part("icons")}>
+      <span class={this.rootClasses} part={this.partForName("icons")}>
         <slot />
       </span>
     )
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIIcons extends E.AttributeValues<typeof iconsVocabulary> {}

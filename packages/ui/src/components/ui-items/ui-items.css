@@ -1,7 +1,7 @@
 /*
  * `<ui-items>` and the `<ui-item>`s inside it:  port of Fomantic's `item.less` + `item.variables` (the Items VIEW).
  * - ONE sheet for the group AND its items:  the group adopts it after the foundation;  every item it owns adopts it
- *   after `ui-item.css` (`UIItem.sheetNames()` reads the owner's `styles`).
+ *   after `ui-item.css` (`UIItem.styleSheetNames` reads the owner's `styleSheets`).
  * - Shadow markup contract (class grammar on semantic elements):
  *   - `<ui-items>`:  `<div class="ui [size] [keyOnly ...] [relaxed] items" part="items" role="list"><slot></slot>
  *     </div>`

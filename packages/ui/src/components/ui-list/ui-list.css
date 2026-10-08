@@ -1,7 +1,7 @@
 /*
  * `<ui-list>` and the `<ui-item>`s inside it:  port of Fomantic's `list.less` + `list.variables`.
  * - ONE sheet for the list AND its items:  the list adopts it after the foundation;  every item it owns adopts it
- *   after `ui-item.css` (`UIItem.sheetNames()` reads the owner's `styles`).
+ *   after `ui-item.css` (`UIItem.styleSheetNames` reads the owner's `styleSheets`).
  * - Shadow markup contract (class grammar on semantic elements):
  *   - `<ui-list>`:  `<ul class="ui [size] [keyOnly ...] [relaxed] [floated] [aligned] list" part="list"
  *     role="list"><slot></slot></ul>`, an `<ol>` when ordered;  `role="list"` because `list-style: none` drops

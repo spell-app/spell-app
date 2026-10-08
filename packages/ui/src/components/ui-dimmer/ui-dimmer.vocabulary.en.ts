@@ -45,7 +45,7 @@ export const dimmerVocabulary = {
       description: "Its content at the `top` or `bottom` instead of the middle (`top aligned`)."
     },
     {
-      name: "on",
+      name: "show-on",
       kind: "enum",
       values: ["hover", "click"],
       description:
@@ -70,7 +70,7 @@ export const dimmerVocabulary = {
       detail: "{ active: true, originalEvent?: Event }",
       cancelable: true,
       description:
-        "About to show for a person's action (`on`, an invoker command);  `preventDefault()` keeps it hidden."
+        "About to show for a person's action (`show-on`, an invoker command);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-show",
@@ -98,7 +98,7 @@ export const dimmerVocabulary = {
     { name: "active", description: "Shown." },
     { name: "dimmer", description: "Always:  the page sheet positions the parent of an element dimmer by it." },
     { name: "page", description: "A page dimmer." },
-    { name: "on-hover", description: '`on="hover"`:  laid out (transparent) while inactive, so Tab can reach it.' }
+    { name: "on-hover", description: '`show-on="hover"`:  laid out (transparent) while inactive, so Tab can reach it.' }
   ],
   texts: [{ key: "dimmedPage", text: "Dimmed page", description: "Accessible name of an unnamed page dimmer." }]
 } as const satisfies E.ComponentVocabulary

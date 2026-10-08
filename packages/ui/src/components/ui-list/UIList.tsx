@@ -1,4 +1,3 @@
-import { createMemo } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -15,9 +14,9 @@ import listCSS from "./ui-list.css?inline"
  *   `itemContext()` how to render -- a `role=listitem` host;  a `<button>` in a `selection` list (a link with
  *   `href`, a `<button>` with the item's own `link`, a `<div>` otherwise).  Items adopt THIS class's `styles`,
  *   so `ui-list.css` holds the item rules too, and the list's variations reach them as inherited tokens.
- * - A part too (`isPart`, noun `list`):  a `<ui-list>` inside a list is Fomantic's sub-list.  It renders
- *   `<ul class="list">` (no `ui`, no variations of its own) and inherits the outer list's look;  it's an `<ol>` when
- *   it or an outer list is `ordered`, and its items are interactive when an outer list's are.
+ * - A part too (`elementSetup.isAPart`, noun `list`):  a `<ui-list>` inside a list is Fomantic's sub-list.
+ *   It renders `<ul class="list">` (no `ui`, no variations of its own) and inherits the outer list's look;
+ *   it's an `<ol>` when it or an outer list is `ordered`, and its items are interactive when an outer list's are.
  * - `role="list"` explicitly:  `list-style: none` drops list semantics in Safari.
  * - Numbering is CSS:  `counter-reset` on this root, `counter-increment` on each item root (`ui-list.css`);  counters
  *   cross the shadow boundaries and nest (`1.2`).
@@ -26,36 +25,8 @@ import listCSS from "./ui-list.css?inline"
  ****************/
 export class UIList extends E.UIElement<typeof listVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = listVocabulary
-  @E.proto static styles = { list: listCSS }
-  @E.proto static Fallback = ListFallback
-  @E.proto static isPart = true
-  @E.proto static delegatesFocus = false
-
-  /** Outer list, when nested. */
-  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
-
-  ////////////////
-  // ## Derived state
-  ////////////////
-
-  /** Outer list's controller:  only a list owns the `list` part.  Tracked. */
-  readonly outer = createMemo(() => this.context.ownerController<UIList>())
-
-  /** Nested in another list:  the sub-list form. */
-  readonly isNested = createMemo(() => !!this.context.owner.get())
-
-  /** Numbered:  `ordered`, or inside an ordered list. */
-  readonly isOrdered = createMemo((): boolean => this.attrs.ordered || !!this.outer()?.isOrdered())
-
-  /** Items are `<button>`s:  `selection`, or inside a selection list. */
-  readonly isInteractive = createMemo((): boolean => this.attrs.selection || !!this.outer()?.isInteractive())
-
-  /** What every item gets;  one object while nothing changes, so items don't re-render. */
-  readonly items = createMemo((): UIT.ItemContext => ({
-    hostRole: UIT.LISTITEM,
-    interactive: this.isInteractive(),
-    current: UIT.PAGE
-  }))
+  @E.proto static styleSheets = { list: listCSS }
+  @E.proto static elementSetup = { Fallback: ListFallback, isAPart: true, delegatesFocus: false }
 
   constructor(...args: ConstructorParameters<typeof E.UIElement>) {
     super(...args)
@@ -64,9 +35,49 @@ export class UIList extends E.UIElement<typeof listVocabulary> implements UIT.It
     this.host.addReleaseCallback(() => this.host.removeEventListener(UIT.CLICK, this.onClick))
   }
 
+  ////////////////
+  // ## Nesting
+  ////////////////
+
+  /** Outer list, when nested. */
+  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
+
+  /** Outer list's controller:  only a list owns the `list` part.  Tracked. */
+  get outerList(): UIList | undefined {
+    return this.context.ownerController<UIList>()
+  }
+
+  /** Nested in another list:  the sub-list form. */
+  get isNested(): boolean {
+    return !!this.context.owner
+  }
+
+  /** Numbered:  `ordered`, or inside an ordered list. */
+  get isOrdered(): boolean {
+    return !!this.ordered || !!this.outerList?.isOrdered
+  }
+
+  /** Items are `<button>`s:  `selection`, or inside a selection list. */
+  get isInteractive(): boolean {
+    return !!this.selection || !!this.outerList?.isInteractive
+  }
+
+  ////////////////
+  // ## Items
+  ////////////////
+
+  /**
+   * What every item gets.
+   * - `@derived`:  one object while nothing it reads changes, so items don't re-render.
+   */
+  @E.derived
+  get ownItemContext(): UIT.ItemContext {
+    return { hostRole: UIT.LISTITEM, interactive: this.isInteractive, current: UIT.PAGE }
+  }
+
   /** `ItemOwner`:  how items render.  Tracked. */
   itemContext(): UIT.ItemContext {
-    return this.items()
+    return this.ownItemContext
   }
 
   ////////////////
@@ -76,9 +87,9 @@ export class UIList extends E.UIElement<typeof listVocabulary> implements UIT.It
   render(): JSX.Element {
     return (
       <Dynamic
-        component={this.isOrdered() ? UIT.OL : UIT.UL}
-        class={this.isNested() ? this.vocabulary.noun : this.classes()}
-        part={this.part("list")}
+        component={this.isOrdered ? UIT.OL : UIT.UL}
+        class={this.isNested ? this.vocabulary.noun : this.rootClasses}
+        part={this.partForName("list")}
         role={UIT.LIST}
       >
         <slot />
@@ -95,7 +106,7 @@ export class UIList extends E.UIElement<typeof listVocabulary> implements UIT.It
     const item = this.activatedItem(event)
     if (!item) return
     const detail: UIT.ListSelectDetail = { value: UIList.valueFor(item), item, originalEvent: event }
-    this.emit("ui-select", detail)
+    this.send("ui-select", detail)
   }
 
   /**
@@ -115,7 +126,7 @@ export class UIList extends E.UIElement<typeof listVocabulary> implements UIT.It
         root = target
         continue
       }
-      const isOurs = context.owner.get()?.owner === this.host
+      const isOurs = context.owner?.owner === this.host
       const isInteractive = !!root && root.parentNode === target.shadowRoot && INTERACTIVE_ROOTS.has(root.localName)
       return isOurs && isInteractive && !target.matches(UIT.DISABLED_STATE) ? (target as E.UIHost) : undefined
     }
@@ -131,6 +142,9 @@ export class UIList extends E.UIElement<typeof listVocabulary> implements UIT.It
     return value || text || (item.textContent ?? "").trim()
   }
 }
+
+/** The vocabulary getters, typed (`UIElement`'s doc). */
+export interface UIList extends E.AttributeValues<typeof listVocabulary> {}
 
 /** Item roots that can be activated:  a link, a button. */
 const INTERACTIVE_ROOTS: ReadonlySet<string> = new Set([UIT.ANCHOR_TAG, UIT.BUTTON])

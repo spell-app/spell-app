@@ -1,3 +1,5 @@
+import { untrack } from "solid-js"
+
 import { UIHost } from "$/ui/core"
 
 /****************
@@ -13,8 +15,8 @@ export class BrandFieldHost extends UIHost {
     ;(this.controller as { showErrors?(messages: readonly string[]): void } | undefined)?.showErrors?.(messages)
   }
 
-  /** Messages `<ui-form>` asked to show. */
+  /** Messages `<ui-form>` asked to show;  untracked. */
   get errors(): readonly string[] {
-    return (this.controller as { shownErrors?(): readonly string[] } | undefined)?.shownErrors?.() ?? []
+    return untrack(() => (this.controller as { formErrors?: readonly string[] } | undefined)?.formErrors) ?? []
   }
 }

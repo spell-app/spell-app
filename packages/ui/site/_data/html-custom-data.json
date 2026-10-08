@@ -1946,7 +1946,7 @@
           "name": "value",
           "description": {
             "kind": "markdown",
-            "value": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`).\n\nTakes:  text"
+            "value": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `defaultChosenValue`).\n\nTakes:  text"
           }
         },
         {
@@ -1974,7 +1974,7 @@
           "name": "off-value",
           "description": {
             "kind": "markdown",
-            "value": "Value submitted while unchosen:  `value=\"open\" off-value=\"closed\"`;  default its class's `offValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen.\n\nTakes:  text"
+            "value": "Value submitted while unchosen:  `value=\"open\" off-value=\"closed\"`;  default its class's `defaultUnchosenValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen.\n\nTakes:  text"
           }
         }
       ]
@@ -2974,7 +2974,7 @@
           ]
         },
         {
-          "name": "on",
+          "name": "show-on",
           "description": {
             "kind": "markdown",
             "value": "Shows by itself:  `hover` while the pointer is over its parent (or focus is inside), `click` when the parent is clicked.  Default:  only `active` shows it.\n\nTakes:  `hover` · `click`"
@@ -4559,7 +4559,7 @@
           ]
         },
         {
-          "name": "on",
+          "name": "validate-on",
           "description": {
             "kind": "markdown",
             "value": "When fields validate:  on `submit` only, or also when one loses focus (`blur`) or changes (`change`).  A field showing an error always re-validates as it changes.\n\nTakes:  `submit` · `blur` · `change`\nDefault:  `submit`"
@@ -9054,7 +9054,7 @@
           ]
         },
         {
-          "name": "on",
+          "name": "open-on",
           "description": {
             "kind": "markdown",
             "value": "What opens it:  `hover` (also keyboard focus), `focus`, `click` (toggles;  a non-modal dialog), or `manual` (only `open`).\n\nTakes:  `hover` · `focus` · `click` · `manual`\nDefault:  `hover`"
@@ -9557,7 +9557,7 @@
           "name": "value",
           "description": {
             "kind": "markdown",
-            "value": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `onValue`).\n\nTakes:  text"
+            "value": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `defaultChosenValue`).\n\nTakes:  text"
           }
         },
         {
