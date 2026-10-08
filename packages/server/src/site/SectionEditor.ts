@@ -38,7 +38,6 @@ export class SectionEditor extends HTMLElement {
     if (this.shadowRoot) return
     const shadow = this.attachShadow({ mode: "open" })
     shadow.innerHTML = `<style>${STYLE}</style>
-<div class="outline" hidden></div>
 <button class="pill" hidden>edit</button>
 <dialog>
   <form method="dialog">
@@ -79,30 +78,23 @@ export class SectionEditor extends HTMLElement {
     this.place()
   }
 
-  /** put the outline and pill over the target, or hide them */
+  /** put the pill at the target's top right, or hide it */
   private place = (): void => {
     const shadow = this.shadowRoot!
-    const outline = shadow.querySelector<HTMLElement>(".outline")!
     const pill = shadow.querySelector<HTMLElement>(".pill")!
     const target = readEdit() ? this.target : undefined
     if (!target?.element.isConnected) {
-      outline.hidden = pill.hidden = true
+      pill.hidden = true
       return
     }
     const box = target.element.getBoundingClientRect()
-    Object.assign(outline.style, {
-      top: `${box.top}px`,
-      left: `${box.left}px`,
-      width: `${box.width}px`,
-      height: `${box.height}px`
-    })
     const top = Math.max(
       box.top,
       Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spell-site-header-height")) || 0
     )
     Object.assign(pill.style, { top: `${top + 4}px`, left: `${box.right - 52}px` })
     pill.textContent = target.parent ? `edit ${target.parent}` : `edit #${target.id}`
-    outline.hidden = pill.hidden = false
+    pill.hidden = false
   }
 
   /** fetch the target's source and show it */
@@ -173,7 +165,6 @@ function editableAt(element: Element): { element: Element; id: string; parent?: 
 
 /** The editor's look. */
 const STYLE = `
-.outline { position: fixed; z-index: 999; pointer-events: none; border: 2px dashed light-dark(#5b3fd0, #b3a2ff); border-radius: 6px; }
 .pill {
   position: fixed; z-index: 1001; transform: translateX(-100%); margin-left: 48px;
   padding: 4px 10px; border: 0; border-radius: 999px; cursor: pointer;
