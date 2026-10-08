@@ -229,6 +229,8 @@ export type DecideOptions = {
   details?: string
   /** the letter of the option chosen (`B`) */
   option?: string
+  /** which card set `option` is in, by position (`PlanItem.choiceSets()`, I8);  none:  the question's own */
+  choices?: number
 }
 
 /**
@@ -411,6 +413,11 @@ export type PlanMark = {
   action: string
   /** a pick's (or a revisit's pick's) option letter:  `B` */
   pick?: string
+  /**
+   * which of the item's card sets the pick is from, by position (`PlanItem.choiceSets()`, I8);  none (a mark from
+   * before):  the item's own
+   */
+  choices?: number
   /** a revisit's:  `soon` or `now` */
   when?: string
   /** Owen's note */

@@ -167,7 +167,10 @@ export class OldPlanReader extends PlanReader {
     )
   }
 
-  /** An open question's option cards, an answered one's Choices panels:  each lettered label. */
+  /**
+   * An open question's option cards, an answered one's Choices panels:  each lettered label.
+   * - one set per item in the old markup:  a card set's position (I8) is the new markup's alone, ignored
+   */
   optionCards(item: Element): OptionCard[] {
     const cards: OptionCard[] = []
     for (const holder of current(item.querySelectorAll(`ui-grid.spell-pros-cons > ui-column, ${OPTIONS} > ui-title`))) {

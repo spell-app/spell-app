@@ -15,6 +15,15 @@ export const ANSWERED = "answered"
 export const CHOSEN = "chosen"
 export const STATUS = "status"
 
+/** An item's Original Discussion:  history, not a choice:  its options never take a pill, nor count as a set. */
+export const ORIGINAL_TAG = "epic-original"
+
+/**
+ * Which card set of its item an `<epic-choices>` is (`EpicChoices.setOf()`):  `index`, its position among the
+ * item's sets;  `own`, it's the item's own set.
+ */
+export type CardSet = { index: number; own: boolean }
+
 ////////////////
 // ## Shadow markup
 ////////////////

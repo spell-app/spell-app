@@ -165,7 +165,7 @@ export class InboxCommands {
     /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
     function extra(mark: PrintedMark) {
       const parts: string[] = []
-      if (mark.pick) parts.push(`picks ${mark.pick}`)
+      if (mark.pick) parts.push(`picks ${mark.pick}${mark.choices ? ` (card set ${mark.choices + 1})` : ""}`)
       if (mark.when) parts.push(mark.when)
       if (mark.note) parts.push(`"${mark.note}"`)
       if (!mark.sent) parts.push("unsent")
@@ -297,11 +297,13 @@ export class InboxCommands {
     this.owner.print(lines.join("\n"))
 
     /** `mark` (or a `now` request) with its item, upper-case id, and a pick's option card. */
-    function withItem<M extends { id: string; pick?: string }>(mark: M) {
+    function withItem<M extends { id: string; pick?: string; choices?: number }>(mark: M) {
       const item = plan.describeItem(mark.id)
       const element = item && plan.findItem(mark.id)
       const option: OptionCard | null | undefined =
-        mark.pick && element ? (plan.optionCards(element).find((card) => card.letter === mark.pick) ?? null) : undefined
+        mark.pick && element
+          ? (plan.optionCards(element, mark.choices).find((card) => card.letter === mark.pick) ?? null)
+          : undefined
       return { ...mark, id: mark.id.toUpperCase(), item, ...(option !== undefined && { option }) } as M & {
         item: typeof item
         option?: OptionCard | null

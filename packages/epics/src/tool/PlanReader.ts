@@ -116,8 +116,11 @@ export abstract class PlanReader {
   /** Does a decision (an answered question, not `id` itself) link to `#id` in its current text? */
   abstract linkedFromDecision(id: string): boolean
 
-  /** Question `item`'s options, never one in its Original Discussion. */
-  abstract optionCards(item: Element): OptionCard[]
+  /**
+   * `item`'s options, never one in its Original Discussion:  its own card set's, or (`choices`) the one at that
+   * position among its sets (a reply's, More Details':  I8).
+   */
+  abstract optionCards(item: Element, choices?: number): OptionCard[]
 
   /** Structural problems, as text:  duplicate ids, `#id` links to nowhere, phases without a valid status ... */
   abstract check(): string[]
