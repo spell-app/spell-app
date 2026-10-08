@@ -1,8 +1,9 @@
 /*
  * `<epic-answer>` (EpicAnswer.tsx), `<epic-reply>` (EpicReply.tsx), `<epic-more>` (EpicMore.tsx):  an item's answer,
  * reply and More Details cards -- ONE card shape (a heading band, then the slotted body), three fills:
- * - answer:  warm (the brand's ivory, as the rail:  `--ui-brown-*`)
- * - reply:  violet (Claude's), or orange (Owen's, `.owen`);  its band a flex row, the date at its right (`.dated`)
+ * - answer:  warm (the brand's ivory, as the rail:  `--ui-brown-*`):  Owen's voice
+ * - reply:  violet (Claude's), or ivory (Owen's, `.owen`:  his voice, as the answer);  its band a flex row, the date
+ *   at its right (`.dated`)
  * - More Details:  plain, its heading a small muted eyebrow that folds it
  * - also `<epic-status>`'s card (`.status`, P13), which adopts this sheet:  its fills in `EpicStatus.css`
  * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:  `--epic-part-gap` (between an item's
@@ -140,9 +141,10 @@
     --_epic-card-fill: var(--ui-violet-background, light-dark(#eaeaff, #2a2747));
     --_epic-card-accent: var(--ui-violet-text, var(--ui-violet, #6550ca));
   }
+  /* Owen's voice:  the ivory of his answer card and note box (decision Q20) */
   .reply.owen {
-    --_epic-card-fill: color-mix(in oklab, var(--ui-orange, #f2711c) 7%, var(--ui-background, Canvas));
-    --_epic-card-accent: var(--ui-orange-text, var(--ui-orange, #f2711c));
+    --_epic-card-fill: var(--ui-brown-background, light-dark(#f7efe2, #2e261c));
+    --_epic-card-accent: var(--ui-brown-text, light-dark(#534323, #eaddc4));
   }
   .more {
     --_epic-card-fill: var(--ui-surface, Canvas);

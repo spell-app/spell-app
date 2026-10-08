@@ -56,7 +56,7 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   state's colour, the title (`title`, or `slot="title"`), the bed icon (`overnight`:  made overnight), the git icon
  *   (with commits), the review label (`reviewed 10/6/26`, `deferred`, `to do`) and the review buttons.  Sticky while
  *   open, under the section titles stuck above it.
- * - `calm`:  an open judgement call or issue not reviewed yet is blue (`open`), not red (`attention`).
+ * - `calm`:  an open judgement call or issue not reviewed yet is yellow (`open`), not red (`attention`).
  * - Its COMMITS (`<epic-commit>` children, or `commits` while its part isn't in):  hidden until the page's git toggle
  *   shows every commit;  its git icon shows just its own (T17, the old runtime's `plan-git-hint`), opening it first,
  *   and hides them again.  Through the same custom property, set on its details:  off, it sets nothing, so the
@@ -66,7 +66,7 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   `Original reply` (with a More Details card);  under them Claude's status cards (`<epic-status slot="status">`,
  *   P13), then the note box.
  * - Review (P9, `ReviewControls.tsx`):  only while the page is reviewed (served with a token, its inbox answering:
- *   `ReviewState`).  Approve, Make Todo, Revisit, Add Details Now at the line's end, the review label in their
+ *   `ReviewState`).  Approve, Revisit, Make Todo, then Do Now at the line's end, the review label in their
  *   tooltips (not beside them:  Owen, 2026-10-07);  the note box LAST in its details, whatever its state, sticky at
  *   the window's bottom while it's open and taller than the window, or, without details, under its line once
  *   Revisit opens it;  a marked note just above the box, with Edit, and Claude's status cards between the two.
@@ -144,10 +144,13 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /**
    * Where it stands:  `state` as the script wrote it, else `old` once closed, `open` before.
-   * - Owen's urgency, not applied yet (its id chip clicked):  `open` (blue) when not urgent, `attention` (red) when
+   * - Claude's agent at work on it (the review inbox's `working`, the page's live view of it):  `progress` (blue), at
+   *   once, before the script rewrites `state`
+   * - Owen's urgency, not applied yet (its id chip clicked):  `open` (yellow) when not urgent, `attention` (red) when
    *   urgent, at once
    */
   readonly itemState = createMemo((): ItemState => {
+    if (this.reviewState.workedOn()) return "progress"
     const urgency = this.reviewState.urgency()
     if (urgency && this.canCalm()) return urgency.calm ? "open" : "attention"
     const state = this.state
@@ -248,7 +251,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /**
    * Words after the noun:  its state (`item attention`), `canceled`, `has-details`, `unfolded`.
-   * - NOTE: `unfolded`, not `open`:  `open` is a state (blue) already;  of the statuses only `canceled` looks
+   * - NOTE: `unfolded`, not `open`:  `open` is a state (yellow) already;  of the statuses only `canceled` looks
    *   different (struck through), so only it is a word here.
    */
   protected get extraClasses(): string | undefined {

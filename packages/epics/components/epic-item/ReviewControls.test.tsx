@@ -122,27 +122,74 @@ describe("<epic-item> review controls", () => {
     expect(host.shadowRoot!.querySelector("textarea")).toBeNull()
   })
 
-  test("Approve, Make Todo, Revisit, Add Details Now in the line;  Approve marks it, green, and saves", async () => {
+  test("Approve, Revisit, Make Todo in a group, then Do Now apart (Q20);  Approve marks it, dashed green, and saves", async () => {
     await adoptClient()
     const host = await render(`<epic-item id="q1" title="A question" status="open"><p>Text</p></epic-item>`)
-    expect(actions(host)).toEqual(["approve", "todo", "revisit", "details"])
+    expect(actions(host)).toEqual(["approve", "revisit", "todo", "details"])
+    expect(
+      Array.from(
+        host.shadowRoot!.querySelectorAll("ui-buttons > ui-button"),
+        (it) => (it as HTMLElement).dataset.action
+      )
+    ).toEqual(["approve", "revisit", "todo"])
+    expect([button(host, "details").getAttribute("icon"), button(host, "details").dataset.color]).toEqual([
+      "paper plane",
+      "blue"
+    ])
+    expect(actions(host).map((action) => button(host, action).dataset.fill)).toEqual(["none", "none", "none", "none"])
     button(host, "approve").click()
     await settle()
     expect(routes.inbox.marks.q1?.action).toBe("approve")
-    expect([button(host, "approve").hasAttribute("data-chosen"), button(host, "approve").dataset.color]).toEqual([
-      true,
-      "green"
-    ])
+    expect([button(host, "approve").dataset.fill, button(host, "approve").dataset.color]).toEqual(["dashed", "green"])
   })
 
-  test("Add Details Now queued with nobody listening:  a dashed ring, not a spinner;  its tooltip says why", async () => {
+  test("the fill:  a mark dashed until sent, then outlined;  Claude on it, its icon turns;  done (`review-as`) solid", async () => {
+    const before = new Date(Date.now() - 60_000).toISOString()
+    routes.inbox.marks.j3 = { action: "revisit", when: "soon", note: "why?", at: before }
+    routes.inbox.sent = new Date().toISOString()
+    routes.inbox.working.j3 = { action: "revisit", since: new Date().toISOString() }
+    await adoptClient()
+    const host = await render(`<epic-item id="j3" title="A call" status="open" state="attention"></epic-item>`)
+    await settle()
+    const revisit = button(host, "revisit")
+    expect([revisit.dataset.fill, revisit.dataset.color, revisit.hasAttribute("data-busy")]).toEqual([
+      "outline",
+      "blue",
+      true
+    ])
+    // Claude's agent at work:  the chip is blue at once, before the script rewrites `state`
+    expect(host.shadowRoot!.querySelector("[part~='base']")!.classList.contains("progress")).toBe(true)
+    const done = await render(`<epic-item id="j4" title="Done" status="open" review-as="now"></epic-item>`)
+    expect([button(done, "details").dataset.fill, button(done, "approve").dataset.fill]).toEqual(["solid", "none"])
+  })
+
+  test("Do Now queued with nobody listening:  dashed, its icon still;  its tooltip says why", async () => {
     await adoptClient()
     const host = await render(`<epic-item id="j1" title="A call" status="open"></epic-item>`)
     button(host, "details").click()
     await settle()
-    const details = button(host, "details")
-    expect([details.hasAttribute("data-waiting"), details.hasAttribute("loading")]).toEqual([true, false])
-    expect(details.getAttribute("aria-label")).toMatch(/No Claude session/)
+    const doNow = button(host, "details")
+    expect([doNow.dataset.fill, doNow.hasAttribute("data-busy"), doNow.hasAttribute("loading")]).toEqual([
+      "dashed",
+      false,
+      false
+    ])
+    expect(doNow.getAttribute("aria-label")).toMatch(/No Claude session/)
+  })
+
+  test("Do Now takes the note in the box along:  a revisit NOW with it;  the note box keeps Revisit Later and Make Todo", async () => {
+    await adoptClient()
+    const host = await render(`<epic-item id="q5" title="A question" status="open" open><p>Text</p></epic-item>`)
+    expect(
+      Array.from(host.shadowRoot!.querySelectorAll<HTMLElement>("[part~='note-box'] button"), (it) => it.dataset.how)
+    ).toEqual(["soon", "todo"])
+    const note = host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
+    note.value = "do it this way"
+    note.dispatchEvent(new InputEvent("input", { bubbles: true }))
+    button(host, "details").click()
+    await settle()
+    expect(routes.posts.at(-1)).toEqual(["now", { page: PAGE, id: "q5", action: "revisit", note: "do it this way" }])
+    expect([button(host, "details").dataset.fill, button(host, "revisit").dataset.fill]).toEqual(["dashed", "none"])
   })
 
   test("Revisit on an item without details:  a box under its line;  Later makes the note a mark, shown with Edit", async () => {
@@ -179,15 +226,12 @@ describe("<epic-item> review controls", () => {
     expect(getComputedStyle(details.lastElementChild!).position).toBe("sticky")
   })
 
-  test("an answered item Claude approved (`review-as`):  Approve stays outlined;  the note box stays", async () => {
+  test("an answered item Claude approved (`review-as`):  Approve solid, done;  every button and the note box stay", async () => {
     await adoptClient()
     const host = await render(
       `<epic-item id="q2" title="Done" status="decided" answered review-as="approve" open><p>Text</p></epic-item>`
     )
-    expect([
-      button(host, "approve").hasAttribute("data-chosen"),
-      button(host, "approve").hasAttribute("data-sent")
-    ]).toEqual([true, true])
+    expect(actions(host).map((action) => button(host, action).dataset.fill)).toEqual(["solid", "none", "none", "none"])
     expect(host.shadowRoot!.querySelector("[part~='details'] textarea")).not.toBeNull()
   })
 
@@ -241,12 +285,12 @@ describe("<epic-item> review controls", () => {
 })
 
 describe("<epic-section kind=overview-part> review controls (Q14)", () => {
-  test("Make Todo, Revisit, Add Details Now in its title;  no Approve;  a note box at its body's end", async () => {
+  test("Revisit, Make Todo, Do Now in its title;  no Approve;  a note box at its body's end", async () => {
     await adoptClient()
     const host = await render(
       `<epic-section id="o1" kind="overview-part" title="What changes" open><p>Prose</p></epic-section>`
     )
-    expect(actions(host)).toEqual(["todo", "revisit", "details"])
+    expect(actions(host)).toEqual(["revisit", "todo", "details"])
     expect(host.shadowRoot!.querySelector("[part~='note-box'] textarea")).not.toBeNull()
     button(host, "todo").click()
     await settle()

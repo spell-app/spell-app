@@ -232,12 +232,18 @@ describe("<epic-section> counts and state filter", () => {
   })
 
   test("its host's `contentsEntry` (the page's contents and rail):  label, kind icon and count, read as they are NOW", async () => {
-    const host = await render(questions(["open", "decided", "done"]))
+    const host = await render(questions(["open:attention", "decided", "done"]))
     const entry = () => (host as FoldHost & { contentsEntry?: unknown }).contentsEntry
-    expect(entry()).toEqual({ label: "1. Questions", icon: "file circle question", count: { open: 1, total: 3 } })
+    // `attention`:  what needs Owen, the red count of the contents and rail (Q20)
+    expect(entry()).toEqual({
+      label: "1. Questions",
+      icon: "file circle question",
+      count: { open: 1, total: 3, attention: 1 }
+    })
     // right after a change, before any memo or observer has caught up:  what the live update reads
     host.querySelector("#q1")!.setAttribute("status", "decided")
-    expect(entry()).toMatchObject({ count: { open: 0, total: 3 } })
+    host.querySelector("#q1")!.setAttribute("state", "recent")
+    expect(entry()).toMatchObject({ count: { open: 0, total: 3, attention: 0 } })
     const part = await render(`<epic-section id="o2" kind="overview-part" title="Why"><p>Prose.</p></epic-section>`)
     expect((part as FoldHost & { contentsEntry?: unknown }).contentsEntry).toEqual({ label: "1.1 Why" })
   })

@@ -16,15 +16,17 @@ import choicesCSS from "./EpicChoices.css?inline"
 
 /****************
  * ### `EpicOption`
- * The component behind `<epic-option>`:  one option of a question -- its header (`A · A named palette
- * (recommended)`), then its pros and cons (its light children, through the default slot).
+ * The component behind `<epic-option>`:  one option of a question -- its header (`A · A named palette`, a violet
+ * thumbs-up after the recommended one's title, no word:  Owen, 2026-10-08), then its pros and cons (its light
+ * children, through the default slot).
  * - Open question:  a CARD, its header a band at the top.
  * - Answered (`EpicChoices.isAnswered()`):  a PANEL in the Choices box, folded to its header, which is a button;
  *   the chosen one (`<epic-choices chosen>`) marked with a green check and green text, and open to start with.
  * - Reviewed (the page's `ReviewClient` is `reviewing`:  served by the page server, its inbox answering):  a
  *   "Choose" pill at the header's end (`pill()`) marks its letter as the item's pick through the client
- *   (`ReviewClient.choose()`);  again, un-picks it.  Picked:  the pill filled orange, `Chosen`, the card framed
- *   orange (an answered panel:  its title orange);  once sent, the pill outlined.
+ *   (`ReviewClient.choose()`);  again, un-picks it.  A pick is a decision, so green, wearing the fill rule (decision
+ *   Q20):  the pill a grey outline, available;  picked, `Chosen`, the pill and the card's frame DASHED green (an
+ *   answered panel:  its title green);  once sent, outlined green;  applied, the question is answered with it.
  *   - on an OPEN question's cards;  on an ANSWERED one's panels, but the chosen one, only while it's revisited
  *     (its note box open, a draft, a revisit or a pick):  "pick B instead, because ..."
  *   - never in an Original Discussion (`<epic-original>`):  history, not a choice
@@ -81,6 +83,9 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   /** Light-DOM slot occupancy:  has it pros and cons? */
   readonly slots = new E.SlotContent(this.domElement)
 
+  /** The recommended one's mark:  a violet thumbs-up, no word (Owen, 2026-10-08, decision Q20's Q6). */
+  readonly thumbsUp = new E.IconGlyph({ owner: this, name: () => (this.recommended ? RECOMMENDED_ICON : undefined) })
+
   ////////////////
   // ## The Choose pill
   ////////////////
@@ -114,8 +119,15 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     return !!this.pill?.picked
   }
 
+  /** Words after the noun:  card or panel, `chosen`, `picked` in review, and `sent` once that pick has gone. */
   protected get extraClasses(): string | undefined {
-    const classes = [this.questionIsAnswered ? PANEL : CARD, this.isChosen && CHOSEN_CLASS, this.isPicked && PICKED]
+    const sent = this.isPicked && this.pill?.sent
+    const classes = [
+      this.questionIsAnswered ? PANEL : CARD,
+      this.isChosen && CHOSEN_CLASS,
+      this.isPicked && PICKED,
+      sent && SENT
+    ]
     return classes.filter(Boolean).join(" ")
   }
 
@@ -164,8 +176,14 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
               <slot name={this.slotForName("title")}>{this.title}</slot>
               <Show when={this.recommended}>
                 {" "}
-                <span class={RECOMMENDED} part={this.partForName("recommended")}>
-                  {this.translationForKey("recommended")}
+                <span
+                  class={RECOMMENDED}
+                  part={this.partForName("recommended")}
+                  role="img"
+                  aria-label={this.translationForKey("recommended")}
+                  title={this.translationForKey("recommended")}
+                >
+                  {this.thumbsUp.svg}
                 </span>
               </Show>
             </span>
@@ -186,8 +204,8 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * The Choose pill, at the header's end:  `Choose`, an orange outline;  picked, `Chosen`, filled;  sent, outlined
-   * again.  Its tooltip says what a click does, and whether the pick has gone to Claude.
+   * The Choose pill, at the header's end:  `Choose`, a grey outline;  picked, `Chosen`, dashed green;  sent,
+   * outlined green.  Its tooltip says what a click does, and whether the pick has gone to Claude.
    * - `pill`:  `<Show>`'s accessor, read in each binding:  the callback's body runs once, so a value read there
    *   would never change
    */
@@ -273,6 +291,9 @@ const HEADER = "header"
 const CHECK = "check"
 const TITLE = "title"
 const RECOMMENDED = "recommended"
+
+/** The recommended option's icon, after its title. */
+const RECOMMENDED_ICON = "thumbs up"
 const ACTIONS = "actions"
 const CHOOSE = "choose"
 const BODY = "body"

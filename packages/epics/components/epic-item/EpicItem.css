@@ -39,9 +39,9 @@
   }
 
   .item {
-    /* the chip's colours, by state (below);  `open` until one applies */
-    --_epic-state: var(--epic-state-open, var(--ui-blue, #2185d0));
-    --_epic-state-on: var(--epic-state-open-on, var(--ui-blue-on, #fff));
+    /* the chip's colours, by state (below);  `open` until one applies:  yellow, its text DARK (white can't be read) */
+    --_epic-state: var(--epic-state-open, var(--ui-yellow, #fbbd08));
+    --_epic-state-on: var(--epic-state-open-on, var(--ui-yellow-on, #1b1c1d));
   }
 
   /* ## The line:  its band fills the row, rule to rule, so the items read as rows */
@@ -223,9 +223,10 @@
     line-height: 1;
     white-space: nowrap;
   }
+  /* `to do`:  work a review queued, still open, so yellow (decision Q20) */
   .review.todo {
-    --_epic-review-border: var(--ui-orange-border, var(--ui-orange));
-    --_epic-review-text: var(--ui-orange-text, var(--ui-orange));
+    --_epic-review-border: var(--ui-yellow-border, var(--ui-yellow));
+    --_epic-review-text: var(--ui-yellow-text, var(--ui-yellow));
   }
   .review.recent {
     --_epic-review-border: var(--ui-green-border, var(--ui-green));
@@ -293,17 +294,17 @@
 
 @layer ui.components.epic-item.states {
   /*
-   * Where it stands, as its chip's colour (plan doc `review-review`, 1.4):  red needs Owen, orange in progress, blue
-   * open and not urgent, green decided or reviewed lately, grey earlier -- a quiet tint, as most of a long doc is
-   * history.  Red keeps its light hue in dark mode:  dark's lighter red reads as the orange beside it.
+   * Where it stands, as its chip's colour (decision Q20, Owen, 2026-10-08):  red needs Owen, blue Claude is working on
+   * it, yellow open and still undecided (dark text), green decided or reviewed lately, grey earlier -- a quiet tint,
+   * as most of a long doc is history.  Red keeps its light hue in dark mode:  dark's lighter red reads as orange.
    */
   .item.attention {
     --_epic-state: var(--epic-state-attention, light-dark(var(--ui-red), var(--ui-red-on-light)));
     --_epic-state-on: var(--epic-state-attention-on, light-dark(var(--ui-red-on), var(--ui-ink-on-dark)));
   }
   .item.progress {
-    --_epic-state: var(--epic-state-progress, var(--ui-orange));
-    --_epic-state-on: var(--epic-state-progress-on, var(--ui-orange-on));
+    --_epic-state: var(--epic-state-progress, var(--ui-blue));
+    --_epic-state-on: var(--epic-state-progress-on, var(--ui-blue-on));
   }
   .item.recent {
     --_epic-state: var(--epic-state-recent, var(--ui-green));

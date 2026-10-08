@@ -120,14 +120,24 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 - Data, all attributes (the definitions check each value):
   - `status`:  `open`;  `decided` (an answered question:  `decide`, or `add ... decision`, born answered with
     `answered`);  `done` (closed:  fixed, passed, accepted);  `canceled` (made moot:  struck through)
-  - `state`, from the rest (the tool rewrites it on every edit):  `attention` (red:  an open question;  an open
-    judgement call or issue not reviewed), `progress` (orange:  `queued` or `working`), `open` (blue), `recent`
-    (green:  closed or reviewed since `recent-since`, or `bedtime`), `old` (grey)
+  - `state`, from the rest (the tool rewrites it on every edit;  colours:  "Colours" below), first that applies:
+
+    | `state`     | colour | when                                                                               |
+    | ----------- | ------ | ---------------------------------------------------------------------------------- |
+    | `progress`  | blue   | Claude is working on it:  an underway status card, or `working`                    |
+    | `recent`    | green  | closed, and changed since `recent-since` or during a `/bedtime` run                |
+    | `old`       | grey   | closed earlier                                                                     |
+    | `open`      | yellow | work a review queued (`queued`), not started                                       |
+    | `attention` | red    | an open question;  an open judgement call or issue not reviewed, unless `calm`     |
+    | `recent`    | green  | open, reviewed lately or touched by a `/bedtime` run                               |
+    | `open`      | yellow | anything else open:  still undecided, not urgent                                   |
+
   - `changed`:  ISO local time with offset, every command that changes its status or review marks;  `bedtime`
     while a `/bedtime` run is on, until reviewed
   - `phase`:  the phase active when it was added
   - review marks:  `reviewed`, `deferred`, `queued` (`YYYY-MM-DD`), `work`, `working`, `review-as` (how Owen's mark
-    was applied:  `approve`, `todo`, `revisit`)
+    was handled, its button drawn solid:  `approve`, `todo`, `revisit`, `now` -- a Do Now request done, written by
+    `inbox done`)
 - Options:  `<epic-choices>` of `<epic-option letter title recommended>`, the same open or answered;  `chosen` once
   answered (`decide --option B`, a pick).  Mark ONE `recommended`.  An agent may still write the old option grid
   (`ui-grid.spell-pros-cons`, labels `A · Title (recommended)`):  the tool turns it into `<epic-choices>` on the way
@@ -157,8 +167,9 @@ the Overview sub-section) it's on.
 <epic-status slot="status" state="done" at="2026-10-08 15:02"><p>Chose B · Keep one file per template</p></epic-status>
 ```
 
-- Drawn:  `Claude • Underway` (orange) / `Claude • Done` (violet) on the left of the band, the date at its right
+- Drawn:  `Claude • Underway` (blue) / `Claude • Done` (green) on the left of the band, the date at its right
   (`done-at` once done, else `at`);  then the reading;  then the summary, if any.
+- An underway card makes its item `progress` (blue:  Claude is working on it) until it's done.
 - `slot="status"`:  never ordered (written last in the item, or the section);  drawn last in the details, UNDER Owen's
   marked note and above the note box ("under my input", Owen, 2026-10-08).  A part file never holds them:  they stay
   in the skeleton with the title.
@@ -176,6 +187,32 @@ the Overview sub-section) it's on.
     as it is (`&lt;` for a `<`)
 - A rewrite of the item's text (`details --file`) leaves its cards where they are;  they never reach its Original
   Discussion.
+
+## Colours
+
+Drawn, never written:  one meaning per colour on every element (decision Q20, Owen, 2026-10-08).
+
+| colour | means                                    | where                                                                  |
+| ------ | ---------------------------------------- | ---------------------------------------------------------------------- |
+| red    | needs Owen                               | `attention` chips;  the contents and rail count (only what needs him)  |
+| yellow | open, still undecided (DARK text on it)  | `open` chips;  a `to do` review label                                  |
+| blue   | do it now, or Claude is working on it    | `progress` chips;  Revisit, Do Now, Send, Review Now;  Underway cards;  the active phase |
+| green  | decided or done                          | Approve, Make Todo, a pick, the chosen option;  Done cards;  DONE      |
+| orange | changed since Owen looked, or a warning  | UPDATE, the Updated fence, Plan changes;  "nobody is listening";  a blocked agent |
+| violet | Claude's voice                           | his reply cards;  the bedtime label                                    |
+| ivory  | Owen's voice                             | his note box, marked note, reply cards, the answer card                |
+| grey   | older, inactive, not chosen              | `old` chips;  a phase to do;  FUTURE;  "(recommended)" (text only)     |
+
+The FILL, on every button, pill and chip with a lifecycle (review buttons, the note box's, the pick's letter, the
+Choose pill and its card, Send):
+
+- a grey outline:  available
+- DASHED in its colour:  Owen pressed it, not committed (not sent;  a Do Now not taken yet)
+- OUTLINED in its colour:  recorded (sent;  a Do Now taken, its icon turning while Claude is on it), not done yet
+- SOLID:  done (applied, answered, filed:  `review-as`;  the step label's DONE)
+
+The review buttons, at every step:  Approve, Revisit, Make Todo in one group, then Do Now apart (paper plane:  the
+inbox's `details` request, or a revisit now when the note box holds a note).
 
 ## Log
 

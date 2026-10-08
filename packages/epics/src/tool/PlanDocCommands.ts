@@ -376,9 +376,9 @@ export class PlanDocCommands {
   /**
    * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `done --filed "<what>"`:  Claude's status card
    * on an item or an Overview sub-section (P13), and the page's spinner on it.
-   * - `underway`:  a new orange card (`PlanDoc.addStatus()`), stamped now;  the spinner on (`inbox working`), so
+   * - `underway`:  a new blue card (`PlanDoc.addStatus()`), stamped now;  the spinner on (`inbox working`), so
    *   one call does both
-   * - `done`:  its latest underway card turns violet (`PlanDoc.finishStatus()`), the summary under its reading when
+   * - `done`:  its latest underway card turns green (`PlanDoc.finishStatus()`), the summary under its reading when
    *   given;  the spinner off.  Refused on an item with no underway card
    * - `done --filed`:  a card born done, saying what was filed (`inbox apply` writes these itself, Q19)
    * - reading, summary:  HTML, as `updated` takes (plain text works as it is)
@@ -795,9 +795,9 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    --more (Add Details):  the text stays on top as "Original
                                                    Reply", the file's HTML in a "More Details" card under it
   status <name> <id> underway "html"              Claude took Owen's mark on an item (or an Overview section):
-                                                   an orange "Claude • Underway" card with Claude's reading of
+                                                   a blue "Claude • Underway" card with Claude's reading of
                                                    the task (a sentence or two, no file names);  spinner on
-  status <name> <id> done ["html"]                 that card turns violet "Claude • Done", the reading kept, the
+  status <name> <id> done ["html"]                 that card turns green "Claude • Done", the reading kept, the
                                                    summary under it when there's something worth saying;
                                                    spinner off.  Refused with no underway card
   status <name> <id> done --filed "html"           a card born done, saying what was filed (inbox apply writes

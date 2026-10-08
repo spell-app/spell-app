@@ -217,9 +217,17 @@ describe("<epic-item>", () => {
     expect(day.host.shadowRoot!.querySelector("[part~='overnight']")).toBeNull()
   })
 
-  test("`calm`:  the chip follows the script's `state` (blue), and stays a link without a review", async () => {
+  test("`calm`:  the chip follows the script's `state` (open:  yellow), and stays a link without a review", async () => {
     const { chip } = await item(`<epic-item id="j10" title="Follows WWOD" status="open" state="open" calm></epic-item>`)
-    expect([chip.localName, chip.title]).toEqual(["a", "Open, not urgent · not reviewed yet"])
+    expect([chip.localName, chip.title]).toEqual(["a", "Open, still undecided · not reviewed yet"])
+  })
+
+  test("the chip's colours (Q20):  open yellow with DARK text, progress blue;  both readable (axe's contrast)", async () => {
+    const open = await item(`<epic-item id="t1" title="Later" status="open" state="open"></epic-item>`)
+    const working = await item(`<epic-item id="t2" title="Now" status="open" state="progress"></epic-item>`)
+    expect(getComputedStyle(working.chip).backgroundColor).not.toBe(getComputedStyle(open.chip).backgroundColor)
+    await expectAccessible(open.host)
+    await expectAccessible(working.host)
   })
 })
 

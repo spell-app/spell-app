@@ -13,6 +13,8 @@ import {
   PHASE_STATUSES,
   PlanDocError,
   QUESTION_ID,
+  REVIEW_AS,
+  UNDERWAY_CARD,
   isItemKind,
   isPhaseStatus,
   type AddItemOptions,
@@ -33,7 +35,8 @@ import {
   type OriginalResult,
   type Phase,
   type PhaseFieldValues,
-  type PlanMark
+  type PlanMark,
+  type ReviewAs
 } from "./planDoc.types"
 
 import { IncomingHtml } from "./IncomingHtml"
@@ -394,6 +397,7 @@ export class PlanDoc extends PlanReader {
       queued: data.queued,
       work: data.work,
       working: Boolean(data.working),
+      underway: !!item.querySelector(UNDERWAY_CARD),
       bedtime: Boolean(data.bedtime),
       calm: Boolean(data.calm)
     }
@@ -724,13 +728,14 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Record on `item` how Owen's review mark was handled (`review-as`:  `approve`, `todo`, `revisit`), once Claude
-   * applied it or talked it over:  the inbox forgets the mark, the doc keeps it, and the page keeps that review
-   * button coloured after a reload (epic `windows-and-review` P2, Q8).  A pick counts as approve.
+   * Record on `item` how Owen's review mark was handled (`review-as`:  `approve`, `todo`, `revisit`, `now`), once
+   * Claude applied it, talked it over or did it:  the inbox forgets the mark, the doc keeps it, and the page keeps that
+   * review button SOLID after a reload (done:  epic `windows-and-review` P2, Q8;  the fill rule, Q20).  A pick counts
+   * as approve;  `now`:  an immediate request (Do Now) done.
    * - any other action:  nothing to record
    */
   reviewedAs(item: Element, action: string): void {
-    if (action === "approve" || action === "todo" || action === "revisit") Markup.set(item, { reviewAs: action })
+    if ((REVIEW_AS as readonly string[]).includes(action)) Markup.set(item, { reviewAs: action as ReviewAs })
   }
 
   /** `applyMark()`'s work on `item`, the log line aside. */
@@ -973,7 +978,7 @@ export class PlanDoc extends PlanReader {
    */
   finishStatus(id: string, summary?: string): string {
     const host = this.statusHost(id)
-    const card = Array.from(host.querySelectorAll(':scope > epic-status[state="underway"]')).at(-1)
+    const card = Array.from(host.querySelectorAll(UNDERWAY_CARD)).at(-1)
     if (!card)
       throw new PlanDocError(
         `${id.toUpperCase()} has no underway status card:  \`status <name> ${id} underway "<reading>"\` first ` +
@@ -1054,7 +1059,7 @@ export class PlanDoc extends PlanReader {
     const items = this.allItems.filter((item) => {
       const facts = this.facts(item)
       if (facts.phase !== n || CLOSED.has(facts.status) || OLD_DECISION.test(facts.id)) return false
-      return facts.reviewed === undefined && facts.queued === undefined && !facts.working
+      return facts.reviewed === undefined && facts.queued === undefined && !facts.working && !facts.underway
     })
     if (!items.length) {
       old?.remove()
