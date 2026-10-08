@@ -36,12 +36,10 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - Through its part files, at the shared REAL path:
     `/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.html`.
   - Never its structure:  no ids, no sections, no item lines, nothing `spell dev plan-doc` writes.
-- `branch`:  the text this branch changed or added since `main`, not whole files.
+- `branch`:  every file this branch changed or added since `main`, WHOLE.
   - The files:  `git diff --name-only main...HEAD`, `git diff --name-only HEAD`,
     and `git ls-files --others --exclude-standard` (new, untracked).
-  - In each file:  the comments and text in the changed lines,
-    plus the docstring of any declaration whose code changed (WWOD §6, "Comments don't drift").
-  - Why not whole files:  a small diff to review, and no edits on lines other branches own.
+  - Whole files, not just the changed lines:  Owen can always undo a hunk (J14 of `skillz`).
   - On `main` with nothing changed:  say so and stop.
 - Nothing after it:  AskUserQuestion, "What should /fussbudget cover?", options:
   - "This branch's changes" (Recommended):  as `branch`
