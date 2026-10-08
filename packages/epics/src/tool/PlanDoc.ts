@@ -471,11 +471,12 @@ export class PlanDoc extends PlanReader {
    *   and Choices
    * - answering again replaces the answer in place:  the old one goes into the question's Original Discussion
    *   (`keepOriginal()`), never dropped;  an old decision's id (`d7`) stays on the new answer
-   * - `option` (`A`):  that option is the chosen one (`chooseOption()`)
+   * - `option` (`A`):  that option is the chosen one (`chooseOption()`), of the question's own options or (`choices`,
+   *   I8) of the card set at that position, a reply's say;  a question has ONE answer, so no other set stays chosen
    * - moves among the answered questions, in id order:  open ones stay on top
    * - throws when `questionId` isn't a question
    */
-  decide(questionId: string, answer: string, { details, option }: DecideOptions = {}): string {
+  decide(questionId: string, answer: string, { details, option, choices }: DecideOptions = {}): string {
     const question = this.item(questionId)
     if (!QUESTION_ID.test(question.id)) throw new PlanDocError(`${questionId} isn't a question`)
     const old = question.querySelector(":scope > epic-answer")
@@ -489,7 +490,10 @@ export class PlanDoc extends PlanReader {
       if (!same) this.keepOriginal(question, [Markup.set(old, { id })])
       Markup.set(card, { id })
     } else Markup.place(question, card)
-    if (option) this.chooseOption(question, option)
+    if (option) {
+      const set = this.chooseOption(question, option, choices)
+      for (const other of PlanItem.choiceSets(question)) if (other !== set) Markup.set(other, { chosen: undefined })
+    }
     Markup.set(question, { status: "decided", answered: true })
     this.placeQuestion(question)
     this.stamp(question)
@@ -498,19 +502,29 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Mark option `letter` (`A`, `B` ...) of question `item` as the one chosen:  `<epic-choices chosen="B">`.
-   * - throws when no option has that letter;  never one in its Original Discussion (that's history)
+   * Mark option `letter` (`A`, `B` ...) of `item` as the one chosen:  `<epic-choices chosen="B">`, on its own card set
+   * or (`choices`) the one at that position (`PlanItem.choiceSet()`, I8);  returns that set.
+   * - throws when the set has no option with that letter;  never one in its Original Discussion (that's history)
    */
-  chooseOption(item: Element, letter: string): void {
+  chooseOption(item: Element, letter: string, choices?: number): Element {
     const want = String(letter).trim().toUpperCase()
-    if (!PlanItem.optionsOf(item).some((option) => option.letter === want))
-      throw new PlanDocError(`${item.id.toUpperCase()} has no option ${want}`)
-    Markup.set(PlanItem.choicesOf(item)!, { chosen: want })
+    const set = PlanItem.choiceSet(item, choices)
+    if (!set || !PlanItem.optionsIn(set).some((option) => option.letter === want))
+      throw new PlanDocError(`${item.id.toUpperCase()} has no option ${want}${cardSetWords(choices)}`)
+    Markup.set(set, { chosen: want })
+    return set
   }
 
-  /** Question `item`'s options:  `[{ letter, title, recommended }]`. */
-  optionCards(item: Element): OptionCard[] {
-    return PlanItem.optionsOf(item).map(({ letter, title, recommended }) => ({ letter, title, recommended }))
+  /**
+   * `item`'s options:  `[{ letter, title, recommended }]`;  its own card set's, or (`choices`) the one at that
+   * position (`PlanItem.choiceSet()`, I8).
+   */
+  optionCards(item: Element, choices?: number): OptionCard[] {
+    return PlanItem.optionsIn(PlanItem.choiceSet(item, choices)).map(({ letter, title, recommended }) => ({
+      letter,
+      title,
+      recommended
+    }))
   }
 
   /**
@@ -705,7 +719,9 @@ export class PlanDoc extends PlanReader {
    *     recommended:  left, "needs talk"
    *   - an open judgement call:  closed (accepted);  an open test:  closed (it passed);  both reviewed
    *   - anything else (an open caveat, issue or todo;  a closed or answered item):  reviewed
-   * - `pick`:  the question answered with that option (its title the answer), and reviewed
+   * - `pick`, from any of the item's card sets (`choices`, by position;  none, its own:  I8):  that set's option
+   *   chosen;  a question answered with it (its title the answer), any other item APPROVED with it (as approve);
+   *   reviewed, a Done card `Chose B · <title>` (`pickOption()`)
    * - `todo`:  a new todo, "Follow up:  <title>", linking back;  the item reviewed
    * - `revisit` soon:  left, for Claude to talk over in the chat;  `details`, revisit `now`:  left, an agent's
    *   - a revisit carrying a `pick` ("pick B, but ..."):  left too, NOT answered:  the note may change the pick
@@ -742,7 +758,7 @@ export class PlanDoc extends PlanReader {
   }
 
   /** `applyMark()`'s work on `item`, the log line aside. */
-  applyAction(item: Element, { action, pick, when, note }: PlanMark): MarkResult {
+  applyAction(item: Element, { action, pick, choices, when, note }: PlanMark): MarkResult {
     const kind = PlanItem.kindOf(item.id)
     const open = item.getAttribute("status") === "open"
     switch (action) {
@@ -753,22 +769,10 @@ export class PlanDoc extends PlanReader {
           this.answerWith(item, option)
           return { applied: true, did: `approved:  answered ${option.letter} · ${option.title} (recommended)` }
         }
-        if (open && (kind === "judgement" || kind === "test")) {
-          this.setItem(item.id, "done")
-          this.review(item.id)
-          return { applied: true, did: `approved:  closed (${kind === "test" ? "passed" : "accepted"})` }
-        }
-        this.review(item.id)
-        return { applied: true, did: "approved:  reviewed" }
+        return { applied: true, did: `approved:  ${this.approve(item, kind, open)}` }
       }
-      case "pick": {
-        if (kind !== "question") return { applied: false, left: `not a question:  can't pick ${pick}` }
-        const option = this.optionCards(item).find((card) => card.letter === pick)
-        if (!option) return { applied: false, left: `no option ${pick}` }
-        this.answerWith(item, option)
-        this.addStatus(item.id, `Chose ${option.letter} · ${PlanMarkup.text(option.title)}`, { done: true })
-        return { applied: true, did: `picked ${option.letter}:  ${option.title}` }
-      }
+      case "pick":
+        return this.pickOption(item, kind, open, pick, choices)
       case "todo": {
         const todo = this.followUp(item.id, kind, PlanItem.titleOf(item), note)
         this.review(item.id)
@@ -777,15 +781,66 @@ export class PlanDoc extends PlanReader {
       }
       default:
         return this.leftForClaude({ action, pick, when, note }, () =>
-          this.optionCards(item).find((card) => card.letter === pick)
+          this.optionCards(item, choices).find((card) => card.letter === pick)
         )
     }
   }
 
-  /** Answer question `item` with option `option` (`optionCards()`'s):  `decide()`, the option chosen;  reviewed. */
-  answerWith(item: Element, option: OptionCard): void {
-    this.decide(item.id, option.title, { option: option.letter })
+  /**
+   * Answer question `item` with option `option` (`optionCards()`'s):  `decide()`, the option chosen (in card set
+   * `choices`, by position:  none, the question's own);  reviewed.
+   */
+  answerWith(item: Element, option: OptionCard, choices?: number): void {
+    this.decide(item.id, option.title, { option: option.letter, choices })
     this.review(item.id)
+  }
+
+  /**
+   * Approve `item` (of `kind`, `open` or not) as it stands;  returns what it did, for the log line.
+   * - an open judgement call:  closed (accepted);  an open test:  closed (it passed);  both reviewed
+   * - anything else (an open caveat, issue or todo;  a closed item):  reviewed
+   */
+  private approve(item: Element, kind: string, open: boolean): string {
+    if (open && (kind === "judgement" || kind === "test")) {
+      this.setItem(item.id, "done")
+      this.review(item.id)
+      return `closed (${kind === "test" ? "passed" : "accepted"})`
+    }
+    this.review(item.id)
+    return "reviewed"
+  }
+
+  /**
+   * A pick (a Choose pill, I8):  option `pick` of `item`'s card set at position `choices` (none:  its own) is the
+   * chosen one, `<epic-choices chosen>`, wherever the set sits:  its text, a reply, More Details.
+   * - a question:  answered with it (`answerWith()`)
+   * - any other kind:  APPROVED with it (`approve()`:  an open judgement call closed, accepted;  reviewed)
+   * - either way, a Done status card, `Chose B · <title>` (Q19), and the option in the log line
+   * - left for Claude when the item has no such set, or the set no such option
+   */
+  private pickOption(
+    item: Element,
+    kind: string,
+    open: boolean,
+    pick: string | undefined,
+    choices: number | undefined
+  ): MarkResult {
+    const set = PlanItem.choiceSet(item, choices)
+    if (!set) return { applied: false, left: `no option cards${cardSetWords(choices)}:  can't pick ${pick}` }
+    const option = PlanItem.optionsIn(set).find((card) => card.letter === pick)
+    if (!option) return { applied: false, left: `no option ${pick}${cardSetWords(choices)}` }
+    const where = set.closest(REPLY_TAG) ? " (a reply's options)" : set.closest(MORE_TAG) ? " (More Details')" : ""
+    const picked = `picked ${option.letter}:  ${option.title}${where}`
+    let did: string
+    if (kind === "question") {
+      this.answerWith(item, option, choices)
+      did = picked
+    } else {
+      this.chooseOption(item, option.letter, choices)
+      did = `${picked};  approved:  ${this.approve(item, kind, open)}`
+    }
+    this.addStatus(item.id, `Chose ${option.letter} · ${PlanMarkup.text(option.title)}`, { done: true })
+    return { applied: true, did }
   }
 
   /**
@@ -1420,6 +1475,15 @@ const STATUS_BLOCKS = /^(p|ul|ol|dl|div|blockquote|pre|table)$/
 /** A Done card's reading for a todo `inbox apply` filed (Q19):  `Made todo T23 to follow this up.`, linked. */
 function filedTodo(todo: string): string {
   return `Made todo <a href="#${todo}">${todo.toUpperCase()}</a> to follow this up.`
+}
+
+/** The cards a pick's option set may sit in, for its log line (`PlanDoc.pickOption()`). */
+const REPLY_TAG = "epic-reply"
+const MORE_TAG = "epic-more"
+
+/** A pick's card set by position, for a message:  ` in card set 2`;  `""` for the item's own (none given). */
+function cardSetWords(choices: number | undefined): string {
+  return choices === undefined ? "" : ` in card set ${choices + 1}`
 }
 
 /** The Phases section's slot for its Plan changes copies (`PlanDoc.writePlanChanges()`). */

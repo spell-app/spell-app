@@ -168,6 +168,22 @@ describe("ReviewClient.press()", () => {
     await vi.waitFor(() => expect(server.inbox.marks.q1).toMatchObject({ action: "pick", pick: "B" }))
   })
 
+  test("a pick names its card set (I8):  kept through a revisit and back;  a revisit asked now keeps it too", async () => {
+    const { client, server } = await started()
+    await client.choose("j2", "C", 1)
+    expect(server.inbox.marks.j2).toMatchObject({ action: "pick", pick: "C", choices: 1 })
+    await client.useNote("j2", "soon", "C, but why?")
+    expect(server.inbox.marks.j2).toMatchObject({ action: "revisit", note: "C, but why?", pick: "C", choices: 1 })
+    client.press("j2", "revisit")
+    await vi.waitFor(() => expect(server.inbox.marks.j2).toMatchObject({ action: "pick", pick: "C", choices: 1 }))
+    await client.askNow("j2", "revisit", "now?")
+    expect(client.markOf("j2")).toMatchObject({ action: "revisit", when: "now", pick: "C", choices: 1 })
+    // un-picked:  no pick, no card set
+    await client.choose("j2", null)
+    expect(server.inbox.marks.j2).toMatchObject({ action: "revisit", when: "soon", note: "now?" })
+    expect(server.inbox.marks.j2).not.toHaveProperty("choices")
+  })
+
   test("Do Now with a note in the box asks a revisit NOW with it (the box closes, emptied);  without, details", async () => {
     const { client, server } = await started()
     client.openBox("j2")

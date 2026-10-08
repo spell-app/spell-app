@@ -1113,6 +1113,124 @@ describe("PlanDoc review inbox", () => {
     )
   })
 
+  ////////////////
+  // ### Picks anywhere (I8)
+  ////////////////
+
+  /** A reply of Claude's holding option cards `letters` (`X` -> `<epic-option letter="X" title="Option X">`). */
+  function replyWith(...letters: string[]) {
+    const options = letters.map((letter) => `<epic-option letter="${letter}" title="Option ${letter}"></epic-option>`)
+    return `<epic-reply from="Claude" at="2026-10-01 09:20"><p>or:</p><epic-choices>${options.join("")}</epic-choices></epic-reply>`
+  }
+
+  /** The `chosen` of each of item `id`'s card sets, in page order (`null`:  none). */
+  function chosen(plan: PlanDoc, id: string) {
+    return PlanItem.choiceSets(el(plan, id)).map((set) => set.getAttribute("chosen"))
+  }
+
+  /** The latest log line. */
+  function lastLog(plan: PlanDoc) {
+    return Array.from(plan.document.querySelectorAll("#log > epic-event"), (line) => line.textContent).at(-1)
+  }
+
+  test("a pick on a judgement call APPROVES it with the option:  chosen, closed (accepted), a Done card;  logged", () => {
+    const plan = freshPlan()
+    plan.addItem("judgement", "which store?", { details: `<p>weighed</p>${OPTIONS}` })
+    expect(plan.applyMark({ id: "j1", action: "pick", pick: "A" })).toEqual({
+      applied: true,
+      did: "picked A:  Keep folds;  approved:  closed (accepted)"
+    })
+    expect(Markup.read(el(plan, "j1"))).toMatchObject({ status: "done", reviewed: "2026-10-01", reviewAs: "approve" })
+    expect(chosen(plan, "j1")).toEqual(["A"])
+    expect(el(plan, "j1").hasAttribute("answered")).toBe(false)
+    expect(el(plan, "j1").querySelector("epic-status")!.textContent).toBe("Chose A · Keep folds")
+    expect(lastLog(plan)).toBe("J1 picked A:  Keep folds;  approved:  closed (accepted)")
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("a pick on an issue or a caveat approves it as approve does:  reviewed, not closed;  the option chosen", () => {
+    const plan = freshPlan()
+    plan.addItem("issue", "slow", { details: `<p>two fixes</p>${OPTIONS}` })
+    expect(plan.applyMark({ id: "i1", action: "pick", pick: "B" }).did).toBe(
+      "picked B:  Unfold it;  approved:  reviewed"
+    )
+    expect([el(plan, "i1").getAttribute("status"), chosen(plan, "i1")]).toEqual(["open", ["B"]])
+  })
+
+  test("a pick in a reply:  THAT reply's cards chosen (`choices`, by position), recorded the same way", () => {
+    const plan = freshPlan()
+    plan.addItem("judgement", "which store?", { details: `<p>weighed</p>${OPTIONS}` })
+    plan.setDetails("j1", replyWith("A", "B", "C"), { append: true })
+    expect(plan.optionCards(el(plan, "j1"), 1).map((card) => card.letter)).toEqual(["A", "B", "C"])
+    expect(plan.applyMark({ id: "j1", action: "pick", pick: "C", choices: 1 }).did).toBe(
+      "picked C:  Option C (a reply's options);  approved:  closed (accepted)"
+    )
+    expect(chosen(plan, "j1")).toEqual([null, "C"])
+    expect(el(plan, "j1").querySelector("epic-status")!.textContent).toBe("Chose C · Option C")
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("a question picked from a reply's cards:  answered with it, that set chosen, no other", () => {
+    const plan = freshPlan()
+    plan.addItem("question", "which?", { details: `<p>why</p>${OPTIONS}` })
+    plan.setDetails("q1", replyWith("A", "B", "C"), { append: true })
+    plan.decide("q1", "Keep folds", { option: "A" })
+    expect(chosen(plan, "q1")).toEqual(["A", null])
+    expect(plan.applyMark({ id: "q1", action: "pick", pick: "C", choices: 1 }).did).toBe(
+      "picked C:  Option C (a reply's options)"
+    )
+    expect(el(plan, "q1").querySelector(":scope > epic-answer")!.getAttribute("title")).toBe("Option C")
+    expect(chosen(plan, "q1")).toEqual([null, "C"])
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("two card sets in one item's text:  each picked by position;  none given, the item's own (an old mark)", () => {
+    const plan = freshPlan()
+    const second = OPTIONS.replace("Keep folds", "Inline").replace("Unfold it", "Linked")
+    plan.addItem("judgement", "two calls", { details: `<p>first</p>${OPTIONS}<p>second</p>${second}` })
+    expect(PlanItem.choiceSets(el(plan, "j1")).length).toBe(2)
+    // two sets in one item's text:  valid (`flow`, P14)
+    expect(problems(plan)).toEqual([])
+    expect(plan.applyMark({ id: "j1", action: "pick", pick: "B", choices: 1 }).did).toMatch(/^picked B:  Linked;/)
+    expect(chosen(plan, "j1")).toEqual([null, "B"])
+    // an old mark, `{ pick }` alone:  the item's own set, the first that's its child
+    const other = freshPlan()
+    other.addItem("judgement", "two calls", { details: `<p>first</p>${OPTIONS}<p>second</p>${second}` })
+    expect(other.applyMark({ id: "j1", action: "pick", pick: "A" }).did).toMatch(/^picked A:  Keep folds;/)
+    expect(chosen(other, "j1")).toEqual(["A", null])
+  })
+
+  test("a pick names a set or an option the item hasn't:  left, nothing changed;  an Original's cards never count", () => {
+    const plan = freshPlan()
+    plan.addItem("judgement", "which store?", { details: `<p>weighed</p>${OPTIONS}` })
+    expect(plan.applyMark({ id: "j1", action: "pick", pick: "A", choices: 3 })).toEqual({
+      applied: false,
+      left: "no option cards in card set 4:  can't pick A"
+    })
+    expect(plan.applyMark({ id: "j1", action: "pick", pick: "Q", choices: 0 }).left).toBe("no option Q in card set 1")
+    plan.addItem("caveat", "plain")
+    expect(plan.applyMark({ id: "c1", action: "pick", pick: "A" }).left).toBe("no option cards:  can't pick A")
+    // cards in an Original Discussion (a hand-kept version):  history, never a set a pick names
+    el(plan, "j1").insertAdjacentHTML(
+      "afterbegin",
+      `<epic-original><epic-version>${OPTIONS}</epic-version></epic-original>`
+    )
+    expect([
+      PlanItem.choiceSets(el(plan, "j1")).length,
+      el(plan, "j1").querySelectorAll("epic-choices").length
+    ]).toEqual([1, 2])
+    expect(status(plan, "j1")).toBe("open")
+  })
+
+  test("a revisit carrying a reply's pick:  left, its option found in that set", () => {
+    const plan = freshPlan()
+    plan.addItem("judgement", "which store?", { details: `<p>weighed</p>${OPTIONS}` })
+    plan.setDetails("j1", replyWith("A", "B", "C"), { append: true })
+    expect(
+      plan.applyMark({ id: "j1", action: "revisit", when: "soon", note: "why?", pick: "C", choices: 1 }).left
+    ).toBe('to talk over:  picks C · Option C, asks:  "why?"')
+  })
+
   test("an Overview sub-section's marks (Q14):  approve noted, todo made;  the rest left", () => {
     const plan = inboxPlan()
     expect(plan.applyMark({ id: "o1", action: "approve" })).toEqual({ applied: true, did: "approved" })

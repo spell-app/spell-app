@@ -17,8 +17,12 @@ import { SRV } from "$/server"
  *   `JSON.stringify()` writes it, and a route answers with it), plus any key a hand edit added;  its methods change
  *   only it, so `ReviewInbox.test.ts` drives them directly
  * - Shape (`version: 1`):
- *   - `marks`:  `{ [id]: { action, at, when?, note?, pick? } }`, one per item id (lower-case), the latest wins
- *     - a plain pick:  `{ action: "pick", pick: "B" }`, applied by `plan-doc inbox apply`
+ *   - `marks`:  `{ [id]: { action, at, when?, note?, pick?, choices? } }`, one per item id (lower-case), the latest
+ *     wins
+ *     - a plain pick:  `{ action: "pick", pick: "B", choices: 1 }`, applied by `plan-doc inbox apply`, on any item
+ *       kind (I8).  `choices`:  WHICH of the item's option card sets, by position, 0 the first
+ *       (`PlanItem.choiceSets()`):  one item may hold several (its text's, a reply's).  None (an older mark):  the
+ *       item's own (`PlanItem.choicesOf()`)
  *     - "pick B, but ...":  a revisit carrying the pick, `{ action: "revisit", when, note, pick: "B" }`;  never
  *       applied:  Claude talks it over (`toMark()`)
  *   - `drafts`:  `{ [id]: { action, note, at } }`, a note box's text as Owen types it (`setDraft()`), until the mark
@@ -27,7 +31,7 @@ import { SRV } from "$/server"
  *     (`setUrgency()`):  `calm` true, not urgent (blue);  false, urgent (red) again.  Beside its mark, never one:
  *     sent with the marks, written into the doc by `plan-doc inbox apply` (`<epic-item calm>`)
  *   - `sent`:  ISO time of the last "send to Claude", else `null`;  marks newer than it are unsent (`unsentMarks`)
- *   - `now`:  `[{ id, action, at, note?, pick? }]`, immediate requests (Add Details, revisit now) for Claude to take
+ *   - `now`:  `[{ id, action, at, note?, pick?, choices? }]`, immediate requests (Add Details, revisit now) for Claude to take
  *   - `working`:  `{ [id]: { action, since } }`, Claude's agents at work on an item (the page shows a spinner)
  *   - `canceled`:  `{ [id]: { action, at, told } }`, a request Owen called off ("nevermind", `cancelNow()`):  the
  *     waiting session stops its agent (`told` once handed over), and a late write into the item is refused
@@ -265,24 +269,25 @@ export class ReviewInbox {
   }
 
   /**
-   * Item `id`'s IMMEDIATE request:  queue `{ id, action, at, note?, pick? }` on `now` and set its mark.
+   * Item `id`'s IMMEDIATE request:  queue `{ id, action, at, note?, pick?, choices? }` on `now` and set its mark.
    * - `details`:  the mark is `details`;  `revisit`:  `revisit` with `when: "now"` and the note
-   * - a revisit keeps the item's pick (a `pick` mark's, or a revisit's):  "pick B, but ..." asked now
+   * - a revisit keeps the item's pick (a `pick` mark's, or a revisit's, with its card set):  "pick B, but ..." asked
+   *   now
    * - a request already queued for the same item is replaced, not doubled:  two clicks are one request
    * - returns the queued entry
    */
   requestNow(id: unknown, action: unknown, note = "", at = isoTime()): NowRequest {
     const key = ReviewInbox.toItemId(id)
     if (!isNowAction(action)) throw new InboxError(`not an immediate action:  ${action} (${NOW_ACTIONS})`)
-    const pick = this.marks[key]?.pick
-    const mark = action === "revisit" ? { action, when: "now", note, ...(pick && { pick }) } : { action }
+    const pick = ReviewInbox.pickOf(this.marks[key])
+    const mark = action === "revisit" ? { action, when: "now", note, ...pick } : { action }
     const checked = this.setMark(key, mark, at)
     const entry: NowRequest = {
       id: key,
       action,
       at,
       ...(checked?.note ? { note: checked.note } : {}),
-      ...(checked?.pick ? { pick: checked.pick } : {})
+      ...ReviewInbox.pickOf(checked)
     }
     this.now = this.now.filter((each) => each.id !== key)
     this.now.push(entry)
@@ -541,24 +546,26 @@ export class ReviewInbox {
    * `mark` from a request, checked:  only its own fields, in a fixed order.
    * - `action`:  one of `ACTIONS`
    * - `revisit`:  `when` `soon` (default) or `now`;  `note` trimmed, `""` when none;  `pick` too, when given (a
-   *   letter):  "pick B, but ...", a question's pick with a remark, talked over rather than applied
+   *   letter):  "pick B, but ...", a pick with a remark, talked over rather than applied
    * - `pick`:  `pick` an option card's letter, `A`-`Z`
+   * - with a pick:  `choices` too, when given:  which of the item's option card sets it's from, by position (`0`,
+   *   `1` ...:  I8);  none, the item's own
    * - `todo`:  `note` trimmed, kept only when there is one
    * - throws an `InboxError` for anything else;  `at` is never taken from it (the writer stamps it)
    * - STATIC, as every check here:  pure, on a request before any inbox is read
    */
   static toMark(mark: unknown): CheckedMark {
     if (!mark || typeof mark !== "object" || Array.isArray(mark)) throw new InboxError("a mark is an object, or null")
-    const { action, when = "soon", note = "", pick } = mark as Record<string, unknown>
+    const { action, when = "soon", note = "", pick, choices } = mark as Record<string, unknown>
     if (!isAction(action)) throw new InboxError(`no such action:  ${action} (${ACTIONS.join(" | ")})`)
     if (action === "revisit") {
       if (!REVISIT_WHEN.includes(when as RevisitWhen))
         throw new InboxError(`revisit when?  ${REVISIT_WHEN.join(" | ")}`)
       if (typeof note !== "string") throw new InboxError("a revisit's note is text")
       if (pick === undefined || pick === null) return { action, when: when as RevisitWhen, note: note.trim() }
-      return { action, when: when as RevisitWhen, note: note.trim(), pick: toLetter(pick) }
+      return { action, when: when as RevisitWhen, note: note.trim(), pick: toLetter(pick), ...toChoices(choices) }
     }
-    if (action === "pick") return { action, pick: toLetter(pick) }
+    if (action === "pick") return { action, pick: toLetter(pick), ...toChoices(choices) }
     // Make Todo's note box (epic `windows-and-review` P2):  why it's worth following up
     if (action === "todo") {
       if (typeof note !== "string") throw new InboxError("a todo's note is text")
@@ -572,6 +579,15 @@ export class ReviewInbox {
     const key = typeof id === "string" ? id.toLowerCase() : ""
     if (!ITEM_ID.test(key)) throw new InboxError(`not an item id:  ${id}`)
     return key
+  }
+
+  /**
+   * `mark`'s pick, to carry into another mark:  `{ pick, choices? }`, or `{}` when it has none.
+   * - "pick B, but ...":  a pick that becomes a revisit, or a revisit asked now, keeps WHICH cards it picked from
+   */
+  static pickOf(mark: PickFields | null | undefined): PickFields {
+    if (!mark?.pick) return {}
+    return { pick: mark.pick, ...(mark.choices !== undefined && { choices: mark.choices }) }
   }
 
   /** Is `mark` an immediate request (`requestNow()`), not one waiting for a send? */
@@ -630,8 +646,15 @@ export type InboxMark = CheckedMark & { at: string }
 /**
  * A mark as `ReviewInbox.toMark()` checks it, before it's stamped.
  * - `when`, `note`:  a revisit's (`note` a todo's too);  `pick`:  a pick's letter, or a revisit's "pick B, but ..."
+ * - `choices`:  with a pick, which of the item's option card sets it's from, by position (I8);  none:  its own
  */
-export type CheckedMark = { action: MarkAction; when?: RevisitWhen; note?: string; pick?: string }
+export type CheckedMark = { action: MarkAction; when?: RevisitWhen; note?: string } & PickFields
+
+/**
+ * A pick's fields, on a mark or a `now` request:  `pick`, the option's letter;  `choices`, which of the item's
+ * `<epic-choices>` it's from, by position (`PlanItem.choiceSets()`), none for the item's own (`choicesOf()`).
+ */
+export type PickFields = { pick?: string; choices?: number }
 
 /** A mark with its item id:  `markList`, `sentMarks`, `unsentMarks`. */
 export type ListedMark = { id: string } & InboxMark
@@ -646,7 +669,7 @@ export type InboxUrgency = { calm: boolean; at: string }
 export type ListedUrgency = { id: string } & InboxUrgency
 
 /** An immediate request, queued on `now`. */
-export type NowRequest = { id: string; action: NowAction; at: string; note?: string; pick?: string }
+export type NowRequest = { id: string; action: NowAction; at: string; note?: string } & PickFields
 
 /** An agent at work on an item. */
 export type WorkingEntry = { action: NowAction; since: string }
@@ -677,7 +700,7 @@ export const INBOX_VERSION = 1
  * - `todo`:  file it as a todo
  * - `details`:  write more details into it (an immediate request:  `requestNow()`)
  * - `revisit`:  talk it through again;  `when` `soon` (with the next batch) or `now` (immediate), `note` Owen's text
- * - `pick`:  a question's option card, by letter (`pick: "B"`)
+ * - `pick`:  an option card, by letter (`pick: "B"`), on any item (I8):  `choices` says which card set
  */
 export const ACTIONS = ["approve", "todo", "details", "revisit", "pick"] as const
 /** One of `ACTIONS`. */
@@ -709,6 +732,9 @@ export const LISTEN_STALE_MS = 90_000
 
 /** An option card's letter. */
 const OPTION_LETTER = /^[A-Z]$/
+
+/** The highest card set position a pick may name:  a sanity bound, far above any item's count. */
+const MAX_CHOICES = 99
 
 /** An item id:  a letter or two and a number (`q7`, `j12`). */
 const ITEM_ID = /^[a-z]{1,2}\d+$/
@@ -742,6 +768,17 @@ function isNoteAction(action: unknown): action is NoteAction {
 function toLetter(pick: unknown): string {
   if (typeof pick !== "string" || !OPTION_LETTER.test(pick)) throw new InboxError(`pick which option?  ${pick}`)
   return pick
+}
+
+/**
+ * `choices`, a pick's card set by position, as a mark's field:  `{ choices }`, or `{}` when not given;  an
+ * `InboxError` when it isn't a whole number from 0 to `MAX_CHOICES`.
+ */
+function toChoices(choices: unknown): { choices?: number } {
+  if (choices === undefined || choices === null) return {}
+  if (!Number.isInteger(choices) || (choices as number) < 0 || (choices as number) > MAX_CHOICES)
+    throw new InboxError(`pick from which option cards?  ${JSON.stringify(choices)}`)
+  return { choices: choices as number }
 }
 
 /**
