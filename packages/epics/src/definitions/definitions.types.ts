@@ -47,7 +47,10 @@ export type EpicVocabulary = Omit<ComponentVocabulary, "attributes"> & {
   /**
    * May sit INSIDE prose (a `<p>`, a `<li>` ...) wherever prose is allowed, and counts as prose where a content
    * model lists `FLOW`:  `<epic-update>`, the UPDATE marker;  `<epic-net-effect>`, a Net effect list (so no parent
-   * lists it:  it goes wherever prose does).
+   * lists it:  it goes wherever prose does);  `<epic-choices>` and `<epic-field label>`, option cards and labelled
+   * blocks in any item's prose (P14).
+   * - A parent may still list a flow tag with a `where` (a phase's `<epic-field name>`s, in their order):  where
+   *   it lists no `FLOW`, only those match.
    */
   flow?: boolean
 }

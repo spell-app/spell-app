@@ -24,10 +24,11 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
       repo="https://github.com/spell-app/spell-app">
       <a slot="durable" href="../../guides/seo.html">SEO</a>
       <epic-overview id="overview" estimate="4h-5h in all, 2h left">
-        <p slot="summary">Two sentences.</p>
-        <blockquote slot="prompt"><p>the kickoff prompt</p></blockquote>
+        <epic-summary>Two sentences.</epic-summary>
+        <epic-prompt><p>the kickoff prompt</p></epic-prompt>
         <epic-section id="o1" kind="overview-part" title="Structure">...prose...</epic-section>
       </epic-overview>
+      <epic-section id="overnight" kind="report" title="Overnight · 2026-10-04">...prose...</epic-section>
       <epic-section id="phases" kind="phases">...<epic-phase>s...</epic-section>
       <epic-section id="decisions" kind="questions">...<epic-item>s...</epic-section>
       ... judgements, caveats, todos, issues, tests ...
@@ -52,6 +53,12 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
   - `repo`:  the GitHub page every `<epic-commit sha>` links through (`commit`, `commits --backfill`)
 - Sections are fixed:  each `kind` once, in that order, with its id (`questions` keeps `#decisions`).  Their titles,
   icons, notes, counts, the progress bar and the Plan changes box are drawn.
+  - A REPORT (`kind="report"`, P14) is the one section that isn't:  what a run wrote for Owen to read (an overnight
+    `/bedtime` report), its own `id` and `title`, right after the Overview, unnumbered, with the page's bands.
+- The Overview:  `<epic-summary>` (two sentences, drawn as a lede), then `<epic-prompt>` (the kickoff prompt, folded
+  under "Kickoff prompt";  `new --prompt` and `prompt <name>` write it), then its sub-sections.  An older doc's
+  `<p slot="summary">` / `<blockquote slot="prompt">` still read the same until the second conversion pass;
+  `prompt <name>` turns the old quote into an `<epic-prompt>` where it stood.
 
 ## Ids
 
@@ -96,7 +103,8 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 ```html
 <epic-item id="q3" title="Which browser first?" status="decided" answered state="recent" phase="3"
   changed="2026-10-04T12:46:05-04:00" reviewed="2026-10-06" review-as="approve">
-  <p>the question as asked ...</p><p><b>Net effect:</b></p><ul><li>...</li></ul>
+  <epic-question><p>the question as asked ...</p></epic-question>
+  <epic-net-effect option="B" recommended><ul><li>...</li></ul></epic-net-effect>
   <epic-choices chosen="B">
     <epic-option letter="A" title="Firefox"><ul><li>pros, cons</li></ul></epic-option>
     <epic-option letter="B" title="Chrome" recommended><ul><li>...</li></ul></epic-option>
@@ -110,10 +118,15 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 </epic-item>
 ```
 
-- The order is fixed:  the item's text (prose), Choices, the answer, More Details, replies, Original Discussion,
+- The order is fixed:  a question's `<epic-question>` first, then the item's text (prose, the prose elements and
+  its option cards among it:  "Prose elements" below), the answer, More Details, replies, Original Discussion,
   commits;  Claude's status cards (`<epic-status slot="status">`, "Status cards" below) are slotted, so at the end,
-  out of the order.  The element draws the chip (`Q3`, in its state's colour), the review label, "Original question" /
-  "Original reply" over the text, and every card's heading.
+  out of the order.  The element draws the chip (`Q3`, in its state's colour), the review label, `Question` over the
+  question as asked, "Original reply" over the text, and every card's heading.
+- A question's text as first asked is its `<epic-question>`, found by its tag, not its place:  `add question`, and a
+  rewrite of a question's text (`details --file`), put the lead of the HTML they're given in one (the prose up to the
+  first element or bold label line, `<p><b>The options:</b></p>`), unless the HTML has one;  a rewrite moves the old
+  one into the Original Discussion with the rest of the old text.  `--append` never makes one.
 - `title`:  WITHOUT its id;  with markup, a `<span slot="title">` child instead.  An UPDATE marker rides in the title:
   `<span slot="title">Title <epic-update phase="2"></epic-update></span>`;  `phase 2 done` removes it, and a title
   left plain goes back to `title`.
@@ -139,17 +152,48 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
     was handled, its button drawn solid:  `approve`, `todo`, `revisit`, `now` -- a Do Now request done, written by
     `inbox done`)
 - Options:  `<epic-choices>` of `<epic-option letter title recommended>`, the same open or answered;  `chosen` once
-  answered (`decide --option B`, a pick).  Mark ONE `recommended`.  An agent may still write the old option grid
-  (`ui-grid.spell-pros-cons`, labels `A · Title (recommended)`):  the tool turns it into `<epic-choices>` on the way
-  in, as it turns an old `div.plan-reply` into an `<epic-reply>` (REFACTOR:  until the skills write the new shapes).
+  answered (`decide --option B`, a pick).  Mark ONE `recommended`.  On ANY item kind (P14):  a question's own after
+  its text, or the options a judgement call, a reply or More Details weighs;  only a question's are picked
+  (`inbox apply`).
+- The way in (`IncomingHtml`):  agents may still write the OLD shapes;  every command taking HTML (`add --details`,
+  `decide --details`, `details --file`, `updated`, a phase's fields) turns them into elements on the way in, so a doc
+  never holds them:  an option grid (`ui-grid.spell-pros-cons`, labels `A · Title (recommended)`, wherever it sits)
+  -> `<epic-choices>`;  a `div.plan-reply` -> `<epic-reply>`;  a `Net effect` paragraph and its list, a
+  `ui-accordion.spell-code` / `.spell-aside`, a `ui-message.plan-update` -> the prose elements below
+  (`$/epics/markup` `ProseRewrite`).  Never inside code or an Original Discussion.
 - A rewrite (`details --file`, `decide` again, `details --more` again) never drops text:  what it replaces moves into
   `<epic-original>`, one `<epic-version>` per version (the first undated, the rest `as-of` when replaced), cards as
-  the prose they said (`Answer · Chrome`, `B · Chrome (recommended), chosen`);  ids inside become
-  `data-original-id`.  `original <name> <id> --file` puts text recovered from git there (old markup welcome).
-- `--append`:  an `<epic-reply>` goes after the replies;  other prose after the item's text.
+  the prose they said (`Answer · Chrome`, `B · Chrome (recommended), chosen`;  the prose elements stay, an
+  `<epic-question>` too);  ids inside become `data-original-id`.  `original <name> <id> --file` puts text recovered
+  from git there (old markup welcome).
+- `--append`:  an `<epic-reply>` goes after the replies;  other prose at the end of the item's text (after its option
+  cards:  they're prose too).
+- A details page has no `<epic-*>` elements:  an item's text goes there as the prose each element draws (`Net effect
+  (A):` over its list, a code block's title over its `<pre>` ...:  `PlanItem.asProse({ plain })`).
 - Owen's note, once Claude clears its mark:  `<epic-reply from="Owen" at="..." re="revisit soon">`.
 - An Overview sub-section takes review marks too (Q14):  approve is logged, todo makes a todo linking `#o3`, a
   kept note is a paragraph at its end.
+
+## Prose elements
+
+The blocks prose used to shape by hand, each an element that draws its chrome around prose that stays the page's own
+children (find-in-page, `#id` links and the live update keep working;  epic `epic-components` P14).  Each is `flow`:
+it goes wherever prose goes (an item's text, a reply, an option card, a phase field, an Overview sub-section), but
+`<epic-question>`, `<epic-summary>` and `<epic-prompt>`, which have one place each.
+
+| element                       | example                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| `<epic-net-effect>`           | `<epic-net-effect option="A" recommended><ul><li>...</li></ul></epic-net-effect>`:  `Net effect (A, recommended):` over its list (or a `<p>`);  no `option`:  `Net effect:` |
+| `<epic-question>`             | `<epic-question><p>Which browser first?</p></epic-question>`:  a question's text as first asked, under `Question`;  FIRST in its item (or a version) |
+| `<epic-summary>`              | `<epic-summary>Two sentences.</epic-summary>`:  the Overview's lede, once                 |
+| `<epic-prompt>`               | `<epic-prompt><p>the prompt, as typed</p></epic-prompt>`:  folded under `Kickoff prompt`, once in the Overview |
+| `<epic-code>`                 | `<epic-code title="design.ts · 12 lines" language="ts"><pre>...</pre></epic-code>`:  folded, highlighted, ONE `<pre>` of text (`&lt;` for a `<`);  `open` to start open |
+| `<epic-aside>`                | `<epic-aside title="why not now"><p>...</p></epic-aside>`:  folded, headed `Aside:  why not now` |
+| `<epic-note>`                 | `<epic-note state="update" title="partly fixed by J9"><p>...</p></epic-note>`:  a small orange `UPDATE` (or green `DONE`, `state="done"`) note that stays;  not `<epic-update>`, a phase's marker |
+| `<epic-choices>`              | as in "Items":  option cards, on any item kind                                            |
+| `<epic-field label>`          | `<epic-field label="Where"><p>the inbox file</p></epic-field>`:  a labelled block, `Where:` before its prose (`What should happen`, `Step`);  a phase's fields have `name` instead |
+| `<epic-section kind="report">` | `<epic-section id="overnight" kind="report" title="Overnight · 2026-10-04">...</epic-section>`:  a run's report, after the Overview (`The page`) |
+| the crumbs                    | none written:  `<epic-page>` draws `Docs › Epics › <title>` from its `title` (an older doc's `.spell-crumbs` before it:  it draws none) |
 
 ## Status cards
 
