@@ -111,9 +111,9 @@
   margin-bottom: 0;
 }
 
-/* "(recommended)":  quiet grey text, after the title (no green label:  green means decided) */
+/* recommended:  a violet thumbs-up after the title, no word (Owen, Q20:  violet is Claude's suggestion;  green means decided) */
 .spell-recommended {
-  color: var(--spell-muted);
+  color: var(--ui-violet, #6435c9);
   font-size: 0.9em;
 }
 
