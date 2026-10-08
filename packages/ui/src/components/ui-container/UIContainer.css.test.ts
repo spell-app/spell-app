@@ -6,7 +6,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { containerVocabulary } from "./UIContainer.vocabulary.en"
+import { containerVocabulary } from "./UIContainer.en"
 
 import containerCSS from "./UIContainer.css?inline"
 import containerRaw from "./UIContainer.css?raw"

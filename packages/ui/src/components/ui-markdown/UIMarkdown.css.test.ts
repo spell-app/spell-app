@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { markdownVocabulary } from "./UIMarkdown.vocabulary.en"
+import { markdownVocabulary } from "./UIMarkdown.en"
 
 import markdownCSS from "./UIMarkdown.css?inline"
 import markdownRaw from "./UIMarkdown.css?raw"

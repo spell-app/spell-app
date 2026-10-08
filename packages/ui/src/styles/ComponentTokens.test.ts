@@ -3,7 +3,7 @@ import { describe, expect, test } from "vite-plus/test"
 import { ComponentTokens } from "$/ui/styles/ComponentTokens"
 
 /** Every English vocabulary (the tags), by path. */
-const VOCABULARIES = import.meta.glob<string>("/src/components/*/*.vocabulary.en.ts", {
+const VOCABULARIES = import.meta.glob<string>("/src/components/*/*.en.ts", {
   query: "?raw",
   import: "default",
   eager: true

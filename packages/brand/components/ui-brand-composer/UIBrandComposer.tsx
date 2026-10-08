@@ -2,9 +2,9 @@ import { Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { IconGlyph, proto, SlotContent, UI, type AttributeName, type FieldValue, type ElementSetup } from "$/ui/core"
-import { ControlLabels, DOMFormControlElement, FormComponent } from "$/ui/forms"
+import { ControlLabels, DOMFormControl, FormComponent } from "$/ui/forms"
 
-import { brandComposerVocabulary } from "./UIBrandComposer.vocabulary.en"
+import { brandComposerVocabulary } from "./UIBrandComposer.en"
 import { BrandComposerFallback } from "./UIBrandComposer.fallback"
 import {
   BRAND,
@@ -24,13 +24,13 @@ import composerCSS from "./UIBrandComposer.css?inline"
 
 /****************
  * ### `DOMBrandComposerElement`
- * The DOM element of `<ui-brand-composer>`:  a form control's DOM element (`DOMFormControlElement`), plus `cast()`,
+ * The DOM element of `<ui-brand-composer>`:  a form control's DOM element (`DOMFormControl`), plus `cast()`,
  * so a page can cast what it just put in `value` (the marketing hero's idea chips fill the box and cast at once).
  *
  * - solid-element refuses a DOM element member named like a prop:  `cast` is no attribute (`casting` is).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandComposerElement extends DOMFormControlElement {
+export class DOMBrandComposerElement extends DOMFormControl {
   /**
    * Cast the current text, as the Cast button does:  `ui-cast`, then the form's submit.
    * - Returns false when nothing was cast:  empty text, `casting`, `disabled`, not rendered yet, or cancelled.

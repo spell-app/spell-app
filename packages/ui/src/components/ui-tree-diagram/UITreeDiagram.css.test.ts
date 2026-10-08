@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { treeDiagramVocabulary } from "./UITreeDiagram.vocabulary.en"
+import { treeDiagramVocabulary } from "./UITreeDiagram.en"
 
 import treeDiagramCSS from "./UITreeDiagram.css?inline"
 import treeDiagramRaw from "./UITreeDiagram.css?raw"

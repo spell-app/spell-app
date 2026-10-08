@@ -1,8 +1,8 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { sectionsVocabulary } from "./UISections.vocabulary.en"
-import { sectionVocabulary } from "./UISection.vocabulary.en"
+import { sectionsVocabulary } from "./UISections.en"
+import { sectionVocabulary } from "./UISection.en"
 
 import sectionCSS from "./UISection.css?inline"
 

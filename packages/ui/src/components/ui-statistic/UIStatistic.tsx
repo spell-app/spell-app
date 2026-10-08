@@ -2,7 +2,7 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { statisticVocabulary } from "./UIStatistic.vocabulary.en"
+import { statisticVocabulary } from "./UIStatistic.en"
 
 import statisticCSS from "./UIStatistic.css?inline"
 

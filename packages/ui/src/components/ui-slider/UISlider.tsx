@@ -4,7 +4,7 @@ import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { sliderVocabulary } from "./UISlider.vocabulary.en"
+import { sliderVocabulary } from "./UISlider.en"
 import { SliderFallback } from "./UISlider.fallback"
 import { SliderScale } from "./SliderScale"
 import { DEFAULT_MAX, DEFAULT_MIN, DEFAULT_STEP } from "./UISlider.types"
@@ -250,10 +250,10 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
         <div
           ref={(element) => (this.inner = element)}
           class={INNER}
-          role={this.range ? UIT.GROUP : undefined}
+          role={this.range ? "group" : undefined}
           aria-label={this.range ? this.labels.accessibleName : undefined}
           style={this.innerStyle}
-          {...this.staticMark(UIT.GROUP)}
+          {...this.staticMark("group")}
           onPointerDown={this.onPointerDown}
           onPointerMove={this.onPointerMove}
           onPointerUp={this.onPointerUp}
@@ -265,7 +265,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
           <Show when={this.range}>{this.thumb(SECOND)}</Show>
         </div>
         <Show when={this.labeled || this.ticked}>
-          <ul class={LABELS} part={this.partForName("labels")} aria-hidden={UIT.TRUE}>
+          <ul class={LABELS} part={this.partForName("labels")} aria-hidden="true">
             <Repeat count={this.scale.intervals + 1}>{(index) => this.label(index)}</Repeat>
           </ul>
         </Show>
@@ -292,7 +292,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
       <div
         class={thumb === SECOND ? SECOND_THUMB : THUMB}
         part={this.partForName("thumb")}
-        role={SLIDER}
+        role="slider"
         tabindex={this.isDisabled ? undefined : 0}
         style={{ [AT]: String(this.ratio(thumb)) }}
         aria-valuemin={this.bounds(thumb)[0]}
@@ -300,9 +300,9 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
         aria-valuenow={this.thumbValue(thumb)}
         aria-valuetext={this.valueText(this.thumbValue(thumb))}
         aria-label={this.thumbName(thumb)}
-        aria-orientation={this.vertical ? UIT.VERTICAL : undefined}
-        aria-disabled={this.isDisabled ? UIT.TRUE : undefined}
-        aria-readonly={this.readonly ? UIT.TRUE : undefined}
+        aria-orientation={this.vertical ? "vertical" : undefined}
+        aria-disabled={this.isDisabled ? "true" : undefined}
+        aria-readonly={this.readonly ? "true" : undefined}
         {...this.staticMark(thumb)}
         onKeyDown={(event) => this.onKeyDown(thumb, event)}
       />
@@ -313,9 +313,9 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
    * Server render only (`$/ui/static`):  the `STATIC_CONTROL` mark on `target`,
    * when the DOM element's name belongs to it (a single slider's thumb, a range's group);  `{}` in a browser.
    */
-  private staticMark(target: Thumb | typeof UIT.GROUP): Record<string, unknown> {
+  private staticMark(target: Thumb | "group"): Record<string, unknown> {
     if (!isServer) return {}
-    const isNamed = target === UIT.GROUP ? this.range : target === FIRST && !this.range
+    const isNamed = target === "group" ? this.range : target === FIRST && !this.range
     return isNamed ? { [UIT.STATIC_CONTROL]: "" } : {}
   }
 
@@ -329,7 +329,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
     const value = this.formValue
     return (
       <For each={Array.isArray(value) ? value : [value]} keyed={false}>
-        {(each) => <input type={HIDDEN} name={name} value={String(each())} disabled={this.isDisabled} />}
+        {(each) => <input type="hidden" name={name} value={String(each())} disabled={this.isDisabled} />}
       </For>
     )
   }
@@ -558,9 +558,3 @@ const FROM = "--_slider-from"
 
 /** Custom property of the fill's end ratio. */
 const TO = "--_slider-to"
-
-/** Role of a thumb. */
-const SLIDER = "slider"
-
-/** `type` of the inputs carrying the value in a static server render. */
-const HIDDEN = "hidden"

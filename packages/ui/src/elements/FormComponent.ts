@@ -3,7 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 // Import directly to avoid circular import
-import { DOMFormControlElement } from "./DOMFormControlElement"
+import { DOMFormControl } from "./DOMFormControl"
 import { Validator } from "./Validator"
 
 /****************
@@ -11,7 +11,7 @@ import { Validator } from "./Validator"
  * The base class of the form controls' components (`UIInput`, `UIDropdown`, `UICheckbox` ...):
  * the form value, validity, reset, and a `<fieldset disabled>` around it.
  * - solid-element's `formAssociated` option (`elementSetup.isAFormControl`) makes the DOM element a form control;
- *   its DOM element class is a `DOMFormControlElement` (the form-control API).
+ *   its DOM element class is a `DOMFormControl` (the form-control API).
  * - Form callbacks arrive as solid-element's hooks:
  *   `onFormReset` => `onFormReset()`, `onFormDisabled` => `formIsDisabled` (in `UIComponent`).
  * - Pushes `formValue` into `ElementInternals.setFormValue()` -- a `string[]` becomes a `FormData` with one
@@ -22,19 +22,19 @@ import { Validator } from "./Validator"
  * - Part of the `forms` entry:  reaches the element core through the `$/ui/core` ENTRY (`E`), never its leaves, or the
  *   build splits what `core` and `forms` share into a third chunk.  `E.UIComponent` and the decorators (`@E.proto`,
  *   `@E.onChange` ...) are safe while this module evaluates:  the core never imports `forms`, so it has always
- *   finished loading first.  Its `forms` peers `DOMFormControlElement` / `Validator` come directly:  static initializers read
+ *   finished loading first.  Its `forms` peers `DOMFormControl` / `Validator` come directly:  static initializers read
  *   them (WWOD §4 › "Circular imports").
  ****************/
 export abstract class FormComponent<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends E.UIComponent<V> {
   @E.proto static elementSetup: Partial<E.ElementSetup> = {
     // with the form-control API
-    DOMElement: DOMFormControlElement,
+    DOMElement: DOMFormControl,
     isAFormControl: true
   }
 
   /** The DOM element, as the form control it is. */
-  get domFormElement(): DOMFormControlElement {
-    return this.domElement as DOMFormControlElement
+  get domFormElement(): DOMFormControl {
+    return this.domElement as DOMFormControl
   }
 
   ////////////////

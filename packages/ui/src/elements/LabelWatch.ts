@@ -35,7 +35,7 @@ export class LabelWatch {
     this.observer.observe(this.root, {
       childList: true,
       subtree: true,
-      attributeFilter: [E.FOR_ATTRIBUTE],
+      attributeFilter: ["for"],
       attributeOldValue: true
     })
   }
@@ -63,7 +63,7 @@ export class LabelWatch {
         for (const node of nodes) {
           if (node.nodeType !== E.NodeType.element) continue
           const element = node as Element
-          const labels = LabelWatch.isLabel(element) ? [element] : element.getElementsByTagName(E.LABEL_TAG)
+          const labels = LabelWatch.isLabel(element) ? [element] : element.getElementsByTagName("label")
           for (const label of labels as Iterable<HTMLLabelElement>) {
             if (label.htmlFor) ids.add(label.htmlFor)
             else all = true
@@ -99,6 +99,6 @@ export class LabelWatch {
 
   /** Is `node` a `<label>`?  By `localName`:  no `HTMLLabelElement` global in a server render. */
   private static isLabel(node: Node): node is HTMLLabelElement {
-    return (node as Element).localName === E.LABEL_TAG
+    return (node as Element).localName === "label"
   }
 }

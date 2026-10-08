@@ -7,7 +7,7 @@ import { itemVocabulary } from "$/ui/components/ui-item"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { menuVocabulary } from "./UIMenu.vocabulary.en"
+import { menuVocabulary } from "./UIMenu.en"
 
 import itemCSS from "$/ui/components/ui-item/UIItem.css?inline"
 import menuCSS from "./UIMenu.css?inline"

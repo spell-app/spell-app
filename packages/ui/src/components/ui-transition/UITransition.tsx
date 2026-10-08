@@ -2,7 +2,7 @@ import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { transitionVocabulary } from "./UITransition.vocabulary.en"
+import { transitionVocabulary } from "./UITransition.en"
 import {
   AttentionAnimations,
   DEFAULT_ANIMATION,

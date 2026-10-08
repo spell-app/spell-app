@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { textVocabulary } from "./UIText.vocabulary.en"
+import { textVocabulary } from "./UIText.en"
 
 import textCSS from "./UIText.css?inline"
 

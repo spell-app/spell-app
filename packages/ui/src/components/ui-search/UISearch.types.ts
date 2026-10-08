@@ -7,7 +7,7 @@
  */
 
 import type { UIT } from "$/ui/core"
-import type { searchVocabulary } from "./UISearch.vocabulary.en"
+import type { searchVocabulary } from "./UISearch.en"
 
 ////////////////
 // ## Types

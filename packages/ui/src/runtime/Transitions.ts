@@ -118,7 +118,7 @@ export class Transitions {
   private show(element: HTMLElement) {
     element.hidden = false
     if (element.hasAttribute(this.forcedDisplayAttribute)) {
-      element.style.removeProperty(DISPLAY)
+      element.style.removeProperty("display")
       element.removeAttribute(this.forcedDisplayAttribute)
     }
   }
@@ -127,7 +127,7 @@ export class Transitions {
   private hide(element: HTMLElement) {
     element.hidden = true
     if (element.isConnected && getComputedStyle(element).display !== CssDisplay.none) {
-      element.style.setProperty(DISPLAY, CssDisplay.none)
+      element.style.setProperty("display", CssDisplay.none)
       element.setAttribute(this.forcedDisplayAttribute, "")
     }
   }
@@ -161,7 +161,7 @@ export class Transitions {
     const iterations = style.animationIterationCount.split(",").map((count) => Number.parseFloat(count) || 1)
     let longest = 0
     names.forEach((name, index) => {
-      if (name === UIT.NONE) return
+      if (name === "none") return
       const duration = durations[index % durations.length] ?? 0
       const delay = delays[index % delays.length] ?? 0
       const repeat = iterations[index % iterations.length] ?? 1
@@ -212,9 +212,6 @@ const DURATION_PROPERTY = "--ui-animation-duration"
 
 /** Custom property for the `easing` option. */
 const EASING_PROPERTY = "--ui-animation-easing"
-
-/** The style property `out` forces when CSS overrides `[hidden]`. */
-const DISPLAY = "display"
 
 /** Events that end a run:  finished, or cancelled (its keyframes went away). */
 const END_EVENTS = ["animationend", "animationcancel"] as const

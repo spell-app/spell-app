@@ -4,7 +4,7 @@
  *   it in `dist/core.js` and each family entry holds only its own classes, sheet, vocabulary and fallback.
  * - Pulls in:
  *   - `$/ui/util`, `$/ui/vocabulary` -- foundation JS (`proto`, `Warnings`, `ValueSets`, `Converters` ...)
- *   - `$/ui/components/components.types` as the namespace `UIT` (`UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.SelectValue` ...)
+ *   - `$/ui/components/components.types` as the namespace `UIT` (`UIT.FLUID`, `UIT.ToggleCommands`, `UIT.SelectValue` ...)
  *   - from `$/ui/elements`, library-neutral:  `elements.types` (the element core's shared types and constants),
  *     `ClassBuilder`, `Shorthand`, `OwnerContext`, `NativeFallback` (the fallbacks' base), `StickyWatch`
  *     (`<ui-sticky>` and `<ui-section sticky>`)
@@ -19,7 +19,7 @@
  *     itself stays a lazy chunk
  *   - `$/ui/icons` -- the icon pack format (`IconName`, `BuiltInPacks`);  the packs are separate files
  *     (`dist/icon-packs/`), loaded by the runtime (`UI.icons`)
- * - NOT here:  the `forms` entry (`forms.ts`:  `FormComponent`, `DOMFormControlElement`, `Validator`, `MenuOptions`,
+ * - NOT here:  the `forms` entry (`forms.ts`:  `FormComponent`, `DOMFormControl`, `Validator`, `MenuOptions`,
  *   `ControlLabels`), loaded only by families that import it.
  * - NOTE: `$/ui/elements` LEAVES are re-exported, one by one, as `AGENTS.md` ("Solid authoring") says:  its barrel
  *   also exports the `forms` files, and an `export *` of it here would make them `core` exports, i.e. core bytes.

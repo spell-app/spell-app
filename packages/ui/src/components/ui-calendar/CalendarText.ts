@@ -34,7 +34,7 @@ export class CalendarText {
 
   /** `moment` through `Intl.DateTimeFormat` with `options`, in UTC (see class docs). */
   format(moment: MomentLike, options: Intl.DateTimeFormatOptions): string {
-    return this.i18n.formatDate(CalendarDates.epoch(moment), { ...options, timeZone: UTC }, this.locale)
+    return this.i18n.formatDate(CalendarDates.epoch(moment), { ...options, timeZone: "UTC" }, this.locale)
   }
 
   /** The field's text for a value of `type`, e.g. `September 30, 2026 at 2:30 PM`. */
@@ -185,7 +185,7 @@ export class CalendarText {
 
   /** The locale's day-period word at `hour` (UTC), lowercased without dots;  `undefined` for a 24-hour locale. */
   private dayPeriod(hour: number): string | undefined {
-    return new Intl.DateTimeFormat(this.locale, { hour: "numeric", hour12: true, timeZone: UTC })
+    return new Intl.DateTimeFormat(this.locale, { hour: "numeric", hour12: true, timeZone: "UTC" })
       .formatToParts(Date.UTC(2000, 0, 1, hour))
       .find((part) => part.type === "dayPeriod")
       ?.value.toLocaleLowerCase(this.locale)
@@ -282,6 +282,3 @@ const DIGITS = /\d+/g
 
 /** Runs of letters, any script. */
 const WORDS = /\p{L}+/gu
-
-/** Time zone every format runs in (see class docs). */
-const UTC = "UTC"

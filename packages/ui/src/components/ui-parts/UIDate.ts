@@ -1,5 +1,5 @@
 import { E } from "$/ui/core"
-import { dateVocabulary } from "./UIDate.vocabulary.en"
+import { dateVocabulary } from "./UIDate.en"
 
 /****************
  * ### `UIDate`
@@ -12,7 +12,7 @@ export class UIDate extends E.PartComponent<typeof dateVocabulary> {
   @E.proto static vocabulary = dateVocabulary
 
   protected get rootTag(): string {
-    return TIME
+    return "time"
   }
 
   protected get rootDatetime(): string | undefined {
@@ -22,6 +22,3 @@ export class UIDate extends E.PartComponent<typeof dateVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIDate extends E.AttributeValues<typeof dateVocabulary> {}
-
-/** Root element. */
-const TIME = "time"

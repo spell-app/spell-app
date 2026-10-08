@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { fieldsVocabulary } from "./UIFields.vocabulary.en"
+import { fieldsVocabulary } from "./UIFields.en"
 import { ERROR, INFO, SUCCESS, WARNING } from "./UIForm.types"
 
 import formCSS from "./UIForm.css?inline"

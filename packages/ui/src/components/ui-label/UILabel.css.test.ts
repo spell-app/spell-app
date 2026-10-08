@@ -5,8 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { labelVocabulary } from "./UILabel.vocabulary.en"
-import { labelsVocabulary } from "./UILabels.vocabulary.en"
+import { labelVocabulary } from "./UILabel.en"
+import { labelsVocabulary } from "./UILabels.en"
 
 import labelCSS from "./UILabel.css?inline"
 import labelRaw from "./UILabel.css?raw"

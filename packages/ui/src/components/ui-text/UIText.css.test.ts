@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS, tokensCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { textVocabulary } from "./UIText.vocabulary.en"
+import { textVocabulary } from "./UIText.en"
 
 import textCSS from "./UIText.css?inline"
 import textRaw from "./UIText.css?raw"

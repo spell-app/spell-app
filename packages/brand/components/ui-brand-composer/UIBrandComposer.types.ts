@@ -3,7 +3,7 @@
  * - Data only:  nothing here runs.
  */
 
-import type { brandComposerVocabulary } from "./UIBrandComposer.vocabulary.en"
+import type { brandComposerVocabulary } from "./UIBrandComposer.en"
 
 /** `brandComposerVocabulary`'s type. */
 export type BrandComposerVocabulary = typeof brandComposerVocabulary

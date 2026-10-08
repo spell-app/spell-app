@@ -6,7 +6,7 @@ import { nextFrame } from "$/ui/util"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { stickyVocabulary } from "./UISticky.vocabulary.en"
+import { stickyVocabulary } from "./UISticky.en"
 
 import stickyCSS from "./UISticky.css?inline"
 import stickyRaw from "./UISticky.css?raw"

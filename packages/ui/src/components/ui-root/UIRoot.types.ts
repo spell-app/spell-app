@@ -5,8 +5,8 @@
  */
 
 import type { E } from "$/ui/core"
-import type { componentsVocabulary } from "./UIComponents.vocabulary.en"
-import type { rootVocabulary } from "./UIRoot.vocabulary.en"
+import type { componentsVocabulary } from "./UIComponents.en"
+import type { rootVocabulary } from "./UIRoot.en"
 
 ////////////////
 // ## Vocabulary and catalog

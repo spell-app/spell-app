@@ -256,7 +256,7 @@ export class ComponentTokens {
 
 /** What `new ComponentTokens()` reads:  source TEXT, never files. */
 export type ComponentTokensProps = {
-  /** path => text of every `ui-UI<Name>.vocabulary.en.ts` (one per tag);  the family is the path's folder */
+  /** path => text of every `ui-UI<Name>.en.ts` (one per tag);  the family is the path's folder */
   vocabularies: Record<string, string>
   /** texts of the foundation sheets (`src/styles/*.css`) */
   foundation: string[]

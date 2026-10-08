@@ -7,7 +7,7 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-08.
 
 - **Component names** (2026-10-08, epic `wwod-spell-ui` P15):  the class behind a tag is its COMPONENT
   (`UIComponent`, `FormComponent`, `LoadableComponent`, `PartComponent`), the tag in the page its DOM ELEMENT
-  (`DOMElement`, `DOMFormControlElement`, `DOMLoadableElement`, a family's `DOM<Name>Element`, in its component's
+  (`DOMElement`, `DOMFormControl`, `DOMLoadableElement`, a family's `DOM<Name>Element`, in its component's
   file);  every family file named for its component (`UIDivider.css`);  native fallbacks for form controls only.
   The API says "DOM element" too:  `domElementEffect()`, `@onChange(..., { writesDOMElement: true })`,
   `isPageControlled()`.  Built, every family (steps 1-3).

@@ -2,7 +2,7 @@ import { untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { tabVocabulary } from "./UITab.vocabulary.en"
+import { tabVocabulary } from "./UITab.en"
 import type { TabOwner, TabPaneState } from "./UITab.types"
 
 import segmentCSS from "$/ui/components/ui-segment/UISegment.css?inline"
@@ -59,12 +59,12 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   protected onOwnerChanged(owner: TabOwner | undefined) {
     const { domElement } = this
     const owned = !!owner
-    domElement.internals.role = owned ? TABPANEL : null
-    if (owned && !domElement.hasAttribute(UIT.TABINDEX)) {
+    domElement.internals.role = owned ? "tabpanel" : null
+    if (owned && !domElement.hasAttribute("tabindex")) {
       domElement.tabIndex = 0
       this.tabIndexIsOurs = true
     } else if (!owned && this.tabIndexIsOurs) {
-      domElement.removeAttribute(UIT.TABINDEX)
+      domElement.removeAttribute("tabindex")
       this.tabIndexIsOurs = false
     }
   }
@@ -160,7 +160,7 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("tab")} aria-busy={this.loading ? UIT.TRUE : undefined}>
+      <div class={this.rootClasses} part={this.partForName("tab")} aria-busy={this.loading ? "true" : undefined}>
         <slot />
       </div>
     )
@@ -169,9 +169,6 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UITab extends E.AttributeValues<typeof tabVocabulary> {}
-
-/** The role of an owned pane's DOM element. */
-const TABPANEL = "tabpanel"
 
 /** The class after a pane's noun:  the pane is a segment (`ui … tab segment`). */
 const SEGMENT = "segment"

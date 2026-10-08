@@ -1,13 +1,13 @@
 /**
  * Constants and types of the checkbox family:  the vocabulary pieces `<ui-checkbox>` and `<ui-radio>` share,
- * and the words and shapes their components and native fallback share.
+ * and the shapes their components and native fallback share.
  * - Pure data:  `import type` only (its vocabularies too:  they import this file's values),
  *   so node can load it (`yarn site:data`).
  * - A word only ONE class uses sits below that class instead.
  */
 
-import type { checkboxVocabulary } from "./UICheckbox.vocabulary.en"
-import type { radioVocabulary } from "./UIRadio.vocabulary.en"
+import type { checkboxVocabulary } from "./UICheckbox.en"
+import type { radioVocabulary } from "./UIRadio.en"
 
 ////////////////
 // ## Vocabulary pieces
@@ -120,19 +120,3 @@ export type RadioMember = {
   /** Its value;  tracked. */
   readonly chosenValue: string
 }
-
-////////////////
-// ## Words
-////////////////
-
-/** The attribute that's another name for `selected`. */
-export const CHECKED = "checked"
-
-/** The input type of `<ui-checkbox>`, and what a form reads it as;  the only type that may be read-only. */
-export const CHECKBOX = "checkbox"
-
-/** The input type of `<ui-radio>`, and what a form reads it as. */
-export const RADIO = "radio"
-
-/** The role of toggles and sliders:  on / off, not "checked". */
-export const SWITCH = "switch"

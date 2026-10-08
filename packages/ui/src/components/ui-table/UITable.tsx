@@ -2,11 +2,10 @@ import { For, Show, createRenderEffect, untrack } from "solid-js"
 import { Portal, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { tableVocabulary } from "./UITable.vocabulary.en"
+import { tableVocabulary } from "./UITable.en"
 import { TableClassMirror } from "./TableClassMirror"
 import { TableGrammar } from "./TableGrammar"
 import { TableSort } from "./TableSort"
-import { CLASS, DESCENDING, TABLE } from "./UITable.types"
 
 import tableCSS from "./UITable.css?inline"
 
@@ -99,7 +98,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
           class={this.scrollerClasses}
           part={this.partForName("scroller")}
           tabindex={this.scrollerScrolls ? 0 : undefined}
-          role={this.scrollerScrolls ? UIT.REGION : undefined}
+          role={this.scrollerScrolls ? "region" : undefined}
           aria-label={this.scrollerScrolls ? this.regionLabel : undefined}
         >
           <slot />
@@ -178,7 +177,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
    */
   private scanAuthorTable(): HTMLTableElement | undefined {
     for (const child of this.domElement.children) {
-      if (child.localName === TABLE && !GENERATED.has(child as HTMLTableElement)) return child as HTMLTableElement
+      if (child.localName === "table" && !GENERATED.has(child as HTMLTableElement)) return child as HTMLTableElement
     }
     return undefined
   }
@@ -207,12 +206,12 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
     untrack(() => {
       const table = this.authorTable
       if (!table) return
-      table.setAttribute(CLASS, TableClassMirror.mirrored(table.getAttribute(CLASS), this.rootClasses))
+      table.setAttribute("class", TableClassMirror.mirrored(table.getAttribute("class"), this.rootClasses))
       table.setAttribute(UIT.STATIC_ROOT, this.vocabulary.noun)
       const column = this.sortColumn
       const direction = this.effectiveSortDirection
       if (!this.sortable || column === undefined || !direction) return
-      TableSort.staticHeaderAt(table, column)?.setAttribute(ARIA_SORT, direction)
+      TableSort.staticHeaderAt(table, column)?.setAttribute("aria-sort", direction)
     })
   }
 
@@ -247,7 +246,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
     const index = this.sortColumn
     const column = index === undefined ? undefined : this.dataColumns[index]
     if (!column || column.sortable === false) return rows
-    const sign = this.effectiveSortDirection === DESCENDING ? -1 : 1
+    const sign = this.effectiveSortDirection === "descending" ? -1 : 1
     return [...rows].sort((a, b) => TableSort.compare(a[column.key], b[column.key], sign))
   }
 
@@ -345,7 +344,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
 
   /** Direction in effect:  `sortDirection`, `ascending` when only a column is set. */
   get effectiveSortDirection(): UIT.TableSortDirection | undefined {
-    return this.sortColumn === undefined ? undefined : (this.sortDirection ?? ASCENDING)
+    return this.sortColumn === undefined ? undefined : (this.sortDirection ?? "ascending")
   }
 
   /** Headers this element made focusable (`tabindex="0"`). */
@@ -375,23 +374,23 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   private decorateHeaders({ table, isSortable, column, direction }: HeaderSort) {
     const headers = table && isSortable ? TableSort.headers(table) : []
     const focusable = new Set(
-      headers.filter((header) => TableSort.isSortable(header) && !header.querySelector(UIT.BUTTON))
+      headers.filter((header) => TableSort.isSortable(header) && !header.querySelector("button"))
     )
     for (const header of this.headersMadeFocusable) {
       if (!focusable.has(header)) {
-        header.removeAttribute(UIT.TABINDEX)
+        header.removeAttribute("tabindex")
         this.headersMadeFocusable.delete(header)
       }
     }
     for (const header of focusable) {
-      if (header.hasAttribute(UIT.TABINDEX)) continue
-      header.setAttribute(UIT.TABINDEX, "0")
+      if (header.hasAttribute("tabindex")) continue
+      header.setAttribute("tabindex", "0")
       this.headersMadeFocusable.add(header)
     }
     const sorted = table && isSortable && column !== undefined ? TableSort.headerAt(table, column) : undefined
-    if (this.sortedHeader && this.sortedHeader !== sorted) this.sortedHeader.removeAttribute(ARIA_SORT)
-    for (const header of headers) if (header !== sorted) header.removeAttribute(ARIA_SORT)
-    if (sorted && direction) sorted.setAttribute(ARIA_SORT, direction)
+    if (this.sortedHeader && this.sortedHeader !== sorted) this.sortedHeader.removeAttribute("aria-sort")
+    for (const header of headers) if (header !== sorted) header.removeAttribute("aria-sort")
+    if (sorted && direction) sorted.setAttribute("aria-sort", direction)
     this.sortedHeader = sorted
   }
 
@@ -438,7 +437,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
     const column = TableSort.column(header)
     const current = untrack(() => this.sortColumn)
     const direction: UIT.TableSortDirection =
-      column === current && untrack(() => this.effectiveSortDirection) === ASCENDING ? DESCENDING : ASCENDING
+      column === current && untrack(() => this.effectiveSortDirection) === "ascending" ? "descending" : "ascending"
     const detail: UIT.TableSortDetail = { column, key: TableSort.key(header), direction, originalEvent }
     this.requestChange("sortDirection", direction, () =>
       this.requestChange("sortColumn", column, () => this.send("ui-sort", detail))
@@ -468,7 +467,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   private get regionLabel(): string {
     void this.tableRevision
     const caption = this.managedTable?.caption?.textContent?.trim()
-    return this.attributes[UIT.ARIA_LABEL] ?? (caption || this.translationForKey("label"))
+    return this.attributes["aria-label"] ?? (caption || this.translationForKey("label"))
   }
 
   // `attached` (any edge), `attached-top`, `attached-bottom`:  the DOM element carries the table's outer margin
@@ -516,12 +515,6 @@ type HeaderSort = {
 
 /** Tables the element rendered itself (data mode):  never mistaken for an author's. */
 const GENERATED = new WeakSet<HTMLTableElement>()
-
-/** Header attribute of the sorted column's direction (the caret in `UITable.css`). */
-const ARIA_SORT = "aria-sort"
-
-/** A newly sorted column's direction. */
-const ASCENDING: UIT.TableSortDirection = "ascending"
 
 /** Prefix of the class `stack-by` adds to the table:  `stack-by-container`, `stack-by-viewport`. */
 const STACK_BY_CLASS = "stack-by-"

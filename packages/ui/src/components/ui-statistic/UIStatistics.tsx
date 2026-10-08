@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { statisticsVocabulary } from "./UIStatistics.vocabulary.en"
+import { statisticsVocabulary } from "./UIStatistics.en"
 
 import statisticCSS from "./UIStatistic.css?inline"
 

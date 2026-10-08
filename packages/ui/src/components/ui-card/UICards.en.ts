@@ -2,7 +2,7 @@
  * The English vocabulary of `<ui-cards>`:  every name the tag uses.
  * - Its tag, attributes (each with its kind and allowed values), events, slots, parts, states and texts.
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
- * - The family's grammar notes are in `UICard.vocabulary.en.ts`.
+ * - The family's grammar notes are in `UICard.en.ts`.
  */
 
 import type { E } from "$/ui/core"

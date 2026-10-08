@@ -7,7 +7,7 @@ import { join } from "node:path"
  *   Its files are named for its main COMPONENT, the class behind that tag:
  *   `UIButton.css`, `UIButton.types.ts`, `UIButton.test.tsx`.
  * - A family with several tags names each tag's vocabulary for that tag's component:
- *   `UIButtons.vocabulary.en.ts`, `UIOr.vocabulary.en.ts`.
+ *   `UIButtons.en.ts`, `UIOr.en.ts`.
  * - For tools that look up a family's file by name (`FamilyTokens`, `yarn gen:root`).
  *   Tools that only need "every vocabulary" or "every sheet" match the suffix instead
  *   (`VocabularyFiles`):  that works whatever the file is called.

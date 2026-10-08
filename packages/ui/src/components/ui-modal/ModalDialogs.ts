@@ -1,6 +1,6 @@
 import { E, UI, UIT } from "$/ui/core"
-import { modalVocabulary } from "./UIModal.vocabulary.en"
-import { CLOSEDBY, type Vocabulary } from "./UIModal.types"
+import { modalVocabulary } from "./UIModal.en"
+import { type Vocabulary } from "./UIModal.types"
 
 /****************
  * ### `ModalDialogs`
@@ -58,9 +58,9 @@ export class ModalDialogs implements E.ModalProvider {
   ): Promise<T> {
     const modal = this.document.createElement(modalVocabulary.tag) as HTMLElement & { open: boolean }
     modal.setAttribute(SIZE, TINY)
-    modal.setAttribute(CLOSEDBY, CLOSEREQUEST)
+    modal.setAttribute("closedby", "closerequest")
     if (options.title) modal.setAttribute(UIT.HEADER, options.title)
-    else modal.setAttribute(UIT.ARIA_LABEL, options.message)
+    else modal.setAttribute("aria-label", options.message)
     const content = this.document.createElement(ModalDialogs.tagFor(UIT.CONTENT))
     const field = input === undefined ? undefined : this.input(input)
     content.append(field ? this.label(options.message, field) : this.paragraph(options.message))
@@ -153,9 +153,6 @@ const SIZE = "size"
 
 /** The dialogs' width. */
 const TINY = "tiny"
-
-/** `closedby` of the dialogs:  Escape only, so a stray click on the dimmer can't answer. */
-const CLOSEREQUEST = "closerequest"
 
 /** Class noun of the actions part (`<ui-actions>`). */
 const ACTIONS = "actions"

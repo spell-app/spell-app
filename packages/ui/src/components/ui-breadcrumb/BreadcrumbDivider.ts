@@ -17,7 +17,7 @@ export class BreadcrumbDivider {
    */
   static svgUrl(svg: SVGSVGElement): string {
     const copy = svg.cloneNode(true) as SVGSVGElement
-    copy.setAttribute(XMLNS, SVG_NS)
+    copy.setAttribute("xmlns", "http://www.w3.org/2000/svg")
     return BreadcrumbDivider.dataUrl(new XMLSerializer().serializeToString(copy))
   }
 
@@ -27,7 +27,7 @@ export class BreadcrumbDivider {
    */
   static markupUrl(markup: string): string {
     const standalone = markup.replace(SVG_START, (tag, attributes: string) =>
-      HAS_XMLNS.test(attributes) ? tag : `<svg ${XMLNS}="${SVG_NS}"${attributes}>`
+      HAS_XMLNS.test(attributes) ? tag : `<svg xmlns="http://www.w3.org/2000/svg"${attributes}>`
     )
     return BreadcrumbDivider.dataUrl(standalone)
   }
@@ -38,17 +38,11 @@ export class BreadcrumbDivider {
   }
 }
 
-/** SVG namespace, for the data URL's root:  a standalone SVG image needs it. */
-const SVG_NS = "http://www.w3.org/2000/svg"
-
-/** Attribute declaring it. */
-const XMLNS = "xmlns"
-
 /** An `<svg>` start tag:  group 1 is the rest of the tag, its attributes. */
 const SVG_START = /^\s*<svg\b([^>]*)>/
 
 /** Attributes that declare `xmlns` already. */
-const HAS_XMLNS = new RegExp(`\\s${XMLNS}=`)
+const HAS_XMLNS = /\sxmlns=/
 
 /** Line breaks, escaped in a CSS string. */
 const LINE_BREAK = /\r\n|\r|\n/g

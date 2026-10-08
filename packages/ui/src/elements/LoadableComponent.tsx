@@ -430,7 +430,7 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
   static inlineTextOf(domElement: HTMLElement): string {
     let text = domElement.textContent ?? ""
     for (const child of domElement.children) {
-      if (child.localName === "script" && (child as HTMLScriptElement).type.startsWith(TEXT_MIME_TYPE)) {
+      if (child.localName === "script" && (child as HTMLScriptElement).type.startsWith("text/")) {
         text = (child as HTMLScriptElement).text
         break
       }
@@ -458,9 +458,6 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
     return lines.map((line) => line.slice(Math.min(indent, line.length - line.trimStart().length))).join("\n")
   }
 }
-
-/** Start of the `<script type>` of inline text:  any `text/...` MIME type (`text/plain`, `text/markdown`). */
-const TEXT_MIME_TYPE = "text/"
 
 /**
  * Attributes each status element gets, by tag:

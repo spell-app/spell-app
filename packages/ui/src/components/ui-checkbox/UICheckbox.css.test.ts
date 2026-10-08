@@ -5,8 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { checkboxVocabulary } from "./UICheckbox.vocabulary.en"
-import { radioVocabulary } from "./UIRadio.vocabulary.en"
+import { checkboxVocabulary } from "./UICheckbox.en"
+import { radioVocabulary } from "./UIRadio.en"
 
 import checkboxCSS from "./UICheckbox.css?inline"
 import checkboxRaw from "./UICheckbox.css?raw"

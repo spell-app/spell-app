@@ -3,7 +3,7 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { searchVocabulary } from "./UISearch.vocabulary.en"
+import { searchVocabulary } from "./UISearch.en"
 import { SearchFallback } from "./UISearch.fallback"
 import { SearchMatcher } from "./SearchMatcher"
 import {
@@ -212,7 +212,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
         this.send("ui-results", { query, results: groups.flatMap((group) => group.results) })
       })
       .catch((error: unknown) => {
-        if (running.signal.aborted || (error as Error)?.name === ABORT_ERROR) return
+        if (running.signal.aborted || (error as Error)?.name === "AbortError") return
         this.remoteAnswer = { query, groups: [], status: RemoteStatus.error }
       })
       .finally(() => {
@@ -279,10 +279,10 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   protected onPopoverChanged(resultsAreShowing: boolean, isConnected: boolean) {
     const box = this.resultsBox
     if (!resultsAreShowing || !isConnected || !box) return
-    if (!box.matches(UIT.POPOVER_OPEN)) box.showPopover()
+    if (!box.matches(":popover-open")) box.showPopover()
     UI.overlays.open(this.overlay)
     return () => {
-      if (box.matches(UIT.POPOVER_OPEN)) box.hidePopover()
+      if (box.matches(":popover-open")) box.hidePopover()
       UI.overlays.close(this.overlay)
     }
   }
@@ -315,7 +315,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
     this.commit(String(result.title ?? ""), originalEvent)
     this.requestOpen(false, originalEvent)
     const url = typeof result.url === "string" ? result.url : undefined
-    if (url && originalEvent?.type !== UIT.CLICK) this.domElement.ownerDocument.location.assign(url)
+    if (url && originalEvent?.type !== "click") this.domElement.ownerDocument.location.assign(url)
   }
 
   ////////////////
@@ -440,7 +440,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
             class={PROMPT}
             part={this.partForName("prompt")}
             type="text"
-            role={COMBOBOX_ROLE}
+            role="combobox"
             autocomplete="off"
             spellcheck={false}
             enterkeyhint="search"
@@ -448,16 +448,16 @@ export class UISearch extends F.FormComponent<Vocabulary> {
             placeholder={this.placeholder}
             disabled={this.isDisabled}
             aria-autocomplete="list"
-            aria-haspopup={LISTBOX_ROLE}
-            aria-expanded={this.resultsAreShowing && this.shownResults.length ? UIT.TRUE : UIT.FALSE}
+            aria-haspopup="listbox"
+            aria-expanded={this.resultsAreShowing && this.shownResults.length ? "true" : "false"}
             aria-controls={this.ids.results}
             aria-activedescendant={
               this.resultsAreShowing && this.highlightedResult ? this.idFor(this.highlightedResult) : undefined
             }
             aria-label={this.label}
-            aria-busy={this.isLoading ? UIT.TRUE : undefined}
-            aria-required={this.required ? UIT.TRUE : undefined}
-            aria-invalid={this.validation.valid ? undefined : UIT.TRUE}
+            aria-busy={this.isLoading ? "true" : undefined}
+            aria-required={this.required ? "true" : undefined}
+            aria-invalid={this.validation.valid ? undefined : "true"}
             {...this.staticControl}
             onInput={this.onInput}
             onKeyDown={this.onKeyDown}
@@ -470,7 +470,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
           </span>
         </div>
         {this.results()}
-        <span class={UIT.STATUS} role={UIT.STATUS}>
+        <span class="status" role="status">
           {this.statusText}
         </span>
       </div>
@@ -492,9 +492,9 @@ export class UISearch extends F.FormComponent<Vocabulary> {
         ref={(element) => (this.resultsBox = element)}
         id={this.ids.results}
         class={RESULTS}
-        popover={UIT.MANUAL}
+        popover="manual"
         part={this.partForName("results")}
-        role={this.shownResults.length ? LISTBOX_ROLE : undefined}
+        role={this.shownResults.length ? "listbox" : undefined}
         aria-label={this.shownResults.length ? this.label : undefined}
         onMouseDown={UISearch.preventDefault}
       >
@@ -519,14 +519,14 @@ export class UISearch extends F.FormComponent<Vocabulary> {
     return (
       <div
         class={[CATEGORY, { [UIT.ACTIVE]: group.results.includes(this.highlightedResult!) }]}
-        role={UIT.GROUP}
+        role="group"
         aria-labelledby={nameId()}
         part={this.partForName("category")}
       >
         <div id={nameId()} class={NAME} part={this.partForName("name")}>
           {group.name}
         </div>
-        <div class={RESULTS} role={UIT.NONE}>
+        <div class={RESULTS} role="none">
           <For each={group.results}>{(result) => this.row(result)}</For>
         </div>
       </div>
@@ -540,7 +540,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   private row(result: UIT.SearchResult): JSX.Element {
     const url = typeof result.url === "string" && result.url ? result.url : undefined
     const classes = () => [RESULT, { [UIT.ACTIVE]: this.highlightedResult === result }]
-    const selected = () => (this.highlightedResult === result ? UIT.TRUE : UIT.FALSE)
+    const selected = () => (this.highlightedResult === result ? "true" : "false")
     const onPointerMove = () => this.highlight(result)
     const onClick = (event: MouseEvent) => this.select(result, event)
     if (url) {
@@ -550,7 +550,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
           class={classes()}
           href={url}
           tabindex="-1"
-          role={OPTION_ROLE}
+          role="option"
           part={this.partForName("result")}
           aria-selected={selected()}
           onPointerMove={onPointerMove}
@@ -564,7 +564,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
       <div
         id={this.idFor(result)}
         class={classes()}
-        role={OPTION_ROLE}
+        role="option"
         part={this.partForName("result")}
         aria-selected={selected()}
         onPointerMove={onPointerMove}
@@ -757,18 +757,6 @@ const CATEGORY_ID_INFIX = "-category-"
 
 /** The input's icon:  FA's magnifying glass. */
 const SEARCH_ICON = "magnifying-glass"
-
-/** `name` of the error a fetch aborted by a newer query rejects with. */
-const ABORT_ERROR = "AbortError"
-
-/** `role` of the input. */
-const COMBOBOX_ROLE = "combobox"
-
-/** `role` of the results while there are some, and the input's `aria-haspopup`. */
-const LISTBOX_ROLE = "listbox"
-
-/** `role` of each result. */
-const OPTION_ROLE = "option"
 
 /**
  * Class word of the input box while busy.  Class words are the markup contract (`UISearch.css`) -- grammar,

@@ -1,5 +1,5 @@
-import { E, UIT } from "$/ui/core"
-import { authorVocabulary } from "./UIAuthor.vocabulary.en"
+import { E } from "$/ui/core"
+import { authorVocabulary } from "./UIAuthor.en"
 
 /****************
  * ### `UIAuthor`
@@ -12,7 +12,7 @@ export class UIAuthor extends E.PartComponent<typeof authorVocabulary> {
   @E.proto static vocabulary = authorVocabulary
 
   protected get rootTag(): string {
-    return this.href ? UIT.ANCHOR_TAG : "span"
+    return this.href ? "a" : "span"
   }
 
   protected get rootHref(): string | undefined {

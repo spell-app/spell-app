@@ -2,7 +2,7 @@ import { Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { CLOSEDBY, type DialogAttributes, type DialogEventName } from "./UIModal.types"
+import { type DialogAttributes, type DialogEventName } from "./UIModal.types"
 
 /****************
  * ### `DialogComponent`
@@ -147,10 +147,10 @@ export abstract class DialogComponent<
     if (!dialog) return
     const closedBy = this.closedBy
     const isNative = UI.browser.supports.dialogClosedBy
-    if (isNative) dialog.setAttribute(CLOSEDBY, closedBy)
-    else dialog.removeAttribute(CLOSEDBY)
-    this.overlayEntry.closeOnEscape = closedBy !== UIT.NONE
-    this.overlayEntry.closeOnOutsideClick = !isNative && closedBy === ANY
+    if (isNative) dialog.setAttribute("closedby", closedBy)
+    else dialog.removeAttribute("closedby")
+    this.overlayEntry.closeOnEscape = closedBy !== "none"
+    this.overlayEntry.closeOnOutsideClick = !isNative && closedBy === "any"
     if (!dialog.open) {
       dialog.showModal()
       UI.focus.enter(dialog)
@@ -216,10 +216,10 @@ export abstract class DialogComponent<
    * - NOTE: `closedby` has a vocabulary default, so whether it was written is read off the DOM element.
    */
   private get closedBy(): NonNullable<DialogAttributes["closedby"]> {
-    if (this.domElement.hasAttribute(CLOSEDBY)) return untrack(() => this.closedby) ?? ANY
+    if (this.domElement.hasAttribute("closedby")) return untrack(() => this.closedby) ?? "any"
     // NOTE: an absent boolean also converts to `false`, so `closable` must be present to mean "closable: false"
     const isOff = this.domElement.hasAttribute(CLOSABLE) && !untrack(() => this.closable)
-    return isOff ? UIT.NONE : ANY
+    return isOff ? "none" : "any"
   }
 
   /** Remember whether a press started on the `::backdrop` (the dialog itself, outside its box). */
@@ -241,7 +241,7 @@ export abstract class DialogComponent<
     this.pressStartedOnBackdrop = false
     if (this.isDismissing) return
     const closedBy = this.closedBy
-    if (closedBy === UIT.NONE || (reason === "outside" && closedBy !== ANY)) return
+    if (closedBy === "none" || (reason === "outside" && closedBy !== "any")) return
     this.requestClose(reason, event)
   }
 
@@ -297,7 +297,7 @@ export abstract class DialogComponent<
 
   /** The DOM element's `aria-label`, forwarded to the dialog. */
   get ariaLabel(): string | undefined {
-    return this.attributes[UIT.ARIA_LABEL] ?? undefined
+    return this.attributes["aria-label"] ?? undefined
   }
 
   /**
@@ -333,12 +333,12 @@ export abstract class DialogComponent<
     if (!dialog) return
     const hasHeader = !!header
     const reflected = dialog as unknown as { ariaLabelledByElements: Element[] | null }
-    if (label) dialog.setAttribute(UIT.ARIA_LABEL, label)
-    else dialog.removeAttribute(UIT.ARIA_LABEL)
+    if (label) dialog.setAttribute("aria-label", label)
+    else dialog.removeAttribute("aria-label")
     // NOTE: setting the reflected list (even to `null`, the platform's "none") rewrites the attribute,
     // so it goes first
     reflected.ariaLabelledByElements = !label && !hasHeader && heading ? [heading] : null
-    if (!label && hasHeader) dialog.setAttribute(ARIA_LABELLEDBY, this.headerId)
+    if (!label && hasHeader) dialog.setAttribute("aria-labelledby", this.headerId)
   }
 
   /**
@@ -432,9 +432,3 @@ const OPEN = "open"
 
 /** The attribute of the close icon (and of Fomantic's `closable: false`). */
 const CLOSABLE = "closable"
-
-/** The `<dialog>` attribute naming it by its header's id. */
-const ARIA_LABELLEDBY = "aria-labelledby"
-
-/** `closedby` value:  anything dismisses it (Escape, the dimmer). */
-const ANY = "any"

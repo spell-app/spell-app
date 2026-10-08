@@ -2,9 +2,9 @@ import { Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { sidebarVocabulary } from "./UISidebar.vocabulary.en"
+import { sidebarVocabulary } from "./UISidebar.en"
 import type { UIPushable } from "./UIPushable"
-import { CENTER, NONE_TRANSFORM, type SidebarVocabulary } from "./UISidebar.types"
+import { CENTER, type SidebarVocabulary } from "./UISidebar.types"
 
 import sidebarCSS from "./UISidebar.css?inline"
 
@@ -50,7 +50,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.on(COMMAND, this.onCommand)
+    this.on("command", this.onCommand)
   }
 
   ////////////////
@@ -131,9 +131,9 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
     const box = this.box
     this.reportLayout()
     if (modal && box instanceof HTMLDialogElement) {
-      const closedBy = untrack(() => this.closedby) ?? ANY
-      this.overlay.closeOnEscape = closedBy !== UIT.NONE
-      this.overlay.closeOnOutsideClick = closedBy === ANY
+      const closedBy = untrack(() => this.closedby) ?? "any"
+      this.overlay.closeOnEscape = closedBy !== "none"
+      this.overlay.closeOnOutsideClick = closedBy === "any"
       // MUST `show()` BEFORE `UI.overlays.open()`:  `show()` gives the dialog its own close watcher,
       // disabled (`closedby` computes to `none`).  Opened by a click, it's the newest close-watcher group,
       // and Chromium processes only that group, so a watcher made before it never hears Escape.  Focus still returns:
@@ -238,7 +238,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
     const transition = untrack(() => this.transitionName)
     const modal = untrack(() => this.isModal)
     const blurring = untrack(() => !!this.blurring)
-    if (transition === OVERLAY) return { transform: NONE_TRANSFORM, origin: CENTER, modal, blurring }
+    if (transition === OVERLAY) return { transform: "none", origin: CENTER, modal, blurring }
     if (transition === SCALE_DOWN) return { transform: SCALE, origin: SCALE_ORIGINS[position]!, modal, blurring }
     const box = this.box
     const size = VERTICAL.has(position) ? (box?.offsetHeight ?? 0) : (box?.offsetWidth ?? 0)
@@ -253,7 +253,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   ////////////////
 
   render(): JSX.Element {
-    const label = () => this.attributes[UIT.ARIA_LABEL] ?? this.translationForKey("sidebar")
+    const label = () => this.attributes["aria-label"] ?? this.translationForKey("sidebar")
     return (
       <Show
         when={this.isModal}
@@ -273,7 +273,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
           class={this.rootClasses}
           part={this.partForName("sidebar")}
           aria-label={label()}
-          aria-modal={this.isVisible ? UIT.TRUE : undefined}
+          aria-modal={this.isVisible ? "true" : undefined}
           onCancel={this.onCancel}
         >
           <slot />
@@ -308,9 +308,3 @@ const SCALE_ORIGINS: Readonly<Record<string, string>> = {
   top: "50% 75%",
   bottom: "50% 25%"
 }
-
-/** `closedby` value letting a click beside the sidebar close it too (its default). */
-const ANY = "any"
-
-/** Invoker commands (`ToggleCommands`) arrive as this event on the DOM element. */
-const COMMAND = "command"

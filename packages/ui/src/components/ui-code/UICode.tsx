@@ -2,7 +2,7 @@ import { Show, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
-import { codeVocabulary } from "./UICode.vocabulary.en"
+import { codeVocabulary } from "./UICode.en"
 import { CodeHighlighter } from "./CodeHighlighter"
 import { CodeLines } from "./CodeLines"
 import type { Highlighted } from "./UICode.types"

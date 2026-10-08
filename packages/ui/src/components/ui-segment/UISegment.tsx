@@ -2,7 +2,7 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { segmentVocabulary } from "./UISegment.vocabulary.en"
+import { segmentVocabulary } from "./UISegment.en"
 
 import segmentCSS from "./UISegment.css?inline"
 
@@ -64,8 +64,8 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.onChange("loading", "disabled", { writesDOMElement: true })
   protected onBusyOrDisabledChanged(isLoading: boolean | undefined, isDisabled: boolean | undefined) {
     const { internals } = this.domElement
-    internals.ariaBusy = isLoading ? UIT.TRUE : null
-    internals.ariaDisabled = isDisabled ? UIT.TRUE : null
+    internals.ariaBusy = isLoading ? "true" : null
+    internals.ariaDisabled = isDisabled ? "true" : null
   }
 
   ////////////////
@@ -82,7 +82,7 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
       >
         <slot />
         <Show when={this.loading}>
-          <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
+          <span class={UIT.VISUALLY_HIDDEN} role="status">
             {this.translationForKey("loading")}
           </span>
         </Show>

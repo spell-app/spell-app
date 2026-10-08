@@ -5,7 +5,7 @@ import { FLAG_ALIASES } from "./UIFlag.types"
  * ### `FlagCountry`
  * A `country` attribute resolved to a flag:  its code, its Unicode emoji and how to name it.
  * - For `UIFlag`, and for pages that want the emoji or the code alone (the family's barrel exports it).
- * - Rules:  `UIFlag.vocabulary.en.ts`:  normalize, then a name of `FLAG_ALIASES` => its code, then the code =>
+ * - Rules:  `UIFlag.en.ts`:  normalize, then a name of `FLAG_ALIASES` => its code, then the code =>
  *   its emoji through `UIT.Flags`, the rule menu options' flags use too.
  * - Plain data, no DOM and no runtime:  naming a code (`Intl.DisplayNames`) is the caller's
  *   (the component goes through `UI.i18n`).

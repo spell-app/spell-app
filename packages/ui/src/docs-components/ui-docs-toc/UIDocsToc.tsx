@@ -2,7 +2,7 @@ import { For, Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { docsTocVocabulary } from "./UIDocsToc.vocabulary.en"
+import { docsTocVocabulary } from "./UIDocsToc.en"
 import { TocIndex } from "./TocIndex"
 import {
   DEFAULT_SIZE,

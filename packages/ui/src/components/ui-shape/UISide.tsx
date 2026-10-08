@@ -3,7 +3,7 @@ import { isServer, type JSX } from "@solidjs/web"
 import { E } from "$/ui/core"
 import { UIShape } from "./UIShape"
 import { SIDE } from "./UIShape.types"
-import { sideVocabulary } from "./UISide.vocabulary.en"
+import { sideVocabulary } from "./UISide.en"
 
 import shapeCSS from "./UIShape.css?inline"
 

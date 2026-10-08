@@ -5,7 +5,7 @@
  * - A constant only one class reads sits below that class (epic `wwod-spell-ui`, Q18).
  */
 
-import type { transitionVocabulary } from "./UITransition.vocabulary.en"
+import type { transitionVocabulary } from "./UITransition.en"
 
 /** Vocabulary type, for brevity. */
 export type Vocabulary = typeof transitionVocabulary

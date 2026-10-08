@@ -236,7 +236,7 @@ export class IconPacks {
    * - STATIC:  pure, the same for every set.
    */
   private static parse(text: string): SVGSVGElement | undefined {
-    const root = new DOMParser().parseFromString(text, SVG_TYPE).documentElement
+    const root = new DOMParser().parseFromString(text, "image/svg+xml").documentElement
     return root instanceof SVGSVGElement ? IconPacks.adopt(root) : undefined
   }
 
@@ -251,9 +251,9 @@ export class IconPacks {
    */
   private static adopt(svg: SVGSVGElement): SVGSVGElement {
     const copy = document.importNode(svg, true)
-    const fill = copy.getAttribute(FILL)
-    if (fill === null) copy.setAttribute(FILL, CURRENT_COLOR)
-    else copy.style.setProperty(FILL, fill)
+    const fill = copy.getAttribute("fill")
+    if (fill === null) copy.setAttribute("fill", "currentColor")
+    else copy.style.setProperty("fill", fill)
     return copy
   }
 }
@@ -289,12 +289,3 @@ type IconTemplate = {
 
 /** `Warnings` source of this class's warnings. */
 const WARNING_SOURCE = "UI.icons"
-
-/** MIME type `DOMParser` needs for SVG. */
-const SVG_TYPE = "image/svg+xml"
-
-/** Presentation attribute set on a root with none. */
-const FILL = "fill"
-
-/** Its value:  the icon takes the text colour. */
-const CURRENT_COLOR = "currentColor"

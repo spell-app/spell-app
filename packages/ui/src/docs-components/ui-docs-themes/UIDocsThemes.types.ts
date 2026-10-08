@@ -6,7 +6,7 @@
  */
 
 import type { DocsScheme, DocsShownScheme } from "$/ui/docs-components/docs-components.types"
-import type { docsThemesVocabulary } from "./UIDocsThemes.vocabulary.en"
+import type { docsThemesVocabulary } from "./UIDocsThemes.en"
 
 ////////////////
 // ## Element

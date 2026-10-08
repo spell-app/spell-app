@@ -100,7 +100,7 @@ export class IconGlyph {
    */
   static draw(template: SVGSVGElement): SVGSVGElement {
     const svg = template.cloneNode(true) as SVGSVGElement
-    svg.setAttribute(ARIA_HIDDEN, TRUE)
+    svg.setAttribute("aria-hidden", "true")
     return svg
   }
 
@@ -114,7 +114,7 @@ export class IconGlyph {
     if (!name || !page || !IconGlyph.serverMarkup) return undefined
     const markup = IconGlyph.serverMarkup(IconGlyph.packsFor(element, page), name)
     if (!markup) return undefined
-    return ssr([markup.replace(SVG_OPEN, `<svg ${ARIA_HIDDEN}="${TRUE}"`)]) as unknown as SVGSVGElement
+    return ssr([markup.replace(SVG_OPEN, '<svg aria-hidden="true"')]) as unknown as SVGSVGElement
   }
 
   /**
@@ -141,12 +141,6 @@ export type IconGlyphOwner = {
   /** whether it's in the document (`UIComponent.isConnected`):  a reconnect may mean another root */
   readonly isConnected: boolean
 }
-
-/** Hides a decorative icon from assistive technology. */
-const ARIA_HIDDEN = "aria-hidden"
-
-/** ARIA boolean. */
-const TRUE = "true"
 
 /** An SVG file's opening tag. */
 const SVG_OPEN = /<svg\b/

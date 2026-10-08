@@ -159,7 +159,7 @@ export class LoadableBody {
    * - Static:  pure.  `NodeType`, not the `Node` global, which a server render has none of.
    */
   private static isPlaceholder(node: Node): boolean {
-    return !(node.nodeType === E.NodeType.element && (node as Element).hasAttribute(SLOT_ATTRIBUTE))
+    return !(node.nodeType === E.NodeType.element && (node as Element).hasAttribute("slot"))
   }
 }
 
@@ -172,6 +172,3 @@ type BodyLoad = {
   /** skip the cache (`reload()`) */
   fresh: boolean
 }
-
-/** A child with this attribute goes to a named slot:  never a placeholder. */
-const SLOT_ATTRIBUTE = "slot"

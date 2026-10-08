@@ -172,7 +172,7 @@ export class ElementDefinition {
       return E.Converters.booleanToAttribute(E.Converters.boolean(value as string | boolean | null | undefined))
     }
     // an `icon` turned off over its default reflects as `"false"`:  removing it would bring the default back
-    if (spec.kind === "icon" && value == null && typeof spec.default === "string") return FALSE
+    if (spec.kind === "icon" && value == null && typeof spec.default === "string") return "false"
     if (value == null || value === false) return null
     if (value === true) return ""
     if (Array.isArray(value)) return value.join(",")
@@ -227,6 +227,3 @@ export type ElementDefinitionProps = {
   /** Translation;  default English identity. */
   dictionary?: E.Dictionary
 }
-
-/** Attribute text of an `icon` turned off. */
-const FALSE = "false"

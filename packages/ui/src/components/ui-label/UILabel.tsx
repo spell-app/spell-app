@@ -2,7 +2,7 @@ import { Show } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { labelVocabulary } from "./UILabel.vocabulary.en"
+import { labelVocabulary } from "./UILabel.en"
 
 import labelCSS from "./UILabel.css?inline"
 import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
@@ -47,7 +47,7 @@ export class UILabel extends E.UIComponent<typeof labelVocabulary> {
 
   /** The element's `aria-label`, moved to the inner box. */
   get ariaLabel(): string | undefined {
-    return this.attributes[UIT.ARIA_LABEL] ?? undefined
+    return this.attributes["aria-label"] ?? undefined
   }
 
   ////////////////
@@ -119,8 +119,8 @@ export class UILabel extends E.UIComponent<typeof labelVocabulary> {
         href={this.disabled ? undefined : this.href}
         target={this.href ? this.target : undefined}
         aria-label={this.ariaLabel}
-        aria-disabled={this.disabled && this.href ? UIT.TRUE : undefined}
-        role={this.ariaLabel && !this.href ? UIT.IMG : undefined}
+        aria-disabled={this.disabled && this.href ? "true" : undefined}
+        role={this.ariaLabel && !this.href ? "img" : undefined}
       >
         <Show when={this.imageSrc}>
           <img class={UIT.IMAGE} part={this.partForName("image")} src={this.imageSrc} alt="" />

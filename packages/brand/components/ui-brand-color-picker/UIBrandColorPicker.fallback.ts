@@ -1,7 +1,7 @@
 import { NativeFallback, proto } from "$/ui/core"
 import { Palette } from "$/brand"
 
-import { brandColorPickerVocabulary } from "./UIBrandColorPicker.vocabulary.en"
+import { brandColorPickerVocabulary } from "./UIBrandColorPicker.en"
 import { BRAND_COLOR, DEFAULT_VALUE } from "./UIBrandColorPicker.types"
 
 /****************

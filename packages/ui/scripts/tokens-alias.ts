@@ -31,7 +31,7 @@ class AliasTokensCommand {
    */
   run({ family, write }: AliasTokensOptions) {
     const tokens = new ComponentTokens({
-      vocabularies: this.read(this.files("src/components", /\.vocabulary\.en\.ts$/)),
+      vocabularies: this.read(this.files("src/components", ENGLISH_VOCABULARY)),
       foundation: Object.values(this.read(this.files("src/styles", /\.css$/)))
     })
     const sheets = this.read(this.files(`src/components/${family}`, /\.css$/))
@@ -98,6 +98,9 @@ type AliasTokensOptions = {
 
 /** The site's generated files:  the minified bundle and its data, never hand-edited. */
 const GENERATED_SITE = /^site\/_(assets|data)\//
+
+/** A family's English vocabulary, `<family>/UIButton.en.ts` (`VocabularyFiles.languageOf()`'s rule). */
+const ENGLISH_VOCABULARY = /\/[A-Z]\w*\.en\.ts$/
 
 /** Printed when the family is missing. */
 const USAGE = "usage:  yarn tokens:alias <family> [--write]"

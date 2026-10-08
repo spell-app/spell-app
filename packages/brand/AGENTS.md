@@ -86,7 +86,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 - Each family has a docs page, `brand/components/<tag>.html` (shared), in Spell UI's docs format
   (`templates/spell-ui-docs.html`:  masthead, Examples / Usage / API / Theming tabs), loading
   `_assets/ui/brand-docs.js` (`src/brand-docs.ts`) and `_assets/brand-docs.css` from here.  A new family:  its
-  `UI<Name>.vocabulary.en.ts` (topics, aka, description), `yarn site:data`, then copy a page.  The Brand index lists them.
+  `UI<Name>.en.ts` (topics, aka, description), `yarn site:data`, then copy a page.  The Brand index lists them.
 - The claude.ai design system shows each family as a card in its "Brand" group (`packages/ui/tools/DesignBrand.ts`,
   epic `claude-design` P11):  its API from `_data/components.json`, its examples from the docs page's Examples tab
   (`<ui-docs-example>`s, titled by their `<ui-section>`, with the page's own `<style>`s).  So an example there must

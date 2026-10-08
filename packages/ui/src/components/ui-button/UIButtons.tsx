@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
-import { buttonsVocabulary } from "./UIButtons.vocabulary.en"
+import { E } from "$/ui/core"
+import { buttonsVocabulary } from "./UIButtons.en"
 
 import buttonCSS from "./UIButton.css?inline"
 
@@ -39,7 +39,7 @@ export class UIButtons extends E.UIComponent<typeof buttonsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} role={UIT.GROUP} part={this.partForName("group")}>
+      <div class={this.rootClasses} role="group" part={this.partForName("group")}>
         <slot />
       </div>
     )

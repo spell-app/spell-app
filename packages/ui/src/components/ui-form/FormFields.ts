@@ -169,7 +169,7 @@ export class FormFields {
         if (!FormFields.isChosen(first)) return FormFields.unchosenValueFor(first) ?? false
         const value = FormFields.chosenValueFor(first)
         // Fomantic's `value || true`, as our attribute reading always had it (epic `wwod-spell-ui`, J44's aside)
-        return value === UIT.CHECKBOX_DEFAULT_VALUE && !first.hasAttribute(VALUE) ? true : value
+        return value === "on" && !first.hasAttribute("value") ? true : value
       }
       return controls.flatMap((control) => {
         const value = FormFields.isChosen(control)
@@ -248,7 +248,7 @@ export class FormFields {
    * What a chosen checkable submits:  a `ui-*` element's `chosenValue`, else its `value` attribute, else `on` (native).
    */
   private static chosenValueFor(control: Element): string {
-    return (control as CheckableElement).chosenValue ?? control.getAttribute(VALUE) ?? UIT.CHECKBOX_DEFAULT_VALUE
+    return (control as CheckableElement).chosenValue ?? control.getAttribute("value") ?? "on"
   }
 
   /** What an unchosen checkable submits:  a `ui-*` element's `unchosenValue` (`off-value`);  a native:  nothing. */
@@ -264,7 +264,7 @@ export class FormFields {
     const value = (control as { value?: unknown }).value
     if (Array.isArray(value)) return value.map(String)
     // a `multiple` element's attribute value is a list in one string (`value="a,b"`)
-    if (typeof value === "string" && control.hasAttribute(MULTIPLE) && !(control instanceof HTMLInputElement)) {
+    if (typeof value === "string" && control.hasAttribute("multiple") && !(control instanceof HTMLInputElement)) {
       return E.Converters.list(value)
     }
     if (typeof value === "string") return value
@@ -331,12 +331,6 @@ const EMPTY = "empty"
 
 /** What `EMPTY` means. */
 const NOT_EMPTY = "notEmpty"
-
-/** Attribute of multi-value elements. */
-const MULTIPLE = "multiple"
-
-/** Attribute a checkable submits. */
-const VALUE = "value"
 
 /** Native input types that are buttons, not values. */
 const BUTTON_TYPES = new Set(["submit", "reset", "button", "image"])

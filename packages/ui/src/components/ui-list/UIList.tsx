@@ -1,7 +1,7 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { listVocabulary } from "./UIList.vocabulary.en"
+import { listVocabulary } from "./UIList.en"
 
 import listCSS from "./UIList.css?inline"
 
@@ -40,8 +40,8 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     // SIDE EFFECT:  one listener for every item's activation
-    this.domElement.addEventListener(UIT.CLICK, this.onClick)
-    this.domElement.addReleaseCallback(() => this.domElement.removeEventListener(UIT.CLICK, this.onClick))
+    this.domElement.addEventListener("click", this.onClick)
+    this.domElement.addReleaseCallback(() => this.domElement.removeEventListener("click", this.onClick))
   }
 
   ////////////////
@@ -81,7 +81,7 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
    */
   @E.derived
   get ownItemContext(): UIT.ItemContext {
-    return { domElementRole: UIT.LISTITEM, interactive: this.isInteractive, current: UIT.PAGE }
+    return { domElementRole: "listitem", interactive: this.isInteractive, current: "page" }
   }
 
   /** `ItemOwner`:  how items render.  Tracked. */
@@ -96,10 +96,10 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
   render(): JSX.Element {
     return (
       <Dynamic
-        component={this.isOrdered ? UIT.OL : UIT.UL}
+        component={this.isOrdered ? "ol" : "ul"}
         class={this.isNested ? this.vocabulary.noun : this.rootClasses}
         part={this.partForName("list")}
-        role={UIT.LIST}
+        role="list"
       >
         <slot />
       </Dynamic>
@@ -156,4 +156,4 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
 export interface UIList extends E.AttributeValues<typeof listVocabulary> {}
 
 /** Item roots that can be activated:  a link, a button. */
-const INTERACTIVE_ROOTS: ReadonlySet<string> = new Set([UIT.ANCHOR_TAG, UIT.BUTTON])
+const INTERACTIVE_ROOTS: ReadonlySet<string> = new Set(["a", "button"])

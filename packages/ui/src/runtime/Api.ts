@@ -121,7 +121,7 @@ export class Api {
     if (this.isPlainObject(data) || Array.isArray(data)) {
       init.body = JSON.stringify(data)
       const headers = init.headers as Headers
-      if (!headers.has(CONTENT_TYPE)) headers.set(CONTENT_TYPE, "application/json")
+      if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json")
     } else {
       init.body = data as BodyInit
     }
@@ -133,7 +133,7 @@ export class Api {
     if (method === "HEAD" || response.status === 204) return undefined
     if (responseType === "json") return response.json()
     if (responseType === "text") return response.text()
-    const contentType = response.headers.get(CONTENT_TYPE) ?? ""
+    const contentType = response.headers.get("Content-Type") ?? ""
     return /[/+]json\b/.test(contentType) ? response.json() : response.text()
   }
 
@@ -150,6 +150,3 @@ const REQUIRED_SLOT = /\{([\w-]+)\}/g
 
 /** `{/name}` template slot, including the `/` just before it (if any), which the replacement re-supplies. */
 const OPTIONAL_SLOT = /\/?\{\/([\w-]+)\}/g
-
-/** Header naming the body's type, both ways. */
-const CONTENT_TYPE = "Content-Type"

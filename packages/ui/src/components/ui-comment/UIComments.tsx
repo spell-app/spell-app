@@ -2,7 +2,7 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { commentsVocabulary } from "./UIComments.vocabulary.en"
+import { commentsVocabulary } from "./UIComments.en"
 
 import commentCSS from "./UIComment.css?inline"
 
@@ -50,7 +50,7 @@ export class UIComments extends E.UIComponent<typeof commentsVocabulary> {
       <div
         class={this.isThread ? this.threadClasses : this.rootClasses}
         part={this.partForName("comments")}
-        aria-disabled={this.disabled ? UIT.TRUE : undefined}
+        aria-disabled={this.disabled ? "true" : undefined}
       >
         <slot />
         <Show when={this.slots.hasContent(this.slotForName("reply"))}>

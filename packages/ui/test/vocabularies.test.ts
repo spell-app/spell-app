@@ -6,17 +6,17 @@ import { ROOT_CATALOG } from "$/ui/components/ui-root/UIRoot.catalog"
 
 /** Every family's English vocabulary module, by path:  the components' and the doc-only elements'. */
 const MODULES = import.meta.glob<Record<string, unknown>>(
-  ["/src/components/*/*.vocabulary.en.ts", "/src/docs-components/*/*.vocabulary.en.ts"],
+  ["/src/components/*/*.en.ts", "/src/docs-components/*/*.en.ts"],
   { eager: true }
 )
 
 /** Every exported vocabulary (a `tag` and an `attributes` array). */
-const VOCABULARIES = Object.values(MODULES).flatMap((module) =>
-  Object.values(module).filter(
-    (value): value is ComponentVocabulary =>
-      typeof value === "object" && value !== null && "tag" in value && "attributes" in value
-  )
-)
+const VOCABULARIES = Object.values(MODULES).flatMap((module) => Object.values(module).filter(isVocabulary))
+
+/** Is `value` a vocabulary (a `tag` and `attributes`)? */
+function isVocabulary(value: unknown): value is ComponentVocabulary {
+  return typeof value === "object" && value !== null && "tag" in value && "attributes" in value
+}
 
 /** `[tag, attribute]` for each attribute matching `test`. */
 function attributes(test: (spec: AttributeSpec) => boolean): [string, AttributeSpec][] {
@@ -25,9 +25,15 @@ function attributes(test: (spec: AttributeSpec) => boolean): [string, AttributeS
   )
 }
 
-describe("*.vocabulary.en.ts kinds, across families", () => {
+describe("UI<Name>.en.ts kinds, across families", () => {
   it("finds the vocabularies", () => {
     expect(VOCABULARIES.length).toBeGreaterThan(40)
+  })
+
+  // a family file is named `<Name>.<lang>.ts` only when it IS a vocabulary:  the tools find them by that name
+  it("finds nothing else", () => {
+    const others = Object.entries(MODULES).filter(([, module]) => !Object.values(module).some(isVocabulary))
+    expect(others.map(([path]) => path)).toEqual([])
   })
 
   // frameworks render a bare `icon` as `icon="true"`:  only the `icon` kind reads that as "the default icon"
@@ -57,15 +63,15 @@ describe("*.vocabulary.en.ts kinds, across families", () => {
 /** Source of every vocabulary and family types file:  pure data, imported in node too (`yarn site:data`, `gen:root`). */
 const DATA_FILES = import.meta.glob<string>(
   [
-    "/src/components/*/*.vocabulary.en.ts",
+    "/src/components/*/*.en.ts",
     "/src/components/*/*.types.ts",
-    "/src/docs-components/*/*.vocabulary.en.ts",
+    "/src/docs-components/*/*.en.ts",
     "/src/docs-components/*/*.types.ts"
   ],
   { query: "?raw", import: "default", eager: true }
 )
 
-describe("*.vocabulary.en.ts / *.types.ts imports", () => {
+describe("UI<Name>.en.ts / UI<Name>.types.ts imports", () => {
   // `$/ui/core` by VALUE loads the element layer, which node can't:  `yarn site:data` / `yarn gen:root` import every
   // vocabulary through tsx (no `?inline` css, no JSX)
   it.each(Object.entries(DATA_FILES))("%s imports `$/ui/core` for types only", (_, source) => {

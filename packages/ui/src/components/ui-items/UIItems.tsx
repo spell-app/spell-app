@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { itemsVocabulary } from "./UIItems.vocabulary.en"
+import { itemsVocabulary } from "./UIItems.en"
 
 import itemsCSS from "./UIItems.css?inline"
 
@@ -48,7 +48,7 @@ export class UIItems extends E.UIComponent<typeof itemsVocabulary> implements UI
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("items")} role={UIT.LIST}>
+      <div class={this.rootClasses} part={this.partForName("items")} role="list">
         <slot />
       </div>
     )
@@ -60,9 +60,9 @@ export interface UIItems extends E.AttributeValues<typeof itemsVocabulary> {}
 
 /** What every item gets:  a list item owning its parts, its `image` shorthand a bare `.image`. */
 const ITEM_CONTEXT: UIT.ItemContext = Object.freeze({
-  domElementRole: UIT.LISTITEM,
+  domElementRole: "listitem",
   interactive: false,
-  current: UIT.PAGE,
+  current: "page",
   ownsParts: true,
   imageClass: UIT.IMAGE
 })

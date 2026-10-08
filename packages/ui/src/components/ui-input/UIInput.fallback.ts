@@ -1,7 +1,7 @@
 import { E } from "$/ui/core"
-import { inputVocabulary } from "./UIInput.vocabulary.en"
-import { textareaVocabulary } from "./UITextarea.vocabulary.en"
-import { FILE, LABEL_CLASSES, type Vocabulary } from "./UIInput.types"
+import { inputVocabulary } from "./UIInput.en"
+import { textareaVocabulary } from "./UITextarea.en"
+import { LABEL_CLASSES, type Vocabulary } from "./UIInput.types"
 
 /****************
  * ### `InputFallback`
@@ -45,7 +45,7 @@ export class InputFallback extends E.NativeFallback<Vocabulary> {
     }
     const control = isTextarea
       ? // `rows` is the textarea vocabulary's alone, so `attr()` (typed on the input's) can't name it
-        this.create("textarea", { ...common, rows: this.domElement.getAttribute(ROWS) })
+        this.create("textarea", { ...common, rows: this.domElement.getAttribute("rows") })
       : this.create("input", {
           ...common,
           type: this.attr("type") ?? "text",
@@ -61,11 +61,11 @@ export class InputFallback extends E.NativeFallback<Vocabulary> {
     const placeholder = this.attr("placeholder")
     if (!control.hasAttribute("aria-label") && placeholder) control.setAttribute("aria-label", placeholder)
     const value = domElement.value ?? this.attr("value")
-    if (value && control.type !== FILE) control.value = value
+    if (value && control.type !== "file") control.value = value
 
     const label = isTextarea ? undefined : this.attr("label")
     const labeled = this.attr("labeled")
-    const extra = [label && labeled === undefined ? LABELED : "", control.type === FILE ? FILE : ""]
+    const extra = [label && labeled === undefined ? LABELED : "", control.type === "file" ? "file" : ""]
     const root = this.create("div", { class: this.classes(extra.filter(Boolean).join(" ") || undefined) })
     const labelBox = label ? this.create("span", { class: LABEL_CLASSES, part: LABEL_PART }, label) : undefined
     if (labelBox && labeled !== "right") root.append(labelBox)
@@ -93,7 +93,7 @@ export class InputFallback extends E.NativeFallback<Vocabulary> {
     const { control, formInternals } = this
     if (!control || !formInternals) return
     const name = this.attr("name")
-    formInternals.setFormValue(name && control.type !== FILE ? control.value : null)
+    formInternals.setFormValue(name && control.type !== "file" ? control.value : null)
     if (control.validity.valid) formInternals.setValidity({})
     else formInternals.setValidity(control.validity, control.validationMessage, control)
   }
@@ -116,6 +116,3 @@ const LABELED = "labeled"
 
 /** The part of the joined label. */
 const LABEL_PART: E.PartName<Vocabulary> = "label"
-
-/** `<ui-textarea>`'s visible lines. */
-const ROWS = "rows"

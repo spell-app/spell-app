@@ -1,5 +1,5 @@
 import { E, type UIT } from "$/ui/core"
-import { tableVocabulary } from "./UITable.vocabulary.en"
+import { tableVocabulary } from "./UITable.en"
 
 /****************
  * ### `TableGrammar`

@@ -1,7 +1,7 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { headerVocabulary } from "./UIHeader.vocabulary.en"
+import { headerVocabulary } from "./UIHeader.en"
 
 /****************
  * ### `UIHeader`
@@ -27,7 +27,7 @@ export class UIHeader extends E.PartComponent<typeof headerVocabulary> {
         class={this.rootClasses}
         part={this.partForName("header")}
         href={this.href}
-        role={this.href && this.level ? HEADING : undefined}
+        role={this.href && this.level ? "heading" : undefined}
         aria-level={this.href ? this.level : undefined}
       >
         <slot />
@@ -37,7 +37,7 @@ export class UIHeader extends E.PartComponent<typeof headerVocabulary> {
 
   /** `<a>` for `href`, `<hN>` for `level`, else `<div>`. */
   protected get rootTag(): string {
-    if (this.href) return UIT.ANCHOR_TAG
+    if (this.href) return "a"
     const level = this.level ? (Number(this.level) as UIT.HeaderLevel) : undefined
     return level ? `h${level}` : "div"
   }
@@ -50,6 +50,3 @@ export class UIHeader extends E.PartComponent<typeof headerVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIHeader extends E.AttributeValues<typeof headerVocabulary> {}
-
-/** The role of a linked header with a `level`:  the link carries the class grammar, so it is the heading. */
-const HEADING = "heading"

@@ -3,10 +3,10 @@ import { onConnect, onDisconnect, onFormAssociated } from "@spell-app/solid-elem
 
 import { E, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { radioVocabulary } from "./UIRadio.vocabulary.en"
+import { radioVocabulary } from "./UIRadio.en"
 import { CheckControl } from "./CheckControl"
 import { RadioGroup } from "./RadioGroup"
-import { RADIO, type RadioMember } from "./UICheckbox.types"
+import { type RadioMember } from "./UICheckbox.types"
 
 /****************
  * ### `UIRadio`
@@ -24,7 +24,7 @@ import { RADIO, type RadioMember } from "./UICheckbox.types"
 export class UIRadio extends CheckControl<typeof radioVocabulary> implements RadioMember {
   @E.proto static vocabulary = radioVocabulary
 
-  readonly checkable = RADIO
+  readonly checkable = "radio"
 
   ////////////////
   // ## The group
@@ -130,12 +130,12 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
   // ## Element hooks
   ////////////////
 
-  protected get inputType(): typeof RADIO {
-    return RADIO
+  protected get inputType(): "radio" {
+    return "radio"
   }
 
   protected classValue(name: E.AttributeName<typeof radioVocabulary>): unknown {
-    if (name === "type") return this.type ?? RADIO
+    if (name === "type") return this.type ?? "radio"
     return super.classValue(name)
   }
 }

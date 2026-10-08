@@ -6,7 +6,7 @@ import { writeFile, mkdir } from "node:fs/promises"
 import { resolve } from "node:path"
 
 import { foundationCSS } from "$/ui/styles"
-import { buttonVocabulary } from "$/ui/components/ui-button/UIButton.vocabulary.en"
+import { buttonVocabulary } from "$/ui/components/ui-button/UIButton.en"
 import { ElementDefinition, type DOMElement } from "$/ui/elements"
 import { UIButton } from "$/ui/components/ui-button/UIButton"
 

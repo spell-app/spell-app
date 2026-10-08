@@ -4,13 +4,13 @@ import { isServer, type JSX } from "@solidjs/web"
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
 import { CheckboxFallback } from "./UICheckbox.fallback"
-import { CHECKBOX, CHECKED, type CheckVocabulary, type CommonAttributes } from "./UICheckbox.types"
+import { type CheckVocabulary, type CommonAttributes } from "./UICheckbox.types"
 
 import checkboxCSS from "./UICheckbox.css?inline"
 
 /****************
  * ### `DOMCheckElement`
- * The DOM element of `<ui-checkbox>` and `<ui-radio>`:  a form control's DOM element (`DOMFormControlElement`),
+ * The DOM element of `<ui-checkbox>` and `<ui-radio>`:  a form control's DOM element (`DOMFormControl`),
  * plus `checked` as another name for `selected`.
  *
  * - `selected` is the word for "chosen" on every `ui-*` element;  checkbox and radio also accept `checked`.
@@ -21,7 +21,7 @@ import checkboxCSS from "./UICheckbox.css?inline"
  * - solid-element refuses a DOM element member named like a prop:  none of these names is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMCheckElement extends F.DOMFormControlElement {
+export class DOMCheckElement extends F.DOMFormControl {
   /** Another name for `selected`. */
   get checked(): boolean {
     return !!(this as unknown as { selected?: boolean }).selected
@@ -33,7 +33,7 @@ export class DOMCheckElement extends F.DOMFormControlElement {
 
   /** How a form reads it:  `"radio"` for `<ui-radio>`, else `"checkbox"`. */
   get checkable(): CheckControl["checkable"] {
-    return this.check?.checkable ?? CHECKBOX
+    return this.check?.checkable ?? "checkbox"
   }
 
   /** Submitted while chosen:  `value`, else its class's `defaultChosenValue`;  none before its component exists. */
@@ -88,15 +88,15 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   @E.proto static styleSheets = { checkbox: checkboxCSS }
 
   /** Default:  `on`, as a native checkbox. */
-  @E.proto static defaultChosenValue = UIT.CHECKBOX_DEFAULT_VALUE
+  @E.proto static defaultChosenValue = "on"
 
   /** How a form reads it. */
   abstract readonly checkable: "checkbox" | "radio"
 
   constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
-    this.domElement.addEventListener(CLICK, this.onDOMElementClick)
-    this.domElement.addEventListener(INVALID, this.onInvalid)
+    this.domElement.addEventListener("click", this.onDOMElementClick)
+    this.domElement.addEventListener("invalid", this.onInvalid)
     // `checked` in markup selects, a microtask later:
     // outside the component's body, where the write to the DOM element may notify
     if (this.wasInitiallySelected && !untrack(() => this.selectedProperty)) {
@@ -127,7 +127,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   @E.controlled("selected") private accessor selectedProperty = false
 
   /** Chosen at first, for form reset:  `selected` or `checked` in markup. */
-  private readonly wasInitiallySelected = untrack(() => this.selectedProperty || this.attributes[CHECKED] !== null)
+  private readonly wasInitiallySelected = untrack(() => this.selectedProperty || this.attributes["checked"] !== null)
 
   /** Neither on nor off?  Checkbox only;  tracked. */
   protected get isIndeterminate(): boolean {
@@ -167,7 +167,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   /** Adds the `checked` attribute alias:  a LATER edit of it selects (the first is `wasInitiallySelected`'s). */
   onMount() {
     createEffect(
-      () => this.attributes[CHECKED],
+      () => this.attributes["checked"],
       (checked) => {
         this.isSelected = checked !== null
       },
@@ -306,7 +306,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     return {
       [UIT.STATIC_CONTROL]: "",
       name: this.name,
-      value: value === UIT.CHECKBOX_DEFAULT_VALUE ? undefined : value,
+      value: value === "on" ? undefined : value,
       checked: this.isSelected
     }
   }
@@ -325,7 +325,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
           tabindex={this.inputTabIndex}
           disabled={this.isDisabled}
           required={this.required}
-          aria-readonly={this.readonly && this.inputType === CHECKBOX ? "true" : undefined}
+          aria-readonly={this.readonly && this.inputType === "checkbox" ? "true" : undefined}
           aria-label={this.hasLabelText ? undefined : this.labels.accessibleName}
           aria-invalid={this.isTouched && !this.validation.valid ? "true" : undefined}
           {...this.staticControl}
@@ -374,9 +374,3 @@ export interface CheckControl<V extends CheckVocabulary = CheckVocabulary> exten
 
 /** `UI.ids` prefix of the input's id. */
 const ID_PREFIX = "ui-checkbox"
-
-/** Clicks aimed at the DOM element. */
-const CLICK = "click"
-
-/** A submit or `reportValidity()` found it invalid. */
-const INVALID = "invalid"

@@ -5,9 +5,9 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { formVocabulary } from "./UIForm.vocabulary.en"
-import { fieldsVocabulary } from "./UIFields.vocabulary.en"
-import { fieldVocabulary } from "./UIField.vocabulary.en"
+import { formVocabulary } from "./UIForm.en"
+import { fieldsVocabulary } from "./UIFields.en"
+import { fieldVocabulary } from "./UIField.en"
 
 import checkboxCSS from "$/ui/components/ui-checkbox/UICheckbox.css?inline"
 import inputCSS from "$/ui/components/ui-input/UIInput.css?inline"

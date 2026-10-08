@@ -4,7 +4,7 @@ import { isServer, type JSX } from "@solidjs/web"
 import { E, UI, UIT } from "$/ui/core"
 import { ProgressValues } from "./ProgressValues"
 import { LIST_SPLIT } from "./UIProgress.types"
-import { progressVocabulary } from "./UIProgress.vocabulary.en"
+import { progressVocabulary } from "./UIProgress.en"
 
 import progressCSS from "./UIProgress.css?inline"
 
@@ -44,7 +44,7 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.domElement.internals.role = PROGRESSBAR
+    this.domElement.internals.role = "progressbar"
     if (isServer) return
     onSettled(() => {
       const observer = new MutationObserver(() => (this.elementText = (this.domElement.textContent ?? "").trim()))
@@ -263,9 +263,6 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIProgress extends E.AttributeValues<typeof progressVocabulary> {}
-
-/** The DOM element's ARIA role. */
-const PROGRESSBAR = "progressbar"
 
 /** The automatic outcome at 100%. */
 const SUCCESS = "success"

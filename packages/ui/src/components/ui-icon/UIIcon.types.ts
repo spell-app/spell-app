@@ -4,8 +4,6 @@
  *   it imports only `UIT`, so node can load it.
  */
 
-import * as UIT from "$/ui/components/components.types"
-
 ////////////////
 // ## Accessible name
 ////////////////
@@ -20,8 +18,8 @@ import * as UIT from "$/ui/components/components.types"
 export class IconLabels {
   /** Name the element whose `internals` these are by `label`, or hide it.  SIDE EFFECT:  writes `internals`. */
   static applyTo(internals: ElementInternals, label: string | undefined) {
-    internals.role = label ? UIT.IMG : null
+    internals.role = label ? "img" : null
     internals.ariaLabel = label ?? null
-    internals.ariaHidden = label ? null : UIT.TRUE
+    internals.ariaHidden = label ? null : "true"
   }
 }

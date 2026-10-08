@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { dimmerVocabulary } from "./UIDimmer.vocabulary.en"
+import { dimmerVocabulary } from "./UIDimmer.en"
 
 import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 import segmentCSS from "$/ui/components/ui-segment/UISegment.css?inline"

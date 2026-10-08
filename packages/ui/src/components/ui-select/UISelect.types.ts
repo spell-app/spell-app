@@ -6,7 +6,7 @@
  */
 
 import type { E } from "$/ui/core"
-import type { selectVocabulary } from "./UISelect.vocabulary.en"
+import type { selectVocabulary } from "./UISelect.en"
 
 ////////////////
 // ## Types

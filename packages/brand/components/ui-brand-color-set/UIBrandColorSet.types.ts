@@ -3,13 +3,10 @@
  * - Data only:  nothing here runs.
  */
 
-import type { brandColorSetVocabulary } from "./UIBrandColorSet.vocabulary.en"
+import type { brandColorSetVocabulary } from "./UIBrandColorSet.en"
 
 /** `brandColorSetVocabulary`'s type. */
 export type BrandColorSetVocabulary = typeof brandColorSetVocabulary
-
-/** The DOM element's role while `selectable`. */
-export const RADIOGROUP = "radiogroup"
 
 /** The tag of the chips it holds. */
 export const CHIP_TAG = "ui-brand-color"

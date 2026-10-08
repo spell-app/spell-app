@@ -6,9 +6,9 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 import { Fixture } from "$/ui/test/Fixture"
 
-import { buttonsVocabulary } from "./UIButtons.vocabulary.en"
-import { buttonVocabulary } from "./UIButton.vocabulary.en"
-import { orVocabulary } from "./UIOr.vocabulary.en"
+import { buttonsVocabulary } from "./UIButtons.en"
+import { buttonVocabulary } from "./UIButton.en"
+import { orVocabulary } from "./UIOr.en"
 
 import buttonCSS from "./UIButton.css?inline"
 import buttonRaw from "./UIButton.css?raw"

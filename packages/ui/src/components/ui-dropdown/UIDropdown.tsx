@@ -3,7 +3,7 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { dropdownVocabulary } from "./UIDropdown.vocabulary.en"
+import { dropdownVocabulary } from "./UIDropdown.en"
 import { DropdownFallback } from "./UIDropdown.fallback"
 import { SlottedItems } from "./SlottedItems"
 
@@ -365,10 +365,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   protected onOpenChanged(isOpen: boolean, isConnected: boolean, isReady: boolean) {
     const { menu } = this
     if (!isOpen || !isConnected || !isReady || !menu || !menu.popover) return undefined
-    if (!menu.matches(UIT.POPOVER_OPEN)) menu.showPopover()
+    if (!menu.matches(":popover-open")) menu.showPopover()
     UI.overlays.open(this.overlay)
     return () => {
-      if (menu.matches(UIT.POPOVER_OPEN)) menu.hidePopover()
+      if (menu.matches(":popover-open")) menu.hidePopover()
       UI.overlays.close(this.overlay)
     }
   }
@@ -428,7 +428,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
         <Show when={this.search} fallback={this.trigger()}>
           {this.searchInput()}
           <Show when={this.multiple}>
-            <span class={SIZER} aria-hidden={UIT.TRUE}>
+            <span class={SIZER} aria-hidden="true">
               {this.query}
             </span>
           </Show>
@@ -443,7 +443,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
         </span>
         <Show when={this.clearable && this.chosenValues.length && !this.readonly}>
           <button
-            type={UIT.BUTTON}
+            type="button"
             class={CLEAR_ICON}
             part={this.partForName("clear")}
             aria-label={this.translationForKey("clear")}
@@ -482,17 +482,17 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   private get comboboxAttributes() {
     const highlighted = this.highlightedOption
     return {
-      role: COMBOBOX_ROLE,
-      "aria-expanded": this.isOpen ? UIT.TRUE : UIT.FALSE,
+      role: "combobox",
+      "aria-expanded": this.isOpen ? "true" : "false",
       "aria-controls": this.ids.menu,
-      "aria-haspopup": LISTBOX_ROLE,
+      "aria-haspopup": "listbox",
       "aria-activedescendant": this.isOpen && highlighted ? this.idFor(highlighted) : undefined,
       "aria-label": this.label || undefined,
       "aria-describedby": this.ids.text,
-      "aria-busy": this.loading ? UIT.TRUE : undefined,
-      "aria-readonly": this.readonly ? UIT.TRUE : undefined,
-      "aria-required": this.required ? UIT.TRUE : undefined,
-      "aria-invalid": this.validation.valid ? undefined : UIT.TRUE,
+      "aria-busy": this.loading ? "true" : undefined,
+      "aria-readonly": this.readonly ? "true" : undefined,
+      "aria-required": this.required ? "true" : undefined,
+      "aria-invalid": this.validation.valid ? undefined : "true",
       [UIT.STATIC_CONTROL]: isServer ? "" : undefined
     } as const
   }
@@ -502,7 +502,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
     return (
       <button
         ref={(element) => (this.combobox = element)}
-        type={UIT.BUTTON}
+        type="button"
         class={TRIGGER}
         part={this.partForName("trigger")}
         disabled={this.isDisabled}
@@ -542,7 +542,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
         {this.textFor(value)}
         <Show when={!this.readonly && !this.isDisabled}>
           <button
-            type={UIT.BUTTON}
+            type="button"
             class={DELETE_ICON}
             tabindex="-1"
             aria-label={this.translationForKey("removeValue", { value: this.textFor(value) })}
@@ -573,7 +573,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
       <Show when={this.name}>
         {(name) => (
           <For each={this.chosenValues}>
-            {(value) => <input type={HIDDEN_INPUT} name={name()} value={value} disabled={this.isDisabled} />}
+            {(value) => <input type="hidden" name={name()} value={value} disabled={this.isDisabled} />}
           </For>
         )}
       </Show>
@@ -587,12 +587,12 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
         ref={(element) => (this.menu = element)}
         id={this.ids.menu}
         class={[MENU, { [UIT.LEFT]: this.direction === UIT.LEFT }]}
-        role={LISTBOX_ROLE}
+        role="listbox"
         // a server render can't show a popover:  an open menu is a plain one, shown by the root's `active`
         popover={this.simple || (isServer && this.isOpen) ? undefined : "manual"}
         part={this.partForName("menu")}
         aria-label={this.label || undefined}
-        aria-multiselectable={this.multiple ? UIT.TRUE : undefined}
+        aria-multiselectable={this.multiple ? "true" : undefined}
         onMouseDown={UIDropdown.preventDefault}
       >
         <slot name={this.slotForName("header")} />
@@ -601,7 +601,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
           <For each={this.menuRows}>{(row) => this.row(row)}</For>
           <Show when={!this.visibleOptions.length}>
             {/* an option (disabled) rather than a bare div:  a listbox must own options (axe `aria-required-children`) */}
-            <div class={UIT.MESSAGE} role={OPTION_ROLE} aria-disabled={UIT.TRUE} aria-selected={UIT.FALSE}>
+            <div class={UIT.MESSAGE} role="option" aria-disabled="true" aria-selected="false">
               {this.noResultsText ?? this.translationForKey("noResults")}
             </div>
           </Show>
@@ -627,10 +627,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
             [UIT.DISABLED]: !!option.disabled
           }
         ]}
-        role={OPTION_ROLE}
+        role="option"
         part={this.partForName("item")}
-        aria-selected={this.chosenValueSet.has(option.value) ? UIT.TRUE : UIT.FALSE}
-        aria-disabled={option.disabled ? UIT.TRUE : undefined}
+        aria-selected={this.chosenValueSet.has(option.value) ? "true" : "false"}
+        aria-disabled={option.disabled ? "true" : undefined}
         onPointerMove={() => this.highlight(option)}
         onClick={(event) => this.select(option, event)}
       >
@@ -684,9 +684,9 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
       <div
         id={this.idFor(option)}
         class={[UIT.ITEM, ADDITION, { [UIT.SELECTED]: this.highlightedOption === option }]}
-        role={OPTION_ROLE}
+        role="option"
         part={this.partForName("item")}
-        aria-selected={UIT.FALSE}
+        aria-selected="false"
         onPointerMove={() => this.highlight(option)}
         onClick={(event) => this.select(option, event)}
       >
@@ -700,9 +700,9 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   /** Header or divider row. */
   private separator(entry: E.MenuSeparator): JSX.Element {
     return entry.type === DIVIDER ? (
-      <hr class={DIVIDER} role={PRESENTATION_ROLE} />
+      <hr class={DIVIDER} role="presentation" />
     ) : (
-      <div class={UIT.HEADER} role={PRESENTATION_ROLE}>
+      <div class={UIT.HEADER} role="presentation">
         {entry.text}
       </div>
     )
@@ -742,7 +742,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   private readonly onRootClick = (event: MouseEvent) => {
     const target = event.composedPath()[0]
     if (!this.search || target === this.combobox || this.menu?.contains(target as Node)) return
-    if ((target as Element).closest?.(UIT.BUTTON)) return
+    if ((target as Element).closest?.("button")) return
     this.combobox?.focus()
     this.requestOpen(!untrack(() => this.isOpen), event)
   }
@@ -895,21 +895,6 @@ const ID_PREFIX = "ui-dropdown"
 
 /** Placeholder in the `addItem` text. */
 const VALUE_PLACEHOLDER = "{value}"
-
-/** Hidden input carrying the value in a static server render:  its `type`. */
-const HIDDEN_INPUT = "hidden"
-
-/** `role` of the combobox. */
-const COMBOBOX_ROLE = "combobox"
-
-/** `role` of the menu, and the combobox's `aria-haspopup`. */
-const LISTBOX_ROLE = "listbox"
-
-/** `role` of every row a person can choose (and of the no-results message). */
-const OPTION_ROLE = "option"
-
-/** `role` of header and divider rows. */
-const PRESENTATION_ROLE = "presentation"
 
 /**
  * Class words of the markup contract (`UIDropdown.css`) -- grammar, not attributes, so not in the vocabulary.

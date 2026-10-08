@@ -11,7 +11,7 @@ import { Sheets } from "$/ui/test/Sheets"
 
 import "$/ui/components/ui-button"
 
-import { popupVocabulary } from "./UIPopup.vocabulary.en"
+import { popupVocabulary } from "./UIPopup.en"
 
 import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 import popupCSS from "./UIPopup.css?inline"

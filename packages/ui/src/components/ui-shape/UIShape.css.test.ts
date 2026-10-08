@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { shapeVocabulary } from "./UIShape.vocabulary.en"
+import { shapeVocabulary } from "./UIShape.en"
 
 import shapeCSS from "./UIShape.css?inline"
 import shapeRaw from "./UIShape.css?raw"

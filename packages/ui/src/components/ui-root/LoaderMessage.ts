@@ -2,7 +2,7 @@ import { createRenderEffect, type Accessor } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import type { E } from "$/ui/core"
-import { loaderVocabulary } from "$/ui/components/ui-loader/UILoader.vocabulary.en"
+import { loaderVocabulary } from "$/ui/components/ui-loader/UILoader.en"
 
 /****************
  * ### `LoaderMessage`

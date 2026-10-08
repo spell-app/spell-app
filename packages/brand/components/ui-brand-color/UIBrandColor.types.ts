@@ -6,7 +6,7 @@
 
 import type { JSX } from "@solidjs/web"
 
-import type { brandColorVocabulary } from "./UIBrandColor.vocabulary.en"
+import type { brandColorVocabulary } from "./UIBrandColor.en"
 
 /** `brandColorVocabulary`'s type. */
 export type BrandColorVocabulary = typeof brandColorVocabulary
@@ -40,9 +40,6 @@ export const LARGE_RATIO = 3
 
 /** White, as `Palette.ink()` returns it. */
 export const WHITE = "#FFFFFF"
-
-/** The DOM element's role while the chip is a choice of a selectable set. */
-export const RADIO = "radio"
 
 /** Shadow classes, one per part. */
 export const CLASSES = {

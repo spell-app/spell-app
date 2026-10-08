@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { nagVocabulary } from "./UINag.vocabulary.en"
+import { nagVocabulary } from "./UINag.en"
 
 import nagCSS from "./UINag.css?inline"
 import nagRaw from "./UINag.css?raw"

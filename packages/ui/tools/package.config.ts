@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url"
 
 import type { Bucket, ImportMap, PackageConfig } from "./tools.types.ts"
 import { COMPONENTS, ENTRIES, SHARED_ENTRIES, SOLID_EXTERNAL } from "../vite.config.ts"
+import { VocabularyFiles } from "./VocabularyFiles.ts"
 
 /** Repo root, absolute, with a trailing slash. */
 const ROOT = fileURLToPath(new URL("../", import.meta.url))
@@ -20,7 +21,7 @@ const EXTRA_ENTRIES = { api: ENTRIES.api!, styles: ENTRIES.styles! }
  * - Two shared entries:  `core` (every family) and `forms` (families with a form VALUE:  dropdown, input, checkbox, form).
  * - `groups` (`bucket()`):
  *   - `solid-js`, `@solidjs/*`, the fork => `library`
- *   - `forms.ts`, `FormComponent`, `DOMFormControlElement`, `Validator`, `MenuOptions`, `ControlLabels` (+ `LabelWatch`) =>
+ *   - `forms.ts`, `FormComponent`, `DOMFormControl`, `Validator`, `MenuOptions`, `ControlLabels` (+ `LabelWatch`) =>
  *     `shared:forms`
  *   - a family folder => its own classes / sheet / vocabulary / fallback;  `vocabulary/SkeletonText.ts` too, as
  *     `ui-root`'s:  its only runtime importer, and NOT in `core` (left out of `$/ui/vocabulary`'s barrel)
@@ -76,7 +77,7 @@ function bucket(id: string): Bucket {
   const src = /\/src\/(.+)$/.exec(id.split("?")[0]!)?.[1]
   if (!src) return "other"
   if (
-    /^(forms\.ts|elements\/(FormComponent|DOMFormControlElement|Validator|MenuOptions|ControlLabels|LabelWatch)\.ts)$/.test(
+    /^(forms\.ts|elements\/(FormComponent|DOMFormControl|Validator|MenuOptions|ControlLabels|LabelWatch)\.ts)$/.test(
       src
     )
   )
@@ -91,7 +92,7 @@ function bucket(id: string): Bucket {
   if (component) {
     const [, family, file] = component as unknown as [string, string, string]
     if (file.endsWith(".css")) return `own:${family}:css`
-    if (/\.vocabulary\.\w+\.ts$/.test(file)) return `own:${family}:vocabulary`
+    if (VocabularyFiles.languageOf(file)) return `own:${family}:vocabulary`
     if (file.endsWith(".fallback.ts")) return `own:${family}:fallback`
     return `own:${family}:classes`
   }

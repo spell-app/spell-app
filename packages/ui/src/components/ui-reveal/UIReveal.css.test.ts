@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { revealVocabulary } from "./UIReveal.vocabulary.en"
+import { revealVocabulary } from "./UIReveal.en"
 
 import revealCSS from "./UIReveal.css?inline"
 import revealRaw from "./UIReveal.css?raw"

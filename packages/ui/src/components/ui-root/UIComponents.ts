@@ -3,7 +3,7 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 import { ComponentPack } from "./ComponentPack"
-import { componentsVocabulary } from "./UIComponents.vocabulary.en"
+import { componentsVocabulary } from "./UIComponents.en"
 import type { ComponentsVocabulary } from "./UIRoot.types"
 
 import rootCSS from "./UIRoot.css?inline"

@@ -307,7 +307,7 @@ export class Overlays {
    * - STATIC:  pure over its arguments;  reads nothing of the instance.
    */
   private static invokes(path: readonly EventTarget[], element: Element): boolean {
-    return !!element.id && path.some((node) => (node as Element).getAttribute?.(COMMANDFOR) === element.id)
+    return !!element.id && path.some((node) => (node as Element).getAttribute?.("commandfor") === element.id)
   }
 }
 
@@ -379,6 +379,3 @@ const SCROLL_LOCK_CSS = `${LAYER_ORDER}
     padding-inline-end: var(${SCROLLBAR_WIDTH_PROPERTY}, 0px);
   }
 }`
-
-/** Attribute naming the element an invoker button commands. */
-const COMMANDFOR = "commandfor"

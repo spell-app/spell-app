@@ -68,7 +68,7 @@ export class ExampleSource {
 
   /** `example`'s top-level `<template>` child, if it has one:  the example's markup, kept inert. */
   static template(example: Element): HTMLTemplateElement | undefined {
-    for (const child of example.children) if (child.localName === TEMPLATE_TAG) return child as HTMLTemplateElement
+    for (const child of example.children) if (child.localName === "template") return child as HTMLTemplateElement
     return undefined
   }
 
@@ -78,7 +78,7 @@ export class ExampleSource {
    * - Parsed into an inert `<template>`:  nothing in it upgrades or loads.
    */
   static format(html: string, origin: MarkupOrigin): string {
-    const inert = document.createElement(TEMPLATE_TAG)
+    const inert = document.createElement("template")
     inert.innerHTML = html
     for (const child of [...inert.content.children]) if (OWN_SLOTS.includes(child.slot)) child.remove()
     if (origin === "live") {
@@ -100,7 +100,7 @@ export class ExampleSource {
 
   /** `example`'s inner markup with every URL an include rewrote put back as written. */
   private static authored(example: Element): string {
-    const copy = document.createElement(TEMPLATE_TAG)
+    const copy = document.createElement("template")
     copy.innerHTML = example.innerHTML
     for (const element of copy.content.querySelectorAll("*")) {
       for (const attribute of [...element.attributes]) {
@@ -122,9 +122,6 @@ export type MarkupOrigin = "authored" | "live"
 
 /** The tag whose markup `ExampleSource.snapshot()` keeps:  `docsExampleVocabulary.tag`, as a value. */
 const EXAMPLE_TAG = "ui-docs-example"
-
-/** The inert container an example's markup is read from, or parsed into. */
-const TEMPLATE_TAG = "template"
 
 /**
  * `globalThis` key of the page's markup snapshots (`ExampleSource.snapshot()`):  example => its `innerHTML` before any

@@ -4,7 +4,7 @@
  * - Pure data:  it imports only the vocabulary's TYPE, so node can load it (`yarn site:data`).
  */
 
-import type { inputVocabulary } from "./UIInput.vocabulary.en"
+import type { inputVocabulary } from "./UIInput.en"
 
 ////////////////
 // ## Types
@@ -40,12 +40,6 @@ export type LabelPlace = "start" | "end" | "corner"
 ////////////////
 // ## Class words
 ////////////////
-
-/**
- * The `type` of a file input, and its class word (`ui file input`).
- * - Script can't set its value, and it submits files.
- */
-export const FILE = "file"
 
 /** The class words of a joined label (`UIInput.css`). */
 export const LABEL_CLASSES = "ui label"

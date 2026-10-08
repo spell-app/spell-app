@@ -3,7 +3,7 @@ import { isServer } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { FILE, type CommonAttributes } from "./UIInput.types"
+import { type CommonAttributes } from "./UIInput.types"
 
 /****************
  * ### `TextControl`
@@ -82,7 +82,7 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     const { control } = this
     const value = untrack(() => this.value)
     // a file input's value can only be cleared from script
-    if (!control || control.value === value || (control.type === FILE && value !== "")) return
+    if (!control || control.value === value || (control.type === "file" && value !== "")) return
     control.value = value
   }
 
@@ -219,9 +219,7 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     return {
       "aria-label": this.labels.accessibleName,
       "aria-invalid":
-        this.attributes[UIT.ARIA_INVALID] === UIT.TRUE || (this.isTouched && !this.validation.valid)
-          ? UIT.TRUE
-          : undefined
+        this.attributes["aria-invalid"] === "true" || (this.isTouched && !this.validation.valid) ? "true" : undefined
     } as const
   }
 

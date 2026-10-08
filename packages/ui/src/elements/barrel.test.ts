@@ -41,14 +41,14 @@ describe("$/ui/core and $/ui/forms load order", () => {
     expect(forms.FormComponent.prototype).toBeInstanceOf(core.UIComponent)
     expect(core.DOMLoadableElement.prototype).toBeInstanceOf(core.DOMElement)
     expect(core.DOMLoadableBodyElement.prototype).toBeInstanceOf(core.DOMElement)
-    expect(forms.DOMFormControlElement.prototype).toBeInstanceOf(core.DOMElement)
+    expect(forms.DOMFormControl.prototype).toBeInstanceOf(core.DOMElement)
   })
 
   it("static initializers ran:  their values exist", () => {
     expect(core.RootSettings.generation).toBeTypeOf("number")
     expect(forms.FormComponent.validator).toBeInstanceOf(forms.Validator)
     expect(core.UIComponent.setupFor(core.UIComponent).DOMElement).toBe(core.DOMElement)
-    expect(core.UIComponent.setupFor(forms.FormComponent).DOMElement).toBe(forms.DOMFormControlElement)
+    expect(core.UIComponent.setupFor(forms.FormComponent).DOMElement).toBe(forms.DOMFormControl)
     expect(core.UIComponent.setupFor(core.LoadableComponent).DOMElement).toBe(core.DOMLoadableElement)
   })
 

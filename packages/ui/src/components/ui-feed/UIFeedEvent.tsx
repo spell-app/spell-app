@@ -3,7 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
 import type { UIFeed } from "./UIFeed"
-import { eventVocabulary } from "./UIFeedEvent.vocabulary.en"
+import { eventVocabulary } from "./UIFeedEvent.en"
 
 import feedCSS from "./UIFeed.css?inline"
 
@@ -67,7 +67,7 @@ export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
     // a `domElementEffect()`, so a static server render gets the role too (its `<li>`).
     // `null` is `internals.role`'s own "no role" (a platform boundary)
     this.domElementEffect(
-      () => (this.context.owner ? UIT.LISTITEM : null),
+      () => (this.context.owner ? "listitem" : null),
       (role) => {
         internals.role = role
       }
@@ -91,11 +91,7 @@ export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div
-        class={this.rootClasses}
-        part={this.partForName("event")}
-        aria-disabled={this.disabled ? UIT.TRUE : undefined}
-      >
+      <div class={this.rootClasses} part={this.partForName("event")} aria-disabled={this.disabled ? "true" : undefined}>
         <Show when={this.hasLabel}>
           <div class={UIT.LABEL} part={this.partForName("label")} data-text={this.label || undefined}>
             <Show when={this.image}>

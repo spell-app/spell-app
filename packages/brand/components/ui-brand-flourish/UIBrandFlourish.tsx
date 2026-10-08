@@ -1,9 +1,9 @@
 import { createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, UIT, type ElementSetup } from "$/ui/core"
+import { Cell, proto, UIComponent, type ElementSetup } from "$/ui/core"
 
-import { brandFlourishVocabulary } from "./UIBrandFlourish.vocabulary.en"
+import { brandFlourishVocabulary } from "./UIBrandFlourish.en"
 import { Flourish } from "./Flourish"
 import {
   DEFAULT_COLORS,
@@ -58,7 +58,7 @@ export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
         class="art"
         part={this.partForName("art")}
         viewBox={`0 0 ${this.size.get().width} ${this.size.get().height}`}
-        aria-hidden={UIT.TRUE}
+        aria-hidden="true"
         innerHTML={this.art()}
       />
     )

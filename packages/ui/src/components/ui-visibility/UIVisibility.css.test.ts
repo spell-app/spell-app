@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { visibilityVocabulary } from "./UIVisibility.vocabulary.en"
+import { visibilityVocabulary } from "./UIVisibility.en"
 
 import visibilityCSS from "./UIVisibility.css?inline"
 import visibilityRaw from "./UIVisibility.css?raw"

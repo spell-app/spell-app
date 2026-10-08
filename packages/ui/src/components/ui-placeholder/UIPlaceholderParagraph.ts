@@ -1,6 +1,6 @@
 import { E } from "$/ui/core"
 import { PlaceholderShape } from "./PlaceholderShape"
-import { placeholderParagraphVocabulary } from "./UIPlaceholderParagraph.vocabulary.en"
+import { placeholderParagraphVocabulary } from "./UIPlaceholderParagraph.en"
 
 /****************
  * ### `UIPlaceholderParagraph`

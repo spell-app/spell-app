@@ -14,7 +14,7 @@ import { SiteData } from "$/ui/docs-components/SiteData"
 import { ColorProbe } from "./ColorProbe"
 import { TokenRows } from "./TokenRows"
 import { FALLBACK_HEX, type DocsTokensVocabulary, type TokenTable, type TokenView } from "./UIDocsTokens.types"
-import { docsTokensVocabulary } from "./UIDocsTokens.vocabulary.en"
+import { docsTokensVocabulary } from "./UIDocsTokens.en"
 
 import tableCSS from "$/ui/components/ui-table/UITable.css?inline"
 import tokensCSS from "./UIDocsTokens.css?inline"
@@ -285,7 +285,7 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
               <div
                 class={PREVIEW_CLASS}
                 part={this.partForName("preview")}
-                role={UIT.GROUP}
+                role="group"
                 aria-label={this.translationForKey("preview")}
                 ref={(box: HTMLElement) => (this.previewBox = box)}
               >
@@ -297,7 +297,7 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
                 basic=""
                 icon={RESET_ICON}
                 disabled={this.isModified ? undefined : ""}
-                ref={(button: HTMLElement) => button.addEventListener(UIT.CLICK, (event) => this.reset(event))}
+                ref={(button: HTMLElement) => button.addEventListener("click", (event) => this.reset(event))}
               >
                 {this.translationForKey("reset")}
               </ui-button>
@@ -308,7 +308,7 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
           <ui-input
             part={this.partForName("search")}
             class={SEARCH_CLASS}
-            type={SEARCH_TYPE}
+            type="search"
             size={SMALL}
             icon={SEARCH_ICON}
             placeholder={this.translationForKey("search")}
@@ -392,7 +392,7 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
                 part={this.partForName("swatch")}
                 circular=""
                 empty=""
-                aria-hidden={UIT.TRUE}
+                aria-hidden="true"
                 style={{ "--ui-label-background": this.swatch(row) }}
               />
             </Show>
@@ -452,9 +452,6 @@ const SEARCH_MIN_ROWS = 16
 
 /** Icon of the filter input. */
 const SEARCH_ICON = "search"
-
-/** Native input type of the filter. */
-const SEARCH_TYPE = "search"
 
 /** Icon of the reset button. */
 const RESET_ICON = "undo"

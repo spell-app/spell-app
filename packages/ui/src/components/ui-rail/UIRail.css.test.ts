@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { railVocabulary } from "./UIRail.vocabulary.en"
+import { railVocabulary } from "./UIRail.en"
 
 import railCSS from "./UIRail.css?inline"
 import railRaw from "./UIRail.css?raw"

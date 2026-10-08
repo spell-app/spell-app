@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { pusherVocabulary } from "./UIPusher.vocabulary.en"
+import { pusherVocabulary } from "./UIPusher.en"
 
 import sidebarCSS from "./UISidebar.css?inline"
 

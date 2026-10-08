@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
-import { E, UI, UIT } from "$/ui/core"
-import { flagVocabulary } from "./UIFlag.vocabulary.en"
+import { E, UI } from "$/ui/core"
+import { flagVocabulary } from "./UIFlag.en"
 import { FlagCountry } from "./FlagCountry"
 
 import flagCSS from "./UIFlag.css?inline"
@@ -41,7 +41,7 @@ export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
   get accessibleName(): string | undefined {
     const { textKey, region } = this.resolvedCountry
     if (textKey) return this.translationForKey(textKey as E.TextKey<typeof flagVocabulary>)
-    return region ? UI.i18n.displayName(REGION, region) : undefined
+    return region ? UI.i18n.displayName("region", region) : undefined
   }
 
   /** The resolved code as a class word (Fomantic's `fr flag`), for a page's own CSS. */
@@ -54,7 +54,7 @@ export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
       <span
         class={this.rootClasses}
         part={this.partForName("flag")}
-        role={this.accessibleName ? UIT.IMG : undefined}
+        role={this.accessibleName ? "img" : undefined}
         aria-label={this.accessibleName}
       >
         {this.resolvedCountry.emoji}
@@ -65,6 +65,3 @@ export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIFlag extends E.AttributeValues<typeof flagVocabulary> {}
-
-/** The `Intl.DisplayNames` type of a country code. */
-const REGION = "region"

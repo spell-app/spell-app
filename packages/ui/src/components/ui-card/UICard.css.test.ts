@@ -5,8 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { cardVocabulary } from "./UICard.vocabulary.en"
-import { cardsVocabulary } from "./UICards.vocabulary.en"
+import { cardVocabulary } from "./UICard.en"
+import { cardsVocabulary } from "./UICards.en"
 
 import iconCSS from "$/ui/components/ui-icon/UIIcon.css?inline"
 import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"

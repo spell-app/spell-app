@@ -2,7 +2,7 @@ import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 import { Keys } from "$/ui/test/Keys"
 
-import type { DOMFormControlElement } from "$/ui/elements"
+import type { DOMFormControl } from "$/ui/elements"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -17,7 +17,7 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-rating/examples/el
 })
 
 /** A rating DOM element with its properties. */
-type Rating = DOMFormControlElement & { value: number | undefined; disabled: boolean; readonly: boolean }
+type Rating = DOMFormControl & { value: number | undefined; disabled: boolean; readonly: boolean }
 
 /** Render one rating;  returns the DOM element and its pieces. */
 async function rating(html: string) {

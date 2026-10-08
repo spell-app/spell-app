@@ -87,12 +87,12 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
       `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `IconGlyph`) AND the foundation it uses:  `$/ui/util`,
       `$/ui/vocabulary`, from `$/ui/elements` `ClassBuilder` / `Shorthand` / `OwnerContext` / `NativeFallback`,
       `$/ui/runtime` (the eager loader only), `$/ui/icons` (`IconName`, `BuiltInPacks`), `$/ui/components/components.types`
-    - `src/forms.ts` -- `FormComponent`, `DOMFormControlElement`, `Validator`, `MenuOptions`;  imported by `dropdown` only.
+    - `src/forms.ts` -- `FormComponent`, `DOMFormControl`, `Validator`, `MenuOptions`;  imported by `dropdown` only.
       `ui-button` is form-associated through the fork's `formAssociated` option alone, so it stays on `core`.
   - Every component file (classes AND native fallback) imports shared code through ONE path, `$/ui/core` (and
     `$/ui/forms` where needed);  the vocabulary and the sheet are the family's own.  Two chunking rules:
     - `core.ts` / `forms.ts` re-export `$/ui/elements` LEAVES, never the barrel:  the barrel holds the `forms` files
-    - `DOMFormControlElement` / `FormComponent` import the element core through the `$/ui/core` ENTRY:  importing its leaves made
+    - `DOMFormControl` / `FormComponent` import the element core through the `$/ui/core` ENTRY:  importing its leaves made
       Rolldown hoist everything `core` and `forms` share into a third chunk, and `core.js` became a facade
   - `styles` is its own entry (`dist/styles.js`):  the `index` entry re-exports the foundation sheets, and without
     an entry of their own they landed in `index.js`, which the lazy `UIRuntime` chunk then imported -- loading the
@@ -275,7 +275,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `elements/ControlLabels.ts` | 190 | 110 |
 | `elements/Controlled.ts` | 92 | 41 |
 | `elements/DOMElement.ts` | 91 | 30 |
-| `elements/DOMFormControlElement.ts` | 51 | 24 |
+| `elements/DOMFormControl.ts` | 51 | 24 |
 | `elements/DOMLoadableBodyElement.ts` | 33 | 13 |
 | `elements/DOMLoadableElement.ts` | 139 | 60 |
 | `elements/ElementDefinition.ts` | 232 | 131 |
@@ -487,7 +487,7 @@ Counted by `LocCount` (non-blank, non-comment lines as "code").  The fork is not
   (`dividerHidden`).
 - **Pre-upgrade properties:**  the fork's upgrade step (captured in the constructor, re-applied through the
   setters).
-- **Platform options instead of plumbing:**  `UIComponent.define()` passes `BaseElement` (`DOMElement` / `DOMFormControlElement`),
+- **Platform options instead of plumbing:**  `UIComponent.define()` passes `BaseElement` (`DOMElement` / `DOMFormControl`),
   `shadowRootInit: { mode: "open", delegatesFocus }`, `internals: true`, `formAssociated`, `keepAlive: true`,
   `errorBoundary`, `onError`, `fallback`.
 - **Names:**  no attribute, event, slot or part literal in a template:  `this.part("button")`, `this.slot("icon")`,
@@ -525,7 +525,7 @@ The rules are in `AGENTS.md`, "Solid authoring".
 
 Edit a component in `yarn dev` and every live instance updates in place:  same DOM elements,
 their attributes and properties kept (the dropdown's `options` and controlled `value` included), no page reload.
-Open `tools/demo/hmr.html` and edit `UIButton.tsx`, `UIButton.css` or `UIButton.vocabulary.en.ts`.
+Open `tools/demo/hmr.html` and edit `UIButton.tsx`, `UIButton.css` or `UIButton.en.ts`.
 
 - **How:**
   - The fork's `solidElementHot()` (`vite.config.ts`, `apply: "serve"`) appends
@@ -649,7 +649,7 @@ other than esm.sh / unpkg are blocked.  Each host mounts ONE `<ui-dropdown>` wit
 ## Forms & accessibility
 
 - **Form association** is the fork's `formAssociated` option;  form callbacks arrive as hooks:  `onFormReset` =>
-  `FormComponent.onFormReset()`, `onFormDisabled` => `UIComponent.formDisabled`.  `DOMFormControlElement` is the form-control API
+  `FormComponent.onFormReset()`, `onFormDisabled` => `UIComponent.formDisabled`.  `DOMFormControl` is the form-control API
   (`form`, `validity`, `checkValidity()` ...).
 - `FormComponent`:  `formValue()` feeds `internals.setFormValue()` (a `string[]` becomes a `FormData`);  `required`
   runs `Validator` into `setValidity(flags, message, anchor)` with `:state(invalid)`;  reset restores the

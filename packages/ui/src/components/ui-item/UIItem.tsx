@@ -2,7 +2,7 @@ import { Show, untrack } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { itemVocabulary } from "./UIItem.vocabulary.en"
+import { itemVocabulary } from "./UIItem.en"
 
 import itemCSS from "./UIItem.css?inline"
 
@@ -122,7 +122,7 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
   /** `aria-current` while selected:  the owner's value on a link (`page`), else `true`. */
   private get ariaCurrent(): UIT.ItemContext["current"] | undefined {
     if (!this.isSelected || this.type !== UIT.ITEM) return undefined
-    return this.rootTag === UIT.ANCHOR_TAG ? (this.itemContext?.current ?? UIT.PAGE) : UIT.TRUE
+    return this.rootTag === "a" ? (this.itemContext?.current ?? "page") : "true"
   }
 
   ////////////////
@@ -132,9 +132,9 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
   /** Root element:  link, button, or plain box. */
   get rootTag(): RootTag {
     const context = this.itemContext
-    if (this.type !== UIT.ITEM) return DIV
-    if (this.href) return UIT.ANCHOR_TAG
-    return this.link || context?.interactive ? UIT.BUTTON : DIV
+    if (this.type !== UIT.ITEM) return "div"
+    if (this.href) return "a"
+    return this.link || context?.interactive ? "button" : "div"
   }
 
   /** The rendered item box, while owned. */
@@ -189,7 +189,7 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
       <Show when={this.itemContext} fallback={this.unowned()}>
         <Show
           when={this.type !== DIVIDER}
-          fallback={<div class={DIVIDER} part={this.partForName("item")} role={UIT.SEPARATOR} />}
+          fallback={<div class={DIVIDER} part={this.partForName("item")} role="separator" />}
         >
           {this.box()}
         </Show>
@@ -219,24 +219,24 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
    * - The DOM element's `aria-label` names it (an icon-only item);  its `aria-expanded` goes to a `<button>` box.
    */
   private box(): JSX.Element {
-    const isDisabledButton = () => this.rootTag === UIT.BUTTON && this.disabled
+    const isDisabledButton = () => this.rootTag === "button" && this.disabled
     return (
       <Dynamic
         ref={(element: HTMLElement) => (this.boxElement = element)}
         component={this.rootTag}
         class={this.rootClasses}
         part={this.partForName("item")}
-        href={this.rootTag === UIT.ANCHOR_TAG && !this.disabled ? this.href : undefined}
-        target={this.rootTag === UIT.ANCHOR_TAG ? this.target : undefined}
-        type={this.rootTag === UIT.BUTTON ? UIT.BUTTON : undefined}
+        href={this.rootTag === "a" && !this.disabled ? this.href : undefined}
+        target={this.rootTag === "a" ? this.target : undefined}
+        type={this.rootTag === "button" ? "button" : undefined}
         role={this.type === UIT.ITEM ? this.itemContext?.role : undefined}
         disabled={isDisabledButton() && !this.itemContext?.role ? true : undefined}
-        aria-disabled={this.disabled && !(isDisabledButton() && !this.itemContext?.role) ? UIT.TRUE : undefined}
+        aria-disabled={this.disabled && !(isDisabledButton() && !this.itemContext?.role) ? "true" : undefined}
         aria-current={this.ariaCurrent}
-        aria-label={this.attributes[UIT.ARIA_LABEL] ?? undefined}
+        aria-label={this.attributes["aria-label"] ?? undefined}
         aria-expanded={
-          this.rootTag === UIT.BUTTON
-            ? ((this.attributes[UIT.ARIA_EXPANDED] ?? undefined) as "true" | "false" | undefined)
+          this.rootTag === "button"
+            ? ((this.attributes["aria-expanded"] ?? undefined) as "true" | "false" | undefined)
             : undefined
         }
         data-value={this.value}
@@ -267,10 +267,7 @@ export interface UIItem extends E.AttributeValues<typeof itemVocabulary> {}
 type ItemOwnerComponent = E.UIComponent & Partial<UIT.ItemOwner>
 
 /** Root element names. */
-type RootTag = typeof UIT.ANCHOR_TAG | typeof UIT.BUTTON | typeof DIV
-
-/** Root of an item that is neither a link nor a button, a header or a divider. */
-const DIV = "div"
+type RootTag = "a" | "button" | "div"
 
 /** The `divider` type, and the class of its root. */
 const DIVIDER = "divider"

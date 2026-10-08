@@ -12,7 +12,7 @@ import { SiteData } from "$/ui/docs-components/SiteData"
 import { ApiModel } from "./ApiModel"
 import { InlineCode } from "./InlineCode"
 import { type ApiCell, type ApiItem, type ApiMessage, type ApiSection, type DocsApiVocabulary } from "./UIDocsApi.types"
-import { docsApiVocabulary } from "./UIDocsApi.vocabulary.en"
+import { docsApiVocabulary } from "./UIDocsApi.en"
 
 import tableCSS from "$/ui/components/ui-table/UITable.css?inline"
 import apiCSS from "./UIDocsApi.css?inline"
@@ -254,8 +254,8 @@ export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
   @E.onChange("isConnected")
   protected onConnectedChanged(isConnected: boolean) {
     if (!isConnected) return undefined
-    window.addEventListener(HASHCHANGE, this.onHashChange)
-    return () => window.removeEventListener(HASHCHANGE, this.onHashChange)
+    window.addEventListener("hashchange", this.onHashChange)
+    return () => window.removeEventListener("hashchange", this.onHashChange)
   }
 
   /** `hashchange`:  scroll to the new hash, if it's one of this element's tag headers. */
@@ -317,9 +317,6 @@ type ItemsParams = {
   /** every tag of a family, each under its header;  wins over `tag` */
   family?: string
 }
-
-/** `window` event the element follows while connected. */
-const HASHCHANGE = "hashchange"
 
 /** Class word of one tag's block, with `family`. */
 const TAG_CLASS = "tag"

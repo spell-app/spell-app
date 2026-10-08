@@ -2,8 +2,8 @@ import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { buttonVocabulary } from "./UIButton.vocabulary.en"
-import { DEFAULT_TYPE, DOMElementClick, RESET } from "./UIButton.types"
+import { buttonVocabulary } from "./UIButton.en"
+import { DOMElementClick } from "./UIButton.types"
 import { ButtonFallback } from "./UIButton.fallback"
 import { Invoker } from "./Invoker"
 
@@ -16,7 +16,7 @@ import buttonCSS from "./UIButton.css?inline"
  *
  * - A form control only so `type="submit"` / `"reset"` can reach its form (`internals.form`).
  *   It sends no value of its own, except while it is the submitter (`submit()`).
- *   It doesn't use `DOMFormControlElement`, so a page with only buttons never loads the `forms` entry.
+ *   It doesn't use `DOMFormControl`, so a page with only buttons never loads the `forms` entry.
  *
  * - `active` (`isActive`) is controlled:  `toggle` flips it on click, sending `ui-toggle` first.
  *
@@ -83,7 +83,7 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
 
   /** The DOM element's `aria-label`, passed on to the inner control (an icon-only button's name). */
   private get ariaLabel(): string | undefined {
-    return this.attributes[UIT.ARIA_LABEL] ?? undefined
+    return this.attributes["aria-label"] ?? undefined
   }
 
   /** Has text content (slotted, the `content` shorthand, or a state text)? */
@@ -195,8 +195,8 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
             part={this.partForName("button")}
             disabled={this.isDisabled}
             {...this.staticControl}
-            aria-pressed={this.toggle && !this.hasStateText ? (this.isActive ? UIT.TRUE : UIT.FALSE) : undefined}
-            aria-busy={this.loading ? UIT.TRUE : undefined}
+            aria-pressed={this.toggle && !this.hasStateText ? (this.isActive ? "true" : "false") : undefined}
+            aria-busy={this.loading ? "true" : undefined}
             aria-label={this.ariaLabel}
             command={isServer || this.hasNativeInvokers ? this.command : undefined}
             onClick={this.onClick}
@@ -212,9 +212,9 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
           href={this.isDisabled ? undefined : this.href}
           target={this.target}
           download={this.download}
-          role={this.isDisabled ? LINK_ROLE : undefined}
-          aria-disabled={this.isDisabled ? UIT.TRUE : undefined}
-          aria-busy={this.loading ? UIT.TRUE : undefined}
+          role={this.isDisabled ? "link" : undefined}
+          aria-disabled={this.isDisabled ? "true" : undefined}
+          aria-busy={this.loading ? "true" : undefined}
           aria-label={this.ariaLabel}
           onClick={this.onClick}
         >
@@ -234,7 +234,7 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
    *   so a static form's `<button type="submit">` submits it natively.
    */
   private get nativeType(): "button" | "submit" | "reset" {
-    return isServer ? (this.type ?? DEFAULT_TYPE) : DEFAULT_TYPE
+    return isServer ? (this.type ?? "button") : "button"
   }
 
   /**
@@ -361,8 +361,8 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
     }
     const { form } = this.domElement.internals
     if (!form) return
-    if (this.type === UIT.SUBMIT) this.submit(form)
-    else if (this.type === RESET) form.reset()
+    if (this.type === "submit") this.submit(form)
+    else if (this.type === "reset") form.reset()
   }
 
   /**
@@ -428,6 +428,3 @@ const VISIBLE_CONTENT_CLASS = "visible content"
 
 /** Class words of an `animated` button's content shown on hover. */
 const HIDDEN_CONTENT_CLASS = "hidden content"
-
-/** ARIA role of a disabled link button:  its `href` is gone, so it's no longer a link by itself. */
-const LINK_ROLE = "link"

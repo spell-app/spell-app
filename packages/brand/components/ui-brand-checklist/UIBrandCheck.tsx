@@ -3,15 +3,12 @@ import type { JSX } from "@solidjs/web"
 
 import { DOMElement, PartContext, proto, UIComponent, UIT, type ElementSetup } from "$/ui/core"
 
-import { brandCheckVocabulary } from "./UIBrandCheck.vocabulary.en"
+import { brandCheckVocabulary } from "./UIBrandCheck.en"
 import {
   ACTIVE,
   CHECK_NOUN,
-  CHECKBOX,
-  CHECKED,
   DONE,
   PENDING,
-  STEP,
   type BrandCheckChangeDetail,
   type BrandCheckVocabulary,
   type CheckFont,
@@ -82,7 +79,7 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
 
   /** The DOM element's `checked` attribute, another name for `selected`. */
   get checkedAttribute(): string | undefined {
-    return this.attributes[CHECKED] ?? undefined
+    return this.attributes["checked"] ?? undefined
   }
 
   /** The checklist that owns it. */
@@ -124,15 +121,15 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
   constructor(...args: ConstructorParameters<typeof UIComponent>) {
     super(...args)
     // a `checked` attribute in markup ticks it, as a native checkbox's does
-    if (this.domElement.hasAttribute(CHECKED) && !untrack(() => this.attrs.selected)) {
+    if (this.domElement.hasAttribute("checked") && !untrack(() => this.attrs.selected)) {
       queueMicrotask(() => this.selectedState.set(true))
     }
     // SIDE EFFECT:  owned, the DOM element is one item of the list;  the active step is the current one
     this.domElementEffect(
       () => ({ owned: !!this.owner(), active: this.state() === ACTIVE && !this.isCheckable() }),
       ({ owned, active }) => {
-        this.domElement.internals.role = owned ? UIT.LISTITEM : null
-        this.domElement.internals.ariaCurrent = active ? STEP : null
+        this.domElement.internals.role = owned ? "listitem" : null
+        this.domElement.internals.ariaCurrent = active ? "step" : null
       }
     )
   }
@@ -202,10 +199,10 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
     return (
       <button
         type="button"
-        role={CHECKBOX}
+        role="checkbox"
         class={this.rootClasses}
         part={this.partForName("check")}
-        aria-checked={this.state() === DONE ? UIT.TRUE : UIT.FALSE}
+        aria-checked={this.state() === DONE ? "true" : "false"}
         onClick={this.onToggle}
       >
         {this.renderMarker()}
@@ -219,7 +216,7 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
   /** The round mark:  a check, shown once done (`UIBrandCheck.css`). */
   private renderMarker(): JSX.Element {
     return (
-      <span class="marker" part={this.partForName("marker")} aria-hidden={UIT.TRUE}>
+      <span class="marker" part={this.partForName("marker")} aria-hidden="true">
         <svg viewBox={CHECK_VIEW_BOX}>
           <path d={CHECK_PATH} />
         </svg>

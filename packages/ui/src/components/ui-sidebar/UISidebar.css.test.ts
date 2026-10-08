@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { sidebarVocabulary } from "./UISidebar.vocabulary.en"
+import { sidebarVocabulary } from "./UISidebar.en"
 
 import menuCSS from "$/ui/components/ui-menu/UIMenu.css?inline"
 import segmentCSS from "$/ui/components/ui-segment/UISegment.css?inline"

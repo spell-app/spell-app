@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { codeVocabulary } from "./UICode.vocabulary.en"
+import { codeVocabulary } from "./UICode.en"
 
 import codeCSS from "./UICode.css?inline"
 import codeRaw from "./UICode.css?raw"

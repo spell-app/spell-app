@@ -33,7 +33,7 @@ import utilitiesCSS from "./utilities.css?inline"
 import nativeCSS from "./native.css?inline"
 
 export * from "./styles.types"
-export * from "./styles.vocabulary.en"
+export * from "./styles.en"
 
 export { layersCSS, resetCSS, tokensCSS, colorsCSS, sizesCSS, typographyCSS, animationsCSS, utilitiesCSS, nativeCSS }
 

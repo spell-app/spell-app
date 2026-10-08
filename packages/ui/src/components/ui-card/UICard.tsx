@@ -2,7 +2,7 @@ import { Show, onSettled } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { cardVocabulary } from "./UICard.vocabulary.en"
+import { cardVocabulary } from "./UICard.en"
 import type { UICards } from "./UICards"
 
 import cardCSS from "./UICard.css?inline"
@@ -95,9 +95,9 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
   @E.onChange("group", "loading", "disabled", { writesDOMElement: true })
   protected onAriaChanged(group: UICards | undefined, isLoading: boolean, isDisabled: boolean) {
     const { internals } = this.domElement
-    internals.role = group ? UIT.LISTITEM : null
-    internals.ariaBusy = isLoading ? UIT.TRUE : null
-    internals.ariaDisabled = isDisabled ? UIT.TRUE : null
+    internals.role = group ? "listitem" : null
+    internals.ariaBusy = isLoading ? "true" : null
+    internals.ariaDisabled = isDisabled ? "true" : null
   }
 
   ////////////////
@@ -122,7 +122,7 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
   /** Shorthand nouns the light DOM already has, read from the DOM now. */
   private scan(): ReadonlySet<string> {
     const nouns = new Set<string>()
-    for (const child of this.domElement.children) if (child.localName === UIT.IMG && !child.slot) nouns.add(UIT.IMAGE)
+    for (const child of this.domElement.children) if (child.localName === "img" && !child.slot) nouns.add(UIT.IMAGE)
     for (const element of this.domElement.querySelectorAll("*")) {
       const noun = E.UIComponent.definitions.get(element.localName)?.vocabulary.noun
       if (noun && (Shorthands as readonly string[]).includes(noun)) nouns.add(noun)
@@ -135,12 +135,12 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
   ////////////////
 
   /** Root element:  a link with `href`, else an article. */
-  get rootTag(): typeof UIT.ANCHOR_TAG | typeof ARTICLE {
-    return this.href ? UIT.ANCHOR_TAG : ARTICLE
+  get rootTag(): "a" | "article" {
+    return this.href ? "a" : "article"
   }
 
   render(): JSX.Element {
-    const isLink = () => this.rootTag === UIT.ANCHOR_TAG
+    const isLink = () => this.rootTag === "a"
     return (
       <Dynamic
         component={this.rootTag}
@@ -148,7 +148,7 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
         part={this.partForName("card")}
         href={isLink() && !this.disabled ? this.href : undefined}
         target={isLink() ? this.target : undefined}
-        aria-disabled={isLink() && this.disabled ? UIT.TRUE : undefined}
+        aria-disabled={isLink() && this.disabled ? "true" : undefined}
       >
         <Show when={this.rendersShorthand(UIT.IMAGE)}>
           <div class={UIT.IMAGE} part={this.partForName("image")}>
@@ -181,7 +181,7 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
           </div>
         </Show>
         <Show when={this.loading}>
-          <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
+          <span class={UIT.VISUALLY_HIDDEN} role="status">
             {this.translationForKey("loading")}
           </span>
         </Show>
@@ -206,9 +206,6 @@ const EXTRA = "extra"
 
 /** Shorthands drawn in the card's content block, in order. */
 const ContentShorthands = [UIT.HEADER, META, UIT.DESCRIPTION] as const
-
-/** Root tag of a card without `href`:  a self-contained composition (a link card's is `UIT.ANCHOR_TAG`). */
-const ARTICLE = "article"
 
 /** Every shorthand attribute, by the part noun it renders. */
 const Shorthands = [UIT.IMAGE, UIT.HEADER, META, UIT.DESCRIPTION, EXTRA] as const

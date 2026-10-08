@@ -1,6 +1,5 @@
 import { E, UIT } from "$/ui/core"
-import { ratingVocabulary } from "./UIRating.vocabulary.en"
-import { DEFAULT_MAX, RADIO, RADIOGROUP } from "./UIRating.types"
+import { ratingVocabulary } from "./UIRating.en"
 
 /****************
  * ### `RatingFallback`
@@ -37,7 +36,7 @@ export class RatingFallback extends E.NativeFallback<typeof ratingVocabulary> {
     const labels = Array.from({ length: max }, (_, index) => {
       const point = index + 1
       const radio = this.create("input", {
-        type: RADIO,
+        type: "radio",
         name,
         value: String(point),
         part: CONTROL,
@@ -55,9 +54,9 @@ export class RatingFallback extends E.NativeFallback<typeof ratingVocabulary> {
       "fieldset",
       {
         class: this.classes(),
-        role: RADIOGROUP,
+        role: "radiogroup",
         disabled: this.flag("disabled"),
-        "aria-readonly": isReadonly ? UIT.TRUE : undefined
+        "aria-readonly": isReadonly ? "true" : undefined
       },
       ...labels
     )
@@ -103,6 +102,12 @@ type RatingDOMElement = HTMLElement & {
   /** the rating, once set as a property */
   value?: number
 }
+
+/**
+ * Fomantic's default `maxRating`:  how many icons when `max-rating` is unset.
+ * - The component reads it too (`UIRating`):  a family constant of its own, not a one-line types file.
+ */
+export const DEFAULT_MAX = 4
 
 /** The part of each native radio. */
 const CONTROL = "control"

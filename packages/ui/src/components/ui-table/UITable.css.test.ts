@@ -6,7 +6,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { tableVocabulary } from "./UITable.vocabulary.en"
+import { tableVocabulary } from "./UITable.en"
 
 import tableCSS from "./UITable.css?inline"
 import tableRaw from "./UITable.css?raw"

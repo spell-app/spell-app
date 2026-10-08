@@ -13,44 +13,49 @@ import { onChange, state } from "./Reactive"
  * ### `UIComponent`
  * The base class of every Spell UI component.
  *
- * Each `<ui-button>`, etc on a page gets ONE instance of its component's subclass (e.g. `UIButton`),
- * which decides what the element shows and how it behaves.
+ * Each `<ui-button>`, etc on a page gets ONE instance of its UIComponent's subclass (`UIButton`)
+ * which decides what the element shows and how it behaves.  This is the base for those subclasses.
  *
- * - There are two coordinated objects per element:
- *     - its DOM ELEMENT, the `<ui-button>` in the page (a `DOMElement`, `this.domElement`):
- *       what a page sees, with its attributes, properties and events
- *     - its COMPONENT, the subclass instance, e.g. `UIButton` (`domElement.component`):
- *       it holds the element's state, `render()`s its shadow DOM and handles its events.
+ * - **DOMElement**: `component.domElement` (`DOMElement.ts`) is a subclass of the *browser's* `HTMLElement`,
+ *   and is the object that the browser and all frameworks actually interact with.
  *
- * - *Custom-element wrapper*:  `@spell-app/solid-element`, our fork of Solid's own custom-element library.
+ *   For the most part this will be the base `DOMElement` class -- subclasses of `UIComponent`
+ *   which need extra functionality in the DOM will have a custom `DOMElement` subclass.
+ *
+ *   The custom element mechanism in the browser "upgrades" `<ui-button>`
+ *   from *its* `HTMLElement` to *our* `DOMElement` automatically when we `define()` a component.
+ *
+ *   `DomElement.component` is the link from the DOM back to this class.
+ *
+ * - **Custom-element wrapper**:  `@spell-app/solid-element`, our fork of Solid's own custom-element library.
  *   It defines the tag, watches attributes, makes the shadow root, and calls `render()` inside Solid.  We forked it
  *   to fix bugs upstream hasn't taken yet (`packages/solid-element/UPSTREAM.md`).
  *
- * - *Vocabulary*:  `UIButton.vocabulary.en.ts` names EVERYTHING the tag uses
+ * - **Vocabulary**:  `UIButton.en.ts` (named for its language) names EVERYTHING the tag uses
  *   (attributes and their values, events, slots, parts, states, texts).
  *   Code never writes those names as strings:  it reads them from the vocabulary,
  *   so a translated tag (`<ie-boton>`) runs the same code.
  *
- * - *State*:  fields that change over time are declared with a decorator, and read and written like a field:
+ * - **State**:  fields that change over time are declared with a decorator, and read and written like a field:
  *   ```ts
  *   @state accessor isOpen = false     // this.isOpen = true;  if (this.isOpen) ...
  *   ```
  *   A read is always up to date, even right after a write;  JSX will update the view as the value changes.
  *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@onChange`) are in `Reactive.ts`.
  *
- * - *Attributes*:  every DOM element attribute has a getter/setter on the component,
+ * - **Attributes**:  every DOM element attribute has a getter/setter on the component,
  *   under its name in camelCase:  `this.size`, `this.closeIcon`.
  *   The value is already converted (`"true"` => `true`).
  *
  *   A class declares them for TypeScript with one line below it:
  *   `export interface UIButton extends E.AttributeValues<typeof buttonVocabulary> {}`.
  *
- * - *Base classes* (this one, `FormComponent`, `LoadableComponent` ...) never use a member name
+ * - **Base classes** (this one, `FormComponent`, `LoadableComponent` ...) never use a member name
  *   that any vocabulary uses for an attribute, or the member would hide that attribute's getter:
  *   - `elementDefinition`, not `definition` (an attribute of `<ui-table>`).
  *   `Reactive.test.tsx` checks every vocabulary against them.
  *
- * - *Lifecycle of an element*:
+ * - **Lifecycle**:
  *   1. The HTML source includes the tag:  `UIButton.define()` (see "Defining the element")
  *   2. The first time the element is "connected", the custom-element layer builds its component,
  *      then calls `onMount()`, which calls `render()` to return content for the shadow root
@@ -78,7 +83,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * Every piece of human language the tag uses:
-   *  its tag, attributes, events, slots, parts, states and texts, from `UI<Name>.vocabulary.en.ts`.
+   *  its tag, attributes, events, slots, parts, states and texts, from `UI<Name>.en.ts`.
    * - No default:  each component sets its own (`@proto static vocabulary = buttonVocabulary`).
    * - Set on the class, not on each element:
    *   `define()` needs it before any element exists, and the runtime keeps the same object (`UI.vocabulary`).
@@ -909,7 +914,7 @@ export type ElementSetup = {
   /**
    * The class the DOM element itself is made from.
    * - Default `DOMElement`.
-   * - `FormComponent` uses `DOMFormControlElement`, which adds what a form control needs:
+   * - `FormComponent` uses `DOMFormControl`, which adds what a form control needs:
    *   `value`, `form`, `checkValidity()` ...
    * - A family with a script API of its own names its `DOM<Name>Element` here (`DOMNagElement`).
    * - Read once, when the tag is defined.

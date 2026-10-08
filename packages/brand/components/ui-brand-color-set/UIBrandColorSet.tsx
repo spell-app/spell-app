@@ -5,13 +5,12 @@ import { Cell, Converters, proto, UIComponent, UIT, type ElementSetup } from "$/
 import { Palette } from "$/brand"
 import { DOMBrandColorElement } from "$/brand/components/ui-brand-color"
 
-import { brandColorSetVocabulary } from "./UIBrandColorSet.vocabulary.en"
+import { brandColorSetVocabulary } from "./UIBrandColorSet.en"
 import {
   ARROWS,
   CHIP_ATTRIBUTES,
   CHIP_TAG,
   CHOOSE_KEYS,
-  RADIOGROUP,
   type BrandColorSetVocabulary,
   type SetChip
 } from "./UIBrandColorSet.types"
@@ -80,7 +79,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
     this.domElementEffect(
       () => this.attrs.selectable,
       (selectable) => {
-        this.domElement.internals.role = selectable ? RADIOGROUP : null
+        this.domElement.internals.role = selectable ? "radiogroup" : null
       }
     )
     if (isServer) return
@@ -165,7 +164,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
       if (selectable) {
         domElement.choice?.set(true)
         const tabIndex = index === stop ? 0 : -1
-        if (domElement.tabIndex !== tabIndex || !domElement.hasAttribute(UIT.TABINDEX)) domElement.tabIndex = tabIndex
+        if (domElement.tabIndex !== tabIndex || !domElement.hasAttribute("tabindex")) domElement.tabIndex = tabIndex
         this.members.add(chip)
       } else if (this.members.has(chip)) {
         UIBrandColorSet.release(chip)
@@ -277,7 +276,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   /** Hand a chip back:  no longer a choice, no `tabindex` of ours. */
   private static release(chip: HTMLElement) {
     ;(chip as DOMBrandColorElement).choice?.set(false)
-    chip.removeAttribute(UIT.TABINDEX)
+    chip.removeAttribute("tabindex")
   }
 }
 

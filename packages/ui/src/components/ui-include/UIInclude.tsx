@@ -3,7 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import { E, type UIT } from "$/ui/core"
 import { RootLoader } from "$/ui/components/ui-root"
-import { includeVocabulary } from "./UIInclude.vocabulary.en"
+import { includeVocabulary } from "./UIInclude.en"
 
 import includeCSS from "./UIInclude.css?inline"
 

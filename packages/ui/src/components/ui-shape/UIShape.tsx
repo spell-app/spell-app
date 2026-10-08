@@ -3,7 +3,7 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { SIDE, SIDES, type ShapeVocabulary } from "./UIShape.types"
-import { shapeVocabulary } from "./UIShape.vocabulary.en"
+import { shapeVocabulary } from "./UIShape.en"
 
 import shapeCSS from "./UIShape.css?inline"
 
@@ -260,7 +260,7 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
     active.setState(LEAVING, true)
     box.style.transform = UIShape.turn(direction, sizes)
     await this.transitionEnd(box)
-    for (const element of [stage, box]) element.removeAttribute(STYLE)
+    for (const element of [stage, box]) element.removeAttribute("style")
     for (const side of [active, next]) for (const property of STAGED) side.style.removeProperty(property)
     stage.classList.remove(UIT.ANIMATING)
     active.setState(LEAVING, false)
@@ -322,7 +322,7 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
     if (this.rendersInlineOnServer) return this.inlineShape()
     return (
       <div ref={(element) => (this.stage = element)} class={this.rootClasses} part={this.partForName("shape")}>
-        <div ref={(element) => (this.box = element)} class={SIDES} part={this.partForName("sides")} aria-live={POLITE}>
+        <div ref={(element) => (this.box = element)} class={SIDES} part={this.partForName("sides")} aria-live="polite">
           <slot />
         </div>
       </div>
@@ -342,7 +342,7 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   private inlineShape(): JSX.Element {
     return (
       <span class={this.rootClasses} part={this.partForName("shape")}>
-        <span class={SIDES} part={this.partForName("sides")} aria-live={POLITE}>
+        <span class={SIDES} part={this.partForName("sides")} aria-live="polite">
           <slot />
         </span>
       </span>
@@ -442,14 +442,8 @@ const INACTIVE = "inactive"
 /** The active side's state while it turns away. */
 const LEAVING = "leaving"
 
-/** Its own boxes' inline styles are cleared after a flip (the attribute);  on the sides, only what it staged. */
-const STYLE = "style"
-
 /** The inline properties a flip stages on the sides. */
 const STAGED = ["transform", "top", "left"] as const
 
 /** ms added to the transition before giving up on `transitionend`. */
 const FAIL_SAFE = 100
-
-/** The live-region politeness of the sides box:  the new side is read out after a flip. */
-const POLITE = "polite"

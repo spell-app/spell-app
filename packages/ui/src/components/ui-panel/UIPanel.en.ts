@@ -13,7 +13,7 @@
  */
 
 import type { E } from "$/ui/core"
-import { sectionVocabulary } from "$/ui/components/ui-section/UISection.vocabulary.en"
+import { sectionVocabulary } from "$/ui/components/ui-section/UISection.en"
 
 // NOTE:  above the vocabulary, which reads them as it's built
 

@@ -6,8 +6,8 @@
  * - The word widths are `UIT.WordWidths` (`<ui-flyout>`'s too).
  */
 
-import type { pushableVocabulary } from "./UIPushable.vocabulary.en"
-import type { sidebarVocabulary } from "./UISidebar.vocabulary.en"
+import type { pushableVocabulary } from "./UIPushable.en"
+import type { sidebarVocabulary } from "./UISidebar.en"
 
 /** `<ui-sidebar>`'s vocabulary type, for brevity. */
 export type SidebarVocabulary = typeof sidebarVocabulary
@@ -18,9 +18,6 @@ export type PushableVocabulary = typeof pushableVocabulary
 ////////////////
 // ## Pusher layout
 ////////////////
-
-/** The pusher's `transform` when nothing moves it (an `overlay` sidebar, or none open). */
-export const NONE_TRANSFORM = "none"
 
 /** The pusher's `transform-origin` unless a `scale down` sidebar moves it:  its centre. */
 export const CENTER = "50% 50%"

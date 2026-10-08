@@ -4,7 +4,7 @@ import { OBSERVE } from "solid-js"
 import { attribution } from "solid-js/attribution"
 
 import { E } from "$/ui/core"
-import type { DOMFormControlElement } from "$/ui/elements"
+import type { DOMFormControl } from "$/ui/elements"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -19,7 +19,7 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-checkbox/examples/
 })
 
 /** A checkbox / radio DOM element with its properties. */
-type Check = DOMFormControlElement & {
+type Check = DOMFormControl & {
   selected: boolean
   checked: boolean
   indeterminate: boolean

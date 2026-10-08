@@ -1,6 +1,6 @@
 import { E, UI, UIT } from "$/ui/core"
-import { buttonVocabulary } from "./UIButton.vocabulary.en"
-import { DEFAULT_TYPE, DOMElementClick, RESET } from "./UIButton.types"
+import { buttonVocabulary } from "./UIButton.en"
+import { DOMElementClick } from "./UIButton.types"
 import { Invoker } from "./Invoker"
 
 /****************
@@ -42,21 +42,21 @@ export class ButtonFallback extends E.NativeFallback<typeof buttonVocabulary> {
             href: isDisabled ? undefined : href,
             target: this.attr("target"),
             download: this.attr("download"),
-            rel: this.attr("target") === BLANK_TARGET ? NOOPENER : undefined,
-            "aria-disabled": isDisabled ? UIT.TRUE : undefined,
+            rel: this.attr("target") === "_blank" ? "noopener" : undefined,
+            "aria-disabled": isDisabled ? "true" : undefined,
             tabindex: isDisabled ? "-1" : undefined
           })
-        : this.create("button", { type: DEFAULT_TYPE, disabled: isDisabled })
+        : this.create("button", { type: "button", disabled: isDisabled })
     control.className = this.classes()
     this.decorate(control, "button")
-    if (isToggle) control.setAttribute(ARIA_PRESSED, String(this.flag("active")))
+    if (isToggle) control.setAttribute("aria-pressed", String(this.flag("active")))
     // An icon-only button has no glyph here, so its name would be empty.
-    if (isIconOnly && !control.hasAttribute(UIT.ARIA_LABEL)) control.setAttribute(UIT.ARIA_LABEL, icon)
+    if (isIconOnly && !control.hasAttribute("aria-label")) control.setAttribute("aria-label", icon)
     control.append(this.slot(this.attr("content")))
 
     this.listen<MouseEvent>(control, "click", (event) => {
       if (isDisabled) return event.preventDefault()
-      if (isToggle) control.setAttribute(ARIA_PRESSED, String(control.classList.toggle(UIT.ACTIVE)))
+      if (isToggle) control.setAttribute("aria-pressed", String(control.classList.toggle(UIT.ACTIVE)))
       this.invoke(control, event)
       this.activate()
     })
@@ -91,8 +91,8 @@ export class ButtonFallback extends E.NativeFallback<typeof buttonVocabulary> {
     const type = this.attr("type")
     const form = this.form()
     if (!form) return
-    if (type === RESET) return form.reset()
-    if (type !== UIT.SUBMIT) return
+    if (type === "reset") return form.reset()
+    if (type !== "submit") return
     // `requestSubmit()` builds the entries synchronously, so the value need only exist during the call.
     const isSubmitted = this.formInternals && this.attr("name") !== undefined
     if (isSubmitted) this.formInternals!.setFormValue(this.attr("value") ?? "")
@@ -106,12 +106,3 @@ export class ButtonFallback extends E.NativeFallback<typeof buttonVocabulary> {
 
 /** The invoker attribute:  read off the DOM element, copied onto the native button. */
 const COMMAND: E.AttributeNameOf<typeof buttonVocabulary> = "command"
-
-/** Shows the toggle's state to assistive tech:  `"true"` / `"false"`. */
-const ARIA_PRESSED = "aria-pressed"
-
-/** `target` of a link that opens in a new browsing context. */
-const BLANK_TARGET = "_blank"
-
-/** `rel` of such a link:  the new page gets no `window.opener`. */
-const NOOPENER = "noopener"

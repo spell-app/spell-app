@@ -2,8 +2,8 @@ import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { pushableVocabulary } from "./UIPushable.vocabulary.en"
-import { CENTER, NONE_TRANSFORM, type PushableVocabulary } from "./UISidebar.types"
+import { pushableVocabulary } from "./UIPushable.en"
+import { CENTER, type PushableVocabulary } from "./UISidebar.types"
 
 import sidebarCSS from "./UISidebar.css?inline"
 
@@ -69,24 +69,24 @@ export class UIPushable extends E.UIComponent<PushableVocabulary> {
     const root = this.root
     if (!root) return
     const visible = [...layouts.values()]
-    const pushing = visible.filter((layout) => layout.transform !== NONE_TRANSFORM)
+    const pushing = visible.filter((layout) => layout.transform !== "none")
     const push = pushing.length === 1 ? pushing[0] : undefined
     const modal = visible.find((layout) => layout.modal)
-    root.style.setProperty(UIT.PusherTokens.transform, push?.transform ?? NONE_TRANSFORM)
+    root.style.setProperty(UIT.PusherTokens.transform, push?.transform ?? "none")
     root.style.setProperty(UIT.PusherTokens.origin, push?.origin ?? CENTER)
     root.style.setProperty(UIT.PusherTokens.dimmed, modal ? ON : OFF)
     root.style.setProperty(UIT.PusherTokens.blurring, modal?.blurring ? ON : OFF)
     const keep = new Set([...layouts].filter(([, layout]) => layout.modal).map(([sidebar]) => sidebar))
     for (const child of this.domElement.children) {
       const inert = !!modal && !keep.has(child) && !this.isHiddenSidebar(child)
-      if (inert && !child.hasAttribute(INERT)) {
-        child.setAttribute(INERT, "")
+      if (inert && !child.hasAttribute("inert")) {
+        child.setAttribute("inert", "")
         this.childrenMadeInert.add(child)
-      } else if (!inert && this.childrenMadeInert.delete(child)) child.removeAttribute(INERT)
+      } else if (!inert && this.childrenMadeInert.delete(child)) child.removeAttribute("inert")
     }
     for (const child of this.childrenMadeInert) {
       if (child.parentElement === this.domElement) continue
-      child.removeAttribute(INERT)
+      child.removeAttribute("inert")
       this.childrenMadeInert.delete(child)
     }
   }
@@ -130,6 +130,3 @@ const ON = "1"
 
 /** A `PusherTokens` switch off. */
 const OFF = "0"
-
-/** The attribute it adds to the children beside a modal sidebar. */
-const INERT = "inert"

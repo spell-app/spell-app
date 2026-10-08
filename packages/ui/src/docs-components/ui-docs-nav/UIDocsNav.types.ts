@@ -6,7 +6,7 @@
 
 import type { SiteStatus } from "$/ui/docs-components/docs-components.types"
 
-import type { docsNavVocabulary } from "./UIDocsNav.vocabulary.en"
+import type { docsNavVocabulary } from "./UIDocsNav.en"
 
 /** `docsNavVocabulary`'s type. */
 export type DocsNavVocabulary = typeof docsNavVocabulary

@@ -4,7 +4,7 @@
  * - A constant only one class reads sits below that class (epic `wwod-spell-ui`, Q18).
  */
 
-import type { toastVocabulary } from "./UIToast.vocabulary.en"
+import type { toastVocabulary } from "./UIToast.en"
 
 /** The vocabulary type, for brevity. */
 export type Vocabulary = typeof toastVocabulary
@@ -22,8 +22,8 @@ export const ATTACHED = "attached"
 /** The `inverted` word:  an attribute, a class, a `class` word `UI.toast()` sorts. */
 export const INVERTED = "inverted"
 
+/** The `vertical` word:  an `actions` layout word, and its class. */
+export const VERTICAL = "vertical"
+
 /** The `ui` word of Fomantic's grammar, which the toast's extra boxes (bar, containers) spell out themselves. */
 export const UI_WORD = "ui"
-
-/** Focus is inside:  the countdown pauses, a container isn't re-shown. */
-export const FOCUS_WITHIN = ":focus-within"

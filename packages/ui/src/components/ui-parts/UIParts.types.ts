@@ -7,19 +7,19 @@
  *   so there's no cycle.
  */
 
-import { contentVocabulary } from "./UIContent.vocabulary.en"
-import { headerVocabulary } from "./UIHeader.vocabulary.en"
-import { descriptionVocabulary } from "./UIDescription.vocabulary.en"
-import { metaVocabulary } from "./UIMeta.vocabulary.en"
-import { extraVocabulary } from "./UIExtra.vocabulary.en"
-import { actionsVocabulary } from "./UIActions.vocabulary.en"
-import { titleVocabulary } from "./UITitle.vocabulary.en"
-import { summaryVocabulary } from "./UISummary.vocabulary.en"
-import { dateVocabulary } from "./UIDate.vocabulary.en"
-import { authorVocabulary } from "./UIAuthor.vocabulary.en"
-import { avatarVocabulary } from "./UIAvatar.vocabulary.en"
-import { detailVocabulary } from "./UIDetail.vocabulary.en"
-import { valueVocabulary } from "./UIValue.vocabulary.en"
+import { contentVocabulary } from "./UIContent.en"
+import { headerVocabulary } from "./UIHeader.en"
+import { descriptionVocabulary } from "./UIDescription.en"
+import { metaVocabulary } from "./UIMeta.en"
+import { extraVocabulary } from "./UIExtra.en"
+import { actionsVocabulary } from "./UIActions.en"
+import { titleVocabulary } from "./UITitle.en"
+import { summaryVocabulary } from "./UISummary.en"
+import { dateVocabulary } from "./UIDate.en"
+import { authorVocabulary } from "./UIAuthor.en"
+import { avatarVocabulary } from "./UIAvatar.en"
+import { detailVocabulary } from "./UIDetail.en"
+import { valueVocabulary } from "./UIValue.en"
 
 ////////////////
 // ## Parts

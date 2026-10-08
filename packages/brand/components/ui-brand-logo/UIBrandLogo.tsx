@@ -1,9 +1,9 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, UIT, type ElementSetup } from "$/ui/core"
+import { Cell, proto, UIComponent, type ElementSetup } from "$/ui/core"
 
-import { brandLogoVocabulary } from "./UIBrandLogo.vocabulary.en"
+import { brandLogoVocabulary } from "./UIBrandLogo.en"
 
 import logoCSS from "./UIBrandLogo.css?inline"
 
@@ -58,7 +58,7 @@ export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
             viewBox={shape().vb}
             role={this.name() ? "img" : undefined}
             aria-label={this.name() || undefined}
-            aria-hidden={this.name() ? undefined : UIT.TRUE}
+            aria-hidden={this.name() ? undefined : "true"}
           >
             <Show when={shape().d} fallback={<g innerHTML={shape().body} />}>
               <path d={shape().d} />

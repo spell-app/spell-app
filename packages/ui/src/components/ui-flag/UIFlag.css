@@ -3,7 +3,7 @@
  * - It styles the component's shadow DOM, in Fomantic's class names on a semantic element:
  *   `<span class="ui [size] flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`
  *   - the resolved code is a class word too (Fomantic's `fr flag`):  nothing here reads it;  a page's own CSS may
- *   - the glyph is the Unicode flag emoji the component computes from `country` (see `UIFlag.vocabulary.en.ts`:
+ *   - the glyph is the Unicode flag emoji the component computes from `country` (see `UIFlag.en.ts`:
  *     regional-indicator pairs, `UIT.SpecialFlags` sequences, `FLAG_ALIASES`);
  *     the label comes from `Intl.DisplayNames` (type `region`), or the vocabulary's texts for non-country flags
  *   - an unknown country draws an EMPTY box, which keeps its line box, so the layout doesn't jump

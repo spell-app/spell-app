@@ -3,13 +3,12 @@ import type { JSX } from "@solidjs/web"
 
 import { Cell, proto, UIComponent, type DOMElement, UIT, type ElementSetup } from "$/ui/core"
 
-import { brandChecklistVocabulary } from "./UIBrandChecklist.vocabulary.en"
+import { brandChecklistVocabulary } from "./UIBrandChecklist.en"
 import {
   ACTIVE,
   CHECK_NOUN,
   DONE,
   PENDING,
-  STATUS,
   type BrandChecklistVocabulary,
   type ChecklistCheckState,
   type ChecklistOwner
@@ -51,7 +50,7 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
 
   /** The DOM element's `aria-label`, passed on to the list. */
   get ariaLabel(): string | undefined {
-    return this.attributes[UIT.ARIA_LABEL] ?? undefined
+    return this.attributes["aria-label"] ?? undefined
   }
 
   /** A check re-read is queued. */
@@ -97,10 +96,10 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   render(): JSX.Element {
     return (
       <>
-        <div class={this.rootClasses} part={this.partForName("list")} role={UIT.LIST} aria-label={this.ariaLabel}>
+        <div class={this.rootClasses} part={this.partForName("list")} role="list" aria-label={this.ariaLabel}>
           <slot onSlotChange={() => this.refreshChecks()} />
         </div>
-        <span class={UIT.VISUALLY_HIDDEN} part={this.partForName("status")} role={STATUS}>
+        <span class={UIT.VISUALLY_HIDDEN} part={this.partForName("status")} role="status">
           {this.announcement.get()}
         </span>
       </>

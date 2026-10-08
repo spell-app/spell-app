@@ -1,7 +1,6 @@
 import { E } from "$/ui/core"
-import { checkboxVocabulary } from "./UICheckbox.vocabulary.en"
+import { checkboxVocabulary } from "./UICheckbox.en"
 import { CheckControl } from "./CheckControl"
-import { CHECKBOX, SWITCH } from "./UICheckbox.types"
 
 /****************
  * ### `UICheckbox`
@@ -26,14 +25,14 @@ export class UICheckbox extends CheckControl<typeof checkboxVocabulary> {
 
   @E.proto static vocabulary = checkboxVocabulary
 
-  readonly checkable = CHECKBOX
+  readonly checkable = "checkbox"
 
-  protected get inputType(): typeof CHECKBOX {
-    return CHECKBOX
+  protected get inputType(): "checkbox" {
+    return "checkbox"
   }
 
   protected get inputRole(): string | undefined {
-    return this.type ? SWITCH : undefined
+    return this.type ? "switch" : undefined
   }
 
   /** `off-value`, else the class's `defaultUnchosenValue`. */

@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { cardsVocabulary } from "./UICards.vocabulary.en"
+import { cardsVocabulary } from "./UICards.en"
 
 import cardCSS from "./UICard.css?inline"
 
@@ -46,7 +46,7 @@ export class UICards extends E.UIComponent<typeof cardsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")} role={UIT.LIST}>
+      <div class={this.rootClasses} part={this.partForName("group")} role="list">
         <slot />
       </div>
     )

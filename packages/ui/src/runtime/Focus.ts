@@ -168,12 +168,12 @@ export class Focus {
   private isTabbable(element: HTMLElement): boolean {
     if (element.tabIndex < 0) return false
     // Firefox reports a `<dialog>`'s tabIndex as 0 (Chromium: -1), but Tab never stops on the box itself
-    if (element instanceof HTMLDialogElement && !element.hasAttribute(UIT.TABINDEX)) return false
+    if (element instanceof HTMLDialogElement && !element.hasAttribute("tabindex")) return false
     if (element.matches(":disabled")) return false
     if (element.shadowRoot?.delegatesFocus) return false
     if (element instanceof HTMLInputElement && element.type === "hidden") return false
     if ((element instanceof HTMLAnchorElement || element instanceof HTMLAreaElement) && !element.href) {
-      return element.hasAttribute(UIT.TABINDEX)
+      return element.hasAttribute("tabindex")
     }
     return true
   }

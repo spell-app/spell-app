@@ -1,5 +1,5 @@
 import { E } from "$/ui/core"
-import { modalVocabulary } from "./UIModal.vocabulary.en"
+import { modalVocabulary } from "./UIModal.en"
 import { DialogComponent } from "./DialogComponent"
 import type { Vocabulary } from "./UIModal.types"
 

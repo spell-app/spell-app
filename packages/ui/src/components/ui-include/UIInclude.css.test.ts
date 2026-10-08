@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { includeVocabulary } from "./UIInclude.vocabulary.en"
+import { includeVocabulary } from "./UIInclude.en"
 
 import includeCSS from "./UIInclude.css?inline"
 import includeRaw from "./UIInclude.css?raw"

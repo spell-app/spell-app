@@ -1,5 +1,5 @@
 import { E } from "$/ui/core"
-import { extraVocabulary } from "./UIExtra.vocabulary.en"
+import { extraVocabulary } from "./UIExtra.en"
 
 /****************
  * ### `UIExtra`

@@ -1,4 +1,4 @@
-/* GENERATED -- do not edit, run `yarn gen:root` (source:  every `UI<Name>.vocabulary.en.ts`) */
+/* GENERATED -- do not edit, run `yarn gen:root` (source:  every `UI<Name>.en.ts`) */
 
 import type { RootCatalogEntry } from "./UIRoot.types"
 

@@ -2,10 +2,10 @@ import { For, Show, createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import type { codeVocabulary } from "$/ui/components/ui-code/UICode.vocabulary.en"
+import type { codeVocabulary } from "$/ui/components/ui-code/UICode.en"
 import { MarkdownRenderer } from "./MarkdownRenderer"
 import type { MarkdownHeading, MarkdownOptions } from "./UIMarkdown.types"
-import { markdownVocabulary } from "./UIMarkdown.vocabulary.en"
+import { markdownVocabulary } from "./UIMarkdown.en"
 
 import markdownCSS from "./UIMarkdown.css?inline"
 
@@ -176,7 +176,7 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
               id={UIMarkdown.tabId(tab)}
               role={TAB_ROLES.tab}
               part={this.partForName("tab")}
-              aria-selected={this.shownTab === tab ? UIT.TRUE : UIT.FALSE}
+              aria-selected={this.shownTab === tab ? "true" : "false"}
               aria-controls={UIMarkdown.panelId(tab)}
               tabindex={this.shownTab === tab ? 0 : -1}
               onClick={() => (this.shownTab = tab)}
@@ -256,7 +256,7 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   protected onConnectedChanged(isConnected: boolean) {
     if (!isConnected) return
     const listeners = new AbortController()
-    window.addEventListener(HASHCHANGE, () => this.onHashChange(), { signal: listeners.signal })
+    window.addEventListener("hashchange", () => this.onHashChange(), { signal: listeners.signal })
     return () => listeners.abort()
   }
 
@@ -338,7 +338,7 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   private labelTaskItems(fragment: DocumentFragment) {
     for (const box of fragment.querySelectorAll(TASK_BOXES)) {
       const text = box.parentElement!.textContent?.trim()
-      if (text) box.setAttribute(UIT.ARIA_LABEL, text)
+      if (text) box.setAttribute("aria-label", text)
     }
   }
 
@@ -462,9 +462,6 @@ const TAB_ROLES = { list: "tablist", tab: "tab", panel: "tabpanel" } as const
 
 /** `<ui-table>`'s sheet (`UI.styles` name):  a page sheet, so `editable` adopts it into its shadow root too. */
 const TABLE_SHEET = "table"
-
-/** `window`'s event for a new `#id` in the address:  the element reveals a heading of its own it names. */
-const HASHCHANGE = "hashchange"
 
 /**
  * A leading `#` title (`skip-title`):  blank lines, then an ATX `# Title` (one `#`) or a setext title (a line

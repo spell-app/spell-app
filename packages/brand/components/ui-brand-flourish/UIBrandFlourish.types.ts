@@ -3,7 +3,7 @@
  * - Data only:  nothing here runs.
  */
 
-import type { brandFlourishVocabulary } from "./UIBrandFlourish.vocabulary.en"
+import type { brandFlourishVocabulary } from "./UIBrandFlourish.en"
 
 /** `brandFlourishVocabulary`'s type. */
 export type BrandFlourishVocabulary = typeof brandFlourishVocabulary

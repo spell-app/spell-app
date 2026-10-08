@@ -2,7 +2,7 @@
  * The English vocabulary of `<ui-event>`:  every name the tag uses.
  * - Its tag, attributes (each with its kind and allowed values), events, slots, parts, states and texts.
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
- * - The family's grammar notes are in `UIFeed.vocabulary.en.ts`.
+ * - The family's grammar notes are in `UIFeed.en.ts`.
  */
 
 import type { E } from "$/ui/core"

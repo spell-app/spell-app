@@ -4,7 +4,7 @@
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only,
  *   `UIT` by value straight from `components.types`.
- * - The family's grammar notes are in `UIForm.vocabulary.en.ts`.
+ * - The family's grammar notes are in `UIForm.en.ts`.
  */
 
 import type { E } from "$/ui/core"
