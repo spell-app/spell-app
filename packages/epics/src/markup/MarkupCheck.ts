@@ -96,7 +96,7 @@ export class MarkupCheck {
 
   /**
    * What the content models can't say:  fixed section ids, item letters per section, an Overview sub-section's
-   * title, the chosen option.
+   * title, a field's name or label, the chosen option.
    */
   private checkSemantics(element: Element, parent: Element | undefined) {
     const id = element.getAttribute("id")
@@ -118,6 +118,10 @@ export class MarkupCheck {
       if (section?.localName === "epic-section" && letter && !id.startsWith(letter)) {
         this.add("wrong id", element, `items in a \`${section.getAttribute("kind")}\` section are \`${letter}<N>\``)
       }
+    }
+    // a phase's field by its `name`, a labelled block in prose by its `label` (P14):  one or the other
+    if (element.localName === "epic-field" && !element.hasAttribute("name") && !element.hasAttribute("label")) {
+      this.add("missing attribute", element, "needs `name` (a phase's field) or `label` (a labelled block)")
     }
     const chosen = element.localName === "epic-choices" ? element.getAttribute("chosen") : null
     if (chosen !== null) {

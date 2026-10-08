@@ -372,6 +372,39 @@ describe("Markup.validate()", () => {
     ])
   })
 
+  test("option cards on ANY item kind and labelled blocks in prose (P14):  among the text, in a reply, never in a phase", () => {
+    const document = documentOf(`
+      <epic-page epic="demo" title="Demo">
+        <epic-overview id="overview"></epic-overview>
+        <epic-section id="phases" kind="phases">
+          <epic-phase id="p1" title="One" status="todo">
+            <epic-field name="goal">g</epic-field>
+            <epic-field label="Where">not in a phase</epic-field>
+          </epic-phase>
+        </epic-section>
+        <epic-section id="judgements" kind="judgements">
+          <epic-item id="j1" title="x" status="open">
+            <p>The call.</p>
+            <epic-choices><epic-option letter="A" title="a"></epic-option></epic-choices>
+            <epic-net-effect option="A"><ul><li>ok</li></ul></epic-net-effect>
+            <epic-field label="Where"><p>the inbox</p></epic-field>
+            <p>More prose after the cards.</p>
+            <epic-reply from="Claude" at="2026-10-07 10:50">
+              <div><epic-choices><epic-option letter="B" title="b"></epic-option></epic-choices></div>
+              <epic-field label="Step">one</epic-field>
+            </epic-reply>
+          </epic-item>
+        </epic-section>
+        <epic-section id="issues" kind="issues">
+          <epic-item id="i1" title="y" status="open"><epic-field>neither</epic-field></epic-item>
+        </epic-section>
+      </epic-page>`)
+    expect(summary(Markup.validate(document))).toEqual([
+      "not allowed here:  <epic-field>",
+      "missing attribute:  <epic-field>"
+    ])
+  })
+
   test('an older doc\'s Overview, `<p slot="summary">` and `<blockquote slot="prompt">`, still checks clean', () => {
     const document = documentOf(`
       <epic-page epic="demo" title="Demo">

@@ -22,11 +22,12 @@
           <ui-components source="../pack/epics.pack.js"></ui-components>
           <epic-page epic="review-sample" title="Review Sample" branch="epic-components" started="2026-10-07">
             <epic-overview id="overview" estimate="1h in all">
-              <p slot="summary">Every review control, on items and on the Overview's own parts.</p>
+              <epic-summary>Every review control, on items and on the Overview's own parts.</epic-summary>
+              <epic-prompt><p>Review buttons on every item, and on the Overview's parts.</p></epic-prompt>
               <epic-section id="o1" kind="overview-part" title="What changes">
                 <p>Each item draws its own review buttons; so does every part of the Overview.</p>
                 <ul>
-                  <li>Approve, Make Todo, Revisit, Add Details Now at the line's end</li>
+                  <li>Approve, Revisit, Make Todo in one group, then Do Now apart, at the line's end</li>
                   <li>the note box at the end of what's open</li>
                 </ul>
               </epic-section>
@@ -39,13 +40,20 @@
             </epic-section>
             <epic-section id="decisions" kind="questions">
               <epic-item id="q1" title="Which colour for a chosen button?" status="open" state="attention" phase="9">
-                <p>A chosen button fills in its colour; once sent, it's outlined in it.</p>
+                <epic-question
+                  ><p>A pressed button wears its colour; how far its mark has got is its fill.</p></epic-question
+                >
+                <epic-net-effect option="A" recommended
+                  ><ul>
+                    <li>every button reads the same way</li>
+                  </ul></epic-net-effect
+                >
                 <epic-choices>
-                  <epic-option letter="A" title="Green and orange" recommended>
-                    <p>Green decided, orange pending.</p>
+                  <epic-option letter="A" title="The fill rule" recommended>
+                    <p>Dashed pressed, outlined sent, solid done.</p>
                   </epic-option>
                   <epic-option letter="B" title="One blue">
-                    <p>Every chosen button blue.</p>
+                    <p>Every pressed button blue.</p>
                   </epic-option>
                 </epic-choices>
               </epic-item>
@@ -73,8 +81,21 @@
                 phase="9"
               >
                 <p>The part file replaces the item's light children only; the note box lives in its shadow root.</p>
+                <epic-choices>
+                  <epic-option letter="A" title="Shadow root" recommended><p>A reload keeps the note.</p></epic-option>
+                  <epic-option letter="B" title="Light DOM"><p>A reload drops it.</p></epic-option>
+                </epic-choices>
+                <epic-code title="EpicItem.tsx · 1 line" language="ts">
+                  <pre>const box = this.domElement.shadowRoot</pre>
+                </epic-code>
+                <epic-field label="Where"><p>packages/epics/components/epic-item</p></epic-field>
               </epic-item>
-              <epic-item id="j2" title="An item without details gets its note box under its line" status="open" state="open">
+              <epic-item
+                id="j2"
+                title="An item without details gets its note box under its line"
+                status="open"
+                state="open"
+              >
               </epic-item>
             </epic-section>
             <epic-section id="todos" kind="todos">

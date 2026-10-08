@@ -103,6 +103,8 @@ describe("Definitions.all", () => {
         .map((spec) => `${spec.tag}:${spec.max}`)
     expect(Definitions.all["epic-net-effect"].flow).toBe(true)
     expect(Definitions.tags.filter((tag) => Definitions.of(tag)!.flow)).toEqual([
+      "epic-field",
+      "epic-choices",
       "epic-update",
       "epic-net-effect",
       "epic-note",

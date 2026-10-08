@@ -33,8 +33,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in t
   doc review):  `spell dev plan-doc open <name>` reloads it in the side bar's Review tab.  `spell dev plan-doc phase` does it for you.
 - Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):  a plain lead sentence, then
   bullets (never a list run together in a sentence), full words, a concrete example for anything tricky, ids
-  explained, and a **Net effect** list closing every question, issue, judgement call and decision.  NOT caveman
-  (Owen, 2026-10-04).  Replies:  short, the same plain words.
+  explained, and a **Net effect** list (`<epic-net-effect>`) closing every question, issue, judgement call and
+  decision.  NOT caveman (Owen, 2026-10-04).  Replies:  short, the same plain words.
 - Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  paste what
   `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`, run in the checkout the doc is in:  it prints
   the side bar link, then `(_browser_)` (`.claude/skills/details/SKILL.md`, "Links to pages").
@@ -190,14 +190,17 @@ pruning.
   "..." --verify "..." --estimate "1-2h"` per phase, in order (Owen, 2026-10-06:  "Symptom, Changes, then the
   details"):  the symptom ONE line (what's wrong today), the changes two or three (what changes), the goal the details,
   one bullet per outcome, in Owen's terms;  the estimate becomes the title's badge, and the Overview's total
-  (`p.plan-estimate`) follows by itself
+  (`<epic-overview estimate>`) follows by itself
 - `spell dev plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
 - Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
-- Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
-  `#overview`:
-  `<ui-section id="o1" header="1.1 ..." sticky collapsible dividing collapsed>`, `#o2` ... (a title with markup:  a
-  `<span slot="header">` first inside instead of `header`;  sub-sub-items:  `<h4 id>`).  Code in folded
-  `ui-accordion.spell-code`, digressions in collapsed `ui-accordion.spell-aside`, links to items and phases
+- Hand-write the summary, `<epic-summary>` (two sentences);  bring the Overview (written in "3. Plan") in line with
+  the approved plan, nested in `<epic-overview id="overview">`:
+  `<epic-section id="o1" kind="overview-part" title="...">`, `#o2` ... (a title with markup:  a `<span slot="title">`
+  first inside instead of `title`;  sub-sub-items:  `<h4 id>`;  a split doc:  the prose goes in `parts/o1.html`).
+  The prose blocks are ELEMENTS (`PLAN-DOC.md`, "Prose elements";  P14 of `epic-components`), never hand-shaped:
+  code in a folded `<epic-code title="file.ts · N lines" language="ts"><pre>...</pre></epic-code>`, digressions in a
+  folded `<epic-aside title="...">`, the Net effect in `<epic-net-effect [option="A" recommended]>`, options on any
+  item in `<epic-choices>`, labelled blocks in `<epic-field label="Where">`;  links to items and phases
   (`<a href="#d2">D2</a>`).  NEVER change an existing `id`.
 - `spell dev plan-doc check <name>`, then `spell dev plan-doc open <name>` (new stage:  reload)
 
@@ -221,9 +224,9 @@ pruning.
    - changed a phase's PLAN (Owen's feedback, or something found while building):  `updated <name> <N> "<p>what
      changed, and why</p>"`, a dated line in its fenced Updated block under Symptom / Changes (never an "Updated" word
      in the text);  then `phase-body <name> <N> --changes ...` (or `--goal` ...) to make the fields say the new plan
-   - changed a prose block:  put
-     `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="N"><p>what changed</p></ui-message>`
-     just before it (the script marks items itself)
+   - changed a prose block:  put `<epic-update phase="N"><p>what changed</p></epic-update>` just before it (the
+     script marks items itself;  `phase <name> N done` drops it);  a note that should stay:  `<epic-note
+     state="update" title="...">` (`plan-doc.md`, "UPDATE markers")
 3. Subagents:  named and listed (`spell dev agents add` / `done`, the root `CLAUDE.md`'s "Delegated work");  paste
    the cheat sheet below into their prompts, with "record caveats, issues and decisions in the plan doc as you find
    them".
@@ -343,14 +346,17 @@ Read what it printed.  Then, in this order:
    `epic-components`:  Owen sees it at once, blue, under his note);  THEN a BACKGROUND `Agent`
    (`run_in_background: true`), each prompt:
    - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net
-     effect)
+     effect) and "Prose" (the blocks are ELEMENTS:  `<epic-code>`, `<epic-aside>`, `<epic-net-effect>`,
+     `<epic-choices>`, `<epic-field label>`;  never `ui-accordion.spell-code` or a `<p><b>Net effect:</b></p>` by
+     hand)
    - Add Details:  read the item, the code and docs it names, then write what its text leaves out, as MORE
      details:  `spell dev plan-doc details <name> <id> --more --file <html>`.  The item's text stays on top
      ("Original Reply");  yours goes under it in a white "More Details" card (P3 of `windows-and-review`), so don't
      repeat the text:  build on it
-   - revisit now:  answer Owen's note (quote it), in the reply block markup (`plan-doc.md`, "Reply"):  what he asked,
-     the answer with evidence (real code, the command and its output), option cards when he must choose (he picks
-     on the page), a Net effect;  `spell dev plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
+   - revisit now:  answer Owen's note (quote it), in an `<epic-reply from="Claude" at re>` (`plan-doc.md`, "Review
+     inbox", its example):  what he asked, the answer with evidence (real code in an `<epic-code>`, the command and
+     its output), option cards when he must choose (an `<epic-choices>` inside the reply:  he picks on the page), an
+     `<epic-net-effect>`;  `spell dev plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
      · ..., asks:  ..."):  answer about THAT option;  never decide the question (he confirms with a plain pick)
    - last:  `spell dev plan-doc status <name> <id> done ["<summary>"]` (the card turns green;  a summary only when
      there's something worth saying:  a surprise, a choice made, something left undone), then
@@ -435,8 +441,8 @@ plan, worktree, window or phases.  `/epic <name>` plans it later, from what this
 1. Name, collisions, kickoff prompt:  as "1. Name" (the rest of the text is the idea, kept verbatim in
    `~/.spell/prompts/<name>.md` until the doc holds it).  An existing epic of that name:  say so and stop.
 2. The stub:  `spell dev plan-doc new <name> --future --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md`,
-   then delete the prompt file, and hand-write its `p.plan-summary`:  the idea in two sentences, what changes for
-   Owen.  It's a plan doc with `<body data-future>`:  a FUTURE label, a "Future epic"
+   then delete the prompt file, and hand-write its `<epic-summary>`:  the idea in two sentences, what changes for
+   Owen.  It's a plan doc with `<epic-page future>`:  a FUTURE label, a "Future epic"
    notice in place of "Plan hung?", no branch or worktree;  `plan-doc list` says `future`, the Epics index gives
    it a seedling, between the open epics and the done ones.
 3. Explore, read-only (agents allowed, root rules):  just enough to see the problem, the options and the hard parts.
