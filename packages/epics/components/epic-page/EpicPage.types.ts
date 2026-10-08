@@ -85,6 +85,25 @@ export const REVIEW_NOW = "review-now"
 export const SLEEPING = "sleeping"
 export const REVIEW_LINE = "review-line"
 
+/** The crumbs' class. */
+export const CRUMBS = "crumbs"
+
+/**
+ * The crumbs' links, from the page's folder:  a plan doc is always `epics/<name>/<name>.plan.html`.  `target`s name
+ * the VS Code side bar's tab, as the old crumbs did.
+ */
+export const CRUMB_LINKS = {
+  docs: { href: "../../pages/index.html", target: "src-packages-docs-index-html" },
+  epics: { href: "../../epics/index.html", target: "src-epics-index-html" }
+} as const
+
+/**
+ * The crumbs a doc may still hold before the page, from before P14 (`ui-breadcrumb.spell-crumbs` in `<main>`):  while
+ * they're there, the page draws none of its own, so they never show twice.  REFACTOR:  goes once every doc is
+ * migrated (P14's second pass).
+ */
+export const OLD_CRUMBS = ":scope > .spell-crumbs"
+
 /** How long the review line flashes once copied, ms:  as the old runtime's (`FLASH_MS`). */
 export const FLASH_MS = 900
 
@@ -157,6 +176,8 @@ declare module "@solidjs/web/types/jsx.js" {
       "ui-label": UIJSXAttributes
       "ui-message": UIJSXAttributes
       "ui-code": UIJSXAttributes
+      "ui-breadcrumb": UIJSXAttributes
+      "ui-breadcrumb-section": UIJSXAttributes
     }
   }
 }

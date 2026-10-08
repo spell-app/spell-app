@@ -15,6 +15,11 @@
 @layer ui.components.epic-page.types {
   :host {
     display: block;
+    /*
+     * ## Edge to edge (P14):  out of `<main>`'s inline padding, the docs' token (`spell-doc.css`), so the bands reach
+     * across;  everything inside insets itself by `--epic-inset`.  A page without the token:  no breakout
+     */
+    margin-inline: calc(-1 * var(--spell-doc-pad-inline, 0px));
 
     /* ## Colours */
     --epic-ink: var(--spell-ink, var(--ui-text-color));

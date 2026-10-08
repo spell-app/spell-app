@@ -38,6 +38,7 @@ describe("ConversionProof.report", () => {
     const report = new ConversionProof({ before: before(), after: await after() }).report
     expect(report.clean).toBe(true)
     expect(report.links.excluded).toEqual([
+      "../../packages/docs/tools/_assets/plan-doc.css (plan-doc.css, dropped:  the elements style themselves)",
       "#p2 (step label, drawn by <epic-page>)",
       "../../ (worktree meta line, drawn by <epic-page>)",
       "#p2 (Plan changes box, drawn from the phases' <epic-updated> lines)"

@@ -70,7 +70,10 @@ const SAMPLES: { [T in EpicTag]: EpicData<T> } = {
   "epic-version": { asOf: "2026-10-04 20:49" },
   "epic-commit": { sha: "82d5106c165cbebf3922fd97793798e41f1b2760" },
   "epic-event": { at: "2026-10-06T08:12-04:00", icon: "pen to square" },
-  "epic-update": { phase: 2 }
+  "epic-update": { phase: 2 },
+  "epic-note": { state: "done", title: "option A, 2026-10-06" },
+  "epic-aside": { title: "where it stood at kickoff" },
+  "epic-code": { title: "design.ts · 12 lines", language: "ts", open: true }
 }
 
 /** A fresh linkedom document. */
@@ -98,6 +101,7 @@ function planDoc(document: Document): Element {
         '<h4 id="o1-detail">Detail</h4>'
       ])
     ]),
+    make("epic-section", { id: "overnight", kind: "report", title: "Overnight · 2026-10-04" }, "<p>The night.</p>"),
     make("epic-section", { id: "phases", kind: "phases" }, [
       make("epic-phase", { id: "p1", title: "Saved Replies", status: "done", estimate: "2h" }, [
         make("epic-field", { name: "symptom" }, "notes get lost"),
@@ -128,7 +132,11 @@ function planDoc(document: Document): Element {
     ]),
     make("epic-section", { id: "judgements", kind: "judgements" }, [
       make("epic-item", { id: "j1", title: "Kept the old ids", status: "open", phase: 1 }, [
-        '<p>Chose X. <epic-update phase="1"></epic-update></p>'
+        '<p>Chose X. <epic-update phase="1"></epic-update></p>',
+        make("epic-note", { state: "update", title: "partly fixed by J9" }, "<p>Reworded.</p>"),
+        make("epic-aside", { title: "where it stood" }, "<p>Before.</p>"),
+        make("epic-code", { title: "x.ts", language: "ts" }, "<pre>let x = 1</pre>"),
+        '<ul><li>in a list:  <epic-code title="y.ts"><pre>let y = 2</pre></epic-code></li></ul>'
       ])
     ]),
     make("epic-section", { id: "log", kind: "log" }, [
@@ -346,6 +354,20 @@ describe("Markup.validate()", () => {
     const log = documentOf(`<epic-item id="q1" title="x" status="open"></epic-item>`)
     const host = documentOf(`<epic-section id="log" kind="log"></epic-section>`).body.firstElementChild!
     expect(summary(Markup.validate(log.body, { as: host }))).toEqual(['not allowed here:  <epic-item id="q1">'])
+  })
+
+  test('a report (`<epic-section kind="report">`):  after the Overview, any id, titled;  never before the Overview', () => {
+    const document = documentOf(`
+      <epic-page epic="demo" title="Demo">
+        <epic-section id="early" kind="report" title="Too early"></epic-section>
+        <epic-overview id="overview"></epic-overview>
+        <epic-section id="overnight" kind="report"><p>untitled</p></epic-section>
+        <epic-section id="night-2" kind="report"><span slot="title">Night <code>2</code></span></epic-section>
+      </epic-page>`)
+    expect(summary(Markup.validate(document))).toEqual([
+      'out of order:  <epic-overview id="overview">',
+      'missing attribute:  <epic-section id="overnight">'
+    ])
   })
 
   test("checks a single element as itself", () => {

@@ -1036,7 +1036,7 @@ export class PlanDoc extends PlanReader {
     for (const item of this.allItems) {
       const state = this.itemState(item)
       if (item.getAttribute("state") === state) continue
-      Markup.set(item, { state })
+      Markup.set<"epic-item">(item, { state })
       changed++
     }
     for (const phase of this.phaseElements) if (this.updateToReview(phase)) changed++

@@ -64,10 +64,10 @@ In `tools/`:
   - `spell-ui.design.entry.js` -- the same for Claude Design's `bundle.js` (`bundle-spell-ui.js --design`)
   - `emoji/<set>/<letter>.js` -- UI's emoji name chunks as classic scripts, loaded lazily by the bundle on first use
     of a name (both sets:  `cldr`, `fomantic`).  GENERATED with `spell-ui.js`;  never edit.
-  - `plan-doc.css` -- plan docs, on top of `spell-doc.css`:  only what's AROUND their `<epic-*>` elements, which
-    style themselves.  The page running edge to edge, the inset of what isn't a section (crumbs, a `<ui-section>`
-    outside `<epic-page>`), and the cards older prose still writes by hand (`.plan-update`, `.plan-answer-block`,
-    `.plan-reply`)
+  - `plan-doc.css` -- a LEFTOVER (epic `epic-components` P14):  plan docs style themselves through their
+    `<epic-*>` elements (edge to edge:  `<epic-page>`'s `:host` breaks out of `.spell-doc-main`'s
+    `--spell-doc-pad-inline`).  It keeps only two hand-written cards older docs still hold (`.plan-answer-block`,
+    `.plan-reply`), and is deleted once P14's migration leaves no doc linking it;  nothing new links it
   - `details.css`, `details.js` -- details pages:  the option cards, Other, notes and Send `details.js` builds from
     the page's `.spell-option` markup, and the answer once sent
   - `syntax-choices.css`, `syntax-choices.js` -- syntax-choices pages:  draws their tables from `<slug>.rows.json`,
@@ -75,8 +75,7 @@ In `tools/`:
     `commands.js`)
   - `goals.css`, `goals-live.js` -- goals pages (the repo root's `goals/`, and `templates/goals/`):  their look, and
     their live buttons (thoughts, Claude sessions) when the page server serves them (goals' route module)
-    - `goals.css` holds every rule the goals pages took from `plan-doc.css`;  they still link `plan-doc.css` too,
-      until they're regenerated (P12 of epic `epic-components`, todo T16)
+    - `goals.css` holds every rule the goals pages took from `plan-doc.css`, which they no longer link
   - `commands.js` -- command reference pages (`templates/commands.html`):  draws their tables from the page's JSON,
     then loads `spell-ui.js` itself (the page loads `commands.js` INSTEAD of the bundle)
 - `*.js`, `*.ts` -- the scripts (see "Scripts");  `goals/` -- the goals tooling (the repo root's `goals/AGENTS.md`).
@@ -262,7 +261,6 @@ In `tools/`:
   - `spell-doc-runtime.js`'s generic parts:  the contents and rail (which list a plan doc's blocks from their
     `contentsEntry`), folds, landing, live update, bodies from files;  and, for the Epics index and the goals
     pages, `countItems()`, item states and `wireItemFilters()` (see "Writing a page")
-  - `plan-doc.css`'s remainder (see "Layout")
   - `tools/check-spell.js`, which knows the `<epic-*>` elements (see "Scripts")
   - the forwarders `tools/plan-doc.js` (also `yarn plan-doc`), `plan-parts.js`, `inbox.js`, `review-backfill.js`
     (see "Scripts"):  new code imports `$/epics/tool/...` instead

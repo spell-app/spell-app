@@ -1,0 +1,35 @@
+/*
+ * `<epic-code>` (EpicCode.tsx):  a folded code block, on the panel's shape (`EpicPanel.css`).
+ * - The brand's example panel (as the docs' `ui-accordion.spell-code`):  a code-well frame with a hairline, its
+ *   heading a small mono label, the code on a card inside it.
+ * - The `<ui-code>` inside is reached through its public tokens and parts:  its own box and border give way to the
+ *   card;  a long listing scrolls inside itself (`max-height`), a wide one sideways (never the page).
+ * - From `<epic-page>`'s `:host`, each with a fallback:  `--epic-code-bg`, `--epic-rule`, `--epic-card`,
+ *   `--epic-muted`, `--epic-mono`.
+ * - Public tokens (`--epic-code-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-code.types;
+
+@layer ui.components.epic-code.types {
+  :host {
+    --_epic-panel-fill: var(--epic-code-fill, var(--epic-code-bg, var(--ui-code-background, var(--ui-surface-muted))));
+    --_epic-panel-radius: 14px;
+    --_epic-panel-heading-ink: var(--epic-muted, var(--ui-text-muted, GrayText));
+    --_epic-panel-heading-font: 500 0.8em/1.4 var(--epic-mono, var(--ui-font-family-mono, monospace));
+    --_epic-panel-heading-padding: 7px 14px;
+    --_epic-panel-body-padding: 0 5px 5px;
+  }
+  [part~="base"] {
+    box-shadow: 0 0 0 1px var(--epic-rule, var(--ui-border-color));
+  }
+  .code {
+    --ui-code-background: var(--epic-card, var(--ui-surface, Canvas));
+    --ui-code-border: none;
+    --ui-code-radius: 10px;
+    display: block;
+  }
+  .code::part(pre) {
+    max-height: 70vh;
+  }
+}

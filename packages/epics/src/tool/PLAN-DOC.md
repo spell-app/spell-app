@@ -20,7 +20,6 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
   <ui-components source="../../packages/epics/pack/epics.pack.js"></ui-components>
   <spell-site-header root="../.."></spell-site-header>
   <div class="spell-doc"><main class="spell-doc-main">
-    <ui-breadcrumb class="spell-crumbs">...</ui-breadcrumb>
     <epic-page epic="seo" title="SEO" branch="seo" worktree="/.../seo" started="2026-10-01" updated="2026-10-07"
       repo="https://github.com/spell-app/spell-app">
       <a slot="durable" href="../../guides/seo.html">SEO</a>
@@ -38,9 +37,10 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
 </ui-root>
 ```
 
-- `<title>` reads `Epic: <title>`;  `<epic-page title>` holds the title alone and draws the h1, the meta lines, the
-  step label (active phase, DONE, next, FUTURE), the bedtime label, the "Plan hung?" notice (while there's no phase)
-  and a future epic's notice.  None of it is written.
+- `<title>` reads `Epic: <title>`;  `<epic-page title>` holds the title alone and draws the crumbs (`Docs › Epics ›
+  <title>`), the h1, the meta lines, the step label (active phase, DONE, next, FUTURE), the bedtime label, the "Plan
+  hung?" notice (while there's no phase) and a future epic's notice.  None of it is written.  The page runs edge to
+  edge by itself, and links `spell-doc.css` alone (no `plan-doc.css`:  P14).
 - Dates are WRITTEN as below (`2026-10-08 14:34`, `2026-10-08`, ISO with an offset) and DRAWN `10/8/26 14:34` /
   `10/8/26` by every element (`$/epics/dates` `PlanDates`) but the log's `<epic-event>`:  never write the drawn form.
 - The page's data, on `<epic-page>`:

@@ -4,6 +4,7 @@ import {
   ItemLetters,
   OVERVIEW_PART,
   OVERVIEW_PART_ID,
+  REPORT,
   SectionIds,
   type AttributeTest,
   type ChildSpec,
@@ -104,12 +105,11 @@ export class MarkupCheck {
       const fixed = SectionIds[kind as keyof typeof SectionIds]
       if (id !== null && fixed && id !== fixed)
         this.add("wrong id", element, `a \`${kind}\` section's id is \`${fixed}\``)
-      if (kind === OVERVIEW_PART) {
-        if (id !== null && !OVERVIEW_PART_ID.test(id))
-          this.add("wrong id", element, "an Overview sub-section's id is `o<N>`")
-        if (!element.hasAttribute("title") && !slotted(element, "title")) {
-          this.add("missing attribute", element, 'an Overview sub-section needs `title` (or a `slot="title"` child)')
-        }
+      if (kind === OVERVIEW_PART && id !== null && !OVERVIEW_PART_ID.test(id))
+        this.add("wrong id", element, "an Overview sub-section's id is `o<N>`")
+      const titled = TITLED_KINDS[kind]
+      if (titled && !element.hasAttribute("title") && !slotted(element, "title")) {
+        this.add("missing attribute", element, `${titled} needs \`title\` (or a \`slot="title"\` child)`)
       }
     }
     if (element.localName === "epic-item" && id !== null) {
@@ -332,6 +332,12 @@ function childName(spec: ChildSpec): string {
       ? "prose"
       : `<${spec.tag}${spec.where ? ` ${spec.where.attribute}="${spec.where.values.join("|")}"` : ""}>`
   return spec.slot ? `${name} in slot "${spec.slot}"` : name
+}
+
+/** The section kinds whose title is their own, never drawn => what to call one in a message. */
+const TITLED_KINDS: Record<string, string> = {
+  [OVERVIEW_PART]: "an Overview sub-section",
+  [REPORT]: "a report"
 }
 
 /** Whether attribute `name` is one any element may carry. */
