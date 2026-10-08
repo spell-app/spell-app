@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
-import { loaderVocabulary } from "./UILoader.vocabulary.en"
+import { E } from "$/ui/core"
+import { loaderVocabulary } from "./UILoader.en"
 
 import loaderCSS from "./UILoader.css?inline"
 
@@ -30,8 +30,8 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     const { internals } = this.domElement
-    internals.role = UIT.STATUS
-    internals.ariaLive = POLITE
+    internals.role = "status"
+    internals.ariaLive = "polite"
   }
 
   ////////////////
@@ -93,6 +93,3 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UILoader extends E.AttributeValues<typeof loaderVocabulary> {}
-
-/** The `aria-live` of the status:  announced when the reader is idle, never interrupting. */
-const POLITE = "polite"

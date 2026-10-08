@@ -131,10 +131,10 @@ function loc() {
         "src/components/*/index.ts",
         "src/components/ui-dropdown/SlottedItems.ts",
         "!src/components/**/*.test.{ts,tsx}",
-        // a family's other files are named for its component too (`UIButton.vocabulary.en.ts`):  counted below
-        "!src/components/*/*.{vocabulary.*,fallback,types}.ts"
+        // a family's other files are named for its component too (`UIButton.en.ts`):  counted below
+        "!src/components/*/*.{[a-z][a-z],fallback,types}.ts"
       ],
-      "vocabularies & fallbacks": ["src/components/*/*.vocabulary.*.ts", "src/components/*/*.fallback.ts"],
+      "vocabularies & fallbacks": ["src/components/*/*.[a-z][a-z].ts", "src/components/*/*.fallback.ts"],
       foundation: [
         "src/{util,vocabulary,runtime,styles,icons}/*.ts",
         "src/components/*.ts",

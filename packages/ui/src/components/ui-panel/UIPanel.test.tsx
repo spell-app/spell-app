@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from "vite-plus/test"
 
 import { UI } from "$/ui/runtime"
 import { ValueSets } from "$/ui/vocabulary"
-import { sectionVocabulary } from "$/ui/components/ui-section/UISection.vocabulary.en"
+import { sectionVocabulary } from "$/ui/components/ui-section/UISection.en"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UIPanel } from "$/ui/components/ui-panel"
-import { panelVocabulary } from "./UIPanel.vocabulary.en"
+import { panelVocabulary } from "./UIPanel.en"
 
 import "$/ui/components/ui-button"
 import "$/ui/components/ui-input"

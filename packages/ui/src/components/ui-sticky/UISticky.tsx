@@ -1,7 +1,7 @@
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { stickyVocabulary } from "./UISticky.vocabulary.en"
+import { stickyVocabulary } from "./UISticky.en"
 
 import stickyCSS from "./UISticky.css?inline"
 
@@ -153,9 +153,9 @@ export class UISticky extends E.UIComponent<StickyVocabulary> {
     if (isServer) return box
     return (
       <>
-        <div ref={(element) => (this.topSentinel = element)} class={SENTINEL} aria-hidden={UIT.TRUE} />
+        <div ref={(element) => (this.topSentinel = element)} class={SENTINEL} aria-hidden="true" />
         {box}
-        <div ref={(element) => (this.bottomSentinel = element)} class={BOTTOM_SENTINEL} aria-hidden={UIT.TRUE} />
+        <div ref={(element) => (this.bottomSentinel = element)} class={BOTTOM_SENTINEL} aria-hidden="true" />
       </>
     )
   }

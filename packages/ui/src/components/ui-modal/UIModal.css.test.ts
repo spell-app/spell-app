@@ -6,7 +6,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { modalVocabulary } from "./UIModal.vocabulary.en"
+import { modalVocabulary } from "./UIModal.en"
 
 import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 import modalCSS from "./UIModal.css?inline"

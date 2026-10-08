@@ -5,7 +5,7 @@ import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValu
 import { ControlLabels, FormComponent } from "$/ui/forms"
 import { Palette, type Hsl, type Oklch } from "$/brand"
 
-import { brandColorPickerVocabulary } from "./UIBrandColorPicker.vocabulary.en"
+import { brandColorPickerVocabulary } from "./UIBrandColorPicker.en"
 import { BrandColorPickerFallback } from "./UIBrandColorPicker.fallback"
 import {
   BRAND_COLOR,

@@ -13,7 +13,7 @@ import { ValueSets } from "./ValueSets"
 /****************
  * ### `Vocabulary`
  * Registry of every component's vocabulary, and the resolver that turns canonical names into localized ones.
- * - `register()` collects each `UI<Name>.vocabulary.en.ts` by canonical tag.
+ * - `register()` collects each `UI<Name>.en.ts` by canonical tag.
  * - `define(prefix, dictionary)` resolves, for every registered component, the names an author types in that
  *   language (`ie-tarjeta`, `color="rojo"`, `ie-cambio`) -- the contract a future translated
  *   `customElements.define()` builds on.  The English identity dictionary is the default.

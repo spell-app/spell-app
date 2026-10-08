@@ -1,6 +1,6 @@
 import { E, UIT } from "$/ui/core"
-import { itemVocabulary } from "$/ui/components/ui-item/UIItem.vocabulary.en"
-import { selectVocabulary } from "./UISelect.vocabulary.en"
+import { itemVocabulary } from "$/ui/components/ui-item/UIItem.en"
+import { selectVocabulary } from "./UISelect.en"
 import { DIVIDER, PLACEHOLDER, type Vocabulary } from "./UISelect.types"
 
 /****************
@@ -45,7 +45,7 @@ export class SelectFallback extends E.NativeFallback<Vocabulary> {
       disabled: this.flag("disabled")
     })
     this.decorate(select, "select")
-    if (!select.hasAttribute(UIT.ARIA_LABEL) && placeholder) select.setAttribute(UIT.ARIA_LABEL, placeholder)
+    if (!select.hasAttribute("aria-label") && placeholder) select.setAttribute("aria-label", placeholder)
 
     const choices = this.choices(domElement)
     const chosen = this.chosen(domElement, choices)

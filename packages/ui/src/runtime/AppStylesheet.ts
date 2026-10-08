@@ -120,7 +120,7 @@ export class AppStylesheet {
       this.elementObserver.observe(element, { attributes: true, attributeFilter: ["href", "media", "disabled"] })
       this.elementListeners = new AbortController()
       // the `<link>` finished (re)loading
-      element.addEventListener(LOAD, () => this.syncSoon(), { signal: this.elementListeners.signal })
+      element.addEventListener("load", () => this.syncSoon(), { signal: this.elementListeners.signal })
     } else {
       this.elementObserver.observe(element, { characterData: true, childList: true, subtree: true })
     }
@@ -199,7 +199,7 @@ export class AppStylesheet {
   private loadedSheet(link: HTMLLinkElement): Promise<CSSStyleSheet | undefined> {
     if (link.sheet && link.sheet.href === link.href) return Promise.resolve(link.sheet)
     return new Promise((resolve) => {
-      link.addEventListener(LOAD, () => resolve(link.sheet ?? undefined), { once: true })
+      link.addEventListener("load", () => resolve(link.sheet ?? undefined), { once: true })
       link.addEventListener("error", () => resolve(undefined), { once: true })
     })
   }
@@ -287,7 +287,7 @@ export class AppStylesheet {
     let result = text
     if (layer !== undefined) result = `@layer ${layer} {\n${result}\n}`
     if (supports) result = `@supports (${supports.replace(/^\((.*)\)$/, "$1")}) {\n${result}\n}`
-    if (media && media !== ALL_MEDIA) result = `@media ${media} {\n${result}\n}`
+    if (media && media !== "all") result = `@media ${media} {\n${result}\n}`
     // re-declare the package layer order first, so an inlined `@layer` can't establish a different one
     return layer !== undefined ? `${LAYER_ORDER}\n${result}` : result
   }
@@ -330,12 +330,6 @@ type ImportConditions = {
 
 /** `Warnings` source of every warning about the app stylesheet. */
 const WARNING_SOURCE = `#${APP_STYLESHEET_ID}`
-
-/** A `<link>`'s load event. */
-const LOAD = "load"
-
-/** The media query that matches every medium:  no `@media` block needed. */
-const ALL_MEDIA = "all"
 
 /**
  * An `@import` rule in CSS text.

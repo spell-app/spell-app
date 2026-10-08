@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { emojiVocabulary } from "./UIEmoji.vocabulary.en"
+import { emojiVocabulary } from "./UIEmoji.en"
 
 import emojiCSS from "./UIEmoji.css?inline"
 import emojiRaw from "./UIEmoji.css?raw"

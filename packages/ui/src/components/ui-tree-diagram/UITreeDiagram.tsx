@@ -1,8 +1,8 @@
 import { For, Show, onSettled, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
-import { treeDiagramVocabulary } from "./UITreeDiagram.vocabulary.en"
+import { E } from "$/ui/core"
+import { treeDiagramVocabulary } from "./UITreeDiagram.en"
 import { TreeData } from "./TreeData"
 import { TreeLayout } from "./TreeLayout"
 import {
@@ -101,7 +101,7 @@ export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
       <svg
         class={this.rootClasses}
         part={this.partForName("diagram")}
-        role={this.layout ? UIT.IMG : undefined}
+        role={this.layout ? "img" : undefined}
         aria-label={this.summary()}
         viewBox={this.viewBox()}
         style={this.sizeStyle()}

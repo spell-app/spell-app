@@ -1,6 +1,6 @@
 import { E, UIT } from "$/ui/core"
-import { itemVocabulary } from "$/ui/components/ui-item/UIItem.vocabulary.en"
-import { dropdownVocabulary } from "./UIDropdown.vocabulary.en"
+import { itemVocabulary } from "$/ui/components/ui-item/UIItem.en"
+import { dropdownVocabulary } from "./UIDropdown.en"
 
 /****************
  * ### `DropdownFallback`
@@ -43,10 +43,10 @@ export class DropdownFallback extends E.NativeFallback<typeof dropdownVocabulary
       multiple: isMultiple,
       required: this.flag("required"),
       disabled: this.flag("disabled") || this.flag("readonly"),
-      "aria-readonly": this.flag("readonly") ? UIT.TRUE : undefined
+      "aria-readonly": this.flag("readonly") ? "true" : undefined
     })
     this.decorate(select, "trigger", SELECT_PART)
-    if (!select.hasAttribute(UIT.ARIA_LABEL) && placeholder) select.setAttribute(UIT.ARIA_LABEL, placeholder)
+    if (!select.hasAttribute("aria-label") && placeholder) select.setAttribute("aria-label", placeholder)
 
     const chosen = this.chosen(domElement, isMultiple)
     const choices = this.choices(domElement)

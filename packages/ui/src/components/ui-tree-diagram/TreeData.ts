@@ -43,7 +43,7 @@ export class TreeData {
    */
   static scriptText(domElement: Element): string | undefined {
     for (const child of domElement.children) {
-      if (child.localName === "script" && child.getAttribute("type")?.trim() === JSON_SCRIPT_TYPE)
+      if (child.localName === "script" && child.getAttribute("type")?.trim() === "application/json")
         return child.textContent ?? ""
     }
     return undefined
@@ -78,9 +78,6 @@ export class TreeData {
     return undefined
   }
 }
-
-/** `<script type>` of the child that holds the tree as JSON. */
-const JSON_SCRIPT_TYPE = "application/json"
 
 /** Keys of the texts that name a diagram:  its root has children, one child, none. */
 export type TreeDiagramSummaryKey = "summary" | "summaryOne" | "summaryLeaf"

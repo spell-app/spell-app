@@ -36,8 +36,8 @@ export class Invoker {
   private static event(command: string, source: Element): Event {
     const init = { command, source, cancelable: true }
     const CommandEventClass = (globalThis as { CommandEvent?: new (type: string, init: object) => Event }).CommandEvent
-    if (CommandEventClass) return new CommandEventClass(COMMAND_EVENT, init)
-    return Object.assign(new Event(COMMAND_EVENT, { cancelable: true }), { command, source })
+    if (CommandEventClass) return new CommandEventClass("command", init)
+    return Object.assign(new Event("command", { cancelable: true }), { command, source })
   }
 
   /** Built-in dialog commands. */
@@ -48,13 +48,13 @@ export class Invoker {
     else if (command === Command.requestClose) {
       const request = dialog as { requestClose?: () => void }
       if (request.requestClose) request.requestClose()
-      else if (dialog.dispatchEvent(new Event(CANCEL_EVENT, { cancelable: true }))) dialog.close()
+      else if (dialog.dispatchEvent(new Event("cancel", { cancelable: true }))) dialog.close()
     }
   }
 
   /** Built-in popover commands. */
   private static popover(element: HTMLElement, command: string) {
-    if (!element.hasAttribute(POPOVER)) return
+    if (!element.hasAttribute("popover")) return
     if (command === Command.showPopover) element.showPopover()
     else if (command === Command.hidePopover) element.hidePopover()
     else if (command === Command.togglePopover) element.togglePopover()
@@ -73,12 +73,3 @@ const Command = {
 
 /** A custom command starts with it (`--foo`):  only the `command` event, no built-in action. */
 const CUSTOM_PREFIX = "--"
-
-/** The event the target gets before any built-in action. */
-const COMMAND_EVENT = "command"
-
-/** The event a dialog without `requestClose()` gets first, as the platform's own `request-close` would send. */
-const CANCEL_EVENT = "cancel"
-
-/** The attribute that makes an element a popover. */
-const POPOVER = "popover"

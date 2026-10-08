@@ -1,5 +1,4 @@
 import { UIT } from "$/ui/core"
-import { CLASS } from "./UITable.types"
 
 /****************
  * ### `TableClassMirror`
@@ -37,10 +36,10 @@ export class TableClassMirror {
       this.detach()
       this.table = table
       if (!table) return
-      const current = new Set(TableClassMirror.words(table.getAttribute(CLASS)))
+      const current = new Set(TableClassMirror.words(table.getAttribute("class")))
       this.owned = new Set(TableClassMirror.words(classes).filter((word) => current.has(word)))
       this.observer = new MutationObserver(() => this.write())
-      this.observer.observe(table, { attributeFilter: [CLASS] })
+      this.observer.observe(table, { attributeFilter: ["class"] })
     }
     this.write()
   }
@@ -57,7 +56,7 @@ export class TableClassMirror {
   private write() {
     const table = this.table
     if (!table) return
-    const text = table.getAttribute(CLASS) ?? ""
+    const text = table.getAttribute("class") ?? ""
     const author = TableClassMirror.words(text).filter((word) => !this.owned.has(word))
     const ours = TableClassMirror.words(this.classes)
     const mine = new Set(ours)
@@ -65,7 +64,7 @@ export class TableClassMirror {
     this.owned = new Set(ours.filter((word) => !author.includes(word)))
     // NEVER dedupe `ours`:  a phrase may repeat a word (`head stuck first stuck`, `center aligned top aligned`)
     const next = [...kept, ...ours].join(" ")
-    if (next !== text) table.setAttribute(CLASS, next)
+    if (next !== text) table.setAttribute("class", next)
   }
 
   /**

@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { accordionVocabulary } from "./UIAccordion.vocabulary.en"
+import { accordionVocabulary } from "./UIAccordion.en"
 
 import accordionCSS from "./UIAccordion.css?inline"
 import accordionRaw from "./UIAccordion.css?raw"

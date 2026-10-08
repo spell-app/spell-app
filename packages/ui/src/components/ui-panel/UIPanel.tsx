@@ -3,7 +3,7 @@ import { E } from "$/ui/core"
 // (SIDE EFFECT:  defines `<ui-section>` / `<ui-sections>`, which panels nest in and hold)
 import { UISection } from "$/ui/components/ui-section"
 import { FoldIconPlace, type SectionVocabulary } from "$/ui/components/ui-section/UISection.types"
-import { panelVocabulary } from "./UIPanel.vocabulary.en"
+import { panelVocabulary } from "./UIPanel.en"
 
 import panelCSS from "./UIPanel.css?inline"
 
@@ -16,7 +16,7 @@ import panelCSS from "./UIPanel.css?inline"
  *   A panel inside a panel is a SUB-HEAD BAND (small capitals) over its own fields.  Every band can fold.
  * - It IS a `<ui-section>` (it extends `UISection`):  the same attributes, slots, parts,
  *   events and folding (`collapsible`, `collapsed`, `ui-open` / `ui-close`, find-in-page, `source`).
- *   - Its vocabulary is built on the section's (`UIPanel.vocabulary.en.ts`),
+ *   - Its vocabulary is built on the section's (`UIPanel.en.ts`),
  *     so an attribute the section gains reaches the panel too.
  *   - Only the look differs:  `UIPanel.css`, adopted after the section's sheet.
  * - Classes:  `ui … section panel`, plus `sub` when the section around it is a panel too.

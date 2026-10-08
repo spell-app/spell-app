@@ -1,8 +1,8 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIComponent, UIT, type ElementSetup } from "$/ui/core"
+import { proto, UIComponent, type ElementSetup } from "$/ui/core"
 
-import { brandBlobVocabulary } from "./UIBrandBlob.vocabulary.en"
+import { brandBlobVocabulary } from "./UIBrandBlob.en"
 
 import blobCSS from "./UIBrandBlob.css?inline"
 
@@ -32,7 +32,7 @@ export class UIBrandBlob extends UIComponent<typeof brandBlobVocabulary> {
           `tone-${this.attrs.tone ?? "blob"}`
         ]}
         part={this.partForName("blob")}
-        aria-hidden={UIT.TRUE}
+        aria-hidden="true"
       />
     )
   }

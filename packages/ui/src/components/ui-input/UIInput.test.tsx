@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
-import type { DOMFormControlElement } from "$/ui/elements"
+import type { DOMFormControl } from "$/ui/elements"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -18,7 +18,7 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-input/examples/ele
 })
 
 /** A text control's DOM element, with its properties. */
-type Input = DOMFormControlElement & { value: string; rules: unknown; type: string; disabled: boolean }
+type Input = DOMFormControl & { value: string; rules: unknown; type: string; disabled: boolean }
 
 /** Render one control;  returns the DOM element, its root and its native control. */
 async function input(html: string) {

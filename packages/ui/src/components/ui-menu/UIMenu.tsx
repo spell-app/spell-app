@@ -2,7 +2,7 @@ import { Match, Switch, onSettled, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { menuVocabulary } from "./UIMenu.vocabulary.en"
+import { menuVocabulary } from "./UIMenu.en"
 
 import menuCSS from "./UIMenu.css?inline"
 
@@ -107,10 +107,10 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
   get ownItemContext(): UIT.ItemContext {
     const isInteractive = this.interactive
     return {
-      domElementRole: isInteractive ? UIT.NONE : undefined,
-      role: isInteractive ? MENUITEM_ROLE : undefined,
+      domElementRole: isInteractive ? "none" : undefined,
+      role: isInteractive ? "menuitem" : undefined,
       interactive: isInteractive || this.link || this.pagination,
-      current: UIT.PAGE
+      current: "page"
     }
   }
 
@@ -176,7 +176,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
 
   /** The menubar's arrow-key axis:  `vertical` menus go up and down. */
   private get orientation(): E.RovingOrientation {
-    return this.vertical ? UIT.VERTICAL : UIT.HORIZONTAL
+    return this.vertical ? "vertical" : "horizontal"
   }
 
   /** Live roving tabindex while `interactive`. */
@@ -216,7 +216,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
     if (!this.rovingTabindex) return
     this.rovingTabindex.detach()
     this.rovingTabindex = undefined
-    for (const box of this.menuItems()) box.removeAttribute(UIT.TABINDEX)
+    for (const box of this.menuItems()) box.removeAttribute("tabindex")
   }
 
   /** Re-apply the roving `tabindex`es once, after the item set may have changed (restarting before any focus). */
@@ -226,7 +226,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
     queueMicrotask(() => {
       this.refreshIsQueued = false
       if (!this.rovingTabindex) return
-      if (this.domElement.matches(FOCUS_WITHIN)) this.rovingTabindex.refresh()
+      if (this.domElement.matches(":focus-within")) this.rovingTabindex.refresh()
       else this.startRoving(untrack(() => this.orientation))
     })
   }
@@ -266,9 +266,9 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
             ref={(element: HTMLElement) => (this.bar = element)}
             class={this.rootClasses}
             part={this.partForName("menu")}
-            role={MENUBAR_ROLE}
-            aria-orientation={this.vertical ? UIT.VERTICAL : undefined}
-            aria-label={this.attributes[UIT.ARIA_LABEL] ?? undefined}
+            role="menubar"
+            aria-orientation={this.vertical ? "vertical" : undefined}
+            aria-label={this.attributes["aria-label"] ?? undefined}
           >
             <slot />
           </div>
@@ -277,7 +277,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
           <nav
             class={this.rootClasses}
             part={this.partForName("menu")}
-            aria-label={this.attributes[UIT.ARIA_LABEL] ?? undefined}
+            aria-label={this.attributes["aria-label"] ?? undefined}
           >
             <slot />
           </nav>
@@ -298,7 +298,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
   private static activatedItem(event: Event): Element | undefined {
     for (const target of event.composedPath()) {
       if (!(target instanceof HTMLElement)) continue
-      if ((target.localName === UIT.ANCHOR_TAG || target.localName === UIT.BUTTON) && target.part.contains(UIT.ITEM)) {
+      if ((target.localName === "a" || target.localName === "button") && target.part.contains(UIT.ITEM)) {
         const root = target.getRootNode()
         return root instanceof ShadowRoot ? root.host : undefined
       }
@@ -313,17 +313,8 @@ export interface UIMenu extends E.AttributeValues<typeof menuVocabulary> {}
 // ## Constants
 ////////////////
 
-/** `role` of an `interactive` menu's root. */
-const MENUBAR_ROLE = "menubar"
-
-/** `role` of an `interactive` menu's item boxes. */
-const MENUITEM_ROLE = "menuitem"
-
 /** Selector of a selected item DOM element:  the menubar's first tab stop. */
 const SELECTED_STATE = ":state(selected)"
-
-/** Selector of a menu holding focus:  the roving set refreshes in place instead of restarting. */
-const FOCUS_WITHIN = ":focus-within"
 
 /** The `appearance` of a single-choice menu:  it moves `selected` itself. */
 const SEGMENTED: UIT.MenuAppearance = "segmented"

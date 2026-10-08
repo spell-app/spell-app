@@ -10,5 +10,5 @@ import { UIItem } from "./UIItem"
 
 UIItem.define()
 
-export { itemVocabulary } from "./UIItem.vocabulary.en"
+export { itemVocabulary } from "./UIItem.en"
 export { UIItem }

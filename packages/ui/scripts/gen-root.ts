@@ -8,7 +8,7 @@
  * - Why generated, not `ComponentDefinitions`:  that roll-up imports every vocabulary (~325 kB of source);  a lib
  *   entry importing it would split each vocabulary into a chunk shared with its family.  The catalog is a few kB.
  * - Reads the vocabularies the way `ComponentDefinitions` does (`tools/VocabularyFiles.ts`):  every
- *   `UI<Name>.vocabulary.en.ts` of every folder, every export with a `tag` and `attributes`.
+ *   `UI<Name>.en.ts` of every folder, every export with a `tag` and `attributes`.
  * - Scans `src/components/` AND `src/docs-components/` (the doc-only `<ui-docs-*>` elements):  `<ui-root>` loads
  *   both alike.  A folder name is unique across the two (`RootLoader` finds the family by name alone).
  * - The catalog is a `src/` file, so its own import (`./UIRoot.types`) has no `.ts` extension:  Vite's resolution,
@@ -56,7 +56,7 @@ const lines = Object.keys(entries)
   .map((tag) => `  ${JSON.stringify(tag)}: ${JSON.stringify(entries[tag])}`)
 writeFileSync(
   OUTPUT,
-  `/* GENERATED -- do not edit, run \`yarn gen:root\` (source:  every \`UI<Name>.vocabulary.en.ts\`) */
+  `/* GENERATED -- do not edit, run \`yarn gen:root\` (source:  every \`UI<Name>.en.ts\`) */
 
 import type { RootCatalogEntry } from "${TYPES_MODULE}"
 

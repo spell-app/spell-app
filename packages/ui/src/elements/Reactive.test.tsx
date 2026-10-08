@@ -460,10 +460,9 @@ describe("Reactive:  components", () => {
 describe("Reactive:  vocabulary getters vs base members", () => {
   /** Every family's English vocabulary (components and docs elements). */
   const vocabularies = Object.values(
-    import.meta.glob<Record<string, unknown>>(
-      ["/src/components/*/*.vocabulary.en.ts", "/src/docs-components/*/*.vocabulary.en.ts"],
-      { eager: true }
-    )
+    import.meta.glob<Record<string, unknown>>(["/src/components/*/*.en.ts", "/src/docs-components/*/*.en.ts"], {
+      eager: true
+    })
   ).flatMap((module) =>
     Object.values(module).filter(
       (value): value is ComponentVocabulary =>

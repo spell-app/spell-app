@@ -4,7 +4,7 @@ import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { calendarVocabulary } from "./UICalendar.vocabulary.en"
+import { calendarVocabulary } from "./UICalendar.en"
 import { CalendarFallback } from "./UICalendar.fallback"
 import { CalendarDates } from "./CalendarDates"
 import { CalendarText } from "./CalendarText"
@@ -246,10 +246,10 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   protected onPopupOpenChanged(popupIsOpen: boolean, isConnected: boolean, isReady: boolean) {
     const { popup } = this
     if (!popupIsOpen || !isConnected || !isReady || !popup) return
-    if (!popup.matches(UIT.POPOVER_OPEN)) popup.showPopover()
+    if (!popup.matches(":popover-open")) popup.showPopover()
     UI.overlays.open(this.overlay)
     return () => {
-      if (popup.matches(UIT.POPOVER_OPEN)) popup.hidePopover()
+      if (popup.matches(":popover-open")) popup.hidePopover()
       UI.overlays.close(this.overlay)
     }
   }
@@ -554,7 +554,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
         <Show when={this.inline} fallback={this.popupMode()}>
           <div
             class={PICKER_CLASS}
-            role={this.labels.accessibleName ? UIT.GROUP : undefined}
+            role={this.labels.accessibleName ? "group" : undefined}
             aria-label={this.labels.accessibleName}
             inert={this.isDisabled}
           >
@@ -579,7 +579,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
     const name = this.name
     const value = this.formValue
     if (!name || value === null) return undefined
-    return <input type={HIDDEN} name={name} value={String(value)} disabled={this.isDisabled} />
+    return <input type="hidden" name={name} value={String(value)} disabled={this.isDisabled} />
   }
 
   /** Field + icon button + popover. */
@@ -600,8 +600,8 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
             readonly={this.readonly}
             value={this.fieldText}
             aria-label={this.labels.accessibleName ?? this.placeholder}
-            aria-required={this.required ? UIT.TRUE : undefined}
-            aria-invalid={this.validation.valid ? undefined : UIT.TRUE}
+            aria-required={this.required ? "true" : undefined}
+            aria-invalid={this.validation.valid ? undefined : "true"}
             {...this.staticControl}
             onInput={this.onInput}
             onChange={this.onChange}
@@ -615,7 +615,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
             disabled={this.isDisabled || this.readonly}
             aria-label={this.chooseLabel}
             aria-haspopup="dialog"
-            aria-expanded={this.popupIsOpen ? UIT.TRUE : UIT.FALSE}
+            aria-expanded={this.popupIsOpen ? "true" : "false"}
             aria-controls={this.ids.popup}
             onClick={this.onTriggerClick}
           >
@@ -627,7 +627,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
           id={this.ids.popup}
           class={`${POPUP_CLASS} ${this.position ?? DEFAULT_POSITION}`}
           part={this.partForName("popup")}
-          popover={UIT.MANUAL}
+          popover="manual"
           role="dialog"
           aria-label={this.chooseLabel}
         >
@@ -709,7 +709,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
             ? this.translationForKey(page().mode === "hour" ? "calendarHours" : "calendarMinutes")
             : undefined
         }
-        aria-readonly={this.readonly ? UIT.TRUE : undefined}
+        aria-readonly={this.readonly ? "true" : undefined}
         onKeyDown={this.onGridKeyDown}
       >
         <Show when={page().weekdays.length}>
@@ -758,8 +758,8 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
         ]}
         part={this.partForName("cell")}
         tabindex={cell().focus ? 0 : -1}
-        aria-selected={cell().active ? UIT.TRUE : UIT.FALSE}
-        aria-disabled={cell().disabled ? UIT.TRUE : undefined}
+        aria-selected={cell().active ? "true" : "false"}
+        aria-disabled={cell().disabled ? "true" : undefined}
         aria-current={cell().today && this.mode === "day" ? "date" : undefined}
         aria-label={cell().label}
         onClick={(event) => this.choose(cell(), event)}
@@ -907,7 +907,7 @@ const TODAY_CLASS = "today link"
 
 /**
  * Every cell.
- * - NOT `UIT.ANCHOR_TAG` (`"a"`, the link TAG):  Fomantic's `link` class word (epic `wwod-spell-ui`).
+ * - NOT the link TAG, `"a"`:  Fomantic's `link` class word (epic `wwod-spell-ui`).
  */
 const CELL_CLASS = "link"
 
@@ -935,9 +935,6 @@ const DEFAULT_POSITION = "bottom left"
 
 /** `UI.ids` prefix. */
 const ID_PREFIX = "ui-calendar"
-
-/** Hidden input carrying an inline calendar's value in a static server render:  `type`. */
-const HIDDEN = "hidden"
 
 /** Inline custom property naming the field's anchor (`UICalendar.css`). */
 const ANCHOR_PROPERTY = "--_ui-calendar-anchor"

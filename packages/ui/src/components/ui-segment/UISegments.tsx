@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { segmentsVocabulary } from "./UISegments.vocabulary.en"
+import { segmentsVocabulary } from "./UISegments.en"
 
 import segmentCSS from "./UISegment.css?inline"
 

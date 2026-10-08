@@ -1,8 +1,8 @@
 import { onSettled } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
-import { revealVocabulary } from "./UIReveal.vocabulary.en"
+import { E } from "$/ui/core"
+import { revealVocabulary } from "./UIReveal.en"
 
 import revealCSS from "./UIReveal.css?inline"
 
@@ -77,8 +77,8 @@ export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
         class={this.rootClasses}
         part={this.partForName("reveal")}
         tabindex={this.isTabStop ? 0 : undefined}
-        role={this.isTabStop ? UIT.GROUP : undefined}
-        aria-label={this.isTabStop ? (this.attributes[UIT.ARIA_LABEL] ?? undefined) : undefined}
+        role={this.isTabStop ? "group" : undefined}
+        aria-label={this.isTabStop ? (this.attributes["aria-label"] ?? undefined) : undefined}
       >
         <div class={VISIBLE_CONTENT} part={this.partForName("visible")}>
           <slot name={this.slotForName("visible")} />

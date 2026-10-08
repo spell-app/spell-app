@@ -2,7 +2,7 @@ import { Show, createEffect, untrack } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { sectionVocabulary } from "./UISection.vocabulary.en"
+import { sectionVocabulary } from "./UISection.en"
 import { UISections } from "./UISections"
 import { FoldIconPlace, type SectionVocabulary } from "./UISection.types"
 
@@ -422,9 +422,9 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
       <section
         class={this.rootClasses}
         part={this.partForName("section")}
-        aria-busy={this.isLoading ? UIT.TRUE : undefined}
+        aria-busy={this.isLoading ? "true" : undefined}
       >
-        <div ref={(element) => (this.sentinel = element)} class={SENTINEL} aria-hidden={UIT.TRUE} />
+        <div ref={(element) => (this.sentinel = element)} class={SENTINEL} aria-hidden="true" />
         {this.titleBar()}
         <Show when={this.hasSubhead}>
           <div class={SUBHEAD} part={this.partForName("subhead")}>
@@ -432,23 +432,23 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
           </div>
         </Show>
         <div
-          ref={(element) => element.addEventListener(BEFORE_MATCH, this.onBeforeMatch)}
+          ref={(element) => element.addEventListener("beforematch", this.onBeforeMatch)}
           id={CONTENT_ID}
           class={UIT.CONTENT}
           part={this.partForName("content")}
-          hidden={this.isFolded || this.isVeiled ? UNTIL_FOUND : undefined}
+          hidden={this.isFolded || this.isVeiled ? "until-found" : undefined}
           tabindex={this.contentScrolls ? 0 : undefined}
           style={this.height ? { [HEIGHT_PROPERTY]: this.height } : undefined}
         >
           <Show when={this.bodyFailureText}>
-            <p class={SOURCE_ERROR} part={this.partForName("error")} role={UIT.ALERT}>
+            <p class={SOURCE_ERROR} part={this.partForName("error")} role="alert">
               {this.bodyFailureText}
             </p>
           </Show>
           <slot />
         </div>
         <Show when={this.isLoading}>
-          <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
+          <span class={UIT.VISUALLY_HIDDEN} role="status">
             {this.translationForKey("loading")}
           </span>
         </Show>
@@ -466,17 +466,17 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
         style={this.titleStyle}
       >
         <Dynamic
-          component={`${HEADING_TAG}${this.headingLevel}`}
+          component={`h${this.headingLevel}`}
           class={HEADING}
           part={this.partForName("heading")}
           aria-describedby={this.hasInfo && !this.isCollapsible ? TIP_ID : undefined}
         >
           <Dynamic
-            component={this.isCollapsible ? UIT.BUTTON : STATIC_TOGGLE_TAG}
-            type={this.isCollapsible ? UIT.BUTTON : undefined}
+            component={this.isCollapsible ? "button" : "span"}
+            type={this.isCollapsible ? "button" : undefined}
             class={TOGGLE}
             part={this.partForName("toggle")}
-            aria-expanded={this.isCollapsible ? (this.isFolded ? UIT.FALSE : UIT.TRUE) : undefined}
+            aria-expanded={this.isCollapsible ? (this.isFolded ? "false" : "true") : undefined}
             aria-controls={this.isCollapsible ? CONTENT_ID : undefined}
             title={this.isCollapsible ? this.translationForKey(this.isFolded ? "unfold" : "fold") : undefined}
             disabled={this.isCollapsible && this.disabled ? true : undefined}
@@ -506,7 +506,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
         </Show>
         <Show when={this.isCollapsible && this.foldIconIsAtEnd}>{this.foldChevron(this.onFoldIconClick)}</Show>
         <Show when={this.hasInfo}>
-          <span id={TIP_ID} class={TIP} part={this.partForName("tip")} role={TOOLTIP}>
+          <span id={TIP_ID} class={TIP} part={this.partForName("tip")} role="tooltip">
             <slot name={this.slotForName("info")}>{this.info}</slot>
           </span>
         </Show>
@@ -519,7 +519,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
    */
   private foldChevron(onClick?: (event: MouseEvent) => void): JSX.Element {
     return (
-      <span class={FOLD_ICON_CLASS} part={this.partForName("fold-icon")} aria-hidden={UIT.TRUE} onClick={onClick}>
+      <span class={FOLD_ICON_CLASS} part={this.partForName("fold-icon")} aria-hidden="true" onClick={onClick}>
         {this.foldGlyph.svg}
       </span>
     )
@@ -553,9 +553,6 @@ const TOP_LEVEL = 2
 /** Deepest heading level:  `h6`. */
 const MAX_LEVEL = 6
 
-/** Prefix of the heading's tag:  `h` + level. */
-const HEADING_TAG = "h"
-
 /** Class word and part of the heading (`<hN>`). */
 const HEADING = "heading"
 
@@ -577,12 +574,6 @@ const SUBHEAD = "subhead"
 /** Class word and part of the info tip. */
 const TIP = "tip"
 
-/** Role of the info tip. */
-const TOOLTIP = "tooltip"
-
-/** Tag of the toggle when the section can't fold:  a plain box (a fold button is `<button>`). */
-const STATIC_TOGGLE_TAG = "span"
-
 /** Class word `height` adds after the noun when `scrolling` isn't set:  `height` implies scrolling. */
 const SCROLLING = "scrolling"
 
@@ -591,12 +582,6 @@ const TIP_ID = "tip"
 
 /** `id` of the content box, which the fold button's `aria-controls` names. */
 const CONTENT_ID = "content"
-
-/** `hidden` value that lets find-in-page reveal a folded section's content (`beforematch`). */
-const UNTIL_FOUND = "until-found"
-
-/** Event find-in-page fires on hidden `until-found` content before revealing a match. */
-const BEFORE_MATCH = "beforematch"
 
 /**
  * Private custom property the content box reads for `height`:  inline, so the attribute wins over the page's

@@ -53,12 +53,12 @@ house style every package shares.  Only what's local is below;  a section named 
     - the Solid layer:  `UIComponent` (the COMPONENT base:  one instance per element, `render()` returns JSX) and
       `DOMElement` (the DOM element base);  `ElementDefinition` (vocabulary => solid-element's props), `Reactive`
       (the reactive members' decorators:  `@state`, `@controlled`, `@derived`, `@cssState`, `@onChange`),
-      `FormComponent` + `DOMFormControlElement` (form controls), `Cell`, `SlotContent`, `PartContext` + `PartComponent`
+      `FormComponent` + `DOMFormControl` (form controls), `Cell`, `SlotContent`, `PartContext` + `PartComponent`
       (the generic content parts, styled by their owner), `Controlled` (compatibility:  brand's components still use
       it), `IconGlyph`, `LoadableComponent` + `DOMLoadableElement` (the base of the elements that show a text file:
       `source`, inline text, loading / error look, `save()`), `LoadableBody` + `DOMLoadableBodyElement` (a section's
       body loaded from `source` the first time it opens), and the dev-only `HotDefinitions` (NOT in the barrel)
-    - the DOM element bases keep their own files (`DOMElement.ts`, `DOMFormControlElement.ts` ...):  many families and the
+    - the DOM element bases keep their own files (`DOMElement.ts`, `DOMFormControl.ts` ...):  many families and the
       static render import them, and a DOM element knows its component only by type (the component imports it,
       never the other way round)
   - `src/components/ui-<name>/` -- one folder per component FAMILY, named after its main tag (`ui-button/`);  every
@@ -74,10 +74,11 @@ house style every package shares.  Only what's local is below;  a section named 
       Also the family's lib entry (`@spell-app/ui/ui-button`) and its hot-reload boundary
     - `UI<Name>.css` -- port of Fomantic's `.less` + `.variables`;  a second sheet keeps its suffix
       (`UIDimmer.page.css`), or names its own tag's component (`UIBrandCheck.css`)
-    - `UI<Name>.vocabulary.en.ts` -- ONE per tag, named for THAT tag's component (`UIButton.vocabulary.en.ts`,
-      `UIButtons.vocabulary.en.ts`, `UIOr.vocabulary.en.ts`, `UIFeedEvent.vocabulary.en.ts` for `<ui-event>`):
-      EVERY name the tag uses:  tag, attributes (kind + allowed values), values, events, slots, parts, states, text
-      strings.  Translations become `UI<Name>.vocabulary.<lang>.ts`
+    - `UI<Name>.en.ts` -- the tag's VOCABULARY, named for its language:  ONE per tag, named for THAT tag's component
+      (`UIButton.en.ts`, `UIButtons.en.ts`, `UIOr.en.ts`, `UIFeedEvent.en.ts` for `<ui-event>`):  EVERY name the tag
+      uses:  tag, attributes (kind + allowed values), values, events, slots, parts, states, text strings.
+      Translations become `UI<Name>.<lang>.ts` (`UIButton.es.ts`).  A two-letter code before `.ts` means a
+      vocabulary:  the tools find them by it (`VocabularyFiles.languageOf()`), so no other family file is named so
       - and `topics` (2+ ids from `ValueSets.topics`:  how a newcomer looks for it AND how widget libraries file it)
         + `aka` (other libraries' / everyday names:  `ui-modal`:  `dialog`, `lightbox`).  A NEW TAG MUST fill both;
         `src/components/ComponentDefinitions.ts` rolls them up (the docs' component browser) and
@@ -110,7 +111,7 @@ house style every package shares.  Only what's local is below;  a section named 
       `yarn dev`, `yarn test:visual`);  `examples/elements/<example>.visual.ts` -- optional OPEN states for the
       visual tests (`docs/visual-testing.md`)
     - tools that look a family file up by name go through `tools/FamilyFiles.ts`;  the rest match suffixes
-      (`*.vocabulary.en.ts`), whatever the file's name
+      (`*.en.ts`), whatever the file's name
   - `src/components/ui-root/` also holds `<ui-components source="pack.json">` (`UIComponents`, `ComponentPack`):  a
     COMPONENT PACK, a JSON array of `{ tag, source, load?, skeleton? }` (any custom-element tag;  `source` relative
     to the pack;  `load` `on-demand` or `eager`;  `skeleton` as skeleton text), which every root on the page then
@@ -139,7 +140,7 @@ house style every package shares.  Only what's local is below;  a section named 
       "Circular imports";  `barrel.ssr.test.ts`)
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
-    (`FormComponent`, `DOMFormControlElement`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
+    (`FormComponent`, `DOMFormControl`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
     these (see "Solid authoring")
   - `src/styles/` -- `layers.css`, tokens, colours, sizes, reset, typography, animations, utilities, `native.css`,
     `themes/`;  its own lib entry (`@spell-app/ui/styles`)
@@ -287,8 +288,9 @@ house style every package shares.  Only what's local is below;  a section named 
   `detail` carries computed state (`{ value }`, `{ open }` ...) plus `originalEvent`.
 - Rich data (`options`, `rows`) as JS PROPERTIES -- real accessors on the class, so frameworks find them with `key in el`.
   Primitives as REFLECTED attributes.  First paint MUST NOT need a rich property (SSR drops them).
-- Vocabulary files own every name:  NEVER a string literal for an attribute / event / slot / part name in a
-  template or `ClassBuilder` -- read it through the component's vocabulary.
+- Vocabulary files own every name:  NEVER a string literal for one of OUR attribute / event / slot / part names in
+  a template or `ClassBuilder` -- read it through the component's vocabulary.  A PLATFORM name (`aria-label`,
+  `click`, `slot`, `role="list"`) is written inline ("Functions & types").
 - Class defaults:  as WWOD §12 › "`@proto static` defaults", plus:  vocabulary, default settings and part names are
   `@proto static` (from `$/ui/util`), so instances carry no per-instance copies.
 - Libraries:  `lodash-es` only (tree-shakes).  Any other runtime dependency:  WWOD §2 › "Ask before adding a
@@ -380,12 +382,12 @@ As WWOD §18, plus:
   - Measured (P14 step 1):  1,000 `<ui-divider>`s build in 33 ms (32 before), 1,000 `<ui-button>`s in 100 ms (130).
 - Imports in component files (components, DOM element classes AND `UI<Name>.fallback.ts`):  shared code ONLY from `$/ui/core` (and
   `$/ui/forms` for form controls), never `$/ui/util`, `$/ui/vocabulary`, `$/ui/elements` ... directly;  the family's own
-  vocabulary, fallback, helpers and sheet as peers (`./UIButton.vocabulary.en`, `./UIButton.css?inline`).  Why:  the
+  vocabulary, fallback, helpers and sheet as peers (`./UIButton.en`, `./UIButton.css?inline`).  Why:  the
   lib build puts everything `$/ui/core` re-exports into `dist/core.js`;  a leaf imported by a family AND by `core`
   splits into a hashed third chunk.  For the same reason `core.ts` / `forms.ts` re-export `$/ui/elements` LEAVES, and
   every `forms` file imports the core through `$/ui/core` (`yarn measure`'s checks catch a violation).
   - Through namespaces, WWOD §4 › "ONE namespace per sub-system":  `import { E, UI, UIT } from "$/ui/core"` (+
-    `import { F } from "$/ui/forms"`), then `E.UIComponent`, `@E.proto`, `UI.browser`, `UIT.ARIA_LABEL`, `F.FormComponent`
+    `import { F } from "$/ui/forms"`), then `E.UIComponent`, `@E.proto`, `UI.browser`, `UIT.FLUID`, `F.FormComponent`
     ("Types / Exports").  NEVER a bare shared name.  Measured (epic `wwod-spell-ui`, Q4):  family chunks come out
     byte-for-byte the same (Rolldown turns `E.Cell` back into a plain import);  `core` pays ~0.8 kB gzipped for the
     `E` object.
@@ -398,7 +400,7 @@ As WWOD §18, plus:
     and types go through `E`.  `elements.types.ts` stays `import type` only (`import type { E }`).
     - The `forms` files are the exception's exception:  `extends E.UIComponent` / `@E.proto` are fine there, since the
       core never imports `forms` and has always finished loading first;  a `forms` peer a class definition reads
-      (`FormComponent`'s `DOMFormControlElement`, `Validator`) is still direct.
+      (`FormComponent`'s `DOMFormControl`, `Validator`) is still direct.
     - `src/elements/barrel.test.ts` checks every export of both entries is live;  NEVER import an element-core leaf by
       path (`$/ui/elements/UIComponent`):  entering the cycle there breaks it.
 - **Eager memos and overridables:**  a memo that calls overridable members takes `{ lazy: true }` (or is a getter);
@@ -470,7 +472,7 @@ As WWOD §8, plus our self-namespaces (one per lib entry, since each entry is it
 - `F` ~== `$/ui/forms`:  what only form controls need (`F.FormComponent`, `F.MenuOptions`)
 - `UI` ~== the runtime singleton from `$/ui/runtime`:  an instance, read like an app singleton, never through `E`
 - `UIT` ~== `$/ui/components/components.types` -- the constants, types and `ToggleCommands` several families share:
-  `UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
+  `UIT.FLUID`, `UIT.Key.enter`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
   never flat, never through `E`
 - `V` ~== `$/ui/vocabulary`, namespaced through `vocabulary.api.ts` from the `api` entry only (why:  that file's
   header)
@@ -519,6 +521,15 @@ As WWOD §9, plus:
 - A SET of related values (close reasons, key names, positions, modes) is a const array + type:
   `ToastCloseReasons` + `ToastCloseReason`.  A single vocabulary word (a class word, a part name) stays a named
   ALL-CAPS constant, under a `// ##` group in its types file (epic `wwod-spell-ui`, Q2).
+  - A PLATFORM string is API, not data:  write it inline;  TypeScript checks many of them (WWOD §9 › "Named string
+    constants + `typeof` types").  HTML attribute names and values (`"aria-label"`, `"tabindex"`, `"true"`,
+    `"reset"`), ARIA roles and states (`role="list"`, `aria-current="page"`), DOM event types (`"click"`,
+    `"focusout"`), tag names (`"div"`, `"slot"`), pseudo-classes (`":popover-open"`), platform CSS property names
+    (`"anchor-name"`).  No `UIT.ARIA_LABEL`, no `RESET`.  (Owen, 2026-10-08, epic `wwod-spell-ui` P17.)
+    - Still constants:  our own vocabulary names (`ui-*` attributes, events, parts, slots, states), Fomantic class
+      words, tokens, data keys.  A word that is both is inline where it's the platform's, a constant where it's ours
+      (`"vertical"`:  `aria-orientation="vertical"`;  the toast's `VERTICAL` class word).
+    - Key names (`UIT.Key.enter`) stay one map (epic `wwod-spell-ui`, P2).
   - A MAP of words or tokens is a PascalCase const object (WWOD §9 › "Const object + `keyof typeof`"):
     `UIT.PusherTokens.dimmed`, `UIT.TransitionCommands.show`;  a shared vocabulary table too
     (`...UIT.SourceAttributes`).  A frozen pair stays ALL-CAPS (`UIT.TABLE_SORT_OPT_OUT`, WWOD §9's frozen

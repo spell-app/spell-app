@@ -2,7 +2,7 @@ import { Show } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { stepVocabulary } from "./UIStep.vocabulary.en"
+import { stepVocabulary } from "./UIStep.en"
 
 import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
 import stepCSS from "./UIStep.css?inline"
@@ -40,7 +40,7 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     // SIDE EFFECT:  one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
-    this.domElement.internals.role = UIT.LISTITEM
+    this.domElement.internals.role = "listitem"
   }
 
   ////////////////
@@ -126,7 +126,7 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
 
   /** Root element:  a link, a button (`link`), or a box. */
   get rootTag(): string {
-    return this.href ? UIT.ANCHOR_TAG : this.link ? UIT.BUTTON : BOX
+    return this.href ? "a" : this.link ? "button" : "div"
   }
 
   render(): JSX.Element {
@@ -135,12 +135,12 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
         component={this.rootTag}
         class={this.rootClasses}
         part={this.partForName("step")}
-        href={this.rootTag === UIT.ANCHOR_TAG && !this.disabled ? this.href : undefined}
-        target={this.rootTag === UIT.ANCHOR_TAG ? this.target : undefined}
-        type={this.rootTag === UIT.BUTTON ? UIT.BUTTON : undefined}
-        disabled={this.rootTag === UIT.BUTTON && this.disabled ? true : undefined}
-        aria-disabled={this.rootTag !== UIT.BUTTON && this.disabled ? UIT.TRUE : undefined}
-        aria-current={this.isSelected ? CURRENT_STEP : undefined}
+        href={this.rootTag === "a" && !this.disabled ? this.href : undefined}
+        target={this.rootTag === "a" ? this.target : undefined}
+        type={this.rootTag === "button" ? "button" : undefined}
+        disabled={this.rootTag === "button" && this.disabled ? true : undefined}
+        aria-disabled={this.rootTag !== "button" && this.disabled ? "true" : undefined}
+        aria-current={this.isSelected ? "step" : undefined}
       >
         <Show when={this.hasIcon}>
           <span class={UIT.ICON} part={this.partForName("icon")}>
@@ -183,12 +183,6 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIStep extends E.AttributeValues<typeof stepVocabulary> {}
-
-/** Root tag of a plain step (a link step's is `UIT.ANCHOR_TAG`, a `link` step's `UIT.BUTTON`). */
-const BOX = "div"
-
-/** `aria-current` of the selected step:  the current one in the sequence. */
-const CURRENT_STEP = "step"
 
 /** The `header` shorthand's part and class word, Fomantic's `.title` (not `UIT.TITLE`, the tooltip attribute). */
 const TITLE_PART = "title"

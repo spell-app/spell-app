@@ -1,8 +1,8 @@
 import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
-import { breadcrumbSectionVocabulary } from "./UIBreadcrumbSection.vocabulary.en"
+import { E } from "$/ui/core"
+import { breadcrumbSectionVocabulary } from "./UIBreadcrumbSection.en"
 
 import breadcrumbCSS from "./UIBreadcrumb.css?inline"
 
@@ -28,7 +28,7 @@ export class UIBreadcrumbSection extends E.UIComponent<typeof breadcrumbSectionV
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.domElement.internals.role = UIT.LISTITEM
+    this.domElement.internals.role = "listitem"
   }
 
   /** The current page (`active`)? */
@@ -40,7 +40,7 @@ export class UIBreadcrumbSection extends E.UIComponent<typeof breadcrumbSectionV
   render(): JSX.Element {
     const content = (
       <>
-        <span class={DIVIDER} part={this.partForName("divider")} aria-hidden={UIT.TRUE} />
+        <span class={DIVIDER} part={this.partForName("divider")} aria-hidden="true" />
         <Show when={this.href && !this.active} fallback={this.plainSection()}>
           <a class={this.rootClasses} part={this.partForName("section")} href={this.href} target={this.target}>
             <slot />
@@ -56,11 +56,7 @@ export class UIBreadcrumbSection extends E.UIComponent<typeof breadcrumbSectionV
   /** The section as text:  the current page (`aria-current`), or a level without a link. */
   private plainSection(): JSX.Element {
     return (
-      <span
-        class={this.rootClasses}
-        part={this.partForName("section")}
-        aria-current={this.active ? UIT.PAGE : undefined}
-      >
+      <span class={this.rootClasses} part={this.partForName("section")} aria-current={this.active ? "page" : undefined}>
         <slot />
       </span>
     )

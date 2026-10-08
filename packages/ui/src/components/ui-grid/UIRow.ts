@@ -1,5 +1,5 @@
 import { E } from "$/ui/core"
-import { rowVocabulary } from "./UIRow.vocabulary.en"
+import { rowVocabulary } from "./UIRow.en"
 import { GridPart } from "./GridPart"
 
 /****************

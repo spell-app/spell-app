@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { toastVocabulary } from "./UIToast.vocabulary.en"
+import { toastVocabulary } from "./UIToast.en"
 
 import toastCSS from "./UIToast.css?inline"
 import toastRaw from "./UIToast.css?raw"

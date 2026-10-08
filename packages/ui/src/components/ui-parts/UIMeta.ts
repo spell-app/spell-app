@@ -1,5 +1,5 @@
 import { E } from "$/ui/core"
-import { metaVocabulary } from "./UIMeta.vocabulary.en"
+import { metaVocabulary } from "./UIMeta.en"
 
 /****************
  * ### `UIMeta`

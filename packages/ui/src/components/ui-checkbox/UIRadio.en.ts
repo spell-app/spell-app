@@ -2,7 +2,7 @@
  * Every name `<ui-radio>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states,
  * texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only.
- * - The family's grammar notes are in `UICheckbox.vocabulary.en.ts`.
+ * - The family's grammar notes are in `UICheckbox.en.ts`.
  */
 
 import type { E } from "$/ui/core"

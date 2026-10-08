@@ -443,13 +443,6 @@ export type CheckboxChangeDetail = {
   originalEvent?: Event
 }
 
-/**
- * What a chosen checkbox / radio submits without a `value`:  the native default.
- * - Shared by `ui-checkbox` (`CheckControl`'s `@proto static defaultChosenValue`, the fallback) and `ui-form`
- *   (`values` of native and `ui-*` checkables).
- */
-export const CHECKBOX_DEFAULT_VALUE = "on"
-
 ////////////////
 // ## Form
 ////////////////
@@ -1243,78 +1236,8 @@ export const Key = {
 export type Key = (typeof Key)[keyof typeof Key]
 
 ////////////////
-// ## ARIA:  attributes, roles and values
+// ## Selectors
 ////////////////
-
-/** The `aria-label` attribute:  a DOM element's label, forwarded to its inner element. */
-export const ARIA_LABEL = "aria-label"
-
-/** The `aria-invalid` attribute, set on a failing control. */
-export const ARIA_INVALID = "aria-invalid"
-
-/** The `aria-expanded` attribute:  a disclosure's state (a popup's trigger, an item's button). */
-export const ARIA_EXPANDED = "aria-expanded"
-
-/** ARIA boolean `true`, as attribute text (`aria-*="true"`, `internals.ariaBusy`). */
-export const TRUE = "true"
-
-/** ARIA boolean `false`, as attribute text;  also a boolean attribute's "off" (`collapsible="false"`). */
-export const FALSE = "false"
-
-/** `aria-current="page"`:  the selected link of a list or menu. */
-export const PAGE = "page"
-
-/** The `none` value:  an ARIA role to remove, an attribute value that switches a thing off. */
-export const NONE = "none"
-
-/** ARIA role of a decorative or labelled picture. */
-export const IMG = "img"
-
-/** ARIA role of a list root. */
-export const LIST = "list"
-
-/** ARIA role of an item of a list. */
-export const LISTITEM = "listitem"
-
-/** ARIA role of a root that groups its parts while it is the tab stop (a reveal, a range slider). */
-export const GROUP = "group"
-
-/** ARIA role of a polite live region:  a loading announcement, a toast. */
-export const STATUS = "status"
-
-/** ARIA role of an assertive live region:  an error line, an error toast. */
-export const ALERT = "alert"
-
-/** ARIA role of a dividing line:  a divider, a divider item. */
-export const SEPARATOR = "separator"
-
-/** Orientation (`aria-orientation`, roving focus, a layout word):  side by side. */
-export const HORIZONTAL = "horizontal"
-
-/** Orientation (`aria-orientation`, roving focus, a layout word):  one above the other. */
-export const VERTICAL = "vertical"
-
-/** ARIA role of a named landmark:  a root's or a table's scrolling box, a toast container. */
-export const REGION = "region"
-
-////////////////
-// ## Tags and selectors
-////////////////
-
-/** The anchor tag, `a`:  the root of a linked item, card, step, title or section. */
-export const ANCHOR_TAG = "a"
-
-/** The `button` tag (a `link` item or step without `href`), and its `type`. */
-export const BUTTON = "button"
-
-/** Tag of an unordered list's root. */
-export const UL = "ul"
-
-/** Tag of an ordered (`ordered`) list's root. */
-export const OL = "ol"
-
-/** Pseudo-class of an open popover. */
-export const POPOVER_OPEN = ":popover-open"
 
 /** Selector of a disabled custom element (`:state(disabled)`). */
 export const DISABLED_STATE = ":state(disabled)"
@@ -1323,23 +1246,8 @@ export const DISABLED_STATE = ":state(disabled)"
 // ## Attributes and their values
 ////////////////
 
-/** The native tooltip attribute, `title`. */
-export const TITLE = "title"
-
-/** The `tabindex` attribute:  a tab stop (roving focus, a scrolling pane). */
-export const TABINDEX = "tabindex"
-
 /** The `ordered` attribute:  a numbered list or feed;  a nested one reads its outer one's. */
 export const ORDERED = "ordered"
-
-/** The `auto` value:  decided by the platform or the element (`popover="auto"`, a toast's `display-time`). */
-export const AUTO = "auto"
-
-/** The `manual` value:  left to script (`popover="manual"`, a tab list's `activation`). */
-export const MANUAL = "manual"
-
-/** The `click` event, and the trigger value meaning it (a popup's `open-on`, the one with interactive content). */
-export const CLICK = "click"
 
 /** The `close` word:  the close reason of a close icon or command, the close button's part and text key. */
 export const CLOSE = "close"
@@ -1377,6 +1285,12 @@ export const ANIMATING = "animating"
 
 /** The `visible` class / state word:  a shown sidebar, tab or transition. */
 export const VISIBLE = "visible"
+
+/** The `title` class word:  an accordion's, a section's, a search result's. */
+export const TITLE = "title"
+
+/** The `button` class noun:  toasts and `UI.modals` find the button family's tag by it (`<ui-button>`). */
+export const BUTTON = "button"
 
 /** The `content` word:  a part, a class, a slot. */
 export const CONTENT = "content"
@@ -1444,9 +1358,6 @@ export const FormStates = ["error", "info", "success", "warning"] as const
 
 /** One of `FormStates`. */
 export type FormState = (typeof FormStates)[number]
-
-/** The `submit` word:  a button `type`, a form event. */
-export const SUBMIT = "submit"
 
 /** The `notEmpty` validation rule a `required` field applies. */
 export const REQUIRED_RULE: E.ValidationRule = "notEmpty"

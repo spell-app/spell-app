@@ -5,8 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { statisticsVocabulary } from "./UIStatistics.vocabulary.en"
-import { statisticVocabulary } from "./UIStatistic.vocabulary.en"
+import { statisticsVocabulary } from "./UIStatistics.en"
+import { statisticVocabulary } from "./UIStatistic.en"
 
 import statisticCSS from "./UIStatistic.css?inline"
 import statisticRaw from "./UIStatistic.css?raw"

@@ -4,7 +4,7 @@ import { isServer, type JSX } from "@solidjs/web"
 import { E, UIT } from "$/ui/core"
 import { CODE_SPAN, HeadingLevels, type HeadingBounds } from "$/ui/docs-components/docs-components.types"
 import { ExampleSource } from "./ExampleSource"
-import { docsExampleVocabulary } from "./UIDocsExample.vocabulary.en"
+import { docsExampleVocabulary } from "./UIDocsExample.en"
 
 import exampleCSS from "./UIDocsExample.css?inline"
 
@@ -113,9 +113,9 @@ export class UIDocsExample extends E.UIComponent<typeof docsExampleVocabulary> {
             size={this.variation ? "mini" : "tiny"}
             aria-label={this.toggleLabel}
             title={this.toggleLabel}
-            aria-expanded={this.isCodeOpen ? UIT.TRUE : UIT.FALSE}
+            aria-expanded={this.isCodeOpen ? "true" : "false"}
             aria-controls={CODE_PANE_ID}
-            ref={(button: HTMLElement) => button.addEventListener(UIT.CLICK, (event) => this.toggle(event))}
+            ref={(button: HTMLElement) => button.addEventListener("click", (event) => this.toggle(event))}
           />
         </div>
         <Show when={this.description || this.slots.hasContent(this.slotForName("description"))}>

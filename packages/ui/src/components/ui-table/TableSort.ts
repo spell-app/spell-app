@@ -1,5 +1,4 @@
 import { UIT } from "$/ui/core"
-import { DESCENDING, TABLE } from "./UITable.types"
 
 /****************
  * ### `TableSort`
@@ -18,8 +17,8 @@ export class TableSort {
    * - Only `table`'s own header rows:  a table nested in a cell doesn't count.
    */
   static header(table: HTMLTableElement, target: EventTarget | null): HTMLTableCellElement | undefined {
-    const cell = target instanceof Element ? target.closest(HEADER_CELL) : undefined
-    if (!(cell instanceof HTMLTableCellElement) || cell.closest(TABLE) !== table) return undefined
+    const cell = target instanceof Element ? target.closest("th") : undefined
+    if (!(cell instanceof HTMLTableCellElement) || cell.closest("table") !== table) return undefined
     return cell.parentElement?.parentElement === table.tHead ? cell : undefined
   }
 
@@ -27,7 +26,7 @@ export class TableSort {
   static headers(table: HTMLTableElement): HTMLTableCellElement[] {
     const cells: HTMLTableCellElement[] = []
     for (const row of table.tHead?.rows ?? []) {
-      for (const cell of row.cells) if (cell.localName === HEADER_CELL) cells.push(cell)
+      for (const cell of row.cells) if (cell.localName === "th") cells.push(cell)
     }
     return cells
   }
@@ -54,7 +53,7 @@ export class TableSort {
     const rows = [...(table.tHead?.rows ?? [])].reverse()
     for (const row of rows) {
       const cell = TableSort.cellAt(row, column)
-      if (cell?.localName === HEADER_CELL) return cell
+      if (cell?.localName === "th") return cell
     }
     return undefined
   }
@@ -78,9 +77,9 @@ export class TableSort {
     for (const row of rows) {
       let start = 0
       for (const cell of row.children) {
-        const span = Number(cell.getAttribute(COLSPAN)) || 1
+        const span = Number(cell.getAttribute("colspan")) || 1
         if (column < start + span) {
-          if (column >= start && cell.localName === HEADER_CELL) return cell
+          if (column >= start && cell.localName === "th") return cell
           break
         }
         start += span
@@ -100,7 +99,7 @@ export class TableSort {
    * - Rows without that cell sort last, in their order.
    */
   static sortRows(table: HTMLTableElement, column: number, direction: UIT.TableSortDirection) {
-    const sign = direction === DESCENDING ? -1 : 1
+    const sign = direction === "descending" ? -1 : 1
     for (const body of table.tBodies) {
       const rows = [...body.rows]
       const texts = new Map(rows.map((row) => [row, TableSort.cellAt(row, column)?.textContent?.trim()]))
@@ -130,12 +129,6 @@ export class TableSort {
     return String(value as string | number | boolean | bigint | symbol)
   }
 }
-
-/** Tag of a header cell (not `UIT.HEADER`, the part word). */
-const HEADER_CELL = "th"
-
-/** A cell's column span attribute. */
-const COLSPAN = "colspan"
 
 /** A table's own header rows, as a selector (`staticHeaderAt()`). */
 const STATIC_HEADER_ROWS = ":scope > thead > tr"

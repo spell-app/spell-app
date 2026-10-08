@@ -1,5 +1,5 @@
 import { E, UIT } from "$/ui/core"
-import { searchVocabulary } from "./UISearch.vocabulary.en"
+import { searchVocabulary } from "./UISearch.en"
 import { INPUT, PROMPT, type Vocabulary } from "./UISearch.types"
 
 /****************
@@ -34,16 +34,16 @@ export class SearchFallback extends E.NativeFallback<Vocabulary> {
     const placeholder = this.attr("placeholder")
     const input = this.create("input", {
       class: PROMPT,
-      type: SEARCH_TYPE,
+      type: "search",
       placeholder,
       required: this.flag("required"),
       disabled: this.flag("disabled"),
-      autocomplete: AUTOCOMPLETE_OFF,
+      autocomplete: "off",
       list: listId
     })
     input.value = typeof domElement.value === "string" ? domElement.value : (this.attr("value") ?? "")
     this.decorate(input, "prompt")
-    if (!input.hasAttribute(UIT.ARIA_LABEL) && placeholder) input.setAttribute(UIT.ARIA_LABEL, placeholder)
+    if (!input.hasAttribute("aria-label") && placeholder) input.setAttribute("aria-label", placeholder)
 
     const list = this.create("datalist", { id: listId })
     const titles = new Set<string>()
@@ -100,12 +100,6 @@ const CHANGE_EVENT: E.EventName<Vocabulary> = "ui-change"
 
 /** The part of the box around the input (the input itself is `prompt`, through `decorate()`). */
 const INPUT_PART: E.PartName<Vocabulary> = "input"
-
-/** The input's `type`:  a native search field. */
-const SEARCH_TYPE = "search"
-
-/** The input's `autocomplete`:  off, so only the `<datalist>` suggests. */
-const AUTOCOMPLETE_OFF = "off"
 
 /** The suffix of the `<datalist>` id, after the tag. */
 const SUGGESTIONS_SUFFIX = "-suggestions"

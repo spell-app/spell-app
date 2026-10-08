@@ -753,13 +753,3 @@ export const STICKY_MAX_RESERVE = 0.5
 
 /** Sub-pixel slack when comparing edges. */
 export const STICKY_SLACK = 0.5
-
-////////////////
-// ## Control labels
-////////////////
-
-/** The `<label>` tag:  what names a form control (`ControlLabels`, `LabelWatch`). */
-export const LABEL_TAG = "label"
-
-/** The `<label>` attribute naming its control by id. */
-export const FOR_ATTRIBUTE = "for"

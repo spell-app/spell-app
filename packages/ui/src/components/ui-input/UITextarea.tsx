@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { textareaVocabulary } from "./UITextarea.vocabulary.en"
+import { textareaVocabulary } from "./UITextarea.en"
 import { InputFallback } from "./UIInput.fallback"
 import { TextControl } from "./TextControl"
 import type { CommonAttributes } from "./UIInput.types"

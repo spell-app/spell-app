@@ -5,7 +5,7 @@
  * - A constant only one class reads sits below that class (epic `wwod-spell-ui`, Q18).
  */
 
-import type { modalVocabulary } from "./UIModal.vocabulary.en"
+import type { modalVocabulary } from "./UIModal.en"
 
 ////////////////
 // ## The dialog vocabulary
@@ -31,6 +31,3 @@ export type DialogAttributes = {
 
 /** The events every dialog vocabulary names. */
 export type DialogEventName = "ui-open" | "ui-show" | "ui-close" | "ui-hide" | "ui-approve" | "ui-deny"
-
-/** The attribute (and `<dialog>` attribute) saying what dismisses it. */
-export const CLOSEDBY = "closedby"

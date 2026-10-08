@@ -3,7 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
-import { docsSearchVocabulary } from "./UIDocsSearch.vocabulary.en"
+import { docsSearchVocabulary } from "./UIDocsSearch.en"
 import { PageOutline } from "./PageOutline"
 import { SearchData } from "./SearchData"
 import { SearchIndex } from "./SearchIndex"
@@ -293,12 +293,12 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
 
   /** Show the popover (unless it's gone, or already open). */
   private openCard() {
-    if (this.card?.isConnected && !this.card.matches(UIT.POPOVER_OPEN)) this.card.showPopover()
+    if (this.card?.isConnected && !this.card.matches(":popover-open")) this.card.showPopover()
   }
 
   /** Hide the popover (unless it's gone, or already shut). */
   private closeCard() {
-    if (this.card?.isConnected && this.card.matches(UIT.POPOVER_OPEN)) this.card.hidePopover()
+    if (this.card?.isConnected && this.card.matches(":popover-open")) this.card.hidePopover()
   }
 
   /** Listeners on the box:  leaving it closes the card. */
@@ -474,7 +474,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
         ref={(element: HTMLElement) => this.wire(element)}
       >
         <div class={FIELD} part={this.partForName("field")}>
-          <span class={GLYPH} aria-hidden={UIT.TRUE}>
+          <span class={GLYPH} aria-hidden="true">
             <ui-icon name={SEARCH_ICON} />
           </span>
           <input
@@ -483,7 +483,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
             type="search"
             role="combobox"
             aria-autocomplete="list"
-            aria-expanded={this.isOpen && this.rows.length ? UIT.TRUE : UIT.FALSE}
+            aria-expanded={this.isOpen && this.rows.length ? "true" : "false"}
             aria-controls={this.rows.length ? LISTBOX_ID : undefined}
             aria-activedescendant={
               this.isOpen && this.activeIndex >= 0 ? UIDocsSearch.optionIdFor(this.activeIndex) : undefined
@@ -512,7 +512,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
             </button>
           </Show>
           <Show when={this.hasShortcuts}>
-            <span class={KEYS} part={this.partForName("keys")} aria-hidden={UIT.TRUE}>
+            <span class={KEYS} part={this.partForName("keys")} aria-hidden="true">
               <kbd>{this.modifierKeyLabel}</kbd>
               <kbd>K</kbd>
             </span>
@@ -521,7 +521,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
         <div
           class={RESULTS}
           part={this.partForName("results")}
-          popover={UIT.MANUAL}
+          popover="manual"
           ref={(element: HTMLElement) => this.wireCard(element)}
         >
           <Show when={this.rows.length}>
@@ -535,7 +535,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
           <Show when={this.isLoading}>
             <p class={NOTE}>{this.translationForKey("loading")}</p>
           </Show>
-          <div class={HINTS} part={this.partForName("hints")} aria-hidden={UIT.TRUE}>
+          <div class={HINTS} part={this.partForName("hints")} aria-hidden="true">
             <span>
               <kbd>↑</kbd>
               <kbd>↓</kbd> {this.translationForKey("move")}
@@ -548,7 +548,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
             </span>
           </div>
         </div>
-        <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
+        <span class={UIT.VISUALLY_HIDDEN} role="status">
           {this.statusText}
         </span>
       </div>
@@ -559,7 +559,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
   private group(kind: SearchKind, rows: readonly { hit: SearchHit; index: number }[]): JSX.Element {
     const label = GROUP_ID + kind
     return (
-      <div role={UIT.GROUP} class={UIT.GROUP} part={this.partForName("group")} aria-labelledby={label}>
+      <div role="group" class="group" part={this.partForName("group")} aria-labelledby={label}>
         <div class={UIT.LABEL} part={this.partForName("label")} id={label}>
           {this.translationForKey(KIND_TEXT[kind])}
         </div>
@@ -574,16 +574,16 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
     const isActive = () => this.activeIndex === index
     return (
       <a
-        role={OPTION}
+        role="option"
         id={UIDocsSearch.optionIdFor(index)}
-        class={[OPTION, entry.kind, { [UIT.ACTIVE]: isActive() }]}
+        class={["option", entry.kind, { [UIT.ACTIVE]: isActive() }]}
         part={this.partForName("option")}
         href={this.href(entry.href)}
         tabindex="-1"
-        aria-selected={isActive() ? UIT.TRUE : UIT.FALSE}
+        aria-selected={isActive() ? "true" : "false"}
         data-index={String(index)}
       >
-        <span class={GLYPH} aria-hidden={UIT.TRUE}>
+        <span class={GLYPH} aria-hidden="true">
           <ui-icon name={KIND_ICON[entry.kind]} />
         </span>
         <span class={UIT.TEXT}>
@@ -601,7 +601,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
             <span class={CONTEXT}>{entry.context}</span>
           </Show>
         </span>
-        <span class={ENTER} aria-hidden={UIT.TRUE}>
+        <span class={ENTER} aria-hidden="true">
           ↵
         </span>
       </a>
@@ -749,9 +749,6 @@ const KEY_SHORTCUTS = "/ Meta+K Control+K"
 
 /** A drawer's `open` attribute:  `summon()` opens one, a jump to the page shown closes it. */
 const OPEN = "open"
-
-/** Role and class word of a result. */
-const OPTION = "option"
 
 /** Class word of an icon's box (the field's, a result's). */
 const GLYPH = "glyph"

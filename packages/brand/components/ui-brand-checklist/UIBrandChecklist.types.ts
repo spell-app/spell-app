@@ -4,8 +4,8 @@
  * - Data only:  nothing here runs.
  */
 
-import type { brandChecklistVocabulary } from "./UIBrandChecklist.vocabulary.en"
-import type { brandCheckVocabulary } from "./UIBrandCheck.vocabulary.en"
+import type { brandChecklistVocabulary } from "./UIBrandChecklist.en"
+import type { brandCheckVocabulary } from "./UIBrandCheck.en"
 
 ////////////////
 // ## Vocabularies
@@ -35,20 +35,6 @@ export const PENDING: CheckState = "pending"
 
 /** A check's text face:  `sans` (14px, 20px marks) or `serif` (15px, 19px marks). */
 export type CheckFont = "sans" | "serif"
-
-/**
- * The `checked` attribute:  another name for `selected`, read by the check (`DOMBrandCheckElement` owns the property).
- */
-export const CHECKED = "checked"
-
-/** The role of a `checkable` check's button. */
-export const CHECKBOX = "checkbox"
-
-/** `aria-current` of the active check. */
-export const STEP = "step"
-
-/** The role of the checklist's live region (polite). */
-export const STATUS = "status"
 
 ////////////////
 // ## Owner

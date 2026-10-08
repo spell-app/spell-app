@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { railVocabulary } from "./UIRail.vocabulary.en"
+import { railVocabulary } from "./UIRail.en"
 
 import railCSS from "./UIRail.css?inline"
 

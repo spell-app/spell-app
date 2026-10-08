@@ -1,5 +1,5 @@
-import { E, UIT } from "$/ui/core"
-import { titleVocabulary } from "./UITitle.vocabulary.en"
+import { E } from "$/ui/core"
+import { titleVocabulary } from "./UITitle.en"
 
 /****************
  * ### `UITitle`
@@ -11,7 +11,7 @@ export class UITitle extends E.PartComponent<typeof titleVocabulary> {
   @E.proto static vocabulary = titleVocabulary
 
   protected get rootTag(): string {
-    return this.href ? UIT.ANCHOR_TAG : "div"
+    return this.href ? "a" : "div"
   }
 
   protected get rootHref(): string | undefined {

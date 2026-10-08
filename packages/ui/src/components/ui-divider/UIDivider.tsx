@@ -2,7 +2,7 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { dividerVocabulary } from "./UIDivider.vocabulary.en"
+import { dividerVocabulary } from "./UIDivider.en"
 
 import dividerCSS from "./UIDivider.css?inline"
 
@@ -36,8 +36,8 @@ export class UIDivider extends E.UIComponent<typeof dividerVocabulary> {
     return (
       <div
         class={this.rootClasses}
-        role={this.hidden ? UIT.NONE : UIT.SEPARATOR}
-        aria-orientation={this.vertical && !this.hidden ? UIT.VERTICAL : undefined}
+        role={this.hidden ? "none" : "separator"}
+        aria-orientation={this.vertical && !this.hidden ? "vertical" : undefined}
         part={this.partForName("divider")}
       >
         <Show when={this.icon}>

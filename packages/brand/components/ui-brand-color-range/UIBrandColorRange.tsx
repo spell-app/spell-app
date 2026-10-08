@@ -4,7 +4,7 @@ import type { JSX } from "@solidjs/web"
 import { DOMElement, proto, UIComponent, type ElementSetup } from "$/ui/core"
 import { STEPS, type Scale, type Step } from "$/brand"
 
-import { brandColorRangeVocabulary } from "./UIBrandColorRange.vocabulary.en"
+import { brandColorRangeVocabulary } from "./UIBrandColorRange.en"
 import { ColorLadder } from "./ColorLadder"
 import type { BrandColorRangeVocabulary, CssFormat, LadderInput } from "./UIBrandColorRange.types"
 

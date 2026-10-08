@@ -2,7 +2,7 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { BreadcrumbDivider } from "./BreadcrumbDivider"
-import { breadcrumbVocabulary } from "./UIBreadcrumb.vocabulary.en"
+import { breadcrumbVocabulary } from "./UIBreadcrumb.en"
 
 import breadcrumbCSS from "./UIBreadcrumb.css?inline"
 
@@ -35,7 +35,7 @@ export class UIBreadcrumb extends E.UIComponent<typeof breadcrumbVocabulary> {
       <nav
         class={this.rootClasses}
         part={this.partForName("breadcrumb")}
-        aria-label={this.attributes[UIT.ARIA_LABEL] ?? this.translationForKey("label")}
+        aria-label={this.attributes["aria-label"] ?? this.translationForKey("label")}
         style={this.dividerTokens}
       >
         <ol part={this.partForName("list")}>

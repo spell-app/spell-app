@@ -2,7 +2,7 @@
  * The English vocabulary of `<ui-labels>`:  every name the tag uses.
  * - Its tag, attributes (each with its kind and allowed values), slots and parts.
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
- * - How the family's attributes become class words:  `UILabel.vocabulary.en.ts`.
+ * - How the family's attributes become class words:  `UILabel.en.ts`.
  */
 
 import type { E } from "$/ui/core"

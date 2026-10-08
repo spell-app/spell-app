@@ -1,5 +1,5 @@
 /**
- * Shared types for `$/ui/styles`:  the shapes of the global scales in `styles.vocabulary.en.ts`, and of the sheet
+ * Shared types for `$/ui/styles`:  the shapes of the global scales in `styles.en.ts`, and of the sheet
  * declarations `StyleGenerator` writes and `ComponentTokens` reads.
  * - The BOTTOM of the folder's import graph:  `import type` only (the vocabulary, `Prettify`), so it erases
  *   completely;  node reads it with the vocabulary (`yarn gen:styles`).
@@ -25,7 +25,7 @@ import type {
   spacing,
   textAlphas,
   zIndices
-} from "./styles.vocabulary.en"
+} from "./styles.en"
 
 ////////////////
 // ## Colour primitives

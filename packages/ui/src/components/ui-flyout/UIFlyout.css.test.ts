@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { flyoutVocabulary } from "./UIFlyout.vocabulary.en"
+import { flyoutVocabulary } from "./UIFlyout.en"
 
 import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 import flyoutCSS from "./UIFlyout.css?inline"

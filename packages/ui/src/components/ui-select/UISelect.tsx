@@ -6,7 +6,7 @@ import { F } from "$/ui/forms"
 // REFACTOR: `SlottedItems` reads `<ui-item>`s as data for the dropdown AND the select;  it belongs to the `item`
 // family (next to `itemVocabulary`), which would also spare the bundle a shared dropdown / select chunk
 import { SlottedItems } from "$/ui/components/ui-dropdown/SlottedItems"
-import { selectVocabulary } from "./UISelect.vocabulary.en"
+import { selectVocabulary } from "./UISelect.en"
 import { SelectFallback } from "./UISelect.fallback"
 import { DIVIDER, PLACEHOLDER, type SelectBlock, type Vocabulary } from "./UISelect.types"
 
@@ -237,12 +237,12 @@ export class UISelect extends F.FormComponent<Vocabulary> {
         disabled={this.isDisabled}
         required={this.required}
         aria-label={this.label}
-        aria-invalid={this.validation.valid ? undefined : UIT.TRUE}
+        aria-invalid={this.validation.valid ? undefined : "true"}
         {...this.staticSelect}
         onChange={this.onChange}
       >
         <Show when={this.isCustomizable}>
-          <button type={UIT.BUTTON} part={this.partForName("button")}>
+          <button type="button" part={this.partForName("button")}>
             <selectedcontent />
           </button>
         </Show>
@@ -294,7 +294,7 @@ export class UISelect extends F.FormComponent<Vocabulary> {
         {...this.staticOption(option.value)}
       >
         <Show when={typeof option.icon === "string"}>
-          <span class={UIT.ICON} aria-hidden={UIT.TRUE}>
+          <span class={UIT.ICON} aria-hidden="true">
             {glyph.svg}
           </span>
         </Show>

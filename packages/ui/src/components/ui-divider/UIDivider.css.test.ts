@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { dividerVocabulary } from "./UIDivider.vocabulary.en"
+import { dividerVocabulary } from "./UIDivider.en"
 
 import dividerCSS from "./UIDivider.css?inline"
 import dividerRaw from "./UIDivider.css?raw"

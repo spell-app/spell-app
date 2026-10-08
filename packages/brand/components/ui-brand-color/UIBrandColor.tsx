@@ -4,7 +4,7 @@ import type { JSX } from "@solidjs/web"
 import { Cell, DOMElement, IconGlyph, proto, UIComponent, type ElementSetup } from "$/ui/core"
 import { Palette } from "$/brand"
 
-import { brandColorVocabulary } from "./UIBrandColor.vocabulary.en"
+import { brandColorVocabulary } from "./UIBrandColor.en"
 import {
   AA_RATIO,
   BRAND,
@@ -13,7 +13,6 @@ import {
   COPIED_MS,
   LABELLED,
   LARGE_RATIO,
-  RADIO,
   TIP_ID,
   WHITE,
   type BrandColorVocabulary,
@@ -164,7 +163,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
       () => (this.isChoice() ? { checked: this.attrs.selected, label: this.accessibleName() } : undefined),
       (choice) => {
         const { internals } = this.domElement
-        internals.role = choice ? RADIO : null
+        internals.role = choice ? "radio" : null
         internals.ariaChecked = choice ? String(choice.checked) : null
         internals.ariaLabel = choice ? choice.label : null
       }

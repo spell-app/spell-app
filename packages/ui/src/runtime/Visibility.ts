@@ -139,8 +139,8 @@ class VisibilityWatch {
     } else {
       const view = element.ownerDocument.defaultView
       const onResize = () => this.build()
-      view?.addEventListener(RESIZE, onResize)
-      this.unwatchSize = () => view?.removeEventListener(RESIZE, onResize)
+      view?.addEventListener("resize", onResize)
+      this.unwatchSize = () => view?.removeEventListener("resize", onResize)
     }
   }
 
@@ -354,9 +354,6 @@ const REVERSE_KEYS: Record<(typeof EDGES)[number], keyof VisibilityCallbacks> = 
   topPassed: "onTopPassedReverse",
   bottomPassed: "onBottomPassedReverse"
 }
-
-/** Screen resize event. */
-const RESIZE = "resize"
 
 /** Lazy image attributes (Fomantic's `metadata.src` / `metadata.srcset`). */
 const LAZY_IMAGE_ATTRIBUTES = { src: "data-src", srcset: "data-srcset" } as const

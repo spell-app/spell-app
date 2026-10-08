@@ -41,7 +41,7 @@ export class ControlLabels {
   @E.state accessor accessibleName: string | undefined = undefined
 
   /** The DOM element. */
-  private readonly domElement: F.DOMFormControlElement
+  private readonly domElement: F.DOMFormControl
 
   /** Watches the labels found last. */
   private labelObserver?: MutationObserver
@@ -50,7 +50,7 @@ export class ControlLabels {
   private watch?: LabelWatch
 
   /** The name of `domElement`'s inner control;  call it under the element's owner. */
-  constructor(domElement: F.DOMFormControlElement) {
+  constructor(domElement: F.DOMFormControl) {
     this.domElement = domElement
     // a server render (`$/ui/static`) reads the page once:  nothing changes, nothing is watched
     if (isServer) {
@@ -113,7 +113,7 @@ export class ControlLabels {
     const found = new Set(domElement.labels as NodeListOf<HTMLLabelElement>)
     if (domElement.id && domElement.isConnected) {
       const root = domElement.getRootNode() as Document | ShadowRoot
-      const selector = `${E.LABEL_TAG}[${E.FOR_ATTRIBUTE}="${CSS.escape(domElement.id)}"]`
+      const selector = `label[for="${CSS.escape(domElement.id)}"]`
       for (const label of root.querySelectorAll<HTMLLabelElement>(selector)) found.add(label)
     }
     return [...found].filter((label) => label.control === domElement).sort(E.byDocumentOrder)
@@ -128,13 +128,13 @@ export class ControlLabels {
   private serverLabels(): HTMLLabelElement[] {
     const { domElement } = this
     const found = new Set<HTMLLabelElement>()
-    const wrapping = domElement.parentElement?.closest<HTMLLabelElement>(E.LABEL_TAG)
-    const wrappingFor = wrapping?.getAttribute(E.FOR_ATTRIBUTE)
+    const wrapping = domElement.parentElement?.closest<HTMLLabelElement>("label")
+    const wrappingFor = wrapping?.getAttribute("for")
     if (wrapping && (wrappingFor === null || wrappingFor === domElement.id)) found.add(wrapping)
     if (domElement.id) {
       const root = domElement.getRootNode() as Document | ShadowRoot
       const id = domElement.id.replace(/["\\]/g, "\\$&")
-      const selector = `${E.LABEL_TAG}[${E.FOR_ATTRIBUTE}="${id}"]`
+      const selector = `label[for="${id}"]`
       for (const label of root.querySelectorAll?.<HTMLLabelElement>(selector) ?? []) found.add(label)
     }
     return [...found]
@@ -143,9 +143,9 @@ export class ControlLabels {
   /** The name from the DOM element's attributes, else from `labels`. */
   private nameFor(labels: readonly HTMLLabelElement[]): string | undefined {
     const { domElement } = this
-    const own = domElement.getAttribute(ARIA_LABEL)?.trim()
+    const own = domElement.getAttribute("aria-label")?.trim()
     if (own) return own
-    const ids = domElement.getAttribute(ARIA_LABELLEDBY)?.trim()
+    const ids = domElement.getAttribute("aria-labelledby")?.trim()
     if (ids) {
       const root = domElement.getRootNode() as Document | ShadowRoot
       const text = ids
@@ -180,11 +180,5 @@ export class ControlLabels {
   }
 }
 
-/** DOM element attribute with an explicit name. */
-const ARIA_LABEL = "aria-label"
-
-/** DOM element attribute pointing at naming elements. */
-const ARIA_LABELLEDBY = "aria-labelledby"
-
 /** DOM element attributes that change the name (`id` changes which `<label for>`s match). */
-const WATCHED_ATTRIBUTES = [ARIA_LABEL, ARIA_LABELLEDBY, "id"]
+const WATCHED_ATTRIBUTES = ["aria-label", "aria-labelledby", "id"]

@@ -1,7 +1,7 @@
-import { E, UIT } from "$/ui/core"
-import { checkboxVocabulary } from "./UICheckbox.vocabulary.en"
-import { radioVocabulary } from "./UIRadio.vocabulary.en"
-import { CHECKBOX, CHECKED, RADIO, SWITCH, type CheckPartName } from "./UICheckbox.types"
+import { E } from "$/ui/core"
+import { checkboxVocabulary } from "./UICheckbox.en"
+import { radioVocabulary } from "./UIRadio.en"
+import { type CheckPartName } from "./UICheckbox.types"
 
 /****************
  * ### `CheckboxFallback`
@@ -38,18 +38,18 @@ export class CheckboxFallback extends E.NativeFallback<typeof checkboxVocabulary
     const id = `${domElement.localName}-fallback-${++CheckboxFallback.counter}`
     const input = this.create("input", {
       id,
-      type: isRadio ? RADIO : CHECKBOX,
+      type: isRadio ? "radio" : "checkbox",
       disabled: this.flag("disabled"),
       required: this.flag("required"),
-      role: !isRadio && this.attr("type") ? SWITCH : undefined
+      role: !isRadio && this.attr("type") ? "switch" : undefined
     })
     this.decorate(input, "control")
-    input.checked = domElement.selected ?? (this.flag("selected") || domElement.hasAttribute(CHECKED))
+    input.checked = domElement.selected ?? (this.flag("selected") || domElement.hasAttribute("checked"))
     input.indeterminate = !isRadio && this.flag("indeterminate")
     const label = this.create("label", { for: id, part: LABEL_PART }, this.slot(this.attr("label")))
     const root = this.create("div", { class: this.classes(), part: ROOT_PART }, input, label)
     // a radio without a `slider` / `toggle` look says `radio` before its noun, as the component does
-    if (isRadio && !this.attr("type")) root.className = root.className.replace(NOUN_AT_END, ` ${RADIO} ${CHECKBOX}`)
+    if (isRadio && !this.attr("type")) root.className = root.className.replace(NOUN_AT_END, " radio checkbox")
     this.listen(input, "click", (event) => {
       if (this.flag("readonly")) event.preventDefault()
     })
@@ -85,7 +85,7 @@ export class CheckboxFallback extends E.NativeFallback<typeof checkboxVocabulary
 
   /** What the box submits while chosen:  the DOM element's `chosenValue`, else its `value`, else the native default. */
   private chosenValue(): string {
-    return (this.domElement as CheckDOMElement).chosenValue ?? this.attr("value") ?? UIT.CHECKBOX_DEFAULT_VALUE
+    return (this.domElement as CheckDOMElement).chosenValue ?? this.attr("value") ?? "on"
   }
 
   /**

@@ -5,7 +5,7 @@
  *   build step, silently drops every rule inside `@media (--ui-*)`.
  * - Page-level:  stacking components respond to their CONTAINER (container queries) by default;  these ranges are
  *   their `stack-with="page"` twins (`docs/theming.md` "Stacking"), and the screen-based words (`only`, menus).
- * - Values MUST match `breakpoints` in `styles.vocabulary.en.ts`;  `styles.test.ts` checks they do.
+ * - Values MUST match `breakpoints` in `styles.en.ts`;  `styles.test.ts` checks they do.
  */
 
 /* Below tablet:  Fomantic's `@largestMobileScreen`. */

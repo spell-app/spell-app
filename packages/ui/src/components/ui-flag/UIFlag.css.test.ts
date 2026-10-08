@@ -7,7 +7,7 @@ import { Sheets } from "$/ui/test/Sheets"
 
 import { UIT } from "$/ui/core"
 import { FLAG_ALIASES } from "./UIFlag.types"
-import { flagVocabulary } from "./UIFlag.vocabulary.en"
+import { flagVocabulary } from "./UIFlag.en"
 
 import flagCSS from "./UIFlag.css?inline"
 import flagRaw from "./UIFlag.css?raw"

@@ -4,15 +4,14 @@ import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { ratingVocabulary } from "./UIRating.vocabulary.en"
-import { RatingFallback } from "./UIRating.fallback"
-import { DEFAULT_MAX, RADIO, RADIOGROUP } from "./UIRating.types"
+import { ratingVocabulary } from "./UIRating.en"
+import { DEFAULT_MAX, RatingFallback } from "./UIRating.fallback"
 
 import ratingCSS from "./UIRating.css?inline"
 
 /****************
  * ### `DOMRatingElement`
- * The DOM element of `<ui-rating>`:  a form control's DOM element (`DOMFormControlElement`),
+ * The DOM element of `<ui-rating>`:  a form control's DOM element (`DOMFormControl`),
  * whose `focus()` goes to the group's TAB STOP.
  *
  * - Why:  `delegatesFocus` hands a plain `focus()` to the shadow root's FIRST focusable element (radio 1),
@@ -20,7 +19,7 @@ import ratingCSS from "./UIRating.css?inline"
  * - solid-element refuses a DOM element member named like a prop:  `focus` is not one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMRatingElement extends F.DOMFormControlElement {
+export class DOMRatingElement extends F.DOMFormControl {
   /** Focus the chosen radio, else the first. */
   override focus(options?: FocusOptions) {
     if (!this.rating?.focus(options)) super.focus(options)
@@ -253,12 +252,12 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
         ref={(element) => (this.group = element)}
         class={this.rootClasses}
         part={this.partForName("rating")}
-        role={RADIOGROUP}
+        role="radiogroup"
         disabled={this.isDisabled}
         aria-label={this.labels.accessibleName}
-        aria-readonly={this.readonly ? UIT.TRUE : undefined}
-        aria-required={this.required ? UIT.TRUE : undefined}
-        aria-invalid={this.isTouched && !this.validation.valid ? UIT.TRUE : undefined}
+        aria-readonly={this.readonly ? "true" : undefined}
+        aria-required={this.required ? "true" : undefined}
+        aria-invalid={this.isTouched && !this.validation.valid ? "true" : undefined}
         aria-description={this.fractionDescription}
         onPointerLeave={this.onPointerLeave}
         onKeyDown={this.onKeyDown}
@@ -281,7 +280,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
         onPointerEnter={() => this.hover(point)}
       >
         <input
-          type={RADIO}
+          type="radio"
           part={this.partForName("control")}
           name={this.groupName}
           value={String(point)}
@@ -396,7 +395,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
     if (!step || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return 0
     // a right-to-left group runs the horizontal arrows backwards
     const isHorizontal = event.key === UIT.Key.arrowLeft || event.key === UIT.Key.arrowRight
-    if (isHorizontal && getComputedStyle(this.domElement).direction === RTL) step = -step
+    if (isHorizontal && getComputedStyle(this.domElement).direction === "rtl") step = -step
     const radios = this.radios().filter((radio) => !radio.disabled)
     const active = this.domElement.shadowRoot?.activeElement
     if (step < 0 && active === radios[0]) return -1
@@ -439,7 +438,7 @@ const FULL = "--full"
 const ID_PREFIX = "ui-rating"
 
 /** The radios, as a selector. */
-const RADIO_SELECTOR = `input[type=${RADIO}]`
+const RADIO_SELECTOR = "input[type=radio]"
 
 /** Keys that clear the rating. */
 const CLEAR_KEYS: ReadonlySet<string> = new Set([UIT.Key.backspace, UIT.Key.delete])
@@ -463,6 +462,3 @@ const ARROW_STEPS: Readonly<Record<string, number>> = {
   [UIT.Key.arrowLeft]: -1,
   [UIT.Key.arrowRight]: 1
 }
-
-/** A right-to-left `direction`. */
-const RTL = "rtl"

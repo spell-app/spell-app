@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { orVocabulary } from "./UIOr.vocabulary.en"
+import { orVocabulary } from "./UIOr.en"
 
 import buttonCSS from "./UIButton.css?inline"
 

@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { placeholderVocabulary } from "./UIPlaceholder.vocabulary.en"
+import { placeholderVocabulary } from "./UIPlaceholder.en"
 
 import placeholderCSS from "./UIPlaceholder.css?inline"
 
@@ -22,7 +22,7 @@ export class UIPlaceholder extends E.UIComponent<typeof placeholderVocabulary> {
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.domElement.internals.ariaHidden = UIT.TRUE
+    this.domElement.internals.ariaHidden = "true"
   }
 
   /** A placeholder:  always (`:state(placeholder)`). */

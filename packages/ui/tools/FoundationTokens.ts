@@ -11,7 +11,7 @@ import type { SiteFoundationGroup, SiteToken, SiteTokenType } from "../src/docs-
  * tables (`<ui-docs-tokens global>`, `yarn site:data`).
  * - Read from the GENERATED sheets (`tokens.css`, `colors.css`, `sizes.css`):  every `:root` declaration in
  *   `@layer ui.tokens`, in sheet order, so the table can't drift from what ships.  Not from
- *   `styles.vocabulary.en.ts`:  that's the generator's INPUT, and names / values come out of `StyleGenerator`.
+ *   `styles.en.ts`:  that's the generator's INPUT, and names / values come out of `StyleGenerator`.
  * - The generated sheets carry no comments, so each group's `RULES` say what a token is, by its name.
  * - Left out:  `--ui-sheet-*` (load flags), and anything nested (`@media`, the guarded `:host` copy).
  * - A name no rule matches lands in `other`, so nothing new goes missing silently.

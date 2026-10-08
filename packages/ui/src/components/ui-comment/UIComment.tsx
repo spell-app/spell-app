@@ -1,8 +1,8 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
-import { commentVocabulary } from "./UIComment.vocabulary.en"
+import { E } from "$/ui/core"
+import { commentVocabulary } from "./UIComment.en"
 
 import commentCSS from "./UIComment.css?inline"
 
@@ -50,7 +50,7 @@ export class UIComment extends E.UIComponent<typeof commentVocabulary> {
       <article
         class={this.rootClasses}
         part={this.partForName("comment")}
-        aria-disabled={this.disabled ? UIT.TRUE : undefined}
+        aria-disabled={this.disabled ? "true" : undefined}
       >
         <slot />
         <Show when={this.slots.hasContent(this.slotForName("reply"))}>

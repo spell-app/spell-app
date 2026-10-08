@@ -8,12 +8,11 @@ import {
   SlotContent,
   state,
   UIComponent,
-  UIT,
   type AttributeName,
   type ElementSetup
 } from "$/ui/core"
 
-import { brandFieldVocabulary } from "./UIBrandField.vocabulary.en"
+import { brandFieldVocabulary } from "./UIBrandField.en"
 
 import fieldCSS from "./UIBrandField.css?inline"
 
@@ -236,10 +235,10 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
       const ownName = NAMED_ATTRIBUTES.some((name) => control.hasAttribute(name)) && !this.named.has(control)
       if (ownName) continue
       if (label) {
-        control.setAttribute(UIT.ARIA_LABEL, label)
+        control.setAttribute("aria-label", label)
         this.named.add(control)
       } else if (this.named.has(control)) {
-        control.removeAttribute(UIT.ARIA_LABEL)
+        control.removeAttribute("aria-label")
         this.named.delete(control)
       }
     }

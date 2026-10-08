@@ -2,7 +2,7 @@ import { For, Show, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { accordionVocabulary } from "./UIAccordion.vocabulary.en"
+import { accordionVocabulary } from "./UIAccordion.en"
 import { AccordionPanels } from "./AccordionPanels"
 
 import accordionCSS from "./UIAccordion.css?inline"
@@ -159,7 +159,7 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
    *   would.
    */
   private onTitleClick(index: number, event: MouseEvent) {
-    if (UIT.TitleControls.isClicked(event, SUMMARY)) return
+    if (UIT.TitleControls.isClicked(event, "summary")) return
     event.preventDefault()
     this.toggle(index, event)
   }
@@ -331,7 +331,7 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
         </summary>
         <div class={open() ? ACTIVE_CONTENT : UIT.CONTENT} part={this.partForName("content")}>
           <Show when={source() && this.bodyFailureText}>
-            <p class={SOURCE_ERROR} part={this.partForName("error")} role={UIT.ALERT}>
+            <p class={SOURCE_ERROR} part={this.partForName("error")} role="alert">
               {this.bodyFailureText}
             </p>
           </Show>
@@ -354,7 +354,7 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   ): JSX.Element {
     if (!isServer) return <slot ref={(slot: HTMLSlotElement) => slot.assign(child)} />
     const name = `${part}-${untrack(index)}`
-    child.setAttribute(SLOT_ATTRIBUTE, name)
+    child.setAttribute("slot", name)
     return <slot name={name} />
   }
 
@@ -384,7 +384,7 @@ type AccordionDetailParams = {
   originalEvent?: Event
 }
 
-/** Noun a title child is defined with (`ui-parts/UITitle.vocabulary.en.ts`:  another family, not imported). */
+/** Noun a title child is defined with (`ui-parts/UITitle.en.ts`:  another family, not imported). */
 const TITLE_NOUN = "title"
 
 /** Tag of the content child a `source` accordion makes when its title has none (`ui-parts`). */
@@ -393,14 +393,8 @@ const CONTENT_TAG = "ui-content"
 /** Leading `ui` of the class string, dropped when nested. */
 const UI_WORD = /^ui /
 
-/** A panel's title element, where a click stops counting as one on a control inside it (`UIT.TitleControls`). */
-const SUMMARY = "summary"
-
 /** This accordion's own titles, for arrow-key moves. */
 const TITLE_SELECTOR = ":scope > details > summary"
-
-/** Slot assignment by name, in a server render (`panelSlot()`). */
-const SLOT_ATTRIBUTE = "slot"
 
 /** Index of the panel a `source` body fills:  the first. */
 const SOURCE_PANEL = 0

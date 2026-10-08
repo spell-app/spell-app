@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
-import type { DOMFormControlElement } from "$/ui/elements"
+import type { DOMFormControl } from "$/ui/elements"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -17,7 +17,7 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-slider/examples/el
 })
 
 /** A slider DOM element with its properties. */
-type Slider = DOMFormControlElement & {
+type Slider = DOMFormControl & {
   value: number | undefined
   end: number | undefined
   stepLabels: unknown

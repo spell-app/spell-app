@@ -1,5 +1,5 @@
 import { E } from "$/ui/core"
-import { valueVocabulary } from "./UIValue.vocabulary.en"
+import { valueVocabulary } from "./UIValue.en"
 
 /****************
  * ### `UIValue`

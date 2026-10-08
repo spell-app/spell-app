@@ -2,7 +2,7 @@
 
 How a component's attributes become Fomantic's class string inside its shadow root.
 Implemented by `ClassBuilder` (`src/elements/ClassBuilder.ts`), driven by the component's vocabulary
-(`UI<Name>.vocabulary.en.ts`, schema in `src/vocabulary/vocabulary.types.ts`).
+(`UI<Name>.en.ts`, schema in `src/vocabulary/vocabulary.types.ts`).
 
 ## Why keep the grammar
 

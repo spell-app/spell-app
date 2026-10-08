@@ -1,18 +1,8 @@
 /**
- * Constants of the `ui-button` family, and `DOMElementClick`:  what the component and its native fallback share.
+ * What the `ui-button` family's component and its native fallback share:  `DOMElementClick`.
  * - No element code, so every file of the family may import it.
  * - A constant only `UIButton` reads sits below that class instead.
  */
-
-////////////////
-// ## Types
-////////////////
-
-/** The `type` of `<ui-button>`'s inner `<button>` in a browser, and the default of its own `type`. */
-export const DEFAULT_TYPE = "button"
-
-/** The `reset` button `type`:  it resets the button's form (`UIT.SUBMIT` submits it). */
-export const RESET = "reset"
 
 ////////////////
 // ## Clicking the DOM element

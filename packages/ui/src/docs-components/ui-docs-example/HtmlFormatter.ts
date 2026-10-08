@@ -181,7 +181,7 @@ export class HtmlFormatter {
       .replace(/ (\/?>)$/, "$1")
       .replace(/(\s)([\w:-]+)=""/g, "$1$2")
       .replace(/(\s)([\w:-]+)="true"/g, (whole, space: string, name: string) =>
-        name.startsWith(ARIA_PREFIX) || ENUMERATED_TRUE.has(name) ? whole : space + name
+        name.startsWith("aria-") || ENUMERATED_TRUE.has(name) ? whole : space + name
       )
   }
 }
@@ -209,9 +209,6 @@ type HtmlElementNode = {
   /** verbatim content of a raw-text element (`<pre>`, `<script>` ...) */
   raw?: string
 }
-
-/** Attribute prefix whose `"true"` is a value, never a boolean presence. */
-const ARIA_PREFIX = "aria-"
 
 /** Attributes whose `"true"` is an enumerated VALUE, not a boolean presence. */
 const ENUMERATED_TRUE = new Set(["contenteditable", "draggable", "spellcheck", "translate", "autocapitalize"])

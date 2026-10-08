@@ -29,14 +29,7 @@ export class RovingTabindex {
   /** removes the container's listeners */
   private readonly listeners = new AbortController()
 
-  constructor({
-    container,
-    items,
-    orientation = UIT.VERTICAL,
-    wrap = true,
-    activeIndex,
-    onChange
-  }: RovingTabindexProps) {
+  constructor({ container, items, orientation = "vertical", wrap = true, activeIndex, onChange }: RovingTabindexProps) {
     this.container = container
     this.source = items
     this.orientation = orientation
@@ -79,9 +72,7 @@ export class RovingTabindex {
   refresh() {
     const items = this.items
     if (this._activeIndex >= items.length) this._activeIndex = Math.max(0, items.length - 1)
-    items.forEach((item, index) =>
-      item.setAttribute(UIT.TABINDEX, index === this._activeIndex ? TAB_STOP : NOT_TAB_STOP)
-    )
+    items.forEach((item, index) => item.setAttribute("tabindex", index === this._activeIndex ? "0" : "-1"))
   }
 
   /** Stop listening.  Leaves `tabindex`es as they are. */
@@ -113,8 +104,8 @@ export class RovingTabindex {
   /** Where `key` moves from `from`, or `undefined` if it isn't a navigation key for this orientation. */
   private targetIndex(key: string, from: number, items: HTMLElement[]): number | undefined {
     const rtl = getComputedStyle(this.container).direction === "rtl"
-    const horizontal = this.orientation !== UIT.VERTICAL
-    const vertical = this.orientation !== UIT.HORIZONTAL
+    const horizontal = this.orientation !== "vertical"
+    const vertical = this.orientation !== "horizontal"
     let step = 0
     if (vertical && key === UIT.Key.arrowDown) step = 1
     else if (vertical && key === UIT.Key.arrowUp) step = -1
@@ -155,7 +146,7 @@ export class RovingTabindex {
 
   /** Can focus land on `item`? */
   private isEnabled(item: HTMLElement): boolean {
-    return !item.hidden && !item.matches(":disabled") && item.getAttribute("aria-disabled") !== UIT.TRUE
+    return !item.hidden && !item.matches(":disabled") && item.getAttribute("aria-disabled") !== "true"
   }
 
   /** Make `index` the tab stop and tell `onChange`. */
@@ -169,7 +160,7 @@ export class RovingTabindex {
   /** Starting tab stop:  an item already marked current, else the first. */
   private initialIndex(): number {
     const marked = this.items.findIndex(
-      (item) => item.getAttribute(UIT.TABINDEX) === TAB_STOP || item.getAttribute("aria-selected") === UIT.TRUE
+      (item) => item.getAttribute("tabindex") === "0" || item.getAttribute("aria-selected") === "true"
     )
     return Math.max(0, marked)
   }
@@ -196,9 +187,3 @@ export type RovingTabindexProps = Prettify<
     items: RovingItems
   }
 >
-
-/** `tabindex` of the item that is the group's tab stop. */
-const TAB_STOP = "0"
-
-/** `tabindex` of every other item:  focusable by script, skipped by Tab. */
-const NOT_TAB_STOP = "-1"

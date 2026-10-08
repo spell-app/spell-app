@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { iconsVocabulary } from "./UIIcons.vocabulary.en"
+import { iconsVocabulary } from "./UIIcons.en"
 import { IconLabels } from "./UIIcon.types"
 
 import iconCSS from "./UIIcon.css?inline"

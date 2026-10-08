@@ -1,5 +1,5 @@
-import { E, UIT } from "$/ui/core"
-import { sliderVocabulary } from "./UISlider.vocabulary.en"
+import { E } from "$/ui/core"
+import { sliderVocabulary } from "./UISlider.en"
 import { DEFAULT_MAX, DEFAULT_MIN, DEFAULT_STEP } from "./UISlider.types"
 
 /****************
@@ -37,15 +37,15 @@ export class SliderFallback extends E.NativeFallback<typeof sliderVocabulary> {
     const starts = [domElement.value ?? this.number("value", min), domElement.end ?? this.number("end", max)]
     for (let index = 0; index < (isRange ? 2 : 1); index++) {
       const input = this.create("input", {
-        type: RANGE,
+        type: "range",
         min: String(min),
         max: String(max),
-        step: String(this.number("step", DEFAULT_STEP) || ANY),
+        step: String(this.number("step", DEFAULT_STEP) || "any"),
         disabled: this.flag("disabled"),
-        "aria-readonly": this.flag("readonly") ? UIT.TRUE : undefined
+        "aria-readonly": this.flag("readonly") ? "true" : undefined
       })
       this.decorate(input, "thumb")
-      if (isRange) input.setAttribute(UIT.ARIA_LABEL, THUMB_NAMES[index]!)
+      if (isRange) input.setAttribute("aria-label", THUMB_NAMES[index]!)
       input.value = String(starts[index])
       this.listen(input, "input", (event) => this.changed(event, "ui-input"))
       this.listen(input, "change", (event) => this.changed(event, "ui-change"))
@@ -112,12 +112,6 @@ type SliderDOMElement = HTMLElement & {
 
 /** The root's part. */
 const ROOT_PART = "slider"
-
-/** The `type` of each native thumb. */
-const RANGE = "range"
-
-/** The `step` of a slider whose step is `0`:  any value. */
-const ANY = "any"
 
 /** A range's thumb names, in English:  a failed render can't count on the runtime's translations. */
 const THUMB_NAMES = (["sliderMinimum", "sliderMaximum"] as const).map(

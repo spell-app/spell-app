@@ -1,7 +1,7 @@
 /**
  * Every name `<ui-buttons>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states,
  * texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
- * - The family's grammar notes are in `UIButton.vocabulary.en.ts`.
+ * - The family's grammar notes are in `UIButton.en.ts`.
  */
 
 import type { E } from "$/ui/core"

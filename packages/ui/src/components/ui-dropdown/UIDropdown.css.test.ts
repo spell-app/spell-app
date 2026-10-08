@@ -6,7 +6,7 @@ import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
 import { Fixture } from "$/ui/test/Fixture"
 
-import { dropdownVocabulary } from "./UIDropdown.vocabulary.en"
+import { dropdownVocabulary } from "./UIDropdown.en"
 
 import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 import dropdownCSS from "./UIDropdown.css?inline"

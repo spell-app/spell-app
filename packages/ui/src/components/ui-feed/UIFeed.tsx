@@ -1,7 +1,7 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
-import { feedVocabulary } from "./UIFeed.vocabulary.en"
+import { E } from "$/ui/core"
+import { feedVocabulary } from "./UIFeed.en"
 
 import feedCSS from "./UIFeed.css?inline"
 
@@ -29,10 +29,10 @@ export class UIFeed extends E.UIComponent<typeof feedVocabulary> {
   render(): JSX.Element {
     return (
       <Dynamic
-        component={this.ordered ? UIT.OL : UIT.UL}
+        component={this.ordered ? "ol" : "ul"}
         class={this.rootClasses}
         part={this.partForName("feed")}
-        role={UIT.LIST}
+        role="list"
       >
         <slot />
       </Dynamic>

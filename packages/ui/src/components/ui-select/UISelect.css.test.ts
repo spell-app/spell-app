@@ -9,7 +9,7 @@ import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { selectVocabulary } from "./UISelect.vocabulary.en"
+import { selectVocabulary } from "./UISelect.en"
 
 import selectCSS from "./UISelect.css?inline"
 import selectRaw from "./UISelect.css?raw"

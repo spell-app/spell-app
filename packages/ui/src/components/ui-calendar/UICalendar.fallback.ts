@@ -1,5 +1,5 @@
 import { E, UIT } from "$/ui/core"
-import { calendarVocabulary } from "./UICalendar.vocabulary.en"
+import { calendarVocabulary } from "./UICalendar.en"
 import { DEFAULT_TYPE, type Vocabulary } from "./UICalendar.types"
 
 /****************
@@ -49,7 +49,7 @@ export class CalendarFallback extends E.NativeFallback<Vocabulary> {
     })
     this.decorate(control, "control")
     const placeholder = this.attr("placeholder")
-    if (!control.hasAttribute(UIT.ARIA_LABEL) && placeholder) control.setAttribute(UIT.ARIA_LABEL, placeholder)
+    if (!control.hasAttribute("aria-label") && placeholder) control.setAttribute("aria-label", placeholder)
     const value = domElement.value ?? this.attr("value")
     if (value) control.value = String(value)
     const box = this.create("div", { class: INPUT_CLASS, part: INPUT_PART }, control)

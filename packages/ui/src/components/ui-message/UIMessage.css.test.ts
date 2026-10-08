@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { messageVocabulary } from "./UIMessage.vocabulary.en"
+import { messageVocabulary } from "./UIMessage.en"
 
 import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
 import messageCSS from "./UIMessage.css?inline"

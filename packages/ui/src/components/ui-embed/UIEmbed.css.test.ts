@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { embedVocabulary } from "./UIEmbed.vocabulary.en"
+import { embedVocabulary } from "./UIEmbed.en"
 
 import embedCSS from "./UIEmbed.css?inline"
 import embedRaw from "./UIEmbed.css?raw"

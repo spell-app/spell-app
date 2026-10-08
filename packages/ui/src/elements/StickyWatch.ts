@@ -143,8 +143,8 @@ export class StickyWatch {
       if (watch.stuckTo === "top") top = Math.max(top, rect.bottom - area.top)
       else if (watch.stuckTo === "bottom") bottom = Math.max(bottom, area.bottom - rect.top)
     }
-    StickyWatch.setPadding(root, SCROLL_PADDING_TOP, top)
-    StickyWatch.setPadding(root, SCROLL_PADDING_BOTTOM, bottom)
+    StickyWatch.setPadding(root, "scroll-padding-top", top)
+    StickyWatch.setPadding(root, "scroll-padding-bottom", bottom)
   }
 
   /**
@@ -205,9 +205,3 @@ export class StickyWatch {
 
 /** What `reset()` reports:  not stuck, not bound. */
 const UNSTUCK = { edge: undefined, isBound: false } as const
-
-/** Inline property the watches reserve top room with. */
-const SCROLL_PADDING_TOP = "scroll-padding-top"
-
-/** Inline property the watches reserve bottom room with. */
-const SCROLL_PADDING_BOTTOM = "scroll-padding-bottom"

@@ -2,7 +2,7 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { avatarVocabulary } from "./UIAvatar.vocabulary.en"
+import { avatarVocabulary } from "./UIAvatar.en"
 
 /****************
  * ### `UIAvatar`

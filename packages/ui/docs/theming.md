@@ -23,7 +23,7 @@ Everything lives in `src/styles/`;  the design rationale is in `plan.md` ("CSS s
 | `media.css` | `@custom-media --ui-mobile` ... (build-time only) | -- |
 | `ui.css` | one `@import` entry of the page set, for pages without the runtime | -- |
 
-\* GENERATED from `styles.vocabulary.en.ts` by `yarn gen:styles` -- never edit them by hand.  The generated
+\* GENERATED from `styles.en.ts` by `yarn gen:styles` -- never edit them by hand.  The generated
 files are committed, so consumers need no build step;  `styles.test.ts` fails when they're stale.
 
 `$/ui/styles` exports each sheet as text (`tokensCSS` ...), plus `foundationCSS` (adoption order for the document

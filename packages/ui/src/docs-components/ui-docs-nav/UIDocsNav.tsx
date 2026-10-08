@@ -4,7 +4,7 @@ import { isServer, type JSX } from "@solidjs/web"
 import { E, UIT } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import type { DOMDocsSearchElement } from "$/ui/docs-components/ui-docs-search/UIDocsSearch"
-import { docsNavVocabulary } from "./UIDocsNav.vocabulary.en"
+import { docsNavVocabulary } from "./UIDocsNav.en"
 import { NavIndex } from "./NavIndex"
 import { NavPreferences } from "./NavPreferences"
 import {
@@ -410,7 +410,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
    *   replaces it ends with its own `transitionend` (or none:  `closeSoon()`).
    */
   private onTransitionEnd(event: TransitionEvent) {
-    if (event.propertyName !== FOLD_PROPERTY) return
+    if (event.propertyName !== "grid-template-rows") return
     const topic = (event.target as Element).getAttribute(DATA.fold)
     if (topic !== null) this.finishClosing(topic)
   }
@@ -487,7 +487,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
         {this.masthead()}
         <nav
           part={this.partForName("menu")}
-          aria-label={this.attributes[UIT.ARIA_LABEL] ?? this.translationForKey("navLabel")}
+          aria-label={this.attributes["aria-label"] ?? this.translationForKey("navLabel")}
         >
           {this.group({ group: "start", title: "getStarted", body: this.pages(TOP_PAGES) })}
           <Show when={this.favoriteRows.length}>
@@ -538,7 +538,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
             <For each={NavViews}>{(view) => this.viewButton(view)}</For>
           </ui-buttons>
         </div>
-        <span class={UIT.VISUALLY_HIDDEN} role={UIT.STATUS}>
+        <span class={UIT.VISUALLY_HIDDEN} role="status">
           {this.statusText}
         </span>
       </div>
@@ -559,7 +559,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
             type="button"
             class={BAND}
             data-nav-group={group}
-            aria-expanded={isOpen() ? UIT.TRUE : UIT.FALSE}
+            aria-expanded={isOpen() ? "true" : "false"}
             aria-controls={fold}
           >
             <span class={UIT.TITLE}>{this.translationForKey(title)}</span>
@@ -652,7 +652,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
             type="button"
             class={[BAND, TOPIC]}
             data-nav-topic={topic.id}
-            aria-expanded={isOpen() ? UIT.TRUE : UIT.FALSE}
+            aria-expanded={isOpen() ? "true" : "false"}
             aria-controls={isOpen() ? fold() : undefined}
           >
             <span class={UIT.TITLE}>{topic.title}</span>
@@ -695,7 +695,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
         <a
           class={UIT.ITEM}
           href={this.href(row.href)}
-          aria-current={isCurrent() ? UIT.PAGE : undefined}
+          aria-current={isCurrent() ? "page" : undefined}
           data-nav-link={row.tag}
           data-nav-current={isCurrent() ? "" : undefined}
         >
@@ -738,7 +738,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
         <a
           class={UIT.ITEM}
           href={this.href(page.file)}
-          aria-current={isCurrent() ? UIT.PAGE : undefined}
+          aria-current={isCurrent() ? "page" : undefined}
           data-nav-link={page.id}
           data-nav-current={isCurrent() ? "" : undefined}
         >
@@ -867,9 +867,6 @@ const GROUP_FOLD_ID = "nav-group-"
 
 /** Id prefix of a topic's fold, + the topic's index. */
 const TOPIC_FOLD_ID = "nav-topic-"
-
-/** The property a fold eases (the sheet's `grid-template-rows`):  its `transitionend` ends `finishClosing()`. */
-const FOLD_PROPERTY = "grid-template-rows"
 
 /** `overflow-y` values that make a box a scroll container. */
 const SCROLLING: ReadonlySet<string> = new Set(["auto", "scroll"])

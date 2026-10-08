@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { calendarVocabulary } from "./UICalendar.vocabulary.en"
+import { calendarVocabulary } from "./UICalendar.en"
 
 import inputCSS from "$/ui/components/ui-input/UIInput.css?inline"
 import segmentCSS from "$/ui/components/ui-segment/UISegment.css?inline"

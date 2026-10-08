@@ -17,7 +17,7 @@ import {
   type DocsThemesText,
   type DocsThemesVocabulary
 } from "./UIDocsThemes.types"
-import { docsThemesVocabulary } from "./UIDocsThemes.vocabulary.en"
+import { docsThemesVocabulary } from "./UIDocsThemes.en"
 
 import themesCSS from "./UIDocsThemes.css?inline"
 
@@ -231,7 +231,7 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
         >
           <For each={ShownSchemes}>
             {(scheme) => (
-              <span class={[scheme, GLYPH_CLASS]} aria-hidden={UIT.TRUE}>
+              <span class={[scheme, GLYPH_CLASS]} aria-hidden="true">
                 <ui-icon name={SCHEME_ICONS[scheme]} fitted="" />
               </span>
             )}
@@ -256,7 +256,7 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
           part={this.partForName("palette")}
           aria-label={label()}
         >
-          <span class={GLYPH_CLASS} aria-hidden={UIT.TRUE}>
+          <span class={GLYPH_CLASS} aria-hidden="true">
             <ui-icon name={PALETTE_ICON} fitted="" />
           </span>
         </button>
@@ -282,20 +282,20 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
             >
               <For each={this.themeMenu.entries}>{(entry) => this.entry(entry)}</For>
             </div>
-            <div class={DIVIDER_CLASS} role={UIT.SEPARATOR} />
+            <div class={DIVIDER_CLASS} role="separator" />
             <button
               type="button"
               class={SYSTEM_CLASS}
               part={this.partForName("system")}
               role={MENU_ROLES.switch}
-              aria-checked={this.followsSystem ? UIT.TRUE : UIT.FALSE}
+              aria-checked={this.followsSystem ? "true" : "false"}
               onClick={(event) => this.chooseScheme(this.followsSystem ? "shown" : "system", event)}
             >
               <span class={UIT.LABEL}>
                 <span class={NAME_CLASS}>{this.translationForKey("matchSystem")}</span>
                 <span class={UIT.DESCRIPTION}>{this.translationForKey("matchSystemDescription")}</span>
               </span>
-              <span class={TRACK_CLASS} aria-hidden={UIT.TRUE} />
+              <span class={TRACK_CLASS} aria-hidden="true" />
             </button>
           </div>
         </ui-popup>
@@ -317,7 +317,7 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
   private entry(entry: E.MenuEntry): JSX.Element {
     if ("type" in entry) {
       return entry.type === "divider" ? (
-        <div class={DIVIDER_CLASS} role={UIT.SEPARATOR} />
+        <div class={DIVIDER_CLASS} role="separator" />
       ) : (
         <div class={UIT.HEADER}>{entry.text}</div>
       )
@@ -330,11 +330,11 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
         part={this.partForName("option")}
         role={MENU_ROLES.item}
         value={entry.value}
-        aria-checked={isChecked() ? UIT.TRUE : UIT.FALSE}
+        aria-checked={isChecked() ? "true" : "false"}
         tabindex={(this.tabStopTheme ?? this.chosenTheme) === entry.value ? 0 : -1}
         onClick={(event) => this.onOptionClick(entry.value, event)}
       >
-        <span class={CHECK_CLASS} aria-hidden={UIT.TRUE}>
+        <span class={CHECK_CLASS} aria-hidden="true">
           <ui-icon name={CHECK_ICON} fitted="" />
         </span>
         <span class={NAME_CLASS}>{entry.text}</span>

@@ -2,7 +2,7 @@ import { createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { formVocabulary } from "./UIForm.vocabulary.en"
+import { formVocabulary } from "./UIForm.en"
 import { FormFields } from "./FormFields"
 import type { DOMFieldElement } from "./UIField"
 import { ERROR, FIELD_SELECTOR, INFO, SUCCESS, WARNING, type Field } from "./UIForm.types"
@@ -236,15 +236,15 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
         this.findForm()
         const { domElement } = this
         for (const type of CHANGE_EVENTS) domElement.addEventListener(type, this.onChange)
-        domElement.addEventListener(FOCUS_OUT, this.onFocusOut)
-        window.addEventListener(BEFORE_UNLOAD, this.onBeforeUnload)
+        domElement.addEventListener("focusout", this.onFocusOut)
+        window.addEventListener("beforeunload", this.onBeforeUnload)
         queueMicrotask(() => this.saveValues())
         return () => {
           this.nativeForm = undefined
           observer.disconnect()
           for (const type of CHANGE_EVENTS) domElement.removeEventListener(type, this.onChange)
-          domElement.removeEventListener(FOCUS_OUT, this.onFocusOut)
-          window.removeEventListener(BEFORE_UNLOAD, this.onBeforeUnload)
+          domElement.removeEventListener("focusout", this.onFocusOut)
+          window.removeEventListener("beforeunload", this.onBeforeUnload)
         }
       }
     )
@@ -253,7 +253,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
 
   /** The native form:  one inside, else the one around. */
   private findForm() {
-    const form = this.domElement.querySelector(FORM) ?? this.domElement.parentElement?.closest(FORM) ?? undefined
+    const form = this.domElement.querySelector("form") ?? this.domElement.parentElement?.closest("form") ?? undefined
     if (form !== untrack(() => this.nativeForm)) this.nativeForm = form
   }
 
@@ -263,12 +263,12 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     if (!form) return undefined
     const noValidate = form.noValidate
     form.noValidate = true
-    form.addEventListener(UIT.SUBMIT, this.onSubmit, { capture: true })
-    form.addEventListener(RESET, this.onReset)
+    form.addEventListener("submit", this.onSubmit, { capture: true })
+    form.addEventListener("reset", this.onReset)
     return () => {
       form.noValidate = noValidate
-      form.removeEventListener(UIT.SUBMIT, this.onSubmit, { capture: true })
-      form.removeEventListener(RESET, this.onReset)
+      form.removeEventListener("submit", this.onSubmit, { capture: true })
+      form.removeEventListener("reset", this.onReset)
     }
   }
 
@@ -351,8 +351,8 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   private show({ field: { identifier, controls }, messages, values }: ShownField) {
     UIForm.fieldElementFor(controls)?.showErrors?.(messages)
     for (const control of controls) {
-      if (messages.length) control.setAttribute(UIT.ARIA_INVALID, UIT.TRUE)
-      else if (control.getAttribute(UIT.ARIA_INVALID) === UIT.TRUE) control.removeAttribute(UIT.ARIA_INVALID)
+      if (messages.length) control.setAttribute("aria-invalid", "true")
+      else if (control.getAttribute("aria-invalid") === "true") control.removeAttribute("aria-invalid")
     }
     if (messages.length) this.fieldsShowingErrors.add(identifier)
     else this.fieldsShowingErrors.delete(identifier)
@@ -372,7 +372,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
       const field = this.fields.field(identifier)
       if (!field) continue
       UIForm.fieldElementFor(field.controls)?.showErrors?.([])
-      for (const control of field.controls) control.removeAttribute(UIT.ARIA_INVALID)
+      for (const control of field.controls) control.removeAttribute("aria-invalid")
     }
     this.fieldsShowingErrors.clear()
     this.lastCheckFailed = false
@@ -473,7 +473,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
    */
   private static unwrapForm(domElement: Element): Record<string, string> | undefined {
     const [form, ...others] = domElement.children
-    if (!form || others.length || form.localName !== FORM) return undefined
+    if (!form || others.length || form.localName !== "form") return undefined
     const attributes = Object.fromEntries([...form.attributes].map(({ name, value }) => [name, value]))
     form.replaceWith(...form.childNodes)
     return attributes
@@ -538,15 +538,3 @@ type ShownField = {
 
 /** Events that mean "a control changed":  native ones from light-DOM controls, `ui-*` ones from elements. */
 const CHANGE_EVENTS = ["change", "input", "ui-change"] as const
-
-/** A control lost focus (bubbles, unlike `blur`). */
-const FOCUS_OUT = "focusout"
-
-/** The native form was reset. */
-const RESET = "reset"
-
-/** The page is about to unload, for `prevent-leaving`. */
-const BEFORE_UNLOAD = "beforeunload"
-
-/** A native form's tag. */
-const FORM = "form"

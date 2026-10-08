@@ -5,7 +5,7 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { adVocabulary } from "./UIAd.vocabulary.en"
+import { adVocabulary } from "./UIAd.en"
 
 import adCSS from "./UIAd.css?inline"
 import adRaw from "./UIAd.css?raw"

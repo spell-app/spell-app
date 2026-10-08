@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { ratingVocabulary } from "./UIRating.vocabulary.en"
+import { ratingVocabulary } from "./UIRating.en"
 
 import ratingCSS from "./UIRating.css?inline"
 import ratingRaw from "./UIRating.css?raw"

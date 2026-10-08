@@ -3,7 +3,7 @@
  * - Data only:  nothing here runs.
  */
 
-import type { brandColorPickerVocabulary } from "./UIBrandColorPicker.vocabulary.en"
+import type { brandColorPickerVocabulary } from "./UIBrandColorPicker.en"
 
 /** `brandColorPickerVocabulary`'s type. */
 export type BrandColorPickerVocabulary = typeof brandColorPickerVocabulary

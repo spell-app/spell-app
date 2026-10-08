@@ -42,12 +42,12 @@ import {
   spacing,
   textAlphas,
   zIndices
-} from "./styles.vocabulary.en"
+} from "./styles.en"
 
 /****************
  * ### `StyleGenerator`
  * Writes the GENERATED foundation sheets -- `tokens.css`, `colors.css`, `sizes.css` -- from
- * `styles.vocabulary.en.ts`.
+ * `styles.en.ts`.
  * - Pure:  returns CSS text and touches no file system, so it runs both in node (`scripts/gen-styles.ts`,
  *   `yarn gen:styles`) and in the browser test that checks the committed sheets are current.
  * - Imports only its own folder (the vocabulary, `ColorContrast`, types) and `$/ui/util`'s `kebabCase`:  never the
@@ -613,7 +613,7 @@ type OnDeclarationsParams = {
 }
 
 /** First line of every generated sheet. */
-const BANNER = "/* GENERATED -- do not edit, run `yarn gen:styles` (source: styles.vocabulary.en.ts) */"
+const BANNER = "/* GENERATED -- do not edit, run `yarn gen:styles` (source: styles.en.ts) */"
 
 /** Foreground suffixes every colour gets:  on the colour, and on its `-inverted` variant. */
 const ON_SUFFIXES = ["-on", "-inverted-on"] as const

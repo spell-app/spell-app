@@ -121,13 +121,13 @@ export class I18n {
    * - Rotate by `firstDayOfWeek()` for calendar headers.
    */
   weekdays(style: NameStyle = "long", locale = this.locale): string[] {
-    const format = this.dateFormat({ weekday: style, timeZone: UTC }, locale)
+    const format = this.dateFormat({ weekday: style, timeZone: "UTC" }, locale)
     return Array.from({ length: 7 }, (_, day) => format.format(Date.UTC(SUNDAY_YEAR, 0, 1 + day)))
   }
 
   /** Month names, January first (index === `Date.getMonth()`). */
   months(style: NameStyle = "long", locale = this.locale): string[] {
-    const format = this.dateFormat({ month: style, timeZone: UTC }, locale)
+    const format = this.dateFormat({ month: style, timeZone: "UTC" }, locale)
     return Array.from({ length: 12 }, (_, month) => format.format(Date.UTC(SUNDAY_YEAR, month, 1)))
   }
 
@@ -227,9 +227,6 @@ export class I18n {
 
 /** The locale every lookup ends at, and the last resort for the page's own. */
 const ENGLISH = "en"
-
-/** Time zone the name lists format in, so no date shifts a day. */
-const UTC = "UTC"
 
 /** A year whose January 1st was a Sunday (2023), so day `n` of its January is weekday `n`. */
 const SUNDAY_YEAR = 2023

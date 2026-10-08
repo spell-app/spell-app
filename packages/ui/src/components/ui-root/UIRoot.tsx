@@ -1,7 +1,7 @@
 import { Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { E, UI, UIT } from "$/ui/core"
+import { E, UI } from "$/ui/core"
 import { LoaderMessage, type RootLoading } from "./LoaderMessage"
 import { PlaceholderSkeleton, type RootSkeletonRenderer } from "./PlaceholderSkeleton"
 import { RootBox } from "./RootBox"
@@ -13,7 +13,7 @@ import {
   type RootSkeleton,
   type RootVocabulary
 } from "./UIRoot.types"
-import { rootVocabulary } from "./UIRoot.vocabulary.en"
+import { rootVocabulary } from "./UIRoot.en"
 
 import rootCSS from "./UIRoot.css?inline"
 
@@ -227,8 +227,8 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
       <div
         part={this.partForName("scroller")}
         tabindex="0"
-        role={UIT.REGION}
-        aria-label={this.attributes[UIT.ARIA_LABEL] ?? this.runtimeText("label")}
+        role="region"
+        aria-label={this.attributes["aria-label"] ?? this.runtimeText("label")}
       >
         {slot}
       </div>

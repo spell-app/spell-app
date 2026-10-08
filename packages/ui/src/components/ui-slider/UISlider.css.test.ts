@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { sliderVocabulary } from "./UISlider.vocabulary.en"
+import { sliderVocabulary } from "./UISlider.en"
 
 import sliderCSS from "./UISlider.css?inline"
 import sliderRaw from "./UISlider.css?raw"

@@ -6,9 +6,9 @@ import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 import { Viewport } from "$/ui/test/Viewport"
 
-import { gridVocabulary } from "./UIGrid.vocabulary.en"
-import { columnVocabulary } from "./UIColumn.vocabulary.en"
-import { rowVocabulary } from "./UIRow.vocabulary.en"
+import { gridVocabulary } from "./UIGrid.en"
+import { columnVocabulary } from "./UIColumn.en"
+import { rowVocabulary } from "./UIRow.en"
 
 import gridCSS from "./UIGrid.css?inline"
 import gridRaw from "./UIGrid.css?raw"

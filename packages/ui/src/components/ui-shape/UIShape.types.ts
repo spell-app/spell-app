@@ -4,7 +4,7 @@
  * - A constant only one class reads sits below that class (epic `wwod-spell-ui`, Q18).
  */
 
-import type { shapeVocabulary } from "./UIShape.vocabulary.en"
+import type { shapeVocabulary } from "./UIShape.en"
 
 ////////////////
 // ## Vocabulary

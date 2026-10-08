@@ -2,8 +2,8 @@ import { For, Show, flush, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { tabsVocabulary } from "./UITabs.vocabulary.en"
-import { tabVocabulary } from "./UITab.vocabulary.en"
+import { tabsVocabulary } from "./UITabs.en"
+import { tabVocabulary } from "./UITab.en"
 import { UITab } from "./UITab"
 import { MENU, type TabOwner, type TabPaneState } from "./UITab.types"
 
@@ -314,7 +314,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     this.rovingTabindex = UI.focus.roving({
       container: bar,
       items: () => this.buttons(),
-      orientation: untrack(() => this.vertical) ? UIT.VERTICAL : UIT.HORIZONTAL,
+      orientation: untrack(() => this.vertical) ? "vertical" : "horizontal",
       activeIndex: Math.max(
         0,
         untrack(() => this.selectedIndex)
@@ -343,7 +343,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   private onRovingChange(index: number) {
     const key = this.focusMovingKey
     // a click's focus also moves the roving stop:  only a key still being dispatched counts
-    if (!key || key.eventPhase === Event.NONE || untrack(() => this.activation) === UIT.MANUAL) return
+    if (!key || key.eventPhase === Event.NONE || untrack(() => this.activation) === "manual") return
     const pane = untrack(() => this.tabs)[index]
     if (pane) this.select(pane, key)
   }
@@ -397,9 +397,9 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
         ref={(element: HTMLElement) => this.attachBar(element)}
         class={this.menuClasses}
         part={this.partForName("menu")}
-        role={TABLIST}
-        aria-label={this.attributes[UIT.ARIA_LABEL] ?? undefined}
-        aria-orientation={this.vertical ? UIT.VERTICAL : undefined}
+        role="tablist"
+        aria-label={this.attributes["aria-label"] ?? undefined}
+        aria-orientation={this.vertical ? "vertical" : undefined}
         onFocusOut={this.onFocusOut}
       >
         <For each={this.tabs}>{(pane, index) => this.tab(pane, index)}</For>
@@ -427,11 +427,11 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
       <button
         ref={(button: HTMLButtonElement) => (button.ariaControlsElements = [pane])}
         type="button"
-        role={TAB}
+        role="tab"
         class={[isSelected() && UIT.ACTIVE, tab.disabled && UIT.DISABLED, UIT.ITEM].filter(Boolean).join(" ")}
         part={this.partForName("tab")}
-        aria-selected={isSelected() ? UIT.TRUE : UIT.FALSE}
-        aria-disabled={tab.disabled ? UIT.TRUE : undefined}
+        aria-selected={isSelected() ? "true" : "false"}
+        aria-disabled={tab.disabled ? "true" : undefined}
         aria-controls={isServer ? UI.ids.ensure(pane, PANE_ID) : undefined}
         onClick={(event: MouseEvent) => this.select(pane, event)}
       >
@@ -489,14 +489,8 @@ export interface UITabs extends E.AttributeValues<typeof tabsVocabulary> {}
 /** Where the tab list sits when `attached`. */
 type MenuEdge = typeof UIT.TOP | typeof UIT.BOTTOM
 
-/** A tab in the list:  its role and part. */
-const TAB = "tab"
-
-/** The role of the tab list. */
-const TABLIST = "tablist"
-
 /** The tab buttons in the tab list. */
-const TAB_SELECTOR = `:scope > [role=${TAB}]`
+const TAB_SELECTOR = ":scope > [role=tab]"
 
 /** Window events `history` follows. */
 const HISTORY_EVENTS = ["hashchange", "popstate"] as const

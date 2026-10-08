@@ -1,5 +1,5 @@
-import { E, UIT } from "$/ui/core"
-import { detailVocabulary } from "./UIDetail.vocabulary.en"
+import { E } from "$/ui/core"
+import { detailVocabulary } from "./UIDetail.en"
 
 /****************
  * ### `UIDetail`
@@ -13,7 +13,7 @@ export class UIDetail extends E.PartComponent<typeof detailVocabulary> {
   @E.proto static vocabulary = detailVocabulary
 
   protected get rootTag(): string {
-    return this.href ? UIT.ANCHOR_TAG : "span"
+    return this.href ? "a" : "span"
   }
 
   protected get rootHref(): string | undefined {

@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { progressVocabulary } from "./UIProgress.vocabulary.en"
+import { progressVocabulary } from "./UIProgress.en"
 
 import progressCSS from "./UIProgress.css?inline"
 import progressRaw from "./UIProgress.css?raw"

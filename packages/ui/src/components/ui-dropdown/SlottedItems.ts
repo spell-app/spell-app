@@ -2,7 +2,7 @@ import { onSettled } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { itemVocabulary } from "$/ui/components/ui-item/UIItem.vocabulary.en"
+import { itemVocabulary } from "$/ui/components/ui-item/UIItem.en"
 
 /****************
  * ### `SlottedItems`

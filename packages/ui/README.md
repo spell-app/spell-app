@@ -25,7 +25,7 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 
 - One element base:  `E.UIComponent` (a component per element, `render()` returning JSX);  `F.FormComponent` for a
   control with a value.
-- One vocabulary per tag (`UI<Name>.vocabulary.en.ts`):  every attribute, value, event, slot, part and text string
+- One vocabulary per tag (`UI<Name>.en.ts`):  every attribute, value, event, slot, part and text string
   the tag uses.  NEVER a string literal for one in a template.
 - One class grammar builder:  `E.ClassBuilder` (`ui small primary button`).
 - One home for constants several families share:  `UIT` (`src/components/components.types.ts`);  key names are
@@ -82,7 +82,7 @@ Read ONLY in `tools/environment.ts` (WWOD §11), by `tools/`, `scripts/` and the
 1. Make the folder, `src/components/ui-<name>/`, laid out like `ui-button/` (`AGENTS.md`, "Overview"):
    `UI<Name>.tsx`, `index.ts` (calls `define()`, re-exports the classes), `UI<Name>.css`, `UI<Name>.types.ts`,
    `UI<Name>.fallback.ts`, tests, `examples/*.html` (class grammar) and `examples/elements/*.html` (elements).
-2. Write one `UI<Name>.vocabulary.en.ts` per tag, `topics` (2+ ids from `ValueSets.topics`) and `aka` (other
+2. Write one `UI<Name>.en.ts` per tag, `topics` (2+ ids from `ValueSets.topics`) and `aka` (other
    libraries' names) included:  `src/components/ComponentDefinitions.test.ts` fails on a tag without them.
 3. Make it a lib entry:  `COMPONENTS` in `vite.config.ts`, plus `exports` and `sideEffects` in `package.json`;
    re-export it from `src/index.ts`.

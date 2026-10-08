@@ -2,7 +2,7 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { type ComponentVocabulary, type Dictionary, Vocabulary } from "$/ui/vocabulary"
 
-/** Cut-down card vocabulary, shaped like a real `UICard.vocabulary.en.ts`. */
+/** Cut-down card vocabulary, shaped like a real `UICard.en.ts`. */
 const CARD = {
   tag: "ui-card",
   noun: "card",

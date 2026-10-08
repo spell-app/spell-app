@@ -5,8 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { segmentsVocabulary } from "./UISegments.vocabulary.en"
-import { segmentVocabulary } from "./UISegment.vocabulary.en"
+import { segmentsVocabulary } from "./UISegments.en"
+import { segmentVocabulary } from "./UISegment.en"
 
 import segmentCSS from "./UISegment.css?inline"
 import segmentRaw from "./UISegment.css?raw"

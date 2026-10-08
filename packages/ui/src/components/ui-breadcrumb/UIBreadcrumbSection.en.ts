@@ -2,7 +2,7 @@
  * The English vocabulary of `<ui-breadcrumb-section>`:  every name the tag uses.
  * - Its tag, attributes (each with its kind and allowed values), events, slots, parts, states and texts.
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
- * - How the family's attributes become class words:  `UIBreadcrumb.vocabulary.en.ts`.
+ * - How the family's attributes become class words:  `UIBreadcrumb.en.ts`.
  */
 
 import type { E } from "$/ui/core"

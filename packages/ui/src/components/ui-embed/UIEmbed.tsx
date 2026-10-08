@@ -2,7 +2,7 @@ import { Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { embedVocabulary } from "./UIEmbed.vocabulary.en"
+import { embedVocabulary } from "./UIEmbed.en"
 import { EmbedSources } from "./EmbedSources"
 import type { EmbedParameters } from "./UIEmbed.types"
 
@@ -156,7 +156,7 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
               title={this.accessibleName}
               allow={ALLOW}
               allowfullscreen
-              referrerpolicy={REFERRER_POLICY}
+              referrerpolicy="strict-origin-when-cross-origin"
             />
           </div>
         </Show>
@@ -222,6 +222,3 @@ const FRAME_CLASS = "embed"
 
 /** What the frame may use (players ask for these). */
 const ALLOW = "accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
-
-/** The referrer the frame gets:  YouTube's player needs the origin. */
-const REFERRER_POLICY = "strict-origin-when-cross-origin"

@@ -5,7 +5,7 @@
 
 import type { Scale, Step } from "$/brand"
 
-import type { brandColorRangeVocabulary } from "./UIBrandColorRange.vocabulary.en"
+import type { brandColorRangeVocabulary } from "./UIBrandColorRange.en"
 
 /** `brandColorRangeVocabulary`'s type. */
 export type BrandColorRangeVocabulary = typeof brandColorRangeVocabulary

@@ -20,22 +20,22 @@ export type ComponentDefinition = {
 }
 
 /** Every English vocabulary module, by path.  Above the class:  `ComponentDefinitions.all` reads it at definition. */
-const VOCABULARY_MODULES = import.meta.glob<Record<string, unknown>>("./*/*.vocabulary.en.ts", { eager: true })
+const VOCABULARY_MODULES = import.meta.glob<Record<string, unknown>>("./*/*.en.ts", { eager: true })
 
 /** The doc-only elements' English vocabularies (`src/docs-components/ui-docs-<name>/`), by path. */
-const DOCS_VOCABULARY_MODULES = import.meta.glob<Record<string, unknown>>("../docs-components/*/*.vocabulary.en.ts", {
+const DOCS_VOCABULARY_MODULES = import.meta.glob<Record<string, unknown>>("../docs-components/*/*.en.ts", {
   eager: true
 })
 
 /**
  * A vocabulary module's folder:
- * - `./ui-button/UIOr.vocabulary.en.ts` => `ui-button`
- * - `../docs-components/ui-docs-example/UIDocsExample.vocabulary.en.ts` => `ui-docs-example`
+ * - `./ui-button/UIOr.en.ts` => `ui-button`
+ * - `../docs-components/ui-docs-example/UIDocsExample.en.ts` => `ui-docs-example`
  */
 const FOLDER = /^(?:\.\/|\.\.\/docs-components\/)([\w-]+)\//
 
 /**
- * Every component tag's definition, rolled up from each folder's vocabularies (`UI<Name>.vocabulary.en.ts`):
+ * Every component tag's definition, rolled up from each folder's vocabularies (`UI<Name>.en.ts`):
  * the topics and other names live IN the vocabulary (translatable, and live on the class as `UIButton.vocabulary`);
  * this only collects them.
  * - Reads the vocabulary MODULES (`import.meta.glob`, eager), never the families' `index.ts`, so nothing is defined
@@ -87,7 +87,7 @@ export class ComponentDefinitions {
     return words.charAt(0).toUpperCase() + words.slice(1)
   }
 
-  /** Every vocabulary object of every `UI<Name>.vocabulary.en.ts` in `modules`, with its folder. */
+  /** Every vocabulary object of every `UI<Name>.en.ts` in `modules`, with its folder. */
   private static collect(modules: Record<string, Record<string, unknown>>): ComponentDefinition[] {
     const definitions: ComponentDefinition[] = []
     for (const [path, module] of Object.entries(modules)) {

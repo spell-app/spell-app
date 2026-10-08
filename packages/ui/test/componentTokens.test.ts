@@ -17,7 +17,7 @@ import { ComponentTokens } from "$/ui/styles/ComponentTokens"
 const SHEETS = import.meta.glob<string>("/src/components/*/*.css", { query: "?raw", import: "default", eager: true })
 
 /** Every English vocabulary (the tags), by path. */
-const VOCABULARIES = import.meta.glob<string>("/src/components/*/*.vocabulary.en.ts", {
+const VOCABULARIES = import.meta.glob<string>("/src/components/*/*.en.ts", {
   query: "?raw",
   import: "default",
   eager: true

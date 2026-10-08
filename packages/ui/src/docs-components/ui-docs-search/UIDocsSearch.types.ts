@@ -4,7 +4,7 @@
  * - Data only:  nothing here runs.
  */
 
-import type { docsSearchVocabulary } from "./UIDocsSearch.vocabulary.en"
+import type { docsSearchVocabulary } from "./UIDocsSearch.en"
 
 /** `docsSearchVocabulary`'s type. */
 export type DocsSearchVocabulary = typeof docsSearchVocabulary

@@ -5,7 +5,7 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { loaderVocabulary } from "./UILoader.vocabulary.en"
+import { loaderVocabulary } from "./UILoader.en"
 
 import loaderCSS from "./UILoader.css?inline"
 import loaderRaw from "./UILoader.css?raw"

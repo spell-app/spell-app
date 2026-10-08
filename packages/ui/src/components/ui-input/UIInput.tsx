@@ -2,10 +2,10 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { inputVocabulary } from "./UIInput.vocabulary.en"
+import { inputVocabulary } from "./UIInput.en"
 import { InputFallback } from "./UIInput.fallback"
 import { TextControl } from "./TextControl"
-import { FILE, LABEL_CLASSES, type CommonAttributes, type LabelPlace, type Vocabulary } from "./UIInput.types"
+import { LABEL_CLASSES, type CommonAttributes, type LabelPlace, type Vocabulary } from "./UIInput.types"
 
 import labelCSS from "$/ui/components/ui-label/UILabel.css?inline"
 import inputCSS from "./UIInput.css?inline"
@@ -78,7 +78,7 @@ export class UIInput extends TextControl<Vocabulary> {
 
   /** `type="file"`? */
   get isFileInput(): boolean {
-    return this.type === FILE
+    return this.type === "file"
   }
 
   /** Files chosen in a `file` input. */
@@ -123,7 +123,7 @@ export class UIInput extends TextControl<Vocabulary> {
   }
 
   protected get extraClasses(): string | undefined {
-    const extra = [this.hasIconBox && this.iconPosition !== UIT.LEFT ? UIT.ICON : "", this.isFileInput ? FILE : ""]
+    const extra = [this.hasIconBox && this.iconPosition !== UIT.LEFT ? UIT.ICON : "", this.isFileInput ? "file" : ""]
     return extra.filter(Boolean).join(" ") || undefined
   }
 
@@ -161,7 +161,7 @@ export class UIInput extends TextControl<Vocabulary> {
           inputmode={this.inputmode}
           disabled={this.isDisabled}
           readonly={this.readonly}
-          aria-busy={this.loading ? UIT.TRUE : undefined}
+          aria-busy={this.loading ? "true" : undefined}
           {...this.constraints}
           {...this.controlAria}
           {...this.staticControl}
@@ -228,19 +228,13 @@ export class UIInput extends TextControl<Vocabulary> {
    */
   private static isSubmitter(element: Element): boolean {
     if (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) {
-      return element.type === UIT.SUBMIT && !element.disabled
+      return element.type === "submit" && !element.disabled
     }
-    return element.getAttribute(TYPE) === UIT.SUBMIT && !element.matches(DISABLED_PSEUDO)
+    return element.getAttribute("type") === "submit" && !element.matches(":disabled")
   }
 }
 /** The vocabulary getters, typed;  `TextControl` types the shared ones, and owns `value`. */
 export interface UIInput extends Omit<E.AttributeValues<Vocabulary>, keyof CommonAttributes | "value"> {}
-
-/** Attribute saying a `<ui-button>` submits (`type="submit"`). */
-const TYPE = "type"
-
-/** A disabled custom element (`:disabled` matches form-associated custom elements). */
-const DISABLED_PSEUDO = ":disabled"
 
 /** Class words of a `labeled="corner"` label (`UIInput.css`). */
 const CORNER_LABEL = "ui corner label"

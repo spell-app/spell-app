@@ -1,8 +1,8 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
-import { imageVocabulary } from "./UIImage.vocabulary.en"
+import { E } from "$/ui/core"
+import { imageVocabulary } from "./UIImage.en"
 
 import imageCSS from "./UIImage.css?inline"
 
@@ -39,7 +39,7 @@ export class UIImage extends E.UIComponent<typeof imageVocabulary> {
           class={this.rootClasses}
           part={this.partForName("image")}
           href={this.disabled ? undefined : this.href}
-          aria-disabled={this.disabled ? UIT.TRUE : undefined}
+          aria-disabled={this.disabled ? "true" : undefined}
         >
           {this.image("img")}
         </a>

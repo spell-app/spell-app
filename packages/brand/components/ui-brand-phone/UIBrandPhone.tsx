@@ -1,9 +1,9 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, UIComponent, UIT, type ElementSetup } from "$/ui/core"
+import { IconGlyph, proto, UIComponent, type ElementSetup } from "$/ui/core"
 
-import { brandPhoneVocabulary } from "./UIBrandPhone.vocabulary.en"
+import { brandPhoneVocabulary } from "./UIBrandPhone.en"
 
 import phoneCSS from "./UIBrandPhone.css?inline"
 
@@ -39,9 +39,9 @@ export class UIBrandPhone extends UIComponent<typeof brandPhoneVocabulary> {
         class={this.rootClasses}
         part={this.partForName("phone")}
         aria-label={this.name() || undefined}
-        aria-busy={this.attrs.dimmed ? UIT.TRUE : undefined}
+        aria-busy={this.attrs.dimmed ? "true" : undefined}
       >
-        <div class={CLASSES.status} part={this.partForName("status")} aria-hidden={UIT.TRUE}>
+        <div class={CLASSES.status} part={this.partForName("status")} aria-hidden="true">
           <span class={CLASSES.time} part={this.partForName("time")}>
             {this.attrs.time ?? DEFAULT_TIME}
           </span>

@@ -1,6 +1,6 @@
 import { E, UI, UIT } from "$/ui/core"
-import { toastVocabulary } from "./UIToast.vocabulary.en"
-import { ACTIONS, ATTACHED, FOCUS_WITHIN, INVERTED, UI_WORD, type Vocabulary } from "./UIToast.types"
+import { toastVocabulary } from "./UIToast.en"
+import { ACTIONS, ATTACHED, INVERTED, UI_WORD, VERTICAL, type Vocabulary } from "./UIToast.types"
 
 import containerCSS from "./UIToast.container.css?inline"
 
@@ -78,10 +78,10 @@ export class ToastStack implements E.ToastProvider {
       icon: options.showIcon === true ? "" : options.showIcon || undefined,
       progress: options.showProgress || undefined,
       "progress-up": options.progressUp ? "" : undefined,
-      "pause-on-hover": options.pauseOnHover === false ? UIT.FALSE : undefined,
+      "pause-on-hover": options.pauseOnHover === false ? "false" : undefined,
       closable: options.closeIcon ? "" : undefined,
-      "close-on-click": options.closeOnClick === false ? UIT.FALSE : undefined,
-      compact: options.compact === false ? UIT.FALSE : undefined,
+      "close-on-click": options.closeOnClick === false ? "false" : undefined,
+      compact: options.compact === false ? "false" : undefined,
       actions: options.actions?.length ? options.classActions : undefined,
       type: options.type
     }
@@ -116,7 +116,7 @@ export class ToastStack implements E.ToastProvider {
     }
     const buttonsElement = this.document.createElement(group.tag)
     buttonsElement.slot = ACTIONS
-    buttonsElement.setAttribute(words.includes(UIT.VERTICAL) ? UIT.VERTICAL : UIT.FLUID, "")
+    buttonsElement.setAttribute(words.includes(VERTICAL) ? VERTICAL : UIT.FLUID, "")
     buttonsElement.append(...buttons)
     return buttonsElement
   }
@@ -128,7 +128,7 @@ export class ToastStack implements E.ToastProvider {
    */
   private buttonFor(action: E.ToastAction): HTMLElement {
     const definition = ToastStack.definitionFor(UIT.BUTTON)
-    const button = this.document.createElement(definition?.tag ?? UIT.BUTTON)
+    const button = this.document.createElement(definition?.tag ?? "button")
     const words = (action.class ?? "").split(UIT.WHITESPACE).filter(Boolean)
     if (words.length) button.className = words.join(" ")
     const known = new Set(
@@ -140,10 +140,10 @@ export class ToastStack implements E.ToastProvider {
     }
     if (action.icon && definition) button.setAttribute(UIT.ICON, action.icon)
     if (action.text) button.textContent = action.text
-    else if (action.icon) button.setAttribute(UIT.ARIA_LABEL, action.icon)
+    else if (action.icon) button.setAttribute("aria-label", action.icon)
     const click = action.click
     if (click) {
-      button.addEventListener(UIT.CLICK, (event) => {
+      button.addEventListener("click", (event) => {
         if (click(event) === false) event.preventDefault()
       })
     }
@@ -172,16 +172,16 @@ export class ToastStack implements E.ToastProvider {
       E.Warnings.devWarn("UI.toast()", `unknown position "${position}";  using "${DEFAULT_POSITION}"`)
       position = DEFAULT_POSITION
     }
-    const key = options.horizontal ? `${position} ${UIT.HORIZONTAL}` : position
+    const key = options.horizontal ? `${position} horizontal` : position
     const existing = this.containers.get(key)
     if (existing?.isConnected) return existing
     if (!UI.styles.has(CONTAINER_SHEET)) UI.styles.register(CONTAINER_SHEET, containerCSS, { page: true })
-    const container = this.document.createElement(CONTAINER_TAG)
-    container.popover = UIT.MANUAL
-    const words = [UI_WORD, position, CONTAINER_CLASS, ...(options.horizontal ? [UIT.HORIZONTAL] : [])]
+    const container = this.document.createElement("div")
+    container.popover = "manual"
+    const words = [UI_WORD, position, CONTAINER_CLASS, ...(options.horizontal ? ["horizontal"] : [])]
     container.className = words.join(" ")
-    container.setAttribute(ROLE, REGION)
-    container.setAttribute(UIT.ARIA_LABEL, UI.i18n.t(NOTIFICATIONS))
+    container.setAttribute("role", "region")
+    container.setAttribute("aria-label", UI.i18n.t(NOTIFICATIONS))
     this.document.body.append(container)
     this.containers.set(key, container)
     return container
@@ -192,8 +192,8 @@ export class ToastStack implements E.ToastProvider {
    * - Static:  it touches only the container it's given.
    */
   private static raise(container: HTMLElement) {
-    const open = container.matches(UIT.POPOVER_OPEN)
-    if (open && container.matches(FOCUS_WITHIN)) return
+    const open = container.matches(":popover-open")
+    if (open && container.matches(":focus-within")) return
     if (open) container.hidePopover()
     container.showPopover()
   }
@@ -207,7 +207,7 @@ export class ToastStack implements E.ToastProvider {
     record.element.remove()
     record.settle()
     if (container && !container.children.length) {
-      if (container.matches(UIT.POPOVER_OPEN)) container.hidePopover()
+      if (container.matches(":popover-open")) container.hidePopover()
       container.remove()
       for (const [key, value] of this.containers) if (value === container) this.containers.delete(key)
     }
@@ -273,17 +273,8 @@ const GROUP_NOUN = "buttons"
 /** Page sheet of the containers (`UIToast.container.css`). */
 const CONTAINER_SHEET = "toast-container"
 
-/** Tag of a container. */
-const CONTAINER_TAG = "div"
-
 /** Class word of a container. */
 const CONTAINER_CLASS = "toast-container"
-
-/** Attribute that makes a container a landmark. */
-const ROLE = "role"
-
-/** A container's role:  a `region` landmark, named by the `notifications` text. */
-const REGION = "region"
 
 /** Text key of the containers' name. */
 const NOTIFICATIONS = "notifications"

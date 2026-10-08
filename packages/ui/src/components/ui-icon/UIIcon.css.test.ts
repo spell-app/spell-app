@@ -5,8 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { iconVocabulary } from "./UIIcon.vocabulary.en"
-import { iconsVocabulary } from "./UIIcons.vocabulary.en"
+import { iconVocabulary } from "./UIIcon.en"
+import { iconsVocabulary } from "./UIIcons.en"
 
 import iconCSS from "./UIIcon.css?inline"
 import iconRaw from "./UIIcon.css?raw"

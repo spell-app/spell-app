@@ -2,7 +2,7 @@ import { Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { nagVocabulary } from "./UINag.vocabulary.en"
+import { nagVocabulary } from "./UINag.en"
 import { DismissalStore } from "./DismissalStore"
 
 import nagCSS from "./UINag.css?inline"

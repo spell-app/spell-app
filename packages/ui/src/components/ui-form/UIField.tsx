@@ -2,7 +2,7 @@ import { For, Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { fieldVocabulary } from "./UIField.vocabulary.en"
+import { fieldVocabulary } from "./UIField.en"
 import { ERROR, INFO, SUCCESS, WARNING } from "./UIForm.types"
 
 import labelCSS from "$/ui/components/ui-label/UILabel.css?inline"
@@ -136,7 +136,7 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
       <div class={this.rootClasses} part={this.partForName("field")} inert={this.disabled}>
         <slot />
         <Show when={this.errors.length}>
-          <span class={this.inline ? INLINE_PROMPT : PROMPT} part={this.partForName("prompt")} role={UIT.ALERT}>
+          <span class={this.inline ? INLINE_PROMPT : PROMPT} part={this.partForName("prompt")} role="alert">
             <For each={this.errors}>{(message) => <span class={UIT.MESSAGE}>{message}</span>}</For>
           </span>
         </Show>

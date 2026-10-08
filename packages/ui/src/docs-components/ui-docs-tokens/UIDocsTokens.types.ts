@@ -6,7 +6,7 @@
  */
 
 import type { SiteToken } from "$/ui/docs-components/docs-components.types"
-import type { docsTokensVocabulary } from "./UIDocsTokens.vocabulary.en"
+import type { docsTokensVocabulary } from "./UIDocsTokens.en"
 
 ////////////////
 // ## Element

@@ -2,7 +2,7 @@ import { Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { dimmerVocabulary } from "./UIDimmer.vocabulary.en"
+import { dimmerVocabulary } from "./UIDimmer.en"
 
 import dimmerCSS from "./UIDimmer.css?inline"
 import dimmablePageCSS from "./UIDimmer.page.css?inline"
@@ -147,7 +147,7 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
           ref={(element) => (this.box = element)}
           class={this.rootClasses}
           part={this.partForName("dimmer")}
-          aria-label={this.attributes[UIT.ARIA_LABEL] ?? this.translationForKey("dimmedPage")}
+          aria-label={this.attributes["aria-label"] ?? this.translationForKey("dimmedPage")}
           onClick={this.onDimmerClick}
           onCancel={this.onCancel}
           onClose={this.onClose}
@@ -192,7 +192,7 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
   private show(kind: DimmerKind) {
     const box = this.box
     if (kind === "page" && box instanceof HTMLDialogElement) {
-      this.overlay.closeOnEscape = (untrack(() => this.closedby) ?? "any") !== UIT.NONE
+      this.overlay.closeOnEscape = (untrack(() => this.closedby) ?? "any") !== "none"
       if (!box.open) {
         box.showModal()
         UI.focus.enter(box)
@@ -257,7 +257,7 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
       parent.addEventListener("focusin", this.onParentFocusIn, options)
       parent.addEventListener("focusout", this.onParentFocusOut, options)
     } else {
-      parent.addEventListener(UIT.CLICK, this.onParentClick, options)
+      parent.addEventListener("click", this.onParentClick, options)
     }
     return () => {
       this.pointerIsOverParent = false
@@ -319,7 +319,7 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
    */
   private readonly onCancel = (event: Event) => {
     event.preventDefault()
-    if (this.isDismissing || (untrack(() => this.closedby) ?? "any") === UIT.NONE) return
+    if (this.isDismissing || (untrack(() => this.closedby) ?? "any") === "none") return
     this.requestClose("escape", event)
   }
 

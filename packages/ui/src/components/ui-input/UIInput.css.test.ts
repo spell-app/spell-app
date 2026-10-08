@@ -5,8 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/Fixture"
 import { Sheets } from "$/ui/test/Sheets"
 
-import { inputVocabulary } from "./UIInput.vocabulary.en"
-import { textareaVocabulary } from "./UITextarea.vocabulary.en"
+import { inputVocabulary } from "./UIInput.en"
+import { textareaVocabulary } from "./UITextarea.en"
 
 import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 import labelCSS from "$/ui/components/ui-label/UILabel.css?inline"

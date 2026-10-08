@@ -5,7 +5,7 @@
  * - A constant only `UISection` reads sits below that class, in `UISection.tsx`.
  */
 
-import type { sectionVocabulary } from "./UISection.vocabulary.en"
+import type { sectionVocabulary } from "./UISection.en"
 
 /** `<ui-section>`'s vocabulary type, for brevity (`<ui-panel>` reuses it). */
 export type SectionVocabulary = typeof sectionVocabulary

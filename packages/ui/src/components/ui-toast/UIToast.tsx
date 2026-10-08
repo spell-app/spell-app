@@ -2,8 +2,8 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { toastVocabulary } from "./UIToast.vocabulary.en"
-import { ACTIONS, ATTACHED, FOCUS_WITHIN, INVERTED, UI_WORD, type Vocabulary } from "./UIToast.types"
+import { toastVocabulary } from "./UIToast.en"
+import { ACTIONS, ATTACHED, INVERTED, UI_WORD, VERTICAL, type Vocabulary } from "./UIToast.types"
 
 import toastCSS from "./UIToast.css?inline"
 
@@ -107,7 +107,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
 
   /** Actions in a column beside the content (`vertical`). */
   get actionsAreVertical(): boolean {
-    return this.hasActions && this.actionWords.has(UIT.VERTICAL)
+    return this.hasActions && this.actionWords.has(VERTICAL)
   }
 
   ////////////////
@@ -118,7 +118,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   protected get extraClasses(): string | undefined {
     const words: string[] = []
     const actions = this.actionWords
-    if (this.actionsAreVertical) words.push(UIT.VERTICAL)
+    if (this.actionsAreVertical) words.push(VERTICAL)
     if (this.hasActions && !this.actionsAreAttached && (!actions.has(UIT.BASIC) || actions.has(UIT.LEFT))) {
       words.push(ACTIONS)
     }
@@ -144,7 +144,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   /** Classes of the wrapper of `vertical attached` actions. */
   @E.derived
   private get verticalClasses(): string {
-    return [UIT.VERTICAL, ATTACHED, ...(this.compact ? [COMPACT] : [])].join(" ")
+    return [VERTICAL, ATTACHED, ...(this.compact ? [COMPACT] : [])].join(" ")
   }
 
   /** Classes of the actions box:  its layout words, and `ui buttons` when attached (Fomantic's). */
@@ -227,11 +227,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   /** The toast itself:  icon, content (header, message, slot), close icon, inline actions. */
   private toast(): JSX.Element {
     return (
-      <div
-        class={this.rootClasses}
-        part={this.partForName("toast")}
-        role={this.type === ERROR ? UIT.ALERT : UIT.STATUS}
-      >
+      <div class={this.rootClasses} part={this.partForName("toast")} role={this.type === ERROR ? "alert" : "status"}>
         <Show when={this.iconName !== undefined}>
           <span class={ICON_BOX_CLASS} part={this.partForName("icon")}>
             {this.iconGlyph.svg}
@@ -388,7 +384,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   @E.derived
   get displayDuration(): number {
     const value = this.displayTime
-    if (value === UIT.AUTO) return this.readingTime
+    if (value === "auto") return this.readingTime
     const time = Number(value)
     return Number.isFinite(time) && time > 0 ? time : 0
   }
@@ -511,7 +507,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   /** Focus moved:  resume once it has really left (a move inside refocuses before the microtask). */
   private readonly onFocusOut = () => {
     queueMicrotask(() => {
-      this.focusIsInside = this.domElement.matches(FOCUS_WITHIN)
+      this.focusIsInside = this.domElement.matches(":focus-within")
       this.updatePause()
     })
   }

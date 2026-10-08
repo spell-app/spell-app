@@ -1,6 +1,6 @@
 import { NativeFallback, proto } from "$/ui/core"
 
-import { brandComposerVocabulary } from "./UIBrandComposer.vocabulary.en"
+import { brandComposerVocabulary } from "./UIBrandComposer.en"
 import { BRAND, DEFAULT_ROWS, ENTER } from "./UIBrandComposer.types"
 
 /****************

@@ -1,7 +1,7 @@
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { visibilityVocabulary } from "./UIVisibility.vocabulary.en"
+import { visibilityVocabulary } from "./UIVisibility.en"
 
 import visibilityCSS from "./UIVisibility.css?inline"
 
@@ -133,10 +133,10 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
    */
   private serverImages() {
     for (const image of this.domElement.querySelectorAll(LAZY_IMAGES)) {
-      image.setAttribute(SRC, image.getAttribute(DATA_SRC)!)
+      image.setAttribute("src", image.getAttribute(DATA_SRC)!)
       const srcset = image.getAttribute(DATA_SRCSET)
-      if (srcset) image.setAttribute(SRCSET, srcset)
-      if (!image.hasAttribute(LOADING)) image.setAttribute(LOADING, LAZY)
+      if (srcset) image.setAttribute("srcset", srcset)
+      if (!image.hasAttribute("loading")) image.setAttribute("loading", "lazy")
     }
   }
 
@@ -175,9 +175,6 @@ const FADE = "fade"
 /** Its default ms (Fomantic's 1000). */
 const DEFAULT_DURATION = 1000
 
-/** A lazy image's `srcset`, set from `data-srcset` in a server render. */
-const SRCSET = "srcset"
-
 /** The vocabulary type, for brevity. */
 type VisibilityVocabulary = typeof visibilityVocabulary
 
@@ -189,14 +186,3 @@ const DATA_SRCSET = "data-srcset"
 
 /** The lazy images inside `type="image"`. */
 const LAZY_IMAGES = "img[data-src]"
-
-/** Where `DATA_SRC` goes once the image may load. */
-const SRC = "src"
-
-/**
- * The image attribute the browser's own lazy loading reads:  set to `LAZY` where nothing observes (a server render).
- */
-const LOADING = "loading"
-
-/** `LOADING`'s value that defers the image until it's near the screen. */
-const LAZY = "lazy"

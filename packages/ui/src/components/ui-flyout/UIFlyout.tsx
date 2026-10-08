@@ -1,7 +1,7 @@
 import { E, UIT } from "$/ui/core"
 // Import the modal's FILE, not its barrel:  a server render loads this class without `customElements` (`index.ts`)
 import { DialogComponent } from "$/ui/components/ui-modal/DialogComponent"
-import { flyoutVocabulary } from "./UIFlyout.vocabulary.en"
+import { flyoutVocabulary } from "./UIFlyout.en"
 
 import flyoutCSS from "./UIFlyout.css?inline"
 

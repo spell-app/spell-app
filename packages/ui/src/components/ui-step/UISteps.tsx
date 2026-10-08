@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { stepsVocabulary } from "./UISteps.vocabulary.en"
+import { stepsVocabulary } from "./UISteps.en"
 
 import stepCSS from "./UIStep.css?inline"
 
@@ -59,7 +59,7 @@ export class UISteps extends E.UIComponent<typeof stepsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <ol class={this.rootClasses} part={this.partForName("steps")} role={UIT.LIST}>
+      <ol class={this.rootClasses} part={this.partForName("steps")} role="list">
         <slot />
       </ol>
     )

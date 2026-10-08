@@ -2,7 +2,7 @@ import { Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { popupVocabulary } from "./UIPopup.vocabulary.en"
+import { popupVocabulary } from "./UIPopup.en"
 
 import popupCSS from "./UIPopup.css?inline"
 import anchoredCSS from "./UIPopup.anchored.css?raw"
@@ -121,8 +121,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     const target = untrack(() => this.targetElement)
     const anchor = target ? UIPopup.anchorBoxFor(target) : undefined
     domElement.popover ||= this.popoverMode
-    domElement.style.setProperty(POSITION_ANCHOR, anchor === target ? this.anchorName : anchor ? UIT.AUTO : UIT.NONE)
-    if (!domElement.matches(UIT.POPOVER_OPEN)) {
+    domElement.style.setProperty("position-anchor", anchor === target ? this.anchorName : anchor ? "auto" : "none")
+    if (!domElement.matches(":popover-open")) {
       domElement.showPopover(anchor ? ({ source: anchor } as ShowPopoverOptions) : undefined)
     }
     this.overlay.anchor = target
@@ -133,7 +133,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   /** Hide the popover and leave `UI.overlays`. */
   private hide() {
     clearTimeout(this.delayTimer)
-    if (this.domElement.matches(UIT.POPOVER_OPEN)) this.domElement.hidePopover()
+    if (this.domElement.matches(":popover-open")) this.domElement.hidePopover()
     UI.overlays.close(this.overlay)
   }
 
@@ -223,7 +223,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     UI.ids.ensure(domElement, ID_PREFIX)
     const element = UIPopup.ariaTargetFor(target)
     const unrelate = UIPopup.addAriaRelation({ element, relation: isClick ? CONTROLS : DESCRIBED_BY, domElement })
-    if (isClick) element.setAttribute(ARIA_HASPOPUP, DIALOG_ROLE)
+    if (isClick) element.setAttribute("aria-haspopup", "dialog")
     this.ariaElement = element
     return () => {
       listeners.abort()
@@ -231,8 +231,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
       UIPopup.removeAnchorName(target, this.anchorName)
       unrelate()
       if (isClick) {
-        element.removeAttribute(ARIA_HASPOPUP)
-        element.removeAttribute(UIT.ARIA_EXPANDED)
+        element.removeAttribute("aria-haspopup")
+        element.removeAttribute("aria-expanded")
       }
       this.ariaElement = undefined
     }
@@ -251,13 +251,13 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     UI.ids.ensure(this.domElement, ID_PREFIX)
     const element = UIPopup.ariaTargetFor(target)
     UIPopup.addAriaRelation({ element, relation: isInteractive ? CONTROLS : DESCRIBED_BY, domElement: this.domElement })
-    if (isInteractive) element.setAttribute(ARIA_HASPOPUP, DIALOG_ROLE)
+    if (isInteractive) element.setAttribute("aria-haspopup", "dialog")
   }
 
   /** A click popup's target says whether it's open (`aria-expanded`). */
   @E.onChange("ariaElement", "isInteractive", "isOpen")
   protected onExpandedChanged(element: Element | undefined, isInteractive: boolean, isOpen: boolean) {
-    if (element && isInteractive) element.setAttribute(UIT.ARIA_EXPANDED, String(isOpen))
+    if (element && isInteractive) element.setAttribute("aria-expanded", String(isOpen))
   }
 
   /** Pointer onto the target (`hover`):  show after `show-delay`. */
@@ -317,7 +317,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   /** SIDE EFFECT:  the DOM element is a dialog for a click popup, else a tooltip. */
   @E.onChange("isInteractive", { writesDOMElement: true })
   protected onInteractiveChanged(isInteractive: boolean) {
-    this.domElement.internals.role = isInteractive ? DIALOG_ROLE : TOOLTIP_ROLE
+    this.domElement.internals.role = isInteractive ? "dialog" : "tooltip"
   }
 
   /** SIDE EFFECT:  a click popup's dialog is named by `header`. */
@@ -330,7 +330,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   /** SIDE EFFECT:  the DOM element's `position-area` follows `position`. */
   @E.onChange("position", { writesDOMElement: true })
   protected onPositionChanged(position: string | undefined) {
-    this.domElement.style.setProperty(POSITION_AREA, POSITION_AREAS[position ?? DEFAULT_POSITION])
+    this.domElement.style.setProperty("position-area", POSITION_AREAS[position ?? DEFAULT_POSITION])
   }
 
   /**
@@ -341,7 +341,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   private get popoverMode(): PopoverMode {
     const trigger = this.trigger
     const isHintable = trigger === UIT.PopupTrigger.hover || trigger === UIT.PopupTrigger.focus
-    return isHintable && UI.browser.supports.popoverHint ? HINT : UIT.MANUAL
+    return isHintable && UI.browser.supports.popoverHint ? "hint" : "manual"
   }
 
   /**
@@ -362,7 +362,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
    *   `manual` for the rest (`hint` isn't everywhere, and an unknown value means `manual`).
    */
   private get serverPopover(): PopoverMode {
-    return this.isInteractive ? UIT.AUTO : UIT.MANUAL
+    return this.isInteractive ? "auto" : "manual"
   }
 
   ////////////////
@@ -486,7 +486,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     const style = (element as HTMLElement).style
     if (!style) return
     const names = UIPopup.anchorNamesIn(style)
-    if (!names.includes(name)) style.setProperty(ANCHOR_NAME, [...names, name].join(", "))
+    if (!names.includes(name)) style.setProperty("anchor-name", [...names, name].join(", "))
   }
 
   /**
@@ -497,8 +497,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     const style = (element as HTMLElement).style
     if (!style) return
     const names = UIPopup.anchorNamesIn(style).filter((each) => each !== name)
-    if (names.length) style.setProperty(ANCHOR_NAME, names.join(", "))
-    else style.removeProperty(ANCHOR_NAME)
+    if (names.length) style.setProperty("anchor-name", names.join(", "))
+    else style.removeProperty("anchor-name")
   }
 
   /**
@@ -506,8 +506,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
    * - STATIC:  pure.
    */
   private static anchorNamesIn(style: CSSStyleDeclaration): string[] {
-    const value = style.getPropertyValue(ANCHOR_NAME).trim()
-    return value && value !== UIT.NONE ? value.split(",").map((name) => name.trim()) : []
+    const value = style.getPropertyValue("anchor-name").trim()
+    return value && value !== "none" ? value.split(",").map((name) => name.trim()) : []
   }
 
   /**
@@ -600,35 +600,14 @@ const DEFAULT_TRIGGER: UIT.PopupTrigger = UIT.PopupTrigger.hover
 /** `UI.ids` prefix. */
 const ID_PREFIX = "ui-popup"
 
-/** The DOM element's role for a tooltip (`hover`, `focus`, `manual`). */
-const TOOLTIP_ROLE = "tooltip"
-
-/** The DOM element's role for a click popup;  also the target's `aria-haspopup`. */
-const DIALOG_ROLE = "dialog"
-
-/** `popover` mode of a hover / focus popup, where the browser has it. */
-const HINT: PopoverMode = "hint"
-
 /** Tooltips describe their target. */
 const DESCRIBED_BY: AriaRelation = { attribute: "aria-describedby", property: "ariaDescribedByElements" }
 
 /** Click popups are controlled by their target. */
 const CONTROLS: AriaRelation = { attribute: "aria-controls", property: "ariaControlsElements" }
 
-/** ARIA attribute set on a click popup's target. */
-const ARIA_HASPOPUP = "aria-haspopup"
-
 /** `ToggleEvent.newState` of a popover the browser closed. */
 const CLOSED = "closed"
-
-/** CSS property set inline on the target:  its anchor names. */
-const ANCHOR_NAME = "anchor-name"
-
-/** CSS property set inline on the DOM element:  its anchor. */
-const POSITION_ANCHOR = "position-anchor"
-
-/** CSS property set inline on the DOM element:  where it sits. */
-const POSITION_AREA = "position-area"
 
 /** `display` of a target with no box of its own. */
 const CONTENTS = "contents"

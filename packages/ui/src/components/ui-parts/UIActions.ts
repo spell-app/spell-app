@@ -1,5 +1,5 @@
 import { E } from "$/ui/core"
-import { actionsVocabulary } from "./UIActions.vocabulary.en"
+import { actionsVocabulary } from "./UIActions.en"
 
 /****************
  * ### `UIActions`

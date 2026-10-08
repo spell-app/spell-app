@@ -6,7 +6,7 @@
  */
 
 import type { SiteTag } from "$/ui/docs-components/docs-components.types"
-import type { docsApiVocabulary } from "./UIDocsApi.vocabulary.en"
+import type { docsApiVocabulary } from "./UIDocsApi.en"
 
 ////////////////
 // ## Element

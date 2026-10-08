@@ -3,7 +3,7 @@
  * - Library-neutral:  `ClassBuilder`, `Validator`, `MenuOptions`, `OwnerContext`, `Shorthand`, `NativeFallback`
  *   (the base of the per-component `*.fallback.ts`, plain DOM when a render throws), `StickyWatch` (reports and
  *   reserves room for a `position: sticky` box).
- * - The Solid layer, on `@spell-app/solid-element`:  `DOMElement` / `DOMFormControlElement` (DOM element bases),
+ * - The Solid layer, on `@spell-app/solid-element`:  `DOMElement` / `DOMFormControl` (DOM element bases),
  *   `UIComponent` (the component base), `Reactive` (its reactive members' decorators), `ElementDefinition`
  *   (vocabulary => solid-element's props), `FormComponent`, `Controlled` (compatibility, for `brand`), `Cell`,
  *   `SlotContent`, `PartContext` + `PartComponent` (owner context), `RootSettings`
@@ -43,6 +43,6 @@ export * from "./LoadableComponent"
 export * from "./SourceMarkup"
 export * from "./LoadableBody"
 export * from "./DOMLoadableBodyElement"
-export * from "./DOMFormControlElement"
+export * from "./DOMFormControl"
 export * from "./FormComponent"
 export * from "./ControlLabels"
