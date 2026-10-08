@@ -191,6 +191,16 @@ test("send:  dates the marks so far", async () => {
   expect(written(PAGES.plan).sent).toBe(sent.body.sent)
 })
 
+test("send now (Review Now):  a waiting revisit asked now, the approval sent", async () => {
+  await post("mark", { page: PLAN_URL, id: "j3", mark: { action: "approve" } })
+  await post("mark", { page: PLAN_URL, id: "q8", mark: { action: "revisit", when: "soon", note: "why?" } })
+  const sent = await post("send", { page: PLAN_URL, now: true })
+  expect(sent.status).toBe(200)
+  expect(sent.body.now.map((each: { id: string }) => each.id)).toEqual(["q8"])
+  expect(written(PAGES.plan).marks.q8).toMatchObject({ action: "revisit", when: "now", note: "why?" })
+  expect(written(PAGES.plan).sent).toBe(sent.body.sent)
+})
+
 test("a worktree's plan doc, through /worktrees/", async () => {
   const far = await post("mark", {
     page: `/worktrees/w/epics/far/far.plan.html`,

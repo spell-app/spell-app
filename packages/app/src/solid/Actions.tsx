@@ -239,22 +239,6 @@ export const Actions = {
   },
 
   ////////////////
-  // ## MatchViewer
-  ////////////////
-
-  toggleMatchRuleNames: (props: ActionProps) => {
-    const showNames = tracked(() => editor.showingMatchRuleNames)
-    return (
-      <Action
-        icon={showNames() ? "eye" : "eye slash outline"}
-        title={(showNames() ? "Show" : "Hide") + " Rule Names"}
-        onClick={() => editor.toggleMatchRuleNames()}
-        {...props}
-      />
-    )
-  },
-
-  ////////////////
   // ## Modals
   // - `title`, `icon`, `itemProps` go to the item.
   // - `callback` gets the dialog's value (`console.log` by default).

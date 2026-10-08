@@ -29,7 +29,7 @@ import type { PropCheck } from "$/core/spellCore.types"
  *   (plan doc Q23 - Q25) -- see `canTake()`, `canGiveUp()`, `moveHere()`.
  *   - Only a move asks.  `add`, `remove` and `clear` never do:  dealing, gathering cards back.
  */
-export class List extends Observable<Record<string, unknown>, { items: unknown[] }> {
+export class List<T = unknown> extends Observable<Record<string, unknown>, { items: T[] }> {
   /**
    * `true` on an exclusive list class, e.g. `Pile`:  the ROOT of its family -- see class docs.
    * - Compiled from `a card belongs to one pile` as `Pile.exclusive = true`,
@@ -47,18 +47,21 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
     return ListFamily.of(this)?.ownerOf(item)
   }
 
-  /** SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`. */
-  constructor(props: Record<string, unknown>) {
+  /**
+   * SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`.
+   * - `props` optional:  `a new deck` compiles to `new Deck()`.
+   */
+  constructor(props?: Record<string, unknown>) {
     super(props)
     spellCore.things.add(this)
     if (runsCreate(List, new.target)) this.create()
   }
 
   /** `items` array as state. */
-  /*@state*/ get items(): unknown[] {
-    return this.getState<unknown[]>("items", () => [])
+  /*@state*/ get items(): T[] {
+    return this.getState<T[]>("items", () => [])
   }
-  set items(items: unknown[]) {
+  set items(items: T[]) {
     this.writeItems(items)
   }
 
@@ -155,7 +158,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   }
 
   /** Append `items` to the end of this list -- delegates to `spellCore.append()`. */
-  add(...items: unknown[]): void {
+  add(...items: T[]): void {
     spellCore.append(this, ...items)
   }
 
@@ -164,8 +167,9 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
    * - `oneIndex` passed to `callback` is still 1-based (matching this list's own indexing) even
    *   though the returned array is zero-based -- NOTE the mismatch if you rely on both.
    */
-  map<T>(callback: (item: unknown, oneIndex: number, list: List) => T): T[] {
-    return this.getKeys().map((oneIndex) => callback(this.getItem(oneIndex), oneIndex, this))
+  map<R>(callback: (item: T, oneIndex: number, list: this) => R): R[] {
+    // a key from `getKeys()` is in range
+    return this.getKeys().map((oneIndex) => callback(this.getItem(oneIndex) as T, oneIndex, this))
   }
 
   /**
@@ -192,17 +196,18 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
     return _.range(1, this.length + 1)
   }
   /** Return a CLONE of our `items` as a normal `Array`. */
-  getValues(): unknown[] {
+  getValues(): T[] {
     return [...this.items]
   }
   /** Return the `oneIndex` for first occurance of `thing` in our list. */
   itemOf(thing: unknown): number | undefined {
-    const zeroIndex = this.items.indexOf(thing)
+    // widened:  we may be asked for anything
+    const zeroIndex = (this.items as unknown[]).indexOf(thing)
     if (zeroIndex === -1) return undefined
     return zeroIndex + 1
   }
   /** Return item stored at `oneIndex` or `undefined`. */
-  getItem(oneIndex: number): unknown {
+  getItem(oneIndex: number): T | undefined {
     return this.items[this._getZeroIndex(oneIndex)]
   }
   /**
@@ -210,7 +215,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
    * - NOTE: an exclusive list may hold an item twice for a moment,
    *   e.g. while `reverse()` sets each position in turn.
    */
-  setItem(oneIndex: number, value: unknown): void {
+  setItem(oneIndex: number, value: T): void {
     const items = [...this.items]
     const zeroIndex = this._getZeroIndex(oneIndex)
     items[zeroIndex] = value
@@ -221,7 +226,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
    * - Pushes any items after `start` over to make room.
    * - Exclusive:  one we hold already MOVES here -- we hold each item once.
    */
-  addAtPosition(start: number, ...things: unknown[]): void {
+  addAtPosition(start: number, ...things: T[]): void {
     let items = [...this.items]
     let itemStart = this._getZeroIndex(start)
     if (this.family) {
@@ -260,7 +265,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
    *   in that order, so its owner changes once:  a reader never sees it ownerless mid-move
    * - SIDE EFFECT:  the list it left changes too, and readers of each item's owner re-run
    */
-  private writeItems(next: unknown[]): void {
+  private writeItems(next: T[]): void {
     const { family } = this
     if (!family) {
       this.setState("items", next)
@@ -317,7 +322,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
    * - Then added, as `add`:  its owner changes ONCE -- see `writeItems()`.
    * - See `spellCore.move()`.
    */
-  moveHere(item: unknown): boolean {
+  moveHere(item: T): boolean {
     const owner = this.family?.ownerOf(item, "UNTRACKED")
     if (owner && !owner.canGiveUp(item)) return false
     if (!this.canTake(item)) return false
@@ -334,7 +339,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
    * If we're asked for an iterator, use a copy of our `items`,
    * freezing the iteration to the initial state of `items`.
    */
-  [Symbol.iterator](): Iterator<unknown> {
+  [Symbol.iterator](): Iterator<T> {
     return [...this.items][Symbol.iterator]()
   }
 }

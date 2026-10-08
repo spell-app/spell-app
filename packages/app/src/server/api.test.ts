@@ -191,6 +191,12 @@ describe("projects list and sendError shape", () => {
     expect(reply.json()).toEqual([PROJECT])
   })
 
+  it("a root whose folder doesn't exist yet lists no projects, e.g. guides before the first one", async () => {
+    const reply = await request("GET", "/api/projects/list/@system:guides")
+    expect(reply.status).toBe(200)
+    expect(reply.json()).toEqual([])
+  })
+
   it("sendError body is { errors: [{ message, trace }] } with status 500", async () => {
     const reply = await request("GET", "/api/projects/list/@bad:domain")
     expect(reply.status).toBe(500)

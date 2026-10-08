@@ -20,7 +20,7 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
    - in another worktree:  the session's folder is under `.claude/worktrees/<other>`, or its window is a worktree's
      (`spell dev window which`:  `workspace` under `workspaces/ongoing/`).  `<other>` isn't `<name>`:  stop,
      saying so in one line ("`/isolate done` first, or start from a package window").
-   - rename:  `spell dev session title <name>`.  It lands on the next prompt, or
+   - rename:  `spell dev session title "🚧 <name>"`.  It lands on the next prompt, or
      when the session opens in its new window.
    - a saved prompt `~/.spell/prompts/<name>.md` (the hook saved it while blocking an earlier `/isolate <name>
      ...`):  it's the task to carry on with once isolated.  Delete it once done.
@@ -42,19 +42,21 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
    - "New window `⎇ <name>`":  tinted, Explorer and Source Control on the worktree;  this window keeps its
      other sessions.  Steps 3-6.
    - "Stay in this window":  no move, same tab;  its changes show in Source Control (each worktree is its own repo
-     there, `git.detectWorktrees`), not in Explorer;  no tint.  Step 3, then "Stay" below.
+     there, `git.detectWorktrees`), not in Explorer;  the window retitled `⎇ <name>` and tinted (`stay`).  Step
+     3, then "Stay" below.
    - Why ask:  staying is quicker and touches nothing else when this is the window's only session.  With others,
      they share its doc preview and Source Control (`scripts/window.mjs`, "Staying put").
 3. `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.  The repo's
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
 4. Open it in its own window (root `AGENTS.md` "Worktrees"), from the worktree's root:
-   - `spell dev window open <name>`:  a NEW window from `workspaces/ongoing/<name>.code-workspace` (main
-     checkout, git-ignored), the package window's theme with a tinted title bar.  Folders:  the MAIN root (so every
-     session is listed), then the worktree's root, `⎇ <name>`.
+   - `spell dev window open <name> [--color <look>]`:  a NEW window from `workspaces/ongoing/<name>.code-workspace`
+     (main checkout, git-ignored), in this window's look, or `<look>`'s (`/isolate <name> -purple`, `/epic <name>
+     -purple`:  the 12 of `spell dev window color`;  epic `windows-and-review` P5).  Folders:  the MAIN root (so
+     every session is listed), then the worktree's root, `⎇ <name>`.
      `<pkg>`:  this session's window's.
-   - "which package?" (this isn't a package window):  AskUserQuestion "Which package's window?", up to 4 packages
-     the work touches, most likely first and "(Recommended)";  then `open <name> --pkg <pkg>`.
+   - this isn't a package window (a worktree's ...):  `open` takes `spell-app`'s (the whole repo's window, its
+     look);  never ask which package (Owen, 2026-10-07).  `--pkg <pkg>` only when Owen names one.
    - `spell dev window` works before the worktree's `yarn install`:  the `spell` link runs the MAIN checkout's
      CLI, which has its packages (`yarn window` didn't:  yarn runs no script before `yarn install`)
    - fails otherwise:  say so in one line, skip step 5, and do "Continue" now, in this window.  NEVER
@@ -72,6 +74,8 @@ NEW window of the worktree's own, or STAYS in this one:  Owen picks, each time (
 ## Stay:  in this window
 
 After step 3, when Owen picked "Stay in this window":  no `open`, no `handoff`, no turn end.
+0. `spell dev window stay <name>`:  the window says so at once, titled `⎇ <name>`, its title bar tinted (no reload,
+   the Claude panel untouched);  `-<look>` given:  `spell dev window color <look>` too.
 1. "Continue" below, steps 2-4, at once, in this turn.
 2. One line:  "isolated in worktree `<name>` (branch `<name>`), staying in this window;  its changes are in Source
    Control under `<name>`".
@@ -89,17 +93,19 @@ The turn after step 6, whatever Owen sends (`continue`, typed in by the move, or
 
 ## Session name
 
-The session MUST stay titled `<name>`:  the handoff finds its old tab by title, and Owen finds it in the panel's
-list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hook never ran (a plain-words
+The session MUST stay titled `🚧 <name>` while its work is under way (`📅 <name>`:  a future epic written down;
+`✅ <name>`:  merged, `spell dev session done`;  Owen, 2026-10-07):  the handoff finds its old tab by title, and Owen
+finds it in the panel's list by name, its icon saying where it stands.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hook never ran (a plain-words
 "isolate as ...", a resumed or reopened session), or Owen renamed it.
 - Check, and rename if needed, whenever an isolated or epic session STARTS or RESUMES work:
   - "Continue" above (the first turn in the new window)
   - each `/epic` phase start ("5. Each phase", step 1;  Doc Review is a phase too)
   - `.claude/skills/park/SKILL.md` "Resume" (`/unpark`, `/wait-for`)
   - Owen reopening the session to carry on ("start P3", "continue")
-- How:  `spell dev session title <name>`.  It checks first:  already `<name>`
-  (or queued), it does nothing;  else it queues `<name>`, which lands on Owen's NEXT prompt.
-  - renamed:  one line, "session renamed `<name>` (was "<old>");  shows on your next message"
+- How:  `spell dev session title "🚧 <name>"`.  It checks first:  already `🚧 <name>`
+  (or queued), it does nothing;  else it queues it, which lands on Owen's NEXT prompt.  The prompt hook titles a
+  typed `/isolate`, `/epic`, `/unpark <name>` so by itself.
+  - renamed:  one line, "session renamed `🚧 <name>` (was "<old>");  shows on your next message"
   - `spell dev session title` alone shows the current title, and any queued one
 - `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the plan doc's.
 
@@ -189,6 +195,8 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
      (`workspaces/ongoing/<name>.code-workspace`) goes with `spell dev window close <name>` later, or
      `/worktrees` lists it.
    - NEVER `handoff <name> --back` from here.
+   - It STAYED in its window ("Stay" above):  `spell dev window stay --end` puts the window's title and title bar
+     back (it says "nothing to put back" when there's nothing)
 6. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
    Never `remove` unasked (and on a hook-made worktree `remove` refuses without `discard_changes`).
 7. Merging (only after "Merge now" got the branch ready), now in the main checkout:
@@ -196,6 +204,9 @@ list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hoo
      session may be working there.  Either fails:  say which and don't merge.
    - `git merge --ff-only <name>`.  Refused (`main` moved since step 2):  say so and don't merge;  `/isolate <name>`
      re-enters the worktree to merge `main` in again.
+   - merged:  `spell dev session done`:  this session's name gets a ✅ (`✅ <name>`), so the Claude panel tells
+     finished work from live work.  It shows after Owen's next message here (a hook applies it:  nothing else can);
+     `/isolate <name>`, `/epic <name>` or `/unpark <name>` takes it off again (epic `windows-and-review` P6)
 7b. Agents' worktrees, WITHOUT asking (Owen, 2026-10-05), now in the main checkout:  an agent this session started
    with `isolation: "worktree"` (an epic's phases) got `.claude/worktrees/<name>-agent-<id>` on branch
    `<name>-agent-<id>` (the `WorktreeCreate` hook names it for its owner).  It was kept when the agent finished

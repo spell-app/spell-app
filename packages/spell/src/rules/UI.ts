@@ -322,7 +322,7 @@ class css extends P.TokenType<never, CSSMatchData> {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "installStyles",
       args: [
-        file ? new P.ASTQuotedExpression(match, file) : new P.ASTUndefinedLiteral(match),
+        file ? new P.ASTQuotedExpression(match, file) : new P.ASTNothingLiteral(match),
         new P.ASTBackTickExpression(match, safeValue)
       ]
     })

@@ -6,13 +6,13 @@
  */
 import assert from "node:assert/strict"
 import { spawnSync } from "node:child_process"
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { after, beforeEach, test } from "node:test"
 import { fileURLToPath } from "node:url"
 
-import { gate, kebab, otherWorktree, parseCommand } from "./prompt-gate.mjs"
+import { dropDoneTitle, gate, kebab, otherWorktree, parseCommand } from "./prompt-gate.mjs"
 
 /** The temp folders. */
 const prompts = mkdtempSync(join(tmpdir(), "spell-prompts-"))
@@ -46,19 +46,41 @@ test("parseCommand:  name, then the rest", () => {
     skill: "epic",
     name: "docs-index",
     text: "plan\nthe docs",
+    color: null
   })
-  assert.deepEqual(parseCommand(`/epic "Docs Index" x`), { skill: "epic", name: "docs-index", text: "x" })
-  assert.deepEqual(parseCommand("/isolate foo"), { skill: "isolate", name: "foo", text: "" })
-  assert.deepEqual(parseCommand("/unpark foo"), { skill: "unpark", name: "foo", text: "" })
-  assert.deepEqual(parseCommand("/epic resume Foo"), { skill: "epic resume", name: "foo", text: "" })
+  assert.deepEqual(parseCommand(`/epic "Docs Index" x`), { skill: "epic", name: "docs-index", text: "x", color: null })
+  assert.deepEqual(parseCommand("/isolate foo"), { skill: "isolate", name: "foo", text: "", color: null })
+  assert.deepEqual(parseCommand("/unpark foo"), { skill: "unpark", name: "foo", text: "", color: null })
+  assert.deepEqual(parseCommand("/epic resume Foo"), { skill: "epic resume", name: "foo", text: "", color: null })
 })
 
 test("parseCommand:  ignores other prompts, no name, `/isolate done`, `/epic review`, `/epic resume` alone", () => {
   const prompts = ["hello", "/epic", "/isolate  ", "/isolate done", "/park foo", "/epicfoo", "/unpark ?", ""]
   prompts.push("/epic review", "/epic review seo", "/epic Review seo", "/epic resume", "/epic resume ?")
+  // this session's epic:  a phase added or started
+  prompts.push("/epic phase", "/epic phase J1 J5, t3\nfrom these", "/epic start P2", "/epic start J3 J4 T6 go")
   for (const prompt of prompts) {
     assert.equal(parseCommand(prompt), null, prompt)
   }
+})
+
+test("parseCommand:  a look right after the name is the window's, not the text;  `/epic color` passes", () => {
+  assert.deepEqual(parseCommand("/epic new-thing -purple plan this"), {
+    skill: "epic",
+    name: "new-thing",
+    text: "plan this",
+    color: "purple"
+  })
+  assert.equal(parseCommand("/isolate x -Teal").color, "teal")
+  // not a look:  part of the text
+  assert.deepEqual(parseCommand("/epic x -verbose"), { skill: "epic", name: "x", text: "-verbose", color: null })
+  assert.equal(parseCommand("/epic color teal"), null)
+  assert.deepEqual(parseCommand("/epic future foo-bar blah blah"), {
+    skill: "epic future",
+    name: "foo-bar",
+    text: "blah blah",
+    color: null
+  })
 })
 
 test("kebab", () => {
@@ -86,8 +108,14 @@ test("otherWorktree:  by cwd, else by window;  never the same name", () => {
 
 test("gate:  renames, unless already named", () => {
   const renamed = gate({ prompt: "/epic foo plan", cwd: ROOT }, PACKAGE_WINDOW)
-  assert.deepEqual(renamed, { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: "foo" } })
-  assert.equal(gate({ prompt: "/epic foo plan", cwd: ROOT, session_title: "foo" }, PACKAGE_WINDOW), null)
+  assert.deepEqual(renamed, { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: "🚧 foo" } })
+  assert.equal(gate({ prompt: "/epic foo plan", cwd: ROOT, session_title: "🚧 foo" }, PACKAGE_WINDOW), null)
+  // done (✅) or plain:  back to 🚧
+  for (const session_title of ["✅ foo", "foo"])
+    assert.equal(gate({ prompt: "/isolate foo", cwd: ROOT, session_title }, PACKAGE_WINDOW).hookSpecificOutput.sessionTitle, "🚧 foo")
+  // a future epic:  📅, even in plan mode or another worktree
+  const future = gate({ prompt: "/epic future bar an idea", cwd: ROOT, permission_mode: "plan" }, PACKAGE_WINDOW)
+  assert.equal(future.hookSpecificOutput.sessionTitle, "📅 bar")
   assert.equal(gate({ prompt: "fix the bug", cwd: ROOT }, PACKAGE_WINDOW), null)
 })
 
@@ -105,8 +133,8 @@ test("gate:  plan mode, no text:  blocks, saves nothing", () => {
   assert.equal(existsSync(join(prompts, "foo.md")), false)
 })
 
-test("gate:  another worktree blocks, by cwd or window, saving the text", () => {
-  const byCwd = gate({ prompt: "/epic foo do it", cwd: WORKTREE }, null)
+test("gate:  another worktree blocks `/isolate`, by cwd or window, saving the text", () => {
+  const byCwd = gate({ prompt: "/isolate foo do it", cwd: WORKTREE }, null)
   assert.equal(byCwd.decision, "block")
   assert.match(byCwd.reason, /worktree `other`/)
   const byWindow = gate({ prompt: "/isolate foo", cwd: ROOT }, OTHER_WINDOW)
@@ -114,11 +142,26 @@ test("gate:  another worktree blocks, by cwd or window, saving the text", () => 
   assert.equal(readFileSync(join(prompts, "foo.md"), "utf8"), "do it\n")
 })
 
+test("gate:  `/epic <name>` in another worktree:  through, not renamed, a note to ask;  text saved", () => {
+  for (const [cwd, window] of [[WORKTREE, null], [ROOT, OTHER_WINDOW]]) {
+    const out = gate({ prompt: "/epic foo do it", cwd }, window)
+    assert.equal(out.decision, undefined)
+    assert.equal(out.hookSpecificOutput.sessionTitle, undefined)
+    assert.match(out.hookSpecificOutput.additionalContext, /worktree `other`.*open a new window for epic `foo`/s)
+    assert.match(out.hookSpecificOutput.additionalContext, /saved in .*foo\.md/)
+  }
+  assert.equal(readFileSync(join(prompts, "foo.md"), "utf8"), "do it\n")
+  // no text:  nothing saved, nothing said about it
+  rmSync(join(prompts, "foo.md"))
+  assert.doesNotMatch(gate({ prompt: "/epic foo", cwd: WORKTREE }, null).hookSpecificOutput.additionalContext, /saved/)
+  assert.equal(existsSync(join(prompts, "foo.md")), false)
+})
+
 test("gate:  re-entering the same worktree, `/unpark` and `/epic resume` aren't blocked", () => {
   assert.equal(gate({ prompt: "/isolate other", cwd: WORKTREE }, null).decision, undefined)
   assert.equal(gate({ prompt: "/unpark foo", cwd: WORKTREE }, OTHER_WINDOW).decision, undefined)
   const resume = gate({ prompt: "/epic resume foo", cwd: WORKTREE, permission_mode: "plan" }, OTHER_WINDOW)
-  assert.equal(resume.hookSpecificOutput.sessionTitle, "foo")
+  assert.equal(resume.hookSpecificOutput.sessionTitle, "🚧 foo")
 })
 
 test("gate:  never loses an older saved text", () => {
@@ -138,10 +181,31 @@ test("gate:  never loses an older saved text", () => {
 test("hook:  stdin in, JSON out;  bad input exits 0, silent", () => {
   const hook = join(dirname(fileURLToPath(import.meta.url)), "prompt-gate.mjs")
   const input = JSON.stringify({ prompt: "/isolate foo", cwd: ROOT, session_id: "x" })
-  const ok = spawnSync(process.execPath, [hook], { input, encoding: "utf8" })
+  // no windows:  the window this test runs in (a worktree's, say) must not block the prompt
+  const windows = mkdtempSync(join(tmpdir(), "windows-"))
+  const env = { ...process.env, SPELL_WINDOWS_DIR: windows }
+  const ok = spawnSync(process.execPath, [hook], { input, encoding: "utf8", env })
+  rmSync(windows, { recursive: true, force: true })
   assert.equal(ok.status, 0)
-  assert.equal(JSON.parse(ok.stdout).hookSpecificOutput.sessionTitle, "foo")
+  assert.equal(JSON.parse(ok.stdout).hookSpecificOutput.sessionTitle, "🚧 foo")
   const bad = spawnSync(process.execPath, [hook], { input: "{not json", encoding: "utf8" })
   assert.equal(bad.status, 0)
   assert.equal(bad.stdout, "")
+})
+
+test("dropDoneTitle:  a queued ✅ title goes when the work reopens;  any other queued title stays", () => {
+  const dir = mkdtempSync(join(tmpdir(), "titles-"))
+  process.env.SPELL_SESSION_TITLES_DIR = dir
+  try {
+    writeFileSync(join(dir, "s1"), "✅ seo")
+    writeFileSync(join(dir, "s2"), "seo")
+    dropDoneTitle("s1")
+    dropDoneTitle("s2")
+    dropDoneTitle("nope")
+    assert.equal(existsSync(join(dir, "s1")), false)
+    assert.equal(readFileSync(join(dir, "s2"), "utf8"), "seo")
+  } finally {
+    delete process.env.SPELL_SESSION_TITLES_DIR
+    rmSync(dir, { recursive: true, force: true })
+  }
 })

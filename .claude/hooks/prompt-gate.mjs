@@ -12,8 +12,14 @@
  * ## What it does, in order
  * - stdin `{ prompt, cwd, session_id, permission_mode, ... }`
  * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...`),
- *   `/epic resume <name>` and `/unpark <name>`.  `review` and `resume` are reserved epic names:  a review runs from
- *   any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks its window itself).
+ *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume`, `color` and `future` are reserved epic names:  a
+ *   review runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks
+ *   its window itself);  `/epic color <look>` recolours the window it's typed in:  nothing to gate;
+ *   `/epic future <name> ...` writes an idea down as a future epic (no worktree):  only renamed, `📅 <name>`.
+ *   `phase` and `start` too (epic `skillz` P4):  `/epic phase [ids] ...` adds a phase to THIS session's epic,
+ *   `/epic start <phase | ids> ...` works one:  nothing to gate, no rename.
+ *   A look right after the name (`/epic x -purple`, epic `windows-and-review` P5) is the window's, not the plan's:
+ *   left out of the text saved below.
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
  * 1. Plan mode, on `/isolate` or `/epic <name>`:  blocks the prompt.  Why:  plan mode lets Claude write only the
  *    harness plan file, so no worktree can be made, and `ExitPlanMode` would ask Owen to approve a half-made plan.
@@ -22,20 +28,33 @@
  *    - the session's VS Code window is a worktree's (`workspaces/ongoing/<other>.code-workspace`).  A new session
  *      there starts at the MAIN root, so `cwd` alone misses it.
  *    - Re-entering the SAME `<name>` is fine.
- * 3. Otherwise:  renames the session `<name>` (`hookSpecificOutput.sessionTitle`), unless it already is.  That's
+ *    - `/epic <name>` there is NOT blocked (Owen, 2026-10-07):  typed in another epic's session, it means "open a
+ *      window for `<name>`".  Let through, the session NOT renamed (it stays `<other>`'s), with a note
+ *      (`additionalContext`) sending Claude to the `/epic` skill's "From another worktree", which asks first.
+ * 3. Otherwise:  renames the session `🚧 <name>` (`hookSpecificOutput.sessionTitle`), unless it already is;
+ *    `/epic future <name>`:  `📅 <name>`, and neither block above (it makes no worktree).  The icons:  `TITLE_ICONS`.  A ✅ title
+ *    (its work merged, epic `windows-and-review` P6) isn't `<name>`, so reopening takes the ✅ off;  a ✅ still queued
+ *    for it is dropped (`dropDoneTitle()`).  That's
  *    what lets the move to a worktree's window find the old tab by its label (`.claude/hooks/handoff.mjs`).
- * - SIDE EFFECT:  before either block, any text after the name is saved to `<prompts>/<name>.md`, and quoted
+ * - SIDE EFFECT:  before either block (and the note), any text after the name is saved to `<prompts>/<name>.md`, and quoted
  *   back in the reason, so it can be copied.  `/epic <name>` / `/isolate <name>` alone picks it up later.
  *   `<prompts>`:  `$SPELL_PROMPTS_DIR`, else `~/.spell/prompts`.  An older file is kept as `<name>.<time>.md`.
  * - Never fails a prompt:  any error exits 0, the prompt untouched.
  * - Natural-language triggers ("isolate as foo") never reach here:  each skill's step 0 repeats these checks.
  */
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join, sep } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import { Window } from "../../scripts/window.mjs"
+import { LOOKS, Window } from "../../scripts/window.mjs"
+
+/**
+ * The session's icons (Owen, 2026-10-07):  🚧 work under way, 📅 a future epic written down, ✅ merged.  The same as
+ * `packages/cli/src/dev/sessions.ts` `TITLE_ICONS`:  change both.
+ * - up here:  the hook runs as this file loads (below), and needs it then
+ */
+export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅", sleeping: "😴" }
 
 // run as the hook;  imported (by its tests), nothing runs
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -57,6 +76,8 @@ export function gate(input, window) {
   const command = parseCommand(input.prompt)
   if (!command) return null
   const { skill, name, text } = command
+  // a future epic is only written down:  no worktree, so nothing to block;  its own icon
+  if (skill === "epic future") return rename(input, `${TITLE_ICONS.future} ${name}`)
 
   if (skill === "isolate" || skill === "epic") {
     if (input.permission_mode === "plan") {
@@ -69,6 +90,8 @@ export function gate(input, window) {
       )
     }
     const other = otherWorktree(input.cwd, window, name)
+    // `/epic <name>` in another epic's session means "open a window for `<name>`" (Owen, 2026-10-07):  Claude asks
+    if (other && skill === "epic") return launchNote(other, name, text)
     if (other) {
       return block(
         name,
@@ -81,8 +104,32 @@ export function gate(input, window) {
     }
   }
 
-  if (input.session_title === name) return null
-  return { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: name } }
+  return rename(input, `${TITLE_ICONS.active} ${name}`)
+}
+
+
+/**
+ * Title the session `title` (`hookSpecificOutput.sessionTitle`), unless it already is;  `null`:  nothing to do.
+ * - reopened:  a ✅ queued when its work merged (epic `windows-and-review` P6) and not yet applied must not land now
+ */
+function rename(input, title) {
+  dropDoneTitle(input.session_id)
+  if (input.session_title === title) return null
+  return { hookSpecificOutput: { hookEventName: "UserPromptSubmit", sessionTitle: title } }
+}
+
+/**
+ * Drop session `id`'s queued title (`~/.claude/session-titles/<id>`, `$SPELL_SESSION_TITLES_DIR` in tests) when it's
+ * a ✅ one:  the work it marked done is open again.  Any other queued title stays.
+ */
+export function dropDoneTitle(id) {
+  if (!id) return
+  const file = join(process.env.SPELL_SESSION_TITLES_DIR ?? join(homedir(), ".claude", "session-titles"), String(id).replace(/[^\w-]/g, ""))
+  try {
+    if (readFileSync(file, "utf8").trim().startsWith("✅")) rmSync(file)
+  } catch {
+    // none queued
+  }
 }
 
 /**
@@ -92,6 +139,7 @@ export function gate(input, window) {
  * - `skill`:  `"epic resume"` for `/epic resume <name>`
  * - `name`:  the first word, or a quoted phrase, lower-kebab-cased
  * - `text`:  the rest, trimmed (`""` when none)
+ * - `color`:  a look right after the name (`-purple`, `window.mjs` `LOOKS`), left out of `text`;  else `null`
  */
 export function parseCommand(prompt) {
   const match = /^\s*\/(isolate|epic|unpark)(?:\s+([\s\S]*))?$/.exec(prompt ?? "")
@@ -103,12 +151,24 @@ export function parseCommand(prompt) {
   if (!name || (skill === "isolate" && name === "done")) return null
   // `/epic review [<name>]` runs from any window and keeps the session's name:  nothing to gate
   if (skill === "epic" && name === "review") return null
+  // `/epic color <look>` recolours this window:  nothing to gate, no rename
+  if (skill === "epic" && name === "color") return null
+  // `/epic phase [ids] ...` / `/epic start <phase | ids> ...` act on THIS session's epic (epic `skillz` P4):  it's
+  // already named, isolated and planned:  nothing to gate, no rename
+  if (skill === "epic" && (name === "phase" || name === "start")) return null
+  // `/epic future <name> ...` writes an idea down, from any window, no worktree:  renamed `📅 <name>`, never blocked
+  if (skill === "epic" && name === "future") {
+    const later = parseCommand(`/unpark ${rest}`)
+    return later && { ...later, skill: "epic future" }
+  }
   // `/epic resume <name>`:  renamed `<name>`, as `/unpark <name>` is;  alone, it asks which epic
   if (skill === "epic" && name === "resume") {
     const resumed = parseCommand(`/unpark ${rest}`)
     return resumed && { ...resumed, skill: "epic resume" }
   }
-  return { skill, name, text: rest.trim() }
+  const look = /^\s*-([a-z]+)(?=\s|$)([\s\S]*)$/i.exec(rest)
+  const color = look && look[1].toLowerCase() in LOOKS ? look[1].toLowerCase() : null
+  return { skill, name, text: (color ? look[2] : rest).trim(), color }
 }
 
 /**
@@ -135,6 +195,19 @@ export function otherWorktree(cwd, window, name) {
   const ongoing = /[\\/]workspaces[\\/]ongoing[\\/]([^\\/]+)\.code-workspace$/.exec(file)
   if (ongoing && ongoing[1] !== name) return ongoing[1]
   return null
+}
+
+/**
+ * The hook's answer to `/epic <name> [text]` typed in worktree `other`'s session:  let through, NOT renamed (the
+ * session stays `other`'s), with a note telling Claude to offer a new window for `<name>` instead.
+ * - SIDE EFFECT:  `text` saved first (`savePrompt()`), so the new window's `/epic <name>` picks it up
+ */
+function launchNote(other, name, text) {
+  const saved = text ? `  Its text is saved in ${savePrompt(name, text).replace(homedir(), "~")}.` : ""
+  const note =
+    `This session works in worktree \`${other}\`:  \`/epic ${name}\` must NOT run here.  Owen means "open a new ` +
+    `window for epic \`${name}\`".${saved}  Follow the /epic skill's "From another worktree":  ask him first.`
+  return { hookSpecificOutput: { hookEventName: "UserPromptSubmit", additionalContext: note } }
 }
 
 /**

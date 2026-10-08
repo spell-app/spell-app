@@ -34,6 +34,13 @@ class gt_lt extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
   @proto static parenthesize = true
 
+  /** `<` / `>` / `<=` / `>=` => `less than` / `greater than` / `at most` / `at least`. */
+  getOperator({ value }: P.Match): P.ASTOperator {
+    const greater = String(value).startsWith(">")
+    if (String(value).endsWith("=")) return greater ? "at least" : "at most"
+    return greater ? "greater than" : "less than"
+  }
+
   getAST(match: P.MatchFor<this>) {
     const { operator, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -76,15 +83,18 @@ math.addRule(gt_lt, {
 /**
  * `is greater than`, `is less than`, optionally `... or equal to`, e.g. `salary is greater than expenses`.
  * - TODO: is *not* greater than???
- * - `getOutputOperator()` maps `greater`/`less` + optional `equal` to `>`/`<`/`>=`/`<=`.
+ * - `getOperator()` maps `greater` / `less`, plus optional `or equal to`, to `greater than` / `less than` /
+ *   `at least` / `at most`.
  * - `getAST()` below looks unreachable in practice, same as `gt_lt` above -- see `TODO` there.
  */
 class is_gt_lt extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
   @proto static parenthesize = true
 
-  getOutputOperator({ value }: P.Match) {
-    return (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : "")
+  getOperator({ value }: P.Match): P.ASTOperator {
+    const greater = String(value).includes("greater")
+    if (String(value).includes("equal")) return greater ? "at least" : "at most"
+    return greater ? "greater than" : "less than"
   }
   getAST(match: P.MatchFor<this>) {
     const { operator, expression } = match.groups
@@ -139,8 +149,8 @@ class plus extends InfixOperatorSuffix {
     return undefined
   }
 
-  getOutputOperator() {
-    return "+"
+  getOperator(): P.ASTOperator {
+    return "plus"
   }
 
   /** Is `datatype` text, or one character of it? */
@@ -186,8 +196,8 @@ class minus extends InfixOperatorSuffix {
   @proto static parenthesize = true
   @proto static datatype = "number"
 
-  getOutputOperator() {
-    return "-"
+  getOperator(): P.ASTOperator {
+    return "minus"
   }
 }
 math.addRule(minus, {
@@ -219,8 +229,8 @@ class times extends InfixOperatorSuffix {
   @proto static parenthesize = true
   @proto static datatype = "number"
 
-  getOutputOperator() {
-    return "*"
+  getOperator(): P.ASTOperator {
+    return "times"
   }
 }
 math.addRule(times, {
@@ -252,8 +262,8 @@ class divided_by extends InfixOperatorSuffix {
   @proto static parenthesize = true
   @proto static datatype = "number"
 
-  getOutputOperator() {
-    return "/"
+  getOperator(): P.ASTOperator {
+    return "divided by"
   }
 }
 math.addRule(divided_by, {

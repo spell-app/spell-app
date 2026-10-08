@@ -603,7 +603,7 @@ export abstract class Rule<
     if (!declares || !nameMatch) return undefined
     return {
       kind: declares.kind,
-      name: nameMatch.inputText.trimEnd(),
+      name: this.textOf(nameMatch)!,
       nameMatch,
       of: declares.of && this.textOf(this.groupAt(plainMatch, declares.of)),
       detail: declares.detail && this.textOf(this.groupAt(plainMatch, declares.detail))
@@ -617,9 +617,19 @@ export abstract class Rule<
     return found instanceof P.Match ? found : undefined
   }
 
-  /** `match`'s source text without trailing whitespace, or `undefined` if there's no match. */
+  /** What a declaration calls `match` -- see `declaredText()` -- or `undefined` if there's no match. */
   private textOf(match: P.Match | undefined): string | undefined {
-    return match?.inputText.trimEnd()
+    return match?.rule.declaredText(match)
+  }
+
+  /**
+   * What a declaration calls one of our matches, as a NAME or OWNER in `getDeclaration()`:  default, its source
+   * text without trailing whitespace, e.g. `card` for `a card has ...`'s type.
+   * - Override where the source text isn't the name, e.g. a language's `it` standing for a type, or a name in
+   *   quotes.
+   */
+  declaredText(match: P.Match): string {
+    return match.inputText.trimEnd()
   }
 
   ////////////////

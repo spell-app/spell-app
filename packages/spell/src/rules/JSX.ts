@@ -8,6 +8,7 @@ import { P } from "$/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "$/spell/SpellParser"
 import { commitStatement } from "./Statement"
+import { type FillInParts, fillInsAST, parseFillIns } from "./core"
 
 /**
  * Rule module for JSX rules (`jsxElement`, `jsxAttribute`, `jsxText`, `jsxEndTag`, `jsxExpression`).
@@ -338,6 +339,13 @@ class SpellJSXAttribute extends SpellJSXContent {
     match.data.attribute = attributeToken.name
     // parse `value` if as a number or JSXExpression
     const { value } = match
+    // text with `[name]` fill-ins, e.g. `source="images/[rank].png"` -- as `text`'s (`parseFillIns()`)
+    if (value instanceof P.TextToken) {
+      const fillIns = parseFillIns(scope, value.innerText)
+      if (fillIns === null) match.data.error = scope.parse(value.value, "parse_error")
+      else if (fillIns) match.data.fillIns = fillIns
+      if (fillIns !== undefined) return match
+    }
     if (value) {
       const inputIsExpression = value instanceof P.JSXExpressionToken
       // `JSXExpression.contents` is typed `string | Token` (a bare, un-braced attribute value is
@@ -379,10 +387,11 @@ class SpellJSXAttribute extends SpellJSXContent {
    * - Missing `value` (bare attribute, e.g. `<input disabled/>`) becomes `true`.
    */
   getAST(match: P.MatchFor<this>) {
-    const { attribute, expression, statement, error } = match.data
+    const { attribute, expression, statement, error, fillIns } = match.data
     const { value } = match
     let valueAST: P.ASTExpression | undefined
-    if (expression) valueAST = P.asAST<P.ASTExpression>(expression.AST)
+    if (fillIns) valueAST = fillInsAST(match, fillIns)
+    else if (expression) valueAST = P.asAST<P.ASTExpression>(expression.AST)
     else if (statement) {
       valueAST = new P.ASTMethodDefinition(match, {
         inline: true,
@@ -396,10 +405,10 @@ class SpellJSXAttribute extends SpellJSXContent {
     } else if (value === undefined) {
       valueAST = new P.ASTBooleanLiteral(match, { value: true })
     } else if (value instanceof P.TextToken) {
-      valueAST = new P.ASTStringLiteral(match, { value: value.value })
+      valueAST = new P.ASTStringLiteral(match, { value: value.innerText, quote: '"', raw: value.value })
     } else if (!error) {
       console.warn("jsxAttribute.getAST: don't know how to render value", value, " for match ", match)
-      valueAST = new P.ASTUndefinedLiteral(match)
+      valueAST = new P.ASTNothingLiteral(match)
     }
     return new P.ASTJSXAttribute(match, {
       name: attribute!,
@@ -419,18 +428,35 @@ JSX.addRule(SpellJSXAttribute)
  * Match literal text between JSX tags (`jsxChild`).  Blank text yields no AST node -- see below.
  * - NOTE: rule name is `jsxText`, kept distinct from class name `SpellJSXText` (pre-existing convention).
  */
-class SpellJSXText extends P.TokenType {
+class SpellJSXText extends P.TokenType<never, { fillIns?: FillInParts }> {
   static ruleName = "jsxText"
   @proto static alias = "jsxChild"
   @proto static tokenType = P.JSXTextToken
 
-  /** Build `P.ASTJSXText`; returns `undefined` for blank text since there's nothing to render. */
+  /**
+   * Match -- and parse any `[name]` fill-ins, e.g. `<span>[rank] of [suit]</span>`, as text's (`parseFillIns()`).
+   * - A fill-in which doesn't parse:  no match.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    const [token] = tokens
+    if (!match || !(token instanceof P.JSXTextToken)) return match
+    const fillIns = parseFillIns(scope, token.value.trim())
+    if (fillIns === null) return undefined
+    if (fillIns) match.data.fillIns = fillIns
+    return match
+  }
+
+  /** Build `P.ASTJSXText` of the trimmed text;  returns `undefined` for blank text since there's nothing to render. */
   getAST(match: P.MatchFor<this>) {
-    const { raw, quotedText } = match.matched[0] as P.JSXTextToken
+    // with fill-ins:  one `{...}` child, a template string
+    if (match.data.fillIns) return new P.ASTJSXExpression(match, { expression: fillInsAST(match, match.data.fillIns) })
+    const { raw, value } = match.matched[0] as P.JSXTextToken
+    const text = value.trim()
     // Blank text has nothing to render -- return `undefined` for "no AST" (`Rule.getAST()`'s return
     // type already permits this; `Match.AST` treats a falsy return as "no AST").
-    if (!quotedText) return undefined
-    return new P.ASTJSXText(match, { raw, value: quotedText })
+    if (!text) return undefined
+    return new P.ASTJSXText(match, { raw, value: text })
   }
 }
 JSX.addRule(SpellJSXText)
@@ -522,4 +548,6 @@ export type JSXMatchData = {
   attribute?: string
   /** (`jsxElement`) Parsed child matches (`jsxChild` or `parse_error`) for the element. */
   children?: Array<P.Match | undefined>
+  /** (`jsxAttribute`) A text value's `[name]` fill-ins, if it has any -- see `parseFillIns()`. */
+  fillIns?: FillInParts
 }

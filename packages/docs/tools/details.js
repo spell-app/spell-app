@@ -7,7 +7,8 @@
  *   - scratch:  `pages/details/<slug>.html`, ignored by version control, swept after 14 days
  *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, committed with the plan doc
  * - `show <page> [--wait]` -- start the page server if needed, show the page in THIS session's VS Code window (the
- *   right side bar's "Spell Docs" view;  Chrome outside VS Code);  `--wait`:  then `wait`
+ *   right side bar's "Review" view, where Owen answers things;  Chrome outside VS Code;  epic `windows-and-review`
+ *   P6, Owen 2026-10-06);  `--wait`:  then `wait`
  * - `wait <page> [--timeout 8h]` -- block until Owen sends an answer NEWER than the wait's start, print it as plain
  *   text, exit 0.  Run it in the BACKGROUND:  its exit wakes the session.  Timeout:  exit 2, saying so.
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
@@ -56,7 +57,7 @@ async function main(argv) {
     }
     if (command === "show") {
       const file = findPage(ROOT, target)
-      await openInVSCode(file)
+      await openInVSCode(file, { view: "review" })
       return flags.wait ? await waitAndPrint(file, flags) : 0
     }
     if (command === "wait") return await waitAndPrint(findPage(ROOT, target), flags)

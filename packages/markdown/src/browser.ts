@@ -6,11 +6,11 @@
  * - The default export is all `ui` needs:  `render()` (`MD.render()`:  `{ html, headings }`).
  */
 
-import { MD, type RenderOptions } from "$/markdown"
+import { MD } from "$/markdown"
 
 export default {
   /** `text` rendered with `ui-*` elements (unless `ui: false`):  its HTML and heading outline. */
-  render(text: string, options: RenderOptions = {}) {
+  render(text: string, options: MD.RenderOptions = {}) {
     const { html, headings } = MD.render(text, options)
     return { html, headings }
   }

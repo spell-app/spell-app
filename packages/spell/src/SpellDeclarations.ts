@@ -7,13 +7,17 @@ import { SP } from "$/spell"
 
 /**
  * A project's declarations:  everything it added to scope while parsing, as plain data -- see `SP.SpellDeclarationsData`.
- * - Why:  they live in the project's compiled JS, so another project can import it WITHOUT re-parsing its
- *   `.spell` files.
- * - Written INLINE, from the AST:  `commentFor()` gives each declaring statement a `/*! SPELL: DECLARES {...} *\/`
- *   comment above its code, plus a one-line `/*! SPELL: PROJECT {...} *\/` header at the top of the file --
- *   see `header()`.
- * - Each is a JS object literal, read back with `JSON5`.
- * - `read()` collects them back out of compiled text, `load()` replays them into another project's import layer.
+ * - Why:  they live in `<Project>.declarations.json` beside its compiled output, so another project can import it
+ *   WITHOUT re-parsing its `.spell` files.
+ * - Gathered from the AST, in two steps:
+ *   - while compiling, `commentFor()` gives each declaring statement a `/*! SPELL: DECLARES {...} *\/` comment
+ *     above its code -- a MARKER, never written to disk
+ *   - `split()` takes the markers back OUT of the project's compiled text, into the declarations, noting where each
+ *     statement's code starts (`codeLines`), so a Type Explorer can still show it
+ * - Each marker is a JS object literal, read back with `JSON5`.
+ * - `read()` reads a declarations file;  `load()` replays it into another project's import layer.
+ * - A project compiled before the file existed has its declarations in its compiled `.js` instead:
+ *   `fromComments()`.
  */
 export class SpellDeclarations {
   ////////////////
@@ -21,17 +25,43 @@ export class SpellDeclarations {
   ////////////////
 
   /**
-   * One-line `/*! SPELL: PROJECT {...} *\/` header for project `scope`'s compiled JS:  its versions, and what
-   * it `provides`.
+   * Project `scope`'s compiled text with markers (see `commentFor()`) as its `code`, markers out, and its
+   * `declarations`:  its versions, what it `provides`, each marker's statement and where its code starts.
    * - `version` / `exports` come from its `project.json` -- see `provides()`.
+   * - A marker MUST start its line, and end one:  as `ASTPreservedComment` writes it, indented in a class body.
    */
-  static header(scope: P.ProjectScope, { version, exports }: { version?: string; exports?: string[] } = {}): string {
-    const header = definedOnly({
+  static split(
+    compiled: string,
+    scope: P.ProjectScope,
+    { version, exports }: { version?: string; exports?: string[] } = {}
+  ): { code: string; declarations: SP.SpellDeclarationsData } {
+    const code: string[] = []
+    const statements: SP.SpellDeclaration[] = []
+    const codeLines: number[] = []
+    const lines = compiled.split("\n")
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index]!
+      if (!MARKER_START.test(line)) {
+        code.push(line)
+        continue
+      }
+      const body: string[] = []
+      while (index < lines.length && !MARKER_END.test(lines[index]!)) body.push(lines[index++]!)
+      body.push(lines[index] ?? "")
+      const literal = body.join("\n")
+      statements.push(
+        JSON5.parse<SP.SpellDeclaration>(literal.slice(literal.indexOf("{"), literal.lastIndexOf("}") + 1))
+      )
+      codeLines.push(code.length)
+    }
+    const declarations = definedOnly({
       version,
       spellVersion: SP.SPELL_VERSION,
-      provides: SpellDeclarations.provides(scope, exports)
+      provides: SpellDeclarations.provides(scope, exports),
+      statements,
+      codeLines
     })
-    return `/*! ${PROJECT_MARKER} ${toLiteral(header)} */\n`
+    return { code: code.join("\n"), declarations }
   }
 
   /**
@@ -146,10 +176,25 @@ export class SpellDeclarations {
   ////////////////
 
   /**
-   * Declarations in `compiled`, a project's `<Project>.compiled.js` -- `undefined` if it has no header.
+   * Declarations in `json`, a project's `<Project>.declarations.json` -- `undefined` if it isn't one.
+   * - Reads TEXT:  never runs anything.
+   */
+  static read(json: string): SP.SpellDeclarationsData | undefined {
+    try {
+      const data = JSON.parse(json) as Partial<SP.SpellDeclarationsData>
+      if (typeof data.spellVersion !== "string" || !Array.isArray(data.statements)) return undefined
+      return data as SP.SpellDeclarationsData
+    } catch {
+      return undefined
+    }
+  }
+
+  /**
+   * Declarations in `compiled`, a project's `<Project>.compiled.js` from before declarations had a file of their own
+   * (epic `output-targets`, P5) -- `undefined` if it has no `/*! SPELL: PROJECT {...} *\/` header.
    * - Reads TEXT:  never runs the compiled code.
    */
-  static read(compiled: string): SP.SpellDeclarationsData | undefined {
+  static fromComments(compiled: string): SP.SpellDeclarationsData | undefined {
     const header = compiled.match(new RegExp(`/\\*! ${PROJECT_MARKER} (\\{.*\\}) \\*/`))
     if (!header) return undefined
     const statements = [...compiled.matchAll(DECLARES_COMMENT)].map(([, body]) =>
@@ -580,7 +625,7 @@ export class SpellDeclarations {
   }
 }
 
-/** Starts the one-line header comment of a project's compiled JS -- see `header()`. */
+/** Started the one-line header comment of a project's compiled JS, before declarations files -- see `fromComments()`. */
 const PROJECT_MARKER = "SPELL: PROJECT"
 
 /**
@@ -599,6 +644,12 @@ const DECLARES_MARKER = "SPELL: DECLARES"
  * - Ends at the first `} *` + `/`:  `toLiteral()` never writes one inside a string.
  */
 const DECLARES_COMMENT = new RegExp(`/\\*! ${DECLARES_MARKER} (\\{[\\s\\S]*?\\}) \\*/`, "g")
+
+/** A marker's first line, maybe indented -- see `split()`. */
+const MARKER_START = new RegExp(`^[ \\t]*/\\*! ${DECLARES_MARKER} \\{`)
+
+/** A marker's last line -- see `split()`. */
+const MARKER_END = /\} \*\/\s*$/
 
 /** Widest line `packProps()` makes, indent included -- a longer prop gets a line to itself. */
 const LINE_WIDTH = 100

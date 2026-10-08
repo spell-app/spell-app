@@ -29,6 +29,7 @@
     "chalk": "^5.6.0",
     "commander": "^14",
     "ink": "^5.2.1",
+    "linkedom": "^0.18.13",
     "react": "^18.2.0",
     "tsx": "4.20.3",
     "vscode-languageserver": "^10.1.2",

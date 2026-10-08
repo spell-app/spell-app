@@ -45,13 +45,13 @@ describe("spell help", () => {
     const { status, stdout } = spell(["help"])
     expect(status).toBe(0)
     expect(stdout).toMatch(/^Usage: spell \[options\] \[command\]\n/)
-    expect(stdout).toMatch(/^ {2}compile \[options\] \[targets\.\.\.\]/m)
+    expect(stdout).toMatch(/^ {2}compile \[options\] \[projects\.\.\.\]/m)
   })
 
   test("one command", () => {
     const { status, stdout } = spell(["help", "compile"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^Usage: spell compile \[options\] \[targets\.\.\.\]\n/)
+    expect(stdout).toMatch(/^Usage: spell compile \[options\] \[projects\.\.\.\]\n/)
   })
 
   test("an unknown command", () => {
@@ -234,7 +234,7 @@ describe("spell serve", () => {
   // one retry:  vite's first start, in a busy run, once timed out (plan doc I3)
   const options = { timeout: 180_000, retry: 1 }
   test(
-    "--headless:  the page server's editor (on --port if it starts the page server), /api through it, the target",
+    "--headless:  the page server's editor (on --port if it starts the page server), /api through it, the project",
     options,
     async () => {
       // the editor is the page server's child:  a page server already running (a developer's) keeps its own port
@@ -285,7 +285,7 @@ describe("spell serve", () => {
   })
 })
 
-describe("no target", () => {
+describe("no project named", () => {
   test("in a project's folder:  that project -- for every command", () => {
     const here = tempProject("Here", 'print "here"\n')
     expect(spell(["check"], here).stderr).toContain("✓ @workspace:")
@@ -312,8 +312,9 @@ describe("spell compile", () => {
   test("a spell file prints its javascript", () => {
     const { status, stdout } = spell(["compile", "Card.spell"], fixturePath("Solitaire"))
     expect(status).toBe(0)
-    // after the file's heading and docstring
-    expect(stdout).toMatch(/^spellCore\.heading\(.*\n.*\n\/\*! SPELL: DECLARES \{\n {2}type: "Card"/)
+    // after the file's heading and docstring;  just code:  declarations go in the project's declarations file
+    expect(stdout).toMatch(/^spellCore\.heading\(.*\n.*\nexport class Card extends Thing \{/)
+    expect(stdout).not.toContain("SPELL:")
   })
 
   test("a bare root, with no terminal to ask on, lists its projects", () => {
@@ -323,7 +324,7 @@ describe("spell compile", () => {
     expect(stderr).toContain("@test holds several projects -- name one, or pass --all:\n  @test:fixtures:FizzBuzz\n")
   })
 
-  test("an unknown target", () => {
+  test("an unknown project", () => {
     const { status, stderr } = spell(["compile", "@nope"])
     expect(status).toBe(2)
     expect(stderr).toContain("'@nope' isn't a project")
@@ -336,7 +337,9 @@ describe("spell compile", () => {
     cpSync(fixturePath("Solitaire"), copy, { recursive: true })
     const { status, stderr } = spell(["compile", "."], copy)
     expect(status).toBe(0)
-    expect(stderr).toContain(`wrote Solitaire${SP.COMPILED_JS_SUFFIX}, Solitaire${SP.SCOPES_JS_SUFFIX}`)
+    expect(stderr).toContain(
+      `wrote Solitaire${SP.COMPILED_JS_SUFFIX}, Solitaire${SP.DECLARATIONS_JSON_SUFFIX}, Solitaire${SP.SCOPES_JS_SUFFIX}`
+    )
     const pack = readFileSync(resolve(copy, `Solitaire${SP.SCOPES_JS_SUFFIX}`), "utf8")
     expect(pack).toContain("type:Card")
     expect(pack).not.toContain("file://")
@@ -489,7 +492,7 @@ describe("spell watch", () => {
   }, 30_000)
 
   test("rebuilds a project when one it imports changes", async () => {
-    // `@workspace:<folder>` is the root `resolveTarget()` makes for TEMP
+    // `@workspace:<folder>` is the root `resolveProject()` makes for TEMP
     const lib = tempProject("Lib", "a widget is a thing\n")
     const app = resolve(TEMP, "App")
     mkdirSync(app)
@@ -564,7 +567,7 @@ describe("spell projects", () => {
   test("lists the roots, with the name to type for each", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +2 projects$/m)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +3 projects$/m)
     expect(stdout).toMatch(/^@user +@user:projects /m)
   })
 
@@ -572,6 +575,7 @@ describe("spell projects", () => {
     const { stdout } = spell(["projects", "@test", "--json"])
     expect(JSON.parse(stdout)).toEqual([
       { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },
+      { name: "@test/OutlineSolitaire", id: "@test:fixtures:OutlineSolitaire" },
       { name: "@test/Solitaire", id: "@test:fixtures:Solitaire" }
     ])
   })
@@ -626,6 +630,22 @@ describe("spell parse", () => {
   test("--json", () => {
     const { stdout } = spell(["parse", "1 + 2", "--json"])
     expect(JSON.parse(stdout)).toMatchObject({ rule: "expression", compiled: "(1 + 2)" })
+  })
+
+  test("--tree:  the spell tree, then its javascript;  --json its data;  --html a <ui-tree-diagram>", () => {
+    const { status, stdout } = spell(["parse", "1 + 2", "--tree"])
+    expect(status).toBe(0)
+    expect(stdout).toBe("plus\n  lhs: Number 1\n  rhs: Number 2\n\n(1 + 2)\n")
+    expect(JSON.parse(spell(["parse", "1 + 2", "--tree", "--json"]).stdout)).toEqual({
+      label: "plus",
+      children: [
+        { label: "Number 1", slot: "lhs" },
+        { label: "Number 2", slot: "rhs" }
+      ]
+    })
+    const html = spell(["parse", "1 + 2", "--tree", "--html"]).stdout
+    expect(html).toMatch(/^<ui-tree-diagram>\n<script type="application\/json">\n\{/)
+    expect(html).toMatch(/<\/script>\n<\/ui-tree-diagram>\n$/)
   })
 })
 

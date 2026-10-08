@@ -21,7 +21,7 @@ finds what to resume and makes sure it happens in the right place.
 
 - Rename this session `<name>`, BEFORE anything else.  A typed `/unpark <name>` already was, by the repo's
   `UserPromptSubmit` hook (`.claude/hooks/prompt-gate.mjs`).  Else (no argument, or plain words):
-  `spell dev session title <name>`, which lands on the next prompt, or when the
+  `spell dev session title "🚧 <name>"`, which lands on the next prompt, or when the
   session opens in its new window.
 
 ## 2. Parked by a session that's still open
@@ -45,7 +45,7 @@ this one.  AskUserQuestion:
     2. `spell dev window open <name>` (`--pkg <pkg>` when this isn't a package window), then
        `spell dev window handoff <name>`, both from the worktree's root, as `.claude/skills/isolate/SKILL.md`
        "Start" steps 4-5.  The session moves there when this turn ends.
-  - "Stay in this window":  step 1 only.
+  - "Stay in this window":  step 1, then `spell dev window stay <name>` (the window titled `⎇ <name>`, tinted).
 - Same:  `EnterWorktree` if not in it yet, and go on.
 
 ## 4. Resume

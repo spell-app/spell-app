@@ -232,12 +232,17 @@ export class SpellFile extends TextFile {
     })
   }
 
-  /** Compile our content. */
+  /**
+   * Compile our content.
+   * - `compiled` without the declaration markers compiling leaves in:  they're for our project's declarations file,
+   *   which reads them from our `AST` -- see `SP.SpellDeclarations`.
+   */
   async compile(parentScope?: P.Scope): Promise<string | undefined> {
     const match = await this.parse(parentScope)
+    const compiled = match?.compile()
     batch(() => {
       this.setState("AST", match?.AST)
-      this.setState("compiled", match?.compile() as string | undefined)
+      this.setState("compiled", typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : undefined)
     })
     return this.compiled
   }

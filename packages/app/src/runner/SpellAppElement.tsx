@@ -32,8 +32,9 @@ import "$/app/solid/loadUI"
  * - What to run, one of:
  *   - `project="@system:examples:Solitaire"` -- or `@examples/Solitaire` -- from the spell server's `/api`,
  *     sources and all, so the Type Explorer shows each declaration's spell and compiled code
- *   - `src="apps/Solitaire.compiled.js"` -- from anywhere.  Its scope pack is `Solitaire.scopes.js` beside it,
- *     and a project it imports, `@x:y:Cards`, is `Cards.compiled.js` beside it.
+ *   - `src="apps/Solitaire.compiled.js"` -- from anywhere.  Its scope pack is `Solitaire.scopes.js` beside it, its
+ *     declarations `Solitaire.declarations.json`, and a project it imports, `@x:y:Cards`, is `Cards.compiled.js`
+ *     beside it.
  *   - `editor="#ed"`:  a CSS selector for a `<spell-editor>` in the same document or shadow root -- runs what it
  *     compiles, each `SPELL_COMPILED_EVENT`, and what it compiled already.  Waits for it without the others.
  *   - `run(compiled)`:  code pushed to us, e.g. by an editor with `app="<selector>"` -- see `run()`.
@@ -280,8 +281,10 @@ function projectSource(project: string): SpellAppSource {
   return {
     name: projectId.slice(projectId.lastIndexOf(":") + 1),
     compiledUrl: `${API}/compiled/${projectId}`,
+    declarationsUrl: `${API}/declarations/${projectId}`,
     scopesUrl: `${API}/scopes/${projectId}`,
     importUrl: (id) => `${API}/compiled/${SpellSetup.expandAlias(id)}`,
+    importDeclarationsUrl: (id) => `${API}/declarations/${SpellSetup.expandAlias(id)}`,
     // `spell:/@system:examples:Solitaire/Card.spell` => its project id, then its file
     sourceUrl: (uri) => `${API}/file/${decodeURI(uri.replace(/^spell:\//, ""))}`
   }
@@ -296,7 +299,9 @@ function srcSource(src: string): SpellAppSource {
     name: isCompiled ? file.slice(0, -COMPILED_JS.length) : file,
     compiledUrl,
     scopesUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, SCOPES_JS) : undefined,
-    importUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${COMPILED_JS}`, compiledUrl).href
+    declarationsUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, DECLARATIONS_JSON) : undefined,
+    importUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${COMPILED_JS}`, compiledUrl).href,
+    importDeclarationsUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${DECLARATIONS_JSON}`, compiledUrl).href
   }
 }
 
@@ -308,6 +313,9 @@ const COMPILED_JS = ".compiled.js"
 
 /** End of a scope pack's file name -- `SP.SCOPES_JS_SUFFIX`. */
 const SCOPES_JS = ".scopes.js"
+
+/** End of a project's declarations file's name -- `SP.DECLARATIONS_JSON_SUFFIX`. */
+const DECLARATIONS_JSON = ".declarations.json"
 
 /** `width` / `height` attribute `value` as a CSS size:  `""` for `fluid`, or none. */
 function cssSize(value: string | null | undefined): string {

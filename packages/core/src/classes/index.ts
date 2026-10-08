@@ -53,10 +53,12 @@ export const classesMethods = defineSpellCoreModule({
    * Safer `drawThing()` routine -- returns `null` instead of throwing when `drawable` doesn't
    * implement `.Component` (e.g. wasn't a `Thing`/`Drawable`), unlike calling `.Component` directly.
    * - Compiles from `draw the card` -- see `draw.ts`.
+   * - Takes ANYTHING, as it checks:  compiled spell draws what TypeScript can't type, e.g. the last card of a pile.
    */
-  drawThing(drawable?: Drawable): ReactElement | null {
-    if (!drawable?.Component) return null
-    return spellCore.element({ tag: drawable.Component })
+  drawThing(drawable?: unknown): ReactElement | null {
+    const thing = drawable as Drawable | undefined
+    if (!thing?.Component) return null
+    return spellCore.element({ tag: thing.Component })
   },
 
   /**

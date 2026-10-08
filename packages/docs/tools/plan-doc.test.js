@@ -104,6 +104,33 @@ describe("PlanDoc phases", () => {
     expect(plan.check()).toEqual([])
   })
 
+  it("--before inserts a phase, moving the later to-do phases and what points at them down one", () => {
+    const plan = freshPlan()
+    for (const name of ["One", "Two", "Three"]) plan.addPhase(name)
+    plan.setPhase(1, "done")
+    plan.addPhaseUpdate(3, "<p>three changed</p>")
+    const item = plan.addItem("todo", "after three", { details: '<p>see <a href="#p3">P3 · Three</a></p>' })
+    plan.document.getElementById(item).setAttribute("data-phase", "3")
+    expect(plan.addPhase("Inserted", { before: 2 })).toBe(2)
+    expect(plan.phases.map((phase) => `${phase.n} ${phase.name}`)).toEqual(["1 One", "2 Inserted", "3 Two", "4 Three"])
+    expect(plan.phaseSections.map((section) => section.id)).toEqual(["p1", "p2", "p3", "p4"])
+    expect(plan.document.getElementById("p4").getAttribute("header")).toBe("P4 · Three")
+    expect(plan.document.querySelector("#p4 .plan-updated").textContent).toContain("three changed")
+    const link = plan.document.querySelector(`#${item} a[href^="#p"]`)
+    expect([link.getAttribute("href"), link.textContent]).toEqual(["#p4", "P4 · Three"])
+    expect(plan.document.getElementById(item).getAttribute("data-phase")).toBe("4")
+    expect(plan.check()).toEqual([])
+  })
+
+  it("--before refuses a started phase, or one that isn't there", () => {
+    const plan = freshPlan()
+    for (const name of ["One", "Two"]) plan.addPhase(name)
+    plan.setPhase(2, "active")
+    expect(() => plan.addPhase("X", { before: 2 })).toThrow(/P2 has started/)
+    expect(() => plan.addPhase("X", { before: 3 })).toThrow(/no such phase/)
+    expect(plan.phases).toHaveLength(2)
+  })
+
   it("puts the estimate in the phase title's badge", () => {
     const plan = freshPlan()
     plan.addPhase("One", { estimate: "1-2h" })
@@ -1984,5 +2011,46 @@ describe("PlanDoc reading layout (P3 of windows-and-review)", () => {
     expect(notice.querySelector(":scope > ui-content > ui-code.plan-hung-prompt script").textContent).toBe("make it so")
     plan.addPhase("First")
     expect(plan.document.querySelector(".plan-hung")).toBeNull()
+  })
+})
+
+describe("PlanDoc future epics (epic-future)", () => {
+  it("makeFuture:  data-future, the notice in place of Plan hung?, no branch or worktree, a FUTURE label", () => {
+    const plan = freshPlan()
+    plan.makeFuture("foo-bar")
+    expect(plan.future).toBe(true)
+    expect(plan.document.querySelector(".plan-hung")).toBeNull()
+    const notice = plan.document.querySelector("ui-message.plan-future")
+    expect(notice.querySelector('a[href="details/analysis.html"]')).not.toBeNull()
+    expect(notice.textContent).toContain("/epic foo-bar")
+    const folder = plan.document.querySelector('ui-list.plan-meta > ui-item[icon="folder"]')
+    expect(folder.textContent).toBe("Worktree:  none yet")
+    const step = plan.document.querySelector(".plan-step")
+    expect(step.hasAttribute("hidden")).toBe(false)
+    expect(step.textContent).toBe("FUTURE")
+    expect(plan.summary().future).toBe(true)
+  })
+
+  it("promote:  an ordinary epic, its meta lines naming the branch and worktree;  a second time does nothing", () => {
+    const plan = freshPlan()
+    plan.makeFuture("foo-bar")
+    plan.addItem("decision", "Main's code draws every doc")
+    expect(plan.promote({ branch: "foo-bar", worktree: "/w/foo-bar" })).toBe(true)
+    expect(plan.future).toBe(false)
+    expect(plan.document.querySelector("ui-message.plan-future")).toBeNull()
+    const branch = plan.document.querySelector('ui-list.plan-meta > ui-item[icon="code branch"]')
+    expect(branch.innerHTML).toContain("<code>foo-bar</code>")
+    expect(plan.document.querySelector(".plan-step").hasAttribute("hidden")).toBe(true)
+    // the decision stays
+    expect(plan.document.getElementById("q1")).not.toBeNull()
+    expect(plan.promote({ branch: "x", worktree: "y" })).toBe(false)
+  })
+
+  it("its first phase plans it too", () => {
+    const plan = freshPlan()
+    plan.makeFuture("foo-bar")
+    plan.addPhase("One", { symptom: "s", changes: "c" })
+    expect(plan.future).toBe(false)
+    expect(plan.document.querySelector("ui-message.plan-future")).toBeNull()
   })
 })

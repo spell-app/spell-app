@@ -47,6 +47,12 @@ const RUNNING = "<!-- running-epics -->"
 /** Days without an update after which an epic with phases left shows as stalled. */
 const STALLED_DAYS = 3
 
+/**
+ * The item kinds an epic follows up on, by id letter:  everything open but caveats (`followUpsIn()`).  Up here:  this
+ * file runs as it loads (`main()`, below), and needs it then.
+ */
+const FOLLOW_UPS = { q: "question", j: "judgement call", i: "issue", t: "todo", v: "test" }
+
 /** Spell UI's component pages (shared, `ui/components/`):  the home's Spell UI count. */
 const UI_COMPONENTS = join(UI_PAGES, "components")
 
@@ -195,7 +201,10 @@ function describe(path) {
   }))
   // a plan doc's "updated" stamp (`plan-doc.js` `touch()`):  how long since anyone worked on it
   const updated = document.getElementById("plan-updated")?.textContent.trim() || null
-  return { path, title, description, phases, updated }
+  // a future epic (`/epic future`, `plan-doc.js` `future`):  written down, not planned yet
+  const future = path.startsWith("epics/") && document.body?.hasAttribute("data-future")
+  const followUps = path.startsWith("epics/") ? followUpsIn(document) : []
+  return { path, title, description, phases, updated, future, followUps }
 }
 
 /** A phase section's title, whitespace collapsed:  its `header` (else `slot="header"`), or an old one's h3. */
@@ -210,6 +219,25 @@ function phaseLabel(section) {
 ////////////////
 // ## The home
 ////////////////
+
+/**
+ * What an epic still asks of Owen, from its plan doc's item lines (the skeleton has them all):  each OPEN question,
+ * judgement call, issue, todo and hand test, as its kind's name.  Caveats don't count:  limits accepted, open for good.
+ * - the same as `spell-doc-runtime.js` `FOLLOW_UPS` and `packages/cli/src/dev/worktrees.ts` `planFollowUps()`
+ */
+function followUpsIn(document) {
+  return Array.from(
+    document.querySelectorAll('.plan-items > [id][data-status="open"]'),
+    (item) => FOLLOW_UPS[item.id[0]]
+  ).filter(Boolean)
+}
+
+/** `kinds` (`followUpsIn()`'s) as words:  `2 issues, 1 test`. */
+function followUpWords(kinds) {
+  const counts = new Map()
+  for (const kind of kinds) counts.set(kind, (counts.get(kind) ?? 0) + 1)
+  return [...counts].map(([kind, n]) => `${n} ${kind}${n === 1 ? "" : "s"}`).join(", ")
+}
 
 /**
  * The home's cards, in the top bar's order (Owen, 2026-10-05, Q6 of `claude-design`):  Epics, Guides, Brand,
@@ -407,10 +435,16 @@ ${body}
 </ui-section>`
 }
 
-/** Epic `pages` with the open ones first, each group in its own order (by name). */
+/**
+ * Epic `pages`:  the ones under way first, then the sleeping ones (😴:  open follow-ups, nothing under way), then the
+ * future ones, then the done ones, each group in its own order (by name).
+ */
 export function epicOrder(pages) {
-  const done = (page) => epicState(page.phases, page.updated).done
-  return [...pages.filter((page) => !done(page)), ...pages.filter(done)]
+  const state = (page) => epicState(page.phases, page.updated, page.future, page.followUps)
+  const open = pages.filter((page) => !state(page).done)
+  const asleep = open.filter((page) => state(page).sleeping)
+  const awake = open.filter((page) => !page.future && !state(page).sleeping)
+  return [...awake, ...asleep, ...open.filter((page) => page.future), ...pages.filter((page) => state(page).done)]
 }
 
 /** Page `path` (from the checkout's root) as a link from folder `from` (a list page's):  `solid/solid-2.html`. */
@@ -436,7 +470,7 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
  * - SAME markup as `$/server/page` `RunningEpics`' cards:  change both
  */
 function epicCard(page, from) {
-  const state = epicState(page.phases, page.updated)
+  const state = epicState(page.phases, page.updated, page.future, page.followUps)
   const active = page.phases.find((phase) => phase.status === "active")
   return `<ui-card data-epic="${attr(page.path.split("/")[1])}" data-status="${state.done ? "done" : "open"}"><ui-content>
 <ui-header>${state.mark} <a href="${attr(href(page.path, from))}">${text(page.title)}</a></ui-header>
@@ -447,14 +481,23 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
 
 /**
  * An epic's state, from its phases and its "updated" date:  `{ done, mark }`, `mark` the HTML before its title.
+ * - future:  written down with `/epic future`, not planned yet (a violet seedling;  epic `epic-future`)
+ * - sleeping:  open follow-ups (`followUps`:  questions, judgement calls, issues, todos, tests) and no phase under
+ *   way:  😴, what's open on hover (Owen, 2026-10-07:  "so I can see what I need to follow up on")
  * - planning:  no phases yet (a blue thought bubble)
  * - done:  every phase done (a green check)
  * - stalled:  phases left, and no update for more than `STALLED_DAYS` (a yellow pause;  the date on hover)
  * - in progress:  `[3/6]`, phases done of all
  * - SAME as `$/server/page` `RunningEpics`' `stateMark()`:  change both
  */
-function epicState(phases, updated) {
+function epicState(phases, updated, future = false, followUps = []) {
   const done = phases.filter((phase) => phase.status === "done").length
+  if (future && !phases.length)
+    return { done: false, mark: stateIcon("seedling", "violet", "future:  not planned yet") }
+  if (phases.length && followUps.length && !phases.some((phase) => phase.status === "active")) {
+    const tip = `sleeping:  ${followUpWords(followUps)} to follow up`
+    return { done: false, sleeping: true, mark: `<span class="spell-epic-state" title="${attr(tip)}">😴</span>` }
+  }
   if (!phases.length) return { done: false, mark: stateIcon("comment dots", "blue", "planning") }
   if (done === phases.length) return { done: true, mark: stateIcon("circle check", "green", "done") }
   const idle = updated ? (Date.now() - new Date(`${updated}T00:00`).getTime()) / 86_400_000 : 0

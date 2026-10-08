@@ -1,13 +1,11 @@
-import type { P } from "$/parser"
 import { MD } from "$/markdown"
 
 /**
- * `P.Markup` => an HTML string.
+ * `MD.Markup` => an HTML string.
  * - Text is escaped;  `MD.raw()` nodes are written as they are;  void tags (`br`, `hr` ...) as `<hr />`.
  * - Attributes in their order, `undefined` ones skipped, values escaped.
- * - Why here, not `P.render`:  a parser change, which the markdown epic keeps to the tiny ones (D28).
  */
-export function markupToHTML(markup: P.Markup): string {
+export function markupToHTML(markup: MD.Markup): string {
   if (markup === null || markup === undefined || typeof markup === "boolean") return ""
   if (typeof markup === "string") return MD.escapeHTML(markup)
   if (typeof markup === "number") return String(markup)

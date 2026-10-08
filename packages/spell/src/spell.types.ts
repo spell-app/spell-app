@@ -35,6 +35,13 @@ export const PROJECT_FILE = "project.json"
 export const COMPILED_JS_SUFFIX = ".compiled.js"
 
 /**
+ * End of a project's declarations file's name, e.g. `Solitaire.declarations.json`:  what it offers importers, beside
+ * its compiled output -- see `SpellProject.declarationsFile`, `SP.SpellDeclarationsData`.
+ * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js` and `.jsx`.
+ */
+export const DECLARATIONS_JSON_SUFFIX = ".declarations.json"
+
+/**
  * End of a test fixture's snapshot file's name, e.g. `Solitaire.snapshot.js` -- its compiled output, which
  * `$/spell/test`'s `fixtures.test.ts` checks against.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
@@ -65,6 +72,8 @@ export type ProjectManifestJSON5 = {
   version?: string
   /** Names it offers importers, from its `project.json` -- default:  everything it declares. */
   exports?: string[]
+  /** Targets it compiles to, from its `project.json`, e.g. `["ts/solid"]` -- `js/solid` always:  see `SP.TARGETS`. */
+  targets?: string[]
 }
 
 /** A single entry in `contents.manifest`, augmented with `path`/`location`/`file` once loaded. */
@@ -197,12 +206,19 @@ export type StatementBodySpec = {
   nestedAs?: "block" | "expression"
   /** Body keyword rule from `syntax`, e.g. `{statement_body}?`, echoed back by `toRulexSyntax()`. */
   syntaxRule: P.Rule
+  /**
+   * `true`:  the keyword is ALSO a registered rule, matching the words which open the body at the end of our line,
+   * e.g. `{with_nested_statements}` matching `where:`.  It stays in `rules`, and we take a nested body only when it
+   * matched -- see `SpellStatement.takesNestedBody()`.
+   */
+  leadIn?: boolean
 }
 
 /**
  * Body keywords which may END a `SpellStatement`'s `syntax`, alone or as a choice,
  * e.g. `({inline_statement}|{nested_statements})?`.
  * - Not registered rules:  `SpellStatement` takes them out of `rules`, so they're never parsed as rules.
+ * - Except a `leadIn` one, which matches words on our line, e.g. `{with_nested_statements}`.
  */
 export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">> = {
   // Statement bodies, e.g. `if`, `for each`, method definitions.
@@ -212,6 +228,11 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
   inline_statement: { inlineAs: "statement" },
   /** Indented block of statements after the line, wrapped in `{}` when compiled. */
   nested_statements: { nestedAs: "block" },
+  /**
+   * `where:`, `with:` or `:` ending the line, then an indented block, e.g. a type's outline body.
+   * - A registered rule matching those words (`classes.ts`), so it stays in `rules` -- see `leadIn`.
+   */
+  with_nested_statements: { nestedAs: "block", leadIn: true },
 
   // Expression bodies, e.g. property getters, `where` clauses, `return`.
   /** Getter-style body:  `{expression_body}` ~== `({inline_expression}|{nested_statements})`. */
@@ -309,10 +330,13 @@ export type ReadAsTemplate = {
    * - `property`:  `{it}.name`
    * - `method`:  `{it}.name()`
    * - `spellCore`:  `spellCore.name({it})`
+   * - `static`:  `Type.name({it})` -- a VALUE kind's property, e.g. `Suit.color({it})` (epic `outline-spell`)
    */
-  form: "property" | "method" | "spellCore"
+  form: "property" | "method" | "spellCore" | "static"
   /** Property or method name, e.g. `length`, `itemCountOf`. */
   name: string
+  /** `static` form:  the class it's called on, e.g. `Suit`. */
+  type?: string
 }
 
 // ## Declarations
@@ -328,10 +352,9 @@ export const SPELL_VERSION = "0.8.0"
 
 /**
  * Everything a project added to scope while parsing, as plain data -- see `SpellDeclarations`.
- * - Lives in the project's compiled JS, so another project can import it WITHOUT re-parsing its `.spell` files:
- *   a one-line `/*! SPELL: PROJECT {...} *\/` header, then a `/*! SPELL: DECLARES {...} *\/` comment above
- *   each declaring statement.
- * - JSON-able:  no `Match`es, classes or functions.
+ * - Lives in `<Project>.declarations.json`, beside its compiled output, so another project can import it WITHOUT
+ *   re-parsing its `.spell` files -- whatever language that output is in.
+ * - JSON:  no `Match`es, classes or functions.
  */
 export type SpellDeclarationsData = {
   /** This project's own semver, from its `project.json` -- if it has one. */
@@ -345,6 +368,11 @@ export type SpellDeclarationsData = {
   provides: string[]
   /** What each declaring statement declared, in source order. */
   statements: SpellDeclaration[]
+  /**
+   * Where each of `statements` starts in the compiled output:  its line, from 0 -- so a Type Explorer can show a
+   * declaration's code.  Missing in declarations read from an older compiled `.js`.
+   */
+  codeLines?: number[]
 }
 
 /**

@@ -1,4 +1,4 @@
-import { MD, type InlineNode } from "$/markdown"
+import { MD } from "$/markdown"
 
 /** Where an extended autolink may start:  line start, after whitespace or `*` `_` `~` `(`. */
 const BOUNDARY = /[\s*_~(]/
@@ -13,7 +13,7 @@ const DOMAIN = /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*/
  *   `&x;` stay outside the link.
  * - SIDE EFFECT:  splits `root`'s text nodes.
  */
-export function autolinkText(root: InlineNode) {
+export function autolinkText(root: MD.InlineNode) {
   for (const child of root.children()) {
     if (child.kind === "text") linkify(child)
     else if (child.kind !== "link" && child.kind !== "image" && child.kind !== "code" && child.first)
@@ -22,11 +22,11 @@ export function autolinkText(root: InlineNode) {
 }
 
 /** Split `node` around the autolinks in its text. */
-function linkify(node: InlineNode) {
+function linkify(node: MD.InlineNode) {
   const text = node.text
   let last = 0
   let anchor = node
-  const pieces: InlineNode[] = []
+  const pieces: MD.InlineNode[] = []
   for (const found of text.matchAll(CANDIDATE)) {
     const start = found.index!
     if (start > 0 && !BOUNDARY.test(text[start - 1]!)) continue

@@ -28,6 +28,17 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
   static ruleName = "line"
 
   /**
+   * The innermost `line` match at `offset` in a file's `match`, e.g. the line the cursor is on -- `undefined` if none.
+   * - At the very end of a line the stack starts with the NEXT `line`:  back up one character and look again.
+   * - The app's spell tree pane and the language server's `spell/lineTree` both use it.
+   */
+  static lineAt(match: P.Match, offset: number): P.Match | undefined {
+    let stack = match.matchStackForOffset(offset).reverse()
+    if (stack[0]?.rule instanceof BlockLine) stack = match.matchStackForOffset(offset - 1).reverse()
+    return stack.find((each) => each.rule instanceof BlockLine)
+  }
+
+  /**
    * SIDE EFFECT: calls `statement.rule.mutateScope()` on the parsed statement (and on any nested block's
    * errors are folded in too), so a locked-in statement can e.g. add variables to `scope` as it's parsed.
    */
@@ -79,6 +90,8 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
 
       // parse the statement (which may parse an inline body as well)
       const unparsed = tokens.slice(start, end)
+      // an outline's bullet, e.g. `- it has a deck`:  kept as a token, never part of the statement
+      if (BlockLine.isBullet(unparsed)) matched.push(unparsed.shift()!)
       let statement = scope.parser?.parse(unparsed, "statement", scope)
       // a statement its rule refused, saying why -- see `SpellStatement.refuse()`:  an error, never committed
       if (statement?.is(ParseError)) {
@@ -93,8 +106,12 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
         unparsed.splice(0, statement.length)
       }
 
-      // add anything unparsed at the end as a parse error
-      if (unparsed.length) {
+      // add anything unparsed at the end as a parse error -- saying why, for an outline line out of its body
+      if (unparsed.length && !statement && BlockLine.isOutlineLineOutsideBody(scope, unparsed)) {
+        const error = SP.spellParser.createParseError(scope, unparsed, OUTSIDE_BODY_MESSAGE)
+        errors.push(error)
+        matched.push(error)
+      } else if (unparsed.length) {
         const error = scope.parser?.parse(unparsed, "parse_error", scope)
         if (error) {
           errors.push(error)
@@ -144,6 +161,28 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
     if (lineBodyMark) result.data.bodyMark = lineBodyMark
     if (fromBody !== undefined) result.data.fromBody = fromBody
     return result
+  }
+
+  /**
+   * Do `tokens` start with an outline's bullet:  a `-` with a space after it, and more after that?
+   * - e.g. `- it has a deck`, in an outline-style type's body (plan doc `outline-spell`) -- or any line:
+   *   a statement never starts `- `.
+   * - NOT `-5`, nor a lone `-`.
+   */
+  static isBullet(tokens: P.Token[]): boolean {
+    const [first] = tokens
+    return tokens.length > 1 && first instanceof P.SymbolToken && first.value === "-" && !!first.whitespace
+  }
+
+  /**
+   * Is `tokens` an outline body's line, e.g. `it has a deck` or `its "suit" is ...`, NOT in a type's body -- so it
+   * didn't parse?  Its error then says where it belongs (plan doc `outline-spell`, P6).
+   * - `it` / `its`, then a quoted name or phrase, or `has` / `belongs`.
+   */
+  static isOutlineLineOutsideBody(scope: P.Scope, tokens: P.Token[]): boolean {
+    const [subject, next] = tokens
+    if (!/^its?$/i.test(`${subject?.value}`) || P.SubjectScope.of(scope) || scope instanceof P.MethodScope) return false
+    return next instanceof P.TextToken || /^(has|belongs)$/i.test(`${next?.value}`)
   }
 
   /**
@@ -211,3 +250,7 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
     })
   }
 }
+
+/** What an outline line out of its type's body says -- see `BlockLine.isOutlineLineOutsideBody()`. */
+const OUTSIDE_BODY_MESSAGE =
+  '"it" and "its" mean a type only in its outline, indented under e.g. "a card is a thing where:"'

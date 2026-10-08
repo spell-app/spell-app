@@ -180,6 +180,82 @@ properties.addRule(member_words, {
 })
 
 ////////////////
+// ## `quoted_member` rule
+//    e.g. `"short rank"` in `- its "short rank" is text`
+////////////////
+
+/**
+ * A member's name in quotes, where it's being declared:  `its "suit" is one of ...` in an outline-style type's
+ * body -- the outline style's "quotes teach a new word" (plan doc `outline-spell`).
+ * - The words inside are a `member_words` name, every one of them:  `value` and `raw` as `member_words`'s,
+ *   e.g. `short_rank` / `short rank`.
+ */
+class quoted_member extends P.Rule {
+  @proto static highlightAs: P.HighlightKind = "property"
+
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
+    return quoted_member.wordsOf(tokens[start]) !== undefined
+  }
+
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const [token] = tokens
+    const words = quoted_member.wordsOf(token)
+    if (!token || !words) return undefined
+    return new P.Match({
+      rule: this,
+      matched: [token],
+      raw: words.join(" "),
+      value: words.map((word) => word.replace(/-/g, "_")).join("_"),
+      tokens: [token],
+      scope
+    })
+  }
+
+  compile(match: P.MatchFor<this>) {
+    return match.value
+  }
+
+  getAST(match: P.MatchFor<this>) {
+    return new P.ASTPropertyLiteral(match)
+  }
+
+  /** A declaration names the member without its quotes, e.g. `short rank`. */
+  declaredText(match: P.Match): string {
+    return `${match.raw}`
+  }
+
+  /** The words inside `token`'s quotes, if it's a text token holding only member words -- else `undefined`. */
+  private static wordsOf(token: P.Token | undefined): string[] | undefined {
+    if (!(token instanceof P.TextToken)) return undefined
+    const words = token.innerText.trim().split(/\s+/)
+    const isMemberWord = (word: string, index: number) => {
+      const lower = word.toLowerCase()
+      return (
+        QUOTED_MEMBER_WORD.test(word) &&
+        (!MEMBER_STOP_WORDS.has(lower) || (index === 0 && MEMBER_LEADING_WORDS.has(lower)))
+      )
+    }
+    return words[0] && words.every(isMemberWord) ? words : undefined
+  }
+}
+properties.addRule(quoted_member, {
+  tests: [
+    {
+      tests: [
+        { title: "one word", input: '"rank"', output: "rank" },
+        { title: "several words", input: '"short rank"', output: "short_rank" },
+        { title: "dashed", input: '"short-rank"', output: "short_rank" },
+        { title: "a leading preposition", input: '"with jokers"', output: "with_jokers" },
+        { title: "a structural word", input: '"rank of"', output: undefined }
+      ]
+    }
+  ]
+})
+
+/** A word `quoted_member` takes inside its quotes. */
+const QUOTED_MEMBER_WORD = /^[A-Za-z][\w-]*$/
+
+////////////////
 // ## `MemberReadExpression` base class
 //    e.g. base for the rules which read a member (`property_expression`, `its_known_property`, `its_property`)
 ////////////////
@@ -215,6 +291,12 @@ export class MemberReadExpression<
     }
     if (member instanceof P.ScopeVariable && member.readAs) {
       return MemberReadExpression.builtInMemberAST(match, object, member.readAs)
+    }
+    // a value kind's property declared further down, e.g. `the color of its suit` in a card above the deck:
+    // its type's record knows by now (issue I3 of `outline-spell`) -- the static form, as `property_value_getter`'s
+    const { ownerType } = match.data as MemberData
+    if (!member && ownerType?.valueKind) {
+      return MemberReadExpression.builtInMemberAST(match, object, `${ownerType.name}.${property.value}({it})`)
     }
     return new P.ASTPropertyExpression(match, { object, property: P.asAST<P.ASTPropertyLiteral>(property.AST) })
   }
@@ -267,9 +349,13 @@ export class MemberReadExpression<
    * - The table's templates are checked as it loads (`SP.loadBuiltInTypes()`), so one always reads.
    */
   private static builtInMemberAST(match: P.AnyMatch, object: P.ASTExpression, readAs: string): P.ASTExpression {
-    const { form, name } = SP.parseReadAsTemplate(readAs)!
+    const { form, name, type } = SP.parseReadAsTemplate(readAs)!
     if (form === "property") return new P.ASTPropertyExpression(match, { object, property: name })
     if (form === "method") return new P.ASTScopedMethodInvocation(match, { thing: object, methodName: name })
+    if (form === "static") {
+      const thing = new P.ASTTypeExpression(match, { name: type! })
+      return new P.ASTScopedMethodInvocation(match, { thing, methodName: name, args: [object] })
+    }
     return new P.ASTCoreMethodInvocation(match, { methodName: name, args: [object] })
   }
 }
@@ -710,6 +796,6 @@ type ItsMatchData = {
 /** `it` as an object to read from:  the `it` we noted while parsing, else `this` -- see `ItsMatchData`. */
 function itsObject(match: P.Match<P.AnyGroups, ItsMatchData>): P.ASTExpression {
   const itVar = match.data.itVar === NONE ? undefined : match.data.itVar
-  if (!itVar) return new P.ASTThisLiteral(match)
+  if (!itVar) return new P.ASTSelfLiteral(match)
   return new P.ASTVariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
 }

@@ -566,6 +566,9 @@ export class SpellLanguageService {
     const sections = [
       this.describeRule(described.data.statement instanceof P.Match ? described.data.statement : described)
     ]
+    // an outline body's line, as the sentence style says it -- see `SP.SpellStatement.getLongForm()`
+    const longForm = statement?.rule instanceof SP.SpellStatement ? statement.rule.getLongForm(statement) : undefined
+    if (longForm) sections.unshift(`**Reads as**  \`${longForm}\``)
     if (subject) sections.push(this.describeSubject(subject))
     const compiled = statement && SpellLanguageService.compileQuietly(statement)
     if (compiled) sections.push(["```js", SpellLanguageService.truncateLines(compiled, 20), "```"].join("\n"))
@@ -1173,6 +1176,18 @@ export class SpellLanguageService {
   compiled(file: SP.SpellFile): string {
     if (!file.match) return `// ${file.file} hasn't been parsed`
     return SpellLanguageService.compileQuietly(file.match) ?? `// ${file.file} couldn't be compiled`
+  }
+
+  /**
+   * `spell/lineTree`:  the spell tree of line `line` (0-based) of `file`, as `<ui-tree-diagram>` draws it -- `null`
+   * if no line parsed there, e.g. a blank line.
+   * - From the file as last parsed, so unsaved edits show.
+   */
+  lineTree(file: SP.SpellFile, line: number): P.TreeNode | null {
+    if (!file.match) return null
+    const indent = file.parseText.split("\n")[line]?.match(/^[ \t]*/)?.[0].length ?? 0
+    const ast = SP.BlockLine.lineAt(file.match, this.offsetAt(file, { line, character: indent }))?.AST
+    return P.TreeWriter.treeOf(ast) ?? null
   }
 
   /** `spell/project`:  `file`'s project's spell files in parse order, with their error counts. */
@@ -2103,7 +2118,8 @@ export class SpellLanguageService {
   static compileQuietly(match: P.Match): string | undefined {
     try {
       const compiled = match.compile()
-      return typeof compiled === "string" ? compiled : undefined
+      // declaration markers are for the declarations file, not for people -- see `SP.SpellDeclarations`
+      return typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : undefined
     } catch {
       return undefined
     }

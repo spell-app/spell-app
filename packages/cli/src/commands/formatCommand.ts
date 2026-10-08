@@ -7,7 +7,7 @@ import { SP } from "$/spell"
 import { CLI } from "$/cli"
 
 /**
- * `spell format <target...>`:  tidy the whitespace of `.spell` files, as VS Code's "Format Document" does --
+ * `spell format [projects...]`:  tidy the whitespace of `.spell` files, as VS Code's "Format Document" does --
  * `SpellLanguageService.formatting()`, with `trimFinalNewlines` and `insertFinalNewline` on.
  * - A project:  each of its `.spell` files.  A `.spell` file:  just that one.
  * - Lists each file it changed -- or, with `--check`, each it WOULD change, writing nothing, and exits 1 if any.
@@ -20,11 +20,11 @@ export async function formatCommand(
   options: CLI.FormatOptions
 ): Promise<number> {
   const files: SP.SpellFile[] = []
-  for (const target of await session.targets(args)) {
-    const project = target.kind === "file" ? target.file.project : target.project
+  for (const resolved of await session.projects(args)) {
+    const project = resolved.kind === "file" ? resolved.file.project : resolved.project
     await session.parse(project)
     const spellFiles = project.spellFiles.filter((it) => it.location.extension === ".spell")
-    files.push(...(target.kind === "file" ? spellFiles.filter((it) => it.path === target.file.path) : spellFiles))
+    files.push(...(resolved.kind === "file" ? spellFiles.filter((it) => it.path === resolved.file.path) : spellFiles))
   }
   if (!options.check) {
     const frozen = files.filter((file) => isTestProject(file.location.serverPath))
