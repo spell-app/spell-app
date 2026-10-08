@@ -1,4 +1,11 @@
-import { Definitions, type AnyEpicData, type EpicData, type EpicTag, type EpicVocabulary } from "$/epics/definitions"
+import {
+  Definitions,
+  FLOW,
+  type AnyEpicData,
+  type EpicData,
+  type EpicTag,
+  type EpicVocabulary
+} from "$/epics/definitions"
 
 import { TEXT_NODE, type MarkupContent, type MarkupProblem, type ValidateOptions } from "./markup.types"
 import { MarkupCheck } from "./MarkupCheck"
@@ -104,7 +111,12 @@ export class Markup {
     const slotted = node.nodeType === 1 && (node as Element).hasAttribute("slot")
     if (!vocabulary || vocabulary.childOrder !== "listed" || slotted) return this.append(parent, node)
     const specs = MarkupCheck.childSpecs(vocabulary, parent).filter((spec) => !spec.slot)
-    const rank = (child: Node) => specs.findIndex((spec) => MarkupCheck.matches(spec, child))
+    // a `flow` element the model also lists by name (`<epic-choices>` in an item) takes that place, not prose's
+    const named = (child: Node) => specs.findIndex((spec) => spec.tag !== FLOW && MarkupCheck.matches(spec, child))
+    const rank = (child: Node) => {
+      const own = named(child)
+      return own >= 0 ? own : specs.findIndex((spec) => MarkupCheck.matches(spec, child))
+    }
     const own = rank(node)
     const next = Array.from(parent.childNodes).find((child) => !isBlank(child) && rank(child) > own)
     if (next) next.before(node)
