@@ -1,0 +1,1 @@
+import{t as e}from"./ui-text-DTF4TKro.js";export{e as UIText};

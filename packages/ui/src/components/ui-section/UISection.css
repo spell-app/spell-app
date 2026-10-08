@@ -42,8 +42,9 @@
  *   rescaled.
  * - Sticky:  `.title` is `position: sticky` inside the section box, at `--_ui-section-top` (inline:
  *   the top-level `offset`, or the bottom of the enclosing stuck titles) and `z-index` `--ui-section-z-index` minus the
- *   nesting depth (`--_ui-section-depth`, inline), so a nested title slides UNDER its parent's.  It needs an opaque
- *   background (`--ui-section-sticky-background`).
+ *   nesting depth (`--_ui-section-depth`, inline;  never below 1), so a nested title slides UNDER its parent's.  It
+ *   needs an opaque background (`--ui-section-sticky-background`);  the content is isolated (its own stacking
+ *   context), so nothing in it paints over the title.
  * - Animated folds (`:state(animated)`:  `interpolate-size`), dropped under `prefers-reduced-motion`.
  * - `<ui-sections>` shares this sheet:
  *
@@ -701,12 +702,19 @@
   /*
    * ## Sticky:  the title bar sticks within the section box, at the stack top (inline `--_ui-section-top`);
    * deeper titles stack lower (inline `--_ui-section-depth`), so they slide under their parents'.
+   * - The content is its own stacking context, so nothing in it (a step's arrow, a table's stuck header, a nested
+   *   section's title) can climb over the stuck title, whatever its `z-index`:  the title only has to beat 0, so it
+   *   never goes below 1, however low a page sets `--ui-section-z-index` (the docs:  4) or however deep it nests.
+   *   Popups and dialogs inside still show above it:  they open in the top layer.
    */
   .ui.sticky.section > .title {
     position: sticky;
     top: var(--_ui-section-top, 0px);
-    z-index: calc(var(--_ui-section-z-index) - var(--_ui-section-depth, 0));
+    z-index: max(1, calc(var(--_ui-section-z-index) - var(--_ui-section-depth, 0)));
     background: var(--_section-title-background, var(--_ui-section-sticky-background));
+  }
+  .ui.sticky.section > .content {
+    isolation: isolate;
   }
 
   /* ## Basic:  no box, rule or tint, whatever else is set (last, so it wins over the looks above). */

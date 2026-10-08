@@ -1,0 +1,1 @@
+import{n as e,t}from"./ui-rating-BYpEnswJ.js";export{t as DOMRatingElement,e as UIRating};

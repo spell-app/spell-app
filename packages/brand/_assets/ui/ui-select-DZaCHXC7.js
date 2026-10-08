@@ -1,0 +1,1 @@
+import{t as e}from"./ui-select-B1qdy2Xi.js";export{e as UISelect};

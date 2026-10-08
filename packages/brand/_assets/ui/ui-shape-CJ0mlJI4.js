@@ -1,1 +1,0 @@
-import{n as e,r as t,t as n}from"./ui-shape-BsgSCGu-.js";export{e as DOMShapeElement,t as UIShape,n as UISide};
