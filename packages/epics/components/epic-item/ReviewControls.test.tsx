@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/tes
 
 import type { E } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { expectAccessible } from "$/ui/test/A11y"
 
 import { ReviewClient, type Inbox } from "$/epics/review"
 
@@ -161,6 +162,49 @@ describe("<epic-item> review controls", () => {
     expect(host.shadowRoot!.querySelector("[part~='base']")!.classList.contains("progress")).toBe(true)
     const done = await render(`<epic-item id="j4" title="Done" status="open" review-as="now"></epic-item>`)
     expect([button(done, "details").dataset.fill, button(done, "approve").dataset.fill]).toEqual(["solid", "none"])
+  })
+
+  test("the id chip matches the chosen button:  its colour and fill;  no mark, its state's;  light and dark", async () => {
+    const before = new Date(Date.now() - 60_000).toISOString()
+    routes.inbox.marks.v2 = { action: "approve", at: new Date().toISOString() }
+    routes.inbox.marks.j8 = { action: "revisit", when: "soon", note: "why?", at: before }
+    routes.inbox.marks.q9 = { action: "pick", pick: "B", at: before }
+    routes.inbox.sent = new Date(Date.now() - 30_000).toISOString()
+    await adoptClient()
+    const look = async (html: string) => {
+      const box = await render(html)
+      const host = box.localName === "epic-item" ? box : box.querySelector("epic-item")!
+      const chip = host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+      const button = host.shadowRoot!.querySelector<HTMLElement>(
+        "ui-button:is([data-fill='dashed'], [data-fill='outline'])"
+      )
+      const style = getComputedStyle(chip)
+      return { box, chip, button, fill: chip.dataset.fill, color: chip.dataset.color, border: style.borderTopStyle }
+    }
+    const approved = await look(`<epic-item id="v2" title="Picked" status="open" state="open"></epic-item>`)
+    expect([approved.fill, approved.color, approved.border]).toEqual(["dashed", "green", "dashed"])
+    expect([approved.button?.dataset.fill, approved.button?.dataset.color]).toEqual(["dashed", "green"])
+    expect(approved.chip.title).toMatch(/you chose Approve · not sent yet/)
+    const revisited = await look(`<epic-item id="j8" title="Talk" status="open" state="attention"></epic-item>`)
+    expect([revisited.fill, revisited.color, revisited.border]).toEqual(["outline", "blue", "solid"])
+    const picked = await look(`<epic-item id="q9" title="Which?" status="open" state="attention"></epic-item>`)
+    expect([picked.fill, picked.color, picked.chip.title]).toEqual([
+      "outline",
+      "green",
+      expect.stringMatching(/you chose pick B · sent/)
+    ])
+    // no mark, or one Claude handled (`review-as`, its button solid):  the state's colour, solid, as before
+    const plain = await look(
+      `<epic-item id="q10" title="Seen" status="decided" state="old" review-as="approve"></epic-item>`
+    )
+    expect([plain.fill, plain.color, plain.border]).toEqual([undefined, undefined, "none"])
+    for (const scheme of ["color-scheme: light", "color-scheme: dark; background: #1b1c1d; color: CanvasText"]) {
+      const { box } = await look(`<div style="${scheme}; padding: 4px">
+        <epic-item id="v2" title="Picked" status="open" state="open"></epic-item>
+        <epic-item id="j8" title="Talk" status="open" state="attention"></epic-item>
+      </div>`)
+      await expectAccessible(box)
+    }
   })
 
   test("Do Now queued with nobody listening:  dashed, its icon still;  its tooltip says why", async () => {
