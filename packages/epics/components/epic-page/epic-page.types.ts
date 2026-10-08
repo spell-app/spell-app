@@ -69,7 +69,10 @@ export const HAS_COMMITS = "epic-commit, [commits]"
 
 /** Classes of the shadow markup. */
 export const HEAD = "head"
+export const TITLES = "titles"
 export const HEADING = "heading"
+export const HEADING_COPY = "heading-copy"
+export const SUBHEAD = "subhead"
 export const META = "meta"
 export const STATUS = "status"
 export const GIT = "git"

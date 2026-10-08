@@ -22,6 +22,7 @@ import {
   HAS_COMMITS,
   HEAD,
   HEADING,
+  HEADING_COPY,
   HUNG,
   ICON,
   LAYOUT_ATTRIBUTES,
@@ -35,6 +36,8 @@ import {
   SLEEPING,
   STACK_PROPERTY,
   STATUS,
+  SUBHEAD,
+  TITLES,
   TODO,
   type EpicPageVocabulary,
   type HeaderMarks,
@@ -50,7 +53,7 @@ import agentsCSS from "./agents-panel.css?inline"
 /****************
  * ### `<epic-page>`
  * A plan doc:  one epic's page, its data in attributes, its Overview and sections as children.
- * - Draws the sticky page header (`Epic: <title>`;  at its right Send and Review Now while it's reviewed, the git
+ * - Draws the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;  at its right Send and Review Now while it's reviewed, the git
  *   toggle, the sleeping mark, the bedtime label and the step label), the review line, the meta lines (branch,
  *   worktree, dates, the durable doc's link from `slot="durable"`), a future epic's notice, then its children.
  * - The step label follows the phases:  the active one (orange, links to it);  else DONE (green) once every phase
@@ -115,6 +118,9 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
   /** The review line, just copied:  it flashes and says so. */
   readonly copied = new Cell(false)
 
+  /** The heading, just copied:  it says so. */
+  readonly headingCopied = new Cell(false)
+
   /** The meta lines', the header buttons' and the review line's icons. */
   readonly icons = {
     branch: new IconGlyph(this, () => "code branch"),
@@ -130,6 +136,9 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
 
   /** The review line's flash timer. */
   private flashTimer = 0
+
+  /** Clears the heading's "copied". */
+  private headingTimer = 0
 
   /** The sticky header, as drawn. */
   private header?: HTMLElement
@@ -286,9 +295,26 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
       // an EMPTY title:  the host's `title` would otherwise be a tooltip over the whole page (T8)
       <div class={this.classes()} part={this.part("base")} title="" style={this.pageStyle()}>
         <header ref={(element) => (this.header = element)} class={HEAD} part={this.part("header")}>
-          <h1 class={HEADING} part={this.part("heading")}>
-            {this.text("heading", { title: this.attrs.title ?? "" })}
-          </h1>
+          <div class={TITLES}>
+            <h1 class={HEADING} part={this.part("heading")}>
+              <button
+                type={UIT.BUTTON}
+                class={[HEADING_COPY, { flash: this.headingCopied.get() }]}
+                title={this.text("copyHeading", { command: this.headingCommand() })}
+                onClick={() => void this.copyHeading()}
+              >
+                {this.headingCommand()}
+              </button>
+              <span class="done" aria-live="polite">
+                {this.headingCopied.get() ? this.text("copied") : ""}
+              </span>
+            </h1>
+            <Show when={this.attrs.title}>
+              <p class={SUBHEAD} part={this.part("subhead")}>
+                {this.attrs.title}
+              </p>
+            </Show>
+          </div>
           <Show when={this.marks()}>{(marks) => this.reviewButtons(marks)}</Show>
           <Show when={this.hasCommits()}>{this.gitToggle()}</Show>
           <span class={STATUS} part={this.part("status")}>
@@ -475,6 +501,11 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
     )
   }
 
+  /** `/epic <name>`:  the heading, which a click copies. */
+  private headingCommand(): string {
+    return `/epic ${this.attrs.epic ?? ""}`
+  }
+
   /** `/epic review <name>`:  what the review line copies. */
   private command(): string {
     return `/epic review ${this.attrs.epic ?? ""}`
@@ -581,6 +612,14 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
     clearTimeout(this.flashTimer)
     requestAnimationFrame(() => this.copied.set(true))
     this.flashTimer = window.setTimeout(() => this.copied.set(false), FLASH_MS + 600)
+  }
+
+  /** The heading, clicked:  copy `/epic <name>`, then say so for a moment. */
+  private async copyHeading() {
+    if (!(await EpicPage.copyText(untrack(() => this.headingCommand())))) return
+    this.headingCopied.set(true)
+    clearTimeout(this.headingTimer)
+    this.headingTimer = window.setTimeout(() => this.headingCopied.set(false), FLASH_MS + 600)
   }
 
   /** `text()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */

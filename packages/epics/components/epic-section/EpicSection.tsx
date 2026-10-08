@@ -45,7 +45,7 @@ import sectionCSS from "./epic-section.css?inline"
  * ### `<epic-section>`
  * One section of a plan doc, by `kind`:  Phases, Questions ... Log, or one of the Overview's sub-sections.
  * - A fold (`EpicFold`):  its numbered title (`3. Questions`, by its place among the page's blocks;  `1.2 Why` for
- *   an Overview sub-section, its title its own), the kind's icon and tooltip (fixed per kind:  from the vocabulary),
+ *   an Overview sub-section, its title its own), the kind's icon (fixed per kind:  from the vocabulary),
  *   then its children:  phases, items, log events or prose.
  * - Its COUNT (P10), on the title's badge:  `open/all` of its items (or phases), open being any status but `done`,
  *   `decided` or `canceled`;  none without any.  Counted again whenever a child comes, goes, or changes its `status`
@@ -102,7 +102,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   // ## Derived state
   ////////////////
 
-  /** The kind's look:  icon, title and tooltip keys;  `undefined` for an Overview sub-section. */
+  /** The kind's look:  icon and title key;  `undefined` for an Overview sub-section. */
   readonly look = createMemo((): SectionLook | undefined => {
     const kind = this.attrs.kind
     return kind && kind !== "overview-part" ? SECTION_LOOKS[kind] : undefined
@@ -209,10 +209,6 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
       badge: () => {
         const count = this.count()
         return count ? `${count.open}/${count.total}` : undefined
-      },
-      info: () => {
-        const tip = this.look()?.tip
-        return tip ? this.text(tip) : undefined
       },
       tools:
         kind === "phases"

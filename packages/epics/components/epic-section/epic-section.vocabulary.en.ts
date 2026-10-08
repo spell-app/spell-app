@@ -107,30 +107,12 @@ export const epicSectionVocabulary = {
     ...FOLD_TEXTS,
     { key: "phasesTitle", text: "Phases" },
     { key: "questionsTitle", text: "Questions" },
-    {
-      key: "questionsTip",
-      text:
-        "Open questions first:  waiting on you, each also asked in Claude Code.  Then the answered ones, each with " +
-        "its answer:  settled, don't re-argue without new facts."
-    },
     { key: "judgementsTitle", text: "Judgement calls" },
-    {
-      key: "judgementsTip",
-      text:
-        "Choices made without you (a bedtime run, an agent mid-phase):  what was chosen, over what, and why.  Open " +
-        "until you review it;  struck = accepted.  Disagree:  say so, and it becomes a question."
-    },
     { key: "caveatsTitle", text: "Caveats" },
     { key: "todosTitle", text: "Todos" },
-    { key: "todosTip", text: "For later:  not caveats, not issues." },
     { key: "issuesTitle", text: "Issues" },
     { key: "testsTitle", text: "To test" },
-    {
-      key: "testsTip",
-      text: "What to check by hand before merging:  each a step, and what should happen.  Struck through once it passes."
-    },
     { key: "logTitle", text: "Log" },
-    { key: "logTip", text: "Plan changes, oldest first, local time." },
     { key: "noneYet", text: "None yet", description: "An item section with no items." },
     { key: "showFiles", text: "Show each phase's Files", description: "The Phases title's Files toggle, off." },
     { key: "hideFiles", text: "Hide each phase's Files", description: "The Files toggle, on." },
