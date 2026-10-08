@@ -1,0 +1,95 @@
+/*
+ * `<epic-overview>` (EpicOverview.tsx):  a plan doc's Overview, on top of the fold (`epic-fold.css`):  the summary
+ * as a lede, the Kickoff prompt folded on the brand's ivory, the estimate line.
+ * - Public tokens (`--epic-overview-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-overview.content;
+
+@layer ui.components.epic-overview.content {
+  :host {
+    --_epic-fold-band: var(--epic-band-section, transparent);
+    --_epic-fold-gap: var(--epic-overview-gap, 28px);
+  }
+
+  /* the summary:  a lede, a paragraph in the body face (`spell-doc.css`'s lede inside a section) */
+  ::slotted([slot="summary"]) {
+    max-width: 72ch;
+    margin: 0 0 14px;
+    color: var(--epic-heading-ink, var(--ui-text-color));
+    font: 400 17px/1.6 var(--epic-sans, var(--ui-font-family));
+    text-wrap: pretty;
+  }
+
+  /* ## The Kickoff prompt:  folded on the brand's ivory;  the prompt a card on it */
+  .prompt {
+    margin: 0 0 14px;
+    border-radius: 10px;
+    background: var(--epic-warm, var(--ui-accent-background));
+  }
+  .prompt > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    color: var(--epic-heading-ink, var(--ui-text-color));
+    font: italic 400 15px/1.4 var(--epic-serif, var(--ui-font-family-heading));
+    cursor: pointer;
+    list-style: none;
+  }
+  .prompt > summary::-webkit-details-marker {
+    display: none;
+  }
+  .prompt > summary:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+  .chevron {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    color: var(--epic-muted, var(--ui-text-muted));
+    transition: rotate 0.15s;
+  }
+  .chevron svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+  }
+  .prompt[open] .chevron {
+    rotate: 90deg;
+  }
+  ::slotted(blockquote[slot="prompt"]) {
+    margin: 2px 12px 12px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: var(--epic-card, var(--ui-surface));
+    box-shadow: 0 0 0 1px var(--epic-rule, var(--ui-border-color));
+    font-size: 15px;
+  }
+
+  /* ## The estimate:  its icon centred on the first line, the text wrapping beside it */
+  .estimate {
+    display: grid;
+    grid-template-columns: 1.25em minmax(0, 1fr);
+    column-gap: 8px;
+    line-height: 1.5;
+    margin: 0 0 14px;
+    font-size: 15px;
+  }
+  .estimate > .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1lh;
+    color: var(--epic-accent, var(--ui-link));
+  }
+  .estimate > .icon svg {
+    height: 14px;
+  }
+}

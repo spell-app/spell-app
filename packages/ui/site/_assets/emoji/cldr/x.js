@@ -1,1 +1,0 @@
-var e=`🩻`,t={x_ray:e};export{t as default,e as x_ray};

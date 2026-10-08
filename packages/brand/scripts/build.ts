@@ -1,7 +1,9 @@
 /**
- * `yarn build` (in `packages/brand`):  build the brand pages' bundle, `_assets/ui/` (COMMITTED), from
+ * `yarn build` (in `packages/brand`):  build the brand pages' bundle, `_assets/ui/` (git-ignored), from
  * `src/brand-ui.ts` with `vite.config.ts`, then report its sizes.
- * - Clears `_assets/ui/` first (everything but `icon-packs`), so a removed chunk doesn't linger in git.
+ * - Run by `spell dev bundles build brand` (`$/assembler` `Bundle`), which the page server runs when it starts and
+ *   the sources changed;  it then records their hash in `_assets/ui/.bundle.json`.
+ * - Clears `_assets/ui/` first (everything but `icon-packs`, the record too), so a removed chunk doesn't linger.
  * - Icon packs:  `_assets/ui/icon-packs` is a SYMLINK to Spell UI's packs (`packages/ui/src/icons/icon-packs`), made
  *   here if missing, as Spell UI's site bundle does (`packages/ui/scripts/site-bundle.ts`):  never a second copy.
  * - Fails if the bundle holds two copies of a Solid package (`solid-js`, `@solidjs/web`):  two would split signals

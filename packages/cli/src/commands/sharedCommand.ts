@@ -12,8 +12,9 @@ import { CLI } from "$/cli"
  * - `init [--import]`:  create the shared repo;  `--import` copies THIS checkout's folders in (the cutover, once)
  * - `link [--all]`:  link this checkout's folders (`--all`:  every checkout);  a real folder is replaced only when it
  *   matches the shared one exactly
- * - `commit [--session <id>]`:  commit whatever changed in the shared repo (the `Stop` hook, every turn);  first the
- *   reorg's repair, for pages older checkouts still write the old way (`relocate.js reorg`)
+ * - `commit [--session <id>]`:  commit whatever changed in the shared repo (the `Stop` hook, every turn), one commit
+ *   per epic / guide / folder (`commitShared()`);  first the reorg's repair, for pages older checkouts still write
+ *   the old way (`relocate.js reorg`)
  * - `migrate <worktree> [--dry-run]`:  move a worktree cut before the cutover onto the shared content
  *   (`migrateWorktree()`):  its changes to the shared folders go into the shared repo, its branch stops tracking
  *   them, its folders become links;  stops, writing nothing, on a conflict
@@ -63,8 +64,8 @@ export async function sharedCommand(
         })
         if (!options.quiet && run.stdout) session.out(run.stdout.trimEnd())
       }
-      const sha = CLI.commitShared(config, { session: options.session, checkout })
-      if (!options.quiet) session.out(sha ? `committed ${sha}` : "nothing to commit")
+      const shas = CLI.commitShared(config, { session: options.session, checkout })
+      if (!options.quiet) session.out(shas.length ? `committed ${shas.join(", ")}` : "nothing to commit")
       return CLI.EXIT.OK
     }
     case "migrate": {

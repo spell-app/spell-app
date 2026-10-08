@@ -18,7 +18,9 @@ import { SourceMarkup } from "./SourceMarkup"
  *   `failure` holds what to say (unless cancelled).  A failure isn't remembered:  the next `load()` tries again.
  * - `veiled()`:  the owner keeps its content box closed while it's true, so an opening section or panel shows the
  *   body, not the placeholder, and animates once;  it turns false when the body arrives, on failure, or after
- *   `SOURCE_BODY_HOLD_MS` (then `overdue`:  the owner shows its loading look over the placeholder).
+ *   `SOURCE_BODY_HOLD_MS` (then `overdue`:  the owner shows its loading look over the placeholder).  Only before the
+ *   FIRST body:  a `reload()` (the live update) keeps the old body shown until the new one replaces it in place, so
+ *   an open section doesn't blink, and its controls keep the focus.
  * - The families of `ui-*` tags in the body are NOT loaded here:  light DOM is the page's, so whatever defines the
  *   page's tags (a `<ui-root>`, which watches its subtree, or a bundle) defines these too.
  * - NOTE: a cycle (a body holding a source of its own file) or nesting deeper than `MAX_DEPTH` is a `render` error.
@@ -32,6 +34,9 @@ export class SourceBody {
 
   /** What the error line says;  `undefined` when there's none to show. */
   readonly failure = new Cell<SourceFailure | undefined>(undefined)
+
+  /** A body has been inserted:  nothing to hold closed for any more. */
+  private readonly shown = new Cell(false)
 
   /** The element whose body this is. */
   private readonly owner: SourceBodyOwner
@@ -56,8 +61,9 @@ export class SourceBody {
   // ## State
   ////////////////
 
-  /** Hold the content box closed?  True while the body is on its way and not `overdue`;  tracked. */
+  /** Hold the content box closed?  True while the FIRST body is on its way and not `overdue`;  tracked. */
   veiled(): boolean {
+    if (this.shown.get()) return false
     const status = this.status.get()
     return (status === "idle" || status === "loading") && !this.overdue.get()
   }
@@ -138,6 +144,7 @@ export class SourceBody {
     for (const node of [...target.childNodes]) if (SourceBody.isPlaceholder(node)) node.remove()
     this.inserted = [...fragment.childNodes]
     target.append(fragment)
+    this.shown.set(true)
   }
 
   /** Loading or showing failed:  `ui-error`, then the error line unless it was cancelled. */

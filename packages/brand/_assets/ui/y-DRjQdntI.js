@@ -1,1 +1,0 @@
-var e=`🧶`,t=`🥱`,n=`🟡`,r=`💛`,i=`🟨`,a=`💴`,o=`☯️`,s=`🪀`,c=`😋`,l={yarn:e,yawning_face:t,yellow_circle:n,yellow_heart:r,yellow_square:i,yen:a,yin_yang:o,yo_yo:s,yum:c};export{l as default,e as yarn,t as yawning_face,n as yellow_circle,r as yellow_heart,i as yellow_square,a as yen,o as yin_yang,s as yo_yo,c as yum};

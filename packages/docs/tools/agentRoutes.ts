@@ -1,11 +1,11 @@
 /**
  * An epic's running agents, on the page server (epic `skillz`, P3):  a ROUTE MODULE (`$/server/page`'s
  * `RouteModule`), listed in the repo root's `package.json` `"pageServer": { "routes": [...] }`.
- * - The plan doc shows them in its "Agents running" box (`_assets/spell-doc-runtime.js`), each with a note box:
+ * - The plan doc shows them in its "Agents running" box (`<epic-page>`, `packages/epics`), each with a note box:
  *   Owen's note REDIRECTS that agent.  It waits in the list (`AgentList.ts`) until a Claude session waiting on it
  *   (`spell dev agents wait`) passes it on, and marks it told.
  * - `page`:  the plan doc's URL path, as it was served (`/epics/x/x.plan.html`, or a worktree's
- *   `/worktrees/<w>/...`);  ONLY a plan doc:  anything else is a 403 (`reviewRoutes.ts` `planDoc()`)
+ *   `/worktrees/<w>/...`);  ONLY a plan doc:  anything else is a 403 (`$/epics/tool/reviewRoutes.ts` `planDoc()`)
  * - `GET /api/agents?page=<path>` -- `{ agents }`:  the epic's list (`[]` when none run);  the page polls it
  * - `POST /api/agents/redirect` `{ page, name, note }` -- Owen's note for agent `name`;  answers `{ agents }`, the
  *   list after.  400:  an empty or long note, or no such agent running.
@@ -15,8 +15,9 @@
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
+import { planDoc } from "$/epics/tool/reviewRoutes"
+
 import { AgentList, AgentListError } from "./AgentList"
-import { planDoc } from "./reviewRoutes"
 
 /** Where the routes live. */
 const API = "/api/agents"

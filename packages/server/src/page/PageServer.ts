@@ -4,7 +4,14 @@ import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "nod
 import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { SRV, type ServerInfo } from "$/server"
-import { PageEditor, RunningEpics, UI_SITE, type PageServerSettings, type RouteModule } from "$/server/page"
+import {
+  BundleBuild,
+  PageEditor,
+  RunningEpics,
+  UI_SITE,
+  type PageServerSettings,
+  type RouteModule
+} from "$/server/page"
 
 /**
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
@@ -13,6 +20,8 @@ import { PageEditor, RunningEpics, UI_SITE, type PageServerSettings, type RouteM
  * - `/ui/` -> Spell UI's docs (`UI_SITE`), live-reloading like every page:  the shared pages (`ui/`), with the
  *   branch's built `_assets/` and `_data/` (`packages/ui/site/`) laid over them;  the same at `/worktrees/<w>/ui/`
  * - `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
+ * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:  `start()` builds the stale ones in the
+ *   background (`BundleBuild`), and a request for one of their files waits while that runs
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. goals' buttons
  * - port:  `DEFAULT_PORT` (4747) if free, else any;  the real one goes in `<root>/.spell-server.json`, where
  *   `spell dev server ensure` and the openers find it
@@ -33,6 +42,9 @@ export class PageServer {
 
   /** running epics' plan docs, from the worktrees */
   readonly epics: RunningEpics
+
+  /** the startup build of the bundles it serves */
+  readonly bundles: BundleBuild
 
   /** run once listening, from route modules */
   private listenings: (() => unknown)[] = []
@@ -86,18 +98,28 @@ export class PageServer {
         else next()
       })
     router.get("/_server/ping", (_request, reply) => reply.set("Cache-Control", "no-store").json(this.info))
+    this.bundles = new BundleBuild({ root: this.root })
+    router.use(this.bundles.wait)
     // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams
     new PageEditor(this.root).route(router, this.web.guard)
     this.epics = new RunningEpics(this.root).route(this.web)
   }
 
   /**
-   * Load the route modules, start watching, listen, write the pid file, then run route modules' `onListening`s.
+   * Start the bundles' build, load the route modules, start watching, listen, write the pid file, then run route
+   * modules' `onListening`s.
    * - `port`:  wanted port (default `DEFAULT_PORT`);  taken:  any free one
    * - `routes`:  load route modules (default `true`;  tests turn it off)
    * - `pidFile`:  write `.spell-server.json` (default `true`)
+   * - `bundles`:  build the stale bundles in the background (default `true`;  a checkout without the CLI has none)
    */
-  async start({ port = DEFAULT_PORT, routes = true, pidFile = true }: StartOptions = {}): Promise<this> {
+  async start({
+    port = DEFAULT_PORT,
+    routes = true,
+    pidFile = true,
+    bundles = true
+  }: StartOptions = {}): Promise<this> {
+    if (bundles) this.bundles.start()
     const settings = this.settings()
     for (const dir of settings.watch ?? DEFAULT_WATCH)
       this.web.live!.watch(join(this.root, dir), { ignore: /(^|\/)(scripts|experiments)\// })
@@ -116,8 +138,9 @@ export class PageServer {
     return this
   }
 
-  /** stop:  route modules' stops, the pid file (if ours), the server */
+  /** stop:  the bundles' build, route modules' stops, the pid file (if ours), the server */
   async stop(): Promise<void> {
+    this.bundles.stop()
     for (const stop of this.stops) await Promise.resolve(stop()).catch(() => {})
     this.epics.close()
     this.pidFile.removeIfOurs()
@@ -187,9 +210,10 @@ export const DEFAULT_PORT = Number(process.env.SPELL_SERVER_PORT) || 4747
 
 /**
  * `PageServer.start()` options.
- * - `port`:  wanted;  `routes`:  load route modules;  `pidFile`:  write the pid file
+ * - `port`:  wanted;  `routes`:  load route modules;  `pidFile`:  write the pid file;  `bundles`:  build the stale
+ *   bundles
  */
-export type StartOptions = { port?: number; routes?: boolean; pidFile?: boolean }
+export type StartOptions = { port?: number; routes?: boolean; pidFile?: boolean; bundles?: boolean }
 
 /**
  * The checkout at `root`:  the folder holding `.git` at or above `start`.

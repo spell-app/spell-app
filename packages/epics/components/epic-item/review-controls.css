@@ -1,0 +1,295 @@
+/*
+ * The review controls (ReviewControls.tsx), adopted by `<epic-item>` and `<epic-section>` (its Overview parts):  the
+ * line's buttons, the note box and a marked note.  From `plan-doc.css`'s "Review actions" (the old runtime's), the
+ * same look, centred:
+ * - every round or square control is a grid with its glyph `place-items: center`, and `ui-icon`'s own box (a width
+ *   and a right margin, for an icon before text) is undone through `::part(icon)`
+ * - the controls box is one line tall and centres its children, so it sits on the title's first line
+ * - colours:  Spell UI's intent tokens (green decided, orange pending, blue now), each with its ink
+ * - Public tokens (`--epic-review-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-review;
+
+@layer ui.components.epic-review {
+  :host {
+    --_epic-act-size: var(--epic-review-button-size, 24px);
+    --_epic-act-muted: var(--epic-muted, var(--ui-text-muted, GrayText));
+    --_epic-act-ink: var(--ui-text-color, CanvasText);
+    --_epic-act-paper: var(--ui-background, Canvas);
+    --_epic-act-rule: var(--epic-rule, var(--ui-border-color, GrayText));
+    --_epic-act-green: var(--ui-green, #00853a);
+    --_epic-act-green-on: var(--ui-green-on, #fff);
+    --_epic-act-orange: var(--ui-orange, #fc7100);
+    --_epic-act-orange-on: var(--ui-orange-on, #1a1040);
+    --_epic-act-blue: var(--ui-blue, #1a67e0);
+    --_epic-act-blue-on: var(--ui-blue-on, #fff);
+    --_epic-act-focus: var(--ui-focus-color, Highlight);
+  }
+
+  /* ## The line's controls:  bubble, letter, the group, Add Details Now */
+  .review-controls {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .review-group {
+    flex: none;
+  }
+  .review-controls ui-button::part(button) {
+    display: inline-grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: var(--_epic-act-size);
+    height: var(--_epic-act-size);
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    color: var(--_epic-act-muted);
+    font-size: 12px;
+    line-height: 1;
+  }
+  /* the glyph alone in the square:  no margin kept for text after it */
+  .review-controls ui-button::part(icon) {
+    margin: 0;
+  }
+  .review-controls ui-button:hover::part(button) {
+    color: var(--_epic-act-ink);
+  }
+  /* Add Details Now:  an action, not a state (Q8):  its own round button after the group */
+  .review-details::part(button) {
+    border-radius: 50%;
+  }
+  ui-button[data-color="green"] {
+    --_act: var(--_epic-act-green);
+    --_act-on: var(--_epic-act-green-on);
+  }
+  ui-button[data-color="orange"] {
+    --_act: var(--_epic-act-orange);
+    --_act-on: var(--_epic-act-orange-on);
+  }
+  /* chosen, not sent:  filled;  sent:  outlined in its colour */
+  ui-button[data-chosen]::part(button) {
+    background: var(--_act);
+    box-shadow: inset 0 0 0 1px var(--_act);
+    color: var(--_act-on);
+  }
+  ui-button[data-chosen][data-sent]::part(button) {
+    background: color-mix(in srgb, var(--_act) 14%, transparent);
+    box-shadow: inset 0 0 0 1.5px var(--_act);
+    color: var(--_act);
+  }
+  /* queued, nobody listening:  a still, dashed ring */
+  ui-button[data-waiting]::part(button) {
+    outline: 1.5px dashed var(--_epic-act-muted);
+    outline-offset: -3px;
+  }
+
+  /* the pick's letter:  green for a plain pick (decided), orange with a revisit (pending) */
+  .review-pick {
+    --_act: var(--_epic-act-green);
+    --_act-on: var(--_epic-act-green-on);
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    width: var(--_epic-act-size);
+    height: var(--_epic-act-size);
+    border-radius: 50%;
+    background: var(--_act);
+    color: var(--_act-on);
+    font: 700 12px/1 var(--ui-font-family-mono, ui-monospace, monospace);
+  }
+  .review-pick[data-color="orange"] {
+    --_act: var(--_epic-act-orange);
+    --_act-on: var(--_epic-act-orange-on);
+  }
+  .review-pick[data-sent] {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--_act);
+    color: var(--_act);
+  }
+  /* Owen wrote on it:  a speech bubble, outline while a draft, solid once a mark's note, orange once sent */
+  .review-noted {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: var(--_epic-act-size);
+    height: var(--_epic-act-size);
+    color: var(--_epic-act-muted);
+    font-size: 13px;
+  }
+  .review-noted[data-sent] {
+    color: var(--_epic-act-orange);
+  }
+  .review-noted ui-icon::part(icon),
+  .note-box ui-icon::part(icon),
+  .said ui-icon::part(icon) {
+    width: auto;
+    margin: 0;
+  }
+
+  /* ## The note box:  the note, and Revisit Later / Do Now / Make Todo stacked at its right */
+  .note-box {
+    display: flex;
+    gap: 6px;
+    margin: 8px 0 2px;
+    padding: 6px;
+    border: 1px solid color-mix(in srgb, var(--_epic-act-orange) 45%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--_epic-act-orange) 6%, var(--_epic-act-paper));
+    font-size: 15px;
+  }
+  /* the note, its Saved mark (a floppy, its tooltip the time) in the lower right corner */
+  .note-text {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  /* grows with its text (Owen, 2026-10-06:  every "tell me more" box), from two lines to half the window */
+  .note-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 3.2em;
+    max-height: 50vh;
+    field-sizing: content;
+    box-sizing: border-box;
+    padding: 4px 22px 4px 6px;
+    border: 1px solid var(--_epic-act-rule);
+    border-radius: 6px;
+    background: var(--_epic-act-paper);
+    color: var(--_epic-act-ink);
+    font: inherit;
+    line-height: 1.4;
+    resize: vertical;
+  }
+  .note-input:focus-visible {
+    outline: 2px solid var(--_epic-act-focus);
+    outline-offset: 0;
+  }
+  .note-saved {
+    position: absolute;
+    inset-block-end: 6px;
+    inset-inline-end: 7px;
+    display: inline-grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    color: var(--_epic-act-muted);
+    font-size: 11px;
+    line-height: 1;
+  }
+  .note-saved[hidden] {
+    display: none;
+  }
+  .note-saved[data-failed] {
+    color: var(--ui-red, #db2828);
+  }
+  .note-actions {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 6px;
+  }
+  /*
+   * Revisit Later (orange, pending), Do Now (blue:  Claude at once), Make Todo (green, decided):  a ring in its
+   * colour;  filled when pointed at, and for the element's mark (`data-mark`)
+   */
+  .note-actions > button {
+    --_act: var(--_epic-act-green);
+    --_act-on: var(--_epic-act-green-on);
+    display: inline-grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--_act);
+    color: var(--_act);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .note-actions > button[data-how="soon"] {
+    --_act: var(--_epic-act-orange);
+    --_act-on: var(--_epic-act-orange-on);
+  }
+  .note-actions > button[data-how="now"] {
+    --_act: var(--_epic-act-blue);
+    --_act-on: var(--_epic-act-blue-on);
+  }
+  .note-actions > button:is(:hover, :focus-visible, :active),
+  .note-box[data-mark="todo"] > .note-actions > button[data-how="todo"],
+  .note-box[data-mark="soon"] > .note-actions > button[data-how="soon"],
+  .note-box[data-mark="now"] > .note-actions > button[data-how="now"] {
+    background: var(--_act);
+    color: var(--_act-on);
+  }
+  .note-actions > button:focus-visible {
+    outline: 2px solid var(--_epic-act-focus);
+    outline-offset: 1px;
+  }
+
+  /* ## A marked note, its box closed:  "You · revisit soon · sent 10:42", the note, Edit */
+  .said {
+    margin: 6px 0 2px;
+    padding: 0 10px 6px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--_epic-act-orange) 35%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--_epic-act-orange) 6%, var(--_epic-act-paper));
+    font-size: 15px;
+  }
+  /* narrow:  Edit wraps under the words rather than squeezing them into a column */
+  .said-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+    min-height: 26px;
+    margin: 0 -10px 4px;
+    padding: 2px 6px 2px 10px;
+    background: color-mix(in srgb, var(--_epic-act-orange) 12%, transparent);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .said-what {
+    flex: 1 1 9em;
+    min-width: 0;
+    font-weight: 400;
+  }
+  .said-edit {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    border: 1px solid var(--_epic-act-rule);
+    border-radius: 999px;
+    background: var(--_epic-act-paper);
+    color: var(--_epic-act-ink);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .said-edit:focus-visible {
+    outline: 2px solid var(--_epic-act-focus);
+    outline-offset: 1px;
+  }
+  .said-note {
+    margin: 0;
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+}

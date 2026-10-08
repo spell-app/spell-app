@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epic: Split Fixture</title>
+    <meta name="description" content="Plan doc:  Split Fixture." />
+    <link rel="stylesheet" href="../../packages/docs/tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../packages/docs/tools/_assets/plan-doc.css" />
+  </head>
+  <body
+    data-spell-needs-server
+    data-recent-since="2026-10-06T22:56:42-04:00"
+    class="spell-doc-page plan-doc"
+    data-plan="split"
+  >
+    <spell-site-header root="../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../pages/index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Split Fixture</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Epic: Split Fixture</h1>
+            <span class="plan-step"
+              ><ui-label basic color="orange" icon="circle half stroke" href="#p2">P2 · Second Step</ui-label></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch">Plan doc for <code>/epic split</code>, branch <code>split</code></ui-item>
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/split</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-06</time>, updated
+            <time id="plan-updated">2026-10-07</time></ui-item
+          >
+          <ui-item icon="book"
+            ><b>Durable doc:</b>
+            <a href="../../guides/split.html" target="src-guides-split-html">Split Guide</a></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">A fixture in the <b>newest</b> layout: split into parts.</p>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled>
+            <ui-title>Kickoff prompt</ui-title>
+            <ui-content
+              ><blockquote class="plan-prompt">
+                <p>Convert every doc.<br />Lose nothing.</p>
+              </blockquote></ui-content
+            >
+          </ui-accordion>
+          <p class="plan-estimate"><b>Estimate:</b> 3h in all, 2h left</p>
+          <ui-section
+            data-part-ids="o1-deep"
+            source="parts/o1.html"
+            id="o1"
+            header="1.1 Structure"
+            sticky
+            collapsible
+            dividing
+            collapsed
+            ><p class="plan-part-note">Loads from parts/o1.html when opened (needs the page server).</p></ui-section
+          >
+          <ui-section id="o2" sticky collapsible dividing collapsed
+            ><span slot="header">1.2 The <code>convert</code> command</span>
+            <p>Written inline in the skeleton, no part yet.</p></ui-section
+          >
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="1" total="2" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+          <ui-message class="plan-changes" state="info" size="tiny" header="Plan changes"
+            ><ul>
+              <li><a href="#p2">P2</a>: <time>2026-10-06 14:30</time> moved the log first</li>
+            </ul></ui-message
+          >
+          <ui-section
+            data-commits
+            source="parts/p1.html"
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · First Step"
+            badge="1h"
+            sticky
+            collapsible
+            dividing
+            collapsed
+            ><ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <p class="plan-part-note">Loads from parts/p1.html when opened (needs the page server).</p></ui-section
+          >
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="active"
+            header="P2 · Second Step"
+            badge="1-2h"
+            sticky
+            collapsible
+            dividing
+            collapsed
+            ><ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="circle exclamation"><b>Symptom:</b> the log comes last</ui-item
+              ><ui-item icon="wand magic sparkles"><b>Changes:</b> the log comes first</ui-item
+              ><ui-item icon="pen to square" class="plan-updated"
+                ><b>Updated:</b>
+                <ul class="plan-updated-list">
+                  <li data-phase="1"><time>2026-10-06 14:30</time> moved the log first</li>
+                </ul></ui-item
+              ><ui-item icon="folder"><b>Files:</b> <code>log.ts</code></ui-item
+              ><ui-item icon="flask"><b>Verify:</b> open the doc</ui-item></ui-list
+            ></ui-section
+          >
+        </ui-section>
+
+        <ui-section
+          id="decisions"
+          header="3. Questions"
+          sticky
+          collapsible
+          dividing
+          collapsed
+          data-tip="Open questions first."
+        >
+          <ui-icon slot="icon" name="file circle question"></ui-icon>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item
+              data-review-as="approve"
+              data-reviewed="2026-10-06"
+              data-answered
+              data-state="old"
+              data-changed="2026-10-06T09:28:23-04:00"
+              id="q1"
+              data-status="decided"
+              ><ui-accordion source="parts/q1.html" data-part-ids="d1" data-commits class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a>
+                  <ui-label class="plan-review" size="mini" basic color="grey">reviewed 10-06</ui-label>
+                  <span class="plan-title">Which colour names?</span></ui-title
+                ><ui-content
+                  ><p class="plan-part-note">
+                    Loads from parts/q1.html when opened (needs the page server).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-06T10:00:00-04:00"
+              id="q2"
+              data-status="open"
+              data-phase="2"
+              ><ui-accordion source="parts/q2.htm" class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a> <span class="plan-title">Which log order?</span></ui-title
+                ><ui-content
+                  ><p class="plan-part-note">
+                    Loads from parts/q2.htm when opened (needs the page server).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-answered data-state="old" id="q3" data-status="decided"
+              ><a class="plan-id" href="#q3">Q3</a>
+              <span class="plan-title">Agents: up to 5, without asking</span></ui-item
+            ><ui-item
+              data-state="recent"
+              data-bedtime
+              data-changed="2026-10-07T01:00:00-04:00"
+              id="q4"
+              data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title">Does <code>convert</code> keep the &amp;lt;b&amp;gt; tags?</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content><p>Written inline: it has no part yet.</p></ui-content></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          id="judgements"
+          header="4. Judgement calls"
+          sticky
+          collapsible
+          dividing
+          collapsed
+          data-tip="Choices made without you."
+        >
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed
+            ><ui-item
+              data-queued="2026-10-06"
+              data-work="Skip short sections"
+              data-state="progress"
+              data-changed="2026-10-06T11:00:00-04:00"
+              id="j1"
+              data-status="open"
+              data-phase="1"
+              ><ui-accordion source="parts/j1.html" class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j1">J1</a>
+                  <ui-label class="plan-review" size="mini" basic color="orange" title="Skip short sections"
+                    >to do</ui-label
+                  >
+                  <span class="plan-title">Kept the grid as prose</span></ui-title
+                ><ui-content
+                  ><p class="plan-part-note">
+                    Loads from parts/j1.html when opened (needs the page server).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item data-state="open" id="c1" data-status="open"
+              ><a class="plan-id" href="#c1">C1</a> <span class="plan-title">A bare line</span></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="todos" header="6. Todos" sticky collapsible dividing collapsed data-tip="For later.">
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item data-state="old" id="i1" data-status="canceled"
+              ><a class="plan-id" href="#i1">I1</a> <span class="plan-title">Made moot</span></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="tests" header="8. To test" sticky collapsible dividing collapsed data-tip="By hand.">
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <ui-list class="plan-items" data-kind="test" divided relaxed
+            ><ui-item data-state="open" id="v1" data-status="done"
+              ><a class="plan-id" href="#v1">V1</a> <span class="plan-title">Open a preview copy</span></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section
+          source="parts/log.html"
+          id="log"
+          header="9. Log"
+          sticky
+          collapsible
+          dividing
+          collapsed
+          data-tip="Oldest first."
+          ><ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <p class="plan-part-note">Loads from parts/log.html when opened (needs the page server).</p></ui-section
+        >
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../packages/docs/tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

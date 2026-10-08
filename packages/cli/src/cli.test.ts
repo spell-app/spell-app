@@ -129,7 +129,6 @@ process.exit(3)
       "packages/docs/tools/open.js",
       "packages/docs/tools/link.ts",
       "packages/docs/tools/details.js",
-      "packages/docs/tools/plan-doc.js",
       "packages/server/src/page/cli.ts"
     ]) {
       mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
@@ -163,11 +162,8 @@ process.exit(3)
     expect(link.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
   })
 
-  test("details, plan-doc", () => {
+  test("details", () => {
     expect(passThrough(["details", "list"])).toMatchObject({ status: 3, tool: "packages/docs/tools/details.js" })
-    const planDoc = passThrough(["plan-doc", "add", "x", "issue", "--details", "<p>y</p>"])
-    expect(planDoc).toMatchObject({ status: 3, args: ["add", "x", "issue", "--details", "<p>y</p>"] })
-    expect(realpathSync(planDoc.cwd)).toBe(INSIDE)
   })
 
   test("server <verb>:  the page server's cli, under tsx;  start --all:  serve.mjs", () => {

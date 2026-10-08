@@ -1,0 +1,55 @@
+/*
+ * `<epic-update>` (EpicUpdate.tsx):  the UPDATE marker.
+ * - Empty:  an inline orange label, its text centred, sitting on the text's middle.
+ * - A note (`:state(note)`):  a block, warning-tinted, the label as its heading, the children inside.
+ * - Public tokens (`--epic-update-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-update.types, ui.components.epic-update.content;
+
+@layer ui.components.epic-update.types {
+  :host {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+  }
+  :host(:state(note)) {
+    display: block;
+    margin: 8px 0;
+    line-height: inherit;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}
+
+@layer ui.components.epic-update.content {
+  .label {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background: var(--ui-orange);
+    color: var(--ui-orange-on);
+    font: 700 10px/1 var(--epic-sans, var(--ui-font-family));
+    letter-spacing: 0.06em;
+  }
+  :host(:state(note)) [part~="base"] {
+    display: block;
+    padding: 8px 12px;
+    border: 1px solid color-mix(in srgb, var(--ui-orange) 45%, transparent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--ui-orange) 8%, var(--epic-bg, var(--ui-background)));
+  }
+  :host(:state(note)) .label {
+    margin-bottom: 4px;
+  }
+  ::slotted(p) {
+    margin: 4px 0 0;
+  }
+  ::slotted(:first-child) {
+    margin-top: 0;
+  }
+}
