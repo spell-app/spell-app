@@ -64,10 +64,8 @@ In `tools/`:
   - `spell-ui.design.entry.js` -- the same for Claude Design's `bundle.js` (`bundle-spell-ui.js --design`)
   - `emoji/<set>/<letter>.js` -- UI's emoji name chunks as classic scripts, loaded lazily by the bundle on first use
     of a name (both sets:  `cldr`, `fomantic`).  GENERATED with `spell-ui.js`;  never edit.
-  - `plan-doc.css` -- a LEFTOVER (epic `epic-components` P14):  plan docs style themselves through their
-    `<epic-*>` elements (edge to edge:  `<epic-page>`'s `:host` breaks out of `.spell-doc-main`'s
-    `--spell-doc-pad-inline`).  It keeps only two hand-written cards older docs still hold (`.plan-answer-block`,
-    `.plan-reply`), and is deleted once P14's migration leaves no doc linking it;  nothing new links it
+  - no `plan-doc.css` any more (deleted at P14 of epic `epic-components`, 2026-10-08):  plan docs style themselves
+    through their `<epic-*>` elements
   - `details.css`, `details.js` -- details pages:  the option cards, Other, notes and Send `details.js` builds from
     the page's `.spell-option` markup, and the answer once sent
   - `syntax-choices.css`, `syntax-choices.js` -- syntax-choices pages:  draws their tables from `<slug>.rows.json`,
