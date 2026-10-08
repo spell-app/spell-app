@@ -242,7 +242,7 @@ Drawn, never written:  one meaning per colour on every element (decision Q20, Ow
 
 | colour | means                                    | where                                                                  |
 | ------ | ---------------------------------------- | ---------------------------------------------------------------------- |
-| red    | needs Owen                               | `attention` chips;  the contents and rail count (only what needs him)  |
+| red    | needs Owen                               | `attention` chips;  the rail's count (only what needs him)             |
 | yellow | open, still undecided (DARK text on it)  | `open` chips;  a `to do` review label                                  |
 | blue   | do it now, or Claude is working on it    | `progress` chips;  Revisit, Do Now, Send, Review Now;  Underway cards;  the active phase |
 | green  | decided or done                          | Approve, Make Todo, a pick, the chosen option;  Done cards;  DONE      |
@@ -259,6 +259,10 @@ Choose pill and its card, Send):
 - OUTLINED in its colour:  recorded (sent;  a Do Now taken, its icon turning while Claude is on it), not done yet
 - SOLID:  done (applied, answered, filed:  `review-as`;  the step label's DONE;  a Choose pill on its set's `chosen`
   option, wherever the cards are)
+
+An item's id chip MATCHES the chosen review button while Owen's mark is live (Owen, 2026-10-08):  that button's
+colour and fill (an Approve pressed, not sent:  a dashed green chip;  a revisit sent:  an outlined blue one;  a pick:
+green).  No mark, or one Claude handled (`review-as`):  its state's colour, solid.
 
 The review buttons, at every step:  Approve, Revisit, Make Todo in one group, then Do Now apart (paper plane:  the
 inbox's `details` request, or a revisit now when the note box holds a note).

@@ -276,13 +276,12 @@
     line-height: 1.4;
     white-space: pre-wrap;
   }
-  /* narrow:  the words and Edit wrap under the note, at its right */
+  /* narrow:  the words and Edit wrap under the note, at its right;  in the ivory's ink (grey on ivory can't be read) */
   .said-what {
     flex: none;
     margin-inline-start: auto;
-    color: var(--_epic-act-muted, var(--_epic-act-ink));
+    color: var(--_epic-act-ivory-ink);
     font-size: 12px;
-    opacity: 0.8;
   }
   .said-edit {
     display: inline-grid;

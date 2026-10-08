@@ -493,15 +493,13 @@ body[data-topic] ol.plan-items ui-accordion.spell-aside :is(p, ul) {
         Live:  buttons
 *******************************/
 
-/* the contents sidebar's goals buttons (`goals-live.js` `addSidebarTools()`), under its head */
-.goals-toc-tools {
+/* the page's goals buttons (`goals-live.js` `addPageTools()`):  a row at the end of the hero */
+.goals-page-tools {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  padding: 2px 0 12px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--spell-rule);
+  margin-top: 12px;
 }
 /* the waiting-thoughts count inside Update */
 .goals-count {
@@ -542,7 +540,7 @@ body[data-topic] ol.plan-items ui-accordion.spell-aside :is(p, ul) {
     margin: 0;
   }
 }
-/* the space between the docs' round tools and the goals' own */
+/* the space between the pills and the round VS Code button */
 .goals-tool-gap {
   width: 1px;
   height: 18px;

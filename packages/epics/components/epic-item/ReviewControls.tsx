@@ -107,21 +107,9 @@ export function ReviewButtons(props: ReviewButtonsProps) {
     )
   }
 
-  /**
-   * How far `spec`'s mark has got:  its fill.
-   * - Do Now:  dashed while its request waits to be taken, outlined while Claude is on it, solid once done (`now`)
-   * - the rest:  their mark dashed until sent, then outlined;  solid once Claude handled it (`appliedAs`), until a
-   *   new mark
-   */
+  /** How far `spec`'s mark has got:  its fill (`ReviewState.fillOf()`, which the id chip reads too). */
   function fillOf(spec: ReviewButtonSpec): ReviewFill {
-    const review = props.review
-    const mark = review.mark()
-    if (spec.action === "details") {
-      if (review.busyButton() === spec.action) return review.workedOn() ? "outline" : "dashed"
-      return !mark && props.appliedAs === "now" ? "solid" : "none"
-    }
-    if (mark?.action === spec.action && !isImmediate(mark)) return review.isSent() ? "outline" : "dashed"
-    return !mark && props.appliedAs === spec.action ? "solid" : "none"
+    return props.review.fillOf(spec.action, props.appliedAs)
   }
 
   /** A button's plain tooltip:  its name, then the element's review label (`Approve · reviewed 10/7/26`). */

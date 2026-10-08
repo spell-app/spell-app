@@ -231,10 +231,10 @@ describe("<epic-section> counts and state filter", () => {
     expect(inner(host).getAttribute("badge")).toBe("2/5")
   })
 
-  test("its host's `contentsEntry` (the page's contents and rail):  label, kind icon and count, read as they are NOW", async () => {
+  test("its host's `contentsEntry` (the page's rail):  label, kind icon and count, read as they are NOW", async () => {
     const host = await render(questions(["open:attention", "decided", "done"]))
     const entry = () => (host as FoldHost & { contentsEntry?: unknown }).contentsEntry
-    // `attention`:  what needs Owen, the red count of the contents and rail (Q20)
+    // `attention`:  what needs Owen, the red count on the rail (Q20)
     expect(entry()).toEqual({
       label: "1. Questions",
       icon: "file circle question",
