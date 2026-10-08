@@ -1,29 +1,31 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto } from "$/ui/core"
-
-import { avatarVocabulary } from "./ui-avatar.vocabulary.en"
-import { PartElement } from "./PartElement"
+import { E } from "$/ui/core"
+import { avatarVocabulary } from "./UIAvatar.en"
 
 /****************
- * ### `<ui-avatar>`
- * A small picture of a person:  `<span class="avatar"><img part="image" alt=""></span>` from `src`, else the
- * default slot (a slotted `<img>`).
+ * ### `UIAvatar`
+ * The component behind `<ui-avatar>`:  a small picture of a person,
+ * `<span class="avatar"><img part="image" alt=""></span>` from `src`, else the default slot (a slotted `<img>`).
+ *
  * - `alt` defaults to `""`:  the person's name is almost always right next to it.
  ****************/
-export class UIAvatar extends PartElement<typeof avatarVocabulary> {
-  @proto static vocabulary = avatarVocabulary
+export class UIAvatar extends E.PartComponent<typeof avatarVocabulary> {
+  @E.proto static vocabulary = avatarVocabulary
 
-  protected tag(): string {
+  protected get rootTag(): string {
     return "span"
   }
 
   protected content(): JSX.Element {
     return (
-      <Show when={this.attrs.src} fallback={<slot />}>
-        <img src={this.attrs.src} alt={this.attrs.alt ?? ""} part={this.part("image")} />
+      <Show when={this.src} fallback={<slot />}>
+        <img src={this.src} alt={this.alt ?? ""} part={this.partForName("image")} />
       </Show>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIAvatar extends E.AttributeValues<typeof avatarVocabulary> {}

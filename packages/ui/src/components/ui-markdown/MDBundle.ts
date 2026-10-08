@@ -6,7 +6,9 @@ import { SourceError } from "$/ui/runtime/runtime.types"
 import engine from "./md.bundle.js"
 
 if (typeof engine?.render !== "function") {
-  throw new SourceError("render", "md.bundle.js has no render():  run `yarn gen:markdown`")
+  throw new SourceError("MDBundle.ts:  md.bundle.js has no render();  run `yarn gen:markdown`", {
+    cause: { kind: "render" }
+  })
 }
 
 export default engine

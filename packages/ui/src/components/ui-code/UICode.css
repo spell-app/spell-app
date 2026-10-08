@@ -1,0 +1,201 @@
+/*
+ * The style sheet of `<ui-code>`:  ours, not Fomantic's.
+ * - It styles the component's shadow DOM, in class names:
+ *   `<div class="ui [numbered] [wrapping] code" part="box">`
+ *     `[<button class="copy" part="copy">]`
+ *     `<pre part="pre"><code class="hljs language-x" part="code">` + one `<span class="line">` per line
+ *   - the line spans hold highlight.js's `hljs-*` spans (or spell's, which use the same names)
+ *   - before them, the source parts:  `<ui-loader part="loader">` while loading, `<ui-message part="error">`
+ * - Line numbers are a CSS counter per `.line` (`counter-reset` on the `<pre>` sets the start).
+ *   Wrapped lines hang indented past the number, so a long line never runs under the gutter.
+ * - Colours:  the docs' palette (Atom One, light / dark by `light-dark()`;
+ *   light colours darkened to pass WCAG AA on the code background), one private alias per highlight.js group.
+ *   The public tokens `--ui-code-<group>` (`keyword`, `string`, `number`, `comment`, `title`, `type`, `attr`,
+ *   `meta`, `addition`, `deletion`) reach them from the page, an ancestor, the DOM element or `::part()`.
+ * - Public tokens are NEVER declared here:  each is read through its private alias (`docs/theming.md`).
+ */
+
+@layer ui.components.code.types, ui.components.code.content, ui.components.code.variations, ui.components.code.states;
+
+/*******************************
+             Code
+*******************************/
+
+@layer ui.components.code.types {
+  :host {
+    display: block;
+  }
+
+  .ui.code {
+    --_ui-code-background: var(--ui-code-background, var(--ui-surface-muted));
+    --_ui-code-color: var(--ui-code-color, var(--ui-text-color));
+    --_ui-code-font: var(--ui-code-font, var(--ui-font-family-mono));
+    --_ui-code-font-size: var(--ui-code-font-size, 0.875em);
+    --_ui-code-line-height: var(--ui-code-line-height, 1.5);
+    --_ui-code-padding: var(--ui-code-padding, 0.75em 1em);
+    --_ui-code-radius: var(--ui-code-radius, var(--ui-radius));
+    --_ui-code-border: var(--ui-code-border, var(--ui-border-width) solid var(--ui-border-color));
+    --_ui-code-gutter-color: var(--ui-code-gutter-color, var(--ui-text-muted));
+    --_ui-code-keyword: var(--ui-code-keyword, light-dark(#a626a4, #c678dd));
+    --_ui-code-string: var(--ui-code-string, light-dark(#387a37, #98c379));
+    --_ui-code-number: var(--ui-code-number, light-dark(#986801, #d19a66));
+    --_ui-code-comment: var(--ui-code-comment, light-dark(#696969, #8b919c));
+    --_ui-code-title: var(--ui-code-title, light-dark(#2f5fd0, #61afef));
+    --_ui-code-type: var(--ui-code-type, light-dark(#8a5a00, #e5c07b));
+    --_ui-code-attr: var(--ui-code-attr, light-dark(#b8322a, #e06c75));
+    --_ui-code-meta: var(--ui-code-meta, light-dark(#2f5fd0, #61afef));
+    --_ui-code-addition: var(--ui-code-addition, light-dark(#387a37, #98c379));
+    --_ui-code-deletion: var(--ui-code-deletion, light-dark(#b8322a, #e06c75));
+    position: relative;
+    margin: 0;
+    border: var(--_ui-code-border);
+    border-radius: var(--_ui-code-radius);
+    background: var(--_ui-code-background);
+    color: var(--_ui-code-color);
+  }
+
+  .ui.code pre {
+    margin: 0;
+    padding: var(--_ui-code-padding);
+    overflow-x: auto;
+    border-radius: inherit;
+    font-family: var(--_ui-code-font);
+    font-size: var(--_ui-code-font-size);
+    line-height: var(--_ui-code-line-height);
+    tab-size: 2;
+  }
+
+  .ui.code pre:focus-visible {
+    outline: 2px solid var(--ui-focus-color, Highlight);
+    outline-offset: -2px;
+  }
+
+  .ui.code code {
+    display: block;
+    font: inherit;
+    white-space: pre;
+  }
+
+  .ui.code .line {
+    display: block;
+    min-height: 1lh;
+  }
+}
+
+@layer ui.components.code.content {
+  /* the copy button:  quiet, top right, over the code */
+  .ui.code .copy {
+    position: absolute;
+    inset-block-start: 0.5em;
+    inset-inline-end: 0.5em;
+    z-index: 1;
+    padding: 0.25em 0.75em;
+    border: var(--_ui-code-border);
+    border-radius: var(--_ui-code-radius);
+    background: var(--_ui-code-background);
+    color: var(--_ui-code-gutter-color);
+    font: inherit;
+    font-size: 0.75em;
+    cursor: pointer;
+  }
+
+  .ui.code .copy:hover,
+  .ui.code .copy:focus-visible {
+    color: var(--_ui-code-color);
+  }
+
+  /* highlight.js groups, as the docs colour them */
+  .hljs-keyword,
+  .hljs-built_in,
+  .hljs-literal,
+  .hljs-selector-tag {
+    color: var(--_ui-code-keyword);
+  }
+
+  .hljs-string,
+  .hljs-regexp,
+  .hljs-subst,
+  .hljs-symbol,
+  .hljs-template-tag {
+    color: var(--_ui-code-string);
+  }
+
+  .hljs-number {
+    color: var(--_ui-code-number);
+  }
+
+  .hljs-comment,
+  .hljs-quote {
+    color: var(--_ui-code-comment);
+    font-style: italic;
+  }
+
+  .hljs-title,
+  .hljs-section,
+  .hljs-name {
+    color: var(--_ui-code-title);
+  }
+
+  .hljs-title.class_,
+  .hljs-type {
+    color: var(--_ui-code-type);
+  }
+
+  .hljs-attr,
+  .hljs-attribute,
+  .hljs-property,
+  .hljs-variable.language_,
+  .hljs-selector-class,
+  .hljs-selector-id {
+    color: var(--_ui-code-attr);
+  }
+
+  .hljs-meta,
+  .hljs-tag {
+    color: var(--_ui-code-meta);
+  }
+
+  .hljs-addition {
+    color: var(--_ui-code-addition);
+  }
+
+  .hljs-deletion {
+    color: var(--_ui-code-deletion);
+  }
+
+  .hljs-emphasis {
+    font-style: italic;
+  }
+
+  .hljs-strong {
+    font-weight: bold;
+  }
+}
+
+@layer ui.components.code.variations {
+  /* line numbers:  a counter per line, in a gutter wrapped lines hang past */
+  .ui.numbered.code .line {
+    --_ui-code-gutter: 4ch;
+    counter-increment: line;
+    padding-inline-start: var(--_ui-code-gutter);
+    text-indent: calc(-1 * var(--_ui-code-gutter));
+  }
+
+  .ui.numbered.code .line::before {
+    content: counter(line);
+    display: inline-block;
+    box-sizing: border-box;
+    width: var(--_ui-code-gutter);
+    padding-inline-end: 1.5ch;
+    color: var(--_ui-code-gutter-color);
+    text-align: end;
+    text-indent: 0;
+    user-select: none;
+  }
+
+  /* wrapping:  long lines wrap instead of scrolling */
+  .ui.wrapping.code code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}

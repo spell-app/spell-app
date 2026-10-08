@@ -1,5 +1,6 @@
 /**
- * `ui-brand-logo` family barrel:  defines `<ui-brand-logo>` (SIDE EFFECT) and exports its class.
+ * The brand logo family:  defines `<ui-brand-logo>` and exports its component, `UIBrandLogo`.
+ * - SIDE EFFECT:  importing it defines the tag.
  */
 import { UIBrandLogo } from "./UIBrandLogo"
 

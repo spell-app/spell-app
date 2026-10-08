@@ -22,7 +22,7 @@
  *   - `.ui.form .selection.dropdown` 2px borders and its menu's matching widths:  `<ui-dropdown>` has no border
  *     width token, and a dropdown's shadow root can't see the form around it (padding IS ported, by token)
  *   - `@loadingBackgroundColor` (the loading button's fill), `@verticalBoxShadow`:  no box draws them here
- *   - the menu's `@arrowSize` / `@arrowBorder`:  the pointing arrow's size and edges are fixed in `ui-menu.css`
+ *   - the menu's `@arrowSize` / `@arrowBorder`:  the pointing arrow's size and edges are fixed in `UIMenu.css`
  *   - `.ui.styled.accordion .accordion .active.title`'s rule applies to EVERY nested accordion's active title:  a
  *     nested root can't tell whether its outer accordion is `styled`
  */

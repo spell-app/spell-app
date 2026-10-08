@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 
 import { TreeData } from "./TreeData"
 

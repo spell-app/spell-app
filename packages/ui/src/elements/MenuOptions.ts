@@ -1,13 +1,7 @@
-import type {
-  HighlightRange,
-  MenuAddition,
-  MenuAdditionOptions,
-  MenuFilterOptions,
-  MenuNavigateOptions,
-  MenuOption
-} from "./elements.types"
+import { E } from "$/ui/core"
 
-/**
+/****************
+ * ### `MenuOptions`
  * The option model behind dropdown / select / search:  filtering, additions, selection exclusion, keyboard
  * navigation, type-ahead and match highlighting.  Pure data, NO DOM.
  * - Ported from SUI React's `getMenuOptions()` (filter => exclude selected => additions) with Fomantic's
@@ -16,25 +10,23 @@ import type {
  *   `menu.excludeSelected(values).filter(query).withAdditions(query, { allowAdditions: true })`.
  * - Fast on 1000s of options:  lower-cased (and, on demand, diacritic-stripped) search keys are computed
  *   lazily ONCE per option object and shared by every derived list through a `WeakMap`.
- */
+ * - Library-neutral:  no Solid, no element;  of the core (`E`), it uses only the folder's types (`E.MenuOption` ...).
+ ****************/
 export class MenuOptions {
   /** The options in this list, in order. */
-  readonly options: readonly (MenuOption | MenuAddition)[]
+  readonly options: readonly (E.MenuOption | E.MenuAddition)[]
 
   /**
    * The pending addition from `withAdditions()` -- also set when `hideAdditions` keeps it out of `options`,
    * so Enter can still add it.
    */
-  readonly addition: MenuAddition | undefined
+  readonly addition: E.MenuAddition | undefined
 
   /** Search keys per option, shared with derived lists. */
-  private readonly keys: WeakMap<MenuOption, SearchKeys>
+  private readonly keys: WeakMap<E.MenuOption, MenuSearchKeys>
 
-  constructor(
-    options: readonly (MenuOption | MenuAddition)[] = [],
-    addition?: MenuAddition,
-    keys = new WeakMap<MenuOption, SearchKeys>()
-  ) {
+  /** A list of `options`;  `addition` and `keys` are how a derived list carries its source's on. */
+  constructor({ options = [], addition, keys = new WeakMap() }: MenuOptionsProps = {}) {
     this.options = options
     this.addition = addition
     this.keys = keys
@@ -55,25 +47,19 @@ export class MenuOptions {
    * - An empty query, or one shorter than `minCharacters`, filters nothing.
    * - `search: "both"` (default) matches text OR value.
    */
-  filter(query: string, options: MenuFilterOptions = {}): MenuOptions {
+  filter(query: string, options: E.MenuFilterOptions = {}): MenuOptions {
     const { search = "both", fullTextSearch = "exact", ignoreDiacritics = false, ignoreCase = true } = options
     if (!query || query.length < (options.minCharacters ?? 0)) return this
     if (typeof search === "function") return this.derive(search(this.options, query))
-    const term = this.normalize(query, ignoreCase, ignoreDiacritics)
-    const matchText = search !== "value"
-    const matchValue = search !== "text"
-    const results: MenuOption[] = []
-    for (const option of this.options) {
-      const text = this.key(option, "text", ignoreCase, ignoreDiacritics)
-      const value = this.key(option, "value", ignoreCase, ignoreDiacritics)
-      if (
-        (matchText && MenuOptions.matches(text, term, fullTextSearch)) ||
-        (matchValue && MenuOptions.matches(value, term, fullTextSearch))
-      ) {
-        results.push(option)
-      }
-    }
-    return this.derive(results)
+    const folding = { ignoreCase, ignoreDiacritics }
+    const term = this.normalize(query, folding)
+    // `"both"` (or anything else) matches every field
+    const fields: readonly E.MenuSearchField[] = search === "text" || search === "value" ? [search] : E.MenuSearchFields
+    return this.derive(
+      this.options.filter((option) =>
+        fields.some((field) => MenuOptions.matches(this.key(option, field, folding), term, fullTextSearch))
+      )
+    )
   }
 
   /** Options whose value isn't in `values`, e.g. hide chosen labels in a multiple dropdown. */
@@ -89,23 +75,23 @@ export class MenuOptions {
    * - `hideAdditions` keeps it out of `options` but sets `addition`.
    * - NOTE: text / value equality is case-insensitive by default, so `Red` isn't offered next to `red`.
    */
-  withAdditions(query: string, options: MenuAdditionOptions = {}): MenuOptions {
+  withAdditions(query: string, options: E.MenuAdditionOptions = {}): MenuOptions {
     const { allowAdditions = false, additionLabel = "Add ", additionPosition = "top", hideAdditions = false } = options
     const term = query.trim()
     if (!allowAdditions || !term) return this
     const ignoreCase = options.ignoreCase ?? true
     const wanted = ignoreCase ? term.toLowerCase() : term
     const exists = this.options.some((option) => {
-      const keys = this.keysOf(option)
+      const keys = this.keysFor(option)
       return ignoreCase
         ? keys.text === wanted || keys.value === wanted
         : option.text === wanted || option.value === wanted
     })
     if (exists) return this
-    const addition: MenuAddition = { value: term, text: term, addition: true, label: additionLabel }
-    if (hideAdditions) return new MenuOptions(this.options, addition, this.keys)
+    const addition: E.MenuAddition = { value: term, text: term, addition: true, label: additionLabel }
+    if (hideAdditions) return new MenuOptions({ options: this.options, addition, keys: this.keys })
     const list = additionPosition === "bottom" ? [...this.options, addition] : [addition, ...this.options]
-    return new MenuOptions(list, addition, this.keys)
+    return new MenuOptions({ options: list, addition, keys: this.keys })
   }
 
   ////////////////
@@ -119,7 +105,7 @@ export class MenuOptions {
    *   there is none.
    * - `-1` when no option is enabled.
    */
-  nextEnabledIndex(from: number, delta: number, options: MenuNavigateOptions = {}): number {
+  nextEnabledIndex(from: number, delta: number, options: E.MenuNavigateOptions = {}): number {
     const { options: list } = this
     const { length } = list
     const wrap = options.wrap ?? false
@@ -150,7 +136,7 @@ export class MenuOptions {
   selectionForKey(prefix: string, from = -1): number {
     const { length } = this.options
     if (!prefix || !length) return -1
-    let term = this.normalize(prefix, true, true)
+    let term = this.normalize(prefix, TYPE_AHEAD)
     const repeated = REPEATED_CHARACTER.exec(term)
     if (repeated) term = repeated[1]
     // A multi-character buffer refines the CURRENT match, so start there;  one character moves on.
@@ -158,7 +144,7 @@ export class MenuOptions {
     for (let offset = 0; offset < length; offset++) {
       const index = (start + offset + length) % length
       const option = this.options[index]
-      if (!option.disabled && this.key(option, "text", true, true).startsWith(term)) return index
+      if (!option.disabled && this.key(option, "text", TYPE_AHEAD).startsWith(term)) return index
     }
     return -1
   }
@@ -173,11 +159,12 @@ export class MenuOptions {
    * - Indices are into the ORIGINAL text, even when diacritics or case were ignored.
    * - `[]` when nothing matches.
    */
-  highlights(option: MenuOption, query: string, options: MenuFilterOptions = {}): HighlightRange[] {
+  highlights(option: E.MenuOption, query: string, options: E.MenuFilterOptions = {}): E.HighlightRange[] {
     const { ignoreDiacritics = false, ignoreCase = true } = options
     if (!query) return []
-    const term = this.normalize(query, ignoreCase, ignoreDiacritics)
-    const { folded, origins } = this.fold(option.text, ignoreCase, ignoreDiacritics)
+    const folding = { ignoreCase, ignoreDiacritics }
+    const term = this.normalize(query, folding)
+    const { folded, origins } = this.fold(option.text, folding)
     const at = folded.indexOf(term)
     if (at >= 0) return [[origins[at], origins[at + term.length]]]
     const ranges: [number, number][] = []
@@ -200,12 +187,12 @@ export class MenuOptions {
   ////////////////
 
   /** New list sharing this one's key cache. */
-  private derive(options: readonly MenuOption[]) {
-    return new MenuOptions(options, undefined, this.keys)
+  private derive(options: readonly E.MenuOption[]) {
+    return new MenuOptions({ options, keys: this.keys })
   }
 
   /** Cached keys for `option`, created on first use. */
-  private keysOf(option: MenuOption): SearchKeys {
+  private keysFor(option: E.MenuOption): MenuSearchKeys {
     let keys = this.keys.get(option)
     if (!keys) {
       keys = { text: option.text.toLowerCase(), value: String(option.value).toLowerCase() }
@@ -215,7 +202,7 @@ export class MenuOptions {
   }
 
   /** `query` folded the same way as the keys it's compared with. */
-  private normalize(query: string, ignoreCase: boolean, ignoreDiacritics: boolean) {
+  private normalize(query: string, { ignoreCase, ignoreDiacritics }: Folding) {
     const text = ignoreDiacritics ? MenuOptions.deburr(query) : query
     return ignoreCase ? text.toLowerCase() : text
   }
@@ -224,7 +211,7 @@ export class MenuOptions {
    * `text` folded char by char, with each folded index's origin in `text`, so highlight ranges map back.
    * - `origins` has one extra entry (`text.length`) so `origins[end]` works for a match at the very end.
    */
-  private fold(text: string, ignoreCase: boolean, ignoreDiacritics: boolean) {
+  private fold(text: string, { ignoreCase, ignoreDiacritics }: Folding) {
     let folded = ""
     const origins: number[] = []
     let index = 0
@@ -243,31 +230,38 @@ export class MenuOptions {
    * `option`'s folded text or value for comparing with a folded query;  the diacritic-free variant
    * is computed on first need and cached.
    */
-  private key(option: MenuOption, field: "text" | "value", ignoreCase: boolean, ignoreDiacritics: boolean) {
+  private key(option: E.MenuOption, field: E.MenuSearchField, { ignoreCase, ignoreDiacritics }: Folding) {
     if (!ignoreCase) {
       const raw = field === "text" ? option.text : String(option.value)
       return ignoreDiacritics ? MenuOptions.deburr(raw) : raw
     }
-    const keys = this.keysOf(option)
+    const keys = this.keysFor(option)
     if (!ignoreDiacritics) return keys[field]
     if (field === "text") return (keys.plainText ??= MenuOptions.deburr(keys.text))
     return (keys.plainValue ??= MenuOptions.deburr(keys.value))
   }
 
-  /** `index` wrapped into `0 .. length - 1`. */
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /** `index` wrapped into `0 .. length - 1`.  Static:  pure arithmetic. */
   private static wrap(index: number, length: number) {
     return ((index % length) + length) % length
   }
 
-  /** Fomantic's match:  prefix, else substring (`"exact"`) or in-order characters (`true`). */
-  private static matches(key: string, term: string, fullTextSearch: "exact" | boolean) {
+  /**
+   * Fomantic's match:  prefix, else substring (`"exact"`) or in-order characters (`true`).
+   * - Static:  pure.  `fullTextSearch` keeps Fomantic's shape (`MenuFilterOptions.fullTextSearch`).
+   */
+  private static matches(key: string, term: string, fullTextSearch: E.MenuFilterOptions["fullTextSearch"]) {
     if (key.startsWith(term)) return true
     if (fullTextSearch === "exact") return key.includes(term)
     if (fullTextSearch === true) return MenuOptions.fuzzy(key, term)
     return false
   }
 
-  /** Fomantic's `fuzzySearch()`:  every character of `term` appears in `key`, in order. */
+  /** Fomantic's `fuzzySearch()`:  every character of `term` appears in `key`, in order.  Static:  pure. */
   private static fuzzy(key: string, term: string) {
     if (term.length > key.length) return false
     let position = 0
@@ -278,14 +272,32 @@ export class MenuOptions {
     return true
   }
 
-  /** Strip combining marks after NFD, as Fomantic's `remove.diacritics()`:  `Café` => `Cafe`. */
+  /** Strip combining marks after NFD, as Fomantic's `remove.diacritics()`:  `Café` => `Cafe`.  Static:  pure. */
   private static deburr(text: string) {
     return text.normalize("NFD").replace(COMBINING_MARKS, "")
   }
 }
 
-/** Lazily-filled search keys for one option. */
-type SearchKeys = {
+/** Constructor props of `MenuOptions`. */
+export type MenuOptionsProps = {
+  /** the options, in order;  default none */
+  options?: readonly (E.MenuOption | E.MenuAddition)[]
+  /** the pending addition (`withAdditions()`) */
+  addition?: E.MenuAddition
+  /** search keys per option, shared with derived lists;  pass one to share it across lists made apart */
+  keys?: WeakMap<E.MenuOption, MenuSearchKeys>
+}
+
+/** How a query and the keys it's compared with are folded (`MenuFilterOptions`' two switches, settled). */
+type Folding = {
+  /** lower-case both sides */
+  ignoreCase: boolean
+  /** strip diacritics from both sides */
+  ignoreDiacritics: boolean
+}
+
+/** Lazily-filled search keys for one option (`MenuOptionsProps.keys`). */
+export type MenuSearchKeys = {
   /** Lower-cased text. */
   text: string
   /** Lower-cased value. */
@@ -296,8 +308,11 @@ type SearchKeys = {
   plainValue?: string
 }
 
+/** How type-ahead folds:  case- and diacritic-insensitive, whatever the filter says. */
+const TYPE_AHEAD: Folding = { ignoreCase: true, ignoreDiacritics: true }
+
 /** One character typed more than once, e.g. `aaa`. */
 const REPEATED_CHARACTER = /^(.)\1+$/su
 
 /** Unicode combining diacritical marks. */
-const COMBINING_MARKS = /[̀-ͯ]/g
+const COMBINING_MARKS = /[\u0300-\u036f]/g

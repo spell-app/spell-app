@@ -1,15 +1,15 @@
 /**
- * Barrel for code -- also the `code` lib entry (`@spell-app/ui/ui-code`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-code>`, plus `<ui-loader>` and `<ui-message>` (its loading and error looks);
- *   registers the `spell` language with `UI.code` once the runtime is in (`SpellLanguage`).
- * - NOTE: highlight.js is NOT in this chunk:  `CodeEngine` loads on the first highlight;  nor is spell's
- *   highlighter (`src/languages/spell.<lang>.js`), loaded the first time `language="spell"` shows.
+ * The code family:  defines `<ui-code>` and exports its component, `UICode`, its DOM element class,
+ * `DOMCodeElement`, and its helpers (`CodeHighlighter`, `CodeLines`, `SpellLanguage`).
+ * - SIDE EFFECTS:  importing it defines the tag, and `<ui-loader>` and `<ui-message>` (its loading and error looks);
+ *   once the runtime is in, it registers the `spell` language with `UI.code` (`SpellLanguage`).
+ * - Also the library's `@spell-app/ui/ui-code` entry (its size is in `docs/report.md`).
+ * - highlight.js is NOT in this chunk:  `CodeEngine` loads on the first highlight.
+ *   Nor is spell's highlighter (`src/languages/spell.<lang>.js`), loaded the first time `language="spell"` shows.
  */
 
 import { UI } from "$/ui/core"
-
-import { UICode } from "./UICode"
-import { UICodeHost } from "./UICodeHost"
+import { DOMCodeElement, UICode } from "./UICode"
 import { CodeHighlighter } from "./CodeHighlighter"
 import { CodeLines } from "./CodeLines"
 import { SpellLanguage } from "./SpellLanguage"
@@ -20,4 +20,4 @@ import "$/ui/components/ui-message"
 UICode.define()
 void UI.load().then(() => SpellLanguage.register())
 
-export { UICode, UICodeHost, CodeHighlighter, CodeLines, SpellLanguage }
+export { UICode, DOMCodeElement, CodeHighlighter, CodeLines, SpellLanguage }

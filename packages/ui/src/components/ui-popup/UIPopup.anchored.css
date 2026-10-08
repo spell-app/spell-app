@@ -1,0 +1,82 @@
+/*
+ * `<ui-popup>` after a flip:  the gap and the arrow move to the side that now faces the target,
+ * where anchored container queries exist (the DOM element is `container-type: anchored`, `UIPopup.css`).
+ * Elsewhere a flipped popup keeps its first side's arrow.
+ * - A SEPARATE sheet, imported `?raw`:  Lightning CSS (1.30) can't parse `@container anchored(...)` and fails the
+ *   whole file, so this one skips the CSS pipeline.  MUST stay self-contained:  no `@import`, no `@custom-media`.
+ * - Same sublayer as the position rules it overrides (`UIPopup.css`, variations), adopted after them,
+ *   with selectors of the same specificity (`:is(.left, .center, .right)` matches the arrow rules' extra class).
+ */
+
+@layer ui.components.popup.variations {
+  @container anchored(fallback: flip-block) {
+    .ui.top.popup {
+      --_popup-arrow-shadow: -1px -1px 0 0 var(--_popup-arrow-edge);
+      margin: var(--_ui-popup-distance) 0 0;
+    }
+    .ui.top:is(.left, .center, .right).popup::before {
+      top: var(--_ui-popup-arrow-offset);
+      bottom: auto;
+    }
+    .ui.bottom.popup {
+      --_popup-arrow-shadow: 1px 1px 0 0 var(--_popup-arrow-edge);
+      margin: 0 0 var(--_ui-popup-distance);
+    }
+    .ui.bottom:is(.left, .center, .right).popup::before {
+      top: auto;
+      bottom: var(--_ui-popup-arrow-offset);
+    }
+    /*
+     * Beside + top / bottom edge:  still beside, so the arrow moves along the edge instead
+     * (ties the rules above, later).
+     */
+    .ui[class*="left top"].top.popup::before,
+    .ui[class*="right top"].top.popup::before {
+      top: auto;
+      bottom: var(--_ui-popup-arrow-edge-distance);
+    }
+    .ui[class*="left bottom"].bottom.popup::before,
+    .ui[class*="right bottom"].bottom.popup::before {
+      top: var(--_ui-popup-arrow-edge-distance);
+      bottom: auto;
+    }
+  }
+  @container anchored(fallback: flip-inline) {
+    .ui.left.center.popup {
+      --_popup-arrow-shadow: -1px 1px 0 0 var(--_popup-arrow-edge);
+      margin: 0 0 0 var(--_ui-popup-distance);
+    }
+    .ui.left.center.popup::before {
+      right: auto;
+      left: var(--_ui-popup-arrow-offset);
+    }
+    .ui.right.center.popup {
+      --_popup-arrow-shadow: 1px -1px 0 0 var(--_popup-arrow-edge);
+      margin: 0 var(--_ui-popup-distance) 0 0;
+    }
+    .ui.right.center.popup::before {
+      right: var(--_ui-popup-arrow-offset);
+      left: auto;
+    }
+    .ui[class*="left top"].left.popup,
+    .ui[class*="left bottom"].left.popup {
+      --_popup-arrow-shadow: -1px 1px 0 0 var(--_popup-arrow-edge);
+      margin: 0 0 0 var(--_ui-popup-distance);
+    }
+    .ui[class*="left top"].left.popup::before,
+    .ui[class*="left bottom"].left.popup::before {
+      right: auto;
+      left: var(--_ui-popup-arrow-offset);
+    }
+    .ui[class*="right top"].right.popup,
+    .ui[class*="right bottom"].right.popup {
+      --_popup-arrow-shadow: 1px -1px 0 0 var(--_popup-arrow-edge);
+      margin: 0 var(--_ui-popup-distance) 0 0;
+    }
+    .ui[class*="right top"].right.popup::before,
+    .ui[class*="right bottom"].right.popup::before {
+      right: var(--_ui-popup-arrow-offset);
+      left: auto;
+    }
+  }
+}

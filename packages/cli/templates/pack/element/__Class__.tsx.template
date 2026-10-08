@@ -1,28 +1,28 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { E } from "$/ui/core"
 
-import { __vocab__Vocabulary } from "./__tag__.vocabulary.en"
-import { __Class__Fallback } from "./__tag__.fallback"
-import type { __Class__Vocabulary } from "./__tag__.types"
+import { __vocab__Vocabulary } from "./__Class__.en"
 
-import __nounCamel__CSS from "./__tag__.css?inline"
+import __nounCamel__CSS from "./__Class__.css?inline"
 
 /****************
- * ### `<__tag__>`
- * DOCME:  one line of what it is.
+ * ### `__Class__`
+ * The component behind `<__tag__>`:  DOCME, one line of what it is.
  * - DOCME:  its responsibilities, one bullet each
  ****************/
-export class __Class__ extends UIElement<__Class__Vocabulary> {
-  @proto static vocabulary = __vocab__Vocabulary
-  @proto static styles = { __nounCamel__: __nounCamel__CSS }
-  @proto static Fallback = __Class__Fallback
+export class __Class__ extends E.UIComponent<typeof __vocab__Vocabulary> {
+  @E.proto static vocabulary = __vocab__Vocabulary
+  @E.proto static styleSheets = { __nounCamel__: __nounCamel__CSS }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("base")}>
+      <div class={this.rootClasses} part={this.partForName("base")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface __Class__ extends E.AttributeValues<typeof __vocab__Vocabulary> {}

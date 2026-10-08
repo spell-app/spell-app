@@ -1,14 +1,17 @@
-import { proto } from "$/ui/core"
-
-import { summaryVocabulary } from "./ui-summary.vocabulary.en"
-import { PartElement } from "./PartElement"
+import { E } from "$/ui/core"
+import { summaryVocabulary } from "./UISummary.en"
 
 /****************
- * ### `<ui-summary>`
- * A summary:  `<div class="summary">`.
- * - A feed event's summary line;  a date inside it goes inline (`--_ui-part: summary`).
- * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
+ * ### `UISummary`
+ * The component behind `<ui-summary>`:  a summary, `<div class="summary">`,
+ * such as a feed event's summary line.
+ *
+ * - A `<ui-date>` inside it goes inline (`UIParts.css` sets `--_ui-part: summary` on its root).
+ * - Finding its owner, the markup and the sheet all come from `PartComponent`.
  ****************/
-export class UISummary extends PartElement<typeof summaryVocabulary> {
-  @proto static vocabulary = summaryVocabulary
+export class UISummary extends E.PartComponent<typeof summaryVocabulary> {
+  @E.proto static vocabulary = summaryVocabulary
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UISummary extends E.AttributeValues<typeof summaryVocabulary> {}

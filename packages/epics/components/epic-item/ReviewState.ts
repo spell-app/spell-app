@@ -1,7 +1,7 @@
 import { untrack } from "solid-js"
 import { isServer } from "@solidjs/web"
 
-import { Cell } from "$/ui/core"
+import { E } from "$/ui/core"
 
 import {
   NOTICE_MS,
@@ -13,7 +13,7 @@ import {
   type Running
 } from "$/epics/review"
 
-import { PAGE_TAG, REVIEWING } from "./epic-item.types"
+import { PAGE_TAG, REVIEWING } from "./EpicItem.types"
 
 /****************
  * ### `ReviewState`
@@ -32,7 +32,7 @@ export class ReviewState {
   readonly client: ReviewClient | undefined = isServer ? undefined : ReviewClient.forPage()
 
   /** The client's `version`, as a signal:  every read below tracks it. */
-  private readonly version = new Cell(0)
+  private readonly version = new E.Cell(0)
 
   /** `id`:  the element's id (lower-case, as the inbox keys it), read when asked. */
   constructor(private readonly idOf: () => string | undefined) {}

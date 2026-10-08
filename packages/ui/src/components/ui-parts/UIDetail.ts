@@ -1,22 +1,25 @@
-import { proto } from "$/ui/core"
-
-import { detailVocabulary } from "./ui-detail.vocabulary.en"
-import { PartElement } from "./PartElement"
+import { E } from "$/ui/core"
+import { detailVocabulary } from "./UIDetail.en"
 
 /****************
- * ### `<ui-detail>`
- * A label's dimmer second value:  `<span class="detail">`, owned by `<ui-label>` (`:state(in-label)`).
- * - A tab on an image label:  `ui-label.css` sets `--_ui-label-layout: image`, which `ui-parts.css` style-queries.
- * - `href` renders `<a class="detail" href>` (a link detail, `ui-label.css` styles `a.detail`).
+ * ### `UIDetail`
+ * The component behind `<ui-detail>`:  a label's dimmer second value, `<span class="detail">`,
+ * owned by `<ui-label>` (`:state(in-label)`).
+ *
+ * - On an image label it's a tab:  `UILabel.css` sets `--_ui-label-layout: image`, which `UIParts.css` style-queries.
+ * - With `href`:  `<a class="detail" href>`, a link detail (`UILabel.css` styles `a.detail`).
  ****************/
-export class UIDetail extends PartElement<typeof detailVocabulary> {
-  @proto static vocabulary = detailVocabulary
+export class UIDetail extends E.PartComponent<typeof detailVocabulary> {
+  @E.proto static vocabulary = detailVocabulary
 
-  protected tag(): string {
-    return this.attrs.href ? "a" : "span"
+  protected get rootTag(): string {
+    return this.href ? "a" : "span"
   }
 
-  protected href(): string | undefined {
-    return this.attrs.href
+  protected get rootHref(): string | undefined {
+    return this.href
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIDetail extends E.AttributeValues<typeof detailVocabulary> {}

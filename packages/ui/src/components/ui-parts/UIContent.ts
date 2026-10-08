@@ -1,20 +1,23 @@
-import { proto } from "$/ui/core"
-
-import { contentVocabulary } from "./ui-content.vocabulary.en"
-import { PartElement } from "./PartElement"
+import { E } from "$/ui/core"
+import { contentVocabulary } from "./UIContent.en"
 
 /****************
- * ### `<ui-content>`
- * A content block:  `<div class="[image] [scrolling] [floated] [text-align] [vertical-align] content">`.
- * - The main content block of an owner;  `image` / `scrolling` are modal layouts;  `floated` / `text-align` /
- *   `vertical-align` are Fomantic's `right floated content`, `center aligned content` (card, item, list).
+ * ### `UIContent`
+ * The component behind `<ui-content>`:  an owner's main block of content,
+ * `<div class="[image] [scrolling] [floated] [text-align] [vertical-align] content">`.
+ *
+ * - `image` and `scrolling` are a modal's layouts;  `floated`, `text-align` and `vertical-align` are Fomantic's
+ *   `right floated content` and `center aligned content` (in a card, an item, a list).
  * - `scrolling`:  the root is a keyboard stop (`tabindex=0`), as every scrollable region must be.
- * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
+ * - Finding its owner, the markup and the sheet all come from `PartComponent`.
  ****************/
-export class UIContent extends PartElement<typeof contentVocabulary> {
-  @proto static vocabulary = contentVocabulary
+export class UIContent extends E.PartComponent<typeof contentVocabulary> {
+  @E.proto static vocabulary = contentVocabulary
 
-  protected tabIndex(): number | undefined {
-    return this.attrs.scrolling ? 0 : undefined
+  protected get rootTabIndex(): number | undefined {
+    return this.scrolling ? 0 : undefined
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIContent extends E.AttributeValues<typeof contentVocabulary> {}

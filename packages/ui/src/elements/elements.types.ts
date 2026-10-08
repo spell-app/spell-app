@@ -1,15 +1,17 @@
 /**
  * Shared types for `$/ui/elements` -- the element core:  class building, validation, menu options, owner context,
  * shorthand, native fallbacks (library-neutral), and the Solid layer:  how a `ComponentVocabulary` becomes typed,
- * converted property values, and what the pieces of `UIElement` hand each other.
- * - Runtime-light:  types, plus a few constants (`ERROR_EVENT`, `ERRORED_STATE`, `StickyWatch`'s thresholds, the
- *   source URL attributes).
+ * converted property values, and what the pieces of `UIComponent` hand each other.
+ * - Runtime-light:  types, plus a few constants (`WHITESPACE`, `ERROR_EVENT`, `ERRORED_STATE`, `StickyWatchEdges` and
+ *   `StickyWatch`'s thresholds, the source URL attributes).
+ * - The BOTTOM of the folder's import graph:  `import type` only (the core's types as `E`, erased), so it NEVER loads a
+ *   class module of its folder, the DOM or Solid -- `core.ts` re-exports it, and a static initializer that reads one
+ *   of its constants imports it directly (`LoadableComponent`).
  */
 
 import type { PropDefinition } from "@spell-app/solid-element"
 
-import type { SourceErrorKind } from "$/ui/runtime"
-import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
+import type { E } from "$/ui/core"
 
 ////////////////
 // ## Class builder
@@ -48,6 +50,9 @@ export type ClassGrammar = {
 
 /** `ClassBuilder.build()` output:  space-separated Fomantic classes, e.g. `"ui small red basic button"`. */
 export type ClassString = string
+
+/** Runs of whitespace:  how class lists split (`ClassBuilder`'s `multiple` words, `Shorthand.mergeClasses()`). */
+export const WHITESPACE = /\s+/
 
 ////////////////
 // ## Validation
@@ -129,14 +134,23 @@ export type RuleContext = {
  * - `value` is normalized:  a trimmed string, arrays comma-joined, as Fomantic's `validate.rule()` does.
  * - `this` is the `Validator`, so rules share `range()` / `regExp`, and a subclass can override them.
  */
-export type RuleFunction = (this: RuleHost, value: string, ruleValue: RuleValue, context: RuleContext) => boolean
+export type RuleFunction = (this: RuleValidator, value: string, ruleValue: RuleValue, context: RuleContext) => boolean
 
-/** What a `RuleFunction` may use from its `Validator`. */
-export type RuleHost = {
+/**
+ * What a `RuleFunction` may use from its `Validator`.
+ * - OURS, not Fomantic's:  its rules reach each other through `$.fn.form.settings.rules`, and its `range()` is a
+ *   rule taking `(value, range, regExp, testLength)`.  Here the shared steps are `Validator` methods.
+ */
+export type RuleValidator = {
+  /** the patterns, `Validator.regExp` */
   regExp: ValidatorRegExps
+  /** the card brands, `Validator.cards` */
   cards: Readonly<Record<string, CreditCardSpec>>
-  range(value: string, range: RuleValue, regExp: RegExp, testLength?: boolean): boolean
-  normalize(value: FieldValue, trim?: boolean): string
+  /** `value` (or its length) matches `test.pattern` and lies in `test.range`, `Validator.range()` */
+  range(value: string, test: RangeTest): boolean
+  /** a field value as the rules see it, `Validator.normalize()` */
+  normalize(value: FieldValue, options?: Pick<ValidateOptions, "trim">): string
+  /** number of choices, `Validator.count()` */
   count(value: string, raw: FieldValue): number
 }
 
@@ -217,6 +231,21 @@ export type ValidationResult = {
   message: string
 }
 
+/** What `Validator.range()` tests:  the value itself, or its length (`minLength`, `size` ...). */
+export const RangeMeasures = ["value", "length"] as const
+/** One of `RangeMeasures`. */
+export type RangeMeasure = (typeof RangeMeasures)[number]
+
+/** What `Validator.range()` checks a value against. */
+export type RangeTest = {
+  /** the bracket:  `"min..max"`, `"n"` (exactly), `"min.."`, `"..max"`;  empty ~== no bounds */
+  range: RuleValue
+  /** what the tested text MUST match (`Validator.regExp.integer` ...);  bounds that don't are ignored */
+  pattern: RegExp
+  /** test the value (default) or its length */
+  measure?: RangeMeasure
+}
+
 ////////////////
 // ## Menu options
 ////////////////
@@ -253,11 +282,12 @@ export type MenuFilterOptions = {
    * What to match:  `"text"`, `"value"`, `"both"` (default, as Fomantic's `match`), or a custom function
    * (SUI React's `search` prop).
    */
-  search?: "text" | "value" | "both" | MenuSearchFunction
+  search?: MenuSearchField | "both" | MenuSearchFunction
   /**
-   * `"exact"` (default) -- substring anywhere
-   * `true` -- fuzzy:  query characters in order, gaps allowed
-   * `false` -- prefix only
+   * Fomantic's `fullTextSearch` setting, its shape kept (a boolean plus `"exact"`) so its docs apply:
+   * - `"exact"` (default) -- substring anywhere
+   * - `true` -- fuzzy:  query characters in order, gaps allowed
+   * - `false` -- prefix only
    */
   fullTextSearch?: "exact" | boolean
   /** Match `a` against `á`.  Default false. */
@@ -294,6 +324,11 @@ export type MenuNavigateOptions = {
 /** Half-open `[start, end)` range of `option.text` that matched, for `<mark>`-style highlighting. */
 export type HighlightRange = readonly [start: number, end: number]
 
+/** The option fields a query is matched against (`MenuFilterOptions.search`;  `"both"` ~== all of them). */
+export const MenuSearchFields = ["text", "value"] as const
+/** One of `MenuSearchFields`. */
+export type MenuSearchField = (typeof MenuSearchFields)[number]
+
 ////////////////
 // ## Owner context
 ////////////////
@@ -308,19 +343,33 @@ export type HighlightRange = readonly [start: number, end: number]
 export type OwnerLookup =
   | ReadonlySet<string>
   | ReadonlyMap<string, string>
-  | ((tag: string, element: Element) => string | boolean | undefined | null)
+  | ((tag: string, element: Element) => string | boolean | undefined)
 
 /**
- * A PART that owns parts only in some contexts, implemented on its CONTROLLER:  `<ui-item>` owns its content parts
- * in the Items view (`:state(in-item)`), but in a list or menu they see through it to the list / menu.
- * - `PartContext` registers such a class (it has `ownsPart()`) as a conditional owner of its vocabulary's
+ * A PART that owns parts only in some contexts, implemented on its COMPONENT:
+ * `<ui-item>` owns its content parts in the Items view (`:state(in-item)`),
+ * but in a list or menu they see through it to the list / menu.
+ * - `PartContext` registers such a class (it has `isOwnerOf()`) as a conditional owner of its vocabulary's
  *   `ownsParts`, and asks it during every climb;  while it says no, it's transparent like any part.
  * - MUST read the DOM now, not signals:  it runs inside other parts' re-resolution, right after moves, before
  *   Solid's writes land.
- * - An element with no controller yet (not upgraded) owns nothing;  its own settle re-resolves its parts.
+ * - An element with no component yet (not upgraded) owns nothing;  its own settle re-resolves its parts.
  */
 export type ConditionalOwner = {
-  ownsPart(noun: string): boolean
+  /** Does this element own part `noun` right now?  Read from the DOM. */
+  isOwnerOf(noun: string): boolean
+}
+
+/** What `PartContext.define()` records for one defined tag. */
+export type PartDefinition = {
+  /** the element's vocabulary:  its `noun`, and the part nouns it `ownsParts` */
+  vocabulary: E.ComponentVocabulary
+  /** the tag it was defined as, canonical or translated */
+  tag: string
+  /** a generic content part:  transparent to other parts' climbs (`UIComponent`'s `elementSetup.isAPart`) */
+  isAPart: boolean
+  /** owns its parts only while its component says so (`ConditionalOwner`) */
+  isConditionalOwner?: boolean
 }
 
 /** Options for `OwnerContext.find()`. */
@@ -382,7 +431,9 @@ export type ShorthandOptions = {
 // ## Native fallback
 ////////////////
 
-/** Where `NativeFallback.render()` builds:  a component's shadow root, or (light-DOM hosts) the element itself. */
+/**
+ * Where `NativeFallback.render()` builds:  a component's shadow root, or (light-DOM DOM elements) the element itself.
+ */
 export type NativeFallbackRoot = ShadowRoot | HTMLElement
 
 /**
@@ -416,22 +467,22 @@ export type CamelCase<S extends string> = S extends `${infer Head}-${infer Tail}
   : S
 
 /** Canonical attribute names of `V`. */
-export type AttributeName<V extends ComponentVocabulary> = V["attributes"][number]["name"]
+export type AttributeName<V extends E.ComponentVocabulary> = V["attributes"][number]["name"]
 
 /** Canonical event names of `V`, e.g. `ui-change`. */
-export type EventName<V extends ComponentVocabulary> = V["events"][number]["name"]
+export type EventName<V extends E.ComponentVocabulary> = V["events"][number]["name"]
 
 /** Canonical slot names of `V`;  `""` is the default slot. */
-export type SlotName<V extends ComponentVocabulary> = V["slots"][number]["name"]
+export type SlotName<V extends E.ComponentVocabulary> = V["slots"][number]["name"]
 
 /** Canonical part names of `V`. */
-export type PartName<V extends ComponentVocabulary> = V["parts"][number]["name"]
+export type PartName<V extends E.ComponentVocabulary> = V["parts"][number]["name"]
 
 /** Custom state names of `V` (`:state(open)`). */
-export type StateName<V extends ComponentVocabulary> = V["states"][number]["name"]
+export type StateName<V extends E.ComponentVocabulary> = V["states"][number]["name"]
 
 /** Text keys of `V`, looked up through `UI.i18n`. */
-export type TextKey<V extends ComponentVocabulary> = V["texts"][number]["key"]
+export type TextKey<V extends E.ComponentVocabulary> = V["texts"][number]["key"]
 
 ////////////////
 // ## Converted values
@@ -445,7 +496,7 @@ export type TextKey<V extends ComponentVocabulary> = V["texts"][number]["key"]
  *   narrows to its literal union, so `attrs.type === "submit"` is checked against the vocabulary
  * - json => `unknown`:  the component casts to its own shape
  */
-export type SpecValue<S extends AttributeSpec> = S["kind"] extends "keyOnly" | "boolean"
+export type SpecValue<S extends E.AttributeSpec> = S["kind"] extends "keyOnly" | "boolean"
   ? boolean
   : S["kind"] extends "keyOrValueAndKey"
     ? InlineValues<S> | boolean
@@ -458,16 +509,18 @@ export type SpecValue<S extends AttributeSpec> = S["kind"] extends "keyOnly" | "
           : InlineValues<S> | undefined
 
 /** Literal union of an inline `values` list, else `string`. */
-export type InlineValues<S extends AttributeSpec> = S["values"] extends readonly string[] ? S["values"][number] : string
+export type InlineValues<S extends E.AttributeSpec> = S["values"] extends readonly string[]
+  ? S["values"][number]
+  : string
 
 /**
- * Every attribute of `V` as a converted, read-only property, keyed by camelCase canonical name:
- * `attrs.allowAdditions`, `attrs.size`.
- * - These ARE the fork's props:  one signal each, converted on the way in (attribute AND property writes), so
- *   reading one inside JSX, a memo or an effect TRACKS it with no memo layer of our own.
+ * Every attribute of `V` as a converted property, keyed by camelCase canonical name:  `allowAdditions`, `size`.
+ * - A component's vocabulary members (`export interface UIButton extends E.AttributeValues<...> {}`):  reading
+ *   one is fresh and tracked;  writing one writes the DOM element's PROPERTY (`Reactive.installAttributeGetters()`).
+ * - `Readonly<>`, solid-element's props (`UIComponent.attrs`):  one signal each, converted on the way in.
  */
-export type AttributeValues<V extends ComponentVocabulary> = {
-  readonly [S in V["attributes"][number] as CamelCase<S["name"]>]: SpecValue<S>
+export type AttributeValues<V extends E.ComponentVocabulary> = {
+  [S in V["attributes"][number] as CamelCase<S["name"]>]: SpecValue<S>
 }
 
 ////////////////
@@ -476,10 +529,11 @@ export type AttributeValues<V extends ComponentVocabulary> = {
 
 /** One attribute as the definition resolved it:  canonical spec, localized attribute name, property names. */
 export type ResolvedAttribute = {
-  spec: AttributeSpec
+  /** the vocabulary's spec:  canonical name, kind, values, default */
+  spec: E.AttributeSpec
   /** attribute name authors write, e.g. `primario` */
   attribute: string
-  /** camelCase CANONICAL name:  the key in `AttributeValues` and in the fork's props (`props.allowAdditions`) */
+  /** camelCase CANONICAL name:  the key in `AttributeValues` and in solid-element's props (`props.allowAdditions`) */
   key: string
   /** element property, e.g. `allowAdditions`, `permitirAdiciones`, or a vocabulary rename (`dividerHidden`) */
   property: string
@@ -487,7 +541,7 @@ export type ResolvedAttribute = {
   reflect: boolean
 }
 
-/** The fork's prop definitions for one tag, by `ResolvedAttribute.key`. */
+/** solid-element's prop definitions for one tag, by `ResolvedAttribute.key`. */
 export type PropDefinitions = Record<string, PropDefinition>
 
 ////////////////
@@ -502,42 +556,57 @@ export type PropDefinitions = Record<string, PropDefinition>
  */
 export const ERROR_EVENT = "ui-error"
 
-/** Custom state of a failed element (`:state(errored)`), set by the fork's boundary and by the fallback. */
+/** Custom state of a failed element (`:state(errored)`), set by solid-element's boundary and by the fallback. */
 export const ERRORED_STATE = "errored"
 
 ////////////////
 // ## Source elements
 ////////////////
 
-/** Where a `SourceElement` is with its content. */
-export type SourceStatus = "idle" | "loading" | "loaded" | "error"
+/**
+ * Where a `LoadableComponent` (or a `LoadableBody`) is with its content:  `status.set(SourceStatus.loading)`.
+ * - Ours alone, never published:  `:state(loading)` / `:state(error)` are the vocabulary's (`UIT.SourceStates`).
+ */
+export const SourceStatus = {
+  idle: "idle",
+  loading: "loading",
+  loaded: "loaded",
+  error: "error"
+} as const
+/** One of `SourceStatus`'s values, e.g. `"loading"`. */
+export type SourceStatus = (typeof SourceStatus)[keyof typeof SourceStatus]
 
-/** A failure a `SourceElement` shows as its error message. */
+/** A failure a `LoadableComponent` shows as its error message. */
 export type SourceFailure = {
   /** why, see `SourceErrorKind` */
-  kind: SourceErrorKind
+  kind: E.SourceErrorKind
   /** what was thrown */
   error: unknown
 }
 
-/** What `SourceHost` asks of its controller (`SourceElement`). */
-export type SourceController = {
-  /** the text now shown, edits included */
-  getContent(): string
-  /** show `text` instead, `dirty` until saved */
-  setContent(text: string): void
+/**
+ * A URL as written in markup (`source="docs/intro.md"`):  maybe relative, resolved against the page by whoever
+ * fetches it.
+ */
+export type URLString = string
+
+/** What `DOMLoadableElement` asks of its component (`LoadableComponent`). */
+export type LoadableComponentShape = {
+  /** the text now shown, edits included;  set it to show other text, `dirty` until saved */
+  content: string
   /** version of the last load / save */
-  getEtag(): string | undefined
+  readonly lastETag: string | undefined
   /** changed since loaded / saved? */
-  isDirty(): boolean
-  /** save, see `SourceElement.save()` */
+  readonly isDirty: boolean
+  /** save, see `LoadableComponent.save()` */
   save(text?: string): Promise<boolean>
   /** fetch again past the cache, dropping edits */
   reload(): Promise<string>
 }
 
-/** Element names a `SourceElement` builds with the DOM (Solid's JSX has no types for our tags). */
+/** The loader a `LoadableComponent` builds with the DOM (Solid's JSX has no types for our tags). */
 export const SOURCE_LOADER_TAG = "ui-loader"
+/** The error message a `LoadableComponent` builds with the DOM, as `SOURCE_LOADER_TAG`. */
 export const SOURCE_MESSAGE_TAG = "ui-message"
 
 /**
@@ -560,10 +629,10 @@ export const ORIGINAL_PREFIX = "data-ui-include-"
 export const MAX_DEPTH = 8
 
 /**
- * Text key (`UIT.SOURCE_FAILURE_TEXTS`) of the message per failure kind;  save kinds never show one.
- * - `SourceElement` and the owners of a `SourceBody` show it.
+ * Text key (`UIT.SourceFailureTexts`) of the message per failure kind;  save kinds never show one.
+ * - `LoadableComponent` and the owners of a `LoadableBody` show it.
  */
-export const SOURCE_FAILURE_KEYS: Partial<Record<SourceErrorKind, string>> & { load: string } = {
+export const SOURCE_FAILURE_KEYS: Partial<Record<E.SourceErrorKind, string>> & { load: string } = {
   load: "sourceLoadError",
   "cross-origin": "sourceCrossOrigin",
   "file-protocol": "sourceFileProtocol",
@@ -572,33 +641,51 @@ export const SOURCE_FAILURE_KEYS: Partial<Record<SourceErrorKind, string>> & { l
 
 /**
  * Milliseconds an opening section / panel waits for its source body before it opens on the placeholder instead
- * (`SourceBody.veiled()`).
+ * (`LoadableBody.isVeiled`).
  * - Why wait at all:  the body arrives in one piece, so the fold animates once, to the real height;  a same-origin
  *   fetch usually takes a few milliseconds.
  */
 export const SOURCE_BODY_HOLD_MS = 300
 
-/** What `SourceBody` asks of the element whose body it loads (`<ui-section source>`, `<ui-accordion source>`). */
-export type SourceBodyOwner = {
-  /** the host:  its `source` / `select` attributes, its events */
-  host: HTMLElement
+/** What `LoadableBody` asks of the element whose body it loads (`<ui-section source>`, `<ui-accordion source>`). */
+export type LoadableBodyOwner = {
+  /** the DOM element:  its `source` / `select` attributes, its events */
+  domElement: HTMLElement
   /** `source`, as written;  `undefined` when absent or empty */
   source(): string | undefined
   /** `select`, as written;  `undefined` when absent or empty */
   select(): string | undefined
-  /** where the body goes:  the host (a section), or a panel's `<ui-content>` (an accordion) */
+  /** where the body goes:  the DOM element (a section), or a panel's `<ui-content>` (an accordion) */
   target(): Element
   /** dispatch vocabulary event `name` (`ui-load`, `ui-error`);  false when a cancelable one was vetoed */
-  emit(name: string, detail: object): boolean
+  send(name: string, detail: object): boolean
 }
 
-/** What `SourceBodyHost` asks of its controller (`<ui-section>`, `<ui-accordion>`). */
-export type SourceBodyController = {
+/** What `DOMLoadableBodyElement` asks of its component (`<ui-section>`, `<ui-accordion>`). */
+export type LoadableBodyComponentShape = {
   /** fetch and insert the body now, once */
   loadBody(): Promise<void>
   /** fetch the body again past the cache, and replace it */
   reloadBody(): Promise<void>
 }
+
+/** The attribute naming an element's file:  what makes an ancestor an enclosing source (`SourceMarkup`). */
+export const SOURCE_ATTRIBUTE = "source"
+
+/**
+ * Events the source layer dispatches through its owner:  `SourceEvent.load`.
+ * - The owner's vocabulary MUST name them:  `UIT.SourceEvents` (`LoadableComponent`), `UIT.SourceBodyEvents`
+ *   (`LoadableBody`:  `load` and `error` only).
+ */
+export const SourceEvent = {
+  load: "ui-load",
+  change: "ui-change",
+  save: "ui-save",
+  saved: "ui-saved",
+  error: ERROR_EVENT
+} as const
+/** One of `SourceEvent`'s names, e.g. `"ui-load"`. */
+export type SourceEventName = (typeof SourceEvent)[keyof typeof SourceEvent]
 
 ////////////////
 // ## Dropdown
@@ -618,13 +705,15 @@ export type MenuEntry = MenuOption | MenuSeparator
 // ## Sticky watch
 ////////////////
 
-/** Edge a watched sticky box is stuck to (`StickyWatch`);  ~== `UIT.StickyEdge`. */
-export type StickyWatchEdge = "top" | "bottom"
+/** Edges a watched sticky box can be stuck to (`StickyWatch`);  ~== `UIT.StickyEdge`. */
+export const StickyWatchEdges = ["top", "bottom"] as const
+/** One of `StickyWatchEdges`. */
+export type StickyWatchEdge = (typeof StickyWatchEdges)[number]
 
 /** What `StickyWatch.observe()` watches:  elements the caller renders. */
 export type StickyWatchTargets = {
-  /** element whose ancestors decide the scroll container (the custom element's host) */
-  host: Element
+  /** element whose ancestors decide the scroll container (the custom element's DOM element) */
+  domElement: Element
   /** 1px sentinel where the box's top would be, unstuck */
   top: Element
   /** 1px sentinel where the box's bottom would be;  only read with `pushing` */
@@ -645,12 +734,12 @@ export type StickyWatchOptions = {
 
 /** What a `StickyWatch` reports after every measurement. */
 export type StickyWatchState = {
-  /** edge stuck to now, or `null` */
-  edge: StickyWatchEdge | null
+  /** edge stuck to now;  `undefined` when not stuck */
+  edge: StickyWatchEdge | undefined
   /** pushed out by the end of its container */
-  bound: boolean
+  isBound: boolean
   /** edge stuck to before this report;  `edge !== previous` ~== the stuck state changed */
-  previous: StickyWatchEdge | null
+  previous: StickyWatchEdge | undefined
 }
 
 /** `overflow-y` values that make a scroll container. */

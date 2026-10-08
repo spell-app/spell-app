@@ -1,12 +1,13 @@
 /**
- * Barrel for the nag -- also the `nag` lib entry (`@spell-app/ui/ui-nag`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-nag>`.
+ * The nag family:  defines `<ui-nag>` and exports its component, `UINag`, its DOM element, `DOMNagElement`,
+ * and `DismissalStore`, where a nag remembers it was dismissed.
+ * - SIDE EFFECT:  importing it defines the tag.
+ * - Also the library's `@spell-app/ui/ui-nag` entry (its size is in `docs/report.md`).
  */
 
-import { UINag } from "./UINag"
-import { UINagHost } from "./UINagHost"
+import { DOMNagElement, UINag } from "./UINag"
 import { DismissalStore } from "./DismissalStore"
 
 UINag.define()
 
-export { UINag, UINagHost, DismissalStore }
+export { UINag, DOMNagElement, DismissalStore }

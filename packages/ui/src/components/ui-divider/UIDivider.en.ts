@@ -1,0 +1,61 @@
+/**
+ * The English vocabulary of `<ui-divider>`:  every name the tag uses.
+ * - Its tag, attributes (each with its kind and allowed values), slots and parts.
+ *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * - The attributes become Fomantic's class words, in Fomantic's order (`ClassBuilder`):
+ *   `<ui-divider horizontal text-align="left">` => `ui horizontal left aligned divider`.
+ */
+
+import type { E } from "$/ui/core"
+
+/****************
+ * ### `dividerVocabulary`
+ * The names of `<ui-divider>`, a line between groups of content:
+ * `<div class="ui … divider" role="separator">` around a slot for its text.
+ ****************/
+export const dividerVocabulary = {
+  tag: "ui-divider",
+  topics: ["layout", "basic", "typography", "elements"],
+  aka: ["separator", "hr", "horizontal rule", "rule", "line"],
+  skeleton: "0.25 tall",
+  noun: "divider",
+  description: "A divider visually segments content into groups.",
+  attributes: [
+    { name: "size", kind: "size", description: "Size of the text, `mini` ... `massive`;  `medium` is the default." },
+    { name: "color", kind: "color", description: "Hue of the rule and the text." },
+    { name: "horizontal", kind: "keyOnly", description: "Text (or an icon) between two horizontal rules." },
+    {
+      name: "vertical",
+      kind: "keyOnly",
+      description: "A vertical rule with optional text, centred in a `position: relative` owner (segment, grid)."
+    },
+    {
+      name: "hidden",
+      kind: "keyOnly",
+      property: "dividerHidden",
+      description:
+        "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so " +
+        "it doesn't shadow `HTMLElement.hidden` -- `UIDivider.css` overrides the UA `[hidden] { display: none }` " +
+        "so the host keeps contributing its margin."
+    },
+    { name: "fitted", kind: "keyOnly", description: "No space above or below." },
+    { name: "clearing", kind: "keyOnly", description: "Clears floated content above it." },
+    { name: "section", kind: "keyOnly", description: "More space, to divide sections of content." },
+    { name: "inverted", kind: "keyOnly", description: "For dark backgrounds." },
+    {
+      name: "text-align",
+      kind: "textAlign",
+      values: ["left", "center", "right"],
+      description: "With `horizontal`:  where the text sits;  `left` / `right` drop the rule on that side."
+    },
+    { name: "icon", kind: "icon", description: "Icon name, shown before the text." }
+  ],
+  events: [],
+  slots: [{ name: "", description: "Text between the rules of a `horizontal` or `vertical` divider." }],
+  parts: [
+    { name: "divider", description: "The divider box." },
+    { name: "icon", description: "The icon box." }
+  ],
+  states: [],
+  texts: []
+} as const satisfies E.ComponentVocabulary

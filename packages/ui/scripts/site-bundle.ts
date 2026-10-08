@@ -16,9 +16,15 @@ import { gzipSync } from "node:zlib"
 import { build } from "vite"
 
 import { SITE_ASSETS } from "../vite.site.config.ts"
+import { Terminal } from "../tools/Terminal.ts"
 
-/** The packs link inside `_assets/`, and where it points (relative, so the checkout can move). */
-const PACKS = path.join(SITE_ASSETS, "icon-packs")
+/** The packs link's name inside `_assets/`:  the one entry a rebuild keeps. */
+const PACKS_NAME = "icon-packs"
+
+/** The packs link. */
+const PACKS = path.join(SITE_ASSETS, PACKS_NAME)
+
+/** Where the packs link points:  relative, so the checkout can move. */
 const PACKS_TARGET = "../../src/icons/icon-packs"
 
 /** A static `import ... from "./x.js"` / `import "./x.js"` in minified output (never `import("./x.js")`). */
@@ -26,12 +32,14 @@ const STATIC_IMPORT = /(?:^|[;}\n])\s*(?:import|export)(?:[^"'();]*?from)?\s*["'
 
 mkdirSync(SITE_ASSETS, { recursive: true })
 for (const entry of readdirSync(SITE_ASSETS)) {
-  if (entry !== "icon-packs") rmSync(path.join(SITE_ASSETS, entry), { recursive: true, force: true })
+  if (entry !== PACKS_NAME) rmSync(path.join(SITE_ASSETS, entry), { recursive: true, force: true })
 }
 const started = performance.now()
 await build({ configFile: path.resolve(import.meta.dirname, "../vite.site.config.ts") })
 if (!existsSync(PACKS) && !isLink(PACKS)) symlinkSync(PACKS_TARGET, PACKS, "dir")
-if (!statSync(PACKS).isDirectory()) throw new Error(`${PACKS} doesn't lead to the icon packs`)
+if (!statSync(PACKS).isDirectory()) {
+  throw new Error(`site:bundle:  ${PACKS} doesn't lead to the icon packs;  delete it, and rerun to link it again`)
+}
 report((performance.now() - started) / 1000)
 
 /** Is `file` a symlink (even a broken one)? */
@@ -45,22 +53,22 @@ function isLink(file: string): boolean {
 
 /** Print the bundle's sizes:  eager files, totals, the biggest lazy chunks. */
 function report(seconds: number): void {
-  const files = walk(SITE_ASSETS).filter((file) => !file.startsWith("icon-packs/"))
+  const files = walk(SITE_ASSETS).filter((file) => !file.startsWith(`${PACKS_NAME}/`))
   const sizes = files.map((file) => {
     const bytes = readFileSync(path.join(SITE_ASSETS, file))
     return { file, raw: bytes.length, gzip: gzipSync(bytes).length }
   })
   const eagerFiles = new Set(["site.css", ...staticGraph("site.js")])
   const eager = sizes.filter((size) => eagerFiles.has(size.file)).sort((a, b) => b.raw - a.raw)
-  console.log(`site bundle (${seconds.toFixed(1)}s):  ${path.relative(process.cwd(), SITE_ASSETS)}/`)
+  Terminal.out(`site bundle (${seconds.toFixed(1)}s):  ${path.relative(process.cwd(), SITE_ASSETS)}/`)
   for (const size of eager.slice(0, 4))
-    console.log(`  ${size.file.padEnd(28)} ${kb(size.raw).padStart(10)}  gz ${kb(size.gzip)}`)
-  console.log(
+    Terminal.out(`  ${size.file.padEnd(28)} ${kb(size.raw).padStart(10)}  gz ${kb(size.gzip)}`)
+  Terminal.out(
     `  eager ${kb(sum(eager, "raw"))} (gz ${kb(sum(eager, "gzip"))});  all ${files.length} files ` +
       `${kb(sum(sizes, "raw"))} (gz ${kb(sum(sizes, "gzip"))}), icon packs linked`
   )
   const lazy = sizes.filter((size) => !eager.includes(size)).sort((a, b) => b.raw - a.raw)
-  console.log(
+  Terminal.out(
     `  biggest lazy:  ${lazy
       .slice(0, 6)
       .map((size) => `${size.file} ${kb(size.raw)}`)

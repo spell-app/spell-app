@@ -1,7 +1,8 @@
 /**
  * Shared types and constants for `$/ui/icons`:  the icon PACK format (`pack.js`) and the names around it.
- * - Runtime-light:  no imports, so node tooling (`tools/IconPackBuilder.ts`, `scripts/gen-icons.ts`) can import it
- *   by relative path, and the runtime service (`UI.icons`) by `$/ui/icons`.
+ * - The BOTTOM of `$/ui/icons`' import graph, and runtime-light:  no imports, so node tooling
+ *   (`tools/IconPackBuilder.ts`, `scripts/gen-icons.ts`) can import it by relative path, and the runtime service
+ *   (`UI.icons`) by `$/ui/icons`.
  * - See `docs/icons.md` for the format and how names resolve.
  */
 
@@ -59,10 +60,10 @@ export type IconPackEntry = {
  * - `fa7-brands`:  every Font Awesome 7 Free brand icon
  * - `fomantic`:  Fomantic-UI's icon names, pointing at the two FA folders
  */
-export const BUILT_IN_ICON_PACKS = ["fa7-free", "fa7-brands", "fomantic"] as const
+export const BuiltInIconPacks = ["fa7-free", "fa7-brands", "fomantic"] as const
 
-/** Id of a pack `@spell-app/ui` ships. */
-export type BuiltInIconPack = (typeof BUILT_IN_ICON_PACKS)[number]
+/** Id of a pack `@spell-app/ui` ships (`BuiltInIconPacks`). */
+export type BuiltInIconPack = (typeof BuiltInIconPacks)[number]
 
 /** Pack the runtime adds by itself, unless a page replaces it (`only`). */
 export const DEFAULT_ICON_PACK: BuiltInIconPack = "fa7-free"

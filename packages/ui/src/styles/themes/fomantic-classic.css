@@ -14,7 +14,7 @@
  *   - `table.variables` `@boxShadow: @subtleGradient`:  a gradient as a box-shadow, invalid CSS that Fomantic's
  *     browsers dropped too
  *   - `button.variables` group offsets (`@groupButtonOffset`, `@verticalGroupOffset`):  our groups draw one border
- *     plus dividers instead of overlapping children (`ui-button.css`)
+ *     plus dividers instead of overlapping children (`UIButton.css`)
  *   - `button.variables` `@loadingBackgroundColor`:  our loading button keeps its fill under the spinner
  */
 

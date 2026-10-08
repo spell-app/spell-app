@@ -11,6 +11,10 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+////////////////
+// ## URLs
+////////////////
+
 describe("Sources.resolve()", () => {
   const sources = new Sources()
 
@@ -31,12 +35,17 @@ describe("Sources.resolve()", () => {
   })
 })
 
+////////////////
+// ## Loading
+////////////////
+
 describe("Sources.load()", () => {
   it("fetches the text, with its type", async () => {
-    const loaded = await new Sources().load(HELLO)
-    expect(loaded.text).toBe("Hello, source!\n")
-    expect(loaded.url).toBe(new URL(HELLO, location.href).href)
-    expect(loaded.type).toMatch(/text\/plain/)
+    expect(await new Sources().load(HELLO)).toMatchObject({
+      text: "Hello, source!\n",
+      url: new URL(HELLO, location.href).href,
+      type: expect.stringMatching(/text\/plain/)
+    })
   })
 
   it("shares one fetch per URL;  `fresh` fetches again", async () => {
@@ -55,11 +64,21 @@ describe("Sources.load()", () => {
     const sources = new Sources()
     const failure = await sources.load("/test/fixtures/sources/missing.txt").catch((error: unknown) => error)
     expect(failure).toBeInstanceOf(SourceError)
-    expect((failure as SourceError).kind).toBe("load")
-    expect((failure as SourceError).status).toBe(404)
+    expect(failure).toMatchObject({ kind: "load", status: 404 })
     const fetchSpy = vi.spyOn(globalThis, "fetch")
     await sources.load("/test/fixtures/sources/missing.txt").catch(() => undefined)
     expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it("keeps a network failure as `cause.error`", async () => {
+    const offline = new TypeError("Failed to fetch")
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(offline)
+    const failure = await new Sources().load(HELLO).catch((error: unknown) => error)
+    expect(failure).toMatchObject({
+      kind: "load",
+      cause: { error: offline },
+      message: expect.stringMatching(/Failed to fetch/)
+    })
   })
 
   it("rejects another origin with `cross-origin`, without fetching", async () => {
@@ -79,6 +98,10 @@ describe("Sources.load()", () => {
     expect((await other).text).toBe("Hello, source!\n")
   })
 })
+
+////////////////
+// ## Saving
+////////////////
 
 describe("Sources.save()", () => {
   it("rejects with `no-saver` when the page registered none", async () => {
@@ -101,17 +124,21 @@ describe("Sources.save()", () => {
   it("passes a saver's `SourceError` through;  anything else becomes `save`", async () => {
     const sources = new Sources()
     sources.saver = async () => {
-      throw new SourceError("conflict", "changed", 409)
+      throw new SourceError("saver:  changed", { cause: { kind: "conflict", status: 409 } })
     }
     expect(((await sources.save({ url: HELLO, text: "x" }).catch((e: unknown) => e)) as SourceError).kind).toBe(
       "conflict"
     )
+    const diskFull = new Error("disk full")
     sources.saver = async () => {
-      throw new Error("disk full")
+      throw diskFull
     }
-    const failure = (await sources.save({ url: HELLO, text: "x" }).catch((e: unknown) => e)) as SourceError
-    expect(failure.kind).toBe("save")
-    expect(failure.message).toMatch(/disk full/)
+    const failure = await sources.save({ url: HELLO, text: "x" }).catch((e: unknown) => e)
+    expect(failure).toMatchObject({
+      kind: "save",
+      message: expect.stringMatching(/disk full/),
+      cause: { error: diskFull }
+    })
   })
 
   it("takes a `{ kind }`-shaped error from a saver that can't import SourceError", async () => {
@@ -119,10 +146,9 @@ describe("Sources.save()", () => {
     sources.saver = async () => {
       throw { kind: "conflict", message: "changed on disk", status: 409 }
     }
-    const failure = (await sources.save({ url: HELLO, text: "x" }).catch((e: unknown) => e)) as SourceError
+    const failure = await sources.save({ url: HELLO, text: "x" }).catch((e: unknown) => e)
     expect(failure).toBeInstanceOf(SourceError)
-    expect(failure.kind).toBe("conflict")
-    expect(failure.status).toBe(409)
+    expect(failure).toMatchObject({ kind: "conflict", status: 409 })
   })
 
   it("a fragment save drops the cache entry instead", async () => {

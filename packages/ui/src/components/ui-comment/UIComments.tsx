@@ -1,55 +1,61 @@
-import { Show, createMemo } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PartContext, proto, SlotContent, UIElement, UIT } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
+import { commentsVocabulary } from "./UIComments.en"
 
-import { commentsVocabulary } from "./ui-comments.vocabulary.en"
-import { CommentFallback } from "./ui-comment.fallback"
-import { COLLAPSED, REPLY } from "./ui-comment.types"
-
-import commentCSS from "./ui-comment.css?inline"
+import commentCSS from "./UIComment.css?inline"
 
 /****************
- * ### `<ui-comments>`
- * A comment list:  `<div class="ui [size] [keyOnly ...] comments" part="comments"><slot></slot></div>`, then the
- * `reply` slot's box (`<div class="reply" part="reply">`) when a reply form is slotted.
- * - Owner of its comments (`ownsParts:  comment`):  each `<ui-comment>` gets `:state(in-comments)`.
- * - Inside a `<ui-comment>` (`PartContext`, noun `comments`):  that comment's THREAD of replies -- `<div
- *   class="[collapsed] comments">`, no `ui`, no variations of its own:  it inherits the outer list's (`threaded`,
- *   `minimal`, `inverted` ...) as tokens, as Fomantic's `.ui.threaded.comments .comment > .comments` has it.
+ * ### `UIComments`
+ * The component behind `<ui-comments>`:  a list of comments,
+ * `<div class="ui [size] [keyOnly ...] comments" part="comments"><slot></slot></div>`,
+ * then the `reply` slot's box (`<div class="reply" part="reply">`) when a reply form is slotted.
+ *
+ * - It owns its comments (`ownsParts:  comment`):  each `<ui-comment>` gets `:state(in-comments)`.
+ *
+ * - Inside a `<ui-comment>` (`PartContext`, noun `comments`), it is that comment's THREAD of replies:
+ *   `<div class="[collapsed] comments">`, no `ui`, no variations of its own.
+ *   It inherits the outer list's (`threaded`, `minimal`, `inverted` ...) as tokens,
+ *   as Fomantic's `.ui.threaded.comments .comment > .comments` has it.
+ *
  * - No role:  each comment is an `<article>`, which is the structure a reader moves through.
+ *
  * - `disabled`:  `aria-disabled` on the root, which assistive tech (and axe) apply to what's inside.
  ****************/
-export class UIComments extends UIElement<typeof commentsVocabulary> {
-  @proto static vocabulary = commentsVocabulary
-  @proto static styles = { comment: commentCSS }
-  @proto static Fallback = CommentFallback
-  @proto static delegatesFocus = false
+export class UIComments extends E.UIComponent<typeof commentsVocabulary> {
+  @E.proto static vocabulary = commentsVocabulary
+  @E.proto static styleSheets = { comment: commentCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** The comment this is the thread of, if any. */
-  readonly context = new PartContext(this.host, this.vocabulary.noun)
+  readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
-  /** A thread of replies inside a comment.  Tracked. */
-  readonly nested = createMemo(() => !!this.context.owner.get())
+  /** A thread of replies inside a comment. */
+  get isThread(): boolean {
+    return !!this.context.owner
+  }
 
-  protected hostStates() {
-    return { collapsed: this.attrs.collapsed }
+  /** Folded away:  its `collapsed` attribute. */
+  @E.cssState("collapsed")
+  get isCollapsed(): boolean {
+    return this.collapsed
   }
 
   render(): JSX.Element {
     return (
       <div
-        class={this.nested() ? this.threadClasses() : this.classes()}
-        part={this.part("comments")}
-        aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}
+        class={this.isThread ? this.threadClasses : this.rootClasses}
+        part={this.partForName("comments")}
+        aria-disabled={this.disabled ? "true" : undefined}
       >
         <slot />
-        <Show when={this.slots.has(this.slot("reply"))}>
-          <div class={REPLY} part={this.part("reply")}>
-            <slot name={this.slot("reply")} />
+        <Show when={this.slots.hasContent(this.slotForName("reply"))}>
+          <div class={REPLY} part={this.partForName("reply")}>
+            <slot name={this.slotForName("reply")} />
           </div>
         </Show>
       </div>
@@ -57,8 +63,19 @@ export class UIComments extends UIElement<typeof commentsVocabulary> {
   }
 
   /** A thread's classes:  the noun, and `collapsed` / `disabled`, which a thread keeps. */
-  private threadClasses(): string {
-    const { collapsed, disabled } = this.attrs
-    return [collapsed ? COLLAPSED : "", disabled ? UIT.DISABLED : "", this.vocabulary.noun].filter(Boolean).join(" ")
+  @E.derived
+  private get threadClasses(): string {
+    return [this.collapsed ? COLLAPSED : "", this.disabled ? UIT.DISABLED : "", this.vocabulary.noun]
+      .filter(Boolean)
+      .join(" ")
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIComments extends E.AttributeValues<typeof commentsVocabulary> {}
+
+/** The class, part and slot of the reply box (`UIComment` draws one too). */
+const REPLY = "reply"
+
+/** The class word a thread of replies keeps (`collapsed comments`). */
+const COLLAPSED = "collapsed"

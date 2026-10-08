@@ -1,63 +1,67 @@
-import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, type TextKey, UI, UIElement, UIT } from "$/ui/core"
-
-import { flagVocabulary } from "./ui-flag.vocabulary.en"
+import { E, UI } from "$/ui/core"
+import { flagVocabulary } from "./UIFlag.en"
 import { FlagCountry } from "./FlagCountry"
-import { FlagFallback } from "./ui-flag.fallback"
-import { REGION } from "./ui-flag.types"
 
-import flagCSS from "./ui-flag.css?inline"
+import flagCSS from "./UIFlag.css?inline"
 
 /****************
- * ### `<ui-flag>`
- * A country flag:  `<span class="ui [size] flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`.
- * - The glyph is the Unicode flag emoji of `country` (`FlagCountry`);  no sprite, no per-country CSS.
- * - The resolved code is also a class word after the noun (`fr`, `gb-eng`;  none when unknown):  Fomantic's own
- *   `fr flag` grammar, the hook a sprite theme selects on (`themes/famfamfam.css`).
- * - Name:  `UI.i18n.displayName("region", …)` for a country, which follows `UI.i18n.locale`;  the vocabulary's
- *   texts for the rainbow, pirate, England ... flags.
- * - Unknown country:  an EMPTY root with no role (an unnamed `role=img` fails axe), which keeps its line box.
- * - Host is `display: contents`:  the span IS the inline box, where Fomantic's `<i class="fr flag">` sat.
+ * ### `UIFlag`
+ * The component behind `<ui-flag>`:  a country's flag, drawn as its Unicode emoji.
+ *
+ * - Its shadow DOM is one span:
+ *   `<span class="ui [size] flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`.
+ *   The element is `display: contents`:  the span IS the inline box, where Fomantic's `<i class="fr flag">` sat.
+ *
+ * - The glyph is the Unicode flag emoji of `country` (`FlagCountry`):  no sprite, no per-country CSS.
+ * - The resolved code is also a class word after the noun (`fr`, `gb-eng`;  none when unknown):
+ *   Fomantic's own `fr flag` grammar, which a page's own CSS may select on.
+ * - The name:  `UI.i18n.displayName("region", …)` for a country, which follows `UI.i18n.locale`;
+ *   the vocabulary's texts for the rainbow, pirate, England … flags.
+ * - An unknown country:  an EMPTY box with no role (an unnamed `role=img` fails axe), which keeps its line box.
  ****************/
-export class UIFlag extends UIElement<typeof flagVocabulary> {
-  @proto static vocabulary = flagVocabulary
-  @proto static styles = { flag: flagCSS }
-  @proto static Fallback = FlagFallback
-  @proto static delegatesFocus = false
+export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
+  @E.proto static vocabulary = flagVocabulary
+  @E.proto static styleSheets = { flag: flagCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  /** `country` resolved. */
-  readonly country = createMemo(() => new FlagCountry(this.attrs.country))
+  /** `country`, resolved. */
+  @E.derived
+  get resolvedCountry(): FlagCountry {
+    return new FlagCountry(this.country)
+  }
 
   /**
    * Accessible name, `undefined` when unknown.
-   * - `lazy`:  reads `UI.i18n`, which exists only once the runtime has loaded -- i.e. by first render.
+   * - Computed on first read:  reads `UI.i18n`, which exists only once the runtime has loaded -- i.e.
+   *   by first render.
    */
-  readonly label = createMemo(
-    () => {
-      const { textKey, region } = this.country()
-      if (textKey) return this.text(textKey as TextKey<typeof flagVocabulary>)
-      return region ? UI.i18n.displayName(REGION, region) : undefined
-    },
-    { lazy: true }
-  )
+  @E.derived
+  get accessibleName(): string | undefined {
+    const { textKey, region } = this.resolvedCountry
+    if (textKey) return this.translationForKey(textKey as E.TextKey<typeof flagVocabulary>)
+    return region ? UI.i18n.displayName("region", region) : undefined
+  }
 
-  /** The resolved code as a class word, for themes that draw flags from a sprite. */
-  protected override extraClasses(): string | undefined {
-    return this.country().code || undefined
+  /** The resolved code as a class word (Fomantic's `fr flag`), for a page's own CSS. */
+  protected override get extraClasses(): string | undefined {
+    return this.resolvedCountry.code || undefined
   }
 
   render(): JSX.Element {
     return (
       <span
-        class={this.classes()}
-        part={this.part("flag")}
-        role={this.label() ? UIT.IMG : undefined}
-        aria-label={this.label()}
+        class={this.rootClasses}
+        part={this.partForName("flag")}
+        role={this.accessibleName ? "img" : undefined}
+        aria-label={this.accessibleName}
       >
-        {this.country().emoji}
+        {this.resolvedCountry.emoji}
       </span>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIFlag extends E.AttributeValues<typeof flagVocabulary> {}

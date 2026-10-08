@@ -351,9 +351,10 @@
     lock(true)
   }
 
-  /** Lines saying what `answer` holds, per question, then the notes and when. */
+  /** Lines saying what `answer` holds, per question, then the notes, folded under a count;  then when. */
   function summarize(answer) {
     const list = el("ul")
+    let answered = 0
     for (const question of questions) {
       const got = answer.answers?.[question.id] ?? { picked: [] }
       const titles = got.picked.map((letter) => {
@@ -361,12 +362,21 @@
         return `${letter} · ${card?.dataset.title ?? ""}`
       })
       if (got.other) titles.push(`Other:  ${got.other}`)
+      if (titles.length) answered++
       const label = question.getAttribute("header")?.split(" · ")[0] ?? question.id
       list.append(el("li", {}, el("b", {}, `${label}:`), `  ${titles.join(";  ") || "(no answer)"}`))
     }
     if (answer.notes) list.append(el("li", {}, el("b", {}, "Notes:"), `  ${answer.notes}`))
+    // folded:  a page of many questions would otherwise end in a list as long as itself
+    const counted = `${answered} of ${questions.length} answered${answer.notes ? ", and notes" : ""}`
+    const folded = el(
+      "ui-accordion",
+      { class: "spell-aside", styled: "" },
+      el("ui-title", {}, `What was sent · ${counted}`),
+      el("ui-content", {}, list)
+    )
     const when = el("p", { class: "meta" }, `Sent ${new Date(answer.answered).toLocaleString()}.`)
-    return [list, when]
+    return [folded, when]
   }
 
   /** Lock (or unlock, to change the answer) every control;  the Send row and the "Sent" message trade places. */

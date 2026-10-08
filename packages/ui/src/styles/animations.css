@@ -1,7 +1,7 @@
 /*
  * The transition catalogue, ported from Fomantic's `transition.less` + `transition.overrides`, in `@layer ui.utilities`.
  * - Keyframes are `ui-<name>-in` / `ui-<name>-out` pairs (`ui-fade-up-in`), attention animations a single
- *   `ui-<name>` (`ui-shake`).  Names are kebab-cased `ANIMATION_NAMES` from `$/ui/runtime`:
+ *   `ui-<name>` (`ui-shake`).  Names are kebab-cased `AnimationNames` from `$/ui/runtime`:
  *   Fomantic's `fade up` => `fade-up`, `horizontal flip` => `flip-horizontal`.
  * - Two ways to run one:
  *   - the runtime protocol (`UI.transitions.animate()`):  `data-ui-animation="<name> <in | out | static>"`,

@@ -1,12 +1,14 @@
 /**
- * Barrel for the docs search -- a DOC-ONLY family (`src/docs-components/`):  no lib entry, loaded by `<ui-root>` on
- * first use (or by `<ui-docs-nav>`, whose header band holds one).
- * - SIDE EFFECT:  defines `<ui-docs-search>`, plus `<ui-icon>`, which its shadow root is built from.  A `<ui-root>`
- *   only loads what's in the page's light DOM, so a family that composes widgets imports them itself.
+ * The docs search family:  defines `<ui-docs-search>` and exports its component, `UIDocsSearch`,
+ * its DOM element class, `DOMDocsSearchElement`, and its helpers (`PageOutline`, `SearchData`, `SearchIndex`).
+ * - A DOC-ONLY family (`src/docs-components/`):  no lib entry.
+ *   `<ui-root>` loads it on first use, or `<ui-docs-nav>` does (its header band holds one).
+ * - SIDE EFFECT:  importing it defines the tag, and `<ui-icon>`, which its shadow DOM is built of.
+ *   A `<ui-root>` only loads what's in the page's light DOM, so a family that is built of other widgets
+ *   imports them itself.
  */
 
-import { UIDocsSearch } from "./UIDocsSearch"
-import { DocsSearchHost } from "./DocsSearchHost"
+import { DOMDocsSearchElement, UIDocsSearch } from "./UIDocsSearch"
 import { PageOutline } from "./PageOutline"
 import { SearchData } from "./SearchData"
 import { SearchIndex } from "./SearchIndex"
@@ -15,4 +17,4 @@ import "$/ui/components/ui-icon"
 
 UIDocsSearch.define()
 
-export { UIDocsSearch, DocsSearchHost, PageOutline, SearchData, SearchIndex }
+export { UIDocsSearch, DOMDocsSearchElement, PageOutline, SearchData, SearchIndex }

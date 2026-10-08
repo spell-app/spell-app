@@ -12,7 +12,7 @@ house style every package shares.  Only what's local is below;  a section named 
   - `decorators.ts` -- `@proto`, the standard-decorator for class defaults
   - `class.ts` -- `hasOwnProp` ...
   - `string.ts` -- case conversion, `numberToWord`, `suggest`
-  - `dom.ts` -- shadow-aware traversal, `isBrowser`, `nextFrame`
+  - `dom.ts` -- shadow-aware traversal, `NodeType`, `byDocumentOrder`, `isBrowser`, `nextFrame`
   - `util.types.ts` -- `Constructor`, `AbstractClass`, `Prettify`
 - It sits UNDER every other package and imports NONE of them.  `@spell-app/ui` is published and bundles what it
   imports from here (its `.d.ts` files inline it), so nothing spell-specific may land here.

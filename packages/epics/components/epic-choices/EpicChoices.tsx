@@ -1,85 +1,77 @@
-import { Show, createMemo, onSettled } from "solid-js"
+import { Show, onSettled } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, Converters, proto, UIElement, UIT } from "$/ui/core"
+import { E } from "$/ui/core"
 
 import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 
-import { epicChoicesVocabulary } from "./epic-choices.vocabulary.en"
-import { EpicChoicesFallback } from "./epic-choices.fallback"
-import {
-  ANSWERED,
-  CHOICES_TAG,
-  CHOSEN,
-  ITEM_TAG,
-  PANELS,
-  PANELS_ID,
-  STATUS,
-  TOGGLE,
-  type EpicChoicesVocabulary
-} from "./epic-choices.types"
+import { epicChoicesVocabulary } from "./EpicChoices.en"
+import { ANSWERED, CHOICES_TAG, CHOSEN, ITEM_TAG, STATUS, TOGGLE } from "./EpicChoices.types"
 
-import choicesCSS from "./epic-choices.css?inline"
+import choicesCSS from "./EpicChoices.css?inline"
 
 /****************
- * ### `<epic-choices>`
- * A question's options, `<epic-option>`s, drawn as the question stands.
+ * ### `EpicChoices`
+ * The component behind `<epic-choices>`:  a question's options, `<epic-option>`s, drawn as the question stands.
  * - Open question:  the option cards side by side (as many as fit, at least 14em each;  one column when narrow).
  * - Answered (`chosen`, or `answered` on its `<epic-item>`):  folded away under a `Choices` aside, its options
  *   panels in one box, the chosen one marked and open.  Find-in-page unfolds it.
  * - Reads its item's `answered` and its own `chosen` as they change (`EpicChoices.watch()`);  `<epic-option>` reads
  *   the same, through the same two statics.
  ****************/
-export class EpicChoices extends UIElement<EpicChoicesVocabulary> {
-  @proto static vocabulary = epicChoicesVocabulary
-  @proto static styles = { choices: choicesCSS }
-  @proto static Fallback = EpicChoicesFallback
-  @proto static delegatesFocus = false
+export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
+  @E.proto static vocabulary = epicChoicesVocabulary
+  @E.proto static styleSheets = { choices: choicesCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Its question is answered:  folded under Choices. */
-  readonly answered = new Cell(EpicChoices.isAnswered(this.host))
+  @E.cssState("answered")
+  @E.state
+  accessor questionIsAnswered = EpicChoices.isAnswered(this.domElement)
 
   /** Its options' box:  folded until the reader opens it. */
   readonly fold = new Fold(() => false)
 
   /** Answered and unfolded. */
-  readonly isOpen = createMemo(() => this.answered.get() && this.fold.isOpen())
-
-  protected extraClasses(): string | undefined {
-    return this.answered.get() ? ANSWERED : undefined
+  @E.cssState("open")
+  get isOpen(): boolean {
+    return this.questionIsAnswered && this.fold.isOpen()
   }
 
-  protected hostStates() {
-    return { answered: this.answered.get(), open: this.isOpen() }
+  protected get extraClasses(): string | undefined {
+    return this.questionIsAnswered ? ANSWERED : undefined
   }
 
-  mount(): JSX.Element {
-    if (!isServer)
-      onSettled(() => EpicChoices.watch(this.host, () => this.answered.set(EpicChoices.isAnswered(this.host))))
-    return super.mount()
+  onMount(): JSX.Element {
+    if (!isServer) {
+      onSettled(() =>
+        EpicChoices.watch(this.domElement, () => (this.questionIsAnswered = EpicChoices.isAnswered(this.domElement)))
+      )
+    }
+    return super.onMount()
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("base")}>
-        <Show when={this.answered.get()} fallback={<slot />}>
+      <div class={this.rootClasses} part={this.partForName("base")}>
+        <Show when={this.questionIsAnswered} fallback={<slot />}>
           <button
-            type={UIT.BUTTON}
+            type="button"
             class={TOGGLE}
-            part={this.part("toggle")}
-            aria-expanded={this.isOpen() ? UIT.TRUE : UIT.FALSE}
+            part={this.partForName("toggle")}
+            aria-expanded={this.isOpen ? "true" : "false"}
             aria-controls={PANELS_ID}
             onClick={this.fold.toggle}
           >
             <Chevron />
-            {this.text("choices")}
+            {this.translationForKey("choices")}
           </button>
           <div
             ref={this.fold.watch}
             id={PANELS_ID}
             class={PANELS}
-            part={this.part("panels")}
+            part={this.partForName("panels")}
             hidden={this.fold.hidden()}
           >
             <slot />
@@ -97,7 +89,7 @@ export class EpicChoices extends UIElement<EpicChoicesVocabulary> {
   static isAnswered(element: Element): boolean {
     if (EpicChoices.chosenFor(element)) return true
     const item = element.closest(ITEM_TAG)
-    return !!item && Converters.boolean(item.getAttribute(ANSWERED), ANSWERED)
+    return !!item && E.Converters.boolean(item.getAttribute(ANSWERED), ANSWERED)
   }
 
   /** The chosen letter of the `<epic-choices>` `element` is (or sits in), or `undefined`. */
@@ -124,3 +116,12 @@ export class EpicChoices extends UIElement<EpicChoicesVocabulary> {
     return () => observer.disconnect()
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface EpicChoices extends E.AttributeValues<typeof epicChoicesVocabulary> {}
+
+/** Class of the answered options' box. */
+const PANELS = "panels"
+
+/** `id` of that box, for its toggle's `aria-controls`. */
+const PANELS_ID = "panels"

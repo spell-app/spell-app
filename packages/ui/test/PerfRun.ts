@@ -1,7 +1,7 @@
 /**
  * The dropdown filtering benchmark:  a `search selection` dropdown, 1000 options set through the `options`
  * property, the query `"united sta"` typed one character per keystroke.
- * - Browser-only, NO imports:  runs in a vitest browser test (`ui-dropdown.perf.test.tsx`) AND on the smoke perf page
+ * - Browser-only, NO imports:  runs in a vitest browser test (`UIDropdown.perf.test.tsx`) AND on the smoke perf page
  *   (`tools/frameworks/perf.html`, served as plain JS by `StaticServer`).
  * - Runtime-neutral:  `PerfAdapter.settle()` says "the DOM reflects the last change" (Solid:  `flush()`).
  * - Each step (open, then each keystroke), timed from just before the triggering event:
@@ -170,12 +170,19 @@ export type PerfStep = {
 
 /** `PerfRun.run()` result. */
 export type PerfResult = {
+  /** options in the dropdown */
   count: number
+  /** what was typed, a keystroke per character */
   query: string
+  /** opening the menu */
   open: PerfStep
+  /** each keystroke of `query` */
   keystrokes: PerfStep[]
+  /** `update` over the keystrokes */
   update: PerfStats
+  /** `layout` over the keystrokes */
   layout: PerfStats
+  /** `frame` over the keystrokes */
   frame: PerfStats
 }
 
@@ -187,7 +194,9 @@ export type PerfRecord = {
   where: string
   /** e.g. `dev` (Vite dev server) or `production` (`dist/` + vendored peers) */
   build: string
+  /** when it ran */
   date: string
+  /** what it measured */
   result: PerfResult
 }
 

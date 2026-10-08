@@ -1,5 +1,6 @@
 /**
  * The EAGER half of the runtime:  `load()` and the `UI` accessor.
+ * - In `core` (every page's `core.js`), so keep it small:  it imports only `./runtime.types`.
  * - Everything else in `$/ui/runtime` is reached through a dynamic `import("./UIRuntime")`, so Vite splits the
  *   runtime into its own chunk and a component's static imports stay tiny.  NEVER statically import a
  *   service class here -- `import type` only.
@@ -18,7 +19,7 @@ let pending: Promise<UIRuntime> | undefined
  * - A failed import (network) isn't cached, so the next call retries.
  */
 export function load(): Promise<UIRuntime> {
-  const existing = (globalThis as RuntimeGlobal)[RUNTIME_KEY]
+  const existing = pageRuntime()
   if (existing) return existing.load()
   pending ??= import("./UIRuntime").then(
     ({ UIRuntime }) => UIRuntime.instance.load(),
@@ -44,18 +45,28 @@ export const UI: UIRuntime = new Proxy({} as UIRuntime, {
   get(_target, key) {
     // always the module function, so `await UI.load()` resolves with the real instance, not this proxy
     if (key === "load") return load
-    const runtime = (globalThis as RuntimeGlobal)[RUNTIME_KEY]
+    const runtime = pageRuntime()
     if (runtime) return Reflect.get(runtime, key, runtime)
     if (key === "then" || typeof key === "symbol") return undefined
-    throw new Error(`UI.${key}: the UI runtime isn't loaded yet -- await UI.load() first`)
+    throw notLoaded(key)
   },
   set(_target, key, value) {
-    const runtime = (globalThis as RuntimeGlobal)[RUNTIME_KEY]
-    if (!runtime) throw new Error(`UI.${String(key)}: the UI runtime isn't loaded yet -- await UI.load() first`)
+    const runtime = pageRuntime()
+    if (!runtime) throw notLoaded(key)
     return Reflect.set(runtime, key, value, runtime)
   },
   has(_target, key) {
-    const runtime = (globalThis as RuntimeGlobal)[RUNTIME_KEY]
+    const runtime = pageRuntime()
     return runtime ? key in runtime : key === "load"
   }
 })
+
+/** The runtime any bundle on this page created, if one has. */
+function pageRuntime(): UIRuntime | undefined {
+  return (globalThis as RuntimeGlobal)[RUNTIME_KEY]
+}
+
+/** What reading or writing `UI.<key>` throws before the runtime has loaded. */
+function notLoaded(key: string | symbol): Error {
+  return new Error(`UI.${String(key)}:  the UI runtime isn't loaded yet;  \`await UI.load()\` first`)
+}

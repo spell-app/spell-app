@@ -11,16 +11,15 @@
 
 import { parseArgs } from "node:util"
 
-import { VisualError, type VisualBrowser, type VisualOs } from "./visual.types.ts"
+import { Terminal } from "../Terminal.ts"
+import { FlagError, VisualError, type VisualBrowser, type VisualOs } from "./visual.types.ts"
 import { VisualRunner } from "./VisualRunner.ts"
 import { VisualSettings } from "./VisualSettings.ts"
-
-/** A bad flag value:  printed with the usage. */
-class FlagError extends VisualError {}
 
 /** `--os` value => OSes, in run order. */
 const OSES: Record<string, readonly VisualOs[]> = { local: ["local"], linux: ["linux"], both: ["local", "linux"] }
 
+/** `--help`, and what a bad flag prints after its message. */
 const USAGE = `Usage:  yarn test:visual [options]
 
   --os local|linux|both      where the browsers run (default linux:  Playwright's Docker image;
@@ -54,7 +53,7 @@ try {
     allowPositionals: false
   })
   if (values.help) {
-    console.log(USAGE)
+    Terminal.out(USAGE)
     process.exit(0)
   }
   // `--static` only reports, against no baselines:  this machine's browsers are enough
@@ -86,10 +85,10 @@ try {
   // a flag problem:  the message and the usage;  a setup problem:  the message says it all;  anything else keeps
   // its stack
   if (error instanceof FlagError || (error as { code?: string }).code?.startsWith("ERR_PARSE_ARGS")) {
-    console.error(`[visual] ${(error as Error).message}\n\n${USAGE}`)
+    Terminal.err(`[visual] ${(error as Error).message}\n\n${USAGE}`)
     process.exitCode = 2
   } else if (error instanceof VisualError) {
-    console.error(`[visual] ${error.message}`)
+    Terminal.err(`[visual] ${error.message}`)
     process.exitCode = 1
   } else {
     throw error

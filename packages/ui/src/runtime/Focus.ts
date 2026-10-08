@@ -1,22 +1,29 @@
-import type { Disposer, FocusRoot, RovingItems, RovingOptions } from "./runtime.types"
-import { RovingTabindex } from "./RovingTabindex"
+import * as UIT from "$/ui/components/components.types"
 
-/**
+import { CssDisplay, type Disposer, type FocusRoot } from "./runtime.types"
+import { RovingTabindex, type RovingTabindexProps } from "./RovingTabindex"
+
+/****************
+ * ### `Focus`
  * Focus helpers that see through shadow roots, as `UI.focus`.
+ * - In the runtime's lazy chunk (`UIRuntime` builds it);  `Overlays` uses it for focus restore.
  * - Why:  `document.activeElement` stops at the first shadow host, and `querySelectorAll` can't see
  *   into shadow roots or follow slots -- every component with a shadow root breaks naive focus code.
  * - `<dialog>.showModal()` traps focus natively;  `trap()` is only for the non-dialog cases
  *   (a flyout inside a popover, a menu that must keep focus).
- */
+ ****************/
 export class Focus {
   /**
    * The element that really has focus, descending through open shadow roots.
-   * - `null` when nothing (or only `<body>`) is focused.
+   * - `undefined` when nothing (or only `root`'s document's `<body>`) is focused.
+   * - `root`:  the document or shadow root to start from;  another document (an iframe's) works too.
    */
-  activeElementDeep(root: Document | ShadowRoot = document): Element | null {
+  activeElementDeep(root: Document | ShadowRoot = document): Element | undefined {
     let active = root.activeElement
     while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement
-    return active === document.body ? null : active
+    // a document's `ownerDocument` is `null`:  then `root` IS the document
+    const body = (root.ownerDocument ?? (root as Document)).body
+    return !active || active === body ? undefined : active
   }
 
   /**
@@ -35,14 +42,14 @@ export class Focus {
     return found
   }
 
-  /** First tabbable element under `root`, or `null`. */
-  first(root: FocusRoot): HTMLElement | null {
-    return this.focusables(root)[0] ?? null
+  /** First tabbable element under `root`, or `undefined`. */
+  first(root: FocusRoot): HTMLElement | undefined {
+    return this.focusables(root)[0]
   }
 
-  /** Last tabbable element under `root`, or `null`. */
-  last(root: FocusRoot): HTMLElement | null {
-    return this.focusables(root).at(-1) ?? null
+  /** Last tabbable element under `root`, or `undefined`. */
+  last(root: FocusRoot): HTMLElement | undefined {
+    return this.focusables(root).at(-1)
   }
 
   /**
@@ -59,9 +66,12 @@ export class Focus {
     target?.focus()
   }
 
-  /** Is `element` inside `container`, following the composed tree (slots, shadow hosts)? */
-  containsDeep(container: Node, element: Node | null): boolean {
-    let current: Node | null = element
+  /**
+   * Is `element` inside `container`, following the composed tree (slots, shadow hosts)?
+   * - Takes the platform's `null` too (`event.relatedTarget`):  never inside.
+   */
+  containsDeep(container: Node, element: Node | null | undefined): boolean {
+    let current = element
     while (current) {
       if (current === container) return true
       current = (current as Element).assignedSlot ?? current.parentNode ?? hostOf(current)
@@ -69,8 +79,8 @@ export class Focus {
     return false
 
     /** Host of shadow root `node`, if it is one. */
-    function hostOf(node: Node): Node | null {
-      return node instanceof ShadowRoot ? node.host : null
+    function hostOf(node: Node): Node | undefined {
+      return node instanceof ShadowRoot ? node.host : undefined
     }
   }
 
@@ -78,40 +88,48 @@ export class Focus {
    * Keep Tab / Shift+Tab cycling inside `root` until the disposer is called.
    * - Tab past the last tabbable wraps to the first, and vice versa;  focus escaping any other way
    *   (a click, a script) is pulled back to the first tabbable.
-   * - SIDE EFFECT:  capture listeners on `document` while active.
+   * - SIDE EFFECT:  capture listeners on `root`'s document while active.
    */
   trap(root: Element | ShadowRoot): Disposer {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Tab" || event.ctrlKey || event.metaKey) return
-      // NOTE: Alt (Option) + Tab is NOT skipped:  in Safari it is the Tab that reaches links and buttons
-      const items = this.focusables(root)
-      if (!items.length) return event.preventDefault()
-      const active = this.activeElementDeep()
-      const first = items[0]!
-      const last = items.at(-1)!
-      if (event.shiftKey && (active === first || !this.containsDeep(root, active))) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && (active === last || !this.containsDeep(root, active))) {
-        event.preventDefault()
-        first.focus()
-      }
-    }
-    const onFocusIn = () => {
-      const active = this.activeElementDeep()
-      if (active && !this.containsDeep(root, active)) this.first(root)?.focus()
-    }
-    document.addEventListener("keydown", onKeyDown, { capture: true })
-    document.addEventListener("focusin", onFocusIn, { capture: true })
-    return () => {
-      document.removeEventListener("keydown", onKeyDown, { capture: true })
-      document.removeEventListener("focusin", onFocusIn, { capture: true })
-    }
+    const page = root.ownerDocument
+    const listeners = new AbortController()
+    const options = { capture: true, signal: listeners.signal }
+    page.addEventListener("keydown", (event) => this.trapTab(root, event), options)
+    page.addEventListener("focusin", () => this.pullFocusInto(root), options)
+    return () => listeners.abort()
   }
 
   /** Attach a `RovingTabindex` (menus, tabs, listboxes) -- see that class. */
-  roving(container: HTMLElement, items: RovingItems, options?: RovingOptions): RovingTabindex {
-    return RovingTabindex.attach(container, items, options)
+  roving(props: RovingTabindexProps): RovingTabindex {
+    return RovingTabindex.attach(props)
+  }
+
+  ////////////////
+  // ## Trap
+  ////////////////
+
+  /** A `keydown` while `trap(root)` is on:  Tab off either end of `root` wraps round to the other. */
+  private trapTab(root: Element | ShadowRoot, event: KeyboardEvent) {
+    if (event.key !== UIT.Key.tab || event.ctrlKey || event.metaKey) return
+    // NOTE: Alt (Option) + Tab is NOT skipped:  in Safari it is the Tab that reaches links and buttons
+    const items = this.focusables(root)
+    if (!items.length) return event.preventDefault()
+    const active = this.activeElementDeep(root.ownerDocument)
+    const first = items[0]!
+    const last = items.at(-1)!
+    if (event.shiftKey && (active === first || !this.containsDeep(root, active))) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && (active === last || !this.containsDeep(root, active))) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+
+  /** Focus moved while `trap(root)` is on:  pull it back into `root` if it got out. */
+  private pullFocusInto(root: Element | ShadowRoot) {
+    const active = this.activeElementDeep(root.ownerDocument)
+    if (active && !this.containsDeep(root, active)) this.first(root)?.focus()
   }
 
   ////////////////
@@ -130,7 +148,7 @@ export class Focus {
       // no assigned content -> fallback children render
     } else if (!element.checkVisibility({ visibilityProperty: true })) {
       // NOTE: `display: contents` elements report invisible yet render children -- descend into those
-      if (getComputedStyle(element).display !== "contents") return
+      if (getComputedStyle(element).display !== CssDisplay.contents) return
     } else if (element instanceof HTMLElement && this.isTabbable(element)) {
       found.push(element)
     }

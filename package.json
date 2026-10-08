@@ -68,6 +68,7 @@
     "routes": [
       "packages/docs/tools/goals/goalsRoutes.ts",
       "packages/docs/tools/detailsRoutes.ts",
+      "packages/docs/tools/choicesRoutes.ts",
       "packages/epics/src/tool/reviewRoutes.ts",
       "packages/docs/tools/agentRoutes.ts",
       "packages/docs/tools/showRoutes.ts",

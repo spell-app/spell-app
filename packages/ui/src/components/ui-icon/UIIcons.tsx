@@ -1,39 +1,38 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { E } from "$/ui/core"
+import { iconsVocabulary } from "./UIIcons.en"
+import { IconLabels } from "./UIIcon.types"
 
-import { iconsVocabulary } from "./ui-icons.vocabulary.en"
-
-import iconCSS from "./ui-icon.css?inline"
+import iconCSS from "./UIIcon.css?inline"
 
 /****************
- * ### `<ui-icons>`
- * Several icons stacked into one glyph:  `<span class="ui … icons" part="icons"><slot></slot></span>`.
- * - Owns `icon` (`ownsParts`):  each child `<ui-icon>` sets `:state(in-icons)` and positions its own root.
- * - Accessible name as for `<ui-icon>`:  `label` => one `role=img` for the combined glyph, else hidden.
+ * ### `UIIcons`
+ * The component behind `<ui-icons>`:  several icons stacked into one glyph.
+ *
+ * - Its shadow DOM is one box, `<span class="ui … icons" part="icons">`, around a slot for the icons.
+ * - It owns `icon` (`ownsParts`):  each child `<ui-icon>` sets `:state(in-icons)` and positions its own box.
+ * - The accessible name, as for `<ui-icon>` (`IconLabels`):
+ *   `label` => one `role=img` for the combined glyph;  else hidden.
  ****************/
-export class UIIcons extends UIElement<typeof iconsVocabulary> {
-  @proto static vocabulary = iconsVocabulary
-  @proto static styles = { icon: iconCSS }
+export class UIIcons extends E.UIComponent<typeof iconsVocabulary> {
+  @E.proto static vocabulary = iconsVocabulary
+  @E.proto static styleSheets = { icon: iconCSS }
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
-    super(...args)
-    const { internals } = this.host
-    this.hostEffect(
-      () => this.attrs.label,
-      (label) => {
-        internals.role = label ? "img" : null
-        internals.ariaLabel = label ?? null
-        internals.ariaHidden = label ? null : "true"
-      }
-    )
+  /** SIDE EFFECT:  the element's accessible name follows `label`. */
+  @E.onChange("label", { writesDOMElement: true })
+  protected onLabelChanged(label: string | undefined) {
+    IconLabels.applyTo(this.domElement.internals, label)
   }
 
   render(): JSX.Element {
     return (
-      <span class={this.classes()} part={this.part("icons")}>
+      <span class={this.rootClasses} part={this.partForName("icons")}>
         <slot />
       </span>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIIcons extends E.AttributeValues<typeof iconsVocabulary> {}

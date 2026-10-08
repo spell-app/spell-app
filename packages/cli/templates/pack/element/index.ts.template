@@ -1,5 +1,5 @@
 /**
- * `__tag__` family barrel:  defines `<__tag__>` (SIDE EFFECT) and exports its class.
+ * `__tag__` family barrel:  defines `<__tag__>` (SIDE EFFECT) and exports its component, `__Class__`.
  */
 import { __Class__ } from "./__Class__"
 

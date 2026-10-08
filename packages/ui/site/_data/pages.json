@@ -420,6 +420,11 @@
             "name": "--ui-shape-cube-background",
             "default": "light grey (dark grey in dark mode)",
             "description": "A cube face's background."
+          },
+          {
+            "name": "--ui-shape-cube-shadow",
+            "default": "black at 30%",
+            "description": "Colour of a cube face's thin shadow."
           }
         ]
       }
@@ -535,9 +540,6 @@
     },
     "duo": {
       "title": "Duo"
-    },
-    "famfamfam": {
-      "title": "Famfamfam"
     },
     "fixed-width": {
       "title": "Fixed width"

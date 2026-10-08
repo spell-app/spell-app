@@ -1,24 +1,28 @@
-import { proto } from "$/ui/core"
+import { E } from "$/ui/core"
+import { modalVocabulary } from "./UIModal.en"
+import { DialogComponent } from "./DialogComponent"
+import type { Vocabulary } from "./UIModal.types"
 
-import { modalVocabulary } from "./ui-modal.vocabulary.en"
-import { DialogElement } from "./DialogElement"
-import { ModalFallback } from "./ui-modal.fallback"
-
-import modalCSS from "./ui-modal.css?inline"
+import modalCSS from "./UIModal.css?inline"
 
 /****************
- * ### `<ui-modal>`
- * A modal dialog:  a shadow `<dialog class="ui ... modal" part="modal">` shown with `showModal()` -- the browser's
- * focus trap, `inert` page, top layer and `::backdrop` (the dimmer, themed by the shared `--ui-dimmer-*` tokens).
- * No `ui-dimmer` element.
- * - All of its behaviour -- `open`, `closedby`, approve / deny, the close icon, invoker commands, naming -- is
- *   `DialogElement`'s, which `<ui-flyout>` shares;  this class only names and styles it.
- * - `UI.modals.confirm()` / `alert()` / `prompt()` render one of these (`ModalDialogs`, registered by the barrel).
+ * ### `UIModal`
+ * The component behind `<ui-modal>`:  a modal dialog,
+ * a shadow `<dialog class="ui … modal" part="modal">` shown with `showModal()`.
+ *
+ * - The browser gives it the focus trap, the `inert` page, the top layer and the `::backdrop`:
+ *   the dimmer, themed by the shared `--ui-dimmer-*` tokens.  No `<ui-dimmer>` element.
+ * - All of its behaviour is `DialogComponent`'s,
+ *   which `<ui-flyout>` shares (`open`, `closedby`, approve / deny, the close icon, invoker commands, its name):
+ *   this class only names and styles it.
+ * - `UI.modals.confirm()` / `alert()` / `prompt()` draw one of these (`ModalDialogs`, registered by the barrel).
  ****************/
-export class UIModal extends DialogElement<typeof modalVocabulary> {
-  @proto static vocabulary = modalVocabulary
-  @proto static styles = { modal: modalCSS }
-  @proto static Fallback = ModalFallback
-  @proto static rootPart = "modal"
-  @proto static overlayKind = "modal" as const
+export class UIModal extends DialogComponent<Vocabulary> {
+  @E.proto static vocabulary = modalVocabulary
+  @E.proto static styleSheets = { modal: modalCSS }
+  @E.proto static rootPart = "modal"
+  @E.proto static overlayKind = "modal" as const
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIModal extends E.AttributeValues<typeof modalVocabulary> {}

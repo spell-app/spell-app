@@ -1,44 +1,49 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { E } from "$/ui/core"
+import { adVocabulary } from "./UIAd.en"
 
-import { adVocabulary } from "./ui-ad.vocabulary.en"
-import { AdFallback } from "./ui-ad.fallback"
-import { TEST } from "./ui-ad.types"
-
-import adCSS from "./ui-ad.css?inline"
+import adCSS from "./UIAd.css?inline"
 
 /****************
- * ### `<ui-ad>`
- * An ad slot:  `<div class="ui … ad" part="ad"><slot></slot></div>`, sized to its IAB `unit`.
- * - `test`:  adds Fomantic's `test` class and `data-text` on the root -- the given text, or the translated "Ad"
- *   (`adTest`) when bare;  `ui-ad.css` draws it with `::after`, which assistive tech reads as the box's text.
- * - No role:  see `ui-ad.css` (why not `<aside>`).
+ * ### `UIAd`
+ * The component behind `<ui-ad>`:  a box that holds an ad, sized to its IAB `unit`.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … ad" part="ad">`, around a slot for the ad.
+ * - `test`:  adds Fomantic's `test` class and `data-text` on the box:
+ *   the given text, or the translated "Ad" (`adTest`) when bare.
+ *   `UIAd.css` draws it with `::after`, which assistive tech reads as the box's text.
+ * - No role:  see `UIAd.css` (why not an `<aside>`).
  ****************/
-export class UIAd extends UIElement<typeof adVocabulary> {
-  @proto static vocabulary = adVocabulary
-  @proto static styles = { ad: adCSS }
-  @proto static Fallback = AdFallback
-  @proto static delegatesFocus = false
+export class UIAd extends E.UIComponent<typeof adVocabulary> {
+  @E.proto static vocabulary = adVocabulary
+  @E.proto static styleSheets = { ad: adCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  /** `test` present (bare or with text)? */
-  private isTest(): boolean {
-    return this.attrs.test != null
-  }
-
-  protected extraClasses(): string | undefined {
-    return this.isTest() ? TEST : undefined
+  protected get extraClasses(): string | undefined {
+    return this.isTest ? TEST : undefined
   }
 
   render(): JSX.Element {
     return (
       <div
-        class={this.classes()}
-        part={this.part("ad")}
-        data-text={this.isTest() ? this.attrs.test || this.text("adTest") : undefined}
+        class={this.rootClasses}
+        part={this.partForName("ad")}
+        data-text={this.isTest ? this.test || this.translationForKey("adTest") : undefined}
       >
         <slot />
       </div>
     )
   }
+
+  /** Is `test` there, bare or with text? */
+  private get isTest(): boolean {
+    return this.test !== undefined
+  }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIAd extends E.AttributeValues<typeof adVocabulary> {}
+
+/** Fomantic's placeholder class word, on the box of a `test` ad. */
+const TEST = "test"

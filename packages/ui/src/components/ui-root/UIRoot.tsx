@@ -1,95 +1,84 @@
-import { Show, createEffect, createMemo, untrack } from "solid-js"
+import { Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  HostAttribute,
-  IconGlyph,
-  RootSettings,
-  UI,
-  UIHost,
-  UIT,
-  proto,
-  UIElement,
-  type Disposer
-} from "$/ui/core"
+import { E, UI } from "$/ui/core"
 import { ComponentPacks } from "$/ui/components/ui-components/ComponentPacks"
-import { SOURCE } from "$/ui/components/ui-components/ui-components.types"
-import { componentsVocabulary } from "$/ui/components/ui-components/ui-components.vocabulary.en"
-
+import { componentsVocabulary } from "$/ui/components/ui-components/UIComponents.en"
+import { SOURCE } from "$/ui/components/ui-components/UIComponents.types"
 import { LoaderMessage, type RootLoading } from "./LoaderMessage"
 import { PlaceholderSkeleton, type RootSkeletonRenderer } from "./PlaceholderSkeleton"
 import { RootBox } from "./RootBox"
 import { RootLoader } from "./RootLoader"
-import { RootFallback } from "./ui-root.fallback"
-import {
-  DISPLAY,
-  MAX_ROUNDS,
-  PACK_SEPARATOR,
-  SERVER_CONTENTS,
-  RootTimeout,
-  type RootFailure,
-  type RootSkeleton,
-  type RootVocabulary
-} from "./ui-root.types"
-import { rootVocabulary } from "./ui-root.vocabulary.en"
+import { RootTimeout, type RootFailure, type RootSkeleton, type RootVocabulary } from "./UIRoot.types"
+import { rootVocabulary } from "./UIRoot.en"
 
-import rootCSS from "./ui-root.css?inline"
+import rootCSS from "./UIRoot.css?inline"
 
 /****************
- * ### `<ui-root>`
- * The top of a page or app:  `<slot>` for the page, plus what shows while it loads.
+ * ### `UIRoot`
+ * The component behind `<ui-root>`:  the top of a page or app,
+ * a `<slot>` for the page, plus what shows while it loads.
+ *
  * - Loads on demand:  every undefined `ui-*` tag inside (now, and as content is added) imports its family once
  *   (`RootLoader`);  nothing is imported up front.
  * - Component packs:  each `<ui-components source>` inside loads its pack's script once per page
- *   (`ComponentPacks`), which defines the pack's tags (`epic-*` ...);  then the root treats them as its own:  ready
- *   waits for them, skeletons come from the pack's catalog, unknown ones are reported.  A pack that fails to load
- *   doesn't stop the root getting ready:  a console error names its `source`.
- * - Ready:  every family settled, then every `ui-*` element inside `ready` (a nested root:  its own `settled`), or the
- *   `timeout`.  Then `:state(ready)`, `ui-ready { failed }`, and the content shows.  Each tag that didn't load fires a
- *   cancelable `ui-error` first.  Content added later loads too, but is never hidden again.
- * - While loading (`display`, not `immediately`):  the slot is hidden by an INLINE style (the root renders `eager`ly,
- *   before any sheet), with its space kept (`when-ready`), or not drawn at all when the `loading` message or the
- *   skeletons show instead.
- * - `skeleton`:  every element inside whose tag describes a skeleton (`ComponentVocabulary.skeleton`, in the generated
- *   catalog) gets a `<ui-placeholder>` in the root's shadow, in page order;  one inside another is covered by it.
+ *   (`ComponentPacks`), which defines the pack's tags (`epic-*` ...);  then the root treats them as its own:
+ *   ready waits for them, skeletons come from the pack's catalog, unknown ones are reported.  A pack that fails to
+ *   load doesn't stop the root getting ready:  a console error names its `source`.
+ * - Ready:  every family settled, then every `ui-*` element inside `ready` (a nested root:  its own `settled`),
+ *   or the `timeout`.  Then `:state(ready)`, `ui-ready { failed }`, and the content shows.  Each tag that didn't load
+ *   fires a cancelable `ui-error` first.  Content added later loads too, but is never hidden again.
+ * - While loading (`display`, not `immediately`):  the slot is hidden by an INLINE style (`canRenderUnstyled`,
+ *   before any sheet), with its space kept (`when-ready`),
+ *   or not drawn at all when the `loading` message or the skeletons show instead.
+ * - `skeleton`:  every element inside whose tag describes a skeleton (`E.ComponentVocabulary.skeleton`,
+ *   in the generated catalog, or a registered pack's catalog) gets a `<ui-placeholder>` in the root's shadow, in
+ *   page order;  one inside another is covered by it.  Found again when a pack registers (its catalog comes with it).
  *   Nothing described:  as `when-ready`.
- * - What shows while loading is swappable:  `UIRoot.Loading` (`LoaderMessage`, a `<ui-loader>`) and `UIRoot.Skeleton`
- *   (`PlaceholderSkeleton`).
- * - Settings for everything inside (`RootSettings`):  `icons` (a child icon-pack set over the outer root's, or the
- *   page's), `emoji` (a name set);  nested roots inherit what they don't set.  A change redraws the icons / emoji
- *   inside (`RootSettings.generation`).
- * - Theme, size, box:  `:state(light | dark)`, `:state(box)`, `:state(fixed)` in `ui-root.css`;  width, height and the
- *   subtree's `--ui-scale` in the root's own sheet (`RootBox`).
+ * - What shows while loading is swappable:
+ *   `UIRoot.Loading` (`LoaderMessage`, a `<ui-loader>`) and `UIRoot.Skeleton` (`PlaceholderSkeleton`).
+ * - Settings for everything inside (`E.RootSettings`):  `icons` (a child icon-pack set over the outer root's,
+ *   or the page's), `emoji` (a name set);  nested roots inherit what they don't set.
+ *   A change redraws the icons / emoji inside (`E.RootSettings.generation`).
+ * - Theme, size, box:  `:state(light | dark)`, `:state(box)`, `:state(fixed)` in `UIRoot.css`;  width,
+ *   height and the subtree's `--ui-scale` in the root's own sheet (`RootBox`).
  * - `stack-with`:  the subtree's `--ui-stack-with` token (also in `RootBox`), which every stacking element without a
  *   `stack-with` of its own follows (`UIT.STACK_WITH_TOKEN`).
- * - Static server render (`$/ui/server`):  nothing loads and nothing is hidden;  the root is a plain wrapper
- *   (`serverRender()`).
+ * - Static server render (`$/ui/static`):  nothing loads and nothing is hidden;  the root is a plain wrapper
+ *   (`serverWrapper()`).  None of its `@E.onChange` effects runs there (none writes the DOM element).
  ****************/
-export class UIRoot extends UIElement<RootVocabulary> {
-  @proto static vocabulary = rootVocabulary
-  @proto static styles = { root: rootCSS }
-  @proto static Fallback = RootFallback
-  @proto static delegatesFocus = false
-  @proto static eager = true
+export class UIRoot extends E.UIComponent<RootVocabulary> {
+  @E.proto static vocabulary = rootVocabulary
+  @E.proto static styleSheets = { root: rootCSS }
+  @E.proto static elementSetup = { delegatesFocus: false, canRenderUnstyled: true } satisfies Partial<E.ElementSetup>
 
   /** What shows with `loading`:  swap it for another look (`UIRoot.Loading = MyLoading`). */
-  @proto static Loading: RootLoading = LoaderMessage
+  @E.proto static Loading: RootLoading = LoaderMessage
 
   /** What shows with `display="skeleton"`:  swap it for another look (`UIRoot.Skeleton = MySkeleton`). */
-  @proto static Skeleton: RootSkeletonRenderer = PlaceholderSkeleton
+  @E.proto static Skeleton: RootSkeletonRenderer = PlaceholderSkeleton
 
   declare Loading: RootLoading
   declare Skeleton: RootSkeletonRenderer
 
-  /** Host `aria-label`:  the scrolling region's name. */
-  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
+  ////////////////
+  // ## Ready
+  ////////////////
 
   /** Everything inside is ready (or the timeout passed). */
-  readonly isReady = new Cell(false)
+  @E.state accessor contentIsReady = false
 
-  /** The skeletons to draw while loading (`display="skeleton"`), found when loading starts. */
-  readonly skeletons = new Cell<readonly RootSkeleton[]>([])
+  /** Shown as ready?  `:state(ready)`.  A static server render waits for nothing:  ready at once. */
+  @E.cssState("ready")
+  get looksReady(): boolean {
+    return isServer || this.contentIsReady
+  }
+
+  /** Still loading?  `:state(loading)`. */
+  @E.cssState("loading")
+  get isLoading(): boolean {
+    return !this.looksReady
+  }
 
   /** Resolves `settled`. */
   private resolveSettled!: (failures: readonly RootFailure[]) => void
@@ -97,76 +86,116 @@ export class UIRoot extends UIElement<RootVocabulary> {
   /** Resolves with what didn't load, once ready;  an outer root waits for it. */
   readonly settled = new Promise<readonly RootFailure[]>((resolve) => (this.resolveSettled = resolve))
 
-  /** What didn't load, in order. */
-  private readonly failures: RootFailure[] = []
-
-  /** `tag reason` pairs already reported, so each is reported once. */
-  private readonly reported = new Set<string>()
-
-  /** Elements inside not ready yet (for the timeout's report). */
-  private readonly waiting = new Set<Element>()
-
-  /** Elements already awaited. */
-  private readonly awaited = new WeakSet<Element>()
-
-  /** `<ui-components>` whose pack load has started. */
-  private readonly packElements = new WeakSet<Element>()
-
-  /** `source`s of the packs still loading (for the timeout's report). */
-  private readonly waitingPacks = new Set<string>()
-
-  /** Settings requests, so a slower earlier one can't win. */
-  private settingsRequest = 0
-
-  /** Started loading (on first connect). */
-  private started = false
+  ////////////////
+  // ## While loading
+  ////////////////
 
   /** The display mode. */
-  private readonly display = createMemo(() => this.attrs.display ?? DISPLAY.skeleton)
-
-  /** The `loading` message shows. */
-  private readonly showLoading = createMemo(
-    () =>
-      !this.isReady.get() &&
-      this.display() !== DISPLAY.immediately &&
-      this.attrs.loading !== undefined &&
-      this.attrs.loading !== null
-  )
-
-  /** The skeletons show. */
-  private readonly showSkeleton = createMemo(
-    () => !this.isReady.get() && this.display() === DISPLAY.skeleton && this.skeletons.get().length > 0
-  )
-
-  protected hostStates() {
-    // a static server render waits for nothing:  ready at once
-    const ready = isServer || this.isReady.get()
-    return {
-      loading: !ready,
-      ready,
-      light: this.attrs.theme === "light",
-      dark: this.attrs.theme === "dark",
-      box: RootBox.isBox(this.attrs.width, this.attrs.height),
-      fixed: !!this.attrs.fixed
-    }
+  private get displayMode(): NonNullable<UIRoot["display"]> {
+    return this.display ?? DISPLAY.skeleton
   }
 
+  /** The skeletons to draw while loading (`display="skeleton"`), found when loading starts. */
+  @E.state accessor skeletons: readonly RootSkeleton[] = []
+
+  /** The `loading` message shows. */
+  private get showsLoadingMessage(): boolean {
+    return !this.contentIsReady && this.displayMode !== DISPLAY.immediately && this.loading !== undefined
+  }
+
+  /** The skeletons show. */
+  private get showsSkeletons(): boolean {
+    return !this.contentIsReady && this.displayMode === DISPLAY.skeleton && this.skeletons.length > 0
+  }
+
+  /** The loader's message:  `loading`'s value, or the default text for a bare `loading`. */
+  private get loadingMessage(): string {
+    return this.loading || (this.runtimeText("loading") ?? "")
+  }
+
+  /**
+   * Inline style of the slot:  hidden while loading (unless `immediately`);
+   * not drawn while the message or skeletons show.
+   */
+  private get slotStyle(): string | undefined {
+    if (this.contentIsReady || this.displayMode === DISPLAY.immediately) return undefined
+    return this.showsLoadingMessage || this.showsSkeletons ? "display: none" : "visibility: hidden"
+  }
+
+  /**
+   * Text `key` once the runtime is loaded (tracked), else `undefined`:  the root renders at once
+   * (`canRenderUnstyled`), before `UI.i18n` exists, and `translationForKey()` throws until then.
+   */
+  private runtimeText(key: Parameters<UIRoot["translationForKey"]>[0]): string | undefined {
+    return this.isReady ? this.translationForKey(key) : undefined
+  }
+
+  ////////////////
+  // ## Theme and box
+  ////////////////
+
+  /** `theme="light"`?  `:state(light)`. */
+  @E.cssState("light")
+  get isLight(): boolean {
+    return this.theme === "light"
+  }
+
+  /** `theme="dark"`?  `:state(dark)`. */
+  @E.cssState("dark")
+  get isDark(): boolean {
+    return this.theme === "dark"
+  }
+
+  /** A box (a valid `width` / `height`)?  `:state(box)`. */
+  @E.cssState("box")
+  get isBox(): boolean {
+    return RootBox.isBox({ width: this.width, height: this.height })
+  }
+
+  /** `fixed`?  `:state(fixed)`. */
+  @E.cssState("fixed")
+  get isFixed(): boolean {
+    return !!this.fixed
+  }
+
+  /**
+   * A box (`width` / `height` / `fixed`):  its content scrolls in an inner region, a tab stop with a name (as a
+   * scrolling `<ui-table>`'s), so people on a keyboard can scroll it --
+   * Firefox doesn't make a scroller focusable by itself.
+   */
+  private get scrolls(): boolean {
+    return this.isBox || this.isFixed
+  }
+
+  /** The root's own sheet. */
+  private readonly rootBox = new RootBox({ root: this.domElement.renderRoot })
+
+  /** The root's own declarations (`RootBox`):  width, height, `--ui-scale`, `--ui-stack-with`. */
+  @E.derived
+  get boxCSS(): string {
+    return RootBox.css({ width: this.width, height: this.height, size: this.size, stackWith: this.stackWith })
+  }
+
+  /** Keep the root's own sheet current. */
+  @E.onChange("boxCSS")
+  protected onBoxCSSChanged(css: string) {
+    this.rootBox.set(css)
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
   render(): JSX.Element {
-    if (isServer) return this.serverRender()
-    this.effects()
+    if (isServer) return this.serverWrapper()
     return (
       <>
-        <Show when={this.showLoading()}>{this.Loading.render(this.part("loading"), () => this.message())}</Show>
-        <Show when={this.showSkeleton()}>{this.Skeleton.render(this.part("skeleton"), this.skeletons.get)}</Show>
-        <Show when={this.scrolls()} fallback={<slot class={this.classes()} style={this.slotStyle()} />}>
-          <div
-            part={this.part("scroller")}
-            tabindex="0"
-            role="region"
-            aria-label={this.ariaLabel.get() ?? this.runtimeText("label")}
-          >
-            <slot class={this.classes()} style={this.slotStyle()} />
-          </div>
+        <Show when={this.showsLoadingMessage}>
+          {this.Loading.render(this.partForName("loading"), () => this.loadingMessage)}
+        </Show>
+        <Show when={this.showsSkeletons}>{this.Skeleton.render(this.partForName("skeleton"), this.$.skeletons)}</Show>
+        <Show when={this.scrolls} fallback={<slot class={this.rootClasses} style={this.slotStyle} />}>
+          {this.scroller(<slot class={this.rootClasses} style={this.slotStyle} />)}
         </Show>
       </>
     )
@@ -175,158 +204,101 @@ export class UIRoot extends UIElement<RootVocabulary> {
   /**
    * The root in a static server render:  a `<div>` around the content, carrying its classes and theme / box states
    * (the flattener's `data-state`), never hidden -- a static page has nothing to wait for.
-   * - Its inline style is what the browser puts on the host:  `RootBox`'s width, height, `--ui-scale` and
-   *   `--ui-stack-with`, and `display: contents` unless it's a box (the host's own `display`, which a static
-   *   stylesheet drops).
+   * - Its inline style is what the browser puts on the DOM element:
+   *   `RootBox`'s width, height, `--ui-scale` and `--ui-stack-with`, and `display: contents` unless it's a box
+   *   (the DOM element's own `display`, which a static stylesheet drops).
    * - A box scrolls its content in the same named region as in the browser.
    */
-  private serverRender(): JSX.Element {
+  private serverWrapper(): JSX.Element {
     return (
-      <div class={this.classes()} style={this.serverStyle()}>
-        <Show when={this.scrolls()} fallback={<slot />}>
-          <div
-            part={this.part("scroller")}
-            tabindex="0"
-            role="region"
-            aria-label={this.ariaLabel.get() ?? this.runtimeText("label")}
-          >
-            <slot />
-          </div>
+      <div class={this.rootClasses} style={this.serverStyle}>
+        <Show when={this.scrolls} fallback={<slot />}>
+          {this.scroller(<slot />)}
         </Show>
       </div>
     )
   }
 
+  /**
+   * The scrolling region of a box around `slot`:  a tab stop named by the DOM element's `aria-label`, else "Content".
+   */
+  private scroller(slot: JSX.Element): JSX.Element {
+    return (
+      <div
+        part={this.partForName("scroller")}
+        tabindex="0"
+        role="region"
+        aria-label={this.attributes["aria-label"] ?? this.runtimeText("label")}
+      >
+        {slot}
+      </div>
+    )
+  }
+
   /** The server wrapper's inline style:  `RootBox`'s declarations, or `display: contents` when not a box. */
-  private serverStyle(): string | undefined {
-    const box = RootBox.css({
-      width: this.attrs.width,
-      height: this.attrs.height,
-      size: this.attrs.size,
-      stackWith: this.attrs.stackWith
-    })
-    const declarations = [this.scrolls() ? "" : SERVER_CONTENTS, box].filter(Boolean)
+  private get serverStyle(): string | undefined {
+    const declarations = [this.scrolls ? "" : SERVER_CONTENTS, this.boxCSS].filter(Boolean)
     return declarations.join("; ") || undefined
-  }
-
-  /**
-   * A box (`width` / `height` / `fixed`):  its content scrolls in an inner region, a tab stop with a name (as a
-   * scrolling `<ui-table>`'s), so keyboard users can scroll it -- Firefox doesn't make a scroller focusable by itself.
-   */
-  private scrolls(): boolean {
-    return RootBox.isBox(this.attrs.width, this.attrs.height) || !!this.attrs.fixed
-  }
-
-  /** The loader's message:  `loading`'s value, or the default text for a bare `loading`. */
-  private message(): string {
-    return this.attrs.loading || (this.runtimeText("loading") ?? "")
-  }
-
-  /**
-   * Text `key` once the runtime is loaded (tracked), else `undefined`:  the root renders `eager`ly, before `UI.i18n`
-   * exists, and `text()` throws until then.
-   */
-  private runtimeText(key: Parameters<UIRoot["text"]>[0]): string | undefined {
-    return this.loaded() ? this.text(key) : undefined
-  }
-
-  /** Inline style of the slot:  hidden while loading (unless `immediately`);  not drawn while the message or skeletons show. */
-  private slotStyle(): string | undefined {
-    if (this.isReady.get() || this.display() === DISPLAY.immediately) return undefined
-    return this.showLoading() || this.showSkeleton() ? "display: none" : "visibility: hidden"
-  }
-
-  /** Watch the content while connected;  keep the root's own sheet current. */
-  private effects() {
-    if (isServer) return
-    createEffect(
-      () => this.connected.get(),
-      (connected) => (connected ? this.watch() : undefined)
-    )
-    createEffect(
-      () => ({
-        connected: this.connected.get(),
-        icons: this.attrs.icons,
-        emoji: this.attrs.emoji,
-        assets: this.attrs.assets
-      }),
-      ({ connected, icons, emoji, assets }) => {
-        if (connected) this.applySettings(UIRoot.packs(icons), emoji, assets)
-        else RootSettings.delete(this.host)
-      }
-    )
-    const box = new RootBox(this.host.renderRoot)
-    createEffect(
-      () =>
-        RootBox.css({
-          width: this.attrs.width,
-          height: this.attrs.height,
-          size: this.attrs.size,
-          stackWith: this.attrs.stackWith
-        }),
-      (css) => box.set(css)
-    )
-  }
-
-  /** Load what's inside now (first connect:  and wait for it), and whatever is added later;  returns the undo. */
-  private watch(): Disposer {
-    const observer = new MutationObserver(() => void this.loadUndefined())
-    observer.observe(this.host, { childList: true, subtree: true })
-    if (this.started) void this.loadUndefined()
-    else {
-      this.started = true
-      void this.start()
-    }
-    return () => observer.disconnect()
-  }
-
-  ////////////////
-  // ## Settings
-  ////////////////
-
-  /**
-   * Give everything inside `emoji` at once, and an icon-pack set of `packs` over the outer root's (or the page's)
-   * once the runtime is loaded.
-   */
-  private applySettings(packs: string[], emoji: string | undefined, assets: string | undefined) {
-    const request = ++this.settingsRequest
-    RootSettings.set(this.host, { emoji })
-    if (!packs.length) return
-    void UI.load().then((ui) => {
-      if (request !== this.settingsRequest || !this.host.isConnected) return
-      // never this root's own set:  its parent is whatever is ABOVE it
-      const outer = () => {
-        const above = RootSettings.parentOf(this.host)
-        return above ? IconGlyph.packsFor(above, ui.icons) : ui.icons
-      }
-      RootSettings.set(this.host, { emoji, icons: ui.icons.scope(packs, { assets, parent: outer }) })
-    })
-  }
-
-  /** `icons="fa7-free, /packs/lucide/pack.js"` => its packs, spaces around commas ignored. */
-  private static packs(icons: string | undefined): string[] {
-    return (icons ?? "")
-      .split(PACK_SEPARATOR)
-      .map((pack) => pack.trim())
-      .filter(Boolean)
   }
 
   ////////////////
   // ## Loading
   ////////////////
 
+  /** What didn't load, in order. */
+  private readonly failures: RootFailure[] = []
+
+  /** `tag reason` pairs already reported, so each is reported once. */
+  private readonly reportedFailures = new Set<string>()
+
+  /** Elements inside not ready yet (for the timeout's report). */
+  private readonly elementsNotReady = new Set<Element>()
+
+  /** Elements already awaited. */
+  private readonly awaitedElements = new WeakSet<Element>()
+
+  /** `<ui-components>` whose pack load has started. */
+  private readonly packElements = new WeakSet<Element>()
+
+  /** `source`s of the packs still loading (for the timeout's report). */
+  private readonly packsLoading = new Set<string>()
+
+  /** Started loading (on first connect). */
+  private hasStarted = false
+
+  /**
+   * Watch the content while connected;  returns `watch()`'s undo.
+   * - Declared before `onSettingsChanged()`:  loading starts before the settings are handed out, as it always has.
+   */
+  @E.onChange("isConnected")
+  protected onConnectedChanged(isConnected: boolean) {
+    return isConnected ? this.watch() : undefined
+  }
+
+  /** Load what's inside now (first connect:  and wait for it), and whatever is added later;  returns the undo. */
+  private watch(): E.Disposer {
+    const observer = new MutationObserver(() => void this.loadUndefined())
+    observer.observe(this.domElement, { childList: true, subtree: true })
+    if (this.hasStarted) void this.loadUndefined()
+    else {
+      this.hasStarted = true
+      void this.start()
+    }
+    return () => observer.disconnect()
+  }
+
   /** Load, wait (or time out), then show the content and say so. */
   private async start() {
-    if (untrack(this.display) === DISPLAY.skeleton) this.skeletons.set(this.findSkeletons())
+    if (untrack(() => this.displayMode) === DISPLAY.skeleton) this.skeletons = this.findSkeletons()
     let timer: ReturnType<typeof setTimeout> | undefined
     const timeout = new Promise<"timeout">((resolve) => {
-      timer = setTimeout(() => resolve("timeout"), RootTimeout.parse(untrack(() => this.attrs.timeout)))
+      timer = setTimeout(() => resolve("timeout"), RootTimeout.parse(untrack(() => this.timeout)))
     })
     const outcome = await Promise.race([this.settle(), timeout])
     clearTimeout(timer)
     if (outcome === "timeout") this.timedOut()
-    this.isReady.set(true)
-    this.emit("ui-ready", { failed: [...this.failures] })
+    this.contentIsReady = true
+    this.send("ui-ready", { failed: [...this.failures] })
     this.resolveSettled([...this.failures])
   }
 
@@ -349,7 +321,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
    */
   private findSkeletons(): RootSkeleton[] {
     const skeletons: RootSkeleton[] = []
-    for (const element of this.host.querySelectorAll("*")) {
+    for (const element of this.domElement.querySelectorAll("*")) {
       const spec = RootLoader.entryOf(element.localName)?.skeleton
       if (!spec || skeletons.some((outer) => outer.element.contains(element))) continue
       skeletons.push({ element, spec })
@@ -364,15 +336,12 @@ export class UIRoot extends UIElement<RootVocabulary> {
    */
   private loadUndefined(): Promise<void> {
     const loads = this.loadPacks()
-    for (const tag of RootLoader.undefinedTags(this.host)) {
-      const folder = RootLoader.folderOf(tag)
-      if (folder) {
-        loads.push(RootLoader.load(folder).catch((error: unknown) => this.fail({ tag, reason: "failed", error })))
-      } else if (RootLoader.entryOf(tag)) {
+    for (const tag of RootLoader.undefinedTags(this.domElement)) {
+      const load = RootLoader.loadTag(tag)
+      if (load) loads.push(load.catch((error: unknown) => this.fail({ tag, reason: "failed", error })))
+      else if (RootLoader.entryOf(tag))
         this.fail({ tag, reason: "failed", error: new Error("its pack didn't define it") })
-      } else {
-        this.fail({ tag, reason: "unknown" })
-      }
+      else this.fail({ tag, reason: "unknown" })
     }
     return Promise.all(loads).then(() => undefined)
   }
@@ -383,49 +352,49 @@ export class UIRoot extends UIElement<RootVocabulary> {
    */
   private loadPacks(): Promise<void>[] {
     const loads: Promise<void>[] = []
-    for (const element of this.host.querySelectorAll(`${componentsVocabulary.tag}[${SOURCE}]`)) {
+    for (const element of this.domElement.querySelectorAll(`${componentsVocabulary.tag}[${SOURCE}]`)) {
       const source = element.getAttribute(SOURCE)
       if (!source || this.packElements.has(element)) continue
       this.packElements.add(element)
-      this.waitingPacks.add(source)
+      this.packsLoading.add(source)
       const load = ComponentPacks.load(source).then(
-        () => this.packLoaded(),
+        () => this.onPackLoaded(),
         (error: unknown) => this.fail({ tag: componentsVocabulary.tag, reason: "failed", error, source })
       )
-      loads.push(load.finally(() => this.waitingPacks.delete(source)))
+      loads.push(load.finally(() => this.packsLoading.delete(source)))
     }
     return loads
   }
 
   /** A pack registered:  while the skeletons still show, draw its tags' too (its catalog is known now). */
-  private packLoaded() {
-    if (untrack(() => this.isReady.get()) || untrack(this.display) !== DISPLAY.skeleton) return
-    this.skeletons.set(this.findSkeletons())
+  private onPackLoaded() {
+    if (untrack(() => this.contentIsReady) || untrack(() => this.displayMode) !== DISPLAY.skeleton) return
+    this.skeletons = this.findSkeletons()
   }
 
   /** Defined `ui-*` elements inside, not awaited yet. */
-  private pendingElements(): UIHost[] {
-    return [...this.host.querySelectorAll("*")].filter(
-      (element): element is UIHost => element instanceof UIHost && !this.awaited.has(element)
+  private pendingElements(): E.DOMElement[] {
+    return [...this.domElement.querySelectorAll("*")].filter(
+      (element): element is E.DOMElement => element instanceof E.DOMElement && !this.awaitedElements.has(element)
     )
   }
 
   /** Resolves once `element` is ready:  a nested root once IT is settled. */
-  private async whenReady(element: UIHost): Promise<void> {
-    this.awaited.add(element)
-    this.waiting.add(element)
+  private async whenReady(element: E.DOMElement): Promise<void> {
+    this.awaitedElements.add(element)
+    this.elementsNotReady.add(element)
     await element.ready
-    if (element.controller instanceof UIRoot) await element.controller.settled
-    this.waiting.delete(element)
+    if (element.component instanceof UIRoot) await element.component.settled
+    this.elementsNotReady.delete(element)
   }
 
   /** The timeout passed:  report what's still undefined or not ready, and the packs still loading. */
   private timedOut() {
-    for (const tag of RootLoader.undefinedTags(this.host)) {
+    for (const tag of RootLoader.undefinedTags(this.domElement)) {
       if (RootLoader.entryOf(tag)) this.fail({ tag, reason: "timeout" })
     }
-    for (const element of this.waiting) this.fail({ tag: element.localName, reason: "timeout" })
-    for (const source of this.waitingPacks) this.fail({ tag: componentsVocabulary.tag, reason: "timeout", source })
+    for (const element of this.elementsNotReady) this.fail({ tag: element.localName, reason: "timeout" })
+    for (const source of this.packsLoading) this.fail({ tag: componentsVocabulary.tag, reason: "timeout", source })
   }
 
   /**
@@ -435,11 +404,82 @@ export class UIRoot extends UIElement<RootVocabulary> {
   private fail(failure: RootFailure) {
     const { tag, reason, error, source } = failure
     const key = `${tag} ${reason} ${source ?? ""}`
-    if (this.reported.has(key)) return
-    this.reported.add(key)
+    if (this.reportedFailures.has(key)) return
+    this.reportedFailures.add(key)
     this.failures.push(failure)
-    if (!this.emit("ui-error", failure)) return
-    if (source) console.error(`<ui-root>:  component pack ${source} didn't load (${reason})`, error ?? "")
-    else console.warn(`<ui-root>:  <${tag}> didn't load (${reason})`, error ?? "")
+    if (!this.send("ui-error", failure)) return
+    if (source) E.Warnings.error("<ui-root>", `component pack ${source} didn't load (${reason}):`, error ?? "")
+    else E.Warnings.warn("<ui-root>", `<${tag}> didn't load (${reason}):`, error ?? "")
+  }
+
+  ////////////////
+  // ## Settings
+  ////////////////
+
+  /** Settings requests, so a slower earlier one can't win. */
+  private latestSettingsRequest = 0
+
+  /** The settings (or the connection) changed:  hand them to everything inside;  disconnected, forget them. */
+  @E.onChange("isConnected", "icons", "emoji", "assets")
+  protected onSettingsChanged(
+    isConnected: boolean,
+    icons: string | undefined,
+    emoji: string | undefined,
+    assets: string | undefined
+  ) {
+    if (isConnected) this.applySettings({ packs: UIRoot.packs(icons), emoji, assets })
+    else E.RootSettings.delete(this.domElement)
+  }
+
+  /**
+   * Give everything inside `emoji` at once, and an icon-pack set of `packs` (built-ins from `assets`) over the outer
+   * root's (or the page's) once the runtime is loaded.
+   */
+  private applySettings({ packs, emoji, assets }: { packs: string[]; emoji?: string; assets?: string }) {
+    const request = ++this.latestSettingsRequest
+    E.RootSettings.set(this.domElement, { emoji })
+    if (!packs.length) return
+    void UI.load().then((ui) => {
+      if (request !== this.latestSettingsRequest || !this.domElement.isConnected) return
+      const parent = () => this.outerPacks(ui.icons)
+      E.RootSettings.set(this.domElement, { emoji, icons: ui.icons.scope(packs, { assets, parent }) })
+    })
+  }
+
+  /**
+   * The icon packs this root's set goes over:  never its own, but whatever is ABOVE it -- the outer root's,
+   * else `page` (`UI.icons`).  Read when an icon is drawn, so a later outer root still counts.
+   */
+  private outerPacks(page: E.IconPacks): E.IconPacks {
+    const above = E.flatParentFor(this.domElement)
+    return above ? E.IconGlyph.packsFor(above, page) : page
+  }
+
+  /**
+   * `icons="fa7-free, /packs/lucide/pack.js"` => its packs, spaces around commas ignored.
+   * - Static:  pure.
+   */
+  private static packs(icons: string | undefined): string[] {
+    return (icons ?? "")
+      .split(PACK_SEPARATOR)
+      .map((pack) => pack.trim())
+      .filter(Boolean)
   }
 }
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIRoot extends E.AttributeValues<RootVocabulary> {}
+
+/** `display` values. */
+const DISPLAY = { skeleton: "skeleton", whenReady: "when-ready", immediately: "immediately" } as const
+
+/** Separates the packs in `icons="fa7-free, /packs/lucide/pack.js"`. */
+const PACK_SEPARATOR = ","
+
+/**
+ * The static server render's wrapper when it isn't a box:  no box of its own,
+ * as the DOM element has none in the browser.
+ */
+const SERVER_CONTENTS = "display: contents"
+
+/** Rounds of "load what's undefined, wait for what's defined":  content that keeps adding new tags stops here. */
+const MAX_ROUNDS = 10

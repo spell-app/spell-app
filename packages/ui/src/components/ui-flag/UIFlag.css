@@ -1,0 +1,109 @@
+/*
+ * The style sheet of `<ui-flag>`:  a port of Fomantic's `flag.less` + `flag.variables` (the box and size rules only).
+ * - It styles the component's shadow DOM, in Fomantic's class names on a semantic element:
+ *   `<span class="ui [size] flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`
+ *   - the resolved code is a class word too (Fomantic's `fr flag`):  nothing here reads it;  a page's own CSS may
+ *   - the glyph is the Unicode flag emoji the component computes from `country` (see `UIFlag.en.ts`:
+ *     regional-indicator pairs, `UIT.SpecialFlags` sequences, `FLAG_ALIASES`);
+ *     the label comes from `Intl.DisplayNames` (type `region`), or the vocabulary's texts for non-country flags
+ *   - an unknown country draws an EMPTY box, which keeps its line box, so the layout doesn't jump
+ * - The DOM element is `display: contents` (`:host`):  the inner span IS the inline box,
+ *   where Fomantic's `<i class="fr flag">` sat.
+ *
+ * - The drawing depends on the platform's EMOJI FONT:  Apple, Android, ChromeOS and Linux (Noto) draw flags;
+ *   Windows' Segoe UI Emoji shows the two letters instead (Chrome / Edge;  Firefox brings its own font).
+ *   - `--ui-flag-font-family` defaults to the colour emoji fonts (`--ui-font-family-emoji`).
+ *   - A page wanting flags on Windows loads a flag font itself, and names it first there
+ *     (the flag page's "A flag font":  the "Twemoji Country Flags" polyfill).  `ui` ships no font.
+ *   - The dropdown's and select's menu flags read the same token.
+ *
+ * - Sizes are relative to the SURROUNDING text (em), with Fomantic's flag ladder
+ *   (`1.5em * n`:  `small` 1.5em, `large` 6em … `massive` 12em):
+ *   the box points `--ui-size-*` at `--ui-flag-size-*`, so the generic `.ui.large { --ui-scale }` remap
+ *   picks the flag ratio.  The element resets `--ui-scale`, so a flag in a large button isn't scaled twice.
+ *   An unsized flag is 1em, as in Fomantic ("autosizing").
+ *   - `medium`:  the grammar makes `size="medium"` a no-op (the unsized 1em flag),
+ *     whereas Fomantic's `.ui.medium.flag` is 3em.
+ *     The `.medium` rule is ported for STATIC markup;  the component never writes it.
+ *     Fomantic has no `mini` / `tiny` flag, so the vocabulary doesn't offer them.
+ *
+ * - The public tokens (`--ui-flag-*`) are NEVER declared here.
+ *   The token block gives each a private alias, `--_ui-flag-distance: var(--ui-flag-distance, var(--ui-space-2xs))`,
+ *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
+ *   `::part(flag)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *
+ * - Left out, on purpose:
+ *   - flag IMAGES of any kind (Fomantic's sprite, its Twemoji SVGs, the 264 per-country `background-image` rules):
+ *     flags are emoji only, by design (epic `wwod-spell-ui`, J47:  the opt-in `famfamfam` sprite theme went too),
+ *     so there's no network fetch and no per-country CSS
+ *   - `speak: none`:  the box is `role="img"` with an `aria-label`, which is what assistive tech reads
+ */
+
+@layer ui.components.flag.types, ui.components.flag.content, ui.components.flag.variations, ui.components.flag.states;
+
+/*******************************
+             Flag
+*******************************/
+
+@layer ui.components.flag.types {
+  /* The DOM element:  no box of its own;  the inner span is the inline box. */
+  :host {
+    display: contents;
+    /* Don't inherit a parent component's scale:  flags follow the surrounding TEXT. */
+    --ui-scale: initial;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  one per `flag.variables` entry that still matters, each the private alias of its public token. */
+  .ui.flag {
+    --_ui-flag-font-family: var(--ui-flag-font-family, var(--ui-font-family-emoji), var(--ui-font-family));
+    --_ui-flag-line-height: var(--ui-flag-line-height, 1);
+    --_ui-flag-distance: var(--ui-flag-distance, var(--ui-space-2xs));
+    /* Fomantic's flag ladder (`1.5em * n`), relative to the surrounding text. */
+    --_ui-flag-size-small: var(--ui-flag-size-small, 1.5);
+    --_ui-flag-size-medium: var(--ui-flag-size-medium, 3);
+    --_ui-flag-size-large: var(--ui-flag-size-large, 6);
+    --_ui-flag-size-big: var(--ui-flag-size-big, 7.5);
+    --_ui-flag-size-huge: var(--ui-flag-size-huge, 9);
+    --_ui-flag-size-massive: var(--ui-flag-size-massive, 12);
+    /* The generic size remap (`sizes.css`) resolves `--ui-size-<size>` HERE, so it picks the flag ladder. */
+    --ui-size-small: var(--_ui-flag-size-small);
+    --ui-size-large: var(--_ui-flag-size-large);
+    --ui-size-big: var(--_ui-flag-size-big);
+    --ui-size-huge: var(--_ui-flag-size-huge);
+    --ui-size-massive: var(--_ui-flag-size-massive);
+  }
+
+  /* Flag:  one emoji glyph, one line tall, sitting on the text's baseline. */
+  .ui.flag {
+    display: inline-block;
+    margin: 0 var(--_ui-flag-distance) 0 0;
+    font-family: var(--_ui-flag-font-family);
+    font-size: calc(1em * var(--ui-scale, 1));
+    font-style: normal;
+    font-weight: var(--ui-font-weight-normal);
+    font-variant-emoji: emoji;
+    line-height: var(--_ui-flag-line-height);
+    text-decoration: none;
+    white-space: nowrap;
+    vertical-align: baseline;
+    backface-visibility: hidden;
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.flag.variations {
+  /* Sizes:  a sized flag centres on the text instead. */
+  .ui:is(.small, .medium, .large, .big, .huge, .massive).flag {
+    vertical-align: middle;
+  }
+  /* Static markup only:  `sizes.css` makes `.medium` a no-op;  Fomantic's medium flag is 3em. */
+  .ui.medium.flag {
+    --ui-scale: var(--_ui-flag-size-medium);
+  }
+}

@@ -48,7 +48,8 @@ The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, 
     `relocate.js`, `spell static`), so a part is never taken for a page
 - `pages/details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page
   (`/details`, see "Details pages").  Scratch:  ignored by the shared repo's git, swept after 14 days.  An epic's go
-  in `epics/<name>/details/`, kept (auto-committed with the shared repo).
+  in `epics/<name>/details/`, kept (auto-committed with the shared repo).  SYNTAX-CHOICES pages live there too (see
+  "Syntax-choices pages").
 - `brand/` -- the brand pages (the pony, from Claude Design;  the rest from P11 of `claude-design`) and the design
   system's push record.  Not in `findPages()`'s areas:  `docs update` doesn't check them (`tools/pages.js` `BRAND`).
 
@@ -69,6 +70,9 @@ In `tools/`:
     `.plan-reply`)
   - `details.css`, `details.js` -- details pages:  the option cards, Other, notes and Send `details.js` builds from
     the page's `.spell-option` markup, and the answer once sent
+  - `syntax-choices.css`, `syntax-choices.js` -- syntax-choices pages:  draws their tables from `<slug>.rows.json`,
+    saves what's typed, sends "Do it";  then loads `spell-ui.js` itself (loaded INSTEAD of the bundle, as
+    `commands.js`)
   - `goals.css`, `goals-live.js` -- goals pages (the repo root's `goals/`, and `templates/goals/`):  their look, and
     their live buttons (thoughts, Claude sessions) when the page server serves them (goals' route module)
     - `goals.css` holds every rule the goals pages took from `plan-doc.css`;  they still link `plan-doc.css` too,
@@ -216,6 +220,8 @@ In `tools/`:
   `epic-components`):  `spell dev plan-doc new <name>` copies the tool's own, in `<epic-*>` markup
   (`packages/epics/src/tool/templates/plan.html`).  How to write one:  `templates/epics/plan-doc.md`.
 - `templates/details.html` -- a details page.  NEVER copy by hand:  `spell dev details new <slug>`.
+- `templates/syntax-choices.html` (+ `syntax-choices.rows.json`, a small working example) -- a syntax-choices page.
+  NEVER copy by hand:  `spell dev choices new <slug> --rows <rows.json>`.
 - `templates/review.html` -- "Review":  a details page reviewing a finished run's calls, one question each (keep,
   change, talk over), then "Where first?";  saved from `ui-docs-rework`'s morning review as the model.
 - `templates/goals/` -- goals pages, laid out as a goals folder is, so their links work in place:
@@ -314,6 +320,17 @@ In `tools/`:
   session.
 - `findPages()` skips every `details/` folder:  not in the index, not checked by `docs update`.
 
+## Syntax-choices pages
+
+- A table of names (or any syntax) Claude recommends, one row per use site:  File (opens VS Code at the line) |
+  Purpose | Current | Recommended (a box, pre-filled);  Owen types over the ones he'd write differently, then "Do
+  it".  For a call made name by name, after a rule is picked (P13's boolean names).  How-to:
+  `guides/syntax-choices.html`.
+- `spell dev choices new <slug> --rows <rows.json> | show [--wait] | wait | answer | list` (`tools/choices.js`;  the
+  rows' shape in its comment).  Pages go where details pages do;  `<slug>.rows.json` beside the page holds the rows.
+- The page server's route module `tools/choicesRoutes.ts`:  the draft (`<slug>.draft.json`, saved 5s after typing
+  stops, never wakes anyone) and the answer (`<slug>.answer.json`, which `spell dev choices wait` exits with).
+
 ## Experiments
 
 - Claims backed by measurement:  scripts in `<topic>/experiments/` (`solid/experiments/`, `precedence/experiments/`),
@@ -372,6 +389,8 @@ In this order, from `packages/docs`:
   has doesn't reload it (the page updates itself).
 - `spell dev details` (`tools/details.js`) -- details pages (see "Details pages");  `tools/detailsRoutes.ts`, the
   page server's route module for their answers.
+- `spell dev choices` (`tools/choices.js`) -- syntax-choices pages (see "Syntax-choices pages");
+  `tools/choicesRoutes.ts`, their drafts and answers.
 - `tools/plan-doc.js`, `plan-parts.js`, `inbox.js`, `review-backfill.js` -- forwarders to the plan-doc tool in
   `packages/epics/src/tool/` (`PlanDoc`, `PlanParts`, `ReviewInbox`, `ReviewBackfill`), for old imports and callers
   on older code (see "Plan docs").  The review routes are `packages/epics/src/tool/reviewRoutes.ts`.

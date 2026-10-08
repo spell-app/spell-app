@@ -1,20 +1,22 @@
-import { JSON_SCRIPT_TYPE, type TreeDiagramNode, type TreeDiagramSummaryKey } from "./ui-tree-diagram.types"
+import type { TreeDiagramNode } from "./UITreeDiagram.types"
 
 /****************
  * ### `TreeData`
- * Where a `<ui-tree-diagram>`'s tree comes from, made safe to lay out:  the `tree` property, or the JSON in a
- * `<script type="application/json">` child.
- * - STATIC and plain DOM, no Solid:  the element and its native fallback both read the tree through it, and name
- *   the diagram with `summary()`.
- * - Lenient:  data from a page is checked, not trusted.  Anything that isn't an object is no node;  a missing
- *   `label` is `""`;  non-string `detail` / `slot` / `title` are dropped;  `children` keeps only nodes.
+ * Where a `<ui-tree-diagram>`'s tree comes from, made safe to lay out:
+ * the `tree` property, or the JSON in a `<script type="application/json">` child.
+ * - STATIC, plain DOM, no Solid:  the component reads the tree through it, and names the diagram with `summary()`;
+ *   tests drive it directly.
+ * - Lenient:  data from a page is checked, not trusted.
+ *   - Anything that isn't an object is no node.
+ *   - A missing `label` is `""`;  a `detail` / `slot` / `title` that isn't a string is dropped.
+ *   - `children` keeps only nodes.
  ****************/
 export class TreeData {
   /**
    * `value` as a tree to draw, or `undefined` when it isn't one.
    * - Always a NEW tree:  the caller's objects are never handed on, nor changed.
-   * - A node met twice on the way down (a cycle, or one object shared by two parents) is drawn once:  where it's met
-   *   first.
+   * - A node met twice on the way down (a cycle, or one object shared by two parents) is drawn once:
+   *   where it's met first.
    * - NEVER throws.
    */
   static node(value: unknown, seen = new Set<object>()): TreeDiagramNode | undefined {
@@ -36,12 +38,12 @@ export class TreeData {
   }
 
   /**
-   * JSON text of `host`'s first `<script type="application/json">` child;  `undefined` without one.
+   * JSON text of `domElement`'s first `<script type="application/json">` child;  `undefined` without one.
    * - By `localName`, not `instanceof`:  a static server render's children are linkedom elements.
    */
-  static scriptText(host: Element): string | undefined {
-    for (const child of host.children) {
-      if (child.localName === "script" && child.getAttribute("type")?.trim() === JSON_SCRIPT_TYPE)
+  static scriptText(domElement: Element): string | undefined {
+    for (const child of domElement.children) {
+      if (child.localName === "script" && child.getAttribute("type")?.trim() === "application/json")
         return child.textContent ?? ""
     }
     return undefined
@@ -57,7 +59,7 @@ export class TreeData {
   }
 
   /**
-   * Name of a diagram of `tree`, through `text` (the element's translated texts, or the fallback's English ones):
+   * Name of a diagram of `tree`, through `text` (the component's translated texts):
    * "Tree:  If, with 3 children".
    */
   static summary(
@@ -76,3 +78,6 @@ export class TreeData {
     return undefined
   }
 }
+
+/** Keys of the texts that name a diagram:  its root has children, one child, none. */
+export type TreeDiagramSummaryKey = "summary" | "summaryOne" | "summaryLeaf"

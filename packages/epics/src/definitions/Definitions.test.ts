@@ -11,6 +11,7 @@ import {
   type EpicAttributeSpec,
   type EpicTag
 } from "$/epics/definitions"
+import { SkeletonText } from "$/ui/vocabulary/SkeletonText"
 
 /** The pack's family folders. */
 const COMPONENTS = fileURLToPath(new URL("../../components/", import.meta.url))
@@ -18,16 +19,16 @@ const COMPONENTS = fileURLToPath(new URL("../../components/", import.meta.url))
 /** `HTMLElement` properties an attribute's might shadow:  the global attributes'. */
 const PLATFORM_PROPERTIES = ["id", "title", "hidden", "lang", "dir", "slot", "style", "role", "part", "className"]
 
-/** A vocabulary file's suffix:  `<tag>.vocabulary.en.ts`. */
-const VOCABULARY_SUFFIX = ".vocabulary.en.ts"
+/** A vocabulary file:  `<Name>.en.ts`, named for its tag's component (`EpicItem.en.ts`). */
+const VOCABULARY_FILE = /^([A-Z]\w*)\.en\.ts$/
 
-/** Every `<tag>.vocabulary.en.ts` under `components/`, by tag. */
+/** Every `<Name>.en.ts` under `components/`, as its tag:  `EpicItem.en.ts` => `epic-item`. */
 function vocabularyFiles(): string[] {
   return readdirSync(COMPONENTS, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .flatMap((folder) => readdirSync(`${COMPONENTS}${folder.name}`))
-    .filter((file) => file.endsWith(VOCABULARY_SUFFIX))
-    .map((file) => file.slice(0, -VOCABULARY_SUFFIX.length))
+    .flatMap((file) => VOCABULARY_FILE.exec(file)?.[1] ?? [])
+    .map((name) => name.replace(/(?<=[a-z0-9])(?=[A-Z])/g, "-").toLowerCase())
 }
 
 /** `tag`'s attribute named `name`. */
@@ -41,12 +42,12 @@ describe("Definitions.all", () => {
     for (const tag of Definitions.tags) expect(Definitions.all[tag].tag).toBe(tag)
   })
 
-  test("every tag is filed (2+ topics, `aka`), says its skeleton, and has a `base` part", () => {
+  test("every tag is filed (2+ topics, `aka`), its skeleton (if any) is skeleton text, and it has a `base` part", () => {
     for (const tag of Definitions.tags) {
       const vocabulary = Definitions.of(tag)!
       expect(vocabulary.topics!.length, tag).toBeGreaterThanOrEqual(2)
       expect(vocabulary.aka!.length, tag).toBeGreaterThan(0)
-      expect("skeleton" in vocabulary, tag).toBe(true)
+      if (vocabulary.skeleton !== undefined) expect(() => SkeletonText.parse(vocabulary.skeleton!), tag).not.toThrow()
       expect(
         vocabulary.parts.map((part) => part.name),
         tag

@@ -1,0 +1,1506 @@
+/*
+ * The style sheet of `<ui-table>`:  a port of Fomantic's `table.less` + `table.variables`.
+ * - ONE sheet, used twice:
+ *   - adopted into the element's shadow root as usual;  only its `:host` and `.scroller` rules match there
+ *   - registered as a PAGE sheet (`UI.styles.register("table", css, { page: true })`),
+ *     where its class-grammar rules style the LIGHT-DOM `<table>`:  a slotted table's `td` is out of reach of shadow
+ *     CSS (`::slotted()` reaches the top level only)
+ * - Shadow markup contract:  `<div class="[resizable] [attached ...] [scrolling ...] [overflowing ...] scroller"
+ *   part="scroller"><slot></slot></div>`;  while scrolling / overflowing the scroller is a focusable, named
+ *   region (`tabindex="0" role="region" aria-label`).
+ * - Light-DOM contract:  the element MIRRORS its class string (`ui small celled striped red table`) onto the
+ *   slotted `<table>`'s `class`, adding and removing only the words it owns (author classes stay).  Why:
+ *   - one mechanical port serves element markup AND static class-grammar markup:  examples,
+ *     and SSR output that writes `class="ui celled table"` itself, which paints styled before any JS
+ *   - translated attribute names / values, `yes` / `no` booleans and `medium` all resolve through the
+ *     vocabulary + `ClassBuilder` like every other component;  attribute selectors on the DOM element
+ *     (`ui-table[celled] > table`) can't do that
+ *   - NOTE: phrase selectors (`[class*="very basic"]`) need the words in grammar order, so the element writes
+ *     its phrase as one run after the author's own words
+ * - Row / cell states and variations are CLASSES on native `tr` / `th` / `td`,
+ *   exactly Fomantic's (`positive`, `red marked left`, `collapsing`, `four wide`, `single line`, `selectable` ...):
+ *   no JS.
+ * - Base look:  `:where(ui-table) > table` gets the same base rules as `.ui.table` (it used to live in
+ *   `native.css`), so an un-upgraded `<ui-table><table>` is styled as soon as this sheet is on the page.
+ *   NOTE: canonical tag only;  a translated tag's table is bare until its element upgrades.
+ * - `--_table-hosted: 1`, set on `:host` and inherited down the flat tree, tells light-DOM rules (through
+ *   `@container style()`) that a table sits in an element.  Cells reset it, so a table nested in a cell
+ *   answers for itself.  It picks between:
+ *   - stackable:  by the viewport (`@media`), as in Fomantic, hosted or static;  a hosted table opts in to stacking
+ *     by the DOM element's width with `stack-by="container"` or `--ui-table-stack-by: container` (`@container`,
+ *     the DOM element's `container-type: inline-size`, unnamed -- container names are tree-scoped)
+ *   - scrolling / overflowing:  hosted tables scroll in the shadow `.scroller`, the head (and foot) stuck;
+ *     static tables keep Fomantic's `display: block` `tbody` (scrolling) and `table` (overflowing) scrollers
+ * - Colours:
+ *   - the TABLE's colour is the generic remap (`.ui.red` => `--ui-color`, `colors.css`):  a coloured top edge,
+ *     or a coloured fill when `inverted`
+ *   - Fomantic's row / cell classes carry no `ui`, which the generic remap needs, so this sheet maps each hue
+ *     and state class to private tokens (`--_table-tint`, `-ink`, `-fill`, `-fill-on`, `-mark`) and ONE rule
+ *     set paints them.  NOTE: a hue added with `ValueSets.add("hues")` needs a line in "Row and cell colours"
+ *   - cells reset the generic colour and size tokens, so a button in a red table's cell isn't red
+ *   - `inverted` sets `color-scheme: dark` (+ `--ui-inverted: 1`, `--ui-scheme: dark`):  surfaces,
+ *     text and the state tokens re-resolve to their dark branches;  only a coloured inverted fill needs rules
+ * - Sortable:  headers are sorted through `aria-sort` (the element's) or Fomantic's `sorted ascending` /
+ *   `sorted descending` classes (static markup);  a `<button>` inside a header is reset to look like text.
+ *   `th[data-sortable="false"]` and Fomantic's `th.disabled` opt a header out.
+ * - Layering:  row / cell colours and states, hover, sorting and STACKED layout are in the `states` sublayer
+ *   -- a later layer beats the `.ui.ui.ui.ui` specificity and `!important`s Fomantic needs to override widths,
+ *   stripes and cell backgrounds.
+ * - Public tokens (`--ui-table-*`, the theming surface) are NEVER declared here:  the token block reads each
+ *   through a private alias, `--_ui-table-radius: var(--ui-table-radius, var(--ui-radius))`, and every rule reads
+ *   the alias.  So a value set on `:root`, an ancestor, the DOM element,
+ *   the table itself or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
+ *   The table is light DOM, so page CSS reaches it directly;  set a token on the table, `<ui-table>` or any ancestor.
+ * - NOTE: left out, on purpose:
+ *   - `.ui.table.segment` / `.stacked` coupling and `.ui.attached + .ui.attached.table` (a middle table after
+ *     another attached block):  the neighbour relation isn't visible from a table inside an element
+ *   - Fomantic's icon-font sort arrows:  a masked SVG caret instead;  custom scrollbar colours
+ *   - `-moz-transform` hacks
+ */
+
+@layer ui.components.table.types, ui.components.table.content, ui.components.table.variations, ui.components.table.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time. */
+@import "../../styles/media.css";
+
+/*******************************
+             Table
+*******************************/
+
+@layer ui.components.table.types {
+  /* DOM element:  a block and the size container `stackable` answers to;  the flag that says "hosted". */
+  :host {
+    --_table-hosted: 1;
+    /* the table's own token, else the page-wide `stack-with` one (`page` ~== `viewport`), else the viewport */
+    --_table-stack-by: var(--ui-table-stack-by, var(--ui-stack-with, viewport));
+  }
+  :host {
+    /* a colour or size from outside never reaches the table:  its own classes remap them again */
+    --ui-color: initial;
+    --ui-color-text: initial;
+    --ui-color-header: initial;
+    --ui-color-border: initial;
+    --ui-color-background: initial;
+    --ui-color-inverted: initial;
+    --ui-color-on: initial;
+    --ui-color-inverted-on: initial;
+    display: block;
+    container-type: inline-size;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /*
+   * The table's outer margin sits on the DOM ELEMENT:  a size container is its own formatting context, so a margin on
+   * the scroller inside it never collapses with the heading above, as class grammar's does.  Attached:
+   * see "Attached" (variations).
+   */
+  :host {
+    margin-block: 1em;
+  }
+  :host(:first-child) {
+    margin-block-start: 0;
+  }
+  :host(:last-child) {
+    margin-block-end: 0;
+  }
+
+  /*
+   * Scroller:  around the slot;  spaced by the DOM element's position, since the table is always an only child.
+   * - In the shadow root the DOM element carries that spacing (above), so the scroller has none:  `:not([data-ui])`,
+   *   a static server render's scroller (`$/ui/static`) REPLACES the DOM element and keeps it.
+   * - `--_ui-table-row-height` here too:  the scroller's scrolling heights read it (the table's alias is below it).
+   */
+  .scroller {
+    --_ui-table-row-height: var(--ui-table-row-height, calc(2 * 0.785714em + var(--ui-line-height) * 1em));
+    --_table-scroll-rows: 3;
+    --_table-overflow-rows: 5;
+    --_table-scroll-factor: 1;
+    display: block;
+    margin-block: 1em;
+  }
+  :host(:first-child) > .scroller {
+    margin-block-start: 0;
+  }
+  :host(:last-child) > .scroller {
+    margin-block-end: 0;
+  }
+  :host > .scroller:not([data-ui]) {
+    margin-block: 0;
+  }
+
+  /*
+   * Tokens:  one per `table.variables` entry that still matters, from the global tokens -- each the private alias
+   * of its public token (never declare the public one:  it would block inherited values).
+   */
+  .ui.table,
+  :where(ui-table) > table {
+    --_ui-table-margin: var(--ui-table-margin, 1em);
+    --_ui-table-background: var(--ui-table-background, var(--ui-surface));
+    --_ui-table-color: var(--ui-table-color, var(--ui-text-color));
+    --_ui-table-border-width: var(--ui-table-border-width, var(--ui-border-width));
+    --_ui-table-border-color: var(--ui-table-border-color, var(--ui-border-color));
+    --_ui-table-radius: var(--ui-table-radius, var(--ui-radius));
+    --_ui-table-duration: var(--ui-table-duration, var(--ui-duration-fast));
+    --_ui-table-row-border: var(--ui-table-row-border, var(--ui-border-width) solid var(--ui-border-color-internal));
+    --_ui-table-cell-border: var(--ui-table-cell-border, var(--ui-border-width) solid var(--ui-border-color-internal));
+    --_ui-table-cell-padding-block: var(--ui-table-cell-padding-block, 0.785714em);
+    --_ui-table-cell-padding-inline: var(--ui-table-cell-padding-inline, 0.785714em);
+    --_ui-table-header-padding-block: var(--ui-table-header-padding-block, 0.928571em);
+    --_ui-table-header-background: var(--ui-table-header-background, var(--ui-surface-muted));
+    --_ui-table-header-color: var(--ui-table-header-color, var(--ui-text-color));
+    --_ui-table-header-border: var(
+      --ui-table-header-border,
+      var(--ui-border-width) solid var(--ui-border-color-internal)
+    );
+    --_ui-table-footer-background: var(--ui-table-footer-background, var(--ui-surface-muted));
+    --_ui-table-footer-color: var(--ui-table-footer-color, var(--ui-text-color));
+    --_ui-table-footer-border: var(--ui-table-footer-border, var(--ui-border));
+    --_ui-table-row-height: var(--ui-table-row-height, calc(2 * 0.785714em + var(--ui-line-height) * 1em));
+    --_ui-table-responsive-row-padding: var(--ui-table-responsive-row-padding, 1em);
+    --_ui-table-responsive-row-shadow: var(
+      --ui-table-responsive-row-shadow,
+      0 -1px 0 0 oklch(from var(--ui-ink) l c h / 0.1) inset
+    );
+    --_ui-table-responsive-cell-padding: var(--ui-table-responsive-cell-padding, 0.25em 0.75em);
+    --_ui-table-definition-page-background: var(--ui-table-definition-page-background, var(--ui-background));
+    --_ui-table-definition-header-color: var(--ui-table-definition-header-color, var(--ui-text-unselected));
+    --_ui-table-definition-column-background: var(
+      --ui-table-definition-column-background,
+      oklch(from var(--ui-ink) l c h / 0.03)
+    );
+    --_ui-table-definition-column-color: var(--ui-table-definition-column-color, var(--ui-text-selected));
+    --_ui-table-active-background: var(
+      --ui-table-active-background,
+      color-mix(in oklab, var(--ui-ink) 12%, var(--ui-surface))
+    );
+    --_ui-table-active-color: var(--ui-table-active-color, var(--ui-text-color));
+    /* Fomantic's 0.3-alpha disabled text fails WCAG contrast;  a disabled ROW is still content to read. */
+    --_ui-table-disabled-color: var(--ui-table-disabled-color, var(--ui-text-muted));
+    --_ui-table-striped-background: var(--ui-table-striped-background, oklch(from var(--ui-ink) l c h / 0.03));
+    --_ui-table-selectable-background: var(--ui-table-selectable-background, oklch(from var(--ui-ink) l c h / 0.05));
+    --_ui-table-selectable-color: var(--ui-table-selectable-color, var(--ui-text-selected));
+    --_ui-table-sortable-hover-background: var(
+      --ui-table-sortable-hover-background,
+      oklch(from var(--ui-ink) l c h / 0.05)
+    );
+    --_ui-table-sortable-hover-color: var(--ui-table-sortable-hover-color, var(--ui-text-hovered));
+    --_ui-table-sortable-active-background: var(
+      --ui-table-sortable-active-background,
+      oklch(from var(--ui-ink) l c h / 0.05)
+    );
+    --_ui-table-sortable-active-color: var(--ui-table-sortable-active-color, var(--ui-text-selected));
+    --_ui-table-sortable-border: var(--ui-table-sortable-border, var(--ui-border));
+    --_ui-table-sortable-icon-opacity: var(--ui-table-sortable-icon-opacity, 0.8);
+    --_ui-table-colored-border-size: var(--ui-table-colored-border-size, 0.2em);
+    --_ui-table-marker-width: var(--ui-table-marker-width, 0.2em);
+    --_ui-table-inverted-header-background: var(--ui-table-inverted-header-background, oklch(0 0 0 / 0.15));
+    --_ui-table-inverted-cell-border-color: var(--ui-table-inverted-cell-border-color, oklch(1 0 0 / 0.1));
+    /* Body rows of an `inverted striped` table:  every other one. */
+    --_ui-table-inverted-striped-background: var(--ui-table-inverted-striped-background, oklch(1 0 0 / 0.05));
+    /* A hovered body row of an `inverted selectable` table. */
+    --_ui-table-inverted-selectable-background: var(--ui-table-inverted-selectable-background, oklch(1 0 0 / 0.08));
+    /* A hovered or sorted header of an `inverted sortable` table. */
+    --_ui-table-inverted-sortable-background: var(--ui-table-inverted-sortable-background, oklch(1 0 0 / 0.08));
+    /* The definition column of an `inverted definition` table. */
+    --_ui-table-inverted-definition-column-background: var(
+      --ui-table-inverted-definition-column-background,
+      oklch(1 0 0 / 0.02)
+    );
+    /* Darkens the stuck header of an `inverted` table:  mixed 15% into its fill. */
+    --_ui-table-inverted-stuck-shade: var(--ui-table-inverted-stuck-shade, black);
+    --_ui-table-stuck-background: var(--ui-table-stuck-background, var(--ui-surface));
+    --_ui-table-stuck-header-background: var(--ui-table-stuck-header-background, var(--ui-surface-muted));
+    --_ui-table-stuck-z: var(--ui-table-stuck-z, var(--ui-z-sticky));
+    --_ui-table-padded: var(--ui-table-padded, 1em);
+    --_ui-table-very-padded: var(--ui-table-very-padded, 1.5em);
+    --_ui-table-compact-padding-block: var(--ui-table-compact-padding-block, 0.5em);
+    --_ui-table-compact-padding-inline: var(--ui-table-compact-padding-inline, 0.7em);
+    --_ui-table-very-compact-padding-block: var(--ui-table-very-compact-padding-block, 0.4em);
+    --_ui-table-very-compact-padding-inline: var(--ui-table-very-compact-padding-inline, 0.6em);
+    /* private defaults:  flags this table answers for itself (a nested table never inherits them) */
+    --_table-stack: 0;
+    --_table-scroll-rows: 3;
+    --_table-overflow-rows: 5;
+    --_table-scroll-factor: 1;
+    inline-size: 100%;
+    margin: var(--_ui-table-margin) 0;
+    border: var(--_ui-table-border-width) solid var(--_ui-table-border-color);
+    border-radius: var(--_ui-table-radius);
+    border-collapse: separate;
+    border-spacing: 0;
+    box-shadow: none;
+    background: var(--_ui-table-background);
+    color: var(--_ui-table-color);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    line-height: var(--ui-line-height);
+    text-align: start;
+    vertical-align: middle;
+  }
+  :is(.ui.table, :where(ui-table) > table):first-child {
+    margin-block-start: 0;
+  }
+  :is(.ui.table, :where(ui-table) > table):last-child {
+    margin-block-end: 0;
+  }
+  :is(.ui.table, :where(ui-table) > table) > :is(thead, tbody) {
+    text-align: inherit;
+    vertical-align: inherit;
+  }
+
+  /* Cells:  what the table hands its content -- not its colour or scale, nor the flags it answers for. */
+  :is(.ui.table, :where(ui-table) > table) :is(th, td) {
+    --ui-color: initial;
+    --ui-color-text: initial;
+    --ui-color-header: initial;
+    --ui-color-border: initial;
+    --ui-color-background: initial;
+    --ui-color-inverted: initial;
+    --ui-color-hover: initial;
+    --ui-color-focus: initial;
+    --ui-color-down: initial;
+    --ui-color-active: initial;
+    --ui-color-on: initial;
+    --ui-color-inverted-on: initial;
+    --ui-scale: initial;
+    --_table-hosted: initial;
+    --_table-stack-by: initial;
+    transition:
+      background var(--_ui-table-duration) var(--ui-ease),
+      color var(--_ui-table-duration) var(--ui-ease);
+  }
+  :is(.ui.table, :where(ui-table) > table) tr {
+    --_table-mark-shadow: 0 0 transparent;
+  }
+
+  /* Caption:  above the table, muted. */
+  :is(.ui.table, :where(ui-table) > table) > caption {
+    padding-block: var(--ui-space-xs);
+    color: var(--ui-text-muted);
+    text-align: start;
+  }
+}
+
+/*******************************
+             Parts
+*******************************/
+
+@layer ui.components.table.content {
+  /* Rowspan helper */
+  .ui.table :is(th, td).rowspanned {
+    display: none;
+  }
+
+  /* Headers */
+  :is(.ui.table, :where(ui-table) > table) > thead {
+    box-shadow: none;
+  }
+  :is(.ui.table, :where(ui-table) > table) > thead > tr > th {
+    padding: var(--_ui-table-header-padding-block) var(--_ui-table-cell-padding-inline);
+    border-block-end: var(--_ui-table-header-border);
+    border-inline-start: none;
+    background: var(--_ui-table-header-background);
+    color: var(--_ui-table-header-color);
+    font-style: normal;
+    font-weight: var(--ui-font-weight-bold);
+    text-align: inherit;
+    text-transform: none;
+    vertical-align: inherit;
+    cursor: auto;
+  }
+  :is(.ui.table, :where(ui-table) > table) > thead > tr:first-child > th:first-child {
+    border-start-start-radius: var(--_ui-table-radius);
+  }
+  :is(.ui.table, :where(ui-table) > table) > thead > tr:first-child > th:last-child {
+    border-start-end-radius: var(--_ui-table-radius);
+  }
+
+  /* Footer */
+  :is(.ui.table, :where(ui-table) > table) > tfoot > tr > :is(th, td) {
+    padding: var(--_ui-table-cell-padding-block) var(--_ui-table-cell-padding-inline);
+    border-block-start: var(--_ui-table-footer-border);
+    border-inline-start: none;
+    background: var(--_ui-table-footer-background);
+    color: var(--_ui-table-footer-color);
+    font-style: normal;
+    font-weight: var(--ui-font-weight-normal);
+    text-align: inherit;
+    text-transform: none;
+    vertical-align: inherit;
+    cursor: auto;
+  }
+  :is(.ui.table, :where(ui-table) > table) > tfoot > tr:last-child > :is(th, td):first-child {
+    border-end-start-radius: var(--_ui-table-radius);
+  }
+  :is(.ui.table, :where(ui-table) > table) > tfoot > tr:last-child > :is(th, td):last-child {
+    border-end-end-radius: var(--_ui-table-radius);
+  }
+
+  /* Rows:  a line between body rows;  none above the first, one between repeated bodies. */
+  :is(.ui.table, :where(ui-table) > table) > tbody > tr > :is(td, th) {
+    border-block-start: var(--_ui-table-row-border);
+  }
+  :is(.ui.table, :where(ui-table) > table) > tbody > tr:first-child > :is(td, th) {
+    border-block-start: none;
+  }
+  :is(.ui.table, :where(ui-table) > table) > tbody + tbody > tr:first-child > :is(td, th) {
+    border-block-start: var(--_ui-table-row-border);
+  }
+
+  /* Cells */
+  :is(.ui.table, :where(ui-table) > table) > tbody > tr > :is(td, th) {
+    padding: var(--_ui-table-cell-padding-block) var(--_ui-table-cell-padding-inline);
+    text-align: inherit;
+  }
+  /* A header cell in the body (`<th scope="row">`) reads as a row header. */
+  :is(.ui.table, :where(ui-table) > table) > tbody > tr > th {
+    font-weight: var(--ui-font-weight-bold);
+  }
+
+  /* Icons, images */
+  .ui.table > i.icon,
+  .ui.table :is(td, th) > :is(svg, ui-icon):only-child {
+    vertical-align: baseline;
+  }
+  .ui.table .collapsing :is(.image, .image img, img) {
+    max-inline-size: none;
+  }
+
+  /*
+   * Definition:  a blank corner, a highlighted first column.
+   * - The corner may be a `td` (an empty `th` is an unnamed header to assistive tech;
+   *   axe `empty-table-header`), so both are keyed.
+   */
+  .ui.definition.table > thead:not(.full-width) > tr > :is(th, td):first-child {
+    background: var(--_ui-table-definition-page-background);
+    box-shadow: calc(var(--_ui-table-colored-border-size) / -2) calc(-1 * var(--_ui-table-colored-border-size)) 0
+      calc(var(--_ui-table-colored-border-size) / 2) var(--_ui-table-definition-page-background);
+    color: var(--_ui-table-definition-header-color);
+    font-weight: var(--ui-font-weight-normal);
+    pointer-events: none;
+  }
+  .ui.definition.table > thead:not(.full-width) > tr > :is(th, td):first-child:not(:empty) {
+    pointer-events: auto;
+  }
+  .ui.definition.table > tfoot:not(.full-width) > tr > th:first-child {
+    background: var(--_ui-table-definition-page-background);
+    box-shadow: calc(var(--_ui-table-colored-border-size) / -2) var(--_ui-table-colored-border-size) 0
+      calc(var(--_ui-table-colored-border-size) / 2) var(--_ui-table-definition-page-background);
+    color: var(--_ui-table-definition-header-color);
+    font-weight: var(--ui-font-weight-normal);
+    pointer-events: none;
+  }
+  .ui.definition.table > tbody > tr > :is(td, th):first-child:not(.ignored),
+  .ui.definition.table > tfoot > tr > td:first-child:not(.ignored),
+  .ui.definition.table tr td.definition {
+    background: var(--_ui-table-definition-column-background);
+    color: var(--_ui-table-definition-column-color);
+    font-weight: var(--ui-font-weight-bold);
+  }
+  .ui.definition.table > thead:not(.full-width) > tr > th:nth-child(2),
+  .ui.definition.table > tfoot:not(.full-width) > tr > :is(th, td):nth-child(2),
+  .ui.definition.table > tbody > tr > :is(td, th):nth-child(2) {
+    border-inline-start: var(--_ui-table-border-width) solid var(--_ui-table-border-color);
+  }
+
+  /* Structured:  collapsed borders, for header cells spanning rows and columns. */
+  .ui.structured.table {
+    border-collapse: collapse;
+  }
+  .ui.structured.table > thead > tr > th {
+    border-inline: none;
+  }
+  .ui.structured.sortable.table > thead > tr > th {
+    border-inline: var(--_ui-table-sortable-border);
+  }
+  .ui.structured.basic.table > * > tr > th {
+    border-inline: none;
+  }
+  .ui.structured.celled.table > * > tr > :is(th, td) {
+    border-inline: var(--_ui-table-cell-border);
+  }
+}
+
+/*******************************
+          Variations
+*******************************/
+
+@layer ui.components.table.variations {
+  /* Text alignment */
+  .ui.table[class*="left aligned"],
+  .ui.table [class*="left aligned"] {
+    text-align: left;
+  }
+  .ui.table[class*="center aligned"],
+  .ui.table [class*="center aligned"] {
+    text-align: center;
+  }
+  .ui.table[class*="right aligned"],
+  .ui.table [class*="right aligned"] {
+    text-align: right;
+  }
+  .ui.justified.table,
+  .ui.table .justified {
+    text-align: justify;
+  }
+
+  /* Vertical alignment */
+  .ui.table[class*="top aligned"],
+  .ui.table [class*="top aligned"] {
+    vertical-align: top;
+  }
+  .ui.table[class*="middle aligned"],
+  .ui.table [class*="middle aligned"] {
+    vertical-align: middle;
+  }
+  .ui.table[class*="bottom aligned"],
+  .ui.table [class*="bottom aligned"] {
+    vertical-align: bottom;
+  }
+
+  /* Collapsing:  a cell as narrow as its content;  a table as narrow as its cells. */
+  .ui.table :is(th, td).collapsing {
+    inline-size: 1px;
+    white-space: nowrap;
+  }
+  .ui.collapsing.table {
+    inline-size: auto;
+  }
+
+  /* Fixed */
+  .ui.fixed.table {
+    table-layout: fixed;
+  }
+  .ui.fixed.table :is(th, td) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Selectable:  the pointer, and a selectable cell's link filling it. */
+  .ui.selectable.table > tbody > tr,
+  .ui.table > tbody > tr > td.selectable {
+    cursor: pointer;
+  }
+  .ui.table tbody tr td.selectable {
+    padding: 0;
+  }
+  .ui.table tbody tr td.selectable > a:not(.ui) {
+    display: block;
+    color: inherit;
+  }
+  .ui.table:not(.compact) tbody tr td.selectable > a:not(.ui) {
+    padding: var(--_ui-table-cell-padding-block) var(--_ui-table-cell-padding-inline);
+  }
+
+  /* Attached */
+  .ui.attached.table {
+    inset-block: 0;
+    inline-size: calc(100% + 2 * var(--_ui-table-border-width));
+    max-inline-size: calc(100% + 2 * var(--_ui-table-border-width));
+    margin: 0 calc(-1 * var(--_ui-table-border-width));
+    border: var(--_ui-table-border-width) solid var(--ui-border-color-strong);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .ui[class*="top attached"].table {
+    margin-block: var(--_ui-table-margin) 0;
+    border-radius: var(--_ui-table-radius) var(--_ui-table-radius) 0 0;
+  }
+  .ui.table[class*="top attached"]:first-child {
+    margin-block-start: 0;
+  }
+  .ui[class*="bottom attached"].table {
+    margin-block: 0 var(--_ui-table-margin);
+    border-radius: 0 0 var(--_ui-table-radius) var(--_ui-table-radius);
+  }
+  .ui[class*="bottom attached"].table:last-child {
+    margin-block-end: 0;
+  }
+  /*
+   * In an element:  the scroller carries the table's spacing
+   * (a static render's;  in a shadow root, the DOM element's).
+   */
+  .attached.scroller {
+    margin-block: 0;
+  }
+  [class*="top attached"].scroller {
+    margin-block-start: 1em;
+  }
+  [class*="bottom attached"].scroller {
+    margin-block-end: 1em;
+  }
+  :host(:first-child) > [class*="top attached"].scroller {
+    margin-block-start: 0;
+  }
+  :host(:last-child) > [class*="bottom attached"].scroller {
+    margin-block-end: 0;
+  }
+  /* Shadow DOM:  the DOM element carries the outer margin, so it mirrors the attached scroller's (`UITable` states). */
+  :host(:state(attached)) {
+    margin-block: 0;
+  }
+  :host(:state(attached-top):not(:first-child)) {
+    margin-block-start: 1em;
+  }
+  :host(:state(attached-bottom):not(:last-child)) {
+    margin-block-end: 1em;
+  }
+  :host > .scroller:not([data-ui]) {
+    margin-block: 0;
+  }
+
+  /* Striped */
+  .ui.striped.table > tr:nth-child(2n),
+  .ui.striped.table > tbody > tr:nth-child(2n) {
+    background-color: var(--_ui-table-striped-background);
+  }
+
+  /* Single line */
+  .ui.table[class*="single line"],
+  .ui.table [class*="single line"] {
+    white-space: nowrap;
+  }
+
+  /* Coloured:  a thick top edge in the table's colour (`--ui-color`, the generic remap). */
+  .ui.table:is(
+      .primary,
+      .secondary,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black
+    ) {
+    border-block-start: var(--_ui-table-colored-border-size) solid var(--ui-color);
+  }
+
+  /* Column count */
+  .ui.one.column.table td {
+    inline-size: 100%;
+  }
+  .ui.two.column.table td {
+    inline-size: 50%;
+  }
+  .ui.three.column.table td {
+    inline-size: 33.333333%;
+  }
+  .ui.four.column.table td {
+    inline-size: 25%;
+  }
+  .ui.five.column.table td {
+    inline-size: 20%;
+  }
+  .ui.six.column.table td {
+    inline-size: 16.666667%;
+  }
+  .ui.seven.column.table td {
+    inline-size: 14.285714%;
+  }
+  .ui.eight.column.table td {
+    inline-size: 12.5%;
+  }
+  .ui.nine.column.table td {
+    inline-size: 11.111111%;
+  }
+  .ui.ten.column.table td {
+    inline-size: 10%;
+  }
+  .ui.eleven.column.table td {
+    inline-size: 9.090909%;
+  }
+  .ui.twelve.column.table td {
+    inline-size: 8.333333%;
+  }
+  .ui.thirteen.column.table td {
+    inline-size: 7.692308%;
+  }
+  .ui.fourteen.column.table td {
+    inline-size: 7.142857%;
+  }
+  .ui.fifteen.column.table td {
+    inline-size: 6.666667%;
+  }
+  .ui.sixteen.column.table td {
+    inline-size: 6.25%;
+  }
+
+  /* Column width */
+  .ui.table :is(th, td).one.wide {
+    inline-size: 6.25%;
+  }
+  .ui.table :is(th, td).two.wide {
+    inline-size: 12.5%;
+  }
+  .ui.table :is(th, td).three.wide {
+    inline-size: 18.75%;
+  }
+  .ui.table :is(th, td).four.wide {
+    inline-size: 25%;
+  }
+  .ui.table :is(th, td).five.wide {
+    inline-size: 31.25%;
+  }
+  .ui.table :is(th, td).six.wide {
+    inline-size: 37.5%;
+  }
+  .ui.table :is(th, td).seven.wide {
+    inline-size: 43.75%;
+  }
+  .ui.table :is(th, td).eight.wide {
+    inline-size: 50%;
+  }
+  .ui.table :is(th, td).nine.wide {
+    inline-size: 56.25%;
+  }
+  .ui.table :is(th, td).ten.wide {
+    inline-size: 62.5%;
+  }
+  .ui.table :is(th, td).eleven.wide {
+    inline-size: 68.75%;
+  }
+  .ui.table :is(th, td).twelve.wide {
+    inline-size: 75%;
+  }
+  .ui.table :is(th, td).thirteen.wide {
+    inline-size: 81.25%;
+  }
+  .ui.table :is(th, td).fourteen.wide {
+    inline-size: 87.5%;
+  }
+  .ui.table :is(th, td).fifteen.wide {
+    inline-size: 93.75%;
+  }
+  .ui.table :is(th, td).sixteen.wide {
+    inline-size: 100%;
+  }
+
+  /* Sortable:  headers are controls;  a header `<button>` looks like the header's text. */
+  .ui.sortable.table > thead > tr > th {
+    color: var(--_ui-table-header-color);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .ui.celled.sortable.table > thead > tr > th:not(:first-child) {
+    border-inline-start: var(--_ui-table-sortable-border);
+  }
+  .ui.sortable.table > thead > tr > th > button {
+    appearance: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+  }
+  .ui.sortable.table > thead > tr > th > button:focus-visible,
+  .ui.sortable.table > thead > tr > th[tabindex]:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-offset);
+  }
+  .ui.sortable.table > thead > tr > th[tabindex]:focus-visible {
+    outline-offset: calc(-1 * var(--ui-focus-width));
+  }
+  /* The direction caret, drawn only on the sorted header. */
+  .ui.sortable.table > thead > tr > th::after {
+    content: "";
+    display: none;
+    inline-size: 0.8em;
+    block-size: 0.8em;
+    margin-inline-start: 0.5em;
+    background-color: currentColor;
+    opacity: var(--_ui-table-sortable-icon-opacity);
+    vertical-align: -0.05em;
+    mask: var(--_table-caret) center / contain no-repeat;
+  }
+  .ui.sortable.table thead th:is([aria-sort="ascending"], .sorted.ascending) {
+    --_table-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 2l4 6H1z'/%3E%3C/svg%3E");
+  }
+  .ui.sortable.table thead th:is([aria-sort="descending"], .sorted.descending) {
+    --_table-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 8L1 2h8z'/%3E%3C/svg%3E");
+  }
+  .ui.sortable.table thead th:is([aria-sort="ascending"], [aria-sort="descending"], .sorted)::after {
+    display: inline-block;
+  }
+  /* Opted out:  no pointer, no hover. */
+  .ui.sortable.table > thead > tr > th:is([data-sortable="false"], .disabled) {
+    cursor: auto;
+  }
+
+  /*
+   * Inverted:  the dark scheme -- surfaces, text, borders and state tokens re-resolve;
+   * a coloured inverted table fills with its colour.
+   */
+  .ui.table {
+    --ui-inverted: 0;
+  }
+  .ui.inverted.table {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    --_ui-table-cell-border: var(--ui-border-width) solid var(--_ui-table-inverted-cell-border-color);
+    --_ui-table-row-border: var(--ui-border-width) solid var(--_ui-table-inverted-cell-border-color);
+    --_ui-table-header-border: var(--ui-border-width) solid var(--_ui-table-inverted-cell-border-color);
+    --_ui-table-footer-border: var(--ui-border-width) solid var(--_ui-table-inverted-cell-border-color);
+    --_ui-table-header-background: var(--_ui-table-inverted-header-background);
+    --_ui-table-footer-background: var(--_ui-table-inverted-header-background);
+    --_ui-table-header-color: inherit;
+    --_ui-table-footer-color: inherit;
+    --_ui-table-striped-background: var(--_ui-table-inverted-striped-background);
+    --_ui-table-selectable-background: var(--_ui-table-inverted-selectable-background);
+    --_ui-table-stuck-header-background: color-mix(
+      in oklab,
+      var(--_ui-table-inverted-stuck-shade) 15%,
+      var(--ui-surface)
+    );
+    color-scheme: dark;
+    border: none;
+    background: var(--ui-color, var(--ui-surface));
+    color: var(--ui-color-on, var(--ui-text-color));
+  }
+  .ui.inverted.table:is(
+      .primary,
+      .secondary,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black
+    ) {
+    --_ui-table-stuck-background: var(--ui-color);
+    --_ui-table-stuck-header-background: color-mix(
+      in oklab,
+      var(--_ui-table-inverted-stuck-shade) 15%,
+      var(--ui-color)
+    );
+  }
+  .ui.inverted.definition.table > :is(thead, tfoot):not(.full-width) > tr > :is(th, td):first-child {
+    --_ui-table-definition-page-background: var(--ui-background);
+    color-scheme: light;
+  }
+  .ui.inverted.definition.table > :is(tbody, tfoot) > tr > td:first-child {
+    --_ui-table-definition-column-background: var(--_ui-table-inverted-definition-column-background);
+  }
+
+  /* Basic:  no fills, a lighter border. */
+  .ui.basic.table {
+    border: var(--_ui-table-border-width) solid var(--_ui-table-border-color);
+    box-shadow: none;
+    background: transparent;
+  }
+  .ui.basic.table > :is(thead, tfoot) {
+    box-shadow: none;
+  }
+  .ui.basic.table > :is(thead, tbody, tfoot) > tr > th,
+  .ui.basic.table > tr > th {
+    border-inline-start: none;
+    background: transparent;
+  }
+  .ui.basic.table > tbody > tr {
+    border-block-end: var(--_ui-table-cell-border);
+  }
+  .ui.basic.table > :is(tbody, tfoot) > tr > td,
+  .ui.basic.table > tr > td {
+    background: transparent;
+  }
+  .ui.basic.striped.table > tbody > tr:nth-child(2n) {
+    background-color: var(--_ui-table-selectable-background);
+  }
+
+  /* Very basic:  no outer border, no padding at the edges. */
+  .ui[class*="very basic"].table {
+    border: none;
+  }
+  .ui[class*="very basic"].table:not(.sortable, .striped) > * > tr > :is(th, td):first-child {
+    padding-inline-start: 0;
+  }
+  .ui[class*="very basic"].table:not(.sortable, .striped) > * > tr > :is(th, td):last-child {
+    padding-inline-end: 0;
+  }
+  .ui[class*="very basic"].table:not(.sortable, .striped) > thead > tr:first-child > th {
+    padding-block-start: 0;
+  }
+
+  /* Celled:  borders between cells. */
+  .ui.celled.table > * > tr > :is(th, td),
+  .ui.celled.table > tr > :is(th, td) {
+    border-inline-start: var(--_ui-table-cell-border);
+  }
+  .ui.celled.table > * > tr > :is(th, td):first-child,
+  .ui.celled.table > tr > :is(th, td):first-child {
+    border-inline-start: none;
+  }
+
+  /* Padded */
+  .ui.padded.table > * > tr > th {
+    padding-inline: var(--_ui-table-padded);
+  }
+  .ui.padded.table > * > tr > :is(th, td) {
+    padding: var(--_ui-table-padded);
+  }
+  .ui[class*="very padded"].table > * > tr > th {
+    padding-inline: var(--_ui-table-very-padded);
+  }
+  .ui[class*="very padded"].table > * > tr > td {
+    padding: var(--_ui-table-very-padded);
+  }
+
+  /* Compact */
+  .ui.compact.table > * > tr > th {
+    padding-inline: var(--_ui-table-compact-padding-inline);
+  }
+  .ui.compact.table > :is(tbody, tfoot) > tr > td {
+    padding: var(--_ui-table-compact-padding-block) var(--_ui-table-compact-padding-inline);
+  }
+  .ui[class*="very compact"].table > * > tr > th {
+    padding-inline: var(--_ui-table-very-compact-padding-inline);
+  }
+  .ui[class*="very compact"].table > :is(tbody, tfoot) > tr > td {
+    padding: var(--_ui-table-very-compact-padding-block) var(--_ui-table-very-compact-padding-inline);
+  }
+
+  /* Stuck:  opaque rows, so sticky parts cover what scrolls under them. */
+  .ui.stuck.table {
+    background: var(--_ui-table-stuck-background);
+  }
+  .ui.stuck.table > thead > tr {
+    background: var(--_ui-table-stuck-header-background);
+  }
+  .ui.stuck.table > tbody > tr {
+    background: var(--_ui-table-stuck-background);
+  }
+  .ui.stuck.table > tfoot > tr {
+    background: var(--_ui-table-stuck-header-background);
+  }
+  .ui.basic.stuck.table > :is(thead, tfoot) > tr {
+    background: var(--_ui-table-stuck-background);
+  }
+  .ui.head.stuck.table > thead,
+  .ui.foot.stuck.table > tfoot {
+    position: sticky;
+    z-index: var(--_ui-table-stuck-z);
+  }
+  .ui.head.stuck.table {
+    border-block-start: 0;
+  }
+  .ui.head.stuck.table > thead {
+    inset-block: 0 auto;
+  }
+  .ui.head.stuck.table > thead > tr:first-child > th {
+    border-block-start: var(--_ui-table-cell-border);
+  }
+  .ui.foot.stuck.table {
+    border-block-end: 0;
+  }
+  .ui.foot.stuck.table > tfoot {
+    inset-block: auto 0;
+  }
+  .ui.foot.stuck.table > tfoot > tr:last-child > :is(td, th) {
+    border-block-end: var(--_ui-table-cell-border);
+  }
+  .ui.first.stuck.table {
+    border-inline-start: 0;
+  }
+  .ui.first.stuck.table :is(th, td):first-child {
+    position: sticky;
+    z-index: 1;
+    inset-inline-start: 0;
+    border-inline-start: var(--_ui-table-cell-border);
+    background: inherit;
+  }
+  .ui.last.stuck.table {
+    border-inline-end: 0;
+  }
+  .ui.last.stuck.table :is(th, td):last-child {
+    position: sticky;
+    z-index: 1;
+    inset-inline-end: 0;
+    border-inline-end: var(--_ui-table-cell-border);
+    background: inherit;
+  }
+  .ui.celled.first.stuck.table :is(th, td):first-child {
+    border-inline-end: var(--_ui-table-cell-border);
+  }
+  .ui.celled.last.stuck.table :is(th, td):last-child {
+    border-inline-start: var(--_ui-table-cell-border);
+  }
+
+  /* Scrolling / overflowing heights:  rows shown by page size, times the `short` ... `very long` factor. */
+  .ui:is(.scrolling, .overflowing).short.table,
+  .short:is(.scrolling, .overflowing).scroller {
+    --_table-scroll-factor: 0.75;
+  }
+  .ui:is(.scrolling, .overflowing)[class*="very short"].table,
+  [class*="very short"]:is(.scrolling, .overflowing).scroller {
+    --_table-scroll-factor: 0.5;
+  }
+  .ui:is(.scrolling, .overflowing).long.table,
+  .long:is(.scrolling, .overflowing).scroller {
+    --_table-scroll-factor: 2;
+  }
+  .ui:is(.scrolling, .overflowing)[class*="very long"].table,
+  [class*="very long"]:is(.scrolling, .overflowing).scroller {
+    --_table-scroll-factor: 3;
+  }
+  @media (--ui-tablet), (--ui-computer) {
+    :is(.ui.table, .scroller) {
+      --_table-scroll-rows: 4;
+      --_table-overflow-rows: 6;
+    }
+  }
+  @media (--ui-computer) {
+    :is(.ui.table, .scroller) {
+      --_table-scroll-rows: 6;
+      --_table-overflow-rows: 8;
+    }
+  }
+  @media (--ui-widescreen) {
+    :is(.ui.table, .scroller) {
+      --_table-scroll-rows: 8;
+      --_table-overflow-rows: 10;
+    }
+  }
+
+  /* In an element:  the scroller scrolls;  a scrolling table keeps its head and foot in view. */
+  .scrolling.scroller,
+  .overflowing.scroller {
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .scrolling.scroller {
+    max-block-size: calc(var(--_ui-table-row-height) * (var(--_table-scroll-rows) * var(--_table-scroll-factor) + 1));
+  }
+  .overflowing.scroller {
+    max-block-size: calc(var(--_ui-table-row-height) * var(--_table-overflow-rows) * var(--_table-scroll-factor));
+  }
+  .resizable.scrolling.scroller {
+    block-size: calc(var(--_ui-table-row-height) * (var(--_table-scroll-rows) * var(--_table-scroll-factor) + 1));
+    max-block-size: none;
+    resize: vertical;
+  }
+  .scroller:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-offset);
+  }
+  @container style(--_table-hosted: 1) {
+    .ui.scrolling.table > :is(thead, tfoot) {
+      position: sticky;
+      z-index: var(--_ui-table-stuck-z);
+    }
+    .ui.scrolling.table > thead {
+      inset-block-start: 0;
+    }
+    .ui.scrolling.table > tfoot {
+      inset-block-end: 0;
+    }
+    .ui.scrolling.table > thead > tr,
+    .ui.scrolling.table > tfoot > tr {
+      background: var(--_ui-table-stuck-header-background);
+    }
+    .ui.basic.scrolling.table > :is(thead, tfoot) > tr {
+      background: var(--_ui-table-stuck-background);
+    }
+  }
+
+  /* Static markup:  Fomantic's scrollers -- the `tbody` (scrolling) or the whole table (overflowing). */
+  @container not style(--_table-hosted: 1) {
+    .ui.scrolling.table > :is(thead, tfoot, tbody) {
+      display: block;
+      overflow-y: scroll;
+      overscroll-behavior: contain;
+    }
+    .ui.scrolling.table > :is(thead, tfoot, tbody) > tr {
+      display: table;
+      inline-size: 100%;
+      table-layout: fixed;
+    }
+    .ui.scrolling.table > tbody {
+      max-block-size: calc(var(--_ui-table-row-height) * var(--_table-scroll-rows) * var(--_table-scroll-factor));
+    }
+    .ui.resizable.scrolling.table > tbody {
+      block-size: calc(var(--_ui-table-row-height) * var(--_table-scroll-rows) * var(--_table-scroll-factor));
+      max-block-size: none;
+      resize: vertical;
+    }
+    /* scrollbars in the head and foot only keep their width in step with the body's:  camouflaged */
+    .ui.scrolling.table > thead {
+      border-radius: var(--_ui-table-radius) var(--_ui-table-radius) 0 0;
+      background: var(--_ui-table-header-background);
+      color: var(--_ui-table-header-background);
+      scrollbar-color: currentColor currentColor;
+    }
+    .ui.scrolling.table > tfoot {
+      border-radius: 0 0 var(--_ui-table-radius) var(--_ui-table-radius);
+      background: var(--_ui-table-footer-background);
+      color: var(--_ui-table-footer-background);
+      scrollbar-color: currentColor currentColor;
+    }
+    .ui.overflowing.table {
+      display: block;
+      max-block-size: calc(var(--_ui-table-row-height) * var(--_table-overflow-rows) * var(--_table-scroll-factor));
+      overflow: auto;
+      overscroll-behavior: contain;
+    }
+  }
+
+  /*
+   * Stackable:  below 768px (`tablet stackable`:  992px) rows become blocks.  This only FLAGS the table
+   * (`--_table-stack: 1`);  the stacked layout is in the `states` sublayer.
+   * - By the VIEWPORT (`@media`), as in Fomantic, for static markup and elements alike.
+   * - By the HOST's width (`@container`) only when an element opts in:  `stack-by="container"`,
+   *   or `--ui-table-stack-by: container` on the DOM element, an ancestor or the page
+   *   (a table in a narrow sidebar of a wide screen);  the attribute wins.
+   * - Without either, the page-wide `--ui-stack-with` (`<ui-root stack-with>`, the token every stacking element
+   *   follows) decides:  `container` stacks by the DOM element's width, `page` by the viewport.
+   */
+  /*
+   * Order matters below (same layer, equal specificity:  the later rule wins):
+   *   1. the token's way:  by the DOM element's width when `--ui-table-stack-by: container`, else by the viewport
+   *   2. `stack-by` (the element's attribute:  a private class on the table,
+   *      `stack-by-container` / `stack-by-viewport`, from the canonical value) undoes 1, then stacks its own way
+   * - A class in SELECTORS, not a state of the DOM element:  a state that set `--_table-stack-by` left WebKit
+   *   evaluating a later table's style queries wrongly, and `:state()` rules its viewport media queries.
+   */
+  @container (width < 768px) {
+    @container style(--_table-stack-by: container) {
+      .ui.table:not(.unstackable),
+      .ui.stackable.table {
+        --_table-stack: 1;
+      }
+    }
+  }
+  @container (width < 992px) {
+    @container style(--_table-stack-by: container) {
+      .ui[class*="tablet stackable"].table {
+        --_table-stack: 1;
+      }
+    }
+  }
+  @media (--ui-mobile) {
+    @container not style(--_table-stack-by: container) {
+      .ui.table:not(.unstackable),
+      .ui.stackable.table {
+        --_table-stack: 1;
+      }
+    }
+  }
+  @media (--ui-mobile), (--ui-tablet) {
+    @container not style(--_table-stack-by: container) {
+      .ui[class*="tablet stackable"].table {
+        --_table-stack: 1;
+      }
+    }
+  }
+  .ui.stack-by-container.table,
+  .ui.stack-by-viewport.table {
+    --_table-stack: initial;
+  }
+  @container (width < 768px) {
+    :is(.ui.table:not(.unstackable), .ui.stackable.table).stack-by-container {
+      --_table-stack: 1;
+    }
+  }
+  @container (width < 992px) {
+    .ui[class*="tablet stackable"].stack-by-container.table {
+      --_table-stack: 1;
+    }
+  }
+  @media (--ui-mobile) {
+    :is(.ui.table:not(.unstackable), .ui.stackable.table).stack-by-viewport {
+      --_table-stack: 1;
+    }
+  }
+  @media (--ui-mobile), (--ui-tablet) {
+    .ui[class*="tablet stackable"].stack-by-viewport.table {
+      --_table-stack: 1;
+    }
+  }
+}
+
+/*******************************
+            States
+*******************************/
+
+@layer ui.components.table.states {
+  /*
+   * Row and cell colours:  each hue / state class => private tokens, painted by ONE rule set below.
+   * - `--_table-tint` / `-ink`:  the light background and its text (Fomantic's coloured and state cells)
+   * - `--_table-fill` / `-fill-on`:  the full colour and its text (inverted tables)
+   * - `--_table-mark` / `-mark-inverted`:  the `marked` edge
+   * - `red colored` / `red marked` are phrases, so one cell can be `red colored right blue marked`.
+   */
+  .ui.table :is(tr, th, td).positive {
+    --_table-tint: var(--ui-positive-background);
+    --_table-ink: var(--ui-positive-text);
+  }
+  .ui.table :is(tr, th, td).negative {
+    --_table-tint: var(--ui-negative-background);
+    --_table-ink: var(--ui-negative-text);
+  }
+  .ui.table :is(tr, th, td).error {
+    --_table-tint: var(--ui-error-background);
+    --_table-ink: var(--ui-error-text);
+  }
+  .ui.table :is(tr, th, td).warning {
+    --_table-tint: var(--ui-warning-background);
+    --_table-ink: var(--ui-warning-text);
+  }
+  .ui.table :is(tr, th, td).active {
+    --_table-tint: var(--_ui-table-active-background);
+    --_table-ink: var(--_ui-table-active-color);
+  }
+  .ui.table :is(tr, th, td):is(.primary:not(.marked), [class*="primary colored"]) {
+    --_table-tint: var(--ui-primary-background);
+    --_table-ink: var(--ui-primary-text);
+    --_table-fill: var(--ui-primary);
+    --_table-fill-on: var(--ui-primary-on);
+  }
+  .ui.table :is(tr, th, td):is(.secondary:not(.marked), [class*="secondary colored"]) {
+    --_table-tint: var(--ui-secondary-background);
+    --_table-ink: var(--ui-secondary-text);
+    --_table-fill: var(--ui-secondary);
+    --_table-fill-on: var(--ui-secondary-on);
+  }
+  .ui.table :is(tr, th, td):is(.red:not(.marked), [class*="red colored"]) {
+    --_table-tint: var(--ui-red-background);
+    --_table-ink: var(--ui-red-text);
+    --_table-fill: var(--ui-red);
+    --_table-fill-on: var(--ui-red-on);
+  }
+  .ui.table :is(tr, th, td):is(.orange:not(.marked), [class*="orange colored"]) {
+    --_table-tint: var(--ui-orange-background);
+    --_table-ink: var(--ui-orange-text);
+    --_table-fill: var(--ui-orange);
+    --_table-fill-on: var(--ui-orange-on);
+  }
+  .ui.table :is(tr, th, td):is(.yellow:not(.marked), [class*="yellow colored"]) {
+    --_table-tint: var(--ui-yellow-background);
+    --_table-ink: var(--ui-yellow-text);
+    --_table-fill: var(--ui-yellow);
+    --_table-fill-on: var(--ui-yellow-on);
+  }
+  .ui.table :is(tr, th, td):is(.olive:not(.marked), [class*="olive colored"]) {
+    --_table-tint: var(--ui-olive-background);
+    --_table-ink: var(--ui-olive-text);
+    --_table-fill: var(--ui-olive);
+    --_table-fill-on: var(--ui-olive-on);
+  }
+  .ui.table :is(tr, th, td):is(.green:not(.marked), [class*="green colored"]) {
+    --_table-tint: var(--ui-green-background);
+    --_table-ink: var(--ui-green-text);
+    --_table-fill: var(--ui-green);
+    --_table-fill-on: var(--ui-green-on);
+  }
+  .ui.table :is(tr, th, td):is(.teal:not(.marked), [class*="teal colored"]) {
+    --_table-tint: var(--ui-teal-background);
+    --_table-ink: var(--ui-teal-text);
+    --_table-fill: var(--ui-teal);
+    --_table-fill-on: var(--ui-teal-on);
+  }
+  .ui.table :is(tr, th, td):is(.blue:not(.marked), [class*="blue colored"]) {
+    --_table-tint: var(--ui-blue-background);
+    --_table-ink: var(--ui-blue-text);
+    --_table-fill: var(--ui-blue);
+    --_table-fill-on: var(--ui-blue-on);
+  }
+  .ui.table :is(tr, th, td):is(.violet:not(.marked), [class*="violet colored"]) {
+    --_table-tint: var(--ui-violet-background);
+    --_table-ink: var(--ui-violet-text);
+    --_table-fill: var(--ui-violet);
+    --_table-fill-on: var(--ui-violet-on);
+  }
+  .ui.table :is(tr, th, td):is(.purple:not(.marked), [class*="purple colored"]) {
+    --_table-tint: var(--ui-purple-background);
+    --_table-ink: var(--ui-purple-text);
+    --_table-fill: var(--ui-purple);
+    --_table-fill-on: var(--ui-purple-on);
+  }
+  .ui.table :is(tr, th, td):is(.pink:not(.marked), [class*="pink colored"]) {
+    --_table-tint: var(--ui-pink-background);
+    --_table-ink: var(--ui-pink-text);
+    --_table-fill: var(--ui-pink);
+    --_table-fill-on: var(--ui-pink-on);
+  }
+  .ui.table :is(tr, th, td):is(.brown:not(.marked), [class*="brown colored"]) {
+    --_table-tint: var(--ui-brown-background);
+    --_table-ink: var(--ui-brown-text);
+    --_table-fill: var(--ui-brown);
+    --_table-fill-on: var(--ui-brown-on);
+  }
+  .ui.table :is(tr, th, td):is(.grey:not(.marked), [class*="grey colored"]) {
+    --_table-tint: var(--ui-grey-background);
+    --_table-ink: var(--ui-grey-text);
+    --_table-fill: var(--ui-grey);
+    --_table-fill-on: var(--ui-grey-on);
+  }
+  .ui.table :is(tr, th, td):is(.black:not(.marked), [class*="black colored"]) {
+    --_table-tint: var(--ui-black-background);
+    --_table-ink: var(--ui-black-text);
+    --_table-fill: var(--ui-black);
+    --_table-fill-on: var(--ui-black-on);
+  }
+  .ui.table :is(tr, td)[class*="primary marked"] {
+    --_table-mark: var(--ui-primary);
+    --_table-mark-inverted: var(--ui-primary-inverted);
+  }
+  .ui.table :is(tr, td)[class*="secondary marked"] {
+    --_table-mark: var(--ui-secondary);
+    --_table-mark-inverted: var(--ui-secondary-inverted);
+  }
+  .ui.table :is(tr, td)[class*="red marked"] {
+    --_table-mark: var(--ui-red);
+    --_table-mark-inverted: var(--ui-red-inverted);
+  }
+  .ui.table :is(tr, td)[class*="orange marked"] {
+    --_table-mark: var(--ui-orange);
+    --_table-mark-inverted: var(--ui-orange-inverted);
+  }
+  .ui.table :is(tr, td)[class*="yellow marked"] {
+    --_table-mark: var(--ui-yellow);
+    --_table-mark-inverted: var(--ui-yellow-inverted);
+  }
+  .ui.table :is(tr, td)[class*="olive marked"] {
+    --_table-mark: var(--ui-olive);
+    --_table-mark-inverted: var(--ui-olive-inverted);
+  }
+  .ui.table :is(tr, td)[class*="green marked"] {
+    --_table-mark: var(--ui-green);
+    --_table-mark-inverted: var(--ui-green-inverted);
+  }
+  .ui.table :is(tr, td)[class*="teal marked"] {
+    --_table-mark: var(--ui-teal);
+    --_table-mark-inverted: var(--ui-teal-inverted);
+  }
+  .ui.table :is(tr, td)[class*="blue marked"] {
+    --_table-mark: var(--ui-blue);
+    --_table-mark-inverted: var(--ui-blue-inverted);
+  }
+  .ui.table :is(tr, td)[class*="violet marked"] {
+    --_table-mark: var(--ui-violet);
+    --_table-mark-inverted: var(--ui-violet-inverted);
+  }
+  .ui.table :is(tr, td)[class*="purple marked"] {
+    --_table-mark: var(--ui-purple);
+    --_table-mark-inverted: var(--ui-purple-inverted);
+  }
+  .ui.table :is(tr, td)[class*="pink marked"] {
+    --_table-mark: var(--ui-pink);
+    --_table-mark-inverted: var(--ui-pink-inverted);
+  }
+  .ui.table :is(tr, td)[class*="brown marked"] {
+    --_table-mark: var(--ui-brown);
+    --_table-mark-inverted: var(--ui-brown-inverted);
+  }
+  .ui.table :is(tr, td)[class*="grey marked"] {
+    --_table-mark: var(--ui-grey);
+    --_table-mark-inverted: var(--ui-grey-inverted);
+  }
+  .ui.table :is(tr, td)[class*="black marked"] {
+    --_table-mark: var(--ui-black);
+    --_table-mark-inverted: var(--ui-black-inverted);
+  }
+
+  /* Paint:  every coloured / state row and cell, from its tokens. */
+  .ui.table
+    :is(tr, th, td):is(
+      .positive,
+      .negative,
+      .error,
+      .warning,
+      .active,
+      .colored,
+      :is(
+        .primary,
+        .secondary,
+        .red,
+        .orange,
+        .yellow,
+        .olive,
+        .green,
+        .teal,
+        .blue,
+        .violet,
+        .purple,
+        .pink,
+        .brown,
+        .grey,
+        .black
+      ):not(.marked)
+    ) {
+    background: var(--_table-tint);
+    color: var(--_table-ink);
+  }
+  /* A coloured head / foot row shows through its header cells. */
+  .ui.table
+    > :is(thead, tfoot)
+    > tr:is(
+      .positive,
+      .negative,
+      .error,
+      .warning,
+      .active,
+      .colored,
+      :is(
+        .primary,
+        .secondary,
+        .red,
+        .orange,
+        .yellow,
+        .olive,
+        .green,
+        .teal,
+        .blue,
+        .violet,
+        .purple,
+        .pink,
+        .brown,
+        .grey,
+        .black
+      ):not(.marked)
+    )
+    > :is(th, td) {
+    background: inherit;
+    color: inherit;
+  }
+  /* Inverted:  hues fill with the full colour;  states keep their (now dark) tint. */
+  .ui.inverted.table
+    :is(tr, th, td):is(
+      .colored,
+      :is(
+        .primary,
+        .secondary,
+        .red,
+        .orange,
+        .yellow,
+        .olive,
+        .green,
+        .teal,
+        .blue,
+        .violet,
+        .purple,
+        .pink,
+        .brown,
+        .grey,
+        .black
+      ):not(.marked)
+    ) {
+    background: var(--_table-fill);
+    color: var(--_table-fill-on);
+  }
+
+  /* Marked:  a coloured edge on the left or right. */
+  .ui.table :is(tr, td).left.marked {
+    --_table-mark-shadow: var(--_ui-table-marker-width) 0 0 0 var(--_table-mark) inset;
+    box-shadow: var(--_table-mark-shadow);
+  }
+  .ui.table :is(tr, td).right.marked {
+    --_table-mark-shadow: calc(-1 * var(--_ui-table-marker-width)) 0 0 0 var(--_table-mark) inset;
+    box-shadow: var(--_table-mark-shadow);
+  }
+  .ui.inverted.table :is(tr, td).left.marked {
+    --_table-mark-shadow: var(--_ui-table-marker-width) 0 0 0 var(--_table-mark-inverted) inset;
+  }
+  .ui.inverted.table :is(tr, td).right.marked {
+    --_table-mark-shadow: calc(-1 * var(--_ui-table-marker-width)) 0 0 0 var(--_table-mark-inverted) inset;
+  }
+
+  /* Disabled rows and cells:  faded, inert to the pointer. */
+  .ui.table tr.disabled > :is(td, th),
+  .ui.table tr > :is(td, th).disabled {
+    color: var(--_ui-table-disabled-color);
+    pointer-events: none;
+  }
+
+  /*
+   * Selectable:  hovered rows / cells get a translucent overlay over whatever paints them (plain, striped,
+   * coloured, state), so one rule serves every colour.
+   */
+  .ui.selectable.table > tbody > tr:hover,
+  .ui.selectable.table > tr:hover,
+  .ui.table tbody tr td.selectable:hover {
+    background-image: linear-gradient(var(--_ui-table-selectable-background), var(--_ui-table-selectable-background));
+    color: var(--_table-ink, var(--_ui-table-selectable-color));
+  }
+  .ui.inverted.selectable.table > tbody > tr:hover,
+  .ui.inverted.table tbody tr td.selectable:hover {
+    color: var(--_table-fill-on, var(--_ui-table-selectable-color));
+  }
+
+  /* Sortable:  hover and sorted headers. */
+  .ui.sortable.table > thead > tr > th:not([data-sortable="false"], .disabled):hover {
+    color: var(--_ui-table-sortable-hover-color);
+  }
+  .ui.sortable.table:not(.basic) > thead > tr > th:not([data-sortable="false"], .disabled):hover {
+    background: var(--_ui-table-sortable-hover-background);
+  }
+  .ui.sortable.table thead th:is([aria-sort], .sorted) {
+    color: var(--_ui-table-sortable-active-color);
+    user-select: none;
+  }
+  .ui.sortable.table:not(.basic) thead th:is([aria-sort], .sorted) {
+    background: var(--_ui-table-sortable-active-background);
+  }
+  .ui.sortable.table > thead > tr > th.disabled:hover {
+    color: var(--_ui-table-disabled-color);
+  }
+  .ui.inverted.sortable.table:not(.basic) > thead > tr > th {
+    border-inline-color: transparent;
+  }
+  .ui.inverted.sortable.table:not(.basic) > thead > tr > th:not([data-sortable="false"], .disabled):hover,
+  .ui.inverted.sortable.table:not(.basic) thead th:is([aria-sort], .sorted) {
+    background: var(--_ui-table-inverted-sortable-background);
+  }
+
+  /*
+   * Stacked (see "Stackable"):  every part a block, cells without borders or fills, a line under each row.
+   * - Here, in the last sublayer, so it beats cell widths (`four wide`, `collapsing`) and fills --
+   *   Fomantic needs `!important` and `.ui.ui.ui.ui` for that.
+   * - Style queries read the PARENT:  `thead` asks the table, `tr` its section, a cell its row.
+   */
+  @container style(--_table-stack: 1) {
+    .ui.table > :is(thead, tbody, tfoot),
+    .ui.table > :is(thead, tbody, tfoot) > tr,
+    .ui.table > tr,
+    .ui.table > :is(thead, tbody, tfoot) > tr > :is(th, td):not(.rowspanned),
+    .ui.table > tr > :is(th, td):not(.rowspanned) {
+      display: block;
+      inline-size: auto;
+    }
+    .ui.table > :is(thead, tbody, tfoot) > tr,
+    .ui.table > tr {
+      padding-block: var(--_ui-table-responsive-row-padding);
+      box-shadow: var(--_ui-table-responsive-row-shadow), var(--_table-mark-shadow);
+    }
+    .ui.table > :is(thead, tbody, tfoot) > tr > :is(th, td),
+    .ui.table > tr > :is(th, td) {
+      padding: var(--_ui-table-responsive-cell-padding);
+      border: none;
+      box-shadow: none;
+      background: none;
+    }
+    .ui.table > :is(thead, tbody, tfoot) > tr > :is(th, td):first-child,
+    .ui.table > tr > :is(th, td):first-child {
+      font-weight: var(--ui-font-weight-bold);
+    }
+    .ui.definition.table > thead > tr > :is(th, td):first-child {
+      box-shadow: none;
+    }
+  }
+}

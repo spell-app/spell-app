@@ -49,6 +49,10 @@ export const lintBase = {
     "typescript/no-explicit-any": "off",
 
     "prefer-const": ["error", { destructuring: "all" }],
+    // `ui`'s controllers type their vocabulary getters by merging an interface into the class
+    // (`export interface UIButton extends E.AttributeValues<typeof buttonVocabulary> {}`);  the getters are real,
+    // installed on the prototype by `UIElement.register()` (epic `wwod-spell-ui`, P14).
+    "typescript/no-unsafe-declaration-merging": "off",
 
     ////////////////
     // ## Type-aware
@@ -135,6 +139,16 @@ export const rootLintIgnore = [
 ]
 
 /**
+ * Rules tests turn off, as an `overrides` entry for the root block and every package's.
+ * - `typescript/no-misused-spread`:  WWOD §20 compares a whole instance with `toEqual({ ...instance })`, which the
+ *   rule calls a mistake (a spread drops the prototype:  that's the point there).  Epic `wwod-spell-ui`, I22.
+ */
+export const testLint = {
+  files: ["**/*.test.ts", "**/*.test.tsx"],
+  rules: { "typescript/no-misused-spread": "off" }
+} satisfies NonNullable<OxlintConfig["overrides"]>[number]
+
+/**
  * Packages that get React's rules (`reactLint`):  the ROOT block's `overrides` -- one config for the editor and
  * `vp check`, which never read a package's.  Their `vite.config.ts` says `packageLint({ react: true })`.
  */
@@ -150,7 +164,8 @@ export function rootLint() {
         files: REACT_PACKAGES.map((name) => `packages/${name}/**`),
         plugins: reactLint.plugins,
         rules: reactLint.rules
-      }
+      },
+      testLint
     ]
   } satisfies OxlintConfig
 }
@@ -164,7 +179,8 @@ export function packageLint({ react = false, ignorePatterns = ["build", "dist", 
     ...lintBase,
     plugins: react ? [...reactLint.plugins, ...lintBase.plugins] : lintBase.plugins,
     ignorePatterns,
-    rules: react ? { ...lintBase.rules, ...reactLint.rules } : lintBase.rules
+    rules: react ? { ...lintBase.rules, ...reactLint.rules } : lintBase.rules,
+    overrides: [testLint]
   } satisfies OxlintConfig
 }
 
@@ -204,7 +220,10 @@ export const fmtConfig = {
     "**/.vitest/**",
     "**/graphify-out/**",
     "**/thoughts/**",
-    "**/static/**",
+    // a package's built `static/` (`app`, `spell`):  from its own folder, and from the root.  NOT `**/static/**`,
+    // which also skipped `ui`'s source folder `src/static/` (the static server render)
+    "static/**",
+    "**/packages/*/static/**",
     "**/projects/**",
     "**/vscode-extension/out/**",
     "**/docs/tools/_assets/spell-ui.js",

@@ -1,0 +1,12 @@
+/*
+ * `<ui-components>`:  no Fomantic counterpart, and nothing to draw.  It only names a component pack (`source`) for
+ * the `<ui-root>` around it, so the DOM element never takes up space.
+ */
+
+@layer ui.components.components.types;
+
+@layer ui.components.components.types {
+  :host {
+    display: none;
+  }
+}

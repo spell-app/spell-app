@@ -2,6 +2,10 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { camelCase, kebabCase, levenshtein, numberToWord, suggest } from "./string"
 
+////////////////
+// ## Names and words
+////////////////
+
 describe("kebabCase() / camelCase()", () => {
   it("converts property names to attribute names", () => {
     expect(kebabCase("activeIndex")).toBe("active-index")
@@ -48,6 +52,10 @@ describe("numberToWord()", () => {
     expect(numberToWord("four")).toBeUndefined()
   })
 })
+
+////////////////
+// ## Near misses
+////////////////
 
 describe("levenshtein()", () => {
   it("counts edits", () => {

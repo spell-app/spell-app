@@ -21,6 +21,7 @@
  *   - `--allow-unsafe`:  index unsafe files anyway (a broken one still refuses the pack)
  * - `smoke` expects a fresh `vite build` and `yarn vendor`;  `measure` builds in memory.  Both `vendor` and
  *   `measure` bundle the fork's BUILT output:  `ForkBuild.ensure()` builds it first when stale.
+ * - Output goes to stdout / stderr through `Terminal`;  a failed check sets exit code 1, bad arguments exit 1.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
@@ -38,11 +39,23 @@ import {
   PeerVendor,
   ReportTables,
   SmokeRunner,
+  Terminal,
+  type IconPackUnsafePolicy,
   type ImportMap
 } from "./index.ts"
 import { DIST_IMPORTS, PACKAGE } from "./package.config.ts"
 
-const command = process.argv[2]
+// Above the dispatch:  it runs as the module loads
+
+/** Every command, for the usage line. */
+const COMMANDS = ["vendor", "measure", "smoke", "declarations", "serve", "loc", "report", "icons:pack"]
+
+/** `icons:pack`'s arguments, for its usage line. */
+const ICONS_PACK_USAGE =
+  "icons:pack <folder> --id <id> [--label <text>] [--license <text>] [--sanitize] [--skip-unsafe | --allow-unsafe] " +
+  "[--force]"
+
+const [command, ...args] = process.argv.slice(2)
 switch (command) {
   case "vendor":
     ForkBuild.ensure()
@@ -64,8 +77,8 @@ switch (command) {
     break
   case "declarations": {
     const problems = new DeclarationCheck(PACKAGE.root).problems()
-    problems.forEach((problem) => console.error(problem))
-    console.log(problems.length ? `declarations:  ${problems.length} problem(s)` : "declarations:  ok")
+    for (const problem of problems) Terminal.err(problem)
+    Terminal.out(problems.length ? `declarations:  ${problems.length} problem(s)` : "declarations:  ok")
     if (problems.length) process.exitCode = 1
     break
   }
@@ -77,22 +90,20 @@ switch (command) {
     break
   case "report":
     loc()
-    new ReportTables(PACKAGE.root).write()
+    new ReportTables({ root: PACKAGE.root }).write()
     break
   case "icons:pack":
-    await iconPack()
+    await iconPack(args)
     break
   default:
-    console.error(
-      "usage:  tsx tools/cli.ts vendor | measure | smoke | declarations | serve | loc | report | icons:pack"
-    )
+    Terminal.err(`usage:  tsx tools/cli.ts ${COMMANDS.join(" | ")}`)
     process.exit(1)
 }
 
 /** Host pages + the extra pages, against `dist/` and the vendored Solid. */
 function runner() {
   const vendorMap = join(PACKAGE.root, "vendor", "importmap.json")
-  if (!existsSync(vendorMap)) throw new Error("no vendor/importmap.json:  run `yarn vendor` first")
+  if (!existsSync(vendorMap)) throw new Error("cli runner():  no vendor/importmap.json;  run `yarn vendor` first")
   const vendored = JSON.parse(readFileSync(vendorMap, "utf8")) as ImportMap
   return new SmokeRunner({
     name: PACKAGE.name,
@@ -110,24 +121,29 @@ function runner() {
 
 /** Lines / code lines of the element core, components, foundation, tests and tooling. */
 function loc() {
-  const results = new LocCount(PACKAGE.name, PACKAGE.root, {
-    "element core": ["src/elements/*.{ts,tsx}", "src/core.ts", "src/forms.ts", "!src/elements/*.test.{ts,tsx}"],
-    components: [
-      "src/components/*/UI*.{ts,tsx}",
-      "src/components/*/index.ts",
-      "src/components/ui-dropdown/SlottedItems.ts",
-      "src/components/ui-parts/PartElement.ts",
-      "!src/components/**/*.test.{ts,tsx}"
-    ],
-    "vocabularies & fallbacks": ["src/components/*/*.vocabulary.*.ts", "src/components/*/*.fallback.ts"],
-    foundation: [
-      "src/{util,vocabulary,runtime,styles,icons}/*.ts",
-      "src/components/*.ts",
-      "src/index.ts",
-      "!src/**/*.test.ts"
-    ],
-    tests: ["src/**/*.test.{ts,tsx}", "test/**/*.{ts,tsx}"],
-    tooling: ["tools/**/*.{ts,tsx,js,html}", "vite.config.ts", "vitest.config.ts"]
+  const results = new LocCount({
+    name: PACKAGE.name,
+    root: PACKAGE.root,
+    groups: {
+      "element core": ["src/elements/*.{ts,tsx}", "src/core.ts", "src/forms.ts", "!src/elements/*.test.{ts,tsx}"],
+      components: [
+        "src/components/*/UI*.{ts,tsx}",
+        "src/components/*/index.ts",
+        "src/components/ui-dropdown/SlottedItems.ts",
+        "!src/components/**/*.test.{ts,tsx}",
+        // a family's other files are named for its component too (`UIButton.en.ts`):  counted below
+        "!src/components/*/*.{[a-z][a-z],fallback,types}.ts"
+      ],
+      "vocabularies & fallbacks": ["src/components/*/*.[a-z][a-z].ts", "src/components/*/*.fallback.ts"],
+      foundation: [
+        "src/{util,vocabulary,runtime,styles,icons}/*.ts",
+        "src/components/*.ts",
+        "src/index.ts",
+        "!src/**/*.test.ts"
+      ],
+      tests: ["src/**/*.test.{ts,tsx}", "test/**/*.{ts,tsx}"],
+      tooling: ["tools/**/*.{ts,tsx,js,html}", "vite.config.ts", "vitest.config.ts"]
+    }
   }).count()
   const folder = join(PACKAGE.root, PACKAGE.results)
   mkdirSync(folder, { recursive: true })
@@ -135,9 +151,9 @@ function loc() {
 }
 
 /** `icons:pack`:  verify a folder of SVGs and write its `pack.js`;  prints what changed, or every problem. */
-async function iconPack() {
+async function iconPack(argv: string[]) {
   const { positionals, values } = parseArgs({
-    args: process.argv.slice(3),
+    args: argv,
     allowPositionals: true,
     options: {
       id: { type: "string" },
@@ -151,12 +167,10 @@ async function iconPack() {
   })
   const [folder] = positionals
   if (!folder || !values.id || (values["skip-unsafe"] && values["allow-unsafe"])) {
-    console.error(
-      "usage:  tsx tools/cli.ts icons:pack <folder> --id <id> [--label <text>] [--license <text>] [--sanitize] " +
-        "[--skip-unsafe | --allow-unsafe] [--force]"
-    )
+    Terminal.err(`usage:  tsx tools/cli.ts ${ICONS_PACK_USAGE}`)
     process.exit(1)
   }
+  const unsafe: IconPackUnsafePolicy = values["skip-unsafe"] ? "skip" : values["allow-unsafe"] ? "allow" : "refuse"
   try {
     const report = await new IconPackBuilder({
       folder: resolve(folder),
@@ -164,19 +178,20 @@ async function iconPack() {
       label: values.label,
       license: values.license,
       sanitize: values.sanitize,
-      unsafe: values["skip-unsafe"] ? "skip" : values["allow-unsafe"] ? "allow" : "refuse",
+      unsafe,
       force: values.force
     }).build()
-    console.log(`${report.index}:  ${report.count} icons`)
-    if (report.added.length) console.log(`  added:  ${report.added.join(", ")}`)
-    if (report.dropped.length) console.log(`  dropped:  ${report.dropped.join(", ")}`)
-    if (report.unreachable.length) console.log(`  no name of their own:  ${report.unreachable.join(", ")}`)
-    for (const { file, reason } of report.sanitized) console.log(`  sanitized ${file}:  ${reason}`)
-    for (const { file, reason } of report.skipped) console.log(`  skipped ${file}:  ${reason}`)
-    for (const { file, reason } of report.allowed) console.log(`  UNSAFE, indexed anyway:  ${file}:  ${reason}`)
+    const lines = [`${report.index}:  ${report.count} icons`]
+    if (report.added.length) lines.push(`  added:  ${report.added.join(", ")}`)
+    if (report.dropped.length) lines.push(`  dropped:  ${report.dropped.join(", ")}`)
+    if (report.unreachable.length) lines.push(`  no name of their own:  ${report.unreachable.join(", ")}`)
+    for (const { file, reason } of report.sanitized) lines.push(`  sanitized ${file}:  ${reason}`)
+    for (const { file, reason } of report.skipped) lines.push(`  skipped ${file}:  ${reason}`)
+    for (const { file, reason } of report.allowed) lines.push(`  UNSAFE, indexed anyway:  ${file}:  ${reason}`)
+    Terminal.out(lines.join("\n"))
   } catch (error) {
     if (!(error instanceof IconPackError)) throw error
-    console.error(error.message)
+    Terminal.err(error.message)
     process.exitCode = 1
   }
 }

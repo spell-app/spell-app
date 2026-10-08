@@ -1,7 +1,7 @@
 /**
  * Types of `$/epics/definitions`:  the ONE description of every `<epic-*>` element, shared by the browser elements
  * and the node tools (the converter, the plan-doc tool).
- * - An element's description IS its vocabulary, `components/<family>/<tag>.vocabulary.en.ts`:  Spell UI's
+ * - An element's description IS its vocabulary, `components/<family>/<Name>.en.ts`:  Spell UI's
  *   `ComponentVocabulary`, plus what it lacks for a DOCUMENT format -- the children each element allows (its content
  *   model), required attributes and value formats.
  * - Bottom of the folder's import graph:  `import type` only, so it loads anywhere (node, browser, a vocabulary).
@@ -27,7 +27,7 @@ export type CamelCase<S extends string> = S extends `${infer Head}-${infer Tail}
 /**
  * An `<epic-*>` element's vocabulary:  Spell UI's `ComponentVocabulary`, plus its content model.
  * - Write it as `export const epicItemVocabulary = { ... } as const satisfies EpicVocabulary`:  the element class
- *   reads it as any Spell UI family does (`UIElement<typeof epicItemVocabulary>`), and `Definitions.all` lists it
+ *   reads it as any Spell UI family does (`E.UIComponent<typeof epicItemVocabulary>`), and `Definitions.all` lists it
  *   for the node tools.
  * - Pure data:  `import type` only (node imports it:  `spell dev pack build`, the tests, the tool).
  */
@@ -204,8 +204,8 @@ export type EpicTag = keyof typeof Definitions.all
 export type VocabularyOf<T extends EpicTag> = (typeof Definitions.all)[T]
 
 /**
- * An element's DATA:  its attributes, typed, keyed by camelCase name (`reviewAs` for `review-as`, as in its
- * `this.attrs`), as `Markup.read()` returns and `Markup.element()` / `set()` take.
+ * An element's DATA:  its attributes, typed, keyed by camelCase name (`reviewAs` for `review-as`, as its
+ * component's attribute getters), as `Markup.read()` returns and `Markup.element()` / `set()` take.
  * - `boolean` => `boolean`, `number` => `number`, `enum` => its values' union, else `string`
  * - optional unless `required: true`;  absent attributes are left OUT, never `undefined` / `false`
  */

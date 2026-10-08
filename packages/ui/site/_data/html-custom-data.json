@@ -5,7 +5,7 @@
       "name": "ui-accordion",
       "description": {
         "kind": "markdown",
-        "value": "An accordion allows users to toggle the display of sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.\n\n**Slots:**  default\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
+        "value": "An accordion lets people show and hide sections of content.\n\nAlso known as:  collapse, collapsible, disclosure, expander, details, faq.\n\n**Slots:**  default\n\n**Events:**  `ui-open`, `ui-close`, `ui-load`, `ui-error`"
       },
       "attributes": [
         {
@@ -73,7 +73,7 @@
           "name": "open",
           "description": {
             "kind": "markdown",
-            "value": "Indexes of the open panels (0-based), space-separated:  `open=\"0\"`, `open=\"0 2\"`.  Controlled:  set it to open / close panels;  `ui-open` / `ui-close` can veto the user's changes.  When `exclusive`, only the first index counts.\n\nTakes:  text"
+            "value": "Indexes of the open panels (0-based), space-separated:  `open=\"0\"`, `open=\"0 2\"`.  Controlled:  set it to open / close panels;  `ui-open` / `ui-close` can veto people's changes.  When `exclusive`, only the first index counts.\n\nTakes:  text"
           }
         },
         {
@@ -96,7 +96,7 @@
       "name": "ui-actions",
       "description": {
         "kind": "markdown",
-        "value": "Actions a user can take:  a modal's or toast's buttons, a comment's reply links.\n\nAlso known as:  footer buttons, button bar, dialog actions.\n\n**Slots:**  default"
+        "value": "Actions a person can take:  a modal's or toast's buttons, a comment's reply links.\n\nAlso known as:  footer buttons, button bar, dialog actions.\n\n**Slots:**  default"
       },
       "attributes": []
     },
@@ -344,7 +344,7 @@
       "name": "ui-button",
       "description": {
         "kind": "markdown",
-        "value": "A button indicates a possible user action.\n\nAlso known as:  btn, action, submit, link button.\n\n**Slots:**  default, `icon`, `label`\n\n**Events:**  `ui-toggle`"
+        "value": "A button indicates a possible action.\n\nAlso known as:  btn, action, submit, link button.\n\n**Slots:**  default, `icon`, `label`\n\n**Events:**  `ui-toggle`"
       },
       "attributes": [
         {
@@ -1044,7 +1044,7 @@
       "name": "ui-calendar",
       "description": {
         "kind": "markdown",
-        "value": "A calendar lets a user pick a date, a time, or both.\n\nAlso known as:  date picker, datepicker, time picker, datetime, date range.\n\n**Events:**  `ui-change`, `ui-open`, `ui-close`"
+        "value": "A calendar lets a person pick a date, a time, or both.\n\nAlso known as:  date picker, datepicker, time picker, datetime, date range.\n\n**Events:**  `ui-change`, `ui-open`, `ui-close`"
       },
       "attributes": [
         {
@@ -1781,7 +1781,7 @@
       "name": "ui-checkbox",
       "description": {
         "kind": "markdown",
-        "value": "A checkbox allows a user to select a value from a small set of options, often binary.\n\nAlso known as:  check box, toggle, switch, tick box.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
+        "value": "A checkbox lets people choose a value from a small set of options, often on or off.\n\nAlso known as:  check box, toggle, switch, tick box.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
       },
       "attributes": [
         {
@@ -1946,7 +1946,7 @@
           "name": "value",
           "description": {
             "kind": "markdown",
-            "value": "Value submitted while chosen;  default `on`, as a native checkbox.\n\nTakes:  text"
+            "value": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `defaultChosenValue`).\n\nTakes:  text"
           }
         },
         {
@@ -1968,6 +1968,13 @@
           "description": {
             "kind": "markdown",
             "value": "Label text;  slotted content is the rich version.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "off-value",
+          "description": {
+            "kind": "markdown",
+            "value": "Value submitted while unchosen:  `value=\"open\" off-value=\"closed\"`;  default its class's `defaultUnchosenValue`, else nothing, as a native checkbox.  Needs JavaScript:  a static server render submits nothing while unchosen.\n\nTakes:  text"
           }
         }
       ]
@@ -2762,7 +2769,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "With `scrolling`:  the user can drag its height.\n\nTakes:  flag (present / absent)"
+            "value": "With `scrolling`:  people can drag its height.\n\nTakes:  flag (present / absent)"
           }
         }
       ]
@@ -2913,7 +2920,7 @@
           "name": "active",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -2967,7 +2974,7 @@
           ]
         },
         {
-          "name": "on",
+          "name": "show-on",
           "description": {
             "kind": "markdown",
             "value": "Shows by itself:  `hover` while the pointer is over its parent (or focus is inside), `click` when the parent is clicked.  Default:  only `active` shows it.\n\nTakes:  `hover` · `click`"
@@ -3113,7 +3120,7 @@
           "name": "hidden",
           "description": {
             "kind": "markdown",
-            "value": "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so it doesn't shadow `HTMLElement.hidden` -- `ui-divider.css` overrides the UA `[hidden] { display: none }` so the host keeps contributing its margin.\n\nTakes:  flag (present / absent)"
+            "value": "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so it doesn't shadow `HTMLElement.hidden` -- `UIDivider.css` overrides the UA `[hidden] { display: none }` so the host keeps contributing its margin.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -3175,7 +3182,7 @@
       "name": "ui-dropdown",
       "description": {
         "kind": "markdown",
-        "value": "A dropdown allows a user to select a value from a series of options.\n\nAlso known as:  select, combobox, picker, autocomplete, menu button, multi select.\n\n**Slots:**  default, `trigger`, `header`, `icon`\n\n**Events:**  `ui-change`, `ui-open`, `ui-close`, `ui-search`, `ui-add`, `ui-remove`"
+        "value": "A dropdown lets people choose a value from a series of options.\n\nAlso known as:  select, combobox, picker, autocomplete, menu button, multi select.\n\n**Slots:**  default, `trigger`, `header`, `icon`\n\n**Events:**  `ui-change`, `ui-open`, `ui-close`, `ui-search`, `ui-add`, `ui-remove`"
       },
       "attributes": [
         {
@@ -3325,7 +3332,7 @@
           "name": "button",
           "description": {
             "kind": "markdown",
-            "value": "Looks like a button (`ui-button.css`).\n\nTakes:  flag (present / absent)"
+            "value": "Looks like a button (`UIButton.css`).\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -3416,7 +3423,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "A `scrolling` menu the user can resize vertically.\n\nTakes:  flag (present / absent)"
+            "value": "A `scrolling` menu people can resize vertically.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -3893,7 +3900,7 @@
       "name": "ui-feed",
       "description": {
         "kind": "markdown",
-        "value": "A feed presents user activity chronologically.\n\nAlso known as:  activity feed, timeline, news feed, activity stream.\n\n**Slots:**  default"
+        "value": "A feed presents people's activity chronologically.\n\nAlso known as:  activity feed, timeline, news feed, activity stream.\n\n**Slots:**  default"
       },
       "attributes": [
         {
@@ -4281,7 +4288,7 @@
           "name": "country",
           "description": {
             "kind": "markdown",
-            "value": "ISO 3166-1 alpha-2 code in any case (`fr`, `US`), or one of Fomantic's names and aliases (`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `flagAliases`.\n\nTakes:  text"
+            "value": "ISO 3166-1 alpha-2 code in any case (`fr`, `US`), or one of Fomantic's names and aliases (`france`, `united states`, `america`, `uk`, `england`, `pride` ...), see `FLAG_ALIASES`.\n\nTakes:  text"
           }
         }
       ]
@@ -4339,7 +4346,7 @@
           "name": "open",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -4444,7 +4451,7 @@
       "name": "ui-form",
       "description": {
         "kind": "markdown",
-        "value": "A form displays a set of related user input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.\n\n**Slots:**  default\n\n**Events:**  `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`"
+        "value": "A form displays a set of related input fields in a structured way.\n\nAlso known as:  form layout, fieldset, validation.\n\n**Slots:**  default\n\n**Events:**  `ui-valid`, `ui-invalid`, `ui-success`, `ui-failure`"
       },
       "attributes": [
         {
@@ -4552,7 +4559,7 @@
           ]
         },
         {
-          "name": "on",
+          "name": "validate-on",
           "description": {
             "kind": "markdown",
             "value": "When fields validate:  on `submit` only, or also when one loses focus (`blur`) or changes (`change`).  A field showing an error always re-validates as it changes.\n\nTakes:  `submit` · `blur` · `change`\nDefault:  `submit`"
@@ -5781,7 +5788,7 @@
       "name": "ui-input",
       "description": {
         "kind": "markdown",
-        "value": "An input is a field used to elicit a response from a user.\n\nAlso known as:  text field, text box, textbox, input field, search box.\n\n**Slots:**  `label`, `action`, `icon`\n\n**Events:**  `ui-input`, `ui-change`"
+        "value": "An input is a field used to elicit a response from a person.\n\nAlso known as:  text field, text box, textbox, input field, search box.\n\n**Slots:**  `label`, `action`, `icon`\n\n**Events:**  `ui-input`, `ui-change`"
       },
       "attributes": [
         {
@@ -6101,7 +6108,7 @@
           "name": "minlength",
           "description": {
             "kind": "markdown",
-            "value": "Constraint:  fewest characters (checked after the user edits).\n\nTakes:  number"
+            "value": "Constraint:  fewest characters (checked once someone has edited it).\n\nTakes:  number"
           }
         },
         {
@@ -7108,7 +7115,7 @@
       "name": "ui-loader",
       "description": {
         "kind": "markdown",
-        "value": "A loader alerts a user to wait for an activity to complete.\n\nAlso known as:  spinner, loading indicator, busy, throbber, activity indicator.\n\n**Slots:**  default"
+        "value": "A loader tells people to wait for an activity to complete.\n\nAlso known as:  spinner, loading indicator, busy, throbber, activity indicator.\n\n**Slots:**  default"
       },
       "attributes": [
         {
@@ -8099,7 +8106,7 @@
           "name": "open",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -8462,7 +8469,7 @@
           "name": "collapsed",
           "description": {
             "kind": "markdown",
-            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
+            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -8986,7 +8993,7 @@
           "name": "open",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -9047,7 +9054,7 @@
           ]
         },
         {
-          "name": "on",
+          "name": "open-on",
           "description": {
             "kind": "markdown",
             "value": "What opens it:  `hover` (also keyboard focus), `focus`, `click` (toggles;  a non-modal dialog), or `manual` (only `open`).\n\nTakes:  `hover` · `focus` · `click` · `manual`\nDefault:  `hover`"
@@ -9550,7 +9557,7 @@
           "name": "value",
           "description": {
             "kind": "markdown",
-            "value": "Value submitted while chosen;  default `on`, as a native checkbox.\n\nTakes:  text"
+            "value": "Value submitted while chosen;  default `on`, as a native checkbox (or its class's `defaultChosenValue`).\n\nTakes:  text"
           }
         },
         {
@@ -9670,7 +9677,7 @@
       "name": "ui-rating",
       "description": {
         "kind": "markdown",
-        "value": "A rating indicates user interest in content.\n\nAlso known as:  stars, star rating, score, review stars, hearts.\n\n**Events:**  `ui-change`"
+        "value": "A rating indicates people's interest in content.\n\nAlso known as:  stars, star rating, score, review stars, hearts.\n\n**Events:**  `ui-change`"
       },
       "attributes": [
         {
@@ -10359,7 +10366,7 @@
       "name": "ui-search",
       "description": {
         "kind": "markdown",
-        "value": "A search module allows a user to query for results from a selection of data.\n\nAlso known as:  autocomplete, typeahead, search box, combobox, lookup.\n\n**Slots:**  `icon`\n\n**Events:**  `ui-search`, `ui-select`, `ui-change`, `ui-results`, `ui-open`, `ui-close`"
+        "value": "A search module lets people query for results from a selection of data.\n\nAlso known as:  autocomplete, typeahead, search box, combobox, lookup.\n\n**Slots:**  `icon`\n\n**Events:**  `ui-search`, `ui-select`, `ui-change`, `ui-results`, `ui-open`, `ui-close`"
       },
       "attributes": [
         {
@@ -10427,7 +10434,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "`scrolling`:  the user can resize the results vertically.\n\nTakes:  flag (present / absent)"
+            "value": "`scrolling`:  people can resize the results vertically.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -10691,7 +10698,7 @@
           "name": "collapsed",
           "description": {
             "kind": "markdown",
-            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto the user's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
+            "value": "Folded:  only the title shows.  Controlled:  set it to fold / unfold;  `ui-open` / `ui-close` can veto a person's changes.  Find-in-page unfolds a match.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -11295,7 +11302,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "With `scrolling`:  the user can drag its height.\n\nTakes:  flag (present / absent)"
+            "value": "With `scrolling`:  people can drag its height.\n\nTakes:  flag (present / absent)"
           }
         }
       ]
@@ -11435,7 +11442,7 @@
       "name": "ui-select",
       "description": {
         "kind": "markdown",
-        "value": "A select lets a user choose one or more values from a native list of options.\n\nAlso known as:  select box, native select, picker, option list.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
+        "value": "A select lets people choose one or more values from a native list of options.\n\nAlso known as:  select box, native select, picker, option list.\n\n**Slots:**  default\n\n**Events:**  `ui-change`"
       },
       "attributes": [
         {
@@ -11759,7 +11766,7 @@
           "name": "visible",
           "description": {
             "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes.\n\nTakes:  flag (present / absent)"
+            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -11793,7 +11800,7 @@
       "name": "ui-slider",
       "description": {
         "kind": "markdown",
-        "value": "A slider allows users to select values within a range.\n\nAlso known as:  range, range slider, volume, scrubber, track bar.\n\n**Events:**  `ui-input`, `ui-change`"
+        "value": "A slider lets people select values within a range.\n\nAlso known as:  range, range slider, volume, scrubber, track bar.\n\n**Events:**  `ui-input`, `ui-change`"
       },
       "attributes": [
         {
@@ -12973,7 +12980,7 @@
           "name": "resizable",
           "description": {
             "kind": "markdown",
-            "value": "With `scrolling`:  the user can drag the height.\n\nTakes:  flag (present / absent)"
+            "value": "With `scrolling`:  people can drag the height.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -13220,21 +13227,46 @@
           "name": "text-align",
           "description": {
             "kind": "markdown",
-            "value": "Text alignment of every cell.\n\nTakes:  text"
-          }
+            "value": "Text alignment of every cell.\n\nTakes:  `left` · `center` · `right` · `justified`"
+          },
+          "values": [
+            {
+              "name": "left"
+            },
+            {
+              "name": "center"
+            },
+            {
+              "name": "right"
+            },
+            {
+              "name": "justified"
+            }
+          ]
         },
         {
           "name": "vertical-align",
           "description": {
             "kind": "markdown",
-            "value": "Vertical alignment of every cell.\n\nTakes:  text"
-          }
+            "value": "Vertical alignment of every cell.\n\nTakes:  `top` · `middle` · `bottom`"
+          },
+          "values": [
+            {
+              "name": "top"
+            },
+            {
+              "name": "middle"
+            },
+            {
+              "name": "bottom"
+            }
+          ]
         },
         {
           "name": "sort-column",
           "description": {
             "kind": "markdown",
-            "value": "Index of the sorted column (0-based, counting `colspan`s);  set by the user's clicks unless the app controls it.\n\nTakes:  number"
+            "value": "Index of the sorted column (0-based, counting `colspan`s);  set by people's clicks unless the app controls it.\n\nTakes:  number"
           }
         },
         {
@@ -13489,7 +13521,7 @@
           "name": "value",
           "description": {
             "kind": "markdown",
-            "value": "Value of the selected pane (its `value`, else its index).  Controlled:  set it to switch panes;  `ui-change` can veto the user's changes.  Without it, the first `selected` pane, else the first enabled one.\n\nTakes:  text"
+            "value": "Value of the selected pane (its `value`, else its index).  Controlled:  set it to switch panes;  `ui-change` can veto a person's changes.  Without it, the first `selected` pane, else the first enabled one.\n\nTakes:  text"
           }
         },
         {
@@ -13775,7 +13807,7 @@
           "name": "minlength",
           "description": {
             "kind": "markdown",
-            "value": "Constraint:  fewest characters (checked after the user edits).\n\nTakes:  number"
+            "value": "Constraint:  fewest characters (checked once someone has edited it).\n\nTakes:  number"
           }
         },
         {
@@ -13821,7 +13853,7 @@
       "name": "ui-toast",
       "description": {
         "kind": "markdown",
-        "value": "A toast allows users to receive a short, non-blocking notification.\n\nAlso known as:  snackbar, notification, growl, flash message, toaster.\n\n**Slots:**  default, `actions`\n\n**Events:**  `ui-show`, `ui-close`, `ui-hide`, `ui-approve`, `ui-deny`"
+        "value": "A toast gives people a short, non-blocking notification.\n\nAlso known as:  snackbar, notification, growl, flash message, toaster.\n\n**Slots:**  default, `actions`\n\n**Events:**  `ui-show`, `ui-close`, `ui-hide`, `ui-approve`, `ui-deny`"
       },
       "attributes": [
         {

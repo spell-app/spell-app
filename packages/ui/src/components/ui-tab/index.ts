@@ -1,8 +1,10 @@
 /**
- * Barrel for the tab components -- also the `tab` lib entry (`@spell-app/ui/ui-tab`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-tab>` (a pane) and `<ui-tabs>`, which registers as the owner of `tab` panes.
- * - NOTE: `<ui-tabs>` adopts `ui-menu.css` for its tab list, and `<ui-tab>` `ui-segment.css`, as sheets only:  no
- *   `<ui-menu>` or `<ui-segment>` is defined here.
+ * The tab family:  defines `<ui-tab>` (a pane) and `<ui-tabs>` (the tab set, the owner of `tab` panes),
+ * and exports their components, `UITab` and `UITabs`.
+ * - SIDE EFFECT:  importing it defines the tags.
+ * - NOTE: `<ui-tabs>` adopts `UIMenu.css` for its tab list, and `<ui-tab>` `UISegment.css`, as sheets only:
+ *   no `<ui-menu>` or `<ui-segment>` is defined here.
+ * - Also the library's `@spell-app/ui/ui-tab` entry (its size is in `docs/report.md`).
  */
 
 import { UITab } from "./UITab"

@@ -67,6 +67,7 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 | `spell dev goals <command> ...` | The goals tool (`packages/docs/tools/goals/`) of the nearest goals folder:  `help` lists its commands.  Root `yarn goals`;  `spell goals` still works (deprecated). |
 | `spell dev docs <verb> ...` | The docs tools:  `update`, `index`, `new`, `open`, `link` -- each as root `yarn docs:<verb>` ran it, in `packages/docs`, arguments passed as they are, e.g. `spell dev docs open solid/solid-2 --vs`. |
 | `spell dev details <command> ...` | The `/details` skill's tool, `packages/docs/tools/details.js`.  Root `yarn details`. |
+| `spell dev choices <command> ...` | Syntax-choices pages, `packages/docs/tools/choices.js`:  `new <slug> --rows <rows.json>`, `show`, `wait`, `answer`, `list` -- a table of names Claude recommends, one row per use site, which Owen goes through one by one and sends with "Do it" (`guides/syntax-choices.html`). |
 | `spell dev server <verb> ...` | This checkout's page server, its own verbs as they are:  `serve`, `start` / `ensure`, `stop`, `status`, `url <file>`.  `start --all`:  every web server of the checkout (page server, editor, Spell UI) and where each is, `scripts/serve.mjs`.  Root `yarn server`, `yarn serve`. |
 | `spell dev worktree merge-main [--continue]` | Merges `main` into this checkout's branch, regenerating every generated file both sides changed (bundles, site and brand assets, snapshots, `yarn.lock`;  the table:  `GENERATORS` in `src/dev/mergeMain.ts`), then commits "Merge main into `<branch>`".  Another file in conflict stops it mid-merge:  resolve, `git add`, then `--continue`.  Lists snapshot entries neither side had, to review.  `--json`.  `/isolate done` and park Resume use it. |
 | `spell dev pack <verb> ...` | Component packs:  another package's custom elements (`<epic-*>` ...), which a page loads on demand through `<ui-root>`.  `new <name> [--prefix x-]` makes `packages/<name>/` from `templates/pack/package/` (only the files it lacks;  `package.json` merged) and wires it into the checkout;  `element <pack> <tag>` adds one family from `templates/pack/element/`;  `build <pack>` writes `pack/`:  the catalog (from the vocabularies, by Spell UI's `tools/RootCatalog.ts`), the entry, and ONE classic script, `<pack>.pack.js`;  `check [<pack>]` exits 1 when `pack/` is stale (no pack:  every pack).  `new` / `element` build too, unless `--no-build`.  `--json`.  Each pack's `yarn pack:build` / `pack:check`. |
@@ -169,11 +170,11 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 
 ### `static`
 
-- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `epics/seo/seo.plan.html`)
+- Renders through `@spell-app/ui`'s static server render (`$/ui/static`, plan doc `epics/seo/seo.plan.html`)
   in a child process, `src/runner/renderStatic.ts`, on an SSR-only Vite server (`ui/tools/StaticRenderer.ts`):  `ui`'s
   Solid JSX must compile for the server, which `tsx` can't.  Each run starts Vite and compiles every family, so a page
   takes about 3 seconds;  several pages share one run.
-- Renders the families in `StaticCatalog` (`ui/src/server/`);  any other `ui-*` tag (`ui-code`, `ui-markdown` ...)
+- Renders the families in `StaticCatalog` (`ui/src/static/`);  any other `ui-*` tag (`ui-code`, `ui-markdown` ...)
   stays as it is, and is listed on stderr.
 - Removes a `<script>` (or `<link rel="modulepreload">`) whose `src` or text names `@spell-app/ui`, `$/ui`, `ui`'s
   `src/` / `dist/`, a family folder, or the docs' `spell-ui.js` bundle:  the elements must not load on a static page,

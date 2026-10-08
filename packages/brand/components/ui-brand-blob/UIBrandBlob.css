@@ -1,0 +1,102 @@
+/*
+ * The style sheet of `<ui-brand-blob>`:  one shape in a corner of the positioned parent,
+ * hanging past its edges (the parent clips it).
+ * - The public tokens (`--ui-brand-blob-*`) are never declared here:  they're read through private aliases.
+ *   - `-width` / `-height`:  the shape's size (default 420 x 360px, the docs hero's)
+ *   - `-x` / `-y`:  how far it hangs past the parent's side / top or bottom edge (default 160 / 180px)
+ *   - `-color`:  overrides `tone`
+ * - The `mound`'s flat side faces out:  top corners flip it upside down, left corners mirror it.
+ * - The `wave`:  Brand Montage's top-left wash (an SVG path, as a mask stretched over the box), mirrored per corner so
+ *   its straight edges lie on the parent's;  no overhang unless `-x` / `-y` are set.
+ */
+
+@layer ui.components.brand-blob.types, ui.components.brand-blob.variations;
+
+@layer ui.components.brand-blob.types {
+  :host {
+    --_ui-brand-blob-x: calc(-1 * var(--ui-brand-blob-x, 160px));
+    --_ui-brand-blob-y: calc(-1 * var(--ui-brand-blob-y, 180px));
+    position: absolute;
+    z-index: 0;
+    display: block;
+    width: var(--ui-brand-blob-width, 420px);
+    height: var(--ui-brand-blob-height, 360px);
+    pointer-events: none;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /* a `wave` sits flush in its corner */
+  :host([shape="wave"]) {
+    --_ui-brand-blob-x: calc(-1 * var(--ui-brand-blob-x, 0px));
+    --_ui-brand-blob-y: calc(-1 * var(--ui-brand-blob-y, 0px));
+  }
+  :host(:not([corner])),
+  :host([corner="bottom-right"]) {
+    right: var(--_ui-brand-blob-x);
+    bottom: var(--_ui-brand-blob-y);
+  }
+  :host([corner="bottom-left"]) {
+    left: var(--_ui-brand-blob-x);
+    bottom: var(--_ui-brand-blob-y);
+  }
+  :host([corner="top-right"]) {
+    right: var(--_ui-brand-blob-x);
+    top: var(--_ui-brand-blob-y);
+  }
+  :host([corner="top-left"]) {
+    left: var(--_ui-brand-blob-x);
+    top: var(--_ui-brand-blob-y);
+  }
+  .blob {
+    width: 100%;
+    height: 100%;
+    background: var(--ui-brand-blob-color, currentColor);
+  }
+}
+
+@layer ui.components.brand-blob.variations {
+  .blob.organic {
+    border-radius: 58% 42% 50% 50% / 55% 45% 55% 45%;
+  }
+  .blob.mound {
+    border-radius: 60% 40% 0 0 / 70% 60% 0 0;
+  }
+  .blob.mound.top-right {
+    scale: 1 -1;
+  }
+  .blob.mound.bottom-left {
+    scale: -1 1;
+  }
+  .blob.mound.top-left {
+    scale: -1 -1;
+  }
+
+  /* Brand Montage's top-left path (its 640 x 424 box), stretched over the blob's box */
+  .blob.wave {
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 424' preserveAspectRatio='none'%3E%3Cpath d='M0,0 H640 C600,46 530,70 462,118 C380,176 330,262 240,330 C168,384 82,410 0,424 Z'/%3E%3C/svg%3E")
+      0 0 / 100% 100% no-repeat;
+  }
+  .blob.wave.top-right {
+    scale: -1 1;
+  }
+  .blob.wave.bottom-left {
+    scale: 1 -1;
+  }
+  .blob.wave.bottom-right {
+    scale: -1 -1;
+  }
+
+  .blob.tone-blob {
+    color: var(--spell-blob, #e0dfff);
+  }
+  .blob.tone-blob-2 {
+    color: var(--spell-blob-2, #eef0fa);
+  }
+  .blob.tone-lilac {
+    color: var(--spell-violet-300, #b8b4ff);
+  }
+  .blob.tone-violet {
+    color: var(--spell-violet-200, #d4d3ff);
+  }
+}

@@ -1,7 +1,9 @@
-import { ApiError, type ApiRequest, type ApiUrlData } from "./runtime.types"
+import { ApiError, type ApiRequest, type ApiResponseType, type ApiUrlData } from "./runtime.types"
 
-/**
+/****************
+ * ### `Api`
  * `fetch()` with Fomantic's API-behaviour conveniences, as `UI.api`:  URL templates, throttling, abort.
+ * - In the runtime's lazy chunk;  imports only `./runtime.types`.
  * - URL templates (`url()`):
  *   - `{name}` is REQUIRED -- a missing value throws, so a half-built URL never goes out
  *   - `{/name}` is an OPTIONAL path segment (RFC 6570 style):  `/value` when present, nothing when missing.
@@ -12,55 +14,67 @@ import { ApiError, type ApiRequest, type ApiUrlData } from "./runtime.types"
  *   with the same `key` supersedes it -- still waiting, or already in flight -- and the older one rejects with
  *   an `AbortError`.  Callers typically ignore `AbortError`s.
  * - Abort:  the caller's `signal`, the throttle's and `timeout` are combined with `AbortSignal.any`.
- * - Errors:  a non-2xx response rejects with `ApiError` (response attached, body unread).
+ * - Errors:  a non-2xx response rejects with `ApiError` (`cause.response`, body unread).
  * - TODO: loading / error state on a context element (Fomantic's `stateContext`) lands with the first
  *   component that needs it.
- */
+ ****************/
 export class Api {
   /** throttle key -> newest request's controller;  aborting it supersedes that request */
   private readonly latest = new Map<string, AbortController>()
 
   /**
    * Fill URL template `template` from `data` -- see class docs.
-   * - Throws `Error("Missing a required URL parameter: <name>")` for a missing `{name}`.
+   * - Throws a `TypeError` for a missing `{name}`.
    */
   url(template: string, data: ApiUrlData = {}): string {
-    let url = template.replace(REQUIRED_SLOT, (_slot, name: string) => {
-      const value = data[name]
-      if (value === undefined || value === null) {
-        throw new Error(`Missing a required URL parameter: ${name} (in ${template})`)
-      }
-      return encodeURIComponent(String(value))
-    })
-    url = url.replace(OPTIONAL_SLOT, (_slot, name: string) => {
-      const value = data[name]
-      return value === undefined || value === null ? "" : `/${encodeURIComponent(String(value))}`
-    })
-    return url
+    return template
+      .replace(REQUIRED_SLOT, (_slot, name: string) => {
+        const value = data[name]
+        if (value === undefined || value === null) {
+          throw new TypeError(`Api.url():  no value for {${name}} in ${template};  pass it in the URL data`)
+        }
+        return encodeURIComponent(String(value))
+      })
+      .replace(OPTIONAL_SLOT, (_slot, name: string) => {
+        const value = data[name]
+        return value === undefined || value === null ? "" : `/${encodeURIComponent(String(value))}`
+      })
   }
 
   /**
    * Send a request;  resolves with the parsed body -- see `ApiRequest` and class docs.
    * - `T` is what the caller expects the body to be;  NOT validated.
    */
-  async request<T = unknown>(options: ApiRequest): Promise<T> {
-    const { method = "GET", throttle = 0, timeout, headers, responseType = "auto" } = options
-    let url = this.url(options.url, options.urlData)
+  async request<T = unknown>({
+    url: template,
+    urlData,
+    method = "GET",
+    data,
+    throttle = 0,
+    key = template,
+    signal: callerSignal,
+    timeout,
+    headers,
+    responseType = "auto"
+  }: ApiRequest): Promise<T> {
+    let url = this.url(template, urlData)
     const controller = new AbortController()
-    const key = options.key ?? options.url
     if (throttle > 0) {
       this.latest.get(key)?.abort(new DOMException("Superseded by a newer request", "AbortError"))
       this.latest.set(key, controller)
     }
-    const signals = [controller.signal, options.signal, timeout ? AbortSignal.timeout(timeout) : undefined]
-    const signal = AbortSignal.any(signals.filter((each): each is AbortSignal => !!each))
+    const signals = [controller.signal, callerSignal, timeout ? AbortSignal.timeout(timeout) : undefined]
+    const signal = AbortSignal.any(signals.filter((it): it is AbortSignal => !!it))
     try {
       if (throttle > 0) await this.delay(throttle, signal)
       const init: RequestInit = { method, headers: new Headers(headers), signal }
-      if (method === "GET" || method === "HEAD") url = this.withQuery(url, options.data)
-      else this.setBody(init, options.data)
+      if (method === "GET" || method === "HEAD") url = this.withQuery(url, data)
+      else this.setBody(init, data)
       const response = await fetch(url, init)
-      if (!response.ok) throw new ApiError(response)
+      if (!response.ok) {
+        const answer = `${response.status} ${response.statusText}`.trim()
+        throw new ApiError(`Api.request():  ${method} ${url} answered ${answer}`, { cause: { response } })
+      }
       return (await this.read(response, method, responseType)) as T
     } finally {
       if (this.latest.get(key) === controller) this.latest.delete(key)
@@ -114,11 +128,11 @@ export class Api {
   }
 
   /** Parse the body per `responseType`;  `undefined` for `HEAD` / `204`. */
-  private async read(response: Response, method: string, type: ApiRequest["responseType"]): Promise<unknown> {
-    if (type === "response") return response
+  private async read(response: Response, method: string, responseType: ApiResponseType): Promise<unknown> {
+    if (responseType === "response") return response
     if (method === "HEAD" || response.status === 204) return undefined
-    if (type === "json") return response.json()
-    if (type === "text") return response.text()
+    if (responseType === "json") return response.json()
+    if (responseType === "text") return response.text()
     const contentType = response.headers.get("Content-Type") ?? ""
     return /[/+]json\b/.test(contentType) ? response.json() : response.text()
   }

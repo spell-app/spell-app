@@ -1,32 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import { Styles } from "./Styles"
 
-/** A host with an open shadow root containing `<p class="probe">`. */
-function shadowHost() {
-  const host = Fixture.render(`<div></div>`)
-  const root = host.attachShadow({ mode: "open" })
-  root.innerHTML = `<p class="probe">probe</p>`
-  return { root, probe: root.querySelector("p")! }
-}
+let styles: Styles
+beforeEach(() => {
+  removeAppSheet()
+  styles = new Styles()
+})
+afterEach(() => {
+  styles.dispose()
+  removeAppSheet()
+})
 
-/** Remove any app stylesheet a test left behind. */
-function removeAppSheet() {
-  document.getElementById("ui-app-stylesheet")?.remove()
-}
+////////////////
+// ## Registering
+////////////////
 
-describe("Styles", () => {
-  let styles: Styles
-  beforeEach(() => {
-    removeAppSheet()
-    styles = new Styles()
-  })
-  afterEach(() => {
-    styles.dispose()
-    removeAppSheet()
-  })
-
+describe("Styles.register()", () => {
   it("ui.css's own page sheets are NOT adopted into the document when it's linked (--ui-page-sheet: linked)", () => {
     const marker = document.createElement("style")
     marker.textContent = ":root { --ui-page-sheet: linked }"
@@ -60,36 +51,27 @@ describe("Styles", () => {
     }
   })
 
-  it("register() is idempotent and updates sheets in place", () => {
+  it("a page sheet registered again with `linked` comes OFF a page that links ui.css", () => {
+    const marker = document.createElement("style")
+    marker.textContent = ":root { --ui-page-sheet: linked }"
+    document.head.append(marker)
+    const sheet = styles.register("linked-later", "p { color: red }", { page: true })
+    try {
+      expect(document.adoptedStyleSheets).toContain(sheet)
+      styles.register("linked-later", "p { color: red }", { page: true, linked: true })
+      expect(document.adoptedStyleSheets).not.toContain(sheet)
+    } finally {
+      marker.remove()
+      document.adoptedStyleSheets = document.adoptedStyleSheets.filter((each) => each !== sheet)
+    }
+  })
+
+  it("is idempotent and updates sheets in place", () => {
     const sheet = styles.register("button", ".probe { color: red }")
     expect(styles.register("button", ".probe { color: red }")).toBe(sheet)
     styles.register("button", ".probe { color: blue }")
     expect(styles.sheet("button")).toBe(sheet)
     expect(sheet.cssRules[0]!.cssText).toContain("blue")
-  })
-
-  it("adoptInto() orders foundation, component, utilities, app sheet", async () => {
-    const tokens = styles.register("tokens", ":host { --x: 1 }")
-    const reset = styles.register("reset", "p { margin: 0 }")
-    const button = styles.register("button", ".probe { color: red }")
-    const utilities = styles.register("utilities", ".ui-bold { font-weight: bold }")
-    styles.setFoundation(["tokens", "reset", "missing"])
-    const { root } = shadowHost()
-    styles.adoptInto(root, ["button"])
-    await styles.appSheetReady
-    // spread:  Firefox's `adoptedStyleSheets` is an observable array, which `toEqual` won't match to a plain one
-    expect([...root.adoptedStyleSheets]).toEqual([tokens, reset, button, utilities, styles.appSheet])
-  })
-
-  it("re-pushes adopted roots when a foundation sheet is registered later, keeping foreign sheets", () => {
-    const { root } = shadowHost()
-    const foreign = new CSSStyleSheet()
-    root.adoptedStyleSheets = [foreign]
-    styles.setFoundation(["tokens"])
-    styles.adoptInto(root, [])
-    expect([...root.adoptedStyleSheets]).toEqual([foreign, styles.appSheet])
-    const tokens = styles.register("tokens", ":host { --x: 1 }")
-    expect([...root.adoptedStyleSheets]).toEqual([tokens, foreign, styles.appSheet])
   })
 
   it("swaps a re-registered sheet object into every root", () => {
@@ -161,7 +143,43 @@ describe("Styles", () => {
     expect(getComputedStyle(element).color).toBe("rgb(9, 9, 9)")
     document.adoptedStyleSheets = document.adoptedStyleSheets.filter((each) => each !== sheet)
   })
+})
 
+////////////////
+// ## Adopting
+////////////////
+
+describe("Styles.adoptInto()", () => {
+  it("orders foundation, component, utilities, app sheet", async () => {
+    const tokens = styles.register("tokens", ":host { --x: 1 }")
+    const reset = styles.register("reset", "p { margin: 0 }")
+    const button = styles.register("button", ".probe { color: red }")
+    const utilities = styles.register("utilities", ".ui-bold { font-weight: bold }")
+    styles.setFoundation(["tokens", "reset", "missing"])
+    const { root } = shadowHost()
+    styles.adoptInto(root, ["button"])
+    await styles.appSheetReady
+    // spread:  Firefox's `adoptedStyleSheets` is an observable array, which `toEqual` won't match to a plain one
+    expect([...root.adoptedStyleSheets]).toEqual([tokens, reset, button, utilities, styles.appSheet])
+  })
+
+  it("re-pushes adopted roots when a foundation sheet is registered later, keeping foreign sheets", () => {
+    const { root } = shadowHost()
+    const foreign = new CSSStyleSheet()
+    root.adoptedStyleSheets = [foreign]
+    styles.setFoundation(["tokens"])
+    styles.adoptInto(root, [])
+    expect([...root.adoptedStyleSheets]).toEqual([foreign, styles.appSheet])
+    const tokens = styles.register("tokens", ":host { --x: 1 }")
+    expect([...root.adoptedStyleSheets]).toEqual([tokens, foreign, styles.appSheet])
+  })
+})
+
+////////////////
+// ## The app stylesheet
+////////////////
+
+describe("Styles.appSheet", () => {
   it("adopts a <style id=ui-app-stylesheet> into shadow roots and follows edits", async () => {
     const style = document.createElement("style")
     style.id = "ui-app-stylesheet"
@@ -218,3 +236,20 @@ describe("Styles", () => {
     URL.revokeObjectURL(url)
   })
 })
+
+////////////////
+// ## Helpers
+////////////////
+
+/** A host with an open shadow root containing `<p class="probe">`. */
+function shadowHost() {
+  const host = Fixture.render(`<div></div>`)
+  const root = host.attachShadow({ mode: "open" })
+  root.innerHTML = `<p class="probe">probe</p>`
+  return { root, probe: root.querySelector("p")! }
+}
+
+/** Remove any app stylesheet a test left behind. */
+function removeAppSheet() {
+  document.getElementById("ui-app-stylesheet")?.remove()
+}

@@ -1,16 +1,5 @@
-import {
-  ENUMERATED_TRUE,
-  INLINE,
-  RAW,
-  TOKEN,
-  VERBATIM,
-  VOID,
-  type HtmlElement,
-  type HtmlFormatterOptions,
-  type HtmlNode
-} from "./ui-docs-example.types"
-
-/**
+/****************
+ * ### `HtmlFormatter`
  * Pretty-prints an HTML fragment for `<ui-docs-example>`'s code pane (`ExampleSource`).
  * - Why re-indent, not show the markup as found:  it comes from `innerHTML`, indented however the page around it
  *   was (and a `<ui-include>`d part, or a live tree, has no indentation of its own), so it's rebuilt to one style.
@@ -24,21 +13,17 @@ import {
  *   - an element with no block-level children that fits in `width` stays on one line
  *   - `<pre>`, `<textarea>`, `<script>`, `<style>`, `<ui-code>`, `<ui-markdown>` keep their content verbatim
  * - Pure:  text in, text out.
- */
+ ****************/
 export class HtmlFormatter {
   /** Max line length before an element is expanded onto several lines. */
   readonly width: number
+
   /** One level of indentation. */
   readonly indent: string
 
-  constructor({ width = 100, indent = "  " }: HtmlFormatterOptions = {}) {
+  constructor({ width = 100, indent = "  " }: HtmlFormatterProps = {}) {
     this.width = width
     this.indent = indent
-  }
-
-  /** Format `html` with default options. */
-  static format(html: string): string {
-    return new HtmlFormatter().format(html)
   }
 
   /** Format `html`:  parse it into a tree, then print it. */
@@ -52,9 +37,9 @@ export class HtmlFormatter {
   ////////////////
 
   /** Parse `html` into a tree of `HtmlNode`s under a synthetic root;  unbalanced closers are ignored. */
-  private parse(html: string): HtmlElement {
-    const root: HtmlElement = { kind: "element", tag: "#root", open: "", children: [] }
-    const stack: HtmlElement[] = [root]
+  private parse(html: string): HtmlElementNode {
+    const root: HtmlElementNode = { kind: "element", tag: "#root", open: "", children: [] }
+    const stack: HtmlElementNode[] = [root]
     let last = 0
     TOKEN.lastIndex = 0
     for (let match = TOKEN.exec(html); match; match = TOKEN.exec(html)) {
@@ -65,11 +50,11 @@ export class HtmlFormatter {
       if (comment !== undefined) {
         parent.children.push({ kind: "comment", text: token })
       } else if (closing) {
-        const depth = stack.findLastIndex((el) => el.tag === tagName!.toLowerCase())
+        const depth = stack.findLastIndex((open) => open.tag === tagName!.toLowerCase())
         if (depth > 0) stack.length = depth
       } else {
         const tag = tagName!.toLowerCase()
-        const element: HtmlElement = { kind: "element", tag, open: HtmlFormatter.cleanOpenTag(token), children: [] }
+        const element: HtmlElementNode = { kind: "element", tag, open: HtmlFormatter.cleanOpenTag(token), children: [] }
         parent.children.push(element)
         if (RAW.has(tag)) {
           // raw text elements:  everything up to the matching closer is content, verbatim
@@ -118,7 +103,7 @@ export class HtmlFormatter {
   }
 
   /** Print one block-level element:  on one line if it fits and has no block children, else expanded. */
-  private printElement(element: HtmlElement, depth: number): string[] {
+  private printElement(element: HtmlElementNode, depth: number): string[] {
     const pad = this.indent.repeat(depth)
     const close = VOID.has(element.tag) ? "" : `</${element.tag}>`
     if (element.raw !== undefined) {
@@ -162,12 +147,24 @@ export class HtmlFormatter {
   }
 
   /** `element`'s children on one line, whitespace collapsed and trimmed. */
-  private inlineChildren(element: HtmlElement): string {
+  private inlineChildren(element: HtmlElementNode): string {
     return element.children
       .map((child) => this.inline(child))
       .join("")
       .replace(/\s+/g, " ")
       .trim()
+  }
+
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * Format `html` with default options.
+   * - Static:  the one call `ExampleSource` needs;  a formatter with other options is `new HtmlFormatter(props)`.
+   */
+  static format(html: string): string {
+    return new HtmlFormatter().format(html)
   }
 
   /**
@@ -176,6 +173,7 @@ export class HtmlFormatter {
    * - `basic=""` => `basic`:  `innerHTML` serializes every boolean attribute with an empty value
    * - `basic="true"` => `basic`:  JSX renders a bare attribute as `="true"`;  the library reads both alike.
    *   NEVER for `aria-*` or enumerated attributes (`draggable` ...), where `"true"` is the value.
+   * - Static:  pure, whatever the options.
    */
   private static cleanOpenTag(tag: string): string {
     return tag
@@ -187,3 +185,91 @@ export class HtmlFormatter {
       )
   }
 }
+
+/** Props of `new HtmlFormatter()`. */
+export type HtmlFormatterProps = {
+  /** max line length before expanding an element, default `100` */
+  width?: number
+  /** one indentation level, default two spaces */
+  indent?: string
+}
+
+/** A parsed node. */
+type HtmlNode = HtmlElementNode | { kind: "text"; text: string } | { kind: "comment"; text: string }
+
+/** A parsed element. */
+type HtmlElementNode = {
+  kind: "element"
+  /** lower-case tag name, `#root` for the synthetic root */
+  tag: string
+  /** the opening tag as written, whitespace collapsed, minus rendering artefacts (`cleanOpenTag()`) */
+  open: string
+  /** child nodes, empty for void and raw-text elements */
+  children: HtmlNode[]
+  /** verbatim content of a raw-text element (`<pre>`, `<script>` ...) */
+  raw?: string
+}
+
+/** Attributes whose `"true"` is an enumerated VALUE, not a boolean presence. */
+const ENUMERATED_TRUE = new Set(["contenteditable", "draggable", "spellcheck", "translate", "autocapitalize"])
+
+/**
+ * One token:  a comment (group 1), or a tag with an optional `/` (group 2) and its name (group 3).
+ * - Attribute values may contain `>`, so quoted values are matched explicitly.
+ * - Global:  `parse()` walks it with `exec()`, resetting `lastIndex` first.
+ */
+const TOKEN =
+  /(<!--[\s\S]*?-->)|<(\/?)([a-zA-Z][\w:-]*)(?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*\s*\/?>/g
+
+/** Elements with no content or closing tag. */
+const VOID = new Set([
+  "area",
+  "base",
+  "br",
+  "col",
+  "embed",
+  "hr",
+  "img",
+  "input",
+  "link",
+  "meta",
+  "source",
+  "track",
+  "wbr"
+])
+
+/** Elements whose content is not parsed:  kept as text. */
+const RAW = new Set(["pre", "textarea", "script", "style", "ui-code", "ui-markdown"])
+
+/** Raw elements whose content is printed exactly as found, never re-indented. */
+const VERBATIM = new Set(["pre", "textarea", "ui-code", "ui-markdown"])
+
+/** Text-level elements that stay on the same line as surrounding text. */
+const INLINE = new Set([
+  "a",
+  "abbr",
+  "b",
+  "bdi",
+  "bdo",
+  "br",
+  "cite",
+  "code",
+  "data",
+  "dfn",
+  "em",
+  "i",
+  "kbd",
+  "mark",
+  "q",
+  "s",
+  "samp",
+  "small",
+  "span",
+  "strong",
+  "sub",
+  "sup",
+  "time",
+  "u",
+  "var",
+  "wbr"
+])

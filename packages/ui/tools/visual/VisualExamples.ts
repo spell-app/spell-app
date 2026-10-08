@@ -4,15 +4,17 @@ import { existsSync, readdirSync } from "node:fs"
 import { pathToFileURL } from "node:url"
 
 import type { VisualHooks } from "../../test/test.types.ts"
-import type { VisualBrowser, VisualExample } from "./visual.types.ts"
+import type { VisualBrowser, VisualExample, VisualScheme } from "./visual.types.ts"
 import { VisualSettings } from "./VisualSettings.ts"
 
-/**
+/****************
+ * ### `VisualExamples`
  * Finds what `yarn test:visual` captures:  every `src/components/ui-<family>/examples/elements/<name>.html`, with its
  * optional `<name>.visual.ts` hooks, and names the baseline files they make.
  * - Discovery, not a list:  a new example (or hook file) is a new test with no edit anywhere.
  * - Hooks are IMPORTED here for their state names, `capture` and `mask`;  their `open()` runs in the page.
- */
+ * - STATIC:  discovery and naming, no state.
+ ****************/
 export class VisualExamples {
   /** Every element example, by family then name. */
   static async load(): Promise<VisualExample[]> {
@@ -45,7 +47,7 @@ export class VisualExamples {
    * - closed:  `ui-button/types-light.png`
    * - a state:  `ui-modal/types.open-standard-dark.png`
    */
-  static baselineName(example: VisualExample, scheme: string, state?: string): [string, string] {
+  static baselineName(example: VisualExample, scheme: VisualScheme, state?: string): [string, string] {
     return [example.family, `${example.name}${state ? `.${state}` : ""}-${scheme}.png`]
   }
 

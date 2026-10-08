@@ -1,6 +1,7 @@
 /**
- * Barrel for the rail component -- also the `rail` lib entry (`@spell-app/ui/ui-rail`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-rail>`.
+ * The rail family:  defines `<ui-rail>` and exports its component, `UIRail`.
+ * - SIDE EFFECT:  importing it defines the tag.
+ * - Also the library's `@spell-app/ui/ui-rail` entry (its size is in `docs/report.md`).
  */
 
 import { UIRail } from "./UIRail"

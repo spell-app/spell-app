@@ -1,27 +1,29 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { E } from "$/ui/core"
+import { containerVocabulary } from "./UIContainer.en"
 
-import { containerVocabulary } from "./ui-container.vocabulary.en"
-import { ContainerFallback } from "./ui-container.fallback"
-
-import containerCSS from "./ui-container.css?inline"
+import containerCSS from "./UIContainer.css?inline"
 
 /****************
- * ### `<ui-container>`
- * A container:  `<div class="ui … container" part="container"><slot></slot></div>`, centred page width.
- * - `scrolling`:  the root is a keyboard stop (`tabindex=0`), as every scrollable region must be.
+ * ### `UIContainer`
+ * The component behind `<ui-container>`:  a centred column of page width that holds a page's content.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … container" part="container">`, around a slot for the content.
+ * - `scrolling`:  the box is a keyboard stop (`tabindex=0`), as every scrollable region must be.
  ****************/
-export class UIContainer extends UIElement<typeof containerVocabulary> {
-  @proto static vocabulary = containerVocabulary
-  @proto static styles = { container: containerCSS }
-  @proto static Fallback = ContainerFallback
+export class UIContainer extends E.UIComponent<typeof containerVocabulary> {
+  @E.proto static vocabulary = containerVocabulary
+  @E.proto static styleSheets = { container: containerCSS }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("container")} tabindex={this.attrs.scrolling ? 0 : undefined}>
+      <div class={this.rootClasses} part={this.partForName("container")} tabindex={this.scrolling ? 0 : undefined}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIContainer extends E.AttributeValues<typeof containerVocabulary> {}

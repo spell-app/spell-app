@@ -2,7 +2,7 @@
 
 What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in the `<epic-*>` markup (epic
 `epic-components`, P8).  The elements -- tags, attributes, which children go where -- are described ONCE, in
-`packages/epics/src/definitions/` (each `components/<family>/<tag>.vocabulary.en.ts`);  this file holds the rest.
+`packages/epics/src/definitions/` (each `components/<family>/<Name>.en.ts`);  this file holds the rest.
 
 - Since the switch (P12, 2026-10-08) every real doc is in this markup.  A doc still in the OLD `ui-*` markup is
   READ (`summary`, `summaries`, `list`, `items`, `check`, `open`, the inbox's listings) and never edited:  "convert

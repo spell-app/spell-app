@@ -25,7 +25,7 @@ yarn test:visual:update              # accept the new renders (review first!)
   tokens follow the OS scheme (`color-scheme: light dark` on `:root`, see `docs/theming.md`), so this is the same
   switch a person's OS setting makes.  The page is `<body class="ui-typography">`, so the page background and
   text follow the scheme too.
-- **The page** (`tools/visual/fixture.html` + `fixture.ts`, served by the Vite dev server):  the same setup as the
+- **The page** (`tools/visual/fixture.html` + `Fixture.ts`, served by the Vite dev server):  the same setup as the
   `yarn dev` demo -- every family defined, every family sheet on the page, the stub owners, the runtime loaded.
 - **Stability**, before each capture:
   - viewport 1024 x 768, device scale 1, locale `en-US`, time zone UTC
@@ -182,14 +182,14 @@ over 32 of 255, and a pair counts as different over 1% differing pixels (size ch
 ## Static parity
 
 `yarn test:visual --static [--grep <family>] [--browsers chrome]` compares the STATIC server render of each element
-example (`$/ui/server`:  `StaticRender` + `StaticStylesheet`, plan `packages/docs/content/plans/seo/seo.html`) with the live
+example (`$/ui/static`:  `StaticRender` + `StaticStylesheet`, plan `packages/docs/content/plans/seo/seo.html`) with the live
 elements, light and dark, using Parity's comparison and tolerances.  Report:  `tools/results/visual/static-parity.md`,
 most different first, with diff images, the `ui-*` tags the static page left unrendered, and any page that failed to
 render or to be captured (with its error;  Firefox can't capture a page over 32767px tall).
 
 - ONLY the static tests run:  no baselines, nothing to `--update`, never fails.  `--os` defaults to `local` (Docker not
   needed);  about 20 s for chromium.
-- Families:  `tools/visual/StaticFamilies.ts`, family folder => the controller classes `StaticRender.define()`s.  It
+- Families:  `tools/visual/StaticFamilies.ts`, family folder => the component classes `StaticRender.define()`s.  It
   grows as families become server-ready (plan P3);  a family's examples are compared once it's listed.
 - The static page:  `/static/<family>/<example>.html` on the visual dev server (`tools/visual/StaticPages.ts`):
   `fixture.html`'s chrome (body class, `#example` box, viewport) around the rendered example, linking
@@ -222,5 +222,9 @@ render or to be captured (with its error;  Firefox can't capture a page over 327
 - **Playwright version bump** -- the Docker image follows `@playwright/test`'s version;  new browser builds usually
   move pixels:  bump, run, review, `--update`, all in one change.
 - **Ports** -- the dev server takes 5391 or the next free port;  the browser server a free loopback port.
+- **Running Playwright by hand** -- the CLI hands each run's choices to Playwright's processes as environment
+  variables, `SPELL_UI_VISUAL_OS` / `_BASE_URL` / `_WS` / `_PARITY` / `_STATIC` / `_WORKERS` (`VisualVariables`,
+  read back as `environment.visual`, `tools/environment.ts`);  set at least `SPELL_UI_VISUAL_BASE_URL` to a running
+  dev server.
 - **The HTML report is empty / stale** -- each OS writes its own:  `tools/results/visual/local-darwin/report`,
   `tools/results/visual/linux/report`.

@@ -1,14 +1,16 @@
 import type { ValueSets } from "./ValueSets"
 
 /**
- * Shared types for `$/ui/vocabulary` -- the schema every `ui-<name>.vocabulary.en.ts` follows, the shared value sets,
+ * Shared types for `$/ui/vocabulary` -- the schema every `UI<Name>.en.ts` follows, the shared value sets,
  * and the translation `Dictionary` contract.
  * - Why a schema:  vocabulary files own EVERY name a component uses (tag, attributes, values, events, slots,
  *   parts, states, texts), so templates and `ClassBuilder` never hold string literals, and a translation can
  *   rename all of them in one place.
  * - Canonical names are English and never change;  CSS, `ClassBuilder` output and `:state()`s always use them.
  *   A `Dictionary` only renames what AUTHORS type:  tags, attribute names, attribute values, events, slots, parts.
- * - Runtime-light:  types only.
+ * - The BOTTOM of the folder's import graph:  types only, and `ValueSets` only as a type (`import type`), so it
+ *   erases completely.  Node reads it with every vocabulary (`yarn site:data`, `yarn gen:root`):  it MUST NOT reach
+ *   the element layer.
  */
 
 ////////////////
@@ -16,7 +18,7 @@ import type { ValueSets } from "./ValueSets"
 ////////////////
 
 /**
- * How an attribute turns into Fomantic classes (see `ClassBuilder`, `docs/grammar.md`) or, for the last five,
+ * How an attribute turns into Fomantic classes (see `ClassBuilder`, `docs/grammar.md`) or, for the last six,
  * into a plain property with no class.
  * - `keyOnly` -- `basic` => `basic`
  * - `valueAndKey` -- `floated="left"` => `left floated`;  bare `floated` => nothing
@@ -32,6 +34,9 @@ import type { ValueSets } from "./ValueSets"
  * - `boolean` / `enum` / `string` / `number` / `json` / `icon` -- no class;  typed property only
  * - `icon` -- an icon name;  bare / `"true"` / `"yes"` => `spec.default`, else `""` ("the element's own icon",
  *   none if it has none);  `"false"` / `"no"` => none (`undefined`), even over a default
+ * - NOTE: camelCase, not WWOD §9's English values, on purpose:  PUBLISHED data -- `site/_data/components.json`,
+ *   `<ui-docs-api>`'s Kind column (`KIND_LABELS`), `tools/ElementManifests.ts`, `docs/grammar.md` and the site's
+ *   `grammar.html` read them (epic `wwod-spell-ui`, P4 judgement).
  */
 export type AttributeKind =
   | "keyOnly"
@@ -86,13 +91,13 @@ export type AttributeSpec = {
   /** JS property name, when it isn't `camelCase(name)`. */
   property?: string
   /** Value when the attribute is absent. */
-  default?: string | number | boolean | null
+  default?: string | number | boolean
   /**
    * Other canonical attribute names accepted for this one, e.g. `checked` for `selected` on checkbox / radio.
    * - NOTE: aliases are English muscle memory;  translations don't rename them.
    * - NOTE: DECLARATIVE only:  `Vocabulary` keeps them reachable by name (translation, docs), but
    *   `ElementDefinition` makes no observed attribute or property for an alias -- the family reads it itself
-   *   (`<ui-item active>`, checkbox `checked`, `<ui-tab active>` through a `HostAttribute`).
+   *   (`<ui-item active>`, checkbox `checked`, `<ui-tab active>`, read raw through the component's `attributes`).
    */
   aliases?: readonly string[]
   /** What it does, for docs and the custom-elements manifest. */
@@ -111,12 +116,15 @@ export type EventSpec = {
   detail: string
   /** `preventDefault()` vetoes the transition, e.g. `ui-close`. */
   cancelable?: boolean
+  /** When it fires and what it means, for docs and the custom-elements manifest. */
   description: string
 }
 
 /** A named slot;  `""` is the default slot, which has no name to translate. */
 export type SlotSpec = {
+  /** Canonical slot name, e.g. `header`;  `""` for the default slot. */
   name: string
+  /** What goes in it, for docs and the custom-elements manifest. */
   description: string
 }
 
@@ -126,22 +134,27 @@ export type SlotSpec = {
  *   app stylesheet keeps working under any translation.
  */
 export type PartSpec = {
+  /** Canonical part name, e.g. `header`. */
   name: string
+  /** Which box it is, for docs and the custom-elements manifest. */
   description: string
 }
 
 /** A custom state, `:state(open)`.  NEVER translated:  states are a CSS contract. */
 export type StateSpec = {
+  /** State name, as CSS writes it in `:state()`, e.g. `open`. */
   name: string
+  /** When the element has it, for docs and the custom-elements manifest. */
   description: string
 }
 
-/** A user-visible text string, looked up through `UI.i18n`, e.g. `{ key: "noResults", text: "No results found." }`. */
+/** Text people read, looked up through `UI.i18n`, e.g. `{ key: "noResults", text: "No results found." }`. */
 export type TextSpec = {
   /** Lookup key, camelCase, unique within the component. */
   key: string
   /** English text;  may contain `{placeholders}`. */
   text: string
+  /** Where it shows, for translators and docs. */
   description?: string
 }
 
@@ -150,7 +163,7 @@ export type TextSpec = {
 ////////////////
 
 /**
- * Everything a component names -- the contents of `ui-<name>.vocabulary.en.ts`.
+ * Everything a component names -- the contents of `UI<Name>.en.ts`.
  * - Write it as `export const cardVocabulary = { ... } as const satisfies ComponentVocabulary`,
  *   so templates get literal types.
  */
@@ -166,11 +179,17 @@ export type ComponentVocabulary = {
    * - `false` for parts which Fomantic styles by context only, e.g. `column` (`four wide column`, no `ui`).
    */
   ui?: boolean
+  /** Its attributes, in docs order. */
   attributes: readonly AttributeSpec[]
+  /** The events it dispatches. */
   events: readonly EventSpec[]
+  /** Its slots;  `""` is the default one. */
   slots: readonly SlotSpec[]
+  /** The `::part()`s it exposes. */
   parts: readonly PartSpec[]
+  /** The custom states it sets. */
   states: readonly StateSpec[]
+  /** Text it shows people (`UI.i18n`). */
   texts: readonly TextSpec[]
   /**
    * Nouns of the generic content parts this component styles by context, e.g. card:
@@ -183,7 +202,7 @@ export type ComponentVocabulary = {
   /**
    * What the tag is filed under, so people find it however they look:  `ValueSets.topics` ids, several per tag
    * (`ui-button`:  `buttons`, `basic`, `controls`, `forms`, `elements`).  Rolled up in
-   * `src/components/component-definitions.ts`;  a translation maps them (`Dictionary.values.topics`).
+   * `src/components/ComponentDefinitions.ts`;  a translation maps them (`Dictionary.values.topics`).
    */
   topics?: readonly ComponentTopic[]
   /**
@@ -193,16 +212,20 @@ export type ComponentVocabulary = {
    */
   aka?: readonly string[]
   /**
-   * What `<ui-root display="skeleton">` draws in this tag's place while its family loads:  a `<ui-placeholder>` built
-   * from this description (`SkeletonSpec`), or `null` for none of its own -- a part covered by its owner's skeleton
-   * (`ui-column` in a grid, `ui-item` in a list), or a tag with nothing to show (`ui-popup`).  NEVER translated:
-   * drawing data, like `states`.  `test/vocabularies.test.ts` requires every tag to say which.
+   * What `<ui-root display="skeleton">` draws in this tag's place while its family loads, as skeleton text
+   * (`SkeletonText`):  `"inline 6 x 2.5"`, `"18 wide: square image, header, 3 line paragraph"`.
+   * - Left OUT for none of its own:  a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a
+   *   list), or a tag with nothing to show (`ui-popup`).
+   * - Text, not a `SkeletonSpec`:  one form for Spell UI's vocabularies and a component pack's.  `yarn gen:root`
+   *   (and `spell dev pack build`) parse it into a catalog;  `test/vocabularies.test.ts` parses every one.
+   * - NEVER translated:  drawing data, like `states`.
    */
-  skeleton?: SkeletonSpec | null
+  skeleton?: string
 }
 
 /**
- * A tag's skeleton:  the `<ui-placeholder>` shapes that stand in for it until it loads (`ComponentVocabulary.skeleton`).
+ * A tag's skeleton:  the `<ui-placeholder>` shapes that stand in for it until it loads (`ComponentVocabulary.skeleton`,
+ * written as text and parsed by `SkeletonText`).
  * - Sizes are CSS lengths in `em`, so the element's `size` still scales them;  `fluid` on the element fills the width.
  * - No `parts`:  one block, `width` x `height` (a button, an input).
  */
@@ -239,7 +262,7 @@ export type ComponentTopic = (typeof ValueSets.topics)[number]
 ////////////////
 
 /**
- * Keys of the shared English value sets in `ValueSets`.
+ * Names of the shared English value sets in `ValueSets`:  the sets its instances declare, so the class is the ONE list.
  * - `hues` -- Fomantic's `@variationAllColors`;  extensible
  * - `sizes` -- `mini` ... `massive`;  `medium` is the no-op default
  * - `positions` -- popup / tooltip positions (`top left` ... `right center`)
@@ -252,21 +275,7 @@ export type ComponentTopic = (typeof ValueSets.topics)[number]
  * - `booleans` -- spellings the boolean converter understands, so a translation can map `sí` => `yes`
  * - `topics` -- what a component is filed under (a vocabulary's `topics`), so a translation maps them once
  */
-export type ValueSetName =
-  | "hues"
-  | "sizes"
-  | "positions"
-  | "attachments"
-  | "alignments"
-  | "verticalAlignments"
-  | "floats"
-  | "widths"
-  | "devices"
-  | "booleans"
-  | "topics"
-
-/** Every shared value set, by name. */
-export type ValueSetMap = Record<ValueSetName, readonly string[]>
+export type ValueSetName = keyof ValueSets
 
 ////////////////
 // ## Translation
@@ -306,11 +315,15 @@ export type Dictionary = {
 
 /** Per-component part of a `Dictionary`:  wins over the dictionary-wide maps for that component only. */
 export type ComponentDictionary = {
+  /** Canonical attribute name => localized, for this component only. */
   attributes?: NameMap
   /** Canonical attribute name => (canonical value => localized), for inline enums or to override a shared set. */
   values?: Readonly<Record<string, NameMap>>
+  /** Canonical event name => localized stem, for this component only. */
   events?: NameMap
+  /** Canonical slot name => localized, for this component only. */
   slots?: NameMap
+  /** Canonical part name => localized, for this component only. */
   parts?: NameMap
   /** The tag's other names in this language (replacing the English `aka`), e.g. `["diálogo", "ventana"]`. */
   aka?: readonly string[]
@@ -346,18 +359,23 @@ export type LocalizedVocabulary = {
 
 /** Canonical => localized name maps for one component. */
 export type LocalizedNames = {
+  /** Canonical attribute name => localized. */
   attributes: Map<string, string>
   /** Canonical attribute name => (canonical value => localized value). */
   values: Map<string, Map<string, string>>
+  /** Canonical event name => localized, prefix included (`ie-cambio`). */
   events: Map<string, string>
+  /** Canonical slot name => localized. */
   slots: Map<string, string>
+  /** Canonical part name => localized. */
   parts: Map<string, string>
 }
 
 /** Result of `Vocabulary.canonicalize()` / `localize()`. */
 export type NamePair = {
+  /** The attribute's name, in the language asked for. */
   attribute: string
-  /** `undefined` when no value was passed. */
+  /** Its value in that language;  `undefined` when no value was passed. */
   value: string | undefined
 }
 

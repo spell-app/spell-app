@@ -1,12 +1,14 @@
-import { proto } from "$/ui/core"
-
-import { placeholderParagraphVocabulary } from "./ui-placeholder-paragraph.vocabulary.en"
+import { E } from "$/ui/core"
 import { PlaceholderShape } from "./PlaceholderShape"
+import { placeholderParagraphVocabulary } from "./UIPlaceholderParagraph.en"
 
 /****************
- * ### `<ui-placeholder-paragraph>`
- * A paragraph's skeleton, a block of lines:  `<div class="paragraph" part="paragraph"><slot></slot></div>`.
+ * ### `UIPlaceholderParagraph`
+ * The component behind `<ui-placeholder-paragraph>`:  a paragraph's skeleton, a block of lines:
+ * `<div class="paragraph" part="paragraph"><slot></slot></div>`.
  ****************/
 export class UIPlaceholderParagraph extends PlaceholderShape<typeof placeholderParagraphVocabulary> {
-  @proto static vocabulary = placeholderParagraphVocabulary
+  @E.proto static vocabulary = placeholderParagraphVocabulary
 }
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIPlaceholderParagraph extends E.AttributeValues<typeof placeholderParagraphVocabulary> {}

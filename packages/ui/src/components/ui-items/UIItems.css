@@ -1,0 +1,437 @@
+/*
+ * The style sheet of `<ui-items>` (the Items VIEW) and the `<ui-item>`s inside it:
+ * a port of Fomantic's `item.less` + `item.variables`.
+ * - ONE sheet for the group AND its items:  the group adopts it after the foundation;  every item it owns adopts it
+ *   after `UIItem.css` (`UIItem.styleSheetNames` reads the owner's `styleSheets`).
+ * - Shadow markup contract (class grammar on semantic elements):
+ *   - `<ui-items>`:  `<div class="ui [size] [keyOnly ...] [relaxed] items" part="items" role="list"><slot></slot>
+ *     </div>`
+ *   - its `<ui-item>`s (`UIItem.css`):  `<div | a class="[keyOnly ...] item" part="item">` holding the `image`
+ *     shorthand's `<img class="image" part="image" alt="">`, then the default `<slot>`;  the item's DOM element is
+ *     `role=listitem` and carries `:state(in-items)`
+ * - Every ITEM rule has two selectors sharing one body, like `UIList.css`:
+ *
+ *       :host(:state(in-items)) > .item,     <- the element:  the item's own shadow root
+ *       .ui.items > .item { ... }            <- static class grammar (examples, SSR without scripts)
+ *
+ *   The DOM element's position replaces Fomantic's `:first-child` / `:last-child`:
+ *   `:host(:state(in-items):first-child)`.
+ * - The item OWNS its content parts here (`ItemContext.ownsParts`):  `<ui-content>`, `<ui-header>`, `<ui-meta>`,
+ *   `<ui-description>`, `<ui-extra>` inside get `:state(in-item)`, and `UIParts.css` styles them.
+ *   The item root declares the owner tokens they read:  `--_ui-item-layout` (`row`, `stacked` in a narrow group),
+ *   `--_ui-item-state` (`normal`, `hover` on a link item) and `--_ui-item-content-distance` (from
+ *   `--ui-items-content-distance`, narrower in a tablet-wide group);  `UIItem.css` adds `--_ui-item-media` (the content
+ *   beside the `image` shorthand).  All private:  the group decides them;  theme with `--ui-items-*`.
+ * - Images:  the `image` shorthand, a slotted `<img>` (both Fomantic's `.image:not(.ui)`, 175px wide),
+ *   or a `<ui-image size="tiny">` (a `ui image`, sized by itself).
+ * - Public tokens (`--ui-items-*`, the theming surface) are NEVER declared here:  the group root reads each through
+ *   a private alias, `--_ui-items-margin: var(--ui-items-margin, 1.5em)`, and every rule reads the alias.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(items)` or in the app stylesheet reaches the group
+ *   and its items (`docs/theming.md` "Component tokens");  set it on the group or above, not on one item.
+ * - Group variations reach the items as INHERITED private tokens (`--_items-*`, set on the group root,
+ *   read from the aliases);  NEVER set them from outside, theme with `--ui-items-*`.
+ * - Responsive:  the group's DOM element is a block and the size container `ui-items`;
+ *   items stack (image above content) in a group narrower than 768px unless `unstackable`,
+ *   and narrow the image in a 768..991px one -- the GROUP's width, not the viewport.
+ *   Static markup makes the group's parent the container (`:has(> .ui.items)`).
+ * - `inverted` sets `color-scheme: dark` (+ `--ui-inverted: 1`):  the parts' `light-dark()` colours follow.
+ * - NOTE: left out, on purpose:
+ *   - favorite / like icons (`.favorite.icon`, `.like.icon`):  icon looks
+ *   - floated components inside an item (`.ui.items > .item [class*="right floated"]`):
+ *     a `<ui-button floated>` floats itself;  the static rules stay
+ *   - Fomantic's `!important`s (first / last item spacing, mobile image sizes):
+ *     the DOM element's position and layers decide
+ */
+
+@layer ui.components.items.types, ui.components.items.content, ui.components.items.variations, ui.components.items.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time:  `stack-with="page"`. */
+@import "../../styles/media.css";
+
+/*******************************
+             Items
+*******************************/
+
+@layer ui.components.items.types {
+  /* DOM elements:  the group is a block and the size container its items answer to;  items keep `UIItem.css`'s. */
+  :host(:state(items)) {
+    --_ui-items-margin: var(--ui-items-margin, 1.5em);
+    display: block;
+    container: ui-items / inline-size;
+    /*
+     * The group's outer margin sits on the DOM ELEMENT:  a size container is its own formatting context, so a margin on
+     * the root inside it never collapses with the heading above, as static markup's does.
+     */
+    margin-block: var(--_ui-items-margin);
+  }
+  :host(:state(items):first-child) {
+    margin-block-start: 0;
+  }
+  :host(:state(items):last-child) {
+    margin-block-end: 0;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /* Static markup:  the group's parent is the container. */
+  :has(> .ui.items) {
+    container: ui-items / inline-size;
+  }
+
+  /* Tokens:  a private alias per `item.variables` entry that still matters, from the global tokens. */
+  .ui.items {
+    --_ui-items-margin: var(--ui-items-margin, 1.5em);
+    --_ui-items-item-spacing: var(--ui-items-item-spacing, 1em);
+    --_ui-items-image-width: var(--ui-items-image-width, calc(var(--ui-font-size) * 10.9375));
+    --_ui-items-tablet-image-width: var(--ui-items-tablet-image-width, calc(var(--ui-font-size) * 9.375));
+    --_ui-items-unstackable-image-width: var(--ui-items-unstackable-image-width, calc(var(--ui-font-size) * 7.8125));
+    --_ui-items-mobile-image-height: var(--ui-items-mobile-image-height, calc(var(--ui-font-size) * 15.625));
+    --_ui-items-image-radius: var(--ui-items-image-radius, calc(var(--ui-font-size) * 0.125));
+    --_ui-items-content-distance: var(--ui-items-content-distance, 1.5em);
+    --_ui-items-tablet-content-distance: var(--ui-items-tablet-content-distance, 1em);
+    --_ui-items-mobile-item-spacing: var(--ui-items-mobile-item-spacing, 2em);
+    --_ui-items-relaxed-spacing: var(--ui-items-relaxed-spacing, 1.5em);
+    --_ui-items-very-relaxed-spacing: var(--ui-items-very-relaxed-spacing, 2em);
+    --_ui-items-divided-padding: var(--ui-items-divided-padding, 1em);
+    --_ui-items-divided-border: var(--ui-items-divided-border, var(--ui-border-width) solid var(--ui-border-color));
+    --_ui-items-disabled-opacity: var(--ui-items-disabled-opacity, var(--ui-disabled-opacity));
+    /* The group's layout, read by its items. */
+    --_items-item-margin: var(--_ui-items-item-spacing) 0;
+    --_items-item-padding: 0;
+    --_items-item-border: none;
+    --_items-image-width: var(--_ui-items-image-width);
+    --_items-content-distance: var(--_ui-items-content-distance);
+    --_items-stackable: 1;
+    --_items-narrow: 0;
+    --_items-link: 0;
+    /* Owner token, ALWAYS declared:  a plain group nested in an inverted one resets it. */
+    --ui-inverted: 0;
+  }
+
+  /* Items:  a block of items. */
+  .ui.items {
+    box-sizing: border-box;
+    display: block;
+    margin: var(--_items-margin-top, var(--_ui-items-margin)) 0 var(--_items-margin-bottom, var(--_ui-items-margin));
+    padding: 0;
+    color: var(--ui-text-color);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+  }
+  .ui.items:first-child {
+    --_items-margin-top: 0;
+  }
+  .ui.items:last-child {
+    --_items-margin-bottom: 0;
+  }
+  /*
+   * Shadow DOM:  the root is always an only child, so the DOM element's position decides.
+   * - `:not([data-ui])`:  in a static server render (`$/ui/static`) the root REPLACES the DOM element,
+   *   so this would zero the DOM element's own margin;  the root's `.ui.items` rules above give it there,
+   *   as in static markup.
+   */
+  :host(:state(items)) > .ui.items:not([data-ui]) {
+    margin: 0;
+  }
+  /* Components inside items don't scale twice. */
+  .ui.items > slot {
+    --ui-scale: initial;
+  }
+
+  /*******************************
+               Item
+  *******************************/
+
+  /* Item:  a flex row of an image and content;  declares the owner tokens its parts read. */
+  :host(:state(in-items)) > .item,
+  .ui.items > .item {
+    --_ui-item-layout: row;
+    --_ui-item-state: normal;
+    --_ui-item-content-distance: var(--_items-content-distance);
+    display: flex;
+    width: 100%;
+    min-height: 0;
+    margin: var(--_items-item-margin);
+    padding: var(--_items-item-padding);
+    border: none;
+    border-top: var(--_items-item-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 1em;
+    transition: box-shadow var(--ui-duration-fast) var(--ui-ease);
+  }
+  :host(:state(in-items):first-child) > .item,
+  .ui.items > .item:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+  :host(:state(in-items):last-child) > .item,
+  .ui.items > .item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  :host(:state(in-items)) > .item::after,
+  .ui.items > .item::after {
+    content: " ";
+    display: block;
+    height: 0;
+    overflow: hidden;
+    clear: both;
+    visibility: hidden;
+  }
+  .ui.items > .item a {
+    cursor: pointer;
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.items.content {
+  /* Images:  the `image` shorthand's `<img>`, a slotted `<img>`, static `.image` (a box around an `<img>`). */
+  :host(:state(in-items)) > .item > img.image,
+  :host(:state(in-items)) > .item > ::slotted(img),
+  .ui.items > .item > .image {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    align-self: start;
+    float: none;
+    margin: 0;
+    padding: 0;
+  }
+  :host(:state(in-items)) > .item > img.image,
+  :host(:state(in-items)) > .item > ::slotted(img),
+  .ui.items > .item > .image:not(.ui) {
+    width: var(--_items-image-width);
+  }
+  :host(:state(in-items)) > .item > img.image,
+  :host(:state(in-items)) > .item > ::slotted(img) {
+    height: auto;
+    border-radius: var(--_ui-items-image-radius);
+  }
+  .ui.items > .item > .image > img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: none;
+    border-radius: var(--_ui-items-image-radius);
+  }
+  .ui.items > .item > .image:only-child > img {
+    border-radius: 0;
+  }
+
+  /* Static markup:  images and avatars inside content, paragraphs. */
+  .ui.items > .item .content img {
+    align-self: center;
+  }
+  .ui.items > .item img.avatar,
+  .ui.items > .item .avatar img {
+    border-radius: var(--ui-radius-circle);
+  }
+  .ui.items > .item > .content p {
+    margin: 0 0 0.5em;
+  }
+  .ui.items > .item > .content p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Static markup:  floated components, and their spacing inside meta / extra content. */
+  .ui.items > .item [class*="left floated"] {
+    float: left;
+  }
+  .ui.items > .item [class*="right floated"] {
+    float: right;
+  }
+  .ui.items > .item .meta [class*="right floated"] {
+    margin-right: 0;
+    margin-left: 0.3em;
+  }
+  .ui.items > .item .extra > [class*="right floated"] {
+    margin: 0.25em 0 0.25em 0.5em;
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.items.variations {
+  /* Relaxed:  more space between items. */
+  .ui.relaxed.items {
+    --_items-item-margin: var(--_ui-items-relaxed-spacing) 0;
+  }
+  .ui[class*="very relaxed"].items {
+    --_items-item-margin: var(--_ui-items-very-relaxed-spacing) 0;
+  }
+
+  /* Divided:  a rule between items, the spacing inside them. */
+  .ui.divided.items {
+    --_items-item-margin: 0;
+    --_items-item-padding: var(--_ui-items-divided-padding) 0;
+    --_items-item-border: var(--_ui-items-divided-border);
+  }
+  .ui.relaxed.divided.items {
+    --_items-item-padding: var(--_ui-items-relaxed-spacing) 0;
+  }
+  .ui[class*="very relaxed"].divided.items {
+    --_items-item-padding: var(--_ui-items-very-relaxed-spacing) 0;
+  }
+
+  /* Link:  a pointer, and the header in the link colour while its item is hovered (`--_ui-item-state`). */
+  .ui.link.items {
+    --_items-link: 1;
+  }
+  @container style(--_items-link: 1) {
+    :host(:state(in-items)) > .item:hover,
+    .ui.items > .item:hover {
+      --_ui-item-state: hover;
+      cursor: pointer;
+    }
+  }
+  :host(:state(in-items)) > a.item:hover,
+  .ui.items > a.item:hover {
+    --_ui-item-state: hover;
+    cursor: pointer;
+  }
+
+  /* Unstackable:  keeps the image beside the content in a narrow group. */
+  .ui.unstackable.items {
+    --_items-stackable: 0;
+  }
+
+  /* Inverted:  the dark scheme, for the items and their parts. */
+  .ui.inverted.items {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    color-scheme: dark;
+  }
+
+  /*
+   * Responsive, by the GROUP's width (`ui-items` container):  tablet 768..991px, mobile < 768px.
+   * - Tablet:  a narrower image and content distance.  Mobile:  items stack (image above content, the image as wide
+   *   as it can be up to 250px tall) unless `unstackable`, which keeps a 125px image beside the content.
+   */
+  @container (768px <= width < 992px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.items:not(.stack-with-page) {
+        --_items-image-width: var(--_ui-items-tablet-image-width);
+        --_items-content-distance: var(--_ui-items-tablet-content-distance);
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.items.stack-with-container {
+        --_items-image-width: var(--_ui-items-tablet-image-width);
+        --_items-content-distance: var(--_ui-items-tablet-content-distance);
+      }
+    }
+  }
+  @media (--ui-tablet) {
+    @container style(--ui-stack-with: page) {
+      .ui.items:not(.stack-with-container) {
+        --_items-image-width: var(--_ui-items-tablet-image-width);
+        --_items-content-distance: var(--_ui-items-tablet-content-distance);
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.items.stack-with-page {
+        --_items-image-width: var(--_ui-items-tablet-image-width);
+        --_items-content-distance: var(--_ui-items-tablet-content-distance);
+      }
+    }
+  }
+  @container (width < 768px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.items:not(.stack-with-page) {
+        --_items-narrow: 1;
+      }
+      .ui.items:not(.relaxed, .divided, .unstackable):not(.stack-with-page) {
+        --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
+      }
+      .ui.unstackable.items:not(.stack-with-page) {
+        --_items-image-width: var(--_ui-items-unstackable-image-width);
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.items.stack-with-container {
+        --_items-narrow: 1;
+      }
+      .ui.items:not(.relaxed, .divided, .unstackable).stack-with-container {
+        --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
+      }
+      .ui.unstackable.items.stack-with-container {
+        --_items-image-width: var(--_ui-items-unstackable-image-width);
+      }
+    }
+  }
+  @media (--ui-mobile) {
+    @container style(--ui-stack-with: page) {
+      .ui.items:not(.stack-with-container) {
+        --_items-narrow: 1;
+      }
+      .ui.items:not(.relaxed, .divided, .unstackable):not(.stack-with-container) {
+        --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
+      }
+      .ui.unstackable.items:not(.stack-with-container) {
+        --_items-image-width: var(--_ui-items-unstackable-image-width);
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.items.stack-with-page {
+        --_items-narrow: 1;
+      }
+      .ui.items:not(.relaxed, .divided, .unstackable).stack-with-page {
+        --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
+      }
+      .ui.unstackable.items.stack-with-page {
+        --_items-image-width: var(--_ui-items-unstackable-image-width);
+      }
+    }
+  }
+  /* Items in a narrow group (`--_items-narrow`, above):  stacked, unless `unstackable`. */
+  @container style(--_items-narrow: 1) and style(--_items-stackable: 1) {
+    :host(:state(in-items)) > .item,
+    .ui.items > .item {
+      --_ui-item-layout: stacked;
+      flex-direction: column;
+    }
+    /* A slotted `<ui-image size="tiny">` takes its natural width too (Fomantic's `width: auto !important`), no
+       taller than a stacked image (its `max-height: 250px !important`) and centred (its `margin: auto`). */
+    :host(:state(in-items)) > .item {
+      --_ui-image-owner-width: auto;
+      --_ui-image-owner-max-height: var(--_ui-items-mobile-image-height);
+      --_ui-image-owner-align-self: center;
+    }
+    :host(:state(in-items)) > .item > slot::slotted(:state(in-items)) {
+      --_ui-image-owner-width: initial;
+      --_ui-image-owner-max-height: initial;
+      --_ui-image-owner-align-self: initial;
+    }
+    :host(:state(in-items)) > .item > img.image,
+    :host(:state(in-items)) > .item > ::slotted(img),
+    .ui.items > .item > .image,
+    .ui.items > .item > .image > img {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      max-height: var(--_ui-items-mobile-image-height);
+      margin-inline: auto;
+    }
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.items.states {
+  /* Disabled:  faded and inert. */
+  .ui.disabled.items,
+  :host(:state(in-items)) > .disabled.item,
+  .ui.items > .disabled.item {
+    opacity: var(--_ui-items-disabled-opacity);
+    pointer-events: none;
+  }
+}

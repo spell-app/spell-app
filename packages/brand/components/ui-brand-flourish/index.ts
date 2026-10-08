@@ -1,5 +1,7 @@
 /**
- * `ui-brand-flourish` family barrel:  defines `<ui-brand-flourish>` (SIDE EFFECT) and exports its class.
+ * The brand flourish family:  defines `<ui-brand-flourish>` and exports its component, `UIBrandFlourish`,
+ * and `Flourish`, which draws the art.
+ * - SIDE EFFECT:  importing it defines the tag.
  */
 import { UIBrandFlourish } from "./UIBrandFlourish"
 

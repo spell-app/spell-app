@@ -1,45 +1,62 @@
-import { proto, type ValidationRule } from "$/ui/core"
-
-import { checkboxVocabulary } from "./ui-checkbox.vocabulary.en"
+import { E } from "$/ui/core"
+import { checkboxVocabulary } from "./UICheckbox.en"
 import { CheckControl } from "./CheckControl"
-import { CHECKBOX, CHECKED_RULE, SWITCH } from "./ui-checkbox.types"
 
 /****************
- * ### `<ui-checkbox>`
- * A checkbox, `toggle` or `slider`:  `<div class="ui … checkbox" part="checkbox">` around a native
- * `<input type="checkbox" part="control">` and its `<label part="label">` (see `CheckControl`).
+ * ### `UICheckbox`
+ * The component behind `<ui-checkbox>`:  a checkbox, `toggle` or `slider`.
+ *
+ * - Its shadow DOM:  `<div class="ui … checkbox" part="checkbox">` around a native
+ *   `<input type="checkbox" part="control">` and its `<label part="label">` (see `CheckControl`).
  * - Toggles and sliders are `role="switch"`:  on / off, not "checked".
- * - `indeterminate`:  the input's `indeterminate` (a dash, `aria-checked="mixed"`);  the user's click clears it,
- *   as natively, by writing `indeterminate = false` to the host.
+ * - `indeterminate`:  the input's `indeterminate` (a dash, `aria-checked="mixed"`).
+ *   A click clears it, as natively, by writing `indeterminate = false` to the DOM element.
  * - `required` => Fomantic's `checked` rule (`valueMissing`).
+ * - `off-value`:  submitted while unchosen, so a box toggles between two values (`value="open" off-value="closed"`);
+ *   a subclass sets both for every element it defines:  `class UIDoor extends UICheckbox {
+ *   @E.proto static defaultChosenValue = "open";  @E.proto static defaultUnchosenValue = "closed" }`.
  ****************/
 export class UICheckbox extends CheckControl<typeof checkboxVocabulary> {
-  @proto static vocabulary = checkboxVocabulary
+  /**
+   * Submitted while unchosen, when the element has no `off-value`;  left out:  nothing, as a native checkbox.
+   * - `@proto`:  a subclass sets its own for every element it defines.
+   */
+  declare readonly defaultUnchosenValue?: string
 
-  readonly checkable = CHECKBOX
+  @E.proto static vocabulary = checkboxVocabulary
 
-  protected inputType() {
-    return CHECKBOX as typeof CHECKBOX
+  readonly checkable = "checkbox"
+
+  protected get inputType(): "checkbox" {
+    return "checkbox"
   }
 
-  protected role(): string | undefined {
-    return this.attrs.type ? SWITCH : undefined
+  protected get inputRole(): string | undefined {
+    return this.type ? "switch" : undefined
   }
 
-  protected indeterminate(): boolean {
-    return this.attrs.indeterminate
+  /** `off-value`, else the class's `defaultUnchosenValue`. */
+  get unchosenValue(): string | undefined {
+    return this.offValue ?? this.defaultUnchosenValue
   }
 
-  protected rules(): ValidationRule[] {
-    return this.attrs.required ? [CHECKED_RULE] : []
+  @E.cssState("indeterminate")
+  protected get isIndeterminate(): boolean {
+    return this.indeterminate
   }
 
-  protected hostStates() {
-    return { ...super.hostStates(), indeterminate: this.attrs.indeterminate }
+  protected get validationRules(): E.ValidationRule[] {
+    return this.required ? [CHECKED_RULE] : []
   }
 
-  /** The user's click ends `indeterminate`. */
-  protected chosen() {
-    if (this.attrs.indeterminate) (this.host as unknown as { indeterminate: boolean }).indeterminate = false
+  /** A click someone made ends `indeterminate` (writes the DOM element's property, so it reflects). */
+  protected onChosen() {
+    if (this.indeterminate) this.indeterminate = false
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UICheckbox extends E.AttributeValues<typeof checkboxVocabulary> {}
+
+/** `required` => Fomantic's `checked` rule. */
+const CHECKED_RULE: E.ValidationRule = "checked"

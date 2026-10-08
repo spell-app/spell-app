@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import { Focus } from "./Focus"
 
 const focus = new Focus()
@@ -9,6 +9,10 @@ const focus = new Focus()
 function labels(elements: HTMLElement[]) {
   return elements.map((element) => element.getAttribute("aria-label") ?? element.textContent?.trim())
 }
+
+////////////////
+// ## Focusables
+////////////////
 
 describe("Focus.focusables()", () => {
   it("walks shadow roots and slots in flat-tree order", () => {
@@ -56,17 +60,23 @@ describe("Focus.focusables()", () => {
     host.attachShadow({ mode: "open", delegatesFocus: true }).innerHTML = `<button>inner</button>`
     expect(labels(focus.focusables(host.parentElement!))).toEqual(["inner"])
   })
+})
 
-  it("first / last", () => {
+describe("Focus.first() / last()", () => {
+  it("picks the first and last focusable;  undefined when there's none", () => {
     const root = Fixture.render(`<div><button>a</button><button>b</button><button>c</button></div>`)
     expect(focus.first(root)?.textContent).toBe("a")
     expect(focus.last(root)?.textContent).toBe("c")
-    expect(focus.first(Fixture.render(`<p>none</p>`))).toBeNull()
+    expect(focus.first(Fixture.render(`<p>none</p>`))).toBeUndefined()
   })
 })
 
-describe("Focus", () => {
-  it("activeElementDeep() descends into shadow roots", () => {
+////////////////
+// ## Deep focus
+////////////////
+
+describe("Focus.activeElementDeep()", () => {
+  it("descends into shadow roots", () => {
     const host = Fixture.render(`<div></div>`)
     host.attachShadow({ mode: "open" }).innerHTML = `<input>`
     const input = host.shadowRoot!.querySelector("input")!
@@ -75,7 +85,19 @@ describe("Focus", () => {
     expect(focus.activeElementDeep()).toBe(input)
   })
 
-  it("containsDeep() follows slots and shadow hosts", () => {
+  it("of another document is undefined when only ITS <body> has focus", () => {
+    const frame = Fixture.render<HTMLIFrameElement>(`<iframe></iframe>`)
+    const other = frame.contentDocument!
+    expect(other.activeElement).toBe(other.body)
+    expect(focus.activeElementDeep(other)).toBeUndefined()
+    const input = other.body.appendChild(other.createElement("input"))
+    input.focus()
+    expect(focus.activeElementDeep(other)).toBe(input)
+  })
+})
+
+describe("Focus.containsDeep()", () => {
+  it("follows slots and shadow hosts", () => {
     const outer = Fixture.render(`<div><span>slotted</span></div>`)
     outer.attachShadow({ mode: "open" }).innerHTML = `<p><slot></slot></p>`
     const paragraph = outer.shadowRoot!.querySelector("p")!
@@ -83,8 +105,14 @@ describe("Focus", () => {
     expect(focus.containsDeep(outer, paragraph)).toBe(true)
     expect(focus.containsDeep(paragraph, outer)).toBe(false)
   })
+})
 
-  it("trap() wraps Tab and pulls escaped focus back", () => {
+////////////////
+// ## Trapping
+////////////////
+
+describe("Focus.trap()", () => {
+  it("wraps Tab and pulls escaped focus back", () => {
     const outside = Fixture.render<HTMLButtonElement>(`<button>outside</button>`)
     const root = Fixture.render(`<div><button>a</button><button>b</button></div>`)
     const [a, b] = Array.from(root.querySelectorAll("button"))

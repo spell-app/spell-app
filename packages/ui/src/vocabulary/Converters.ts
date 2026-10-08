@@ -1,14 +1,21 @@
+import { Warnings } from "$/ui/util"
 import type { EnumOptions, ValueSetName } from "./vocabulary.types"
 import { ValueSets } from "./ValueSets"
 
-/**
- * Pure attribute => property converters, shared by `ElementDefinition` (the fork's props) and the native fallbacks.
+/****************
+ * ### `Converters`
+ * Pure attribute => property converters,
+ * shared by `ElementDefinition` (solid-element's props) and the native fallbacks.
  * - Why here, library-neutral:  the elements and their native fallbacks need the SAME booleans / enums / widths
  *   semantics, and frameworks send attributes in odd shapes -- Vue sends `open="false"` when it can't find a
  *   property, so `"false"` MUST mean false (plan, "Framework consumption contract").
  * - Static and stateless:  converters run on every `attributeChangedCallback`.
  * - Attribute values arrive as `string | null` (`null` ~== absent);  properties may arrive as anything.
- */
+ * - `null` is the PLATFORM's here, so it stays (epic `wwod-spell-ui`, Q9):  `getAttribute()` returns it for an absent
+ *   attribute, and solid-element's `toAttribute` takes it back to remove one (`booleanToAttribute()`).  Everything of
+ *   ours that means "none" is `undefined`.
+ * - Imports only `$/ui/util` and its folder's peers:  no DOM, no element layer.
+ ****************/
 export class Converters {
   ////////////////
   // ## Booleans
@@ -26,7 +33,7 @@ export class Converters {
     if (value == null) return false
     if (typeof value === "boolean") return value
     const text = value.trim().toLowerCase()
-    if (text === "" || text === "true" || text === "yes" || text === attribute) return true
+    if (TRUE_WORDS.has(text) || text === attribute) return true
     return !FALSE_WORDS.has(text)
   }
 
@@ -51,7 +58,7 @@ export class Converters {
   ): string | boolean {
     if (value == null || typeof value === "boolean") return value ?? false
     const text = value.trim().toLowerCase()
-    if (text === "" || text === "true" || text === "yes" || text === options.attribute) return true
+    if (TRUE_WORDS.has(text) || text === options.attribute) return true
     if (FALSE_WORDS.has(text)) return false
     if (!set) return text
     return Converters.enumValue(text, set, options) ?? true
@@ -80,8 +87,8 @@ export class Converters {
             : undefined
     if (text === undefined) return undefined
     const word = text.toLowerCase()
-    if (word === "false" || word === "no") return undefined
-    if (word === "" || word === "true" || word === "yes") return typeof fallback === "string" ? fallback : ""
+    if (ICON_FALSE_WORDS.has(word)) return undefined
+    if (TRUE_WORDS.has(word)) return typeof fallback === "string" ? fallback : ""
     return text
   }
 
@@ -105,8 +112,9 @@ export class Converters {
     if (text === "") return undefined
     const guess = ValueSets.suggest(set, text)
     const where = options.tag ? `<${options.tag} ${options.attribute ?? ""}>` : (options.attribute ?? "value")
-    Converters.warn(
-      `${where}: unknown value ${JSON.stringify(value)}${guess ? `, did you mean ${JSON.stringify(guess)}?` : ""}`
+    Warnings.devWarn(
+      where,
+      `unknown value ${JSON.stringify(value)}${guess ? `;  did you mean ${JSON.stringify(guess)}?` : ""}`
     )
     return undefined
   }
@@ -144,7 +152,7 @@ export class Converters {
     try {
       return JSON.parse(text) as T
     } catch (error) {
-      Converters.warn(`invalid JSON ${JSON.stringify(value)}: ${(error as Error).message}`)
+      Warnings.devWarn("Converters.json()", `invalid JSON ${JSON.stringify(value)}:`, (error as Error).message)
       return undefined
     }
   }
@@ -159,23 +167,16 @@ export class Converters {
     if (typeof value !== "string") return [...value]
     return value.split(LIST_SEPARATOR).filter(Boolean)
   }
-
-  ////////////////
-  // ## Dev warnings
-  ////////////////
-
-  /**
-   * `console.warn` in development only, prefixed so it's greppable.
-   * - `import.meta.env?.DEV` is statically replaced by Vite, so production builds drop the call.
-   * - REFACTOR: move to `$/ui/util` as `devWarn()` once more than `$/ui/vocabulary` and `$/ui/elements` need it.
-   */
-  static warn(message: string) {
-    if (import.meta.env?.DEV) console.warn(`[@spell-app/ui] ${message}`)
-  }
 }
 
+/** Spellings of true:  a bare attribute (`""`) and the two words;  the attribute's own name is checked apart. */
+const TRUE_WORDS = new Set(["", "true", "yes"])
+
+/** Spellings of false an `icon` takes:  NOT `"0"`, which is a Font Awesome glyph. */
+const ICON_FALSE_WORDS = new Set(["false", "no"])
+
 /** Spellings of false;  everything else present is true. */
-const FALSE_WORDS = new Set(["false", "no", "0"])
+const FALSE_WORDS = new Set([...ICON_FALSE_WORDS, "0"])
 
 /** Separator for `Converters.list()`. */
 const LIST_SEPARATOR = /[\s,]+/

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 import { Keyboard } from "./Keyboard"
 
 /** Dispatch a bubbling, composed `keydown` from `target`;  returns the event. */
@@ -10,14 +10,14 @@ function press(target: EventTarget, key: string, init: KeyboardEventInit = {}) {
   return event
 }
 
-describe("Keyboard", () => {
-  let keyboard: Keyboard
-  afterEach(() => keyboard.dispose())
+let keyboard: Keyboard
+afterEach(() => keyboard.dispose())
 
+describe("Keyboard.register()", () => {
   it("fires a page-scope shortcut and prevents default", () => {
-    keyboard = new Keyboard({ apple: false })
+    keyboard = new Keyboard({ isApple: false })
     const handler = vi.fn()
-    keyboard.register("page", "Mod+K", handler)
+    keyboard.register({ chord: "Mod+K", handler })
     const event = press(document.body, "k", { ctrlKey: true })
     expect(handler).toHaveBeenCalledOnce()
     expect(event.defaultPrevented).toBe(true)
@@ -28,9 +28,9 @@ describe("Keyboard", () => {
     const page = vi.fn()
     const modal = vi.fn()
     const global = vi.fn()
-    keyboard.register("page", "Escape", page)
-    keyboard.register("modal", "Escape", modal)
-    keyboard.register("page", "/", global, { global: true })
+    keyboard.register({ chord: "Escape", handler: page })
+    keyboard.register({ scope: "modal", chord: "Escape", handler: modal })
+    keyboard.register({ chord: "/", handler: global, global: true })
 
     press(document.body, "Escape")
     expect(page).toHaveBeenCalledTimes(1)
@@ -49,47 +49,36 @@ describe("Keyboard", () => {
     expect(page).toHaveBeenCalledTimes(2)
   })
 
-  it("pops scopes out of order and never pops the page scope", () => {
-    keyboard = new Keyboard()
-    keyboard.pushScope("a")
-    keyboard.pushScope("b")
-    keyboard.popScope("a")
-    expect(keyboard.activeScope).toBe("b")
-    keyboard.popScope("b")
-    keyboard.popScope("page")
-    expect(keyboard.activeScope).toBe("page")
-  })
-
   it("newest registration wins;  returning false passes to the next", () => {
     keyboard = new Keyboard()
     keyboard.warnConflicts = false
     const older = vi.fn()
     const newer = vi.fn(() => false)
-    keyboard.register("page", "Enter", older)
-    keyboard.register("page", "Enter", newer)
+    keyboard.register({ chord: "Enter", handler: older })
+    keyboard.register({ chord: "Enter", handler: newer })
     const event = press(document.body, "Enter")
     expect(newer).toHaveBeenCalledOnce()
     expect(older).toHaveBeenCalledOnce()
     expect(event.defaultPrevented).toBe(true)
   })
 
-  it("disposer removes the registration", () => {
+  it("its disposer removes the registration", () => {
     keyboard = new Keyboard()
     const handler = vi.fn()
-    const dispose = keyboard.register("page", "x", handler)
+    const dispose = keyboard.register({ chord: "x", handler })
     dispose()
     press(document.body, "x")
     expect(handler).not.toHaveBeenCalled()
   })
 
   it("ignores editable targets unless the chord has a modifier or inEditable", () => {
-    keyboard = new Keyboard({ apple: false })
+    keyboard = new Keyboard({ isApple: false })
     const plain = vi.fn()
     const modified = vi.fn()
     const allowed = vi.fn()
-    keyboard.register("page", "/", plain)
-    keyboard.register("page", "Mod+S", modified)
-    keyboard.register("page", "Escape", allowed, { inEditable: true })
+    keyboard.register({ chord: "/", handler: plain })
+    keyboard.register({ chord: "Mod+S", handler: modified })
+    keyboard.register({ chord: "Escape", handler: allowed, inEditable: true })
     const input = Fixture.render<HTMLInputElement>(`<input type="text">`)
     press(input, "/")
     press(input, "s", { ctrlKey: true })
@@ -106,7 +95,7 @@ describe("Keyboard", () => {
     shadow.innerHTML = `<button>in shadow</button>`
     const other = Fixture.render(`<button>elsewhere</button>`)
     const handler = vi.fn()
-    keyboard.register("page", "ArrowDown", handler, { target: host })
+    keyboard.register({ chord: "ArrowDown", handler, target: host })
     press(shadow.querySelector("button")!, "ArrowDown")
     press(other, "ArrowDown")
     expect(handler).toHaveBeenCalledOnce()
@@ -116,11 +105,24 @@ describe("Keyboard", () => {
     keyboard = new Keyboard()
     keyboard.warnConflicts = true
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
-    keyboard.register("page", "Mod+K", () => {})
-    keyboard.register("other", "Mod+K", () => {})
+    keyboard.register({ chord: "Mod+K", handler: () => {} })
+    keyboard.register({ scope: "other", chord: "Mod+K", handler: () => {} })
     expect(warn).not.toHaveBeenCalled()
-    keyboard.register("page", "Mod+K", () => {})
+    keyboard.register({ chord: "Mod+K", handler: () => {} })
     expect(warn).toHaveBeenCalledOnce()
     warn.mockRestore()
+  })
+})
+
+describe("Keyboard.popScope()", () => {
+  it("pops scopes out of order and NEVER pops the page scope", () => {
+    keyboard = new Keyboard()
+    keyboard.pushScope("a")
+    keyboard.pushScope("b")
+    keyboard.popScope("a")
+    expect(keyboard.activeScope).toBe("b")
+    keyboard.popScope("b")
+    keyboard.popScope("page")
+    expect(keyboard.activeScope).toBe("page")
   })
 })

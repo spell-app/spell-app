@@ -1,319 +1,201 @@
-import { Show, createEffect, createMemo, untrack } from "solid-js"
+import { Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UI, UIElement, type AttributeName, type OverlayEntry, UIT } from "$/ui/core"
+import { E, UI, UIT } from "$/ui/core"
+import { popupVocabulary } from "./UIPopup.en"
 
-import { popupVocabulary } from "./ui-popup.vocabulary.en"
-import { PopupFallback } from "./ui-popup.fallback"
-
-import popupCSS from "./ui-popup.css?inline"
-import anchoredCSS from "./ui-popup.anchored.css?raw"
-import {
-  DEFAULT_TRIGGER,
-  DEFAULT_POSITION,
-  DIALOG,
-  TOOLTIP,
-  POSITION_AREAS,
-  POSITION_AREA,
-  ARIA_EXPANDED,
-  HINT,
-  POSITION_ANCHOR,
-  ID_PREFIX,
-  CONTROLS,
-  DESCRIBED_BY,
-  ARIA_HASPOPUP,
-  CLOSED,
-  CONTENTS,
-  ANCHOR_NAME,
-  ELEMENT_NODE
-} from "./ui-popup.types"
-import type { PopupVocabulary, ShowPopoverOptions, AriaRelation } from "./ui-popup.types"
-import { HEADER, CONTENT, MANUAL, AUTO, NONE, POPOVER_OPEN } from "$/ui/components/components.types"
+import popupCSS from "./UIPopup.css?inline"
+import anchoredCSS from "./UIPopup.anchored.css?raw"
 
 /****************
- * ### `<ui-popup>`
- * A popup anchored to a TARGET:  the HOST is a popover in the top layer, positioned with CSS anchor positioning
- * only (`ui-popup.css`), holding `<div class="ui ... popup [position]" part="popup">`.
- * - Target:  the `target` property, else the element `for` names (in the popup's own tree), else the previous
- *   element sibling -- Fomantic's `inline` markup, a popup right after its activator.
- * - `on`:  `hover` (with `show-delay` / `hide-delay`, and on keyboard focus too), `focus`, `click` (toggles),
- *   `manual` (only `open`).  A hovered popup stays open while the pointer is over it (WCAG 1.4.13), unlike
- *   Fomantic's default `hoverable: false`;  `hoverable="false"` gives Fomantic's behaviour back (it hides as the
- *   pointer leaves the target, after `hide-delay`).
- * - Invoker commands (`<button commandfor="id" command="--toggle">`, `TOGGLE_COMMANDS`) are user actions too:  the
- *   popup opens at ITS target, whichever button sent the command.
- * - `open` is auto-controlled:  the cancelable `ui-open` / `ui-close` come first.  Escape and outside clicks come
- *   from `UI.overlays` (kind `popover`, the target counts as inside).
- * - Popover mode:  `hint` for hover / focus popups when `UI.browser.supports.popoverHint` (they don't close an
- *   open dropdown's menu), else `manual`;  click and manual popups are always `manual` -- `auto`'s light dismiss
- *   would skip the cancelable `ui-close`.  When the browser dismisses a `hint` popover itself, the element follows (a
- *   `ui-close` that can no longer veto).
- * - Accessibility, by `on`:
- *   - `hover` / `focus` / `manual`:  host `role=tooltip`;  the target is `aria-describedby` it
- *   - `click`:  host `role=dialog` (non-modal, named by `header` or the host's `aria-label`);  the target gets
- *     `aria-haspopup=dialog`, `aria-expanded`, `aria-controls`
+ * ### `UIPopup`
+ * The component behind `<ui-popup>`:  a popup anchored to a TARGET.
+ * The DOM element is a popover in the top layer, placed by CSS anchor positioning only (`UIPopup.css`),
+ * holding `<div class="ui … popup [position]" part="popup">`.
+ *
+ * - Its target:  the `target` property, else the element `for` names (in the popup's own tree),
+ *   else the previous element sibling (Fomantic's `inline` markup:  a popup right after what opens it).
+ *
+ * - `open-on`:  `hover` (with `show-delay` / `hide-delay`, and on keyboard focus too), `focus`,
+ *   `click` (toggles), `manual` (only `open`).
+ *   - A hovered popup stays open while the pointer is over it (WCAG 1.4.13),
+ *     unlike Fomantic's default `hoverable: false`.  `hoverable="false"` gives Fomantic's behaviour back:
+ *     it hides as the pointer leaves the target, after `hide-delay`.
+ *
+ * - Invoker commands (`<button commandfor="id" command="--toggle">`, `UIT.ToggleCommands`) are a person's actions
+ *   too:  the popup opens at ITS target, whichever button sent the command.
+ *
+ * - `open` is controlled:  the cancelable `ui-open` / `ui-close` come first.
+ *   Escape and outside clicks come from `UI.overlays` (kind `popover`;  the target counts as inside).
+ *
+ * - Its popover mode:  `hint` for hover / focus popups when `UI.browser.supports.popoverHint`
+ *   (they don't close an open dropdown's menu), else `manual`.
+ *   - Click and manual popups are always `manual`:  `auto`'s light dismiss would skip the cancelable `ui-close`.
+ *   - When the browser dismisses a `hint` popover itself,
+ *     the component follows (with a `ui-close` that can no longer veto).
+ *
+ * - Accessibility, by `open-on`:
+ *   - `hover` / `focus` / `manual`:  the DOM element is `role=tooltip`;  the target is `aria-describedby` it
+ *   - `click`:  the DOM element is `role=dialog` (non-modal, named by `header` or its `aria-label`);
+ *     the target gets `aria-haspopup=dialog`, `aria-expanded`, `aria-controls`
  *   - the ARIA goes on the element that takes focus:  a `delegatesFocus` target's (`<ui-button>`'s) first
- *     focusable, through element reflection (`ariaDescribedByElements`) when that is in another tree
- * - SIDE EFFECTS on light DOM the element doesn't own, undone when it unbinds:  the target's inline
- *   `anchor-name` (a per-instance name ADDED to its list) and ARIA attributes;  the host's `popover`, `id` and
- *   inline `position-anchor` / `position-area`.
+ *     focusable, through element reflection (`ariaDescribedByElements`) when that is in another tree.
+ *
+ * - SIDE EFFECTS on light DOM the popup doesn't own, undone when it unbinds:
+ *   - the target's inline `anchor-name` (a per-instance name ADDED to its list) and its ARIA attributes
+ *   - the DOM element's `popover`, `id`, and inline `position-anchor` / `position-area`.
  ****************/
-export class UIPopup extends UIElement<PopupVocabulary> {
-  @proto static vocabulary = popupVocabulary
-  @proto static styles = { popup: popupCSS, "popup-anchored": anchoredCSS }
-  @proto static Fallback = PopupFallback
-  // nothing inside needs focus delegated:  a click on a tooltip's text must not jump to a link in it
-  @proto static delegatesFocus = false
+export class UIPopup extends E.UIComponent<Vocabulary> {
+  @E.proto static vocabulary = popupVocabulary
+  @E.proto static styleSheets = { popup: popupCSS, "popup-anchored": anchoredCSS }
+  @E.proto static elementSetup = {
+    // nothing inside needs focus delegated:  a click on a tooltip's text must not jump to a link in it
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
+
+  /** Listens to its own DOM element:  pointer and focus leaving it, the popover's `toggle`, invoker commands. */
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
+    super(...args)
+    this.on("pointerenter", this.onPopupEnter)
+    this.on("pointerleave", this.onPopupLeave)
+    this.on("focusout", this.onPopupFocusOut)
+    this.on("toggle", this.onToggle)
+    this.on("command", this.onCommand)
+  }
 
   ////////////////
-  // ## State
+  // ## Open
   ////////////////
 
-  /** `open`:  host-controlled, or internal. */
-  readonly openState = this.controlled("open", false)
-
-  /** Element carrying the target's ARIA (see class docs), while bound. */
-  readonly ariaElement = new Cell<Element | null>(null)
-
-  /** The target:  `target` property, else `for`, else the previous element sibling;  `null` when unbound. */
-  readonly target = createMemo((): Element | null => {
-    if (!this.connected.get()) return null
-    const property = this.attrs.target
-    if (UIPopup.isElement(property)) return property
-    const id = this.attrs.for
-    if (id) return (this.host.getRootNode() as Document | ShadowRoot).getElementById?.(id) ?? null
-    return this.host.previousElementSibling
-  })
-
-  /** What opens it. */
-  readonly trigger = createMemo((): UIT.PopupTrigger => this.attrs.on ?? DEFAULT_TRIGGER)
-
-  /** A click popup:  a non-modal dialog with interactive content, not a tooltip. */
-  readonly interactive = createMemo(() => this.trigger() === "click")
+  /** `open`:  the DOM element's `open` property when set, else kept here;  `:state(open)`. */
+  @E.cssState("open")
+  @E.controlled("open")
+  accessor isOpen = false
 
   /** Pending delayed show / hide. */
-  private timer?: ReturnType<typeof setTimeout>
-
-  /** Per-instance anchor name, from `UI.ids` on first bind. */
-  private anchorName = ""
+  private delayTimer?: ReturnType<typeof setTimeout>
 
   /** This element's `UI.overlays` entry;  `anchor` follows the target. */
-  private readonly overlay: OverlayEntry = {
-    element: this.host,
+  private readonly overlay: E.OverlayEntry = {
+    element: this.domElement,
     kind: "popover",
-    onDismiss: () => void this.setOpen(false)
+    onDismiss: () => void this.requestOpen(false)
   }
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
-    super(...args)
-    const { host } = this
-    const listeners = new AbortController()
-    const options = { signal: listeners.signal }
-    host.addEventListener("pointerenter", this.onPopupEnter, options)
-    host.addEventListener("pointerleave", this.onPopupLeave, options)
-    host.addEventListener("focusout", this.onPopupFocusOut, options)
-    host.addEventListener("toggle", this.onToggle, options)
-    host.addEventListener("command", this.onCommand, options)
-    host.addReleaseCallback(() => listeners.abort())
+  /** Show or hide, dispatching the cancelable `ui-open` / `ui-close` first;  true when applied. */
+  requestOpen(open: boolean, originalEvent?: Event): boolean {
+    clearTimeout(this.delayTimer)
+    if (open === untrack(() => this.isOpen)) return false
+    const detail: UIT.PopupOpenDetail = { open, originalEvent }
+    return this.requestChange("isOpen", open, () => this.send(open ? "ui-open" : "ui-close", detail))
   }
 
-  /** Open now. */
-  isOpen(): boolean {
-    return this.openState.get()
+  /** `requestOpen()` after `delay` ms (at once for `0`);  a newer call replaces a pending one. */
+  private schedule(open: boolean, delay: number, originalEvent?: Event) {
+    clearTimeout(this.delayTimer)
+    if (delay <= 0) return void this.requestOpen(open, originalEvent)
+    this.delayTimer = setTimeout(() => this.requestOpen(open, originalEvent), delay)
   }
 
-  ////////////////
-  // ## Element hooks
-  ////////////////
-
-  protected classValue(name: AttributeName<PopupVocabulary>): unknown {
-    if (name === "open") return this.isOpen()
-    return super.classValue(name)
-  }
-
-  /** The position words, after the noun:  `ui popup top left`. */
-  protected extraClasses(): string | undefined {
-    return this.attrs.position ?? DEFAULT_POSITION
-  }
-
-  protected hostStates() {
-    return { open: this.isOpen(), fluid: this.attrs.fluid }
-  }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  mount(): JSX.Element {
-    this.effects()
-    return super.mount()
-  }
-
-  render(): JSX.Element {
-    if (isServer) return this.renderServer()
-    return (
-      <div class={this.classes()} part={this.part("popup")}>
-        <Show when={this.attrs.header}>
-          <div class={HEADER} part={this.part("header")}>
-            {this.attrs.header}
-          </div>
-        </Show>
-        <Show when={this.attrs.content}>
-          <div class={CONTENT} part={this.part("content")}>
-            {this.attrs.content}
-          </div>
-        </Show>
-        <slot />
-      </div>
-    )
-  }
-
-  /**
-   * The static markup of a server render (`$/ui/server`), where the root replaces the host:
-   * - a popover itself (`serverPopover()`):  hidden until opened, in the HTML
-   * - PHRASING content (`<span>`s):  a popup often sits in running text, after a `<dfn>` or a button in a `<p>`,
-   *   where its host was valid;  a `<div>` would close the `<p>` when a browser parses the page
-   */
-  private renderServer(): JSX.Element {
-    return (
-      <span class={this.classes()} part={this.part("popup")} popover={this.serverPopover()}>
-        <Show when={this.attrs.header}>
-          <span class={HEADER} part={this.part("header")}>
-            {this.attrs.header}
-          </span>
-        </Show>
-        <Show when={this.attrs.content}>
-          <span class={CONTENT} part={this.part("content")}>
-            {this.attrs.content}
-          </span>
-        </Show>
-        <slot />
-      </span>
-    )
-  }
-
-  ////////////////
-  // ## Effects
-  ////////////////
-
-  /**
-   * Role / name, popover mode, position, target binding, and showing -- all once the runtime is loaded (`UI`).
-   * - Created in `mount()`:  they read overridable methods and every field.
-   * - Role, name and position are host effects:  a static render (`$/ui/server`) writes them out;  it binds the
-   *   target's ARIA once (`serverBind()`) instead of the rest.
-   */
-  private effects() {
-    const { host } = this
-    this.hostEffect(
-      () => (this.interactive() ? DIALOG : TOOLTIP),
-      (role) => {
-        host.internals.role = role
-      }
-    )
-    this.hostEffect(
-      () => (this.interactive() ? (this.attrs.header ?? null) : null),
-      (label) => {
-        host.internals.ariaLabel = label
-      }
-    )
-    this.hostEffect(
-      () => POSITION_AREAS[this.attrs.position ?? DEFAULT_POSITION],
-      (area) => {
-        host.style.setProperty(POSITION_AREA, area)
-      }
-    )
-    if (isServer) return this.serverBind()
-    createEffect(
-      () => (this.loaded() ? this.popoverMode() : undefined),
-      (mode) => {
-        if (mode && host.popover !== mode) host.popover = mode
-      }
-    )
-    createEffect(
-      () => (this.loaded() ? { target: this.target(), trigger: this.trigger() } : undefined),
-      (binding) => (binding?.target ? this.bind(binding.target, binding.trigger) : undefined)
-    )
-    createEffect(
-      () => {
-        const element = this.ariaElement.get()
-        return element && this.interactive() ? { element, open: this.isOpen() } : undefined
-      },
-      (expanded) => expanded?.element.setAttribute(ARIA_EXPANDED, String(expanded.open))
-    )
-    createEffect(
-      () => this.loaded() && this.connected.get() && this.isOpen(),
-      (open) => {
-        if (!open) return
-        // a `ui-*` target renders async:  its box (or `display: contents`) is only known once it's ready
-        let cancelled = false
-        const target = untrack(this.target) as { ready?: Promise<void> } | null
-        void (target?.ready ?? Promise.resolve()).then(() => cancelled || this.show())
-        return () => {
-          cancelled = true
-          this.hide()
-        }
-      }
-    )
-  }
-
-  /**
-   * `popover` of the ROOT in a server render (`$/ui/server`), where the root replaces the host:  hidden until
-   * opened, in the HTML.
-   * - `auto` for a click popup:  light dismiss and Escape without JS, once something opens it (`popovertarget`);
-   *   `manual` for the rest (`hint` isn't everywhere, and an unknown value means `manual`).
-   */
-  private serverPopover(): "auto" | "manual" {
-    return this.interactive() ? AUTO : MANUAL
-  }
-
-  /**
-   * A server render's binding:  the target's ARIA, as `bind()` adds it, without listeners.
-   * - SIDE EFFECTS:  gives the host (the render's parsed copy) an id, which its root keeps, and sets the target's
-   *   `aria-describedby` / `aria-controls` and `aria-haspopup`.  No `aria-expanded`:  a native invoker reports its
-   *   popover's state itself.
-   */
-  private serverBind() {
-    const target = this.target()
-    if (!target) return
-    const interactive = this.interactive()
-    UI.ids.ensure(this.host, ID_PREFIX)
-    const element = UIPopup.ariaTarget(target)
-    AriaRefs.add(element, interactive ? CONTROLS : DESCRIBED_BY, this.host)
-    if (interactive) element.setAttribute(ARIA_HASPOPUP, DIALOG)
-  }
-
-  /**
-   * `popover` mode for the current trigger, see class docs.
-   * - `manual` popups too stay `manual`:  the page decides, so several may be open at once (a `hint` closes the
-   *   other hints).
-   */
-  private popoverMode(): "hint" | "manual" {
-    const trigger = this.trigger()
-    return (trigger === "hover" || trigger === "focus") && UI.browser.supports.popoverHint ? HINT : MANUAL
+  /** Ready, connected and open:  show (once a `ui-*` target is ready);  the cleanup hides. */
+  @E.onChange("isReady", "isConnected", "isOpen")
+  protected onOpenChanged(isReady: boolean, isConnected: boolean, isOpen: boolean) {
+    if (!isReady || !isConnected || !isOpen) return undefined
+    // a `ui-*` target renders async:  its box (or `display: contents`) is only known once it's ready
+    let isCancelled = false
+    const target = untrack(() => this.targetElement) as { ready?: Promise<void> } | undefined
+    void (target?.ready ?? Promise.resolve()).then(() => isCancelled || this.show())
+    return () => {
+      isCancelled = true
+      this.hide()
+    }
   }
 
   /**
    * Show the popover against the target and register with `UI.overlays`.
    * - Anchor:  the target's `anchor-name` when it has a box, else the implicit anchor of `source` (see
-   *   `ui-popup.css`).  `source` also makes the target the popover's invoker, so Tab from it continues inside.
+   *   `UIPopup.css`).  `source` also makes the target the popover's invoker, so Tab from it continues inside.
    */
   private show() {
-    const { host } = this
-    const target = untrack(this.target)
-    const anchor = target ? UIPopup.anchorBox(target) : undefined
-    host.popover ||= this.popoverMode()
-    host.style.setProperty(POSITION_ANCHOR, anchor === target ? this.anchorName : anchor ? AUTO : NONE)
-    if (!host.matches(POPOVER_OPEN)) host.showPopover(anchor ? ({ source: anchor } as ShowPopoverOptions) : undefined)
-    this.overlay.anchor = target ?? undefined
-    this.overlay.restoreFocus = untrack(this.interactive)
+    const { domElement } = this
+    const target = untrack(() => this.targetElement)
+    const anchor = target ? UIPopup.anchorBoxFor(target) : undefined
+    domElement.popover ||= this.popoverMode
+    domElement.style.setProperty("position-anchor", anchor === target ? this.anchorName : anchor ? "auto" : "none")
+    if (!domElement.matches(":popover-open")) {
+      domElement.showPopover(anchor ? ({ source: anchor } as ShowPopoverOptions) : undefined)
+    }
+    this.overlay.anchor = target
+    this.overlay.restoreFocus = untrack(() => this.isInteractive)
     UI.overlays.open(this.overlay)
   }
 
   /** Hide the popover and leave `UI.overlays`. */
   private hide() {
-    clearTimeout(this.timer)
-    if (this.host.matches(POPOVER_OPEN)) this.host.hidePopover()
+    clearTimeout(this.delayTimer)
+    if (this.domElement.matches(":popover-open")) this.domElement.hidePopover()
     UI.overlays.close(this.overlay)
+  }
+
+  /**
+   * The popover's `toggle`:  the browser closed it (a `hint` popover's light dismiss) while the element thinks it's
+   * open -- follow, announcing a `ui-close` that can't veto any more.
+   */
+  private readonly onToggle = (event: Event) => {
+    if ((event as ToggleEvent).newState !== CLOSED || !this.domElement.isConnected || !untrack(() => this.isOpen))
+      return
+    const detail: UIT.PopupOpenDetail = { open: false, originalEvent: event }
+    this.send("ui-close", detail)
+    this.isOpen = false
+  }
+
+  /** An invoker command aimed at the DOM element (`ToggleCommands`). */
+  private readonly onCommand = (event: Event) => {
+    const action = UIT.ToggleCommands.action(
+      event,
+      untrack(() => this.isOpen)
+    )
+    if (action) this.requestOpen(action === "show", event)
+  }
+
+  ////////////////
+  // ## The target
+  ////////////////
+
+  /**
+   * The target:  `target` property, else `for`, else the previous element sibling;  `undefined` when unbound.
+   * - Not `target`:  that's the attribute's getter, the property this reads first.
+   */
+  @E.derived
+  get targetElement(): Element | undefined {
+    if (!this.isConnected) return undefined
+    const property = this.target
+    if (UIPopup.isElement(property)) return property
+    const id = this.for
+    if (id) return (this.domElement.getRootNode() as Document | ShadowRoot).getElementById?.(id) ?? undefined
+    return this.domElement.previousElementSibling ?? undefined
+  }
+
+  /** What opens it. */
+  get trigger(): UIT.PopupTrigger {
+    return this.openOn ?? DEFAULT_TRIGGER
+  }
+
+  /** A click popup:  a non-modal dialog with interactive content, not a tooltip. */
+  get isInteractive(): boolean {
+    return this.trigger === UIT.PopupTrigger.click
+  }
+
+  /** Element carrying the target's ARIA (see class docs), while bound. */
+  @E.state accessor ariaElement: Element | undefined = undefined
+
+  /** Per-instance anchor name, from `UI.ids` on first bind. */
+  private anchorName = ""
+
+  /** Ready with a target:  bind it for the trigger;  the cleanup is `bind()`'s undo. */
+  @E.onChange("isReady", "targetElement", "trigger")
+  protected onTargetChanged(isReady: boolean, target: Element | undefined, trigger: UIT.PopupTrigger) {
+    return isReady && target ? this.bind(target, trigger) : undefined
   }
 
   /**
@@ -321,82 +203,71 @@ export class UIPopup extends UIElement<PopupVocabulary> {
    * - SIDE EFFECTS:  see class docs.
    */
   private bind(target: Element, trigger: UIT.PopupTrigger): () => void {
-    const { host } = this
+    const { domElement } = this
     this.anchorName ||= `--${UI.ids.next(ID_PREFIX)}`
     const listeners = new AbortController()
     const options = { signal: listeners.signal }
+    const isClick = trigger === UIT.PopupTrigger.click
     // `HTMLElement`'s event map:  an SVG target fires the same pointer / focus events
     const events = target as HTMLElement
-    if (trigger === "hover") {
+    if (trigger === UIT.PopupTrigger.hover) {
       events.addEventListener("pointerenter", this.onTargetEnter, options)
       events.addEventListener("pointerleave", this.onTargetLeave, options)
     }
-    if (trigger === "hover" || trigger === "focus") {
+    if (trigger === UIT.PopupTrigger.hover || trigger === UIT.PopupTrigger.focus) {
       events.addEventListener("focusin", this.onTargetFocus, options)
       events.addEventListener("focusout", this.onTargetBlur, options)
     }
-    if (trigger === "click") events.addEventListener("click", this.onTargetClick, options)
-    AnchorNames.add(target, this.anchorName)
-    UI.ids.ensure(host, ID_PREFIX)
-    const element = UIPopup.ariaTarget(target)
-    const refs = trigger === "click" ? CONTROLS : DESCRIBED_BY
-    const unrelate = AriaRefs.add(element, refs, host)
-    if (trigger === "click") element.setAttribute(ARIA_HASPOPUP, DIALOG)
-    this.ariaElement.set(element)
+    if (isClick) events.addEventListener("click", this.onTargetClick, options)
+    UIPopup.addAnchorName(target, this.anchorName)
+    UI.ids.ensure(domElement, ID_PREFIX)
+    const element = UIPopup.ariaTargetFor(target)
+    const unrelate = UIPopup.addAriaRelation({ element, relation: isClick ? CONTROLS : DESCRIBED_BY, domElement })
+    if (isClick) element.setAttribute("aria-haspopup", "dialog")
+    this.ariaElement = element
     return () => {
       listeners.abort()
-      clearTimeout(this.timer)
-      AnchorNames.remove(target, this.anchorName)
+      clearTimeout(this.delayTimer)
+      UIPopup.removeAnchorName(target, this.anchorName)
       unrelate()
-      if (trigger === "click") {
-        element.removeAttribute(ARIA_HASPOPUP)
-        element.removeAttribute(ARIA_EXPANDED)
+      if (isClick) {
+        element.removeAttribute("aria-haspopup")
+        element.removeAttribute("aria-expanded")
       }
-      this.ariaElement.set(null)
+      this.ariaElement = undefined
     }
   }
 
-  ////////////////
-  // ## Transitions
-  ////////////////
-
-  /** Show or hide, dispatching the cancelable `ui-open` / `ui-close` first;  true when applied. */
-  setOpen(open: boolean, originalEvent?: Event): boolean {
-    clearTimeout(this.timer)
-    if (open === untrack(() => this.isOpen())) return false
-    const detail: UIT.PopupOpenDetail = { open, originalEvent }
-    return this.openState.request(open, () => this.emit(open ? "ui-open" : "ui-close", detail))
+  /**
+   * A server render's binding:  the target's ARIA, as `bind()` adds it, without listeners.
+   * - SIDE EFFECTS:  gives the DOM element (the render's parsed copy) an id, which its root keeps,
+   *   and sets the target's `aria-describedby` / `aria-controls` and `aria-haspopup`.  No `aria-expanded`:
+   *   a native invoker reports its popover's state itself.
+   */
+  private serverBind() {
+    const target = this.targetElement
+    if (!target) return
+    const isInteractive = this.isInteractive
+    UI.ids.ensure(this.domElement, ID_PREFIX)
+    const element = UIPopup.ariaTargetFor(target)
+    UIPopup.addAriaRelation({ element, relation: isInteractive ? CONTROLS : DESCRIBED_BY, domElement: this.domElement })
+    if (isInteractive) element.setAttribute("aria-haspopup", "dialog")
   }
 
-  /** `setOpen()` after `delay` ms (at once for `0`);  a newer call replaces a pending one. */
-  private schedule(open: boolean, delay: number, originalEvent?: Event) {
-    clearTimeout(this.timer)
-    if (delay <= 0) return void this.setOpen(open, originalEvent)
-    this.timer = setTimeout(() => this.setOpen(open, originalEvent), delay)
+  /** A click popup's target says whether it's open (`aria-expanded`). */
+  @E.onChange("ariaElement", "isInteractive", "isOpen")
+  protected onExpandedChanged(element: Element | undefined, isInteractive: boolean, isOpen: boolean) {
+    if (element && isInteractive) element.setAttribute("aria-expanded", String(isOpen))
   }
-
-  ////////////////
-  // ## Handlers
-  ////////////////
 
   /** Pointer onto the target (`hover`):  show after `show-delay`. */
   private readonly onTargetEnter = (event: PointerEvent) => {
-    this.schedule(true, this.attrs.showDelay ?? 0, event)
+    this.schedule(true, this.showDelay ?? 0, event)
   }
 
   /** Pointer off the target (`hover`):  hide after `hide-delay`, unless it reaches the popup first. */
   private readonly onTargetLeave = (event: PointerEvent) => {
-    this.schedule(false, this.attrs.hideDelay ?? 0, event)
-  }
-
-  /** Pointer onto the popup:  keep a hovered popup open, unless `hoverable` is off (Fomantic's default). */
-  private readonly onPopupEnter = () => {
-    if (untrack(this.trigger) === "hover" && untrack(() => this.attrs.hoverable) !== false) clearTimeout(this.timer)
-  }
-
-  /** Pointer off the popup:  hide a hovered popup after `hide-delay`. */
-  private readonly onPopupLeave = (event: PointerEvent) => {
-    if (untrack(this.trigger) === "hover") this.schedule(false, this.attrs.hideDelay ?? 0, event)
+    this.schedule(false, this.hideDelay ?? 0, event)
   }
 
   /** Focus onto the target (`hover`, `focus`):  show at once. */
@@ -406,135 +277,356 @@ export class UIPopup extends UIElement<PopupVocabulary> {
 
   /** Focus off the target (`hover`, `focus`):  hide, unless focus moved into the popup. */
   private readonly onTargetBlur = (event: FocusEvent) => {
-    if (UI.focus.containsDeep(this.host, event.relatedTarget as Node | null)) return
-    this.schedule(false, 0, event)
-  }
-
-  /** Focus off the popup (`focus`):  hide, unless it went back to the target. */
-  private readonly onPopupFocusOut = (event: FocusEvent) => {
-    if (untrack(this.trigger) !== "focus") return
-    const next = event.relatedTarget as Node | null
-    const target = untrack(this.target)
-    if (UI.focus.containsDeep(this.host, next) || (target && next && UI.focus.containsDeep(target, next))) return
+    if (UI.focus.containsDeep(this.domElement, event.relatedTarget as Node | null)) return
     this.schedule(false, 0, event)
   }
 
   /** Click on the target (`click`):  toggle. */
   private readonly onTargetClick = (event: MouseEvent) => {
-    this.setOpen(!untrack(() => this.isOpen()), event)
+    this.requestOpen(!untrack(() => this.isOpen), event)
   }
 
-  /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
-  private readonly onCommand = (event: Event) => {
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isOpen())
-    )
-    if (action) this.setOpen(action === "show", event)
+  ////////////////
+  // ## The popup itself
+  ////////////////
+
+  /** Pointer onto the popup:  keep a hovered popup open, unless `hoverable` is off (Fomantic's default). */
+  private readonly onPopupEnter = () => {
+    if (untrack(() => this.trigger) !== UIT.PopupTrigger.hover) return
+    if (untrack(() => this.hoverable) !== false) clearTimeout(this.delayTimer)
+  }
+
+  /** Pointer off the popup:  hide a hovered popup after `hide-delay`. */
+  private readonly onPopupLeave = (event: PointerEvent) => {
+    if (untrack(() => this.trigger) === UIT.PopupTrigger.hover) this.schedule(false, this.hideDelay ?? 0, event)
+  }
+
+  /** Focus off the popup (`focus`):  hide, unless it went back to the target. */
+  private readonly onPopupFocusOut = (event: FocusEvent) => {
+    if (untrack(() => this.trigger) !== UIT.PopupTrigger.focus) return
+    const next = event.relatedTarget as Node | null
+    const target = untrack(() => this.targetElement)
+    if (UI.focus.containsDeep(this.domElement, next) || (target && next && UI.focus.containsDeep(target, next))) return
+    this.schedule(false, 0, event)
+  }
+
+  ////////////////
+  // ## The DOM element's role, name, position and popover
+  ////////////////
+
+  /** SIDE EFFECT:  the DOM element is a dialog for a click popup, else a tooltip. */
+  @E.onChange("isInteractive", { writesDOMElement: true })
+  protected onInteractiveChanged(isInteractive: boolean) {
+    this.domElement.internals.role = isInteractive ? "dialog" : "tooltip"
+  }
+
+  /** SIDE EFFECT:  a click popup's dialog is named by `header`. */
+  @E.onChange("isInteractive", "header", { writesDOMElement: true })
+  protected onDialogNameChanged(isInteractive: boolean, header: string | undefined) {
+    // `null`, not `undefined`:  `ElementInternals.ariaLabel` is a platform property, cleared by `null`
+    this.domElement.internals.ariaLabel = isInteractive ? (header ?? null) : null
+  }
+
+  /** SIDE EFFECT:  the DOM element's `position-area` follows `position`. */
+  @E.onChange("position", { writesDOMElement: true })
+  protected onPositionChanged(position: string | undefined) {
+    this.domElement.style.setProperty("position-area", POSITION_AREAS[position ?? DEFAULT_POSITION])
   }
 
   /**
-   * The popover's `toggle`:  the browser closed it (a `hint` popover's light dismiss) while the element thinks it's
-   * open -- follow, announcing a `ui-close` that can't veto any more.
+   * `popover` mode for the current trigger, see class docs.
+   * - `manual` popups too stay `manual`:
+   *   the page decides, so several may be open at once (a `hint` closes the other hints).
    */
-  private readonly onToggle = (event: Event) => {
-    if ((event as ToggleEvent).newState !== CLOSED || !this.host.isConnected || !untrack(() => this.isOpen())) return
-    const detail: UIT.PopupOpenDetail = { open: false, originalEvent: event }
-    this.emit("ui-close", detail)
-    this.openState.set(false)
+  private get popoverMode(): PopoverMode {
+    const trigger = this.trigger
+    const isHintable = trigger === UIT.PopupTrigger.hover || trigger === UIT.PopupTrigger.focus
+    return isHintable && UI.browser.supports.popoverHint ? "hint" : "manual"
+  }
+
+  /**
+   * Once ready, the DOM element's `popover` follows the trigger (`popoverMode`).
+   * - Reads `popoverMode` HERE, not as a member of the effect:  it reads `UI.browser`, which exists only once ready.
+   */
+  @E.onChange("isReady", "trigger")
+  protected onPopoverModeChanged(isReady: boolean) {
+    if (!isReady) return
+    const mode = this.popoverMode
+    if (this.domElement.popover !== mode) this.domElement.popover = mode
+  }
+
+  /**
+   * `popover` of the ROOT in a server render (`$/ui/static`), where the root replaces the DOM element:
+   * hidden until opened, in the HTML.
+   * - `auto` for a click popup:  light dismiss and Escape without JS, once something opens it (`popovertarget`);
+   *   `manual` for the rest (`hint` isn't everywhere, and an unknown value means `manual`).
+   */
+  private get serverPopover(): PopoverMode {
+    return this.isInteractive ? "auto" : "manual"
+  }
+
+  ////////////////
+  // ## Classes and states
+  ////////////////
+
+  /** The `open` class:  the controlled state, not just the attribute. */
+  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
+    if (name === "open") return this.isOpen
+    return super.classValue(name)
+  }
+
+  /** The position words, after the noun:  `ui popup top left`. */
+  protected get extraClasses(): string | undefined {
+    return this.position ?? DEFAULT_POSITION
+  }
+
+  /** As wide as its target (`fluid`):  `:state(fluid)`. */
+  @E.cssState("fluid")
+  get isFluid(): boolean {
+    return this.fluid
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
+  /**
+   * Adds the server render's target binding (`serverBind()`) to `UIComponent.onMount()`;  the role,
+   * name and position effects write the DOM element there too (`writesDOMElement`).
+   */
+  onMount(): JSX.Element {
+    if (isServer) this.serverBind()
+    return super.onMount()
+  }
+
+  render(): JSX.Element {
+    if (isServer) return this.serverMarkup()
+    return (
+      <div class={this.rootClasses} part={this.partForName("popup")}>
+        <Show when={this.header}>
+          <div class={UIT.HEADER} part={this.partForName("header")}>
+            {this.header}
+          </div>
+        </Show>
+        <Show when={this.content}>
+          <div class={UIT.CONTENT} part={this.partForName("content")}>
+            {this.content}
+          </div>
+        </Show>
+        <slot />
+      </div>
+    )
+  }
+
+  /**
+   * The static markup of a server render (`$/ui/static`), where the root replaces the DOM element:
+   * - a popover itself (`serverPopover`):  hidden until opened, in the HTML
+   * - PHRASING content (`<span>`s):  a popup often sits in running text, after a `<dfn>` or a button in a `<p>`,
+   *   where its DOM element was valid;  a `<div>` would close the `<p>` when a browser parses the page
+   */
+  private serverMarkup(): JSX.Element {
+    return (
+      <span class={this.rootClasses} part={this.partForName("popup")} popover={this.serverPopover}>
+        <Show when={this.header}>
+          <span class={UIT.HEADER} part={this.partForName("header")}>
+            {this.header}
+          </span>
+        </Show>
+        <Show when={this.content}>
+          <span class={UIT.CONTENT} part={this.partForName("content")}>
+            {this.content}
+          </span>
+        </Show>
+        <slot />
+      </span>
+    )
   }
 
   ////////////////
   // ## Targets
   ////////////////
 
-  /** `value` is an element:  by node type, since a server render (`$/ui/server`) has no `Element` global. */
+  /**
+   * `value` is an element:  by node type, since a server render (`$/ui/static`) has no `Element` global.
+   * - STATIC:  pure.
+   */
   private static isElement(value: unknown): value is Element {
-    return typeof value === "object" && value !== null && (value as Node).nodeType === ELEMENT_NODE
+    return typeof value === "object" && value !== null && (value as Node).nodeType === E.NodeType.element
   }
 
   /**
    * The box to anchor to:  `target`, or -- when it has none (`display: contents`) -- the first element of its
    * shadow root, else its first child element.
+   * - STATIC:  needs no instance, only the target.
    */
-  private static anchorBox(target: Element): Element {
+  private static anchorBoxFor(target: Element): Element {
     if (getComputedStyle(target).display !== CONTENTS) return target
     return target.shadowRoot?.firstElementChild ?? target.firstElementChild ?? target
   }
 
-  /** The element that takes focus for `target`:  a `delegatesFocus` host's first focusable, else `target`. */
-  private static ariaTarget(target: Element): Element {
+  /**
+   * The element that takes focus for `target`:  a `delegatesFocus` DOM element's first focusable, else `target`.
+   * - STATIC:  needs no instance, only the target.
+   */
+  private static ariaTargetFor(target: Element): Element {
     const root = target.shadowRoot
     return (root?.delegatesFocus && UI.focus.first(root)) || target
   }
-}
 
-////////////////
-// ## Helpers
-////////////////
+  ////////////////
+  // ## Target markup:  light DOM the popup doesn't own
+  ////////////////
 
-/**
- * The inline `anchor-name` LIST of an element that isn't ours:  several popups can share one target, and the
- * page may name it too.
- */
-class AnchorNames {
-  /** Add `name` to `element`'s inline `anchor-name`. */
-  static add(element: Element, name: string) {
-    const style = (element as HTMLElement).style
-    if (!style) return
-    const names = AnchorNames.read(style)
-    if (!names.includes(name)) style.setProperty(ANCHOR_NAME, [...names, name].join(", "))
-  }
-
-  /** Remove `name` from `element`'s inline `anchor-name`;  drops the property when none are left. */
-  static remove(element: Element, name: string) {
-    const style = (element as HTMLElement).style
-    if (!style) return
-    const names = AnchorNames.read(style).filter((each) => each !== name)
-    if (names.length) style.setProperty(ANCHOR_NAME, names.join(", "))
-    else style.removeProperty(ANCHOR_NAME)
-  }
-
-  /** Names in `style`'s `anchor-name`. */
-  private static read(style: CSSStyleDeclaration): string[] {
-    const value = style.getPropertyValue(ANCHOR_NAME).trim()
-    return value && value !== NONE ? value.split(",").map((name) => name.trim()) : []
-  }
-}
-
-/**
- * An idref relation (`aria-describedby`, `aria-controls`) from an element that isn't ours to the popup host,
- * ADDED to what's there:  the attribute's token list when both share a tree, else element reflection
- * (`ariaDescribedByElements`), since an idref can't cross a shadow boundary.
- */
-class AriaRefs {
   /**
-   * Point `element`'s `relation` at `host` too;  returns the undo.
-   * - The undo keeps the way it was added:  by the time it runs the host may be detached (its root is then
-   *   itself), which must not switch an attribute token list over to reflection.
+   * Add `name` to `element`'s inline `anchor-name` LIST:
+   * several popups can share one target, and the page may name it too.
+   * - STATIC:  needs no instance;  every popup bound to one target writes the same list.
    */
-  static add(element: Element, relation: AriaRelation, host: Element): () => void {
+  private static addAnchorName(element: Element, name: string) {
+    const style = (element as HTMLElement).style
+    if (!style) return
+    const names = UIPopup.anchorNamesIn(style)
+    if (!names.includes(name)) style.setProperty("anchor-name", [...names, name].join(", "))
+  }
+
+  /**
+   * Remove `name` from `element`'s inline `anchor-name`;  drops the property when none are left.
+   * - STATIC:  as `addAnchorName()`.
+   */
+  private static removeAnchorName(element: Element, name: string) {
+    const style = (element as HTMLElement).style
+    if (!style) return
+    const names = UIPopup.anchorNamesIn(style).filter((each) => each !== name)
+    if (names.length) style.setProperty("anchor-name", names.join(", "))
+    else style.removeProperty("anchor-name")
+  }
+
+  /**
+   * Names in `style`'s `anchor-name`.
+   * - STATIC:  pure.
+   */
+  private static anchorNamesIn(style: CSSStyleDeclaration): string[] {
+    const value = style.getPropertyValue("anchor-name").trim()
+    return value && value !== "none" ? value.split(",").map((name) => name.trim()) : []
+  }
+
+  /**
+   * Point `element`'s idref `relation` (`aria-describedby`, `aria-controls`) at `domElement` too,
+   * ADDED to what's there;  returns the undo.
+   * - The attribute's token list when both share a tree, else element reflection (`ariaDescribedByElements`),
+   *   since an idref can't cross a shadow boundary.
+   * - The undo keeps the way it was added:  by the time it runs the DOM element may be detached (its root is then
+   *   itself), which must not switch an attribute token list over to reflection.
+   * - STATIC:  needs no instance;  a server render (`serverBind()`) and a live binding (`bind()`) share it.
+   */
+  private static addAriaRelation({ element, relation, domElement }: AriaRelationProps): () => void {
     const reflected = element as unknown as Record<string, Element[] | null>
-    if (element.getRootNode() === host.getRootNode()) {
-      const id = host.id
-      const ids = AriaRefs.ids(element, relation.attribute)
+    if (element.getRootNode() === domElement.getRootNode()) {
+      const id = domElement.id
+      const ids = UIPopup.idsIn(element, relation.attribute)
       if (!ids.includes(id)) element.setAttribute(relation.attribute, [...ids, id].join(" "))
       return () => {
-        const rest = AriaRefs.ids(element, relation.attribute).filter((each) => each !== id)
+        const rest = UIPopup.idsIn(element, relation.attribute).filter((each) => each !== id)
         if (rest.length) element.setAttribute(relation.attribute, rest.join(" "))
         else element.removeAttribute(relation.attribute)
       }
     }
     const elements = reflected[relation.property] ?? []
-    if (!elements.includes(host)) reflected[relation.property] = [...elements, host]
+    if (!elements.includes(domElement)) reflected[relation.property] = [...elements, domElement]
     return () => {
-      const rest = (reflected[relation.property] ?? []).filter((each) => each !== host)
+      const rest = (reflected[relation.property] ?? []).filter((each) => each !== domElement)
+      // `null`, not `undefined`:  element reflection is a platform property, cleared by `null`
       reflected[relation.property] = rest.length ? rest : null
     }
   }
 
-  /** Ids in `element`'s `attribute`. */
-  private static ids(element: Element, attribute: string): string[] {
-    return (element.getAttribute(attribute) ?? "").split(/\s+/).filter(Boolean)
+  /**
+   * Ids in `element`'s `attribute`.
+   * - STATIC:  pure.
+   */
+  private static idsIn(element: Element, attribute: string): string[] {
+    return (element.getAttribute(attribute) ?? "").split(UIT.WHITESPACE).filter(Boolean)
   }
+}
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIPopup extends E.AttributeValues<Vocabulary> {}
+
+/** The vocabulary type, for brevity. */
+type Vocabulary = typeof popupVocabulary
+
+/** An idref ARIA relation:  its attribute and its element-reflection property. */
+type AriaRelation = {
+  /** the idref attribute, e.g. `aria-describedby` */
+  attribute: string
+  /** its element-reflection property, e.g. `ariaDescribedByElements` (an idref can't cross a shadow boundary) */
+  property: string
+}
+
+/** `showPopover()` options with `source` (not in every DOM lib yet). */
+type ShowPopoverOptions = {
+  /** the invoker:  the implicit anchor, and where Tab continues from */
+  source?: HTMLElement
+}
+
+/**
+ * A `popover` value the component sets on its DOM element (or, in a server render, on its root):
+ * - `auto`:  light dismiss;  only a server render's click popup
+ * - `manual`:  the page (or the component) decides;  click and manual popups
+ * - `hint`:  hover / focus popups, where the browser has it (`UI.browser.supports.popoverHint`)
+ */
+type PopoverMode = "auto" | "manual" | "hint"
+
+/** What `UIPopup.addAriaRelation()` takes. */
+type AriaRelationProps = {
+  /** the element that takes focus for the target */
+  element: Element
+  /** which idref relation */
+  relation: AriaRelation
+  /** the popup's DOM element it points at */
+  domElement: Element
+}
+
+////////////////
+// ## Constants
+////////////////
+
+/** Fomantic's default position:  the popup's class words after its noun, `ui popup top left`. */
+const DEFAULT_POSITION = "top left"
+
+/** Fomantic's default trigger. */
+const DEFAULT_TRIGGER: UIT.PopupTrigger = UIT.PopupTrigger.hover
+
+/** `UI.ids` prefix. */
+const ID_PREFIX = "ui-popup"
+
+/** Tooltips describe their target. */
+const DESCRIBED_BY: AriaRelation = { attribute: "aria-describedby", property: "ariaDescribedByElements" }
+
+/** Click popups are controlled by their target. */
+const CONTROLS: AriaRelation = { attribute: "aria-controls", property: "ariaControlsElements" }
+
+/** `ToggleEvent.newState` of a popover the browser closed. */
+const CLOSED = "closed"
+
+/** `display` of a target with no box of its own. */
+const CONTENTS = "contents"
+
+/**
+ * `position` => `position-area`:  the popup on that side, its edge lined up with the target's (`span-*` grows
+ * away from the named corner), or centred on it.
+ */
+const POSITION_AREAS: Readonly<Record<string, string>> = {
+  "top left": "top span-right",
+  "top center": "top center",
+  "top right": "top span-left",
+  "bottom left": "bottom span-right",
+  "bottom center": "bottom center",
+  "bottom right": "bottom span-left",
+  "left center": "left center",
+  "right center": "right center",
+  "left top": "left span-bottom",
+  "left bottom": "left span-top",
+  "right top": "right span-bottom",
+  "right bottom": "right span-top"
 }

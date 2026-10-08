@@ -45,7 +45,7 @@ export async function prompt(props: string | PromptModalProps): Promise<string |
   const answer = SpellUI.modals.prompt(options)
   if (field.type || field.inputProps) fitInput(field)
   const value = await answer
-  return value === null || value === "" ? undefined : value
+  return value || undefined
 }
 
 /**

@@ -1,6 +1,8 @@
 /**
- * Barrel for the generic content parts -- also the `parts` lib entry (`@spell-app/ui/ui-parts`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines all 13 part elements.
+ * The generic content parts family:  defines the 13 part tags (`<ui-content>`, `<ui-header>`, `<ui-meta>` ...)
+ * and exports their components.
+ * - SIDE EFFECT:  importing it defines the tags.
+ * - Also the library's `@spell-app/ui/ui-parts` entry (its size is in `docs/report.md`).
  */
 
 import { UIContent } from "./UIContent"

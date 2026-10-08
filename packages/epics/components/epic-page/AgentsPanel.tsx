@@ -20,7 +20,7 @@ import {
   AGENTS_COUNT,
   AGENTS_TITLE,
   type PageText
-} from "./epic-page.types"
+} from "./EpicPage.types"
 
 /****************
  * ### `<AgentsPanel>`
@@ -35,7 +35,7 @@ import {
  * - keeps the reader's place:  read below it, the page scrolls by what it grew or shrank as it comes, changes or
  *   goes (`follow()`)
  * - Plain Solid, no element of its own:  the caller passes its client, `connected`, the reading line and `text()`;
- *   its look is `agents-panel.css`, adopted by `<epic-page>`
+ *   its look is `AgentsPanel.css`, adopted by `<epic-page>`
  ****************/
 export function AgentsPanel(props: AgentsPanelProps) {
   const client = untrack(() => props.client)

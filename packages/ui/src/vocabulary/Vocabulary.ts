@@ -1,5 +1,4 @@
 import { proto } from "$/ui/util"
-
 import type {
   AttributeSpec,
   ComponentVocabulary,
@@ -11,25 +10,34 @@ import type {
 } from "./vocabulary.types"
 import { ValueSets } from "./ValueSets"
 
-/**
+/****************
+ * ### `Vocabulary`
  * Registry of every component's vocabulary, and the resolver that turns canonical names into localized ones.
- * - `register()` collects each `ui-<name>.vocabulary.en.ts` by canonical tag.
+ * - `register()` collects each `UI<Name>.en.ts` by canonical tag.
  * - `define(prefix, dictionary)` resolves, for every registered component, the names an author types in that
  *   language (`ie-tarjeta`, `color="rojo"`, `ie-cambio`) -- the contract a future translated
  *   `customElements.define()` builds on.  The English identity dictionary is the default.
  * - `canonicalize()` / `localize()` convert single names both ways, for attribute parsing and rendering.
- * - Pure data, NO DOM:  the runtime's `UI.vocabulary` service wraps one of these.
+ * - Pure data, NO DOM:  the runtime's `UI.vocabulary` service wraps one of these.  Imports only `$/ui/util` and
+ *   its folder's peers, so node can load it too.
  * - See `docs/translation.md`.
- */
+ ****************/
 export class Vocabulary {
-  declare prefix: string
-  declare dictionary: Dictionary
-
-  /** Default tag / event prefix:  `ui-card`, `ui-change`. */
+  /**
+   * Default tag / event prefix:  `ui-card`, `ui-change`.
+   * - `@proto static`:  a subclass, or one instance, may set its own.
+   */
   @proto static prefix = "ui"
+  /** This instance's prefix (`Vocabulary.prefix` unless set). */
+  declare prefix: string
 
-  /** Default dictionary:  English identity, since every missing name falls back to canonical. */
+  /**
+   * Default dictionary:  English identity, since every missing name falls back to canonical.
+   * - `@proto static`:  a subclass, or one instance, may set its own.
+   */
   @proto static dictionary: Dictionary = { lang: "en" }
+  /** This instance's dictionary (`Vocabulary.dictionary` unless set). */
+  declare dictionary: Dictionary
 
   /** Canonical vocabularies by canonical tag, in registration order. */
   readonly vocabularies = new Map<string, ComponentVocabulary>()
@@ -52,7 +60,9 @@ export class Vocabulary {
   register<V extends ComponentVocabulary>(vocabulary: V): V {
     const existing = this.vocabularies.get(vocabulary.tag)
     if (existing && existing !== vocabulary) {
-      throw new Error(`Vocabulary.register(): <${vocabulary.tag}> is already registered`)
+      throw new TypeError(
+        `Vocabulary.register():  <${vocabulary.tag}> is already registered by another vocabulary;  give one a new tag`
+      )
     }
     this.vocabularies.set(vocabulary.tag, vocabulary)
     return vocabulary
@@ -99,8 +109,9 @@ export class Vocabulary {
       const localized = this.resolve(vocabulary, prefix, dictionary)
       const existing = this.localized.get(localized.tag)
       if (existing && existing.vocabulary !== vocabulary) {
-        throw new Error(
-          `Vocabulary.define(): <${localized.tag}> would name both <${existing.vocabulary.tag}> and <${vocabulary.tag}>`
+        throw new TypeError(
+          `Vocabulary.define():  <${localized.tag}> would name both <${existing.vocabulary.tag}> and <${vocabulary.tag}>;  ` +
+            "give one of them another tag in the dictionary"
         )
       }
       this.localized.set(localized.tag, localized)
@@ -142,7 +153,7 @@ export class Vocabulary {
 
     for (const spec of vocabulary.attributes) {
       const name = component.attributes?.[spec.name] ?? dictionary.attributes?.[spec.name] ?? spec.name
-      Vocabulary.claim(localized.attributes, name, spec, `${where} attribute`)
+      Vocabulary.claim({ map: localized.attributes, name, value: spec, what: `${where} attribute` })
       names.attributes.set(spec.name, name)
       const values = Vocabulary.resolveValues(spec, vocabulary.tag, dictionary)
       if (values) {
@@ -158,17 +169,17 @@ export class Vocabulary {
     for (const spec of vocabulary.events) {
       const stem = component.events?.[spec.name] ?? dictionary.events?.[spec.name] ?? Vocabulary.stem(spec.name)
       const name = `${prefix}-${stem}`
-      Vocabulary.claim(localized.events, name, spec, `${where} event`)
+      Vocabulary.claim({ map: localized.events, name, value: spec, what: `${where} event` })
       names.events.set(spec.name, name)
     }
     for (const spec of vocabulary.slots) {
       const name = spec.name && (component.slots?.[spec.name] ?? dictionary.slots?.[spec.name] ?? spec.name)
-      Vocabulary.claim(localized.slots, name, spec, `${where} slot`)
+      Vocabulary.claim({ map: localized.slots, name, value: spec, what: `${where} slot` })
       names.slots.set(spec.name, name)
     }
     for (const spec of vocabulary.parts) {
       const name = component.parts?.[spec.name] ?? dictionary.parts?.[spec.name] ?? spec.name
-      Vocabulary.claim(localized.parts, name, spec, `${where} part`)
+      Vocabulary.claim({ map: localized.parts, name, value: spec, what: `${where} part` })
       names.parts.set(spec.name, name)
     }
     return localized
@@ -225,12 +236,14 @@ export class Vocabulary {
   // ## Internals
   ////////////////
 
+  // Static, not instance methods:  pure functions of their arguments, shared by every registry.
+
   /**
    * Localized value maps for one attribute, or `undefined` if it has no value set.
    * - `keyOrValueAndKey` attributes also take the boolean words (`pointing="yes"`).
    */
   private static resolveValues(spec: AttributeSpec, tag: string, dictionary: Dictionary) {
-    const set = ValueSets.of(spec)
+    const set = ValueSets.setFor(spec)
     if (!set) return undefined
     const forward = new Map<string, string>()
     const inverse = new Map<string, string>()
@@ -245,7 +258,7 @@ export class Vocabulary {
       for (const value of values) {
         if (inverse.has(value)) continue
         const name = own?.[value] ?? map?.[value] ?? value
-        Vocabulary.claim(forward, name, value, `<${tag} ${spec.name}> value`)
+        Vocabulary.claim({ map: forward, name, value, what: `<${tag} ${spec.name}> value` })
         inverse.set(value, name)
       }
     }
@@ -254,11 +267,14 @@ export class Vocabulary {
   /**
    * Set `map[name] = value`, throwing if `name` is already taken by something else.
    * - Why throw:  a collision means one of two canonical names became unreachable in that language.
+   * - `what` names the kind of name for the error, e.g. `<ie-tarjeta> attribute`.
    */
-  private static claim<T>(map: Map<string, T>, name: string, value: T, what: string) {
+  private static claim<T>({ map, name, value, what }: { map: Map<string, T>; name: string; value: T; what: string }) {
     const existing = map.get(name)
     if (existing !== undefined && existing !== value) {
-      throw new Error(`Vocabulary: ${what} ${JSON.stringify(name)} is used twice`)
+      throw new TypeError(
+        `Vocabulary.resolve():  ${what} ${JSON.stringify(name)} is used twice;  translate one of them differently`
+      )
     }
     map.set(name, value)
   }

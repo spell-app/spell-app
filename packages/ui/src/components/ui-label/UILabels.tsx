@@ -1,25 +1,29 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { E } from "$/ui/core"
+import { labelsVocabulary } from "./UILabels.en"
 
-import { labelsVocabulary } from "./ui-labels.vocabulary.en"
-
-import labelCSS from "./ui-label.css?inline"
+import labelCSS from "./UILabel.css?inline"
 
 /****************
- * ### `<ui-labels>`
- * A group of labels sharing one look:  `<div class="ui … labels" part="group"><slot></slot></div>`.
- * - Needs no code beyond that:  `ui-label.css` hands the look to slotted labels through inherited tokens.
+ * ### `UILabels`
+ * The component behind `<ui-labels>`:  a group of labels sharing one look.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … labels" part="group">`, around a slot for the labels.
+ * - It needs no code beyond that:  `UILabel.css` hands the look to the slotted labels, through inherited tokens.
  ****************/
-export class UILabels extends UIElement<typeof labelsVocabulary> {
-  @proto static vocabulary = labelsVocabulary
-  @proto static styles = { label: labelCSS }
+export class UILabels extends E.UIComponent<typeof labelsVocabulary> {
+  @E.proto static vocabulary = labelsVocabulary
+  @E.proto static styleSheets = { label: labelCSS }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("group")}>
+      <div class={this.rootClasses} part={this.partForName("group")}>
         <slot />
       </div>
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UILabels extends E.AttributeValues<typeof labelsVocabulary> {}

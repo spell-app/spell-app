@@ -1,59 +1,60 @@
-import { Show, createMemo, onSettled, untrack } from "solid-js"
+import { Show, onSettled } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement } from "$/ui/core"
+import { E } from "$/ui/core"
 
 import { PlanDates } from "$/epics/dates"
 
-import { epicVersionVocabulary } from "./epic-version.vocabulary.en"
-import { BODY, HEADING, VERSION_TAG, type EpicVersionVocabulary } from "./epic-original.types"
+import { epicVersionVocabulary } from "./EpicVersion.en"
 
-import originalCSS from "./epic-original.css?inline"
+import originalCSS from "./EpicOriginal.css?inline"
 
 /****************
- * ### `<epic-version>`
- * One earlier version of an item's text, in its Original Discussion:  a small heading, then the text as it was.
- * - Heading:  `As of <as-of>` (when it was replaced, `10/4/26 20:49`:  `PlanDates`);  the first version, undated, `As first written` -- but only once
- *   there's a second:  a lone version needs no heading (plan-doc.md, "Markup the script writes").
+ * ### `EpicVersion`
+ * The component behind `<epic-version>`:  one earlier version of an item's text, in its Original Discussion -- a
+ * small heading, then the text as it was.
+ * - Heading:  `As of <as-of>` (when it was replaced, `10/4/26 20:49`:  `PlanDates`);  the first version, undated,
+ *   `As first written` -- but only once there's a second:  a lone version needs no heading (plan-doc.md, "Markup
+ *   the script writes").
  ****************/
-export class EpicVersion extends UIElement<EpicVersionVocabulary> {
-  @proto static vocabulary = epicVersionVocabulary
-  @proto static styles = { original: originalCSS }
-  @proto static delegatesFocus = false
+export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
+  @E.proto static vocabulary = epicVersionVocabulary
+  @E.proto static styleSheets = { original: originalCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Versions beside it, itself included:  followed as its parent's children change. */
-  readonly versions = new Cell(untrack(() => this.countVersions()))
+  @E.state accessor versionCount = this.countVersions()
 
   /** Its heading, or `undefined` for a lone first version. */
-  readonly heading = createMemo(() => {
-    const asOf = this.attrs.asOf
-    if (asOf) return this.text("asOf", { asOf: PlanDates.format(asOf) })
-    return this.versions.get() > 1 ? this.text("firstWritten") : undefined
-  })
+  get heading(): string | undefined {
+    const asOf = this.asOf
+    if (asOf) return this.translationForKey("asOf", { asOf: PlanDates.format(asOf) })
+    return this.versionCount > 1 ? this.translationForKey("firstWritten") : undefined
+  }
 
-  mount(): JSX.Element {
+  onMount(): JSX.Element {
     if (!isServer) {
       onSettled(() => {
-        const parent = this.host.parentElement
+        const parent = this.domElement.parentElement
         if (!parent) return undefined
-        const observer = new MutationObserver(() => this.versions.set(this.countVersions()))
+        const observer = new MutationObserver(() => (this.versionCount = this.countVersions()))
         observer.observe(parent, { childList: true })
-        this.versions.set(this.countVersions())
+        this.versionCount = this.countVersions()
         return () => observer.disconnect()
       })
     }
-    return super.mount()
+    return super.onMount()
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("base")}>
-        <Show when={this.heading()}>
-          <div class={HEADING} part={this.part("heading")}>
-            {this.heading()}
+      <div class={this.rootClasses} part={this.partForName("base")}>
+        <Show when={this.heading}>
+          <div class={HEADING} part={this.partForName("heading")}>
+            {this.heading}
           </div>
         </Show>
-        <div class={BODY} part={this.part("body")}>
+        <div class={BODY} part={this.partForName("body")}>
           <slot />
         </div>
       </div>
@@ -62,6 +63,16 @@ export class EpicVersion extends UIElement<EpicVersionVocabulary> {
 
   /** `<epic-version>`s in its parent, read now. */
   private countVersions(): number {
-    return this.host.parentElement?.querySelectorAll(`:scope > ${VERSION_TAG}`).length ?? 1
+    return this.domElement.parentElement?.querySelectorAll(`:scope > ${VERSION_TAG}`).length ?? 1
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface EpicVersion extends E.AttributeValues<typeof epicVersionVocabulary> {}
+
+/** A version's tag:  a lone first version needs no heading. */
+const VERSION_TAG = "epic-version"
+
+/** Class names inside the shadow root. */
+const HEADING = "heading"
+const BODY = "body"

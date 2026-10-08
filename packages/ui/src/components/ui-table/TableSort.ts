@@ -1,28 +1,24 @@
 import { UIT } from "$/ui/core"
-import { HEADER, TABLE, DESCENDING, COLSPAN, STATIC_HEADER_ROWS } from "./ui-table.types"
-import { DISABLED } from "$/ui/components/components.types"
 
 /****************
  * ### `TableSort`
- * Sorting mechanics of a NATIVE table, as static helpers:  which header a click hit, its column, and
- * reordering `tbody` rows by cell text (`client-sort`).  Plain DOM, no state.
+ * Sorting mechanics of a NATIVE table, as static helpers:  which header a click hit, its column,
+ * and reordering `tbody` rows by cell text (`client-sort`).  Plain DOM, no state.
  * - Columns count `colspan`s:  `<th colspan="2">` covers columns 0 and 1, the next header is column 2.
  *   NOTE: `rowspan`s from rows above are not counted (a structured table's lower header row numbers its own
  *   cells), and a spanning cell in the body answers for its FIRST column.
  * - Comparison:  `Intl.Collator(undefined, { numeric: true })` -- `item 9` before `item 10`, locale-aware,
  *   stable (`Array.prototype.sort`).
+ * - STATIC and instance-free on purpose:  it holds no state, and the element and its static render share it.
  ****************/
 export class TableSort {
-  /** Numeric-aware collator for cell text and data values. */
-  static readonly collator = new Intl.Collator(undefined, { numeric: true })
-
   /**
    * The `thead` header cell of `table` that `target` is in, or `undefined`.
    * - Only `table`'s own header rows:  a table nested in a cell doesn't count.
    */
   static header(table: HTMLTableElement, target: EventTarget | null): HTMLTableCellElement | undefined {
-    const cell = target instanceof Element ? target.closest(HEADER) : null
-    if (!(cell instanceof HTMLTableCellElement) || cell.closest(TABLE) !== table) return undefined
+    const cell = target instanceof Element ? target.closest("th") : undefined
+    if (!(cell instanceof HTMLTableCellElement) || cell.closest("table") !== table) return undefined
     return cell.parentElement?.parentElement === table.tHead ? cell : undefined
   }
 
@@ -30,7 +26,7 @@ export class TableSort {
   static headers(table: HTMLTableElement): HTMLTableCellElement[] {
     const cells: HTMLTableCellElement[] = []
     for (const row of table.tHead?.rows ?? []) {
-      for (const cell of row.cells) if (cell.localName === HEADER) cells.push(cell)
+      for (const cell of row.cells) if (cell.localName === "th") cells.push(cell)
     }
     return cells
   }
@@ -39,7 +35,7 @@ export class TableSort {
   static isSortable(header: HTMLTableCellElement): boolean {
     return (
       header.getAttribute(UIT.TABLE_SORT_OPT_OUT.attribute) !== UIT.TABLE_SORT_OPT_OUT.value &&
-      !header.classList.contains(DISABLED)
+      !header.classList.contains(UIT.DISABLED)
     )
   }
 
@@ -57,7 +53,7 @@ export class TableSort {
     const rows = [...(table.tHead?.rows ?? [])].reverse()
     for (const row of rows) {
       const cell = TableSort.cellAt(row, column)
-      if (cell?.localName === HEADER) return cell
+      if (cell?.localName === "th") return cell
     }
     return undefined
   }
@@ -81,9 +77,9 @@ export class TableSort {
     for (const row of rows) {
       let start = 0
       for (const cell of row.children) {
-        const span = Number(cell.getAttribute(COLSPAN)) || 1
+        const span = Number(cell.getAttribute("colspan")) || 1
         if (column < start + span) {
-          if (column >= start && cell.localName === HEADER) return cell
+          if (column >= start && cell.localName === "th") return cell
           break
         }
         start += span
@@ -103,7 +99,7 @@ export class TableSort {
    * - Rows without that cell sort last, in their order.
    */
   static sortRows(table: HTMLTableElement, column: number, direction: UIT.TableSortDirection) {
-    const sign = direction === DESCENDING ? -1 : 1
+    const sign = direction === "descending" ? -1 : 1
     for (const body of table.tBodies) {
       const rows = [...body.rows]
       const texts = new Map(rows.map((row) => [row, TableSort.cellAt(row, column)?.textContent?.trim()]))
@@ -115,15 +111,15 @@ export class TableSort {
 
   /**
    * Order of two values under `sign` (`1` ascending, `-1` descending).
-   * - `undefined` / `null` / `""` last, whatever the direction;  two numbers numerically;  else the collator
-   *   over their text.
+   * - `undefined` / `null` / `""` last, whatever the direction;  two numbers numerically;
+   *   else the collator over their text.
    */
   static compare(a: unknown, b: unknown, sign: number): number {
     const missingA = a == null || a === ""
     const missingB = b == null || b === ""
     if (missingA || missingB) return Number(missingA) - Number(missingB)
     if (typeof a === "number" && typeof b === "number") return (a - b) * sign
-    return TableSort.collator.compare(TableSort.text(a), TableSort.text(b)) * sign
+    return COLLATOR.compare(TableSort.text(a), TableSort.text(b)) * sign
   }
 
   /** A value as text:  primitives `String()`ed, `null` / `undefined` empty, anything else as JSON. */
@@ -133,3 +129,9 @@ export class TableSort {
     return String(value as string | number | boolean | bigint | symbol)
   }
 }
+
+/** A table's own header rows, as a selector (`staticHeaderAt()`). */
+const STATIC_HEADER_ROWS = ":scope > thead > tr"
+
+/** Numeric-aware collator for cell text and data values:  one per page. */
+const COLLATOR = new Intl.Collator(undefined, { numeric: true })

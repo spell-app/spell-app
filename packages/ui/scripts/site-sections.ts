@@ -26,12 +26,17 @@
  *   per new level (markdown / code blocks strip common indentation, so they read the same).
  * - `--check`:  write nothing;  exit 1 if a page would change.  No pages named:  every page of the site.
  */
-import { readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { parseArgs } from "node:util"
 
 import { TocIndex } from "../src/docs-components/ui-docs-toc/TocIndex.ts"
+import { environment } from "../tools/environment.ts"
+import { Terminal } from "../tools/Terminal.ts"
 import { SITE_PAGES } from "../tools/tools.types.ts"
+
+import { type GeneratedOutput, writeOrCheck } from "./generatedFiles.ts"
 
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
@@ -583,7 +588,11 @@ class HtmlParser {
         break
       }
       const match = attribute.exec(html)
-      if (!match) throw new Error(`can't parse the tag at ${at}:  ${html.slice(at, at + 80)}`)
+      if (!match) {
+        throw new SyntaxError(
+          `SiteSections.startTag():  can't parse the tag at ${at}, ${html.slice(at, at + 80)};  fix the page's markup`
+        )
+      }
       const quoted = match[2]
       const value = quoted?.startsWith('"') || quoted?.startsWith("'") ? quoted.slice(1, -1) : quoted
       element.attributes.push({ name: match[1]!.toLowerCase(), value, raw: match[0].trim() })
@@ -663,24 +672,22 @@ function sitePages(): string[] {
   return [...pages(SITE), ...pages(path.join(SITE, "components"))]
 }
 
-/** Run as a script (not imported by `site:index` / `site:kitchen` / `site:new`). */
+/**
+ * Run as a script (not imported by `site:index` / `site:kitchen` / `site:new`).
+ * - A named page is relative to the folder `yarn` ran from (`environment.invocationDir`), not `packages/ui/`.
+ */
 function main(): void {
-  const args = process.argv.slice(2)
-  const check = args.includes("--check")
-  const named = args.filter((arg) => !arg.startsWith("--"))
-  const files = named.length ? named.map((file) => path.resolve(file)) : sitePages()
-  const stale: string[] = []
-  for (const file of files) {
-    const before = readFileSync(file, "utf8")
-    const after = SiteSections.convert(before)
-    if (after === before) continue
-    stale.push(path.relative(process.cwd(), file))
-    if (!check) writeFileSync(file, after)
-  }
-  if (check) {
-    for (const file of stale) console.error(`stale:  ${file} (run \`yarn site:sections\`)`)
-    process.exitCode = stale.length ? 1 : 0
-  } else console.log(`site sections:  ${stale.length ? `wrote ${stale.length} page(s)` : "unchanged"}`)
+  const { values, positionals } = parseArgs({
+    options: { check: { type: "boolean", default: false } },
+    allowPositionals: true
+  })
+  const files = positionals.length
+    ? positionals.map((file) => path.resolve(environment.invocationDir, file))
+    : sitePages()
+  const outputs = files.map((file): GeneratedOutput => [file, SiteSections.convert(readFileSync(file, "utf8"))])
+  const stale = writeOrCheck(outputs, { command: "site:sections", isCheck: values.check })
+  if (!values.check) Terminal.out(`site sections:  ${stale.length ? `wrote ${stale.length} page(s)` : "unchanged"}`)
 }
 
+// REFACTOR:  the `SiteSections` class to its own file, so this one is only the command, and this check goes
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main()

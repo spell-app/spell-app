@@ -1,12 +1,14 @@
 /**
- * Barrel for the docs theme controls -- a DOC-ONLY family (`src/docs-components/`):  no lib entry, loaded by
- * `<ui-root>` on first use.
- * - SIDE EFFECT:  defines `<ui-docs-themes>`, plus the widgets its shadow root is built from:  `<ui-popup>` (the
- *   overlay and the tooltips), `<ui-icon>` (sun, moon, palette, check), `<ui-dropdown>` and `<ui-item>` (its rows,
- *   `show="theme"`).  A `<ui-root>` only loads what's in the page's light DOM, so a family that composes widgets
+ * The docs theme controls family:  defines `<ui-docs-themes>` and exports its component, `UIDocsThemes`,
+ * and `ThemeMenu`.
+ * - A DOC-ONLY family (`src/docs-components/`):  no lib entry;  `<ui-root>` loads it on first use.
+ * - SIDE EFFECT:  importing it defines the tag, and the widgets its shadow DOM is built of:
+ *   `<ui-popup>` (the overlay and the tooltips), `<ui-icon>` (sun, moon, palette, check),
+ *   `<ui-dropdown>` and `<ui-item>` (its rows, `show="theme"`).
+ *   A `<ui-root>` only loads what's in the page's light DOM, so a family that is built of other widgets
  *   imports them itself.
- * - `ThemeSheets` (`$/ui/styles`) comes with it:  in a code-split bundle that's the runtime's chunk, and every theme
- *   sheet stays its own lazy chunk, fetched on `apply()`.
+ * - It applies themes through the runtime (`UI.themes`, in the runtime's chunk),
+ *   and every theme sheet stays its own lazy chunk, fetched on `apply()`.
  */
 
 import { UIDocsThemes } from "./UIDocsThemes"

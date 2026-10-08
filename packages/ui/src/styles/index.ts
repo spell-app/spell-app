@@ -1,5 +1,9 @@
 /**
  * Barrel for `$/ui/styles` -- the CSS foundation as TEXT, plus the style vocabulary it's generated from.
+ * - Its own lib entry (`@spell-app/ui/styles`), PURE DATA:  no code, so `styles.js` needs none of Rolldown's helpers.
+ *   Code here once split them into a `rolldown-runtime-<hash>.js` every page fetched, as `styles.js` never loads
+ *   `core.js` (epic `wwod-spell-ui`, I13);  `yarn measure` builds this entry too, so its checks catch a relapse.
+ * - Imports nothing of `ui`'s outside its own folder;  the runtime (`UIRuntime`) imports the sheets from here.
  * - Each sheet is a string (Vite `?inline`:  Lightning CSS-processed, `@import` / `@custom-media` resolved,
  *   minified in builds), for `new CSSStyleSheet().replaceSync()` -- the runtime's `Styles` registry adopts
  *   them into the document and into shadow roots.
@@ -11,11 +15,11 @@
  *   substituted where a token is DECLARED, which freezes `:root`'s scheme into `.ui-dark` subtrees.
  *   `styles.test.ts` checks for it.
  * - NOTE: `StyleGenerator` is left out -- build-time only (`yarn gen:styles`).  Import its leaf file.
- * - NOTE: `ComponentTokens` is left out too -- test / build time only (`test/component-tokens.test.ts`,
- *   `yarn tokens:alias`, the docs site's `CssTokens`).  Import its leaf file.
+ * - NOTE: `ComponentTokens` is left out too -- test / build time only (`test/componentTokens.test.ts`,
+ *   `yarn tokens:alias`, the docs site's token tables).  Import its leaf file.
  * - NOTE: no namespace:  sheet names carry a `CSS` suffix and the vocabulary exports are data.
- * - Themes:  `ThemeSheets` (`./themes`) loads `themes/*.css` LAZILY, one chunk per sheet, and applies one
- *   (`ThemeSheets.apply("material")`);  only `classic` and `dark` are also here as text, statically.
+ * - NOTE: the THEMES (`themes/*.css`) are not here:  the runtime loads them lazily, one chunk per sheet, and applies
+ *   one (`UI.themes.apply("material")`, `src/runtime/Themes.ts`).
  */
 
 import layersCSS from "./layers.css?inline"
@@ -27,26 +31,11 @@ import typographyCSS from "./typography.css?inline"
 import animationsCSS from "./animations.css?inline"
 import utilitiesCSS from "./utilities.css?inline"
 import nativeCSS from "./native.css?inline"
-import classicThemeCSS from "./themes/classic.css?inline"
-import darkThemeCSS from "./themes/dark.css?inline"
 
 export * from "./styles.types"
-export * from "./styles.vocabulary.en"
-export * from "./themes"
+export * from "./styles.en"
 
-export {
-  layersCSS,
-  resetCSS,
-  tokensCSS,
-  colorsCSS,
-  sizesCSS,
-  typographyCSS,
-  animationsCSS,
-  utilitiesCSS,
-  nativeCSS,
-  classicThemeCSS,
-  darkThemeCSS
-}
+export { layersCSS, resetCSS, tokensCSS, colorsCSS, sizesCSS, typographyCSS, animationsCSS, utilitiesCSS, nativeCSS }
 
 /** Sheets every tree scope adopts, in order:  document and each shadow root. */
 export const foundationCSS: readonly string[] = [

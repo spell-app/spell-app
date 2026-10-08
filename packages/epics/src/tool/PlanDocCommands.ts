@@ -578,22 +578,22 @@ export class PlanDocCommands {
     if (problems.length || !browserOk) return 1
   }
 
-  /** `open`:  show the doc rendered in VS Code, reusing its tab (`openInVSCode()`). */
+  /** `open`:  show the doc in VS Code's Review tab (Owen's rule, 2026-10-07), reusing it (`openInVSCode()`). */
   private open(file: string): void {
     this.readAny(file)
     this.openInVSCode(file)
   }
 
   /**
-   * Show `file` in VS Code's doc preview (the right side bar), or Chrome when not run from VS Code:
-   * `packages/docs/tools/open.js --vs <file>`, a child `node` with this terminal attached, which starts the page
+   * Show `file` in VS Code's doc preview, in the right side bar's Review tab (a plan doc's place, Owen's rule
+   * 2026-10-07), or Chrome when not run from VS Code:  `packages/docs/tools/open.js --review <file>`, a child `node` with this terminal attached, which starts the page
    * server and asks the session's window (`pages.js` `openInVSCode()`).
    * - a child, not an import:  `epics` may not import `docs`, nor the repo root's `scripts/window.mjs`
    * - NEVER throws, nor fails the command:  as before, a doc not shown is no error
    */
   openInVSCode(file: string): void {
     const { files } = this
-    spawnSync(process.execPath, [join(files.docsTools, "open.js"), "--vs", resolve(file)], {
+    spawnSync(process.execPath, [join(files.docsTools, "open.js"), "--review", resolve(file)], {
       cwd: files.docsPackage,
       stdio: "inherit"
     })

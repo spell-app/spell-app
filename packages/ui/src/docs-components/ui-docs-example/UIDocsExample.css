@@ -1,0 +1,147 @@
+/*
+ * The style sheet of `<ui-docs-example>`:  Fomantic's docs `.example` block
+ * (`server/files/stylesheets/docs.css` of Fomantic-UI-Docs, "Examples" and "Code Button"),
+ * built of `<ui-*>` widgets:  this sheet only LAYS THEM OUT.
+ * - It styles the component's shadow DOM:
+ *   `<section class="ui [bare] [variation] example" part="example">` holding `<div class="heading">` (the
+ *   `<ui-header part="header">` and the `<ui-button part="toggle">`),
+ *   then `<div class="description" part="description">` around the `description` slot (only when there is one),
+ *   the `<ui-segment part="demo">` around the default slot, and, while open,
+ *   the `<ui-segment part="code">` holding the `<ui-code part="source">`.
+ * - The frame and the code are the widgets' own look:  closed, the demo segment is `basic` and unpadded (Fomantic
+ *   shows the live markup bare);  open, it's `attached="top"` and the code pane `attached="bottom"` (Fomantic's
+ *   `.html.segment` + `.instructive.bottom.attached.segment`).  `bare`:  never framed.
+ * - Public tokens (`--ui-docs-example-*`) are never declared:  each is read through a private alias
+ *   (`docs/theming.md` "Component tokens").
+ */
+
+@layer ui.components.docs-example.types, ui.components.docs-example.content, ui.components.docs-example.variations, ui.components.docs-example.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time:  phones. */
+@import "../../styles/media.css";
+
+@layer ui.components.docs-example.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  Fomantic's docs measures. */
+  .ui.example {
+    /* Space above and below the block. */
+    --_ui-docs-example-margin: var(--ui-docs-example-margin, 2em 0);
+    /* Widest the description runs:  Fomantic's 700px. */
+    --_ui-docs-example-description-width: var(--ui-docs-example-description-width, 50em);
+    /* Colour of the description text. */
+    --_ui-docs-example-description-color: var(--ui-docs-example-description-color, var(--ui-text-color));
+    /* Opacity of the code button at rest;  it brightens on hover, as in Fomantic. */
+    --_ui-docs-example-toggle-opacity: var(--ui-docs-example-toggle-opacity, 0.5);
+    /* Space between the header, description and example. */
+    --_ui-docs-example-gap: var(--ui-docs-example-gap, 1em);
+  }
+
+  .ui.example {
+    display: block;
+    position: relative;
+    margin: var(--_ui-docs-example-margin);
+  }
+  :host(:first-child) > .ui.example {
+    margin-top: 0;
+  }
+  :host(:last-child) > .ui.example {
+    margin-bottom: 0;
+  }
+}
+
+@layer ui.components.docs-example.content {
+  /* Header row:  the title on the left, the code button on the right. */
+  .heading {
+    display: flex;
+    align-items: center;
+    gap: var(--_ui-docs-example-gap);
+    margin-bottom: 0.5em;
+  }
+  .heading > [part~="header"] {
+    flex: 1 1 auto;
+    --ui-header-margin-top: 0;
+    --ui-header-margin-bottom: 0;
+  }
+  .heading > [part~="toggle"] {
+    flex: none;
+    margin-inline-start: auto;
+    opacity: var(--_ui-docs-example-toggle-opacity);
+    transition: opacity 0.3s ease-out;
+  }
+  /*
+   * No header, but a description (Fomantic's `.another.example`, or an example under a `<ui-section>`'s title):
+   * the code button sits at the top right BESIDE the description, not on a row of its own.  Without a description it
+   * keeps its row:  it would cover the example.
+   */
+  .heading:not(:has(> [part~="header"])):has(+ .description) {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    z-index: 1;
+    margin: 0;
+  }
+  .heading:not(:has(> [part~="header"])) + .description {
+    padding-inline-end: 3em;
+  }
+  .ui.example:hover .heading > [part~="toggle"],
+  .heading > [part~="toggle"]:focus-within {
+    opacity: 0.85;
+  }
+  .heading > [part~="toggle"]:hover,
+  :host(:state(open)) .heading > [part~="toggle"] {
+    opacity: 1;
+  }
+
+  .description {
+    max-width: var(--_ui-docs-example-description-width);
+    margin: 0 0 var(--_ui-docs-example-gap);
+    color: var(--_ui-docs-example-description-color);
+    line-height: 1.4285em;
+  }
+  .description code {
+    font-family: var(--ui-font-family-mono, monospace);
+    font-size: 0.9em;
+  }
+
+  [part~="demo"],
+  [part~="code"] {
+    display: block;
+  }
+  /*
+   * Closed (or bare), the demo is unframed and unpadded:  the live markup sits on the page as written.
+   * On the segment's own box, NOT through `--ui-segment-padding`:  that token would inherit into every segment the
+   * example shows.
+   */
+  :host(:not(:state(open))) [part~="demo"]::part(segment),
+  .ui.bare.example [part~="demo"]::part(segment) {
+    padding: 0;
+  }
+  /* Floated example content stays inside the frame (Fomantic's `.example` clears its floats too). */
+  [part~="demo"]::part(segment) {
+    display: flow-root;
+  }
+  /* Phones:  an example wider than the column scrolls inside its frame, never the page. */
+  @media (--ui-mobile) {
+    [part~="demo"]::part(segment) {
+      overflow-x: auto;
+    }
+  }
+}
+
+@layer ui.components.docs-example.variations {
+  /* Variation:  a run of small examples under one heading. */
+  .ui.variation.example {
+    --_ui-docs-example-margin: var(--ui-docs-example-margin, 1em 0);
+    --_ui-docs-example-gap: var(--ui-docs-example-gap, 0.5em);
+  }
+  /* Bare:  the code pane stands apart, below the example. */
+  .ui.bare.example [part~="code"] {
+    margin-top: var(--_ui-docs-example-gap);
+  }
+}

@@ -1,11 +1,15 @@
 /**
  * Shared types, constants and small error classes for `$/ui/runtime`.
- * - Runtime-light:  `import type` only, so the eager barrel (`UI` accessor + `loadUI`) stays tiny
- *   and the service classes stay in the lazily-loaded chunk.
+ * - The BOTTOM of the runtime's import graph:  every service imports it, it imports none of them.
+ * - Runtime-light:  `import type` only (plus `package.json`'s `version`, a string), so the eager half (`load.ts`:
+ *   the `UI` accessor + `loadUI`, in every page's `core.js`) stays tiny and the service classes stay in the lazily
+ *   loaded chunk.
  */
 
 import type { Temporal } from "temporal-polyfill"
 
+// No alias reaches `package.json` (outside `src/`):  the one relative import.  Bundlers keep `version` alone.
+import { version } from "../../package.json"
 import type { UIRuntime } from "./UIRuntime"
 
 ////////////////
@@ -20,11 +24,13 @@ import type { UIRuntime } from "./UIRuntime"
 export const RUNTIME_KEY = Symbol.for("@spell-app/ui:runtime")
 
 /**
- * Version of this runtime build.
+ * Version of this runtime build:  `@spell-app/ui`'s `package.json` `version`, inlined by the bundler.
  * - Compared when a second bundle finds an existing runtime, so mismatches warn in dev.
- * - TODO: inject from `package.json` at build time (vite `define`) instead of keeping it by hand.
+ * - Read from `package.json` rather than a `define` (`__PACKAGE_VERSION__` is SPELL's version in `app`'s build):
+ *   every bundle that compiles `ui`'s source -- the lib, vitest, the site, `docs`, `brand`, `app` -- gets the right
+ *   one with no config of its own.
  */
-export const RUNTIME_VERSION = "0.0.1"
+export const RUNTIME_VERSION = version
 
 /** `globalThis` as seen by the runtime:  may hold the shared instance. */
 export type RuntimeGlobal = typeof globalThis & {
@@ -43,10 +49,12 @@ export type Disposer = () => void
 export const LAYER_ORDER = "@layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;"
 
 /**
- * Platforms whose primary shortcut modifier is Meta (Cmd), not Ctrl.
- * - Tested against `navigator.platform`, falling back to `navigator.userAgent`.
+ * `display` values the services test an element's computed style for (`Focus`, `Transitions`, `Visibility`).
+ * - `none`:  no box, and none inside;  `contents`:  no box of its own, but its children render.
  */
-export const APPLE_PLATFORM = /Mac|iPhone|iPad|iPod/i
+export const CssDisplay = { none: "none", contents: "contents" } as const
+/** One of `CssDisplay`'s values, e.g. `"contents"`. */
+export type CssDisplay = (typeof CssDisplay)[keyof typeof CssDisplay]
 
 ////////////////
 // ## Browser
@@ -101,7 +109,7 @@ export type KeyHandler = (event: KeyboardEvent) => void | boolean
 
 /** Options for `Keyboard.register()`. */
 export type KeyRegistrationOptions = {
-  /** only fire when the event's composed path includes this element (e.g. the component's host) */
+  /** only fire when the event's composed path includes this element (e.g. the component's DOM element) */
   target?: EventTarget
   /** `preventDefault()` a handled event;  default `true` */
   preventDefault?: boolean
@@ -120,7 +128,10 @@ export const PAGE_SCOPE = "page"
 // ## Overlays
 ////////////////
 
-/** What kind of top-layer thing an overlay entry is;  sets defaults for the entry's other options. */
+/**
+ * What kind of top-layer thing an overlay entry is;  sets defaults for the entry's other options.
+ * - A union, not a set:  nothing lists or validates them.
+ */
 export type OverlayKind = "modal" | "flyout" | "popover" | "toast" | "dimmer" | "sidebar"
 
 /**
@@ -128,6 +139,7 @@ export type OverlayKind = "modal" | "flyout" | "popover" | "toast" | "dimmer" | 
  * - `escape`:  Escape key or `CloseWatcher` close request (Android back button)
  * - `outside`:  click that both started and ended outside the overlay
  * - `close-all`:  `Overlays.closeAll()`
+ * - NOTE: kebab-case, not English words:  pages read them, as `ui-close`'s `detail.reason` (`UIT.ModalCloseReason`).
  */
 export type DismissReason = "escape" | "outside" | "close-all"
 
@@ -140,7 +152,7 @@ export type DismissReason = "escape" | "outside" | "close-all"
  *   - `modal` (scroll lock + keyboard scope):  `true` for `modal` / `flyout` / `dimmer`
  */
 export type OverlayEntry = {
-  /** host element;  anything in its composed subtree counts as "inside" */
+  /** the element;  anything in its composed subtree counts as "inside" */
   element: Element
   /** sets defaults, see above */
   kind: OverlayKind
@@ -233,6 +245,12 @@ export type StyleRegisterOptions = {
 /** `id` of the ONE app stylesheet components adopt -- see `docs/runtime.md`. */
 export const APP_STYLESHEET_ID = "ui-app-stylesheet"
 
+/**
+ * Name of the utilities sheet (`utilities.css`), adopted into every shadow root AFTER its component sheets.
+ * - `Styles`' default `setUtilities()` list;  `UIRuntime` registers the sheet under it.
+ */
+export const UTILITIES_SHEET = "utilities"
+
 ////////////////
 // ## Transitions
 ////////////////
@@ -243,8 +261,9 @@ export const APP_STYLESHEET_ID = "ui-app-stylesheet"
  *   e.g. `[data-ui-animation="fade-up in"]` -- see `Transitions`.
  * - Fomantic's multi-word names are kebab-cased so the attribute stays two tokens:
  *   `"fade up"` -> `fade-up`, `"horizontal flip"` -> `flip-horizontal`.
+ * - NOTE: kebab-case, not English words:  pages and `animations.css` read them (`data-ui-animation`).
  */
-export const ANIMATION_NAMES = [
+export const AnimationNames = [
   // ### Appear / disappear -- run `in` or `out`
   "fade",
   "fade-up",
@@ -281,14 +300,15 @@ export const ANIMATION_NAMES = [
   "glow"
 ] as const
 
-/** One name from the keyframe catalogue, see `ANIMATION_NAMES`. */
-export type AnimationName = (typeof ANIMATION_NAMES)[number]
+/** One name from the keyframe catalogue, see `AnimationNames`. */
+export type AnimationName = (typeof AnimationNames)[number]
 
 /**
- * Which way an animation runs.
+ * Which way an animation runs:  the second word of `data-ui-animation`, so its spelling is published.
  * - `in`:  un-hides the element first
  * - `out`:  hides it (`hidden`, and `display: none` if CSS overrides `[hidden]`) once finished
  * - `static`:  attention animations (`shake`, `pulse` ...);  visibility unchanged
+ * - A union, not a set:  nothing lists or validates them.
  */
 export type AnimationDirection = "in" | "out" | "static"
 
@@ -335,6 +355,9 @@ export type StringPack = Partial<Record<I18nKey, string>>
 /** Values for `{name}` placeholders in `I18n.t()`. */
 export type I18nParams = Record<string, string | number>
 
+/** How long `I18n.weekdays()` / `months()` names are:  `Intl`'s `weekday` / `month` styles, e.g. `"short"` ~== `Mon`. */
+export type NameStyle = NonNullable<Intl.DateTimeFormatOptions["weekday"]>
+
 /**
  * The `Temporal` namespace, as `UI.i18n.temporal` hands it out:  the browser's own, or `temporal-polyfill`'s.
  * - Typed by the polyfill (`temporal-spec`):  TypeScript's DOM lib has no Temporal yet.
@@ -362,7 +385,7 @@ export type ToastOptions = {
   /**
    * Fomantic's `class`:  class words for the toast, e.g. `"success"`, `"inverted blue"`;  a consequence word
    * becomes `type`, a hue `color`, `inverted` stays a word
-   * - every word is also kept on the `<ui-toast>` host's `class`, so a page can theme this toast alone:
+   * - every word is also kept on the `<ui-toast>` DOM element's `class`, so a page can theme this toast alone:
    *   `UI.toast({ class: "ready" })` + `ui-toast.ready { --ui-toast-background: ... }`
    */
   class?: string
@@ -449,18 +472,24 @@ export type ModalProvider = {
   confirm(options: ModalOptions): Promise<boolean>
   /** resolves when acknowledged */
   alert(options: ModalOptions): Promise<void>
-  /** resolves with the entered text, or `null` on deny / dismiss */
-  prompt(options: ModalOptions): Promise<string | null>
+  /** resolves with the entered text, or `undefined` on deny / dismiss */
+  prompt(options: ModalOptions): Promise<string | undefined>
 }
 
 ////////////////
 // ## Api
 ////////////////
 
-/** HTTP method for `Api.request()`. */
+/** HTTP method for `Api.request()`:  the platform's own spelling. */
 export type ApiMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS"
 
-/** How `Api.request()` reads the response body. */
+/**
+ * How `Api.request()` reads the response body.
+ * - `json` / `text`:  that parser, whatever the response says
+ * - `response`:  the `Response` itself, body unread
+ * - `auto`:  JSON when the `Content-Type` says so, else text
+ * - A union, not a set:  nothing lists or validates them.
+ */
 export type ApiResponseType = "json" | "text" | "response" | "auto"
 
 /** Values for `{name}` / `{/name}` URL template slots. */
@@ -497,23 +526,31 @@ export type ApiRequest = {
   responseType?: ApiResponseType
 }
 
+/** `cause` of an `ApiError`. */
+export type ApiErrorCause = {
+  /** the failed response, body unread */
+  response: Response
+}
+
 /**
  * Thrown by `Api.request()` for a non-2xx response.
- * - Keeps the `Response`, so callers can read a server error body.
+ * - Keeps the `Response` in `cause`, so callers can read a server error body.
+ * - `new ApiError(message, { cause: { response } })`
  */
 export class ApiError extends Error {
-  /** HTTP status, e.g. `404` */
-  readonly status: number
-  /** the failed response, body unread */
-  readonly response: Response
+  declare cause: ApiErrorCause | undefined
 
-  constructor(response: Response) {
-    super(`Server gave an error: ${response.status} ${response.statusText}`.trim())
-    this.name = "ApiError"
-    this.status = response.status
-    this.response = response
+  /** HTTP status, e.g. `404` */
+  get status() {
+    return this.cause?.response.status
+  }
+
+  /** the failed response, body unread */
+  get response() {
+    return this.cause?.response
   }
 }
+ApiError.prototype.name = "ApiError"
 
 ////////////////
 // ## Sources
@@ -576,11 +613,10 @@ export type SourceSaver = (request: SourceSaveRequest) => Promise<SourceSaveResu
  * - `conflict`:  the file changed since it was loaded (`If-Match` failed);  reload, then save again
  * - `no-saver`:  nothing registered `UI.sources.saver`
  * - `render`:  the text arrived but the element couldn't show it (bad markdown, unknown language ...)
+ * - NOTE: kebab-case, not English words:  pages read them (`ui-error`'s `detail.kind`, a saver's thrown `{ kind }`),
+ *   and the docs publish this spelling (AGENTS.md "Functions & types";  epic `wwod-spell-ui`, P3)
  */
-export type SourceErrorKind = "load" | "cross-origin" | "file-protocol" | "save" | "conflict" | "no-saver" | "render"
-
-/** Every `SourceErrorKind`, for checking one that arrives as data (a saver's thrown `{ kind }`). */
-export const SOURCE_ERROR_KINDS: readonly SourceErrorKind[] = [
+export const SourceErrorKinds = [
   "load",
   "cross-origin",
   "file-protocol",
@@ -588,25 +624,51 @@ export const SOURCE_ERROR_KINDS: readonly SourceErrorKind[] = [
   "conflict",
   "no-saver",
   "render"
-]
+] as const
+/** One of `SourceErrorKinds`. */
+export type SourceErrorKind = (typeof SourceErrorKinds)[number]
+
+/** `cause` of a `SourceError`. */
+export type SourceErrorCause = {
+  /** why, see `SourceErrorKind` */
+  kind: SourceErrorKind
+  /** HTTP status, when a response said no */
+  status?: number
+  /** what failed underneath:  a network error, a saver's own throw, a language's failed `load()` */
+  error?: unknown
+}
 
 /**
- * Thrown by `UI.sources` (and savers) when a source can't be loaded or saved;  `kind` says why.
- * - `status`:  the HTTP status, when there was a response.
+ * Thrown by `UI.sources` (and savers) when a source can't be loaded or saved;  `cause.kind` says why.
+ * - `new SourceError("Sources.load():  <problem>;  <fix>", { cause: { kind, status, error } })`
  */
 export class SourceError extends Error {
-  /** why, see `SourceErrorKind` */
-  readonly kind: SourceErrorKind
-  /** HTTP status, when a response said no */
-  readonly status?: number
+  declare cause: SourceErrorCause | undefined
 
-  constructor(kind: SourceErrorKind, message: string, status?: number) {
-    super(message)
-    this.name = "SourceError"
-    this.kind = kind
-    this.status = status
+  /** why, see `SourceErrorKind` */
+  get kind() {
+    return this.cause?.kind
+  }
+
+  /** HTTP status, when a response said no */
+  get status() {
+    return this.cause?.status
+  }
+
+  /**
+   * `error`'s kind when it's a `SourceError` that has one, else `otherwise`:  the `ui-error` `detail.kind` of
+   * whatever a load, render or save threw.
+   */
+  static kindFor(error: unknown, otherwise: SourceErrorKind): SourceErrorKind {
+    return (error instanceof SourceError && error.kind) || otherwise
+  }
+
+  /** Is `value` a `SourceErrorKind`?  For one that arrives as data (a saver's thrown `{ kind }`). */
+  static isKind(value: unknown): value is SourceErrorKind {
+    return SourceErrorKinds.includes(value as SourceErrorKind)
   }
 }
+SourceError.prototype.name = "SourceError"
 
 ////////////////
 // ## Code languages
@@ -642,13 +704,22 @@ export type CodeHighlight = (code: string) => CodeSpan[] | Promise<CodeSpan[]>
  *   `language="spell/es"` (`undefined` for plain `spell`)
  */
 export type CodeLanguage = {
+  /** a highlight.js language definition */
   grammar?: CodeGrammar
+  /** a highlighter of our own */
   highlight?: CodeHighlight
+  /** fetch the `grammar` or `highlight` on first use;  `variant` follows the `/` in the name */
   load?: (variant: string | undefined) => Promise<Omit<CodeLanguage, "load">>
   /** other names for it, e.g. `["sp"]` */
   aliases?: readonly string[]
   /** take part in auto-detection (`grammar` only);  default `false` */
   detect?: boolean
+}
+
+/** A `CodeLanguage` as `UI.code` keeps it:  with its canonical (lowercase) `name`. */
+export type RegisteredCodeLanguage = CodeLanguage & {
+  /** lowercase, as registered */
+  name: string
 }
 
 ////////////////
@@ -679,7 +750,7 @@ export type VisibilityCalculations = {
   /** share (0 ... 1) of it above the screen top while `passing`, else `0` */
   percentagePassed: number
   /** which way the page moved since the last check */
-  direction: "up" | "down" | "static"
+  direction: VisibilityDirection
 }
 
 /** A visibility callback;  gets the calculations of the check that fired it. */
@@ -690,17 +761,29 @@ export type VisibilityCallback = (calculations: VisibilityCalculations) => void
  * - Forward ones fire when their condition turns true;  `...Reverse` ones when it turns false again.
  */
 export type VisibilityCallbacks = {
+  /** some of it came on screen (`onScreen`) */
   onOnScreen?: VisibilityCallback
+  /** all of it left the screen (`offScreen`) */
   onOffScreen?: VisibilityCallback
+  /** its top came on screen (`topVisible`) */
   onTopVisible?: VisibilityCallback
+  /** its bottom came on screen (`bottomVisible`) */
   onBottomVisible?: VisibilityCallback
+  /** its top went above the screen top (`topPassed`) */
   onTopPassed?: VisibilityCallback
+  /** its bottom went above the screen top:  scrolled past (`bottomPassed`) */
   onBottomPassed?: VisibilityCallback
+  /** it began to span the screen top (`passing`) */
   onPassing?: VisibilityCallback
+  /** its top left the screen again */
   onTopVisibleReverse?: VisibilityCallback
+  /** its bottom left the screen again */
   onBottomVisibleReverse?: VisibilityCallback
+  /** its top came back below the screen top */
   onTopPassedReverse?: VisibilityCallback
+  /** its bottom came back below the screen top */
   onBottomPassedReverse?: VisibilityCallback
+  /** it stopped spanning the screen top */
   onPassingReverse?: VisibilityCallback
   /** every check */
   onUpdate?: VisibilityCallback
@@ -715,7 +798,7 @@ export type VisibilityOptions = VisibilityCallbacks & {
   /** px below the viewport top that count as the screen top (a fixed header);  default `0` */
   offset?: number
   /** scroll container to measure against;  default the viewport */
-  context?: Element | null
+  context?: Element
 }
 
 /** Options for `UI.visibility.lazyImage()`, Fomantic's `type: 'image'`. */
@@ -727,10 +810,15 @@ export type LazyImageOptions = {
   /** px below the viewport top that count as the screen top */
   offset?: number
   /** scroll container;  default the viewport */
-  context?: Element | null
+  context?: Element
   /** the image has its `src` */
   onLoad?: (image: HTMLImageElement) => void
 }
+
+/** Which way the page moved between two visibility checks (`VisibilityCalculations.direction`), Fomantic's words. */
+export const VisibilityDirection = { up: "up", down: "down", static: "static" } as const
+/** One of `VisibilityDirection`'s values, e.g. `"down"`. */
+export type VisibilityDirection = (typeof VisibilityDirection)[keyof typeof VisibilityDirection]
 
 ////////////////
 // ## Icons

@@ -16,7 +16,8 @@ import type {
   DesignTokensFile
 } from "./tools.types.ts"
 
-/**
+/****************
+ * ### `DesignExport`
  * The claude.ai Design System's files, from what Spell UI already knows about itself (epic `claude-design`, P7):
  * `yarn design:build` (`spell dev design build`) writes them to `<out>/project/`, laid out as the format says.
  * - `README.md` -- the brand book:  how to consume the elements (plain markup, one script), the brand's content and
@@ -29,7 +30,7 @@ import type {
  * - Sources:  `site/_data/components.json` (`yarn site:data`:  every vocabulary), the element examples, the theme
  *   sheets, and the brand book's "CONTENT FUNDAMENTALS" (`brand/spell-design-system/readme.md`, shared).
  * - Plus the brand's `<ui-brand-*>` cards, a "Brand" group (`DesignBrand`, epic `claude-design` P11):  read as data.
- */
+ ****************/
 export class DesignExport {
   /** `packages/ui`, absolute */
   readonly uiFolder: string
@@ -63,8 +64,11 @@ export class DesignExport {
 
   /** Every file of the export, in memory, with what went in and what was left out. */
   build(): DesignExportResult {
-    const components = new DesignComponents(this.data, this.uiFolder, this.sources)
-    const tokens = new DesignTokens(join(this.uiFolder, "src/styles"), this.data.foundation)
+    const components = new DesignComponents({ data: this.data, uiFolder: this.uiFolder, sources: this.sources })
+    const tokens = new DesignTokens({
+      stylesFolder: join(this.uiFolder, "src/styles"),
+      foundation: this.data.foundation
+    })
     const tokensFile = tokens.build(this.meta())
     const families = components.families()
     const skipped = tokens.skipped
@@ -131,7 +135,7 @@ export class DesignExport {
       const intro = this.sources.find((source) => source.group === group)?.intro
       if (intro) lines.push(intro, "")
       for (const family of families.filter((entry) => entry.group === group)) {
-        const summary = this.allData.families[this.folderOf(family)]?.summary ?? ""
+        const summary = this.allData.families[this.folderFor(family)]?.summary ?? ""
         const tags = family.tags.map((tag) => `\`<${tag}>\``).join(", ")
         lines.push(`- [${family.comp}](components/${family.comp}/README.md) (${tags}):  ${summary}`)
       }
@@ -293,23 +297,25 @@ export class DesignExport {
   ////////////////
 
   /** A family's folder, from its main tag. */
-  private folderOf(family: DesignFamily): string {
+  private folderFor(family: DesignFamily): string {
     return this.allData.components.find((tag) => tag.tag === family.mainTag)?.folder ?? family.mainTag
   }
 
   /** Branch, short sha and author of the checkout `folder` is in;  `unknown` for any git can't answer. */
   static readGit(folder: string): DesignGit {
-    const git = (...args: string[]) => {
+    return {
+      branch: git("rev-parse", "--abbrev-ref", "HEAD"),
+      sha: git("rev-parse", "--short", "HEAD"),
+      user: git("config", "user.name")
+    }
+
+    /** `git <args>`'s output in `folder`, trimmed;  `unknown` when git can't answer.  NEVER throws. */
+    function git(...args: string[]): string {
       try {
         return execFileSync("git", args, { cwd: folder, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim()
       } catch {
         return "unknown"
       }
-    }
-    return {
-      branch: git("rev-parse", "--abbrev-ref", "HEAD"),
-      sha: git("rev-parse", "--short", "HEAD"),
-      user: git("config", "user.name")
     }
   }
 
@@ -342,7 +348,14 @@ export type DesignExportOptions = {
 }
 
 /** The commit an export came from, and who made it. */
-export type DesignGit = { branch: string; sha: string; user: string }
+export type DesignGit = {
+  /** e.g. `main` */
+  branch: string
+  /** short commit hash */
+  sha: string
+  /** git's `user.name` */
+  user: string
+}
 
 /** `packages/ui`, absolute. */
 const UI_FOLDER = fileURLToPath(new URL("../", import.meta.url))

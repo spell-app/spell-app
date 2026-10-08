@@ -1,7 +1,7 @@
 /**
  * Child process of `spell static`:  renders pages through `ui`'s static server render, on an SSR-only Vite server.
  * - Started by `staticCommand.ts` as `node --import tsx renderStatic.ts`, with an IPC channel.
- * - Why a child, and Vite:  `ui`'s controllers are Solid JSX, which must compile for the server (`generate: "ssr"`)
+ * - Why a child, and Vite:  `ui`'s components are Solid JSX, which must compile for the server (`generate: "ssr"`)
  *   against `@solidjs/web`'s server build;  `tsx` can't, so the render runs in Vite's SSR module loader
  *   (`StaticRenderer`, the same setup as `yarn test:visual --static`).  A separate process keeps Vite, the server
  *   `UI` runtime it installs on `globalThis` and its console out of the CLI.
@@ -35,7 +35,7 @@ async function run(job: CLI.StaticMessage) {
     }
     for (const sheet of job.sheets) {
       const used = sheet.pages.flatMap((index) => tags[index] ?? [])
-      const result = module.StaticDocument.stylesheet(used, job.minify, sheet.coverage)
+      const result = module.StaticDocument.stylesheet(used, { minify: job.minify, coverage: sheet.coverage })
       await send({ kind: "stylesheet", path: sheet.path, result })
     }
     await send({ kind: "done" })

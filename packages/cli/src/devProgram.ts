@@ -4,9 +4,9 @@
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
- *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `design`, `server`, `window`, `vscode`):
- *     a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them directly,
- *     so they load no spell
+ *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `design`, `server`, `window`,
+ *     `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them
+ *     directly, so they load no spell
  *   - lean commands of our own (`pack`, `bundles`):  `(args, options) => Promise<exitCode>`, imported directly the
  *     same way
  *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);  run through the
@@ -23,6 +23,7 @@ import { DESIGN_VERBS, DOCS_VERBS } from "$/cli/dev/passThrough"
 import { agentsCommand } from "$/cli/commands/agentsCommand"
 import { BUNDLES_VERBS, bundlesCommand } from "$/cli/commands/bundlesCommand"
 import { designCommand } from "$/cli/commands/designCommand"
+import { choicesCommand } from "$/cli/commands/choicesCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
 import { goalsCommand } from "$/cli/commands/goalsCommand"
@@ -87,6 +88,16 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(detailsCommand, rawArgs("details")))
+
+  dev
+    .command("choices")
+    .description(
+      "syntax-choices pages:  names Claude recommends, one row each, Owen's call per name (new, show, wait ...)"
+    )
+    .argument("[args...]", "a choices command and its arguments")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(choicesCommand, rawArgs("choices")))
 
   dev
     .command("design")

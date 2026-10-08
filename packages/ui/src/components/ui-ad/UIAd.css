@@ -1,0 +1,226 @@
+/*
+ * The style sheet of `<ui-ad>`:  a port of Fomantic's `ad.less` + `ad.variables`.
+ * - It styles the component's shadow DOM, in Fomantic's class names:
+ *   `<div class="ui [unit] [centered] ad [test]" part="ad" [data-text]><slot></slot></div>`;
+ *   `data-text` is the `test` text (the translated "Ad" when bare), drawn by `::after`, as in Fomantic.
+ * - The DOM element is `display: contents` (`:host`):  the inner box is the fixed-size box.
+ *
+ * - Unit sizes are the IAB's, in `px`, on purpose:
+ *   an ad unit is a pixel contract with the ad server, not a typographic size.
+ * - Mobile units show only on phone-sized VIEWPORTS (`@media (--ui-mobile)`), as in Fomantic:
+ *   a mobile unit is served for the device, not for its container's width.
+ * - An ad is a `<div>`, not an `<aside>`:  several `<aside>` landmarks with one name break axe's `landmark-unique`;
+ *   a page that wants a landmark wraps its ad column in one.
+ *
+ * - The public tokens (`--ui-ad-*`) are NEVER declared here.
+ *   The token block gives each a private alias, `--_ui-ad-margin: var(--ui-ad-margin, 1em 0)`,
+ *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
+ *   `::part(ad)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ */
+
+@layer ui.components.ad.types, ui.components.ad.content, ui.components.ad.variations, ui.components.ad.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time. */
+@import "../../styles/media.css";
+
+/*******************************
+         Advertisement
+*******************************/
+
+@layer ui.components.ad.types {
+  /* The DOM element:  no box of its own;  the inner box is the ad. */
+  :host {
+    display: contents;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  one per `ad.variables` entry, each the private alias of its public token. */
+  .ui.ad {
+    --_ui-ad-margin: var(--ui-ad-margin, 1em 0);
+    --_ui-ad-test-background: var(--ui-ad-test-background, oklch(0.4 0 0));
+    --_ui-ad-test-color: var(--ui-ad-test-color, var(--ui-ink-on-dark));
+    --_ui-ad-test-font-size: var(--ui-ad-test-font-size, 1em);
+    --_ui-ad-test-mobile-font-size: var(--ui-ad-test-mobile-font-size, 0.85714em);
+  }
+
+  .ui.ad {
+    display: block;
+    box-sizing: border-box;
+    margin: var(--_ui-ad-margin);
+    overflow: hidden;
+  }
+  :host(:first-child) > .ui.ad,
+  .ui.ad:first-child,
+  :host(:last-child) > .ui.ad,
+  .ui.ad:last-child {
+    margin: 0;
+  }
+  /*
+   * In the shadow root, the box is ALWAYS its root's first and last child,
+   * so the two rules above would zero every element's margin:
+   * an element between siblings gets its margin back (static class-grammar markup keeps them).
+   */
+  :host(:not(:first-child, :last-child)) > .ui.ad {
+    margin: var(--_ui-ad-margin);
+  }
+  .ui.ad ::slotted(iframe),
+  .ui.ad iframe {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: none;
+  }
+}
+
+/*******************************
+             Units
+*******************************/
+
+@layer ui.components.ad.variations {
+  /* Rectangles */
+  .ui[class*="medium rectangle"].ad {
+    width: 300px;
+    height: 250px;
+  }
+  .ui[class*="large rectangle"].ad {
+    width: 336px;
+    height: 280px;
+  }
+  .ui[class*="half page"].ad {
+    width: 300px;
+    height: 600px;
+  }
+  .ui[class*="small rectangle"].ad {
+    width: 180px;
+    height: 150px;
+  }
+  .ui[class*="vertical rectangle"].ad {
+    width: 240px;
+    height: 400px;
+  }
+
+  /* Squares */
+  .ui.square.ad {
+    width: 250px;
+    height: 250px;
+  }
+  .ui[class*="small square"].ad {
+    width: 200px;
+    height: 200px;
+  }
+
+  /* Buttons */
+  .ui.button.ad {
+    width: 120px;
+    height: 90px;
+  }
+  .ui[class*="square button"].ad {
+    width: 125px;
+    height: 125px;
+  }
+  .ui[class*="small button"].ad {
+    width: 120px;
+    height: 60px;
+  }
+
+  /* Skyscrapers */
+  .ui.skyscraper.ad {
+    width: 120px;
+    height: 600px;
+  }
+  .ui[class*="wide skyscraper"].ad {
+    width: 160px;
+  }
+
+  /* Banners */
+  .ui.banner.ad {
+    width: 468px;
+    height: 60px;
+  }
+  .ui[class*="vertical banner"].ad {
+    width: 120px;
+    height: 240px;
+  }
+  .ui[class*="top banner"].ad {
+    width: 930px;
+    height: 180px;
+  }
+  .ui[class*="half banner"].ad {
+    width: 234px;
+    height: 60px;
+  }
+
+  /* Boards */
+  .ui.leaderboard.ad {
+    width: 728px;
+    height: 90px;
+  }
+  .ui[class*="large leaderboard"].ad {
+    width: 970px;
+    height: 90px;
+  }
+  .ui.billboard.ad {
+    width: 970px;
+    height: 250px;
+  }
+  .ui.panorama.ad {
+    width: 980px;
+    height: 120px;
+  }
+  .ui.netboard.ad {
+    width: 580px;
+    height: 400px;
+  }
+
+  /* Mobile units:  phone-sized viewports only. */
+  .ui[class*="large mobile banner"].ad {
+    width: 320px;
+    height: 100px;
+  }
+  .ui[class*="mobile leaderboard"].ad {
+    width: 320px;
+    height: 50px;
+  }
+  .ui.mobile.ad {
+    display: none;
+  }
+  @media (--ui-mobile) {
+    .ui.mobile.ad {
+      display: block;
+    }
+  }
+
+  /* Centered */
+  .ui.centered.ad {
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  /* Test:  a grey placeholder with its text in the middle. */
+  .ui.test.ad {
+    position: relative;
+    background: var(--_ui-ad-test-background);
+  }
+  .ui.test.ad::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    color: var(--_ui-ad-test-color);
+    font-family: var(--ui-font-family);
+    font-size: var(--_ui-ad-test-font-size);
+    font-weight: var(--ui-font-weight-bold);
+    text-align: center;
+    transform: translateX(-50%) translateY(-50%);
+  }
+  /* Static markup without `data-text`:  Fomantic's default text. */
+  .ui.test.ad:not([data-text])::after {
+    content: "Ad";
+  }
+  .ui.mobile.test.ad::after {
+    font-size: var(--_ui-ad-test-mobile-font-size);
+  }
+}

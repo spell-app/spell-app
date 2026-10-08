@@ -1,0 +1,1049 @@
+/*
+ * The style sheet of `<ui-steps>` and `<ui-step>`:  a port of Fomantic's `step.less` + `step.variables`
+ * (+ the check glyph of `step.overrides`).
+ * - ONE sheet, adopted by the group AND by every step (a step also adopts `UIParts.css`, for its shorthand content).
+ * - Shadow markup contract (class grammar on semantic elements):
+ *   - `<ui-steps>`:  `<ol class="ui [size] [color] [keyOnly ...] [attached] [stackable] [count] steps" part="steps"
+ *     role="list">` around `<slot>` (an ORDERED list:  steps are a sequence);  the DOM element is a block and the size
+ *     container `ui-steps`
+ *   - `<ui-step>`:  `<div | a href | button class="[color] [keyOnly ...] step" part="step" [aria-current=step]>`
+ *     holding `<span class="icon" part="icon">` (glyph or `slot=icon`), the shorthand `<div class="content
+ *     in-step">` (`.title` / `.description`, the static part classes), the `<slot>` and, when completed, a visually
+ *     hidden "Completed";  the DOM element is `role=listitem` (internals) and `display: contents`,
+ *     so the step root is the group's flex item exactly where Fomantic's `.ui.steps > .step` sat
+ * - Every step rule has two selectors sharing one body:  the element (`:host > .step`) and static class grammar
+ *   (`.ui.steps > .step`);  the DOM element's position (`:host(:first-child)`) stands in for `.step:first-child`.
+ *
+ * ## Group -> step tokens
+ * A step can't see its group's classes, so the group ROOT resolves every variation into inherited tokens,
+ * and the step rules only read them (switches through `@container style()`):
+ *
+ * | Token                                    | What                                       | Changed by                   |
+ * | ---------------------------------------- | ------------------------------------------ | ---------------------------- |
+ * | `--_ui-steps-layout`                     | `horizontal` / `vertical` / `stacked`      | `vertical`;  `stacked` below |
+ * |                                          |                                            | 768px (992px with `stackable="tablet"`) unless `unstackable` |
+ * | `--_ui-steps-column`                     | `0` / `1`:  one step per row               | `vertical`, stacked          |
+ * | `--_ui-steps-line`                       | `horizontal` / `vertical`:  a circular     | `vertical`                   |
+ * |                                          | step's connecting line (circular steps     |                              |
+ * |                                          | never stack)                               |                              |
+ * | `--_ui-steps-circular`                   | `0` / `1`                                  | `circular`                   |
+ * | `--_ui-steps-ordered`                    | `0` / `1`                                  | `ordered`                    |
+ * | `--_ui-steps-arrow`                      | `right` / `left` (the side a vertical      | `vertical="right"`           |
+ * |                                          | step's arrow points from)                  |                              |
+ * | `--_ui-steps-first-radius` / `-last-` / `-only-` | corners of the first / last / only step, | layout, `attached`   |
+ * |                                          | from `--ui-steps-radius`                   |                              |
+ * | `--_ui-steps-step-width` / `-step-wrap`  | each step's width, its content wrapping    | `widths` (`three steps`)     |
+ * | `--_ui-steps-step-flex`                  | each step's `flex`                         | `equal fluid`                |
+ * | `--_ui-steps-accent`                     | circular:  ring / line colour of current   | `color`                      |
+ * |                                          | and completed steps                        |                              |
+ * | `--_ui-step-*` / `--_ui-steps-*` aliases | the look (`step.variables`), declared on   | `inverted` re-resolves the   |
+ * |                                          | the group root                             | `light-dark()` ones          |
+ *
+ * - The first eight rows are private SWITCHES:  the group's attributes decide them, so the page never sets them.
+ * - Public tokens (`--ui-step-*`, `--ui-steps-radius`, `--ui-steps-border`:  the theming surface) are NEVER declared
+ *   here:  the group root reads each through a private alias, `--_ui-step-padding: var(--ui-step-padding, ...)`,
+ *   every rule reads the alias, and variations (`inverted`, a step's `color`) write it.  So a value set on `:root`,
+ *   an ancestor, the DOM element or `::part(steps)` reaches every step (`docs/theming.md` "Component tokens");
+ *   set it on the group or above, not on one step.
+ *
+ * Every STEP root declares the parts' tokens (`UIParts.css`):  the switches `--_ui-step-state` (`normal` / `active` /
+ * `disabled`) and `--_ui-step-layout` (`row` / `stacked`), and the aliases of the content's look tokens circular
+ * steps vary:  `--ui-step-content-margin` / `-padding`,
+ * `--ui-step-description-distance` and `--ui-step-active-title-color` (set those on a step, `::part(step)`, or above).
+ *
+ * - Stacking answers to the GROUP's width:  the group root runs the size query in its own tree and hands the
+ *   answer down as `--_ui-steps-layout: stacked` (container names are tree-scoped, so a step couldn't query its
+ *   group's container itself).  Static markup:  the group's parent is the container.
+ * - Sizes:  the group root's font size is `--ui-font-size` times the generic `--ui-scale` remap (`sizes.css`);
+ *   its `<slot>` resets `--ui-scale`, so a step's components aren't scaled twice.
+ * - Colours:  only circular steps have a hue (`color` on the group, or on one step), through the generic remap
+ *   (`--ui-color`);  the group's DOM element resets the colour tokens, so an outer coloured component can't tint them.
+ * - The check (a completed step's icon or number, a completed circular ring) is Font Awesome's `check` as a CSS
+ *   mask (`--ui-step-check`), where Fomantic embedded a one-glyph icon font.
+ * - NOTE: left out, on purpose:
+ *   - circular steps' `center aligned` / `bottom aligned` content (the parts have no alignment attributes);
+ *     the connecting line of a vertical circular step is the step's background, not its content's `::before`
+ *   - Fomantic's `!important`s:  sublayers, source order and the tokens give the same wins
+ *   - RTL arrows (Fomantic's RTL build flips them;  the arrow here always points to the inline END)
+ */
+
+@layer ui.components.step.types, ui.components.step.content, ui.components.step.variations, ui.components.step.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time:  `stack-with="page"`. */
+@import "../../styles/media.css";
+
+/*******************************
+            Steps
+*******************************/
+
+@layer ui.components.step.types {
+  /* DOM elements:  a step's root is the flex item;  the group's DOM element is the size container for stacking. */
+  :host {
+    display: contents;
+  }
+  :host(:state(steps)) {
+    display: block;
+    container: ui-steps / inline-size;
+    /* Only the group's own `color` tints circular steps. */
+    --ui-color: initial;
+    --ui-color-text: initial;
+    --ui-color-header: initial;
+    --ui-color-border: initial;
+    --ui-color-background: initial;
+    --ui-color-inverted: initial;
+    --ui-color-hover: initial;
+    --ui-color-focus: initial;
+    --ui-color-down: initial;
+    --ui-color-active: initial;
+    --ui-color-on: initial;
+    --ui-color-inverted-on: initial;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /* Static markup:  the group's parent is the container. */
+  :has(> .ui.steps) {
+    container: ui-steps / inline-size;
+  }
+
+  /* Tokens:  the switches and the private aliases, which the group root resolves every variation into;  steps read
+     them (see the header). */
+  .ui.steps {
+    --ui-inverted: 0;
+    --_ui-steps-layout: horizontal;
+    --_ui-steps-circular: 0;
+    --_ui-steps-ordered: 0;
+    --_ui-steps-arrow: right;
+    --_ui-steps-line: horizontal;
+    --_ui-steps-column: 0;
+    --_ui-steps-radius: var(--ui-steps-radius, var(--ui-radius));
+    --_ui-steps-first-radius: var(--_ui-steps-radius) 0 0 var(--_ui-steps-radius);
+    --_ui-steps-last-radius: 0 var(--_ui-steps-radius) var(--_ui-steps-radius) 0;
+    --_ui-steps-only-radius: var(--_ui-steps-radius);
+    --_ui-steps-step-width: auto;
+    --_ui-steps-step-wrap: wrap;
+    --_ui-steps-step-flex: 1 0 auto;
+    --_ui-steps-accent: var(--ui-color, var(--ui-positive));
+    --_ui-steps-border: var(--ui-steps-border, var(--ui-border-width) solid var(--ui-border-color));
+    /* The check on a completed circular step's accent. */
+    --_ui-steps-accent-on: var(--ui-steps-accent-on, white);
+    /* ## The look:  a private alias per `step.variables` entry that still matters. */
+    --_ui-step-background: var(--ui-step-background, var(--ui-surface));
+    /* A step of an `inverted` group:  the surface darkened. */
+    --_ui-step-inverted-background: var(
+      --ui-step-inverted-background,
+      color-mix(in oklab, var(--ui-surface) 70%, oklch(0 0 0))
+    );
+    --_ui-step-color: var(--ui-step-color, var(--ui-text-color));
+    --_ui-step-divider: var(--ui-step-divider, var(--ui-border-width) solid var(--ui-border-color));
+    --_ui-step-border-color: var(--ui-step-border-color, var(--ui-border-color));
+    --_ui-step-padding: var(--ui-step-padding, 1.14285em 2em);
+    --_ui-step-arrow-size: var(--ui-step-arrow-size, 1.14285em);
+    --_ui-step-line-height: var(--ui-step-line-height, 1.14285em);
+    --_ui-step-icon-size: var(--ui-step-icon-size, 2.5em);
+    --_ui-step-icon-distance: var(--ui-step-icon-distance, var(--ui-font-size));
+    --_ui-step-hover-background: var(
+      --ui-step-hover-background,
+      color-mix(in oklab, var(--ui-ink) 2%, var(--ui-surface))
+    );
+    --_ui-step-hover-color: var(--ui-step-hover-color, var(--ui-text-hovered));
+    --_ui-step-down-background: var(
+      --ui-step-down-background,
+      color-mix(in oklab, var(--ui-ink) 5%, var(--ui-surface))
+    );
+    --_ui-step-down-color: var(--ui-step-down-color, var(--ui-text-pressed));
+    --_ui-step-active-background: var(
+      --ui-step-active-background,
+      color-mix(in oklab, var(--ui-ink) 5%, var(--ui-surface))
+    );
+    --_ui-step-active-icon-color: var(--ui-step-active-icon-color, var(--ui-text-dark));
+    --_ui-step-active-hover-background: var(
+      --ui-step-active-hover-background,
+      color-mix(in oklab, var(--ui-ink) 13%, var(--ui-surface))
+    );
+    --_ui-step-active-hover-color: var(--ui-step-active-hover-color, var(--ui-text-color));
+    --_ui-step-completed-color: var(--ui-step-completed-color, var(--ui-positive));
+    --_ui-step-disabled-background: var(--ui-step-disabled-background, var(--_ui-step-background));
+    --_ui-step-disabled-color: var(--ui-step-disabled-color, var(--ui-text-disabled));
+    --_ui-step-transition: var(
+      --ui-step-transition,
+      background-color var(--ui-duration-slow) var(--ui-ease),
+      opacity var(--ui-duration-slow) var(--ui-ease),
+      color var(--ui-duration-slow) var(--ui-ease),
+      box-shadow var(--ui-duration-slow) var(--ui-ease)
+    );
+    --_ui-step-check: var(
+      --ui-step-check,
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath d='M434.8 70.1c14.3 10.4 17.5 30.4 7.1 44.7l-256 352c-5.5 7.6-14 12.3-23.4 13.1s-18.5-2.7-25.1-9.3l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l101.5 101.5 234-321.7c10.4-14.3 30.4-17.5 44.7-7.1z'/%3E%3C/svg%3E")
+    );
+    /* Circular steps. */
+    --_ui-step-ring-color: var(--ui-step-ring-color, var(--ui-border-color-strong));
+    --_ui-step-ring-width: var(--ui-step-ring-width, 2px);
+    --_ui-step-ring-size: var(--ui-step-ring-size, 2.2em);
+    --_ui-step-dot-size: var(--ui-step-dot-size, 0.95em);
+    --_ui-step-circular-disabled-opacity: var(--ui-step-circular-disabled-opacity, 0.5);
+    --_ui-step-circular-title-background: var(--ui-step-circular-title-background, var(--ui-surface));
+  }
+
+  /* Group:  a bordered row of steps.
+     - `container: none`:  the root is never the size container (its DOM element is, or in static markup its parent);  a
+       static server render (`$/ui/static`) moves the DOM element's `container` onto the root, where inline-size
+       containment would shrink the inline-flex group to nothing. */
+  .ui.steps {
+    container: none;
+    box-sizing: border-box;
+    display: inline-flex;
+    flex-flow: row wrap;
+    align-items: stretch;
+    margin: 1em 0;
+    padding: 0;
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    line-height: var(--_ui-step-line-height);
+    list-style: none;
+    counter-reset: ui-step;
+    border: var(--_ui-steps-border);
+    border-radius: var(--_ui-steps-radius);
+    box-shadow: none;
+  }
+  .ui.unstackable.steps {
+    flex-wrap: nowrap;
+  }
+  .ui.steps > slot {
+    --ui-scale: initial;
+  }
+  :host(:first-child) > .ui.steps,
+  .ui.steps:first-child {
+    margin-top: 0;
+  }
+  :host(:last-child) > .ui.steps,
+  .ui.steps:last-child {
+    margin-bottom: 0;
+  }
+  /*
+   * Shadow DOM:  the root is always an only child, so `.ui.steps:first-child` above always matches there;
+   * the DOM element's position decides instead.
+   * - An inline-flex root's margins never collapse (class grammar's neither), so they stay on the root.
+   * - A block-level root's (`:state(block)`:  `fluid`, circular) sit on the DOM ELEMENT:  a size container is its own
+   *   formatting context, so a root margin inside it would never collapse with the heading above.
+   *   The root's are zeroed in "Circular" (variations), after the circular margins;  a static render's root keeps its
+   *   own.
+   */
+  :host(:not(:first-child)) > .ui.steps {
+    margin-top: 1em;
+  }
+  :host(:not(:last-child)) > .ui.steps {
+    margin-bottom: 1em;
+  }
+  :host(:state(block):not(:first-child)),
+  :host(:state(block):state(circular)) {
+    margin-block-start: 1em;
+  }
+  :host(:state(block):not(:last-child)),
+  :host(:state(block):state(circular)) {
+    margin-block-end: 1em;
+  }
+}
+
+/*******************************
+             Step
+*******************************/
+
+@layer ui.components.step.types {
+  /* Every step root declares the parts' tokens:  the switches, and the aliases of the look tokens circular steps
+     vary (defaults as `UIParts.css` reads them), so a nested step never inherits an outer one's. */
+  :host > .step,
+  .ui.steps > .step {
+    --_ui-step-state: normal;
+    --_ui-step-layout: row;
+    --_ui-step-content-margin: var(--ui-step-content-margin, 0);
+    --_ui-step-content-padding: var(--ui-step-content-padding, 0);
+    --_ui-step-description-distance: var(--ui-step-description-distance, 0.25em);
+    --_ui-step-active-title-color: var(--ui-step-active-title-color, var(--ui-link));
+    position: relative;
+    box-sizing: border-box;
+    width: var(--_ui-steps-step-width);
+    margin: 0;
+    padding: 0;
+    color: var(--_ui-step-color);
+    font: inherit;
+    text-align: inherit;
+    text-decoration: none;
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  /* A `<button>` step:  a plain box. */
+  :host > button.step {
+    appearance: none;
+  }
+  :host > .step:focus-visible,
+  .ui.steps > .step:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color, var(--ui-link));
+    outline-offset: calc(-1 * var(--ui-focus-width));
+    z-index: 3;
+  }
+
+  /* The box of a regular (not circular) step. */
+  @container not style(--_ui-steps-circular: 1) {
+    :host > .step,
+    .ui.steps > .step {
+      display: flex;
+      flex: var(--_ui-steps-step-flex);
+      flex-flow: row var(--_ui-steps-step-wrap);
+      align-items: center;
+      justify-content: center;
+      padding: var(--_ui-step-padding);
+      vertical-align: middle;
+      background: var(--_ui-step-background);
+      border-right: var(--_ui-step-divider);
+      transition: var(--_ui-step-transition);
+    }
+
+    /* Arrow:  a rotated square over the divider, pointing at the next step. */
+    :host > .step::after,
+    .ui.steps > .step::after {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      top: 50%;
+      right: 0;
+      display: block;
+      width: var(--_ui-step-arrow-size);
+      height: var(--_ui-step-arrow-size);
+      background-color: var(--_ui-step-background);
+      border-style: solid;
+      border-color: var(--_ui-step-border-color);
+      border-width: 0 var(--ui-border-width) var(--ui-border-width) 0;
+      transform: translateY(-50%) translateX(50%) rotate(-45deg);
+      transition: var(--_ui-step-transition);
+    }
+
+    /* First, last and only step. */
+    :host(:first-child) > .step,
+    .ui.steps > .step:first-child {
+      border-radius: var(--_ui-steps-first-radius);
+    }
+    :host(:last-child) > .step,
+    .ui.steps > .step:last-child {
+      margin-right: 0;
+      border-right: none;
+      border-radius: var(--_ui-steps-last-radius);
+    }
+    :host(:last-child) > .step::after,
+    .ui.steps > .step:last-child::after {
+      display: none;
+    }
+    :host(:only-child) > .step,
+    .ui.steps > .step:only-child {
+      border-radius: var(--_ui-steps-only-radius);
+    }
+  }
+}
+
+@layer ui.components.step.content {
+  /* Icon:  a large glyph beside the content. */
+  :host > .step > .icon,
+  .ui.steps > .step > .icon {
+    display: block;
+    flex: 0 1 auto;
+    align-self: center;
+    width: auto;
+    margin: 0 var(--_ui-step-icon-distance) 0 0;
+    font-size: var(--_ui-step-icon-size);
+    line-height: 1;
+  }
+  /* The glyph:  the check, or the `icon` glyph as the icon slot's fallback content (hence a descendant). */
+  :host > .step > .icon svg,
+  .ui.steps > .step > .icon svg {
+    display: block;
+    width: auto;
+    height: 1em;
+  }
+  :host > .step > .icon > slot::slotted(*) {
+    --_ui-icon-owner-margin: 0;
+  }
+
+  /* Link steps. */
+  :host > :is(a, button).step,
+  .ui.steps > :is(a, .link).step {
+    cursor: pointer;
+  }
+}
+
+/*******************************
+          Variations
+*******************************/
+
+@layer ui.components.step.variations {
+  /* Sizes:  the generic `--ui-scale` remap sets the group's font size;  static markup only for `medium`. */
+  .ui.medium.steps {
+    --ui-scale: 1;
+  }
+
+  /* --------------
+       Ordered
+  --------------- */
+
+  .ui.ordered.steps {
+    --_ui-steps-ordered: 1;
+  }
+  @container style(--_ui-steps-ordered: 1) {
+    :host > .step::before,
+    .ui.steps > .step::before {
+      content: counter(ui-step);
+      counter-increment: ui-step;
+      align-self: center;
+      font-family: inherit;
+      font-weight: var(--ui-font-weight-bold);
+      text-align: center;
+    }
+    :host > .step > :not(slot),
+    .ui.steps > .step > * {
+      display: block;
+      align-self: center;
+    }
+  }
+  @container not style(--_ui-steps-circular: 1) {
+    @container style(--_ui-steps-ordered: 1) {
+      :host > .step::before,
+      .ui.steps > .step::before {
+        display: block;
+        position: static;
+        margin-right: var(--_ui-step-icon-distance);
+        font-size: var(--_ui-step-icon-size);
+        line-height: 1;
+      }
+      /* A completed step shows the check instead of its number (a circular one fills its ring instead). */
+      :host > .step.completed::before,
+      .ui.steps > .step.completed::before {
+        content: "";
+        width: 1em;
+        height: 1em;
+        background-color: currentColor;
+        mask: var(--_ui-step-check) center / contain no-repeat;
+      }
+    }
+  }
+
+  /* --------------
+         Equal
+  --------------- */
+
+  /* `equal` (no count):  every step as wide as the widest -- a grid of equal columns, so the group hugs them;  with
+     `fluid`, an equal share of the row each.  Stacking (below) still wins:  it comes later at the same specificity. */
+  .ui.equal.steps:not(.vertical, .circular, .fluid) {
+    display: inline-grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+  }
+  .ui.equal.fluid.steps:not(.vertical, .circular) {
+    --_ui-steps-step-flex: 1 1 0%;
+  }
+
+  /* --------------
+       Vertical
+  --------------- */
+
+  .ui.vertical.steps {
+    --_ui-steps-layout: vertical;
+    --_ui-steps-line: vertical;
+    --_ui-steps-column: 1;
+    --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+    --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+    display: inline-flex;
+    flex-direction: column;
+    overflow: visible;
+  }
+  .ui.right.vertical.steps {
+    --_ui-steps-arrow: left;
+  }
+
+  /* --------------
+       Stacked
+  --------------- */
+
+  /* Below 768px of the group (992px for `tablet stackable`), unless `unstackable`:  one step per row.  Attached
+     corners (below) still win, as in Fomantic. */
+  @container ui-steps (width < 768px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.steps:not(.unstackable, .circular):not(.stack-with-page) {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.steps:not(.unstackable, .circular).stack-with-container {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+  }
+  @media (--ui-mobile) {
+    @container style(--ui-stack-with: page) {
+      .ui.steps:not(.unstackable, .circular):not(.stack-with-container) {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.steps:not(.unstackable, .circular).stack-with-page {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+  }
+  @container ui-steps (width < 992px) {
+    @container not style(--ui-stack-with: page) {
+      .ui[class*="tablet stackable"].steps:not(.circular):not(.stack-with-page) {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui[class*="tablet stackable"].steps:not(.circular).stack-with-container {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+  }
+  @media (--ui-mobile), (--ui-tablet) {
+    @container style(--ui-stack-with: page) {
+      .ui[class*="tablet stackable"].steps:not(.circular):not(.stack-with-container) {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui[class*="tablet stackable"].steps:not(.circular).stack-with-page {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+  }
+
+  /* Row layouts of regular steps (circular steps have their own, below). */
+  @container not style(--_ui-steps-circular: 1) {
+    /* Vertical and stacked steps:  one per row, a rule under each but the last. */
+    @container style(--_ui-steps-column: 1) {
+      :host > .step,
+      .ui.steps > .step {
+        justify-content: flex-start;
+        border-right: none;
+        border-bottom: var(--_ui-step-divider);
+      }
+      :host(:last-child) > .step,
+      .ui.steps > .step:last-child {
+        border-bottom: none;
+      }
+    }
+
+    /* Vertical:  the arrow only on the current step, at its end (or start, `right vertical`). */
+    @container style(--_ui-steps-layout: vertical) {
+      :host > .step::after,
+      .ui.steps > .step::after {
+        display: none;
+      }
+      :host > .step.active::after,
+      .ui.steps > .step.active::after,
+      :host(:last-child) > .step.active::after,
+      .ui.steps > .step.active:last-child::after {
+        display: block;
+      }
+    }
+    @container style(--_ui-steps-layout: vertical) and style(--_ui-steps-arrow: left) {
+      :host > .step::after,
+      .ui.steps > .step::after {
+        right: 100%;
+        left: 0;
+        border-width: var(--ui-border-width) 0 0 var(--ui-border-width);
+        transform: translateY(-50%) translateX(-50%) rotate(-45deg);
+      }
+    }
+
+    /* Stacked:  full width, content centred, the arrow under the step pointing down. */
+    @container style(--_ui-steps-layout: stacked) {
+      :host > .step,
+      .ui.steps > .step {
+        --_ui-step-layout: stacked;
+        width: 100%;
+        flex-direction: column;
+        border-bottom: var(--_ui-steps-border);
+      }
+      :host(:last-child) > .step,
+      .ui.steps > .step:last-child {
+        border-bottom: none;
+      }
+      :host > .step::after,
+      .ui.steps > .step::after {
+        top: unset;
+        right: 50%;
+        bottom: calc(-1 * var(--_ui-step-arrow-size));
+        transform: translateY(-50%) translateX(50%) rotate(45deg);
+      }
+      :host(:last-child) > .step.active::after,
+      .ui.steps > .step.active:last-child::after {
+        display: none;
+      }
+      :host > .step > .content,
+      .ui.steps > .step > .content {
+        text-align: center;
+      }
+      :host > .step > .icon,
+      .ui.steps > .step > .icon,
+      :host > .step::before,
+      .ui.steps > .step::before {
+        margin: 0 0 var(--_ui-step-icon-distance) 0;
+      }
+    }
+  }
+
+  /* --------------
+        Fluid
+  --------------- */
+
+  .ui.fluid.steps {
+    display: flex;
+    width: 100%;
+  }
+
+  /* --------------
+       Attached
+  --------------- */
+
+  .ui.attached.steps:not(.circular),
+  .ui.top.attached.steps:not(.circular) {
+    --_ui-steps-first-radius: var(--_ui-steps-radius) 0 0 0;
+    --_ui-steps-last-radius: 0 var(--_ui-steps-radius) 0 0;
+    --_ui-steps-only-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+    width: calc(100% + 2 * var(--ui-border-width));
+    max-width: calc(100% + 2 * var(--ui-border-width));
+    margin: 0 calc(-1 * var(--ui-border-width)) 0;
+    border-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+  }
+  .ui.bottom.attached.steps:not(.circular) {
+    --_ui-steps-first-radius: 0 0 0 var(--_ui-steps-radius);
+    --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) 0;
+    --_ui-steps-only-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+    margin: 0 calc(-1 * var(--ui-border-width)) 0;
+    border-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+  }
+
+  /* --------------
+    Evenly divided
+  --------------- */
+
+  .ui:is(.one, .two, .three, .four, .five, .six, .seven, .eight).steps {
+    --_ui-steps-step-wrap: nowrap;
+    width: 100%;
+  }
+  .ui.one.steps {
+    --_ui-steps-step-width: 100%;
+  }
+  .ui.two.steps {
+    --_ui-steps-step-width: 50%;
+  }
+  .ui.three.steps {
+    --_ui-steps-step-width: 33.333%;
+  }
+  .ui.four.steps {
+    --_ui-steps-step-width: 25%;
+  }
+  .ui.five.steps {
+    --_ui-steps-step-width: 20%;
+  }
+  .ui.six.steps {
+    --_ui-steps-step-width: 16.666%;
+  }
+  .ui.seven.steps {
+    --_ui-steps-step-width: 14.285%;
+  }
+  .ui.eight.steps {
+    --_ui-steps-step-width: 12.5%;
+  }
+
+  /* --------------
+       Inverted
+  --------------- */
+
+  .ui.inverted.steps {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    color-scheme: dark;
+    --_ui-step-background: var(--_ui-step-inverted-background);
+    --_ui-step-active-background: color-mix(in oklab, var(--ui-ink) 13%, var(--_ui-step-background));
+    --_ui-step-hover-background: color-mix(in oklab, var(--ui-ink) 16%, var(--_ui-step-background));
+    --_ui-step-active-hover-background: color-mix(in oklab, var(--ui-ink) 20%, var(--_ui-step-background));
+    --_ui-step-down-background: var(--_ui-step-active-hover-background);
+    --_ui-step-active-icon-color: var(--ui-text-selected);
+    --_ui-step-disabled-background: color-mix(in oklab, var(--ui-ink) 6%, var(--_ui-step-background));
+    --_ui-step-circular-title-background: var(--_ui-step-background);
+  }
+
+  /* --------------
+       Circular
+  --------------- */
+
+  .ui.circular.steps {
+    --_ui-steps-circular: 1;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .ui.circular.steps:not(.vertical) {
+    display: flex;
+    position: relative;
+    margin: 1em 0;
+    padding: 1em 0;
+    background: transparent;
+  }
+  .ui.circular.vertical.steps {
+    display: inline-flex;
+    flex-flow: column wrap;
+    align-items: flex-start;
+  }
+  /* Shadow DOM:  a block-level root's outer margin is the DOM element's (see "Group"). */
+  :host(:state(block)) > .ui.steps:not([data-ui]) {
+    margin-block: 0;
+  }
+
+  @container style(--_ui-steps-circular: 1) {
+    /* Every circular step:  a ring (`::before`) around a dot (`::after`). */
+    :host > .step,
+    .ui.steps > .step {
+      color: inherit;
+      cursor: default;
+    }
+    :host > .step::before,
+    .ui.steps > .step::before {
+      content: "";
+      position: absolute;
+      box-sizing: border-box;
+      width: var(--_ui-step-ring-size);
+      height: var(--_ui-step-ring-size);
+      line-height: calc(var(--_ui-step-ring-size) - 2 * var(--_ui-step-ring-width));
+      text-align: center;
+      border: var(--_ui-step-ring-width) solid var(--_ui-step-ring-color);
+      border-radius: 50%;
+    }
+    :host > .step::after,
+    .ui.steps > .step::after {
+      content: "";
+      position: absolute;
+      display: block;
+      width: var(--_ui-step-dot-size);
+      height: var(--_ui-step-dot-size);
+      background: var(--_ui-step-ring-color);
+      border-radius: 50%;
+    }
+    :host > :is(a, button).step,
+    .ui.steps > :is(a, .link).step {
+      cursor: pointer;
+    }
+    /* The step's own `color` wins over the group's. */
+    :host
+      > .step:is(
+        [class~="red"],
+        [class~="orange"],
+        [class~="yellow"],
+        [class~="olive"],
+        [class~="green"],
+        [class~="teal"],
+        [class~="blue"],
+        [class~="violet"],
+        [class~="purple"],
+        [class~="pink"],
+        [class~="brown"],
+        [class~="grey"],
+        [class~="black"],
+        [class~="primary"],
+        [class~="secondary"]
+      ),
+    .ui.steps
+      > .step:is(
+        .red,
+        .orange,
+        .yellow,
+        .olive,
+        .green,
+        .teal,
+        .blue,
+        .violet,
+        .purple,
+        .pink,
+        .brown,
+        .grey,
+        .black,
+        .primary,
+        .secondary
+      ) {
+      --_ui-steps-accent: var(--ui-color);
+      --_ui-step-ring-color: var(--ui-color);
+    }
+
+    /* Content (a part:  `UIParts.css` reads these):  beside the ring. */
+    :host > .step,
+    .ui.steps > .step {
+      --_ui-step-content-padding: 0 0.5em;
+      --_ui-step-description-distance: 0.5em;
+    }
+  }
+
+  /* Horizontal circular steps:  the step IS the connecting line, its ring at its start. */
+  @container style(--_ui-steps-circular: 1) and style(--_ui-steps-line: horizontal) {
+    :host > .step,
+    .ui.steps > .step {
+      --_ui-step-content-margin: -1.5em 0 0;
+      display: flex;
+      flex: 1;
+      flex-wrap: wrap;
+      align-items: center;
+      height: var(--_ui-step-ring-width);
+      margin-left: var(--_ui-step-ring-size);
+      background: var(--_ui-step-ring-color);
+    }
+    :host(:last-child) > .step,
+    .ui.steps > .step:last-child {
+      flex: 0;
+    }
+    :host(:last-child:state(content)) > .step,
+    .ui.steps > .step:last-child:has(> .content) {
+      flex: 1;
+    }
+    :host > .step::before,
+    .ui.steps > .step::before {
+      left: calc(-1 * var(--_ui-step-ring-size));
+    }
+    :host > .step::after,
+    .ui.steps > .step::after {
+      left: calc(var(--_ui-step-dot-size) - var(--_ui-step-ring-size) - 0.3em);
+    }
+  }
+
+  /* Vertical circular steps:  the ring at the top start, a line down to the next one. */
+  @container style(--_ui-steps-circular: 1) and style(--_ui-steps-line: vertical) {
+    :host > .step,
+    .ui.steps > .step {
+      position: relative;
+      display: block;
+      width: 100%;
+      min-height: var(--_ui-step-ring-size);
+    }
+    :host > .step::before,
+    .ui.steps > .step::before {
+      top: 0;
+      left: 0;
+    }
+    :host > .step::after,
+    .ui.steps > .step::after {
+      top: calc((var(--_ui-step-ring-size) - var(--_ui-step-dot-size)) / 2);
+      left: calc((var(--_ui-step-ring-size) - var(--_ui-step-dot-size)) / 2);
+    }
+    :host > .step,
+    .ui.steps > .step {
+      padding-left: 3.5em;
+    }
+    :host(:not(:last-child)) > .step,
+    .ui.steps > .step:not(:last-child) {
+      padding-bottom: 3em;
+      background: linear-gradient(var(--_ui-step-ring-color), var(--_ui-step-ring-color)) no-repeat
+        calc(var(--_ui-step-ring-size) / 2 - var(--_ui-step-ring-width) / 2) var(--_ui-step-ring-size) /
+        var(--_ui-step-ring-width) calc(100% - var(--_ui-step-ring-size));
+    }
+  }
+
+  /* Ordered circular steps:  the number in the ring, no dot. */
+  @container style(--_ui-steps-circular: 1) and style(--_ui-steps-ordered: 1) {
+    :host > .step::before,
+    .ui.steps > .step::before {
+      content: counter(ui-step);
+      width: var(--_ui-step-ring-size);
+      height: var(--_ui-step-ring-size);
+      mask: none;
+      background: var(--_ui-step-background);
+    }
+    :host > .step::after,
+    .ui.steps > .step::after {
+      background: transparent;
+    }
+  }
+}
+
+/*******************************
+            States
+*******************************/
+
+@layer ui.components.step.states {
+  /* Link hover and down (not circular). */
+  @container not style(--_ui-steps-circular: 1) {
+    :host > :is(a[href], button).step:hover,
+    :host > :is(a[href], button).step:hover::after,
+    .ui.steps > :is(a, .link).step:hover,
+    .ui.steps > :is(a, .link).step:hover::after {
+      color: var(--_ui-step-hover-color);
+      background: var(--_ui-step-hover-background);
+    }
+    :host > :is(a[href], button).step:active,
+    :host > :is(a[href], button).step:active::after,
+    .ui.steps > :is(a, .link).step:active,
+    .ui.steps > :is(a, .link).step:active::after {
+      color: var(--_ui-step-down-color);
+      background: var(--_ui-step-down-background);
+    }
+
+    /* Active:  a darker fill (arrow included), the title in the link colour (`UIParts.css`). */
+    :host > .step.active,
+    :host > .step.active::after,
+    .ui.steps > .step.active,
+    .ui.steps > .step.active::after {
+      background: var(--_ui-step-active-background);
+    }
+    :host > .step.active,
+    .ui.steps > .step.active {
+      cursor: auto;
+    }
+    :host > :is(a[href], button).step.active:hover,
+    :host > :is(a[href], button).step.active:hover::after,
+    .ui.steps > :is(a, .link).step.active:hover,
+    .ui.steps > :is(a, .link).step.active:hover::after {
+      color: var(--_ui-step-active-hover-color);
+      background: var(--_ui-step-active-hover-background);
+      cursor: pointer;
+    }
+
+    /* Disabled */
+    :host > .step.disabled,
+    :host > .step.disabled::after,
+    .ui.steps > .step.disabled,
+    .ui.steps > .step.disabled::after {
+      color: var(--_ui-step-disabled-color);
+      background: var(--_ui-step-disabled-background);
+    }
+    :host > .step.disabled,
+    .ui.steps > .step.disabled {
+      cursor: auto;
+      pointer-events: none;
+    }
+  }
+
+  /* Parts' state token, every layout. */
+  :host > .step.active,
+  .ui.steps > .step.active {
+    --_ui-step-state: active;
+  }
+  :host > .step.disabled,
+  .ui.steps > .step.disabled {
+    --_ui-step-state: disabled;
+  }
+
+  /* The current step's icon / number darkens;  a completed one turns the positive colour. */
+  :host > .step.active > .icon,
+  .ui.steps > .step.active > .icon,
+  :host > .step.active::before,
+  .ui.steps > .step.active::before {
+    color: var(--_ui-step-active-icon-color);
+  }
+  :host > .step.completed > .icon,
+  .ui.steps > .step.completed > .icon,
+  :host > .step.completed::before,
+  .ui.steps > .step.completed::before {
+    color: var(--_ui-step-completed-color);
+  }
+
+  /* Circular:  the current step's ring and dot in the accent, a completed one filled with a white check. */
+  @container style(--_ui-steps-circular: 1) {
+    :host > .step.active,
+    .ui.steps > .step.active {
+      --_ui-step-active-title-color: var(--_ui-steps-accent);
+    }
+    :host > .step.active::before,
+    .ui.steps > .step.active::before {
+      color: var(--_ui-steps-accent);
+      border-color: var(--_ui-steps-accent);
+    }
+    :host > .step.active::after,
+    .ui.steps > .step.active::after {
+      background: var(--_ui-steps-accent);
+    }
+    :host > .step.completed::before,
+    .ui.steps > .step.completed::before {
+      background: var(--_ui-steps-accent);
+      border-color: var(--_ui-steps-accent);
+    }
+    :host > .step.completed::after,
+    .ui.steps > .step.completed::after {
+      background: var(--_ui-steps-accent-on);
+      mask: var(--_ui-step-check) center / contain no-repeat;
+    }
+    :host > .step.disabled,
+    .ui.steps > .step.disabled {
+      cursor: auto;
+      opacity: var(--_ui-step-circular-disabled-opacity);
+      pointer-events: none;
+    }
+  }
+  @container style(--_ui-steps-circular: 1) and style(--_ui-steps-line: horizontal) {
+    :host > .step.completed,
+    .ui.steps > .step.completed {
+      background: var(--_ui-steps-accent);
+    }
+  }
+  @container style(--_ui-steps-circular: 1) and style(--_ui-steps-line: vertical) {
+    :host(:not(:last-child)) > .step.completed,
+    .ui.steps > .step.completed:not(:last-child) {
+      --_ui-step-ring-color: var(--_ui-steps-accent);
+    }
+  }
+  /* Ordered circular:  the number, not a dot, in the current ring;  a completed ring keeps its check. */
+  @container style(--_ui-steps-circular: 1) and style(--_ui-steps-ordered: 1) {
+    :host > .step.completed::before,
+    .ui.steps > .step.completed::before {
+      content: "";
+    }
+    :host > .step:not(.completed)::after,
+    .ui.steps > .step:not(.completed)::after {
+      background: transparent;
+    }
+  }
+}

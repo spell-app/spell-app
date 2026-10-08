@@ -6,7 +6,7 @@ made.  What stays here is what each branch builds from its own code:
 
 | Path | What |
 | --- | --- |
-| `_src/` | the site bundle's entry (`site.ts`:  what's in it and why), its router, shell, sections and layout glue (`site.css`);  config `../vite.site.config.ts` |
+| `_src/` | the site bundle's entry (`site.ts`:  what's in it and why), its router, shell, sections, their shared constants (`site.types.ts`) and layout glue (`site.css`);  config `../vite.site.config.ts` |
 | `_assets/` | GENERATED, NOT committed (git-ignored since 2026-10-07:  its hashed chunk names churned every diff):  the bundle (`yarn site:bundle`), which the page server builds when it starts, if stale (`spell dev bundles build --stale`);  `icon-packs` is a symlink to `../../src/icons/icon-packs`.  NEVER edit |
 | `_data/` | GENERATED, committed (`yarn site:data`):  `components.json`, `icons.json`, `custom-elements.json`, `html-custom-data.json`;  and `pages.json`, the hand-kept per-family facts they're built from |
 | *(the pages, `_parts/`, `examples/`, `images/`)* | *the shared `ui/`* |

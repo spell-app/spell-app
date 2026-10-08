@@ -7,8 +7,10 @@ import { chromium, type Browser } from "playwright"
 import type { ImportMap, PageResult, SmokePage, SmokePageKind, SmokeResults } from "./tools.types.ts"
 import { HostApp } from "./HostApp.ts"
 import { StaticServer } from "./StaticServer.ts"
+import { Terminal } from "./Terminal.ts"
 
-/**
+/****************
+ * ### `SmokeRunner`
  * Runs the import-map smoke pages in headless chromium, against the BUILT `dist/` and the vendored peers, and
  * writes `smoke-results.json`.
  * - ONE static server (`StaticServer`), no Vite dev server, mounting repo folders at their own names:
@@ -20,15 +22,9 @@ import { StaticServer } from "./StaticServer.ts"
  * - Pages:  the four hosts (`vanilla`, `react`, `vue`, `solid`), the perf page when a `perfAdapter` is given, then
  *   `pages`.  Each page publishes `window.smokeResult` (`PageResult`).
  * - Offline except the framework CDNs:  requests to any other host are aborted and reported as errors.
- */
+ ****************/
 export class SmokeRunner {
-  /** Framework host pages (`frameworks/<name>.html`), in run order. */
-  static readonly HOSTS = ["vanilla", "react", "vue", "solid"] as const
-  /** Hosts a page may reach besides the local server:  React from esm.sh, Vue from unpkg. */
-  static readonly CDN_HOSTS = ["esm.sh", "unpkg.com"]
-  /** Repo folders the server mounts, each at `/<folder>/`. */
-  static readonly MOUNTS = ["dist", "vendor", "tools", "test"]
-
+  /** what to run, and where */
   readonly options: SmokeRunnerOptions
 
   constructor(options: SmokeRunnerOptions) {
@@ -48,13 +44,16 @@ export class SmokeRunner {
     const pages: SmokePage[] = []
     try {
       for (const [path, kind] of this.pagePaths()) {
-        const page = await this.visit(browser, origin, path, kind)
+        const page = await this.visit({ browser, origin, path, kind })
         pages.push(page)
-        const failed = Object.entries(page.checks).filter(([, value]) => value === false)
-        console.log(
-          `${page.ok ? "PASS" : "FAIL"} ${path} (${page.label})`,
-          failed.length ? failed.map(([key]) => key) : "",
-          page.errors.length ? page.errors : ""
+        const failed = Object.entries(page.checks)
+          .filter(([, value]) => value === false)
+          .map(([key]) => key)
+        // each error's first line:  the stacks are in `smoke-results.json`
+        const errors = page.errors.map((error) => error.split("\n")[0])
+        const details = [failed.length ? `failed:  ${failed.join(", ")}` : "", ...errors].filter(Boolean)
+        Terminal.out(
+          `${page.ok ? "PASS" : "FAIL"} ${path} (${page.label})${details.map((line) => `\n  ${line}`).join("")}`
         )
       }
     } finally {
@@ -77,7 +76,7 @@ export class SmokeRunner {
   async serve(port = 5199): Promise<void> {
     const server = await this.server()
     const origin = await server.listen(port)
-    for (const [path] of this.pagePaths()) console.log(`${origin}${path}`)
+    for (const [path] of this.pagePaths()) Terminal.out(`${origin}${path}`)
     await server.untilInterrupted()
   }
 
@@ -87,14 +86,14 @@ export class SmokeRunner {
 
   /** Served path and kind of every page, in run order. */
   private pagePaths(): [string, SmokePageKind][] {
-    const paths: [string, SmokePageKind][] = SmokeRunner.HOSTS.map((host) => [`/tools/frameworks/${host}.html`, "host"])
+    const paths: [string, SmokePageKind][] = HOSTS.map((host) => [`/tools/frameworks/${host}.html`, "host"])
     if (this.options.perfAdapter) paths.push(["/tools/frameworks/perf.html", "perf"])
     for (const page of this.options.pages ?? []) paths.push([`/${this.relative(page.path)}`, page.kind])
     return paths
   }
 
   /** Load one page and collect its `window.smokeResult`, console errors and warnings. */
-  private async visit(browser: Browser, origin: string, path: string, kind: SmokePageKind): Promise<SmokePage> {
+  private async visit({ browser, origin, path, kind }: VisitParams): Promise<SmokePage> {
     const page = await browser.newPage()
     const errors: string[] = []
     const warnings: string[] = []
@@ -105,7 +104,7 @@ export class SmokeRunner {
     })
     await page.route("**/*", (route) => {
       const host = new URL(route.request().url()).hostname
-      if (host === "127.0.0.1" || SmokeRunner.CDN_HOSTS.some((cdn) => host === cdn || host.endsWith(`.${cdn}`))) {
+      if (host === "127.0.0.1" || CDN_HOSTS.some((cdn) => host === cdn || host.endsWith(`.${cdn}`))) {
         return route.continue()
       }
       errors.push(`blocked (offline):  ${route.request().url()}`)
@@ -114,14 +113,17 @@ export class SmokeRunner {
     let result: PageResult
     try {
       await page.goto(`${origin}${path}`)
-      await page.waitForFunction(() => "smokeResult" in window, null, { timeout: kind === "perf" ? 120_000 : 45_000 })
+      await page.waitForFunction(() => "smokeResult" in window, undefined, {
+        timeout: kind === "perf" ? PERF_TIMEOUT_MS : PAGE_TIMEOUT_MS
+      })
       result = await page.evaluate(() => (window as unknown as { smokeResult: PageResult }).smokeResult)
     } catch (error) {
-      const text = await page.textContent("#result").catch(() => null)
+      // `textContent()` is Playwright's:  `null` for an empty element
+      const text = await page.textContent("#result").catch(() => undefined)
       result = {
         ok: false,
         label: path,
-        checks: { timeout: `${(error as Error).message.split("\n")[0]}`, result: text }
+        checks: { timeout: `${(error as Error).message.split("\n")[0]}`, result: text ?? undefined }
       }
     }
     const title = await page.title()
@@ -140,10 +142,10 @@ export class SmokeRunner {
     const { root, importMap, perfAdapter } = this.options
     const imports: ImportMap["imports"] = { ...importMap.imports }
     if (perfAdapter) imports["@spell/ui-tools/perf-adapter"] = `/${this.relative(perfAdapter)}`
-    return new StaticServer(
-      Object.fromEntries(SmokeRunner.MOUNTS.map((folder) => [`/${folder}/`, join(root, folder)])),
-      { imports }
-    )
+    return new StaticServer({
+      mounts: Object.fromEntries(MOUNTS.map((folder) => [`/${folder}/`, join(root, folder)])),
+      importMap: { imports }
+    })
   }
 
   /** `path` relative to the root, forward slashes. */
@@ -175,3 +177,30 @@ export type SmokeRunnerOptions = {
   /** server port;  default any free one */
   port?: number
 }
+
+/** `SmokeRunner.visit()`'s inputs:  the page, and where it's served. */
+type VisitParams = {
+  /** the one browser every page shares */
+  browser: Browser
+  /** the static server's origin, e.g. `http://127.0.0.1:5199` */
+  origin: string
+  /** served path, e.g. `/tools/frameworks/react.html` */
+  path: string
+  /** how it's reported */
+  kind: SmokePageKind
+}
+
+/** Framework host pages (`frameworks/<name>.html`), in run order. */
+const HOSTS = ["vanilla", "react", "vue", "solid"] as const
+
+/** Hosts a page may reach besides the local server:  React from esm.sh, Vue from unpkg. */
+const CDN_HOSTS = ["esm.sh", "unpkg.com"]
+
+/** Repo folders the server mounts, each at `/<folder>/`. */
+const MOUNTS = ["dist", "vendor", "tools", "test"]
+
+/** How long a page may take to publish `window.smokeResult`:  the CDN frameworks load over the network. */
+const PAGE_TIMEOUT_MS = 45_000
+
+/** How long the perf page may take:  it times a 1000-option dropdown, keystroke by keystroke. */
+const PERF_TIMEOUT_MS = 120_000

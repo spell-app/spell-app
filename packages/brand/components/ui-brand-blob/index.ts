@@ -1,5 +1,6 @@
 /**
- * `ui-brand-blob` family barrel:  defines `<ui-brand-blob>` (SIDE EFFECT) and exports its class.
+ * The brand blob family:  defines `<ui-brand-blob>` and exports its component, `UIBrandBlob`.
+ * - SIDE EFFECT:  importing it defines the tag.
  */
 import { UIBrandBlob } from "./UIBrandBlob"
 

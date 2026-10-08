@@ -1,52 +1,65 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, UIT } from "$/ui/core"
+import { E } from "$/ui/core"
 
 import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 
-import { epicOriginalVocabulary } from "./epic-original.vocabulary.en"
-import { EpicOriginalFallback } from "./epic-original.fallback"
-import { BODY, BODY_ID, TOGGLE, type EpicOriginalVocabulary } from "./epic-original.types"
+import { epicOriginalVocabulary } from "./EpicOriginal.en"
 
-import originalCSS from "./epic-original.css?inline"
+import originalCSS from "./EpicOriginal.css?inline"
 
 /****************
- * ### `<epic-original>`
- * An item's Original Discussion:  the text a rewrite or a second answer replaced, one `<epic-version>` each, in a
- * warm aside folded under its heading (as Choices).  Find-in-page unfolds it.
+ * ### `EpicOriginal`
+ * The component behind `<epic-original>`:  an item's Original Discussion -- the text a rewrite or a second answer
+ * replaced, one `<epic-version>` each, in a warm aside folded under its heading (as Choices).  Find-in-page unfolds
+ * it.
  ****************/
-export class EpicOriginal extends UIElement<EpicOriginalVocabulary> {
-  @proto static vocabulary = epicOriginalVocabulary
-  @proto static styles = { original: originalCSS }
-  @proto static Fallback = EpicOriginalFallback
-  @proto static delegatesFocus = false
+export class EpicOriginal extends E.UIComponent<typeof epicOriginalVocabulary> {
+  @E.proto static vocabulary = epicOriginalVocabulary
+  @E.proto static styleSheets = { original: originalCSS }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Folded until the reader opens it:  history, not the current text. */
   readonly fold = new Fold(() => false)
 
-  protected hostStates() {
-    return { open: this.fold.isOpen() }
+  /** Unfolded. */
+  @E.cssState("open")
+  get isOpen(): boolean {
+    return this.fold.isOpen()
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("base")}>
+      <div class={this.rootClasses} part={this.partForName("base")}>
         <button
-          type={UIT.BUTTON}
+          type="button"
           class={TOGGLE}
-          part={this.part("toggle")}
-          aria-expanded={this.fold.isOpen() ? UIT.TRUE : UIT.FALSE}
+          part={this.partForName("toggle")}
+          aria-expanded={this.isOpen ? "true" : "false"}
           aria-controls={BODY_ID}
           onClick={this.fold.toggle}
         >
           <Chevron />
-          {this.text("original")}
+          {this.translationForKey("original")}
         </button>
-        <div ref={this.fold.watch} id={BODY_ID} class={BODY} part={this.part("body")} hidden={this.fold.hidden()}>
+        <div
+          ref={this.fold.watch}
+          id={BODY_ID}
+          class={BODY}
+          part={this.partForName("body")}
+          hidden={this.fold.hidden()}
+        >
           <slot />
         </div>
       </div>
     )
   }
 }
+
+/** Class names inside the shadow root. */
+const TOGGLE = "toggle"
+const BODY = "body"
+
+/** `id` of the aside's body, which its toggle controls. */
+const BODY_ID = "body"

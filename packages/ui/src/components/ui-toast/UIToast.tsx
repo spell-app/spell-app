@@ -1,253 +1,225 @@
-import { Show, createEffect, createMemo, untrack } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, UI, UIElement, type OverlayEntry, UIT } from "$/ui/core"
+import { E, UI, UIT } from "$/ui/core"
+import { toastVocabulary } from "./UIToast.en"
+import { ACTIONS, ATTACHED, INVERTED, UI_WORD, VERTICAL, type Vocabulary } from "./UIToast.types"
 
-import { toastVocabulary } from "./ui-toast.vocabulary.en"
-import { ToastFallback } from "./ui-toast.fallback"
-import { UIToastHost } from "./UIToastHost"
-
-import toastCSS from "./ui-toast.css?inline"
-import {
-  ACTION_WORDS,
-  ATTACHED,
-  CLOSE_ALL,
-  DISMISS,
-  ACTIONS,
-  COMPACT,
-  ERROR,
-  ALERT,
-  ICON_CLASS,
-  ESSENTIAL,
-  FLOATING,
-  TOAST_BOX,
-  UNCLICKABLE,
-  UI_BUTTONS,
-  UI_WORD,
-  PROGRESS,
-  INVERTED,
-  UP,
-  DOWN,
-  PROGRESSING,
-  SCALE,
-  TIMEOUT,
-  MIN_DISPLAY_TIME,
-  WORDS_PER_MINUTE,
-  TYPE_ICONS,
-  NEUTRAL,
-  FOCUS_WITHIN,
-  ESCAPE_KEY,
-  ESCAPE,
-  ACTION,
-  APPROVE,
-  FORM_CONTROLS,
-  DENY,
-  CLICKABLE,
-  BUTTONS
-} from "./ui-toast.types"
-import type { ToastVocabulary } from "./ui-toast.types"
-import {
-  AUTO,
-  BASIC,
-  LEFT,
-  TOP,
-  BOTTOM,
-  STATUS,
-  CONTENT,
-  HEADER,
-  MESSAGE,
-  ACTIVE,
-  BAR,
-  IN,
-  OUT,
-  CLOSE,
-  CLICK,
-  BUTTON,
-  CLOSE_ICON,
-  VERTICAL,
-  CLOSE_CLASS
-} from "$/ui/components/components.types"
+import toastCSS from "./UIToast.css?inline"
 
 /****************
- * ### `<ui-toast>`
- * A toast:  `<div class="floating toast-box" part="box">` around `<div class="ui ... toast" part="toast">` (icon,
- * content block, close icon, actions), with an optional progress bar above or below and `attached` actions.
- * - Where it shows:  where it is.  `UI.toast({...})` (`ToastStack`) puts the ones it builds in a container per
- *   position, a popover in the top layer;  a `<ui-toast>` written in the page is an ordinary block.
- * - Life:  once connected it animates in (Fomantic's `scale`), fires `ui-show` and starts counting down
- *   `display-time` (absent / `0`:  it stays).  Closing -- the countdown, the close icon, a click, Escape inside it,
- *   an action, `host.close()` -- fires the cancelable `ui-close` (with a `reason`), animates out, sets `hidden` on
- *   the HOST and fires `ui-hide`.  It never removes itself:  whoever inserted it owns the node.
- * - Countdown pauses while the pointer is moving over it (`pause-on-hover`, default on) and ALWAYS while focus is inside
- *   (WCAG 2.2.1), with `:state(paused)`;  the progress bar pauses with it.
- * - Accessibility:  the toast is `role=status` (polite), `alert` for `type="error"`;  it never takes focus.  The
- *   close icon is a real `<button>`;  Escape closes it while focus is inside (no page-wide Escape:  kind `toast`
- *   in `UI.overlays`, which also lets `UI.overlays.closeAll("toast")` close every one).  Motion follows
- *   `UI.transitions` (reduced motion:  none);  the progress bar is `data-ui-motion="essential"`:  it IS the
- *   remaining time.
- * - Invoker commands (`<button commandfor="id" command="--close">`):  `--close` closes it, reason `close`, as its
- *   close icon does.  Nothing shows it again (a closed toast stays closed, `hidden`:  the app inserts a new one), so
- *   `--show` and `--toggle` are not answered.
- * - Actions:  a slotted button closes the toast unless its click was `preventDefault()`ed;  approve / deny ones
- *   (`MODAL_ACTION_SELECTORS`) fire the cancelable `ui-approve` / `ui-deny` first.
+ * ### `DOMToastElement`
+ * The DOM element of `<ui-toast>`:  it adds `close()`, the toast's script API, which its component does.
+ *
+ * - NOTE: solid-element checks the DOM element's prototype members against the prop names;  `close` isn't one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIToast extends UIElement<ToastVocabulary> {
-  @proto static vocabulary = toastVocabulary
-  @proto static styles = { toast: toastCSS }
-  @proto static Fallback = ToastFallback
-  @proto static Host = UIToastHost
-  // nothing to delegate to:  a click on the text must not jump to an action button
-  @proto static delegatesFocus = false
+export class DOMToastElement extends E.DOMElement {
+  /** Close it now, reason `dismiss` (the cancelable `ui-close` first);  true when it closes. */
+  close(): boolean {
+    return this.toast?.close() ?? false
+  }
+
+  /** Its component. */
+  private get toast(): UIToast | undefined {
+    return this.component as UIToast | undefined
+  }
+}
+
+/****************
+ * ### `UIToast`
+ * The component behind `<ui-toast>`:  a toast, a short message that shows for a while,
+ * `<div class="floating toast-box" part="box">` around `<div class="ui … toast" part="toast">`
+ * (icon, content block, close icon, actions), with an optional progress bar above or below and `attached` actions.
+ *
+ * - Where it shows:  where it is.
+ *   `UI.toast({…})` (`ToastStack`) puts the ones it builds in a container per position, a popover in the top layer;
+ *   a `<ui-toast>` written in the page is an ordinary block.
+ *
+ * - Its life:  once connected it animates in (Fomantic's `scale`), fires `ui-show`,
+ *   and starts counting down `display-time` (absent or `0`:  it stays).
+ *   - Closing (the countdown, the close icon, a click, Escape inside it, an action, `domElement.close()`)
+ *     fires the cancelable `ui-close` (with a `reason`), animates out,
+ *     sets `hidden` on the DOM element and fires `ui-hide`.
+ *   - It never removes itself:  whoever inserted it owns the node.
+ *
+ * - The countdown pauses while the pointer moves over it (`pause-on-hover`, on by default)
+ *   and ALWAYS while focus is inside (WCAG 2.2.1), with `:state(paused)`;  the progress bar pauses with it.
+ *
+ * - Accessibility:  the toast is `role=status` (polite), `alert` for `type="error"`;  it never takes focus.
+ *   - The close icon is a real `<button>`.
+ *   - Escape closes it while focus is inside:  no page-wide Escape (kind `toast` in `UI.overlays`,
+ *     which also lets `UI.overlays.closeAll("toast")` close every one).
+ *   - Motion follows `UI.transitions` (reduced motion:  none);
+ *     the progress bar is `data-ui-motion="essential"`:  it IS the time left.
+ *
+ * - Invoker commands (`<button commandfor="id" command="--close">`):  `--close` closes it, reason `close`,
+ *   as its close icon does.  Nothing shows it again (a closed toast stays closed, `hidden`:  the app inserts a new
+ *   one), so `--show` and `--toggle` are not answered.
+ *
+ * - Actions:  a slotted button closes the toast unless its click was `preventDefault()`ed;
+ *   approve / deny ones (`UIT.ModalActionSelectors`) fire the cancelable `ui-approve` / `ui-deny` first.
+ ****************/
+export class UIToast extends E.UIComponent<Vocabulary> {
+  @E.proto static vocabulary = toastVocabulary
+  @E.proto static styleSheets = { toast: toastCSS }
+  @E.proto static elementSetup = {
+    DOMElement: DOMToastElement,
+    // nothing to delegate to:  a click on the text must not jump to an action button
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
+
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
+    super(...args)
+    this.on("pointerenter", this.onPointerEnter)
+    this.on("pointermove", this.onPointerMove)
+    this.on("pointerleave", this.onPointerLeave)
+    this.on("focusin", this.onFocusIn)
+    this.on("focusout", this.onFocusOut)
+    this.on("command", this.onCommand)
+    this.domElement.addReleaseCallback(() => clearTimeout(this.countdownTimer))
+  }
 
   ////////////////
-  // ## State
+  // ## Actions
   ////////////////
 
   /** Light-DOM slot occupancy:  slotted actions. */
-  readonly slots = new SlotContent(this.host)
-
-  /** Countdown paused:  pointer over it or focus inside. */
-  readonly paused = new Cell(false)
-
-  /** The countdown has started:  the progress bar runs. */
-  readonly counting = new Cell(false)
-
-  /** Closing (or closed). */
-  readonly closingState = new Cell(false)
-
-  /** Glyph of the icon:  the `icon` name, or the type's own for a bare `icon`. */
-  readonly glyph = new IconGlyph(this, () => this.iconName())
-
-  /** Glyph of the close icon. */
-  readonly closeGlyph = new IconGlyph(this, () => (this.attrs.closable ? CLOSE_ICON : undefined))
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** Has slotted actions? */
-  readonly hasActions = createMemo(() => this.slots.has(this.slot("actions")))
-
-  /** Layout words of the `actions` attribute, only the vocabulary's. */
-  readonly actionWords = createMemo((): ReadonlySet<string> => {
-    const words = (this.attrs.actions ?? "").split(/\s+/).filter((word) => ACTION_WORDS.includes(word))
-    return new Set(words)
-  })
-
-  /** Actions joined to the toast's edge (`attached`). */
-  readonly attached = createMemo(() => this.hasActions() && this.actionWords().has(ATTACHED))
-
-  /** Actions in a column beside the content (`vertical`). */
-  readonly vertical = createMemo(() => this.hasActions() && this.actionWords().has(VERTICAL))
-
-  /** Milliseconds it stays;  `0` for "until closed". */
-  readonly displayTime = createMemo(() => {
-    const value = this.attrs.displayTime
-    if (value === AUTO) return this.readingTime()
-    const time = Number(value)
-    return Number.isFinite(time) && time > 0 ? time : 0
-  })
-
-  /** A click anywhere closes it:  `close-on-click`, no close icon, no actions (Fomantic's rule). */
-  readonly clickCloses = createMemo(() => !!this.attrs.closeOnClick && !this.attrs.closable && !this.hasActions())
-
-  /** The box. */
-  private box?: HTMLDivElement
-
-  /** Pending countdown. */
-  private timer?: ReturnType<typeof setTimeout>
-
-  /** ms left on the countdown. */
-  private remaining = 0
-
-  /** When the running countdown (re)started, `performance.now()`. */
-  private startedAt = 0
-
-  /** Has appeared once:  `ui-show` fired, the countdown started. */
-  private shown = false
-
-  /** Closing (or closed):  no further closes, no restarts.  `closingState` follows a microtask later. */
-  private closing = false
-
-  /** The pointer entered it (maybe without moving). */
-  private entered = false
-
-  /** The pointer is over it and has really moved:  the countdown pauses. */
-  private hovered = false
-
-  /** Focus is inside it. */
-  private focused = false
-
-  /** This element's `UI.overlays` entry:  no Escape, no outside clicks, no focus restore (kind `toast`). */
-  private readonly overlay: OverlayEntry = {
-    element: this.host,
-    kind: "toast",
-    restoreFocus: false,
-    onDismiss: (reason) => void this.close(reason === "close-all" ? CLOSE_ALL : DISMISS)
+  get hasActions(): boolean {
+    return this.slots.hasContent(this.slotForName(ACTIONS))
   }
 
-  constructor(...args: ConstructorParameters<typeof UIElement>) {
-    super(...args)
-    const { host } = this
-    const listeners = new AbortController()
-    const options = { signal: listeners.signal }
-    host.addEventListener("pointerenter", this.onPointerEnter, options)
-    host.addEventListener("pointermove", this.onPointerMove, options)
-    host.addEventListener("pointerleave", this.onPointerLeave, options)
-    host.addEventListener("focusin", this.onFocusIn, options)
-    host.addEventListener("focusout", this.onFocusOut, options)
-    host.addEventListener("command", this.onCommand, options)
-    host.addReleaseCallback(() => {
-      listeners.abort()
-      clearTimeout(this.timer)
-    })
+  /** Layout words of the `actions` attribute, only the ones its vocabulary allows. */
+  @E.derived
+  get actionWords(): ReadonlySet<string> {
+    const allowed = E.ValueSets.get(this.elementDefinition.attribute(ACTIONS).spec.values ?? [])
+    const words = (this.actions ?? "").split(UIT.WHITESPACE).filter((word) => allowed.includes(word))
+    return new Set(words)
+  }
+
+  /** Actions joined to the toast's edge (`attached`). */
+  get actionsAreAttached(): boolean {
+    return this.hasActions && this.actionWords.has(ATTACHED)
+  }
+
+  /** Actions in a column beside the content (`vertical`). */
+  get actionsAreVertical(): boolean {
+    return this.hasActions && this.actionWords.has(VERTICAL)
   }
 
   ////////////////
-  // ## Element hooks
+  // ## Classes
   ////////////////
 
   /** Layout words after the noun, as Fomantic's JS added them:  `vertical`, `actions`, `attached top`, `compact`. */
-  protected extraClasses(): string | undefined {
+  protected get extraClasses(): string | undefined {
     const words: string[] = []
-    const actions = this.actionWords()
-    if (this.vertical()) words.push(VERTICAL)
-    if (this.hasActions() && !this.attached() && (!actions.has(BASIC) || actions.has(LEFT))) words.push(ACTIONS)
-    if (this.attached()) {
-      words.push(ATTACHED)
-      if (this.vertical()) {
-        if (actions.has(LEFT)) words.push(LEFT)
-      } else words.push(actions.has(TOP) ? BOTTOM : TOP)
+    const actions = this.actionWords
+    if (this.actionsAreVertical) words.push(VERTICAL)
+    if (this.hasActions && !this.actionsAreAttached && (!actions.has(UIT.BASIC) || actions.has(UIT.LEFT))) {
+      words.push(ACTIONS)
     }
-    if (this.attrs.compact) words.push(COMPACT)
+    if (this.actionsAreAttached) {
+      words.push(ATTACHED)
+      if (this.actionsAreVertical) {
+        if (actions.has(UIT.LEFT)) words.push(UIT.LEFT)
+      } else words.push(actions.has(UIT.TOP) ? UIT.BOTTOM : UIT.TOP)
+    }
+    if (this.compact) words.push(COMPACT)
     return words.join(" ") || undefined
   }
 
-  protected hostStates() {
-    return { paused: this.paused.get(), closing: this.closingState.get() }
+  /** Classes of the box. */
+  @E.derived
+  private get boxClasses(): string {
+    const words = [FLOATING, TOAST_BOX]
+    if (this.compact) words.push(COMPACT)
+    if (!this.anyClickCloses) words.push(UNCLICKABLE)
+    return words.join(" ")
+  }
+
+  /** Classes of the wrapper of `vertical attached` actions. */
+  @E.derived
+  private get verticalClasses(): string {
+    return [VERTICAL, ATTACHED, ...(this.compact ? [COMPACT] : [])].join(" ")
+  }
+
+  /** Classes of the actions box:  its layout words, and `ui buttons` when attached (Fomantic's). */
+  @E.derived
+  private get actionsClasses(): string {
+    const words = [...this.actionWords]
+    return (this.actionsAreAttached ? [UI_BUTTONS, ...words, ACTIONS] : [...words, ACTIONS]).join(" ")
+  }
+
+  /** Classes of the progress track:  its edge and the toast's colour words. */
+  @E.derived
+  private get progressClasses(): string {
+    const words = [UI_WORD, ATTACHED, UIT.ACTIVE, PROGRESS, this.progress ?? UIT.BOTTOM]
+    if (this.type) words.push(this.type)
+    if (this.color) words.push(this.color)
+    if (this.inverted) words.push(INVERTED)
+    return words.join(" ")
+  }
+
+  /** Classes of the bar:  its direction, and `progressing` once the countdown runs. */
+  @E.derived
+  private get barClasses(): string {
+    const words = [UIT.BAR, this.progressUp ? UP : DOWN]
+    if (this.countdownHasStarted) words.push(PROGRESSING)
+    return words.join(" ")
+  }
+
+  ////////////////
+  // ## Icons
+  ////////////////
+
+  /** Glyph of the icon:  the `icon` name, or the type's own for a bare `icon`. */
+  readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.iconName })
+
+  /** Glyph of the close icon. */
+  readonly closeGlyph = new E.IconGlyph({ owner: this, name: () => (this.closable ? UIT.CLOSE_ICON : undefined) })
+
+  /** Icon name:  `icon`, or the type's own for a bare `icon`;  `undefined` for none. */
+  private get iconName(): string | undefined {
+    const icon = this.icon
+    if (icon === undefined || icon === null) return undefined
+    return icon || TYPE_ICONS[this.type ?? NEUTRAL]
   }
 
   ////////////////
   // ## Rendering
   ////////////////
 
+  /** The box. */
+  private box?: HTMLDivElement
+
   render(): JSX.Element {
-    this.effects()
     return (
       <div
         ref={(element) => (this.box = element)}
-        class={this.boxClasses()}
-        part={this.part("box")}
+        class={this.boxClasses}
+        part={this.partForName("box")}
         onClick={this.onClick}
         onKeyDown={this.onKeyDown}
       >
-        <Show when={this.attrs.progress === TOP}>{this.progressBar()}</Show>
-        <Show when={this.attached() && !this.vertical() && this.actionWords().has(TOP)}>{this.actionsBox()}</Show>
-        <Show when={this.attached() && this.vertical()} fallback={this.toast()}>
-          <div class={this.verticalClasses()}>
-            <Show when={this.actionWords().has(LEFT)}>{this.actionsBox()}</Show>
+        <Show when={this.progress === UIT.TOP}>{this.progressBar()}</Show>
+        <Show when={this.actionsAreAttached && !this.actionsAreVertical && this.actionWords.has(UIT.TOP)}>
+          {this.actionsBox()}
+        </Show>
+        <Show when={this.actionsAreAttached && this.actionsAreVertical} fallback={this.toast()}>
+          <div class={this.verticalClasses}>
+            <Show when={this.actionWords.has(UIT.LEFT)}>{this.actionsBox()}</Show>
             {this.toast()}
-            <Show when={!this.actionWords().has(LEFT)}>{this.actionsBox()}</Show>
+            <Show when={!this.actionWords.has(UIT.LEFT)}>{this.actionsBox()}</Show>
           </div>
         </Show>
-        <Show when={this.attached() && !this.vertical() && !this.actionWords().has(TOP)}>{this.actionsBox()}</Show>
-        <Show when={this.attrs.progress === BOTTOM}>{this.progressBar()}</Show>
+        <Show when={this.actionsAreAttached && !this.actionsAreVertical && !this.actionWords.has(UIT.TOP)}>
+          {this.actionsBox()}
+        </Show>
+        <Show when={this.progress === UIT.BOTTOM}>{this.progressBar()}</Show>
       </div>
     )
   }
@@ -255,37 +227,37 @@ export class UIToast extends UIElement<ToastVocabulary> {
   /** The toast itself:  icon, content (header, message, slot), close icon, inline actions. */
   private toast(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("toast")} role={this.attrs.type === ERROR ? ALERT : STATUS}>
-        <Show when={this.iconName() !== undefined}>
-          <span class={ICON_CLASS} part={this.part("icon")}>
-            {this.glyph.svg()}
+      <div class={this.rootClasses} part={this.partForName("toast")} role={this.type === ERROR ? "alert" : "status"}>
+        <Show when={this.iconName !== undefined}>
+          <span class={ICON_BOX_CLASS} part={this.partForName("icon")}>
+            {this.iconGlyph.svg}
           </span>
         </Show>
-        <div class={CONTENT} part={this.part("content")}>
-          <Show when={this.attrs.header}>
-            <div class={HEADER} part={this.part("header")}>
-              {this.attrs.header}
+        <div class={UIT.CONTENT} part={this.partForName("content")}>
+          <Show when={this.header}>
+            <div class={UIT.HEADER} part={this.partForName("header")}>
+              {this.header}
             </div>
           </Show>
-          <Show when={this.attrs.message}>
-            <div class={MESSAGE} part={this.part("message")}>
-              {this.attrs.message}
+          <Show when={this.message}>
+            <div class={UIT.MESSAGE} part={this.partForName("message")}>
+              {this.message}
             </div>
           </Show>
           <slot />
         </div>
-        <Show when={this.attrs.closable}>
+        <Show when={this.closable}>
           <button
             type="button"
-            class={CLOSE_CLASS}
-            part={this.part("close")}
-            aria-label={this.text("close")}
+            class={UIT.CLOSE_CLASS}
+            part={this.partForName("close")}
+            aria-label={this.translationForKey("close")}
             onClick={this.onCloseIcon}
           >
-            {this.closeGlyph.svg()}
+            {this.closeGlyph.svg}
           </button>
         </Show>
-        <Show when={this.hasActions() && !this.attached()}>{this.actionsBox()}</Show>
+        <Show when={this.hasActions && !this.actionsAreAttached}>{this.actionsBox()}</Show>
       </div>
     )
   }
@@ -293,8 +265,8 @@ export class UIToast extends UIElement<ToastVocabulary> {
   /** The box around the `actions` slot;  rendered in ONE place at a time (a slot name must be unique). */
   private actionsBox(): JSX.Element {
     return (
-      <div class={this.actionsClasses()} part={this.part("actions")}>
-        <slot name={this.slot("actions")} />
+      <div class={this.actionsClasses} part={this.partForName("actions")}>
+        <slot name={this.slotForName(ACTIONS)} />
       </div>
     )
   }
@@ -302,81 +274,59 @@ export class UIToast extends UIElement<ToastVocabulary> {
   /** The progress track and bar;  the bar runs once the countdown has started. */
   private progressBar(): JSX.Element {
     return (
-      <Show when={this.displayTime() > 0}>
-        <div class={this.progressClasses()} part={this.part("progress")}>
+      <Show when={this.displayDuration > 0}>
+        <div class={this.progressClasses} part={this.partForName("progress")}>
           <div
-            class={this.barClasses()}
-            part={this.part("bar")}
+            class={this.barClasses}
+            part={this.partForName("bar")}
             data-ui-motion={ESSENTIAL}
-            style={{ "animation-duration": `${this.displayTime()}ms` }}
+            style={{ "animation-duration": `${this.displayDuration}ms` }}
           />
         </div>
       </Show>
     )
   }
 
-  /** Classes of the box. */
-  private boxClasses(): string {
-    const words = [FLOATING, TOAST_BOX]
-    if (this.attrs.compact) words.push(COMPACT)
-    if (!this.clickCloses()) words.push(UNCLICKABLE)
-    return words.join(" ")
-  }
-
-  /** Classes of the wrapper of `vertical attached` actions. */
-  private verticalClasses(): string {
-    return [VERTICAL, ATTACHED, ...(this.attrs.compact ? [COMPACT] : [])].join(" ")
-  }
-
-  /** Classes of the actions box:  its layout words, and `ui buttons` when attached (Fomantic's). */
-  private actionsClasses(): string {
-    const words = [...this.actionWords()]
-    return (this.attached() ? [UI_BUTTONS, ...words, ACTIONS] : [...words, ACTIONS]).join(" ")
-  }
-
-  /** Classes of the progress track:  its edge and the toast's colour words. */
-  private progressClasses(): string {
-    const words = [UI_WORD, ATTACHED, ACTIVE, PROGRESS, this.attrs.progress ?? BOTTOM]
-    if (this.attrs.type) words.push(this.attrs.type)
-    if (this.attrs.color) words.push(this.attrs.color)
-    if (this.attrs.inverted) words.push(INVERTED)
-    return words.join(" ")
-  }
-
-  /** Classes of the bar:  its direction, and `progressing` once the countdown runs. */
-  private barClasses(): string {
-    const words = [BAR, this.attrs.progressUp ? UP : DOWN]
-    if (this.counting.get()) words.push(PROGRESSING)
-    return words.join(" ")
-  }
-
   ////////////////
-  // ## Effects
+  // ## Appearing
   ////////////////
 
-  /** Appear while connected:  the overlay entry, the entry animation, the countdown. */
-  private effects() {
-    createEffect(
-      () => this.connected.get(),
-      (connected) => {
-        if (!connected) return
-        this.appear()
-        return () => this.disappear()
-      }
-    )
+  /** Has appeared once:  `ui-show` fired, the countdown started. */
+  private hasShown = false
+
+  /** This element's `UI.overlays` entry:  no Escape, no outside clicks, no focus restore (kind `toast`). */
+  private readonly overlay: E.OverlayEntry = {
+    element: this.domElement,
+    kind: "toast",
+    restoreFocus: false,
+    onDismiss: (reason) => void this.close(reason === "close-all" ? "close-all" : "dismiss")
+  }
+
+  /**
+   * Connected and ready:  appear;  the cleanup disappears.
+   * - It waits for the runtime (`isReady`) too, as the render does:  appearing animates the rendered box.
+   */
+  @E.onChange("isConnected", "isReady")
+  protected onConnectedChanged(isConnected: boolean, isReady: boolean) {
+    if (!isConnected || !isReady) return
+    this.appear()
+    return () => this.disappear()
   }
 
   /** Connected:  join `UI.overlays`;  the first time, animate in, start counting, `ui-show`. */
   private appear() {
-    if (this.closing) return
+    if (this.isClosing) return
     UI.overlays.open(this.overlay)
-    if (this.shown) return this.resumeTimer()
-    this.shown = true
+    if (this.hasShown) return this.resumeTimer()
+    this.hasShown = true
     this.startTimer()
     const box = this.box
-    void (box ? UI.transitions.animate(box, SCALE, IN) : Promise.resolve(true)).then(() => {
-      const detail: UIT.ToastShowDetail = { displayTime: untrack(this.displayTime) }
-      if (!this.closing) this.emit("ui-show", detail)
+    const entered = box
+      ? UI.transitions.animate({ element: box, name: SCALE, direction: UIT.IN })
+      : Promise.resolve(true)
+    void entered.then(() => {
+      const detail: UIT.ToastShowDetail = { displayTime: this.displayDuration }
+      if (!this.isClosing) this.send("ui-show", detail)
     })
   }
 
@@ -390,23 +340,35 @@ export class UIToast extends UIElement<ToastVocabulary> {
   // ## Closing
   ////////////////
 
+  /** Closing (or closed):  no further closes, no restarts.  `:state(closing)`. */
+  @E.cssState("closing")
+  @E.state
+  accessor isClosing = false
+
+  /** A click anywhere closes it:  `close-on-click`, no close icon, no actions (Fomantic's rule). */
+  get anyClickCloses(): boolean {
+    return !!this.closeOnClick && !this.closable && !this.hasActions
+  }
+
   /**
-   * Close for `reason`:  the cancelable `ui-close`, then the exit animation, `hidden` on the host and `ui-hide`.
+   * Close for `reason`:  the cancelable `ui-close`, then the exit animation, `hidden` on the DOM element and `ui-hide`.
    * - True when it closes;  false when vetoed or already closing.
    */
-  close(reason: UIT.ToastCloseReason = DISMISS, originalEvent?: Event): boolean {
-    if (this.closing) return false
+  close(reason: UIT.ToastCloseReason = "dismiss", originalEvent?: Event): boolean {
+    if (this.isClosing) return false
     const detail: UIT.ToastCloseDetail = { reason, originalEvent }
-    if (!this.emit("ui-close", detail)) return false
-    this.closing = true
-    this.closingState.set(true)
+    if (!this.send("ui-close", detail)) return false
+    this.isClosing = true
     this.stopTimer()
     UI.overlays.close(this.overlay)
     const box = this.box
-    void (box ? UI.transitions.animate(box, SCALE, OUT) : Promise.resolve(true)).then(() => {
-      this.host.hidden = true
+    const exited = box
+      ? UI.transitions.animate({ element: box, name: SCALE, direction: UIT.OUT })
+      : Promise.resolve(true)
+    void exited.then(() => {
+      this.domElement.hidden = true
       const hidden: UIT.ToastCloseDetail = { reason }
-      this.emit("ui-hide", hidden)
+      this.send("ui-hide", hidden)
     })
     return true
   }
@@ -415,119 +377,160 @@ export class UIToast extends UIElement<ToastVocabulary> {
   // ## Countdown
   ////////////////
 
-  /** Start counting `displayTime` down (nothing for `0`). */
+  /**
+   * Milliseconds it stays;  `0` for "until closed".
+   * - `@derived`:  `auto` walks the light DOM and counts words.
+   */
+  @E.derived
+  get displayDuration(): number {
+    const value = this.displayTime
+    if (value === "auto") return this.readingTime
+    const time = Number(value)
+    return Number.isFinite(time) && time > 0 ? time : 0
+  }
+
+  /**
+   * `display-time="auto"`:  reading time of its message at `WORDS_PER_MINUTE`, at least `MIN_DISPLAY_TIME`.
+   * - The message:  `header`, `message` and the default slot's content, never the slotted actions' labels.
+   */
+  private get readingTime(): number {
+    const actions = this.slotForName(ACTIONS)
+    const body = [...this.domElement.childNodes].filter((node) =>
+      node.nodeType === E.NodeType.element ? (node as Element).slot !== actions : node.nodeType === E.NodeType.text
+    )
+    const text = [this.header, this.message, ...body.map((node) => node.textContent)].join(" ")
+    const words = text.split(UIT.WHITESPACE).filter(Boolean).length
+    return Math.max(MIN_DISPLAY_TIME, (words / WORDS_PER_MINUTE) * 60_000)
+  }
+
+  /** The countdown has started:  the progress bar runs.  Never cleared. */
+  @E.state accessor countdownHasStarted = false
+
+  /** Countdown paused:  pointer over it or focus inside.  `:state(paused)`. */
+  @E.cssState("paused")
+  @E.state
+  accessor isPaused = false
+
+  /** Pending countdown. */
+  private countdownTimer?: ReturnType<typeof setTimeout>
+
+  /** ms left on the countdown. */
+  private timeLeft = 0
+
+  /** When the running countdown (re)started, `performance.now()`. */
+  private startedAt = 0
+
+  /** Start counting `displayDuration` down (nothing for `0`). */
   private startTimer() {
-    const time = untrack(this.displayTime)
+    const time = this.displayDuration
     if (time <= 0) return
-    this.remaining = time
-    this.counting.set(true)
-    if (!this.hovered && !this.focused) this.resumeTimer()
+    this.timeLeft = time
+    this.countdownHasStarted = true
+    if (!this.isHovered && !this.focusIsInside) this.resumeTimer()
   }
 
   /** Run the countdown from where it stopped. */
   private resumeTimer() {
-    if (this.timer || this.closing || this.remaining <= 0 || !this.host.isConnected) return
+    if (this.countdownTimer || this.isClosing || this.timeLeft <= 0 || !this.domElement.isConnected) return
     this.startedAt = performance.now()
-    this.timer = setTimeout(() => {
-      this.timer = undefined
-      this.remaining = 0
-      this.close(TIMEOUT)
-    }, this.remaining)
+    this.countdownTimer = setTimeout(() => {
+      this.countdownTimer = undefined
+      this.timeLeft = 0
+      this.close("timeout")
+    }, this.timeLeft)
   }
 
   /** Hold the countdown, keeping what's left. */
   private pauseTimer() {
-    if (!this.timer) return
-    clearTimeout(this.timer)
-    this.timer = undefined
-    this.remaining = Math.max(0, this.remaining - (performance.now() - this.startedAt))
+    if (!this.countdownTimer) return
+    clearTimeout(this.countdownTimer)
+    this.countdownTimer = undefined
+    this.timeLeft = Math.max(0, this.timeLeft - (performance.now() - this.startedAt))
   }
 
   /** Stop counting for good. */
   private stopTimer() {
-    clearTimeout(this.timer)
-    this.timer = undefined
-    this.remaining = 0
+    clearTimeout(this.countdownTimer)
+    this.countdownTimer = undefined
+    this.timeLeft = 0
   }
 
   /** Pause or resume after the pointer / focus moved. */
   private updatePause() {
-    const paused = this.hovered || this.focused
-    this.paused.set(paused)
-    if (paused) this.pauseTimer()
+    this.isPaused = this.isHovered || this.focusIsInside
+    if (this.isPaused) this.pauseTimer()
     else this.resumeTimer()
   }
 
-  /** `display-time="auto"`:  reading time of its text at `WORDS_PER_MINUTE`, at least `MIN_DISPLAY_TIME`. */
-  private readingTime(): number {
-    const text = [this.attrs.header, this.attrs.message, this.host.textContent].join(" ")
-    const words = text.split(/\s+/).filter(Boolean).length
-    return Math.max(MIN_DISPLAY_TIME, (words / WORDS_PER_MINUTE) * 60_000)
-  }
-
-  /** Icon name:  `icon`, or the type's own for a bare `icon`;  `undefined` for none. */
-  private iconName(): string | undefined {
-    const icon = this.attrs.icon
-    if (icon === undefined || icon === null) return undefined
-    return icon || TYPE_ICONS[this.attrs.type ?? NEUTRAL]
-  }
-
   ////////////////
-  // ## Handlers
+  // ## Pointer and focus
   ////////////////
+
+  /** The pointer entered it (maybe without moving). */
+  private hasPointerEntered = false
+
+  /** The pointer is over it and has really moved:  the countdown pauses. */
+  private isHovered = false
+
+  /** Focus is inside it (the toast itself never has it). */
+  private focusIsInside = false
 
   /**
    * Pointer entered it:  only noted.  A toast appearing under a RESTING pointer gets a `pointerenter` (the browser's
    * synthetic move) with no real move;  pausing on that alone could hold it forever, so `onPointerMove` pauses.
    */
   private readonly onPointerEnter = () => {
-    this.entered = true
+    this.hasPointerEntered = true
   }
 
   /** A real pointer move over it (`movementX/Y` nonzero:  synthetic ones have none):  pause (with `pause-on-hover`). */
   private readonly onPointerMove = (event: PointerEvent) => {
-    if (!this.entered || this.hovered || (!event.movementX && !event.movementY)) return
-    if (!untrack(() => this.attrs.pauseOnHover)) return
-    this.hovered = true
+    if (!this.hasPointerEntered || this.isHovered || (!event.movementX && !event.movementY)) return
+    if (!this.pauseOnHover) return
+    this.isHovered = true
     this.updatePause()
   }
 
   /** Pointer off it:  resume. */
   private readonly onPointerLeave = () => {
-    this.entered = false
-    this.hovered = false
+    this.hasPointerEntered = false
+    this.isHovered = false
     this.updatePause()
   }
 
   /** Focus came in:  pause. */
   private readonly onFocusIn = () => {
-    this.focused = true
+    this.focusIsInside = true
     this.updatePause()
   }
 
   /** Focus moved:  resume once it has really left (a move inside refocuses before the microtask). */
   private readonly onFocusOut = () => {
     queueMicrotask(() => {
-      this.focused = this.host.matches(FOCUS_WITHIN)
+      this.focusIsInside = this.domElement.matches(":focus-within")
       this.updatePause()
     })
   }
 
-  /** An invoker command aimed at the host:  only `TOGGLE_COMMANDS.close`. */
+  ////////////////
+  // ## Commands, keys and clicks
+  ////////////////
+
+  /** An invoker command aimed at the DOM element:  only `ToggleCommands.close`. */
   private readonly onCommand = (event: Event) => {
-    if ((event as Event & { command?: string }).command === UIT.TOGGLE_COMMANDS.close) this.close(CLOSE, event)
+    if ((event as Event & { command?: string }).command === UIT.ToggleCommands.close) this.close("close", event)
   }
 
   /** Close icon. */
   private readonly onCloseIcon = (event: MouseEvent) => {
     event.stopPropagation()
-    this.close(CLOSE, event)
+    this.close("close", event)
   }
 
   /** Escape with focus inside:  close (unless something earlier handled it, e.g. a modal). */
   private readonly onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== ESCAPE_KEY || event.defaultPrevented) return
-    if (this.close(ESCAPE, event)) event.preventDefault()
+    if (event.key !== UIT.Key.escape || event.defaultPrevented) return
+    if (this.close("escape", event)) event.preventDefault()
   }
 
   /**
@@ -535,20 +538,20 @@ export class UIToast extends UIElement<ToastVocabulary> {
    * toast unless it landed on something interactive or the toast holds form controls.
    */
   private readonly onClick = (event: MouseEvent) => {
-    if (this.closing) return
-    const found = this.actionOf(event)
+    if (this.isClosing) return
+    const found = this.actionFor(event)
     if (found) {
       if (event.defaultPrevented) return
       const [kind, action] = found
-      if (kind !== ACTION) {
+      if (kind !== "action") {
         const detail: UIT.ToastActionDetail = { action, originalEvent: event }
-        if (!this.emit(kind === APPROVE ? "ui-approve" : "ui-deny", detail)) return
+        if (!this.send(kind === "approve" ? "ui-approve" : "ui-deny", detail)) return
       }
       this.close(kind, event)
       return
     }
-    if (!untrack(this.clickCloses) || this.host.querySelector(FORM_CONTROLS) || this.onClickable(event)) return
-    this.close(CLICK, event)
+    if (!this.anyClickCloses || this.domElement.querySelector(FORM_CONTROLS) || this.landedOnClickable(event)) return
+    this.close("click", event)
   }
 
   ////////////////
@@ -556,37 +559,112 @@ export class UIToast extends UIElement<ToastVocabulary> {
   ////////////////
 
   /**
-   * The action `event` activated:  walking the composed path up to the host, the innermost light-DOM element that
-   * approves / denies (`MODAL_ACTION_SELECTORS`) or is a button -- counted only inside a child slotted as `actions`.
+   * The action `event` activated:  walking the composed path up to the DOM element,
+   * the innermost light-DOM element that approves / denies (`ModalActionSelectors`) or is a button --
+   * counted only inside a child slotted as `actions`.
    */
-  private actionOf(event: Event): [typeof APPROVE | typeof DENY | typeof ACTION, Element] | undefined {
-    const scope = this.host.getRootNode()
-    const slotName = this.slot("actions")
-    let found: [typeof APPROVE | typeof DENY | typeof ACTION, Element] | undefined
+  private actionFor(event: Event): [ToastAction, Element] | undefined {
+    const scope = this.domElement.getRootNode()
+    const slotName = this.slotForName(ACTIONS)
+    let found: [ToastAction, Element] | undefined
     for (const target of event.composedPath()) {
-      if (target === this.host) return undefined
+      if (target === this.domElement) return undefined
       if (!(target instanceof Element) || target.getRootNode() !== scope) continue
       if (!found) {
-        if (target.matches(UIT.MODAL_ACTION_SELECTORS.approve)) found = [APPROVE, target]
-        else if (target.matches(UIT.MODAL_ACTION_SELECTORS.deny)) found = [DENY, target]
-        else if (UIToast.isButton(target)) found = [ACTION, target]
+        if (target.matches(UIT.ModalActionSelectors.approve)) found = ["approve", target]
+        else if (target.matches(UIT.ModalActionSelectors.deny)) found = ["deny", target]
+        else if (UIToast.isButton(target)) found = ["action", target]
       }
-      if (target.parentElement === this.host) return target.slot === slotName ? found : undefined
+      if (target.parentElement === this.domElement) return target.slot === slotName ? found : undefined
     }
     return undefined
   }
 
-  /** `event` landed on something interactive inside the toast (`CLICKABLE`). */
-  private onClickable(event: Event): boolean {
+  /** Did `event` land on something interactive inside the toast (`CLICKABLE`)? */
+  private landedOnClickable(event: Event): boolean {
     for (const target of event.composedPath()) {
-      if (target === this.host) return false
+      if (target === this.domElement) return false
       if (target instanceof Element && target.matches(CLICKABLE)) return true
     }
     return false
   }
 
-  /** A native button / link, or an element whose definition's noun is `button` (`<ui-button>`, translated too). */
+  /**
+   * A native button / link, or an element whose definition's noun is `button` (`<ui-button>`, translated too).
+   * - Static:  it reads only the element and the page-wide `UIComponent.definitions`.
+   */
   private static isButton(element: Element): boolean {
-    return element.matches(BUTTONS) || UIElement.definitions.get(element.localName)?.vocabulary.noun === BUTTON
+    return element.matches(BUTTONS) || E.UIComponent.definitions.get(element.localName)?.vocabulary.noun === UIT.BUTTON
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIToast extends E.AttributeValues<Vocabulary> {}
+
+/** What an activated action does:  approve, deny, or just close (any other button). */
+type ToastAction = Extract<UIT.ToastCloseReason, "approve" | "deny" | "action">
+
+/** The `type` value announced as an alert (`role=alert`), not a status. */
+const ERROR = "error"
+
+/** The class word of the box around the toast:  it floats (`UIToast.css`). */
+const FLOATING = "floating"
+
+/** The class word of the box around the toast, its progress bar and attached actions. */
+const TOAST_BOX = "toast-box"
+
+/** The class word of a fixed-width toast (`compact`, on by default). */
+const COMPACT = "compact"
+
+/** The class word of a box a click doesn't close. */
+const UNCLICKABLE = "unclickable"
+
+/** Icons of a bare `icon`, by type (Fomantic's `icons` setting, in Font Awesome names). */
+const TYPE_ICONS: Readonly<Record<string, string>> = {
+  info: "circle-info",
+  success: "circle-check",
+  warning: "triangle-exclamation",
+  error: "circle-xmark"
+}
+
+/** `type` of a toast without one:  its icon is none of `TYPE_ICONS`. */
+const NEUTRAL = "neutral"
+
+/** `display-time="auto"`:  reading speed (Fomantic's `wordsPerMinute`). */
+const WORDS_PER_MINUTE = 120
+
+/** `display-time="auto"`:  the floor, in ms (Fomantic's `minDisplayTime`). */
+const MIN_DISPLAY_TIME = 1000
+
+/** `UI.transitions` animation in and out (Fomantic's `showMethod` / `hideMethod`). */
+const SCALE = "scale"
+
+/** Class words of the icon box (`UIToast.css`). */
+const ICON_BOX_CLASS = "centered icon"
+
+/** Class words of `attached` actions:  a button group (Fomantic's). */
+const UI_BUTTONS = "ui buttons"
+
+/** Class word of the progress track. */
+const PROGRESS = "progress"
+
+/** Class word of a bar that fills up (`progress-up`). */
+const UP = "up"
+
+/** Class word of a bar that empties. */
+const DOWN = "down"
+
+/** Class word of a running bar. */
+const PROGRESSING = "progressing"
+
+/** `data-ui-motion` value that keeps the bar running under reduced motion (`reset.css`). */
+const ESSENTIAL = "essential"
+
+/** Buttons an action click can come from, besides `<ui-button>`s. */
+const BUTTONS = "button, a[href], [role=button], input[type=button], input[type=submit]"
+
+/** A click on one of these doesn't close a `close-on-click` toast (Fomantic's `selector.clickable`). */
+const CLICKABLE = "a, button, details, summary, label, input, select, textarea, [role=button], [tabindex]"
+
+/** Form controls that turn `close-on-click` off (Fomantic's `selector.input`). */
+const FORM_CONTROLS = "input:not([type=hidden]), textarea, select, button"

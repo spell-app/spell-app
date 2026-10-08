@@ -1,19 +1,10 @@
 import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
-import { ANIMATION_NAMES } from "$/ui/runtime"
-import {
-  breakpoints,
-  classicThemeCSS,
-  colorsCSS,
-  darkThemeCSS,
-  foundationCSS,
-  pageCSS,
-  sizes,
-  utilitiesCSS
-} from "$/ui/styles"
+import { AnimationNames } from "$/ui/runtime"
+import { breakpoints, colorsCSS, foundationCSS, pageCSS, sizes, utilitiesCSS } from "$/ui/styles"
 import { StyleGenerator } from "$/ui/styles/StyleGenerator"
 
-import { Fixture } from "$/ui/test/fixture"
+import { Fixture } from "$/ui/test/Fixture"
 
 import layersRaw from "./layers.css?raw"
 import tokensRaw from "./tokens.css?raw"
@@ -22,6 +13,8 @@ import sizesRaw from "./sizes.css?raw"
 import utilitiesRaw from "./utilities.css?raw"
 import animationsRaw from "./animations.css?raw"
 import mediaRaw from "./media.css?raw"
+import classicThemeCSS from "$/ui/styles/themes/classic.css?inline"
+import darkThemeCSS from "$/ui/styles/themes/dark.css?inline"
 
 /**
  * The CSS foundation, in a real browser:  sheets adopted into the document and into shadow roots.
@@ -42,7 +35,14 @@ const FOUNDATION_GZIP_BUDGET = 13 * 1024
 /** `true` when Vite's Lightning CSS lowered `light-dark()` in the barrel's sheets (default targets). */
 const LIGHT_DARK_LOWERED = colorsCSS.includes("--lightningcss-light")
 
-describe("styles foundation", () => {
+/** Raw sheets, so `light-dark()` survives whatever the Lightning CSS targets. */
+const RAW_FOUNDATION = [layersRaw, tokensRaw, colorsRaw, sizesRaw, utilitiesRaw]
+
+////////////////
+// ## The foundation
+////////////////
+
+describe("foundationCSS", () => {
   it("declares --ui-font-size in px", () => {
     adoptIntoPage(foundationCSS)
     expect(property(document.documentElement, "--ui-font-size")).toBe("16px")
@@ -100,7 +100,7 @@ describe("styles foundation", () => {
   })
 })
 
-describe("styles in shadow roots", () => {
+describe("foundationCSS in shadow roots", () => {
   it("resolves page tokens and remaps inside a shadow root", () => {
     adoptIntoPage(foundationCSS)
     const inner = renderShadow(`<b class="ui red"></b>`, foundationCSS)
@@ -132,10 +132,11 @@ describe("styles in shadow roots", () => {
   })
 })
 
-describe("colour schemes", () => {
-  /** Raw sheets, so `light-dark()` survives whatever the Lightning CSS targets. */
-  const RAW_FOUNDATION = [layersRaw, tokensRaw, colorsRaw, sizesRaw, utilitiesRaw]
+////////////////
+// ## Schemes and themes
+////////////////
 
+describe("colors.css schemes", () => {
   it("flips tokens in a .ui-dark subtree, in the page and in shadow roots", () => {
     adoptIntoPage(RAW_FOUNDATION)
     expectSchemes(RAW_FOUNDATION)
@@ -154,20 +155,9 @@ describe("colour schemes", () => {
     adoptIntoPage(foundationCSS)
     expectSchemes(foundationCSS)
   })
-
-  /** A `.ui-dark` subtree gets `onDark` hues, in light DOM and through a shadow root. */
-  function expectSchemes(shadowSheets: readonly string[]) {
-    const light = Fixture.render(`<span class="ui-light" style="color: var(--ui-red)"></span>`)
-    const dark = Fixture.render(`<div class="ui-dark"><span style="color: var(--ui-red)"></span></div>`)
-    const onDark = Fixture.render(`<span style="color: var(--ui-red-on-dark)"></span>`)
-    expect(getComputedStyle(dark.firstElementChild!).color).toBe(getComputedStyle(onDark).color)
-    expect(getComputedStyle(light).color).not.toBe(getComputedStyle(onDark).color)
-    const inner = renderShadow(`<b class="ui red" style="color: var(--ui-color)"></b>`, shadowSheets, `class="ui-dark"`)
-    expect(getComputedStyle(inner).color).toBe(getComputedStyle(onDark).color)
-  }
 })
 
-describe("page sheets and themes", () => {
+describe("pageCSS / classic.css / dark.css", () => {
   it("styles headings under .ui-typography only", () => {
     adoptIntoPage(pageCSS)
     const page = Fixture.render(`<div class="ui-typography"><h1>Title</h1></div>`)
@@ -190,7 +180,11 @@ describe("page sheets and themes", () => {
   })
 })
 
-describe("style sources", () => {
+////////////////
+// ## The source files
+////////////////
+
+describe("src/styles/*.css", () => {
   it("never uses rem", () => {
     for (const [path, css] of Object.entries(RAW_SHEETS)) {
       expect(withoutComments(css), path).not.toMatch(/\d(\.\d+)?rem\b/)
@@ -204,7 +198,7 @@ describe("style sources", () => {
   })
 
   it("covers every runtime animation name", () => {
-    for (const name of ANIMATION_NAMES) {
+    for (const name of AnimationNames) {
       const directions = STATIC_ANIMATIONS.has(name) ? ["static"] : ["in", "out"]
       for (const direction of directions) expect(animationsRaw).toContain(`[data-ui-animation="${name} ${direction}"]`)
     }
@@ -225,8 +219,23 @@ describe("style sources", () => {
   })
 })
 
+////////////////
+// ## Helpers
+////////////////
+
 /** Attention animations run `static`;  the rest `in` / `out`. */
 const STATIC_ANIMATIONS = new Set<string>(["flash", "shake", "bounce", "tada", "pulse", "jiggle", "glow"])
+
+/** A `.ui-dark` subtree gets `onDark` hues, in light DOM and through a shadow root. */
+function expectSchemes(shadowSheets: readonly string[]) {
+  const light = Fixture.render(`<span class="ui-light" style="color: var(--ui-red)"></span>`)
+  const dark = Fixture.render(`<div class="ui-dark"><span style="color: var(--ui-red)"></span></div>`)
+  const onDark = Fixture.render(`<span style="color: var(--ui-red-on-dark)"></span>`)
+  expect(getComputedStyle(dark.firstElementChild!).color).toBe(getComputedStyle(onDark).color)
+  expect(getComputedStyle(light).color).not.toBe(getComputedStyle(onDark).color)
+  const inner = renderShadow(`<b class="ui red" style="color: var(--ui-color)"></b>`, shadowSheets, `class="ui-dark"`)
+  expect(getComputedStyle(inner).color).toBe(getComputedStyle(onDark).color)
+}
 
 /**
  * Adopt `css` into the document for the current test.

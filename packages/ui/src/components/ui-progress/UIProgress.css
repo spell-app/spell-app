@@ -1,0 +1,523 @@
+/*
+ * The style sheet of `<ui-progress>`:  a port of Fomantic's `progress.less` + `progress.variables`.
+ * - It styles the component's shadow DOM,
+ *   in Fomantic's markup (the component writes the widths and `data-percent`, as Fomantic's JS did):
+ *
+ *     <div class="ui [size color state speed] [active basic disabled indicating inverted right aligned]
+ *                 [(filling | sliding | swinging) indeterminate] [(top | bottom) attached] progress"
+ *          part="progress" data-percent="45">                  (rounded total;  absent while indeterminate)
+ *       <div class="[ui-<hue>] bar" part="bar" style="width: 45%">   (one per value;  `ui-<hue>` from `bar-colors`)
+ *         <div class="progress" part="bar-text">45%</div>            (only with `bar-text`)
+ *       </div>
+ *       <div class="label" part="label"><slot>label</slot></div>
+ *     </div>
+ *
+ * - The DOM element is `display: block`, and the ARIA `progressbar`
+ *   (through `internals`:  the value, range, text and name).
+ *   - The inner box is always its shadow root's only child,
+ *     so the ELEMENT's position decides the first / last spacing (`:host(:not(:first-child))`);
+ *     static markup keeps Fomantic's selectors.
+ *   - `:state(active)`, `:state(indeterminate)`, `:state(complete)` and `:state(disabled)`
+ *     are for the PAGE's styles only.
+ *
+ * - Colours by remap:  the bar paints `--_progress-bar-color` (indicating, states),
+ *   else `--ui-color` (`color`, or a bar's own `ui-<hue>` class from `bar-colors`:
+ *   Fomantic's `.ui.progress .red.bar`), else the grey default.
+ *   Inverted bars read `--ui-color-inverted`, Fomantic's lighter hue.
+ * - The bar text is the bar colour's contrast-picked foreground (`--ui-color-on`;  dark on `indicating` hues),
+ *   where Fomantic wrote 70% white on anything, which fails WCAG contrast on most hues.
+ *   The default bar is a darker grey for the same reason.
+ *
+ * - The public tokens (`--ui-progress-*`) are NEVER declared here.
+ *   The token block gives each a private alias,
+ *   `--_ui-progress-radius: var(--ui-progress-radius, var(--ui-radius-s))`, and every rule reads the alias.
+ *   So a value set on `:root`, an ancestor, the element, `::part(progress)` or in the app's style sheet
+ *   reaches the box (`docs/theming.md`, "Component tokens").
+ *   Sizes swap the bar height;  `inverted`, the label colour.
+ *
+ * - States beat colours and `indicating` by LAYER (`states`), where Fomantic stacked `.ui.ui.` specificity.
+ * - Sizes:  `--ui-scale` scales the text;  each size sets the bar height token (Fomantic's per-size bar heights).
+ * - Reduced motion:  the `active` pulse stops;  indeterminate bars stand still,
+ *   half filled (no motion is needed to read "working").  `reset.css` would only shorten them to one invisible
+ *   iteration.
+ *
+ * - Left out, on purpose:
+ *   - rules coupling it to an owner (`.ui.segment > .ui.attached.progress`, `.ui.card > …`):
+ *     a `<ui-progress>` can't see its parent from its shadow root;
+ *     put an attached progress where it belongs in the flow instead
+ *   - the `[data-percent^="1."]` single-digit selectors:  the element writes a rounded integer
+ *   - `.centered.progress` bar text (a Fomantic markup-only variant)
+ */
+
+@layer ui.components.progress.types, ui.components.progress.content, ui.components.progress.variations, ui.components.progress.states;
+
+/*******************************
+            Progress
+*******************************/
+
+@layer ui.components.progress.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  one private alias per `progress.variables` entry that still matters, from the global tokens. */
+  .ui.progress {
+    --_ui-progress-margin: var(--ui-progress-margin, 1em);
+    --_ui-progress-label-height: var(--ui-progress-label-height, 1.5em);
+    --_ui-progress-background: var(--ui-progress-background, oklch(from var(--ui-ink) l c h / 0.1));
+    --_ui-progress-radius: var(--ui-progress-radius, var(--ui-radius-s));
+    --_ui-progress-bar-height: var(--ui-progress-bar-height, 1.75em);
+    --_ui-progress-bar-background: var(--ui-progress-bar-background, oklch(0.5 0 0));
+    --_ui-progress-bar-min-width: var(--ui-progress-bar-min-width, 2.5em);
+    --_ui-progress-duration: var(--ui-progress-duration, var(--ui-duration-normal));
+    --_ui-progress-text-size: var(--ui-progress-text-size, 0.92857em);
+    --_ui-progress-text-color: var(--ui-progress-text-color, oklch(1 0 0));
+    --_ui-progress-indicating-text-color: var(--ui-progress-indicating-text-color, oklch(0.2 0 0));
+    --_ui-progress-label-color: var(--ui-progress-label-color, var(--ui-text-color));
+    --_ui-progress-pulse-color: var(--ui-progress-pulse-color, oklch(1 0 0));
+    --_ui-progress-pulse-opacity: var(--ui-progress-pulse-opacity, 0.3);
+    --_ui-progress-pulse-duration: var(--ui-progress-pulse-duration, 2s);
+    --_ui-progress-indeterminate-slow: var(--ui-progress-indeterminate-slow, 4s);
+    --_ui-progress-indeterminate-fast: var(--ui-progress-indeterminate-fast, 1s);
+    --_ui-progress-attached-height: var(--ui-progress-attached-height, 0.2em);
+    --_ui-progress-inverted-background: var(--ui-progress-inverted-background, oklch(1 0 0 / 0.08));
+    --_ui-progress-inverted-label-color: var(--ui-progress-inverted-label-color, oklch(1 0 0));
+    --_ui-progress-disabled-opacity: var(--ui-progress-disabled-opacity, 0.35);
+    --_ui-progress-indicating-1: var(--ui-progress-indicating-1, oklch(0.63 0.15 22));
+    --_ui-progress-indicating-2: var(--ui-progress-indicating-2, oklch(0.83 0.11 75));
+    --_ui-progress-indicating-3: var(--ui-progress-indicating-3, oklch(0.81 0.13 87));
+    --_ui-progress-indicating-4: var(--ui-progress-indicating-4, oklch(0.83 0.16 102));
+    --_ui-progress-indicating-5: var(--ui-progress-indicating-5, oklch(0.84 0.15 125));
+    --_ui-progress-indicating-6: var(--ui-progress-indicating-6, oklch(0.8 0.16 150));
+
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    max-width: 100%;
+    margin: var(--_progress-margin-top, var(--_ui-progress-margin)) 0
+      var(--_progress-margin-bottom, calc(var(--_ui-progress-label-height) + var(--_ui-progress-margin)));
+    padding: 0;
+    border: none;
+    border-radius: var(--_ui-progress-radius);
+    background: var(--_ui-progress-background);
+    box-shadow: none;
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+  }
+  .ui.progress:first-child {
+    --_progress-margin-top: 0;
+  }
+  .ui.progress:last-child {
+    --_progress-margin-bottom: var(--_ui-progress-label-height);
+  }
+  /* Shadow DOM:  the inner box is always an only child, so the ELEMENT's position decides. */
+  :host(:not(:first-child)) > .ui.progress {
+    --_progress-margin-top: initial;
+  }
+  :host(:not(:last-child)) > .ui.progress {
+    --_progress-margin-bottom: initial;
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.progress.content {
+  /* Activity bar. */
+  .ui.progress .bar {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    width: 0;
+    height: var(--_ui-progress-bar-height);
+    overflow: hidden;
+    border-radius: var(--_ui-progress-radius);
+    background: var(--_progress-bar-color, var(--ui-color, var(--_ui-progress-bar-background)));
+    color: var(--_progress-bar-on, var(--ui-color-on, var(--_ui-progress-text-color)));
+    line-height: 1;
+    transition:
+      width var(--_ui-progress-duration) var(--ui-ease),
+      background-color var(--_ui-progress-duration) var(--ui-ease);
+  }
+  .ui.progress .bar:not(:empty) {
+    min-width: var(--_ui-progress-bar-min-width);
+  }
+
+  /* Percent complete, inside the bar. */
+  .ui.progress .bar > .progress {
+    position: absolute;
+    inset: 50% 0.5em auto auto;
+    width: auto;
+    margin-top: -0.5em;
+    color: inherit;
+    font-size: var(--_ui-progress-text-size);
+    font-weight: var(--ui-font-weight-bold);
+    text-align: left;
+    text-shadow: none;
+    white-space: nowrap;
+  }
+
+  /* Label, under the track. */
+  .ui.progress > .label {
+    position: absolute;
+    inset: 100% auto auto 0;
+    width: 100%;
+    margin-top: calc(var(--_ui-progress-label-height) - 1.3em);
+    color: var(--_progress-label-color, var(--_ui-progress-label-color));
+    font-size: 1em;
+    font-weight: var(--ui-font-weight-bold);
+    text-align: center;
+    text-shadow: none;
+    transition: color 0.4s var(--ui-ease);
+  }
+}
+
+/*******************************
+            Types
+*******************************/
+
+@layer ui.components.progress.types {
+  /* Indicating:  the bar's colour follows the percentage, as Fomantic's `data-percent` prefixes. */
+  .ui.indicating.progress[data-percent] {
+    --_progress-bar-on: var(--_ui-progress-indicating-text-color);
+  }
+  .ui.indicating.progress:is([data-percent^="1"], [data-percent^="2"]) {
+    --_progress-bar-color: var(--_ui-progress-indicating-1);
+  }
+  .ui.indicating.progress[data-percent^="3"] {
+    --_progress-bar-color: var(--_ui-progress-indicating-2);
+  }
+  .ui.indicating.progress:is([data-percent^="4"], [data-percent^="5"]) {
+    --_progress-bar-color: var(--_ui-progress-indicating-3);
+  }
+  .ui.indicating.progress[data-percent^="6"] {
+    --_progress-bar-color: var(--_ui-progress-indicating-4);
+  }
+  .ui.indicating.progress:is([data-percent^="7"], [data-percent^="8"]) {
+    --_progress-bar-color: var(--_ui-progress-indicating-5);
+  }
+  .ui.indicating.progress:is([data-percent^="9"], [data-percent="100"]) {
+    --_progress-bar-color: var(--_ui-progress-indicating-6);
+  }
+  /* Single digits:  red too (they start with 1 ... 9 as well). */
+  .ui.indicating.progress:is(
+      [data-percent="1"],
+      [data-percent="2"],
+      [data-percent="3"],
+      [data-percent="4"],
+      [data-percent="5"],
+      [data-percent="6"],
+      [data-percent="7"],
+      [data-percent="8"],
+      [data-percent="9"]
+    ) {
+    --_progress-bar-color: var(--_ui-progress-indicating-1);
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.progress.variations {
+  /* Basic:  no track. */
+  .ui.basic.progress {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* Right aligned:  grows from the right, its text at the bar's left end. */
+  .ui.right.aligned.progress {
+    justify-content: flex-end;
+  }
+  .ui.right.aligned.progress .bar > .progress {
+    right: auto;
+    left: 0.5em;
+  }
+
+  /* Inverted:  for dark backgrounds;  every `light-dark()` token below resolves dark. */
+  .ui.inverted.progress {
+    --_ui-progress-label-color: var(--_ui-progress-inverted-label-color);
+    color-scheme: dark;
+    --ui-scheme: dark;
+  }
+  .ui.inverted.progress:not(.basic) {
+    border: none;
+    background: var(--_ui-progress-inverted-background);
+  }
+  .ui.inverted.progress .bar {
+    background: var(--_progress-bar-color, var(--ui-color-inverted, var(--_ui-progress-bar-background)));
+    color: var(--_progress-bar-on, var(--ui-color-inverted-on, var(--_ui-progress-text-color)));
+  }
+
+  /* Attached:  a thin line on the edge of the content above (bare / `bottom`) or below (`top`). */
+  .ui.attached.progress,
+  .ui.bottom.attached.progress {
+    position: relative;
+    margin: 0;
+    border: none;
+    background: transparent;
+  }
+  .ui.attached.progress,
+  .ui.attached.progress .bar {
+    height: var(--_ui-progress-attached-height);
+    padding: 0;
+    overflow: hidden;
+    border-radius: 0 0 var(--_ui-progress-radius) var(--_ui-progress-radius);
+  }
+  .ui.attached.progress .bar {
+    border-radius: 0;
+  }
+  .ui.top.attached.progress,
+  .ui.top.attached.progress .bar {
+    top: 0;
+    border-radius: var(--_ui-progress-radius) var(--_ui-progress-radius) 0 0;
+  }
+  .ui.top.attached.progress .bar {
+    border-radius: 0;
+  }
+
+  /* Sizes:  `--ui-scale` (from `sizes.css`) scales the text;  the bar height is per size. */
+  .ui.mini.progress {
+    --_ui-progress-bar-height: 0.3em;
+  }
+  .ui.tiny.progress {
+    --_ui-progress-bar-height: 0.5em;
+  }
+  .ui.small.progress {
+    --_ui-progress-bar-height: 1em;
+  }
+  .ui.large.progress {
+    --_ui-progress-bar-height: 2.5em;
+  }
+  .ui.big.progress {
+    --_ui-progress-bar-height: 3.5em;
+  }
+  .ui.huge.progress {
+    --_ui-progress-bar-height: 4em;
+  }
+  .ui.massive.progress {
+    --_ui-progress-bar-height: 5em;
+  }
+
+  /* Indeterminate:  a full bar with a pulse, or a moving piece on the track. */
+  .ui.indeterminate.progress .bar {
+    width: 100%;
+  }
+  .ui.indeterminate.progress .bar .progress {
+    position: relative;
+    right: 0;
+    text-align: center;
+  }
+  .ui.indeterminate.progress .bar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    border-radius: var(--_ui-progress-radius);
+    background: var(--_ui-progress-pulse-color);
+    animation: progress-pulsating var(--_ui-progress-pulse-duration) var(--ui-ease) infinite;
+    transform-origin: center;
+  }
+  .ui.slow.indeterminate.progress .bar::before {
+    animation-duration: var(--_ui-progress-indeterminate-slow);
+  }
+  .ui.fast.indeterminate.progress .bar::before {
+    animation-duration: var(--_ui-progress-indeterminate-fast);
+  }
+  .ui.swinging.indeterminate.progress .bar::before {
+    transform-origin: left;
+    animation-name: progress-swinging;
+  }
+  .ui.sliding.indeterminate.progress .bar::before {
+    transform-origin: left;
+    animation-name: progress-sliding;
+  }
+  .ui.filling.indeterminate.progress .bar::before {
+    animation-name: progress-filling;
+  }
+  /* The moving piece is the bar's colour;  the bar itself becomes the track. */
+  .ui:is(.sliding, .swinging, .filling).indeterminate.progress .bar {
+    background: var(--_ui-progress-background);
+  }
+  .ui:is(.sliding, .swinging, .filling).indeterminate.progress .bar::before {
+    background: var(--_progress-bar-color, var(--ui-color, var(--_ui-progress-bar-background)));
+  }
+  .ui:is(.sliding, .swinging).indeterminate.progress .bar .progress {
+    color: var(--ui-text-color);
+  }
+  .ui.inverted:is(.sliding, .swinging, .filling).indeterminate.progress .bar {
+    background: var(--_ui-progress-inverted-background);
+  }
+  .ui.inverted:is(.sliding, .swinging, .filling).indeterminate.progress .bar::before {
+    background: var(--_progress-bar-color, var(--ui-color-inverted, var(--_ui-progress-bar-background)));
+  }
+  .ui.inverted:is(.sliding, .swinging).indeterminate.progress .bar .progress {
+    color: var(--ui-text-inverted-color);
+  }
+
+  @keyframes progress-pulsating {
+    0% {
+      transform: scale(0, 1);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+  @keyframes progress-swinging {
+    0%,
+    100% {
+      width: 10%;
+      left: -25%;
+    }
+    25%,
+    65% {
+      width: 70%;
+    }
+    50% {
+      width: 10%;
+      left: 100%;
+    }
+  }
+  @keyframes progress-sliding {
+    0% {
+      width: 10%;
+      left: -25%;
+    }
+    50% {
+      width: 70%;
+    }
+    100% {
+      width: 10%;
+      left: 100%;
+    }
+  }
+  @keyframes progress-filling {
+    0% {
+      transform: scale(0, 1);
+    }
+    80% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.progress.states {
+  /* Active:  a pulse runs along the bar. */
+  .ui.active.progress .bar {
+    position: relative;
+  }
+  .ui.active.progress .bar:not(:empty) {
+    min-width: var(--_ui-progress-bar-min-width);
+  }
+  .ui.active.progress .bar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--_ui-progress-radius);
+    background: var(--_ui-progress-pulse-color);
+    opacity: 0;
+    animation: progress-active var(--_ui-progress-pulse-duration) var(--ui-ease) infinite;
+    transform-origin: left;
+  }
+  .ui.active.right.aligned.progress .bar::after {
+    transform-origin: right;
+  }
+  @keyframes progress-active {
+    0% {
+      opacity: var(--_ui-progress-pulse-opacity);
+      transform: scale(0, 1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+
+  /* Nothing done yet:  a text-carrying bar keeps its room, but shows no colour (beats every bar colour). */
+  .ui.progress:not([data-percent], .indeterminate) .bar:not(:empty),
+  .ui.progress[data-percent="0"]:not(.indeterminate) .bar:not(:empty) {
+    background: transparent;
+  }
+  .ui.progress[data-percent="0"] .bar .progress {
+    color: var(--ui-text-color);
+  }
+  .ui.inverted.progress[data-percent="0"] .bar .progress {
+    color: var(--ui-text-inverted-color);
+  }
+
+  /* Outcomes:  bar and label take the state's hue;  animations stop. */
+  .ui.success.progress {
+    --_progress-bar-color: var(--ui-success);
+    --_progress-bar-on: var(--ui-success-on);
+    --_progress-label-color: var(--ui-success-header);
+  }
+  .ui.warning.progress {
+    --_progress-bar-color: var(--ui-warning);
+    --_progress-bar-on: var(--ui-warning-on);
+    --_progress-label-color: var(--ui-warning-header);
+  }
+  .ui.error.progress {
+    --_progress-bar-color: var(--ui-error);
+    --_progress-bar-on: var(--ui-error-on);
+    --_progress-label-color: var(--ui-error-header);
+  }
+  .ui.inverted.success.progress {
+    --_progress-label-color: var(--ui-success);
+  }
+  .ui.inverted.warning.progress {
+    --_progress-label-color: var(--ui-warning);
+  }
+  .ui.inverted.error.progress {
+    --_progress-label-color: var(--ui-error);
+  }
+  .ui:is(.success, .warning, .error).progress .bar,
+  .ui:is(.success, .warning, .error).progress .bar::after {
+    animation: none;
+  }
+
+  /* Disabled:  dimmed, still. */
+  .ui.disabled.progress {
+    opacity: var(--_ui-progress-disabled-opacity);
+  }
+  .ui.disabled.progress .bar,
+  .ui.disabled.progress .bar::before,
+  .ui.disabled.progress .bar::after {
+    animation: none;
+  }
+
+  /* Reduced motion:  no pulse;  an indeterminate bar stands still, half filled. */
+  @media (prefers-reduced-motion: reduce) {
+    .ui.progress .bar,
+    .ui.progress .bar::after {
+      transition: none;
+      animation: none;
+    }
+    .ui.active.progress .bar::after {
+      display: none;
+    }
+    .ui.indeterminate.progress .bar::before {
+      left: 0;
+      width: 100%;
+      animation: none;
+      opacity: 0.5;
+      transform: none;
+    }
+  }
+}

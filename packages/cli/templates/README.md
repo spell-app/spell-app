@@ -27,14 +27,14 @@ Each file is copied to the same path in the new folder, with three changes:
   - The list lives in `PackTokens` (`src/dev/packNew.ts`):  a new token goes there first.
 - `gitignore.template` becomes `.gitignore` (a file named `.gitignore` here would be read by git as this folder's own).
 
-So for `spell dev pack element epics epic-page`, this line of `pack/element/__tag__.vocabulary.en.ts.template`:
+So for `spell dev pack element epics epic-page`, this line of `pack/element/__Class__.en.ts.template`:
 
 ```ts
 export const __vocab__Vocabulary = {
   tag: "__tag__",
 ```
 
-is written to `packages/epics/components/epic-page/epic-page.vocabulary.en.ts` as:
+is written to `packages/epics/components/epic-page/EpicPage.en.ts` as:
 
 ```ts
 export const epicPageVocabulary = {
@@ -54,7 +54,7 @@ twice changes nothing.
 ## Why `.template`
 
 Without it, these files would look like real code:  `tsc` would type-check `__Class__.tsx`, lint and format would
-read it, and vitest would run `__tag__.test.tsx`.  None of that works with `__token__`s in it.  With the suffix, no
+read it, and vitest would run `__Class__.test.tsx`.  None of that works with `__token__`s in it.  With the suffix, no
 tool reads them;  only `packNew.ts` does.
 
 ## Adding or changing a template

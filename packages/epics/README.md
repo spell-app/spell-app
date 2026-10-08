@@ -26,7 +26,7 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 
 | Path | What |
 | --- | --- |
-| `components/<tag>/` | one element family:  class, vocabulary, types, sheet, native fallback, test, barrel |
+| `components/<tag>/` | one element family:  component, vocabulary, sheet, test, barrel (files named for the component) |
 | `components/index.ts` | `$/epics/components`:  every family barrel (defines every tag:  SIDE EFFECT) |
 | `src/index.ts` | `$/epics` (`EP`):  code the elements and the node tools share |
 | `src/definitions/` | the ONE description of every element:  its vocabulary as data, plus the children it takes |

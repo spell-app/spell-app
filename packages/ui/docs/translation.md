@@ -8,7 +8,7 @@ resolver), `ValueSets.ts` (shared values), `Converters.ts`.
 
 ## The pieces
 
-- **Vocabulary** -- each component's `ui-<name>.vocabulary.en.ts` declares EVERY name it uses: tag, noun,
+- **Vocabulary** -- each component's `UI<Name>.en.ts` (named for its language) declares EVERY name it uses: tag, noun,
   attributes (kind + allowed values), events, slots, parts, states, text strings, owned parts.  Templates and
   `ClassBuilder` read names through it, never literals.
 - **Value sets** -- values shared across components (hues, sizes, positions, alignments, floats, widths,
@@ -63,7 +63,7 @@ How the runtime will use it (not built yet):
 3. `attributeChangedCallback` runs `canonicalize()` first, then the ordinary converters, so everything
    inside the element -- properties, `ClassBuilder`, CSS, `:state()`s -- is canonical.
 4. Rendering uses the inverse maps: the localized slot name on `<slot name>`, the localized event name in
-   `emit()`, the localized part ADDED next to the canonical one (`part="header encabezado"`).
+   `send()`, the localized part ADDED next to the canonical one (`part="header encabezado"`).
 
 ## Topics and other names
 
@@ -115,7 +115,7 @@ How the runtime will use it (not built yet):
   the inverse maps cover it, but Lit's `@property({ attribute })` is fixed at class definition --
   the translated subclass must redeclare properties (spike question).
 - Custom-elements manifest / IDE data per language: generate one manifest per dictionary?
-- Where dictionaries live: `ui-<name>.vocabulary.<lang>.ts` per component (as planned) merged into one
+- Where dictionaries live: `UI<Name>.<lang>.ts` per component (`UIButton.es.ts` beside `UIButton.en.ts`, as planned) merged into one
   `Dictionary`, or one file per language?  The `components` section supports both.
 - `ValueSets.add()` at runtime (theme hues) after `define()`: translated maps won't include the new hue until
   `define()` runs again.

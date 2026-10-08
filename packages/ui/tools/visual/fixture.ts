@@ -5,60 +5,41 @@
  *   - `elements` (default):  `src/components/ui-<family>/examples/elements/<name>.html`, the baselined render
  *   - `classes`:  the class-grammar original `examples/<name>.html`, for the `--parity` comparison only
  * - Same setup as the `yarn dev` demo (`tools/demo/index.ts`):  every family defined, every family sheet on the
- *   PAGE (class-grammar markup and the light-DOM `<button class="ui button">` triggers of element examples need
- *   them), the stub owners, the runtime loaded.  Sheets are globbed, so a new family needs no edit here.
+ *   PAGE (`FamilySheets`), the stub owners, the runtime loaded.
  * - `window.visual.ready` resolves once the example is SETTLED (see `VisualPage.settle()`).
  * - Time:  the spec freezes `Date` (`page.clock.setFixedTime()`);  `Temporal.Now` is native in most browsers and
  *   doesn't read `Date`, so `freezeTemporal()` points it at `Date.now()` too (the calendar's "today").
+ * - A page script, served by Vite:  `$/ui` aliases;  of `tools/`, only the browser-safe `visual.types.ts` and
+ *   `FamilySheets`.
  */
 
 import { UI } from "$/ui/runtime"
 import { StubOwner } from "$/ui/test/StubOwner"
 import type { VisualHooks } from "$/ui/test/test.types"
 
+import { FamilySheets } from "../demo/FamilySheets.ts"
+import { VisualMarkups, type VisualMarkup } from "./visual.types.ts"
+
 import "$/ui/index"
 
-import popupAnchoredCSS from "$/ui/components/ui-popup/ui-popup.anchored.css?raw"
-
-/** Element examples, by path;  lazy, the page renders one. */
-const ELEMENTS = import.meta.glob<string>("/src/components/*/examples/elements/*.html", {
-  query: "?raw",
-  import: "default"
-})
-
-/** Class-grammar originals, by path;  lazy. */
-const CLASSES = import.meta.glob<string>("/src/components/*/examples/*.html", { query: "?raw", import: "default" })
-
-/** Open-state hooks (`<example>.visual.ts`), by path;  lazy. */
-const HOOKS = import.meta.glob<VisualHooks>("/src/components/*/examples/elements/*.visual.ts", { import: "default" })
-
-/**
- * Every component sheet, by path.
- * - NOTE: `ui-popup.anchored.css` is excluded:  Lightning CSS can't parse its `@container anchored(...)`
- *   (`agents/CODE-DEBT.md`), so it's imported `?raw` above, as the demo does.
- */
-const SHEETS = import.meta.glob<string>(["/src/components/*/*.css", "!**/ui-popup.anchored.css"], {
-  query: "?inline",
-  import: "default",
-  eager: true
-})
-
-/**
+/****************
+ * ### `VisualPage`
  * The fixture page:  one example, rendered and settled, plus its open-state hooks.
- */
+ ****************/
 class VisualPage {
   /** `#example`, the captured box. */
   readonly root = document.getElementById("example")!
   /** `<family>/<name>` */
   readonly example: string
   /** which markup of the example */
-  readonly kind: "elements" | "classes"
+  readonly kind: VisualMarkup
   /** resolves once the example is rendered and settled */
   readonly ready: Promise<void>
 
   constructor(params: URLSearchParams) {
     this.example = params.get("example") ?? ""
-    this.kind = params.get("kind") === "classes" ? "classes" : "elements"
+    const kind = params.get("kind")
+    this.kind = VisualMarkups.find((markup) => markup === kind) ?? "elements"
     this.ready = this.render()
   }
 
@@ -71,18 +52,15 @@ class VisualPage {
     VisualPage.freezeTemporal()
     StubOwner.defineFomanticOwners()
     await UI.load()
-    for (const [path, css] of Object.entries(SHEETS)) {
-      // only `ui-<family>/ui-<family>.css`:  the other sheets (`ui-dimmer.page.css`, `ui-toast.container.css`) are the
-      // components' own, registered when used
-      const [, family, file] = /\/components\/([\w-]+)\/([\w.-]+)\.css$/.exec(path) ?? []
-      // registered by bare name (`button`), the name the elements adopt it by
-      if (family && family === file) UI.styles.register(family.replace(/^ui-/, ""), css, { page: true })
-    }
-    UI.styles.register("popup-anchored", popupAnchoredCSS, { page: true })
+    FamilySheets.register()
     const [family, name] = this.example.split("/")
-    const folder = this.kind === "elements" ? "examples/elements" : "examples"
-    const load = (this.kind === "elements" ? ELEMENTS : CLASSES)[`/src/components/${family}/${folder}/${name}.html`]
-    if (!load) throw new Error(`no ${this.kind} example "${this.example}"`)
+    const load =
+      this.kind === "elements"
+        ? ELEMENTS[`/src/components/${family}/examples/elements/${name}.html`]
+        : CLASSES[`/src/components/${family}/examples/${name}.html`]
+    if (!load) {
+      throw new Error(`VisualPage.render():  no ${this.kind} example "${this.example}";  check \`?example=\``)
+    }
     this.root.innerHTML = await load()
     await this.settle()
   }
@@ -92,7 +70,7 @@ class VisualPage {
     const [family, name] = this.example.split("/")
     const hooks = await HOOKS[`/src/components/${family}/examples/elements/${name}.visual.ts`]?.()
     const hook = hooks?.states?.[state]
-    if (!hook) throw new Error(`no open state "${state}" for ${this.example}`)
+    if (!hook) throw new Error(`VisualPage.open():  no open state "${state}" for ${this.example};  see its .visual.ts`)
     await hook.open(this.root)
     await this.settle()
   }
@@ -111,14 +89,16 @@ class VisualPage {
   async settle(): Promise<void> {
     await document.fonts.ready
     let last = ""
-    for (let round = 0; round < 50; round++) {
+    for (let round = 0; round < MAX_SETTLE_ROUNDS; round++) {
       await Promise.all(
         [...document.querySelectorAll(":not(:defined)")]
           .filter((element) => element.localName.startsWith("ui-"))
-          .map((element) => VisualPage.within(customElements.whenDefined(element.localName), 2000))
+          .map((element) => VisualPage.within(customElements.whenDefined(element.localName), DEFINE_TIMEOUT))
       )
       const elements = VisualPage.deep(document)
-      await Promise.all(elements.filter(VisualPage.isHost).map((host) => VisualPage.within(host.ready, 5000)))
+      await Promise.all(
+        elements.filter(VisualPage.isDOMElement).map((element) => VisualPage.within(element.ready, READY_TIMEOUT))
+      )
       await Promise.all(
         elements
           .filter((element): element is HTMLImageElement => element instanceof HTMLImageElement)
@@ -147,8 +127,8 @@ class VisualPage {
     }
   }
 
-  /** A `UIHost` (has a `ready` promise). */
-  static isHost(element: Element): element is Element & { ready: Promise<void> } {
+  /** A `DOMElement` (has a `ready` promise). */
+  static isDOMElement(element: Element): element is Element & { ready: Promise<void> } {
     return "ready" in element && element.ready instanceof Promise
   }
 
@@ -192,6 +172,27 @@ class VisualPage {
     })
   }
 }
+
+/** Element examples, by path;  lazy, the page renders one. */
+const ELEMENTS = import.meta.glob<string>("/src/components/*/examples/elements/*.html", {
+  query: "?raw",
+  import: "default"
+})
+
+/** Class-grammar originals, by path;  lazy. */
+const CLASSES = import.meta.glob<string>("/src/components/*/examples/*.html", { query: "?raw", import: "default" })
+
+/** Open-state hooks (`<example>.visual.ts`), by path;  lazy. */
+const HOOKS = import.meta.glob<VisualHooks>("/src/components/*/examples/elements/*.visual.ts", { import: "default" })
+
+/** `settle()` gives up after this many rounds:  a page that never stops changing is captured as it is. */
+const MAX_SETTLE_ROUNDS = 50
+
+/** How long `settle()` waits for a `ui-*` tag to be defined, ms. */
+const DEFINE_TIMEOUT = 2000
+
+/** How long `settle()` waits for one element's `ready`, ms. */
+const READY_TIMEOUT = 5000
 
 /** The bits of `Temporal` `freezeTemporal()` touches (TypeScript 7's lib has no `Temporal`). */
 type TemporalLike = {

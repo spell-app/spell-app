@@ -1,13 +1,17 @@
-import { proto } from "$/ui/core"
-
-import { rowVocabulary } from "./ui-row.vocabulary.en"
+import { E } from "$/ui/core"
+import { rowVocabulary } from "./UIRow.en"
 import { GridPart } from "./GridPart"
 
 /****************
- * ### `<ui-row>`
- * A line of columns:  `<div class="ui … row" part="row"><slot></slot></div>`;  re-declares the grid's column
- * tokens for its own columns (`columns`, `divided`, `reversed` ...).
+ * ### `UIRow`
+ * The component behind `<ui-row>`:  a line of columns in a grid, `<div class="ui … row"
+ * part="row"><slot></slot></div>`.
+ *
+ * - It declares the grid's column tokens again for its own columns (`columns`, `divided`, `reversed` ...).
  ****************/
 export class UIRow extends GridPart<typeof rowVocabulary> {
-  @proto static vocabulary = rowVocabulary
+  @E.proto static vocabulary = rowVocabulary
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface UIRow extends E.AttributeValues<typeof rowVocabulary> {}

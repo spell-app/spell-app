@@ -1,0 +1,13 @@
+<!--
+  Ours, not Fomantic's (no class-grammar twin):  a box that submits a value either way.
+  `off-value` is what it submits while unchosen;  a native checkbox submits nothing then.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Two values</h4>
+    <form class="ui-stack">
+      <ui-checkbox type="toggle" name="panel" value="open" off-value="closed">Panel open</ui-checkbox>
+      <ui-checkbox name="reply" value="yes" off-value="no" selected>Reply by email</ui-checkbox>
+    </form>
+  </section>
+</div>

@@ -32,8 +32,8 @@ export async function planDocCommand(args: string[]): Promise<number> {
  *   (epic `epic-components`, P8).  Literal specifiers fail this package's `tsc` (spell's settings) in two ways (I5,
  *   2026-10-07):
  *   - ES2023 (`toSorted()`, `findLast()`) in `Markup` and the converter:  this package's `lib` is ES2022
- *   - Solid's JSX:  the definitions import the vocabularies, and `epic-item.vocabulary.en.ts` takes its `REVIEW_*`
- *     data from `epic-item.types.ts`, which reaches `epic-page.types.ts` -> `$/ui/core` -> `ui`'s `.tsx` (2 errors
+ *   - Solid's JSX:  the definitions import the vocabularies, and `EpicItem.en.ts` (`<epic-item>`'s) takes its `REVIEW_*`
+ *     data from `EpicItem.types.ts`, which reaches `EpicPage.types.ts` -> `$/ui/core` -> `ui`'s `.tsx` (2 errors
  *     under React's JSX).  `import type` is followed too.
  *   - REFACTOR: once the vocabularies' data lives clear of `$/ui/core` (and `lib` here is ES2023), import them
  *     plainly

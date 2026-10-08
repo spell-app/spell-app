@@ -38,7 +38,10 @@ const POLL = 1000
 const SWEEP_DAYS = 14
 
 /** A slug:  lower-kebab-case. */
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+/** The files `sweep()` deletes:  pages, answers, and a syntax-choices page's rows and draft (`choices.js`). */
+const SWEPT = /\.(html|answer\.json|rows\.json|draft\.json)$/
 
 /** Run `spell dev details <argv>`;  the exit code. */
 async function main(argv) {
@@ -191,7 +194,7 @@ function findFile(path) {
 }
 
 /** `text` safe in a double-quoted attribute. */
-function attr(text) {
+export function attr(text) {
   return String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
 }
 
@@ -257,6 +260,7 @@ export function listPages(docs) {
 /**
  * Delete the scratch pages under `docs` last changed more than `days` ago, with their answers;  what went.
  * - only `pages/details/`:  an epic's pages are its record
+ * - a syntax-choices page's files too (`choices.js`):  its rows and draft
  * - SIDE EFFECT:  deletes files
  */
 export function sweep(docs, days, now = Date.now()) {
@@ -265,7 +269,7 @@ export function sweep(docs, days, now = Date.now()) {
   const gone = []
   for (const name of readdirSync(folder)) {
     const file = join(folder, name)
-    if (!/\.(html|answer\.json)$/.test(name) || now - statSync(file).mtimeMs < days * 86_400_000) continue
+    if (!SWEPT.test(name) || now - statSync(file).mtimeMs < days * 86_400_000) continue
     rmSync(file)
     gone.push(file)
   }
@@ -362,18 +366,18 @@ export function duration(text) {
 }
 
 /** `file` as printed:  absolute, so it means the same wherever Claude reads it. */
-function shown(file) {
+export function shown(file) {
   return resolve(file)
 }
 
 /** Today, `YYYY-MM-DD`, local time. */
-function today() {
+export function today() {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
 }
 
 /** `--key value` flags (`--wait` alone is `true`), plus everything else in order;  flags go AFTER the page. */
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const positional = []
   const flags = {}
   for (let i = 0; i < argv.length; i++) {

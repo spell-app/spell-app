@@ -1,8 +1,6 @@
 import { For, Show, createEffect, createSignal, onSettled, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { UIT } from "$/ui/core"
-
 import { DRAFT_SAVE_MS, FOCUS_HOLD_MS, NOBODY_LISTENING, clockOf, type InboxMark } from "$/epics/review"
 
 import {
@@ -24,12 +22,12 @@ import {
   type NoteHow,
   type ReviewButtonSpec,
   type ReviewText
-} from "./epic-item.types"
+} from "./EpicItem.types"
 import type { ReviewState } from "./ReviewState"
 
 /*
  * The review controls (P9), drawn by `<epic-item>` in its line and details, and by an Overview `<epic-section>` in
- * its title and body (decision Q14):  the same pieces, the same look (`review-controls.css`, adopted by both).
+ * its title and body (decision Q14):  the same pieces, the same look (`ReviewControls.css`, adopted by both).
  * - Plain Solid components, no element of their own:  each takes its element's `ReviewState` and `text()`.
  * - Shown only while the page is reviewed:  the CALLER wraps them in `<Show when={review.reviewing()}>`.
  */
@@ -230,7 +228,7 @@ export function NoteBox(props: NoteBoxProps) {
         <For each={NOTE_BUTTONS}>
           {(spec) => (
             <button
-              type={UIT.BUTTON}
+              type="button"
               data-how={spec.how}
               title={props.text(spec.label)}
               aria-label={tip(spec.how, props.text(spec.tip))}
@@ -340,7 +338,7 @@ export function SaidNote(props: SaidNoteProps) {
           <p class={SAID_NOTE}>{mark().note}</p>
           <span class={SAID_WHAT}>{what(mark())}</span>
           <button
-            type={UIT.BUTTON}
+            type="button"
             class={SAID_EDIT}
             title={props.text("edit")}
             aria-label={props.text("edit")}

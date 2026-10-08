@@ -1,0 +1,839 @@
+/*
+ * The style sheet of `<ui-segment>` and `<ui-segments>`:  a port of Fomantic's `segment.less` + `segment.variables`.
+ * - ONE sheet for both components;  each adopts it after the foundation.
+ *
+ * - It styles the components' shadow DOM, in Fomantic's class names on semantic elements:
+ *   - `<ui-segment>`:  `<div class="ui [size] [color] [keyOnly ...] [valueAndKey ...] [text-align] segment"
+ *     part="segment"><slot></slot></div>`;  `loading` sets `aria-busy="true"` on the element
+ *   - `<ui-segments>`:  `<div class="ui [size] [keyOnly ...] segments" part="group"><slot></slot></div>`
+ *
+ * - The DOM elements are `display: contents` (`:host`):  the inner box IS the segment.
+ *   So margins collapse, floats float, and `vertical` dividers and `attached` labels position against it,
+ *   exactly as in Fomantic's markup.
+ *   - Every inner box is its shadow root's only child,
+ *     so the ELEMENT's position decides the `:first-child` / `:last-child` spacing (`:host(:not(:first-child))`);
+ *     static markup keeps Fomantic's selectors.
+ *
+ * - `:state()`s the components set:
+ *   - `:state(piled)`:  a piled segment's element becomes the stacking context its rotated sheets sit behind
+ *     (Fomantic makes the PARENT one with `:has()`, which can't reach across a shadow boundary)
+ *   - `:state(inverted)`, `:state(loading)`, `:state(disabled)`:  for the PAGE's styles only
+ *
+ * - As an OWNER (what content slotted into a segment inherits):
+ *   - EVERY segment's inner box declares `--ui-inverted` (`0` by default, `1` when `inverted`).
+ *     A plain one follows the page's `color-scheme`, except nested in something inverted:
+ *     there it goes back to the light scheme instead of inheriting the dark one,
+ *     as in Fomantic (which paints a nested plain segment white again).
+ *   - `inverted` (and a coloured inverted segment) sets `--ui-inverted: 1`,
+ *     `color-scheme: dark` and `--ui-scheme: dark` on the inner box.  Every `light-dark()` token below then resolves
+ *     dark, so headers, labels, dividers and parts follow with no inverted rules of their own;
+ *     `UIParts.css` style-queries `--ui-inverted` for the few looks that differ.
+ *   - The box's `<slot>` resets the generic colour (`--ui-color*`) and size (`--ui-scale`) tokens,
+ *     so a red or large segment doesn't recolour or rescale the components inside it
+ *     (Fomantic's colours and sizes don't cascade into children either).
+ *   - It sets `--_ui-label-owner-edge` (its border width) for attached and corner labels,
+ *     and `--_ui-label-owner-radius: 0` where it is attached.
+ *
+ * - The public tokens (`--ui-segment-*`) are NEVER declared here.
+ *   The token block gives each a private alias, `--_ui-segment-radius: var(--ui-segment-radius, var(--ui-radius))`,
+ *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
+ *   `::part(segment)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *   - Set on a `<ui-segments>`, they reach its segments.
+ *   - The owner side follows the page's values:  `--_ui-label-owner-edge` is the `--ui-segment-border-width` alias.
+ *
+ * - Group looks are driven by TOKENS:  `.ui.segments` sets `--_ui-segments-*` on each child
+ *   (light DOM `> *`, shadow `::slotted(*)`):  margin, border, radius, divider line, shadow, flex.
+ *   A segment's inner box reads them first.
+ *   - Each segment's box resets them for its OWN children, so nested segments don't inherit a group's layout.
+ *   - NEVER set `--_segment-*`, `--_segments-*` or `--_ui-segments-*` from outside:  theme with `--ui-segment-*`.
+ *
+ * - A nested GROUP loses its own box the same way:  `.ui.segments > .segments` (static markup)
+ *   and `.ui.segments > ::slotted(ui-segments)` set the private `--_segments-*`,
+ *   which the nested group's OWN inner box reads.
+ *   (A nested `<ui-segments>` is a `display: contents` element, so its box can't be styled directly.)
+ *   Fomantic's `.ui.segments > .ui.segments` has no border, shadow or radius of its own:
+ *   just a divider line, when it isn't first.
+ *
+ * - Left out, on purpose:
+ *   - rules for other components' markup:  grid, table and tab segments,
+ *     the placeholder segment's inner `.button` / `.field` / `.inline` layout, and the padding next to an attached
+ *     label (`+ :not(.attached)`)
+ *   - `primary` / `secondary` never colour a segment's top edge (Fomantic's rule):  `secondary` is an emphasis,
+ *     so `color="red" secondary` loses the red (`colors.css` maps `secondary` after the hues)
+ *   - STATIC markup only:  a coloured (or `secondary`) segment recolours static segments nested in it:
+ *     the colour reset lives on the inner box's `<slot>`, which static markup doesn't have
+ *   - `.ui.attached + .ui.attached.segment` (no top border after an attached neighbour) is approximated
+ *     as "not the first child":  a shadow root can't see its element's previous sibling
+ */
+
+@layer ui.components.segment.types, ui.components.segment.content, ui.components.segment.variations, ui.components.segment.states;
+
+/* Breakpoints (`@custom-media`), inlined at build time. */
+@import "../../styles/media.css";
+
+/* Loader spin, shared by `loading` segments. */
+@keyframes ui-segment-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/*******************************
+            Segment
+*******************************/
+
+@layer ui.components.segment.types {
+  /* The DOM elements:  no box of their own;  the inner box is the segment. */
+  :host {
+    display: contents;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /* Piled:  the element becomes the stacking context the rotated sheets sit behind. */
+  :host(:state(piled)) {
+    display: block;
+    position: relative;
+    z-index: 0;
+  }
+  /* Static markup:  the parent of a piled segment does the same (Fomantic's `:has()` rule). */
+  :has(> .ui.piled.segment) {
+    position: relative;
+    z-index: 0;
+  }
+
+  /*
+   * Owner tokens:  a plain segment root ALWAYS resets `--ui-inverted` to `0`, but follows the page's scheme
+   * (`color-scheme` / `--ui-scheme` inherit), so it turns dark under `themes/dark.css` or an OS preference.
+   * - Nested in anything inverted (its parent's `--ui-inverted` is `1`), it resets to the light scheme --
+   *   Fomantic paints a nested plain segment white again, it doesn't inherit the dark one.
+   * - `.ui.inverted:is(.segment, .segments)` below overrides all of it, in a LATER layer, so it always wins
+   *   regardless of nesting depth.
+   */
+  .ui.segment,
+  .ui.segments {
+    --ui-inverted: 0;
+  }
+  @container style(--ui-inverted: 1) {
+    .ui.segment,
+    .ui.segments {
+      --ui-scheme: light;
+      color-scheme: light;
+    }
+  }
+
+  /*
+   * Tokens:  one per `segment.variables` entry that still matters, from the global tokens -- each the private alias
+   * of its public token (never declare the public one:  it would block inherited values).
+   */
+  .ui.segment,
+  .ui.segments {
+    --_ui-segment-background: var(--ui-segment-background, var(--ui-surface));
+    --_ui-segment-color: var(--ui-segment-color, var(--ui-text-color));
+    --_ui-segment-border-width: var(--ui-segment-border-width, var(--ui-border-width));
+    --_ui-segment-border-color: var(--ui-segment-border-color, var(--ui-border-color));
+    --_ui-segment-attached-border-color: var(--ui-segment-attached-border-color, var(--ui-border-color-strong));
+    --_ui-segment-shadow: var(--ui-segment-shadow, var(--ui-shadow-subtle));
+    --_ui-segment-raised-shadow: var(--ui-segment-raised-shadow, var(--ui-shadow-floating));
+    --_ui-segment-bottom-shadow: var(--ui-segment-bottom-shadow, var(--ui-shadow-bottom));
+    --_ui-segment-radius: var(--ui-segment-radius, var(--ui-radius));
+    --_ui-segment-padding: var(--ui-segment-padding, 1em);
+    --_ui-segment-margin: var(--ui-segment-margin, 1em);
+    --_ui-segment-colored-width: var(--ui-segment-colored-width, 2px);
+    --_ui-segment-inverted-background: var(--ui-segment-inverted-background, var(--ui-surface));
+    --_ui-segment-secondary-background: var(--ui-segment-secondary-background, var(--ui-surface-strong));
+    --_ui-segment-tertiary-background: var(
+      --ui-segment-tertiary-background,
+      color-mix(in oklab, var(--ui-ink) 12%, var(--ui-surface))
+    );
+    --_ui-segment-emphasis-color: var(--ui-segment-emphasis-color, var(--ui-text-muted));
+    --_ui-segment-padded: var(--ui-segment-padded, 1.5em);
+    --_ui-segment-very-padded: var(--ui-segment-very-padded, 3em);
+    --_ui-segment-circular-padding: var(--ui-segment-circular-padding, 2em);
+    --_ui-segment-floated-margin: var(--ui-segment-floated-margin, 1em);
+    --_ui-segment-placeholder-background: var(--ui-segment-placeholder-background, var(--ui-surface-muted));
+    --_ui-segment-placeholder-shadow: var(
+      --ui-segment-placeholder-shadow,
+      inset 0 2px 25px 0 oklch(from var(--ui-shadow-ink) l c h / 0.05)
+    );
+    --_ui-segment-placeholder-min-height: var(--ui-segment-placeholder-min-height, 18em);
+    --_ui-segment-piled-margin: var(--ui-segment-piled-margin, 3em);
+    --_ui-segment-piled-angle: var(--ui-segment-piled-angle, 1.2deg);
+    --_ui-segment-stacked-height: var(--ui-segment-stacked-height, 6px);
+    --_ui-segment-stacked-background: var(
+      --ui-segment-stacked-background,
+      oklch(from var(--ui-shadow-ink) l c h / 0.03)
+    );
+    --_ui-segment-stacked-padding: var(--ui-segment-stacked-padding, 1.4em);
+    --_ui-segment-tall-stacked-padding: var(--ui-segment-tall-stacked-padding, 1.8em);
+    --_ui-segment-loader-size: var(--ui-segment-loader-size, 3em);
+    --_ui-segment-loader-width: var(--ui-segment-loader-width, 0.2em);
+    --_ui-segment-loader-speed: var(--ui-segment-loader-speed, 0.6s);
+    --_ui-segment-loader-color: var(--ui-segment-loader-color, var(--ui-text-muted));
+    --_ui-segment-loader-track: var(--ui-segment-loader-track, oklch(from var(--ui-ink) l c h / 0.1));
+    --_ui-segment-loader-dimmer: var(--ui-segment-loader-dimmer, oklch(from var(--ui-surface) l c h / 0.8));
+    --_ui-segment-disabled-opacity: var(--ui-segment-disabled-opacity, var(--ui-disabled-opacity));
+    /* Height of a `scrolling` segment;  its default grows with the viewport (below), a value set from outside
+       wins at every width. */
+    --_ui-segment-scrolling-height: var(--ui-segment-scrolling-height, var(--_segment-scrolling-default, 15em));
+  }
+
+  /* Segment */
+  .ui.segment {
+    --_segment-margin-block: var(--_ui-segments-margin, var(--_segment-margin, var(--_ui-segment-margin)));
+    --_ui-label-owner-edge: var(--_ui-segment-border-width);
+    position: relative;
+    box-sizing: border-box;
+    display: var(--_segment-display, block);
+    flex: var(--_ui-segments-flex, 0 1 auto);
+    width: var(--_ui-segments-width, var(--_segment-width, auto));
+    min-width: var(--_ui-segments-min-width, auto);
+    max-width: var(--_segment-max-width, none);
+    min-height: var(--_segment-min-height, auto);
+    margin-block: var(--_segment-margin-top, var(--_segment-margin-block))
+      var(--_segment-margin-bottom, var(--_segment-margin-block));
+    margin-inline: var(--_ui-segments-margin-inline, var(--_segment-margin-inline, 0));
+    padding: var(--_segment-padding, var(--_ui-segment-padding));
+    border: var(
+      --_ui-segments-border,
+      var(--_segment-border, var(--_ui-segment-border-width) solid var(--_ui-segment-border-color))
+    );
+    border-top-color: var(--_segment-accent, var(--ui-color, var(--_ui-segment-border-color)));
+    border-radius: var(--_ui-segments-radius, var(--_segment-radius, var(--_ui-segment-radius)));
+    background: var(--_segment-bg, var(--_ui-segment-background));
+    /* The accent line adds to the top border;  the group's divider and the shadow follow. */
+    box-shadow:
+      inset 0 calc(var(--_ui-segment-colored-width) - var(--_ui-segment-border-width)) 0 0
+        var(--_segment-accent-line, var(--ui-color, transparent)),
+      var(--_ui-segments-divider, 0 0 #0000),
+      var(--_ui-segments-shadow, var(--_segment-shadow, var(--_ui-segment-shadow)));
+    color: var(--_segment-fg, var(--_ui-segment-color));
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    /* Inherits unless aligned:  Fomantic's segment sets none, so a `right aligned` grid column reaches its text. */
+    text-align: var(--_segment-text-align, inherit);
+  }
+  /* Spacing between neighbours:  none before the first, none after the last. */
+  .ui.segment:first-child {
+    --_segment-margin-top: 0;
+  }
+  .ui.segment:last-child {
+    --_segment-margin-bottom: 0;
+  }
+  /* Shadow DOM:  the inner box is always an only child, so the ELEMENT's position decides. */
+  :host(:not(:first-child)) > .ui.segment {
+    --_segment-margin-top: initial;
+  }
+  :host(:not(:last-child)) > .ui.segment {
+    --_segment-margin-bottom: initial;
+  }
+
+  /*
+   * What the segment hands its content:  none of its own or its group's layout tokens (they'd make a nested
+   * segment raised, attached ...), no colour, no scale (see the header).
+   */
+  .ui.segment > * {
+    --_ui-segments-margin: initial;
+    --_ui-segments-margin-inline: initial;
+    --_ui-segments-width: initial;
+    --_ui-segments-min-width: initial;
+    --_ui-segments-flex: initial;
+    --_ui-segments-border: initial;
+    --_ui-segments-radius: initial;
+    --_ui-segments-divider: initial;
+    --_ui-segments-shadow: initial;
+    --_ui-segments-inverted: initial;
+    --_segment-margin: initial;
+    --_segment-margin-top: initial;
+    --_segment-margin-bottom: initial;
+    --_segment-margin-inline: initial;
+    --_segment-display: initial;
+    --_segment-width: initial;
+    --_segment-max-width: initial;
+    --_segment-min-height: initial;
+    --_segment-padding: initial;
+    --_segment-border: initial;
+    --_segment-accent: initial;
+    --_segment-accent-line: initial;
+    --_segment-radius: initial;
+    --_segment-bg: initial;
+    --_segment-fg: initial;
+    --_segment-shadow: initial;
+    --_segment-text-align: initial;
+    --_segment-scroll-ratio: initial;
+  }
+  .ui.segment > slot {
+    --ui-color: initial;
+    --ui-color-text: initial;
+    --ui-color-header: initial;
+    --ui-color-border: initial;
+    --ui-color-background: initial;
+    --ui-color-inverted: initial;
+    --ui-color-hover: initial;
+    --ui-color-focus: initial;
+    --ui-color-down: initial;
+    --ui-color-active: initial;
+    --ui-color-on: initial;
+    --ui-color-inverted-on: initial;
+    --ui-scale: initial;
+  }
+
+  /* Vertical:  a band of a page, divided from the next by a rule. */
+  .ui.vertical.segment {
+    --_segment-margin: 0;
+    --_segment-radius: 0;
+    --_segment-shadow: 0 0 #0000;
+    --_segment-bg: transparent;
+    padding-inline: 0;
+    border: none;
+    border-top: var(--_ui-segment-border-width) solid var(--_ui-segment-border-color);
+  }
+  .ui.vertical.segment:first-child {
+    border-top: none;
+  }
+  :host(:not(:first-child)) > .ui.vertical.segment {
+    border-top: var(--_ui-segment-border-width) solid var(--_ui-segment-border-color);
+  }
+
+  /* Placeholder:  a tinted, centred block reserving room for content to come. */
+  .ui.placeholder.segment {
+    --_segment-display: flex;
+    --_segment-bg: var(--_ui-segment-placeholder-background);
+    --_segment-shadow: var(--_ui-segment-placeholder-shadow);
+    --_segment-min-height: var(--_ui-segment-placeholder-min-height);
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    max-width: initial;
+    overflow: visible;
+  }
+
+  /* Piled:  two rotated sheets peeking out behind. */
+  .ui.piled.segment {
+    --_segment-margin: var(--_ui-segment-piled-margin);
+  }
+  .ui.piled.segments {
+    margin-block: var(--_ui-segment-piled-margin);
+  }
+  .ui.piled:is(.segment, .segments)::before,
+  .ui.piled:is(.segment, .segments)::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    visibility: visible;
+    border: inherit;
+    border-radius: inherit;
+    background: var(--_segment-bg, var(--_ui-segment-background));
+    box-shadow: var(--_ui-segment-shadow);
+  }
+  .ui.piled:is(.segment, .segments)::before {
+    z-index: -2;
+    rotate: calc(var(--_ui-segment-piled-angle) * -1);
+  }
+  .ui.piled:is(.segment, .segments)::after {
+    z-index: -1;
+    rotate: var(--_ui-segment-piled-angle);
+  }
+
+  /* Stacked:  a page (or two, `tall`) peeking out below. */
+  .ui.stacked.segment {
+    padding-bottom: var(--_ui-segment-stacked-padding);
+  }
+  .ui.tall.stacked.segment {
+    padding-bottom: var(--_ui-segment-tall-stacked-padding);
+  }
+  .ui.stacked:is(.segment, .segments)::before,
+  .ui.stacked:is(.segment, .segments)::after {
+    content: "";
+    position: absolute;
+    bottom: calc(var(--_ui-segment-stacked-height) / -2);
+    left: 0;
+    width: 100%;
+    height: var(--_ui-segment-stacked-height);
+    visibility: visible;
+    border-top: var(--_ui-segment-border-width) solid var(--_ui-segment-border-color);
+    background: var(--_ui-segment-stacked-background);
+  }
+  .ui.stacked:is(.segment, .segments)::before {
+    display: none;
+  }
+  .ui.tall.stacked:is(.segment, .segments)::before {
+    display: block;
+    bottom: 0;
+  }
+
+  /* Raised:  lifted off the page. */
+  .ui.raised:is(.segment, .segments) {
+    --_segment-shadow: var(--_ui-segment-raised-shadow);
+  }
+
+  /* Circular:  a round badge sized by its content. */
+  .ui.circular.segment {
+    --_segment-display: table-cell;
+    --_segment-padding: var(--_ui-segment-circular-padding);
+    --_segment-radius: var(--ui-radius-pill);
+    --_segment-text-align: center;
+    vertical-align: middle;
+  }
+
+  /*******************************
+              Groups
+  *******************************/
+
+  .ui.segments {
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    /*
+     * `--_segments-*` (private):  the NESTED-group selectors below set these on a nested group's own root,
+     * so it loses its box the same way an individual segment loses its via `--_ui-segments-*`.
+     * Unset (top-level group), each falls through to the normal group look.
+     */
+    margin: var(--_segments-margin, var(--_ui-segment-margin) 0);
+    border: var(--_segments-border, var(--_ui-segment-border-width) solid var(--_ui-segment-border-color));
+    border-top: var(
+      --_segments-border-top,
+      var(--_segments-border, var(--_ui-segment-border-width) solid var(--_ui-segment-border-color))
+    );
+    border-radius: var(--_segments-radius, var(--_ui-segment-radius));
+    background: var(--_ui-segment-background);
+    box-shadow: var(--_segments-shadow, var(--_segment-shadow, var(--_ui-segment-shadow)));
+    color: var(--_ui-segment-color);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+  }
+  .ui.segments:first-child {
+    margin-top: 0;
+  }
+  .ui.segments:last-child {
+    margin-bottom: 0;
+  }
+  /*
+   * Shadow DOM:  the inner box is always an only child, so the ELEMENT's position decides (as `.ui.segment` above).
+   * - `--_segments-margin`:  a nested group's `0` still wins.
+   */
+  :host(:not(:first-child)) > .ui.segments {
+    margin-top: var(--_segments-margin, var(--_ui-segment-margin));
+  }
+  :host(:not(:last-child)) > .ui.segments {
+    margin-bottom: var(--_segments-margin, var(--_ui-segment-margin));
+  }
+
+  /* Children:  one box, hairlines between them;  only the outer corners round. */
+  .ui.segments > *,
+  .ui.segments > ::slotted(*) {
+    --_ui-segments-margin: 0;
+    --_ui-segments-margin-inline: 0;
+    --_ui-segments-width: auto;
+    --_ui-segments-border: none;
+    --_ui-segments-radius: 0;
+    --_ui-segments-shadow: 0 0 #0000;
+    --_ui-segments-divider: inset 0 var(--_ui-segment-border-width) 0 0 var(--_ui-segment-border-color);
+  }
+  .ui.segments > :first-child,
+  .ui.segments > ::slotted(:first-child) {
+    --_ui-segments-divider: 0 0 #0000;
+    --_ui-segments-radius: var(--_ui-segment-radius) var(--_ui-segment-radius) 0 0;
+  }
+  .ui.segments > :last-child,
+  .ui.segments > ::slotted(:last-child) {
+    --_ui-segments-radius: 0 0 var(--_ui-segment-radius) var(--_ui-segment-radius);
+  }
+  .ui.segments > :only-child,
+  .ui.segments > ::slotted(:only-child) {
+    --_ui-segments-radius: var(--_ui-segment-radius);
+  }
+  /*
+   * Nested group:  a divider line above it, no box of its own.
+   * - Shadow DOM:  a nested `<ui-segments>` is a `display: contents` element, so its box can't be styled from here
+   *   (`::slotted()` only reaches the top-level slotted node).
+   *   So this sets the `--_segments-*` tokens above instead:
+   *   they inherit into the nested element's OWN shadow root, where its `.ui.segments` reads them.
+   */
+  .ui.segments > .segments,
+  .ui.segments > ::slotted(ui-segments) {
+    --_segments-margin: 0;
+    --_segments-border: none;
+    --_segments-radius: 0;
+    --_segments-shadow: 0 0 #0000;
+  }
+  .ui.segments > .segments:not(:first-child),
+  .ui.segments > ::slotted(ui-segments:not(:first-child)) {
+    --_segments-border-top: var(--_ui-segment-border-width) solid var(--_ui-segment-border-color);
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.segment.variations {
+  /* Padded */
+  .ui.padded.segment {
+    --_segment-padding: var(--_ui-segment-padded);
+  }
+  .ui[class*="very padded"].segment {
+    --_segment-padding: var(--_ui-segment-very-padded);
+  }
+  .ui:is(.padded, [class*="very padded"]).vertical.segment {
+    padding-inline: 0;
+  }
+
+  /* Fitted:  no padding (`horizontally` / `vertically` keep the other axis). */
+  .ui.fitted.segment:not(.horizontally) {
+    padding-block: 0;
+  }
+  .ui.fitted.segment:not(.vertically) {
+    padding-inline: 0;
+  }
+
+  /* Compact:  only as wide as its content. */
+  .ui.compact.segment {
+    --_segment-display: table;
+  }
+  .ui.compact.segments {
+    display: inline-flex;
+  }
+  .ui.compact.segments > *,
+  .ui.compact.segments > ::slotted(*) {
+    --_ui-segments-flex: 0 1 auto;
+  }
+
+  /* Basic:  no box at all. */
+  .ui.basic:is(.segment, .segments),
+  .ui.segments > .ui.basic.segment {
+    --_segment-bg: transparent;
+    --_segment-shadow: 0 0 #0000;
+    --_segment-border: none;
+    --_segment-radius: 0;
+    --_ui-label-owner-edge: 0px;
+  }
+  .ui.basic.segments {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  /* Clearing:  contains its floated children. */
+  .ui.clearing.segment::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+
+  /* Floated */
+  .ui.floated.segment,
+  .ui[class*="left floated"].segment {
+    --_segment-margin-inline: 0 var(--_ui-segment-floated-margin);
+    float: left;
+  }
+  .ui[class*="right floated"].segment {
+    --_segment-margin-inline: var(--_ui-segment-floated-margin) 0;
+    float: right;
+  }
+
+  /* Aligned */
+  .ui[class*="left aligned"].segment {
+    --_segment-text-align: left;
+  }
+  .ui[class*="center aligned"].segment {
+    --_segment-text-align: center;
+  }
+  .ui[class*="right aligned"].segment {
+    --_segment-text-align: right;
+  }
+
+  /* Emphasis:  tinted surfaces, muted text.  `secondary` is an emphasis here, never a colour. */
+  .ui.secondary.segment {
+    --_segment-bg: var(--_ui-segment-secondary-background);
+    --_segment-fg: var(--_ui-segment-emphasis-color);
+  }
+  .ui.tertiary.segment {
+    --_segment-bg: var(--_ui-segment-tertiary-background);
+    --_segment-fg: var(--_ui-segment-emphasis-color);
+  }
+  .ui:is(.primary, .secondary).segment {
+    --_segment-accent: var(--_ui-segment-border-color);
+    --_segment-accent-line: transparent;
+  }
+
+  /*
+   * Inverted:  the dark scheme.  The OWNER side:  `--ui-inverted` and `color-scheme` inherit into everything
+   * slotted, so content re-resolves its `light-dark()` tokens.  A coloured one fills with its colour.
+   */
+  .ui.inverted:is(.segment, .segments),
+  .ui.inverted.segments > .ui.segment {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    color-scheme: dark;
+  }
+  .ui.inverted.segment,
+  .ui.inverted.segments > .ui.segment {
+    --_segment-bg: var(--ui-color, var(--_ui-segment-inverted-background));
+    --_segment-fg: var(--ui-color-on, var(--_ui-segment-color));
+    --_segment-accent: transparent;
+    --_segment-accent-line: transparent;
+    --_segment-border: none;
+    --_segment-shadow: 0 0 #0000;
+    --_ui-label-owner-edge: 0px;
+  }
+  /*
+   * Members of an inverted `<ui-segments>` (Fomantic:  `.ui.inverted.segments .segment` is dark).
+   * - The group can't style a member's shadow root, so it flags each slotted element (`--_ui-segments-inverted`),
+   *   and the member's inner box (whose parent is that element) style-queries it.
+   * - Segments nested in a member don't match:  the member's box hands its children `initial` (`.ui.segment > *`).
+   * - The static twin is the selector above.
+   */
+  .ui.inverted.segments > ::slotted(*) {
+    --_ui-segments-inverted: 1;
+  }
+  @container style(--_ui-segments-inverted: 1) {
+    .ui.segment {
+      --ui-inverted: 1;
+      --ui-scheme: dark;
+      color-scheme: dark;
+      --_segment-bg: var(--ui-color, var(--_ui-segment-inverted-background));
+      --_segment-fg: var(--ui-color-on, var(--_ui-segment-color));
+      --_segment-accent: transparent;
+      --_segment-accent-line: transparent;
+      --_segment-border: none;
+      --_segment-shadow: 0 0 #0000;
+      --_ui-label-owner-edge: 0px;
+    }
+  }
+  .ui.inverted.segments {
+    border: none;
+    box-shadow: none;
+  }
+  .ui.inverted.secondary.segment {
+    --_segment-bg: var(--_ui-segment-secondary-background);
+    --_segment-fg: var(--_ui-segment-emphasis-color);
+  }
+  .ui.inverted.tertiary.segment {
+    --_segment-bg: var(--_ui-segment-tertiary-background);
+    --_segment-fg: var(--_ui-segment-emphasis-color);
+  }
+  .ui.inverted.attached.segment {
+    --_segment-border: var(--_ui-segment-border-width) solid var(--_ui-segment-attached-border-color);
+  }
+  .ui.inverted.stacked.segment {
+    --_segment-border: var(--_ui-segment-border-width) solid var(--_ui-segment-attached-border-color);
+  }
+
+  /* Attached:  joined edge to edge with the elements above / below (headers, menus, other segments). */
+  .ui.attached.segment {
+    --_segment-margin: 0;
+    --_segment-margin-inline: calc(var(--_ui-segment-border-width) * -1);
+    --_segment-width: calc(100% + 2 * var(--_ui-segment-border-width));
+    --_segment-max-width: calc(100% + 2 * var(--_ui-segment-border-width));
+    --_segment-radius: 0;
+    --_segment-shadow: 0 0 #0000;
+    --_ui-label-owner-radius: 0;
+  }
+  .ui.attached.segment:not(.basic) {
+    --_segment-border: var(--_ui-segment-border-width) solid var(--_ui-segment-attached-border-color);
+  }
+  .ui.attached.segment:not(.top, [class*="left attached"], [class*="right attached"]) {
+    border-top-style: none;
+  }
+  .ui.attached.segment:not(.top, [class*="left attached"], [class*="right attached"]):first-child {
+    border-top-style: solid;
+  }
+  :host(:not(:first-child)) > .ui.attached.segment:not(.top, [class*="left attached"], [class*="right attached"]) {
+    border-top-style: none;
+  }
+  .ui[class*="top attached"].segment {
+    --_segment-margin-top: var(--_ui-segment-margin);
+    --_segment-margin-bottom: 0;
+    --_segment-radius: var(--_ui-segment-radius) var(--_ui-segment-radius) 0 0;
+  }
+  .ui[class*="top attached"].segment:first-child {
+    --_segment-margin-top: 0;
+  }
+  :host(:not(:first-child)) > .ui[class*="top attached"].segment {
+    --_segment-margin-top: var(--_ui-segment-margin);
+  }
+  .ui[class*="bottom attached"].segment {
+    --_segment-margin-top: 0;
+    --_segment-margin-bottom: var(--_ui-segment-margin);
+    --_segment-radius: 0 0 var(--_ui-segment-radius) var(--_ui-segment-radius);
+    --_segment-shadow: var(--_ui-segment-bottom-shadow);
+  }
+  .ui[class*="bottom attached"].segment:last-child {
+    --_segment-margin-bottom: 0;
+  }
+  :host(:not(:last-child)) > .ui[class*="bottom attached"].segment {
+    --_segment-margin-bottom: var(--_ui-segment-margin);
+  }
+  .ui[class*="left attached"].segment {
+    --_segment-margin-inline: calc(var(--_ui-segment-border-width) * -1) 0;
+  }
+  .ui[class*="right attached"].segment {
+    --_segment-margin-inline: 0 calc(var(--_ui-segment-border-width) * -1);
+  }
+
+  /* Seamless:  no line where attached segments meet. */
+  .ui.seamless.attached.segment:not(.top, .bottom, [class*="left attached"], [class*="right attached"]) {
+    border-block-style: none;
+  }
+  .ui.seamless.attached.segment.top {
+    border-bottom-style: none;
+  }
+  .ui.seamless.attached.segment.bottom {
+    border-top-style: none;
+  }
+  .ui.seamless[class*="left attached"].segment {
+    border-right-style: none;
+  }
+  .ui.seamless[class*="right attached"].segment {
+    border-left-style: none;
+  }
+
+  /* Scrolling:  a capped height (per breakpoint, `short` ... `very long`) that scrolls. */
+  .ui.scrolling.segment {
+    --_segment-scroll: calc(var(--_ui-segment-scrolling-height) * var(--_segment-scroll-ratio, 1));
+    max-height: var(--_segment-scroll);
+    overflow: auto;
+    overscroll-behavior: none;
+  }
+  .ui.short.scrolling.segment {
+    --_segment-scroll-ratio: 0.75;
+  }
+  .ui[class*="very short scrolling"].short.segment {
+    --_segment-scroll-ratio: 0.5;
+  }
+  .ui.long.scrolling.segment {
+    --_segment-scroll-ratio: 2;
+  }
+  .ui[class*="very long scrolling"].long.segment {
+    --_segment-scroll-ratio: 3;
+  }
+  @media (--ui-tablet), (--ui-computer) {
+    .ui.scrolling.segment {
+      --_segment-scrolling-default: 18em;
+    }
+  }
+  @media (--ui-computer) {
+    .ui.scrolling.segment {
+      --_segment-scrolling-default: 24em;
+    }
+  }
+  @media (--ui-widescreen) {
+    .ui.scrolling.segment {
+      --_segment-scrolling-default: 30em;
+    }
+  }
+  /* Resizable:  starts at the capped height, a person drags it taller or shorter. */
+  .ui.resizable.scrolling.segment {
+    height: var(--_segment-scroll);
+    max-height: none;
+    resize: vertical;
+  }
+
+  /* Horizontal group:  side by side, hairlines between. */
+  .ui.horizontal.segments {
+    flex-direction: row;
+  }
+  .ui.horizontal.segments > *,
+  .ui.horizontal.segments > ::slotted(*) {
+    --_ui-segments-divider: inset var(--_ui-segment-border-width) 0 0 0 var(--_ui-segment-border-color);
+    --_ui-segments-radius: 0;
+    --_ui-segments-min-width: 0;
+  }
+  .ui.horizontal.segments:not(.compact) > :not(.compact),
+  .ui.horizontal.segments:not(.compact) > ::slotted(*) {
+    --_ui-segments-flex: 1 1 auto;
+  }
+  .ui.horizontal.segments > :first-child,
+  .ui.horizontal.segments > ::slotted(:first-child) {
+    --_ui-segments-divider: 0 0 #0000;
+    --_ui-segments-radius: var(--_ui-segment-radius) 0 0 var(--_ui-segment-radius);
+  }
+  .ui.horizontal.segments > :last-child,
+  .ui.horizontal.segments > ::slotted(:last-child) {
+    --_ui-segments-radius: 0 var(--_ui-segment-radius) var(--_ui-segment-radius) 0;
+  }
+  .ui[class*="equal width"].horizontal.segments > *,
+  .ui[class*="equal width"].horizontal.segments > ::slotted(*) {
+    --_ui-segments-width: 100%;
+  }
+  .ui:is(.wrapping, .stackable).horizontal.segments {
+    flex-wrap: wrap;
+  }
+  .ui.segments > .horizontal.segments {
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .ui.segments > .horizontal.segments:not(:first-child) {
+    border-top: var(--_ui-segment-border-width) solid var(--_ui-segment-border-color);
+  }
+  /* Stackable:  stacks on mobile. */
+  @media (--ui-mobile) {
+    .ui.stackable.horizontal.segments {
+      flex-direction: column;
+    }
+    .ui.stackable.horizontal.segments > *,
+    .ui.stackable.horizontal.segments > ::slotted(*) {
+      --_ui-segments-divider: inset 0 var(--_ui-segment-border-width) 0 0 var(--_ui-segment-border-color);
+      --_ui-segments-radius: 0;
+    }
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.segment.states {
+  /* Disabled */
+  .ui.disabled:is(.segment, .segments) {
+    opacity: var(--_ui-segment-disabled-opacity);
+    color: var(--ui-text-disabled);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Loading:  a dimmer over the content and a spinner in the middle. */
+  .ui.loading:is(.segment, .segments) {
+    position: relative;
+    min-height: calc(var(--_ui-segment-loader-size) * 1.5);
+    cursor: default;
+    pointer-events: none;
+    user-select: none;
+  }
+  .ui.loading:is(.segment, .segments)::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--_ui-segment-loader-dimmer);
+  }
+  .ui.loading:is(.segment, .segments)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 101;
+    display: block;
+    width: var(--_ui-segment-loader-size);
+    height: var(--_ui-segment-loader-size);
+    margin: calc(var(--_ui-segment-loader-size) / -2) 0 0 calc(var(--_ui-segment-loader-size) / -2);
+    visibility: visible;
+    border: var(--_ui-segment-loader-width) solid var(--_ui-segment-loader-track);
+    border-top-color: var(--_ui-segment-loader-color);
+    border-radius: var(--ui-radius-circle);
+    background: none;
+    animation: ui-segment-spin var(--_ui-segment-loader-speed) linear infinite;
+  }
+}

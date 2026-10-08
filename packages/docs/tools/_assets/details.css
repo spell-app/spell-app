@@ -166,6 +166,11 @@
 #send.spell-send-bar > ui-message {
   margin: 8px 0 0;
 }
+/* sent:  the bar lets go of the window's bottom, so a long answer never covers the questions */
+.spell-details-answered #send.spell-send-bar {
+  position: static;
+  box-shadow: none;
+}
 /* the Send bar is the page's bottom:  no room left under it (the doc column's own bottom padding goes) */
 .spell-doc-main:has(> #send.spell-send-bar) {
   padding-bottom: 0;

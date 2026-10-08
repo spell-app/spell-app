@@ -80,8 +80,8 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
   test("CURRENT once built;  STALE after a vocabulary edit, and current again after a rebuild", async () => {
     expect(await CLI.checkPack(ROOT, "demo")).toMatchObject({ stale: [] })
     expect(spell("check")).toEqual({ status: 0, out: "demo:  current\n" })
-    const vocabulary = join(CARD, "demo-card.vocabulary.en.ts")
-    writeFileSync(vocabulary, readFileSync(vocabulary, "utf8").replace(`height: "2em"`, `height: "5em"`))
+    const vocabulary = join(CARD, "DemoCard.en.ts")
+    writeFileSync(vocabulary, readFileSync(vocabulary, "utf8").replace(`skeleton: "2 tall"`, `skeleton: "5 tall"`))
     expect((await CLI.checkPack(ROOT, "demo")).stale).toEqual([
       "packages/demo/pack/demo.catalog.ts:  built from older sources",
       "packages/demo/pack/demo.pack.js:  built from older sources"
@@ -98,7 +98,7 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
   }, 60_000)
 
   test("a test file's edit never makes the pack stale:  tests aren't in it", () => {
-    appendFileSync(join(CARD, "demo-card.test.tsx"), "// more\n")
+    appendFileSync(join(CARD, "DemoCard.test.tsx"), "// more\n")
     expect(spell("check").status).toBe(0)
   })
 
@@ -115,7 +115,7 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
     writeFileSync(element, `import "$/ui/util"\n${source}`)
     expect(spell("build", "demo").out).toContain("imports '$/ui/util', which the page can't share")
     writeFileSync(element, source)
-    const vocabulary = join(CARD, "demo-card.vocabulary.en.ts")
+    const vocabulary = join(CARD, "DemoCard.en.ts")
     const words = readFileSync(vocabulary, "utf8")
     writeFileSync(vocabulary, words.replace(`tag: "demo-card"`, `tag: "x-card"`))
     expect(spell("build", "demo")).toMatchObject({ status: CLI.EXIT.ERRORS })
@@ -155,11 +155,9 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
     hashes.push(CLI.packHash(pack))
     expect(new Set(hashes).size).toBe(4)
     expect(CLI.packSources(pack).map((file) => file.slice(PACK.length + 1))).toEqual([
+      "components/demo-card/DemoCard.css",
+      "components/demo-card/DemoCard.en.ts",
       "components/demo-card/DemoCard.tsx",
-      "components/demo-card/demo-card.css",
-      "components/demo-card/demo-card.fallback.ts",
-      "components/demo-card/demo-card.types.ts",
-      "components/demo-card/demo-card.vocabulary.en.ts",
       "components/demo-card/index.ts",
       "components/index.ts",
       "src/shared/index.ts",
