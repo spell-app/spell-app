@@ -137,18 +137,18 @@ export type FoldAttributes = {
 ////////////////
 
 /**
- * Each page section kind => its icon (Spell UI's names, from the docs bundle's set) and its texts' keys:  title
- * and tooltip.  `overview-part` has neither:  its title is its own.
+ * Each page section kind => its icon (Spell UI's names, from the docs bundle's set) and its title's text key.
+ * `overview-part` has neither:  its title is its own.
  */
 export const SECTION_LOOKS = {
-  phases: { icon: "layer group", title: "phasesTitle", tip: undefined },
-  questions: { icon: "file circle question", title: "questionsTitle", tip: "questionsTip" },
-  judgements: { icon: "gavel", title: "judgementsTitle", tip: "judgementsTip" },
-  caveats: { icon: "triangle exclamation", title: "caveatsTitle", tip: undefined },
-  todos: { icon: "list check", title: "todosTitle", tip: "todosTip" },
-  issues: { icon: "bug", title: "issuesTitle", tip: undefined },
-  tests: { icon: "flask", title: "testsTitle", tip: "testsTip" },
-  log: { icon: "clock rotate left", title: "logTitle", tip: "logTip" }
+  phases: { icon: "layer group", title: "phasesTitle" },
+  questions: { icon: "file circle question", title: "questionsTitle" },
+  judgements: { icon: "gavel", title: "judgementsTitle" },
+  caveats: { icon: "triangle exclamation", title: "caveatsTitle" },
+  todos: { icon: "list check", title: "todosTitle" },
+  issues: { icon: "bug", title: "issuesTitle" },
+  tests: { icon: "flask", title: "testsTitle" },
+  log: { icon: "clock rotate left", title: "logTitle" }
 } as const
 
 /** A page section's look:  `SECTION_LOOKS`' values. */

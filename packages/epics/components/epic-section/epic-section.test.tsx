@@ -57,7 +57,7 @@ afterEach(() => {
 })
 
 describe("<epic-section>", () => {
-  test("draws its numbered title and its kind's tooltip;  starts FOLDED, with a grey rule and no gap below", async () => {
+  test("draws its numbered title, no tooltip;  starts FOLDED, with a grey rule and no gap below", async () => {
     const host = await render(
       `<div><epic-section id="phases" kind="phases"></epic-section>` +
         `<epic-section id="decisions" kind="questions"><p>An item</p></epic-section></div>`
@@ -65,7 +65,7 @@ describe("<epic-section>", () => {
     const questions = host.parentElement!.querySelector<FoldHost>("#decisions")!
     expect(titleText(host)).toBe("1. Phases")
     expect(titleText(questions)).toBe("2. Questions")
-    expect(inner(questions).getAttribute("info")).toMatch(/^Open questions first/)
+    expect(inner(questions).hasAttribute("info")).toBe(false)
     expect(host.matches(":state(open)")).toBe(false)
     expect(inner(host).hasAttribute("collapsed")).toBe(true)
     const style = getComputedStyle(host)

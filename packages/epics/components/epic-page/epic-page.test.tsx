@@ -55,7 +55,7 @@ async function render(html: string): Promise<UIHost> {
 }
 
 describe("<epic-page>", () => {
-  test("draws `Epic: <title>`, its meta lines and its durable doc's link, and passes axe", async () => {
+  test("draws `/epic <name>` over its title, its meta lines and its durable doc's link, and passes axe", async () => {
     const host = await render(
       page(`branch="demo" worktree="/w/demo" started="2026-10-06" updated="2026-10-07"`, ["done"], "").replace(
         "</epic-overview>",
@@ -63,7 +63,8 @@ describe("<epic-page>", () => {
       )
     )
     const shadow = host.shadowRoot!
-    expect(shadow.querySelector("h1")!.textContent).toBe("Epic: Demo")
+    expect(shadow.querySelector("h1 button")!.textContent).toBe("/epic demo")
+    expect(shadow.querySelector('[part~="subhead"]')!.textContent!.trim()).toBe("Demo")
     const lines = Array.from(shadow.querySelectorAll('[part~="meta"] > li:not([hidden])'), (li) =>
       li.textContent!.replace(/\s+/g, " ").trim()
     )
@@ -185,6 +186,16 @@ describe("<epic-page>", () => {
     await vi.waitFor(() => expect(line.classList.contains("flash")).toBe(true))
     expect(writeText).toHaveBeenCalledWith("/epic review demo")
     expect(line.querySelector(".done")!.textContent).toBe("copied")
+    writeText.mockRestore()
+  })
+
+  test("the heading:  a click copies `/epic <name>` and says so", async () => {
+    const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue()
+    const host = await render(page("", ["todo"]))
+    const heading = host.shadowRoot!.querySelector("h1")!
+    heading.querySelector("button")!.click()
+    await vi.waitFor(() => expect(heading.querySelector(".done")!.textContent).toBe("copied"))
+    expect(writeText).toHaveBeenCalledWith("/epic demo")
     writeText.mockRestore()
   })
 
