@@ -14,7 +14,9 @@ const staticDir = resolve(packagesDir, "app", "static")
  * - `SPELL_PROJECTS_DIR` env var overrides it, so the server's contract test (`api.test.ts`) can point the
  *   server at a temp copy and never write into the real projects.
  */
-const projectsDir = process.env.SPELL_PROJECTS_DIR ? resolve(process.env.SPELL_PROJECTS_DIR) : resolve(srcDir, "..", "projects")
+const projectsDir = process.env.SPELL_PROJECTS_DIR
+  ? resolve(process.env.SPELL_PROJECTS_DIR)
+  : resolve(srcDir, "..", "projects")
 
 /**
  * Normalized environment variables for the server and client setup.

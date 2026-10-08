@@ -64,7 +64,9 @@ export class ScopeVariable {
    * - e.g. `{it}.length`, `{it}.getFullYear()` or `spellCore.itemCountOf({it})`
    * - `undefined`:  a read compiles as plain `<object>.<name>`.
    * - From spell's table of built-in types -- see spell's `BUILT_IN_TYPE_TABLE`.
-   * - NEVER set by a statement:  what a project declares compiles as its own statements say.
+   * - The ONE statement that sets it:  a VALUE kind's property, `Suit.color({it})`, as a value is plain text with
+   *   no properties of its own -- see `P.TypeScope.valueKind`.  Anything else a project declares compiles as its
+   *   own statements say.
    */
   declare readAs: string | undefined
   /**

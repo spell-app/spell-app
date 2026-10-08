@@ -375,3 +375,21 @@ export function serializeHTML(html) {
   }
   return html
 }
+
+/**
+ * A tool's command line:  `--key value` flags (a bare `--show` is `true`), and everything else in order.
+ * - `parseArgs(["open", "x.html", "--hash", "p2", "--show"])` -> `{ positional: ["open", "x.html"], flags: { hash:
+ *   "p2", show: true } }`
+ * @returns {{ positional: string[], flags: Record<string, string | true> }}
+ */
+export function parseArgs(argv) {
+  const positional = []
+  /** @type {Record<string, string | true>} */
+  const flags = {}
+  for (let i = 0; i < argv.length; i++) {
+    if (!argv[i].startsWith("--")) positional.push(argv[i])
+    else if (i + 1 < argv.length && !argv[i + 1].startsWith("--")) flags[argv[i].slice(2)] = argv[++i]
+    else flags[argv[i].slice(2)] = true
+  }
+  return { positional, flags }
+}

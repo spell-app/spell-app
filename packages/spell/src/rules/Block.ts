@@ -119,6 +119,7 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
       statements.push(...this.statementsFor(item, index, context))
       const statement = this.statementOf(item)
       if (statement && autoDeclared.has(statement)) statements.push(...autoDeclared.get(statement)!)
+      if (statement) statements.push(...Block.flatBodyStatements(statement))
     })
     statements.unshift(...(autoDeclared.get(undefined) ?? []))
     const [hoisted] = SP.hoistClassMembers([statements])
@@ -169,6 +170,20 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
     }
     statements.push(new P.ASTStatementGroup(item, { statements: declaring }))
     return statements
+  }
+
+  /**
+   * `statement`'s nested body's statements, if its rule compiles that body FLAT -- e.g. an outline-style type's
+   * bulleted body -- so they go in the block holding `statement`, after it.  See `SpellStatement.flatBody`.
+   * - `[]` for any other statement.
+   * - Duck-typed:  `Block` can't import `SpellStatement` without a cycle.
+   */
+  private static flatBodyStatements(statement: P.Match): SP.HoistableStatement[] {
+    if (!(statement.rule as { flatBody?: boolean }).flatBody) return []
+    const { body } = statement.data as { body?: unknown }
+    if (!(body instanceof P.Match) || !body.is(Block)) return []
+    const AST = body.AST
+    return AST instanceof P.ASTStatementGroup ? [...(AST.statements ?? [])] : []
   }
 
   ////////////////

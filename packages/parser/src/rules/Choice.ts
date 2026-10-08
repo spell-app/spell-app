@@ -134,7 +134,8 @@ export class Choice<
 
   /**
    * Return the "best" match given more than one matches at the head of the tokens.
-   * - First we find the match(es) with the highest `priority`.
+   * - First we find the match(es) with the highest `priority`:  the match's own, if set (`Match.priority`), else
+   *   its rule's.
    * - Then we take the one with the longest matched string.
    * - If more than one rule with same length, takes the EARLIEST one -- so in a `(a|b)` choice, `a` wins a tie,
    *   and in a `Group` of same-named rules the FIRST-registered wins.  Pinned by `Rule.test.ts`.
@@ -144,7 +145,7 @@ export class Choice<
     if (matches.length === 1) return matches[0]
 
     // rules with the highest priority, in `matches` order (earliest first)
-    const highPriority = itemsWithHighest(matches, (it) => it.rule.priority)
+    const highPriority = itemsWithHighest(matches, (it) => it.priority ?? it.rule.priority)
 
     if (highPriority.length === 1) return highPriority[0]
 

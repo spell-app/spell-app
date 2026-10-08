@@ -426,10 +426,10 @@ export type SharedOptions = GlobalOptions & {
 }
 
 /**
- * `spell dev agents` flags.
+ * `spell dev wwod` flags.
  * - `json`:  `check` prints the report as JSON
  */
-export type AgentsOptions = GlobalOptions & {
+export type WwodOptions = GlobalOptions & {
   json?: boolean
 }
 

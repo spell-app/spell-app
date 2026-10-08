@@ -120,7 +120,9 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - So END THE TURN right after `handoff`:  the rest (`yarn install` ...) happens in the new window.
   - The old tab is found by the session's title.  The `UserPromptSubmit` hook `.claude/hooks/prompt-gate.mjs`
     renames the session on `/isolate <name>`, `/epic <name>` and `/unpark <name>`.  It also blocks those prompts in
-    plan mode or inside another worktree, saving their text to `~/.spell/prompts/<name>.md` first.
+    plan mode or inside another worktree, saving their text to `~/.spell/prompts/<name>.md` first.  Except
+    `/epic <name>` inside another worktree:  it means "open a window for `<name>`", so Claude offers one
+    (`spell dev window launch <name>`:  a NEW session there;  `/epic` skill, "From another worktree").
   - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), in the look of the window it's opened
     from, or the one asked for (`/epic <name> -purple`:  Tomorrow Night Blue's look in one of 12 hues,
     `spell dev window color`;  `/epic color <look>` recolours the window you're in, live).  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the

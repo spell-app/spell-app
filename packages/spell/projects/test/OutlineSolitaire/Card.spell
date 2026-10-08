@@ -1,0 +1,99 @@
+## Definition of a card -- in the outline style:  a heading, then what's true of it
+a "card" is a thing where:
+
+	## suit and rank
+	- its "suit" is a suit of its deck
+	- its "color" is the color of its suit
+	- it "is a (suit)"                      // e.g. "the card is a spade"
+	- its "rank" is a rank of its deck
+	- it "is a (rank)"                      // e.g. "the card is a queen"
+	- it "is the (rank) of (suits)"         // e.g. "the card is the queen of spades"
+	- it "is a face card" if its rank is a face card
+	- its "value" is the position of its rank in deck ranks
+
+	## direction
+	- its direction is up or down
+	- it "is face up" if its direction is up
+	- it "is face down" if its direction is down
+
+	## names
+	- its "name" is: its rank + "-of-" + its suit
+	- its "short suit" is:
+		if it is a club return "♣️"
+		if it is a diamond return "♦️"
+		if it is a heart return "♥️"
+		if it is a spade return "♠️"
+		return "?"
+	- its "short rank" is:
+		if its rank is nothing return "?"
+		if its rank is a number return "" + its rank
+		return the first character of its rank as uppercase
+	- its "short direction" is:
+		if its direction is up return "+"
+		return "—"
+	- its "short name" is: its short rank + its short suit
+	- its "state" is: its short rank + its short suit + its short direction
+
+	## drawing
+	- to "draw its front":
+		<div onClick={fire event card-click with card = it} className="Card face-up [rank] [suit] ui button compact fluid [color]">
+			{its short rank + " "}
+			<span className="suit">{its short suit}</span>
+		</div>
+	- to "draw its back":
+		<div onClick={fire event card-click with card = it} className="Card face-down [rank] [suit] ui button compact fluid"><i className="fitted bicycle icon"/></div>
+
+## actions -- the sentence style, beside the outline
+
+// Turn card face up or face down
+// Note that this will animate if you `wait for turn the card face up`
+to turn a card face up:
+	set its direction to up
+	pause for 50 msec
+to turn a card face down:
+	set its direction to down
+	pause for 50 msec
+
+// Flip card to opposite direction
+// Note that this will animate if you `wait for turn the card face up`
+to turn a card over:
+	if its direction is up: turn it face down
+	otherwise: turn it face up
+	pause for 50 msec
+
+## create a card instance with default properties
+to test card setup
+	the card is a new card whose rank is queen, suit is spades and direction is up
+	echo the card
+	expect the rank of the card to be queen
+	expect the suit of the card to be spades
+	expect the name of the card to be "queen-of-spades"
+	expect the color of the card to be black
+	expect the value of the card to be 12
+	expect the short suit of the card to be "♠️"
+	expect the short rank of the card to be "Q"
+	expect the short name of the card to be "Q♠️"
+
+	expect the card is face up to be yes
+	expect the card is face down to be no
+
+	expect the card is a face card to be yes
+	expect the card is not a face card to be false
+
+	expect the card is a spade to be true
+	expect the card is a club to be false
+
+	expect the card is a queen to be true
+	expect the card is an ace to be false
+	expect the card is a 2 to be false
+
+	expect the card is the queen of spades to be true
+	expect the card is the queen of clubs to be false
+	expect the card is not the 2 of diamonds to be true
+
+	turn the card face down
+	expect the direction of the card to be down
+
+	turn the card over
+	expect the card is face up to be true
+test card setup

@@ -56,6 +56,12 @@ export class Match<
   declare message: string | undefined
   /** Name of the `Choice` rule which selected this match, if any. */
   declare choiceRule: string | undefined
+  /**
+   * Priority this match competes with in a `Choice`, when not its rule's -- see `Choice.getBestMatch()`.
+   * - e.g. a statement its rule refused (spell's `SpellStatement.refuse()`):  the refusing rule's priority, so its
+   *   error beats a plainer rule which merely fits the same words.
+   */
+  declare priority: number | undefined
 
   /**
    * Create from `props` (plumbing fields set directly onto `this`).
@@ -182,9 +188,9 @@ export class Match<
    *   e.g. a fresh nested scope for re-parsing a statement's body -- see `BlockLine.reparseBody()`.
    */
   clone(overrides: Partial<MatchProps> = {}): Match<Groups, MatchData> {
-    const { scope, rule, tokens, matched, items, matchGroup, raw, value, message, choiceRule } = this
+    const { scope, rule, tokens, matched, items, matchGroup, raw, value, message, choiceRule, priority } = this
     const clone = new Match<Groups, MatchData>({
-      ...{ scope, rule, tokens, matched, items, matchGroup, raw, value, message, choiceRule },
+      ...{ scope, rule, tokens, matched, items, matchGroup, raw, value, message, choiceRule, priority },
       ...overrides
     })
     if (this._data) clone._data = { ...this._data }
@@ -407,4 +413,6 @@ export type MatchProps = {
   message?: string
   /** Name of the `Choice` rule which selected this match, if any. */
   choiceRule?: string
+  /** Priority this match competes with in a `Choice`, when not its rule's -- see `Match.priority`. */
+  priority?: number
 }

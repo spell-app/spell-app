@@ -68,8 +68,11 @@ export type SpellCore = typeof coreMethods &
 export type PropCheck = {
   /** type name, e.g. `text`, `choice`, `Card` -- see `spellCore.isOfType()` */
   type?: string
-  /** legal values, e.g. `Card.Suits` */
-  oneOf?: readonly unknown[]
+  /**
+   * legal values, e.g. `Card.Suits` -- or a function returning them, read when a value is set, e.g.
+   * `() => Deck.Suits`:  a value kind's list is on ANOTHER class, which may be defined after ours
+   */
+  oneOf?: readonly unknown[] | (() => readonly unknown[])
 }
 
 // ## Modules
