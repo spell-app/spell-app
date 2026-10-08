@@ -273,8 +273,13 @@ export const epicItemVocabulary = {
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
     { tag: "epic-question", max: 1, description: "A question's text as first asked, before the rest of its text." },
-    { tag: "flow", description: "Its text:  the question as asked, the call and why, the details." },
-    { tag: "epic-choices", max: 1, description: "A question's option cards." },
+    {
+      tag: "flow",
+      description:
+        "Its text:  the question as asked, the call and why, the details;  with the prose elements (`flow`) " +
+        "among it:  option cards (`<epic-choices>`, a question's own last, on any kind:  P14), labelled blocks " +
+        '(`<epic-field label="Where">`), Net effect, code, asides, notes.'
+    },
     { tag: "epic-answer", max: 1, description: "An answered question's answer." },
     { tag: "epic-more", max: 1, description: "More Details, added after its text." },
     { tag: "epic-reply", description: "Replies, oldest first." },

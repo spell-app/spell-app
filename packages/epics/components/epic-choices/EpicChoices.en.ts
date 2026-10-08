@@ -8,7 +8,7 @@ import type { EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `<epic-choices>`
- * A question's option cards.
+ * Option cards:  a question's, or the options any item's prose weighs (a call's, a reply's).
  ****************/
 export const epicChoicesVocabulary = {
   tag: "epic-choices",
@@ -17,8 +17,9 @@ export const epicChoicesVocabulary = {
   noun: "choices",
   ui: false,
   description:
-    "A question's option cards, `<epic-option>`s:  side by side while the question is open, each with a Choose " +
-    "pill while the page is reviewed;  folded under Choices once it's answered, the chosen one marked.",
+    "Option cards, `<epic-option>`s:  side by side while open, each with a Choose pill while the page is reviewed;  " +
+    "folded under Choices once answered, the chosen one marked.  Wherever prose goes (`flow`, P14):  a question's " +
+    "own, after its text, or the options any item weighs -- a judgement call's, a reply's, More Details'.",
   attributes: [
     {
       name: "chosen",
@@ -39,5 +40,6 @@ export const epicChoicesVocabulary = {
     { name: "open", description: "Answered, and its options unfolded." }
   ],
   texts: [{ key: "choices", text: "Choices", description: "The answered question's options' heading." }],
-  children: [{ tag: "epic-option", min: 1, description: "The options, `A`, `B` ..." }]
+  children: [{ tag: "epic-option", min: 1, description: "The options, `A`, `B` ..." }],
+  flow: true
 } as const satisfies EpicVocabulary

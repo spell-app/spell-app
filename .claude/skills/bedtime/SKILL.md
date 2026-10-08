@@ -96,12 +96,14 @@ Everything else stands:  `spell dev vscode` after each stage, the parser speed t
 2. Do the work and run its verify and the touched packages' checks (`yarn ts`, `yarn test`).
 3. JUDGEMENT CALL (a choice Owen might have made differently):  pick the option the plan and code best support,
    then record it, with the options and why:
-   - `add <name> judgement "<the call>" --details "<p>chose ... over ... because ...</p><ul><li>options ...</li>
-     </ul>"` -- it prints the id (`J4`):  the plan doc's "Judgement calls" section is where Owen finds them, open
-     until he reviews each.  A call that simply follows WWOD:  add `--calm` (last), so it shows yellow (open)
-     rather than red.  Then link it from the phase's body (hand-edited):
-     `<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j4">J4</a> ...</ui-item>` after Goal / Files /
-     Verify, one link per call.  Agents you start record theirs the same way (put the command in their prompt).
+   - `add <name> judgement "<the call>" --details "<p>chose ... over ... because ...</p><epic-choices>...
+     </epic-choices><epic-net-effect>...</epic-net-effect>"` -- it prints the id (`J4`):  the plan doc's "Judgement
+     calls" section is where Owen finds them, open until he reviews each.  The options it weighed:  an
+     `<epic-choices>` of `<epic-option letter title [recommended]>` (any item kind takes them), the outcome an
+     `<epic-net-effect>`, code an `<epic-code>` (`plan-doc.md`, "Prose").  A call that simply follows WWOD:  add
+     `--calm` (last), so it shows yellow (open) rather than red.  The phase's "To review" line lists it by itself
+     (the tool writes it on every edit:  never hand-write a "Judgement calls:" line).  Agents you start record theirs
+     the same way (put the command in their prompt).
 4. Checks fail and you can't fix them:
    - commit what's there as `WIP P<n>:  <name>`
    - `add <name> issue "P<n> WIP:  <what fails>" ...`:  red in the doc until Owen reviews it

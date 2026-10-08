@@ -18,6 +18,10 @@
   :host([hidden]) {
     display: none;
   }
+  /* a labelled block sits in prose:  a paragraph's spacing */
+  :host([label]:not([name])) {
+    margin: 8px 0;
+  }
   :host([name="files"]) {
     display: var(--epic-files-display, none);
   }
@@ -33,6 +37,10 @@
     grid-template-columns: 1.25em minmax(0, 1fr);
     column-gap: 8px;
     line-height: 1.55;
+  }
+  /* a labelled block in prose (`label`, P14):  no icon column */
+  .field.labelled {
+    grid-template-columns: minmax(0, 1fr);
   }
   .icon {
     display: inline-flex;
