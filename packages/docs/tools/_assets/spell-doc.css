@@ -1007,6 +1007,34 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 .spell-rail-icon > b {
   font: 700 0.78rem var(--spell-sans);
 }
+/*
+ * an item's number (`Q3` shows 3):  a round badge, its colour the item's state (`data-state` on the entry, from its
+ * section):  red needs an answer, green answered, orange asked for more;  no state:  plain
+ */
+.spell-rail-icon > b.spell-rail-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border-radius: 11px;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  background: var(--spell-rail-hover);
+}
+.spell-rail-item[data-state] .spell-rail-number {
+  color: #fff;
+}
+.spell-rail-item[data-state="attention"] .spell-rail-number {
+  background: var(--ui-red, #db2828);
+}
+.spell-rail-item[data-state="done"] .spell-rail-number {
+  background: var(--ui-green, #21ba45);
+}
+.spell-rail-item[data-state="working"] .spell-rail-number {
+  background: var(--ui-orange, #f2711c);
+}
 /* the count:  hidden in the strip (the bar says it), an orange pill at the entry's right end once widened */
 .spell-rail-count {
   display: none;

@@ -25,6 +25,10 @@
   const CLAMP = 150
 
   for (const question of questions) buildQuestion(question)
+  // controls report `selected` only once drawn:  a frame after their definition
+  void Promise.all(["ui-radio", "ui-checkbox"].map((tag) => customElements.whenDefined(tag))).then(() =>
+    requestAnimationFrame(() => questions.forEach(markState))
+  )
   const send = buildSend()
   void clampCards()
   const status = document.querySelector("[data-details-status]")
@@ -60,6 +64,24 @@
       fluid: ""
     })
     question.append(other)
+    markState(question)
+    for (const type of ["click", "ui-change", "input"])
+      question.addEventListener(type, () => queueMicrotask(() => markState(question)))
+  }
+
+  /**
+   * `question`'s state, as `data-state` on it and on its rail entry (the runtime copies it when it builds the rail):
+   * - `working` (orange):  Claude has more to do:  "Provide more details" asked on a card, or only Other written
+   * - `done` (green):  a card picked
+   * - `attention` (red):  nothing yet
+   */
+  function markState(question) {
+    const picked = [...question.querySelectorAll("ui-radio, ui-checkbox")].some((control) => control.selected)
+    const other = String(question.querySelector(".spell-other")?.value ?? "").trim()
+    const more = question.querySelector(".spell-option-card[data-more]")
+    const state = more || (other && !picked) ? "working" : picked ? "done" : "attention"
+    question.dataset.state = state
+    document.querySelector(`nav.spell-rail [data-rail="${CSS.escape(question.id)}"]`)?.setAttribute("data-state", state)
   }
 
   /**
@@ -347,6 +369,7 @@
       }
     }
     send.notes.value = answer.notes ?? ""
+    for (const question of questions) markState(question)
     send.summary.replaceChildren(...summarize(answer))
     lock(true)
   }
