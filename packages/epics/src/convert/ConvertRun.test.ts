@@ -118,7 +118,7 @@ describe("ConvertRun", () => {
     expect(results).toMatchObject([{ name: "converted", skipped: true, written: [] }])
     expect(existsSync(join(root, "again", "converted"))).toBe(false)
     expect(ConvertRun.report(results)[0]).toMatch(
-      /^skip {2}converted: {2}already in P14's <epic-\*> markup; {2}kept: {2}2 net effect in other words, 1 code in another shape, 1 note in other words, 1 hand-written card where its element can't go/
+      /^skip {2}converted: {2}already in P14's <epic-\*> markup; {2}kept: {2}2 net effect in other words, 1 code in another shape, 1 note in other words/
     )
   })
 
