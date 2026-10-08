@@ -270,6 +270,7 @@ export const epicItemVocabulary = {
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
+    { tag: "epic-question", max: 1, description: "A question's text as first asked, before the rest of its text." },
     { tag: "flow", description: "Its text:  the question as asked, the call and why, the details." },
     { tag: "epic-choices", max: 1, description: "A question's option cards." },
     { tag: "epic-answer", max: 1, description: "An answered question's answer." },

@@ -1,5 +1,5 @@
 /* GENERATED -- do not edit:  `spell dev pack build epics`, from every vocabulary, `<Name>.en.ts` */
-// sources:  fc6968c200fd96a5
+// sources:  29ac772ae20c2a9c
 
 import type { RootCatalogEntry } from "$/ui"
 
@@ -12,14 +12,18 @@ export const CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "epic-field": {"folder":"epic-phase"},
   "epic-item": {"folder":"epic-item"},
   "epic-more": {"folder":"epic-answer"},
+  "epic-net-effect": {"folder":"epic-net-effect"},
   "epic-option": {"folder":"epic-choices"},
   "epic-original": {"folder":"epic-original"},
   "epic-overview": {"folder":"epic-overview"},
   "epic-page": {"folder":"epic-page","skeleton":{"parts":[{"shape":"header"},{"shape":"paragraph","lines":4}]}},
   "epic-phase": {"folder":"epic-phase"},
+  "epic-prompt": {"folder":"epic-prompt"},
+  "epic-question": {"folder":"epic-question"},
   "epic-reply": {"folder":"epic-answer"},
   "epic-section": {"folder":"epic-section"},
   "epic-status": {"folder":"epic-status"},
+  "epic-summary": {"folder":"epic-summary"},
   "epic-update": {"folder":"epic-update"},
   "epic-updated": {"folder":"epic-phase"},
   "epic-version": {"folder":"epic-original"}

@@ -1,0 +1,38 @@
+/*
+ * `<epic-net-effect>` (`EpicNetEffect.tsx`):  the `Net effect (A):` label over its list, in the text's own size and
+ * ink -- neutral, no colour of its own (Q20).
+ * - Its margins are a paragraph's, small:  they collapse into the bigger ones around it, and a parent's
+ *   `::slotted(:first-child)` / `(:last-child)` rules (the outer tree) still win over `:host`.
+ */
+
+@layer ui.components.epic-net-effect.types, ui.components.epic-net-effect.content;
+
+@layer ui.components.epic-net-effect.types {
+  :host {
+    display: block;
+    margin-block: 0.35em;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}
+
+@layer ui.components.epic-net-effect.content {
+  .option {
+    font-weight: 400;
+  }
+  .recommended {
+    color: var(--epic-muted, var(--ui-text-muted));
+  }
+
+  /* ## The list:  close under its label */
+  ::slotted(:is(p, ul, ol)) {
+    margin-block: 0.2em;
+  }
+  ::slotted(:is(ul, ol)) {
+    padding-inline-start: 1.3em;
+  }
+  ::slotted(:last-child) {
+    margin-bottom: 0;
+  }
+}

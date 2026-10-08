@@ -48,16 +48,30 @@ export const epicOverviewVocabulary = {
   ],
   events: [...FOLD_EVENTS],
   slots: [
-    { name: "", description: 'The sub-sections:  `<epic-section kind="overview-part">`s.' },
-    { name: "summary", description: 'The summary, two sentences:  `<p slot="summary">`.' },
+    {
+      name: "",
+      description:
+        "The summary (`<epic-summary>`), the Kickoff prompt (`<epic-prompt>`), then the sub-sections " +
+        '(`<epic-section kind="overview-part">`s).'
+    },
+    {
+      name: "summary",
+      description: 'The summary in older docs:  `<p slot="summary">`;  `<epic-summary>` since P14.'
+    },
     {
       name: "prompt",
-      description: 'The prompt that started the plan, as typed:  `<blockquote slot="prompt">`;  drawn folded.'
+      description:
+        'The prompt in older docs:  `<blockquote slot="prompt">`, drawn folded;  `<epic-prompt>` since P14, which ' +
+        "folds itself."
     }
   ],
   parts: [
     ...FOLD_PARTS,
-    { name: "prompt", description: "The folded Kickoff prompt:  a `<details>` around the `prompt` slot." },
+    {
+      name: "prompt",
+      description:
+        "An older doc's folded Kickoff prompt:  a `<details>` around the `prompt` slot (`<epic-prompt>` draws its own)."
+    },
     { name: "estimate", description: "The estimate line." }
   ],
   states: [...FOLD_STATES],
@@ -68,8 +82,10 @@ export const epicOverviewVocabulary = {
     { key: "estimate", text: "Estimate:", description: "Before the estimate." }
   ],
   children: [
-    { tag: "flow", slot: "summary", max: 1, description: "The summary." },
-    { tag: "flow", slot: "prompt", max: 1, description: "The kickoff prompt." },
+    { tag: "flow", slot: "summary", max: 1, description: "The summary, in older docs." },
+    { tag: "flow", slot: "prompt", max: 1, description: "The kickoff prompt, in older docs." },
+    { tag: "epic-summary", max: 1, description: "The summary, two sentences." },
+    { tag: "epic-prompt", max: 1, description: "The kickoff prompt, as typed." },
     { tag: "flow", description: "Prose before the sub-sections (older docs)." },
     {
       tag: "epic-section",

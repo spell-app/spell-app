@@ -94,6 +94,27 @@ describe("Definitions.all", () => {
     }
   })
 
+  test("the prose elements' places (P14):  Net effect is `flow`;  question, summary and prompt are listed, ONCE each", () => {
+    /** The child specs of `parent` naming `tag`, as `tag:max`. */
+    const placesOf = (parent: EpicTag, tag: EpicTag) =>
+      Definitions.of(parent)!
+        .children.filter((spec) => spec.tag === tag)
+        .map((spec) => `${spec.tag}:${spec.max}`)
+    expect(Definitions.all["epic-net-effect"].flow).toBe(true)
+    expect(Definitions.tags.filter((tag) => Definitions.of(tag)!.flow)).toEqual(["epic-update", "epic-net-effect"])
+    expect({
+      item: placesOf("epic-item", "epic-question"),
+      version: placesOf("epic-version", "epic-question"),
+      summary: placesOf("epic-overview", "epic-summary"),
+      prompt: placesOf("epic-overview", "epic-prompt")
+    }).toEqual({
+      item: ["epic-question:1"],
+      version: ["epic-question:1"],
+      summary: ["epic-summary:1"],
+      prompt: ["epic-prompt:1"]
+    })
+  })
+
   test("`<epic-section kind>` is `SectionIds`' kinds plus `overview-part`;  `ItemLetters` names only those", () => {
     expect(attributeNamed("epic-section", "kind")!.values).toEqual([OVERVIEW_PART, ...Object.keys(SectionIds)])
     for (const kind of Object.keys(ItemLetters)) expect(Object.keys(SectionIds)).toContain(kind)
