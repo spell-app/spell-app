@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url"
 import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test"
 
 import { PlanDoc } from "./PlanDoc"
-import { PlanDocCommands } from "./PlanDocCommands"
+import { PlanDocCommands, movedDown } from "./PlanDocCommands"
 import { PlanDocFiles } from "./PlanDocFiles"
 
 /** The tool's test fixtures:  `epic-plan.html`, a fresh doc in `<epic-*>` markup. */
@@ -58,7 +58,8 @@ describe("PlanDocCommands add-phase --before", () => {
     expect(plan.phases.map((phase) => `${phase.n} ${phase.name}`)).toEqual(["1 One", "2 Inserted", "3 Two", "4 Three"])
     const last = Array.from(plan.document.querySelectorAll("#log > epic-event")).at(-1)!
     // whitespace squeezed:  the written page's formatter folds the double spaces
-    expect(last.textContent!.replace(/\s+/g, " ")).toBe("P2 added: Inserted; P2-P3 moved down one")
+    expect(last.textContent!.replace(/\s+/g, " ")).toBe("P2 added: Inserted; P2-P3 moved down to P3-P4")
+    expect(movedDown(plan.phases, 3)).toBe("P3 · Three moved down to P4")
     // every old name taken by the phase that moved onto it:  nothing stale
     expect(
       readdirSync(parts)
