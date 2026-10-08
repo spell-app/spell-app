@@ -3425,6 +3425,17 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   }
 }
 
+/**
+ * What an insert before phase `added` moved, for the log, by their old numbers and new:
+ * `P6 · Doc Review moved down to P7`, or `P5-P6 moved down to P6-P7` for several (I6 of `skillz`).
+ */
+export function movedDown(phases, added) {
+  const moved = phases.filter((phase) => phase.n > added)
+  if (moved.length === 1) return `P${added} · ${moved[0].name} moved down to P${added + 1}`
+  const last = moved.at(-1).n
+  return `P${added}-P${last - 1} moved down to P${added + 1}-P${last}`
+}
+
 /** Run one command;  may return a promise (`phase` and `open` show the doc in VS Code). */
 async function main(argv) {
   const { positional, flags } = parseArgs(argv)
@@ -3445,7 +3456,7 @@ async function main(argv) {
     case "add-phase": {
       const n = await edit(file, (plan) => {
         const added = plan.addPhase(need(rest[0], "a short name"), flags)
-        const moved = flags.before === undefined ? "" : `;  P${added}-P${plan.phases.length - 1} moved down one`
+        const moved = flags.before === undefined ? "" : `;  ${movedDown(plan.phases, added)}`
         plan.log(`P${added} added:  ${rest[0]}${moved}`)
         return added
       })

@@ -9,6 +9,7 @@ import {
   PlanDocError,
   githubBase,
   isoTime,
+  movedDown,
   parseCommitSubject,
   parseDuration,
   pickAsks,
@@ -120,6 +121,9 @@ describe("PlanDoc phases", () => {
     expect([link.getAttribute("href"), link.textContent]).toEqual(["#p4", "P4 · Three"])
     expect(plan.document.getElementById(item).getAttribute("data-phase")).toBe("4")
     expect(plan.check()).toEqual([])
+    // the log line:  what moved, old numbers to new (I6 of `skillz`)
+    expect(movedDown(plan.phases, 2)).toBe("P2-P3 moved down to P3-P4")
+    expect(movedDown(plan.phases, 3)).toBe("P3 · Three moved down to P4")
   })
 
   it("--before refuses a started phase, or one that isn't there", () => {
