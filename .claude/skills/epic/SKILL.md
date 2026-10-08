@@ -170,6 +170,10 @@ bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  th
    2. Phases:  `P1 · Short Name`, 2-4 words each, so "start P2" is unambiguous;  each with goal, files, verify,
       estimate (wall-clock for Claude, agents included, review not:  `30m`, `2h`, `1-2h`).  The LAST phase is
       always `Doc Review`.
+      - Its goal names the text pass ("6. Doc Review"):
+        - `/fussbudget branch` and `/fussbudget epic <name>`:  the branch's text and the plan doc, rewritten
+        - the durable doc, written from the cleaned plan doc to the same rules
+        - `spell dev docs fuss --branch` last:  its misses fixed, or listed for Owen
    3. Overview:  the total estimate, then numbered sections (structure, code, flows):  what will become durable
       docs
    4. Caveats, issues, todos, decisions (what + why), open questions (the doc's ids:  `Q1` ...)
@@ -259,6 +263,17 @@ pruning.
 - Prune:  close stale items;  make the summary and Overview true to what was BUILT.
 - "To test":  every hand check the work needs before merging is there, each a step and what should happen;  list
   the open ones in the reply, as bullets.
+- The text pass (epic `skillz` P7;  `.claude/skills/fussbudget/SKILL.md`), in this order:
+  1. First, both named in full, so nothing asks:
+     - `/fussbudget branch`:  the text this branch changed, docstrings and comments
+     - `/fussbudget epic <name>`:  the plan doc's prose.  Plan-doc work, so the background `<name>-plan-doc`
+       agent runs it ("4. Fill the doc"), right after its pruning.
+     - Both rewrite in place, uncommitted:  the branch's diff waits for Owen in Source Control, before the
+       phase's commit.
+  2. Then the durable doc (below), written from the CLEANED plan doc, to the same rules:  WWOD §6 and
+     `agents/wwod/writing.md`.
+  3. Last, the checker:  `spell dev docs fuss --branch`, and `spell dev docs fuss <the durable doc's page>`
+     (shared content:  not in the branch's diff).  Its misses fixed, or listed for Owen in the reply.
 - Turn it into durable docs:  `spell dev docs new durable <page> --title "..."` (fixes asset paths for the depth):
   - one page:  `guides/<name>.html`;  several files (pages, experiments):
     `guides/<name>/<name>.html` (shared content too:  committed for you, like the plan doc)

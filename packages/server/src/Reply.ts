@@ -7,8 +7,8 @@ import { SRV } from "$/server"
 
 /**
  * The answer to one request:  the part of Express's `res` our handlers use, over node's `ServerResponse`.
- * - Express-shaped on purpose (`status().send()`, `set`, `type`, `json`, `sendFile`, `headersSent`), so the app's
- *   `api.ts` handlers moved over unchanged.
+ * - Express-shaped on purpose (`status().send()`, `set`, `type`, `json`, `sendFile`, `headersSent`),
+ *   so the app's `api.ts` handlers moved over unchanged.
  * - `send()` picks a content type only when none is set:  set one first (`type()` / `set()`) to override,
  *   e.g. `sendTextFile()` serves a `.spell` file as `text/plain`.
  */
@@ -38,8 +38,8 @@ export class Reply {
 
   /**
    * Set header `name` to `value`, or every header in `headers`;  chainable.
-   * - a text `Content-Type` without a charset gets `; charset=utf-8`, as Express's `res.set()` does:  `text/*`,
-   *   `application/json`, `application/javascript`
+   * - a text `Content-Type` without a charset gets `; charset=utf-8`, as Express's `res.set()` does:
+   *   `text/*`, `application/json`, `application/javascript`
    */
   set(name: string, value: OutgoingHttpHeader): this
   set(headers: Record<string, OutgoingHttpHeader>): this
@@ -99,8 +99,10 @@ export class Reply {
   /**
    * Stream the file at absolute `path`;  resolves when it's sent (or answered with an error).
    * - content type from the extension, unless one is set
-   * - `dotfiles`, as Express (`send`) without the option:  a name starting with `.` is 404 (`"ignore"`);
-   *   `"deny"` is 403, `"allow"` serves it.  Only the file's own name counts, not its folders.
+   * - `dotfiles`:  what a name starting with `.` gets (only the file's own name counts, not its folders)
+   *   - `"ignore"` (default, as Express's `send` without the option):  404
+   *   - `"deny"`:  403
+   *   - `"allow"`:  served
    * - missing file:  404 `Not found`, unless headers already went
    */
   async sendFile(path: string, { dotfiles = "ignore" }: SendFileOptions = {}): Promise<void> {

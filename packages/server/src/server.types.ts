@@ -30,7 +30,8 @@ export type Query = Record<string, string | string[]>
 
 /**
  * Rewrite an `.html` page on its way out, e.g. inject an import map or `window.SPELL_SERVER`.
- * - `path`:  the URL path asked for;  `file`:  the file on disk
+ * - `path`:  the URL path asked for
+ * - `file`:  the file on disk
  */
 export type HtmlTransform = (html: string, context: ServedFile) => string
 

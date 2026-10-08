@@ -22,8 +22,8 @@ export type RouteModule = {
  * - `live`:  `live.watch(dir)` to reload pages when files under `dir` change
  * - `web`:  the whole server, e.g. `web.files.html.push()` for an html hook
  * - `info`:  pid, port, root, branch ...
- * - `onListening`:  run `start` once the server listens -- `info.port` is set by then, e.g. to start a child process
- *   that needs the page server's port (`setup()` runs BEFORE it listens)
+ * - `onListening`:  run `start` once the server listens -- `info.port` is set by then
+ *   - e.g. to start a child process that needs the page server's port (`setup()` runs BEFORE it listens)
  * - `onStop`:  run `stop` when the server stops, e.g. to end a child process
  */
 export type RouteContext = {
@@ -46,18 +46,21 @@ export type PageServerSettings = {
 }
 
 /**
- * Spell UI's docs site, served at `/ui/`:  plain `.html` pages loading the bundle `_assets/site.js` (built by the page
- * server when stale, `spell dev bundles build ui-site`), in TWO halves (claude-design P6, 2026-10-05):
- * - `pages`:  the hand-written half, the checkout's `ui/`, a link into the shared content repo:  pages, `_parts/`,
- *   `examples/`, `images/`.  The `/` mount serves it at `/ui/` (`/worktrees/<w>/ui/` for a worktree's)
+ * Spell UI's docs site, served at `/ui/`:  plain `.html` pages loading the bundle `_assets/site.js`.
+ * In TWO halves (claude-design P6, 2026-10-05):  the hand-written pages, and the build they load.
+ * - the page server builds the bundle when it's stale (`spell dev bundles build ui-site`)
+ * - `pages`:  the hand-written half, the checkout's `ui/`, a link into the shared content repo
+ *   - holds the pages, `_parts/`, `examples/`, `images/`
+ *   - the `/` mount serves it at `/ui/` (`/worktrees/<w>/ui/` for a worktree's)
  * - `build`:  the built half, per branch, `packages/ui/site/`:  `_src/` and `_data/` committed, `_assets/` built
- * - `overlays`:  the build's folders laid over the pages (`StaticHandler.overlays`, `uiBuildPath()`):
- *   `/ui/_assets/site.js` is `packages/ui/site/_assets/site.js`, so every page's relative `_assets/...` and
- *   `_data/...` links resolve unchanged;  a file the build lacks falls through to the pages
- *   (`ui/_data/search.json`, built from the shared pages, is shared too)
+ * - `overlays`:  the build's folders laid over the pages (`StaticHandler.overlays`, `uiBuildPath()`)
+ *   - `/ui/_assets/site.js` is `packages/ui/site/_assets/site.js`,
+ *     so every page's relative `_assets/...` and `_data/...` links resolve unchanged
+ *   - a file the build lacks falls through to the pages
+ *     (`ui/_data/search.json`, built from the shared pages, is shared too)
  * - Static and live-reloading, like the docs:  no dev server behind it (was `astro dev`, proxied, until 2026-10-02)
- * - `ignore`:  the bundle's entry (`_src/`), which nothing serves, doesn't reload pages;  a rebuilt `_assets/` does
- *   (`yarn site:dev` rebuilds it on every source edit)
+ * - `ignore`:  a change to the bundle's entry (`_src/`), which nothing serves, doesn't reload pages
+ *   - a rebuilt `_assets/` does (`yarn site:dev` rebuilds it on every source edit)
  * - `_assets/` is NOT committed:  the page server builds it when it starts (`BundleBuild`, `BUNDLE_FOLDERS`)
  */
 export const UI_SITE = {
@@ -69,10 +72,11 @@ export const UI_SITE = {
 } as const
 
 /**
- * The bundles' folders, relative to the checkout:  built on demand, never committed (git-ignored), so the page server
- * builds the stale ones when it starts (`BundleBuild`), and a request for a file in one waits while that runs.
- * - SAME as `$/assembler` `BUNDLES`' `output`s:  the server is a leaf, so a copy;  `cli`'s
- *   `bundlesCommand.test.ts` compares the two
+ * The bundles' folders, relative to the checkout:  built on demand, never committed (git-ignored).
+ * - so the page server builds the stale ones when it starts (`BundleBuild`),
+ *   and a request for a file in one waits while that runs
+ * - SAME as `$/assembler` `BUNDLES`' `output`s:  the server is a leaf, so a copy
+ *   - `cli`'s `bundlesCommand.test.ts` compares the two
  */
 export const BUNDLE_FOLDERS = ["packages/ui/site/_assets", "packages/brand/_assets/ui"] as const
 
