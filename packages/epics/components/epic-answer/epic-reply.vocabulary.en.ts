@@ -18,17 +18,25 @@ export const epicReplyVocabulary = {
   noun: "reply",
   ui: false,
   description:
-    "A reply on an item, after its answer:  `<from> · <at> · re: <re>` is drawn;  the reply is its children.",
+    "A reply on an item, after its answer:  `<from> · re: <re>` is drawn, the date at the right;  the reply is its " +
+    "children.",
   attributes: [
     { name: "from", kind: "string", description: "Who wrote it (`Claude`, `Owen`)." },
-    { name: "at", kind: "string", format: "time", description: "When:  `2026-10-06 23:55`." },
+    {
+      name: "at",
+      kind: "string",
+      format: "time",
+      description: "When:  `2026-10-06 23:55`, drawn `10/6/26 23:55` (`PlanDates`)."
+    },
     { name: "re", kind: "string", description: "What it's about (`as built (Doc Review)`, `revisit soon`)." }
   ],
   events: [],
   slots: [{ name: "", description: "The reply." }],
   parts: [
     { name: "base", description: "The card:  Claude's violet, Owen's orange (`from`)." },
-    { name: "header", description: "Its heading band:  `<from> · <at> · re: <re>`." },
+    { name: "header", description: "Its heading band, a flex row:  `who` left, `date` right." },
+    { name: "who", description: "The heading's left:  `<from> · re: <re>`;  wraps within itself." },
+    { name: "date", description: "The heading's right:  `at`, `10/6/26 23:55`, on the top line;  never wraps." },
     { name: "body", description: "The reply;  not drawn when empty." }
   ],
   states: [],

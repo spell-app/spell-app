@@ -71,7 +71,7 @@ describe("<epic-page>", () => {
     expect(lines).toEqual([
       "Plan doc for /epic demo, branch demo",
       "Worktree: /w/demo",
-      "Started 2026-10-06, updated 2026-10-07",
+      "Started 10/6/26, updated 10/7/26",
       "Durable doc:"
     ])
     expect(host.querySelector('a[slot="durable"]')!.assignedSlot).not.toBeNull()

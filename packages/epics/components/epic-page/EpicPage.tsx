@@ -3,6 +3,7 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { Cell, IconGlyph, proto, SlotContent, UIElement, UIT } from "$/ui/core"
 
+import { PlanDates } from "$/epics/dates"
 import { AgentsClient, NOBODY_LISTENING, isImmediate } from "$/epics/review"
 // the page's view of the review inbox, as an item's:  its file, not `epic-item`'s barrel (which would define it here)
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
@@ -408,11 +409,11 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
             {this.icon(this.icons.calendar)}
             <span>
               <Show when={this.attrs.started}>
-                {this.text("started")} <time>{this.attrs.started}</time>
+                {this.text("started")} <time datetime={this.attrs.started}>{PlanDates.format(this.attrs.started)}</time>
               </Show>
               <Show when={this.attrs.started && this.attrs.updated}>, </Show>
               <Show when={this.attrs.updated}>
-                {this.text("updated")} <time>{this.attrs.updated}</time>
+                {this.text("updated")} <time datetime={this.attrs.updated}>{PlanDates.format(this.attrs.updated)}</time>
               </Show>
             </span>
           </li>

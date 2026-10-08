@@ -62,7 +62,7 @@ describe("<epic-item>", () => {
     )
     expect([chip.textContent, chip.getAttribute("href")]).toEqual(["Q1", "#q1"])
     expect(title.textContent).toBe("Which colour names?")
-    expect(slotNames(host)).toEqual(["title", ""])
+    expect(slotNames(host)).toEqual(["title", "", "status"])
     expect(host.querySelector("p")!.assignedSlot!.getAttribute("name")).toBeNull()
     expect(chip.title).toBe("Needs attention · not reviewed yet")
     await expectAccessible(host)
@@ -88,7 +88,7 @@ describe("<epic-item>", () => {
     expect(states).toEqual(["item attention", "item old", "item open", "item old canceled"])
   })
 
-  test("the review label:  `to do` (queued), else `deferred`, else `reviewed MM-DD`;  none when unmarked", async () => {
+  test("the review label:  `to do` (queued), else `deferred`, else `reviewed 10/6/26`;  none when unmarked", async () => {
     const labels = []
     for (const marks of [`queued="2026-10-06" work="Skip it"`, `deferred="2026-10-05"`, `reviewed="2026-10-06"`, ""]) {
       const { review } = await item(`<epic-item id="j1" title="A" status="open" state="recent" ${marks}></epic-item>`)
@@ -96,8 +96,8 @@ describe("<epic-item>", () => {
     }
     expect(labels).toEqual([
       ["to do", "review todo", "Skip it"],
-      ["deferred", "review deferred", "deferred 2026-10-05"],
-      ["reviewed 10-06", "review recent", ""],
+      ["deferred", "review deferred", "deferred 10/5/26"],
+      ["reviewed 10/6/26", "review recent", ""],
       null
     ])
   })
@@ -161,13 +161,25 @@ describe("<epic-item>", () => {
     history.replaceState(null, "", location.pathname + location.search)
   })
 
+  test('Claude\'s status cards (`slot="status"`) show after its text;  a card alone is details to fold (P13)', async () => {
+    const card = `<epic-status slot="status" state="underway" at="2026-10-08 14:20"><p>On it</p></epic-status>`
+    const { host } = await item(`<epic-item id="j2" title="A" status="open">${card}<p>Text</p></epic-item>`)
+    const bare = await item(`<epic-item id="j3" title="B" status="open">${card}</epic-item>`)
+    const slots = Array.from(
+      host.shadowRoot!.querySelectorAll<HTMLSlotElement>("[part~='details'] slot"),
+      (slot) => slot.name
+    )
+    expect([slots, host.querySelector("epic-status")!.assignedSlot!.name]).toEqual([["", "status"], "status"])
+    expect(bare.host.shadowRoot!.querySelector("[part~='toggle']")).not.toBeNull()
+  })
+
   test("falls back to its line and details, unfolded, when its render throws", async () => {
     const { host } = await item(`<epic-item id="i1" title="Broken" status="open"><p>Still here</p></epic-item>`)
     await ElementFixture.breakRender(host)
     const root = host.shadowRoot!
     expect(host.matches(":state(errored)")).toBe(true)
     expect(root.querySelector("[part~='id']")!.textContent).toBe("I1")
-    expect(slotNames(host)).toEqual(["title", ""])
+    expect(slotNames(host)).toEqual(["title", "", "status"])
   })
 
   test("with commits, a git icon on its line (T17):  a click opens it and shows its own commits, again hides them", async () => {

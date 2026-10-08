@@ -14,6 +14,7 @@ import { epicFieldVocabulary } from "$/epics/components/epic-phase/epic-field.vo
 import { epicPhaseVocabulary } from "$/epics/components/epic-phase/epic-phase.vocabulary.en"
 import { epicUpdatedVocabulary } from "$/epics/components/epic-phase/epic-updated.vocabulary.en"
 import { epicSectionVocabulary } from "$/epics/components/epic-section/epic-section.vocabulary.en"
+import { epicStatusVocabulary } from "$/epics/components/epic-status/epic-status.vocabulary.en"
 import { epicUpdateVocabulary } from "$/epics/components/epic-update/epic-update.vocabulary.en"
 
 import { Formats, type EpicAttributeSpec, type EpicTag, type EpicVocabulary } from "./definitions.types"
@@ -42,6 +43,7 @@ export class Definitions {
     "epic-answer": epicAnswerVocabulary,
     "epic-more": epicMoreVocabulary,
     "epic-reply": epicReplyVocabulary,
+    "epic-status": epicStatusVocabulary,
     "epic-original": epicOriginalVocabulary,
     "epic-version": epicVersionVocabulary,
     "epic-commit": epicCommitVocabulary,

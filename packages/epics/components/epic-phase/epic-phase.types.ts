@@ -59,9 +59,6 @@ export const LINK_STATE = "data-spell-state"
 /** An item status that's closed:  its item, without a `state`, reads `old`. */
 export const CLOSED_STATUSES = ["decided", "done", "canceled"]
 
-/** An `at` time as shown:  `2026-10-06T14:30-04:00` => `2026-10-06 14:30`. */
-export const SHOWN_TIME = /^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?/
-
 /** Classes of the shadow markup. */
 export const FIELD = "field"
 export const ICON = "icon"

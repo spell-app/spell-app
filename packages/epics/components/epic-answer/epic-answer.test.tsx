@@ -53,17 +53,45 @@ describe("<epic-answer>", () => {
 })
 
 describe("<epic-reply>", () => {
-  test("headed `<from> · <at> · re: <re>`;  Owen's orange, anyone else's violet;  passes axe", async () => {
+  test("headed `<from> · re: <re>`, the date `10/6/26 23:55` at the right;  Owen's orange, anyone else's violet;  passes axe", async () => {
     const claude = await ElementFixture.render(
       `<epic-reply from="Claude" at="2026-10-06 23:55" re="as built"><p>Done</p></epic-reply>`
     )
     const owen = await ElementFixture.render(`<epic-reply from="Owen" at="2026-10-06 10:42"><p>Why?</p></epic-reply>`)
-    expect([part(claude, "header")!.textContent, part(owen, "header")!.textContent]).toEqual([
-      "Claude · 2026-10-06 23:55 · re: as built",
-      "Owen · 2026-10-06 10:42"
+    expect([claude, owen].map((host) => [part(host, "who")!.textContent, part(host, "date")!.textContent])).toEqual([
+      ["Claude · re: as built", "10/6/26 23:55"],
+      ["Owen", "10/6/26 10:42"]
     ])
+    expect(part(claude, "date")!.getAttribute("datetime")).toBe("2026-10-06 23:55")
     expect([part(claude, "base")!.className, part(owen, "base")!.className]).toEqual(["reply", "reply owen"])
     await expectAccessible(claude)
+  })
+
+  test("no `at`:  no date;  nothing to head it:  no band", async () => {
+    const undated = await ElementFixture.render(`<epic-reply from="Claude"><p>Done</p></epic-reply>`)
+    const bare = await ElementFixture.render(`<epic-reply><p>Done</p></epic-reply>`)
+    expect([part(undated, "date"), part(undated, "header")!.hidden, part(bare, "header")!.hidden]).toEqual([
+      null,
+      false,
+      true
+    ])
+  })
+
+  test("the date stays at the RIGHT of the TOP line, however long the heading, in the side bar's ~320px", async () => {
+    const re = "Hmm, can't we put this in JSON? And while we're at it, every pack template, the catalog and the docs"
+    const sideBar = await ElementFixture.render(
+      `<div style="width: 320px"><epic-reply from="Claude" at="2026-10-07 10:50" re="${re}"><p>Done</p></epic-reply></div>`
+    )
+    const host = sideBar.querySelector("epic-reply")!
+    const [header, who, date] = ["header", "who", "date"].map((name) => part(host, name)!.getBoundingClientRect())
+    // the heading wraps (several lines), the date doesn't:  one line, beside the heading's first
+    expect(who.height).toBeGreaterThan(date.height * 1.5)
+    expect(Math.abs(date.top - who.top)).toBeLessThan(4)
+    expect([date.right <= header.right, date.left >= who.right, part(host, "date")!.textContent]).toEqual([
+      true,
+      true,
+      "10/7/26 10:50"
+    ])
   })
 })
 

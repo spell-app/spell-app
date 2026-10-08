@@ -132,7 +132,7 @@ export const epicPageVocabulary = {
     { key: "noBranch", text: "no branch yet", description: "Meta line of a future epic." },
     { key: "worktree", text: "Worktree:", description: "Meta line:  before the worktree's folder." },
     { key: "noWorktree", text: "none yet", description: "Meta line:  no worktree." },
-    { key: "started", text: "Started", description: "Meta line:  `Started 2026-10-06, updated 2026-10-07`." },
+    { key: "started", text: "Started", description: "Meta line:  `Started 10/6/26, updated 10/7/26`." },
     { key: "updated", text: "updated", description: "Meta line:  before the last change's day." },
     { key: "durable", text: "Durable doc:", description: "Meta line:  before the durable doc's link." },
     { key: "done", text: "DONE", description: "Step label:  every phase is done." },
