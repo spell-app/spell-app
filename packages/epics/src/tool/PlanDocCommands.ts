@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, relative, resolve, sep } from "node:path"
 
-import { OPEN_KINDS, PlanDocError, REVIEW_SECTIONS, TITLE_PREFIX, type PlanSummary } from "./planDoc.types"
+import { OPEN_KINDS, PlanDocError, REVIEW_SECTIONS, TITLE_PREFIX, type Phase, type PlanSummary } from "./planDoc.types"
 
 import { EpicParts } from "./EpicParts"
 import { InboxCommands } from "./InboxCommands"
@@ -94,8 +94,7 @@ export class PlanDocCommands {
         const before = phaseNumberFlag(flags.before, "--before")
         const n = await this.edit(file, (plan) => {
           const added = plan.addPhase(need(rest[0], "a short name"), { ...flags, before })
-          // by their numbers before the move:  "P2 added:  X;  P2-P4 moved down one"
-          const moved = before === undefined ? "" : `;  P${added}-P${plan.phases.length - 1} moved down one`
+          const moved = before === undefined ? "" : `;  ${movedDown(plan.phases, added)}`
           plan.log(`P${added} added:  ${rest[0]}${moved}`)
           return added
         })
@@ -887,6 +886,17 @@ function phaseNumberFlag(value: string | true | undefined, flag: string): number
   if (!Number.isInteger(n))
     throw new PlanDocError(`${flag} needs a phase number${value === true ? "" : `, not "${value}"`}`)
   return n
+}
+
+/**
+ * What an insert before phase `added` moved, for the log, by their old numbers and new:
+ * `P6 · Doc Review moved down to P7`, or `P5-P6 moved down to P6-P7` for several (I6 of `skillz`).
+ */
+export function movedDown(phases: Phase[], added: number): string {
+  const moved = phases.filter((phase) => phase.n > added)
+  if (moved.length === 1) return `P${added} · ${moved[0]!.name} moved down to P${added + 1}`
+  const last = moved.at(-1)!.n
+  return `P${added}-P${last - 1} moved down to P${added + 1}-P${last}`
 }
 
 /** `kebab-name` -> `Kebab Name`. */

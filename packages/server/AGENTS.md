@@ -24,7 +24,9 @@ house style every package shares.  Only what's local is below;  a section named 
     `editPage()`);  `webSocket.ts` -- the server's half of one (node built-ins).  NEVER an `EventSource` or any
     other request held open:  each takes one of Chrome's 6 connections per host, and every VS Code window shares them
   - `Guard` -- `Host` check, per-run token, same-origin writes
-  - `PidFile` -- a background server's `<root>/.spell-server.json`:  status, ensure, stop
+  - `PidFile` -- a background server's `<root>/.spell-server.json`:  status, ensure, stop;  `ensure` restarts a
+    server that started before its code last changed (`sources`, `newestChange()`):  after a merge, the next opener
+    gets the new routes
   - `mainServer.ts` -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server
   - `proxy.ts` -- `proxyTo()` / `proxyUpgrade()`:  HTTP and websockets to another local server
   - `WebServer` -- all of the above on `node:http`

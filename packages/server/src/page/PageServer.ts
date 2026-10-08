@@ -155,17 +155,18 @@ export class PageServer {
    * - what `spell dev server ensure`, the goals tools and the openers call
    */
   static ensure(root: string, port = DEFAULT_PORT) {
+    // its code:  this package's, and its route modules' folders;  a server older than them restarts (I5 of `skillz`)
+    const routes = (settingsOf(root).routes ?? []).map((path) => dirname(join(root, path)))
     return new SRV.PidFile(root).ensure({
       command: [process.execPath, "--import", "tsx", CLI, "serve", "--root", resolve(root), "--port", String(port)],
-      env: { TSX_TSCONFIG_PATH: TSCONFIG }
+      env: { TSX_TSCONFIG_PATH: TSCONFIG },
+      sources: [SOURCE, ...new Set(routes)]
     })
   }
 
   /** the root `package.json`'s `"pageServer"` field */
   settings(): PageServerSettings {
-    const file = join(this.root, "package.json")
-    if (!existsSync(file)) return {}
-    return (JSON.parse(readFileSync(file, "utf8")) as { pageServer?: PageServerSettings }).pageServer ?? {}
+    return settingsOf(this.root)
   }
 
   /** import route module `path` (relative to the root) and run its `setup()`;  a failure is logged, not fatal */
@@ -188,8 +189,18 @@ export class PageServer {
   }
 }
 
+/** The `"pageServer"` field of the `package.json` at `root`;  `{}` without one. */
+function settingsOf(root: string): PageServerSettings {
+  const file = join(root, "package.json")
+  if (!existsSync(file)) return {}
+  return (JSON.parse(readFileSync(file, "utf8")) as { pageServer?: PageServerSettings }).pageServer ?? {}
+}
+
 /** `page/cli.ts`:  `spell dev server`. */
 const CLI = fileURLToPath(new URL("./cli.ts", import.meta.url))
+
+/** This package's `src/`:  the code a page server runs. */
+const SOURCE = fileURLToPath(new URL("..", import.meta.url))
 
 /** This package's `tsconfig.json`:  the alias table a background server needs. */
 const TSCONFIG = fileURLToPath(new URL("../../tsconfig.json", import.meta.url))
