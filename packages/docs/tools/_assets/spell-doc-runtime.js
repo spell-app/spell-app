@@ -24,8 +24,9 @@
  * - folding:  every section folds from a chevron on its title;  folds are remembered per page, and `collapsed`
  *   (`data-fold="closed"` on HEADINGS pages) starts one folded
  * - counts:  a top-level section holding `[data-status]` items (the Epics index's epic cards, the goals pages'
- *   items) shows open / all on its title, and the open count as a badge in the contents and the rail;  an epic card
- *   section also gets a round filter button stepping through the items' states (`wireItemFilters()`)
+ *   items) shows open / all on its title;  the contents and the rail show, in a red pill, how many NEED OWEN (none:
+ *   no pill;  `countItems()`);  an epic card section also gets a round filter button stepping through the items'
+ *   states (`wireItemFilters()`)
  * - scroll-follow:  the current section's (heading's) contents link is highlighted and its panels open;  panels the
  *   scroll opened close again, panels the USER opened stay open
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
@@ -160,7 +161,9 @@ async function start() {
   }
   const outline = outlineOf(main)
   const counts = countItems(outline)
+  // the goals pages (HEADINGS) get no filter, but their id chips are coloured by state too
   if (outline.sections) wireItemFilters(main)
+  else markItemStates(main)
   const builtToc = !document.getElementById("spell-toc")
   const toc = document.getElementById("spell-toc") ?? buildContents(main, outline, counts)
   const rail = toc ? buildRail(outline, counts) : undefined
@@ -924,13 +927,13 @@ async function rewire(page, changed) {
   dispatchEvent(new CustomEvent("spell-doc:updated", { detail: { changed } }))
 }
 
-/** What the contents and the rail are built from, as one string:  entries, labels, icons, open counts. */
+/** What the contents and the rail are built from, as one string:  entries, labels, icons, what needs Owen. */
 function contentsKey(outline, counts) {
   return JSON.stringify([outline.orphans.map(entry), outline.groups.map(entry)])
 
-  /** One entry and its children, with its group's open count. */
+  /** One entry and its children, with how many of its group's items need Owen. */
   function entry(node) {
-    return [node.id, node.label, node.icons, counts.get(node.element)?.open ?? 0, node.children.map(entry)]
+    return [node.id, node.label, node.icons, counts.get(node.element)?.attention ?? 0, node.children.map(entry)]
   }
 }
 
@@ -1142,7 +1145,7 @@ function titleOf(section) {
  * - every link carries `data-target` for scroll-follow
  * - an entry's `<ui-icon>`s (e.g. a plan phase's status) are copied in front of its label;  `ui-label` badges
  *   are left out
- * - a group with open items (`counts`) gets their number as a small accent pill after its link
+ * - a group with items that need Owen (`counts`, `attention`) gets their number as a small red pill after its link
  * - callable again (a page updated in place):  replaces the contents it built before, keeping the drawer open if
  *   it was;  then `wireContents()` again, and `followScroll()` with the new aside
  * - SIDE EFFECT:  inserts the aside after `main`
@@ -1172,10 +1175,10 @@ ${nodes(outline.orphans)}<ui-accordion class="spell-toc" exclusive="no">${pairs.
   main.after(toc)
   return toc
 
-  /** The pill of a group's open items, or "" when none are open. */
+  /** The pill of a group's items that need Owen, or "" when none do. */
   function badge(count) {
-    if (!count?.open) return ""
-    return `<span class="spell-toc-count" title="${count.open} open">${count.open}</span>`
+    if (!count?.attention) return ""
+    return `<span class="spell-toc-count" title="${needYou(count)}">${count.attention}</span>`
   }
 
   /**
@@ -1267,12 +1270,25 @@ function attr(value) {
 const CLOSED = new Set(["done", "decided", "canceled"])
 
 /**
+ * A plan doc's block's items that need Owen, when its `contentsEntry` count doesn't say:  its own items (`COUNTED`
+ * in `packages/epics`' `EpicSection.types.ts`) the plan-doc tool marked `attention`.
+ */
+const EPIC_ATTENTION = ':scope > epic-item[state="attention"], :scope > epic-phase[state="attention"]'
+
+/** A count pill's tooltip:  "2 need you", "1 needs you". */
+function needYou({ attention }) {
+  return `${attention} ${attention === 1 ? "needs" : "need"} you`
+}
+
+/**
  * Each top-level section's items -- `[data-status]` elements, not counting ones inside another -- as
- * `{ open, total }`, by the group's element (the `<ui-section>`, or the h2);  "open" is any status but `CLOSED`'s.
- * Sections without items are left out;  nested sections get no count of their own.
+ * `{ open, total, attention }`, by the group's element (the `<ui-section>`, or the h2);  "open" is any status but
+ * `CLOSED`'s, "attention" the items that need Owen (`stateOf()`:  the contents' and the rail's red pill, Q20 of epic
+ * `epic-components`).  Sections without items are left out;  nested sections get no count of their own.
  * - the Epics index's epic cards, the goals pages' items
  * - a plan doc's sections count themselves (`<epic-section>`, on their titles):  their count is read from their
- *   hosts' `contentsEntry`, never written
+ *   hosts' `contentsEntry`, never written;  its `attention` too, else the items' `state="attention"`
+ *   (`EPIC_ATTENTION`)
  * - SIDE EFFECT:  writes `open/total` on the section's title:  its `badge` (SECTIONS), or a `ui-label.spell-count`
  *   at the right of the h2 (HEADINGS);  callable again (it replaces both)
  */
@@ -1281,7 +1297,10 @@ function countItems(outline) {
   for (const { element } of outline.groups) {
     if (element.matches(EPIC_FOLDS)) {
       const count = element.contentsEntry?.count
-      if (count) counts.set(element, count)
+      if (count) {
+        const attention = count.attention ?? element.querySelectorAll(EPIC_ATTENTION).length
+        counts.set(element, { ...count, attention })
+      }
       continue
     }
     const section = outline.sections ? element : headingSection(element)
@@ -1289,7 +1308,8 @@ function countItems(outline) {
     const items = Array.from(section.querySelectorAll("[data-status]")).filter((item) => outermost(item, section))
     if (!items.length) continue
     const open = items.filter((item) => !CLOSED.has(item.dataset.status)).length
-    counts.set(element, { open, total: items.length })
+    const attention = items.filter((item) => stateOf(item) === "attention").length
+    counts.set(element, { open, total: items.length, attention })
     if (outline.sections) {
       element.setAttribute("badge", `${open}/${items.length}`)
       continue
@@ -1323,18 +1343,21 @@ function outermost(item, section) {
 ////////////////
 
 /**
- * Where an item stands, in the colors Owen reads at a glance (plan doc `review-review`, 1.4 "Item status colors"):
- * `[state, button color, tooltip words]`, in the item filter's order after "all".
- * - for the Epics index's epic cards (`.spell-epics`) and the goals pages' items (`.plan-items`, colored by
- *   `goals.css`);  a plan doc's items color and filter themselves (`<epic-item>`, `<epic-section>`)
+ * Where an item stands, in the colours Owen reads at a glance:  `[state, tooltip words]`, in the item filter's order
+ * after "all" (the plan docs' order, `<epic-section>`'s `FILTER_STATES`).
+ * - the colour scheme (Q20 of epic `epic-components`, 2026-10-08;  `templates/epics/plan-doc.md`, "Colours"):
+ *   attention red, progress blue (Claude is working on it), open yellow, recent green, old grey;  `spell-doc.css`'s
+ *   `--spell-state-*` tokens
+ * - for the Epics index's epic cards (`.spell-epics`) and the goals pages' items (`.plan-items`, coloured by
+ *   `goals.css`);  a plan doc's items colour and filter themselves (`<epic-item>`, `<epic-section>`)
  * - `data-state` when the page writes one;  else from the status (`stateOf()`)
  */
 const ITEM_STATES = [
-  ["progress", "orange", "in progress"],
-  ["attention", "red", "needs attention"],
-  ["open", "blue", "open, not urgent"],
-  ["recent", "green", "decided or reviewed recently"],
-  ["old", "grey", "decided or reviewed earlier"]
+  ["attention", "needs you"],
+  ["progress", "Claude is working on it"],
+  ["open", "open, still undecided"],
+  ["recent", "decided or reviewed recently"],
+  ["old", "decided or reviewed earlier"]
 ]
 
 /** The state names, for checking a `data-state`. */
@@ -1343,14 +1366,18 @@ const STATE_NAMES = new Set(ITEM_STATES.map(([state]) => state))
 /** The goals pages' items, and the index's epic cards:  what states and the filter apply to. */
 const STATE_ITEMS = ":is(.plan-items, .spell-epics) > [data-status]"
 
+/** The goals pages' items that wait on Owen while open:  their questions (`/goals` talks them through with him). */
+const ASKS_OWEN = '.plan-items[data-kind="question"] > *'
+
 /**
  * An item's state:  its `data-state`, else (the index's epic cards, the goals pages' items) from its status:
- * `done` / `decided` are `old`, anything else `open`.
+ * `done` / `decided` are `old`;  an open goals question (`ASKS_OWEN`) `attention`;  anything else `open`.
  */
 function stateOf(item) {
   const state = item.dataset.state
   if (STATE_NAMES.has(state)) return state
-  return CLOSED.has(item.dataset.status) ? "old" : "open"
+  if (CLOSED.has(item.dataset.status)) return "old"
+  return item.matches(ASKS_OWEN) ? "attention" : "open"
 }
 
 /**
@@ -1358,7 +1385,7 @@ function stateOf(item) {
  * "Needs your attention · not reviewed yet", "Decided or reviewed recently · reviewed 2026-10-03".
  */
 function stateTip(item) {
-  const words = ITEM_STATES.find(([state]) => state === item.dataset.spellState)?.[2] ?? ""
+  const words = ITEM_STATES.find(([state]) => state === item.dataset.spellState)?.[1] ?? ""
   const parts = [words.charAt(0).toUpperCase() + words.slice(1)]
   const { reviewed, deferred, queued, work, status } = item.dataset
   if (queued) parts.push(`to do:  ${work || "queued"}`)
@@ -1411,10 +1438,10 @@ function wireItemFilters(main) {
     group.className = "spell-item-filter"
     group.slot = "actions"
     group.dataset.spellAdded = ""
-    const all = stateButton("all", "grey", "")
+    const all = stateButton("all", "")
     all.innerHTML = `<ui-icon name="filter"></ui-icon>`
     group.append(all)
-    const buttons = present.map(([state, color, words]) => stateButton(state, color, words))
+    const buttons = present.map(([state, words]) => stateButton(state, words))
     group.append(...buttons)
     const notes = lists.map((list) => {
       const note = document.createElement("a")
@@ -1453,13 +1480,12 @@ function wireItemFilters(main) {
     }
   }
 
-  /** A round state button:  `state`, its UI `color`, its tooltip's `words`. */
-  function stateButton(state, color, words) {
+  /** A round state button:  `state` (`spell-doc.css` colours it by it), its tooltip's `words`. */
+  function stateButton(state, words) {
     const button = document.createElement("button")
     button.type = "button"
     button.className = "spell-state-toggle"
     button.dataset.state = state
-    button.dataset.color = color
     if (words) button.title = words
     return button
   }
@@ -1482,7 +1508,7 @@ function showItems({ section, lists, notes, all, buttons, present }, shown) {
   for (const button of buttons) {
     const on = showing.has(button.dataset.state)
     button.setAttribute("aria-pressed", String(on))
-    const words = ITEM_STATES.find(([state]) => state === button.dataset.state)?.[2] ?? ""
+    const words = ITEM_STATES.find(([state]) => state === button.dataset.state)?.[1] ?? ""
     button.title = `${on ? "Showing" : "Hiding"}:  ${words}`
   }
   const everything = showing.size >= present.length
@@ -1519,7 +1545,8 @@ function itemsOf(list) {
  * - a section's mark:  for an item (its label starts with an id, `Q3 · When?`), the id's number in a round badge,
  *   coloured by the section's `data-state` (`spell-doc.css`;  a details page's questions set it, `details.js`);
  *   else its own `<ui-icon>` (or `icon`), else its number (`2.`), else its first letter
- * - the section's open items (`counts`) sit on its icon's corner as a small pill, inside the strip
+ * - how many of the section's items need Owen (`counts`, `attention`):  a red bar on the entry, and a red pill once the
+ *   strip widens;  none:  neither
  * - every entry carries its section's label, shown when the rail widens (hover, keyboard focus:  CSS), so no
  *   tooltips
  * - plain elements (`<button>`, `<a>`), not `ui-*`:  the strip is the page's own chrome, every box styled here
@@ -1542,7 +1569,9 @@ function buildRail(outline, counts) {
         ? `<ui-icon name="${attr(glyph)}"></ui-icon>`
         : `<b>${text((label.match(/^\d+/) ?? [label.charAt(0)])[0])}</b>`
     const count = counts.get(element)
-    const badge = count?.open ? `<span class="spell-rail-count" title="${count.open} open">${count.open}</span>` : ""
+    const badge = count?.attention
+      ? `<span class="spell-rail-count" title="${needYou(count)}">${count.attention}</span>`
+      : ""
     const state = element.dataset.state ? ` data-state="${attr(element.dataset.state)}"` : ""
     return (
       `<a class="spell-rail-item" href="#${attr(id)}" data-rail="${attr(id)}"${state}>` +

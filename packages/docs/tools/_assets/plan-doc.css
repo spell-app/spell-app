@@ -134,13 +134,17 @@ body.plan-doc .spell-doc-main ui-section ui-section::part(title) {
 .plan-reply > :last-child {
   margin-bottom: 0;
 }
-/* Owen's own note, kept in the item once Claude took it:  the reply card's shape, in Revisit's orange */
+/*
+ * Owen's own note, kept in the item once Claude took it:  the reply card's shape, in IVORY, Owen's voice (the colour
+ * scheme, Q20 of epic `epic-components`:  it was Revisit's orange)
+ */
 .plan-reply.plan-reply-owen {
-  border-color: color-mix(in srgb, var(--ui-orange, #f2711c) 35%, transparent);
-  background: color-mix(in srgb, var(--ui-orange, #f2711c) 7%, var(--spell-bg));
+  border-color: var(--spell-rail-rule);
+  background: var(--spell-rail-fill);
 }
 .plan-reply.plan-reply-owen > .plan-reply-title {
-  background: color-mix(in srgb, var(--ui-orange, #f2711c) 14%, transparent);
+  background: var(--spell-rail-selected);
+  color: var(--spell-rail-ink);
 }
 .plan-reply-owen > p {
   white-space: pre-wrap;
