@@ -78,6 +78,12 @@ export const epicSectionVocabulary = {
         "The Phases section's Plan changes:  a copy of each `<epic-updated>` of a phase still to do " +
         '(`<epic-updated slot="changes" of="3" at="...">`), written by the plan-doc tool on every edit;  drawn as a ' +
         "box above the phases.  None:  no box."
+    },
+    {
+      name: "status",
+      description:
+        'An Overview sub-section\'s status cards from Claude (`<epic-status slot="status">`, P13):  at the end of ' +
+        "its body, above the note box."
     }
   ],
   parts: [
@@ -151,6 +157,12 @@ export const epicSectionVocabulary = {
       tag: "flow",
       when: { attribute: "kind", values: ["overview-part"] },
       description: "An Overview sub-section's prose."
+    },
+    {
+      tag: "epic-status",
+      slot: "status",
+      when: { attribute: "kind", values: ["overview-part"] },
+      description: "An Overview sub-section's status cards from Claude, oldest first (`plan-doc status`)."
     },
     { tag: "epic-phase", when: { attribute: "kind", values: ["phases"] }, description: "The phases, in order." },
     {

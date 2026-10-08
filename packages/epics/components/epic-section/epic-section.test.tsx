@@ -102,6 +102,19 @@ describe("<epic-section>", () => {
     expect(host.querySelector("p")!.assignedSlot).not.toBeNull()
   })
 
+  test("an Overview sub-section's status cards from Claude (P13) go to its `status` slot, after its prose", async () => {
+    const host = await render(
+      `<epic-section id="o2" kind="overview-part" title="Why" open>` +
+        `<epic-status slot="status" state="done" at="2026-10-08 14:20"><p>Said more</p></epic-status><p>Prose</p>` +
+        `</epic-section>`
+    )
+    const [prose, card] = [host.querySelector(":scope > p")!, host.querySelector("epic-status")!]
+    expect(card.assignedSlot!.name).toBe("status")
+    expect(
+      prose.assignedSlot!.compareDocumentPosition(card.assignedSlot!) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
+
   test("loads its `source` part into its LIGHT children the first time it opens, and fires `ui-load`", async () => {
     const host = await render(`<epic-section id="log" kind="log" source="${FIXTURES}/part.html"></epic-section>`)
     const loads: string[] = []

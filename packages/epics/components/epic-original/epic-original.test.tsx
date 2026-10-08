@@ -46,7 +46,7 @@ describe("<epic-version>", () => {
     )
     expect(
       Array.from(two.querySelectorAll("epic-version"), (version) => part(version, "heading")!.textContent)
-    ).toEqual(["As first written", "As of 2026-10-04 20:49"])
+    ).toEqual(["As first written", "As of 10/4/26 20:49"])
   })
 
   test("the first version gets its heading when a second arrives", async () => {

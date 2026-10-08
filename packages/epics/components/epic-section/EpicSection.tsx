@@ -6,7 +6,7 @@ import { Cell, IconGlyph, proto, SlotContent, UIT } from "$/ui/core"
 // the review controls, shared with `<epic-item>`:  its files, not its barrel (which would define `<epic-item>` here)
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "$/epics/components/epic-item/ReviewControls"
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
-import { OVERVIEW_BUTTONS, type ReviewTextKey } from "$/epics/components/epic-item/epic-item.types"
+import { OVERVIEW_BUTTONS, STATUS_SLOT, type ReviewTextKey } from "$/epics/components/epic-item/epic-item.types"
 
 import { epicSectionVocabulary } from "./epic-section.vocabulary.en"
 import { EpicSectionFallback } from "./epic-section.fallback"
@@ -61,7 +61,8 @@ import sectionCSS from "./epic-section.css?inline"
  * - An item section with no items says "None yet".
  * - An Overview sub-section is reviewed as an item is (decision Q14;  `ReviewControls.tsx`):  Make Todo, Revisit,
  *   Add Details Now in `tools` (no Approve:  Q14 asks for notes, not sign-off), its note box at the end of its body, a
- *   marked note at its top;  only while the page is reviewed.
+ *   marked note at its top;  only while the page is reviewed.  Claude's status cards (`slot="status"`, P13) just
+ *   above the note box.
  * - SIDE EFFECT:  observes its own children while connected (counted kinds only).
  ****************/
 export class EpicSection extends EpicFold<EpicSectionVocabulary> {
@@ -228,6 +229,10 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
             </p>
           </Show>
           <Show when={this.hidden().length}>{this.hiddenNote()}</Show>
+          {/* Claude's status cards (P13):  at the end of its body, above the note box */}
+          <Show when={kind === "overview-part"}>
+            <slot name={this.slot(STATUS_SLOT)} />
+          </Show>
           <Show when={kind === "overview-part" && this.reviewState.reviewing()}>{this.noteBox()}</Show>
         </>
       )

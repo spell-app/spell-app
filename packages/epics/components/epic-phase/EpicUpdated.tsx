@@ -3,8 +3,10 @@ import type { JSX } from "@solidjs/web"
 
 import { IconGlyph, proto, UIElement, UIT } from "$/ui/core"
 
+import { PlanDates } from "$/epics/dates"
+
 import { epicUpdatedVocabulary } from "./epic-updated.vocabulary.en"
-import { ICON, LABEL, SHOWN_TIME, TEXT, UPDATED, type EpicUpdatedVocabulary } from "./epic-phase.types"
+import { ICON, LABEL, TEXT, UPDATED, type EpicUpdatedVocabulary } from "./epic-phase.types"
 
 import fieldCSS from "./epic-field.css?inline"
 
@@ -22,12 +24,8 @@ export class EpicUpdated extends UIElement<EpicUpdatedVocabulary> {
   /** Its icon. */
   readonly glyph = new IconGlyph(this, () => "pen to square")
 
-  /** `at`, as shown:  `2026-10-06 14:30`. */
-  readonly time = createMemo(() => {
-    const at = this.attrs.at ?? ""
-    const match = SHOWN_TIME.exec(at)
-    return match ? [match[1], match[2]].filter(Boolean).join(" ") : at
-  })
+  /** `at`, as shown:  `10/6/26 14:30` (`PlanDates`). */
+  readonly time = createMemo(() => PlanDates.format(this.attrs.at))
 
   render(): JSX.Element {
     return (

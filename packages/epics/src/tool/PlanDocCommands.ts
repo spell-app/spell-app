@@ -23,7 +23,7 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
  * Used by the `/epic` skill and its agents.
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
  *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `check`, `open`, `convert`, `split`, `join`,
- *   `inbox`, `details`, `original` (`spell dev plan-doc` with no command lists them:  `USAGE`).
+ *   `inbox`, `details`, `status`, `original` (`spell dev plan-doc` with no command lists them:  `USAGE`).
  * - TWO markups until the switch (P12):  the commands that only READ (`summary`, `summaries`, `list`, `items`,
  *   `check`, `open`, `inbox` listings) read either (`PlanDocFiles.readAny()`);  every command that EDITS takes the
  *   `<epic-*>` markup only, and refuses an old doc before it writes anything:  `convert` it first
@@ -212,6 +212,8 @@ export class PlanDocCommands {
         return this.inbox.run(name, file, rest, flags)
       case "details":
         return this.details(name, file, rest, flags)
+      case "status":
+        return this.status(file, rest, flags)
       case "original":
         return this.original(file, rest, flags)
       default:
@@ -370,6 +372,32 @@ export class PlanDocCommands {
         `${id.toUpperCase()} ${flags.more ? "more details added" : flags.append ? "reply added" : "details rewritten"}`
       )
     })
+  }
+
+  /**
+   * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `done --filed "<what>"`:  Claude's status card
+   * on an item or an Overview sub-section (P13), and the page's spinner on it.
+   * - `underway`:  a new orange card (`PlanDoc.addStatus()`), stamped now;  the spinner on (`inbox working`), so
+   *   one call does both
+   * - `done`:  its latest underway card turns violet (`PlanDoc.finishStatus()`), the summary under its reading when
+   *   given;  the spinner off.  Refused on an item with no underway card
+   * - `done --filed`:  a card born done, saying what was filed (`inbox apply` writes these itself, Q19)
+   * - reading, summary:  HTML, as `updated` takes (plain text works as it is)
+   * - NOT logged:  the mark it answers already is (`inbox apply`, `details`)
+   */
+  private async status(file: string, [id, state, text]: string[], flags: Flags): Promise<void> {
+    need(id, "an item id")
+    const filed = flags.filed
+    if (filed === true) throw new PlanDocError(`--filed needs what was filed ("Chose B · Keep one file per template")`)
+    let title: string
+    if (state === "underway")
+      title = await this.edit(file, (plan) => plan.addStatus(id, need(text, "the reading (html)")))
+    else if (state === "done" && filed !== undefined)
+      title = await this.edit(file, (plan) => plan.addStatus(id, filed, { done: true }))
+    else if (state === "done") title = await this.edit(file, (plan) => plan.finishStatus(id, text))
+    else throw new PlanDocError(`status ${id} underway | done, not '${state ?? ""}'\n${USAGE}`)
+    this.inbox.setWorking(file, id, state === "underway")
+    this.print(`${id.toUpperCase()} ${state}:  ${title}`)
   }
 
   /** `original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]`:  earlier text into an item's Original Discussion. */
@@ -767,6 +795,14 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    replacing moves the old text into its Original Discussion;
                                                    --more (Add Details):  the text stays on top as "Original
                                                    Reply", the file's HTML in a "More Details" card under it
+  status <name> <id> underway "html"              Claude took Owen's mark on an item (or an Overview section):
+                                                   an orange "Claude • Underway" card with Claude's reading of
+                                                   the task (a sentence or two, no file names);  spinner on
+  status <name> <id> done ["html"]                 that card turns violet "Claude • Done", the reading kept, the
+                                                   summary under it when there's something worth saying;
+                                                   spinner off.  Refused with no underway card
+  status <name> <id> done --filed "html"           a card born done, saying what was filed (inbox apply writes
+                                                   these for picks and todos itself)
   original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]
                                                    put earlier text (from git) into an item's Original
                                                    Discussion:  as first written, or dated --as-of (when it was

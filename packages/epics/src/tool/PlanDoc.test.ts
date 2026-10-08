@@ -1116,6 +1116,148 @@ describe("PlanDoc review inbox", () => {
   })
 })
 
+describe("PlanDoc status cards (P13)", () => {
+  /** When the work lands:  14 minutes after `NOW`. */
+  const LATER = new Date(2026, 9, 1, 9, 19)
+
+  /** Options A and B, B recommended. */
+  const OPTIONS =
+    '<epic-choices><epic-option letter="A" title="Keep folds"><p>a</p></epic-option>' +
+    '<epic-option letter="B" title="Unfold it" recommended><p>b</p></epic-option></epic-choices>'
+
+  /** `element`'s status cards, as data plus their reading and summary text. */
+  function cards(element: Element) {
+    return Array.from(element.querySelectorAll(":scope > epic-status"), (card) => ({
+      ...Markup.read<"epic-status">(card),
+      slot: card.getAttribute("slot"),
+      reading: Array.from(card.querySelectorAll(":scope > :not([slot])"), (block) => block.outerHTML).join(""),
+      summary: Array.from(card.querySelectorAll(':scope > [slot="summary"]'), (block) => block.outerHTML).join("")
+    }))
+  }
+
+  test("underway:  a slotted orange card, stamped now, the reading in a <p>;  a later mark adds a second;  valid", () => {
+    const plan = freshPlan()
+    plan.addItem("judgement", "templates", { details: "<p>one file each</p>" })
+    expect(plan.addStatus("j1", "Weigh one JSON file against a file each, and answer here.")).toBe("templates")
+    plan.addStatus("J1", "Say which <code>.template</code> names change.")
+    expect(cards(el(plan, "j1"))).toEqual([
+      {
+        state: "underway",
+        at: "2026-10-01 09:05",
+        slot: "status",
+        reading: "<p>Weigh one JSON file against a file each, and answer here.</p>",
+        summary: ""
+      },
+      {
+        state: "underway",
+        at: "2026-10-01 09:05",
+        slot: "status",
+        reading: "<p>Say which <code>.template</code> names change.</p>",
+        summary: ""
+      }
+    ])
+    // slotted:  never in the item's text, nor in the way of its order
+    expect(kids(el(plan, "j1"))).toEqual(["p"])
+    expect(el(plan, "j1").getAttribute("changed")).toMatch(/^2026-10-01T09:05/)
+    expect(el(plan, "j1").querySelector('[slot="title"] > epic-update')).toBeNull()
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("done:  the LATEST underway card turns violet, `done-at` stamped, the reading kept, the summary slotted under it", () => {
+    const first = freshPlan()
+    first.addItem("issue", "it breaks")
+    first.addStatus("i1", "Find what breaks.")
+    first.addStatus("i1", "Fix it, with a test.")
+    const plan = PlanDoc.parse(first.toString(), LATER)
+    plan.finishStatus("i1", "Fixed;  <b>one</b> test skipped:  it needs a browser.")
+    plan.finishStatus("i1")
+    expect(cards(el(plan, "i1"))).toEqual([
+      {
+        state: "done",
+        at: "2026-10-01 09:05",
+        doneAt: "2026-10-01 09:19",
+        slot: "status",
+        reading: "<p>Find what breaks.</p>",
+        summary: ""
+      },
+      {
+        state: "done",
+        at: "2026-10-01 09:05",
+        doneAt: "2026-10-01 09:19",
+        slot: "status",
+        reading: "<p>Fix it, with a test.</p>",
+        summary: '<p slot="summary">Fixed;  <b>one</b> test skipped:  it needs a browser.</p>'
+      }
+    ])
+    expect(() => plan.finishStatus("i1")).toThrow(/I1 has no underway status card/)
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("born done (`done: true`):  `at` alone;  blocks stay blocks, inline runs between them in a <p>;  no text:  refused", () => {
+    const plan = freshPlan()
+    plan.addItem("caveat", "slow")
+    plan.addStatus("c1", "Noted:<ul><li>a &lt; b</li></ul>then more", { done: true })
+    expect(cards(el(plan, "c1"))).toEqual([
+      {
+        state: "done",
+        at: "2026-10-01 09:05",
+        slot: "status",
+        reading: "<p>Noted:</p><ul><li>a &lt; b</li></ul><p>then more</p>",
+        summary: ""
+      }
+    ])
+    expect(() => plan.addStatus("c1", "  ")).toThrow(/needs a reading/)
+    expect(() => plan.addStatus("z9", "x")).toThrow(PlanDocError)
+  })
+
+  test("an Overview sub-section takes cards too (Q14);  a rewrite of an item's details keeps its cards", () => {
+    const plan = freshPlan()
+    expect(plan.addStatus("o1", "Say more on parts.")).toBe("Structure")
+    plan.finishStatus("O1")
+    expect(cards(el(plan, "o1")).map((card) => card.state)).toEqual(["done"])
+    plan.addItem("issue", "it breaks", { details: "<p>what</p>" })
+    plan.addStatus("i1", "Rewrite it.")
+    plan.setDetails("i1", "<p>rewritten</p>")
+    expect([kids(el(plan, "i1")), cards(el(plan, "i1")).length]).toEqual([["p", "epic-original"], 1])
+    expect(el(plan, "i1").querySelector("epic-original")!.textContent).not.toContain("Rewrite it.")
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("inbox apply's marks (Q19):  a pick and a todo get a card born done, saying what was filed;  an approval none", () => {
+    const plan = freshPlan()
+    plan.addItem("question", "which?", { details: `<p>why</p>${OPTIONS}` })
+    plan.addItem("question", "and this?", { details: `<p>why</p>${OPTIONS}` })
+    plan.addItem("caveat", "slow")
+    plan.applyMark({ id: "q1", action: "pick", pick: "A" })
+    plan.applyMark({ id: "q2", action: "approve" })
+    plan.applyMark({ id: "c1", action: "todo", note: "check perf" })
+    plan.applyMark({ id: "o1", action: "todo" })
+    expect([el(plan, "q1"), el(plan, "c1"), el(plan, "o1")].map((element) => cards(element))).toEqual([
+      [{ state: "done", at: "2026-10-01 09:05", slot: "status", reading: "<p>Chose A · Keep folds</p>", summary: "" }],
+      [
+        {
+          state: "done",
+          at: "2026-10-01 09:05",
+          slot: "status",
+          reading: '<p>Made todo <a href="#t1">T1</a> to follow this up.</p>',
+          summary: ""
+        }
+      ],
+      [
+        {
+          state: "done",
+          at: "2026-10-01 09:05",
+          slot: "status",
+          reading: '<p>Made todo <a href="#t2">T2</a> to follow this up.</p>',
+          summary: ""
+        }
+      ]
+    ])
+    expect(cards(el(plan, "q2"))).toEqual([])
+    expect(problems(plan)).toEqual([])
+  })
+})
+
 describe("PlanDoc original discussion (I7)", () => {
   /** Options A and B, B recommended, after a paragraph with an id. */
   const CARDS =

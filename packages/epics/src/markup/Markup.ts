@@ -95,12 +95,14 @@ export class Markup {
    * `parent`.
    * - matched as `validate()` matches (`MarkupCheck.matches()`):  slotted children (a title) and blank text are never
    *   in the way;  blank text isn't placed
+   * - a SLOTTED `node` (`<epic-status slot="status">`) is never ordered:  at the end
    * - Not checked:  `validate()` checks children.
    */
   static place(parent: Element, node: Node): Element {
     if (isBlank(node)) return parent
     const vocabulary = Definitions.of(parent.localName)
-    if (!vocabulary || vocabulary.childOrder !== "listed") return this.append(parent, node)
+    const slotted = node.nodeType === 1 && (node as Element).hasAttribute("slot")
+    if (!vocabulary || vocabulary.childOrder !== "listed" || slotted) return this.append(parent, node)
     const specs = MarkupCheck.childSpecs(vocabulary, parent).filter((spec) => !spec.slot)
     const rank = (child: Node) => specs.findIndex((spec) => MarkupCheck.matches(spec, child))
     const own = rank(node)

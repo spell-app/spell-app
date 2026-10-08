@@ -29,6 +29,8 @@ house style every package shares.  Only what's local is below;  a section named 
   - `definitions/` -- the ONE description of every element:  `Definitions.all`, each vocabulary as data plus
     `children` (the content model).  Node-safe:  imports vocabulary files, never a family's barrel
   - `markup/` -- `Markup` (make, read, set, append) and `MarkupCheck` (validate a doc):  linkedom or the browser's DOM
+  - `dates/` -- `PlanDates`:  every date an element draws, `10/8/26 14:34` (`10/8/26` for a day), from whatever form
+    the doc holds;  NOT the log's (`<epic-event>`).  A time alone (`saved 14:42`):  `PlanDates.clock()`
   - `review/` -- `ReviewClient`, one per page:  the review inbox's reads and writes (`/api/review/*`), token
     refresh, polling, note-draft backups (the old runtime's localStorage keys).  Touches no browser global until
     `forPage()` / `watch()`.  `<epic-item>`'s and `<epic-section>`'s `ReviewControls` and `<epic-option>`'s Choose

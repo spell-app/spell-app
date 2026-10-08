@@ -41,6 +41,8 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
 - `<title>` reads `Epic: <title>`;  `<epic-page title>` holds the title alone and draws the h1, the meta lines, the
   step label (active phase, DONE, next, FUTURE), the bedtime label, the "Plan hung?" notice (while there's no phase)
   and a future epic's notice.  None of it is written.
+- Dates are WRITTEN as below (`2026-10-08 14:34`, `2026-10-08`, ISO with an offset) and DRAWN `10/8/26 14:34` /
+  `10/8/26` by every element (`$/epics/dates` `PlanDates`) but the log's `<epic-event>`:  never write the drawn form.
 - The page's data, on `<epic-page>`:
   - `branch`, `worktree`:  none for a future epic (`new --future`);  `new` on a future epic's doc, or its first
     phase, plans it (`future` goes)
@@ -109,7 +111,8 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 ```
 
 - The order is fixed:  the item's text (prose), Choices, the answer, More Details, replies, Original Discussion,
-  commits.  The element draws the chip (`Q3`, in its state's colour), the review label, "Original question" /
+  commits;  Claude's status cards (`<epic-status slot="status">`, "Status cards" below) are slotted, so at the end,
+  out of the order.  The element draws the chip (`Q3`, in its state's colour), the review label, "Original question" /
   "Original reply" over the text, and every card's heading.
 - `title`:  WITHOUT its id;  with markup, a `<span slot="title">` child instead.  An UPDATE marker rides in the title:
   `<span slot="title">Title <epic-update phase="2"></epic-update></span>`;  `phase 2 done` removes it, and a title
@@ -137,6 +140,42 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 - Owen's note, once Claude clears its mark:  `<epic-reply from="Owen" at="..." re="revisit soon">`.
 - An Overview sub-section takes review marks too (Q14):  approve is logged, todo makes a todo linking `#o3`, a
   kept note is a paragraph at its end.
+
+## Status cards
+
+What Claude took each of Owen's review marks to mean, and that it's done (P13):  a card per mark, on the item (or
+the Overview sub-section) it's on.
+
+```html
+<epic-status slot="status" state="underway" at="2026-10-08 14:20">
+  <p>Weigh one JSON file for the pack templates against a file each, and answer here.</p>
+</epic-status>
+<epic-status slot="status" state="done" at="2026-10-08 14:20" done-at="2026-10-08 14:34">
+  <p>Weigh one JSON file for the pack templates against a file each, and answer here.</p>
+  <p slot="summary">Recommended a file each:  JSON would need every template escaped.</p>
+</epic-status>
+<epic-status slot="status" state="done" at="2026-10-08 15:02"><p>Chose B · Keep one file per template</p></epic-status>
+```
+
+- Drawn:  `Claude • Underway` (orange) / `Claude • Done` (violet) on the left of the band, the date at its right
+  (`done-at` once done, else `at`);  then the reading;  then the summary, if any.
+- `slot="status"`:  never ordered (written last in the item, or the section);  drawn last in the details, UNDER Owen's
+  marked note and above the note box ("under my input", Owen, 2026-10-08).  A part file never holds them:  they stay
+  in the skeleton with the title.
+- The reading:  one or two sentences, plain words, no file names.  The summary (`slot="summary"`, one or more blocks):
+  only when there's something worth saying -- a surprise, a choice made, something left undone.
+- A later mark on the same item:  a new card after the old ones, which stay, as the record.
+- Written by the tool only:
+  - `status <name> <id> underway "<reading>"`:  a new underway card, stamped now;  the page's spinner on
+  - `status <name> <id> done ["<summary>"]`:  the LATEST underway card turns done (`done-at`), the reading kept;
+    spinner off;  refused with no underway card
+  - `status <name> <id> done --filed "<what>"`:  a card born done (`at` alone)
+  - `inbox apply`:  a card born done for each pick (`Chose B · <option>`) and todo (`Made todo T23 to follow this
+    up.`) it files (Q19);  none for an approval
+  - the reading and summary are HTML, as `updated` takes:  inline runs go in a `<p>`, blocks stay;  plain text works
+    as it is (`&lt;` for a `<`)
+- A rewrite of the item's text (`details --file`) leaves its cards where they are;  they never reach its Original
+  Discussion.
 
 ## Log
 

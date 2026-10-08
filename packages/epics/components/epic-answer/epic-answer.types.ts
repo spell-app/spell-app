@@ -22,11 +22,15 @@ export const OLD_DECISION = /^d\d+$/
 /** A reply Owen wrote (`from="Owen"`):  his note's orange, not Claude's violet. */
 export const FROM_OWEN = /^owen$/i
 
-/** Between the parts of a card's heading:  `Answer · Named palette`, `Claude · 2026-10-06 23:55 · re: ...`. */
+/** Between the parts of a card's heading:  `Answer · Named palette`, `Claude · re: ...`. */
 export const HEADING_SEPARATOR = " · "
 
 /** Class names inside the shadow roots. */
 export const HEADER = "header"
+/** a heading band with a date:  a flex row, `WHO` left, `DATE` pinned right on its top line */
+export const DATED = "dated"
+export const WHO = "who"
+export const DATE = "date"
 export const LABEL = "label"
 export const TITLE = "title"
 export const BODY = "body"

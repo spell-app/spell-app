@@ -758,11 +758,13 @@ export class PlanDoc extends PlanReader {
         const option = this.optionCards(item).find((card) => card.letter === pick)
         if (!option) return { applied: false, left: `no option ${pick}` }
         this.answerWith(item, option)
+        this.addStatus(item.id, `Chose ${option.letter} · ${PlanMarkup.text(option.title)}`, { done: true })
         return { applied: true, did: `picked ${option.letter}:  ${option.title}` }
       }
       case "todo": {
         const todo = this.followUp(item.id, kind, PlanItem.titleOf(item), note)
         this.review(item.id)
+        this.addStatus(item.id, filedTodo(todo), { done: true })
         return { applied: true, did: `to todo ${todo.toUpperCase()}` }
       }
       default:
@@ -807,12 +809,9 @@ export class PlanDoc extends PlanReader {
     this.markUpdate(item)
     return PlanItem.titleOf(item)
 
-    /** What a rewrite leaves:  the title slot, the answer, the Original Discussion, the commits. */
+    /** What a rewrite leaves:  slotted children (the title, status cards), the answer, Original Discussion, commits. */
     function isKept(node: Node): boolean {
-      return (
-        PlanMarkup.isElement(node) &&
-        (node.getAttribute("slot") === "title" || KEPT_ON_REWRITE.includes(node.localName))
-      )
+      return PlanMarkup.isElement(node) && (node.hasAttribute("slot") || KEPT_ON_REWRITE.includes(node.localName))
     }
   }
 
@@ -936,6 +935,82 @@ export class PlanDoc extends PlanReader {
     function merge(a: OriginalResult, b: OriginalResult): OriginalResult {
       return [a, b].includes("added") ? "added" : [a, b].includes("unchanged") ? "unchanged" : "empty"
     }
+  }
+
+  ////////////////
+  // ## Status cards
+  ////////////////
+
+  /**
+   * Claude took Owen's mark on item `id` (or an Overview sub-section, `o3`):  a new status card saying what it took
+   * the task to be (`reading`, HTML);  returns its title (P13).
+   * - `<epic-status slot="status" state="underway" at="2026-10-08 14:20"><p>reading</p></epic-status>`, after its
+   *   other status cards:  a later mark adds a new card, the old ones stay
+   * - `done`:  a card born done (`state="done"`, `at` alone):  a pick or a todo `inbox apply` filed (Q19)
+   * - `reading`:  inline HTML (wrapped in a `<p>`) or blocks (`<p>`, `<ul>` ...);  plain text goes as it is (`&lt;`
+   *   for a `<`)
+   * - slotted, so never ordered (`Markup.place()`):  appended;  drawn under Owen's marked note, above the note box
+   * - an item is stamped (`changed`), not flagged UPDATE:  a record of a mark, not a change to the item
+   * - throws for an id the doc doesn't have, or a reading with no text
+   */
+  addStatus(id: string, reading: string, { done = false }: { done?: boolean } = {}): string {
+    const host = this.statusHost(id)
+    const blocks = this.statusBlocks(reading)
+    if (!blocks.length) throw new PlanDocError(`${id.toUpperCase()}:  a status card needs a reading`)
+    const at = PlanTime.clockTime(this.now)
+    const card = this.make("epic-status", { state: done ? "done" : "underway", at }, blocks)
+    card.setAttribute("slot", STATUS_SLOT)
+    Markup.place(host, card)
+    if (host.localName === "epic-item") this.stamp(host)
+    return PlanItem.titleOf(host)
+  }
+
+  /**
+   * Item `id`'s work is done (or an Overview sub-section's):  its LATEST underway status card turns done, stamped
+   * `done-at`, its reading kept;  `summary` (HTML, as `addStatus()`'s reading) goes under it, `slot="summary"`, when
+   * there's something worth saying.  Returns its title.
+   * - throws when it has no underway card:  `addStatus()` first, or `{ done: true }` for a card born done
+   */
+  finishStatus(id: string, summary?: string): string {
+    const host = this.statusHost(id)
+    const card = Array.from(host.querySelectorAll(':scope > epic-status[state="underway"]')).at(-1)
+    if (!card)
+      throw new PlanDocError(
+        `${id.toUpperCase()} has no underway status card:  \`status <name> ${id} underway "<reading>"\` first ` +
+          `(or \`done --filed "<what was filed>"\` for a card born done)`
+      )
+    Markup.set<"epic-status">(card, { state: "done", doneAt: PlanTime.clockTime(this.now) })
+    for (const block of this.statusBlocks(summary ?? "")) {
+      block.setAttribute("slot", SUMMARY_SLOT)
+      card.append(block)
+    }
+    if (host.localName === "epic-item") this.stamp(host)
+    return PlanItem.titleOf(host)
+  }
+
+  /** What takes status cards:  the Overview sub-section `id` names, else its item;  throws when there's neither. */
+  private statusHost(id: string): Element {
+    return this.overviewPart(id) ?? this.item(id)
+  }
+
+  /**
+   * `html` (a status card's reading or summary) as block elements of this doc:  blocks (`<p>`, `<ul>` ...) as they
+   * are, each run of inline content between them in a `<p>`.  None for blank `html`.
+   */
+  private statusBlocks(html: string): Element[] {
+    const blocks: Element[] = []
+    let paragraph: Element | undefined
+    for (const node of this.incoming(html, { cards: false })) {
+      if (PlanMarkup.isElement(node) && STATUS_BLOCKS.test(node.localName)) {
+        blocks.push(node)
+        paragraph = undefined
+      } else if (!PlanMarkup.isBlank(node) || paragraph) {
+        if (!paragraph) blocks.push((paragraph = this.document.createElement("p")))
+        paragraph.append(node)
+      }
+    }
+    for (const block of blocks) PlanMarkup.trimWhitespace(block)
+    return blocks
   }
 
   ////////////////
@@ -1267,11 +1342,11 @@ export class PlanDoc extends PlanReader {
     switch (action) {
       case "approve":
         return { applied: true, did: "approved" }
-      case "todo":
-        return {
-          applied: true,
-          did: `to todo ${this.followUp(part.id, "overview section", PlanItem.titleOf(part), note).toUpperCase()}`
-        }
+      case "todo": {
+        const todo = this.followUp(part.id, "overview section", PlanItem.titleOf(part), note)
+        this.addStatus(part.id, filedTodo(todo), { done: true })
+        return { applied: true, did: `to todo ${todo.toUpperCase()}` }
+      }
       case "pick":
         return { applied: false, left: `an Overview section:  can't pick ${pick}` }
       default:
@@ -1316,8 +1391,22 @@ export class PlanDoc extends PlanReader {
   }
 }
 
-/** What a rewrite of an item's details (`PlanDoc.setDetails()`) leaves where it is. */
+/** What a rewrite of an item's details (`PlanDoc.setDetails()`) leaves where it is, slotted children aside. */
 const KEPT_ON_REWRITE = ["epic-answer", "epic-original", "epic-commit"]
+
+/** The slot of Claude's status cards on an item or an Overview sub-section (`<epic-status slot="status">`). */
+const STATUS_SLOT = "status"
+
+/** The slot of a status card's summary, under its reading (`<p slot="summary">`). */
+const SUMMARY_SLOT = "summary"
+
+/** Tags that stand as blocks in a status card's reading or summary;  anything else is inline, wrapped in a `<p>`. */
+const STATUS_BLOCKS = /^(p|ul|ol|dl|div|blockquote|pre|table)$/
+
+/** A Done card's reading for a todo `inbox apply` filed (Q19):  `Made todo T23 to follow this up.`, linked. */
+function filedTodo(todo: string): string {
+  return `Made todo <a href="#${todo}">${todo.toUpperCase()}</a> to follow this up.`
+}
 
 /** The Phases section's slot for its Plan changes copies (`PlanDoc.writePlanChanges()`). */
 const PLAN_CHANGES_SLOT = "changes"
