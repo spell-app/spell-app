@@ -122,76 +122,58 @@
   margin: 0.25em 0 1em;
 }
 
+/* the notes, after the last question:  anything, any time */
+.spell-notes-block {
+  margin: 1.5em 0 1em;
+}
 .spell-notes {
   display: block;
-  margin-bottom: 0.75em;
 }
 
-/* each option's comment box:  one quiet line under the option, growing as it's typed in */
-.spell-option-comment {
+/* the comment box at the end of each section that isn't a question (`buildComments()`) */
+.spell-comment {
   display: block;
-  margin-top: 0.4em;
+  margin: 0.75em 0 0.5em;
 }
 
 /*
  * Every box Owen types in grows with its text (2026-10-06, epic `windows-and-review`):  from its rows to a third of
- * the window (the Send bar's notes stay short enough to keep the page in view)
+ * the window
  */
-:is(.spell-other, .spell-notes, .spell-option-comment)::part(control) {
+:is(.spell-other, .spell-notes, .spell-comment)::part(control) {
   field-sizing: content;
   min-height: 2.4em;
   max-height: 33vh;
 }
 
-/* the notes, then the round Send button to their right */
-.spell-send-row {
+/*
+ * Send, in the sticky page header, right of the title:  where the answer stands, then the round Send.  Never
+ * locks:  Owen sends partial answers, and again whenever he likes (2026-10-08).
+ */
+.spell-send-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-inline-start: auto;
 }
-.spell-send-row > .spell-notes {
-  flex: 1 1 auto;
-  margin: 0;
+.spell-send-state {
+  font: 600 0.8rem var(--spell-sans);
+  color: var(--spell-muted, #767676);
+  white-space: nowrap;
 }
-
-/*
- * The Send bar stays in view:  pinned to the window's bottom while the questions scroll above it, no title.  A
- * little wider than the column (negative margins, padding back), so the cards scrolling under it don't show at its
- * edges.
- */
-#send.spell-send-bar {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  margin: 1em -16px 0;
-  padding: 6px 16px;
-  border-top: 1px solid var(--spell-rule);
-  background: var(--spell-bg);
-  box-shadow: 0 -8px 16px -10px rgb(0 0 0 / 0.3);
+.spell-send-state[data-color="green"] {
+  color: var(--ui-green, #21ba45);
 }
-#send.spell-send-bar > ui-message {
-  margin: 8px 0 0;
+.spell-send-state[data-color="orange"] {
+  color: var(--ui-orange, #f2711c);
 }
-/* sent:  the bar lets go of the window's bottom, so a long answer never covers the questions */
-.spell-details-answered #send.spell-send-bar {
-  position: static;
-  box-shadow: none;
-}
-/* the Send bar is the page's bottom:  no room left under it (the doc column's own bottom padding goes) */
-.spell-doc-main:has(> #send.spell-send-bar) {
-  padding-bottom: 0;
+/* an error:  its own line under the title and Send */
+.spell-page-head > .spell-send-error {
+  flex: 1 1 100%;
+  margin: 4px 0 0;
 }
 
 /* a question's title a size down:  the cards are what matter */
 ui-section.spell-question::part(heading) {
   font-size: 1.1rem;
-}
-
-.spell-sent-summary ul {
-  margin: 0.25em 0 0.5em;
-}
-
-/* answered:  the cards not picked fade back */
-.spell-details-answered .spell-option-card:not(:has(.spell-option-side > [selected])) {
-  opacity: 0.55;
 }
