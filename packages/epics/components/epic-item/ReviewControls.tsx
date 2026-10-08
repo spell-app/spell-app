@@ -43,7 +43,7 @@ import type { ReviewState } from "./ReviewState"
  *   dashed ring.  Clicked while it spins:  "nevermind"
  * - Revisit asks the element to take the reader to the note box (`onOpenBox`)
  * - tooltips:  the plain browser ones (`title`), just the name (Q8), then the element's review label
- *   (`Approve · reviewed 10-07`:  Owen, 2026-10-07, in place of the label beside them);  a screen reader hears the
+ *   (`Approve · reviewed 10/7/26`:  Owen, 2026-10-07, in place of the label beside them);  a screen reader hears the
  *   state too
  ****************/
 export function ReviewButtons(props: ReviewButtonsProps) {
@@ -110,7 +110,7 @@ export function ReviewButtons(props: ReviewButtonsProps) {
     )
   }
 
-  /** A button's plain tooltip:  its name, then the element's review label (`Approve · reviewed 10-07`). */
+  /** A button's plain tooltip:  its name, then the element's review label (`Approve · reviewed 10/7/26`). */
   function name(spec: ReviewButtonSpec): string {
     const label = props.text(spec.label)
     return props.reviewTip ? `${label} · ${props.reviewTip}` : label
@@ -156,7 +156,7 @@ export type ReviewButtonsProps = {
   buttons: readonly ReviewButtonSpec[]
   /** how Claude applied an earlier mark (`review-as`):  that button stays outlined */
   appliedAs?: string
-  /** the element's review label in words (`reviewed 10-07`), after every button's name in its tooltip */
+  /** the element's review label in words (`reviewed 10/7/26`), after every button's name in its tooltip */
   reviewTip?: string
   /** the `part` of the controls' box */
   part: string

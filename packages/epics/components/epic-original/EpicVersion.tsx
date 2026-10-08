@@ -3,6 +3,8 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
+import { PlanDates } from "$/epics/dates"
+
 import { epicVersionVocabulary } from "./EpicVersion.en"
 
 import originalCSS from "./EpicOriginal.css?inline"
@@ -11,8 +13,9 @@ import originalCSS from "./EpicOriginal.css?inline"
  * ### `EpicVersion`
  * The component behind `<epic-version>`:  one earlier version of an item's text, in its Original Discussion -- a
  * small heading, then the text as it was.
- * - Heading:  `As of <as-of>` (when it was replaced);  the first version, undated, `As first written` -- but only once
- *   there's a second:  a lone version needs no heading (plan-doc.md, "Markup the script writes").
+ * - Heading:  `As of <as-of>` (when it was replaced, `10/4/26 20:49`:  `PlanDates`);  the first version, undated,
+ *   `As first written` -- but only once there's a second:  a lone version needs no heading (plan-doc.md, "Markup
+ *   the script writes").
  ****************/
 export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
   @E.proto static vocabulary = epicVersionVocabulary
@@ -25,7 +28,7 @@ export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
   /** Its heading, or `undefined` for a lone first version. */
   get heading(): string | undefined {
     const asOf = this.asOf
-    if (asOf) return this.translationForKey("asOf", { asOf })
+    if (asOf) return this.translationForKey("asOf", { asOf: PlanDates.format(asOf) })
     return this.versionCount > 1 ? this.translationForKey("firstWritten") : undefined
   }
 

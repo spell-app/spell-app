@@ -32,7 +32,7 @@ export const epicPageVocabulary = {
       property: "epicTitle",
       kind: "string",
       required: true,
-      description: "The epic's title, without `Epic: ` (`Windows and Review`):  the page's h1 reads `Epic: <title>`."
+      description: "The epic's title (`Windows and Review`):  the subhead under the h1, which reads `/epic <name>`."
     },
     { name: "branch", kind: "string", description: "Its git branch;  absent for a future epic." },
     {
@@ -90,7 +90,8 @@ export const epicPageVocabulary = {
   parts: [
     { name: "base", description: "The page." },
     { name: "header", description: "The sticky page header:  the h1, then the tools and labels at its right." },
-    { name: "heading", description: "The h1, `Epic: <title>`." },
+    { name: "heading", description: "The h1, `/epic <name>`:  a click copies it." },
+    { name: "subhead", description: "Under the h1:  the epic's title." },
     {
       name: "actions",
       description:
@@ -124,14 +125,14 @@ export const epicPageVocabulary = {
     { name: "commits", description: "Every commit shows (the git toggle is on)." }
   ],
   texts: [
-    { key: "heading", text: "Epic: {title}", description: "The h1." },
+    { key: "copyHeading", text: "Copy {command}", description: "The h1's tooltip." },
     { key: "planDoc", text: "Plan doc for", description: "Meta line:  `Plan doc for /epic x, branch x`." },
     { key: "branch", text: "branch", description: "Meta line:  before the branch's name." },
     { key: "futureEpic", text: "Future epic:", description: "Meta line of a future epic." },
     { key: "noBranch", text: "no branch yet", description: "Meta line of a future epic." },
     { key: "worktree", text: "Worktree:", description: "Meta line:  before the worktree's folder." },
     { key: "noWorktree", text: "none yet", description: "Meta line:  no worktree." },
-    { key: "started", text: "Started", description: "Meta line:  `Started 2026-10-06, updated 2026-10-07`." },
+    { key: "started", text: "Started", description: "Meta line:  `Started 10/6/26, updated 10/7/26`." },
     { key: "updated", text: "updated", description: "Meta line:  before the last change's day." },
     { key: "durable", text: "Durable doc:", description: "Meta line:  before the durable doc's link." },
     { key: "done", text: "DONE", description: "Step label:  every phase is done." },

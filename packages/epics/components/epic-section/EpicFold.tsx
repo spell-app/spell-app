@@ -39,7 +39,7 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement {
  *   bar drawn from the subclass's pieces;  the element's light children show through a `<slot>` inside it, wrapped in
  *   the `body` part.  So Spell UI's section brings the sticky stack (nested titles stack below their parents', across
  *   these shadow roots:  its owner lookup climbs the flat tree), the fold chevron, `hidden="until-found"` (find-in-page
- *   and `#links` unfold it) and the info tip.
+ *   and `#links` unfold it).
  * - Folding:  `open` (page state, never in a doc:  plan docs open folded), `@controlled`.  The inner section's own
  *   `ui-open` / `ui-close` are CANCELLED and stopped there:  the DOM element announces its own (cancelable), then
  *   `open` changes and the inner section follows.  Find-in-page (`beforematch`, not cancelable) is adopted.
@@ -237,7 +237,7 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   /**
    * The fold:  the inner `<ui-section>` around the subclass's title pieces, the part note and the children.
    * - `title`:  the header's content (`slot="header"` of the inner section);  `icon` its icon;  `tools` what goes
-   *   at the title's end (`slot="actions"`);  `badge`, `info` its badge and tooltip text;  `before` content above
+   *   at the title's end (`slot="actions"`);  `badge` its badge text;  `before` content above
    *   the children (the Overview's summary)
    */
   protected renderFold(pieces: FoldPieces): JSX.Element {
@@ -254,7 +254,6 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
           loading={this.body.isBusy ? "" : undefined}
           offset={String(this.offset)}
           badge={pieces.badge?.() || undefined}
-          info={pieces.info?.() || undefined}
         >
           <Show when={pieces.icon}>
             <span slot="icon" class="icon">
@@ -352,8 +351,6 @@ export type FoldPieces = {
   tools?: () => JSX.Element
   /** The badge text (a phase's estimate). */
   badge?: () => string | undefined
-  /** The tooltip text. */
-  info?: () => string | undefined
   /** Content above the children. */
   before?: () => JSX.Element
   /** Content below the children. */

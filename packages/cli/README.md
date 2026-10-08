@@ -123,9 +123,9 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 
 ### `dev pack`
 
-- Templates:  `templates/pack/`, every file `*.tmpl` (so no tool reads one as code), with `__token__`s filled in
+- Templates:  `templates/pack/`, every file `*.template` (so no tool reads one as code), with `__token__`s filled in
   (`__pack__`, `__prefix__`, `__tag__`, `__Class__` ...:  `PackTokens` in `src/dev/packNew.ts`).  A file named
-  `gitignore.tmpl` becomes `.gitignore`.
+  `gitignore.template` becomes `.gitignore`.  How they're filled, and how to add one:  `templates/README.md`.
 - A pack is a package whose `package.json` has `"spellPack": { "prefix": "epic-" }`.
 - The build runs Vite in-process (`configFile: false`) on the checkout's Spell UI `baseConfig()`;  only `solid-js`,
   `@solidjs/web`, `$/ui/core` and `$/ui/forms` stay external (`PACK_MODULES`), read from

@@ -4,14 +4,14 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
 `epic-components`, P8).  The elements -- tags, attributes, which children go where -- are described ONCE, in
 `packages/epics/src/definitions/` (each `components/<family>/<Name>.en.ts`);  this file holds the rest.
 
-- Until the switch (P12) the real docs are in the OLD markup, ruled by `templates/epics/plan-doc.md`:  this tool
-  READS them (`summary`, `summaries`, `list`, `items`, `check`, `open`, the inbox's listings) and refuses to edit
-  them:  "convert it first (spell dev plan-doc convert)".
-- At the switch, `templates/epics/plan-doc.md`'s "Markup the script writes" gives way to a pointer here, and
-  `templates/epics/plan.html` retires for `templates/plan.html` beside this file.
-- What's unchanged from `plan-doc.md`, and stays there:  "Rules" (write for Owen cold, Net effect, never delete an
-  item, never drop its text), "Ids", "Prose", "Explaining a question or issue", "Review inbox" (the loop), the
-  commands' table.
+- Since the switch (P12, 2026-10-08) every real doc is in this markup.  A doc still in the OLD `ui-*` markup is
+  READ (`summary`, `summaries`, `list`, `items`, `check`, `open`, the inbox's listings) and never edited:  "convert
+  it first (spell dev plan-doc convert)".
+- The template `new` copies:  `templates/plan.html` beside this file (the shared `templates/epics/plan.html`
+  retired at the switch).
+- How to WRITE a doc stays in `templates/epics/plan-doc.md`:  "Rules" (write for Owen cold, Net effect, never delete
+  an item, never drop its text), "Ids", what phases and items say, "Prose", "Explaining a question or issue",
+  "Review inbox" (the loop), the commands' table.  It points here for the markup.
 
 ## The page
 
@@ -41,6 +41,8 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
 - `<title>` reads `Epic: <title>`;  `<epic-page title>` holds the title alone and draws the h1, the meta lines, the
   step label (active phase, DONE, next, FUTURE), the bedtime label, the "Plan hung?" notice (while there's no phase)
   and a future epic's notice.  None of it is written.
+- Dates are WRITTEN as below (`2026-10-08 14:34`, `2026-10-08`, ISO with an offset) and DRAWN `10/8/26 14:34` /
+  `10/8/26` by every element (`$/epics/dates` `PlanDates`) but the log's `<epic-event>`:  never write the drawn form.
 - The page's data, on `<epic-page>`:
   - `branch`, `worktree`:  none for a future epic (`new --future`);  `new` on a future epic's doc, or its first
     phase, plans it (`future` goes)
@@ -109,7 +111,8 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 ```
 
 - The order is fixed:  the item's text (prose), Choices, the answer, More Details, replies, Original Discussion,
-  commits.  The element draws the chip (`Q3`, in its state's colour), the review label, "Original question" /
+  commits;  Claude's status cards (`<epic-status slot="status">`, "Status cards" below) are slotted, so at the end,
+  out of the order.  The element draws the chip (`Q3`, in its state's colour), the review label, "Original question" /
   "Original reply" over the text, and every card's heading.
 - `title`:  WITHOUT its id;  with markup, a `<span slot="title">` child instead.  An UPDATE marker rides in the title:
   `<span slot="title">Title <epic-update phase="2"></epic-update></span>`;  `phase 2 done` removes it, and a title
@@ -138,6 +141,42 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 - An Overview sub-section takes review marks too (Q14):  approve is logged, todo makes a todo linking `#o3`, a
   kept note is a paragraph at its end.
 
+## Status cards
+
+What Claude took each of Owen's review marks to mean, and that it's done (P13):  a card per mark, on the item (or
+the Overview sub-section) it's on.
+
+```html
+<epic-status slot="status" state="underway" at="2026-10-08 14:20">
+  <p>Weigh one JSON file for the pack templates against a file each, and answer here.</p>
+</epic-status>
+<epic-status slot="status" state="done" at="2026-10-08 14:20" done-at="2026-10-08 14:34">
+  <p>Weigh one JSON file for the pack templates against a file each, and answer here.</p>
+  <p slot="summary">Recommended a file each:  JSON would need every template escaped.</p>
+</epic-status>
+<epic-status slot="status" state="done" at="2026-10-08 15:02"><p>Chose B · Keep one file per template</p></epic-status>
+```
+
+- Drawn:  `Claude • Underway` (orange) / `Claude • Done` (violet) on the left of the band, the date at its right
+  (`done-at` once done, else `at`);  then the reading;  then the summary, if any.
+- `slot="status"`:  never ordered (written last in the item, or the section);  drawn last in the details, UNDER Owen's
+  marked note and above the note box ("under my input", Owen, 2026-10-08).  A part file never holds them:  they stay
+  in the skeleton with the title.
+- The reading:  one or two sentences, plain words, no file names.  The summary (`slot="summary"`, one or more blocks):
+  only when there's something worth saying -- a surprise, a choice made, something left undone.
+- A later mark on the same item:  a new card after the old ones, which stay, as the record.
+- Written by the tool only:
+  - `status <name> <id> underway "<reading>"`:  a new underway card, stamped now;  the page's spinner on
+  - `status <name> <id> done ["<summary>"]`:  the LATEST underway card turns done (`done-at`), the reading kept;
+    spinner off;  refused with no underway card
+  - `status <name> <id> done --filed "<what>"`:  a card born done (`at` alone)
+  - `inbox apply`:  a card born done for each pick (`Chose B · <option>`) and todo (`Made todo T23 to follow this
+    up.`) it files (Q19);  none for an approval
+  - the reading and summary are HTML, as `updated` takes:  inline runs go in a `<p>`, blocks stay;  plain text works
+    as it is (`&lt;` for a `<`)
+- A rewrite of the item's text (`details --file`) leaves its cards where they are;  they never reach its Original
+  Discussion.
+
 ## Log
 
 `<epic-event at="2026-10-06T08:12-04:00">P2 active</epic-event>`:  local time with offset, to the minute;  `icon` only
@@ -149,8 +188,9 @@ As `plan-doc.md`, "Parts", with the elements as hosts (`EpicParts`, beside this)
 phase, an item with details, the log.  A host's body is every child but its slotted ones (the title stays in the
 skeleton);  in the skeleton it carries `source="parts/<id>.html"`, `part-ids` and `commits`.  No placeholder line:
 the element loads its own body.
-- `.html`, not `.htm` (Q12):  a part is told from a page by its folder, and every page walker skips `parts/`.  Until
-  the switch (P12) the tool READS a doc's old `.htm` parts too (`PlanParts` `OLD_PART_EXT`);  it writes `.html` only.
+- `.html`, not `.htm` (Q12):  a part is told from a page by its folder, and every page walker skips `parts/`.  The
+  tool still READS an old doc's `.htm` parts (`PlanParts` `OLD_PART_EXT`, to be dropped now the docs are converted);
+  it writes `.html` only.
 
 ## Checking
 

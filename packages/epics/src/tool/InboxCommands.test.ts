@@ -83,3 +83,45 @@ test("print:  the urgency waiting, by item, sent or not", async () => {
   await commands().inbox.run("x", file, [], {})
   expect(printed.join("\n")).toMatch(/urgency, from the id chips \(1\):\n {2}- J2 {2}follows WWOD {2}· urgent · unsent/)
 })
+
+test("apply:  a sent todo gets a status card born done, saying what was filed (Q19);  an approval none", async () => {
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.setMark("j1", { action: "todo" }, T1)
+    inbox.setMark("j2", { action: "approve" }, T1)
+    inbox.markSent(T2)
+  })
+  await commands().inbox.run("x", file, ["apply"], {})
+  const plan = PlanDoc.parse(readFileSync(file, "utf8"))
+  const card = plan.findItem("j1")!.querySelector(':scope > epic-status[slot="status"]')!
+  expect([card.getAttribute("state"), card.innerHTML]).toEqual([
+    "done",
+    '<p>Made todo <a href="#t1">T1</a> to follow this up.</p>'
+  ])
+  expect(plan.findItem("j2")!.querySelector("epic-status")).toBeNull()
+})
+
+test("status:  underway writes the card AND turns the page's spinner on;  done turns both;  done again is refused", async () => {
+  const owner = commands()
+  vi.spyOn(owner, "warn").mockImplementation(() => undefined)
+  expect(await owner.run(["status", "x", "j1", "underway", "Weigh it, and answer here."])).toBe(0)
+  expect(Object.keys(ReviewInbox.read(inboxFile).working)).toEqual(["j1"])
+  expect(await owner.run(["status", "x", "j1", "done", "Answered:  keep it."])).toBe(0)
+  const card = PlanDoc.parse(readFileSync(file, "utf8")).findItem("j1")!.querySelector("epic-status")!
+  // as written to disk, formatted:  whitespace aside
+  expect([card.getAttribute("state"), card.hasAttribute("done-at"), card.innerHTML.replace(/\s+/g, " ")]).toEqual([
+    "done",
+    true,
+    '<p>Weigh it, and answer here.</p> <p slot="summary">Answered: keep it.</p>'
+  ])
+  expect(ReviewInbox.read(inboxFile).working).toEqual({})
+  expect(await owner.run(["status", "x", "j1", "done"])).toBe(1)
+  expect(await owner.run(["status", "x", "j2", "done", "--filed", "Chose B · Keep one file per template"])).toBe(0)
+  const filed = PlanDoc.parse(readFileSync(file, "utf8")).findItem("j2")!.querySelector("epic-status")!
+  expect([filed.getAttribute("state"), filed.hasAttribute("done-at"), filed.innerHTML]).toEqual([
+    "done",
+    false,
+    "<p>Chose B · Keep one file per template</p>"
+  ])
+  expect(printed).toEqual(["J1 underway:  a real choice", "J1 done:  a real choice", "J2 done:  follows WWOD"])
+  expect(await owner.run(["status", "x", "j1", "maybe"])).toBe(1)
+})

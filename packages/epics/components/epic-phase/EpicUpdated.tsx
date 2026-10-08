@@ -3,6 +3,8 @@ import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
+import { PlanDates } from "$/epics/dates"
+
 import { epicUpdatedVocabulary } from "./EpicUpdated.en"
 import { ICON, LABEL, TEXT } from "./EpicPhase.types"
 
@@ -23,11 +25,9 @@ export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
   /** Its icon. */
   readonly glyph = new E.IconGlyph({ owner: this, name: () => "pen to square" })
 
-  /** `at`, as shown:  `2026-10-06 14:30`. */
+  /** `at`, as shown:  `10/6/26 14:30` (`PlanDates`). */
   get shownTime(): string {
-    const at = this.at ?? ""
-    const match = SHOWN_TIME.exec(at)
-    return match ? [match[1], match[2]].filter(Boolean).join(" ") : at
+    return PlanDates.format(this.at)
   }
 
   render(): JSX.Element {
@@ -59,9 +59,6 @@ export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicUpdated extends E.AttributeValues<typeof epicUpdatedVocabulary> {}
-
-/** An `at` time as shown:  `2026-10-06T14:30-04:00` => `2026-10-06 14:30`. */
-const SHOWN_TIME = /^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?/
 
 /** Class word of its box:  fenced, dashed orange. */
 const UPDATED = "updated"

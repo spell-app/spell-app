@@ -164,7 +164,13 @@ export const epicItemVocabulary = {
   ],
   slots: [
     { name: "", description: "Its details." },
-    { name: "title", description: "A title with markup, in place of `title`." }
+    { name: "title", description: "A title with markup, in place of `title`." },
+    {
+      name: "status",
+      description:
+        "Claude's status cards (`<epic-status slot=\"status\">`, P13):  drawn last in its details, under Owen's " +
+        "marked note, above the note box."
+    }
   ],
   parts: [
     { name: "base", description: "The item." },
@@ -180,7 +186,7 @@ export const epicItemVocabulary = {
     {
       name: "review",
       description:
-        "The review label:  `reviewed 10-06`, `deferred`, `to do`.  Not while the page is reviewed:  the review " +
+        "The review label:  `reviewed 10/6/26`, `deferred`, `to do`.  Not while the page is reviewed:  the review " +
         "buttons' tooltips say it then."
     },
     { name: "overnight", description: "With `overnight`:  the bed icon at the line's end, `made overnight`." },
@@ -218,7 +224,7 @@ export const epicItemVocabulary = {
     { key: "originalReply", text: "Original reply", description: "Over an item's own text, above More Details." },
     { key: "reviewTodo", text: "to do", description: "Review label:  a review decided on work (`queued`)." },
     { key: "reviewDeferred", text: "deferred", description: "Review label:  put off (`deferred`)." },
-    { key: "reviewed", text: "reviewed {date}", description: "Review label:  `reviewed 10-06`." },
+    { key: "reviewed", text: "reviewed {date}", description: "Review label:  `reviewed 10/6/26`." },
     { key: "stateAttention", text: "Needs attention", description: "Id chip tooltip, `state=attention`." },
     { key: "stateProgress", text: "In progress", description: "Id chip tooltip, `state=progress`." },
     { key: "stateOpen", text: "Open, not urgent", description: "Id chip tooltip, `state=open`." },
@@ -269,6 +275,11 @@ export const epicItemVocabulary = {
     { tag: "epic-answer", max: 1, description: "An answered question's answer." },
     { tag: "epic-more", max: 1, description: "More Details, added after its text." },
     { tag: "epic-reply", description: "Replies, oldest first." },
+    {
+      tag: "epic-status",
+      slot: "status",
+      description: "Claude's status cards, oldest first:  one per review mark Claude took (`plan-doc status`)."
+    },
     { tag: "epic-original", max: 1, description: "Its earlier text, folded." },
     { tag: "epic-commit", description: "Commits that fixed or built it, oldest first." }
   ],

@@ -50,8 +50,9 @@ house style every package shares.  Only what's local is below;  a section named 
     `TOOLS` in `src/dev/passThrough.ts` says how each tool runs:  a child `node`, under `tsx` when it needs aliases.
   - `pack` is lean too, though it's ours, not a pass-through:  `(args, options) => Promise<exitCode>`
     (`src/commands/packCommand.ts`), on `src/dev/packNew.ts` / `packBuild.ts`, which import no barrel.
-- `templates/` -- files commands write from, `*.tmpl` with `__token__`s:  `templates/pack/` (`spell dev pack new` /
-  `element`).  Change a template, and every pack made after gets it;  existing packs keep their files.
+- `templates/` -- files commands write from, `*.template` with `__token__`s:  `templates/pack/` (`spell dev pack new`
+  / `element`).  Change a template, and every pack made after gets it;  existing packs keep their files.  How
+  they're filled, and how to add one:  `templates/README.md`.
 
 ## Imports
 

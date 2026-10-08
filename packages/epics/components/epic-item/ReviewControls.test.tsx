@@ -191,25 +191,26 @@ describe("<epic-item> review controls", () => {
     expect(host.shadowRoot!.querySelector("[part~='details'] textarea")).not.toBeNull()
   })
 
-  test("a marked note shows ABOVE the note box, last in the details", async () => {
+  test("a marked note shows ABOVE the note box, last in the details;  Claude's status cards between them (P13)", async () => {
     routes.inbox.marks.q3 = { action: "revisit", when: "soon", note: "why B?", at: new Date().toISOString() }
     await adoptClient()
     const host = await render(`<epic-item id="q3" title="A question" status="open" open><p>Text</p></epic-item>`)
     await settle()
-    const parts = Array.from(host.shadowRoot!.querySelector("[part~='details']")!.children, (it) =>
-      it.getAttribute("part")
+    const parts = Array.from(
+      host.shadowRoot!.querySelector("[part~='details']")!.children,
+      (it) => it.getAttribute("part") ?? `slot:${it.getAttribute("name")}`
     )
-    expect(parts.slice(-2)).toEqual(["said", "note-box"])
+    expect(parts.slice(-3)).toEqual(["said", "slot:status", "note-box"])
   })
 
-  test("the review label goes:  each review button's tooltip says it (`Approve · reviewed 10-07`)", async () => {
+  test("the review label goes:  each review button's tooltip says it (`Approve · reviewed 10/7/26`)", async () => {
     await adoptClient()
     const host = await render(
       `<epic-item id="j5" title="A call" status="done" reviewed="2026-10-07"><p>Text</p></epic-item>`
     )
     expect(host.shadowRoot!.querySelector("[part~='review']")).toBeNull()
-    expect(button(host, "approve").getAttribute("title")).toBe("Approve · reviewed 10-07")
-    expect(button(host, "todo").getAttribute("title")).toBe("Make Todo · reviewed 10-07")
+    expect(button(host, "approve").getAttribute("title")).toBe("Approve · reviewed 10/7/26")
+    expect(button(host, "todo").getAttribute("title")).toBe("Make Todo · reviewed 10/7/26")
   })
 
   test("an open judgement call's id chip:  urgent (red) <-> not urgent (blue), through the inbox", async () => {

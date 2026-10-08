@@ -3,6 +3,7 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
+import { PlanDates } from "$/epics/dates"
 import { AgentsClient, NOBODY_LISTENING, isImmediate } from "$/epics/review"
 // the page's view of the review inbox, as an item's:  its file, not `epic-item`'s barrel (which would define it here)
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
@@ -21,6 +22,7 @@ import {
   HAS_COMMITS,
   HEAD,
   HEADING,
+  HEADING_COPY,
   HUNG,
   ICON,
   LAYOUT_ATTRIBUTES,
@@ -34,6 +36,8 @@ import {
   SLEEPING,
   STACK_PROPERTY,
   STATUS,
+  SUBHEAD,
+  TITLES,
   TODO,
   type EpicPageVocabulary,
   type HeaderMarks,
@@ -48,10 +52,12 @@ import agentsCSS from "./AgentsPanel.css?inline"
 
 /****************
  * ### `EpicPage`
- * The component behind `<epic-page>`:  a plan doc -- one epic's page, its data in attributes, its Overview and sections as children.
- * - Draws the sticky page header (`Epic: <title>`;  at its right Send and Review Now while it's reviewed, the git
- *   toggle, the sleeping mark, the bedtime label and the step label), the review line, the meta lines (branch,
- *   worktree, dates, the durable doc's link from `slot="durable"`), a future epic's notice, then its children.
+ * The component behind `<epic-page>`:  a plan doc -- one epic's page, its data in attributes, its Overview and
+ * sections as children.
+ * - Draws the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;  at its right Send
+ *   and Review Now while it's reviewed, the git toggle, the sleeping mark, the bedtime label and the step label), the
+ *   review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`), a future
+ *   epic's notice, then its children.
  * - The step label follows the phases:  the active one (orange, links to it);  else DONE (green) once every phase
  *   is done;  else the next one (grey);  none without phases, FUTURE (violet) for a future epic.  Read from the
  *   `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`.
@@ -115,6 +121,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /** The review line, just copied:  it flashes and says so. */
   @E.state accessor isCopied = false
 
+  /** The heading, just copied:  it says so. */
+  @E.state accessor isHeadingCopied = false
+
   /** The meta lines', the header buttons' and the review line's icons. */
   readonly icons = {
     branch: new E.IconGlyph({ owner: this, name: () => "code branch" }),
@@ -130,6 +139,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** The review line's flash timer. */
   private flashTimer = 0
+
+  /** Clears the heading's "copied". */
+  private headingTimer = 0
 
   /** The sticky header, as drawn. */
   private header?: HTMLElement
@@ -288,9 +300,26 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over the whole page (T8)
       <div class={this.rootClasses} part={this.partForName("base")} title="" style={this.pageStyle()}>
         <header ref={(element) => (this.header = element)} class={HEAD} part={this.partForName("header")}>
-          <h1 class={HEADING} part={this.partForName("heading")}>
-            {this.translationForKey("heading", { title: this.title ?? "" })}
-          </h1>
+          <div class={TITLES}>
+            <h1 class={HEADING} part={this.partForName("heading")}>
+              <button
+                type="button"
+                class={[HEADING_COPY, { flash: this.isHeadingCopied }]}
+                title={this.translationForKey("copyHeading", { command: this.headingCommand() })}
+                onClick={() => void this.copyHeading()}
+              >
+                {this.headingCommand()}
+              </button>
+              <span class="done" aria-live="polite">
+                {this.isHeadingCopied ? this.translationForKey("copied") : ""}
+              </span>
+            </h1>
+            <Show when={this.title}>
+              <p class={SUBHEAD} part={this.partForName("subhead")}>
+                {this.title}
+              </p>
+            </Show>
+          </div>
           <Show when={this.marks()}>{(marks) => this.reviewButtons(marks)}</Show>
           <Show when={this.hasCommits()}>{this.gitToggle()}</Show>
           <span class={STATUS} part={this.partForName("status")}>
@@ -385,11 +414,13 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
             {this.icon(this.icons.calendar)}
             <span>
               <Show when={this.started}>
-                {this.translationForKey("started")} <time>{this.started}</time>
+                {this.translationForKey("started")}{" "}
+                <time datetime={this.started}>{PlanDates.format(this.started)}</time>
               </Show>
               <Show when={this.started && this.updated}>, </Show>
               <Show when={this.updated}>
-                {this.translationForKey("updated")} <time>{this.updated}</time>
+                {this.translationForKey("updated")}{" "}
+                <time datetime={this.updated}>{PlanDates.format(this.updated)}</time>
               </Show>
             </span>
           </li>
@@ -480,6 +511,11 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         </span>
       </button>
     )
+  }
+
+  /** `/epic <name>`:  the heading, which a click copies. */
+  private headingCommand(): string {
+    return `/epic ${this.epic ?? ""}`
   }
 
   /** `/epic review <name>`:  what the review line copies. */
@@ -589,6 +625,14 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     clearTimeout(this.flashTimer)
     requestAnimationFrame(() => (this.isCopied = true))
     this.flashTimer = window.setTimeout(() => (this.isCopied = false), FLASH_MS + 600)
+  }
+
+  /** The heading, clicked:  copy `/epic <name>`, then say so for a moment. */
+  private async copyHeading() {
+    if (!(await EpicPage.copyText(untrack(() => this.headingCommand())))) return
+    this.isHeadingCopied = true
+    clearTimeout(this.headingTimer)
+    this.headingTimer = window.setTimeout(() => (this.isHeadingCopied = false), FLASH_MS + 600)
   }
 
   /** `translationForKey()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */

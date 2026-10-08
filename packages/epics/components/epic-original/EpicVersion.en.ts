@@ -24,7 +24,9 @@ export const epicVersionVocabulary = {
       name: "as-of",
       kind: "string",
       format: "time",
-      description: "When it was replaced (`2026-10-04 20:49`);  absent on the first version, as first written."
+      description:
+        "When it was replaced (`2026-10-04 20:49`, drawn `10/4/26 20:49`);  absent on the first version, as first " +
+        "written."
     }
   ],
   events: [],

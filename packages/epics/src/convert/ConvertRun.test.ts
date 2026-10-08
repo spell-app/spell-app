@@ -112,10 +112,16 @@ describe("ConvertRun", () => {
   })
 })
 
-/** This checkout's real `windows-and-review` doc (the newest layout), when its `epics/` has it. */
+/**
+ * This checkout's real `windows-and-review` doc (the newest old layout), when its `epics/` has it still in the old
+ * markup:  since the switch (P12) it's converted, and this round is skipped.
+ */
 const REAL = new ConvertRun()
 
-describe.skipIf(!REAL.names.includes("windows-and-review"))("ConvertRun:  the real windows-and-review doc", () => {
+/** The real doc is there, unconverted. */
+const REAL_OLD = REAL.names.includes("windows-and-review") && !REAL.isConverted("windows-and-review")
+
+describe.skipIf(!REAL_OLD)("ConvertRun:  the real windows-and-review doc", () => {
   test("converts cleanly:  valid, the same ids, links and words", async () => {
     const [result] = await REAL.run({ names: ["windows-and-review"] })
     const { conversion } = result!
