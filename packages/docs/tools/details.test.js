@@ -105,16 +105,47 @@ test("formats an answer with the page's titles", () => {
     page: "/pages/details/pick-layout.html",
     answered: "2026-10-03T22:00:00.000Z",
     changes: 1,
+    changed: ["q1", "comment:context"],
     answers: { q1: { picked: ["A"], other: "and more" } },
+    comments: { context: "clear enough" },
     notes: "fine"
   }
   expect(formatAnswer(page, answer)).toBe(
     [
-      `Answer to "Pick a layout" (${page}), sent 2026-10-03T22:00:00.000Z:  (changed 1×)`,
-      "  Q1 · Short question:  A · First option (recommended);  Other:  and more",
+      `Answer to "Pick a layout" (${page}), sent 2026-10-03T22:00:00.000Z:  (sent 2×)`,
+      "  1 of 1 decided",
+      "  Q1 · Short question:  A · First option (recommended);  Other:  and more  (new)",
+      "  Comments:",
+      "    1. Context:  clear enough  (new)",
       "  Notes:  fine"
     ].join("\n")
   )
+})
+
+test("formats an option's comment with its question and title", () => {
+  const page = join(docs, "pages/details/pick-layout.html")
+  const answer = {
+    page: "/x",
+    answered: "2026-10-03T22:00:00.000Z",
+    changes: 0,
+    answers: { q1: { picked: [] } },
+    comments: { "q1-B": "too slow", "q9-Z": "lost" },
+    notes: ""
+  }
+  expect(formatAnswer(page, answer).split("\n").slice(-3)).toEqual([
+    "  Comments:",
+    "    Q1 · Short question, B · Second option:  too slow",
+    "    q9-Z:  lost"
+  ])
+})
+
+test("formats a partial answer:  the questions not decided yet say so", () => {
+  const page = join(docs, "pages/details/pick-layout.html")
+  const answer = { page: "/x", answered: "2026-10-03T22:00:00.000Z", changes: 0, answers: {}, notes: "" }
+  expect(formatAnswer(page, answer).split("\n").slice(1)).toEqual([
+    "  0 of 1 decided",
+    "  Q1 · Short question:  (not decided yet)"
+  ])
 })
 
 test("waits for an answer newer than its start;  gives up after the timeout", async () => {
