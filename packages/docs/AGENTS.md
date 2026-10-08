@@ -126,14 +126,19 @@ In `tools/`:
     blocks start folded by themselves;  the runtime reopens the ones the reader left open, before they first draw
     (`restoreEpicFolds()`), and saves their toggles as a section's
   - counts:  a top-level section holding `[data-status]` items (the Epics index's epic cards, the goals pages'
-    items) shows `open/all` on its title (its `badge`) and the open count as a badge in the contents and the rail
-    (open:  any status but `done`, `decided` or `canceled`;  `countItems()`);  nested sections get no count of their
-    own.  A plan doc's blocks count their own items:  the runtime only reads the count (see "a plan doc" below)
-  - item states (`markItemStates()`):  the Epics index's epic cards and the goals pages' items (`.plan-items`) get
-    their color from `data-state` (red needs Owen, blue open, orange in progress, green recent, grey older;  without
-    one:  open blue, done / decided grey)
+    items) shows `open/all` on its title (its `badge`;  open:  any status but `done`, `decided` or `canceled`), and
+    in the contents and the rail a RED pill counting only the items that need Owen (state `attention`), none when
+    none do (`countItems()`);  nested sections get no count of their own.  A plan doc's blocks count their own
+    items:  the runtime only reads the count, and its `attention` (else the items' `state="attention"`;  see "a
+    plan doc" below)
+  - item states (`markItemStates()`, every page):  the Epics index's epic cards and the goals pages' items
+    (`.plan-items`) get their colour from `data-state`, in the colour scheme (`templates/epics/plan-doc.md`,
+    "Colours";  `spell-doc.css`'s `--spell-state-*`):  red needs Owen, blue Claude is working on it, yellow open
+    (dark ink), green recent, grey older.  Without one:  an open goals question red, anything else open yellow,
+    done / decided grey.  The goals pages colour their id chips by it, NOT by kind:  the kind is only the id's
+    letter
   - item filter (`wireItemFilters()`):  a top-level section with such items gets a round filter button left of its
-    count, stepping through all and each state the section has (colored as it);  a filtered list says "N hidden ·
+    count, stepping through all and each state the section has (coloured as it);  a filtered list says "N hidden ·
     show all" under it;  remembered per page
   - a PLAN DOC (`<epic-page>` markup, the `epics` pack, `packages/epics`):  its elements draw themselves, in their
     shadow roots:  the page header (git, Send, Review Now), the review line, the sections, phases and items, their
@@ -205,7 +210,12 @@ In `tools/`:
     `yarn vp fmt <file>`
   - valid code only:  no bare JSX statements after other statements -- assign them to a `const`
   - prefer excerpts pasted from a real, runnable file over hand-typed examples
-- Colors:  WWOD §18 › "Colours and themes through `ui`'s tokens", plus `spell-doc.css`'s own.
+- Colours:  WWOD §18 › "Colours and themes through `ui`'s tokens", plus `spell-doc.css`'s own.
+  - ONE meaning per colour on every doc page (Q20 of epic `epic-components`, Owen 2026-10-08):  red needs Owen,
+    yellow open (dark ink), blue do it now / Claude is working on it (every Send), green decided or done, orange
+    ONLY changed-since-you-looked and warnings, violet Claude's voice, ivory Owen's, grey older.  And the fill:
+    grey outline available, dashed pressed but not sent, outline sent, solid done.  The table, with examples:
+    `templates/epics/plan-doc.md`, "Colours";  item states in CSS:  `spell-doc.css`'s `--spell-state-*`
 
 ## Templates
 
@@ -317,6 +327,11 @@ In `tools/`:
   `<slug>.answer.json` beside the page;  `spell dev details wait`, run in the background, exits with it and so wakes the
   session.
 - `findPages()` skips every `details/` folder:  not in the index, not checked by `docs update`.
+- Colours (the scheme:  "Colours" above):  "(recommended)" grey text after an option's title;  the chosen card
+  green;  Send blue, by the fill rule (grey outline:  nothing to send;  dashed:  changes not sent;  outline:  sent);
+  each question's rail badge red (nothing yet), green (picked) or blue (Claude has more to do:  more details asked,
+  or only Other written);  the status label red (waiting for your answer), blue (changes not sent), green
+  (answered).
 
 ## Syntax-choices pages
 

@@ -27,13 +27,19 @@ export const KINDS = {
 /** Goal horizons -> the list they go in. */
 export const HORIZONS = ["now", "next", "someday"]
 
-/** Topic status -> its label text, color, and the line after it. */
+/**
+ * Topic status -> its label text, colour, fill (`basic`:  outlined), and the line after it.
+ * - the colour scheme (Q20 of epic `epic-components`, 2026-10-08;  `templates/epics/plan-doc.md`, "Colours"):
+ *   draft grey (not started);  in dialog yellow (open, still undecided);  agreed green OUTLINED (decided, not done
+ *   yet);  building blue OUTLINED (under way);  shipped green SOLID (done)
+ * - the same labels are hand-written in the legend on a set's contents page (`templates/goals/set/index.html`)
+ */
 export const STATUS = {
-  draft: { label: "draft", color: "grey", note: "first pass, not yet talked through" },
-  dialog: { label: "in dialog", color: "orange", note: "being talked through" },
-  agreed: { label: "agreed", color: "green", note: "direction agreed, notes ready for agents" },
-  building: { label: "building", color: "blue", note: "work under way" },
-  shipped: { label: "shipped", color: "violet", note: "done for now" }
+  draft: { label: "draft", color: "grey", basic: false, note: "first pass, not yet talked through" },
+  dialog: { label: "in dialog", color: "yellow", basic: false, note: "being talked through" },
+  agreed: { label: "agreed", color: "green", basic: true, note: "direction agreed, notes ready for agents" },
+  building: { label: "building", color: "blue", basic: true, note: "work under way" },
+  shipped: { label: "shipped", color: "green", basic: false, note: "done for now" }
 }
 
 /** Accents a page may take:  UI's hues. */
@@ -290,6 +296,7 @@ export class GoalsPage {
     this.document.body.setAttribute("data-status", status)
     const label = this.require("ui-label.goals-status")
     label.setAttribute("color", spec.color)
+    label.toggleAttribute("basic", spec.basic)
     label.textContent = spec.label
     const item = label.closest("ui-item")
     if (item) item.innerHTML = `Status: ${label.outerHTML} · ${text(spec.note)}`
@@ -436,7 +443,7 @@ export function contentsParts(topics) {
     <ui-meta>${text(topic.title)}</ui-meta>
     <ui-description>${text(topic.description)}</ui-description>
   </ui-content>
-  <ui-extra><div class="goals-card-foot"><ui-label size="mini" color="${status.color}">${status.label}</ui-label> ${counts.map((c) => `<span>${c}</span>`).join(" · ")}${thoughts}</div></ui-extra>
+  <ui-extra><div class="goals-card-foot"><ui-label size="mini" color="${status.color}"${status.basic ? " basic" : ""}>${status.label}</ui-label> ${counts.map((c) => `<span>${c}</span>`).join(" · ")}${thoughts}</div></ui-extra>
 </ui-card>`
   })
   const total = (key) => sorted.reduce((sum, topic) => sum + topic[key].length, 0)

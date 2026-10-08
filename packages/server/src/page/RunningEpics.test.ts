@@ -101,11 +101,11 @@ describe("RunningEpics", () => {
     const index = (await ask(port, "GET", "/epics/index.html")).text
     expect(index).not.toContain(MARKER)
     expect(index).toContain(`href="/worktrees/seo/epics/seo/seo.plan.html"`)
-    // in progress:  [done/all], the active phase in the meta line
-    expect(index).toContain(`<ui-label class="spell-epic-state" size="mini" basic>1/3</ui-label> <a`)
+    // in progress:  [done/all], outlined in blue, the active phase in the meta line
+    expect(index).toContain(`<ui-label class="spell-epic-state" size="mini" color="blue" basic>1/3</ui-label> <a`)
     expect(index).toContain("<ui-meta>P2 · Site Map · .claude/worktrees/seo</ui-meta>")
-    // planning:  a blue thought bubble;  open, so Open | All keeps it
-    expect(index).toMatch(/data-epic="vite" data-status="open">.*name="comment dots" color="blue"/)
+    // planning:  a yellow thought bubble (open, still undecided);  open, so Open | All keeps it
+    expect(index).toMatch(/data-epic="vite" data-status="open">.*name="comment dots" color="yellow"/)
     expect(index).toContain("SEO &amp; co")
   })
 
@@ -127,7 +127,7 @@ describe("RunningEpics", () => {
       )
       expect(new RunningEpics(stale).list()[0]?.updated).toBe("2026-01-01")
       expect(new RunningEpics(stale).render(MARKER)).toContain(
-        'name="circle pause" color="yellow" title="stalled:  no update since 2026-01-01"'
+        'name="circle pause" color="orange" title="stalled:  no update since 2026-01-01"'
       )
     } finally {
       rmSync(stale, { recursive: true, force: true })
@@ -156,6 +156,41 @@ describe("RunningEpics", () => {
       })
     } finally {
       rmSync(fresh, { recursive: true, force: true })
+    }
+  })
+
+  // as the docs index's `epicState()`:  the two copies match (Q20 of `epic-components`)
+  it("marks a future epic with a grey seedling, and one with follow-ups and no phase under way as sleeping", () => {
+    const quiet = mkdtempSync(join(tmpdir(), "srv-epics-quiet-"))
+    try {
+      put(
+        quiet,
+        ".claude/worktrees/idea/epics/idea/idea.plan.html",
+        `<html><head><title>Epic: Idea</title></head><body><epic-page\n  epic="idea"\n  future\n></epic-page></body></html>\n`
+      )
+      put(
+        quiet,
+        ".claude/worktrees/nap/epics/nap/nap.plan.html",
+        `<html><head><title>Epic: Nap</title></head><body><epic-page epic="nap">` +
+          `<epic-section id="phases" kind="phases"><epic-phase id="p1" title="One" status="done"></epic-phase>` +
+          `<epic-phase id="p2" title="Two" status="todo"></epic-phase></epic-section>` +
+          `<epic-section id="issues" kind="issues"><epic-item id="i1" title="A" status="open"></epic-item>` +
+          `<epic-item\n  id="i2"\n  status="open"\n  title="B"\n></epic-item><epic-item id="i3" status="done"></epic-item>` +
+          `</epic-section><epic-section id="tests" kind="tests"><epic-item id="v1" status="open"></epic-item>` +
+          `</epic-section></epic-page></body></html>\n`
+      )
+      const epics = new RunningEpics(quiet)
+      expect(epics.list()).toMatchObject([
+        { name: "idea", future: true, total: 0 },
+        { name: "nap", total: 2, followUps: ["issue", "issue", "test"] }
+      ])
+      const html = epics.render(MARKER)
+      expect(html).toContain('name="seedling" color="grey" title="future:  not planned yet"')
+      expect(html).toContain(
+        '<span class="spell-epic-state" title="sleeping:  2 issues, 1 test to follow up">😴</span>'
+      )
+    } finally {
+      rmSync(quiet, { recursive: true, force: true })
     }
   })
 

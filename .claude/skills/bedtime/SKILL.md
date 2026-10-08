@@ -98,7 +98,7 @@ Everything else stands:  `spell dev vscode` after each stage, the parser speed t
    then record it, with the options and why:
    - `add <name> judgement "<the call>" --details "<p>chose ... over ... because ...</p><ul><li>options ...</li>
      </ul>"` -- it prints the id (`J4`):  the plan doc's "Judgement calls" section is where Owen finds them, open
-     until he reviews each.  A call that simply follows WWOD:  add `--calm` (last), so it shows blue (not urgent)
+     until he reviews each.  A call that simply follows WWOD:  add `--calm` (last), so it shows yellow (open)
      rather than red.  Then link it from the phase's body (hand-edited):
      `<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j4">J4</a> ...</ui-item>` after Goal / Files /
      Verify, one link per call.  Agents you start record theirs the same way (put the command in their prompt).
