@@ -71,10 +71,12 @@ export type Phase = {
 /** A phase's fields as HTML, by flag:  `PlanDoc.setPhaseFields()`;  `""` removes one. */
 export type PhaseFieldValues = Partial<Record<PhaseField, string>>
 
-/** `PlanDoc.addPhase()`'s options:  the fields, and the estimate. */
+/** `PlanDoc.addPhase()`'s options:  the fields, the estimate, and where it goes. */
 export type AddPhaseOptions = PhaseFieldValues & {
   /** wall-clock estimate (`1-2h`):  `<epic-phase estimate>` */
   estimate?: string
+  /** inserted as this phase, the to-do phases from it on moving down one (`add-phase --before N`);  default last */
+  before?: number
 }
 
 /** An estimate in minutes:  `PlanTime.parseDuration()`'s, `{ min: 60, max: 120 }` for `1-2h`. */

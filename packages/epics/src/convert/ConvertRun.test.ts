@@ -95,6 +95,18 @@ describe("ConvertRun", () => {
     expect(line).toMatch(/^ok {4}split:  ids \d+, links \d+, words \d+;  split -> 9 parts/)
   })
 
+  test("a doc already converted is skipped:  nothing written, a `skip` line", async () => {
+    const root = checkout()
+    const run = new ConvertRun({ root })
+    const out = join(root, "preview")
+    await run.run({ names: ["split"], out })
+    cpSync(join(out, "split"), join(root, "epics", "split"), { recursive: true, force: true })
+    const results = await run.run({ names: ["split"], out: join(root, "again") })
+    expect(results).toEqual([{ name: "split", skipped: true, written: [] }])
+    expect(existsSync(join(root, "again", "split"))).toBe(false)
+    expect(ConvertRun.report(results)).toEqual(["skip  split:  already in <epic-page> markup"])
+  })
+
   test("an unknown doc is refused", async () => {
     await expect(new ConvertRun({ root: checkout() }).run({ names: ["nope"] })).rejects.toThrow(/no plan doc `nope`/)
   })

@@ -91,9 +91,12 @@ export class PlanDocCommands {
       case "new":
         return this.create(name, file, flags)
       case "add-phase": {
+        const before = phaseNumberFlag(flags.before, "--before")
         const n = await this.edit(file, (plan) => {
-          const added = plan.addPhase(need(rest[0], "a short name"), flags)
-          plan.log(`P${added} added:  ${rest[0]}`)
+          const added = plan.addPhase(need(rest[0], "a short name"), { ...flags, before })
+          // by their numbers before the move:  "P2 added:  X;  P2-P4 moved down one"
+          const moved = before === undefined ? "" : `;  P${added}-P${plan.phases.length - 1} moved down one`
+          plan.log(`P${added} added:  ${rest[0]}${moved}`)
           return added
         })
         return this.print(`P${n}`)
@@ -683,8 +686,9 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    --future:  an epic not planned yet (/epic future);  new on
                                                    a future epic's doc plans it:  promoted where it is
   add-phase <name> "Short Name" --symptom html --changes html [--goal html] [--files html] [--verify html]
-            [--estimate 2h]                        a phase:  Symptom (one line), Changes (two or three), then
-                                                   the details (goal, files, verify)
+            [--estimate 2h] [--before N]           a phase:  Symptom (one line), Changes (two or three), then
+                                                   the details (goal, files, verify);  --before N:  inserted as
+                                                   PN, the to-do phases from N on (and links to them) move down
   phase-body <name> <N> [--symptom html] [--changes html] [--goal html] [--files html] [--verify html]
                                                    set (or "" removes) a phase's body fields
   updated <name> <N> "html" | --file path          a change to phase N's plan, in its fenced Updated block
@@ -835,6 +839,18 @@ function camel(flag: string): string {
 function need(value: string | undefined, what: string): string {
   if (value === undefined || value === "") throw new PlanDocError(`missing ${what}\n${USAGE}`)
   return value
+}
+
+/**
+ * A flag's phase number (`--before 3` is 3);  `undefined` without the flag.
+ * - throws a `PlanDocError` for the flag bare, or with a value that isn't a whole number
+ */
+function phaseNumberFlag(value: string | true | undefined, flag: string): number | undefined {
+  if (value === undefined) return undefined
+  const n = value === true ? Number.NaN : Number(value)
+  if (!Number.isInteger(n))
+    throw new PlanDocError(`${flag} needs a phase number${value === true ? "" : `, not "${value}"`}`)
+  return n
 }
 
 /** `kebab-name` -> `Kebab Name`. */

@@ -5,8 +5,10 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 import { expectAccessible } from "$/ui/test/a11y"
 
 import { Markup } from "$/epics/markup"
-import { ReviewClient, type Inbox } from "$/epics/review"
+import { AgentsClient, ReviewClient, clockOf, type Inbox } from "$/epics/review"
 
+import "$/ui/components/ui-button"
+import "$/ui/components/ui-icon"
 import "$/ui/components/ui-section"
 import "$/ui/components/ui-label"
 import "$/ui/components/ui-message"
@@ -297,5 +299,227 @@ describe("<epic-page> Send and Review Now", () => {
       send: ["idle", "Nothing to send:  mark an item first (its buttons)"],
       now: ["idle", "Review Now:  nothing to work through yet"]
     })
+  })
+})
+
+////////////////
+// ## Agents running (epic `skillz` P3)
+////////////////
+
+/** The agents routes, as `fetch`, over a list kept here:  each reply `{ agents }`;  `posts` every redirect. */
+class FakeAgents {
+  agents: Record<string, unknown>[] = [
+    {
+      name: "demo-aaa",
+      task: "Port the parser",
+      status: "active",
+      started: new Date(Date.now() - 125 * 60_000).toISOString()
+    },
+    {
+      name: "demo-bbb",
+      task: "Wait for aaa",
+      status: "blocked on demo-aaa",
+      started: new Date().toISOString(),
+      redirects: [{ note: "Hold on", at: "2026-10-07T10:42:00.000Z", told: "2026-10-07T10:43:00.000Z" }]
+    }
+  ]
+  posts: Record<string, unknown>[] = []
+  /** the next redirect's error, once */
+  failure = ""
+
+  readonly fetch = vi.fn(async (input: string, init?: RequestInit): Promise<Response> => {
+    if (input.startsWith("/api/agents?")) return reply({ agents: this.agents })
+    const body = JSON.parse(init!.body as string) as Record<string, unknown>
+    this.posts.push(body)
+    if (this.failure) {
+      const error = this.failure
+      this.failure = ""
+      return reply({ error }, 400)
+    }
+    const agent = this.agents.find((it) => it.name === body.name)!
+    agent.redirects = [...((agent.redirects as unknown[]) ?? []), { note: body.note, at: new Date().toISOString() }]
+    return reply({ agents: this.agents })
+  })
+}
+
+/** A JSON reply. */
+function reply(value: unknown, status = 200) {
+  return new Response(JSON.stringify(value), { status, headers: { "content-type": "application/json" } })
+}
+
+/** A started agents client on `routes`, adopted as the page's;  `served` false:  no token, never listed. */
+async function adoptAgents(routes: FakeAgents, { served = true } = {}) {
+  const client = new AgentsClient({
+    page: "/epics/demo/demo.plan.html",
+    server: served ? { token: "token" } : undefined,
+    protocol: "http:",
+    fetch: routes.fetch as unknown as typeof fetch
+  })
+  await client.start()
+  AgentsClient.adopt(client)
+  return client
+}
+
+/** `host`'s agent rows, as drawn:  `[name, status, colour, age, task, redirects]` each. */
+function agentRows(host: Element) {
+  return Array.from(host.shadowRoot!.querySelectorAll<HTMLElement>(".agent"), (row) => [
+    row.querySelector(".agent-name")!.textContent,
+    row.querySelector("ui-label")!.textContent!.trim(),
+    row.querySelector("ui-label")!.getAttribute("color"),
+    row.querySelector(".agent-age")!.textContent,
+    row.querySelector(".agent-task")!.textContent,
+    Array.from(row.querySelectorAll(".agent-redirects > li"), (li) => li.textContent!.replace(/\s+/g, " ").trim())
+  ])
+}
+
+/** Agent `name`'s row, its note box and its Send button. */
+function noteBox(host: Element, name: string) {
+  const row = host.shadowRoot!.querySelector(`.agent[data-name="${name}"]`)!
+  return { row, note: row.querySelector("textarea")!, send: row.querySelector<HTMLElement>("ui-button")! }
+}
+
+/** Type `text` into `note`, as a person would. */
+function type(note: HTMLTextAreaElement, text: string) {
+  note.value = text
+  note.dispatchEvent(new InputEvent("input", { bubbles: true }))
+}
+
+/** Render a page with the panel, once it shows. */
+async function renderWithAgents(): Promise<UIHost> {
+  const host = await render(page("", ["active"]))
+  await vi.waitFor(() => expect(host.shadowRoot!.querySelector(".agents")).not.toBeNull())
+  return host
+}
+
+describe("<epic-page> Agents running", () => {
+  afterEach(() => {
+    AgentsClient.adopt(undefined)
+  })
+
+  test("a row per running agent, right before the blocks:  name, status, age, task, redirects;  passes axe", async () => {
+    await adoptAgents(new FakeAgents())
+    const host = await renderWithAgents()
+    const panel = host.shadowRoot!.querySelector(".agents")!
+    expect(panel.getAttribute("aria-label")).toBe("Agents running")
+    expect(panel.querySelector(".agents-title")!.textContent).toBe("Agents running2")
+    expect(panel.parentElement!.nextElementSibling!.localName).toBe("slot")
+    expect(agentRows(host)).toEqual([
+      ["demo-aaa", "active", "blue", "2h 5m", "Port the parser", []],
+      [
+        "demo-bbb",
+        "blocked on demo-aaa",
+        "orange",
+        "<1m",
+        "Wait for aaa",
+        [`You · ${clockOf("2026-10-07T10:42:00.000Z")} · told ${clockOf("2026-10-07T10:43:00.000Z")}Hold on`]
+      ]
+    ])
+    expect(noteBox(host, "demo-aaa").note.placeholder).toBe("Redirect demo-aaa ...")
+    // the contents and counts read the light DOM:  the panel isn't there
+    expect(host.querySelector(".agents")).toBeNull()
+    await expectAccessible(host)
+  })
+
+  test("a poll updates each row in place:  what's typed in a box, and its focus, stay", async () => {
+    const routes = new FakeAgents()
+    const client = await adoptAgents(routes)
+    const host = await renderWithAgents()
+    const { note } = noteBox(host, "demo-aaa")
+    note.focus()
+    type(note, "Half typed")
+    routes.agents[0]!.status = "blocked on demo-ccc"
+    routes.agents.push({ name: "demo-ccc", task: "New one", status: "active", started: new Date().toISOString() })
+    await client.refresh()
+    await ElementFixture.tick()
+    expect(agentRows(host).map((row) => row.slice(0, 3))).toEqual([
+      ["demo-aaa", "blocked on demo-ccc", "orange"],
+      ["demo-bbb", "blocked on demo-aaa", "orange"],
+      ["demo-ccc", "active", "blue"]
+    ])
+    expect(noteBox(host, "demo-aaa").note).toBe(note)
+    expect(note.value).toBe("Half typed")
+    expect(host.shadowRoot!.activeElement).toBe(note)
+    expect(host.shadowRoot!.querySelector(".agents-count")!.textContent).toBe("3")
+  })
+
+  test("Send (and Cmd + Enter) redirects the agent:  the note posted, the box emptied, the redirect waiting", async () => {
+    const routes = new FakeAgents()
+    await adoptAgents(routes)
+    const host = await renderWithAgents()
+    const { note, send } = noteBox(host, "demo-aaa")
+    expect(send.hasAttribute("disabled")).toBe(true)
+    type(note, "  Use the new parser  ")
+    await ElementFixture.tick()
+    expect(send.hasAttribute("disabled")).toBe(false)
+    send.click()
+    await vi.waitFor(() => expect(note.value).toBe(""))
+    expect(routes.posts).toEqual([{ page: "/epics/demo/demo.plan.html", name: "demo-aaa", note: "Use the new parser" }])
+    const sent = (routes.agents[0]!.redirects as { at: string }[])[0]!.at
+    await vi.waitFor(() =>
+      expect(agentRows(host)[0]![5]).toEqual([`You · ${clockOf(sent)} · waiting for the sessionUse the new parser`])
+    )
+    type(note, "And the old tests")
+    note.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", metaKey: true, bubbles: true }))
+    await vi.waitFor(() => expect(routes.posts).toHaveLength(2))
+    await vi.waitFor(() => expect(note.value).toBe(""))
+  })
+
+  test("a refused redirect says why under the box, as a sentence;  what was typed stays", async () => {
+    const routes = new FakeAgents()
+    await adoptAgents(routes)
+    const host = await renderWithAgents()
+    const { row, note, send } = noteBox(host, "demo-bbb")
+    routes.failure = "AgentList:  no agent `demo-bbb` is running"
+    type(note, "Go on")
+    await ElementFixture.tick()
+    send.click()
+    await vi.waitFor(() =>
+      expect(row.querySelector(".agent-error")?.textContent).toBe("AgentList:  no agent `demo-bbb` is running.")
+    )
+    expect(note.value).toBe("Go on")
+  })
+
+  test("keeps the reader's place:  read below it, the page scrolls by what the panel grew or shrank", async () => {
+    const routes = new FakeAgents()
+    const client = await adoptAgents(routes)
+    const host = await render(page("", ["active"], `<div id="tall" style="height: 3000px"></div>`))
+    await vi.waitFor(() => expect(host.shadowRoot!.querySelector(".agents")).not.toBeNull())
+    const tall = host.querySelector("#tall")!
+    window.scrollTo({ top: tall.getBoundingClientRect().top + window.scrollY + 400, behavior: "instant" })
+    const was = tall.getBoundingClientRect().top
+    // within a pixel:  scrolling goes by whole pixels, the panel's height doesn't
+    const kept = () => Math.abs(tall.getBoundingClientRect().top - was)
+    const panelHeight = host.shadowRoot!.querySelector(".agents-box")!.getBoundingClientRect().height
+    routes.agents.push({ name: "demo-ccc", task: "One more", status: "active", started: new Date().toISOString() })
+    await client.refresh()
+    await ElementFixture.tick()
+    expect(host.shadowRoot!.querySelector(".agents-box")!.getBoundingClientRect().height).toBeGreaterThan(panelHeight)
+    expect(kept()).toBeLessThan(1.5)
+    routes.agents = []
+    await client.refresh()
+    await ElementFixture.tick()
+    expect(host.shadowRoot!.querySelector(".agents")).toBeNull()
+    expect(kept()).toBeLessThan(1.5)
+    window.scrollTo({ top: 0, behavior: "instant" })
+  })
+
+  test("hidden with no agent running, or the page not served with a token;  gone when the last one finishes", async () => {
+    const empty = new FakeAgents()
+    empty.agents = []
+    await adoptAgents(empty)
+    const none = await render(page("", ["active"]))
+    expect(none.shadowRoot!.querySelector(".agents")).toBeNull()
+    none.remove()
+    await adoptAgents(new FakeAgents(), { served: false })
+    const unserved = await render(page("", ["active"]))
+    expect(unserved.shadowRoot!.querySelector(".agents")).toBeNull()
+    unserved.remove()
+    const routes = new FakeAgents()
+    const client = await adoptAgents(routes)
+    const host = await renderWithAgents()
+    routes.agents = []
+    await client.refresh()
+    await ElementFixture.tick()
+    expect(host.shadowRoot!.querySelector(".agents")).toBeNull()
   })
 })
