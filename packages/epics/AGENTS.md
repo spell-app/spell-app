@@ -33,6 +33,10 @@ house style every package shares.  Only what's local is below;  a section named 
     refresh, polling, note-draft backups (the old runtime's localStorage keys).  Touches no browser global until
     `forPage()` / `watch()`.  `<epic-item>`'s and `<epic-section>`'s `ReviewControls` and `<epic-option>`'s Choose
     pill use it;  the controls show while `<epic-page reviewing>` is set
+    - `AgentsClient`, one per page:  the epic's running agents (`/api/agents`, `packages/docs/tools/agentRoutes.ts`)
+      and Owen's redirects;  `<epic-page>` draws them as its "Agents running" panel (`AgentsPanel.tsx`, in its shadow
+      root before its blocks:  not a section).  Both clients POST and watch through the same code, a `ServerLink` each
+      (the token, its one refresh on a 403, the poll and `spell-server:file`)
   - `convert/` -- the one-time converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`), with a
     `ConversionProof` per doc:  every id, link target and word kept.  Never writes into `epics/` or `spell-app-dev`
     unless it's the switch (P12 of epic `epic-components`)

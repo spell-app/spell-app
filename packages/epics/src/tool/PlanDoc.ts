@@ -170,20 +170,65 @@ export class PlanDoc extends PlanReader {
    *   optional once there's a symptom or changes;  neither of those:  the shape before P3 of `windows-and-review`,
    *   Goal / Files / Verify
    * - `estimate` (`1-2h`):  `<epic-phase estimate>`
+   * - `before` (`add-phase --before N`, epic `skillz`):  inserted as phase N, the to-do phases from N on moving
+   *   down one (`makeRoomForPhase()`)
    * - a future epic with a phase is planned:  no longer future;  the "Plan hung?" notice (drawn while there's no
    *   phase) goes by itself
    */
-  addPhase(name: string, { estimate, ...values }: AddPhaseOptions = {}): number {
+  addPhase(name: string, { estimate, before, ...values }: AddPhaseOptions = {}): number {
+    // the room first:  a refused --before changes nothing
+    const n = before === undefined ? this.phases.length + 1 : this.makeRoomForPhase(before)
     const section = this.section("phases")
     if (this.future) Markup.set(this.page, { future: false })
-    const n = this.phases.length + 1
     const framed = values.symptom !== undefined || values.changes !== undefined
     const fields = PHASE_FIELDS.filter((name) =>
       framed ? name !== "goal" || values.goal !== undefined : name !== "symptom" && name !== "changes"
     ).map((name) => this.make("epic-field", { name }, values[name] ?? "TBD"))
-    section.append(this.make("epic-phase", { id: `p${n}`, title: name, status: "todo", estimate }, fields))
+    const phase = this.make("epic-phase", { id: `p${n}`, title: name, status: "todo", estimate }, fields)
+    if (before === undefined) section.append(phase)
+    else this.phase(n + 1).before(phase)
     this.updateEstimate()
     return n
+  }
+
+  /**
+   * Make room for a new phase `n`, before the one numbered `n` now (`add-phase --before n`):  it and every later
+   * phase move down one;  returns `n`.
+   * - each moved phase's id (`p5` -> `p6`:  its title has no number), and everything that points at it:  links
+   *   (`href="#p5"`, the `P5` in their text), and the `phase` / `of` of items, UPDATE markers and Updated lines
+   * - prose naming a phase without a link ("P5 tries it") isn't changed:  link phases to keep them right
+   * - a split doc's part files follow by themselves:  each is written back under its host's new id, and every old
+   *   name is taken by the phase that moved onto it, the new phase taking N's
+   * - throws if there's no phase `n`, or a phase from `n` on has started (done or active:  its commits and log say
+   *   its number)
+   */
+  makeRoomForPhase(n: number): number {
+    const phases = this.phases
+    if (!Number.isInteger(n) || n < 1 || n > phases.length) {
+      throw new PlanDocError(`--before ${n}:  no such phase (${phases.length ? `1-${phases.length}` : "none yet"})`)
+    }
+    const started = phases.find((phase) => phase.n >= n && phase.status !== "todo")
+    if (started) throw new PlanDocError(`--before ${n}:  P${started.n} has started;  only to-do phases move down`)
+    // last first, so a number is free before anything moves onto it
+    for (let k = phases.length; k >= n; k--) this.renumberPhase(k, k + 1)
+    return n
+  }
+
+  /** Phase `from` becomes phase `to`:  its element, and what points at it (`makeRoomForPhase()`). */
+  private renumberPhase(from: number, to: number): void {
+    Markup.set<"epic-phase">(this.phase(from), { id: `p${to}` })
+    for (const element of this.document.querySelectorAll(
+      PHASE_POINTERS.map((tag) => `${tag}[phase="${from}"]`).join()
+    )) {
+      Markup.set<"epic-item">(element, { phase: to })
+    }
+    for (const line of this.document.querySelectorAll(`epic-updated[of="${from}"]`)) {
+      Markup.set<"epic-updated">(line, { of: to })
+    }
+    for (const link of this.document.querySelectorAll(`a[href="#p${from}"]`)) {
+      link.setAttribute("href", `#p${to}`)
+      link.innerHTML = link.innerHTML.replace(new RegExp(`\\bP${from}\\b`), `P${to}`)
+    }
   }
 
   /** Set phase `n`'s estimate (`2h`, `1-2h`), then the Overview's total. */
@@ -1276,6 +1321,9 @@ const KEPT_ON_REWRITE = ["epic-answer", "epic-original", "epic-commit"]
 
 /** The Phases section's slot for its Plan changes copies (`PlanDoc.writePlanChanges()`). */
 const PLAN_CHANGES_SLOT = "changes"
+
+/** The tags whose `phase` names a phase by number:  renumbered with it (`PlanDoc.makeRoomForPhase()`). */
+const PHASE_POINTERS = ["epic-item", "epic-update", "epic-updated"]
 
 /** A prompt's text as `<p>`s:  blank lines split paragraphs, single newlines become `<br>`;  `""` for none. */
 function promptHTML(prompt: string | null | undefined): string {

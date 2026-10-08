@@ -3,12 +3,13 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { Cell, IconGlyph, proto, SlotContent, UIElement, UIT } from "$/ui/core"
 
-import { NOBODY_LISTENING, isImmediate } from "$/epics/review"
+import { AgentsClient, NOBODY_LISTENING, isImmediate } from "$/epics/review"
 // the page's view of the review inbox, as an item's:  its file, not `epic-item`'s barrel (which would define it here)
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
 
 import { epicPageVocabulary } from "./epic-page.vocabulary.en"
 import { EpicPageFallback } from "./epic-page.fallback"
+import { AgentsPanel } from "./AgentsPanel"
 import {
   ACTIONS,
   ACTIVE,
@@ -38,11 +39,13 @@ import {
   type EpicPageVocabulary,
   type HeaderMarks,
   type PageSignals,
+  type PageText,
   type PhaseLine,
   type StepLabel
 } from "./epic-page.types"
 
 import pageCSS from "./epic-page.css?inline"
+import agentsCSS from "./agents-panel.css?inline"
 
 /****************
  * ### `<epic-page>`
@@ -64,17 +67,21 @@ import pageCSS from "./epic-page.css?inline"
  *   outlined blue once sent) and Review Now (wand:  every mark sent and each revisit asked now;  blue while there's
  *   anything to work through).  Nobody listening:  their tooltips say so (`NOBODY_LISTENING`);  what a click did
  *   goes to the notice line at the window's bottom (`ReviewState`'s).
+ * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`), only
+ *   while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs;  each row a
+ *   note box that redirects that agent.  In the shadow root:  not a section, so the contents and counts never see it.
  * - The git toggle (only when the doc lists commits) shows or hides every `<epic-commit>` below, through
  *   `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
  * - The page-wide signals its blocks read (`signalsOf()`):  `top`, where top-level titles stick (the site header's
  *   `--spell-site-header-height` plus this header's height, re-measured as either changes size), and `layout`.
  * - SHARED LOOK:  `epic-page.css` declares the pack's tokens (`--epic-*`:  colours, bands, the inset, item state
  *   colours, the chip) on its `:host`;  every `<epic-*>` below inherits them.
- * - SIDE EFFECT:  observes its subtree and the site header while connected;  follows the page's review client.
+ * - SIDE EFFECT:  observes its subtree and the site header while connected;  follows the page's review and agents
+ *   clients.
  ****************/
 export class EpicPage extends UIElement<EpicPageVocabulary> {
   @proto static vocabulary = epicPageVocabulary
-  @proto static styles = { "epic-page": pageCSS }
+  @proto static styles = { "epic-page": pageCSS, "epic-agents": agentsCSS }
   @proto static Fallback = EpicPageFallback
 
   /** Its tag:  what its blocks look for around them. */
@@ -101,6 +108,9 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
    * name, never an item's:  no mark is ever the page's).
    */
   readonly review = new ReviewState(() => this.attrs.epic)
+
+  /** The epic's running agents, for the panel;  none in a server render. */
+  readonly agents = isServer ? undefined : AgentsClient.forPage()
 
   /** The review line, just copied:  it flashes and says so. */
   readonly copied = new Cell(false)
@@ -327,6 +337,12 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
         {this.metaLines()}
         <Show when={this.attrs.future}>{this.futureNotice()}</Show>
         <Show when={this.planning()}>{this.hungNotice()}</Show>
+        <AgentsPanel
+          client={this.agents}
+          connected={this.connected.get()}
+          top={this.signals.top.get()}
+          text={this.pageText}
+        />
         <slot />
       </div>
     )
@@ -567,6 +583,9 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
     this.flashTimer = window.setTimeout(() => this.copied.set(false), FLASH_MS + 600)
   }
 
+  /** `text()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */
+  private readonly pageText: PageText = (key, params) => this.text(key, params)
+
   /** Measure where top-level titles stick:  the site header's height plus this header's. */
   private readonly measure = () => {
     const site = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spell-site-header-height"))
@@ -627,7 +646,6 @@ export class EpicPage extends UIElement<EpicPageVocabulary> {
       area.style.cssText = "position: fixed; opacity: 0; pointer-events: none"
       document.body.append(area)
       area.select()
-      // oxlint-disable-next-line typescript/no-deprecated -- the fallback where the Clipboard API is refused
       const copied = document.execCommand("copy")
       area.remove()
       return copied

@@ -78,6 +78,10 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 - Children in that order, always (the vocabulary's `childOrder: "listed"`):  the tool puts each where it belongs.
 - `add-phase` with `--symptom` / `--changes`:  Symptom, Changes, then Goal (optional), Files, Verify;  without:  Goal,
   Files, Verify.  A field not given reads `TBD`.
+- `add-phase ... --before N`:  inserted as PN;  every phase from N on moves down one, with what points at it:  its
+  `id`, links (`href="#pN"` and the `PN` in their text), and `phase` / `of` on items, `<epic-update>` and
+  `<epic-updated>`.  A split doc's parts follow (written under the new ids).  Prose naming a phase without a link
+  isn't changed.  Refused while a phase from N on has started (done or active):  its commits and log say its number.
 - `<epic-updated>`:  `updated <name> <N> "<html>"`, one per change, oldest first;  `phase` the phase active then.
   It stays once the phase is done;  while it's to do, the Phases section lists it in its Plan changes box (drawn).
 - `estimate`:  wall-clock time for Claude, agents included, Owen's review not (`30m`, `2h`, `1h30m`, `1-2h`);  the

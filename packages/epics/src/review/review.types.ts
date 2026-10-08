@@ -1,5 +1,6 @@
 /**
- * Loose types, constants and small pure helpers of the review client (`ReviewClient`).
+ * Loose types, constants, errors and small pure helpers of the page's server clients:  the review inbox's
+ * (`ReviewClient`), the running agents' (`AgentsClient`) and the link both write through (`ServerLink`).
  * - The inbox's shapes are the route's own (`$/epics/tool/ReviewInbox`), imported as TYPES only:  erased, so the
  *   node-only inbox never reaches the pack, and a reply can't drift from what the server writes.
  */
@@ -65,6 +66,12 @@ export type ReviewAction = (typeof REVIEW_ACTIONS)[number]
 /** The page's own reload of its HTML:  the server's current token, as it serves the page now. */
 export const SERVER_INFO = /window\.SPELL_SERVER = (\{.*?\})<\/script>/
 
+/** The running-agents routes (`packages/docs/tools/agentRoutes.ts`):  every reply is the epic's list, `{ agents }`. */
+export const AGENTS_API = "/api/agents"
+
+/** The running-agents list's file, beside the plan doc (`AgentList.ts`):  the page server announces its changes. */
+export const AGENTS_FILE = "agents.json"
+
 ////////////////
 // ## Types
 ////////////////
@@ -86,16 +93,20 @@ export type ServerInfo = {
   file?: string
 }
 
-/** What a client is made from:  the page's facts, and the browser's services (stubbed in tests). */
-export type ReviewClientOptions = {
+/** What a `ServerLink` (and an `AgentsClient`) is made from:  the page's facts, and `fetch` (stubbed in tests). */
+export type ServerLinkOptions = {
   /** the page's URL path:  every route's `page` */
   page: string
-  /** the page server's info;  none (`file://`, a plain static server):  nothing to review */
+  /** the page server's info;  none (`file://`, a plain static server):  nothing to review, no agents */
   server?: ServerInfo
-  /** `location.protocol`:  `file:` never reviews */
+  /** `location.protocol`:  `file:` never asks */
   protocol?: string
   /** `fetch`, bound */
   fetch: typeof fetch
+}
+
+/** What a `ReviewClient` is made from:  its link's facts, plus the browser's storage and the page's items. */
+export type ReviewClientOptions = ServerLinkOptions & {
   /** `localStorage`, for the note backups;  `null`:  none (blocked, private window) */
   storage?: Storage | null
   /** Is `id` an item or section of this page?  A backup for one that's gone is dropped.  Default:  always. */
@@ -110,7 +121,45 @@ export type WriteOptions = {
   keepalive?: boolean
 }
 
+/**
+ * One running agent, as the page shows it:  `AgentList.ts`'s `RunningAgent`, every field there (`agentsOf()`).
+ * - a COPY of that shape:  `epics` never imports `docs`, which holds the list (the root's dependency rule)
+ */
+export type RunningAgent = {
+  /** its full name, prefixed:  `skillz-aaa` */
+  name: string
+  /** what it does, a sentence or less */
+  task: string
+  /** `active`, or `blocked on <name>` */
+  status: string
+  /** when it was added, ISO;  `""` for unknown */
+  started: string
+  /** Owen's notes to it so far, oldest first */
+  redirects: AgentRedirect[]
+}
+
+/** A note Owen sent a running agent from the page. */
+export type AgentRedirect = {
+  /** what he typed */
+  note: string
+  /** when he sent it, ISO */
+  at: string
+  /** when a session passed it on, ISO;  `""`:  not yet */
+  told: string
+}
+
 export type { InboxDraft, InboxListener, InboxMark, InboxUrgency, NowAction, NowRequest, WorkingEntry }
+
+////////////////
+// ## Errors
+////////////////
+
+/**
+ * A POST to the page server didn't go through (`ServerLink.post()`).  Its message says why, for people, in
+ * lower case (`sentence()` makes it one):  the route's `error`, a stale token, no server.
+ */
+export class ServerWriteError extends Error {}
+ServerWriteError.prototype.name = "ServerWriteError"
 
 ////////////////
 // ## Helpers
@@ -154,6 +203,50 @@ export function clockOf(iso: string | null | undefined): string {
   const date = iso ? new Date(iso) : null
   if (!date || isNaN(date.getTime())) return ""
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
+/** A route's reply as the running agents, every field there (`AgentList.ts` has their shape);  `[]` for none. */
+export function agentsOf(reply: unknown): RunningAgent[] {
+  const agents = (reply as { agents?: unknown } | null)?.agents
+  if (!Array.isArray(agents)) return []
+  return (agents as (Record<string, unknown> | null)[])
+    .filter((agent) => typeof agent?.name === "string")
+    .map((agent) => ({
+      name: agent!.name as string,
+      task: stringOr(agent!.task, ""),
+      status: stringOr(agent!.status, "active"),
+      started: stringOr(agent!.started, ""),
+      redirects: (Array.isArray(agent!.redirects) ? (agent!.redirects as (Record<string, unknown> | null)[]) : []).map(
+        (redirect) => ({
+          note: stringOr(redirect?.note, ""),
+          at: stringOr(redirect?.at, ""),
+          told: stringOr(redirect?.told, "")
+        })
+      )
+    }))
+}
+
+/** `value` when it's a string, else `fallback`:  a reply's field, read safely. */
+function stringOr(value: unknown, fallback: string): string {
+  return typeof value === "string" ? value : fallback
+}
+
+/** How long ago ISO time `iso` was, to `now` (ms):  `<1m`, `3m`, `2h 5m`, `1d 4h`;  `""` for none. */
+export function ageOf(iso: string, now: number): string {
+  const minutes = Math.floor((now - Date.parse(iso)) / 60_000)
+  if (Number.isNaN(minutes)) return ""
+  if (minutes < 1) return "<1m"
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return minutes % 60 ? `${hours}h ${minutes % 60}m` : `${hours}h`
+  const days = Math.floor(hours / 24)
+  return hours % 24 ? `${days}d ${hours % 24}h` : `${days}d`
+}
+
+/** `message` as a sentence:  a capital first, a full stop last (unless it ends in one already);  `""` for none. */
+export function sentence(message: string): string {
+  if (!message) return ""
+  return `${message[0]!.toUpperCase()}${message.slice(1)}${/[.!?]$/.test(message) ? "" : "."}`
 }
 
 /** A plain object (not null, not an array)? */

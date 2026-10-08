@@ -1,10 +1,7 @@
 import {
   REVIEW_API,
-  REVIEW_POLL_MS,
   REVISIT_KEY_PREFIX,
   NOBODY_LISTENING,
-  PLAN_DOC_PAGE,
-  SERVER_INFO,
   emptyInbox,
   inboxOf,
   isImmediate,
@@ -18,9 +15,9 @@ import {
   type ReviewAction,
   type ReviewClientOptions,
   type Running,
-  type ServerInfo,
   type WriteOptions
 } from "./review.types"
+import { ServerLink } from "./ServerLink"
 
 /****************
  * ### `ReviewClient`
@@ -32,17 +29,17 @@ import {
  *   `file://`, nor from a server without the routes (`reviewing` stays false, and nothing is drawn)
  * - every route's reply is the whole inbox:  a write's answer replaces what's shown;  a failed write re-reads it,
  *   undoing what was shown early
- * - a 403 on the token (the page server restarted since the page loaded):  takes the server's new token from the
- *   page as it's served now, and tries once more
+ * - writes through its `ServerLink`:  a 403 on the token (the page server restarted since the page loaded) takes
+ *   the server's new token from the page as it's served now, and tries once more
  * - re-reads the inbox every `REVIEW_POLL_MS` while the page is visible, when it becomes visible, and when the page
- *   server says the inbox file changed (the page's live client's `spell-server:file`):  `watch()`
+ *   server says the inbox file changed (the page's live client's `spell-server:file`):  `watch()`, the link's
  * - note drafts:  saved to the inbox (`POST draft`), backed up in localStorage under the old runtime's key
  *   (`REVISIT_KEY_PREFIX`), so a half-typed note survives the switch;  a backup the inbox lacks is handed to it on
  *   start (`adoptBackups()`).  What's being typed also stays in memory (`typed`), for an element drawn anew
  * - who listens:  `inbox.listening` (`null` once a session's heartbeat stopped:  the routes say so)
  * - Node-safe at import, and without `watch()`:  no `window` / `document` touched;  the browser's services come in
  *   through `ReviewClientOptions`, so tests stub `fetch` and storage
- * - Position in the import graph:  its peer types file only;  the inbox's types from `$/epics/tool/ReviewInbox`
+ * - Position in the import graph:  its peers (types, `ServerLink`) only;  the inbox's types from `$/epics/tool/ReviewInbox`
  *   (erased).  NEVER imports Solid, Spell UI or the `$/epics` barrel:  elements bridge its changes (`subscribe()`)
  *   into their own signals.
  ****************/
@@ -59,8 +56,8 @@ export class ReviewClient {
   /** Bumped on every change:  readers compare it, elements track it. */
   version = 0
 
-  /** The page's write token, and the file the server announces changes of. */
-  private readonly server: ServerInfo | undefined
+  /** The page server, as the inbox writes to it:  the write token, its refresh, the watch. */
+  private readonly link: ServerLink
 
   /** Called on every change. */
   private readonly listeners = new Set<() => void>()
@@ -87,7 +84,7 @@ export class ReviewClient {
   private starting: Promise<boolean> | undefined
 
   constructor(private readonly options: ReviewClientOptions) {
-    this.server = options.server ? { ...options.server } : undefined
+    this.link = new ServerLink(options)
   }
 
   ////////////////
@@ -120,12 +117,8 @@ export class ReviewClient {
 
   /** The page's facts and services, as the browser has them. */
   private static pageOptions(): ReviewClientOptions {
-    const server = (window as { SPELL_SERVER?: ServerInfo }).SPELL_SERVER
     return {
-      page: location.pathname,
-      server,
-      protocol: location.protocol,
-      fetch: window.fetch.bind(window),
+      ...ServerLink.pageOptions(),
       storage: ReviewClient.storageOf(window),
       hasItem: (id) => !!document.getElementById(id)
     }
@@ -157,8 +150,7 @@ export class ReviewClient {
 
   /** `start()`'s work. */
   private async begin(): Promise<boolean> {
-    if (!this.server?.token || this.options.protocol === "file:" || !PLAN_DOC_PAGE.test(this.options.page)) return false
-    if (!(await this.load())) return false
+    if (!this.link.servesPlanDoc || !(await this.load())) return false
     this.reviewing = true
     await this.adoptBackups()
     // a note being written reopens where it was, from any address
@@ -173,25 +165,8 @@ export class ReviewClient {
    * never a connection of our own, each holds one of Chrome's 6 per host).  Returns the undo.
    */
   watch(window: Window): () => void {
-    const { document } = window
-    const refresh = () => void this.refresh()
-    const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh()
-    }, REVIEW_POLL_MS)
-    const onVisible = () => {
-      if (document.visibilityState === "visible") refresh()
-    }
-    const inboxFile = (this.server?.file ?? this.options.page).replace(/(?:\.plan)?\.html$/, ".inbox.json")
-    const onFile = (event: Event) => {
-      if ((event as CustomEvent<{ path?: string }>).detail?.path === inboxFile) refresh()
-    }
-    document.addEventListener("visibilitychange", onVisible)
-    window.addEventListener("spell-server:file", onFile)
-    return () => {
-      window.clearInterval(timer)
-      document.removeEventListener("visibilitychange", onVisible)
-      window.removeEventListener("spell-server:file", onFile)
-    }
+    const inboxFile = this.link.file.replace(/(?:\.plan)?\.html$/, ".inbox.json")
+    return this.link.watch(window, inboxFile, () => void this.refresh())
   }
 
   ////////////////
@@ -579,34 +554,18 @@ export class ReviewClient {
   /**
    * POST `body` (plus `page`) to `route`;  the reply is the new inbox.  True when written;  else says why (a notice,
    * unless `quiet`:  the caller says it, from `lastWriteError`) and re-reads the inbox, undoing what was shown early.
-   * - a 403 on the token:  takes the server's new token (`refreshToken()`) and tries once more
+   * - a 403 on the token:  the link takes the server's new token and tries once more (`ServerLink.post()`)
    */
   private async write(route: string, body: object, { quiet = false, keepalive = false }: WriteOptions = {}) {
     this.writing++
     let error = ""
     try {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const response = await this.options.fetch(`${REVIEW_API}/${route}`, {
-          method: "POST",
-          headers: { "content-type": "application/json", "x-server-token": this.server?.token ?? "" },
-          body: JSON.stringify({ page: this.options.page, ...body }),
-          keepalive
-        })
-        const reply = (await response.json().catch(() => ({}))) as { error?: string }
-        if (response.ok) {
-          this.inbox = inboxOf(reply)
-          this.changed()
-          return true
-        }
-        const stale = response.status === 403 && /token/i.test(reply.error ?? "")
-        if (stale && attempt === 0 && (await this.refreshToken())) continue
-        error = stale
-          ? "the page server restarted since this page loaded:  reload the page"
-          : (reply.error ?? `couldn't save (${response.status})`)
-        break
-      }
+      const reply = await this.link.post(`${REVIEW_API}/${route}`, { page: this.options.page, ...body }, { keepalive })
+      this.inbox = inboxOf(reply)
+      this.changed()
+      return true
     } catch (failure) {
-      error = `couldn't reach the page server (${(failure as Error).message})`
+      error = (failure as Error).message
     } finally {
       this.writing--
     }
@@ -615,21 +574,5 @@ export class ReviewClient {
     await this.load()
     this.changed()
     return false
-  }
-
-  /**
-   * Take the page server's CURRENT write token from the page as it serves it now (its `window.SPELL_SERVER`):  a
-   * restarted server has a new one.  True when it changed.
-   */
-  private async refreshToken(): Promise<boolean> {
-    try {
-      const html = await (await this.options.fetch(this.options.page, { cache: "no-store" })).text()
-      const fresh = (JSON.parse(SERVER_INFO.exec(html)?.[1] ?? "null") as ServerInfo | null)?.token
-      if (!fresh || !this.server || fresh === this.server.token) return false
-      this.server.token = fresh
-      return true
-    } catch {
-      return false
-    }
   }
 }

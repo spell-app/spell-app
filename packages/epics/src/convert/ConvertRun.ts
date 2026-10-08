@@ -47,6 +47,7 @@ export class ConvertRun {
    * Convert each of `names` and, unless it's a dry run (no `out`), write each that converted CLEANLY under `out`:
    * `<out>/<name>/<name>.plan.html` and `<out>/<name>/parts/<id>.html`.
    * - a doc that throws (`ConvertError`) is reported, and the rest go on
+   * - a doc already in `<epic-page>` markup is SKIPPED, nothing written:  so `--all` stays clean as docs move over
    * - throws `TypeError` for an unknown name, or an `out` inside `epics/`
    */
   async run({ names, out }: { names: string[]; out?: string }): Promise<RunResult[]> {
@@ -56,6 +57,10 @@ export class ConvertRun {
     if (out) this.checkOut(out)
     const results: RunResult[] = []
     for (const name of names) {
+      if (this.isConverted(name)) {
+        results.push({ name, skipped: true, written: [] })
+        continue
+      }
       try {
         const conversion = await this.convert(name)
         const ok = conversion.proof.clean && !conversion.problems.length
@@ -67,6 +72,11 @@ export class ConvertRun {
       }
     }
     return results
+  }
+
+  /** `name` is already in the new markup:  its skeleton holds an `<epic-page>`. */
+  isConverted(name: string): boolean {
+    return /<epic-page[\s>]/.test(readFileSync(this.docFile(name), "utf8"))
   }
 
   /** Convert `name`, read from the checkout (its parts too). */
@@ -130,7 +140,11 @@ export class ConvertRun {
     { verbose = false, root = CHECKOUT_ROOT }: { verbose?: boolean; root?: string } = {}
   ): string[] {
     const lines: string[] = []
-    for (const { name, conversion, error, written } of results) {
+    for (const { name, conversion, error, skipped, written } of results) {
+      if (skipped) {
+        lines.push(`skip  ${name}:  already in <epic-page> markup`)
+        continue
+      }
       if (error || !conversion) {
         lines.push(`FAIL  ${name}:  ${error}`)
         continue
@@ -160,11 +174,12 @@ export class ConvertRun {
   }
 }
 
-/** One doc's result:  its conversion, or why it couldn't be converted;  the files written. */
+/** One doc's result:  its conversion, why it couldn't be converted, or that it already was;  the files written. */
 export type RunResult = {
   name: string
   conversion?: Conversion
   error?: string
+  skipped?: true
   written: string[]
 }
 

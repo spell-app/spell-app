@@ -191,6 +191,49 @@ describe("PlanDoc phases", () => {
     expect(bare.overview.hasAttribute("estimate")).toBe(false)
   })
 
+  test("--before inserts a phase, moving the later to-do phases and what points at them down one", () => {
+    const plan = freshPlan()
+    for (const name of ["One", "Two", "Three", "Four"]) plan.addPhase(name)
+    plan.setPhase(1, "done")
+    plan.setPhase(2, "active")
+    plan.addPhaseUpdate(4, "<p>four changed</p>")
+    const item = plan.addItem("todo", "after four", { details: '<p>see <a href="#p4">P4 · Four</a></p>' })
+    Markup.set<"epic-item">(el(plan, item), { phase: 4 })
+    plan.updatePlanChanges()
+    expect(plan.addPhase("Inserted", { before: 3, estimate: "1h" })).toBe(3)
+    expect(plan.phases.map((phase) => `${phase.n} ${phase.name} ${phase.status}`)).toEqual([
+      "1 One done",
+      "2 Two active",
+      "3 Inserted todo",
+      "4 Three todo",
+      "5 Four todo"
+    ])
+    expect(plan.phaseElements.map((phase) => phase.id)).toEqual(["p1", "p2", "p3", "p4", "p5"])
+    expect(Markup.read(el(plan, "p3"))).toEqual({ id: "p3", title: "Inserted", status: "todo", estimate: "1h" })
+    // the line keeps the phase ACTIVE when it was written (P2, not moved);  its Plan changes copy names its new phase
+    const line = el(plan, "p5").querySelector(":scope > epic-updated")!
+    expect([line.textContent, line.getAttribute("phase")]).toEqual(["four changed", "2"])
+    expect(
+      Array.from(plan.document.querySelectorAll('epic-updated[slot="changes"]'), (copy) => copy.getAttribute("of"))
+    ).toEqual(["5"])
+    const link = el(plan, item).querySelector('a[href^="#p"]')!
+    expect([link.getAttribute("href"), link.textContent]).toEqual(["#p5", "P5 · Four"])
+    expect(el(plan, item).getAttribute("phase")).toBe("5")
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("--before refuses a started phase, or one that isn't there, changing nothing", () => {
+    const plan = freshPlan()
+    for (const name of ["One", "Two"]) plan.addPhase(name)
+    plan.setPhase(2, "active")
+    const before = plan.toString()
+    expect(() => plan.addPhase("X", { before: 1 })).toThrow(/P2 has started/)
+    expect(() => plan.addPhase("X", { before: 3 })).toThrow(/no such phase \(1-2\)/)
+    expect(() => plan.addPhase("X", { before: 0 })).toThrow(/no such phase/)
+    expect(() => plan.addPhase("X", { before: 1.5 })).toThrow(PlanDocError)
+    expect(plan.toString()).toBe(before)
+  })
+
   test("parses hours, minutes and ranges", () => {
     expect(PlanTime.parseDuration("30m")).toEqual({ min: 30, max: 30 })
     expect(PlanTime.parseDuration("45 min")).toEqual({ min: 45, max: 45 })
