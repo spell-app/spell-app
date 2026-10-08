@@ -6,11 +6,8 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { standardDecorators } from "../../vite.decorators.ts"
-// the fork's HMR plugin from SOURCE, not `@spell-app/solid-element/vite`:  Vite bundles this config with every BARE
-// import external, so Node would load the package's `dist/vite.js`, which a fresh checkout doesn't have yet
-// (Node 22.17 can't load the `.ts`).  A relative import is bundled into the config instead.  See `AGENTS.md`.
-import { solidElementHot } from "../solid-element/src/vite.ts"
 import { environment } from "./tools/environment.ts"
+import { solidElementHot } from "./tools/HotElements.ts"
 
 /** Absolute path of `src/`. */
 const SRC = fileURLToPath(new URL("./src", import.meta.url))
@@ -111,16 +108,14 @@ export const ENTRIES: Record<string, string> = {
 }
 
 /**
- * Solid's packages, subpaths included (`solid-js/web`, `@solidjs/web`, `@solidjs/signals`), and our element
- * layer fork:  PEER dependencies, never bundled.  The app (or an import map, see `yarn vendor`) supplies ONE copy,
- * so the app's owners, context and signals reach the components.
+ * Solid's packages, subpaths included (`solid-js/web`, `@solidjs/web`, `@solidjs/signals`):  PEER dependencies,
+ * never bundled.  The app (or an import map, see `yarn vendor`) supplies ONE copy, so the app's owners, context and
+ * signals reach the components.
+ * - The custom-element layer (`src/elements/solid-element/`) is `ui`'s own code since epic `spell-element`:  bundled.
  */
-export const SOLID_EXTERNAL = /^solid-js(\/|$)|^@solidjs\/|^@spell-app\/solid-element(\/|$)/
+export const SOLID_EXTERNAL = /^solid-js(\/|$)|^@solidjs\//
 
-/**
- * Packages that MUST resolve to one copy:  the linked fork (`packages/solid-element`) resolves its imports from its
- * OWN `node_modules` otherwise, and two Solids can't share owners (`agents/PAPERCUTS.md`).
- */
+/** Packages that MUST resolve to one copy:  two Solids can't share owners (`agents/PAPERCUTS.md`). */
 export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
 
 /**
@@ -133,9 +128,7 @@ export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
  * - `SPELL_UI_SOLID_PROD=1` (`environment.isSolidProduction`, `tools/environment.ts`):  Solid's PRODUCTION runtime
  *   under `vite dev` (no dev diagnostics, no performance tracks), for timing `tools/demo/perf.html`.
  * - `optimizeDeps`:  `axe-core`, `temporal-polyfill` (only a Temporal-less page imports it), highlight.js, marked and
- *   DOMPurify (only the lazy `CodeEngine` / `MarkdownEngine` import them) pre-bundled up front, so the first test run doesn't reload mid-run;  NOT
- *   `@spell-app/solid-element`:  it's linked TypeScript source (its `development` export), compiled by the Solid
- *   plugin like our own files.
+ *   DOMPurify (only the lazy `CodeEngine` / `MarkdownEngine` import them) pre-bundled up front, so the first test run doesn't reload mid-run.
  */
 export function baseConfig() {
   const production = environment.isSolidProduction ? { dev: false, performanceTracks: false } : {}
@@ -153,8 +146,7 @@ export function baseConfig() {
         "highlight.js/lib/languages/*",
         "marked",
         "dompurify"
-      ],
-      exclude: ["@spell-app/solid-element"]
+      ]
     },
     css: {
       transformer: "lightningcss",
@@ -169,7 +161,7 @@ export function baseConfig() {
 /**
  * Library build of `@spell-app/ui`, and the dev server (`yarn dev`:  `tools/demo/`).
  * - ESM only:  every consumer we target (bundlers, `<script type="module">`, frameworks) speaks it.
- * - `solid-js`, `@solidjs/web` and `@spell-app/solid-element` are external (`SOLID_EXTERNAL`);  the `UIRuntime` and
+ * - `solid-js` and `@solidjs/web` are external (`SOLID_EXTERNAL`);  the `UIRuntime` and
  *   icon packs are separate files (`emitIconPacks()`).
  * - `preserveEntrySignatures: "allow-extension"`:  lets `core.js` / `button.js` ... hold their own code and export
  *   what siblings need, instead of Vite's lib-mode default (`strict`), which turns every entry into a facade over
@@ -301,24 +293,25 @@ function rewriteDeclaration(filePath: string, content: string) {
 }
 
 /**
- * Hot module replacement for the components in `yarn dev` (the fork's `solidElementHot()`;  `apply: "serve"`, so
- * builds are untouched, and NOT in `vitest.config.ts`).
+ * Hot module replacement for the components in `yarn dev` (`solidElementHot()`, `tools/HotElements.ts`;
+ * `apply: "serve"`, so builds are untouched, and NOT in `vitest.config.ts`).
  * - Boundaries:  the component barrels (`src/components/ui-<name>/index.ts`), the modules that call `define()`.
  *   An edit to a component class, vocabulary or fallback re-runs its barrel;  `HotDefinitions` turns the barrel's
  *   `define()` of a new version of a class into a re-definition of every tag it had.
  * - `?inline` component CSS (`src/components/ui-<name>/UI<Name>.css`) re-registers its sheet:  no re-render.
  * - Shared code (`core`, `forms`, the runtime) reaches several barrels:  full reload.
- * - `HotDefinitions` is injected by FILE PATH, not `$/ui/elements/HotDefinitions`:  `resolve.tsconfigPaths` only
- *   resolves aliases for TS / JS importers, and the sheets' handler import lives in a `.css?inline` module.
+ * - `HotDefinitions` and the element layer (`runtime`, which exports `hotUpdate`) are injected by FILE PATH, not
+ *   `$/ui/elements/...`:  `resolve.tsconfigPaths` only resolves aliases for TS / JS importers, and the sheets' handler
+ *   import lives in a `.css?inline` module.
  */
 function hotElements(): Plugin {
   const hotDefinitions = `${SRC}/elements/HotDefinitions.ts`
-  // HACK: the fork is its own yarn project, so its `Plugin` type comes from ITS `vite` install:  the same version,
-  // but a second declaration TypeScript won't unify (a `tsconfig` `paths` pin would also redirect `tsx`'s runtime
-  // resolution of `vite` to a `.d.ts`)
+  // HACK: `HotElements.ts` types its plugin with `vite`'s `Plugin`, this config with `vite-plus`'s:  the same
+  // version, but a second declaration TypeScript won't unify
   const plugin: unknown = solidElementHot({
     include: /\/src\/components\/[\w-]+\/index\.ts$/,
     detect: /\.define\(/,
+    runtime: `${SRC}/elements/solid-element/index.ts`,
     setup: hotDefinitions,
     styles: {
       include: /\/src\/components\/[\w-]+\/[\w-]+\.css\?inline$/,

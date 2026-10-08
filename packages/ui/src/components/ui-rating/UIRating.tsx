@@ -1,6 +1,5 @@
 import { Repeat, Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
-import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
@@ -68,7 +67,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
     super(...args)
     this.domElement.addEventListener("invalid", this.onInvalid)
     this.domElement.addEventListener("click", this.onDOMElementClick)
-    onFormStateRestore((state) => {
+    E.onFormStateRestore((state) => {
       this.value = Number(state) || 0
     })
   }

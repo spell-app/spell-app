@@ -34,7 +34,6 @@
     "@spell-app/markdown": "workspace:*",
     "@spell-app/parser": "workspace:*",
     "@spell-app/server": "workspace:*",
-    "@spell-app/solid-element": "workspace:*",
     "@spell-app/spell": "workspace:*",
     "@spell-app/ui": "workspace:*",
     "@spell-app/util": "workspace:*",

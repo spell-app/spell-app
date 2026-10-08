@@ -1,4 +1,4 @@
-import type { SolidElement } from "@spell-app/solid-element"
+import type { SolidElement } from "./solid-element"
 
 import type { E } from "$/ui/core"
 

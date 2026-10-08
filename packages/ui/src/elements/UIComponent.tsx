@@ -1,6 +1,6 @@
 import { Show, createContext, createEffect, createRenderEffect, getOwner, untrack, useContext } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
-import { customElement, onConnect, onDisconnect, onFormDisabled } from "@spell-app/solid-element"
+import { customElement, onConnect, onDisconnect, onFormDisabled } from "./solid-element"
 
 // Import directly to avoid circular import
 import { proto } from "$/ui/util"

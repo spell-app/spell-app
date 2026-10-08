@@ -20,7 +20,6 @@ the pages it drives.  Run through `packages/ui`'s yarn scripts;  results land in
 | `BundleMeasure.ts` | in-memory `vite build` with the repo's config, modules bucketed into library / shared entries / own per family / lazy;  the library AS USED (bindings `dist/` imports) and in full;  standalone per-family builds;  structural checks |
 | `PeerVendor.ts` | one ES module per peer specifier + `importmap.json` in `vendor/`, deduped (ONE Solid), tree-shaken to the bindings `dist/` and the pages import |
 | `DeclarationCheck.ts` | `yarn smoke` runs it after `vite build`:  every `exports` `types` path exists, and no `dist/**.d.ts` import is an alias (`$/util`, `$/ui`) or leaves `dist/` |
-| `ForkBuild.ts` | builds `packages/solid-element` when its `dist/` is missing or stale (`vendor`, `measure`) |
 | `HostApp.ts` | compiles the Solid 2 host app (`frameworks/solid/app.tsx`) with Solid external |
 | `SmokeRunner.ts` + `StaticServer.ts` | (`StaticServer` is a thin wrapper over `SRV.WebServer`) serves `dist/`, `vendor/`, `tools/`, `test/` from ONE static server, injects the import map, drives each page in headless chromium |
 | `LocCount.ts` | lines / code lines per file, by group |

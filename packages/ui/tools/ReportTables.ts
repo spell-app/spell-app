@@ -426,8 +426,8 @@ const CHECK_LABELS: Record<keyof MeasureChecks, string> = {
   lightDarkLowered: "`light-dark()` kept as is (never lowered to `--lightningcss-*` variables)"
 }
 
-/** Packages the versions table lists:  Solid, the fork and the Solid plugin (the pins that matter). */
-const VERSIONED = /^solid-js$|^@solidjs\/|^@spell-app\/solid-element$/
+/** Packages the versions table lists:  Solid and the Solid plugin (the pins that matter). */
+const VERSIONED = /^solid-js$|^@solidjs\//
 
 /** What each extra entry (`MeasureResults.extra`) holds, for the tier table. */
 const EXTRA: Record<string, string> = { api: "`E` / `V` namespaces, `@spell-app/ui/api`" }

@@ -75,8 +75,8 @@ describe("production build", () => {
   }, 60_000)
 })
 
-/** Solid's packages, our element layer fork and `@spell-app/ui`, as they appear in a sourcemap's `sources`. */
-const SOLID_OR_UI = /\/node_modules\/(solid-js|@solidjs\/(web|signals))\/|\/packages\/(solid-element|ui)\/src\//
+/** Solid's packages and `@spell-app/ui`, as they appear in a sourcemap's `sources`. */
+const SOLID_OR_UI = /\/node_modules\/(solid-js|@solidjs\/(web|signals))\/|\/packages\/ui\/src\//
 
 /** React and what renders with it, as they appear in a sourcemap's `sources`. */
 const REACT = /\/node_modules\/(react|react-dom|scheduler|semantic-ui-react)\//

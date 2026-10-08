@@ -4,7 +4,7 @@ import {
   type ComponentOptions,
   type SolidElement,
   type SolidElementClass
-} from "@spell-app/solid-element"
+} from "$/ui/elements/solid-element"
 
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.
 import { SpellSetup } from "$/spell/SpellSetup"
@@ -49,7 +49,7 @@ import "$/app/solid/loadUI"
  *     the app, plus the debug pane if open.  Each sets our inline style, so page CSS works too.
  *   - `assets`:  where Semantic UI, Lato and `spell-app.css` are -- default, beside this script.  Read as we
  *     join the page.
- * - Each attribute is a property too (`app.project = ...`), via `@spell-app/solid-element`'s `customElement()`.
+ * - Each attribute is a property too (`app.project = ...`), via `customElement()` (`$/ui/elements/solid-element`).
  * - `restart()` runs it again, afresh -- code pushed to us too.
  * - Fires `spell-open` -- bubbling, out of the shadow root -- with `detail: { href }` when a Type Explorer
  *   link is clicked, e.g. `spell:/@system:examples:Solitaire/Card.spell#L12`.

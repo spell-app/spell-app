@@ -1,6 +1,5 @@
 import { For, Repeat, Show, createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
-import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
@@ -59,7 +58,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
     this.domElement.addEventListener("click", this.onDOMElementClick)
-    onFormStateRestore((state) => this.onFormStateRestored(state))
+    E.onFormStateRestore((state) => this.onFormStateRestored(state))
   }
 
   ////////////////

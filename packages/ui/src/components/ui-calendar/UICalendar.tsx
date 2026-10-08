@@ -1,6 +1,5 @@
 import { For, Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
-import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
@@ -99,7 +98,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
           this.temporal = temporal
         })
     }
-    onFormStateRestore((state) => {
+    E.onFormStateRestore((state) => {
       this.value = typeof state === "string" ? state : ""
     })
     this.domElement.addEventListener("focusout", this.onFocusOut)

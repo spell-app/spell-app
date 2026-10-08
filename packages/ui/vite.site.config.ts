@@ -42,9 +42,7 @@ export default defineConfig(() => {
         { find: /^\$\/util$/, replacement: `${ROOT}../util/src/index.ts` },
         { find: /^\$\/util\//, replacement: `${ROOT}../util/src/` },
         { find: /^\$\/server$/, replacement: `${ROOT}../server/src/index.ts` },
-        { find: /^\$\/server\//, replacement: `${ROOT}../server/src/` },
-        // the fork from SOURCE, as `vite.config.ts` does:  a fresh checkout has no `packages/solid-element/dist/`
-        { find: /^@spell-app\/solid-element$/, replacement: `${ROOT}../solid-element/src/index.ts` }
+        { find: /^\$\/server\//, replacement: `${ROOT}../server/src/` }
       ]
     },
     build: {

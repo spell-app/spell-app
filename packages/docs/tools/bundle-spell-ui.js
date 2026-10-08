@@ -6,10 +6,10 @@
  *   node scripts/bundle-spell-ui.js [--skip-ui-build]
  *
  * - `--skip-ui-build`:  reuse `../ui/dist` as is.  `SPELL_UI_DIR` overrides where UI lives.
- * - UI build:  the fork (`yarn fork:build`, its `dist/` is what UI's build links to), then `yarn build`
+ * - UI build:  `yarn build`
  *   (`tsc && vite build`).  If `tsc` fails on in-progress work, falls back to `vite build` alone, and says so.
- * - Exactly ONE Solid:  every `solid-js` / `@solidjs/*` / `@spell-app/solid-element` import resolves from UI's root,
- *   so the linked fork can't pick up its own `node_modules` copy.  Checked against the metafile.
+ * - Exactly ONE Solid:  every `solid-js` / `@solidjs/*` import resolves from UI's root,
+ *   so a linked package can't pick up its own `node_modules` copy.  Checked against the metafile.
  * - No `import()` / `import.meta` may survive:  string-literal `import()`s (the runtime chunk, emoji data,
  *   Temporal polyfill) are inlined, and `supported: { "dynamic-import": false }` turns any computed `import()`
  *   (an icon pack's `pack.js`) into a rejected promise.
@@ -206,8 +206,8 @@ const ICONS = {
   "../fa7-brands/brands/git-alt": ["git", "git alt"] // the brands pack, beside `ICON_PACK`
 }
 
-/** Bare specifiers that MUST resolve from UI's root:  Solid (all subpaths) and the element-layer fork. */
-const SOLID = /^(solid-js|@solidjs\/[\w-]+|@spell-app\/solid-element)(\/.*)?$/
+/** Bare specifiers that MUST resolve from UI's root:  Solid, all subpaths. */
+const SOLID = /^(solid-js|@solidjs\/[\w-]+)(\/.*)?$/
 
 /** UI's emoji name data:  `<set>/<letter>.json`, written out as lazy classic scripts (`writeEmojiChunks()`). */
 const EMOJI_DATA = join(UI_DIR, "src/components/ui-emoji/data")
@@ -274,12 +274,11 @@ report(warnings)
 ////////////////
 
 /**
- * Builds the fork, then UI, from their working trees -- "latest UI" is whatever is checked out there.
+ * Builds UI from its working tree -- "latest UI" is whatever is checked out there.
  * - `yarn build` type-checks first;  in-progress UI work may not, so fall back to `vite build` rather than fail.
  */
 function buildUI() {
   if (!existsSync(join(UI_DIR, "package.json"))) fail(`no UI checkout at ${UI_DIR} (set SPELL_UI_DIR)`)
-  run("yarn", ["fork:build"], "build @spell-app/solid-element (UI's fork)")
   if (run("yarn", ["build"], "build @spell-app/ui (tsc + vite)", { allowFailure: true })) return
   console.warn("!! UI's tsc failed:  building with `vite build` alone (the bundle may carry type errors)")
   run("yarn", ["vite", "build"], "build @spell-app/ui (vite only)")
@@ -348,7 +347,7 @@ async function bundle() {
  * esbuild plugin wiring the entry to UI:
  * - `@spell-app/ui` ~== `dist/index.js`, `@spell-app/ui/<entry>` ~== `dist/<entry>.js` (mirrors UI's `package.json`
  *   `exports`)
- * - Solid / fork imports resolve from UI's root (`SOLID`), whoever imports them
+ * - Solid imports resolve from UI's root (`SOLID`), whoever imports them
  * - `spell-ui:icons`:  the generated icon registrations (`iconsModule()`)
  * - the page runtime:  an empty module until its file exists
  * - design target:  `@spell-app/brand/design` ~== `BRAND_DESIGN`, and the `$/ui/<entry>` it imports ~== UI's
@@ -562,7 +561,7 @@ function writeEmojiChunks() {
 // ## Checks
 ////////////////
 
-/** Fails if two copies of a Solid package made it into the bundle, e.g. the fork's own `node_modules`. */
+/** Fails if two copies of a Solid package made it into the bundle, e.g. from a linked package's own `node_modules`. */
 function checkOneSolid(metafile) {
   const copies = new Map()
   for (const input of Object.keys(metafile.inputs)) {

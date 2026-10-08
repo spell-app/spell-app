@@ -9,7 +9,7 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  * the VS Code runner (`yarn build:runner` => `dist-runner/`).  Each folder is built as its script builds it, into a
  * temp folder:  `vite.solid.config.ts` first, then the rest beside it.
  * - ONE Solid per page:  two copies fail SILENTLY (`solid-2.md`).  So Solid (`solid-js`, `@solidjs/web`,
- *   `@solidjs/signals`) and `@spell-app/solid-element` are in `spell-solid.js` ALONE, and `@spell-app/ui` in
+ *   `@solidjs/signals`) and `ui`'s custom-element layer are in `spell-solid.js` ALONE, and the rest of `@spell-app/ui` in
  *   `spell-ui.js` and its lazy chunks (`ui/`) alone;  `spell-app.js`, `spell-editor.js` and `runner.js` import them.
  *   See `sharedSolid()` in `vite.shared.ts`.
  * - `spellCore` MUST be in `spell-runtime.js` ALONE:  each runner loads its own copy of that file, for a
@@ -118,8 +118,8 @@ describe("runner builds", () => {
 
 /** Modules of each package a test asks about, as they appear in a sourcemap's `sources`. */
 const PACKAGES = {
-  solid: /\/node_modules\/(solid-js|@solidjs\/(web|signals))\/|\/packages\/solid-element\/src\//,
-  ui: /\/packages\/ui\/src\//,
+  solid: /\/node_modules\/(solid-js|@solidjs\/(web|signals))\/|\/packages\/ui\/src\/elements\/solid-element\//,
+  ui: /\/packages\/ui\/src\/(?!elements\/solid-element\/)/,
   monaco: /\/node_modules\/monaco-editor\//
 }
 

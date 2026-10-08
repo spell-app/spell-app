@@ -20,7 +20,7 @@ const EXTRA_ENTRIES = { api: ENTRIES.api!, styles: ENTRIES.styles! }
  * How the tooling reads `@spell-app/ui`:  entries, externals, peer set, buckets.
  * - Two shared entries:  `core` (every family) and `forms` (families with a form VALUE:  dropdown, input, checkbox, form).
  * - `groups` (`bucket()`):
- *   - `solid-js`, `@solidjs/*`, the fork => `library`
+ *   - `solid-js`, `@solidjs/*` => `library`
  *   - `forms.ts`, `FormComponent`, `DOMFormControl`, `Validator`, `MenuOptions`, `ControlLabels` (+ `LabelWatch`) =>
  *     `shared:forms`
  *   - a family folder => its own classes / sheet / vocabulary / fallback;  `vocabulary/SkeletonText.ts` too, as
@@ -70,7 +70,7 @@ function bucket(id: string): Bucket {
   if (id.startsWith("\0")) return "core"
   // `runtime.types.ts` reads `version` from it;  the bundler inlines the one string into `core`
   if (id.endsWith("/packages/ui/package.json")) return "core"
-  if (/\/node_modules\/(solid-js|@solidjs|@spell-app\/solid-element)\/|\/packages\/solid-element\//.test(id)) {
+  if (/\/node_modules\/(solid-js|@solidjs)\//.test(id)) {
     return "library"
   }
   if (/\/node_modules\/(temporal-(polyfill|utils)|highlight\.js|marked|dompurify)\//.test(id)) return "data"
