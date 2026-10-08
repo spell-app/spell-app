@@ -9,11 +9,13 @@
  * - `events`:  URL path of the live-reload websocket (`LiveReload.events`)
  * - `file`:  URL path of the FILE served, e.g. `/guides/solid/index.html` for `/guides/solid/`
  * - `etag`:  the file's `ETag` when served, for `If-Match` on edits
- * - `root`:  absolute folder served;  `branch` / `worktree`:  of that checkout, when known
+ * - `root`:  absolute folder served
+ * - `branch` / `worktree`:  of that checkout, when known
  * - `editPage`, `saveFile`, `readPage`, `takeScroll`:  added by `liveClient()`
  *   - `readPage()`:  the page's file as served NOW (`PageSource`):  the docs runtime's baseline for in-place updates
- *   - `takeScroll()`:  the scroll position a live reload saved, once:  the docs runtime restores it itself, after its
- *     folds and definitions settle (else the client does, on `load`)
+ *   - `takeScroll()`:  the scroll position a live reload saved, once
+ *     - the docs runtime restores it itself, after its folds and definitions settle;
+ *       else the client does, on `load`
  * - `etag` follows the page:  an in-place update (`PageChange`) moves it to the new version's
  */
 export type ServerConfig = {
@@ -38,15 +40,16 @@ export type PageSource = { html: string; etag?: string }
 /**
  * `detail` of `spell-server:change`, the event `liveClient()` fires on `window` when the page's OWN file changed.
  * - `html` / `etag`:  the new version, already fetched (`readPage()`)
- * - `reload()`:  reload, keeping the scroll position:  for a taker that finds it can't patch after all
- * - the event is cancelable:  `preventDefault()` takes it (the page updates itself, e.g. `spell-doc-runtime.js`
- *   `wireLiveUpdate()`);  nobody took it:  the client reloads
+ * - `reload()`:  reload, keeping the scroll position:  for a page that took the change, then can't patch after all
+ * - the event is cancelable:
+ *   `preventDefault()` takes it, and the page updates itself (e.g. `spell-doc-runtime.js` `wireLiveUpdate()`)
+ * - nobody took it:  the client reloads
  */
 export type PageChange = { path: string; html: string; etag?: string; reload: () => void }
 
 /**
- * `detail` of `spell-server:file`, the event `liveClient()` fires on `window` when ANOTHER file changed:  not the
- * page's own, not a stylesheet or a script.  Nothing reloads:  the page decides.
+ * `detail` of `spell-server:file`, the event `liveClient()` fires on `window` when ANOTHER file changed:
+ * not the page's own, not a stylesheet or a script.  Nothing reloads:  the page decides.
  * - `path`:  its URL path, each segment URI-encoded, e.g. `/epics/x/parts/q2.html`
  * - e.g. a body the page loaded from a file (`<ui-section source>`):  the docs runtime re-fetches it in place
  *   (`spell-doc-runtime.js` `wireSourceBodies()`:  a split plan doc's parts)
@@ -63,7 +66,9 @@ export type FileSave = { path: string; text: string; etag?: string; fragment?: s
 
 /**
  * One edit of the page's own file, through `PATCH /_server/page`.
- * - `id`:  the element to replace;  `html`:  its new markup;  `inner`:  replace its content only
+ * - `id`:  the element to replace
+ * - `html`:  its new markup
+ * - `inner`:  replace its content only
  * - `parent`:  a tag name:  replace `#id`'s nearest such ancestor instead (a section, through its heading)
  * - `etag`:  the version edited (default:  the page's, as loaded)
  */
@@ -74,22 +79,26 @@ export type PageEditResult = { ok: boolean; status: number; etag?: string; error
 
 /**
  * Start live reload in this page, and add `SPELL_SERVER.editPage()`.
- * - the page's own file changed:  fetches the new version and offers it to the page (`spell-server:change`,
- *   `PageChange`);  a page that takes it updates itself in place, else it reloads
+ * - the page's own file changed:
+ *   fetches the new version and offers it to the page (`spell-server:change`, `PageChange`)
+ *   - a page that takes it updates itself in place, else it reloads
  * - a stylesheet the page uses (linked, or `@import`ed by one it links) changed:  swapped in place, no reload
- * - a script changed in the folder of one the page loads (`_assets/`:  the bundle and its lazy chunks):  reloads.
- *   Any other `.js` (a repo tool) is none of the page's business
- * - any other file changed:  says so (`spell-server:file`, `FileChange`), and does nothing else:  a page that loads
- *   it (a body from a file) re-fetches it
+ * - a script changed in the folder of one the page loads (`_assets/`:  the bundle and its lazy chunks):  reloads
+ *   - any other `.js` (a repo tool) is none of the page's business
+ * - any other file changed:  says so (`spell-server:file`, `FileChange`), and does nothing else
+ *   - a page that loads it (a body from a file) re-fetches it
  * - keeps the scroll position across a reload (`sessionStorage`, when it works)
- * - in a frame (VS Code's "Spell Docs" view, `packages/vscode/src/DocView.ts`):  posts its place to the parent on
- *   every load and hash change, and on `spell-doc:place` (the docs runtime moved the address with
- *   `history.replaceState()`, which fires no `hashchange`);  runs `history.go()` when the parent posts
- *   `{ spell: "history", go: -1 | 1 }`, and routes link clicks (`followInFrame()`):  a frame can't open the tabs
- *   docs links ask for.  Why here:  the view's frame is cross-origin, so the view can't read or move its history itself
+ * - in a frame (VS Code's "Spell Docs" view, `packages/vscode/src/DocView.ts`):
+ *   - posts its place to the parent:  on every load and hash change, and on `spell-doc:place`
+ *     (the docs runtime moved the address with `history.replaceState()`, which fires no `hashchange`)
+ *   - runs `history.go()` when the parent posts `{ spell: "history", go: -1 | 1 }`
+ *   - runs an edit key when the parent posts `{ spell: "edit", command, text? }` (`edit()`)
+ *   - routes link clicks (`followInFrame()`):  a frame can't open the tabs docs links ask for
  *   - `{ spell: "go", hash }` from the parent is the docs runtime's (`spell-doc-runtime.js` `wireAnchors()`)
- * - in a same-origin frame of a live page (the brand index's thumbnails, the Compare view's panes):  opens no
- *   connection, and takes changes from the parent (`__spellLiveChange`), which hands each one down before acting on it
+ *   - why here:  the view's frame is cross-origin, so the view can't read or move its history itself
+ * - in a same-origin frame of a live page (the brand index's thumbnails, the Compare view's panes):
+ *   opens no connection, and takes changes from the parent (`__spellLiveChange`),
+ *   which hands each one down before acting on it
  * - runs once per page
  */
 export function liveClient(): void {
@@ -181,10 +190,12 @@ export function liveClient(): void {
   /**
    * Open the live-reload websocket (`config.events`), and act on each change it reports.
    * - a websocket, not an `EventSource`:  an event stream holds one of Chrome's 6 connections per host for good,
-   *   and every VS Code window shares them:  6 docs pages open anywhere, and every other page's requests waited
-   *   forever (`webSocket.ts`).  Websockets don't count toward those 6.
-   * - closed (the server restarted or stopped):  tries again, as `EventSource` did:  0.5s after an open socket
-   *   closes, then `wait` ms after each try that failed, doubling up to 10s
+   *   and every VS Code window shares them
+   *   - with 6 docs pages open anywhere, every other page's requests waited forever (`webSocket.ts`)
+   *   - websockets don't count toward those 6
+   * - closed (the server restarted or stopped):  tries again, as `EventSource` did
+   *   - 0.5s after an open socket closes
+   *   - `wait` ms after each try that failed, doubling up to 10s
    */
   function connect(wait = 1000) {
     const url = new URL(config!.events, location.href)
@@ -204,8 +215,9 @@ export function liveClient(): void {
 
   /**
    * Is this page in a same-origin frame whose page runs live reload?  Then the parent hands us its changes.
-   * - Why:  one connection per page is enough.  (Before live reload moved to websockets, every connection took one
-   *   of Chrome's 6 per host:  a page framing 6 served pages, the brand index's thumbnails, used them all.)
+   * - why:  one connection per page is enough
+   *   - before live reload moved to websockets, every connection took one of Chrome's 6 per host:
+   *     a page framing 6 served pages (the brand index's thumbnails) used them all
    * - a cross-origin parent (VS Code's view) throws or has no `frameElement`:  we keep our own connection
    */
   function liveParent(): boolean {
@@ -306,10 +318,10 @@ export function liveClient(): void {
   }
 
   /**
-   * A link clicked in the frame:  where it should go, since the frame may not open tabs (docs links all name a
-   * `target`, and the view's sandbox blocks popups).
+   * A link clicked in the frame:  send it where it should go.
+   * - the frame may not open tabs:  docs links all name a `target`, and the view's sandbox blocks popups
    * - a page on this server (`.html`, or a site page like `/ui/`):  here, in the frame, so back / forward work
-   * - a source reference that isn't a page (`target="src-..."`, as `doc-links.py` names them):
+   * - a source reference that isn't a page (`target="src-..."`, as `doc-links.js` names them):
    *   `{ spell: "open", url, kind: "file" }` to the parent, which opens it in VS Code (a folder:  in the Explorer)
    * - another site, or a link marked `data-spell-open="browser"` (the header's App):
    *   `{ spell: "open", url, kind: "external" }`, opened in the browser
@@ -329,20 +341,21 @@ export function liveClient(): void {
     event.preventDefault()
     if (url.origin !== location.origin || link.dataset.spellOpen === "browser")
       return window.parent.postMessage({ spell: "open", url: url.href, kind: "external" }, "*")
-    // a source reference (`doc-links.py` names its targets `src-<path>`) that isn't a page:  the editor
+    // a source reference (`doc-links.js` names its targets `src-<path>`) that isn't a page:  the editor
     if (!/\.html?$/.test(url.pathname) && link.target.startsWith("src-"))
       return window.parent.postMessage({ spell: "open", url: url.href, kind: "file" }, "*")
     location.assign(url.href)
   }
 
   /**
-   * An edit key, sent in by VS Code's docs view (`{ spell: "edit", command, text? }`, `packages/vscode/src/DocView.ts`
-   * `edit()`;  epic `windows-and-review` I2).  Why:  VS Code takes Cmd / Ctrl + C, X, V, A, Z as its own keys before
-   * a page in a frame sees them, so copy, paste and select all did nothing in the side bar.
-   * - copy / cut:  the selection (a field's, else the page's) goes back to the view, which puts it on the clipboard;
-   *   cut then deletes it here
+   * An edit key, sent in by VS Code's docs view (`packages/vscode/src/DocView.ts` `edit()`):
+   * `{ spell: "edit", command, text? }`.
+   * - copy / cut:  the selection (a field's, else the page's) goes back to the view, which puts it on the clipboard
+   *   - cut then deletes it here
    * - paste:  `text` (the clipboard, read by the view), typed in where the caret is (the field's own undo keeps it)
    * - selectAll, undo, redo:  `document.execCommand()`, on the focused field or the page
+   * - why:  VS Code takes Cmd / Ctrl + C, X, V, A, Z as its own keys before a page in a frame sees them,
+   *   so copy, paste and select all did nothing in the side bar (epic `windows-and-review` I2)
    */
   function edit(command: string, text?: string) {
     if (command === "paste") {
@@ -369,8 +382,9 @@ export function liveClient(): void {
   }
 
   /**
-   * Scroll back to where the last live reload left this page, on `load`;  unless the page took the position
-   * first (`takeScroll()`:  the docs runtime restores it once its sections have drawn).
+   * Scroll back to where the last live reload left this page, on `load`.
+   * - unless the page took the position first, with `takeScroll()`:
+   *   the docs runtime restores it once its sections have drawn
    */
   function restoreScroll() {
     try {

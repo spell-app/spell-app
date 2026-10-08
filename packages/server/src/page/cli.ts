@@ -1,14 +1,16 @@
 /**
  * `spell dev server <command>`:  the page server of this checkout.
  * - `serve [--port N]` -- run it in the foreground, until `Ctrl-C`
- * - `start` / `ensure` -- start it in the background if it isn't running;  prints JSON `{ base, port, pid, root,
- *   launched }`
- * - `stop` -- stop it;  `status` -- JSON, or exit 1 when not running
- * - `url <file>` -- `ensure`, then print the URL that serves `file`;  a worktree's file:  on the MAIN checkout's
- *   server (`/worktrees/<w>/...`) when that one runs and serves worktrees (`SRV.mainServerUrl()`)
+ * - `start` / `ensure` -- start it in the background if it isn't running;
+ *   prints JSON `{ base, port, pid, root, launched }`
+ * - `stop` -- stop it
+ * - `status` -- JSON, or exit 1 when not running
+ * - `url <file>` -- `ensure`, then print the URL that serves `file`
+ *   - a worktree's file:  on the MAIN checkout's server (`/worktrees/<w>/...`),
+ *     when that one runs and serves worktrees (`SRV.mainServerUrl()`)
  * - `--root <dir>`:  the checkout (default:  the one holding the folder `yarn` ran in, `INIT_CWD`)
- * - Runs under `tsx` with THIS package's `tsconfig.json`, so `$/...` aliases resolve:  a background server is
- *   started the same way (`TSX_TSCONFIG_PATH`), whatever folder it's started from.
+ * - Runs under `tsx` with THIS package's `tsconfig.json`, so `$/...` aliases resolve.
+ *   A background server is started the same way (`TSX_TSCONFIG_PATH`), whatever folder it's started from.
  */
 import { relative, resolve, sep } from "node:path"
 

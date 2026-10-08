@@ -2,8 +2,8 @@ import { SRV, type Handler, type Next, type RouteParams } from "$/server"
 
 /**
  * Routes requests by method and path to handlers:  the part of Express's `Router` the app's `api.ts` uses.
- * - `get / post / put / patch / delete / all(pattern, ...handlers)`;  `use([prefix], ...handlers)` for middleware
- *   and mounted routers
+ * - `get / post / put / patch / delete / all(pattern, ...handlers)`:  routes
+ * - `use([prefix], ...handlers)`:  middleware and mounted routers
  * - patterns:
  *   - `/projects/list/:domainId` -- `:name` matches one segment
  *   - `/projects/file/:projectId/:filePath*` -- `:name*` matches the REST of the path, `/`s included
@@ -11,8 +11,9 @@ import { SRV, type Handler, type Next, type RouteParams } from "$/server"
  *   - case-insensitive, and a trailing `/` is optional, as in Express
  * - layers run in the order added;  the first that answers wins, the rest are skipped
  * - a handler that throws or rejects ~== `next(error)`:  every layer after it is skipped
- * - NOTE: unlike Express 4, `:name*` holds the WHOLE rest.  Express put only the first segment in `name` and the
- *   rest in `params["0"]`, which broke nested project files (`agents/SUSPECTED-BUGS.md`, `## app`).
+ * - NOTE: unlike Express 4, `:name*` holds the WHOLE rest.
+ *   Express put only the first segment in `name` and the rest in `params["0"]`,
+ *   which broke nested project files (`agents/SUSPECTED-BUGS.md`, `## app`).
  */
 export class Router {
   /** every route and middleware, in order */
@@ -72,9 +73,11 @@ export class Router {
 
   /**
    * Handle a request:  this router as a `Handler`, so routers nest.
-   * - `out()`:  nothing here answered;  `out(error)`:  a handler failed
-   * - SIDE EFFECT:  sets `request.params` per route;  inside a `use(prefix)` layer, `request.url` / `baseUrl` are
-   *   relative to the prefix, and restored when it passes the request on
+   * - `out()`:  nothing here answered
+   * - `out(error)`:  a handler failed
+   * - SIDE EFFECT:  sets `request.params` per route
+   * - SIDE EFFECT:  inside a `use(prefix)` layer, `request.url` / `baseUrl` are relative to the prefix,
+   *   and restored when it passes the request on
    */
   handle: Handler = (request, reply, out) => {
     let index = 0
@@ -119,7 +122,8 @@ export type Routable = Handler | Router
 
 /**
  * One route or middleware.
- * - `method`:  `undefined` for any;  `prefix`:  set for `use()` layers (`""` for all paths)
+ * - `method`:  `undefined` for any
+ * - `prefix`:  set for `use()` layers (`""` for all paths)
  * - `match`:  the params if the path matches, else `undefined`;  throws an `HttpError` on bad encoding
  */
 type Layer = {

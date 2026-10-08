@@ -17,14 +17,16 @@ import {
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
  * - docs, plan docs, goals, Spell UI docs and (once `app` is in) the editor, all live-reloading
  * - `/` -> the docs home (`pages/index.html`);  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`
- * - `/ui/` -> Spell UI's docs (`UI_SITE`), live-reloading like every page:  the shared pages (`ui/`), with the
- *   branch's built `_assets/` and `_data/` (`packages/ui/site/`) laid over them;  the same at `/worktrees/<w>/ui/`
+ * - `/ui/` -> Spell UI's docs (`UI_SITE`), live-reloading like every page
+ *   - the shared pages (`ui/`), with the branch's built `_assets/` and `_data/` (`packages/ui/site/`) laid over them
+ *   - the same at `/worktrees/<w>/ui/`
  * - `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
- * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:  `start()` builds the stale ones in the
- *   background (`BundleBuild`), and a request for one of their files waits while that runs
+ * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:
+ *   `start()` builds the stale ones in the background (`BundleBuild`),
+ *   and a request for one of their files waits while that runs
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. goals' buttons
- * - port:  `DEFAULT_PORT` (4747) if free, else any;  the real one goes in `<root>/.spell-server.json`, where
- *   `spell dev server ensure` and the openers find it
+ * - port:  `DEFAULT_PORT` (4747) if free, else any
+ *   - the real one goes in `<root>/.spell-server.json`, where `spell dev server ensure` and the openers find it
  * - Run it with `spell dev server` (`page/cli.ts`), never by hand.
  */
 export class PageServer {
@@ -81,15 +83,16 @@ export class PageServer {
     this.web.files.overlays.push(uiBuildPath)
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect(DOCS_HOME))
-    // plan docs moved from `plans/` to `epics/` (2026-10-02), then into `content/`, then to the root `epics/`:  old
-    // links and open tabs still land.  302:  a 301 would be cached for good
+    // redirects, so old links and open tabs still land;  302:  a 301 would be cached for good
+    // - plan docs moved from `plans/` to `epics/` (2026-10-02), then into `content/`, then to the root `epics/`
     router.get("/packages/docs/plans/*", (request, reply) =>
       reply.redirect(request.originalUrl.replace("/packages/docs/plans/", "/epics/"))
     )
-    // docs pages moved into `packages/docs/content/`, plan docs renamed `epics/<n>/<n>.html` -> `<n>.plan.html`
-    // (both 2026-10-04), then the content split into root folders (2026-10-05, claude-design P4):  old links and
-    // open tabs still land, here and in a worktree served from here (`/worktrees/<w>/`).  302.  Likewise Spell UI's
-    // pages, from `packages/ui/site/` to the shared `ui/` (2026-10-05, claude-design P6)
+    // - docs pages moved into `packages/docs/content/` (2026-10-04),
+    //   then the content split into root folders (2026-10-05, claude-design P4)
+    // - plan docs renamed `epics/<n>/<n>.html` -> `<n>.plan.html` (2026-10-04)
+    // - Spell UI's pages moved from `packages/ui/site/` to the shared `ui/` (2026-10-05, claude-design P6)
+    // - here, and in a worktree served from here (`/worktrees/<w>/`);  302 too
     for (const prefix of ["/packages/docs/*", "/packages/ui/site/*", "/worktrees/*", "/epics/*"])
       router.get(prefix, (request, reply, next) => {
         const url = request.originalUrl
@@ -106,8 +109,8 @@ export class PageServer {
   }
 
   /**
-   * Start the bundles' build, load the route modules, start watching, listen, write the pid file, then run route
-   * modules' `onListening`s.
+   * Start the bundles' build, load the route modules, start watching, listen, write the pid file,
+   * then run route modules' `onListening`s.
    * - `port`:  wanted port (default `DEFAULT_PORT`);  taken:  any free one
    * - `routes`:  load route modules (default `true`;  tests turn it off)
    * - `pidFile`:  write `.spell-server.json` (default `true`)
@@ -148,10 +151,11 @@ export class PageServer {
   }
 
   /**
-   * The page server of the checkout at `root`, started in the background if it isn't running:  its info, `base`
-   * URL, and whether it was `launched` just now.
-   * - runs `page/cli.ts serve` under `tsx`, with this package's `tsconfig.json` for the aliases
-   *   (`TSX_TSCONFIG_PATH`), whatever the caller's folder;  its output goes to `<root>/.spell-server.log`
+   * The page server of the checkout at `root`, started in the background if it isn't running.
+   * - returns its info, `base` URL, and whether it was `launched` just now
+   * - runs `page/cli.ts serve` under `tsx`, whatever the caller's folder,
+   *   with this package's `tsconfig.json` for the aliases (`TSX_TSCONFIG_PATH`)
+   * - its output goes to `<root>/.spell-server.log`
    * - what `spell dev server ensure`, the goals tools and the openers call
    */
   static ensure(root: string, port = DEFAULT_PORT) {
@@ -210,8 +214,10 @@ export const DEFAULT_PORT = Number(process.env.SPELL_SERVER_PORT) || 4747
 
 /**
  * `PageServer.start()` options.
- * - `port`:  wanted;  `routes`:  load route modules;  `pidFile`:  write the pid file;  `bundles`:  build the stale
- *   bundles
+ * - `port`:  wanted
+ * - `routes`:  load route modules
+ * - `pidFile`:  write the pid file
+ * - `bundles`:  build the stale bundles
  */
 export type StartOptions = { port?: number; routes?: boolean; pidFile?: boolean; bundles?: boolean }
 
@@ -249,8 +255,10 @@ export const DOCS_HOME = "/pages/index.html"
 const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "brand", "packages/docs/tools/_assets"]
 
 /**
- * Where top-level entry `name` of the old `packages/docs/content/` went (claude-design P4, 2026-10-05):  `epics` and
- * `templates` to the root, `details` and `index.html` into `pages/`, anything else into `guides/`.
+ * Where top-level entry `name` of the old `packages/docs/content/` went (claude-design P4, 2026-10-05):
+ * - `epics` and `templates` to the root
+ * - `details` and `index.html` into `pages/`
+ * - anything else into `guides/`
  * - SAME as `packages/docs/tools/relocate.js` `reorgEntry()`:  the server is a leaf, so a copy
  */
 export function reorgEntry(name: string): string {
@@ -267,11 +275,13 @@ const REORG: Record<string, string> = {
 
 /**
  * The new URL of an old docs URL `url` (or the same under `/worktrees/<w>/`), query kept;  else `undefined`:
- * - `/packages/docs/content/<x>` (2026-10-04 .. 10-05):  where the reorg put `<x>` (`reorgEntry()`), when that's
- *   there;  `/packages/docs/content/` itself:  the docs home.  Even while the old path still resolves (the old-path
- *   links in the shared repo, a checkout's old content link):  ONE address per page
+ * - `/packages/docs/content/<x>` (2026-10-04 .. 10-05):  where the reorg put `<x>` (`reorgEntry()`), when that's there
+ *   - `/packages/docs/content/` itself:  the docs home
+ *   - even while the old path still resolves (the old-path links in the shared repo, a checkout's old content link):
+ *     ONE address per page
  * - `/packages/docs/<x>` (before 2026-10-04):  the same, but pages and folders only (`.html`, `.md`, no extension),
- *   and only while the old one is gone:  the package's own files (`package.json`, `README.md` ...) stay put
+ *   and only while the old one is gone
+ *   - the package's own files (`package.json`, `README.md` ...) stay put
  * - an old plan doc name (`epics/<n>/<n>.html`) lands on its new name in ONE hop (`renamedPlanDoc()`)
  * - `root`:  the checkout served;  `/worktrees/<w>/...` is its `.claude/worktrees/<w>/...` (`RunningEpics`)
  */
@@ -297,9 +307,10 @@ export function movedDocsPage(url: string, root: string): string | undefined {
 }
 
 /**
- * The new URL of an old plan doc's URL `url` (`/epics/<n>/<n>.html`, or the same under `/worktrees/<w>/`, or under
- * an old place:  `packages/docs/content/`, `packages/docs/`):  `<n>.plan.html`, query kept, when the old file is gone
- * and the new one is there;  else `undefined`.
+ * The new URL of an old plan doc's URL `url`:  `<n>.plan.html`, query kept;  else `undefined`.
+ * - `url`:  `/epics/<n>/<n>.html`, or the same under `/worktrees/<w>/`,
+ *   or under an old place:  `packages/docs/content/`, `packages/docs/`
+ * - only when the old file is gone and the new one is there
  * - `root`:  the checkout served;  `/worktrees/<w>/...` is its `.claude/worktrees/<w>/...` (`RunningEpics`)
  */
 export function renamedPlanDoc(url: string, root: string): string | undefined {
@@ -314,9 +325,10 @@ export function renamedPlanDoc(url: string, root: string): string | undefined {
 }
 
 /**
- * The URL path Spell UI's built half lays over URL path `path` (`UI_SITE.overlays`):  `/ui/_assets/<x>` ->
- * `/packages/ui/site/_assets/<x>`, `/ui/_data/<x>` likewise, the same under `/worktrees/<w>/` (that worktree's
- * build);  else `undefined`.
+ * The URL path Spell UI's built half lays over URL path `path` (`UI_SITE.overlays`);  else `undefined`.
+ * - `/ui/_assets/<x>` -> `/packages/ui/site/_assets/<x>`
+ * - `/ui/_data/<x>` likewise
+ * - the same under `/worktrees/<w>/` (that worktree's build)
  * - a `StaticHandler` overlay:  served only when the build has the file, else the shared pages' own
  */
 export function uiBuildPath(path: string): string | undefined {
@@ -326,9 +338,9 @@ export function uiBuildPath(path: string): string | undefined {
 }
 
 /**
- * The new URL of an old Spell UI page URL `url` (`/packages/ui/site/<x>`, or the same under `/worktrees/<w>/`):
- * `/ui/<x>` (`/worktrees/<w>/ui/<x>`), query kept, when the old file is gone and the new one is there;  else
- * `undefined` (2026-10-05, claude-design P6).
+ * The new URL of an old Spell UI page URL `url`, query kept;  else `undefined` (2026-10-05, claude-design P6).
+ * - `/packages/ui/site/<x>` -> `/ui/<x>`;  the same under `/worktrees/<w>/`
+ * - only when the old file is gone and the new one is there
  * - a checkout on older code still has its pages at the old place:  served there
  * - the built half (`_assets/`, `_data/`, `_src/`) never moved:  still served at its own path too
  */

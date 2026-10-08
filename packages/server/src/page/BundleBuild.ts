@@ -7,14 +7,14 @@ import type { Handler } from "$/server"
 import { BUNDLE_FOLDERS, BUNDLE_WAIT_MS, uiBuildPath } from "$/server/page"
 
 /**
- * The page server's build of the bundles it serves (`BUNDLE_FOLDERS`:  the Spell UI docs site's, the brand pages'),
- * which are built on demand, never committed.
- * - `start()`:  runs `spell dev bundles build --stale` with the checkout's OWN CLI, in the background:  it builds only
- *   the bundles whose sources changed since their last build (the logic:  `$/assembler` `Bundle`), so a start with
- *   nothing changed builds nothing
+ * Builds the bundles the page server serves, when the server starts.
+ * - the bundles (`BUNDLE_FOLDERS`):  the Spell UI docs site's, the brand pages';  built on demand, never committed
+ * - `start()`:  runs `spell dev bundles build --stale` in the background, with the checkout's OWN CLI
+ *   - it builds only the bundles whose sources changed since their last build (the logic:  `$/assembler` `Bundle`)
+ *   - so a start with nothing changed builds nothing
  * - its output goes to the server's log, each line prefixed `bundles:  `
- * - `wait`:  while it runs, a request for a MISSING file in a bundle's folder waits for it to end (at most
- *   `timeout` ms), then is served as usual;  a file that's there is served at once
+ * - `wait`:  while it runs, a request for a MISSING file in a bundle's folder waits for it to end,
+ *   at most `timeout` ms, then is served as usual;  a file that's there is served at once
  * - when it ends, live reload reloads the open pages that load a bundle:  the page server watches both folders
  * - A leaf like the rest of the server:  it runs the CLI as a child process, never imports it.
  */
@@ -117,8 +117,9 @@ export class BundleBuild {
 
   /**
    * The router handler:  while the build runs, a request for a missing file in a bundle's folder waits for it.
-   * - this checkout's own bundles only:  `/packages/brand/_assets/ui/...`, `/packages/ui/site/_assets/...`, and the
-   *   latter laid over the pages at `/ui/_assets/...` (`uiBuildPath()`);  not `/worktrees/<w>/...`
+   * - this checkout's own bundles only, not `/worktrees/<w>/...`:
+   *   - `/packages/brand/_assets/ui/...`
+   *   - `/packages/ui/site/_assets/...`, and the same laid over the pages at `/ui/_assets/...` (`uiBuildPath()`)
    */
   wait: Handler = async (request, _reply, next) => {
     if (!this.child || (request.method !== "GET" && request.method !== "HEAD")) return next()
@@ -146,7 +147,8 @@ export type SpawnBuild = (command: string, args: string[], options: SpawnOptions
 
 /**
  * `new BundleBuild()` props.
- * - `root`:  the checkout served;  `timeout`:  ms a request waits (default `BUNDLE_WAIT_MS`)
+ * - `root`:  the checkout served
+ * - `timeout`:  ms a request waits (default `BUNDLE_WAIT_MS`)
  * - `spawn`:  starts the child (default `node:child_process`'s);  tests pass a stub
  */
 export type BundleBuildProps = { root: string; timeout?: number; spawn?: SpawnBuild }

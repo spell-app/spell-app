@@ -5,25 +5,27 @@ import type { SRV } from "$/server"
 
 /****************
  * ### `RunningEpics`
- * The main checkout's page server showing every RUNNING epic's plan doc:  the ones still in their worktree
- * (`.claude/worktrees/<w>/epics/<name>/<name>.plan.html`, or an old `<name>.html`), not yet merged into the main
- * checkout.
- * - a worktree on older code keeps its plan docs in `packages/docs/content/epics/` (before 2026-10-05) or
- *   `packages/docs/epics/` (before 2026-10-04):  found there too (`EPICS_DIRS`)
- * - Why:  each worktree has its own page server (its own port), and the main one refuses `.claude/...` (a dot
- *   path), so the epics list couldn't show an epic until it merged.
- * - `/worktrees/<w>/...` serves worktree `<w>`'s files (`StaticHandler` mount, dot files still refused), so a plan
- *   doc's relative assets come from its own worktree.
+ * Lets the main checkout's page server show every RUNNING epic's plan doc:
+ * the ones still in their worktree, not yet merged into the main checkout.
+ * - where:  `.claude/worktrees/<w>/epics/<name>/<name>.plan.html`, or an old `<name>.html`
+ *   - a worktree on older code keeps its plan docs in `packages/docs/content/epics/` (before 2026-10-05)
+ *     or `packages/docs/epics/` (before 2026-10-04):  found there too (`EPICS_DIRS`)
+ * - Why:  each worktree has its own page server (its own port),
+ *   and the main one refuses `.claude/...` (a dot path), so the epics list couldn't show an epic until it merged.
+ * - `/worktrees/<w>/...` serves worktree `<w>`'s files (`StaticHandler` mount, dot files still refused),
+ *   so a plan doc's relative assets come from its own worktree.
  * - `/_server/epics`:  the list, as JSON (`RunningEpic[]`).
- * - The Epics list page (`epics/index.html`;  the docs home until claude-design P5):  its `<!-- running-epics -->`
- *   marker, first in the Epics card list, becomes the running epics' cards, rendered on each request:  running and
- *   merged epics in ONE list, each card's title after its state (`stateMark()`).  None running:  nothing.  Opened
- *   from disk:  the marker stays a comment.
+ * - The Epics list page (`epics/index.html`;  the docs home until claude-design P5):
+ *   - its `<!-- running-epics -->` marker, first in the Epics card list, becomes the running epics' cards,
+ *     rendered on each request
+ *   - running and merged epics in ONE list, each card's title after its state (`stateMark()`)
+ *   - none running:  nothing
+ *   - opened from disk:  the marker stays a comment
  * - Live:  a plan doc's change reloads its page and the list page (`watch()`).
- * - Which docs:  `<name>` === `<w>` (the epic the worktree is for), or any `<name>` the main checkout lacks.  The
- *   rest are stale copies of epics merged before the worktree was cut.
- * - NOTE:  edit mode on a worktree's page isn't offered through here:  `PageEditor` refuses dot paths too.  Its
- *   own worktree's server edits it.
+ * - Which docs:  `<name>` === `<w>` (the epic the worktree is for), or any `<name>` the main checkout lacks.
+ *   The rest are stale copies of epics merged before the worktree was cut.
+ * - NOTE:  edit mode on a worktree's page isn't offered through here:  `PageEditor` refuses dot paths too.
+ *   Its own worktree's server edits it.
  ****************/
 export class RunningEpics {
   /** the main checkout */
@@ -46,8 +48,8 @@ export class RunningEpics {
 
   /**
    * every running epic, by worktree then name
-   * - shared content (a worktree's epics folder IS the main checkout's, through a link into `../spell-app-dev`):  the
-   *   card links the main checkout's own URL, so edit mode and live reload work there
+   * - shared content (a worktree's epics folder IS the main checkout's, through a link into `../spell-app-dev`):
+   *   the card links the main checkout's own URL, so edit mode and live reload work there
    */
   list(): RunningEpic[] {
     const found: RunningEpic[] = []
@@ -112,8 +114,9 @@ export class RunningEpics {
   }
 
   /**
-   * `page` (the Epics list page) with the running epics' cards at its `<!-- running-epics -->` marker:  first in the
-   * Epics list (`spell dev docs index` puts the marker there);  none running, or no marker:  as is.
+   * `page` (the Epics list page) with the running epics' cards at its `<!-- running-epics -->` marker.
+   * - the marker is first in the Epics list (`spell dev docs index` puts it there)
+   * - none running, or no marker:  as is
    * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one
    * - SAME card markup as `packages/docs/tools/index.js` `epicCard()`:  change both
    */
@@ -147,8 +150,8 @@ export class RunningEpics {
  * - `name`:  the epic;  `worktree`:  the worktree it's in;  `url`:  its plan doc on the main page server
  * - `title`:  the doc's `<title>`
  * - `done` / `total`:  phases;  `active`:  the active phase's header (`P2 · Name`), if any
- * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any:  an epic with phases left and no update for a
- *   few days shows as stalled
+ * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any
+ *   - an epic with phases left and no update for a few days shows as stalled
  */
 export type RunningEpic = {
   name: string
@@ -167,23 +170,26 @@ export const MARKER = "<!-- running-epics -->"
 /**
  * Where a checkout keeps its plan docs, relative to its root, newest layout first.
  * - `epics`:  since 2026-10-05 (epic `claude-design`, P4)
- * - `packages/docs/content/epics`:  since 2026-10-04 (epic `shared-content`, P2);  a link into the shared repo's
- *   old-path links, so the same folder as `epics`
+ * - `packages/docs/content/epics`:  since 2026-10-04 (epic `shared-content`, P2)
+ *   - a link into the shared repo's old-path links, so the same folder as `epics`
  * - `packages/docs/epics`:  a worktree cut before that, until it merges `main`
  */
 const EPICS_DIRS = ["epics", "packages/docs/content/epics", "packages/docs/epics"]
 
 /**
- * A plan doc's path inside `.claude/worktrees`:  `<w>/epics/<name>/<name>.plan.html`, or (a worktree on older code)
- * the same under `packages/docs/content/` or `packages/docs/`, or with the old name `<name>.html`.
+ * A plan doc's path inside `.claude/worktrees`:  `<w>/epics/<name>/<name>.plan.html`.
+ * - a worktree on older code:  the same under `packages/docs/content/` or `packages/docs/`,
+ *   or with the old name `<name>.html`
  */
 const EPIC_FILE = /^[^/]+\/(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
 
 /**
- * Epic `name`'s plan doc in folder `dir`:  `<name>.plan.html`, else an old `<name>.html` that is a plan doc
- * (`<body class="... plan-doc">`);  `undefined` when neither.
- * - why both:  plan docs were renamed on 2026-10-04 (`review-review` P4);  worktrees cut before keep the old name
- *   until they merge `main`.  `packages/docs/tools/pages.js` `planDocIn()` is the same:  change both
+ * Epic `name`'s plan doc in folder `dir`;  `undefined` when neither:
+ * - `<name>.plan.html`
+ * - else an old `<name>.html` that is a plan doc (`<body class="... plan-doc">`)
+ * - why both:  plan docs were renamed on 2026-10-04 (`review-review` P4);
+ *   worktrees cut before keep the old name until they merge `main`
+ * - SAME as `packages/docs/tools/pages.js` `planDocIn()`:  change both
  */
 function planFile(dir: string, name: string): string | undefined {
   const file = join(dir, `${name}.plan.html`)
@@ -214,14 +220,15 @@ function folders(dir: string): string[] {
 /**
  * Title and phases of the plan doc at `file`, by pattern:  the server is a leaf, so no HTML parser or plan-doc tool.
  * - either markup (attributes in any order, across lines):
- *   - `<epic-*>`:  each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`), `<epic-page
- *     updated>`
+ *   - `<epic-*>`:
+ *     - each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`)
+ *     - `<epic-page updated>`
  *   - the old:  each `<ui-section ... data-phase="N" ... data-status="S" ... header="...">`, `#plan-updated`.
  *     REFACTOR: drop old markup after the switch (P12)
  */
 function read(file: string): Pick<RunningEpic, "title" | "done" | "total" | "active" | "updated"> {
   const html = readFileSync(file, "utf8")
-  // without the `Epic: ` plan docs' titles start with since 2026-10-04:  the card is in Epics already
+  // drop the `Epic: ` plan docs' titles start with (since 2026-10-04):  the card is in the Epics list already
   const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
   const attribute = (tag: string, name: string) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1]
   const page = /<epic-page\b[^>]*>/.exec(html)?.[0]

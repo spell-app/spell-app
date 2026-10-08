@@ -9,15 +9,16 @@ import { SRV, type FileTransform, type Handler, type HtmlTransform, type Mount }
  * - the LONGEST matching prefix wins, e.g. `/element/` over `/`
  * - a folder serves its `index.html`;  asked for without its trailing `/`, it redirects (301) to it
  * - names starting with `.` are 403 unless the mount says `dotFiles`
- * - every answer is `Cache-Control: no-store` (pages change under us) with an `ETag` of the file on disk, so a
- *   page editor can say `If-Match`
+ * - every answer is `Cache-Control: no-store` (pages change under us),
+ *   with an `ETag` of the file on disk, so a page editor can say `If-Match`
  * - hooks:
  *   - `transforms[".ts"]`:  rewrites a file by extension, e.g. `ui`'s smoke server turns `.ts` into JavaScript
  *   - `html`:  rewrites every `.html` page in turn, e.g. inject an import map or `window.SPELL_SERVER`
  *   - `overlays`:  a URL path served from another one when a file is there (a folder laid over another)
- *   - NOT for a script's `fetch()` (`Sec-Fetch-Dest: empty`):  it gets the file AS IS.  Why:  `<ui-include>` /
- *     `<ui-code>` / `<ui-markdown>` show a file and save it back, and must never see (or write) the injected
- *     live-reload tags.  Navigations, `<script>`s and module imports still get the hooks.
+ *   - NOT for a script's `fetch()` (`Sec-Fetch-Dest: empty`):  it gets the file AS IS
+ *     - navigations, `<script>`s and module imports still get the hooks
+ *     - why:  `<ui-include>` / `<ui-code>` / `<ui-markdown>` show a file and save it back,
+ *       and must never see (or write) the injected live-reload tags
  * - nothing matched or file missing:  `next()`, so routes after it (an SPA fallback) still get a turn
  */
 export class StaticHandler {
@@ -31,8 +32,9 @@ export class StaticHandler {
   readonly transforms: Record<string, FileTransform>
 
   /**
-   * OVERLAYS:  each maps a URL path to another one served in its place WHEN a file is there, so one folder lays
-   * over another, e.g. the page server's `/ui/_assets/...` from `packages/ui/site/_assets/` (`UI_SITE`)
+   * OVERLAYS:  each maps a URL path to another one, served in its place WHEN a file is there,
+   * so one folder lays over another.
+   * - e.g. the page server's `/ui/_assets/...` from `packages/ui/site/_assets/` (`UI_SITE`)
    * - the first overlay that finds a file wins;  none:  the path as asked
    * - `undefined`:  not this overlay's path
    */
@@ -67,7 +69,8 @@ export class StaticHandler {
   }
 
   /**
-   * Where URL path `path` leads through the mounts, exactly as `handle()` would serve it;  `undefined`:  no mount.
+   * Where URL path `path` leads through the mounts, exactly as `handle()` would serve it.
+   * - `undefined`:  no mount
    * - for routes that act on a page by its URL, e.g. `docs`' details answers (`/worktrees/<w>/...` included)
    * - an overlay's file first (`overlays`)
    */
@@ -119,7 +122,8 @@ export class StaticHandler {
 
 /**
  * `new StaticHandler()` props.
- * - `mounts`:  folders to serve;  `html` / `transforms`:  the hooks (see the class)
+ * - `mounts`:  folders to serve
+ * - `html` / `transforms`:  the hooks (see the class)
  */
 export type StaticHandlerProps = {
   mounts?: Mount[]

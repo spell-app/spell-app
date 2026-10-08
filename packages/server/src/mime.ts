@@ -1,8 +1,8 @@
 /**
  * Content types by file extension:  ONE table for every server in the repo.
+ * - Source-ish files (`.ts`, `.md`, `.spell` ...) are `text/plain`,
+ *   so a browser shows them rather than downloading them.
  * - Was copied four times (`cli`'s `serve.ts`, `ui`'s `StaticServer`, goals' `server.js`, VS Code's `DocPreview`).
- * - Source-ish files (`.ts`, `.md`, `.spell` ...) are `text/plain`, so a browser shows them rather than
- *   downloading them.
  */
 import { extname } from "node:path"
 

@@ -4,10 +4,11 @@ import type { Query, RouteParams } from "$/server"
 
 /**
  * One incoming request:  the part of Express's `req` our handlers read, over node's `IncomingMessage`.
- * - Express-shaped on purpose (`params`, `query`, `body`, `originalUrl`, `baseUrl`), so the app's `api.ts`
- *   handlers moved over unchanged.
- * - `url` / `baseUrl` change as the request passes into a mounted router (`router.use("/api", api)`):  inside it,
- *   `url` is relative to the mount and `baseUrl` is the mount.  `originalUrl` never changes.
+ * - Express-shaped on purpose (`params`, `query`, `body`, `originalUrl`, `baseUrl`),
+ *   so the app's `api.ts` handlers moved over unchanged.
+ * - `url` / `baseUrl` change as the request passes into a mounted router (`router.use("/api", api)`):
+ *   inside it, `url` is relative to the mount and `baseUrl` is the mount
+ * - `originalUrl` never changes
  */
 export class Request {
   /** node's request, for streaming or anything not wrapped here */
