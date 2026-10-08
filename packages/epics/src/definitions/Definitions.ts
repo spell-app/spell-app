@@ -6,6 +6,7 @@ import { epicOptionVocabulary } from "$/epics/components/epic-choices/EpicOption
 import { epicCommitVocabulary } from "$/epics/components/epic-commit/EpicCommit.en"
 import { epicEventVocabulary } from "$/epics/components/epic-event/EpicEvent.en"
 import { epicItemVocabulary } from "$/epics/components/epic-item/EpicItem.en"
+import { epicNetEffectVocabulary } from "$/epics/components/epic-net-effect/EpicNetEffect.en"
 import { epicOriginalVocabulary } from "$/epics/components/epic-original/EpicOriginal.en"
 import { epicVersionVocabulary } from "$/epics/components/epic-original/EpicVersion.en"
 import { epicOverviewVocabulary } from "$/epics/components/epic-overview/EpicOverview.en"
@@ -13,8 +14,11 @@ import { epicPageVocabulary } from "$/epics/components/epic-page/EpicPage.en"
 import { epicFieldVocabulary } from "$/epics/components/epic-phase/EpicField.en"
 import { epicPhaseVocabulary } from "$/epics/components/epic-phase/EpicPhase.en"
 import { epicUpdatedVocabulary } from "$/epics/components/epic-phase/EpicUpdated.en"
+import { epicPromptVocabulary } from "$/epics/components/epic-prompt/EpicPrompt.en"
+import { epicQuestionVocabulary } from "$/epics/components/epic-question/EpicQuestion.en"
 import { epicSectionVocabulary } from "$/epics/components/epic-section/EpicSection.en"
 import { epicStatusVocabulary } from "$/epics/components/epic-status/EpicStatus.en"
+import { epicSummaryVocabulary } from "$/epics/components/epic-summary/EpicSummary.en"
 import { epicUpdateVocabulary } from "$/epics/components/epic-update/EpicUpdate.en"
 
 import { Formats, type EpicAttributeSpec, type EpicTag, type EpicVocabulary } from "./definitions.types"
@@ -33,11 +37,14 @@ export class Definitions {
   static readonly all = {
     "epic-page": epicPageVocabulary,
     "epic-overview": epicOverviewVocabulary,
+    "epic-summary": epicSummaryVocabulary,
+    "epic-prompt": epicPromptVocabulary,
     "epic-section": epicSectionVocabulary,
     "epic-phase": epicPhaseVocabulary,
     "epic-field": epicFieldVocabulary,
     "epic-updated": epicUpdatedVocabulary,
     "epic-item": epicItemVocabulary,
+    "epic-question": epicQuestionVocabulary,
     "epic-choices": epicChoicesVocabulary,
     "epic-option": epicOptionVocabulary,
     "epic-answer": epicAnswerVocabulary,
@@ -48,7 +55,8 @@ export class Definitions {
     "epic-version": epicVersionVocabulary,
     "epic-commit": epicCommitVocabulary,
     "epic-event": epicEventVocabulary,
-    "epic-update": epicUpdateVocabulary
+    "epic-update": epicUpdateVocabulary,
+    "epic-net-effect": epicNetEffectVocabulary
   } as const
 
   /** Every tag, in `all`'s order. */

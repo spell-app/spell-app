@@ -36,23 +36,28 @@
             <a slot="durable" href="../../../guides/solid/solid-2.html">Plan docs as elements</a>
 
             <epic-overview id="overview" estimate="20h-26h in all, 12h-15h left (P13 not estimated)">
-              <p slot="summary">
+              <epic-summary>
                 Plan docs drawn by <code>&lt;epic-*&gt;</code> elements: the markup says WHAT is there, the elements
                 draw HOW it looks. The prose stays plain HTML in the page, so find-in-page and <code>#links</code> work.
-              </p>
-              <blockquote slot="prompt">
+              </epic-summary>
+              <epic-prompt>
                 <p>Owen's request of 2026-10-06: turn plan docs into a component pack.</p>
                 <p>
                   Every element draws its own chrome in its shadow DOM; the prose stays in the page. Tidy the look a
                   lot, centre the icons and text, and give a folded section no gap below it and a grey rule.
                 </p>
-              </blockquote>
+              </epic-prompt>
               <epic-section id="o1" kind="overview-part" title="What changes">
                 <p>Docs say what is there; the elements draw it. Nothing a doc says today is lost.</p>
                 <ul>
                   <li>data in attributes: <code>status="decided"</code>, <code>state="old"</code>, dates</li>
                   <li>prose in children: paragraphs, lists, code, as today</li>
                 </ul>
+                <epic-net-effect>
+                  <ul>
+                    <li>every doc reads as before, drawn by the elements</li>
+                  </ul>
+                </epic-net-effect>
               </epic-section>
               <epic-section id="o2" kind="overview-part">
                 <span slot="title">The <code>&lt;epic-*&gt;</code> elements</span>

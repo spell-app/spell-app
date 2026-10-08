@@ -1,0 +1,30 @@
+/*
+ * `<epic-summary>` (`EpicSummary.tsx`):  the Overview's summary as a lede -- a paragraph in the body face, the
+ * headings' ink, a size up (`spell-doc.css`'s lede inside a section;  as `<p slot="summary">` was drawn).
+ * - On `:host`, so text straight inside it takes the look;  a `<p>` inside loses its own margins.
+ */
+
+@layer ui.components.epic-summary.types, ui.components.epic-summary.content;
+
+@layer ui.components.epic-summary.types {
+  :host {
+    display: block;
+    max-width: 72ch;
+    margin: 0 0 14px;
+    color: var(--epic-heading-ink, var(--ui-text-color));
+    font: 400 17px/1.6 var(--epic-sans, var(--ui-font-family));
+    text-wrap: pretty;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}
+
+@layer ui.components.epic-summary.content {
+  ::slotted(p) {
+    margin: 0;
+  }
+  ::slotted(p:not(:first-child)) {
+    margin-top: 0.5em;
+  }
+}

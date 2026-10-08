@@ -46,7 +46,8 @@ export type EpicVocabulary = Omit<ComponentVocabulary, "attributes"> & {
   childOrder?: ChildOrder
   /**
    * May sit INSIDE prose (a `<p>`, a `<li>` ...) wherever prose is allowed, and counts as prose where a content
-   * model lists `FLOW`:  `<epic-update>`, the UPDATE marker.
+   * model lists `FLOW`:  `<epic-update>`, the UPDATE marker;  `<epic-net-effect>`, a Net effect list (so no parent
+   * lists it:  it goes wherever prose does).
    */
   flow?: boolean
 }

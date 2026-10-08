@@ -19,12 +19,16 @@ SpellUI.registerPack({
       import("../components/epic-commit"),
       import("../components/epic-event"),
       import("../components/epic-item"),
+      import("../components/epic-net-effect"),
       import("../components/epic-original"),
       import("../components/epic-overview"),
       import("../components/epic-page"),
       import("../components/epic-phase"),
+      import("../components/epic-prompt"),
+      import("../components/epic-question"),
       import("../components/epic-section"),
       import("../components/epic-status"),
+      import("../components/epic-summary"),
       import("../components/epic-update")
     ]).then(() => undefined)
 })

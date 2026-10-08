@@ -90,8 +90,8 @@ export const STATUS_SLOT = "status"
 /** Children that aren't prose:  the item's parts, drawn by their own elements. */
 export const EPIC_TAG = /^epic-/
 
-/** `<epic-*>` tags that are prose (`flow`), not parts:  the UPDATE marker. */
-export const FLOW_TAGS: readonly string[] = ["epic-update"]
+/** `<epic-*>` tags that are prose (`flow`), not parts:  the UPDATE marker, a Net effect list. */
+export const FLOW_TAGS: readonly string[] = ["epic-update", "epic-net-effect"]
 
 /** The More Details card's tag:  an item with one labels its own text "Original reply". */
 export const MORE_TAG = "epic-more"
