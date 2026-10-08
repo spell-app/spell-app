@@ -2,44 +2,93 @@ import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { transitionVocabulary } from "./ui-transition.vocabulary.en"
-import { TransitionHost } from "./TransitionHost"
-import { TransitionFallback } from "./ui-transition.fallback"
+import { transitionVocabulary } from "./UITransition.vocabulary.en"
 import {
   AttentionAnimations,
   DEFAULT_ANIMATION,
   TransitionAnimations,
   type TransitionAnimation,
   type Vocabulary
-} from "./ui-transition.types"
+} from "./UITransition.types"
 
-import transitionCSS from "./ui-transition.css?inline"
+import transitionCSS from "./UITransition.css?inline"
 
 /****************
- * ### `<ui-transition>`
- * Shows, hides or shakes its content with the animation catalogue (`animations.css`) through `UI.transitions`:
- * `<div class="ui ... transition [visible] [animating]" part="transition"><slot>`.
- * - The BOX animates, not the content:  its `hidden` attribute is what hides it (`UI.transitions` sets it after an
- *   `out`, removes it before an `in`), so hidden content is out of the page and the accessibility tree.
- * - `visible` drives it:  a change queues an `in` / `out` of `animation`;  the host's `show()` / `hide()` /
- *   `toggle()` / `transition(name)` do the same from script (`TransitionHost`), and invoker commands without any
- *   (`TransitionCommands`:  `<button commandfor="id" command="--toggle">`).  First paint never animates.
- * - Queue, as Fomantic's `queue: true`:  each animation waits for the one before it;  the same animation twice in a
- *   row is dropped unless `allow-repeats`;  `interrupt` makes a new one stop the running one instead.
- * - `ui-show` / `ui-hide` once an `in` / `out` has run, `ui-complete` after every animation.
- * - Reduced motion:  `UI.transitions` skips the motion (the end state at once), so events still follow.
+ * ### `DOMTransitionElement`
+ * The DOM element of `<ui-transition>`:  it adds Fomantic's behaviours as METHODS
+ * (`show()`, `hide()`, `toggle()`, `transition()`),
+ * since an attention animation (`shake`) has no state an attribute could carry.
+ *
+ * - Each resolves once its animation has run:  `true` when it finished,
+ *   `false` when a later one interrupted it (`interrupt`), or when the element hasn't drawn yet.
+ * - `show()` / `hide()` / `toggle()` write `visible` (so it reflects, and frameworks see it),
+ *   which queues the animation;  `transition()` is Fomantic's `$(el).transition(name)`.
+ * - NOTE: `transition`, not `animate`:  `Element.animate()` is the Web Animations API.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UITransition extends E.UIElement<Vocabulary> {
+export class DOMTransitionElement extends E.DOMElement {
+  /** Animate in (the `animation` attribute's), then `ui-show`. */
+  show(): Promise<boolean> {
+    return this.uiTransition?.animateTo(true) ?? Promise.resolve(false)
+  }
+
+  /** Animate out, then `ui-hide`. */
+  hide(): Promise<boolean> {
+    return this.uiTransition?.animateTo(false) ?? Promise.resolve(false)
+  }
+
+  /** `show()` when hidden, else `hide()`. */
+  toggle(): Promise<boolean> {
+    return this.uiTransition?.toggle() ?? Promise.resolve(false)
+  }
+
+  /**
+   * Run `animation` (Fomantic's name, `fade up`, or the runtime's, `fade-up`;  default the `animation` attribute's):
+   * an attention one in place, an appear / disappear one toggling visibility.  Queued like every other.
+   */
+  transition(animation?: string): Promise<boolean> {
+    return this.uiTransition?.transition(animation) ?? Promise.resolve(false)
+  }
+
+  /** Its component, once drawn (`transition` is taken:  the method above). */
+  private get uiTransition(): UITransition | undefined {
+    return this.component as UITransition | undefined
+  }
+}
+
+/****************
+ * ### `UITransition`
+ * The component behind `<ui-transition>`:  shows, hides or shakes its content
+ * with the animation catalogue (`animations.css`), through `UI.transitions`.
+ * `<div class="ui … transition [visible] [animating]" part="transition"><slot>`.
+ *
+ * - The BOX animates, not the content:  its `hidden` attribute is what hides it
+ *   (`UI.transitions` sets it after an `out`, removes it before an `in`),
+ *   so hidden content is out of the page and the accessibility tree.
+ *
+ * - `visible` drives it:  a change queues an `in` / `out` of `animation`.
+ *   - The DOM element's `show()` / `hide()` / `toggle()` / `transition(name)` do the same from script
+ *     (`DOMTransitionElement`), and so do invoker commands
+ *     (`UIT.TransitionCommands`:  `<button commandfor="id" command="--toggle">`).
+ *   - First paint never animates.
+ *
+ * - A queue, as Fomantic's `queue: true`:  each animation waits for the one before it.
+ *   The same animation twice in a row is dropped unless `allow-repeats`;
+ *   `interrupt` makes a new one stop the running one instead.
+ *
+ * - `ui-show` / `ui-hide` once an `in` / `out` has run;  `ui-complete` after every animation.
+ * - Reduced motion:  `UI.transitions` skips the motion (the end state at once), so the events still follow.
+ ****************/
+export class UITransition extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = transitionVocabulary
   @E.proto static styleSheets = { transition: transitionCSS }
   @E.proto static elementSetup = {
-    Fallback: TransitionFallback,
-    Host: TransitionHost,
+    DOMElement: DOMTransitionElement,
     // a click on animated text must not jump focus to a link inside it
     delegatesFocus: false
-  }
+  } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     this.on("command", this.onCommand)
   }
@@ -105,10 +154,10 @@ export class UITransition extends E.UIElement<Vocabulary> {
   }
 
   ////////////////
-  // ## API (through `TransitionHost`)
+  // ## API (through `DOMTransitionElement`)
   ////////////////
 
-  /** Animate to `visible`;  writes the host's `visible` so it reflects. */
+  /** Animate to `visible`;  writes the DOM element's `visible` so it reflects. */
   animateTo(visible: boolean, animation = this.animationName): Promise<boolean> {
     const done = visible === this.willBeVisible ? this.lastDone() : this.queueVisibility(visible, animation)
     this.visible = visible
@@ -121,15 +170,15 @@ export class UITransition extends E.UIElement<Vocabulary> {
   }
 
   /**
-   * Run `animation` (default the `animation` attribute's):  an attention one in place, an appear / disappear one
-   * toggling visibility.
+   * Run `animation` (default the `animation` attribute's):
+   * an attention one in place, an appear / disappear one toggling visibility.
    * - Takes Fomantic's names (`fade up`) or the runtime's (`fade-up`);  an unknown one warns and resolves `false`.
    */
   transition(animation = this.animationName): Promise<boolean> {
     const name = UITransition.fomanticNameFor(animation)
     if (!name) {
       E.Warnings.warn(
-        `<${this.host.localName}>.transition()`,
+        `<${this.domElement.localName}>.transition()`,
         `unknown animation ${JSON.stringify(animation)};  use one of Fomantic's names (\`fade up\`) or the ` +
           `runtime's (\`fade-up\`)`
       )
@@ -139,7 +188,7 @@ export class UITransition extends E.UIElement<Vocabulary> {
     return this.animateTo(!this.willBeVisible, name)
   }
 
-  /** An invoker command aimed at the host (`TransitionCommands`). */
+  /** An invoker command aimed at the DOM element (`TransitionCommands`). */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
     if (command === UIT.TransitionCommands.show) void this.animateTo(true)
@@ -166,8 +215,8 @@ export class UITransition extends E.UIElement<Vocabulary> {
 
   /**
    * Add a step, and start it when nothing runs (or at once with `interrupt`).
-   * - The same animation the same way as the last queued (or running) step is dropped unless `allow-repeats`:  its
-   *   promise is returned instead.
+   * - The same animation the same way as the last queued (or running) step is dropped
+   *   unless `allow-repeats`:  its promise is returned instead.
    */
   private enqueue(direction: E.AnimationDirection, animation: string): Promise<boolean> {
     const last = this.queue.at(-1) ?? this.runningStep
@@ -274,7 +323,7 @@ export class UITransition extends E.UIElement<Vocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UITransition extends E.AttributeValues<Vocabulary> {}
 
 /** One queued animation. */

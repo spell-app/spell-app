@@ -1,40 +1,31 @@
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { visibilityVocabulary } from "./ui-visibility.vocabulary.en"
-import { VisibilityFallback } from "./ui-visibility.fallback"
-import {
-  DATA_SRC,
-  DATA_SRCSET,
-  LAZY,
-  LAZY_IMAGES,
-  LOADING,
-  SRC,
-  type VisibilityVocabulary
-} from "./ui-visibility.types"
+import { visibilityVocabulary } from "./UIVisibility.vocabulary.en"
 
-import visibilityCSS from "./ui-visibility.css?inline"
+import visibilityCSS from "./UIVisibility.css?inline"
 
 /****************
- * ### `<ui-visibility>`
- * A block (`<div class="ui visibility" part="visibility">` around the slot) around content that reports where it is
- * against the screen:  Fomantic's visibility callbacks as `ui-*` events (`ui-visible`, `ui-hidden`, `ui-top-passed`
- * ...), through `UI.observeVisibility()` -- `IntersectionObserver`, no scroll listener.
- * - Watches while connected, again whenever `once`, `continuous`, `offset` or the image settings change (which
- *   re-arms `once`).
+ * ### `UIVisibility`
+ * The component behind `<ui-visibility>`:  a block around content that reports where it is against the screen,
+ * `<div class="ui visibility" part="visibility">` around the slot.
+ * Fomantic's visibility callbacks become `ui-*` events (`ui-visible`, `ui-hidden`, `ui-top-passed` …),
+ * through `UI.observeVisibility()`:  an `IntersectionObserver`, no scroll listener.
+ *
+ * - It watches while connected;
+ *   again whenever `once`, `continuous`, `offset` or the image settings change (which re-arms `once`).
  * - `:state(visible)`:  on screen as of the last check.
- * - `type="image"`:  each `<img data-src>` inside (found now and as content changes) goes through
+ * - `type="image"`:  each `<img data-src>` inside (found now and as the content changes) goes through
  *   `UI.visibility.lazyImage()`:  its source is set once it's on screen, then it fades in and `ui-load` fires.
  * - Measured against the viewport (Fomantic's default `context`).
  ****************/
-export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
+export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
   @E.proto static vocabulary = visibilityVocabulary
   @E.proto static styleSheets = { visibility: visibilityCSS }
   @E.proto static elementSetup = {
-    Fallback: VisibilityFallback,
     // a wrapper:  a click on its text must not jump to a link inside
     delegatesFocus: false
-  }
+  } satisfies Partial<E.ElementSetup>
 
   /** On screen as of the last check.  `:state(visible)`. */
   @E.cssState("visible")
@@ -81,7 +72,7 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
     })
   }
 
-  /** Observe the host (and lazy images);  returns the undo. */
+  /** Observe the DOM element (and lazy images);  returns the undo. */
   private watch(config: VisibilityConfig): E.Disposer {
     const emit = (name: Parameters<UIVisibility["send"]>[0]) => (calculations: E.VisibilityCalculations) =>
       void this.send(name, calculations)
@@ -98,7 +89,7 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
       onPassing: emit("ui-passing"),
       onUpdate: (calculations) => (this.isOnScreen = calculations.onScreen)
     }
-    const stop = UI.observeVisibility(this.host, options)
+    const stop = UI.observeVisibility(this.domElement, options)
     const stopImages = config.images ? this.watchImages(config) : undefined
     return () => {
       stop()
@@ -112,7 +103,7 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
     const options: E.LazyImageOptions = { transition: UIVisibility.animationFor(transition), duration, offset }
     this.lazyLoad(stops, options)
     const observer = new MutationObserver(() => this.lazyLoad(stops, options))
-    observer.observe(this.host, { childList: true, subtree: true, attributeFilter: [DATA_SRC] })
+    observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: [DATA_SRC] })
     return () => {
       observer.disconnect()
       for (const stop of stops.values()) stop()
@@ -124,7 +115,7 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
    * - SIDE EFFECT:  records each one's undo in `stops`.
    */
   private lazyLoad(stops: Map<HTMLImageElement, E.Disposer>, options: E.LazyImageOptions) {
-    for (const image of this.host.querySelectorAll<HTMLImageElement>(LAZY_IMAGES)) {
+    for (const image of this.domElement.querySelectorAll<HTMLImageElement>(LAZY_IMAGES)) {
       if (stops.has(image)) continue
       stops.set(image, UI.visibility.lazyImage(image, { ...options, onLoad: this.onImageLoad }))
     }
@@ -136,12 +127,12 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
   }
 
   /**
-   * Static server render (`$/ui/static`):  nothing will observe, so each `<img data-src>` gets its source now, with
-   * `loading="lazy"` (unless it says otherwise):  crawlers and no-JS readers see the image, the browser defers it.
-   * - SIDE EFFECT:  writes the host's light-DOM images, which the flattener then moves into the root.
+   * Static server render (`$/ui/static`):  nothing will observe, so each `<img data-src>` gets its source now,
+   * with `loading="lazy"` (unless it says otherwise):  crawlers and no-JS readers see the image, the browser defers it.
+   * - SIDE EFFECT:  writes the DOM element's light-DOM images, which the flattener then moves into the root.
    */
   private serverImages() {
-    for (const image of this.host.querySelectorAll(LAZY_IMAGES)) {
+    for (const image of this.domElement.querySelectorAll(LAZY_IMAGES)) {
       image.setAttribute(SRC, image.getAttribute(DATA_SRC)!)
       const srcset = image.getAttribute(DATA_SRCSET)
       if (srcset) image.setAttribute(SRCSET, srcset)
@@ -159,7 +150,7 @@ export class UIVisibility extends E.UIElement<VisibilityVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIVisibility extends E.AttributeValues<VisibilityVocabulary> {}
 
 /** What a watch depends on. */
@@ -186,3 +177,26 @@ const DEFAULT_DURATION = 1000
 
 /** A lazy image's `srcset`, set from `data-srcset` in a server render. */
 const SRCSET = "srcset"
+
+/** The vocabulary type, for brevity. */
+type VisibilityVocabulary = typeof visibilityVocabulary
+
+/** A lazy image's source, until it's on screen (Fomantic's `metadata.src`). */
+const DATA_SRC = "data-src"
+
+/** A lazy image's `srcset`, until it's on screen. */
+const DATA_SRCSET = "data-srcset"
+
+/** The lazy images inside `type="image"`. */
+const LAZY_IMAGES = "img[data-src]"
+
+/** Where `DATA_SRC` goes once the image may load. */
+const SRC = "src"
+
+/**
+ * The image attribute the browser's own lazy loading reads:  set to `LAZY` where nothing observes (a server render).
+ */
+const LOADING = "loading"
+
+/** `LOADING`'s value that defers the image until it's near the screen. */
+const LAZY = "lazy"

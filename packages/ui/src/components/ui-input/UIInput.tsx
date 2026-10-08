@@ -2,31 +2,34 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { inputVocabulary } from "./ui-input.vocabulary.en"
-import { InputFallback } from "./ui-input.fallback"
+import { inputVocabulary } from "./UIInput.vocabulary.en"
+import { InputFallback } from "./UIInput.fallback"
 import { TextControl } from "./TextControl"
-import { FILE, LABEL_CLASSES, type CommonAttributes, type LabelPlace, type Vocabulary } from "./ui-input.types"
+import { FILE, LABEL_CLASSES, type CommonAttributes, type LabelPlace, type Vocabulary } from "./UIInput.types"
 
-import labelCSS from "$/ui/components/ui-label/ui-label.css?inline"
-import inputCSS from "./ui-input.css?inline"
+import labelCSS from "$/ui/components/ui-label/UILabel.css?inline"
+import inputCSS from "./UIInput.css?inline"
 
 /****************
- * ### `<ui-input>`
- * A text field:  `<div class="ui … input" part="input">` around a native `<input part="control">`, with the optional
- * joined label, action buttons and icon box in the order `ui-input.css` documents.
- * - Form-associated (see `TextControl`):  value, native constraints + `rules`, reset, fieldset-disabled.
- * - `type` passes through;  `file` submits the chosen `File`s (one `FormData` entry each) and can't be set from
- *   script, as natively.
- * - Enter submits the form (implicit submission:  the native control has no form of its own in the shadow root):
- *   the form's first submit button is clicked, else `requestSubmit()`.
+ * ### `UIInput`
+ * The component behind `<ui-input>`:  a one-line text field.
+ *
+ * - Its shadow DOM:  `<div class="ui … input" part="input">` around a native `<input part="control">`,
+ *   with the optional joined label, action buttons and icon box, in the order `UIInput.css` documents.
+ * - A form control (see `TextControl`):  its value, native constraints + `rules`, reset, a disabled fieldset.
+ * - `type` passes through to the native input.
+ *   `file` submits the chosen `File`s (one `FormData` entry each), and script can't set its value, as natively.
+ * - Enter submits the form, as in a native field ("implicit submission"):
+ *   it clicks the form's first submit button, else calls `requestSubmit()`.
+ *   The native input can't do it itself:  inside a shadow root, it belongs to no form.
  ****************/
 export class UIInput extends TextControl<Vocabulary> {
   @E.proto static vocabulary = inputVocabulary
   @E.proto static styleSheets = { label: labelCSS, input: inputCSS }
-  @E.proto static elementSetup = { Fallback: InputFallback }
+  @E.proto static elementSetup = { Fallback: InputFallback } satisfies Partial<E.ElementSetup>
 
-  /** Light-DOM slot occupancy (`label`, `action`, `icon`). */
-  readonly slots = new E.SlotContent(this.host)
+  /** Which slots have light-DOM children (`label`, `action`, `icon`). */
+  readonly slots = new E.SlotContent(this.domElement)
 
   ////////////////
   // ## The label
@@ -40,7 +43,7 @@ export class UIInput extends TextControl<Vocabulary> {
     return labeled === "right" ? "end" : "start"
   }
 
-  /** Glyph of a corner label (its `label` is an icon name). */
+  /** The glyph of a corner label (its `label` is an icon name). */
   readonly cornerGlyph = new E.IconGlyph({
     owner: this,
     name: () => (this.labelPlace === "corner" ? this.label : undefined)
@@ -66,7 +69,7 @@ export class UIInput extends TextControl<Vocabulary> {
     return !!this.icon || this.slots.hasContent(this.slotForName("icon")) || !!this.loading
   }
 
-  /** Glyph of the `icon` attribute. */
+  /** The glyph of the `icon` attribute. */
   readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
 
   ////////////////
@@ -208,7 +211,7 @@ export class UIInput extends TextControl<Vocabulary> {
   /** Enter submits the form, as a native field would. */
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (event.key !== UIT.Key.enter || event.isComposing || event.defaultPrevented) return
-    const form = this.formHost.form
+    const form = this.domFormElement.form
     if (!form) return
     event.preventDefault()
     this.isTouched = true
@@ -218,8 +221,8 @@ export class UIInput extends TextControl<Vocabulary> {
   }
 
   /**
-   * A form's default button:  a native submit button, or a `<ui-button type="submit">` (form-associated, so in
-   * `form.elements`).
+   * A form's default button:  a native submit button, or a `<ui-button type="submit">` (form-associated,
+   * so in `form.elements`).
    * - STATIC:  pure, a `find()` predicate.  `instanceof` is safe here:  a key handler, which the static render never
    *   reaches.
    */
@@ -236,10 +239,10 @@ export interface UIInput extends Omit<E.AttributeValues<Vocabulary>, keyof Commo
 /** Attribute saying a `<ui-button>` submits (`type="submit"`). */
 const TYPE = "type"
 
-/** A disabled custom element (`:disabled` matches form-associated hosts). */
+/** A disabled custom element (`:disabled` matches form-associated custom elements). */
 const DISABLED_PSEUDO = ":disabled"
 
-/** Class words of a `labeled="corner"` label (`ui-input.css`). */
+/** Class words of a `labeled="corner"` label (`UIInput.css`). */
 const CORNER_LABEL = "ui corner label"
 
 /** Class words of a `labeled="left corner"` label. */

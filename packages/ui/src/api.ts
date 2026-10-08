@@ -2,7 +2,7 @@
  * `api` lib entry (`@spell-app/ui/api`):  the NAMESPACED API, for apps that extend or introspect the components.
  * - `E` ~== `$/ui/core`:  element core, base classes, `ClassBuilder`, the foundation;  the SAME `E` component files
  *   import (`import { E } from "$/ui/core"`)
- * - `F` ~== `$/ui/forms`:  the form bases (`FormElement`, `FormHost`, `Validator`, `MenuOptions` ...)
+ * - `F` ~== `$/ui/forms`:  the form bases (`FormComponent`, `DOMFormControlElement`, `Validator`, `MenuOptions` ...)
  * - `V` ~== `$/ui/vocabulary`:  vocabulary schema, value sets, registry, converters
  * - NOT a side-effect module:  registers no element.  Import a family (`@spell-app/ui/ui-button`) or `@spell-app/ui` for that.
  * - NOTE: its own entry, NOT part of `index` (`@spell-app/ui`):  `export * as` needs Rolldown's `__exportAll` helper,

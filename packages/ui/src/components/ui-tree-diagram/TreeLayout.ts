@@ -7,7 +7,7 @@ import {
   type TreeDiagramNode,
   type TreeDiagramPoint,
   type TreeDiagramSlot
-} from "./ui-tree-diagram.types"
+} from "./UITreeDiagram.types"
 
 /****************
  * ### `TreeLayout`
@@ -18,11 +18,11 @@ import {
  *   and every slot label between two rows sits at one height.
  * - Tidy:  a parent is centred over its first and last child;  sibling subtrees are pushed apart, depth by depth,
  *   until no two boxes of the same row are closer than `siblingGap` (contours, after Reingold-Tilford).
- *   - NOTE: subtrees pack from the left:  a small subtree between two big ones sits next to the left one, not
- *     spread evenly (Reingold-Tilford's "apportion" step, left out).
- * - Slot labels sit at their edge's midpoint, and the edge stops under them (`gap`).  A node's FOOTPRINT, what its
- *   row keeps clear, is its box or twice its slot label, whichever is wider:  so no slot label ever overlaps another,
- *   nor another edge (sibling's or cousin's), and no line runs under text.
+ *   - NOTE: subtrees pack from the left:  a small subtree between two big ones sits next to the left one,
+ *     not spread evenly (Reingold-Tilford's "apportion" step, left out).
+ * - Slot labels sit at their edge's midpoint, and the edge stops under them (`gap`).  A node's FOOTPRINT,
+ *   what its row keeps clear, is its box or twice its slot label, whichever is wider:  so no slot label ever overlaps
+ *   another, nor another edge (sibling's or cousin's), and no line runs under text.
  * - Text widths are estimated from character counts (`TreeDiagramMetrics`).
  ****************/
 export class TreeLayout {
@@ -130,10 +130,10 @@ export class TreeLayout {
   ////////////////
 
   /**
-   * Place `node`'s children (each child's `offset` from `node`'s centre), and return `node`'s subtree's contour:  per
-   * depth below it (`0` = its own row), the leftmost and rightmost edge of any footprint, from its centre.
-   * - Children are placed left to right, each as close to the ones before it as their contours allow, then `node`
-   *   is centred over its first and last child.
+   * Place `node`'s children (each child's `offset` from `node`'s centre), and return `node`'s subtree's contour:
+   * per depth below it (`0` = its own row), the leftmost and rightmost edge of any footprint, from its centre.
+   * - Children are placed left to right, each as close to the ones before it as their contours allow,
+   *   then `node` is centred over its first and last child.
    */
   private place(node: Measured): Contour {
     const half = node.footprint / 2
@@ -248,7 +248,9 @@ type Measured = {
   offset: number
 }
 
-/** A subtree's outline:  per depth below its root, its leftmost and rightmost footprint edge, from the root's centre. */
+/**
+ * A subtree's outline:  per depth below its root, its leftmost and rightmost footprint edge, from the root's centre.
+ */
 type Contour = {
   left: number[]
   right: number[]

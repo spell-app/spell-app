@@ -1,13 +1,14 @@
 import { E } from "$/ui/core"
-import { PartElement } from "./PartElement"
-import { dateVocabulary } from "./ui-date.vocabulary.en"
+import { dateVocabulary } from "./UIDate.vocabulary.en"
 
 /****************
- * ### `<ui-date>`
- * A date:  `<time class="date" datetime>`, so the machine-readable value travels with the text.
- * - Inside a feed summary it goes inline and small:  `ui-parts.css` style-queries the summary's `--_ui-part`.
+ * ### `UIDate`
+ * The component behind `<ui-date>`:  a date, `<time class="date" datetime>`,
+ * so the machine-readable value travels with the text.
+ *
+ * - Inside a feed summary it goes inline and small:  `UIParts.css` style-queries the summary's `--_ui-part`.
  ****************/
-export class UIDate extends PartElement<typeof dateVocabulary> {
+export class UIDate extends E.PartComponent<typeof dateVocabulary> {
   @E.proto static vocabulary = dateVocabulary
 
   protected get rootTag(): string {
@@ -19,7 +20,7 @@ export class UIDate extends PartElement<typeof dateVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIDate extends E.AttributeValues<typeof dateVocabulary> {}
 
 /** Root element. */

@@ -14,7 +14,7 @@ describe("$/ui/api", () => {
   it("E is $/ui/core's own namespace:  element core and foundation", () => {
     expect(E).toBe(core.E)
     expect(E).toMatchObject({
-      UIElement: core.UIElement,
+      UIComponent: core.UIComponent,
       ClassBuilder: expect.any(Function),
       proto: expect.any(Function)
     })
@@ -22,7 +22,7 @@ describe("$/ui/api", () => {
 
   it("F is $/ui/forms' own namespace:  the form bases", () => {
     expect(F).toBe(forms.F)
-    expect(F.FormElement).toBe(forms.FormElement)
+    expect(F.FormComponent).toBe(forms.FormComponent)
     expect(F.MenuOptions).toBeTypeOf("function")
   })
 

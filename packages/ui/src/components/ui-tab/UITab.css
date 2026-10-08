@@ -1,0 +1,246 @@
+/*
+ * `<ui-tabs>` and `<ui-tab>`:  port of Fomantic's `tab.less` + `tab.variables`, plus the layout of a tab set
+ * (Fomantic left it to the page:  a menu above, or a grid column beside, its `.ui.tab.segment`s).
+ * - ONE sheet for both elements.  `<ui-tabs>` adopts `UIMenu.css` BEFORE it (the tab list is a menu,
+ *   styled by the menu's static class-grammar rules);  `<ui-tab>` adopts `UISegment.css` before it (a pane is a
+ *   segment).
+ * - Shadow markup contract (class grammar on semantic elements):
+ *   - `<ui-tabs>`:  `<div class="ui [size] [color] [keyOnly ...] [top | bottom attached] tabs" part="tabs">` holding
+ *     `<div class="ui ... menu" part="menu" role="tablist">` of `<button class="[active] [disabled] item" part="tab"
+ *     role="tab">` (an `<i class="icon" part="icon">` glyph first, when the pane has an `icon`) and the panes'
+ *     `<slot>` -- the menu after the slot when `attached="bottom"`
+ *   - `<ui-tab>`:  `<div class="ui [active] [basic] [inverted] [loading] [bottom | top attached] tab segment"
+ *     part="tab">` around `<slot>`, in a BLOCK DOM element (the tabpanel and its Tab stop);
+ *     the DOM element ALWAYS carries `:state(pane)` (it shares this sheet's `:host` rules with `<ui-tabs>`),
+ *     and `:state(selected)` while shown
+ * - Static markup:  Fomantic's own -- a `.ui.menu` of `.item`s (buttons with `role=tab`) and `.ui.tab.segment`
+ *   panes, the `.active` one shown.  Nothing switches without the elements.
+ *
+ * ## Tokens (set by the `.ui.tabs` root, read by its panes)
+ *
+ * | Token                      | What                                    | Changed by           |
+ * | -------------------------- | --------------------------------------- | -------------------- |
+ * | `--ui-tabs-pane-margin`    | the shown pane's margin (public)        | attached, vertical   |
+ * | `--ui-tabs-menu-margin`    | the tab list's block margin (public, `0`:  the pane margin spaces the set) | -- |
+ * | `--_ui-tabs-pane-flex`     | the shown pane's `flex` (switch)        | vertical             |
+ *
+ * - The tab list is a menu:  every `--ui-menu-*` token reaches it, from the tab set or above (its height
+ *   `--ui-menu-min-height`, its labels' `--ui-menu-font-family`, `--ui-menu-item-transform` / `-letter-spacing`).
+ *
+ * - Public tokens (`--ui-tabs-*`, the theming surface) are NEVER declared here:  the `.ui.tabs` root reads each
+ *   through a private alias, `--_ui-tabs-pane-margin: var(--ui-tabs-pane-margin, 1em 0 0)`,
+ *   which variations write and panes inherit.  So a value set on `:root`, an ancestor, the DOM element,
+ *   `::part(tabs)` or in the app stylesheet reaches the panes (`docs/theming.md` "Component tokens");
+ *   set it on the tab set, not on a pane.
+ * - `--_ui-tabs-pane-flex` is a private SWITCH:  the layout (`vertical`) decides it, so the page never sets it.
+ * - NOTE: left out, on purpose:
+ *   - `.ui.tab.open` is kept for static markup only;  the elements use `active`
+ *   - Fomantic's `!important`s on a loading tab's content:  a loading pane hides its slotted content instead
+ */
+
+@layer ui.components.tab.types, ui.components.tab.content, ui.components.tab.variations, ui.components.tab.states;
+
+/* A `<button>` tab looks like a menu item, never like a native button.  In `ui.base`, under every menu rule. */
+@layer ui.base {
+  .ui.menu > button.item {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    letter-spacing: inherit;
+    background: none;
+    border: none;
+    border-radius: 0;
+    appearance: none;
+    cursor: pointer;
+  }
+}
+
+/* Spinner of a loading pane. */
+@keyframes ui-tab-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/*******************************
+              Tabs
+*******************************/
+
+@layer ui.components.tab.types {
+  /* ## `<ui-tabs>`:  a block;  its root stacks the tab list and the panes (a row when vertical). */
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  .ui.tabs {
+    --_ui-tabs-pane-margin: var(--ui-tabs-pane-margin, 1em 0 0);
+    --_ui-tabs-menu-margin: var(--ui-tabs-menu-margin, 0);
+    --_ui-tabs-pane-flex: 0 1 auto;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+  }
+  /*
+   * The tab list keeps its own size in the flex layout.  Its block margins are the set's, never a menu's `1em`:
+   * flex items don't collapse margins, so the menu's bottom `1em` and the pane's top `1em` made a `2em` gap.
+   */
+  .ui.tabs > .ui.menu {
+    flex: none;
+    margin-block: var(--_ui-tabs-menu-margin);
+  }
+  /* `compact`:  the menu keeps its own width in the column (a flex item would stretch). */
+  .ui.tabs > .ui.compact.menu {
+    align-self: flex-start;
+  }
+
+  /* A tab's icon glyph (the pane's `icon`). */
+  .ui.menu > .item > .icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+  }
+  .ui.menu > .item > .icon > svg {
+    display: block;
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+  }
+
+  /*
+   * ## `<ui-tab>` (`:state(pane)`):  a block, hidden unless it's the shown pane.
+   * NOT `display: contents` (as a segment's DOM element is):  an owned pane's DOM element is its tabpanel Tab stop,
+   * and a box-less element can't take focus.
+   */
+  :host(:state(pane)) {
+    display: block;
+  }
+  :host(:state(pane):not(:state(selected))),
+  :host(:state(pane)[hidden]) {
+    display: none;
+  }
+  :host(:focus-visible) > .ui.tab {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: calc(var(--ui-focus-width) * -1);
+  }
+
+  /* Fomantic's `.ui.tab`:  hidden until active. */
+  .ui.tab {
+    display: none;
+  }
+
+  /* A pane of a tab set:  its share of a vertical row (the DOM element is the flex item), and the set's spacing. */
+  :host(:state(in-tabs)) {
+    flex: var(--_ui-tabs-pane-flex);
+    min-width: 0;
+  }
+  /*
+   * The set's colour words (`color`, and `secondary`, which the colour sheet also reads as a hue) are the TABS':
+   * the panes would inherit the set root's `--ui-color` and draw it as a segment's coloured top edge.
+   */
+  :host(:state(in-tabs)) > .ui.tab {
+    --ui-color: initial;
+    margin: var(--_ui-tabs-pane-margin);
+  }
+  /* Static markup:  a pane straight inside a `.ui.tabs` root is the flex item itself. */
+  .ui.tabs > .ui.tab {
+    flex: var(--_ui-tabs-pane-flex);
+    min-width: 0;
+    margin: var(--_ui-tabs-pane-margin);
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.tab.variations {
+  /* Attached:  the panes join the tab list edge to edge. */
+  .ui[class*="top attached"].tabs,
+  .ui[class*="bottom attached"].tabs {
+    --_ui-tabs-pane-margin: 0;
+  }
+
+  /* Vertical:  the tab list in a column beside the panes, which share the rest of the row. */
+  .ui.vertical.tabs {
+    --_ui-tabs-pane-margin: 0;
+    --_ui-tabs-pane-flex: 1 1 0%;
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .ui.vertical.tabs > .ui.menu {
+    margin: 0;
+  }
+  /*
+   * A tab is a `<button>`, which shrinks to its text where Fomantic's block `.item` fills the column:
+   * `stretch` fills it AND keeps the tabular active tab's `-1px` end margin, so that tab covers the menu's rule.
+   * Set on the item, so it beats the menu root's `--_ui-menu-item-width` whatever the layer order.
+   */
+  .ui.vertical.tabs > .ui.menu > .item {
+    --_ui-menu-item-width: -webkit-fill-available;
+  }
+  @supports (width: stretch) {
+    .ui.vertical.tabs > .ui.menu > .item {
+      --_ui-menu-item-width: stretch;
+    }
+  }
+
+  /* Inverted:  the dark scheme for the panes' slot too. */
+  .ui.inverted.tabs {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    color-scheme: dark;
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.tab.states {
+  /* ## Active */
+  .ui.tab.active,
+  .ui.tab.open {
+    display: block;
+  }
+
+  /* ## Disabled tab */
+  .ui.menu > .disabled.item {
+    cursor: default;
+  }
+
+  /* ## Loading:  a spinner where the content was. */
+  .ui.tab.loading {
+    position: relative;
+    display: block;
+    min-height: 15.625em;
+    overflow: hidden;
+  }
+  .ui.tab.loading > *,
+  .ui.tab.loading > ::slotted(*) {
+    visibility: hidden;
+  }
+  .ui.tab.loading::before,
+  .ui.tab.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2.5em;
+    height: 2.5em;
+    margin: -1.25em 0 0 -1.25em;
+    border-radius: var(--ui-radius-circle);
+    box-sizing: border-box;
+  }
+  .ui.tab.loading::before {
+    border: 0.2em solid oklch(from var(--ui-shadow-ink) l c h / 0.1);
+  }
+  .ui.tab.loading::after {
+    border: 0.2em solid transparent;
+    border-top-color: var(--ui-text-light);
+    box-shadow: 0 0 0 1px transparent;
+    animation: ui-tab-spin 0.6s linear infinite;
+  }
+}

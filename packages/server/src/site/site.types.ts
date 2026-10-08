@@ -80,7 +80,7 @@ export function docsArea(path: string): DocsArea | undefined {
  * `localStorage` key of the chosen color scheme:  `light`, `dark`, or absent for the OS's.
  * - ONE key for every doc site:  Spell UI's `ThemePreference` reads and writes it too, as
  *   `DOCS_LOOK_KEYS.scheme` (`packages/ui/src/docs-components/docs-components.types.ts`), so a switch on one site
- *   holds on the others.  MUST stay equal:  `ui`'s `ui-docs-themes.test.tsx` pins it.
+ *   holds on the others.  MUST stay equal:  `ui`'s `UIDocsThemes.test.tsx` pins it.
  */
 export const SCHEME_KEY = "spell-site:scheme"
 

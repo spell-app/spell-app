@@ -1,26 +1,27 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { textVocabulary } from "./ui-text.vocabulary.en"
-import { TextFallback } from "./ui-text.fallback"
+import { textVocabulary } from "./UIText.vocabulary.en"
 
-import textCSS from "./ui-text.css?inline"
+import textCSS from "./UIText.css?inline"
 
 /****************
- * ### `<ui-text>`
- * Inline text in a hue, a status colour or a size:  `<span class="ui ... text" part="text"><slot></slot></span>`.
- * - Host is `display: contents`:  the span IS the inline box, flowing with the text around it.
- * - `:state(disabled)` for page styling;  `ui-text.css` keys on the `disabled` class.
+ * ### `UIText`
+ * The component behind `<ui-text>`:  inline text in a hue, a status colour or a size.
+ *
+ * - Its shadow DOM is one span, `<span class="ui … text" part="text">`, around a slot for the text.
+ *   The element is `display: contents`:  the span IS the inline box, flowing with the text around it.
+ * - `:state(disabled)` is for the page's styles;  `UIText.css` keys on the `disabled` class.
  ****************/
-export class UIText extends E.UIElement<typeof textVocabulary> {
+export class UIText extends E.UIComponent<typeof textVocabulary> {
   @E.proto static vocabulary = textVocabulary
   @E.proto static styleSheets = { text: textCSS }
-  @E.proto static elementSetup = { Fallback: TextFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /**
    * `disabled`:  `:state(disabled)`, for page styling only.
-   * - NOT an `isDisabled` override:  that would make the host swallow clicks (`UIHost`), and text has nothing to
-   *   disable.
+   * - NOT an `isDisabled` override:  that would make the element swallow clicks (`DOMElement`),
+   *   and text has nothing to disable.
    */
   @E.cssState("disabled")
   get looksDisabled(): boolean {
@@ -36,5 +37,5 @@ export class UIText extends E.UIElement<typeof textVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIText extends E.AttributeValues<typeof textVocabulary> {}

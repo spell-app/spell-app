@@ -16,7 +16,7 @@
  *   plain button's white gradient turns into a faint shade.
  * - NOT ported:
  *   - `emoji.variables` / `emoji.overrides`:  Twemoji's per-emoji SVG sprites from a CDN.  `<ui-emoji>` draws the
- *     platform's emoji font on purpose (`ui-emoji.css`:  no request, no 3,800 rules);  an SVG set would be an
+ *     platform's emoji font on purpose (`UIEmoji.css`:  no request, no 3,800 rules);  an SVG set would be an
  *     opt-in emoji registry, not a theme sheet
  *   - `@color: #66757f`:  overridden by `@textColor: #333` in the same file, so Fomantic never shows it either
  */

@@ -1,0 +1,478 @@
+/*
+ * The style sheet of `<ui-slider>`:  a port of Fomantic's `slider.less` + `slider.variables`.
+ * - The shadow markup it expects (Fomantic's markup, minus the pixel offsets its JS wrote):
+ *
+ *     <div class="ui [size color] [basic disabled hover inverted labeled range read-only reversed smooth ticked
+ *                 vertical] [(bottom | right) aligned] slider" part="slider">
+ *       <div class="inner" style="--_slider-from: 0.2;  --_slider-to: 0.6">     (fill ratios;  `role=group` in a range)
+ *         <div class="track" part="track"></div>
+ *         <div class="track-fill" part="track-fill"></div>
+ *         <div class="thumb" part="thumb" role="slider" tabindex="0" style="--_slider-at: 0.2"></div>
+ *         <div class="second thumb" part="thumb" role="slider" …></div>     (`range` only)
+ *       </div>
+ *       <ul class="auto labels" part="labels" aria-hidden="true">          (`labeled` or `ticked`;  every `tick-step`)
+ *         <li class="[halftick] label" part="label" style="--_slider-at: 0.25">5</li>
+ *       </ul>
+ *     </div>
+ *
+ * - Positions:  the component writes RATIOS (`0` ... `1` along min ... max) and this sheet turns them into offsets --
+ *   so `reversed` and `vertical` are pure CSS (anchoring `right` / `top` / `bottom` instead of `left`),
+ *   and the static markup only needs the same custom properties.  A thumb's centre travels `thumb / 2` ...
+ *   `100% - thumb / 2`; a single thumb's fill starts at the track's edge, a range's runs thumb centre to thumb centre.
+ * - The DOM element:  `display: block`;  a `vertical` slider fills the DOM element's height (give it one).
+ *   `:state(disabled)` / `:state(dragging)` are for PAGE styling only.
+ * - Colours by remap:  the fill (and `basic` thumbs) take `--ui-color`;  uncoloured, Fomantic's black.
+ * - Sizes:  `--ui-scale` (from `sizes.css`) scales the whole slider (every length is `em`);
+ *   Fomantic only defined `small` / `large` / `big` heights.
+ * - Focus:  keyboard focus rings the thumb (`:focus-visible`), for WCAG 2.4.7.
+ * - Public tokens (`--ui-slider-*`, the theming surface) are NEVER declared here:  the token block reads each
+ *   through a private alias, `--_ui-slider-height: var(--ui-slider-height, 1.5em)`, and every rule reads the
+ *   alias.  So a value set on `:root`, an ancestor, the DOM element,
+ *   `::part(slider)` or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
+ * - NOTE: left out, on purpose:  `highlightRange` (the `active labels`), thumb tooltips,
+ *   `ui label` labels (`.labels .ui.label`) and the `.checkbox` exclusions (the checkbox's own `slider` type lives in
+ *   `UICheckbox.css`).
+ */
+
+@layer ui.components.slider.types, ui.components.slider.content, ui.components.slider.variations, ui.components.slider.states;
+
+/*******************************
+            Slider
+*******************************/
+
+@layer ui.components.slider.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  /* `delegatesFocus`:  the thumb draws the focus ring, never the DOM element. */
+  :host(:focus-visible) {
+    outline: none;
+  }
+
+  /*
+   * Tokens:  one per `slider.variables` entry that still matters, from the global tokens -- each the private alias
+   * of its public token (never declare the public one:  it would block inherited values).
+   */
+  .ui.slider {
+    --_ui-slider-height: var(--ui-slider-height, 1.5em);
+    --_ui-slider-padding-block: var(--ui-slider-padding-block, 1em);
+    --_ui-slider-padding-inline: var(--ui-slider-padding-inline, 0.5em);
+    --_ui-slider-track-height: var(--ui-slider-track-height, 0.4em);
+    --_ui-slider-track-color: var(--ui-slider-track-color, oklch(from var(--ui-ink) l c h / 0.05));
+    --_ui-slider-track-radius: var(--ui-slider-track-radius, 0.25em);
+    --_ui-slider-fill-color: var(--ui-slider-fill-color, var(--ui-black));
+    --_ui-slider-fill-color-focus: var(--ui-slider-fill-color-focus, var(--ui-black-hover));
+    --_ui-slider-thumb-background: var(
+      --ui-slider-thumb-background,
+      var(--ui-surface) linear-gradient(transparent, oklch(from var(--ui-shadow-ink) l c h / 0.05))
+    );
+    --_ui-slider-thumb-background-hover: var(
+      --ui-slider-thumb-background-hover,
+      var(--ui-surface-muted) linear-gradient(transparent, oklch(from var(--ui-shadow-ink) l c h / 0.05))
+    );
+    --_ui-slider-thumb-shadow: var(
+      --ui-slider-thumb-shadow,
+      0 1px 2px 0 oklch(from var(--ui-shadow-ink) l c h / 0.15),
+      inset 0 0 0 1px var(--ui-border-color)
+    );
+    --_ui-slider-thumb-duration: var(--ui-slider-thumb-duration, 0.3s);
+    --_ui-slider-focus-width: var(--ui-slider-focus-width, var(--ui-focus-width, 2px));
+    --_ui-slider-focus-color: var(--ui-slider-focus-color, var(--ui-focus-color));
+    --_ui-slider-disabled-opacity: var(--ui-slider-disabled-opacity, 0.5);
+    --_ui-slider-disabled-fill-color: var(--ui-slider-disabled-fill-color, oklch(0.84 0 0));
+    --_ui-slider-label-height: var(--ui-slider-label-height, 1.5em);
+    --_ui-slider-tick-width: var(--ui-slider-tick-width, 1px);
+    --_ui-slider-tick-color: var(--ui-slider-tick-color, oklch(0.84 0 0));
+    --_ui-slider-label-padding: var(--ui-slider-label-padding, 0.2em 0);
+    --_ui-slider-vertical-tick-distance: var(--ui-slider-vertical-tick-distance, 0.6em);
+    --_ui-slider-hover-duration: var(--ui-slider-hover-duration, 0.2s);
+    --_ui-slider-inverted-fill-color: var(--ui-slider-inverted-fill-color, oklch(0.45 0 0));
+    --_ui-slider-inverted-track-color: var(--ui-slider-inverted-track-color, oklch(1 0 0 / 0.08));
+    --_ui-slider-inverted-tick-color: var(--ui-slider-inverted-tick-color, oklch(0.32 0 0));
+
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--_ui-slider-padding-block) var(--_ui-slider-padding-inline);
+    outline: 0;
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+  }
+
+  /* Native fallback:  `<input type=range>`s in the root. */
+  .ui.slider > input[type="range"] {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    accent-color: var(--ui-color, var(--_ui-slider-fill-color));
+  }
+
+  .ui.slider .inner {
+    position: relative;
+    z-index: 2;
+    height: var(--_ui-slider-height);
+    touch-action: none;
+  }
+
+  /* The empty track. */
+  .ui.slider .inner .track {
+    position: absolute;
+    top: calc((var(--_ui-slider-height) - var(--_ui-slider-track-height)) / 2);
+    left: 0;
+    width: 100%;
+    height: var(--_ui-slider-track-height);
+    border-radius: var(--_ui-slider-track-radius);
+    background-color: var(--_ui-slider-track-color);
+  }
+
+  /*
+   * The fill:  from the track's start to the thumb's centre, or (a range) between the thumbs' centres.
+   * `--_slider-fill-offset` / `-length` are resolved where `left` / `width` (or, vertical, `top` / `height`) use them,
+   * so their `100%` is the track's length along the slider.
+   */
+  .ui.slider .inner .track-fill {
+    --_slider-fill-offset: 0px;
+    --_slider-fill-length: calc(
+      var(--_ui-slider-height) / 2 + (100% - var(--_ui-slider-height)) * var(--_slider-to, 0)
+    );
+    position: absolute;
+    top: calc((var(--_ui-slider-height) - var(--_ui-slider-track-height)) / 2);
+    left: var(--_slider-fill-offset);
+    width: var(--_slider-fill-length);
+    height: var(--_ui-slider-track-height);
+    border-radius: var(--_ui-slider-track-radius);
+    background-color: var(--ui-color, var(--_ui-slider-fill-color));
+  }
+  .ui.range.slider .inner .track-fill {
+    --_slider-fill-offset: calc(
+      var(--_ui-slider-height) / 2 + (100% - var(--_ui-slider-height)) * var(--_slider-from, 0)
+    );
+    --_slider-fill-length: calc((100% - var(--_ui-slider-height)) * (var(--_slider-to, 0) - var(--_slider-from, 0)));
+  }
+
+  /* A thumb:  its box travels 0 ... 100% minus its own size. */
+  .ui.slider .inner .thumb {
+    position: absolute;
+    top: 0;
+    left: calc((100% - var(--_ui-slider-height)) * var(--_slider-at, 0));
+    box-sizing: border-box;
+    width: var(--_ui-slider-height);
+    height: var(--_ui-slider-height);
+    border-radius: 100%;
+    background: var(--_slider-thumb-background, var(--_ui-slider-thumb-background));
+    box-shadow: var(--_ui-slider-thumb-shadow);
+    outline: none;
+    transition: background var(--_ui-slider-thumb-duration) var(--ui-ease);
+  }
+  .ui.slider:not(.disabled, .read-only) .inner .thumb:hover {
+    --_slider-thumb-background: var(--_slider-thumb-background-hover, var(--_ui-slider-thumb-background-hover));
+    cursor: pointer;
+  }
+  .ui.slider:not(.disabled) .inner .thumb:focus-visible {
+    --_slider-thumb-background: var(--_slider-thumb-background-hover, var(--_ui-slider-thumb-background-hover));
+    outline: var(--_ui-slider-focus-width) solid var(--_ui-slider-focus-color);
+    outline-offset: 2px;
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.slider.content {
+  /* Step labels:  a strip across the track's middle;  each label above it, its tick down through the track. */
+  .ui.labeled.slider > .labels {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    width: auto;
+    height: var(--_ui-slider-label-height);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transform: translateY(-50%);
+  }
+  .ui.labeled.slider > .labels .label {
+    position: absolute;
+    left: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    display: inline-flex;
+    padding: var(--_ui-slider-label-padding);
+    color: var(--ui-text-color);
+    white-space: nowrap;
+    transform: translate(-50%, -100%);
+  }
+  .ui.labeled.ticked.slider > .labels .label::after {
+    content: " ";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: var(--_ui-slider-tick-width);
+    height: var(--_ui-slider-label-height);
+    background: var(--_ui-slider-tick-color);
+  }
+  .ui.labeled.ticked.slider > .labels .halftick.label::after {
+    height: calc(var(--_ui-slider-label-height) / 2);
+  }
+
+  /*
+   * Ticks alone (`ticked` without `labeled`;  ours, not Fomantic's):  the labels are empty, the strip as above;
+   * each tick runs from the track's middle down a half label height, so (the track painting over it) it shows UNDER the
+   * track, as a native range's tick marks.
+   */
+  .ui.ticked.slider:not(.labeled) > .labels {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: var(--_ui-slider-label-height);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transform: translateY(-50%);
+  }
+  .ui.ticked.slider:not(.labeled) > .labels .label {
+    position: absolute;
+    top: 50%;
+    left: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    width: var(--_ui-slider-tick-width);
+    height: calc(var(--_ui-slider-label-height) / 2);
+    padding: 0;
+    background: var(--_ui-slider-tick-color);
+    transform: translateX(-50%);
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.slider.variations {
+  /* Reversed:  runs from the right. */
+  .ui.reversed.slider .inner .track-fill {
+    right: var(--_slider-fill-offset);
+    left: auto;
+  }
+  .ui.reversed.slider:not(.vertical) .inner .thumb {
+    right: calc((100% - var(--_ui-slider-height)) * var(--_slider-at, 0));
+    left: auto;
+  }
+  .ui.labeled.reversed.slider:not(.vertical) > .labels .label {
+    right: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    left: auto;
+    transform: translate(50%, -100%);
+  }
+
+  /* Bottom aligned:  labels below the track, ticks up through it. */
+  .ui.bottom.aligned.labeled.slider > .labels .label {
+    bottom: 0;
+    transform: translate(-50%, 100%);
+  }
+  .ui.bottom.aligned.labeled.reversed.slider:not(.vertical) > .labels .label {
+    transform: translate(50%, 100%);
+  }
+  .ui.bottom.aligned.labeled.ticked.slider > .labels .label::after {
+    top: auto;
+    bottom: 100%;
+  }
+
+  /* Vertical:  upright, min at the top (`reversed`:  at the bottom);  fills the DOM element's height. */
+  .ui.vertical.slider {
+    width: calc(var(--_ui-slider-height) + 2 * var(--_ui-slider-padding-block));
+    height: 100%;
+    padding: var(--_ui-slider-padding-inline) var(--_ui-slider-padding-block);
+  }
+  .ui.vertical.slider .inner {
+    height: 100%;
+  }
+  .ui.vertical.slider .inner .track {
+    top: 0;
+    left: calc((var(--_ui-slider-height) - var(--_ui-slider-track-height)) / 2);
+    width: var(--_ui-slider-track-height);
+    height: 100%;
+  }
+  .ui.vertical.slider .inner .track-fill {
+    top: var(--_slider-fill-offset);
+    left: calc((var(--_ui-slider-height) - var(--_ui-slider-track-height)) / 2);
+    width: var(--_ui-slider-track-height);
+    height: var(--_slider-fill-length);
+  }
+  .ui.vertical.slider .inner .thumb {
+    top: calc((100% - var(--_ui-slider-height)) * var(--_slider-at, 0));
+    left: 0;
+  }
+  .ui.vertical.reversed.slider .inner .thumb {
+    top: auto;
+    bottom: calc((100% - var(--_ui-slider-height)) * var(--_slider-at, 0));
+  }
+  .ui.vertical.reversed.slider .inner .track-fill {
+    top: auto;
+    bottom: var(--_slider-fill-offset);
+  }
+
+  /* Vertical labels:  a strip down the track;  each label left of it (`right aligned`:  right of it). */
+  .ui.labeled.vertical.slider > .labels {
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 50%;
+    width: var(--_ui-slider-label-height);
+    height: auto;
+    transform: translateX(-50%);
+  }
+  .ui.labeled.vertical.slider > .labels .label {
+    top: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    left: auto;
+    transform: translate(-100%, -50%);
+  }
+  .ui.labeled.vertical.reversed.slider > .labels .label {
+    top: auto;
+    bottom: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    transform: translate(-100%, 50%);
+  }
+  .ui.labeled.vertical.slider > .labels .label::after {
+    top: 50%;
+    left: 100%;
+    width: var(--_ui-slider-label-height);
+    height: var(--_ui-slider-tick-width);
+  }
+  .ui.labeled.ticked.vertical.slider > .labels .halftick.label::after {
+    width: calc(var(--_ui-slider-label-height) / 2);
+    height: var(--_ui-slider-tick-width);
+  }
+  .ui.labeled.ticked.vertical.slider:not(.right) > .labels .halftick.label::after {
+    margin-left: var(--_ui-slider-vertical-tick-distance);
+  }
+  .ui.labeled.vertical.right.aligned.slider > .labels {
+    left: calc(100% + var(--_ui-slider-vertical-tick-distance));
+    transform: translateX(50%);
+  }
+  .ui.labeled.vertical.right.aligned.slider > .labels .label {
+    right: 100%;
+    transform: translate(100%, -50%);
+  }
+  .ui.labeled.vertical.reversed.right.aligned.slider > .labels .label {
+    transform: translate(100%, 50%);
+  }
+  .ui.labeled.vertical.right.aligned.slider > .labels .label::after {
+    right: 100%;
+    left: auto;
+  }
+  .ui.labeled.ticked.vertical.right.aligned.slider > .labels .halftick.label::after {
+    margin-right: var(--_ui-slider-vertical-tick-distance);
+  }
+
+  /* Ticks alone, reversed or vertical:  anchored from the other end;  upright, beside the track (right of it). */
+  .ui.ticked.reversed.slider:not(.labeled, .vertical) > .labels .label {
+    right: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    left: auto;
+    transform: translateX(50%);
+  }
+  .ui.ticked.vertical.slider:not(.labeled) > .labels {
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 50%;
+    width: var(--_ui-slider-label-height);
+    height: auto;
+    transform: translateX(-50%);
+  }
+  .ui.ticked.vertical.slider:not(.labeled) > .labels .label {
+    top: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    left: 50%;
+    width: calc(var(--_ui-slider-label-height) / 2);
+    height: var(--_ui-slider-tick-width);
+    transform: translateY(-50%);
+  }
+  .ui.ticked.vertical.reversed.slider:not(.labeled) > .labels .label {
+    top: auto;
+    bottom: calc(
+      var(--_ui-slider-padding-inline) + var(--_ui-slider-height) / 2 +
+        (100% - 2 * var(--_ui-slider-padding-inline) - var(--_ui-slider-height)) * var(--_slider-at, 0)
+    );
+    transform: translateY(50%);
+  }
+
+  /* Hover:  thumbs only while hovered or focused. */
+  .ui.hover.slider .inner .thumb {
+    opacity: 0;
+    transition: opacity var(--_ui-slider-hover-duration) linear;
+  }
+  .ui.hover.slider:not(.disabled):is(:hover, :focus-within) .inner .thumb {
+    opacity: 1;
+  }
+
+  /* Basic:  thumbs in the fill colour. */
+  .ui.basic.slider {
+    --_slider-thumb-background: var(--ui-color, var(--_ui-slider-fill-color));
+    --_slider-thumb-background-hover: var(--ui-color-hover, var(--_ui-slider-fill-color-focus));
+  }
+
+  /* Inverted:  for dark backgrounds;  every `light-dark()` token below resolves dark. */
+  .ui.inverted.slider {
+    --_ui-slider-track-color: var(--_ui-slider-inverted-track-color);
+    --_ui-slider-tick-color: var(--_ui-slider-inverted-tick-color);
+    color-scheme: dark;
+    --ui-scheme: dark;
+  }
+  .ui.inverted.slider .inner .track-fill {
+    background-color: var(--ui-color-inverted, var(--_ui-slider-inverted-fill-color));
+  }
+  .ui.inverted.basic.slider {
+    --_slider-thumb-background: var(--ui-color-inverted, var(--_ui-slider-inverted-fill-color));
+    --_slider-thumb-background-hover: var(--ui-color-inverted, var(--_ui-slider-inverted-fill-color));
+  }
+}
+
+/*******************************
+            States
+*******************************/
+
+@layer ui.components.slider.states {
+  /* Disabled:  dimmed, the fill greyed. */
+  .ui.disabled.slider {
+    opacity: var(--_ui-slider-disabled-opacity);
+  }
+  .ui.disabled.slider .inner:hover {
+    cursor: auto;
+  }
+  .ui.disabled.slider .inner .track-fill {
+    background: var(--_ui-slider-disabled-fill-color);
+  }
+
+  /* Read-only:  shows its value;  no pointer affordance. */
+  .ui.read-only.slider .inner,
+  .ui.read-only.slider .inner .thumb {
+    cursor: default;
+  }
+
+  /* Smooth:  no snapping transition while a thumb follows the pointer. */
+  .ui.smooth.slider .inner .thumb {
+    transition: none;
+  }
+}

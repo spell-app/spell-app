@@ -233,7 +233,7 @@ export class SiteSections {
 
   /**
    * Scroll so `target`'s top sits on its line:  below the stuck bar and the titles of the sections around `holder`
-   * (`target` itself, or the host whose shadow root holds it);  a section's own title sits right on the line, where
+   * (`target` itself, or the element whose shadow root holds it);  a section's own title sits right on the line, where
    * it sticks.
    */
   private scrollTo(target: Element, holder: Element): void {
@@ -273,7 +273,7 @@ export class SiteSections {
 
   /**
    * Where `target`'s top is now, unstuck:  a section's sentinel (where its title would be, even while stuck), else
-   * its box;  a box-less host (`display: contents`):  its parent's.  `undefined` while it has none (a hidden pane).
+   * its box;  a box-less element (`display: contents`):  its parent's.  `undefined` while it has none (a hidden pane).
    */
   private static boxOf(target: Element): DOMRect | undefined {
     const sentinel = target.localName === SECTION_TAG ? target.shadowRoot?.querySelector(".sentinel") : undefined
@@ -284,8 +284,9 @@ export class SiteSections {
   }
 
   /**
-   * Height of `element`'s box, px;  a box-less host (`display: contents`, as `<ui-sticky>` and many hosts are):  the
-   * tallest box in its shadow root, else among its children, looking through box-less ones the same way.
+   * Height of `element`'s box, px.
+   * - A box-less element (`display: contents`, as `<ui-sticky>` and many `ui-*` elements are):
+   *   the tallest box in its shadow root, else among its children, looking through box-less ones the same way.
    */
   private static heightOf(element: Element): number {
     const height = element.getBoundingClientRect().height

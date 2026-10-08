@@ -6,19 +6,19 @@ import {
   type CalendarWeekday,
   type Moment,
   type ViewInput
-} from "./ui-calendar.types"
+} from "./UICalendar.types"
 
 /****************
  * ### `CalendarView`
  * One page of the picker, as data:  its title, its cells (rows of Fomantic's grid shapes), the previous / next
  * page targets and the view its title leads up to.  Pure:  the element renders it and rebuilds it (a memo) when
  * the focus, value, bounds or view change.
- * - Shapes (Fomantic's):  years 3 x 4 (the decade, one year before, one after:  2021-2032), months 3 x 4, days
- *   7 x 6 from the locale's first weekday (constant height), hours 4 x 6, minutes 3 x 4 in 5-minute steps.
+ * - Shapes (Fomantic's):  years 3 x 4 (the decade, one year before, one after:  2021-2032), months 3 x 4,
+ *   days 7 x 6 from the locale's first weekday (constant height), hours 4 x 6, minutes 3 x 4 in 5-minute steps.
  * - A cell is DISABLED outside `min` / `max` (compared in its own unit), on a disabled date or weekday (days,
  *   and the hours / minutes of such a day), or as an adjacent-month day unless `selectAdjacentDays`.
- * - `today` marks the year / month / day holding today (not times);  `active` the value's unit;  `focus` the focus
- *   moment's unit -- the roving tab stop;  `range` a unit inside `range` (inclusive).
+ * - `today` marks the year / month / day holding today (not times);  `active` the value's unit;
+ *   `focus` the focus moment's unit -- the roving tab stop;  `range` a unit inside `range` (inclusive).
  * - STATIC, instance-free on purpose:  a page is a pure function of its `ViewInput`, so there's nothing to hold.
  ****************/
 export class CalendarView {
@@ -54,9 +54,9 @@ export class CalendarView {
 
   /**
    * The moment `key` moves the focus to in `mode`, or `undefined` for a key the grid doesn't handle.
-   * - Arrows:  one cell;  up / down one row.  Home / End:  the week's first / last day (days), else the page's
-   *   first / last cell.  PageUp / PageDown:  a page;  with Shift, a bigger page (a year of days, a decade of
-   *   months).
+   * - Arrows:  one cell;  up / down one row.  Home / End:  the week's first / last day (days),
+   *   else the page's first / last cell.  PageUp / PageDown:  a page;  with Shift, a bigger page (a year of days,
+   *   a decade of months).
    */
   static move(input: ViewInput, { key, shiftKey }: Pick<KeyboardEvent, "key" | "shiftKey">): Moment | undefined {
     const { dates, mode, focus } = input

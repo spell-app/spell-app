@@ -1,7 +1,7 @@
 import { E, UI, UIT } from "$/ui/core"
 import { CodeLines } from "./CodeLines"
 import type { CodeEngine } from "./CodeEngine"
-import type { Highlighted } from "./ui-code.types"
+import type { Highlighted } from "./UICode.types"
 
 /****************
  * ### `CodeHighlighter`

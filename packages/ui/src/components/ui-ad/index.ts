@@ -1,6 +1,7 @@
 /**
- * Barrel for the ad component -- also the `ad` lib entry (`@spell-app/ui/ui-ad`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-ad>`.
+ * The ad family:  defines `<ui-ad>` and exports its component, `UIAd`.
+ * - SIDE EFFECT:  importing it defines the tag.
+ * - Also the library's `@spell-app/ui/ui-ad` entry (its size is in `docs/report.md`).
  */
 
 import { UIAd } from "./UIAd"

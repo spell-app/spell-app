@@ -2,43 +2,51 @@ import { Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { dimmerVocabulary } from "./ui-dimmer.vocabulary.en"
-import { DimmerFallback } from "./ui-dimmer.fallback"
+import { dimmerVocabulary } from "./UIDimmer.vocabulary.en"
 
-import dimmerCSS from "./ui-dimmer.css?inline"
-import dimmablePageCSS from "./ui-dimmer.page.css?inline"
+import dimmerCSS from "./UIDimmer.css?inline"
+import dimmablePageCSS from "./UIDimmer.page.css?inline"
 
 /****************
- * ### `<ui-dimmer>`
- * A dimmer, in two kinds:
- * - ELEMENT dimmer (default):  `<div class="ui ... dimmer" part="dimmer"><div class="content"><slot>` covering its
- *   parent -- the nearest positioned box;  the `dimmer-page` page sheet makes a plain parent `position: relative`
- *   (Fomantic's `.dimmable`).  Not modal:  what it covers stays in the page, as in Fomantic.
- * - PAGE dimmer (`page`):  a `<dialog class="ui page ... dimmer">` shown with `showModal()` -- modal ON PURPOSE:  it
- *   covers everything, so the page is `inert` (a pointer can't reach it either), focus moves inside (the dialog
- *   itself when nothing inside is focusable) and returns on hide.  Registered with `UI.overlays` (kind `dimmer`:
- *   scroll lock, keyboard scope, Escape).  Named by the host's `aria-label`, else "Dimmed page".
- * - `active` is auto-controlled (`isActive`):  the cancelable `ui-open` / `ui-close` come first for a person's
- *   actions -- `show-on` (`hover`:  pointer over the parent or focus inside it;  `click`:  a click on the parent), a click
- *   on the dimmer itself (not its content, `closedby="any"`), Escape (a page dimmer), invoker commands
- *   (`ToggleCommands`);  `ui-show` / `ui-hide` follow once the CSS transition has ended.  Writing `active` fires no
- *   `ui-open` / `ui-close`.
- * - An inactive `hover` dimmer stays laid out but transparent (and ignores the pointer), so a keyboard user can Tab
- *   into its content, which shows it.
- * - Looks:  a dark dimmer is the dark scheme for its content (`color-scheme: dark`, `--ui-inverted: 1`), so a
- *   `<ui-header>` in it turns light by itself;  `inverted` is the light one.  `blurring` blurs what's behind
- *   (`backdrop-filter`) instead of Fomantic's filter on the siblings.
+ * ### `UIDimmer`
+ * The component behind `<ui-dimmer>`:  a dimmer over part of the page, or over all of it.
+ *
+ * - An ELEMENT dimmer (the default):
+ *   `<div class="ui … dimmer" part="dimmer"><div class="content"><slot>` covering its parent,
+ *   the nearest positioned box.
+ *   - The `dimmer-page` page sheet makes a plain parent `position: relative` (Fomantic's `.dimmable`).
+ *   - Not modal:  what it covers stays in the page, as in Fomantic.
+ *
+ * - A PAGE dimmer (`page`):  a `<dialog class="ui page … dimmer">` shown with `showModal()`, modal ON PURPOSE.
+ *   - It covers everything, so the page is `inert` (a pointer can't reach it either);
+ *     focus moves inside (to the dialog itself when nothing inside is focusable) and returns on hide.
+ *   - Registered with `UI.overlays` (kind `dimmer`:  scroll lock, keyboard scope, Escape).
+ *   - Named by the DOM element's `aria-label`, else "Dimmed page".
+ *
+ * - `active` is controlled (`isActive`):  the cancelable `ui-open` / `ui-close` come first for a person's actions:
+ *   - `show-on`:  `hover` (the pointer over the parent, or focus inside it) or `click` (a click on the parent)
+ *   - a click on the dimmer itself (not its content;  `closedby="any"`)
+ *   - Escape (a page dimmer), invoker commands (`UIT.ToggleCommands`).
+ *
+ *   `ui-show` / `ui-hide` follow once the CSS transition has ended.
+ *   Writing `active` fires no `ui-open` / `ui-close`.
+ *
+ * - An inactive `hover` dimmer stays laid out but transparent (and ignores the pointer),
+ *   so a keyboard user can Tab into its content, which shows it.
+ *
+ * - Looks:  a dark dimmer is the dark scheme for its content (`color-scheme: dark`, `--ui-inverted: 1`),
+ *   so a `<ui-header>` in it turns light by itself;  `inverted` is the light one.
+ *   `blurring` blurs what's behind (`backdrop-filter`), instead of Fomantic's filter on the siblings.
  ****************/
-export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
+export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
   @E.proto static vocabulary = dimmerVocabulary
   @E.proto static styleSheets = { dimmer: dimmerCSS }
   @E.proto static elementSetup = {
-    Fallback: DimmerFallback,
     // a click on the dimmer must not jump focus into its content
     delegatesFocus: false
-  }
+  } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     this.on("command", this.onCommand)
   }
@@ -47,7 +55,7 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
   // ## Showing (`active`)
   ////////////////
 
-  /** `active`:  always the host's (a boolean). */
+  /** `active`:  always the DOM element's property (a boolean). */
   @E.controlled("active")
   accessor isActive = false
 
@@ -78,7 +86,7 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
     return this.requestChange("isActive", false, () => this.send("ui-close", detail))
   }
 
-  /** An invoker command aimed at the host (`ToggleCommands`). */
+  /** An invoker command aimed at the DOM element (`UIT.ToggleCommands`). */
   private readonly onCommand = (event: Event) => {
     const action = UIT.ToggleCommands.action(
       event,
@@ -162,7 +170,7 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
 
   /** A page dimmer's `UI.overlays` entry;  its Escape option follows `closedby` when it shows. */
   private readonly overlay: E.OverlayEntry = {
-    element: this.host,
+    element: this.domElement,
     kind: "dimmer",
     closeOnOutsideClick: false,
     onDismiss: (reason: E.DismissReason) => void this.requestClose(reason === "outside" ? "click" : reason)
@@ -206,7 +214,7 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
     }
     this.after(() => {
       const detail: UIT.DimmerOpenDetail = { active: false }
-      if (!untrack(() => this.isShowing) && this.host.isConnected) this.send("ui-hide", detail)
+      if (!untrack(() => this.isShowing) && this.domElement.isConnected) this.send("ui-hide", detail)
     })
   }
 
@@ -234,12 +242,12 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
 
   /**
    * Listen to the parent for `show-on`;  returns the undo.
-   * - `hover`:  pointer over the parent, or focus inside it (a keyboard user Tabbing into the content);  hides once
-   *   both have left.
+   * - `hover`:  pointer over the parent, or focus inside it (a keyboard user Tabbing into the content);
+   *   hides once both have left.
    * - `click`:  a click on the parent outside the dimmer shows it.
    */
   private listenToParent(showOn: string): (() => void) | undefined {
-    const parent = this.host.parentElement
+    const parent = this.domElement.parentElement
     if (!parent) return undefined
     const listeners = new AbortController()
     const options = { signal: listeners.signal }
@@ -259,7 +267,7 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
 
   /** The pointer or focus left a `show-on="hover"` dimmer's parent:  hide once neither is inside. */
   private leave(event: Event, next: EventTarget | null | undefined = UI.focus.activeElementDeep()) {
-    const parent = this.host.parentElement
+    const parent = this.domElement.parentElement
     if (this.pointerIsOverParent || (parent && next instanceof Node && UI.focus.containsDeep(parent, next))) return
     this.requestClose("hover", event)
   }
@@ -279,7 +287,9 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
   /** Focus moved into a `show-on="hover"` dimmer's parent:  show. */
   private readonly onParentFocusIn = (event: FocusEvent) => this.requestOpen(event)
 
-  /** Focus left a `show-on="hover"` dimmer's parent (or moved within it):  hide once neither it nor the pointer is in. */
+  /**
+   * Focus left a `show-on="hover"` dimmer's parent (or moved within it):  hide once neither it nor the pointer is in.
+   */
   private readonly onParentFocusOut = (event: FocusEvent) => this.leave(event, event.relatedTarget)
 
   /** A click on the parent (`show-on="click"`) outside the dimmer:  show. */
@@ -316,7 +326,7 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
   /** A page dimmer's dialog closed while the element thinks it's active:  the browser forced it -- follow. */
   private readonly onClose = (event: Event) => {
     const box = this.box
-    if ((box instanceof HTMLDialogElement && box.open) || !this.host.isConnected) return
+    if ((box instanceof HTMLDialogElement && box.open) || !this.domElement.isConnected) return
     if (!untrack(() => this.isActive)) return
     const detail: UIT.DimmerCloseDetail = { active: false, reason: "escape", originalEvent: event }
     this.send("ui-close", detail)
@@ -324,11 +334,11 @@ export class UIDimmer extends E.UIElement<typeof dimmerVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIDimmer extends E.AttributeValues<typeof dimmerVocabulary> {}
 
 /** Which dimmer it is:  over its parent (`element`), or a modal dialog over the page (`page`). */
 type DimmerKind = "element" | "page"
 
-/** Name of the page sheet that positions dimmed parents (`ui-dimmer.page.css`). */
+/** Name of the page sheet that positions dimmed parents (`UIDimmer.page.css`). */
 const PAGE_SHEET = "dimmer-page"

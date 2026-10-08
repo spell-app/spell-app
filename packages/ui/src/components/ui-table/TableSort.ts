@@ -1,10 +1,10 @@
 import { UIT } from "$/ui/core"
-import { DESCENDING, TABLE } from "./ui-table.types"
+import { DESCENDING, TABLE } from "./UITable.types"
 
 /****************
  * ### `TableSort`
- * Sorting mechanics of a NATIVE table, as static helpers:  which header a click hit, its column, and
- * reordering `tbody` rows by cell text (`client-sort`).  Plain DOM, no state.
+ * Sorting mechanics of a NATIVE table, as static helpers:  which header a click hit, its column,
+ * and reordering `tbody` rows by cell text (`client-sort`).  Plain DOM, no state.
  * - Columns count `colspan`s:  `<th colspan="2">` covers columns 0 and 1, the next header is column 2.
  *   NOTE: `rowspan`s from rows above are not counted (a structured table's lower header row numbers its own
  *   cells), and a spanning cell in the body answers for its FIRST column.
@@ -112,8 +112,8 @@ export class TableSort {
 
   /**
    * Order of two values under `sign` (`1` ascending, `-1` descending).
-   * - `undefined` / `null` / `""` last, whatever the direction;  two numbers numerically;  else the collator
-   *   over their text.
+   * - `undefined` / `null` / `""` last, whatever the direction;  two numbers numerically;
+   *   else the collator over their text.
    */
   static compare(a: unknown, b: unknown, sign: number): number {
     const missingA = a == null || a === ""

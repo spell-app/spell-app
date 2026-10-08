@@ -40,7 +40,7 @@ describe("StaticStylesheet.build()", () => {
       `@scope (:is([data-ui="menu"], .ui.menu:not([data-ui]):is(:not([data-ui] *), [data-ui-slotted]:not([data-ui]), ` +
         `[data-ui-slotted]:not([data-ui]) *))) to ([data-ui-slotted]:not([data-ui]) > *, :scope [data-ui] > *)`
     )
-    // `ui-parts.css` is shared:  one copy, scoped to every part that adopts it
+    // `UIParts.css` is shared:  one copy, scoped to every part that adopts it
     const parts = css.slice(css.indexOf("/* parts */"))
     expect(parts).toMatch(/^\/\* parts \*\/\n@layer [^{]+\{\s*@scope \(:is\(/)
     expect(parts.slice(0, 300)).toContain(`[data-ui="content"]`)

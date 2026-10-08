@@ -1,0 +1,71 @@
+/*
+ * `<ui-transition>`:  what `transition.less` + `transition.variables` add beyond the animation catalogue.
+ * - The keyframes, the `data-ui-animation` protocol and Fomantic's transition STATES (`.ui.animating.transition`,
+ *   `.hidden`, `.visible`, `.disabled`, `.looping`, `.pulsating`) live in `animations.css` (`@layer ui.utilities`),
+ *   which every shadow root adopts with the foundation;  this sheet only adds the element's box and variations.
+ * - Shadow markup contract:  `<div class="ui [color] [keyOnly ...] transition [visible] [animating]"
+ *   part="transition"><slot></slot></div>`;  the box's `hidden` attribute hides it (`UI.transitions` sets it).
+ * - Motion:  `animations.css`'s reduced-motion block swaps every animation for a short crossfade;
+ *   the element skips animating altogether then (`UI.transitions`).
+ * - NOTE: left out, on purpose:  `.loading.transition` (Fomantic's off-screen measuring state:  nothing measures).
+ */
+
+@layer ui.components.transition.types, ui.components.transition.content, ui.components.transition.variations, ui.components.transition.states;
+
+/*******************************
+          Transition
+*******************************/
+
+@layer ui.components.transition.types {
+  /* DOM element:  no box of its own;  the transition box is the one that animates. */
+  :host {
+    display: contents;
+  }
+
+  .ui.transition {
+    box-sizing: border-box;
+  }
+
+  /* What the box hands its content:  not its colour remap (`color` tints the pulsating ring only). */
+  .ui.transition slot {
+    --ui-color: initial;
+    --ui-color-text: initial;
+    --ui-color-header: initial;
+    --ui-color-border: initial;
+    --ui-color-background: initial;
+    --ui-color-inverted: initial;
+    --ui-color-on: initial;
+    --ui-color-inverted-on: initial;
+  }
+}
+
+/*******************************
+          Variations
+*******************************/
+
+@layer ui.components.transition.variations {
+  /* ## Inline:  wraps inline content (an image, a button) so it scales / flips around ITS centre. */
+  .ui.inline.transition {
+    display: inline-block;
+    vertical-align: top;
+  }
+
+  /*
+   * ## Pulsating:  `animations.css` draws the ring in `--ui-color` (a hue by remap, else grey);  `inverted` makes it
+   * near-white for dark backgrounds (Fomantic's `@pulsatingInvertedColor`).
+   */
+  .ui.inverted.pulsating.transition {
+    --ui-color: var(--ui-transition-inverted-pulse, oklch(0.97 0 0));
+  }
+}
+
+/*******************************
+            States
+*******************************/
+
+@layer ui.components.transition.states {
+  /* Hidden:  the `hidden` attribute wins over any `display` above. */
+  .ui.transition[hidden] {
+    display: none;
+  }
+}

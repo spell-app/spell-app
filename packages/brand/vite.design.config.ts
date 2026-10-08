@@ -16,7 +16,7 @@ export const DESIGN_OUT = `${ROOT}dist`
  * - Why a build of its own, not `src/` straight into that bundle:  the elements are Solid JSX, which only the Solid
  *   compiler (`baseConfig()`'s plugins) turns into code;  esbuild, which makes the bundle, can't.
  * - `$/ui/*` and Solid stay EXTERNAL, as written:  the design bundle resolves `$/ui/core` / `$/ui/forms` to Spell UI's
- *   `dist/core.js` / `dist/forms.js`, the same modules its own elements use, so there's ONE `UIElement`, one
+ *   `dist/core.js` / `dist/forms.js`, the same modules its own elements use, so there's ONE `UIComponent`, one
  *   `ValueSets` (the `accent` hue reaches every element) and one Solid.
  * - Everything else (`$/brand`, the sheets, `<ui-brand-logo>`'s lazy paths) is inlined:  the bundle can't load a file.
  */

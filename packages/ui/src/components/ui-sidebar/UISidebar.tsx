@@ -2,40 +2,45 @@ import { Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { sidebarVocabulary } from "./ui-sidebar.vocabulary.en"
-import { SidebarFallback } from "./ui-sidebar.fallback"
+import { sidebarVocabulary } from "./UISidebar.vocabulary.en"
 import type { UIPushable } from "./UIPushable"
-import { CENTER, NONE_TRANSFORM, type SidebarVocabulary } from "./ui-sidebar.types"
+import { CENTER, NONE_TRANSFORM, type SidebarVocabulary } from "./UISidebar.types"
 
-import sidebarCSS from "./ui-sidebar.css?inline"
+import sidebarCSS from "./UISidebar.css?inline"
 
 /****************
- * ### `<ui-sidebar>`
- * A panel along one edge of its `<ui-pushable>` (Fomantic's `.ui.sidebar`), shown by `visible` with one of
- * Fomantic's six transitions;  its pushable moves / dims the `<ui-pusher>` beside it.
- * - Two kinds, by APG:
- *   - MODAL (default) -- a drawer:  `<dialog class="ui ... sidebar" aria-modal="true">` opened with `show()`, NOT
- *     `showModal()`:  the top layer would lift it out of its pushable (a sidebar in a segment would cover the
- *     page).  Instead:  focus moves inside (the dialog's own focusing steps) and Tab stays inside (`UI.focus.trap`),
- *     the pushable makes the pusher `inert` and dims it, Escape and a click beside it close it (`UI.overlays`, kind
- *     `sidebar`:  keyboard scope and focus restore, no scroll lock -- Fomantic's `scrollLock: false`).  Named by
- *     the host's `aria-label`, else "Sidebar".
- *   - `persistent` -- part of the page:  an `<aside>` (complementary landmark;  a `<ui-menu>` inside is the
- *     `<nav>`), nothing dimmed, inert or trapped, focus stays put.
- * - A hidden sidebar is `visibility: hidden` (out of the tab order and the accessibility tree), laid out so its
- *   pushable can measure it.
- * - `visible` is auto-controlled:  the cancelable `ui-open` / `ui-close` come first for a person's actions (invoker
- *   commands `ToggleCommands`, Escape, a click beside it);  `ui-show` / `ui-hide` follow once the transition has
- *   ended.  Writing `visible` fires no `ui-open` / `ui-close`.
+ * ### `UISidebar`
+ * The component behind `<ui-sidebar>`:  a panel along one edge of its `<ui-pushable>` (Fomantic's `.ui.sidebar`),
+ * shown by `visible` with one of Fomantic's six transitions.
+ * Its pushable moves and dims the `<ui-pusher>` beside it.
+ *
+ * - Two kinds, as the APG has them:
+ *   - MODAL (the default):  a drawer, `<dialog class="ui … sidebar" aria-modal="true">` opened with `show()`.
+ *     NOT `showModal()`:
+ *     the top layer would lift it out of its pushable (a sidebar in a segment would cover the page).  Instead:
+ *     - focus moves inside (the dialog's own focusing steps), and Tab stays inside (`UI.focus.trap`)
+ *     - the pushable makes the pusher `inert` and dims it
+ *     - Escape and a click beside it close it (`UI.overlays`, kind `sidebar`:  keyboard scope and focus restore,
+ *       no scroll lock, as Fomantic's `scrollLock: false`)
+ *     - named by the DOM element's `aria-label`, else "Sidebar".
+ *   - `persistent`:  part of the page, an `<aside>` (a complementary landmark;  a `<ui-menu>` inside is the
+ *     `<nav>`).  Nothing is dimmed, inert or trapped, and focus stays put.
+ *
+ * - A hidden sidebar is `visibility: hidden` (out of the tab order and the accessibility tree),
+ *   but laid out, so its pushable can measure it.
+ *
+ * - `visible` is controlled:  the cancelable `ui-open` / `ui-close` come first for a person's actions
+ *   (invoker commands, `UIT.ToggleCommands`;  Escape;  a click beside it).
+ *   `ui-show` / `ui-hide` follow once the transition has ended.
+ *   Writing `visible` fires no `ui-open` / `ui-close`.
  ****************/
-export class UISidebar extends E.UIElement<SidebarVocabulary> {
+export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   @E.proto static vocabulary = sidebarVocabulary
   @E.proto static styleSheets = { sidebar: sidebarCSS }
   @E.proto static elementSetup = {
-    Fallback: SidebarFallback,
     // a click on the panel's padding must not jump focus to its first link
     delegatesFocus: false
-  }
+  } satisfies Partial<E.ElementSetup>
 
   /** Always:  its `<ui-pushable>` finds it by `:state(sidebar)`. */
   @E.cssState("sidebar")
@@ -43,7 +48,7 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
     return true
   }
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     this.on(COMMAND, this.onCommand)
   }
@@ -52,7 +57,7 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
   // ## Visible
   ////////////////
 
-  /** `visible`:  shown;  always the host's (a boolean). */
+  /** `visible`:  shown;  always the DOM element's property (a boolean). */
   @E.cssState("visible")
   @E.controlled("visible")
   accessor isVisible = false
@@ -76,7 +81,7 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
     return this.requestChange("isVisible", false, () => this.send("ui-close", detail))
   }
 
-  /** An invoker command aimed at the host (`ToggleCommands`). */
+  /** An invoker command aimed at the DOM element (`ToggleCommands`). */
   private readonly onCommand = (event: Event) => {
     const action = UIT.ToggleCommands.action(
       event,
@@ -101,15 +106,15 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
 
   /** A modal sidebar's `UI.overlays` entry;  its options follow `closedby` when it shows. */
   private readonly overlay: E.OverlayEntry = {
-    element: this.host,
+    element: this.domElement,
     kind: "sidebar",
     modal: false,
     onDismiss: (reason: E.DismissReason) => void this.requestClose(reason)
   }
 
   /**
-   * Shown while visible AND connected, once the runtime is loaded (`isReady`, as the render waits for):  it acts on
-   * the rendered panel;  hidden by the cleanup.
+   * Shown while visible AND connected, once the runtime is loaded (`isReady`, as the render waits for):
+   * it acts on the rendered panel;  hidden by the cleanup.
    */
   @E.onChange("isReady", "isConnected", "isVisible", "isModal")
   protected onShowingChanged(isReady: boolean, isConnected: boolean, isVisible: boolean, isModal: boolean) {
@@ -119,8 +124,8 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
   }
 
   /**
-   * A modal sidebar:  `show()` (focus moves in), the focus trap, `UI.overlays`;  then `ui-show` once its
-   * transition ends.
+   * A modal sidebar:  `show()` (focus moves in), the focus trap, `UI.overlays`;
+   * then `ui-show` once its transition ends.
    */
   private show(modal: boolean) {
     const box = this.box
@@ -129,16 +134,16 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
       const closedBy = untrack(() => this.closedby) ?? ANY
       this.overlay.closeOnEscape = closedBy !== UIT.NONE
       this.overlay.closeOnOutsideClick = closedBy === ANY
-      // MUST `show()` BEFORE `UI.overlays.open()`:  `show()` gives the dialog its own close watcher, disabled
-      // (`closedby` computes to `none`).  Opened by a click, it's the newest close-watcher group, and Chromium
-      // processes only that group, so a watcher made before it never hears Escape.  Focus still returns:
+      // MUST `show()` BEFORE `UI.overlays.open()`:  `show()` gives the dialog its own close watcher,
+      // disabled (`closedby` computes to `none`).  Opened by a click, it's the newest close-watcher group,
+      // and Chromium processes only that group, so a watcher made before it never hears Escape.  Focus still returns:
       // `close()` refocuses what had focus before `show()`.
       if (!box.open) {
         box.show()
         UI.focus.enter(box)
       }
       UI.overlays.open(this.overlay)
-      this.releaseFocusTrap = UI.focus.trap(this.host)
+      this.releaseFocusTrap = UI.focus.trap(this.domElement)
     }
     this.after(() => {
       const detail: UIT.SidebarOpenDetail = { visible: true }
@@ -147,21 +152,21 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
   }
 
   /**
-   * Undo `show()`:  `close()`, the trap, the pusher back (not `inert`), THEN leave `UI.overlays`, whose focus restore
-   * may aim at a button in the pusher.
+   * Undo `show()`:  `close()`, the trap, the pusher back (not `inert`), THEN leave `UI.overlays`,
+   * whose focus restore may aim at a button in the pusher.
    */
   private hide(modal: boolean) {
     const box = this.box
     this.releaseFocusTrap?.()
     this.releaseFocusTrap = undefined
-    this.pushable?.report(this.host, undefined)
+    this.pushable?.report(this.domElement, undefined)
     if (modal) {
       if (box instanceof HTMLDialogElement && box.open) box.close()
       UI.overlays.close(this.overlay)
     }
     this.after(() => {
       const detail: UIT.SidebarOpenDetail = { visible: false }
-      if (!untrack(() => this.isVisible) && this.host.isConnected) this.send("ui-hide", detail)
+      if (!untrack(() => this.isVisible) && this.domElement.isConnected) this.send("ui-hide", detail)
     })
   }
 
@@ -211,14 +216,14 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
     const pushable = this.pushable
     if (!pushable) return
     const visible = untrack(() => this.isConnected && this.isVisible)
-    pushable.report(this.host, visible ? this.layout() : undefined)
+    pushable.report(this.domElement, visible ? this.layout() : undefined)
   }
 
-  /** The parent `<ui-pushable>`'s controller, if that's where it is. */
+  /** The parent `<ui-pushable>`'s component, if that's where it is. */
   private get pushable(): UIPushable | undefined {
-    const parent = this.host.parentElement
+    const parent = this.domElement.parentElement
     if (!parent?.matches(`:state(${UIT.PUSHABLE_HOST_STATE})`)) return undefined
-    return (parent as E.UIHost).controller as UIPushable | undefined
+    return (parent as E.DOMElement).component as UIPushable | undefined
   }
 
   /**
@@ -278,7 +283,7 @@ export class UISidebar extends E.UIElement<SidebarVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UISidebar extends E.AttributeValues<SidebarVocabulary> {}
 
 /** Top / bottom sidebars:  full width, move the pusher vertically. */
@@ -307,5 +312,5 @@ const SCALE_ORIGINS: Readonly<Record<string, string>> = {
 /** `closedby` value letting a click beside the sidebar close it too (its default). */
 const ANY = "any"
 
-/** Invoker commands (`ToggleCommands`) arrive as this event on the host. */
+/** Invoker commands (`ToggleCommands`) arrive as this event on the DOM element. */
 const COMMAND = "command"

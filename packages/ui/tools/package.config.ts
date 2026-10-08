@@ -20,7 +20,7 @@ const EXTRA_ENTRIES = { api: ENTRIES.api!, styles: ENTRIES.styles! }
  * - Two shared entries:  `core` (every family) and `forms` (families with a form VALUE:  dropdown, input, checkbox, form).
  * - `groups` (`bucket()`):
  *   - `solid-js`, `@solidjs/*`, the fork => `library`
- *   - `forms.ts`, `FormElement`, `FormHost`, `Validator`, `MenuOptions`, `ControlLabels` (+ `LabelWatch`) =>
+ *   - `forms.ts`, `FormComponent`, `DOMFormControlElement`, `Validator`, `MenuOptions`, `ControlLabels` (+ `LabelWatch`) =>
  *     `shared:forms`
  *   - a family folder => its own classes / sheet / vocabulary / fallback;  `vocabulary/SkeletonText.ts` too, as
  *     `ui-root`'s:  its only runtime importer, and NOT in `core` (left out of `$/ui/vocabulary`'s barrel)
@@ -75,7 +75,11 @@ function bucket(id: string): Bucket {
   if (/\/node_modules\/(temporal-(polyfill|utils)|highlight\.js|marked|dompurify)\//.test(id)) return "data"
   const src = /\/src\/(.+)$/.exec(id.split("?")[0]!)?.[1]
   if (!src) return "other"
-  if (/^(forms\.ts|elements\/(FormElement|FormHost|Validator|MenuOptions|ControlLabels|LabelWatch)\.ts)$/.test(src))
+  if (
+    /^(forms\.ts|elements\/(FormComponent|DOMFormControlElement|Validator|MenuOptions|ControlLabels|LabelWatch)\.ts)$/.test(
+      src
+    )
+  )
     return "shared:forms"
   if (/^(api\.ts|elements\/index\.ts|vocabulary\/vocabulary\.api\.ts)$/.test(src)) return "extra:api"
   if (/^components\/[\w-]+\/data\/|^languages\//.test(src)) return "data"

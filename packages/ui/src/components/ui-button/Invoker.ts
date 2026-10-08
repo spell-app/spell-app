@@ -1,23 +1,26 @@
 /****************
  * ### `Invoker`
  * Invoker commands (`<button commandfor="id" command="show-modal">`) for a `<ui-button>`.
- * - With `UI.browser.supports.invokers` the browser does it all:  the element only gives its inner `<button>` the
- *   `command` and a `commandForElement` that `resolve()` finds (a shadow button can't name a light-DOM id).
- * - Without it, `run()` does what the browser would on a click:  fires the cancelable `command` event on the target
- *   (`event.command`, `event.source`), then, unless that was prevented, a built-in command on a `<dialog>`
- *   (`show-modal`, `close`, `request-close`) or a popover (`show-popover`, `hide-popover`, `toggle-popover`).
+ *
+ * - Where the browser has them (`UI.browser.supports.invokers`), it does it all:
+ *   the button only gives its inner `<button>` the `command`, and a `commandForElement` that `resolve()` finds
+ *   (a button inside a shadow root can't name a light-DOM id).
+ * - Elsewhere `run()` does what the browser would on a click:
+ *   it sends the cancelable `command` event to the target (`event.command`, `event.source`),
+ *   then, unless that was cancelled, runs a built-in command on a `<dialog>` (`show-modal`, `close`,
+ *   `request-close`) or a popover (`show-popover`, `hide-popover`, `toggle-popover`).
  *   Custom commands (`--foo`) stop at the event.
- * - STATIC, instance-free:  the element and its native fallback share it, and neither holds one.
+ * - Static:  the component and its native fallback share it, and neither holds one.
  ****************/
 export class Invoker {
   /**
-   * The element `commandfor` names, looked up from `host`'s root node (document or shadow root);  `undefined` for no
-   * id or no such element.
+   * The element `commandfor` names, looked up in `domElement`'s root node (the document or a shadow root).
+   * - `undefined` for no id, or no such element.
    */
-  static resolve(host: Element, id: string | undefined): Element | undefined {
+  static resolve(domElement: Element, id: string | undefined): Element | undefined {
     if (!id) return undefined
     // duck-typed, not `instanceof Document / ShadowRoot`:  the static render resolves ids in node (`$/ui/static`)
-    const root = host.getRootNode() as Partial<Document>
+    const root = domElement.getRootNode() as Partial<Document>
     return typeof root.getElementById === "function" ? (root.getElementById(id) ?? undefined) : undefined
   }
 

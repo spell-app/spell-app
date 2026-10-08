@@ -1,14 +1,15 @@
 import type { SiteDataFile, SiteTag } from "$/ui/docs-components/docs-components.types"
 
-import { INDEX_PAGE, PAGE_EXTENSION, SEARCH_SEPARATOR, type NavRow, type NavTopic } from "./ui-docs-nav.types"
+import { INDEX_PAGE, PAGE_EXTENSION, SEARCH_SEPARATOR, type NavRow, type NavTopic } from "./UIDocsNav.types"
 
 /****************
  * ### `NavIndex`
- * What `<ui-docs-nav>` lists, built once from the site's data (`SiteData`):  one row per COMPONENT tag, A-Z, and one
- * group per topic.  Replaces the Astro site's `ComponentIndex` (build time) + `SearchText` (shared with the client).
+ * What `<ui-docs-nav>` lists, built once from the site's data (`SiteData`):  one row per COMPONENT tag, A-Z,
+ * and one group per topic.  Replaces the Astro site's `ComponentIndex` (build time) + `SearchText` (shared with the
+ * client).
  * - Rows:  `components` only;  the doc-only `<ui-docs-*>` tags (`docs`) are never listed.
- * - Topics:  in the data's order (`ValueSets.topics`:  newcomer topics first, Fomantic's groups last);  a tag sits under
- *   EACH of its topics;  a topic no tag uses is left out.
+ * - Topics:  in the data's order (`ValueSets.topics`:  newcomer topics first, Fomantic's groups last);
+ *   a tag sits under EACH of its topics;  a topic no tag uses is left out.
  * - Search:  blind to case, spacing, dashes and other punctuation (`date time` ~== `Date & Time` ~== `date-time`);
  *   matches a substring of the name, the tag, a topic (id or title) or another name (`aka`).
  * - Plain data, no Solid:  the element keeps the query in a signal and asks `matching()`.
@@ -46,7 +47,7 @@ export class NavIndex {
 
   /**
    * The page shown, by its own URL:  its file name without `.html`;  a folder (`/ui/`) is `index`.
-   * - What `current` defaults to, for the element and its fallback.
+   * - What `current` defaults to.
    */
   static page(): string {
     const file = location.pathname.slice(location.pathname.lastIndexOf("/") + 1)

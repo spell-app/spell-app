@@ -3,32 +3,38 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { dropdownVocabulary } from "./ui-dropdown.vocabulary.en"
-import { DropdownFallback } from "./ui-dropdown.fallback"
+import { dropdownVocabulary } from "./UIDropdown.vocabulary.en"
+import { DropdownFallback } from "./UIDropdown.fallback"
 import { SlottedItems } from "./SlottedItems"
-import type { Vocabulary } from "./ui-dropdown.types"
 
-import buttonCSS from "$/ui/components/ui-button/ui-button.css?inline"
-import dropdownCSS from "./ui-dropdown.css?inline"
+import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
+import dropdownCSS from "./UIDropdown.css?inline"
 
 /****************
- * ### `<ui-dropdown>`
- * A combobox + listbox:  a `<button>` (or, with `search`, an `<input>`) combobox and an anchor-positioned
- * popover menu, both in the shadow root.
- * - Model:  slotted `<ui-item>`s (`SlottedItems`) + the `options` property + additions, as `MenuOptions`;
- *   `@derived` members derive the visible list (exclude chosen, filter, additions) per keystroke.
- * - Invoker commands (`<button commandfor="id" command="--toggle">`, `ToggleCommands`) open / close the menu as a
- *   person's action;  a disabled or read-only dropdown ignores them.
- * - `value` and `open` are auto-controlled (`@controlled`):  events first, the host may veto / override.
- * - Menu rows render only while open (`<For>` keyed by option identity);  `aria-activedescendant` points at
- *   the highlighted row.  Escape and outside clicks come from `UI.overlays`.
- * - Form-associated:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
- * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with;  Fomantic's country names
- *   (`france`) are `<ui-flag>`'s alone, so a flag that isn't a code shows as its text.
- * - Static server render (`$/ui/static`):  the menu closed, its rows rendered (their text is in the page), the
- *   `<ui-item>`s dropped, and the value as hidden inputs, so a static form submits it;  choosing needs JS.
+ * ### `UIDropdown`
+ * The component behind `<ui-dropdown>`:  a combobox and its listbox, to choose one value or several.
+ *
+ * - Its shadow DOM:  a `<button>` combobox (with `search`, an `<input>`),
+ *   and an anchor-positioned popover menu.
+ *
+ * - Its options:  the slotted `<ui-item>`s (`SlottedItems`), then the `options` property, then additions,
+ *   as `MenuOptions`.  `@derived` members work out the visible list on each key
+ *   (leaving out chosen ones, filtering, adding the addition).
+ *
+ * - `value` and `open` are controlled (`@controlled`):  the events go first, and a handler may cancel or override.
+ * - Invoker commands (`<button commandfor="id" command="--toggle">`, `ToggleCommands`) open and close the menu,
+ *   as a person's action;  a disabled or read-only dropdown ignores them.
+ * - The menu's rows render only while it's open (`<For>`, keyed by option);
+ *   `aria-activedescendant` points at the highlighted row.  Escape and outside clicks come from `UI.overlays`.
+ * - A form control:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
+ * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with.
+ *   Fomantic's country names (`france`) are `<ui-flag>`'s alone, so a flag that isn't a code shows as its text.
+ *
+ * - In a static server render (`$/ui/static`):  the menu is closed, with its rows rendered (their text is in the
+ *   page), the `<ui-item>`s are dropped, and the value goes in hidden inputs, so a static form submits it.
+ *   Choosing needs script.
  ****************/
-export class UIDropdown extends F.FormElement<Vocabulary> {
+export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   /**
    * Rows PageUp / PageDown move.
    * - `@proto`:  a subclass or an instance may set its own.
@@ -43,7 +49,7 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
 
   @E.proto static vocabulary = dropdownVocabulary
   @E.proto static styleSheets = { button: buttonCSS, dropdown: dropdownCSS }
-  @E.proto static elementSetup = { Fallback: DropdownFallback }
+  @E.proto static elementSetup = { Fallback: DropdownFallback } satisfies Partial<E.ElementSetup>
 
   /** Default:  10 rows. */
   @E.proto static pageSize = 10
@@ -51,8 +57,8 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
   /** Default:  500 ms. */
   @E.proto static typeAheadDelay = 500
 
-  /** Listens for invoker commands aimed at the host, until it's released. */
-  constructor(...args: ConstructorParameters<typeof F.FormElement>) {
+  /** Listens for invoker commands aimed at the DOM element, until it's released. */
+  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
     this.on("command", this.onCommand)
   }
@@ -62,10 +68,10 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
   ////////////////
 
   /** Options from slotted `<ui-item>`s. */
-  readonly items = new SlottedItems(this.host)
+  readonly items = new SlottedItems(this.domElement)
 
-  /** Light-DOM slot occupancy (`icon`, `trigger`, `header`). */
-  readonly slots = new E.SlotContent(this.host)
+  /** Which slots have light-DOM children (`icon`, `trigger`, `header`). */
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** Values added with `allow-additions`, as options. */
   @E.state accessor addedOptions: readonly E.MenuOption[] = []
@@ -95,12 +101,12 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
   // ## Value
   ////////////////
 
-  /** `value`:  host-controlled, or internal;  starts from `selected` items (so below `items`). */
+  /** `value`:  set by the page, or chosen;  starts from the `selected` items (so it's below `items`). */
   @E.controlled("value")
   accessor value = this.selectedItemValues()
 
-  /** Host value to restore on form reset (`undefined`:  back to the `selected` items). */
-  private readonly initialValue = this.isHostControlled("value") ? untrack(() => this.value) : undefined
+  /** The page's value to restore on a form reset (`undefined`:  back to the `selected` items). */
+  private readonly initialValue = this.isPageControlled("value") ? untrack(() => this.value) : undefined
 
   /** Chosen values, always as an array;  the same list while equal. */
   @E.derived({ equals: E.isSameList })
@@ -299,7 +305,7 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
   protected onHighlightChanged(isOpen: boolean, option: E.MenuOption | undefined) {
     // `menu`:  rendered, so `idFor()` has the menu's id to build on
     if (!isOpen || !option || !this.menu) return
-    this.host.renderRoot.getElementById(this.idFor(option))?.scrollIntoView({ block: "nearest" })
+    this.domElement.renderRoot.getElementById(this.idFor(option))?.scrollIntoView({ block: "nearest" })
   }
 
   /** Stable DOM id of `option`'s row, made on first ask. */
@@ -316,14 +322,14 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
   // ## Open
   ////////////////
 
-  /** `open`:  host-controlled, or internal;  `:state(open)`. */
+  /** `open`:  set by the page, or opened and closed by a person;  `:state(open)`. */
   @E.cssState("open")
   @E.controlled("open")
   accessor isOpen = false
 
   /** This element's `UI.overlays` entry. */
   private readonly overlay: E.OverlayEntry = {
-    element: this.host,
+    element: this.domElement,
     kind: "popover",
     restoreFocus: false,
     onDismiss: () => void this.requestOpen(false)
@@ -389,7 +395,7 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
     return this.fluid
   }
 
-  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
+  protected classValue(name: E.AttributeName<typeof dropdownVocabulary>): unknown {
     if (name === "open") return this.isOpen
     if (name === "disabled") return this.isDisabled
     return super.classValue(name)
@@ -707,7 +713,8 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
   ////////////////
 
   /**
-   * An invoker command aimed at the host (`ToggleCommands`):  a person's action, ignored when disabled / read-only.
+   * An invoker command aimed at the DOM element (`ToggleCommands`):  a person's action,
+   * ignored when disabled or read-only.
    * - Opening focuses the combobox, as opening it by keyboard leaves it (the keys need it).
    */
   private readonly onCommand = (event: Event) => {
@@ -762,10 +769,10 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
    */
   private readonly onBlur = (event: FocusEvent) => {
     const next = event.relatedTarget as Node | null
-    if (next && (this.host.contains(next) || this.host.renderRoot.contains(next))) return
-    const id = this.host.id
+    if (next && (this.domElement.contains(next) || this.domElement.renderRoot.contains(next))) return
+    const id = this.domElement.id
     if (id && (next as Element | null)?.closest?.(`[commandfor="${CSS.escape(id)}"]`)) return
-    if (this.isReady && UI.overlays.pressedInvokerOf(this.host)) return
+    if (this.isReady && UI.overlays.pressedInvokerOf(this.domElement)) return
     this.requestOpen(false, event)
   }
 
@@ -874,10 +881,10 @@ export class UIDropdown extends F.FormElement<Vocabulary> {
 }
 
 /**
- * The vocabulary getters, typed (`UIElement`'s doc).
+ * The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`).
  * - Minus `value`:  the `@controlled` member of that name wins over its getter, and holds a `string[]` too.
  */
-export interface UIDropdown extends Omit<E.AttributeValues<Vocabulary>, "value"> {}
+export interface UIDropdown extends Omit<E.AttributeValues<typeof dropdownVocabulary>, "value"> {}
 
 ////////////////
 // ## Constants
@@ -905,7 +912,7 @@ const OPTION_ROLE = "option"
 const PRESENTATION_ROLE = "presentation"
 
 /**
- * Class words of the markup contract (`ui-dropdown.css`) -- grammar, not attributes, so not in the vocabulary.
+ * Class words of the markup contract (`UIDropdown.css`) -- grammar, not attributes, so not in the vocabulary.
  * - NOTE: `active` === chosen, `selected` === highlighted:  Fomantic's meanings.
  */
 const DEFAULT = "default"

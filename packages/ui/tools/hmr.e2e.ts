@@ -7,12 +7,12 @@
  * - Scenarios, in order (the full reloads last):
  *   1. component code (`UIButton.tsx`):  every `<ui-button>` AND `<ie-boton>` re-renders in place
  *   2. component code (`UIDropdown.tsx`):  the dropdown keeps its `options` / `value` PROPERTIES
- *   3. component CSS (`ui-button.css`):  new rules apply, shadow DOM nodes keep their identity (no re-render)
+ *   3. component CSS (`UIButton.css`):  new rules apply, shadow DOM nodes keep their identity (no re-render)
  *   4. vocabulary, same attributes (the `or` text):  hot, new text shown
  *   5. a render that throws:  fallback + `:state(errored)`, other elements unaffected;  the fix recovers
  *   6. a syntax error:  the page keeps the old code;  the fix recovers
  *   7. vocabulary, NEW attribute:  "observed attributes changed, full reload"
- *   8. shared code (`UIElement.tsx`):  full reload
+ *   8. shared code (`UIComponent.tsx`):  full reload
  * - A reload is detected by a window marker the test sets:  gone => the page reloaded.
  * - EVERY edited file is restored after its scenario and again in `after()`, then checked with `git diff --quiet`
  *   (`SourceFiles`).
@@ -61,8 +61,8 @@ void describe("hot module replacement (Vite dev, tools/demo/hmr.html)", () => {
     assert.deepEqual(after.same, { button: true, boton: true, dropdown: true, segment: true, or: true })
     assert.deepEqual(after.probes, { button: "probe", boton: "probe", grouped: ["probe", "probe"] })
     assert.equal(after.buttonInnerSame, false, "the button re-rendered")
-    assert.equal(after.controllerSame, false, "with a new controller")
-    // host attributes and properties survive;  the new render uses them
+    assert.equal(after.componentSame, false, "with a new component")
+    // the DOM element's attributes and properties survive;  the new render uses them
     assert.deepEqual(after.button, before.button)
     assert.equal(after.buttonSize, "large")
     assert.ok(after.buttonClasses.includes("large") && after.buttonClasses.includes("red"), after.buttonClasses)
@@ -98,7 +98,7 @@ void describe("hot module replacement (Vite dev, tools/demo/hmr.html)", () => {
     const after = await hmr.snapshot()
     assert.equal(after.marker, true, "no reload")
     assert.equal(after.buttonInnerSame, true, "same shadow DOM nodes")
-    assert.equal(after.controllerSame, true, "same controller")
+    assert.equal(after.componentSame, true, "same component")
     assert.deepEqual(after.cssProbe, { button: "7", boton: "7" })
 
     await hmr.update(() => sources.restore(FILES.css))
@@ -123,7 +123,7 @@ void describe("hot module replacement (Vite dev, tools/demo/hmr.html)", () => {
       sources.edit(
         FILES.button,
         renderStart,
-        `  render(): JSX.Element {\n    if (this.host) throw new Error("hmr boom")\n`
+        `  render(): JSX.Element {\n    if (this.domElement) throw new Error("hmr boom")\n`
       )
     )
     const broken = await hmr.snapshot()
@@ -144,7 +144,7 @@ void describe("hot module replacement (Vite dev, tools/demo/hmr.html)", () => {
     assert.deepEqual(fixed.errored, { button: false, boton: false })
     assert.deepEqual(fixed.same, { button: true, boton: true, dropdown: true, segment: true, or: true })
     assert.ok(fixed.buttonClasses.includes("large") && fixed.buttonClasses.includes("red"), fixed.buttonClasses)
-    assert.equal(fixed.hasController, true)
+    assert.equal(fixed.hasComponent, true)
   })
 
   void it("6. a syntax error:  the page keeps the old code;  the fix recovers", async () => {
@@ -179,7 +179,7 @@ void describe("hot module replacement (Vite dev, tools/demo/hmr.html)", () => {
     assert.equal(await hmr.reload(() => sources.restore(FILES.vocabulary)), true, "and back")
   })
 
-  void it("8. shared code (`UIElement.tsx`):  full reload", async () => {
+  void it("8. shared code (`UIComponent.tsx`):  full reload", async () => {
     assert.equal(await hmr.reload(() => sources.edit(FILES.shared, /$/, "\n// hmr probe\n")), true)
     assert.equal(await hmr.reload(() => sources.restore(FILES.shared)), true, "and back")
   })
@@ -191,7 +191,7 @@ void describe("hot module replacement (Vite dev, tools/demo/hmr.html)", () => {
  * from it.
  * - Every in-page function is self-contained:  Playwright serializes it into the page.
  * - `globalThis` in the page:  `hmr` (counters, `tools/demo/hmr.ts`), and this test's own `marker`, `refs` (the
- *   elements) and `nodes` (their shadow nodes and controller, for identity checks).
+ *   elements) and `nodes` (their shadow nodes and component, for identity checks).
  ****************/
 class HmrPage {
   /** Every console message of the page, in order. */
@@ -316,8 +316,8 @@ class HmrPage {
         buttonClasses: buttonInner?.className ?? "",
         botonClasses: inner(byId("boton"))?.className ?? "",
         buttonInnerSame: buttonInner === nodes.buttonInner,
-        controllerSame: byId("button").controller === nodes.controller,
-        hasController: !!byId("button").controller,
+        componentSame: byId("button").component === nodes.component,
+        hasComponent: !!byId("button").component,
         segmentInnerSame: byId("segment").shadowRoot.firstElementChild === nodes.segmentInner,
         dropdownInnerSame: dropdownRoot === nodes.dropdownInner,
         dropdownProbe: dropdownRoot?.getAttribute("data-hmr") ?? null,
@@ -383,7 +383,7 @@ class HmrPage {
     await this.capture()
   }
 
-  /** Remember the current shadow nodes and controller, so the next `snapshot()` can tell a re-render. */
+  /** Remember the current shadow nodes and component, so the next `snapshot()` can tell a re-render. */
   private async capture() {
     await this.page.evaluate(() => {
       const page = globalThis as any
@@ -392,7 +392,7 @@ class HmrPage {
         buttonInner: refs.button.shadowRoot.querySelector("[part~=button]"),
         segmentInner: refs.segment.shadowRoot.firstElementChild,
         dropdownInner: refs.dropdown.shadowRoot.firstElementChild,
-        controller: refs.button.controller
+        component: refs.button.component
       }
     })
   }
@@ -468,10 +468,10 @@ const ROOT = fileURLToPath(new URL("../", import.meta.url))
 const FILES = {
   button: `${ROOT}src/components/ui-button/UIButton.tsx`,
   dropdown: `${ROOT}src/components/ui-dropdown/UIDropdown.tsx`,
-  css: `${ROOT}src/components/ui-button/ui-button.css`,
-  vocabulary: `${ROOT}src/components/ui-button/ui-button.vocabulary.en.ts`,
-  orVocabulary: `${ROOT}src/components/ui-button/ui-or.vocabulary.en.ts`,
-  shared: `${ROOT}src/elements/UIElement.tsx`
+  css: `${ROOT}src/components/ui-button/UIButton.css`,
+  vocabulary: `${ROOT}src/components/ui-button/UIButton.vocabulary.en.ts`,
+  orVocabulary: `${ROOT}src/components/ui-button/UIOr.vocabulary.en.ts`,
+  shared: `${ROOT}src/elements/UIComponent.tsx`
 } as const
 
 /** Preferred dev server port (the next free one is taken if busy). */

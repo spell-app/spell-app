@@ -2,47 +2,73 @@ import { Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { embedVocabulary } from "./ui-embed.vocabulary.en"
-import { EmbedFallback } from "./ui-embed.fallback"
+import { embedVocabulary } from "./UIEmbed.vocabulary.en"
 import { EmbedSources } from "./EmbedSources"
-import { UIEmbedHost } from "./UIEmbedHost"
-import {
-  ALLOW,
-  FRAME_CLASS,
-  PLACEHOLDER_CLASS,
-  PLAY_CLASS,
-  REFERRER_POLICY,
-  type EmbedParameters,
-  type Vocabulary
-} from "./ui-embed.types"
+import type { EmbedParameters } from "./UIEmbed.types"
 
-import embedCSS from "./ui-embed.css?inline"
+import embedCSS from "./UIEmbed.css?inline"
 
 /****************
- * ### `<ui-embed>`
- * An embed:  `<div class="ui ... embed" part="embed">` holding a play `<button>` (the `placeholder` image, the icon,
- * the slot) until activated, then `<div class="embed" part="frame">` around the `<iframe>`.
- * - Privacy:  NOTHING third-party loads before activation -- no frame, no player script, not even a preconnect;
- *   only the page's own placeholder image.  (Fomantic loaded the frame at once when there was no placeholder.)
- * - Activation:  a click, Enter or Space on the button (a native `<button>`), or `host.activate()`:  the cancelable
- *   `ui-activate` (with the frame's `url`), then `active` -- and focus moves into the frame, so someone on the
- *   keyboard carries on in the player.  Writing `active` loads / unloads without an event;  `host.reset()` unloads
- *   with `ui-reset`.
- * - URL:  `EmbedSources` -- `source` + `video-id`, or `url`;  `http(s)` only;  `autoplay` (default on:  the click
- *   asked for it), `branded-ui` and `parameters` become player parameters.
- * - Names:  the button is `Play {label}`, the frame's `title` is `label` (`label`, else `alt`, else `video` /
- *   `embedded content`), all translated texts.
+ * ### `DOMEmbedElement`
+ * The DOM element of `<ui-embed>`:
+ * it adds the embed's script API, `activate()` and `reset()`, which its component does.
+ *
+ * - NOTE: solid-element checks the DOM element's prototype members against the prop names;
+ *   neither `activate` nor `reset` is one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIEmbed extends E.UIElement<Vocabulary> {
+export class DOMEmbedElement extends E.DOMElement {
+  /**
+   * Load the frame as the play button would (the cancelable `ui-activate` first);
+   * true when it loads (Fomantic's `show`).
+   */
+  activate(): boolean {
+    return this.embed?.activate() ?? false
+  }
+
+  /** Back to the placeholder, with `ui-reset` (Fomantic's `reset`). */
+  reset() {
+    this.embed?.reset()
+  }
+
+  /** Its component. */
+  private get embed(): UIEmbed | undefined {
+    return this.component as UIEmbed | undefined
+  }
+}
+
+/****************
+ * ### `UIEmbed`
+ * The component behind `<ui-embed>`:  a video or other page from another site, loaded only when asked for.
+ * `<div class="ui … embed" part="embed">` holding a play `<button>` (the `placeholder` image, the icon, the slot)
+ * until activated, then `<div class="embed" part="frame">` around the `<iframe>`.
+ *
+ * - Privacy:  NOTHING third-party loads before activation (no frame, no player script, not even a preconnect),
+ *   only the page's own placeholder image.  (Fomantic loaded the frame at once when there was no placeholder.)
+ *
+ * - Activation:  a click, Enter or Space on the button (a native `<button>`), or `domElement.activate()`.
+ *   - The cancelable `ui-activate` (with the frame's `url`) comes first, then `active`.
+ *   - Focus moves into the frame, so someone on the keyboard carries on in the player.
+ *   - Writing `active` loads / unloads without an event;  `domElement.reset()` unloads, with `ui-reset`.
+ *
+ * - Its URL comes from `EmbedSources`:  `source` + `video-id`, or `url`;  `http(s)` only.
+ *   `autoplay` (on by default:  the click asked for it), `branded-ui` and `parameters` become player parameters.
+ *
+ * - Names:  the button is `Play {label}`, the frame's `title` is `label`
+ *   (`label`, else `alt`, else `video` / `embedded content`), all translated texts.
+ ****************/
+export class UIEmbed extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = embedVocabulary
   @E.proto static styleSheets = { embed: embedCSS }
-  @E.proto static elementSetup = { Fallback: EmbedFallback, Host: UIEmbedHost }
+  @E.proto static elementSetup = { DOMElement: DOMEmbedElement } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Active
   ////////////////
 
-  /** Is the frame loaded?  `active`:  host-controlled, or internal;  `:state(active)`. */
+  /**
+   * Is the frame loaded?  `active`:  the DOM element's `active` property when set, else kept here;  `:state(active)`.
+   */
   @E.cssState("active")
   @E.controlled("active")
   accessor isActive = false
@@ -179,5 +205,23 @@ export class UIEmbed extends E.UIElement<Vocabulary> {
     })
   }
 }
-/** The vocabulary getters, typed. */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIEmbed extends E.AttributeValues<Vocabulary> {}
+
+/** The vocabulary type, for brevity. */
+type Vocabulary = typeof embedVocabulary
+
+/** The class word of the play button (`UIEmbed.css`):  grammar, not an attribute, so not in the vocabulary. */
+const PLAY_CLASS = "play"
+
+/** The class word of the placeholder image, as `PLAY_CLASS`. */
+const PLACEHOLDER_CLASS = "placeholder"
+
+/** The class word of the box around the frame, as `PLAY_CLASS`. */
+const FRAME_CLASS = "embed"
+
+/** What the frame may use (players ask for these). */
+const ALLOW = "accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
+
+/** The referrer the frame gets:  YouTube's player needs the origin. */
+const REFERRER_POLICY = "strict-origin-when-cross-origin"

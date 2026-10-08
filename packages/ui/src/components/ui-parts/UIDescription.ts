@@ -1,16 +1,16 @@
 import { E } from "$/ui/core"
-import { PartElement } from "./PartElement"
-import { descriptionVocabulary } from "./ui-description.vocabulary.en"
+import { descriptionVocabulary } from "./UIDescription.vocabulary.en"
 
 /****************
- * ### `<ui-description>`
- * Descriptive text:  `<div class="description">`.
- * - Card / item / modal / list / step / search text, a comment's text.
- * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
+ * ### `UIDescription`
+ * The component behind `<ui-description>`:  descriptive text, `<div class="description">`.
+ *
+ * - A card's, item's, modal's, list's, step's or search result's text;  a comment's text.
+ * - Finding its owner, the markup and the sheet all come from `PartComponent`.
  ****************/
-export class UIDescription extends PartElement<typeof descriptionVocabulary> {
+export class UIDescription extends E.PartComponent<typeof descriptionVocabulary> {
   @E.proto static vocabulary = descriptionVocabulary
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIDescription extends E.AttributeValues<typeof descriptionVocabulary> {}

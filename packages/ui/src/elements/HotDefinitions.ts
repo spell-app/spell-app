@@ -2,13 +2,13 @@ import { E, UI } from "$/ui/core"
 
 /****************
  * ### `HotDefinitions`
- * Dev-only glue between Vite's hot module replacement and `UIElement.define()`;  NEVER in a build.
+ * Dev-only glue between Vite's hot module replacement and `UIComponent.define()`;  NEVER in a build.
  * - Loaded by `@spell-app/solid-element/vite` (the `setup` option, `vite.config.ts`) into every component barrel,
- *   before its `define()` calls run.  SIDE EFFECT:  `install()` wraps `UIElement.define`.
+ *   before its `define()` calls run.  SIDE EFFECT:  `install()` wraps `UIComponent.define`.
  * - Why:  `define()` is idempotent per tag, so a barrel re-run by HMR would return the OLD element class.  The
  *   wrapper records every tag's class and dictionary;  when a DIFFERENT class of the SAME name defines a known
  *   tag -- its module was re-evaluated -- that class takes over EVERY tag the old one had, the translated
- *   aliases (`ie-boton`) included, through `UIElement.defineTag()`.  The fork swaps each definition in place;
+ *   aliases (`ie-boton`) included, through `UIComponent.defineTag()`.  solid-element swaps each definition in place;
  *   the barrel's `import.meta.hot.accept()` (`hotUpdate()`) then re-renders the live instances.
  * - Also:  English texts the edit changed reach `UI.i18n` (`define()` never overwrites a registered text), and
  *   `updateStyle()` re-registers a component sheet whose `?inline` CSS changed.
@@ -19,17 +19,17 @@ import { E, UI } from "$/ui/core"
  * - STATIC and instance-free on purpose:  ONE record of definitions per page, as `customElements` is.
  ****************/
 export class HotDefinitions {
-  /** Wrap `UIElement.define`;  idempotent. */
+  /** Wrap `UIComponent.define`;  idempotent. */
   static install() {
     if (HotDefinitions.original) return
-    HotDefinitions.original = E.UIElement.define
-    E.UIElement.define = function (this: E.UIElementClass, tag?: string, dictionary?: E.Dictionary) {
+    HotDefinitions.original = E.UIComponent.define
+    E.UIComponent.define = function (this: E.UIComponentClass, tag?: string, dictionary?: E.Dictionary) {
       return HotDefinitions.define(this, tag, dictionary)
     }
   }
 
   /** The wrapped `define()`:  record, re-define on a new version of a class, else as declared. */
-  static define(Class: E.UIElementClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
+  static define(Class: E.UIComponentClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
     const original = HotDefinitions.original!
     const resolved = new E.ElementDefinition(Class.prototype.vocabulary, { tag, dictionary }).tag
     const known = HotDefinitions.tags.get(resolved)
@@ -46,10 +46,10 @@ export class HotDefinitions {
 
   /**
    * `Next` is a new version of `Previous`:  re-define every tag `Previous` had with it.
-   * - The fork swaps each class's component, props and options (or records why it can't:  `hotUpdate()` then
+   * - solid-element swaps each class's component, props and options (or records why it can't:  `hotUpdate()` then
    *   reloads the page).
    */
-  static replace(Previous: E.UIElementClass, Next: E.UIElementClass) {
+  static replace(Previous: E.UIComponentClass, Next: E.UIComponentClass) {
     const before = Previous.prototype.vocabulary
     const after = Next.prototype.vocabulary
     if (before !== after) {
@@ -64,21 +64,25 @@ export class HotDefinitions {
       if (known.Class !== Previous) continue
       known.Class = Next
       const definition = new E.ElementDefinition(Next.prototype.vocabulary, known)
-      E.UIElement.defineTag.call(Next, definition)
+      E.UIComponent.defineTag.call(Next, definition)
     }
   }
 
   /**
-   * A component sheet's `?inline` CSS changed:  re-register it by name (`ui-button.css` => `button`).
-   * - The name drops the family folder's `ui-` prefix:  elements register their sheets by bare name
-   *   (`@proto static styleSheets = { button: buttonCSS }`).
+   * A component sheet's `?inline` CSS changed:  re-register it by name (`UIButton.css` => `button`).
+   * - The name is the file's, without `UI`, in kebab-case (`UITreeDiagram.css` => `tree-diagram`):
+   *   elements register their sheets by that bare name (`@proto static styleSheets = { button: buttonCSS }`).
+   * - A second sheet (`UIDimmer.page.css`) or a sheet registered under another name isn't matched:
+   *   an edit to it shows after a page reload.
    * - `Styles.register()` replaces the rules of the sheet every shadow root already adopted:  no re-render.
    * - Registered even if no element used it yet, so a later `adoptStyles()` finds the new text (it only
    *   registers names that are missing).
    */
   static updateStyle(this: void, id: string, css: string) {
-    const name = /(?:^|\/)(?:ui-)?([\w-]+)\.css(?:\?|$)/.exec(id)?.[1]
-    if (name) HotDefinitions.whenRuntime(() => UI.styles.register(name, css))
+    const stem = /(?:^|\/)UI([A-Za-z0-9]+)\.css(?:\?|$)/.exec(id)?.[1]
+    if (!stem) return
+    const name = stem.replace(/(?<=.)([A-Z])/g, "-$1").toLowerCase()
+    HotDefinitions.whenRuntime(() => UI.styles.register(name, css))
   }
 
   /**
@@ -108,14 +112,14 @@ export class HotDefinitions {
   /** Every tag defined so far, with what defined it;  by resolved tag. */
   private static readonly tags = new Map<string, HotTag>()
 
-  /** `UIElement.define` as declared, once `install()` has run. */
-  private static original?: typeof E.UIElement.define
+  /** `UIComponent.define` as declared, once `install()` has run. */
+  private static original?: typeof E.UIComponent.define
 }
 
 /** What defined one tag:  enough to define it again with a new version of the class. */
 type HotTag = {
   /** Current class. */
-  Class: E.UIElementClass
+  Class: E.UIComponentClass
   /** `define()`'s `tag` argument, as passed. */
   tag?: string
   /** `define()`'s `dictionary` argument. */

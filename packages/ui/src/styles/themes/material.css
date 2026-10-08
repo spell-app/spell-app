@@ -233,7 +233,7 @@
   /*
    * ## Modal:  no rules between header, content and actions;  roomy regular-weight header
    * (`modal.variables` / `.overrides`).  Each rule twice:  the shorthand / static box, and a slotted part
-   * (`<ui-header>` / `<ui-actions>` in a modal, `ui-parts.css`'s `in-modal` rules).
+   * (`<ui-header>` / `<ui-actions>` in a modal, `UIParts.css`'s `in-modal` rules).
    */
   .ui.modal > .header,
   :host(:state(in-modal)) > .header,

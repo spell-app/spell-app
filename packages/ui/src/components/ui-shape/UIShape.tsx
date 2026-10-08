@@ -2,36 +2,76 @@ import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { ShapeHost } from "./ShapeHost"
-import { ShapeFallback } from "./ui-shape.fallback"
-import { POLITE, SIDE, SIDES, type ShapeVocabulary } from "./ui-shape.types"
-import { shapeVocabulary } from "./ui-shape.vocabulary.en"
+import { SIDE, SIDES, type ShapeVocabulary } from "./UIShape.types"
+import { shapeVocabulary } from "./UIShape.vocabulary.en"
 
-import shapeCSS from "./ui-shape.css?inline"
+import shapeCSS from "./UIShape.css?inline"
 
 /****************
- * ### `<ui-shape>`
- * Fomantic's shape:  one of its `<ui-side>`s at a time, turning in 3D to another --
- * `<div class="ui ... shape [animating]" part="shape"><div class="sides" part="sides"><slot>`.
- * - `activeIndex` is the side shown;  changing it (or the host's `flip()` / `next()` / `previous()`,
- *   `ShapeHost`, or an invoker command, `UIT.ShapeCommands`) turns the `direction` way (`up`, `down`, `left`,
- *   `right`, `over`, `back`), then fires `ui-change`.  Flips queue;  a flip to the side already shown does nothing.
- * - The flip is Fomantic's own geometry (`shape.js`):  the stage keeps its size, the next side is staged at 90° (or
- *   180°) around the current one, and the sides box turns with a CSS transition;  inline styles are cleared after.
- * - SIDE EFFECTS on the sides (this family's own hosts):  custom states (`active`, `inactive`, `animating`,
+ * ### `DOMShapeElement`
+ * The DOM element of `<ui-shape>`:
+ * it adds Fomantic's `.shape('flip up')` / `'set next side'` as METHODS, `flip()`, `next()` and `previous()`.
+ *
+ * - Each resolves once its flip has run:  `true` when it showed another side,
+ *   `false` when there was none to show (or the element hasn't drawn yet).  Flips queue, as Fomantic's do.
+ * - Each writes `activeIndex` (so it reflects, and frameworks see it);
+ *   writing `activeIndex` yourself flips too, the `direction` attribute's way.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
+ ****************/
+export class DOMShapeElement extends E.DOMElement {
+  /** Turn `direction` (default the `direction` attribute) to side `index` (default the next one, wrapping). */
+  flip(direction?: UIT.ShapeFlip, index?: number): Promise<boolean> {
+    return this.shape?.flipTo(direction, index) ?? Promise.resolve(false)
+  }
+
+  /** Turn to the next side (wrapping), the `direction` attribute's way. */
+  next(): Promise<boolean> {
+    return this.flip()
+  }
+
+  /** Turn to the previous side (wrapping), the `direction` attribute's way. */
+  previous(): Promise<boolean> {
+    return this.shape?.flipBy(-1) ?? Promise.resolve(false)
+  }
+
+  /** Its component, once drawn. */
+  private get shape(): UIShape | undefined {
+    return this.component as UIShape | undefined
+  }
+}
+
+/****************
+ * ### `UIShape`
+ * The component behind `<ui-shape>`:  Fomantic's shape, one of its `<ui-side>`s at a time, turning in 3D to another.
+ * `<div class="ui … shape [animating]" part="shape"><div class="sides" part="sides"><slot>`.
+ *
+ * - `activeIndex` is the side shown.  Changing it turns the `direction` way
+ *   (`up`, `down`, `left`, `right`, `over`, `back`), then fires `ui-change`;
+ *   so do the DOM element's `flip()` / `next()` / `previous()` (`DOMShapeElement`)
+ *   and invoker commands (`UIT.ShapeCommands`).
+ *   Flips queue;  a flip to the side already shown does nothing.
+ *
+ * - The flip is Fomantic's own geometry (`shape.js`):  the stage keeps its size,
+ *   the next side is staged at 90° (or 180°) around the current one, and the sides box turns with a CSS transition.
+ *   The inline styles are cleared after.
+ *
+ * - SIDE EFFECTS on the sides (this family's own DOM elements):  custom states (`active`, `inactive`, `animating`,
  *   `leaving`) and, during a flip, inline `transform` / `top` / `left`.
  * - Reduced motion:  an instant swap, `ui-change` all the same.
- * - Accessibility:  hidden sides are `display: none`;  the sides box is a polite live region, so the new side is
- *   read out after a flip (Fomantic's had no ARIA).
+ * - Accessibility:  hidden sides are `display: none`;
+ *   the sides box is a polite live region, so the new side is read out after a flip (Fomantic's had no ARIA).
  ****************/
-export class UIShape extends E.UIElement<ShapeVocabulary> {
+export class UIShape extends E.UIComponent<ShapeVocabulary> {
   @E.proto static vocabulary = shapeVocabulary
   @E.proto static styleSheets = { shape: shapeCSS }
-  @E.proto static elementSetup = { Fallback: ShapeFallback, Host: ShapeHost, delegatesFocus: false }
+  @E.proto static elementSetup = {
+    DOMElement: DOMShapeElement,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.on("slotchange", this.onSlotChange, { target: this.host.renderRoot })
+    this.on("slotchange", this.onSlotChange, { target: this.domElement.renderRoot })
     this.on("command", this.onCommand)
   }
 
@@ -40,7 +80,7 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
   ////////////////
 
   /** The side elements, in order. */
-  @E.state accessor sides: E.UIHost[] = this.findSides()
+  @E.state accessor sides: E.DOMElement[] = this.findSides()
 
   /**
    * Has had sides;  until then `shownIndex` is only a guess.
@@ -54,17 +94,17 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
   /**
    * The sides changed:  start at `activeIndex` the first time, then show the current side, hide the rest.
    * - Once `isReady` (the sheets are in and the stage is drawn), as when this lived in `render()`.
-   * - Writes the host's sides:  a static render (`$/ui/static`) marks them once, before they render.
+   * - Writes the DOM element's sides:  a static render (`$/ui/static`) marks them once, before they render.
    */
-  @E.onChange("isReady", "sides", { writesHost: true })
-  protected onSidesChanged(isReady: boolean, sides: E.UIHost[]) {
+  @E.onChange("isReady", "sides", { writesDOMElement: true })
+  protected onSidesChanged(isReady: boolean, sides: E.DOMElement[]) {
     if (!isReady) return
     this.firstSides(sides)
     this.mark(sides)
   }
 
   /** The first sides found after none (upgrade order, or content added later):  start at `activeIndex`, not 0. */
-  private firstSides(sides: readonly E.UIHost[]) {
+  private firstSides(sides: readonly E.DOMElement[]) {
     if (this.hasHadSides || !sides.length) return
     this.hasHadSides = true
     this.shownIndex = this.queuedIndex = this.normalize(
@@ -74,7 +114,7 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
   }
 
   /** Show the current side;  hide the rest. */
-  private mark(sides: readonly E.UIHost[]) {
+  private mark(sides: readonly E.DOMElement[]) {
     sides.forEach((side, index) => {
       side.setState(UIT.ACTIVE, index === this.shownIndex)
       side.setState(INACTIVE, index !== this.shownIndex)
@@ -82,22 +122,22 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
   }
 
   /** Child elements whose definition's noun is `side` (a `<ui-side>`, or a translated one). */
-  private findSides(): E.UIHost[] {
-    return [...this.host.children].filter(
-      (child): child is E.UIHost => E.UIElement.definitions.get(child.localName)?.vocabulary.noun === SIDE
+  private findSides(): E.DOMElement[] {
+    return [...this.domElement.children].filter(
+      (child): child is E.DOMElement => E.UIComponent.definitions.get(child.localName)?.vocabulary.noun === SIDE
     )
   }
 
   ////////////////
-  // ## The side shown (API through `ShapeHost`)
+  // ## The side shown (API through `DOMShapeElement`)
   ////////////////
 
-  /** `activeIndex`:  always the host's (a number with a default). */
+  /** `activeIndex`:  always the DOM element's property (a number with a default). */
   @E.controlled("active-index") accessor activeSideIndex = 0
 
   /**
-   * Index of the side shown now:  NOT a mirror of `activeSideIndex`, it follows the queue (it lags while a flip
-   * runs).
+   * Index of the side shown now:
+   * NOT a mirror of `activeSideIndex`, it follows the queue (it lags while a flip runs).
    */
   private shownIndex = untrack(() => this.normalize(this.activeSideIndex, this.sides.length))
 
@@ -108,7 +148,8 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
   private flipQueue: Promise<unknown> = Promise.resolve()
 
   /**
-   * `activeIndex` changed (the host's own write, or `flipTo()`'s):  flip there, unless the queue is heading there.
+   * `activeIndex` changed (the DOM element's own write, or `flipTo()`'s):  flip there,
+   * unless the queue is heading there.
    * - Once `isReady`, as when this lived in `render()`:  a change before the sheets load flips (animated) once the
    *   stage is drawn, instead of swapping at once.
    */
@@ -134,7 +175,9 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
     return this.flipTo(undefined, this.queuedIndex + step)
   }
 
-  /** An invoker command aimed at the host (`UIT.ShapeCommands`):  `--next`, `--previous`, `--flip-<direction>`. */
+  /**
+   * An invoker command aimed at the DOM element (`UIT.ShapeCommands`):  `--next`, `--previous`, `--flip-<direction>`.
+   */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
     if (command === UIT.ShapeCommands.next) void this.flipBy(1)
@@ -188,7 +231,7 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
     const next = sides[index]
     if (!next || index === this.shownIndex) return false
     const { stage, box } = this
-    const isInstant = !active || !stage || !box || !this.host.isConnected || UI.browser.isReducedMotion
+    const isInstant = !active || !stage || !box || !this.domElement.isConnected || UI.browser.isReducedMotion
     // `offsetParent` is the platform's:  `null` while hidden
     if (!isInstant && stage.offsetParent !== null) await this.animate({ direction, stage, box, active, next })
     this.shownIndex = index
@@ -287,9 +330,9 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
   }
 
   /**
-   * A `text` shape in a server render (`$/ui/static`):  its static output is PHRASING content (`<span>`s, as the
-   * class grammar's), since the host it replaces sits in running text -- a `<div>` would close an open `<p>` when a
-   * browser parses the page.  Its sides follow (`UISide`).
+   * A `text` shape in a server render (`$/ui/static`):  its static output is PHRASING content (`<span>`s,
+   * as the class grammar's), since the DOM element it replaces sits in running text --
+   * a `<div>` would close an open `<p>` when a browser parses the page.  Its sides follow (`UISide`).
    */
   get rendersInlineOnServer(): boolean {
     return isServer && untrack(() => !!this.text)
@@ -367,7 +410,7 @@ export class UIShape extends E.UIElement<ShapeVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIShape extends E.AttributeValues<ShapeVocabulary> {}
 
 /** What one animated flip works on. */
@@ -379,9 +422,9 @@ type FlipParams = {
   /** the turning box of sides */
   box: HTMLElement
   /** the side shown now */
-  active: E.UIHost
+  active: E.DOMElement
   /** the side turning in */
-  next: E.UIHost
+  next: E.DOMElement
 }
 
 /** A margin box, in px. */
@@ -407,3 +450,6 @@ const STAGED = ["transform", "top", "left"] as const
 
 /** ms added to the transition before giving up on `transitionend`. */
 const FAIL_SAFE = 100
+
+/** The live-region politeness of the sides box:  the new side is read out after a flip. */
+const POLITE = "polite"

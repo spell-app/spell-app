@@ -2,45 +2,50 @@ import { Show } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { LabelFallback } from "./ui-label.fallback"
-import { DETAIL } from "./ui-label.types"
-import { labelVocabulary } from "./ui-label.vocabulary.en"
+import { labelVocabulary } from "./UILabel.vocabulary.en"
 
-import labelCSS from "./ui-label.css?inline"
-import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
+import labelCSS from "./UILabel.css?inline"
+import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
 
 /****************
- * ### `<ui-label>`
- * A label:  `<span class="ui … label" part="label">` (`<a>` with `href`) holding, in order, the `image` `<img>`,
- * the icon box, the default slot, the `detail` shorthand and the `removable` delete button.
- * - `icon` class (after the noun) when there's an icon and no text:  the icon centres.
- * - `image`:  a string attribute.  Present (bare / `""`) => class `image` around a slotted `<img>`;  a non-empty
- *   value is the `src` of the label's own `<img class="image" part="image" alt="">`.  `ClassBuilder` emits
- *   nothing for a string kind, so the `image` class goes in as an extra.
- * - `removable`:  a real `<button class="delete icon">` named by the `remove` text;  a click dispatches the
- *   cancelable `ui-remove` -- the label never removes itself, the page does.
- * - Inside a statistic (an owner of `label`, `PartContext`) it is that statistic's `.label` PART:  it renders
- *   `<div class="label" part="label">`, adopts `ui-parts.css` after `ui-label.css` and sets `:state(in-statistic)`.
- * - Host `aria-label` is forwarded to the root, so an icon-only or corner label has a name.
+ * ### `UILabel`
+ * The component behind `<ui-label>`:  a small tag, badge or count beside other content.
+ *
+ * - Its shadow DOM is one box, `<span class="ui … label" part="label">` (an `<a>` with `href`), holding, in order:
+ *   the `image` `<img>`, the icon box, the default slot, the `detail` shorthand and the `removable` delete button.
+ *   - It adds the `icon` class (after the noun) when there's an icon and no text:  the icon centres.
+ *
+ * - `image` is a string attribute:
+ *   - bare (or `""`):  the `image` class, around a slotted `<img>`
+ *   - a URL:  the `src` of the label's own `<img class="image" part="image" alt="">`
+ *   `ClassBuilder` writes no class for a string attribute, so the `image` class is added by hand.
+ *
+ * - `removable`:  a real `<button class="delete icon">`, named by the `remove` text.
+ *   A click sends the cancelable `ui-remove`:  the label never removes itself, the page does.
+ *
+ * - Inside a statistic (an owner of `label`, through `PartContext`), it is that statistic's `.label` PART:
+ *   it draws `<div class="label" part="label">`, adopts `UIParts.css` after `UILabel.css`
+ *   and sets `:state(in-statistic)`.
+ *
+ * - The element's `aria-label` moves to the inner box, so an icon-only or corner label has a name.
  ****************/
-export class UILabel extends E.UIElement<typeof labelVocabulary> {
+export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   @E.proto static vocabulary = labelVocabulary
   @E.proto static styleSheets = { label: labelCSS, parts: partsCSS }
-  @E.proto static elementSetup = { Fallback: LabelFallback }
 
-  /** Owner, when it's a statistic's label. */
-  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
+  /** The owner, when it's a statistic's label. */
+  readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
 
-  /** Light-DOM slot occupancy. */
-  readonly slots = new E.SlotContent(this.host)
+  /** Which of its slots have content in the light DOM. */
+  readonly slots = new E.SlotContent(this.domElement)
 
-  /** Glyph of the `icon` shorthand. */
+  /** The glyph of the `icon` shorthand. */
   readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
 
-  /** Glyph of the delete button. */
+  /** The glyph of the delete button. */
   readonly deleteGlyph = new E.IconGlyph({ owner: this, name: () => (this.removable ? DELETE_ICON : undefined) })
 
-  /** Host `aria-label`, forwarded to the root. */
+  /** The element's `aria-label`, moved to the inner box. */
   get ariaLabel(): string | undefined {
     return this.attributes[UIT.ARIA_LABEL] ?? undefined
   }
@@ -85,7 +90,7 @@ export class UILabel extends E.UIElement<typeof labelVocabulary> {
     return extra.filter(Boolean).join(" ") || undefined
   }
 
-  /** `ui-parts.css` only while a statistic owns it. */
+  /** `UIParts.css` only while a statistic owns it. */
   get styleSheetNames(): string[] {
     return this.context.ownerNoun ? ["label", "parts"] : ["label"]
   }
@@ -159,8 +164,11 @@ export class UILabel extends E.UIElement<typeof labelVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UILabel extends E.AttributeValues<typeof labelVocabulary> {}
+
+/** The class and part of the `detail` shorthand box. */
+const DETAIL = "detail"
 
 /** Classes of the delete button. */
 const DELETE_CLASS = "delete icon"

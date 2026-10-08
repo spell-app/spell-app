@@ -2,13 +2,13 @@
  * `yarn test:visual --static`'s server side:  one element example rendered by `StaticRender` (no shadow DOM, no
  * scripts), plus the ONE stylesheet that styles it (`StaticStylesheet`).
  * - Loaded through Vite's SSR (`server.ssrLoadModule()`, by `StaticPages`), NEVER by node directly:  the Solid
- *   plugin must compile the controllers' JSX for the server (`generate: "ssr"`) and `@solidjs/web` resolve to its
+ *   plugin must compile the components' JSX for the server (`generate: "ssr"`) and `@solidjs/web` resolve to its
  *   server build (the `node` condition), as in vitest's `ssr` project.  `verify()` fails a page that shows
  *   otherwise.
  * - Which families:  `StaticFamilies`.  Every listed class is defined once, for every page.
  */
 
-import type { UIElementClass } from "$/ui/elements"
+import type { UIComponentClass } from "$/ui/elements"
 import { ServerRuntime, StaticRender, StaticStylesheet } from "$/ui/static"
 
 import { StaticFamilies } from "./StaticFamilies.ts"
@@ -19,8 +19,12 @@ const ELEMENTS = import.meta.glob<string>("/src/components/*/examples/elements/*
   import: "default"
 })
 
-/** Controller class files (`UIButton.tsx`), by path;  lazy, only `StaticFamilies`' are loaded. */
-const CLASSES = import.meta.glob<Record<string, unknown>>("/src/components/*/UI*.{ts,tsx}")
+/** Component class files (`UIButton.tsx`), by path;  lazy, only `StaticFamilies`' are loaded. */
+const CLASSES = import.meta.glob<Record<string, unknown>>([
+  "/src/components/*/UI*.{ts,tsx}",
+  // a family's other files are named for its component too (`UIButton.types.ts`, `UIButton.test.tsx`)
+  "!/src/components/*/UI*.*.{ts,tsx}"
+])
 
 /****************
  * ### `StaticFixture`
@@ -74,7 +78,7 @@ export class StaticFixture {
    */
   private static async load(): Promise<void> {
     await ServerRuntime.icons()
-    const classes: UIElementClass[] = []
+    const classes: UIComponentClass[] = []
     for (const [family, names] of Object.entries(StaticFamilies.CLASSES)) {
       for (const name of names) {
         const path = StaticFamilies.classPath(family, name)
@@ -82,7 +86,7 @@ export class StaticFixture {
         const Class = (await load?.())?.[name]
         if (typeof Class !== "function")
           throw new Error(`StaticFixture.load():  no class ${name} in ${path}.ts(x);  fix StaticFamilies.CLASSES`)
-        classes.push(Class as UIElementClass)
+        classes.push(Class as UIComponentClass)
       }
     }
     StaticRender.define(...classes)
@@ -90,7 +94,7 @@ export class StaticFixture {
 
   /**
    * Throw unless `html` is a real static render of `source`:
-   * - no `<slot>` (a client render, or a host left unflattened)
+   * - no `<slot>` (a client render, or a DOM element left unflattened)
    * - roots marked `data-ui="<noun>"` when `source` has a defined tag (the flattener's mark;  missing:  nothing
    *   rendered)
    * - no tag of a DEFINED family left (`ui-*` tags of other families stay, by design)

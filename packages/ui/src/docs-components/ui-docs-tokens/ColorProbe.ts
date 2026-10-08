@@ -1,13 +1,13 @@
-import { FALLBACK_HEX } from "./ui-docs-tokens.types"
+import { FALLBACK_HEX } from "./UIDocsTokens.types"
 
 /****************
  * ### `ColorProbe`
  * Colour tokens' CURRENT values as `#rrggbb`, for the playground's native colour inputs, which take nothing else.
- * - Resolves where the tokens are used:  a hidden probe element per value inside `context` gets `color: <value>`, and
- *   its computed colour (an `oklch()`, `color(srgb ...)` ...) is painted on a 1px canvas and read back as sRGB.
+ * - Resolves where the tokens are used:  a hidden probe element per value inside `context` gets `color: <value>`,
+ *   and its computed colour (an `oklch()`, `color(srgb ...)` ...) is painted on a 1px canvas and read back as sRGB.
  * - Batched:  every probe goes in, THEN every colour is read, so a table of 200 colours costs one style recalc.
- * - Lossy on purpose:  alpha is flattened onto the page background and wide-gamut colours clip, both the native
- *   input's limits.  The token keeps its real value until the person picks a colour.
+ * - Lossy on purpose:  alpha is flattened onto the page background and wide-gamut colours clip,
+ *   both the native input's limits.  The token keeps its real value until the person picks a colour.
  * - Scheme:  `light-dark()` resolves in `context`'s scheme at the time of the probe.
  * - Static:  one 1px canvas for the page, made on first use.
  ****************/
@@ -38,8 +38,8 @@ export class ColorProbe {
   }
 
   /**
-   * A computed colour as `#rrggbb`:  painted on the canvas (over `backdrop`, if given) and read back;  `FALLBACK_HEX`
-   * if it can't be.
+   * A computed colour as `#rrggbb`:  painted on the canvas (over `backdrop`, if given) and read back;
+   * `FALLBACK_HEX` if it can't be.
    */
   static hexFor(color: string, backdrop?: string): string {
     const canvas = ColorProbe.canvas()

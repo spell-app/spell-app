@@ -9,16 +9,17 @@
  *     `ClassBuilder`, `Shorthand`, `OwnerContext`, `NativeFallback` (the fallbacks' base), `StickyWatch`
  *     (`<ui-sticky>` and `<ui-section sticky>`)
  *   - from `$/ui/elements`, the Solid layer:  `Reactive` (the decorators:  `state`, `controlled`, `derived`,
- *     `cssState`, `onChange`), `Cell`, `ElementDefinition`, `UIHost`, `PartContext` + `ContentPart` (owner context),
- *     `Controlled` (compatibility, for `brand`), `UIElement`, `SlotContent`, `RootSettings` (what each
- *     `<ui-root>` sets for its subtree:  icon packs, emoji), `IconGlyph`, and the source layer:  `SourceHost` +
- *     `SourceElement` (the elements that show a text file), `SourceMarkup`, `SourceBody`, `SourceBodyHost`
+ *     `cssState`, `onChange`), `Cell`, `ElementDefinition`, `DOMElement`, `PartContext` + `PartComponent`
+ *     (owner context), `Controlled` (compatibility, for `brand`), `UIComponent`, `SlotContent`, `RootSettings`
+ *     (what each `<ui-root>` sets for its subtree:  icon packs, emoji), `IconGlyph`, and the source layer:
+ *     `DOMLoadableElement` + `LoadableComponent` (the elements that show a text file), `SourceMarkup`, `LoadableBody`,
+ *     `DOMLoadableBodyElement`
  *     (`<ui-section source>` / `<ui-accordion source>`)
  *   - `$/ui/runtime` -- the eager loader (`UI`, `loadUI`), `runtime.types` and the services' TYPES;  `UIRuntime`
  *     itself stays a lazy chunk
  *   - `$/ui/icons` -- the icon pack format (`IconName`, `BuiltInPacks`);  the packs are separate files
  *     (`dist/icon-packs/`), loaded by the runtime (`UI.icons`)
- * - NOT here:  the `forms` entry (`forms.ts`:  `FormElement`, `FormHost`, `Validator`, `MenuOptions`,
+ * - NOT here:  the `forms` entry (`forms.ts`:  `FormComponent`, `DOMFormControlElement`, `Validator`, `MenuOptions`,
  *   `ControlLabels`), loaded only by families that import it.
  * - NOTE: `$/ui/elements` LEAVES are re-exported, one by one, as `AGENTS.md` ("Solid authoring") says:  its barrel
  *   also exports the `forms` files, and an `export *` of it here would make them `core` exports, i.e. core bytes.
@@ -48,19 +49,22 @@ export * as UIT from "$/ui/components/components.types"
 export * from "$/ui/elements/Reactive"
 export * from "$/ui/elements/Cell"
 export * from "$/ui/elements/ElementDefinition"
-export * from "$/ui/elements/UIHost"
+export * from "$/ui/elements/DOMElement"
 export * from "$/ui/elements/PartContext"
 export * from "$/ui/elements/Controlled"
-export * from "$/ui/elements/UIElement"
-export * from "$/ui/elements/ContentPart"
+export * from "$/ui/elements/UIComponent"
+export * from "$/ui/elements/PartComponent"
 export * from "$/ui/elements/SlotContent"
 export * from "$/ui/elements/RootSettings"
 export * from "$/ui/elements/IconGlyph"
-export * from "$/ui/elements/SourceHost"
-export * from "$/ui/elements/SourceElement"
+export * from "$/ui/elements/DOMLoadableElement"
+export * from "$/ui/elements/LoadableComponent"
 export * from "$/ui/elements/SourceMarkup"
-export * from "$/ui/elements/SourceBody"
-export * from "$/ui/elements/SourceBodyHost"
+export * from "$/ui/elements/LoadableBody"
+export * from "$/ui/elements/DOMLoadableBodyElement"
 
-/** The package namespace (WWOD §4):  `import { E, UI, UIT } from "$/ui/core"`, then `E.UIElement`, `@E.proto` (`AGENTS.md`). */
+/**
+ * The package namespace (WWOD §4):  `import { E, UI, UIT } from "$/ui/core"`,
+ * then `E.UIComponent`, `@E.proto` (`AGENTS.md`).
+ */
 export * as E from "$/ui/core"

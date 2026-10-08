@@ -1,6 +1,7 @@
 /**
- * Barrel for the button components -- also the `button` lib entry (`@spell-app/ui/ui-button`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-button>`, `<ui-buttons>`, `<ui-or>`.
+ * The button family:  defines `<ui-button>`, `<ui-buttons>` and `<ui-or>`, and exports their components.
+ * - Also the `button` lib entry (`@spell-app/ui/ui-button`), measured in `docs/report.md`.
+ * - SIDE EFFECT:  importing it defines the tags.
  */
 
 import { UIButton } from "./UIButton"

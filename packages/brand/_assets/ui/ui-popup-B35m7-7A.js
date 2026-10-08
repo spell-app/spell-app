@@ -1,0 +1,1 @@
+import{t as e}from"./ui-popup-BIdIctb9.js";export{e as UIPopup};

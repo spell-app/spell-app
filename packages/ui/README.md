@@ -23,9 +23,9 @@ Every command:  `AGENTS.md`, "Commands".
 
 If you find yourself writing a second copy of any of these, stop and reuse.
 
-- One element base:  `E.UIElement` (a controller per element, `render()` returning JSX);  `F.FormElement` for a
+- One element base:  `E.UIComponent` (a component per element, `render()` returning JSX);  `F.FormComponent` for a
   control with a value.
-- One vocabulary per tag (`<tag>.vocabulary.en.ts`):  every attribute, value, event, slot, part and text string
+- One vocabulary per tag (`UI<Name>.vocabulary.en.ts`):  every attribute, value, event, slot, part and text string
   the tag uses.  NEVER a string literal for one in a template.
 - One class grammar builder:  `E.ClassBuilder` (`ui small primary button`).
 - One home for constants several families share:  `UIT` (`src/components/components.types.ts`);  key names are
@@ -46,9 +46,9 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 | --- | --- |
 | `src/index.ts` | `@spell-app/ui`:  registers every family (SIDE EFFECT) and re-exports them, plus `UIT`, the runtime, styles and icons |
 | `src/core.ts` | `@spell-app/ui/core`, the `E` namespace:  the element core and the foundation every family needs, in ONE chunk |
-| `src/forms.ts` | `@spell-app/ui/forms`, the `F` namespace:  what only form controls need (`FormElement`, `Validator`, `MenuOptions` ...) |
+| `src/forms.ts` | `@spell-app/ui/forms`, the `F` namespace:  what only form controls need (`FormComponent`, `Validator`, `MenuOptions` ...) |
 | `src/api.ts` | `@spell-app/ui/api`:  `E`, `F`, and the vocabulary layer as `V` |
-| `src/elements/` | the element core:  `UIElement`, `UIHost`, `Cell`, `HostAttribute`, `PartContext`, `NativeFallback`, `SourceElement` ... |
+| `src/elements/` | the element core:  `UIComponent`, `DOMElement`, `Cell`, `HostAttribute`, `PartContext`, `NativeFallback`, `LoadableComponent` ... |
 | `src/components/` | one folder per component FAMILY (`ui-button/`):  element classes, vocabularies, sheet, fallback, tests, examples;  `components.types.ts` (`UIT`), `ComponentDefinitions.ts` (every tag's vocabulary, rolled up) |
 | `src/docs-components/` | the docs site's own `<ui-docs-*>` families:  laid out like components, never in the library's entries |
 | `src/runtime/` | the `UI` runtime:  one instance per page, its services as classes (`Keyboard`, `Overlays`, `Focus` ...) |
@@ -80,13 +80,13 @@ Read ONLY in `tools/environment.ts` (WWOD §11), by `tools/`, `scripts/` and the
 ## Adding a new family
 
 1. Make the folder, `src/components/ui-<name>/`, laid out like `ui-button/` (`AGENTS.md`, "Overview"):
-   `UI<Name>.tsx`, `index.ts` (calls `define()`, re-exports the classes), `ui-<name>.css`, `ui-<name>.types.ts`,
-   `ui-<name>.fallback.ts`, tests, `examples/*.html` (class grammar) and `examples/elements/*.html` (elements).
-2. Write one `<tag>.vocabulary.en.ts` per tag, `topics` (2+ ids from `ValueSets.topics`) and `aka` (other
+   `UI<Name>.tsx`, `index.ts` (calls `define()`, re-exports the classes), `UI<Name>.css`, `UI<Name>.types.ts`,
+   `UI<Name>.fallback.ts`, tests, `examples/*.html` (class grammar) and `examples/elements/*.html` (elements).
+2. Write one `UI<Name>.vocabulary.en.ts` per tag, `topics` (2+ ids from `ValueSets.topics`) and `aka` (other
    libraries' names) included:  `src/components/ComponentDefinitions.test.ts` fails on a tag without them.
 3. Make it a lib entry:  `COMPONENTS` in `vite.config.ts`, plus `exports` and `sideEffects` in `package.json`;
    re-export it from `src/index.ts`.
-4. `yarn gen:root`:  `<ui-root>`'s catalog of tag => family (`src/components/ui-root/ui-root.catalog.test.ts` fails while stale).
+4. `yarn gen:root`:  `<ui-root>`'s catalog of tag => family (`src/components/ui-root/UIRoot.catalog.test.ts` fails while stale).
 5. `yarn site:data`:  the docs site's data (`tools/SiteDataBuilder.test.ts` fails while stale);  add the family's
    facts to `site/_data/pages.json`.
 6. `yarn site:new <tag>`:  its docs page, from the template;  then `yarn site:build` and `yarn site:check <tag>`.

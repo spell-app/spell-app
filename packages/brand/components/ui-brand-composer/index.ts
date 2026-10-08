@@ -1,9 +1,10 @@
 /**
- * `ui-brand-composer` family barrel:  defines `<ui-brand-composer>` (SIDE EFFECT) and exports its class and host.
+ * The brand composer family:  defines `<ui-brand-composer>`, and exports its component, `UIBrandComposer`,
+ * and its DOM element class, `DOMBrandComposerElement`.
+ * - SIDE EFFECT:  importing it defines the tag.
  */
-import { UIBrandComposer } from "./UIBrandComposer"
-import { BrandComposerHost } from "./BrandComposerHost"
+import { DOMBrandComposerElement, UIBrandComposer } from "./UIBrandComposer"
 
 UIBrandComposer.define()
 
-export { UIBrandComposer, BrandComposerHost }
+export { UIBrandComposer, DOMBrandComposerElement }

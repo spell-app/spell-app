@@ -1,15 +1,16 @@
 /**
- * Barrel for the include -- also the `include` lib entry (`@spell-app/ui/ui-include`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-include>`, plus `<ui-loader>` and `<ui-message>` (its loading and error looks) and
- *   `<ui-root>` (whose `RootLoader` loads the families the included markup uses).
+ * The include family:  defines `<ui-include>` and exports its component, `UIInclude`,
+ * and its DOM element class, `DOMIncludeElement`.
+ * - SIDE EFFECT:  importing it defines the tag, and `<ui-loader>` and `<ui-message>` (its loading and error looks).
+ *   `UIInclude` imports `<ui-root>`'s family, whose `RootLoader` loads the families the included markup uses.
+ * - Also the library's `@spell-app/ui/ui-include` entry (its size is in `docs/report.md`).
  */
 
-import { UIInclude } from "./UIInclude"
-import { UIIncludeHost } from "./UIIncludeHost"
+import { DOMIncludeElement, UIInclude } from "./UIInclude"
 
 import "$/ui/components/ui-loader"
 import "$/ui/components/ui-message"
 
 UIInclude.define()
 
-export { UIInclude, UIIncludeHost }
+export { UIInclude, DOMIncludeElement }

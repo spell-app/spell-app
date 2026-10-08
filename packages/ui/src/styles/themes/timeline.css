@@ -2,8 +2,8 @@
  * timeline theme:  Fomantic's `timeline` theme, a feed drawn as a timeline:  a grey line down the labels, round
  * coloured badges on it, and meta blocks as small raised boxes, `@layer ui.theme`.
  * - A DELTA on `classic.css` (`ThemeSheets.apply("timeline")` registers `classic` + this sheet).
- * - Touches `<ui-feed>` / `<ui-event>` (`ui-feed.css`) and the feed's content parts (`<ui-content>`, `<ui-meta>`
- *   `:state(in-feed)`, `ui-parts.css`).  Shadow markup:  an event is `<div class="event"><div class="label">` (an
+ * - Touches `<ui-feed>` / `<ui-event>` (`UIFeed.css`) and the feed's content parts (`<ui-content>`, `<ui-meta>`
+ *   `:state(in-feed)`, `UIParts.css`).  Shadow markup:  an event is `<div class="event"><div class="label">` (an
  *   `<img>`, a `<span class="icon"><svg>`, or the `label` slot) + the content slot;  a part is
  *   `<div class="content">` / `<div class="meta">` under its own host.  Every rule has the element selector
  *   (`:host ...`) and the static one (`.ui.feed > .event ...`, `.in-feed.meta`), as the component sheets do.

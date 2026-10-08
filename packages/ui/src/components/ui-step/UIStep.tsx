@@ -2,40 +2,45 @@ import { Show } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { stepVocabulary } from "./ui-step.vocabulary.en"
-import { StepFallback } from "./ui-step.fallback"
-import { BOX, CURRENT_STEP, TITLE_PART } from "./ui-step.types"
+import { stepVocabulary } from "./UIStep.vocabulary.en"
 
-import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
-import stepCSS from "./ui-step.css?inline"
+import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
+import stepCSS from "./UIStep.css?inline"
 
 /****************
- * ### `<ui-step>`
- * One step:  `<div class="[color] [keyOnly ...] step" part="step">` -- `<a>` with `href`, a `<button>` with `link`
- * -- holding the icon box, the shorthand content (`header` / `description`), the slot and, once `completed`, a
- * visually hidden "Completed".
- * - Semantics:  the host is a `listitem` (internals) of the group's `<ol>`;  the selected step is the current one,
- *   `aria-current="step"` on the root.  A disabled step is `aria-disabled` (a link keeps its `<a>` without `href`),
- *   a disabled `<button>` is `disabled`:  its dimmed text is an INACTIVE component's (WCAG 1.4.3's exemption),
- *   and assistive tech says so.
+ * ### `UIStep`
+ * The component behind `<ui-step>`:  one step of a sequence,
+ * `<div class="[color] [keyOnly ...] step" part="step">` (an `<a>` with `href`, a `<button>` with `link`)
+ * holding the icon box, the shorthand content (`header`, `description`), the slot,
+ * and once `completed`, a visually hidden "Completed".
+ *
+ * - Semantics:
+ *   - the DOM element is a `listitem` (through `internals`) of the group's `<ol>`;
+ *   - the selected step is the current one:  `aria-current="step"` on the root;
+ *   - a disabled step is `aria-disabled` (a link keeps its `<a>`, without `href`), a disabled `<button>` is
+ *     `disabled`:  its dimmed text is an INACTIVE component's (WCAG 1.4.3's exemption), and assistive tech says so.
+ *
  * - `selected` is canonical;  an `active` attribute is Fomantic's word for it, read raw (`attributes`).
- * - Completed:  a check replaces the icon (the `icon` glyph or the slotted `slot=icon`, which stays in the DOM,
+ *
+ * - Completed:  a check replaces the icon (the `icon` glyph, or the slotted `slot=icon`, which stays in the DOM,
  *   hidden);  an ordered step's number turns into a check in CSS.
- * - OWNER of the `content`, `title` and `description` parts (`ownsParts`):  slotted parts style themselves from
- *   `ui-parts.css` (`:state(in-step)`), reading `--_ui-step-state` / `--_ui-step-layout` from this root.  The shorthands
- *   are the same parts drawn here with their static `in-step` classes, which is why the step adopts `ui-parts.css`.
- * - Group variations (vertical, ordered, stacked, circular ...) arrive as inherited `--_ui-steps-*` tokens from the
- *   `<ui-steps>` root;  `ui-step.css` reads them (see its header).
+ *
+ * - It OWNS the `content`, `title` and `description` parts (`ownsParts`):  slotted parts style themselves
+ *   from `UIParts.css` (`:state(in-step)`), reading `--_ui-step-state` and `--_ui-step-layout` from this root.
+ *   The shorthands are the same parts drawn here with their static `in-step` classes,
+ *   which is why the step adopts `UIParts.css`.
+ *
+ * - Group variations (vertical, ordered, stacked, circular ...) arrive as inherited `--_ui-steps-*` tokens
+ *   from the `<ui-steps>` root;  `UIStep.css` reads them (see its header).
  ****************/
-export class UIStep extends E.UIElement<typeof stepVocabulary> {
+export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   @E.proto static vocabulary = stepVocabulary
   @E.proto static styleSheets = { step: stepCSS, parts: partsCSS }
-  @E.proto static elementSetup = { Fallback: StepFallback }
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     // SIDE EFFECT:  one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
-    this.host.internals.role = UIT.LISTITEM
+    this.domElement.internals.role = UIT.LISTITEM
   }
 
   ////////////////
@@ -65,7 +70,7 @@ export class UIStep extends E.UIElement<typeof stepVocabulary> {
   ////////////////
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new E.SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** Has shorthand content? */
   get hasShorthand(): boolean {
@@ -103,8 +108,8 @@ export class UIStep extends E.UIElement<typeof stepVocabulary> {
   /**
    * Extra class words:
    * - `active` for the `active` alias, when `selected` doesn't add it
-   * - `ui-<color>` for a coloured step:  the generic colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`, and a
-   *   step has no `ui`
+   * - `ui-<color>` for a coloured step:  the generic colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`,
+   *   and a step has no `ui`
    */
   protected get extraClasses(): string | undefined {
     const color = this.color
@@ -170,14 +175,23 @@ export class UIStep extends E.UIElement<typeof stepVocabulary> {
     )
   }
 
-  /** Classes of a shorthand part:  its noun and the static owner class (`ui-parts.css`), e.g. `title in-step`. */
+  /** Classes of a shorthand part:  its noun and the static owner class (`UIParts.css`), e.g. `title in-step`. */
   private staticPart(noun: string): string {
     return `${noun} ${UIT.PART_STATIC_CLASS_PREFIX}${this.vocabulary.noun}`
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIStep extends E.AttributeValues<typeof stepVocabulary> {}
+
+/** Root tag of a plain step (a link step's is `UIT.ANCHOR_TAG`, a `link` step's `UIT.BUTTON`). */
+const BOX = "div"
+
+/** `aria-current` of the selected step:  the current one in the sequence. */
+const CURRENT_STEP = "step"
+
+/** The `header` shorthand's part and class word, Fomantic's `.title` (not `UIT.TITLE`, the tooltip attribute). */
+const TITLE_PART = "title"
 
 /** Glyph of a completed step's icon. */
 const CHECK = "check"

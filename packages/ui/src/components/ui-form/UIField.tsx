@@ -2,39 +2,71 @@ import { For, Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { fieldVocabulary } from "./ui-field.vocabulary.en"
-import { FormFallback } from "./ui-form.fallback"
-import { FieldHost } from "./FieldHost"
-import { ERROR, INFO, SUCCESS, WARNING } from "./ui-form.types"
+import { fieldVocabulary } from "./UIField.vocabulary.en"
+import { ERROR, INFO, SUCCESS, WARNING } from "./UIForm.types"
 
-import labelCSS from "$/ui/components/ui-label/ui-label.css?inline"
-import formCSS from "./ui-form.css?inline"
+import labelCSS from "$/ui/components/ui-label/UILabel.css?inline"
+import formCSS from "./UIForm.css?inline"
 
 /****************
- * ### `<ui-field>`
- * One field:  `<div class="… field" part="field">` around the slotted `<label>` and control(s), then its prompt.
- * - The prompt shows while `<ui-form>` says so (`showErrors()`):  a basic pointing `prompt` label (`ui-label.css`)
- *   with `role="alert"`, one line per message.
+ * ### `DOMFieldElement`
+ * The DOM element of `<ui-field>`:  it adds `showErrors()`, which `<ui-form>` calls to show
+ * (or, with `[]`, clear) the field's inline prompt and error state.
+ *
+ * - No attribute is written, so the author's `state` stays theirs.
+ * - `errors`:  the prompts shown now.
+ * - solid-element checks a DOM element's prototype members against prop names;  neither of these is one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
+ ****************/
+export class DOMFieldElement extends E.DOMElement {
+  /** Show `messages` as the field's prompt (and `error` state);  `[]` clears. */
+  showErrors(messages: readonly string[]) {
+    this.field?.showErrors(messages)
+  }
+
+  /** Prompts shown now. */
+  get errors(): readonly string[] {
+    return untrack(() => this.field?.errors) ?? []
+  }
+
+  /** The field's component, once it exists. */
+  private get field(): UIField | undefined {
+    return this.component as UIField | undefined
+  }
+}
+
+/****************
+ * ### `UIField`
+ * The component behind `<ui-field>`:  one field of a form,
+ * `<div class="… field" part="field">` around the slotted `<label>` and control(s), then its prompt.
+ *
+ * - The prompt shows while `<ui-form>` says so (`showErrors()`):
+ *   a basic pointing `prompt` label (`UILabel.css`) with `role="alert"`, one line per message.
  * - Failed validation shows `error` over the author's `state`, and clears back to it.
- * - Host:  `display: contents` (`ui-form.css`);  the root is the flex item of a `<ui-fields>` row, which hands it
- *   its width and gutter as inherited tokens.
- * - Hands its controls inherited owner tokens (`InputOwnerTokens`):  full width, and its state's colours.
+ *
+ * - The DOM element is `display: contents` (`UIForm.css`):  the root is the flex item of a `<ui-fields>` row,
+ *   which hands it its width and gutter as inherited tokens.
+ * - It hands its controls inherited owner tokens (`InputOwnerTokens`):  full width, and its state's colours.
+ *
  * - `disabled` makes the root `inert`, so the slotted controls can't be used.
  * - Always carries `:state(field)`, which is how `<ui-form>` finds a control's field.
  ****************/
-export class UIField extends E.UIElement<typeof fieldVocabulary> {
+export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   @E.proto static vocabulary = fieldVocabulary
   @E.proto static styleSheets = { label: labelCSS, form: formCSS }
-  @E.proto static elementSetup = { Fallback: FormFallback, Host: FieldHost, delegatesFocus: false }
+  @E.proto static elementSetup = {
+    DOMElement: DOMFieldElement,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Prompts
   ////////////////
 
-  /** Prompts `<ui-form>` asked to show;  `FieldHost.errors` reads them untracked. */
+  /** Prompts `<ui-form>` asked to show;  `DOMFieldElement.errors` reads them untracked. */
   @E.state accessor errors: readonly string[] = []
 
-  /** Show `messages` (see `FieldHost`). */
+  /** Show `messages` (see `DOMFieldElement`). */
   showErrors(messages: readonly string[]) {
     const current = untrack(() => this.errors)
     if (current.length !== messages.length || current.some((message, index) => message !== messages[index])) {
@@ -77,7 +109,7 @@ export class UIField extends E.UIElement<typeof fieldVocabulary> {
 
   /**
    * `:state(disabled)` while `disabled`:  the root is `inert`.
-   * - Not an `isDisabled` override:  that would make the host swallow clicks too.
+   * - Not an `isDisabled` override:  that would make the DOM element swallow clicks too.
    */
   @E.cssState("disabled")
   get looksDisabled(): boolean {
@@ -113,10 +145,10 @@ export class UIField extends E.UIElement<typeof fieldVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UIField extends E.AttributeValues<typeof fieldVocabulary> {}
 
-/** Class words of the prompt (`ui-label.css` + `ui-form.css`). */
+/** Class words of the prompt (`UILabel.css` + `UIForm.css`). */
 const PROMPT = "ui basic pointing prompt label"
 
 /** Class words of an `inline` field's prompt:  it points left, at the control. */

@@ -1,22 +1,23 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { PartElement } from "./PartElement"
-import { headerVocabulary } from "./ui-header.vocabulary.en"
-import { HEADING } from "./ui-parts.types"
+import { headerVocabulary } from "./UIHeader.vocabulary.en"
 
 /****************
- * ### `<ui-header>`
- * A header, two elements in one:
- * - STANDALONE:  Fomantic's `ui header` in the class grammar (`ui large red dividing header`) on `<div>`, on
- *   `<h1>` ... `<h6>` with `level` (a page header, sized by level unless `size` is set), or on `<a>` with `href`
- * - OWNED (in a card, a modal ... or another header, whose sub header it then is):  a bare `.header`, never
- *   `ui`, as Fomantic's `.ui.card > .content > .header`
- * - Semantics:  `level` is a real heading;  a linked heading is `<a role="heading" aria-level>`, since the link
- *   carries the class grammar.
- * - It is an OWNER too (`ownsParts:  header, content`):  a nested `<ui-header>` / `<ui-content>` resolves to it.
+ * ### `UIHeader`
+ * The component behind `<ui-header>`:  a header, which is two things in one.
+ *
+ * - STANDALONE:  Fomantic's `ui header`, in the class grammar (`ui large red dividing header`):
+ *   - on a `<div>`;
+ *   - on `<h1>` ... `<h6>` with `level` (a page header, sized by its level unless `size` is set);
+ *   - on `<a>` with `href`.
+ * - OWNED (in a card, a modal ... or another header, whose sub header it then is):  a bare `.header`, never `ui`,
+ *   as Fomantic's `.ui.card > .content > .header`.
+ * - `level` makes a real heading.  A linked heading is `<a role="heading" aria-level>`,
+ *   since the link carries the class grammar.
+ * - It is an OWNER too (`ownsParts:  header, content`):  a `<ui-header>` or `<ui-content>` inside it belongs to it.
  ****************/
-export class UIHeader extends PartElement<typeof headerVocabulary> {
+export class UIHeader extends E.PartComponent<typeof headerVocabulary> {
   @E.proto static vocabulary = headerVocabulary
 
   render(): JSX.Element {
@@ -47,5 +48,8 @@ export class UIHeader extends PartElement<typeof headerVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIHeader extends E.AttributeValues<typeof headerVocabulary> {}
+
+/** The role of a linked header with a `level`:  the link carries the class grammar, so it is the heading. */
+const HEADING = "heading"

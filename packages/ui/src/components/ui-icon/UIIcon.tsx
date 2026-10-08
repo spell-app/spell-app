@@ -1,31 +1,31 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { iconVocabulary } from "./ui-icon.vocabulary.en"
-import { IconFallback } from "./ui-icon.fallback"
-import { IconLabels } from "./ui-icon.types"
+import { iconVocabulary } from "./UIIcon.vocabulary.en"
+import { IconLabels } from "./UIIcon.types"
 
-import iconCSS from "./ui-icon.css?inline"
+import iconCSS from "./UIIcon.css?inline"
 
 /****************
- * ### `<ui-icon>`
- * An SVG glyph:  `<span class="ui … icon" part="icon"><svg aria-hidden></span>`, from the page's icon packs
- * (`UI.icons`).
- * - Host is `display: contents`:  the span IS the inline box, where Fomantic's `<i class="icon">` sat.
- * - Accessible name on the HOST, through internals (`IconLabels`):  `label` => `role=img` + `aria-label`;  none =>
- *   `aria-hidden`, a decorative glyph.
- * - `:state(in-icons)` when its flat-tree parent is a `<ui-icons>` (`PartContext`, direct mode):  `ui-icon.css`
- *   stacks and positions it by that, since the group can't reach into its children's shadow roots.
- * - `name` is the whole name:  `bell`, `bell outline`, `lucide:bell`.  `outline` appends ` outline`
- *   (Fomantic's `bell outline icon` spelling), so `<ui-icon name="bell" outline>` ~== `name="bell outline"`.
+ * ### `UIIcon`
+ * The component behind `<ui-icon>`:  an SVG glyph from the page's icon packs (`UI.icons`).
+ *
+ * - Its shadow DOM is one box, `<span class="ui … icon" part="icon"><svg aria-hidden></span>`.
+ *   The element is `display: contents`:  the span IS the inline box, where Fomantic's `<i class="icon">` sat.
+ * - The accessible name is on the ELEMENT, through `internals` (`IconLabels`):
+ *   `label` => `role=img` + `aria-label`;  none => `aria-hidden`, a decorative glyph.
+ * - `:state(in-icons)` when its flat-tree parent is a `<ui-icons>` (`PartContext`, direct mode):
+ *   `UIIcon.css` stacks and positions it by that, since the group can't reach into its children's shadow roots.
+ * - `name` is the whole name:  `bell`, `bell outline`, `lucide:bell`.
+ *   `outline` appends ` outline` (Fomantic's `bell outline icon` spelling),
+ *   so `<ui-icon name="bell" outline>` ~== `name="bell outline"`.
  ****************/
-export class UIIcon extends E.UIElement<typeof iconVocabulary> {
+export class UIIcon extends E.UIComponent<typeof iconVocabulary> {
   @E.proto static vocabulary = iconVocabulary
   @E.proto static styleSheets = { icon: iconCSS }
-  @E.proto static elementSetup = { Fallback: IconFallback }
 
-  /** `<ui-icons>` parent, if any. */
-  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun, isDirect: true })
+  /** Its `<ui-icons>` parent, if any. */
+  readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun, isDirect: true })
 
   ////////////////
   // ## The glyph
@@ -44,10 +44,10 @@ export class UIIcon extends E.UIElement<typeof iconVocabulary> {
   // ## Label
   ////////////////
 
-  /** SIDE EFFECT:  the host's accessible name follows `label`. */
-  @E.onChange("label", { writesHost: true })
+  /** SIDE EFFECT:  the element's accessible name follows `label`. */
+  @E.onChange("label", { writesDOMElement: true })
   protected onLabelChanged(label: string | undefined) {
-    IconLabels.applyTo(this.host.internals, label)
+    IconLabels.applyTo(this.domElement.internals, label)
   }
 
   ////////////////
@@ -56,7 +56,7 @@ export class UIIcon extends E.UIElement<typeof iconVocabulary> {
 
   /**
    * Dimmed (`disabled`):  `:state(disabled)`.
-   * - Not `isDisabled`:  that would make the host swallow clicks, which an icon never did.
+   * - Not `isDisabled`:  that would make the element swallow clicks, which an icon never did.
    */
   @E.cssState("disabled")
   get looksDisabled(): boolean {
@@ -78,7 +78,7 @@ export class UIIcon extends E.UIElement<typeof iconVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIIcon extends E.AttributeValues<typeof iconVocabulary> {}
 
 /** What `outline` appends to the name (Fomantic's `bell outline`). */

@@ -1,9 +1,11 @@
 /**
- * Barrel for the docs example -- a DOC-ONLY family (`src/docs-components/`):  no lib entry, loaded by `<ui-root>` on
- * first use.
- * - SIDE EFFECT:  defines `<ui-docs-example>`, plus the widgets its shadow root is built from:  `<ui-segment>`,
- *   `<ui-header>` (`ui-parts`), `<ui-button>`, `<ui-code>`.  A `<ui-root>` only loads what's in the page's light DOM,
- *   so a family that composes widgets imports them itself.
+ * The docs example family:  defines `<ui-docs-example>` and exports its component, `UIDocsExample`,
+ * and its helpers (`ExampleSource`, `HtmlFormatter`).
+ * - A DOC-ONLY family (`src/docs-components/`):  no lib entry;  `<ui-root>` loads it on first use.
+ * - SIDE EFFECT:  importing it defines the tag, and the widgets its shadow DOM is built of:
+ *   `<ui-segment>`, `<ui-header>` (`ui-parts`), `<ui-button>`, `<ui-code>`.
+ *   A `<ui-root>` only loads what's in the page's light DOM, so a family that is built of other widgets
+ *   imports them itself.
  */
 
 import { UIDocsExample } from "./UIDocsExample"

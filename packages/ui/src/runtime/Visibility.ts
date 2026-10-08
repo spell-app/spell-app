@@ -22,7 +22,7 @@ import type { Transitions } from "./Transitions"
  * - Checks happen when something CROSSES:  the element entering / leaving the screen, and its top or bottom edge
  *   crossing the screen top or bottom (two 1px "line" observers).  So `continuous` fires at each crossing, not on
  *   every scrolled pixel, and `onUpdate` likewise.
- * - Measures the element's first BOX:  a `display: contents` element (`<ui-segment>`, `<ui-sticky>` ... hosts) has
+ * - Measures the element's first BOX:  a `display: contents` element (`<ui-segment>`, `<ui-sticky>` ...) has
  *   none, so it measures the first rendered descendant with one -- its shadow root's root element, else its first
  *   boxed child.  NOTE:  only that one box, not the union of every child's.  Nothing to measure warns once in dev.
  * - `once` (default, as Fomantic's):  each callback fires at most once;  `once: false`:  again each time its condition
@@ -100,7 +100,7 @@ export type VisibilityProps = {
  * - The line observers' margins are px (a root margin can't say "all but 1px"), so they're rebuilt when the
  *   screen resizes.
  * - Observes `target`, the element's first box (see `Visibility`), re-found when it's gone or boxless at a check:
- *   a host observed before it renders gets its box after its `ready` promise.
+ *   a DOM element observed before it renders gets its box after its `ready` promise.
  ****************/
 class VisibilityWatch {
   /** watched element */
@@ -207,7 +207,7 @@ class VisibilityWatch {
   /**
    * Make sure `target` is still the box to measure;  true to measure it now.
    * - A new box:  observe it instead (its observers queue the next check).
-   * - No box yet:  wait once for the element's `ready` (a `UIHost` that hasn't rendered), else warn once in dev.
+   * - No box yet:  wait once for the element's `ready` (a `DOMElement` that hasn't rendered), else warn once in dev.
    */
   private retarget(): boolean {
     const target = this.target

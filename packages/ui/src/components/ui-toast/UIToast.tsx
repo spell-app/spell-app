@@ -2,59 +2,74 @@ import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { toastVocabulary } from "./ui-toast.vocabulary.en"
-import { ToastFallback } from "./ui-toast.fallback"
-import { UIToastHost } from "./UIToastHost"
-import {
-  ACTIONS,
-  ATTACHED,
-  COMPACT,
-  ERROR,
-  FLOATING,
-  FOCUS_WITHIN,
-  INVERTED,
-  TOAST_BOX,
-  UI_WORD,
-  UNCLICKABLE,
-  type Vocabulary
-} from "./ui-toast.types"
+import { toastVocabulary } from "./UIToast.vocabulary.en"
+import { ACTIONS, ATTACHED, FOCUS_WITHIN, INVERTED, UI_WORD, type Vocabulary } from "./UIToast.types"
 
-import toastCSS from "./ui-toast.css?inline"
+import toastCSS from "./UIToast.css?inline"
 
 /****************
- * ### `<ui-toast>`
- * A toast:  `<div class="floating toast-box" part="box">` around `<div class="ui ... toast" part="toast">` (icon,
- * content block, close icon, actions), with an optional progress bar above or below and `attached` actions.
- * - Where it shows:  where it is.  `UI.toast({...})` (`ToastStack`) puts the ones it builds in a container per
- *   position, a popover in the top layer;  a `<ui-toast>` written in the page is an ordinary block.
- * - Life:  once connected it animates in (Fomantic's `scale`), fires `ui-show` and starts counting down
- *   `display-time` (absent / `0`:  it stays).  Closing -- the countdown, the close icon, a click, Escape inside it,
- *   an action, `host.close()` -- fires the cancelable `ui-close` (with a `reason`), animates out, sets `hidden` on
- *   the HOST and fires `ui-hide`.  It never removes itself:  whoever inserted it owns the node.
- * - Countdown pauses while the pointer is moving over it (`pause-on-hover`, default on) and ALWAYS while focus is
- *   inside (WCAG 2.2.1), with `:state(paused)`;  the progress bar pauses with it.
- * - Accessibility:  the toast is `role=status` (polite), `alert` for `type="error"`;  it never takes focus.  The
- *   close icon is a real `<button>`;  Escape closes it while focus is inside (no page-wide Escape:  kind `toast`
- *   in `UI.overlays`, which also lets `UI.overlays.closeAll("toast")` close every one).  Motion follows
- *   `UI.transitions` (reduced motion:  none);  the progress bar is `data-ui-motion="essential"`:  it IS the
- *   remaining time.
- * - Invoker commands (`<button commandfor="id" command="--close">`):  `--close` closes it, reason `close`, as its
- *   close icon does.  Nothing shows it again (a closed toast stays closed, `hidden`:  the app inserts a new one), so
- *   `--show` and `--toggle` are not answered.
- * - Actions:  a slotted button closes the toast unless its click was `preventDefault()`ed;  approve / deny ones
- *   (`ModalActionSelectors`) fire the cancelable `ui-approve` / `ui-deny` first.
+ * ### `DOMToastElement`
+ * The DOM element of `<ui-toast>`:  it adds `close()`, the toast's script API, which its component does.
+ *
+ * - NOTE: solid-element checks the DOM element's prototype members against the prop names;  `close` isn't one.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIToast extends E.UIElement<Vocabulary> {
+export class DOMToastElement extends E.DOMElement {
+  /** Close it now, reason `dismiss` (the cancelable `ui-close` first);  true when it closes. */
+  close(): boolean {
+    return this.toast?.close() ?? false
+  }
+
+  /** Its component. */
+  private get toast(): UIToast | undefined {
+    return this.component as UIToast | undefined
+  }
+}
+
+/****************
+ * ### `UIToast`
+ * The component behind `<ui-toast>`:  a toast, a short message that shows for a while,
+ * `<div class="floating toast-box" part="box">` around `<div class="ui … toast" part="toast">`
+ * (icon, content block, close icon, actions), with an optional progress bar above or below and `attached` actions.
+ *
+ * - Where it shows:  where it is.
+ *   `UI.toast({…})` (`ToastStack`) puts the ones it builds in a container per position, a popover in the top layer;
+ *   a `<ui-toast>` written in the page is an ordinary block.
+ *
+ * - Its life:  once connected it animates in (Fomantic's `scale`), fires `ui-show`,
+ *   and starts counting down `display-time` (absent or `0`:  it stays).
+ *   - Closing (the countdown, the close icon, a click, Escape inside it, an action, `domElement.close()`)
+ *     fires the cancelable `ui-close` (with a `reason`), animates out,
+ *     sets `hidden` on the DOM element and fires `ui-hide`.
+ *   - It never removes itself:  whoever inserted it owns the node.
+ *
+ * - The countdown pauses while the pointer moves over it (`pause-on-hover`, on by default)
+ *   and ALWAYS while focus is inside (WCAG 2.2.1), with `:state(paused)`;  the progress bar pauses with it.
+ *
+ * - Accessibility:  the toast is `role=status` (polite), `alert` for `type="error"`;  it never takes focus.
+ *   - The close icon is a real `<button>`.
+ *   - Escape closes it while focus is inside:  no page-wide Escape (kind `toast` in `UI.overlays`,
+ *     which also lets `UI.overlays.closeAll("toast")` close every one).
+ *   - Motion follows `UI.transitions` (reduced motion:  none);
+ *     the progress bar is `data-ui-motion="essential"`:  it IS the time left.
+ *
+ * - Invoker commands (`<button commandfor="id" command="--close">`):  `--close` closes it, reason `close`,
+ *   as its close icon does.  Nothing shows it again (a closed toast stays closed, `hidden`:  the app inserts a new
+ *   one), so `--show` and `--toggle` are not answered.
+ *
+ * - Actions:  a slotted button closes the toast unless its click was `preventDefault()`ed;
+ *   approve / deny ones (`UIT.ModalActionSelectors`) fire the cancelable `ui-approve` / `ui-deny` first.
+ ****************/
+export class UIToast extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = toastVocabulary
   @E.proto static styleSheets = { toast: toastCSS }
   @E.proto static elementSetup = {
-    Fallback: ToastFallback,
-    Host: UIToastHost,
+    DOMElement: DOMToastElement,
     // nothing to delegate to:  a click on the text must not jump to an action button
     delegatesFocus: false
-  }
+  } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     this.on("pointerenter", this.onPointerEnter)
     this.on("pointermove", this.onPointerMove)
@@ -62,7 +77,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
     this.on("focusin", this.onFocusIn)
     this.on("focusout", this.onFocusOut)
     this.on("command", this.onCommand)
-    this.host.addReleaseCallback(() => clearTimeout(this.countdownTimer))
+    this.domElement.addReleaseCallback(() => clearTimeout(this.countdownTimer))
   }
 
   ////////////////
@@ -70,7 +85,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
   ////////////////
 
   /** Light-DOM slot occupancy:  slotted actions. */
-  readonly slots = new E.SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** Has slotted actions? */
   get hasActions(): boolean {
@@ -285,7 +300,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
 
   /** This element's `UI.overlays` entry:  no Escape, no outside clicks, no focus restore (kind `toast`). */
   private readonly overlay: E.OverlayEntry = {
-    element: this.host,
+    element: this.domElement,
     kind: "toast",
     restoreFocus: false,
     onDismiss: (reason) => void this.close(reason === "close-all" ? "close-all" : "dismiss")
@@ -340,7 +355,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
   }
 
   /**
-   * Close for `reason`:  the cancelable `ui-close`, then the exit animation, `hidden` on the host and `ui-hide`.
+   * Close for `reason`:  the cancelable `ui-close`, then the exit animation, `hidden` on the DOM element and `ui-hide`.
    * - True when it closes;  false when vetoed or already closing.
    */
   close(reason: UIT.ToastCloseReason = "dismiss", originalEvent?: Event): boolean {
@@ -355,7 +370,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
       ? UI.transitions.animate({ element: box, name: SCALE, direction: UIT.OUT })
       : Promise.resolve(true)
     void exited.then(() => {
-      this.host.hidden = true
+      this.domElement.hidden = true
       const hidden: UIT.ToastCloseDetail = { reason }
       this.send("ui-hide", hidden)
     })
@@ -384,7 +399,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
    */
   private get readingTime(): number {
     const actions = this.slotForName(ACTIONS)
-    const body = [...this.host.childNodes].filter((node) =>
+    const body = [...this.domElement.childNodes].filter((node) =>
       node.nodeType === E.NodeType.element ? (node as Element).slot !== actions : node.nodeType === E.NodeType.text
     )
     const text = [this.header, this.message, ...body.map((node) => node.textContent)].join(" ")
@@ -420,7 +435,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
 
   /** Run the countdown from where it stopped. */
   private resumeTimer() {
-    if (this.countdownTimer || this.isClosing || this.timeLeft <= 0 || !this.host.isConnected) return
+    if (this.countdownTimer || this.isClosing || this.timeLeft <= 0 || !this.domElement.isConnected) return
     this.startedAt = performance.now()
     this.countdownTimer = setTimeout(() => {
       this.countdownTimer = undefined
@@ -496,7 +511,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
   /** Focus moved:  resume once it has really left (a move inside refocuses before the microtask). */
   private readonly onFocusOut = () => {
     queueMicrotask(() => {
-      this.focusIsInside = this.host.matches(FOCUS_WITHIN)
+      this.focusIsInside = this.domElement.matches(FOCUS_WITHIN)
       this.updatePause()
     })
   }
@@ -505,7 +520,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
   // ## Commands, keys and clicks
   ////////////////
 
-  /** An invoker command aimed at the host:  only `ToggleCommands.close`. */
+  /** An invoker command aimed at the DOM element:  only `ToggleCommands.close`. */
   private readonly onCommand = (event: Event) => {
     if ((event as Event & { command?: string }).command === UIT.ToggleCommands.close) this.close("close", event)
   }
@@ -539,7 +554,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
       this.close(kind, event)
       return
     }
-    if (!this.anyClickCloses || this.host.querySelector(FORM_CONTROLS) || this.landedOnClickable(event)) return
+    if (!this.anyClickCloses || this.domElement.querySelector(FORM_CONTROLS) || this.landedOnClickable(event)) return
     this.close("click", event)
   }
 
@@ -548,22 +563,23 @@ export class UIToast extends E.UIElement<Vocabulary> {
   ////////////////
 
   /**
-   * The action `event` activated:  walking the composed path up to the host, the innermost light-DOM element that
-   * approves / denies (`ModalActionSelectors`) or is a button -- counted only inside a child slotted as `actions`.
+   * The action `event` activated:  walking the composed path up to the DOM element,
+   * the innermost light-DOM element that approves / denies (`ModalActionSelectors`) or is a button --
+   * counted only inside a child slotted as `actions`.
    */
   private actionFor(event: Event): [ToastAction, Element] | undefined {
-    const scope = this.host.getRootNode()
+    const scope = this.domElement.getRootNode()
     const slotName = this.slotForName(ACTIONS)
     let found: [ToastAction, Element] | undefined
     for (const target of event.composedPath()) {
-      if (target === this.host) return undefined
+      if (target === this.domElement) return undefined
       if (!(target instanceof Element) || target.getRootNode() !== scope) continue
       if (!found) {
         if (target.matches(UIT.ModalActionSelectors.approve)) found = ["approve", target]
         else if (target.matches(UIT.ModalActionSelectors.deny)) found = ["deny", target]
         else if (UIToast.isButton(target)) found = ["action", target]
       }
-      if (target.parentElement === this.host) return target.slot === slotName ? found : undefined
+      if (target.parentElement === this.domElement) return target.slot === slotName ? found : undefined
     }
     return undefined
   }
@@ -571,7 +587,7 @@ export class UIToast extends E.UIElement<Vocabulary> {
   /** Did `event` land on something interactive inside the toast (`CLICKABLE`)? */
   private landedOnClickable(event: Event): boolean {
     for (const target of event.composedPath()) {
-      if (target === this.host) return false
+      if (target === this.domElement) return false
       if (target instanceof Element && target.matches(CLICKABLE)) return true
     }
     return false
@@ -579,18 +595,33 @@ export class UIToast extends E.UIElement<Vocabulary> {
 
   /**
    * A native button / link, or an element whose definition's noun is `button` (`<ui-button>`, translated too).
-   * - Static:  it reads only the element and the page-wide `UIElement.definitions`.
+   * - Static:  it reads only the element and the page-wide `UIComponent.definitions`.
    */
   private static isButton(element: Element): boolean {
-    return element.matches(BUTTONS) || E.UIElement.definitions.get(element.localName)?.vocabulary.noun === UIT.BUTTON
+    return element.matches(BUTTONS) || E.UIComponent.definitions.get(element.localName)?.vocabulary.noun === UIT.BUTTON
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIToast extends E.AttributeValues<Vocabulary> {}
 
 /** What an activated action does:  approve, deny, or just close (any other button). */
 type ToastAction = Extract<UIT.ToastCloseReason, "approve" | "deny" | "action">
+
+/** The `type` value announced as an alert (`role=alert`), not a status. */
+const ERROR = "error"
+
+/** The class word of the box around the toast:  it floats (`UIToast.css`). */
+const FLOATING = "floating"
+
+/** The class word of the box around the toast, its progress bar and attached actions. */
+const TOAST_BOX = "toast-box"
+
+/** The class word of a fixed-width toast (`compact`, on by default). */
+const COMPACT = "compact"
+
+/** The class word of a box a click doesn't close. */
+const UNCLICKABLE = "unclickable"
 
 /** Icons of a bare `icon`, by type (Fomantic's `icons` setting, in Font Awesome names). */
 const TYPE_ICONS: Readonly<Record<string, string>> = {
@@ -612,7 +643,7 @@ const MIN_DISPLAY_TIME = 1000
 /** `UI.transitions` animation in and out (Fomantic's `showMethod` / `hideMethod`). */
 const SCALE = "scale"
 
-/** Class words of the icon box (`ui-toast.css`). */
+/** Class words of the icon box (`UIToast.css`). */
 const ICON_BOX_CLASS = "centered icon"
 
 /** Class words of `attached` actions:  a button group (Fomantic's). */

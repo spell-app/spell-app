@@ -1,8 +1,9 @@
 /**
- * Barrel for the comment components -- also the `comment` lib entry (`@spell-app/ui/ui-comment`), measured in
- * `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-comments>` and `<ui-comment>`, and the generic content parts through the parts
- *   barrel, so a page never has to import what its comments hold.
+ * The comment family:  defines `<ui-comments>` and `<ui-comment>`,
+ * and exports their components, `UIComments` and `UIComment`.
+ * - SIDE EFFECT:  importing it defines the tags, and the generic content parts through the parts barrel,
+ *   so a page never has to import what its comments hold.
+ * - Also the library's `@spell-app/ui/ui-comment` entry (its size is in `docs/report.md`).
  */
 
 import { UIComment } from "./UIComment"

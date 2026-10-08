@@ -1,5 +1,5 @@
 /**
- * Translation demo:  the same controllers registered under Spanish names with `define(tag, dictionary)`;
+ * Translation demo:  the same components registered under Spanish names with `define(tag, dictionary)`;
  * `ie-cambio` / `ie-alternar` events are logged.
  */
 

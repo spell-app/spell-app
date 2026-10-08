@@ -1,0 +1,397 @@
+/*
+ * The style sheet of `<ui-docs-search>`:  the docs site's search,
+ * in the Spell brand's look (`brand/spell-design-system/`):  the docs header's search pill
+ * (`Spell Docs.dc.html`:  36px, the canvas fill, the default hairline, a magnifying glass),
+ * and a results card under it (a soft floating card, mono eyebrows, the nav's lavender current row).
+ * - It styles the component's shadow DOM:  `<div class="ui [size] finder" part="search">` holding
+ *   - `<div class="field" part="field">` (the pill, the card's anchor):  `<span class="glyph">` around its icon,
+ *     `<input part="input">`, while there's text a `<button class="clear">`,
+ *     and `<span class="keys" part="keys">` of `<kbd>`s (shown while empty and not focused)
+ *   - `<div class="results" part="results" popover>` (top layer, anchored under the pill):
+ *     `<div class="list" role=listbox>` of `<div class="group" part="group">`s,
+ *     each `<div class="label" part="label">` over `<a class="option [kind] [active]" part="option">`s (`.glyph`,
+ *     `.text` > `.title` (`.name` with `<mark>`s, a `<code>` tag) + `.context`, `.enter`);
+ *     `<p class="note">`;  `<div class="hints" part="hints">` of `<kbd>`s
+ * - The card:  as wide as `--ui-docs-search-results-width` (or the pill, if wider), never past the viewport;
+ *   on a phone it spans the screen less a gutter.  Scrolls inside, under a max height.
+ * - Colours come from the THEME's tokens (`--ui-background`, `--ui-border-color`, `--ui-surface`, `--ui-primary-*`,
+ *   `--ui-text-*`, `--ui-shadow-floating`), so it reads in every theme, light and dark.
+ * - Public tokens (`--ui-docs-search-*`) are never declared:  each is read through a private alias
+ *   (`docs/theming.md` "Component tokens").
+ */
+
+@layer ui.components.docs-search.types, ui.components.docs-search.content, ui.components.docs-search.variations, ui.components.docs-search.states;
+
+@layer ui.components.docs-search.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  the brand pill's measures and the card's. */
+  .ui.finder {
+    /* Height of the pill (the brand's 36px). */
+    --_ui-docs-search-height: var(--ui-docs-search-height, 2.25em);
+    /* Fill of the pill (the brand's `--bg-canvas`). */
+    --_ui-docs-search-background: var(--ui-docs-search-background, var(--ui-background));
+    /* Hairline of the pill (the brand's `--border-default`). */
+    --_ui-docs-search-border-color: var(--ui-docs-search-border-color, var(--ui-border-color));
+    /* Hairline of the pill while hovered. */
+    --_ui-docs-search-hover-border-color: var(--ui-docs-search-hover-border-color, var(--ui-border-color-strong));
+    /* Corner radius of the pill. */
+    --_ui-docs-search-radius: var(--ui-docs-search-radius, var(--ui-radius-pill));
+    /* Text colour of the field. */
+    --_ui-docs-search-color: var(--ui-docs-search-color, var(--ui-text-color));
+    /* Colour of the icons and the placeholder (the brand's `--text-subtle`):  never small text that must be read. */
+    --_ui-docs-search-subtle-color: var(--ui-docs-search-subtle-color, var(--ui-text-light));
+    /* Colour of small secondary text:  where a result is, its tag, the keys (4.5:1 on the card in every theme). */
+    --_ui-docs-search-muted-color: var(
+      --ui-docs-search-muted-color,
+      color-mix(in oklab, var(--ui-ink) 72%, var(--_ui-docs-search-results-background))
+    );
+    /* Widest the card gets (it's never narrower than the pill). */
+    --_ui-docs-search-results-width: var(--ui-docs-search-results-width, 28em);
+    /* Tallest the card gets before it scrolls. */
+    --_ui-docs-search-results-height: var(--ui-docs-search-results-height, min(70dvh, 34em));
+    /* Fill of the card. */
+    --_ui-docs-search-results-background: var(--ui-docs-search-results-background, var(--ui-surface));
+    /* Hairline of the card. */
+    --_ui-docs-search-results-border-color: var(--ui-docs-search-results-border-color, var(--ui-border-color));
+    /* Corner radius of the card. */
+    --_ui-docs-search-results-radius: var(--ui-docs-search-results-radius, var(--ui-radius-l));
+    /* Shadow of the card (the brand's `--shadow-md`). */
+    --_ui-docs-search-results-shadow: var(--ui-docs-search-results-shadow, var(--ui-shadow-floating));
+    /* Colour of a group's eyebrow. */
+    --_ui-docs-search-label-color: var(--ui-docs-search-label-color, var(--_ui-docs-search-muted-color));
+    /* Corner radius of a result. */
+    --_ui-docs-search-option-radius: var(--ui-docs-search-option-radius, var(--ui-radius-m));
+    /* Fill of the highlighted result:  the nav's current row (lavender;  dark:  solid). */
+    --_ui-docs-search-active-background: var(
+      --ui-docs-search-active-background,
+      light-dark(var(--ui-primary-background), var(--ui-primary))
+    );
+    /* Text colour of the highlighted result:  the matched text's (dark:  ink on the solid fill). */
+    --_ui-docs-search-active-color: var(
+      --ui-docs-search-active-color,
+      light-dark(var(--_ui-docs-search-mark-color), var(--ui-primary-on))
+    );
+    /* Colour of the matched text:  the theme's primary text, 40% toward the ink (4.5:1 on the lavender row). */
+    --_ui-docs-search-mark-color: var(
+      --ui-docs-search-mark-color,
+      color-mix(in oklab, var(--ui-primary-text) 60%, var(--ui-ink))
+    );
+
+    position: relative;
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    line-height: 1.25;
+    color: var(--_ui-docs-search-color);
+  }
+}
+
+@layer ui.components.docs-search.content {
+  /* ## The pill:  an icon, the field, the clear button, the shortcut hint. */
+  .field {
+    anchor-name: --ui-docs-search-field;
+    box-sizing: border-box;
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+    height: var(--_ui-docs-search-height);
+    padding-inline: 0.875em 0.5em;
+    border: 1px solid var(--_ui-docs-search-border-color);
+    border-radius: var(--_ui-docs-search-radius);
+    background: var(--_ui-docs-search-background);
+    cursor: text;
+  }
+  .field > .glyph {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    color: var(--_ui-docs-search-subtle-color);
+    font-size: 0.875em;
+  }
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font: 400 0.875em / 1 var(--ui-font-family);
+    appearance: none;
+  }
+  input::placeholder {
+    color: var(--_ui-docs-search-subtle-color);
+    opacity: 1;
+  }
+  /* the clear button is ours (and Escape):  no native one */
+  input::-webkit-search-cancel-button,
+  input::-webkit-search-decoration {
+    appearance: none;
+  }
+  .clear {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 1.5em;
+    height: 1.5em;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--_ui-docs-search-subtle-color);
+    font-size: 0.875em;
+    cursor: pointer;
+  }
+  .clear:hover {
+    background: oklch(from var(--ui-text-color) l c h / 0.08);
+    color: var(--_ui-docs-search-color);
+  }
+  .keys {
+    flex: none;
+    display: inline-flex;
+    gap: 0.1875em;
+  }
+  kbd {
+    box-sizing: border-box;
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.5em;
+    height: 1.5em;
+    padding-inline: 0.3em;
+    border: 1px solid var(--_ui-docs-search-border-color);
+    border-block-end-width: 2px;
+    border-radius: 0.375em;
+    background: var(--_ui-docs-search-results-background);
+    color: var(--_ui-docs-search-muted-color);
+    font: 500 0.6875em / 1 var(--ui-font-family-mono);
+  }
+
+  /* ## The card:  a popover anchored under the pill, its left edges lined up. */
+  .results {
+    position-anchor: --ui-docs-search-field;
+    box-sizing: border-box;
+    inset: auto;
+    top: calc(anchor(bottom) + 0.375em);
+    left: anchor(left);
+    width: min(max(anchor-size(width), var(--_ui-docs-search-results-width)), 100vw - 2em);
+    max-height: var(--_ui-docs-search-results-height);
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--_ui-docs-search-results-border-color);
+    border-radius: var(--_ui-docs-search-results-radius);
+    background: var(--_ui-docs-search-results-background);
+    box-shadow: var(--_ui-docs-search-results-shadow);
+    color: var(--_ui-docs-search-color);
+    font: inherit;
+    scrollbar-width: thin;
+  }
+  /* a phone:  the card spans the screen, less a gutter */
+  @media (width < 40em) {
+    .results {
+      left: 0.75em;
+      right: 0.75em;
+      width: auto;
+    }
+  }
+  .list {
+    padding: 0.375em;
+  }
+  .group + .group {
+    margin-block-start: 0.375em;
+    padding-block-start: 0.375em;
+    border-block-start: 1px solid var(--_ui-docs-search-border-color);
+  }
+
+  /* A group's label:  the brand's mono eyebrow. */
+  .label {
+    padding: 0.5em 0.625em 0.375em;
+    color: var(--_ui-docs-search-label-color);
+    font: 500 0.6875em / 1 var(--ui-font-family-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ## A result:  an icon, its title (a tag in mono beside it), where it is;  Enter's glyph while highlighted. */
+  .option {
+    box-sizing: border-box;
+    display: flex;
+    gap: 0.625em;
+    align-items: center;
+    min-height: 2.5em;
+    padding: 0.375em 0.625em;
+    border-radius: var(--_ui-docs-search-option-radius);
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    scroll-margin-block: 0.375em;
+  }
+  .option > .glyph {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 1.75em;
+    height: 1.75em;
+    border-radius: 0.5em;
+    background: oklch(from var(--ui-text-color) l c h / 0.06);
+    color: var(--_ui-docs-search-subtle-color);
+    font-size: 0.8125em;
+  }
+  .option > .text {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125em;
+    min-width: 0;
+  }
+  .title {
+    display: flex;
+    gap: 0.5em;
+    align-items: baseline;
+    min-width: 0;
+    font-size: 0.875em;
+    font-weight: 500;
+  }
+  .title > .name {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .title > code {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--_ui-docs-search-muted-color);
+    font: 400 0.875em / 1 var(--ui-font-family-mono);
+  }
+  .context {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--_ui-docs-search-muted-color);
+    font-size: 0.75em;
+  }
+  mark {
+    background: transparent;
+    color: var(--_ui-docs-search-mark-color);
+    font-weight: var(--ui-font-weight-bold, 700);
+  }
+  .enter {
+    flex: none;
+    visibility: hidden;
+    color: inherit;
+    font: 400 0.875em / 1 var(--ui-font-family-mono);
+    opacity: 0.7;
+  }
+
+  /* ## Notes and the keys line */
+  .note {
+    margin: 0;
+    padding: 1em 1.25em;
+    color: var(--_ui-docs-search-muted-color);
+    font-size: 0.875em;
+  }
+  .note.empty {
+    text-align: center;
+  }
+  .hints {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em 1em;
+    padding: 0.5em 1em;
+    border-block-start: 1px solid var(--_ui-docs-search-border-color);
+    background: var(--_ui-docs-search-results-background);
+    color: var(--_ui-docs-search-muted-color);
+    font-size: 0.75em;
+  }
+  .hints > span {
+    display: inline-flex;
+    gap: 0.25em;
+    align-items: center;
+  }
+  .hints kbd {
+    font-size: 0.875em;
+  }
+}
+
+@layer ui.components.docs-search.states {
+  .field:hover {
+    border-color: var(--_ui-docs-search-hover-border-color);
+  }
+  /* focused:  the theme's focus ring around the pill */
+  .field:focus-within {
+    border-color: var(--ui-focus-color);
+    box-shadow: 0 0 0 var(--ui-focus-width, 2px) oklch(from var(--ui-focus-color) l c h / 0.35);
+  }
+  /* the hint shows while the field is empty and unfocused */
+  .field:focus-within > .keys,
+  :host(:state(searching)) .keys {
+    display: none;
+  }
+  /* closed:  hidden even where popovers aren't supported */
+  .results:not(:popover-open) {
+    display: none;
+  }
+  .option:hover {
+    background: oklch(from var(--ui-text-dark) l c h / 0.06);
+  }
+  .option.active {
+    background: var(--_ui-docs-search-active-background);
+    color: var(--_ui-docs-search-active-color);
+  }
+  .option.active > .glyph,
+  .option.active .context,
+  .option.active code,
+  .option.active mark {
+    color: inherit;
+  }
+  .option.active > .glyph {
+    background: oklch(from currentColor l c h / 0.12);
+  }
+  .option.active > .enter {
+    visibility: visible;
+  }
+  /* a touch screen has no keys:  no hint, no keys line */
+  @media (hover: none) {
+    .keys,
+    .hints {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .field {
+      transition:
+        border-color 120ms ease-out,
+        box-shadow 120ms ease-out;
+    }
+    .option {
+      transition: background-color 80ms ease-out;
+    }
+    .results:popover-open {
+      animation: ui-docs-search-in 140ms var(--ui-ease-out, ease-out);
+    }
+  }
+}
+
+@keyframes ui-docs-search-in {
+  from {
+    opacity: 0;
+    translate: 0 -0.25em;
+  }
+}

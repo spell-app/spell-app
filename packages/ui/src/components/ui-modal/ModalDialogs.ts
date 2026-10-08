@@ -1,22 +1,24 @@
 import { E, UI, UIT } from "$/ui/core"
-import { modalVocabulary } from "./ui-modal.vocabulary.en"
-import { APPROVE_EVENT, CLOSEDBY, HIDE_EVENT } from "./ui-modal.types"
+import { modalVocabulary } from "./UIModal.vocabulary.en"
+import { CLOSEDBY, type Vocabulary } from "./UIModal.types"
 
 /****************
  * ### `ModalDialogs`
- * `UI.modals.confirm()` / `alert()` / `prompt()` (Fomantic's `$.modal('confirm', ...)`):  a `<ui-modal>` built for
- * the call, appended to `<body>`, opened, and removed once hidden.
- * - Markup:  `<ui-modal size="tiny" closedby="closerequest" header="title">` holding a `<ui-content>` (the message
- *   as a `<p>`, or for `prompt()` a `<label>` around it and an `<input>`) and `<ui-actions>` with a deny button
- *   (`cancel`, first:  it takes the initial focus, the least destructive choice) and a primary approve button.
- * - Escape denies (`closedby="closerequest"`:  no dimmer clicks, so a stray click can't answer);  the promise
- *   settles once the modal is HIDDEN (`ui-hide`), so a caller can open the next dialog straight away.
+ * The dialogs behind `UI.modals.confirm()` / `alert()` / `prompt()` (Fomantic's `$.modal('confirm', …)`):
+ * a `<ui-modal>` built for the call, appended to `<body>`, opened, and removed once hidden.
+ *
+ * - Markup:  `<ui-modal size="tiny" closedby="closerequest" header="title">` holding
+ *   - a `<ui-content>`:  the message as a `<p>`, or for `prompt()` a `<label>` around it and an `<input>`
+ *   - `<ui-actions>`:  a deny button (`cancel`, first:  it takes the initial focus, the least destructive choice)
+ *     and a primary approve button.
+ * - Escape denies (`closedby="closerequest"`:  no dimmer clicks, so a stray click can't answer).
+ * - The promise settles once the modal is HIDDEN (`ui-hide`), so a caller can open the next dialog straight away.
  * - Button texts:  `okText` / `cancelText`, else the translated `ok` / `cancel` texts (`UI.i18n`).
  * - Everything is light DOM built with `createElement` / `textContent`:  never `innerHTML` with caller text.
- * - Other families' tags (`<ui-content>`, `<ui-actions>`, `<ui-button>`) are looked up at CALL time in the
- *   vocabulary registry (`UI.vocabulary`), by class noun:  importing their vocabulary files would reach into
- *   other families' leaves, which `AGENTS.md` keeps behind `$/ui/core`.  The family barrel imports `parts` and
- *   `button` for their side effect, so both are registered before any dialog opens.
+ * - Other families' tags (`<ui-content>`, `<ui-actions>`, `<ui-button>`) are looked up at CALL time,
+ *   by class noun, in the vocabulary registry (`UI.vocabulary`):
+ *   importing their vocabulary files would reach into other families' files, which `AGENTS.md` keeps behind
+ *   `$/ui/core`.  The family barrel imports `parts` and `button`, so both are defined before any dialog opens.
  * - Registered by the family barrel as `UI.modals`' provider;  the runtime never imports it.
  ****************/
 export class ModalDialogs implements E.ModalProvider {
@@ -139,6 +141,12 @@ export type ModalDialogsProps = {
   /** page to build in.  Default:  the global `document`. */
   document?: Document
 }
+
+/** An approve element was activated:  the dialog answers yes. */
+const APPROVE_EVENT: E.EventName<Vocabulary> = "ui-approve"
+
+/** Hidden:  the call settles. */
+const HIDE_EVENT: E.EventName<Vocabulary> = "ui-hide"
 
 /** `<ui-modal>` width attribute (canonical name). */
 const SIZE = "size"

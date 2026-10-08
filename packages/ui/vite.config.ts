@@ -228,9 +228,9 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  *   specifiers to relative ones.  `pathsToAliases: false`:  the plugin's own rewrite measures from the layout
  *   BEFORE the move, and gets `../packages/ui/src/...`.
  * - `?inline` CSS imports (`styles/index.ts`) become `declare const x: string`:  only `vite/client` types them.
- * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIElement` is copied into every
+ * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIComponent` is copied into every
  *   entry that reaches it, and a class with private members is a DIFFERENT type in each copy.  Per-file
- *   declarations keep one `UIElement` for `@spell-app/ui/core` and `@spell-app/ui/ui-button` alike.
+ *   declarations keep one `UIComponent` for `@spell-app/ui/core` and `@spell-app/ui/ui-button` alike.
  * - `util` is not published on its own, so its GENERIC declarations ship inside `@spell-app/ui`.  NOT `util/src/spell/` or
  *   `util`'s barrel (which flattens it in):  `exclude` lists them, and `src/util/index.ts` imports file by file.
  * - MUST end with NO `$/` alias in `dist/**.d.ts` and no path outside `dist/`;  `yarn smoke` checks.
@@ -305,7 +305,7 @@ function rewriteDeclaration(filePath: string, content: string) {
  * - Boundaries:  the component barrels (`src/components/ui-<name>/index.ts`), the modules that call `define()`.
  *   An edit to a component class, vocabulary or fallback re-runs its barrel;  `HotDefinitions` turns the barrel's
  *   `define()` of a new version of a class into a re-definition of every tag it had.
- * - `?inline` component CSS (`src/components/ui-<name>/ui-<name>.css`) re-registers its sheet:  no re-render.
+ * - `?inline` component CSS (`src/components/ui-<name>/UI<Name>.css`) re-registers its sheet:  no re-render.
  * - Shared code (`core`, `forms`, the runtime) reaches several barrels:  full reload.
  * - `HotDefinitions` is injected by FILE PATH, not `$/ui/elements/HotDefinitions`:  `resolve.tsconfigPaths` only
  *   resolves aliases for TS / JS importers, and the sheets' handler import lives in a `.css?inline` module.

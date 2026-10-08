@@ -3,13 +3,13 @@ import { E } from "$/ui/core"
 /****************
  * ### `SourceMarkup`
  * Fetched HTML made ready for this page -- what `<ui-include>` and the source BODIES of `<ui-section>` /
- * `<ui-accordion>` (`SourceBody`) share, so markup from a file goes in the same way everywhere.
+ * `<ui-accordion>` (`LoadableBody`) share, so markup from a file goes in the same way everywhere.
  * - `parse()`:  the file's `<body>` content (or its first `select` match) as a fragment of THIS document;  parsed by
  *   `DOMParser`, so its scripts never run and its `<head>` is dropped.
  * - `rewriteUrls()`:  relative `href` / `src` / `action` / `poster` / `source` point where they did in the file;
  *   each original is kept beside it (`data-ui-include-*`), which `restoreUrls()` puts back.
  * - `checkNesting()`:  throws for a source inside a source of the same file, or nested deeper than `MAX_DEPTH`.
- * - Static only:  plain DOM, no Solid, no state.  Imports no element class:  `UIInclude` and `SourceBody` call it.
+ * - Static only:  plain DOM, no Solid, no state.  Imports no element class:  `UIInclude` and `LoadableBody` call it.
  ****************/
 export class SourceMarkup {
   /**
@@ -79,16 +79,16 @@ export class SourceMarkup {
   }
 
   /**
-   * Throws a `render` `SourceError` when `host` must NOT load `source`:  an enclosing source of the same file (it
+   * Throws a `render` `SourceError` when `domElement` must NOT load `source`:  an enclosing source of the same file (it
    * would include itself), or more than `MAX_DEPTH` enclosing sources.
    * - `counts` says which ancestors are sources (`<ui-include>`:  other includes;  a body:  anything with `source`).
    * - Climbs out of shadow roots.
    */
-  static checkNesting(host: Element, source: string, counts: (element: Element) => boolean) {
-    const base = host.ownerDocument.baseURI
+  static checkNesting(domElement: Element, source: string, counts: (element: Element) => boolean) {
+    const base = domElement.ownerDocument.baseURI
     const url = new URL(source, base).href
     let depth = 0
-    for (let node = SourceMarkup.parentFor(host); node; node = SourceMarkup.parentFor(node)) {
+    for (let node = SourceMarkup.parentFor(domElement); node; node = SourceMarkup.parentFor(node)) {
       if (!counts(node)) continue
       depth++
       const outer = node.getAttribute(E.SOURCE_ATTRIBUTE)
@@ -113,7 +113,7 @@ export class SourceMarkup {
    * `element`'s parent in the DOM tree, stepping out of shadow roots;  `undefined` at the top.
    * - The DOM tree, NOT the flat tree (`flatParentFor()`):  the enclosing sources are the markup's ancestors,
    *   whatever slot it's shown in.
-   * - `nodeType`, never `instanceof ShadowRoot` / `Element`:  the static render's hosts are linkedom elements
+   * - `nodeType`, never `instanceof ShadowRoot` / `Element`:  the static render's DOM elements are linkedom elements
    *   (`AGENTS.md` "Solid authoring" › SSR).
    */
   private static parentFor(element: Element): Element | undefined {

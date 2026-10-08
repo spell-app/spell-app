@@ -27,13 +27,13 @@ class UIThing extends HTMLElement {
 
 - `src/components/ui-root/` (`@spell-app/ui/ui-root`):  a page imports the root only;  every `ui-*` tag inside loads
   its family on demand, once per page (`RootLoader`, a literal `import.meta.glob` per family).  Tag => family comes
-  from `ui-root.catalog.ts`, GENERATED from the vocabularies (`yarn gen:root`;  `src/components/ui-root/ui-root.catalog.test.ts` fails while
+  from `UIRoot.catalog.ts`, GENERATED from the vocabularies (`yarn gen:root`;  `src/components/ui-root/UIRoot.catalog.test.ts` fails while
   it's stale) -- never `ComponentDefinitions`, which would put every vocabulary in the root's chunk.
 - Ready:  families settled, then every element inside `ready` (an inner root:  its `settled`), or `timeout` (5s).
   Then `:state(ready)`, `ui-ready { failed }`, a cancelable `ui-error` per failure before it.
 - `display`:  `skeleton` (default;  `<ui-placeholder>`s from each tag's vocabulary `skeleton`, drawn in the root's
   shadow by `UIRoot.Skeleton`), `when-ready`, `immediately`;  `loading="..."` shows `UIRoot.Loading` (a `<ui-loader>`).
-  The root renders at once, unstyled (`UIElement`'s `elementSetup.canRenderUnstyled`):  the slot is hidden by an inline style before
+  The root renders at once, unstyled (`UIComponent`'s `elementSetup.canRenderUnstyled`):  the slot is hidden by an inline style before
   any sheet loads.
 - Settings for everything inside, through `RootSettings` (`src/elements/RootSettings.ts`, in `core`):
   - `icons="fa7-free, /packs/lucide/pack.js"` -- a child icon set, `UI.icons.scope(packs, { assets, parent })`, over
@@ -116,7 +116,7 @@ Defaults depend on `kind`:
 - `<ui-modal>` sets `closeOnOutsideClick: false` when the browser does light dismiss itself (`<dialog closedby>`, `UI.browser.supports.dialogClosedBy`) and routes the dialog's `cancel` through its own `ui-close`;  Escape always goes through `Overlays`.
 - `UI.browser.supports.invokers` (`"commandForElement" in HTMLButtonElement.prototype`) says whether the browser does invoker commands (`<button commandfor command>`).  `<ui-button>` forwards `commandfor` / `command` to its inner `<button>` (setting `commandForElement`, since the shadow button can't see a light-DOM id) when it does;  else it runs the command itself on click (`Invoker`:  `show-modal` / `close` / `request-close` on a `<dialog>`, `show-popover` / `hide-popover` / `toggle-popover` on a popover) and dispatches the `command` event, which `<ui-modal>` / `<ui-flyout>`, `<ui-sidebar>` and `<ui-dimmer>` answer to `--show` / `--close` / `--toggle`.
 - `<ui-popup>` and the dropdown menu are `popover` entries with their target as `anchor`, so a click on the target never dismisses-then-reopens.
-- `<ui-flyout>` shares `<ui-modal>`'s controller (`DialogElement`) with kind `flyout`;  a page `<ui-dimmer>` is kind `dimmer` (outside clicks are its own:  the dimmer covers the viewport);  a modal `<ui-sidebar>` is kind `sidebar` -- a non-modal `<dialog>` in its pushable, so it adds `UI.focus.trap()` itself and its pushable makes the pusher `inert`.
+- `<ui-flyout>` shares `<ui-modal>`'s component base (`DialogComponent`) with kind `flyout`;  a page `<ui-dimmer>` is kind `dimmer` (outside clicks are its own:  the dimmer covers the viewport);  a modal `<ui-sidebar>` is kind `sidebar` -- a non-modal `<dialog>` in its pushable, so it adds `UI.focus.trap()` itself and its pushable makes the pusher `inert`.
 - Scroll lock adds `ui-scroll-locked` to `<html>` and sets `--ui-scrollbar-width`. `Overlays` registers the matching rule as the page sheet `scroll-lock`, in `@layer ui.base`.
 
 ## Animation protocol

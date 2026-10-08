@@ -2,12 +2,10 @@ import { Show, onSettled } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { cardVocabulary } from "./ui-card.vocabulary.en"
-import { CardFallback } from "./ui-card.fallback"
+import { cardVocabulary } from "./UICard.vocabulary.en"
 import type { UICards } from "./UICards"
-import { ARTICLE, ContentShorthands, EXTRA, META } from "./ui-card.types"
 
-import cardCSS from "./ui-card.css?inline"
+import cardCSS from "./UICard.css?inline"
 
 /**
  * Same nouns:  a rescan finding them again changes nothing (`UICard.slottedNouns`'s `equals`).
@@ -18,37 +16,42 @@ function isSameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
 }
 
 /****************
- * ### `<ui-card>`
- * A card:  `<article class="ui ... card" part="card">` of content parts;  with `href` the whole card is a link,
- * `<a class="ui ... card" href>`.
- * - Why `<article>`:  HTML's "complete, or self-contained, composition" -- a person, a product, a post -- and
- *   what assistive tech lets a reader jump between.  No ARIA pattern (APG has no card);  a link card is one
- *   link, named by its content.  `link` alone is only Fomantic's hover LOOK:  a card that goes somewhere needs
- *   `href` (a `<button>` card would nest the buttons inside it).
+ * ### `UICard`
+ * The component behind `<ui-card>`:  a card of content parts, `<article class="ui ... card" part="card">`.
+ * With `href` the whole card is a link, `<a class="ui ... card" href>`.
+ *
+ * - Why `<article>`:  HTML's "complete, or self-contained, composition" (a person, a product, a post),
+ *   which assistive tech lets a reader jump between.
+ *   - No ARIA pattern (APG has no card).  A link card is one link, named by its content.
+ *   - `link` alone is only Fomantic's hover LOOK:  a card that goes somewhere needs `href`
+ *     (a `<button>` card would nest the buttons inside it).
+ *
  * - Content:  the generic parts (`<ui-content>`, `<ui-header>`, `<ui-meta>`, `<ui-description>`, `<ui-extra>`),
- *   styled `:state(in-card)` by `ui-parts.css`;  a slotted `<img>` is a full-width image.
- * - Shorthands (`image`, `header`, `meta`, `description`, `extra`) render the same parts as STATIC markup in the
- *   shadow root (`<div class="header in-card">`), styled by the `ui-parts.css` this card adopts.  Order:  image,
- *   one content block (header, meta, description), the slot, extra.  A slotted part of the same noun anywhere
- *   inside (or a slotted `<img>`, for `image`) wins:  that shorthand isn't rendered.
- * - In a `<ui-cards>` group (`PartContext`, noun `card`):  a `role=listitem` host with `:state(in-cards)`, and
- *   every shared variation it doesn't set comes from the group (`classValue()`).
- * - `loading`:  `aria-busy` (internals) and a visually hidden `role=status` "Loading…";  `disabled`:
- *   `aria-disabled`, and a link card loses its `href`.
+ *   styled `:state(in-card)` by `UIParts.css`;  a slotted `<img>` is a full-width image.
+ *
+ * - Shorthands (`image`, `header`, `meta`, `description`, `extra`) draw the same parts as STATIC markup
+ *   in the shadow root (`<div class="header in-card">`), styled by the `UIParts.css` this card adopts.
+ *   - Order:  the image, one content block (header, meta, description), the slot, then extra.
+ *   - A slotted part of the same noun anywhere inside (or a slotted `<img>`, for `image`) wins:
+ *     that shorthand isn't drawn.
+ *
+ * - In a `<ui-cards>` group (`PartContext`, noun `card`):  the DOM element is a `role=listitem` with
+ *   `:state(in-cards)`, and every shared variation the card doesn't set comes from the group (`classValue()`).
+ *
+ * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
+ * - `disabled`:  `aria-disabled`, and a link card loses its `href`.
  ****************/
-export class UICard extends E.UIElement<typeof cardVocabulary> {
+export class UICard extends E.UIComponent<typeof cardVocabulary> {
   @E.proto static vocabulary = cardVocabulary
-  @E.proto static styleSheets = { card: cardCSS, ...E.ContentPart.styleSheets }
-  @E.proto static elementSetup = { Fallback: CardFallback }
-
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  @E.proto static styleSheets = { card: cardCSS, ...E.PartComponent.styleSheets }
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     if (isServer) return
-    const { host } = this
+    const { domElement } = this
     // SIDE EFFECT:  shorthands follow what's slotted, at any depth
     onSettled(() => {
       const observer = new MutationObserver(() => (this.slottedNouns = this.scan()))
-      observer.observe(host, { childList: true, subtree: true })
+      observer.observe(domElement, { childList: true, subtree: true })
       this.slottedNouns = this.scan()
       return () => observer.disconnect()
     })
@@ -59,11 +62,11 @@ export class UICard extends E.UIElement<typeof cardVocabulary> {
   ////////////////
 
   /** Group, if any. */
-  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
+  readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
 
-  /** The group's controller. */
+  /** The group's component. */
   get group(): UICards | undefined {
-    return this.context.ownerController<UICards>()
+    return this.context.ownerComponent<UICards>()
   }
 
   /** A shared variation the card doesn't set comes from its group. */
@@ -89,9 +92,9 @@ export class UICard extends E.UIElement<typeof cardVocabulary> {
   }
 
   /** A list item in a group;  busy / disabled for assistive tech. */
-  @E.onChange("group", "loading", "disabled", { writesHost: true })
+  @E.onChange("group", "loading", "disabled", { writesDOMElement: true })
   protected onAriaChanged(group: UICards | undefined, isLoading: boolean, isDisabled: boolean) {
-    const { internals } = this.host
+    const { internals } = this.domElement
     internals.role = group ? UIT.LISTITEM : null
     internals.ariaBusy = isLoading ? UIT.TRUE : null
     internals.ariaDisabled = isDisabled ? UIT.TRUE : null
@@ -119,9 +122,9 @@ export class UICard extends E.UIElement<typeof cardVocabulary> {
   /** Shorthand nouns the light DOM already has, read from the DOM now. */
   private scan(): ReadonlySet<string> {
     const nouns = new Set<string>()
-    for (const child of this.host.children) if (child.localName === UIT.IMG && !child.slot) nouns.add(UIT.IMAGE)
-    for (const element of this.host.querySelectorAll("*")) {
-      const noun = E.UIElement.definitions.get(element.localName)?.vocabulary.noun
+    for (const child of this.domElement.children) if (child.localName === UIT.IMG && !child.slot) nouns.add(UIT.IMAGE)
+    for (const element of this.domElement.querySelectorAll("*")) {
+      const noun = E.UIComponent.definitions.get(element.localName)?.vocabulary.noun
       if (noun && (Shorthands as readonly string[]).includes(noun)) nouns.add(noun)
     }
     return nouns
@@ -192,8 +195,20 @@ export class UICard extends E.UIElement<typeof cardVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UICard extends E.AttributeValues<typeof cardVocabulary> {}
+
+/** The `meta` shorthand:  its attribute, part noun and class word. */
+const META = "meta"
+
+/** The `extra` shorthand:  its attribute, part noun and class word. */
+const EXTRA = "extra"
+
+/** Shorthands drawn in the card's content block, in order. */
+const ContentShorthands = [UIT.HEADER, META, UIT.DESCRIPTION] as const
+
+/** Root tag of a card without `href`:  a self-contained composition (a link card's is `UIT.ANCHOR_TAG`). */
+const ARTICLE = "article"
 
 /** Every shorthand attribute, by the part noun it renders. */
 const Shorthands = [UIT.IMAGE, UIT.HEADER, META, UIT.DESCRIPTION, EXTRA] as const

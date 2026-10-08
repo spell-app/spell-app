@@ -1,12 +1,12 @@
 import { E } from "$/ui/core"
-import type { RadioMember } from "./ui-checkbox.types"
+import type { RadioMember } from "./UICheckbox.types"
 
 /****************
  * ### `RadioGroup`
  * Every `<ui-radio>` of one `name` in one SCOPE -- its form owner, else its root node (document or shadow root) --
  * as native radios group.
- * - Why our own:  each `<ui-radio>` keeps its `<input type="radio">` in its OWN shadow root, and native grouping
- *   only spans one tree, so the platform never sees two of them as a group.
+ * - Why our own:  each `<ui-radio>` keeps its `<input type="radio">` in its OWN shadow root,
+ *   and native grouping only spans one tree, so the platform never sees two of them as a group.
  * - Registry:  `RadioGroup.of(scope, name)`, weakly keyed by the scope node;  members `join()` / `leave()` as they
  *   connect, move and rename -- from the member's lifecycle and attribute callbacks, NEVER from an effect.
  * - Everything a member renders from is tracked (`version`), so tabbability and group validity follow joins,
@@ -24,7 +24,8 @@ export class RadioGroup {
 
   /**
    * Bumped on every join / leave:  tracked reads of the members go through it.
-   * - `ownedWrite`:  a member joins from its constructor and the fork's hooks, which may run inside a Solid render.
+   * - `ownedWrite`:  a member joins from its constructor and solid-element's hooks,
+   *   which may run inside a Solid render.
    */
   @E.state({ ownedWrite: true }) private accessor version = 0
 
@@ -74,7 +75,7 @@ export class RadioGroup {
   /** Members in document order;  tracked. */
   @E.derived
   get membersInOrder(): RadioMember[] {
-    return this.members.sort(RadioGroup.byHostOrder)
+    return this.members.sort(RadioGroup.byDocumentOrder)
   }
 
   /** The chosen member, if any;  tracked. */
@@ -101,7 +102,7 @@ export class RadioGroup {
 
   /** The enabled member `delta` steps from `from` in document order, wrapping;  reads the live set, untracked. */
   step(from: RadioMember, delta: number): RadioMember | undefined {
-    const ordered = [...this.current].sort(RadioGroup.byHostOrder)
+    const ordered = [...this.current].sort(RadioGroup.byDocumentOrder)
     const enabled = ordered.filter((member) => member === from || !member.isDisabled)
     if (enabled.length < 2) return undefined
     const index = enabled.indexOf(from)
@@ -113,10 +114,10 @@ export class RadioGroup {
   ////////////////
 
   /**
-   * Sort comparator:  members in their hosts' document order (`E.byDocumentOrder`).
+   * Sort comparator:  members in their DOM elements' document order (`E.byDocumentOrder`).
    * - STATIC:  pure, handed to `sort()`.
    */
-  private static byHostOrder(a: RadioMember, b: RadioMember): number {
-    return E.byDocumentOrder(a.host, b.host)
+  private static byDocumentOrder(a: RadioMember, b: RadioMember): number {
+    return E.byDocumentOrder(a.domElement, b.domElement)
   }
 }

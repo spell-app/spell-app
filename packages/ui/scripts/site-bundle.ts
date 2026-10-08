@@ -27,7 +27,7 @@ import { fileURLToPath } from "node:url"
 import { gzipSync } from "node:zlib"
 import { build } from "vite"
 
-import type { ComponentPackEntry } from "../src/components/ui-root/ui-root.types.ts"
+import type { ComponentPackEntry } from "../src/components/ui-root/UIRoot.types.ts"
 import { SITE_ASSETS } from "../vite.site.config.ts"
 import { Terminal } from "../tools/Terminal.ts"
 import { VocabularyFiles } from "../tools/VocabularyFiles.ts"

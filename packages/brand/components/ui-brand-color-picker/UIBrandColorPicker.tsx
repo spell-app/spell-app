@@ -1,12 +1,12 @@
 import { For, Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue } from "$/ui/core"
-import { ControlLabels, FormElement } from "$/ui/forms"
+import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue, type ElementSetup } from "$/ui/core"
+import { ControlLabels, FormComponent } from "$/ui/forms"
 import { Palette, type Hsl, type Oklch } from "$/brand"
 
-import { brandColorPickerVocabulary } from "./ui-brand-color-picker.vocabulary.en"
-import { BrandColorPickerFallback } from "./ui-brand-color-picker.fallback"
+import { brandColorPickerVocabulary } from "./UIBrandColorPicker.vocabulary.en"
+import { BrandColorPickerFallback } from "./UIBrandColorPicker.fallback"
 import {
   BRAND_COLOR,
   CLASSES,
@@ -25,25 +25,28 @@ import {
   type FieldKey,
   type Row,
   type RowField
-} from "./ui-brand-color-picker.types"
+} from "./UIBrandColorPicker.types"
 
-import pickerCSS from "./ui-brand-color-picker.css?inline"
+import pickerCSS from "./UIBrandColorPicker.css?inline"
 
 /****************
- * ### `<ui-brand-color-picker>`
- * An inline colour picker, the brand's (the Color Set Chooser's "Choose a colour" popover, without its title and
- * close button):  `<div class="picker brand color" part="picker">` > the head row (chip, `header` slot, hex, `actions`
- * slot), the hue slider, the HSL SQUARE for that hue, the HSL / RGB / OKLCH rows (each with a copy button),
- * then the default slot (e.g. family chips).
+ * ### `UIBrandColorPicker`
+ * The component behind `<ui-brand-color-picker>`:  the brand's inline colour picker
+ * (the Color Set Chooser's "Choose a colour" popover, without its title and close button).
+ *
+ * - Its shadow DOM:  `<div class="picker brand color" part="picker">` > the head row
+ *   (chip, `header` slot, hex, `actions` slot), the hue slider, the HSL SQUARE for that hue,
+ *   the HSL / RGB / OKLCH rows (each with a copy button), then the default slot (e.g. family chips).
+ *
  * - The square:  saturation 0 -> 100% across, lightness 100% (top) -> 0% down, for the current hue;  every point is a
- *   real sRGB colour.  Drawn by CSS (`ui-brand-color-picker.css`):  two gradients over the hue, exact, since HSL is
- *   linear in sRGB along both axes;  a hue change repaints, nothing is computed per pixel.
+ *   real sRGB colour.  Drawn by CSS (`UIBrandColorPicker.css`):  two gradients over the hue, exact,
+ *   since HSL is linear in sRGB along both axes;  a hue change repaints, nothing is computed per pixel.
  * - The colour being edited (`working`) is HSL, apart from `value` (`#RRGGBB`), so a grey keeps its hue (and black
  *   or white their saturation too):  the square and the hue slider don't jump when the colour passes through them.
- * - Keyboard (see the docs page):  the square is two visually hidden native range inputs, Saturation and Lightness
- *   (one tab stop:  the Lightness one is `tabindex=-1`);  on either, Left / Right move S and Up / Down move L by 1%
- *   (Shift:  10%), PageUp / PageDown L by 10%, Home / End S to 0 / 100%.  Each key is `ui-input` then `ui-change`.
- *   An assistive technology's own increment arrives as their `input`.
+ * - Keyboard (see the docs page):  the square is two visually hidden native range inputs,
+ *   Saturation and Lightness (one tab stop:  the Lightness one is `tabindex=-1`);  on either, Left / Right move S and
+ *   Up / Down move L by 1% (Shift:  10%), PageUp / PageDown L by 10%, Home / End S to 0 / 100%.
+ *   Each key is `ui-input` then `ui-change`. An assistive technology's own increment arrives as their `input`.
  * - Pointer:  press on the square jumps the marker there and drags it (pointer capture);  `ui-input` per new colour,
  *   `ui-change` on release.  The hue slider:  `ui-input` per step, `ui-change` on its native `change`.
  * - Typing:  the hex field takes anything `Palette.parse()` reads;  the HSL and OKLCH fields numbers (H in degrees,
@@ -52,20 +55,20 @@ import pickerCSS from "./ui-brand-color-picker.css?inline"
  *   Enter or leaving the field commits (`ui-change`) and shows the value again;  Escape drops the draft.
  * - Copy buttons:  `hsl(250 54% 55%)` (the HSL row as shown), `#RRGGBB`, `oklch(52.0% 0.181 286)` to the clipboard,
  *   then `ui-copy`, a check for `COPIED_MS`, and "Copied ..." announced.  A refused clipboard write does nothing.
- * - `value` is auto-controlled (`Controlled`) and reflects;  a `ui-input` handler that re-sets it wins.  Its FIRST
- *   attribute value is the form's reset value.  Outside changes redraw without events.
- * - Form:  `value` under `name`.
+ * - `value` is controlled (`Controlled`) and reflects;  a `ui-input` handler that sets it again wins.
+ *   Its FIRST attribute value is the form's reset value.  Changes from outside redraw without events.
+ * - A form control:  it submits `value` under `name`.
  ****************/
-export class UIBrandColorPicker extends FormElement<BrandColorPickerVocabulary> {
+export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary> {
   @proto static vocabulary = brandColorPickerVocabulary
   @proto static styleSheets = { picker: pickerCSS }
-  @proto static elementSetup = { Fallback: BrandColorPickerFallback }
+  @proto static elementSetup = { Fallback: BrandColorPickerFallback } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State
   ////////////////
 
-  /** `value`:  the host's property, else `DEFAULT_VALUE`. */
+  /** `value`:  set by the page, or picked;  `DEFAULT_VALUE` until either. */
   readonly valueState = this.controlled("value", undefined)
 
   /** The colour being edited, HSL (see the class doc). */
@@ -81,10 +84,10 @@ export class UIBrandColorPicker extends FormElement<BrandColorPickerVocabulary> 
   readonly copied = new Cell<{ format: CopyFormat; value: string } | undefined>(undefined)
 
   /** Light-DOM slot occupancy:  header, actions, the default slot. */
-  readonly slots = new SlotContent(this.host)
+  readonly slots = new SlotContent(this.domElement)
 
-  /** Host `<label>`s and `aria-label` (a `<ui-brand-field>` names it so), as the group's name. */
-  readonly labels = new ControlLabels(this.formHost)
+  /** The DOM element's `<label>`s and `aria-label` (a `<ui-brand-field>` names it so), as the group's name. */
+  readonly labels = new ControlLabels(this.domFormElement)
 
   /** Each row's copy icon and check, loaded up front so the check shows at once. */
   readonly glyphs = {
@@ -403,7 +406,7 @@ export class UIBrandColorPicker extends FormElement<BrandColorPickerVocabulary> 
     }
   }
 
-  /** The group's name:  `label`, else what names the host, else "Colour". */
+  /** The group's name:  `label`, else what names the DOM element, else "Colour". */
   private groupName(): string {
     return this.attrs.label ?? this.labels.accessibleName ?? this.translationForKey("group")
   }
@@ -448,8 +451,8 @@ export class UIBrandColorPicker extends FormElement<BrandColorPickerVocabulary> 
   ////////////////
 
   /**
-   * Edit the colour to `next` as the user:  `ui-input` when `value` changes, then the host property, unless a handler
-   * re-set it (then the edit is undone).
+   * Edit the colour to `next` as the user:  send `ui-input` when `value` changes, then set the DOM element's
+   * property, unless a handler set it first (then the edit is undone).
    */
   private move(next: Hsl, originalEvent: Event) {
     const previous = this.latest

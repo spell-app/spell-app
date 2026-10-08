@@ -1,8 +1,8 @@
 /****************
  * ### `BreadcrumbDivider`
- * Values of the divider tokens a breadcrumb publishes (`UIT.BreadcrumbDividerTokens`), as CSS text -- shared by
- * `<ui-breadcrumb>` and its native fallback.
- * - Imports nothing:  plain DOM, no Solid, so the fallback and a static server render use it too.
+ * The values of the divider tokens a breadcrumb publishes (`UIT.BreadcrumbDividerTokens`), as CSS text,
+ * for `UIBreadcrumb`.
+ * - Imports nothing:  plain DOM, no Solid, so a static server render uses it too.
  * - STATIC and instance-free:  pure conversions.
  ****************/
 export class BreadcrumbDivider {

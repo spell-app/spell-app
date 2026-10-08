@@ -65,7 +65,7 @@ export class ComponentTokens {
   /**
    * Convert one sheet of `family` to private aliases (the codemod behind `yarn tokens:alias`).
    * - `declared`:  the family's public tokens declared in ANY of its sheets (a sheet may read tokens a sibling
-   *   sheet declares, e.g. `ui-popup.anchored.css`);  default:  the ones this sheet declares.
+   *   sheet declares, e.g. `UIPopup.anchored.css`);  default:  the ones this sheet declares.
    * - For each of the family's tokens this sheet declares:  the FIRST declaration becomes the alias
    *   (`--_ui-x: var(--ui-x, <value>)`), every later one (a variation) writes the alias (`--_ui-x: <value>`).
    * - Every read (`var(--ui-x`, `style(--ui-x`) of a `declared` token becomes `--_ui-x`.
@@ -256,7 +256,7 @@ export class ComponentTokens {
 
 /** What `new ComponentTokens()` reads:  source TEXT, never files. */
 export type ComponentTokensProps = {
-  /** path => text of every `ui-<tag>.vocabulary.en.ts` (one per tag);  the family is the path's folder */
+  /** path => text of every `ui-UI<Name>.vocabulary.en.ts` (one per tag);  the family is the path's folder */
   vocabularies: Record<string, string>
   /** texts of the foundation sheets (`src/styles/*.css`) */
   foundation: string[]

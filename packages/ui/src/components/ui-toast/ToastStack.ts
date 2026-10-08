@@ -1,23 +1,27 @@
 import { E, UI, UIT } from "$/ui/core"
-import { toastVocabulary } from "./ui-toast.vocabulary.en"
-import { ACTIONS, ATTACHED, FOCUS_WITHIN, HIDE_EVENT, INVERTED, UI_WORD, type Vocabulary } from "./ui-toast.types"
+import { toastVocabulary } from "./UIToast.vocabulary.en"
+import { ACTIONS, ATTACHED, FOCUS_WITHIN, INVERTED, UI_WORD, type Vocabulary } from "./UIToast.types"
 
-import containerCSS from "./ui-toast.container.css?inline"
+import containerCSS from "./UIToast.container.css?inline"
 
 /****************
  * ### `ToastStack`
- * `UI.toast({...})` / `UI.toasts.show()` (Fomantic's `$.toast({...})`):  a `<ui-toast>` built for the call, put in
- * the container for its `position`, removed once it has hidden.
+ * The toasts behind `UI.toast({…})` / `UI.toasts.show()` (Fomantic's `$.toast({…})`):
+ * a `<ui-toast>` built for the call, put in the container for its `position`, removed once it has hidden.
+ *
  * - Containers:  one `<div popover="manual" class="ui [position] toast-container" role="region">` per position
- *   (and `horizontal`), in `<body>`, styled by the page sheet `toast-container` (`ui-toast.container.css`).  Shown
- *   (re-shown, to be lifted above anything opened since) for each new toast, unless focus is inside it;  removed
- *   when its last toast goes.
- * - Options map onto attributes (`title` => `header`, `showProgress` => `progress` ...);  `displayTime` defaults to
- *   Fomantic's `3000`.  `class` words sort themselves:  a `type` word, a hue (`color`) or `inverted`;  every word
- *   also stays on the `<ui-toast>` host, so a page can theme one toast by its own class (`--ui-toast-*` tokens).
- * - Actions become `<ui-button slot="actions">`s (Fomantic's `class` on the host, so `.positive` / `.deny` ... still
- *   approve / deny, and its button words and hue as attributes);  `attached` layouts wrap them in a
- *   `<ui-buttons>`.  An action's `click()` returning `false` prevents the click's default, which keeps the toast.
+ *   (and `horizontal`), in `<body>`, styled by the page sheet `toast-container` (`UIToast.container.css`).
+ *   - Shown (or re-shown, to be lifted above anything opened since) for each new toast, unless focus is inside it.
+ *   - Removed when its last toast goes.
+ * - Options map onto attributes (`title` => `header`, `showProgress` => `progress` …);
+ *   `displayTime` defaults to Fomantic's `3000`.
+ * - `class` words sort themselves:  a `type` word, a hue (`color`) or `inverted`.
+ *   Every word also stays on the `<ui-toast>`,
+ *   so a page can theme one toast by its own class (the `--ui-toast-*` tokens).
+ * - Actions become `<ui-button slot="actions">`s:  Fomantic's `class` on the button
+ *   (so `.positive` / `.deny` … still approve / deny), its button words and hue as attributes.
+ *   - `attached` layouts wrap them in a `<ui-buttons>`.
+ *   - An action's `click()` returning `false` prevents the click's default, which keeps the toast.
  * - Replacing:  `show({ id })` with the id of a showing toast removes that one first (its `closed` resolves).
  * - Everything is light DOM built with `createElement` / `textContent`:  never `innerHTML` with caller text.
  * - Registered by the family barrel as `UI.toasts`' provider;  the runtime never imports it.
@@ -52,7 +56,7 @@ export class ToastStack implements E.ToastProvider {
     return { id, closed, element: toast }
   }
 
-  /** Close toast `id` as `host.close()` does (the cancelable `ui-close` first);  nothing for an unknown id. */
+  /** Close toast `id` as `domElement.close()` does (the cancelable `ui-close` first);  nothing for an unknown id. */
   dismiss(id: string) {
     const record = this.showingToasts.get(id)
     ;(record?.element as { close?: () => boolean } | undefined)?.close?.()
@@ -88,7 +92,7 @@ export class ToastStack implements E.ToastProvider {
       else if (word === INVERTED) attributes.inverted = ""
     }
     for (const [name, value] of Object.entries(attributes)) if (value !== undefined) toast.setAttribute(name, value)
-    // every word stays on the host too (Fomantic's `class`):  the page themes this one toast by it
+    // every word stays on the DOM element too (Fomantic's `class`):  the page themes this one toast by it
     if (words.length) toast.className = words.join(" ")
     if (options.actions?.length) toast.append(this.actionsFor(options.actions, options.classActions ?? ""))
     return toast
@@ -118,9 +122,9 @@ export class ToastStack implements E.ToastProvider {
   }
 
   /**
-   * One action as a `<ui-button>`:  `class` kept on the host (approve / deny classes), its words that are button
-   * attributes (`positive`, `basic` ...) or hues (`color`) set as attributes;  `click` wired, `false` keeping the
-   * toast open.
+   * One action as a `<ui-button>`:  `class` kept on the DOM element (approve / deny classes), its words that are button
+   * attributes (`positive`, `basic` ...) or hues (`color`) set as attributes;
+   * `click` wired, `false` keeping the toast open.
    */
   private buttonFor(action: E.ToastAction): HTMLElement {
     const definition = ToastStack.definitionFor(UIT.BUTTON)
@@ -148,10 +152,10 @@ export class ToastStack implements E.ToastProvider {
 
   /**
    * The registered definition whose vocabulary noun is `noun` (`<ui-button>`, or a translated tag).
-   * - Static:  it reads the page-wide registry, `UIElement.definitions`, nothing of this stack's.
+   * - Static:  it reads the page-wide registry, `UIComponent.definitions`, nothing of this stack's.
    */
   private static definitionFor(noun: string) {
-    for (const definition of E.UIElement.definitions.values()) {
+    for (const definition of E.UIComponent.definitions.values()) {
       if (definition.vocabulary.noun === noun) return definition
     }
     return undefined
@@ -224,6 +228,9 @@ type ToastRecord = {
   settle: () => void
 }
 
+/** The event that ends a toast:  the stack removes its toasts on it. */
+const HIDE_EVENT: E.EventName<Vocabulary> = "ui-hide"
+
 /** Positions a toast container takes (Fomantic's);  the first is the default. */
 const ToastPositions = [
   "top right",
@@ -263,7 +270,7 @@ const COLOR = "color"
 /** Noun of the button group (`<ui-buttons>`) that holds `attached` actions. */
 const GROUP_NOUN = "buttons"
 
-/** Page sheet of the containers (`ui-toast.container.css`). */
+/** Page sheet of the containers (`UIToast.container.css`). */
 const CONTAINER_SHEET = "toast-container"
 
 /** Tag of a container. */

@@ -1,45 +1,48 @@
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { stickyVocabulary } from "./ui-sticky.vocabulary.en"
-import { StickyFallback } from "./ui-sticky.fallback"
-import { BOTTOM_OFFSET_PROPERTY, OFFSET_PROPERTY, type StickyVocabulary } from "./ui-sticky.types"
+import { stickyVocabulary } from "./UISticky.vocabulary.en"
 
-import stickyCSS from "./ui-sticky.css?inline"
+import stickyCSS from "./UISticky.css?inline"
 
 /****************
- * ### `<ui-sticky>`
- * Sticky content:  `position: sticky` on `<div class="ui ... sticky" part="sticky">`, between two 1px sentinels;
- * the element only REPORTS what CSS does (`:state(stuck)`, `ui-stick` / `ui-unstick`), through an
- * `IntersectionObserver` -- no scroll listener, no JS positioning.
- * - The host is `display: contents`, so the sentinels and the box are children of the host's PARENT, which is the
- *   box's containing block:  it sticks within its parent (Fomantic's `context`), whose end pushes it out
- *   (`:state(bound)`).
- * - `offset` / `bottom-offset` become `top` / `bottom` (the PRIVATE custom properties `--_ui-sticky-offset` /
- *   `--_ui-sticky-bottom-offset`, inline on the box);  `pushing` also sticks it to the bottom edge.
- *   - private:  the attributes decide them (the observer measures against the same numbers), and an inline
- *     public name would block the page's value exactly like a sheet declaration
- * - Stuck:  the top sentinel (where the box would be) has passed the `offset` line while the box hasn't been pushed
- *   above it;  with `pushing`, also:  the bottom sentinel is below the bottom line.  Measured by `StickyWatch`
- *   (shared with `<ui-section sticky>`) on every observer callback, against the nearest scroll container (else the
- *   document's viewport).
- * - SIDE EFFECT (`StickyWatch`'s):  while stuck, it RESERVES its room on the scroll container (`<html>` for the
- *   page):  inline `scroll-padding-top` (`-bottom` at the bottom edge) is the furthest edge of every box stuck there.
- *   So Page Down / Space, focus and `scrollIntoView()` keep content out from under it.  Chromium and Firefox honour
- *   it for paging;  Safari only for the rest.
- *   - a box taller than half the visible area, or narrower than half its width (`STICKY_MAX_RESERVE`), is a sticky
- *     COLUMN (a sidebar), not a header:  it reserves nothing, or paging would barely move
- *   - the inline property is the stickies' while any is stuck, removed once none is:  a page's own
- *     `scroll-padding` belongs in a stylesheet
+ * ### `UISticky`
+ * The component behind `<ui-sticky>`:  content that sticks as the page scrolls,
+ * `position: sticky` on `<div class="ui … sticky" part="sticky">`, between two 1px sentinels.
+ * It only REPORTS what CSS does (`:state(stuck)`, `ui-stick` / `ui-unstick`), through an `IntersectionObserver`:
+ * no scroll listener, no JS positioning.
+ *
+ * - The DOM element is `display: contents`, so the sentinels and the box are children of its PARENT,
+ *   which is the box's containing block:  it sticks within its parent (Fomantic's `context`),
+ *   whose end pushes it out (`:state(bound)`).
+ *
+ * - `offset` / `bottom-offset` become `top` / `bottom`
+ *   (the PRIVATE custom properties `--_ui-sticky-offset` / `--_ui-sticky-bottom-offset`, inline on the box);
+ *   `pushing` also sticks it to the bottom edge.
+ *   - Private:  the attributes decide them (the observer measures against the same numbers),
+ *     and an inline public name would block the page's value exactly as a sheet declaration does.
+ *
+ * - Stuck:  the top sentinel (where the box would be) has passed the `offset` line,
+ *   while the box hasn't been pushed above it;  with `pushing`, the bottom sentinel is also below the bottom line.
+ *   Measured by `StickyWatch` (shared with `<ui-section sticky>`) on every observer callback,
+ *   against the nearest scroll container (else the document's viewport).
+ *
+ * - SIDE EFFECT (`StickyWatch`'s):  while stuck, it RESERVES its room on the scroll container (`<html>` for the page):
+ *   inline `scroll-padding-top` (`-bottom` at the bottom edge) is the furthest edge of every box stuck there.
+ *   So Page Down / Space, focus and `scrollIntoView()` keep content out from under it.
+ *   Chromium and Firefox honour it for paging;  Safari only for the rest.
+ *   - A box taller than half the visible area, or narrower than half its width (`STICKY_MAX_RESERVE`),
+ *     is a sticky COLUMN (a sidebar), not a header:  it reserves nothing, or paging would barely move.
+ *   - The inline property is the stickies' while any is stuck, removed once none is:
+ *     a page's own `scroll-padding` belongs in a stylesheet.
  ****************/
-export class UISticky extends E.UIElement<StickyVocabulary> {
+export class UISticky extends E.UIComponent<StickyVocabulary> {
   @E.proto static vocabulary = stickyVocabulary
   @E.proto static styleSheets = { sticky: stickyCSS }
   @E.proto static elementSetup = {
-    Fallback: StickyFallback,
     // a wrapper:  a click on its text must not jump to a link inside
     delegatesFocus: false
-  }
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Stuck
@@ -94,8 +97,8 @@ export class UISticky extends E.UIElement<StickyVocabulary> {
   private box?: HTMLDivElement
 
   /**
-   * Observe while connected and drawn (`isReady`:  the sentinels exist), again whenever the offsets or `pushing`
-   * change;  unstuck once disconnected.
+   * Observe while connected and drawn (`isReady`:  the sentinels exist),
+   * again whenever the offsets or `pushing` change;  unstuck once disconnected.
    */
   @E.onChange("isConnected", "isReady", "offset", "bottomOffset", "pushing")
   protected onWatchSettingsChanged(isConnected: boolean) {
@@ -113,7 +116,10 @@ export class UISticky extends E.UIElement<StickyVocabulary> {
       bottomOffset: this.bottomOffset ?? 0,
       pushing: !!this.pushing
     }
-    return this.stickyWatch.observe({ host: this.host, top: topSentinel, bottom: bottomSentinel, box }, options)
+    return this.stickyWatch.observe(
+      { domElement: this.domElement, top: topSentinel, bottom: bottomSentinel, box },
+      options
+    )
   }
 
   ////////////////
@@ -154,7 +160,18 @@ export class UISticky extends E.UIElement<StickyVocabulary> {
     )
   }
 }
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UISticky extends E.AttributeValues<StickyVocabulary> {}
+
+/** The vocabulary type, for brevity. */
+type StickyVocabulary = typeof stickyVocabulary
+
+/** The private custom property the box reads for `top` (`offset`), inline:  it wins over the public token's alias. */
+const OFFSET_PROPERTY = "--_ui-sticky-offset"
+
+/** The private custom property the box reads for `bottom` (`bottom-offset`), inline. */
+const BOTTOM_OFFSET_PROPERTY = "--_ui-sticky-bottom-offset"
 
 /** Class word of the sentinel where the box's top would be. */
 const SENTINEL = "sentinel"

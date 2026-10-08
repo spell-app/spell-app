@@ -1,1 +1,0 @@
-import{t as e}from"./ui-table-CHF96FHT.js";export{e as UITable};

@@ -5,7 +5,7 @@
  * - Touches ONE component:  `<ui-modal>` (`.ui.modal`, `<dialog class="ui ... modal">` in its shadow root).
  * - `modal.variables`:
  *   - `@modalComputerWidth: 700px`, `@modalLargeMonitorWidth: 800px`, `@modalWidescreenMonitorWidth: 850px` ->
- *     the modal's per-screen DEFAULT width (`--_modal-width`, times the size ratio), as `ui-modal.css`'s own
+ *     the modal's per-screen DEFAULT width (`--_modal-width`, times the size ratio), as `UIModal.css`'s own
  *     `@media` rules write it, so a page's `--ui-modal-width` still wins on every screen
  *   - `@modalSmallRatio: 0.6` -> a small modal's ratio (ours:  0.8);  `@modalLargeRatio: 1.2`:  ours already
  *   - `@modalLargeHeaderSize: 1.3em` -> a large modal's header size (ours:  1.6em);  the small one's is ours already
@@ -13,7 +13,7 @@
  * - Breakpoints are written out (`media.css`'s ranges:  computer >= 992px, large monitor >= 1200px, widescreen
  *   >= 1920px):  the theme loader inlines this sheet raw, with no `@custom-media` step guaranteed.
  * - NOT ported:  `grid.variables` (the fixed `page grid` widths, `960px` / `1180px` / `1300px`):  our grid has no
- *   `page` grid (`ui-grid.css`:  use `<ui-container>`), and `<ui-container>`'s widths are its own, untouched by
+ *   `page` grid (`UIGrid.css`:  use `<ui-container>`), and `<ui-container>`'s widths are its own, untouched by
  *   Fomantic's theme.
  */
 

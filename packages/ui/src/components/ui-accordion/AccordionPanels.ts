@@ -3,24 +3,24 @@ import type { UIT } from "$/ui/core"
 /****************
  * ### `AccordionPanels`
  * How an accordion's light children become panels, and how its `open` attribute reads.
- * - Shared by `<ui-accordion>` and its native fallback:  plain DOM, no Solid.
- * - STATIC and instance-free on purpose:  pure rules, no state of their own, so both callers share them.
+ * - Plain DOM, no Solid, and STATIC:  pure rules with no state of their own, which tests drive directly.
  * - Pairs:  each TITLE child starts a panel;  the element after it is its content, unless it's another title.
- *   Children before the first title belong to no panel (they aren't shown:  the shadow root assigns slots by hand).
+ *   Children before the first title belong to no panel
+ *   (they aren't shown:  the shadow root assigns slots by hand).
  * - `open`:  space- (or comma-) separated panel indexes, e.g. `"0 2"`;  anything else is ignored.
  ****************/
 export class AccordionPanels {
   /**
-   * Panels of `host`, in order;  `isTitle` says which children are titles.
+   * The panels of `accordion` (the DOM element), in order;  `isTitle` says which children are titles.
    * - Reuses a `previous` panel object while its title AND content are unchanged, so a keyed list keeps its row.
    */
   static read(
-    host: Element,
+    accordion: Element,
     isTitle: (element: Element) => boolean,
     previous: readonly UIT.AccordionPanel[] = []
   ): UIT.AccordionPanel[] {
     const panels: UIT.AccordionPanel[] = []
-    const children = [...host.children]
+    const children = [...accordion.children]
     for (let index = 0; index < children.length; index++) {
       const title = children[index]!
       if (!isTitle(title)) continue

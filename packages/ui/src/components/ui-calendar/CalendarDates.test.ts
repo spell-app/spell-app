@@ -3,7 +3,7 @@ import { describe, expect, test } from "vite-plus/test"
 
 import type { UIT } from "$/ui/core"
 import { CalendarDates } from "./CalendarDates"
-import type { Moment } from "./ui-calendar.types"
+import type { Moment } from "./UICalendar.types"
 
 /** 2:37 PM on September 30, 2026. */
 const MOMENT = Temporal.PlainDateTime.from("2026-09-30T14:37")

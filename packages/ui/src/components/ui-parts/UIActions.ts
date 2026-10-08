@@ -1,16 +1,16 @@
 import { E } from "$/ui/core"
-import { PartElement } from "./PartElement"
-import { actionsVocabulary } from "./ui-actions.vocabulary.en"
+import { actionsVocabulary } from "./UIActions.vocabulary.en"
 
 /****************
- * ### `<ui-actions>`
- * Actions:  `<div class="actions">`.
- * - A modal's or toast's buttons, a comment's reply links.
- * - Everything else (owner context, markup, sheet) comes from `ContentPart`.
+ * ### `UIActions`
+ * The component behind `<ui-actions>`:  a row of actions, `<div class="actions">`,
+ * such as a modal's or a toast's buttons, or a comment's reply links.
+ *
+ * - Finding its owner, the markup and the sheet all come from `PartComponent`.
  ****************/
-export class UIActions extends PartElement<typeof actionsVocabulary> {
+export class UIActions extends E.PartComponent<typeof actionsVocabulary> {
   @E.proto static vocabulary = actionsVocabulary
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIActions extends E.AttributeValues<typeof actionsVocabulary> {}

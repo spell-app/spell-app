@@ -21,28 +21,29 @@ function isSameOwner(a: E.OwnerMatch | undefined, b: E.OwnerMatch | undefined) {
  *   component:  a header inside a segment inside a card stays standalone, as Fomantic's child combinators have it.
  * - `isDirect` mode (icons):  only the flat-tree parent component counts, skipping its own shadow internals
  *   (`.ui.icons > .icon`).
- * - CONDITIONAL owners (`ConditionalOwner`, a part whose controller has `isOwnerOf()`):  asked during the climb,
+ * - CONDITIONAL owners (`ConditionalOwner`, a part whose component has `isOwnerOf()`):  asked during the climb,
  *   transparent while they say no -- `<ui-item>` owns its content parts in the Items view only.
- * - SIDE EFFECT:  keeps `:state(in-<owner>)` on the host in step with `owner` (`onOwnerChanged()`);  NEVER the
+ * - SIDE EFFECT:  keeps `:state(in-<owner>)` on the DOM element in step with `owner` (`onOwnerChanged()`);  NEVER the
  *   static `in-<owner>` class.
  * - Re-resolves on:
- *   - every connect after the first (`keepAlive` keeps the controller across moves, so a part re-parented into
- *     another owner hears it through the fork's `onConnect`), a microtask late:  the hook may run inside a
+ *   - every connect after the first (`keepAlive` keeps the component across moves, so a part re-parented into
+ *     another owner hears it through solid-element's `onConnect`), a microtask late:  the hook may run inside a
  *     Solid render, where the signal write would throw
- *   - `slotchange` in any `UIElement`'s shadow root, for the elements entering AND leaving that slot
- *     (`UIElement` calls `PartContext.slotChanged()`), cascading to part descendants
+ *   - `slotchange` in any `UIComponent`'s shadow root, for the elements entering AND leaving that slot
+ *     (`UIComponent` calls `PartContext.slotChanged()`), cascading to part descendants
  *   - once after the first settle, for owners whose shadow rendered after this part connected
  * - NOTE: no platform event says "my assigned slot changed";  a FOREIGN component re-slotting a part
  *   isn't seen until the part reconnects.
  * - MUST be created under the element's owner (field initializer / constructor):  it creates an effect.
- * - Knows `UIHost` / `UIElement` by type only:  `UIElement` imports this file (for `define()` and `slotChanged()`).
+ * - Knows `DOMElement` / `UIComponent` by type only:  `UIComponent` imports this file
+ *   (for `define()` and `slotChanged()`).
  ****************/
 export class PartContext {
   /** Nearest owner, or `undefined` when standalone;  tracked.  A re-resolve to the same owner changes nothing. */
   @state({ equals: isSameOwner }) accessor owner: E.OwnerMatch | undefined = undefined
 
   /** The element. */
-  readonly host: E.UIHost
+  readonly domElement: E.DOMElement
 
   /** Part noun resolved against `ownsParts`, e.g. `header`. */
   readonly noun: string
@@ -53,18 +54,18 @@ export class PartContext {
   /** Where the climb stops;  default `PartContext.isBarrier`. */
   private readonly barrier: (element: Element) => boolean
 
-  constructor({ host, noun, isDirect = false, barrier = PartContext.isBarrier }: PartContextProps) {
-    this.host = host
+  constructor({ domElement, noun, isDirect = false, barrier = PartContext.isBarrier }: PartContextProps) {
+    this.domElement = domElement
     this.noun = noun
     this.isDirect = isDirect
     this.barrier = barrier
     this.owner = this.resolve()
-    PartContext.contexts.set(host, this)
+    PartContext.contexts.set(domElement, this)
     E.Reactive.startEffects(this)
     onSettled(() => {
       this.refresh()
       return () => {
-        if (PartContext.contexts.get(host) === this) PartContext.contexts.delete(host)
+        if (PartContext.contexts.get(domElement) === this) PartContext.contexts.delete(domElement)
       }
     })
     let isFirstConnect = true
@@ -80,24 +81,24 @@ export class PartContext {
   }
 
   /**
-   * The owner changed:  `:state(in-<owner noun>)` on the host, undone when it changes again.
-   * - `writesHost`:  a server render sets it too.
+   * The owner changed:  `:state(in-<owner noun>)` on the DOM element, undone when it changes again.
+   * - `writesDOMElement`:  a server render sets it too.
    */
-  @onChange("ownerNoun", { writesHost: true })
+  @onChange("ownerNoun", { writesDOMElement: true })
   protected onOwnerChanged(ownerNoun: string | undefined) {
     if (!ownerNoun) return
     const name = E.OwnerContext.stateName(ownerNoun)
-    this.host.setState(name, true)
-    return () => this.host.setState(name, false)
+    this.domElement.setState(name, true)
+    return () => this.domElement.setState(name, false)
   }
 
   /**
-   * The owner's CONTROLLER (a card's `UICards`, an item's list), or `undefined` when standalone;  tracked.
+   * The owner's COMPONENT (a card's `UICards`, an item's list), or `undefined` when standalone;  tracked.
    * - `C` is the caller's word for what the owner is, NOT checked:  owners are registered by tag, not class.
    * - A method, not a getter:  a getter can't take the type parameter.
    */
-  ownerController<C extends object = E.UIElement>(): C | undefined {
-    return PartContext.controllerFor<C>(this.owner)
+  ownerComponent<C extends object = E.UIComponent>(): C | undefined {
+    return PartContext.componentFor<C>(this.owner)
   }
 
   /**
@@ -107,7 +108,7 @@ export class PartContext {
    */
   refresh() {
     this.update()
-    for (const element of this.host.querySelectorAll("*")) PartContext.contexts.get(element)?.update()
+    for (const element of this.domElement.querySelectorAll("*")) PartContext.contexts.get(element)?.update()
   }
 
   /**
@@ -115,11 +116,11 @@ export class PartContext {
    * - For a `ConditionalOwner` deciding whether it owns:  its own `owner` signal may not have landed yet.
    */
   resolve(): E.OwnerMatch | undefined {
-    if (!this.isDirect) return PartContext.ownerFor(this.host, this.noun, this.barrier)
-    const root = this.host.getRootNode()
+    if (!this.isDirect) return PartContext.ownerFor(this.domElement, this.noun, this.barrier)
+    const root = this.domElement.getRootNode()
     // `localName`, not `instanceof HTMLSlotElement`:  no such global in node (the server render)
     return PartContext.ownerFor(
-      this.host,
+      this.domElement,
       this.noun,
       (element) => element.localName !== "slot" && element.getRootNode() === root
     )
@@ -137,8 +138,8 @@ export class PartContext {
   /**
    * Record a defined element:  its owner nouns (from `ownsParts`, under the tag it was defined as) and whether
    * it is a part, which makes it transparent to other parts' climbs.
-   * - `isConditionalOwner`:  its controller decides per instance (`ConditionalOwner`).
-   * - Called by `UIElement.register()` for every tag, translated aliases included.
+   * - `isConditionalOwner`:  its component decides per instance (`ConditionalOwner`).
+   * - Called by `UIComponent.register()` for every tag, translated aliases included.
    * - Static:  the registry is page-wide, filled before any instance exists.
    */
   static define({ vocabulary, tag, isAPart, isConditionalOwner = false }: E.PartDefinition) {
@@ -154,8 +155,8 @@ export class PartContext {
 
   /**
    * Nearest owner of `element` as part `noun`, from the page-wide registry, read from the DOM now (untracked).
-   * - The climb every `PartContext` makes (barriers, conditional owners), for code without one:  a native
-   *   fallback (`ContentPartFallback`) knows every defined owner, translated tags included.
+   * - The climb every `PartContext` makes (barriers, conditional owners), for code without one:
+   *   it knows every defined owner, translated tags included.
    * - `barrier`:  default `isBarrier()`.
    * - Static:  needs no instance, only the registry.
    */
@@ -170,11 +171,11 @@ export class PartContext {
   }
 
   /**
-   * Controller of `match`'s owner element, or `undefined`;  `C` unchecked, as `ownerController()`'s.
+   * Component of `match`'s owner element, or `undefined`;  `C` unchecked, as `ownerComponent()`'s.
    * - Static:  also for a match `resolve()` just read, untracked (`<ui-item>` deciding whether it owns its parts).
    */
-  static controllerFor<C extends object = E.UIElement>(match: E.OwnerMatch | undefined): C | undefined {
-    return (match?.owner as E.UIHost | undefined)?.controller as C | undefined
+  static componentFor<C extends object = E.UIComponent>(match: E.OwnerMatch | undefined): C | undefined {
+    return (match?.owner as E.DOMElement | undefined)?.component as C | undefined
   }
 
   /**
@@ -197,7 +198,7 @@ export class PartContext {
    * A slot's assignment changed:  re-resolve every element that entered or left it, and their part descendants.
    * - The registry keeps what each slot held before (`lastAssigned`), since leavers aren't in
    *   `assignedElements()` any more.
-   * - Static:  `UIElement` calls it for any slot in its shadow root, whichever parts it holds.
+   * - Static:  `UIComponent` calls it for any slot in its shadow root, whichever parts it holds.
    */
   static slotChanged(slot: HTMLSlotElement) {
     const now = slot.assignedElements({ flatten: true })
@@ -233,8 +234,8 @@ export class PartContext {
     return (tag, element) => {
       const ownerNoun = owners.get(tag)
       if (!ownerNoun || !PartContext.conditionalTags.has(tag)) return ownerNoun
-      const controller = (element as E.UIHost).controller as Partial<E.ConditionalOwner> | undefined
-      return controller?.isOwnerOf?.(noun) ? ownerNoun : undefined
+      const component = (element as E.DOMElement).component as Partial<E.ConditionalOwner> | undefined
+      return component?.isOwnerOf?.(noun) ? ownerNoun : undefined
     }
   }
 
@@ -245,17 +246,17 @@ export class PartContext {
   /** Part noun => (tag => owner noun). */
   private static readonly owners = new Map<string, Map<string, string>>()
 
-  /** Every tag a `UIElement` was defined as. */
+  /** Every tag a `UIComponent` was defined as. */
   private static readonly definedTags = new Set<string>()
 
   /** Tags of elements that resolve an owner as a generic part (transparent to other parts). */
   private static readonly partTags = new Set<string>()
 
-  /** Tags of conditional owners (`ConditionalOwner`):  owners only while their controller says so. */
+  /** Tags of conditional owners (`ConditionalOwner`):  owners only while their component says so. */
   private static readonly conditionalTags = new Set<string>()
 
   /**
-   * Live context per host, for `slotChanged()` / cascades.
+   * Live context per DOM element, for `slotChanged()` / cascades.
    * - Not `readonly`:  a `WeakMap` can't be cleared, so `reset()` replaces it.
    */
   private static contexts = new WeakMap<Element, PartContext>()
@@ -270,7 +271,7 @@ export class PartContext {
 /** Constructor props for `PartContext`. */
 export type PartContextProps = {
   /** The element acting as a part. */
-  host: E.UIHost
+  domElement: E.DOMElement
   /** Its part noun, resolved against `ownsParts`, e.g. `header`. */
   noun: string
   /** Only the flat-tree parent component counts (`<ui-icon>` in `<ui-icons>`). */

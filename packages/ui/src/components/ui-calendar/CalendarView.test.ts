@@ -5,7 +5,7 @@ import { UI } from "$/ui/runtime"
 import { CalendarDates } from "./CalendarDates"
 import { CalendarText } from "./CalendarText"
 import { CalendarView } from "./CalendarView"
-import type { Moment, ViewInput } from "./ui-calendar.types"
+import type { Moment, ViewInput } from "./UICalendar.types"
 
 /** The focus:  Wednesday, September 30, 2026 (September 1st is a Tuesday). */
 const FOCUS = Temporal.PlainDateTime.from("2026-09-30T14:37")

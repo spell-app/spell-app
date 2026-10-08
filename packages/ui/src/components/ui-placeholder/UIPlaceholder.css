@@ -1,0 +1,340 @@
+/*
+ * The style sheet of `<ui-placeholder>` and its shapes, `<ui-placeholder-header>`, `<ui-placeholder-paragraph>`,
+ * `<ui-placeholder-line>` and `<ui-placeholder-image>`:
+ * a port of Fomantic's `placeholder.less` + `placeholder.variables`.
+ * - ONE sheet for all five components;  each adopts it after the foundation.
+ *
+ * - It styles the components' shadow DOM, in Fomantic's class names
+ *   (on `<div>`s:  the shapes have no meaning of their own):
+ *   - `<ui-placeholder>`:  `<div class="ui [fluid] [inverted] placeholder" part="placeholder"><slot></slot></div>`
+ *   - `<ui-placeholder-header>`:  `<div class="[image] header" part="header"><slot></slot></div>`
+ *   - `<ui-placeholder-paragraph>`:  `<div class="paragraph" part="paragraph"><slot></slot></div>`
+ *   - `<ui-placeholder-line>`:  `<div class="[length] line" part="line"></div>`,
+ *     `length` writing its value alone (`very long`, `medium` …);  `medium` IS a length here, not a size
+ *   - `<ui-placeholder-image>`:  `<div class="[square] [rectangular] image" part="image"></div>`
+ *
+ * - Why tags of their own, when `AGENTS.md` forbids `ui-card-header`-style names:
+ *   that rule is about CONTENT parts, which mean the same thing in every owner.
+ *   Fomantic's placeholder `.header`, `.paragraph`, `.line` and `.image` hold no content:
+ *   they're skeleton SHAPES (a header is a block of two bars), and `<ui-header>` / `<ui-image>` would drag in heading
+ *   and image meaning and styles.  So they're `ui: false` components of their own, styled only here.
+ *
+ * - The DOM elements are `display: contents` (`:host`):  the inner boxes stack as plain blocks
+ *   inside the placeholder's box.
+ *   - Every inner box is its shadow root's only child,
+ *     so the ELEMENT's position decides Fomantic's `:first-child` / `:nth-child()` rules
+ *     (`:host(:nth-child(2)) > .line`).
+ *   - Static markup keeps Fomantic's selectors, under `.ui.placeholder`,
+ *     so they never match inside a shape's shadow root.
+ *
+ * - Context without `:host-context`:  a line can't see whether it's in a header or a paragraph.
+ *   So the placeholder's box declares the paragraph defaults, and a header's box declares them again
+ *   as inherited private tokens:  the bar height (`--_placeholder-bar`)
+ *   and the outdent of its 1st … 5th line (`--_placeholder-outdent-<n>`), which each line picks by its own position.
+ *   - NEVER set `--_placeholder-*` (or `--_ui-*`) from outside:  theme with `--ui-placeholder-*`.
+ *   - The shapes MUST sit inside a `<ui-placeholder>`, whose box declares the line context.
+ *
+ * - The public tokens (`--ui-placeholder-*`) are NEVER declared here.
+ *   The token block gives each a private alias,
+ *   `--_ui-placeholder-radius: var(--ui-placeholder-radius, var(--ui-radius-s))`,
+ *   declared on the placeholder's box AND every shape's box, and every rule reads the alias.
+ *   So a value set on `:root`, an ancestor, the element, `::part(placeholder)` (or a shape's element or `::part()`)
+ *   or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *
+ * - Consecutive placeholders (Fomantic's `.ui.placeholder + .ui.placeholder` gap):
+ *   a shadow root can't see its element's previous sibling, so the `:host` rule counts placeholder siblings instead:
+ *   `:host(:nth-child(n + 2 of :state(placeholder)))`.
+ *   The component MUST set `:state(placeholder)` on every `<ui-placeholder>`, always.
+ *   A placeholder after other content keeps its margin, as before.
+ *
+ * - The shimmer, MODERNIZED:  Fomantic paints ONE gradient on `.ui.placeholder`,
+ *   and masks the gaps between bars with pseudo-elements in the page colour (`@white` / `@black`),
+ *   which shows as white stripes on any other surface.
+ *   Here each SHAPE (a line, an image, an image header's square) paints the gradient itself,
+ *   on a transparent placeholder, so it works on any surface, in either scheme.
+ *   To keep Fomantic's one sweeping band, the gradient is `background-attachment: fixed`,
+ *   with a shared size and one keyframe (`ui-placeholder-shimmer`):
+ *   every shape shows its slice of the SAME viewport-wide band, lined up across shapes and placeholders.
+ *   - where `fixed` isn't honoured (iOS Safari), each shape shimmers on its own:  still fine
+ *   - Fomantic's staggered delays for consecutive placeholders are dropped:  they'd break the alignment
+ *   - the colours are ink alphas (`--ui-ink`), so the dark scheme (`inverted`, or any dark surface) flips them
+ *   - the shapes get a small radius (a modern look);  Fomantic's are square
+ *
+ * - Reduced motion:  the shimmer stops, and every shape is a flat tint
+ *   (`reset.css` stops the animation in shadow roots anyway;  the flat tint is this sheet's,
+ *   so the frozen band never shows).
+ *
+ * - Accessibility (the COMPONENTS' job):  a placeholder is decorative.
+ *   The `<ui-placeholder>` element is `aria-hidden` (through `internals`), and the shapes draw no text.
+ *   The region that's loading announces it (`aria-busy`, a `<ui-loader>` or a `loading` segment),
+ *   once, not once per skeleton.
+ *
+ * - Left out, on purpose:
+ *   - the `hidden` class:  the element's `hidden` attribute covers it
+ *   - the page-colour masks (`::before` / `::after` on lines, headers, images) and their `@white` / `@black`
+ *     backgrounds:  the shapes paint themselves, see above
+ *   - the gap ABOVE a first loose line (Fomantic keeps it unless the line is in a header, paragraph or image):
+ *     no shape ever has a gap before it
+ *   - lines inside an `.image` (Fomantic spaces them):  an image is a solid shape
+ */
+
+@layer ui.components.placeholder.types, ui.components.placeholder.content, ui.components.placeholder.variations, ui.components.placeholder.states;
+
+/* The shared band sweeps one gradient width, left to right. */
+@keyframes ui-placeholder-shimmer {
+  from {
+    background-position: calc(var(--_ui-placeholder-gradient-width) * -1) 0;
+  }
+  to {
+    background-position: var(--_ui-placeholder-gradient-width) 0;
+  }
+}
+
+/*******************************
+          Placeholder
+*******************************/
+
+@layer ui.components.placeholder.types {
+  /* The DOM elements:  no box of their own;  the inner box is the shape. */
+  :host {
+    display: contents;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /*
+   * Tokens:  one per `placeholder.variables` entry that still matters, each the private alias of its public token.
+   * Declared on the placeholder AND on every shape (they read them),
+   * so a value set on a shape's element or `::part()` reaches it too.
+   */
+  .ui.placeholder,
+  .ui.placeholder :is(.header, .paragraph, .line, .image:not(.ui, .icon)),
+  :host > :is(.header, .paragraph, .line, .image) {
+    --_ui-placeholder-max-width: var(--ui-placeholder-max-width, 30em);
+    --_ui-placeholder-line-margin: var(--ui-placeholder-line-margin, calc(12em / 14));
+    --_ui-placeholder-line-height: var(--ui-placeholder-line-height, 0.5em);
+    --_ui-placeholder-header-line-height: var(--ui-placeholder-header-line-height, calc(9em / 14));
+    --_ui-placeholder-spacing: var(--ui-placeholder-spacing, calc(20em / 14));
+    --_ui-placeholder-consecutive-spacing: var(--ui-placeholder-consecutive-spacing, 2em);
+    --_ui-placeholder-image-height: var(--ui-placeholder-image-height, 6.25em);
+    --_ui-placeholder-image-width: var(--ui-placeholder-image-width, 3em);
+    --_ui-placeholder-image-text-indent: var(--ui-placeholder-image-text-indent, 0.625em);
+    --_ui-placeholder-header-line-one-outdent: var(--ui-placeholder-header-line-one-outdent, 20%);
+    --_ui-placeholder-header-line-two-outdent: var(--ui-placeholder-header-line-two-outdent, 60%);
+    --_ui-placeholder-full-outdent: var(--ui-placeholder-full-outdent, 0%);
+    --_ui-placeholder-very-long-outdent: var(--ui-placeholder-very-long-outdent, 10%);
+    --_ui-placeholder-long-outdent: var(--ui-placeholder-long-outdent, 35%);
+    --_ui-placeholder-medium-outdent: var(--ui-placeholder-medium-outdent, 50%);
+    --_ui-placeholder-short-outdent: var(--ui-placeholder-short-outdent, 65%);
+    --_ui-placeholder-very-short-outdent: var(--ui-placeholder-very-short-outdent, 80%);
+    --_ui-placeholder-duration: var(--ui-placeholder-duration, 2s);
+    --_ui-placeholder-gradient-width: var(--ui-placeholder-gradient-width, 75em);
+    --_ui-placeholder-color: var(--ui-placeholder-color, oklch(from var(--ui-ink) l c h / 0.08));
+    --_ui-placeholder-highlight: var(--ui-placeholder-highlight, oklch(from var(--ui-ink) l c h / 0.15));
+    --_ui-placeholder-gradient: var(
+      --ui-placeholder-gradient,
+      linear-gradient(
+        to right,
+        var(--_ui-placeholder-color) 0,
+        var(--_ui-placeholder-highlight) 15%,
+        var(--_ui-placeholder-color) 30%
+      )
+    );
+    --_ui-placeholder-radius: var(--ui-placeholder-radius, var(--ui-radius-s));
+  }
+
+  /* Placeholder:  a block, at most a paragraph wide. */
+  .ui.placeholder {
+    /* Line context:  a paragraph's (and loose lines') bar height and outdent sequence.  Headers re-declare. */
+    --_placeholder-bar: var(--_ui-placeholder-line-height);
+    --_placeholder-outdent-1: var(--_ui-placeholder-full-outdent);
+    --_placeholder-outdent-2: var(--_ui-placeholder-medium-outdent);
+    --_placeholder-outdent-3: var(--_ui-placeholder-very-long-outdent);
+    --_placeholder-outdent-4: var(--_ui-placeholder-long-outdent);
+    --_placeholder-outdent-5: var(--_ui-placeholder-short-outdent);
+
+    position: static;
+    box-sizing: border-box;
+    display: block;
+    max-width: var(--_ui-placeholder-max-width);
+    overflow: hidden;
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+  }
+
+  /* Consecutive placeholders:  a gap between them (the elements:  see the header). */
+  .ui.placeholder + .ui.placeholder,
+  :host(:nth-child(n + 2 of :state(placeholder))) > .ui.placeholder {
+    margin-top: var(--_ui-placeholder-consecutive-spacing);
+  }
+}
+
+/*******************************
+            Content
+*******************************/
+
+@layer ui.components.placeholder.content {
+  /* Shapes:  each paints its slice of the one shared, fixed band. */
+  .ui.placeholder .line,
+  :host > .line,
+  .ui.placeholder .image:not(.header, .ui, .icon),
+  :host > .image:not(.header),
+  .ui.placeholder .image.header::before,
+  :host > .image.header::before {
+    border-radius: var(--_ui-placeholder-radius);
+    background: var(--_ui-placeholder-gradient) 0 0 / var(--_ui-placeholder-gradient-width) 100% fixed;
+    animation: ui-placeholder-shimmer var(--_ui-placeholder-duration) linear infinite;
+  }
+
+  /* Blocks:  header, paragraph, image -- spaced apart, none before the first. */
+  .ui.placeholder :is(.header, .paragraph, .image):not(:first-child),
+  :host(:not(:first-child)) > :is(.header, .paragraph, .image) {
+    margin-top: var(--_ui-placeholder-spacing);
+  }
+
+  /* Lines:  bars of the context's height, a gap between them, none before the first. */
+  .ui.placeholder .line,
+  :host > .line {
+    display: block;
+    width: calc(100% - var(--_placeholder-outdent, 0%));
+    height: var(--_placeholder-bar);
+    margin-top: var(--_ui-placeholder-line-margin);
+  }
+  .ui.placeholder .line:first-child,
+  :host(:first-child) > .line {
+    margin-top: 0;
+  }
+
+  /* Line outdent:  the 1st ... 5th line of a block pick their length from the context's sequence. */
+  .ui.placeholder .line:nth-child(1),
+  :host(:nth-child(1)) > .line {
+    --_placeholder-outdent: var(--_placeholder-outdent-1);
+  }
+  .ui.placeholder .line:nth-child(2),
+  :host(:nth-child(2)) > .line {
+    --_placeholder-outdent: var(--_placeholder-outdent-2);
+  }
+  .ui.placeholder .line:nth-child(3),
+  :host(:nth-child(3)) > .line {
+    --_placeholder-outdent: var(--_placeholder-outdent-3);
+  }
+  .ui.placeholder .line:nth-child(4),
+  :host(:nth-child(4)) > .line {
+    --_placeholder-outdent: var(--_placeholder-outdent-4);
+  }
+  .ui.placeholder .line:nth-child(5),
+  :host(:nth-child(5)) > .line {
+    --_placeholder-outdent: var(--_placeholder-outdent-5);
+  }
+
+  /* Header:  taller bars, a short first and a shorter second line. */
+  .ui.placeholder .header,
+  :host > .header {
+    --_placeholder-bar: var(--_ui-placeholder-header-line-height);
+    --_placeholder-outdent-1: var(--_ui-placeholder-header-line-one-outdent);
+    --_placeholder-outdent-2: var(--_ui-placeholder-header-line-two-outdent);
+    --_placeholder-outdent-3: var(--_ui-placeholder-header-line-one-outdent);
+    --_placeholder-outdent-4: var(--_ui-placeholder-header-line-one-outdent);
+    --_placeholder-outdent-5: var(--_ui-placeholder-header-line-one-outdent);
+    position: relative;
+    display: block;
+    overflow: hidden;
+  }
+
+  /* Image header:  a square beside the lines. */
+  .ui.placeholder .image.header,
+  :host > .image.header {
+    min-height: var(--_ui-placeholder-image-width);
+    padding-inline-start: calc(var(--_ui-placeholder-image-width) + var(--_ui-placeholder-image-text-indent));
+  }
+  .ui.placeholder .image.header::before,
+  :host > .image.header::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: var(--_ui-placeholder-image-width);
+  }
+
+  /* Paragraph:  a block of lines. */
+  .ui.placeholder .paragraph,
+  :host > .paragraph {
+    display: block;
+  }
+
+  /* Image:  a block of fixed height (or a fixed aspect, below). */
+  .ui.placeholder .image:not(.header, .ui, .icon),
+  :host > .image:not(.header) {
+    display: block;
+    height: var(--_ui-placeholder-image-height);
+  }
+}
+
+/*******************************
+           Variations
+*******************************/
+
+@layer ui.components.placeholder.variations {
+  /* Image aspect:  square (1:1) or rectangular (4:3), sized by its width. */
+  .ui.placeholder .square.image:not(.header),
+  :host > .square.image:not(.header) {
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .ui.placeholder .rectangular.image:not(.header),
+  :host > .rectangular.image:not(.header) {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  /* Line length:  wins over the position's default.  `very` phrases after their plain word. */
+  .ui.placeholder .full.line,
+  :host > .full.line {
+    --_placeholder-outdent: var(--_ui-placeholder-full-outdent);
+  }
+  .ui.placeholder .long.line,
+  :host > .long.line {
+    --_placeholder-outdent: var(--_ui-placeholder-long-outdent);
+  }
+  .ui.placeholder [class*="very long"].line,
+  :host > [class*="very long"].line {
+    --_placeholder-outdent: var(--_ui-placeholder-very-long-outdent);
+  }
+  .ui.placeholder .medium.line,
+  :host > .medium.line {
+    --_placeholder-outdent: var(--_ui-placeholder-medium-outdent);
+  }
+  .ui.placeholder .short.line,
+  :host > .short.line {
+    --_placeholder-outdent: var(--_ui-placeholder-short-outdent);
+  }
+  .ui.placeholder [class*="very short"].line,
+  :host > [class*="very short"].line {
+    --_placeholder-outdent: var(--_ui-placeholder-very-short-outdent);
+  }
+
+  /* Fluid:  as wide as its container. */
+  .ui.fluid.placeholder {
+    max-width: none;
+  }
+
+  /* Inverted:  the dark scheme;  the ink-alpha shapes follow (and so does anything slotted). */
+  .ui.inverted.placeholder {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    color-scheme: dark;
+  }
+
+  /* Reduced motion:  no shimmer, a flat tint. */
+  @media (prefers-reduced-motion: reduce) {
+    .ui.placeholder .line,
+    :host > .line,
+    .ui.placeholder .image:not(.header, .ui, .icon),
+    :host > .image:not(.header),
+    .ui.placeholder .image.header::before,
+    :host > .image.header::before {
+      background: var(--_ui-placeholder-color);
+      animation: none;
+    }
+  }
+}

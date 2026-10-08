@@ -7,7 +7,7 @@ import type { ComponentVocabulary } from "../src/vocabulary/vocabulary.types.ts"
 /****************
  * ### `VocabularyFiles`
  * Every English vocabulary of a folder of families (`src/components/`, `src/docs-components/`), read from its
- * `<tag>.vocabulary.en.ts` files in node:  what `yarn gen:root`, `yarn site:data` (`SiteDataBuilder`) and
+ * `UI<Name>.vocabulary.en.ts` files in node:  what `yarn gen:root`, `yarn site:data` (`SiteDataBuilder`) and
  * `yarn site:bundle` (the docs' component pack) read.
  * - Imports each FILE (`import()`), never a family's `index.ts`:  nothing is defined, no Solid or CSS loads.
  *   Vocabularies are pure data for this reason (`AGENTS.md` "Overview";  `test/vocabularies.test.ts`).
@@ -40,7 +40,7 @@ export class VocabularyFiles {
 
 /** One vocabulary and the family folder it's in. */
 export type FamilyVocabulary = {
-  /** Its family's folder name, e.g. `ui-button` for `ui-or.vocabulary.en.ts`. */
+  /** Its family's folder name, e.g. `ui-button` for `UIOr.vocabulary.en.ts`. */
   readonly folder: string
   /** The vocabulary. */
   readonly vocabulary: ComponentVocabulary

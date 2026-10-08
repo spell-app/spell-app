@@ -22,7 +22,7 @@ import { SSR } from "$/ui/static"
 export class ServerRuntime {
   /**
    * Page sheets components registered while rendering (`UI.styles.register(name, css, { page: true })`), by name:
-   * `ui-dimmer.page.css`, the toast container's.  `StaticStylesheet.build()` includes them.
+   * `UIDimmer.page.css`, the toast container's.  `StaticStylesheet.build()` includes them.
    * - Static:  every render's registrations, read by the stylesheet built after them.
    */
   static readonly pageSheets = new Map<string, string>()

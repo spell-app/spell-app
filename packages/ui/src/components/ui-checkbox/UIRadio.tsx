@@ -3,19 +3,22 @@ import { onConnect, onDisconnect, onFormAssociated } from "@spell-app/solid-elem
 
 import { E, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-import { radioVocabulary } from "./ui-radio.vocabulary.en"
+import { radioVocabulary } from "./UIRadio.vocabulary.en"
 import { CheckControl } from "./CheckControl"
 import { RadioGroup } from "./RadioGroup"
-import { RADIO, type RadioMember } from "./ui-checkbox.types"
+import { RADIO, type RadioMember } from "./UICheckbox.types"
 
 /****************
- * ### `<ui-radio>`
- * One radio button:  `<div class="ui radio checkbox" part="checkbox">` (`slider` / `toggle` looks too) around a native
- * `<input type="radio" part="control">` and its `<label part="label">` (see `CheckControl`).
- * - Grouped by `name` within its form owner, else its root node (`RadioGroup`):  choosing one unchooses the rest
- *   (without events, as natively);  only the group's tab stop is tabbable -- the chosen one, else the first
- *   enabled;  Arrow Down / Right choose the next enabled one and Arrow Up / Left the previous, wrapping.
- * - Only the newly chosen radio dispatches `ui-change`;  the form gets the chosen one's `name=value`.
+ * ### `UIRadio`
+ * The component behind `<ui-radio>`:  one radio button of a group.
+ *
+ * - Its shadow DOM:  `<div class="ui radio checkbox" part="checkbox">` (`slider` / `toggle` looks too)
+ *   around a native `<input type="radio" part="control">` and its `<label part="label">` (see `CheckControl`).
+ * - Grouped by `name` within its form owner, else its root node (`RadioGroup`):
+ *   - choosing one unchooses the rest (without events, as natively)
+ *   - only the group's tab stop is tabbable:  the chosen one, else the first enabled one
+ *   - Arrow Down / Right choose the next enabled one, Arrow Up / Left the previous, wrapping.
+ * - Only the newly chosen radio sends `ui-change`;  the form gets the chosen one's `name=value`.
  * - `required` on any member requires a choice in the group:  every member reports `valueMissing`.
  ****************/
 export class UIRadio extends CheckControl<typeof radioVocabulary> implements RadioMember {
@@ -31,7 +34,7 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
    * The group it's in, if named and connected;  tracked.
    * - Starts as the group found at construction (joined in the constructor), so the first render is final.
    * - Then written ONLY by `joinGroup()`, together with the membership, so readers never see one without the other.
-   * - `ownedWrite`:  `joinGroup()` runs from the fork's hooks, possibly inside a Solid render.
+   * - `ownedWrite`:  `joinGroup()` runs from solid-element's hooks, possibly inside a Solid render.
    */
   @E.state({ ownedWrite: true }) accessor group: RadioGroup | undefined = this.findGroup()
 
@@ -42,20 +45,20 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
     onConnect(join)
     onDisconnect(join)
     onFormAssociated(join)
-    // `name` reads fresh here:  the host's record has the new value before its callbacks run
-    this.host.addPropertyChangedCallback((key: string) => {
+    // `name` reads fresh here:  the DOM element's record has the new value before its callbacks run
+    this.domElement.addPropertyChangedCallback((key: string) => {
       if (key === NAME) this.joinGroup()
     })
-    // disposal (`host.dispose()`):  out of the group, without publishing into a dying root
+    // disposal (`domElement.dispose()`):  out of the group, without publishing into a dying root
     onCleanup(() => untrack(() => this.group)?.leave(this))
   }
 
   /**
    * Join the group its name, connection and form owner call for now (leaving the old one), and publish it.
-   * - Called where those change:  construction, connect / disconnect, form association, a `name` write.  NEVER
-   *   from an effect on a memo of them (see `RadioGroup`).
-   * - Reads the platform synchronously (`isConnected`, `internals.form`), and its own members untracked:  it may run
-   *   inside someone else's Solid computation.
+   * - Called where those change:  construction, connect / disconnect, form association, a `name` write.
+   *   NEVER from an effect on a memo of them (see `RadioGroup`).
+   * - Reads the platform synchronously (`isConnected`, `internals.form`), and its own members untracked:
+   *   it may run inside someone else's Solid computation.
    */
   private joinGroup() {
     const next = this.findGroup()
@@ -68,10 +71,10 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
 
   /** The group its name, connection and form owner call for now. */
   private findGroup(): RadioGroup | undefined {
-    const { host } = this
+    const { domElement } = this
     const groupName = untrack(() => this.name)
-    if (!groupName || !host.isConnected) return undefined
-    return RadioGroup.of(host.internals.form ?? host.getRootNode(), groupName)
+    if (!groupName || !domElement.isConnected) return undefined
+    return RadioGroup.of(domElement.internals.form ?? domElement.getRootNode(), groupName)
   }
 
   /** This one was chosen:  unchoose the others in its group (no events, as natively). */
@@ -114,7 +117,7 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
     const group = this.group
     const required = group ? group.isRequired : this.required
     const chosen = group ? group.selectedMember?.chosenValue : this.isSelected ? this.chosenValue : undefined
-    return F.FormElement.validator.validate(chosen ?? "", required ? [UIT.REQUIRED_RULE] : [], {
+    return F.FormComponent.validator.validate(chosen ?? "", required ? [UIT.REQUIRED_RULE] : [], {
       label: this.validationLabel
     })
   }
@@ -137,10 +140,10 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIRadio extends E.AttributeValues<typeof radioVocabulary> {}
 
-/** The `name` prop's key, as the fork's change callback reports it. */
+/** The `name` prop's key, as solid-element's change callback reports it. */
 const NAME: E.AttributeName<typeof radioVocabulary> = "name"
 
 /** Keys that move to the next radio. */

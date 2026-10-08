@@ -1,34 +1,38 @@
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { stepsVocabulary } from "./ui-steps.vocabulary.en"
-import { StepFallback } from "./ui-step.fallback"
+import { stepsVocabulary } from "./UISteps.vocabulary.en"
 
-import stepCSS from "./ui-step.css?inline"
+import stepCSS from "./UIStep.css?inline"
 
 /****************
- * ### `<ui-steps>`
- * A step group:  `<ol class="ui … steps" part="steps" role="list"><slot></slot></ol>` -- steps are a sequence, and
- * each `<ui-step>` host is a `listitem`.
- * - `role="list"` explicitly:  `list-style: none` drops the list semantics in Safari.
- * - The root resolves every variation into inherited `--_ui-steps-*` tokens the steps read (`ui-step.css`), including
- *   stacking:  the host is a block and the size container `ui-steps` (`:state(steps)`), and the root turns
- *   `stacked` below 768px of it unless `unstackable` -- or of the screen, with `stack-with="page"` (a private class
- *   after the noun).
- * - Numbering (`ordered`) is a CSS counter reset here and incremented by each step, across the shadow boundaries.
- * - Host states:  `steps` always;  `block` while the root is block-level (`fluid`, or `circular` and not
- *   `vertical`), `circular` while circular.  Why `block`:  the host is a size container (its own formatting
- *   context), so a block-level root's outer margin sits on the HOST to collapse with the content above, as class
- *   grammar's does;  an inline-flex root's never collapses, so it stays on the root (`ui-step.css`).
+ * ### `UISteps`
+ * The component behind `<ui-steps>`:  a group of steps,
+ * `<ol class="ui … steps" part="steps" role="list"><slot></slot></ol>`.
+ * Steps are a sequence, and each `<ui-step>`'s DOM element is a `listitem`.
+ *
+ * - `role="list"` is explicit:  `list-style: none` drops the list semantics in Safari.
+ *
+ * - The root resolves every variation into inherited `--_ui-steps-*` tokens the steps read (`UIStep.css`).
+ *   That includes stacking:  the DOM element is a block and the size container `ui-steps` (`:state(steps)`),
+ *   and the root turns `stacked` below 768px of it unless `unstackable`;
+ *   with `stack-with="page"` (a private class after the noun), below 768px of the screen.
+ *
+ * - Numbering (`ordered`) is a CSS counter, reset here and incremented by each step, across the shadow boundaries.
+ *
+ * - The DOM element's states:  `steps` always;  `block` while the root is block-level
+ *   (`fluid`, or `circular` and not `vertical`);  `circular` while circular.
+ *   - Why `block`:  the DOM element is a size container (its own formatting context),
+ *     so a block-level root's outer margin sits on the DOM ELEMENT, to collapse with the content above
+ *     as class grammar's does.  An inline-flex root's never collapses, so it stays on the root (`UIStep.css`).
  ****************/
-export class UISteps extends E.UIElement<typeof stepsVocabulary> {
+export class UISteps extends E.UIComponent<typeof stepsVocabulary> {
   @E.proto static vocabulary = stepsVocabulary
   @E.proto static styleSheets = { step: stepCSS }
   @E.proto static elementSetup = {
-    Fallback: StepFallback,
-    // the steps are the focus targets, each its own host
+    // the steps are the focus targets, each its own DOM element
     delegatesFocus: false
-  }
+  } satisfies Partial<E.ElementSetup>
 
   /** Always:  the size container `ui-steps` (`:state(steps)`). */
   @E.cssState("steps")
@@ -62,5 +66,5 @@ export class UISteps extends E.UIElement<typeof stepsVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UISteps extends E.AttributeValues<typeof stepsVocabulary> {}

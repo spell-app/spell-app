@@ -1,7 +1,8 @@
 /**
- * Barrel for the segment components -- also the `segment` lib entry (`@spell-app/ui/ui-segment`),
- * measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-segment>` and `<ui-segments>`.
+ * The segment family:  defines `<ui-segment>` and `<ui-segments>`,
+ * and exports their components, `UISegment` and `UISegments`.
+ * - SIDE EFFECT:  importing it defines the tags.
+ * - Also the library's `@spell-app/ui/ui-segment` entry (its size is in `docs/report.md`).
  */
 
 import { UISegment } from "./UISegment"

@@ -7,18 +7,18 @@
  * - Bindings, not `import * as` namespaces:  a namespace import keeps every export of a package alive (in a bundle,
  *   and in what `yarn vendor` must ship), so the vendored Solid couldn't shrink to the bindings in use.  The same
  *   function object in app and components ~== one module instance.
- * - `context`:  `UIElement.AppContext`, which every controller reads as `app`;  `read(el)` returns what it saw.
+ * - `context`:  `UIComponent.AppContext`, which every component reads as `appContext`;  `read(el)` returns what it saw.
  * - MUST load before the app mounts (`solid.html` imports it first).
  * - SIDE EFFECT:  that global.
  */
 
 import { createSignal } from "solid-js"
 import { render } from "@solidjs/web"
-import { UIElement } from "@spell-app/ui/core"
+import { UIComponent } from "@spell-app/ui/core"
 
 globalThis.__uiSolidIdentity = {
   solidJs: { createSignal },
   web: { render },
-  context: UIElement.AppContext,
-  read: (element) => element.controller?.app
+  context: UIComponent.AppContext,
+  read: (element) => element.component?.appContext
 }

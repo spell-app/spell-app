@@ -3,28 +3,36 @@ import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
 import { EmojiData } from "./EmojiData"
-import { EmojiFallback } from "./ui-emoji.fallback"
-import { emojiVocabulary } from "./ui-emoji.vocabulary.en"
+import { emojiVocabulary } from "./UIEmoji.vocabulary.en"
 
-import emojiCSS from "./ui-emoji.css?inline"
+import emojiCSS from "./UIEmoji.css?inline"
 
 /****************
- * ### `<ui-emoji>`
- * An emoji:  `<span class="ui [size] [keyOnly ...] emoji" part="emoji">😄</span>`.
- * - The glyph is the native Unicode emoji `EmojiData` resolves from `name`, loading that name's data chunk on first
- *   use;  a name already loaded (or `EmojiData.register()`ed) draws in the first frame.  A later `name` wins over
- *   an earlier, slower load.  Unknown:  an empty root with no role (an unnamed `role=img` fails axe).
- * - Accessible name (see the vocabulary):  the character as text by default;  `label="..."` => `role=img` +
- *   `aria-label`;  bare `label` => `aria-hidden`.
- * - `link` is a LOOK:  the emoji takes no focus and fires nothing of its own -- wrap it in a `<button>` / `<a>`.
+ * ### `UIEmoji`
+ * The component behind `<ui-emoji>`:  an emoji, drawn as the native Unicode character.
+ *
+ * - Its shadow DOM is one span, `<span class="ui [size] [keyOnly ...] emoji" part="emoji">😄</span>`.
+ *
+ * - The glyph is the Unicode emoji `EmojiData` resolves from `name`,
+ *   loading that name's data chunk on first use.
+ *   - A name already loaded (or `EmojiData.register()`ed) draws in the first frame.
+ *   - A later `name` wins over an earlier, slower load.
+ *   - An unknown name:  an empty box with no role (an unnamed `role=img` fails axe).
+ *
+ * - The accessible name (see the vocabulary):  the character, as text, by default;
+ *   `label="…"` => `role=img` + `aria-label`;  a bare `label` => `aria-hidden`.
+ * - `link` is only a LOOK:  the emoji takes no focus and sends nothing of its own;
+ *   wrap it in a `<button>` or `<a>`.
  ****************/
-export class UIEmoji extends E.UIElement<typeof emojiVocabulary> {
+export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
   @E.proto static vocabulary = emojiVocabulary
   @E.proto static styleSheets = { emoji: emojiCSS }
-  @E.proto static elementSetup = { Fallback: EmojiFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** The glyph, `undefined` while loading or for an unknown name. */
-  @E.state accessor emoji: string | undefined = untrack(() => EmojiData.peek(this.name, EmojiData.setFor(this.host)))
+  @E.state accessor emoji: string | undefined = untrack(() =>
+    EmojiData.peek(this.name, EmojiData.setFor(this.domElement))
+  )
 
   /** Request counter, so a slower earlier load can't win. */
   private latestRequest = 0
@@ -33,7 +41,7 @@ export class UIEmoji extends E.UIElement<typeof emojiVocabulary> {
    * Loads the emoji again when connected (it may have moved under another root) and when any root's settings change.
    * - An explicit effect, not `@E.onChange`:  it also follows a page-wide signal (`RootSettings.generation`).
    */
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     createEffect(
       () => ({
@@ -67,8 +75,8 @@ export class UIEmoji extends E.UIElement<typeof emojiVocabulary> {
 
   /**
    * Looks disabled?  `:state(disabled)`.
-   * - A look only, NOT the base's `isDisabled`:  the host would swallow clicks meant for the `<button>` / `<a>` around
-   *   it.
+   * - A look only, NOT the base's `isDisabled`:
+   *   the element would swallow clicks meant for the `<button>` or `<a>` around it.
    */
   @E.cssState("disabled")
   get looksDisabled(): boolean {
@@ -103,11 +111,11 @@ export class UIEmoji extends E.UIElement<typeof emojiVocabulary> {
   /** Resolve `name` in the set this element sees;  writes only if it is still the latest request. */
   private async load(name: string | undefined) {
     const request = ++this.latestRequest
-    const emoji = await EmojiData.get(name, EmojiData.setFor(this.host))
+    const emoji = await EmojiData.get(name, EmojiData.setFor(this.domElement))
     if (this.latestRequest === request && untrack(() => this.emoji) !== emoji) this.emoji = emoji
   }
 }
-/** The vocabulary getters, typed. */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIEmoji extends E.AttributeValues<typeof emojiVocabulary> {}
 
 /**

@@ -6,41 +6,45 @@ import { F } from "$/ui/forms"
 // REFACTOR: `SlottedItems` reads `<ui-item>`s as data for the dropdown AND the select;  it belongs to the `item`
 // family (next to `itemVocabulary`), which would also spare the bundle a shared dropdown / select chunk
 import { SlottedItems } from "$/ui/components/ui-dropdown/SlottedItems"
-import { selectVocabulary } from "./ui-select.vocabulary.en"
-import { SelectFallback } from "./ui-select.fallback"
-import { DIVIDER, PLACEHOLDER, type SelectBlock, type Vocabulary } from "./ui-select.types"
+import { selectVocabulary } from "./UISelect.vocabulary.en"
+import { SelectFallback } from "./UISelect.fallback"
+import { DIVIDER, PLACEHOLDER, type SelectBlock, type Vocabulary } from "./UISelect.types"
 
-import selectCSS from "./ui-select.css?inline"
+import selectCSS from "./UISelect.css?inline"
 
 /****************
- * ### `<ui-select>`
- * A NATIVE `<select>` in the shadow root, in the closed look of Fomantic's `selection dropdown`.
- * - Customizable select:  where the browser has `appearance: base-select` (`UI.browser.supports.baseSelect`), the
- *   select gets a `<button><selectedcontent>` and `ui-select.css` styles the picker (`::picker(select)`) and its
- *   rich options (icon, image, flag, description).  Elsewhere (Safari before 27, Firefox) the same markup is a
- *   plain native select:  every option keeps its text, so nothing shows blank, and the closed box looks the same.
- * - Model:  slotted `<ui-item>`s (`SlottedItems`, shared with the dropdown) + the `options` property;  a `header`
- *   item opens an `<optgroup>`, a `divider` item is an `<hr>`.
- * - `value` is auto-controlled (`@controlled`):  a person's change dispatches `ui-change` first;  a handler that
- *   re-sets `el.value` wins, and the select shows the host's value again.
- * - Single:  an empty first option (the `placeholder`) stands while nothing is chosen, so the browser never
- *   silently chooses the first option;  `required` disables it (it can't be chosen back).
- * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with;  a flag that isn't a code shows
- *   as its text.
- * - Keyboard, picker, type-ahead and screen-reader semantics are the browser's.
- * - Form-associated:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
+ * ### `UISelect`
+ * The component behind `<ui-select>`:  a NATIVE `<select>` in the shadow root,
+ * in the closed look of Fomantic's `selection dropdown`.
+ *
+ * - The customizable select:  where the browser has `appearance: base-select` (`UI.browser.supports.baseSelect`),
+ *   the select gets a `<button><selectedcontent>`, and `UISelect.css` styles the picker (`::picker(select)`)
+ *   and its rich options (icon, image, flag, description).
+ *   Elsewhere (Safari before 27, Firefox) the same markup is a plain native select:
+ *   every option keeps its text, so nothing shows blank, and the closed box looks the same.
+ *
+ * - Its options:  the slotted `<ui-item>`s (`SlottedItems`, shared with the dropdown), then the `options` property.
+ *   A `header` item opens an `<optgroup>`;  a `divider` item is an `<hr>`.
+ * - `value` is controlled (`@controlled`):  a person's change sends `ui-change` first;
+ *   a handler that sets `el.value` again wins, and the select shows that value.
+ * - A single select shows an empty first option (the `placeholder`) while nothing is chosen,
+ *   so the browser never silently chooses the first option.  `required` disables it (it can't be chosen back).
+ * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with;
+ *   a flag that isn't a code shows as its text.
+ * - Keyboard, picker, type-ahead and screen-reader behaviour are the browser's.
+ * - A form control:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
  ****************/
-export class UISelect extends F.FormElement<Vocabulary> {
+export class UISelect extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = selectVocabulary
   @E.proto static styleSheets = { select: selectCSS }
-  @E.proto static elementSetup = { Fallback: SelectFallback }
+  @E.proto static elementSetup = { Fallback: SelectFallback } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Options
   ////////////////
 
   /** Options from slotted `<ui-item>`s. */
-  readonly items = new SlottedItems(this.host)
+  readonly items = new SlottedItems(this.domElement)
 
   /** `options` property, validated to an array. */
   get propertyOptions(): UIT.SelectOptions {
@@ -70,11 +74,11 @@ export class UISelect extends F.FormElement<Vocabulary> {
   // ## Value
   ////////////////
 
-  /** `value`:  host-controlled, or internal;  starts from `selected` items. */
+  /** `value`:  set by the page, or chosen;  starts from the `selected` items. */
   @E.controlled("value") accessor value: UIT.SelectValue | undefined = this.selectedItemValues()
 
-  /** Host value to restore on form reset (`undefined`:  back to the `selected` items). */
-  private readonly initialValue = this.isHostControlled("value") ? untrack(() => this.value) : undefined
+  /** The page's value to restore on a form reset (`undefined`:  back to the `selected` items). */
+  private readonly initialValue = this.isPageControlled("value") ? untrack(() => this.value) : undefined
 
   /** Chosen values, always as an array;  the same list while equal. */
   @E.derived({ equals: E.isSameList })
@@ -90,7 +94,7 @@ export class UISelect extends F.FormElement<Vocabulary> {
     return !this.multiple && (this.placeholder !== undefined || !this.chosenValues.length)
   }
 
-  /** Bumped on every change a person makes, so the `<select>` re-syncs even when the value stayed (a host veto). */
+  /** Bumped on every change a person makes, so the `<select>` shows the value again even when it stayed (a veto). */
   @E.state accessor selectRevision = 0
 
   /** The value, the options or the placeholder changed (or a person chose):  the `<select>` shows the value again. */
@@ -101,8 +105,8 @@ export class UISelect extends F.FormElement<Vocabulary> {
 
   /**
    * Show the chosen values in the `<select>`.
-   * - Runs after every DOM update that could move the browser's selection (options added, the placeholder
-   *   removed) and after each change a person makes, so the select always shows the element's value.
+   * - Runs after every DOM update that could move the browser's selection (options added,
+   *   the placeholder removed) and after each change a person makes, so the select always shows the element's value.
    */
   private syncSelect() {
     const { select } = this
@@ -186,15 +190,15 @@ export class UISelect extends F.FormElement<Vocabulary> {
   // ## Label
   ////////////////
 
-  /** Host `<label>`s and `aria-label`, as the select's name. */
-  readonly labels = new F.ControlLabels(this.formHost)
+  /** The DOM element's `<label>`s and `aria-label`, as the select's name. */
+  readonly labels = new F.ControlLabels(this.domFormElement)
 
   /** Name for the select:  its `<label>`s / `aria-label`, else `placeholder`, else `name`. */
   private get label(): string | undefined {
     return this.labels.accessibleName ?? this.placeholder ?? this.name
   }
 
-  /** Connected:  read the host's `<label>`s again. */
+  /** Connected:  read the DOM element's `<label>`s again. */
   @E.onChange("isConnected")
   protected onConnectedChanged(isConnected: boolean) {
     if (isConnected) this.labels.refresh()
@@ -310,18 +314,18 @@ export class UISelect extends F.FormElement<Vocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/static`):  the select's `name`, so it submits without JS;  `{}` in a browser, where
-   * the HOST submits (`ElementInternals`).
+   * The select's extra attributes in a server render (`$/ui/static`):  its `name`, so it submits without script.
+   * - `{}` in a browser, where the DOM element submits (`ElementInternals`).
    */
   private get staticSelect(): Record<string, unknown> {
     return isServer ? { name: this.name } : {}
   }
 
   /**
-   * Server render only:  `selected` on the option of `value` while it's chosen (`""`:  the placeholder, while
-   * nothing is);  `{}` in a browser, where `syncSelect()` sets it.
+   * Server render only:  `selected` on the option of `value` while it's chosen (`""`:  the placeholder,
+   * while nothing is);  `{}` in a browser, where `syncSelect()` sets it.
    * - The placeholder is also `disabled` while chosen:  a disabled option isn't submitted, so a static form sends
-   *   no `name=` for it, as the element sends nothing without a value.  NOTE: a no-JS reader can't go back to it.
+   *   no `name=` for it, as the component sends nothing without a value.  NOTE: a no-JS reader can't go back to it.
    */
   private staticOption(value: string): Record<string, unknown> {
     if (!isServer) return {}
@@ -337,7 +341,7 @@ export class UISelect extends F.FormElement<Vocabulary> {
 
   /**
    * Is `entry` an option (not a header or divider)?
-   * - STATIC:  pure, a `filter()` predicate.
+   * - Static:  pure, a `filter()` predicate.
    */
   private static isOption(entry: E.MenuEntry): entry is E.MenuOption {
     return !("type" in entry)
@@ -345,8 +349,8 @@ export class UISelect extends F.FormElement<Vocabulary> {
 }
 
 /**
- * The vocabulary getters, typed (`UIElement`'s doc);  `value` is the `@controlled` accessor instead (a property may
- * be a `string[]`).
+ * The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`).
+ * - Minus `value`:  the `@controlled` accessor of that name wins, and its property may be a `string[]`.
  */
 export interface UISelect extends Omit<E.AttributeValues<Vocabulary>, "value"> {}
 

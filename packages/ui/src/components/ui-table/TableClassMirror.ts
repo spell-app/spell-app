@@ -1,18 +1,18 @@
 import { UIT } from "$/ui/core"
-import { CLASS } from "./ui-table.types"
+import { CLASS } from "./UITable.types"
 
 /****************
  * ### `TableClassMirror`
- * Writes an element's Fomantic class string (`ui celled striped table`) onto a LIGHT-DOM `<table>`, so
- * `ui-table.css`'s class-grammar rules style it.
+ * Writes an element's Fomantic class string (`ui celled striped table`) onto a LIGHT-DOM `<table>`,
+ * so `UITable.css`'s class-grammar rules style it.
  * - Owns only its words:  the author's other classes stay, in their order;  the element's phrase follows them
  *   as one run in grammar order, since phrase selectors (`[class*="very basic"]`) need the words adjacent.
- * - Words the table ALREADY has when first mirrored, and the element emits, count as the element's:  an SSR
- *   table carries the element's own words (`class="ui celled table"`), which must go when `celled` does.
+ * - Words the table ALREADY has when first mirrored, and the element emits, count as the element's:
+ *   an SSR table carries the element's own words (`class="ui celled table"`), which must go when `celled` does.
  * - Re-applies through a `MutationObserver` on the table's `class`, when a framework rewrites `className`.
- * - Library-neutral (plain DOM):  the element and its native fallback both use it.
- * - NOTE: letting go of a table (`detach()`) leaves its classes:  it's usually gone from the host by then, and
- *   an app may have moved it on purpose.
+ * - Plain DOM, no Solid.
+ * - NOTE: letting go of a table (`detach()`) leaves its classes:  it's usually gone from the `<ui-table>` by then,
+ *   and an app may have moved it on purpose.
  ****************/
 export class TableClassMirror {
   /** Table mirrored onto, if any. */

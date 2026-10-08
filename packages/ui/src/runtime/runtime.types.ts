@@ -109,7 +109,7 @@ export type KeyHandler = (event: KeyboardEvent) => void | boolean
 
 /** Options for `Keyboard.register()`. */
 export type KeyRegistrationOptions = {
-  /** only fire when the event's composed path includes this element (e.g. the component's host) */
+  /** only fire when the event's composed path includes this element (e.g. the component's DOM element) */
   target?: EventTarget
   /** `preventDefault()` a handled event;  default `true` */
   preventDefault?: boolean
@@ -152,7 +152,7 @@ export type DismissReason = "escape" | "outside" | "close-all"
  *   - `modal` (scroll lock + keyboard scope):  `true` for `modal` / `flyout` / `dimmer`
  */
 export type OverlayEntry = {
-  /** host element;  anything in its composed subtree counts as "inside" */
+  /** the element;  anything in its composed subtree counts as "inside" */
   element: Element
   /** sets defaults, see above */
   kind: OverlayKind
@@ -385,7 +385,7 @@ export type ToastOptions = {
   /**
    * Fomantic's `class`:  class words for the toast, e.g. `"success"`, `"inverted blue"`;  a consequence word
    * becomes `type`, a hue `color`, `inverted` stays a word
-   * - every word is also kept on the `<ui-toast>` host's `class`, so a page can theme this toast alone:
+   * - every word is also kept on the `<ui-toast>` DOM element's `class`, so a page can theme this toast alone:
    *   `UI.toast({ class: "ready" })` + `ui-toast.ready { --ui-toast-background: ... }`
    */
   class?: string

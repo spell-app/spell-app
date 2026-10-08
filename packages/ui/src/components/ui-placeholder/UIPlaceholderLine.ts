@@ -1,11 +1,12 @@
 import { E } from "$/ui/core"
 import { PlaceholderShape } from "./PlaceholderShape"
-import { placeholderLineVocabulary } from "./ui-placeholder-line.vocabulary.en"
+import { placeholderLineVocabulary } from "./UIPlaceholderLine.vocabulary.en"
 
 /****************
- * ### `<ui-placeholder-line>`
- * One bar:  `<div class="[length] line" part="line"></div>`, `length` emitting its value alone (`very long`,
- * `medium` ...);  absent, the bar follows its position in the block.
+ * ### `UIPlaceholderLine`
+ * The component behind `<ui-placeholder-line>`:  one bar, `<div class="[length] line" part="line"></div>`.
+ * - `length` writes its value alone (`very long`, `medium` …);  without one, the bar's length follows its position
+ *   in the block.
  ****************/
 export class UIPlaceholderLine extends PlaceholderShape<typeof placeholderLineVocabulary> {
   @E.proto static vocabulary = placeholderLineVocabulary
@@ -15,4 +16,5 @@ export class UIPlaceholderLine extends PlaceholderShape<typeof placeholderLineVo
     return false
   }
 }
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIPlaceholderLine extends E.AttributeValues<typeof placeholderLineVocabulary> {}

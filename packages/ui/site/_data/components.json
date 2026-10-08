@@ -3563,7 +3563,7 @@
           "name": "hidden",
           "kind": "keyOnly",
           "property": "dividerHidden",
-          "description": "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so it doesn't shadow `HTMLElement.hidden` -- `ui-divider.css` overrides the UA `[hidden] { display: none }` so the host keeps contributing its margin."
+          "description": "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so it doesn't shadow `HTMLElement.hidden` -- `UIDivider.css` overrides the UA `[hidden] { display: none }` so the host keeps contributing its margin."
         },
         {
           "name": "fitted",
@@ -3727,7 +3727,7 @@
         {
           "name": "button",
           "kind": "keyOnly",
-          "description": "Looks like a button (`ui-button.css`)."
+          "description": "Looks like a button (`UIButton.css`)."
         },
         {
           "name": "labeled",
@@ -12882,7 +12882,7 @@
       "states": [
         {
           "name": "statistic",
-          "description": "ALWAYS set:  `ui-statistic.css` spaces a statistic after another by it (a shadow root can't see its host's sibling)."
+          "description": "ALWAYS set:  `UIStatistic.css` spaces a statistic after another by it (a shadow root can't see its host's sibling)."
         },
         {
           "name": "inverted",
@@ -13561,7 +13561,7 @@
       "states": [
         {
           "name": "pane",
-          "description": "Always:  `ui-tab.css` tells a pane's host from a tab set's by it."
+          "description": "Always:  `UITab.css` tells a pane's host from a tab set's by it."
         },
         {
           "name": "selected",
@@ -21550,7 +21550,7 @@
         {
           "name": "--ui-modal-dimmer-background",
           "default": "var(--ui-dimmer-background, oklch(0 0 0 / 0.85))",
-          "description": "The shared dimmer token (`ui-dimmer.css`), so a theme styles this `::backdrop` and `<ui-dimmer>` at once.",
+          "description": "The shared dimmer token (`UIDimmer.css`), so a theme styles this `::backdrop` and `<ui-dimmer>` at once.",
           "type": "color"
         },
         {

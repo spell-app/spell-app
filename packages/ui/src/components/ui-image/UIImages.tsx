@@ -1,21 +1,22 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { ImageFallback } from "./ui-image.fallback"
-import { imagesVocabulary } from "./ui-images.vocabulary.en"
+import { imagesVocabulary } from "./UIImages.vocabulary.en"
 
-import imageCSS from "./ui-image.css?inline"
+import imageCSS from "./UIImage.css?inline"
 
 /****************
- * ### `<ui-images>`
- * A group of images in one wrapping row:  `<div class="ui … images" part="group"><slot></slot></div>`.
- * - `ui-image.css` hands the group look (size, border, radius, spacing) to each child through `--_ui-images-*`
- *   tokens:  a `display: contents` image host takes no box styles from `::slotted()`.
+ * ### `UIImages`
+ * The component behind `<ui-images>`:  a group of images in one wrapping row.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … images" part="group">`, around a slot for the images.
+ * - `UIImage.css` hands the group's look (size, border, radius, spacing) to each child,
+ *   through `--_ui-images-*` tokens:  a `display: contents` `<ui-image>` takes no box styles from `::slotted()`.
  ****************/
-export class UIImages extends E.UIElement<typeof imagesVocabulary> {
+export class UIImages extends E.UIComponent<typeof imagesVocabulary> {
   @E.proto static vocabulary = imagesVocabulary
   @E.proto static styleSheets = { image: imageCSS }
-  @E.proto static elementSetup = { Fallback: ImageFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
@@ -26,5 +27,5 @@ export class UIImages extends E.UIElement<typeof imagesVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIImages extends E.AttributeValues<typeof imagesVocabulary> {}

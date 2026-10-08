@@ -2,31 +2,33 @@ import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
-import { BreadcrumbFallback } from "./ui-breadcrumb.fallback"
-import { DIVIDER } from "./ui-breadcrumb.types"
-import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
+import { breadcrumbSectionVocabulary } from "./UIBreadcrumbSection.vocabulary.en"
 
-import breadcrumbCSS from "./ui-breadcrumb.css?inline"
+import breadcrumbCSS from "./UIBreadcrumb.css?inline"
 
 /****************
- * ### `<ui-breadcrumb-section>`
- * One step of the trail:  its own leading divider, `<span class="divider" part="divider" aria-hidden="true">`
- * (empty:  `ui-breadcrumb.css` draws the breadcrumb's divider tokens into it, and hides it on the first section),
- * then the section around the `<slot>`:
- * - `active`:  `<span class="active section" part="section" aria-current="page">`, the current page, never a
- *   link, even with `href`
- * - `href`:  `<a class="section" part="section" href target>`
- * - else `<span class="section" part="section">`
- * - The HOST is `role=listitem` (internals), so the breadcrumb's `<ol>` owns real list items through its slot.
+ * ### `UIBreadcrumbSection`
+ * The component behind `<ui-breadcrumb-section>`:  one step of the trail.
+ *
+ * - Its shadow DOM is its own leading divider,
+ *   `<span class="divider" part="divider" aria-hidden="true">` (empty:
+ *   `UIBreadcrumb.css` draws the breadcrumb's divider tokens into it, and hides it on the first section),
+ *   then the section around the `<slot>`:
+ *   - `active`:  `<span class="active section" part="section" aria-current="page">`, the current page,
+ *     never a link, even with `href`
+ *   - `href`:  `<a class="section" part="section" href target>`
+ *   - else `<span class="section" part="section">`
+ *
+ * - The ELEMENT is `role=listitem` (through `internals`), so the breadcrumb's `<ol>` owns real list items
+ *   through its slot.
  ****************/
-export class UIBreadcrumbSection extends E.UIElement<typeof breadcrumbSectionVocabulary> {
+export class UIBreadcrumbSection extends E.UIComponent<typeof breadcrumbSectionVocabulary> {
   @E.proto static vocabulary = breadcrumbSectionVocabulary
   @E.proto static styleSheets = { breadcrumb: breadcrumbCSS }
-  @E.proto static elementSetup = { Fallback: BreadcrumbFallback }
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.host.internals.role = UIT.LISTITEM
+    this.domElement.internals.role = UIT.LISTITEM
   }
 
   /** The current page (`active`)? */
@@ -46,7 +48,7 @@ export class UIBreadcrumbSection extends E.UIElement<typeof breadcrumbSectionVoc
         </Show>
       </>
     )
-    // a server render (`$/ui/static`) has no host to be the list item:  ONE root, which the flattener makes the
+    // a server render (`$/ui/static`) has no element to be the list item:  ONE root, which the flattener makes the
     // `<li>` -- the class grammar's semantic form, `<li><span class="divider"></span><a class="section">`
     return isServer ? <span>{content}</span> : content
   }
@@ -65,5 +67,8 @@ export class UIBreadcrumbSection extends E.UIElement<typeof breadcrumbSectionVoc
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIBreadcrumbSection extends E.AttributeValues<typeof breadcrumbSectionVocabulary> {}
+
+/** The class and part of a section's own leading divider. */
+const DIVIDER = "divider"

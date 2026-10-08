@@ -1,15 +1,17 @@
 import { E } from "$/ui/core"
-import { checkboxVocabulary } from "./ui-checkbox.vocabulary.en"
+import { checkboxVocabulary } from "./UICheckbox.vocabulary.en"
 import { CheckControl } from "./CheckControl"
-import { CHECKBOX, SWITCH } from "./ui-checkbox.types"
+import { CHECKBOX, SWITCH } from "./UICheckbox.types"
 
 /****************
- * ### `<ui-checkbox>`
- * A checkbox, `toggle` or `slider`:  `<div class="ui … checkbox" part="checkbox">` around a native
- * `<input type="checkbox" part="control">` and its `<label part="label">` (see `CheckControl`).
+ * ### `UICheckbox`
+ * The component behind `<ui-checkbox>`:  a checkbox, `toggle` or `slider`.
+ *
+ * - Its shadow DOM:  `<div class="ui … checkbox" part="checkbox">` around a native
+ *   `<input type="checkbox" part="control">` and its `<label part="label">` (see `CheckControl`).
  * - Toggles and sliders are `role="switch"`:  on / off, not "checked".
- * - `indeterminate`:  the input's `indeterminate` (a dash, `aria-checked="mixed"`);  a click clears it, as
- *   natively, by writing `indeterminate = false` to the host.
+ * - `indeterminate`:  the input's `indeterminate` (a dash, `aria-checked="mixed"`).
+ *   A click clears it, as natively, by writing `indeterminate = false` to the DOM element.
  * - `required` => Fomantic's `checked` rule (`valueMissing`).
  * - `off-value`:  submitted while unchosen, so a box toggles between two values (`value="open" off-value="closed"`);
  *   a subclass sets both for every element it defines:  `class UIDoor extends UICheckbox {
@@ -48,13 +50,13 @@ export class UICheckbox extends CheckControl<typeof checkboxVocabulary> {
     return this.required ? [CHECKED_RULE] : []
   }
 
-  /** A click someone made ends `indeterminate` (writes the host property, so it reflects). */
+  /** A click someone made ends `indeterminate` (writes the DOM element's property, so it reflects). */
   protected onChosen() {
     if (this.indeterminate) this.indeterminate = false
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UICheckbox extends E.AttributeValues<typeof checkboxVocabulary> {}
 
 /** `required` => Fomantic's `checked` rule. */

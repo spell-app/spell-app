@@ -6,7 +6,7 @@
  * - Every file it re-exports runs on the server, so it ends `.ssr.ts`, `.server.ts`'s short form (WWOD §10 ›
  *   "Server code stays out of the browser bundle");  this barrel is `index.ts`, what the `$/ui/static` alias
  *   resolves.
- * - Its graph, bottom up:  `static.types.ssr` <- `ServerIds`, `ServerHost`, `StaticSelectors` <- `ServerRuntime`,
+ * - Its graph, bottom up:  `static.types.ssr` <- `ServerIds`, `ServerDOMElement`, `StaticSelectors` <- `ServerRuntime`,
  *   `StaticFlattener`, `StaticInteractions`, `StaticPageStyles` <- `StaticStylesheet`, `StaticRender`;
  *   `StaticCatalog` (every family's classes) beside them.
  * - Its files import each other through `SSR` (`import { SSR } from "$/ui/static"`), resolved at call time;  what
@@ -18,7 +18,7 @@
 export * from "./static.types.ssr"
 
 export * from "./ServerIds.ssr"
-export * from "./ServerHost.ssr"
+export * from "./ServerDOMElement.ssr"
 export * from "./StaticSelectors.ssr"
 export * from "./ServerRuntime.ssr"
 export * from "./StaticFlattener.ssr"

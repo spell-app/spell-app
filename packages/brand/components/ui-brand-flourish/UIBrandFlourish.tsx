@@ -1,10 +1,9 @@
 import { createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, UIT } from "$/ui/core"
+import { Cell, proto, UIComponent, UIT, type ElementSetup } from "$/ui/core"
 
-import { brandFlourishVocabulary } from "./ui-brand-flourish.vocabulary.en"
-import { BrandFlourishFallback } from "./ui-brand-flourish.fallback"
+import { brandFlourishVocabulary } from "./UIBrandFlourish.vocabulary.en"
 import { Flourish } from "./Flourish"
 import {
   DEFAULT_COLORS,
@@ -13,26 +12,30 @@ import {
   FALLBACK_SIZE,
   type BrandFlourishVocabulary,
   type FlourishVariant
-} from "./ui-brand-flourish.types"
+} from "./UIBrandFlourish.types"
 
-import flourishCSS from "./ui-brand-flourish.css?inline"
+import flourishCSS from "./UIBrandFlourish.css?inline"
 
 /****************
- * ### `<ui-brand-flourish>`
- * Page art:  an `<svg part="art">` drawn by `Flourish`, filling the host, which fills its positioned parent
- * (`position: absolute; inset: 0`, under the content, no pointer events).
- * - Redraws when the box resizes (`ResizeObserver`) or an attribute changes;  the same seed draws the same art.
- * - Colours:  `stroke` / `fill` / `fill2`, else the tokens `--ui-brand-flourish-stroke` / `-fill` / `-fill-2`, else the
- *   `spell-brand` theme's art roles (`--spell-line-flourish`, `--spell-blob`, `--spell-blob-2`), so dark mode follows.
+ * ### `UIBrandFlourish`
+ * The component behind `<ui-brand-flourish>`:  page art (a swoop, blobs, curls …) behind its parent's content.
+ *
+ * - Its shadow DOM is one `<svg part="art">`, drawn by `Flourish`, filling the element,
+ *   which fills its positioned parent (`position: absolute; inset: 0`, under the content, no pointer events).
+ * - It draws again when the box resizes (`ResizeObserver`) or an attribute changes;
+ *   the same seed draws the same art.
+ * - Colours:  `stroke` / `fill` / `fill2`, else the tokens `--ui-brand-flourish-stroke` / `-fill` / `-fill-2`,
+ *   else the `spell-brand` theme's art roles (`--spell-line-flourish`, `--spell-blob`, `--spell-blob-2`),
+ *   so dark mode follows.
  * - Decorative:  `aria-hidden`.
- * - SIDE EFFECT:  observes the host's size while connected.
+ * - SIDE EFFECT:  watches the element's size while connected.
  ****************/
-export class UIBrandFlourish extends UIElement<BrandFlourishVocabulary> {
+export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
   @proto static vocabulary = brandFlourishVocabulary
   @proto static styleSheets = { flourish: flourishCSS }
-  @proto static elementSetup = { Fallback: BrandFlourishFallback, delegatesFocus: false }
+  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
 
-  /** The host's size, px, as last measured. */
+  /** The element's size, px, as last measured. */
   readonly size = new Cell<{ width: number; height: number }>(FALLBACK_SIZE)
 
   /** The `<svg>`'s inner markup. */
@@ -61,17 +64,17 @@ export class UIBrandFlourish extends UIElement<BrandFlourishVocabulary> {
     )
   }
 
-  /** While connected:  measure the host, again on every resize. */
+  /** While connected:  measure the element, and again on every resize. */
   private effects() {
     createEffect(
       () => this.isConnected,
       (connected) => {
         if (!connected) return undefined
         const resizes = new ResizeObserver(() => {
-          const { width, height } = this.host.getBoundingClientRect()
+          const { width, height } = this.domElement.getBoundingClientRect()
           if (width && height) this.size.set({ width, height })
         })
-        resizes.observe(this.host)
+        resizes.observe(this.domElement)
         return () => resizes.disconnect()
       }
     )

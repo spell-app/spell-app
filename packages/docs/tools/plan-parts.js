@@ -52,7 +52,7 @@ const URL_ATTRIBUTES = ["href", "src", "action", "poster", "source"]
 /**
  * Where bodies live in a split doc, in page order:  which elements host one, and where its nodes sit in the host.
  * - `section`:  an Overview sub-section, a phase, the log:  the body is every child but the slotted ones (icon,
- *   header):  what `SourceBody` replaces with the file's content
+ *   header):  what `LoadableBody` replaces with the file's content
  * - `item`:  an item's details panel, `ui-accordion.plan-item`:  the body is its `<ui-content>`'s children
  */
 const HOSTS = [

@@ -1,6 +1,6 @@
 import { E } from "$/ui/core"
-import { ROOT_CATALOG } from "./ui-root.catalog"
-import type { RootPackTag } from "./ui-root.types"
+import { ROOT_CATALOG } from "./UIRoot.catalog"
+import type { RootPackTag } from "./UIRoot.types"
 
 /**
  * Every family's barrel, loaded on demand (`import.meta.glob`, lazy):  `../ui-card/index.ts` => `import()` of it.
@@ -20,13 +20,13 @@ const FAMILIES = import.meta.glob(["../*/index.ts", "!../ui-root/index.ts"])
 /****************
  * ### `RootLoader`
  * Tag => family => `import()`, once per family for the whole page (every root shares the loads).
- * - Which family defines a tag comes from `ROOT_CATALOG` (generated from the vocabularies, `yarn gen:root`), never
- *   from guessing at the tag's name.
+ * - Which family defines a tag comes from `ROOT_CATALOG` (generated from the vocabularies, `yarn gen:root`),
+ *   never from guessing at the tag's name.
  * - The catalog knows the `<ui-docs-*>` tags too;  they load only on a page whose bundle `add()`ed their families
  *   (the docs site's), and fail like any unknown family elsewhere.
- * - Component packs (`<ui-components>`, `ComponentPack`) add tags of their own (`addTags()`):  any custom-element
- *   name, each with its own module and skeleton.  A pack's word on a tag wins over the catalog's.  While a pack is
- *   on its way (`adding()`), roots wait for it before calling a tag unknown (`whenAdded()`).
+ * - Component packs (`<ui-components>`, `ComponentPack`) add tags of their own (`addTags()`):
+ *   any custom-element name, each with its own module and skeleton.  A pack's word on a tag wins over the catalog's.
+ *   While a pack is on its way (`adding()`), roots wait for it before calling a tag unknown (`whenAdded()`).
  * - Static:  the loads are page-wide, shared by every root (and the docs site's router).
  ****************/
 export class RootLoader {
@@ -177,7 +177,9 @@ export class RootLoader {
 /** A family barrel's path:  its folder. */
 const BARREL = /([\w-]+)\/index\.ts$/
 
-/** Prefix of the catalog's tags:  any other undefined tag (an app's own element) is not ours, unless a pack added it. */
+/**
+ * Prefix of the catalog's tags:  any other undefined tag (an app's own element) is not ours, unless a pack added it.
+ */
 const TAG_PREFIX = "ui-"
 
 /** The load policy that imports a pack's tag at once. */

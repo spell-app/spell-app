@@ -11,48 +11,55 @@ import {
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { ThemePreference } from "$/ui/docs-components/ThemePreference"
 import { ThemeMenu } from "./ThemeMenu"
-import { DocsThemesFallback } from "./ui-docs-themes.fallback"
 import {
-  DocsThemesChanges,
+  type DocsThemesChange,
   type DocsThemesShow,
   type DocsThemesText,
   type DocsThemesVocabulary
-} from "./ui-docs-themes.types"
-import { docsThemesVocabulary } from "./ui-docs-themes.vocabulary.en"
+} from "./UIDocsThemes.types"
+import { docsThemesVocabulary } from "./UIDocsThemes.vocabulary.en"
 
-import themesCSS from "./ui-docs-themes.css?inline"
+import themesCSS from "./UIDocsThemes.css?inline"
 
 /****************
- * ### `<ui-docs-themes>`
- * The docs site's look controls, `<div class="ui [size] [inverted] themes" part="controls">` holding, by `show`:
- * - `both` (default):  two round icon buttons, compact enough for a side column or a phone's top bar:
- *   - `<button part="palette">`:  opens `<ui-popup part="overlay" open-on="click">`, a small panel with the theme list
- *     (`role=menu` of `menuitemradio`s:  Spell, Plain, Classic, then Fomantic's;  the chosen one checked) and a
- *     "Match system" switch (`role=switch`:  on while the scheme follows the OS)
- *   - `<button part="scheme">`:  a sun on a light page, a moon on a dark one -- the scheme the page SHOWS, the OS's
- *     while following it;  a click flips it and stores it (no longer following the OS).  The icons cross-fade:  the
- *     new one grows from a quarter, un-blurring, the old one the reverse
- *   - each with a tooltip, `<ui-popup part="tip" inverted size="mini">` (the palette's hides while its overlay is open)
- * - `scheme`:  the sun / moon button alone
- * - `theme`:  a theme `<ui-dropdown part="theme" floating scrolling button>` -- a component page's masthead, with
- *   `for="ui-x"`:  only the themes touching that family, and the dropdown says `N themes` (Fomantic's per-page
- *   dropdown).  Its rows are `<ui-item>` children;  its text is replaced through its `trigger` slot.
- * - The look itself is `ThemePreference`'s (one per page, remembered per viewer, the scheme shared with every doc
- *   site's header):  picking calls `ThemePreference.setTheme()` / `setScheme()` / `flipScheme()`, then fires ONE
- *   `ui-change` (the dropdown's own is stopped).  Every picker on the page follows any picker's change, and the OS's
- *   while following it (`subscribe()`, while connected).
- * - Keyboard, overlay:  focus moves to the chosen theme as it opens;  arrows / Home / End move through the list (one
- *   tab stop, roving `tabindex`), Enter / Space / click pick (the overlay stays open to compare), Tab reaches the
- *   switch, Escape closes it and focus goes back to the palette button (`UI.overlays`).
- * - A doc-only element (`src/docs-components/`):  its shadow composes `<ui-popup>`, `<ui-icon>`, `<ui-dropdown>` and
- *   `<ui-item>`, which its barrel imports.
+ * ### `UIDocsThemes`
+ * The component behind `<ui-docs-themes>`:  the docs site's look controls.
+ *
+ * - Its shadow DOM:  `<div class="ui [size] [inverted] themes" part="controls">`, holding by `show`:
+ *   - `both` (the default):  two round icon buttons, compact enough for a side column or a phone's top bar
+ *     - `<button part="palette">` opens `<ui-popup part="overlay" open-on="click">`,
+ *       a small panel with the theme list (`role=menu` of `menuitemradio`s:  Spell, Plain, Classic, then Fomantic's;
+ *       the chosen one checked) and a "Match system" switch (`role=switch`:  on while the scheme follows the OS)
+ *     - `<button part="scheme">`:  a sun on a light page, a moon on a dark one
+ *       (the scheme the page SHOWS:  the OS's, while following it).
+ *       A click flips it and stores it (no longer following the OS).
+ *       The icons cross-fade:  the new one grows from a quarter, un-blurring;  the old one the reverse.
+ *     - each with a tooltip,
+ *       `<ui-popup part="tip" inverted size="mini">` (the palette's hides while its overlay is open)
+ *   - `scheme`:  the sun / moon button alone
+ *   - `theme`:  a theme `<ui-dropdown part="theme" floating scrolling button>`, for a component page's masthead.
+ *     With `for="ui-x"`, it lists only the themes touching that family,
+ *     and says `N themes` (Fomantic's per-page dropdown).  Its rows are `<ui-item>` children;  its text goes in its
+ *     `trigger` slot.
+ * - The look itself is `ThemePreference`'s (one per page, remembered per viewer,
+ *   the scheme shared with every doc site's header).
+ *   Picking calls `ThemePreference.setTheme()` / `setScheme()` / `flipScheme()`,
+ *   then fires ONE `ui-change` (the dropdown's own is stopped).
+ *   Every picker on the page follows any picker's change, and the OS's while following it
+ *   (`subscribe()`, while connected).
+ * - Keyboard, in the overlay:  focus moves to the chosen theme as it opens.
+ *   - Arrows / Home / End move through the list (one tab stop, a roving `tabindex`)
+ *   - Enter / Space / a click pick (the overlay stays open, to compare)
+ *   - Tab reaches the switch;  Escape closes the overlay, and focus goes back to the palette button (`UI.overlays`).
+ * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of `<ui-popup>`, `<ui-icon>`,
+ *   `<ui-dropdown>` and `<ui-item>`, which its barrel imports.
  ****************/
-export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
+export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
   @E.proto static vocabulary = docsThemesVocabulary
   @E.proto static styleSheets = { "docs-themes": themesCSS }
-  @E.proto static elementSetup = { Fallback: DocsThemesFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     if (isServer) return
     // a promise callback writes it
@@ -139,18 +146,24 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
   }
 
   /**
-   * Follow the OS's scheme (`system`), or keep the one showing now as a choice of its own (`shown`:  nothing changes
-   * on screen), as the viewer did with `event`.
+   * Follow the OS's scheme (`system`), or keep the one showing now as a choice of its own (`shown`:
+   * nothing changes on screen), as the viewer did with `event`.
    */
   chooseScheme(choice: SchemeChoice, event?: Event): void {
     ThemePreference.setScheme(choice === "system" ? "system" : ThemePreference.shownScheme())
     this.emitChange(event)
   }
 
-  /** Fire `ui-change` with the look now. */
+  /** Fire `ui-change` with the look now:  no `theme` key for our own look. */
   private emitChange(originalEvent?: Event): void {
     const look = ThemePreference.look
-    this.send("ui-change", DocsThemesChanges.detailFor({ look, shown: ThemePreference.shownScheme(), originalEvent }))
+    const detail: DocsThemesChange = {
+      ...(look.theme !== undefined && { theme: look.theme }),
+      scheme: look.scheme,
+      shown: ThemePreference.shownScheme(),
+      originalEvent
+    }
+    this.send("ui-change", detail)
   }
 
   ////////////////
@@ -363,7 +376,7 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
     )
   }
 
-  /** The dropdown's `ui-change`:  stop it (the host fires its own), and choose its value. */
+  /** The dropdown's `ui-change`:  stop it (the DOM element fires its own), and choose its value. */
   private onDropdownChange(event: Event): void {
     event.stopPropagation()
     const { value } = (event as CustomEvent<{ value: string }>).detail
@@ -379,7 +392,9 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
   @E.state
   accessor isOpen = false
 
-  /** The theme row holding the list's one tab stop (roving `tabindex`):  a menu value;  `undefined`:  the chosen one. */
+  /**
+   * The theme row holding the list's one tab stop (roving `tabindex`):  a menu value;  `undefined`:  the chosen one.
+   */
   @E.state accessor tabStopTheme: string | undefined = undefined
 
   /**
@@ -408,7 +423,7 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
 
   /** The list's theme rows, in order. */
   private rows(): HTMLButtonElement[] {
-    return [...(this.host.shadowRoot?.querySelectorAll<HTMLButtonElement>(ITEM_SELECTOR) ?? [])]
+    return [...(this.domElement.shadowRoot?.querySelectorAll<HTMLButtonElement>(ITEM_SELECTOR) ?? [])]
   }
 
   /** Focus theme row `row`, and give it the tab stop. */
@@ -437,7 +452,7 @@ export class UIDocsThemes extends E.UIElement<DocsThemesVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UIDocsThemes extends E.AttributeValues<DocsThemesVocabulary> {}
 
 /**
@@ -468,7 +483,9 @@ const SERVER_LOOK: DocsLook = { theme: undefined, scheme: "system" }
 /** Shadow-root ids:  the palette button (its tooltip's `for`) and the overlay's header (its list's name). */
 const IDS = { palette: "palette", heading: "themes-heading" } as const
 
-/** ARIA of the overlay's theme list:  a menu of radio items (arrows move, Enter / Space / click picks), and its switch. */
+/**
+ * ARIA of the overlay's theme list:  a menu of radio items (arrows move, Enter / Space / click picks), and its switch.
+ */
 const MENU_ROLES = { menu: "menu", item: "menuitemradio", switch: "switch" } as const
 
 /** A theme row of the overlay's list. */

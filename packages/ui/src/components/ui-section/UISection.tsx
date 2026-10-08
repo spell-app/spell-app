@@ -2,82 +2,74 @@ import { Show, createEffect, untrack } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import { sectionVocabulary } from "./ui-section.vocabulary.en"
-import { SectionFallback } from "./ui-section.fallback"
+import { sectionVocabulary } from "./UISection.vocabulary.en"
 import { UISections } from "./UISections"
-import {
-  ACTIONS,
-  BADGE,
-  BEFORE_MATCH,
-  CONTENT_ID,
-  FOLD_ICON_CLASS,
-  FoldIconPlace,
-  HEADING,
-  HEADING_TAG,
-  HEIGHT_PROPERTY,
-  MAX_LEVEL,
-  SCROLLING,
-  STATIC_TOGGLE_TAG,
-  STICK_TOP_PROPERTY,
-  SUBHEAD,
-  TIP,
-  TIP_ID,
-  TOGGLE,
-  TOOLTIP,
-  TOP_LEVEL,
-  UNTIL_FOUND,
-  type SectionVocabulary
-} from "./ui-section.types"
+import { FoldIconPlace, type SectionVocabulary } from "./UISection.types"
 
-import sectionCSS from "./ui-section.css?inline"
+import sectionCSS from "./UISection.css?inline"
 
 /****************
- * ### `<ui-section>`
- * A titled section:  `<section class="ui ... section" part="section">` holding a 1px sentinel, the title bar
- * (`<header class="title">` > `<hN class="heading">` > the toggle around the fold icon, icon and header;  then the
- * badge, actions, an end fold icon and the info tip), the subhead, then `<div class="content">` around the default
- * slot.
- * - Wrappers that would be empty (icon, badge, actions, subhead, tip) aren't rendered:  `SlotContent` watches the
- *   light children.
- * - `fold-icon="end"`:  the chevron leaves the fold button for the far end of the title bar, after the actions.  It
- *   stays `aria-hidden` (the button is still the control);  a click on it folds as the button does.  A subclass
- *   moves the default with `defaultFoldIcon` (`<ui-panel>`:  `end`).
- * - `info` / `slot="info"`:  a CSS tooltip under the title bar (`role="tooltip"`), shown while the pointer is on the
- *   heading or the end chevron, or the fold button has keyboard focus.  It describes the fold button
- *   (`aria-describedby`), else the heading.
- * - Level:  `level`, else the enclosing section's level + 1 (at most `h6`), else 2.  The enclosing section comes
- *   from `PartContext` (`ownsParts:  section`, `:state(in-section)`) WITHOUT barriers, so a section in a segment in
- *   a section still nests;  its level, depth and sticky stack are read from its controller (reactive members across
- *   elements), so they follow its attributes and re-nesting.
- * - Folding (`collapsible`):  the toggle is a `<button>` (its accessible name is the header;  its `title`, the
- *   `fold` / `unfold` text by state, only a tooltip / description, as the fallback's);  click / Enter /
- *   Space go through the cancelable `ui-open` / `ui-close`, then `collapsed` flips (controlled, like accordion's
- *   `open`).  Folded content is `hidden="until-found"`, so find-in-page reveals a match:  `beforematch` unfolds it
- *   and announces `ui-open` after the fact (not cancelable).  Not collapsible:  `collapsed` is ignored.
- * - Groups:  without its own `collapsible` attribute, a section folds when its nearest `<ui-sections>` (around it,
- *   or around an enclosing section) is `collapsing` (`group`, `isCollapsible`).  The group also owns `section`
- *   parts, so `parent` climbs through it.
- * - Sticky:  the title bar is `position: sticky` inside the section box, at `top` ~== the top-level `offset`, or
- *   the bottom of the enclosing sticky titles (enclosing section's `stackBottom`), so nested titles stack.  A
- *   `scrolling` / `height` section's content starts a fresh stack (its own scroll box).  `StickyWatch` reports
- *   `:state(stuck)` and reserves the title's room for Page Down, exactly as `<ui-sticky>` does.
- * - Source (`source`, `select`):  the content comes from a file the first time the section unfolds -- by any route:
- *   a click, `collapsed` removed by the page (a `#id` link's unfold), or starting unfolded (then at once).
- *   `SourceBody` fetches it (`UI.sources`), and puts its `<body>` in the LIGHT DOM in place of the placeholder
- *   (children without a `slot`).  While it's on its way the content box stays hidden (`isVeiled`, at most
- *   `SOURCE_BODY_HOLD_MS`, then the `loading` look over the placeholder), so the unfold shows the body.
- *   `load()` / `reload()` on the host (`SourceBodyHost`);  `:state(loaded)`, `:state(error)`.  Lives in the CLASS,
- *   so subclasses (`<ui-panel>`) get it with the vocabulary they reuse.
- * - SIDE EFFECT:  with `sticky`, a `ResizeObserver` keeps the title's height (`titleHeight`) for the stack, and the
- *   `StickyWatch` writes the scroll container's inline `scroll-padding-top` while stuck.
- * - SIDE EFFECT:  with `source`, replaces its own light children (the placeholder) with the file's body.
+ * ### `UISection`
+ * The component behind `<ui-section>`:  a titled block of content that can fold away,
+ * and keep its title in view while you scroll through it.
+ *
+ * - Its shadow DOM:  `<section class="ui … section" part="section">` holding
+ *   - a 1px sentinel, which tells when the title has stuck
+ *   - the title bar, `<header class="title">`:
+ *     the heading (`<hN>`) around the toggle (fold chevron, icon, header text),
+ *     then the badge, the actions, a chevron at the end, and the info tip
+ *   - the subhead, then `<div class="content">` around the default slot.
+ * - A wrapper that would be empty (icon, badge, actions, subhead, tip) isn't drawn:
+ *   `SlotContent` watches the light children.
+ *
+ * - *Level*:  `level`, else the enclosing section's level + 1 (at most `h6`), else 2.
+ *   - The enclosing section is found through `PartContext` with no barriers,
+ *     so a section in a segment in a section still nests.
+ *   - Its level, depth and sticky stack are read from the enclosing section's component,
+ *     so they follow its attributes, and a move to another section.
+ *
+ * - *Folding* (`collapsible`):  the toggle becomes a `<button>`.
+ *   - Its accessible name is the header;  its `title` (the `fold` / `unfold` text) is only a tooltip.
+ *   - Click, Enter and Space send the cancelable `ui-open` / `ui-close`,
+ *     then flip `collapsed` (controlled, like the accordion's `open`).
+ *   - Folded content is `hidden="until-found"`, so find-in-page can reveal a match:
+ *     `beforematch` unfolds it, and announces `ui-open` after the fact (not cancelable).
+ *   - Not collapsible:  `collapsed` is ignored.
+ * - `fold-icon="end"` moves the chevron out of the button, to the far end of the title bar.
+ *   It stays `aria-hidden` (the button is still the control), and a click on it folds as the button does.
+ *   A subclass moves the default with `defaultFoldIcon` (`<ui-panel>`:  `end`).
+ * - *Groups*:  without its own `collapsible` attribute, a section folds when its nearest `<ui-sections>`
+ *   (around it, or around an enclosing section) is `collapsing`.
+ *   The group owns `section` parts too, so `parent` climbs through it.
+ *
+ * - `info` / `slot="info"`:  a CSS tooltip under the title bar (`role="tooltip"`),
+ *   shown while the pointer is on the heading or the end chevron, or the fold button has keyboard focus.
+ *   It describes the fold button (`aria-describedby`), else the heading.
+ *
+ * - *Sticky*:  the title bar is `position: sticky` inside the section's box,
+ *   at the top-level `offset`, or just below the enclosing sticky titles, so nested titles stack.
+ *   - A `scrolling` / `height` section's content is its own scroll box:  a fresh stack starts there.
+ *   - `StickyWatch` sets `:state(stuck)`, and reserves the title's room for Page Down, as `<ui-sticky>` does.
+ *
+ * - *Source* (`source`, `select`):  the content comes from a file the first time the section unfolds,
+ *   by any route:  a click, the page removing `collapsed` (a `#id` link), or starting unfolded (then at once).
+ *   - `LoadableBody` fetches it (`UI.sources`),
+ *     and puts its `<body>` in the LIGHT DOM, in place of the placeholder (the children without a `slot`).
+ *   - While it's on its way, the content box stays hidden (`isVeiled`) for at most `SOURCE_BODY_HOLD_MS`,
+ *     then shows the `loading` look over the placeholder:  so an unfold shows the body, not the placeholder.
+ *   - The DOM element (`DOMLoadableBodyElement`) has `load()` / `reload()`;  states `loaded` and `error`.
+ *   - In the class, not the vocabulary:  a subclass (`<ui-panel>`) gets it with the vocabulary it reuses.
+ *
+ * - SIDE EFFECTS:
+ *   - with `sticky`:  a `ResizeObserver` keeps the title's height (`titleHeight`) for the stack,
+ *     and `StickyWatch` writes the scroll container's inline `scroll-padding-top` while stuck
+ *   - with `source`:  replaces its own light children (the placeholder) with the file's body.
  ****************/
-export class UISection extends E.UIElement<SectionVocabulary> {
+export class UISection extends E.UIComponent<SectionVocabulary> {
   @E.proto static vocabulary = sectionVocabulary
   @E.proto static styleSheets = { section: sectionCSS }
   @E.proto static elementSetup: Partial<E.ElementSetup> = {
-    Fallback: SectionFallback,
-    Host: E.SourceBodyHost,
+    DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false
   }
@@ -92,26 +84,26 @@ export class UISection extends E.UIElement<SectionVocabulary> {
 
   /** Enclosing section, when nested (`:state(in-section)`);  climbs through any other component. */
   readonly context = new E.PartContext({
-    host: this.host,
+    domElement: this.domElement,
     noun: this.vocabulary.noun,
     barrier: E.PartContext.noBarrier
   })
 
   /**
-   * Enclosing section's controller, or `undefined` at the top (or before it has one).
+   * Enclosing section's component, or `undefined` at the top (or before it has one).
    * - Climbs through `<ui-sections>` groups (owners of `section` parts too):  a section in a group in a section is
    *   still nested.
    */
   @E.derived
   get parent(): UISection | undefined {
-    let owner = this.context.ownerController<UISection | UISections>()
-    while (owner instanceof UISections) owner = owner.context.ownerController<UISection | UISections>()
+    let owner = this.context.ownerComponent<UISection | UISections>()
+    while (owner instanceof UISections) owner = owner.context.ownerComponent<UISection | UISections>()
     return owner instanceof UISection ? owner : undefined
   }
 
-  /** Nearest `<ui-sections>` group's controller, directly or through enclosing sections, or `undefined`. */
+  /** Nearest `<ui-sections>` group's component, directly or through enclosing sections, or `undefined`. */
   get group(): UISections | undefined {
-    const owner = this.context.ownerController<UISection | UISections>()
+    const owner = this.context.ownerComponent<UISection | UISections>()
     if (owner instanceof UISections) return owner
     return owner instanceof UISection ? owner.group : undefined
   }
@@ -134,16 +126,19 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   // ## Folding
   ////////////////
 
-  /** `collapsed`:  the host's (a boolean is always the host's, see `@controlled`);  folds only `isCollapsible`. */
+  /**
+   * `collapsed`:  the DOM element's (a boolean is always the DOM element's, see `@controlled`);
+   * folds only `isCollapsible`.
+   */
   @E.controlled("collapsed") accessor isCollapsed = false
 
   /**
-   * Folds:  the host's own `collapsible` when written (`collapsible="false"` opts out), else the nearest group's
-   * `collapsing`.
-   * - The attribute raw:  its getter reads absent and `"false"` alike (false), but only absent takes the group's
-   *   default.
-   * - NOTE: a PROPERTY write of `false` removes the attribute (booleans never reflect as `"false"`), which brings the
-   *   group's default back;  opt out from code with `setAttribute("collapsible", "false")`.
+   * Can it fold?  The DOM element's own `collapsible` when written (`collapsible="false"` opts out),
+   * else the nearest group's `collapsing`.
+   * - Reads the attribute raw:  its getter reads absent and `"false"` alike (false),
+   *   but only absent takes the group's default.
+   * - NOTE: a PROPERTY write of `false` removes the attribute (booleans never reflect as `"false"`),
+   *   which brings the group's default back;  opt out from code with `setAttribute("collapsible", "false")`.
    */
   get isCollapsible(): boolean {
     const own = this.attributes.collapsible
@@ -166,14 +161,14 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   }
 
   /**
-   * Fold or unfold as a person would:  the cancelable `ui-open` / `ui-close` first, then `collapsed`.  True when
-   * applied.
+   * Fold or unfold as a person would:  the cancelable `ui-open` / `ui-close` first, then `collapsed`.
+   * True when applied.
    * - Does nothing unless `collapsible`, or while `disabled`.
    */
   toggle(originalEvent?: Event): boolean {
     if (!untrack(() => this.isCollapsible) || untrack(() => this.isDisabled)) return false
     const opening = untrack(() => this.isFolded)
-    const detail: UIT.SectionToggleDetail = { open: opening, section: this.host, originalEvent }
+    const detail: UIT.SectionToggleDetail = { open: opening, section: this.domElement, originalEvent }
     return this.requestChange("isCollapsed", !opening, () => this.send(opening ? "ui-open" : "ui-close", detail))
   }
 
@@ -190,14 +185,14 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   }
 
   /**
-   * Find-in-page matched inside the folded content:  the browser has already revealed it, so announce `ui-open`
-   * after the fact (not cancelable) and adopt it.
+   * Find-in-page matched inside the folded content:  the browser has already revealed it,
+   * so announce `ui-open` after the fact (not cancelable) and adopt it.
    */
   private readonly onBeforeMatch = () => {
     if (!untrack(() => this.isFolded)) return
-    const detail: UIT.SectionToggleDetail = { open: true, section: this.host }
+    const detail: UIT.SectionToggleDetail = { open: true, section: this.domElement }
     const init = { bubbles: true, composed: true, cancelable: false, detail }
-    this.host.dispatchEvent(new CustomEvent(this.elementDefinition.event("ui-open"), init))
+    this.domElement.dispatchEvent(new CustomEvent(this.elementDefinition.event("ui-open"), init))
     this.isCollapsed = false
   }
 
@@ -257,8 +252,8 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   }
 
   /**
-   * While connected and `sticky`:  measure the title (for the stack) and watch it stick, again whenever its
-   * `top` changes;  unstuck otherwise.
+   * While connected and `sticky`:  measure the title (for the stack) and watch it stick,
+   * again whenever its `top` changes;  unstuck otherwise.
    * - Stays an explicit effect:  conditional, and it observes the DOM (`ResizeObserver`, `StickyWatch`).
    */
   private watchTitle() {
@@ -272,7 +267,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
         }
         const resizes = new ResizeObserver(() => (this.titleHeight = title.getBoundingClientRect().height))
         resizes.observe(title)
-        const unwatch = this.stickyWatch.observe({ host: this.host, top: sentinel, box: title }, { offset })
+        const unwatch = this.stickyWatch.observe({ domElement: this.domElement, top: sentinel, box: title }, { offset })
         return () => {
           resizes.disconnect()
           unwatch()
@@ -286,7 +281,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   ////////////////
 
   /** Light-DOM slot occupancy:  icon, badge, subhead, actions. */
-  readonly slots = new E.SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** Glyph of the `icon` shorthand. */
   readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
@@ -317,15 +312,15 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   }
 
   ////////////////
-  // ## Source (`SourceBodyHost`)
+  // ## Source (`DOMLoadableBodyElement`)
   ////////////////
 
-  /** The content from `source`, loaded on first unfold;  into the host's light DOM. */
-  readonly body = new E.SourceBody({
-    host: this.host,
+  /** The content from `source`, loaded on first unfold;  into the DOM element's light DOM. */
+  readonly body = new E.LoadableBody({
+    domElement: this.domElement,
     source: () => untrack(() => this.source) || undefined,
     select: () => untrack(() => this.select) || undefined,
-    target: () => this.host,
+    target: () => this.domElement,
     send: (name, detail) => this.send(name as never, detail)
   })
 
@@ -361,7 +356,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   }
 
   /**
-   * Load the `source` body whenever the section is unfolded, connected and has one (`SourceBody.load()` is once per
+   * Load the `source` body whenever the section is unfolded, connected and has one (`LoadableBody.load()` is once per
    * `source` + `select`).
    * - An effect, not in `render()`:  a subclass drawing its own markup still loads its body.
    */
@@ -519,7 +514,9 @@ export class UISection extends E.UIElement<SectionVocabulary> {
     )
   }
 
-  /** The fold chevron, `aria-hidden` (the button is the control):  in the button, or at the bar's end with `onClick`. */
+  /**
+   * The fold chevron, `aria-hidden` (the button is the control):  in the button, or at the bar's end with `onClick`.
+   */
   private foldChevron(onClick?: (event: MouseEvent) => void): JSX.Element {
     return (
       <span class={FOLD_ICON_CLASS} part={this.partForName("fold-icon")} aria-hidden={UIT.TRUE} onClick={onClick}>
@@ -529,7 +526,7 @@ export class UISection extends E.UIElement<SectionVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UISection extends E.AttributeValues<SectionVocabulary> {}
 
 /** Glyph of the fold button (rotated by CSS while folded). */
@@ -549,3 +546,66 @@ const SOURCE_ERROR = "source error"
 
 /** Class word after the noun while a `source` body is slow to arrive:  the `loading` look. */
 const LOADING = "loading"
+
+/** Heading level of a top-level section:  under the page's `h1`. */
+const TOP_LEVEL = 2
+
+/** Deepest heading level:  `h6`. */
+const MAX_LEVEL = 6
+
+/** Prefix of the heading's tag:  `h` + level. */
+const HEADING_TAG = "h"
+
+/** Class word and part of the heading (`<hN>`). */
+const HEADING = "heading"
+
+/** Class word and part of the toggle:  the fold button, or a plain box when the section can't fold. */
+const TOGGLE = "toggle"
+
+/** Class words of the fold chevron. */
+const FOLD_ICON_CLASS = "fold icon"
+
+/** Class word and part of the badge pill. */
+const BADGE = "badge"
+
+/** Class word and part of the actions box. */
+const ACTIONS = "actions"
+
+/** Class word and part of the subhead. */
+const SUBHEAD = "subhead"
+
+/** Class word and part of the info tip. */
+const TIP = "tip"
+
+/** Role of the info tip. */
+const TOOLTIP = "tooltip"
+
+/** Tag of the toggle when the section can't fold:  a plain box (a fold button is `<button>`). */
+const STATIC_TOGGLE_TAG = "span"
+
+/** Class word `height` adds after the noun when `scrolling` isn't set:  `height` implies scrolling. */
+const SCROLLING = "scrolling"
+
+/** `id` of the info tip, which the fold button (else the heading) is described by. */
+const TIP_ID = "tip"
+
+/** `id` of the content box, which the fold button's `aria-controls` names. */
+const CONTENT_ID = "content"
+
+/** `hidden` value that lets find-in-page reveal a folded section's content (`beforematch`). */
+const UNTIL_FOUND = "until-found"
+
+/** Event find-in-page fires on hidden `until-found` content before revealing a match. */
+const BEFORE_MATCH = "beforematch"
+
+/**
+ * Private custom property the content box reads for `height`:  inline, so the attribute wins over the page's
+ * `--ui-section-scrolling-height`.
+ */
+const HEIGHT_PROPERTY = "--_ui-section-height"
+
+/**
+ * Private custom property the sticky title reads for its `top`, inline:  the top-level `offset`, or the stack of
+ * enclosing sticky titles above it, in pixels.
+ */
+const STICK_TOP_PROPERTY = "--_ui-section-top"

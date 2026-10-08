@@ -3,7 +3,7 @@ import { describe, expect, test } from "vite-plus/test"
 import { DOCS_PLAIN_THEME, type SiteDataFile } from "$/ui/docs-components/docs-components.types"
 
 import { ThemeMenu } from "./ThemeMenu"
-import { CLASSIC, SPELL, SPELL_BRAND } from "./ui-docs-themes.types"
+import { CLASSIC, SPELL, SPELL_BRAND } from "./UIDocsThemes.types"
 
 describe("new ThemeMenu()", () => {
   test("no data:  every theme under its sheet name;  an unknown `for` tag filters nothing", () => {

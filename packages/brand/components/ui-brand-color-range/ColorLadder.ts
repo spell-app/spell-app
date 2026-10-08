@@ -1,13 +1,15 @@
 import { Palette, STEPS, type Scale, type Step } from "$/brand"
 
-import { DEFAULT_PREFIX, type CssFormat, type LadderInput } from "./ui-brand-color-range.types"
+import { DEFAULT_PREFIX, type CssFormat, type LadderInput } from "./UIBrandColorRange.types"
 
 /****************
  * ### `ColorLadder`
- * One `<ui-brand-color-range>`'s ladder, from its attributes:  the base colour, its step, the 17 colours
- * (`Palette.generateScale()`) and the token prefix;  `css()` writes them as the Color Set Chooser's CSS panel.
- * - Shared by the element (a memo over its attributes), its host (`scale`, `anchorStep`, `css()`, from the host's
- *   current properties, so they're right straight after a write) and the fallback (from the attribute text).
+ * One `<ui-brand-color-range>`'s ladder, from its attributes:  the base colour, its step,
+ * the 17 colours (`Palette.generateScale()`) and the token prefix;  `css()` writes them as the Color Set Chooser's CSS
+ * panel.
+ * - Shared by the component (a memo over its attributes) and its DOM element
+ *   (`scale`, `anchorStep`, `css()`, from the DOM element's current properties, so they're right straight after
+ *   a write).
  * - Immutable;  `from()` returns `undefined` for a value that isn't a colour.
  ****************/
 export class ColorLadder {
@@ -55,8 +57,8 @@ export class ColorLadder {
   }
 
   /**
-   * The ladder as CSS custom properties on `:root`, as the Chooser's CSS panel:  a comment naming the prefix, the
-   * base colour and its step, then one `--<prefix>-<step>` per step.
+   * The ladder as CSS custom properties on `:root`, as the Chooser's CSS panel:  a comment naming the prefix,
+   * the base colour and its step, then one `--<prefix>-<step>` per step.
    */
   css(format: CssFormat = "hex"): string {
     const lines = STEPS.map((step) => `  --${this.name(step)}: ${Palette.format(this.scale[step], format)};`)

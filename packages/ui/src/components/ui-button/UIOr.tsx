@@ -1,15 +1,18 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { orVocabulary } from "./ui-or.vocabulary.en"
+import { orVocabulary } from "./UIOr.vocabulary.en"
 
-import buttonCSS from "./ui-button.css?inline"
+import buttonCSS from "./UIButton.css?inline"
 
 /****************
- * ### `<ui-or>`
- * The round "or" between two buttons of a group:  `<span class="or" data-text="or">`, text from `UI.i18n`.
+ * ### `UIOr`
+ * The component behind `<ui-or>`:  the round "or" between two buttons of a group.
+ *
+ * - Its shadow DOM is one box, `<span class="or" data-text="or">`:  the CSS draws the text.
+ * - The text is `text`, else the page language's word for "or" (`UI.i18n`).
  ****************/
-export class UIOr extends E.UIElement<typeof orVocabulary> {
+export class UIOr extends E.UIComponent<typeof orVocabulary> {
   @E.proto static vocabulary = orVocabulary
   @E.proto static styleSheets = { button: buttonCSS }
 
@@ -30,5 +33,5 @@ export class UIOr extends E.UIElement<typeof orVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIOr extends E.AttributeValues<typeof orVocabulary> {}

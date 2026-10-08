@@ -4,13 +4,13 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { E } from "$/ui/core"
 import { F } from "$/ui/forms"
-import type { UIElementClass, UIHost } from "$/ui/elements"
+import type { UIComponentClass, DOMElement } from "$/ui/elements"
 import type { ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
 /**
- * The reactive members (`Reactive`):  `@state` and `@derived` on any class, then the controller side --
+ * The reactive members (`Reactive`):  `@state` and `@derived` on any class, then the component side --
  * vocabulary getters, `@controlled`, `@cssState`, `@onChange`, `attributes`, `$` -- on a stand-in element.
  */
 
@@ -264,7 +264,7 @@ describe("Reactive:  @onChange", () => {
 })
 
 ////////////////
-// ## Controllers
+// ## Components
 ////////////////
 
 /** The stand-in element's vocabulary. */
@@ -283,8 +283,8 @@ const VOCABULARY = {
   texts: []
 } as const satisfies ComponentVocabulary
 
-/** A controller on every decorator. */
-class ReactiveTest extends E.UIElement<typeof VOCABULARY> {
+/** A component on every decorator. */
+class ReactiveTest extends E.UIComponent<typeof VOCABULARY> {
   @E.cssState("open")
   @E.controlled("open")
   accessor isOpen = false
@@ -311,7 +311,7 @@ class ReactiveTest extends E.UIElement<typeof VOCABULARY> {
   /** `ping` events heard through `on()`. */
   pings = 0
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     this.on("ping", () => this.pings++)
   }
@@ -338,122 +338,122 @@ class ReactiveTest extends E.UIElement<typeof VOCABULARY> {
     )
   }
 }
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 interface ReactiveTest extends E.AttributeValues<typeof VOCABULARY> {}
 Object.defineProperty(ReactiveTest.prototype, "vocabulary", { value: VOCABULARY })
-;(ReactiveTest as unknown as UIElementClass & typeof E.UIElement).define()
+;(ReactiveTest as unknown as UIComponentClass & typeof E.UIComponent).define()
 
 /** The stand-in in Spanish:  `<x-reactivo etiqueta="..." abierto>`. */
 const SPANISH = { lang: "es", attributes: { label: "etiqueta", open: "abierto" } } as const satisfies Dictionary
-;(ReactiveTest as unknown as UIElementClass & typeof E.UIElement).define("x-reactivo", SPANISH)
+;(ReactiveTest as unknown as UIComponentClass & typeof E.UIComponent).define("x-reactivo", SPANISH)
 
-/** Render one stand-in element;  returns its host, controller and box. */
+/** Render one stand-in element;  returns its host, component and box. */
 async function reactive(html: string) {
-  const host = await ElementFixture.render<UIHost & Record<string, unknown>>(html)
-  const controller = host.controller as unknown as ReactiveTest
+  const host = await ElementFixture.render<DOMElement & Record<string, unknown>>(html)
+  const component = host.component as unknown as ReactiveTest
   const box = () => host.shadowRoot!.querySelector<HTMLElement>("[part=box]")!
-  return { host, controller, box }
+  return { host, component, box }
 }
 
-describe("Reactive:  controllers", () => {
+describe("Reactive:  components", () => {
   it("vocabulary getters read the converted value fresh, right after a property write", async () => {
-    const { host, controller } = await reactive(`<x-reactive label="A" size="large"></x-reactive>`)
-    expect(controller.label).toBe("A")
+    const { host, component } = await reactive(`<x-reactive label="A" size="large"></x-reactive>`)
+    expect(component.label).toBe("A")
     host.label = "B"
-    expect(controller.label).toBe("B")
-    expect(controller.title).toBe("B (large)")
+    expect(component.label).toBe("B")
+    expect(component.title).toBe("B (large)")
   })
 
   it("a @derived over vocabulary getters recomputes only on a change, and the view follows", async () => {
-    const { host, controller, box } = await reactive(`<x-reactive label="A"></x-reactive>`)
+    const { host, component, box } = await reactive(`<x-reactive label="A"></x-reactive>`)
     expect(box().textContent).toBe("A (medium)")
-    const before = controller.computes
-    void controller.title
-    expect(controller.computes).toBe(before)
+    const before = component.computes
+    void component.title
+    expect(component.computes).toBe(before)
     host.setAttribute("size", "small")
-    expect(controller.title).toBe("A (small)")
+    expect(component.title).toBe("A (small)")
     await ElementFixture.tick()
     expect(box().textContent).toBe("A (small)")
   })
 
   it("@controlled:  the host's property when set, else the starting value;  requestChange() writes the host", async () => {
-    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
-    expect(controller.isOpen).toBe(false)
-    expect(controller.toggle()).toBe(true)
+    const { host, component } = await reactive(`<x-reactive></x-reactive>`)
+    expect(component.isOpen).toBe(false)
+    expect(component.toggle()).toBe(true)
     expect(host.open).toBe(true)
-    expect(controller.isOpen).toBe(true)
+    expect(component.isOpen).toBe(true)
     expect(host.hasAttribute("open")).toBe(true)
     host.addEventListener("ui-change", (event) => event.preventDefault(), { once: true })
-    expect(controller.toggle()).toBe(false)
-    expect(controller.isOpen).toBe(true)
+    expect(component.toggle()).toBe(false)
+    expect(component.isOpen).toBe(true)
   })
 
   it("requestChange():  a host re-setting the property during the event wins", async () => {
-    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
+    const { host, component } = await reactive(`<x-reactive></x-reactive>`)
     host.addEventListener("ui-change", () => (host.open = false), { once: true })
-    expect(controller.toggle()).toBe(false)
-    expect(controller.isOpen).toBe(false)
+    expect(component.toggle()).toBe(false)
+    expect(component.isOpen).toBe(false)
   })
 
   it("@cssState and @onChange follow the member", async () => {
-    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
+    const { host, component } = await reactive(`<x-reactive></x-reactive>`)
     expect(host.matches(":state(open)")).toBe(false)
     host.open = true
     await ElementFixture.tick()
     expect(host.matches(":state(open)")).toBe(true)
-    expect(controller.opens).toEqual([false, true])
+    expect(component.opens).toEqual([false, true])
   })
 
   it("attributes:  raw strings, null when absent, tracked", async () => {
-    const { host, controller, box } = await reactive(`<x-reactive></x-reactive>`)
-    expect(controller.ariaLabel).toBeNull()
+    const { host, component, box } = await reactive(`<x-reactive></x-reactive>`)
+    expect(component.ariaLabel).toBeNull()
     host.setAttribute("aria-label", "Name")
-    expect(controller.ariaLabel).toBe("Name")
+    expect(component.ariaLabel).toBe("Name")
     await ElementFixture.tick()
     await ElementFixture.tick()
     expect(box().getAttribute("aria-label")).toBe("Name")
   })
 
   it("a vocabulary member's setter writes the host property:  it reflects, and the getter reads it back", async () => {
-    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
-    controller.label = "C"
+    const { host, component } = await reactive(`<x-reactive></x-reactive>`)
+    component.label = "C"
     expect(host.label).toBe("C")
     expect(host.getAttribute("label")).toBe("C")
-    expect(controller.label).toBe("C")
-    controller.label = undefined
+    expect(component.label).toBe("C")
+    component.label = undefined
     expect(host.hasAttribute("label")).toBe(false)
   })
 
   it("on a translated tag, the setter writes ITS property, and attributes take canonical names", async () => {
-    const { host, controller } = await reactive(`<x-reactivo etiqueta="A"></x-reactivo>`)
-    expect(controller.label).toBe("A")
-    expect(controller.rawLabel).toBe("A")
-    controller.label = "D"
+    const { host, component } = await reactive(`<x-reactivo etiqueta="A"></x-reactivo>`)
+    expect(component.label).toBe("A")
+    expect(component.rawLabel).toBe("A")
+    component.label = "D"
     expect(host.etiqueta).toBe("D")
     expect(host.getAttribute("etiqueta")).toBe("D")
     expect(host.hasAttribute("label")).toBe(false)
-    expect(controller.label).toBe("D")
-    expect(controller.rawLabel).toBe("D")
+    expect(component.label).toBe("D")
+    expect(component.rawLabel).toBe("D")
   })
 
   it("on():  hears the host until it's released, across a move", async () => {
-    const { host, controller } = await reactive(`<x-reactive></x-reactive>`)
+    const { host, component } = await reactive(`<x-reactive></x-reactive>`)
     host.dispatchEvent(new Event("ping"))
     host.remove()
     document.body.append(host)
     host.dispatchEvent(new Event("ping"))
-    expect(controller.pings).toBe(2)
+    expect(component.pings).toBe(2)
     host.dispose()
     host.dispatchEvent(new Event("ping"))
-    expect(controller.pings).toBe(2)
+    expect(component.pings).toBe(2)
   })
 
   it("$:  an Accessor per member", async () => {
-    const { host, controller } = await reactive(`<x-reactive label="A"></x-reactive>`)
-    expect(controller.$.title()).toBe("A (medium)")
+    const { host, component } = await reactive(`<x-reactive label="A"></x-reactive>`)
+    expect(component.$.title()).toBe("A (medium)")
     host.open = true
-    expect(controller.$.isOpen()).toBe(true)
-    expect(controller.$.title).toBe(controller.$.title)
+    expect(component.$.isOpen()).toBe(true)
+    expect(component.$.title).toBe(component.$.title)
   })
 })
 
@@ -471,11 +471,11 @@ describe("Reactive:  vocabulary getters vs base members", () => {
     )
   )
 
-  it("no attribute is named like a member of UIElement or FormElement (the base would hide its getter)", async () => {
-    const { controller } = await reactive(`<x-reactive></x-reactive>`)
+  it("no attribute is named like a member of UIComponent or FormComponent (the base would hide its getter)", async () => {
+    const { component } = await reactive(`<x-reactive></x-reactive>`)
     const standIn = new Set(["computes", "opens", "pings"])
-    const fields = Object.keys(controller).filter((key) => !standIn.has(key))
-    const taken = new Set([...fields, ...namesOf(E.UIElement.prototype), ...namesOf(F.FormElement.prototype)])
+    const fields = Object.keys(component).filter((key) => !standIn.has(key))
+    const taken = new Set([...fields, ...namesOf(E.UIComponent.prototype), ...namesOf(F.FormComponent.prototype)])
     const clashes = vocabularies.flatMap(({ tag, attributes }) =>
       attributes
         .map(({ name }) => name.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()))

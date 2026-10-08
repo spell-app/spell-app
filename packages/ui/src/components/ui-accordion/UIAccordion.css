@@ -1,0 +1,341 @@
+/*
+ * The style sheet of `<ui-accordion>`:  a port of Fomantic's `accordion.less` + `accordion.variables`
+ * (and the arrow of its `accordion.overrides`).
+ * - It styles the component's shadow DOM, in Fomantic's class names on semantic elements:
+ *
+ *     <div class="ui [keyOnly ...] [very] compact accordion" part="accordion">     (nested:  no `ui`)
+ *       <details name="panels" [open] part="panel">                                (`name` only while exclusive)
+ *         <summary class="[active] title" part="title">
+ *           <span class="dropdown icon" part="icon" aria-hidden="true"></span><slot></slot>
+ *         </summary>
+ *         <div class="[active] content" part="content">
+ *           <p class="source error" part="error" role="alert">Couldn't load …</p>   (first panel, failed `source`)
+ *           <slot></slot>
+ *         </div>
+ *       </details>
+ *       ...
+ *     </div>
+ *
+ * - The `<summary>` and the content `<div>` are the boxes;  the slotted `<ui-title>` / `<ui-content>` are plain
+ *   (the accordion doesn't own them as parts), so a title's text sits in the flex row beside the arrow.
+ * - Static markup:  three grammars share every rule, so a page without JS still gets a working accordion:
+ *   - `<details>` panels (what the element renders, recommended):  `.ui.accordion > details > summary.title +
+ *     .content`;  open / close and the exclusive `name` group are native
+ *   - Fomantic's flat grammar:  `.ui.accordion > .title + .content`, shown by `.active` (Fomantic's JS set it)
+ *   - Fomantic 2.9's single panel:  `details.ui.accordion > summary.title + .content`
+ * - Arrow:  `.dropdown.icon`, drawn by CSS (a triangle in `currentColor`), so neither markup needs an icon font;
+ *   it turns down while its panel is open.
+ *
+ * ## Tokens
+ * Public tokens (`--ui-accordion-*`, the theming surface) are NEVER declared here:  the ROOT reads each through a
+ * private alias (`--_ui-accordion-radius: var(--ui-accordion-radius, 0)`), its variations write the aliases,
+ * and the rules only read those.  So a value set on `:root`, an ancestor, the DOM element,
+ * `::part(accordion)` or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens");
+ * a variation still wins over it. A nested accordion's root declares NONE (`.accordion` without `ui`:  the component's,
+ * or Fomantic's static `.ui.accordion .accordion`), so it inherits its parent's resolved look through the flat tree,
+ * as Fomantic's `.ui.styled.accordion .accordion` rules do.  So theme a nested accordion through its outermost one.
+ *
+ * | Token                                          | What                                     | Changed by              |
+ * | ---------------------------------------------- | ---------------------------------------- | ----------------------- |
+ * | `--ui-accordion-width`                         | root width                               | styled, fluid           |
+ * | `--ui-accordion-background` / `-shadow` / `-radius` | the box                             | styled, basic, inverted |
+ * | `--ui-accordion-nested-margin`                 | a nested accordion's margin              | tree                    |
+ * | `--ui-accordion-title-padding` / `-weight`     | title spacing, weight                    | styled, compact         |
+ * | `--ui-accordion-title-color`                   | title text                               | styled, basic, inverted |
+ * | `--ui-accordion-title-border`                  | rule above every title but the first     | styled, basic           |
+ * | `--ui-accordion-title-hover-color` / `-background` | hovered title                        | styled, basic, inverted |
+ * | `--ui-accordion-title-active-color` / `-background` | an open panel's title               | styled, basic, inverted |
+ * | `--ui-accordion-content-padding`               | content spacing                          | styled, compact, tree   |
+ * | `--ui-accordion-content-last-padding`          | the last panel's content (no bottom gap) | styled, compact, tree   |
+ * | `--ui-accordion-content-indent`                | content's start margin                   | tree                    |
+ * | `--ui-accordion-duration`                      | open / close animation, arrow turn       | --                      |
+ *
+ * - NOTE: left out, on purpose:
+ *   - the accordion MENU coupling (`.ui.accordion.menu .item .title`) and `.ui.accordion .ui.header > .dropdown.icon`
+ *   - Fomantic's `right` dropdown icon (floated right, turned the other way)
+ *   - `animateChildren` (content fading as it opens):  the height transition only
+ */
+
+@layer ui.components.accordion.types, ui.components.accordion.content, ui.components.accordion.variations, ui.components.accordion.states;
+
+/*******************************
+            Accordion
+*******************************/
+
+@layer ui.components.accordion.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  private aliases;  the root resolves every variation into these (see the header). */
+  .ui.accordion {
+    --_ui-accordion-width: var(--ui-accordion-width, auto);
+    --_ui-accordion-background: var(--ui-accordion-background, none);
+    --_ui-accordion-shadow: var(--ui-accordion-shadow, none);
+    --_ui-accordion-radius: var(--ui-accordion-radius, 0);
+    --_ui-accordion-nested-margin: var(--ui-accordion-nested-margin, 1em 0 0);
+    --_ui-accordion-title-padding: var(--ui-accordion-title-padding, 0.5em 0);
+    --_ui-accordion-title-weight: var(--ui-accordion-title-weight, inherit);
+    --_ui-accordion-title-color: var(--ui-accordion-title-color, var(--ui-text-color));
+    --_ui-accordion-title-border: var(--ui-accordion-title-border, none);
+    --_ui-accordion-title-transition: var(--ui-accordion-title-transition, none);
+    --_ui-accordion-title-hover-color: var(--ui-accordion-title-hover-color, var(--_ui-accordion-title-color));
+    --_ui-accordion-title-hover-background: var(--ui-accordion-title-hover-background, transparent);
+    --_ui-accordion-title-active-color: var(--ui-accordion-title-active-color, var(--_ui-accordion-title-color));
+    --_ui-accordion-title-active-background: var(--ui-accordion-title-active-background, transparent);
+    --_ui-accordion-content-padding: var(--ui-accordion-content-padding, 0.5em 0 1em);
+    --_ui-accordion-content-last-padding: var(--ui-accordion-content-last-padding, 0.5em 0 0);
+    --_ui-accordion-content-indent: var(--ui-accordion-content-indent, 0);
+    --_ui-accordion-duration: var(--ui-accordion-duration, var(--ui-duration-slow));
+  }
+
+  /* The box:  the root, and a nested accordion (which inherits its parent's box tokens). */
+  .ui.accordion,
+  .accordion {
+    box-sizing: border-box;
+    max-width: 100%;
+    background: var(--_ui-accordion-background);
+    border-radius: var(--_ui-accordion-radius);
+    box-shadow: var(--_ui-accordion-shadow);
+  }
+  .ui.accordion {
+    width: var(--_ui-accordion-width);
+    color: var(--ui-text-color);
+  }
+  .accordion:not(.ui) {
+    margin: var(--_ui-accordion-nested-margin);
+    padding: 0;
+  }
+
+  /* A `<details>` panel is only a wrapper. */
+  .accordion > details {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ## Title:  the flat grammar's `.title`, a panel's `<summary class="title">`. */
+  .accordion > .title,
+  .accordion > details > .title {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: var(--_ui-accordion-title-padding);
+    border-top: var(--_ui-accordion-title-border);
+    font-family: var(--ui-font-family-heading);
+    font-size: 1em;
+    font-weight: var(--_ui-accordion-title-weight);
+    line-height: 1;
+    color: var(--_ui-accordion-title-color);
+    list-style: none;
+    cursor: pointer;
+    transition: var(--_ui-accordion-title-transition);
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Safari's own disclosure triangle:  the arrow is ours. */
+  .accordion > details > summary.title::-webkit-details-marker {
+    display: none;
+  }
+  .accordion > .title:first-child,
+  .accordion > details:first-child > .title {
+    border-top: none;
+  }
+  .accordion > .title:focus-visible,
+  .accordion > details > .title:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: calc(var(--ui-focus-width) * -1);
+  }
+
+  /* ## Arrow:  Fomantic's `.dropdown.icon`, a caret pointing at the title's text, turned down while open. */
+  .accordion > .title > .dropdown.icon,
+  .accordion > details > .title > .dropdown.icon {
+    display: inline-block;
+    flex: none;
+    box-sizing: border-box;
+    width: 1.25em;
+    height: 1em;
+    margin: 0 0.25em 0 0;
+    padding: 0;
+    opacity: 1;
+    font-size: 1em;
+    vertical-align: baseline;
+    transition:
+      transform var(--_ui-accordion-duration) var(--ui-ease),
+      opacity var(--_ui-accordion-duration) var(--ui-ease);
+  }
+  .accordion > .title > .dropdown.icon::before,
+  .accordion > details > .title > .dropdown.icon::before {
+    content: "";
+    display: block;
+    width: 0.375em;
+    height: 0.625em;
+    margin: 0.1875em auto;
+    background: currentColor;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+  .accordion > .title > .dropdown.icon:dir(rtl)::before,
+  .accordion > details > .title > .dropdown.icon:dir(rtl)::before {
+    transform: scaleX(-1);
+  }
+
+  /* ## Content */
+  .accordion > .content,
+  .accordion > details > .content {
+    margin: 0;
+    margin-inline-start: var(--_ui-accordion-content-indent);
+    padding: var(--_ui-accordion-content-padding);
+  }
+  /* The last panel's content has no gap below (unless styled). */
+  .accordion > .content:last-child,
+  .accordion > details:last-child > .content {
+    padding: var(--_ui-accordion-content-last-padding);
+  }
+  /* Slotted content fills the box. */
+  .content > ::slotted(*) {
+    display: block;
+  }
+
+  /* A `source` body that failed:  one line in the panel's content, above the placeholder. */
+  .source.error {
+    margin: 0 0 1em;
+    color: var(--ui-negative-text);
+  }
+}
+
+/*******************************
+            Variations
+*******************************/
+
+@layer ui.components.accordion.variations {
+  /* ## Styled:  a box, rules between bold titles, padded content. */
+  .ui.styled.accordion {
+    --_ui-accordion-width: 37.5em;
+    --_ui-accordion-background: var(--ui-surface);
+    --_ui-accordion-shadow: var(--ui-shadow-subtle), 0 0 0 var(--ui-border-width) var(--ui-border-color);
+    --_ui-accordion-radius: var(--ui-radius);
+    --_ui-accordion-title-padding: 0.75em 1em;
+    --_ui-accordion-title-weight: var(--ui-font-weight-bold);
+    --_ui-accordion-title-color: var(--ui-text-unselected);
+    --_ui-accordion-title-border: var(--ui-border-width) solid var(--ui-border-color);
+    --_ui-accordion-title-transition:
+      background var(--ui-duration-fast) var(--ui-ease), color var(--ui-duration-fast) var(--ui-ease);
+    --_ui-accordion-title-hover-color: var(--ui-text-color);
+    --_ui-accordion-title-active-color: var(--ui-text-selected);
+    --_ui-accordion-content-padding: 0.5em 1em 1.5em;
+    --_ui-accordion-content-last-padding: 0.5em 1em 1.5em;
+  }
+
+  /* ## Compact / very compact */
+  .ui.compact.accordion:not(.styled) {
+    --_ui-accordion-title-padding: 0.25em 0;
+    --_ui-accordion-content-padding: 0.25em 0 0.5em;
+    --_ui-accordion-content-last-padding: 0.25em 0 0;
+  }
+  .ui[class*="very compact"].accordion:not(.styled) {
+    --_ui-accordion-title-padding: 0.125em 0;
+    --_ui-accordion-content-padding: 0.125em 0 0.25em;
+    --_ui-accordion-content-last-padding: 0.125em 0 0;
+  }
+  .ui.compact.styled.accordion {
+    --_ui-accordion-title-padding: 0.375em 0.5em;
+    --_ui-accordion-content-padding: 0.25em 0.5em 0.75em;
+    --_ui-accordion-content-last-padding: 0.25em 0.5em 0.75em;
+  }
+  .ui[class*="very compact"].styled.accordion {
+    --_ui-accordion-title-padding: 0.1875em 0.25em;
+    --_ui-accordion-content-padding: 0.125em 0.25em 0.375em;
+    --_ui-accordion-content-last-padding: 0.125em 0.25em 0.375em;
+  }
+
+  /* ## Fluid */
+  .ui.fluid.accordion {
+    --_ui-accordion-width: 100%;
+  }
+
+  /* ## Inverted:  the dark scheme;  every `light-dark()` token (text, surface, border) follows. */
+  .ui.inverted.accordion {
+    --ui-inverted: 1;
+    --ui-scheme: dark;
+    color-scheme: dark;
+  }
+
+  /* ## Basic styled:  the styled spacing and colours, without the box or the rules. */
+  .ui.basic.styled.accordion {
+    --_ui-accordion-background: transparent;
+    --_ui-accordion-shadow: none;
+    --_ui-accordion-title-border: none;
+    --_ui-accordion-title-color: var(--ui-text-muted);
+    --_ui-accordion-title-hover-color: var(--ui-text-color);
+    --_ui-accordion-title-active-color: var(--ui-text-selected);
+  }
+
+  /* ## Tree:  content indented under its title, nested accordions flush. */
+  .ui.tree.accordion {
+    --_ui-accordion-content-indent: 1.7em;
+    --_ui-accordion-nested-margin: 0;
+  }
+  .ui.tree.accordion:not(.styled) {
+    --_ui-accordion-content-padding: 0;
+    --_ui-accordion-content-last-padding: 0;
+  }
+}
+
+/*******************************
+             States
+*******************************/
+
+@layer ui.components.accordion.states {
+  /* Closed content of the flat grammar;  `<details>` hide theirs natively. */
+  .accordion:not(details) > .title ~ .content:not(.active) {
+    display: none;
+  }
+
+  /* Hovered and open titles. */
+  .accordion > .title:hover,
+  .accordion > details > .title:hover {
+    color: var(--_ui-accordion-title-hover-color);
+    background: var(--_ui-accordion-title-hover-background);
+  }
+  .accordion > .active.title,
+  .accordion > details[open] > .title,
+  details.accordion[open] > .title {
+    color: var(--_ui-accordion-title-active-color);
+    background: var(--_ui-accordion-title-active-background);
+  }
+  .accordion > .active.title > .dropdown.icon,
+  .accordion > details[open] > .title > .dropdown.icon,
+  details.accordion[open] > .title > .dropdown.icon {
+    transform: rotate(90deg);
+  }
+  .accordion > .active.title > .dropdown.icon:dir(rtl),
+  .accordion > details[open] > .title > .dropdown.icon:dir(rtl),
+  details.accordion[open] > .title > .dropdown.icon:dir(rtl) {
+    transform: rotate(-90deg);
+  }
+
+  /* Animated (`:state(animated)`:  the browser can grow to `auto`):  panels open and close by height. */
+  @media (prefers-reduced-motion: no-preference) {
+    :host(:state(animated)) .accordion {
+      interpolate-size: allow-keywords;
+    }
+    :host(:state(animated)) .accordion > details::details-content {
+      block-size: 0;
+      overflow-y: clip;
+      transition:
+        block-size var(--_ui-accordion-duration) var(--ui-ease-out),
+        content-visibility var(--_ui-accordion-duration) allow-discrete;
+    }
+    :host(:state(animated)) .accordion > details[open]::details-content {
+      block-size: auto;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .accordion > .title > .dropdown.icon,
+    .accordion > details > .title > .dropdown.icon {
+      transition: none;
+    }
+  }
+}

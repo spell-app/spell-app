@@ -1,8 +1,8 @@
 /**
- * Barrel for the progress component -- also the `progress` lib entry (`@spell-app/ui/ui-progress`), measured in
- * `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-progress>`.
- * - NOTE: `ProgressValues` (the arithmetic) is exported too:  an app can compute the same numbers.
+ * The progress family:  defines `<ui-progress>` and exports its component, `UIProgress`.
+ * - SIDE EFFECT:  importing it defines the tag.
+ * - Also the library's `@spell-app/ui/ui-progress` entry (its size is in `docs/report.md`).
+ * - It exports `ProgressValues` (the arithmetic) too, so an app can compute the same numbers.
  */
 
 import { UIProgress } from "./UIProgress"

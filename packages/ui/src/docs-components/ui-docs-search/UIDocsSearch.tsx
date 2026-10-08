@@ -1,11 +1,9 @@
-import { For, Show } from "solid-js"
+import { For, Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
-import { docsSearchVocabulary } from "./ui-docs-search.vocabulary.en"
-import { DocsSearchFallback } from "./ui-docs-search.fallback"
-import { DocsSearchHost } from "./DocsSearchHost"
+import { docsSearchVocabulary } from "./UIDocsSearch.vocabulary.en"
 import { PageOutline } from "./PageOutline"
 import { SearchData } from "./SearchData"
 import { SearchIndex } from "./SearchIndex"
@@ -13,62 +11,99 @@ import {
   CLEAR_ICON,
   DEFAULT_PAGE,
   DRAWERS,
-  FIELD,
   KIND_ICON,
   KIND_TEXT,
   SEARCH_ICON,
   SHORTCUT_KEYS,
   SUMMON_FRAMES,
   TYPING_SELECTOR,
-  type DocsSearchController,
   type DocsSearchVocabulary,
   type SearchEntry,
   type SearchGroup,
   type SearchHit,
   type SearchKind,
   type TitleSegment
-} from "./ui-docs-search.types"
+} from "./UIDocsSearch.types"
 
-import searchCSS from "./ui-docs-search.css?inline"
+import searchCSS from "./UIDocsSearch.css?inline"
 
 /****************
- * ### `<ui-docs-search>`
- * The docs site's search, the brand's header search pill:  type, and a results card under the field lists what
- * matches -- the page shown's sections, components, pages, other pages' sections, attributes -- grouped, best
- * first, the matched text marked;  pick one to jump there.
- * - Shadow:  `<div class="ui [size] finder" part="search">` holding
- *   - `<div class="field" part="field">` (the pill, the results' anchor):  an icon, `<input role="combobox"
- *     part="input">`, a clear `<button>` while there's text, the shortcut hint `<span part="keys">` of `<kbd>`s
- *   - `<div class="results" part="results" popover="manual">` (the top layer, so no panel or drawer clips it):  a
- *     `<div role="listbox">` of `<div role="group" part="group">`s, each a mono eyebrow (`part="label"`) over
- *     `<a role="option" part="option" href>`s;  a note (no matches, loading);  the keys line (`part="hints"`)
- *   - a visually hidden `role=status`:  how many results
- * - ARIA combobox, list autocomplete:  focus stays in the field;  `aria-activedescendant` names the highlighted
- *   option, the first by default (Enter takes the best match).  ↑ / ↓ move (wrapping), Enter goes (Cmd / Ctrl+Enter:  a
- *   new tab), Tab moves on and closes, Escape closes, then clears (the list beside it unfilters), then leaves the
- *   field.  Leaving the field closes the card;  coming back reopens it.
- * - Results are LINKS (`<a href>`), so a router that takes the page's link clicks takes them too.  Picking one fires a
- *   cancelable `ui-navigate`:  vetoed, a router took it;  else a result on the page shown sets the hash (closing the
- *   drawer the field is in:  the site's landing scrolls), any other loads its page.  The field then empties.
- * - Data:  the page shown's sections live from its DOM on every focus (`PageOutline`, `page`);  the rest from the
- *   site's data, fetched on the FIRST focus or keystroke (`SiteData` + `SearchData`, `SearchIndex`).  Until it's in,
- *   only the page shown is searched;  if it fails, likewise.
+ * ### `DOMDocsSearchElement`
+ * The DOM element of `<ui-docs-search>`:  it adds the script API, `summon()` and `query`,
+ * which its component (`UIDocsSearch`) carries out.
+ * - `focus()` is the DOM element's own:  `delegatesFocus` puts it in the field.
+ * - None of these members is named like an attribute:  solid-element refuses a member that is.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
+ ****************/
+export class DOMDocsSearchElement extends E.DOMElement {
+  /**
+   * Show the field and focus it, its text selected:  what `/` and Cmd / Ctrl+K do.
+   * - A field that isn't on screen opens the drawer it's in first (a closed `<ui-flyout>` / `<ui-sidebar>`),
+   *   e.g. a narrow top bar's search button.
+   */
+  summon(): Promise<void> {
+    return this.search?.summon() ?? this.ready.then(() => this.search?.summon())
+  }
+
+  /**
+   * The text typed;  `""` before the component exists.
+   * - Untracked:  a page's Solid effect reading it doesn't re-run on every keystroke.
+   */
+  get query(): string {
+    return untrack(() => this.search?.query) ?? ""
+  }
+
+  /** This element's component, once it has one. */
+  private get search(): UIDocsSearch | undefined {
+    return this.component as UIDocsSearch | undefined
+  }
+}
+
+/****************
+ * ### `UIDocsSearch`
+ * The component behind `<ui-docs-search>`:  the docs site's search, as the brand's header search pill.
+ * Type, and a results card under the field lists what matches
+ * (the page shown's sections, components, pages, other pages' sections, attributes),
+ * grouped, best first, with the matched text marked;  pick one to jump there.
+ *
+ * - Its shadow DOM:  `<div class="ui [size] finder" part="search">` holding
+ *   - `<div class="field" part="field">` (the pill, the results' anchor):  an icon,
+ *     `<input role="combobox" part="input">`, a clear `<button>` while there's text,
+ *     and the shortcut hint `<span part="keys">` of `<kbd>`s
+ *   - `<div class="results" part="results" popover="manual">` (in the top layer, so no panel or drawer clips it):
+ *     a `<div role="listbox">` of `<div role="group" part="group">`s, each a mono eyebrow (`part="label"`)
+ *     over `<a role="option" part="option" href>`s;  a note (no matches, loading);  the keys line (`part="hints"`)
+ *   - a visually hidden `role=status`:  how many results.
+ * - An ARIA combobox, with list autocomplete:  focus stays in the field,
+ *   and `aria-activedescendant` names the highlighted option (the first by default:  Enter takes the best match).
+ *   - ↑ / ↓ move (wrapping);  Enter goes (Cmd / Ctrl+Enter:  a new tab);  Tab moves on, and closes
+ *   - Escape closes, then clears (the list beside it unfilters), then leaves the field
+ *   - leaving the field closes the card;  coming back reopens it.
+ * - Results are LINKS (`<a href>`), so a router that takes the page's link clicks takes them too.
+ *   Picking one fires a cancelable `ui-navigate`:
+ *   - vetoed:  a router took it
+ *   - else a result on the page shown sets the hash (closing the drawer the field is in:  the site's landing scrolls),
+ *     and any other loads its page.
+ *   The field then empties.
+ * - Data:  the page shown's sections are read live from its DOM on every focus (`PageOutline`, `page`);
+ *   the rest come from the site's data, fetched on the FIRST focus or keystroke (`SiteData` + `SearchData`,
+ *   `SearchIndex`).  Until it's in, or if it fails, only the page shown is searched.
  * - Every keystroke fires `ui-input` (`{ value }`):  `<ui-docs-nav>` filters its list by it.
  * - Shortcuts (`shortcuts`, on by default):  `/` (not while typing in a field) and Cmd / Ctrl+K summon the field
- *   (`summon()`):  of several, the visible one, else one in a closed drawer, which opens.  One document listener for
- *   every field, while any is connected.
- * - A doc-only element (`src/docs-components/`):  its shadow composes `<ui-icon>`s, which its barrel imports.
+ *   (`summon()`):  of several, the visible one, else one in a closed drawer, which opens.
+ *   One document listener serves every field, while any is connected.
+ * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of `<ui-icon>`s, which its barrel imports.
  ****************/
-export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements DocsSearchController {
+export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
   @E.proto static vocabulary = docsSearchVocabulary
   @E.proto static styleSheets = { "docs-search": searchCSS }
-  @E.proto static elementSetup = { Fallback: DocsSearchFallback, Host: DocsSearchHost }
+  @E.proto static elementSetup = { DOMElement: DOMDocsSearchElement } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The text typed
   ////////////////
 
-  /** The text typed, as typed;  the script API's `query` (`DocsSearchHost`). */
+  /** The text typed, as typed;  the script API's `query` (`DOMDocsSearchElement`). */
   @E.state accessor query = ""
 
   /** Text is typed (blank isn't).  `:state(searching)`. */
@@ -289,7 +324,7 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
   /** Focus left the box (and its card):  close. */
   private onFocusOut(event: FocusEvent) {
     const next = event.relatedTarget as Node | null
-    if (next && (this.host.shadowRoot?.contains(next) || next === this.host)) return
+    if (next && (this.domElement.shadowRoot?.contains(next) || next === this.domElement)) return
     this.cardIsWanted = false
   }
 
@@ -391,11 +426,11 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
   }
 
   /**
-   * Land on `hash` on the page shown:  close the drawer the field is in (the landing measures the page), then set
-   * the hash;  the same hash again re-announces it (`hashchange`), so the page lands once more.
+   * Land on `hash` on the page shown:  close the drawer the field is in (the landing measures the page),
+   * then set the hash;  the same hash again re-announces it (`hashchange`), so the page lands once more.
    */
   private jumpHere(hash: string) {
-    const drawer = E.closestAcrossShadow(this.host, DRAWERS)
+    const drawer = E.closestAcrossShadow(this.domElement, DRAWERS)
     if (drawer?.hasAttribute(OPEN)) drawer.removeAttribute(OPEN)
     if (location.hash === hash) {
       window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL: location.href, newURL: location.href }))
@@ -590,11 +625,11 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
   /** Show the field (opening its drawer if it's hidden in one) and focus it, its text selected. */
   async summon(): Promise<void> {
     const before = UIDocsSearch.deepActive()
-    if (before && !this.host.shadowRoot?.contains(before)) this.returnFocus = before
-    if (!this.host.checkVisibility()) {
-      const drawer = E.closestAcrossShadow(this.host, DRAWERS)
+    if (before && !this.domElement.shadowRoot?.contains(before)) this.returnFocus = before
+    if (!this.domElement.checkVisibility()) {
+      const drawer = E.closestAcrossShadow(this.domElement, DRAWERS)
       if (drawer && !drawer.hasAttribute(OPEN)) drawer.setAttribute(OPEN, "")
-      for (let frame = 0; frame < SUMMON_FRAMES && !this.host.checkVisibility(); frame++) await E.nextFrame()
+      for (let frame = 0; frame < SUMMON_FRAMES && !this.domElement.checkVisibility(); frame++) await E.nextFrame()
       // the drawer moves focus into itself as it opens:  take it after
       await E.nextFrame()
     }
@@ -614,8 +649,9 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
   private static readonly fields = new Set<UIDocsSearch>()
 
   /**
-   * The one document listener, while any field is connected (static, so adding and removing it match):  `/` (unless
-   * typing in a field) or Cmd / Ctrl+K summons a field that takes shortcuts, the visible one, else one in a drawer.
+   * The one document listener, while any field is connected (static, so adding and removing it match):
+   * `/` (unless typing in a field) or Cmd / Ctrl+K summons a field that takes shortcuts, the visible one,
+   * else one in a drawer.
    */
   private static readonly onDocumentKey = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.altKey || event.isComposing) return
@@ -628,8 +664,8 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
     }
     const fields = [...UIDocsSearch.fields].filter((field) => field.hasShortcuts)
     const field =
-      fields.find((each) => each.host.checkVisibility()) ??
-      fields.find((each) => E.closestAcrossShadow(each.host, DRAWERS))
+      fields.find((each) => each.domElement.checkVisibility()) ??
+      fields.find((each) => E.closestAcrossShadow(each.domElement, DRAWERS))
     if (!field) return
     event.preventDefault()
     void field.summon()
@@ -686,7 +722,7 @@ export class UIDocsSearch extends E.UIElement<DocsSearchVocabulary> implements D
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UIDocsSearch extends E.AttributeValues<DocsSearchVocabulary> {}
 
 /** The index of nothing:  what the page shown is searched with until the data is in. */
@@ -749,3 +785,6 @@ const EMPTY = "empty"
 
 /** Class word of the keys line at the card's foot. */
 const HINTS = "hints"
+
+/** Class word of the pill around the input. */
+const FIELD = "field"

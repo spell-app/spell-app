@@ -32,7 +32,7 @@ const FOUNDATION = import.meta.glob<string>("/src/styles/*.css", { query: "?raw"
  * which is the point.  A stale entry fails.
  */
 const EXCEPTIONS: Record<string, Record<string, string>> = {
-  "ui-search/ui-search.css": {
+  "ui-search/UISearch.css": {
     "--ui-input-radius": "the search prompt is Fomantic's round input:  it sets the nested input's radius"
   }
 }
@@ -40,7 +40,7 @@ const EXCEPTIONS: Record<string, Record<string, string>> = {
 /** The real tags and foundation;  `ComponentTokens.test.ts` (beside the class) tests its methods. */
 const TOKENS = new ComponentTokens({ vocabularies: VOCABULARIES, foundation: Object.values(FOUNDATION) })
 
-/** `src/components/ui-button/ui-button.css` => `ui-button/ui-button.css` */
+/** `src/components/ui-button/UIButton.css` => `ui-button/UIButton.css` */
 function short(path: string): string {
   return path.replace("/src/components/", "")
 }

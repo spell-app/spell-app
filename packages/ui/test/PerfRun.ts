@@ -1,7 +1,7 @@
 /**
  * The dropdown filtering benchmark:  a `search selection` dropdown, 1000 options set through the `options`
  * property, the query `"united sta"` typed one character per keystroke.
- * - Browser-only, NO imports:  runs in a vitest browser test (`ui-dropdown.perf.test.tsx`) AND on the smoke perf page
+ * - Browser-only, NO imports:  runs in a vitest browser test (`UIDropdown.perf.test.tsx`) AND on the smoke perf page
  *   (`tools/frameworks/perf.html`, served as plain JS by `StaticServer`).
  * - Runtime-neutral:  `PerfAdapter.settle()` says "the DOM reflects the last change" (Solid:  `flush()`).
  * - Each step (open, then each keystroke), timed from just before the triggering event:

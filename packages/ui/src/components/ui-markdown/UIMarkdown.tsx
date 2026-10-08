@@ -2,47 +2,84 @@ import { For, Show, createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
-import type { codeVocabulary } from "$/ui/components/ui-code/ui-code.vocabulary.en"
+import type { codeVocabulary } from "$/ui/components/ui-code/UICode.vocabulary.en"
 import { MarkdownRenderer } from "./MarkdownRenderer"
-import { UIMarkdownHost } from "./UIMarkdownHost"
-import { MarkdownFallback } from "./ui-markdown.fallback"
-import type { MarkdownHeading, MarkdownOptions, Vocabulary } from "./ui-markdown.types"
-import { markdownVocabulary } from "./ui-markdown.vocabulary.en"
+import type { MarkdownHeading, MarkdownOptions } from "./UIMarkdown.types"
+import { markdownVocabulary } from "./UIMarkdown.vocabulary.en"
 
-import markdownCSS from "./ui-markdown.css?inline"
+import markdownCSS from "./UIMarkdown.css?inline"
 
 /****************
- * ### `<ui-markdown>`
- * GitHub-flavoured markdown, rendered into `<article class="ui [size] markdown" part="body">` (in a `<section>`:
- *   the preview panel, when `editable`).
- * - Text:  the element's own (`<script type="text/markdown">` keeps it exact), or a `source` file -- see
- *   `SourceElement`.
- * - Rendering:  marked, loaded with the first render (`MarkdownRenderer` -> `MarkdownEngine`, the lazy chunk);
- *   headings get GitHub's ids (`headings`, `ui-render`).
- * - NOT sanitized unless `sanitized`:  raw HTML in the text is kept.  `sanitized` loads DOMPurify
- *   (`MarkdownSanitizer`, a lazy chunk of its own) alongside the engine;  set it for text you didn't write.
+ * ### `DOMMarkdownElement`
+ * The DOM element of `<ui-markdown>`:  it adds `headings` and `reveal()`
+ * to the source API it inherits from `DOMLoadableElement` (`content`, `save()` ...).
+ * - `headings`:  `{ level, text, id }` of each heading of the last render, e.g. for a table of contents;
+ *   `[]` before the first (`ui-render` says when).
+ * - `reveal(id)`:  scroll to one of them from outside.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
+ ****************/
+export class DOMMarkdownElement extends E.DOMLoadableElement {
+  /** Each heading of the last render;  `[]` before the first.  Untracked:  it's for scripts. */
+  get headings(): MarkdownHeading[] {
+    return untrack(() => this.markdown?.headings) ?? []
+  }
+
+  /**
+   * Scroll to the rendered heading `id` (a `headings` entry's) and put `#id` in the address,
+   * as a `#id` link inside does;  `false` when no such heading is rendered (yet).
+   * - Why a method:  the headings live in the shadow root, which the page's own fragment navigation can't see,
+   *   e.g. from a table of contents outside the element.
+   */
+  reveal(id: string): boolean {
+    return this.markdown?.reveal(id) ?? false
+  }
+
+  /** This element's component, once it has one. */
+  private get markdown(): UIMarkdown | undefined {
+    return this.component as UIMarkdown | undefined
+  }
+}
+
+/****************
+ * ### `UIMarkdown`
+ * The component behind `<ui-markdown>`:  GitHub-flavoured markdown, rendered.
+ *
+ * - Its shadow DOM:  `<article class="ui [size] markdown" part="body">`,
+ *   in a `<section>` (the preview panel, when `editable`).
+ * - The text:  the element's own (`<script type="text/markdown">` keeps it exact),
+ *   or a `source` file (see `LoadableComponent`).
+ * - Rendering:  marked, loaded with the first render (`MarkdownRenderer` -> `MarkdownEngine`, the lazy chunk).
+ *   Headings get GitHub's ids (`headings`, `ui-render`).
+ * - NOT sanitized unless `sanitized`:  raw HTML in the text is kept.
+ *   `sanitized` loads DOMPurify (`MarkdownSanitizer`, a lazy chunk of its own) alongside the engine:
+ *   set it for text you didn't write.
  * - After rendering:
  *   - each fenced code block becomes a `<ui-code language="x" copy>` (one highlighter, one palette)
  *   - each task-list checkbox is named by its item's text (marked leaves it unlabelled)
  *   - relative `href` / `src` resolve against `source`, so a README's links and images work where it's shown
- *   - `#id` links scroll to the heading INSIDE the shadow root (the page's own fragment navigation can't see it);
- *     so does `reveal(id)` from outside, and a `#id` in the address that names one of its headings:  after the
- *     FIRST render (a page loaded with it), and on each `hashchange` (a link elsewhere on the page)
+ *   - `#id` links scroll to the heading INSIDE the shadow root
+ *     (the page's own fragment navigation can't see it).
+ *     So do `reveal(id)` from outside, and a `#id` in the address that names one of its headings:
+ *     after the FIRST render (a page loaded with it), and on each `hashchange` (a link elsewhere on the page).
  * - `skip-title`:  the text's leading `#` title isn't rendered (the text keeps it).
- * - A failed render (an engine that won't load) is a `render` error with its message.
- * - `editable`:  Write / Preview tabs (`role=tablist`, arrow keys), a `<textarea>` for the text and the article as
- *   the preview, drawn by spell's engine (`MarkdownRenderer.loadMD()`:  `ui-*` elements, `<ui-table>`'s sheet
- *   adopted here too).
+ * - A failed render (an engine that won't load) is a `render` error, with its message.
+ * - `editable`:  Write / Preview tabs (`role=tablist`, arrow keys), a `<textarea>` for the text,
+ *   and the article as the preview, drawn by spell's engine
+ *   (`MarkdownRenderer.loadMD()`:  `ui-*` elements, with `<ui-table>`'s sheet adopted here too).
  *   - each keystroke sets `content`:  `ui-change`, `:state(dirty)`, and `save()` writes it back to `source`
- *   - the preview renders while it's shown:  the WHOLE text each time (~2 ms for 32 kB), then only the top-level
- *     blocks whose markup changed are swapped (`patchBody()`), so unchanged `ui-*` elements keep their state
- * - SIDE EFFECTS:  listens to `window`'s `hashchange` while connected;  a revealed heading is put in the address
- *   (`history.replaceState`, no new entry).
+ *   - the preview renders while it's shown:  the WHOLE text each time (~2 ms for 32 kB),
+ *     then swaps only the top-level blocks whose markup changed (`patchBody()`),
+ *     so unchanged `ui-*` elements keep their state.
+ * - SIDE EFFECTS:  listens to `window`'s `hashchange` while connected;
+ *   a revealed heading is put in the address (`history.replaceState`, no new entry).
  ****************/
-export class UIMarkdown extends E.SourceElement<Vocabulary> {
+export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   @E.proto static vocabulary = markdownVocabulary
   @E.proto static styleSheets = { markdown: markdownCSS }
-  @E.proto static elementSetup = { Fallback: MarkdownFallback, Host: UIMarkdownHost, delegatesFocus: false }
+  @E.proto static elementSetup = {
+    DOMElement: DOMMarkdownElement,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Rendering
@@ -177,7 +214,7 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
     )
   }
 
-  /** `editable`:  the text box follows the content (`host.content = ...`, a reload). */
+  /** `editable`:  the text box follows the content (`domElement.content = ...`, a reload). */
   @E.onChange("textToShow")
   protected onTextChanged(text: string) {
     if (this.textBox && this.textBox.value !== text) this.textBox.value = text
@@ -201,7 +238,7 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
   // ## Headings
   ////////////////
 
-  /** The headings of the last render;  the host's `headings` reads it untracked. */
+  /** The headings of the last render;  the DOM element's `headings` reads it untracked. */
   @E.state accessor headings: MarkdownHeading[] = []
 
   /** A render has finished:  the address's `#id` was looked for once, after the first. */
@@ -230,7 +267,7 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
    */
   private onHashChange() {
     const id = UIMarkdown.idForHash(location.hash)
-    if (id && !this.host.ownerDocument.getElementById(id)) this.scrollTo(id)
+    if (id && !this.domElement.ownerDocument.getElementById(id)) this.scrollTo(id)
   }
 
   /** Scroll the element with `id` in the article into view;  `false` when there's none. */
@@ -267,7 +304,7 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
       const { html, headings } = engine.render(text, options)
       const fragment = sanitizer
         ? sanitizer.sanitize(html, { uiTags: isEditable })
-        : this.host.ownerDocument.createRange().createContextualFragment(html)
+        : this.domElement.ownerDocument.createRange().createContextualFragment(html)
       this.upgradeCode(fragment)
       this.labelTaskItems(fragment)
       this.resolveUrls(fragment)
@@ -288,7 +325,7 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
   private upgradeCode(fragment: DocumentFragment) {
     for (const code of fragment.querySelectorAll(CODE_BLOCK)) {
       const pre = code.parentElement!
-      const block = this.host.ownerDocument.createElement(CODE_TAG)
+      const block = this.domElement.ownerDocument.createElement(CODE_TAG)
       const language = LANGUAGE_CLASS.exec(code.className)?.[1]
       if (language) block.setAttribute(LANGUAGE, language)
       block.setAttribute(COPY, "")
@@ -309,7 +346,7 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
   private resolveUrls(fragment: DocumentFragment) {
     const source = this.source || undefined
     if (!source) return
-    const base = new URL(source, this.host.ownerDocument.baseURI)
+    const base = new URL(source, this.domElement.ownerDocument.baseURI)
     for (const name of LINK_ATTRIBUTES) {
       for (const element of fragment.querySelectorAll(`[${name}]`)) {
         const value = element.getAttribute(name)!
@@ -324,8 +361,8 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
   }
 
   /**
-   * Put `fragment`'s top-level nodes in `body`, keeping the ones already there whose markup is the same:  the
-   * unchanged lead and tail stay, only the middle is swapped.
+   * Put `fragment`'s top-level nodes in `body`, keeping the ones already there whose markup is the same:
+   * the unchanged lead and tail stay, only the middle is swapped.
    * - Why:  an edit changes a block or two;  re-creating every `ui-*` element would re-highlight every code block and
    *   lose each one's state (a scrolled table, a copied-code tick).
    * - A node not put here (marked's render, before `editable`) has no markup recorded, so it's always swapped.
@@ -395,8 +432,8 @@ export class UIMarkdown extends E.SourceElement<Vocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
-export interface UIMarkdown extends E.AttributeValues<Vocabulary> {}
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
+export interface UIMarkdown extends E.AttributeValues<typeof markdownVocabulary> {}
 
 /** What `renderMarkdown()` renders. */
 type RenderParams = {

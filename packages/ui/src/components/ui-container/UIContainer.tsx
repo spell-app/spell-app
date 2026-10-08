@@ -1,20 +1,20 @@
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { containerVocabulary } from "./ui-container.vocabulary.en"
-import { ContainerFallback } from "./ui-container.fallback"
+import { containerVocabulary } from "./UIContainer.vocabulary.en"
 
-import containerCSS from "./ui-container.css?inline"
+import containerCSS from "./UIContainer.css?inline"
 
 /****************
- * ### `<ui-container>`
- * A container:  `<div class="ui … container" part="container"><slot></slot></div>`, centred page width.
- * - `scrolling`:  the root is a keyboard stop (`tabindex=0`), as every scrollable region must be.
+ * ### `UIContainer`
+ * The component behind `<ui-container>`:  a centred column of page width that holds a page's content.
+ *
+ * - Its shadow DOM is one box, `<div class="ui … container" part="container">`, around a slot for the content.
+ * - `scrolling`:  the box is a keyboard stop (`tabindex=0`), as every scrollable region must be.
  ****************/
-export class UIContainer extends E.UIElement<typeof containerVocabulary> {
+export class UIContainer extends E.UIComponent<typeof containerVocabulary> {
   @E.proto static vocabulary = containerVocabulary
   @E.proto static styleSheets = { container: containerCSS }
-  @E.proto static elementSetup = { Fallback: ContainerFallback }
 
   render(): JSX.Element {
     return (
@@ -25,5 +25,5 @@ export class UIContainer extends E.UIElement<typeof containerVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIContainer extends E.AttributeValues<typeof containerVocabulary> {}

@@ -1,14 +1,15 @@
 import { E, UIT } from "$/ui/core"
-import { PartElement } from "./PartElement"
-import { detailVocabulary } from "./ui-detail.vocabulary.en"
+import { detailVocabulary } from "./UIDetail.vocabulary.en"
 
 /****************
- * ### `<ui-detail>`
- * A label's dimmer second value:  `<span class="detail">`, owned by `<ui-label>` (`:state(in-label)`).
- * - A tab on an image label:  `ui-label.css` sets `--_ui-label-layout: image`, which `ui-parts.css` style-queries.
- * - `href` renders `<a class="detail" href>` (a link detail, `ui-label.css` styles `a.detail`).
+ * ### `UIDetail`
+ * The component behind `<ui-detail>`:  a label's dimmer second value, `<span class="detail">`,
+ * owned by `<ui-label>` (`:state(in-label)`).
+ *
+ * - On an image label it's a tab:  `UILabel.css` sets `--_ui-label-layout: image`, which `UIParts.css` style-queries.
+ * - With `href`:  `<a class="detail" href>`, a link detail (`UILabel.css` styles `a.detail`).
  ****************/
-export class UIDetail extends PartElement<typeof detailVocabulary> {
+export class UIDetail extends E.PartComponent<typeof detailVocabulary> {
   @E.proto static vocabulary = detailVocabulary
 
   protected get rootTag(): string {
@@ -20,5 +21,5 @@ export class UIDetail extends PartElement<typeof detailVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIDetail extends E.AttributeValues<typeof detailVocabulary> {}

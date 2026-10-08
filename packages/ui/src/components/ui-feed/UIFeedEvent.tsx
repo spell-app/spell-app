@@ -3,36 +3,41 @@ import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
 import type { UIFeed } from "./UIFeed"
-import { eventVocabulary } from "./ui-event.vocabulary.en"
-import { FeedFallback } from "./ui-feed.fallback"
+import { eventVocabulary } from "./UIFeedEvent.vocabulary.en"
 
-import feedCSS from "./ui-feed.css?inline"
+import feedCSS from "./UIFeed.css?inline"
 
 /****************
- * ### `<ui-event>`
- * One event of a feed:  `<div class="[color] [keyOnly ...] event" part="event">` holding the label box, then the
- * default `<slot>` (a `<ui-content>`).
+ * ### `UIFeedEvent`
+ * The component behind `<ui-event>`:  one event of a feed,
+ * `<div class="[color] [keyOnly ...] event" part="event">` holding the label box,
+ * then the default `<slot>` (a `<ui-content>`).
+ *
  * - Named `UIFeedEvent`, not `UIEvent`:  that's the DOM's own `UIEvent` interface.
- * - The label box, `<div class="label" part="label" [data-text]>`:  the `image` shorthand's `<img alt="">`, the
- *   `icon` shorthand's icon box, the `label` slot;  a `label` text is Fomantic's `data-text` circle.  It's rendered
- *   when any of those is set, or when the feed is `ordered` (the number goes there).
+ *
+ * - The label box, `<div class="label" part="label" [data-text]>`:  the `image` shorthand's `<img alt="">`,
+ *   the `icon` shorthand's icon box, and the `label` slot;  a `label` text is Fomantic's `data-text` circle.
+ *   It's drawn when any of those is set, or when the feed is `ordered` (the number goes there).
+ *
  * - A part (`elementSetup.isAPart`, noun `event`, owned by the feed):  transparent to other parts' climbs,
- *   so the content parts inside find the FEED (`:state(in-feed)`);  itself a `role=listitem` host with
- *   `:state(in-feed)`.
+ *   so the content parts inside find the FEED (`:state(in-feed)`).
+ *   Its own DOM element is a `role=listitem` with `:state(in-feed)`.
+ *
  * - Colour:  an event has no `ui`, so a coloured one adds `ui-<color>` (the utility remap class) for `colors.css`,
  *   as `<ui-item>` does.
+ *
  * - `disabled`:  `aria-disabled` on the root, which assistive tech (and axe) apply to the content inside.
  ****************/
-export class UIFeedEvent extends E.UIElement<typeof eventVocabulary> {
+export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
   @E.proto static vocabulary = eventVocabulary
   @E.proto static styleSheets = { feed: feedCSS }
-  @E.proto static elementSetup = { Fallback: FeedFallback, isAPart: true, delegatesFocus: false }
+  @E.proto static elementSetup = { isAPart: true, delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Feed, if any. */
-  readonly context = new E.PartContext({ host: this.host, noun: this.vocabulary.noun })
+  readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
 
   /** Light-DOM slot occupancy. */
-  readonly slots = new E.SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** Glyph of the `icon` shorthand. */
   readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })
@@ -41,9 +46,9 @@ export class UIFeedEvent extends E.UIElement<typeof eventVocabulary> {
   // ## Derived state
   ////////////////
 
-  /** The feed's controller.  Tracked. */
+  /** The feed's component.  Tracked. */
   get feed(): UIFeed | undefined {
-    return this.context.ownerController<UIFeed>()
+    return this.context.ownerComponent<UIFeed>()
   }
 
   /** Renders the label box:  a shorthand, slotted label content, or a number to show.  Tracked. */
@@ -55,12 +60,13 @@ export class UIFeedEvent extends E.UIElement<typeof eventVocabulary> {
     )
   }
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    const { internals } = this.host
-    // SIDE EFFECT:  a list item in a feed;  a host effect, so a static server render gets the role too (its `<li>`).
+    const { internals } = this.domElement
+    // SIDE EFFECT:  a list item in a feed;
+    // a `domElementEffect()`, so a static server render gets the role too (its `<li>`).
     // `null` is `internals.role`'s own "no role" (a platform boundary)
-    this.hostEffect(
+    this.domElementEffect(
       () => (this.context.owner ? UIT.LISTITEM : null),
       (role) => {
         internals.role = role
@@ -109,5 +115,5 @@ export class UIFeedEvent extends E.UIElement<typeof eventVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIFeedEvent extends E.AttributeValues<typeof eventVocabulary> {}

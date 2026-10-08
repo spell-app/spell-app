@@ -1,1 +1,0 @@
-import{t as e}from"./ui-rating-BCoCaOl2.js";export{e as UIRating};

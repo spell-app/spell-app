@@ -2,8 +2,7 @@ import { For, Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
-import { docsTocVocabulary } from "./ui-docs-toc.vocabulary.en"
-import { DocsTocFallback } from "./ui-docs-toc.fallback"
+import { docsTocVocabulary } from "./UIDocsToc.vocabulary.en"
 import { TocIndex } from "./TocIndex"
 import {
   DEFAULT_SIZE,
@@ -11,35 +10,41 @@ import {
   type FollowedContent,
   type TocEntry,
   type TocSection
-} from "./ui-docs-toc.types"
+} from "./UIDocsToc.types"
 
-import tocCSS from "./ui-docs-toc.css?inline"
+import tocCSS from "./UIDocsToc.css?inline"
 
 /****************
- * ### `<ui-docs-toc>`
- * Fomantic's docs "On this page" menu (`ui vertical following fluid accordion text menu` in the right rail):
- * `<div class="ui [size] toc" part="toc">` holding an optional `<ui-header part="header">` and ONE
- * `<ui-menu vertical text fluid part="menu">` (the landmark) of section links;  under the section in view, an item
- * holding a `<ui-menu part="entries">` of its entries' links.
- * - Lists the FOLLOWED content (`for`;  a `<ui-tabs>`:  its shown pane) by `TocIndex.scan()`:  level 2 headings and
- *   top-level `<ui-section>`s are sections, examples with a `header` and level 3 headings their entries;  what a
- *   `<ui-section>` nests (sections, examples, headings) are ITS entries, as deep as it goes, each level opening on
- *   the way to the entry in view.  Light DOM only.
- * - SIDE EFFECT:  gives each listed heading / example without an `id` one (a slug of its text), so its link works.
- * - Follows the scroll:  the entry whose top passed the reading line (`TocIndex.current()`) is `selected`, its
- *   section opens;  `ui-change { value }` when that changes.
- * - Links are plain `#id` links:  the browser scrolls (below the document's `scroll-padding-top`).  A hash naming an
- *   element in a HIDDEN pane of the followed tabs (a link from elsewhere, or a page opened on it) shows that pane
- *   first, then scrolls to it:  `<ui-tabs history>` ignores hashes that aren't pane values.
- * - Rescans when the tabs show another pane (`ui-show`), and when the followed content changes (a
- *   `MutationObserver`:  children, `header` / `level` / `id`);  re-follows when it resizes (a `ResizeObserver`:
- *   components drawing late move the headings without any scroll).
- * - SIDE EFFECTS while connected:  `window` `scroll` / `resize` / `hashchange` listeners, the two observers.
+ * ### `UIDocsToc`
+ * The component behind `<ui-docs-toc>`:  Fomantic's docs "On this page" menu
+ * (`ui vertical following fluid accordion text menu`, in the right rail).
+ *
+ * - Its shadow DOM:  `<div class="ui [size] toc" part="toc">` holding an optional `<ui-header part="header">`
+ *   and ONE `<ui-menu vertical text fluid part="menu">` (the landmark) of section links.
+ *   Under the section in view, an item holds a `<ui-menu part="entries">` of its entries' links.
+ * - It lists the FOLLOWED content (`for`;  of a `<ui-tabs>`, its shown pane) by `TocIndex.scan()`:
+ *   - level 2 headings and top-level `<ui-section>`s are sections;
+ *     examples with a `header`, and level 3 headings, are their entries
+ *   - what a `<ui-section>` nests (sections, examples, headings) are ITS entries, as deep as it goes,
+ *     each level opening on the way to the entry in view
+ *   - light DOM only.
+ * - It follows the scroll:  the entry whose top passed the reading line (`TocIndex.current()`) is `selected`,
+ *   and its section opens;  `ui-change { value }` when that changes.
+ * - Links are plain `#id` links:  the browser scrolls (below the document's `scroll-padding-top`).
+ *   A hash naming an element in a HIDDEN pane of the followed tabs (a link from elsewhere, or a page opened on it)
+ *   shows that pane first, then scrolls to it:  `<ui-tabs history>` ignores hashes that aren't pane values.
+ * - It scans again when the tabs show another pane (`ui-show`),
+ *   and when the followed content changes (a `MutationObserver`:  children, `header` / `level` / `id`).
+ *   It re-follows when that content resizes (a `ResizeObserver`:  components drawing late move the headings
+ *   without any scroll).
+ * - SIDE EFFECTS:
+ *   - gives each listed heading / example without an `id` one (a slug of its text), so its link works
+ *   - while connected:  `window` `scroll` / `resize` / `hashchange` listeners, and the two observers.
  ****************/
-export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
+export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   @E.proto static vocabulary = docsTocVocabulary
   @E.proto static styleSheets = { "docs-toc": tocCSS }
-  @E.proto static elementSetup = { Fallback: DocsTocFallback, delegatesFocus: false }
+  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The sections
@@ -166,7 +171,7 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
 
   /** Start following:  the first scan, the hash, listeners and the observers;  returns their cleanup. */
   private watch(): () => void {
-    const document = this.host.ownerDocument
+    const document = this.domElement.ownerDocument
     const view = document.defaultView!
     const observer = new MutationObserver(() => this.schedule("rescan"))
     // components drawing (or a pane switching) move the headings without a scroll
@@ -244,18 +249,19 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
 
   /** Mark the entry in view;  `ui-change` when it moved. */
   private followScroll(sections = untrack(() => this.sections)): void {
-    const id = TocIndex.current(sections, this.host.ownerDocument)
+    const id = TocIndex.current(sections, this.domElement.ownerDocument)
     if (id === untrack(() => this.idInView)) return
     this.idInView = id
     if (id) this.send("ui-change", { value: id })
   }
 
   /**
-   * Show what `location.hash` names:  its pane first when it's in a hidden pane of the followed tabs, then scroll to
-   * it.  On `"page load"`, scroll again once the page's root is ready (components arriving move the target down).
+   * Show what `location.hash` names:  its pane first when it's in a hidden pane of the followed tabs,
+   * then scroll to it.  On `"page load"`, scroll again once the page's root is ready (components arriving move the
+   * target down).
    */
   private reveal(moment: RevealMoment): void {
-    const document = this.host.ownerDocument
+    const document = this.domElement.ownerDocument
     const hash = document.defaultView!.location.hash.slice(1)
     if (!hash) return
     const target = document.getElementById(TocIndex.decode(hash))
@@ -268,12 +274,12 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
       ;(tabs as HTMLElement & { value?: string }).value = TocIndex.paneValue(tabs, pane)
       requestAnimationFrame(() => requestAnimationFrame(scroll))
     } else if (isPageLoad || !target.getClientRects().length) requestAnimationFrame(scroll)
-    if (isPageLoad) TocIndex.whenReady(this.host, scroll)
+    if (isPageLoad) TocIndex.whenReady(this.domElement, scroll)
   }
 
   /** What `for` names (else the page's `main`), and its tabs;  `undefined` while it doesn't exist. */
   private followedContent(): FollowedContent | undefined {
-    return TocIndex.followed(this.host.ownerDocument, this.for || undefined)
+    return TocIndex.followed(this.domElement.ownerDocument, this.for || undefined)
   }
 
   /** Ids a new heading id must not take:  the followed tabs' pane values (the URL hash names those too). */
@@ -283,7 +289,7 @@ export class UIDocsToc extends E.UIElement<DocsTocVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UIDocsToc extends E.AttributeValues<DocsTocVocabulary> {}
 
 /** What a scheduled frame does:  scan the followed content again, or just re-follow the scroll. */

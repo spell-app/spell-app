@@ -3,28 +3,21 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
-import type { DocsSearchHost } from "$/ui/docs-components/ui-docs-search/DocsSearchHost"
-import { docsNavVocabulary } from "./ui-docs-nav.vocabulary.en"
-import { DocsNavFallback } from "./ui-docs-nav.fallback"
-import { DocsNavHost } from "./DocsNavHost"
+import type { DOMDocsSearchElement } from "$/ui/docs-components/ui-docs-search/UIDocsSearch"
+import { docsNavVocabulary } from "./UIDocsNav.vocabulary.en"
 import { NavIndex } from "./NavIndex"
 import { NavPreferences } from "./NavPreferences"
 import {
-  BAND,
   DATA,
   DEFAULT_VIEW,
   FOUNDATION_PAGES,
-  HEADING,
   ICONS,
   INDEX_PAGE,
   MOTION_QUERY,
   NavGroups,
   NavViews,
   REVEAL_FRACTION,
-  ROW,
-  ROWS,
   TOP_PAGES,
-  type DocsNavController,
   type DocsNavText,
   type DocsNavVocabulary,
   type NavGroup,
@@ -32,47 +25,101 @@ import {
   type NavRow,
   type NavTopic,
   type NavView
-} from "./ui-docs-nav.types"
+} from "./UIDocsNav.types"
 
-import navCSS from "./ui-docs-nav.css?inline"
+import navCSS from "./UIDocsNav.css?inline"
 
 /****************
- * ### `<ui-docs-nav>`
- * The docs site's left sidebar:  a docked PANEL in the Spell brand's look (the design system's "Color Set Chooser"
- * panel, its `.sp-nav` rows), with OUR organization (the Astro site's component browser):
- * - Shadow:  `<div class="ui [size] nav" part="nav">` (the panel) holding
- *   - `<div class="masthead" part="header">`:  the `header` slot (a logo), then the site search `<ui-docs-search>`
- *     beside the A-Z / Topics `<ui-buttons>`, and a visually hidden live status
- *   - `<nav part="menu">` (the landmark, the panel's scroll box) of GROUPS, each a heading band (`<h2><button
- *     aria-expanded>`) over a fold:  Get started (the intro pages), Favourites, Components (A-Z rows, or a lighter
- *     `<h3>` band per TOPIC, each folding its rows), Foundation;  then the `footer` slot
- * - A row is `<li>`:  a native link `<a>` (an icon, or a status badge) plus, for a component, its star, a `toggle`
- *   `<ui-button>`.  Links are native:  ~100 rows needn't be ~100 more widgets.
- * - Folding:  every group stays rendered (its fold goes `inert` when shut);  a topic renders its rows only while open,
- *   and while its fold eases shut (`closingTopics`, ended by the fold's `transitionend`).  The motion is the sheet's, only
- *   under `prefers-reduced-motion: no-preference`;  a topic opened after `:state(settled)` eases open too.
- * - Data:  `SiteData` (`components.json`), fetched once;  `NavIndex` makes the rows and topics.  Docs-only tags
- *   are never listed.  Links are `base` + the data's `href`.
- * - Search:  the field is `<ui-docs-search>`, the SITE's search (its results card jumps anywhere:  sections,
- *   components, attributes, pages);  its text also FILTERS this list (its `ui-input`, every keystroke):  hides what
- *   doesn't match;  Favourites, Components and every topic with a match open (a band closes one for this query);
- *   clearing restores the viewer's folds.  The Components band's count shows the matches;  a polite live region says
- *   them.  The card covers the list while it shows;  Enter jumps through the card, never the list.
- * - Remembered per viewer (`NavPreferences`, wrapped `localStorage`):  favourites, the view, the open topics, the
- *   folded groups.  On load, Topics opens the current page's first topic if no open topic holds it (not remembered).
- * - The current page (`current`, default the page's file name) is `aria-current="page"` and scrolled into view
- *   inside the panel once the list has rendered (`revealCurrent()`).
- * - Events:  `ui-navigate` (a plain click on a link, cancelable;  the search field fires its own), `ui-change`
- *   (`{ view }`), `ui-favorite`.  `/` and Cmd / Ctrl+K focus the search field:  `<ui-docs-search>`'s shortcuts.
- * - A doc-only element (`src/docs-components/`):  its shadow composes other families' widgets, which its barrel
- *   imports.
+ * ### `DOMDocsNavElement`
+ * The DOM element of `<ui-docs-nav>`:  it adds the script API (`focusSearch()`, `revealCurrent()`, `favorites`,
+ * `listed`), for the page template that puts the nav in a `<ui-sidebar>` / `<ui-flyout>`.
+ * Its component (`UIDocsNav`) carries it out.
+ * - None of these members is named like an attribute:  solid-element refuses a member that is.
+ * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNavController {
+export class DOMDocsNavElement extends E.DOMElement {
+  /**
+   * Focus the search field (`<ui-docs-search>`'s `summon()`:  what `/` and Cmd / Ctrl+K do),
+   * opening the drawer the nav is in first, if it's closed.
+   */
+  focusSearch() {
+    this.nav?.focusSearch()
+  }
+
+  /**
+   * Scroll the current page's item into view, inside the nav's scroll container (never the page).
+   * - A flyout calls it once open:  a hidden nav can't measure.
+   */
+  revealCurrent() {
+    this.nav?.revealCurrent()
+  }
+
+  /** The starred tags, A-Z;  `[]` before the component exists. */
+  get favorites(): string[] {
+    return this.nav?.favoriteTags ?? []
+  }
+
+  /** Resolves once the component list has loaded and rendered;  also on a load error, which it then shows. */
+  get listed(): Promise<void> {
+    return this.nav?.listed ?? this.ready.then(() => this.nav?.listed)
+  }
+
+  /** This element's component, once it has one. */
+  private get nav(): UIDocsNav | undefined {
+    return this.component as UIDocsNav | undefined
+  }
+}
+
+/****************
+ * ### `UIDocsNav`
+ * The component behind `<ui-docs-nav>`:  the docs site's left sidebar.
+ * A docked PANEL in the Spell brand's look (the design system's "Color Set Chooser" panel, its `.sp-nav` rows),
+ * with OUR organization (the Astro site's component browser).
+ *
+ * - Its shadow DOM:  `<div class="ui [size] nav" part="nav">` (the panel) holding
+ *   - `<div class="masthead" part="header">`:  the `header` slot (a logo),
+ *     then the site search `<ui-docs-search>` beside the A-Z / Topics `<ui-buttons>`, and a visually hidden live status
+ *   - `<nav part="menu">` (the landmark, the panel's scroll box) of GROUPS,
+ *     each a heading band (`<h2><button aria-expanded>`) over a fold:
+ *     Get started (the intro pages), Favourites, Components (A-Z rows, or a lighter `<h3>` band per TOPIC,
+ *     each folding its rows), Foundation;  then the `footer` slot.
+ * - A row is `<li>`:  a native link `<a>` (an icon, or a status badge),
+ *   plus, for a component, its star (a `toggle` `<ui-button>`).
+ *   The links are native:  ~100 rows needn't be ~100 more widgets.
+ * - Folding:  every group stays rendered (its fold goes `inert` when shut).
+ *   A topic renders its rows only while open, and while its fold eases shut
+ *   (`closingTopics`, ended by the fold's `transitionend`).
+ *   The motion is the sheet's, only under `prefers-reduced-motion: no-preference`;
+ *   a topic opened after `:state(settled)` eases open too.
+ * - Data:  `SiteData` (`components.json`), fetched once;  `NavIndex` makes the rows and topics.
+ *   Docs-only tags are never listed.  Links are `base` + the data's `href`.
+ * - Search:  the field is `<ui-docs-search>`, the SITE's search (its results card jumps anywhere:
+ *   sections, components, attributes, pages).  Its text also FILTERS this list (its `ui-input`, every keystroke):
+ *   - it hides what doesn't match
+ *   - Favourites, Components and every topic with a match open (a band closes one for this query)
+ *   - clearing it restores the viewer's folds
+ *   - the Components band's count shows the matches, and a polite live region says them
+ *   - the card covers the list while it shows:  Enter jumps through the card, never the list.
+ * - Remembered per viewer (`NavPreferences`, wrapped `localStorage`):
+ *   favourites, the view, the open topics, the folded groups.
+ *   On load, Topics opens the current page's first topic if no open topic holds it (not remembered).
+ * - The current page (`current`, by default the page's file name) is `aria-current="page"`,
+ *   and scrolled into view inside the panel once the list has rendered (`revealCurrent()`).
+ * - Events:  `ui-navigate` (a plain click on a link, cancelable;  the search field fires its own),
+ *   `ui-change` (`{ view }`), `ui-favorite`.
+ *   `/` and Cmd / Ctrl+K focus the search field:  `<ui-docs-search>`'s shortcuts.
+ * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of other families' widgets,
+ *   which its barrel imports.
+ ****************/
+export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   @E.proto static vocabulary = docsNavVocabulary
   @E.proto static styleSheets = { "docs-nav": navCSS }
-  @E.proto static elementSetup = { Fallback: DocsNavFallback, Host: DocsNavHost, delegatesFocus: false }
+  @E.proto static elementSetup = {
+    DOMElement: DOMDocsNavElement,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIElement>) {
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     this.listed = new Promise((resolve) => (this.resolveListed = resolve))
     if (isServer) return
@@ -98,12 +145,14 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
     return !!(this.navIndex || this.loadError)
   }
 
-  /** The list's widgets are ready and the current page revealed:  from now on a topic eases open.  `:state(settled)`. */
+  /**
+   * The list's widgets are ready and the current page revealed:  from now on a topic eases open.  `:state(settled)`.
+   */
   @E.cssState("settled")
   @E.state
   accessor isSettled = false
 
-  /** Resolves once the list (or its error) has rendered;  see `DocsNavHost.listed`. */
+  /** Resolves once the list (or its error) has rendered;  see `DOMDocsNavElement.listed`. */
   readonly listed: Promise<void>
 
   /** Resolves `listed`. */
@@ -117,10 +166,10 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
 
   /** The list (or its error) has rendered:  wait for its widgets, reveal the current page, resolve `listed`. */
   private async onListRendered() {
-    const hosts = [...(this.box?.querySelectorAll("*") ?? [])].filter(
-      (element): element is E.UIHost => READY in element
+    const widgets = [...(this.box?.querySelectorAll("*") ?? [])].filter(
+      (element): element is E.DOMElement => READY in element
     )
-    await Promise.all(hosts.map((host) => host.ready))
+    await Promise.all(widgets.map((widget) => widget.ready))
     this.revealCurrent()
     this.resolveListed()
     this.isSettled = true
@@ -153,7 +202,7 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
 
   /**
    * Scroll the current page's link into view, a third of the way down its scroll container (the panel's list);
-   * nothing if it's already in view, or nothing scrolls (never the page itself).  Script API (`DocsNavHost`).
+   * nothing if it's already in view, or nothing scrolls (never the page itself).  Script API (`DOMDocsNavElement`).
    * - The link in the main list, not its copy in Favourites;  none in a shut fold.
    */
   revealCurrent() {
@@ -178,7 +227,7 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
   @E.state accessor searchQuery = ""
 
   /** The search field, while rendered. */
-  private search: DocsSearchHost | undefined
+  private search: DOMDocsSearchElement | undefined
 
   /** A search is typed.  `:state(searching)`. */
   @E.cssState("searching")
@@ -244,7 +293,7 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
     return (this.navIndex?.rows ?? []).filter((row) => favorites.has(row.tag) && matching.has(row.tag))
   }
 
-  /** The starred tags, A-Z.  Untracked:  script API (`DocsNavHost.favorites`). */
+  /** The starred tags, A-Z.  Untracked:  script API (`DOMDocsNavElement.favorites`). */
   get favoriteTags(): string[] {
     return untrack(() => {
       const favorites = this.favorites
@@ -280,7 +329,7 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
   // ## The view (A-Z / Topics)
   ////////////////
 
-  /** `view`:  the host's when set, else the remembered one. */
+  /** `view`:  the DOM element's when set, else the remembered one. */
   @E.controlled("view") accessor view: NavView = (isServer ? undefined : NavPreferences.view()) ?? DEFAULT_VIEW
 
   /** Every matching row, A-Z. */
@@ -299,8 +348,8 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
 
   /**
    * A view button flipped itself (`toggle`):  the pressed one stays pressed.
-   * - Re-set during the event, so the button's own flip doesn't stand (`requestChange()`):  clicking the pressed
-   *   button would otherwise un-press it while the view stays.
+   * - Re-set during the event, so the button's own flip doesn't stand (`requestChange()`):
+   *   clicking the pressed button would otherwise un-press it while the view stays.
    */
   private onToggle(event: Event) {
     const button = event.target as HTMLElement & { active?: boolean }
@@ -427,7 +476,7 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
   ////////////////
 
   /** Which slots have content:  the header / footer boxes show only then. */
-  readonly slots = new E.SlotContent(this.host)
+  readonly slots = new E.SlotContent(this.domElement)
 
   /** The panel, while rendered. */
   private box: HTMLElement | undefined
@@ -475,7 +524,7 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
         </Show>
         <div class={TOOLS}>
           <ui-docs-search
-            ref={(element: HTMLElement) => (this.search = element as DocsSearchHost)}
+            ref={(element: HTMLElement) => (this.search = element as DOMDocsSearchElement)}
             part={this.partForName("search")}
             base={this.base}
           />
@@ -588,8 +637,8 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
   }
 
   /**
-   * One topic:  its band (an `<h3>`), and while open (or easing shut) its fold of matching rows;  nothing when none
-   * match.
+   * One topic:  its band (an `<h3>`), and while open (or easing shut) its fold of matching rows;
+   * nothing when none match.
    * - `rows` stays an explicit memo:  one per topic, made here for each item of a `<For>`.
    */
   private topic(topic: NavTopic, index: () => number): JSX.Element {
@@ -702,7 +751,7 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
     )
   }
 
-  /** A band's chevron (a box round the icon, whose host is `display: contents`):  the sheet turns it while shut. */
+  /** A band's chevron (a box round the `<ui-icon>`, which is `display: contents`):  the sheet turns it while shut. */
   private chevron(): JSX.Element {
     return (
       <span class={CHEVRON}>
@@ -789,7 +838,7 @@ export class UIDocsNav extends E.UIElement<DocsNavVocabulary> implements DocsNav
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UIDocsNav extends E.AttributeValues<DocsNavVocabulary> {}
 
 /** What `UIDocsNav.group()` draws:  one group's band and fold. */
@@ -825,7 +874,7 @@ const FOLD_PROPERTY = "grid-template-rows"
 /** `overflow-y` values that make a box a scroll container. */
 const SCROLLING: ReadonlySet<string> = new Set(["auto", "scroll"])
 
-/** What every `ui-*` host has, and plain elements don't:  its `ready` promise. */
+/** What every `ui-*` DOM element has, and plain elements don't:  its `ready` promise. */
 const READY = "ready"
 
 /** Class word of the header band. */
@@ -884,3 +933,15 @@ const EMPTY = "empty"
 
 /** Class word of the load error's message. */
 const PROBLEM = "problem"
+
+/** Class word of a list of rows (`<ul>`). */
+const ROWS = "rows"
+
+/** Class word of one row (`<li>`):  a link, and a component's star. */
+const ROW = "row"
+
+/** Class word of a group's heading (`<h2>`;  a topic's `<h3>`). */
+const HEADING = "heading"
+
+/** Class word of a heading band (its fold button). */
+const BAND = "band"

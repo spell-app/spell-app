@@ -1,7 +1,8 @@
 /**
- * Barrel for the card components -- also the `card` lib entry (`@spell-app/ui/ui-card`), measured in `docs/report.md`.
- * - SIDE EFFECT:  defines `<ui-card>` and `<ui-cards>`, and the generic content parts through the parts barrel,
+ * The card family:  defines `<ui-card>` and `<ui-cards>`, and exports their components, `UICard` and `UICards`.
+ * - SIDE EFFECT:  importing it defines the tags, and the generic content parts through the parts barrel,
  *   so a page never has to import what its cards hold.
+ * - Also the library's `@spell-app/ui/ui-card` entry (its size is in `docs/report.md`).
  */
 
 import { UICard } from "./UICard"

@@ -6,7 +6,7 @@ import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 import { Fixture } from "./Fixture"
 
 /**
- * Helpers for component CSS tests (`ui-<name>.css.test.ts`):  adopt sheets for one test, walk a sheet's rules,
+ * Helpers for component CSS tests (`UI<Name>.css.test.ts`):  adopt sheets for one test, walk a sheet's rules,
  * stand in shadow hosts, and check a sheet covers every class word a vocabulary can emit.
  * - Static-only:  there's one document per test run.
  * - Adoption is per test:  sheets are removed again when the test finishes, so tests never leak styles.

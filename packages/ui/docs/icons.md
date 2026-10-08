@@ -314,7 +314,7 @@ Experiment behind this section:  `spike/icons/`, removed from the tree;  restore
    - **3b**:  `fetch()` + inline `<svg>` with an in-memory cache.
 
 Each is a small `x-icon-<variant>` element with an open shadow root and the `ui-icon` markup contract
-(`<span class="ui icon" part="icon">`, accessible name on the host via `ElementInternals`).  The page draws the
+(`<span class="ui icon" part="icon">`, accessible name on the DOM element via `ElementInternals`).  The page draws the
 first N of a fixed list of 50 distinct icons (2 brands and 2 regular among the first 10), as markup.
 
 ### Method

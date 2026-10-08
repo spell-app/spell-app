@@ -1,16 +1,15 @@
 import type { SiteAttribute, SiteEvent, SiteNamed, SiteTag, SiteText } from "$/ui/docs-components/docs-components.types"
 import { InlineCode } from "./InlineCode"
-import type { ApiCell, ApiNote, ApiRow, ApiSection } from "./ui-docs-api.types"
+import type { ApiCell, ApiNote, ApiRow, ApiSection } from "./UIDocsApi.types"
 
 /****************
  * ### `ApiModel`
- * A tag's API as tables (`ApiSection`s):  what `<ui-docs-api>` and its native fallback both draw, so the two never
- * disagree about what a table holds.
- * - Pure data in, pure data out:  a `SiteTag` from `components.json`;  titles and column headers as TEXT KEYS (the
- *   element translates them), cells as `ApiCell`s.
+ * A tag's API as tables (`ApiSection`s):  what `<ui-docs-api>` draws.
+ * - Pure data in, pure data out:  a `SiteTag` from `components.json`;
+ *   titles and column headers as TEXT KEYS (the component translates them), cells as `ApiCell`s.
  * - Only the tables a tag has:  an empty one is left out.
  * - `json` attributes (rich data) are the `properties` table, not `attributes`:  they have no attribute.
- * - Static:  pure, and shared by the element and its fallback.
+ * - Static and pure, so tests drive it directly.
  ****************/
 export class ApiModel {
   /** `tag`'s non-empty tables, in `ApiSectionIds` order. */

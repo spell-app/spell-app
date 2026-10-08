@@ -1,15 +1,17 @@
 import { E, UIT } from "$/ui/core"
-import { gridVocabulary } from "./ui-grid.vocabulary.en"
+import { gridVocabulary } from "./UIGrid.vocabulary.en"
 import { GridPart } from "./GridPart"
 
 /****************
- * ### `<ui-grid>`
- * A 16-column flex grid:  `<div class="ui … grid" part="grid"><slot></slot></div>` around rows and columns.
- * - `columns="3"` => `three column`;  `columns="equal"` / `equal-width` => `equal width`.
- * - Its HOST is a block and the `ui-grid` size container, unless it sits in another grid or row (then
- *   `display: contents`, like a column).
- * - `stack-with` becomes a private class after the noun (`ui stackable grid stack-with-page`), which the sheet's
- *   range rules key on;  rows and columns follow their grid's range.
+ * ### `UIGrid`
+ * The component behind `<ui-grid>`:  a 16-column flex grid of rows and columns,
+ * `<div class="ui … grid" part="grid"><slot></slot></div>`.
+ *
+ * - `columns="3"` => `three column`;  `columns="equal"` or `equal-width` => `equal width`.
+ * - Its DOM element is a block and the `ui-grid` size container,
+ *   unless it sits in another grid or row (then `display: contents`, like a column).
+ * - `stack-with` becomes a private class after the noun (`ui stackable grid stack-with-page`),
+ *   which the sheet's range rules key on;  rows and columns follow their grid's range.
  ****************/
 export class UIGrid extends GridPart<typeof gridVocabulary> {
   @E.proto static vocabulary = gridVocabulary
@@ -21,8 +23,8 @@ export class UIGrid extends GridPart<typeof gridVocabulary> {
 
   /**
    * Celled with its outer box (`celled`, not `celled="internally"`):  `:state(celled)`.
-   * - Why:  the host is a size container (its own formatting context), so that box's outer margin sits on the
-   *   HOST, to collapse with the content above as class grammar's does (`ui-grid.css`).
+   * - Why:  the DOM element is a size container (its own formatting context), so that box's outer margin sits on the
+   *   DOM ELEMENT, to collapse with the content above as class grammar's does (`UIGrid.css`).
    */
   @E.cssState("celled")
   get hasOuterCells(): boolean {
@@ -30,5 +32,5 @@ export class UIGrid extends GridPart<typeof gridVocabulary> {
   }
 }
 
-/** The vocabulary getters, typed (`UIElement`'s doc). */
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIGrid extends E.AttributeValues<typeof gridVocabulary> {}
