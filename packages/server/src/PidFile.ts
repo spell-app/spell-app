@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process"
-import { existsSync, openSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, openSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 
 import { SRV, type ServerInfo } from "$/server"
@@ -8,7 +8,8 @@ import { SRV, type ServerInfo } from "$/server"
  * Where a background server says where it is:  `<root>/<name>` (default `.spell-server.json`), its `ServerInfo`.
  * - running means:  the file's server answers `/_server/ping` for THIS root;  a pid file left by a crash, or by a
  *   server on another checkout's root, is not running
- * - `ensure()` starts one detached if none runs;  `stop()` sends it `SIGTERM`
+ * - `ensure()` starts one detached if none runs, or restarts one older than its `sources`;  `stop()` sends it
+ *   `SIGTERM`
  * - From the goals tools' `launch.js` (`ensureServer`, `serverStatus`, `stopServer`).
  */
 export class PidFile {
@@ -65,9 +66,17 @@ export class PidFile {
    * - waits up to `timeout` ms (15s) for it to answer
    * - SIDE EFFECT:  may spawn `command` detached, in `root`
    */
-  async ensure({ command, env, log, timeout = 15_000 }: EnsureOptions): Promise<RunningServer & { launched: boolean }> {
+  async ensure({
+    command,
+    env,
+    log,
+    sources = [],
+    timeout = 15_000
+  }: EnsureOptions): Promise<RunningServer & { launched: boolean }> {
     const running = await this.status()
-    if (running) return { ...running, launched: false }
+    if (running && newestChange(sources) <= Date.parse(running.started)) return { ...running, launched: false }
+    // older than its code (a merge changed it since):  a fresh one, so pages get the new routes (I5 of `skillz`)
+    if (running) await this.stop()
     const out = openSync(log ?? join(this.root, ".spell-server.log"), "a")
     const [program, ...args] = command
     spawn(program!, args, {
@@ -101,5 +110,36 @@ export type RunningServer = ServerInfo & { base: string }
 /**
  * `PidFile.ensure()` options.
  * - `command`:  argv to run;  `env`:  added to ours;  `log`:  output file;  `timeout`:  ms to wait
+ * - `sources`:  folders of the server's code:  a running server that started before a `.ts` / `.js` file in them
+ *   last changed is restarted
  */
-export type EnsureOptions = { command: string[]; env?: Record<string, string>; log?: string; timeout?: number }
+export type EnsureOptions = {
+  command: string[]
+  env?: Record<string, string>
+  log?: string
+  sources?: string[]
+  timeout?: number
+}
+
+/**
+ * The newest modification time (ms) of the code files under `folders`, all the way down;  0 for none.
+ * - code:  `.ts`, `.js`, `.mjs`;  skips `node_modules`, `_assets` (built pages' assets, not the server's code) and
+ *   dot folders;  a missing folder counts as nothing
+ */
+export function newestChange(folders: string[]): number {
+  let newest = 0
+  for (const folder of folders) {
+    if (!existsSync(folder)) continue
+    for (const path of readdirSync(folder, { recursive: true }) as string[]) {
+      if (!CODE.test(path) || SKIPPED.test(path)) continue
+      newest = Math.max(newest, statSync(join(folder, path)).mtimeMs)
+    }
+  }
+  return newest
+}
+
+/** A code file `newestChange()` counts. */
+const CODE = /\.(ts|js|mjs)$/
+
+/** Folders `newestChange()` skips, anywhere in a path. */
+const SKIPPED = /(^|[/\\])(node_modules|_assets|\.[^/\\]+)[/\\]/
