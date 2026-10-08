@@ -7,6 +7,7 @@ import {
   inboxOf,
   isImmediate,
   isSent,
+  pickOf,
   type Inbox,
   type InboxDraft,
   type InboxMark,
@@ -288,8 +289,8 @@ export class ReviewClient {
       return void (note ? this.useNote(id, "now", note) : this.askNow(id, "details"))
     }
     if (mark?.action === action && !isImmediate(mark)) {
-      const pick = action === "revisit" ? mark.pick : undefined
-      return void this.save(id, pick ? { action: "pick", pick } : null)
+      const pick = action === "revisit" ? pickOf(mark) : {}
+      return void this.save(id, pick.pick ? { action: "pick", ...pick } : null)
     }
     if (action === "revisit") return "open-box"
     void this.save(id, { action })
@@ -297,15 +298,18 @@ export class ReviewClient {
   }
 
   /**
-   * Pick option `letter` on `id` (`null`:  drop the pick):  a "Choose" pill (P10).
+   * Pick option `letter` of card set `choices` on `id` (`null`:  drop the pick):  a "Choose" pill (P10).
+   * - `choices`:  which of the item's `<epic-choices>` the option is in, by position (I8:  its text's, a reply's
+   *   ...);  none, its own
    * - a revisit keeps its note:  "pick B, but ...";  one asked NOW turns `soon`, so the pick waits for the send with
    *   it (an immediate mark counts as sent:  Claude would never see the new pick)
    * - anything else becomes a plain pick, or none
    */
-  choose(id: string, letter: string | null): Promise<boolean> {
+  choose(id: string, letter: string | null, choices?: number): Promise<boolean> {
     const mark = this.inbox.marks[id]
-    if (mark?.action !== "revisit") return this.save(id, letter ? { action: "pick", pick: letter } : null)
-    return this.save(id, { action: "revisit", when: "soon", note: mark.note ?? "", ...(letter && { pick: letter }) })
+    const pick = letter ? { pick: letter, ...(choices !== undefined && { choices }) } : {}
+    if (mark?.action !== "revisit") return this.save(id, letter ? { action: "pick", ...pick } : null)
+    return this.save(id, { action: "revisit", when: "soon", note: mark.note ?? "", ...pick })
   }
 
   /**
@@ -353,8 +357,7 @@ export class ReviewClient {
     this.boxes.delete(id)
     if (how === "now") return this.askNow(id, "revisit", note)
     if (how === "todo") return this.save(id, { action: "todo", note })
-    const pick = this.inbox.marks[id]?.pick
-    return this.save(id, { action: "revisit", when: "soon", note, ...(pick && { pick }) })
+    return this.save(id, { action: "revisit", when: "soon", note, ...pickOf(this.inbox.marks[id]) })
   }
 
   /** Save `text` as `id`'s draft in the inbox;  true when saved (the backup then goes). */
@@ -382,10 +385,10 @@ export class ReviewClient {
    * - nobody listening:  says so
    */
   async askNow(id: string, action: NowAction, note?: string): Promise<boolean> {
-    const pick = this.inbox.marks[id]?.pick
+    const pick = pickOf(this.inbox.marks[id])
     const at = new Date().toISOString()
     this.inbox.marks[id] =
-      action === "revisit" ? { action, when: "now", note: note ?? "", ...(pick && { pick }), at } : { action, at }
+      action === "revisit" ? { action, when: "now", note: note ?? "", ...pick, at } : { action, at }
     const request = this.write("now", note === undefined ? { id, action } : { id, action, note })
     this.asking.set(id, request)
     this.changed()

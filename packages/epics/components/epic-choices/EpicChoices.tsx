@@ -7,7 +7,16 @@ import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 
 import { epicChoicesVocabulary } from "./EpicChoices.en"
-import { ANSWERED, CHOICES_TAG, CHOSEN, ITEM_TAG, STATUS, TOGGLE } from "./EpicChoices.types"
+import {
+  ANSWERED,
+  CHOICES_TAG,
+  CHOSEN,
+  ITEM_TAG,
+  ORIGINAL_TAG,
+  STATUS,
+  TOGGLE,
+  type CardSet
+} from "./EpicChoices.types"
 
 import choicesCSS from "./EpicChoices.css?inline"
 
@@ -95,6 +104,23 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   /** The chosen letter of the `<epic-choices>` `element` is (or sits in), or `undefined`. */
   static chosenFor(element: Element): string | undefined {
     return element.closest(CHOICES_TAG)?.getAttribute(CHOSEN) || undefined
+  }
+
+  /**
+   * WHICH card set of its item the `<epic-choices>` `element` is (or sits in):  `index`, its position among the
+   * item's sets in page order, never counting one in its Original Discussion;  `own`, it's the item's own (its first
+   * child set, else its first), what a pick from before I8 meant.  `undefined` outside an item, or in an Original.
+   * - the plan-doc tool counts the same way (`PlanItem.choiceSets()` / `choiceSet()`):  a pick's `choices`
+   */
+  static setOf(element: Element): CardSet | undefined {
+    const choices = element.closest(CHOICES_TAG)
+    const item = choices?.parentElement?.closest(`${ORIGINAL_TAG}, ${ITEM_TAG}`)
+    if (!choices || item?.localName !== ITEM_TAG) return undefined
+    const sets = Array.from(item.querySelectorAll(CHOICES_TAG)).filter(
+      (each) => each.parentElement?.closest(`${ORIGINAL_TAG}, ${ITEM_TAG}`) === item
+    )
+    const own = item.querySelector(`:scope > ${CHOICES_TAG}`) ?? sets[0]
+    return { index: sets.indexOf(choices), own: choices === own }
   }
 
   /** The `status` of the item `element` sits in, or `undefined`. */

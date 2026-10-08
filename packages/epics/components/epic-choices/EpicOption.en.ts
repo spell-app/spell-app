@@ -53,7 +53,8 @@ export const epicOptionVocabulary = {
     {
       name: "choose",
       description:
-        "The Choose pill (`<button aria-pressed>`):  marks its letter as the item's pick in the page's review inbox."
+        "The Choose pill (`<button aria-pressed>`):  marks its letter as the item's pick in the page's review inbox;  " +
+        "on the chosen option, solid and `aria-disabled`:  the pick applied."
     },
     { name: "body", description: "Its pros and cons;  answered, hidden while folded." }
   ],
@@ -64,7 +65,8 @@ export const epicOptionVocabulary = {
     {
       name: "picked",
       description:
-        "Its letter is the item's pick in the review inbox:  framed green:  dashed until sent, then outlined."
+        "Its letter is the item's pick in the review inbox, in its card set, not applied yet:  framed green:  " +
+        "dashed until sent, then outlined."
     }
   ],
   texts: [
@@ -78,7 +80,12 @@ export const epicOptionVocabulary = {
     { key: "tipChoose", text: "Pick {letter}", description: "The pill's tooltip." },
     { key: "tipChosen", text: "{letter} is picked:  click to un-pick", description: "The picked pill's tooltip." },
     { key: "tipSent", text: "sent", description: "The picked pill's tooltip, once its mark went to Claude." },
-    { key: "tipNotSent", text: "not sent yet", description: "The picked pill's tooltip, before Send." }
+    { key: "tipNotSent", text: "not sent yet", description: "The picked pill's tooltip, before Send." },
+    {
+      key: "tipApplied",
+      text: "{letter} is the chosen option",
+      description: "The chosen option's pill's tooltip:  the pick applied."
+    }
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },

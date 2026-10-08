@@ -153,8 +153,12 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
     `inbox done`)
 - Options:  `<epic-choices>` of `<epic-option letter title recommended>`, the same open or answered;  `chosen` once
   answered (`decide --option B`, a pick).  Mark ONE `recommended`.  On ANY item kind (P14):  a question's own after
-  its text, or the options a judgement call, a reply or More Details weighs;  only a question's are picked
-  (`inbox apply`).
+  its text, or the options a judgement call, a reply or More Details weighs;  an item may hold several.
+- Picks work on ANY of them (I8):  the mark names the set by position, `{ pick: "B", choices: 1 }` (the item's sets
+  in page order, its Original Discussion's never counted:  `PlanItem.choiceSets()`;  no `choices`, an older mark:
+  the item's own).  `inbox apply` sets THAT set's `chosen`;  a question is answered with the option (no other set
+  stays chosen), any other item APPROVED with it (an open judgement call closed, accepted;  reviewed);  either way a
+  Done card `Chose B · <title>`, and the option in the log line.
 - The way in (`IncomingHtml`):  agents may still write the OLD shapes;  every command taking HTML (`add --details`,
   `decide --details`, `details --file`, `updated`, a phase's fields) turns them into elements on the way in, so a doc
   never holds them:  an option grid (`ui-grid.spell-pros-cons`, labels `A · Title (recommended)`, wherever it sits)
@@ -253,7 +257,8 @@ Choose pill and its card, Send):
 - a grey outline:  available
 - DASHED in its colour:  Owen pressed it, not committed (not sent;  a Do Now not taken yet)
 - OUTLINED in its colour:  recorded (sent;  a Do Now taken, its icon turning while Claude is on it), not done yet
-- SOLID:  done (applied, answered, filed:  `review-as`;  the step label's DONE)
+- SOLID:  done (applied, answered, filed:  `review-as`;  the step label's DONE;  a Choose pill on its set's `chosen`
+  option, wherever the cards are)
 
 The review buttons, at every step:  Approve, Revisit, Make Todo in one group, then Do Now apart (paper plane:  the
 inbox's `details` request, or a revisit now when the note box holds a note).
