@@ -102,7 +102,9 @@ describe("Definitions.all", () => {
         .children.filter((spec) => spec.tag === tag)
         .map((spec) => `${spec.tag}:${spec.max}`)
     expect(Definitions.all["epic-net-effect"].flow).toBe(true)
+    // `<epic-choices>` too:  a reply's options, a judgement call's (the second pass's prose option grids)
     expect(Definitions.tags.filter((tag) => Definitions.of(tag)!.flow)).toEqual([
+      "epic-choices",
       "epic-update",
       "epic-net-effect",
       "epic-note",

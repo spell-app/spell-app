@@ -1,5 +1,6 @@
 import type { ProofReport, SetDifference, TextDifference, UnitDifference } from "./convert.types"
 
+import type { DocReading } from "./DocReading"
 import { NewReading } from "./NewReading"
 import { OldReading } from "./OldReading"
 
@@ -13,15 +14,17 @@ import { OldReading } from "./OldReading"
  *   card after its question, not before) is listed as `reordered`, not as a loss
  * - Reports every difference, never hides one;  what's left out on purpose is listed (`excluded`, `EXCLUSIONS`).
  * - Knows nothing of the converter:  it reads the two documents.
+ * - The second pass (`Upgrader`) proves the same way, its `before` a converted doc:  `reading: ConvertedReading`
+ *   (`UPGRADE_EXCLUSIONS`).
  ****************/
 export class ConversionProof {
   /** The old doc, read. */
-  readonly before: OldReading
+  readonly before: DocReading
   /** The new doc, read. */
   readonly after: NewReading
 
-  constructor({ before, after }: ConversionProofProps) {
-    this.before = new OldReading(before)
+  constructor({ before, after, reading = OldReading }: ConversionProofProps) {
+    this.before = new reading(before)
     this.after = new NewReading(after)
   }
 
@@ -57,6 +60,8 @@ export type ConversionProofProps = {
   before: Document
   /** The doc in `<epic-*>` markup. */
   after: Document
+  /** How to read `before`:  `OldReading` (today's markup, the default), or `ConvertedReading` (the second pass). */
+  reading?: new (document: Document) => DocReading
 }
 
 /** `old` against `now`. */

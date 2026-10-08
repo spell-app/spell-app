@@ -437,3 +437,18 @@ describe("Markup.validate()", () => {
     ])
   })
 })
+
+describe("Markup.place()", () => {
+  test("a `flow` element the content model also names (`<epic-choices>`) takes its own place;  prose goes before it", () => {
+    const document = documentOf(`<epic-item id="q1" title="x"><epic-answer></epic-answer></epic-item>`)
+    const item = document.querySelector("epic-item")!
+    const option = Markup.element(document, "epic-option", { letter: "A", title: "a" })
+    Markup.place(item, Markup.element(document, "epic-choices", {}, [option]))
+    Markup.place(item, document.createElement("p"))
+    expect(Array.from(item.children, (child) => child.localName)).toEqual(["p", "epic-choices", "epic-answer"])
+    // in prose, the same choices go anywhere:  a reply's, a judgement call's text (epic `epic-components` P14)
+    const reply = Markup.element(document, "epic-reply", {}, [document.createElement("p")])
+    reply.append(item.querySelector("epic-choices")!, document.createElement("p"))
+    expect(Markup.validate(reply)).toEqual([])
+  })
+})
