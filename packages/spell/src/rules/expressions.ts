@@ -85,8 +85,8 @@ export type SpellExpressionProps = Prettify<SpellStatementProps & { parenthesize
 /**
  * Base class for expression-suffix rules that take an explicit `rhs`, e.g. `is`, `and`, `includes`.
  * - Matched as part of `compound_expression`'s shunting-yard algorithm -- never parsed standalone.
- * - Override `compileASTExpression()` to control output AST, `getOutputOperator()` for the operator
- *   string, `shouldNegateOutput()` to negate the result, e.g. for `is not`.
+ * - Override `compileASTExpression()` to control output AST, `getOperator()` for what the operator MEANS
+ *   (`equals`, `and` ...), `shouldNegateOutput()` to negate the result, e.g. for `is not`.
  * - `getAST()` deliberately throws: compilation always goes through `compileAST()`/`compileASTExpression()`,
  *   called directly by `compound_expression`'s shunting-yard rather than through normal rule dispatch.
  */
@@ -138,12 +138,14 @@ export class InfixOperatorSuffix<
   }
 
   /**
-   * Return output operator from `operator` match.
-   * - Default just returns the input string of the operator, override for more complex logic.
-   * - NOTE: language-dependent!
+   * What `operator` MEANS, as a `P.ASTOperator`, e.g. `equals` for `is`:  each target's writer spells it.
+   * - Override in each rule using the default `compileASTExpression()`, which builds an `ASTInfixExpression`.
+   * - throws by default:  the words a rule matched aren't a meaning any writer knows
    */
-  getOutputOperator(operator: P.Match): string {
-    return String(operator.value)
+  getOperator(operator: P.Match): P.ASTOperator {
+    throw new TypeError(
+      `${this.constructor.name}.getOperator():  override it to say what \`${operator.value}\` means, e.g. "equals"`
+    )
   }
 
   /**
@@ -167,7 +169,7 @@ export class InfixOperatorSuffix<
       // `lhs`/`rhs` are always populated here: this base implementation is only reached for
       // `InfixOperatorSuffix` rules, which the shunting-yard algorithm always calls with both sides.
       lhs: lhs!,
-      operator: this.getOutputOperator(operator),
+      operator: this.getOperator(operator),
       rhs: rhs!
     })
   }
@@ -402,9 +404,10 @@ class compound_expression extends SpellExpression<"lhs|rhsChain"> {
     let rest = tokens.slice(lhs.length)
     while (rest.length) {
       const remaining = rest
-      const suffix = expecting
-        ? expecting.nested(() => chain.rule.parse(scope, remaining))
-        : chain.rule.parse(scope, remaining)
+      // what the suffix follows, when known -- see `SuffixLeft`
+      const left = compound_expression.suffixLeft(lhs, suffixes.at(-1))
+      const parseSuffix = () => SuffixLeft.while(left, () => chain.rule.parse(scope, remaining))
+      const suffix = expecting ? expecting.nested(parseSuffix) : parseSuffix()
       if (!suffix || compound_expression.precedenceOf(suffix) <= this.bound) break
       suffixes.push(suffix)
       rest = rest.slice(suffix.length)
@@ -572,6 +575,21 @@ class compound_expression extends SpellExpression<"lhs|rhsChain"> {
     return output[0] as P.ASTNode
   }
 
+  /**
+   * What the next suffix follows, if known -- see `SuffixLeft`.
+   * - The first suffix:  our operand, `lhs`.
+   * - After `and` / `or`:  the operand after it, e.g. `the game` in `the card is face up and the game is red`.  Every
+   *   suffix which asks (a user's phrase) binds tighter than those, so that operand is its whole left side.
+   * - After anything else:  unknown, e.g. after `+` the left side is the sum so far.
+   */
+  private static suffixLeft(lhs: P.Match, previous: P.Match | undefined): P.Match | undefined {
+    if (!previous) return lhs
+    if (previous.rule instanceof PostfixOperatorSuffix) return undefined
+    const precedence = compound_expression.precedenceOf(previous)
+    if (precedence !== Precedence.and && precedence !== Precedence.or) return undefined
+    return previous.groups.expression as P.Match | undefined
+  }
+
   /** A suffix match's `precedence` -- every `expression_suffix` is an `InfixOperatorSuffix`, which must have one. */
   private static precedenceOf(suffix: P.Match): number {
     return (suffix.rule as InfixOperatorSuffix).precedence
@@ -654,8 +672,8 @@ class and extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.and
   @proto static parenthesize = true
 
-  getOutputOperator(): string {
-    return "&&"
+  getOperator(): P.ASTOperator {
+    return "and"
   }
 }
 expressions.addRule(and, {
@@ -687,8 +705,8 @@ class or extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.or
   @proto static parenthesize = true
 
-  getOutputOperator(): string {
-    return "||"
+  getOperator(): P.ASTOperator {
+    return "or"
   }
 }
 expressions.addRule(or, {
@@ -715,8 +733,8 @@ class is_equal extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.equality
   @proto static parenthesize = true
 
-  getOutputOperator(operator: P.Match): string {
-    return operator.value === "is not" ? "!=" : "=="
+  getOperator(operator: P.Match): P.ASTOperator {
+    return operator.value === "is not" ? "not equals" : "equals"
   }
 }
 expressions.addRule(is_equal, {
@@ -746,8 +764,8 @@ class is_exactly extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.equality
   @proto static parenthesize = true
 
-  getOutputOperator(operator: P.Match): string {
-    return operator.value === "is not exactly" ? "!==" : "==="
+  getOperator(operator: P.Match): P.ASTOperator {
+    return operator.value === "is not exactly" ? "not exactly equals" : "exactly equals"
   }
 }
 expressions.addRule(is_exactly, {
@@ -911,6 +929,25 @@ expressions.addRule(is_in, {
         ["thing is not either red or green", "!spellCore.includes([red, 'green'], thing)"],
         ["thing is not either of red or green", "!spellCore.includes([red, 'green'], thing)"],
         ["thing is neither red nor green", "!spellCore.includes([red, 'green'], thing)"]
+      ]
+    }
+  ]
+})
+// `thing is green or blue`, the values known -- see `value_choices`
+expressions.addRule(is_in, {
+  syntax: "(operator:is not?) (expression:{value_choices})",
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("thing")
+        scope.constants?.add("green")
+        scope.constants?.add("blue")
+      },
+      tests: [
+        ["thing is green or blue", "spellCore.includes(['green', 'blue'], thing)"],
+        ["thing is not green or blue", "!spellCore.includes(['green', 'blue'], thing)"],
+        ["thing is green or thing is blue", "((thing == 'green') || (thing == 'blue'))"]
       ]
     }
   ]
@@ -1303,4 +1340,37 @@ type OperatorOperands = {
   lhs?: P.ASTExpression
   /** Right-hand-side AST -- only populated for infix operators. */
   rhs?: P.ASTExpression
+}
+
+/**
+ * What the suffix being parsed FOLLOWS, when `compound_expression` knows:  its operand, for the first suffix after it,
+ * or the operand after an `and` / `or` -- so a user's phrase can refuse a thing that isn't its own, e.g. a deck's
+ * `a rank "is a face card"` on `the card is a face card`, where the card has its own (plan doc `outline-spell`, J8 /
+ * J11, I7).
+ * - A suffix can't see its left side through `parse()`'s arguments:  this is the side channel, set while
+ *   `compound_expression` parses that one suffix, and restored after, so nested expressions keep their own.
+ * - `undefined`:  not known, e.g. a suffix after `+` (what it follows is the sum so far):  anything fits.
+ */
+export const SuffixLeft = {
+  /** The operand the suffix being parsed follows, if known. */
+  current: undefined as P.Match | undefined,
+
+  /** `parse()` with `left` as `current`, restoring what was there after. */
+  while<T>(left: P.Match | undefined, parse: () => T): T {
+    const outer = SuffixLeft.current
+    SuffixLeft.current = left
+    try {
+      return parse()
+    } finally {
+      SuffixLeft.current = outer
+    }
+  },
+
+  /**
+   * Could what the suffix follows be a `type`, e.g. the owner of a user's phrase?  `true` unless both are KNOWN and
+   * neither is the other -- as `scope.couldBeA()`.
+   */
+  couldBeA(scope: P.Scope, type: P.Datatype | undefined): boolean {
+    return !SuffixLeft.current || scope.couldBeA(SuffixLeft.current.datatype, type)
+  }
 }

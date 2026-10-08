@@ -1,0 +1,59 @@
+✅ test card setup
+  ▶️ Executing   `the card is a new card whose rank is queen, suit is spades and direction is up`
+  Card {
+    Symbol(props): Map(3) { 'rank' => 'queen', 'suit' => 'spades', 'direction' => 'up' },
+    Symbol(state): null,
+    Symbol(propCells): null,
+    Symbol(stateCells): null,
+    Symbol(keys): null,
+    Symbol(derived): null
+  }
+  ✅ As expected `the rank of the card` is `queen`
+  ✅ As expected `the suit of the card` is `spades`
+  ✅ As expected `the name of the card` is `"queen-of-spades"`
+  ✅ As expected `the color of the card` is `black`
+  ✅ As expected `the value of the card` is `12`
+  ✅ As expected `the short-suit of the card` is `"♠️"`
+  ✅ As expected `the short-rank of the card` is `"Q"`
+  ✅ As expected `the short-name of the card` is `"Q♠️"`
+  ✅ As expected `the card is face up` is `yes`
+  ✅ As expected `the card is face down` is `no`
+  ✅ As expected `the card is a face card` is `yes`
+  ✅ As expected `the card is not a face card` is `false`
+  ✅ As expected `the card is a spade` is `true`
+  ✅ As expected `the card is a club` is `false`
+  ✅ As expected `the card is a queen` is `true`
+  ✅ As expected `the card is an ace` is `false`
+  ✅ As expected `the card is a 2` is `false`
+  ✅ As expected `the card is the queen of spades` is `true`
+  ✅ As expected `the card is the queen of clubs` is `false`
+  ✅ As expected `the card is not the 2 of diamonds` is `true`
+  ▶️ Executing   `turn the card face down`
+  ✅ As expected `the direction of the card` is `down`
+  ▶️ Executing   `turn the card over`
+  ✅ As expected `the card is face up` is `true`
+✅ test deck creation
+  ▶️ Executing   `the deck is a new deck`
+  ▶️ Executing   `set up the deck`
+  ✅ As expected `the number of cards in the deck` is `52`
+  ▶️ Executing   `set up the deck`
+  ✅ As expected `the number of cards in the deck` is `52`
+  ▶️ Executing   `set the queens to the cards in the deck where the rank of the card is "queen"`
+  ✅ As expected `the number of cards in the queens` is `4`
+  ✅ As expected `the name of the bottom card of the deck` is `"king-of-spades"`
+  ✅ As expected `the short-name of the top card of the deck` is `"A♣️"`
+  the deck before shuffling:
+  ▶️ Executing   `display the deck`
+  deck: A♣️, A♦️, A♥️, A♠️, 2♣️, 2♦️, 2♥️, 2♠️, 3♣️, 3♦️, 3♥️, 3♠️, 4♣️, 4♦️, 4♥️, 4♠️, 5♣️, 5♦️, 5♥️, 5♠️, 6♣️, 6♦️, 6♥️, 6♠️, 7♣️, 7♦️, 7♥️, 7♠️, 8♣️, 8♦️, 8♥️, 8♠️, 9♣️, 9♦️, 9♥️, 9♠️, 10♣️, 10♦️, 10♥️, 10♠️, J♣️, J♦️, J♥️, J♠️, Q♣️, Q♦️, Q♥️, Q♠️, K♣️, K♦️, K♥️, K♠️
+  ▶️ Executing   `get the first card of the deck`
+  ✅ As expected `it is the ace of clubs` is `yes`
+Game {
+  Symbol(props): Map(0) {},
+  Symbol(state): null,
+  Symbol(propCells): null,
+  Symbol(stateCells): null,
+  Symbol(keys): null,
+  Symbol(derived): null
+}
+
+<div id="spell-app-root"><div class="ui container"><div class="board"><table class="ui table fixed"><thead><tr><th class="left aligned" colSpan="2">Klondike Solitaire</th><th class="right aligned">Score: 0</th><th><div class="tiny fluid ui button compact">AutoPlay</div></th><th><div class="tiny fluid ui button compact">Cheat</div></th><th><div class="tiny fluid ui button compact">Debug</div></th><th><div class="tiny fluid ui button compact">Restart</div></th></tr></thead><tbody><tr><td><div class="Pile Stock stacked"><div class="Placeholder ui button basic compact fluid"></div><div class="Card face-down queen spades ui button compact fluid"><i class="fitted bicycle icon"></i></div></div></td><td><div class="Pile Discards stacked"><div class="Card face-up 6 clubs ui button compact fluid black">6 <span class="suit">♣️</span></div></div></td><td></td><td><div class="Pile Foundation stacked"><div class="Placeholder ui button basic compact fluid black clubs"><div class="suit clubs">♣️</div></div></div></td><td><div class="Pile Foundation stacked"><div class="Placeholder ui button basic compact fluid red diamonds"><div class="suit diamonds">♦️</div></div></div></td><td><div class="Pile Foundation stacked"><div class="Placeholder ui button basic compact fluid red hearts"><div class="suit hearts">♥️</div></div></div></td><td><div class="Pile Foundation stacked"><div class="Placeholder ui button basic compact fluid black spades"><div class="suit spades">♠️</div></div></div></td></tr><tr><td><div class="Pile Tableau staggered"><div class="Card face-up 2 clubs ui button compact fluid black">2 <span class="suit">♣️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down 5 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up 6 spades ui button compact fluid black">6 <span class="suit">♠️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down king hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down jack spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up 5 diamonds ui button compact fluid red">5 <span class="suit">♦️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down 9 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down jack clubs ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 7 diamonds ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up 3 spades ui button compact fluid black">3 <span class="suit">♠️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down 7 spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down ace hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down king spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 5 clubs ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up queen hearts ui button compact fluid red">Q <span class="suit">♥️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down 8 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down king clubs ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 6 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 3 diamonds ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 6 diamonds ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up 2 diamonds ui button compact fluid red">2 <span class="suit">♦️</span></div></div></td><td><div class="Pile Tableau staggered"><div class="Card face-down ace spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 3 clubs ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down queen diamonds ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 9 spades ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down 3 hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-down jack hearts ui button compact fluid"><i class="fitted bicycle icon"></i></div><div class="Card face-up 7 hearts ui button compact fluid red">7 <span class="suit">♥️</span></div></div></td></tr></tbody></table></div></div></div>

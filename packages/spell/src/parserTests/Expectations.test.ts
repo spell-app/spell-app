@@ -119,7 +119,9 @@ describe("expectedAfter()", () => {
     })
 
     test("`a deck is a` => a type", () => {
-      expect(describeAll(expected("a deck is a").own)).toEqual(["{superType:type}"])
+      // once per `create_type` syntax which reads `a deck is a` -- with an outline body or without;
+      // completion keeps one item per label (`SpellLanguageService.completions()`)
+      expect(new Set(describeAll(expected("a deck is a").own))).toEqual(new Set(["{superType:type}"]))
     })
 
     test("`if c` => `then` or `:`, and operators only as continuations", () => {

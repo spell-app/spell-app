@@ -193,6 +193,128 @@ types.addRule(plural_type, {
 })
 
 ////////////////
+// ## `quoted_type` rule
+//    e.g. `"card"` in `a "card" is a thing where:`
+////////////////
+
+/**
+ * A type's name in quotes, where it's being declared:  `a "card" is a thing where:` -- the outline style's
+ * "quotes teach a new word" (plan doc `outline-spell`).
+ * - One word (dashes OK) inside straight quotes, not blacklisted;  a `SpellType` match like `card` would be.
+ * - `raw` is the name without its quotes, e.g. `card`.
+ */
+class quoted_type extends SpellType {
+  /** A text token whose inside is one type word. */
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
+    return quoted_type.nameOf(tokens[start], this.blacklist) !== undefined
+  }
+
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const [token] = tokens
+    const raw = quoted_type.nameOf(token, this.blacklist)
+    if (!token || raw === undefined) return undefined
+    const match: P.MatchFor<this> = new P.Match({
+      rule: this,
+      matched: [token],
+      raw,
+      value: this.mapValue(raw),
+      tokens: [token],
+      scope
+    })
+    match.data.scopeType = scope.types?.get(match.value) ?? NONE
+    return match
+  }
+
+  /** A declaration names the type without its quotes, e.g. `card`. */
+  declaredText(match: P.Match): string {
+    return `${match.raw}`
+  }
+
+  /** The one word inside `token`'s quotes, if it's a text token holding just that -- else `undefined`. */
+  private static nameOf(token: P.Token | undefined, blacklist: P.IdentifierBlacklist | undefined): string | undefined {
+    if (!(token instanceof P.TextToken)) return undefined
+    const name = token.innerText
+    if (!QUOTED_TYPE_NAME.test(name) || blacklist?.[name.toLowerCase()]) return undefined
+    return name
+  }
+}
+types.addRule(quoted_type, {
+  tests: [
+    {
+      tests: [
+        { title: "a quoted word", input: '"card"', output: "Card" },
+        { title: "dashed", input: '"bank-account"', output: "Bank_Account" },
+        { title: "two words", input: '"playing card"', output: undefined },
+        { title: "blacklisted word", input: '"if"', output: undefined }
+      ]
+    }
+  ]
+})
+
+/** What `quoted_type` takes inside its quotes:  one word, dashes OK. */
+const QUOTED_TYPE_NAME = /^[A-Za-z][\w-]*$/
+
+////////////////
+// ## `subject_it` / `subject_its` rules
+//    e.g. `it` in `- it has a deck`, under `a card is a thing where:`
+////////////////
+
+/**
+ * `it` in an outline-style type's body:  the type the body is about -- `Card` in `- it has a deck` under
+ * `a card is a thing where:`.  See `P.SubjectScope`.
+ * - A `SpellType` match, so a rule takes it where it takes `a card`, e.g. `{type:subject_it} has ...`:
+ *   - `value` is the type's name, e.g. `Card`;  `data.scopeType` its `TypeScope`
+ *   - `raw` is the type's instance name, e.g. `card`, NOT `it`:  rules read `raw` as the type's words,
+ *     e.g. `quoted_type_expression` for its signature's `instanceType`
+ * - Fails anywhere else, including inside a method or getter in the body, where `it` is the instance.
+ * - `word`:  `it`, or `its` (`subject_its`) for a property:  `its "suit" is ...`.
+ */
+export class SubjectRule extends SpellType {
+  /** Editors colour it as they colour `it` anywhere:  a variable. */
+  @proto static highlightAs?: P.HighlightKind = "variable"
+  /** Word we match, any case. */
+  declare word: string
+  @proto static word = "it"
+
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
+    const token = tokens[start]
+    return token instanceof P.WordToken && `${token.value}`.toLowerCase() === this.word
+  }
+
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const [token] = tokens
+    if (!token || !this.test(scope, tokens)) return undefined
+    const scopeType = P.SubjectScope.of(scope)?.subjectType
+    if (!scopeType) return undefined
+    const match: P.MatchFor<this> = new P.Match({
+      rule: this,
+      matched: [token],
+      raw: scopeType.instanceName,
+      value: scopeType.name,
+      tokens: [token],
+      scope
+    })
+    match.data.scopeType = scopeType
+    return match
+  }
+
+  /** A declaration names the type, e.g. `card`, not `it`. */
+  declaredText(match: P.Match): string {
+    return `${match.raw}`
+  }
+}
+
+/** `it`, as the subject of an outline body's line, e.g. `- it has a deck` -- see `SubjectRule`. */
+class subject_it extends SubjectRule {}
+types.addRule(subject_it)
+
+/** `its`, as the subject of an outline body's line, e.g. `- its "suit" is ...` -- see `SubjectRule`. */
+class subject_its extends SubjectRule {
+  @proto static word = "its"
+}
+types.addRule(subject_its)
+
+////////////////
 // ## `known_type` rule
 //    e.g. "thing", if `Thing` is a known type
 ////////////////

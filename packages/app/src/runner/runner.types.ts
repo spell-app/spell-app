@@ -1,4 +1,5 @@
 import type { LSP } from "$/lsp"
+import type { SP } from "$/spell"
 import type { UI } from "$/app/ui"
 
 // ## Messages
@@ -85,4 +86,6 @@ export type SpellCompiled = {
   compiled: string
   /** Its scope pack, for the Type Explorer -- fresh, where the one on the server may be stale. */
   scopes?: LSP.ScopePack
+  /** Its declarations, for the Type Explorer's code -- see `SP.SpellDeclarationsData`. */
+  declarations?: SP.SpellDeclarationsData
 }

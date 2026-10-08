@@ -74,6 +74,7 @@
     "./dist/ui-markdown.js",
     "./dist/ui-code.js",
     "./dist/ui-include.js",
+    "./dist/ui-tree-diagram.js",
     "./tools/demo/**"
   ],
   "main": "./dist/index.js",
@@ -331,6 +332,10 @@
     "./ui-include": {
       "types": "./dist/components/ui-include/index.d.ts",
       "import": "./dist/ui-include.js"
+    },
+    "./ui-tree-diagram": {
+      "types": "./dist/components/ui-tree-diagram/index.d.ts",
+      "import": "./dist/ui-tree-diagram.js"
     },
     "./styles": {
       "types": "./dist/styles/index.d.ts",

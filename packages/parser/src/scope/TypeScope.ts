@@ -28,6 +28,15 @@ export class TypeScope extends BlockScope {
    */
   declare itemType?: P.Datatype
   /**
+   * A VALUE kind's values, and where its list is kept -- `undefined` for any other type.
+   * - e.g. `Suit`, from `"suits" as one of clubs, ...` in a deck's outline body:
+   *   `{ values: ["'clubs'", ...], listOn: "Deck", listName: "Suits" }`
+   * - Its values stay plain text or numbers when the code runs;  its properties are static methods of its class,
+   *   read as `Suit.color(value)` (plan doc `outline-spell`, Q10).  See spell's `value_kind`.
+   * - Set when declared (`claim()` for a stub), so journaled with it.
+   */
+  declare valueKind?: ValueKind
+  /**
    * Name of our class when the code runs, if not `name` -- e.g. `Card` for a type imported as `Playingcard`.
    * - Why:  runtime type checks compare class names as strings, e.g. `spellCore.isOfType(thing, 'Card')`.
    *   Compiled code names the class by `name` -- `import { Card as Playingcard }` -- but that doesn't rename it.
@@ -80,14 +89,15 @@ export class TypeScope extends BlockScope {
    *   and it may already hold property `classVariables`.
    * - `superType` MUST be right:  a project's declarations read it -- see `SP.SpellDeclarations`.
    */
-  claim(declaredBy: P.Match, superType?: string, { itemType }: ClaimListOptions = {}): void {
+  claim(declaredBy: P.Match, superType?: string, { itemType, valueKind }: ClaimListOptions = {}): void {
     const previous = {
       stub: this.stub,
       declaredBy: this.declaredBy,
       superType: this.superType,
-      itemType: this.itemType
+      itemType: this.itemType,
+      valueKind: this.valueKind
     }
-    const next = { stub: false, declaredBy, superType: superType && typeCase(superType), itemType }
+    const next = { stub: false, declaredBy, superType: superType && typeCase(superType), itemType, valueKind }
     Object.assign(this, next)
     // now IT declares us -- see `ScopeList.noteDeclared()`
     P.ScopeList.noteDeclared(this)
@@ -112,7 +122,7 @@ export class TypeScope extends BlockScope {
   declareProperty(
     name: string,
     declaredBy: P.Match,
-    { asWritten, datatype, autoDeclared }: DeclarePropertyOptions = {}
+    { asWritten, datatype, autoDeclared, readAs }: DeclarePropertyOptions = {}
   ): void {
     const existing = this.variables.get(name, "LOCAL_ONLY")
     if (!existing) {
@@ -120,6 +130,7 @@ export class TypeScope extends BlockScope {
       const props: P.ScopeVariableProps = { name, datatype, declaredBy }
       if (asWritten && asWritten !== name) props.asWritten = asWritten
       if (autoDeclared) props.autoDeclared = true
+      if (readAs) props.readAs = readAs
       this.variables.add(props)
     }
     // an earlier parse of THIS statement left it:  it's ours again -- see `sameStatement()`
@@ -287,10 +298,22 @@ export class TypeScope extends BlockScope {
   }
 }
 
-/** What `TypeScope.claim()` takes for a list type -- see `TypeScope.itemType`. */
+/** What `TypeScope.claim()` takes for a list type or a value kind -- see `TypeScope.itemType`, `valueKind`. */
 export type ClaimListOptions = {
   /** What it holds, e.g. `Card`. */
   itemType?: P.Datatype
+  /** Its values, if it's a value kind. */
+  valueKind?: ValueKind
+}
+
+/** A value kind's values, and where its list is kept -- see `TypeScope.valueKind`. */
+export type ValueKind = {
+  /** Its values as compiled, e.g. `["'clubs'", "'diamonds'"]` or `[2, 3]`. */
+  values: Array<string | number>
+  /** Type whose class variable holds the list, e.g. `Deck`. */
+  listOn: string
+  /** That class variable, e.g. `Suits`. */
+  listName: string
 }
 
 /** What `TypeScope.declareProperty()` takes besides a name -- each optional. */
@@ -301,6 +324,8 @@ export type DeclarePropertyOptions = {
   datatype?: P.Datatype
   /** Declared by its first `set` -- see `P.ScopeVariable.autoDeclared`. */
   autoDeclared?: boolean
+  /** How a read compiles, e.g. `Suit.color({it})` for a value kind's property -- see `P.ScopeVariable.readAs`. */
+  readAs?: string
 }
 
 /** Constructor props for `TypeScope`. */
@@ -311,6 +336,8 @@ export type TypeScopeProps = {
   superType?: string
   /** If true, the type was created as a stub. */
   stub?: boolean
+  /** See `TypeScope.valueKind`. */
+  valueKind?: ValueKind
   /** See `TypeScope.itemType`. */
   itemType?: P.Datatype
   /** See `TypeScope.runtimeName`. */

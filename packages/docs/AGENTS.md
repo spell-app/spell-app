@@ -168,9 +168,16 @@ In `tools/`:
       pick;  the button orange with the letter;  the chosen pill again drops just the pick, Clear both
     - the page header's paper plane, left of the git button:  grey, blue with unsent marks, outlined once sent;  its
       tooltip says nobody is reviewing while no session listens, or its heartbeat stopped (the routes answer
-      `listening: null`)
+      `listening: null`);  beside it, Review Now (the wand, epic `windows-and-review` P4):  sends every mark and asks
+      each revisit waiting now, so the session works through the batch at once, answers into the items;  blue while
+      there's anything to work through
     - re-reads the inbox on the page server's change event for `<name>.inbox.json`, else every 4s while visible;
       nothing it does scrolls the page
+  - running agents (`wireAgents()`, a plan doc served by the page server, epic `skillz` P3):  while any agent of the
+    epic runs, an "Agents running" panel (`div.plan-agents`, NOT a section:  the contents, rail and counts never see
+    it) right before the first section;  a row per agent, keyed by name and updated in place (name, status, age,
+    task, its redirects "You · 10:42 · told 10:43"), and a growing note box with Send that redirects it;  re-read on
+    the change event for `agents.json`, else every 4s while visible
   - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
   - the address follows the section being read (`#id`, replaced, not pushed), so a reload lands there
   - served by the page server, an edit to the page's file updates it IN PLACE (`wireLiveUpdate()`):  scroll,
@@ -276,7 +283,7 @@ In `tools/`:
   - absent until the first mark, deleted once empty;  git-ignored:  per-machine pending state, never the record
   - shape and helpers:  `tools/inbox.js` (`setMark()`, `requestNow()`, `markSent()`, `unsentMarks()`,
     `sentMarks()`, `takeNow()`, `takeWork()`, `setWorking()`, `setListening()`, `touchListening()`,
-    `liveListener()`, `clearMarks()`, `finishMarks()`, `clearApplied()`, `setDraft()`);  EVERY write through
+    `liveListener()`, `clearMarks()`, `finishMarks()`, `clearApplied()`, `setDraft()`, `reviewNow()`);  EVERY write through
     `updateInbox()` / `updateInboxAsync()`:  under the file's lock (`SRV.FileLock`), atomic
   - `drafts`:  a note box's text as Owen types it, kept until the mark that uses it;  never sent, counted, or work
     for a waiting session
@@ -289,7 +296,8 @@ In `tools/`:
 - The page writes through the page server's route module `tools/reviewRoutes.ts`, `/api/review/...`:
   `GET inbox?page=`, `POST mark { page, id, mark | null }`, `POST draft { page, id, action, note }` (a note box's
   text as typed), `POST now { page, id, action, note? }` (Add Details, revisit now, which keeps the item's pick:
-  queued on `now`), `POST cancel { page, id }` ("nevermind"), `POST send { page }`.
+  queued on `now`), `POST cancel { page, id }` ("nevermind"), `POST send { page, now? }` (`now: true`:  Review Now,
+  every revisit waiting asked now too, `reviewNow()`).
   - a page whose token is stale (its server restarted) takes the new one from the page as served now and retries
     once (`spell-doc-runtime.js` `refreshToken()`):  nothing typed is refused for a restart
   - `page`:  the doc's URL path (`/worktrees/<w>/...` too);  only `<name>.plan.html` (else 403), only ids of its
@@ -313,7 +321,7 @@ In `tools/`:
 ## Details pages
 
 - `/details` (`.claude/skills/details/`):  how and when Claude writes one.
-- `spell dev details new | show [--wait] | wait | answer | list | sweep` (`tools/details.js`).
+- `spell dev details new | show [--wait] | wait | answer | list | sweep` (`tools/details.js`);  `show` opens a page in the side bar's "Review" tab (epic `windows-and-review` P6).
 - Owen's answer:  the page posts it to the page server's route module `tools/detailsRoutes.ts`, which writes
   `<slug>.answer.json` beside the page;  `spell dev details wait`, run in the background, exits with it and so wakes the
   session.
@@ -387,12 +395,24 @@ In this order, from `packages/docs`:
 - `spell dev choices` (`tools/choices.js`) -- syntax-choices pages (see "Syntax-choices pages");
   `tools/choicesRoutes.ts`, their drafts and answers.
 - `tools/inbox.js`, `tools/reviewRoutes.ts` -- a plan doc's review inbox and its routes (see "Review inbox").
+- `spell dev agents add | set | done | list | wait | told` (`tools/agents.ts`, over `tools/AgentList.ts`) -- the
+  running-agents list (epic `skillz`):  every background agent a Claude session started, by name, while it runs.
+  - the file:  `epics/<epic>/agents.json` in an epic (git-ignored in the shared repo), else
+    `<checkout root>/.spell-agents.json` (git-ignored);  `--epic <name>`, any verb, picks the epic
+  - names get a prefix:  the epic's, else the worktree's, else `main` (`add aaa` in epic `skillz` is `skillz-aaa`)
+  - an entry leaves when its agent finishes (`done`);  empty, the file goes
+  - every write under the file's lock (`SRV.FileLock`) and atomic, as `inbox.js`'s
+  - REDIRECTS (P3):  the plan doc's "Agents running" box (`spell-doc-runtime.js`) shows an epic's list, a note box
+    per agent;  Owen's note goes through `tools/agentRoutes.ts` (`GET /api/agents?page=`, `POST
+    /api/agents/redirect { page, name, note }`, guarded as the review routes) into the entry's `redirects`, untold,
+    until a session's background `wait` takes it, sends it to the agent and marks it `told`
+  - the verbs and an example:  `tools/agents.ts`'s header
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` (`tools/link.ts`) -- the markdown links
   Claude gives for a page:  side bar (`--review`:  its "Review" tab), then `(_browser_)`, both through
   `tools/showRoutes.ts` (`GET /api/docs/show`).
 - `tools/pages.js` -- shared by the scripts:  the areas (`EPICS`, `GUIDES`, `PAGES`, `TEMPLATES`, `BRAND`, `GOALS`, `HOME`, `LIST_PAGES`), `findPages()`,
   `pageFile()` (a page argument to its file), `atDepth()` (a template at a page's depth),
-  `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
+  `parseArgs()` (a tool's command line:  `--key value` flags and positionals), `tidy()` (link targets + oxfmt), `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview
   through the spell extension's `DocPreview`;  `{ view: "review" }`:  the "Review" tab).
 - `tools/plan-parts.js` -- a split plan doc:  `assembleParts()` / `splitParts()` (pure DOM), the part URLs'
   rebasing, `formatHTML()` (oxfmt in this process, as `vp fmt` would), `writeChanged()` (atomic, only what changed).

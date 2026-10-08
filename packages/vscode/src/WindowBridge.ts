@@ -21,9 +21,10 @@
  *   - `reload-view { view? }`:  rebuild that doc view from scratch, a new iframe at the page in view
  *     (`DocView.rebuild()`);  answers its `url`, `null` when the view was never shown
  *   - `close-window {}`:  close this window, just after answering (`/isolate done` closes the worktree's window)
- *   - `open-session { sessionId, prompt? }`:  open Claude Code session `sessionId` in an editor tab (never the
+ *   - `open-session { sessionId?, prompt? }`:  open Claude Code session `sessionId` in an editor tab (never the
  *     sidebar), `prompt` typed into its input (not sent:  Owen presses enter);  `/isolate` hands its session to
- *     the worktree's window this way
+ *     the worktree's window this way.  No `sessionId`:  a NEW session (`/epic <name>` from another epic's
+ *     session starts its own this way:  `spell dev window launch`)
  *   - `close-session-tab { titles }`:  close the ONE Claude Code tab labelled with the first of `titles` that
  *     exactly one tab shows;  none (or only several-tab matches):  ok, `closed: false`, `matches` per title.
  *     Closing the tab ends that tab's `claude` process.  (`{ title }`, one title, still works.)
@@ -203,12 +204,15 @@ export class WindowBridge {
         setTimeout(() => void vscode.commands.executeCommand("workbench.action.closeWindow"), 200)
         return { closing: true }
       case "open-session": {
-        const sessionId = typeof body.sessionId === "string" ? body.sessionId : ""
-        if (!SESSION_ID.test(sessionId)) throw new BridgeError(400, `bad session id '${sessionId}'`)
+        // no `sessionId`:  a NEW session (`spell dev window launch`)
+        const sessionId = body.sessionId === undefined ? undefined : String(body.sessionId)
+        if (sessionId !== undefined && !SESSION_ID.test(sessionId)) {
+          throw new BridgeError(400, `bad session id '${sessionId}'`)
+        }
         // 2nd argument:  the extension's `initialPrompt` (2.1.287), typed in, not sent
         const prompt = typeof body.prompt === "string" && body.prompt ? body.prompt : undefined
         await vscode.commands.executeCommand("claude-vscode.primaryEditor.open", sessionId, prompt)
-        return { sessionId }
+        return { sessionId: sessionId ?? null }
       }
       case "close-session-tab": {
         const titles = Array.isArray(body.titles) ? body.titles : [body.title]

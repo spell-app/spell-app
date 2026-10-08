@@ -1,0 +1,14 @@
+/* `<OutputRoot>` / `<OutputEditor>` (`OutputEditor.tsx`):  laid out as `<InputRoot>` (`InputEditor.css`). */
+
+.OutputRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.OutputEditor {
+  position: relative;
+  background: white;
+  flex: 1 1 auto;
+  overflow: hidden;
+}

@@ -11,7 +11,7 @@ import { LSP } from "$/lsp"
 import { SpellDiskWorkspace } from "$/lsp/SpellDiskWorkspace"
 import { installDiskFetch, locationForDiskPath } from "$/spell/node/disk-fetch"
 import { scopesFromPacks } from "$/lsp/ScopesSource"
-import { compiledFixture, fixturePath } from "$/spell/test"
+import { compiledFixture, fixtureDeclarations, fixturePath } from "$/spell/test"
 
 /** The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it. */
 describe("ScopeExplorer", () => {
@@ -325,8 +325,11 @@ describe("ScopeExplorer scope packs", () => {
     expect(details.get(find(tree, "Card").path)?.description).toMatch(/^## definition of a Card/)
   })
 
-  test("a page with NO sources finds each entry's compiled code by what its marker declares -- all but variables", async () => {
-    const scopes = scopesFromPacks([builtIns, pack], { loadCompiled: async () => compiledFixture("Solitaire") })
+  test("a page with NO sources finds each entry's compiled code by its declarations -- all but variables", async () => {
+    const scopes = scopesFromPacks([builtIns, pack], {
+      loadCompiled: async () => compiledFixture("Solitaire"),
+      loadDeclarations: async () => JSON.parse(fixtureDeclarations("Solitaire"))
+    })
     const declarations = pack.entries.filter(({ path }) => !/(^|\/)(project|file|variable):[^/]*$/.test(path))
     expect(declarations.length).toBeGreaterThan(50)
     const missing = []

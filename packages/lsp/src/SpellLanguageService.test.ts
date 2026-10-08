@@ -738,6 +738,22 @@ describe("SpellLanguageService", () => {
     })
   })
 
+  test("custom requests:  a line's spell tree;  none for a blank line", () => {
+    const lines = card.parseText.split("\n")
+    const tree = service.lineTree(
+      card,
+      lines.findIndex((line) => line.includes("set its direction to up"))
+    )
+    expect(tree?.label).toBe("Set")
+    expect(tree?.children?.map(({ slot }) => slot)).toEqual(["thing", "value"])
+    expect(
+      service.lineTree(
+        card,
+        lines.findIndex((line) => line.trim() === "")
+      )
+    ).toBeNull()
+  })
+
   test("custom requests:  compiled javascript, and the project's files", () => {
     expect(service.compiled(card)).toContain("export class Card extends Thing {\n")
     expect(service.projectInfo(card).files.map(({ file, errors }) => `${file} ${errors}`)).toEqual([
@@ -865,6 +881,43 @@ describe("SpellLanguageService", () => {
     }
     return tokens
   }
+})
+
+/**
+ * An OUTLINE project (plan doc `outline-spell`):  a temp copy of the OutlineSolitaire fixture, whose deck and card are
+ * written as outlines.
+ */
+describe("SpellLanguageService, outline style", () => {
+  const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-outline-"))
+  cpSync(fixturePath("OutlineSolitaire"), resolve(dir, "OutlineSolitaire"), { recursive: true })
+  const cardPath = resolve(dir, "OutlineSolitaire/Card.spell")
+  const cardUri = pathToFileURL(cardPath).href
+  const workspace = new SpellDiskWorkspace()
+  const service = new LSP.SpellLanguageService(workspace)
+  let card: SP.SpellFile
+
+  beforeAll(async () => {
+    await workspace.update(cardUri, readFileSync(cardPath, "utf8"))
+    card = workspace.fileFor(cardUri)!
+  })
+
+  test("parses cleanly", () => {
+    for (const file of card.project.spellFiles) expect(service.diagnostics(file), file.path).toEqual([])
+  })
+
+  test("hover on an outline line:  how the sentence style says it", () => {
+    const hoverOn = (line: number, word: string) =>
+      (service.hover(card, at(card, line, word))!.contents as { value: string }).value
+    expect(hoverOn(5, "suit")).toMatch(/^\*\*Reads as\*\*  `a card has a suit as a suit of its deck`/)
+    expect(hoverOn(7, "is a (suit)")).toContain('**Reads as**  `a card "is a (suit)" for its suits`')
+    expect(hoverOn(16, "face up")).toContain('**Reads as**  `a card "is face up" if its direction is up`')
+  })
+
+  test("the editor's outline nests a type's bullets under it", () => {
+    const symbols = service.documentSymbols(card)
+    const cardSymbol = symbols.find((symbol) => symbol.name === "Card")!
+    expect(cardSymbol.children?.map((child) => child.name)).toEqual(expect.arrayContaining(["suit", "rank", "color"]))
+  })
 })
 
 /** Position of the `nth` (0-based) `word` on 1-based `line` of `file`. */

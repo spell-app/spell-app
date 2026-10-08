@@ -1,0 +1,22 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "play_fizzbuzz"
+  ],
+  "statements": [
+    {
+      "syntax": "play fizzbuzz",
+      "output": "play_fizzbuzz",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/FizzBuzz.spell:23-331"
+    }
+  ],
+  "codeLines": [
+    4
+  ]
+}

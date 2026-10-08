@@ -98,7 +98,8 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   modal (`.claude/skills/isolate/SKILL.md`, "Start", step 2b).  Staying is fine when the session is its window's
   only one.
   - A session that stays:  same tab, only its folder changes;  its changes show in Source Control, since every
-    package window has `git.detectWorktrees` on (each worktree its own repo there).
+    package window has `git.detectWorktrees` on (each worktree its own repo there).  The window is titled
+    `⎇ <name>` and its title bar tinted at once (`spell dev window stay <name>`), put back at `/isolate done`.
   - NEVER add a worktree's folders to a package window (`spell dev window add`):  VS Code writes them into
     `workspaces/<pkg>.code-workspace`, and they stay there after the worktree is gone (three did, by 2026-10-03).
     Nobody sees them:  those files are `skip-worktree` in the main checkout, so Owen's theme changes never show
@@ -114,9 +115,12 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - So END THE TURN right after `handoff`:  the rest (`yarn install` ...) happens in the new window.
   - The old tab is found by the session's title.  The `UserPromptSubmit` hook `.claude/hooks/prompt-gate.mjs`
     renames the session on `/isolate <name>`, `/epic <name>` and `/unpark <name>`.  It also blocks those prompts in
-    plan mode or inside another worktree, saving their text to `~/.spell/prompts/<name>.md` first.
-  - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), the package window's theme with a title
-    bar tinted per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
+    plan mode or inside another worktree, saving their text to `~/.spell/prompts/<name>.md` first.  Except
+    `/epic <name>` inside another worktree:  it means "open a window for `<name>`", so Claude offers one
+    (`spell dev window launch <name>`:  a NEW session there;  `/epic` skill, "From another worktree").
+  - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), in the look of the window it's opened
+    from, or the one asked for (`/epic <name> -purple`:  Tomorrow Night Blue's look in one of 12 hues,
+    `spell dev window color`;  `/epic color <look>` recolours the window you're in, live).  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
     worktree's root (`⎇ <name>`), then the shared content repo;  the main root's files hidden (above).
   - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
   - `spell dev window` works in a fresh worktree, before its `yarn install`:  the `spell` link runs the MAIN

@@ -193,7 +193,12 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
     root: "[part~=content]"
   },
   { family: "ui-code", html: `<ui-code language="text">let x = 1</ui-code>`, root: "[part~=box]" },
-  { family: "ui-markdown", html: `<ui-markdown size="small"># Title</ui-markdown>`, root: "[part~=body]" }
+  { family: "ui-markdown", html: `<ui-markdown size="small"># Title</ui-markdown>`, root: "[part~=body]" },
+  {
+    family: "ui-tree-diagram",
+    html: `<ui-tree-diagram><script type="application/json">{"label": "If", "children": [{"label": "Print", "slot": "body"}]}</script></ui-tree-diagram>`,
+    root: "figure[part~=diagram] ul"
+  }
 ]
 
 ////////////////

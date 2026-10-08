@@ -346,7 +346,15 @@ class subrule extends P.Sequence<"matchGroup?|rule|caseFlag?|repeatFlag?|interva
 }
 rulex.addRule(subrule, {
   alias: "rule",
-  rules: [new P.Symbol("{"), matchGroup, new P.Word({ matchGroup: "rule" }), new P.Symbol("}"), caseFlag, repeatFlag, interval],
+  rules: [
+    new P.Symbol("{"),
+    matchGroup,
+    new P.Word({ matchGroup: "rule" }),
+    new P.Symbol("}"),
+    caseFlag,
+    repeatFlag,
+    interval
+  ],
   tests: [
     {
       title: "matches subrule",
@@ -411,9 +419,15 @@ rulex.addRule(list, {
         ["[{sub}]", undefined],
 
         // a delimiter written touching the item must touch it
-        ["[{sub},]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Symbol({ literal: ",", spacing: "none" }) })],
+        [
+          "[{sub},]",
+          new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Symbol({ literal: ",", spacing: "none" }) })
+        ],
         ["[{sub} ,]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Symbol(",") })],
-        ["[{sub}or]", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Keyword({ literal: "or", spacing: "none" }) })],
+        [
+          "[{sub}or]",
+          new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Keyword({ literal: "or", spacing: "none" }) })
+        ],
 
         [
           "[arg:{sub},]",
@@ -694,10 +708,7 @@ rulex.addRule(sequence, {
             new P.Keyword({ literal: 1 as unknown as string, spacing: "none" })
           )
         ],
-        [
-          "-1",
-          new P.Sequence(new P.Symbol("-"), new P.Keyword({ literal: 1 as unknown as string, spacing: "none" }))
-        ],
+        ["-1", new P.Sequence(new P.Symbol("-"), new P.Keyword({ literal: 1 as unknown as string, spacing: "none" }))],
         ["¬", new P.Symbol("¬")]
       ]
     },
@@ -709,10 +720,7 @@ rulex.addRule(sequence, {
         ["note/i", new P.Keyword({ literal: "note", caseInsensitive: true })],
         ["(note|tip)/i", new P.Keyword({ literal: ["note", "tip"], caseInsensitive: true })],
         ["(note|tip)/i?", new P.Keyword({ literal: ["note", "tip"], caseInsensitive: true, optional: true })],
-        [
-          "a note/i",
-          new P.Sequence(new P.Keyword("a"), new P.Keyword({ literal: "note", caseInsensitive: true }))
-        ],
+        ["a note/i", new P.Sequence(new P.Keyword("a"), new P.Keyword({ literal: "note", caseInsensitive: true }))],
         // spaced:  just a `/` and an `i`
         ["a / i", new P.Sequence(new P.Keyword("a"), new P.Symbol("/"), new P.Keyword("i"))]
       ]
@@ -726,10 +734,7 @@ rulex.addRule(sequence, {
         ["#{1,6}", new P.Repeat({ rule: new P.Symbol("#"), minCount: 1, maxCount: 6, itemSpacing: "none" })],
         ["- {3,}", new P.Repeat({ rule: new P.Symbol("-"), minCount: 3 })],
         ["{a}{0,2}", new P.Repeat({ rule: new P.Subrule("a"), minCount: 0, maxCount: 2, optional: true })],
-        [
-          "(a|b){2,3}",
-          new P.Repeat({ rule: new P.Keyword(["a", "b"]), minCount: 2, maxCount: 3 })
-        ]
+        ["(a|b){2,3}", new P.Repeat({ rule: new P.Keyword(["a", "b"]), minCount: 2, maxCount: 3 })]
       ]
     },
     {
@@ -742,10 +747,7 @@ rulex.addRule(sequence, {
         ["{a}{space}{b}", new P.Sequence(new P.Subrule("a"), new P.Subrule({ rule: "b", spacing: "one" }))],
         // `{spaces}` owns its boundary, however the syntax spaces around it
         ["{a} {spaces} {b}", new P.Sequence(new P.Subrule("a"), new P.Subrule({ rule: "b", spacing: "some" }))],
-        [
-          "-{spaces}{text}",
-          new P.Sequence(new P.Symbol("-"), new P.Subrule({ rule: "text", spacing: "some" }))
-        ],
+        ["-{spaces}{text}", new P.Sequence(new P.Symbol("-"), new P.Subrule({ rule: "text", spacing: "some" }))],
         [
           "!\\[{alt}\\]",
           new P.Sequence(

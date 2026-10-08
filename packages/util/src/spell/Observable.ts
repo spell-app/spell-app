@@ -49,8 +49,9 @@ export class Observable<
    * On construction, assign `props` passed in to our instance.
    * - Through each key's setter, if it has one;  a key without one becomes a plain field.
    * - `props` here can include state keys too, since we don't distinguish them at the call site.
+   * - Optional:  compiled spell's `a new deck` is `new Deck()`.
    */
-  constructor(props: Partial<Props & State>) {
+  constructor(props?: Partial<Props & State>) {
     super()
     Object.assign(this, props)
   }
@@ -119,8 +120,9 @@ export class Observable<
    */
   protected checkPropType(property: string, value: unknown, info: PropInfo): void {
     if (import.meta.env?.PROD) return
-    if (info.oneOf && !info.oneOf.includes(value)) {
-      console.warn(`${this.constructor.name}.${property}:  expected one of ${info.oneOf.join(", ")}, got`, value)
+    const oneOf = typeof info.oneOf === "function" ? info.oneOf() : info.oneOf
+    if (oneOf && !oneOf.includes(value)) {
+      console.warn(`${this.constructor.name}.${property}:  expected one of ${oneOf.join(", ")}, got`, value)
     } else if (info.type && !isOfType(value, info.type)) {
       console.warn(`${this.constructor.name}.${property}:  expected ${info.type}, got`, value)
     }

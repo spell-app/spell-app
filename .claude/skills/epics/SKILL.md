@@ -22,12 +22,13 @@ Owen runs several epics at once:  one screen saying where each stands.  Read-onl
 1. Gather, in parallel (one Bash call each, from the repo root or any worktree):
    - `spell dev plan-doc list --json`:  every epic once, `{ name, title, status, checkout, notReviewed, total, file }`,
      in progress first
-     - `status`:  `in progress` while any phase isn't done (or there are none yet), else `done`
+     - `status`:  `in progress` while any phase isn't done (or there are none yet), else `done`;  `future`:  written
+       down with `/epic future`, not planned yet (`/epic` skill, "9. Future")
      - `checkout`:  `main`, or `.claude/worktrees/<name>`:  where it runs
    - `spell dev worktree list --json`:  `{ sessions[] }`, each with `name`, `branch`, `checkout`, `state`
      (`busy`, `waiting`, `idle` ...), `question`, `id`
-2. Keep the open ones (`/epics all`:  every one):  `in progress`, or `done` with a worktree whose branch has work
-   not in `main`.  Then, for those:
+2. Keep the open ones (`/epics all`:  every one):  `in progress`, `future`, or `done` with a worktree whose branch
+   has work not in `main`.  Then, for those:
    - `spell dev plan-doc summaries <file> ...` (every `file` in one call):  JSON `{ <file>: summary }`, each with
      `phases[]` (`n`, `name`, `status`), `active`, `next`, `open` (items by kind), `bedtime` (the phases a `/bedtime`
      run is on, while it goes);  or `{ error }`
@@ -35,6 +36,8 @@ Owen runs several epics at once:  one screen saying where each stands.  Read-onl
      status --short` (uncommitted files), and a `PARKED-<name>.md` at its root (`/park`)
    - its sessions:  the ones whose `branch` or `name` is `<name>`
 3. Its STATE, from those:
+   - `future`:  written down, not planned (`status` `future`):  listed after the others, in a group of its own,
+     "Future epics", each with `/epic <name>` to plan it and its analysis page (`epics/<name>/details/analysis.html`)
    - `planning`:  no phases yet
    - `working`:  a phase `active`, or a session on it `busy` / `waiting`
    - `stalled`:  phases left, nothing working on it

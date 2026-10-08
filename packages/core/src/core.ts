@@ -75,8 +75,9 @@ export const coreMethods = defineSpellCoreModule({
       spellCore.console.warn(`Expected ${property} to be type '${check.type}', got:`, value)
       return false
     }
-    if (check?.oneOf && !check.oneOf.includes(value)) {
-      spellCore.console.warn(`Expected ${property} to be one of '${check.oneOf}', got:`, value)
+    const oneOf = typeof check?.oneOf === "function" ? check.oneOf() : check?.oneOf
+    if (oneOf && !oneOf.includes(value)) {
+      spellCore.console.warn(`Expected ${property} to be one of '${oneOf}', got:`, value)
       return false
     }
     return true

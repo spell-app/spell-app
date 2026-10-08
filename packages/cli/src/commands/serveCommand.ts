@@ -17,7 +17,7 @@ const EDITOR_FILE = join(REPO_ROOT, ".spell-server.editor.json")
 const START_TIMEOUT_MS = 90_000
 
 /**
- * `spell serve [target]`:  run EVERYTHING -- the page server of this checkout, with the app's API, the editor UI,
+ * `spell serve [project]`:  run EVERYTHING -- the page server of this checkout, with the app's API, the editor UI,
  * docs, epics, goals and Spell UI -- and open the editor in a browser.
  * - The PAGE SERVER (`yarn server`, `$/server/page`), started if it isn't running.  The editor is ITS child:  `app`'s
  *   route module starts vite once the page server listens, and stops it with the page server (`EditorServer.ts`),
@@ -25,7 +25,7 @@ const START_TIMEOUT_MS = 90_000
  * - `--port`:  the editor's port, for a page server this STARTS (`SPELL_EDITOR_PORT`);  one already running keeps
  *   its editor where it is.  Default 3000, else any free port.
  * - Stops no other servers, and runs no `yarn install`.
- * - `target`:  opens the editor on it, e.g. `@examples/Solitaire`.  No target:  the project here, if the app knows
+ * - `project`:  opens the editor on it, e.g. `@examples/Solitaire`.  None:  the project here, if the app knows
  *   its root -- else the app's project chooser.  Only projects in the app's roots open:  not a `@workspace` folder.
  * - `--headless`:  no browser, just the URL.
  * - Runs until `Ctrl-C`, then stops the page server (and so the editor) -- if it started it.  Returns the exit code.
@@ -117,18 +117,18 @@ async function editorUrl(): Promise<string | undefined> {
  */
 async function pathFor(session: CLI.CliSession, arg: string | undefined): Promise<string> {
   if (arg === undefined && !CLI.projectDirAbove(process.cwd())) return "/"
-  const target = await CLI.resolveTarget(arg ?? CLI.WORKSPACE_ARG)
+  const resolved = await CLI.resolveProject(arg ?? CLI.WORKSPACE_ARG)
   const path =
-    target.kind === "file"
-      ? target.file.path
-      : target.kind === "project"
-        ? target.project.projectId
-        : target.projectIds[0]?.replace(/:[^:]*$/, "")
+    resolved.kind === "file"
+      ? resolved.file.path
+      : resolved.kind === "project"
+        ? resolved.project.projectId
+        : resolved.projectIds[0]?.replace(/:[^:]*$/, "")
   if (!path) return "/"
   const location = new SP.SpellLocation(path)
   if (location.owner === CLI.WORKSPACE_ARG) {
     session.err(
-      `The app only opens projects in its roots (\`spell projects\`):  not ${target.arg} -- opening the chooser`
+      `The app only opens projects in its roots (\`spell projects\`):  not ${resolved.arg} -- opening the chooser`
     )
     return "/"
   }

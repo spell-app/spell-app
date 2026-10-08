@@ -84,9 +84,7 @@ class start_test extends SpellStatement<"quiet?|message"> {
     const { quiet, message } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "startTest",
-      // NOTE: `ASTQuotedString` doesn't exist -- `message.value` already carries the enclosing quotes
-      // (see the `text` rule in core.js), so `StringLiteral` reproduces the original intent exactly.
-      args: [new P.ASTStringLiteral(message, message.value), new P.ASTBooleanLiteral(match, !!quiet)]
+      args: [P.matchAST<P.ASTStringLiteral>(message), new P.ASTBooleanLiteral(match, !!quiet)]
     })
   }
 }

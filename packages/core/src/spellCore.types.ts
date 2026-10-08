@@ -42,6 +42,8 @@ import type { EventfulMethods } from "./SpellEvent"
  * Assembled type of the `spellCore` singleton -- built by accretion: each module below does
  * `Object.assign(spellCore, { ...methods })` at runtime (see `index.ts` for the side-effect import
  * order), so this is the intersection of every module's methods.
+ * - It's the CORE CONTRACT too:  what another target's core must have (Python's, later -- epic `output-targets`), and
+ *   what it must print is pinned by the `cli`'s `contract.test.ts`.
  */
 export type SpellCore = typeof coreMethods &
   typeof collectionCoreMethods &
@@ -66,8 +68,11 @@ export type SpellCore = typeof coreMethods &
 export type PropCheck = {
   /** type name, e.g. `text`, `choice`, `Card` -- see `spellCore.isOfType()` */
   type?: string
-  /** legal values, e.g. `Card.Suits` */
-  oneOf?: readonly unknown[]
+  /**
+   * legal values, e.g. `Card.Suits` -- or a function returning them, read when a value is set, e.g.
+   * `() => Deck.Suits`:  a value kind's list is on ANOTHER class, which may be defined after ours
+   */
+  oneOf?: readonly unknown[] | (() => readonly unknown[])
 }
 
 // ## Modules

@@ -13,7 +13,21 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { after, beforeEach, test } from "node:test"
 
-import { Window, claudeSessions, mainRoot, parseLsof, processTable, stayAdvice, tint, worktreeOf } from "./window.mjs"
+import {
+  LOOKS,
+  Window,
+  claudeSessions,
+  look,
+  mainRoot,
+  parseLsof,
+  processTable,
+  stayAdvice,
+  tint,
+  withLook,
+  withoutStay,
+  withStay,
+  worktreeOf
+} from "./window.mjs"
 
 /** The temp registry folder. */
 const dir = mkdtempSync(join(tmpdir(), "spell-windows-"))
@@ -155,6 +169,74 @@ test("a worktree's window:  the main root first, then the worktree's root, then 
   assert.equal(workspace.settings["workbench.colorTheme"], Window.theme("ui"))
   assert.deepEqual(workspace.settings["workbench.colorCustomizations"], tint("seo"))
   assert.match(Window.worktreeFile("seo"), /\/workspaces\/ongoing\/seo\.code-workspace$/)
+})
+
+test("looks:  twelve names, Tomorrow Night Blue re-hued;  blue IS the theme;  an unknown name lists them", () => {
+  assert.equal(Object.keys(LOOKS).length, 12)
+  const blue = look("blue")
+  assert.equal(blue.theme, "Tomorrow Night Blue")
+  assert.equal(blue.colors["editor.background"], "#002451")
+  assert.equal(blue.colors["progressBar.background"], "#bbdaffcc")
+  const purple = look("Purple")
+  assert.notEqual(purple.colors["editor.background"], "#002451")
+  // alpha kept, lightness kept:  the purple badge is as light as the blue one
+  assert.match(purple.colors["badge.background"], /^#[0-9a-f]{6}cc$/)
+  assert.throws(() => look("magenta"), /no look "magenta":  red, orange/)
+})
+
+test("withLook:  the theme, the look's colours scoped to it;  a global colour it sets goes, Owen's others stay", () => {
+  const settings = {
+    "workbench.colorTheme": "Abyss",
+    "workbench.colorCustomizations": { "editor.background": "#000000", "editorCursor.foreground": "#ff0000" }
+  }
+  withLook(settings, "teal")
+  assert.equal(settings["workbench.colorTheme"], "Tomorrow Night Blue")
+  const custom = settings["workbench.colorCustomizations"]
+  assert.equal(custom["editor.background"], undefined)
+  assert.equal(custom["editorCursor.foreground"], "#ff0000")
+  assert.deepEqual(custom["[Tomorrow Night Blue]"], look("teal").colors)
+})
+
+test("stay:  titled ⎇ <name>, tinted in its theme's scope;  --end puts back exactly what was there", () => {
+  const before = {
+    settings: {
+      "workbench.colorTheme": "Tomorrow Night Blue",
+      "window.title": "mine",
+      "workbench.colorCustomizations": {
+        "[Tomorrow Night Blue]": { "titleBar.activeBackground": "#123456", x: "#fff" }
+      }
+    },
+    spell: { package: "docs" }
+  }
+  const workspace = structuredClone(before)
+  withStay(workspace, "quick-open")
+  assert.equal(
+    workspace.settings["window.title"],
+    "${dirty}${activeEditorShort}${separator}⎇ quick-open${separator}${appName}"
+  )
+  assert.equal(
+    workspace.settings["workbench.colorCustomizations"]["[Tomorrow Night Blue]"]["titleBar.activeBackground"],
+    tint("quick-open")["titleBar.activeBackground"]
+  )
+  // a second stay keeps the first one's record of what to put back
+  withStay(workspace, "seo")
+  assert.equal(workspace.spell.stay.name, "seo")
+  assert.equal(withoutStay(workspace), true)
+  assert.deepEqual(workspace, before)
+  assert.equal(withoutStay(workspace), false)
+})
+
+test("a worktree's window:  --color gives it that look;  else the look of the window it's opened from, no stay tint", () => {
+  const colored = Window.worktreeWorkspace("ui", "seo", { color: "green" })
+  assert.equal(colored.settings["workbench.colorTheme"], "Tomorrow Night Blue")
+  assert.deepEqual(colored.settings["workbench.colorCustomizations"]["[Tomorrow Night Blue]"], look("green").colors)
+  const from = withStay({ settings: withLook({}, "purple") }, "other")
+  const inherited = Window.worktreeWorkspace("ui", "seo", { from })
+  assert.deepEqual(inherited.settings["workbench.colorCustomizations"], {
+    "[Tomorrow Night Blue]": look("purple").colors
+  })
+  assert.equal(inherited.settings["window.title"], undefined)
+  assert.ok(from.spell.stay, "the source window's file is left as it was")
 })
 
 test("a worktree's window hides the MAIN root's files (beside `.spell-main`), never `packages` outright", () => {

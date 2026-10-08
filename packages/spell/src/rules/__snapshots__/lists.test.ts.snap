@@ -29,6 +29,7 @@ exports[`testing spell module lists > rule group specs > match snapshot -- if th
   "list_reverse": "arg?|list",
   "list_shuffle": "arg?|list",
   "merge_lists": "expression|type?",
+  "number_range": "start|end",
   "ordinal_position_expression": "ordinal|arg|expression",
   "position_expression": "arg|position|expression",
   "random_item_expression": "arg|list",
