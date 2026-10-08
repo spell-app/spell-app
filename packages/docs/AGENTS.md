@@ -43,7 +43,7 @@ The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, 
 - `epics/<name>/<name>.plan.html` -- plan docs, one per `/epic` session (see "Plan docs").  `<name>.html` before
   2026-10-04:  the tools find either (`tools/pages.js` `planDocIn()`), a worktree cut before keeps the old name
   until it merges `main`, and the page server redirects the old URL;  `tools/plan-rename.js` did the rename.
-  - a SPLIT doc's bodies:  `epics/<name>/parts/<id>.html` (`.htm` until the switch, P12 of `epic-components`),
+  - a SPLIT doc's bodies:  `epics/<name>/parts/<id>.html` (`.htm` before the switch, P12 of `epic-components`),
     loaded by the page when opened (see "Plan docs");  every page walker skips `parts/` folders (`findPages()`,
     `relocate.js`, `spell static`), so a part is never taken for a page
 - `pages/details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page
@@ -212,9 +212,9 @@ In `tools/`:
   hand-written prose around them.  E.g. `dev/commands/commands.html`.
 - `templates/cheatsheet.html` -- an API reference:  a grid of cards, filtered by text and by badge
   (`ui-select[data-spell-filter-badge]`);  a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link).
-- `templates/epics/plan.html` -- a plan doc in the OLD markup, which checkouts on older code still copy;  it
-  retires at the switch (P12 of `epic-components`).  NEVER copy by hand:  `spell dev plan-doc new <name>`, which
-  copies the tool's own template, in `<epic-*>` markup (`packages/epics/src/tool/templates/plan.html`).
+- Plan docs have no template here (the old `templates/epics/plan.html` retired at the switch, P12 of
+  `epic-components`):  `spell dev plan-doc new <name>` copies the tool's own, in `<epic-*>` markup
+  (`packages/epics/src/tool/templates/plan.html`).  How to write one:  `templates/epics/plan-doc.md`.
 - `templates/details.html` -- a details page.  NEVER copy by hand:  `spell dev details new <slug>`.
 - `templates/review.html` -- "Review":  a details page reviewing a finished run's calls, one question each (keep,
   change, talk over), then "Where first?";  saved from `ui-docs-rework`'s morning review as the model.
@@ -240,8 +240,8 @@ In `tools/`:
   - what the tool writes, and the rules for a doc's DATA in that markup (ids, phases, items, log, parts):
     `packages/epics/src/tool/PLAN-DOC.md`
   - how to write one (rules, ids, prose, explaining a question, the review loop):  `templates/epics/plan-doc.md`
-  - until the switch (P12 of `epic-components`) the shared docs are still in the OLD markup:  the tool reads them
-    and refuses to edit them ("convert it first":  `spell dev plan-doc convert <name>`)
+  - every shared doc is in `<epic-*>` markup since the switch (P12 of `epic-components`, 2026-10-08);  a doc
+    still in the OLD `ui-*` markup is read, never edited ("convert it first":  `spell dev plan-doc convert <name>`)
 - Edit through `spell dev plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
 - SPLIT docs (P3 of `claude-design`;  new docs start split):  a skeleton plus part files, `parts/<id>.html`

@@ -4,14 +4,14 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
 `epic-components`, P8).  The elements -- tags, attributes, which children go where -- are described ONCE, in
 `packages/epics/src/definitions/` (each `components/<family>/<tag>.vocabulary.en.ts`);  this file holds the rest.
 
-- Until the switch (P12) the real docs are in the OLD markup, ruled by `templates/epics/plan-doc.md`:  this tool
-  READS them (`summary`, `summaries`, `list`, `items`, `check`, `open`, the inbox's listings) and refuses to edit
-  them:  "convert it first (spell dev plan-doc convert)".
-- At the switch, `templates/epics/plan-doc.md`'s "Markup the script writes" gives way to a pointer here, and
-  `templates/epics/plan.html` retires for `templates/plan.html` beside this file.
-- What's unchanged from `plan-doc.md`, and stays there:  "Rules" (write for Owen cold, Net effect, never delete an
-  item, never drop its text), "Ids", "Prose", "Explaining a question or issue", "Review inbox" (the loop), the
-  commands' table.
+- Since the switch (P12, 2026-10-08) every real doc is in this markup.  A doc still in the OLD `ui-*` markup is
+  READ (`summary`, `summaries`, `list`, `items`, `check`, `open`, the inbox's listings) and never edited:  "convert
+  it first (spell dev plan-doc convert)".
+- The template `new` copies:  `templates/plan.html` beside this file (the shared `templates/epics/plan.html`
+  retired at the switch).
+- How to WRITE a doc stays in `templates/epics/plan-doc.md`:  "Rules" (write for Owen cold, Net effect, never delete
+  an item, never drop its text), "Ids", what phases and items say, "Prose", "Explaining a question or issue",
+  "Review inbox" (the loop), the commands' table.  It points here for the markup.
 
 ## The page
 
@@ -149,8 +149,9 @@ As `plan-doc.md`, "Parts", with the elements as hosts (`EpicParts`, beside this)
 phase, an item with details, the log.  A host's body is every child but its slotted ones (the title stays in the
 skeleton);  in the skeleton it carries `source="parts/<id>.html"`, `part-ids` and `commits`.  No placeholder line:
 the element loads its own body.
-- `.html`, not `.htm` (Q12):  a part is told from a page by its folder, and every page walker skips `parts/`.  Until
-  the switch (P12) the tool READS a doc's old `.htm` parts too (`PlanParts` `OLD_PART_EXT`);  it writes `.html` only.
+- `.html`, not `.htm` (Q12):  a part is told from a page by its folder, and every page walker skips `parts/`.  The
+  tool still READS an old doc's `.htm` parts (`PlanParts` `OLD_PART_EXT`, to be dropped now the docs are converted);
+  it writes `.html` only.
 
 ## Checking
 
